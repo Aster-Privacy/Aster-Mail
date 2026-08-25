@@ -190,6 +190,7 @@ export function ThreadMessageActions({
         t(`errors.${reaction_restriction_keys[restriction]}`),
         "error",
       );
+
       return;
     }
 
@@ -201,6 +202,7 @@ export function ThreadMessageActions({
 
     if (!result.success) {
       show_toast(result.error ?? t("errors.failed_send_reaction"), "error");
+
       return;
     }
 
@@ -257,7 +259,7 @@ export function ThreadMessageActions({
             const chip = (
               <button
                 aria-disabled={is_locked}
-                className={`flex items-center gap-1.5 h-8 pl-2.5 pr-3 rounded-full border border-black/[0.15] dark:border-white/[0.15] bg-transparent transition-colors disabled:opacity-50 disabled:pointer-events-none ${
+                className={`flex items-center gap-1.5 h-8 ps-2.5 pe-3 rounded-full border border-black/[0.15] dark:border-white/[0.15] bg-transparent transition-colors disabled:opacity-50 disabled:pointer-events-none ${
                   is_locked
                     ? "cursor-default"
                     : "hover:bg-black/[0.04] dark:hover:bg-white/[0.06]"
@@ -290,7 +292,7 @@ export function ThreadMessageActions({
             size="md"
             onClick={() => on_reply(message)}
           >
-            <ArrowUturnLeftIcon className="w-4 h-4" />
+            <ArrowUturnLeftIcon className="w-4 h-4 rtl:-scale-x-100" />
             {t("mail.reply")}
           </Button>
         )}
@@ -301,7 +303,7 @@ export function ThreadMessageActions({
             variant="outline"
             onClick={() => on_reply_all(message)}
           >
-            <ArrowUturnLeftIcon className="w-4 h-4" />
+            <ArrowUturnLeftIcon className="w-4 h-4 rtl:-scale-x-100" />
             {t("mail.reply_all")}
           </Button>
         )}
@@ -312,7 +314,7 @@ export function ThreadMessageActions({
             variant="outline"
             onClick={() => on_forward(message)}
           >
-            <ArrowUturnRightIcon className="w-4 h-4" />
+            <ArrowUturnRightIcon className="w-4 h-4 rtl:-scale-x-100" />
             {t("mail.forward")}
           </Button>
         )}
@@ -343,8 +345,8 @@ export function ThreadMessageActions({
                 aria-disabled="true"
                 aria-label={restriction_message}
                 className="flex items-center justify-center w-8 h-8 rounded-full border border-black/[0.15] dark:border-white/[0.15] text-[var(--text-secondary)] opacity-50 cursor-not-allowed"
-                onClick={() => show_toast(restriction_message, "error")}
                 type="button"
+                onClick={() => show_toast(restriction_message, "error")}
               >
                 <FaceSmileIcon className="w-4 h-4" />
               </button>

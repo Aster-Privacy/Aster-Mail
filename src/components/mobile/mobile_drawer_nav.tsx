@@ -263,7 +263,7 @@ export const DrawerNavContent = memo(function DrawerNavContent({
   return (
     <div ref={nav_container_ref} className="relative">
       <div
-        className="pointer-events-none absolute left-0 w-full rounded-lg"
+        className="pointer-events-none absolute start-0 w-full rounded-lg"
         style={{
           top: 0,
           transform: `translateY(${indicator_style.y}px)`,
@@ -285,7 +285,7 @@ export const DrawerNavContent = memo(function DrawerNavContent({
           type="button"
           onClick={() => handle_nav("/")}
         >
-          <ChevronLeftIcon className="h-4 w-4 shrink-0" />
+          <ChevronLeftIcon className="h-4 w-4 shrink-0 rtl:-scale-x-100" />
           <span className="text-[14px] font-medium">{t("mail.inbox")}</span>
         </button>
       )}
@@ -376,7 +376,7 @@ export const DrawerNavContent = memo(function DrawerNavContent({
           <div
             key={folder.folder_token}
             className="relative"
-            style={{ paddingLeft: node.depth * 16 }}
+            style={{ paddingInlineStart: node.depth * 16 }}
           >
             {node.depth > 0 && (
               <>

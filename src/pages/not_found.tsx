@@ -29,7 +29,10 @@ export default function NotFoundPage() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-6 text-center bg-surf-secondary">
-      <div className="text-7xl font-extrabold tracking-tighter mb-3 select-none" style={{ color: 'var(--accent-color, #3b82f6)' }}>
+      <div
+        className="text-7xl font-extrabold tracking-tighter mb-3 select-none"
+        style={{ color: "var(--accent-color, #3b82f6)" }}
+      >
         404
       </div>
       <div className="text-sm mb-8 text-txt-muted max-w-xs">

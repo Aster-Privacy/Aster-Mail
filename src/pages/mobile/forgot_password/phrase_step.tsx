@@ -60,7 +60,7 @@ export function PhraseStep({
             set_step("method_choice");
           }}
         >
-          <ChevronLeftIcon className="h-5 w-5" />
+          <ChevronLeftIcon className="h-5 w-5 rtl:-scale-x-100" />
         </motion.button>
       </div>
 

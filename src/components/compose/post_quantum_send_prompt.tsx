@@ -58,13 +58,13 @@ export function PostQuantumSendPrompt(): React.ReactElement {
 
   return (
     <ConfirmModal
+      hide_dont_ask
       confirm_text={t("common.post_quantum_send_anyway")}
       confirm_variant="destructive"
       description={t("common.post_quantum_unavailable_message", {
         recipients: state?.recipients.join(", ") ?? "",
       })}
       dont_ask={false}
-      hide_dont_ask
       on_cancel={() => settle(false)}
       on_confirm={() => settle(true)}
       on_dont_ask_change={() => {}}

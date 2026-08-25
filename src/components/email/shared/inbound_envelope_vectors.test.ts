@@ -1,8 +1,10 @@
 import { describe, it, expect } from "vitest";
+
 import {
   decrypt_inbound_ecies,
   decrypt_inbound_pq_hybrid,
 } from "./decrypt_envelope";
+
 import vectors from "@/tests/fixtures/inbound_envelope_vectors.json";
 
 function b64_to_bytes(value: string): Uint8Array {
@@ -23,7 +25,10 @@ function bytes_to_b64url(bytes: Uint8Array): string {
     binary += String.fromCharCode(byte);
   }
 
-  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  return btoa(binary)
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
 }
 
 function recipient_identity_jwk(): string {

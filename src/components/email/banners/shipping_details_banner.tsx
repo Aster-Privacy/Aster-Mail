@@ -46,31 +46,33 @@ export function ShippingDetailsBanner({
 }: ShippingDetailsBannerProps) {
   const { t } = use_i18n();
 
-  const STATUS_CONFIG: Record<ShippingStatus, { label: string; color: string }> =
-    useMemo(
-      () => ({
-        label_created: {
-          label: t("mail.shipping_label_created"),
-          color: "var(--text-muted)",
-        },
-        shipped: { label: t("mail.shipping_shipped"), color: "#2563eb" },
-        in_transit: { label: t("mail.shipping_in_transit"), color: "#2563eb" },
-        out_for_delivery: {
-          label: t("mail.shipping_out_for_delivery"),
-          color: "#d97706",
-        },
-        delivered: { label: t("mail.shipping_delivered"), color: "#16a34a" },
-        exception: {
-          label: t("mail.shipping_delivery_exception"),
-          color: "#dc2626",
-        },
-        unknown: {
-          label: t("mail.shipping_status_unknown"),
-          color: "var(--text-muted)",
-        },
-      }),
-      [t],
-    );
+  const STATUS_CONFIG: Record<
+    ShippingStatus,
+    { label: string; color: string }
+  > = useMemo(
+    () => ({
+      label_created: {
+        label: t("mail.shipping_label_created"),
+        color: "var(--text-muted)",
+      },
+      shipped: { label: t("mail.shipping_shipped"), color: "#2563eb" },
+      in_transit: { label: t("mail.shipping_in_transit"), color: "#2563eb" },
+      out_for_delivery: {
+        label: t("mail.shipping_out_for_delivery"),
+        color: "#d97706",
+      },
+      delivered: { label: t("mail.shipping_delivered"), color: "#16a34a" },
+      exception: {
+        label: t("mail.shipping_delivery_exception"),
+        color: "#dc2626",
+      },
+      unknown: {
+        label: t("mail.shipping_status_unknown"),
+        color: "var(--text-muted)",
+      },
+    }),
+    [t],
+  );
 
   const has_meaningful_data =
     details.tracking_number || details.carrier_name || details.status;
@@ -122,7 +124,7 @@ export function ShippingDetailsBanner({
       </span>
       {details.tracking_url && (
         <button
-          className="flex-shrink-0 ml-auto rounded px-1.5 py-0.5 text-xs font-medium text-blue-500 transition-colors hover:bg-blue-500/10"
+          className="flex-shrink-0 ms-auto rounded px-1.5 py-0.5 text-xs font-medium text-blue-500 transition-colors hover:bg-blue-500/10"
           type="button"
           onClick={handle_track_click}
         >

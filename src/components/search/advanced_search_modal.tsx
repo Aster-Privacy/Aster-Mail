@@ -41,6 +41,8 @@ import {
 } from "@/components/search/search_filters_panel";
 import { SearchResultRow } from "@/components/search/search_result_item";
 import { use_advanced_search_modal } from "@/components/search/use_advanced_search_modal";
+import { use_dialog_shell } from "@/lib/use_dialog_shell";
+import { format_decimal } from "@/lib/utils";
 
 export function AdvancedSearchModal({
   is_open,
@@ -85,6 +87,13 @@ export function AdvancedSearchModal({
     on_query_change,
   });
 
+  const { dialog_ref, handle_backdrop_pointer_down } =
+    use_dialog_shell<HTMLDivElement>(
+      is_open,
+      handle_close,
+      "advanced_search_modal",
+    );
+
   return (
     <AnimatePresence>
       {is_open && (
@@ -94,17 +103,18 @@ export function AdvancedSearchModal({
           exit={{ opacity: 0 }}
           initial={reduce_motion ? false : { opacity: 0 }}
           transition={{ duration: reduce_motion ? 0 : 0.15 }}
-          onClick={handle_close}
+          onPointerDown={handle_backdrop_pointer_down}
         >
           <motion.div
+            ref={dialog_ref}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             className="rounded-none sm:rounded-2xl w-full h-full sm:h-auto sm:max-w-6xl overflow-hidden transition-colors duration-200 flex flex-col bg-modal-bg border border-edge-secondary"
             exit={{ scale: 0.96, opacity: 0, y: -10 }}
             initial={
               reduce_motion ? false : { scale: 0.96, opacity: 0, y: -10 }
             }
+            tabIndex={-1}
             transition={{ duration: reduce_motion ? 0 : 0.2, ease: "easeOut" }}
-            onClick={(e) => e.stopPropagation()}
           >
             <ErrorBoundary>
               <div className="p-4 border-b transition-colors duration-200 flex-shrink-0 border-edge-secondary">
@@ -267,7 +277,7 @@ export function AdvancedSearchModal({
                           <span className="text-txt-muted">
                             {state.search_time_ms < 1000
                               ? `${Math.round(state.search_time_ms)}ms`
-                              : `${(state.search_time_ms / 1000).toFixed(1)}s`}
+                              : `${format_decimal(state.search_time_ms / 1000, 1)}s`}
                           </span>
                         )}
                       </div>
@@ -303,10 +313,7 @@ export function AdvancedSearchModal({
                           className="w-full py-3 text-xs text-center rounded-[16px] mt-2 text-txt-muted bg-surf-tertiary hover:bg-surf-hover transition-colors"
                           onClick={load_more}
                         >
-                          {t("mail.load_more_results", {
-                            remaining:
-                              state.total_results - filtered_results.length,
-                          })}
+                          {t("common.load_more")}
                         </button>
                       )}
                   </div>
@@ -357,7 +364,7 @@ export function AdvancedSearchModal({
                       ].map((item) => (
                         <button
                           key={item.op}
-                          className="flex items-start gap-2 p-2 rounded-[14px] text-left transition-colors hover_bg text-txt-secondary"
+                          className="flex items-start gap-2 p-2 rounded-[14px] text-start transition-colors hover_bg text-txt-secondary"
                           onClick={() => {
                             set_raw_query(item.op);
                             search(item.op);
@@ -375,7 +382,6 @@ export function AdvancedSearchModal({
                     </div>
                   </div>
                 )}
-
               </div>
 
               <div className="p-3 border-t flex items-center justify-between text-xs flex-shrink-0 border-edge-secondary bg-surf-tertiary text-txt-muted">

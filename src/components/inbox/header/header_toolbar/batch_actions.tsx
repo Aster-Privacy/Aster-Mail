@@ -18,14 +18,18 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type {  MailItemMetadata } from "@/types/email";
+import type { MailItemMetadata } from "@/types/email";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
+
+import {
+  QUICK_ACTION_CONFIRM_KEYS,
+  mark_all_read_by_scope,
+  notify_scan_truncated,
+} from "./helpers";
 
 import { REFRESH_STATE_MS } from "@/constants/timings";
-import {
-  batched_bulk_patch_metadata,
-} from "@/services/api/mail";
+import { batched_bulk_patch_metadata } from "@/services/api/mail";
 import {
   encrypt_mail_metadata,
   metadata_flag_patch,
@@ -42,13 +46,16 @@ import {
   invalidate_mail_stats,
 } from "@/hooks/use_mail_stats";
 import {
-  emit_mail_items_removed,
   emit_mail_item_updated,
+  emit_mail_items_removed,
+  emit_refresh_requested,
 } from "@/hooks/mail_events";
 import {
   has_protected_folder_label,
   get_protected_folder_tokens,
 } from "@/hooks/use_folders";
+import { show_toast } from "@/components/toast/simple_toast";
+import { ignore_error } from "@/lib/ignore_error";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
 import {
@@ -57,8 +64,6 @@ import {
   FULL_MAILBOX_ITEM_CAP,
 } from "@/services/bulk_mail_scan";
 import { map_in_chunks } from "@/lib/scheduling";
-
-import { QUICK_ACTION_CONFIRM_KEYS, mark_all_read_by_scope, notify_scan_truncated } from "./helpers";
 
 export function use_batch_actions(t: ReturnType<typeof use_i18n>["t"]) {
   const [is_sender_modal_open, set_is_sender_modal_open] = useState(false);
@@ -78,10 +83,19 @@ export function use_batch_actions(t: ReturnType<typeof use_i18n>["t"]) {
   >(null);
   const { preferences, update_preference } = use_preferences();
 
+  const refresh_timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(
+    () => () => {
+      if (refresh_timer.current) clearTimeout(refresh_timer.current);
+    },
+    [],
+  );
+
   const handle_refresh = useCallback(() => {
     if (is_refreshing) return;
     set_is_refreshing(true);
-    window.dispatchEvent(new CustomEvent("astermail:refresh-requested"));
+    emit_refresh_requested();
     invalidate_mail_stats();
     show_action_toast({
       message: t("common.inbox_refreshed"),
@@ -89,13 +103,15 @@ export function use_batch_actions(t: ReturnType<typeof use_i18n>["t"]) {
       email_ids: [],
       duration_ms: REFRESH_STATE_MS,
     });
-    setTimeout(() => {
+    if (refresh_timer.current) clearTimeout(refresh_timer.current);
+
+    refresh_timer.current = setTimeout(() => {
       set_is_refreshing(false);
       hide_action_toast();
     }, REFRESH_STATE_MS);
   }, [is_refreshing, t]);
 
-  const execute_batch_action = useCallback(
+  const run_batch_action = useCallback(
     async (action: string) => {
       if (action === "archive_from_sender") {
         set_sender_modal_action("archive");
@@ -211,9 +227,15 @@ export function use_batch_actions(t: ReturnType<typeof use_i18n>["t"]) {
               invalidate_mail_stats();
             }
 
+            if (valid_updates.length > 0 && archived_ids.length === 0) {
+              show_toast(t("common.something_went_wrong_try_again"), "error");
+
+              return;
+            }
+
             show_action_toast({
               message: t("common.emails_archived", {
-                count: String(archived_ids.length),
+                count: archived_ids.length,
               }),
               action_type: "archive",
               email_ids: archived_ids,
@@ -250,7 +272,15 @@ export function use_batch_actions(t: ReturnType<typeof use_i18n>["t"]) {
                   await batched_bulk_patch_metadata(valid_undo);
                 }
 
-                await batched_unarchive(archived_ids);
+                const undo_archive = await batched_unarchive(archived_ids);
+
+                if (
+                  archived_ids.length > 0 &&
+                  undo_archive.succeeded_ids.length === 0
+                ) {
+                  throw new Error("undo archive failed");
+                }
+                invalidate_mail_stats();
                 window.dispatchEvent(
                   new CustomEvent("astermail:mail-soft-refresh"),
                 );
@@ -360,15 +390,19 @@ export function use_batch_actions(t: ReturnType<typeof use_i18n>["t"]) {
               invalidate_mail_stats();
             }
 
+            if (valid_updates.length > 0 && succeeded_items.length === 0) {
+              show_toast(t("common.something_went_wrong_try_again"), "error");
+
+              return;
+            }
+
             show_action_toast({
               message: t("common.emails_marked_as_read", {
-                count: String(succeeded_items.length),
+                count: succeeded_items.length,
               }),
               action_type: "read",
               email_ids: succeeded_items.map((item) => item.id),
               on_undo: async () => {
-                adjust_stats_unread(succeeded_items.length);
-
                 const undo_updates = await map_in_chunks(
                   succeeded_items,
                   async (item) => {
@@ -411,10 +445,19 @@ export function use_batch_actions(t: ReturnType<typeof use_i18n>["t"]) {
                   metadata_nonce: string;
                 }>;
 
-                if (valid_undo_updates.length > 0) {
-                  await batched_bulk_patch_metadata(valid_undo_updates);
-                }
+                let restored_count = 0;
 
+                if (valid_undo_updates.length > 0) {
+                  const undo_result =
+                    await batched_bulk_patch_metadata(valid_undo_updates);
+
+                  restored_count = undo_result.succeeded_ids.length;
+                  if (restored_count === 0) {
+                    throw new Error("undo mark read failed");
+                  }
+                }
+                adjust_stats_unread(restored_count);
+                invalidate_mail_stats();
                 window.dispatchEvent(
                   new CustomEvent("astermail:mail-soft-refresh"),
                 );
@@ -521,9 +564,15 @@ export function use_batch_actions(t: ReturnType<typeof use_i18n>["t"]) {
               invalidate_mail_stats();
             }
 
+            if (valid_updates.length > 0 && succeeded_ids.length === 0) {
+              show_toast(t("common.something_went_wrong_try_again"), "error");
+
+              return;
+            }
+
             show_action_toast({
               message: t("common.emails_moved_to_trash", {
-                count: String(succeeded_ids.length),
+                count: succeeded_ids.length,
               }),
               action_type: "trash",
               email_ids: succeeded_ids,
@@ -571,9 +620,14 @@ export function use_batch_actions(t: ReturnType<typeof use_i18n>["t"]) {
                 }>;
 
                 if (valid_undo_updates.length > 0) {
-                  await batched_bulk_patch_metadata(valid_undo_updates);
-                }
+                  const undo_result =
+                    await batched_bulk_patch_metadata(valid_undo_updates);
 
+                  if (undo_result.succeeded_ids.length === 0) {
+                    throw new Error("undo trash failed");
+                  }
+                }
+                invalidate_mail_stats();
                 window.dispatchEvent(
                   new CustomEvent("astermail:mail-soft-refresh"),
                 );
@@ -596,6 +650,22 @@ export function use_batch_actions(t: ReturnType<typeof use_i18n>["t"]) {
       }
     },
     [t],
+  );
+
+  const execute_batch_action = useCallback(
+    async (action: string) => {
+      try {
+        await run_batch_action(action);
+      } catch (caught) {
+        hide_action_toast();
+        show_toast(t("common.something_went_wrong_try_again"), "error");
+        ignore_error(
+          "components/inbox/header/header_toolbar/batch_actions:execute_batch_action",
+          caught,
+        );
+      }
+    },
+    [run_batch_action, t],
   );
 
   const handle_batch_action = useCallback(

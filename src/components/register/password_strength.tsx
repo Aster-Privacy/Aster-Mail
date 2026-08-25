@@ -105,7 +105,7 @@ export function PasswordStrengthIndicator({
       </div>
       {strength.suggestions.length > 0 && strength.level < 3 && (
         <p
-          className="text-xs mt-1.5 text-left"
+          className="text-xs mt-1.5 text-start"
           style={{ color: "var(--text-muted)" }}
         >
           {strength.suggestions[0]}

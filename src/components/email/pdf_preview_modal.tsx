@@ -24,6 +24,8 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { show_toast } from "@/components/toast/simple_toast";
+import { ignore_error } from "@/lib/ignore_error";
 import { use_dialog_shell } from "@/lib/use_dialog_shell";
 import {
   decrypt_attachment_meta,
@@ -90,15 +92,15 @@ export function PdfPreviewModal({
   } | null>(null);
   const [total_pages, set_total_pages] = useState(0);
   const [is_loading, set_is_loading] = useState(true);
-  const [render_error, set_render_error] = useState<string | false>(false);
   const [page_canvases, set_page_canvases] = useState<string[]>([]);
 
   useEffect(() => {
     let cancelled = false;
 
     async function load() {
+      let timeout_handle: ReturnType<typeof setTimeout> | undefined;
+
       set_is_loading(true);
-      set_render_error(false);
 
       try {
         const meta = await decrypt_attachment_meta(
@@ -127,9 +129,12 @@ export function PdfPreviewModal({
         const { load_pdf_document, render_pdf_page } = await import(
           "@/lib/pdf_utils"
         );
-        const timeout = new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error("timeout")), 30000),
-        );
+        const timeout = new Promise<never>((_, reject) => {
+          timeout_handle = setTimeout(
+            () => reject(new Error("timeout")),
+            30000,
+          );
+        });
         const doc = await Promise.race([
           load_pdf_document(data.slice(0)),
           timeout,
@@ -177,8 +182,8 @@ export function PdfPreviewModal({
 
         if (import.meta.env.DEV)
           console.error("[pdf_preview] load error:", msg, err);
-        if (!cancelled) set_render_error(`${msg}`);
       } finally {
+        if (timeout_handle) clearTimeout(timeout_handle);
         if (!cancelled) set_is_loading(false);
         render_lock_ref.current = false;
       }
@@ -232,10 +237,11 @@ export function PdfPreviewModal({
       };
 
       download_decrypted_attachment(data, meta.filename, meta.content_type);
-    } catch {
-      /* download failed */
+    } catch (caught) {
+      ignore_error("components/email/pdf_preview_modal:handle_download", caught);
+      show_toast(t("common.download_failed"), "error");
     }
-  }, [att]);
+  }, [att, t]);
 
   return (
     <motion.div
@@ -270,13 +276,10 @@ export function PdfPreviewModal({
           </div>
         )}
 
-        {render_error && !is_loading && page_canvases.length === 0 && (
+        {!is_loading && page_canvases.length === 0 && (
           <div className="flex flex-col items-center justify-center gap-2 w-[400px] h-[300px]">
             <span className="text-white/60 text-sm">
               {t("mail.preview_failed")}
-            </span>
-            <span className="text-white/40 text-xs font-mono max-w-[360px] text-center break-all">
-              {render_error}
             </span>
           </div>
         )}
@@ -290,7 +293,10 @@ export function PdfPreviewModal({
             {page_canvases.map((url, i) => (
               <img
                 key={i}
-                alt={`Page ${i + 1}`}
+                alt={t("mail.page_of_total", {
+                  current: i + 1,
+                  total: total_pages || page_canvases.length,
+                })}
                 className="rounded-lg shadow-2xl"
                 src={url}
                 style={{
@@ -311,7 +317,7 @@ export function PdfPreviewModal({
           </div>
         )}
 
-        {(page_canvases.length > 0 || (!is_loading && !render_error)) && (
+        {(page_canvases.length > 0 || !is_loading) && (
           <div className="flex items-center gap-3 px-4 py-2 mt-2 rounded-lg bg-white/10 backdrop-blur-sm">
             <span className="text-white/80 text-sm truncate max-w-[300px]">
               {filename}
@@ -321,7 +327,7 @@ export function PdfPreviewModal({
                 <span className="text-white/30">|</span>
                 <span className="text-white/60 text-sm whitespace-nowrap">
                   {t("mail.total_pages_label", {
-                    count: String(total_pages),
+                    count: total_pages,
                   })}
                 </span>
               </>

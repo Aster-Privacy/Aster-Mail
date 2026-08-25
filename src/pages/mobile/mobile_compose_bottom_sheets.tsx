@@ -25,21 +25,14 @@ import { useState, useMemo, useCallback } from "react";
 import {
   XMarkIcon,
   ClockIcon,
+  MoonIcon,
   SunIcon,
   CalendarIcon,
   CheckIcon,
   LockClosedIcon,
 } from "@heroicons/react/24/outline";
-import {
-  format,
-  addDays,
-  addHours,
-  setHours,
-  setMinutes,
-  nextMonday,
-  isBefore,
-  startOfMinute,
-} from "date-fns";
+import { format, addDays, addHours } from "date-fns";
+import { is_future_instant } from "@/utils/schedule_targets";
 import { Button } from "@aster/ui";
 
 import {
@@ -48,6 +41,20 @@ import {
   sender_type_color,
 } from "./mobile_compose_helpers";
 
+import {
+  format_datetime_hint,
+  format_time,
+  format_weekday_date,
+  format_weekday_time,
+} from "@/utils/date_format";
+import {
+  build_zoned_datetime,
+  get_in_one_hour,
+  get_next_monday_morning,
+  get_tonight,
+  get_tomorrow_afternoon,
+  get_tomorrow_morning,
+} from "@/utils/schedule_targets";
 import { PinIcon } from "@/components/common/icons";
 import { MobileBottomSheet } from "@/components/mobile/mobile_bottom_sheet";
 import { Input } from "@/components/ui/input";
@@ -96,7 +103,11 @@ export function MobileSenderSheet({
   };
 
   return (
-    <MobileBottomSheet is_open={is_open} on_close={handle_close}>
+    <MobileBottomSheet
+      aria_label={t("mail.from")}
+      is_open={is_open}
+      on_close={handle_close}
+    >
       <div className="px-4 pb-4">
         <h3 className="mb-3 text-[16px] font-semibold text-[var(--text-primary)]">
           {t("mail.from")}
@@ -122,7 +133,7 @@ export function MobileSenderSheet({
               className="flex w-full items-center gap-1 rounded-[14px] active:bg-[var(--bg-tertiary)]"
             >
               <button
-                className="flex min-w-0 flex-1 items-center gap-3 px-3 py-2.5 text-left"
+                className="flex min-w-0 flex-1 items-center gap-3 px-3 py-2.5 text-start"
                 type="button"
                 onClick={() => handle_select(sender)}
               >
@@ -205,43 +216,63 @@ export function MobileScheduleSheet({
   const [schedule_time, set_schedule_time] = useState("09:00");
 
   const quick_options = useMemo(() => {
-    const tomorrow = addDays(new Date(), 1);
-    const tomorrow_morning = setMinutes(setHours(tomorrow, 8), 0);
-    const tomorrow_afternoon = setMinutes(setHours(tomorrow, 13), 0);
-    const monday_morning = setMinutes(setHours(nextMonday(new Date()), 8), 0);
+    const one_hour = get_in_one_hour();
+    const tonight = get_tonight();
+    const tomorrow_morning = get_tomorrow_morning();
+    const tomorrow_afternoon = get_tomorrow_afternoon();
+    const monday_morning = get_next_monday_morning();
 
     return [
       {
+        label: t("common.in_one_hour"),
+        description: format_datetime_hint(one_hour, true),
+        date: one_hour,
+        icon: <ClockIcon className="h-5 w-5" />,
+      },
+      ...(is_future_instant(tonight)
+        ? [
+            {
+              label: t("common.tonight"),
+              description: format_datetime_hint(tonight, true),
+              date: tonight,
+              icon: <MoonIcon className="h-5 w-5" />,
+            },
+          ]
+        : []),
+      {
         label: t("common.tomorrow_morning"),
-        description: format(tomorrow_morning, "EEE, MMM d 'at' h:mm a"),
+        description: format_datetime_hint(tomorrow_morning, true),
         date: tomorrow_morning,
         icon: <SunIcon className="h-5 w-5" />,
       },
       {
         label: t("common.tomorrow_afternoon"),
-        description: format(tomorrow_afternoon, "EEE, MMM d 'at' h:mm a"),
+        description: format_datetime_hint(tomorrow_afternoon, true),
         date: tomorrow_afternoon,
         icon: <SunIcon className="h-5 w-5" />,
       },
       {
         label: t("common.monday_morning"),
-        description: format(monday_morning, "EEE, MMM d 'at' h:mm a"),
+        description: format_datetime_hint(monday_morning, true),
         date: monday_morning,
         icon: <CalendarIcon className="h-5 w-5" />,
       },
     ];
   }, [t]);
 
-  const handle_custom_confirm = useCallback(() => {
-    if (!schedule_date) return;
-    const [year, month, day] = schedule_date.split("-").map(Number);
-    const [hour, minute] = schedule_time.split(":").map(Number);
-    const date = new Date(year, month - 1, day, hour, minute);
+  const custom_schedule_date = useMemo(
+    () => build_zoned_datetime(schedule_date, schedule_time),
+    [schedule_date, schedule_time],
+  );
 
-    if (isBefore(date, startOfMinute(new Date()))) return;
-    on_schedule(date);
+  const is_valid_custom_schedule = is_future_instant(custom_schedule_date);
+
+  const handle_custom_confirm = useCallback(() => {
+    if (!custom_schedule_date) return;
+    if (!is_future_instant(custom_schedule_date)) return;
+    on_schedule(custom_schedule_date);
     set_show_custom(false);
-  }, [on_schedule, schedule_date, schedule_time]);
+  }, [on_schedule, custom_schedule_date]);
 
   const handle_close = useCallback(() => {
     set_show_custom(false);
@@ -249,7 +280,11 @@ export function MobileScheduleSheet({
   }, [on_close]);
 
   return (
-    <MobileBottomSheet is_open={is_open} on_close={handle_close}>
+    <MobileBottomSheet
+      aria_label={t("mail.schedule_send")}
+      is_open={is_open}
+      on_close={handle_close}
+    >
       <div className="px-4 pb-4">
         <h3 className="mb-3 text-[16px] font-semibold text-[var(--text-primary)]">
           {t("mail.schedule_send")}
@@ -260,7 +295,7 @@ export function MobileScheduleSheet({
             {quick_options.map((opt) => (
               <button
                 key={opt.label}
-                className="flex w-full items-center gap-3 rounded-[16px] px-3 py-3 text-left active:bg-[var(--bg-tertiary)]"
+                className="flex w-full items-center gap-3 rounded-[16px] px-3 py-3 text-start active:bg-[var(--bg-tertiary)]"
                 type="button"
                 onClick={() => {
                   on_schedule(opt.date);
@@ -279,7 +314,7 @@ export function MobileScheduleSheet({
               </button>
             ))}
             <button
-              className="flex w-full items-center gap-3 rounded-[16px] px-3 py-3 text-left active:bg-[var(--bg-tertiary)]"
+              className="flex w-full items-center gap-3 rounded-[16px] px-3 py-3 text-start active:bg-[var(--bg-tertiary)]"
               type="button"
               onClick={() => set_show_custom(true)}
             >
@@ -340,7 +375,7 @@ export function MobileScheduleSheet({
               </Button>
               <Button
                 className="flex-1"
-                disabled={!schedule_date}
+                disabled={!is_valid_custom_schedule}
                 size="md"
                 variant="depth"
                 onClick={handle_custom_confirm}
@@ -386,39 +421,49 @@ export function MobileExpirationSheet({
     const one_hour = addHours(new Date(), 1);
     const twenty_four = addHours(new Date(), 24);
     const seven_days = addDays(new Date(), 7);
+    const thirty_days = addDays(new Date(), 30);
 
     return [
       {
         label: t("mail.one_hour_option"),
-        description: format(one_hour, "h:mm a"),
+        description: format_time(one_hour),
         date: one_hour,
         icon: <ClockIcon className="h-5 w-5" />,
       },
       {
         label: t("mail.twenty_four_hours_option"),
-        description: format(twenty_four, "EEE, h:mm a"),
+        description: format_weekday_time(twenty_four),
         date: twenty_four,
         icon: <ClockIcon className="h-5 w-5" />,
       },
       {
         label: t("mail.seven_days_option"),
-        description: format(seven_days, "EEE, MMM d"),
+        description: format_weekday_date(seven_days),
         date: seven_days,
+        icon: <CalendarIcon className="h-5 w-5" />,
+      },
+      {
+        label: t("mail.thirty_days_option"),
+        description: format_weekday_date(thirty_days),
+        date: thirty_days,
         icon: <CalendarIcon className="h-5 w-5" />,
       },
     ];
   }, [t]);
 
-  const handle_custom_confirm = useCallback(() => {
-    if (!expiration_date) return;
-    const [year, month, day] = expiration_date.split("-").map(Number);
-    const [hour, minute] = expiration_time.split(":").map(Number);
-    const date = new Date(year, month - 1, day, hour, minute);
+  const custom_expiration_date = useMemo(
+    () => build_zoned_datetime(expiration_date, expiration_time),
+    [expiration_date, expiration_time],
+  );
 
-    if (isBefore(date, startOfMinute(new Date()))) return;
-    on_set_expiration(date);
+  const is_valid_custom_expiration = is_future_instant(custom_expiration_date);
+
+  const handle_custom_confirm = useCallback(() => {
+    if (!custom_expiration_date) return;
+    if (!is_future_instant(custom_expiration_date)) return;
+    on_set_expiration(custom_expiration_date);
     set_show_custom(false);
-  }, [on_set_expiration, expiration_date, expiration_time]);
+  }, [on_set_expiration, custom_expiration_date]);
 
   const handle_close = useCallback(() => {
     set_show_custom(false);
@@ -427,7 +472,11 @@ export function MobileExpirationSheet({
   }, [on_close]);
 
   return (
-    <MobileBottomSheet is_open={is_open} on_close={handle_close}>
+    <MobileBottomSheet
+      aria_label={t("mail.set_expiration")}
+      is_open={is_open}
+      on_close={handle_close}
+    >
       <div className="px-4 pb-4">
         <h3 className="mb-3 text-[16px] font-semibold text-[var(--text-primary)]">
           {t("mail.set_expiration")}
@@ -438,7 +487,7 @@ export function MobileExpirationSheet({
             {quick_options.map((opt) => (
               <button
                 key={opt.label}
-                className="flex w-full items-center gap-3 rounded-[16px] px-3 py-3 text-left active:bg-[var(--bg-tertiary)]"
+                className="flex w-full items-center gap-3 rounded-[16px] px-3 py-3 text-start active:bg-[var(--bg-tertiary)]"
                 type="button"
                 onClick={() => {
                   on_set_expiration(opt.date);
@@ -457,7 +506,7 @@ export function MobileExpirationSheet({
               </button>
             ))}
             <button
-              className="flex w-full items-center gap-3 rounded-[16px] px-3 py-3 text-left active:bg-[var(--bg-tertiary)]"
+              className="flex w-full items-center gap-3 rounded-[16px] px-3 py-3 text-start active:bg-[var(--bg-tertiary)]"
               type="button"
               onClick={() => set_show_custom(true)}
             >
@@ -470,7 +519,7 @@ export function MobileExpirationSheet({
             </button>
             {has_external_recipients && (
               <button
-                className="flex w-full items-center gap-3 rounded-[16px] px-3 py-3 text-left active:bg-[var(--bg-tertiary)]"
+                className="flex w-full items-center gap-3 rounded-[16px] px-3 py-3 text-start active:bg-[var(--bg-tertiary)]"
                 type="button"
                 onClick={() => {
                   set_password_input(expiry_password ?? "");
@@ -581,7 +630,7 @@ export function MobileExpirationSheet({
               </Button>
               <Button
                 className="flex-1"
-                disabled={!expiration_date}
+                disabled={!is_valid_custom_expiration}
                 size="md"
                 variant="depth"
                 onClick={handle_custom_confirm}
@@ -616,7 +665,11 @@ export function MobileGhostSheet({
   const { t } = use_i18n();
 
   return (
-    <MobileBottomSheet is_open={is_open} on_close={on_close}>
+    <MobileBottomSheet
+      aria_label={t("common.ghost_mode_title")}
+      is_open={is_open}
+      on_close={on_close}
+    >
       <div className="px-4 pb-4">
         <h3 className="mb-3 text-[16px] font-semibold text-[var(--text-primary)]">
           {t("common.ghost_mode_title")}

@@ -88,6 +88,12 @@ export function PurchaseDetailsBanner({
   const { t } = use_i18n();
   const [is_collapsed, set_is_collapsed] = useState(read_collapsed_pref);
   const [has_voted, set_has_voted] = useState(() => read_voted(email_id));
+  const [voted_email_id, set_voted_email_id] = useState(email_id);
+
+  if (voted_email_id !== email_id) {
+    set_voted_email_id(email_id);
+    set_has_voted(read_voted(email_id));
+  }
 
   const clean_items = details.items.filter(
     (item) => item.name && item.name.trim().length > 0,
@@ -106,6 +112,7 @@ export function PurchaseDetailsBanner({
   const toggle_collapsed = () => {
     set_is_collapsed((prev) => {
       write_collapsed_pref(!prev);
+
       return !prev;
     });
   };
@@ -153,7 +160,7 @@ export function PurchaseDetailsBanner({
     >
       <button
         aria-expanded={!is_collapsed}
-        className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-black/[0.03] dark:hover:bg-white/[0.04] transition-colors"
+        className="w-full flex items-center gap-3 px-4 py-3 text-start hover:bg-black/[0.03] dark:hover:bg-white/[0.04] transition-colors"
         type="button"
         onClick={toggle_collapsed}
       >

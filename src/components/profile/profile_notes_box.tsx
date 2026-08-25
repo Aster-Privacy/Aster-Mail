@@ -23,6 +23,7 @@ import { DocumentTextIcon, CheckCircleIcon } from "@heroicons/react/24/outline";
 
 import {
   get_profile_note,
+  note_exceeds_limit,
   save_profile_note,
   delete_profile_note,
 } from "@/services/api/profile_notes";
@@ -35,7 +36,7 @@ interface ProfileNotesBoxProps {
   className?: string;
 }
 
-type SaveStatus = "idle" | "saving" | "saved" | "error";
+type SaveStatus = "idle" | "saving" | "saved" | "error" | "too_long";
 
 export function ProfileNotesBox({
   email,
@@ -47,12 +48,38 @@ export function ProfileNotesBox({
   const [is_loading, set_is_loading] = useState(true);
   const [save_status, set_save_status] = useState<SaveStatus>("idle");
   const [original_note, set_original_note] = useState("");
+  const [load_failed, set_load_failed] = useState(false);
 
   const debounce_timeout_ref = useRef<NodeJS.Timeout | null>(null);
   const saved_timeout_ref = useRef<NodeJS.Timeout | null>(null);
   const is_mounted_ref = useRef(true);
   const current_email_ref = useRef(email);
   const save_version_ref = useRef(0);
+  const pending_save_ref = useRef<{
+    content: string;
+    email: string;
+    original: string;
+  } | null>(null);
+
+  const flush_pending_save = useCallback(() => {
+    const pending = pending_save_ref.current;
+
+    if (!pending) return;
+
+    pending_save_ref.current = null;
+
+    const trimmed = pending.content.trim();
+
+    if (trimmed === pending.original.trim()) return;
+    if (note_exceeds_limit(trimmed)) return;
+
+    const request =
+      trimmed === ""
+        ? delete_profile_note(pending.email)
+        : save_profile_note(pending.email, trimmed);
+
+    void request.catch(() => undefined);
+  }, []);
 
   const clear_timeouts = useCallback(() => {
     if (debounce_timeout_ref.current) {
@@ -75,6 +102,13 @@ export function ProfileNotesBox({
       if (!target_email || target_email.trim().length === 0) return;
 
       const trimmed = content.trim();
+
+      if (note_exceeds_limit(trimmed)) {
+        set_save_status("too_long");
+
+        return;
+      }
+
       const current_version = ++save_version_ref.current;
 
       if (trimmed === original_note.trim()) {
@@ -149,16 +183,30 @@ export function ProfileNotesBox({
       set_note(value);
       clear_timeouts();
 
+      if (note_exceeds_limit(value)) {
+        pending_save_ref.current = null;
+        set_save_status("too_long");
+
+        return;
+      }
+
       const target_email = current_email_ref.current;
 
+      pending_save_ref.current = {
+        content: value,
+        email: target_email,
+        original: original_note,
+      };
       debounce_timeout_ref.current = setTimeout(() => {
+        pending_save_ref.current = null;
         save_note(value, target_email);
       }, 1500);
     },
-    [save_note, clear_timeouts],
+    [save_note, clear_timeouts, original_note],
   );
 
   const handle_blur = useCallback(() => {
+    pending_save_ref.current = null;
     if (debounce_timeout_ref.current) {
       clearTimeout(debounce_timeout_ref.current);
       debounce_timeout_ref.current = null;
@@ -174,9 +222,10 @@ export function ProfileNotesBox({
 
     return () => {
       is_mounted_ref.current = false;
+      flush_pending_save();
       clear_timeouts();
     };
-  }, [clear_timeouts]);
+  }, [clear_timeouts, flush_pending_save]);
 
   useEffect(() => {
     let cancelled = false;
@@ -203,10 +252,14 @@ export function ProfileNotesBox({
         if (response.data) {
           set_note(response.data.content);
           set_original_note(response.data.content);
+          set_load_failed(false);
+        } else {
+          set_load_failed(true);
         }
       } catch (error) {
         if (import.meta.env.DEV) console.error(error);
         if (cancelled) return;
+        set_load_failed(true);
       }
 
       set_is_loading(false);
@@ -216,9 +269,10 @@ export function ProfileNotesBox({
 
     return () => {
       cancelled = true;
+      flush_pending_save();
       clear_timeouts();
     };
-  }, [email, has_keys, clear_timeouts]);
+  }, [email, has_keys, clear_timeouts, flush_pending_save]);
 
   if (!has_keys || !email || email.trim().length === 0) {
     return null;
@@ -254,11 +308,20 @@ export function ProfileNotesBox({
             {t("common.error_label")}
           </span>
         )}
+        {save_status === "too_long" && (
+          <span className="text-[11px] text-red-500">
+            {t("common.alias_note_too_long")}
+          </span>
+        )}
       </div>
 
       <div className="px-3 pb-3">
         {is_loading ? (
           <Skeleton className="h-16 rounded-lg" />
+        ) : load_failed ? (
+          <p className="text-[13px] text-txt-muted">
+            {t("common.something_went_wrong_try_again")}
+          </p>
         ) : (
           <textarea
             className="w-full min-h-[64px] max-h-[160px] text-[13px] leading-relaxed bg-transparent outline-none resize-none placeholder:text-txt-muted text-txt-primary"

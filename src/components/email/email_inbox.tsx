@@ -20,7 +20,6 @@
 //
 import type { EmailInboxProps } from "@/components/email/inbox/inbox_types";
 
-
 import { EmailListHeader } from "@/components/email/email_list_header";
 import { CategoryTabs } from "@/components/email/inbox/category_tabs";
 import { MailFilterChips } from "@/components/email/inbox/mail_filter_chips";
@@ -55,7 +54,6 @@ export type {
   ScheduledClickData,
 } from "@/components/email/inbox/inbox_types";
 import { use_email_inbox_state } from "./use_email_inbox_state";
-
 
 export function EmailInbox(props: EmailInboxProps): React.ReactElement {
   const {
@@ -97,6 +95,7 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
     tag_not_found,
     locked_folder,
     refresh_active_list,
+    refresh_current_view,
     manual_refresh_active,
     handle_snooze,
     handle_category_change,
@@ -132,6 +131,7 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
     handle_restore_wrapped,
     handle_folder_toggle_wrapped,
     handle_tag_toggle_wrapped,
+    handle_snooze_wrapped,
     selection_menu,
     nav,
     is_split_view,
@@ -152,6 +152,14 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
     handle_filter_change,
   } = use_email_inbox_state(props);
 
+  const handle_viewer_snooze = () => {
+    const target = email_state.emails.find(
+      (item) => item.id === split_email_id,
+    );
+
+    if (target) set_custom_snooze_email(target);
+  };
+
   const email_list_content = (
     <>
       {folder_not_found ? (
@@ -169,9 +177,9 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
         ) : (
           <EmptyState
             current_view={current_view}
-            user_email={user?.email}
             has_load_error={email_state.has_load_error}
-            on_retry={refresh_active_list}
+            on_retry={refresh_current_view}
+            user_email={user?.email}
           />
         )
       ) : (
@@ -183,9 +191,9 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
                 current_view={current_view}
                 density={resolve_list_density(preferences.mail_list_density)}
                 focused_email_id={focused_email_id}
-                on_category_change={handle_category_change}
                 folders={viewer_folders}
                 on_archive={context_menu_actions.handle_archive}
+                on_category_change={handle_category_change}
                 on_custom_snooze={set_custom_snooze_email}
                 on_delete={context_menu_actions.handle_delete}
                 on_email_click={nav.handle_email_click}
@@ -194,20 +202,20 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
                 }
                 on_folder_toggle={context_menu_actions.handle_folder_toggle}
                 on_forward={context_menu_actions.handle_forward}
+                on_mark_not_spam={context_menu_actions.handle_mark_not_spam}
+                on_move_to_inbox={context_menu_actions.handle_move_to_inbox}
                 on_open_in_new_window={
                   context_menu_actions.handle_open_in_new_window
                 }
-                on_mark_not_spam={context_menu_actions.handle_mark_not_spam}
-                on_move_to_inbox={context_menu_actions.handle_move_to_inbox}
                 on_reply={context_menu_actions.handle_reply}
                 on_reply_all={context_menu_actions.handle_reply_all}
                 on_restore={context_menu_actions.handle_restore}
+                on_select_only={selection.handle_select_only}
                 on_snooze={handle_list_snooze}
                 on_spam={context_menu_actions.handle_spam}
                 on_tag_toggle={context_menu_actions.handle_tag_toggle}
                 on_toggle_pin={context_menu_actions.handle_toggle_pin}
                 on_toggle_read={context_menu_actions.handle_toggle_read}
-                on_select_only={selection.handle_select_only}
                 on_toggle_select={selection.handle_toggle_select}
                 on_toggle_star={context_menu_actions.handle_toggle_star}
                 on_unsnooze={handle_list_unsnooze}
@@ -323,14 +331,14 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
                 ? undefined
                 : handle_page_change
             }
+            on_quick_settings_click={on_quick_settings_click}
             on_restore={handle_restore_wrapped}
             on_search_click={on_search_click}
             on_search_result_click={on_search_result_click}
             on_search_submit={on_search_submit}
             on_select_by_filter={selection.handle_select_by_filter}
             on_settings_click={on_settings_click}
-            on_quick_settings_click={on_quick_settings_click}
-            on_snooze={toolbar.handle_toolbar_snooze}
+            on_snooze={handle_snooze_wrapped}
             on_spam={handle_spam_wrapped}
             on_tag_toggle={(tag_token) => {
               handle_tag_toggle_wrapped(
@@ -354,8 +362,8 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
               tags_state.tags,
             )}
             select_all_mode={selection.select_all_mode}
-            selection_scope_title={active_category_title}
             selected_count={selection.selected_count}
+            selection_scope_title={active_category_title}
             some_selected={selection.some_selected}
             spam_count={email_state.emails.filter((e) => e.is_spam).length}
             tags={tags_state.tags.map((t) => ({
@@ -404,6 +412,7 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
             const family_enforced = !!family_policy?.enforce_on_members;
             let effective_days: number | null;
             let banner_family_enforced: boolean;
+
             if (is_trash) {
               if (
                 family_enforced &&
@@ -429,6 +438,7 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
                 banner_family_enforced = false;
               }
             }
+
             return effective_days !== null && effective_days > 0 ? (
               <TrashBanner
                 family_enforced={banner_family_enforced}
@@ -466,6 +476,7 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
                   : undefined
               }
               on_reply={on_reply}
+              on_snooze={handle_viewer_snooze}
               snoozed_until={split_email_snoozed_until}
               total_count={nav.visible_ids.length}
             />
@@ -503,7 +514,7 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
               {is_bottom_pane ? (
                 <div className="absolute inset-x-0 -top-1.5 -bottom-1.5" />
               ) : (
-                <div className="absolute inset-y-0 -left-1.5 -right-1.5" />
+                <div className="absolute inset-y-0 -start-1.5 -end-1.5" />
               )}
             </div>
             <div
@@ -532,6 +543,7 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
                   on_folder_toggle={handle_viewer_folder_toggle}
                   on_forward={on_forward}
                   on_reply={on_reply}
+                  on_snooze={handle_viewer_snooze}
                   snoozed_until={split_email_snoozed_until}
                 />
               ) : null}
@@ -580,10 +592,13 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
           is_emptying_trash={toolbar.is_emptying_trash}
           on_custom_snooze={async (snooze_until) => {
             if (custom_snooze_email) {
-              await handle_snooze(custom_snooze_email.id, snooze_until);
-            } else if (show_toolbar_custom_snooze) {
-              await toolbar.handle_toolbar_snooze(snooze_until);
+              return await handle_snooze(custom_snooze_email.id, snooze_until);
             }
+            if (show_toolbar_custom_snooze) {
+              return await handle_snooze_wrapped(snooze_until);
+            }
+
+            return true;
           }}
           on_custom_snooze_close={() => {
             set_custom_snooze_email(null);

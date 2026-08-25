@@ -18,13 +18,11 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { } from "@/types/email";
-import type { } from "@/services/api/mail";
-
+import type {} from "@/types/email";
+import type {} from "@/services/api/mail";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { strip_html_tags } from "@/lib/html_sanitizer";
-
 
 export const MIN_LIST_WIDTH = 280;
 export const SNIPPET_WINDOW = 120;
@@ -95,4 +93,3 @@ export function SearchResultSkeleton() {
     </div>
   );
 }
-

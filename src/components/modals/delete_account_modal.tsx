@@ -69,7 +69,11 @@ export function DeleteAccountModal({
     return normalized.length === 8 || normalized.length === 12;
   };
 
-  const is_delete_typed = confirmation_text.toUpperCase() === "DELETE";
+  const confirmation_word = t("settings.delete_confirmation_word");
+  const normalized_confirmation = confirmation_text.trim().toUpperCase();
+  const is_delete_typed =
+    normalized_confirmation === confirmation_word.toUpperCase() ||
+    normalized_confirmation === "DELETE";
   const can_submit =
     is_delete_typed &&
     password.length > 0 &&
@@ -111,7 +115,7 @@ export function DeleteAccountModal({
       const salt_response = await get_user_salt({ user_hash });
 
       if (salt_response.error || !salt_response.data) {
-        set_error(t("common.fill_required_fields"));
+        set_error(t("common.delete_account_error"));
         set_is_deleting(false);
 
         return;
@@ -142,6 +146,11 @@ export function DeleteAccountModal({
         set_error(t("auth.two_fa_temporarily_locked"));
       } else if (classify_totp_error(response) === "replayed") {
         set_error(t("auth.two_fa_code_already_used"));
+      } else if (response.server_code === "INVALID_TWO_FACTOR_CODE") {
+        set_error(t("settings.invalid_2fa_code"));
+      } else if (response.server_code === "TWO_FACTOR_CODE_REQUIRED") {
+        set_two_factor_enabled(true);
+        set_error(t("settings.please_enter_2fa_code"));
       } else if (
         response.server_code === "VALIDATION_ERROR" ||
         (response.code === "VALIDATION_ERROR" && !response.server_code)
@@ -192,11 +201,11 @@ export function DeleteAccountModal({
               autoComplete="current-password"
               disabled={is_deleting}
               id="delete-password"
+              maxLength={128}
               placeholder={t("settings.enter_your_password_placeholder")}
               size="lg"
               type="password"
               value={password}
-              maxLength={128}
               onChange={(e) => set_password(clamp_password(e.target.value))}
             />
           </div>
@@ -239,13 +248,17 @@ export function DeleteAccountModal({
               htmlFor="delete-confirmation"
               style={{ color: "var(--text-secondary)" }}
             >
-              {t("settings.type_delete_to_confirm")}
+              {t("settings.type_delete_to_confirm", {
+                word: confirmation_word,
+              })}
             </label>
             <Input
               autoComplete="off"
               disabled={is_deleting}
               id="delete-confirmation"
-              placeholder={t("settings.type_delete_placeholder")}
+              placeholder={t("settings.type_delete_placeholder", {
+                word: confirmation_word,
+              })}
               size="lg"
               spellCheck={false}
               value={confirmation_text}

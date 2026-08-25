@@ -39,12 +39,12 @@ import {
 } from "@/data/category_colors";
 import { use_category_previews } from "@/hooks/use_category_previews";
 import { ignore_error } from "@/lib/ignore_error";
-
 import {
   EMAIL_DRAG_MIME,
   end_category_drag,
   use_category_drag_active,
 } from "@/components/email/inbox/category_drag";
+import { app_locale } from "@/utils/date_format";
 
 interface TabConfig {
   key: EmailCategory;
@@ -55,7 +55,9 @@ interface TabConfig {
 }
 
 function format_count(value: number): string {
-  return value > 999 ? "999+" : value.toLocaleString();
+  return value > 999
+    ? `${(999).toLocaleString(app_locale())}+`
+    : value.toLocaleString(app_locale());
 }
 
 interface CategoryTabsProps {
@@ -265,7 +267,7 @@ export function CategoryTabs({
                   </span>
                 ) : null}
                 {drop_enabled ? (
-                  <span className="pointer-events-none absolute left-0 top-[23px] block h-[13px] w-full truncate text-start text-[11.5px] font-normal leading-[13px] text-brand">
+                  <span className="pointer-events-none absolute start-0 top-[23px] block h-[13px] w-full truncate text-start text-[11.5px] font-normal leading-[13px] text-brand">
                     {t("mail.drop_to_move_here")}
                   </span>
                 ) : null}

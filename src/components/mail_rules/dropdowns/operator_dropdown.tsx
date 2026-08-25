@@ -18,6 +18,9 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { ConditionField } from "@/services/api/mail_rules";
+import type { TranslationKey } from "@/lib/i18n/types";
+
 import * as React from "react";
 
 import {
@@ -28,8 +31,6 @@ import {
 } from "@/components/ui/dropdown_menu";
 import { use_i18n } from "@/lib/i18n/context";
 import { field_kind } from "@/components/mail_rules/field_kind";
-import type { ConditionField } from "@/services/api/mail_rules";
-import type { TranslationKey } from "@/lib/i18n/types";
 
 export type AnyOperator = string;
 
@@ -121,6 +122,7 @@ interface OperatorDropdownProps {
   open: boolean;
   on_open_change: (open: boolean) => void;
   on_pick: (op: AnyOperator) => void;
+  allowed_operators?: AnyOperator[];
 }
 
 export function OperatorDropdown({
@@ -129,9 +131,13 @@ export function OperatorDropdown({
   open,
   on_open_change,
   on_pick,
+  allowed_operators,
 }: OperatorDropdownProps) {
   const { t } = use_i18n();
-  const options = OPERATORS_BY_FIELD(field);
+  const all_options = OPERATORS_BY_FIELD(field);
+  const options = allowed_operators
+    ? all_options.filter((o) => allowed_operators.includes(o.value))
+    : all_options;
 
   if (options.length === 0) return <>{trigger}</>;
 
@@ -140,14 +146,14 @@ export function OperatorDropdown({
       <DropdownMenuTrigger asChild>{trigger}</DropdownMenuTrigger>
       <DropdownMenuContent
         align="start"
-        sideOffset={6}
         className="z-[200] w-44"
+        sideOffset={6}
       >
         {options.map((opt) => (
           <DropdownMenuItem
             key={opt.value}
-            onSelect={() => on_pick(opt.value)}
             className="text-[12.5px]"
+            onSelect={() => on_pick(opt.value)}
           >
             {t(opt.label_key)}
           </DropdownMenuItem>

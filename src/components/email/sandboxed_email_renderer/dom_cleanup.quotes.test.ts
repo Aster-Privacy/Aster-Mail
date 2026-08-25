@@ -60,9 +60,7 @@ function collapsed_text(doc: Document): string {
     ".aster-forwarded-content, .aster-quoted-content",
   );
 
-  return ((collapsed?.textContent || "") as string)
-    .replace(/\s+/g, " ")
-    .trim();
+  return ((collapsed?.textContent || "") as string).replace(/\s+/g, " ").trim();
 }
 
 describe("collapse_forwarded_content protonmail_quote", () => {
@@ -109,7 +107,8 @@ describe("collapse_forwarded_content protonmail_quote", () => {
       "The forwarded body that must stay visible.",
     );
     expect(
-      doc.body.querySelector<HTMLElement>("div.protonmail_quote")?.style.display,
+      doc.body.querySelector<HTMLElement>("div.protonmail_quote")?.style
+        .display,
     ).toBe("block");
     expect(
       doc.body.querySelector<HTMLElement>("blockquote.protonmail_quote")?.style

@@ -67,6 +67,9 @@ export function ContactFormSocial({
           {t("common.linkedin")}
         </label>
         <Input
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
           id="contact-linkedin"
           placeholder="linkedin.com/in/username"
           size="md"
@@ -82,6 +85,9 @@ export function ContactFormSocial({
           {t("common.twitter_x")}
         </label>
         <Input
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
           id="contact-twitter"
           placeholder="@username"
           size="md"
@@ -97,6 +103,9 @@ export function ContactFormSocial({
           {t("common.github")}
         </label>
         <Input
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
           id="contact-github"
           placeholder="github.com/username"
           size="md"

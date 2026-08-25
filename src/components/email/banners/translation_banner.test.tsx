@@ -45,7 +45,6 @@ vi.mock("@/services/translation/translate_document", () => ({
 const { TranslationBanner } = await import("./translation_banner");
 
 declare global {
-  // eslint-disable-next-line no-var
   var IS_REACT_ACT_ENVIRONMENT: boolean;
 }
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;

@@ -60,11 +60,14 @@ import {
   persist_unsubscribe,
   use_unsubscribed_senders,
 } from "@/hooks/use_unsubscribed_senders";
+import { is_any_lockdown_active } from "@/services/lockdown_store";
+import { open_external } from "@/utils/open_link";
 
 export type SplitReplyData = ReplyData;
 export type SplitForwardData = ForwardData;
 
 import type { LocalEmailData } from "@/components/email/email_viewer_types";
+import { app_locale, get_display_time_zone } from "@/utils/date_format";
 
 interface SplitEmailViewerProps {
   email_id: string;
@@ -82,6 +85,7 @@ interface SplitEmailViewerProps {
   grouped_email_ids?: string[];
   folders?: { id: string; name: string; color: string }[];
   on_folder_toggle?: (folder_id: string) => void;
+  on_snooze?: () => void;
   label_hints?: {
     token: string;
     name: string;
@@ -107,6 +111,7 @@ export function SplitEmailViewer({
   grouped_email_ids,
   folders,
   on_folder_toggle,
+  on_snooze,
   label_hints,
 }: SplitEmailViewerProps): React.ReactElement {
   const { t } = use_i18n();
@@ -133,6 +138,7 @@ export function SplitEmailViewer({
       icon?: string;
       show_icon: boolean;
     }[] = [];
+
     for (const f of viewer.mail_item?.labels ?? []) {
       if (f.name && !seen.has(f.token)) {
         seen.add(f.token);
@@ -159,6 +165,7 @@ export function SplitEmailViewer({
     }
     for (const token of viewer.mail_item?.tag_tokens ?? []) {
       const tag = get_tag_by_token(token);
+
       if (tag?.name && !seen.has(token)) {
         seen.add(token);
         from_item.push({
@@ -177,6 +184,7 @@ export function SplitEmailViewer({
         : label_hints?.length
           ? label_hints
           : store_hints;
+
     if (viewer.email && is_system_email(viewer.email.sender_email)) {
       return [
         {
@@ -189,6 +197,7 @@ export function SplitEmailViewer({
         ...resolved,
       ];
     }
+
     return resolved;
   }, [
     viewer.mail_item?.labels,
@@ -304,11 +313,14 @@ export function SplitEmailViewer({
         }));
         set_external_content_mode(email_id);
         set_loaded_content_types(new Set());
+
         return;
       }
       set_loaded_content_types((prev) => {
         const next = new Set(prev);
+
         for (const t of types) next.add(t);
+
         return next;
       });
     },
@@ -319,6 +331,7 @@ export function SplitEmailViewer({
     "success" | "manual"
   > => {
     const email = viewer.email;
+
     if (!email?.unsubscribe_info?.has_unsubscribe) return "success";
     if (is_system_email(email.sender_email)) return "success";
 
@@ -326,6 +339,7 @@ export function SplitEmailViewer({
 
     try {
       const result = await execute_unsubscribe(info);
+
       if (result === "api") {
         show_action_toast({
           message: t("mail.successfully_unsubscribed"),
@@ -342,22 +356,24 @@ export function SplitEmailViewer({
           },
           "auto",
         );
+
         return "success";
       }
       show_action_toast({
         message: t("mail.unsubscribe_manual_required"),
         action_type: "not_spam",
         email_ids: [],
+        duration_ms: 15000,
+        ...(!is_any_lockdown_active() && {
+          action_label: t("mail.open_unsubscribe_page"),
+          on_undo: async () => {
+            const url = info.unsubscribe_link || info.unsubscribe_mailto;
+
+            if (url) open_external(url);
+          },
+        }),
       });
-      persist_unsubscribe(
-        email.sender_email,
-        email.sender || "",
-        {
-          unsubscribe_link: info.unsubscribe_link,
-          list_unsubscribe_header: info.list_unsubscribe_header,
-        },
-        "manual",
-      );
+
       return "manual";
     } catch {
       show_action_toast({
@@ -365,6 +381,7 @@ export function SplitEmailViewer({
         action_type: "not_spam",
         email_ids: [],
       });
+
       return "manual";
     }
   }, [viewer.email, t, mark_unsubscribed]);
@@ -400,7 +417,10 @@ export function SplitEmailViewer({
           sender_avatar: "",
           email_subject: last_msg.subject,
           email_body: last_msg.body,
-          email_timestamp: new Date(last_msg.timestamp).toLocaleString(),
+          email_timestamp: new Date(last_msg.timestamp).toLocaleString(
+            app_locale(),
+            { timeZone: get_display_time_zone() },
+          ),
           original_mail_id: last_msg.id,
         });
       }
@@ -459,6 +479,8 @@ export function SplitEmailViewer({
       <div className="flex items-center gap-1 px-2 @md:px-3 py-2 border-b border-edge-primary flex-shrink-0">
         {email ? (
           <ViewerToolbarActions
+            show_nav
+            show_read_toggle
             button_px={32}
             button_size="h-8 w-8"
             can_go_next={can_go_next}
@@ -466,41 +488,40 @@ export function SplitEmailViewer({
             current_index={current_index}
             dropdown_align="start"
             email={email}
+            folders={folders}
             hide_class="hidden @lg:flex"
             icon_size="w-4 h-4"
             is_archive_loading={viewer.is_archive_loading}
+            is_archived={email.is_archived === true}
             is_pin_loading={viewer.is_pin_loading}
             is_pinned={viewer.is_pinned}
             is_read={viewer.is_read}
             is_spam={viewer.mail_item?.is_spam === true}
             is_spam_loading={viewer.is_spam_loading}
             is_trash_loading={viewer.is_trash_loading}
-            is_archived={email.is_archived === true}
             mail_item={viewer.mail_item}
             on_archive={viewer.handle_archive}
-            on_unarchive={viewer.handle_unarchive}
-            folders={folders}
-            on_folder_toggle={on_folder_toggle}
-            on_navigate_next={on_navigate_next}
-            on_navigate_prev={on_navigate_prev}
             on_block_sender_on_alias={
               viewer.show_block_sender_on_alias
                 ? viewer.handle_block_sender_on_alias
                 : undefined
             }
+            on_folder_toggle={on_folder_toggle}
             on_forward={on_forward ? viewer.handle_forward : undefined}
+            on_navigate_next={on_navigate_next}
+            on_navigate_prev={on_navigate_prev}
             on_not_spam={viewer.handle_not_spam}
             on_pin_toggle={viewer.handle_pin_toggle}
             on_print={viewer.handle_print}
             on_read_toggle={viewer.handle_read_toggle}
             on_reply={on_reply ? viewer.handle_reply : undefined}
-            show_nav
-            show_pin={false}
-            show_read_toggle
+            on_snooze={on_snooze}
             on_spam={() => request_spam(viewer.handle_spam)}
             on_trash={viewer.handle_trash}
+            on_unarchive={viewer.handle_unarchive}
             on_unsubscribe={viewer.handle_unsubscribe}
             show_block_sender_on_alias={viewer.show_block_sender_on_alias}
+            show_pin={false}
             thread_expand_state={viewer.thread_expand_state}
             thread_list_ref={viewer.thread_list_ref}
             thread_messages={viewer.thread_messages}
@@ -554,7 +575,7 @@ export function SplitEmailViewer({
               <div className="px-3 @md:px-4 flex flex-wrap items-center gap-x-2 gap-y-1.5 mb-3">
                 <h1 className="text-base @md:text-lg @2xl:text-xl font-semibold text-txt-primary break-words">
                   <span
-                    className="inline-flex items-center gap-1 mr-1.5"
+                    className="inline-flex items-center gap-1 me-1.5"
                     style={{ verticalAlign: "-0.15em" }}
                   >
                     <EncryptionInfoDropdown
@@ -594,9 +615,14 @@ export function SplitEmailViewer({
                 external_content_mode={external_content_mode}
                 loaded_content_types={loaded_content_types}
                 on_archive={viewer.handle_per_message_archive}
+                on_draft_saved={viewer.handle_draft_saved}
+                on_edit_thread_draft={viewer.handle_edit_thread_draft}
                 on_external_content_detected={handle_external_content_detected}
                 on_forward={viewer.handle_per_message_forward}
                 on_load_external_content={handle_load_external_content}
+                on_manual_unsubscribed={() => {
+                  if (email) mark_unsubscribed(email.sender_email);
+                }}
                 on_not_spam={
                   viewer.mail_item?.is_spam
                     ? viewer.handle_per_message_not_spam
@@ -610,11 +636,9 @@ export function SplitEmailViewer({
                     viewer.handle_per_message_report_phishing(msg),
                   )
                 }
+                on_thread_draft_deleted={viewer.handle_thread_draft_deleted}
                 on_toggle_message_read={viewer.handle_toggle_message_read}
                 on_trash={viewer.handle_per_message_trash}
-                on_draft_saved={viewer.handle_draft_saved}
-                on_edit_thread_draft={viewer.handle_edit_thread_draft}
-                on_thread_draft_deleted={viewer.handle_thread_draft_deleted}
                 on_unsubscribe={
                   email.unsubscribe_info?.has_unsubscribe &&
                   !is_system_email(email.sender_email) &&
@@ -622,16 +646,13 @@ export function SplitEmailViewer({
                     ? handle_unsubscribe
                     : undefined
                 }
-                on_manual_unsubscribed={() => {
-                  if (email) mark_unsubscribed(email.sender_email);
-                }}
-                unsubscribe_url={email.unsubscribe_info?.unsubscribe_link}
                 on_view_source={viewer.handle_per_message_view_source}
                 size_bytes={viewer.mail_item?.metadata?.size_bytes}
                 thread_draft={viewer.thread_draft}
                 thread_list_ref={viewer.thread_list_ref}
                 thread_messages={viewer.thread_messages}
                 thread_sanitized={viewer.thread_sanitized}
+                unsubscribe_url={email.unsubscribe_info?.unsubscribe_link}
               />
             </div>
           )}

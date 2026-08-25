@@ -32,6 +32,7 @@ import {
   build_registration_ratchet_fields,
   publish_registration_prekey_bundle,
 } from "./use_registration";
+
 import type { EncryptedVault } from "@/services/crypto/key_manager_core";
 
 const generated = {

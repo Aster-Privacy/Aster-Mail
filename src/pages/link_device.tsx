@@ -18,11 +18,12 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { TranslationKey } from "@/lib/i18n";
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@aster/ui";
 
-import type { TranslationKey } from "@/lib/i18n";
 import { use_auth } from "@/contexts/auth_context";
 import { use_i18n } from "@/lib/i18n/context";
 import {
@@ -39,6 +40,7 @@ import { app_pathname } from "@/lib/account_index_url";
 import { show_toast } from "@/components/toast/simple_toast";
 import { Spinner } from "@/components/ui/spinner";
 import { PlanUpgradeSelection } from "@/components/settings/billing/plan_upgrade_selection";
+import { is_composing } from "@/utils/ime";
 
 type PageState =
   | "input"
@@ -64,6 +66,7 @@ function classify_link_error(response: {
 }): { key: TranslationKey; restart: boolean } {
   const raw = (response.error || "").toLowerCase();
   const code = (response.code || "").toUpperCase();
+
   if (
     raw.includes("already enrolled") ||
     raw.includes("already linked") ||
@@ -90,6 +93,7 @@ function classify_link_error(response: {
   ) {
     return { key: "auth.link_device_expired_code", restart: true };
   }
+
   return { key: "auth.link_device_failed", restart: false };
 }
 
@@ -111,9 +115,7 @@ export default function LinkDevice() {
   useEffect(() => {
     if (auth_loading) return;
     if (!is_authenticated) {
-      const next = encodeURIComponent(
-        app_pathname() + window.location.search,
-      );
+      const next = encodeURIComponent(app_pathname() + window.location.search);
 
       navigate(`/sign-in?next=${next}`, { replace: true });
     }
@@ -154,6 +156,7 @@ export default function LinkDevice() {
 
       if (response.error || !response.data) {
         const info = classify_link_error(response);
+
         set_error(t(info.key));
         show_toast(t(info.key), "error");
         set_is_verifying(false);
@@ -207,11 +210,13 @@ export default function LinkDevice() {
         set_error(null);
         set_page_state("upgrade_required");
         show_toast(t("auth.link_device_upgrade_required_toast"), "info", 15000);
+
         return;
       }
 
       if (response.error) {
         const info = classify_link_error(response);
+
         set_error(t(info.key));
         show_toast(t(info.key), "error");
         if (info.restart) {
@@ -221,6 +226,7 @@ export default function LinkDevice() {
         } else {
           set_page_state("confirming_device");
         }
+
         return;
       }
 
@@ -322,7 +328,7 @@ export default function LinkDevice() {
               className="w-full mt-8"
               size="xl"
               variant="secondary"
-              onClick={() => window.close()}
+              onClick={() => navigate("/", { replace: true })}
             >
               {t("common.done")}
             </Button>
@@ -445,7 +451,7 @@ export default function LinkDevice() {
             value={code_input}
             onChange={handle_code_change}
             onKeyDown={(e) => {
-              if (e.key === "Enter") handle_verify();
+              if (e.key === "Enter" && !is_composing(e)) handle_verify();
             }}
           />
 
@@ -463,7 +469,7 @@ export default function LinkDevice() {
             {is_verifying ? (
               <>
                 {t("auth.link_device_verifying")}
-                <Spinner className="ml-2" size="sm" />
+                <Spinner className="ms-2" size="sm" />
               </>
             ) : (
               t("auth.link_device_verify_button")

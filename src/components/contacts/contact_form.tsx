@@ -228,7 +228,12 @@ export function ContactForm({
   };
 
   const handle_submit = async () => {
-    if (!validate_form() || is_loading) return;
+    if (is_loading) return;
+    if (!validate_form()) {
+      set_active_tab("basic");
+
+      return;
+    }
 
     const seen_emails = new Set<string>();
     const cleaned_data: ContactFormData = {

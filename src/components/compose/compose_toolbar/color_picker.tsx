@@ -18,23 +18,17 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { } from "@/lib/i18n/types";
-import type { } from "@/components/compose/compose_shared";
+import type {} from "@/lib/i18n/types";
+import type {} from "@/components/compose/compose_shared";
 
-import {
-  useId,
-  useState,
-  useRef,
-  useEffect,
-  useCallback,
-} from "react";
+import { useId, useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
+
+import { PRESET_COLORS, use_anchored_layer } from "./shared";
 
 import { Input } from "@/components/ui/input";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_escape_layer } from "@/lib/overlay_layer_stack";
-
-import { PRESET_COLORS, use_anchored_layer } from "./shared";
 
 export function ColorPickerPopover({
   font_color,
@@ -56,6 +50,7 @@ export function ColorPickerPopover({
   const [custom_hex, set_custom_hex] = useState("#000000");
   const button_ref = useRef<HTMLButtonElement>(null);
   const dropdown_ref = useRef<HTMLDivElement>(null);
+  const hex_input_ref = useRef<HTMLInputElement>(null);
   const panel_id = useId();
 
   useEffect(() => {
@@ -90,8 +85,7 @@ export function ColorPickerPopover({
   use_anchored_layer(
     open,
     button_ref,
-    (rect) =>
-      set_pos({ top: rect.top, center_x: rect.left + rect.width / 2 }),
+    (rect) => set_pos({ top: rect.top, center_x: rect.left + rect.width / 2 }),
     close_popover,
   );
 
@@ -141,7 +135,10 @@ export function ColorPickerPopover({
             id={panel_id}
             style={{
               zIndex: 9999,
-              left: pos.center_x,
+              left: Math.min(
+                Math.max(pos.center_x, 148),
+                Math.max(148, window.innerWidth - 148),
+              ),
               bottom: window.innerHeight - pos.top + 8,
             }}
           >
@@ -218,6 +215,7 @@ export function ColorPickerPopover({
                   }}
                 />
                 <Input
+                  ref={hex_input_ref}
                   className="w-full bg-transparent"
                   maxLength={7}
                   size="sm"
@@ -225,6 +223,7 @@ export function ColorPickerPopover({
                   value={custom_hex}
                   onChange={(e) => {
                     const val = e.target.value;
+                    const caret = e.target.selectionStart;
 
                     set_custom_hex(val);
                     if (/^#[0-9a-fA-F]{6}$/.test(val)) {
@@ -233,6 +232,16 @@ export function ColorPickerPopover({
                       } else {
                         on_bg_color_change(val);
                       }
+                      requestAnimationFrame(() => {
+                        const input = hex_input_ref.current;
+
+                        if (!input) return;
+
+                        input.focus();
+                        if (caret !== null) {
+                          input.setSelectionRange(caret, caret);
+                        }
+                      });
                     }
                   }}
                   onKeyDown={(e) => {
@@ -251,4 +260,3 @@ export function ColorPickerPopover({
     </div>
   );
 }
-

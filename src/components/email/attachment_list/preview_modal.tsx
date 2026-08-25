@@ -20,15 +20,13 @@
 //
 import type { TranslationKey } from "@/lib/i18n/types";
 
-import {   useEffect,  } from "react";
-import {  motion } from "framer-motion";
+import { useEffect } from "react";
+import { motion } from "framer-motion";
+
+import { DownloadIcon, PreviewChevronIcon } from "./icons";
 
 import { use_dialog_shell } from "@/lib/use_dialog_shell";
 import { is_top_overlay_layer } from "@/lib/overlay_layer_stack";
-
-
-
-import { DownloadIcon, PreviewChevronIcon } from "./icons";
 
 export function ImagePreviewModal({
   src,
@@ -96,7 +94,7 @@ export function ImagePreviewModal({
       {on_prev && (
         <button
           aria-label={t("common.previous")}
-          className="absolute left-3 top-1/2 -translate-y-1/2 z-10 p-2.5 rounded-full text-white/90 bg-white/10 hover:bg-white/20 transition-colors"
+          className="absolute start-3 top-1/2 -translate-y-1/2 z-10 p-2.5 rounded-full text-white/90 bg-white/10 hover:bg-white/20 transition-colors"
           title={t("common.previous")}
           onClick={on_prev}
         >
@@ -106,7 +104,7 @@ export function ImagePreviewModal({
       {on_next && (
         <button
           aria-label={t("common.next")}
-          className="absolute right-3 top-1/2 -translate-y-1/2 z-10 p-2.5 rounded-full text-white/90 bg-white/10 hover:bg-white/20 transition-colors"
+          className="absolute end-3 top-1/2 -translate-y-1/2 z-10 p-2.5 rounded-full text-white/90 bg-white/10 hover:bg-white/20 transition-colors"
           title={t("common.next")}
           onClick={on_next}
         >
@@ -131,7 +129,9 @@ export function ImagePreviewModal({
             {filename}
           </span>
           {counter && (
-            <span className="text-white/50 text-xs tabular-nums">{counter}</span>
+            <span className="text-white/50 text-xs tabular-nums">
+              {counter}
+            </span>
           )}
           <button
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-[12px] text-xs font-medium text-white/90 bg-white/10"
@@ -151,4 +151,3 @@ export function ImagePreviewModal({
     </motion.div>
   );
 }
-

@@ -20,6 +20,8 @@
 //
 import { useState, useRef, useEffect, useMemo } from "react";
 
+import type { TranslationKey } from "@/lib/i18n/types";
+
 import { Input } from "@/components/ui/input";
 import { use_i18n } from "@/lib/i18n/context";
 import {
@@ -32,6 +34,18 @@ import {
 } from "@/config/emoji";
 
 const CATEGORY_KEYS = Object.keys(emoji_categories);
+
+const CATEGORY_LABEL_KEYS: Record<string, TranslationKey> = {
+  smileys: "common.emoji_smileys",
+  gestures: "common.emoji_gestures",
+  animals: "common.emoji_animals",
+  food: "common.emoji_food",
+  travel: "common.emoji_travel",
+  objects: "common.emoji_objects",
+  symbols: "common.emoji_symbols",
+  activities: "common.emoji_activities",
+  flags: "common.emoji_flags",
+};
 const SKIN_TONE_STORAGE_KEY = "aster_emoji_skin_tone";
 
 const emoji_support_cache = new Map<string, boolean>();
@@ -161,7 +175,7 @@ function EmojiPicker({ on_select }: { on_select: (emoji: string) => void }) {
             {skin_tone_swatches[skin_tone]}
           </button>
           {show_tones && (
-            <div className="absolute right-0 top-full mt-1 z-10 flex gap-0.5 p-1 rounded-full border shadow-lg bg-modal-bg border-edge-primary">
+            <div className="absolute end-0 top-full mt-1 z-10 flex gap-0.5 p-1 rounded-full border shadow-lg bg-modal-bg border-edge-primary">
               {skin_tones.map((tone) => (
                 <button
                   key={tone}
@@ -183,7 +197,11 @@ function EmojiPicker({ on_select }: { on_select: (emoji: string) => void }) {
             <button
               key={key}
               className={`press_scale w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-full cursor-pointer transition-transform duration-150 ${active_category === key ? "bg-black/10 dark:bg-white/15" : "opacity-55 hover:opacity-100 hover:bg-black/5 dark:hover:bg-white/10"}`}
-              title={emoji_categories[key].label}
+              title={
+                CATEGORY_LABEL_KEYS[key]
+                  ? t(CATEGORY_LABEL_KEYS[key])
+                  : emoji_categories[key].label
+              }
               type="button"
               onClick={() => {
                 set_active_category(key);

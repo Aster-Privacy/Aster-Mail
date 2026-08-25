@@ -42,7 +42,7 @@ export const MobileFab = memo(function MobileFab({ on_press }: MobileFabProps) {
   return (
     <Button
       aria-label={t("common.compose_email_label")}
-      className="fixed right-4 z-40 flex items-center justify-center"
+      className="fixed end-4 z-40 flex items-center justify-center"
       size="icon"
       style={{
         bottom: 16 + Math.max(safe_area_insets.bottom, 8),

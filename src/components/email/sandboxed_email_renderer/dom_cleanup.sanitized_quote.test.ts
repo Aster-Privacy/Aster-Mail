@@ -20,13 +20,13 @@
 //
 import { describe, expect, it } from "vitest";
 
-import { sanitize_html } from "@/lib/html_sanitizer";
-
 import {
   collapse_empty_block_runs,
   collapse_forwarded_content,
   collapse_quoted_replies,
 } from "./dom_cleanup";
+
+import { sanitize_html } from "@/lib/html_sanitizer";
 
 type translate_fn = Parameters<typeof collapse_forwarded_content>[1];
 

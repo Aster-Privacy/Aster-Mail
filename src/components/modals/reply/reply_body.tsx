@@ -80,7 +80,6 @@ interface ReplyBodyProps {
   set_expiry_password: (val: string | null) => void;
   active_formats: Set<string>;
   exec_format_command: (command: string) => void;
-  handle_insert_link: () => void;
   draft_status: DraftStatus;
   last_saved_time: Date | null;
   draft_id: string | null;
@@ -131,7 +130,6 @@ export function ReplyBody({
   set_expiry_password,
   active_formats,
   exec_format_command,
-  handle_insert_link,
   draft_status,
   last_saved_time,
   draft_id,
@@ -385,13 +383,22 @@ export function ReplyBody({
             ),
             active_formats,
             exec_format_command,
-            handle_insert_link,
             trigger_file_select,
             draft_status,
             last_saved_time,
-            handle_show_delete_confirm: draft_id
-              ? () => set_show_delete_confirm(true)
-              : () => handle_delete_draft(),
+            handle_show_delete_confirm: () => {
+              const has_content =
+                !!draft_id ||
+                attachments.length > 0 ||
+                (message_editor_ref.current?.innerText.trim().length ?? 0) > 0;
+
+              if (has_content) {
+                set_show_delete_confirm(true);
+
+                return;
+              }
+              handle_delete_draft();
+            },
             editor,
             is_plain_text_mode,
             toggle_plain_text_mode,
@@ -400,9 +407,7 @@ export function ReplyBody({
             <SignaturePicker
               disabled={is_scheduling}
               on_select={(content) => {
-                if (content) {
-                  editor.insert_html(content);
-                }
+                editor.apply_signature(content || null);
               }}
               open_direction="up"
             />

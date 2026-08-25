@@ -20,6 +20,7 @@
 //
 import type { DecryptedThreadMessage } from "@/types/thread";
 import type { ExternalContentReport } from "@/lib/html_sanitizer";
+import type { UndoSendEvent } from "@/hooks/use_undo_send";
 
 import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 
@@ -43,7 +44,6 @@ import {
   type ThreadReplyOptimisticEventDetail,
   type ThreadReplyCancelledEventDetail,
 } from "@/hooks/mail_events";
-import type { UndoSendEvent } from "@/hooks/use_undo_send";
 import {
   get_external_content_mode,
   set_external_content_mode,
@@ -81,6 +81,7 @@ import {
   type EmailPopupViewerProps,
 } from "@/components/email/hooks/popup_viewer_types";
 import { use_popup_viewer_actions } from "@/components/email/hooks/popup_viewer_actions";
+import { register_popup_email } from "@/components/email/hooks/popup_email_registry";
 import { viewer_still_showing } from "@/components/email/thread_reply_target";
 import { UNDO_SEND_PREVIEW_ID } from "@/components/email/email_viewer_types";
 
@@ -236,21 +237,32 @@ export function use_popup_viewer({
     [],
   );
 
-  const [loaded_content_types, set_loaded_content_types] = useState<Set<string>>(new Set());
+  const [loaded_content_types, set_loaded_content_types] = useState<
+    Set<string>
+  >(new Set());
 
-  const handle_load_external_content = useCallback((types?: string[]) => {
-    if (!types) {
-      set_external_content_state((prev) => ({ mode: "loaded", report: prev.report }));
-      if (email_id) set_external_content_mode(email_id);
-      set_loaded_content_types(new Set());
-      return;
-    }
-    set_loaded_content_types((prev) => {
-      const next = new Set(prev);
-      for (const t of types) next.add(t);
-      return next;
-    });
-  }, [email_id]);
+  const handle_load_external_content = useCallback(
+    (types?: string[]) => {
+      if (!types) {
+        set_external_content_state((prev) => ({
+          mode: "loaded",
+          report: prev.report,
+        }));
+        if (email_id) set_external_content_mode(email_id);
+        set_loaded_content_types(new Set());
+
+        return;
+      }
+      set_loaded_content_types((prev) => {
+        const next = new Set(prev);
+
+        for (const t of types) next.add(t);
+
+        return next;
+      });
+    },
+    [email_id],
+  );
 
   const handle_dismiss_external_content = useCallback(() => {
     set_external_content_state((prev) => ({ ...prev, mode: "dismissed" }));
@@ -298,6 +310,80 @@ export function use_popup_viewer({
     }
 
     const fetch_seq = ++fetch_seq_ref.current;
+
+    const schedule_mark_as_read = (
+      mail_data: MailItem,
+      already_read: boolean,
+    ) => {
+      if (already_read || preferences.mark_as_read_delay === "never") return;
+
+      const current_email_id = email_id;
+      const is_received = mail_data.item_type === "received";
+      const mark_read = async () => {
+        if (current_email_id !== email_id) return;
+
+        const conversation_options = {
+          thread_token: mail_data.thread_token,
+          thread_message_count: mail_data.thread_message_count,
+          grouped_count: grouped_email_ids?.length,
+          conversation_grouping: preferences.conversation_grouping,
+          acted_id: mail_data.id,
+        };
+        const clears_conversation =
+          read_clears_conversation(conversation_options);
+
+        if (is_received && clears_conversation) {
+          adjust_stats_unread(-1);
+        }
+        const result = await update_item_metadata(
+          current_email_id,
+          {
+            encrypted_metadata: mail_data.encrypted_metadata,
+            metadata_nonce: mail_data.metadata_nonce,
+            metadata_version: mail_data.metadata_version,
+          },
+          { is_read: true },
+        );
+
+        if (result.success && current_email_id === email_id) {
+          set_is_read(true);
+          if (result.encrypted) {
+            set_mail_item((prev) =>
+              prev
+                ? {
+                    ...prev,
+                    encrypted_metadata: result.encrypted!.encrypted_metadata,
+                    metadata_nonce: result.encrypted!.metadata_nonce,
+                    metadata: prev.metadata
+                      ? { ...prev.metadata, is_read: true }
+                      : undefined,
+                  }
+                : prev,
+            );
+          }
+          emit_mail_item_updated({
+            id: current_email_id,
+            is_read: true,
+            encrypted_metadata: result.encrypted?.encrypted_metadata,
+            metadata_nonce: result.encrypted?.metadata_nonce,
+          });
+          if (is_received) {
+            mark_conversation_read(conversation_options);
+          }
+        } else if (!result.success && is_received && clears_conversation) {
+          adjust_stats_unread(1);
+        }
+      };
+
+      if (preferences.mark_as_read_delay === "immediate") {
+        void mark_read();
+      } else {
+        const delay_ms =
+          preferences.mark_as_read_delay === "1_second" ? 1000 : 3000;
+
+        mark_as_read_timeout.current = window.setTimeout(mark_read, delay_ms);
+      }
+    };
 
     set_email(null);
     set_mail_item(null);
@@ -353,6 +439,7 @@ export function use_popup_viewer({
       set_is_pinned(preloaded.mail_item.metadata?.is_pinned ?? false);
       set_thread_messages(preloaded.thread_messages);
       set_current_thread_token(preloaded.mail_item.thread_token || null);
+      schedule_mark_as_read(preloaded.mail_item, pe.is_read);
 
       if (preloaded.mail_item.thread_token) {
         const { get_vault_from_memory, wait_for_keys_ready, are_keys_ready } =
@@ -426,16 +513,18 @@ export function use_popup_viewer({
           body_text,
           safe_html,
           unsubscribe_info: unsubscribe,
-        } = await process_envelope_body(envelope, user?.email, response.data.id);
+        } = await process_envelope_body(
+          envelope,
+          user?.email,
+          response.data.id,
+        );
 
         const decrypted: DecryptedEmail = {
           id: response.data.id,
           sender: envelope.from.name || get_email_username(envelope.from.email),
           sender_email: envelope.from.email,
-          ...(resolve_forwarding_display(
-            envelope.from,
-            envelope.raw_headers,
-          ) ?? {}),
+          ...(resolve_forwarding_display(envelope.from, envelope.raw_headers) ??
+            {}),
           subject: envelope.subject || t("mail.no_subject"),
           preview: build_preview_text(body_text, safe_html),
           timestamp: format_email_detail(timestamp_date.current),
@@ -533,83 +622,10 @@ export function use_popup_viewer({
           }
         }
 
-        const mail_data = response.data;
-
-        if (
-          !(decrypted_metadata?.is_read ?? false) &&
-          preferences.mark_as_read_delay !== "never"
-        ) {
-          const current_email_id = email_id;
-          const is_received = mail_data.item_type === "received";
-          const mark_read = async () => {
-            if (current_email_id !== email_id) return;
-
-            const conversation_options = {
-              thread_token: mail_data.thread_token,
-              thread_message_count: mail_data.thread_message_count,
-              grouped_count: grouped_email_ids?.length,
-              conversation_grouping: preferences.conversation_grouping,
-              acted_id: mail_data.id,
-            };
-            const clears_conversation =
-              read_clears_conversation(conversation_options);
-
-            if (is_received && clears_conversation) {
-              adjust_stats_unread(-1);
-            }
-            const result = await update_item_metadata(
-              current_email_id,
-              {
-                encrypted_metadata: mail_data.encrypted_metadata,
-                metadata_nonce: mail_data.metadata_nonce,
-                metadata_version: mail_data.metadata_version,
-              },
-              { is_read: true },
-            );
-
-            if (result.success && current_email_id === email_id) {
-              set_is_read(true);
-              if (result.encrypted) {
-                set_mail_item((prev) =>
-                  prev
-                    ? {
-                        ...prev,
-                        encrypted_metadata:
-                          result.encrypted!.encrypted_metadata,
-                        metadata_nonce: result.encrypted!.metadata_nonce,
-                        metadata: prev.metadata
-                          ? { ...prev.metadata, is_read: true }
-                          : undefined,
-                      }
-                    : prev,
-                );
-              }
-              emit_mail_item_updated({
-                id: current_email_id,
-                is_read: true,
-                encrypted_metadata: result.encrypted?.encrypted_metadata,
-                metadata_nonce: result.encrypted?.metadata_nonce,
-              });
-              if (is_received) {
-                mark_conversation_read(conversation_options);
-              }
-            } else if (!result.success && is_received && clears_conversation) {
-              adjust_stats_unread(1);
-            }
-          };
-
-          if (preferences.mark_as_read_delay === "immediate") {
-            void mark_read();
-          } else {
-            const delay_ms =
-              preferences.mark_as_read_delay === "1_second" ? 1000 : 3000;
-
-            mark_as_read_timeout.current = window.setTimeout(
-              mark_read,
-              delay_ms,
-            );
-          }
-        }
+        schedule_mark_as_read(
+          response.data,
+          decrypted_metadata?.is_read ?? false,
+        );
       }
     }
   }, [
@@ -662,8 +678,14 @@ export function use_popup_viewer({
         is_external: false,
         is_sending: true,
         to_recipients: local_email.to.map((e) => ({ name: "", email: e })),
-        cc_recipients: (local_email.cc || []).map((e) => ({ name: "", email: e })),
-        bcc_recipients: (local_email.bcc || []).map((e) => ({ name: "", email: e })),
+        cc_recipients: (local_email.cc || []).map((e) => ({
+          name: "",
+          email: e,
+        })),
+        bcc_recipients: (local_email.bcc || []).map((e) => ({
+          name: "",
+          email: e,
+        })),
       };
 
       set_thread_messages([msg]);
@@ -671,7 +693,7 @@ export function use_popup_viewer({
 
       return;
     }
-  }, [local_email, user, format_email_detail]);
+  }, [local_email, user, format_email_detail, t]);
 
   useEffect(() => {
     if (local_email) return;
@@ -711,8 +733,10 @@ export function use_popup_viewer({
   }, [email_id]);
 
   useEffect(() => {
+    let refetch_timeout: number | null = null;
+
     const handle_email_sent = () => {
-      setTimeout(() => {
+      refetch_timeout = window.setTimeout(() => {
         fetch_email();
       }, 500);
     };
@@ -721,6 +745,9 @@ export function use_popup_viewer({
 
     return () => {
       window.removeEventListener("astermail:email-sent", handle_email_sent);
+      if (refetch_timeout !== null) {
+        window.clearTimeout(refetch_timeout);
+      }
     };
   }, [fetch_email]);
 
@@ -795,6 +822,7 @@ export function use_popup_viewer({
             : still_sending.map((m) =>
                 m.id === detail.optimistic_id ? { ...m, is_sending: false } : m,
               );
+
           return [...thread_result.messages, ...merged];
         });
 
@@ -883,8 +911,7 @@ export function use_popup_viewer({
       if (!pending.optimistic_id || !pending.thread_token) return;
 
       const matches_thread =
-        current_thread_token &&
-        pending.thread_token === current_thread_token;
+        current_thread_token && pending.thread_token === current_thread_token;
 
       if (!matches_thread) return;
 
@@ -917,10 +944,17 @@ export function use_popup_viewer({
   }, [current_thread_token, email_id, preferences.conversation_grouping]);
 
   useEffect(() => {
+    if (!email_id) return;
+
+    return register_popup_email(email_id);
+  }, [email_id]);
+
+  useEffect(() => {
     const handle_keyboard_reply = (e: Event) =>
       actions.handle_reply({
         reply_all:
-          (e as CustomEvent<{ reply_all?: boolean }>).detail?.reply_all === true,
+          (e as CustomEvent<{ reply_all?: boolean }>).detail?.reply_all ===
+          true,
       });
     const handle_keyboard_forward = () => actions.handle_forward();
 
@@ -1060,6 +1094,7 @@ export function use_popup_viewer({
       const expires = new Date(
         Date.now() + 30 * 24 * 60 * 60 * 1000,
       ).toISOString();
+
       set_thread_draft({
         id: draft.id,
         version: draft.version,
@@ -1111,14 +1146,15 @@ export function use_popup_viewer({
     handle_fullscreen: drag.handle_fullscreen,
     handle_read_toggle: actions.handle_read_toggle,
     handle_archive: actions.handle_archive,
+    handle_unarchive: actions.handle_unarchive,
     handle_spam: actions.handle_spam,
+    handle_not_spam: actions.handle_not_spam,
     handle_trash: actions.handle_trash,
     handle_pin_toggle: actions.handle_pin_toggle,
     handle_reply: actions.handle_reply,
     handle_forward: actions.handle_forward,
     handle_print: actions.handle_print,
-    handle_unsubscribe: () =>
-      actions.handle_unsubscribe(unsubscribe_info),
+    handle_unsubscribe: () => actions.handle_unsubscribe(unsubscribe_info),
     handle_external_content_detected,
     handle_load_external_content,
     handle_dismiss_external_content,

@@ -284,19 +284,19 @@ export const InlineReplyComposer = forwardRef<
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="w-40">
             <DropdownMenuItem onClick={() => on_set_inline_mode?.("reply")}>
-              {render_mode_icon("reply", "w-4 h-4 mr-2")}
+              {render_mode_icon("reply", "w-4 h-4 me-2")}
               {t("mail.reply")}
             </DropdownMenuItem>
             {(original_to?.length ?? 0) + (original_cc?.length ?? 0) >= 2 && (
               <DropdownMenuItem
                 onClick={() => on_set_inline_mode?.("reply_all")}
               >
-                {render_mode_icon("reply_all", "w-4 h-4 mr-2")}
+                {render_mode_icon("reply_all", "w-4 h-4 me-2")}
                 {t("mail.reply_all")}
               </DropdownMenuItem>
             )}
             <DropdownMenuItem onClick={() => on_set_inline_mode?.("forward")}>
-              {render_mode_icon("forward", "w-4 h-4 mr-2")}
+              {render_mode_icon("forward", "w-4 h-4 me-2")}
               {t("mail.forward")}
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -359,6 +359,7 @@ export const InlineReplyComposer = forwardRef<
         <RecipientField
           show_bcc
           show_cc_bcc_buttons
+          all_recipients={reply_all_recipients}
           contacts={reply_modal.contacts}
           input_value={reply_modal.inputs.to}
           label={t("mail.to")}
@@ -369,7 +370,10 @@ export const InlineReplyComposer = forwardRef<
             reply_modal.set_inputs((prev) => ({ ...prev, to: val }))
           }
           on_remove_last={() =>
-            reply_modal.dispatch_recipients({ type: "REMOVE_LAST", field: "to" })
+            reply_modal.dispatch_recipients({
+              type: "REMOVE_LAST",
+              field: "to",
+            })
           }
           on_remove_recipient={(email) =>
             reply_modal.dispatch_recipients({
@@ -379,7 +383,6 @@ export const InlineReplyComposer = forwardRef<
             })
           }
           on_show_cc={() => reply_modal.set_show_cc(true)}
-          all_recipients={reply_all_recipients}
           recipients={reply_modal.recipients.to}
           show_cc={reply_modal.show_cc}
         />
@@ -387,6 +390,7 @@ export const InlineReplyComposer = forwardRef<
       {reply_modal.show_cc && (
         <div className="py-1.5">
           <RecipientField
+            all_recipients={reply_all_recipients}
             contacts={reply_modal.contacts}
             input_value={reply_modal.inputs.cc}
             label={t("mail.cc")}
@@ -422,7 +426,6 @@ export const InlineReplyComposer = forwardRef<
                 email,
               })
             }
-            all_recipients={reply_all_recipients}
             recipients={reply_modal.recipients.cc}
           />
         </div>
@@ -499,7 +502,6 @@ export const InlineReplyComposer = forwardRef<
       from_mismatch={reply_modal.from_mismatch}
       handle_delete_draft={reply_modal.handle_delete_draft}
       handle_file_select={reply_modal.handle_file_select}
-      handle_insert_link={reply_modal.handle_insert_link}
       handle_scheduled_send={reply_modal.handle_scheduled_send}
       handle_send={reply_modal.handle_send}
       handle_template_select={reply_modal.handle_template_select}

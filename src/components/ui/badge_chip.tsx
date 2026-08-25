@@ -18,15 +18,13 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { memo } from "react";
-
-import { cn } from "@/lib/utils";
 import type { Badge } from "@/services/api/user";
 
-import {
-  format_find_order,
-  get_badge_visual,
-} from "./badge_registry";
+import { memo } from "react";
+
+import { format_find_order, get_badge_visual } from "./badge_registry";
+
+import { cn } from "@/lib/utils";
 
 interface BadgeChipProps {
   badge: Badge;

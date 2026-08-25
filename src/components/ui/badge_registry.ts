@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { ComponentType, SVGProps } from "react";
+
 import {
   SparklesIcon,
   MoonIcon,
@@ -32,7 +34,8 @@ import {
   HeartIcon,
   TrophyIcon,
 } from "@heroicons/react/24/outline";
-import type { ComponentType, SVGProps } from "react";
+
+import { app_locale } from "@/utils/date_format";
 
 export type BadgeIconComponent = ComponentType<SVGProps<SVGSVGElement>>;
 
@@ -157,7 +160,10 @@ export function get_badge_visual(slug: string): BadgeVisual {
   return BADGE_VISUALS[slug] ?? DEFAULT_VISUAL;
 }
 
-export function format_find_order(find_order: number | null | undefined): string | null {
+export function format_find_order(
+  find_order: number | null | undefined,
+): string | null {
   if (find_order == null || find_order < 1) return null;
-  return `#${find_order.toLocaleString()}`;
+
+  return `#${find_order.toLocaleString(app_locale())}`;
 }

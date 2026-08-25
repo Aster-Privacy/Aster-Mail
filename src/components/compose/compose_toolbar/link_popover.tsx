@@ -18,22 +18,20 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { } from "@/lib/i18n/types";
-import type { } from "@/components/compose/compose_shared";
+import type {} from "@/lib/i18n/types";
+import type {} from "@/components/compose/compose_shared";
 
-import {
-  useState,
-  useRef,
-  useEffect,
-} from "react";
+import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { Button } from "@aster/ui";
+
+import { use_anchored_layer } from "./shared";
 
 import { Input } from "@/components/ui/input";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_escape_layer } from "@/lib/overlay_layer_stack";
-
-import { use_anchored_layer } from "./shared";
+import { normalize_link_url } from "@/utils/link_url";
+import { is_composing } from "@/utils/ime";
 
 export function LinkPopover({
   open,
@@ -51,6 +49,7 @@ export function LinkPopover({
   const { t } = use_i18n();
   const [url, set_url] = useState("https://");
   const [text, set_text] = useState("");
+  const [error, set_error] = useState("");
   const [pos, set_pos] = useState({ top: 0, left: 0 });
   const card_ref = useRef<HTMLDivElement>(null);
   const url_input_ref = useRef<HTMLInputElement>(null);
@@ -72,6 +71,7 @@ export function LinkPopover({
     if (!open) return;
     set_url("https://");
     set_text(selected_text);
+    set_error("");
     requestAnimationFrame(() => url_input_ref.current?.focus());
 
     const handle_click_outside = (e: MouseEvent) => {
@@ -89,14 +89,14 @@ export function LinkPopover({
   }, [open]);
 
   const handle_insert = () => {
-    const trimmed = url.trim().toLowerCase();
-    const valid =
-      trimmed.startsWith("http://") ||
-      trimmed.startsWith("https://") ||
-      trimmed.startsWith("mailto:");
+    const normalized = normalize_link_url(url);
 
-    if (!valid) return;
-    on_insert(url.trim(), text.trim() || undefined);
+    if (!normalized) {
+      set_error(t("common.please_enter_valid_url"));
+
+      return;
+    }
+    on_insert(normalized, text.trim() || undefined);
     on_close();
   };
 
@@ -112,7 +112,7 @@ export function LinkPopover({
         bottom: window.innerHeight - pos.top + 8,
       }}
       onKeyDown={(e) => {
-        if (e.key === "Enter") {
+        if (e.key === "Enter" && !is_composing(e)) {
           e.preventDefault();
           handle_insert();
         }
@@ -125,8 +125,12 @@ export function LinkPopover({
         size="sm"
         type="url"
         value={url}
-        onChange={(e) => set_url(e.target.value)}
+        onChange={(e) => {
+          set_url(e.target.value);
+          if (error) set_error("");
+        }}
       />
+      {error && <p className="text-[11px] text-red-500">{error}</p>}
       {!selected_text && (
         <Input
           className="w-full"
@@ -149,4 +153,3 @@ export function LinkPopover({
     document.body,
   );
 }
-

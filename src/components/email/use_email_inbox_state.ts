@@ -30,6 +30,8 @@ import {
   useLayoutEffect,
 } from "react";
 
+import { use_inbox_view_state } from "./use_inbox_view_state";
+
 import {
   is_fully_built as is_category_index_built,
   is_index_settled,
@@ -37,9 +39,7 @@ import {
 import { use_category_drop } from "@/components/email/inbox/use_category_drop";
 import { use_settled_empty_state } from "@/components/email/inbox/use_settled_empty_state";
 import { builtin_category_def } from "@/data/category_catalog";
-import {
-  type BulkScopeFilter,
-} from "@/services/api/mail";
+import { type BulkScopeFilter } from "@/services/api/mail";
 import {
   filter_emails_by_view,
   apply_active_filter,
@@ -60,7 +60,6 @@ export type {
   DraftClickData,
   ScheduledClickData,
 } from "@/components/email/inbox/inbox_types";
-import { use_inbox_view_state } from "./use_inbox_view_state";
 
 export function use_email_inbox_state(props: EmailInboxProps) {
   const {
@@ -107,6 +106,7 @@ export function use_email_inbox_state(props: EmailInboxProps) {
     is_page_cached,
     update_email,
     refresh_active_list,
+    refresh_current_view,
     update_draft,
     scheduled_state,
     update_scheduled,
@@ -180,7 +180,10 @@ export function use_email_inbox_state(props: EmailInboxProps) {
         const instant = is_page_cached(current_page, page_size);
 
         if (!instant) set_is_paginating(true);
-        fetch_page(current_page, page_size, true).finally(() => {
+        fetch_page(current_page, page_size, {
+          force: true,
+          silent: categories.enabled,
+        }).finally(() => {
           if (!instant) set_is_paginating(false);
         });
       }
@@ -524,6 +527,7 @@ export function use_email_inbox_state(props: EmailInboxProps) {
     handle_restore_wrapped,
     handle_folder_toggle_wrapped,
     handle_tag_toggle_wrapped,
+    handle_snooze_wrapped,
   } = bulk_actions;
 
   const selection_menu = use_inbox_selection_menu({
@@ -561,9 +565,54 @@ export function use_email_inbox_state(props: EmailInboxProps) {
     [selection.handle_toggle_select, selection.handle_toggle_select_all],
   );
 
+  const keyboard_context_menu_actions = useMemo(() => {
+    const describe = (email: InboxEmail) => ({
+      is_trash: current_view === "trash" || email.is_trashed,
+      is_spam: current_view === "spam" || email.is_spam,
+      is_archive: current_view === "archive" || email.is_archived,
+    });
+
+    return {
+      ...context_menu_actions,
+      handle_archive: (email: InboxEmail) => {
+        const state = describe(email);
+
+        if (state.is_archive) {
+          void context_menu_actions.handle_move_to_inbox(email);
+
+          return;
+        }
+
+        if (
+          state.is_trash ||
+          state.is_spam ||
+          is_drafts_view ||
+          is_scheduled_view
+        ) {
+          return;
+        }
+
+        context_menu_actions.handle_archive(email);
+      },
+      handle_spam: (email: InboxEmail) => {
+        const state = describe(email);
+
+        if (state.is_spam) {
+          void context_menu_actions.handle_mark_not_spam(email);
+
+          return;
+        }
+
+        if (state.is_trash || is_drafts_view || is_scheduled_view) return;
+
+        context_menu_actions.handle_spam(email);
+      },
+    };
+  }, [context_menu_actions, current_view, is_drafts_view, is_scheduled_view]);
+
   use_inbox_keyboard(
     email_state.emails,
-    context_menu_actions,
+    keyboard_context_menu_actions,
     extra_keyboard_actions,
   );
 
@@ -633,6 +682,7 @@ export function use_email_inbox_state(props: EmailInboxProps) {
     tag_not_found,
     locked_folder,
     refresh_active_list,
+    refresh_current_view,
     manual_refresh_active,
     handle_snooze,
     handle_category_change,
@@ -668,6 +718,7 @@ export function use_email_inbox_state(props: EmailInboxProps) {
     handle_restore_wrapped,
     handle_folder_toggle_wrapped,
     handle_tag_toggle_wrapped,
+    handle_snooze_wrapped,
     selection_menu,
     nav,
     is_split_view,

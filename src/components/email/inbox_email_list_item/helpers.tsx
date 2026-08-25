@@ -21,24 +21,19 @@
 import type { InboxEmail } from "@/types/email";
 import type { AttachmentPreviewEntry } from "@/hooks/use_attachment_previews";
 
-import {     useRef, } from "react";
-import {
-  StarIcon,
-} from "@heroicons/react/24/outline";
-import {
-  StarIcon as StarIconSolid,
-} from "@heroicons/react/24/solid";
-import {  Tooltip } from "@aster/ui";
+import { useRef } from "react";
+import { StarIcon } from "@heroicons/react/24/outline";
+import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
+import { Tooltip } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
-import { is_compact_density, } from "@/lib/list_density";
+import { is_compact_density } from "@/lib/list_density";
 import { truncate_with_ellipsis } from "@/utils/preview_text";
-import {
-  type SelectionSnapshot,
-} from "@/components/email/inbox/selection_snapshot";
+import { type SelectionSnapshot } from "@/components/email/inbox/selection_snapshot";
+import { format_bytes } from "@/lib/utils";
 
-
-export interface InboxEmailListItemProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface InboxEmailListItemProps
+  extends React.HTMLAttributes<HTMLDivElement> {
   email: InboxEmail;
   density: string;
   show_profile_pictures: boolean;
@@ -64,13 +59,13 @@ export interface InboxEmailListItemProps extends React.HTMLAttributes<HTMLDivEle
 }
 
 export function format_email_size(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  return format_bytes(bytes);
 }
 
-export function get_density_classes(density: string, compact_mode: boolean): string {
+export function get_density_classes(
+  density: string,
+  compact_mode: boolean,
+): string {
   return is_compact_density(density, compact_mode) ? "py-1.5" : "py-2";
 }
 
@@ -145,4 +140,3 @@ if (typeof window !== "undefined") {
   window.addEventListener("dragend", sweep_drag_images);
   window.addEventListener("drop", sweep_drag_images);
 }
-

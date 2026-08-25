@@ -20,10 +20,14 @@
 //
 import type { use_i18n } from "@/lib/i18n/context";
 
-import { connection_store } from "@/services/routing/connection_store";
-
 import { IMAGE_PROXY_URL } from "./helpers";
 
+import {
+  image_load_retry_delay_ms,
+  parse_retry_attempt,
+  should_retry_image_load,
+} from "@/lib/image_load_retry";
+import { connection_store } from "@/services/routing/connection_store";
 import { ignore_error } from "@/lib/ignore_error";
 
 type translate_fn = ReturnType<typeof use_i18n>["t"];
@@ -83,7 +87,10 @@ function reveal_hidden_quote_blocks(el: Element): void {
   });
 }
 
-export function collapse_forwarded_content(doc: Document, t: translate_fn): void {
+export function collapse_forwarded_content(
+  doc: Document,
+  t: translate_fn,
+): void {
   const body = doc.body;
 
   if (!body) return;
@@ -96,8 +103,7 @@ export function collapse_forwarded_content(doc: Document, t: translate_fn): void
     let prev: Node | null = proton_wrapper.previousSibling;
 
     while (prev) {
-      const el =
-        prev.nodeType === Node.ELEMENT_NODE ? (prev as Element) : null;
+      const el = prev.nodeType === Node.ELEMENT_NODE ? (prev as Element) : null;
       const text = prev.textContent?.trim() || "";
       const is_sig = el?.classList?.contains("protonmail_signature_block");
       const is_spacer = !text && !contains_media(prev);
@@ -285,8 +291,7 @@ export function collapse_empty_block_runs(doc: Document): void {
     let prev = sig.previousSibling;
 
     while (prev) {
-      const el =
-        prev.nodeType === Node.ELEMENT_NODE ? (prev as Element) : null;
+      const el = prev.nodeType === Node.ELEMENT_NODE ? (prev as Element) : null;
       const text = (prev.textContent || "").trim();
       const is_empty_block =
         el &&
@@ -322,11 +327,17 @@ export function trim_trailing_empty_blocks(doc: Document): void {
     if (el.tagName === "BR") return true;
     if (!["DIV", "P", "SECTION", "SPAN"].includes(el.tagName)) return false;
     if ((el.textContent || "").trim()) return false;
-    if (el.querySelector("img,hr,table,iframe,svg,video,object,embed,input,button")) {
+    if (
+      el.querySelector(
+        "img,hr,table,iframe,svg,video,object,embed,input,button",
+      )
+    ) {
       return false;
     }
 
-    return !/background|height|border|padding/i.test(el.getAttribute("style") || "");
+    return !/background|height|border|padding/i.test(
+      el.getAttribute("style") || "",
+    );
   };
 
   let container: Element = body;
@@ -410,10 +421,12 @@ export function collapse_quoted_replies(doc: Document, t: translate_fn): void {
 
   const has_content_before = (() => {
     let prev: Node | null = marker_block!.previousSibling;
+
     while (prev) {
       if ((prev.textContent || "").trim().length > 0) return true;
       prev = prev.previousSibling;
     }
+
     return false;
   })();
 
@@ -421,20 +434,25 @@ export function collapse_quoted_replies(doc: Document, t: translate_fn): void {
 
   if (has_content_before) {
     let sib: Node | null = marker_block;
+
     while (sib) {
       const next: ChildNode | null = sib.nextSibling;
+
       to_collapse.push(sib);
       sib = next;
     }
   } else {
     to_collapse.push(marker_block!);
     let sib: Node | null = marker_block!.nextSibling;
+
     while (sib) {
-      const tag = sib.nodeType === Node.ELEMENT_NODE
-        ? (sib as Element).tagName.toUpperCase()
-        : null;
+      const tag =
+        sib.nodeType === Node.ELEMENT_NODE
+          ? (sib as Element).tagName.toUpperCase()
+          : null;
       const text = (sib.textContent || "").trim();
       const is_quoted_block = tag === "BLOCKQUOTE" || !text;
+
       if (is_quoted_block) {
         to_collapse.push(sib);
         sib = sib.nextSibling;
@@ -505,10 +523,7 @@ export function collapse_quoted_replies(doc: Document, t: translate_fn): void {
     content_div.appendChild(node);
   }
 
-  const strip_walker = doc.createTreeWalker(
-    content_div,
-    NodeFilter.SHOW_TEXT,
-  );
+  const strip_walker = doc.createTreeWalker(content_div, NodeFilter.SHOW_TEXT);
 
   while (strip_walker.nextNode()) {
     const text_node = strip_walker.currentNode;
@@ -538,6 +553,41 @@ export function collapse_quoted_replies(doc: Document, t: translate_fn): void {
   body.appendChild(wrapper);
 }
 
+const IMAGE_RETRY_ATTRIBUTE = "data-load-retry";
+
+function install_image_load_fallback(img_el: HTMLImageElement): void {
+  img_el.addEventListener(
+    "error",
+    () => {
+      const attempt = parse_retry_attempt(
+        img_el.getAttribute(IMAGE_RETRY_ATTRIBUTE),
+      );
+      const current_src = img_el.getAttribute("src") || "";
+
+      if (should_retry_image_load(attempt, current_src)) {
+        img_el.setAttribute(IMAGE_RETRY_ATTRIBUTE, String(attempt + 1));
+        img_el.removeAttribute("src");
+
+        const owner = img_el.ownerDocument?.defaultView ?? window;
+
+        owner.setTimeout(() => {
+          install_image_load_fallback(img_el);
+          img_el.setAttribute("src", current_src);
+        }, image_load_retry_delay_ms(attempt));
+
+        return;
+      }
+
+      img_el.setAttribute("data-load-failed", "true");
+
+      if ((img_el.getAttribute("alt") || "").trim().length > 0) return;
+
+      img_el.style.display = "none";
+    },
+    { once: true },
+  );
+}
+
 export function unblock_remote_content(doc: Document): void {
   const m = connection_store.get_method();
 
@@ -554,11 +604,15 @@ export function unblock_remote_content(doc: Document): void {
     if (src) {
       try {
         const safe_url = new URL(src, window.location.href);
+
         if (safe_url.protocol === "https:" || safe_url.protocol === "http:") {
           el.setAttribute("src", safe_url.href);
         }
       } catch (caught) {
-        ignore_error("components/email/sandboxed_email_renderer/dom_cleanup:unblock_remote_content", caught);
+        ignore_error(
+          "components/email/sandboxed_email_renderer/dom_cleanup:unblock_remote_content",
+          caught,
+        );
       }
     }
     el.removeAttribute("data-blocked");
@@ -570,13 +624,7 @@ export function unblock_remote_content(doc: Document): void {
     }
     const img_el = el as HTMLImageElement;
 
-    img_el.addEventListener(
-      "error",
-      () => {
-        img_el.style.display = "none";
-      },
-      { once: true },
-    );
+    install_image_load_fallback(img_el);
   });
 
   doc.querySelectorAll("img[alt='[Click to load image]']").forEach((el) => {

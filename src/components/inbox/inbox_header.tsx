@@ -64,8 +64,9 @@ import { use_preferences } from "@/contexts/preferences_context";
 import { FilterDropdown } from "@/components/inbox/header/header_filters";
 import { HeaderPagination } from "@/components/inbox/header/header_pagination";
 import { DEFAULT_PAGE_SIZE } from "@/hooks/email_list_helpers";
-
 import { ignore_error } from "@/lib/ignore_error";
+import { app_locale } from "@/utils/date_format";
+import { compute_snooze_target } from "@/utils/snooze_targets";
 
 interface FolderOption {
   folder_token: string;
@@ -309,8 +310,8 @@ export function InboxHeader({
   return (
     <>
       <div
-        className="flex select-none items-center justify-between gap-2 pl-3 pr-1 sm:pl-4 sm:pr-2 py-1 min-h-[44px] overflow-hidden"
         data-inbox-toolbar
+        className="flex select-none items-center justify-between gap-2 ps-3 pe-1 sm:ps-4 sm:pe-2 py-1 min-h-[44px] overflow-hidden"
       >
         <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-shrink-0">
           {leading_left_slot}
@@ -347,7 +348,7 @@ export function InboxHeader({
               </Tooltip>
               {select_all_label && !has_selection && (
                 <span
-                  className="pr-2 text-[13px] hidden sm:inline"
+                  className="pe-2 text-[13px] hidden sm:inline"
                   style={{ color: "var(--text-muted)" }}
                 >
                   {select_all_label}
@@ -358,7 +359,7 @@ export function InboxHeader({
                   <DropdownMenuTrigger asChild>
                     <button
                       aria-label={t("common.select_label")}
-                      className="-ml-2 h-9 w-5 flex items-center justify-center focus:outline-none"
+                      className="-ms-2 h-9 w-5 flex items-center justify-center focus:outline-none"
                     >
                       <ChevronDownIcon className="w-4 h-4 stroke-[1.75] text-[var(--icon-secondary)] transition-colors" />
                     </button>
@@ -432,7 +433,9 @@ export function InboxHeader({
                   </span>
                   {(display_count ?? filtered_count) > 0 && (
                     <span className="text-base leading-tight font-extrabold text-[var(--accent-color)] tabular-nums flex-shrink-0">
-                      {(display_count ?? filtered_count).toLocaleString()}
+                      {(display_count ?? filtered_count).toLocaleString(
+                        app_locale(),
+                      )}
                     </span>
                   )}
                   <ChevronDownIcon className="w-4 h-4 text-[var(--icon-muted)] flex-shrink-0" />
@@ -476,10 +479,10 @@ export function InboxHeader({
         {has_selection && (
           <div className="flex items-center gap-0.5 min-w-0 flex-shrink">
             <span className="text-base leading-tight font-extrabold text-[var(--accent-color)] tabular-nums px-1.5 flex-shrink-0">
-              {display_selected.toLocaleString()}
+              {display_selected.toLocaleString(app_locale())}
             </span>
             <span
-              className="text-base leading-tight flex-shrink-0 mr-2 hidden sm:inline"
+              className="text-base leading-tight flex-shrink-0 me-2 hidden sm:inline"
               style={{ color: "var(--text-muted)" }}
             >
               {t("common.selected")}
@@ -492,7 +495,7 @@ export function InboxHeader({
                     className="h-9 w-9 rounded-[10px] flex items-center justify-center transition-colors hover:bg-[var(--bg-hover)] text-[var(--icon-secondary)] hover:text-[var(--icon-active)]"
                     onClick={on_restore}
                   >
-                    <ArrowUturnLeftIcon className="w-[18px] h-[18px]" />
+                    <ArrowUturnLeftIcon className="w-[18px] h-[18px] rtl:-scale-x-100" />
                   </button>
                 </Tooltip>
               )}
@@ -575,38 +578,43 @@ export function InboxHeader({
                     </DropdownMenuLabel>
                     <DropdownMenuItem
                       onClick={() => {
-                        const date = new Date();
-
-                        date.setHours(date.getHours() + 4);
-                        on_snooze(date);
+                        on_snooze(compute_snooze_target("later_today"));
                       }}
                     >
-                      <ClockIcon className="w-4 h-4 mr-2" />
+                      <ClockIcon className="w-4 h-4 me-2" />
                       {t("mail.later_today_snooze")}
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => {
-                        const date = new Date();
-
-                        date.setDate(date.getDate() + 1);
-                        date.setHours(9, 0, 0, 0);
-                        on_snooze(date);
+                        on_snooze(compute_snooze_target("tomorrow"));
                       }}
                     >
-                      <ClockIcon className="w-4 h-4 mr-2" />
+                      <ClockIcon className="w-4 h-4 me-2" />
                       {t("mail.tomorrow_snooze")}
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => {
-                        const date = new Date();
-
-                        date.setDate(date.getDate() + 7);
-                        date.setHours(9, 0, 0, 0);
-                        on_snooze(date);
+                        on_snooze(compute_snooze_target("this_weekend"));
                       }}
                     >
-                      <ClockIcon className="w-4 h-4 mr-2" />
+                      <ClockIcon className="w-4 h-4 me-2" />
+                      {t("mail.this_weekend_snooze")}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        on_snooze(compute_snooze_target("next_week"));
+                      }}
+                    >
+                      <ClockIcon className="w-4 h-4 me-2" />
                       {t("mail.next_week_snooze")}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        on_snooze(compute_snooze_target("next_month"));
+                      }}
+                    >
+                      <ClockIcon className="w-4 h-4 me-2" />
+                      {t("common.next_month")}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -657,14 +665,14 @@ export function InboxHeader({
                           onClick={() => on_folder_toggle(folder.folder_token)}
                         >
                           <div
-                            className="w-2.5 h-2.5 rounded-full mr-2 flex-shrink-0"
+                            className="w-2.5 h-2.5 rounded-full me-2 flex-shrink-0"
                             style={{ backgroundColor: folder.color }}
                           />
                           <span className="flex-1 truncate">{folder.name}</span>
                           {(folder.status === "all" ||
                             folder.status === "some") && (
                             <CheckIcon
-                              className={`w-4 h-4 ml-2 flex-shrink-0 ${folder.status === "some" ? "opacity-50" : ""}`}
+                              className={`w-4 h-4 ms-2 flex-shrink-0 ${folder.status === "some" ? "opacity-50" : ""}`}
                             />
                           )}
                         </DropdownMenuItem>
@@ -700,13 +708,13 @@ export function InboxHeader({
                           onClick={() => on_tag_toggle(tag.tag_token)}
                         >
                           <div
-                            className="w-2.5 h-2.5 rounded-full mr-2 flex-shrink-0"
+                            className="w-2.5 h-2.5 rounded-full me-2 flex-shrink-0"
                             style={{ backgroundColor: tag.color }}
                           />
                           <span className="flex-1 truncate">{tag.name}</span>
                           {(tag.status === "all" || tag.status === "some") && (
                             <CheckIcon
-                              className={`w-4 h-4 ml-2 flex-shrink-0 ${tag.status === "some" ? "opacity-50" : ""}`}
+                              className={`w-4 h-4 ms-2 flex-shrink-0 ${tag.status === "some" ? "opacity-50" : ""}`}
                             />
                           )}
                         </DropdownMenuItem>
@@ -727,16 +735,20 @@ export function InboxHeader({
                       </button>
                     </DropdownMenuTrigger>
                   </Tooltip>
-                  <DropdownMenuContent align="start" sideOffset={8}>
+                  <DropdownMenuContent
+                    align="start"
+                    className="max-h-[70vh] overflow-y-auto"
+                    sideOffset={8}
+                  >
                     {on_mark_unread && !hide_mail_actions && (
                       <DropdownMenuItem onClick={on_mark_unread}>
-                        <EnvelopeIcon className="w-4 h-4 mr-2" />
+                        <EnvelopeIcon className="w-4 h-4 me-2" />
                         {t("mail.mark_as_unread")}
                       </DropdownMenuItem>
                     )}
                     {!hide_mail_actions && on_toggle_star && (
                       <DropdownMenuItem onClick={on_toggle_star}>
-                        <StarIcon className="w-4 h-4 mr-2" />
+                        <StarIcon className="w-4 h-4 me-2" />
                         {t("common.star_selected")}
                       </DropdownMenuItem>
                     )}
@@ -745,7 +757,7 @@ export function InboxHeader({
                       !hide_mail_actions &&
                       on_spam && (
                         <DropdownMenuItem onClick={on_spam}>
-                          <ShieldExclamationIcon className="w-4 h-4 mr-2" />
+                          <ShieldExclamationIcon className="w-4 h-4 me-2" />
                           {t("mail.report_spam")}
                         </DropdownMenuItem>
                       )}
@@ -757,38 +769,43 @@ export function InboxHeader({
                         </DropdownMenuLabel>
                         <DropdownMenuItem
                           onClick={() => {
-                            const date = new Date();
-
-                            date.setHours(date.getHours() + 4);
-                            on_snooze(date);
+                            on_snooze(compute_snooze_target("later_today"));
                           }}
                         >
-                          <ClockIcon className="w-4 h-4 mr-2" />
+                          <ClockIcon className="w-4 h-4 me-2" />
                           {t("mail.later_today_snooze")}
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => {
-                            const date = new Date();
-
-                            date.setDate(date.getDate() + 1);
-                            date.setHours(9, 0, 0, 0);
-                            on_snooze(date);
+                            on_snooze(compute_snooze_target("tomorrow"));
                           }}
                         >
-                          <ClockIcon className="w-4 h-4 mr-2" />
+                          <ClockIcon className="w-4 h-4 me-2" />
                           {t("mail.tomorrow_snooze")}
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => {
-                            const date = new Date();
-
-                            date.setDate(date.getDate() + 7);
-                            date.setHours(9, 0, 0, 0);
-                            on_snooze(date);
+                            on_snooze(compute_snooze_target("this_weekend"));
                           }}
                         >
-                          <ClockIcon className="w-4 h-4 mr-2" />
+                          <ClockIcon className="w-4 h-4 me-2" />
+                          {t("mail.this_weekend_snooze")}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => {
+                            on_snooze(compute_snooze_target("next_week"));
+                          }}
+                        >
+                          <ClockIcon className="w-4 h-4 me-2" />
                           {t("mail.next_week_snooze")}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => {
+                            on_snooze(compute_snooze_target("next_month"));
+                          }}
+                        >
+                          <ClockIcon className="w-4 h-4 me-2" />
+                          {t("common.next_month")}
                         </DropdownMenuItem>
                       </>
                     )}
@@ -801,7 +818,7 @@ export function InboxHeader({
                           <DropdownMenuLabel>
                             {t("common.add_to_folders")}
                           </DropdownMenuLabel>
-                          {folders.slice(0, 8).map((folder) => (
+                          {folders.map((folder) => (
                             <DropdownMenuItem
                               key={folder.folder_token}
                               onClick={() =>
@@ -809,7 +826,7 @@ export function InboxHeader({
                               }
                             >
                               <div
-                                className="w-2.5 h-2.5 rounded-full mr-2 flex-shrink-0"
+                                className="w-2.5 h-2.5 rounded-full me-2 flex-shrink-0"
                                 style={{ backgroundColor: folder.color }}
                               />
                               <span className="flex-1 truncate">
@@ -818,7 +835,7 @@ export function InboxHeader({
                               {(folder.status === "all" ||
                                 folder.status === "some") && (
                                 <CheckIcon
-                                  className={`w-4 h-4 ml-2 flex-shrink-0 ${folder.status === "some" ? "opacity-50" : ""}`}
+                                  className={`w-4 h-4 ms-2 flex-shrink-0 ${folder.status === "some" ? "opacity-50" : ""}`}
                                 />
                               )}
                             </DropdownMenuItem>
@@ -834,13 +851,13 @@ export function InboxHeader({
                           <DropdownMenuLabel>
                             {t("common.labels")}
                           </DropdownMenuLabel>
-                          {tags.slice(0, 8).map((tag) => (
+                          {tags.map((tag) => (
                             <DropdownMenuItem
                               key={tag.tag_token}
                               onClick={() => on_tag_toggle(tag.tag_token)}
                             >
                               <div
-                                className="w-2.5 h-2.5 rounded-full mr-2 flex-shrink-0"
+                                className="w-2.5 h-2.5 rounded-full me-2 flex-shrink-0"
                                 style={{ backgroundColor: tag.color }}
                               />
                               <span className="flex-1 truncate">
@@ -849,7 +866,7 @@ export function InboxHeader({
                               {(tag.status === "all" ||
                                 tag.status === "some") && (
                                 <CheckIcon
-                                  className={`w-4 h-4 ml-2 flex-shrink-0 ${tag.status === "some" ? "opacity-50" : ""}`}
+                                  className={`w-4 h-4 ms-2 flex-shrink-0 ${tag.status === "some" ? "opacity-50" : ""}`}
                                 />
                               )}
                             </DropdownMenuItem>
@@ -863,7 +880,7 @@ export function InboxHeader({
                         set_advanced_toolbar((v) => !v);
                       }}
                     >
-                      <AdjustmentsHorizontalIcon className="w-4 h-4 mr-2" />
+                      <AdjustmentsHorizontalIcon className="w-4 h-4 me-2" />
                       {advanced_toolbar
                         ? t("common.simple_toolbar")
                         : t("common.advanced_toolbar")}
@@ -879,7 +896,6 @@ export function InboxHeader({
 
         <div className="flex items-center gap-0.5 flex-shrink-0">
           <HeaderToolbar
-            leading_slot={leading_toolbar_slot}
             filter_slot={
               <FilterDropdown
                 active_filter={active_filter}
@@ -893,6 +909,7 @@ export function InboxHeader({
             is_refreshing={is_refreshing}
             is_spam_view={is_spam_view}
             is_trash_view={is_trash_view}
+            leading_slot={leading_toolbar_slot}
             on_empty_spam={on_empty_spam}
             on_empty_trash={on_empty_trash}
             on_quick_settings_click={on_quick_settings_click}
@@ -932,7 +949,7 @@ export function InboxHeader({
             <>
               <span>
                 {t("mail.all_on_page_selected", {
-                  count: page_selected_count.toLocaleString(),
+                  count: page_selected_count.toLocaleString(app_locale()),
                 })}
               </span>
               <button
@@ -940,7 +957,7 @@ export function InboxHeader({
                 onClick={on_activate_select_all_mode}
               >
                 {t("mail.select_all_in_folder", {
-                  count: total_messages.toLocaleString(),
+                  count: total_messages.toLocaleString(app_locale()),
                   folder: selection_scope_title ?? view_title,
                 })}
               </button>
@@ -949,7 +966,7 @@ export function InboxHeader({
             <>
               <span>
                 {t("mail.all_in_folder_selected", {
-                  count: scope_selected_count.toLocaleString(),
+                  count: scope_selected_count.toLocaleString(app_locale()),
                 })}
               </span>
               <button

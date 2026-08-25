@@ -26,7 +26,6 @@ import { use_platform } from "@/hooks/use_platform";
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
 import { ignore_error } from "@/lib/ignore_error";
-
 import {
   stagger_container,
   fade_up_item,

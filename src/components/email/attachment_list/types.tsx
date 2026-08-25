@@ -18,18 +18,10 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { } from "@/lib/i18n/types";
+import type {} from "@/lib/i18n/types";
 
-
-
-
-import {
-  type CachedAttachmentMeta,
-} from "@/services/attachment_meta_cache";
-import {
-  get_cached_preview_url,
-} from "@/services/attachment_preview_cache";
-
+import { type CachedAttachmentMeta } from "@/services/attachment_meta_cache";
+import { get_cached_preview_url } from "@/services/attachment_preview_cache";
 
 export interface DecryptedAttachmentInfo {
   id: string;
@@ -124,4 +116,3 @@ export interface AttachmentListProps {
   is_local?: boolean;
   hint_attachment_count?: number;
 }
-

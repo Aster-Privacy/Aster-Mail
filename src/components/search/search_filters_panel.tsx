@@ -41,6 +41,7 @@ import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
 import { get_operator_suggestions } from "@/utils/search_operators";
 import { format_history_timestamp } from "@/services/search";
+import { is_composing } from "@/utils/ime";
 
 export function FilterChip({
   filter,
@@ -63,7 +64,12 @@ export function FilterChip({
             on_remove();
           }}
         >
-          <svg aria-hidden="true" className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+          <svg
+            aria-hidden="true"
+            className="w-3 h-3"
+            fill="currentColor"
+            viewBox="0 0 24 24"
+          >
             <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
           </svg>
         </button>
@@ -114,10 +120,7 @@ export function SortDropdown({
   );
 
   return (
-    <Select
-      value={value}
-      onValueChange={(v) => on_change(v as SortOption)}
-    >
+    <Select value={value} onValueChange={(v) => on_change(v as SortOption)}>
       <SelectTrigger className="h-8 text-xs min-w-[150px]">
         <SelectValue />
       </SelectTrigger>
@@ -138,9 +141,6 @@ export function FolderResultsBadges({
   folder_counts: Map<string, number>;
 }) {
   const { t } = use_i18n();
-
-  if (folder_counts.size === 0) return null;
-
   const folder_labels: Record<string, { label: string; color: string }> =
     useMemo(
       () => ({
@@ -153,6 +153,8 @@ export function FolderResultsBadges({
       }),
       [t],
     );
+
+  if (folder_counts.size === 0) return null;
 
   return (
     <div className="flex items-center gap-1.5 flex-wrap">
@@ -209,7 +211,7 @@ export function OperatorSuggestions({
           onClick={() => on_select(suggestion.operator)}
         >
           <span className="font-mono">{suggestion.operator}</span>
-          <span className="ml-1.5 opacity-70">{suggestion.description}</span>
+          <span className="ms-1.5 opacity-70">{suggestion.description}</span>
         </button>
       ))}
     </div>
@@ -396,7 +398,7 @@ export function SaveSearchDialog({
       return;
     }
     on_save(name.trim());
-  }, [name, on_save]);
+  }, [name, on_save, t]);
 
   if (!is_open) return null;
 
@@ -433,7 +435,7 @@ export function SaveSearchDialog({
             set_error("");
           }}
           onKeyDown={(e) => {
-            if (e["key"] === "Enter") {
+            if (e["key"] === "Enter" && !is_composing(e)) {
               handle_save();
             } else if (e["key"] === "Escape") {
               on_close();
@@ -511,7 +513,7 @@ export function ClearDataMenu({
   return (
     <motion.div
       animate={{ opacity: 1, y: 0 }}
-      className="absolute right-0 top-full mt-1 py-2 px-3 rounded-lg border shadow-sm z-50 w-56 bg-modal-bg border-edge-secondary"
+      className="absolute end-0 top-full mt-1 py-2 px-3 rounded-lg border shadow-sm z-50 w-56 bg-modal-bg border-edge-secondary"
       exit={{ opacity: 0, y: -4 }}
       initial={reduce_motion ? false : { opacity: 0, y: -4 }}
       onClick={(e) => e.stopPropagation()}

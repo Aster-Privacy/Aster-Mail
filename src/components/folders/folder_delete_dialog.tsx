@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { KeyboardEvent } from "react";
+
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ExclamationTriangleIcon,
@@ -40,6 +42,16 @@ import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { api_client } from "@/services/api/client";
 import { get_cancel_password_hash } from "@/components/settings/billing/cancel_password";
+
+const TRANSPORT_FAILURE_CODES = new Set([
+  "NETWORK_ERROR",
+  "TIMEOUT_ERROR",
+  "SERVER_ERROR",
+]);
+
+function is_transport_failure(code?: string): boolean {
+  return code !== undefined && TRANSPORT_FAILURE_CODES.has(code);
+}
 
 export type FolderDeleteDialogVariant = "modal" | "sheet";
 
@@ -72,6 +84,8 @@ export function FolderDeleteDialog({
   const [account_password, set_account_password] = useState("");
   const [totp_code, set_totp_code] = useState("");
   const [totp_required, set_totp_required] = useState(false);
+  const [totp_state_failed, set_totp_state_failed] = useState(false);
+  const [totp_state_attempt, set_totp_state_attempt] = useState(0);
   const [purge_contents, set_purge_contents] = useState(false);
   const [purge_acknowledged, set_purge_acknowledged] = useState(false);
   const [delete_outcome, set_delete_outcome] = useState<{
@@ -82,6 +96,11 @@ export function FolderDeleteDialog({
   const folders = folders_state.folders;
   const purge_by_default = preferences.purge_locked_folder_on_delete === true;
 
+  const folder_record = folders.find((f) => f.id === folder_id);
+  const is_password_protected = Boolean(
+    folder_record?.is_password_protected && folder_record?.password_set,
+  );
+
   useEffect(() => {
     const open_key = is_open ? folder_id : null;
 
@@ -91,21 +110,31 @@ export function FolderDeleteDialog({
 
     if (!is_open) return;
 
-    const folder = folders.find((f) => f.id === folder_id);
-    const is_password_protected = Boolean(
-      folder?.is_password_protected && folder?.password_set,
-    );
-
     set_step_up_required(is_password_protected);
     set_is_loading(false);
     set_error("");
     set_account_password("");
     set_totp_code("");
     set_totp_required(false);
+    set_totp_state_failed(false);
+    set_totp_state_attempt(0);
     set_purge_acknowledged(false);
     set_delete_outcome(null);
     set_purge_contents(is_password_protected && purge_by_default);
-  }, [is_open, folder_id, folders, purge_by_default]);
+  }, [is_open, folder_id, is_password_protected, purge_by_default]);
+
+  useEffect(() => {
+    if (!is_open || is_loading || delete_outcome) return;
+    if (!folder_record) return;
+
+    set_step_up_required(is_password_protected);
+  }, [
+    is_open,
+    is_loading,
+    delete_outcome,
+    folder_record,
+    is_password_protected,
+  ]);
 
   useEffect(() => {
     if (!is_open || !step_up_required) return;
@@ -120,7 +149,15 @@ export function FolderDeleteDialog({
 
       if (cancelled) return;
 
-      set_totp_required(response.data?.totp_required === true);
+      if (!response.data) {
+        set_totp_state_failed(true);
+        set_error(t("common.something_went_wrong_try_again"));
+
+        return;
+      }
+
+      set_totp_state_failed(false);
+      set_totp_required(response.data.totp_required === true);
     };
 
     void load_totp_state();
@@ -128,7 +165,7 @@ export function FolderDeleteDialog({
     return () => {
       cancelled = true;
     };
-  }, [is_open, step_up_required]);
+  }, [is_open, step_up_required, totp_state_attempt, t]);
 
   const handle_delete = useCallback(async () => {
     if (step_up_required && !account_password.trim()) {
@@ -173,6 +210,12 @@ export function FolderDeleteDialog({
     set_is_loading(false);
 
     if (!outcome.success) {
+      if (is_transport_failure(outcome.code)) {
+        set_error(t("common.something_went_wrong_try_again"));
+
+        return;
+      }
+
       set_error(
         step_up_required
           ? t("common.delete_folder_verification_failed")
@@ -209,14 +252,20 @@ export function FolderDeleteDialog({
 
   const confirm_disabled =
     is_loading ||
+    (step_up_required && totp_state_failed) ||
     (step_up_required &&
       (!account_password.trim() ||
         (totp_required && !totp_code.trim()) ||
         (purge_contents && !purge_acknowledged)));
 
-  const checkbox_class = is_sheet
-    ? "mt-0.5 h-5 w-5 shrink-0"
-    : "mt-0.5";
+  const handle_step_up_key_down = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key !== "Enter") return;
+    e.preventDefault();
+    if (confirm_disabled) return;
+    void handle_delete();
+  };
+
+  const checkbox_class = is_sheet ? "mt-0.5 h-5 w-5 shrink-0" : "mt-0.5";
   const option_row_class = is_sheet
     ? "flex min-h-[44px] items-start gap-3 py-2 text-[14px] text-txt-secondary"
     : "flex items-start gap-2 text-[13px] text-txt-secondary";
@@ -257,6 +306,19 @@ export function FolderDeleteDialog({
             {t("common.delete_folder_step_up_hint")}
           </p>
 
+          {totp_state_failed && (
+            <button
+              className="self-start text-[13px] font-medium text-accent-blue hover:underline"
+              type="button"
+              onClick={() => {
+                set_error("");
+                set_totp_state_attempt((prev) => prev + 1);
+              }}
+            >
+              {t("common.retry")}
+            </button>
+          )}
+
           <div>
             <label
               className="block text-[13px] font-medium mb-2 text-txt-secondary"
@@ -271,6 +333,7 @@ export function FolderDeleteDialog({
               type="password"
               value={account_password}
               onChange={(e) => set_account_password(e.target.value)}
+              onKeyDown={handle_step_up_key_down}
             />
           </div>
 
@@ -290,6 +353,7 @@ export function FolderDeleteDialog({
                 type="text"
                 value={totp_code}
                 onChange={(e) => set_totp_code(e.target.value)}
+                onKeyDown={handle_step_up_key_down}
               />
             </div>
           )}
@@ -344,7 +408,11 @@ export function FolderDeleteDialog({
 
   if (is_sheet) {
     return (
-      <MobileBottomSheet is_open={is_open} on_close={on_close}>
+      <MobileBottomSheet
+        aria_label={t("common.delete_folder")}
+        is_open={is_open}
+        on_close={on_close}
+      >
         <div className="overflow-y-auto px-4 pb-4">
           <p className="text-[16px] font-semibold text-[var(--text-primary)]">
             {t("common.delete_folder")}
@@ -417,7 +485,12 @@ export function FolderDeleteDialog({
 
       <ModalFooter>
         {delete_outcome ? (
-          <Button className="flex-1" size="xl" variant="depth" onClick={on_close}>
+          <Button
+            className="flex-1"
+            size="xl"
+            variant="depth"
+            onClick={on_close}
+          >
             {t("common.done")}
           </Button>
         ) : (

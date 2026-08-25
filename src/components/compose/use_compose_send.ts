@@ -26,6 +26,7 @@ import { useState, useRef, useCallback } from "react";
 import {
   can_acquire_send_lock,
   is_repeat_send,
+  is_attachment_set_incomplete,
 } from "@/components/compose/send_lock";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_auth } from "@/contexts/auth_context";
@@ -41,6 +42,11 @@ import {
 } from "@/services/api/scheduled";
 import { emit_scheduled_changed } from "@/hooks/mail_events";
 import { show_toast } from "@/components/toast/simple_toast";
+import {
+  MAX_RECIPIENTS_PER_FIELD,
+  MAX_RECIPIENTS_PER_SEND,
+  recipient_limit_violation,
+} from "@/lib/recipient_limits";
 import {
   get_network_status,
   is_native_platform,
@@ -66,6 +72,7 @@ export interface UseComposeSendOptions {
   subject: string;
   message: string;
   attachments: Attachment[];
+  is_loading_forward_attachments?: boolean;
   contacts: DecryptedContact[];
   selected_sender: SenderOption | null;
   has_external_recipients: boolean;
@@ -86,8 +93,6 @@ export interface UseComposeSendOptions {
 }
 
 export interface UseComposeSendReturn {
-  send_error: string | null;
-  restore_error: string | null;
   queued_email_id: string | null;
   set_queued_email_id: (val: string | null) => void;
   is_sending: boolean;
@@ -102,6 +107,7 @@ export function use_compose_send({
   subject,
   message,
   attachments,
+  is_loading_forward_attachments,
   contacts,
   selected_sender,
   has_external_recipients,
@@ -126,8 +132,6 @@ export function use_compose_send({
 
   const [queued_email_id, set_queued_email_id] = useState<string | null>(null);
   const [is_sending, set_is_sending] = useState(false);
-  const [send_error] = useState<string | null>(null);
-  const [restore_error] = useState<string | null>(null);
   const [pgp_override, set_pgp_override] = useState<boolean | null>(null);
   const pgp_enabled = pgp_override ?? preferences.encrypt_emails;
   const toggle_pgp = useCallback(
@@ -210,8 +214,15 @@ export function use_compose_send({
 
     if (recipients.to.length === 0 || !user) return;
 
+    if (is_attachment_set_incomplete(is_loading_forward_attachments)) {
+      show_toast(t("mail.attaching_original_files"), "info");
+
+      return;
+    }
+
     const stripped_body = (() => {
       const doc = new DOMParser().parseFromString(message, "text/html");
+
       return (doc.body.textContent ?? "").replace(/\s+/g, " ").trim();
     })();
 
@@ -230,6 +241,27 @@ export function use_compose_send({
 
     if (subject.length > 998) {
       show_toast(t("common.subject_too_long"), "error");
+
+      return;
+    }
+
+    const recipient_violation = recipient_limit_violation(
+      recipients.to,
+      recipients.cc,
+      recipients.bcc,
+    );
+
+    if (recipient_violation) {
+      show_toast(
+        recipient_violation === "field"
+          ? t("common.too_many_recipients_in_field", {
+              max: MAX_RECIPIENTS_PER_FIELD,
+            })
+          : t("common.too_many_recipients_in_message", {
+              max: MAX_RECIPIENTS_PER_SEND,
+            }),
+        "error",
+      );
 
       return;
     }
@@ -413,7 +445,10 @@ export function use_compose_send({
       const ctx = build_send_context();
 
       if (selected_sender?.type === "external") {
-        const sent = await execute_external_account_email_send(ctx, email_data);
+        const sent = await execute_external_account_email_send(
+          { ...ctx, confirm_draft_deleted },
+          email_data,
+        );
 
         if (sent) {
           await confirm_draft_deleted();
@@ -427,20 +462,24 @@ export function use_compose_send({
 
       if (has_external && has_internal) {
         show_toast(t("common.cannot_mix_recipients"), "error");
+        last_send_time_ref.current = 0;
 
         return;
       }
 
       if (has_external || email_data.secure_external) {
-        await execute_external_email_send(
-          ctx,
+        const external_sent = await execute_external_email_send(
+          { ...ctx, confirm_draft_deleted },
           email_data,
           pgp_enabled,
           pgp_override,
           preferences.require_encryption === true,
           preferences.obscure_subject_when_encrypted === true,
         );
-        await confirm_draft_deleted();
+
+        if (external_sent) {
+          await confirm_draft_deleted();
+        }
 
         return;
       }
@@ -450,13 +489,20 @@ export function use_compose_send({
         email_data.sender_email || user?.email,
       );
 
-      if (!consent.proceed) return;
+      if (!consent.proceed) {
+        last_send_time_ref.current = 0;
 
-      await execute_internal_send(ctx, {
+        return;
+      }
+
+      const internal_sent = await execute_internal_send(ctx, {
         ...email_data,
         allow_non_post_quantum: consent.allow_non_post_quantum,
       });
-      await confirm_draft_deleted();
+
+      if (internal_sent) {
+        await confirm_draft_deleted();
+      }
     } catch (error) {
       show_toast(
         error instanceof Error
@@ -488,6 +534,7 @@ export function use_compose_send({
     enable_offline_queue,
     selected_sender,
     attachments,
+    is_loading_forward_attachments,
     preferences.auto_save_recent_recipients,
     preferences.require_encryption,
     preferences.obscure_subject_when_encrypted,
@@ -497,11 +544,77 @@ export function use_compose_send({
   ]);
 
   const handle_scheduled_send = useCallback(async () => {
+    if (
+      !can_acquire_send_lock(
+        {
+          held: is_sending_ref.current,
+          started_at: send_lock_started_at_ref.current,
+        },
+        Date.now(),
+      )
+    )
+      return;
+
     if (recipients.to.length === 0 || !user || !vault || !scheduled_time)
       return;
 
     if (attachments.length > 0) {
       show_toast(t("common.scheduled_no_attachments"), "error");
+
+      return;
+    }
+
+    if (selected_sender?.type === "external") {
+      show_toast(t("common.scheduled_connected_account"), "error");
+
+      return;
+    }
+
+    if (expires_at || expiry_password) {
+      show_toast(t("common.scheduled_no_expiry"), "error");
+
+      return;
+    }
+
+    const scheduled_stripped_body = (() => {
+      const doc = new DOMParser().parseFromString(message, "text/html");
+
+      return (doc.body.textContent ?? "").replace(/\s+/g, " ").trim();
+    })();
+
+    if (
+      !scheduled_stripped_body &&
+      !subject.trim() &&
+      !/<img\b/i.test(message)
+    ) {
+      show_toast(t("common.empty_body_error"), "error");
+
+      return;
+    }
+
+    if (subject.length > 998) {
+      show_toast(t("common.subject_too_long"), "error");
+
+      return;
+    }
+
+    const scheduled_recipient_violation = recipient_limit_violation(
+      recipients.to,
+      recipients.cc,
+      recipients.bcc,
+    );
+
+    if (scheduled_recipient_violation) {
+      show_toast(
+        scheduled_recipient_violation === "field"
+          ? t("common.too_many_recipients_in_field", {
+              max: MAX_RECIPIENTS_PER_FIELD,
+            })
+          : t("common.too_many_recipients_in_message", {
+              max: MAX_RECIPIENTS_PER_SEND,
+            }),
+        "error",
+      );
 
       return;
     }
@@ -524,6 +637,14 @@ export function use_compose_send({
       subject,
       body: message,
       scheduled_at: scheduled_time.toISOString(),
+      ...(selected_sender && selected_sender.type !== "primary"
+        ? {
+            from: {
+              name: selected_sender.display_name || "",
+              email: selected_sender.email,
+            },
+          }
+        : {}),
     };
 
     if (preferences.auto_save_recent_recipients) {
@@ -534,10 +655,16 @@ export function use_compose_send({
     }
 
     try {
-      const response = await create_scheduled_email(vault, content);
+      const response = await create_scheduled_email(
+        vault,
+        content,
+        selected_sender && selected_sender.type !== "primary"
+          ? selected_sender.address_hash
+          : undefined,
+      );
 
       if (response.error) {
-        show_toast(response.error, "error");
+        show_toast(t("common.failed_to_schedule_email"), "error");
         set_is_scheduling(false);
         is_sending_ref.current = false;
         send_lock_started_at_ref.current = 0;
@@ -588,12 +715,13 @@ export function use_compose_send({
     edit_draft,
     on_draft_cleared,
     preferences.auto_save_recent_recipients,
+    selected_sender,
+    expires_at,
+    expiry_password,
     t,
   ]);
 
   return {
-    send_error,
-    restore_error,
     queued_email_id,
     set_queued_email_id,
     is_sending,

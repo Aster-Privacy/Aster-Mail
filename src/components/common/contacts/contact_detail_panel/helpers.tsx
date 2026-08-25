@@ -40,9 +40,6 @@ import type {
 } from "@/types/contacts";
 import type { TranslationKey } from "@/lib/i18n";
 
-
-
-
 export const COLOR_SWATCHES: { key: string; value: string }[] = [
   { key: "red", value: "#e5484d" },
   { key: "orange", value: "#f5683a" },
@@ -200,7 +197,11 @@ export const PHONE_TYPE_OPTIONS: PhoneEntryType[] = [
   "pager",
   "other",
 ];
-export const ADDRESS_TYPE_OPTIONS: AddressEntryType[] = ["home", "work", "other"];
+export const ADDRESS_TYPE_OPTIONS: AddressEntryType[] = [
+  "home",
+  "work",
+  "other",
+];
 export const DATE_TYPE_OPTIONS: DateEntryType[] = [
   "anniversary",
   "graduation",
@@ -228,7 +229,12 @@ export const SOCIAL_TYPE_OPTIONS: SocialNetworkType[] = [
   "bluesky",
   "other",
 ];
-export const WEBSITE_TYPE_OPTIONS: WebsiteType[] = ["private", "work", "blog", "other"];
+export const WEBSITE_TYPE_OPTIONS: WebsiteType[] = [
+  "private",
+  "work",
+  "blog",
+  "other",
+];
 export const IM_TYPE_OPTIONS: InstantMessengerType[] = [
   "signal",
   "matrix",
@@ -241,4 +247,3 @@ export const IM_TYPE_OPTIONS: InstantMessengerType[] = [
 export function type_label_key(type: string): TranslationKey {
   return `common.type_${type}` as TranslationKey;
 }
-

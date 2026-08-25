@@ -21,11 +21,20 @@
 import type { TranslationKey } from "@/lib/i18n/types";
 
 import { useState, useCallback, useEffect, useMemo, useRef } from "react";
-import { AnimatePresence, } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 
+import { AttachmentCard } from "./card";
+import { AttachmentCardSkeleton } from "./icons";
+import { ImagePreviewModal } from "./preview_modal";
+import {
+  AttachmentListProps,
+  DecryptedAttachmentInfo,
+  PREVIEW_READY_TIMEOUT_MS,
+  build_cards_from_cached_meta,
+  is_inline_attachment,
+} from "./types";
 
 import { use_preferences } from "@/contexts/preferences_context";
-
 import { EncryptionInfoDropdown } from "@/components/common/encryption_info_dropdown";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
@@ -42,9 +51,7 @@ import {
   download_decrypted_attachment,
   AttachmentKeyUnavailableError,
 } from "@/services/crypto/attachment_crypto";
-import {
-  get_cached_attachment_meta,
-} from "@/services/attachment_meta_cache";
+import { get_cached_attachment_meta } from "@/services/attachment_meta_cache";
 import {
   fetch_attachment_bytes,
   get_cached_preview_url,
@@ -56,12 +63,7 @@ import {
   build_previewable_image_blob,
 } from "@/lib/attachment_utils";
 import { PdfPreviewModal } from "@/components/email/pdf_preview_modal";
-
-import { AttachmentCard } from "./card";
-import { AttachmentCardSkeleton } from "./icons";
-import { ImagePreviewModal } from "./preview_modal";
-import { AttachmentListProps, DecryptedAttachmentInfo, PREVIEW_READY_TIMEOUT_MS, build_cards_from_cached_meta, is_inline_attachment } from "./types";
-
+import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { ignore_error } from "@/lib/ignore_error";
 
 function attachment_error_key(error: unknown): TranslationKey {
@@ -114,6 +116,8 @@ export function AttachmentList({
   const [preparing, set_preparing] = useState(
     () => !preferences.low_network_mode && !is_local,
   );
+  const [load_failed, set_load_failed] = useState(false);
+  const [reload_token, set_reload_token] = useState(0);
   const bytes_fetch_ref = useRef<Promise<
     Map<string, { encrypted_data: string; data_nonce: string }>
   > | null>(null);
@@ -241,7 +245,12 @@ export function AttachmentList({
             .then((late_url) => {
               if (timed_out || is_cancelled()) URL.revokeObjectURL(late_url);
             })
-            .catch((caught) => ignore_error("components/email/attachment_list/list:AttachmentList", caught));
+            .catch((caught) =>
+              ignore_error(
+                "components/email/attachment_list/list:AttachmentList",
+                caught,
+              ),
+            );
 
           const raw_url = await Promise.race([
             thumbnail_promise,
@@ -307,6 +316,9 @@ export function AttachmentList({
 
     let cancelled = false;
     const is_cancelled = () => cancelled;
+    const mark_load_failed = () => {
+      if (hint_attachment_count > 0) set_load_failed(true);
+    };
     const inline_cids = inline_cids_ref.current;
     const inline_filenames = inline_filenames_ref.current;
 
@@ -316,7 +328,12 @@ export function AttachmentList({
     async function build_info(
       att: Pick<
         AttachmentMetaItem,
-        "id" | "mail_item_id" | "seq_num" | "size_bytes" | "encrypted_meta" | "meta_nonce"
+        | "id"
+        | "mail_item_id"
+        | "seq_num"
+        | "size_bytes"
+        | "encrypted_meta"
+        | "meta_nonce"
       >,
       encrypted_data: string,
       data_nonce: string,
@@ -414,8 +431,11 @@ export function AttachmentList({
       }
 
       const cached_meta = get_cached_attachment_meta(mail_item_id);
+      const cached_meta_is_trustworthy =
+        cached_meta !== null &&
+        (cached_meta.length > 0 || hint_attachment_count === 0);
 
-      if (cached_meta) {
+      if (cached_meta && cached_meta_is_trustworthy) {
         const cards = build_cards_from_cached_meta(
           cached_meta,
           { inline_cids, inline_filenames },
@@ -452,7 +472,11 @@ export function AttachmentList({
 
       if (cancelled) return;
 
-      if (meta_items) {
+      const meta_items_are_trustworthy =
+        meta_items !== null &&
+        (meta_items.length > 0 || hint_attachment_count === 0);
+
+      if (meta_items && meta_items_are_trustworthy) {
         const cards: DecryptedAttachmentInfo[] = [];
 
         for (const item of meta_items) {
@@ -482,6 +506,9 @@ export function AttachmentList({
       try {
         response = await list_attachments(mail_item_id);
       } catch {
+        if (cancelled) return;
+
+        mark_load_failed();
         set_loading(false);
         set_preparing(false);
 
@@ -490,7 +517,15 @@ export function AttachmentList({
 
       if (cancelled) return;
 
-      if (!response.data || response.data.attachments.length === 0) {
+      if (!response.data) {
+        mark_load_failed();
+        set_loading(false);
+        set_preparing(false);
+
+        return;
+      }
+
+      if (response.data.attachments.length === 0) {
         set_loading(false);
         set_preparing(false);
 
@@ -513,6 +548,7 @@ export function AttachmentList({
       await prepare_previews(decrypted);
     }
 
+    set_load_failed(false);
     fetch_attachments();
 
     return () => {
@@ -524,6 +560,8 @@ export function AttachmentList({
     t,
     preferences.low_network_mode,
     user_expanded,
+    hint_attachment_count,
+    reload_token,
     decrypt_image_previews,
     generate_pdf_thumbnails,
   ]);
@@ -749,7 +787,26 @@ export function AttachmentList({
   }
 
   if (attachments.length === 0) {
-    return null;
+    if (!load_failed) return null;
+
+    return (
+      <div
+        className="border-t px-3 @md:px-4 py-3"
+        style={{
+          borderColor: "var(--thread-card-border)",
+          backgroundColor: "var(--thread-content-bg)",
+        }}
+      >
+        <LoadFailedNotice
+          on_retry={() => {
+            set_load_failed(false);
+            set_loading(true);
+            set_preparing(true);
+            set_reload_token((token) => token + 1);
+          }}
+        />
+      </div>
+    );
   }
 
   return (

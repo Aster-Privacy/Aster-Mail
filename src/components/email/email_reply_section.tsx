@@ -177,7 +177,7 @@ export function EmailReplySection({
           set_error_message(error);
         },
       },
-      preferences.undo_send_period,
+      undo_seconds * 1000,
     );
 
     if (result.success && result.queued_id) {
@@ -191,9 +191,10 @@ export function EmailReplySection({
     reply_text,
     send_state,
     email,
-    preferences.undo_send_period,
     undo_seconds,
+    undo_enabled,
     get_signature,
+    preferences.show_aster_branding,
     set_reply_text,
     set_show_reply_menu,
     t,
@@ -251,7 +252,8 @@ export function EmailReplySection({
               ? {}
               : {
                   scale: 1.02,
-                  boxShadow: "0 8px 16px color-mix(in srgb, var(--accent-color) 30%, transparent)",
+                  boxShadow:
+                    "0 8px 16px color-mix(in srgb, var(--accent-color) 30%, transparent)",
                 }
           }
           onClick={
@@ -381,7 +383,7 @@ export function EmailReplySection({
                 <EmojiPicker on_select={handle_emoji_select} />
               )}
             </div>
-            <span className="text-xs ml-auto text-txt-tertiary">
+            <span className="text-xs ms-auto text-txt-tertiary">
               {reply_text.length}/1000
             </span>
           </motion.div>

@@ -26,6 +26,8 @@ import { ContactDetailView } from "./mobile_contact_detail_view";
 import { ContactFormView } from "./mobile_contact_form_view";
 import { use_mobile_contacts_state } from "./use_mobile_contacts_state";
 
+import { ConfirmModal } from "@/components/email/inbox/inbox_confirmation_dialog";
+
 interface MobileContactsPageProps {
   on_compose: (to?: string) => void;
   on_open_drawer: () => void;
@@ -58,6 +60,9 @@ function MobileContactsPage({
         on_mass_favorite={s.handle_mass_favorite}
         on_open_create={s.handle_open_create}
         on_open_drawer={on_open_drawer}
+        on_long_press_consume={s.consume_long_press}
+        on_retry_load={s.retry_load_contacts}
+        load_failed={s.load_failed}
         on_show_delete_confirm={() => s.set_show_delete_confirm(true)}
         on_show_sync_confirm={() => s.set_show_sync_confirm(true)}
         search_query={s.search_query}
@@ -80,7 +85,7 @@ function MobileContactsPage({
           >
             <div
               className="absolute inset-0 bg-black/60"
-              onClick={() => s.set_show_delete_confirm(false)}
+              onClick={s.cancel_delete_confirm}
             />
             <motion.div
               animate={{ scale: 1, opacity: 1 }}
@@ -93,8 +98,18 @@ function MobileContactsPage({
               <div className="flex flex-col items-center text-center">
                 <TrashIcon className="mb-3 h-10 w-10 text-red-500" />
                 <h3 className="text-[17px] font-semibold text-[var(--text-primary)]">
-                  {s.t("common.delete")} {s.selected_ids.size}{" "}
-                  {s.t("common.contacts").toLowerCase()}?
+                  {s.pending_delete_contact
+                    ? `${s.t("common.delete")} ${
+                        [
+                          s.pending_delete_contact.first_name,
+                          s.pending_delete_contact.last_name,
+                        ]
+                          .filter(Boolean)
+                          .join(" ") ||
+                        s.pending_delete_contact.emails[0] ||
+                        s.t("mail.contact")
+                      }?`
+                    : `${s.t("common.delete")} ${s.selected_ids.size} ${s.t("common.contacts").toLowerCase()}?`}
                 </h3>
                 <p className="mt-2 text-[14px] leading-relaxed text-[var(--text-muted)]">
                   {s.t("common.action_cannot_be_undone")}
@@ -103,8 +118,9 @@ function MobileContactsPage({
               <div className="mt-5 flex gap-3">
                 <button
                   className="flex-1 rounded-[14px] py-2.5 text-[15px] font-medium text-[var(--text-primary)] bg-[var(--bg-tertiary)] active:opacity-80"
+                  disabled={s.is_mass_deleting}
                   type="button"
-                  onClick={() => s.set_show_delete_confirm(false)}
+                  onClick={s.cancel_delete_confirm}
                 >
                   {s.t("common.cancel")}
                 </button>
@@ -116,8 +132,9 @@ function MobileContactsPage({
                     boxShadow:
                       "0 2px 4px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15)",
                   }}
+                  disabled={s.is_mass_deleting}
                   type="button"
-                  onClick={s.handle_mass_delete}
+                  onClick={s.confirm_delete}
                 >
                   {s.t("common.delete")}
                 </button>
@@ -135,7 +152,7 @@ function MobileContactsPage({
             on_back={() => s.set_selected_contact(null)}
             on_compose={s.handle_send_email}
             on_copy={s.handle_copy}
-            on_delete={s.handle_delete_contact}
+            on_delete={s.request_delete_contact}
             on_edit={s.handle_open_edit}
             on_toggle_favorite={s.handle_toggle_favorite}
             reduce_motion={s.reduce_motion}
@@ -153,10 +170,7 @@ function MobileContactsPage({
             form_data={s.form_data}
             is_saving={s.is_saving}
             on_add_email={s.add_email_field}
-            on_back={() => {
-              s.set_show_create(false);
-              s.set_editing_contact(null);
-            }}
+            on_back={s.request_close_form}
             on_remove_email={s.remove_email_field}
             on_save={s.handle_save}
             on_set_tab={s.set_create_tab}
@@ -229,6 +243,19 @@ function MobileContactsPage({
           </motion.div>
         )}
       </AnimatePresence>
+
+      <ConfirmModal
+        hide_dont_ask
+        confirm_text={s.t("mail.discard")}
+        confirm_variant="destructive"
+        description={s.t("common.unsaved_changes_body")}
+        dont_ask={false}
+        on_cancel={() => s.set_show_discard_confirm(false)}
+        on_confirm={s.close_form}
+        on_dont_ask_change={() => {}}
+        show={s.show_discard_confirm}
+        title={s.t("common.unsaved_changes_title")}
+      />
     </div>
   );
 }

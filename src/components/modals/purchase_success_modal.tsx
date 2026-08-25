@@ -24,6 +24,7 @@ import { Button } from "@aster/ui";
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
 import mail_logo_url from "@/assets/mail_logo.webp";
+import { use_escape_layer } from "@/lib/overlay_layer_stack";
 
 interface PurchaseSuccessModalProps {
   is_open: boolean;
@@ -58,6 +59,8 @@ export function PurchaseSuccessModal({
     billing === "year"
       ? t("settings.billing_yearly")
       : t("settings.billing_monthly");
+
+  use_escape_layer(is_open, on_close, "purchase_success_modal");
 
   return (
     <AnimatePresence>

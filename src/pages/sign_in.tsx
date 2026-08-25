@@ -23,6 +23,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button, Checkbox } from "@aster/ui";
 
 import {
+  Alert,
+  get_safe_next_path,
+  page_transition,
+  page_variants,
+} from "./sign_in_helpers";
+import { use_sign_in_page } from "./use_sign_in_page";
+
+import {
   hash_email,
   derive_password_hash,
   decrypt_vault,
@@ -42,28 +50,16 @@ import {
 } from "@/components/auth/turnstile_widget";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
-import {
-  is_totp_required_response,
-} from "@/services/api/totp";
+import { is_totp_required_response } from "@/services/api/totp";
 import { webauthn_flow } from "@/pages/sign_in/webauthn_flow";
 import { totp_flow } from "@/pages/sign_in/totp_flow";
 import { password_recovery_flow } from "@/pages/sign_in/password_recovery_flow";
 import { is_webauthn_supported } from "@/services/api/webauthn";
 import { emit_auth_ready } from "@/hooks/mail_events";
-import {
-  is_tauri,
-} from "@/native/desktop_device_auth";
+import { is_tauri } from "@/native/desktop_device_auth";
 import { get_current_account_id } from "@/services/account_manager";
-
-import {
-  Alert,
-  get_safe_next_path,
-  page_transition,
-  page_variants,
-} from "./sign_in_helpers";
-
-import { use_sign_in_page } from "./use_sign_in_page";
 import { ignore_error } from "@/lib/ignore_error";
+import { user_facing_error } from "@/utils/user_facing_error";
 
 export default function SignInPage() {
   const {
@@ -107,7 +103,7 @@ export default function SignInPage() {
     pending_verification_hash,
     set_pending_verification_hash,
     resend_cooldown,
-    set_resend_cooldown,
+    reset_resend_cooldown,
     is_resending,
     totp_required,
     set_totp_required,
@@ -144,7 +140,9 @@ export default function SignInPage() {
               className="h-8 w-8 mx-auto animate-spin rounded-full border-2 mb-4"
               style={{
                 borderColor: is_dark ? "#374151" : "#bfdbfe",
-                borderTopColor: is_dark ? "var(--accent-color-hover)" : "var(--accent-color)",
+                borderTopColor: is_dark
+                  ? "var(--accent-color-hover)"
+                  : "var(--accent-color)",
               }}
             />
             <p className="text-sm text-txt-secondary">
@@ -188,13 +186,23 @@ export default function SignInPage() {
       ? username.substring(0, username.indexOf("@"))
       : username;
     const typed_domain = username.includes("@")
-      ? username.substring(username.indexOf("@") + 1).toLowerCase()
+      ? username
+          .substring(username.indexOf("@") + 1)
+          .toLowerCase()
+          .trim()
       : "";
     const clean_username = sanitize_username(raw_local);
     const final_domain =
       typed_domain === "astermail.org" || typed_domain === "aster.cx"
         ? typed_domain
         : email_domain;
+
+    if (typed_domain && final_domain !== typed_domain) {
+      await timing_safe_delay();
+      set_error(t("errors.sign_in_domain_unsupported"));
+
+      return;
+    }
 
     if (
       !clean_username ||
@@ -296,7 +304,7 @@ export default function SignInPage() {
         } else if (response.server_code === "PENDING_EMAIL_VERIFICATION") {
           set_error(t("errors.pending_email_verification"));
           set_pending_verification_hash(user_hash);
-          set_resend_cooldown(0);
+          reset_resend_cooldown();
         } else {
           set_error(response.error);
         }
@@ -447,9 +455,7 @@ export default function SignInPage() {
       if (err instanceof Error && err.message.includes("decrypt")) {
         set_error(t("errors.wrong_vault_password"));
       } else {
-        set_error(
-          err instanceof Error ? err.message : t("errors.login_failed"),
-        );
+        set_error(user_facing_error(err, t("errors.login_failed")));
       }
       set_is_loading(false);
       set_captcha_token("");
@@ -472,7 +478,9 @@ export default function SignInPage() {
               className="h-8 w-8 mx-auto animate-spin rounded-full border-2 mb-4"
               style={{
                 borderColor: is_dark ? "#374151" : "#bfdbfe",
-                borderTopColor: is_dark ? "var(--accent-color-hover)" : "var(--accent-color)",
+                borderTopColor: is_dark
+                  ? "var(--accent-color-hover)"
+                  : "var(--accent-color)",
               }}
             />
             <p className="text-sm text-txt-secondary">{t("auth.signing_in")}</p>
@@ -502,7 +510,9 @@ export default function SignInPage() {
                     className="h-8 w-8 mx-auto animate-spin rounded-full border-2 mb-4"
                     style={{
                       borderColor: is_dark ? "#374151" : "#bfdbfe",
-                      borderTopColor: is_dark ? "var(--accent-color-hover)" : "var(--accent-color)",
+                      borderTopColor: is_dark
+                        ? "var(--accent-color-hover)"
+                        : "var(--accent-color)",
                     }}
                   />
                   <p className="text-sm text-txt-secondary">{status}</p>
@@ -555,27 +565,28 @@ export default function SignInPage() {
             transition={page_transition}
             variants={page_variants}
           >
-            {is_adding_account && (is_authenticated || !!previous_account_id) && (
-              <button
-                className="flex items-center gap-1 text-sm mb-6 transition-colors hover:opacity-80 text-txt-tertiary"
-                onClick={handle_cancel_add_account}
-              >
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
+            {is_adding_account &&
+              (is_authenticated || !!previous_account_id) && (
+                <button
+                  className="flex items-center gap-1 text-sm mb-6 transition-colors hover:opacity-80 text-txt-tertiary"
+                  onClick={handle_cancel_add_account}
                 >
-                  <path
-                    d="M15 19l-7-7 7-7"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-                {t("auth.back_to_inbox")}
-              </button>
-            )}
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d="M15 19l-7-7 7-7"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                  {t("auth.back_to_inbox")}
+                </button>
+              )}
 
             <img
               alt="Aster"
@@ -592,9 +603,10 @@ export default function SignInPage() {
             </p>
 
             {(() => {
-              const academic = new URLSearchParams(
-                window.location.search,
-              ).get("academic");
+              const academic = new URLSearchParams(window.location.search).get(
+                "academic",
+              );
+
               if (academic !== "verified" && academic !== "failed") return null;
               const is_ok = academic === "verified";
 
@@ -625,7 +637,7 @@ export default function SignInPage() {
                       strokeLinejoin="round"
                     />
                   </svg>
-                  <span className="text-left leading-snug">
+                  <span className="text-start leading-snug">
                     {t(
                       is_ok
                         ? "auth.academic_verified_signin_note"
@@ -657,7 +669,7 @@ export default function SignInPage() {
                   >
                     {resend_cooldown > 0
                       ? t("auth.resend_in_seconds", {
-                          seconds: String(resend_cooldown),
+                          seconds: resend_cooldown,
                         })
                       : is_resending
                         ? t("common.loading")
@@ -678,154 +690,161 @@ export default function SignInPage() {
               }}
             >
               <div className={`w-full ${error ? "mt-4" : "mt-6"} space-y-4`}>
-              <div>
-                <label className="block text-sm font-medium mb-2 text-txt-primary">
-                  {t("auth.username")}
-                </label>
-                <Input
-                  // eslint-disable-next-line jsx-a11y/no-autofocus
-                  autoFocus
-                  autoComplete="username"
-                  disabled={is_loading}
-                  maxLength={55}
-                  placeholder={t("common.yourname_placeholder")}
-                  status={error ? "error" : "default"}
-                  type="text"
-                  value={username}
-                  onChange={(e) => {
-                    const raw = e.target.value;
-                    const at_index = raw.indexOf("@");
-
-                    if (at_index !== -1) {
-                      const local = sanitize_username(
-                        raw.substring(0, at_index),
-                      );
-                      const domain_part = raw
-                        .substring(at_index + 1)
-                        .toLowerCase();
-                      const matched =
-                        domain_part === "astermail.org" ||
-                        domain_part.endsWith(".astermail.org")
-                          ? "astermail.org"
-                          : domain_part === "aster.cx" ||
-                              domain_part.endsWith(".aster.cx")
-                            ? "aster.cx"
-                            : null;
-
-                      if (matched) {
-                        set_email_domain(matched);
-                        set_username(local);
-                      } else {
-                        set_username(
-                          `${local}@${domain_part.replace(/[^a-z0-9.-]/g, "")}`,
-                        );
-                      }
-                    } else {
-                      set_username(sanitize_username(raw));
-                    }
-                  }}
-                />
-                <div className="relative flex mt-2 aster_input !p-1 !h-auto">
-                  <div
-                    className="absolute top-1 bottom-1 rounded-[8px] transition-all duration-200 ease-out bg-surf-tertiary"
-                    style={{
-                      width: "calc(50% - 4px)",
-                      left:
-                        email_domain === "astermail.org" ? "4px" : "calc(50%)",
-                    }}
-                  />
-                  <button
-                    className={`relative flex-1 h-8 rounded-[8px] text-sm font-medium transition-colors duration-150 ${email_domain === "astermail.org" ? "text-txt-primary" : "text-txt-muted"}`}
-                    disabled={is_loading}
-                    type="button"
-                    onClick={() => set_email_domain("astermail.org")}
-                  >
-                    @astermail.org
-                  </button>
-                  <button
-                    className={`relative flex-1 h-8 rounded-[8px] text-sm font-medium transition-colors duration-150 ${email_domain === "aster.cx" ? "text-txt-primary" : "text-txt-muted"}`}
-                    disabled={is_loading}
-                    type="button"
-                    onClick={() => set_email_domain("aster.cx")}
-                  >
-                    @aster.cx
-                  </button>
-                </div>
-              </div>
-
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <label className="text-sm font-medium text-txt-primary">
-                    {t("auth.password")}
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-txt-primary">
+                    {t("auth.username")}
                   </label>
-                  <Link
-                    className="text-xs transition-colors hover:opacity-80 text-txt-tertiary"
-                    to="/forgot-password"
-                  >
-                    {t("auth.forgot_password")}
-                  </Link>
-                </div>
-                <div className="relative">
                   <Input
-                    autoComplete="current-password"
-                    className="pr-11"
+                    // eslint-disable-next-line jsx-a11y/no-autofocus
+                    autoFocus
+                    autoCapitalize="none"
+                    autoComplete="username"
+                    autoCorrect="off"
                     disabled={is_loading}
-                    maxLength={128}
-                    placeholder={t("auth.enter_password_placeholder")}
+                    maxLength={55}
+                    placeholder={t("common.yourname_placeholder")}
+                    spellCheck={false}
                     status={error ? "error" : "default"}
-                    type={is_password_visible ? "text" : "password"}
-                    value={password}
-                    onChange={(e) =>
-                      set_password(clamp_password(e.target.value))
-                    }
+                    type="text"
+                    onChange={(e) => {
+                      const raw = e.target.value;
+                      const at_index = raw.indexOf("@");
+
+                      if (at_index !== -1) {
+                        const local = sanitize_username(
+                          raw.substring(0, at_index),
+                        );
+                        const domain_part = raw
+                          .substring(at_index + 1)
+                          .toLowerCase();
+                        const matched =
+                          domain_part === "astermail.org" ||
+                          domain_part.endsWith(".astermail.org")
+                            ? "astermail.org"
+                            : domain_part === "aster.cx" ||
+                                domain_part.endsWith(".aster.cx")
+                              ? "aster.cx"
+                              : null;
+
+                        if (matched) {
+                          set_email_domain(matched);
+                          set_username(local);
+                        } else {
+                          set_username(
+                            `${local}@${domain_part.replace(/[^a-z0-9.-]/g, "")}`,
+                          );
+                        }
+                      } else {
+                        set_username(sanitize_username(raw));
+                      }
+                    }}
+                    value={username}
                   />
-                  <button
-                    aria-label={
-                      is_password_visible
-                        ? t("settings.hide_password_toggle")
-                        : t("settings.show_password_toggle")
-                    }
-                    className="absolute right-2 top-1/2 -translate-y-1/2 flex h-6 w-6 items-center justify-center rounded"
-                    type="button"
-                    onClick={() =>
-                      set_is_password_visible(!is_password_visible)
-                    }
-                  >
-                    {is_password_visible ? <EyeSlashIcon /> : <EyeIcon />}
-                  </button>
+                  <div className="relative flex mt-2 aster_input !p-1 !h-auto">
+                    <div
+                      className="absolute top-1 bottom-1 rounded-[8px] transition-all duration-200 ease-out bg-surf-tertiary"
+                      style={{
+                        width: "calc(50% - 4px)",
+                        left:
+                          email_domain === "astermail.org"
+                            ? "4px"
+                            : "calc(50%)",
+                      }}
+                    />
+                    <button
+                      className={`relative flex-1 h-8 rounded-[8px] text-sm font-medium transition-colors duration-150 ${email_domain === "astermail.org" ? "text-txt-primary" : "text-txt-muted"}`}
+                      disabled={is_loading}
+                      type="button"
+                      onClick={() => set_email_domain("astermail.org")}
+                    >
+                      @astermail.org
+                    </button>
+                    <button
+                      className={`relative flex-1 h-8 rounded-[8px] text-sm font-medium transition-colors duration-150 ${email_domain === "aster.cx" ? "text-txt-primary" : "text-txt-muted"}`}
+                      disabled={is_loading}
+                      type="button"
+                      onClick={() => set_email_domain("aster.cx")}
+                    >
+                      @aster.cx
+                    </button>
+                  </div>
                 </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-sm font-medium text-txt-primary">
+                      {t("auth.password")}
+                    </label>
+                    <Link
+                      className="text-xs transition-colors hover:opacity-80 text-txt-tertiary"
+                      to="/forgot-password"
+                    >
+                      {t("auth.forgot_password")}
+                    </Link>
+                  </div>
+                  <div className="relative">
+                    <Input
+                      autoComplete="current-password"
+                      className="pe-11"
+                      disabled={is_loading}
+                      maxLength={128}
+                      placeholder={t("auth.enter_password_placeholder")}
+                      status={error ? "error" : "default"}
+                      type={is_password_visible ? "text" : "password"}
+                      value={password}
+                      onChange={(e) =>
+                        set_password(clamp_password(e.target.value))
+                      }
+                    />
+                    <button
+                      aria-label={
+                        is_password_visible
+                          ? t("settings.hide_password_toggle")
+                          : t("settings.show_password_toggle")
+                      }
+                      className="absolute end-2 top-1/2 -translate-y-1/2 flex h-6 w-6 items-center justify-center rounded"
+                      type="button"
+                      onClick={() =>
+                        set_is_password_visible(!is_password_visible)
+                      }
+                    >
+                      {is_password_visible ? <EyeSlashIcon /> : <EyeIcon />}
+                    </button>
+                  </div>
+                </div>
+
+                <Checkbox
+                  checked={remember_me}
+                  disabled={is_loading}
+                  label={`${t("auth.keep_signed_in")} - ${t("auth.secure_devices_only")}`}
+                  onChange={() => set_remember_me(!remember_me)}
+                />
               </div>
 
-              <Checkbox
-                checked={remember_me}
-                disabled={is_loading}
-                label={`${t("auth.keep_signed_in")} - ${t("auth.secure_devices_only")}`}
-                onChange={() => set_remember_me(!remember_me)}
+              <TurnstileWidget
+                ref={turnstile_ref}
+                on_expire={() => set_captcha_token("")}
+                on_verify={set_captcha_token}
               />
-            </div>
 
-            <TurnstileWidget
-              ref={turnstile_ref}
-              on_expire={() => set_captcha_token("")}
-              on_verify={set_captcha_token}
-            />
-
-            <Button
-              className="w-full mt-6"
-              disabled={is_loading || (!!TURNSTILE_SITE_KEY && !captcha_token)}
-              size="xl"
-              type="submit"
-              variant="depth"
-            >
-              {is_loading ? (
-                <>
-                  {t("auth.signing_in")}
-                  <Spinner className="ml-2" size="md" />
-                </>
-              ) : (
-                t("auth.sign_in")
-              )}
-            </Button>
+              <Button
+                className="w-full mt-6"
+                disabled={
+                  is_loading || (!!TURNSTILE_SITE_KEY && !captcha_token)
+                }
+                size="xl"
+                type="submit"
+                variant="depth"
+              >
+                {is_loading ? (
+                  <>
+                    {t("auth.signing_in")}
+                    <Spinner className="ms-2" size="md" />
+                  </>
+                ) : (
+                  t("auth.sign_in")
+                )}
+              </Button>
             </form>
 
             <Button

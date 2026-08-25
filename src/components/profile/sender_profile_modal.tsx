@@ -17,6 +17,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { copy_text_or_throw } from "@/utils/copy_text";
 import type { ContactFormData } from "@/types/contacts";
 import type { TranslationKey } from "@/lib/i18n/types";
 
@@ -61,9 +62,12 @@ const ASTER_DOMAINS = new Set(["astermail.org", "aster.cx"]);
 
 function extract_root_domain(email: string): string {
   const match = email.match(/@([^@]+)$/);
+
   if (!match) return "";
   const parts = match[1].toLowerCase().split(".");
+
   if (parts.length >= 2) return parts.slice(-2).join(".");
+
   return match[1].toLowerCase();
 }
 
@@ -88,9 +92,9 @@ export function SenderProfileModal({
   const reduce_motion = use_should_reduce_motion();
 
   const [is_contact_loading, set_is_contact_loading] = useState(false);
-  const [existing_contact_id, set_existing_contact_id] = useState<string | null>(
-    () => get_cached_contact_id(email) ?? null,
-  );
+  const [existing_contact_id, set_existing_contact_id] = useState<
+    string | null
+  >(() => get_cached_contact_id(email) ?? null);
   const [is_blocking, set_is_blocking] = useState(false);
   const [is_allowlist_loading, set_is_allowlist_loading] = useState(false);
   const [is_allowlisted, set_is_allowlisted] = useState(false);
@@ -144,24 +148,18 @@ export function SenderProfileModal({
     const on_key = (e: KeyboardEvent) => {
       if (e["key"] === "Escape") on_close();
     };
+
     window.addEventListener("keydown", on_key);
+
     return () => window.removeEventListener("keydown", on_key);
   }, [is_open, on_close]);
 
   const handle_copy_email = useCallback(async () => {
     try {
-      await navigator.clipboard.writeText(email);
+      await copy_text_or_throw(email);
       show_toast(t("common.email_copied"), "success");
     } catch {
-      const ta = document.createElement("textarea");
-      ta.value = email;
-      ta.style.position = "fixed";
-      ta.style.opacity = "0";
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand("copy");
-      document.body.removeChild(ta);
-      show_toast(t("common.email_copied"), "success");
+      show_toast(t("common.failed_to_copy"), "error");
     }
   }, [email, t]);
 
@@ -171,12 +169,16 @@ export function SenderProfileModal({
     try {
       if (existing_contact_id) {
         const result = await delete_contact(existing_contact_id);
+
         if (result.data) {
           show_toast(t("common.removed_from_contacts"), "success");
           set_existing_contact_id(null);
           emit_contacts_changed();
-        } else if (result.error) {
-          show_toast(result.error, "error");
+        } else {
+          show_toast(
+            result.error || t("common.something_went_wrong_try_again"),
+            "error",
+          );
         }
       } else {
         const parts = display_name.split(" ");
@@ -187,12 +189,16 @@ export function SenderProfileModal({
           is_favorite: false,
         };
         const result = await create_contact_encrypted(contact_data);
+
         if (result.data) {
           show_toast(t("common.added_to_contacts"), "success");
           set_existing_contact_id(result.data.id);
           emit_contacts_changed();
-        } else if (result.error) {
-          show_toast(result.error, "error");
+        } else {
+          show_toast(
+            result.error || t("common.something_went_wrong_try_again"),
+            "error",
+          );
         }
       }
     } catch {
@@ -215,25 +221,27 @@ export function SenderProfileModal({
     try {
       if (is_allowlisted) {
         const result = await remove_allowed_sender(email);
+
         if (result.data) {
-          show_toast(
-            t("common.removed_from_allowlist", { email }),
-            "success",
-          );
+          show_toast(t("common.removed_from_allowlist", { email }), "success");
           set_is_allowlisted(false);
-        } else if (result.error) {
-          show_toast(result.error, "error");
+        } else {
+          show_toast(
+            result.error || t("common.something_went_wrong_try_again"),
+            "error",
+          );
         }
       } else {
         const result = await allow_sender(email, name);
+
         if (result.data) {
-          show_toast(
-            t("common.added_to_allowlist", { email }),
-            "success",
-          );
+          show_toast(t("common.added_to_allowlist", { email }), "success");
           set_is_allowlisted(true);
-        } else if (result.error) {
-          show_toast(result.error, "error");
+        } else {
+          show_toast(
+            result.error || t("common.something_went_wrong_try_again"),
+            "error",
+          );
         }
       }
     } catch {
@@ -248,12 +256,16 @@ export function SenderProfileModal({
     set_is_blocking(true);
     try {
       const result = await block_sender(email, name);
+
       if (result.data) {
         show_toast(t("common.blocked_email", { email }), "success");
         on_close();
         emit_mail_changed();
-      } else if (result.error) {
-        show_toast(result.error, "error");
+      } else {
+        show_toast(
+          result.error || t("common.something_went_wrong_try_again"),
+          "error",
+        );
       }
     } catch {
       show_toast(t("common.failed_to_block_sender"), "error");
@@ -411,18 +423,22 @@ interface InternalHeaderProps {
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
 }
 
-function InternalHeader({ display_name, email, on_close, t }: InternalHeaderProps) {
+function InternalHeader({
+  display_name,
+  email,
+  on_close,
+  t,
+}: InternalHeaderProps) {
   return (
     <div
       className="relative px-5 pt-6 pb-5"
       style={{
-        background:
-          "linear-gradient(135deg, #4f46e5 0%, #1e1b4b 100%)",
+        background: "linear-gradient(135deg, #4f46e5 0%, #1e1b4b 100%)",
       }}
     >
       <button
         aria-label={t("common.close")}
-        className="absolute top-3 right-3 p-1.5 rounded-[14px] text-white/50 hover:text-white hover:bg-white/10 transition-colors"
+        className="absolute top-3 end-3 p-1.5 rounded-[14px] text-white/50 hover:text-white hover:bg-white/10 transition-colors"
         type="button"
         onClick={on_close}
       >
@@ -467,14 +483,14 @@ function ExternalHeader({
     <div className="relative px-5 pt-5 pb-4 border-b border-edge-secondary">
       <button
         aria-label={t("common.close")}
-        className="absolute top-3 right-3 p-1.5 rounded-[14px] text-txt-muted hover:text-txt-primary hover:bg-surf-hover transition-colors"
+        className="absolute top-3 end-3 p-1.5 rounded-[14px] text-txt-muted hover:text-txt-primary hover:bg-surf-hover transition-colors"
         type="button"
         onClick={on_close}
       >
         <XMarkIcon className="w-4 h-4" />
       </button>
 
-      <div className="flex items-center gap-4 pr-8">
+      <div className="flex items-center gap-4 pe-8">
         <ProfileAvatar
           use_domain_logo
           className="ring-1 ring-black/5 dark:ring-white/10 flex-shrink-0"
@@ -533,7 +549,7 @@ function ActionRow({
     >
       {icon}
       <span
-        className={`flex-1 text-left text-[14px] ${danger ? "text-red-500" : "text-txt-primary"}`}
+        className={`flex-1 text-start text-[14px] ${danger ? "text-red-500" : "text-txt-primary"}`}
       >
         {label}
       </span>

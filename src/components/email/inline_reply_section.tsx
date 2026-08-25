@@ -53,8 +53,8 @@ import { build_badge_html } from "@/components/compose/compose_draft_helpers";
 import { fetch_my_badges, type Badge } from "@/services/api/user";
 import { use_my_badge_prefs } from "@/stores/my_badge_prefs_store";
 import { Spinner } from "@/components/ui/spinner";
-
 import { ignore_error } from "@/lib/ignore_error";
+import { is_composing } from "@/utils/ime";
 
 type SendState = "idle" | "queued" | "sending" | "sent" | "error";
 
@@ -134,9 +134,7 @@ export const InlineReplySection = forwardRef<
   );
   const textarea_ref = useRef<HTMLTextAreaElement>(null);
   const save_draft_timeout = useRef<number | null>(null);
-  const last_saved_text = useRef<string>(
-    matching_draft?.content.message ?? "",
-  );
+  const last_saved_text = useRef<string>(matching_draft?.content.message ?? "");
   const is_sending_ref = useRef(false);
   const last_send_time_ref = useRef<number>(0);
   const reply_text_ref = useRef(reply_text);
@@ -144,6 +142,7 @@ export const InlineReplySection = forwardRef<
     async () => {},
   );
   const prev_visible_ref = useRef(false);
+  const thread_token_ref = useRef(thread_token);
   const [badges, set_badges] = useState<Badge[]>([]);
   const my_badge_prefs = use_my_badge_prefs();
   const include_badge_signature =
@@ -152,7 +151,8 @@ export const InlineReplySection = forwardRef<
     !!my_badge_prefs?.active_badge_slug;
   const active_badge =
     include_badge_signature && my_badge_prefs?.active_badge_slug
-      ? badges.find((b) => b.slug === my_badge_prefs.active_badge_slug) ?? null
+      ? (badges.find((b) => b.slug === my_badge_prefs.active_badge_slug) ??
+        null)
       : null;
 
   useEffect(() => {
@@ -247,11 +247,13 @@ export const InlineReplySection = forwardRef<
       draft_id,
       draft_version,
       on_draft_saved,
+      t,
     ],
   );
 
   save_draft_fn_ref.current = save_thread_draft;
   reply_text_ref.current = reply_text;
+  thread_token_ref.current = thread_token;
 
   useEffect(() => {
     if (prev_visible_ref.current && !is_visible) {
@@ -261,6 +263,7 @@ export const InlineReplySection = forwardRef<
       }
       if (!is_sending_ref.current) {
         const current_text = reply_text_ref.current;
+
         if (
           current_text !== last_saved_text.current &&
           current_text.trim() &&
@@ -296,6 +299,18 @@ export const InlineReplySection = forwardRef<
     return () => {
       if (save_draft_timeout.current) {
         clearTimeout(save_draft_timeout.current);
+      }
+
+      const current_text = reply_text_ref.current;
+
+      if (
+        prev_visible_ref.current &&
+        !is_sending_ref.current &&
+        current_text !== last_saved_text.current &&
+        current_text.trim() &&
+        thread_token_ref.current
+      ) {
+        void save_draft_fn_ref.current(current_text);
       }
     };
   }, []);
@@ -398,7 +413,9 @@ export const InlineReplySection = forwardRef<
             email_ids: [],
             duration_ms: 5000,
             on_view_message: () => {
-              window.dispatchEvent(new CustomEvent("astermail:navigate-to-sent"));
+              window.dispatchEvent(
+                new CustomEvent("astermail:navigate-to-sent"),
+              );
             },
           });
 
@@ -412,10 +429,12 @@ export const InlineReplySection = forwardRef<
           const new_message: DecryptedThreadMessage = {
             id: `temp_${Date.now()}`,
             item_type: "sent",
-            sender_name:
-              user?.display_name || user?.email || t("common.me"),
+            sender_name: user?.display_name || user?.email || t("common.me"),
             sender_email: user?.email || "",
-            subject: build_reply_subject(subject, t("mail.reply_subject_prefix")),
+            subject: build_reply_subject(
+              subject,
+              t("mail.reply_subject_prefix"),
+            ),
             body: reply_text.trim(),
             timestamp: new Date().toISOString(),
             is_read: true,
@@ -445,7 +464,7 @@ export const InlineReplySection = forwardRef<
           on_sending_end?.();
         },
       },
-      preferences.undo_send_period,
+      undo_seconds * 1000,
     );
 
     if (result.success && result.queued_id) {
@@ -457,7 +476,9 @@ export const InlineReplySection = forwardRef<
         set_draft_id(null);
         set_draft_version(1);
         last_saved_text.current = "";
-        delete_draft(captured_draft_id).catch((caught) => ignore_error("components/email/inline_reply_section", caught));
+        delete_draft(captured_draft_id).catch((caught) =>
+          ignore_error("components/email/inline_reply_section", caught),
+        );
       }
     } else if (!result.success) {
       is_sending_ref.current = false;
@@ -475,9 +496,11 @@ export const InlineReplySection = forwardRef<
     timestamp,
     thread_token,
     email_id,
-    preferences.undo_send_period,
     undo_seconds,
     get_signature,
+    preferences.show_aster_branding,
+    active_badge,
+    draft_id,
     user,
     on_reply_sent,
     on_close,
@@ -516,6 +539,8 @@ export const InlineReplySection = forwardRef<
 
   const handle_key_down = useCallback(
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+      if (is_composing(e)) return;
+
       if ((e.metaKey || e.ctrlKey) && e["key"] === "Enter") {
         e.preventDefault();
         handle_send_reply();
@@ -636,7 +661,7 @@ export const InlineReplySection = forwardRef<
                     <EmojiPicker on_select={handle_emoji_select} />
                   )}
                 </div>
-                <span className="text-xs ml-auto text-txt-tertiary">
+                <span className="text-xs ms-auto text-txt-tertiary">
                   {reply_text.length}/1000
                 </span>
               </div>

@@ -39,8 +39,8 @@ import { get_totp_status, TotpVerifyResponse } from "@/services/api/totp";
 import { show_toast } from "@/components/toast/simple_toast";
 import { emit_auth_ready } from "@/hooks/mail_events";
 import { get_app_query_param } from "@/lib/hard_redirect";
-
 import { ignore_error } from "@/lib/ignore_error";
+import { user_facing_error } from "@/utils/user_facing_error";
 
 export function use_mobile_sign_in() {
   const navigate = useNavigate();
@@ -87,6 +87,9 @@ export function use_mobile_sign_in() {
 
   useEffect(() => {
     document.title = `${t("auth.sign_in")} | ${t("common.aster_mail")}`;
+  }, [t]);
+
+  useEffect(() => {
     if (!preloaded.current) {
       preloaded.current = true;
       import("@/pages/mobile/mobile_register").catch((caught) =>
@@ -291,9 +294,7 @@ export function use_mobile_sign_in() {
         if (err instanceof Error && err.message.includes("decrypt")) {
           set_error(t("errors.wrong_vault_password"));
         } else {
-          set_error(
-            err instanceof Error ? err.message : t("errors.login_failed"),
-          );
+          set_error(user_facing_error(err, t("errors.login_failed")));
         }
         set_is_loading(false);
         set_totp_required(false);

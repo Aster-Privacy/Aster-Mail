@@ -39,7 +39,7 @@ import { is_tauri } from "@/native/desktop_device_auth";
 export const TURNSTILE_SITE_KEY =
   typeof window !== "undefined" && (is_onion_host() || is_tauri())
     ? ""
-    : (import.meta.env.VITE_TURNSTILE_SITE_KEY || "");
+    : import.meta.env.VITE_TURNSTILE_SITE_KEY || "";
 const SCRIPT_URL =
   "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
 
@@ -64,6 +64,31 @@ declare global {
       remove: (widget_id: string) => void;
     };
   }
+}
+
+const TURNSTILE_LANGUAGE_BY_APP_LOCALE: Record<string, string> = {
+  en: "en",
+  es: "es",
+  fr: "fr",
+  de: "de",
+  it: "it",
+  pt: "pt-br",
+  "zh-CN": "zh-cn",
+  ja: "ja",
+  ko: "ko",
+  ar: "ar-eg",
+  ru: "ru",
+  nl: "nl",
+  pl: "pl",
+  tr: "tr",
+};
+
+function turnstile_language(language: string): string {
+  return (
+    TURNSTILE_LANGUAGE_BY_APP_LOCALE[language] ??
+    TURNSTILE_LANGUAGE_BY_APP_LOCALE[language.split("-")[0]] ??
+    "auto"
+  );
 }
 
 let script_loaded = false;
@@ -123,7 +148,7 @@ export const TurnstileWidget = forwardRef<
   const [attempt, set_attempt] = useState(0);
   const [failed, set_failed] = useState(false);
   const { theme } = useTheme();
-  const { t } = use_i18n();
+  const { t, language } = use_i18n();
 
   on_verify_ref.current = on_verify;
   on_expire_ref.current = on_expire;
@@ -164,6 +189,7 @@ export const TurnstileWidget = forwardRef<
         widget_id_ref.current = window.turnstile.render(container_ref.current, {
           sitekey: TURNSTILE_SITE_KEY,
           theme,
+          language: turnstile_language(language),
           callback: (token: string) => on_verify_ref.current(token),
           "expired-callback": () => on_expire_ref.current?.(),
           "error-callback": () => set_failed(true),
@@ -182,7 +208,7 @@ export const TurnstileWidget = forwardRef<
         widget_id_ref.current = null;
       }
     };
-  }, [theme, attempt]);
+  }, [theme, attempt, language]);
 
   if (!TURNSTILE_SITE_KEY) return null;
 
@@ -194,8 +220,8 @@ export const TurnstileWidget = forwardRef<
             {t("auth.captcha_load_failed")}
           </p>
           <button
-            type="button"
             className="aster_btn aster_btn_secondary aster_btn_sm"
+            type="button"
             onClick={() => {
               set_failed(false);
               set_attempt((n) => n + 1);

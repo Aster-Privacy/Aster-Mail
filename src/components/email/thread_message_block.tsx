@@ -18,9 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { render_collapsed_thread_message } from "./thread_message_collapsed";
-
-
+import { copy_text_or_throw } from "@/utils/copy_text";
+import type { ThreadMessageBlockProps } from "./use_thread_message_block";
 
 import {
   AtSymbolIcon,
@@ -46,6 +45,9 @@ import {
 import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
 import { Tooltip } from "@aster/ui";
 
+import { render_collapsed_thread_message } from "./thread_message_collapsed";
+import { use_thread_message_block } from "./use_thread_message_block";
+
 import { EmailTag } from "@/components/ui/email_tag";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import {
@@ -63,7 +65,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-
 import { OfficialBadge } from "@/components/email/official_badge";
 import { show_toast } from "@/components/toast/simple_toast";
 import { AttachmentList } from "@/components/email/attachment_list";
@@ -76,12 +77,11 @@ import { ThreadMessageActions } from "@/components/email/thread_message_actions"
 import { MessageDetailsModal } from "@/components/email/message_details_modal";
 import { SenderProfileTrigger } from "@/components/profile/sender_profile_trigger";
 import { PgpPasswordProtectedMessage } from "@/components/email/pgp_password_prompt";
+import { open_external } from "@/utils/open_link";
 
-import { use_thread_message_block } from "./use_thread_message_block";
-import type { ThreadMessageBlockProps } from "./use_thread_message_block";
-import { ignore_error } from "@/lib/ignore_error";
-
-export function ThreadMessageBlock(props: ThreadMessageBlockProps): React.ReactElement {
+export function ThreadMessageBlock(
+  props: ThreadMessageBlockProps,
+): React.ReactElement {
   const {
     message,
     is_own_message,
@@ -266,6 +266,7 @@ export function ThreadMessageBlock(props: ThreadMessageBlockProps): React.ReactE
                   e.stopPropagation();
                   set_unsub_state("loading");
                   const result = await on_unsubscribe();
+
                   set_unsub_state(result === "success" ? "done" : "manual");
                 }}
               >
@@ -279,11 +280,7 @@ export function ThreadMessageBlock(props: ThreadMessageBlockProps): React.ReactE
                   className="flex-shrink-0 text-xs font-medium text-blue-500 rounded px-1.5 py-0.5 hover:bg-blue-500/10 transition-colors"
                   onClick={(e) => {
                     e.stopPropagation();
-                    window.open(
-                      unsubscribe_url,
-                      "_blank",
-                      "noopener,noreferrer",
-                    );
+                    open_external(unsubscribe_url);
                     set_unsub_state("done");
                     on_manual_unsubscribed?.();
                   }}
@@ -311,6 +308,7 @@ export function ThreadMessageBlock(props: ThreadMessageBlockProps): React.ReactE
                 ).length;
                 const btn_class =
                   "flex-shrink-0 text-xs font-medium text-blue-500 rounded px-1.5 py-0.5 hover:bg-blue-500/10 transition-colors";
+
                 return (
                   <>
                     {image_count > 0 && (
@@ -345,12 +343,14 @@ export function ThreadMessageBlock(props: ThreadMessageBlockProps): React.ReactE
                       >
                         {(() => {
                           const parts: string[] = [];
+
                           if (font_count > 0)
                             parts.push(
                               `${font_count} ${font_count === 1 ? t("mail.font") : t("mail.fonts")}`,
                             );
                           if (css_count > 0)
                             parts.push(`${css_count} ${t("mail.stylesheet")}`);
+
                           return `${t("mail.load_external_content")} (${parts.join(", ")})`;
                         })()}
                       </button>
@@ -387,20 +387,24 @@ export function ThreadMessageBlock(props: ThreadMessageBlockProps): React.ReactE
                 onClick={(e: React.MouseEvent) => e.stopPropagation()}
               >
                 <div className="flex">
-                  <span className="min-w-14 flex-shrink-0 whitespace-nowrap pr-2 font-medium text-txt-muted">
+                  <span className="min-w-14 flex-shrink-0 whitespace-nowrap pe-2 font-medium text-txt-muted">
                     {t("common.from_label")}
                   </span>
-                  <span className="min-w-0 text-txt-secondary break-words">
+                  <span
+                    className="min-w-0 text-txt-secondary break-words"
+                    dir="auto"
+                  >
                     {show_sender_name}{" "}
                     <button
-                      className="hover:underline text-txt-muted break-all text-left"
+                      className="hover:underline text-txt-muted break-all text-start"
                       onClick={() => {
-                        navigator.clipboard
-                          .writeText(show_sender_email)
+                        copy_text_or_throw(show_sender_email)
                           .then(() =>
                             show_toast(t("common.email_copied"), "success"),
                           )
-                          .catch((caught) => ignore_error("components/email/thread_message_block:ThreadMessageBlock", caught));
+                          .catch(() =>
+                            show_toast(t("common.failed_to_copy"), "error"),
+                          );
                       }}
                     >
                       &lt;{show_sender_email}&gt;
@@ -409,7 +413,7 @@ export function ThreadMessageBlock(props: ThreadMessageBlockProps): React.ReactE
                 </div>
                 {delivered_to_address && (
                   <div className="flex">
-                    <span className="min-w-14 flex-shrink-0 whitespace-nowrap pr-2 font-medium text-txt-muted">
+                    <span className="min-w-14 flex-shrink-0 whitespace-nowrap pe-2 font-medium text-txt-muted">
                       {t("common.received_on_label")}
                     </span>
                     <span className="min-w-0 text-txt-secondary break-words">
@@ -419,7 +423,7 @@ export function ThreadMessageBlock(props: ThreadMessageBlockProps): React.ReactE
                 )}
                 {message.to_recipients && message.to_recipients.length > 0 && (
                   <div className="flex items-start">
-                    <span className="min-w-14 flex-shrink-0 whitespace-nowrap pr-2 font-medium pt-0.5 text-txt-muted">
+                    <span className="min-w-14 flex-shrink-0 whitespace-nowrap pe-2 font-medium pt-0.5 text-txt-muted">
                       {t("common.to_label")}
                     </span>
                     <span className="flex-1 min-w-0 flex flex-wrap items-center gap-1 text-txt-secondary">
@@ -437,15 +441,19 @@ export function ThreadMessageBlock(props: ThreadMessageBlockProps): React.ReactE
                           <button
                             className="hover:underline"
                             onClick={() => {
-                              navigator.clipboard
-                                .writeText(r.email)
+                              copy_text_or_throw(r.email)
                                 .then(() =>
                                   show_toast(
                                     t("common.email_copied"),
                                     "success",
                                   ),
                                 )
-                                .catch((caught) => ignore_error("components/email/thread_message_block:ThreadMessageBlock", caught));
+                                .catch(() =>
+                                  show_toast(
+                                    t("common.failed_to_copy"),
+                                    "error",
+                                  ),
+                                );
                             }}
                           >
                             {r.name || r.email}
@@ -460,7 +468,7 @@ export function ThreadMessageBlock(props: ThreadMessageBlockProps): React.ReactE
                 )}
                 {message.cc_recipients && message.cc_recipients.length > 0 && (
                   <div className="flex items-start">
-                    <span className="min-w-14 flex-shrink-0 whitespace-nowrap pr-2 font-medium pt-0.5 text-txt-muted">
+                    <span className="min-w-14 flex-shrink-0 whitespace-nowrap pe-2 font-medium pt-0.5 text-txt-muted">
                       {t("common.cc_label")}
                     </span>
                     <span className="flex-1 min-w-0 flex flex-wrap items-center gap-1 text-txt-secondary">
@@ -478,15 +486,19 @@ export function ThreadMessageBlock(props: ThreadMessageBlockProps): React.ReactE
                           <button
                             className="hover:underline"
                             onClick={() => {
-                              navigator.clipboard
-                                .writeText(r.email)
+                              copy_text_or_throw(r.email)
                                 .then(() =>
                                   show_toast(
                                     t("common.email_copied"),
                                     "success",
                                   ),
                                 )
-                                .catch((caught) => ignore_error("components/email/thread_message_block:ThreadMessageBlock", caught));
+                                .catch(() =>
+                                  show_toast(
+                                    t("common.failed_to_copy"),
+                                    "error",
+                                  ),
+                                );
                             }}
                           >
                             {r.name || r.email}
@@ -502,7 +514,7 @@ export function ThreadMessageBlock(props: ThreadMessageBlockProps): React.ReactE
                 {message.bcc_recipients &&
                   message.bcc_recipients.length > 0 && (
                     <div className="flex items-start">
-                      <span className="min-w-14 flex-shrink-0 whitespace-nowrap pr-2 font-medium pt-0.5 text-txt-muted">
+                      <span className="min-w-14 flex-shrink-0 whitespace-nowrap pe-2 font-medium pt-0.5 text-txt-muted">
                         {t("common.bcc_label")}
                       </span>
                       <span className="flex-1 min-w-0 flex flex-wrap items-center gap-1 text-txt-secondary">
@@ -520,15 +532,19 @@ export function ThreadMessageBlock(props: ThreadMessageBlockProps): React.ReactE
                             <button
                               className="hover:underline"
                               onClick={() => {
-                                navigator.clipboard
-                                  .writeText(r.email)
+                                copy_text_or_throw(r.email)
                                   .then(() =>
                                     show_toast(
                                       t("common.email_copied"),
                                       "success",
                                     ),
                                   )
-                                  .catch((caught) => ignore_error("components/email/thread_message_block:ThreadMessageBlock", caught));
+                                  .catch(() =>
+                                    show_toast(
+                                      t("common.failed_to_copy"),
+                                      "error",
+                                    ),
+                                  );
                               }}
                             >
                               {r.name || r.email}
@@ -542,7 +558,7 @@ export function ThreadMessageBlock(props: ThreadMessageBlockProps): React.ReactE
                     </div>
                   )}
                 <div className="flex">
-                  <span className="min-w-14 flex-shrink-0 whitespace-nowrap pr-2 font-medium text-txt-muted">
+                  <span className="min-w-14 flex-shrink-0 whitespace-nowrap pe-2 font-medium text-txt-muted">
                     {t("common.date_label")}
                   </span>
                   <span className="text-txt-secondary">
@@ -550,10 +566,13 @@ export function ThreadMessageBlock(props: ThreadMessageBlockProps): React.ReactE
                   </span>
                 </div>
                 <div className="flex">
-                  <span className="min-w-14 flex-shrink-0 whitespace-nowrap pr-2 font-medium text-txt-muted">
+                  <span className="min-w-14 flex-shrink-0 whitespace-nowrap pe-2 font-medium text-txt-muted">
                     {t("common.subject_label")}
                   </span>
-                  <span className="min-w-0 text-txt-secondary break-words">
+                  <span
+                    dir="auto"
+                    className="min-w-0 text-txt-secondary break-words"
+                  >
                     {message.subject || t("mail.no_subject")}
                   </span>
                 </div>
@@ -610,7 +629,7 @@ export function ThreadMessageBlock(props: ThreadMessageBlockProps): React.ReactE
                 on_reply(message);
               }}
             >
-              <ArrowUturnLeftIcon className="h-[18px] w-[18px] text-txt-muted" />
+              <ArrowUturnLeftIcon className="h-[18px] w-[18px] text-txt-muted rtl:-scale-x-100" />
             </button>
           )}
           <DropdownMenu>
@@ -631,7 +650,7 @@ export function ThreadMessageBlock(props: ThreadMessageBlockProps): React.ReactE
                     on_reply(message);
                   }}
                 >
-                  <ArrowUturnLeftIcon className="w-4 h-4 mr-2" />
+                  <ArrowUturnLeftIcon className="w-4 h-4 me-2 rtl:-scale-x-100" />
                   {t("mail.reply")}
                 </DropdownMenuItem>
               )}
@@ -642,7 +661,7 @@ export function ThreadMessageBlock(props: ThreadMessageBlockProps): React.ReactE
                     on_reply_all(message);
                   }}
                 >
-                  <ArrowUturnLeftIcon className="w-4 h-4 mr-2" />
+                  <ArrowUturnLeftIcon className="w-4 h-4 me-2 rtl:-scale-x-100" />
                   {t("mail.reply_all")}
                 </DropdownMenuItem>
               )}
@@ -653,7 +672,7 @@ export function ThreadMessageBlock(props: ThreadMessageBlockProps): React.ReactE
                     on_forward(message);
                   }}
                 >
-                  <ArrowUturnRightIcon className="w-4 h-4 mr-2" />
+                  <ArrowUturnRightIcon className="w-4 h-4 me-2 rtl:-scale-x-100" />
                   {t("mail.forward")}
                 </DropdownMenuItem>
               )}
@@ -666,9 +685,9 @@ export function ThreadMessageBlock(props: ThreadMessageBlockProps): React.ReactE
                   }}
                 >
                   {is_read ? (
-                    <EyeSlashIcon className="w-4 h-4 mr-2" />
+                    <EyeSlashIcon className="w-4 h-4 me-2" />
                   ) : (
-                    <EyeIcon className="w-4 h-4 mr-2" />
+                    <EyeIcon className="w-4 h-4 me-2" />
                   )}
                   {is_read ? t("mail.mark_unread") : t("mail.mark_read")}
                 </DropdownMenuItem>
@@ -680,9 +699,9 @@ export function ThreadMessageBlock(props: ThreadMessageBlockProps): React.ReactE
                 }}
               >
                 {is_starred ? (
-                  <StarIconSolid className="w-4 h-4 mr-2 text-amber-400" />
+                  <StarIconSolid className="w-4 h-4 me-2 text-amber-400" />
                 ) : (
-                  <StarIcon className="w-4 h-4 mr-2" />
+                  <StarIcon className="w-4 h-4 me-2" />
                 )}
                 {is_starred ? t("mail.unstar") : t("mail.star")}
               </DropdownMenuItem>
@@ -694,7 +713,7 @@ export function ThreadMessageBlock(props: ThreadMessageBlockProps): React.ReactE
                     on_archive(message);
                   }}
                 >
-                  <ArchiveBoxIcon className="w-4 h-4 mr-2" />
+                  <ArchiveBoxIcon className="w-4 h-4 me-2" />
                   {t("mail.archive")}
                 </DropdownMenuItem>
               )}
@@ -705,7 +724,7 @@ export function ThreadMessageBlock(props: ThreadMessageBlockProps): React.ReactE
                     on_trash(message);
                   }}
                 >
-                  <TrashIcon className="w-4 h-4 mr-2" />
+                  <TrashIcon className="w-4 h-4 me-2" />
                   {message.is_deleted
                     ? t("mail.delete_permanently")
                     : t("mail.move_to_trash")}
@@ -714,7 +733,7 @@ export function ThreadMessageBlock(props: ThreadMessageBlockProps): React.ReactE
               {folders.length > 0 && on_move_to_folder && (
                 <DropdownMenuSub>
                   <DropdownMenuSubTrigger>
-                    <FolderIcon className="w-4 h-4 mr-2" />
+                    <FolderIcon className="w-4 h-4 me-2" />
                     {t("mail.move_to_folder")}
                   </DropdownMenuSubTrigger>
                   <DropdownMenuSubContent className="w-48">
@@ -732,10 +751,10 @@ export function ThreadMessageBlock(props: ThreadMessageBlockProps): React.ReactE
                           }}
                         >
                           {is_current && (
-                            <CheckIcon className="mr-0.5 h-3 w-3 flex-shrink-0" />
+                            <CheckIcon className="me-0.5 h-3 w-3 flex-shrink-0" />
                           )}
                           <span
-                            className="mr-1.5 h-2.5 w-2.5 rounded-full flex-shrink-0"
+                            className="me-1.5 h-2.5 w-2.5 rounded-full flex-shrink-0"
                             style={
                               folder.color.startsWith("#")
                                 ? { backgroundColor: folder.color }
@@ -757,7 +776,7 @@ export function ThreadMessageBlock(props: ThreadMessageBlockProps): React.ReactE
                     on_print(message);
                   }}
                 >
-                  <PrinterIcon className="w-4 h-4 mr-2" />
+                  <PrinterIcon className="w-4 h-4 me-2" />
                   {t("mail.print")}
                 </DropdownMenuItem>
               )}
@@ -769,9 +788,9 @@ export function ThreadMessageBlock(props: ThreadMessageBlockProps): React.ReactE
                   }}
                 >
                   {force_dark_mode ? (
-                    <SunIcon className="w-4 h-4 mr-2" />
+                    <SunIcon className="w-4 h-4 me-2" />
                   ) : (
-                    <MoonIcon className="w-4 h-4 mr-2" />
+                    <MoonIcon className="w-4 h-4 me-2" />
                   )}
                   {force_dark_mode
                     ? t("mail.exit_dark_mode")
@@ -784,7 +803,7 @@ export function ThreadMessageBlock(props: ThreadMessageBlockProps): React.ReactE
                   set_viewing_source(!viewing_source);
                 }}
               >
-                <CodeBracketIcon className="w-4 h-4 mr-2" />
+                <CodeBracketIcon className="w-4 h-4 me-2" />
                 {viewing_source ? t("mail.hide_source") : t("mail.view_source")}
               </DropdownMenuItem>
               {on_not_spam ? (
@@ -794,7 +813,7 @@ export function ThreadMessageBlock(props: ThreadMessageBlockProps): React.ReactE
                     on_not_spam(message);
                   }}
                 >
-                  <ShieldExclamationIcon className="w-4 h-4 mr-2" />
+                  <ShieldExclamationIcon className="w-4 h-4 me-2" />
                   {t("mail.not_spam")}
                 </DropdownMenuItem>
               ) : on_report_phishing ? (
@@ -804,7 +823,7 @@ export function ThreadMessageBlock(props: ThreadMessageBlockProps): React.ReactE
                     on_report_phishing(message);
                   }}
                 >
-                  <ShieldExclamationIcon className="w-4 h-4 mr-2 text-amber-500" />
+                  <ShieldExclamationIcon className="w-4 h-4 me-2 text-amber-500" />
                   <span className="text-amber-500">
                     {t("common.report_phishing")}
                   </span>
@@ -817,7 +836,7 @@ export function ThreadMessageBlock(props: ThreadMessageBlockProps): React.ReactE
                     on_block_sender(message);
                   }}
                 >
-                  <NoSymbolIcon className="w-4 h-4 mr-2 text-red-500" />
+                  <NoSymbolIcon className="w-4 h-4 me-2 text-red-500" />
                   <span className="text-red-500">{t("mail.block_sender")}</span>
                 </DropdownMenuItem>
               )}
@@ -825,15 +844,16 @@ export function ThreadMessageBlock(props: ThreadMessageBlockProps): React.ReactE
               <DropdownMenuItem
                 onClick={(e) => {
                   e.stopPropagation();
-                  navigator.clipboard
-                    .writeText(message.id)
+                  copy_text_or_throw(message.id)
                     .then(() => {
                       show_toast(t("common.message_id_copied"), "success");
                     })
-                    .catch((caught) => ignore_error("components/email/thread_message_block:ThreadMessageBlock", caught));
+                    .catch(() =>
+                      show_toast(t("common.failed_to_copy"), "error"),
+                    );
                 }}
               >
-                <ClipboardDocumentIcon className="w-4 h-4 mr-2" />
+                <ClipboardDocumentIcon className="w-4 h-4 me-2" />
                 {t("mail.copy_message_id")}
               </DropdownMenuItem>
               <DropdownMenuItem
@@ -842,12 +862,12 @@ export function ThreadMessageBlock(props: ThreadMessageBlockProps): React.ReactE
                   set_show_details_modal(true);
                 }}
               >
-                <InformationCircleIcon className="w-4 h-4 mr-2" />
+                <InformationCircleIcon className="w-4 h-4 me-2" />
                 {t("mail.message_details")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          <span className="text-[13px] text-txt-muted whitespace-nowrap ml-1.5">
+          <span className="text-[13px] text-txt-muted whitespace-nowrap ms-1.5">
             {format_email_detail(new Date(message.timestamp))}
           </span>
         </div>
@@ -874,9 +894,9 @@ export function ThreadMessageBlock(props: ThreadMessageBlockProps): React.ReactE
               <Popover>
                 <PopoverTrigger asChild>
                   <button
-                    type="button"
                     aria-label={t("common.auth_fail_banner_title")}
                     className="flex-shrink-0 text-white/80 hover:text-white transition-colors"
+                    type="button"
                     onClick={(e) => e.stopPropagation()}
                   >
                     <InformationCircleIcon className="w-4 h-4" />
@@ -917,17 +937,17 @@ export function ThreadMessageBlock(props: ThreadMessageBlockProps): React.ReactE
         message.is_spam === true &&
         (message.spam_signals?.length ?? 0) > 0 && (
           <SpamReasonsBanner
-            signals={message.spam_signals ?? []}
             on_not_spam={() => on_not_spam(message)}
+            signals={message.spam_signals ?? []}
           />
         )}
 
       <div
-        className={`${is_plain_text || html_blocked ? "pl-[52px] pb-4" : "pb-0"} pt-1`}
+        className={`${is_plain_text || html_blocked ? "ps-[52px] pb-4" : "pb-0"} pt-1`}
       >
         {!is_ratchet_undecryptable && (
           <div
-            className={`min-w-0 ${is_plain_text || html_blocked ? "pr-4" : "pl-[52px] pr-4"}`}
+            className={`min-w-0 ${is_plain_text || html_blocked ? "pe-4" : "ps-[52px] pe-4"}`}
           >
             <TranslationBanner
               limited_quality={translation.limited_quality}
@@ -956,9 +976,9 @@ export function ThreadMessageBlock(props: ThreadMessageBlockProps): React.ReactE
               html_blocked ? undefined : sanitized_content.body_background
             }
             clean_body={clean_body}
+            disable_auto_dark_mode={disable_auto_dark_mode}
             email_id={message.id}
             force_dark_mode={force_dark_mode}
-            disable_auto_dark_mode={disable_auto_dark_mode}
             is_plain_text={html_blocked ? true : is_plain_text}
             load_remote_content={html_blocked ? false : load_remote_content}
             on_document_ready={translation.on_document_ready}
@@ -973,7 +993,7 @@ export function ThreadMessageBlock(props: ThreadMessageBlockProps): React.ReactE
         )}
 
         <div
-          className={is_plain_text || html_blocked ? "" : "pl-[52px]"}
+          className={is_plain_text || html_blocked ? "" : "ps-[52px]"}
           onClick={(e) => e.stopPropagation()}
         >
           <AttachmentList
@@ -1041,8 +1061,6 @@ export function ThreadMessageBlock(props: ThreadMessageBlockProps): React.ReactE
                 original_subject={message.subject}
                 original_timestamp={message.timestamp}
                 original_to={all_to_emails}
-                recipient_email={inline_recipient_email}
-                recipient_name={inline_recipient_name}
                 quote_sender_email={
                   is_own_msg ? undefined : message.display_sender_email
                 }
@@ -1051,6 +1069,8 @@ export function ThreadMessageBlock(props: ThreadMessageBlockProps): React.ReactE
                     ? message.display_sender_name || message.sender_name
                     : undefined
                 }
+                recipient_email={inline_recipient_email}
+                recipient_name={inline_recipient_name}
                 reply_from_address={inline_reply_from}
                 sender_email={message.sender_email}
                 sender_name={message.sender_name}

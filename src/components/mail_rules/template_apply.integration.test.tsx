@@ -23,7 +23,6 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
 declare global {
-  // eslint-disable-next-line no-var
   var IS_REACT_ACT_ENVIRONMENT: boolean;
 }
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
@@ -80,7 +79,7 @@ vi.mock("@aster/ui", () => ({
     onClick?: () => void;
     disabled?: boolean;
   }) => (
-    <button onClick={onClick} disabled={disabled}>
+    <button disabled={disabled} onClick={onClick}>
       {children}
     </button>
   ),
@@ -94,16 +93,30 @@ vi.mock("@/components/ui/modal", () => ({
     is_open: boolean;
     children: React.ReactNode;
   }) => (is_open ? <div>{children}</div> : null),
-  ModalHeader: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  ModalTitle: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  ModalDescription: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  ModalBody: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  ModalFooter: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  ModalHeader: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
+  ModalTitle: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
+  ModalDescription: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
+  ModalBody: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
+  ModalFooter: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
 }));
 
 vi.mock("@/components/ui/input", () => ({
   Input: (props: { value: string; onChange: (e: unknown) => void }) => (
-    <input data-testid="rule-name" value={props.value} onChange={props.onChange} />
+    <input
+      data-testid="rule-name"
+      value={props.value}
+      onChange={props.onChange}
+    />
   ),
 }));
 
@@ -127,8 +140,9 @@ vi.mock("@/components/mail_rules/add_action_chip", () => ({
   AddActionChip: () => null,
 }));
 
-import { RuleEditorModal } from "@/components/modals/rule_editor_modal";
 import { RULE_TEMPLATES, template_to_seed } from "./rule_templates";
+
+import { RuleEditorModal } from "@/components/modals/rule_editor_modal";
 
 let container: HTMLDivElement;
 let root: Root;
@@ -157,14 +171,21 @@ describe("applying a template into the rule editor", () => {
   it("pre-fills the name for every template", () => {
     for (const tpl of RULE_TEMPLATES.filter((t) => !t.opens_retention)) {
       const seed = template_to_seed(tpl, "Seed name");
+
       act(() => {
         root.render(
-          <RuleEditorModal is_open on_close={() => {}} rule={null} seed={seed} />,
+          <RuleEditorModal
+            is_open
+            on_close={() => {}}
+            rule={null}
+            seed={seed}
+          />,
         );
       });
       const input = container.querySelector(
         '[data-testid="rule-name"]',
       ) as HTMLInputElement;
+
       expect(input.value, tpl.id).toBe("Seed name");
     }
   });
@@ -172,12 +193,19 @@ describe("applying a template into the rule editor", () => {
   it("blocks save until customized exactly for needs_config templates", () => {
     for (const tpl of RULE_TEMPLATES.filter((t) => !t.opens_retention)) {
       const seed = template_to_seed(tpl, "Seed name");
+
       act(() => {
         root.render(
-          <RuleEditorModal is_open on_close={() => {}} rule={null} seed={seed} />,
+          <RuleEditorModal
+            is_open
+            on_close={() => {}}
+            rule={null}
+            seed={seed}
+          />,
         );
       });
       const btn = save_button();
+
       expect(btn, tpl.id).toBeTruthy();
       expect(btn!.disabled, tpl.id).toBe(!!tpl.needs_config);
     }
@@ -187,6 +215,7 @@ describe("applying a template into the rule editor", () => {
     const tpl = RULE_TEMPLATES.find((t) => t.id === "newsletters")!;
     const seed = template_to_seed(tpl, "My newsletters rule");
     const on_close = vi.fn();
+
     act(() => {
       root.render(
         <RuleEditorModal is_open on_close={on_close} rule={null} seed={seed} />,
@@ -194,6 +223,7 @@ describe("applying a template into the rule editor", () => {
     });
 
     const btn = save_button()!;
+
     expect(btn.disabled).toBe(false);
 
     await act(async () => {
@@ -210,6 +240,7 @@ describe("applying a template into the rule editor", () => {
       expression: string | null;
       enabled: boolean;
     };
+
     expect(req.name).toBe("My newsletters rule");
     expect(req.match_mode).toBe("all");
     expect(req.enabled).toBe(true);

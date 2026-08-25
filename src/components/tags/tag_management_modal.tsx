@@ -37,10 +37,15 @@ import {
 } from "@/components/ui/modal";
 import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
-import { TAG_COLOR_PRESETS, type TagIconName } from "@/components/ui/email_tag";
+import {
+  TAG_COLOR_PRESETS,
+  tag_color_label_key,
+  type TagIconName,
+} from "@/components/ui/email_tag";
 import { TagIconPicker } from "@/components/tags/tag_icon_picker";
 import { use_tags } from "@/hooks/use_tags";
 import { use_i18n } from "@/lib/i18n/context";
+import { is_composing } from "@/utils/ime";
 
 const MAX_TAG_NAME_LENGTH = 100;
 
@@ -99,7 +104,7 @@ export function TagManagementModal({
     }
 
     return null;
-  }, [trimmed_name, tag_name, tag_id, tags_state.tags]);
+  }, [trimmed_name, tag_name, tag_id, tags_state.tags, t]);
 
   const can_rename = trimmed_name && !rename_validation_error;
 
@@ -222,7 +227,9 @@ export function TagManagementModal({
                 type="text"
                 value={new_name}
                 onChange={(e) => set_new_name(e.target.value)}
-                onKeyDown={(e) => e["key"] === "Enter" && handle_rename()}
+                onKeyDown={(e) =>
+                  e["key"] === "Enter" && !is_composing(e) && handle_rename()
+                }
               />
 
               {(rename_validation_error || error) && (
@@ -250,7 +257,7 @@ export function TagManagementModal({
                 onClick={handle_rename}
               >
                 {t("common.rename")}
-                {is_loading && <Spinner className="ml-2" size="sm" />}
+                {is_loading && <Spinner className="ms-2" size="sm" />}
               </Button>
             </ModalFooter>
           </>
@@ -273,13 +280,17 @@ export function TagManagementModal({
             </ModalHeader>
 
             <ModalBody>
-              <label
+              <span
                 className="block text-[13px] font-medium mb-3 text-txt-secondary"
-                htmlFor="tag-color"
+                id="tag-color-label"
               >
                 {t("common.select_a_color")}
-              </label>
-              <div className="flex flex-wrap gap-2">
+              </span>
+              <div
+                aria-labelledby="tag-color-label"
+                className="flex flex-wrap gap-2"
+                role="group"
+              >
                 {TAG_COLOR_PRESETS.map((color) => (
                   <button
                     key={color.hex}
@@ -291,7 +302,7 @@ export function TagManagementModal({
                           ? `0 0 0 2px var(--modal-bg), 0 0 0 4px ${color.hex}`
                           : "none",
                     }}
-                    title={color.name}
+                    title={t(tag_color_label_key(color.variant))}
                     onClick={() => set_new_color(color.hex)}
                   />
                 ))}
@@ -323,7 +334,7 @@ export function TagManagementModal({
                 {is_loading ? (
                   <>
                     {t("common.saving")}
-                    <Spinner className="ml-2" size="md" />
+                    <Spinner className="ms-2" size="md" />
                   </>
                 ) : (
                   `${t("common.save")} ${t("common.color")}`
@@ -355,8 +366,8 @@ export function TagManagementModal({
               </label>
               <TagIconPicker
                 accent_color={tag_color}
-                selected_icon={new_icon as TagIconName | undefined}
                 on_select={set_new_icon}
+                selected_icon={new_icon as TagIconName | undefined}
               />
 
               {error && (
@@ -384,7 +395,7 @@ export function TagManagementModal({
                 {is_loading ? (
                   <>
                     {t("common.saving")}
-                    <Spinner className="ml-2" size="md" />
+                    <Spinner className="ms-2" size="md" />
                   </>
                 ) : (
                   t("common.save")

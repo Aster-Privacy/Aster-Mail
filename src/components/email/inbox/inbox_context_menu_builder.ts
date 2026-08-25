@@ -54,7 +54,6 @@ import {
   bulk_update_metadata_by_ids,
 } from "@/services/crypto/mail_metadata";
 import { batch_archive, batch_unarchive } from "@/services/api/archive";
-
 import { ignore_error } from "@/lib/ignore_error";
 
 export function build_context_menu_actions(
@@ -63,7 +62,7 @@ export function build_context_menu_actions(
   const {
     t,
     current_view,
-    emails,
+    get_emails,
     update_email,
     remove_email,
     remove_emails,
@@ -128,11 +127,15 @@ export function build_context_menu_actions(
       Math.round(window.screenY + (window.outerHeight - height) / 2),
     );
 
-    window.open(
+    const opened = window.open(
       `/email/${encodeURIComponent(email.id)}?popup=1`,
       "_blank",
       `popup=yes,noopener,noreferrer,width=${width},height=${height},left=${left},top=${top}`,
     );
+
+    if (!opened) {
+      show_toast(t("common.something_went_wrong"), "error");
+    }
   };
 
   const handle_folder_toggle = async (
@@ -175,6 +178,7 @@ export function build_context_menu_actions(
         });
       } else {
         update_email(email.id, { folders: previous_folders });
+        show_toast(t("common.failed_to_update"), "error");
       }
 
       return;
@@ -185,6 +189,10 @@ export function build_context_menu_actions(
       name: folder_name,
       color: folder_data?.color,
     };
+    const next_folders = [
+      ...previous_folders.filter((f) => f.folder_token !== folder_token),
+      new_folder,
+    ];
     const is_inbox =
       current_view === "inbox" ||
       current_view === "" ||
@@ -195,12 +203,12 @@ export function build_context_menu_actions(
     if (is_inbox) {
       emit_mail_items_removed({ ids: [email.id] });
     } else {
-      update_email(email.id, { folders: [new_folder] });
+      update_email(email.id, { folders: next_folders });
     }
     const result = await bulk_add_folder(all_ids, folder_token);
 
     if (!result.error) {
-      emit_mail_item_updated({ id: email.id, folders: [new_folder] });
+      emit_mail_item_updated({ id: email.id, folders: next_folders });
       show_action_toast({
         message: t("common.moved_to_folder", { folder: folder_name }),
         action_type: "folder",
@@ -215,6 +223,7 @@ export function build_context_menu_actions(
       if (is_inbox) {
         window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
       }
+      show_toast(t("common.failed_to_update"), "error");
     }
   };
 
@@ -223,7 +232,7 @@ export function build_context_menu_actions(
 
     const tag_data = tags_lookup.get(tag_token);
     const tag_name = tag_data?.name || t("common.label_fallback");
-    const live_email = emails.find((e) => e.id === email.id) ?? email;
+    const live_email = get_emails().find((e) => e.id === email.id) ?? email;
     const previous_tags = live_email.tags || [];
     const is_already_assigned = previous_tags.some((t) => t.id === tag_token);
     const all_ids =
@@ -264,6 +273,7 @@ export function build_context_menu_actions(
         } else {
           update_email(email.id, { tags: previous_tags });
         }
+        show_toast(t("common.failed_to_update"), "error");
       }
     } else {
       const new_tag = {
@@ -294,6 +304,7 @@ export function build_context_menu_actions(
         });
       } else {
         update_email(email.id, { tags: previous_tags });
+        show_toast(t("common.failed_to_update"), "error");
       }
     }
   };
@@ -342,6 +353,8 @@ export function build_context_menu_actions(
         window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
       } else {
         revert_stat_deltas(deltas);
+        window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
+        show_toast(t("common.failed_to_update_emails"), "error");
       }
 
       return;
@@ -387,6 +400,8 @@ export function build_context_menu_actions(
       });
     } else {
       revert_stat_deltas(deltas);
+      window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
+      show_toast(t("common.failed_to_update_emails"), "error");
     }
   };
 
@@ -465,7 +480,13 @@ export function build_context_menu_actions(
     const result = await batch_unarchive({ ids: all_ids });
 
     if (result.data?.success) {
-      await bulk_update_metadata_by_ids(all_ids, { is_archived: false });
+      await bulk_update_metadata_by_ids(all_ids, { is_archived: false }).catch(
+        (caught) =>
+          ignore_error(
+            "components/email/inbox/inbox_context_menu_builder:handle_move_to_inbox",
+            caught,
+          ),
+      );
       for (const eid of all_ids) {
         emit_mail_item_updated({ id: eid, is_archived: false });
       }
@@ -477,7 +498,14 @@ export function build_context_menu_actions(
         on_undo: async () => {
           revert_stat_deltas(deltas);
           await batch_archive({ ids: all_ids, tier: "hot" });
-          await bulk_update_metadata_by_ids(all_ids, { is_archived: true });
+          await bulk_update_metadata_by_ids(all_ids, {
+            is_archived: true,
+          }).catch((caught) =>
+            ignore_error(
+              "components/email/inbox/inbox_context_menu_builder:handle_move_to_inbox",
+              caught,
+            ),
+          );
           for (const eid of all_ids) {
             emit_mail_item_updated({ id: eid, is_archived: true });
           }
@@ -487,6 +515,7 @@ export function build_context_menu_actions(
     } else {
       revert_stat_deltas(deltas);
       window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
+      show_toast(t("common.failed_to_update_emails"), "error");
     }
   };
 

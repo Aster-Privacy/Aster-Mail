@@ -18,12 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { } from "@/lib/i18n/types";
-
-
-
-
-
+import type {} from "@/lib/i18n/types";
 
 export function AttachmentCardSkeleton() {
   return (
@@ -73,7 +68,13 @@ export function DownloadIcon({ className }: { className?: string }) {
   );
 }
 
-export function FileDocIcon({ color, label }: { color: string; label: string }) {
+export function FileDocIcon({
+  color,
+  label,
+}: {
+  color: string;
+  label: string;
+}) {
   return (
     <svg
       className="w-10 h-12"
@@ -108,7 +109,11 @@ export function FileDocIcon({ color, label }: { color: string; label: string }) 
   );
 }
 
-export function PreviewChevronIcon({ direction }: { direction: "left" | "right" }) {
+export function PreviewChevronIcon({
+  direction,
+}: {
+  direction: "left" | "right";
+}) {
   return (
     <svg
       className="w-5 h-5"
@@ -118,11 +123,14 @@ export function PreviewChevronIcon({ direction }: { direction: "left" | "right" 
       viewBox="0 0 24 24"
     >
       <path
-        d={direction === "left" ? "M15.75 19.5L8.25 12l7.5-7.5" : "M8.25 4.5l7.5 7.5-7.5 7.5"}
+        d={
+          direction === "left"
+            ? "M15.75 19.5L8.25 12l7.5-7.5"
+            : "M8.25 4.5l7.5 7.5-7.5 7.5"
+        }
         strokeLinecap="round"
         strokeLinejoin="round"
       />
     </svg>
   );
 }
-

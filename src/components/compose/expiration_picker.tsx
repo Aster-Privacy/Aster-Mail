@@ -19,15 +19,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useState, useMemo, useCallback, useEffect } from "react";
-import {
-  format,
-  addHours,
-  addDays,
-  setHours,
-  setMinutes,
-  isBefore,
-  startOfMinute,
-} from "date-fns";
+import { submit_on_enter } from "@/lib/commit_on_enter";
+import { addHours, addDays, isBefore } from "date-fns";
+import { is_future_instant } from "@/utils/schedule_targets";
 import {
   ClockIcon,
   CalendarIcon,
@@ -60,6 +54,15 @@ import {
   AlertDialogFooter,
 } from "@/components/ui/alert_dialog";
 import { use_i18n } from "@/lib/i18n/context";
+import {
+  format_hour_choice,
+  format_time,
+  format_weekday_date,
+  format_weekday_time,
+  zoned_calendar_day,
+  zoned_instant_from_calendar_day,
+  get_zoned_parts,
+} from "@/utils/date_format";
 
 interface ExpirationPickerProps {
   expires_at: Date | null;
@@ -89,6 +92,10 @@ function get_seven_days(): Date {
   return addDays(new Date(), 7);
 }
 
+function get_thirty_days(): Date {
+  return addDays(new Date(), 30);
+}
+
 export function ExpirationPicker({
   expires_at,
   on_expiration_change,
@@ -102,13 +109,13 @@ export function ExpirationPicker({
   const [show_custom, set_show_custom] = useState(false);
   const [show_password_dialog, set_show_password_dialog] = useState(false);
   const [selected_date, set_selected_date] = useState<Date | undefined>(
-    expires_at || undefined,
+    expires_at ? zoned_calendar_day(expires_at) : undefined,
   );
   const [selected_hour, set_selected_hour] = useState(
-    expires_at ? expires_at.getHours() : 12,
+    expires_at ? get_zoned_parts(expires_at).hours : 12,
   );
   const [selected_minute, set_selected_minute] = useState(
-    expires_at ? expires_at.getMinutes() : 0,
+    expires_at ? get_zoned_parts(expires_at).minutes : 0,
   );
   const [password_input, set_password_input] = useState(password || "");
   const [show_password, set_show_password] = useState(false);
@@ -124,25 +131,46 @@ export function ExpirationPicker({
     return () => clearInterval(interval);
   }, [expires_at]);
 
+  useEffect(() => {
+    if (!is_open) return;
+
+    set_selected_date(expires_at ? zoned_calendar_day(expires_at) : undefined);
+    set_selected_hour(expires_at ? get_zoned_parts(expires_at).hours : 12);
+    set_selected_minute(expires_at ? get_zoned_parts(expires_at).minutes : 0);
+  }, [is_open, expires_at]);
+
+  useEffect(() => {
+    if (!show_password_dialog) return;
+
+    set_password_input(password || "");
+    set_show_password(false);
+  }, [show_password_dialog, password]);
+
   const quick_options: QuickOption[] = useMemo(
     () => [
       {
         label: t("mail.one_hour_option"),
-        description: format(get_one_hour(), "h:mm a"),
+        description: format_time(get_one_hour()),
         icon: <ClockIcon className="w-4 h-4" />,
         get_date: get_one_hour,
       },
       {
         label: t("mail.twenty_four_hours_option"),
-        description: format(get_twenty_four_hours(), "EEE, h:mm a"),
+        description: format_weekday_time(get_twenty_four_hours()),
         icon: <ClockIcon className="w-4 h-4" />,
         get_date: get_twenty_four_hours,
       },
       {
         label: t("mail.seven_days_option"),
-        description: format(get_seven_days(), "EEE, MMM d"),
+        description: format_weekday_date(get_seven_days()),
         icon: <CalendarIcon className="w-4 h-4" />,
         get_date: get_seven_days,
+      },
+      {
+        label: t("mail.thirty_days_option"),
+        description: format_weekday_date(get_thirty_days()),
+        icon: <CalendarIcon className="w-4 h-4" />,
+        get_date: get_thirty_days,
       },
     ],
     [t],
@@ -162,14 +190,13 @@ export function ExpirationPicker({
   const handle_custom_confirm = useCallback(() => {
     if (!selected_date) return;
 
-    const expiry = setMinutes(
-      setHours(selected_date, selected_hour),
+    const expiry = zoned_instant_from_calendar_day(
+      selected_date,
+      selected_hour,
       selected_minute,
     );
 
-    const now = startOfMinute(new Date());
-
-    if (isBefore(expiry, now)) {
+    if (!is_future_instant(expiry)) {
       return;
     }
 
@@ -200,86 +227,97 @@ export function ExpirationPicker({
 
   const minutes = useMemo(() => [0, 15, 30, 45], []);
 
-  const format_hour = (hour: number) => {
-    const period = hour >= 12 ? t("common.pm") : t("common.am");
-    const display_hour = hour % 12 || 12;
-
-    return `${display_hour} ${period}`;
-  };
+  const format_hour = (hour: number) =>
+    format_hour_choice(hour, t("common.am"), t("common.pm"));
 
   const is_valid_custom_time = useMemo(() => {
     if (!selected_date) return false;
-    const expiry = setMinutes(
-      setHours(selected_date, selected_hour),
+    const expiry = zoned_instant_from_calendar_day(
+      selected_date,
+      selected_hour,
       selected_minute,
     );
 
-    return !isBefore(expiry, startOfMinute(new Date()));
+    return is_future_instant(expiry);
   }, [selected_date, selected_hour, selected_minute]);
 
   const format_relative_time = (date: Date): string => {
     const now = new Date();
-    const diff_ms = date.getTime() - now.getTime();
+    const diff_ms = Math.max(0, date.getTime() - now.getTime());
     const diff_hours = Math.floor(diff_ms / (1000 * 60 * 60));
     const diff_days = Math.floor(diff_hours / 24);
+    const day_unit = t("common.time_days_short");
+    const hour_unit = t("common.time_hours_short");
+    const minute_unit = t("common.time_minutes_short");
 
     if (diff_days > 0) {
-      return `${diff_days}d ${diff_hours % 24}h`;
+      return `${diff_days}${day_unit} ${diff_hours % 24}${hour_unit}`;
     }
     if (diff_hours > 0) {
       const diff_minutes = Math.floor(
         (diff_ms % (1000 * 60 * 60)) / (1000 * 60),
       );
 
-      return `${diff_hours}h ${diff_minutes}m`;
+      return `${diff_hours}${hour_unit} ${diff_minutes}${minute_unit}`;
     }
     const diff_minutes = Math.floor(diff_ms / (1000 * 60));
 
-    return `${diff_minutes}m`;
+    return `${diff_minutes}${minute_unit}`;
   };
 
-  if (expires_at) {
-    return (
-      <div className="flex items-center gap-1">
-        <div
-          className="flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium"
-          style={{
-            backgroundColor: "rgba(239, 68, 68, 0.1)",
-            color: "var(--color-danger)",
-          }}
-        >
-          <FireIcon className="w-3.5 h-3.5" />
-          <span>
-            {t("common.expires_in")}
-            {format_relative_time(expires_at)}
-          </span>
-          {password && <LockClosedIcon className="w-3 h-3 ml-0.5" />}
-          <button
-            className="ml-0.5 hover:bg-red-500/20 rounded p-0.5 transition-colors"
-            type="button"
-            onClick={handle_clear}
-          >
-            <XMarkIcon className="w-3 h-3" />
-          </button>
-        </div>
-      </div>
-    );
-  }
+  const has_protection = !!expires_at || !!password;
 
   return (
     <>
       <Popover open={is_open} onOpenChange={set_is_open}>
-        <Tooltip tip={t("mail.self_destruct")}>
-          <PopoverTrigger asChild>
+        <div className="flex items-center gap-1">
+          <Tooltip tip={t("mail.self_destruct")}>
+            <PopoverTrigger asChild>
+              {has_protection ? (
+                <button
+                  className="flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium disabled:opacity-50"
+                  disabled={disabled}
+                  style={{
+                    backgroundColor: "rgba(239, 68, 68, 0.1)",
+                    color: "var(--color-danger)",
+                  }}
+                  type="button"
+                >
+                  {expires_at ? (
+                    <>
+                      <FireIcon className="w-3.5 h-3.5" />
+                      <span>
+                        {t("common.expires_in")}
+                        {format_relative_time(expires_at)}
+                      </span>
+                    </>
+                  ) : (
+                    <span>{t("common.password_protected")}</span>
+                  )}
+                  {password && <LockClosedIcon className="w-3 h-3 ms-0.5" />}
+                </button>
+              ) : (
+                <button
+                  className="press_scale w-9 h-9 p-0 inline-flex items-center justify-center flex-shrink-0 rounded-full transition-transform duration-150 hover:bg-black/5 dark:hover:bg-white/10 text-txt-tertiary hover:text-txt-primary disabled:opacity-50"
+                  disabled={disabled}
+                  type="button"
+                >
+                  <FireIcon className="w-4 h-4" />
+                </button>
+              )}
+            </PopoverTrigger>
+          </Tooltip>
+          {has_protection && (
             <button
-              className="press_scale w-9 h-9 p-0 inline-flex items-center justify-center flex-shrink-0 rounded-full transition-transform duration-150 hover:bg-black/5 dark:hover:bg-white/10 text-txt-tertiary hover:text-txt-primary disabled:opacity-50"
-              disabled={disabled}
+              aria-label={t("common.clear")}
+              className="hover:bg-red-500/20 rounded p-0.5 transition-colors text-danger"
               type="button"
+              onClick={handle_clear}
             >
-              <FireIcon className="w-4 h-4" />
+              <XMarkIcon className="w-3 h-3" />
             </button>
-          </PopoverTrigger>
-        </Tooltip>
+          )}
+        </div>
         <PopoverContent
           align="end"
           className="w-auto p-0 bg-surf-primary border-edge-primary"
@@ -300,7 +338,7 @@ export function ExpirationPicker({
                   onClick={() => handle_quick_select(option)}
                 >
                   <span className="text-txt-muted">{option.icon}</span>
-                  <div className="flex-1 text-left">
+                  <div className="flex-1 text-start">
                     <div className="text-sm font-medium text-txt-primary">
                       {option.label}
                     </div>
@@ -319,7 +357,7 @@ export function ExpirationPicker({
                 <span className="text-txt-muted">
                   <CalendarIcon className="w-4 h-4" />
                 </span>
-                <div className="flex-1 text-left">
+                <div className="flex-1 text-start">
                   <div className="text-sm font-medium text-txt-primary">
                     {t("mail.pick_date_time")}
                   </div>
@@ -346,7 +384,7 @@ export function ExpirationPicker({
                         <EyeIcon className="w-4 h-4" />
                       )}
                     </span>
-                    <div className="flex-1 text-left">
+                    <div className="flex-1 text-start">
                       <div className="text-sm font-medium text-txt-primary">
                         {password
                           ? t("settings.change_password")
@@ -379,7 +417,9 @@ export function ExpirationPicker({
               </div>
               <Calendar
                 initialFocus
-                disabled={(date) => isBefore(date, startOfMinute(new Date()))}
+                disabled={(date) =>
+                  isBefore(date, zoned_calendar_day(new Date()))
+                }
                 mode="single"
                 selected={selected_date}
                 onSelect={set_selected_date}
@@ -469,14 +509,15 @@ export function ExpirationPicker({
             <div className="relative">
               <Input
                 autoFocus
-                className="pr-10"
+                className="pe-10"
                 placeholder={t("mail.enter_password_placeholder")}
                 type={show_password ? "text" : "password"}
                 value={password_input}
                 onChange={(e) => set_password_input(e.target.value)}
+                onKeyDown={submit_on_enter(handle_password_save)}
               />
               <button
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-txt-muted hover:text-txt-primary"
+                className="absolute end-3 top-1/2 -translate-y-1/2 text-txt-muted hover:text-txt-primary"
                 tabIndex={-1}
                 type="button"
                 onClick={() => set_show_password((v) => !v)}

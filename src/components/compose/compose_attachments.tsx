@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { apply_input_transform } from "@/utils/input_transform";
 import type { UseComposeReturn } from "@/components/compose/use_compose";
 import type { Attachment } from "@/components/compose/compose_shared";
 
@@ -28,6 +29,7 @@ import { sanitize_html } from "@/lib/html_sanitizer";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { use_i18n } from "@/lib/i18n/context";
 import { get_file_icon_color } from "@/components/compose/compose_shared";
+import { is_composing } from "@/utils/ime";
 
 function get_file_type_icon(mime_type: string): React.ReactNode {
   const cls = "w-3.5 h-3.5";
@@ -60,20 +62,29 @@ function get_file_type_icon(mime_type: string): React.ReactNode {
       </svg>
     );
   }
-  if (mime_type.includes("spreadsheet") || mime_type.includes("excel") || mime_type === "text/csv") {
+  if (
+    mime_type.includes("spreadsheet") ||
+    mime_type.includes("excel") ||
+    mime_type === "text/csv"
+  ) {
     return (
       <svg className={cls} fill="currentColor" viewBox="0 0 24 24">
         <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM7 10h2v7H7zm4-3h2v10h-2zm4 6h2v4h-2z" />
       </svg>
     );
   }
-  if (mime_type.includes("zip") || mime_type.includes("compressed") || mime_type.includes("rar")) {
+  if (
+    mime_type.includes("zip") ||
+    mime_type.includes("compressed") ||
+    mime_type.includes("rar")
+  ) {
     return (
       <svg className={cls} fill="currentColor" viewBox="0 0 24 24">
         <path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-2 6h-2v2h2v2h-2v2h-2v-2h2v-2h-2v-2h2v-2h-2V8h2v2h2v2z" />
       </svg>
     );
   }
+
   return (
     <svg className={cls} fill="currentColor" viewBox="0 0 24 24">
       <path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zM6 20V4h7v5h5v11H6z" />
@@ -92,10 +103,7 @@ function AttachmentRow({
 
   return (
     <div className="flex items-center gap-2 px-2 py-1 rounded group hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
-      <span
-        className="flex-shrink-0"
-        style={{ color: color.text }}
-      >
+      <span className="flex-shrink-0" style={{ color: color.text }}>
         {get_file_type_icon(attachment.mime_type)}
       </span>
       <span
@@ -159,11 +167,7 @@ export function ComposeAttachments({
           type="button"
           onClick={compose.trigger_file_select}
         >
-          <svg
-            className="w-3.5 h-3.5"
-            fill="currentColor"
-            viewBox="0 0 24 24"
-          >
+          <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
             <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
           </svg>
           <span>{t("mail.add_file")}</span>
@@ -207,11 +211,7 @@ export function AttachmentListSimple({
         type="button"
         onClick={trigger_file_select}
       >
-        <svg
-          className="w-3.5 h-3.5"
-          fill="currentColor"
-          viewBox="0 0 24 24"
-        >
+        <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
           <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
         </svg>
         <span>{add_label}</span>
@@ -388,6 +388,8 @@ function SizeInput({
 
   const handle_key = useCallback(
     (e: React.KeyboardEvent) => {
+      if (is_composing(e)) return;
+
       if (e.key === "Enter") {
         e.preventDefault();
         commit();
@@ -435,7 +437,11 @@ function SizeInput({
           type="text"
           value={value}
           onBlur={commit}
-          onChange={(e) => set_value(e.target.value.replace(/\D/g, ""))}
+          onChange={(e) =>
+            set_value(
+              apply_input_transform(e.target, (v) => v.replace(/\D/g, "")),
+            )
+          }
           onKeyDown={handle_key}
         />
         <span style={{ opacity: 0.5 }}>×</span>
@@ -596,7 +602,11 @@ export function ComposeEditor({ compose, placeholder }: ComposeEditorProps) {
     const el = compose.message_textarea_ref.current;
 
     if (el && compose.message && !el.innerHTML) {
-      const safe = sanitize_html(compose.message, { external_content_mode: is_any_lockdown_active() ? "never" : "always", lockdown_mode: is_any_lockdown_active() });
+      const safe = sanitize_html(compose.message, {
+        external_content_mode: is_any_lockdown_active() ? "never" : "always",
+        lockdown_mode: is_any_lockdown_active(),
+      });
+
       el.innerHTML = safe.html;
     }
   });

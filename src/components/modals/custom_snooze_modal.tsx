@@ -19,7 +19,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useState, useMemo, useCallback } from "react";
-import { setHours, setMinutes, isBefore, startOfMinute } from "date-fns";
+import { isBefore } from "date-fns";
+import { is_future_instant } from "@/utils/schedule_targets";
 import { CalendarIcon } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
@@ -37,11 +38,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown_menu";
+import {
+  format_hour_choice,
+  zoned_calendar_day,
+  zoned_instant_from_calendar_day,
+} from "@/utils/date_format";
 
 interface CustomSnoozeModalProps {
   is_open: boolean;
   on_close: () => void;
-  on_snooze: (snooze_until: Date) => Promise<void>;
+  on_snooze: (snooze_until: Date) => Promise<boolean | void>;
 }
 
 export function CustomSnoozeModal({
@@ -60,34 +66,35 @@ export function CustomSnoozeModal({
   const hours = useMemo(() => Array.from({ length: 24 }, (_, i) => i), []);
   const minutes = useMemo(() => [0, 15, 30, 45], []);
 
-  const format_hour = (hour: number) => {
-    const period = hour >= 12 ? t("common.pm") : t("common.am");
-    const display_hour = hour % 12 || 12;
-
-    return `${display_hour} ${period}`;
-  };
+  const format_hour = (hour: number) =>
+    format_hour_choice(hour, t("common.am"), t("common.pm"));
 
   const is_valid_custom_time = useMemo(() => {
     if (!selected_date) return false;
-    const scheduled = setMinutes(
-      setHours(selected_date, selected_hour),
+    const scheduled = zoned_instant_from_calendar_day(
+      selected_date,
+      selected_hour,
       selected_minute,
     );
 
-    return !isBefore(scheduled, startOfMinute(new Date()));
+    return is_future_instant(scheduled);
   }, [selected_date, selected_hour, selected_minute]);
 
   const handle_confirm = useCallback(async () => {
     if (!selected_date || !is_valid_custom_time) return;
 
-    const snooze_date = setMinutes(
-      setHours(selected_date, selected_hour),
+    const snooze_date = zoned_instant_from_calendar_day(
+      selected_date,
+      selected_hour,
       selected_minute,
     );
 
     set_is_loading(true);
     try {
-      await on_snooze(snooze_date);
+      const result = await on_snooze(snooze_date);
+
+      if (result === false) return;
+
       on_close();
       set_selected_date(undefined);
       set_selected_hour(9);
@@ -121,7 +128,7 @@ export function CustomSnoozeModal({
       </ModalHeader>
       <ModalBody>
         <Calendar
-          disabled={(date) => isBefore(date, startOfMinute(new Date()))}
+          disabled={(date) => isBefore(date, zoned_calendar_day(new Date()))}
           mode="single"
           selected={selected_date}
           onSelect={set_selected_date}

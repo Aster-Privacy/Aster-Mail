@@ -21,14 +21,9 @@
 import type { InboxEmail, EmailCategory } from "@/types/email";
 import type { DraftWithContent } from "@/services/api/multi_drafts";
 import type { EmailInboxProps } from "@/components/email/inbox/inbox_types";
+import type { MemberRetentionPolicy } from "@/services/api/family_org";
 
-import {
-  useState,
-  useMemo,
-  useCallback,
-  useRef,
-  useEffect,
-} from "react";
+import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 
 import { build_reply_recipient } from "@/components/email/build_reply_recipient";
@@ -81,12 +76,10 @@ import { use_i18n } from "@/lib/i18n/context";
 import { use_context_menu_actions } from "@/components/email/inbox/inbox_context_menu_handler";
 import { get_spam_settings } from "@/services/api/preferences";
 import { get_member_retention_policy } from "@/services/api/family_org";
-import type { MemberRetentionPolicy } from "@/services/api/family_org";
 import { use_inbox_toolbar_actions } from "@/components/email/inbox/use_inbox_toolbar_actions";
 import { set_forward_mail_id } from "@/services/forward_store";
 import { prewarm_search_index } from "@/hooks/use_search";
 import mail_logo_url from "@/assets/mail_logo.webp";
-
 import { ignore_error } from "@/lib/ignore_error";
 
 export type {
@@ -97,12 +90,7 @@ export type {
 } from "@/components/email/inbox/inbox_types";
 
 export function use_inbox_view_state(props: EmailInboxProps) {
-  const {
-    current_view,
-    on_reply,
-    on_forward,
-    on_draft_click,
-  } = props;
+  const { current_view, on_reply, on_forward, on_draft_click } = props;
 
   const { t } = use_i18n();
   const [search_params, set_search_params] = useSearchParams();
@@ -172,7 +160,12 @@ export function use_inbox_view_state(props: EmailInboxProps) {
           set_family_policy(result.data);
         }
       })
-      .catch((caught) => ignore_error("components/email/use_inbox_view_state:use_inbox_view_state", caught));
+      .catch((caught) =>
+        ignore_error(
+          "components/email/use_inbox_view_state:use_inbox_view_state",
+          caught,
+        ),
+      );
   }, []);
 
   useEffect(() => {
@@ -217,7 +210,9 @@ export function use_inbox_view_state(props: EmailInboxProps) {
       .then((result) => {
         if (result.data) set_family_policy(result.data);
       })
-      .catch((caught) => ignore_error("components/email/use_inbox_view_state:run", caught));
+      .catch((caught) =>
+        ignore_error("components/email/use_inbox_view_state:run", caught),
+      );
   }, [current_view]);
 
   useEffect(() => {
@@ -295,6 +290,7 @@ export function use_inbox_view_state(props: EmailInboxProps) {
     prev_categories_enabled_ref.current &&
     !categories.enabled &&
     (current_view === "inbox" || current_view === "");
+
   prev_categories_enabled_ref.current = categories.enabled;
 
   const active_list = categories.enabled ? category_list : default_list;
@@ -321,20 +317,54 @@ export function use_inbox_view_state(props: EmailInboxProps) {
         has_initial_load: false,
       };
     }
+
     return raw_mail_state;
   }, [categories_just_disabled, raw_mail_state]);
   const {
     state: drafts_state,
     update_draft,
     schedule_delete_drafts,
+    refresh: refresh_drafts,
   } = use_drafts_list(is_drafts_view);
-  const { state: scheduled_state, update_scheduled } =
-    use_scheduled_emails(is_scheduled_view);
+  const {
+    state: scheduled_state,
+    update_scheduled,
+    refresh: refresh_scheduled,
+  } = use_scheduled_emails(is_scheduled_view);
   const {
     state: snoozed_state,
     fetch_snoozed,
+    refresh: refresh_snoozed,
     unsnooze: unsnooze_snoozed,
   } = use_snoozed_emails();
+
+  const refresh_current_view = useCallback(() => {
+    if (is_drafts_view) {
+      refresh_drafts();
+
+      return;
+    }
+    if (is_scheduled_view) {
+      refresh_scheduled();
+
+      return;
+    }
+    if (is_snoozed_view) {
+      refresh_snoozed();
+
+      return;
+    }
+
+    refresh_active_list();
+  }, [
+    is_drafts_view,
+    is_scheduled_view,
+    is_snoozed_view,
+    refresh_active_list,
+    refresh_drafts,
+    refresh_scheduled,
+    refresh_snoozed,
+  ]);
   const {
     snooze: snooze_email_action,
     bulk_snooze: bulk_snooze_action,
@@ -398,7 +428,7 @@ export function use_inbox_view_state(props: EmailInboxProps) {
   }, []);
 
   const handle_snooze = useCallback(
-    async (email_id: string, snooze_until: Date) => {
+    async (email_id: string, snooze_until: Date): Promise<boolean> => {
       try {
         await snooze_email_action(email_id, snooze_until);
         const snoozed_until_iso = snooze_until.toISOString();
@@ -423,7 +453,11 @@ export function use_inbox_view_state(props: EmailInboxProps) {
       } catch (error) {
         if (import.meta.env.DEV) console.error(error);
         show_toast(t("common.failed_to_snooze"), "error");
+
+        return false;
       }
+
+      return true;
     },
     [
       snooze_email_action,
@@ -456,7 +490,7 @@ export function use_inbox_view_state(props: EmailInboxProps) {
         show_toast(t("common.failed_to_unsnooze"), "error");
       }
     },
-    [is_snoozed_view, unsnooze_snoozed, unsnooze_mail, update_email],
+    [is_snoozed_view, unsnooze_snoozed, unsnooze_mail, update_email, t],
   );
 
   const handle_category_change = useCallback(
@@ -488,6 +522,8 @@ export function use_inbox_view_state(props: EmailInboxProps) {
         total_messages: drafts_state.total_count,
         has_more: false,
         has_initial_load: !drafts_state.is_loading,
+        has_load_error:
+          Boolean(drafts_state.error) && drafts_state.drafts.length === 0,
       };
     }
     if (is_scheduled_view) {
@@ -498,6 +534,8 @@ export function use_inbox_view_state(props: EmailInboxProps) {
         total_messages: scheduled_state.total_count,
         has_more: false,
         has_initial_load: !scheduled_state.is_loading,
+        has_load_error:
+          Boolean(scheduled_state.error) && scheduled_state.emails.length === 0,
       };
     }
     if (is_snoozed_view) {
@@ -508,6 +546,8 @@ export function use_inbox_view_state(props: EmailInboxProps) {
         total_messages: snoozed_state.total,
         has_more: false,
         has_initial_load: snoozed_state.has_loaded,
+        has_load_error:
+          Boolean(snoozed_state.error) && snoozed_state.emails.length === 0,
       };
     }
 
@@ -648,6 +688,7 @@ export function use_inbox_view_state(props: EmailInboxProps) {
           bcc_recipients: draft.content.bcc_recipients,
           subject: draft.content.subject,
           message: draft.content.message,
+          from_email: draft.content.from_email,
           updated_at: draft.updated_at,
           attachments: draft.content.attachments,
         });
@@ -777,6 +818,7 @@ export function use_inbox_view_state(props: EmailInboxProps) {
     is_page_cached,
     update_email,
     refresh_active_list,
+    refresh_current_view,
     update_draft,
     scheduled_state,
     update_scheduled,

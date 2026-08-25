@@ -21,6 +21,14 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { useState, useCallback, useEffect, useRef } from "react";
 
+import {
+  SignInDomain,
+  decrypt_checkout_password,
+  decrypt_with_prf,
+  get_safe_next_path,
+  parse_prefill_identity,
+} from "./sign_in_helpers";
+
 import { use_auth } from "@/contexts/auth_context";
 import { api_client } from "@/services/api/client";
 import { use_i18n } from "@/lib/i18n/context";
@@ -34,9 +42,7 @@ import {
 import { login_user, get_user_salt, get_user_info } from "@/services/api/auth";
 import { resend_pending_verification } from "@/services/api/recovery_email";
 import { check_and_replenish_prekeys } from "@/services/crypto/prekey_service";
-import {
-  type TurnstileWidgetRef,
-} from "@/components/auth/turnstile_widget";
+import { type TurnstileWidgetRef } from "@/components/auth/turnstile_widget";
 import {
   get_totp_status,
   is_totp_required_response,
@@ -51,17 +57,8 @@ import {
 } from "@/native/desktop_device_auth";
 import { show_toast } from "@/components/toast/simple_toast";
 import { hard_redirect, get_app_query_param } from "@/lib/hard_redirect";
-
 import { ignore_error } from "@/lib/ignore_error";
-
-import {
-  SignInDomain,
-  decrypt_checkout_password,
-  decrypt_with_prf,
-  get_safe_next_path,
-  parse_prefill_identity,
-} from "./sign_in_helpers";
-
+import { user_facing_error } from "@/utils/user_facing_error";
 
 export function use_sign_in_page() {
   const navigate = useNavigate();
@@ -216,22 +213,33 @@ export function use_sign_in_page() {
 
   useEffect(() => {
     document.title = `${t("auth.sign_in")} | ${t("common.aster_mail")}`;
+  }, [t]);
+
+  useEffect(() => {
     if (!preloaded.current) {
       preloaded.current = true;
-      import("@/pages/register").catch((caught) => ignore_error("pages/use_sign_in_page:handle_login_success", caught));
+      import("@/pages/register").catch((caught) =>
+        ignore_error("pages/use_sign_in_page:handle_login_success", caught),
+      );
     }
   }, []);
 
   useEffect(() => {
     if (!reauth_account_id || auth_loading || is_adding_account) return;
     set_is_adding_account(true);
-  }, [reauth_account_id, auth_loading, is_adding_account, set_is_adding_account]);
+  }, [
+    reauth_account_id,
+    auth_loading,
+    is_adding_account,
+    set_is_adding_account,
+  ]);
 
   useEffect(() => {
     if (has_existing_session) {
       const academic = new URLSearchParams(window.location.search).get(
         "academic",
       );
+
       if (academic === "verified") {
         navigate("/settings/billing?academic=verified", { replace: true });
       } else {
@@ -409,14 +417,10 @@ export function use_sign_in_page() {
       } catch (err) {
         set_is_checkout_login(false);
         set_username(checkout_username);
-        if (err instanceof Error && err.message.includes("decrypt")) {
+        if (err instanceof Error && /decrypt/i.test(err.message)) {
           set_error(translate("errors.wrong_vault_password"));
         } else {
-          set_error(
-            err instanceof Error
-              ? err.message
-              : translate("errors.login_failed"),
-          );
+          set_error(user_facing_error(err, translate("errors.login_failed")));
         }
       }
     })();
@@ -565,7 +569,7 @@ export function use_sign_in_page() {
 
         set_status(t("auth.signing_in"));
 
-        const login_timeout = <T,>(promise: Promise<T>): Promise<T> =>
+        const login_timeout = <T>(promise: Promise<T>): Promise<T> =>
           Promise.race([
             promise,
             new Promise<never>((_, reject) =>
@@ -625,7 +629,9 @@ export function use_sign_in_page() {
                 );
               }
             })
-            .catch((caught) => ignore_error("pages/use_sign_in_page:login_timeout", caught));
+            .catch((caught) =>
+              ignore_error("pages/use_sign_in_page:login_timeout", caught),
+            );
         }
 
         set_is_loading(false);
@@ -654,16 +660,40 @@ export function use_sign_in_page() {
         set_pending_login_token("");
         set_available_2fa_methods([]);
         set_active_2fa_method("totp");
-        if (err instanceof Error && err.message.includes("decrypt")) {
+        if (err instanceof Error && /decrypt/i.test(err.message)) {
           set_error(t("errors.wrong_vault_password"));
         } else {
-          set_error(
-            err instanceof Error ? err.message : t("errors.login_failed"),
-          );
+          set_error(user_facing_error(err, t("errors.login_failed")));
         }
       }
     },
-    [password, is_adding_account, add_account, login, t, navigate, active_2fa_method],
+    [
+      password,
+      is_adding_account,
+      add_account,
+      login,
+      t,
+      navigate,
+      active_2fa_method,
+    ],
+  );
+
+  const reset_resend_cooldown = useCallback(() => {
+    if (resend_cooldown_ref.current) {
+      clearInterval(resend_cooldown_ref.current);
+      resend_cooldown_ref.current = null;
+    }
+    set_resend_cooldown(0);
+  }, []);
+
+  useEffect(
+    () => () => {
+      if (resend_cooldown_ref.current) {
+        clearInterval(resend_cooldown_ref.current);
+        resend_cooldown_ref.current = null;
+      }
+    },
+    [],
   );
 
   const start_resend_cooldown = useCallback(() => {
@@ -694,14 +724,19 @@ export function use_sign_in_page() {
     const result = await resend_pending_verification(pending_verification_hash);
 
     set_is_resending(false);
-    if (result.data.success) {
-      start_resend_cooldown();
+    if (!result.data.success) {
+      show_toast(t("common.something_went_wrong_try_again"), "error");
+
+      return;
     }
+
+    start_resend_cooldown();
   }, [
     pending_verification_hash,
     resend_cooldown,
     is_resending,
     start_resend_cooldown,
+    t,
   ]);
 
   return {
@@ -746,6 +781,7 @@ export function use_sign_in_page() {
     set_pending_verification_hash,
     resend_cooldown,
     set_resend_cooldown,
+    reset_resend_cooldown,
     is_resending,
     totp_required,
     set_totp_required,

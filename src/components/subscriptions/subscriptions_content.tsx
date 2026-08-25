@@ -191,21 +191,33 @@ export function SubscriptionsContent({
     [shift_ref],
   );
 
+  const visible_selected_count = useMemo(
+    () => current_list.filter((s) => selected_ids.has(s.sender_email)).length,
+    [current_list, selected_ids],
+  );
+
   const handle_toggle_select_all = useCallback(() => {
-    if (selected_ids.size === current_list.length) {
+    if (
+      current_list.length > 0 &&
+      visible_selected_count === current_list.length
+    ) {
       set_selected_ids(new Set());
     } else {
       set_selected_ids(new Set(current_list.map((s) => s.sender_email)));
     }
-  }, [selected_ids.size, current_list]);
+  }, [visible_selected_count, current_list]);
 
   const handle_bulk_unsubscribe = useCallback(async () => {
     const emails = Array.from(selected_ids);
 
-    const did_unsubscribe = await bulk_unsubscribe(emails);
+    const failed = await bulk_unsubscribe(emails);
 
-    if (did_unsubscribe) {
-      set_selected_ids(new Set());
+    if (!failed) return;
+
+    set_selected_ids(new Set(failed));
+
+    if (failed.length > 0) {
+      set_failed_unsub_ids((prev) => new Set([...prev, ...failed]));
     }
   }, [selected_ids, bulk_unsubscribe]);
 
@@ -310,13 +322,13 @@ export function SubscriptionsContent({
             <div className="flex items-center gap-2 px-4 py-1.5 border-b border-edge-primary">
               <Checkbox
                 checked={
-                  selected_ids.size > 0 &&
-                  selected_ids.size === current_list.length
+                  visible_selected_count > 0 &&
+                  visible_selected_count === current_list.length
                 }
                 className="flex-shrink-0"
                 indeterminate={
-                  selected_ids.size > 0 &&
-                  selected_ids.size < current_list.length
+                  visible_selected_count > 0 &&
+                  visible_selected_count < current_list.length
                 }
                 onCheckedChange={handle_toggle_select_all}
               />
@@ -329,6 +341,7 @@ export function SubscriptionsContent({
             <SubscriptionRow
               key={sub.sender_email}
               active_tab={active_tab}
+              is_clickable={!!on_sender_search}
               is_selected={selected_ids.has(sub.sender_email)}
               on_click={handle_sender_click}
               on_open_unsubscribe_page={handle_open_unsubscribe_page}
@@ -385,6 +398,7 @@ interface SubscriptionRowProps {
   is_selected: boolean;
   active_tab: "active" | "unsubscribed";
   unsub_failed?: boolean;
+  is_clickable: boolean;
   on_click: (sub: CachedSubscription) => void;
   on_toggle_select: (sender_email: string) => void;
   on_unsubscribe: (e: React.MouseEvent, sender_email: string) => void;
@@ -400,6 +414,7 @@ function SubscriptionRow({
   is_selected,
   active_tab,
   unsub_failed,
+  is_clickable,
   on_click,
   on_toggle_select,
   on_unsubscribe,
@@ -416,8 +431,12 @@ function SubscriptionRow({
 
   return (
     <div
-      className="flex items-center gap-3 px-4 py-2.5 border-b border-edge-primary hover:bg-black/[0.02] dark:hover:bg-white/[0.02] cursor-pointer transition-colors"
-      onClick={() => on_click(sub)}
+      className={`flex items-center gap-3 px-4 py-2.5 border-b border-edge-primary transition-colors ${
+        is_clickable
+          ? "hover:bg-black/[0.02] dark:hover:bg-white/[0.02] cursor-pointer"
+          : ""
+      }`}
+      onClick={is_clickable ? () => on_click(sub) : undefined}
     >
       {active_tab === "active" && (
         <div className="flex-shrink-0" onClick={(e) => e.stopPropagation()}>

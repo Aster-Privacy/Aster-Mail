@@ -74,7 +74,7 @@ export function SearchInputBar({
     <div className="p-4 border-b transition-colors duration-200 relative flex-shrink-0 border-edge-secondary">
       <div className="flex items-center gap-3">
         <button
-          className="sm:hidden -ml-1 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[10px] transition-colors text-txt-muted bg-surf-hover"
+          className="sm:hidden -ms-1 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[10px] transition-colors text-txt-muted bg-surf-hover"
           onClick={on_close}
         >
           <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">

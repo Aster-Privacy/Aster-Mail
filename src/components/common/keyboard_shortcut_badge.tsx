@@ -27,6 +27,7 @@ import { useState, useEffect, useMemo } from "react";
 
 import { get_shortcut_for_action } from "@/constants/keyboard_shortcuts";
 import { cn, is_mac_platform } from "@/lib/utils";
+import { use_i18n } from "@/lib/i18n/context";
 
 type BadgeSize = "xs" | "sm" | "md" | "lg";
 
@@ -56,6 +57,7 @@ export function KeyboardShortcutBadge({
   show_on_touch = false,
   className,
 }: KeyboardShortcutBadgeProps) {
+  const { t } = use_i18n();
   const [is_mac, set_is_mac] = useState(false);
   const [is_touch, set_is_touch] = useState(false);
 
@@ -129,7 +131,9 @@ export function KeyboardShortcutBadge({
 
   return (
     <kbd
-      aria-label={`Keyboard shortcut: ${resolved_shortcut.modifier ? format_modifier(resolved_shortcut.modifier) + " + " : ""}${format_key(resolved_shortcut.key)}`}
+      aria-label={t("common.keyboard_shortcut_label", {
+        shortcut: `${resolved_shortcut.modifier ? format_modifier(resolved_shortcut.modifier) + " + " : ""}${format_key(resolved_shortcut.key)}`,
+      })}
       className={cn(
         "inline-flex items-center justify-center gap-0.5 rounded font-mono font-medium select-none",
         variant_classes[variant],

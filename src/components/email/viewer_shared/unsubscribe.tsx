@@ -18,23 +18,19 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { } from "@/types/thread";
-import type { } from "@/services/api/mail";
-import type { } from "@/services/api/multi_drafts";
-import type { } from "@/lib/html_sanitizer";
+import type {} from "@/types/thread";
+import type {} from "@/services/api/mail";
+import type {} from "@/services/api/multi_drafts";
+import type {} from "@/lib/html_sanitizer";
 import type { DecryptedEmail } from "@/components/email/use_email_viewer";
-import type { } from "@/components/email/hooks/preload_cache";
+import type {} from "@/components/email/hooks/preload_cache";
 
-import React, {    } from "react";
-import {
-  XMarkIcon,
-  EnvelopeIcon,
-} from "@heroicons/react/24/outline";
+import React from "react";
+import { XMarkIcon, EnvelopeIcon } from "@heroicons/react/24/outline";
 
 import { use_external_link } from "@/contexts/external_link_context";
 import { use_i18n } from "@/lib/i18n/context";
 import { is_system_email } from "@/lib/utils";
-
 
 export interface ViewerUnsubscribeBannerProps {
   email: Pick<
@@ -196,4 +192,3 @@ export function ViewerUnsubscribeBanner({
     </div>
   );
 }
-

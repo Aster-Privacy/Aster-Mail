@@ -25,7 +25,6 @@ import { use_should_reduce_motion } from "@/provider";
 import { get_app_query_param } from "@/lib/hard_redirect";
 import { strip_account_prefix } from "@/lib/account_index_url";
 
-
 export const page_variants = {
   initial: { opacity: 0, y: 8 },
   animate: { opacity: 1, y: 0 },
@@ -53,7 +52,8 @@ function read_next_path_from_url(): string | null {
 
     const path = strip_account_prefix(decoded);
 
-    if (path.startsWith("/sign-in") || path.startsWith("/register")) return null;
+    if (path.startsWith("/sign-in") || path.startsWith("/register"))
+      return null;
 
     return path;
   } catch {
@@ -127,8 +127,7 @@ export function parse_prefill_identity(): {
 
   return {
     local: raw.slice(0, at_index),
-    domain:
-      domain === "aster.cx" || domain === "astermail.org" ? domain : null,
+    domain: domain === "aster.cx" || domain === "astermail.org" ? domain : null,
   };
 }
 

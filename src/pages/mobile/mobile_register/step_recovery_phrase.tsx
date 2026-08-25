@@ -120,7 +120,7 @@ export function StepRecoveryPhrase({
                   key={index}
                   className="relative overflow-hidden rounded-[16px] border px-4 py-3.5 flex items-center gap-2 bg-[var(--bg-tertiary)] border-[var(--border-secondary)] shadow-[inset_0_1px_2px_rgba(0,0,0,0.04)] dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.15)]"
                 >
-                  <span className="text-xs text-[var(--text-muted)] w-5 text-right shrink-0">
+                  <span className="text-xs text-[var(--text-muted)] w-5 text-end shrink-0">
                     {index + 1}.
                   </span>
                   <span

@@ -142,7 +142,7 @@ export function FontSizeSelect({
             {FONT_SIZE_OPTIONS.map((option) => (
               <button
                 key={option.value}
-                className="w-full text-left px-3 py-1.5 text-xs transition-colors hover:bg-black/5 dark:hover:bg-white/10 text-txt-primary"
+                className="w-full text-start px-3 py-1.5 text-xs transition-colors hover:bg-black/5 dark:hover:bg-white/10 text-txt-primary"
                 style={{
                   fontWeight: current_size === option.value ? 600 : 400,
                 }}

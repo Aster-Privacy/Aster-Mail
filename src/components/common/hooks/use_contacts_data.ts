@@ -19,14 +19,23 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { DecryptedContact } from "@/types/contacts";
-
-import { useState, useCallback, useEffect, useMemo, useRef } from "react";
-import { useSearchParams } from "react-router-dom";
+import type {
+  FilterOption,
+  SortOption,
+  ViewMode,
+} from "./contacts_state_helpers";
 
 import {
-  list_contacts,
-  decrypt_contacts,
-} from "@/services/api/contacts";
+  useState,
+  useCallback,
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useRef,
+} from "react";
+import { useSearchParams } from "react-router-dom";
+
+import { list_contacts, decrypt_contacts } from "@/services/api/contacts";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_shift_key_ref } from "@/lib/use_shift_range_select";
 import { use_auth } from "@/contexts/auth_context";
@@ -35,7 +44,37 @@ import {
   parse_csv_contacts,
   import_contacts_batched,
 } from "@/components/common/contacts/contact_import_handler";
-import type { FilterOption, SortOption, ViewMode } from "./contacts_state_helpers";
+
+function build_contact_haystack(contact: DecryptedContact): string {
+  const parts: string[] = [
+    contact.first_name,
+    contact.last_name,
+    contact.middle_name || "",
+    contact.nickname || "",
+    contact.phonetic_first_name || "",
+    contact.phonetic_middle_name || "",
+    contact.phonetic_last_name || "",
+    contact.title || "",
+    contact.name_suffix || "",
+    contact.company || "",
+    contact.job_title || "",
+    contact.role || "",
+    contact.department || "",
+    contact.notes || "",
+    contact.comment || "",
+    contact.pronouns || "",
+    (contact.emails || []).join(" "),
+    (contact.email_entries || []).map((e) => e.value).join(" "),
+    contact.phone || "",
+    (contact.phone_entries || []).map((p) => p.value).join(" "),
+    (contact.related_people || []).map((r) => r.value).join(" "),
+    (contact.social_networks || []).map((s) => s.value).join(" "),
+    (contact.websites || []).map((w) => w.value).join(" "),
+    (contact.instant_messengers || []).map((m) => m.value).join(" "),
+  ];
+
+  return parts.join(" \x01 ").toLowerCase();
+}
 
 export function use_contacts_data() {
   const { t } = use_i18n();
@@ -75,7 +114,17 @@ export function use_contacts_data() {
   const list_container_ref = useRef<HTMLDivElement>(null);
   const contact_refs = useRef<Map<string, HTMLDivElement>>(new Map());
 
-  const filtered_contacts = useMemo(() => {
+  const search_haystacks = useMemo(() => {
+    const map = new Map<DecryptedContact, string>();
+
+    for (const contact of contacts) {
+      map.set(contact, build_contact_haystack(contact));
+    }
+
+    return map;
+  }, [contacts]);
+
+  const sorted_contacts = useMemo(() => {
     let result = [...contacts];
 
     if (filter_by !== "all") {
@@ -97,42 +146,6 @@ export function use_contacts_data() {
           default:
             return true;
         }
-      });
-    }
-
-    if (search_query.trim()) {
-      const query = search_query.toLowerCase();
-
-      result = result.filter((contact) => {
-        const parts: string[] = [
-          contact.first_name,
-          contact.last_name,
-          contact.middle_name || "",
-          contact.nickname || "",
-          contact.phonetic_first_name || "",
-          contact.phonetic_middle_name || "",
-          contact.phonetic_last_name || "",
-          contact.title || "",
-          contact.name_suffix || "",
-          contact.company || "",
-          contact.job_title || "",
-          contact.role || "",
-          contact.department || "",
-          contact.notes || "",
-          contact.comment || "",
-          contact.pronouns || "",
-          (contact.emails || []).join(" "),
-          (contact.email_entries || []).map((e) => e.value).join(" "),
-          contact.phone || "",
-          (contact.phone_entries || []).map((p) => p.value).join(" "),
-          (contact.related_people || []).map((r) => r.value).join(" "),
-          (contact.social_networks || []).map((s) => s.value).join(" "),
-          (contact.websites || []).map((w) => w.value).join(" "),
-          (contact.instant_messengers || []).map((m) => m.value).join(" "),
-        ];
-        const haystack = parts.join("  ").toLowerCase();
-
-        return haystack.includes(query);
       });
     }
 
@@ -175,7 +188,19 @@ export function use_contacts_data() {
     });
 
     return result;
-  }, [contacts, search_query, sort_by, filter_by]);
+  }, [contacts, sort_by, filter_by]);
+
+  const deferred_search_query = useDeferredValue(search_query);
+
+  const filtered_contacts = useMemo(() => {
+    const query = deferred_search_query.trim().toLowerCase();
+
+    if (!query) return sorted_contacts;
+
+    return sorted_contacts.filter((contact) =>
+      (search_haystacks.get(contact) ?? "").includes(query),
+    );
+  }, [sorted_contacts, deferred_search_query, search_haystacks]);
 
   const selection_state = useMemo(() => {
     const filtered_ids = new Set(filtered_contacts.map((c) => c.id));
@@ -288,7 +313,7 @@ export function use_contacts_data() {
     } finally {
       set_is_loading(false);
     }
-  }, [has_keys]);
+  }, [has_keys, t]);
 
   useEffect(() => {
     fetch_contacts();
@@ -553,7 +578,10 @@ export function use_contacts_data() {
       );
 
       set_contacts((prev) => [...prev, ...imported_contacts]);
-      set_import_progress(null);
+
+      if (imported_contacts.length === 0 && contacts_to_import.length > 0) {
+        set_error(t("common.failed_to_import_contacts"));
+      }
     } catch (err) {
       set_error(
         err instanceof Error
@@ -561,6 +589,7 @@ export function use_contacts_data() {
           : t("common.failed_to_import_contacts"),
       );
     } finally {
+      set_import_progress(null);
       set_is_importing(false);
       if (file_input_ref.current) {
         file_input_ref.current.value = "";

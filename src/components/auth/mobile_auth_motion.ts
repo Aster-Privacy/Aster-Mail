@@ -61,7 +61,8 @@ export const DEPTH_CTA_CLASS =
   "h-[52px] w-full rounded-xl font-semibold text-base text-white disabled:opacity-50 transition-colors duration-150";
 
 export const DEPTH_CTA_STYLE: React.CSSProperties = {
-  background: "linear-gradient(180deg, var(--accent-mix-w80, #629bf8) 0%, var(--accent-color) 50%, var(--accent-mix-b80, #2f68c5) 100%)",
+  background:
+    "linear-gradient(180deg, var(--accent-mix-w80, #629bf8) 0%, var(--accent-color) 50%, var(--accent-mix-b80, #2f68c5) 100%)",
   boxShadow: "0 2px 4px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15)",
 };
 
@@ -80,10 +81,11 @@ export const BACK_BUTTON_STYLE: React.CSSProperties = {
     "linear-gradient(var(--bg-tertiary), var(--bg-tertiary)) padding-box, conic-gradient(from 315deg, rgba(255,255,255,0.2) 0deg, rgba(255,255,255,0.04) 90deg, rgba(255,255,255,0.12) 180deg, rgba(255,255,255,0.04) 270deg, rgba(255,255,255,0.2) 360deg) border-box",
 };
 
-export const INNER_INPUT_CLASS = "h-[52px] flex-1 min-w-0 !bg-transparent !shadow-none !rounded-none !border-none focus:!shadow-none";
+export const INNER_INPUT_CLASS =
+  "h-[52px] flex-1 min-w-0 !bg-transparent !shadow-none !rounded-none !border-none focus:!shadow-none";
 
 export const INNER_INPUT_WITH_ICON_CLASS =
-  "h-[52px] flex-1 min-w-0 !bg-transparent !pl-3 !shadow-none !rounded-none !border-none focus:!shadow-none";
+  "h-[52px] flex-1 min-w-0 !bg-transparent !ps-3 !shadow-none !rounded-none !border-none focus:!shadow-none";
 
 export const INPUT_ICON_CLASS =
-  "flex items-center pl-4 text-[var(--text-muted)]";
+  "flex items-center ps-4 text-[var(--text-muted)]";

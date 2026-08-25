@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import {
   UserGroupIcon,
@@ -26,14 +26,30 @@ import {
   ExclamationTriangleIcon,
   ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
-import { join_family, preview_invite, type InvitePreview } from "@/services/api/family";
+
+import {
+  join_family,
+  preview_invite,
+  type InvitePreview,
+} from "@/services/api/family";
 import { use_auth } from "@/contexts/auth/use_auth_hook";
 import { use_i18n } from "@/lib/i18n/context";
 import { format_bytes } from "@/lib/utils";
 import { Spinner } from "@/components/ui/spinner";
 import { Logo } from "@/components/auth/auth_styles";
 
-const page_wrap = "min-h-screen flex items-center justify-center p-4 bg-surf-secondary";
+const TRANSPORT_FAILURE_CODES = new Set([
+  "NETWORK_ERROR",
+  "TIMEOUT_ERROR",
+  "SERVER_ERROR",
+]);
+
+function is_transport_failure(code?: string): boolean {
+  return code !== undefined && TRANSPORT_FAILURE_CODES.has(code);
+}
+
+const page_wrap =
+  "min-h-screen flex items-center justify-center p-4 bg-surf-secondary";
 
 export default function JoinFamilyPage() {
   const [search_params] = useSearchParams();
@@ -48,14 +64,57 @@ export default function JoinFamilyPage() {
   const [error_msg, set_error_msg] = useState<string | null>(null);
   const [is_wrong_recipient, set_is_wrong_recipient] = useState(false);
   const [joined_bytes, set_joined_bytes] = useState<number | null>(null);
+  const [preview_attempt, set_preview_attempt] = useState(0);
+  const [preview_unreachable, set_preview_unreachable] = useState(false);
+  const redirect_timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(
+    () => () => {
+      if (redirect_timer.current) clearTimeout(redirect_timer.current);
+    },
+    [],
+  );
 
   useEffect(() => {
-    if (!token) { set_preview_loading(false); set_error_msg(t("settings.family_join_invalid_link")); return; }
+    if (!token) {
+      set_preview_loading(false);
+      set_error_msg(t("settings.family_join_invalid_link"));
+
+      return;
+    }
+    let cancelled = false;
+
+    set_preview_loading(true);
+    set_error_msg(null);
+    set_preview_unreachable(false);
+
     preview_invite(token)
-      .then(r => { if (r.data?.valid) set_preview(r.data); else set_error_msg(t("settings.family_join_invalid")); })
-      .catch(() => set_error_msg(t("settings.family_join_invalid")))
-      .finally(() => set_preview_loading(false));
-  }, [token, t]);
+      .then((r) => {
+        if (cancelled) return;
+
+        if (r.data?.valid) {
+          set_preview(r.data);
+
+          return;
+        }
+
+        if (!r.data && is_transport_failure(r.code)) {
+          set_preview_unreachable(true);
+          set_error_msg(t("common.something_went_wrong_try_again"));
+
+          return;
+        }
+
+        set_error_msg(t("settings.family_join_invalid"));
+      })
+      .finally(() => {
+        if (!cancelled) set_preview_loading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [token, t, preview_attempt]);
 
   const handle_join = async () => {
     if (!token || joining) return;
@@ -64,16 +123,21 @@ export default function JoinFamilyPage() {
     set_is_wrong_recipient(false);
     try {
       const res = await join_family(token);
+
       if (!res.data) {
         if (res.error?.toLowerCase().includes("different email")) {
           set_is_wrong_recipient(true);
         } else {
           set_error_msg(res.error || t("settings.family_join_failed"));
         }
+
         return;
       }
       set_joined_bytes(res.data.allocated_storage_bytes);
-      setTimeout(() => navigate("/", { replace: true }), 2500);
+      redirect_timer.current = setTimeout(
+        () => navigate("/", { replace: true }),
+        2500,
+      );
     } catch {
       set_error_msg(t("settings.family_join_failed"));
     } finally {
@@ -84,7 +148,11 @@ export default function JoinFamilyPage() {
   // Do not auto-join: always require explicit button click to prevent CSRF-style forced joins.
 
   if (is_loading || preview_loading) {
-    return <div className="min-h-screen flex items-center justify-center"><Spinner size="lg" /></div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Spinner size="lg" />
+      </div>
+    );
   }
 
   if (joined_bytes !== null) {
@@ -93,9 +161,17 @@ export default function JoinFamilyPage() {
         <div className="max-w-sm w-full text-center space-y-6 flex flex-col items-center">
           <CheckCircleIcon className="w-16 h-16 text-green-500" />
           <div className="space-y-2">
-            <h1 className="text-2xl font-bold text-txt-primary">{t("settings.family_join_success_title")}</h1>
-            <p className="text-txt-muted">{t("settings.family_join_success_body", { size: format_bytes(joined_bytes) })}</p>
-            <p className="text-sm text-txt-muted">{t("settings.family_join_redirecting")}</p>
+            <h1 className="text-2xl font-bold text-txt-primary">
+              {t("settings.family_join_success_title")}
+            </h1>
+            <p className="text-txt-muted">
+              {t("settings.family_join_success_body", {
+                size: format_bytes(joined_bytes),
+              })}
+            </p>
+            <p className="text-sm text-txt-muted">
+              {t("settings.family_join_redirecting")}
+            </p>
           </div>
           <div className="flex justify-center">
             <Spinner size="sm" />
@@ -112,10 +188,30 @@ export default function JoinFamilyPage() {
           <Logo />
           <ExclamationTriangleIcon className="w-12 h-12 text-red-500" />
           <div className="space-y-2">
-            <h1 className="text-xl font-bold text-txt-primary">{t("settings.family_join_invalid_title")}</h1>
+            <h1 className="text-xl font-bold text-txt-primary">
+              {preview_unreachable
+                ? t("common.something_went_wrong")
+                : t("settings.family_join_invalid_title")}
+            </h1>
             <p className="text-txt-muted text-sm">{error_msg}</p>
           </div>
-          <Link to="/sign-in" className="aster_btn aster_btn_primary aster_btn_lg w-full text-center block">
+          {preview_unreachable && (
+            <button
+              className="aster_btn aster_btn_primary aster_btn_lg w-full text-center block"
+              type="button"
+              onClick={() => set_preview_attempt((n) => n + 1)}
+            >
+              {t("common.retry")}
+            </button>
+          )}
+          <Link
+            className={`aster_btn aster_btn_lg w-full text-center block ${
+              preview_unreachable
+                ? "aster_btn_secondary"
+                : "aster_btn_primary"
+            }`}
+            to="/sign-in"
+          >
             {t("settings.family_join_sign_in_cta")}
           </Link>
         </div>
@@ -130,10 +226,14 @@ export default function JoinFamilyPage() {
           <Logo />
           <UserGroupIcon className="w-12 h-12 text-accent-blue" />
           <div>
-            <h1 className="text-2xl font-bold text-txt-primary">{t("settings.family_join_title")}</h1>
+            <h1 className="text-2xl font-bold text-txt-primary">
+              {t("settings.family_join_title")}
+            </h1>
             {preview?.inviter_name && (
               <p className="text-txt-primary text-sm mt-2 font-medium">
-                {t("settings.family_join_inviter", { name: preview.inviter_name })}
+                {t("settings.family_join_inviter", {
+                  name: preview.inviter_name,
+                })}
               </p>
             )}
             {preview?.plan_name && (
@@ -151,13 +251,15 @@ export default function JoinFamilyPage() {
         </div>
 
         <div className="rounded-2xl border border-edge-secondary p-5 space-y-3 bg-surf-primary">
-          <p className="text-xs font-semibold text-txt-muted uppercase tracking-wide">{t("settings.family_join_benefits_heading")}</p>
+          <p className="text-xs font-semibold text-txt-muted uppercase tracking-wide">
+            {t("settings.family_join_benefits_heading")}
+          </p>
           {[
             t("settings.family_join_benefit_private_inbox"),
             t("settings.family_join_benefit_separate"),
             t("settings.family_join_benefit_e2e"),
             t("settings.family_join_benefit_no_tracking"),
-          ].map(item => (
+          ].map((item) => (
             <div key={item} className="flex items-center gap-2">
               <CheckCircleIcon className="w-4 h-4 text-green-500 flex-shrink-0" />
               <span className="text-sm text-txt-primary">{item}</span>
@@ -166,10 +268,15 @@ export default function JoinFamilyPage() {
         </div>
 
         {preview?.require_2fa && (
-          <div className="rounded-2xl p-4 space-y-2" style={{ background: "#f59e0b", border: "none" }}>
+          <div
+            className="rounded-2xl p-4 space-y-2"
+            style={{ background: "#f59e0b", border: "none" }}
+          >
             <div className="flex items-center gap-2">
               <ShieldCheckIcon className="w-4 h-4 text-white flex-shrink-0" />
-              <p className="text-sm font-semibold text-white">{t("settings.family_join_2fa_title")}</p>
+              <p className="text-sm font-semibold text-white">
+                {t("settings.family_join_2fa_title")}
+              </p>
             </div>
             <p className="text-xs text-white">
               {t("settings.family_join_2fa_body")}
@@ -178,14 +285,30 @@ export default function JoinFamilyPage() {
         )}
 
         {is_wrong_recipient && (
-          <div className="flex items-center gap-2 px-4 py-3 rounded-xl" style={{ background: "#ef4444", backgroundImage: "none", border: "none" }}>
+          <div
+            className="flex items-center gap-2 px-4 py-3 rounded-xl"
+            style={{
+              background: "#ef4444",
+              backgroundImage: "none",
+              border: "none",
+            }}
+          >
             <ExclamationTriangleIcon className="w-4 h-4 text-white flex-shrink-0" />
-            <p className="text-sm font-medium text-white">{t("settings.family_invite_wrong_recipient")}</p>
+            <p className="text-sm font-medium text-white">
+              {t("settings.family_invite_wrong_recipient")}
+            </p>
           </div>
         )}
 
         {error_msg && (
-          <div className="flex items-center gap-2 px-4 py-3 rounded-xl" style={{ background: "#ef4444", backgroundImage: "none", border: "none" }}>
+          <div
+            className="flex items-center gap-2 px-4 py-3 rounded-xl"
+            style={{
+              background: "#ef4444",
+              backgroundImage: "none",
+              border: "none",
+            }}
+          >
             <ExclamationTriangleIcon className="w-4 h-4 text-white flex-shrink-0" />
             <p className="text-sm font-medium text-white">{error_msg}</p>
           </div>
@@ -193,23 +316,35 @@ export default function JoinFamilyPage() {
 
         {is_authenticated && !is_wrong_recipient ? (
           <button
-            onClick={handle_join}
-            disabled={joining}
             className="aster_btn aster_btn_primary aster_btn_lg w-full flex items-center justify-center gap-2 disabled:opacity-60"
+            disabled={joining}
+            onClick={handle_join}
           >
-            {joining ? <>{t("settings.family_join_joining")} <Spinner size="sm" /></> : t("settings.family_join_accept")}
+            {joining ? (
+              <>
+                {t("settings.family_join_joining")} <Spinner size="sm" />
+              </>
+            ) : (
+              t("settings.family_join_accept")
+            )}
           </button>
-        ) : is_authenticated ? null : (
+        ) : (
           <div className="space-y-3">
+            {!is_authenticated && (
+              <Link
+                className="aster_btn aster_btn_primary aster_btn_lg w-full text-center block"
+                to={`/register?next=${encodeURIComponent(`/join/family?token=${token}`)}`}
+              >
+                {t("settings.family_join_create_account")}
+              </Link>
+            )}
             <Link
-              to={`/register?next=${encodeURIComponent(`/join/family?token=${token}`)}`}
-              className="aster_btn aster_btn_primary aster_btn_lg w-full text-center block"
-            >
-              {t("settings.family_join_create_account")}
-            </Link>
-            <Link
+              className={`aster_btn aster_btn_lg w-full text-center block ${
+                is_authenticated
+                  ? "aster_btn_primary"
+                  : "aster_btn_secondary"
+              }`}
               to={`/sign-in?next=${encodeURIComponent(`/join/family?token=${token}`)}`}
-              className="aster_btn aster_btn_secondary aster_btn_lg w-full text-center block"
             >
               {t("settings.family_join_login")}
             </Link>
@@ -218,9 +353,23 @@ export default function JoinFamilyPage() {
 
         <p className="text-center text-xs text-txt-muted">
           {t("settings.family_join_terms_prefix")}{" "}
-          <a href="https://astermail.org/terms" target="_blank" rel="noopener noreferrer" className="underline">{t("settings.family_join_terms_link")}</a>
-          {" "}{t("settings.family_join_terms_and")}{" "}
-          <a href="https://astermail.org/privacy" target="_blank" rel="noopener noreferrer" className="underline">{t("settings.family_join_privacy_link")}</a>
+          <a
+            className="underline"
+            href="https://astermail.org/terms"
+            rel="noopener noreferrer"
+            target="_blank"
+          >
+            {t("settings.family_join_terms_link")}
+          </a>{" "}
+          {t("settings.family_join_terms_and")}{" "}
+          <a
+            className="underline"
+            href="https://astermail.org/privacy"
+            rel="noopener noreferrer"
+            target="_blank"
+          >
+            {t("settings.family_join_privacy_link")}
+          </a>
         </p>
       </div>
     </div>

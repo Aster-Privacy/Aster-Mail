@@ -60,6 +60,8 @@ import {
   ContextMenuSubTrigger,
   ContextMenuTrigger,
 } from "@/components/ui/context_menu";
+import { compute_snooze_target } from "@/utils/snooze_targets";
+import { app_locale } from "@/utils/date_format";
 
 const CATEGORY_MENU: {
   key: EmailCategory;
@@ -112,7 +114,7 @@ export interface EmailContextMenuContentProps {
   on_mark_read?: () => void;
   on_mark_unread?: () => void;
   on_toggle_pin?: () => void;
-  on_snooze?: (snooze_until: Date) => Promise<void>;
+  on_snooze?: (snooze_until: Date) => Promise<boolean | void>;
   on_custom_snooze?: () => void;
   on_unsnooze?: () => Promise<void>;
   on_archive?: () => void;
@@ -219,10 +221,10 @@ function EmailContextMenuContentInner({
           <ContextMenuLabel className="text-xs font-medium text-txt-muted">
             {selection.is_all_mode
               ? t("mail.menu_applies_to_all", {
-                  count: selection.count.toLocaleString(),
+                  count: selection.count.toLocaleString(app_locale()),
                 })
               : t("mail.menu_applies_to_selection", {
-                  count: selection.count.toLocaleString(),
+                  count: selection.count.toLocaleString(app_locale()),
                 })}
           </ContextMenuLabel>
           <ContextMenuSeparator />
@@ -234,7 +236,7 @@ function EmailContextMenuContentInner({
           disabled={loading_action === "reply"}
           onClick={() => handle_action("reply", on_reply)}
         >
-          <ArrowUturnLeftIcon className="mr-2 h-4 w-4" />
+          <ArrowUturnLeftIcon className="me-2 h-4 w-4 rtl:-scale-x-100" />
           {t("mail.reply")}
         </ContextMenuItem>
       )}
@@ -249,7 +251,7 @@ function EmailContextMenuContentInner({
             onClick={() => handle_action("reply_all", on_reply_all)}
           >
             <svg
-              className="mr-2 h-4 w-4"
+              className="me-2 h-4 w-4"
               fill="none"
               stroke="currentColor"
               strokeWidth={2}
@@ -275,7 +277,7 @@ function EmailContextMenuContentInner({
           disabled={loading_action === "forward"}
           onClick={() => handle_action("forward", on_forward)}
         >
-          <ArrowUturnRightIcon className="mr-2 h-4 w-4" />
+          <ArrowUturnRightIcon className="me-2 h-4 w-4 rtl:-scale-x-100" />
           {t("mail.forward")}
         </ContextMenuItem>
       )}
@@ -298,12 +300,12 @@ function EmailContextMenuContentInner({
           >
             {email.is_read ? (
               <>
-                <EnvelopeIcon className="mr-2 h-4 w-4" />
+                <EnvelopeIcon className="me-2 h-4 w-4" />
                 {t("mail.mark_as_unread")}
               </>
             ) : (
               <>
-                <EnvelopeOpenIcon className="mr-2 h-4 w-4" />
+                <EnvelopeOpenIcon className="me-2 h-4 w-4" />
                 {t("mail.mark_as_read")}
               </>
             )}
@@ -315,7 +317,7 @@ function EmailContextMenuContentInner({
           disabled={loading_action === "mark_read"}
           onClick={() => handle_action("mark_read", on_mark_read)}
         >
-          <EnvelopeOpenIcon className="mr-2 h-4 w-4" />
+          <EnvelopeOpenIcon className="me-2 h-4 w-4" />
           {t("mail.mark_as_read")}
         </ContextMenuItem>
       )}
@@ -325,7 +327,7 @@ function EmailContextMenuContentInner({
           disabled={loading_action === "mark_unread"}
           onClick={() => handle_action("mark_unread", on_mark_unread)}
         >
-          <EnvelopeIcon className="mr-2 h-4 w-4" />
+          <EnvelopeIcon className="me-2 h-4 w-4" />
           {t("mail.mark_as_unread")}
         </ContextMenuItem>
       )}
@@ -336,7 +338,7 @@ function EmailContextMenuContentInner({
           onClick={() => handle_action("pin", on_toggle_pin)}
         >
           <PinIcon
-            className={`mr-2 h-4 w-4 ${email.is_pinned ? "-rotate-[38deg] text-blue-500" : ""}`}
+            className={`me-2 h-4 w-4 ${email.is_pinned ? "-rotate-[38deg] text-blue-500" : ""}`}
             filled={!!email.is_pinned}
           />
           {email.is_pinned ? t("mail.unpin") : t("mail.pin_to_top")}
@@ -353,7 +355,7 @@ function EmailContextMenuContentInner({
             disabled={loading_action === "unsnooze"}
             onClick={() => handle_action("unsnooze", on_unsnooze)}
           >
-            <ClockIcon className="mr-2 h-4 w-4" />
+            <ClockIcon className="me-2 h-4 w-4" />
             {t("mail.unsnooze")}
           </ContextMenuItem>
         )}
@@ -366,74 +368,51 @@ function EmailContextMenuContentInner({
         on_snooze && (
           <ContextMenuSub>
             <ContextMenuSubTrigger>
-              <ClockIcon className="mr-2 h-4 w-4" />
+              <ClockIcon className="me-2 h-4 w-4" />
               {t("mail.snooze")}
             </ContextMenuSubTrigger>
             <ContextMenuSubContent className="w-48">
               <ContextMenuItem
                 onClick={() => {
-                  const date = new Date();
-
-                  date.setHours(date.getHours() + 4);
-                  handle_action("snooze", () => on_snooze(date));
+                  handle_action("snooze", async () => {
+                    await on_snooze(compute_snooze_target("later_today"));
+                  });
                 }}
               >
                 {t("mail.later_today_snooze")}
               </ContextMenuItem>
               <ContextMenuItem
                 onClick={() => {
-                  const date = new Date();
-
-                  date.setDate(date.getDate() + 1);
-                  date.setHours(9, 0, 0, 0);
-                  handle_action("snooze", () => on_snooze(date));
+                  handle_action("snooze", async () => {
+                    await on_snooze(compute_snooze_target("tomorrow"));
+                  });
                 }}
               >
                 {t("mail.tomorrow_snooze")}
               </ContextMenuItem>
               <ContextMenuItem
                 onClick={() => {
-                  const date = new Date();
-                  const day = date.getDay();
-                  const days_until_saturday = day === 6 ? 7 : (6 - day + 7) % 7;
-
-                  date.setDate(date.getDate() + days_until_saturday);
-                  date.setHours(9, 0, 0, 0);
-                  handle_action("snooze", () => on_snooze(date));
+                  handle_action("snooze", async () => {
+                    await on_snooze(compute_snooze_target("this_weekend"));
+                  });
                 }}
               >
                 {t("mail.this_weekend_snooze")}
               </ContextMenuItem>
               <ContextMenuItem
                 onClick={() => {
-                  const date = new Date();
-
-                  date.setDate(date.getDate() + 7);
-                  date.setHours(9, 0, 0, 0);
-                  handle_action("snooze", () => on_snooze(date));
+                  handle_action("snooze", async () => {
+                    await on_snooze(compute_snooze_target("next_week"));
+                  });
                 }}
               >
                 {t("mail.next_week_snooze")}
               </ContextMenuItem>
               <ContextMenuItem
                 onClick={() => {
-                  const date = new Date();
-                  const target_day = date.getDate();
-
-                  date.setDate(1);
-                  date.setMonth(date.getMonth() + 1);
-                  date.setDate(
-                    Math.min(
-                      target_day,
-                      new Date(
-                        date.getFullYear(),
-                        date.getMonth() + 1,
-                        0,
-                      ).getDate(),
-                    ),
-                  );
-                  date.setHours(9, 0, 0, 0);
-                  handle_action("snooze", () => on_snooze(date));
+                  handle_action("snooze", async () => {
+                    await on_snooze(compute_snooze_target("next_month"));
+                  });
                 }}
               >
                 {t("common.next_month")}
@@ -442,7 +421,7 @@ function EmailContextMenuContentInner({
                 <>
                   <ContextMenuSeparator />
                   <ContextMenuItem onClick={on_custom_snooze}>
-                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    <CalendarIcon className="me-2 h-4 w-4" />
                     {t("mail.pick_date_time")}
                   </ContextMenuItem>
                 </>
@@ -479,7 +458,7 @@ function EmailContextMenuContentInner({
         !is_scheduled && (
           <ContextMenuSub>
             <ContextMenuSubTrigger>
-              <FolderPlusIcon className="mr-2 h-4 w-4" />
+              <FolderPlusIcon className="me-2 h-4 w-4" />
               {t("mail.folder")}
             </ContextMenuSubTrigger>
             <ContextMenuSubContent>
@@ -494,10 +473,10 @@ function EmailContextMenuContentInner({
                   {(selection
                     ? folder.is_assigned
                     : current_folder_id === folder.id) && (
-                    <CheckIcon className="mr-0.5 h-3 w-3 flex-shrink-0" />
+                    <CheckIcon className="me-0.5 h-3 w-3 flex-shrink-0" />
                   )}
                   <span
-                    className="mr-1.5 h-2.5 w-2.5 rounded-full flex-shrink-0"
+                    className="me-1.5 h-2.5 w-2.5 rounded-full flex-shrink-0"
                     style={get_folder_style(folder.color)}
                   />
                   <span className="truncate">{folder.name}</span>
@@ -514,7 +493,7 @@ function EmailContextMenuContentInner({
         !is_scheduled && (
           <ContextMenuSub>
             <ContextMenuSubTrigger>
-              <TagIcon className="mr-2 h-4 w-4" />
+              <TagIcon className="me-2 h-4 w-4" />
               {t("common.labels")}
             </ContextMenuSubTrigger>
             <ContextMenuSubContent>
@@ -527,10 +506,10 @@ function EmailContextMenuContentInner({
                   }}
                 >
                   {tag.is_assigned && (
-                    <CheckIcon className="mr-0.5 h-3 w-3 flex-shrink-0" />
+                    <CheckIcon className="me-0.5 h-3 w-3 flex-shrink-0" />
                   )}
                   <span
-                    className="mr-1.5 h-2.5 w-2.5 rounded-full flex-shrink-0"
+                    className="me-1.5 h-2.5 w-2.5 rounded-full flex-shrink-0"
                     style={{ backgroundColor: tag.color }}
                   />
                   <span className="truncate">{tag.name}</span>
@@ -551,7 +530,7 @@ function EmailContextMenuContentInner({
         !is_scheduled && (
           <ContextMenuSub>
             <ContextMenuSubTrigger>
-              <Squares2X2Icon className="mr-2 h-4 w-4" />
+              <Squares2X2Icon className="me-2 h-4 w-4" />
               {t("mail.move_to_category")}
             </ContextMenuSubTrigger>
             <ContextMenuSubContent className="w-48">
@@ -565,9 +544,9 @@ function EmailContextMenuContentInner({
                 >
                   {!selection &&
                     category_for_tab(email.mail_category) === key && (
-                      <CheckIcon className="mr-0.5 h-3 w-3 flex-shrink-0" />
+                      <CheckIcon className="me-0.5 h-3 w-3 flex-shrink-0" />
                     )}
-                  <Icon className="mr-2 h-4 w-4" />
+                  <Icon className="me-2 h-4 w-4" />
                   <span className="truncate">{t(label_key)}</span>
                 </ContextMenuItem>
               ))}
@@ -580,25 +559,23 @@ function EmailContextMenuContentInner({
           disabled={loading_action === "move_inbox"}
           onClick={() => handle_action("move_inbox", on_move_to_inbox)}
         >
-          <InboxIcon className="mr-2 h-4 w-4" />
+          <InboxIcon className="me-2 h-4 w-4" />
           {t("mail.move_to_inbox")}
         </ContextMenuItem>
       )}
 
       {!is_drafts &&
         !is_scheduled &&
-        (is_trash ||
-          is_spam ||
-          on_archive ||
-          on_spam ||
-          on_delete) && <ContextMenuSeparator />}
+        (is_trash || is_spam || on_archive || on_spam || on_delete) && (
+          <ContextMenuSeparator />
+        )}
 
       {is_trash && on_restore && (
         <ContextMenuItem
           disabled={loading_action === "restore"}
           onClick={() => handle_action("restore", on_restore)}
         >
-          <ArrowPathIcon className="mr-2 h-4 w-4" />
+          <ArrowPathIcon className="me-2 h-4 w-4" />
           {t("mail.restore")}
         </ContextMenuItem>
       )}
@@ -608,7 +585,7 @@ function EmailContextMenuContentInner({
           disabled={loading_action === "not_spam"}
           onClick={() => handle_action("not_spam", on_mark_not_spam)}
         >
-          <ShieldExclamationIcon className="mr-2 h-4 w-4" />
+          <ShieldExclamationIcon className="me-2 h-4 w-4" />
           {t("mail.not_spam")}
         </ContextMenuItem>
       )}
@@ -623,7 +600,7 @@ function EmailContextMenuContentInner({
             disabled={loading_action === "archive"}
             onClick={() => handle_action("archive", on_archive)}
           >
-            <ArchiveBoxIcon className="mr-2 h-4 w-4" />
+            <ArchiveBoxIcon className="me-2 h-4 w-4" />
             {t("mail.archive")}
           </ContextMenuItem>
         )}
@@ -633,7 +610,7 @@ function EmailContextMenuContentInner({
           disabled={loading_action === "spam"}
           onClick={() => handle_action("spam", on_spam)}
         >
-          <ExclamationTriangleIcon className="mr-2 h-4 w-4" />
+          <ExclamationTriangleIcon className="me-2 h-4 w-4" />
           {t("mail.report_spam")}
         </ContextMenuItem>
       )}
@@ -644,7 +621,7 @@ function EmailContextMenuContentInner({
           disabled={loading_action === "delete"}
           onClick={() => handle_action("delete", on_delete)}
         >
-          <TrashIcon className="mr-2 h-4 w-4" />
+          <TrashIcon className="me-2 h-4 w-4" />
           {is_trash || is_drafts
             ? t("mail.delete_permanently")
             : t("mail.move_to_trash")}
@@ -659,7 +636,7 @@ function EmailContextMenuContentInner({
         <ContextMenuItem
           onClick={() => handle_action("find_from_sender", on_find_from_sender)}
         >
-          <MagnifyingGlassIcon className="mr-2 h-4 w-4" />
+          <MagnifyingGlassIcon className="me-2 h-4 w-4" />
           <span className="truncate">
             {t("mail.find_emails_from", {
               sender: email.sender_name || email.sender_email || "",
@@ -674,7 +651,7 @@ function EmailContextMenuContentInner({
             handle_action("open_in_new_window", on_open_in_new_window)
           }
         >
-          <ArrowTopRightOnSquareIcon className="mr-2 h-4 w-4" />
+          <ArrowTopRightOnSquareIcon className="me-2 h-4 w-4" />
           {t("mail.open_in_new_window")}
         </ContextMenuItem>
       )}
@@ -686,7 +663,7 @@ function EmailContextMenuContentInner({
             disabled={loading_action === "print"}
             onClick={() => handle_action("print", on_print)}
           >
-            <PrinterIcon className="mr-2 h-4 w-4" />
+            <PrinterIcon className="me-2 h-4 w-4" />
             {t("mail.print")}
           </ContextMenuItem>
         </>

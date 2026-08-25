@@ -67,30 +67,30 @@ const SelectContent = React.forwardRef<
   const viewport_ref = use_wheel_scroll();
 
   return (
-  <SelectPrimitive.Portal>
-    <SelectPrimitive.Content
-      ref={ref}
-      className={cn(
-        "relative z-[70] max-h-96 min-w-[8rem] overflow-hidden rounded-lg border border-[var(--border-secondary)] bg-[var(--dropdown-bg)] animate-in fade-in-80",
-        position === "popper" && "translate-y-1",
-        className,
-      )}
-      style={{ boxShadow: "var(--dropdown-shadow)" }}
-      position={position}
-      {...props}
-    >
-      <SelectPrimitive.Viewport
-        ref={viewport_ref}
+    <SelectPrimitive.Portal>
+      <SelectPrimitive.Content
+        ref={ref}
         className={cn(
-          "p-1.5 max-h-[inherit] overflow-y-auto overscroll-contain",
-          position === "popper" &&
-            "w-full min-w-[var(--radix-select-trigger-width)]",
+          "relative z-[70] max-h-96 min-w-[8rem] overflow-hidden rounded-lg border border-[var(--border-secondary)] bg-[var(--dropdown-bg)] animate-in fade-in-80",
+          position === "popper" && "translate-y-1",
+          className,
         )}
+        position={position}
+        style={{ boxShadow: "var(--dropdown-shadow)" }}
+        {...props}
       >
-        {children}
-      </SelectPrimitive.Viewport>
-    </SelectPrimitive.Content>
-  </SelectPrimitive.Portal>
+        <SelectPrimitive.Viewport
+          ref={viewport_ref}
+          className={cn(
+            "p-1.5 max-h-[inherit] overflow-y-auto overscroll-contain",
+            position === "popper" &&
+              "w-full min-w-[var(--radix-select-trigger-width)]",
+          )}
+        >
+          {children}
+        </SelectPrimitive.Viewport>
+      </SelectPrimitive.Content>
+    </SelectPrimitive.Portal>
   );
 });
 
@@ -103,12 +103,12 @@ const SelectItem = React.forwardRef<
   <SelectPrimitive.Item
     ref={ref}
     className={cn(
-      "relative flex w-full cursor-pointer select-none items-center rounded-md py-2 pl-2.5 pr-8 text-[13px] text-[var(--text-secondary)] outline-none transition-colors hover:bg-black/5 dark:hover:bg-white/5 focus:bg-black/5 dark:focus:bg-white/5 data-[highlighted]:bg-black/5 dark:data-[highlighted]:bg-white/5 data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[state=checked]:text-brand data-[state=checked]:font-medium",
+      "relative flex w-full cursor-pointer select-none items-center rounded-md py-2 ps-2.5 pe-8 text-[13px] text-[var(--text-secondary)] outline-none transition-colors hover:bg-black/5 dark:hover:bg-white/5 focus:bg-black/5 dark:focus:bg-white/5 data-[highlighted]:bg-black/5 dark:data-[highlighted]:bg-white/5 data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[state=checked]:text-brand data-[state=checked]:font-medium",
       className,
     )}
     {...props}
   >
-    <span className="absolute right-2 flex h-3.5 w-3.5 items-center justify-center">
+    <span className="absolute end-2 flex h-3.5 w-3.5 items-center justify-center">
       <SelectPrimitive.ItemIndicator>
         <CheckIcon className="h-3.5 w-3.5" />
       </SelectPrimitive.ItemIndicator>

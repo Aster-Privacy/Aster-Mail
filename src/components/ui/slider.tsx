@@ -56,7 +56,9 @@ export function Slider({
       if (!track) return value_to_percent(value);
 
       const rect = track.getBoundingClientRect();
-      const raw = ((client_x - rect.left) / rect.width) * 100;
+      const is_rtl = getComputedStyle(track).direction === "rtl";
+      const offset = is_rtl ? rect.right - client_x : client_x - rect.left;
+      const raw = (offset / rect.width) * 100;
 
       return Math.min(100, Math.max(0, raw));
     },
@@ -95,10 +97,14 @@ export function Slider({
   };
 
   const handle_key_down = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (e.key === "ArrowRight" || e.key === "ArrowUp") {
+    const is_rtl = getComputedStyle(e.currentTarget).direction === "rtl";
+    const increase_key = is_rtl ? "ArrowLeft" : "ArrowRight";
+    const decrease_key = is_rtl ? "ArrowRight" : "ArrowLeft";
+
+    if (e.key === increase_key || e.key === "ArrowUp") {
       e.preventDefault();
       onChange(Math.min(max, value + step));
-    } else if (e.key === "ArrowLeft" || e.key === "ArrowDown") {
+    } else if (e.key === decrease_key || e.key === "ArrowDown") {
       e.preventDefault();
       onChange(Math.max(min, value - step));
     } else if (e.key === "Home") {
@@ -111,7 +117,9 @@ export function Slider({
   };
 
   const display_percent =
-    is_dragging && drag_percent !== null ? drag_percent : value_to_percent(value);
+    is_dragging && drag_percent !== null
+      ? drag_percent
+      : value_to_percent(value);
   const display_value =
     is_dragging && drag_percent !== null
       ? percent_to_stepped_value(drag_percent)
@@ -138,15 +146,16 @@ export function Slider({
     >
       <div
         aria-hidden="true"
-        className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-1.5 rounded-full pointer-events-none"
+        className="absolute start-0 end-0 top-1/2 -translate-y-1/2 h-1.5 rounded-full pointer-events-none"
         style={{
-          background: "color-mix(in srgb, var(--text-primary) 18%, transparent)",
+          background:
+            "color-mix(in srgb, var(--text-primary) 18%, transparent)",
         }}
       />
       <div
         aria-hidden="true"
         className={cn(
-          "absolute left-0 top-1/2 -translate-y-1/2 h-1.5 rounded-full pointer-events-none",
+          "absolute start-0 top-1/2 -translate-y-1/2 h-1.5 rounded-full pointer-events-none",
           fill_transition,
         )}
         style={{
@@ -157,8 +166,8 @@ export function Slider({
       />
       {is_dragging && format_tooltip && (
         <div
-          className="absolute -top-8 -translate-x-1/2 px-2 py-1 rounded-md text-xs font-medium text-[var(--accent-fg,#ffffff)] bg-[var(--accent-blue)] shadow-lg pointer-events-none whitespace-nowrap"
-          style={{ left: `${display_percent}%` }}
+          className="absolute -top-8 ltr:-translate-x-1/2 rtl:translate-x-1/2 px-2 py-1 rounded-md text-xs font-medium text-[var(--accent-fg,#ffffff)] bg-[var(--accent-blue)] shadow-lg pointer-events-none whitespace-nowrap"
+          style={{ insetInlineStart: `${display_percent}%` }}
         >
           {format_tooltip(display_value)}
         </div>
@@ -169,11 +178,11 @@ export function Slider({
         aria-valuemin={min}
         aria-valuenow={display_value}
         className={cn(
-          "absolute top-1/2 w-5 h-5 rounded-full border-0 bg-[var(--accent-blue)] shadow-[0_1px_3px_rgba(0,0,0,0.4)] -translate-x-1/2 -translate-y-1/2 cursor-grab active:cursor-grabbing hover:scale-125 hover:shadow-[0_2px_8px_rgba(0,0,0,0.45)] active:scale-110 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--accent-blue)]/30",
+          "absolute top-1/2 w-5 h-5 rounded-full border-0 bg-[var(--accent-blue)] shadow-[0_1px_3px_rgba(0,0,0,0.4)] ltr:-translate-x-1/2 rtl:translate-x-1/2 -translate-y-1/2 cursor-grab active:cursor-grabbing hover:scale-125 hover:shadow-[0_2px_8px_rgba(0,0,0,0.45)] active:scale-110 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--accent-blue)]/30",
           thumb_transition,
         )}
         role="slider"
-        style={{ left: `${display_percent}%` }}
+        style={{ insetInlineStart: `${display_percent}%` }}
         tabIndex={0}
         onKeyDown={handle_key_down}
       />

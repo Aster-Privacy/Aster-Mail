@@ -19,7 +19,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useEffect, useRef, useState } from "react";
-
 import { Switch } from "@aster/ui";
 
 import { Spinner } from "@/components/ui/spinner";
@@ -160,7 +159,9 @@ export function SearchContentBanner({
         return { done: reported_done, total: reported_total };
       }
 
-      return reported_done > prev.done ? { ...prev, done: reported_done } : prev;
+      return reported_done > prev.done
+        ? { ...prev, done: reported_done }
+        : prev;
     });
   }, [indexing_active, reported_done, reported_total]);
 
@@ -227,8 +228,8 @@ export function SearchContentBanner({
               {is_active_download && (
                 <button
                   className="text-[11px] font-medium text-txt-muted hover:text-txt-primary transition-colors flex-shrink-0"
-                  onClick={handle_pause}
                   type="button"
+                  onClick={handle_pause}
                 >
                   {t("mail.pause_download_action")}
                 </button>
@@ -236,8 +237,8 @@ export function SearchContentBanner({
               {is_paused && (
                 <button
                   className="text-[11px] font-medium text-[var(--accent-color)] hover:opacity-80 transition-opacity flex-shrink-0"
-                  onClick={handle_resume}
                   type="button"
+                  onClick={handle_resume}
                 >
                   {t("mail.resume_download_action")}
                 </button>

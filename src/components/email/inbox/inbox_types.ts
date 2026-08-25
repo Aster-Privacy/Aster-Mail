@@ -63,6 +63,7 @@ export interface DraftClickData {
   bcc_recipients: string[];
   subject: string;
   message: string;
+  from_email?: string;
   updated_at: string;
   attachments?: import("@/services/api/multi_drafts").DraftAttachmentData[];
 }
@@ -75,6 +76,7 @@ export interface ScheduledClickData {
   subject: string;
   body: string;
   scheduled_at: string;
+  status?: string;
 }
 
 export interface EmailInboxProps {
@@ -88,7 +90,9 @@ export interface EmailInboxProps {
   on_scheduled_click?: (data: ScheduledClickData) => void;
   on_email_click?: (id: string) => void;
   split_email_id?: string | null;
-  split_local_email?: import("@/components/email/email_viewer_types").LocalEmailData | null;
+  split_local_email?:
+    | import("@/components/email/email_viewer_types").LocalEmailData
+    | null;
   on_split_close?: () => void;
   split_scheduled_data?: ScheduledClickData | null;
   active_email_id?: string | null;
@@ -99,7 +103,17 @@ export interface EmailInboxProps {
     snooze_info?: Record<string, string | undefined>,
     grouped_ids_map?: Record<string, string[] | undefined>,
     subject_map?: Record<string, string>,
-    label_hints_map?: Record<string, { token: string; name: string; color?: string; icon?: string; show_icon?: boolean }[] | undefined>,
+    label_hints_map?: Record<
+      string,
+      | {
+          token: string;
+          name: string;
+          color?: string;
+          icon?: string;
+          show_icon?: boolean;
+        }[]
+      | undefined
+    >,
   ) => void;
   on_search_click?: () => void;
   on_search_result_click?: (id: string) => void;

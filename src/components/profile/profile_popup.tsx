@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { copy_text_or_throw } from "@/utils/copy_text";
 import {
   XMarkIcon,
   EnvelopeIcon,
@@ -57,22 +58,11 @@ export function ProfilePopup({
 
   const handle_copy = useCallback(async () => {
     try {
-      await navigator.clipboard.writeText(email);
+      await copy_text_or_throw(email);
       on_copy?.(email, t("common.email"));
       show_toast(t("common.email_copied"), "success");
-    } catch (error) {
-      if (import.meta.env.DEV) console.error(error);
-      const textarea = document.createElement("textarea");
-
-      textarea.value = email;
-      textarea.style.position = "fixed";
-      textarea.style.opacity = "0";
-      document.body.appendChild(textarea);
-      textarea.select();
-      document.execCommand("copy");
-      document.body.removeChild(textarea);
-      on_copy?.(email, t("common.email"));
-      show_toast(t("common.email_copied"), "success");
+    } catch {
+      show_toast(t("common.failed_to_copy"), "error");
     }
   }, [email, on_copy, t]);
 
@@ -90,7 +80,12 @@ export function ProfilePopup({
     (peer_profile?.show_badge_profile ?? false) && !!active_badge;
 
   return (
-    <Modal is_open={is_open} on_close={on_close} show_close_button={false} size="sm">
+    <Modal
+      is_open={is_open}
+      on_close={on_close}
+      show_close_button={false}
+      size="sm"
+    >
       <div className="flex items-center justify-between px-4 py-3 border-b border-edge-secondary">
         <ModalTitle className="text-[13px] font-medium">
           {t("common.profile")}

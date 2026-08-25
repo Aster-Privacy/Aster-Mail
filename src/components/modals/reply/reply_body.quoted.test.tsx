@@ -23,7 +23,6 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
 declare global {
-  // eslint-disable-next-line no-var
   var IS_REACT_ACT_ENVIRONMENT: boolean;
 }
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
@@ -101,7 +100,8 @@ function build_props(overrides: Partial<ReplyBodyProps> = {}): ReplyBodyProps {
     set_show_quoted: noop,
     include_quoted: true,
     set_include_quoted: noop,
-    build_quoted_content: () => "<blockquote>original quoted message</blockquote>",
+    build_quoted_content: () =>
+      "<blockquote>original quoted message</blockquote>",
     attachments: [],
     attachments_scroll_ref: { current: null },
     remove_attachment: noop,
@@ -174,12 +174,17 @@ describe("ReplyBody quoted text controls", () => {
     act(() => {
       root.render(
         <ReplyBody
-          {...build_props({ set_include_quoted, set_show_quoted, show_quoted: true })}
+          {...build_props({
+            set_include_quoted,
+            set_show_quoted,
+            show_quoted: true,
+          })}
         />,
       );
     });
 
     const remove = find_button("mail.remove_quoted_text");
+
     expect(remove).toBeTruthy();
 
     act(() => {
@@ -205,6 +210,7 @@ describe("ReplyBody quoted text controls", () => {
     expect(find_button("mail.show_quoted_text")).toBeFalsy();
 
     const restore = find_button("mail.restore_quoted_text");
+
     expect(restore).toBeTruthy();
 
     act(() => {

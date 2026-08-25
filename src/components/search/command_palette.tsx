@@ -47,12 +47,13 @@ import { Spinner } from "@/components/ui/spinner";
 import { useTheme } from "@/contexts/theme_context";
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
-import { build_theme_fields_update } from "@/lib/theme_sync";
+import { build_theme_mode_update } from "@/lib/theme_sync";
 import { empty_trash, type MailItem } from "@/services/api/mail";
 import { batch_archive, batch_unarchive } from "@/services/api/archive";
 import { stale_all_view_caches } from "@/hooks/email_list_cache";
 import { show_action_toast } from "@/components/toast/action_toast";
 import { show_toast } from "@/components/toast/simple_toast";
+import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { has_protected_folder_label } from "@/hooks/use_folders";
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
@@ -68,6 +69,8 @@ import {
   DECRYPT_YIELD_CHUNK,
 } from "@/services/bulk_mail_scan";
 import { yield_to_browser } from "@/lib/scheduling";
+import { use_escape_layer } from "@/lib/overlay_layer_stack";
+import { emit_mail_changed } from "@/hooks/mail_events";
 
 interface CommandAction {
   id: string;
@@ -104,12 +107,14 @@ export function CommandPalette({
   const { t } = use_i18n();
   const reduce_motion = use_should_reduce_motion();
   const navigate = useNavigate();
-  const { theme_preference, set_theme_preference } = useTheme();
+  const { theme, set_theme_preference } = useTheme();
   const { logout } = use_auth();
   const { preferences, update_preferences } = use_preferences();
   const [query, set_query] = useState("");
   const [selected_index, set_selected_index] = useState(0);
   const [loading_action, set_loading_action] = useState<string | null>(null);
+  const [confirm_empty_trash_open, set_confirm_empty_trash_open] =
+    useState(false);
   const input_ref = useRef<HTMLInputElement>(null);
   const list_ref = useRef<HTMLDivElement>(null);
 
@@ -180,10 +185,17 @@ export function CommandPalette({
       items: MailItem[];
       metadata_map: Map<string, MailItemMetadata>;
     } | null> => {
+      let pages_scanned = 0;
+      const track_progress = (page_count: number) => {
+        pages_scanned = page_count;
+      };
+
       const { items } =
         source === "all"
-          ? await scan_encrypted_items()
-          : await scan_received_items();
+          ? await scan_encrypted_items(undefined, track_progress)
+          : await scan_received_items(undefined, track_progress);
+
+      if (pages_scanned === 0) return null;
 
       const safe_items = items.filter(
         (item) => !has_protected_folder_label(item.labels),
@@ -264,7 +276,7 @@ export function CommandPalette({
             : result.items.length - api_result.failed_ids.length;
 
         if (count > 0) {
-          window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
+          emit_mail_changed();
           show_action_toast({
             message: success_message(count),
             action_type,
@@ -331,6 +343,7 @@ export function CommandPalette({
         }
 
         const ids = result.items.map((i) => i.id);
+
         stale_all_view_caches();
         const archive_result = await batch_archive({ ids, tier: "hot" });
 
@@ -346,8 +359,21 @@ export function CommandPalette({
 
         const count = archive_result.data?.archived_count ?? ids.length;
 
-        await bulk_update_metadata_by_ids(ids, { is_archived: true });
-        window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
+        const metadata_result = await bulk_update_metadata_by_ids(ids, {
+          is_archived: true,
+        });
+
+        emit_mail_changed();
+        if (!metadata_result.success) {
+          show_action_toast({
+            message: t("common.failed_to_archive_emails"),
+            action_type: "archive",
+            email_ids: [],
+          });
+          on_close();
+
+          return;
+        }
         show_action_toast({
           message: success_message(count),
           action_type: "archive",
@@ -496,7 +522,7 @@ export function CommandPalette({
             (meta) => !meta.is_read && !meta.is_trashed,
             { is_read: true },
             { is_read: false },
-            (n) => t("common.emails_marked_as_read", { count: String(n) }),
+            (n) => t("common.emails_marked_as_read", { count: n }),
             "read",
           ),
       },
@@ -511,7 +537,7 @@ export function CommandPalette({
           execute_archive_action(
             "archive_all_read",
             (meta) => meta.is_read && !meta.is_archived && !meta.is_trashed,
-            (n) => t("common.emails_archived", { count: String(n) }),
+            (n) => t("common.emails_archived", { count: n }),
           ),
       },
       {
@@ -533,7 +559,7 @@ export function CommandPalette({
               !meta.is_trashed,
             { is_trashed: true },
             { is_trashed: false },
-            (n) => t("common.emails_moved_to_trash", { count: String(n) }),
+            (n) => t("common.emails_moved_to_trash", { count: n }),
             "trash",
           );
         },
@@ -552,7 +578,7 @@ export function CommandPalette({
             (meta) => !meta.is_read && !meta.is_starred && !meta.is_trashed,
             { is_starred: true },
             { is_starred: false },
-            (n) => t("common.emails_starred", { count: String(n) }),
+            (n) => t("common.emails_starred", { count: n }),
             "star",
           ),
       },
@@ -570,7 +596,7 @@ export function CommandPalette({
             (meta) => meta.is_starred && !meta.is_trashed,
             { is_starred: false },
             { is_starred: true },
-            (n) => t("common.emails_unstarred", { count: String(n) }),
+            (n) => t("common.emails_unstarred", { count: n }),
             "unstar",
           ),
       },
@@ -581,37 +607,8 @@ export function CommandPalette({
         icon: TrashIcon,
         category: "actions",
         keywords: ["delete", "permanent", "clear"],
-        action: async () => {
-          set_loading_action("empty_trash");
-          try {
-            const result = await empty_trash();
-
-            if (result.data) {
-              const count = result.data.deleted_count;
-
-              window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
-              show_action_toast({
-                message:
-                  count > 0
-                    ? t("common.emails_permanently_deleted", {
-                        count: String(count),
-                      })
-                    : t("common.trash_already_empty"),
-                action_type: "trash",
-                email_ids: [],
-              });
-            } else {
-              window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
-              show_toast(t("common.trash_empty_failed"), "error");
-            }
-            on_close();
-          } catch {
-            window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
-            show_toast(t("common.trash_empty_failed"), "error");
-            on_close();
-          } finally {
-            set_loading_action(null);
-          }
+        action: () => {
+          set_confirm_empty_trash_open(true);
         },
       },
       {
@@ -628,7 +625,7 @@ export function CommandPalette({
             (meta) => meta.is_spam && !meta.is_trashed,
             { is_trashed: true, is_spam: false },
             { is_trashed: false, is_spam: true },
-            (n) => t("common.spam_emails_moved_to_trash", { count: String(n) }),
+            (n) => t("common.spam_emails_moved_to_trash", { count: n }),
             "trash",
           ),
       },
@@ -641,26 +638,26 @@ export function CommandPalette({
         category: "actions",
         keywords: ["sync", "update", "fetch"],
         action: () => {
-          window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
+          emit_mail_changed();
           on_close();
         },
       },
       {
         id: "toggle_theme",
         label:
-          theme_preference === "dark"
+          theme === "dark"
             ? t("mail.switch_to_light")
             : t("mail.switch_to_dark"),
         description: t("mail.toggle_theme"),
-        icon: theme_preference === "dark" ? SunIcon : MoonIcon,
+        icon: theme === "dark" ? SunIcon : MoonIcon,
         category: "settings",
         keywords: ["dark", "light", "appearance"],
         action: () => {
-          const new_theme = theme_preference === "dark" ? "light" : "dark";
+          const new_theme = theme === "dark" ? "light" : "dark";
 
           set_theme_preference(new_theme);
           update_preferences(
-            build_theme_fields_update(preferences, { theme: new_theme }),
+            build_theme_mode_update(preferences, new_theme),
             true,
           );
           on_close();
@@ -713,7 +710,7 @@ export function CommandPalette({
       on_compose,
       on_settings,
       on_shortcuts,
-      theme_preference,
+      theme,
       set_theme_preference,
       preferences,
       update_preferences,
@@ -763,8 +760,16 @@ export function CommandPalette({
     if (is_open) {
       set_query("");
       set_selected_index(0);
-      setTimeout(() => input_ref.current?.focus(), FOCUS_DELAY_MS);
+
+      const focus_timer = setTimeout(
+        () => input_ref.current?.focus(),
+        FOCUS_DELAY_MS,
+      );
+
+      return () => clearTimeout(focus_timer);
     }
+
+    return undefined;
   }, [is_open]);
 
   useEffect(() => {
@@ -780,6 +785,8 @@ export function CommandPalette({
       selected_el?.scrollIntoView({ block: "nearest" });
     }
   }, [selected_index, flat_commands.length]);
+
+  use_escape_layer(is_open, on_close, "command_palette");
 
   const handle_keydown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -815,139 +822,189 @@ export function CommandPalette({
     view: t("mail.category_view"),
   };
 
+  const run_empty_trash = async () => {
+    set_confirm_empty_trash_open(false);
+    set_loading_action("empty_trash");
+    try {
+      const result = await empty_trash();
+
+      if (result.data) {
+        const count = result.data.deleted_count;
+
+        emit_mail_changed();
+        show_action_toast({
+          message:
+            count > 0
+              ? t("common.emails_permanently_deleted", { count: count })
+              : t("common.trash_already_empty"),
+          action_type: "trash",
+          email_ids: [],
+        });
+      } else {
+        emit_mail_changed();
+        show_toast(t("common.trash_empty_failed"), "error");
+      }
+      on_close();
+    } catch {
+      emit_mail_changed();
+      show_toast(t("common.trash_empty_failed"), "error");
+      on_close();
+    } finally {
+      set_loading_action(null);
+    }
+  };
+
   return (
-    <AnimatePresence>
-      {is_open && (
-        <motion.div
-          animate={{ opacity: 1 }}
-          className="fixed inset-0 z-[60] flex items-start justify-center pt-[15vh]"
-          exit={{ opacity: 0 }}
-          initial={reduce_motion ? false : { opacity: 0 }}
-          transition={{ duration: reduce_motion ? 0 : 0.15 }}
-        >
+    <>
+      <ConfirmationModal
+        confirm_text={t("mail.empty_trash")}
+        is_open={confirm_empty_trash_open}
+        message={t("mail.empty_trash_confirmation")}
+        title={t("mail.empty_trash_question")}
+        variant="danger"
+        on_cancel={() => set_confirm_empty_trash_open(false)}
+        on_confirm={run_empty_trash}
+      />
+      <AnimatePresence>
+        {is_open && (
           <motion.div
-            className="absolute inset-0 bg-black/50 backdrop-blur-md"
-            onClick={on_close}
-          />
-          <motion.div
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            className="relative w-full max-w-xl rounded-xl overflow-hidden shadow-2xl bg-surf-primary border border-edge-secondary"
-            exit={{ opacity: 0, scale: 0.95, y: -10 }}
-            initial={
-              reduce_motion ? false : { opacity: 0, scale: 0.95, y: -20 }
-            }
-            transition={{ duration: reduce_motion ? 0 : 0.2, ease: "easeOut" }}
+            animate={{ opacity: 1 }}
+            className="fixed inset-0 z-[60] flex items-start justify-center pt-[15vh]"
+            exit={{ opacity: 0 }}
+            initial={reduce_motion ? false : { opacity: 0 }}
+            transition={{ duration: reduce_motion ? 0 : 0.15 }}
           >
-            <div className="flex items-center gap-3 px-4 py-3 border-b border-edge-secondary">
-              <CommandLineIcon className="w-5 h-5 flex-shrink-0 text-txt-muted" />
-              <Input
-                ref={input_ref}
-                className="flex-1 bg-transparent border-none"
-                placeholder={t("common.type_command_or_search")}
-                type="text"
-                value={query}
-                onChange={(e) => set_query(e.target.value)}
-                onKeyDown={handle_keydown}
-              />
-              <kbd className="px-1.5 py-0.5 rounded text-[11px] font-medium bg-surf-tertiary text-txt-muted border border-edge-secondary">
-                ESC
-              </kbd>
-            </div>
-
-            <div
-              ref={list_ref}
-              className="max-h-[400px] overflow-y-auto py-2"
-              style={{ scrollbarWidth: "thin" }}
+            <motion.div
+              className="absolute inset-0 bg-black/50 backdrop-blur-md"
+              onClick={on_close}
+            />
+            <motion.div
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              className="relative w-full max-w-xl rounded-xl overflow-hidden shadow-2xl bg-surf-primary border border-edge-secondary"
+              exit={{ opacity: 0, scale: 0.95, y: -10 }}
+              initial={
+                reduce_motion ? false : { opacity: 0, scale: 0.95, y: -20 }
+              }
+              transition={{
+                duration: reduce_motion ? 0 : 0.2,
+                ease: "easeOut",
+              }}
             >
-              {flat_commands.length === 0 ? (
-                <div className="px-4 py-8 text-center">
-                  <p className="text-[13px] text-txt-muted">
-                    {t("common.no_commands_found")}
-                  </p>
-                </div>
-              ) : (
-                Object.entries(grouped_commands).map(([category, cmds]) => {
-                  if (cmds.length === 0) return null;
-                  const start_index = flat_commands.findIndex(
-                    (c) => c.id === cmds[0].id,
-                  );
+              <div className="flex items-center gap-3 px-4 py-3 border-b border-edge-secondary">
+                <CommandLineIcon className="w-5 h-5 flex-shrink-0 text-txt-muted" />
+                <Input
+                  ref={input_ref}
+                  className="flex-1 bg-transparent border-none"
+                  placeholder={t("common.type_command_or_search")}
+                  type="text"
+                  value={query}
+                  onChange={(e) => set_query(e.target.value)}
+                  onKeyDown={handle_keydown}
+                />
+                <kbd className="px-1.5 py-0.5 rounded text-[11px] font-medium bg-surf-tertiary text-txt-muted border border-edge-secondary">
+                  ESC
+                </kbd>
+              </div>
 
-                  return (
-                    <div key={category} className="mb-2">
-                      <div className="px-4 py-1.5 text-[11px] font-medium uppercase tracking-wider text-txt-muted">
-                        {category_labels[category]}
-                      </div>
-                      {cmds.map((cmd, idx) => {
-                        const global_index = start_index + idx;
-                        const is_selected = selected_index === global_index;
-                        const is_this_loading = loading_action === cmd.id;
-                        const Icon = cmd.icon;
+              <div
+                ref={list_ref}
+                className="max-h-[400px] overflow-y-auto py-2"
+                style={{ scrollbarWidth: "thin" }}
+              >
+                {flat_commands.length === 0 ? (
+                  <div className="px-4 py-8 text-center">
+                    <p className="text-[13px] text-txt-muted">
+                      {t("common.no_commands_found")}
+                    </p>
+                  </div>
+                ) : (
+                  Object.entries(grouped_commands).map(([category, cmds]) => {
+                    if (cmds.length === 0) return null;
+                    const start_index = flat_commands.findIndex(
+                      (c) => c.id === cmds[0].id,
+                    );
 
-                        return (
-                          <button
-                            key={cmd.id}
-                            className={`w-full flex items-center gap-3 px-4 py-2 text-left transition-colors ${is_selected ? "bg-surf-secondary" : "bg-transparent"}`}
-                            data-index={global_index}
-                            disabled={!!loading_action}
-                            onClick={() => !loading_action && cmd.action()}
-                            onMouseEnter={() =>
-                              set_selected_index(global_index)
-                            }
-                          >
-                            <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 bg-surf-tertiary">
-                              {is_this_loading ? (
-                                <Spinner
-                                  className="text-txt-secondary"
-                                  size="sm"
-                                />
-                              ) : (
-                                <Icon className="w-4 h-4 text-txt-secondary" />
-                              )}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-[13px] font-medium truncate text-txt-primary">
-                                {cmd.label}
-                              </p>
-                              {cmd.description && (
-                                <p className="text-[11px] truncate text-txt-muted">
-                                  {cmd.description}
+                    return (
+                      <div key={category} className="mb-2">
+                        <div className="px-4 py-1.5 text-[11px] font-medium uppercase tracking-wider text-txt-muted">
+                          {category_labels[category]}
+                        </div>
+                        {cmds.map((cmd, idx) => {
+                          const global_index = start_index + idx;
+                          const is_selected = selected_index === global_index;
+                          const is_this_loading = loading_action === cmd.id;
+                          const Icon = cmd.icon;
+
+                          return (
+                            <button
+                              key={cmd.id}
+                              className={`w-full flex items-center gap-3 px-4 py-2 text-start transition-colors ${is_selected ? "bg-surf-secondary" : "bg-transparent"}`}
+                              data-index={global_index}
+                              disabled={!!loading_action}
+                              onClick={() => !loading_action && cmd.action()}
+                              onMouseEnter={() =>
+                                set_selected_index(global_index)
+                              }
+                            >
+                              <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 bg-surf-tertiary">
+                                {is_this_loading ? (
+                                  <Spinner
+                                    className="text-txt-secondary"
+                                    size="sm"
+                                  />
+                                ) : (
+                                  <Icon className="w-4 h-4 text-txt-secondary" />
+                                )}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-[13px] font-medium truncate text-txt-primary">
+                                  {cmd.label}
                                 </p>
+                                {cmd.description && (
+                                  <p className="text-[11px] truncate text-txt-muted">
+                                    {cmd.description}
+                                  </p>
+                                )}
+                              </div>
+                              {cmd.shortcut && (
+                                <kbd className="px-1.5 py-0.5 rounded text-[10px] font-medium flex-shrink-0 bg-surf-tertiary text-txt-muted border border-edge-secondary">
+                                  {cmd.shortcut}
+                                </kbd>
                               )}
-                            </div>
-                            {cmd.shortcut && (
-                              <kbd className="px-1.5 py-0.5 rounded text-[10px] font-medium flex-shrink-0 bg-surf-tertiary text-txt-muted border border-edge-secondary">
-                                {cmd.shortcut}
-                              </kbd>
-                            )}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  );
-                })
-              )}
-            </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    );
+                  })
+                )}
+              </div>
 
-            <div className="flex items-center justify-between px-4 py-2 text-[11px] border-t border-edge-secondary text-txt-muted">
-              <div className="flex items-center gap-3">
-                <span className="flex items-center gap-1">
-                  <kbd className="px-1 py-0.5 rounded bg-surf-tertiary">↑↓</kbd>
-                  {t("common.navigate")}
-                </span>
-                <span className="flex items-center gap-1">
-                  <kbd className="px-1 py-0.5 rounded bg-surf-tertiary">↵</kbd>
-                  {t("mail.select")}
+              <div className="flex items-center justify-between px-4 py-2 text-[11px] border-t border-edge-secondary text-txt-muted">
+                <div className="flex items-center gap-3">
+                  <span className="flex items-center gap-1">
+                    <kbd className="px-1 py-0.5 rounded bg-surf-tertiary">
+                      ↑↓
+                    </kbd>
+                    {t("common.navigate")}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <kbd className="px-1 py-0.5 rounded bg-surf-tertiary">
+                      ↵
+                    </kbd>
+                    {t("mail.select")}
+                  </span>
+                </div>
+                <span>
+                  {t("common.commands_count", {
+                    count: flat_commands.length,
+                  })}
                 </span>
               </div>
-              <span>
-                {t("common.commands_count", {
-                  count: String(flat_commands.length),
-                })}
-              </span>
-            </div>
+            </motion.div>
           </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+        )}
+      </AnimatePresence>
+    </>
   );
 }

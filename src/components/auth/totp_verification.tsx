@@ -81,6 +81,10 @@ export function TotpVerification({
         set_error(t("auth.too_many_2fa_attempts"));
       } else if (kind === "pending_expired") {
         set_error(t("auth.sign_in_session_expired"));
+      } else if (kind === "invalid_backup_code") {
+        set_error(t("auth.invalid_backup_code"));
+      } else if (kind === "invalid_code") {
+        set_error(t("settings.invalid_2fa_code"));
       } else {
         set_error(response.error);
       }

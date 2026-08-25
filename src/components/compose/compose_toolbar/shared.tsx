@@ -19,17 +19,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { TranslationKey } from "@/lib/i18n/types";
-import type {  FontSizeLabel } from "@/hooks/use_editor";
+import type { FontSizeLabel } from "@/hooks/use_editor";
 import type { ComposeToolbarState } from "@/components/compose/compose_shared";
 
-import {
-  useRef,
-  useEffect,
-  useLayoutEffect,
-  useCallback,
-} from "react";
-
-
+import { useRef, useEffect, useLayoutEffect, useCallback } from "react";
 
 export const FORMAT_BAR_STORAGE_KEY = "aster_compose_format_bar_open";
 
@@ -141,13 +134,15 @@ export const PRESET_COLORS = [
   "#c27ba0",
 ];
 
-export const FONT_SIZE_OPTIONS: { value: FontSizeLabel; label_key: TranslationKey }[] =
-  [
-    { value: "small", label_key: "settings.font_size_small" },
-    { value: "normal", label_key: "settings.font_size_default" },
-    { value: "large", label_key: "settings.font_size_large" },
-    { value: "huge", label_key: "settings.font_size_extra_large" },
-  ];
+export const FONT_SIZE_OPTIONS: {
+  value: FontSizeLabel;
+  label_key: TranslationKey;
+}[] = [
+  { value: "small", label_key: "settings.font_size_small" },
+  { value: "normal", label_key: "settings.font_size_default" },
+  { value: "large", label_key: "settings.font_size_large" },
+  { value: "huge", label_key: "settings.font_size_extra_large" },
+];
 
 export interface ToolbarButtonProps {
   onClick?: () => void;
@@ -218,4 +213,3 @@ export function use_frozen_selection(
 
   return { freeze_selection, apply_with_frozen_selection };
 }
-

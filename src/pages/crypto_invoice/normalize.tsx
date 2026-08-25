@@ -24,7 +24,6 @@ import {
   type CryptoNativeInvoiceStatus,
 } from "@/services/api/billing";
 
-
 export function decimal_matches(candidate: string, expected: string): boolean {
   const left = Number(candidate);
   const right = Number(expected);
@@ -48,7 +47,9 @@ export function string_list_of(value: unknown): string[] {
   return value.filter((entry): entry is string => typeof entry === "string");
 }
 
-export function normalize_invoice(raw: unknown): CryptoNativeInvoiceStatus | null {
+export function normalize_invoice(
+  raw: unknown,
+): CryptoNativeInvoiceStatus | null {
   if (!raw || typeof raw !== "object") return null;
 
   const source = raw as Record<string, unknown>;
@@ -121,4 +122,3 @@ export function atomic_matches(candidate: string, expected: string): boolean {
     return false;
   }
 }
-

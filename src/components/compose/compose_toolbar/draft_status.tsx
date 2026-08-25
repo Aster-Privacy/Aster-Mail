@@ -18,14 +18,13 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { } from "@/lib/i18n/types";
+import type {} from "@/lib/i18n/types";
 import type { ComposeToolbarState } from "@/components/compose/compose_shared";
 
 import { motion, AnimatePresence } from "framer-motion";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { format_last_saved } from "@/components/compose/compose_shared";
-
 
 export function DraftStatusIndicator({
   compose,
@@ -119,4 +118,3 @@ export function DraftStatusIndicator({
     </AnimatePresence>
   );
 }
-

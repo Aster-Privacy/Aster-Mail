@@ -25,6 +25,7 @@ import {
   is_repeat_send,
   SEND_LOCK_STALL_MS,
   SEND_REPEAT_GUARD_MS,
+  is_attachment_set_incomplete,
 } from "@/components/compose/send_lock";
 
 describe("can_acquire_send_lock", () => {
@@ -71,5 +72,19 @@ describe("is_repeat_send", () => {
 
   it("allows an immediate retry after a failure clears the marker", () => {
     expect(is_repeat_send(0, 5100)).toBe(false);
+  });
+});
+
+describe("is_attachment_set_incomplete", () => {
+  it("blocks a send while forwarded attachments are still loading", () => {
+    expect(is_attachment_set_incomplete(true)).toBe(true);
+  });
+
+  it("allows a send once forwarded attachments have loaded", () => {
+    expect(is_attachment_set_incomplete(false)).toBe(false);
+  });
+
+  it("allows a send when the compose was never a forward", () => {
+    expect(is_attachment_set_incomplete(undefined)).toBe(false);
   });
 });

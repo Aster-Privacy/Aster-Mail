@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { copy_text_or_throw } from "@/utils/copy_text";
 import { Component, ReactNode } from "react";
 import { ClipboardDocumentIcon } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
@@ -40,6 +41,7 @@ interface ErrorBoundaryProps {
 interface ErrorBoundaryState {
   has_error: boolean;
   error: Error | null;
+  is_recovering: boolean;
 }
 
 export class ErrorBoundary extends Component<
@@ -48,16 +50,16 @@ export class ErrorBoundary extends Component<
 > {
   constructor(props: ErrorBoundaryProps) {
     super(props);
-    this.state = { has_error: false, error: null };
+    this.state = { has_error: false, error: null, is_recovering: false };
   }
 
   static getDerivedStateFromError(error: Error): ErrorBoundaryState {
-    return { has_error: true, error };
+    return { has_error: true, error, is_recovering: false };
   }
 
   componentDidCatch(error: Error, error_info: React.ErrorInfo): void {
     if (is_chunk_load_error(error_message_of(error))) {
-      trigger_chunk_recovery();
+      if (trigger_chunk_recovery()) this.setState({ is_recovering: true });
     }
 
     this.props.on_error?.(error, error_info);
@@ -65,7 +67,7 @@ export class ErrorBoundary extends Component<
 
   render(): ReactNode {
     if (this.state.has_error) {
-      if (is_chunk_load_error(error_message_of(this.state.error))) {
+      if (this.state.is_recovering) {
         return <ChunkRecoveryFallback />;
       }
 
@@ -78,7 +80,13 @@ export class ErrorBoundary extends Component<
       return (
         <ErrorBoundaryFallback
           error={error}
-          on_retry={() => this.setState({ has_error: false, error: null })}
+          on_retry={() =>
+            this.setState({
+              has_error: false,
+              error: null,
+              is_recovering: false,
+            })
+          }
         />
       );
     }
@@ -139,7 +147,7 @@ function ErrorDetails({ error }: { error: Error }) {
     const error_text = `${error.message}${error.stack ? `\n\n${error.stack}` : ""}`;
 
     try {
-      await navigator.clipboard.writeText(error_text);
+      await copy_text_or_throw(error_text);
       show_toast(t("common.error_copied_to_clipboard"), "success");
     } catch (error) {
       if (import.meta.env.DEV) console.error(error);

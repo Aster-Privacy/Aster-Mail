@@ -55,7 +55,10 @@ import {
   trash_thread,
 } from "@/services/api/mail";
 import { bulk_update_metadata_by_ids } from "@/services/crypto/mail_metadata";
-import { invalidate_mail_cache, remove_email_from_view_cache } from "@/hooks/email_list_cache";
+import {
+  invalidate_mail_cache,
+  remove_email_from_view_cache,
+} from "@/hooks/email_list_cache";
 
 interface UseDeleteActionsOptions {
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
@@ -72,6 +75,7 @@ interface UseDeleteActionsOptions {
   schedule_delete_drafts: (ids: string[]) => () => void;
   preferences: {
     confirm_before_delete: boolean;
+    conversation_grouping?: boolean;
   };
   update_preference: <K extends keyof UserPreferences>(
     key: K,
@@ -196,9 +200,11 @@ export function use_delete_actions({
         action_type: "trash",
         email_ids: succeeded_ids,
         on_undo: async () => {
-          await bulk_update_metadata_by_ids(undo_ids, {
+          const undo_result = await bulk_update_metadata_by_ids(undo_ids, {
             is_trashed: false,
           });
+
+          if (!undo_result.success) throw new Error("undo trash failed");
           window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
         },
       });
@@ -222,24 +228,25 @@ export function use_delete_actions({
   const handle_toolbar_delete = useCallback(async (): Promise<void> => {
     const is_trash_view = current_view === "trash";
 
-    if (!preferences.confirm_before_delete) {
-      const ids = get_selected_ids(email_state.emails);
-
-      if (is_trash_view) {
-        await run_permanent_delete(ids);
-      } else if (is_drafts_view) {
-        run_delete_drafts(ids);
-      } else {
-        await run_move_to_trash(ids);
-      }
-    } else {
+    if (preferences.confirm_before_delete || is_trash_view) {
       set_confirmations((prev) => ({ ...prev, show_delete: true }));
+
+      return;
     }
+
+    const ids = get_selected_ids(email_state.emails);
+
+    if (is_drafts_view) {
+      run_delete_drafts(ids);
+
+      return;
+    }
+
+    await run_move_to_trash(ids);
   }, [
     preferences.confirm_before_delete,
     get_selected_ids,
     email_state.emails,
-    run_permanent_delete,
     run_move_to_trash,
     run_delete_drafts,
     is_drafts_view,
@@ -328,6 +335,14 @@ export function use_delete_actions({
           ? email.grouped_email_ids
           : [email.id];
 
+      const thread_scope_token =
+        email.thread_token &&
+        (grouped_ids.length > 1 ||
+          (preferences.conversation_grouping !== false &&
+            (email.thread_message_count ?? 0) > 1))
+          ? email.thread_token
+          : null;
+
       if (grouped_ids.length > 1) {
         remove_emails(grouped_ids);
       } else {
@@ -335,8 +350,8 @@ export function use_delete_actions({
       }
       apply_stat_deltas(deltas);
 
-      if (email.thread_token) {
-        const result = await trash_thread(email.thread_token, true);
+      if (thread_scope_token) {
+        const result = await trash_thread(thread_scope_token, true);
 
         if (result.data) {
           show_action_toast({
@@ -345,34 +360,45 @@ export function use_delete_actions({
             email_ids: grouped_ids,
             on_undo: async () => {
               revert_stat_deltas(deltas);
-              await trash_thread(email.thread_token!, false);
+              await trash_thread(thread_scope_token, false);
               window.dispatchEvent(
                 new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH),
               );
             },
           });
-          window.dispatchEvent(
-            new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH),
-          );
+          window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
+        } else {
+          revert_stat_deltas(deltas);
+          window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
+          show_toast(t("common.failed_to_delete_emails"), "error");
         }
       } else {
         const result = await bulk_update_metadata_by_ids(grouped_ids, {
           is_trashed: true,
-        });
+        }).catch(() => null);
 
-        if (result.success) {
+        if (result?.success) {
           show_action_toast({
-            message: t("common.conversation_moved_to_trash"),
+            message:
+              grouped_ids.length > 1
+                ? t("common.conversation_moved_to_trash")
+                : t("common.message_moved_to_trash"),
             action_type: "trash",
             email_ids: grouped_ids,
             on_undo: async () => {
               revert_stat_deltas(deltas);
-              await bulk_update_metadata_by_ids(grouped_ids, { is_trashed: false });
+              await bulk_update_metadata_by_ids(grouped_ids, {
+                is_trashed: false,
+              });
               window.dispatchEvent(
                 new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH),
               );
             },
           });
+        } else {
+          revert_stat_deltas(deltas);
+          window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
+          show_toast(t("common.failed_to_delete_emails"), "error");
         }
       }
     }
@@ -390,6 +416,7 @@ export function use_delete_actions({
     is_drafts_view,
     schedule_delete_drafts,
     update_preference,
+    preferences.conversation_grouping,
     save_now,
     t,
     set_show_single_delete_confirm,

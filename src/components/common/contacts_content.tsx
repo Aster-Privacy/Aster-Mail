@@ -109,26 +109,26 @@ export function ContactsContent({
         />
 
         {state.selected_contact || state.is_creating_new ? (
-        <ContactDetailPanel
-          is_creating_new={state.is_creating_new}
-          is_submitting={state.is_submitting}
-          on_cancel_create={state.handle_cancel_create}
-          on_compose_email={state.handle_compose_email}
-          on_copy={state.handle_copy}
-          on_delete_request={state.handle_delete_request}
-          on_edit={state.handle_edit}
-          on_dismiss={() => {
-            state.set_selected_contact(null);
-            state.handle_cancel_create();
-          }}
-          on_inline_create={state.handle_inline_create}
-          on_inline_save={state.handle_inline_save}
-          on_toggle_favorite={state.handle_toggle_favorite_single}
-          selected_contact={state.selected_contact}
-          set_show_history={state.set_show_history}
-          show_history={state.show_history}
-          t={state.t}
-        />
+          <ContactDetailPanel
+            is_creating_new={state.is_creating_new}
+            is_submitting={state.is_submitting}
+            on_cancel_create={state.handle_cancel_create}
+            on_compose_email={state.handle_compose_email}
+            on_copy={state.handle_copy}
+            on_delete_request={state.handle_delete_request}
+            on_dismiss={() => {
+              state.set_selected_contact(null);
+              state.handle_cancel_create();
+            }}
+            on_edit={state.handle_edit}
+            on_inline_create={state.handle_inline_create}
+            on_inline_save={state.handle_inline_save}
+            on_toggle_favorite={state.handle_toggle_favorite_single}
+            selected_contact={state.selected_contact}
+            set_show_history={state.set_show_history}
+            show_history={state.show_history}
+            t={state.t}
+          />
         ) : (
           <div className="hidden md:flex flex-1 min-h-0 min-w-0 flex-col items-center justify-center px-6 text-center">
             <UserCircleIcon className="w-10 h-10 mb-3 text-txt-muted" />

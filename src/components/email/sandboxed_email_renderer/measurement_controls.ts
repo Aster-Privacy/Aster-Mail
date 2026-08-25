@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { Dispatch, SetStateAction } from "react";
+import type { SandboxedEmailRendererProps } from "./renderer";
 
 import {
   FIT_SLACK_PX,
@@ -28,7 +29,6 @@ import {
   remember_measured_height,
   should_recover_collapsed_height,
 } from "./helpers";
-import type { SandboxedEmailRendererProps } from "./renderer";
 
 export interface measurement_context {
   iframe: HTMLIFrameElement;
@@ -41,7 +41,9 @@ export interface measurement_context {
   raf_ref: { current: number };
   remeasure_ref: { current: (() => void) | null };
   stable_timer_ref: { current: ReturnType<typeof setTimeout> | null };
-  on_document_ready_ref: { current: SandboxedEmailRendererProps["on_document_ready"] };
+  on_document_ready_ref: {
+    current: SandboxedEmailRendererProps["on_document_ready"];
+  };
   set_height_ready: Dispatch<SetStateAction<boolean>>;
   set_iframe_height: Dispatch<SetStateAction<string>>;
 }
@@ -113,10 +115,7 @@ export function build_measurement_controls(ctx: measurement_context) {
     if (available <= 0) return;
 
     body.style.setProperty("zoom", "1");
-    const natural = Math.max(
-      body.scrollWidth,
-      doc.documentElement.scrollWidth,
-    );
+    const natural = Math.max(body.scrollWidth, doc.documentElement.scrollWidth);
     const fitted = fit_zoom_for(natural, available, base_zoom_ref.current);
 
     body.style.setProperty("zoom", String(fitted));
@@ -158,8 +157,7 @@ export function build_measurement_controls(ctx: measurement_context) {
 
     const rect = body.getBoundingClientRect();
     const body_zoom =
-      parseFloat(iframe.contentWindow?.getComputedStyle(body).zoom || "1") ||
-      1;
+      parseFloat(iframe.contentWindow?.getComputedStyle(body).zoom || "1") || 1;
     const scroll_height = Math.min(
       body.scrollHeight,
       body.scrollHeight * body_zoom,
@@ -172,13 +170,25 @@ export function build_measurement_controls(ctx: measurement_context) {
       ? measure_content_bounds(body)
       : measured;
 
-    if (saved_html_h) html.style.setProperty("height", saved_html_h, saved_html_h_pri);
+    if (saved_html_h)
+      html.style.setProperty("height", saved_html_h, saved_html_h_pri);
     else html.style.removeProperty("height");
-    if (saved_html_minh) html.style.setProperty("min-height", saved_html_minh, saved_html_minh_pri);
+    if (saved_html_minh)
+      html.style.setProperty(
+        "min-height",
+        saved_html_minh,
+        saved_html_minh_pri,
+      );
     else html.style.removeProperty("min-height");
-    if (saved_body_h) body.style.setProperty("height", saved_body_h, saved_body_h_pri);
+    if (saved_body_h)
+      body.style.setProperty("height", saved_body_h, saved_body_h_pri);
     else body.style.removeProperty("height");
-    if (saved_body_minh) body.style.setProperty("min-height", saved_body_minh, saved_body_minh_pri);
+    if (saved_body_minh)
+      body.style.setProperty(
+        "min-height",
+        saved_body_minh,
+        saved_body_minh_pri,
+      );
     else body.style.removeProperty("min-height");
     iframe.style.height = saved_iframe_height;
     if (

@@ -128,7 +128,7 @@ export const WarningIcon = ({ color }: { color: string }) => (
 
 export const DocumentIcon = () => (
   <svg
-    className="h-4 w-4 mr-2"
+    className="h-4 w-4 me-2"
     fill="none"
     stroke="currentColor"
     strokeWidth={2}
@@ -144,7 +144,7 @@ export const DocumentIcon = () => (
 
 export const DownloadIcon = () => (
   <svg
-    className="h-4 w-4 mr-2"
+    className="h-4 w-4 me-2"
     fill="none"
     stroke="currentColor"
     strokeWidth={2}
@@ -178,7 +178,7 @@ export const Checkbox = ({ checked, disabled, onChange }: CheckboxProps) => (
 );
 
 export const Logo = () => (
-  <img alt="Logo" className="h-12" decoding="async" src="/text_logo.png" />
+  <img alt="Aster" className="h-12" decoding="async" src="/text_logo.png" />
 );
 
 export const UserCircleIcon = () => (
@@ -246,12 +246,12 @@ export const InputWithEndContent = ({
 }: InputWithEndContentProps) => (
   <div className={cn("relative", wrapper_class)}>
     <Input
-      className={cn(end_content && "pr-10", className)}
+      className={cn(end_content && "pe-10", className)}
       status={status}
       {...props}
     />
     {end_content && (
-      <div className="absolute right-3 top-1/2 -translate-y-1/2">
+      <div className="absolute end-3 top-1/2 -translate-y-1/2">
         {end_content}
       </div>
     )}

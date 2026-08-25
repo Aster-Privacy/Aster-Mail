@@ -18,11 +18,10 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { motion, } from "framer-motion";
+import { motion } from "framer-motion";
 
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
-
 
 export type RecoveryStep =
   | "email"
@@ -90,7 +89,7 @@ export const MethodCard = ({
   on_click,
 }: MethodCardProps) => (
   <button
-    className="w-full rounded-lg border p-4 text-left transition-opacity hover:opacity-85 bg-surf-tertiary border-edge-secondary"
+    className="w-full rounded-lg border p-4 text-start transition-opacity hover:opacity-85 bg-surf-tertiary border-edge-secondary"
     type="button"
     onClick={on_click}
   >
@@ -135,7 +134,11 @@ export const CopyIcon = () => (
   </svg>
 );
 
-export const PasswordStrengthIndicator = ({ password }: { password: string }) => {
+export const PasswordStrengthIndicator = ({
+  password,
+}: {
+  password: string;
+}) => {
   const { t } = use_i18n();
 
   const get_strength = () => {
@@ -216,11 +219,10 @@ export const PasswordStrengthIndicator = ({ password }: { password: string }) =>
         </span>
       </div>
       {strength.suggestions.length > 0 && strength.level < 3 && (
-        <p className="text-xs mt-1.5 text-left text-txt-muted">
+        <p className="text-xs mt-1.5 text-start text-txt-muted">
           {strength.suggestions[0]}
         </p>
       )}
     </div>
   );
 };
-

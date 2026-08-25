@@ -18,14 +18,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { DecryptedEnvelope, MailItemMetadata } from "@/types/email";
+import type { MailItem } from "@/services/api/mail";
+
 import { describe, it, expect } from "vitest";
 
 import { build_single_thread_message } from "@/components/email/shared/build_email_from_envelope";
 import { build_reply_recipient } from "@/components/email/build_reply_recipient";
 import { matches_query } from "@/hooks/use_search";
 import { parse_search_query } from "@/utils/search_operators";
-import type { DecryptedEnvelope, MailItemMetadata } from "@/types/email";
-import type { MailItem } from "@/services/api/mail";
 
 const ALIAS_EMAIL = "reverse_alias_718jakwi@simplelogin.co";
 const ORIGINAL_EMAIL = "hi@example.com";
@@ -184,9 +185,7 @@ describe("forwarded reverse-alias end-to-end flow", () => {
         cc: [],
         bcc: [],
         sent_at: "2026-05-30T00:00:00Z",
-        raw_headers: [
-          { name: "From", value: "Real Person <real@gmail.com>" },
-        ],
+        raw_headers: [{ name: "From", value: "Real Person <real@gmail.com>" }],
       },
       "hi",
       undefined,

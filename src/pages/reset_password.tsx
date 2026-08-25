@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { show_toast } from "@/components/toast/simple_toast";
+import { copy_text_or_throw } from "@/utils/copy_text";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -64,8 +66,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { use_i18n } from "@/lib/i18n/context";
-
-import { ignore_error } from "@/lib/ignore_error";
+import { user_facing_error } from "@/utils/user_facing_error";
 
 type ResetStep =
   | "consent"
@@ -206,7 +207,7 @@ const PasswordStrengthIndicator = ({ password }: { password: string }) => {
         </span>
       </div>
       {strength.suggestions.length > 0 && strength.level < 3 && (
-        <p className="text-xs mt-1.5 text-left text-txt-muted">
+        <p className="text-xs mt-1.5 text-start text-txt-muted">
           {strength.suggestions[0]}
         </p>
       )}
@@ -228,10 +229,7 @@ export default function ResetPasswordPage() {
   );
 
   const account_email = useMemo(
-    () =>
-      (search_params.get("email") || "")
-        .trim()
-        .toLowerCase(),
+    () => (search_params.get("email") || "").trim().toLowerCase(),
     [search_params],
   );
 
@@ -400,7 +398,7 @@ export default function ResetPasswordPage() {
       set_step("new_codes");
     } catch (err) {
       await timing_safe_delay();
-      set_error(err instanceof Error ? err.message : t("auth.recovery_failed"));
+      set_error(user_facing_error(err, t("auth.recovery_failed")));
       set_step("password");
     }
   };
@@ -409,20 +407,31 @@ export default function ResetPasswordPage() {
     const codes_text = new_recovery_codes.join("\n");
 
     try {
-      await navigator.clipboard.writeText(codes_text);
+      await copy_text_or_throw(codes_text);
       set_copy_success(true);
       setTimeout(() => set_copy_success(false), COPY_FEEDBACK_MS);
-    } catch (caught) {
-      ignore_error("pages/reset_password:handle_copy_codes", caught);
+    } catch {
+      show_toast(t("common.failed_to_copy"), "error");
     }
   };
 
+  const recovery_doc_email =
+    account_email || consent_email.trim().toLowerCase() || "user@local";
+
   const handle_download_pdf = async () => {
-    await generate_recovery_pdf("reset", new_recovery_codes, t);
+    try {
+      await generate_recovery_pdf(recovery_doc_email, new_recovery_codes, t);
+    } catch {
+      show_toast(t("common.something_went_wrong_try_again"), "error");
+    }
   };
 
   const handle_download_txt = async () => {
-    await download_recovery_text("reset", new_recovery_codes, t);
+    try {
+      await download_recovery_text(recovery_doc_email, new_recovery_codes, t);
+    } catch {
+      show_toast(t("common.something_went_wrong_try_again"), "error");
+    }
   };
 
   const render_step_content = () => {
@@ -452,7 +461,7 @@ export default function ResetPasswordPage() {
             </AnimatePresence>
 
             <div
-              className={`w-full ${error ? "mt-4" : "mt-6"} space-y-3 text-left`}
+              className={`w-full ${error ? "mt-4" : "mt-6"} space-y-3 text-start`}
             >
               <div
                 className="rounded-lg border p-3"
@@ -619,7 +628,9 @@ export default function ResetPasswordPage() {
                 status={error ? "error" : "default"}
                 type={is_confirm_visible ? "text" : "password"}
                 value={confirm_password}
-                onChange={(e) => set_confirm_password(clamp_password(e.target.value))}
+                onChange={(e) =>
+                  set_confirm_password(clamp_password(e.target.value))
+                }
                 onKeyDown={(e) => e["key"] === "Enter" && handle_submit()}
               />
             </div>

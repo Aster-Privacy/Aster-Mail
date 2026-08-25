@@ -34,12 +34,14 @@ interface MobileBottomSheetProps {
   is_open: boolean;
   on_close: () => void;
   children: ReactNode;
+  aria_label?: string;
 }
 
 export const MobileBottomSheet = memo(function MobileBottomSheet({
   is_open,
   on_close,
   children,
+  aria_label,
 }: MobileBottomSheetProps) {
   const { safe_area_insets } = use_platform();
   const reduce_motion = use_should_reduce_motion();
@@ -69,10 +71,9 @@ export const MobileBottomSheet = memo(function MobileBottomSheet({
           <motion.div
             ref={dialog_ref}
             animate={{ y: 0 }}
+            aria-label={aria_label}
             aria-modal="true"
             className="fixed inset-x-0 bottom-0 z-[61] flex max-h-[85vh] flex-col rounded-t-2xl bg-[var(--bg-primary)] outline-none"
-            role="dialog"
-            tabIndex={-1}
             drag="y"
             dragConstraints={{ top: 0 }}
             dragControls={drag_controls}
@@ -80,7 +81,9 @@ export const MobileBottomSheet = memo(function MobileBottomSheet({
             dragListener={false}
             exit={{ y: "100%" }}
             initial={reduce_motion ? false : { y: "100%" }}
+            role="dialog"
             style={{ paddingBottom: safe_area_insets.bottom }}
+            tabIndex={-1}
             transition={
               reduce_motion
                 ? { duration: 0 }

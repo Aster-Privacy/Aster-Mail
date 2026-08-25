@@ -60,7 +60,6 @@ vi.mock("@/hooks/use_search", () => ({
 const { SearchContentBanner } = await import("./search_content_banner");
 
 declare global {
-  // eslint-disable-next-line no-var
   var IS_REACT_ACT_ENVIRONMENT: boolean;
 }
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;

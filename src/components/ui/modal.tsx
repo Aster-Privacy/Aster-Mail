@@ -35,6 +35,7 @@ interface ModalProps {
   size?: "sm" | "md" | "lg" | "xl" | "2xl" | "full";
   show_close_button?: boolean;
   close_on_overlay?: boolean;
+  close_on_escape?: boolean;
   z_index?: number;
 }
 
@@ -74,13 +75,19 @@ export function Modal({
   size = "md",
   show_close_button = true,
   close_on_overlay = true,
+  close_on_escape = true,
   z_index,
 }: ModalProps) {
   const reduce_motion = use_should_reduce_motion();
   const instance_id = React.useId().replace(/:/g, "");
 
   const { dialog_ref, handle_backdrop_pointer_down } =
-    use_dialog_shell<HTMLDivElement>(is_open, on_close, "modal");
+    use_dialog_shell<HTMLDivElement>(
+      is_open,
+      on_close,
+      "modal",
+      close_on_escape,
+    );
 
   const label_ids = React.useMemo(
     () => ({
@@ -111,24 +118,24 @@ export function Modal({
 
           <motion.div
             ref={dialog_ref}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
             aria-describedby={label_ids.description_id}
             aria-labelledby={label_ids.title_id}
             aria-modal="true"
-            role="dialog"
-            tabIndex={-1}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
             className={cn(
               "relative w-full mx-4 my-4 rounded-xl border flex flex-col max-h-[calc(100dvh-2rem)] overflow-y-auto overscroll-contain outline-none focus:outline-none focus-visible:outline-none",
               SIZE_CLASSES[size],
             )}
             exit={{ opacity: 0, scale: 0.97, y: 4 }}
             initial={reduce_motion ? false : { opacity: 0, scale: 0.97, y: 4 }}
+            role="dialog"
             style={{
               backgroundColor: "var(--modal-bg)",
               borderColor: "var(--border-primary)",
               boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.35)",
               outline: "none",
             }}
+            tabIndex={-1}
             transition={{
               duration: reduce_motion ? 0 : 0.12,
               ease: [0.16, 1, 0.3, 1],
@@ -137,7 +144,7 @@ export function Modal({
           >
             {show_close_button && (
               <button
-                className="aster_modal_close absolute right-5 top-5 z-10 flex items-center justify-center rounded-[14px] transition-colors hover:bg-black/5 dark:hover:bg-white/10"
+                className="aster_modal_close absolute end-5 top-5 z-10 flex items-center justify-center rounded-[14px] transition-colors hover:bg-black/5 dark:hover:bg-white/10"
                 style={{ width: 28, height: 28, padding: 0 }}
                 type="button"
                 onClick={on_close}
@@ -160,7 +167,12 @@ export function Modal({
 
 export function ModalHeader({ children, className }: ModalHeaderProps) {
   return (
-    <div className={cn("aster_modal_header flex flex-col px-6 pt-6 pb-5 pr-12", className)}>
+    <div
+      className={cn(
+        "aster_modal_header flex flex-col px-6 pt-6 pb-5 pe-12",
+        className,
+      )}
+    >
       {children}
     </div>
   );
@@ -177,11 +189,11 @@ export function ModalTitle({
 
   return (
     <h3
-      id={labels?.title_id}
       className={cn(
         "aster_modal_title w-full text-base font-semibold leading-tight",
         className,
       )}
+      id={labels?.title_id}
       style={{ color: "var(--text-primary)" }}
     >
       {children}
@@ -200,8 +212,8 @@ export function ModalDescription({
 
   return (
     <p
-      id={labels?.description_id}
       className={cn("text-[13px] w-full mt-2.5 leading-relaxed", className)}
+      id={labels?.description_id}
       style={{ color: "var(--text-tertiary)" }}
     >
       {children}

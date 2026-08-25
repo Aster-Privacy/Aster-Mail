@@ -20,12 +20,12 @@
 //
 import type { DecryptedThreadMessage } from "@/types/thread";
 import type { MailItem } from "@/services/api/mail";
-import type { } from "@/services/api/multi_drafts";
-import type { } from "@/lib/html_sanitizer";
+import type {} from "@/services/api/multi_drafts";
+import type {} from "@/lib/html_sanitizer";
 import type { DecryptedEmail } from "@/components/email/use_email_viewer";
-import type { } from "@/components/email/hooks/preload_cache";
+import type {} from "@/components/email/hooks/preload_cache";
 
-import React, {    } from "react";
+import React from "react";
 import {
   XMarkIcon,
   NoSymbolIcon,
@@ -63,10 +63,8 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown_menu";
-
-import {
-  type ThreadMessagesListRef,
-} from "@/components/email/thread_message_block";
+import { type ThreadMessagesListRef } from "@/components/email/thread_message_block";
+import { app_locale } from "@/utils/date_format";
 
 export interface ViewerToolbarActionsProps {
   is_pinned: boolean;
@@ -189,8 +187,10 @@ export function ViewerToolbarActions({
     thread_message_count > 1
       ? t("mail.archive_conversation_count", { count: thread_message_count })
       : t("mail.archive");
-  const trash_label =
-    thread_message_count > 1
+  const is_trashed_item = !!(mail_item?.is_trashed || email?.is_trashed);
+  const trash_label = is_trashed_item
+    ? t("mail.delete_permanently")
+    : thread_message_count > 1
       ? t("mail.move_conversation_to_trash_count", {
           count: thread_message_count,
         })
@@ -247,8 +247,8 @@ export function ViewerToolbarActions({
         </Tooltip>
         {current_index != null && total_count != null && total_count > 0 && (
           <span className="tabular-nums whitespace-nowrap px-1 text-[13px] text-[var(--text-muted)]">
-            {(current_index + 1).toLocaleString()} {t("common.of")}{" "}
-            {total_count.toLocaleString()}
+            {(current_index + 1).toLocaleString(app_locale())} {t("common.of")}{" "}
+            {total_count.toLocaleString(app_locale())}
           </span>
         )}
         <Tooltip tip={t("mail.shortcut_next_email")}>
@@ -466,10 +466,10 @@ export function ViewerToolbarActions({
                       }}
                     >
                       {is_current && (
-                        <CheckIcon className="mr-0.5 h-3 w-3 flex-shrink-0" />
+                        <CheckIcon className="me-0.5 h-3 w-3 flex-shrink-0" />
                       )}
                       <span
-                        className="mr-1.5 h-2.5 w-2.5 rounded-full flex-shrink-0"
+                        className="me-1.5 h-2.5 w-2.5 rounded-full flex-shrink-0"
                         style={
                           folder.color.startsWith("#")
                             ? { backgroundColor: folder.color }
@@ -485,8 +485,8 @@ export function ViewerToolbarActions({
           ) : (
             <Tooltip tip={t("mail.move_to_folder")}>
               <Button
-                className={btn_base}
                 disabled
+                className={btn_base}
                 size="icon"
                 style={muted_style}
                 variant="ghost"
@@ -516,19 +516,19 @@ export function ViewerToolbarActions({
           <DropdownMenuItem onClick={on_read_toggle}>
             {is_read ? (
               <>
-                <EnvelopeIcon className="w-4 h-4 mr-2" />
+                <EnvelopeIcon className="w-4 h-4 me-2" />
                 {t("mail.mark_as_unread")}
               </>
             ) : (
               <>
-                <EnvelopeOpenIcon className="w-4 h-4 mr-2" />
+                <EnvelopeOpenIcon className="w-4 h-4 me-2" />
                 {t("mail.mark_as_read")}
               </>
             )}
           </DropdownMenuItem>
           <DropdownMenuItem onClick={on_pin_toggle}>
             <PinIcon
-              className={`w-4 h-4 mr-2 ${is_pinned ? "-rotate-[38deg] text-blue-500" : ""}`}
+              className={`w-4 h-4 me-2 ${is_pinned ? "-rotate-[38deg] text-blue-500" : ""}`}
               filled={is_pinned}
             />
             {is_pinned ? t("mail.unpin") : t("mail.pin_to_top")}
@@ -536,17 +536,17 @@ export function ViewerToolbarActions({
           <DropdownMenuSeparator />
           {is_spam && on_not_spam ? (
             <DropdownMenuItem disabled={is_spam_loading} onClick={on_not_spam}>
-              <NoSymbolIcon className="w-4 h-4 mr-2" />
+              <NoSymbolIcon className="w-4 h-4 me-2" />
               {t("mail.not_spam")}
             </DropdownMenuItem>
           ) : (
             <DropdownMenuItem disabled={is_spam_loading} onClick={on_spam}>
-              <NoSymbolIcon className="w-4 h-4 mr-2" />
+              <NoSymbolIcon className="w-4 h-4 me-2" />
               {t("mail.report_spam")}
             </DropdownMenuItem>
           )}
           <DropdownMenuItem disabled={is_trash_loading} onClick={on_trash}>
-            <TrashIcon className="w-4 h-4 mr-2" />
+            <TrashIcon className="w-4 h-4 me-2" />
             {mail_item?.is_trashed || email?.is_trashed
               ? t("mail.delete_permanently")
               : t("mail.move_to_trash")}
@@ -554,7 +554,7 @@ export function ViewerToolbarActions({
           {folders.length > 0 && on_folder_toggle ? (
             <DropdownMenuSub>
               <DropdownMenuSubTrigger>
-                <FolderIcon className="w-4 h-4 mr-2" />
+                <FolderIcon className="w-4 h-4 me-2" />
                 {t("mail.move_to_folder")}
               </DropdownMenuSubTrigger>
               <DropdownMenuSubContent className="w-48">
@@ -573,10 +573,10 @@ export function ViewerToolbarActions({
                       }}
                     >
                       {is_current && (
-                        <CheckIcon className="mr-0.5 h-3 w-3 flex-shrink-0" />
+                        <CheckIcon className="me-0.5 h-3 w-3 flex-shrink-0" />
                       )}
                       <span
-                        className="mr-1.5 h-2.5 w-2.5 rounded-full flex-shrink-0"
+                        className="me-1.5 h-2.5 w-2.5 rounded-full flex-shrink-0"
                         style={
                           folder.color.startsWith("#")
                             ? { backgroundColor: folder.color }
@@ -591,32 +591,32 @@ export function ViewerToolbarActions({
             </DropdownMenuSub>
           ) : (
             <DropdownMenuItem disabled>
-              <FolderIcon className="w-4 h-4 mr-2" />
+              <FolderIcon className="w-4 h-4 me-2" />
               {t("mail.move_to_folder")}
             </DropdownMenuItem>
           )}
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={on_print}>
-            <PrinterIcon className="w-4 h-4 mr-2" />
+            <PrinterIcon className="w-4 h-4 me-2" />
             {t("mail.print")}
           </DropdownMenuItem>
           {thread_messages.length > 1 && thread_expand_state.has_unread && (
             <DropdownMenuItem
               onClick={() => thread_list_ref.current?.mark_all_read()}
             >
-              <CheckCircleIcon className="w-4 h-4 mr-2" />
+              <CheckCircleIcon className="w-4 h-4 me-2" />
               {t("mail.mark_all_read")}
             </DropdownMenuItem>
           )}
           {email.unsubscribe_info?.has_unsubscribe && (
             <DropdownMenuItem onClick={on_unsubscribe}>
-              <XMarkIcon className="w-4 h-4 mr-2" />
+              <XMarkIcon className="w-4 h-4 me-2" />
               {t("mail.unsubscribe")}
             </DropdownMenuItem>
           )}
           {show_block_sender_on_alias && on_block_sender_on_alias && (
             <DropdownMenuItem onClick={on_block_sender_on_alias}>
-              <NoSymbolIcon className="w-4 h-4 mr-2" />
+              <NoSymbolIcon className="w-4 h-4 me-2" />
               {t("mail.block_sender_on_alias")}
             </DropdownMenuItem>
           )}
@@ -630,7 +630,7 @@ export function ViewerToolbarActions({
               )
             }
           >
-            <AdjustmentsHorizontalIcon className="w-4 h-4 mr-2" />
+            <AdjustmentsHorizontalIcon className="w-4 h-4 me-2" />
             {is_advanced
               ? t("common.switch_to_simple")
               : t("common.switch_to_advanced")}
@@ -646,4 +646,3 @@ export function ViewerToolbarActions({
     </>
   );
 }
-

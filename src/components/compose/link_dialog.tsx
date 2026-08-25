@@ -23,6 +23,7 @@ import { Button } from "@aster/ui";
 
 import { Input } from "@/components/ui/input";
 import { use_i18n } from "@/lib/i18n/context";
+import { normalize_link_url } from "@/utils/link_url";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -31,6 +32,8 @@ import {
   AlertDialogTitle,
   AlertDialogDescription,
 } from "@/components/ui/alert_dialog";
+import { is_composing } from "@/utils/ime";
+import { clip_with_ellipsis } from "@/utils/preview_text";
 
 interface LinkDialogProps {
   open: boolean;
@@ -76,30 +79,20 @@ export function LinkDialog({
     setTimeout(action, 150);
   }, []);
 
-  const validate_url = useCallback((value: string): boolean => {
-    const trimmed = value.trim().toLowerCase();
-
-    return (
-      trimmed.startsWith("http://") ||
-      trimmed.startsWith("https://") ||
-      trimmed.startsWith("mailto:")
-    );
-  }, []);
-
   const handle_submit = useCallback(() => {
-    const trimmed_url = url.trim();
+    const normalized = normalize_link_url(url);
 
-    if (!trimmed_url || !validate_url(trimmed_url)) {
+    if (!normalized) {
       set_error(t("common.please_enter_valid_url"));
 
       return;
     }
 
     close_with_animation(() => {
-      on_insert(trimmed_url, text.trim() || undefined);
+      on_insert(normalized, text.trim() || undefined);
       on_close();
     });
-  }, [url, text, validate_url, on_insert, on_close, close_with_animation]);
+  }, [url, text, on_insert, on_close, close_with_animation, t]);
 
   const handle_cancel = useCallback(() => {
     close_with_animation(on_close);
@@ -123,7 +116,9 @@ export function LinkDialog({
             </AlertDialogTitle>
             <AlertDialogDescription className="text-[14px] leading-normal">
               {selected_text
-                ? t("mail.add_link_to_selection", { text: selected_text.length > 40 ? selected_text.slice(0, 40) + "..." : selected_text })
+                ? t("mail.add_link_to_selection", {
+                    text: clip_with_ellipsis(selected_text, 40),
+                  })
                 : t("common.enter_url_display_text")}
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -149,7 +144,7 @@ export function LinkDialog({
                   set_error("");
                 }}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter") {
+                  if (e.key === "Enter" && !is_composing(e)) {
                     e.preventDefault();
                     handle_submit();
                   }
@@ -174,7 +169,7 @@ export function LinkDialog({
                   value={text}
                   onChange={(e) => set_text(e.target.value)}
                   onKeyDown={(e) => {
-                    if (e.key === "Enter") {
+                    if (e.key === "Enter" && !is_composing(e)) {
                       e.preventDefault();
                       handle_submit();
                     }

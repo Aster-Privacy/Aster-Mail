@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { apply_input_transform } from "@/utils/input_transform";
 import type { UseRegistrationReturn } from "@/components/register/hooks/use_registration";
 
 import { motion, AnimatePresence } from "framer-motion";
@@ -86,10 +87,13 @@ export const RegisterStepAccount = ({ reg }: RegisterStepAccountProps) => {
           <Input
             // eslint-disable-next-line jsx-a11y/no-autofocus
             autoFocus
+            autoCapitalize="none"
             autoComplete="username"
+            autoCorrect="off"
             className="notranslate"
             maxLength={55}
             placeholder={reg.t("auth.new_email_address")}
+            spellCheck={false}
             status={reg.error ? "error" : "default"}
             translate="no"
             type="text"
@@ -99,7 +103,9 @@ export const RegisterStepAccount = ({ reg }: RegisterStepAccountProps) => {
               const at_index = raw.indexOf("@");
 
               if (at_index !== -1) {
-                const local = sanitize_username_input(raw.substring(0, at_index));
+                const local = sanitize_username_input(
+                  raw.substring(0, at_index),
+                );
                 const domain_part = raw.substring(at_index + 1).toLowerCase();
 
                 reg.set_username(local + "@" + domain_part);
@@ -114,7 +120,9 @@ export const RegisterStepAccount = ({ reg }: RegisterStepAccountProps) => {
                 )
                   reg.set_email_domain("aster.cx");
               } else {
-                reg.set_username(sanitize_username_input(raw));
+                reg.set_username(
+                  apply_input_transform(e.target, sanitize_username_input),
+                );
               }
             }}
             onKeyDown={(e) => e["key"] === "Enter" && reg.handle_email_next()}
@@ -167,7 +175,8 @@ export const RegisterStepAccount = ({ reg }: RegisterStepAccountProps) => {
             className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center select-none"
             style={{
               backgroundColor: reg.profile_color,
-              boxShadow: "0 0 0 2px var(--bg-primary), 0 0 0 3.5px var(--border-secondary)",
+              boxShadow:
+                "0 0 0 2px var(--bg-primary), 0 0 0 3.5px var(--border-secondary)",
               transition: "background-color 0.3s ease",
             }}
           >

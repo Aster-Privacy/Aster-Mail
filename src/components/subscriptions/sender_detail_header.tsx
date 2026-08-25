@@ -34,7 +34,9 @@ import {
 
 interface SenderDetailHeaderProps {
   subscription: CachedSubscription;
-  on_unsubscribe?: () => Promise<"success" | "manual" | "failed" | void>;
+  on_unsubscribe?: () => Promise<
+    "success" | "manual" | "failed" | "cancelled" | void
+  >;
 }
 
 export function SenderDetailHeader({
@@ -43,14 +45,22 @@ export function SenderDetailHeader({
 }: SenderDetailHeaderProps) {
   const { t } = use_i18n();
   const { handle_external_link } = use_external_link();
-  const [unsub_failed, set_unsub_failed] = useState(false);
+  const [failed_email, set_failed_email] = useState<string | null>(null);
+  const [is_unsubscribing, set_is_unsubscribing] = useState(false);
+
+  const unsub_failed = failed_email === sub.sender_email;
 
   const handle_unsubscribe = async () => {
-    if (!on_unsubscribe) return;
+    if (!on_unsubscribe || is_unsubscribing) return;
+
+    set_is_unsubscribing(true);
+
     const result = await on_unsubscribe();
 
+    set_is_unsubscribing(false);
+
     if (result === "failed") {
-      set_unsub_failed(true);
+      set_failed_email(sub.sender_email);
     }
   };
 
@@ -96,7 +106,11 @@ export function SenderDetailHeader({
           <span className="truncate">{sub.sender_email}</span>
           <span>·</span>
           <span>
-            {t("settings.emails_count", { count: String(sub.email_count) })}
+            {sub.email_count === 1
+              ? t("common.one_email")
+              : t("settings.emails_count", {
+                  count: sub.email_count,
+                })}
           </span>
         </div>
       </div>
@@ -117,7 +131,8 @@ export function SenderDetailHeader({
           </button>
         ) : (
           <button
-            className="px-3 py-1.5 rounded-[12px] text-xs font-medium transition-all duration-150 flex-shrink-0 text-white bg-gradient-to-b from-[#ef4444] via-[#dc2626] to-[#b91c1c] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)] hover:from-[#f05555] hover:via-[#e23737] hover:to-[#c92d2d]"
+            className="px-3 py-1.5 rounded-[12px] text-xs font-medium transition-all duration-150 flex-shrink-0 text-white bg-gradient-to-b from-[#ef4444] via-[#dc2626] to-[#b91c1c] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)] hover:from-[#f05555] hover:via-[#e23737] hover:to-[#c92d2d] disabled:opacity-60 disabled:cursor-not-allowed"
+            disabled={is_unsubscribing}
             onClick={handle_unsubscribe}
           >
             {t("mail.unsubscribe")}

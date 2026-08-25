@@ -25,6 +25,7 @@ import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_escape_layer } from "@/lib/overlay_layer_stack";
 import { use_templates } from "@/contexts/templates_context";
+import { truncate_with_ellipsis } from "@/utils/preview_text";
 
 interface TemplatePickerProps {
   on_select: (content: string) => void;
@@ -118,14 +119,14 @@ export function TemplatePicker({
                     {category_templates.map((template) => (
                       <button
                         key={template.id}
-                        className="w-full px-4 py-2 text-sm text-left hover:bg-surf-hover transition-colors border-b last:border-0 border-edge-primary"
+                        className="w-full px-4 py-2 text-sm text-start hover:bg-surf-hover transition-colors border-b last:border-0 border-edge-primary"
                         onClick={() => handle_select(template.content)}
                       >
                         <div className="font-medium text-txt-primary">
                           {template.name}
                         </div>
                         <div className="text-xs text-txt-muted truncate">
-                          {template.content.substring(0, 50)}
+                          {truncate_with_ellipsis(template.content, 60)}
                         </div>
                       </button>
                     ))}

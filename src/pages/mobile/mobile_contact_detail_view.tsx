@@ -179,7 +179,7 @@ export function ContactDetailView({
           type="button"
           onClick={on_back}
         >
-          <ChevronLeftIcon className="h-4 w-4" />
+          <ChevronLeftIcon className="h-4 w-4 rtl:-scale-x-100" />
         </motion.button>
         <span className="flex-1" />
         <motion.button
@@ -410,7 +410,10 @@ export function ContactDetailView({
                 label={t("common.notes_section")}
               />
               <div className="px-4 pb-3">
-                <p className="whitespace-pre-wrap text-[14px] leading-relaxed text-[var(--text-secondary)]">
+                <p
+                  className="whitespace-pre-wrap text-[14px] leading-relaxed text-[var(--text-secondary)]"
+                  dir="auto"
+                >
                   {contact.notes}
                 </p>
               </div>

@@ -21,7 +21,7 @@
 import { memo } from "react";
 
 import { Skeleton } from "@/components/ui/skeleton";
-import { format_bytes } from "@/lib/utils";
+import { format_bytes, format_decimal } from "@/lib/utils";
 import { use_i18n } from "@/lib/i18n/context";
 
 export function scroll_to_storage_addons() {
@@ -87,8 +87,8 @@ export const StorageMeter = memo(function StorageMeter({
           }}
         >
           {storage_percentage > 0 && storage_percentage < 1
-            ? "<1%"
-            : `${storage_percentage.toFixed(0)}%`}
+            ? t("common.storage_under_one_percent")
+            : `${format_decimal(storage_percentage, 0)}%`}
         </span>
       </div>
       <div

@@ -44,7 +44,6 @@ import { detect_unsubscribe_info } from "@/utils/unsubscribe_detector";
 import { emit_mail_changed, emit_mail_soft_refresh } from "@/hooks/mail_events";
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
-
 import { ignore_error } from "@/lib/ignore_error";
 
 export function EmailViewer({

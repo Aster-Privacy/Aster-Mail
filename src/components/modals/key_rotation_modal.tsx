@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   EyeIcon,
@@ -36,6 +36,8 @@ import { Input } from "@/components/ui/input";
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
 import { clamp_password } from "@/services/sanitize";
+import { use_dialog_shell } from "@/lib/use_dialog_shell";
+import { user_facing_error } from "@/utils/user_facing_error";
 
 interface KeyRotationModalProps {
   is_open: boolean;
@@ -62,8 +64,13 @@ export function KeyRotationModal({
   const [show_password, set_show_password] = useState(false);
   const [state, set_state] = useState<RotationState>("idle");
   const [error, set_error] = useState("");
+  const close_timeout_ref = useRef<number | null>(null);
 
   useEffect(() => {
+    if (close_timeout_ref.current !== null) {
+      window.clearTimeout(close_timeout_ref.current);
+      close_timeout_ref.current = null;
+    }
     if (is_open) {
       set_password("");
       set_error("");
@@ -72,8 +79,18 @@ export function KeyRotationModal({
     }
   }, [is_open]);
 
+  useEffect(() => {
+    return () => {
+      if (close_timeout_ref.current !== null) {
+        window.clearTimeout(close_timeout_ref.current);
+        close_timeout_ref.current = null;
+      }
+    };
+  }, []);
+
   const format_key_age = (hours: number | null): string => {
     if (hours === null) return t("common.unknown_label");
+    if (hours === 1) return t("settings.one_hour");
     if (hours < 24) return t("common.n_hours", { count: hours });
     const days = Math.floor(hours / 24);
 
@@ -100,7 +117,8 @@ export function KeyRotationModal({
 
       if (rotation_error === null) {
         set_state("success");
-        setTimeout(() => {
+        close_timeout_ref.current = window.setTimeout(() => {
+          close_timeout_ref.current = null;
           on_close();
         }, 1500);
       } else {
@@ -109,9 +127,7 @@ export function KeyRotationModal({
       }
     } catch (err) {
       set_state("error");
-      set_error(
-        err instanceof Error ? err.message : t("errors.an_error_occurred"),
-      );
+      set_error(user_facing_error(err, t("errors.an_error_occurred")));
     }
   };
 
@@ -126,6 +142,13 @@ export function KeyRotationModal({
     on_close();
   };
 
+  const { dialog_ref, handle_backdrop_pointer_down } =
+    use_dialog_shell<HTMLDivElement>(
+      is_open,
+      handle_close,
+      "key_rotation_modal",
+    );
+
   return (
     <AnimatePresence>
       {is_open && (
@@ -135,13 +158,14 @@ export function KeyRotationModal({
           exit={{ opacity: 0 }}
           initial={reduce_motion ? false : { opacity: 0 }}
           transition={{ duration: reduce_motion ? 0 : 0.15 }}
-          onClick={handle_close}
         >
           <div
             className="absolute inset-0 backdrop-blur-md"
             style={{ backgroundColor: "var(--modal-overlay)" }}
+            onPointerDown={handle_backdrop_pointer_down}
           />
           <motion.div
+            ref={dialog_ref}
             animate={{ opacity: 1 }}
             className="relative w-full max-w-[420px] rounded-xl border overflow-hidden"
             exit={{ opacity: 0 }}
@@ -151,6 +175,7 @@ export function KeyRotationModal({
               borderColor: "var(--border-primary)",
               boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.35)",
             }}
+            tabIndex={-1}
             transition={{ duration: reduce_motion ? 0 : 0.15 }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -289,21 +314,23 @@ export function KeyRotationModal({
                       <Input
                         // eslint-disable-next-line jsx-a11y/no-autofocus
                         autoFocus
-                        className="pr-11"
+                        className="pe-11"
                         disabled={state === "rotating"}
                         id="rotation-password"
+                        maxLength={128}
                         placeholder={t(
                           "settings.enter_your_password_placeholder",
                         )}
                         status={error ? "error" : "default"}
                         type={show_password ? "text" : "password"}
                         value={password}
-                        maxLength={128}
-                        onChange={(e) => set_password(clamp_password(e.target.value))}
+                        onChange={(e) =>
+                          set_password(clamp_password(e.target.value))
+                        }
                         onKeyDown={handle_key_down}
                       />
                       <button
-                        className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center focus:outline-none text-txt-muted"
+                        className="absolute end-3 top-1/2 -translate-y-1/2 flex items-center justify-center focus:outline-none text-txt-muted"
                         type="button"
                         onClick={() => set_show_password(!show_password)}
                       >

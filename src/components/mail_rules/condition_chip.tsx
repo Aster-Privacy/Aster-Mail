@@ -18,13 +18,17 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { TranslationKey } from "@/lib/i18n/types";
+import type {
+  AuthResultValue,
+  ConditionField,
+  LeafCondition,
+} from "@/services/api/mail_rules";
+
 import * as React from "react";
 
 import { ChipPill, ChipSegment } from "./chip_pill";
-import {
-  FieldDropdown,
-  get_field_label_key,
-} from "./dropdowns/field_dropdown";
+import { FieldDropdown, get_field_label_key } from "./dropdowns/field_dropdown";
 import {
   OperatorDropdown,
   get_operator_label_key,
@@ -36,17 +40,10 @@ import {
   pick_unit_for_bytes,
   type SizeUnit,
 } from "./dropdowns/value_dropdown";
-import {
-  default_condition_for_field,
-  field_kind,
-} from "./field_kind";
+import { default_condition_for_field, field_kind } from "./field_kind";
+
 import { use_i18n } from "@/lib/i18n/context";
-import type { TranslationKey } from "@/lib/i18n/types";
-import type {
-  AuthResultValue,
-  ConditionField,
-  LeafCondition,
-} from "@/services/api/mail_rules";
+import { format_number } from "@/lib/utils";
 
 export type ChipSegmentKind = "field" | "operator" | "value" | null;
 
@@ -57,6 +54,7 @@ interface ConditionChipProps {
   auto_open?: ChipSegmentKind;
   on_auto_handled?: () => void;
   read_only?: boolean;
+  allowed_operators?: string[];
 }
 
 const AUTH_LABEL_KEY: Record<AuthResultValue, TranslationKey> = {
@@ -73,6 +71,7 @@ export function ConditionChip({
   auto_open,
   on_auto_handled,
   read_only,
+  allowed_operators,
 }: ConditionChipProps) {
   const { t } = use_i18n();
   const [open_segment, set_open_segment] = React.useState<ChipSegmentKind>(
@@ -85,16 +84,42 @@ export function ConditionChip({
   );
   const [size_unit, set_size_unit] = React.useState<SizeUnit>(() => {
     if (field_kind(condition.type) === "numeric_size") {
-      return pick_unit_for_bytes(Number((condition as { value: number }).value) || 0).unit;
+      return pick_unit_for_bytes(
+        Number((condition as { value: number }).value) || 0,
+      ).unit;
     }
+
     return "MB";
   });
+
+  const prev_field_ref = React.useRef(condition.type);
+  const self_field_change_ref = React.useRef(false);
 
   React.useEffect(() => {
     if (auto_open && auto_open !== open_segment) {
       set_open_segment(auto_open);
     }
   }, [auto_open]);
+
+  React.useEffect(() => {
+    if (prev_field_ref.current === condition.type) return;
+    prev_field_ref.current = condition.type;
+
+    if (self_field_change_ref.current) {
+      self_field_change_ref.current = false;
+
+      return;
+    }
+
+    set_open_segment(null);
+    set_size_unit(
+      field_kind(condition.type) === "numeric_size"
+        ? pick_unit_for_bytes(
+            Number((condition as { value: number }).value) || 0,
+          ).unit
+        : "MB",
+    );
+  }, [condition]);
 
   const close = React.useCallback(() => {
     set_open_segment(null);
@@ -124,6 +149,7 @@ export function ConditionChip({
   const handle_field_change = (new_field: ConditionField) => {
     const next = default_condition_for_field(new_field);
 
+    self_field_change_ref.current = true;
     on_change(next);
     const next_kind = field_kind(new_field);
 
@@ -178,7 +204,12 @@ export function ConditionChip({
   };
 
   const handle_toggle_case = (next: boolean) => {
-    if ("operator" in condition && kind !== "numeric_size" && kind !== "numeric_plain" && kind !== "date") {
+    if (
+      "operator" in condition &&
+      kind !== "numeric_size" &&
+      kind !== "numeric_plain" &&
+      kind !== "date"
+    ) {
       on_change({ ...condition, case_sensitive: next } as LeafCondition);
     }
   };
@@ -195,8 +226,11 @@ export function ConditionChip({
       return t(AUTH_LABEL_KEY[v] ?? "mail_rules.auth_pass");
     }
     if ("operator" in condition) {
-      return t(get_operator_label_key(field, condition.operator as AnyOperator));
+      return t(
+        get_operator_label_key(field, condition.operator as AnyOperator),
+      );
     }
+
     return "";
   })();
 
@@ -224,17 +258,19 @@ export function ConditionChip({
 
       return bytes === 0
         ? t("mail_rules.value_placeholder")
-        : `${shown} ${unit_label}`;
+        : `${format_number(shown)} ${unit_label}`;
     }
     if (kind === "numeric_plain") {
       const n = Number((condition as { value: number }).value);
 
-      return Number.isNaN(n) ? t("mail_rules.value_placeholder") : String(n);
+      return Number.isNaN(n)
+        ? t("mail_rules.value_placeholder")
+        : format_number(n);
     }
     if (kind === "date") {
       const n = Number((condition as { value: number }).value) || 0;
 
-      return `${n} ${t("mail_rules.value_unit_days")}`;
+      return `${format_number(n)} ${t("mail_rules.value_unit_days")}`;
     }
     const raw = String((condition as { value?: unknown }).value ?? "");
 
@@ -259,27 +295,25 @@ export function ConditionChip({
     return (
       <ChipPill on_remove={remove}>
         <FieldDropdown
-          open={open_segment === "field"}
           on_open_change={make_segment_open_handler("field")}
           on_pick={handle_field_change}
+          open={open_segment === "field"}
           trigger={field_trigger}
         />
         <ValueDropdown
           field={field}
-          value={bcond.value}
-          open={open_segment === "value"}
-          on_open_change={make_segment_open_handler("value")}
           on_commit={handle_value_change}
+          on_open_change={make_segment_open_handler("value")}
+          open={open_segment === "value"}
           trigger={
             <ChipSegment
               is_active={open_segment === "value"}
-              on_click={
-                read_only ? undefined : () => set_open_segment("value")
-              }
+              on_click={read_only ? undefined : () => set_open_segment("value")}
             >
               {operator_label}
             </ChipSegment>
           }
+          value={bcond.value}
         />
       </ChipPill>
     );
@@ -289,27 +323,25 @@ export function ConditionChip({
     return (
       <ChipPill on_remove={remove}>
         <FieldDropdown
-          open={open_segment === "field"}
           on_open_change={make_segment_open_handler("field")}
           on_pick={handle_field_change}
+          open={open_segment === "field"}
           trigger={field_trigger}
         />
         <ValueDropdown
           field={field}
-          value={(condition as { value: AuthResultValue }).value}
-          open={open_segment === "value"}
-          on_open_change={make_segment_open_handler("value")}
           on_commit={handle_value_change}
+          on_open_change={make_segment_open_handler("value")}
+          open={open_segment === "value"}
           trigger={
             <ChipSegment
               is_active={open_segment === "value"}
-              on_click={
-                read_only ? undefined : () => set_open_segment("value")
-              }
+              on_click={read_only ? undefined : () => set_open_segment("value")}
             >
               {operator_label}
             </ChipSegment>
           }
+          value={(condition as { value: AuthResultValue }).value}
         />
       </ChipPill>
     );
@@ -319,9 +351,7 @@ export function ConditionChip({
     condition.type === "header" ? (
       <ChipSegment
         is_active={false}
-        on_click={
-          read_only ? undefined : () => set_open_segment("value")
-        }
+        on_click={read_only ? undefined : () => set_open_segment("value")}
       >
         <span className={!condition.name ? "text-neutral-400" : undefined}>
           {condition.name || t("mail_rules.header_name_placeholder")}
@@ -331,16 +361,15 @@ export function ConditionChip({
 
   const operator_segment_node = has_op_picker ? (
     <OperatorDropdown
+      allowed_operators={allowed_operators}
       field={field}
-      open={open_segment === "operator"}
       on_open_change={make_segment_open_handler("operator")}
       on_pick={handle_op_change}
+      open={open_segment === "operator"}
       trigger={
         <ChipSegment
           is_active={open_segment === "operator"}
-          on_click={
-            read_only ? undefined : () => set_open_segment("operator")
-          }
+          on_click={read_only ? undefined : () => set_open_segment("operator")}
         >
           {operator_label}
         </ChipSegment>
@@ -350,23 +379,20 @@ export function ConditionChip({
 
   const value_segment_node = (
     <ValueDropdown
-      field={field}
-      operator={
-        "operator" in condition ? (condition.operator as string) : undefined
-      }
-      value={(condition as { value: unknown }).value as string | number | boolean}
-      header_name={
-        condition.type === "header" ? condition.name : undefined
-      }
-      size_unit={size_unit}
       case_sensitive={case_sensitive}
-      open={open_segment === "value"}
-      on_open_change={make_segment_open_handler("value")}
+      field={field}
+      header_name={condition.type === "header" ? condition.name : undefined}
       on_commit={handle_value_change}
       on_commit_header_name={handle_header_name_change}
       on_commit_size_unit={set_size_unit}
+      on_open_change={make_segment_open_handler("value")}
       on_toggle_case_sensitive={handle_toggle_case}
+      open={open_segment === "value"}
+      operator={
+        "operator" in condition ? (condition.operator as string) : undefined
+      }
       should_ignore_outside={should_ignore_outside_now}
+      size_unit={size_unit}
       trigger={
         <ChipSegment
           is_active={open_segment === "value"}
@@ -383,15 +409,18 @@ export function ConditionChip({
           </span>
         </ChipSegment>
       }
+      value={
+        (condition as { value: unknown }).value as string | number | boolean
+      }
     />
   );
 
   return (
     <ChipPill on_remove={remove}>
       <FieldDropdown
-        open={open_segment === "field"}
         on_open_change={make_segment_open_handler("field")}
         on_pick={handle_field_change}
+        open={open_segment === "field"}
         trigger={field_trigger}
       />
       {header_name_segment}

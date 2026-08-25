@@ -20,13 +20,13 @@
 //
 import { CameraIcon } from "@heroicons/react/24/solid";
 
+import { ProfileAvatar } from "./profile_avatar";
+
 import {
   PROFILE_PICTURE_ACCEPT,
   use_profile_picture_upload,
 } from "@/hooks/use_profile_picture_upload";
 import { use_i18n } from "@/lib/i18n/context";
-
-import { ProfileAvatar } from "./profile_avatar";
 
 interface AccountAvatarButtonProps {
   name: string;
@@ -78,7 +78,9 @@ export function AccountAvatarButton({
         type="button"
         onClick={open_picker}
       >
-        <span className={is_paid_plan ? "plan_ring" : "inline-flex leading-none"}>
+        <span
+          className={is_paid_plan ? "plan_ring" : "inline-flex leading-none"}
+        >
           <span className="relative flex rounded-full leading-none">
             <ProfileAvatar
               email={email}

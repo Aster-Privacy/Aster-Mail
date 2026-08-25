@@ -27,6 +27,12 @@ import {
   request_notification_permission,
   show_notification,
 } from "@/services/notification_service";
+import type { NotificationType } from "@/services/notification_service";
+import {
+  get_arrival_category,
+  get_arrival_reply_state,
+} from "@/services/category_index";
+import { category_for_tab } from "@/services/mail_categorizer";
 import { subscribe_to_push } from "@/services/push_subscription";
 import { use_i18n } from "@/lib/i18n/context";
 import { is_lockdown_enabled } from "@/services/lockdown_store";
@@ -35,6 +41,52 @@ import {
   get_locked_folder_tokens,
   has_protected_folders,
 } from "@/services/locked_folders";
+
+const REPLY_STATE_TIMEOUT_MS = 1500;
+const REPLY_STATE_POLL_MS = 150;
+const CATEGORY_TIMEOUT_MS = 1500;
+const CATEGORY_POLL_MS = 150;
+
+async function resolve_arrival_type(
+  email_id: string,
+  notify_new_email: boolean,
+): Promise<NotificationType> {
+  const deadline = Date.now() + REPLY_STATE_TIMEOUT_MS;
+
+  for (;;) {
+    const state = get_arrival_reply_state(email_id);
+
+    if (state !== null) return state ? "reply" : "new_email";
+    if (Date.now() >= deadline) break;
+
+    await new Promise((resolve) => setTimeout(resolve, REPLY_STATE_POLL_MS));
+  }
+
+  return notify_new_email ? "new_email" : "reply";
+}
+
+async function is_category_muted(
+  email_id: string,
+  muted_categories: string[],
+): Promise<boolean> {
+  if (!email_id || muted_categories.length === 0) {
+    return false;
+  }
+
+  const muted = new Set(muted_categories);
+  const deadline = Date.now() + CATEGORY_TIMEOUT_MS;
+
+  for (;;) {
+    const category = get_arrival_category(email_id);
+
+    if (category !== null) {
+      return muted.has(category_for_tab(category));
+    }
+    if (Date.now() >= deadline) return false;
+
+    await new Promise((resolve) => setTimeout(resolve, CATEGORY_POLL_MS));
+  }
+}
 
 async function is_email_notification_suppressed(
   email_id: string,
@@ -97,6 +149,7 @@ function claim_notification(email_id: string): boolean {
     }
     if (notified_at_by_email_id.size >= NOTIFIED_MAX_ENTRIES) {
       const oldest = notified_at_by_email_id.keys().next().value;
+
       if (oldest !== undefined) {
         notified_at_by_email_id.delete(oldest);
       }
@@ -128,6 +181,7 @@ export function EmailNotificationManager() {
     }
 
     let cancelled = false;
+
     (async () => {
       if (!preferences.low_network_mode) {
         await subscribe_to_push();
@@ -165,8 +219,22 @@ export function EmailNotificationManager() {
           return;
         }
 
+        const category_muted = await is_category_muted(
+          email_id,
+          preferences_ref.current.muted_notification_categories ?? [],
+        );
+
+        if (category_muted) {
+          return;
+        }
+
+        const arrival_type = await resolve_arrival_type(
+          email_id,
+          preferences_ref.current.notify_new_email,
+        );
+
         show_notification(
-          "new_email",
+          arrival_type,
           {
             title: t("common.aster_mail"),
             body: t("common.new_email_body"),

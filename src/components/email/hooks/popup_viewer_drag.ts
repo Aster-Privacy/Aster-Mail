@@ -32,6 +32,7 @@ export function use_popup_drag_resize() {
   const [is_dragging, set_is_dragging] = useState(false);
   const [is_exiting_fullscreen, set_is_exiting_fullscreen] = useState(false);
   const drag_start_ref = useRef({ x: 0, y: 0, pos_x: 0, pos_y: 0 });
+  const exit_fullscreen_timeout = useRef<number | null>(null);
   const popup_ref = useRef<HTMLDivElement>(null);
 
   const is_fullscreen = popup_size === "fullscreen";
@@ -55,6 +56,14 @@ export function use_popup_drag_resize() {
       x: window.innerWidth - dimensions.width - POPUP_MARGIN,
       y: window.innerHeight - dimensions.height - POPUP_MARGIN,
     });
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (exit_fullscreen_timeout.current !== null) {
+        window.clearTimeout(exit_fullscreen_timeout.current);
+      }
+    };
   }, []);
 
   const handle_drag_start = useCallback(
@@ -115,7 +124,7 @@ export function use_popup_drag_resize() {
   const handle_fullscreen = useCallback(() => {
     if (is_fullscreen) {
       set_is_exiting_fullscreen(true);
-      setTimeout(() => {
+      exit_fullscreen_timeout.current = window.setTimeout(() => {
         set_popup_size("default");
         set_position({
           x: window.innerWidth - 520 - POPUP_MARGIN,

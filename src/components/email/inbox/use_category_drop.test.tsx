@@ -43,9 +43,10 @@ const undecryptable_result: CategoryWriteResult = {
   undecryptable: true,
 };
 
-const set_message_category = vi.fn<
-  (email: InboxEmail, category: EmailCategory) => Promise<CategoryWriteResult>
->();
+const set_message_category =
+  vi.fn<
+    (email: InboxEmail, category: EmailCategory) => Promise<CategoryWriteResult>
+  >();
 const upsert_entries = vi.fn();
 const note_recent_pin = vi.fn();
 const clear_recent_pin = vi.fn();
@@ -76,7 +77,6 @@ const { use_category_drop } = await import(
 );
 
 declare global {
-  // eslint-disable-next-line no-var
   var IS_REACT_ACT_ENVIRONMENT: boolean;
 }
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
@@ -266,11 +266,12 @@ describe("use_category_drop", () => {
       { id: "b", category: "promotions" },
       { id: "b", category: "primary" },
     ]);
-    expect(show_toast).toHaveBeenCalledWith(
-      "common.bulk_action_partially_applied",
-      "warning",
-    );
-    expect(show_action_toast).not.toHaveBeenCalled();
+    expect(show_action_toast).toHaveBeenCalledTimes(1);
+    expect(show_action_toast.mock.calls[0]![0]).toMatchObject({
+      message: "common.bulk_action_partially_applied",
+      email_ids: ["a"],
+    });
+    expect(show_toast).not.toHaveBeenCalled();
   });
 
   it("keeps both changes when a second drop lands while the first is in flight", async () => {
@@ -331,7 +332,8 @@ describe("use_category_drop", () => {
       await harness.drop("promotions", ["a"]);
     });
 
-    const undo = show_action_toast.mock.calls[0]![0].on_undo as () => Promise<void>;
+    const undo = show_action_toast.mock.calls[0]![0]
+      .on_undo as () => Promise<void>;
 
     harness.updates.length = 0;
     set_message_category.mockClear();

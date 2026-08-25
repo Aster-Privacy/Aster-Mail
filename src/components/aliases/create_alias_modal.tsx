@@ -32,6 +32,8 @@ import {
 import { emit_aliases_changed } from "@/hooks/mail_events";
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
+import { is_composing } from "@/utils/ime";
+import { use_dialog_shell } from "@/lib/use_dialog_shell";
 
 const ALIAS_DOMAIN = "astermail.org";
 
@@ -48,6 +50,8 @@ export function CreateAliasModal({ is_open, on_close }: CreateAliasModalProps) {
   const [error, set_error] = useState("");
 
   const handle_create = useCallback(async () => {
+    if (is_creating) return;
+
     const trimmed = local_part.trim().toLowerCase();
     const validation = validate_local_part(trimmed);
 
@@ -87,7 +91,7 @@ export function CreateAliasModal({ is_open, on_close }: CreateAliasModalProps) {
     }
 
     set_is_creating(false);
-  }, [local_part, on_close]);
+  }, [is_creating, local_part, on_close, t]);
 
   const handle_close = () => {
     if (is_creating) return;
@@ -95,6 +99,13 @@ export function CreateAliasModal({ is_open, on_close }: CreateAliasModalProps) {
     set_error("");
     on_close();
   };
+
+  const { dialog_ref, handle_backdrop_pointer_down } =
+    use_dialog_shell<HTMLDivElement>(
+      is_open,
+      handle_close,
+      "create_alias_modal",
+    );
 
   return (
     <AnimatePresence>
@@ -105,13 +116,14 @@ export function CreateAliasModal({ is_open, on_close }: CreateAliasModalProps) {
           exit={{ opacity: 0 }}
           initial={reduce_motion ? false : { opacity: 0 }}
           transition={{ duration: reduce_motion ? 0 : 0.15 }}
-          onClick={handle_close}
         >
           <div
             className="absolute inset-0 backdrop-blur-md"
             style={{ backgroundColor: "var(--modal-overlay)" }}
+            onPointerDown={handle_backdrop_pointer_down}
           />
           <motion.div
+            ref={dialog_ref}
             animate={{ opacity: 1, scale: 1 }}
             className="relative w-full max-w-md rounded-xl border overflow-hidden bg-modal-bg border-edge-primary"
             exit={{ opacity: 0, scale: 0.96 }}
@@ -119,6 +131,7 @@ export function CreateAliasModal({ is_open, on_close }: CreateAliasModalProps) {
             style={{
               boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.35)",
             }}
+            tabIndex={-1}
             transition={{ duration: reduce_motion ? 0 : 0.15 }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -141,7 +154,10 @@ export function CreateAliasModal({ is_open, on_close }: CreateAliasModalProps) {
                   <div className="flex items-center gap-0">
                     <input
                       autoFocus
-                      className={`flex-1 h-10 px-3 rounded-l-lg bg-transparent border border-r-0 border-edge-secondary text-sm text-txt-primary placeholder:text-txt-muted outline-none ${error ? "border-red-500" : ""}`}
+                      autoCapitalize="none"
+                      autoCorrect="off"
+                      spellCheck={false}
+                      className={`flex-1 h-10 px-3 rounded-s-lg bg-transparent border border-e-0 border-edge-secondary text-sm text-txt-primary placeholder:text-txt-muted outline-none ${error ? "border-red-500" : ""}`}
                       disabled={is_creating}
                       id="create-alias-local-part"
                       placeholder={t("settings.alias_local_part_placeholder")}
@@ -151,9 +167,11 @@ export function CreateAliasModal({ is_open, on_close }: CreateAliasModalProps) {
                         set_local_part(e.target.value);
                         set_error("");
                       }}
-                      onKeyDown={(e) => e.key === "Enter" && handle_create()}
+                      onKeyDown={(e) =>
+                        e.key === "Enter" && !is_composing(e) && handle_create()
+                      }
                     />
-                    <span className="h-10 px-3 flex items-center rounded-r-lg text-[14px] bg-surf-secondary border border-l-0 border-edge-secondary text-txt-muted select-none">
+                    <span className="h-10 px-3 flex items-center rounded-e-lg text-[14px] bg-surf-secondary border border-s-0 border-edge-secondary text-txt-muted select-none">
                       @{ALIAS_DOMAIN}
                     </span>
                   </div>
@@ -184,7 +202,7 @@ export function CreateAliasModal({ is_open, on_close }: CreateAliasModalProps) {
                 onClick={handle_create}
               >
                 {t("common.create")}
-                {is_creating && <Spinner className="ml-2" size="md" />}
+                {is_creating && <Spinner className="ms-2" size="md" />}
               </Button>
             </div>
           </motion.div>

@@ -19,19 +19,27 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
+import { useEffect, useCallback, useMemo, useRef } from "react";
 
 import {
-  useEffect,
-  useCallback,
-  useMemo,
-} from "react";
+  UseReplyModalProps,
+  normalize_html_newlines,
+} from "./reply_modal_types";
+import { use_reply_modal_state } from "./use_reply_modal_state";
 
 import { undo_send_manager } from "@/hooks/use_undo_send";
-import {
-  send_reply,
-  type OriginalEmail,
-} from "@/services/mail_actions";
+import { send_reply, type OriginalEmail } from "@/services/mail_actions";
 import { build_reply_subject } from "@/lib/reply_subject";
+import {
+  MAX_RECIPIENTS_PER_FIELD,
+  MAX_RECIPIENTS_PER_SEND,
+  recipient_limit_violation,
+} from "@/lib/recipient_limits";
+import {
+  assemble_reply_with_placement,
+  resolve_signature_placement,
+} from "@/lib/signature_placement";
+import { use_signatures } from "@/contexts/signatures_context";
 import {
   is_reply_from_mismatch,
   resolve_own_recipient_address,
@@ -46,43 +54,40 @@ import { show_toast } from "@/components/toast/simple_toast";
 import { show_action_toast } from "@/components/toast/action_toast";
 import { format_bytes } from "@/lib/utils";
 import {
-  emit_thread_reply_sent,
-  emit_thread_reply_optimistic,
+  emit_email_sent,
   emit_thread_reply_cancelled,
+  emit_thread_reply_optimistic,
+  emit_thread_reply_sent,
 } from "@/hooks/mail_events";
 import {
   create_scheduled_email,
   type ScheduledEmailContent,
 } from "@/services/api/scheduled";
 import { emit_scheduled_changed } from "@/hooks/mail_events";
-import {
-  delete_draft,
-} from "@/services/api/multi_drafts";
+import { delete_draft } from "@/services/api/multi_drafts";
 import {
   type Attachment,
   generate_attachment_id,
   EVENT_DISPATCH_DELAY_MS,
 } from "@/components/compose/compose_shared";
 import {
+  MAX_ATTACHMENTS_PER_SEND,
+  ensure_attachment_limits,
   get_max_attachment_size,
   get_max_total_attachments_size,
 } from "@/services/attachment_limits";
 import {
   describe_oversized_file,
+  describe_too_many_attachments,
   describe_would_exceed_total,
   prompt_attachment_upgrade,
 } from "@/services/attachment_rejection";
 import { send_via_external_account } from "@/services/api/external_accounts";
 import { prepare_external_attachments } from "@/services/crypto/attachment_crypto";
 import { escape_html as escape_plain_text } from "@/hooks/editor_utils";
-
-import {
-  UseReplyModalProps,
-  normalize_html_newlines,
-} from "./reply_modal_types";
-
-import { use_reply_modal_state } from "./use_reply_modal_state";
 import { ignore_error } from "@/lib/ignore_error";
+import { app_locale, get_display_time_zone } from "@/utils/date_format";
+import { user_facing_error } from "@/utils/user_facing_error";
 
 export function use_reply_modal(props: UseReplyModalProps) {
   const {
@@ -121,6 +126,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
     set_show_cc,
     contacts,
     reply_message,
+    set_reply_message,
     is_sending,
     set_is_sending,
     error_message,
@@ -184,8 +190,28 @@ export function use_reply_modal(props: UseReplyModalProps) {
     is_mobile,
     build_quoted_content,
     exec_format_command,
-    handle_insert_link,
   } = use_reply_modal_state(props);
+
+  const { signatures } = use_signatures();
+  const placement_inputs_ref = useRef({
+    signatures,
+    signature_placement: preferences.signature_placement,
+  });
+
+  placement_inputs_ref.current = {
+    signatures,
+    signature_placement: preferences.signature_placement,
+  };
+
+  const resolve_placement = useCallback((signature_id: string | null) => {
+    const { signatures: current, signature_placement } =
+      placement_inputs_ref.current;
+
+    return resolve_signature_placement(
+      current.find((s) => s.id === signature_id)?.placement,
+      signature_placement,
+    );
+  }, []);
 
   const toggle_plain_text_mode = useCallback(() => {
     set_is_plain_text_mode((prev) => !prev);
@@ -194,7 +220,12 @@ export function use_reply_modal(props: UseReplyModalProps) {
   const handle_template_select = useCallback(
     (content: string) => {
       const substituted = content
-        .replace(/\[Date\]/g, new Date().toLocaleDateString())
+        .replace(
+          /\[Date\]/g,
+          new Date().toLocaleDateString(app_locale(), {
+            timeZone: get_display_time_zone(),
+          }),
+        )
         .replace(/\[Name\]/g, recipient_name ?? "");
 
       editor.insert_text(substituted);
@@ -262,6 +293,26 @@ export function use_reply_modal(props: UseReplyModalProps) {
       return;
     }
 
+    const recipient_violation = recipient_limit_violation(
+      send_recipients.to,
+      send_recipients.cc,
+      [],
+    );
+
+    if (recipient_violation) {
+      set_error_message(
+        recipient_violation === "field"
+          ? t("common.too_many_recipients_in_field", {
+              max: MAX_RECIPIENTS_PER_FIELD,
+            })
+          : t("common.too_many_recipients_in_message", {
+              max: MAX_RECIPIENTS_PER_SEND,
+            }),
+      );
+
+      return;
+    }
+
     is_sending_ref.current = true;
     send_lock_started_at_ref.current = now;
     last_send_time_ref.current = now;
@@ -290,7 +341,11 @@ export function use_reply_modal(props: UseReplyModalProps) {
     const reply_body = is_plain_text_mode
       ? escape_plain_text(trimmed_reply).replace(/\n/g, "<br>")
       : normalize_html_newlines(trimmed_reply);
-    const message_with_signature = reply_body + quoted_content;
+    const message_with_signature = assemble_reply_with_placement(
+      reply_body,
+      quoted_content,
+      resolve_placement,
+    );
 
     if (selected_sender?.type === "external" && selected_sender.address_hash) {
       const subject = build_reply_subject(
@@ -329,7 +384,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
       is_sending_ref.current = false;
       send_lock_started_at_ref.current = 0;
       show_toast(t("common.email_sent_via_external"), "success");
-      window.dispatchEvent(new CustomEvent("astermail:email-sent"));
+      emit_email_sent();
 
       if (draft_id) {
         const captured_draft_id = draft_id;
@@ -337,7 +392,12 @@ export function use_reply_modal(props: UseReplyModalProps) {
         set_draft_id(null);
         set_draft_version(1);
         last_saved_text.current = "";
-        await delete_draft(captured_draft_id).catch((caught) => ignore_error("components/modals/hooks/use_reply_modal:use_reply_modal", caught));
+        await delete_draft(captured_draft_id).catch((caught) =>
+          ignore_error(
+            "components/modals/hooks/use_reply_modal:use_reply_modal",
+            caught,
+          ),
+        );
       }
 
       on_close();
@@ -387,7 +447,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
           is_sending_ref.current = false;
           send_lock_started_at_ref.current = 0;
           set_is_sending(false);
-          window.dispatchEvent(new CustomEvent("astermail:email-sent"));
+          emit_email_sent();
           show_action_toast({
             message: t("common.email_sent"),
             action_type: "read",
@@ -435,12 +495,13 @@ export function use_reply_modal(props: UseReplyModalProps) {
           }
           optimistic_id_ref.current = null;
           set_error_message(error);
+          show_toast(error || t("common.failed_to_send_reply"), "error", 10000);
           set_is_sending(false);
           last_send_time_ref.current = 0;
           pending_thread_token_ref.current = null;
         },
       },
-      preferences.undo_send_period,
+      delay_ms,
     ).catch((error: unknown) => ({
       success: false as const,
       error:
@@ -501,7 +562,12 @@ export function use_reply_modal(props: UseReplyModalProps) {
         set_draft_id(null);
         set_draft_version(1);
         last_saved_text.current = "";
-        delete_draft(captured_draft_id).catch((caught) => ignore_error("components/modals/hooks/use_reply_modal:use_reply_modal", caught));
+        delete_draft(captured_draft_id).catch((caught) =>
+          ignore_error(
+            "components/modals/hooks/use_reply_modal:use_reply_modal",
+            caught,
+          ),
+        );
       }
 
       if (delay_seconds > 0) {
@@ -591,6 +657,26 @@ export function use_reply_modal(props: UseReplyModalProps) {
       return;
     }
 
+    const recipient_violation = recipient_limit_violation(
+      send_recipients.to,
+      send_recipients.cc,
+      [],
+    );
+
+    if (recipient_violation) {
+      set_error_message(
+        recipient_violation === "field"
+          ? t("common.too_many_recipients_in_field", {
+              max: MAX_RECIPIENTS_PER_FIELD,
+            })
+          : t("common.too_many_recipients_in_message", {
+              max: MAX_RECIPIENTS_PER_SEND,
+            }),
+      );
+
+      return;
+    }
+
     if (save_draft_timeout.current) {
       clearTimeout(save_draft_timeout.current);
       save_draft_timeout.current = null;
@@ -605,7 +691,11 @@ export function use_reply_modal(props: UseReplyModalProps) {
     const sched_reply_body = is_plain_text_mode
       ? escape_plain_text(sched_trimmed).replace(/\n/g, "<br>")
       : normalize_html_newlines(sched_trimmed);
-    const message_with_signature = sched_reply_body + quoted_content;
+    const message_with_signature = assemble_reply_with_placement(
+      sched_reply_body,
+      quoted_content,
+      resolve_placement,
+    );
 
     const content: ScheduledEmailContent = {
       to_recipients: send_recipients.to,
@@ -637,7 +727,12 @@ export function use_reply_modal(props: UseReplyModalProps) {
         set_draft_id(null);
         set_draft_version(1);
         last_saved_text.current = "";
-        await delete_draft(captured_draft_id).catch((caught) => ignore_error("components/modals/hooks/use_reply_modal:use_reply_modal", caught));
+        await delete_draft(captured_draft_id).catch((caught) =>
+          ignore_error(
+            "components/modals/hooks/use_reply_modal:use_reply_modal",
+            caught,
+          ),
+        );
       }
 
       on_close();
@@ -647,7 +742,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
       }, EVENT_DISPATCH_DELAY_MS);
     } catch (error) {
       set_error_message(
-        error instanceof Error ? error.message : t("common.failed_to_schedule"),
+        user_facing_error(error, t("common.failed_to_schedule")),
       );
     } finally {
       set_is_scheduling(false);
@@ -693,7 +788,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
 
     return (
       sender_options.find(
-        (s) => s.is_enabled && s.email?.toLowerCase() === normalized,
+        (s) => s.is_enabled && s.email?.trim().toLowerCase() === normalized,
       ) ?? null
     );
   }, [received_on_address, sender_options]);
@@ -751,15 +846,39 @@ export function use_reply_modal(props: UseReplyModalProps) {
 
   const handle_delete_draft = useCallback(async () => {
     if (draft_id) {
-      await delete_draft(draft_id);
+      const result = await delete_draft(draft_id);
+
+      if (result.error) {
+        set_show_delete_confirm(false);
+        show_toast(t("common.failed_to_delete_draft"), "error");
+
+        return;
+      }
+
       set_draft_id(null);
       set_draft_version(1);
       last_saved_text.current = "";
     }
 
+    if (message_editor_ref.current) {
+      message_editor_ref.current.innerHTML = "";
+    }
+    set_reply_message("");
+    set_attachments([]);
     set_show_delete_confirm(false);
     on_close();
-  }, [draft_id, on_close]);
+  }, [
+    t,
+    draft_id,
+    on_close,
+    message_editor_ref,
+    set_reply_message,
+    set_attachments,
+    set_draft_id,
+    set_draft_version,
+    last_saved_text,
+    set_show_delete_confirm,
+  ]);
 
   const get_total_attachments_size = useCallback(() => {
     return attachments.reduce((total, att) => total + att.size_bytes, 0);
@@ -772,12 +891,21 @@ export function use_reply_modal(props: UseReplyModalProps) {
       if (!files || files.length === 0) return;
 
       set_attachment_error(null);
+      await ensure_attachment_limits();
       const new_attachments: Attachment[] = [];
       const current_total = get_total_attachments_size();
       let running_total = current_total;
 
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
+
+        if (
+          attachments.length + new_attachments.length >=
+          MAX_ATTACHMENTS_PER_SEND
+        ) {
+          set_attachment_error(describe_too_many_attachments(t));
+          break;
+        }
 
         if (file.size > get_max_attachment_size()) {
           const rejection = describe_oversized_file(t, file.name);
@@ -790,9 +918,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
         }
 
         if (running_total + file.size > get_max_total_attachments_size()) {
-          set_attachment_error(
-            describe_would_exceed_total(t, file.name),
-          );
+          set_attachment_error(describe_would_exceed_total(t, file.name));
           continue;
         }
 
@@ -841,11 +967,20 @@ export function use_reply_modal(props: UseReplyModalProps) {
   const handle_files_drop = useCallback(
     async (files: File[]) => {
       set_attachment_error(null);
+      await ensure_attachment_limits();
       const new_attachments: Attachment[] = [];
       const current_total = get_total_attachments_size();
       let running_total = current_total;
 
       for (const file of files) {
+        if (
+          attachments.length + new_attachments.length >=
+          MAX_ATTACHMENTS_PER_SEND
+        ) {
+          set_attachment_error(describe_too_many_attachments(t));
+          break;
+        }
+
         if (file.size > get_max_attachment_size()) {
           const rejection = describe_oversized_file(t, file.name);
 
@@ -857,9 +992,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
         }
 
         if (running_total + file.size > get_max_total_attachments_size()) {
-          set_attachment_error(
-            describe_would_exceed_total(t, file.name),
-          );
+          set_attachment_error(describe_would_exceed_total(t, file.name));
           continue;
         }
 
@@ -968,7 +1101,6 @@ export function use_reply_modal(props: UseReplyModalProps) {
     is_mobile,
     build_quoted_content,
     exec_format_command,
-    handle_insert_link,
     toggle_plain_text_mode,
     handle_template_select,
     handle_send,

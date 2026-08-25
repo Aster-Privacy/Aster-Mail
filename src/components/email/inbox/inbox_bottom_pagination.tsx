@@ -47,8 +47,10 @@ export function BottomPagination({
   const handle_submit = useCallback(() => {
     const page_num = parseInt(input_value, 10);
 
-    if (!isNaN(page_num) && page_num >= 1 && page_num <= total_pages) {
-      on_page_change(page_num - 1);
+    if (!isNaN(page_num) && total_pages > 0) {
+      const clamped = Math.min(Math.max(page_num, 1), total_pages);
+
+      on_page_change(clamped - 1);
     }
     set_editing_idx(null);
     set_input_value("");
@@ -86,7 +88,7 @@ export function BottomPagination({
         disabled={current_page === 0}
         onClick={() => on_page_change(current_page - 1)}
       >
-        <ChevronLeftIcon className="w-4 h-4" />
+        <ChevronLeftIcon className="w-4 h-4 rtl:-scale-x-100" />
       </button>
       {page_items.map((item, idx) =>
         item === "ellipsis" ? (
@@ -95,8 +97,8 @@ export function BottomPagination({
               key={`e-${idx}`}
               ref={input_ref}
               className="text-center"
-              style={{ width: "3rem", flex: "0 0 auto" }}
               size="sm"
+              style={{ width: "3rem", flex: "0 0 auto" }}
               value={input_value}
               onBlur={handle_submit}
               onChange={(e) =>
@@ -136,7 +138,7 @@ export function BottomPagination({
         disabled={current_page >= total_pages - 1}
         onClick={() => on_page_change(current_page + 1)}
       >
-        <ChevronRightIcon className="w-4 h-4" />
+        <ChevronRightIcon className="w-4 h-4 rtl:-scale-x-100" />
       </button>
     </div>
   );

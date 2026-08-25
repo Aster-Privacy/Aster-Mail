@@ -56,7 +56,11 @@ function PanelToggleIcon({
       />
       <path d="M9.5 4.8V19.2" stroke="currentColor" strokeWidth="1.6" />
       <path
-        d={direction === "collapse" ? "M17 9.5 14 12l3 2.5" : "M14 9.5l3 2.5-3 2.5"}
+        d={
+          direction === "collapse"
+            ? "M17 9.5 14 12l3 2.5"
+            : "M14 9.5l3 2.5-3 2.5"
+        }
         stroke="currentColor"
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -86,6 +90,7 @@ export const SidebarAccountSwitcher = memo(function SidebarAccountSwitcher({
   on_toggle_collapse,
 }: SidebarAccountSwitcherProps) {
   const { t } = use_i18n();
+
   return (
     <div className="mt-auto flex-shrink-0">
       <div
@@ -94,13 +99,13 @@ export const SidebarAccountSwitcher = memo(function SidebarAccountSwitcher({
         {!is_collapsed && (
           <StorageMeter
             className="mb-3"
-            storage_percentage={storage_percentage}
-            storage_total_bytes={storage_total_bytes}
-            storage_used_bytes={storage_used_bytes}
             on_buy_more={() => {
               on_settings_click("billing");
               scroll_to_storage_addons();
             }}
+            storage_percentage={storage_percentage}
+            storage_total_bytes={storage_total_bytes}
+            storage_used_bytes={storage_used_bytes}
           />
         )}
 
@@ -152,7 +157,10 @@ export const SidebarAccountSwitcher = memo(function SidebarAccountSwitcher({
                   type="button"
                   onClick={on_toggle_collapse}
                 >
-                  <PanelToggleIcon className="w-[18px] h-[18px]" direction="collapse" />
+                  <PanelToggleIcon
+                    className="w-[18px] h-[18px]"
+                    direction="collapse"
+                  />
                 </button>
               </Tooltip>
             )}

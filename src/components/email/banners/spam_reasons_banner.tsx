@@ -70,20 +70,16 @@ export function SpamReasonsBanner({
   const reduce_motion = use_should_reduce_motion();
   const [show_details, set_show_details] = useState(false);
 
-  const humanize = (name: string) => {
-    const spaced = name.replace(/_/g, " ");
-    return spaced.charAt(0).toUpperCase() + spaced.slice(1);
-  };
-
-  const reason_labels = signals
-    .filter((s) => s.score > 0 || ALWAYS_SHOWN.has(s.name))
-    .map((s) => {
-      const key = REASON_KEYS[s.name];
-      return key ? t(key) : humanize(s.name);
-    });
+  const qualifying_signals = signals.filter(
+    (s) => s.score > 0 || ALWAYS_SHOWN.has(s.name),
+  );
+  const reason_labels = qualifying_signals
+    .map((s) => REASON_KEYS[s.name])
+    .filter((key): key is TranslationKey => Boolean(key))
+    .map((key) => t(key));
   const unique_reasons = Array.from(new Set(reason_labels));
 
-  if (unique_reasons.length === 0) {
+  if (qualifying_signals.length === 0) {
     return null;
   }
 
@@ -95,25 +91,27 @@ export function SpamReasonsBanner({
           <p className="text-[13px] text-txt leading-snug">
             {t("mail.spam_reasons_title")}
           </p>
-          <button
-            className="text-xs text-txt-muted mt-1 flex items-center gap-1 hover:text-txt transition-colors"
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              set_show_details(!show_details);
-            }}
-          >
-            {show_details
-              ? t("common.hide_details")
-              : t("common.show_details")}
-            {show_details ? (
-              <ChevronUpIcon className="w-3 h-3" />
-            ) : (
-              <ChevronDownIcon className="w-3 h-3" />
-            )}
-          </button>
+          {unique_reasons.length > 0 && (
+            <button
+              className="text-xs text-txt-muted mt-1 flex items-center gap-1 hover:text-txt transition-colors"
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                set_show_details(!show_details);
+              }}
+            >
+              {show_details
+                ? t("common.hide_details")
+                : t("common.show_details")}
+              {show_details ? (
+                <ChevronUpIcon className="w-3 h-3" />
+              ) : (
+                <ChevronDownIcon className="w-3 h-3" />
+              )}
+            </button>
+          )}
           <AnimatePresence>
-            {show_details && (
+            {show_details && unique_reasons.length > 0 && (
               <motion.div
                 animate={{ height: "auto", opacity: 1 }}
                 className="overflow-hidden"

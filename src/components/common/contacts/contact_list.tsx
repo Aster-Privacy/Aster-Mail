@@ -47,7 +47,7 @@ import { MobileMenuButton } from "@/components/layout/sidebar";
 import { use_preferences } from "@/contexts/preferences_context";
 import { EncryptionInfoDropdown } from "@/components/common/encryption_info_dropdown";
 import { ContactAvatar } from "@/components/common/contacts/contact_avatar";
-import { cn } from "@/lib/utils";
+import { cn, format_number } from "@/lib/utils";
 
 interface ContactListProps {
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
@@ -124,7 +124,7 @@ export function ContactList({
   const auto_save = !!preferences.auto_save_recent_recipients;
 
   return (
-    <div className="w-full md:w-1/2 md:flex-shrink-0 md:min-w-0 md:border-r md:border-edge-primary min-h-0 flex flex-col">
+    <div className="w-full md:w-1/2 md:flex-shrink-0 md:min-w-0 md:border-e md:border-edge-primary min-h-0 flex flex-col">
       <div className="flex items-center gap-2 px-4 pt-4 pb-2">
         <div className="md:hidden">
           <MobileMenuButton on_click={on_mobile_menu_toggle} />
@@ -134,7 +134,7 @@ export function ContactList({
         </h1>
         {!is_loading && contacts.length > 0 && (
           <span className="text-[20px] tabular-nums font-semibold text-blue-500 leading-none">
-            {contacts.length}
+            {format_number(contacts.length)}
           </span>
         )}
         <div className="flex-1" />
@@ -167,7 +167,7 @@ export function ContactList({
 
       {has_selection ? (
         <div className="flex items-center gap-1 px-4 py-2 border-b border-edge-primary">
-          <span className="text-[12px] tabular-nums font-medium text-txt-primary pr-2">
+          <span className="text-[12px] tabular-nums font-medium text-txt-primary pe-2">
             {t("common.selected_count", {
               count: selection_state.selected_count,
             })}
@@ -215,17 +215,14 @@ export function ContactList({
         </div>
       ) : (
         <div className="flex items-center justify-between px-4 py-2 border-b border-edge-primary">
-          <p className="text-[12px] text-txt-muted pr-3 flex-1">
+          <p className="text-[12px] text-txt-muted pe-3 flex-1">
             {t("settings.auto_save_recipients_to_contacts")}
           </p>
           <Switch
+            aria-label={t("settings.auto_save_recipients_to_contacts")}
             checked={auto_save}
             onCheckedChange={() =>
-              update_preference(
-                "auto_save_recent_recipients",
-                !auto_save,
-                true,
-              )
+              update_preference("auto_save_recent_recipients", !auto_save, true)
             }
           />
         </div>
@@ -258,14 +255,14 @@ export function ContactList({
         </div>
       )}
 
-      <div ref={list_container_ref} className="flex-1 overflow-y-auto px-2 py-2">
+      <div
+        ref={list_container_ref}
+        className="flex-1 overflow-y-auto px-2 py-2"
+      >
         {is_loading ? (
           <div>
             {Array.from({ length: 8 }).map((_, i) => (
-              <div
-                key={i}
-                className="flex items-center gap-3 px-3 py-2.5"
-              >
+              <div key={i} className="flex items-center gap-3 px-3 py-2.5">
                 <Skeleton className="w-10 h-10 rounded-full" />
                 <div className="flex-1 min-w-0">
                   <Skeleton className="h-4 w-32 mb-1.5" />
@@ -314,16 +311,14 @@ export function ContactList({
                   else contact_refs.current?.delete(contact.id);
                 }}
                 className={cn(
-                  "group/contact w-full flex items-center gap-3 px-3 py-1 my-0.5 rounded-[12px] text-left transition-colors",
+                  "group/contact w-full flex items-center gap-3 px-3 py-1 my-0.5 rounded-[12px] text-start transition-colors",
                   is_selected
                     ? "bg-[var(--accent-blue,#3b82f6)]/10"
                     : is_active
                       ? "bg-black/10 dark:bg-white/10"
                       : "hover:bg-black/5 dark:hover:bg-white/5",
                 )}
-                onClick={() =>
-                  set_selected_contact(is_active ? null : contact)
-                }
+                onClick={() => set_selected_contact(is_active ? null : contact)}
               >
                 <div
                   aria-label={t("mail.select")}

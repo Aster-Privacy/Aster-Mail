@@ -27,7 +27,6 @@ import { use_accent_contrast_text } from "@/hooks/use_accent_contrast_text";
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
-
 import { ignore_error } from "@/lib/ignore_error";
 
 const DISMISSED_CACHE_KEY = "aster_notification_banner_dismissed";
@@ -84,9 +83,35 @@ export function NotificationBanner() {
       set_browser_permission(Notification.permission);
     };
 
-    const interval = setInterval(check_permission, 1000);
+    let status: PermissionStatus | null = null;
+    let cancelled = false;
+    let interval: ReturnType<typeof setInterval> | null = null;
 
-    return () => clearInterval(interval);
+    if (navigator.permissions?.query) {
+      void navigator.permissions
+        .query({ name: "notifications" as PermissionName })
+        .then((result) => {
+          if (cancelled) return;
+          status = result;
+          result.addEventListener("change", check_permission);
+          check_permission();
+        })
+        .catch(() => {
+          if (cancelled) return;
+          interval = setInterval(check_permission, 3000);
+        });
+    } else {
+      interval = setInterval(check_permission, 3000);
+    }
+
+    window.addEventListener("focus", check_permission);
+
+    return () => {
+      cancelled = true;
+      status?.removeEventListener("change", check_permission);
+      if (interval !== null) clearInterval(interval);
+      window.removeEventListener("focus", check_permission);
+    };
   }, []);
 
   const should_hide =
@@ -160,7 +185,7 @@ export function NotificationBanner() {
                 {t("common.notification_banner_message")}
               </span>
             </div>
-            <div className="flex items-center gap-1.5 flex-shrink-0 ml-4">
+            <div className="flex items-center gap-1.5 flex-shrink-0 ms-4">
               <button
                 className="px-2.5 py-0.5 text-xs font-medium rounded-[12px] transition-colors"
                 style={{

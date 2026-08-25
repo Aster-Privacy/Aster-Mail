@@ -19,11 +19,16 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { UseRegistrationReturn } from "@/components/register/hooks/use_registration";
+import { safe_local_set } from "@/lib/safe_storage";
 import type { AvailablePlan } from "@/services/api/billing";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { motion } from "framer-motion";
-import { AcademicCapIcon, ArrowTopRightOnSquareIcon, UserGroupIcon } from "@heroicons/react/24/outline";
+import {
+  AcademicCapIcon,
+  ArrowTopRightOnSquareIcon,
+  UserGroupIcon,
+} from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
 import { Logo } from "@/components/auth/auth_styles";
@@ -45,6 +50,7 @@ import { show_toast } from "@/components/toast/simple_toast";
 import {
   PLAN_TIERS,
   FAMILY_PLAN_TIERS,
+  family_yearly_savings_cents,
   FAMILY_PLAN_DUO_FEATURES,
   FAMILY_PLAN_FAMILY_FEATURES,
   type PlanTier,
@@ -115,7 +121,10 @@ function feature_list_for_tier(
 
   if (tier_id === "star") {
     return [
-      { on: true, text: with_bold("50 GB", t("settings.encrypted_storage_suffix")) },
+      {
+        on: true,
+        text: with_bold("50 GB", t("settings.encrypted_storage_suffix")),
+      },
       { on: true, text: with_bold("15", t("settings.email_aliases_suffix")) },
       { on: true, text: with_bold("5", t("settings.custom_domains_suffix")) },
       { on: true, text: with_bold("50 MB", t("settings.attachments_suffix")) },
@@ -131,13 +140,18 @@ function feature_list_for_tier(
       { on: false, text: t("settings.f_folder_lock") },
       { on: false, text: t("settings.plan_f_smart_folders") },
       { on: false, text: t("settings.lockdown_title") },
-      { on: false, text: t("settings.plan_f_read_receipts") },
     ];
   }
   if (tier_id === "nova") {
     return [
-      { on: true, text: with_bold("500 GB", t("settings.encrypted_storage_suffix")) },
-      { on: true, text: with_bold(unlimited, t("settings.email_aliases_suffix")) },
+      {
+        on: true,
+        text: with_bold("500 GB", t("settings.encrypted_storage_suffix")),
+      },
+      {
+        on: true,
+        text: with_bold(unlimited, t("settings.email_aliases_suffix")),
+      },
       { on: true, text: with_bold("30", t("settings.custom_domains_suffix")) },
       { on: true, text: with_bold("100 MB", t("settings.attachments_suffix")) },
       { on: true, text: with_bold(unlimited, t("settings.mail_rules_suffix")) },
@@ -152,14 +166,22 @@ function feature_list_for_tier(
       { on: true, text: t("settings.f_folder_lock") },
       { on: true, text: t("settings.plan_f_smart_folders") },
       { on: true, text: t("settings.lockdown_title") },
-      { on: false, text: t("settings.plan_f_read_receipts") },
     ];
   }
 
   return [
-    { on: true, text: with_bold("5 TB", t("settings.encrypted_storage_suffix")) },
-    { on: true, text: with_bold(unlimited, t("settings.email_aliases_suffix")) },
-    { on: true, text: with_bold(unlimited, t("settings.custom_domains_suffix")) },
+    {
+      on: true,
+      text: with_bold("5 TB", t("settings.encrypted_storage_suffix")),
+    },
+    {
+      on: true,
+      text: with_bold(unlimited, t("settings.email_aliases_suffix")),
+    },
+    {
+      on: true,
+      text: with_bold(unlimited, t("settings.custom_domains_suffix")),
+    },
     { on: true, text: with_bold("250 MB", t("settings.attachments_suffix")) },
     { on: true, text: with_bold(unlimited, t("settings.mail_rules_suffix")) },
     { on: true, text: t("settings.f_e2ee") },
@@ -173,7 +195,6 @@ function feature_list_for_tier(
     { on: true, text: t("settings.f_folder_lock") },
     { on: true, text: t("settings.plan_f_smart_folders") },
     { on: true, text: t("settings.lockdown_title") },
-    { on: true, text: t("settings.plan_f_read_receipts") },
   ];
 }
 
@@ -222,7 +243,9 @@ export const RegisterStepPlanSelection = ({
 }: RegisterStepPlanSelectionProps) => {
   const { t } = reg;
   const offer = read_offer_prefill();
-  const [plan_type, set_plan_type] = useState<"individual" | "family">("individual");
+  const [plan_type, set_plan_type] = useState<"individual" | "family">(
+    "individual",
+  );
   const [billing_period, set_billing_period] = useState<"monthly" | "yearly">(
     "yearly",
   );
@@ -231,11 +254,21 @@ export const RegisterStepPlanSelection = ({
   const [is_loading, set_is_loading] = useState(true);
   const [checkout, set_checkout] = useState<SelectedCheckout | null>(null);
   const [is_finalizing, set_is_finalizing] = useState(false);
-  const [pending_tier, set_pending_tier] = useState<{ tier: PlanTier; plan: AvailablePlan } | null>(null);
-  const [crypto_tier, set_crypto_tier] = useState<{ tier: PlanTier; plan: AvailablePlan } | null>(null);
-  const [pending_family_tier, set_pending_family_tier] = useState<FamilyPlanTier | null>(null);
-  const [crypto_family_tier, set_crypto_family_tier] = useState<FamilyPlanTier | null>(null);
-  const [referral_discount_percent, set_referral_discount_percent] = useState<number | null>(null);
+  const [pending_tier, set_pending_tier] = useState<{
+    tier: PlanTier;
+    plan: AvailablePlan;
+  } | null>(null);
+  const [crypto_tier, set_crypto_tier] = useState<{
+    tier: PlanTier;
+    plan: AvailablePlan;
+  } | null>(null);
+  const [pending_family_tier, set_pending_family_tier] =
+    useState<FamilyPlanTier | null>(null);
+  const [crypto_family_tier, set_crypto_family_tier] =
+    useState<FamilyPlanTier | null>(null);
+  const [referral_discount_percent, set_referral_discount_percent] = useState<
+    number | null
+  >(null);
 
   use_currency_rates();
 
@@ -250,9 +283,11 @@ export const RegisterStepPlanSelection = ({
     (async () => {
       const status = await get_my_referral_status();
       const code = status.data?.discount_promo_code;
+
       if (!code || cancelled) return;
 
       const promo = await validate_promo_code(code);
+
       if (cancelled) return;
 
       if (
@@ -273,7 +308,10 @@ export const RegisterStepPlanSelection = ({
     (cents: number) => {
       if (!referral_discount_percent) return cents;
 
-      return Math.max(0, Math.round(cents * (1 - referral_discount_percent / 100)));
+      return Math.max(
+        0,
+        Math.round(cents * (1 - referral_discount_percent / 100)),
+      );
     },
     [referral_discount_percent],
   );
@@ -287,7 +325,9 @@ export const RegisterStepPlanSelection = ({
         set_crypto_family_tier(null);
       }
     };
+
     window.addEventListener("pageshow", handle_page_show);
+
     return () => window.removeEventListener("pageshow", handle_page_show);
   }, []);
 
@@ -312,7 +352,7 @@ export const RegisterStepPlanSelection = ({
     const next = e.target.value;
 
     set_currency(next);
-    localStorage.setItem(CURRENCY_STORAGE_KEY, next);
+    safe_local_set(CURRENCY_STORAGE_KEY, next);
   };
 
   const billing_interval: "month" | "year" =
@@ -333,7 +373,7 @@ export const RegisterStepPlanSelection = ({
 
     set_pending_tier(null);
     set_is_finalizing(true);
-    localStorage.setItem("show_onboarding", "true");
+    safe_local_set("show_onboarding", "true");
 
     const result = await start_hosted_checkout(
       pending_tier.plan.code,
@@ -356,13 +396,16 @@ export const RegisterStepPlanSelection = ({
   const handle_family_card = useCallback(async () => {
     if (!pending_family_tier) return;
     const tier = pending_family_tier;
+
     set_pending_family_tier(null);
     set_is_finalizing(true);
-    localStorage.setItem("show_onboarding", "true");
+    safe_local_set("show_onboarding", "true");
     const res = await create_family_group(tier.id, billing_interval);
+
     if (res.data?.checkout_url) {
       try {
         const parsed = new URL(res.data.checkout_url);
+
         if (parsed.protocol !== "https:") throw new Error("invalid_protocol");
         window.location.href = parsed.toString();
       } catch {
@@ -460,21 +503,27 @@ export const RegisterStepPlanSelection = ({
       )}
 
       <div className="flex flex-col items-center gap-3 mt-6">
-        <div
-          className="inline-flex rounded-full p-[5px] gap-1 bg-surf-secondary border border-edge-secondary"
-        >
+        <div className="inline-flex rounded-full p-[5px] gap-1 bg-surf-secondary border border-edge-secondary">
           {(["individual", "family"] as const).map((type) => {
             const active = plan_type === type;
+
             return (
               <button
                 key={type}
-                type="button"
                 className="flex items-center gap-1.5 px-[18px] py-[8px] rounded-full text-[13px] font-medium transition-colors"
-                style={{ backgroundColor: active ? "var(--accent-blue)" : "transparent", color: active ? "#fff" : "var(--text-tertiary)" }}
+                style={{
+                  backgroundColor: active
+                    ? "var(--accent-blue)"
+                    : "transparent",
+                  color: active ? "#fff" : "var(--text-tertiary)",
+                }}
+                type="button"
                 onClick={() => set_plan_type(type)}
               >
                 {type === "family" && <UserGroupIcon className="w-4 h-4" />}
-                {type === "individual" ? t("settings.plan_type_individual") : t("settings.plan_type_family")}
+                {type === "individual"
+                  ? t("settings.plan_type_individual")
+                  : t("settings.plan_type_family")}
               </button>
             );
           })}
@@ -486,16 +535,28 @@ export const RegisterStepPlanSelection = ({
         >
           {(["yearly", "monthly"] as const).map((p) => {
             const active = billing_period === p;
+
             return (
               <button
                 key={p}
                 className="px-[18px] py-[8px] rounded-full text-[13px] font-medium transition-colors"
                 role="tab"
-                style={{ backgroundColor: active ? "var(--accent-blue)" : "transparent", color: active ? "#ffffff" : "var(--text-tertiary)" }}
+                style={{
+                  backgroundColor: active
+                    ? "var(--accent-blue)"
+                    : "transparent",
+                  color: active ? "#ffffff" : "var(--text-tertiary)",
+                }}
                 type="button"
-                onClick={() => set_billing_period((prev) => prev === "yearly" ? "monthly" : "yearly")}
+                onClick={() =>
+                  set_billing_period((prev) =>
+                    prev === "yearly" ? "monthly" : "yearly",
+                  )
+                }
               >
-                {p === "yearly" ? t("settings.billing_yearly") : t("settings.billing_monthly")}
+                {p === "yearly"
+                  ? t("settings.billing_yearly")
+                  : t("settings.billing_monthly")}
               </button>
             );
           })}
@@ -529,47 +590,81 @@ export const RegisterStepPlanSelection = ({
       ) : plan_type === "family" ? (
         <div className="w-full grid gap-5 mt-10 md:grid-cols-2 max-w-3xl items-stretch">
           {FAMILY_PLAN_TIERS.map((tier) => {
-            const base_price_cents = billing_period === "yearly" ? tier.yearly_cents : tier.monthly_cents;
+            const base_price_cents =
+              billing_period === "yearly"
+                ? tier.yearly_cents
+                : tier.monthly_cents;
             const price_cents = apply_referral_discount(base_price_cents);
-            const features = tier.max_members === 2 ? FAMILY_PLAN_DUO_FEATURES : FAMILY_PLAN_FAMILY_FEATURES;
+            const features = (
+              tier.max_members === 2
+                ? FAMILY_PLAN_DUO_FEATURES
+                : FAMILY_PLAN_FAMILY_FEATURES
+            ).map((feature) => ({
+              label: t(feature.label_key),
+              on: feature.on,
+            }));
 
             return (
               <div
                 key={tier.id}
                 className="relative rounded-3xl border flex flex-col gap-6 p-7 transition-colors duration-300 hover:border-edge-primary"
                 style={{
-                  borderColor: tier.is_recommended ? "var(--accent-blue)" : "var(--border-primary)",
-                  backgroundColor: tier.is_recommended ? "var(--accent-blue-subtle, var(--bg-hover))" : "var(--bg-hover)",
+                  borderColor: tier.is_recommended
+                    ? "var(--accent-blue)"
+                    : "var(--border-primary)",
+                  backgroundColor: tier.is_recommended
+                    ? "var(--accent-blue-subtle, var(--bg-hover))"
+                    : "var(--bg-hover)",
                 }}
               >
                 <div className="flex flex-col gap-3">
                   <div className="flex items-center gap-2">
                     <UserGroupIcon className="w-5 h-5 text-txt-primary" />
-                    <h3 className="text-lg font-bold text-txt-primary">{tier.name}</h3>
+                    <h3 className="text-lg font-bold text-txt-primary">
+                      {tier.name}
+                    </h3>
                   </div>
                   <div className="flex items-baseline gap-1.5 flex-wrap">
                     {referral_discount_percent && (
                       <span className="text-lg font-medium leading-none text-txt-muted line-through">
-                        {format_price(convert_cents(base_price_cents, currency), currency)}
+                        {format_price(
+                          convert_cents(base_price_cents, currency),
+                          currency,
+                        )}
                       </span>
                     )}
                     <span className="text-[40px] font-bold leading-none tracking-tight text-txt-primary">
-                      {format_price(convert_cents(price_cents, currency), currency)}
+                      {format_price(
+                        convert_cents(price_cents, currency),
+                        currency,
+                      )}
                     </span>
                     <span className="text-sm text-txt-muted">
-                      {billing_period === "monthly" ? t("settings.per_month_short") : t("settings.per_year_short")}
+                      {billing_period === "monthly"
+                        ? t("settings.per_month_short")
+                        : t("settings.per_year_short")}
                     </span>
                     {billing_period === "yearly" && (
                       <span
-                        className="ml-1 px-2 py-[3px] rounded-full text-[10px] font-bold uppercase tracking-wider text-[var(--accent-fg,#ffffff)]"
+                        className="ms-1 px-2 py-[3px] rounded-full text-[10px] font-bold uppercase tracking-wider text-[var(--accent-fg,#ffffff)]"
                         style={{ backgroundColor: "var(--accent-blue)" }}
                       >
-                        {tier.savings_label}
+                        {t("settings.save_yearly", {
+                          amount: format_price(
+                            convert_cents(
+                              family_yearly_savings_cents(tier),
+                              currency,
+                            ),
+                            currency,
+                          ),
+                        })}
                       </span>
                     )}
                   </div>
                   <p className="text-[13px] leading-relaxed text-txt-tertiary">
-                    {tier.max_members === 2 ? t("settings.family_duo_tagline") : t("settings.family_plan_tagline")}
+                    {tier.max_members === 2
+                      ? t("settings.family_duo_tagline")
+                      : t("settings.family_plan_tagline")}
                   </p>
                 </div>
                 <ul className="flex flex-col gap-3 flex-1">
@@ -585,7 +680,9 @@ export const RegisterStepPlanSelection = ({
                     >
                       <span
                         className="shrink-0 mt-[1px]"
-                        style={{ color: feat.on ? "var(--accent-blue)" : "#dc2626" }}
+                        style={{
+                          color: feat.on ? "var(--accent-blue)" : "#dc2626",
+                        }}
                       >
                         {feat.on ? CHECK_SVG : CROSS_SVG}
                       </span>
@@ -645,7 +742,10 @@ export const RegisterStepPlanSelection = ({
                   <div className="flex items-baseline gap-1.5 flex-wrap">
                     {referral_discount_percent && (
                       <span className="text-lg font-medium leading-none text-txt-muted line-through">
-                        {format_price(convert_cents(base_cents, currency), currency)}
+                        {format_price(
+                          convert_cents(base_cents, currency),
+                          currency,
+                        )}
                       </span>
                     )}
                     <span className="text-[40px] font-bold leading-none tracking-tight text-txt-primary">
@@ -658,7 +758,7 @@ export const RegisterStepPlanSelection = ({
                     </span>
                     {saves > 0 && (
                       <span
-                        className="ml-1 px-2 py-[3px] rounded-full text-[10px] font-bold uppercase tracking-wider text-[var(--accent-fg,#ffffff)]"
+                        className="ms-1 px-2 py-[3px] rounded-full text-[10px] font-bold uppercase tracking-wider text-[var(--accent-fg,#ffffff)]"
                         style={{ backgroundColor: "var(--accent-blue)" }}
                       >
                         {t("settings.save_yearly", {
@@ -688,7 +788,9 @@ export const RegisterStepPlanSelection = ({
                     >
                       <span
                         className="shrink-0 mt-[1px]"
-                        style={{ color: f.on ? "var(--accent-blue)" : "#dc2626" }}
+                        style={{
+                          color: f.on ? "var(--accent-blue)" : "#dc2626",
+                        }}
                       >
                         {f.on ? CHECK_SVG : CROSS_SVG}
                       </span>

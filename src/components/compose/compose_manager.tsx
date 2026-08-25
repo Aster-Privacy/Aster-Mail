@@ -46,6 +46,7 @@ export interface EditDraftData {
   bcc_recipients: string[];
   subject: string;
   message: string;
+  from_email?: string;
   updated_at: string;
   attachments?: DraftAttachmentData[];
 }
@@ -183,7 +184,7 @@ export function ComposeManager({
   }
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none">
+    <div className="fixed bottom-0 start-0 end-0 z-50 pointer-events-none">
       <div
         ref={container_ref}
         className="flex flex-row-reverse items-end gap-2 px-4 pb-0 overflow-x-auto scrollbar-compose"
@@ -217,7 +218,7 @@ export function ComposeManager({
       </div>
       {show_scroll_hint && (
         <div
-          className="absolute left-0 top-0 bottom-0 w-8 pointer-events-none"
+          className="absolute start-0 top-0 bottom-0 w-8 pointer-events-none"
           style={{
             background:
               "linear-gradient(to right, var(--bg-primary), transparent)",

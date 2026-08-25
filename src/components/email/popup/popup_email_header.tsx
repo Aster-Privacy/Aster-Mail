@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { copy_text_or_throw } from "@/utils/copy_text";
 import type { DecryptedThreadMessage } from "@/types/thread";
 import type { TranslationKey } from "@/lib/i18n";
 import type { MailItem } from "@/services/api/mail";
@@ -45,11 +46,8 @@ import {
 } from "@/components/ui/email_tag";
 import { use_tags } from "@/hooks/use_tags";
 import { is_system_email } from "@/lib/utils";
-
 import { OfficialBadge } from "@/components/email/official_badge";
 import { get_label_hints } from "@/stores/label_hints_store";
-
-import { ignore_error } from "@/lib/ignore_error";
 
 interface PopupEmailHeaderProps {
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
@@ -63,7 +61,13 @@ interface PopupEmailHeaderProps {
   on_close: () => void;
   on_compose?: (email: string) => void;
   tracking_report?: ExternalContentReport | null;
-  label_hints?: { token: string; name: string; color?: string; icon?: string; show_icon?: boolean }[];
+  label_hints?: {
+    token: string;
+    name: string;
+    color?: string;
+    icon?: string;
+    show_icon?: boolean;
+  }[];
 }
 
 export function PopupEmailHeader({
@@ -84,33 +88,85 @@ export function PopupEmailHeader({
   const { get_tag_by_token } = use_tags();
   const label_chips = useMemo(() => {
     const seen = new Set<string>();
-    const from_item: { token: string; name: string; color?: string; icon?: string; show_icon: boolean }[] = [];
+    const from_item: {
+      token: string;
+      name: string;
+      color?: string;
+      icon?: string;
+      show_icon: boolean;
+    }[] = [];
+
     for (const f of mail_item?.labels ?? []) {
       if (f.name && !seen.has(f.token)) {
         seen.add(f.token);
-        from_item.push({ token: f.token, name: f.name, color: f.color as string | undefined, icon: f.icon, show_icon: true });
+        from_item.push({
+          token: f.token,
+          name: f.name,
+          color: f.color as string | undefined,
+          icon: f.icon,
+          show_icon: true,
+        });
       }
     }
     for (const f of mail_item?.folders ?? []) {
       if (f.name && !seen.has(f.token)) {
         seen.add(f.token);
-        from_item.push({ token: f.token, name: f.name, color: (f.color as string | undefined) || "#3b82f6", icon: f.icon || "folder", show_icon: true });
+        from_item.push({
+          token: f.token,
+          name: f.name,
+          color: (f.color as string | undefined) || "#3b82f6",
+          icon: f.icon || "folder",
+          show_icon: true,
+        });
       }
     }
     for (const token of mail_item?.tag_tokens ?? []) {
       const tag = get_tag_by_token(token);
+
       if (tag?.name && !seen.has(token)) {
         seen.add(token);
-        from_item.push({ token, name: tag.name, color: tag.color, icon: tag.icon, show_icon: true });
+        from_item.push({
+          token,
+          name: tag.name,
+          color: tag.color,
+          icon: tag.icon,
+          show_icon: true,
+        });
       }
     }
     const store_hints = get_label_hints(mail_item?.id ?? email.id);
-    const resolved = from_item.length > 0 ? from_item : (label_hints?.length ? label_hints : store_hints);
+    const resolved =
+      from_item.length > 0
+        ? from_item
+        : label_hints?.length
+          ? label_hints
+          : store_hints;
+
     if (is_system_email(email.sender_email)) {
-      return [{ token: "__system__", name: t("common.system"), color: "#3b82f6", icon: "info", show_icon: true }, ...resolved];
+      return [
+        {
+          token: "__system__",
+          name: t("common.system"),
+          color: "#3b82f6",
+          icon: "info",
+          show_icon: true,
+        },
+        ...resolved,
+      ];
     }
+
     return resolved;
-  }, [mail_item?.labels, mail_item?.folders, mail_item?.tag_tokens, mail_item?.id, label_hints, get_tag_by_token, email.id, email.sender_email, t]);
+  }, [
+    mail_item?.labels,
+    mail_item?.folders,
+    mail_item?.tag_tokens,
+    mail_item?.id,
+    label_hints,
+    get_tag_by_token,
+    email.id,
+    email.sender_email,
+    t,
+  ]);
 
   const show_sender_name = email.display_sender_name ?? email.sender;
   const show_sender_email = email.display_sender_email ?? email.sender_email;
@@ -131,7 +187,10 @@ export function PopupEmailHeader({
           )}
         </div>
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1 flex-1 min-w-0">
-          <h1 className="text-lg font-semibold leading-snug break-words text-txt-primary">
+          <h1
+            dir="auto"
+            className="text-lg font-semibold leading-snug break-words text-txt-primary"
+          >
             {email.subject || t("mail.no_subject")}
           </h1>
           {label_chips.map((chip) => (
@@ -175,9 +234,7 @@ export function PopupEmailHeader({
               <span className="font-medium text-sm text-txt-primary">
                 {show_sender_name}
               </span>
-              <OfficialBadge
-                email={email.sender_email}
-              />
+              <OfficialBadge email={email.sender_email} />
               {snoozed_until && (
                 <SnoozeBadge
                   className="flex-shrink-0"
@@ -190,7 +247,7 @@ export function PopupEmailHeader({
             <div className="flex items-center gap-2">
               <Popover>
                 <PopoverTrigger asChild>
-                  <button className="text-xs text-txt-muted hover:text-txt-secondary transition-colors text-left max-w-[32ch] truncate">
+                  <button className="text-xs text-txt-muted hover:text-txt-secondary transition-colors text-start max-w-[32ch] truncate">
                     {email.to.length > 0
                       ? `${t("common.to_label")} ${email.to
                           .map((r) => r.name || r.email)
@@ -199,39 +256,84 @@ export function PopupEmailHeader({
                     &#x25BC;
                   </button>
                 </PopoverTrigger>
-              <PopoverContent
-                align="start"
-                className="w-max min-w-[20rem] max-w-[90vw] p-3 text-xs space-y-2 bg-surf-primary border-edge-primary"
-                side="bottom"
-              >
-                <div className="grid grid-cols-[3.5rem_1fr] gap-x-2 items-start">
-                  <span className="whitespace-nowrap font-medium text-txt-muted">
-                    {t("common.from_label")}
-                  </span>
-                  <span className="min-w-0 text-txt-secondary break-words">
-                    {show_sender_name ? `${show_sender_name} ` : ""}
-                    <button
-                      className="hover:underline text-txt-muted"
-                      onClick={() => {
-                        navigator.clipboard
-                          .writeText(show_sender_email)
-                          .then(() => {
-                            show_toast(t("common.email_copied"), "success");
-                          })
-                          .catch((caught) => ignore_error("components/email/popup/popup_email_header:PopupEmailHeader", caught));
-                      }}
-                    >
-                      &lt;{show_sender_email}&gt;
-                    </button>
-                  </span>
-                </div>
-                <div className="grid grid-cols-[3.5rem_1fr] gap-x-2 items-start">
-                  <span className="whitespace-nowrap font-medium pt-0.5 text-txt-muted">
-                    {t("common.to_label")}
-                  </span>
-                  <span className="min-w-0 flex flex-wrap items-center gap-1 text-txt-secondary">
-                    {email.to.length > 0
-                      ? email.to.map((r, i) => (
+                <PopoverContent
+                  align="start"
+                  className="w-max min-w-[20rem] max-w-[90vw] p-3 text-xs space-y-2 bg-surf-primary border-edge-primary"
+                  side="bottom"
+                >
+                  <div className="grid grid-cols-[3.5rem_1fr] gap-x-2 items-start">
+                    <span className="whitespace-nowrap font-medium text-txt-muted">
+                      {t("common.from_label")}
+                    </span>
+                    <span className="min-w-0 text-txt-secondary break-words">
+                      {show_sender_name ? `${show_sender_name} ` : ""}
+                      <button
+                        className="hover:underline text-txt-muted"
+                        onClick={() => {
+                          copy_text_or_throw(show_sender_email)
+                            .then(() => {
+                              show_toast(t("common.email_copied"), "success");
+                            })
+                            .catch(() =>
+                              show_toast(t("common.failed_to_copy"), "error"),
+                            );
+                        }}
+                      >
+                        &lt;{show_sender_email}&gt;
+                      </button>
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-[3.5rem_1fr] gap-x-2 items-start">
+                    <span className="whitespace-nowrap font-medium pt-0.5 text-txt-muted">
+                      {t("common.to_label")}
+                    </span>
+                    <span className="min-w-0 flex flex-wrap items-center gap-1 text-txt-secondary">
+                      {email.to.length > 0
+                        ? email.to.map((r, i) => (
+                            <span
+                              key={r.email || i}
+                              className="inline-flex items-center gap-1"
+                            >
+                              <ProfileAvatar
+                                use_domain_logo
+                                email={r.email}
+                                name={r.name || ""}
+                                size="xs"
+                              />
+                              <button
+                                className="hover:underline"
+                                onClick={() => {
+                                  if (!r.email) return;
+                                  copy_text_or_throw(r.email)
+                                    .then(() =>
+                                      show_toast(
+                                        t("common.email_copied"),
+                                        "success",
+                                      ),
+                                    )
+                                    .catch(() =>
+                                      show_toast(
+                                        t("common.failed_to_copy"),
+                                        "error",
+                                      ),
+                                    );
+                                }}
+                              >
+                                {r.name || r.email || t("common.unknown")}
+                              </button>
+                              {i < email.to.length - 1 && <span>,</span>}
+                            </span>
+                          ))
+                        : t("common.me")}
+                    </span>
+                  </div>
+                  {email.cc.length > 0 && (
+                    <div className="grid grid-cols-[3.5rem_1fr] gap-x-2 items-start">
+                      <span className="whitespace-nowrap font-medium pt-0.5 text-txt-muted">
+                        {t("common.cc_label")}
+                      </span>
+                      <span className="min-w-0 flex flex-wrap items-center gap-1 text-txt-secondary">
+                        {email.cc.map((r, i) => (
                           <span
                             key={r.email || i}
                             className="inline-flex items-center gap-1"
@@ -246,146 +348,134 @@ export function PopupEmailHeader({
                               className="hover:underline"
                               onClick={() => {
                                 if (!r.email) return;
-                                navigator.clipboard
-                                  .writeText(r.email)
-                                  .then(() => show_toast(t("common.email_copied"), "success"))
-                                  .catch((caught) => ignore_error("components/email/popup/popup_email_header:PopupEmailHeader", caught));
+                                copy_text_or_throw(r.email)
+                                  .then(() =>
+                                    show_toast(
+                                      t("common.email_copied"),
+                                      "success",
+                                    ),
+                                  )
+                                  .catch(() =>
+                                    show_toast(
+                                      t("common.failed_to_copy"),
+                                      "error",
+                                    ),
+                                  );
                               }}
                             >
                               {r.name || r.email || t("common.unknown")}
                             </button>
-                            {i < email.to.length - 1 && <span>,</span>}
+                            {i < email.cc.length - 1 && <span>,</span>}
                           </span>
-                        ))
-                      : t("common.me")}
-                  </span>
-                </div>
-                {email.cc.length > 0 && (
-                  <div className="grid grid-cols-[3.5rem_1fr] gap-x-2 items-start">
-                    <span className="whitespace-nowrap font-medium pt-0.5 text-txt-muted">
-                      {t("common.cc_label")}
-                    </span>
-                    <span className="min-w-0 flex flex-wrap items-center gap-1 text-txt-secondary">
-                      {email.cc.map((r, i) => (
-                        <span
-                          key={r.email || i}
-                          className="inline-flex items-center gap-1"
-                        >
-                          <ProfileAvatar
-                            use_domain_logo
-                            email={r.email}
-                            name={r.name || ""}
-                            size="xs"
-                          />
-                          <button
-                            className="hover:underline"
-                            onClick={() => {
-                              if (!r.email) return;
-                              navigator.clipboard
-                                .writeText(r.email)
-                                .then(() => show_toast(t("common.email_copied"), "success"))
-                                .catch((caught) => ignore_error("components/email/popup/popup_email_header:PopupEmailHeader", caught));
-                            }}
-                          >
-                            {r.name || r.email || t("common.unknown")}
-                          </button>
-                          {i < email.cc.length - 1 && <span>,</span>}
-                        </span>
-                      ))}
-                    </span>
-                  </div>
-                )}
-                {email.bcc.length > 0 && (
-                  <div className="grid grid-cols-[3.5rem_1fr] gap-x-2 items-start">
-                    <span className="whitespace-nowrap font-medium pt-0.5 text-txt-muted">
-                      {t("common.bcc_label")}
-                    </span>
-                    <span className="min-w-0 flex flex-wrap items-center gap-1 text-txt-secondary">
-                      {email.bcc.map((r, i) => (
-                        <span
-                          key={r.email || i}
-                          className="inline-flex items-center gap-1"
-                        >
-                          <ProfileAvatar
-                            use_domain_logo
-                            email={r.email}
-                            name={r.name || ""}
-                            size="xs"
-                          />
-                          <button
-                            className="hover:underline"
-                            onClick={() => {
-                              if (!r.email) return;
-                              navigator.clipboard
-                                .writeText(r.email)
-                                .then(() => show_toast(t("common.email_copied"), "success"))
-                                .catch((caught) => ignore_error("components/email/popup/popup_email_header:PopupEmailHeader", caught));
-                            }}
-                          >
-                            {r.name || r.email || t("common.unknown")}
-                          </button>
-                          {i < email.bcc.length - 1 && <span>,</span>}
-                        </span>
-                      ))}
-                    </span>
-                  </div>
-                )}
-                <div className="grid grid-cols-[3.5rem_1fr] gap-x-2 items-start">
-                  <span className="whitespace-nowrap font-medium text-txt-muted">
-                    {t("common.date_label")}
-                  </span>
-                  <span className="min-w-0 text-txt-secondary">
-                    {timestamp_date.current
-                      ? format_email_popup(timestamp_date.current)
-                      : email.timestamp}
-                  </span>
-                </div>
-                <div className="grid grid-cols-[3.5rem_1fr] gap-x-2 items-start">
-                  <span className="whitespace-nowrap font-medium text-txt-muted">
-                    {t("common.subject_label")}
-                  </span>
-                  <span className="min-w-0 text-txt-secondary break-words">{email.subject || t("mail.no_subject")}</span>
-                </div>
-                {email.raw_headers && email.raw_headers.length > 0 && (
-                  <>
-                    <div className="border-t border-edge-primary pt-2 mt-1">
-                      <button
-                        className="text-xs text-accent-primary hover:text-accent-secondary transition-colors"
-                        onClick={() => set_show_headers(!show_headers)}
-                      >
-                        {show_headers
-                          ? t("mail.hide_headers")
-                          : t("mail.show_headers")}
-                      </button>
-                    </div>
-                    {show_headers && (
-                      <div className="max-h-64 overflow-y-auto space-y-1.5 text-[11px] font-mono">
-                        {email.raw_headers.map((header, index) => (
-                          <div key={index} className="flex gap-2">
-                            <span className="flex-shrink-0 font-semibold text-txt-muted whitespace-nowrap">
-                              {header.name}:
-                            </span>
-                            <span className="text-txt-secondary break-all">
-                              {header.value}
-                            </span>
-                          </div>
                         ))}
+                      </span>
+                    </div>
+                  )}
+                  {email.bcc.length > 0 && (
+                    <div className="grid grid-cols-[3.5rem_1fr] gap-x-2 items-start">
+                      <span className="whitespace-nowrap font-medium pt-0.5 text-txt-muted">
+                        {t("common.bcc_label")}
+                      </span>
+                      <span className="min-w-0 flex flex-wrap items-center gap-1 text-txt-secondary">
+                        {email.bcc.map((r, i) => (
+                          <span
+                            key={r.email || i}
+                            className="inline-flex items-center gap-1"
+                          >
+                            <ProfileAvatar
+                              use_domain_logo
+                              email={r.email}
+                              name={r.name || ""}
+                              size="xs"
+                            />
+                            <button
+                              className="hover:underline"
+                              onClick={() => {
+                                if (!r.email) return;
+                                copy_text_or_throw(r.email)
+                                  .then(() =>
+                                    show_toast(
+                                      t("common.email_copied"),
+                                      "success",
+                                    ),
+                                  )
+                                  .catch(() =>
+                                    show_toast(
+                                      t("common.failed_to_copy"),
+                                      "error",
+                                    ),
+                                  );
+                              }}
+                            >
+                              {r.name || r.email || t("common.unknown")}
+                            </button>
+                            {i < email.bcc.length - 1 && <span>,</span>}
+                          </span>
+                        ))}
+                      </span>
+                    </div>
+                  )}
+                  <div className="grid grid-cols-[3.5rem_1fr] gap-x-2 items-start">
+                    <span className="whitespace-nowrap font-medium text-txt-muted">
+                      {t("common.date_label")}
+                    </span>
+                    <span className="min-w-0 text-txt-secondary">
+                      {timestamp_date.current
+                        ? format_email_popup(timestamp_date.current)
+                        : email.timestamp}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-[3.5rem_1fr] gap-x-2 items-start">
+                    <span className="whitespace-nowrap font-medium text-txt-muted">
+                      {t("common.subject_label")}
+                    </span>
+                    <span
+                      dir="auto"
+                      className="min-w-0 text-txt-secondary break-words"
+                    >
+                      {email.subject || t("mail.no_subject")}
+                    </span>
+                  </div>
+                  {email.raw_headers && email.raw_headers.length > 0 && (
+                    <>
+                      <div className="border-t border-edge-primary pt-2 mt-1">
+                        <button
+                          className="text-xs text-accent-primary hover:text-accent-secondary transition-colors"
+                          onClick={() => set_show_headers(!show_headers)}
+                        >
+                          {show_headers
+                            ? t("mail.hide_headers")
+                            : t("mail.show_headers")}
+                        </button>
                       </div>
-                    )}
-                  </>
-                )}
-              </PopoverContent>
-            </Popover>
-            {(mail_item?.thread_message_count ?? thread_messages.length) >
-              1 && (
-              <span className="text-xs text-txt-muted">
-                {mail_item?.thread_message_count ?? thread_messages.length}{" "}
-                {t("mail.messages_label")}
-              </span>
-            )}
+                      {show_headers && (
+                        <div className="max-h-64 overflow-y-auto space-y-1.5 text-[11px] font-mono">
+                          {email.raw_headers.map((header, index) => (
+                            <div key={index} className="flex gap-2">
+                              <span className="flex-shrink-0 font-semibold text-txt-muted whitespace-nowrap">
+                                {header.name}:
+                              </span>
+                              <span className="text-txt-secondary break-all">
+                                {header.value}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  )}
+                </PopoverContent>
+              </Popover>
+              {(mail_item?.thread_message_count ?? thread_messages.length) >
+                1 && (
+                <span className="text-xs text-txt-muted">
+                  {mail_item?.thread_message_count ?? thread_messages.length}{" "}
+                  {t("mail.messages_label")}
+                </span>
+              )}
+            </div>
           </div>
         </div>
-      </div>
       )}
     </>
   );

@@ -84,6 +84,7 @@ export async function process_envelope_body(
   const mime_extracted = body_text !== pre_mime_text;
 
   const bundle = extract_subject_bundle(body_text);
+
   if (bundle.subject !== null) {
     body_text = bundle.body;
     if (!envelope.subject) {
@@ -112,11 +113,16 @@ export async function process_envelope_body(
     safe_html = undefined;
   }
 
-  if (is_ratchet_envelope(resolved_text) && !is_ratchet_envelope(body_text) && safe_html === undefined) {
+  if (
+    is_ratchet_envelope(resolved_text) &&
+    !is_ratchet_envelope(body_text) &&
+    safe_html === undefined
+  ) {
     safe_html = body_text;
   }
 
   const html_bundle = unwrap_bundle_html(safe_html);
+
   safe_html = html_bundle.html;
   if (html_bundle.subject !== null && !envelope.subject) {
     envelope.subject = html_bundle.subject;

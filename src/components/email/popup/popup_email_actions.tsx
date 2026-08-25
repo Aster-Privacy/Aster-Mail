@@ -28,6 +28,8 @@ import {
   ArrowsPointingOutIcon,
   ArrowsPointingInIcon,
   ArchiveBoxIcon,
+  CheckIcon,
+  InboxIcon,
   TrashIcon,
   ArrowTopRightOnSquareIcon,
   EnvelopeIcon,
@@ -40,12 +42,14 @@ import {
 import { Button, Tooltip } from "@aster/ui";
 
 import { PinIcon } from "@/components/common/icons";
-
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown_menu";
 
@@ -62,6 +66,13 @@ interface PopupEmailActionsProps {
   is_trash_loading: boolean;
   mail_item: MailItem | null;
   unsubscribe_info: UnsubscribeInfo | null;
+  is_archived?: boolean;
+  is_spam?: boolean;
+  folders?: { id: string; name: string; color: string }[];
+  applied_folder_tokens?: string[];
+  on_unarchive?: () => void;
+  on_not_spam?: () => void;
+  on_folder_toggle?: (folder_id: string) => void;
   on_close: () => void;
   on_drag_start: (e: React.MouseEvent) => void;
   on_toggle_size: () => void;
@@ -88,6 +99,13 @@ export function PopupEmailActions({
   is_trash_loading,
   mail_item,
   unsubscribe_info,
+  is_archived = false,
+  is_spam = false,
+  folders = [],
+  applied_folder_tokens = [],
+  on_unarchive,
+  on_not_spam,
+  on_folder_toggle,
   on_close,
   on_drag_start,
   on_toggle_size,
@@ -183,27 +201,39 @@ export function PopupEmailActions({
         </Button>
       </Tooltip>
 
-      <Tooltip tip={t("mail.archive")}>
+      <Tooltip
+        tip={
+          is_archived && on_unarchive
+            ? t("mail.move_to_inbox")
+            : t("mail.archive")
+        }
+      >
         <Button
           data-no-drag
           className="h-7 w-7 text-txt-muted hover:text-txt-primary"
           disabled={is_archive_loading}
           size="icon"
           variant="ghost"
-          onClick={on_archive}
+          onClick={is_archived && on_unarchive ? on_unarchive : on_archive}
         >
-          <ArchiveBoxIcon className="w-4 h-4" />
+          {is_archived && on_unarchive ? (
+            <InboxIcon className="w-4 h-4" />
+          ) : (
+            <ArchiveBoxIcon className="w-4 h-4" />
+          )}
         </Button>
       </Tooltip>
 
-      <Tooltip tip={t("mail.report_spam")}>
+      <Tooltip
+        tip={is_spam && on_not_spam ? t("mail.not_spam") : t("mail.report_spam")}
+      >
         <Button
           data-no-drag
           className="h-7 w-7 text-txt-muted hover:text-txt-primary"
           disabled={is_spam_loading}
           size="icon"
           variant="ghost"
-          onClick={on_spam}
+          onClick={is_spam && on_not_spam ? on_not_spam : on_spam}
         >
           <NoSymbolIcon className="w-4 h-4" />
         </Button>
@@ -238,46 +268,104 @@ export function PopupEmailActions({
           <DropdownMenuItem onClick={on_read_toggle}>
             {is_read ? (
               <>
-                <EnvelopeIcon className="w-4 h-4 mr-2" />
+                <EnvelopeIcon className="w-4 h-4 me-2" />
                 {t("mail.mark_as_unread")}
               </>
             ) : (
               <>
-                <EnvelopeOpenIcon className="w-4 h-4 mr-2" />
+                <EnvelopeOpenIcon className="w-4 h-4 me-2" />
                 {t("mail.mark_as_read")}
               </>
             )}
           </DropdownMenuItem>
           <DropdownMenuItem onClick={on_pin_toggle}>
             <PinIcon
-              className={`w-4 h-4 mr-2 ${is_pinned ? "-rotate-[38deg] text-blue-500" : ""}`}
+              className={`w-4 h-4 me-2 ${is_pinned ? "-rotate-[38deg] text-blue-500" : ""}`}
               filled={is_pinned}
             />
             {is_pinned ? t("mail.unpin") : t("common.pinned_to_top")}
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem disabled={is_spam_loading} onClick={on_spam}>
-            <NoSymbolIcon className="w-4 h-4 mr-2" />
-            {t("mail.report_spam")}
-          </DropdownMenuItem>
+          {is_archived && on_unarchive ? (
+            <DropdownMenuItem
+              disabled={is_archive_loading}
+              onClick={on_unarchive}
+            >
+              <InboxIcon className="w-4 h-4 me-2" />
+              {t("mail.move_to_inbox")}
+            </DropdownMenuItem>
+          ) : (
+            <DropdownMenuItem disabled={is_archive_loading} onClick={on_archive}>
+              <ArchiveBoxIcon className="w-4 h-4 me-2" />
+              {t("mail.archive")}
+            </DropdownMenuItem>
+          )}
+          {is_spam && on_not_spam ? (
+            <DropdownMenuItem disabled={is_spam_loading} onClick={on_not_spam}>
+              <NoSymbolIcon className="w-4 h-4 me-2" />
+              {t("mail.not_spam")}
+            </DropdownMenuItem>
+          ) : (
+            <DropdownMenuItem disabled={is_spam_loading} onClick={on_spam}>
+              <NoSymbolIcon className="w-4 h-4 me-2" />
+              {t("mail.report_spam")}
+            </DropdownMenuItem>
+          )}
           <DropdownMenuItem disabled={is_trash_loading} onClick={on_trash}>
-            <TrashIcon className="w-4 h-4 mr-2" />
+            <TrashIcon className="w-4 h-4 me-2" />
             {mail_item?.is_trashed
               ? t("mail.delete_permanently")
               : t("mail.move_to_trash")}
           </DropdownMenuItem>
-          <DropdownMenuItem disabled>
-            <FolderIcon className="w-4 h-4 mr-2" />
-            {t("mail.move_to_folder")}
-          </DropdownMenuItem>
+          {folders.length > 0 && on_folder_toggle ? (
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger>
+                <FolderIcon className="w-4 h-4 me-2" />
+                {t("mail.move_to_folder")}
+              </DropdownMenuSubTrigger>
+              <DropdownMenuSubContent className="w-48">
+                {folders.map((folder) => {
+                  const is_current = applied_folder_tokens.includes(folder.id);
+
+                  return (
+                    <DropdownMenuItem
+                      key={folder.id}
+                      onSelect={(e) => {
+                        e.preventDefault();
+                        on_folder_toggle(folder.id);
+                      }}
+                    >
+                      {is_current && (
+                        <CheckIcon className="me-0.5 h-3 w-3 flex-shrink-0" />
+                      )}
+                      <span
+                        className="me-1.5 h-2.5 w-2.5 rounded-full flex-shrink-0"
+                        style={
+                          folder.color.startsWith("#")
+                            ? { backgroundColor: folder.color }
+                            : {}
+                        }
+                      />
+                      <span className="truncate">{folder.name}</span>
+                    </DropdownMenuItem>
+                  );
+                })}
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
+          ) : (
+            <DropdownMenuItem disabled>
+              <FolderIcon className="w-4 h-4 me-2" />
+              {t("mail.move_to_folder")}
+            </DropdownMenuItem>
+          )}
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={on_print}>
-            <PrinterIcon className="w-4 h-4 mr-2" />
+            <PrinterIcon className="w-4 h-4 me-2" />
             {t("mail.print")}
           </DropdownMenuItem>
           {unsubscribe_info?.has_unsubscribe && (
             <DropdownMenuItem onClick={on_unsubscribe}>
-              <XMarkIcon className="w-4 h-4 mr-2" />
+              <XMarkIcon className="w-4 h-4 me-2" />
               {t("mail.unsubscribe")}
             </DropdownMenuItem>
           )}

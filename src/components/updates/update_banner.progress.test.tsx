@@ -23,6 +23,7 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
 import { UpdateBanner } from "./update_banner";
+
 import { update_progress_percent } from "@/services/updates/updater";
 
 type UpdaterEvent = {
@@ -42,6 +43,7 @@ vi.mock("@tauri-apps/plugin-updater", () => ({
     currentVersion: "1.4.63",
     downloadAndInstall: (on_event?: (event: UpdaterEvent) => void) => {
       emit = (event) => on_event?.(event);
+
       return new Promise<void>((resolve) => {
         finish_download = resolve;
       });
@@ -63,7 +65,6 @@ vi.mock("@/lib/i18n/context", () => ({
 }));
 
 declare global {
-  // eslint-disable-next-line no-var
   var IS_REACT_ACT_ENVIRONMENT: boolean;
 }
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
@@ -78,8 +79,12 @@ describe("update_progress_percent", () => {
   it("clamps and rounds a known total", () => {
     expect(update_progress_percent({ downloaded: 0, total: 1000 })).toBe(0);
     expect(update_progress_percent({ downloaded: 333, total: 1000 })).toBe(33);
-    expect(update_progress_percent({ downloaded: 1000, total: 1000 })).toBe(100);
-    expect(update_progress_percent({ downloaded: 9000, total: 1000 })).toBe(100);
+    expect(update_progress_percent({ downloaded: 1000, total: 1000 })).toBe(
+      100,
+    );
+    expect(update_progress_percent({ downloaded: 9000, total: 1000 })).toBe(
+      100,
+    );
   });
 });
 
@@ -105,8 +110,9 @@ describe("UpdateBanner download progress", () => {
     finish_download = null;
     content_length = 1000;
     localStorage.clear();
-    (window as unknown as { __TAURI_INTERNALS__?: unknown }).__TAURI_INTERNALS__ =
-      {};
+    (
+      window as unknown as { __TAURI_INTERNALS__?: unknown }
+    ).__TAURI_INTERNALS__ = {};
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
@@ -137,27 +143,21 @@ describe("UpdateBanner download progress", () => {
     await act(async () => {
       emit!({ event: "Started", data: { contentLength: content_length } });
     });
-    expect(button_text()).toBe(
-      'settings.updates_installing|{"percent":"0"}',
-    );
+    expect(button_text()).toBe('settings.updates_installing|{"percent":0}');
     expect(bar()?.getAttribute("aria-valuenow")).toBe("0");
 
     await act(async () => {
       emit!({ event: "Progress", data: { chunkLength: 250 } });
     });
-    expect(button_text()).toBe(
-      'settings.updates_installing|{"percent":"25"}',
-    );
+    expect(button_text()).toBe('settings.updates_installing|{"percent":25}');
 
     await act(async () => {
       emit!({ event: "Progress", data: { chunkLength: 500 } });
     });
-    expect(button_text()).toBe(
-      'settings.updates_installing|{"percent":"75"}',
+    expect(button_text()).toBe('settings.updates_installing|{"percent":75}');
+    expect((bar()?.firstElementChild as HTMLElement | null)?.style.width).toBe(
+      "75%",
     );
-    expect(
-      (bar()?.firstElementChild as HTMLElement | null)?.style.width,
-    ).toBe("75%");
 
     await act(async () => {
       emit!({ event: "Finished" });

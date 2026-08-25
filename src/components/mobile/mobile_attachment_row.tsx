@@ -34,6 +34,7 @@ interface MobileAttachmentRowProps {
   content_type: string;
   size: number;
   on_download?: () => void;
+  is_downloading?: boolean;
 }
 
 function get_file_icon(content_type: string) {
@@ -49,6 +50,7 @@ export const MobileAttachmentRow = memo(function MobileAttachmentRow({
   content_type,
   size,
   on_download,
+  is_downloading = false,
 }: MobileAttachmentRowProps) {
   const FileIcon = get_file_icon(content_type);
 
@@ -65,7 +67,8 @@ export const MobileAttachmentRow = memo(function MobileAttachmentRow({
       </div>
       {on_download && (
         <button
-          className="flex h-8 w-8 items-center justify-center rounded-full text-[var(--text-secondary)] active:bg-[var(--bg-secondary)]"
+          className="flex h-8 w-8 items-center justify-center rounded-full text-[var(--text-secondary)] active:bg-[var(--bg-secondary)] disabled:opacity-50"
+          disabled={is_downloading}
           type="button"
           onClick={on_download}
         >

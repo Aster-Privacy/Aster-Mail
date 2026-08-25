@@ -20,14 +20,14 @@
 //
 import { describe, it, expect } from "vitest";
 
-import { en } from "@/lib/i18n/translations/en";
-
 import {
   RULE_TEMPLATES,
   RULE_TEMPLATE_CATEGORIES,
   template_to_seed,
   type RuleTemplate,
 } from "./rule_templates";
+
+import { en } from "@/lib/i18n/translations/en";
 
 type Cond = RuleTemplate["conditions"][number];
 type Act = RuleTemplate["actions"][number];
@@ -40,8 +40,10 @@ function leaf_missing_value(c: Cond): boolean {
   if ("operator" in c && c.operator === "is_empty") return false;
   if ("value" in c) {
     const v = (c as { value: unknown }).value;
+
     if (typeof v === "string") return v.length === 0;
   }
+
   return false;
 }
 
@@ -63,12 +65,14 @@ function action_missing_value(a: Act): boolean {
 function en_value(key: string): string | undefined {
   const [ns, sub] = key.split(".") as [keyof typeof en, string];
   const namespace = en[ns] as unknown as Record<string, string>;
+
   return namespace?.[sub];
 }
 
 describe("rule templates catalog", () => {
   it("has unique ids", () => {
     const ids = RULE_TEMPLATES.map((t) => t.id);
+
     expect(new Set(ids).size).toBe(ids.length);
   });
 
@@ -88,13 +92,16 @@ describe("rule templates catalog", () => {
 
   it("uses only literal operators, never regex (ReDoS safety)", () => {
     const has_regex = (c: RuleTemplate["conditions"][number]): boolean => {
-      if (c.type === "and" || c.type === "or") return c.conditions.some(has_regex);
+      if (c.type === "and" || c.type === "or")
+        return c.conditions.some(has_regex);
       if (c.type === "not") return has_regex(c.condition);
+
       return (
         "operator" in c &&
         (c as { operator?: string }).operator === "matches_regex"
       );
     };
+
     for (const tpl of RULE_TEMPLATES) {
       expect(tpl.conditions.some(has_regex), tpl.id).toBe(false);
     }
@@ -111,6 +118,7 @@ describe("rule templates catalog", () => {
       const requires_input =
         tpl.conditions.some(leaf_missing_value) ||
         tpl.actions.some(action_missing_value);
+
       expect(!!tpl.needs_config, tpl.id).toBe(requires_input);
     }
   });

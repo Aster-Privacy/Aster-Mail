@@ -49,6 +49,7 @@ import {
   type TurnstileWidgetRef,
 } from "@/components/auth/turnstile_widget";
 import mail_logo_url from "@/assets/mail_logo.webp";
+import { is_composing } from "@/utils/ime";
 
 interface AccountMenuSheetProps {
   is_open: boolean;
@@ -74,7 +75,11 @@ export function AccountMenuSheet({
   const { t } = use_i18n();
 
   return (
-    <MobileBottomSheet is_open={is_open} on_close={on_close}>
+    <MobileBottomSheet
+      aria_label={t("settings.account")}
+      is_open={is_open}
+      on_close={on_close}
+    >
       <div className="px-4 pb-4">
         <div className="flex items-center gap-3 pb-4">
           <div className="relative h-9 w-9 shrink-0">
@@ -128,7 +133,8 @@ export function AccountMenuSheet({
             />
           </div>
           <p className="mt-1 text-[10px] text-[var(--text-muted)]">
-            {format_bytes(storage_used)} of {format_bytes(storage_total)}
+            {format_bytes(storage_used)} {t("common.of")}{" "}
+            {format_bytes(storage_total)}
           </p>
         </div>
 
@@ -139,13 +145,13 @@ export function AccountMenuSheet({
             variant="depth"
             onClick={() => {
               on_close();
-              handle_nav("/settings");
+              handle_nav("/settings/billing");
             }}
           >
             {t("common.upgrade")}
           </Button>
           <button
-            className="flex w-full items-center gap-3 rounded-[16px] px-3 py-3 text-left active:bg-[var(--bg-tertiary)]"
+            className="flex w-full items-center gap-3 rounded-[16px] px-3 py-3 text-start active:bg-[var(--bg-tertiary)]"
             type="button"
             onClick={() => {
               on_close();
@@ -158,7 +164,7 @@ export function AccountMenuSheet({
             </span>
           </button>
           <button
-            className="flex w-full items-center gap-3 rounded-[16px] px-3 py-3 text-left active:bg-[var(--bg-tertiary)]"
+            className="flex w-full items-center gap-3 rounded-[16px] px-3 py-3 text-start active:bg-[var(--bg-tertiary)]"
             type="button"
             onClick={handle_logout}
           >
@@ -182,6 +188,7 @@ interface CreateFolderSheetProps {
   set_folder_color: (v: string) => void;
   folder_input_ref: React.Ref<HTMLInputElement>;
   handle_create: () => void;
+  is_creating: boolean;
 }
 
 export function CreateFolderSheet({
@@ -193,11 +200,16 @@ export function CreateFolderSheet({
   set_folder_color,
   folder_input_ref,
   handle_create,
+  is_creating,
 }: CreateFolderSheetProps) {
   const { t } = use_i18n();
 
   return (
-    <MobileBottomSheet is_open={is_open} on_close={on_close}>
+    <MobileBottomSheet
+      aria_label={t("common.create_folder")}
+      is_open={is_open}
+      on_close={on_close}
+    >
       <div className="px-4 pb-4">
         <p className="mb-4 text-[16px] font-semibold text-[var(--text-primary)]">
           {t("common.create_folder")}
@@ -214,7 +226,7 @@ export function CreateFolderSheet({
             value={folder_name}
             onChange={(e) => set_folder_name(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === "Enter") handle_create();
+              if (e.key === "Enter" && !is_composing(e)) handle_create();
             }}
           />
         </div>
@@ -237,6 +249,7 @@ export function CreateFolderSheet({
         </div>
         <Button
           className="mt-1 w-full rounded-[16px] py-3 text-[15px] font-medium"
+          disabled={is_creating || !folder_name.trim()}
           type="button"
           variant="depth"
           onClick={handle_create}
@@ -258,6 +271,7 @@ interface CreateLabelSheetProps {
   label_icon: string | undefined;
   set_label_icon: (v: string | undefined) => void;
   label_input_ref: React.Ref<HTMLInputElement>;
+  is_creating: boolean;
   handle_create: () => void;
 }
 
@@ -272,11 +286,16 @@ export function CreateLabelSheet({
   set_label_icon,
   label_input_ref,
   handle_create,
+  is_creating,
 }: CreateLabelSheetProps) {
   const { t } = use_i18n();
 
   return (
-    <MobileBottomSheet is_open={is_open} on_close={on_close}>
+    <MobileBottomSheet
+      aria_label={t("common.create_label")}
+      is_open={is_open}
+      on_close={on_close}
+    >
       <div className="px-4 pb-4">
         <p className="mb-4 text-[16px] font-semibold text-[var(--text-primary)]">
           {t("common.create_label")}
@@ -305,7 +324,7 @@ export function CreateLabelSheet({
             value={label_name}
             onChange={(e) => set_label_name(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === "Enter") handle_create();
+              if (e.key === "Enter" && !is_composing(e)) handle_create();
             }}
           />
         </div>
@@ -335,12 +354,13 @@ export function CreateLabelSheet({
         <div className="mb-3">
           <TagIconPicker
             accent_color={label_color}
-            selected_icon={label_icon as TagIconName | undefined}
             on_select={set_label_icon}
+            selected_icon={label_icon as TagIconName | undefined}
           />
         </div>
         <Button
           className="mt-1 w-full rounded-[16px] py-3 text-[15px] font-medium"
+          disabled={is_creating || !label_name.trim()}
           type="button"
           variant="depth"
           onClick={handle_create}
@@ -392,7 +412,11 @@ export function EditFolderSheet({
   };
 
   return (
-    <MobileBottomSheet is_open={!!editing_folder} on_close={on_close}>
+    <MobileBottomSheet
+      aria_label={t("common.edit_folder")}
+      is_open={!!editing_folder}
+      on_close={on_close}
+    >
       <div className="px-4 pb-4">
         <p className="mb-4 text-[16px] font-semibold text-[var(--text-primary)]">
           {t("common.edit_folder")}
@@ -408,7 +432,7 @@ export function EditFolderSheet({
             value={edit_name}
             onChange={(e) => set_edit_name(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === "Enter") handle_save();
+              if (e.key === "Enter" && !is_composing(e)) handle_save();
             }}
           />
         </div>
@@ -433,7 +457,11 @@ export function EditFolderSheet({
           <span className="text-[15px] text-[var(--text-primary)]">
             {t("settings.notifications")}
           </span>
-          <Switch checked={!is_muted} onCheckedChange={toggle_notifications} />
+          <Switch
+            aria-label={t("settings.notifications")}
+            checked={!is_muted}
+            onCheckedChange={toggle_notifications}
+          />
         </div>
         <div className="flex gap-2">
           <Button
@@ -488,7 +516,11 @@ export function EditTagSheet({
   const { t } = use_i18n();
 
   return (
-    <MobileBottomSheet is_open={!!editing_tag} on_close={on_close}>
+    <MobileBottomSheet
+      aria_label={t("common.edit_label")}
+      is_open={!!editing_tag}
+      on_close={on_close}
+    >
       <div className="px-4 pb-4">
         <p className="mb-4 text-[16px] font-semibold text-[var(--text-primary)]">
           {t("common.edit_label")}
@@ -516,7 +548,7 @@ export function EditTagSheet({
             value={edit_name}
             onChange={(e) => set_edit_name(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === "Enter") handle_save();
+              if (e.key === "Enter" && !is_composing(e)) handle_save();
             }}
           />
         </div>
@@ -546,8 +578,8 @@ export function EditTagSheet({
         <div className="mb-3">
           <TagIconPicker
             accent_color={edit_color}
-            selected_icon={edit_icon as TagIconName | undefined}
             on_select={set_edit_icon}
+            selected_icon={edit_icon as TagIconName | undefined}
           />
         </div>
         <div className="flex gap-2">
@@ -611,7 +643,11 @@ export function CreateAliasSheet({
   const { t } = use_i18n();
 
   return (
-    <MobileBottomSheet is_open={is_open} on_close={on_close}>
+    <MobileBottomSheet
+      aria_label={t("common.alias_limit_reached")}
+      is_open={is_open}
+      on_close={on_close}
+    >
       <div className="px-4 pb-4">
         <p className="mb-4 text-[16px] font-semibold text-[var(--text-primary)]">
           {at_limit
@@ -637,9 +673,12 @@ export function CreateAliasSheet({
           <>
             <div className="mb-3 flex items-center gap-0">
               <Input
-                className="flex-1 !rounded-r-none"
+                autoCapitalize="none"
+                autoCorrect="off"
+                className="flex-1 !rounded-e-none"
                 disabled={creating}
                 placeholder={t("settings.alias_local_part_placeholder")}
+                spellCheck={false}
                 status={alias_error ? "error" : "default"}
                 value={alias_local}
                 onChange={(e) => {
@@ -650,7 +689,7 @@ export function CreateAliasSheet({
                   if (e.key === "Enter") handle_create();
                 }}
               />
-              <span className="rounded-r-xl bg-[var(--bg-tertiary)] px-3 py-3 text-[15px] text-[var(--text-muted)] select-none">
+              <span className="rounded-e-xl bg-[var(--bg-tertiary)] px-3 py-3 text-[15px] text-[var(--text-muted)] select-none">
                 @{domain}
               </span>
             </div>

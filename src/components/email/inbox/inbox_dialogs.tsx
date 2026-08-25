@@ -81,7 +81,7 @@ interface InboxDialogsProps {
   trash_count: number;
   custom_snooze_open: boolean;
   on_custom_snooze_close: () => void;
-  on_custom_snooze: (snooze_until: Date) => Promise<void>;
+  on_custom_snooze: (snooze_until: Date) => Promise<boolean>;
 }
 
 export function InboxDialogs({
@@ -133,9 +133,17 @@ export function InboxDialogs({
   return (
     <>
       <ConfirmModal
-        confirm_text={t("common.delete")}
+        confirm_text={
+          current_view === "trash" || current_view === "drafts"
+            ? t("mail.delete_permanently")
+            : t("mail.move_to_trash")
+        }
         confirm_variant="destructive"
-        description={t("mail.delete_messages_confirmation")}
+        description={
+          current_view === "trash" || current_view === "drafts"
+            ? t("mail.delete_messages_confirmation")
+            : t("mail.trash_messages_confirmation")
+        }
         dont_ask={dont_ask_delete}
         on_cancel={cancel_delete}
         on_confirm={confirm_delete}
@@ -180,7 +188,7 @@ export function InboxDialogs({
       <ConfirmModal
         confirm_text={t("mail.mark_spam_title")}
         confirm_variant="destructive"
-        description={t("mail.spam_email_message")}
+        description={t("mail.spam_email_sender_message")}
         dont_ask={dont_ask_single_spam}
         on_cancel={cancel_single_spam}
         on_confirm={confirm_single_spam}

@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import {  useEffect, useRef,  type ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import {
   ArrowLeftIcon,
   CheckIcon,
@@ -26,7 +26,6 @@ import {
 } from "@heroicons/react/24/outline";
 
 import { Spinner } from "@/components/ui/spinner";
-
 
 export interface StatusStep {
   key: string;
@@ -60,7 +59,7 @@ export function page_shell({ children, on_back, back_label }: PageShellProps) {
             type="button"
             onClick={on_back}
           >
-            <ArrowLeftIcon className="w-4 h-4" />
+            <ArrowLeftIcon className="w-4 h-4 rtl:-scale-x-100" />
             {back_label}
           </button>
         </header>
@@ -81,7 +80,13 @@ export interface ResultCardProps {
   tone: "accent" | "muted";
 }
 
-export function result_card({ body, children, icon, title, tone }: ResultCardProps) {
+export function result_card({
+  body,
+  children,
+  icon,
+  title,
+  tone,
+}: ResultCardProps) {
   const heading_ref = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
@@ -144,7 +149,7 @@ export function copy_field({
 }: CopyFieldProps) {
   return (
     <button
-      className="group w-full rounded-2xl border border-edge-secondary bg-surf-tertiary px-4 py-3 text-left transition-colors hover:border-edge-primary hover:bg-surf-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)]"
+      className="group w-full rounded-2xl border border-edge-secondary bg-surf-tertiary px-4 py-3 text-start transition-colors hover:border-edge-primary hover:bg-surf-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)]"
       type="button"
       onClick={() => on_copy(copy_value ?? value)}
     >
@@ -177,8 +182,10 @@ export interface DetailRowProps {
 export function detail_row({ children, label }: DetailRowProps) {
   return (
     <div className="flex items-center justify-between gap-3 py-2.5">
-      <span className="shrink-0 text-xs font-medium text-txt-muted">{label}</span>
-      <span className="min-w-0 break-all text-right text-sm font-medium text-txt-primary">
+      <span className="shrink-0 text-xs font-medium text-txt-muted">
+        {label}
+      </span>
+      <span className="min-w-0 break-all text-end text-sm font-medium text-txt-primary">
         {children}
       </span>
     </div>
@@ -201,7 +208,9 @@ export function live_status({ hint, is_live, label }: LiveStatusProps) {
         size="lg"
       />
       <span className="text-sm font-semibold text-txt-primary">{label}</span>
-      <p className="max-w-xs text-xs leading-relaxed text-txt-secondary">{hint}</p>
+      <p className="max-w-xs text-xs leading-relaxed text-txt-secondary">
+        {hint}
+      </p>
     </div>
   );
 }
@@ -235,7 +244,7 @@ export function step_list({ active_index, steps, title }: StepListProps) {
               {!is_last && (
                 <span
                   aria-hidden="true"
-                  className="absolute left-0 flex w-[18px] justify-center"
+                  className="absolute start-0 flex w-[18px] justify-center"
                   style={{ top: 9, bottom: -9 }}
                 >
                   <span
@@ -280,7 +289,9 @@ export function step_list({ active_index, steps, title }: StepListProps) {
                 <span
                   className="text-xs leading-tight"
                   style={{
-                    color: reached ? "var(--text-primary)" : "var(--text-muted)",
+                    color: reached
+                      ? "var(--text-primary)"
+                      : "var(--text-muted)",
                     fontWeight: current ? 600 : 500,
                   }}
                 >
@@ -331,4 +342,3 @@ export function meter({ fraction, label, value_max, value_now }: MeterProps) {
 }
 
 export const Meter = meter;
-

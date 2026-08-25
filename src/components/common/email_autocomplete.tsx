@@ -32,8 +32,11 @@ import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { BadgeChip } from "@/components/ui/badge_chip";
 import { cn, get_email_username } from "@/lib/utils";
 import { use_peer_profile } from "@/hooks/use_peer_profile";
+import { is_composing } from "@/utils/ime";
+import { split_recipient_list } from "@/utils/recipient_list";
 
-const EMAIL_REGEX = /^[^\s@]+@[a-zA-Z0-9][-a-zA-Z0-9.]*\.[a-zA-Z]{2,}$/;
+const EMAIL_REGEX =
+  /^[^\s@]+@[a-zA-Z0-9][-a-zA-Z0-9.]*\.[a-zA-Z][-a-zA-Z0-9]{1,}$/;
 
 function SuggestionRow({
   suggestion,
@@ -48,18 +51,20 @@ function SuggestionRow({
 }) {
   const peer_profile = use_peer_profile(suggestion.email);
   const peer_badge = peer_profile?.active_badge ?? null;
-  const show_badge = (peer_profile?.show_badge_profile ?? false) && !!peer_badge;
+  const show_badge =
+    (peer_profile?.show_badge_profile ?? false) && !!peer_badge;
   const display_name = peer_profile?.display_name || suggestion.name;
   const image_url = peer_profile?.profile_picture ?? suggestion.avatar_url;
 
   return (
     <button
       className={cn(
-        "w-full flex items-center gap-3 px-2 py-2 rounded-[14px] text-left transition-colors",
+        "w-full flex items-center gap-3 px-2 py-2 rounded-[14px] text-start transition-colors",
         is_selected ? "bg-surf-hover" : "hover:bg-surf-hover",
       )}
       type="button"
       onClick={on_select}
+      onMouseDown={(e) => e.preventDefault()}
       onMouseEnter={on_hover}
     >
       <ProfileAvatar
@@ -76,15 +81,17 @@ function SuggestionRow({
           </span>
           {show_badge && peer_badge && (
             <BadgeChip
+              show_label
               badge={peer_badge}
               className="flex-shrink-0"
               show_find_order={false}
-              show_label
               size="xs"
             />
           )}
         </div>
-        <div className="text-xs truncate text-txt-muted">{suggestion.email}</div>
+        <div className="text-xs truncate text-txt-muted">
+          {suggestion.email}
+        </div>
       </div>
     </button>
   );
@@ -224,6 +231,8 @@ export function EmailAutocomplete({
 
   const handle_key_down = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (is_composing(e)) return;
+
       if (!is_open || suggestions.length === 0) {
         if (e["key"] === "Enter") {
           e.preventDefault();
@@ -275,17 +284,20 @@ export function EmailAutocomplete({
     (e: React.ClipboardEvent<HTMLInputElement>) => {
       const pasted = e.clipboardData.getData("text/plain");
 
-      if (!/[,;\n\t]/.test(pasted)) return;
+      const parts = split_recipient_list(pasted);
+
+      if (
+        !/[,;\n\t]/.test(pasted) &&
+        !/<[^>]+>/.test(pasted) &&
+        parts.length < 2
+      ) {
+        return;
+      }
 
       e.preventDefault();
 
       const seen = new Set(existing_emails.map((em) => em.toLowerCase()));
       const remaining: string[] = [];
-
-      const parts = pasted
-        .split(/[,;\n\t]+/)
-        .map((s) => s.trim())
-        .filter(Boolean);
 
       for (const part of parts) {
         const email = extract_email_from_text(part);
@@ -352,9 +364,9 @@ export function EmailAutocomplete({
             <SuggestionRow
               key={`${suggestion.contact_id || suggestion.email}-${index}`}
               is_selected={index === selected_index}
-              suggestion={suggestion}
               on_hover={() => set_selected_index(index)}
               on_select={() => handle_select(suggestion)}
+              suggestion={suggestion}
             />
           ))}
         </div>

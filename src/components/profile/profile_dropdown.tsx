@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { copy_text_or_throw } from "@/utils/copy_text";
 import type { ContactFormData } from "@/types/contacts";
 
 import { useState, useCallback, useEffect } from "react";
@@ -74,9 +75,9 @@ export function ProfileDropdown({
   const [is_open, set_is_open] = useState(false);
   const [show_notes, set_show_notes] = useState(false);
   const [is_contact_loading, set_is_contact_loading] = useState(false);
-  const [existing_contact_id, set_existing_contact_id] = useState<string | null>(
-    () => get_cached_contact_id(email) ?? null,
-  );
+  const [existing_contact_id, set_existing_contact_id] = useState<
+    string | null
+  >(() => get_cached_contact_id(email) ?? null);
   const [is_blocking, set_is_blocking] = useState(false);
 
   const display_name = name || get_email_username(email);
@@ -118,22 +119,12 @@ export function ProfileDropdown({
 
   const handle_copy_email = useCallback(async () => {
     try {
-      await navigator.clipboard.writeText(email);
+      await copy_text_or_throw(email);
       show_toast(t("common.email_copied"), "success");
-    } catch (error) {
-      if (import.meta.env.DEV) console.error(error);
-      const textarea = document.createElement("textarea");
-
-      textarea.value = email;
-      textarea.style.position = "fixed";
-      textarea.style.opacity = "0";
-      document.body.appendChild(textarea);
-      textarea.select();
-      document.execCommand("copy");
-      document.body.removeChild(textarea);
-      show_toast(t("common.email_copied"), "success");
+    } catch {
+      show_toast(t("common.failed_to_copy"), "error");
     }
-  }, [email]);
+  }, [email, t]);
 
   const handle_contact_action = useCallback(async () => {
     if (is_contact_loading || !has_keys) return;
@@ -147,8 +138,11 @@ export function ProfileDropdown({
           show_toast(t("common.removed_from_contacts"), "success");
           set_existing_contact_id(null);
           emit_contacts_changed();
-        } else if (result.error) {
-          show_toast(result.error, "error");
+        } else {
+          show_toast(
+            result.error || t("common.something_went_wrong_try_again"),
+            "error",
+          );
         }
       } else {
         const parts = display_name.split(" ");
@@ -165,8 +159,11 @@ export function ProfileDropdown({
           show_toast(t("common.added_to_contacts"), "success");
           set_existing_contact_id(result.data.id);
           emit_contacts_changed();
-        } else if (result.error) {
-          show_toast(result.error, "error");
+        } else {
+          show_toast(
+            result.error || t("common.something_went_wrong_try_again"),
+            "error",
+          );
         }
       }
     } catch (error) {
@@ -175,7 +172,14 @@ export function ProfileDropdown({
     } finally {
       set_is_contact_loading(false);
     }
-  }, [email, display_name, is_contact_loading, has_keys, existing_contact_id]);
+  }, [
+    email,
+    display_name,
+    is_contact_loading,
+    has_keys,
+    existing_contact_id,
+    t,
+  ]);
 
   const handle_toggle_notes = useCallback(() => {
     set_show_notes((prev) => !prev);
@@ -197,8 +201,11 @@ export function ProfileDropdown({
         show_toast(t("common.blocked_email", { email }), "success");
         set_is_open(false);
         emit_mail_changed();
-      } else if (result.error) {
-        show_toast(result.error, "error");
+      } else {
+        show_toast(
+          result.error || t("common.something_went_wrong_try_again"),
+          "error",
+        );
       }
     } catch (error) {
       if (import.meta.env.DEV) console.error(error);
@@ -206,7 +213,7 @@ export function ProfileDropdown({
     } finally {
       set_is_blocking(false);
     }
-  }, [email, name, is_blocking]);
+  }, [email, name, is_blocking, t]);
 
   return (
     <DropdownMenu open={is_open} onOpenChange={set_is_open}>

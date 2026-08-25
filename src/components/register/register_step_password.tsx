@@ -46,6 +46,8 @@ interface RegisterStepPasswordProps {
 }
 
 export const RegisterStepPassword = ({ reg }: RegisterStepPasswordProps) => {
+  const is_captcha_pending = !!TURNSTILE_SITE_KEY && !reg.captcha_token;
+
   return (
     <motion.div
       key="password"
@@ -125,8 +127,14 @@ export const RegisterStepPassword = ({ reg }: RegisterStepPasswordProps) => {
           status={reg.error ? "error" : "default"}
           type={reg.is_confirm_password_visible ? "text" : "password"}
           value={reg.confirm_password}
-          onChange={(e) => reg.set_confirm_password(clamp_password(e.target.value))}
-          onKeyDown={(e) => e["key"] === "Enter" && reg.handle_password_next()}
+          onChange={(e) =>
+            reg.set_confirm_password(clamp_password(e.target.value))
+          }
+          onKeyDown={(e) => {
+            if (e["key"] !== "Enter") return;
+            if (is_captcha_pending) return;
+            void reg.handle_password_next();
+          }}
         />
       </div>
 
@@ -210,7 +218,7 @@ export const RegisterStepPassword = ({ reg }: RegisterStepPasswordProps) => {
         </Button>
         <Button
           className="flex-1"
-          disabled={!!TURNSTILE_SITE_KEY && !reg.captcha_token}
+          disabled={is_captcha_pending}
           size="xl"
           variant="depth"
           onClick={reg.handle_password_next}

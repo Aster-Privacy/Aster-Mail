@@ -47,7 +47,9 @@ export function totp_flow({
       on_cancel={on_cancel}
       on_success={on_success}
       on_use_backup_code={() => set_active_2fa_method("backup")}
-      on_use_passkey={has_webauthn ? () => set_active_2fa_method("webauthn") : undefined}
+      on_use_passkey={
+        has_webauthn ? () => set_active_2fa_method("webauthn") : undefined
+      }
       pending_login_token={pending_login_token}
       remember_me={remember_me}
     />

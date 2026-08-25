@@ -38,3 +38,9 @@ export function is_repeat_send(last_send_at: number, now: number): boolean {
 
   return now - last_send_at < SEND_REPEAT_GUARD_MS;
 }
+
+export function is_attachment_set_incomplete(
+  is_loading_forward_attachments: boolean | undefined,
+): boolean {
+  return is_loading_forward_attachments === true;
+}

@@ -19,6 +19,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
+import type {
+  ThreadMessageBlockProps,
+  use_thread_message_block,
+} from "./use_thread_message_block";
+
 import {
   StarIcon,
   EyeIcon,
@@ -28,7 +33,6 @@ import {
   ArrowUturnRightIcon,
 } from "@heroicons/react/24/outline";
 import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
-
 import { Tooltip } from "@aster/ui";
 
 import { EmailTag } from "@/components/ui/email_tag";
@@ -40,13 +44,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown_menu";
-
 import { MessageDetailsModal } from "@/components/email/message_details_modal";
-
-import type {
-  ThreadMessageBlockProps,
-  use_thread_message_block,
-} from "./use_thread_message_block";
 
 export function render_collapsed_thread_message(
   props: ThreadMessageBlockProps,
@@ -159,7 +157,7 @@ export function render_collapsed_thread_message(
                   on_forward(message);
                 }}
               >
-                <ArrowUturnRightIcon className="w-4 h-4 mr-2" />
+                <ArrowUturnRightIcon className="w-4 h-4 me-2 rtl:-scale-x-100" />
                 {t("mail.forward")}
               </DropdownMenuItem>
             )}
@@ -172,9 +170,9 @@ export function render_collapsed_thread_message(
                 }}
               >
                 {is_read ? (
-                  <EyeSlashIcon className="w-4 h-4 mr-2" />
+                  <EyeSlashIcon className="w-4 h-4 me-2" />
                 ) : (
-                  <EyeIcon className="w-4 h-4 mr-2" />
+                  <EyeIcon className="w-4 h-4 me-2" />
                 )}
                 {is_read ? t("mail.mark_unread") : t("mail.mark_read")}
               </DropdownMenuItem>
@@ -186,9 +184,9 @@ export function render_collapsed_thread_message(
               }}
             >
               {is_starred ? (
-                <StarIconSolid className="w-4 h-4 mr-2 text-amber-400" />
+                <StarIconSolid className="w-4 h-4 me-2 text-amber-400" />
               ) : (
-                <StarIcon className="w-4 h-4 mr-2" />
+                <StarIcon className="w-4 h-4 me-2" />
               )}
               {is_starred ? t("mail.unstar") : t("mail.star")}
             </DropdownMenuItem>
@@ -201,14 +199,14 @@ export function render_collapsed_thread_message(
                     on_trash(message);
                   }}
                 >
-                  <TrashIcon className="w-4 h-4 mr-2" />
+                  <TrashIcon className="w-4 h-4 me-2" />
                   {t("mail.move_to_trash")}
                 </DropdownMenuItem>
               </>
             )}
           </DropdownMenuContent>
         </DropdownMenu>
-        <span className="text-[13px] text-txt-muted whitespace-nowrap ml-1.5 flex-shrink-0">
+        <span className="text-[13px] text-txt-muted whitespace-nowrap ms-1.5 flex-shrink-0">
           {format_email_detail(new Date(message.timestamp))}
         </span>
       </div>

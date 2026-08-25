@@ -64,25 +64,25 @@ export function FilterDropdown({
       <DropdownMenuContent align="end" className="w-48">
         <DropdownMenuLabel>{t("mail.filter")}</DropdownMenuLabel>
         <DropdownMenuItem onClick={() => on_filter_change?.("all")}>
-          <span className="w-4 mr-2">
+          <span className="w-4 me-2">
             {active_filter === "all" && <CheckIcon className="w-4 h-4" />}
           </span>
           {t("mail.all_emails")}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => on_filter_change?.("unread")}>
-          <span className="w-4 mr-2">
+          <span className="w-4 me-2">
             {active_filter === "unread" && <CheckIcon className="w-4 h-4" />}
           </span>
           {t("mail.unread_only")}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => on_filter_change?.("read")}>
-          <span className="w-4 mr-2">
+          <span className="w-4 me-2">
             {active_filter === "read" && <CheckIcon className="w-4 h-4" />}
           </span>
           {t("mail.read_only")}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => on_filter_change?.("attachments")}>
-          <span className="w-4 mr-2">
+          <span className="w-4 me-2">
             {active_filter === "attachments" && (
               <CheckIcon className="w-4 h-4" />
             )}
@@ -96,7 +96,7 @@ export function FilterDropdown({
             update_preference("inbox_sort_order", "newest_first", true)
           }
         >
-          <span className="w-4 mr-2">
+          <span className="w-4 me-2">
             {sort_order === "newest_first" && <CheckIcon className="w-4 h-4" />}
           </span>
           {t("mail.newest_first")}
@@ -106,7 +106,7 @@ export function FilterDropdown({
             update_preference("inbox_sort_order", "oldest_first", true)
           }
         >
-          <span className="w-4 mr-2">
+          <span className="w-4 me-2">
             {sort_order === "oldest_first" && <CheckIcon className="w-4 h-4" />}
           </span>
           {t("mail.oldest_first")}

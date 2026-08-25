@@ -90,7 +90,7 @@ export const RegisterStepRecoveryPhrase = ({
               key={index}
               className="relative overflow-hidden rounded-lg px-3 py-2.5 border flex items-center gap-2 transition-colors hover:opacity-80 bg-surf-tertiary border-edge-secondary"
             >
-              <span className="text-xs text-txt-muted w-5 text-right shrink-0">
+              <span className="text-xs text-txt-muted w-5 text-end shrink-0">
                 {index + 1}.
               </span>
               <span

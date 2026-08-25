@@ -481,12 +481,12 @@ const EmailTag = React.forwardRef<HTMLSpanElement, EmailTagProps>(
 
     return (
       <span
+        ref={ref}
         className={cn(
           email_tag_variants({ variant, size }),
           muted && "opacity-70",
           className,
         )}
-        ref={ref}
         style={{ ...custom_styles, ...style }}
         {...props}
       >
@@ -564,6 +564,16 @@ export const TAG_COLOR_PRESETS = [
 ] as const;
 
 export const TAG_ICONS = Object.keys(tag_icon_map) as TagIconName[];
+
+export type TagColorVariant = (typeof TAG_COLOR_PRESETS)[number]["variant"];
+
+export function tag_color_label_key(variant: TagColorVariant): TranslationKey {
+  return `common.color_${variant}`;
+}
+
+export function tag_icon_label_key(icon: TagIconName): TranslationKey {
+  return `common.tag_icon_${icon.replace(/-/g, "_")}` as TranslationKey;
+}
 
 export type TagVariant = NonNullable<
   VariantProps<typeof email_tag_variants>["variant"]

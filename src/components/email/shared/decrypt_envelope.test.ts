@@ -18,9 +18,9 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { describe, it, expect, beforeEach, vi } from "vitest";
-
 import type { EncryptedVault } from "@/services/crypto/key_manager";
+
+import { describe, it, expect, beforeEach, vi } from "vitest";
 
 const h = vi.hoisted(() => ({
   vault: null as unknown,
@@ -141,6 +141,7 @@ async function seal_inbound_ecies(
     ),
   );
   const enc = new Uint8Array(1 + eph_raw.length + ciphertext.length);
+
   enc[0] = 2;
   enc.set(eph_raw, 1);
   enc.set(ciphertext, 1 + eph_raw.length);
@@ -169,7 +170,10 @@ describe("stale-vault self-heal on inbound envelope decrypt failure", () => {
     h.refreshed_vault = make_vault(rotated);
 
     const sealed = await seal_inbound_ecies(
-      { subject: "sealed to rotated key", from: { name: "A", email: "a@example.com" } },
+      {
+        subject: "sealed to rotated key",
+        from: { name: "A", email: "a@example.com" },
+      },
       rotated.public_raw,
     );
 
@@ -231,12 +235,18 @@ describe("stale-vault self-heal on inbound envelope decrypt failure", () => {
     );
 
     expect(
-      await decrypt_mail_envelope(sealed.encrypted_envelope, sealed.envelope_nonce),
+      await decrypt_mail_envelope(
+        sealed.encrypted_envelope,
+        sealed.envelope_nonce,
+      ),
     ).toBeNull();
     expect(h.vault_fetches).toBe(1);
 
     expect(
-      await decrypt_mail_envelope(sealed.encrypted_envelope, sealed.envelope_nonce),
+      await decrypt_mail_envelope(
+        sealed.encrypted_envelope,
+        sealed.envelope_nonce,
+      ),
     ).toBeNull();
     expect(h.vault_fetches).toBe(1);
     expect((h.vault as EncryptedVault).ratchet_identity_public).toBe(
@@ -306,7 +316,10 @@ describe("stale-vault self-heal on inbound envelope decrypt failure", () => {
     );
 
     expect(
-      await decrypt_mail_envelope(sealed.encrypted_envelope, sealed.envelope_nonce),
+      await decrypt_mail_envelope(
+        sealed.encrypted_envelope,
+        sealed.envelope_nonce,
+      ),
     ).toBeNull();
     expect(h.vault_fetches).toBe(1);
     expect(localStorage.getItem("astermail_encrypted_vault_user-1")).toBeNull();

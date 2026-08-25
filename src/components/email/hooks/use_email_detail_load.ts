@@ -51,9 +51,6 @@ import {
 } from "@/components/email/shared/build_email_from_envelope";
 import { use_auth } from "@/contexts/auth_context";
 import {
-  DEFAULT_PREFERENCES,
-} from "@/services/api/preferences";
-import {
   get_vault_from_memory,
   wait_for_keys_ready,
   are_keys_ready,
@@ -83,7 +80,6 @@ import {
 import { use_email_detail_actions } from "@/components/email/hooks/email_detail_actions";
 import { prefetch_attachment_meta } from "@/services/attachment_meta_cache";
 import { prefetch_attachment_previews } from "@/services/attachment_preview_cache";
-
 import { ignore_error } from "@/lib/ignore_error";
 
 export function use_email_detail_load() {
@@ -95,8 +91,10 @@ export function use_email_detail_load() {
   const { format_email_popup } = use_date_format();
   const { preferences, update_preference, save_now } = use_preferences();
   const mark_as_read_delay_ref = useRef(preferences.mark_as_read_delay);
+
   mark_as_read_delay_ref.current = preferences.mark_as_read_delay;
   const mark_as_read_timeout = useRef<number | null>(null);
+
   useEffect(() => {
     return () => {
       if (mark_as_read_timeout.current !== null) {
@@ -106,6 +104,7 @@ export function use_email_detail_load() {
     };
   }, [email_id]);
   const has_loaded_once = useRef(false);
+  const tracked_email_id = useRef<string | undefined>(undefined);
   const load_seq_ref = useRef(0);
   const [mail_item, set_mail_item] = useState<
     import("@/services/api/mail").MailItem | null
@@ -135,9 +134,7 @@ export function use_email_detail_load() {
     close_compose,
     toggle_minimize,
   } = use_compose_manager();
-  const [auto_advance, set_auto_advance] = useState(
-    DEFAULT_PREFERENCES.auto_advance,
-  );
+  const auto_advance = preferences.auto_advance;
   const [email_list] = useState<string[]>(() => {
     try {
       const stored = sessionStorage.getItem("astermail_email_nav");
@@ -148,7 +145,10 @@ export function use_email_detail_load() {
         return parsed.email_ids || [];
       }
     } catch (caught) {
-      ignore_error("components/email/hooks/use_email_detail_load:use_email_detail_load", caught);
+      ignore_error(
+        "components/email/hooks/use_email_detail_load:use_email_detail_load",
+        caught,
+      );
     }
 
     return [];
@@ -163,7 +163,10 @@ export function use_email_detail_load() {
         return parsed.grouped_email_ids;
       }
     } catch (caught) {
-      ignore_error("components/email/hooks/use_email_detail_load:use_email_detail_load", caught);
+      ignore_error(
+        "components/email/hooks/use_email_detail_load:use_email_detail_load",
+        caught,
+      );
     }
 
     return undefined;
@@ -380,6 +383,14 @@ export function use_email_detail_load() {
     const my_seq = ++load_seq_ref.current;
     const is_stale = () => load_seq_ref.current !== my_seq;
 
+    set_error(null);
+
+    if (tracked_email_id.current !== email_id) {
+      tracked_email_id.current = email_id;
+      set_tracking_report(null);
+      set_thread_truncated(false);
+    }
+
     const preload_in_flight = get_preload_in_flight();
     const preload_cache = get_preload_cache();
     const in_flight = preload_in_flight.get(email_id);
@@ -481,6 +492,8 @@ export function use_email_detail_load() {
           preferences.conversation_grouping,
         )
           .then(() => {
+            if (is_stale()) return;
+
             const fresh = get_preload_cache().get(revalidate_id);
 
             if (fresh) {
@@ -490,7 +503,12 @@ export function use_email_detail_load() {
               set_thread_draft(fresh.thread_draft);
             }
           })
-          .catch((caught) => ignore_error("components/email/hooks/use_email_detail_load:mark_read", caught));
+          .catch((caught) =>
+            ignore_error(
+              "components/email/hooks/use_email_detail_load:mark_read",
+              caught,
+            ),
+          );
       }
 
       return;
@@ -633,7 +651,8 @@ export function use_email_detail_load() {
         response.data.item_type === "sent" ||
         response.data.item_type === "draft";
       const is_read_on_server =
-        response.data.is_read === true || (decrypted_metadata?.is_read ?? false);
+        response.data.is_read === true ||
+        (decrypted_metadata?.is_read ?? false);
       const should_auto_mark_read =
         !is_read_on_server &&
         (is_sent_type ||
@@ -752,6 +771,7 @@ export function use_email_detail_load() {
             unsubscribe_info,
             reply_to: (() => {
               const parsed = extract_reply_to(envelope.raw_headers);
+
               return parsed
                 ? { name: parsed.name, email: parsed.email }
                 : undefined;
@@ -848,7 +868,15 @@ export function use_email_detail_load() {
       await ensure_min_duration();
       set_is_loading(false);
     }
-  }, [email_id, folders_state.folders, user?.id, user?.email, preferences.low_network_mode, preferences.conversation_grouping]);
+  }, [
+    email_id,
+    folders_state.folders,
+    user?.id,
+    user?.email,
+    preferences.low_network_mode,
+    preferences.conversation_grouping,
+    t,
+  ]);
 
   return {
     t,
@@ -884,7 +912,6 @@ export function use_email_detail_load() {
     close_compose,
     toggle_minimize,
     auto_advance,
-    set_auto_advance,
     email_list,
     is_archive_loading,
     is_trash_loading,

@@ -18,12 +18,13 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { ConditionField } from "@/services/api/mail_rules";
+
 import * as React from "react";
 import { PlusIcon } from "@heroicons/react/24/outline";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { FieldDropdown } from "@/components/mail_rules/dropdowns/field_dropdown";
-import type { ConditionField } from "@/services/api/mail_rules";
 
 interface AddConditionChipProps {
   on_pick: (field: ConditionField) => void;
@@ -49,18 +50,18 @@ export function AddConditionChip({
 
   return (
     <FieldDropdown
-      open={open}
       on_open_change={set_open}
       on_pick={(f) => {
         set_open(false);
         on_pick(f);
       }}
+      open={open}
       trigger={
         <button
           ref={trigger_ref}
+          className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-[12px] border border-dashed border-neutral-300 dark:border-neutral-700 text-[12.5px] text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-700 dark:hover:text-neutral-200 transition-colors"
           type="button"
           onClick={() => set_open(true)}
-          className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-[12px] border border-dashed border-neutral-300 dark:border-neutral-700 text-[12.5px] text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-700 dark:hover:text-neutral-200 transition-colors"
         >
           <PlusIcon className="w-3.5 h-3.5" />
           <span>{t("mail_rules.add_condition")}</span>

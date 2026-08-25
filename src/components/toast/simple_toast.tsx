@@ -33,13 +33,21 @@ import { use_preferences } from "@/contexts/preferences_context";
 
 type ToastIconType = "success" | "warning" | "error" | "info";
 
+interface ToastAction {
+  label: string;
+  on_click: () => void;
+}
+
 interface ToastState {
   id: string;
   message: string;
   icon_type?: ToastIconType;
+  action?: ToastAction;
 }
 
 const MAX_TOASTS = 3;
+
+const OFFLINE_FAILURE_TOAST_MS = 8000;
 
 export const TOAST_DURATION_DEFAULT_MS = 2000;
 
@@ -71,6 +79,7 @@ export function show_toast(
   message: string,
   icon_type?: ToastIconType,
   duration = TOAST_DURATION_DEFAULT_MS,
+  action?: ToastAction,
 ): string {
   const effective_duration = Math.max(duration, toast_min_duration_ms);
   const duplicate = toast_stack.find(
@@ -98,6 +107,7 @@ export function show_toast(
   const new_toast: ToastState = {
     message,
     icon_type,
+    action,
     id: crypto.randomUUID(),
   };
 
@@ -226,9 +236,39 @@ export function SimpleToast({ position }: SimpleToastProps) {
     };
   }, []);
 
+  useEffect(() => {
+    const on_queue_failure = (event: Event) => {
+      const detail = (event as CustomEvent<{ action?: { type?: string } }>)
+        .detail;
+      const message =
+        detail?.action?.type === "send_email"
+          ? t("common.offline_send_failed")
+          : t("common.offline_change_failed");
+
+      show_toast(message, "error", OFFLINE_FAILURE_TOAST_MS, {
+        label: t("common.retry"),
+        on_click: () => {
+          void import("@/native/offline_queue").then((queue) =>
+            queue.retry_failed_actions(),
+          );
+        },
+      });
+    };
+
+    window.addEventListener("offline-queue-failure", on_queue_failure);
+
+    return () => {
+      window.removeEventListener("offline-queue-failure", on_queue_failure);
+    };
+  }, [t]);
+
   const effective_position = position ?? preferences.toast_position;
-  const layout = TOAST_POSITION_LAYOUT[effective_position];
-  const is_top = effective_position === "top" || effective_position === "top-right" || effective_position === "top-left";
+  const layout =
+    TOAST_POSITION_LAYOUT[effective_position] ?? TOAST_POSITION_LAYOUT.bottom;
+  const is_top =
+    effective_position === "top" ||
+    effective_position === "top-right" ||
+    effective_position === "top-left";
   const y_offset = is_top ? -20 : 20;
 
   return (
@@ -250,17 +290,33 @@ export function SimpleToast({ position }: SimpleToastProps) {
               reduce_motion ? false : { opacity: 0, y: y_offset, scale: 0.95 }
             }
             layout={reduce_motion ? false : "position"}
-            transition={{ duration: reduce_motion ? 0 : 0.15, layout: { duration: 0.2 } }}
+            transition={{
+              duration: reduce_motion ? 0 : 0.15,
+              layout: { duration: 0.2 },
+            }}
           >
-            <div className="px-4 py-2.5 rounded-xl shadow-lg flex items-center gap-2 bg-modal-bg border border-edge-secondary">
+            <div className="px-4 py-2.5 rounded-xl shadow-lg flex items-center gap-2 bg-modal-bg border border-edge-secondary max-w-[min(92vw,28rem)]">
               {get_toast_icon(toast.icon_type) && (
                 <span className="flex-shrink-0 text-txt-primary">
                   {get_toast_icon(toast.icon_type)}
                 </span>
               )}
-              <span className="text-[13px] font-medium text-txt-primary whitespace-nowrap">
+              <span className="text-[13px] font-medium text-txt-primary min-w-0 break-words">
                 {toast.message}
               </span>
+              {toast.action && (
+                <button
+                  className="flex-shrink-0 text-[13px] font-semibold text-accent-primary hover:underline"
+                  onClick={() => {
+                    const run = toast.action?.on_click;
+
+                    dismiss_toast(toast.id);
+                    run?.();
+                  }}
+                >
+                  {toast.action.label}
+                </button>
+              )}
               <button
                 aria-label={t("common.dismiss")}
                 className="flex-shrink-0 text-txt-muted hover:text-txt-primary transition-colors p-1.5 -m-1.5"

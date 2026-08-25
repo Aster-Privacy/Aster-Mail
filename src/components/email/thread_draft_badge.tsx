@@ -28,6 +28,7 @@ import { show_toast } from "@/components/toast/simple_toast";
 import { emit_drafts_changed } from "@/hooks/mail_events";
 import { strip_html_tags } from "@/lib/html_sanitizer";
 import { use_i18n } from "@/lib/i18n/context";
+import { clip_with_ellipsis } from "@/utils/preview_text";
 
 interface ThreadDraftBadgeProps {
   draft: DraftWithContent;
@@ -70,7 +71,7 @@ export function ThreadDraftBadge({
         show_toast(t("common.failed_to_delete_draft"), "error");
       }
     },
-    [draft.id, draft.thread_token, thread_token, is_deleting, on_deleted],
+    [draft.id, draft.thread_token, thread_token, is_deleting, on_deleted, t],
   );
 
   const handle_edit = useCallback(() => {
@@ -80,8 +81,7 @@ export function ThreadDraftBadge({
   const preview_text = strip_html_tags(draft.content.message || "").trim();
   const summary =
     draft.content.subject?.trim() || preview_text || t("common.no_content");
-  const truncated_summary =
-    summary.length > 60 ? summary.substring(0, 60) + "..." : summary;
+  const truncated_summary = clip_with_ellipsis(summary, 60);
 
   const text_button_class =
     "flex-shrink-0 text-xs font-medium text-blue-500 rounded px-1.5 py-0.5 hover:bg-blue-500/10 transition-colors";

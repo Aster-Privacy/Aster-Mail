@@ -51,7 +51,6 @@ vi.mock("@/hooks/use_attachment_previews", () => ({
 const { EmptyState } = await import("./inbox_email_list");
 
 declare global {
-  // eslint-disable-next-line no-var
   var IS_REACT_ACT_ENVIRONMENT: boolean;
 }
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
@@ -84,10 +83,10 @@ describe("EmptyState load error variant", () => {
     const on_retry = vi.fn();
     const el = render(
       <EmptyState
-        current_view="all"
-        user_email="user@example.com"
         has_load_error
+        current_view="all"
         on_retry={on_retry}
+        user_email="user@example.com"
       />,
     );
 
@@ -105,10 +104,7 @@ describe("EmptyState load error variant", () => {
 
   it("still shows the normal empty state when there is no error", () => {
     const el = render(
-      <EmptyState
-        current_view="all"
-        user_email="user@example.com"
-      />,
+      <EmptyState current_view="all" user_email="user@example.com" />,
     );
 
     expect(el.textContent).toContain("mail.no_messages");

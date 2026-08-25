@@ -21,6 +21,7 @@
 import {
   TAG_ICON_GROUPS,
   tag_icon_map,
+  tag_icon_label_key,
   type TagIconName,
 } from "@/components/ui/email_tag";
 import { use_i18n } from "@/lib/i18n/context";
@@ -83,7 +84,7 @@ export function TagIconPicker({
                         : "1px solid transparent",
                       color: is_selected ? accent_color : "var(--text-muted)",
                     }}
-                    title={icon_name}
+                    title={t(tag_icon_label_key(icon_name))}
                     type="button"
                     onClick={() =>
                       on_select(is_selected ? undefined : icon_name)

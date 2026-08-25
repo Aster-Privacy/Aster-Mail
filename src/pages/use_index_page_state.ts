@@ -31,6 +31,9 @@ import type { SettingsSection } from "@/components/settings/settings_content";
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 
+import type { UndoSendEvent } from "@/hooks/use_undo_send";
+import { attachments_to_draft_data } from "@/components/compose/compose_draft_helpers";
+
 import { use_compose_manager } from "@/components/compose/compose_manager";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_auth } from "@/contexts/auth_context";
@@ -73,7 +76,6 @@ import { show_action_toast } from "@/components/toast/action_toast";
 import { show_toast } from "@/components/toast/simple_toast";
 import { set_forward_mail_id } from "@/services/forward_store";
 import { read_last_settings_section } from "@/lib/settings_section_store";
-
 import { ignore_error } from "@/lib/ignore_error";
 
 export interface ForwardData {
@@ -212,7 +214,9 @@ export function use_index_page_state() {
         if (data.plan) {
           set_checkout_success(data);
           import("@/services/api/billing").then(({ activate_subscription }) => {
-            activate_subscription().catch((caught) => ignore_error("pages/use_index_page_state:from", caught));
+            activate_subscription().catch((caught) =>
+              ignore_error("pages/use_index_page_state:from", caught),
+            );
           });
         }
       } catch {
@@ -233,13 +237,19 @@ export function use_index_page_state() {
     if (window.opener && typeof window.opener.postMessage === "function") {
       try {
         window.opener.postMessage(
-          { type: "oauth_callback", status: oauth_status, provider, reason: raw_reason },
+          {
+            type: "oauth_callback",
+            status: oauth_status,
+            provider,
+            reason: raw_reason,
+          },
           window.location.origin,
         );
       } catch {
         /* cross-origin opener - ignore */
       }
       window.close();
+
       return;
     }
 
@@ -261,7 +271,11 @@ export function use_index_page_state() {
       open_settings("import");
       // Dispatch after a tick so ImportSection has time to mount.
       window.setTimeout(() => {
-        window.dispatchEvent(new CustomEvent("astermail:oauth-completed", { detail: { provider } }));
+        window.dispatchEvent(
+          new CustomEvent("astermail:oauth-completed", {
+            detail: { provider },
+          }),
+        );
       }, 600);
 
       return;
@@ -272,16 +286,20 @@ export function use_index_page_state() {
         missing_state: "settings.oauth_reason_missing_state",
         internal_error: "settings.oauth_reason_internal_error",
         invalid_provider: "settings.oauth_reason_invalid_provider",
-        provider_not_configured: "settings.oauth_reason_provider_not_configured",
+        provider_not_configured:
+          "settings.oauth_reason_provider_not_configured",
         token_exchange_failed: "settings.oauth_reason_token_exchange_failed",
         encryption_error: "settings.oauth_reason_encryption_error",
-        account_creation_failed: "settings.oauth_reason_account_creation_failed",
+        account_creation_failed:
+          "settings.oauth_reason_account_creation_failed",
         email_not_found: "settings.oauth_reason_email_not_found",
         invalid_state: "settings.oauth_reason_session_expired",
         expired_state: "settings.oauth_reason_session_expired",
       };
-      const reason_i18n_key = reason_key_map[raw_reason] || "settings.oauth_reason_unknown";
+      const reason_i18n_key =
+        reason_key_map[raw_reason] || "settings.oauth_reason_unknown";
       const reason = t(reason_i18n_key as TranslationKey);
+
       show_toast(t("settings.oauth_import_error", { reason }), "error");
     }
 
@@ -301,7 +319,8 @@ export function use_index_page_state() {
   }, []);
 
   const close_hash_entry = useCallback(() => {
-    const history_index = (window.history.state as { idx?: number } | null)?.idx;
+    const history_index = (window.history.state as { idx?: number } | null)
+      ?.idx;
 
     if (typeof history_index === "number" && history_index > 0) {
       navigate(-1);
@@ -312,36 +331,57 @@ export function use_index_page_state() {
     navigate(`${location.pathname}${location.search}`, { replace: true });
   }, [navigate, location.pathname, location.search]);
 
-  const open_compose = useCallback(() => {
-    if (!is_mobile && popup_email_id_ref.current && location.hash.startsWith('#')) {
-      close_hash_entry();
-    }
-    set_popup_email_id(null);
-    set_popup_scheduled(null);
-    set_split_scheduled_data(null);
-    open_compose_instance();
-  }, [is_mobile, location.hash, close_hash_entry, open_compose_instance]);
+  const open_compose = useCallback(
+    (initial_to?: string) => {
+      if (
+        !is_mobile &&
+        popup_email_id_ref.current &&
+        location.hash.startsWith("#")
+      ) {
+        close_hash_entry();
+      }
+      set_popup_email_id(null);
+      set_popup_scheduled(null);
+      set_split_scheduled_data(null);
+      open_compose_instance(undefined, initial_to);
+    },
+    [is_mobile, location.hash, close_hash_entry, open_compose_instance],
+  );
 
-  const handle_reply = useCallback((data: ReplyData) => {
-    if (!is_mobile && popup_email_id_ref.current && location.hash.startsWith('#')) {
-      close_hash_entry();
-    }
-    set_popup_email_id(null);
-    set_popup_scheduled(null);
-    set_split_scheduled_data(null);
-    set_reply_data(data);
-    set_is_reply_open(true);
-  }, [is_mobile, location.hash, close_hash_entry]);
+  const handle_reply = useCallback(
+    (data: ReplyData) => {
+      if (
+        !is_mobile &&
+        popup_email_id_ref.current &&
+        location.hash.startsWith("#")
+      ) {
+        close_hash_entry();
+      }
+      set_popup_email_id(null);
+      set_popup_scheduled(null);
+      set_split_scheduled_data(null);
+      set_reply_data(data);
+      set_is_reply_open(true);
+    },
+    [is_mobile, location.hash, close_hash_entry],
+  );
 
-  const handle_draft_click = useCallback((data: DraftClickData) => {
-    if (!is_mobile && popup_email_id_ref.current && location.hash.startsWith('#')) {
-      close_hash_entry();
-    }
-    set_popup_email_id(null);
-    set_popup_scheduled(null);
-    set_split_scheduled_data(null);
-    set_edit_draft(data);
-  }, [is_mobile, location.hash, close_hash_entry]);
+  const handle_draft_click = useCallback(
+    (data: DraftClickData) => {
+      if (
+        !is_mobile &&
+        popup_email_id_ref.current &&
+        location.hash.startsWith("#")
+      ) {
+        close_hash_entry();
+      }
+      set_popup_email_id(null);
+      set_popup_scheduled(null);
+      set_split_scheduled_data(null);
+      set_edit_draft(data);
+    },
+    [is_mobile, location.hash, close_hash_entry],
+  );
 
   const handle_draft_cleared = useCallback(() => {
     set_edit_draft(null);
@@ -360,7 +400,17 @@ export function use_index_page_state() {
     Record<string, string[] | undefined>
   >({});
   const [email_label_hints_map, set_email_label_hints_map] = useState<
-    Record<string, { token: string; name: string; color?: string; icon?: string; show_icon?: boolean }[] | undefined>
+    Record<
+      string,
+      | {
+          token: string;
+          name: string;
+          color?: string;
+          icon?: string;
+          show_icon?: boolean;
+        }[]
+      | undefined
+    >
   >({});
 
   const [is_search_open, set_is_search_open] = useState(false);
@@ -387,7 +437,17 @@ export function use_index_page_state() {
       snooze_info?: Record<string, string | undefined>,
       grouped_ids_map?: Record<string, string[] | undefined>,
       subject_map?: Record<string, string>,
-      label_hints_map?: Record<string, { token: string; name: string; color?: string; icon?: string; show_icon?: boolean }[] | undefined>,
+      label_hints_map?: Record<
+        string,
+        | {
+            token: string;
+            name: string;
+            color?: string;
+            icon?: string;
+            show_icon?: boolean;
+          }[]
+        | undefined
+      >,
     ) => {
       set_visible_email_ids(ids);
       if (snooze_info) {
@@ -429,7 +489,9 @@ export function use_index_page_state() {
         set_split_email_id(prev_id);
       }
       if (!is_mobile) {
-        navigate(`${location.pathname}${location.search}#${prev_id}`, { replace: true });
+        navigate(`${location.pathname}${location.search}#${prev_id}`, {
+          replace: true,
+        });
       }
     }
   }, [
@@ -453,7 +515,9 @@ export function use_index_page_state() {
         set_split_email_id(next_id);
       }
       if (!is_mobile) {
-        navigate(`${location.pathname}${location.search}#${next_id}`, { replace: true });
+        navigate(`${location.pathname}${location.search}#${next_id}`, {
+          replace: true,
+        });
       }
     }
   }, [
@@ -481,10 +545,9 @@ export function use_index_page_state() {
         set_split_email_id(id);
       }
       if (!is_mobile) {
-        navigate(
-          `${location.pathname}${location.search}#${id}`,
-          { replace: location.hash.startsWith('#') },
-        );
+        navigate(`${location.pathname}${location.search}#${id}`, {
+          replace: location.hash.startsWith("#"),
+        });
       }
     },
     [use_popup_mode, is_mobile, location, navigate],
@@ -526,17 +589,15 @@ export function use_index_page_state() {
       } else if (use_popup_mode) {
         set_split_email_id(null);
         set_popup_email_id(id);
-        navigate(
-          `${location.pathname}${location.search}#${id}`,
-          { replace: location.hash.startsWith('#') },
-        );
+        navigate(`${location.pathname}${location.search}#${id}`, {
+          replace: location.hash.startsWith("#"),
+        });
       } else {
         set_popup_email_id(null);
         set_split_email_id(id);
-        navigate(
-          `${location.pathname}${location.search}#${id}`,
-          { replace: location.hash.startsWith('#') },
-        );
+        navigate(`${location.pathname}${location.search}#${id}`, {
+          replace: location.hash.startsWith("#"),
+        });
       }
     },
     [is_mobile, use_popup_mode, visible_email_ids, navigate, location],
@@ -565,6 +626,7 @@ export function use_index_page_state() {
     if (is_mobile) return;
     if (skipping_hash_effect.current) {
       skipping_hash_effect.current = false;
+
       return;
     }
     if (!location.hash && email_is_open.current) {
@@ -580,7 +642,7 @@ export function use_index_page_state() {
     set_popup_email_id(null);
     set_split_email_id(null);
     set_preview_local_email(null);
-    if (!is_mobile && location.hash.startsWith('#')) {
+    if (!is_mobile && location.hash.startsWith("#")) {
       close_hash_entry();
     }
   }, [is_mobile, location.hash, close_hash_entry]);
@@ -617,21 +679,32 @@ export function use_index_page_state() {
       window.removeEventListener("astermail:undo-send-preview", handler);
   }, [use_popup_mode]);
 
-  const handle_forward = useCallback((data: ForwardData) => {
-    if (!is_mobile && popup_email_id_ref.current && location.hash.startsWith('#')) {
-      close_hash_entry();
-    }
-    set_forward_mail_id(data.original_mail_id);
-    set_popup_email_id(null);
-    set_popup_scheduled(null);
-    set_split_scheduled_data(null);
-    set_forward_data(data);
-    set_is_forward_open(true);
-  }, [is_mobile, location.hash, close_hash_entry]);
+  const handle_forward = useCallback(
+    (data: ForwardData) => {
+      if (
+        !is_mobile &&
+        popup_email_id_ref.current &&
+        location.hash.startsWith("#")
+      ) {
+        close_hash_entry();
+      }
+      set_forward_mail_id(data.original_mail_id);
+      set_popup_email_id(null);
+      set_popup_scheduled(null);
+      set_split_scheduled_data(null);
+      set_forward_data(data);
+      set_is_forward_open(true);
+    },
+    [is_mobile, location.hash, close_hash_entry],
+  );
 
   const handle_scheduled_click = useCallback(
     (data: ScheduledClickData) => {
-      if (!is_mobile && email_is_open.current && location.hash.startsWith('#')) {
+      if (
+        !is_mobile &&
+        email_is_open.current &&
+        location.hash.startsWith("#")
+      ) {
         close_hash_entry();
       }
       set_popup_email_id(null);
@@ -698,7 +771,7 @@ export function use_index_page_state() {
     if (!vault || !current_account_id) return;
     if (is_mobile) return;
 
-    const hash_id = location.hash.startsWith('#') ? location.hash.slice(1) : '';
+    const hash_id = location.hash.startsWith("#") ? location.hash.slice(1) : "";
 
     if (!hash_id) return;
 
@@ -764,7 +837,11 @@ export function use_index_page_state() {
         current_view === "spam" ||
         current_view === "archive";
 
-      if (is_protected_view) return;
+      if (is_protected_view) {
+        show_toast(t("common.cannot_move_from_view"), "error");
+
+        return;
+      }
 
       const is_inbox_like_view =
         current_view === "inbox" ||
@@ -789,6 +866,7 @@ export function use_index_page_state() {
         if (is_inbox_like_view || is_source_folder_view) {
           emit_mail_soft_refresh();
         }
+        show_toast(t("common.failed_to_update_emails"), "error");
 
         return;
       }
@@ -806,7 +884,9 @@ export function use_index_page_state() {
           archived = true;
           void bulk_update_metadata_by_ids(moved_ids, {
             is_archived: true,
-          }).catch((caught) => ignore_error("pages/use_index_page_state:get_current_view", caught));
+          }).catch((caught) =>
+            ignore_error("pages/use_index_page_state:get_current_view", caught),
+          );
           adjust_stats_inbox(-moved_ids.length);
           adjust_stats_archived(moved_ids.length);
           stale_all_view_caches();
@@ -837,14 +917,18 @@ export function use_index_page_state() {
         on_undo: async () => {
           await batched_bulk_remove_folder(moved_ids, folder_token);
           if (archived) {
-            const unarchive_result = await api_batch_unarchive_chunked(
-              moved_ids,
-            );
+            const unarchive_result =
+              await api_batch_unarchive_chunked(moved_ids);
 
             if (unarchive_result.success) {
               void bulk_update_metadata_by_ids(moved_ids, {
                 is_archived: false,
-              }).catch((caught) => ignore_error("pages/use_index_page_state:get_current_view", caught));
+              }).catch((caught) =>
+                ignore_error(
+                  "pages/use_index_page_state:get_current_view",
+                  caught,
+                ),
+              );
               adjust_stats_inbox(moved_ids.length);
               adjust_stats_archived(-moved_ids.length);
               stale_all_view_caches();
@@ -870,7 +954,11 @@ export function use_index_page_state() {
         (id) => !result.failed_ids.includes(id),
       );
 
-      if (tagged_ids.length === 0) return;
+      if (tagged_ids.length === 0) {
+        show_toast(t("common.failed_to_update_emails"), "error");
+
+        return;
+      }
       emit_mail_soft_refresh();
       show_action_toast({
         message: t("common.conversations_added_label", {
@@ -912,9 +1000,51 @@ export function use_index_page_state() {
   }, [location.pathname, search_params, open_compose_instance, navigate]);
 
   useEffect(() => {
+    if (is_mobile) return;
+
+    const handle_undo_send = (e: Event) => {
+      const { pending, payload } = (e as CustomEvent<UndoSendEvent>).detail;
+
+      if (!pending) return;
+
+      if (!payload && pending.is_restored) {
+        show_toast(t("common.scheduled_email_cancelled"));
+
+        return;
+      }
+
+      const attachments = payload?.attachments?.length
+        ? attachments_to_draft_data(payload.attachments)
+        : undefined;
+
+      open_compose_instance({
+        id: "",
+        version: 0,
+        draft_type: "new",
+        thread_token: payload?.thread_token ?? pending.thread_token,
+        to_recipients: payload?.to ?? pending.to ?? [],
+        cc_recipients: payload?.cc ?? pending.cc ?? [],
+        bcc_recipients: payload?.bcc ?? pending.bcc ?? [],
+        subject: payload?.subject ?? pending.subject ?? "",
+        message: payload?.body ?? pending.body ?? "",
+        from_email: payload?.sender_email ?? pending.sender_email,
+        updated_at: new Date().toISOString(),
+        attachments,
+      });
+    };
+
+    window.addEventListener("astermail:undo-send", handle_undo_send);
+
+    return () =>
+      window.removeEventListener("astermail:undo-send", handle_undo_send);
+  }, [is_mobile, open_compose_instance, t]);
+
+  useEffect(() => {
     const handle_prefilled_compose = (e: Event) => {
       const detail = (e as CustomEvent).detail as {
         to: string[];
+        cc?: string[];
+        bcc?: string[];
         subject: string;
         body: string;
       };
@@ -924,8 +1054,8 @@ export function use_index_page_state() {
         version: 0,
         draft_type: "new",
         to_recipients: detail.to,
-        cc_recipients: [],
-        bcc_recipients: [],
+        cc_recipients: detail.cc ?? [],
+        bcc_recipients: detail.bcc ?? [],
         subject: detail.subject,
         message: detail.body,
         updated_at: new Date().toISOString(),
@@ -963,6 +1093,16 @@ export function use_index_page_state() {
       set_active_search_query(query);
     }
   }, [location.state, location.pathname]);
+
+  useEffect(() => {
+    const handle_search_closed = () => set_is_search_open(false);
+
+    window.addEventListener("aster:search-closed", handle_search_closed);
+
+    return () => {
+      window.removeEventListener("aster:search-closed", handle_search_closed);
+    };
+  }, []);
 
   useEffect(() => {
     const handle_open_search_with_query = (e: Event) => {
@@ -1041,18 +1181,15 @@ export function use_index_page_state() {
     set_initial_search_query(undefined);
   }, []);
 
-  const handle_search_submit = useCallback(
-    (query: string) => {
-      set_is_search_open(false);
-      set_active_search_query(query);
-      set_sender_subscription(null);
-      set_popup_email_id(null);
-      set_split_email_id(null);
-      set_popup_scheduled(null);
-      set_split_scheduled_data(null);
-    },
-    [],
-  );
+  const handle_search_submit = useCallback((query: string) => {
+    set_is_search_open(false);
+    set_active_search_query(query);
+    set_sender_subscription(null);
+    set_popup_email_id(null);
+    set_split_email_id(null);
+    set_popup_scheduled(null);
+    set_split_scheduled_data(null);
+  }, []);
 
   const handle_sender_search = useCallback(
     (query: string, subscription: CachedSubscription) => {
@@ -1093,10 +1230,9 @@ export function use_index_page_state() {
         set_popup_email_id(null);
         set_split_email_id(id);
       }
-      navigate(
-        `${location.pathname}${location.search}#${id}`,
-        { replace: location.hash.startsWith('#') },
-      );
+      navigate(`${location.pathname}${location.search}#${id}`, {
+        replace: location.hash.startsWith("#"),
+      });
     },
     [is_mobile, use_popup_mode, navigate, location],
   );
@@ -1185,7 +1321,13 @@ export function use_index_page_state() {
     } else if (split_scheduled_data) {
       set_split_scheduled_data(null);
     }
-  }, [popup_email_id, split_email_id, popup_scheduled, split_scheduled_data, close_desktop_email_view]);
+  }, [
+    popup_email_id,
+    split_email_id,
+    popup_scheduled,
+    split_scheduled_data,
+    close_desktop_email_view,
+  ]);
 
   const handle_keyboard_reply = useCallback(() => {
     if (!has_viewed_email) return;
@@ -1296,8 +1438,7 @@ export function use_index_page_state() {
   use_keyboard_shortcuts({
     enabled: preferences.keyboard_shortcuts_enabled !== false,
     is_any_modal_open: is_input_modal_open,
-    has_focused_email:
-      has_focused_email || has_viewed_email || visible_email_ids.length > 0,
+    has_focused_email: has_focused_email || has_viewed_email,
     has_viewed_email,
     handlers: {
       on_next_email: handle_keyboard_next,

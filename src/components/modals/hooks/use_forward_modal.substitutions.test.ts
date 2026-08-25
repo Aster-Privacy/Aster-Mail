@@ -18,10 +18,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { Attachment } from "@/components/compose/compose_shared";
+
 import { describe, it, expect } from "vitest";
 
-import { apply_inline_image_substitutions } from "./use_forward_modal";
-import type { Attachment } from "@/components/compose/compose_shared";
+import {
+  apply_inline_image_substitutions,
+  merge_pending_recipients,
+} from "./use_forward_modal";
 
 const make_att = (overrides: Partial<Attachment>): Attachment => ({
   id: overrides.id || "att1",
@@ -36,10 +40,8 @@ const make_att = (overrides: Partial<Attachment>): Attachment => ({
 describe("apply_inline_image_substitutions", () => {
   it("replaces cid references with data urls and marks the attachment embedded", () => {
     const att = make_att({ id: "a1", content_id: "logo@x" });
-    const { content, embedded_attachment_ids } = apply_inline_image_substitutions(
-      '<img src="cid:logo@x">',
-      [att],
-    );
+    const { content, embedded_attachment_ids } =
+      apply_inline_image_substitutions('<img src="cid:logo@x">', [att]);
 
     expect(content).toContain('src="data:image/png;base64,');
     expect(content).not.toContain("cid:logo@x");
@@ -72,10 +74,8 @@ describe("apply_inline_image_substitutions", () => {
       content_id: "huge@x",
       size_bytes: 6 * 1024 * 1024,
     });
-    const { content, embedded_attachment_ids } = apply_inline_image_substitutions(
-      '<img src="cid:huge@x">',
-      [att],
-    );
+    const { content, embedded_attachment_ids } =
+      apply_inline_image_substitutions('<img src="cid:huge@x">', [att]);
 
     expect(content).toContain('src="cid:huge@x"');
     expect(embedded_attachment_ids.size).toBe(0);
@@ -126,10 +126,11 @@ describe("apply_inline_image_substitutions", () => {
       content_id: "evil@x",
       mime_type: 'image/png";x="$&',
     });
-    const { content, embedded_attachment_ids } = apply_inline_image_substitutions(
-      '<img src="cid:svg@x"><img src="cid:evil@x">',
-      [svg, evil],
-    );
+    const { content, embedded_attachment_ids } =
+      apply_inline_image_substitutions(
+        '<img src="cid:svg@x"><img src="cid:evil@x">',
+        [svg, evil],
+      );
 
     expect(embedded_attachment_ids.size).toBe(0);
     expect(content).toContain("cid:svg@x");
@@ -149,15 +150,64 @@ describe("apply_inline_image_substitutions", () => {
 
   it("stops embedding at the total inline budget but keeps remaining as cid", () => {
     const big_data = new ArrayBuffer(4 * 1024 * 1024);
-    const a = make_att({ id: "a", content_id: "a@x", size_bytes: 4 * 1024 * 1024, data: big_data });
-    const b = make_att({ id: "b", content_id: "b@x", size_bytes: 4 * 1024 * 1024, data: big_data });
-    const c = make_att({ id: "c", content_id: "c@x", size_bytes: 4 * 1024 * 1024, data: big_data });
-    const { content, embedded_attachment_ids } = apply_inline_image_substitutions(
-      '<img src="cid:a@x"><img src="cid:b@x"><img src="cid:c@x">',
-      [a, b, c],
-    );
+    const a = make_att({
+      id: "a",
+      content_id: "a@x",
+      size_bytes: 4 * 1024 * 1024,
+      data: big_data,
+    });
+    const b = make_att({
+      id: "b",
+      content_id: "b@x",
+      size_bytes: 4 * 1024 * 1024,
+      data: big_data,
+    });
+    const c = make_att({
+      id: "c",
+      content_id: "c@x",
+      size_bytes: 4 * 1024 * 1024,
+      data: big_data,
+    });
+    const { content, embedded_attachment_ids } =
+      apply_inline_image_substitutions(
+        '<img src="cid:a@x"><img src="cid:b@x"><img src="cid:c@x">',
+        [a, b, c],
+      );
 
     expect(embedded_attachment_ids.size).toBe(2);
     expect(content).toContain('src="cid:c@x"');
+  });
+});
+
+describe("merge_pending_recipients", () => {
+  it("includes an address typed but not committed", () => {
+    const merged = merge_pending_recipients(
+      { to: [], cc: [], bcc: [] },
+      { to: "  someone@example.com  ", cc: "", bcc: "" },
+    );
+
+    expect(merged.to).toEqual(["someone@example.com"]);
+    expect(merged.cc).toEqual([]);
+    expect(merged.bcc).toEqual([]);
+  });
+
+  it("keeps committed recipients and appends pending cc and bcc", () => {
+    const merged = merge_pending_recipients(
+      { to: ["a@example.com"], cc: [], bcc: [] },
+      { to: "", cc: "b@example.com", bcc: "c@example.com" },
+    );
+
+    expect(merged.to).toEqual(["a@example.com"]);
+    expect(merged.cc).toEqual(["b@example.com"]);
+    expect(merged.bcc).toEqual(["c@example.com"]);
+  });
+
+  it("does not duplicate an address that is already committed", () => {
+    const merged = merge_pending_recipients(
+      { to: ["A@Example.com"], cc: [], bcc: [] },
+      { to: "a@example.com", cc: "", bcc: "" },
+    );
+
+    expect(merged.to).toEqual(["A@Example.com"]);
   });
 });

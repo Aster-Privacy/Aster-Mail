@@ -20,6 +20,7 @@
 //
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@aster/ui";
+
 import { use_i18n } from "@/lib/i18n/context";
 import {
   AlertDialog,
@@ -117,7 +118,7 @@ export function UnsubscribeConfirmationModal() {
       if (req) {
         req.resolve(confirmed);
       }
-      set_request(null);
+      set_request((prev) => (prev === req ? null : prev));
     }, ANIMATION_DURATION);
   };
 
@@ -129,7 +130,7 @@ export function UnsubscribeConfirmationModal() {
   const get_display_host = () => {
     if (!request) return "";
     if (request.kind === "bulk") {
-      return `${request.bulk_count ?? 0} ${t("common.selected")}`;
+      return t("common.selected_count", { count: request.bulk_count ?? 0 });
     }
     if (request.kind === "mailto") {
       return request.destination;
@@ -153,7 +154,7 @@ export function UnsubscribeConfirmationModal() {
       }}
     >
       <AlertDialogContent
-        className="gap-0 p-0 overflow-hidden max-w-[440px] max-sm:max-w-none max-sm:w-full max-sm:h-full max-sm:rounded-none max-sm:left-0 max-sm:top-0 max-sm:translate-x-0 max-sm:translate-y-0"
+        className="gap-0 p-0 overflow-hidden max-w-[440px] max-sm:max-w-none max-sm:w-full max-sm:h-full max-sm:rounded-none max-sm:start-0 max-sm:top-0 max-sm:translate-x-0 max-sm:translate-y-0"
         on_overlay_click={handle_cancel}
       >
         <div className="flex h-full flex-col">

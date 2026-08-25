@@ -20,19 +20,28 @@
 //
 import { describe, it, expect, vi } from "vitest";
 
-vi.mock("@/contexts/theme_context", () => ({ useTheme: () => ({ theme: "dark" }) }));
+vi.mock("@/contexts/theme_context", () => ({
+  useTheme: () => ({ theme: "dark" }),
+}));
 vi.mock("@/contexts/preferences_context", () => ({
   use_preferences: () => ({ preferences: {} }),
   FONT_SIZE_DEFAULT: 14,
   normalize_font_size_scale: (value: number) => value,
 }));
-vi.mock("@/lib/i18n/context", () => ({ use_i18n: () => ({ t: (key: string) => key }) }));
+vi.mock("@/lib/i18n/context", () => ({
+  use_i18n: () => ({ t: (key: string) => key }),
+}));
 vi.mock("@/services/api/client", () => ({
   api_client: { get_access_token: () => null },
 }));
-vi.mock("@/services/routing/routing_provider", () => ({ routed_fetch: vi.fn() }));
+vi.mock("@/services/routing/routing_provider", () => ({
+  routed_fetch: vi.fn(),
+}));
 vi.mock("@/services/routing/connection_store", () => ({
-  connection_store: { get_method: () => "direct", get_api_onion_url: () => null },
+  connection_store: {
+    get_method: () => "direct",
+    get_api_onion_url: () => null,
+  },
 }));
 
 const { link_ink_for, link_hover_ink_for } = await import(
@@ -72,8 +81,12 @@ function hue_gap(a: string, b: string): number {
 describe("link_ink_for", () => {
   it("meets body text contrast on both surfaces for every theme accent", () => {
     for (const accent of THEME_ACCENTS) {
-      expect(contrast_ratio(link_ink_for(accent, LIGHT), LIGHT)).toBeGreaterThanOrEqual(4.5);
-      expect(contrast_ratio(link_ink_for(accent, DARK), DARK)).toBeGreaterThanOrEqual(4.5);
+      expect(
+        contrast_ratio(link_ink_for(accent, LIGHT), LIGHT),
+      ).toBeGreaterThanOrEqual(4.5);
+      expect(
+        contrast_ratio(link_ink_for(accent, DARK), DARK),
+      ).toBeGreaterThanOrEqual(4.5);
     }
   });
 
@@ -85,8 +98,12 @@ describe("link_ink_for", () => {
   });
 
   it("gives an achromatic accent a readable ink", () => {
-    expect(contrast_ratio(link_ink_for("#d4d4d8", DARK), DARK)).toBeGreaterThanOrEqual(4.5);
-    expect(contrast_ratio(link_ink_for("#ffffff", LIGHT), LIGHT)).toBeGreaterThanOrEqual(4.5);
+    expect(
+      contrast_ratio(link_ink_for("#d4d4d8", DARK), DARK),
+    ).toBeGreaterThanOrEqual(4.5);
+    expect(
+      contrast_ratio(link_ink_for("#ffffff", LIGHT), LIGHT),
+    ).toBeGreaterThanOrEqual(4.5);
   });
 
   it("returns a valid six digit hex for garbage input", () => {
@@ -108,8 +125,12 @@ describe("link_hover_ink_for", () => {
 
   it("keeps body text contrast on both surfaces", () => {
     for (const accent of THEME_ACCENTS) {
-      expect(contrast_ratio(link_hover_ink_for(accent, LIGHT), LIGHT)).toBeGreaterThanOrEqual(4.5);
-      expect(contrast_ratio(link_hover_ink_for(accent, DARK), DARK)).toBeGreaterThanOrEqual(4.5);
+      expect(
+        contrast_ratio(link_hover_ink_for(accent, LIGHT), LIGHT),
+      ).toBeGreaterThanOrEqual(4.5);
+      expect(
+        contrast_ratio(link_hover_ink_for(accent, DARK), DARK),
+      ).toBeGreaterThanOrEqual(4.5);
     }
   });
 

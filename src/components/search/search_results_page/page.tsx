@@ -72,6 +72,7 @@ import { SearchChipRow } from "@/components/search/search_chip_row";
 import { CorrectionNotice } from "@/components/search/correction_notice";
 import { AdvancedSearchModal } from "@/components/search/advanced_search_modal";
 import { resolve_list_density } from "@/lib/list_density";
+import { show_toast } from "@/components/toast/simple_toast";
 
 export function SearchResultsPage(props: SearchResultsPageProps) {
   const {
@@ -193,11 +194,17 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
 
       if (!target) return;
 
-      const emails = await fetch_as_minimal_emails(
+      const { emails, failed } = await fetch_as_minimal_emails(
         (target.grouped_email_ids?.length ?? 0) > 1
           ? (target.grouped_email_ids as string[])
           : [target.id],
       );
+
+      if (failed) {
+        show_toast(t("common.something_went_wrong_try_again"), "error");
+
+        return;
+      }
 
       if (emails.length === 0) return;
 
@@ -205,7 +212,7 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
 
       if (removes) emit_mail_items_removed({ ids: emails.map((e) => e.id) });
     },
-    [fetch_as_minimal_emails],
+    [fetch_as_minimal_emails, t],
   );
 
   const overflow_menu = (
@@ -382,7 +389,8 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
                 is_active={
                   !!split_email_id &&
                   (email.id === split_email_id ||
-                    (email.grouped_email_ids?.includes(split_email_id) ?? false))
+                    (email.grouped_email_ids?.includes(split_email_id) ??
+                      false))
                 }
                 on_email_click={handle_email_click}
                 on_toggle_select={handle_toggle_select}
@@ -505,7 +513,7 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
                   type="button"
                   onClick={on_close}
                 >
-                  <ArrowLeftIcon className="w-[18px] h-[18px]" />
+                  <ArrowLeftIcon className="w-[18px] h-[18px] rtl:-scale-x-100" />
                 </button>
               </Tooltip>
             }
@@ -548,6 +556,20 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
               on_query_change={on_search_submit}
               query={query}
             />
+          )}
+          {state.index_incomplete && (
+            <div
+              className="flex items-center gap-2 px-4 py-2 text-xs border-b"
+              style={{
+                backgroundColor: "var(--bg-secondary)",
+                borderColor: "var(--border-secondary)",
+                color: "var(--text-secondary)",
+              }}
+            >
+              <span className="min-w-0">
+                {t("mail.search_index_incomplete")}
+              </span>
+            </div>
           )}
           {state.hidden_spam_trash > 0 && (
             <div
@@ -625,7 +647,7 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
             }}
             onMouseDown={handle_drag_start}
           >
-            <div className="absolute inset-y-0 -left-1.5 -right-1.5" />
+            <div className="absolute inset-y-0 -start-1.5 -end-1.5" />
           </div>
           <div
             ref={detail_panel_ref}

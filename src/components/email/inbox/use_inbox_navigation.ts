@@ -37,6 +37,7 @@ interface ScheduledEmail {
   subject: string;
   full_body: string;
   scheduled_at: string;
+  status?: string;
 }
 
 interface UseInboxNavigationOptions {
@@ -56,7 +57,17 @@ interface UseInboxNavigationOptions {
     snooze_info?: Record<string, string | undefined>,
     grouped_ids_map?: Record<string, string[] | undefined>,
     subject_map?: Record<string, string>,
-    label_hints_map?: Record<string, { token: string; name: string; color?: string; icon?: string; show_icon?: boolean }[] | undefined>,
+    label_hints_map?: Record<
+      string,
+      | {
+          token: string;
+          name: string;
+          color?: string;
+          icon?: string;
+          show_icon?: boolean;
+        }[]
+      | undefined
+    >,
   ) => void;
 }
 
@@ -87,7 +98,17 @@ export function use_inbox_navigation({
       const snooze_info: Record<string, string | undefined> = {};
       const grouped_ids_map: Record<string, string[] | undefined> = {};
       const subject_map: Record<string, string> = {};
-      const label_hints_map: Record<string, { token: string; name: string; color?: string; icon?: string; show_icon?: boolean }[] | undefined> = {};
+      const label_hints_map: Record<
+        string,
+        | {
+            token: string;
+            name: string;
+            color?: string;
+            icon?: string;
+            show_icon?: boolean;
+          }[]
+        | undefined
+      > = {};
 
       all_visible.forEach((e) => {
         if (e.snoozed_until) {
@@ -99,12 +120,33 @@ export function use_inbox_navigation({
         if (e.subject) {
           subject_map[e.id] = e.subject;
         }
-        const hints: { token: string; name: string; color?: string; icon?: string; show_icon?: boolean }[] = [];
+        const hints: {
+          token: string;
+          name: string;
+          color?: string;
+          icon?: string;
+          show_icon?: boolean;
+        }[] = [];
+
         for (const f of e.folders ?? []) {
-          if (f.name) hints.push({ token: f.folder_token, name: f.name, color: f.color, icon: f.icon, show_icon: true });
+          if (f.name)
+            hints.push({
+              token: f.folder_token,
+              name: f.name,
+              color: f.color,
+              icon: f.icon,
+              show_icon: true,
+            });
         }
         for (const tag of e.tags ?? []) {
-          if (tag.name) hints.push({ token: tag.id, name: tag.name, color: tag.color, icon: tag.icon, show_icon: true });
+          if (tag.name)
+            hints.push({
+              token: tag.id,
+              name: tag.name,
+              color: tag.color,
+              icon: tag.icon,
+              show_icon: true,
+            });
         }
         if (hints.length > 0) {
           label_hints_map[e.id] = hints;
@@ -185,6 +227,7 @@ export function use_inbox_navigation({
           bcc_recipients: draft.bcc_recipients || [],
           subject: draft.subject || "",
           message: draft.full_message || "",
+          from_email: draft.from_email,
           updated_at: draft.updated_at || new Date().toISOString(),
           attachments: draft.draft_attachments,
         });
@@ -204,6 +247,7 @@ export function use_inbox_navigation({
               subject: scheduled.subject,
               body: scheduled.full_body,
               scheduled_at: scheduled.scheduled_at,
+              status: scheduled.status,
             });
           }
         }
@@ -212,10 +256,12 @@ export function use_inbox_navigation({
       }
       if (on_email_click) {
         const hinted = emails.find((e) => e.id === id);
+
         set_recipient_hint(id, hinted?.recipient_addresses || []);
         on_email_click(id);
       } else {
         const clicked = emails.find((e) => e.id === id);
+
         set_recipient_hint(id, clicked?.recipient_addresses || []);
 
         sessionStorage.setItem(

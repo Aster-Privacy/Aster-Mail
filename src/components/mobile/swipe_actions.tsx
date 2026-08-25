@@ -141,7 +141,7 @@ export const SwipeActions = memo(function SwipeActions({
     <div ref={container_ref} className="relative overflow-hidden">
       {right_action && (
         <motion.div
-          className="absolute inset-y-0 left-0 flex w-full items-center justify-start pl-6"
+          className="absolute inset-y-0 start-0 flex w-full items-center justify-start ps-6"
           style={{
             opacity: right_opacity,
             backgroundColor: right_action.color,
@@ -153,7 +153,7 @@ export const SwipeActions = memo(function SwipeActions({
 
       {left_action && (
         <motion.div
-          className="absolute inset-y-0 right-0 flex w-full items-center justify-end pr-6"
+          className="absolute inset-y-0 end-0 flex w-full items-center justify-end pe-6"
           style={{ opacity: left_opacity, backgroundColor: left_action.color }}
         >
           {left_action.icon}

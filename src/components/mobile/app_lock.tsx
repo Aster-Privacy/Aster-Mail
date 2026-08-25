@@ -18,9 +18,17 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { TranslationKey } from "@/lib/i18n/types";
+
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { BackspaceIcon, CheckIcon, EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
+import {
+  BackspaceIcon,
+  CheckIcon,
+  EyeIcon,
+  EyeSlashIcon,
+} from "@heroicons/react/24/outline";
+import { Button } from "@aster/ui";
 
 import { cn } from "@/lib/utils";
 import {
@@ -35,8 +43,6 @@ import {
 } from "@/native/capacitor_bridge";
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
-import type { TranslationKey } from "@/lib/i18n/types";
-import { Button } from "@aster/ui";
 import { use_auth_safe } from "@/contexts/auth_context";
 import {
   get_app_lock_config,
@@ -53,18 +59,26 @@ import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 import { MAIL_EVENTS } from "@/hooks/mail_events";
 import { set_app_network_locked } from "@/services/app_lock_network_gate";
 import { lock_all_folders } from "@/hooks/use_protected_folder";
-
 import { ignore_error } from "@/lib/ignore_error";
+import { is_composing } from "@/utils/ime";
 
 const LOCK_TIMEOUT_MS = 5 * 60 * 1000;
 
-function PinDots({ digits, filled, shake_key }: { digits: number; filled: number; shake_key: number }) {
+function PinDots({
+  digits,
+  filled,
+  shake_key,
+}: {
+  digits: number;
+  filled: number;
+  shake_key: number;
+}) {
   return (
     <motion.div
       key={shake_key}
       animate={shake_key > 0 ? { x: [0, -10, 10, -10, 10, 0] } : { x: 0 }}
-      transition={{ duration: 0.4 }}
       className="flex items-center gap-3"
+      transition={{ duration: 0.4 }}
     >
       {Array.from({ length: digits }).map((_, i) => (
         <div
@@ -85,36 +99,63 @@ function PinPad({
   on_digit,
   on_backspace,
   on_check,
+  can_check,
   pressed_key,
 }: {
   on_digit: (d: string) => void;
   on_backspace: () => void;
   on_check: () => void;
+  can_check: boolean;
   pressed_key: string | null;
 }) {
-  const btn_base = "h-14 w-14 mx-auto rounded-full flex items-center justify-center transition-all duration-75";
+  const btn_base =
+    "h-14 w-14 mx-auto rounded-full flex items-center justify-center transition-all duration-75";
   const digit_cls = (k: string) =>
-    cn(btn_base, "text-xl font-medium bg-muted hover:bg-muted/70 focus:outline-none", pressed_key === k && "scale-90 bg-muted/50");
+    cn(
+      btn_base,
+      "text-xl font-medium bg-muted hover:bg-muted/70 focus:outline-none",
+      pressed_key === k && "scale-90 bg-muted/50",
+    );
+
   return (
     <div className="grid grid-cols-3 gap-2.5">
-      {["1","2","3","4","5","6","7","8","9"].map(k => (
-        <button key={k} type="button" className={digit_cls(k)} onClick={() => on_digit(k)}>{k}</button>
+      {["1", "2", "3", "4", "5", "6", "7", "8", "9"].map((k) => (
+        <button
+          key={k}
+          className={digit_cls(k)}
+          type="button"
+          onClick={() => on_digit(k)}
+        >
+          {k}
+        </button>
       ))}
       <button
+        className={cn(
+          btn_base,
+          "bg-muted hover:bg-muted/70 focus:outline-none",
+          pressed_key === "Backspace" && "scale-90 bg-muted/50",
+        )}
         type="button"
-        className={cn(btn_base, "bg-muted hover:bg-muted/70 focus:outline-none", pressed_key === "Backspace" && "scale-90 bg-muted/50")}
         onClick={on_backspace}
       >
         <BackspaceIcon className="h-5 w-5 text-txt-primary" />
       </button>
       <button
-        type="button"
         className={digit_cls("0")}
-        onClick={() => on_digit("0")}
-      >0</button>
-      <button
         type="button"
-        className={cn(btn_base, "bg-muted hover:bg-muted/70 focus:outline-none", pressed_key === "Enter" && "scale-90 bg-muted/50")}
+        onClick={() => on_digit("0")}
+      >
+        0
+      </button>
+      <button
+        className={cn(
+          btn_base,
+          "bg-muted hover:bg-muted/70 focus:outline-none",
+          pressed_key === "Enter" && "scale-90 bg-muted/50",
+          !can_check && "opacity-40",
+        )}
+        disabled={!can_check}
+        type="button"
         onClick={on_check}
       >
         <CheckIcon className="h-5 w-5 text-txt-primary" />
@@ -155,6 +196,7 @@ function WebPinOverlay({
 
   useEffect(() => {
     const { locked, remaining_ms } = is_locked_out(account_id);
+
     if (locked) {
       set_locked_out(true);
       set_lockout_remaining(Math.ceil(remaining_ms / 1000));
@@ -165,6 +207,7 @@ function WebPinOverlay({
     if (!locked_out) return;
     const interval = setInterval(() => {
       const { locked, remaining_ms } = is_locked_out(account_id);
+
       if (!locked) {
         set_locked_out(false);
         set_lockout_remaining(0);
@@ -172,6 +215,7 @@ function WebPinOverlay({
         set_lockout_remaining(Math.ceil(remaining_ms / 1000));
       }
     }, 1000);
+
     return () => clearInterval(interval);
   }, [locked_out, account_id]);
 
@@ -186,66 +230,81 @@ function WebPinOverlay({
     }
   }, []);
 
-  const attempt_verify = useCallback(async (value: string) => {
-    if (verifying_ref.current) return;
-    verifying_ref.current = true;
-    set_verifying(true);
-    try {
-      const result = await attempt_pin_unlock(account_id, value);
-      if (result.outcome === "unlocked") {
-        verifying_ref.current = false;
-        set_verifying(false);
-        on_unlock();
-        return;
-      }
-      if (result.outcome === "duress") {
-        set_input("");
-        verifying_ref.current = false;
-        set_verifying(false);
-        set_show_duress_confirm(true);
-        return;
-      }
-      if (result.outcome === "locked_out") {
-        set_locked_out(true);
-        set_input("");
-        set_lockout_remaining(Math.ceil(result.remaining_ms / 1000));
-        set_message(t("common.app_lock_locked_out"));
-      } else {
-        set_shake_key((k) => k + 1);
-        set_input("");
-        const msg = result.attempts_remaining > 0
-          ? t("common.app_lock_attempts_remaining", { n: result.attempts_remaining })
-          : t("common.wrong_pin");
-        set_message(msg);
+  const attempt_verify = useCallback(
+    async (value: string) => {
+      if (verifying_ref.current) return;
+      verifying_ref.current = true;
+      set_verifying(true);
+      try {
+        const result = await attempt_pin_unlock(account_id, value);
+
+        if (result.outcome === "unlocked") {
+          verifying_ref.current = false;
+          set_verifying(false);
+          on_unlock();
+
+          return;
+        }
+        if (result.outcome === "duress") {
+          set_input("");
+          verifying_ref.current = false;
+          set_verifying(false);
+          set_show_duress_confirm(true);
+
+          return;
+        }
+        if (result.outcome === "locked_out") {
+          set_locked_out(true);
+          set_input("");
+          set_lockout_remaining(Math.ceil(result.remaining_ms / 1000));
+          set_message(t("common.app_lock_locked_out"));
+        } else {
+          set_shake_key((k) => k + 1);
+          set_input("");
+          const msg =
+            result.attempts_remaining > 0
+              ? t("common.app_lock_attempts_remaining", {
+                  count: result.attempts_remaining,
+                })
+              : t("common.wrong_pin");
+
+          set_message(msg);
+          setTimeout(() => set_message(null), 2000);
+        }
+      } catch {
+        set_message(t("common.wrong_pin"));
         setTimeout(() => set_message(null), 2000);
       }
-    } catch {
-      set_message(t("common.wrong_pin"));
-      setTimeout(() => set_message(null), 2000);
-    }
-    await new Promise<void>(resolve => setTimeout(resolve, 600));
-    verifying_ref.current = false;
-    set_verifying(false);
-  }, [account_id, on_unlock, t]);
+      await new Promise<void>((resolve) => setTimeout(resolve, 600));
+      verifying_ref.current = false;
+      set_verifying(false);
+    },
+    [account_id, on_unlock, t],
+  );
 
-  const handle_digit = useCallback(async (d: string) => {
-    if (verifying_ref.current || locked_out) return;
-    const next = input + d;
-    set_input(next);
-    if (next.length === digits) {
-      await attempt_verify(next);
-    }
-  }, [input, digits, locked_out, attempt_verify]);
+  const handle_digit = useCallback(
+    async (d: string) => {
+      if (verifying_ref.current || locked_out) return;
+      const next = input + d;
+
+      set_input(next);
+      if (next.length === digits) {
+        await attempt_verify(next);
+      }
+    },
+    [input, digits, locked_out, attempt_verify],
+  );
 
   const handle_backspace = useCallback(() => {
     if (locked_out || verifying) return;
-    set_input(prev => prev.slice(0, -1));
+    set_input((prev) => prev.slice(0, -1));
   }, [locked_out, verifying]);
 
   const handle_text_submit = useCallback(async () => {
     if (verifying || locked_out || input.length < 1) return;
+    if (pin_type !== "text" && input.length < digits) return;
     await attempt_verify(input);
-  }, [verifying, locked_out, input, attempt_verify]);
+  }, [verifying, locked_out, input, attempt_verify, pin_type, digits]);
 
   useEffect(() => {
     const on_key = (e: KeyboardEvent) => {
@@ -253,6 +312,7 @@ function WebPinOverlay({
         if (e.key === "Enter") handle_text_submit();
       } else {
         const k = e.key;
+
         if (k >= "0" && k <= "9") {
           set_pressed_key(k);
           setTimeout(() => set_pressed_key(null), 120);
@@ -268,7 +328,9 @@ function WebPinOverlay({
         }
       }
     };
+
     window.addEventListener("keydown", on_key);
+
     return () => window.removeEventListener("keydown", on_key);
   }, [pin_type, handle_digit, handle_backspace, handle_text_submit]);
 
@@ -276,40 +338,55 @@ function WebPinOverlay({
     return (
       <motion.div
         animate={{ opacity: 1 }}
+        className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-background select-none px-6"
         exit={{ opacity: 0 }}
         initial={reduce_motion ? false : { opacity: 0 }}
-        className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-background select-none px-6"
       >
         <motion.div
           animate={{ scale: 1, opacity: 1 }}
+          className="flex flex-col items-center gap-5 max-w-sm w-full text-center"
           initial={reduce_motion ? false : { scale: 0.9, opacity: 0 }}
           transition={{ delay: 0.05 }}
-          className="flex flex-col items-center gap-5 max-w-sm w-full text-center"
         >
-          <img src="/text_logo.png" alt="Aster Mail" className="h-7 opacity-90" draggable={false} />
+          <img
+            alt="Aster Mail"
+            className="h-7 opacity-90"
+            draggable={false}
+            src="/text_logo.png"
+          />
           <div className="flex flex-col gap-1.5">
-            <p className="text-xs font-semibold uppercase tracking-widest text-red-500/80">{t("common.duress_confirm_subtitle")}</p>
-            <h1 className="text-xl font-semibold text-txt-primary">{t("common.duress_confirm_title")}</h1>
+            <p className="text-xs font-semibold uppercase tracking-widest text-red-500/80">
+              {t("common.duress_confirm_subtitle")}
+            </p>
+            <h1 className="text-xl font-semibold text-txt-primary">
+              {t("common.duress_confirm_title")}
+            </h1>
           </div>
-          <div className="w-full rounded-2xl bg-surf-secondary border border-edge-secondary px-4 py-3.5 flex flex-col gap-2 text-left">
-            <p className="text-sm text-txt-primary font-medium">{t("common.duress_confirm_desc")}</p>
-            <p className="text-xs text-txt-muted leading-relaxed">{t("common.duress_confirm_detail")}</p>
+          <div className="w-full rounded-2xl bg-surf-secondary border border-edge-secondary px-4 py-3.5 flex flex-col gap-2 text-start">
+            <p className="text-sm text-txt-primary font-medium">
+              {t("common.duress_confirm_desc")}
+            </p>
+            <p className="text-xs text-txt-muted leading-relaxed">
+              {t("common.duress_confirm_detail")}
+            </p>
           </div>
           <div className="flex flex-col gap-2 w-full">
             <Button
-              variant="depth_destructive"
               className="w-full"
               disabled={wiping}
+              variant="depth_destructive"
               onClick={handle_duress_confirm}
             >
-              {wiping
-                ? <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent mx-auto" />
-                : t("common.duress_confirm_proceed")}
+              {wiping ? (
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent mx-auto" />
+              ) : (
+                t("common.duress_confirm_proceed")
+              )}
             </Button>
             <Button
-              variant="outline"
               className="w-full"
               disabled={wiping}
+              variant="outline"
               onClick={() => set_show_duress_confirm(false)}
             >
               {t("common.cancel")}
@@ -323,27 +400,43 @@ function WebPinOverlay({
   return (
     <motion.div
       animate={{ opacity: 1 }}
+      className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-background select-none"
       exit={{ opacity: 0 }}
       initial={reduce_motion ? false : { opacity: 0 }}
-      className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-background select-none"
     >
       <motion.div
         animate={{ scale: 1, opacity: 1 }}
+        className={cn(
+          "flex flex-col items-center",
+          pin_type === "text" ? "gap-3" : "gap-4",
+        )}
         initial={reduce_motion ? false : { scale: 0.9, opacity: 0 }}
         transition={{ delay: 0.05 }}
-        className={cn("flex flex-col items-center", pin_type === "text" ? "gap-3" : "gap-4")}
       >
-        <img src="/text_logo.png" alt="Aster Mail" className="h-7 opacity-90" draggable={false} />
+        <img
+          alt="Aster Mail"
+          className="h-7 opacity-90"
+          draggable={false}
+          src="/text_logo.png"
+        />
         <div className="text-center">
-          <h1 className="text-lg font-semibold text-txt-primary">{t("common.app_locked")}</h1>
+          <h1 className="text-lg font-semibold text-txt-primary">
+            {t("common.app_locked")}
+          </h1>
           {locked_out && (
-            <p className="mt-0.5 text-sm text-txt-muted">{t("common.app_lock_try_again_in", { s: lockout_remaining })}</p>
+            <p className="mt-0.5 text-sm text-txt-muted">
+              {t("common.app_lock_try_again_in", { s: lockout_remaining })}
+            </p>
           )}
         </div>
         {pin_type === "numeric" ? (
           <>
             <div className="flex flex-col items-center gap-2">
-              <PinDots digits={digits} filled={input.length} shake_key={shake_key} />
+              <PinDots
+                digits={digits}
+                filled={input.length}
+                shake_key={shake_key}
+              />
               <div className="h-4 flex items-center justify-center">
                 {message && <p className="text-xs text-red-500">{message}</p>}
                 {verifying && !message && (
@@ -352,9 +445,10 @@ function WebPinOverlay({
               </div>
             </div>
             <PinPad
-              on_digit={handle_digit}
+              can_check={input.length >= digits}
               on_backspace={handle_backspace}
               on_check={handle_text_submit}
+              on_digit={handle_digit}
               pressed_key={pressed_key}
             />
             <Button variant="outline" onClick={on_sign_out}>
@@ -365,48 +459,61 @@ function WebPinOverlay({
           <div className="flex flex-col items-center gap-2 w-72">
             <motion.div
               key={shake_key}
-              animate={shake_key > 0 ? { x: [0, -10, 10, -10, 10, 0] } : { x: 0 }}
-              transition={{ duration: 0.4 }}
+              animate={
+                shake_key > 0 ? { x: [0, -10, 10, -10, 10, 0] } : { x: 0 }
+              }
               className="w-full"
+              transition={{ duration: 0.4 }}
             >
               <div className="relative w-full">
                 <input
-                  type={show_passphrase ? "text" : "password"}
-                  autoComplete="off"
                   autoFocus
-                  className="w-full px-4 py-2.5 pr-10 rounded-xl bg-surf-secondary border border-edge-secondary text-sm text-txt-primary focus:outline-none focus:border-brand transition-colors text-center"
-                  value={input}
+                  autoComplete="off"
+                  className="w-full px-4 py-2.5 pe-10 rounded-xl bg-surf-secondary border border-edge-secondary text-sm text-txt-primary focus:outline-none focus:border-brand transition-colors text-center"
                   disabled={verifying || locked_out}
-                  onChange={e => { if (!verifying && !locked_out) set_input(e.target.value); }}
-                  onKeyDown={e => { if (e.key === "Enter" && input.length >= 1) handle_text_submit(); }}
                   placeholder={t("common.enter_passphrase")}
+                  type={show_passphrase ? "text" : "password"}
+                  value={input}
+                  onChange={(e) => {
+                    if (!verifying && !locked_out) set_input(e.target.value);
+                  }}
+                  onKeyDown={(e) => {
+                    if (
+                      e.key === "Enter" &&
+                      !is_composing(e) &&
+                      input.length >= 1
+                    )
+                      handle_text_submit();
+                  }}
                 />
                 <button
-                  type="button"
+                  className="absolute end-3 top-1/2 -translate-y-1/2 text-txt-muted hover:text-txt-primary transition-colors"
                   tabIndex={-1}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-txt-muted hover:text-txt-primary transition-colors"
-                  onClick={() => set_show_passphrase(v => !v)}
+                  type="button"
+                  onClick={() => set_show_passphrase((v) => !v)}
                 >
-                  {show_passphrase ? <EyeSlashIcon className="h-4 w-4" /> : <EyeIcon className="h-4 w-4" />}
+                  {show_passphrase ? (
+                    <EyeSlashIcon className="h-4 w-4" />
+                  ) : (
+                    <EyeIcon className="h-4 w-4" />
+                  )}
                 </button>
               </div>
             </motion.div>
             {message && <p className="text-xs text-red-500 -mt-1">{message}</p>}
             <Button
-              variant="depth"
               className="w-full"
               disabled={verifying || locked_out || input.length < 1}
+              variant="depth"
               onClick={handle_text_submit}
             >
-              {verifying
-                ? <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent mx-auto" />
-                : t("common.unlock")}
+              {verifying ? (
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent mx-auto" />
+              ) : (
+                t("common.unlock")
+              )}
             </Button>
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={on_sign_out}
-            >
+            <Button className="w-full" variant="outline" onClick={on_sign_out}>
               {t("settings.sign_out")}
             </Button>
           </div>
@@ -429,10 +536,13 @@ export function AppLock({ children }: { children: React.ReactNode }) {
   const [last_active, set_last_active] = useState(Date.now());
   const [is_web_locked, set_is_web_locked] = useState(() => {
     if (is_native_platform()) return false;
+
     return has_pending_lock_hint();
   });
   const [web_pin_digits, set_web_pin_digits] = useState(4);
-  const [web_pin_type, set_web_pin_type] = useState<"numeric" | "text">("numeric");
+  const [web_pin_type, set_web_pin_type] = useState<"numeric" | "text">(
+    "numeric",
+  );
   const hidden_at_ref = useRef<number | null>(null);
   const is_authenticated_ref = useRef(false);
   const account_id_ref = useRef("");
@@ -448,7 +558,11 @@ export function AppLock({ children }: { children: React.ReactNode }) {
     } else if (was_locked_ref.current) {
       was_locked_ref.current = false;
       set_app_network_locked(false);
-      sync_client.connect().catch((caught) => ignore_error("components/mobile/app_lock:stored_id", caught));
+      sync_client
+        .connect()
+        .catch((caught) =>
+          ignore_error("components/mobile/app_lock:stored_id", caught),
+        );
       invalidate_mail_stats();
       window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
     }
@@ -460,19 +574,23 @@ export function AppLock({ children }: { children: React.ReactNode }) {
   }, [auth?.is_authenticated, auth?.current_account_id]);
 
   useEffect(() => {
-    if (!is_native_platform() || !preferences.biometric_app_lock_enabled) return;
+    if (!is_native_platform() || !preferences.biometric_app_lock_enabled)
+      return;
     const check_and_lock = async () => {
       const availability = await check_biometric_availability();
+
       if (availability.is_available) {
         set_biometry_name(get_biometry_type_name(availability.biometry_type));
         set_is_locked(true);
       }
     };
+
     check_and_lock();
   }, [preferences.biometric_app_lock_enabled]);
 
   useEffect(() => {
-    if (!is_native_platform() || !preferences.biometric_app_lock_enabled) return;
+    if (!is_native_platform() || !preferences.biometric_app_lock_enabled)
+      return;
     const unsubscribe = add_app_state_listener((is_active) => {
       if (is_active) {
         if (Date.now() - last_active >= LOCK_TIMEOUT_MS) set_is_locked(true);
@@ -480,14 +598,20 @@ export function AppLock({ children }: { children: React.ReactNode }) {
         set_last_active(Date.now());
       }
     });
+
     return unsubscribe;
   }, [last_active, preferences.biometric_app_lock_enabled]);
+
+  const auto_prompt_done = useRef(false);
 
   const handle_unlock = useCallback(async () => {
     if (is_authenticating) return;
     set_is_authenticating(true);
     try {
-      const success = await authenticate_biometric(t("common.unlock_aster_mail"));
+      const success = await authenticate_biometric(
+        t("common.unlock_aster_mail"),
+      );
+
       if (success) {
         set_is_locked(false);
         set_last_active(Date.now());
@@ -498,7 +622,14 @@ export function AppLock({ children }: { children: React.ReactNode }) {
   }, [is_authenticating, t]);
 
   useEffect(() => {
-    if (is_locked && !is_authenticating) handle_unlock();
+    if (!is_locked) {
+      auto_prompt_done.current = false;
+
+      return;
+    }
+    if (auto_prompt_done.current || is_authenticating) return;
+    auto_prompt_done.current = true;
+    handle_unlock();
   }, [is_locked, is_authenticating, handle_unlock]);
 
   useEffect(() => {
@@ -506,20 +637,31 @@ export function AppLock({ children }: { children: React.ReactNode }) {
     if (auth?.is_loading) return;
     if (!auth?.is_authenticated || !account_id) {
       if (!auth?.is_loading) set_is_web_locked(false);
+
       return;
     }
     const config = get_app_lock_config(account_id);
-    if (!config?.enabled) { set_is_web_locked(false); return; }
+
+    if (!config?.enabled) {
+      set_is_web_locked(false);
+
+      return;
+    }
     const resolved_type = config.pin_type ?? "numeric";
+
     set_web_pin_type(resolved_type);
-    set_web_pin_digits(resolved_type === "numeric" ? (config.digits || 4) : 0);
+    set_web_pin_digits(resolved_type === "numeric" ? config.digits || 4 : 0);
     if (!is_session_unlocked(account_id)) set_is_web_locked(true);
   }, [auth?.is_authenticated, auth?.is_loading, account_id]);
 
   useEffect(() => {
     if (is_native_platform()) return;
-    const on_unload = () => { if (account_id_ref.current) clear_session_unlock(account_id_ref.current); };
+    const on_unload = () => {
+      if (account_id_ref.current) clear_session_unlock(account_id_ref.current);
+    };
+
     window.addEventListener("beforeunload", on_unload);
+
     return () => window.removeEventListener("beforeunload", on_unload);
   }, []);
 
@@ -528,25 +670,34 @@ export function AppLock({ children }: { children: React.ReactNode }) {
     const handle_visibility = () => {
       if (document.visibilityState === "hidden") {
         hidden_at_ref.current = Date.now();
+
         return;
       }
       const id = account_id_ref.current;
+
       if (!is_authenticated_ref.current || !id) return;
       const config = get_app_lock_config(id);
+
       if (!config?.enabled) return;
-      const hidden_for = hidden_at_ref.current !== null ? Date.now() - hidden_at_ref.current : 0;
+      const hidden_for =
+        hidden_at_ref.current !== null ? Date.now() - hidden_at_ref.current : 0;
+
       hidden_at_ref.current = null;
       if (hidden_for >= LOCK_TIMEOUT_MS) {
         clear_session_unlock(id);
         lock_all_folders();
         const vt = config.pin_type ?? "numeric";
+
         set_web_pin_type(vt);
-        set_web_pin_digits(vt === "numeric" ? (config.digits || 4) : 0);
+        set_web_pin_digits(vt === "numeric" ? config.digits || 4 : 0);
         set_is_web_locked(true);
       }
     };
+
     document.addEventListener("visibilitychange", handle_visibility);
-    return () => document.removeEventListener("visibilitychange", handle_visibility);
+
+    return () =>
+      document.removeEventListener("visibilitychange", handle_visibility);
   }, []);
 
   if (is_web_locked && account_id) {
@@ -555,9 +706,15 @@ export function AppLock({ children }: { children: React.ReactNode }) {
         <WebPinOverlay
           account_id={account_id}
           digits={web_pin_digits}
+          on_sign_out={() => {
+            set_is_web_locked(false);
+            auth?.logout?.();
+          }}
+          on_unlock={() => {
+            mark_session_unlocked(account_id);
+            set_is_web_locked(false);
+          }}
           pin_type={web_pin_type}
-          on_unlock={() => { mark_session_unlocked(account_id); set_is_web_locked(false); }}
-          on_sign_out={() => { set_is_web_locked(false); auth?.logout?.(); }}
           reduce_motion={reduce_motion}
           t={t}
         />
@@ -583,9 +740,16 @@ export function AppLock({ children }: { children: React.ReactNode }) {
               initial={reduce_motion ? false : { scale: 0.8, opacity: 0 }}
               transition={{ delay: 0.1 }}
             >
-              <img src="/text_logo.png" alt="Aster Mail" className="h-7 opacity-90" draggable={false} />
+              <img
+                alt="Aster Mail"
+                className="h-7 opacity-90"
+                draggable={false}
+                src="/text_logo.png"
+              />
               <div className="text-center">
-                <h1 className="text-xl font-semibold">{t("common.aster_mail_locked")}</h1>
+                <h1 className="text-xl font-semibold">
+                  {t("common.aster_mail_locked")}
+                </h1>
                 <p className="mt-1 text-sm text-muted-foreground">
                   {t("common.use_biometry_to_unlock", { name: biometry_name })}
                 </p>
@@ -610,11 +774,21 @@ export function AppLock({ children }: { children: React.ReactNode }) {
                     : t("common.unlock_with_biometry", { name: biometry_name })}
                 </span>
               </button>
+              <button
+                className="text-sm text-muted-foreground underline-offset-4 hover:underline"
+                disabled={is_authenticating}
+                type="button"
+                onClick={() => {
+                  set_is_locked(false);
+                  auth?.logout?.();
+                }}
+              >
+                {t("settings.sign_out")}
+              </button>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
-
     </>
   );
 }

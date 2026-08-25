@@ -32,6 +32,7 @@ import { cn } from "@/lib/utils";
 import { sanitize_download_filename } from "@/lib/attachment_utils";
 import { use_i18n } from "@/lib/i18n/context";
 import { sanitize_html } from "@/lib/html_sanitizer";
+import { inline_secure_view_images } from "@/lib/secure_view_inline_images";
 import { EMAIL_BODY_CSS } from "@/lib/email_body_styles";
 import {
   derive_auth_proof,
@@ -43,6 +44,7 @@ import {
   reply_to_secure_view,
   delete_secure_view,
 } from "@/services/api/secure_view";
+import { app_locale, get_display_time_zone } from "@/utils/date_format";
 
 type ViewState =
   | "loading"
@@ -62,8 +64,7 @@ a:hover { color: #dbeafe !important; }
 .aster_quote, .gmail_quote, .protonmail_quote, .yahoo_quoted, .moz-cite-prefix { display: block !important; }
 `;
 
-const HEIGHT_REPORT_SCRIPT =
-  `(function(){function m(){var h=document.body?Math.min(document.body.scrollHeight+8,20000):0;parent.postMessage({type:"aster_sv_height",value:h},"*");}if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",m);}else{m();}if(document.fonts&&document.fonts.ready){document.fonts.ready.then(m);}try{new ResizeObserver(m).observe(document.body);}catch(_){}document.querySelectorAll("img").forEach(function(img){if(!img.complete){img.addEventListener("load",m,{once:true});}});})();`;
+const HEIGHT_REPORT_SCRIPT = `(function(){function m(){var h=document.body?Math.min(document.body.scrollHeight+8,20000):0;parent.postMessage({type:"aster_sv_height",value:h},"*");}if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",m);}else{m();}if(document.fonts&&document.fonts.ready){document.fonts.ready.then(m);}try{new ResizeObserver(m).observe(document.body);}catch(_){}document.querySelectorAll("img").forEach(function(img){if(!img.complete){img.addEventListener("load",m,{once:true});}});})();`;
 
 function SecureMessageBody({ html, title }: { html: string; title: string }) {
   const frame_ref = useRef<HTMLIFrameElement | null>(null);
@@ -71,7 +72,9 @@ function SecureMessageBody({ html, title }: { html: string; title: string }) {
 
   const nonce = useMemo(() => {
     const bytes = new Uint8Array(16);
+
     crypto.getRandomValues(bytes);
+
     return btoa(String.fromCharCode(...Array.from(bytes)));
   }, [html]);
 
@@ -90,7 +93,9 @@ function SecureMessageBody({ html, title }: { html: string; title: string }) {
       "form-action 'none'",
       "base-uri 'none'",
     ].join("; ");
-    return `<!DOCTYPE html><html><head><meta charset="utf-8">` +
+
+    return (
+      `<!DOCTYPE html><html><head><meta charset="utf-8">` +
       `<meta name="viewport" content="width=device-width, initial-scale=1">` +
       `<meta name="referrer" content="no-referrer">` +
       `<meta http-equiv="x-dns-prefetch-control" content="off">` +
@@ -98,7 +103,8 @@ function SecureMessageBody({ html, title }: { html: string; title: string }) {
       `<base target="_blank">` +
       `<style>${SECURE_BODY_CSS}</style>` +
       `<script nonce="${nonce}">${HEIGHT_REPORT_SCRIPT}</script>` +
-      `</head><body>${html}</body></html>`;
+      `</head><body>${html}</body></html>`
+    );
   }, [html, nonce]);
 
   useEffect(() => {
@@ -110,11 +116,16 @@ function SecureMessageBody({ html, title }: { html: string; title: string }) {
       // value cannot blow out the layout.
       if (e.origin !== "null") return;
       if (e.source !== frame_ref.current?.contentWindow) return;
-      if (e.data?.type === "aster_sv_height" && typeof e.data.value === "number") {
+      if (
+        e.data?.type === "aster_sv_height" &&
+        typeof e.data.value === "number"
+      ) {
         set_height(Math.max(0, Math.min(e.data.value, 20000)));
       }
     };
+
     window.addEventListener("message", handler);
+
     return () => window.removeEventListener("message", handler);
   }, []);
 
@@ -207,7 +218,11 @@ export default function SecureViewPage() {
 
             if (cancelled) return;
 
-            if (response.success && response.content?.subject && response.content.body) {
+            if (
+              response.success &&
+              response.content?.subject &&
+              response.content.body
+            ) {
               set_decrypted({
                 subject: response.content.subject,
                 body: response.content.body,
@@ -217,8 +232,12 @@ export default function SecureViewPage() {
 
               return;
             }
+
+            set_error(sv("secure_view.decrypt_failed"));
           } catch {
-            // fall through to ready state
+            if (cancelled) return;
+
+            set_error(sv("secure_view.decrypt_failed"));
           }
         }
 
@@ -234,7 +253,7 @@ export default function SecureViewPage() {
     return () => {
       cancelled = true;
     };
-  }, [token]);
+  }, [token, sv]);
 
   const sender_label = useMemo(() => {
     if (!metadata) return "";
@@ -249,13 +268,20 @@ export default function SecureViewPage() {
 
     if (Number.isNaN(date.getTime())) return metadata.expires_at;
 
-    return date.toLocaleString();
+    return date.toLocaleString(app_locale(), {
+      timeZone: get_display_time_zone(),
+    });
   }, [metadata]);
 
   const sanitized_body = useMemo(() => {
     if (!decrypted) return "";
 
-    return sanitize_html(decrypted.body, {
+    const with_inline_images = inline_secure_view_images(
+      decrypted.body,
+      decrypted.attachments,
+    );
+
+    return sanitize_html(with_inline_images, {
       sandbox_mode: false,
       external_content_mode: "never",
       content_blocking: {
@@ -266,6 +292,52 @@ export default function SecureViewPage() {
       },
     }).html;
   }, [decrypted]);
+
+  const handle_open_without_password = async () => {
+    if (!token) return;
+
+    set_error("");
+    set_is_unlocking(true);
+
+    try {
+      const response = await verify_secure_view(token, null);
+
+      if (
+        response.success &&
+        response.content?.subject &&
+        response.content.body
+      ) {
+        set_decrypted({
+          subject: response.content.subject,
+          body: response.content.body,
+          attachments: [],
+        });
+        set_view_state("unlocked");
+
+        return;
+      }
+
+      const code = response.error || "";
+
+      if (code === "expired") {
+        set_view_state("expired");
+
+        return;
+      }
+
+      if (code === "deleted") {
+        set_view_state("deleted");
+
+        return;
+      }
+
+      set_error(sv("secure_view.decrypt_failed"));
+    } catch {
+      set_error(sv("secure_view.decrypt_failed"));
+    } finally {
+      set_is_unlocking(false);
+    }
+  };
 
   const handle_unlock = async () => {
     if (!token || !metadata) {
@@ -316,7 +388,11 @@ export default function SecureViewPage() {
           return;
         }
 
-        set_decrypted({ subject: content.subject, body: content.body, attachments: [] });
+        set_decrypted({
+          subject: content.subject,
+          body: content.body,
+          attachments: [],
+        });
         set_view_state("unlocked");
 
         return;
@@ -442,12 +518,12 @@ export default function SecureViewPage() {
         return;
       }
 
+      set_show_delete_confirm(false);
       set_view_state("deleted");
     } catch {
       set_delete_error(sv("secure_view.delete_failed"));
     } finally {
       set_is_deleting(false);
-      set_show_delete_confirm(false);
     }
   };
 
@@ -491,7 +567,7 @@ export default function SecureViewPage() {
 
       case "expired":
         return (
-          <div className="w-full space-y-5 rounded-2xl border border-edge-secondary bg-surf-card p-6 text-left">
+          <div className="w-full space-y-5 rounded-2xl border border-edge-secondary bg-surf-card p-6 text-start">
             {render_meta()}
             <p className="text-sm text-txt-tertiary">
               {sv("secure_view.expired")}
@@ -501,7 +577,7 @@ export default function SecureViewPage() {
 
       case "deleted":
         return (
-          <div className="w-full space-y-5 rounded-2xl border border-edge-secondary bg-surf-card p-6 text-left">
+          <div className="w-full space-y-5 rounded-2xl border border-edge-secondary bg-surf-card p-6 text-start">
             {render_meta()}
             <p className="text-sm text-txt-tertiary">
               {sv("secure_view.deleted")}
@@ -511,7 +587,7 @@ export default function SecureViewPage() {
 
       case "ready":
         return (
-          <div className="w-full space-y-5 rounded-2xl border border-edge-secondary bg-surf-card p-6 text-left">
+          <div className="w-full space-y-5 rounded-2xl border border-edge-secondary bg-surf-card p-6 text-start">
             {render_meta()}
 
             {metadata?.requires_password && (
@@ -555,13 +631,31 @@ export default function SecureViewPage() {
                 </Button>
               </div>
             )}
+
+            {!metadata?.requires_password && !metadata?.is_zero_knowledge && (
+              <div className="space-y-3">
+                {error && <p className="text-sm text-danger">{error}</p>}
+
+                <Button
+                  className="w-full"
+                  disabled={is_unlocking}
+                  size="xl"
+                  variant="primary"
+                  onClick={handle_open_without_password}
+                >
+                  {is_unlocking
+                    ? sv("secure_view.unlocking")
+                    : sv("secure_view.view_button")}
+                </Button>
+              </div>
+            )}
           </div>
         );
 
       case "unlocked":
         return (
           decrypted && (
-            <div className="w-full overflow-hidden rounded-2xl border border-edge-secondary bg-surf-card text-left">
+            <div className="w-full overflow-hidden rounded-2xl border border-edge-secondary bg-surf-card text-start">
               <div className="space-y-3 border-b border-edge-secondary px-6 pb-4 pt-6">
                 {render_meta()}
                 <h2 className="break-words text-xl font-semibold text-txt-primary">
@@ -569,7 +663,10 @@ export default function SecureViewPage() {
                 </h2>
               </div>
 
-              <SecureMessageBody html={sanitized_body} title={decrypted.subject} />
+              <SecureMessageBody
+                html={sanitized_body}
+                title={decrypted.subject}
+              />
 
               {decrypted.attachments.length > 0 && (
                 <div className="space-y-2 border-t border-edge-secondary px-6 py-4">
@@ -697,11 +794,7 @@ export default function SecureViewPage() {
           )}
         >
           <div className="flex flex-col items-center gap-3 text-center">
-            <img
-              alt="Aster Mail"
-              className="h-8 w-auto"
-              src="/text_logo.png"
-            />
+            <img alt="Aster Mail" className="h-8 w-auto" src="/text_logo.png" />
             <h1 className="text-lg font-semibold text-txt-primary">
               {sv("secure_view.title")}
             </h1>

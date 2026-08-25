@@ -41,6 +41,7 @@ import {
 } from "@/components/ui/popover";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { use_i18n } from "@/lib/i18n/context";
+import { is_composing } from "@/utils/ime";
 
 type DatePreset = "any" | "week" | "month" | "six_months" | "year" | "custom";
 
@@ -239,7 +240,7 @@ function PersonChip({
             value={filter_text}
             onChange={(event) => set_filter_text(event.target.value)}
             onKeyDown={(event) => {
-              if (event.key !== "Enter") return;
+              if (event.key !== "Enter" || is_composing(event)) return;
               const value = filter_text.trim();
 
               if (value) apply(value);
@@ -258,7 +259,7 @@ function PersonChip({
             visible.map((person) => (
               <button
                 key={person.email}
-                className="w-full flex items-center gap-2.5 px-3 py-2 text-left hover:bg-[var(--bg-hover)] transition-colors"
+                className="w-full flex items-center gap-2.5 px-3 py-2 text-start hover:bg-[var(--bg-hover)] transition-colors"
                 type="button"
                 onClick={() => apply(person.email)}
               >
@@ -599,7 +600,7 @@ export function SearchChipRow({
         ).map(([preset, label]) => (
           <button
             key={preset}
-            className="w-full flex items-center gap-2 px-2.5 py-2 rounded-[10px] text-[13px] text-left hover:bg-[var(--bg-hover)] transition-colors"
+            className="w-full flex items-center gap-2 px-2.5 py-2 rounded-[10px] text-[13px] text-start hover:bg-[var(--bg-hover)] transition-colors"
             style={{
               color:
                 date_preset === preset
@@ -624,6 +625,7 @@ export function SearchChipRow({
                 borderColor: "var(--border-primary)",
                 color: "var(--text-primary)",
               }}
+              max={custom_before || undefined}
               type="date"
               value={custom_after}
               onChange={(event) => set_custom_after(event.target.value)}
@@ -635,6 +637,7 @@ export function SearchChipRow({
                 borderColor: "var(--border-primary)",
                 color: "var(--text-primary)",
               }}
+              min={custom_after || undefined}
               type="date"
               value={custom_before}
               onChange={(event) => set_custom_before(event.target.value)}

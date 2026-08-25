@@ -34,7 +34,7 @@ import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
 import { Spinner } from "@/components/ui/spinner";
 
-interface ActionToastState {
+export interface ActionToastState {
   id: string;
   message: string;
   action_type:
@@ -64,6 +64,25 @@ interface ActionToastState {
 const toast_listeners = new Set<(toast: ActionToastState | null) => void>();
 let current_toast: ActionToastState | null = null;
 let toast_timeout: NodeJS.Timeout | null = null;
+let progress_stall_timeout: NodeJS.Timeout | null = null;
+
+const PROGRESS_STALL_MS = 90000;
+
+function clear_progress_stall_timeout() {
+  if (!progress_stall_timeout) return;
+  clearTimeout(progress_stall_timeout);
+  progress_stall_timeout = null;
+}
+
+function arm_progress_stall_timeout() {
+  clear_progress_stall_timeout();
+  progress_stall_timeout = setTimeout(() => {
+    progress_stall_timeout = null;
+    if (!current_toast?.progress) return;
+    current_toast = null;
+    toast_listeners.forEach((listener) => listener(null));
+  }, PROGRESS_STALL_MS);
+}
 
 export type ActionToastConfig = Omit<ActionToastState, "id"> & {
   duration_ms?: number;
@@ -82,7 +101,10 @@ export function show_action_toast(toast: ActionToastConfig) {
 
   toast_listeners.forEach((listener) => listener(current_toast));
 
-  if (!toast.progress) {
+  if (toast.progress) {
+    arm_progress_stall_timeout();
+  } else {
+    clear_progress_stall_timeout();
     toast_timeout = setTimeout(
       () => {
         current_toast = null;
@@ -100,6 +122,8 @@ export function update_progress_toast(
 ) {
   if (!current_toast?.progress) return;
 
+  arm_progress_stall_timeout();
+
   current_toast = {
     ...current_toast,
     progress: { completed, total },
@@ -111,10 +135,21 @@ export function update_progress_toast(
   toast_listeners.forEach((listener) => listener(current_toast));
 }
 
+export function subscribe_action_toast(
+  listener: (toast: ActionToastState | null) => void,
+): () => void {
+  toast_listeners.add(listener);
+
+  return () => {
+    toast_listeners.delete(listener);
+  };
+}
+
 export function hide_action_toast() {
   if (toast_timeout) {
     clearTimeout(toast_timeout);
   }
+  clear_progress_stall_timeout();
   current_toast = null;
   toast_listeners.forEach((listener) => listener(null));
 }
@@ -271,17 +306,17 @@ export function ActionToast({ position = "bottom" }: ActionToastProps) {
               </span>
               {toast.on_undo && !toast.progress && (
                 <button
-                  className="inline-flex items-center text-[13px] font-medium ml-1 underline text-brand"
+                  className="inline-flex items-center text-[13px] font-medium ms-1 underline text-brand"
                   disabled={is_undoing}
                   onClick={handle_undo}
                 >
                   {toast.action_label || t("common.undo")}
-                  {is_undoing && <Spinner className="ml-1.5" size="xs" />}
+                  {is_undoing && <Spinner className="ms-1.5" size="xs" />}
                 </button>
               )}
               {toast.on_view_message && (
                 <button
-                  className="text-[13px] font-medium ml-1 underline text-brand"
+                  className="text-[13px] font-medium ms-1 underline text-brand"
                   onClick={toast.on_view_message}
                 >
                   {t("mail.view_message")}
@@ -289,7 +324,7 @@ export function ActionToast({ position = "bottom" }: ActionToastProps) {
               )}
               <button
                 aria-label={t("common.dismiss")}
-                className="flex-shrink-0 text-txt-muted hover:text-txt-primary hover:bg-edge-primary/60 rounded-full p-1 transition-colors ml-1"
+                className="flex-shrink-0 text-txt-muted hover:text-txt-primary hover:bg-edge-primary/60 rounded-full p-1 transition-colors ms-1"
                 onClick={handle_cancel}
               >
                 <XMarkIcon className="w-3.5 h-3.5" />
@@ -305,7 +340,7 @@ export function ActionToast({ position = "bottom" }: ActionToastProps) {
                     }}
                   />
                 </div>
-                <span className="text-xs font-medium tabular-nums min-w-[32px] text-right text-txt-secondary">
+                <span className="text-xs font-medium tabular-nums min-w-[32px] text-end text-txt-secondary">
                   {progress_percentage}%
                 </span>
                 {toast.on_cancel && (

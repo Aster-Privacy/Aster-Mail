@@ -72,7 +72,7 @@ export function PasswordStep({
             set_step("code");
           }}
         >
-          <ChevronLeftIcon className="h-5 w-5" />
+          <ChevronLeftIcon className="h-5 w-5 rtl:-scale-x-100" />
         </motion.button>
       </div>
 
@@ -149,7 +149,9 @@ export function PasswordStep({
                 status={error ? "error" : "default"}
                 type={is_confirm_visible ? "text" : "password"}
                 value={confirm_password}
-                onChange={(e) => set_confirm_password(clamp_password(e.target.value))}
+                onChange={(e) =>
+                  set_confirm_password(clamp_password(e.target.value))
+                }
                 onKeyDown={(e) => e["key"] === "Enter" && on_submit()}
               />
               <button

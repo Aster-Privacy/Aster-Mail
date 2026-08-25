@@ -131,6 +131,7 @@ async function check_icon_exists(domain: string): Promise<boolean> {
 
   if (method === "tor" || method === "tor_snowflake") {
     icon_check_cache.set(domain, false);
+
     return false;
   }
 
@@ -278,7 +279,7 @@ export const DomainLogo = memo(function DomainLogo({
 
   return (
     <img
-      alt={resolved_domain || "domain logo"}
+      alt={resolved_domain}
       className={`rounded-sm flex-shrink-0 object-cover ${className}`}
       decoding="async"
       draggable={false}

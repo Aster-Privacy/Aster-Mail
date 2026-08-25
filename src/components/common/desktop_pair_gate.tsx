@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { copy_text_or_throw } from "@/utils/copy_text";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -35,6 +36,7 @@ import {
 } from "@/native/desktop_device_auth";
 import { use_auth } from "@/contexts/auth_context";
 import { use_i18n } from "@/lib/i18n/context";
+import { show_toast } from "@/components/toast/simple_toast";
 import { decrypt_vault } from "@/services/crypto/key_manager";
 import { get_user_info } from "@/services/api/auth";
 import { emit_auth_ready } from "@/hooks/mail_events";
@@ -92,10 +94,7 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
   }, []);
 
   const finalize_pending_login = useCallback(
-    async (record: {
-      login_response: unknown;
-      passphrase: string | null;
-    }) => {
+    async (record: { login_response: unknown; passphrase: string | null }) => {
       if (!record.passphrase) throw new Error("passphrase_null");
 
       const lr = record.login_response as {
@@ -441,6 +440,7 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const was_auth = prev_auth_ref.current;
+
     prev_auth_ref.current = is_authenticated;
 
     if (was_auth && !is_authenticated && checked && is_tauri()) {
@@ -470,10 +470,11 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
     } catch (clipboard_tauri_err) {
       if (import.meta.env.DEV) console.error(clipboard_tauri_err);
       try {
-        await navigator.clipboard.writeText(raw);
+        await copy_text_or_throw(raw);
         success = true;
       } catch (clipboard_fallback_err) {
         if (import.meta.env.DEV) console.error(clipboard_fallback_err);
+        show_toast(t("common.failed_to_copy"), "error");
       }
     }
 
@@ -492,6 +493,15 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
       });
     } catch (open_url_err) {
       if (import.meta.env.DEV) console.error(open_url_err);
+      const opened = window.open(
+        "https://app.astermail.org/link-device",
+        "_blank",
+        "noopener,noreferrer",
+      );
+
+      if (!opened) {
+        show_toast(t("common.something_went_wrong"), "error");
+      }
     }
   };
 
@@ -499,8 +509,10 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
     set_gate_state("loading");
     try {
       const core = await import("@tauri-apps/api/core");
+
       await clear_device_session();
       const pk = await core.invoke<DevicePubkeys>("device_get_pubkeys");
+
       set_pubkeys(pk);
       start_code_flow(pk);
     } catch {
@@ -583,7 +595,9 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
               </p>
               {error_detail && (
                 <pre className="w-full mt-4 p-3 rounded-lg text-xs break-all whitespace-pre-wrap bg-surf-tertiary text-txt-tertiary border border-edge-secondary">
-                  {error_detail}
+                  {import.meta.env.DEV
+                    ? error_detail
+                    : error_detail.split(":")[0]}
                 </pre>
               )}
               <button
@@ -646,8 +660,7 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
               <div className="w-full mt-6">
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-xs font-medium text-txt-muted">
-                    {t("auth.device_code_expires_in")}{" "}
-                    {format_time(time_left)}
+                    {t("auth.device_code_expires_in")} {format_time(time_left)}
                   </span>
                   <button
                     className="p-1.5 rounded transition-colors hover:opacity-80 text-txt-muted"

@@ -570,8 +570,8 @@ export const MobileEmailList = memo(function MobileEmailList({
           </p>
           {on_refresh && (
             <button
-              type="button"
               className="mt-3 rounded-lg border border-[var(--border-primary)] px-4 py-1.5 text-[13px] font-medium text-[var(--text-primary)]"
+              type="button"
               onClick={() => on_refresh()}
             >
               {t("common.retry")}
@@ -696,7 +696,7 @@ export const MobileEmailList = memo(function MobileEmailList({
           {show_jump_to_top && (
             <motion.button
               animate={{ opacity: 1 }}
-              className="fixed right-4 z-30 flex h-16 w-16 items-center justify-center rounded-full active:opacity-70"
+              className="fixed end-4 z-30 flex h-16 w-16 items-center justify-center rounded-full active:opacity-70"
               exit={{ opacity: 0 }}
               initial={{ opacity: 0 }}
               style={{
