@@ -167,6 +167,7 @@ export function BillingSection() {
   const [plan_change_confirm_target, set_plan_change_confirm_target] =
     useState<{ plan: AvailablePlan; interval: string } | null>(null);
   const pending_tauri_checkout_ref = useRef(false);
+  const plan_before_checkout_ref = useRef<string | null>(null);
 
   const handle_currency_change = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -330,13 +331,33 @@ export function BillingSection() {
 
   useEffect(() => {
     const handle_focus = () => {
-      if (pending_tauri_checkout_ref.current) {
-        pending_tauri_checkout_ref.current = false;
+      if (!pending_tauri_checkout_ref.current) return;
+
+      pending_tauri_checkout_ref.current = false;
+
+      const before = plan_before_checkout_ref.current;
+
+      plan_before_checkout_ref.current = null;
+
+      void (async () => {
+        for (let attempt = 0; attempt < 6; attempt++) {
+          request_cache.invalidate("/payments/v1");
+
+          const response = await get_subscription();
+          const live = response.data?.plan.code;
+
+          if (live && live !== before) break;
+
+          await new Promise((resolve) =>
+            setTimeout(resolve, attempt === 0 ? 800 : 1500),
+          );
+        }
+
         request_cache.invalidate("/payments/v1");
         request_cache.invalidate("/sync/v1");
         invalidate_mail_stats();
         load_data();
-      }
+      })();
     };
     window.addEventListener("focus", handle_focus);
     return () => window.removeEventListener("focus", handle_focus);
@@ -437,6 +458,7 @@ export function BillingSection() {
             "error",
           );
         } else {
+          plan_before_checkout_ref.current = subscription?.plan.code ?? null;
           pending_tauri_checkout_ref.current = true;
         }
       } catch {
@@ -507,6 +529,7 @@ export function BillingSection() {
         );
         set_is_action_loading(false);
       } else if (is_tauri) {
+        plan_before_checkout_ref.current = subscription?.plan.code ?? null;
         pending_tauri_checkout_ref.current = true;
         set_is_action_loading(false);
       }
@@ -544,7 +567,10 @@ export function BillingSection() {
       }
 
       if (result.requires_checkout) {
-        if (is_tauri) pending_tauri_checkout_ref.current = true;
+        if (is_tauri) {
+          plan_before_checkout_ref.current = subscription?.plan.code ?? null;
+          pending_tauri_checkout_ref.current = true;
+        }
         return;
       }
 
@@ -592,6 +618,7 @@ export function BillingSection() {
         if (is_tauri) {
           const core = await import("@tauri-apps/api/core");
           await core.invoke("open_external_url", { url });
+          plan_before_checkout_ref.current = subscription?.plan.code ?? null;
           pending_tauri_checkout_ref.current = true;
           set_is_action_loading(false);
         } else {
@@ -789,6 +816,7 @@ export function BillingSection() {
         is_action_loading={is_action_loading}
         on_family_plan_change={handle_family_plan_change}
         on_tauri_checkout_opened={() => {
+          plan_before_checkout_ref.current = subscription?.plan.code ?? null;
           pending_tauri_checkout_ref.current = true;
         }}
         on_upgrade={handle_select_plan}
@@ -858,6 +886,7 @@ export function BillingSection() {
               is_open={show_crypto_modal}
               monthly_price_cents={tier.monthly_cents}
               on_checkout_opened={() => {
+                plan_before_checkout_ref.current = subscription?.plan.code ?? null;
                 pending_tauri_checkout_ref.current = true;
               }}
               on_close={() => {
@@ -957,6 +986,7 @@ export function BillingSection() {
           addon_name={crypto_addon.name}
           is_open={show_crypto_addon_modal}
           on_checkout_opened={() => {
+            plan_before_checkout_ref.current = subscription?.plan.code ?? null;
             pending_tauri_checkout_ref.current = true;
           }}
           on_close={() => {
