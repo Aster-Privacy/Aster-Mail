@@ -127,15 +127,20 @@ export function AllowlistSection() {
 
   const handle_remove = async (sender: DecryptedAllowedSender) => {
     set_allowed_senders((prev) => prev.filter((s) => s.id !== sender.id));
-    show_toast(
-      t("common.removed_from_allowlist", { email: sender.email }),
-      "success",
-    );
 
     const result = await remove_allowed_sender_by_token(sender.sender_token);
 
-    if (!result.data?.success) {
+    if (result.data?.success) {
+      show_toast(
+        t("common.removed_from_allowlist", { email: sender.email }),
+        "success",
+      );
+    } else {
       set_allowed_senders((prev) => [...prev, sender]);
+      show_toast(
+        result.error || t("common.failed_to_remove_from_allowlist"),
+        "error",
+      );
     }
   };
 
@@ -160,6 +165,11 @@ export function AllowlistSection() {
           "success",
         );
         set_selected_ids(new Set());
+      } else {
+        show_toast(
+          result.error || t("common.failed_to_remove_from_allowlist_plural"),
+          "error",
+        );
       }
     } finally {
       set_is_removing(false);

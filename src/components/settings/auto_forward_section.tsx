@@ -160,6 +160,8 @@ export function AutoForwardSection() {
           t("settings.removed_forwarding_rule", { name: rule.name }),
           "success",
         );
+      } else {
+        show_toast(result.error || t("common.failed_to_delete_rule"), "error");
       }
     } finally {
       set_is_deleting(false);
@@ -183,6 +185,8 @@ export function AutoForwardSection() {
           "success",
         );
         set_selected_ids(new Set());
+      } else {
+        show_toast(result.error || t("common.failed_to_delete_rules"), "error");
       }
     } finally {
       set_is_deleting(false);

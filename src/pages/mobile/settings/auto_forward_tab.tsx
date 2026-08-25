@@ -208,6 +208,11 @@ export function AutoForwardTab() {
             t("settings.removed_forwarding_rule", { name: rule.name }),
             "success",
           );
+        } else {
+          show_toast(
+            result.error || t("common.failed_to_delete_rule"),
+            "error",
+          );
         }
       } finally {
         set_is_deleting_rule(false);

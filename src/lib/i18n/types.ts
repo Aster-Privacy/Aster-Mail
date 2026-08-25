@@ -1237,6 +1237,12 @@ export interface CommonTranslations {
   failed_to_send_reply: string;
   failed_to_delete_draft: string;
   failed_to_update_rule: string;
+  failed_to_delete_rule: string;
+  failed_to_delete_rules: string;
+  failed_to_unblock_sender: string;
+  failed_to_unblock_senders: string;
+  failed_to_remove_from_allowlist: string;
+  failed_to_remove_from_allowlist_plural: string;
   failed_to_send_verification: string;
   failed_to_load_email: string;
   failed_to_decrypt_email: string;
@@ -4621,6 +4627,7 @@ export interface SettingsTranslations {
   vacation_reply_empty: string;
   vacation_reply_saved: string;
   vacation_reply_deleted: string;
+  vacation_reply_delete_failed: string;
   vacation_reply_edit: string;
   vacation_reply_setup: string;
   vacation_reply_toggled_on: string;

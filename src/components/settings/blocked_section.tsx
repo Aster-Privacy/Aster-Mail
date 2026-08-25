@@ -127,12 +127,17 @@ export function BlockedSection() {
 
   const handle_unblock = async (sender: DecryptedBlockedSender) => {
     set_blocked_senders((prev) => prev.filter((s) => s.id !== sender.id));
-    show_toast(t("common.unblocked_email", { email: sender.email }), "success");
 
     const result = await unblock_sender_by_token(sender.sender_token);
 
-    if (!result.data?.success) {
+    if (result.data?.success) {
+      show_toast(
+        t("common.unblocked_email", { email: sender.email }),
+        "success",
+      );
+    } else {
       set_blocked_senders((prev) => [...prev, sender]);
+      show_toast(result.error || t("common.failed_to_unblock_sender"), "error");
     }
   };
 
@@ -157,6 +162,11 @@ export function BlockedSection() {
           "success",
         );
         set_selected_ids(new Set());
+      } else {
+        show_toast(
+          result.error || t("common.failed_to_unblock_senders"),
+          "error",
+        );
       }
     } finally {
       set_is_unblocking(false);

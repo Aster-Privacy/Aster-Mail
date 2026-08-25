@@ -373,6 +373,11 @@ export function VacationReplySection() {
         set_vacation(null);
         show_toast(t("settings.vacation_reply_deleted"), "success");
         set_is_editor_open(false);
+      } else {
+        show_toast(
+          result.error || t("settings.vacation_reply_delete_failed"),
+          "error",
+        );
       }
     } finally {
       set_is_deleting(false);

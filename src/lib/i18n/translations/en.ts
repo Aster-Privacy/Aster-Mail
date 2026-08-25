@@ -911,6 +911,18 @@ export const en: Translations = {
       "This draft was not removed. Another attempt should do it.",
     failed_to_update_rule:
       "This rule did not save. Another attempt should do it. The earlier version is still active.",
+    failed_to_delete_rule:
+      "This rule was not removed. Another attempt should do it.",
+    failed_to_delete_rules:
+      "These rules were not removed. Another attempt should do it.",
+    failed_to_unblock_sender:
+      "This sender was not unblocked. Another attempt should do it.",
+    failed_to_unblock_senders:
+      "These senders were not unblocked. Another attempt should do it.",
+    failed_to_remove_from_allowlist:
+      "This sender was not removed from your allowlist. Another attempt should do it.",
+    failed_to_remove_from_allowlist_plural:
+      "These senders were not removed from your allowlist. Another attempt should do it.",
     failed_to_send_verification:
       "We could not send the verification email. Another attempt in a moment usually does it.",
     failed_to_load_email:
@@ -5490,6 +5502,8 @@ export const en: Translations = {
     vacation_reply_empty: "No vacation reply configured",
     vacation_reply_saved: "Vacation reply saved",
     vacation_reply_deleted: "Vacation reply deleted",
+    vacation_reply_delete_failed:
+      "Your vacation reply was not deleted. Another attempt should do it.",
     vacation_reply_edit: "Edit Vacation Reply",
     vacation_reply_setup: "Set Up Vacation Reply",
     vacation_reply_toggled_on: "Vacation reply enabled",

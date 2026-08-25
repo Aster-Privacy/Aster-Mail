@@ -132,10 +132,16 @@ export function VacationReplyTab() {
         set_vacation_end("");
         set_vacation_external_only(false);
         show_toast(t("settings.vacation_reply_deleted"), "success");
+      } else {
+        show_toast(
+          result.error || t("settings.vacation_reply_delete_failed"),
+          "error",
+        );
       }
     } catch (err) {
       if (import.meta.env.DEV)
         console.error("failed to delete vacation reply", err);
+      show_toast(t("settings.vacation_reply_delete_failed"), "error");
     }
   }, [t]);
 
