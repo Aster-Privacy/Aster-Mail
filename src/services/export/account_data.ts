@@ -24,7 +24,7 @@ import {
   decrypt_contacts,
 } from "@/services/api/contacts";
 import type { DecryptedContact } from "@/types/contacts";
-import { list_aliases, decrypt_aliases } from "@/services/api/aliases";
+import { list_all_aliases, decrypt_aliases } from "@/services/api/aliases";
 import {
   list_ghost_aliases,
   decrypt_ghost_aliases,
@@ -135,8 +135,8 @@ export async function build_account_data_files(
   if (!selection.settings) return files;
 
   const aliases = await safe("aliases", async () => {
-    const res = await list_aliases({ limit: 500 });
-    return decrypt_aliases(res.data?.aliases ?? []);
+    const res = await list_all_aliases();
+    return decrypt_aliases(res.aliases);
   });
   if (aliases?.length) {
     files.push({ name: "aliases.json", bytes: to_json_bytes(aliases) });

@@ -57,7 +57,7 @@ import {
   filter_supported_files,
 } from "@/services/import/file_collection";
 import {
-  list_aliases,
+  list_all_aliases,
   decrypt_aliases,
 } from "@/services/api/aliases";
 
@@ -185,10 +185,10 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
       }
 
       try {
-        const alias_response = await list_aliases({ limit: 100 });
+        const alias_response = await list_all_aliases();
 
-        if (alias_response.data?.aliases) {
-          const decrypted = await decrypt_aliases(alias_response.data.aliases);
+        if (alias_response.aliases.length > 0) {
+          const decrypted = await decrypt_aliases(alias_response.aliases);
 
           for (const alias of decrypted) {
             if (alias.is_enabled && alias.full_address) {
