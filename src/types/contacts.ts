@@ -53,11 +53,7 @@ export type PhoneEntryType =
   | "pager"
   | "other";
 export type AddressEntryType = "home" | "work" | "other";
-export type DateEntryType =
-  | "anniversary"
-  | "graduation"
-  | "wedding"
-  | "other";
+export type DateEntryType = "anniversary" | "graduation" | "wedding" | "other";
 export type RelatedPersonType =
   | "assistant"
   | "manager"

@@ -35,9 +35,13 @@ describe("is_astermail_sender", () => {
   });
 
   it("rejects look-alike, subdomain, and multi-@ spoofs", () => {
-    expect(is_astermail_sender(null, "hello@astermail.org.evil.com")).toBe(false);
+    expect(is_astermail_sender(null, "hello@astermail.org.evil.com")).toBe(
+      false,
+    );
     expect(is_astermail_sender(null, "hello@sub.astermail.org")).toBe(false);
-    expect(is_astermail_sender(null, "hello@astermail.org@evil.com")).toBe(false);
+    expect(is_astermail_sender(null, "hello@astermail.org@evil.com")).toBe(
+      false,
+    );
     expect(is_astermail_sender(null, "hello@notastermail.org")).toBe(false);
   });
 });

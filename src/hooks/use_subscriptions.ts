@@ -30,13 +30,19 @@ import {
   save_subscription_cache,
   SUBSCRIPTION_CACHE_VERSION,
 } from "@/services/subscription_cache";
-import { perform_unsubscribe, execute_unsubscribe, UnsubscribeError } from "@/utils/unsubscribe_detector";
-import { confirm_unsubscribe, confirm_unsubscribe_bulk } from "@/components/modals/unsubscribe_confirmation_modal";
+import {
+  perform_unsubscribe,
+  execute_unsubscribe,
+  UnsubscribeError,
+} from "@/utils/unsubscribe_detector";
+import {
+  confirm_unsubscribe,
+  confirm_unsubscribe_bulk,
+} from "@/components/modals/unsubscribe_confirmation_modal";
 import { UNSUBSCRIBE_EVENT } from "@/hooks/use_unsubscribed_senders";
 import { use_auth } from "@/contexts/auth_context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
-
 import { ignore_error } from "@/lib/ignore_error";
 
 export function use_subscriptions() {
@@ -90,12 +96,14 @@ export function use_subscriptions() {
   useEffect(() => {
     const handle_external_unsub = (e: Event) => {
       const sender_email = (e as CustomEvent).detail?.sender_email;
+
       if (!sender_email || !vault || mutating_ref.current > 0) return;
 
       const current_subs = cache_ref.current?.subscriptions || subscriptions;
       const already_tracked = current_subs.some(
         (s) => s.sender_email === sender_email,
       );
+
       if (!already_tracked) return;
 
       const updated = current_subs.map((s) =>
@@ -119,13 +127,16 @@ export function use_subscriptions() {
     };
 
     window.addEventListener(UNSUBSCRIBE_EVENT, handle_external_unsub);
+
     return () => {
       window.removeEventListener(UNSUBSCRIBE_EVENT, handle_external_unsub);
     };
   }, [subscriptions, vault]);
 
   const unsubscribe_sender = useCallback(
-    async (sender_email: string): Promise<"success" | "manual" | "failed"> => {
+    async (
+      sender_email: string,
+    ): Promise<"success" | "manual" | "failed" | "cancelled"> => {
       const current_subs = cache_ref.current?.subscriptions || subscriptions;
       const sub = current_subs.find((s) => s.sender_email === sender_email);
 
@@ -147,7 +158,7 @@ export function use_subscriptions() {
       );
 
       if (!confirmed) {
-        return "failed";
+        return "cancelled";
       }
 
       mutating_ref.current++;
@@ -223,98 +234,130 @@ export function use_subscriptions() {
         set_subscriptions(reverted);
         mutating_ref.current--;
 
-        return "failed";
+        return err instanceof UnsubscribeError && err.code === "cancelled"
+          ? "cancelled"
+          : "failed";
       }
     },
     [subscriptions, vault, t],
   );
 
   const bulk_unsubscribe = useCallback(
-    async (sender_emails: string[]): Promise<boolean> => {
-      if (sender_emails.length === 0) return false;
+    async (sender_emails: string[]): Promise<string[] | null> => {
+      if (sender_emails.length === 0) return null;
 
       const confirmed = await confirm_unsubscribe_bulk(sender_emails.length);
 
-      if (!confirmed) return false;
+      if (!confirmed) return null;
 
       mutating_ref.current++;
-      const current_subs = cache_ref.current?.subscriptions || subscriptions;
-      const batch_size = 5;
-      const emails_set = new Set(sender_emails);
 
-      const optimistic = current_subs.map((s) =>
-        emails_set.has(s.sender_email)
-          ? {
-              ...s,
-              status: "unsubscribed" as const,
-              unsubscribed_at: new Date().toISOString(),
-            }
-          : s,
-      );
+      try {
+        const current_subs = cache_ref.current?.subscriptions || subscriptions;
+        const batch_size = 5;
+        const emails_set = new Set(sender_emails);
 
-      cache_ref.current = {
-        subscriptions: optimistic,
-        last_scan_ts:
-          cache_ref.current?.last_scan_ts || new Date().toISOString(),
-        version: SUBSCRIPTION_CACHE_VERSION,
-      };
-      set_subscriptions(optimistic);
-
-      await save_subscription_cache(cache_ref.current, vault!);
-
-      for (let i = 0; i < sender_emails.length; i += batch_size) {
-        const batch = sender_emails.slice(i, i + batch_size);
-
-        await Promise.allSettled(
-          batch.map(async (email) => {
-            const sub = current_subs.find((s) => s.sender_email === email);
-
-            if (!sub) return;
-
-            try {
-              await execute_unsubscribe({
-                has_unsubscribe: true,
-                method: sub.has_one_click
-                  ? "one-click"
-                  : sub.unsubscribe_link
-                    ? "link"
-                    : "none",
-                unsubscribe_link: sub.unsubscribe_link,
-                list_unsubscribe_header: sub.list_unsubscribe_header,
-                list_unsubscribe_post: sub.list_unsubscribe_post,
-              });
-            } catch (caught) {
-              ignore_error("hooks/use_subscriptions:reverted", caught);
-            }
-          }),
+        const optimistic = current_subs.map((s) =>
+          emails_set.has(s.sender_email)
+            ? {
+                ...s,
+                status: "unsubscribed" as const,
+                unsubscribed_at: new Date().toISOString(),
+              }
+            : s,
         );
-      }
-      mutating_ref.current--;
 
-      return true;
+        cache_ref.current = {
+          subscriptions: optimistic,
+          last_scan_ts:
+            cache_ref.current?.last_scan_ts || new Date().toISOString(),
+          version: SUBSCRIPTION_CACHE_VERSION,
+        };
+        set_subscriptions(optimistic);
+
+        await save_subscription_cache(cache_ref.current, vault!);
+
+        const failed: string[] = [];
+
+        for (let i = 0; i < sender_emails.length; i += batch_size) {
+          const batch = sender_emails.slice(i, i + batch_size);
+
+          await Promise.allSettled(
+            batch.map(async (email) => {
+              const sub = current_subs.find((s) => s.sender_email === email);
+
+              if (!sub) return;
+
+              try {
+                await execute_unsubscribe({
+                  has_unsubscribe: true,
+                  method: sub.has_one_click
+                    ? "one-click"
+                    : sub.unsubscribe_link
+                      ? "link"
+                      : "none",
+                  unsubscribe_link: sub.unsubscribe_link,
+                  list_unsubscribe_header: sub.list_unsubscribe_header,
+                  list_unsubscribe_post: sub.list_unsubscribe_post,
+                });
+              } catch (caught) {
+                failed.push(email);
+                ignore_error("hooks/use_subscriptions:reverted", caught);
+              }
+            }),
+          );
+        }
+
+        if (failed.length > 0) {
+          const failed_set = new Set(failed);
+          const reverted = (cache_ref.current?.subscriptions || []).map((s) =>
+            failed_set.has(s.sender_email)
+              ? { ...s, status: "active" as const, unsubscribed_at: undefined }
+              : s,
+          );
+
+          cache_ref.current = {
+            subscriptions: reverted,
+            last_scan_ts:
+              cache_ref.current?.last_scan_ts || new Date().toISOString(),
+            version: SUBSCRIPTION_CACHE_VERSION,
+          };
+          set_subscriptions(reverted);
+          await save_subscription_cache(cache_ref.current, vault!);
+          show_toast(t("mail.unsubscribe_failed"), "error");
+        }
+
+        return failed;
+      } finally {
+        mutating_ref.current--;
+      }
     },
-    [subscriptions, vault],
+    [subscriptions, vault, t],
   );
 
   const reactivate = useCallback(
     async (sender_email: string) => {
       mutating_ref.current++;
-      const current_subs = cache_ref.current?.subscriptions || subscriptions;
-      const updated = current_subs.map((s) =>
-        s.sender_email === sender_email
-          ? { ...s, status: "active" as const, unsubscribed_at: undefined }
-          : s,
-      );
 
-      cache_ref.current = {
-        subscriptions: updated,
-        last_scan_ts:
-          cache_ref.current?.last_scan_ts || new Date().toISOString(),
-        version: SUBSCRIPTION_CACHE_VERSION,
-      };
-      set_subscriptions(updated);
-      await save_subscription_cache(cache_ref.current, vault!);
-      mutating_ref.current--;
+      try {
+        const current_subs = cache_ref.current?.subscriptions || subscriptions;
+        const updated = current_subs.map((s) =>
+          s.sender_email === sender_email
+            ? { ...s, status: "active" as const, unsubscribed_at: undefined }
+            : s,
+        );
+
+        cache_ref.current = {
+          subscriptions: updated,
+          last_scan_ts:
+            cache_ref.current?.last_scan_ts || new Date().toISOString(),
+          version: SUBSCRIPTION_CACHE_VERSION,
+        };
+        set_subscriptions(updated);
+        await save_subscription_cache(cache_ref.current, vault!);
+      } finally {
+        mutating_ref.current--;
+      }
     },
     [subscriptions, vault],
   );

@@ -180,7 +180,10 @@ describe("classify", () => {
       from: { name: "Cool Brand", email: "hello@coolbrand.com" },
       subject: "This week at Cool Brand",
       raw_headers: [
-        { name: "DKIM-Signature", value: "v=1; a=rsa-sha256; d=mcsv.net; s=k1" },
+        {
+          name: "DKIM-Signature",
+          value: "v=1; a=rsa-sha256; d=mcsv.net; s=k1",
+        },
       ],
     });
 

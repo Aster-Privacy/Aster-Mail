@@ -18,16 +18,22 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { HASH_ALG } from "@/services/crypto/constants";
+import { user_facing_error } from "@/utils/user_facing_error";
 import { array_to_base64, base64_to_array } from "./base64";
-import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
-import { api_client } from "@/services/api/client";
-import { save_ratchet_state, load_ratchet_state } from "./ratchet_state_store";
 import {
-  DoubleRatchet,
-  type SerializedState,
-} from "./double_ratchet";
-import { merge_ratchet_states } from "./ratchet_state_merge";
+  save_ratchet_state,
+  load_ratchet_state,
+  archive_ratchet_state,
+} from "./ratchet_state_store";
+import { DoubleRatchet, type SerializedState } from "./double_ratchet";
+import {
+  merge_discards_local_epoch,
+  merge_ratchet_states,
+} from "./ratchet_state_merge";
+
+import { api_client } from "@/services/api/client";
+import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
+import { HASH_ALG } from "@/services/crypto/constants";
 
 const API_BASE = "/crypto/v1/ratchet";
 
@@ -47,8 +53,6 @@ interface EncryptedStatePayload {
   encrypted_state: string;
   state_nonce: string;
 }
-
-
 
 async function encrypt_state_for_server(
   state: string,
@@ -78,7 +82,11 @@ async function decrypt_state_from_server(
   const ciphertext = base64_to_array(encrypted_state);
   const nonce = base64_to_array(state_nonce);
 
-  const plaintext = await decrypt_aes_gcm_with_fallback(encryption_key, ciphertext, nonce);
+  const plaintext = await decrypt_aes_gcm_with_fallback(
+    encryption_key,
+    ciphertext,
+    nonce,
+  );
 
   const decoder = new TextDecoder();
 
@@ -164,6 +172,10 @@ async function absorb_server_state(
     const local = await ratchet.serialize();
 
     if (remote.conversation_id !== local.conversation_id) return false;
+
+    if (merge_discards_local_epoch(local, remote)) {
+      await archive_ratchet_state(local);
+    }
 
     ratchet.adopt_state(merge_ratchet_states(local, remote));
 
@@ -299,6 +311,7 @@ export async function sync_ratchet_to_server(
   })();
 
   const lock_owner = Symbol();
+
   sync_locks.set(conversation_id, run);
   sync_lock_owners.set(conversation_id, lock_owner);
 
@@ -318,6 +331,7 @@ export async function load_ratchet_from_server(
 ): Promise<{ ratchet: DoubleRatchet; version: number } | null> {
   const now = Date.now();
   const cached_not_found = not_found_cache.get(conversation_id);
+
   if (cached_not_found !== undefined && now < cached_not_found) {
     return null;
   }
@@ -332,6 +346,7 @@ export async function load_ratchet_from_server(
 
   if (response.code === "NOT_FOUND") {
     not_found_cache.set(conversation_id, now + NOT_FOUND_TTL_MS);
+
     return null;
   }
 
@@ -435,7 +450,7 @@ export async function sync_all_ratchet_states(
           } catch (e) {
             result.errors.push({
               conversation_id,
-              error: e instanceof Error ? e.message : "Unknown error",
+              error: user_facing_error(e, "Unknown error"),
             });
           }
         }
@@ -444,7 +459,7 @@ export async function sync_all_ratchet_states(
       } catch (e) {
         result.errors.push({
           conversation_id,
-          error: e instanceof Error ? e.message : "Unknown error",
+          error: user_facing_error(e, "Unknown error"),
         });
       }
     }
@@ -464,14 +479,14 @@ export async function sync_all_ratchet_states(
       } catch (e) {
         result.errors.push({
           conversation_id,
-          error: e instanceof Error ? e.message : "Unknown error",
+          error: user_facing_error(e, "Unknown error"),
         });
       }
     }
   } catch (e) {
     result.errors.push({
       conversation_id: "_global",
-      error: e instanceof Error ? e.message : "Failed to sync ratchet states",
+      error: user_facing_error(e, "Failed to sync ratchet states"),
     });
   }
 

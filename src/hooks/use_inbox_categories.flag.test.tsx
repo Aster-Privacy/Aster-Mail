@@ -34,7 +34,9 @@ const prefs_state = vi.hoisted(() => ({
 
 vi.mock("@/contexts/preferences_context", () => ({
   use_preferences: () => ({
-    preferences: { inbox_categories_enabled: prefs_state.inbox_categories_enabled },
+    preferences: {
+      inbox_categories_enabled: prefs_state.inbox_categories_enabled,
+    },
     has_loaded_from_server: prefs_state.has_loaded_from_server,
   }),
 }));
@@ -73,10 +75,12 @@ let last_enabled = false;
 
 function Probe() {
   const { enabled } = use_inbox_categories("inbox");
+
   useEffect(() => {
     last_enabled = enabled;
   });
   last_enabled = enabled;
+
   return null;
 }
 

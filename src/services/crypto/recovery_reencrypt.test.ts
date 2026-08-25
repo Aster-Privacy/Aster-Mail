@@ -29,12 +29,13 @@ vi.mock("@/services/api/client", () => ({
   },
 }));
 
-import { api_client } from "@/services/api/client";
 import {
   re_encrypt_collection,
   re_encrypt_identity_scoped_setting,
 } from "./recovery_reencrypt";
 import { array_to_base64, base64_to_array } from "./base64";
+
+import { api_client } from "@/services/api/client";
 
 const HASH_ALG = "SHA-256";
 
@@ -190,7 +191,11 @@ describe("re_encrypt_collection", () => {
     const ok = await re_encrypt_collection(
       [
         { id: "bad", encrypted_value: bad.encrypted, value_nonce: bad.nonce },
-        { id: "good", encrypted_value: good.encrypted, value_nonce: good.nonce },
+        {
+          id: "good",
+          encrypted_value: good.encrypted,
+          value_nonce: good.nonce,
+        },
       ],
       [["encrypted_value", "value_nonce"]],
       old_key,

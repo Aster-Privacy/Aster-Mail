@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { user_facing_error } from "@/utils/user_facing_error";
 import { decrypt_message_with_any_key } from "@/services/crypto/key_manager_pgp";
 
 export interface pgp_decrypt_worker_request {
@@ -33,9 +34,7 @@ export interface pgp_decrypt_worker_response {
   error?: string;
 }
 
-self.onmessage = async (
-  event: MessageEvent<pgp_decrypt_worker_request>,
-) => {
+self.onmessage = async (event: MessageEvent<pgp_decrypt_worker_request>) => {
   if (event.origin !== "" && event.origin !== self.location.origin) {
     return;
   }
@@ -55,7 +54,7 @@ self.onmessage = async (
   } catch (error) {
     const response: pgp_decrypt_worker_response = {
       id,
-      error: error instanceof Error ? error.message : "decrypt_failed",
+      error: user_facing_error(error, "decrypt_failed"),
     };
 
     (self as unknown as Worker).postMessage(response);

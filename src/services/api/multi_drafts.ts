@@ -18,15 +18,14 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { HASH_ALG } from "@/services/crypto/constants";
 import type { EncryptedVault } from "@/services/crypto/key_manager";
-import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 
 import { api_client, type ApiResponse, type ApiErrorCode } from "./client";
-import { en } from "@/lib/i18n/translations/en";
 
+import { HASH_ALG } from "@/services/crypto/constants";
+import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
+import { get_active_translations } from "@/lib/i18n/translations";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
-
 
 export type DraftType = "new" | "reply" | "forward";
 
@@ -46,6 +45,7 @@ export interface DraftContent {
   bcc_recipients: string[];
   subject: string;
   message: string;
+  from_email?: string;
   attachments?: DraftAttachmentData[];
 }
 
@@ -294,7 +294,9 @@ async function encrypt_content(
       plaintext,
     );
   } catch {
-    throw new DraftEncryptionError(en.errors.failed_encrypt_draft);
+    throw new DraftEncryptionError(
+      get_active_translations().errors.failed_encrypt_draft,
+    );
   } finally {
     secure_clear_array(plaintext);
   }
@@ -303,6 +305,87 @@ async function encrypt_content(
     encrypted: uint8_array_to_base64(new Uint8Array(ciphertext)),
     nonce: uint8_array_to_base64(nonce),
   };
+}
+
+function to_address_list(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+
+  const result: string[] = [];
+
+  for (const entry of value) {
+    if (typeof entry === "string") {
+      const trimmed = entry.trim();
+
+      if (trimmed) result.push(trimmed);
+      continue;
+    }
+    if (entry && typeof entry === "object" && "email" in entry) {
+      const email = String((entry as { email: unknown }).email ?? "").trim();
+
+      if (email) result.push(email);
+    }
+  }
+
+  return result;
+}
+
+function first_string(record: Record<string, unknown>, keys: string[]): string {
+  for (const key of keys) {
+    const value = record[key];
+
+    if (typeof value === "string" && value) return value;
+  }
+
+  return "";
+}
+
+export function normalize_draft_content(parsed: unknown): DraftContent {
+  const record = (
+    parsed && typeof parsed === "object" ? parsed : {}
+  ) as Record<string, unknown>;
+  const from_record = record.from as { email?: unknown } | undefined;
+  const from_object_email =
+    from_record && typeof from_record === "object"
+      ? String(from_record.email ?? "")
+      : "";
+  const from_email =
+    first_string(record, ["from_email"]) || from_object_email.trim();
+
+  return {
+    to_recipients: to_address_list(record.to_recipients ?? record.to),
+    cc_recipients: to_address_list(record.cc_recipients ?? record.cc),
+    bcc_recipients: to_address_list(record.bcc_recipients ?? record.bcc),
+    subject: first_string(record, ["subject"]),
+    message: first_string(record, [
+      "message",
+      "body_html",
+      "html_body",
+      "body_text",
+      "text_body",
+    ]),
+    from_email: from_email || undefined,
+    attachments: Array.isArray(record.attachments)
+      ? (record.attachments as DraftAttachmentData[])
+      : undefined,
+  };
+}
+
+async function decrypt_content_with_envelope_keys(
+  encrypted: string,
+  nonce: string,
+): Promise<DraftContent | null> {
+  try {
+    const { decrypt_envelope } = await import(
+      "@/hooks/email_list_helpers/decrypt"
+    );
+    const envelope = await decrypt_envelope(encrypted, nonce);
+
+    if (!envelope) return null;
+
+    return normalize_draft_content(envelope);
+  } catch {
+    return null;
+  }
 }
 
 async function decrypt_content(
@@ -317,9 +400,19 @@ async function decrypt_content(
   let plaintext_buffer: ArrayBuffer;
 
   try {
-    plaintext_buffer = await decrypt_aes_gcm_with_fallback(key, ciphertext, nonce_bytes);
+    plaintext_buffer = await decrypt_aes_gcm_with_fallback(
+      key,
+      ciphertext,
+      nonce_bytes,
+    );
   } catch {
-    throw new DraftDecryptionError(en.errors.failed_decrypt_draft);
+    const fallback = await decrypt_content_with_envelope_keys(encrypted, nonce);
+
+    if (fallback) return fallback;
+
+    throw new DraftDecryptionError(
+      get_active_translations().errors.failed_decrypt_draft,
+    );
   }
 
   const plaintext = new Uint8Array(plaintext_buffer);
@@ -327,7 +420,7 @@ async function decrypt_content(
   try {
     const decoded = new TextDecoder().decode(plaintext);
 
-    return JSON.parse(decoded) as DraftContent;
+    return normalize_draft_content(JSON.parse(decoded));
   } finally {
     secure_clear_array(plaintext);
   }
@@ -482,7 +575,7 @@ export async function get_draft(
     const message =
       error instanceof DraftDecryptionError
         ? error.message
-        : en.errors.failed_decrypt_draft;
+        : get_active_translations().errors.failed_decrypt_draft;
 
     return { data: null, error: message };
   }
@@ -504,7 +597,7 @@ export async function create_draft(
     const message =
       error instanceof DraftEncryptionError
         ? error.message
-        : en.errors.failed_encrypt_draft;
+        : get_active_translations().errors.failed_encrypt_draft;
 
     return { error: message };
   }
@@ -572,7 +665,7 @@ export async function update_draft(
     const message =
       error instanceof DraftEncryptionError
         ? error.message
-        : en.errors.failed_encrypt_draft;
+        : get_active_translations().errors.failed_encrypt_draft;
 
     return { error: message };
   }
@@ -605,7 +698,7 @@ export async function update_draft(
 
     if (current_version !== undefined) {
       return {
-        error: en.errors.version_conflict,
+        error: get_active_translations().errors.version_conflict,
         code: "CONFLICT",
         data: {
           id: draft_id,
@@ -621,7 +714,10 @@ export async function update_draft(
       };
     }
 
-    return { error: en.errors.version_conflict, code: "CONFLICT" };
+    return {
+      error: get_active_translations().errors.version_conflict,
+      code: "CONFLICT",
+    };
   }
 
   invalidate_mail_stats();
@@ -718,7 +814,7 @@ export async function get_draft_by_thread(
     const message =
       error instanceof DraftDecryptionError
         ? error.message
-        : en.errors.failed_decrypt_draft;
+        : get_active_translations().errors.failed_decrypt_draft;
 
     return { data: null, error: message };
   }

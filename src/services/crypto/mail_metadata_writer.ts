@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { MailItemMetadata } from "@/types/email";
+
 import {
   blob_only_update_fields,
   create_default_metadata,
@@ -288,7 +289,10 @@ export async function bulk_update_items_metadata(
     metadata_version?: number;
   }>,
   updates: Partial<MailItemMetadata>,
-  options?: { on_progress?: (completed: number, total: number) => void },
+  options?: {
+    signal?: AbortSignal;
+    on_progress?: (completed: number, total: number) => void;
+  },
 ): Promise<{
   success: boolean;
   updated_count: number;
@@ -327,6 +331,11 @@ export async function bulk_update_items_metadata(
   const now = new Date().toISOString();
 
   for (const item of items) {
+    if (options?.signal?.aborted) {
+      failed_ids.push(item.id);
+      continue;
+    }
+
     let current_metadata: MailItemMetadata | null = null;
 
     if (item.encrypted_metadata && item.metadata_nonce) {
@@ -441,7 +450,7 @@ export async function bulk_update_items_metadata(
 
   const result = await batched_bulk_patch_metadata(
     [...bulk_items, ...flag_only_items],
-    { on_progress: options?.on_progress },
+    { signal: options?.signal, on_progress: options?.on_progress },
   );
 
   failed_ids.push(...result.failed_ids);

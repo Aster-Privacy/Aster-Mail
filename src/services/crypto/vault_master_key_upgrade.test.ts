@@ -18,7 +18,10 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { EncryptedVault } from "./key_manager_core";
+
 import { describe, expect, it } from "vitest";
+
 import { array_to_base64, base64_to_array } from "./base64";
 import {
   STORAGE_KDF_VERSION_LEGACY,
@@ -26,7 +29,6 @@ import {
   is_master_key_vault,
 } from "./memory_key_store";
 import { upgrade_vault_to_master_key } from "./vault_master_key_upgrade";
-import type { EncryptedVault } from "./key_manager_core";
 
 const OLD_PASSWORD = "correct horse battery staple";
 

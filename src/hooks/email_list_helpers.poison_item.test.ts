@@ -22,13 +22,11 @@ import type { MailItem } from "@/services/api/mail";
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-import {
-  fetch_mail_from_api,
-  mail_to_email_safe,
-} from "./email_list_helpers";
+import { fetch_mail_from_api, mail_to_email_safe } from "./email_list_helpers";
 
 vi.mock("@/services/api/mail", async (import_original) => {
-  const original = await import_original<typeof import("@/services/api/mail")>();
+  const original =
+    await import_original<typeof import("@/services/api/mail")>();
 
   return {
     ...original,

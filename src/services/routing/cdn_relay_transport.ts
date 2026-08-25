@@ -30,10 +30,12 @@ const CONNECTION_INFO_PATH = "/core/v1/connection-info";
 export function is_relay_host_allowed(relay_url: string): boolean {
   try {
     const parsed = new URL(relay_url);
+
     if (parsed.protocol !== "https:") {
       return false;
     }
     const host = parsed.hostname.toLowerCase().replace(/\.$/, "");
+
     return (
       RELAY_ALLOWED_EXACT.includes(host) ||
       RELAY_ALLOWED_SUFFIXES.some((suffix) => host.endsWith(suffix))

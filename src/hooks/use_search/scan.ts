@@ -19,17 +19,17 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
-
-
-import {
-  type MailItem,
-} from "@/services/api/mail";
-import {
-  open_snapshot_reader,
-} from "@/services/search_index_store";
-
 import { cached_index } from "./index_cache";
-import { CachedIndex, DecryptedIndexEntry, IndexPerson, ScanOptions } from "./types";
+import {
+  CachedIndex,
+  DecryptedIndexEntry,
+  IndexPerson,
+  ScanOptions,
+} from "./types";
+
+import { type MailItem } from "@/services/api/mail";
+import { open_snapshot_reader } from "@/services/search_index_store";
+
 export async function scan_search_index(
   index: CachedIndex,
   visit: (item: MailItem, entry: DecryptedIndexEntry) => boolean,
@@ -49,7 +49,11 @@ export async function scan_search_index(
 
   const reader = await open_snapshot_reader(index.user_email);
 
-  if (!reader) return false;
+  if (!reader) {
+    options?.on_unreadable_chunk?.();
+
+    return false;
+  }
 
   const skip = options?.skip ?? null;
   const summaries = skip?.uses_summary
@@ -73,7 +77,10 @@ export async function scan_search_index(
 
     const chunk = await reader.read(chunk_id);
 
-    if (!chunk) continue;
+    if (!chunk) {
+      options?.on_unreadable_chunk?.();
+      continue;
+    }
 
     const entries = new Map<string, DecryptedIndexEntry>();
 
@@ -156,4 +163,3 @@ export function list_index_people(
     .sort((a, b) => b.count - a.count || a.email.localeCompare(b.email))
     .slice(0, limit);
 }
-

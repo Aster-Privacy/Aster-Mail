@@ -42,8 +42,12 @@ describe("html_sanitizer_constants", () => {
 
   it("blocks tags that enable phishing or script injection", () => {
     for (const tag of must_be_dangerous) {
-      expect(DANGEROUS_TAGS.has(tag), `${tag} must be in DANGEROUS_TAGS`).toBe(true);
-      expect(ALLOWED_TAGS.has(tag), `${tag} must NOT be in ALLOWED_TAGS`).toBe(false);
+      expect(DANGEROUS_TAGS.has(tag), `${tag} must be in DANGEROUS_TAGS`).toBe(
+        true,
+      );
+      expect(ALLOWED_TAGS.has(tag), `${tag} must NOT be in ALLOWED_TAGS`).toBe(
+        false,
+      );
     }
   });
 

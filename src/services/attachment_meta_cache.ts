@@ -23,7 +23,6 @@ import {
   type AttachmentMetaItem,
 } from "@/services/api/attachments";
 import { resolve_attachment_meta } from "@/services/crypto/attachment_crypto";
-
 import { ignore_error } from "@/lib/ignore_error";
 
 export interface CachedAttachmentMeta {
@@ -60,7 +59,10 @@ function store_cached_meta(
 ): void {
   if (items.some((item) => item.filename === null)) return;
 
-  if (!meta_cache.has(mail_item_id) && meta_cache.size >= MAX_CACHED_MAIL_ITEMS) {
+  if (
+    !meta_cache.has(mail_item_id) &&
+    meta_cache.size >= MAX_CACHED_MAIL_ITEMS
+  ) {
     const oldest = meta_cache.keys().next();
 
     if (!oldest.done) meta_cache.delete(oldest.value);

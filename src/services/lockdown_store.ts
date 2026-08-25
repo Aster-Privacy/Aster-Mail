@@ -30,17 +30,25 @@ export const LOCKDOWN_CHANGED_EVENT = "astermail:lockdown-changed";
 export function is_lockdown_enabled(account_id: string): boolean {
   if (!account_id) return false;
   if (lockdown_state.has(account_id)) return lockdown_state.get(account_id)!;
+
   return localStorage.getItem(LS_KEY(account_id)) === "1";
 }
 
-export function set_lockdown_enabled(account_id: string, enabled: boolean): void {
+export function set_lockdown_enabled(
+  account_id: string,
+  enabled: boolean,
+): void {
   lockdown_state.set(account_id, enabled);
   if (enabled) {
     localStorage.setItem(LS_KEY(account_id), "1");
   } else {
     localStorage.removeItem(LS_KEY(account_id));
   }
-  window.dispatchEvent(new CustomEvent(LOCKDOWN_CHANGED_EVENT, { detail: { account_id, enabled } }));
+  window.dispatchEvent(
+    new CustomEvent(LOCKDOWN_CHANGED_EVENT, {
+      detail: { account_id, enabled },
+    }),
+  );
   void apply_desktop_content_protection(is_any_lockdown_active());
 }
 
@@ -50,23 +58,35 @@ export function is_any_lockdown_active(): boolean {
   }
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i);
-    if (key?.startsWith("aster:lockdown:") && localStorage.getItem(key) === "1") {
+
+    if (
+      key?.startsWith("aster:lockdown:") &&
+      localStorage.getItem(key) === "1"
+    ) {
       return true;
     }
   }
+
   return false;
 }
 
-export async function init_lockdown_from_server(account_id: string): Promise<boolean> {
+export async function init_lockdown_from_server(
+  account_id: string,
+): Promise<boolean> {
   const response = await get_lockdown_status();
+
   if (response.data) {
     set_lockdown_enabled(account_id, response.data.enabled);
+
     return response.data.enabled;
   }
   const cached = localStorage.getItem(LS_KEY(account_id));
+
   if (cached === null && !lockdown_state.has(account_id)) {
     setTimeout(() => init_lockdown_from_server(account_id), 5000);
+
     return false;
   }
+
   return lockdown_state.get(account_id) ?? cached === "1";
 }

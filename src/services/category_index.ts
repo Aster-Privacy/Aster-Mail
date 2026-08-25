@@ -29,6 +29,7 @@ import {
   on_vault_cleared,
 } from "@/services/crypto/memory_key_store";
 import { get_current_account_id } from "@/services/account_manager";
+import { clear_strikes, record_absences } from "@/services/absent_strikes";
 import {
   list_mail_items,
   sync_mail_items,
@@ -83,6 +84,7 @@ const FUTURE_NEW_SKEW_MS = 15 * 60 * 1000;
 // instead of deferring forever to a dead `build_in_progress` latch.
 const BUILD_STALE_MS = 90000;
 const BUILD_FETCH_DEADLINE_MS = 75000;
+const OPEN_DB_DEADLINE_MS = 10000;
 const MAX_NEW_HEADS = 3;
 
 export interface CategoryIndexEntry {
@@ -93,6 +95,7 @@ export interface CategoryIndexEntry {
   category: EmailCategory;
   category_pinned?: boolean;
   snoozed_until?: string;
+  needs_reclassify?: boolean;
 }
 
 export interface CategoryCount {
@@ -125,6 +128,7 @@ const dirty_chunks = new Set<number>();
 let previews_dirty = false;
 let persist_running = false;
 let persist_rerun = false;
+let persist_failures = 0;
 
 function chunk_of(id: string): number {
   let hash = 0;
@@ -178,6 +182,14 @@ let resync_failures = 0;
 let listeners_started = false;
 
 const MAX_RESYNC_FAILURES = 5;
+const GAP_REBUILD_MIN_INTERVAL_MS = 5 * 60 * 1000;
+const DRIFT_REBUILD_MIN_INTERVAL_MS = 30 * 60 * 1000;
+const DRIFT_REBUILD_SESSION_LIMIT = 2;
+const DRIFT_MIN_MISSING_THREADS = 25;
+const DRIFT_MIN_MISSING_FRACTION = 0.1;
+
+let last_gap_rebuild_ms = 0;
+let drift_rebuilds = 0;
 
 const BUILTIN_CATEGORY_ID_SET = new Set(BUILTIN_CATEGORY_IDS);
 
@@ -294,17 +306,57 @@ function safe_ts(value: string | undefined): number {
 
 function open_db(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, 1);
+    let settled = false;
+
+    const fail = (reason: unknown): void => {
+      if (settled) return;
+      settled = true;
+      reject(reason);
+    };
+    const succeed = (db: IDBDatabase): void => {
+      if (settled) return;
+      settled = true;
+      resolve(db);
+    };
+    const timer = setTimeout(() => {
+      fail(new Error("category_index_open_timeout"));
+    }, OPEN_DB_DEADLINE_MS);
+
+    let request: IDBOpenDBRequest;
+
+    try {
+      request = indexedDB.open(DB_NAME, 1);
+    } catch (error) {
+      clearTimeout(timer);
+      fail(error);
+
+      return;
+    }
 
     request.onupgradeneeded = () => {
-      const db = request.result;
+      try {
+        const db = request.result;
 
-      if (!db.objectStoreNames.contains(STORE_NAME)) {
-        db.createObjectStore(STORE_NAME);
+        if (!db.objectStoreNames.contains(STORE_NAME)) {
+          db.createObjectStore(STORE_NAME);
+        }
+      } catch (error) {
+        clearTimeout(timer);
+        fail(error);
       }
     };
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
+    request.onblocked = () => {
+      clearTimeout(timer);
+      fail(new Error("category_index_open_blocked"));
+    };
+    request.onsuccess = () => {
+      clearTimeout(timer);
+      succeed(request.result);
+    };
+    request.onerror = () => {
+      clearTimeout(timer);
+      fail(request.error);
+    };
   });
 }
 
@@ -332,6 +384,8 @@ function notify_soon(): void {
     notify();
   }, delay);
 }
+
+const MAX_PERSIST_RETRIES = 3;
 
 function schedule_persist(): void {
   if (persist_timer) {
@@ -421,11 +475,17 @@ async function persist_now(): Promise<void> {
     });
 
     db.close();
+    persist_failures = 0;
   } catch (e) {
     for (const chunk_index of writing) {
       dirty_chunks.add(chunk_index);
     }
     previews_dirty = true;
+    persist_failures += 1;
+
+    if (persist_failures <= MAX_PERSIST_RETRIES) {
+      schedule_persist();
+    }
 
     const is_quota =
       e instanceof DOMException && e.name === "QuotaExceededError";
@@ -512,6 +572,8 @@ async function load_from_disk(account_id: string): Promise<void> {
       Partial<PersistedMeta>;
     const valid_entries: [string, CategoryIndexEntry][] = [];
 
+    let chunks_incomplete = false;
+
     if (payload.classifier_version !== CLASSIFIER_VERSION) return;
 
     if (payload.chunked === true) {
@@ -530,14 +592,29 @@ async function load_from_disk(account_id: string): Promise<void> {
           chunk_record_key(account_id, i),
         );
 
-        if (!encrypted_chunk) continue;
+        if (!encrypted_chunk) {
+          chunks_incomplete = true;
+          continue;
+        }
+
         if (active_account_id !== account_id) return;
 
-        const decrypted_chunk = await secure_decrypt(encrypted_chunk);
+        let decrypted_chunk: string;
+
+        try {
+          decrypted_chunk = await secure_decrypt(encrypted_chunk);
+        } catch {
+          chunks_incomplete = true;
+          continue;
+        }
 
         if (active_account_id !== account_id) return;
 
-        collect_valid_entries(JSON.parse(decrypted_chunk), valid_entries);
+        try {
+          collect_valid_entries(JSON.parse(decrypted_chunk), valid_entries);
+        } catch {
+          chunks_incomplete = true;
+        }
       }
     } else {
       if (!Array.isArray(payload.entries)) return;
@@ -560,7 +637,12 @@ async function load_from_disk(account_id: string): Promise<void> {
     }
 
     entries_map = new Map(valid_entries);
-    fully_built = payload.fully_built === true;
+    fully_built = payload.fully_built === true && !chunks_incomplete;
+
+    if (chunks_incomplete) {
+      mark_all_dirty();
+    }
+
     last_build_ms =
       typeof payload.built_at_ms === "number" ? payload.built_at_ms : 0;
     seen_ts = clean_seen_map(payload.seen_ts);
@@ -665,7 +747,8 @@ function apply_upsert(
       existing.message_ts !== entry.message_ts ||
       (existing.category_pinned ?? false) !==
         (entry.category_pinned ?? false) ||
-      (existing.snoozed_until ?? "") !== (entry.snoozed_until ?? "")
+      (existing.snoozed_until ?? "") !== (entry.snoozed_until ?? "") ||
+      (existing.needs_reclassify ?? false) !== (entry.needs_reclassify ?? false)
     ) {
       entries_map.set(entry.id, entry);
       mark_dirty(entry.id);
@@ -872,7 +955,9 @@ export function remove_thread_entries(thread_token: string): string[] {
   return removed;
 }
 
-const suppressed_ids = new Set<string>();
+const SUPPRESSION_TTL_MS = 60_000;
+
+const suppressed_ids = new Map<string, number>();
 
 export function suppress_ids(ids: string[]): void {
   let changed = false;
@@ -880,7 +965,7 @@ export function suppress_ids(ids: string[]): void {
   for (const id of ids) {
     if (!entries_map.has(id)) continue;
     if (suppressed_ids.has(id)) continue;
-    suppressed_ids.add(id);
+    suppressed_ids.set(id, now_ms());
     changed = true;
   }
 
@@ -891,6 +976,38 @@ export function clear_suppressed_ids(): void {
   if (suppressed_ids.size === 0) return;
   suppressed_ids.clear();
   notify();
+}
+
+export function prune_expired_suppressions(): void {
+  if (suppressed_ids.size === 0) return;
+
+  const cutoff = now_ms() - SUPPRESSION_TTL_MS;
+  let changed = false;
+
+  for (const [id, suppressed_at] of suppressed_ids) {
+    if (suppressed_at <= cutoff) {
+      suppressed_ids.delete(id);
+      changed = true;
+    }
+  }
+
+  if (changed) notify();
+}
+
+const absent_strikes = new Map<string, number>();
+
+export function clear_absent_strikes(ids: string[]): void {
+  clear_strikes(absent_strikes, ids);
+}
+
+export function remove_ids_absent_from_server(ids: string[]): void {
+  const confirmed = record_absences(absent_strikes, ids, (id) =>
+    entries_map.has(id),
+  );
+
+  if (confirmed.length > 0) {
+    remove_ids(confirmed);
+  }
 }
 
 export function remove_ids(ids: string[]): void {
@@ -1243,6 +1360,28 @@ export function get_thread_rep_id(id: string): string | null {
   return ensure_derived().thread_reps.get(key) ?? null;
 }
 
+export function get_arrival_reply_state(id: string): boolean | null {
+  if (!id) return null;
+
+  const entry = entries_map.get(id);
+
+  if (!entry) return null;
+  if (!entry.thread_token) return false;
+
+  for (const [other_id, other] of entries_map) {
+    if (other_id === id) continue;
+    if (other.thread_token === entry.thread_token) return true;
+  }
+
+  return false;
+}
+
+export function get_arrival_category(id: string): EmailCategory | null {
+  if (!id) return null;
+
+  return entries_map.get(id)?.category ?? null;
+}
+
 export function thread_has_unread_entries(
   thread_token: string,
   exclude?: string | ReadonlySet<string>,
@@ -1483,24 +1622,21 @@ async function item_to_entry(item: MailItem): Promise<ItemIndexResult> {
       : Promise.resolve(null),
   ]);
 
-  if (!envelope) return { kind: "keep" };
-  if (metadata?.is_trashed || metadata?.is_archived || metadata?.is_spam) {
-    return { kind: "remove" };
-  }
-
   const snoozed_until =
     item.snoozed_until && safe_ts(item.snoozed_until) > now_ms()
       ? item.snoozed_until
       : undefined;
 
-  remember_entry_preview(
-    item.id,
-    build_category_preview(
-      envelope.from?.name,
-      envelope.from?.email,
-      envelope.subject,
-    ),
-  );
+  if (envelope) {
+    remember_entry_preview(
+      item.id,
+      build_category_preview(
+        envelope.from?.name,
+        envelope.from?.email,
+        envelope.subject,
+      ),
+    );
+  }
 
   return {
     kind: "upsert",
@@ -1509,11 +1645,15 @@ async function item_to_entry(item: MailItem): Promise<ItemIndexResult> {
       thread_token: item.thread_token,
       message_ts: item.message_ts || item.created_at,
       is_read: item.is_read === true || (metadata?.is_read ?? false),
-      category: classify(envelope, metadata, {
-        custom_categories,
-        rule_category: item.rule_category,
-      }),
+      category: envelope
+        ? classify(envelope, metadata, {
+            custom_categories,
+            rule_category: item.rule_category,
+          })
+        : (item.rule_category ?? "primary"),
+      ...(envelope ? {} : { needs_reclassify: true }),
       category_pinned:
+        !!envelope &&
         metadata?.category_pinned === true &&
         !!metadata?.category &&
         !is_locked_to_primary(envelope),
@@ -1650,10 +1790,12 @@ export async function build_index(options?: {
       processed += items.length;
       cursor = next_cursor;
 
-      if (!has_more || !next_cursor) {
+      if (!has_more) {
         reached_end = true;
         break;
       }
+
+      if (!next_cursor) break;
 
       if (processed >= BUILD_CAP) break;
 
@@ -1694,6 +1836,8 @@ export async function sync_recent(notify_new = false): Promise<void> {
   if (build_in_progress) return;
   if (!has_vault_in_memory()) return;
 
+  prune_expired_suppressions();
+
   const ok = await ensure_loaded();
 
   if (!ok) return;
@@ -1724,6 +1868,27 @@ export async function sync_recent(notify_new = false): Promise<void> {
     resync_failures = 0;
 
     const items = response.data.items;
+
+    let index_newest_ts = 0;
+
+    for (const entry of entries_map.values()) {
+      const ts = safe_ts(entry.message_ts);
+
+      if (ts > index_newest_ts) index_newest_ts = ts;
+    }
+
+    const index_had_entries = entries_map.size > 0;
+    const page_was_full = items.length >= BUILD_DECRYPT_CHUNK;
+    const page_overlaps_index = items.some((item) => entries_map.has(item.id));
+
+    let page_oldest_ts = Infinity;
+
+    for (const item of items) {
+      const ts = safe_ts(item.message_ts || item.created_at);
+
+      if (ts > 0) page_oldest_ts = Math.min(page_oldest_ts, ts);
+    }
+
     const { upserts, removals } = await entries_from_items(items);
 
     if (token !== build_token) return;
@@ -1806,12 +1971,68 @@ export async function sync_recent(notify_new = false): Promise<void> {
     last_build_ms = now_ms();
     session_reconciled = true;
     publish_inbox_unread();
+
+    if (
+      index_had_entries &&
+      page_was_full &&
+      !page_overlaps_index &&
+      upserts.length > 0 &&
+      page_oldest_ts !== Infinity &&
+      page_oldest_ts > index_newest_ts &&
+      now_ms() - last_gap_rebuild_ms > GAP_REBUILD_MIN_INTERVAL_MS
+    ) {
+      last_gap_rebuild_ms = now_ms();
+      fully_built = false;
+      void build_index({ force: true });
+
+      return;
+    }
+
+    await rebuild_if_index_lags_server();
   } catch {
     resync_failures += 1;
     if (resync_failures < MAX_RESYNC_FAILURES) schedule_resync();
 
     return;
   }
+}
+
+function indexed_thread_count(): number {
+  const tokens = new Set<string>();
+
+  for (const entry of entries_map.values()) {
+    tokens.add(entry.thread_token || entry.id);
+  }
+
+  return tokens.size;
+}
+
+async function rebuild_if_index_lags_server(): Promise<void> {
+  if (!fully_built || build_capped || build_in_progress) return;
+  if (drift_rebuilds >= DRIFT_REBUILD_SESSION_LIMIT) return;
+  if (now_ms() - last_gap_rebuild_ms < DRIFT_REBUILD_MIN_INTERVAL_MS) return;
+
+  let server_inbox = 0;
+
+  try {
+    const { get_mail_stats_snapshot } = await import("@/hooks/use_mail_stats");
+
+    server_inbox = get_mail_stats_snapshot().inbox;
+  } catch {
+    return;
+  }
+
+  if (server_inbox <= 0) return;
+
+  const missing = server_inbox - indexed_thread_count();
+
+  if (missing < DRIFT_MIN_MISSING_THREADS) return;
+  if (missing < server_inbox * DRIFT_MIN_MISSING_FRACTION) return;
+
+  last_gap_rebuild_ms = now_ms();
+  drift_rebuilds += 1;
+  fully_built = false;
+  void build_index({ force: true });
 }
 
 async function delete_sync_storage_key(): Promise<string | null> {
@@ -1891,13 +2112,17 @@ async function reclassify_id(id: string): Promise<void> {
 
     if (generation !== index_generation) return;
 
-    const item = response.data?.items?.[0];
+    if (response.error || !response.data) return;
+
+    const item = response.data.items?.[0];
 
     if (!item) {
-      if (entries_map.has(id)) remove_ids([id]);
+      remove_ids_absent_from_server([id]);
 
       return;
     }
+
+    clear_absent_strikes([id]);
 
     if (item.item_type !== "received") {
       if (entries_map.has(id)) remove_ids([id]);
@@ -1977,7 +2202,9 @@ async function reclassify_many(ids: string[]): Promise<void> {
       if (generation !== index_generation) return;
 
       upsert_entries(upserts, generation, true);
-      remove_ids([...gone, ...non_received, ...removals]);
+      clear_absent_strikes([...returned]);
+      remove_ids_absent_from_server(gone);
+      remove_ids([...non_received, ...removals]);
     } catch {
       continue;
     }
@@ -2050,6 +2277,8 @@ export function clear_category_index_memory(): void {
   fully_built = false;
   session_reconciled = false;
   last_build_ms = 0;
+  last_gap_rebuild_ms = 0;
+  drift_rebuilds = 0;
   suppressed_ids.clear();
   loaded_for_account = null;
   active_account_id = null;
@@ -2201,6 +2430,20 @@ export function start_event_listeners(): void {
   });
 }
 
+const MAX_RECLASSIFY_RETRY = 100;
+
+function retry_unclassified_entries(): void {
+  const pending = Array.from(entries_map.values())
+    .filter((entry) => entry.needs_reclassify === true)
+    .sort((a, b) => safe_ts(b.message_ts) - safe_ts(a.message_ts))
+    .slice(0, MAX_RECLASSIFY_RETRY)
+    .map((entry) => entry.id);
+
+  if (pending.length === 0) return;
+
+  reindex_ids(pending);
+}
+
 export async function init_category_index(): Promise<void> {
   const ok = await ensure_loaded();
 
@@ -2208,7 +2451,7 @@ export async function init_category_index(): Promise<void> {
   start_event_listeners();
 
   if (fully_built && entries_map.size > 0) {
-    void sync_recent();
+    void sync_recent().then(() => retry_unclassified_entries());
 
     return;
   }
@@ -2288,6 +2531,8 @@ export async function clear_category_index(): Promise<void> {
   build_capped = false;
   resync_failures = 0;
   last_build_ms = 0;
+  last_gap_rebuild_ms = 0;
+  drift_rebuilds = 0;
   seen_ts = {};
   suppressed_ids.clear();
   loaded_for_account = null;

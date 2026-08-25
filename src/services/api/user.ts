@@ -132,6 +132,7 @@ export async function update_badge_preferences(
   input: UpdateBadgePreferencesInput,
 ): Promise<ApiResponse<BadgePreferences>> {
   const payload: Record<string, unknown> = {};
+
   if ("active_badge_slug" in input) {
     if (input.active_badge_slug === null) {
       payload["clear_active_badge"] = true;
@@ -148,6 +149,7 @@ export async function update_badge_preferences(
   if (input.show_badge_ring !== undefined) {
     payload["show_badge_ring"] = input.show_badge_ring;
   }
+
   return api_client.patch<BadgePreferences>(
     "/core/v1/badges/preferences",
     payload,

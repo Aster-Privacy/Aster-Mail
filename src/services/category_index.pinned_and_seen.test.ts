@@ -166,7 +166,9 @@ describe("category_index mark_category_seen clock clamp", () => {
   it("does not let one future-dated message blind the badge to genuinely new mail", () => {
     upsert_entries([
       entry("future_spam", {
-        message_ts: new Date(BASE_NOW + 5 * 365 * 24 * 60 * 60 * 1000).toISOString(),
+        message_ts: new Date(
+          BASE_NOW + 5 * 365 * 24 * 60 * 60 * 1000,
+        ).toISOString(),
       }),
     ]);
 

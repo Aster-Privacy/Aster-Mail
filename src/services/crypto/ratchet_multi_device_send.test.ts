@@ -18,9 +18,9 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { describe, it, expect, beforeEach, vi } from "vitest";
-
 import type { EncryptedVault } from "@/services/crypto/key_manager";
+
+import { describe, it, expect, beforeEach, vi } from "vitest";
 
 interface ServerStateRecord {
   encrypted_state: string;
@@ -155,10 +155,7 @@ function bundle_for(vault: EncryptedVault) {
 
 function snapshot_store(): Map<string, unknown> {
   return new Map(
-    [...h.store.entries()].map(([k, v]) => [
-      k,
-      JSON.parse(JSON.stringify(v)),
-    ]),
+    [...h.store.entries()].map(([k, v]) => [k, JSON.parse(JSON.stringify(v))]),
   );
 }
 

@@ -19,7 +19,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { CSSProperties } from "react";
-
 import type { CustomCategoryRule } from "@/data/category_catalog";
 import type { TranslationKey } from "@/lib/i18n/types";
 

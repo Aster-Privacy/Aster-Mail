@@ -18,15 +18,12 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { HASH_ALG } from "@/services/crypto/constants";
 import type { DecryptedThreadMessage, ThreadContext } from "@/types/thread";
 import type {
   MailItem,
   ReactionSummary,
   ThreadWithMessages,
 } from "@/services/api/mail";
-import { en } from "@/lib/i18n/translations/en";
-import { decrypt_mail_envelope } from "@/components/email/shared/decrypt_envelope";
 
 import {
   get_thread_messages,
@@ -48,6 +45,9 @@ import {
 import { zero_uint8_array } from "./crypto/secure_memory";
 import { decrypt_mail_metadata } from "./crypto/mail_metadata";
 
+import { decrypt_mail_envelope } from "@/components/email/shared/decrypt_envelope";
+import { get_active_translations } from "@/lib/i18n/translations";
+import { HASH_ALG } from "@/services/crypto/constants";
 import {
   try_extract_mime_body,
   RATCHET_UNDECRYPTABLE_SENTINEL,
@@ -60,7 +60,6 @@ import {
 import { filter_locked_mail_items } from "@/services/locked_folders";
 import { resolve_forwarding_display } from "@/utils/forwarding_alias";
 import { is_reaction_payload_body } from "@/lib/reaction_payload";
-
 
 interface DecryptedEnvelope {
   subject: string;
@@ -230,6 +229,7 @@ export async function fetch_and_decrypt_thread_messages(
     const head_count = options.limit - 1;
     const head = all_messages.slice(0, head_count);
     const tail = all_messages[all_messages.length - 1];
+
     messages_to_decrypt = [...head, tail];
     truncated = true;
   }
@@ -256,9 +256,9 @@ export async function fetch_and_decrypt_thread_messages(
       return {
         id: msg.id,
         item_type: msg.item_type as "received" | "sent" | "draft",
-        sender_name: en.common.unknown_sender,
+        sender_name: get_active_translations().common.unknown_sender,
         sender_email: "",
-        subject: en.common.unable_to_decrypt,
+        subject: get_active_translations().common.unable_to_decrypt,
         body: "",
         html_content: undefined,
         timestamp: msg.created_at,
@@ -350,6 +350,7 @@ export async function fetch_and_decrypt_thread_messages(
     }
 
     const subject_bundle = extract_subject_bundle(body_content);
+
     if (subject_bundle.subject !== null) {
       body_content = subject_bundle.body;
       if (!envelope.subject) {
@@ -372,6 +373,7 @@ export async function fetch_and_decrypt_thread_messages(
     }
 
     const html_bundle = unwrap_bundle_html(effective_html);
+
     effective_html = html_bundle.html;
     if (html_bundle.subject !== null && !envelope.subject) {
       envelope.subject = html_bundle.subject;
@@ -461,9 +463,9 @@ export async function fetch_and_decrypt_virtual_group(
       return {
         id: item.id,
         item_type: item.item_type as "received" | "sent" | "draft",
-        sender_name: en.common.unknown_sender,
+        sender_name: get_active_translations().common.unknown_sender,
         sender_email: "",
-        subject: en.common.unable_to_decrypt,
+        subject: get_active_translations().common.unable_to_decrypt,
         body: "",
         html_content: undefined,
         timestamp: item.created_at,
@@ -549,6 +551,7 @@ export async function fetch_and_decrypt_virtual_group(
     }
 
     const subject_bundle = extract_subject_bundle(body_content);
+
     if (subject_bundle.subject !== null) {
       body_content = subject_bundle.body;
       if (!envelope.subject) {
@@ -571,6 +574,7 @@ export async function fetch_and_decrypt_virtual_group(
     }
 
     const html_bundle = unwrap_bundle_html(effective_html);
+
     effective_html = html_bundle.html;
     if (html_bundle.subject !== null && !envelope.subject) {
       envelope.subject = html_bundle.subject;

@@ -46,6 +46,7 @@ vi.mock("@/services/crypto/attachment_crypto", () => ({
 }));
 
 import { create_account_message_source } from "./message_source";
+
 import type { ExportError, ExportScope, PipelineMessage } from "./pipeline";
 
 const scope: ExportScope = { preset: "all" };
@@ -79,6 +80,7 @@ async function collect(
   const source = create_account_message_source();
   const controller = new AbortController();
   const out: PipelineMessage[] = [];
+
   for await (const msg of source.messages(
     scope,
     controller.signal,
@@ -86,6 +88,7 @@ async function collect(
   )) {
     out.push(msg);
   }
+
   return out;
 }
 

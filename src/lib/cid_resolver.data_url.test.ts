@@ -29,13 +29,13 @@ vi.mock("@/services/crypto/attachment_crypto", () => ({
   decrypt_attachment_data: vi.fn(),
 }));
 
+import { resolve_cid_references } from "./cid_resolver";
+
 import { list_attachments } from "@/services/api/attachments";
 import {
   decrypt_attachment_meta,
   decrypt_attachment_data,
 } from "@/services/crypto/attachment_crypto";
-
-import { resolve_cid_references } from "./cid_resolver";
 
 const PNG_BYTES = new Uint8Array([1, 2, 3, 4]);
 

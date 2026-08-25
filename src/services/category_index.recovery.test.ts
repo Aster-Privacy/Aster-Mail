@@ -131,7 +131,11 @@ function install_fake_idb(): void {
       return {};
     },
     transaction: (store_name: string) => {
-      const tx: Record<string, unknown> = { oncomplete: null, onerror: null, error: null };
+      const tx: Record<string, unknown> = {
+        oncomplete: null,
+        onerror: null,
+        error: null,
+      };
 
       tx.objectStore = (n: string) => ({
         put: (value: unknown, key: string) => {
@@ -148,7 +152,10 @@ function install_fake_idb(): void {
           };
 
           setTimeout(
-            () => (req.onsuccess as ((e: unknown) => void) | null)?.({ target: req }),
+            () =>
+              (req.onsuccess as ((e: unknown) => void) | null)?.({
+                target: req,
+              }),
             0,
           );
 
@@ -177,7 +184,9 @@ function install_fake_idb(): void {
     };
 
     setTimeout(() => {
-      (req.onupgradeneeded as ((e: unknown) => void) | null)?.({ target: { result: db } });
+      (req.onupgradeneeded as ((e: unknown) => void) | null)?.({
+        target: { result: db },
+      });
       (req.onsuccess as ((e: unknown) => void) | null)?.({ target: req });
     }, 0);
 

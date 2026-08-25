@@ -18,21 +18,23 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { HASH_ALG } from "@/services/crypto/constants";
+import { user_facing_error } from "@/utils/user_facing_error";
 import { api_client, type ApiResponse } from "./client";
-import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import {
   array_to_base64,
   base64_to_array,
   normalize_email,
 } from "./sender_utils";
 
+import { HASH_ALG } from "@/services/crypto/constants";
+import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import {
   get_or_create_derived_encryption_crypto_key,
   get_derived_encryption_key,
 } from "@/services/crypto/memory_key_store";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import { get_key, store_key } from "@/services/crypto/crypto_key_cache";
+
 
 const ALLOWED_SENDERS_HMAC_KEY_ID = "allowed_senders_hmac_key";
 
@@ -210,6 +212,7 @@ export interface AllowedSenderResponse {
 export interface DecryptedAllowedSender {
   id: string;
   sender_token: string;
+  is_unreadable?: boolean;
   email: string;
   name?: string;
   allowed_at: string;
@@ -235,8 +238,9 @@ export async function list_allowed_senders(
       return { data: [] };
     }
 
+    const wire_items = response.data.allowed_senders;
     const results = await Promise.allSettled(
-      response.data.allowed_senders.map(async (item) => {
+      wire_items.map(async (item) => {
         const data = await decrypt_allow_data(
           item.encrypted_sender_data,
           item.sender_data_nonce,
@@ -256,25 +260,33 @@ export async function list_allowed_senders(
     );
 
     const decrypted: DecryptedAllowedSender[] = [];
-    let failed = 0;
 
-    for (const result of results) {
+    results.forEach((result, index) => {
       if (result.status === "fulfilled") {
         decrypted.push(result.value);
-      } else {
-        failed++;
-      }
-    }
 
-    if (failed > 0 && decrypted.length === 0) {
-      return { error: "Failed to decrypt allowed senders" };
-    }
+        return;
+      }
+
+      const item = wire_items[index];
+
+      if (!item) return;
+
+      decrypted.push({
+        id: item.id,
+        sender_token: item.sender_token,
+        is_unreadable: true,
+        email: "",
+        allowed_at: item.created_at,
+        is_domain: item.is_domain,
+        created_at: item.created_at,
+      });
+    });
 
     return { data: decrypted };
   } catch (err) {
     return {
-      error:
-        err instanceof Error ? err.message : "Failed to list allowed senders",
+      error: user_facing_error(err, "Failed to list allowed senders"),
     };
   }
 }
@@ -286,7 +298,9 @@ export async function allow_sender(
 ): Promise<ApiResponse<DecryptedAllowedSender>> {
   try {
     const sender_token = await generate_sender_token(email, is_domain);
-    const normalized = is_domain ? email.toLowerCase().trim() : normalize_email(email);
+    const normalized = is_domain
+      ? email.toLowerCase().trim()
+      : normalize_email(email);
     const hash_buffer = await crypto.subtle.digest(
       "SHA-256",
       new TextEncoder().encode(normalized),
@@ -332,7 +346,7 @@ export async function allow_sender(
     };
   } catch (err) {
     return {
-      error: err instanceof Error ? err.message : "Failed to allow sender",
+      error: user_facing_error(err, "Failed to allow sender"),
     };
   }
 }
@@ -350,8 +364,7 @@ export async function remove_allowed_sender(
     return response;
   } catch (err) {
     return {
-      error:
-        err instanceof Error ? err.message : "Failed to remove allowed sender",
+      error: user_facing_error(err, "Failed to remove allowed sender"),
     };
   }
 }
@@ -367,8 +380,7 @@ export async function remove_allowed_sender_by_token(
     return response;
   } catch (err) {
     return {
-      error:
-        err instanceof Error ? err.message : "Failed to remove allowed sender",
+      error: user_facing_error(err, "Failed to remove allowed sender"),
     };
   }
 }
@@ -387,10 +399,7 @@ export async function bulk_remove_allowed_senders_by_tokens(
     return response;
   } catch (err) {
     return {
-      error:
-        err instanceof Error
-          ? err.message
-          : "Failed to bulk remove allowed senders",
+      error: user_facing_error(err, "Failed to bulk remove allowed senders"),
     };
   }
 }

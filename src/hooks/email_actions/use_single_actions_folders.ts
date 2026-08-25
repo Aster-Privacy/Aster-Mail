@@ -48,12 +48,13 @@ import {
 } from "@/hooks/use_mail_stats";
 import { remove_email_from_view_cache } from "@/hooks/email_list_cache";
 import { ignore_error } from "@/lib/ignore_error";
-
 import {
   compute_untrash_deltas,
   apply_stat_deltas,
   revert_stat_deltas,
 } from "@/hooks/use_stat_helpers";
+import { user_facing_error } from "@/utils/user_facing_error";
+import { get_cached_folders } from "@/hooks/use_folders/cache";
 
 type SingleActionsFolderParams = Pick<
   ReturnType<typeof use_single_actions_core>,
@@ -108,7 +109,12 @@ export function use_single_actions_folders(params: SingleActionsFolderParams) {
               adjust_stats_spam(-1);
               if (is_unread) adjust_stats_unread(1);
             }
-            await update_with_metadata(email, original_state);
+            const undo_result = await update_with_metadata(
+              email,
+              original_state,
+            );
+
+            if (undo_result.error) throw new Error("undo spam failed");
             remove_spam_sender(email.sender_email).catch((caught) =>
               ignore_error(
                 "hooks/email_actions/use_single_actions_folders:use_single_actions_folders",
@@ -153,7 +159,11 @@ export function use_single_actions_folders(params: SingleActionsFolderParams) {
           email_ids: [email.id],
           on_undo: async () => {
             adjust_stats_spam(1);
-            await update_with_metadata(email, { is_spam: true });
+            const undo_result = await update_with_metadata(email, {
+              is_spam: true,
+            });
+
+            if (undo_result.error) throw new Error("undo not spam failed");
             report_spam_sender(email.sender_email).catch((caught) =>
               ignore_error(
                 "hooks/email_actions/use_single_actions_folders:use_single_actions_folders",
@@ -181,6 +191,15 @@ export function use_single_actions_folders(params: SingleActionsFolderParams) {
     [execute_single_action, update_with_metadata, t],
   );
 
+  const resolve_folder_name = useCallback(
+    (email: InboxEmail, folder_token: string): string =>
+      get_cached_folders().find((f) => f.folder_token === folder_token)?.name ||
+      (email.folders || []).find((f) => f.folder_token === folder_token)
+        ?.name ||
+      t("common.folder_fallback"),
+    [t],
+  );
+
   const add_folder = useCallback(
     async (email: InboxEmail, folder_token: string): Promise<boolean> => {
       set_action_loading("label", true);
@@ -200,19 +219,28 @@ export function use_single_actions_folders(params: SingleActionsFolderParams) {
         config.on_success?.("label", email.id);
 
         show_action_toast({
-          message: t("common.added_label", { label: folder_token }),
+          message: t("common.added_label", {
+            label: resolve_folder_name(email, folder_token),
+          }),
           action_type: "folder",
           email_ids: [email.id],
           on_undo: async () => {
-            await remove_mail_item_folder(email.id, folder_token);
+            const undo_result = await remove_mail_item_folder(
+              email.id,
+              folder_token,
+            );
+
+            if (undo_result.error) throw new Error("undo add label failed");
             emit_mail_changed();
           },
         });
 
         return true;
       } catch (err) {
-        const error_message =
-          err instanceof Error ? err.message : t("common.failed_to_add_label");
+        const error_message = user_facing_error(
+          err,
+          t("common.failed_to_add_label"),
+        );
 
         set_action_error("label", error_message);
 
@@ -224,6 +252,7 @@ export function use_single_actions_folders(params: SingleActionsFolderParams) {
       set_action_error,
       clear_action_state,
       config.on_success,
+      resolve_folder_name,
       t,
     ],
   );
@@ -247,11 +276,17 @@ export function use_single_actions_folders(params: SingleActionsFolderParams) {
         config.on_success?.("label", email.id);
 
         show_action_toast({
-          message: t("common.removed_label", { label: folder_token }),
+          message: t("common.removed_label", {
+            label: resolve_folder_name(email, folder_token),
+          }),
           action_type: "folder",
           email_ids: [email.id],
           on_undo: async () => {
-            await add_mail_item_folder(email.id, { folder_token });
+            const undo_result = await add_mail_item_folder(email.id, {
+              folder_token,
+            });
+
+            if (undo_result.error) throw new Error("undo remove label failed");
             emit_mail_changed();
           },
         });
@@ -273,6 +308,7 @@ export function use_single_actions_folders(params: SingleActionsFolderParams) {
       set_action_error,
       clear_action_state,
       config.on_success,
+      resolve_folder_name,
       t,
     ],
   );
@@ -297,15 +333,19 @@ export function use_single_actions_folders(params: SingleActionsFolderParams) {
         config.on_success?.("move", email.id);
 
         show_action_toast({
-          message: t("common.moved_to_folder", { folder: folder_token }),
+          message: t("common.moved_to_folder", {
+            folder: resolve_folder_name(email, folder_token),
+          }),
           action_type: "folder",
           email_ids: [email.id],
         });
 
         return true;
       } catch (err) {
-        const error_message =
-          err instanceof Error ? err.message : t("common.failed_to_move_email");
+        const error_message = user_facing_error(
+          err,
+          t("common.failed_to_move_email"),
+        );
 
         set_action_error("move", error_message);
 
@@ -318,6 +358,7 @@ export function use_single_actions_folders(params: SingleActionsFolderParams) {
       clear_action_state,
       config.on_remove_from_list,
       config.on_success,
+      resolve_folder_name,
       t,
     ],
   );
@@ -351,7 +392,11 @@ export function use_single_actions_folders(params: SingleActionsFolderParams) {
           email_ids: [email.id],
           on_undo: async () => {
             revert_stat_deltas(deltas);
-            await update_with_metadata(email, { is_trashed: true });
+            const undo_result = await update_with_metadata(email, {
+              is_trashed: true,
+            });
+
+            if (undo_result.error) throw new Error("undo restore failed");
             emit_mail_item_updated({ id: email.id, is_trashed: true });
             emit_mail_soft_refresh();
           },

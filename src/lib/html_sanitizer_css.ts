@@ -83,9 +83,11 @@ function decode_css_escapes(css: string): string {
   return css
     .replace(/\\([0-9a-fA-F]{1,6})\s?/g, (_, hex) => {
       const cp = parseInt(hex, 16);
+
       if (cp === 0 || (cp >= 0xd800 && cp <= 0xdfff) || cp > 0x10ffff) {
         return "�";
       }
+
       return String.fromCodePoint(cp);
     })
     .replace(/\\(.)/g, "$1");
@@ -135,12 +137,110 @@ export function escape_style_terminator(css: string): string {
   return css.replace(/<\/(style|script)/gi, "<\\/$1");
 }
 
-export function strip_css_urls(css: string): string {
+export interface StripCssUrlOptions {
+  image_proxy_url?: string;
+}
+
+const SAFE_CSS_IMAGE_SOURCE = /^(?:cid:|data:image\/)/i;
+
+const IMAGE_SET_HEAD = /(?:-webkit-)?image-set\s*\(/gi;
+
+const CROSS_FADE_HEAD = /cross-fade\s*\(/gi;
+
+function replace_balanced_calls(
+  css: string,
+  head: RegExp,
+  transform: (whole: string, inner: string) => string,
+): string {
+  const pattern = new RegExp(head.source, head.flags);
+  let result = "";
+  let index = 0;
+  let match;
+
+  while ((match = pattern.exec(css)) !== null) {
+    const start = match.index;
+    let depth = 1;
+    let i = start + match[0].length;
+
+    while (i < css.length && depth > 0) {
+      if (css[i] === "(") depth++;
+      else if (css[i] === ")") depth--;
+      i++;
+    }
+
+    if (depth > 0) {
+      return result + css.slice(index, start) + "none";
+    }
+
+    const whole = css.slice(start, i);
+    const inner = css.slice(start + match[0].length, i - 1);
+
+    result += css.slice(index, start) + transform(whole, inner);
+    index = i;
+    pattern.lastIndex = i;
+  }
+
+  return result + css.slice(index);
+}
+
+function css_image_set_sources(inner: string): string[] {
+  const sources: string[] = [];
+  const url_pattern = /url\s*\(\s*(["']?)([^"')]*)\1\s*\)/gi;
+  let match;
+
+  while ((match = url_pattern.exec(inner)) !== null) {
+    sources.push(match[2].trim());
+  }
+
+  const bare_pattern = /(["'])([^"']*)\1/g;
+  const remainder = inner.replace(url_pattern, " ");
+
+  while ((match = bare_pattern.exec(remainder)) !== null) {
+    sources.push(match[2].trim());
+  }
+
+  return sources;
+}
+
+export function keep_embedded_image_sets(css: string): string {
+  return replace_balanced_calls(css, IMAGE_SET_HEAD, (whole, inner) => {
+    const sources = css_image_set_sources(inner);
+
+    if (sources.length === 0) return "none";
+
+    return sources.every((source) => SAFE_CSS_IMAGE_SOURCE.test(source))
+      ? whole
+      : "none";
+  });
+}
+
+function drop_unsafe_call(whole: string, inner: string): string {
+  if (/(?:^|[^a-z-])none(?:$|[^a-z-])/i.test(whole)) return "none";
+
+  const sources = css_image_set_sources(inner);
+  const bare_pattern = /(["'])([^"']*)\1/g;
+  const remainder = inner.replace(/url\s*\([^)]*\)/gi, " ");
+  let bare;
+
+  while ((bare = bare_pattern.exec(remainder)) !== null) {
+    const value = bare[2].trim();
+
+    if (value.length > 0 && !SAFE_CSS_IMAGE_SOURCE.test(value)) return "none";
+  }
+
+  return sources.length === 0 ? "none" : whole;
+}
+
+export function strip_css_urls(
+  css: string,
+  options: StripCssUrlOptions = {},
+): string {
   const decoded = strip_css_comments(decode_css_escapes(css));
   const url_stripped = decoded.replace(
     /url\s*\(([^)]*)\)/gi,
     (_match, url_content) => {
       let inner = (url_content || "").trim();
+
       if (
         inner.length >= 2 &&
         (inner[0] === '"' || inner[0] === "'") &&
@@ -173,28 +273,49 @@ export function strip_css_urls(css: string): string {
           "data:image/x-icon",
           "data:image/vnd.microsoft.icon",
         ];
+
         if (safe_css_data_types.some((t) => trimmed.startsWith(t))) {
           return _match;
         }
+
         return "none";
+      }
+
+      if (
+        options.image_proxy_url &&
+        (trimmed.startsWith("http://") || trimmed.startsWith("https://"))
+      ) {
+        const proxied = `${options.image_proxy_url}?url=${encodeURIComponent(inner)}`;
+
+        return `url("${proxied}")`;
       }
 
       return "none";
     },
   );
 
-  return url_stripped
-    .replace(/(?:-webkit-)?image-set\s*\([^)]*\)/gi, "none")
-    .replace(/cross-fade\s*\([^)]*\)/gi, "none");
+  const with_image_sets = replace_balanced_calls(
+    url_stripped,
+    IMAGE_SET_HEAD,
+    drop_unsafe_call,
+  );
+
+  return replace_balanced_calls(
+    with_image_sets,
+    CROSS_FADE_HEAD,
+    drop_unsafe_call,
+  );
 }
 
 export function block_remote_fonts(css: string): string {
   let result = css;
   const pattern = /@font-face\s*\{/gi;
   let match;
+
   while ((match = pattern.exec(result)) !== null) {
     let depth = 1;
     let i = match.index + match[0].length;
+
     while (i < result.length && depth > 0) {
       if (result[i] === "{") depth++;
       else if (result[i] === "}") depth--;
@@ -203,6 +324,7 @@ export function block_remote_fonts(css: string): string {
     result = result.slice(0, match.index) + result.slice(i);
     pattern.lastIndex = match.index;
   }
+
   return result;
 }
 
@@ -272,7 +394,9 @@ export function strip_dark_mode_media(css: string): string {
 }
 
 export function sanitize_css_block(css: string, _sandbox_mode = false): string {
-  let decoded = strip_css_comments(decode_css_escapes(decode_css_entities(css)));
+  let decoded = strip_css_comments(
+    decode_css_escapes(decode_css_entities(css)),
+  );
 
   decoded = decoded.replace(/@import[^;]*;?/gi, "");
   decoded = decoded.replace(/@charset[^;]*;?/gi, "");
@@ -284,9 +408,8 @@ export function sanitize_css_block(css: string, _sandbox_mode = false): string {
   decoded = decoded.replace(/@namespace[^;]*;?/gi, "");
   decoded = decoded.replace(/@document[^;]*;?/gi, "");
   decoded = decoded.replace(/-moz-document[^;{]*\{[^}]*\}/gi, "");
-  decoded = decoded.replace(/image-set\s*\([^)]*\)/gi, "none");
-  decoded = decoded.replace(/-webkit-image-set\s*\([^)]*\)/gi, "none");
-  decoded = decoded.replace(/cross-fade\s*\([^)]*\)/gi, "none");
+  decoded = keep_embedded_image_sets(decoded);
+  decoded = replace_balanced_calls(decoded, CROSS_FADE_HEAD, () => "none");
   decoded = strip_dark_mode_media(decoded);
 
   decoded = decoded.replace(

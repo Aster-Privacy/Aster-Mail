@@ -18,9 +18,10 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { EncryptedVault } from "./key_manager";
+
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
-import type { EncryptedVault } from "./key_manager";
 import { subtle_crypto_mock } from "@/tests/setup";
 
 function build_vault(): EncryptedVault {
@@ -102,6 +103,7 @@ describe("wait_for_keys_ready", () => {
     store.clear_vault_from_memory();
 
     const pending = store.wait_for_keys_ready(5000);
+
     await store.store_vault_in_memory(build_vault(), "passphrase");
 
     await expect(pending).resolves.toBe(true);

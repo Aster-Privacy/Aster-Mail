@@ -148,6 +148,9 @@ export function hash_message_id(user_id: string, msgid: string): string {
   return uint8_to_base64(hash_prefix(`msgid_index:${user_id}:${normalized}`));
 }
 
-export function thread_token_from_item(user_id: string, item_id: string): string {
+export function thread_token_from_item(
+  user_id: string,
+  item_id: string,
+): string {
   return uint8_to_base64(hash_prefix(`rethread_group:${user_id}:${item_id}`));
 }

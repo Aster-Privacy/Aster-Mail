@@ -19,14 +19,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { Attachment } from "@/components/compose/compose_shared";
-import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
-import {
-  attachment_keys_version,
-  get_attachment_key,
-  get_attachment_entry,
-  type InboundAttachmentEntry,
-} from "@/services/crypto/inbound_attachment_keys";
-import { sanitize_download_filename } from "@/lib/attachment_utils";
 
 import {
   encrypt_envelope_with_bytes,
@@ -44,6 +36,15 @@ import {
   decrypt_message_with_any_key,
 } from "./key_manager";
 import { zero_uint8_array } from "./secure_memory";
+
+import { sanitize_download_filename } from "@/lib/attachment_utils";
+import {
+  attachment_keys_version,
+  get_attachment_key,
+  get_attachment_entry,
+  type InboundAttachmentEntry,
+} from "@/services/crypto/inbound_attachment_keys";
+import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 
 export interface EncryptedAttachmentForSend {
   encrypted_data: string;
@@ -260,7 +261,10 @@ async function decrypt_sealed_attachment_meta(
   const nonce = base64_to_array(meta_nonce);
   const ciphertext = base64_to_array(encrypted_meta);
 
-  if (key_bytes.length !== SESSION_KEY_LENGTH || nonce.length !== NONCE_LENGTH) {
+  if (
+    key_bytes.length !== SESSION_KEY_LENGTH ||
+    nonce.length !== NONCE_LENGTH
+  ) {
     zero_uint8_array(key_bytes);
     throw new Error("sealed attachment metadata has malformed key material");
   }
@@ -311,7 +315,8 @@ const UNREADABLE_ROW_LIMIT = 2000;
 const unreadable_rows = new Map<string, { version: number; at: number }>();
 
 function monotonic_now(): number {
-  return typeof performance !== "undefined" && typeof performance.now === "function"
+  return typeof performance !== "undefined" &&
+    typeof performance.now === "function"
     ? performance.now()
     : Date.now();
 }
@@ -362,7 +367,10 @@ async function read_row_attachment_meta(
     if (row_key && !transient) {
       if (unreadable_rows.size >= UNREADABLE_ROW_LIMIT) unreadable_rows.clear();
 
-      unreadable_rows.set(row_key, { version: keys_version, at: monotonic_now() });
+      unreadable_rows.set(row_key, {
+        version: keys_version,
+        at: monotonic_now(),
+      });
     }
 
     return null;

@@ -18,16 +18,18 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { TotpVerifyResponse } from "./totp";
+import type { HardwareKeyRegistrationCompleteResponse } from "./webauthn";
+
 import { api_client, ApiResponse } from "./client";
 import { clear_csrf_cache } from "./csrf";
-import type { TotpVerifyResponse } from "./totp";
 import {
   initiate_hardware_key_registration,
   complete_hardware_key_registration,
 } from "./webauthn";
-import type { HardwareKeyRegistrationCompleteResponse } from "./webauthn";
 
 import { ignore_error } from "@/lib/ignore_error";
+import { get_active_translations } from "@/lib/i18n/translations";
 
 async function get_prf_eval(): Promise<ArrayBuffer> {
   return crypto.subtle.digest(
@@ -60,23 +62,28 @@ export interface PasskeyVerifyRequest {
 
 function base64url_to_array_buffer(base64url: string): ArrayBuffer {
   let base64 = base64url.replace(/-/g, "+").replace(/_/g, "/");
+
   while (base64.length % 4 !== 0) {
     base64 += "=";
   }
   const binary = atob(base64);
   const bytes = new Uint8Array(binary.length);
+
   for (let i = 0; i < binary.length; i++) {
     bytes[i] = binary.charCodeAt(i);
   }
+
   return bytes.buffer;
 }
 
 function array_buffer_to_base64url(buffer: ArrayBuffer): string {
   const bytes = new Uint8Array(buffer);
   let binary = "";
+
   for (let i = 0; i < bytes.length; i++) {
     binary += String.fromCharCode(bytes[i]);
   }
+
   return btoa(binary)
     .replace(/\+/g, "-")
     .replace(/\//g, "_")
@@ -99,6 +106,7 @@ export async function passkey_login_verify(
     "/core/v1/auth/passkeys/verify",
     request,
   );
+
   if (response.data) {
     clear_csrf_cache();
     if (response.data.access_token) {
@@ -109,6 +117,7 @@ export async function passkey_login_verify(
     }
     api_client.set_authenticated(true);
   }
+
   return response;
 }
 
@@ -129,10 +138,14 @@ export async function perform_passkey_login(
   };
 
   if (!options.challenge_token) {
-    return { data: undefined, error: "Authentication failed." };
+    return {
+      data: undefined,
+      error: get_active_translations().errors.authentication_failed,
+    };
   }
 
   let credential: PublicKeyCredential | null;
+
   try {
     credential = (await navigator.credentials.get({
       publicKey: public_key,
@@ -142,7 +155,11 @@ export async function perform_passkey_login(
     if (err instanceof DOMException && err.name === "NotAllowedError") {
       return { data: undefined, error: "passkey_cancelled" };
     }
-    return { data: undefined, error: "Authentication failed." };
+
+    return {
+      data: undefined,
+      error: get_active_translations().errors.authentication_failed,
+    };
   }
 
   if (!credential) {
@@ -161,7 +178,8 @@ export async function perform_passkey_login(
       : null;
 
   const prf_output: ArrayBuffer | null =
-    (credential.getClientExtensionResults() as any)?.prf?.results?.first ?? null;
+    (credential.getClientExtensionResults() as any)?.prf?.results?.first ??
+    null;
 
   const result = await passkey_login_verify({
     id: credential.id,
@@ -188,10 +206,12 @@ export async function perform_passkey_login(
 
 function get_platform_passkey_name(): string {
   const ua = navigator.userAgent;
+
   if (/iPhone|iPad|iPod/.test(ua)) return "Passkey (iPhone/iPad)";
   if (/Android/.test(ua)) return "Passkey (Android)";
   if (/Mac/.test(ua)) return "Passkey (Mac)";
   if (/Windows/.test(ua)) return "Passkey (Windows)";
+
   return "Passkey";
 }
 
@@ -200,6 +220,7 @@ export async function register_platform_passkey(
   vault_passphrase?: string,
 ): Promise<ApiResponse<HardwareKeyRegistrationCompleteResponse>> {
   const options_response = await initiate_hardware_key_registration();
+
   if (!options_response.data) {
     return { data: undefined, error: options_response.error };
   }
@@ -235,6 +256,7 @@ export async function register_platform_passkey(
   };
 
   let credential: PublicKeyCredential | null;
+
   try {
     credential = (await navigator.credentials.create({
       publicKey: public_key,
@@ -243,6 +265,7 @@ export async function register_platform_passkey(
     if (err instanceof DOMException && err.name === "NotAllowedError") {
       return { data: undefined, error: "passkey_cancelled" };
     }
+
     return { data: undefined, error: "passkey_cancelled" };
   }
 
@@ -253,8 +276,7 @@ export async function register_platform_passkey(
   const attestation_response =
     credential.response as AuthenticatorAttestationResponse;
 
-  const transports: string[] =
-    attestation_response.getTransports?.() ?? [];
+  const transports: string[] = attestation_response.getTransports?.() ?? [];
   const is_platform_authenticator = transports.includes("internal");
 
   const actual_name = is_platform_authenticator
@@ -272,9 +294,8 @@ export async function register_platform_passkey(
         ).join(""),
       ),
       client_data_json: btoa(
-        Array.from(
-          new Uint8Array(attestation_response.clientDataJSON),
-          (b) => String.fromCharCode(b),
+        Array.from(new Uint8Array(attestation_response.clientDataJSON), (b) =>
+          String.fromCharCode(b),
         ).join(""),
       ),
     },
@@ -291,10 +312,22 @@ export async function register_platform_passkey(
     } as typeof reg_result.data & { is_platform_authenticator: boolean };
   }
 
-  if (reg_result.data?.success && vault_passphrase && is_platform_authenticator) {
+  if (
+    reg_result.data?.success &&
+    vault_passphrase &&
+    is_platform_authenticator
+  ) {
     const key_id = reg_result.data.key_id;
     const raw_credential_id = array_buffer_to_base64url(credential.rawId);
-    setup_prf_passphrase(key_id, raw_credential_id, options.rp.id, vault_passphrase).catch((caught) => ignore_error("services/api/passkeys:register_platform_passkey", caught));
+
+    setup_prf_passphrase(
+      key_id,
+      raw_credential_id,
+      options.rp.id,
+      vault_passphrase,
+    ).catch((caught) =>
+      ignore_error("services/api/passkeys:register_platform_passkey", caught),
+    );
   }
 
   return reg_result;
@@ -304,6 +337,7 @@ export async function register_security_key(
   friendly_name: string | null,
 ): Promise<ApiResponse<HardwareKeyRegistrationCompleteResponse>> {
   const options_response = await initiate_hardware_key_registration();
+
   if (!options_response.data) {
     return { data: undefined, error: options_response.error };
   }
@@ -338,6 +372,7 @@ export async function register_security_key(
   };
 
   let credential: PublicKeyCredential | null;
+
   try {
     credential = (await navigator.credentials.create({
       publicKey: public_key,
@@ -346,7 +381,9 @@ export async function register_security_key(
     if (err instanceof DOMException && err.name === "NotAllowedError") {
       return { data: undefined, error: "passkey_cancelled" };
     }
-    const detail = err instanceof Error ? `${err.name}: ${err.message}` : String(err);
+    const detail =
+      err instanceof Error ? `${err.name}: ${err.message}` : String(err);
+
     return { data: undefined, error: detail };
   }
 
@@ -368,9 +405,8 @@ export async function register_security_key(
         ).join(""),
       ),
       client_data_json: btoa(
-        Array.from(
-          new Uint8Array(attestation_response.clientDataJSON),
-          (b) => String.fromCharCode(b),
+        Array.from(new Uint8Array(attestation_response.clientDataJSON), (b) =>
+          String.fromCharCode(b),
         ).join(""),
       ),
     },
@@ -387,10 +423,10 @@ async function setup_prf_passphrase(
   rp_id: string,
   passphrase: string,
 ): Promise<void> {
-
   const prf_eval = await get_prf_eval();
 
   let credential: PublicKeyCredential | null;
+
   try {
     credential = (await navigator.credentials.get({
       publicKey: {
@@ -411,11 +447,13 @@ async function setup_prf_passphrase(
   if (!credential) return;
 
   const prf_output: ArrayBuffer | null =
-    (credential.getClientExtensionResults() as any)?.prf?.results?.first ?? null;
+    (credential.getClientExtensionResults() as any)?.prf?.results?.first ??
+    null;
 
   if (!prf_output) return;
 
   const enc = await encrypt_with_prf(prf_output, passphrase);
+
   if (!enc) return;
 
   await api_client.post(`/core/v1/auth/hardware-keys/${key_id}/prf`, {
@@ -454,8 +492,13 @@ async function encrypt_with_prf(
       key,
       new TextEncoder().encode(passphrase),
     );
+
     return {
-      encrypted: btoa(Array.from(new Uint8Array(encrypted), (b) => String.fromCharCode(b)).join("")),
+      encrypted: btoa(
+        Array.from(new Uint8Array(encrypted), (b) =>
+          String.fromCharCode(b),
+        ).join(""),
+      ),
       nonce: btoa(Array.from(nonce, (b) => String.fromCharCode(b)).join("")),
     };
   } catch {

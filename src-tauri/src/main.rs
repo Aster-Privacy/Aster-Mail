@@ -91,11 +91,67 @@ fn should_forward_to_app(url: &Url) -> bool {
 
 struct TrayState(Mutex<Option<tauri::tray::TrayIcon>>);
 
+struct TrayMenuItems {
+    show: MenuItem<tauri::Wry>,
+    quit: MenuItem<tauri::Wry>,
+    #[cfg(windows)]
+    troubleshooting: Submenu<tauri::Wry>,
+    #[cfg(windows)]
+    compat_on: MenuItem<tauri::Wry>,
+    #[cfg(windows)]
+    compat_off: MenuItem<tauri::Wry>,
+    #[cfg(windows)]
+    display_reset: MenuItem<tauri::Wry>,
+}
+
+struct TrayMenuState(Mutex<Option<TrayMenuItems>>);
+
+struct CloseToTrayState(Mutex<bool>);
+
+#[derive(serde::Deserialize)]
+struct TrayLabels {
+    show: String,
+    quit: String,
+    troubleshooting: String,
+    compat_on: String,
+    compat_off: String,
+    display_reset: String,
+}
+
+#[tauri::command]
+fn set_tray_labels(state: State<TrayMenuState>, labels: TrayLabels) {
+    let Ok(guard) = state.0.lock() else { return };
+    let Some(items) = guard.as_ref() else { return };
+    let _ = items.show.set_text(&labels.show);
+    let _ = items.quit.set_text(&labels.quit);
+    #[cfg(windows)]
+    {
+        let _ = items.troubleshooting.set_text(&labels.troubleshooting);
+        let _ = items.compat_on.set_text(&labels.compat_on);
+        let _ = items.compat_off.set_text(&labels.compat_off);
+        let _ = items.display_reset.set_text(&labels.display_reset);
+    }
+    #[cfg(not(windows))]
+    {
+        let _ = &labels.troubleshooting;
+        let _ = &labels.compat_on;
+        let _ = &labels.compat_off;
+        let _ = &labels.display_reset;
+    }
+}
+
 #[tauri::command]
 fn set_tray_visible(state: State<TrayState>, visible: bool) {
     let Ok(guard) = state.0.lock() else { return };
     if let Some(tray) = guard.as_ref() {
         let _ = tray.set_visible(visible);
+    }
+}
+
+#[tauri::command]
+fn set_close_to_tray(state: State<CloseToTrayState>, enabled: bool) {
+    if let Ok(mut guard) = state.0.lock() {
+        *guard = enabled;
     }
 }
 
@@ -297,13 +353,17 @@ fn main() {
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_dialog::init())
         .manage(TrayState(Mutex::new(None)))
+        .manage(TrayMenuState(Mutex::new(None)))
+        .manage(CloseToTrayState(Mutex::new(true)))
         .manage(boot_guard::BootState::new())
         .invoke_handler(tauri::generate_handler![
             frontend_ready,
             frontend_painted,
             badge::set_unread_badge,
             set_tray_visible,
+            set_close_to_tray,
             set_tray_tooltip,
+            set_tray_labels,
             set_content_protection,
             open_external_url,
             device::crypto::device_get_pubkeys,
@@ -416,6 +476,7 @@ fn main() {
                     "show" => {
                         if let Some(window) = app.get_webview_window("main") {
                             let _ = window.show();
+                            let _ = window.unminimize();
                             let _ = window.set_focus();
                         }
                     }
@@ -446,6 +507,7 @@ fn main() {
                         let app = tray.app_handle();
                         if let Some(window) = app.get_webview_window("main") {
                             let _ = window.show();
+                            let _ = window.unminimize();
                             let _ = window.set_focus();
                         }
                     }
@@ -457,6 +519,22 @@ fn main() {
                 *guard = Some(tray);
             }
 
+            let menu_state: State<TrayMenuState> = app.state();
+            if let Ok(mut guard) = menu_state.0.lock() {
+                *guard = Some(TrayMenuItems {
+                    show,
+                    quit,
+                    #[cfg(windows)]
+                    troubleshooting,
+                    #[cfg(windows)]
+                    compat_on,
+                    #[cfg(windows)]
+                    compat_off,
+                    #[cfg(windows)]
+                    display_reset,
+                });
+            }
+
             boot_guard::spawn_watchdog(app.handle().clone());
 
             Ok(())
@@ -465,6 +543,15 @@ fn main() {
             if let WindowEvent::CloseRequested { api, .. } = event {
                 let state: State<boot_guard::BootState> = window.state();
                 if !state.is_usable() {
+                    return;
+                }
+                let close_to_tray: State<CloseToTrayState> = window.state();
+                let hide_instead_of_quit = close_to_tray
+                    .0
+                    .lock()
+                    .map(|guard| *guard)
+                    .unwrap_or(true);
+                if !hide_instead_of_quit {
                     return;
                 }
                 api.prevent_close();
@@ -487,6 +574,7 @@ fn main() {
             if let tauri::RunEvent::Reopen { has_visible_windows: false, .. } = event {
                 if let Some(window) = app.get_webview_window("main") {
                     let _ = window.show();
+                    let _ = window.unminimize();
                     let _ = window.set_focus();
                 }
             }

@@ -18,9 +18,10 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { HASH_ALG } from "@/services/crypto/constants";
+import { user_facing_error } from "@/utils/user_facing_error";
 import * as openpgp from "openpgp";
 
+import { HASH_ALG } from "@/services/crypto/constants";
 import {
   type EncryptedVault,
   generate_identity_keypair,
@@ -54,8 +55,6 @@ import {
   serialize_kek_for_vault,
 } from "@/services/crypto/legacy_keks";
 import { with_aes_kw_fallback } from "@/services/crypto/webcrypto_aes_kw";
-
-
 import { ignore_error } from "@/lib/ignore_error";
 
 export interface RotationCheckResult {
@@ -225,7 +224,7 @@ export async function check_rotation_needed(
       key_age_hours: null,
       key_fingerprint: null,
       current_public_key: null,
-      error: error instanceof Error ? error.message : "Unknown error",
+      error: user_facing_error(error, "Unknown error"),
     };
   }
 }
@@ -396,10 +395,18 @@ export async function perform_key_rotation(
         bundle_published = await upload_prekey_bundle(new_vault);
       }
     } catch (caught) {
-      ignore_error("services/key_rotation_service:perform_key_rotation", caught);
+      ignore_error(
+        "services/key_rotation_service:perform_key_rotation",
+        caught,
+      );
     }
 
-    await clear_all_ratchet_states().catch((caught) => ignore_error("services/key_rotation_service:perform_key_rotation", caught));
+    await clear_all_ratchet_states().catch((caught) =>
+      ignore_error(
+        "services/key_rotation_service:perform_key_rotation",
+        caught,
+      ),
+    );
 
     return {
       success: true,
@@ -412,7 +419,7 @@ export async function perform_key_rotation(
   } catch (error) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Unknown rotation error",
+      error: user_facing_error(error, "Unknown rotation error"),
     };
   }
 }
@@ -455,7 +462,11 @@ export async function decrypt_with_key_fallback(
   vault: EncryptedVault,
   encrypted_message: string,
   passphrase: string,
-  ratchet_context?: { our_email: string; sender_email: string; message_id?: string },
+  ratchet_context?: {
+    our_email: string;
+    sender_email: string;
+    message_id?: string;
+  },
 ): Promise<{ decrypted: string; used_key_index: number } | null> {
   if (ratchet_context) {
     const envelope = parse_ratchet_envelope(encrypted_message);

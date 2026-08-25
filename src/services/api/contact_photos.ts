@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
+import { user_facing_error } from "@/utils/user_facing_error";
 import type {
   ContactPhoto,
   ContactPhotoMeta,
@@ -27,6 +27,8 @@ import type {
 
 import { api_client, type ApiResponse } from "./client";
 import { get_contacts_encryption_key } from "./contacts";
+
+import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 
 function array_to_base64(array: Uint8Array): string {
   let binary = "";
@@ -103,9 +105,17 @@ export async function get_contact_photo(
   try {
     const key = await get_contacts_encryption_key();
 
-    const decrypted_data = await decrypt_aes_gcm_with_fallback(key, base64_to_array(response.data.encrypted_data), base64_to_array(response.data.data_nonce));
+    const decrypted_data = await decrypt_aes_gcm_with_fallback(
+      key,
+      base64_to_array(response.data.encrypted_data),
+      base64_to_array(response.data.data_nonce),
+    );
 
-    const decrypted_meta = await decrypt_aes_gcm_with_fallback(key, base64_to_array(response.data.encrypted_meta), base64_to_array(response.data.meta_nonce));
+    const decrypted_meta = await decrypt_aes_gcm_with_fallback(
+      key,
+      base64_to_array(response.data.encrypted_meta),
+      base64_to_array(response.data.meta_nonce),
+    );
 
     const meta: ContactPhotoMeta = JSON.parse(
       new TextDecoder().decode(decrypted_meta),
@@ -126,7 +136,7 @@ export async function get_contact_photo(
     };
   } catch (err) {
     return {
-      error: err instanceof Error ? err.message : "Failed to decrypt photo",
+      error: user_facing_error(err, "Failed to decrypt photo"),
     };
   }
 }

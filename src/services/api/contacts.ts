@@ -18,8 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { HASH_ALG } from "@/services/crypto/constants";
-import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
+import { user_facing_error } from "@/utils/user_facing_error";
 import type {
   Contact,
   ContactFormData,
@@ -41,6 +40,8 @@ import type {
 
 import { api_client, type ApiResponse } from "./client";
 
+import { HASH_ALG } from "@/services/crypto/constants";
+import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import { CONTACT_DATA_VERSION } from "@/types/contacts";
 import {
   get_or_create_derived_encryption_crypto_key,
@@ -48,6 +49,7 @@ import {
 } from "@/services/crypto/memory_key_store";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 
+import { get_active_translations } from "@/lib/i18n/translations";
 
 function array_to_base64(array: Uint8Array): string {
   let binary = "";
@@ -423,8 +425,7 @@ export async function create_contact_encrypted(
     });
   } catch (err) {
     return {
-      error:
-        err instanceof Error ? err.message : "Failed to encrypt contact data",
+      error: user_facing_error(err, "Failed to encrypt contact data"),
     };
   }
 }
@@ -458,8 +459,7 @@ export async function update_contact_encrypted(
     });
   } catch (err) {
     return {
-      error:
-        err instanceof Error ? err.message : "Failed to encrypt contact data",
+      error: user_facing_error(err, "Failed to encrypt contact data"),
     };
   }
 }
@@ -514,8 +514,7 @@ export async function list_contact_groups(): Promise<
     return { data: { groups: decrypted_groups } };
   } catch (err) {
     return {
-      error:
-        err instanceof Error ? err.message : "Failed to decrypt contact groups",
+      error: user_facing_error(err, "Failed to decrypt contact groups"),
     };
   }
 }
@@ -531,7 +530,9 @@ export async function create_contact_group(
   const raw_key = get_derived_encryption_key();
 
   if (!raw_key) {
-    return { error: "No encryption key available" };
+    return {
+      error: get_active_translations().errors.encryption_keys_not_loaded,
+    };
   }
 
   zero_uint8_array(raw_key);
@@ -539,7 +540,9 @@ export async function create_contact_group(
   const key = await get_or_create_derived_encryption_crypto_key();
 
   if (!key) {
-    return { error: "No encryption key available" };
+    return {
+      error: get_active_translations().errors.encryption_keys_not_loaded,
+    };
   }
 
   const encoder = new TextEncoder();

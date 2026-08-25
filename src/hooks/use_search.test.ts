@@ -18,12 +18,13 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { DecryptedEnvelope, MailItemMetadata } from "@/types/email";
+import type { MailItem } from "@/services/api/mail";
+
 import { describe, it, expect } from "vitest";
 
 import { matches_query } from "@/hooks/use_search";
 import { parse_search_query } from "@/utils/search_operators";
-import type { DecryptedEnvelope, MailItemMetadata } from "@/types/email";
-import type { MailItem } from "@/services/api/mail";
 
 function make_envelope(
   overrides: Partial<DecryptedEnvelope> = {},

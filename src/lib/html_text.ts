@@ -109,11 +109,13 @@ export function plain_text_to_html(text: string): string {
 
       escaped = escaped.replace(url_regex, (url) => {
         const href_url = url.replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+
         return `<a href="${href_url}" target="_blank" rel="noopener noreferrer">${url}</a>`;
       });
 
       escaped = escaped.replace(/\n/g, "<br>");
-      return `<p>${escaped}</p>`;
+
+      return `<p dir="auto">${escaped}</p>`;
     })
     .join("\n");
 }
@@ -173,11 +175,14 @@ export function html_to_readable_plain_text(
   }
 
   doc
-    .querySelectorAll("script, style, head, noscript, template, iframe, object, embed")
+    .querySelectorAll(
+      "script, style, head, noscript, template, iframe, object, embed",
+    )
     .forEach((el) => el.remove());
 
   doc.querySelectorAll<HTMLElement>("*").forEach((el) => {
     const s = el.getAttribute("style") ?? "";
+
     if (
       /display\s*:\s*none/i.test(s) ||
       /visibility\s*:\s*hidden/i.test(s) ||
@@ -191,20 +196,30 @@ export function html_to_readable_plain_text(
 
   if (options.keep_link_urls) append_link_urls(doc);
 
-  doc.querySelectorAll("br").forEach((el) => el.replaceWith(doc.createTextNode("\n")));
+  doc
+    .querySelectorAll("br")
+    .forEach((el) => el.replaceWith(doc.createTextNode("\n")));
 
   doc
-    .querySelectorAll("p, div, section, article, header, footer, h1, h2, h3, h4, h5, h6, li, blockquote")
+    .querySelectorAll(
+      "p, div, section, article, header, footer, h1, h2, h3, h4, h5, h6, li, blockquote",
+    )
     .forEach((el) => {
       el.prepend(doc.createTextNode("\n"));
       el.append(doc.createTextNode("\n"));
     });
 
-  doc.querySelectorAll("td, th").forEach((el) => el.append(doc.createTextNode(" ")));
-  doc.querySelectorAll("tr").forEach((el) => el.append(doc.createTextNode("\n")));
+  doc
+    .querySelectorAll("td, th")
+    .forEach((el) => el.append(doc.createTextNode(" ")));
+  doc
+    .querySelectorAll("tr")
+    .forEach((el) => el.append(doc.createTextNode("\n")));
 
   doc
-    .querySelectorAll("img[width='1'], img[height='1'], img[width='0'], img[height='0']")
+    .querySelectorAll(
+      "img[width='1'], img[height='1'], img[width='0'], img[height='0']",
+    )
     .forEach((el) => el.remove());
 
   const text = doc.body?.textContent ?? "";
@@ -294,16 +309,20 @@ export function strip_html_tags(html: string): string {
   }
 
   doc
-    .querySelectorAll("script, style, head, noscript, template, iframe, object, embed")
+    .querySelectorAll(
+      "script, style, head, noscript, template, iframe, object, embed",
+    )
     .forEach((el) => el.remove());
 
   doc.querySelectorAll("br").forEach((el) => {
     el.replaceWith(doc.createTextNode(" "));
   });
 
-  doc.querySelectorAll("p, div, li, td, tr, h1, h2, h3, h4, h5, h6").forEach((el) => {
-    el.append(doc.createTextNode(" "));
-  });
+  doc
+    .querySelectorAll("p, div, li, td, tr, h1, h2, h3, h4, h5, h6")
+    .forEach((el) => {
+      el.append(doc.createTextNode(" "));
+    });
 
   const text = doc.body?.textContent || "";
 

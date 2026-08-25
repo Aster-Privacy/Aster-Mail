@@ -19,7 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { build_store_zip } from "@/utils/export/zip";
-import { sanitize_download_filename } from "@/lib/attachment_utils";
+import { trigger_download } from "@/utils/download_blob";
 
 interface ZipEntry {
   name: string;
@@ -52,7 +52,9 @@ export async function pick_zip_file(
 ): Promise<ZipSink | null> {
   if (!is_fsa_supported()) return null;
   try {
-    const handle: FileSystemFileHandle = await (window as any).showSaveFilePicker({
+    const handle: FileSystemFileHandle = await (
+      window as any
+    ).showSaveFilePicker({
       suggestedName: suggested_name,
       types: [
         {
@@ -62,6 +64,7 @@ export async function pick_zip_file(
       ],
     });
     const writable = await handle.createWritable({ keepExistingData: false });
+
     return {
       kind: "zip",
       filename: handle.name,
@@ -89,10 +92,13 @@ export function open_zip_blob(name: string): ZipSink {
 
 function get_or_create_entry(sink: ZipSink, name: string): ZipEntry {
   const idx = sink.by_name.get(name);
+
   if (idx !== undefined) return sink.entries[idx];
   const entry: ZipEntry = { name, chunks: [], size: 0 };
+
   sink.by_name.set(name, sink.entries.length);
   sink.entries.push(entry);
+
   return entry;
 }
 
@@ -107,6 +113,7 @@ export async function sink_write_mbox(
   chunk: Uint8Array,
 ): Promise<void> {
   const entry = get_or_create_entry(sink, MBOX_ENTRY);
+
   append_chunk(entry, chunk, sink);
 }
 
@@ -117,10 +124,12 @@ export async function sink_write_eml(
 ): Promise<number> {
   const entry = get_or_create_entry(sink, "eml/" + filename);
   let bytes = 0;
+
   for await (const chunk of body) {
     append_chunk(entry, chunk, sink);
     bytes += chunk.length;
   }
+
   return bytes;
 }
 
@@ -133,6 +142,7 @@ export async function sink_write_data_file(
     sink.by_name.delete(filename);
   }
   const entry = get_or_create_entry(sink, filename);
+
   append_chunk(entry, bytes, sink);
 }
 
@@ -146,6 +156,7 @@ export async function sink_complete(sink: ExportSink): Promise<void> {
     data: concat_chunks(e.chunks, e.size),
   }));
   const zip = build_store_zip(flattened);
+
   if (sink.fsa_writer) {
     try {
       await sink.fsa_writer.write(zip);
@@ -153,6 +164,7 @@ export async function sink_complete(sink: ExportSink): Promise<void> {
       await sink.fsa_writer.close();
       sink.fsa_writer = null;
     }
+
     return;
   }
   trigger_download(
@@ -176,27 +188,19 @@ function concat_chunks(chunks: Uint8Array[], total: number): Uint8Array {
   if (chunks.length === 1) return chunks[0];
   const out = new Uint8Array(total);
   let pos = 0;
+
   for (const c of chunks) {
     out.set(c, pos);
     pos += c.length;
   }
-  return out;
-}
 
-export function trigger_download(blob: Blob, filename: string): void {
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = sanitize_download_filename(filename);
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  return out;
 }
 
 export function suggested_zip_filename(): string {
   const d = new Date();
   const pad = (n: number) => (n < 10 ? "0" + n : String(n));
+
   return (
     "aster_export_" +
     d.getUTCFullYear() +

@@ -23,7 +23,10 @@ import type { PointerEvent as ReactPointerEvent } from "react";
 import { useCallback, useEffect, useRef } from "react";
 
 import { use_body_scroll_lock } from "@/lib/body_scroll_lock";
-import { is_top_overlay_layer, use_escape_layer } from "@/lib/overlay_layer_stack";
+import {
+  is_top_overlay_layer,
+  use_escape_layer,
+} from "@/lib/overlay_layer_stack";
 
 const FOCUSABLE_SELECTOR =
   'a[href],button:not([disabled]),textarea:not([disabled]),input:not([disabled]),select:not([disabled]),[tabindex]:not([tabindex="-1"])';
@@ -109,8 +112,15 @@ export function use_dialog_shell<T extends HTMLElement>(
   is_open: boolean,
   on_close: () => void,
   label = "dialog",
+  close_on_escape = true,
 ) {
-  const layer_id = use_escape_layer(is_open, on_close, label);
+  const handle_escape_close = useCallback(() => {
+    if (!close_on_escape) return;
+
+    on_close();
+  }, [close_on_escape, on_close]);
+
+  const layer_id = use_escape_layer(is_open, handle_escape_close, label);
   const dialog_ref = use_focus_trap<T>(is_open, layer_id);
   const handle_backdrop_pointer_down = use_backdrop_dismiss(on_close);
 

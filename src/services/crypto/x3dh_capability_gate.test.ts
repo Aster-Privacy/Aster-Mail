@@ -84,7 +84,12 @@ async function build_parties(x3dh_max_version?: number | null) {
     x3dh_max_version,
   };
 
-  return { sender_identity, recipient_identity, recipient_signed_prekey, bundle };
+  return {
+    sender_identity,
+    recipient_identity,
+    recipient_signed_prekey,
+    bundle,
+  };
 }
 
 describe("x3dh transcript binding capability gate", () => {

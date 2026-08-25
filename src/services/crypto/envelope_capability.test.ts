@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+
 import {
   ENVELOPE_CAPABILITY_MAX_MARKER,
   ENVELOPE_CAPABILITY_REPORT_INTERVAL_MS,
@@ -70,7 +71,11 @@ describe("report_envelope_capability_if_due", () => {
   it("reports marker 4 because the web client decapsulates ml-kem-768", async () => {
     const { deps, posts } = make_deps();
 
-    const result = await report_envelope_capability_if_due(user_id, false, deps);
+    const result = await report_envelope_capability_if_due(
+      user_id,
+      false,
+      deps,
+    );
 
     expect(posts).toHaveLength(1);
     expect(posts[0].max_envelope_marker).toBe(ENVELOPE_CAPABILITY_MAX_MARKER);
@@ -81,7 +86,9 @@ describe("report_envelope_capability_if_due", () => {
 
   it("persists and reuses one client id", async () => {
     const ids = ["first", "second"];
-    const { deps, posts } = make_deps({ new_client_id: () => ids.shift() ?? "" });
+    const { deps, posts } = make_deps({
+      new_client_id: () => ids.shift() ?? "",
+    });
 
     await report_envelope_capability_if_due(user_id, false, deps);
     await report_envelope_capability_if_due(user_id, true, deps);
@@ -124,7 +131,9 @@ describe("report_envelope_capability_if_due", () => {
     const post = vi.fn(async () => null);
     const { deps } = make_deps({ post });
 
-    expect(await report_envelope_capability_if_due(user_id, false, deps)).toBeNull();
+    expect(
+      await report_envelope_capability_if_due(user_id, false, deps),
+    ).toBeNull();
     await report_envelope_capability_if_due(user_id, false, deps);
 
     expect(post).toHaveBeenCalledTimes(2);
@@ -163,7 +172,9 @@ describe("report_envelope_capability_if_due", () => {
   it("never reports for a blank user id", async () => {
     const { deps, posts } = make_deps();
 
-    expect(await report_envelope_capability_if_due("  ", false, deps)).toBeNull();
+    expect(
+      await report_envelope_capability_if_due("  ", false, deps),
+    ).toBeNull();
     expect(posts).toHaveLength(0);
   });
 
@@ -198,7 +209,9 @@ describe("report_envelope_capability_if_due", () => {
   });
 
   it("reports a null fingerprint when no identity key is loaded", async () => {
-    const { deps, posts } = make_deps({ identity_fingerprint: async () => null });
+    const { deps, posts } = make_deps({
+      identity_fingerprint: async () => null,
+    });
 
     await report_envelope_capability_if_due(user_id, false, deps);
 
@@ -244,7 +257,11 @@ describe("report_envelope_capability_if_due", () => {
       }),
     });
 
-    const result = await report_envelope_capability_if_due(user_id, false, deps);
+    const result = await report_envelope_capability_if_due(
+      user_id,
+      false,
+      deps,
+    );
 
     expect(result?.success).toBe(true);
     expect(posts).toHaveLength(1);

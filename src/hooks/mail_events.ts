@@ -49,8 +49,21 @@ export const MAIL_EVENTS = {
 
 export type MailEventType = (typeof MAIL_EVENTS)[keyof typeof MAIL_EVENTS];
 
+export type MailActionName =
+  | "star"
+  | "pin"
+  | "archive"
+  | "delete"
+  | "spam"
+  | "read"
+  | "unread"
+  | "label"
+  | "move"
+  | "restore"
+  | "permanent_delete";
+
 export interface MailActionEventDetail {
-  action: "delete" | "archive" | "spam" | "star" | "read";
+  action: MailActionName;
   ids: string[];
   success: boolean;
 }
@@ -333,6 +346,10 @@ export function emit_protected_folders_ready(): void {
 
 export function emit_mail_soft_refresh(): void {
   mail_event_bus.emit(MAIL_EVENTS.MAIL_SOFT_REFRESH);
+}
+
+export function emit_refresh_requested(): void {
+  mail_event_bus.emit(MAIL_EVENTS.REFRESH_REQUESTED);
 }
 
 export function emit_mail_stats_stale(): void {

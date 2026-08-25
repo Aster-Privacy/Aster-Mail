@@ -18,13 +18,15 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { } from "@/lib/i18n/types";
+import type {} from "@/lib/i18n/types";
+
+import { useContext, useMemo } from "react";
 
 import {
-  useContext,
-} from "react";
-
-import { PreferencesContext, PreferencesContextType, PreferencesProviderProps } from "./helpers";
+  PreferencesContext,
+  PreferencesContextType,
+  PreferencesProviderProps,
+} from "./helpers";
 import { use_preferences_provider } from "./use_preferences_provider";
 
 export function PreferencesProvider({ children }: PreferencesProviderProps) {
@@ -42,22 +44,37 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
     has_unsaved_changes,
   } = use_preferences_provider();
 
+  const value = useMemo<PreferencesContextType>(
+    () => ({
+      preferences,
+      update_preference,
+      update_preferences,
+      reset_to_defaults,
+      reset_section,
+      save_now,
+      reload_preferences,
+      is_loading,
+      has_loaded_from_server,
+      save_status,
+      has_unsaved_changes,
+    }),
+    [
+      preferences,
+      update_preference,
+      update_preferences,
+      reset_to_defaults,
+      reset_section,
+      save_now,
+      reload_preferences,
+      is_loading,
+      has_loaded_from_server,
+      save_status,
+      has_unsaved_changes,
+    ],
+  );
+
   return (
-    <PreferencesContext.Provider
-      value={{
-        preferences,
-        update_preference,
-        update_preferences,
-        reset_to_defaults,
-        reset_section,
-        save_now,
-        reload_preferences,
-        is_loading,
-        has_loaded_from_server,
-        save_status,
-        has_unsaved_changes,
-      }}
-    >
+    <PreferencesContext.Provider value={value}>
       {children}
     </PreferencesContext.Provider>
   );

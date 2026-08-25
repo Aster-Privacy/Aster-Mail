@@ -63,7 +63,12 @@ function is_billing_active(): boolean {
   if (typeof window === "undefined") return false;
   try {
     const url = window.location.href.toLowerCase();
-    if (url.includes("billing") || url.includes("checkout") || url.includes("payment")) {
+
+    if (
+      url.includes("billing") ||
+      url.includes("checkout") ||
+      url.includes("payment")
+    ) {
       return true;
     }
     if ((window as unknown as { Stripe?: unknown }).Stripe) return true;
@@ -71,6 +76,7 @@ function is_billing_active(): boolean {
   } catch (caught) {
     ignore_error("lib/version_check:is_billing_active", caught);
   }
+
   return false;
 }
 
@@ -179,8 +185,7 @@ async function check_once(is_boot = false): Promise<void> {
     aster_version_ref.__aster_version.manifest_ts = manifest.ts;
   }
 
-  const update_available =
-    !!loaded_build && manifest.build !== loaded_build;
+  const update_available = !!loaded_build && manifest.build !== loaded_build;
 
   if (aster_version_ref.__aster_version) {
     aster_version_ref.__aster_version.update_available = update_available;
@@ -208,7 +213,9 @@ async function check_once(is_boot = false): Promise<void> {
   }
 }
 
-export async function version_check_blocking(timeout_ms: number): Promise<void> {
+export async function version_check_blocking(
+  timeout_ms: number,
+): Promise<void> {
   if (typeof window === "undefined") return;
   if (!import.meta.env.PROD) return;
   if (!loaded_build) return;

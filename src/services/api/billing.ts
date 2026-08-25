@@ -22,6 +22,7 @@ import { api_client } from "./client";
 
 import { format_bytes } from "@/lib/utils";
 import { payment_url_or_throw } from "@/lib/payment_url";
+import { app_locale, get_display_time_zone } from "@/utils/date_format";
 
 export interface PlanInfo {
   id: string;
@@ -187,7 +188,7 @@ export interface CurrencyRatesResponse {
 
 export async function get_currency_rates() {
   return api_client.get<CurrencyRatesResponse>(
-    "/public/v1/billing/currency-rates"
+    "/public/v1/billing/currency-rates",
   );
 }
 
@@ -226,7 +227,9 @@ export async function create_checkout_session(
       success_url,
       cancel_url,
       ...(currency ? { currency } : {}),
-      ...(apply_credits_cents && apply_credits_cents > 0 ? { apply_credits_cents } : {}),
+      ...(apply_credits_cents && apply_credits_cents > 0
+        ? { apply_credits_cents }
+        : {}),
     },
   );
 }
@@ -277,7 +280,9 @@ async function open_payment_url(url: string): Promise<void> {
 
   if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
     const core = await import("@tauri-apps/api/core");
+
     await core.invoke("open_external_url", { url: safe });
+
     return;
   }
   window.location.assign(safe);
@@ -295,6 +300,7 @@ export async function preview_plan_change(
 ): Promise<{ data?: PlanChangePreviewResponse; error?: string }> {
   return api_client.get<PlanChangePreviewResponse>(
     `/payments/v1/change-plan-preview?plan_code=${encodeURIComponent(plan_code)}&billing_interval=${encodeURIComponent(billing_interval)}`,
+    { skip_cache: true },
   );
 }
 
@@ -316,11 +322,16 @@ export async function change_plan(
   });
 
   if (response.error || !response.data) {
-    return { ok: false, requires_checkout: false, error: response.error || "change_failed" };
+    return {
+      ok: false,
+      requires_checkout: false,
+      error: response.error || "change_failed",
+    };
   }
 
   if (response.data.checkout_url) {
     await open_payment_url(response.data.checkout_url);
+
     return { ok: true, requires_checkout: true };
   }
 
@@ -559,12 +570,17 @@ export async function get_storage_addons() {
   return api_client.get<StorageAddonsResponse>("/sync/v1/storage/addons");
 }
 
-export async function purchase_storage_addon(addon_id: string, apply_credits_cents?: number) {
+export async function purchase_storage_addon(
+  addon_id: string,
+  apply_credits_cents?: number,
+) {
   return api_client.post<PurchaseAddonResponse>(
     "/sync/v1/storage/addons/purchase",
     {
       addon_id,
-      ...(apply_credits_cents && apply_credits_cents > 0 ? { apply_credits_cents } : {}),
+      ...(apply_credits_cents && apply_credits_cents > 0
+        ? { apply_credits_cents }
+        : {}),
     },
   );
 }
@@ -610,7 +626,7 @@ export { format_bytes as format_storage };
 export function format_price(cents: number, currency: string = "usd"): string {
   const amount = cents / 100;
 
-  return new Intl.NumberFormat(undefined, {
+  return new Intl.NumberFormat(app_locale(), {
     style: "currency",
     currency: currency.toUpperCase(),
   }).format(amount);
@@ -619,7 +635,8 @@ export function format_price(cents: number, currency: string = "usd"): string {
 export function format_date(date_string: string | null): string {
   if (!date_string) return "-";
 
-  return new Date(date_string).toLocaleDateString(undefined, {
+  return new Date(date_string).toLocaleDateString(app_locale(), {
+    timeZone: get_display_time_zone(),
     year: "numeric",
     month: "short",
     day: "numeric",
@@ -698,7 +715,10 @@ export async function create_subscription_intent(
   promo_code?: string,
   apply_credits_cents?: number,
 ) {
-  const payload: Record<string, string | number> = { plan_code, billing_interval };
+  const payload: Record<string, string | number> = {
+    plan_code,
+    billing_interval,
+  };
 
   if (currency) payload.currency = currency;
   if (promo_code) payload.promo_code = promo_code;
@@ -831,20 +851,28 @@ export interface PurchaseCreditsResponse {
 }
 
 export async function get_credit_packages() {
-  return api_client.get<CreditPackagesResponse>("/payments/v1/credits/packages");
+  return api_client.get<CreditPackagesResponse>(
+    "/payments/v1/credits/packages",
+  );
 }
 
 export async function purchase_credits(package_id: string, currency?: string) {
-  return api_client.post<PurchaseCreditsResponse>("/payments/v1/credits/purchase", {
-    package_id,
-    ...(currency ? { currency } : {}),
-  });
+  return api_client.post<PurchaseCreditsResponse>(
+    "/payments/v1/credits/purchase",
+    {
+      package_id,
+      ...(currency ? { currency } : {}),
+    },
+  );
 }
 
 export async function purchase_credits_crypto(package_id: string) {
-  return api_client.post<PurchaseCreditsResponse>("/payments/v1/credits/crypto-purchase", {
-    package_id,
-  });
+  return api_client.post<PurchaseCreditsResponse>(
+    "/payments/v1/credits/crypto-purchase",
+    {
+      package_id,
+    },
+  );
 }
 
 export interface CreditPaymentIntentResponse {
@@ -854,11 +882,17 @@ export interface CreditPaymentIntentResponse {
   currency: string;
 }
 
-export async function create_credit_payment_intent(package_id: string, currency: string) {
-  return api_client.post<CreditPaymentIntentResponse>("/payments/v1/credits/payment-intent", {
-    package_id,
-    currency,
-  });
+export async function create_credit_payment_intent(
+  package_id: string,
+  currency: string,
+) {
+  return api_client.post<CreditPaymentIntentResponse>(
+    "/payments/v1/credits/payment-intent",
+    {
+      package_id,
+      currency,
+    },
+  );
 }
 
 export async function confirm_credit_purchase(payment_intent_id: string) {
@@ -970,42 +1004,4 @@ export async function get_referral_history() {
   return api_client.get<ReferralHistoryResponse>(
     "/payments/v1/referrals/history",
   );
-}
-
-export interface BillingAddressInfo {
-  company_name: string | null;
-  vat_number: string | null;
-  address_line1: string | null;
-  address_line2: string | null;
-  city: string | null;
-  state: string | null;
-  postal_code: string | null;
-  country: string | null;
-}
-
-export async function get_billing_address() {
-  return api_client.get<BillingAddressInfo>("/payments/v1/billing-address");
-}
-
-export async function update_billing_address(address: BillingAddressInfo) {
-  return api_client.post<{ success: boolean }>(
-    "/payments/v1/billing-address",
-    address,
-  );
-}
-
-export interface DataExportResponse {
-  export_id: string;
-  status: string;
-  download_url: string | null;
-  created_at: string;
-  expires_at: string | null;
-}
-
-export async function request_data_export() {
-  return api_client.post<DataExportResponse>("/api/v1/account/export", {});
-}
-
-export async function get_data_export_status() {
-  return api_client.get<DataExportResponse>("/api/v1/account/export");
 }

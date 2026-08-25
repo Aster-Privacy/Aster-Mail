@@ -94,14 +94,7 @@ export interface DiscoveredFolder {
   name: string;
   delimiter: string;
   flags: string[];
-  canonical:
-    | "inbox"
-    | "sent"
-    | "drafts"
-    | "trash"
-    | "spam"
-    | "archive"
-    | null;
+  canonical: "inbox" | "sent" | "drafts" | "trash" | "spam" | "archive" | null;
 }
 
 export interface DiscoverFoldersResponse {
@@ -151,7 +144,9 @@ export function create_import_job(
   return api_client.post(`${BASE}/jobs`, req);
 }
 
-export function list_import_jobs_v2(): Promise<ApiResponse<ImportJobSummary[]>> {
+export function list_import_jobs_v2(): Promise<
+  ApiResponse<ImportJobSummary[]>
+> {
   return api_client.get(`${BASE}/jobs`);
 }
 
@@ -206,15 +201,18 @@ export function upload_finalize(
 
 async function sha256_b64(bytes: Uint8Array): Promise<string> {
   const digest = await crypto.subtle.digest("SHA-256", bytes);
+
   return base64_encode(new Uint8Array(digest));
 }
 
 function base64_encode(bytes: Uint8Array): string {
   let binary = "";
   const chunk = 0x8000;
+
   for (let i = 0; i < bytes.length; i += chunk) {
     binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
   }
+
   return btoa(binary);
 }
 
@@ -240,6 +238,7 @@ export async function upload_file_chunked(
     total_size: file.size,
     expected_sha256_b64: undefined,
   });
+
   if (init.error || !init.data) {
     return { error: init.error || "upload_init_failed" };
   }
@@ -259,12 +258,14 @@ export async function upload_file_chunked(
     const data_b64 = base64_encode(slice);
 
     let attempts = 0;
+
     while (true) {
       const res = await upload_chunk(token, {
         chunk_index: i,
         chunk_sha256_b64,
         data_b64,
       });
+
       if (!res.error) break;
       attempts += 1;
       if (attempts >= 3) return { error: res.error };
@@ -281,6 +282,7 @@ export async function upload_file_chunked(
   }
 
   const fin = await upload_finalize(token);
+
   if (fin.error) return { error: fin.error };
 
   return { upload_token: token };

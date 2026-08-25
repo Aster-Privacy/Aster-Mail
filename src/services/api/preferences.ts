@@ -18,10 +18,13 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { HASH_ALG } from "@/services/crypto/constants";
 import type { EncryptedVault } from "@/services/crypto/key_manager";
-import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import type { CustomCategoryRule } from "@/data/category_catalog";
+
+import { api_client } from "./client";
+
+import { HASH_ALG } from "@/services/crypto/constants";
+import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import {
   DEFAULT_ENABLED_CATEGORIES,
   sanitize_custom_categories,
@@ -30,11 +33,12 @@ import {
   DEFAULT_INBOX_PAGE_SIZE,
   clamp_inbox_page_size,
 } from "@/lib/inbox_page_size";
-
-import { api_client } from "./client";
-
-
 import { ignore_error } from "@/lib/ignore_error";
+import { locale_date_format, locale_time_format } from "@/utils/date_format";
+import {
+  detect_browser_language,
+  get_display_name,
+} from "@/lib/i18n/languages";
 
 export interface UserPreferences {
   theme: "light" | "dark" | "system";
@@ -74,6 +78,7 @@ export interface UserPreferences {
   quiet_hours_end: string;
   two_factor_auth: boolean;
   show_read_receipts: boolean;
+  send_read_receipts: boolean;
   block_external_images: boolean;
   encrypt_emails: boolean;
   warn_external_recipients: boolean;
@@ -218,30 +223,72 @@ export interface UserPreferences {
   translate_languages: string[];
   translate_never_languages: string[];
   muted_folder_tokens: string[];
+  muted_notification_categories: string[];
   inbox_page_size: number;
 }
 
-export async function sync_quiet_hours_to_server(
+const QUIET_HOURS_RETRY_DELAY_MS = 2000;
+
+let quiet_hours_sequence = 0;
+let quiet_hours_chain: Promise<unknown> = Promise.resolve();
+
+export function sync_quiet_hours_to_server(
   enabled: boolean,
   start_time: string,
   end_time: string,
-): Promise<void> {
-  try {
-    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+): Promise<boolean> {
+  quiet_hours_sequence += 1;
 
-    await api_client.put(
-      "/sync/v1/quiet-hours",
-      {
-        enabled,
-        start_time,
-        end_time,
-        timezone,
-      },
-      { skip_upgrade_prompt: true },
-    );
-  } catch (e) {
-    if (import.meta.env.DEV) console.error(e);
-  }
+  const sequence = quiet_hours_sequence;
+  const run = quiet_hours_chain.then(() =>
+    send_quiet_hours(sequence, enabled, start_time, end_time),
+  );
+
+  quiet_hours_chain = run.catch(() => undefined);
+
+  return run;
+}
+
+async function send_quiet_hours(
+  sequence: number,
+  enabled: boolean,
+  start_time: string,
+  end_time: string,
+): Promise<boolean> {
+  if (sequence !== quiet_hours_sequence) return true;
+
+  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+  const attempt = async (): Promise<boolean> => {
+    try {
+      const response = await api_client.put(
+        "/sync/v1/quiet-hours",
+        {
+          enabled,
+          start_time,
+          end_time,
+          timezone,
+        },
+        { skip_upgrade_prompt: true },
+      );
+
+      return !response.error;
+    } catch (e) {
+      if (import.meta.env.DEV) console.error(e);
+
+      return false;
+    }
+  };
+
+  if (await attempt()) return true;
+
+  await new Promise((resolve) =>
+    setTimeout(resolve, QUIET_HOURS_RETRY_DELAY_MS),
+  );
+
+  if (sequence !== quiet_hours_sequence) return true;
+
+  return attempt();
 }
 
 interface GetPreferencesApiResponse {
@@ -309,7 +356,11 @@ async function decrypt_preferences(
   );
   const nonce_data = Uint8Array.from(atob(nonce), (c) => c.charCodeAt(0));
 
-  const decrypted = await decrypt_aes_gcm_with_fallback(key, encrypted_data, nonce_data);
+  const decrypted = await decrypt_aes_gcm_with_fallback(
+    key,
+    encrypted_data,
+    nonce_data,
+  );
 
   return JSON.parse(new TextDecoder().decode(decrypted));
 }
@@ -410,12 +461,22 @@ export function cache_sidebar_state(key: string, value: boolean): void {
   }
 }
 
+function default_language_label(): string {
+  if (typeof navigator === "undefined") return "English";
+
+  try {
+    return get_display_name(detect_browser_language());
+  } catch {
+    return "English";
+  }
+}
+
 export const DEFAULT_PREFERENCES: UserPreferences = {
-  theme: "light",
-  language: "English",
+  theme: "dark",
+  language: default_language_label(),
   time_zone: "auto",
-  date_format: "MM/DD/YYYY",
-  time_format: "12h",
+  date_format: locale_date_format(),
+  time_format: locale_time_format(),
   auto_save_drafts: true,
   auto_save_recent_recipients: true,
   density: "Comfortable",
@@ -442,6 +503,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   quiet_hours_end: "07:00",
   two_factor_auth: true,
   show_read_receipts: false,
+  send_read_receipts: false,
   block_external_images: false,
   encrypt_emails: false,
   warn_external_recipients: true,
@@ -514,7 +576,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   compose_font_size: "normal",
   compose_font_color: "",
   protected_folder_lock_mode: "session",
-  mobile_toolbar_actions: ["trash", "star"],
+  mobile_toolbar_actions: ["mark_read", "trash", "archive", "star"],
   swipe_left_action: "archive",
   swipe_right_action: "toggle_read",
   sidebar_more_collapsed: false,
@@ -556,6 +618,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   translate_languages: [],
   translate_never_languages: [],
   muted_folder_tokens: [],
+  muted_notification_categories: [],
   inbox_page_size: DEFAULT_INBOX_PAGE_SIZE,
 };
 
@@ -567,12 +630,14 @@ type GetPreferencesViaHttpResult =
 
 async function get_preferences_via_http(
   vault: EncryptedVault,
+  skip_cache = false,
 ): Promise<GetPreferencesViaHttpResult> {
   let response;
 
   try {
     response = await api_client.get<GetPreferencesApiResponse>(
       "/settings/v1/preferences",
+      skip_cache ? { skip_cache: true } : undefined,
     );
   } catch {
     return null;
@@ -614,6 +679,34 @@ async function save_preferences_via_http(
   );
 
   return !response.error && response.data?.success === true;
+}
+
+const LEGACY_OLDEST_FIRST = "oldest";
+const SUPPORTED_DATE_FORMATS = ["MM/DD/YYYY", "DD/MM/YYYY", "YYYY-MM-DD"];
+const SWIPE_ACTION_IDS = [
+  "archive",
+  "delete",
+  "toggle_read",
+  "snooze",
+  "star",
+  "spam",
+  "none",
+];
+const LEGACY_SWIPE_ACTIONS: Record<string, string> = {
+  trash: "delete",
+  mark_read: "toggle_read",
+  mark_unread: "toggle_read",
+  read: "toggle_read",
+  unread: "toggle_read",
+};
+
+function normalize_swipe_action(raw: unknown, fallback: string): string {
+  const id = typeof raw === "string" ? raw.trim().toLowerCase() : "";
+
+  if (id === "") return fallback;
+  if (LEGACY_SWIPE_ACTIONS[id]) return LEGACY_SWIPE_ACTIONS[id];
+
+  return SWIPE_ACTION_IDS.includes(id) ? id : fallback;
 }
 
 const NULLABLE_PREFERENCE_KEYS = new Set<string>(["default_signature_id"]);
@@ -692,13 +785,58 @@ export function build_merged_preferences(
   merged.muted_folder_tokens = Array.isArray(merged.muted_folder_tokens)
     ? merged.muted_folder_tokens.filter((c) => typeof c === "string")
     : [];
+  merged.muted_notification_categories = Array.isArray(
+    merged.muted_notification_categories,
+  )
+    ? merged.muted_notification_categories.filter(
+        (c) => typeof c === "string" && c !== "primary",
+      )
+    : [];
+  merged.mobile_toolbar_actions = Array.isArray(merged.mobile_toolbar_actions)
+    ? merged.mobile_toolbar_actions.filter((c) => typeof c === "string")
+    : [...DEFAULT_PREFERENCES.mobile_toolbar_actions];
   merged.inbox_page_size = clamp_inbox_page_size(merged.inbox_page_size);
+
+  if (
+    merged.inbox_sort_order !== "newest_first" &&
+    merged.inbox_sort_order !== "oldest_first"
+  ) {
+    merged.inbox_sort_order =
+      (merged.conversation_order as string) === LEGACY_OLDEST_FIRST
+        ? "oldest_first"
+        : DEFAULT_PREFERENCES.inbox_sort_order;
+  }
+
+  if (
+    merged.conversation_order !== "asc" &&
+    merged.conversation_order !== "desc"
+  ) {
+    merged.conversation_order = DEFAULT_PREFERENCES.conversation_order;
+  }
+
+  if (!SUPPORTED_DATE_FORMATS.includes(merged.date_format)) {
+    merged.date_format = DEFAULT_PREFERENCES.date_format;
+  }
+
+  if (merged.time_format !== "12h" && merged.time_format !== "24h") {
+    merged.time_format = DEFAULT_PREFERENCES.time_format;
+  }
+
+  merged.swipe_left_action = normalize_swipe_action(
+    merged.swipe_left_action,
+    DEFAULT_PREFERENCES.swipe_left_action,
+  );
+  merged.swipe_right_action = normalize_swipe_action(
+    merged.swipe_right_action,
+    DEFAULT_PREFERENCES.swipe_right_action,
+  );
 
   return merged;
 }
 
 export async function get_preferences(
   vault: EncryptedVault | null,
+  skip_cache = false,
 ): Promise<{
   data: UserPreferences;
   loaded_from_server: boolean;
@@ -709,11 +847,22 @@ export async function get_preferences(
   }
 
   try {
-    const result = await get_preferences_via_http(vault);
+    let result = await get_preferences_via_http(vault, skip_cache);
+
+    if (result === "not_found") {
+      const confirmation = await get_preferences_via_http(vault, true);
+
+      if (confirmation === null) {
+        return { data: DEFAULT_PREFERENCES, loaded_from_server: false };
+      }
+
+      result = confirmation;
+    }
 
     if (result === "not_found") {
       const initial: UserPreferences = {
         ...DEFAULT_PREFERENCES,
+        ...(get_cached_preferences() ?? {}),
         migration_haptic_v1_done: true,
         migration_tracker_blocking_v2_done: true,
         migration_toast_position_v1_done: true,
@@ -725,7 +874,11 @@ export async function get_preferences(
       write_local_migration_flag("migration_toast_position_v1_done");
       write_local_migration_flag("migration_viewer_toolbar_v1_done");
 
-      return { data: initial, loaded_from_server: true, server_blob_unusable: true };
+      return {
+        data: initial,
+        loaded_from_server: true,
+        server_blob_unusable: true,
+      };
     }
 
     if (result === "decrypt_failed") {
@@ -830,7 +983,9 @@ export async function get_preferences(
       );
 
       if (!ok) {
-        save_preferences_via_http(merged, vault).catch((caught) => ignore_error("services/api/preferences:get_preferences", caught));
+        save_preferences_via_http(merged, vault).catch((caught) =>
+          ignore_error("services/api/preferences:get_preferences", caught),
+        );
       }
     }
 
@@ -853,6 +1008,20 @@ export async function save_preferences(
   }
 }
 
+function preference_values_equal(left: unknown, right: unknown): boolean {
+  if (left === right) return true;
+
+  if (left === null || right === null) return false;
+
+  if (typeof left !== "object" || typeof right !== "object") return false;
+
+  try {
+    return JSON.stringify(left) === JSON.stringify(right);
+  } catch {
+    return false;
+  }
+}
+
 export function reconcile_preferences(
   base: UserPreferences,
   current: UserPreferences,
@@ -861,9 +1030,10 @@ export function reconcile_preferences(
   const reconciled = { ...server } as UserPreferences;
 
   for (const key of Object.keys(current) as (keyof UserPreferences)[]) {
-    if (current[key] !== base[key]) {
-      (reconciled as unknown as Record<string, unknown>)[key] =
-        current[key] as unknown;
+    if (!preference_values_equal(current[key], base[key])) {
+      (reconciled as unknown as Record<string, unknown>)[key] = current[
+        key
+      ] as unknown;
     }
   }
 

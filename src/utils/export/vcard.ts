@@ -19,15 +19,36 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
+export interface VCardAddress {
+  street?: string;
+  city?: string;
+  state?: string;
+  postal_code?: string;
+  country?: string;
+  type?: string;
+}
+
+export interface VCardTypedValue {
+  value: string;
+  type?: string;
+}
+
 export interface VCardContact {
   first_name?: string;
+  middle_name?: string;
   last_name?: string;
+  nickname?: string;
   display_name?: string;
   emails?: string[];
+  email_entries?: VCardTypedValue[];
   phone?: string;
+  phone_entries?: VCardTypedValue[];
   company?: string;
+  department?: string;
   job_title?: string;
+  role?: string;
   address?: string;
+  address_entries?: VCardAddress[];
   birthday?: string;
   notes?: string;
   social_links?: { service?: string; url?: string }[];
@@ -47,14 +68,18 @@ function escape_value(v: string): string {
 
 function fold_line(line: string): string {
   const chars = Array.from(line);
+
   if (chars.length <= 75) return line;
   const out: string[] = [];
   let i = 0;
+
   while (i < chars.length) {
     const take = i === 0 ? 75 : 74;
+
     out.push(chars.slice(i, i + take).join(""));
     i += take;
   }
+
   return out.join("\r\n ");
 }
 
@@ -68,8 +93,15 @@ function emit_uri(lines: string[], key: string, value: string | undefined) {
   lines.push(fold_line(`${key}:${value.replace(/[\r\n]/g, "")}`));
 }
 
+function type_param(type: string | undefined): string {
+  if (!type) return "";
+
+  return `;TYPE=${type.replace(/[^A-Za-z-]/g, "").toUpperCase()}`;
+}
+
 export function serialize_vcard(contact: VCardContact): string {
   const lines: string[] = [];
+
   lines.push("BEGIN:VCARD");
   lines.push("VERSION:4.0");
 
@@ -82,23 +114,67 @@ export function serialize_vcard(contact: VCardContact): string {
     "Unknown";
 
   lines.push(fold_line(`FN:${escape_value(display)}`));
-  lines.push(fold_line(`N:${escape_value(last)};${escape_value(first)};;;`));
+  lines.push(
+    fold_line(
+      `N:${escape_value(last)};${escape_value(first)};${escape_value(
+        contact.middle_name ?? "",
+      )};;`,
+    ),
+  );
 
-  if (contact.emails) {
-    for (const e of contact.emails) {
-      if (e) lines.push(fold_line(`EMAIL:${escape_value(e)}`));
-    }
-  }
+  emit(lines, "NICKNAME", contact.nickname);
 
-  emit(lines, "TEL", contact.phone);
-  if (contact.company || contact.job_title) {
-    emit(lines, "ORG", contact.company);
-    emit(lines, "TITLE", contact.job_title);
-  }
-  if (contact.address) {
+  const email_entries = contact.email_entries?.length
+    ? contact.email_entries
+    : (contact.emails ?? []).map((value) => ({ value, type: undefined }));
+
+  for (const entry of email_entries) {
+    if (!entry.value) continue;
     lines.push(
-      fold_line(`ADR:;;${escape_value(contact.address)};;;;`),
+      fold_line(`EMAIL${type_param(entry.type)}:${escape_value(entry.value)}`),
     );
+  }
+
+  const phone_entries = contact.phone_entries?.length
+    ? contact.phone_entries
+    : contact.phone
+      ? [{ value: contact.phone, type: undefined }]
+      : [];
+
+  for (const entry of phone_entries) {
+    if (!entry.value) continue;
+    lines.push(
+      fold_line(`TEL${type_param(entry.type)}:${escape_value(entry.value)}`),
+    );
+  }
+
+  if (contact.company || contact.department) {
+    lines.push(
+      fold_line(
+        `ORG:${escape_value(contact.company ?? "")};${escape_value(
+          contact.department ?? "",
+        )}`,
+      ),
+    );
+  }
+  emit(lines, "TITLE", contact.job_title);
+  emit(lines, "ROLE", contact.role);
+
+  for (const entry of contact.address_entries ?? []) {
+    lines.push(
+      fold_line(
+        `ADR${type_param(entry.type)}:;;${escape_value(
+          entry.street ?? "",
+        )};${escape_value(entry.city ?? "")};${escape_value(
+          entry.state ?? "",
+        )};${escape_value(entry.postal_code ?? "")};${escape_value(
+          entry.country ?? "",
+        )}`,
+      ),
+    );
+  }
+  if (!contact.address_entries?.length && contact.address) {
+    lines.push(fold_line(`ADR:;;${escape_value(contact.address)};;;;`));
   }
   emit(lines, "BDAY", contact.birthday);
   emit(lines, "NOTE", contact.notes);
@@ -115,10 +191,12 @@ export function serialize_vcard(contact: VCardContact): string {
   }
 
   lines.push("END:VCARD");
+
   return lines.join("\r\n") + "\r\n";
 }
 
 export function serialize_vcards(contacts: VCardContact[]): Uint8Array {
   const text = contacts.map(serialize_vcard).join("");
+
   return new TextEncoder().encode(text);
 }

@@ -29,6 +29,7 @@ import {
   decrypt_ghost_alias,
   list_ghost_aliases,
   decrypt_ghost_aliases,
+  extend_ghost_alias,
   GHOST_DOMAIN,
 } from "@/services/api/ghost_aliases";
 import { compute_alias_hash } from "@/services/api/aliases";
@@ -65,9 +66,11 @@ async function build_ghost_sender(
   email: string,
   local_part: string,
   domain?: string,
+  stored_hash?: string,
 ): Promise<SenderOption> {
   const hash_domain = domain || email.split("@")[1] || GHOST_DOMAIN;
-  const address_hash = await compute_alias_hash(local_part, hash_domain);
+  const address_hash =
+    stored_hash || (await compute_alias_hash(local_part, hash_domain));
   const sender: SenderOption = {
     id: `ghost-${id}`,
     email,
@@ -95,7 +98,13 @@ async function resolve_ghost_sender_from_api(
 
   if (!match) return null;
 
-  return build_ghost_sender(match.id, match.full_address, match.local_part);
+  return build_ghost_sender(
+    match.id,
+    match.full_address,
+    match.local_part,
+    match.domain,
+    match.alias_address_hash,
+  );
 }
 
 export function use_ghost_mode(
@@ -245,6 +254,8 @@ export function use_ghost_mode(
             decrypted.id,
             decrypted.full_address,
             decrypted.local_part,
+            decrypted.domain,
+            decrypted.alias_address_hash,
           );
 
           set_ghost_sender(sender);
@@ -286,7 +297,7 @@ export function use_ghost_mode(
           set_error(t("errors.ghost_alias_already_exists"));
         }
       } else {
-        set_error(result.error ?? t("errors.failed_to_create_ghost_alias"));
+        set_error(t("errors.failed_to_create_ghost_alias"));
       }
     } catch {
       set_error(t("errors.failed_to_activate_ghost_mode"));
@@ -300,7 +311,45 @@ export function use_ghost_mode(
     ghost_expiry_days,
     is_thread_locked,
     ghost_sender,
+    t,
   ]);
+
+  const update_ghost_expiry_days = useCallback(
+    async (days: number) => {
+      const alias_id = ghost_sender?.id.startsWith("ghost-")
+        ? ghost_sender.id.slice("ghost-".length)
+        : null;
+
+      if (!alias_id || alias_id.startsWith("fallback-")) {
+        set_ghost_expiry_days(days);
+
+        return;
+      }
+
+      if (days === ghost_expiry_days) return;
+
+      if (days < ghost_expiry_days) {
+        set_error(t("errors.ghost_expiry_extend_only"));
+
+        return;
+      }
+
+      const result = await extend_ghost_alias(
+        alias_id,
+        days - ghost_expiry_days,
+      );
+
+      if (result.error || !result.data?.success) {
+        set_error(t("errors.ghost_expiry_update_failed"));
+
+        return;
+      }
+
+      set_error(null);
+      set_ghost_expiry_days(days);
+    },
+    [ghost_sender, ghost_expiry_days, t],
+  );
 
   const toggle_ghost_mode = useCallback(() => {
     if (is_thread_locked) {
@@ -331,7 +380,7 @@ export function use_ghost_mode(
     toggle_ghost_mode,
     ghost_sender,
     ghost_expiry_days,
-    set_ghost_expiry_days,
+    set_ghost_expiry_days: update_ghost_expiry_days,
     is_creating,
     error,
   };

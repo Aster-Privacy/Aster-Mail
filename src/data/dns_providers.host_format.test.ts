@@ -46,7 +46,9 @@ describe("format_record_host", () => {
   });
 
   it("renders the root host as blank for providers that reject @", () => {
-    expect(format_record_host("@", "example.com", provider("porkbun"))).toBe("");
+    expect(format_record_host("@", "example.com", provider("porkbun"))).toBe(
+      "",
+    );
     expect(format_record_host("@", "example.com", provider("namesilo"))).toBe(
       "",
     );
@@ -83,7 +85,11 @@ describe("format_record_host", () => {
   });
 
   it("never appends the domain twice for fqdn providers", () => {
-    const host = format_record_host("_dmarc", "example.com", provider("route53"));
+    const host = format_record_host(
+      "_dmarc",
+      "example.com",
+      provider("route53"),
+    );
 
     expect(host).toBe("_dmarc.example.com");
     expect(host.split("example.com").length - 1).toBe(1);

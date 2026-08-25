@@ -3,5 +3,4 @@
 
 const MARKETING_BASE = "https://astermail.org";
 
-export const pricing_comparison_url = (): string =>
-  `${MARKETING_BASE}/pricing`;
+export const pricing_comparison_url = (): string => `${MARKETING_BASE}/pricing`;

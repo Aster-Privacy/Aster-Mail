@@ -18,8 +18,9 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { webcrypto } from "node:crypto";
+
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
 if (!globalThis.crypto?.subtle) {
   Object.defineProperty(globalThis, "crypto", { value: webcrypto });
@@ -64,7 +65,8 @@ vi.mock("../api/alias_pins", () => ({
 }));
 
 vi.mock("../api/alias_contacts", () => ({
-  list_alias_contacts: (...args: unknown[]) => mock_list_alias_contacts(...args),
+  list_alias_contacts: (...args: unknown[]) =>
+    mock_list_alias_contacts(...args),
 }));
 
 vi.mock("../api/alias_destinations", () => ({
@@ -79,7 +81,8 @@ vi.mock("../api/alias_directories", () => ({
 
 vi.mock("../api/domains", () => ({
   list_domains: (...args: unknown[]) => mock_list_domains(...args),
-  list_domain_addresses: (...args: unknown[]) => mock_list_domain_addresses(...args),
+  list_domain_addresses: (...args: unknown[]) =>
+    mock_list_domain_addresses(...args),
 }));
 
 import { re_encrypt_user_data } from "./password_change_reencrypt";
@@ -121,7 +124,10 @@ async function seal(
     new TextEncoder().encode(plaintext),
   );
 
-  return { encrypted: to_base64(new Uint8Array(ciphertext)), nonce: to_base64(nonce) };
+  return {
+    encrypted: to_base64(new Uint8Array(ciphertext)),
+    nonce: to_base64(nonce),
+  };
 }
 
 async function open(
@@ -224,7 +230,11 @@ describe("re_encrypt_user_data", () => {
 
     expect(result.skipped.alias_ids).toEqual([]);
     expect(
-      await open(NEW_PASSPHRASE, alias.encrypted_local_part, alias.local_part_nonce),
+      await open(
+        NEW_PASSPHRASE,
+        alias.encrypted_local_part,
+        alias.local_part_nonce,
+      ),
     ).toBe("personal");
   });
 
@@ -240,7 +250,11 @@ describe("re_encrypt_user_data", () => {
 
     expect(result.skipped.alias_ids).toEqual([]);
     expect(
-      await open(NEW_PASSPHRASE, alias.encrypted_local_part, alias.local_part_nonce),
+      await open(
+        NEW_PASSPHRASE,
+        alias.encrypted_local_part,
+        alias.local_part_nonce,
+      ),
     ).toBe("personal");
   });
 
@@ -256,7 +270,11 @@ describe("re_encrypt_user_data", () => {
 
     expect(result.skipped.alias_ids).toEqual([]);
     expect(
-      await open(NEW_PASSPHRASE, alias.encrypted_local_part, alias.local_part_nonce),
+      await open(
+        NEW_PASSPHRASE,
+        alias.encrypted_local_part,
+        alias.local_part_nonce,
+      ),
     ).toBe("personal");
   });
 
@@ -273,12 +291,18 @@ describe("re_encrypt_user_data", () => {
     const alias = result.re_encrypted_aliases[0];
 
     expect(
-      await open(NEW_PASSPHRASE, alias.encrypted_local_part, alias.local_part_nonce),
+      await open(
+        NEW_PASSPHRASE,
+        alias.encrypted_local_part,
+        alias.local_part_nonce,
+      ),
     ).toBe("personal");
   });
 
   it("completes the password change and reports the alias when the key is gone", async () => {
-    mock_list_aliases.mockResolvedValueOnce(await alias_sealed_with(LOST_PASSPHRASE));
+    mock_list_aliases.mockResolvedValueOnce(
+      await alias_sealed_with(LOST_PASSPHRASE),
+    );
 
     const result = await re_encrypt_user_data(OLD_PASSPHRASE, NEW_PASSPHRASE);
 
@@ -302,8 +326,13 @@ describe("re_encrypt_user_data", () => {
 
     const alias = result.re_encrypted_aliases[0];
 
-    expect(await open(NEW_PASSPHRASE, alias.encrypted_local_part, alias.local_part_nonce))
-      .toBe("personal");
+    expect(
+      await open(
+        NEW_PASSPHRASE,
+        alias.encrypted_local_part,
+        alias.local_part_nonce,
+      ),
+    ).toBe("personal");
 
     expect(alias.encrypted_note).toBe(stale_note.encrypted);
     expect(alias.note_nonce).toBe(stale_note.nonce);
@@ -324,9 +353,9 @@ describe("re_encrypt_user_data", () => {
     const alias = result.re_encrypted_aliases[0];
 
     expect(alias.encrypted_note).not.toBe(note.encrypted);
-    expect(await open(NEW_PASSPHRASE, alias.encrypted_note!, alias.note_nonce!)).toBe(
-      "billing account",
-    );
+    expect(
+      await open(NEW_PASSPHRASE, alias.encrypted_note!, alias.note_nonce!),
+    ).toBe("billing account");
     expect(result.skipped.unreadable_field_count).toBe(0);
   });
 
@@ -334,7 +363,10 @@ describe("re_encrypt_user_data", () => {
     session_crypto_key = await key_for(SESSION_PASSPHRASE);
 
     const pin = await seal(ABANDONED_PASSPHRASE, "sender@example.com");
-    const alias_contact = await seal(ABANDONED_PASSPHRASE, "friend@example.com");
+    const alias_contact = await seal(
+      ABANDONED_PASSPHRASE,
+      "friend@example.com",
+    );
     const destination = await seal(ABANDONED_PASSPHRASE, "inbox@example.com");
     const directory = await seal(ABANDONED_PASSPHRASE, "work");
 
@@ -344,7 +376,11 @@ describe("re_encrypt_user_data", () => {
     mock_list_alias_pins.mockResolvedValue({
       data: {
         pins: [
-          { id: "pin-1", encrypted_sender: pin.encrypted, sender_nonce: pin.nonce },
+          {
+            id: "pin-1",
+            encrypted_sender: pin.encrypted,
+            sender_nonce: pin.nonce,
+          },
         ],
       },
       error: undefined,

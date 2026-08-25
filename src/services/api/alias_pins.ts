@@ -61,9 +61,7 @@ export async function add_alias_pin(
   is_blocked = false,
 ): Promise<ApiResponse<{ id: string; success: boolean }>> {
   const sender_hash = await sha256_base64(sender_email);
-  const { encrypted, nonce } = await encrypt_alias_field(
-    sender_email.trim(),
-  );
+  const { encrypted, nonce } = await encrypt_alias_field(sender_email.trim());
 
   return api_client.post<{ id: string; success: boolean }>(
     `/addresses/v1/aliases/${alias_id}/pins`,
@@ -110,9 +108,7 @@ export async function add_domain_address_pin(
   is_blocked = false,
 ): Promise<ApiResponse<{ id: string; success: boolean }>> {
   const sender_hash = await sha256_base64(sender_email);
-  const { encrypted, nonce } = await encrypt_alias_field(
-    sender_email.trim(),
-  );
+  const { encrypted, nonce } = await encrypt_alias_field(sender_email.trim());
 
   return api_client.post<{ id: string; success: boolean }>(
     `/addresses/v1/aliases/domain-addresses/${domain_address_id}/pins`,

@@ -19,11 +19,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
+import { is_outgoing_view, should_exclude_trashed_spam } from "./views";
+
 import {
   format_email_list_timestamp,
   type FormatOptions,
 } from "@/utils/date_format";
-import { is_outgoing_view, should_exclude_trashed_spam } from "./views";
 
 export function outgoing_recipient_names(
   current_view: string | undefined,
@@ -129,5 +130,3 @@ export function should_keep_email_in_view(
 export function format_timestamp(date: Date, options: FormatOptions): string {
   return format_email_list_timestamp(date, options);
 }
-
-

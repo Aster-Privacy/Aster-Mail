@@ -18,9 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { zero_uint8_array } from "@/services/crypto/secure_memory";
-import { HASH_ALG } from "@/services/crypto/constants";
-import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
+import { user_facing_error } from "@/utils/user_facing_error";
 import type {
   SyncSource,
   DecryptedSyncSource,
@@ -28,6 +26,10 @@ import type {
   ImportResult,
   ImportVCardContact,
   ContactFormData,
+  EmailEntry,
+  PhoneEntry,
+  PhoneEntryType,
+  AddressEntry,
 } from "@/types/contacts";
 
 import { api_client, type ApiResponse } from "./client";
@@ -36,9 +38,12 @@ import {
   encrypt_contact_data,
   generate_contact_token,
 } from "./contacts";
+
+import { zero_uint8_array } from "@/services/crypto/secure_memory";
+import { HASH_ALG } from "@/services/crypto/constants";
+import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import { get_derived_encryption_key } from "@/services/crypto/memory_key_store";
 import { parse_csv_records } from "@/utils/contact_utils";
-
 
 function array_to_base64(array: Uint8Array): string {
   let binary = "";
@@ -80,7 +85,11 @@ export async function list_sync_sources(): Promise<
     const key = await get_contacts_encryption_key();
     const items = await Promise.all(
       response.data.items.map(async (item) => {
-        const decrypted_config = await decrypt_aes_gcm_with_fallback(key, base64_to_array(item.encrypted_config), base64_to_array(item.config_nonce));
+        const decrypted_config = await decrypt_aes_gcm_with_fallback(
+          key,
+          base64_to_array(item.encrypted_config),
+          base64_to_array(item.config_nonce),
+        );
 
         const config: CardDAVConfig = JSON.parse(
           new TextDecoder().decode(decrypted_config),
@@ -102,8 +111,7 @@ export async function list_sync_sources(): Promise<
     return { data: items };
   } catch (err) {
     return {
-      error:
-        err instanceof Error ? err.message : "Failed to decrypt sync sources",
+      error: user_facing_error(err, "Failed to decrypt sync sources"),
     };
   }
 }
@@ -289,41 +297,121 @@ export async function export_csv(): Promise<ApiResponse<ExportResponse>> {
   return api_client.get<ExportResponse>("/contacts/v1/export/csv");
 }
 
+const VCARD_PHONE_TYPES: Record<string, PhoneEntryType> = {
+  cell: "mobile",
+  mobile: "mobile",
+  home: "home",
+  work: "work",
+  fax: "fax",
+  pager: "pager",
+};
+
+function unescape_vcard(value: string): string {
+  return value.replace(/\\(.)/g, (_match, char: string) => {
+    if (char === "n" || char === "N") return "\n";
+
+    return char;
+  });
+}
+
+function split_vcard_value(value: string): string[] {
+  const parts: string[] = [];
+  let current = "";
+
+  for (let i = 0; i < value.length; i++) {
+    const char = value[i];
+
+    if (char === "\\" && i + 1 < value.length) {
+      current += char + value[i + 1];
+      i++;
+      continue;
+    }
+    if (char === ";") {
+      parts.push(current);
+      current = "";
+      continue;
+    }
+    current += char;
+  }
+  parts.push(current);
+
+  return parts.map(unescape_vcard);
+}
+
+function vcard_params(key: string): string[] {
+  return key
+    .split(";")
+    .slice(1)
+    .flatMap((param) => {
+      const [name, raw] = param.split("=");
+
+      if (raw === undefined) return [name];
+
+      return name.toUpperCase() === "TYPE" ? raw.split(",") : [];
+    })
+    .map((value) => value.replace(/"/g, "").trim().toLowerCase())
+    .filter(Boolean);
+}
+
+function phone_type_from(params: string[]): PhoneEntryType {
+  for (const param of params) {
+    const mapped = VCARD_PHONE_TYPES[param];
+
+    if (mapped) return mapped;
+  }
+
+  return "other";
+}
+
+function place_type_from(params: string[]): "home" | "work" | "other" {
+  if (params.includes("home")) return "home";
+  if (params.includes("work")) return "work";
+
+  return "other";
+}
+
 export function parse_vcard(vcard_data: string): ContactFormData[] {
   const contacts: ContactFormData[] = [];
   const vcards = vcard_data.split(/(?=BEGIN:VCARD)/i).filter(Boolean);
 
   for (const vcard of vcards) {
-    const lines = vcard
-      .split(/\r?\n/)
-      .reduce<string[]>((unfolded, line) => {
-        if ((line.startsWith(" ") || line.startsWith("\t")) && unfolded.length) {
-          unfolded[unfolded.length - 1] += line.slice(1);
-        } else {
-          unfolded.push(line);
-        }
+    const lines = vcard.split(/\r?\n/).reduce<string[]>((unfolded, line) => {
+      if ((line.startsWith(" ") || line.startsWith("\t")) && unfolded.length) {
+        unfolded[unfolded.length - 1] += line.slice(1);
+      } else {
+        unfolded.push(line);
+      }
 
-        return unfolded;
-      }, []);
+      return unfolded;
+    }, []);
     const contact: ContactFormData = {
       first_name: "",
       last_name: "",
       emails: [],
       is_favorite: false,
     };
+    const email_entries: EmailEntry[] = [];
+    const phone_entries: PhoneEntry[] = [];
+    const address_entries: AddressEntry[] = [];
+    const seen_emails = new Set<string>();
 
     for (const line of lines) {
-      const [key, ...rest] = line.split(":");
-      const value = rest.join(":");
+      const separator = line.indexOf(":");
+
+      if (separator < 0) continue;
+      const key = line.slice(0, separator);
+      const value = line.slice(separator + 1);
 
       if (!key || !value) continue;
 
       const key_upper = key.toUpperCase().split(";")[0].split(".").pop() || "";
+      const params = vcard_params(key);
+      const text = unescape_vcard(value);
 
       switch (key_upper) {
         case "FN": {
           if (!contact.first_name && !contact.last_name) {
-            const parts = value.split(" ");
+            const parts = text.split(" ");
 
             contact.first_name = parts[0] || "";
             contact.last_name = parts.slice(1).join(" ") || "";
@@ -331,35 +419,93 @@ export function parse_vcard(vcard_data: string): ContactFormData[] {
           break;
         }
         case "N": {
-          const [last, first] = value.split(";");
+          const [last, first, middle] = split_vcard_value(value);
 
           if (first) contact.first_name = first;
           if (last) contact.last_name = last;
+          if (middle) contact.middle_name = middle;
           break;
         }
-        case "EMAIL":
-          contact.emails.push(value);
+        case "NICKNAME":
+          contact.nickname = text;
           break;
-        case "TEL":
-          contact.phone = value;
+        case "EMAIL": {
+          const address = text.replace(/^mailto:/i, "").trim();
+          const normalized = address.toLowerCase();
+
+          if (!address || seen_emails.has(normalized)) break;
+          seen_emails.add(normalized);
+          contact.emails.push(address);
+          email_entries.push({ value: address, type: place_type_from(params) });
           break;
+        }
+        case "TEL": {
+          const number = text.replace(/^tel:/i, "").trim();
+
+          if (!number) break;
+          if (!contact.phone) contact.phone = number;
+          phone_entries.push({ value: number, type: phone_type_from(params) });
+          break;
+        }
+        case "ADR": {
+          const parts = split_vcard_value(value);
+          const entry: AddressEntry = {
+            street: [parts[1], parts[2]].filter(Boolean).join(" ").trim(),
+            city: parts[3] || undefined,
+            state: parts[4] || undefined,
+            postal_code: parts[5] || undefined,
+            country: parts[6] || undefined,
+            type: place_type_from(params),
+          };
+
+          if (!entry.street) entry.street = undefined;
+          if (
+            entry.street ||
+            entry.city ||
+            entry.state ||
+            entry.postal_code ||
+            entry.country
+          ) {
+            address_entries.push(entry);
+            if (!contact.address) {
+              contact.address = {
+                street: entry.street,
+                city: entry.city,
+                state: entry.state,
+                postal_code: entry.postal_code,
+                country: entry.country,
+              };
+            }
+          }
+          break;
+        }
         case "ORG":
-          contact.company = value.split(";")[0];
+          contact.company = split_vcard_value(value)[0];
+          if (split_vcard_value(value)[1]) {
+            contact.department = split_vcard_value(value)[1];
+          }
           break;
         case "TITLE":
-          contact.job_title = value;
+          contact.job_title = text;
+          break;
+        case "ROLE":
+          contact.role = text;
           break;
         case "BDAY":
-          contact.birthday = value;
+          contact.birthday = text;
           break;
         case "NOTE":
-          contact.notes = value;
+          contact.notes = text;
           break;
         case "URL":
-          contact.social_links = { ...contact.social_links, website: value };
+          contact.social_links = { ...contact.social_links, website: text };
           break;
       }
     }
+
+    if (email_entries.length) contact.email_entries = email_entries;
+    if (phone_entries.length) contact.phone_entries = phone_entries;
+    if (address_entries.length) contact.address_entries = address_entries;
 
     if (contact.first_name || contact.last_name || contact.emails.length > 0) {
       contacts.push(contact);

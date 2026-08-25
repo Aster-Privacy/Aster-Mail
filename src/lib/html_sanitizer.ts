@@ -20,6 +20,8 @@
 //
 import DOMPurify from "dompurify";
 
+import { mark_stylesheet_background_images } from "./html_sanitizer_background_marks";
+
 import {
   ALLOWED_TAGS,
   DANGEROUS_TAGS,
@@ -59,7 +61,10 @@ export {
 const REMOTE_URL_SCHEME = /^\s*https?:/i;
 
 function is_remote_url_value(value: string): boolean {
-  const normalized = value.replace(/[\t\n\r]/g, "").toLowerCase().trim();
+  const normalized = value
+    .replace(/[\t\n\r]/g, "")
+    .toLowerCase()
+    .trim();
 
   return (
     REMOTE_URL_SCHEME.test(normalized) ||
@@ -70,11 +75,70 @@ function is_remote_url_value(value: string): boolean {
   );
 }
 
-function srcset_has_remote(value: string): boolean {
-  return value
-    .split(",")
-    .map((part) => part.trim().split(/\s+/)[0] || "")
-    .some((url) => is_remote_url_value(url));
+const MAX_RESERVED_PIXEL_HEIGHT = 40;
+
+const SRCSET_WHITESPACE_CODES = new Set([32, 9, 10, 13, 12]);
+
+interface SrcsetCandidateValue {
+  url: string;
+  descriptor: string;
+}
+
+function is_srcset_whitespace(character: string): boolean {
+  return SRCSET_WHITESPACE_CODES.has(character.charCodeAt(0));
+}
+
+function parse_srcset_value(value: string): SrcsetCandidateValue[] {
+  const candidates: SrcsetCandidateValue[] = [];
+  let position = 0;
+
+  while (position < value.length) {
+    while (
+      position < value.length &&
+      (is_srcset_whitespace(value[position]) || value[position] === ",")
+    ) {
+      position += 1;
+    }
+
+    if (position >= value.length) break;
+
+    const url_start = position;
+
+    while (position < value.length && !is_srcset_whitespace(value[position])) {
+      position += 1;
+    }
+
+    let url = value.slice(url_start, position);
+    let descriptor = "";
+
+    if (url.endsWith(",")) {
+      url = url.replace(/,+$/, "");
+    } else {
+      const descriptor_start = position;
+
+      while (position < value.length && value[position] !== ",") {
+        position += 1;
+      }
+
+      descriptor = value.slice(descriptor_start, position).trim();
+
+      if (position < value.length) position += 1;
+    }
+
+    if (url) candidates.push({ url, descriptor });
+  }
+
+  return candidates;
+}
+
+function serialize_srcset_value(candidates: SrcsetCandidateValue[]): string {
+  return candidates
+    .map((candidate) =>
+      candidate.descriptor
+        ? `${candidate.url} ${candidate.descriptor}`
+        : candidate.url,
+    )
+    .join(", ");
 }
 
 export interface BlockedItem {
@@ -139,7 +203,10 @@ export function sanitize_html(
     };
     const text =
       typeof html === "string"
-        ? html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim()
+        ? html
+            .replace(/<[^>]*>/g, " ")
+            .replace(/\s+/g, " ")
+            .trim()
         : "";
     const escaped = text
       .replace(/&/g, "&amp;")
@@ -229,7 +296,9 @@ export function sanitize_preview_html(html: string): string {
         }
 
         if (name === "href" || name === "src" || name === "xlink:href") {
-          const value = attr.value.replace(/[\u0000-\u0020]+/g, "").toLowerCase();
+          const value = attr.value
+            .replace(/[\u0000-\u0020]+/g, "")
+            .toLowerCase();
 
           if (
             value.startsWith("javascript:") ||
@@ -278,16 +347,23 @@ function sanitize_html_impl(
 
   const block_images = lockdown_mode
     ? true
-    : (content_blocking?.block_remote_images ?? external_content_mode !== "always");
+    : (content_blocking?.block_remote_images ??
+      external_content_mode !== "always");
   const block_fonts = lockdown_mode
     ? true
-    : (content_blocking?.block_remote_fonts ?? external_content_mode !== "always");
+    : (content_blocking?.block_remote_fonts ??
+      external_content_mode !== "always");
   const block_css = lockdown_mode
     ? true
-    : (content_blocking?.block_remote_css ?? external_content_mode !== "always");
+    : (content_blocking?.block_remote_css ??
+      external_content_mode !== "always");
   const block_pixels = lockdown_mode
     ? true
-    : (content_blocking?.block_tracking_pixels ?? external_content_mode !== "always");
+    : (content_blocking?.block_tracking_pixels ??
+      external_content_mode !== "always");
+
+  const css_image_proxy =
+    lockdown_mode || block_images || block_css ? undefined : effective_proxy;
 
   const external_content: ExternalContentReport = {
     has_remote_images: false,
@@ -339,9 +415,7 @@ function sanitize_html_impl(
 
     if (first_el_match) {
       const tag_str = first_el_match[0];
-      const bg_attr = tag_str.match(
-        /bgcolor\s*=\s*["']?([^"'\s>]+)["']?/i,
-      );
+      const bg_attr = tag_str.match(/bgcolor\s*=\s*["']?([^"'\s>]+)["']?/i);
 
       if (bg_attr) {
         const bg_val = bg_attr[1].trim();
@@ -352,9 +426,7 @@ function sanitize_html_impl(
       }
 
       if (!body_background) {
-        const style_attr = tag_str.match(
-          /style\s*=\s*["']([^"']*)["']/i,
-        );
+        const style_attr = tag_str.match(/style\s*=\s*["']([^"']*)["']/i);
 
         if (style_attr) {
           const bg_style = style_attr[1].match(
@@ -405,9 +477,7 @@ function sanitize_html_impl(
 
       if (lockdown_mode || block_css || block_images) {
         const css_url_matches =
-          sanitized_css.match(
-            /url\s*\(\s*["']?(https?:\/\/[^"')\s]+)/gi,
-          ) || [];
+          sanitized_css.match(/url\s*\(\s*["']?(https?:\/\/[^"')\s]+)/gi) || [];
 
         if (css_url_matches.length > 0) {
           external_content.has_remote_css = true;
@@ -421,7 +491,9 @@ function sanitize_html_impl(
             });
           }
         }
-        sanitized_css = strip_css_urls(sanitized_css);
+        sanitized_css = strip_css_urls(sanitized_css, {
+          image_proxy_url: css_image_proxy,
+        });
       }
 
       if (sanitized_css.trim()) {
@@ -456,6 +528,9 @@ function sanitize_html_impl(
       "cellpadding",
       "cellspacing",
       "border",
+      "hspace",
+      "vspace",
+      "sizes",
       "color",
       "face",
       "size",
@@ -478,7 +553,7 @@ function sanitize_html_impl(
     KEEP_CONTENT: true,
     FORCE_BODY: true,
     ALLOWED_URI_REGEXP:
-      /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp|aster):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
+      /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp|aster):|data:image\/(?:jpeg|jpg|png|gif|webp|avif|bmp|tiff|heic|heif|x-icon|vnd\.microsoft\.icon)[;,]|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
   });
 
   const parser = new DOMParser();
@@ -580,9 +655,7 @@ function sanitize_html_impl(
 
       if (lockdown_mode || block_css || block_images) {
         const css_url_matches =
-          sanitized_css.match(
-            /url\s*\(\s*["']?(https?:\/\/[^"')\s]+)/gi,
-          ) || [];
+          sanitized_css.match(/url\s*\(\s*["']?(https?:\/\/[^"')\s]+)/gi) || [];
 
         if (css_url_matches.length > 0) {
           external_content.has_remote_css = true;
@@ -596,7 +669,9 @@ function sanitize_html_impl(
             });
           }
         }
-        sanitized_css = strip_css_urls(sanitized_css);
+        sanitized_css = strip_css_urls(sanitized_css, {
+          image_proxy_url: css_image_proxy,
+        });
       }
 
       if (!sanitized_css.trim()) {
@@ -635,27 +710,50 @@ function sanitize_html_impl(
 
       if (sanitized_value !== null) {
         const attr_lower = attr.name.toLowerCase();
+
         if (
           attr_lower === "style" &&
           (lockdown_mode || block_css || block_images)
         ) {
-          sanitized_value = strip_css_urls(sanitized_value);
+          sanitized_value = strip_css_urls(sanitized_value, {
+            image_proxy_url: css_image_proxy,
+          });
         } else if (attr_lower === "srcset") {
-          if (!lockdown_mode && srcset_has_remote(sanitized_value)) {
+          const kept: SrcsetCandidateValue[] = [];
+
+          for (const candidate of parse_srcset_value(sanitized_value)) {
+            if (!is_remote_url_value(candidate.url)) {
+              kept.push(candidate);
+              continue;
+            }
+
             external_content.has_remote_images = true;
+
             if (block_images) {
               external_content.blocked_count++;
               external_content.blocked_items.push({
-                url: sanitized_value,
+                url: candidate.url,
                 type: "image",
               });
+              continue;
             }
+
+            kept.push(
+              effective_proxy
+                ? {
+                    url: `${effective_proxy}?url=${encodeURIComponent(candidate.url)}`,
+                    descriptor: candidate.descriptor,
+                  }
+                : candidate,
+            );
           }
-          continue;
-        } else if (attr_lower === "background") {
-          if (lockdown_mode) {
+
+          if (kept.length === 0) {
             continue;
           }
+
+          sanitized_value = serialize_srcset_value(kept);
+        } else if (attr_lower === "background") {
           if (is_remote_url_value(sanitized_value)) {
             external_content.has_remote_images = true;
             if (block_images) {
@@ -725,11 +823,14 @@ function sanitize_html_impl(
         }
       }
 
+      let proxy_source = src;
+
       if (is_remote && !is_first_party && lower_src.startsWith("http://")) {
         src = "https://" + src.slice(7);
         new_element.setAttribute("src", src);
       } else if (is_remote && !is_first_party && lower_src.startsWith("//")) {
-        src = "https:" + src.trim();
+        proxy_source = "https:" + src.trim();
+        src = proxy_source;
         new_element.setAttribute("src", src);
       }
 
@@ -766,7 +867,17 @@ function sanitize_html_impl(
           });
 
           if (is_pixel && block_pixels) {
-            return null;
+            const pixel_placeholder = document.createElement("span");
+
+            pixel_placeholder.className = "blocked-image";
+            pixel_placeholder.setAttribute("data-original-src", src);
+            pixel_placeholder.setAttribute("data-tracking-pixel", "true");
+            pixel_placeholder.setAttribute(
+              "style",
+              "display:inline-block;width:0;height:0;overflow:hidden",
+            );
+
+            return pixel_placeholder;
           }
 
           if (
@@ -807,7 +918,7 @@ function sanitize_html_impl(
           if (effective_proxy) {
             new_element.setAttribute(
               "data-proxy-src",
-              `${effective_proxy}?url=${encodeURIComponent(src)}`,
+              `${effective_proxy}?url=${encodeURIComponent(proxy_source)}`,
             );
           }
           new_element.setAttribute(
@@ -824,7 +935,7 @@ function sanitize_html_impl(
         } else if (effective_proxy) {
           new_element.setAttribute(
             "src",
-            `${effective_proxy}?url=${encodeURIComponent(src)}`,
+            `${effective_proxy}?url=${encodeURIComponent(proxy_source)}`,
           );
         }
       }
@@ -854,9 +965,20 @@ function sanitize_html_impl(
 
       if (height_attr && !/height\s*:/i.test(existing_style)) {
         let height_css = "";
+        const both_pixel_sized =
+          width_attr !== null &&
+          /^\d+$/.test(width_attr) &&
+          /^\d+$/.test(height_attr) &&
+          Number(width_attr) > 0 &&
+          Number(height_attr) > 0;
 
-        if (/^\d+$/.test(height_attr)) {
-          height_css = `height:${height_attr}px`;
+        if (both_pixel_sized) {
+          height_css = `height:auto; aspect-ratio:${width_attr} / ${height_attr}`;
+        } else if (/^\d+$/.test(height_attr)) {
+          height_css =
+            Number(height_attr) > MAX_RESERVED_PIXEL_HEIGHT
+              ? `height:auto; max-height:${height_attr}px`
+              : `height:${height_attr}px`;
         } else if (/^\d+%$/.test(height_attr)) {
           height_css = `height:${height_attr}`;
         }
@@ -920,6 +1042,8 @@ function sanitize_html_impl(
   }
 
   container.appendChild(fragment);
+
+  mark_stylesheet_background_images(container);
 
   return {
     html: container.innerHTML,

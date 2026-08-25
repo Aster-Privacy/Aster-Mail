@@ -86,8 +86,7 @@ describe("parse_mbox_file streaming", () => {
   });
 
   it("falls back to a single message when there is no From separator", async () => {
-    const text =
-      `From: A <a@example.com>\nSubject: Lone\n\njust one message\n`;
+    const text = `From: A <a@example.com>\nSubject: Lone\n\njust one message\n`;
     const result = await parse_mbox_file(as_file(text));
 
     expect(result.emails).toHaveLength(1);

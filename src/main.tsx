@@ -33,6 +33,7 @@ import {
   is_native_platform,
 } from "@/native/capacitor_bridge";
 import { recover_fallback_sends } from "@/services/send_queue";
+import { initialize_offline_queue } from "@/native/offline_queue";
 import {
   start_version_check,
   version_check_blocking,
@@ -68,14 +69,22 @@ initialize_capacitor().catch((e) => {
 });
 
 if (!is_native_platform()) {
-  recover_fallback_sends().catch((caught) => ignore_error("main", caught));
+  recover_fallback_sends()
+    .catch((caught) => ignore_error("main", caught))
+    .finally(() => {
+      initialize_offline_queue().catch((caught) =>
+        ignore_error("main", caught),
+      );
+    });
 }
 
 const cached_prefs_raw = localStorage.getItem("aster_preferences_cache");
 let low_network_on_startup = false;
+
 try {
   if (cached_prefs_raw) {
     const cached_prefs = JSON.parse(cached_prefs_raw);
+
     low_network_on_startup = cached_prefs.low_network_mode === true;
   }
 } catch (caught) {
@@ -86,6 +95,7 @@ if (!low_network_on_startup) {
 }
 if (low_network_on_startup) {
   const style = document.createElement("style");
+
   style.id = "aster-low-network-fonts";
   style.textContent =
     "*, *::before, *::after { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important; }";
@@ -115,6 +125,9 @@ if (is_tauri_runtime) {
     .catch((caught) => ignore_error("main", caught));
   void apply_desktop_content_protection(is_any_lockdown_active());
   void start_desktop_link_bridge();
+  void import("@/native/tauri_tray")
+    .then(({ sync_close_to_tray }) => sync_close_to_tray())
+    .catch((caught) => ignore_error("main", caught));
 }
 
 if (is_tauri_runtime && "serviceWorker" in navigator) {
@@ -395,6 +408,7 @@ window.addEventListener("astermail:app-ready", dismiss_once, { once: true });
 
 window.addEventListener("astermail:auth-loaded", () => {
   const path = app_pathname();
+
   if (path.startsWith("/sign-in") || path.startsWith("/register")) {
     dismiss_once();
   }

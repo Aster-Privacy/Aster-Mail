@@ -355,6 +355,9 @@ export const LINK_BUTTON_EXCLUDE = ':not([style*="background" i])';
 const QUOTE_SCOPE_EXCLUDE =
   ':not([class*="quote" i]):not([class*="quote" i] *):not([class*="cite" i]):not([class*="cite" i] *):not(blockquote[type="cite"]):not(blockquote[type="cite"] *)';
 
+const IMAGE_BACKGROUND_EXCLUDE =
+  ':not([style*="background-image" i]):not([style*="url(" i]):not([background]):not([data-aster-bg-image])';
+
 export function build_auto_dark_mode_css(
   text_color = DARK_INHERITED_INK,
   link_color = "#60a5fa",
@@ -362,7 +365,8 @@ export function build_auto_dark_mode_css(
 ) {
   return `html { color-scheme: dark !important; }
 html, body { background-color: transparent !important; color: ${text_color}; }
-body span[style*="background"]${QUOTE_SCOPE_EXCLUDE}, blockquote [style*="background"]${QUOTE_SCOPE_EXCLUDE} { background-color: transparent !important; background-image: none !important; }
+body span[style*="background"]${QUOTE_SCOPE_EXCLUDE}${IMAGE_BACKGROUND_EXCLUDE}, blockquote [style*="background"]${QUOTE_SCOPE_EXCLUDE}${IMAGE_BACKGROUND_EXCLUDE} { background-color: transparent !important; background-image: none !important; }
+body span[style*="background"]${QUOTE_SCOPE_EXCLUDE}[style*="url(" i], blockquote [style*="background"]${QUOTE_SCOPE_EXCLUDE}[style*="url(" i] { background-color: transparent !important; }
 a${LINK_BUTTON_EXCLUDE}, a${LINK_BUTTON_EXCLUDE} * { color: ${link_color}; }
 a:visited${LINK_BUTTON_EXCLUDE}, a:visited${LINK_BUTTON_EXCLUDE} * { color: var(${LINK_VISITED_VAR}, ${link_visited_color}) !important; }
 a[style*="background" i] *, [bgcolor] > a * { color: inherit !important; }`;
@@ -380,10 +384,15 @@ html, body {
   color-scheme: dark !important;
 }
 
-div, td, th, table, tr, tbody, thead, tfoot,
-section, header, footer, main, article, aside, nav,
-center, form, fieldset, legend, figure, figcaption,
-details, summary, address, hgroup {
+div${IMAGE_BACKGROUND_EXCLUDE}, td${IMAGE_BACKGROUND_EXCLUDE}, th${IMAGE_BACKGROUND_EXCLUDE},
+table${IMAGE_BACKGROUND_EXCLUDE}, tr${IMAGE_BACKGROUND_EXCLUDE}, tbody${IMAGE_BACKGROUND_EXCLUDE},
+thead${IMAGE_BACKGROUND_EXCLUDE}, tfoot${IMAGE_BACKGROUND_EXCLUDE}, section${IMAGE_BACKGROUND_EXCLUDE},
+header${IMAGE_BACKGROUND_EXCLUDE}, footer${IMAGE_BACKGROUND_EXCLUDE}, main${IMAGE_BACKGROUND_EXCLUDE},
+article${IMAGE_BACKGROUND_EXCLUDE}, aside${IMAGE_BACKGROUND_EXCLUDE}, nav${IMAGE_BACKGROUND_EXCLUDE},
+center${IMAGE_BACKGROUND_EXCLUDE}, form${IMAGE_BACKGROUND_EXCLUDE}, fieldset${IMAGE_BACKGROUND_EXCLUDE},
+legend${IMAGE_BACKGROUND_EXCLUDE}, figure${IMAGE_BACKGROUND_EXCLUDE}, figcaption${IMAGE_BACKGROUND_EXCLUDE},
+details${IMAGE_BACKGROUND_EXCLUDE}, summary${IMAGE_BACKGROUND_EXCLUDE}, address${IMAGE_BACKGROUND_EXCLUDE},
+hgroup${IMAGE_BACKGROUND_EXCLUDE} {
   background-color: transparent !important;
   background-image: none !important;
 }

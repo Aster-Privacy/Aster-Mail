@@ -18,11 +18,19 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { en } from "@/lib/i18n/translations/en";
-import { is_ghost_email, looks_like_unregistered_ghost_email } from "@/stores/ghost_alias_store";
 import { get_current_account } from "./account_manager";
-import { extract_username_from_email, get_recipient_public_key, is_internal_email } from "./api/keys";
+import {
+  extract_username_from_email,
+  get_recipient_public_key,
+  is_internal_email,
+} from "./api/keys";
 import { create_error } from "./send_queue_types";
+
+import {
+  is_ghost_email,
+  looks_like_unregistered_ghost_email,
+} from "@/stores/ghost_alias_store";
+import { get_active_translations } from "@/lib/i18n/translations";
 
 export function plain_text_to_html(text: string): string {
   return text
@@ -71,7 +79,7 @@ export async function fetch_internal_public_keys(
     if (!username) {
       throw create_error(
         "encryption_failed",
-        en.errors.cannot_send_no_recipient_keys,
+        get_active_translations().errors.cannot_send_no_recipient_keys,
       );
     }
 
@@ -80,7 +88,7 @@ export async function fetch_internal_public_keys(
     if (key_response.error || !key_response.data) {
       throw create_error(
         "encryption_failed",
-        en.errors.cannot_send_no_recipient_keys,
+        get_active_translations().errors.cannot_send_no_recipient_keys,
       );
     }
 

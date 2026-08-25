@@ -162,6 +162,9 @@ describe("desktop device session lifecycle", () => {
     await module.init_desktop_device_auth();
 
     expect(events).toEqual(["identity-b"]);
-    expect(invoke_mock).toHaveBeenCalledWith("device_clear_identity", undefined);
+    expect(invoke_mock).toHaveBeenCalledWith(
+      "device_clear_identity",
+      undefined,
+    );
   });
 });

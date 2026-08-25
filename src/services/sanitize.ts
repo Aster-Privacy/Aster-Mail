@@ -37,11 +37,13 @@ export function sanitize_username_input(input: string): string {
   return sanitize_username(input);
 }
 
+export const MAX_DISPLAY_NAME_LENGTH = 100;
+
 export function sanitize_display_name(input: string): string {
   return input
-    .replace(/[<>&"']/g, "")
+    .replace(/[<>\u0000-\u001f\u007f]/g, "")
     .trim()
-    .slice(0, 64);
+    .slice(0, MAX_DISPLAY_NAME_LENGTH);
 }
 
 export function validate_password_strength(password: string): {

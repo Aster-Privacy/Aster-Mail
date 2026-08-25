@@ -40,6 +40,31 @@ const ZERO_WIDTH_SPACE = "\u200B";
 
 export const MAX_HORIZONTAL_RULES = 25;
 
+function same_format_state(
+  a: EditorFormatState,
+  b: EditorFormatState,
+): boolean {
+  if (
+    a.current_heading !== b.current_heading ||
+    a.current_alignment !== b.current_alignment ||
+    a.is_in_blockquote !== b.is_in_blockquote ||
+    a.is_in_ordered_list !== b.is_in_ordered_list ||
+    a.is_in_unordered_list !== b.is_in_unordered_list ||
+    a.current_font_color !== b.current_font_color ||
+    a.current_bg_color !== b.current_bg_color ||
+    a.current_font_size !== b.current_font_size ||
+    a.active_formats.size !== b.active_formats.size
+  ) {
+    return false;
+  }
+
+  for (const entry of a.active_formats) {
+    if (!b.active_formats.has(entry)) return false;
+  }
+
+  return true;
+}
+
 function set_style_with_css(use_css: boolean) {
   try {
     document.execCommand("styleWithCSS", false, use_css ? "true" : "false");
@@ -154,9 +179,17 @@ export function use_editor_format(
 
     if (!selection) return;
 
-    if (saved_selection_ref.current) {
+    const saved = saved_selection_ref.current;
+    const saved_is_usable =
+      saved !== null &&
+      saved.commonAncestorContainer.isConnected &&
+      editor.contains(saved.commonAncestorContainer);
+
+    if (!saved_is_usable) saved_selection_ref.current = null;
+
+    if (saved_is_usable && saved) {
       selection.removeAllRanges();
-      selection.addRange(saved_selection_ref.current);
+      selection.addRange(saved);
     } else if (
       selection.rangeCount === 0 ||
       !editor.contains(selection.anchorNode)
@@ -238,7 +271,7 @@ export function use_editor_format(
         ignore_error("hooks/use_editor_format:use_editor_format", caught);
       }
 
-      set_format_state({
+      const next: EditorFormatState = {
         active_formats: formats,
         current_heading: heading,
         current_alignment: alignment,
@@ -248,7 +281,9 @@ export function use_editor_format(
         current_font_color: font_color,
         current_bg_color: bg_color,
         current_font_size: font_size,
-      });
+      };
+
+      set_format_state((prev) => (same_format_state(prev, next) ? prev : next));
     } catch {
       return;
     }
@@ -361,10 +396,22 @@ export function use_editor_format(
     if (format_state.is_in_blockquote) {
       document.execCommand("outdent", false);
     } else {
+      const selection = window.getSelection();
+      const range =
+        selection && selection.rangeCount > 0 ? selection.getRangeAt(0) : null;
+      let inner = "<br>";
+
+      if (range && !range.collapsed) {
+        const holder = document.createElement("div");
+
+        holder.appendChild(range.cloneContents());
+        if (holder.innerHTML.trim()) inner = holder.innerHTML;
+      }
+
       document.execCommand(
         "insertHTML",
         false,
-        '<blockquote style="border-left: 3px solid #ccc; padding-left: 12px; margin: 4px 0;"><br></blockquote>',
+        `<blockquote style="border-left: 3px solid #ccc; padding-left: 12px; margin: 4px 0;">${inner}</blockquote>`,
       );
     }
 
@@ -567,22 +614,76 @@ export function use_editor_format(
     ],
   );
 
+  const apply_inline_color = useCallback(
+    (property: "color" | "backgroundColor", command: string, color: string) => {
+      const editor = editor_ref.current;
+
+      if (!editor || is_plain_text_mode) return;
+
+      restore_selection();
+
+      const selection = window.getSelection();
+      const range =
+        selection && selection.rangeCount > 0 ? selection.getRangeAt(0) : null;
+
+      if (
+        !selection ||
+        !range ||
+        !range.collapsed ||
+        !editor.contains(range.commonAncestorContainer)
+      ) {
+        exec_format(command, color, true);
+
+        return;
+      }
+
+      const span = document.createElement("span");
+      const filler = document.createTextNode(ZERO_WIDTH_SPACE);
+
+      span.style[property] = color;
+      span.appendChild(filler);
+      range.insertNode(span);
+
+      const caret = document.createRange();
+
+      caret.setStart(filler, filler.length);
+      caret.collapse(true);
+      selection.removeAllRanges();
+      selection.addRange(caret);
+
+      handle_input();
+      requestAnimationFrame(() => {
+        save_selection();
+        check_active_formats();
+      });
+    },
+    [
+      editor_ref,
+      is_plain_text_mode,
+      restore_selection,
+      exec_format,
+      handle_input,
+      save_selection,
+      check_active_formats,
+    ],
+  );
+
   const set_font_color = useCallback(
     (color: string) => {
       if (!validate_hex_color(color)) return;
 
-      exec_format("foreColor", color, true);
+      apply_inline_color("color", "foreColor", color);
     },
-    [exec_format],
+    [apply_inline_color],
   );
 
   const set_background_color = useCallback(
     (color: string) => {
       if (!validate_hex_color(color)) return;
 
-      exec_format("hiliteColor", color, true);
+      apply_inline_color("backgroundColor", "hiliteColor", color);
     },
-    [exec_format],
+    [apply_inline_color],
   );
 
   const set_font_size = useCallback(

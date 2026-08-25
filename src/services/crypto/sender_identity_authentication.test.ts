@@ -23,9 +23,10 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 const h = vi.hoisted(() => ({
   store: new Map<string, unknown>(),
   current_identity: null as string | null,
-  history: null as
-    | { identity_keys: string[]; history_complete: boolean }
-    | null,
+  history: null as {
+    identity_keys: string[];
+    history_complete: boolean;
+  } | null,
   history_calls: 0,
 }));
 

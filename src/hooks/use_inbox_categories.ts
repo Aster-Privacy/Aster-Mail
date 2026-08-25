@@ -20,6 +20,7 @@
 //
 import type { EmailCategory } from "@/types/email";
 import type { CategoryCounts } from "@/services/category_index";
+import type { UserPreferences } from "@/services/api/preferences";
 
 import {
   useCallback,
@@ -31,7 +32,6 @@ import {
 } from "react";
 
 import { use_preferences } from "@/contexts/preferences_context";
-import type { UserPreferences } from "@/services/api/preferences";
 import {
   get_counts,
   mark_category_seen,
@@ -51,7 +51,6 @@ import {
   secure_retrieve,
 } from "@/services/crypto/secure_storage";
 import { on_keys_ready } from "@/services/crypto/memory_key_store";
-
 import { ignore_error } from "@/lib/ignore_error";
 
 function compute_active_tabs(
@@ -266,6 +265,26 @@ export function use_inbox_categories(
       );
     }, 0);
   }, []);
+
+  useEffect(() => {
+    if (!has_loaded_from_server) return;
+    if (!stored_tab_loaded_ref.current) return;
+    if (active_category === "primary") return;
+
+    const tabs = compute_active_tabs(preferences, category_limit);
+
+    if (!tabs.includes(active_category)) {
+      set_active_category("primary");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    has_loaded_from_server,
+    enabled_categories_key,
+    custom_categories_key,
+    category_limit,
+    active_category,
+    set_active_category,
+  ]);
 
   useEffect(() => {
     const handle_inbox_home = () => {

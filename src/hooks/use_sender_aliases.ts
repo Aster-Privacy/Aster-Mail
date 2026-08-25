@@ -33,6 +33,7 @@ import {
   compute_address_hash,
 } from "@/services/api/domains";
 import { get_current_account, type User } from "@/services/account_manager";
+import { api_client } from "@/services/api/client";
 import {
   has_passphrase_in_memory,
   get_derived_encryption_key,
@@ -44,6 +45,7 @@ import {
   decrypt_ghost_aliases,
 } from "@/services/api/ghost_aliases";
 import { register_ghost_email } from "@/stores/ghost_alias_store";
+import { is_sendable_address } from "@/utils/sender_address";
 
 export type SenderOptionType =
   | "primary"
@@ -79,6 +81,46 @@ export function is_signature_bindable_sender(option: SenderOption): boolean {
   return is_signature_bindable_sender_type(option.type) && option.is_enabled;
 }
 
+export async function build_alias_hash_map(
+  aliases: DecryptedEmailAlias[],
+  compute: (
+    local_part: string,
+    domain: string,
+  ) => Promise<string> = compute_alias_hash,
+): Promise<Map<string, string>> {
+  const hashes = new Map<string, string>();
+
+  for (const alias of aliases) {
+    const hash =
+      alias.alias_address_hash ||
+      (await compute(alias.local_part, alias.domain));
+
+    hashes.set(alias.id, hash);
+  }
+
+  return hashes;
+}
+
+async function resolve_primary_user(): Promise<User | null> {
+  const account = await get_current_account();
+
+  if (account?.user?.email) return account.user;
+
+  const cached = api_client.get_cached_user_info();
+
+  if (!cached?.email) return account?.user ?? null;
+
+  return {
+    id: cached.user_id,
+    username: cached.username ?? cached.email.split("@")[0] ?? "",
+    email: cached.email,
+    display_name:
+      cached.display_name || account?.user?.display_name || undefined,
+    profile_color: cached.profile_color || undefined,
+    profile_picture: cached.profile_picture || undefined,
+  };
+}
+
 let cached_aliases: DecryptedEmailAlias[] = [];
 let cached_alias_hashes: Map<string, string> = new Map();
 let cached_domain_options: SenderOption[] = [];
@@ -108,13 +150,19 @@ export function use_sender_aliases() {
   const [external_options, set_external_options] = useState<SenderOption[]>(
     cached_external_options,
   );
-  const [ghost_options, set_ghost_options] = useState<SenderOption[]>(
-    cached_ghost_options,
-  );
+  const [ghost_options, set_ghost_options] =
+    useState<SenderOption[]>(cached_ghost_options);
   const [loading, set_loading] = useState(!cache_populated);
   const [user, set_user] = useState<User | null>(cached_user);
 
   const load_aliases = useCallback(async () => {
+    const primary_user = await resolve_primary_user();
+
+    if (primary_user) {
+      cached_user = primary_user;
+      set_user(primary_user);
+    }
+
     if (!has_passphrase_in_memory() || !get_derived_encryption_key()) {
       set_loading(false);
 
@@ -124,9 +172,7 @@ export function use_sender_aliases() {
     set_loading(true);
 
     try {
-      const account = await get_current_account();
-
-      const resolved_user = account?.user ?? null;
+      const resolved_user = primary_user ?? cached_user;
 
       cached_user = resolved_user;
       set_user(resolved_user);
@@ -137,13 +183,7 @@ export function use_sender_aliases() {
         const decrypted = await decrypt_aliases(alias_result.aliases);
         const enabled_aliases = decrypted.filter((a) => a.is_enabled);
 
-        const hashes = new Map<string, string>();
-
-        for (const alias of enabled_aliases) {
-          const hash = await compute_alias_hash(alias.local_part, alias.domain);
-
-          hashes.set(alias.id, hash);
-        }
+        const hashes = await build_alias_hash_map(enabled_aliases);
 
         cached_aliases = enabled_aliases;
         cached_alias_hashes = hashes;
@@ -175,10 +215,9 @@ export function use_sender_aliases() {
         for (const addr of decrypted_addresses) {
           if (!addr.is_enabled) continue;
 
-          const hash = await compute_address_hash(
-            addr.local_part,
-            domain.domain_name,
-          );
+          const hash =
+            addr.local_part_hash ||
+            (await compute_address_hash(addr.local_part, domain.domain_name));
 
           domain_sender_options.push({
             id: `domain-${addr.id}`,
@@ -193,8 +232,14 @@ export function use_sender_aliases() {
         }
       }
 
-      cached_domain_options = domain_sender_options;
-      set_domain_options(domain_sender_options);
+      const domain_fetch_failed =
+        Boolean(domains_response.error) ||
+        address_results.some((result) => Boolean(result.error));
+
+      if (!domain_fetch_failed || cached_domain_options.length === 0) {
+        cached_domain_options = domain_sender_options;
+        set_domain_options(domain_sender_options);
+      }
 
       const ghost_response = await list_ghost_aliases();
 
@@ -206,10 +251,9 @@ export function use_sender_aliases() {
         );
 
         for (const g of decrypted_ghosts) {
-          const ghost_hash = await compute_alias_hash(
-            g.local_part,
-            g.domain,
-          );
+          const ghost_hash =
+            g.alias_address_hash ||
+            (await compute_alias_hash(g.local_part, g.domain));
           const ghost_sender: SenderOption = {
             id: `ghost-${g.id}`,
             email: g.full_address,
@@ -226,8 +270,10 @@ export function use_sender_aliases() {
         }
       }
 
-      cached_ghost_options = ghost_sender_options;
-      set_ghost_options(ghost_sender_options);
+      if (!ghost_response.error || cached_ghost_options.length === 0) {
+        cached_ghost_options = ghost_sender_options;
+        set_ghost_options(ghost_sender_options);
+      }
 
       const external_response = await list_external_accounts();
 
@@ -249,18 +295,21 @@ export function use_sender_aliases() {
 
         cached_external_options = external_sender_options;
         set_external_options(external_sender_options);
-      } else {
+      } else if (
+        !external_response.error ||
+        cached_external_options.length === 0
+      ) {
         cached_external_options = [];
         set_external_options([]);
       }
 
       cache_populated = true;
     } catch {
-      set_aliases([]);
-      set_alias_hashes(new Map());
-      set_domain_options([]);
-      set_external_options([]);
-      set_ghost_options([]);
+      set_aliases(cached_aliases);
+      set_alias_hashes(cached_alias_hashes);
+      set_domain_options(cached_domain_options);
+      set_external_options(cached_external_options);
+      set_ghost_options(cached_ghost_options);
     } finally {
       set_loading(false);
     }
@@ -272,7 +321,11 @@ export function use_sender_aliases() {
 
   useEffect(() => {
     const unsub = mail_event_bus.subscribe_multiple(
-      [MAIL_EVENTS.REFRESH_REQUESTED, MAIL_EVENTS.MAIL_CHANGED],
+      [
+        MAIL_EVENTS.REFRESH_REQUESTED,
+        MAIL_EVENTS.MAIL_CHANGED,
+        MAIL_EVENTS.AUTH_READY,
+      ],
       load_aliases,
     );
 
@@ -303,7 +356,7 @@ export function use_sender_aliases() {
     ...domain_options,
     ...external_options,
     ...ghost_options,
-  ];
+  ].filter((option) => is_sendable_address(option.email));
 
   return {
     sender_options,

@@ -37,11 +37,13 @@ import {
 } from "@/services/attachment_limits";
 import { format_bytes } from "@/lib/utils";
 
+export type ForwardDropReason = "undecryptable" | "unavailable";
+
 export interface LoadForwardAttachmentsOptions {
   body_html?: string;
   existing_bytes?: number;
   is_cancelled?: () => boolean;
-  on_dropped?: (count: number) => void;
+  on_dropped?: (count: number, reason: ForwardDropReason) => void;
 }
 
 function normalize_reference(value: string): string {
@@ -95,12 +97,20 @@ export async function load_forward_attachments(
   try {
     response = await list_attachments(mail_item_id);
   } catch {
+    on_dropped?.(1, "unavailable");
+
     return [];
   }
 
   const items = response.data?.attachments;
 
-  if (response.error || !items || items.length === 0) return [];
+  if (response.error) {
+    on_dropped?.(items?.length ?? 1, "unavailable");
+
+    return [];
+  }
+
+  if (!items || items.length === 0) return [];
   if (is_cancelled?.()) return [];
 
   const inline_cids = new Set(
@@ -127,6 +137,7 @@ export async function load_forward_attachments(
   const carried: Attachment[] = [];
   let running_total = existing_bytes;
   let dropped = 0;
+  let unavailable = 0;
 
   for (const result of meta_results) {
     if (is_cancelled?.()) return carried;
@@ -151,9 +162,15 @@ export async function load_forward_attachments(
         item.seq_num,
       );
 
-      if (data.byteLength > get_max_attachment_size()) continue;
-      if (running_total + data.byteLength > get_max_total_attachments_size())
+      if (data.byteLength > get_max_attachment_size()) {
+        unavailable += 1;
         continue;
+      }
+
+      if (running_total + data.byteLength > get_max_total_attachments_size()) {
+        unavailable += 1;
+        continue;
+      }
 
       running_total += data.byteLength;
 
@@ -172,7 +189,8 @@ export async function load_forward_attachments(
     }
   }
 
-  if (dropped > 0) on_dropped?.(dropped);
+  if (dropped > 0) on_dropped?.(dropped, "undecryptable");
+  if (unavailable > 0) on_dropped?.(unavailable, "unavailable");
 
   return carried;
 }

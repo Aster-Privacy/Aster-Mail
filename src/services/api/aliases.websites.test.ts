@@ -47,7 +47,9 @@ describe("normalize_website_url", () => {
   it("rejects non-web schemes", () => {
     expect(normalize_website_url("javascript:alert(1)")).toBeNull();
     expect(normalize_website_url("JavaScript:alert(1)")).toBeNull();
-    expect(normalize_website_url("data:text/html,<script>1</script>")).toBeNull();
+    expect(
+      normalize_website_url("data:text/html,<script>1</script>"),
+    ).toBeNull();
     expect(normalize_website_url("ftp://files.example.com")).toBeNull();
     expect(normalize_website_url("file:///etc/passwd")).toBeNull();
     expect(normalize_website_url("vbscript:msgbox(1)")).toBeNull();
@@ -66,9 +68,7 @@ describe("normalize_website_url", () => {
   });
 
   it("strips whitespace inside pasted urls", () => {
-    expect(normalize_website_url(" netflix .com ")).toBe(
-      "https://netflix.com",
-    );
+    expect(normalize_website_url(" netflix .com ")).toBe("https://netflix.com");
   });
 
   it("rejects garbage and dotless hosts", () => {

@@ -22,7 +22,9 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 
-(globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
+(
+  globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }
+).IS_REACT_ACT_ENVIRONMENT = true;
 
 const hoisted = vi.hoisted(() => ({
   update_pwa_badge: vi.fn(),
@@ -121,7 +123,9 @@ vi.mock("@/native/pwa_badge", () => ({
   update_pwa_badge: (...a: unknown[]) => hoisted.update_pwa_badge(...a),
 }));
 vi.mock("@/native/tauri_tray", () => ({ update_tray_badge: () => {} }));
-vi.mock("@/services/low_network_state", () => ({ is_low_network: () => false }));
+vi.mock("@/services/low_network_state", () => ({
+  is_low_network: () => false,
+}));
 
 vi.mock("@/contexts/auth_context", () => ({
   use_auth: () => ({
@@ -149,6 +153,7 @@ import {
   get_counts,
   clear_category_index,
 } from "@/services/category_index";
+
 import type { InboxEmail } from "@/types/email";
 
 type Actions = ReturnType<typeof use_email_actions>;
@@ -426,6 +431,7 @@ describe("unread counters stay in lockstep on read (integration)", () => {
     );
 
     const write = deferred<{ success: boolean; encrypted?: unknown }>();
+
     hoisted.update_item_metadata.mockReturnValue(write.promise);
 
     let action_promise: Promise<boolean>;
@@ -488,6 +494,7 @@ describe("unread counters stay in lockstep on read (integration)", () => {
     expect(stats_unread()).toBe(2);
 
     const write = deferred<{ success: boolean }>();
+
     hoisted.update_item_metadata.mockReturnValue(write.promise);
 
     let action_promise: Promise<boolean>;
@@ -557,6 +564,7 @@ describe("unread counters stay in lockstep on read (integration)", () => {
     );
 
     const write = deferred<{ success: boolean; failed_ids: string[] }>();
+
     hoisted.bulk_update_items_metadata.mockReturnValue(write.promise);
 
     const batch = [
@@ -686,6 +694,7 @@ describe("unread counters stay in lockstep on read (integration)", () => {
     );
 
     const write = deferred<{ success: boolean; failed_ids: string[] }>();
+
     hoisted.bulk_update_items_metadata.mockReturnValue(write.promise);
 
     const batch = [email("m1", "t1", false), email("m2", "t1", false)];

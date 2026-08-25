@@ -18,12 +18,12 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { decrypt_message_with_any_key } from "@/services/crypto/key_manager_pgp";
-
 import type {
   pgp_decrypt_worker_request,
   pgp_decrypt_worker_response,
 } from "./pgp_decrypt_worker";
+
+import { decrypt_message_with_any_key } from "@/services/crypto/key_manager_pgp";
 
 const POOL_SIZE = Math.min(
   Math.max(
@@ -46,7 +46,9 @@ let next_request_id = 0;
 const pending_requests = new Map<number, pending_request>();
 let pool_init_failed = false;
 
-function handle_worker_message(event: MessageEvent<pgp_decrypt_worker_response>): void {
+function handle_worker_message(
+  event: MessageEvent<pgp_decrypt_worker_response>,
+): void {
   const { id, plaintext, error } = event.data;
   const pending = pending_requests.get(id);
 

@@ -86,7 +86,10 @@ export function subscribe_calendar_changes(on_change: () => void): () => void {
   };
 
   const handle_storage = (event: StorageEvent) => {
-    if (event.key === EVENTS_STORAGE_KEY || event.key === CALENDARS_STORAGE_KEY) {
+    if (
+      event.key === EVENTS_STORAGE_KEY ||
+      event.key === CALENDARS_STORAGE_KEY
+    ) {
       on_change();
     }
   };
@@ -274,7 +277,11 @@ function build_seed_events(): DecryptedCalendarEvent[] {
   ];
 
   return seeds.map((seed, index) => {
-    const starts_at = iso_at(seed.day_offset, seed.start_hour, seed.start_minute);
+    const starts_at = iso_at(
+      seed.day_offset,
+      seed.start_hour,
+      seed.start_minute,
+    );
     const ends_at = new Date(
       new Date(starts_at).getTime() + seed.duration_minutes * 60_000,
     ).toISOString();

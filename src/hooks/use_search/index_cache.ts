@@ -35,7 +35,6 @@ import {
 import { CachedIndex, DecryptedIndexEntry } from "./types";
 
 import { ignore_error } from "@/lib/ignore_error";
-
 import {
   add_vocabulary_entry,
   reset_vocabulary,

@@ -18,19 +18,11 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { } from "../key_manager";
-import type { } from "@/services/api/signatures";
-import type { } from "@/services/api/templates";
-import type { } from "@/services/api/blocked_senders";
-import type { } from "@/services/api/allowed_senders";
-import { list_aliases } from "@/services/api/aliases";
-import { list_contacts } from "@/services/api/contacts";
-import { list_alias_pins } from "@/services/api/alias_pins";
-import { list_alias_contacts } from "@/services/api/alias_contacts";
-import { list_alias_destinations } from "@/services/api/alias_destinations";
-import { list_alias_directories } from "@/services/api/alias_directories";
-import { list_domains, list_domain_addresses } from "@/services/api/domains";
-import { rekey_user_data } from "@/services/api/auth";
+import type {} from "../key_manager";
+import type {} from "@/services/api/signatures";
+import type {} from "@/services/api/templates";
+import type {} from "@/services/api/blocked_senders";
+import type {} from "@/services/api/allowed_senders";
 import { array_to_base64, base64_to_array } from "../base64";
 import {
   type ReEncryptedAlias,
@@ -42,8 +34,20 @@ import {
   type ReEncryptedDomainAddress,
 } from "../reencrypt_shared";
 
+import {
+  derive_hmac_key,
+  import_aes_key,
+  re_encrypt_field,
+} from "./key_helpers";
 
-import { derive_hmac_key, import_aes_key, re_encrypt_field } from "./key_helpers";
+import { list_aliases } from "@/services/api/aliases";
+import { list_contacts } from "@/services/api/contacts";
+import { list_alias_pins } from "@/services/api/alias_pins";
+import { list_alias_contacts } from "@/services/api/alias_contacts";
+import { list_alias_destinations } from "@/services/api/alias_destinations";
+import { list_alias_directories } from "@/services/api/alias_directories";
+import { list_domains, list_domain_addresses } from "@/services/api/domains";
+import { rekey_user_data } from "@/services/api/auth";
 import { ignore_error } from "@/lib/ignore_error";
 
 export async function re_encrypt_aliases_contacts(
@@ -210,7 +214,12 @@ export async function re_encrypt_aliases_contacts(
     await rekey_user_data({
       re_encrypted_aliases,
       re_encrypted_contacts,
-    }).catch((caught) => ignore_error("services/crypto/recovery_reencrypt/aliases:re_encrypt_aliases_contacts", caught));
+    }).catch((caught) =>
+      ignore_error(
+        "services/crypto/recovery_reencrypt/aliases:re_encrypt_aliases_contacts",
+        caught,
+      ),
+    );
   }
 }
 
@@ -410,14 +419,23 @@ export async function re_encrypt_alias_sub_items_recovery(
     re_encrypted_domain_addresses?: ReEncryptedDomainAddress[];
   } = {};
 
-  if (re_encrypted_pins.length > 0) payload.re_encrypted_pins = re_encrypted_pins;
-  if (re_encrypted_alias_contacts.length > 0) payload.re_encrypted_alias_contacts = re_encrypted_alias_contacts;
-  if (re_encrypted_destinations.length > 0) payload.re_encrypted_destinations = re_encrypted_destinations;
-  if (re_encrypted_directories.length > 0) payload.re_encrypted_directories = re_encrypted_directories;
-  if (re_encrypted_domain_addresses.length > 0) payload.re_encrypted_domain_addresses = re_encrypted_domain_addresses;
+  if (re_encrypted_pins.length > 0)
+    payload.re_encrypted_pins = re_encrypted_pins;
+  if (re_encrypted_alias_contacts.length > 0)
+    payload.re_encrypted_alias_contacts = re_encrypted_alias_contacts;
+  if (re_encrypted_destinations.length > 0)
+    payload.re_encrypted_destinations = re_encrypted_destinations;
+  if (re_encrypted_directories.length > 0)
+    payload.re_encrypted_directories = re_encrypted_directories;
+  if (re_encrypted_domain_addresses.length > 0)
+    payload.re_encrypted_domain_addresses = re_encrypted_domain_addresses;
 
   if (Object.keys(payload).length > 0) {
-    await rekey_user_data(payload).catch((caught) => ignore_error("services/crypto/recovery_reencrypt/aliases:re_encrypt_alias_sub_items_recovery", caught));
+    await rekey_user_data(payload).catch((caught) =>
+      ignore_error(
+        "services/crypto/recovery_reencrypt/aliases:re_encrypt_alias_sub_items_recovery",
+        caught,
+      ),
+    );
   }
 }
-

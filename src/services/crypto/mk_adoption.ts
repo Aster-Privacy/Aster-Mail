@@ -18,12 +18,12 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { collect_vault_key_fingerprints } from "./vault_key_fingerprints";
 import type { EncryptedVault } from "./key_manager";
 
 import { get_current_account } from "../account_manager";
 import { api_client } from "../api/client";
 
+import { collect_vault_key_fingerprints } from "./vault_key_fingerprints";
 import { encrypt_vault, decrypt_vault } from "./key_manager";
 import {
   is_master_key_vault,

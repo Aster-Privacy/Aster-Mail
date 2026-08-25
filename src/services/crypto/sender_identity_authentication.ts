@@ -18,8 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { zero_uint8_array } from "@/services/crypto/secure_memory";
-import { extract_username_from_email } from "@/services/api/keys";
 import { encrypted_get, encrypted_set } from "./encrypted_storage";
 import { get_derived_encryption_key } from "./memory_key_store";
 import {
@@ -32,6 +30,9 @@ import {
   record_message_sender_identity,
   type SenderIdentityStatus,
 } from "./ratchet_verification_status";
+
+import { extract_username_from_email } from "@/services/api/keys";
+import { zero_uint8_array } from "@/services/crypto/secure_memory";
 
 const PUBLISHED_CACHE_TTL_MS = 5 * 60 * 1000;
 const HISTORY_STORAGE_PREFIX = "ratchet_sender_identity_history_";
@@ -111,7 +112,10 @@ async function load_identity_history(peer: string): Promise<string[]> {
   }
 }
 
-async function remember_identity(peer: string, identity_key: string): Promise<void> {
+async function remember_identity(
+  peer: string,
+  identity_key: string,
+): Promise<void> {
   await remember_identities(peer, [identity_key]);
 }
 
@@ -143,7 +147,9 @@ async function remember_identities(
   }
 }
 
-async function resolve_published_identity(peer: string): Promise<string | null> {
+async function resolve_published_identity(
+  peer: string,
+): Promise<string | null> {
   const cached = published_cache.get(peer);
 
   if (cached && Date.now() - cached.timestamp < PUBLISHED_CACHE_TTL_MS) {

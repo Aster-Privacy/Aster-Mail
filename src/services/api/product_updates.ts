@@ -22,16 +22,23 @@ import { api_client } from "@/services/api/client";
 
 const PRODUCT_UPDATES_PATH = "/settings/v1/preferences/product-updates";
 
-export async function get_product_updates_subscription(): Promise<boolean> {
+export async function get_product_updates_subscription(): Promise<
+  boolean | null
+> {
   const response = await api_client.get<{ subscribed: boolean }>(
     PRODUCT_UPDATES_PATH,
   );
 
-  return response.data?.subscribed ?? true;
+  if (response.error) return null;
+  if (typeof response.data?.subscribed !== "boolean") return null;
+
+  return response.data.subscribed;
 }
 
 export async function set_product_updates_subscription(
   subscribed: boolean,
 ): Promise<void> {
-  await api_client.put(PRODUCT_UPDATES_PATH, { subscribed });
+  const response = await api_client.put(PRODUCT_UPDATES_PATH, { subscribed });
+
+  if (response.error) throw new Error(response.error);
 }

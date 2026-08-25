@@ -33,7 +33,10 @@ const hoisted = vi.hoisted(() => ({
   })),
   update_user: vi.fn(async () => undefined),
   show_toast: vi.fn(),
-  user: { email: "a@astermail.org", profile_picture: "data:image/webp;base64,old" },
+  user: {
+    email: "a@astermail.org",
+    profile_picture: "data:image/webp;base64,old",
+  },
 }));
 
 vi.mock("@/services/api/user", () => ({

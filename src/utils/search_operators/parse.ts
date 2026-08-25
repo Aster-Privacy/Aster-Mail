@@ -19,9 +19,17 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { TranslationKey } from "@/lib/i18n/types";
+
 import { is_valid_date_shortcut } from "./dates";
 import { parse_size_range, parse_size_value } from "./size";
-import { DATE_REGEX, OPERATOR_REGEX, ParsedOperator, ParsedSearchQuery, SearchOperatorType, TranslateFn } from "./types";
+import {
+  DATE_REGEX,
+  OPERATOR_REGEX,
+  ParsedOperator,
+  ParsedSearchQuery,
+  SearchOperatorType,
+  TranslateFn,
+} from "./types";
 
 export function parse_search_query(query: string): ParsedSearchQuery {
   const operators: ParsedOperator[] = [];
@@ -147,46 +155,150 @@ export function get_operator_suggestions(
   partial: string,
   t?: TranslateFn,
 ): OperatorSuggestion[] {
-  const tr = (key: TranslationKey, fallback: string) =>
-    t ? t(key) : fallback;
+  const tr = (key: TranslationKey, fallback: string) => (t ? t(key) : fallback);
 
   const operators: OperatorSuggestion[] = [
-    { operator: "from:", description: tr("mail.op_search_by_sender", "Search by sender") },
-    { operator: "to:", description: tr("mail.op_search_by_recipient", "Search by recipient") },
-    { operator: "subject:", description: tr("mail.op_search_in_subject", "Search in subject") },
-    { operator: "has:attachment", description: tr("mail.op_has_attachments", "Has attachments") },
-    { operator: "has:pdf", description: tr("mail.op_has_pdf", "Has PDF attachments") },
-    { operator: "has:image", description: tr("mail.op_has_image", "Has image attachments") },
-    { operator: "has:document", description: tr("mail.op_has_document", "Has document attachments") },
-    { operator: "has:spreadsheet", description: tr("mail.op_has_spreadsheet", "Has spreadsheet attachments") },
-    { operator: "has:video", description: tr("mail.op_has_video", "Has video attachments") },
-    { operator: "has:audio", description: tr("mail.op_has_audio", "Has audio attachments") },
-    { operator: "has:archive", description: tr("mail.op_has_archive", "Has archive attachments") },
-    { operator: "is:unread", description: tr("mail.op_unread_emails", "Unread emails") },
-    { operator: "is:starred", description: tr("mail.op_starred_emails", "Starred emails") },
-    { operator: "is:read", description: tr("mail.op_read_emails", "Read emails") },
+    {
+      operator: "from:",
+      description: tr("mail.op_search_by_sender", "Search by sender"),
+    },
+    {
+      operator: "to:",
+      description: tr("mail.op_search_by_recipient", "Search by recipient"),
+    },
+    {
+      operator: "subject:",
+      description: tr("mail.op_search_in_subject", "Search in subject"),
+    },
+    {
+      operator: "has:attachment",
+      description: tr("mail.op_has_attachments", "Has attachments"),
+    },
+    {
+      operator: "has:pdf",
+      description: tr("mail.op_has_pdf", "Has PDF attachments"),
+    },
+    {
+      operator: "has:image",
+      description: tr("mail.op_has_image", "Has image attachments"),
+    },
+    {
+      operator: "has:document",
+      description: tr("mail.op_has_document", "Has document attachments"),
+    },
+    {
+      operator: "has:spreadsheet",
+      description: tr("mail.op_has_spreadsheet", "Has spreadsheet attachments"),
+    },
+    {
+      operator: "has:video",
+      description: tr("mail.op_has_video", "Has video attachments"),
+    },
+    {
+      operator: "has:audio",
+      description: tr("mail.op_has_audio", "Has audio attachments"),
+    },
+    {
+      operator: "has:archive",
+      description: tr("mail.op_has_archive", "Has archive attachments"),
+    },
+    {
+      operator: "is:unread",
+      description: tr("mail.op_unread_emails", "Unread emails"),
+    },
+    {
+      operator: "is:starred",
+      description: tr("mail.op_starred_emails", "Starred emails"),
+    },
+    {
+      operator: "is:read",
+      description: tr("mail.op_read_emails", "Read emails"),
+    },
     { operator: "in:inbox", description: tr("mail.op_in_inbox", "In inbox") },
-    { operator: "in:sent", description: tr("mail.op_in_sent", "In sent folder") },
+    {
+      operator: "in:sent",
+      description: tr("mail.op_in_sent", "In sent folder"),
+    },
     { operator: "in:trash", description: tr("mail.op_in_trash", "In trash") },
-    { operator: "in:drafts", description: tr("mail.op_in_drafts", "In drafts") },
-    { operator: "in:anywhere", description: tr("mail.op_in_anywhere", "Everywhere, including spam and trash") },
-    { operator: "before:", description: tr("mail.op_before_date", "Before date (YYYY-MM-DD)") },
-    { operator: "after:", description: tr("mail.op_after_date", "After date (YYYY-MM-DD)") },
-    { operator: "date:today", description: tr("mail.op_from_today", "From today") },
-    { operator: "date:yesterday", description: tr("mail.op_from_yesterday", "From yesterday") },
-    { operator: "date:this_week", description: tr("mail.op_from_this_week", "From this week") },
-    { operator: "date:last_week", description: tr("mail.op_from_last_week", "From last week") },
-    { operator: "date:this_month", description: tr("mail.op_from_this_month", "From this month") },
-    { operator: "date:last_month", description: tr("mail.op_from_last_month", "From last month") },
-    { operator: "larger:", description: tr("mail.op_larger_than", "Larger than size (e.g., 5mb)") },
-    { operator: "smaller:", description: tr("mail.op_smaller_than", "Smaller than size (e.g., 1mb)") },
-    { operator: "size:", description: tr("mail.op_size_range", "Size range (e.g., 1mb-10mb)") },
-    { operator: "filename:", description: tr("mail.op_search_filename", "Search attachment filename") },
-    { operator: "label:", description: tr("mail.op_search_by_label", "Search by label") },
-    { operator: "folder:", description: tr("mail.op_search_by_folder", "Search by folder") },
-    { operator: "id:", description: tr("mail.op_search_by_message_id", "Search by message ID") },
-    { operator: "-from:", description: tr("mail.op_exclude_sender", "Exclude sender") },
-    { operator: "-has:attachment", description: tr("mail.op_without_attachments", "Without attachments") },
+    {
+      operator: "in:drafts",
+      description: tr("mail.op_in_drafts", "In drafts"),
+    },
+    {
+      operator: "in:anywhere",
+      description: tr(
+        "mail.op_in_anywhere",
+        "Everywhere, including spam and trash",
+      ),
+    },
+    {
+      operator: "before:",
+      description: tr("mail.op_before_date", "Before date (YYYY-MM-DD)"),
+    },
+    {
+      operator: "after:",
+      description: tr("mail.op_after_date", "After date (YYYY-MM-DD)"),
+    },
+    {
+      operator: "date:today",
+      description: tr("mail.op_from_today", "From today"),
+    },
+    {
+      operator: "date:yesterday",
+      description: tr("mail.op_from_yesterday", "From yesterday"),
+    },
+    {
+      operator: "date:this_week",
+      description: tr("mail.op_from_this_week", "From this week"),
+    },
+    {
+      operator: "date:last_week",
+      description: tr("mail.op_from_last_week", "From last week"),
+    },
+    {
+      operator: "date:this_month",
+      description: tr("mail.op_from_this_month", "From this month"),
+    },
+    {
+      operator: "date:last_month",
+      description: tr("mail.op_from_last_month", "From last month"),
+    },
+    {
+      operator: "larger:",
+      description: tr("mail.op_larger_than", "Larger than size (e.g., 5mb)"),
+    },
+    {
+      operator: "smaller:",
+      description: tr("mail.op_smaller_than", "Smaller than size (e.g., 1mb)"),
+    },
+    {
+      operator: "size:",
+      description: tr("mail.op_size_range", "Size range (e.g., 1mb-10mb)"),
+    },
+    {
+      operator: "filename:",
+      description: tr("mail.op_search_filename", "Search attachment filename"),
+    },
+    {
+      operator: "label:",
+      description: tr("mail.op_search_by_label", "Search by label"),
+    },
+    {
+      operator: "folder:",
+      description: tr("mail.op_search_by_folder", "Search by folder"),
+    },
+    {
+      operator: "id:",
+      description: tr("mail.op_search_by_message_id", "Search by message ID"),
+    },
+    {
+      operator: "-from:",
+      description: tr("mail.op_exclude_sender", "Exclude sender"),
+    },
+    {
+      operator: "-has:attachment",
+      description: tr("mail.op_without_attachments", "Without attachments"),
+    },
   ];
 
   if (!partial) {
@@ -201,4 +313,3 @@ export function get_operator_suggestions(
       op.description.toLowerCase().includes(lower_partial),
   );
 }
-

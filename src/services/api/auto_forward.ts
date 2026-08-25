@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { user_facing_error } from "@/utils/user_facing_error";
 import { api_client, type ApiResponse } from "./client";
 
 export type ForwardingField = "from" | "to" | "subject" | "all";
@@ -77,8 +78,7 @@ export async function list_forwarding_rules(): Promise<
     return { data: response.data?.rules ?? [] };
   } catch (err) {
     return {
-      error:
-        err instanceof Error ? err.message : "Failed to list forwarding rules",
+      error: user_facing_error(err, "Failed to list forwarding rules"),
     };
   }
 }
@@ -105,8 +105,7 @@ export async function create_forwarding_rule(
     return response;
   } catch (err) {
     return {
-      error:
-        err instanceof Error ? err.message : "Failed to create forwarding rule",
+      error: user_facing_error(err, "Failed to create forwarding rule"),
     };
   }
 }
@@ -139,8 +138,7 @@ export async function update_forwarding_rule(
     return response;
   } catch (err) {
     return {
-      error:
-        err instanceof Error ? err.message : "Failed to update forwarding rule",
+      error: user_facing_error(err, "Failed to update forwarding rule"),
     };
   }
 }
@@ -158,8 +156,7 @@ export async function toggle_forwarding_rule(
     return response;
   } catch (err) {
     return {
-      error:
-        err instanceof Error ? err.message : "Failed to toggle forwarding rule",
+      error: user_facing_error(err, "Failed to toggle forwarding rule"),
     };
   }
 }
@@ -175,8 +172,7 @@ export async function delete_forwarding_rule(
     return response;
   } catch (err) {
     return {
-      error:
-        err instanceof Error ? err.message : "Failed to delete forwarding rule",
+      error: user_facing_error(err, "Failed to delete forwarding rule"),
     };
   }
 }
@@ -194,10 +190,7 @@ export async function resend_forwarding_confirmation(
     return response;
   } catch (err) {
     return {
-      error:
-        err instanceof Error
-          ? err.message
-          : "Failed to resend verification email",
+      error: user_facing_error(err, "Failed to resend verification email"),
     };
   }
 }
@@ -216,10 +209,7 @@ export async function bulk_delete_forwarding_rules(
     return response;
   } catch (err) {
     return {
-      error:
-        err instanceof Error
-          ? err.message
-          : "Failed to bulk delete forwarding rules",
+      error: user_facing_error(err, "Failed to bulk delete forwarding rules"),
     };
   }
 }

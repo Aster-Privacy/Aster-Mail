@@ -19,8 +19,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { describe, expect, it } from "vitest";
-import { en } from "@/lib/i18n/translations/en";
+
 import { describe_send_refusal } from "./send_refusal";
+
+import { en } from "@/lib/i18n/translations/en";
 
 const in_an_hour = new Date(Date.now() + 60 * 60 * 1000).toISOString();
 
@@ -46,6 +48,29 @@ describe("describe_send_refusal", () => {
 
     expect(refusal?.kind).toBe("send_failed");
     expect(refusal?.message).toContain("25");
+  });
+
+  it("states the attachment size cap in units the sender reads", () => {
+    const refusal = describe_send_refusal({
+      code: "VALIDATION_ERROR",
+      server_code: "ATTACHMENTS_TOO_LARGE",
+      details: { max_bytes: 26214400 },
+    });
+
+    expect(refusal?.kind).toBe("send_failed");
+    expect(refusal?.message).toContain("25 MB");
+    expect(refusal?.message).not.toContain("26214400");
+  });
+
+  it("names the attachment count cap", () => {
+    const refusal = describe_send_refusal({
+      code: "VALIDATION_ERROR",
+      server_code: "TOO_MANY_ATTACHMENTS",
+      details: { max_allowed: 50 },
+    });
+
+    expect(refusal?.kind).toBe("send_failed");
+    expect(refusal?.message).toContain("50");
   });
 
   it("falls back to a neutral phrase when the server names no domain", () => {
@@ -81,10 +106,13 @@ describe("describe_send_refusal", () => {
         details: { domain: "example.net" },
       },
       { server_code: "TOO_MANY_RECIPIENTS", details: { max_allowed: 250 } },
+      { server_code: "ATTACHMENTS_TOO_LARGE", details: { max_bytes: 52428800 } },
+      { server_code: "TOO_MANY_ATTACHMENTS", details: { max_allowed: 50 } },
     ];
 
     for (const source of cases) {
       const refusal = describe_send_refusal(source);
+
       expect(refusal).not.toBeNull();
       expect(refusal?.message).not.toMatch(/\{\{[a-z_]+\}\}/);
     }

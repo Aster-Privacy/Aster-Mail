@@ -20,6 +20,7 @@
 //
 export const ru = {
   common: {
+    beta: "Бета",
     delete_folder_account_password: "Пароль учётной записи",
     delete_folder_step_up_hint:
       "Эта папка защищена паролем. Введите пароль учётной записи, чтобы удалить её.",
@@ -94,6 +95,7 @@ export const ru = {
     aliases: "Псевдонимы",
     no_aliases_yet: "Псевдонимов пока нет",
     storage_used: "Использовано хранилища",
+    storage_under_one_percent: "< 1 %",
     upgrade: "Улучшить",
     of: "из",
     page: "Страница",
@@ -105,6 +107,8 @@ export const ru = {
     create_label: "Создать метку",
     more_folders: "Ещё {{count}} папок",
     more_labels: "Ещё {{count}} меток",
+    saved: "Сохранено",
+    settings_not_saved: "Не сохранено",
     saving: "Сохранение...",
     searching: "Поиск...",
     update: "Обновить",
@@ -122,18 +126,18 @@ export const ru = {
     erase_all_data: "Навсегда удалить все ваши данные и содержимое",
     display_name_visible:
       "Имя, которое увидят другие участники вашего пространства",
-    inactivity_window: "Inactivity window",
+    inactivity_window: "Период неактивности",
     inactivity_window_description:
-      "Free accounts inactive for this many months will be permanently deleted. Warnings are sent to your Aster inbox and recovery email.",
-    inactivity_window_info_title: "How the inactivity policy works",
+      "Бесплатные аккаунты, неактивные столько месяцев, удаляются безвозвратно. Предупреждения приходят во входящие Aster и на резервный адрес.",
+    inactivity_window_info_title: "Как работает правило неактивности",
     inactivity_window_info_description:
       "If your account has no activity for the duration you set, it will be permanently deleted. Activity includes signing in from any client - web, desktop, mobile, or the bridge. You will receive warning emails after {{first}}, {{second}}, and {{final}} of inactivity.",
     inactivity_window_step_up_description:
-      "For your security, confirm your password to change your inactivity window.",
-    inactivity_window_months: "{{n}} months",
-    inactivity_window_saved: "Inactivity window updated",
+      "В целях безопасности подтвердите пароль, чтобы изменить период неактивности.",
+    inactivity_window_months: "{{n}} мес.",
+    inactivity_window_saved: "Период неактивности обновлён",
     inactivity_window_save_failed:
-      "Failed to save inactivity window. Please try again.",
+      "Не удалось сохранить период неактивности. Повторите попытку.",
     recovery_email: "Адрес электронной почты для восстановления",
     recovery_email_description:
       "Этот адрес используется для восстановления вашего аккаунта",
@@ -189,6 +193,8 @@ export const ru = {
     more_information: "Подробнее",
     delete_folder: "Удалить папку",
     edit_reschedule: "Изменить и перенести",
+    reschedule: "Перенести",
+    send_time_updated: "Время отправки обновлено",
     cancel_scheduled: "Отменить отправку",
     unlock_folder: "Разблокировать папку",
     lock_folder: "Заблокировать папку",
@@ -294,6 +300,8 @@ export const ru = {
     next_week: "На следующей неделе",
     next_month: "В следующем месяце",
     tomorrow_morning: "Завтра утром",
+    in_one_hour: "Через час",
+    tonight: "Сегодня вечером",
     tomorrow_afternoon: "Завтра днём",
     monday_morning: "В понедельник утром",
     search_senders: "Поиск отправителей...",
@@ -332,6 +340,9 @@ export const ru = {
     continue: "Продолжить",
     processing: "Обработка...",
     action_cannot_be_undone: "Отменить это нельзя.",
+    discard_changes_title: "Отменить изменения?",
+    discard_changes_message:
+      "Изменения не сохранены. Если закрыть сейчас, они будут потеряны.",
     select_placeholder: "Выберите...",
     processing_count: "Обработка {{completed}} из {{total}}...",
     add_to_contacts: "Добавить в контакты",
@@ -455,6 +466,85 @@ export const ru = {
     icon_group_money: "Деньги",
     icon_group_work: "Работа",
     icon_group_school: "Учёба",
+    color_red: "Красный",
+    color_orange: "Оранжевый",
+    color_amber: "Янтарный",
+    color_yellow: "Жёлтый",
+    color_lime: "Лаймовый",
+    color_green: "Зелёный",
+    color_emerald: "Изумрудный",
+    color_teal: "Бирюзовый",
+    color_cyan: "Голубой",
+    color_sky: "Небесный",
+    color_blue: "Синий",
+    color_indigo: "Индиго",
+    color_violet: "Фиолетовый",
+    color_purple: "Пурпурный",
+    color_fuchsia: "Фуксия",
+    color_pink: "Розовый",
+    color_rose: "Чайная роза",
+    tag_icon_tag: "Метка",
+    tag_icon_folder: "Папка",
+    tag_icon_star: "Звезда",
+    tag_icon_bookmark: "Закладка",
+    tag_icon_flag: "Флажок",
+    tag_icon_check: "Галочка",
+    tag_icon_bell: "Колокольчик",
+    tag_icon_heart: "Сердце",
+    tag_icon_sparkles: "Искры",
+    tag_icon_fire: "Огонь",
+    tag_icon_bolt: "Молния",
+    tag_icon_clock: "Часы",
+    tag_icon_info: "Информация",
+    tag_icon_warning: "Предупреждение",
+    tag_icon_envelope: "Конверт",
+    tag_icon_at: "Собака",
+    tag_icon_chat: "Чат",
+    tag_icon_send: "Отправить",
+    tag_icon_draft: "Черновик",
+    tag_icon_document: "Документ",
+    tag_icon_archive: "Архив",
+    tag_icon_trash: "Корзина",
+    tag_icon_shield: "Щит",
+    tag_icon_lock: "Замок",
+    tag_icon_eye_slash: "Скрыто",
+    tag_icon_currency: "Валюта",
+    tag_icon_money: "Деньги",
+    tag_icon_bank: "Банк",
+    tag_icon_card: "Карта",
+    tag_icon_wallet: "Кошелёк",
+    tag_icon_receipt: "Чек",
+    tag_icon_chart: "График",
+    tag_icon_cart: "Корзина покупок",
+    tag_icon_gift: "Подарок",
+    tag_icon_ticket: "Билет",
+    tag_icon_crypto: "Криптовалюта",
+    tag_icon_briefcase: "Портфель",
+    tag_icon_building: "Здание",
+    tag_icon_user: "Человек",
+    tag_icon_users: "Люди",
+    tag_icon_calendar: "Календарь",
+    tag_icon_clipboard: "Планшет",
+    tag_icon_presentation: "Презентация",
+    tag_icon_trophy: "Кубок",
+    tag_icon_code: "Код",
+    tag_icon_key: "Ключ",
+    tag_icon_link: "Ссылка",
+    tag_icon_package: "Посылка",
+    tag_icon_home: "Дом",
+    tag_icon_truck: "Грузовик",
+    tag_icon_map_pin: "Метка на карте",
+    tag_icon_camera: "Камера",
+    tag_icon_music: "Музыка",
+    tag_icon_cloud: "Облако",
+    tag_icon_sun: "Солнце",
+    tag_icon_moon: "Луна",
+    tag_icon_globe: "Глобус",
+    tag_icon_phone: "Телефон",
+    tag_icon_news: "Новости",
+    tag_icon_bulb: "Лампочка",
+    tag_icon_tools: "Инструменты",
+    tag_icon_ban: "Заблокировано",
     icon_group_everyday: "Повседневное",
     random: "Случайный",
     custom: "Пользовательский",
@@ -479,6 +569,7 @@ export const ru = {
       "Архивация не завершилась. Повторная попытка обычно помогает. Письма по-прежнему в почтовом ящике.",
     failed_to_unarchive_emails:
       "Перемещение во входящие не завершилось. Повторная попытка обычно помогает. Письма по-прежнему в архиве.",
+    keyboard_shortcut_label: "Сочетание клавиш: {shortcut}",
     something_went_wrong_try_again:
       "Это не сработало. Повторная попытка через мгновение обычно помогает.",
     something_went_wrong: "Произошла ошибка.",
@@ -536,6 +627,7 @@ export const ru = {
     no_contacts_with_emails: "Контакты с адресами электронной почты не найдены",
     join_aster_secure_email: "Присоединяйтесь ко мне в Aster: безопасной почте",
     email_sent: "Письмо отправлено.",
+    undo_send_too_late: "Это письмо уже отправлено, его нельзя отозвать.",
     email_sent_successfully: "Письмо успешно отправлено",
     scheduled_email_cancelled: "Запланированное письмо отменено",
     email_snoozed: "Письмо отложено",
@@ -638,6 +730,9 @@ export const ru = {
       "Пользовательские поля не загрузились. Повторная попытка обычно помогает.",
     failed_to_create_field:
       "Это пользовательское поле не сохранилось. Повторная попытка обычно помогает.",
+    delete_custom_field_title: "Delete custom field?",
+    delete_custom_field_message:
+      "Deleting this field also removes its values from every contact. You cannot undo this.",
     failed_to_delete_field:
       "Это пользовательское поле не удалено. Повторная попытка обычно помогает.",
     failed_to_save_value:
@@ -697,6 +792,7 @@ export const ru = {
     conversations_added_label:
       "{{count}} разговор(ов): метка {{label}} добавлена",
     already_in_folder: "Уже в {{folder}}",
+    cannot_move_from_view: "Из этого раздела нельзя переместить письма.",
     already_has_label: "Уже с меткой {{label}}",
     birthday_today: "Сегодня!",
     birthday_tomorrow: "Завтра",
@@ -727,6 +823,8 @@ export const ru = {
     importing_contacts: "Импорт контактов...",
     export_all: "Экспортировать всё",
     no_contacts: "Нет контактов",
+    failed_to_load_contacts: "Контакты не загрузились.",
+    mass_email_limited: "Добавлены только первые {{count}} адресов.",
     add_contacts_hint: "Добавьте контакты, чтобы начать",
     add_contact: "Добавить контакт",
     file_too_large:
@@ -742,6 +840,10 @@ export const ru = {
       "Это вложение нельзя открыть, потому что ключ шифрования недоступен на этом устройстве.",
     scheduled_no_attachments:
       "Запланированные письма пока не могут содержать вложения. Отправьте сейчас или удалите файлы, чтобы запланировать.",
+    scheduled_connected_account:
+      "Отложенная отправка недоступна для подключенных аккаунтов. Отправьте это сообщение сейчас или выберите адрес Aster.",
+    scheduled_no_expiry:
+      "Запланированные письма пока не поддерживают срок действия. Отправьте сейчас или уберите срок, чтобы запланировать отправку.",
     failed_to_merge_contacts:
       "Объединение не завершилось. Повторная попытка обычно помогает. Исходные контакты остаются без изменений.",
     merge_failed:
@@ -768,9 +870,8 @@ export const ru = {
     pinned_to_top: "Закреплено вверху",
     emails_snoozed_until: "{{count}} письм(о/а) отложено до {{time}}",
     emails_from_senders_archived:
-      "{{count}} письм(о/а) от {{senders}} отправителей архивировано",
-    emails_from_senders_deleted:
-      "{{count}} письм(о/а) от {{senders}} отправителей удалено",
+      "Архивировано {{count}} письма от {{senders}}",
+    emails_from_senders_deleted: "Удалено {{count}} письма от {{senders}}",
     emails_added_to_folder: "{{count}} письм(о/а) добавлено в {{folder}}",
     failed_to_snooze_emails:
       "Эти письма не отложены. Повторная попытка обычно помогает. Они по-прежнему в почтовом ящике.",
@@ -804,6 +905,8 @@ export const ru = {
     folder_plan_limit_reached:
       "Вы достигли лимита папок в текущем тарифе. Обновите план, чтобы создать больше.",
     authenticate_to_send: "Авторизуйтесь для отправки письма",
+    send_authentication_failed:
+      "Аутентификация не завершена, поэтому это письмо не отправлено.",
     failed_to_send_reply:
       "Этот ответ не отправился. Повторная попытка обычно помогает. Черновик сохранён.",
     failed_to_delete_draft:
@@ -824,7 +927,7 @@ export const ru = {
       "Этот файл настроек прочитать не удалось. Другой файл обычно подходит. Текущие настройки остаются без изменений.",
     removed_from_contacts: "Удалено из контактов",
     added_to_contacts: "Добавлено в контакты",
-    senders_emails_count: "{{senders}} отправитель(ей) ({{emails}} писем)",
+    senders_emails_count: "{{senders}} ({{emails}})",
     no_emails: "Писем здесь нет.",
     no_read_emails_to_archive: "Нет прочитанных писем для архивирования",
     no_unread_emails: "Нет непрочитанных писем",
@@ -961,6 +1064,9 @@ export const ru = {
       "Нажмите, чтобы зашифровать это сообщение сквозным шифрованием",
     click_to_disable_encryption:
       "Зашифровано - нажмите, чтобы отключить для этого сообщения",
+    encryption_status_unknown: "Статус шифрования недоступен",
+    encryption_status_unknown_desc:
+      "Не удалось проверить ключи этого получателя. Повторная попытка покажет, можно ли зашифровать это сообщение сквозным шифрованием.",
     end_to_end_encrypted_label: "Сквозное шифрование",
     encrypted_in_transit_stored: "Зашифровано при передаче и хранении.",
     only_you_and_sender: "Только вы и отправитель можете прочитать это.",
@@ -978,8 +1084,12 @@ export const ru = {
       "Связанную внешнюю учётную запись стоит подключить заново перед отправкой через неё. Этот раздел находится в Настройках, Подключённые аккаунты.",
     failed_to_send_via_external:
       "Отправка через связанную внешнюю учётную запись не сработала. Повторная попытка обычно помогает. Черновик сохранён.",
+    offline_change_failed:
+      "Не удалось сохранить изменение, сделанное без соединения.",
+    offline_send_failed:
+      "Не удалось отправить письмо, написанное без соединения.",
     offline_email_queued:
-      "Сейчас нет соединения. Это письмо уйдёт сразу после восстановления связи. Черновик сохранён.",
+      "Сейчас нет соединения. Это письмо уйдёт сразу после восстановления связи.",
     failed_to_queue_offline:
       "Поставить это письмо в очередь на отправку позже не удалось. Повторная попытка обычно помогает. Черновик сохранён.",
     cannot_mix_recipients:
@@ -1022,6 +1132,8 @@ export const ru = {
     encrypted_attachment: "Зашифрованное вложение",
     forward_attachments_locked:
       "У некоторых вложений нет ключа шифрования, поэтому они не включены в это письмо.",
+    forward_attachments_unavailable:
+      "Некоторые вложения не удалось добавить в это сообщение.",
     image: "Изображение",
     system: "Система",
     failed_to_permanently_delete:
@@ -1033,8 +1145,13 @@ export const ru = {
     failed_to_mark_as_unread:
       "Эти письма по-прежнему отмечены как прочитанные. Повторная попытка обычно помогает.",
     n_conversations_archived: "{{ count }} разговоров архивировано",
+    n_conversations_archived_one: "{{count}} беседа архивирована",
+    n_conversations_archived_other: "{{count}} беседы архивированы",
     n_conversations_moved_to_trash:
       "{{ count }} разговоров перемещено в корзину",
+    n_conversations_moved_to_trash_one: "{{count}} беседа перемещена в корзину",
+    n_conversations_moved_to_trash_other:
+      "{{count}} беседы перемещены в корзину",
     n_conversations_marked_as_spam: "{{ count }} разговоров отмечено как спам",
     internal_only: "Только внутренние",
     external_only: "Только внешние",
@@ -1052,6 +1169,12 @@ export const ru = {
     emoji_hearts: "Сердечки",
     emoji_celebration: "Праздники",
     emoji_symbols: "Символы",
+    emoji_animals: "Животные",
+    emoji_food: "Еда",
+    emoji_travel: "Путешествия",
+    emoji_objects: "Объекты",
+    emoji_activities: "Активности",
+    emoji_flags: "Флаги",
     no_emojis_found: "Эмодзи не найдены",
     item_copied: "{{ label }} скопировано",
     copied_item: "Скопировано {{ label }}",
@@ -1115,15 +1238,15 @@ export const ru = {
     enter_pin_to_unlock: "Введите PIN для разблокировки",
     wrong_pin: "Неверный PIN",
     app_lock_locked_out: "Слишком много неверных попыток",
-    app_lock_attempts_remaining: "Осталось {{n}} попытка(-ок)",
+    app_lock_attempts_remaining: "Осталось {{count}} попытки",
     app_lock_try_again_in: "Повторите через {{s}}с",
-    duress_confirm_title: "Are you sure?",
-    duress_confirm_subtitle: "Erase local data",
+    duress_confirm_title: "Вы уверены?",
+    duress_confirm_subtitle: "Стереть локальные данные",
     duress_confirm_desc:
-      "This will erase all locally stored mail, keys, and session data from this device and sign you out.",
+      "С этого устройства будут стёрты все локально сохранённые письма, ключи и данные сессии, а вы выйдете из аккаунта.",
     duress_confirm_detail:
-      "Your account and encrypted data remain safely on Aster's servers. You can sign back in at any time to restore access.",
-    duress_confirm_proceed: "Erase local data",
+      "Ваш аккаунт и зашифрованные данные останутся в сохранности на серверах Aster. Вы сможете войти снова в любой момент.",
+    duress_confirm_proceed: "Стереть локальные данные",
     secure_send: "Безопасная отправка",
     push_notifications: "Push-уведомления",
     enabled: "Включено",
@@ -1261,7 +1384,7 @@ export const ru = {
     load_more: "Загрузить ещё",
     selected_count: "Выбрано: {{ count }}",
     call: "Позвонить",
-    email_section: "Email",
+    email_section: "Эл. почта",
     phone_section: "Телефон",
     work_section: "Работа",
     birthday_section: "День рождения",
@@ -1380,7 +1503,7 @@ export const ru = {
     platform_label: "Платформа",
     viewport_label: "Видимая область",
     screen_label: "Экран",
-    user_agent_label: "User Agent",
+    user_agent_label: "User-Agent",
     cc_bcc_label: "Копия/СК",
     secured_by_aster_mail: "Защищено",
     press_shortcut_to_send: "Нажмите ⌘+Enter для отправки",
@@ -1437,8 +1560,8 @@ export const ru = {
     add_contacts_quick_email_hint:
       "Добавьте контакты, чтобы быстро писать людям, с которыми часто общаетесь",
     no_contacts_match: "Нет контактов по запросу «{{ query }}»",
-    contact_count_one: "{{ count }} контакт",
-    contact_count_other: "{{ count }} контактов",
+    contact_count_one: "{{count}} контакт",
+    contact_count_other: "{{count}} контакта",
     n_of_n_contacts: "{{ filtered }} из {{ total }}",
     send_email: "Отправить email",
     folder_preview: "Предпросмотр папки",
@@ -1574,7 +1697,7 @@ export const ru = {
       "Изображение не загрузилось. Обычно помогает обновление страницы.",
     image_processing_failed:
       "Не удалось подготовить изображение. Попробуйте другой файл.",
-    images_count: "{{count}} изображение",
+    images_count: "{{count}} изображения",
     images_count_plural: "{{count}} изображений",
     import_n_contacts: "Импортировать {{count}} контактов",
     import_one_contact: "Импортировать 1 контакт",
@@ -1724,6 +1847,9 @@ export const ru = {
     unknown_merchant: "Неизвестный продавец",
     unknown_rotation_error:
       "Обновление ключей не завершилось. Попробуйте ещё раз. Старые ключи работают, данные в безопасности.",
+    unsaved_changes_title: "Отменить изменения?",
+    unsaved_changes_body:
+      "Введённые данные не сохранены. Если закрыть форму сейчас, они будут удалены.",
     unknown_sender: "Неизвестный",
     unlock_with_biometry: "Разблокировать с помощью {{name}}",
     unpin_preferred_sender: "Открепить предпочтительного отправителя",
@@ -1735,7 +1861,300 @@ export const ru = {
       "Зашифровано с использованием опубликованного публичного ключа получателя.",
     x_of_y: "{{ current }} из {{ total }}",
     yourname_placeholder: "вашеимя",
-    or: "or",
+    or: "или",
+    help: "Справка",
+    go_to_inbox: "Перейти во входящие",
+    removing: "Удаление...",
+    upgrade_tooltip: "Больше места, псевдонимов и собственных доменов",
+    dns_host_leave_blank: "Оставьте пустым",
+    dns_host_provider_hint:
+      "{{provider}} использует такой формат для поля хоста. Скопируйте его точно.",
+    purchase_congrats_title: "Поздравляем",
+    recipient_key_outdated: "Ключ получателя устарел",
+    recipient_key_outdated_desc:
+      "Опубликованный ключ этого получателя истёк или недействителен, поэтому сквозное шифрование невозможно. Письмо будет защищено только при передаче.",
+    post_quantum_unavailable_title: "Отправить без постквантового шифрования?",
+    post_quantum_send_anyway: "Всё равно отправить",
+    post_quantum_unavailable_message:
+      "{{recipients}} ещё не опубликовал постквантовые ключи, поэтому письмо может использовать только обычное сквозное шифрование. Попросите его открыть Aster или обновить приложение.",
+    too_many_attachments:
+      "В одно письмо помещается {{count}} вложений. Остальные отправьте отдельным письмом.",
+    more_folders_one: "ещё {{count}} папка",
+    more_folders_few: "ещё {{count}} папки",
+    more_folders_many: "ещё {{count}} папок",
+    more_folders_other: "ещё {{count}} папки",
+    more_labels_one: "ещё {{count}} ярлык",
+    more_labels_few: "ещё {{count}} ярлыка",
+    more_labels_many: "ещё {{count}} ярлыков",
+    more_labels_other: "ещё {{count}} ярлыка",
+    more_aliases_one: "ещё {{count}} псевдоним",
+    more_aliases_few: "ещё {{count}} псевдонима",
+    more_aliases_many: "ещё {{count}} псевдонимов",
+    more_aliases_other: "ещё {{count}} псевдонима",
+    in_x_minutes_one: "Через {{count}} минуту",
+    in_x_minutes_few: "Через {{count}} минуты",
+    in_x_minutes_many: "Через {{count}} минут",
+    in_x_minutes_other: "Через {{count}} минуты",
+    minutes_remaining_one: "Осталась {{count}} минута",
+    minutes_remaining_few: "Осталось {{count}} минуты",
+    minutes_remaining_many: "Осталось {{count}} минут",
+    minutes_remaining_other: "Осталось {{count}} минуты",
+    hours_remaining_one: "Осталась {{count}} час",
+    hours_remaining_few: "Осталось {{count}} часа",
+    hours_remaining_many: "Осталось {{count}} часов",
+    hours_remaining_other: "Осталось {{count}} часа",
+    days_remaining_one: "Осталась {{count}} день",
+    days_remaining_few: "Осталось {{count}} дня",
+    days_remaining_many: "Осталось {{count}} дней",
+    days_remaining_other: "Осталось {{count}} дня",
+    weeks_remaining_one: "Осталась {{count}} неделя",
+    weeks_remaining_few: "Осталось {{count}} недели",
+    weeks_remaining_many: "Осталось {{count}} недель",
+    weeks_remaining_other: "Осталось {{count}} недели",
+    minutes_ago_long_one: "{{count}} минута назад",
+    minutes_ago_long_few: "{{count}} минуты назад",
+    minutes_ago_long_many: "{{count}} минут назад",
+    minutes_ago_long_other: "{{count}} минуты назад",
+    hours_ago_long_one: "{{count}} час назад",
+    hours_ago_long_few: "{{count}} часа назад",
+    hours_ago_long_many: "{{count}} часов назад",
+    hours_ago_long_other: "{{count}} часа назад",
+    days_ago_long_one: "{{count}} день назад",
+    days_ago_long_few: "{{count}} дня назад",
+    days_ago_long_many: "{{count}} дней назад",
+    days_ago_long_other: "{{count}} дня назад",
+    weeks_ago_long_one: "{{count}} неделя назад",
+    weeks_ago_long_few: "{{count}} недели назад",
+    weeks_ago_long_many: "{{count}} недель назад",
+    weeks_ago_long_other: "{{count}} недели назад",
+    months_ago_long_one: "{{count}} месяц назад",
+    months_ago_long_few: "{{count}} месяца назад",
+    months_ago_long_many: "{{count}} месяцев назад",
+    months_ago_long_other: "{{count}} месяца назад",
+    emails_marked_as_read_one: "{{count}} письмо помечено как прочитанное",
+    emails_marked_as_read_few: "{{count}} письма помечены как прочитанные",
+    emails_marked_as_read_many: "{{count}} писем помечены как прочитанные",
+    emails_marked_as_read_other: "{{count}} письма помечены как прочитанные",
+    emails_archived_one: "{{count}} письмо архивировано",
+    emails_archived_few: "{{count}} письма архивированы",
+    emails_archived_many: "{{count}} писем архивированы",
+    emails_archived_other: "{{count}} письма архивированы",
+    emails_moved_to_trash_one: "{{count}} письмо перемещено в корзину",
+    emails_moved_to_trash_few: "{{count}} письма перемещены в корзину",
+    emails_moved_to_trash_many: "{{count}} писем перемещены в корзину",
+    emails_moved_to_trash_other: "{{count}} письма перемещены в корзину",
+    emails_starred_one: "{{count}} письмо отмечено звёздочкой",
+    emails_starred_few: "{{count}} письма отмечены звёздочкой",
+    emails_starred_many: "{{count}} писем отмечены звёздочкой",
+    emails_starred_other: "{{count}} письма отмечены звёздочкой",
+    emails_unstarred_one: "{{count}} письмо без звёздочки",
+    emails_unstarred_few: "{{count}} письма без звёздочки",
+    emails_unstarred_many: "{{count}} писем без звёздочки",
+    emails_unstarred_other: "{{count}} письма без звёздочки",
+    emails_permanently_deleted_one: "{{count}} письмо удалено навсегда",
+    emails_permanently_deleted_few: "{{count}} письма удалены навсегда",
+    emails_permanently_deleted_many: "{{count}} писем удалены навсегда",
+    emails_permanently_deleted_other: "{{count}} письма удалены навсегда",
+    emails_snoozed_until_one: "{{count}} письмо отложено до {{time}}",
+    emails_snoozed_until_few: "{{count}} письма отложены до {{time}}",
+    emails_snoozed_until_many: "{{count}} писем отложены до {{time}}",
+    emails_snoozed_until_other: "{{count}} письма отложены до {{time}}",
+    emails_added_to_folder_one: "{{count}} письмо добавлено в {{folder}}",
+    emails_added_to_folder_few: "{{count}} письма добавлены в {{folder}}",
+    emails_added_to_folder_many: "{{count}} писем добавлены в {{folder}}",
+    emails_added_to_folder_other: "{{count}} письма добавлены в {{folder}}",
+    emails_will_reappear_one: "{{count}} письмо появится снова {{time}}",
+    emails_will_reappear_few: "{{count}} письма появятся снова {{time}}",
+    emails_will_reappear_many: "{{count}} писем появятся снова {{time}}",
+    emails_will_reappear_other: "{{count}} письма появятся снова {{time}}",
+    drafts_deleted_one: "{{count}} черновик удалён навсегда",
+    drafts_deleted_few: "{{count}} черновика удалены навсегда",
+    drafts_deleted_many: "{{count}} черновиков удалены навсегда",
+    drafts_deleted_other: "{{count}} черновика удалены навсегда",
+    spam_emails_moved_to_trash_one:
+      "{{count}} спам-письмо перемещено в корзину",
+    spam_emails_moved_to_trash_few:
+      "{{count}} спам-письма перемещены в корзину",
+    spam_emails_moved_to_trash_many:
+      "{{count}} спам-писем перемещены в корзину",
+    spam_emails_moved_to_trash_other:
+      "{{count}} спам-письма перемещены в корзину",
+    spam_emails_permanently_deleted_one:
+      "{{count}} спам-письмо удалено навсегда",
+    spam_emails_permanently_deleted_few:
+      "{{count}} спам-письма удалены навсегда",
+    spam_emails_permanently_deleted_many:
+      "{{count}} спам-писем удалены навсегда",
+    spam_emails_permanently_deleted_other:
+      "{{count}} спам-письма удалены навсегда",
+    newsletters_archived_one: "{{count}} рассылка архивирована",
+    newsletters_archived_few: "{{count}} рассылки архивированы",
+    newsletters_archived_many: "{{count}} рассылок архивированы",
+    newsletters_archived_other: "{{count}} рассылки архивированы",
+    conversations_marked_as_spam_bulk_one: "{{count}} беседа помечена как спам",
+    conversations_restored_bulk_one: "{{count}} беседа восстановлена",
+    conversations_snoozed_bulk_one: "{{count}} беседа отложена",
+    conversations_marked_as_read_bulk_one:
+      "{{count}} беседа помечена как прочитанная",
+    conversations_marked_as_unread_bulk_one:
+      "{{count}} беседа помечена как непрочитанная",
+    conversations_starred_bulk_one: "{{count}} беседа отмечена звёздочкой",
+    conversations_unstarred_bulk_one: "{{count}} беседа без звёздочки",
+    conversations_moved_to_inbox_bulk_one:
+      "{{count}} беседа перемещена во входящие",
+    conversations_marked_as_not_spam_bulk_one:
+      "{{count}} беседа помечена как не спам",
+    conversations_removed_from_folder_one:
+      "{{count}} беседа удалена из {{folder}}",
+    conversations_moved_to_folder_one:
+      "{{count}} беседа перемещена в {{folder}}",
+    conversations_removed_label_one: "{{count}} беседа: ярлык {{label}} удалён",
+    conversations_added_label_one: "{{count}} беседа: ярлык {{label}} добавлен",
+    conversations_marked_as_spam_bulk_few: "{{count}} беседы помечены как спам",
+    conversations_restored_bulk_few: "{{count}} беседы восстановлены",
+    conversations_snoozed_bulk_few: "{{count}} беседы отложены",
+    conversations_marked_as_read_bulk_few:
+      "{{count}} беседы помечены как прочитанные",
+    conversations_marked_as_unread_bulk_few:
+      "{{count}} беседы помечены как непрочитанные",
+    conversations_starred_bulk_few: "{{count}} беседы отмечены звёздочкой",
+    conversations_unstarred_bulk_few: "{{count}} беседы без звёздочки",
+    conversations_moved_to_inbox_bulk_few:
+      "{{count}} беседы перемещены во входящие",
+    conversations_marked_as_not_spam_bulk_few:
+      "{{count}} беседы помечены как не спам",
+    conversations_removed_from_folder_few:
+      "{{count}} беседы удалены из {{folder}}",
+    conversations_moved_to_folder_few:
+      "{{count}} беседы перемещены в {{folder}}",
+    conversations_removed_label_few: "{{count}} беседы: ярлык {{label}} удалён",
+    conversations_added_label_few: "{{count}} беседы: ярлык {{label}} добавлен",
+    conversations_marked_as_spam_bulk_many: "{{count}} бесед помечены как спам",
+    conversations_restored_bulk_many: "{{count}} бесед восстановлены",
+    conversations_snoozed_bulk_many: "{{count}} бесед отложены",
+    conversations_marked_as_read_bulk_many:
+      "{{count}} бесед помечены как прочитанные",
+    conversations_marked_as_unread_bulk_many:
+      "{{count}} бесед помечены как непрочитанные",
+    conversations_starred_bulk_many: "{{count}} бесед отмечены звёздочкой",
+    conversations_unstarred_bulk_many: "{{count}} бесед без звёздочки",
+    conversations_moved_to_inbox_bulk_many:
+      "{{count}} бесед перемещены во входящие",
+    conversations_marked_as_not_spam_bulk_many:
+      "{{count}} бесед помечены как не спам",
+    conversations_removed_from_folder_many:
+      "{{count}} бесед удалены из {{folder}}",
+    conversations_moved_to_folder_many:
+      "{{count}} бесед перемещены в {{folder}}",
+    conversations_removed_label_many: "{{count}} бесед: ярлык {{label}} удалён",
+    conversations_added_label_many: "{{count}} бесед: ярлык {{label}} добавлен",
+    conversations_marked_as_spam_bulk_other:
+      "{{count}} беседы помечены как спам",
+    conversations_restored_bulk_other: "{{count}} беседы восстановлены",
+    conversations_snoozed_bulk_other: "{{count}} беседы отложены",
+    conversations_marked_as_read_bulk_other:
+      "{{count}} беседы помечены как прочитанные",
+    conversations_marked_as_unread_bulk_other:
+      "{{count}} беседы помечены как непрочитанные",
+    conversations_starred_bulk_other: "{{count}} беседы отмечены звёздочкой",
+    conversations_unstarred_bulk_other: "{{count}} беседы без звёздочки",
+    conversations_moved_to_inbox_bulk_other:
+      "{{count}} беседы перемещены во входящие",
+    conversations_marked_as_not_spam_bulk_other:
+      "{{count}} беседы помечены как не спам",
+    conversations_removed_from_folder_other:
+      "{{count}} беседы удалены из {{folder}}",
+    conversations_moved_to_folder_other:
+      "{{count}} беседы перемещены в {{folder}}",
+    conversations_removed_label_other:
+      "{{count}} беседы: ярлык {{label}} удалён",
+    conversations_added_label_other:
+      "{{count}} беседы: ярлык {{label}} добавлен",
+    contacts_deleted_one: "{{count}} контакт удалён",
+    contacts_deleted_few: "{{count}} контакта удалены",
+    contacts_deleted_many: "{{count}} контактов удалены",
+    contacts_deleted_other: "{{count}} контакта удалены",
+    contacts_starred_one: "{{count}} контакт отмечен звёздочкой",
+    contacts_starred_few: "{{count}} контакта отмечены звёздочкой",
+    contacts_starred_many: "{{count}} контактов отмечены звёздочкой",
+    contacts_starred_other: "{{count}} контакта отмечены звёздочкой",
+    contacts_unstarred_one: "Звёздочка снята с {{count}} контакта",
+    contacts_unstarred_few: "Звёздочка снята с {{count}} контактов",
+    contacts_unstarred_many: "Звёздочка снята с {{count}} контактов",
+    contacts_unstarred_other: "Звёздочка снята с {{count}} контактов",
+    taps_to_developer_mode_one:
+      "Осталось {{count}} нажатие до режима разработчика",
+    taps_to_developer_mode_few:
+      "Осталось {{count}} нажатия до режима разработчика",
+    taps_to_developer_mode_many:
+      "Осталось {{count}} нажатий до режима разработчика",
+    taps_to_developer_mode_other:
+      "Осталось {{count}} нажатия до режима разработчика",
+    delete_contacts_confirmation_one:
+      "Удалить {{count}} контакт? Это действие нельзя отменить.",
+    delete_contacts_confirmation_few:
+      "Удалить {{count}} контакта? Это действие нельзя отменить.",
+    delete_contacts_confirmation_many:
+      "Удалить {{count}} контактов? Это действие нельзя отменить.",
+    delete_contacts_confirmation_other:
+      "Удалить {{count}} контакта? Это действие нельзя отменить.",
+    sender_count_one: "{{count}} отправителя",
+    sender_count_few: "{{count}} отправителей",
+    sender_count_many: "{{count}} отправителей",
+    sender_count_other: "{{count}} отправителей",
+    email_count_one: "{{count}} письмо",
+    email_count_few: "{{count}} письма",
+    email_count_many: "{{count}} писем",
+    email_count_other: "{{count}} письма",
+    entry_count_one: "{{count}} запись",
+    entry_count_few: "{{count}} записи",
+    entry_count_many: "{{count}} записей",
+    entry_count_other: "{{count}} записи",
+    file_count_one: "{{count}} файл",
+    file_count_few: "{{count}} файла",
+    file_count_many: "{{count}} файлов",
+    file_count_other: "{{count}} файла",
+    emails_from_senders_archived_one:
+      "Архивировано {{count}} письмо от {{senders}}",
+    emails_from_senders_archived_few:
+      "Архивировано {{count}} письма от {{senders}}",
+    emails_from_senders_archived_many:
+      "Архивировано {{count}} писем от {{senders}}",
+    emails_from_senders_archived_other:
+      "Архивировано {{count}} письма от {{senders}}",
+    emails_from_senders_deleted_one: "Удалено {{count}} письмо от {{senders}}",
+    emails_from_senders_deleted_few: "Удалено {{count}} письма от {{senders}}",
+    emails_from_senders_deleted_many: "Удалено {{count}} писем от {{senders}}",
+    emails_from_senders_deleted_other:
+      "Удалено {{count}} письма от {{senders}}",
+    app_lock_attempts_remaining_one: "Осталась {{count}} попытка",
+    app_lock_attempts_remaining_few: "Осталось {{count}} попытки",
+    app_lock_attempts_remaining_many: "Осталось {{count}} попыток",
+    app_lock_attempts_remaining_other: "Осталось {{count}} попытки",
+    sender_count: "{{count}} отправителей",
+    email_count: "{{count}} письма",
+    entry_count: "{{count}} записи",
+    file_count: "{{count}} файла",
+    images_count_one: "{{count}} изображение",
+    images_count_few: "{{count}} изображения",
+    images_count_many: "{{count}} изображений",
+    images_count_other: "{{count}} изображения",
+    contact_count_few: "{{count}} контакта",
+    contact_count_many: "{{count}} контактов",
+    contact_count: "{{count}} контакта",
+    tray_show: "Показать Aster Mail",
+    tray_quit: "Выйти",
+    tray_troubleshooting: "Если окно пустое",
+    tray_compat_on: "Перезапустить в режиме совместимости",
+    tray_compat_off: "Перезапустить с аппаратным ускорением",
+    tray_display_reset: "Сбросить кеш отображения и перезапустить",
+    push_new_message: "У вас новое сообщение",
+    too_many_recipients_in_field:
+      "В каждое поле Кому, Копия и Скрытая копия помещается не более {{max}} адресов. Перенесите часть во второе письмо, чтобы отправить это.",
+    too_many_recipients_in_message:
+      "Одно письмо доходит максимум до {{max}} адресов в полях Кому, Копия и Скрытая копия. Разделите список на несколько писем, и отправка пройдет.",
+    credit_balance_changed:
+      "Баланс кредитов изменился, пока была открыта страница оплаты. Закройте оплату и начните заново, чтобы применить текущий баланс.",
   },
   settings: {
     purge_locked_folder_on_delete: "Уничтожать содержимое защищённых папок",
@@ -1933,7 +2352,7 @@ export const ru = {
     fam_org_invite_this_member: "Этот участник",
     fam_org_invite_available: "Доступно",
     fam_org_invite_over: "Превышен лимит пула",
-    app_lock_attempts_remaining: "Осталось попыток: {{n}}",
+    app_lock_attempts_remaining: "Осталось {{count}} попытки",
     app_lock_choose_mode: "Выберите тип блокировки",
     app_lock_mode_numeric: "Цифровой PIN",
     app_lock_mode_numeric_desc: "Использовать числовой код",
@@ -1946,31 +2365,35 @@ export const ru = {
       "Кодовые фразы не совпадают. Попробуйте снова.",
     app_lock_passphrase_too_short:
       "Кодовая фраза должна содержать не менее 4 символов",
-    duress_pin: "Duress PIN",
+    duress_pin: "PIN-код принуждения",
     duress_pin_description:
-      "A hidden PIN that erases local data instead of unlocking",
-    duress_pin_setup: "Set up",
-    duress_pin_change: "Change duress PIN",
-    duress_pin_remove: "Remove",
-    duress_pin_verify_identity: "Verify your identity",
+      "Скрытый PIN-код, который стирает локальные данные вместо разблокировки",
+    duress_pin_setup: "Настроить",
+    duress_pin_change: "Изменить PIN-код принуждения",
+    duress_pin_remove: "Удалить",
+    duress_pin_verify_identity: "Подтвердите личность",
     duress_pin_verify_identity_desc:
-      "Enter your account password to set up a duress PIN.",
+      "Введите пароль аккаунта, чтобы настроить PIN-код принуждения.",
     duress_pin_verify_identity_totp_desc:
-      "Enter your account password and 2FA code.",
-    duress_pin_password_label: "Account password",
-    duress_pin_totp_label: "2FA code",
-    duress_pin_set: "Set duress PIN",
-    duress_pin_confirm: "Confirm duress PIN",
-    duress_pin_enabled_toast: "Duress PIN set",
-    duress_pin_disabled_toast: "Duress PIN removed",
-    duress_pin_changed_toast: "Duress PIN updated",
-    duress_pin_matches_regular: "Duress PIN cannot match your regular PIN",
-    duress_pin_enter_to_remove: "Enter your duress PIN to remove it",
-    duress_pin_invalid_credentials: "Incorrect password or 2FA code",
-    duress_pin_how_it_works: "How your duress PIN works",
+      "Введите пароль аккаунта и код двухфакторной аутентификации.",
+    duress_pin_password_label: "Пароль аккаунта",
+    duress_pin_totp_label: "Код двухфакторной аутентификации",
+    duress_pin_set: "Задать PIN-код принуждения",
+    duress_pin_confirm: "Подтвердите PIN-код принуждения",
+    duress_pin_enabled_toast: "PIN-код принуждения задан",
+    duress_pin_disabled_toast: "PIN-код принуждения удалён",
+    duress_pin_cleared_length_change:
+      "PIN-код принуждения удалён, потому что изменился формат блокировки. Настройте его заново.",
+    duress_pin_changed_toast: "PIN-код принуждения обновлён",
+    duress_pin_matches_regular:
+      "PIN-код принуждения не должен совпадать с обычным",
+    duress_pin_enter_to_remove:
+      "Введите PIN-код принуждения, чтобы удалить его",
+    duress_pin_invalid_credentials: "Неверный пароль или код аутентификации",
+    duress_pin_how_it_works: "Как работает PIN-код принуждения",
     duress_pin_how_it_works_body:
-      "If you ever enter this PIN on the lock screen, Aster Mail will immediately erase all locally stored data from this device and sign you out. Your account is not deleted - your encrypted mail and data remain on Aster's servers and can be restored by signing back in.",
-    duress_pin_confirm_setup: "Set up duress PIN",
+      "Если вы введёте этот PIN-код на экране блокировки, Aster Mail немедленно сотрёт все данные, сохранённые на этом устройстве, и выполнит выход. Аккаунт при этом не удаляется: зашифрованная почта и данные остаются на серверах Aster и восстанавливаются при повторном входе.",
+    duress_pin_confirm_setup: "Настроить PIN-код принуждения",
     inbox_categories: "Категории входящих",
     inbox_categories_short: "Сортируйте входящие по вкладкам",
     inbox_categories_description:
@@ -1996,6 +2419,12 @@ export const ru = {
       "Подтверждения заказов, обновления доставки и уведомления о вручении.",
     category_info_custom:
       "Письма, соответствующие вашим правилам для этой категории.",
+    muted_categories:
+      "Отключённые категории",
+    muted_categories_description:
+      "Включите категорию, чтобы отключить её уведомления. Отключённые категории продолжают получать почту и отображаются во входящих.",
+    muted_categories_empty:
+      "Включите категории входящих, чтобы выбрать, какие из них отключить.",
     custom_categories_title: "Пользовательские категории",
     custom_categories_tutorial:
       "Создайте свою категорию. Сопоставляйте письма по домену отправителя или ключевому слову в теме.",
@@ -2071,7 +2500,7 @@ export const ru = {
     family_invite_pending: "Ожидание",
     family_invite_revoke: "Отозвать",
     family_invite_wrong_recipient:
-      "This invite was sent to a different address. Ask the sender to share the invite link directly instead.",
+      "Это приглашение отправлено на другой адрес. Попросите отправителя поделиться ссылкой напрямую.",
     family_member_owner: "Владелец",
     family_member_member: "Участник",
     family_member_grace: "Льготный период",
@@ -2152,6 +2581,23 @@ export const ru = {
     family_duo_tagline: "2 участника - для пар и партнёров",
     family_plan_tagline: "До 6 участников",
     family_shared_aliases: "Общие семейные псевдонимы",
+    family_feat_members_2: "2 участника, отдельные аккаунты",
+    family_feat_members_6: "До 6 участников, отдельные аккаунты",
+    family_feat_everything_nova: "Всё из Nova для каждого участника",
+    family_feat_everything_supernova: "Всё из Supernova для каждого участника",
+    family_feat_pool_1tb:
+      "1 ТБ общего хранилища, приватно распределяемого между участниками",
+    family_feat_pool_3tb:
+      "3 ТБ общего хранилища, приватно распределяемого между участниками",
+    family_feat_invite: "Приглашение по ссылке или почте",
+    family_feat_domain_sharing: "Общие домены для всех участников",
+    family_feat_security_policies: "Политики безопасности (обязательная 2FA)",
+    family_feat_admin_transfer: "Передача роли администратора",
+    family_feat_org_groups: "Группы и списки рассылки",
+    family_feat_activity_log: "Журнал действий и аудит",
+    family_feat_org_filters: "Почтовые фильтры для всей организации",
+    family_feat_retention: "Политики хранения данных",
+    family_feat_storage_controls: "Управление хранилищем для каждого участника",
     family_admin_controls: "Управление хранилищем для каждого участника",
     family_tab_overview: "Обзор",
     family_tab_members: "Участники",
@@ -2174,7 +2620,7 @@ export const ru = {
     family_groups_load_failed: "Не удалось загрузить группы",
     family_groups_create_failed: "Не удалось создать группу",
     family_groups_delete_failed: "Не удалось удалить группу",
-    family_activity_events: "{{count}} событие",
+    family_activity_events: "{{count}} события",
     family_activity_events_plural: "{{count}} событий",
     family_activity_all_events: "Все события",
     family_activity_empty: "Активности пока нет.",
@@ -2232,7 +2678,8 @@ export const ru = {
     family_security_save_failed: "Не удалось сохранить политику безопасности",
     family_security_load_failed: "Не удалось загрузить настройки безопасности",
     family_security_compliance: "Соответствие требованиям участников",
-    family_security_warning_2fa: "{{count}} участник не включил 2FA",
+    family_security_warning_2fa:
+      "{{count}} участника не включили двухфакторную аутентификацию",
     family_security_warning_2fa_plural: "{{count}} участников не включили 2FA",
     family_retention_subtitle:
       "Автоматически удалять старые сообщения по истечении заданного числа дней. Оставьте пустым, чтобы хранить бессрочно.",
@@ -2288,11 +2735,14 @@ export const ru = {
     alias_orphaned_hint:
       "Его название зашифровано вашим прежним паролем, поэтому это устройство не может его прочитать. Если вы помните адрес, название можно восстановить. Письма на этот адрес по-прежнему приходят, а полный адрес виден в заголовке каждого доставленного сообщения.",
     alias_restore_action: "Восстановить псевдоним",
-    alias_restore_prompt: "Введите адрес. Aster сверит его с этим псевдонимом, прежде чем восстановить название.",
+    alias_restore_prompt:
+      "Введите адрес. Aster сверит его с этим псевдонимом, прежде чем восстановить название.",
     alias_restore_placeholder: "Адрес",
     alias_restore_confirm: "Восстановить",
-    alias_restore_mismatch: "Этот адрес не совпадает с псевдонимом. Проверьте заголовок доставленного сообщения.",
-    alias_restore_failed: "Не удалось восстановить псевдоним. Повторите попытку.",
+    alias_restore_mismatch:
+      "Этот адрес не совпадает с псевдонимом. Проверьте заголовок доставленного сообщения.",
+    alias_restore_failed:
+      "Не удалось восстановить псевдоним. Повторите попытку.",
     recently_deleted_load_failed:
       "Не удалось загрузить недавно удалённые псевдонимы. Повторите попытку.",
     ghost_aliases_info:
@@ -2548,6 +2998,14 @@ export const ru = {
     alias_directory_available: "Этот каталог доступен.",
     alias_directory_not_available: "Этот каталог уже занят.",
     alias_directory_removed: "Каталог удалён",
+    alias_directory_separator_hint:
+      "Перед именем каталога можно поставить точку, косую черту, плюс или знак номера.",
+    alias_bulk_enabled: "Выбранные псевдонимы включены.",
+    alias_bulk_disabled: "Выбранные псевдонимы выключены.",
+    alias_bulk_update_partial_failed:
+      "Не удалось обновить {{count}} из {{total}} псевдонимов.",
+    alias_bulk_delete_partial_failed:
+      "Не удалось удалить {{count}} из {{total}} псевдонимов. Псевдоним можно удалить через 30 дней после создания.",
     alias_directory_create_failed:
       "Этот каталог не был создан. Попробуйте снова.",
     alias_directory_auto_create: "Автосоздание псевдонимов",
@@ -2628,7 +3086,7 @@ export const ru = {
     alias_export_warning_title: "Этот файл не зашифрован",
     alias_export_warning_body:
       "Любой, кто его откроет, увидит все псевдонимы, заметки и сайты. Храните его в менеджере паролей или на зашифрованном диске.",
-    alias_export_summary: "Записей: {{rows}}, файлов: {{files}}.",
+    alias_export_summary: "{{count}} записи в {{files}}.",
     alias_export_download: "Скачать",
     alias_export_incomplete:
       "Загружено только {{loaded}} из {{total}} псевдонимов. Обновите список псевдонимов и повторите попытку, чтобы резервная копия была полной.",
@@ -2824,7 +3282,7 @@ export const ru = {
     fam_org_activity_storage_updated:
       "{{actor}} обновил хранилище для {{target}}",
     fam_org_activity_storage_updated_generic: "{{actor}} обновил хранилище",
-    fam_org_activity_events: "{{count}} событие",
+    fam_org_activity_events: "{{count}} события",
     fam_org_activity_events_plural: "{{count}} событий",
     fam_org_activity_search_placeholder: "Поиск активности...",
     fam_org_activity_all_events: "Все события",
@@ -2918,7 +3376,8 @@ export const ru = {
     fam_org_domains_share_failed: "Не удалось предоставить домен",
     fam_org_domains_revoke_failed: "Не удалось отозвать доступ к домену",
     fam_org_domains_load_failed: "Не удалось загрузить домены",
-    fam_org_2fa_banner: "{{count}} участник не включил 2FA",
+    fam_org_2fa_banner:
+      "{{count}} участника не включили двухфакторную аутентификацию",
     fam_org_2fa_banner_plural: "{{count}} участников не включили 2FA",
     fam_org_2fa_send_reminder: "Отправить напоминание",
     fam_org_2fa_sending: "Отправка...",
@@ -2968,7 +3427,7 @@ export const ru = {
     fam_org_sec_2fa_badge: "2FA",
     fam_org_sec_no_2fa_badge: "Без 2FA",
     fam_org_sec_imap_badge: "IMAP",
-    fam_org_sec_session_count: "{{count}} активный сеанс",
+    fam_org_sec_session_count: "{{count}} активных сеанса",
     fam_org_sec_session_count_plural: "{{count}} активных сеансов",
     fam_org_sec_no_sessions: "Нет активных сеансов",
     fam_org_sec_last_seen: "последний раз в сети {{time}}",
@@ -3068,7 +3527,7 @@ export const ru = {
     fam_org_status_expiring: "Истекает",
     fam_org_status_cancelled: "Отменён",
     fam_org_members_count:
-      "занято мест: {{used}} из {{max}} · доступно: {{seats}}",
+      "Занято {{used}} из {{max}} мест · доступно {{count}} места",
     fam_org_members_count_plural:
       "занято мест: {{used}} из {{max}} · доступно: {{seats}}",
     fam_seats_breakdown:
@@ -3082,7 +3541,7 @@ export const ru = {
     fam_org_stat_members: "Участники",
     fam_org_stat_storage_used: "Использовано хранилища",
     fam_org_stat_unassigned: "Не назначено",
-    fam_org_stat_seats_available: "{{count}} место доступно",
+    fam_org_stat_seats_available: "Доступно {{count}} места",
     fam_org_stat_seats_available_plural: "{{count}} мест доступно",
     fam_org_stat_pending: "{{count}} в ожидании",
     fam_org_stat_of_total: "из {{total}} всего",
@@ -3173,6 +3632,7 @@ export const ru = {
     fam_org_wizard_done: "Готово",
     fam_org_plan_upgraded: "Тариф успешно улучшен",
     fam_org_invalid_email: "Введите корректный адрес электронной почты",
+    fam_org_invalid_storage: "Укажите объём хранилища не менее 1 ГБ",
     fam_org_invite_revoked_toast: "Приглашение отозвано",
     fam_org_member_removed_toast: "Участник удалён",
     fam_org_admin_transferred_toast: "Права администратора переданы",
@@ -3184,7 +3644,7 @@ export const ru = {
     security_description: "Настройки конфиденциальности и безопасности",
     notifications: "Уведомления",
     notifications_denied_help:
-      "Notifications are blocked by your browser. Enable them in your browser site settings to turn them on.",
+      "Браузер блокирует уведомления. Включите их в настройках сайта в браузере.",
     preferences: "Предпочтения",
     compose: "Написание",
     templates: "Шаблоны",
@@ -3292,28 +3752,32 @@ export const ru = {
     behavior_description: "Настройте поведение приложения",
     developer: "Разработчик",
     developer_description: "Инструменты разработки и отладочная информация",
-    updates: "Updates",
+    updates: "Обновления",
     updates_description:
-      "Check for application updates and configure auto-update",
-    updates_check_now: "Check for updates",
-    updates_checking: "Checking for updates...",
-    updates_up_to_date: "You're on the latest version",
-    updates_available: "Update available: {{version}}",
-    updates_current_version: "Current version: {{version}}",
-    updates_install_and_restart: "Install and restart",
-    updates_installing: "Downloading update... {{percent}}%",
+      "Проверьте обновления приложения и настройте автообновление",
+    updates_check_now: "Проверить обновления",
+    updates_checking: "Проверка обновлений...",
+    updates_up_to_date: "У вас последняя версия",
+    updates_check_failed:
+      "Не удалось проверить обновления. Попробуйте еще раз через минуту.",
+    updates_install_failed:
+      "Обновление не установилось. Попробуйте еще раз или скачайте последнюю версию на astermail.org/download.",
+    updates_available: "Доступно обновление: {{version}}",
+    updates_current_version: "Текущая версия: {{version}}",
+    updates_install_and_restart: "Установить и перезапустить",
+    updates_installing: "Загрузка обновления... {{percent}} %",
     updates_downloading: "Загрузка обновления...",
-    updates_last_checked: "Last checked {{when}}",
-    updates_never_checked: "Never checked",
-    updates_auto_label: "Install updates automatically",
+    updates_last_checked: "Последняя проверка: {{when}}",
+    updates_never_checked: "Ещё не проверялось",
+    updates_auto_label: "Автоматически проверять обновления",
     updates_auto_description:
-      "When enabled, new versions install in the background and apply on next launch",
-    updates_release_notes: "Release notes",
-    updates_banner_title: "Aster Mail {{version}} is available",
-    updates_banner_action: "Install now",
+      "Aster Mail ищет новые версии и сообщает, когда одна из них готова к установке.",
+    updates_release_notes: "Список изменений",
+    updates_banner_title: "Доступна версия Aster Mail {{version}}",
+    updates_banner_action: "Установить сейчас",
     updates_unsupported:
-      "Updates are managed by your operating system or browser",
-    updates_dismiss: "Later",
+      "Обновлениями управляет ваша операционная система или браузер",
+    updates_dismiss: "Позже",
     billing: "Оплата",
     billing_description: "Управление подпиской и способами оплаты",
     undo_send: "Отмена отправки",
@@ -3355,6 +3819,8 @@ export const ru = {
     forward_secrecy_enabled_description: "Ключи обновляются {{frequency}}",
     forward_secrecy_disabled_description:
       "Автоматическое обновление ключей шифрования для повышенной безопасности",
+    forward_secrecy_setup_failed:
+      "Не удалось включить прямую секретность. Проверьте соединение и повторите попытку.",
     current_key_status: "Текущий статус ключа",
     age: "Возраст",
     fingerprint: "Отпечаток",
@@ -3396,6 +3862,10 @@ export const ru = {
       "Не удалось безопасно перешифровать один из ваших псевдонимов. Пароль не был изменён. Пожалуйста, обратитесь в поддержку или удалите затронутый псевдоним и попробуйте снова.",
     contact_reencrypt_failed:
       "Не удалось безопасно перешифровать один из ваших контактов. Пароль не был изменён. Пожалуйста, обратитесь в поддержку или удалите затронутый контакт и попробуйте снова.",
+    password_change_client_upgrade_required:
+      "Эта версия Aster Mail не может изменить ваш пароль. Обновите приложение до последней версии и повторите попытку.",
+    password_change_reencryption_incomplete:
+      "Некоторые алиасы не удалось полностью перешифровать, поэтому пароль не был изменён. Повторите попытку, а если это повторяется, обратитесь в службу поддержки.",
     password_change_fingerprint_mismatch:
       "Эта сессия началась в другой сети или в другом браузере, поэтому Aster Mail не изменил ваш пароль. Чтобы изменить его, выйдите из аккаунта, войдите снова и повторите попытку.",
     update_password: "Обновить пароль",
@@ -3404,8 +3874,11 @@ export const ru = {
       "Ваши метки, подписи и шаблоны повторно шифруются при смене пароля. Если соединение прервётся в процессе, эти данные не удастся восстановить.",
     password_changed_items_unreadable:
       "Пароль изменён. {{count}} зашифрованных элементов сохранили прежнее шифрование, так как их ключ был недоступен. На доставку почты это не влияет. Чтобы восстановить их, обратитесь в службу поддержки.",
+    password_change_background_reencrypt_failed:
+      "Пароль изменён, но часть отправленных писем и настроек не была перешифрована. Обратитесь в службу поддержки, если письма или настройки отображаются неверно.",
     password_changed_signing_out:
       "Пароль успешно изменён. Выполняется выход из системы...",
+    password_changed_success: "Пароль изменён",
     session_security: "Безопасность сессии",
     browsers_and_devices: "Браузеры и устройства",
     session_privacy_description:
@@ -3429,6 +3902,8 @@ export const ru = {
     sign_out_session_confirm: "Вы уверены, что хотите завершить эту сессию?",
     no_active_sessions: "Активные сессии не найдены",
     failed_load_sessions: "Не удалось загрузить сессии",
+    failed_load_security_status:
+      "Настройки безопасности не загрузились. Попробуйте снова.",
     load_more_sessions: "Загрузить ещё {{count}} сессий",
     two_fa_enabled: "Включено (осталось {{count}} резервных кодов)",
     two_fa_add_security: "Добавьте дополнительный уровень безопасности с 2FA",
@@ -3456,10 +3931,15 @@ export const ru = {
     desktop: "Рабочий стол",
     show_desktop_notifications: "Показывать уведомления на рабочем столе",
     blocked_by_browser: "Заблокировано браузером",
-    blocked_by_os: "Enable in system notification settings",
-    open_system_notification_settings: "Open Settings",
+    blocked_by_os: "Включите их в системных настройках уведомлений",
+    open_system_notification_settings: "Открыть настройки",
     sound_new_notifications: "Воспроизводить звук для новых уведомлений",
+    badge_count_setting: "Значок непрочитанных",
+    badge_count_setting_description:
+      "Показывать число непрочитанных на значке приложения",
     push: "Push-уведомления",
+    push_subscribe_failed:
+      "Уведомления включены, но настроить фоновую доставку не удалось. Уведомления приходят только пока Aster Mail открыт.",
     push_notifications_description:
       "Получать push-уведомления на мобильных устройствах",
     events: "События",
@@ -3472,6 +3952,7 @@ export const ru = {
     toast_position: "Положение уведомлений",
     toast_position_description:
       "Где всплывающие уведомления появляются на экране",
+    toast_position_top: "Сверху",
     toast_position_top_right: "Сверху справа",
     toast_position_middle: "По центру",
     toast_position_bottom_right: "Снизу справа",
@@ -3582,6 +4063,9 @@ export const ru = {
     developer_mode: "Режим разработчика",
     developer_mode_description:
       "Показывать вкладку «Разработчик» с информацией о сборке, статусом шифрования и инструментами отладки",
+    close_to_tray: "Продолжать работу после закрытия окна",
+    close_to_tray_description:
+      "Aster Mail остаётся в области уведомлений, чтобы новая почта продолжала приходить. Отключите этот параметр, чтобы выходить при закрытии окна.",
     time_format: "Формат времени",
     time_format_description: "Выберите формат отображения времени",
     twelve_hours: "12 часов",
@@ -3669,6 +4153,8 @@ export const ru = {
     force_reload: "Принудительная перезагрузка",
     unregister_service_workers: "Отключить Service Workers",
     clear_cache_reload: "Очистить весь кэш и перезагрузить",
+    clear_cache_confirm_message:
+      "Это очистит кэш на этом устройстве и перезагрузит Aster Mail. Возможно, потребуется войти снова.",
     current_plan: "Текущий тариф",
     free: "Бесплатный",
     available_plans: "Доступные тарифы",
@@ -3681,6 +4167,42 @@ export const ru = {
       "Премиум-функции остаются доступны до конца этого расчётного периода, после чего тариф переходит на Free. Почта, контакты и настройки остаются с вами.",
     cancel_plan: "Отменить тариф",
     billing_history: "История оплат",
+    billing_desc_payment_failed: "Платёж не прошёл",
+    billing_desc_refund_processed: "Возврат обработан",
+    billing_desc_payment_disputed: "Платёж оспорен: {{reason}}",
+    billing_desc_crypto_payment:
+      "{{plan}}, срок {{months}} мес., оплачено в {{currency}} в сети {{chain}}",
+    billing_desc_crypto_credit:
+      "{{plan}}, срок {{months}} мес., зачислено в {{currency}} в сети {{chain}}",
+    billing_desc_crypto_prepaid:
+      "{{plan}}, срок {{months}} мес., предоплачено криптовалютой",
+    credit_desc_applied_invoice: "Зачтено в счёт оплаты",
+    credit_desc_applied_storage: "Зачтено в счёт дополнительного хранилища",
+    credit_desc_applied_subscription_checkout:
+      "Зачтено при оформлении подписки",
+    credit_desc_applied_subscription_payment: "Зачтено в счёт оплаты подписки",
+    credit_desc_returned_checkout_not_started:
+      "Возвращено, так как оформление не удалось начать",
+    credit_desc_returned_checkout_incomplete:
+      "Возвращено, так как оформление не было завершено",
+    credit_desc_returned_payment_failed:
+      "Возвращено, так как отложенный платёж не прошёл",
+    credit_desc_reversed_invoice_voided:
+      "Отменено, так как счёт был аннулирован",
+    credit_desc_reversed_refunded:
+      "Отменено, так как покупка была возвращена или оспорена",
+    credit_desc_referral_commission: "Реферальная комиссия за подписку друга",
+    credit_desc_reversal_crypto_overpayment:
+      "Отмена бонуса за переплату в криптовалюте",
+    credit_desc_reversal_prepaid_residual:
+      "Отмена бонуса за смену предоплаченного плана",
+    credit_desc_unused_prepaid:
+      "Неиспользованное оплаченное время с прошлого плана",
+    credit_desc_purchased: "Куплено бонусов на {{amount}}",
+    credit_desc_referral_reversed: "Реферальная комиссия отменена: {{reason}}",
+    credit_desc_install_bonus: "Бонус за установку приложения для компьютера",
+    credit_desc_crypto_overpayment:
+      "Бонус за переплату в {{currency}} в сети {{chain}}",
     storage_limit_exceeded: "Хранилище заполнено.",
     storage_limit_description:
       "Поступление новых писем приостановлено до освобождения места. Удаление части писем или повышение тарифа возвращает их поток. Существующая почта в безопасности.",
@@ -3744,8 +4266,10 @@ export const ru = {
     sending: "Отправка...",
     send_feedback_button: "Отправить отзыв",
     thank_you_feedback: "Спасибо за ваш отзыв!",
-    too_many_requests:
-      "You're doing that too quickly. Please wait a moment and try again.",
+    feedback_category_general: "Отзыв",
+    feedback_category_idea: "Идея",
+    feedback_category_bug: "Ошибка",
+    too_many_requests: "Слишком часто. Подождите немного и повторите попытку.",
     please_log_in_feedback: "Вход даёт возможность отправить отзыв.",
     failed_send_feedback:
       "Отзыв не отправился. Повторная попытка обычно помогает.",
@@ -4132,6 +4656,8 @@ export const ru = {
       "Тест соединения не прошёл. Главные пункты для проверки ниже: сервер, порт и пароль. Сохранённое соединение остаётся без изменений.",
     account_updated: "Аккаунт успешно обновлён",
     account_added: "Аккаунт успешно добавлен",
+    account_settings_not_saved:
+      "Аккаунт сохранён, но настройки синхронизации и дополнительные настройки не сохранены",
     failed_update_account:
       "Эта учётная запись не обновилась. Повторная попытка обычно помогает. Прежние настройки по-прежнему активны.",
     failed_add_account:
@@ -4321,7 +4847,8 @@ export const ru = {
     contacts_address_book: "Контакты и адресная книга",
     account_preferences_settings: "Настройки и предпочтения аккаунта",
     encryption_keys_security: "Ключи шифрования и данные безопасности",
-    type_delete_placeholder: "Введите DELETE здесь",
+    delete_confirmation_word: "DELETE",
+    type_delete_placeholder: "Введите {word} здесь",
     enter_your_password_placeholder: "Введите ваш пароль",
     macos: "macOS",
     windows_linux: "Windows/Linux",
@@ -4547,6 +5074,13 @@ export const ru = {
       "Письма от разрешённых отправителей никогда не будут помечены как спам.",
     add_to_allowlist: "Добавить в список разрешённых",
     entire_domain: "Весь домен",
+    unreadable_entry_title: "Нечитаемая запись",
+    unreadable_entry_hint:
+      "Это устройство не может прочитать эту запись. Она действует, пока вы ее не удалите.",
+    unreadable_entries_notice:
+      "Некоторые записи нельзя прочитать на этом устройстве, поэтому они здесь не показаны.",
+    external_accounts_limit_reached:
+      "Можно подключить до 5 аккаунтов. Чтобы добавить еще один, сначала удалите один из них.",
     no_allowed_senders: "Нет разрешённых отправителей",
     add_senders_allowlist_hint:
       "Добавьте отправителей или домены, чтобы их письма всегда попадали во входящие",
@@ -4569,10 +5103,14 @@ export const ru = {
     import_folder_hint:
       "Не можете найти некоторые письма? Проверьте папки Спам и Отправленные - импортированные письма могут быть отсортированы туда.",
     n_failed_count: "{{count}} не удалось",
+    import_folders_skipped:
+      "Не удалось создать {{count}} папку, поэтому письма из нее находятся во входящих.",
+    import_folders_skipped_plural:
+      "Не удалось создать папки: {{count}}. Письма из них находятся во входящих.",
     storage_quota_reached:
       "Хранилище заполнено. Повышение тарифа или удаление части писем освобождает место для новых импортов.",
     no_emails_in_file:
-      "В выбранных файлах не найдено писем. Убедитесь, что файл в поддерживаемом формате (MBOX, EML, CSV или PST).",
+      "В выбранных файлах не найдено писем. Убедитесь, что каждый файл имеет поддерживаемый формат (MBOX, EML, CSV или PST).",
     import_failed:
       "Импорт не завершился. Повторная попытка обычно помогает. Существующие данные остаются без изменений.",
     failed_to_parse_file:
@@ -4594,6 +5132,11 @@ export const ru = {
     vacation_reply_disabled: "Автоответ приостановлен",
     vacation_reply_save: "Сохранить",
     vacation_reply_delete: "Удалить",
+    vacation_reply_delete_title: "Удалить автоответ?",
+    vacation_reply_delete_message: "Автоответ и его расписание будут удалены.",
+    delete_forwarding_rule_title: "Удалить правило пересылки?",
+    delete_forwarding_rule_message:
+      "Письма, подходящие под это правило, больше не пересылаются.",
     vacation_reply_empty: "Автоответ не настроен",
     vacation_reply_saved: "Автоответ сохранён",
     vacation_reply_deleted: "Автоответ удалён",
@@ -4713,8 +5256,8 @@ export const ru = {
     retention_90_days: "90 дней",
     retention_never: "Никогда (хранить всегда)",
     import_emails_title: "Импорт писем",
-    import_add_another: "Add another account",
-    import_choose_source: "Choose a source",
+    import_add_another: "Добавить другой аккаунт",
+    import_choose_source: "Выберите источник",
     import_emails_description:
       "Перенесите свои письма из Gmail, Outlook или других почтовых сервисов. Ваши письма шифруются на устройстве перед сохранением.",
     import_emails_button: "Импортировать письма",
@@ -4833,8 +5376,6 @@ export const ru = {
     billing_banner_title: "Откройте больше возможностей с Aster",
     billing_banner_cta: "Изучить варианты",
     storage_addons: "Дополнительное хранилище",
-    storage_addons_monthly_note:
-      "Дополнительное хранилище оплачивается ежемесячно, даже если тариф оплачивается ежегодно.",
     per_month_short: "/мес",
     add_storage: "Добавить хранилище",
     popular: "Популярный",
@@ -4883,9 +5424,10 @@ export const ru = {
     plan_f_custom_themes: "Свои темы",
     plan_f_smart_folders: "Умные папки",
     plan_f_imap_smtp: "Доступ по IMAP и SMTP",
-    plan_f_imap_smtp_bridge: "Mail-app access (IMAP & SMTP) via Aster Bridge",
+    plan_f_imap_smtp_bridge:
+      "Доступ из почтового клиента (IMAP и SMTP) через Aster Bridge",
     plan_f_bridge_hint:
-      "Runs through the Aster Bridge companion app on your device.",
+      "Работает через приложение-компаньон Aster Bridge на вашем устройстве.",
     plan_f_external_accounts: "Внешние аккаунты (IMAP & POP3)",
     plan_f_signed_in_accounts: "Подключённые аккаунты",
     plan_f_caldav: "Синхронизация CalDAV",
@@ -4928,6 +5470,8 @@ export const ru = {
       "Поступление новых писем приостановлено до освобождения места. Удаление части писем или повышение тарифа возвращает их поток. Существующая почта в безопасности.",
     storage_locked_bounce_warning:
       "Входящая почта будет возвращаться отправителям через {{days}} дн., если место не освободится. Удаление части писем или повышение тарифа сохраняет их поступление.",
+    storage_full:
+      "Хранилище заполнено. Чтобы освободить место, повысьте тариф или удалите часть писем.",
     plan_limit_reached:
       "Достигнут лимит текущего тарифа. Повышение тарифа или удаление части элементов для освобождения места обычно решает вопрос.",
     upgrade_to_unlock: "Повысьте тариф для разблокировки",
@@ -4957,10 +5501,16 @@ export const ru = {
     promo_apply: "Применить",
     checkout_title: "Завершите покупку",
     checkout_description: "Введите данные оплаты для оформления подписки.",
+    autorenew_notice:
+      "Подписка продлевается автоматически по цене {amount}, пока вы её не отмените. Чтобы избежать следующего списания, отмените подписку в Настройках до даты продления.",
+    autorenew_notice_short:
+      "При оплате картой тариф продлевается автоматически. Чтобы избежать следующего списания, отмените его в Настройках до даты продления.",
     payment_complete: "Оплата завершена",
     payment_success: "Оплата прошла успешно!",
     payment_failed:
       "Списать средства с указанного способа оплаты не удалось. Повторная попытка или обновление в Настройках, Оплата обычно решает вопрос.",
+    payment_activation_pending:
+      "Оплата прошла, но тариф ещё не активен. Обновите страницу через мгновение. Если тариф остаётся неактивным, обратитесь в службу поддержки.",
     payment_details: "Платёжные данные",
     processing_payment: "Обработка платежа...",
     subscribe_now: "Подписаться сейчас",
@@ -4995,16 +5545,21 @@ export const ru = {
     cancel_reason_just_testing: "Просто пробовал",
     cancel_reason_other: "Другое",
     cancel_reason_text_placeholder: "Хотите что-то добавить? (необязательно)",
-    cancel_reason_placeholder_too_expensive: "Какая цена показалась бы вам справедливой?",
-    cancel_reason_placeholder_not_using: "Что помогло бы пользоваться этим регулярно?",
+    cancel_reason_placeholder_too_expensive:
+      "Какая цена показалась бы вам справедливой?",
+    cancel_reason_placeholder_not_using:
+      "Что помогло бы пользоваться этим регулярно?",
     cancel_reason_placeholder_missing_feature: "Какая функция вам нужна?",
-    cancel_reason_placeholder_switched_provider: "На какой сервис вы перешли и что стало решающим?",
+    cancel_reason_placeholder_switched_provider:
+      "На какой сервис вы перешли и что стало решающим?",
     cancel_reason_placeholder_bugs: "Какая проблема мешала больше всего?",
     cancel_reason_placeholder_privacy_trust: "Что вызвало эти сомнения?",
     cancel_reason_placeholder_just_testing: "Что вы хотели проверить?",
     cancel_reason_placeholder_other: "Почему вы решили отменить подписку?",
-    cancel_reason_detail_required: "Добавьте короткий ответ, чтобы мы могли что-то исправить, или пропустите этот шаг.",
-    cancel_not_cancellable: "Эту подписку нельзя отменить в приложении. Обратитесь в поддержку, чтобы отменить её.",
+    cancel_reason_detail_required:
+      "Добавьте короткий ответ, чтобы мы могли что-то исправить, или пропустите этот шаг.",
+    cancel_not_cancellable:
+      "Эту подписку нельзя отменить в приложении. Обратитесь в поддержку, чтобы отменить её.",
     cancel_failed: "План не отменён. Оплата не изменилась, попробуйте ещё раз.",
     cancel_reason_skip: "Пропустить",
     cancel_reason_continue: "Продолжить",
@@ -5063,20 +5618,21 @@ export const ru = {
     credit_type_renewal_deduction: "Продление",
     credit_type_reversal: "Возврат",
     credit_type_purchase: "Покупка",
-    top_up_credits: "Top Up",
+    top_up_credits: "Пополнить",
     top_up_credits_description:
-      "Add credits to your account. Credits apply automatically toward plan renewals.",
-    credit_packages_loading: "Loading packages...",
-    credit_package_bonus: "+{{ bonus }} bonus",
-    credit_package_total: "{{ total }} total",
-    buy_credits: "Buy Credits",
-    buy_credits_crypto: "Pay with Crypto",
-    buying_credits: "Redirecting...",
-    credit_purchase_error: "Could not start checkout. Please try again.",
-    credit_pay_card: "Card",
-    credit_pay_crypto: "Crypto",
-    credits_added_to_account: "Credits have been added to your account.",
-    in_credits: "in credits",
+      "Пополните счёт. Средства автоматически идут на продление тарифа.",
+    credit_packages_loading: "Загрузка пакетов...",
+    credit_packages_failed: "Пакеты кредитов не загрузились.",
+    credit_package_bonus: "+{{ bonus }} бонусом",
+    credit_package_total: "{{ total }} всего",
+    buy_credits: "Купить средства",
+    buy_credits_crypto: "Оплатить криптовалютой",
+    buying_credits: "Перенаправление...",
+    credit_purchase_error: "Не удалось начать оплату. Повторите попытку.",
+    credit_pay_card: "Карта",
+    credit_pay_crypto: "Криптовалюта",
+    credits_added_to_account: "Средства зачислены на ваш счёт.",
+    in_credits: "на счету",
     credit_transactions: "Транзакции кредитов",
     referral_program: "Реферальная программа",
     your_referral_link: "Ваша реферальная ссылка",
@@ -5208,7 +5764,7 @@ export const ru = {
     delete_template_title: "Удалить шаблон",
     password_label: "Пароль",
     two_factor_code_label: "Код двухфакторной аутентификации",
-    type_delete_to_confirm: "Введите DELETE для подтверждения",
+    type_delete_to_confirm: "Введите {word} для подтверждения",
     deleting_label: "Удаление...",
     delete_account_button: "Удалить аккаунт",
     alias_is_available: "Этот псевдоним доступен.",
@@ -5238,9 +5794,11 @@ export const ru = {
     connected_accounts_disconnect: "Отключить",
     connected_accounts_error:
       "У этой связанной учётной записи возникают трудности с синхронизацией, и повтор будет автоматическим.",
+    connected_accounts_password_reauth_needed:
+      "Не удалось войти. Измените учётную запись, чтобы обновить пароль.",
     connected_accounts_reauth_needed:
-      "Re-authorization required - click Reconnect to fix.",
-    connected_accounts_reconnect: "Reconnect",
+      "Требуется повторная авторизация. Нажмите «Переподключить».",
+    connected_accounts_reconnect: "Переподключить",
     connected_accounts_enabled: "Включено",
     connected_accounts_disabled: "Отключено",
     oauth_import_success: "Аккаунт {{ provider }} успешно подключён",
@@ -5336,6 +5894,8 @@ export const ru = {
     plan_change_confirming: "Обработка...",
     billing_banner_subtitle:
       "Повысьте тариф или приобретите дополнительное хранилище для защиты вашей конфиденциальности.",
+    storage_addons_monthly_note:
+      "Дополнительное хранилище оплачивается ежемесячно, даже если тариф оплачивается ежегодно.",
     storage_addons_description:
       "Нужно больше места? Приобретите дополнительное зашифрованное хранилище для вашего аккаунта.",
     storage_purchase_coming_soon:
@@ -5662,6 +6222,8 @@ export const ru = {
     credit_type_admin_removal: "Удаление",
     credit_type_crypto_overpayment: "Переплата",
     credit_type_crypto_overpayment_reversal: "Возврат переплаты",
+    credit_type_prepaid_switch_residual: "Смена плана",
+    credit_type_prepaid_switch_residual_reversal: "Отмена смены плана",
     credits_balance_label: "Доступный баланс",
     credits_balance_note:
       "Кредиты автоматически применяются к покупкам и продлениям платных тарифов.",
@@ -5701,8 +6263,6 @@ export const ru = {
     crypto_native_open_wallet: "Открыть в кошельке",
     crypto_native_status_processing: "Обрабатывается",
     crypto_native_hint_processing:
-    connected_accounts_password_reauth_needed:
-      "Не удалось войти. Измените учётную запись, чтобы обновить пароль.",
       "Этот платёж обрабатывается. Страница обновляется сама, от вас ничего не требуется.",
     crypto_native_copy_invoice_ref: "Скопировать номер счёта",
     crypto_native_no_wallet_handler:
@@ -5816,28 +6376,30 @@ export const ru = {
       "Aster Bridge должен быть установлен и запущен. Скачайте его на astermail.org/bridge.",
     desktop_bridge_set_up: "Настроить {{ client }}",
     bridge: "Bridge",
-    bridge_description: "Connect Aster to any IMAP or SMTP mail client",
-    bridge_download_windows: "Download for Windows",
+    bridge_description:
+      "Подключите Aster к любому почтовому клиенту с IMAP или SMTP",
+    bridge_download_windows: "Скачать для Windows",
     bridge_download_msi: "MSI",
     bridge_app_name: "Aster Bridge",
     bridge_windows_name: "Windows",
     bridge_windows_desc:
-      "Download the installer and run Aster Bridge on your Windows machine.",
+      "Скачайте установщик и запустите Aster Bridge на компьютере с Windows.",
     bridge_linux_name: "Linux",
     bridge_linux_desc:
-      "AppImage, .deb, and .rpm packages available for all major distributions.",
-    bridge_linux_cta: "Download AppImage",
+      "Пакеты AppImage, .deb и .rpm доступны для всех основных дистрибутивов.",
+    bridge_linux_cta: "Скачать AppImage",
     bridge_linux_deb_link: ".deb",
     bridge_linux_rpm_link: ".rpm",
+    bridge_linux_pacman_link: "Arch Linux",
     bridge_linux_appimage_arm64_link: "AppImage (ARM64)",
     bridge_linux_deb_arm64_link: ".deb (ARM64)",
     bridge_linux_rpm_arm64_link: ".rpm (ARM64)",
     bridge_macos_name: "macOS",
     bridge_macos_desc:
-      "Download the universal DMG for Apple Silicon and Intel Macs.",
-    bridge_macos_cta: "Download for macOS",
-    bridge_coming_soon: "Coming soon",
-    bridge_info_link: "Learn more",
+      "Скачайте универсальный DMG для Mac с Apple Silicon и Intel.",
+    bridge_macos_cta: "Скачать для macOS",
+    bridge_coming_soon: "Скоро",
+    bridge_info_link: "Подробнее",
     bridge_popover_description:
       "Лёгкий локальный прокси, работающий на вашем компьютере. Расшифровывает почтовый ящик и передаёт его через стандартные IMAP и SMTP, чтобы любой почтовый клиент мог подключиться.",
     bridge_installations: "Подключённые установки",
@@ -5866,7 +6428,7 @@ export const ru = {
     dev_active_count: "{{count}} активных",
     dev_checking: "Проверка...",
     dev_databases_count_one: "{{count}} база данных",
-    dev_databases_count_other: "{{count}} баз данных",
+    dev_databases_count_other: "{{count}} базы данных",
     dev_days_ago: "{{count}} дн. назад",
     dev_encryption_label: "Шифрование",
     dev_hours_ago: "{{count}} ч. назад",
@@ -5906,7 +6468,7 @@ export const ru = {
     downgrade_scheduled:
       "Переход на более низкий тариф запланирован на конец текущего периода",
     email_aliases_suffix: "псевдонимов email",
-    email_label: "Email:",
+    email_label: "Эл. почта:",
     encrypted_storage_suffix: "зашифрованного хранилища",
     error_tip_dkim:
       "Запись подписи длинная. Убедитесь, что всё значение вставлено без обрезки.",
@@ -5953,6 +6515,7 @@ export const ru = {
       "Один файл почтового ящика, открывается в Thunderbird, mutt, Apple Mail и большинстве десктопных клиентов.",
     export_format_mbox_name: "MBOX (один файл)",
     export_progress_bytes_written: "Записано {{ bytes }}",
+    export_progress_working: "Готовим ваш экспорт.",
     export_progress_current_folder: "Текущая папка: {{ folder }}",
     export_progress_eta: "Осталось около {{ duration }}",
     export_progress_messages: "{{ processed }} из {{ total }} сообщений",
@@ -5998,6 +6561,10 @@ export const ru = {
     export_scope_settings_title: "Настройки и правила",
     export_start_button: "Начать экспорт",
     export_step_complete_title: "Экспорт завершён",
+    export_step_incomplete_title: "Экспорт не завершён",
+    export_incomplete_summary:
+      "Экспортировано {{ count }} из {{ total }} сообщений до остановки экспорта.",
+    export_complete_data_only: "Ваш экспорт готов.",
     export_step_destination_title: "Выбрать место",
     export_step_format_title: "Выбрать формат",
     export_step_progress_title: "Экспорт",
@@ -6058,20 +6625,24 @@ export const ru = {
     import_status_pending: "Ожидание",
     import_status_processing: "Обработка",
     instructions_for_provider: "Инструкции для {{ provider }}",
+    invoice_status_disputed: "Оспорено",
     invoice_status_draft: "Черновик",
     invoice_status_failed: "Ошибка",
     invoice_status_open: "Открыт",
     invoice_status_paid: "Оплачен",
     invoice_status_pending: "Ожидание",
+    invoice_status_refunded: "Возвращено",
+    invoice_status_reversed: "Отменено",
     invoice_status_uncollectible: "Безнадёжный",
     invoice_status_void: "Аннулирован",
+    invoice_status_voided: "Аннулировано",
     key_name_placeholder: "напр., YubiKey 5, MacBook Touch ID",
     key_source_autocrypt: "Autocrypt",
     key_source_cached: "Кэшировано",
     key_source_dane: "DANE",
     key_source_keyserver: "Публичный сервер ключей",
     key_source_unknown: "Неизвестно",
-    key_source_wkd: "Web Key Directory",
+    key_source_wkd: "Веб-каталог ключей",
     last_used: "Последнее использование",
     mail_rules_suffix: "правил почты",
     n_minutes: "{{ count }} минут",
@@ -6083,9 +6654,9 @@ export const ru = {
     newest_first: "Сначала новые",
     no_security_keys: "Ключи безопасности не зарегистрированы",
     security_keys_desktop_note:
-      "Security keys can be added in the Aster web app at app.astermail.org. You can still view and remove existing keys here.",
+      "Ключи безопасности добавляются в веб-версии Aster на app.astermail.org. Здесь можно просмотреть и удалить существующие.",
     passkeys_desktop_note:
-      "Passkeys can be added in the Aster web app at app.astermail.org. You can still view and remove existing passkeys here.",
+      "Ключи доступа добавляются в веб-версии Aster на app.astermail.org. Здесь можно просмотреть и удалить существующие.",
     app_lock_pin: "Блокировка PIN-кодом",
     app_lock_pin_description:
       "Требует PIN-код для открытия Aster Mail в браузере",
@@ -6125,26 +6696,26 @@ export const ru = {
       "Это отключит все функции Vanguard, включая PIN-блокировку приложения. Вы можете включить его снова в любое время.",
     vanguard_enabled_toast: "Aster Vanguard включён",
     vanguard_disabled_toast: "Aster Vanguard отключён",
-    lockdown_title: "Lockdown Mode",
+    lockdown_title: "Режим блокировки",
     lockdown_description:
-      "Blocks all external content, strips notification previews, disables real-time sync, and requires confirmation before opening links. No bypass while active.",
-    lockdown_active: "Lockdown Active",
-    lockdown_enable: "Enable Lockdown Mode",
-    lockdown_disable: "Disable Lockdown Mode",
-    lockdown_enabled_toast: "Lockdown Mode enabled",
-    lockdown_disabled_toast: "Lockdown Mode disabled",
-    lockdown_confirm_disable_title: "Disable Lockdown Mode?",
+      "Блокирует весь внешний контент, убирает предпросмотр в уведомлениях, отключает синхронизацию в реальном времени и запрашивает подтверждение перед открытием ссылок. Пока режим включён, обойти его нельзя.",
+    lockdown_active: "Режим блокировки включён",
+    lockdown_enable: "Включить режим блокировки",
+    lockdown_disable: "Выключить режим блокировки",
+    lockdown_enabled_toast: "Режим блокировки включён",
+    lockdown_disabled_toast: "Режим блокировки выключен",
+    lockdown_confirm_disable_title: "Выключить режим блокировки?",
     lockdown_confirm_disable_desc:
-      "This will allow external content, link tracking, and notification previews. You can re-enable it at any time.",
-    lockdown_notification_generic: "New message",
-    lockdown_content_blocked_note: "Lockdown Mode active",
-    lockdown_link_warning_title: "Opening external link",
-    lockdown_link_warning_body: "This will reveal your IP address to:",
+      "Внешний контент, отслеживание ссылок и предпросмотр в уведомлениях снова станут доступны. Включить режим можно в любой момент.",
+    lockdown_notification_generic: "Новое сообщение",
+    lockdown_content_blocked_note: "Режим блокировки включён",
+    lockdown_link_warning_title: "Открытие внешней ссылки",
+    lockdown_link_warning_body: "Ваш IP-адрес станет известен:",
     lockdown_info:
       "Lockdown Mode closes every in-session data leak vector. External images, fonts, and CSS are blocked with no bypass.",
-    lockdown_badge: "Lockdown",
+    lockdown_badge: "Блокировка",
     lockdown_must_disable_first:
-      "Disable Lockdown Mode before disabling Vanguard.",
+      "Сначала выключите режим блокировки, затем Vanguard.",
     oauth_folders_error: "Папки не удалось настроить. Попробуйте ещё раз.",
     oauth_folders_partial:
       "{{count}} папок не удалось настроить, остальные готовы к использованию.",
@@ -6152,9 +6723,8 @@ export const ru = {
     oauth_reason_account_creation_failed:
       "Не удалось завершить настройку связанного аккаунта. Попробуйте ещё раз.",
     oauth_reason_email_not_found:
-      "We could not retrieve your email address from the provider. Try again - if it keeps failing, use the manual IMAP option instead.",
-    oauth_reason_session_expired:
-      "The sign-in session expired. Please try again.",
+      "Не удалось получить ваш адрес у провайдера. Повторите попытку; если ошибка сохраняется, используйте ручную настройку IMAP.",
+    oauth_reason_session_expired: "Сессия входа истекла. Повторите попытку.",
     oauth_reason_encryption_error:
       "Не удалось защитить соединение прямо сейчас. Попробуйте ещё раз - hello@astermail.org поможет при повторных ошибках.",
     oauth_reason_expired_state:
@@ -6291,7 +6861,6 @@ export const ru = {
     security_keys: "Ключи безопасности",
     security_keys_description:
       "Использовать аппаратные ключи безопасности или пароли для входа",
-    bridge_linux_pacman_link: "Arch Linux",
     select_color: "Выбрать цвет {{name}}",
     send_referral_to_contacts: "Пригласить всех контактов по email",
     show_signature_separator: "Разделитель подписи",
@@ -6308,6 +6877,11 @@ export const ru = {
     spam_filter_enabled: "Включить фильтрацию спама",
     spam_filter_enabled_description:
       "Автоматически определять спам и перемещать его в папку спама. Отключите, если хотите управлять спамом вручную.",
+    spam_settings_load_failed:
+      "Настройки спам-фильтра не загрузились, поэтому эти значения могут не соответствовать вашей учетной записи.",
+    dev_mode_needs_unlock:
+      "Разблокируйте хранилище, чтобы изменить режим разработчика.",
+    translate_languages_keep_one: "Оставьте хотя бы один язык для перевода.",
     spam_sensitivity_description:
       "Управлять агрессивностью спам-фильтра при определении подозрительных писем.",
     status_active: "Активен",
@@ -6350,6 +6924,10 @@ export const ru = {
     trusted_2fa_last_used: "Последнее использование {{when}}",
     trusted_2fa_revoke: "Отозвать",
     trusted_2fa_revoke_all: "Отозвать все доверенные устройства",
+    trusted_2fa_revoke_confirm:
+      "При следующем входе на этом устройстве потребуется код подтверждения.",
+    trusted_2fa_revoke_all_confirm:
+      "При следующем входе на всех доверенных устройствах потребуется код подтверждения.",
     trusted_2fa_revoked_all_toast: "Все доверенные устройства отозваны",
     trusted_2fa_revoked_toast: "Доверенное устройство отозвано",
     trusted_2fa_title: "Доверенные устройства 2FA",
@@ -6364,6 +6942,7 @@ export const ru = {
     trusted_devices_revoke_all: "Отозвать все",
     trusted_devices_revoke_all_confirm:
       "Вы уверены, что хотите отозвать все устройства?",
+    trusted_devices_revoked_all_toast: "Все устройства отозваны",
     trusted_devices_revoke_confirm: "Отозвать {{ name }}?",
     two_factor_auth_disabled: "Двухфакторная аутентификация отключена",
     upgrade: "Обновить тариф",
@@ -6387,10 +6966,10 @@ export const ru = {
     usage_filters: "Пользовательские фильтры",
     usage_custom_categories: "Пользовательские категории",
     username_placeholder: "user@example.com",
-    vacation_n_replies_sent: "{{ count }} ответов отправлено",
+    vacation_n_replies_sent: "Отправлено {{count}} ответа",
     vacation_one_reply_sent: "1 ответ отправлен",
-    vacation_reply_count_one: "{{count}} ответ отправлен",
-    vacation_reply_count_other: "{{count}} ответов отправлено",
+    vacation_reply_count_one: "Отправлен {{count}} ответ",
+    vacation_reply_count_other: "Отправлено {{count}} ответа",
     vacation_reply_last: "Последний: {{date}}",
     vacation_reply_tab_label: "Ответ об отсутствии",
     vault_recovery_button: "Восстановить данные",
@@ -6414,6 +6993,354 @@ export const ru = {
     vault_recovery_title: "Восстановить зашифрованные данные",
     verify_all_records: "Проверить все записи",
     view_dns_records: "Просмотреть DNS-записи",
+    search_placeholder: "Поиск в настройках...",
+    theme_sync_across_devices: "Синхронизировать тему между устройствами",
+    theme_sync_across_devices_description:
+      "Отключите, чтобы на этом устройстве была своя тема.",
+    product_updates: "Новости продукта",
+    product_updates_description:
+      "Получайте письмо во входящие, когда выходит заметная функция. Сообщения о безопасности и правилах приходят всегда. Aster не фиксирует, открываете ли вы эти письма и переходите ли по ссылкам.",
+    product_updates_turned_off:
+      "Новости продукта отключены. Включить их можно здесь.",
+    product_updates_save_failed:
+      "Настройка новостей продукта не сохранена. Повторите попытку.",
+    criterion_passkey: "Ключ доступа добавлен",
+    criterion_read_receipts_off: "Уведомления о прочтении отключены",
+    send_read_receipts_label: "Отправлять уведомления о прочтении",
+    send_read_receipts_description:
+      "Отправители узнают, когда вы открыли их письма.",
+    alias_captcha_required: "Пройдите проверку, чтобы создать псевдоним.",
+    obscure_subject_title: "Скрывать тему в зашифрованных письмах",
+    obscure_subject_description:
+      "Заменяет видимую тему тремя точками, когда письмо зашифровано, а настоящую тему передаёт внутри зашифрованной части",
+    info_obscure_subject_title: "Скрывать тему в зашифрованных письмах",
+    info_obscure_subject_description:
+      "Темы обычно передаются без шифрования, поэтому их читает любой, через кого проходит письмо. Когда параметр включён, зашифрованное письмо уходит с тремя точками вместо темы, а настоящая тема защищена внутри зашифрованной части. Получатели, чей почтовый клиент поддерживает защищённые заголовки, увидят настоящую тему. Остальные увидят три точки в списке и найдут тему в начале письма, поэтому включайте параметр, только если этот компромисс вас устраивает.",
+    browse_folder: "Выбрать папку",
+    money_back_guarantee: "Возврат денег в течение 30 дней",
+    cancel_anytime: "Отмена в любой момент",
+    billed_annually: "оплата раз в год",
+    save_annually_hint: "Экономьте 20 % при оплате за год",
+    billing_checkout_cancelled:
+      "Оплата отменена. С аккаунтом всё в порядке, средства не списаны. Повторить можно в любой момент в настройках.",
+    referral_your_discount: "Ваша скидка",
+    referral_discount_active: "Активна",
+    referral_discount_redeemed: "Использована",
+    referral_discount_expired: "Истекла",
+    referral_discount_auto_apply:
+      "Применяется автоматически при оплате, вводить ничего не нужно.",
+    referral_discount_expires: "Действует до {{ date }}",
+    domain_purchase_not_released:
+      "Покупка доменов пока недоступна. Она появится в одном из следующих обновлений.",
+    domain_step_ownership_title: "Подтвердите, что домен ваш",
+    domain_step_mx_title: "Получайте почту на своём домене",
+    domain_step_spf_title: "Разрешите Aster отправлять почту от вашего имени",
+    domain_step_dkim_title: "Подписывайте исходящую почту",
+    domain_step_dmarc_title: "Не дайте другим выдавать себя за вас",
+    domain_step_tlsrpt_title: "Получайте отчёты об ошибках шифрования",
+    domain_health_ok_title: "{{domain}} работает",
+    domain_health_ok_body:
+      "Вы можете отправлять и получать почту на этом домене, а письма подписываются и попадают во «Входящие».",
+    domain_health_warning_title:
+      "Почта работает, но письма могут попадать в спам",
+    domain_health_warning_body:
+      "Вы получаете почту на этом домене. Выполните пункты ниже, чтобы отправляемым письмам тоже доверяли.",
+    domain_health_critical_title: "Вы не получаете письма",
+    domain_health_critical_body:
+      "Письма на этот домен не доходят до Aster. Исправьте пункт ниже, и доставка возобновится за несколько минут.",
+    domain_health_unknown_title: "Не удалось прочитать ваш DNS",
+    domain_health_unknown_body:
+      "Обычно это значит, что записи только что изменены и ещё не распространились. Мы продолжим проверять.",
+    domain_health_recheck: "Проверить сейчас",
+    domain_health_checking: "Проверка",
+    domain_health_last_checked: "Последняя проверка в {{when}}",
+    domain_health_auto_checking:
+      "Автоматическая проверка каждые несколько секунд",
+    domain_check_mx_label: "Получение почты",
+    domain_check_spf_label: "Разрешение на отправку",
+    domain_check_dkim_label: "Подпись сообщений",
+    domain_check_dmarc_label: "Защита от подмены отправителя",
+    domain_check_mx_pass:
+      "Письма на этот домен приходят в ваши «Входящие» в Aster.",
+    domain_check_spf_pass:
+      "Другие провайдеры принимают письма, которые Aster отправляет от вашего имени.",
+    domain_check_dkim_pass:
+      "Исходящая почта подписана, поэтому её не считают поддельной.",
+    domain_check_dmarc_pass:
+      "Никто другой не сможет отправлять письма от имени вашего домена.",
+    domain_check_unknown:
+      "Пока не удалось прочитать эту запись. Проверка продолжается.",
+    domain_check_generic_failure:
+      "Эта запись ещё настроена неверно. Добавьте запись ниже, чтобы исправить.",
+    domain_reason_mx_missing:
+      "Вам пока никто не может написать. У домена нет маршрута почты, поэтому письма возвращаются отправителю.",
+    domain_reason_mx_points_elsewhere:
+      "Почта уходит к прежнему провайдеру, а не в Aster. Удалите старые MX-записи, чтобы письма приходили в этот ящик.",
+    domain_reason_spf_missing:
+      "Ваши письма могут отклоняться или попадать в спам: другим провайдерам ничто не сообщает, что Aster вправе отправлять от вашего имени.",
+    domain_reason_spf_missing_include:
+      "У домена уже есть SPF-запись, но в ней нет Aster. Добавьте Aster, иначе исходящие письма могут отклоняться.",
+    domain_reason_spf_duplicate_records:
+      "У вас несколько SPF-записей. Провайдеры игнорируют их все, поэтому объедините их в одну.",
+    domain_reason_dkim_missing_or_stale:
+      "Исходящая почта не подписана и выглядит поддельной. Добавьте запись подписи, чтобы письмам доверяли.",
+    domain_reason_dmarc_missing:
+      "Кто угодно может отправлять письма от имени вашего домена. Добавьте эту запись, когда заработают два пункта выше.",
+    domain_fix_show_record: "Показать запись для добавления",
+    domain_fix_hide_record: "Скрыть запись",
+    domain_provider_detected: "Вашим DNS управляет {{provider}}",
+    domain_provider_open: "Открыть {{provider}}",
+    crypto_rate_notice:
+      "Когда вы выбираете монету, мы фиксируем курс и показываем точную сумму к отправке. Курс держится 60 минут для Bitcoin и Monero и 30 минут в сетях Ethereum. Ничего не списывается, пока вы сами не отправите платёж.",
+    crypto_exchange_warning:
+      "Платите из кошелька, которым управляете вы. Если вы отправите средства с биржи или обменного сервиса, платёж придёт с адреса, который вам не принадлежит, и обработчик не сможет сопоставить его с вашим заказом. Завершите платёж в течение времени, указанного на странице оплаты.",
+    crypto_energy_toggle: "Энергопотребление этих сетей",
+    crypto_energy_btc:
+      "Bitcoin: по оценкам, от 700 до 1400 кВт·ч и от 300 до 700 кг CO2-эквивалента на транзакцию. Источник: Cambridge Centre for Alternative Finance, Cambridge Bitcoin Electricity Consumption Index, 2026.",
+    crypto_energy_eth:
+      "Ethereum: по оценкам, от 0,01 до 0,05 кВт·ч и несколько граммов CO2-эквивалента на транзакцию, примерно на 99,9 % ниже показателя до перехода с proof-of-work в 2022 году. Источник: страница об энергопотреблении Ethereum Foundation со ссылкой на CCRI, 2026.",
+    crypto_energy_l2:
+      "Сети, которые объединяют транзакции и рассчитываются пакетом в Ethereum, например Base, потребляют заметно меньше, чем одна транзакция в основной сети Ethereum. У нас нет первичного источника, за который мы бы поручились, поэтому конкретную цифру мы не публикуем.",
+    crypto_energy_xmr:
+      "Monero: proof-of-work, майнится на процессорах общего назначения. Мы не нашли актуальной цифры, за которую бы поручились, поэтому её не публикуем.",
+    crypto_energy_caveat:
+      "Это сторонние оценки, а не наши измерения. Делить общее энергопотребление сети на число транзакций — спорный способ распределения: потребление Bitcoin определяется майнингом, а не тем, сколько транзакций совершают люди, поэтому одна дополнительная транзакция не добавляет пропорциональную величину. Мы публикуем эти данные, чтобы вы могли оценить их сами. Мы не делаем экологических заявлений ни об одном способе оплаты и ничего не компенсируем за вас.",
+    crypto_native_rate_value: "Применённый курс: 1 {{coin}} = {{rate}}",
+    crypto_native_commit_notice:
+      "Выбор монеты создаёт заказ с обязательством оплаты и фиксирует курс. Оплата производится переводом средств из вашего кошелька.",
+    feature_1000_emails: "1000 писем",
+    fam_kids_tab: "Дети",
+    fam_kids_title: "Зарезервированные адреса для детей",
+    fam_kids_subtitle:
+      "Зарезервируйте адрес для ребёнка сейчас, а настройку он завершит позже со своим паролем.",
+    fam_kids_seats_used: "Использовано {{used}} из {{max}} семейных мест",
+    fam_kids_reserve_btn: "Зарезервировать адрес",
+    fam_kids_seats_full:
+      "Семейная группа заполнена. Освободите место, чтобы зарезервировать ещё один адрес.",
+    fam_kids_empty: "Зарезервированных адресов пока нет.",
+    fam_kids_username_label: "Адрес",
+    fam_kids_username_ph: "имя пользователя ребёнка",
+    fam_kids_info_title: "Зарезервированные детские адреса",
+    fam_kids_info_desc:
+      "Адрес закрепляется за вашим ребёнком и недоступен остальным. Позже ребёнок (или вы) завершает настройку с личным паролем, и создаётся настоящая учётная запись с нулевым доступом, которая автоматически входит в вашу семью.",
+    fam_kids_nickname_label: "Прозвище (необязательно)",
+    fam_kids_nickname_ph: "например, Ваня",
+    fam_kids_storage_label: "Хранилище для этого адреса",
+    fam_kids_checking: "Проверка доступности...",
+    fam_kids_available: "Доступен",
+    fam_kids_taken: "Уже занят",
+    fam_kids_reserved_taken: "Уже зарезервирован",
+    fam_kids_invalid: "Недопустимое имя пользователя",
+    fam_kids_consent_label:
+      "Подтверждаю, что являюсь родителем или законным представителем этого ребёнка и согласен на создание для него учётной записи.",
+    fam_kids_consent_required:
+      "Подтвердите родительское согласие, чтобы продолжить.",
+    fam_kids_link_hint:
+      "Любой, у кого есть ссылка, может настроить этот адрес. Делитесь ею только с ребёнком и создайте новую, если она утекла.",
+    fam_kids_create: "Зарезервировать",
+    fam_kids_creating: "Резервирование...",
+    fam_kids_cancel: "Отмена",
+    fam_kids_created: "Адрес зарезервирован · ссылка скопирована",
+    fam_kids_address_reserved: "Адрес зарезервирован",
+    fam_kids_create_failed: "Не удалось зарезервировать этот адрес",
+    fam_kids_copy_link: "Копировать ссылку для настройки",
+    fam_kids_link_copied: "Ссылка для настройки скопирована",
+    fam_kids_regenerate: "Создать новую ссылку",
+    fam_kids_regenerated: "Создана новая ссылка",
+    fam_kids_setup_now: "Настроить сейчас",
+    fam_kids_release: "Освободить",
+    fam_kids_released: "Резервирование снято",
+    fam_kids_release_confirm:
+      "Освободить этот зарезервированный адрес? Он снова станет доступен всем.",
+    fam_kids_status_reserved: "Зарезервирован",
+    fam_kids_status_claimed: "Активен",
+    fam_kids_claimed_active:
+      "Учётная запись настроена и добавлена в вашу семью",
+    fam_kids_load_failed: "Не удалось загрузить резервирования",
+    fam_kids_claim_setup_for: "Настройка {{address}}",
+    fam_kids_claim_intro:
+      "Задайте пароль, чтобы завершить настройку семейного адреса.",
+    fam_kids_claim_invalid_title: "Ссылка больше недействительна",
+    fam_kids_claim_invalid_body:
+      "Ссылка истекла, уже использована или отозвана. Попросите новую у владельца семьи.",
+    fam_kids_claim_signed_in_title: "Вы вошли в другую учётную запись",
+    fam_kids_claim_signed_in_body:
+      "Эта ссылка создаёт новую детскую учётную запись. Откройте её в приватном окне или скопируйте для устройства ребёнка.",
+    fam_kids_release_modal_title: "Освободить этот адрес?",
+    fam_kids_release_modal_body:
+      "{{address}} снова станет доступен для регистрации кем угодно. Отменить это нельзя.",
+    fam_kids_release_btn: "Освободить",
+    fam_org_event_address_reserved: "Адрес зарезервирован",
+    fam_org_event_reservation_released: "Резервирование снято",
+    fam_org_event_shared_mailbox_created: "Общий ящик создан",
+    fam_org_event_shared_mailbox_deleted: "Общий ящик удалён",
+    fam_org_event_shared_mailbox_grant_added:
+      "Доступ к общему ящику предоставлен",
+    fam_org_event_shared_mailbox_grant_revoked: "Доступ к общему ящику отозван",
+    fam_org_event_shared_mailbox_rotated: "Ключи общего ящика обновлены",
+    fam_org_event_consent_request_created: "Запрошено согласие",
+    fam_org_event_consent_declined: "В согласии отказано",
+    fam_org_event_consent_all_accepted: "Согласие получено",
+    fam_org_activity_address_reserved:
+      "{{actor}} зарезервировал(а) адрес для ребёнка",
+    fam_org_activity_reservation_released:
+      "{{actor}} освободил(а) зарезервированный адрес",
+    fam_org_activity_shared_mailbox_created: "{{actor}} создал(а) общий ящик",
+    fam_org_activity_shared_mailbox_deleted: "{{actor}} удалил(а) общий ящик",
+    fam_org_activity_shared_mailbox_grant_added:
+      "{{actor}} предоставил(а) доступ к общему ящику",
+    fam_org_activity_shared_mailbox_grant_revoked:
+      "{{actor}} отозвал(а) доступ к общему ящику",
+    fam_org_activity_shared_mailbox_rotated:
+      "{{actor}} обновил(а) ключи общего ящика",
+    fam_org_activity_group_member_added:
+      "{{actor}} добавил(а) {{target}} в группу",
+    fam_org_activity_group_member_added_generic:
+      "{{actor}} добавил(а) участника в группу",
+    fam_org_activity_group_member_removed:
+      "{{actor}} удалил(а) {{target}} из группы",
+    fam_org_activity_group_member_removed_generic:
+      "{{actor}} удалил(а) участника из группы",
+    fam_org_activity_consent_request_created: "{{actor}} запросил(а) согласие",
+    fam_org_activity_consent_declined: "{{actor}} отклонил(а) запрос согласия",
+    fam_org_activity_consent_all_accepted: "Все приняли запрос согласия",
+    color_theme_pink: "Розовый",
+    color_theme_emerald: "Изумрудный",
+    color_theme_black: "Чёрный",
+    sign_out_everywhere_success_one:
+      "Выполнен выход из {{count}} другого сеанса",
+    sign_out_everywhere_success_few:
+      "Выполнен выход из {{count}} других сеансов",
+    sign_out_everywhere_success_many:
+      "Выполнен выход из {{count}} других сеансов",
+    sign_out_everywhere_success_other:
+      "Выполнен выход из {{count}} других сеансов",
+    deleted_emails_count_one: "Удалено {{count}} письмо",
+    deleted_emails_count_few: "Удалено {{count}} письма",
+    deleted_emails_count_many: "Удалено {{count}} писем",
+    deleted_emails_count_other: "Удалено {{count}} письма",
+    external_account_count_one: "{{count}} внешний аккаунт",
+    external_account_count_few: "{{count}} внешних аккаунта",
+    external_account_count_many: "{{count}} внешних аккаунтов",
+    external_account_count_other: "{{count}} внешних аккаунта",
+    email_count_one: "{{count}} письмо",
+    email_count_few: "{{count}} письма",
+    email_count_many: "{{count}} писем",
+    email_count_other: "{{count}} письма",
+    allowed_senders_count_one: "{{count}} разрешённый отправитель",
+    allowed_senders_count_few: "{{count}} разрешённых отправителя",
+    allowed_senders_count_many: "{{count}} разрешённых отправителей",
+    allowed_senders_count_other: "{{count}} разрешённых отправителя",
+    blocked_senders_count_one: "{{count}} заблокированный отправитель",
+    blocked_senders_count_few: "{{count}} заблокированных отправителя",
+    blocked_senders_count_many: "{{count}} заблокированных отправителей",
+    blocked_senders_count_other: "{{count}} заблокированных отправителя",
+    plan_domains_count_one: "{{count}} домен",
+    plan_domains_count_few: "{{count}} домена",
+    plan_domains_count_many: "{{count}} доменов",
+    plan_domains_count_other: "{{count}} домена",
+    forwarding_rules_count_one: "{{count}} правило пересылки",
+    forwarding_rules_count_few: "{{count}} правила пересылки",
+    forwarding_rules_count_many: "{{count}} правил пересылки",
+    forwarding_rules_count_other: "{{count}} правила пересылки",
+    export_complete_errors_one:
+      "Не удалось экспортировать {{count}} сообщение.",
+    export_complete_errors_few:
+      "Не удалось экспортировать {{count}} сообщения.",
+    export_complete_errors_many:
+      "Не удалось экспортировать {{count}} сообщений.",
+    export_complete_errors_other:
+      "Не удалось экспортировать {{count}} сообщения.",
+    export_complete_skipped_undecryptable_one:
+      "Не удалось расшифровать {{count}} сообщение, оно не вошло в этот архив.",
+    export_complete_skipped_undecryptable_few:
+      "Не удалось расшифровать {{count}} сообщения, они не вошли в этот архив.",
+    export_complete_skipped_undecryptable_many:
+      "Не удалось расшифровать {{count}} сообщений, они не вошли в этот архив.",
+    export_complete_skipped_undecryptable_other:
+      "Не удалось расшифровать {{count}} сообщения, они не вошли в этот архив.",
+    export_complete_skipped_attachments_one:
+      "Не удалось расшифровать {{count}} вложение, оно не вошло в этот архив.",
+    export_complete_skipped_attachments_few:
+      "Не удалось расшифровать {{count}} вложения, они не вошли в этот архив.",
+    export_complete_skipped_attachments_many:
+      "Не удалось расшифровать {{count}} вложений, они не вошли в этот архив.",
+    export_complete_skipped_attachments_other:
+      "Не удалось расшифровать {{count}} вложения, они не вошли в этот архив.",
+    fam_consent_body_one:
+      "Это изменение затрагивает данные всех членов семьи. Запрос на согласие будет отправлен {{count}} участнику. Изменение вступит в силу только после того, как его примут все участники.",
+    fam_consent_body_few:
+      "Это изменение затрагивает данные всех членов семьи. Запрос на согласие будет отправлен {{count}} участникам. Изменение вступит в силу только после того, как его примут все участники.",
+    fam_consent_body_many:
+      "Это изменение затрагивает данные всех членов семьи. Запрос на согласие будет отправлен {{count}} участникам. Изменение вступит в силу только после того, как его примут все участники.",
+    fam_consent_body_other:
+      "Это изменение затрагивает данные всех членов семьи. Запрос на согласие будет отправлен {{count}} участникам. Изменение вступит в силу только после того, как его примут все участники.",
+    purge_confirm_message_one:
+      "Будет навсегда удалено {{count}} письмо, импортированное из {{email}}. Это действие нельзя отменить.",
+    purge_confirm_message_few:
+      "Будет навсегда удалено {{count}} письма, импортированных из {{email}}. Это действие нельзя отменить.",
+    purge_confirm_message_many:
+      "Будет навсегда удалено {{count}} писем, импортированных из {{email}}. Это действие нельзя отменить.",
+    purge_confirm_message_other:
+      "Будет навсегда удалено {{count}} письма, импортированных из {{email}}. Это действие нельзя отменить.",
+    alias_export_summary_one: "{{count}} запись в {{files}}.",
+    alias_export_summary_few: "{{count}} записи в {{files}}.",
+    alias_export_summary_many: "{{count}} записей в {{files}}.",
+    alias_export_summary_other: "{{count}} записи в {{files}}.",
+    app_lock_attempts_remaining_one: "Осталась {{count}} попытка",
+    app_lock_attempts_remaining_few: "Осталось {{count}} попытки",
+    app_lock_attempts_remaining_many: "Осталось {{count}} попыток",
+    app_lock_attempts_remaining_other: "Осталось {{count}} попытки",
+    vacation_reply_count_few: "Отправлено {{count}} ответа",
+    vacation_reply_count_many: "Отправлено {{count}} ответов",
+    vacation_reply_count: "Отправлено {{count}} ответа",
+    vacation_n_replies_sent_one: "Отправлен {{count}} ответ",
+    vacation_n_replies_sent_few: "Отправлено {{count}} ответа",
+    vacation_n_replies_sent_many: "Отправлено {{count}} ответов",
+    vacation_n_replies_sent_other: "Отправлено {{count}} ответа",
+    dev_databases_count_few: "{{count}} базы данных",
+    dev_databases_count_many: "{{count}} баз данных",
+    dev_databases_count: "{{count}} базы данных",
+    fam_org_activity_events_one: "{{count}} событие",
+    fam_org_activity_events_few: "{{count}} события",
+    fam_org_activity_events_many: "{{count}} событий",
+    fam_org_activity_events_other: "{{count}} события",
+    family_activity_events_one: "{{count}} событие",
+    family_activity_events_few: "{{count}} события",
+    family_activity_events_many: "{{count}} событий",
+    family_activity_events_other: "{{count}} события",
+    fam_org_2fa_banner_one:
+      "{{count}} участник не включил двухфакторную аутентификацию",
+    fam_org_2fa_banner_few:
+      "{{count}} участника не включили двухфакторную аутентификацию",
+    fam_org_2fa_banner_many:
+      "{{count}} участников не включили двухфакторную аутентификацию",
+    fam_org_2fa_banner_other:
+      "{{count}} участника не включили двухфакторную аутентификацию",
+    family_security_warning_2fa_one:
+      "{{count}} участник не включил двухфакторную аутентификацию",
+    family_security_warning_2fa_few:
+      "{{count}} участника не включили двухфакторную аутентификацию",
+    family_security_warning_2fa_many:
+      "{{count}} участников не включили двухфакторную аутентификацию",
+    family_security_warning_2fa_other:
+      "{{count}} участника не включили двухфакторную аутентификацию",
+    fam_org_sec_session_count_one: "{{count}} активный сеанс",
+    fam_org_sec_session_count_few: "{{count}} активных сеанса",
+    fam_org_sec_session_count_many: "{{count}} активных сеансов",
+    fam_org_sec_session_count_other: "{{count}} активных сеанса",
+    fam_org_stat_seats_available_one: "Доступно {{count}} место",
+    fam_org_stat_seats_available_few: "Доступно {{count}} места",
+    fam_org_stat_seats_available_many: "Доступно {{count}} мест",
+    fam_org_stat_seats_available_other: "Доступно {{count}} места",
+    fam_org_members_count_one:
+      "Занято {{used}} из {{max}} мест · доступно {{count}} место",
+    fam_org_members_count_few:
+      "Занято {{used}} из {{max}} мест · доступно {{count}} места",
+    fam_org_members_count_many:
+      "Занято {{used}} из {{max}} мест · доступно {{count}} мест",
+    fam_org_members_count_other:
+      "Занято {{used}} из {{max}} мест · доступно {{count}} места",
   },
   mail: {
     load_all_thread_messages: "Загрузить все сообщения",
@@ -6459,7 +7386,7 @@ export const ru = {
     block_sender_on_alias_tooltip:
       "Запретить этому отправителю достигать {{alias}}",
     encrypted_message_unavailable:
-      "This message could not be decrypted. The sender may have used an outdated key.",
+      "Не удалось расшифровать это письмо. Возможно, отправитель использовал устаревший ключ.",
     pgp_password_protected_title: "Сообщение защищено паролем",
     pgp_password_protected_description:
       "Отправитель зашифровал это сообщение паролем. Введите пароль, который он вам сообщил, чтобы прочитать письмо.",
@@ -6648,6 +7575,7 @@ export const ru = {
     one_hour_option: "1 час",
     twenty_four_hours_option: "24 часа",
     seven_days_option: "7 дней",
+    thirty_days_option: "30 дней",
     search_messages: "Поиск по сообщениям...",
     search_by_sender: "Поиск по отправителю",
     filter_by_attachments: "Фильтр по вложениям",
@@ -6659,6 +7587,8 @@ export const ru = {
     empty_spam_button: "Очистить спам",
     archived_label: "Архивировано",
     write_reply: "Напишите ваш ответ...",
+    trash_messages_confirmation:
+      "Выбранные письма перемещаются в папку «Корзина», и вы можете восстановить их оттуда.",
     delete_messages_title: "Удалить сообщения",
     delete_messages_confirmation:
       "Выбранные сообщения будут удалены окончательно, и отменить это нельзя.",
@@ -6674,6 +7604,8 @@ export const ru = {
     archive_messages_title: "Архивировать сообщения",
     archive_messages_confirmation:
       "Вы уверены, что хотите архивировать выбранные сообщения?",
+    spam_email_sender_message:
+      "Это письмо перемещается в папку «Спам» вместе с другими письмами этого отправителя в текущем представлении. Новые письма от этого отправителя тоже будут попадать в «Спам».",
     mark_spam_title: "Отметить как спам?",
     mark_spam_confirmation:
       "Вы уверены, что хотите отметить выбранные сообщения как спам?",
@@ -6891,6 +7823,8 @@ export const ru = {
     load_more_results: "Загрузить больше результатов (осталось {{remaining}})",
     contacts: "Контакты",
     scheduled_for: "Запланировано на",
+    scheduled_send_failed:
+      "Не удалось отправить это сообщение. Выберите новое время отправки, чтобы повторить попытку.",
     section_pinned: "Закреплённые",
     section_primary: "Основные",
     spam_email_message: "Это письмо будет перемещено в папку «Спам».",
@@ -6991,6 +7925,8 @@ export const ru = {
       "Предпросмотр не загрузился. Открытие письма его показывает.",
     move_1_conversation: "Переместить 1 переписку",
     move_n_conversations: "Переместить {{ count }} переписок",
+    move_n_conversations_one: "Переместить {{count}} переписку",
+    move_n_conversations_other: "Переместить {{count}} переписок",
     view_message: "Просмотреть сообщение",
     blocking: "Блокировка...",
     block: "Заблокировать",
@@ -7130,6 +8066,8 @@ export const ru = {
     chip_advanced_search: "Расширенный поиск",
     spam_trash_hidden_notice:
       "Некоторые письма в спаме и корзине соответствуют запросу.",
+    search_index_incomplete:
+      "Не удалось прочитать часть поискового индекса на этом устройстве, поэтому в результатах могут отсутствовать некоторые письма.",
     view_spam_trash_messages: "Показать письма",
     search_scope_anywhere: "Почта, спам и корзина",
     op_in_anywhere: "Везде, включая спам и корзину",
@@ -7232,6 +8170,49 @@ export const ru = {
       "Это сообщение отправлено с официального адреса Aster. Aster никогда не запрашивает пароль или фразу восстановления по электронной почте.",
     verification_verified: "Отправитель подтверждён",
     zero_access_encrypted: "Сквозное шифрование",
+    sort_by: "Сортировать по",
+    newest_first: "Сначала новые",
+    oldest_first: "Сначала старые",
+    archive_conversation_count: "Архивировать переписку ({{count}} сообщений)",
+    move_conversation_to_trash_count:
+      "Переместить переписку в корзину ({{count}} сообщений)",
+    translation_unsupported: "{{language}} пока не поддерживается.",
+    translation_unsupported_info_title: "Почему это не переведено",
+    translation_unavailable_info_title: "Почему это не переведено",
+    translation_unsupported_info_body:
+      "Перевод выполняется полностью на вашем устройстве, поэтому работает только с языковыми пакетами, которые поставляет Aster. Пакета для {{language}} пока нет, и на сервер ничего не отправлялось.",
+    translation_unsupported_info_body_list:
+      "Перевод выполняется полностью на вашем устройстве, поэтому работает только с языковыми пакетами, которые поставляет Aster. Пакета для {{language}} пока нет. Сейчас доступны: {{languages}}. На сервер ничего не отправлялось.",
+    translation_unavailable_info_body:
+      "Переводчик на устройстве не смог обработать это письмо. Обычно это значит, что языковой пакет ещё загружается, письмо смешивает несколько языков или состоит в основном из имён, чисел и ссылок. На сервер ничего не отправлялось.",
+    more_folders_count_one: "ещё {{count}} папка",
+    more_folders_count_few: "ещё {{count}} папки",
+    more_folders_count_many: "ещё {{count}} папок",
+    more_folders_count_other: "ещё {{count}} папки",
+    trackers_found_one: "Найден и заблокирован {{count}} трекер",
+    trackers_found_few: "Найдено и заблокировано {{count}} трекера",
+    trackers_found_many: "Найдено и заблокировано {{count}} трекеров",
+    trackers_found_other: "Найдено и заблокировано {{count}} трекера",
+    spy_pixels_blocked_count_one: "Заблокирован {{count}} шпионский пиксель",
+    spy_pixels_blocked_count_few: "Заблокировано {{count}} шпионских пикселя",
+    spy_pixels_blocked_count_many: "Заблокировано {{count}} шпионских пикселей",
+    spy_pixels_blocked_count_other: "Заблокировано {{count}} шпионских пикселя",
+    links_cleaned_count_one: "Очищена {{count}} ссылка",
+    links_cleaned_count_few: "Очищено {{count}} ссылки",
+    links_cleaned_count_many: "Очищено {{count}} ссылок",
+    links_cleaned_count_other: "Очищено {{count}} ссылки",
+    param_removed_from_n_links_one: "{{param}} удалён из {{count}} ссылки",
+    param_removed_from_n_links_few: "{{param}} удалён из {{count}} ссылок",
+    param_removed_from_n_links_many: "{{param}} удалён из {{count}} ссылок",
+    param_removed_from_n_links_other: "{{param}} удалён из {{count}} ссылок",
+    remote_images_blocked_count_one:
+      "Заблокировано {{count}} внешнее изображение",
+    remote_images_blocked_count_few:
+      "Заблокировано {{count}} внешних изображения",
+    remote_images_blocked_count_many:
+      "Заблокировано {{count}} внешних изображений",
+    remote_images_blocked_count_other:
+      "Заблокировано {{count}} внешних изображения",
   },
   auth: {
     passkey_verification: "Подтверждение с помощью passkey",
@@ -7450,6 +8431,8 @@ export const ru = {
       "Здесь нужен один из ваших кодов восстановления.",
     invalid_recovery_code:
       "Этот код восстановления не совпал. Другой из сохранённого списка обычно подходит.",
+    invalid_backup_code:
+      "Этот резервный код не подходит. Каждый код работает только один раз, поэтому попробуйте следующий неиспользованный код из списка.",
     new_password_placeholder: "Новый пароль",
     confirm_password_placeholder: "Подтвердите пароль",
     email_address_placeholder: "Адрес электронной почты",
@@ -7698,6 +8681,14 @@ export const ru = {
     plan_footer_reassurance:
       "Все тарифы включают шифрование с нулевым доступом, без рекламы и с 30-дневной гарантией возврата денег. Можно изменить или отменить в любое время.",
     plan_free_cta: "Начать",
+    plan_duo_description:
+      "Общее зашифрованное хранилище и один счёт для двух человек.",
+    plan_family_description:
+      "Общее зашифрованное хранилище и один счёт для шести человек.",
+    plan_starter_description:
+      "Больше хранилища и псевдонимов для повседневных личных задач.",
+    plan_pro_description:
+      "Просторное хранилище и псевдонимы для опытных пользователей.",
     plan_free_name: "Бесплатный",
     plan_free_tagline: "Начните без затрат",
     plan_loading: "Загрузка тарифов...",
@@ -7721,7 +8712,7 @@ export const ru = {
     registration_suspended:
       "Наша система безопасности временно остановила регистрацию новых пользователей из этой сети. Если это ошибка, напишите на hello@astermail.org.",
     security_key_verification: "Проверка ключа безопасности",
-    passkey_sign_in: "Sign in with passkey",
+    passkey_sign_in: "Войти с ключом доступа",
     tap_security_key:
       "Коснитесь ключа безопасности или используйте пароль для входа",
     terms_of_service_heading: "Условия использования",
@@ -7740,6 +8731,50 @@ export const ru = {
     waiting_for_pairing: "Ожидание связывания. Открыто окно браузера.",
     webauthn_not_supported:
       "Этот браузер не поддерживает ключи безопасности. Подойдёт другой браузер или вход с паролем.",
+    remove_photo: "Удалить фото",
+    captcha_load_failed:
+      "Не удалось загрузить проверку безопасности. Проверьте подключение или блокировщик контента и повторите попытку.",
+    academic_verified_signin_note:
+      "Статус студента подтверждён. Войдите, и скидка 30 % применится при оплате.",
+    academic_failed_signin_note:
+      "Эта ссылка для подтверждения истекла или уже использована. Войдите и запросите новую в настройках оплаты.",
+    link_device_upgrade_required_toast:
+      "Для подключения устройства Bridge нужен тариф Star или выше. Перейдите на более высокий тариф, чтобы продолжить.",
+    link_device_upgrade_title:
+      "Повысьте тариф, чтобы подключить это устройство",
+    link_device_upgrade_description:
+      "Для подключения настольного Bridge к аккаунту нужен тариф Star или выше. Выберите тариф ниже, и устройство подключится сразу после оплаты.",
+    link_device_upgrade_cta: "Перейти на Star",
+    link_device_upgrade_failed:
+      "Не удалось начать оплату. Повторите попытку или откройте раздел оплаты в настройках.",
+    link_device_already_linked:
+      "Это устройство уже подключено к другому аккаунту. Сначала отключите его там и повторите попытку.",
+    link_device_rate_limited:
+      "Слишком много попыток. Подождите около минуты и повторите.",
+    link_device_account_suspended:
+      "Аккаунт заблокирован, поэтому сейчас нельзя подключать новые устройства. Обратитесь в поддержку.",
+    product_updates_notice:
+      "Иногда вы также будете получать новости о продукте на почту; их можно отключить в настройках.",
+    plan_academic_discount_note:
+      "Скидка 30 % применится при оплате автоматически, как только вы подтвердите адрес почты.",
+    plan_referral_discount_note:
+      "Реферальная скидка применяется при оплате автоматически.",
+    plan_referral_discount_percent_note:
+      "Реферальная скидка {{percent}} % уже учтена ниже.",
+    academic_verified_title: "Вы подтверждены",
+    academic_verified_body:
+      "Студенческая скидка 30 % закреплена. Открываем тарифы...",
+    academic_verified_continue: "Выберите тариф",
+    academic_offer_sending_title: "Отправляем ссылку для подтверждения",
+    academic_offer_sending_body:
+      "Отправляем ссылку для подтверждения скидки 30 % на {{ email }}.",
+    offer_welcome_badge_student: "Скидка 30 % для студентов",
+    offer_welcome_badge_journalist: "Скидка 30 % для журналистов",
+    offer_welcome_headline: "Получите скидку 30 %",
+    offer_welcome_subline_student:
+      "Создайте бесплатный аккаунт и подтвердите студенческую почту, чтобы получить скидку 30 % на любой платный тариф на 12 месяцев.",
+    offer_welcome_subline_journalist:
+      "Создайте бесплатный аккаунт и подтвердите журналистскую аккредитацию, чтобы получить скидку 30 % на любой платный тариф на 12 месяцев.",
   },
   passkeys: {
     passkey_setup_cancelled: "Настройка passkey отменена.",
@@ -7753,41 +8788,45 @@ export const ru = {
       "Использует Windows Hello, Face ID или Touch ID. Если откроется менеджер паролей, можно сохранить его там или приостановить расширение, чтобы использовать Windows Hello напрямую.",
     security_key_hint:
       "Добавляет второй фактор с помощью Windows Hello, YubiKey или менеджера паролей.",
-    section_title: "Passkeys & Security Keys",
+    section_title: "Ключи доступа и ключи безопасности",
     section_description:
-      "Use passkeys for fast, secure sign-in with your device biometrics or PIN. Security keys use your device authenticator as a second factor.",
-    add_passkey: "Add passkey",
-    add_security_key: "Add security key",
-    no_passkeys: "No passkeys or security keys registered",
-    passkey_badge: "Passkey",
-    security_key_badge: "Security Key",
-    registered: "Added",
-    last_used: "Last used",
-    never_used: "Never used",
-    remove: "Remove",
-    confirm_remove: "Remove",
+      "Ключи доступа позволяют входить быстро и безопасно с помощью биометрии или PIN-кода устройства. Ключи безопасности используют аутентификатор устройства как второй фактор.",
+    add_passkey: "Добавить ключ доступа",
+    add_security_key: "Добавить ключ безопасности",
+    no_passkeys: "Ключи доступа и ключи безопасности не зарегистрированы",
+    passkey_badge: "Ключ доступа",
+    security_key_badge: "Ключ безопасности",
+    registered: "Добавлен",
+    last_used: "Последнее использование",
+    never_used: "Ни разу не использовался",
+    remove: "Убрать",
+    confirm_remove: "Убрать",
     delete_passkey_title: "Удалить passkey?",
     delete_passkey_description:
       '"{{name}}" будет удалён из вашего аккаунта. Вы больше не сможете входить с его помощью.',
     delete_security_key_title: "Удалить ключ безопасности?",
     delete_security_key_description:
       '"{{name}}" будет удалён из вашего аккаунта. Он больше не будет работать как второй фактор.',
-    removed: "Passkey removed",
-    register_success: "Passkey registered successfully",
-    register_failed: "Registration failed. Please try again.",
-    registering: "Registering...",
+    removed: "Ключ доступа удалён",
+    register_success: "Ключ доступа зарегистрирован",
+    register_failed: "Не удалось зарегистрировать. Попробуйте ещё раз.",
+    registering: "Регистрация…",
     not_supported:
-      "Your browser does not support passkeys. Try a modern browser like Chrome, Safari, or Firefox.",
-    sign_in_with_passkey: "Sign in with passkey",
-    authenticating: "Authenticating...",
+      "Ваш браузер не поддерживает ключи доступа. Попробуйте современный браузер, например Chrome, Safari или Firefox.",
+    sign_in_with_passkey: "Войти с ключом доступа",
+    authenticating: "Проверка…",
     vault_needs_password:
-      "Enter your password to decrypt your vault for the first time.",
-    unnamed_passkey: "Passkey",
-    unnamed_security_key: "Security Key",
+      "Введите пароль, чтобы расшифровать хранилище в первый раз.",
+    unnamed_passkey: "Ключ доступа",
+    unnamed_security_key: "Ключ безопасности",
     rename: "Переименовать",
     rename_saved: "Имя обновлено",
+    rename_placeholder: "Название ключа",
+    rename_failed: "Не удалось переименовать ключ. Попробуйте ещё раз.",
   },
   errors: {
+    upload_too_large:
+      "Загрузка слишком велика. Чтобы продолжить, удалите файл или уменьшите его размер и повторите попытку.",
     failed_remove_reaction: "Не удалось удалить реакцию. Попробуйте ещё раз.",
     cannot_react_own_message: "Нельзя поставить реакцию на своё сообщение.",
     cannot_react_draft:
@@ -7819,13 +8858,14 @@ export const ru = {
       "На стороне сервера возникла заминка. Повторная попытка вскоре обычно помогает. Мы разбираемся.",
     timeout:
       "Запрос выполнялся слишком долго. Проверка соединения и повторная попытка обычно решает вопрос.",
-    rate_limit:
-      "You're doing that too quickly. Please wait a moment and try again.",
+    rate_limit: "Слишком часто. Подождите немного и повторите попытку.",
     invalid_credentials:
       "Этот адрес и пароль не совпали. Повторная попытка или сброс на astermail.org/reset обычно решает вопрос.",
     session_expired:
       "Сессия завершилась. Повторный вход возвращает на то же место. Данные и черновики сохранены на сервере.",
     try_again: "Повторная попытка обычно помогает.",
+    sign_in_domain_unsupported:
+      "Войдите с адресом astermail.org или aster.cx, с которым вы регистрировались. Адреса на вашем домене ведут в тот же аккаунт.",
     invalid_username: "Сюда подходит имя пользователя от 3 до 40 символов.",
     enter_password: "Для продолжения нужен ваш пароль.",
     password_too_long:
@@ -7855,6 +8895,9 @@ export const ru = {
       "Этот ghost-псевдоним уже есть на вашей учётной записи.",
     failed_to_create_ghost_alias:
       "Этот ghost-псевдоним не сохранился. Повторная попытка обычно помогает. Другие псевдонимы остаются без изменений.",
+    ghost_expiry_extend_only:
+      "Ghost-адрес можно только продлить, но не сократить.",
+    ghost_expiry_update_failed: "Срок действия не обновился. Попробуйте снова.",
     failed_to_activate_ghost_mode:
       "Режим ghost не включился. Повторная попытка обычно помогает.",
     wrong_vault_password:
@@ -7980,6 +9023,10 @@ export const ru = {
     failed_queue_reply:
       "Не удалось сохранить ответ для отложенной отправки. Попробуйте ещё раз. Черновик сохранён.",
     failed_send: "Письмо не отправлено. Попробуйте ещё раз. Черновик сохранён.",
+    attachments_too_large:
+      "Вложения в сумме превышают {{size}}. Это максимум для одного письма на вашем тарифе. Удалите или уменьшите файл, чтобы отправить. Черновик сохранён.",
+    too_many_attachments:
+      "В письме больше {{max}} вложений. Это максимум для одного письма. Удалите несколько, чтобы отправить. Черновик сохранён.",
     failed_send_email:
       "Письмо не отправлено. Попробуйте ещё раз. Черновик сохранён.",
     failed_send_external:
@@ -8030,8 +9077,7 @@ export const ru = {
       "В этом CSV не найдено пригодных писем. Файл должен содержать столбцы: от, кому, тема, текст, дата. Обычно помогает проверка заголовков.",
     pst_conversion_required:
       "Aster не может читать PST-файлы напрямую. Экспортируйте письма из Outlook как MBOX или отдельные EML-файлы.",
-    rate_limited:
-      "You're doing that too quickly. Please wait a moment and try again.",
+    rate_limited: "Слишком часто. Подождите немного и повторите попытку.",
     registration_cancelled: "Регистрация отменена",
     registration_failed:
       "Регистрация не завершена. Попробуйте начать заново. Аккаунт не был создан.",
@@ -8056,8 +9102,94 @@ export const ru = {
       "Aster не может прочитать {{name}}. Поддерживаемые форматы: MBOX, EML, CSV и PST. Сохраните файл в одном из них и попробуйте снова.",
     version_conflict:
       "Это уже изменил кто-то или что-то другое. Обновление покажет актуальную версию.",
+    post_quantum_unavailable:
+      "Aster защищает письма между аккаунтами Aster постквантовым шифрованием, а {{recipients}} ещё не опубликовал постквантовые ключи. Попросите его открыть Aster или обновить приложение и повторите попытку. Черновик сохранён.",
+  },
+  folder_retention: {
+    title: "Автоочистка папок",
+    subtitle:
+      "Автоматически удаляйте старые письма из папки. Избранные и закреплённые письма всегда сохраняются.",
+    add: "Добавить автоочистку",
+    empty_title: "Папок с автоочисткой пока нет",
+    empty_description:
+      "Выберите папку и срок хранения, чтобы она сама оставалась в порядке.",
+    edit_title: "Автоочистка папки",
+    folder: "Папка",
+    select_folder: "Выберите папку",
+    no_folders: "Сначала создайте свою папку, чтобы использовать автоочистку.",
+    retention_period: "Удалять письма старше",
+    days_suffix: "дней",
+    mode: "При очистке",
+    mode_trash: "Переместить в корзину",
+    mode_trash_hint: "Можно восстановить около 30 дней",
+    mode_permanent: "Удалить безвозвратно",
+    mode_permanent_hint: "Отменить не получится",
+    mode_archive: "Переместить в архив",
+    mode_archive_hint:
+      "Убирается из входящих, но сохраняется и доступно для восстановления",
+    enabled: "Включено",
+    preview_some: "При следующем запуске будет очищено около {{count}} писем.",
+    preview_none: "Сейчас этому правилу не соответствует ни одно письмо.",
+    keeps_note: "Избранные и закреплённые письма всегда сохраняются.",
+    save: "Сохранить",
+    cancel: "Отмена",
+    delete: "Удалить",
+    remove: "Убрать",
+    permanent_confirm:
+      "Безвозвратно удалить письма старше {{days}} дней в этой папке? Отменить не получится.",
+    summary_older_than: "Старше {{days}} дней",
+    summary_trash: "в корзину",
+    summary_permanent: "безвозвратно",
+    summary_archive: "в архив",
+    card_badge: "Автоочистка",
+    disabled_badge: "Выкл.",
+    upgrade_title: "Автоочистка папок доступна в платных тарифах",
+    upgrade_body:
+      "Перейдите на Star или выше, чтобы очищать папки автоматически.",
+    save_failed: "Не удалось сохранить правило автоочистки.",
+    load_failed: "Не удалось загрузить правила автоочистки.",
+    deleted_toast: "Правило автоочистки удалено.",
+    saved_toast: "Правило автоочистки сохранено.",
   },
   mail_rules: {
+    expr_empty_expression: "Введите выражение перед сохранением.",
+    expr_unterminated_string: "У значения не хватает закрывающей кавычки.",
+    expr_unexpected_char: 'Символ "{{value}}" здесь не допускается.',
+    expr_unexpected_token:
+      '"{{value}}" здесь неуместно. Проверьте написание, кавычки и скобки.',
+    expr_expected_rparen: "Не хватает закрывающей скобки.",
+    expr_expected_field:
+      "Введите здесь имя поля, например from.address, subject или has_attachment.",
+    expr_unknown_field:
+      '"{{value}}" не является доступным полем. Попробуйте from.address, subject, body, has_attachment, spam_score или date_received.',
+    expr_expected_operator:
+      "Введите здесь оператор, например is, contains, ends_with или greater_than.",
+    expr_expected_string:
+      'Введите значение в кавычках, например "example.com".',
+    expr_expected_number: "Введите здесь число.",
+    expr_invalid_number: "Это число недопустимо.",
+    expr_expected_is: 'Здесь должно быть слово "is".',
+    expr_expected_bool_value: "Введите здесь true или false.",
+    expr_expected_bool_value_got:
+      'Введите здесь true или false, а не "{{value}}".',
+    expr_expected_auth_value: "Введите здесь pass, fail, none или missing.",
+    expr_expected_auth_value_got:
+      'Введите здесь pass, fail, none или missing, а не "{{value}}".',
+    expr_expected_numeric_op:
+      "Введите здесь числовое сравнение, например >, <, = или equals.",
+    expr_expected_date_op: "Введите здесь older_than_days или newer_than_days.",
+    expr_expected_date_op_got:
+      'Введите здесь older_than_days или newer_than_days, а не "{{value}}".',
+    expr_bad_address_op:
+      'Оператор "{{value}}" не работает с полями адреса. Попробуйте is, contains, starts_with, ends_with, matches_domain или matches_regex.',
+    expr_bad_text_op:
+      'Оператор "{{value}}" не работает с текстовыми полями. Попробуйте is, contains, starts_with, ends_with, is_empty или matches_regex.',
+    expr_bad_attachment_op:
+      'Оператор "{{value}}" не работает с именами вложений. Попробуйте contains, ends_with или matches_regex.',
+    expr_unhandled_field: "Это поле нельзя использовать здесь.",
+    expr_internal_error:
+      "Не удалось прочитать это выражение. Проверьте синтаксис и повторите попытку.",
+    expr_line_col: "(строка {{line}}, столбец {{col}})",
     editor_description: "Назовите правило и укажите, что оно должно делать.",
     drag_handle: "Маркер перетаскивания",
     no_labels: "Нет меток",
@@ -8169,11 +9301,14 @@ export const ru = {
     hint_actions_required:
       "Перед сохранением правила нужно добавить хотя бы одно действие.",
     hint_categorize_required: "Здесь нужна категория.",
+    hint_move_to_required: "Здесь нужна папка назначения.",
+    hint_labels_required: "Здесь нужна хотя бы одна метка.",
     hint_condition_incomplete:
       "Каждое условие должно быть заполнено перед сохранением правила.",
     hint_conditions_required:
       "Перед сохранением правила нужно добавить хотя бы одно условие.",
     hint_forward_required: "Здесь нужен адрес для пересылки.",
+    untitled_rule_name: "Правило без названия",
     hint_name_required: "Здесь нужно название правила.",
     hint_snooze_required: "Здесь нужна дата откладывания.",
     last_action_required:
@@ -8229,6 +9364,9 @@ export const ru = {
     remove_action: "Удалить действие",
     reorder_failed:
       "Новый порядок не сохранился. Попробуйте ещё раз. Правила по-прежнему выполняются в старом порядке.",
+    rule_delete_failed:
+      "Это правило не удалось удалить. Попробуйте еще раз. Правило все еще действует.",
+    snooze_needs_future: "Выберите дату и время в будущем.",
     rule_color: "Цвет",
     rule_limit_body:
       "Вы достигли лимита правил. Обновите тарифный план, чтобы добавить больше.",
@@ -8256,6 +9394,51 @@ export const ru = {
     value_unit_mb: "МБ",
     when_mail_matches: "Когда письмо соответствует",
     your_rules: "Ваши правила ({{count}})",
+    templates_button: "Шаблоны",
+    templates_title: "Шаблоны правил",
+    templates_subtitle:
+      "Начните с готового правила и настройте его перед сохранением.",
+    templates_search_placeholder: "Поиск шаблонов",
+    templates_empty: "По вашему запросу шаблоны не найдены.",
+    templates_use: "Использовать шаблон",
+    templates_customize: "Нужны ваши данные",
+    templates_category_organize: "Порядок",
+    templates_category_cleanup: "Очистка",
+    templates_category_priority: "Приоритет",
+    templates_category_security: "Безопасность",
+    tpl_folder_auto_clean_name: "Автоочистка папок",
+    tpl_folder_auto_clean_desc:
+      "Автоматически удаляет письма из папки, когда они становятся старше выбранного числа дней. Избранные и закреплённые письма всегда сохраняются.",
+    tpl_newsletters_name: "Сортировать рассылки",
+    tpl_newsletters_desc:
+      "Если письмо пришло из рассылки (в нём есть заголовок List-Id), помещайте его в категорию «Уведомления».",
+    tpl_social_name: "Собрать уведомления соцсетей",
+    tpl_social_desc:
+      "Если отправитель — Facebook, LinkedIn, X/Twitter или Instagram, перемещайте письмо в категорию «Соцсети».",
+    tpl_promotions_name: "Ловить промоакции",
+    tpl_promotions_desc:
+      "Если в теме упоминаются распродажа, скидка, купон или «% скидки», перемещайте письмо в категорию «Предложения».",
+    tpl_calendar_name: "Собрать приглашения календаря",
+    tpl_calendar_desc:
+      "Если письмо содержит приглашение календаря (.ics), помещайте его в категорию «Уведомления».",
+    tpl_large_attachments_name: "Отмечать большие вложения",
+    tpl_large_attachments_desc:
+      "Если во вложении письма больше 10 МБ, перемещайте его в выбранную папку. Выберите папку перед сохранением.",
+    tpl_no_reply_name: "Привести в порядок автописьма",
+    tpl_no_reply_desc:
+      "Если письмо создано автоматически (в нём есть заголовок Auto-Submitted, например от отправителей no-reply), помещайте его в «Уведомления».",
+    tpl_receipts_name: "Архивировать чеки",
+    tpl_receipts_desc:
+      "Если в теме упоминаются чек, счёт или подтверждение заказа, минуйте входящие и помещайте письмо в «Уведомления».",
+    tpl_vip_sender_name: "Отмечать важного отправителя",
+    tpl_vip_sender_desc:
+      "Когда приходит письмо от выбранного отправителя, отмечайте его и отправляйте уведомление. Укажите адрес отправителя перед сохранением.",
+    tpl_keyword_star_name: "Отмечать по ключевому слову",
+    tpl_keyword_star_desc:
+      "Если в теме есть выбранное вами слово, отмечайте письмо. Укажите ключевое слово перед сохранением.",
+    tpl_auth_failures_name: "Придержать подозрительные письма",
+    tpl_auth_failures_desc:
+      "Если письмо не проходит проверки SPF, DKIM или DMARC (частый признак подделки), не пускайте его во входящие и отмечайте прочитанным.",
   },
   badges: {
     title: "Значки",
@@ -8439,5 +9622,179 @@ export const ru = {
     submit_failed: "Не удалось отправить опрос. Попробуйте ещё раз.",
     submitted_thanks:
       "Спасибо! Ваш отзыв делает Aster Mail лучше для всех. Мы читаем каждый ответ.",
+  },
+  calendar: {
+    invite_yes: "Да",
+    invite_maybe: "Возможно",
+    invite_no: "Нет",
+    invite_status_going: "Вы придете",
+    invite_status_maybe: "Возможно, вы придете",
+    invite_status_declined: "Вы не придете",
+    invite_change_response: "Изменить",
+    invite_added_toast: "Добавлено в ваш календарь",
+    invite_declined_toast: "Вы отклонили это приглашение",
+    invite_save_failed: "Не удалось сохранить в вашем календаре",
+    invite_saved_locally: "Сохранено в вашем зашифрованном календаре",
+  },
+  settings_search: {
+    two_factor: "2FA",
+    api_token: "Токен API",
+    account_recovery: "Восстановление аккаунта",
+    actions: "Действия",
+    active_sessions: "Активные сеансы",
+    add_ons: "Дополнения",
+    advanced: "Дополнительно",
+    allowlist: "Список разрешённых",
+    animations: "Анимация",
+    app_lock: "Блокировка приложения",
+    auto_archive: "Автоархивирование",
+    auto_forward: "Автопересылка",
+    auto_label: "Автоматическая метка",
+    auto_clean: "Автоочистка",
+    auto_logout: "Автовыход",
+    auto_update: "Автообновление",
+    badge: "Значок",
+    badge_count: "Счётчик на значке",
+    block: "Заблокировать",
+    bug_report: "Сообщение об ошибке",
+    build_info: "Сведения о сборке",
+    changelog: "Что нового",
+    checkup: "Проверка",
+    children: "Дети",
+    children_accounts: "Детские аккаунты",
+    code: "Код",
+    composing_and_replies: "Написание и ответы",
+    configuration: "Конфигурация",
+    confirmations: "Подтверждения",
+    connect_apple_mail: "Подключить Apple Mail",
+    connect_thunderbird: "Подключить Thunderbird",
+    contact_support: "Связаться с поддержкой",
+    content_protection: "Защита содержимого",
+    control: "Управление",
+    create: "Создать",
+    create_ghost_alias: "Создать призрачный псевдоним",
+    credits: "Бонусы",
+    crypto: "Крипто",
+    custom: "Свой вариант",
+    custom_domain: "Свой домен",
+    dns_records: "Записи DNS",
+    danger_zone: "Опасная зона",
+    dark_mode: "Тёмная тема",
+    desktop: "Компьютер",
+    device: "Устройство",
+    directories: "Каталоги",
+    display: "Отображение",
+    domain_verification: "Проверка домена",
+    domains: "Домены",
+    download: "Скачать",
+    download_bridge: "Скачать Bridge",
+    duration: "Длительность",
+    duress_pin: "Тревожный PIN-код",
+    edit: "Изменить",
+    edit_signature: "Изменить подпись",
+    email: "Почта",
+    email_forwarding: "Пересылка почты",
+    email_summary: "Сводка по почте",
+    events: "События",
+    export: "Экспорт",
+    external_accounts: "Внешние аккаунты",
+    feature_request: "Предложение функции",
+    features: "Возможности",
+    format: "Формат",
+    forward: "Переслать",
+    generate: "Создать",
+    ghost_aliases: "Призрачные псевдонимы",
+    gmail: "Gmail",
+    html_signature: "Подпись в HTML",
+    hardware_keys: "Ключи безопасности",
+    imap: "IMAP",
+    imap_settings: "Настройки IMAP",
+    import_from_imap: "Импорт из IMAP",
+    import_from_proton: "Импорт из Proton",
+    import_key: "Импортировать ключ",
+    invite: "Пригласить",
+    invite_a_friend: "Пригласить друга",
+    invite_family_member: "Пригласить члена семьи",
+    invoices: "Счета",
+    key_rotation: "Смена ключей",
+    key_algorithm: "Алгоритм ключа",
+    keyboard: "Клавиатура",
+    keyboard_shortcuts: "Сочетания клавиш",
+    keyboard_navigation: "Навигация с клавиатуры",
+    keys: "Ключи",
+    language: "Язык",
+    language_and_format: "Язык и формат",
+    layout: "Макет",
+    layout_density: "Плотность макета",
+    light_mode: "Светлая тема",
+    links: "Ссылки",
+    logs: "Журналы",
+    manage: "Управление",
+    manage_family_members: "Управление членами семьи",
+    manage_templates: "Управление шаблонами",
+    masked_email: "Маскированный адрес",
+    members: "Участники",
+    motion_and_layout: "Движение и макет",
+    navigation_panel: "Панель навигации",
+    notification_sound: "Звук уведомлений",
+    outlook: "Outlook",
+    passkeys: "Ключи доступа",
+    password: "Пароль",
+    password_protected_folders: "Папки под паролем",
+    payment: "Оплата",
+    payment_method: "Способ оплаты",
+    performance: "Производительность",
+    plain_text_signature: "Подпись обычным текстом",
+    plan: "Тариф",
+    position: "Расположение",
+    profile: "Профиль",
+    proton: "Proton",
+    push: "Push",
+    quiet_hours: "Тихие часы",
+    reading: "Чтение",
+    reading_and_conversations: "Чтение и переписки",
+    reading_pane: "Область чтения",
+    recovery: "Восстановление",
+    referral_code: "Реферальный код",
+    rename_hardware_key: "Переименовать ключ безопасности",
+    rename_passkey: "Переименовать ключ доступа",
+    report_a_bug: "Сообщить об ошибке",
+    request_logs: "Журналы запросов",
+    revoke_smtp_token: "Отозвать токен SMTP",
+    revoke_device: "Отозвать устройство",
+    rotate_encryption_key: "Сменить ключ шифрования",
+    smtp_settings: "Настройки SMTP",
+    screen_reader: "Экранный диктор",
+    security: "Безопасность",
+    security_checkup: "Проверка безопасности",
+    send_delay: "Задержка отправки",
+    sending: "Отправка",
+    session: "Сеанс",
+    sessions: "Сеансы",
+    settings: "Настройки",
+    setup: "Настройка",
+    sign_out_device: "Выйти на устройстве",
+    sound: "Звук",
+    spam: "Спам",
+    spam_filter: "Фильтр спама",
+    stats: "Статистика",
+    storage: "Хранилище",
+    storage_add_on: "Дополнение к хранилищу",
+    subscriptions: "Подписки",
+    support: "Поддержка",
+    swipe: "Свайп",
+    system_theme: "Системная тема",
+    test: "Тест",
+    text: "Текст",
+    theme: "Тема",
+    thread_view: "Вид переписки",
+    threading: "Переписки",
+    tokens: "Токены",
+    tracking_protection: "Защита от отслеживания",
+    translation: "Перевод",
+    undo_send: "Отмена отправки",
+    vacation_reply: "Автоответ в отпуске",
+    vanguard: "Vanguard",
+    vision: "Зрение",
   },
 };

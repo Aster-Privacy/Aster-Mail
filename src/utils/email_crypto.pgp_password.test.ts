@@ -73,13 +73,15 @@ describe("password protected pgp mail", () => {
   });
 
   it("detects a password encrypted message", async () => {
-    expect(await is_password_encrypted_pgp(await password_encrypted("hi"))).toBe(
-      true,
-    );
+    expect(
+      await is_password_encrypted_pgp(await password_encrypted("hi")),
+    ).toBe(true);
   });
 
   it("does not treat a key encrypted message as password protected", async () => {
-    expect(await is_password_encrypted_pgp(await key_encrypted("hi"))).toBe(false);
+    expect(await is_password_encrypted_pgp(await key_encrypted("hi"))).toBe(
+      false,
+    );
   });
 
   it("resolves a password protected body into a decryptable payload", async () => {
@@ -131,7 +133,11 @@ describe("password protected pgp mail", () => {
   it("gives list and search text the readable part, never the payload", async () => {
     const armored = await password_encrypted("payload");
     const body = `Open the secure message here: https://example.com/read/abc\n\n${armored}\n`;
-    const text = await decrypt_body_text(body, "me@astermail.org", "them@x.test");
+    const text = await decrypt_body_text(
+      body,
+      "me@astermail.org",
+      "them@x.test",
+    );
 
     expect(is_password_protected_body(text)).toBe(false);
     expect(text).toContain("https://example.com/read/abc");

@@ -19,12 +19,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
+import { DeleteFolderOutcome } from "./cache";
+import { DecryptedFolder, FolderCounts, FoldersState } from "./tree";
+
 import {
   type ListFoldersParams,
   type DeleteFolderRequest,
 } from "@/services/api/folders";
-import { DeleteFolderOutcome } from "./cache";
-import { DecryptedFolder, FolderCounts, FoldersState } from "./tree";
 
 export interface UseFoldersReturn {
   state: FoldersState;
@@ -71,4 +72,3 @@ export interface UseFoldersReturn {
   get_folder_by_id: (folder_id: string) => DecryptedFolder | undefined;
   refresh: () => Promise<void>;
 }
-

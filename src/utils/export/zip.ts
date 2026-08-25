@@ -26,21 +26,26 @@ export interface ZipInputEntry {
 
 const crc_table: Uint32Array = (() => {
   const t = new Uint32Array(256);
+
   for (let i = 0; i < 256; i++) {
     let c = i;
+
     for (let j = 0; j < 8; j++) {
       c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
     }
     t[i] = c >>> 0;
   }
+
   return t;
 })();
 
 function crc32(data: Uint8Array): number {
   let c = 0xffffffff;
+
   for (let i = 0; i < data.length; i++) {
     c = crc_table[(c ^ data[i]) & 0xff] ^ (c >>> 8);
   }
+
   return (c ^ 0xffffffff) >>> 0;
 }
 
@@ -55,6 +60,7 @@ function dos_datetime(): { time: number; date: number } {
     (((year - 1980) & 0x7f) << 9) |
     (((d.getMonth() + 1) & 0x0f) << 5) |
     (d.getDate() & 0x1f);
+
   return { time, date };
 }
 
@@ -70,8 +76,10 @@ export function build_store_zip(entries: ZipInputEntry[]): Uint8Array {
   }> = [];
 
   let local_total = 0;
+
   for (const e of entries) {
     const name_bytes = enc.encode(e.name);
+
     if (e.data.length > 0xfffffffe) {
       throw new Error("zip entry exceeds 4GiB STORE limit");
     }
@@ -85,9 +93,11 @@ export function build_store_zip(entries: ZipInputEntry[]): Uint8Array {
   }
 
   let central_total = 0;
+
   for (const r of records) central_total += 46 + r.name_bytes.length;
 
   const total = local_total + central_total + 22;
+
   if (total > 0xfffffffe) {
     throw new Error("zip archive exceeds 4GiB STORE limit");
   }
@@ -115,6 +125,7 @@ export function build_store_zip(entries: ZipInputEntry[]): Uint8Array {
   }
 
   const central_start = pos;
+
   for (const r of records) {
     view.setUint32(pos, 0x02014b50, true);
     view.setUint16(pos + 4, 20, true);

@@ -18,12 +18,10 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { serialize_vcards, type VCardContact } from "@/utils/export";
-import {
-  list_contacts,
-  decrypt_contacts,
-} from "@/services/api/contacts";
 import type { DecryptedContact } from "@/types/contacts";
+
+import { serialize_vcards, type VCardContact } from "@/utils/export";
+import { list_contacts, decrypt_contacts } from "@/services/api/contacts";
 import { list_aliases, decrypt_aliases } from "@/services/api/aliases";
 import {
   list_ghost_aliases,
@@ -67,15 +65,50 @@ function contact_to_vcard(c: DecryptedContact): VCardContact {
       service: k,
       url: v,
     }));
+
+  const address_entries = c.address_entries?.length
+    ? c.address_entries.map((entry) => ({
+        street: entry.street,
+        city: entry.city,
+        state: entry.state,
+        postal_code: entry.postal_code,
+        country: entry.country,
+        type: entry.type,
+      }))
+    : addr
+      ? [
+          {
+            street: addr.street,
+            city: addr.city,
+            state: addr.state,
+            postal_code: addr.postal_code,
+            country: addr.country,
+          },
+        ]
+      : undefined;
+
   return {
     first_name: c.first_name,
+    middle_name: c.middle_name,
     last_name: c.last_name,
+    nickname: c.nickname,
     display_name: `${c.first_name ?? ""} ${c.last_name ?? ""}`.trim(),
     emails: c.emails,
+    email_entries: c.email_entries?.map((entry) => ({
+      value: entry.value,
+      type: entry.type,
+    })),
     phone: c.phone,
+    phone_entries: c.phone_entries?.map((entry) => ({
+      value: entry.value,
+      type: entry.type,
+    })),
     company: c.company,
+    department: c.department,
     job_title: c.job_title,
+    role: c.role,
     address: address_text,
+    address_entries,
     birthday: c.birthday,
     notes: c.notes,
     social_links,
@@ -85,16 +118,14 @@ function contact_to_vcard(c: DecryptedContact): VCardContact {
   };
 }
 
-async function safe<T>(
-  label: string,
-  fn: () => Promise<T>,
-): Promise<T | null> {
+async function safe<T>(label: string, fn: () => Promise<T>): Promise<T | null> {
   try {
     return await fn();
   } catch (err) {
     if (import.meta.env.DEV) {
       console.warn(`[export] ${label} failed`, err);
     }
+
     return null;
   }
 }
@@ -102,15 +133,19 @@ async function safe<T>(
 async function fetch_all_contacts(): Promise<DecryptedContact[]> {
   const all: DecryptedContact[] = [];
   let cursor: string | undefined = undefined;
+
   for (let i = 0; i < 200; i++) {
     const res = await list_contacts({ limit: 200, cursor });
     const page = res.data;
+
     if (!page?.items?.length) break;
     const decrypted = await decrypt_contacts(page.items);
+
     all.push(...decrypted);
     if (!page.has_more || !page.next_cursor) break;
     cursor = page.next_cursor;
   }
+
   return all;
 }
 
@@ -120,10 +155,11 @@ export async function build_account_data_files(
   const files: AccountDataFile[] = [];
 
   if (selection.contacts) {
-    const contacts =
-      (await safe("contacts", fetch_all_contacts)) ?? [];
+    const contacts = (await safe("contacts", fetch_all_contacts)) ?? [];
+
     if (contacts.length > 0) {
       const vcards = serialize_vcards(contacts.map(contact_to_vcard));
+
       files.push({ name: "contacts.vcf", bytes: vcards });
       files.push({
         name: "contacts.json",
@@ -136,32 +172,40 @@ export async function build_account_data_files(
 
   const aliases = await safe("aliases", async () => {
     const res = await list_aliases({ limit: 500 });
+
     return decrypt_aliases(res.data?.aliases ?? []);
   });
+
   if (aliases?.length) {
     files.push({ name: "aliases.json", bytes: to_json_bytes(aliases) });
   }
 
   const ghost = await safe("ghost_aliases", async () => {
     const res = await list_ghost_aliases();
+
     return decrypt_ghost_aliases(res.data?.aliases ?? []);
   });
+
   if (ghost?.length) {
     files.push({ name: "ghost_aliases.json", bytes: to_json_bytes(ghost) });
   }
 
   const rules = await safe("mail_rules", async () => {
     const res = await list_rules();
+
     return res.data?.rules ?? [];
   });
+
   if (rules?.length) {
     files.push({ name: "mail_rules.json", bytes: to_json_bytes(rules) });
   }
 
   const forwarding = await safe("auto_forward", async () => {
     const res = await list_forwarding_rules();
+
     return res.data ?? [];
   });
+
   if (forwarding?.length) {
     files.push({
       name: "auto_forward_rules.json",
@@ -171,8 +215,10 @@ export async function build_account_data_files(
 
   const signatures = await safe("signatures", async () => {
     const res = await list_signatures();
+
     return res.data?.signatures ?? [];
   });
+
   if (signatures?.length) {
     files.push({
       name: "signatures.json",
@@ -182,8 +228,10 @@ export async function build_account_data_files(
 
   const templates = await safe("templates", async () => {
     const res = await list_templates();
+
     return res.data?.templates ?? [];
   });
+
   if (templates?.length) {
     files.push({
       name: "templates.json",
@@ -193,8 +241,10 @@ export async function build_account_data_files(
 
   const vacation = await safe("vacation_reply", async () => {
     const res = await get_vacation_reply();
+
     return res.data ?? null;
   });
+
   if (vacation) {
     files.push({
       name: "vacation_reply.json",
@@ -204,8 +254,10 @@ export async function build_account_data_files(
 
   const blocked = await safe("blocked_senders", async () => {
     const res = await list_blocked_senders();
+
     return res.data ?? [];
   });
+
   if (blocked?.length) {
     files.push({
       name: "blocked_senders.json",
@@ -215,8 +267,10 @@ export async function build_account_data_files(
 
   const allowed = await safe("allowed_senders", async () => {
     const res = await list_allowed_senders(500, 0);
+
     return res.data ?? [];
   });
+
   if (allowed?.length) {
     files.push({
       name: "allowed_senders.json",
@@ -226,8 +280,10 @@ export async function build_account_data_files(
 
   const external = await safe("external_accounts", async () => {
     const res = await list_external_accounts();
+
     return res.data ?? [];
   });
+
   if (external?.length) {
     files.push({
       name: "external_accounts.json",
@@ -238,6 +294,7 @@ export async function build_account_data_files(
   const folders = get_cached_folders().filter(
     (folder) => !is_folder_token_locked(folder.folder_token),
   );
+
   if (folders.length > 0) {
     files.push({
       name: "folders.json",

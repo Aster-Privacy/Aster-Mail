@@ -26,7 +26,10 @@ export function is_vanguard_enabled(account_id: string): boolean {
   return localStorage.getItem(KEY(account_id)) === "1";
 }
 
-export function set_vanguard_enabled(account_id: string, enabled: boolean): void {
+export function set_vanguard_enabled(
+  account_id: string,
+  enabled: boolean,
+): void {
   if (enabled) {
     localStorage.setItem(KEY(account_id), "1");
   } else {
@@ -34,11 +37,16 @@ export function set_vanguard_enabled(account_id: string, enabled: boolean): void
   }
 }
 
-export async function init_vanguard_from_server(account_id: string): Promise<boolean> {
+export async function init_vanguard_from_server(
+  account_id: string,
+): Promise<boolean> {
   const response = await get_vanguard_status();
+
   if (response.data) {
     set_vanguard_enabled(account_id, response.data.enabled);
+
     return response.data.enabled;
   }
+
   return is_vanguard_enabled(account_id);
 }

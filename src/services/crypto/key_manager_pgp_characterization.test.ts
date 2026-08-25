@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { EncryptedVault, SecureVaultHandle } from "./key_manager_core";
+
 import { describe, it, expect, beforeAll } from "vitest";
 import * as openpgp from "openpgp";
 
@@ -43,7 +45,6 @@ import {
   string_to_passphrase,
   normalize_vault_fields,
 } from "./key_manager_pgp";
-import type { EncryptedVault, SecureVaultHandle } from "./key_manager_core";
 import { array_to_base64 } from "./base64";
 
 const password = "characterization-passphrase";
@@ -63,7 +64,11 @@ interface fixture {
 let fx: fixture;
 
 beforeAll(async () => {
-  const identity = await generate_identity_keypair("Owner", owner_email, password);
+  const identity = await generate_identity_keypair(
+    "Owner",
+    owner_email,
+    password,
+  );
   const prekey = await generate_signed_prekey(
     "Owner",
     owner_email,
@@ -128,7 +133,9 @@ describe("hash_recovery_email", () => {
 
 async function cleartext_sign(text: string): Promise<string> {
   const signing_key = await openpgp.decryptKey({
-    privateKey: await openpgp.readPrivateKey({ armoredKey: fx.identity_secret }),
+    privateKey: await openpgp.readPrivateKey({
+      armoredKey: fx.identity_secret,
+    }),
     passphrase: password,
   });
 
@@ -189,10 +196,12 @@ describe("verify_prekey_signature", () => {
   });
 
   it("returns false rather than throwing on unreadable input", async () => {
-    expect(await verify_prekey_signature("x", "not a signature", "not a key")).toBe(
+    expect(
+      await verify_prekey_signature("x", "not a signature", "not a key"),
+    ).toBe(false);
+    expect(await verify_prekey_signature("x", "", fx.identity_public)).toBe(
       false,
     );
-    expect(await verify_prekey_signature("x", "", fx.identity_public)).toBe(false);
   });
 });
 
@@ -327,7 +336,9 @@ describe("decrypt_vault_to_handles", () => {
     const prekey = await openpgp.readKey({ armoredKey: fx.prekey_public });
 
     expect(handle.identity_handle.fingerprint).toBe(identity.getFingerprint());
-    expect(handle.signed_prekey_handle.fingerprint).toBe(prekey.getFingerprint());
+    expect(handle.signed_prekey_handle.fingerprint).toBe(
+      prekey.getFingerprint(),
+    );
     expect(handle.identity_handle.key_type).toBe("identity");
     expect(handle.signed_prekey_handle.key_type).toBe("signed_prekey");
     expect(handle.signed_prekey_public).toBe(fx.prekey_public);
@@ -400,7 +411,10 @@ describe("with_decrypted_key and handle-scoped decryption", () => {
   });
 
   it("decrypts a message addressed to the handle's key", async () => {
-    const ciphertext = await encrypt_message("handle payload", fx.identity_public);
+    const ciphertext = await encrypt_message(
+      "handle payload",
+      fx.identity_public,
+    );
 
     expect(
       await decrypt_message_with_handle(
@@ -412,7 +426,10 @@ describe("with_decrypted_key and handle-scoped decryption", () => {
   });
 
   it("reports an unsigned message when no verification keys are given", async () => {
-    const ciphertext = await encrypt_message("no signature", fx.identity_public);
+    const ciphertext = await encrypt_message(
+      "no signature",
+      fx.identity_public,
+    );
 
     const result = await decrypt_message_with_handle_verified(
       ciphertext,

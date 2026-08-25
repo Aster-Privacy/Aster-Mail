@@ -106,10 +106,10 @@ async function device_login(
   signature: string,
 ): Promise<unknown> {
   const { api_client } = await import("@/services/api/client");
-  const result = await api_client.post<unknown>(
-    "/core/v1/auth/device/login",
-    { challenge_id, signature },
-  );
+  const result = await api_client.post<unknown>("/core/v1/auth/device/login", {
+    challenge_id,
+    signature,
+  });
 
   if (result.error || !result.data) {
     throw new DeviceAuthError("login_failed");
@@ -146,14 +146,18 @@ async function silent_device_login(device_id: string): Promise<void> {
     throw new Error("passphrase_null");
   }
 
-  const passphrase = new TextDecoder().decode(base64url_decode_to_bytes(raw_b64));
+  const passphrase = new TextDecoder().decode(
+    base64url_decode_to_bytes(raw_b64),
+  );
 
   pending_device_login = { login_response, passphrase };
 
   window.dispatchEvent(new CustomEvent("astermail:device-login-success"));
 }
 
-export async function attempt_device_relogin(device_id: string): Promise<boolean> {
+export async function attempt_device_relogin(
+  device_id: string,
+): Promise<boolean> {
   if (!is_tauri()) return false;
 
   try {
@@ -231,7 +235,12 @@ export async function complete_device_pairing(
     }
   } catch (err) {
     error = err instanceof Error ? err.message : String(err);
-    await clear_device_session().catch((caught) => ignore_error("native/desktop_device_auth:complete_device_pairing", caught));
+    await clear_device_session().catch((caught) =>
+      ignore_error(
+        "native/desktop_device_auth:complete_device_pairing",
+        caught,
+      ),
+    );
   }
 
   window.dispatchEvent(new CustomEvent("astermail:device-paired"));

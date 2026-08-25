@@ -104,9 +104,8 @@ export interface CreateSmtpTokenResult {
 export async function list_smtp_tokens(): Promise<
   ApiResponse<{ tokens: SmtpToken[] }>
 > {
-  const response = await api_client.get<ListSmtpTokensResponse>(
-    SMTP_TOKENS_BASE,
-  );
+  const response =
+    await api_client.get<ListSmtpTokensResponse>(SMTP_TOKENS_BASE);
 
   if (!response.data) {
     return {

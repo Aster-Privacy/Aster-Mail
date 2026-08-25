@@ -39,6 +39,7 @@ export async function tauri_proxy_fetch(
 
   if (options.headers) {
     const h = new Headers(options.headers);
+
     h.forEach((v, k) => {
       headers_map[k] = v;
     });
@@ -46,9 +47,11 @@ export async function tauri_proxy_fetch(
 
   const body = (() => {
     const b = options.body;
+
     if (b == null) return null;
     if (typeof b === "string") return b;
     if (b instanceof URLSearchParams) return b.toString();
+
     return String(b);
   })();
 
@@ -60,6 +63,7 @@ export async function tauri_proxy_fetch(
   });
 
   let bytes: Uint8Array;
+
   try {
     bytes = result.body
       ? Uint8Array.from(atob(result.body), (c) => c.charCodeAt(0))

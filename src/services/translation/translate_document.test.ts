@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { TranslationEngine } from "./engine_types";
+
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { translated_language } from "./dom_translate";
@@ -26,7 +28,6 @@ import {
   register_bergamot_engine,
 } from "./engine_bergamot";
 import { register_engine, reset_engine_registry } from "./engine_registry";
-import type { TranslationEngine } from "./engine_types";
 import {
   available_source_languages,
   translate_message_body,
@@ -163,8 +164,7 @@ describe("translate_message_body", () => {
   });
 
   it("falls back to the original when the engine drops a protected entity", async () => {
-    translate_impl = async (segments) =>
-      segments.map(() => "Enter the code.");
+    translate_impl = async (segments) => segments.map(() => "Enter the code.");
 
     const root = mount("<p>Code 493028 eingeben.</p>");
 

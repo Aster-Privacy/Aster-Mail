@@ -18,10 +18,16 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { } from "@/lib/i18n/types";
+import type {} from "@/lib/i18n/types";
 import { expand_date_shortcut, is_valid_date_shortcut } from "./dates";
 import { parse_size_range, parse_size_value } from "./size";
-import { ATTACHMENT_MIME_MAP, ActiveFilter, DATE_REGEX, ParsedOperator, TranslateFn } from "./types";
+import {
+  ATTACHMENT_MIME_MAP,
+  ActiveFilter,
+  DATE_REGEX,
+  ParsedOperator,
+  TranslateFn,
+} from "./types";
 
 export interface ExtendedSearchFilters {
   from?: string;
@@ -208,7 +214,9 @@ export function create_active_filters(
   return operators.map((op, index) => {
     let label = "";
     const negation_prefix = op.negated
-      ? (t ? t("mail.filter_not_prefix") : "Not ")
+      ? t
+        ? t("mail.filter_not_prefix")
+        : "Not "
       : "";
 
     switch (op.type) {
@@ -236,8 +244,12 @@ export function create_active_filters(
 
         if (["attachment", "attachments"].includes(has_value)) {
           label = op.negated
-            ? (t ? t("mail.filter_no_attachments") : "No attachments")
-            : (t ? t("mail.filter_has_attachment") : "Has attachment");
+            ? t
+              ? t("mail.filter_no_attachments")
+              : "No attachments"
+            : t
+              ? t("mail.filter_has_attachment")
+              : "Has attachment";
         } else {
           const type_labels: Record<string, string> = {
             pdf: t ? t("mail.filter_type_pdf") : "PDF",
@@ -251,12 +263,12 @@ export function create_active_filters(
           const type_label = type_labels[has_value] || has_value;
 
           label = op.negated
-            ? (t
-                ? t("mail.filter_no_type", { type: type_label })
-                : `No ${type_label}`)
-            : (t
-                ? t("mail.filter_has_type", { type: type_label })
-                : `Has ${type_label}`);
+            ? t
+              ? t("mail.filter_no_type", { type: type_label })
+              : `No ${type_label}`
+            : t
+              ? t("mail.filter_has_type", { type: type_label })
+              : `Has ${type_label}`;
         }
         break;
       }
@@ -361,4 +373,3 @@ export function create_active_filters(
     };
   });
 }
-

@@ -18,15 +18,23 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { HASH_ALG } from "@/services/crypto/constants";
 import { api_client } from "../api/client";
+
 import { array_to_base64 } from "./base64";
 import { type EncryptedVault } from "./key_manager";
-import { PINNED_FINGERPRINTS, base64_to_array as core_base64_to_array, compute_hash, pin_fingerprint, verify_pinned_fingerprint } from "./key_manager_core";
+import {
+  PINNED_FINGERPRINTS,
+  base64_to_array as core_base64_to_array,
+  compute_hash,
+  pin_fingerprint,
+  verify_pinned_fingerprint,
+} from "./key_manager_core";
 import { sign_ratchet_prekey_bundle } from "./key_manager_pgp";
 import { select_published_signing_key } from "./published_signing_key";
 import { get_passphrase_from_memory } from "./memory_key_store";
 import { type PrekeyBundle } from "./x3dh";
+
+import { HASH_ALG } from "@/services/crypto/constants";
 
 export async function detect_identity_pin_drift(
   pin_id: string,
@@ -49,7 +57,10 @@ export async function detect_identity_pin_drift(
       return;
     }
 
-    const matches = await verify_pinned_fingerprint(namespaced_pin_id, fingerprint);
+    const matches = await verify_pinned_fingerprint(
+      namespaced_pin_id,
+      fingerprint,
+    );
 
     if (!matches && import.meta.env.DEV) {
       console.warn(
@@ -94,10 +105,7 @@ export async function fetch_prekey_bundle(
 
   let response = await api_client.get<PrekeyBundle>(path);
 
-  if (
-    (response.error || !response.data) &&
-    response.code !== "NOT_FOUND"
-  ) {
+  if ((response.error || !response.data) && response.code !== "NOT_FOUND") {
     response = await api_client.get<PrekeyBundle>(path);
   }
 
@@ -132,8 +140,7 @@ export async function fetch_published_identity_history(
   const params = email ? `?email=${encodeURIComponent(email)}` : "";
   const path = `/crypto/v1/ratchet/prekey-bundle/${encodeURIComponent(username)}/history${params}`;
 
-  const response =
-    await api_client.get<RatchetIdentityHistoryResponse>(path);
+  const response = await api_client.get<RatchetIdentityHistoryResponse>(path);
 
   if (response.error || !response.data) {
     return null;
@@ -146,7 +153,9 @@ export async function fetch_published_identity_history(
   return {
     identity_keys: entries
       .map((entry) => entry?.kem_identity_key)
-      .filter((key): key is string => typeof key === "string" && key.length > 0),
+      .filter(
+        (key): key is string => typeof key === "string" && key.length > 0,
+      ),
     history_complete: response.data.history_complete === true,
   };
 }

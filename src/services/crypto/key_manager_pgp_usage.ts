@@ -18,10 +18,24 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { zero_uint8_array } from "@/services/crypto/secure_memory";
+import { user_facing_error } from "@/utils/user_facing_error";
 import * as openpgp from "openpgp";
-import { KEY_USAGE_LOG, PINNED_FINGERPRINTS, decrypt_key_material, detect_anomalous_usage, log_key_usage, type EncryptedKeyHandle, type KeyOperation, type KeyUsageRecord, type SecureVaultHandle, verify_pinned_fingerprint } from "./key_manager_core";
+
+import {
+  KEY_USAGE_LOG,
+  PINNED_FINGERPRINTS,
+  decrypt_key_material,
+  detect_anomalous_usage,
+  log_key_usage,
+  type EncryptedKeyHandle,
+  type KeyOperation,
+  type KeyUsageRecord,
+  type SecureVaultHandle,
+  verify_pinned_fingerprint,
+} from "./key_manager_core";
 import { clear_unlocked_key_cache } from "./key_manager_pgp_unlocked_cache";
+
+import { zero_uint8_array } from "@/services/crypto/secure_memory";
 
 export async function with_decrypted_key<T>(
   handle: EncryptedKeyHandle,
@@ -78,7 +92,7 @@ export async function with_decrypted_key<T>(
       handle.key_id,
       "decrypt",
       false,
-      error instanceof Error ? error.message : "unknown",
+      user_facing_error(error, "unknown"),
     );
     throw error;
   } finally {

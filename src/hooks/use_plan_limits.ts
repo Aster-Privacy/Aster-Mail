@@ -27,7 +27,6 @@ import {
 import { api_client } from "@/services/api/client";
 import { ignore_error } from "@/lib/ignore_error";
 import { refresh_attachment_limits } from "@/services/attachment_limits";
-
 import {
   get_current_account_id,
   repair_stale_plan_flags,
@@ -38,6 +37,32 @@ let cached_limits: PlanLimitsResponse | null = null;
 let cached_account_id: string | null = null;
 let cache_timestamp = 0;
 const CACHE_TTL = 60_000;
+
+let limits_request_in_flight: Promise<PlanLimitsResponse | null> | null = null;
+
+async function request_plan_limits(): Promise<PlanLimitsResponse | null> {
+  if (limits_request_in_flight) return limits_request_in_flight;
+
+  limits_request_in_flight = (async () => {
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      const response = await get_plan_limits();
+
+      if (response.data) return response.data;
+
+      if (attempt === 2) return null;
+
+      await new Promise((resolve) => {
+        setTimeout(resolve, 2_000 * (attempt + 1));
+      });
+    }
+
+    return null;
+  })().finally(() => {
+    limits_request_in_flight = null;
+  });
+
+  return limits_request_in_flight;
+}
 
 export function clear_plan_limits_cache(): void {
   cached_limits = null;
@@ -50,6 +75,7 @@ export function use_plan_limits() {
     cached_limits,
   );
   const [is_loading, set_is_loading] = useState(!cached_limits);
+  const [load_failed, set_load_failed] = useState(false);
 
   const fetch_limits = useCallback(async (force = false) => {
     if (!api_client.is_authenticated()) {
@@ -83,27 +109,31 @@ export function use_plan_limits() {
     }
 
     try {
-      const response = await get_plan_limits();
+      const data = await request_plan_limits();
 
-      if (!response.data) return;
+      if (!data) {
+        set_load_failed(true);
+
+        return;
+      }
+
+      set_load_failed(false);
 
       if ((await get_current_account_id()) !== account_id) return;
 
-      cached_limits = response.data;
+      cached_limits = data;
       cached_account_id = account_id;
       cache_timestamp = Date.now();
-      set_limits(response.data);
+      set_limits(data);
 
       refresh_attachment_limits(force).catch((caught) =>
         ignore_error("hooks/use_plan_limits:refresh_attachment_limits", caught),
       );
 
       if (account_id) {
-        set_account_plan_flag(
-          account_id,
-          response.data.plan_code !== "free",
-        ).catch((caught) =>
-          ignore_error("hooks/use_plan_limits:use_plan_limits", caught),
+        set_account_plan_flag(account_id, data.plan_code !== "free").catch(
+          (caught) =>
+            ignore_error("hooks/use_plan_limits:use_plan_limits", caught),
         );
       }
     } finally {
@@ -142,6 +172,7 @@ export function use_plan_limits() {
   return {
     limits,
     is_loading,
+    load_failed,
     is_feature_locked,
     is_at_limit,
     refresh: fetch_limits,

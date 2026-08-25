@@ -53,7 +53,10 @@ async function sign_canonical(text: string): Promise<string> {
   return array_to_base64(new TextEncoder().encode(String(signed)));
 }
 
-async function generate_pgp(): Promise<{ privateKey: string; publicKey: string }> {
+async function generate_pgp(): Promise<{
+  privateKey: string;
+  publicKey: string;
+}> {
   const { privateKey, publicKey } = await openpgp.generateKey({
     type: "ecc",
     curve: "ed25519Legacy",
@@ -67,10 +70,12 @@ async function generate_pgp(): Promise<{ privateKey: string; publicKey: string }
 
 beforeAll(async () => {
   const owner = await generate_pgp();
+
   owner_private = owner.privateKey;
   owner_public = owner.publicKey;
 
   const attacker = await generate_pgp();
+
   attacker_public = attacker.publicKey;
 }, 60000);
 

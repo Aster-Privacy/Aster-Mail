@@ -18,23 +18,56 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import { get_recipient_public_key } from "../api/keys";
+
 import { array_to_base64, base64_to_array } from "./base64";
 import { DoubleRatchet, type BootstrapData } from "./double_ratchet";
 import { type EncryptedVault } from "./key_manager";
 import { verify_ratchet_prekey_bundle_detailed } from "./key_manager_pgp";
 import { is_strict_recipient_bundle_enforced } from "./crypto_enforcement_policy";
 import { record_bundle_verification } from "./ratchet_verification_status";
-import { derive_conversation_id, get_sync_encryption_key, run_serialized_for_conversation } from "./ratchet_conversation";
+import {
+  derive_conversation_id,
+  get_sync_encryption_key,
+  run_serialized_for_conversation,
+} from "./ratchet_conversation";
 import { check_and_pin_identity } from "./ratchet_identity_pin";
-import { detect_identity_pin_drift, fetch_prekey_bundle, fetch_ratchet_identity } from "./ratchet_prekey_bundle";
-import { can_seal_recovery_lane, seal_recovery_lane, type RecoveryLaneData, type RecoveryLaneRecipientKeys } from "./ratchet_recovery_lane";
-import { merge_ratchet_states } from "./ratchet_state_merge";
-import { load_ratchet_state, save_ratchet_state } from "./ratchet_state_store";
-import { load_ratchet_from_server, sync_ratchet_to_server } from "./ratchet_sync";
-import { RecoveryLaneUnavailableError, type RatchetRecipientData } from "./ratchet_types";
-import { bundle_supports_pq, perform_x3dh_sender, X3DH_VERSION_LEGACY, type PrekeyBundle } from "./x3dh";
+import {
+  detect_identity_pin_drift,
+  fetch_prekey_bundle,
+  fetch_ratchet_identity,
+} from "./ratchet_prekey_bundle";
+import {
+  can_seal_recovery_lane,
+  seal_recovery_lane,
+  type RecoveryLaneData,
+  type RecoveryLaneRecipientKeys,
+} from "./ratchet_recovery_lane";
+import {
+  merge_discards_local_epoch,
+  merge_ratchet_states,
+} from "./ratchet_state_merge";
+import {
+  archive_ratchet_state,
+  load_ratchet_state,
+  save_ratchet_state,
+} from "./ratchet_state_store";
+import {
+  load_ratchet_from_server,
+  sync_ratchet_to_server,
+} from "./ratchet_sync";
+import {
+  RecoveryLaneUnavailableError,
+  type RatchetRecipientData,
+} from "./ratchet_types";
+import {
+  bundle_supports_pq,
+  perform_x3dh_sender,
+  X3DH_VERSION_LEGACY,
+  type PrekeyBundle,
+} from "./x3dh";
+
+import { zero_uint8_array } from "@/services/crypto/secure_memory";
 
 async function adopt_server_state_before_send(
   conversation_id: string,
@@ -55,6 +88,10 @@ async function adopt_server_state_before_send(
 
     const local = await ratchet.serialize();
     const remote = await server.ratchet.serialize();
+
+    if (merge_discards_local_epoch(local, remote)) {
+      await archive_ratchet_state(local);
+    }
 
     ratchet.adopt_state(merge_ratchet_states(local, remote));
   } catch {

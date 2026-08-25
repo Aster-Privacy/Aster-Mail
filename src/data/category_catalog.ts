@@ -244,9 +244,10 @@ export function sanitize_custom_category(
     : "tag";
 
   return {
-    id: raw.id && is_custom_category_id(raw.id)
-      ? raw.id
-      : make_custom_category_id(),
+    id:
+      raw.id && is_custom_category_id(raw.id)
+        ? raw.id
+        : make_custom_category_id(),
     name,
     icon,
     ...(is_category_color(raw.color) ? { color: raw.color } : {}),
@@ -259,9 +260,7 @@ export function sanitize_custom_category(
   };
 }
 
-export function sanitize_custom_categories(
-  raw: unknown,
-): CustomCategoryRule[] {
+export function sanitize_custom_categories(raw: unknown): CustomCategoryRule[] {
   if (!Array.isArray(raw)) return [];
 
   const result: CustomCategoryRule[] = [];

@@ -20,14 +20,9 @@
 //
 import type { LanguageCode } from "@/lib/i18n/types";
 
-import {
-  createContext,
-  ReactNode,
-} from "react";
+import { createContext, ReactNode } from "react";
 
-import {
-  type UserPreferences,
-} from "@/services/api/preferences";
+import { type UserPreferences } from "@/services/api/preferences";
 import {
   get_supported_languages,
   get_display_name,
@@ -42,10 +37,11 @@ import {
 } from "@/lib/material_theme";
 import { refresh_resolved_accent } from "@/lib/resolved_accent";
 import {
+  is_dark_appearance_active,
   is_dark_only_color_theme,
   set_palette_forces_dark,
 } from "@/lib/dark_mode";
-
+import { update_status_bar_theme } from "@/native/capacitor_bridge";
 
 export const LANGUAGE_OPTIONS = get_supported_languages().map((lang) => ({
   code: lang.code,
@@ -89,6 +85,7 @@ export function apply_color_theme_class(
   }
 
   set_palette_forces_dark(is_dark_only_color_theme(color_theme));
+  void update_status_bar_theme(is_dark_appearance_active());
 
   const set_inline_accent = () => {
     root.style.setProperty("--accent-color", accent_color);
@@ -152,7 +149,24 @@ export function sync_meta_theme_color() {
 export function label_to_language_code(label: string): LanguageCode | null {
   const match = LANGUAGE_OPTIONS.find((l) => l.label === label);
 
-  return match ? (match.code as LanguageCode) : null;
+  if (match) return match.code as LanguageCode;
+
+  const normalized = label.trim().toLowerCase();
+
+  if (!normalized) return null;
+
+  const by_code = LANGUAGE_OPTIONS.find(
+    (l) => l.code.toLowerCase() === normalized,
+  );
+
+  if (by_code) return by_code.code as LanguageCode;
+
+  const base = normalized.split(/[-_]/)[0];
+  const by_base = LANGUAGE_OPTIONS.find(
+    (l) => l.code.toLowerCase().split("-")[0] === base,
+  );
+
+  return by_base ? (by_base.code as LanguageCode) : null;
 }
 
 export type SaveStatus = "idle" | "pending" | "saving" | "saved" | "error";
@@ -178,7 +192,9 @@ export interface PreferencesContextType {
   has_unsaved_changes: boolean;
 }
 
-export const PreferencesContext = createContext<PreferencesContextType | null>(null);
+export const PreferencesContext = createContext<PreferencesContextType | null>(
+  null,
+);
 
 export const CROSS_DEVICE_REFRESH_POLL_MS = 20_000;
 export const CROSS_DEVICE_REFRESH_MIN_INTERVAL_MS = 10_000;
@@ -214,7 +230,9 @@ export function should_auto_enable_low_network(): boolean {
   return read_connection()?.saveData === true;
 }
 
-export function reconcile_low_network_mode(prefs: UserPreferences): UserPreferences {
+export function reconcile_low_network_mode(
+  prefs: UserPreferences,
+): UserPreferences {
   if (prefs.low_network_mode_user_set) return prefs;
 
   const should_enable = should_auto_enable_low_network();
@@ -253,4 +271,3 @@ export function apply_pending_preferences(
 export interface PreferencesProviderProps {
   children: ReactNode;
 }
-

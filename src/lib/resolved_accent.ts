@@ -78,7 +78,8 @@ export function refresh_resolved_accent(): ResolvedAccent {
   initialized = true;
 
   const styles = getComputedStyle(document.documentElement);
-  const accent = read_color_var(styles, "--accent-color") ?? DEFAULT_ACCENT_COLOR;
+  const accent =
+    read_color_var(styles, "--accent-color") ?? DEFAULT_ACCENT_COLOR;
   const accent_hover = read_color_var(styles, "--accent-color-hover") ?? accent;
   const next: ResolvedAccent = {
     accent,

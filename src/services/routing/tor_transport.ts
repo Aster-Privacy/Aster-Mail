@@ -63,7 +63,7 @@ export function is_tor_platform(): boolean {
 }
 
 export function is_tor_supported(): boolean {
-  return is_tauri();
+  return false;
 }
 
 export function is_snowflake_supported(): boolean {
@@ -82,6 +82,7 @@ function start_tor_status_polling(): void {
   const poll = async () => {
     try {
       const s = await tor_status();
+
       tor_connected_cache = !!s.is_connected;
     } catch {
       tor_connected_cache = false;
@@ -98,6 +99,7 @@ function start_tor_status_polling(): void {
 export function is_tor_connected(): boolean {
   if (!is_tor_platform()) return false;
   start_tor_status_polling();
+
   return tor_connected_cache;
 }
 

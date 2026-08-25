@@ -74,32 +74,29 @@ export function use_draggable_modal(
     }
   }, [is_open]);
 
-  const handle_drag_start = useCallback(
-    (e: React.MouseEvent) => {
-      const rect = (
-        e.currentTarget as HTMLElement
-      ).parentElement?.getBoundingClientRect();
+  const handle_drag_start = useCallback((e: React.MouseEvent) => {
+    const rect = (
+      e.currentTarget as HTMLElement
+    ).parentElement?.getBoundingClientRect();
 
-      if (!rect) return;
+    if (!rect) return;
 
-      movement_occurred_ref.current = false;
-      set_initial_mouse_pos({ x: e.clientX, y: e.clientY });
+    movement_occurred_ref.current = false;
+    set_initial_mouse_pos({ x: e.clientX, y: e.clientY });
 
-      const new_drag_start = {
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top,
-      };
+    const new_drag_start = {
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+    };
 
-      set_state((prev) => ({
-        ...prev,
-        position: { x: rect.left, y: rect.top },
-        is_dragging: true,
-      }));
+    set_state((prev) => ({
+      ...prev,
+      position: { x: rect.left, y: rect.top },
+      is_dragging: true,
+    }));
 
-      set_drag_start(new_drag_start);
-    },
-    [],
-  );
+    set_drag_start(new_drag_start);
+  }, []);
 
   useEffect(() => {
     if (!state.is_dragging) return;

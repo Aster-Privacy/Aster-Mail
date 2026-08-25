@@ -34,13 +34,16 @@ import {
 } from "./session_passphrase";
 import { decrypt_vault_with_lock } from "./vault_decryption";
 import { purge_all_local_data } from "./purge_local_data";
+import {
+  AUTH_VERIFY_TIMEOUT_MS,
+  clear_account_scoped_caches,
+  safe_log_error,
+  with_timeout,
+} from "./auth_helpers";
 
 import { ensure_ratchet_keys } from "@/services/crypto/ensure_ratchet_keys";
 import { init_desktop_device_auth } from "@/native/desktop_device_auth";
-
-import {
-  api_client,
-} from "@/services/api/client";
+import { api_client } from "@/services/api/client";
 import { verify_auth_status, get_user_info } from "@/services/api/auth";
 import { rekey_pgp_if_needed } from "@/services/pgp_rekey_service";
 import { set_lockdown_enabled } from "@/services/lockdown_store";
@@ -82,30 +85,19 @@ import { emit_auth_ready } from "@/hooks/mail_events";
 import { ensure_default_labels } from "@/services/labels/ensure_defaults";
 import { prime_server_recovery_email } from "@/services/api/recovery_email";
 import { connection_store } from "@/services/routing/connection_store";
-import {
-  load_preferred_sender_from_server,
-} from "@/lib/preferred_sender";
+import { load_preferred_sender_from_server } from "@/lib/preferred_sender";
 import { show_toast } from "@/components/toast/simple_toast";
 import { hard_redirect } from "@/lib/hard_redirect";
 import { app_pathname } from "@/lib/account_index_url";
-import { clear_app_lock_config, clear_session_unlock } from "@/services/app_lock_store";
 import {
-  delete_category_index_for_account,
-} from "@/services/category_index";
+  clear_app_lock_config,
+  clear_session_unlock,
+} from "@/services/app_lock_store";
+import { delete_category_index_for_account } from "@/services/category_index";
 import { use_i18n } from "@/lib/i18n/context";
-
 import { ignore_error } from "@/lib/ignore_error";
 
-import {
-  AUTH_VERIFY_TIMEOUT_MS,
-  clear_account_scoped_caches,
-  safe_log_error,
-  with_timeout,
-} from "./auth_helpers";
-
-
 export function use_auth_account_state() {
-
   const { t } = use_i18n();
   const navigate = useNavigate();
   const [state, set_state] = useState<AuthState>({
@@ -283,8 +275,14 @@ export function use_auth_account_state() {
 
         if (is_auth_valid || verify_timed_out) {
           api_client.set_authenticated(true);
-          connection_store.sync_from_server().catch((caught) => ignore_error("contexts/auth/use_auth_account_state:init", caught));
-          load_preferred_sender_from_server().catch((caught) => ignore_error("contexts/auth/use_auth_account_state:init", caught));
+          connection_store
+            .sync_from_server()
+            .catch((caught) =>
+              ignore_error("contexts/auth/use_auth_account_state:init", caught),
+            );
+          load_preferred_sender_from_server().catch((caught) =>
+            ignore_error("contexts/auth/use_auth_account_state:init", caught),
+          );
           sync_client.connect().catch((e) => {
             safe_log_error(e);
           });
@@ -300,8 +298,8 @@ export function use_auth_account_state() {
 
             try {
               stored_passphrase = await get_session_passphrase(current.id);
-            } catch {
-              await clear_session_passphrase(current.id);
+            } catch (caught) {
+              ignore_error("contexts/auth/use_auth_account_state:init", caught);
             }
             const stored_vault = get_stored_encrypted_vault(current.id);
 
@@ -315,8 +313,11 @@ export function use_auth_account_state() {
                 );
 
                 has_keys = vault !== null;
-              } catch {
-                await clear_session_passphrase(current.id);
+              } catch (caught) {
+                ignore_error(
+                  "contexts/auth/use_auth_account_state:init",
+                  caught,
+                );
               }
             }
           }
@@ -324,7 +325,10 @@ export function use_auth_account_state() {
           if (!has_keys && "__TAURI_INTERNALS__" in window) {
             try {
               const { invoke } = await import("@tauri-apps/api/core");
-              const raw_b64 = await invoke<string | null>("device_get_stored_passphrase");
+              const raw_b64 = await invoke<string | null>(
+                "device_get_stored_passphrase",
+              );
+
               if (raw_b64) {
                 const bytes = Uint8Array.from(
                   atob(raw_b64.replace(/-/g, "+").replace(/_/g, "/")),
@@ -332,6 +336,7 @@ export function use_auth_account_state() {
                 );
                 const native_passphrase = new TextDecoder().decode(bytes);
                 const stored_vault = get_stored_encrypted_vault(current.id);
+
                 if (stored_vault) {
                   try {
                     const recovered = await decrypt_vault_with_lock(
@@ -340,12 +345,24 @@ export function use_auth_account_state() {
                       native_passphrase,
                       current.user.id,
                     );
+
                     if (recovered !== null) {
                       has_keys = true;
-                      store_session_passphrase(current.id, native_passphrase).catch((caught) => ignore_error("contexts/auth/use_auth_account_state:init", caught));
+                      store_session_passphrase(
+                        current.id,
+                        native_passphrase,
+                      ).catch((caught) =>
+                        ignore_error(
+                          "contexts/auth/use_auth_account_state:init",
+                          caught,
+                        ),
+                      );
                     }
                   } catch (caught) {
-                    ignore_error("contexts/auth/use_auth_account_state:init", caught);
+                    ignore_error(
+                      "contexts/auth/use_auth_account_state:init",
+                      caught,
+                    );
                   }
                 }
               }
@@ -359,8 +376,14 @@ export function use_auth_account_state() {
             api_client.set_authenticated(false);
 
             const current_kind = await get_account_kind(current.id);
+
             if (current_kind === "shared") {
-              await clear_shared_mailbox_session(current.id).catch((caught) => ignore_error("contexts/auth/use_auth_account_state:init", caught));
+              await clear_shared_mailbox_session(current.id).catch((caught) =>
+                ignore_error(
+                  "contexts/auth/use_auth_account_state:init",
+                  caught,
+                ),
+              );
               const remaining = await get_all_accounts();
               const fallback = remaining.find((a) => a.kind !== "shared");
 
@@ -406,6 +429,7 @@ export function use_auth_account_state() {
             const path = uses_hash
               ? window.location.hash.slice(1).split("?")[0] || "/"
               : app_pathname();
+
             if (path !== "/sign-in" && path !== "/register") {
               navigate(`/sign-in?u=${encodeURIComponent(local)}`);
             }
@@ -431,9 +455,18 @@ export function use_auth_account_state() {
               id: cached_info.user_id,
               username: cached_info.username ?? current.user.username,
               email: cached_info.email ?? current.user.email,
-              display_name: cached_info.display_name || current.user.display_name || undefined,
-              profile_color: cached_info.profile_color || current.user.profile_color || undefined,
-              profile_picture: cached_info.profile_picture || current.user.profile_picture || undefined,
+              display_name:
+                cached_info.display_name ||
+                current.user.display_name ||
+                undefined,
+              profile_color:
+                cached_info.profile_color ||
+                current.user.profile_color ||
+                undefined,
+              profile_picture:
+                cached_info.profile_picture ||
+                current.user.profile_picture ||
+                undefined,
             };
             await update_account_user(current.id, synced_user);
           }
@@ -454,8 +487,12 @@ export function use_auth_account_state() {
           emit_auth_ready();
 
           backfill_user_profile(synced_user);
-          ensure_default_labels(get_vault_from_memory(), t).catch(console.error);
-          prime_server_recovery_email(get_vault_from_memory()).catch((caught) => ignore_error("contexts/auth/use_auth_account_state:init", caught));
+          ensure_default_labels(get_vault_from_memory(), t).catch(
+            console.error,
+          );
+          prime_server_recovery_email(get_vault_from_memory()).catch((caught) =>
+            ignore_error("contexts/auth/use_auth_account_state:init", caught),
+          );
 
           sync_shared_mailbox_grants()
             .then(async () => {
@@ -463,7 +500,9 @@ export function use_auth_account_state() {
 
               set_state((prev) => ({ ...prev, accounts: refreshed }));
             })
-            .catch((caught) => ignore_error("contexts/auth/use_auth_account_state:init", caught));
+            .catch((caught) =>
+              ignore_error("contexts/auth/use_auth_account_state:init", caught),
+            );
         } else {
           api_client.clear_auth_data();
           api_client.set_authenticated(false);
@@ -492,6 +531,7 @@ export function use_auth_account_state() {
           const path = uses_hash
             ? window.location.hash.slice(1).split("?")[0] || "/"
             : app_pathname();
+
           if (path !== "/sign-in" && path !== "/register") {
             navigate(
               `/sign-in?u=${encodeURIComponent(prefill_local)}&reason=session_expired`,
@@ -562,7 +602,10 @@ export function use_auth_account_state() {
           : prev,
       );
     } catch (caught) {
-      ignore_error("contexts/auth/use_auth_account_state:use_auth_account_state", caught);
+      ignore_error(
+        "contexts/auth/use_auth_account_state:use_auth_account_state",
+        caught,
+      );
     }
   }, []);
 
@@ -606,6 +649,7 @@ export function use_auth_account_state() {
 
       if (persisted) {
         const active_token = api_client.get_access_token();
+
         if (active_token) {
           await with_timeout(
             update_account_tokens(
@@ -618,31 +662,46 @@ export function use_auth_account_state() {
         }
       }
 
-      check_and_run_recovery_reencryption(vault, passphrase).catch((caught) => ignore_error("contexts/auth/use_auth_account_state:init", caught));
-      ensure_ratchet_keys().catch((caught) => ignore_error("contexts/auth/use_auth_account_state:init", caught));
+      check_and_run_recovery_reencryption(vault, passphrase).catch((caught) =>
+        ignore_error("contexts/auth/use_auth_account_state:init", caught),
+      );
+      ensure_ratchet_keys().catch((caught) =>
+        ignore_error("contexts/auth/use_auth_account_state:init", caught),
+      );
       ensure_default_labels(vault, t).catch(console.error);
-      prime_server_recovery_email(vault).catch((caught) => ignore_error("contexts/auth/use_auth_account_state:init", caught));
-      connection_store.sync_from_server().catch((caught) => ignore_error("contexts/auth/use_auth_account_state:init", caught));
-      load_preferred_sender_from_server().catch((caught) => ignore_error("contexts/auth/use_auth_account_state:init", caught));
+      prime_server_recovery_email(vault).catch((caught) =>
+        ignore_error("contexts/auth/use_auth_account_state:init", caught),
+      );
+      connection_store
+        .sync_from_server()
+        .catch((caught) =>
+          ignore_error("contexts/auth/use_auth_account_state:init", caught),
+        );
+      load_preferred_sender_from_server().catch((caught) =>
+        ignore_error("contexts/auth/use_auth_account_state:init", caught),
+      );
       sync_client.connect().catch((e) => {
         safe_log_error(e);
       });
 
       start_session_timeout(user.id);
 
-      let accounts = (await with_timeout(get_all_accounts(), 3000)) ?? [];
+      const loaded_accounts = await with_timeout(get_all_accounts(), 3000);
 
-      if (!accounts.some((a) => a.id === user.id)) {
-        accounts = [...accounts, { id: user.id, user, added_at: Date.now() }];
-      }
+      set_state((prev) => {
+        const known = loaded_accounts ?? prev.accounts;
+        const accounts = known.some((a) => a.id === user.id)
+          ? known
+          : [...known, { id: user.id, user, added_at: Date.now() }];
 
-      set_state({
-        user,
-        is_loading: false,
-        is_authenticated: true,
-        has_keys: true,
-        accounts,
-        current_account_id: user.id,
+        return {
+          user,
+          is_loading: false,
+          is_authenticated: true,
+          has_keys: true,
+          accounts,
+          current_account_id: user.id,
+        };
       });
       set_is_adding_account(false);
 
@@ -658,7 +717,9 @@ export function use_auth_account_state() {
               : prev,
           );
         })
-        .catch((caught) => ignore_error("contexts/auth/use_auth_account_state:accounts", caught));
+        .catch((caught) =>
+          ignore_error("contexts/auth/use_auth_account_state:accounts", caught),
+        );
     },
     [t, backfill_user_profile],
   );
@@ -713,7 +774,7 @@ export function use_auth_account_state() {
           error:
             link_result.code === "FORBIDDEN"
               ? t("auth.account_limit_for_plan", {
-                  max: String(link_result.data?.max_accounts ?? 0),
+                  max: link_result.data?.max_accounts ?? 0,
                 })
               : link_result.error,
         };
@@ -723,6 +784,7 @@ export function use_auth_account_state() {
         await clear_account_scoped_caches();
 
         const active_token = api_client.get_access_token();
+
         if (active_token) {
           await update_account_tokens(
             user.id,
@@ -731,28 +793,48 @@ export function use_auth_account_state() {
           );
         }
         api_client.set_authenticated(true);
-        check_and_run_recovery_reencryption(vault, passphrase).catch((caught) => ignore_error("contexts/auth/use_auth_account_state:accounts", caught));
-        ensure_ratchet_keys().catch((caught) => ignore_error("contexts/auth/use_auth_account_state:accounts", caught));
+        check_and_run_recovery_reencryption(vault, passphrase).catch((caught) =>
+          ignore_error("contexts/auth/use_auth_account_state:accounts", caught),
+        );
+        ensure_ratchet_keys().catch((caught) =>
+          ignore_error("contexts/auth/use_auth_account_state:accounts", caught),
+        );
         ensure_default_labels(vault, t).catch(console.error);
-        prime_server_recovery_email(vault).catch((caught) => ignore_error("contexts/auth/use_auth_account_state:accounts", caught));
-        connection_store.sync_from_server().catch((caught) => ignore_error("contexts/auth/use_auth_account_state:accounts", caught));
-        load_preferred_sender_from_server().catch((caught) => ignore_error("contexts/auth/use_auth_account_state:accounts", caught));
+        prime_server_recovery_email(vault).catch((caught) =>
+          ignore_error("contexts/auth/use_auth_account_state:accounts", caught),
+        );
+        connection_store
+          .sync_from_server()
+          .catch((caught) =>
+            ignore_error(
+              "contexts/auth/use_auth_account_state:accounts",
+              caught,
+            ),
+          );
+        load_preferred_sender_from_server().catch((caught) =>
+          ignore_error("contexts/auth/use_auth_account_state:accounts", caught),
+        );
         sync_client.connect().catch((e) => {
           safe_log_error(e);
         });
         start_session_timeout(user.id);
 
-        const accounts = (await with_timeout(get_all_accounts(), 3000)) ?? [
-          { id: user.id, user, added_at: Date.now() },
-        ];
+        const loaded_accounts = await with_timeout(get_all_accounts(), 3000);
 
-        set_state({
-          user,
-          is_loading: false,
-          is_authenticated: true,
-          has_keys: true,
-          accounts,
-          current_account_id: user.id,
+        set_state((prev) => {
+          const known = loaded_accounts ?? prev.accounts;
+          const accounts = known.some((a) => a.id === user.id)
+            ? known
+            : [...known, { id: user.id, user, added_at: Date.now() }];
+
+          return {
+            user,
+            is_loading: false,
+            is_authenticated: true,
+            has_keys: true,
+            accounts,
+            current_account_id: user.id,
+          };
         });
         set_is_adding_account(false);
 
@@ -849,12 +931,7 @@ export function use_auth_account_state() {
         });
       }
     },
-    [
-      state.current_account_id,
-      state.accounts,
-      set_is_adding_account,
-      navigate,
-    ],
+    [state.current_account_id, state.accounts, set_is_adding_account, navigate],
   );
 
   return {

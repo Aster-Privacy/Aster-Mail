@@ -20,6 +20,7 @@
 //
 import { api_client } from "../api/client";
 import { get_current_account } from "../account_manager";
+
 import { decrypt_vault, type EncryptedVault } from "./key_manager";
 import {
   get_vault_from_memory,
@@ -137,7 +138,9 @@ function vaults_carry_the_same_identity(
     current.ratchet_identity_public === refreshed.ratchet_identity_public &&
     (current.ratchet_pq_identity_public ?? null) ===
       (refreshed.ratchet_pq_identity_public ?? null) &&
-    Boolean(current.ratchet_pq_identity_key ?? current.ratchet_pq_identity_seed) ===
+    Boolean(
+      current.ratchet_pq_identity_key ?? current.ratchet_pq_identity_seed,
+    ) ===
       Boolean(
         refreshed.ratchet_pq_identity_key ?? refreshed.ratchet_pq_identity_seed,
       ) &&
@@ -179,7 +182,10 @@ export async function adopt_refreshed_vault(
           refreshed.vault_nonce,
         );
       } catch (caught) {
-        ignore_error("services/crypto/vault_refresh:adopt_refreshed_vault", caught);
+        ignore_error(
+          "services/crypto/vault_refresh:adopt_refreshed_vault",
+          caught,
+        );
       }
 
       adopted_encrypted_vault = refreshed.encrypted_vault;

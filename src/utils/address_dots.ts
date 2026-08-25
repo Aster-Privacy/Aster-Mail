@@ -25,7 +25,10 @@ export function normalize_address_ignoring_dots(address: string): string {
   return lowered.slice(0, at).replace(/\./g, "") + lowered.slice(at);
 }
 
-export function same_address_ignoring_dots(left: string, right: string): boolean {
+export function same_address_ignoring_dots(
+  left: string,
+  right: string,
+): boolean {
   if (!left || !right) return false;
 
   return (

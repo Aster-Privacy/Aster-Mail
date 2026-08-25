@@ -45,7 +45,9 @@ describe("use_latched_by_id", () => {
     const seen: (string | undefined)[] = [];
 
     act(() => {
-      root.render(<Probe id="a" seen={(v) => seen.push(v)} value={undefined} />);
+      root.render(
+        <Probe id="a" seen={(v) => seen.push(v)} value={undefined} />,
+      );
     });
 
     act(() => {

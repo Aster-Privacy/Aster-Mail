@@ -21,11 +21,22 @@
 import type { TranslationKey } from "@/lib/i18n/types";
 
 import { get_display_time_zone } from "@/utils/date_format";
+import { app_locale } from "@/utils/date_format";
 
 type TranslateFn = (
   key: TranslationKey,
   params?: Record<string, string | number>,
 ) => string;
+
+const CALENDAR_DATE_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+export function parse_calendar_date(value: string): Date {
+  const parts = CALENDAR_DATE_PATTERN.exec(value);
+
+  if (!parts) return new Date(value);
+
+  return new Date(Number(parts[1]), Number(parts[2]) - 1, Number(parts[3]));
+}
 
 export function format_relative_time(
   timestamp: string,
@@ -37,7 +48,7 @@ export function format_relative_time(
   if (isNaN(date.getTime())) return "";
 
   const now = new Date();
-  const diff_ms = now.getTime() - date.getTime();
+  const diff_ms = Math.max(0, now.getTime() - date.getTime());
   const diff_seconds = Math.floor(diff_ms / 1000);
   const diff_minutes = Math.floor(diff_seconds / 60);
   const diff_hours = Math.floor(diff_minutes / 60);
@@ -63,7 +74,7 @@ export function format_relative_time(
       ? t("common.days_ago_long", { count: diff_days })
       : `${diff_days} day${diff_days === 1 ? "" : "s"} ago`;
   }
-  if (diff_weeks < 4) {
+  if (diff_days < 30) {
     return t
       ? t("common.weeks_ago_long", { count: diff_weeks })
       : `${diff_weeks} week${diff_weeks === 1 ? "" : "s"} ago`;
@@ -74,12 +85,41 @@ export function format_relative_time(
       : `${diff_months} month${diff_months === 1 ? "" : "s"} ago`;
   }
 
+  return format_absolute_date(date);
+}
+
+function format_absolute_date(date: Date): string {
   const zone = get_display_time_zone();
 
-  return date.toLocaleDateString([], {
+  return date.toLocaleDateString(app_locale(), {
     month: "short",
     day: "numeric",
     year: "numeric",
     ...(zone ? { timeZone: zone } : {}),
   });
+}
+
+export function format_relative_time_short(
+  timestamp: string | number,
+  t: TranslateFn,
+): string {
+  const date = new Date(timestamp);
+
+  if (isNaN(date.getTime())) return "";
+
+  const diff_ms = Math.max(0, Date.now() - date.getTime());
+  const minutes = Math.floor(diff_ms / 60_000);
+
+  if (minutes < 1) return t("common.just_now");
+  if (minutes < 60) return t("common.minutes_ago_short", { count: minutes });
+
+  const hours = Math.floor(minutes / 60);
+
+  if (hours < 24) return t("common.hours_ago_short", { count: hours });
+
+  const days = Math.floor(hours / 24);
+
+  if (days < 30) return t("common.days_ago_short", { count: days });
+
+  return format_absolute_date(date);
 }

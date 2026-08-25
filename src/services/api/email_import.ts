@@ -146,14 +146,19 @@ export async function check_duplicates(
   job_id: string,
   message_id_hashes: string[],
 ): Promise<ApiResponse<CheckDuplicatesResponse>> {
-  return api_client.post(`/mail/v1/email_import/jobs/${job_id}/check-duplicates`, {
-    message_id_hashes,
-  });
+  return api_client.post(
+    `/mail/v1/email_import/jobs/${job_id}/check-duplicates`,
+    {
+      message_id_hashes,
+    },
+  );
 }
 
 export async function store_imported_emails(
   job_id: string,
   emails: ImportedEmailData[],
 ): Promise<ApiResponse<StoreEmailsResponse>> {
-  return api_client.post(`/mail/v1/email_import/jobs/${job_id}/emails`, { emails });
+  return api_client.post(`/mail/v1/email_import/jobs/${job_id}/emails`, {
+    emails,
+  });
 }

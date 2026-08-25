@@ -56,7 +56,7 @@ export class RequestCache {
       }
     }
 
-    if (skip_dedup) {
+    if (skip_dedup || skip_cache) {
       const result = await fetcher();
 
       if (
@@ -131,7 +131,9 @@ export class RequestCache {
   }
 
   private key_matches(key: string, pattern: string | RegExp): boolean {
-    return typeof pattern === "string" ? key.includes(pattern) : pattern.test(key);
+    return typeof pattern === "string"
+      ? key.includes(pattern)
+      : pattern.test(key);
   }
 
   invalidate_for_mutation(endpoint: string): void {

@@ -34,6 +34,7 @@ function with_dismissal_guard(
   if (dismissed && !raw.dismissed_at) {
     return { ...raw, dismissed_at: new Date().toISOString() };
   }
+
   return raw;
 }
 
@@ -82,6 +83,7 @@ export function use_onboarding_checklist(): UseOnboardingChecklistReturn {
     if (result.kind === "not_available") {
       disabled_ref.current = true;
       set_state(null);
+
       return false;
     }
     if (result.kind === "transient") {
@@ -92,6 +94,7 @@ export function use_onboarding_checklist(): UseOnboardingChecklistReturn {
         with_dismissal_guard(result.state, dismissed_ref.current),
       ),
     );
+
     return true;
   }, []);
 
@@ -102,6 +105,7 @@ export function use_onboarding_checklist(): UseOnboardingChecklistReturn {
 
     if (!vault) {
       set_is_loading(false);
+
       return () => {
         cancelled_ref.current = true;
       };
@@ -112,6 +116,7 @@ export function use_onboarding_checklist(): UseOnboardingChecklistReturn {
 
     (async () => {
       const ok = await load();
+
       if (cancelled_ref.current) return;
       set_is_loading(false);
       if (!ok) return;
@@ -122,6 +127,7 @@ export function use_onboarding_checklist(): UseOnboardingChecklistReturn {
       interval = window.setInterval(() => {
         if (disabled_ref.current) {
           window.clearInterval(interval!);
+
           return;
         }
         void load();

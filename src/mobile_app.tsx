@@ -20,14 +20,7 @@
 //
 import type { EditDraftData } from "@/components/compose/compose_shared";
 
-import {
-  lazy,
-  Suspense,
-  useState,
-  useCallback,
-  useRef,
-  useEffect,
-} from "react";
+import { Suspense, useState, useCallback, useRef, useEffect } from "react";
 import {
   Routes,
   Route,
@@ -47,58 +40,15 @@ import { SimpleToast } from "@/components/toast/simple_toast";
 import { PostQuantumSendPrompt } from "@/components/compose/post_quantum_send_prompt";
 import { ActionToast } from "@/components/toast/action_toast";
 import { UndoSendContainer } from "@/components/toast/undo_send_container";
+import { UpgradeModal } from "@/components/upgrade/upgrade_modal";
+import { EmailNotificationManager } from "@/components/email/email_notification_manager";
 import { UndoSendPreviewModal } from "@/components/toast/undo_send_preview_modal";
+import { UnsubscribeConfirmationModal } from "@/components/modals/unsubscribe_confirmation_modal";
 import { PendingDeletionDialog } from "@/components/common/pending_deletion_dialog";
 import { ErrorBoundary } from "@/components/ui/error_boundary";
+import { lazy_with_retry } from "@/utils/lazy_with_retry";
 import { FullPageLoader } from "@/components/common/full_page_loader";
-
 import { ignore_error } from "@/lib/ignore_error";
-
-function is_chunk_load_error(error: unknown): boolean {
-  if (!(error instanceof Error)) return false;
-  const msg = error.message.toLowerCase();
-
-  return (
-    msg.includes("dynamically imported module") ||
-    msg.includes("failed to fetch dynamically imported module") ||
-    msg.includes("loading chunk") ||
-    msg.includes("loading css chunk")
-  );
-}
-
-function lazy_with_retry(
-  import_fn: () => Promise<{ default: React.ComponentType<any> }>,
-  retries = 3,
-  delay = 1000,
-) {
-  return lazy(() => {
-    const attempt = (
-      remaining: number,
-    ): Promise<{ default: React.ComponentType<any> }> =>
-      import_fn().catch((error: unknown) => {
-        if (is_chunk_load_error(error)) {
-          const reloaded_key = "astermail:chunk-reload";
-          const last_reload = sessionStorage.getItem(reloaded_key);
-          const now = Date.now();
-
-          if (!last_reload || now - Number(last_reload) > 10000) {
-            sessionStorage.setItem(reloaded_key, String(now));
-            window.location.reload();
-
-            return new Promise<{ default: React.ComponentType<any> }>(() => {});
-          }
-        }
-
-        if (remaining <= 0) throw error;
-
-        return new Promise<{ default: React.ComponentType<any> }>((resolve) =>
-          setTimeout(() => resolve(attempt(remaining - 1)), delay),
-        );
-      });
-
-    return attempt(retries);
-  });
-}
 
 const MobileInbox = lazy_with_retry(
   () => import("@/pages/mobile/mobile_inbox"),
@@ -247,6 +197,7 @@ function MobileApp() {
   const navigate = useNavigate();
   const location = useLocation();
   const [is_compose_open, set_is_compose_open] = useState(false);
+  const [compose_session, set_compose_session] = useState(0);
   const [is_drawer_open, set_is_drawer_open] = useState(false);
   const [is_selection_active, set_is_selection_active] = useState(false);
   const edit_draft_ref = useRef<EditDraftData | null>(null);
@@ -284,6 +235,7 @@ function MobileApp() {
   const handle_compose_close = useCallback(() => {
     edit_draft_ref.current = null;
     set_is_compose_open(false);
+    set_compose_session((value) => value + 1);
   }, []);
 
   const handle_draft_click = useCallback(
@@ -298,6 +250,7 @@ function MobileApp() {
       to_recipients: string[];
       cc_recipients: string[];
       bcc_recipients: string[];
+      from_email?: string;
       updated_at: string;
     }) => {
       edit_draft_ref.current = {
@@ -311,6 +264,7 @@ function MobileApp() {
         to_recipients: draft.to_recipients,
         cc_recipients: draft.cc_recipients,
         bcc_recipients: draft.bcc_recipients,
+        from_email: draft.from_email,
         updated_at: draft.updated_at,
       };
       set_is_compose_open(true);
@@ -409,6 +363,8 @@ function MobileApp() {
     const handle_prefilled_compose = (e: Event) => {
       const detail = (e as CustomEvent).detail as {
         to: string[];
+        cc?: string[];
+        bcc?: string[];
         subject: string;
         body: string;
       };
@@ -418,8 +374,8 @@ function MobileApp() {
         version: 0,
         draft_type: "new",
         to_recipients: detail.to,
-        cc_recipients: [],
-        bcc_recipients: [],
+        cc_recipients: detail.cc ?? [],
+        bcc_recipients: detail.bcc ?? [],
         subject: detail.subject,
         message: detail.body,
         updated_at: new Date().toISOString(),
@@ -468,11 +424,53 @@ function MobileApp() {
   );
 
   useEffect(() => {
+    const handle_undo_send = () => {
+      if (is_compose_open) return;
+
+      const saved = sessionStorage.getItem("astermail_mobile_compose");
+
+      if (!saved) return;
+
+      try {
+        const data = JSON.parse(saved) as {
+          to_recipients?: string[];
+          cc_recipients?: string[];
+          bcc_recipients?: string[];
+          subject?: string;
+          message?: string;
+        };
+
+        edit_draft_ref.current = {
+          id: "",
+          version: 0,
+          draft_type: "new",
+          to_recipients: data.to_recipients ?? [],
+          cc_recipients: data.cc_recipients ?? [],
+          bcc_recipients: data.bcc_recipients ?? [],
+          subject: data.subject ?? "",
+          message: data.message ?? "",
+          updated_at: new Date().toISOString(),
+        };
+        set_is_compose_open(true);
+      } catch (caught) {
+        ignore_error("mobile_app:handle_undo_send", caught);
+
+        return;
+      }
+      sessionStorage.removeItem("astermail_mobile_compose");
+    };
+
+    window.addEventListener("astermail:undo-send", handle_undo_send);
+
+    return () =>
+      window.removeEventListener("astermail:undo-send", handle_undo_send);
+  }, [is_compose_open]);
+
+  useEffect(() => {
     const handle_back = (e: Event) => {
-      if (is_compose_open) {
-        e.preventDefault();
-        handle_compose_close();
-      } else if (is_drawer_open) {
+      if (is_compose_open) return;
+
+      if (is_drawer_open) {
         e.preventDefault();
         handle_close_drawer();
       } else if (is_selection_active) {
@@ -489,7 +487,6 @@ function MobileApp() {
     is_compose_open,
     is_drawer_open,
     is_selection_active,
-    handle_compose_close,
     handle_close_drawer,
     handle_selection_mode_change,
   ]);
@@ -802,6 +799,7 @@ function MobileApp() {
           {is_compose_open && (
             <Suspense fallback={<FullPageLoader />}>
               <MobileComposePage
+                key={compose_session}
                 edit_draft={edit_draft_ref.current}
                 on_close={handle_compose_close}
               />
@@ -813,7 +811,10 @@ function MobileApp() {
         <ActionToast position="top" />
         <UndoSendContainer is_mobile max_visible={1} position="bottom-center" />
         <UndoSendPreviewModal />
+        <UnsubscribeConfirmationModal />
         <PostQuantumSendPrompt />
+        <UpgradeModal />
+        <EmailNotificationManager />
       </div>
     </AppLock>
   );

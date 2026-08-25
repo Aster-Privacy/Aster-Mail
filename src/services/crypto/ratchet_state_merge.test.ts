@@ -18,10 +18,14 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { SerializedState, SkippedMessageKey } from "./double_ratchet";
+
 import { describe, it, expect } from "vitest";
 
-import { merge_ratchet_states } from "./ratchet_state_merge";
-import type { SerializedState, SkippedMessageKey } from "./double_ratchet";
+import {
+  merge_discards_local_epoch,
+  merge_ratchet_states,
+} from "./ratchet_state_merge";
 
 const CONVERSATION = "conversation-token-abc";
 
@@ -256,8 +260,94 @@ describe("ratchet state merge", () => {
 
   it("refuses to merge states from different conversations", () => {
     const other = make_state();
+
     other.conversation_id = "a-different-conversation";
 
     expect(() => merge_ratchet_states(make_state(), other)).toThrow();
+  });
+});
+
+describe("detecting a merge that discards the local epoch", () => {
+  it("reports a discard when the remote epoch wins and drops the local receiving chain", () => {
+    const local = make_state({
+      root_key: "root-key-epoch-1",
+      chain_key_recv: "local-recv-chain",
+      epoch: 1,
+    });
+    const remote = make_state({
+      root_key: "root-key-epoch-2",
+      dh_remote_public: "remote-dh-pub-rotated",
+      chain_key_recv: "remote-recv-chain",
+      epoch: 2,
+    });
+
+    expect(merge_discards_local_epoch(local, remote)).toBe(true);
+    expect(merge_ratchet_states(local, remote).state.chain_key_recv).toBe(
+      "remote-recv-chain",
+    );
+  });
+
+  it("reports no discard when the local epoch wins", () => {
+    const local = make_state({ root_key: "root-key-epoch-3", epoch: 3 });
+    const remote = make_state({ root_key: "root-key-epoch-2", epoch: 2 });
+
+    expect(merge_discards_local_epoch(local, remote)).toBe(false);
+  });
+
+  it("reports no discard when both sides are on the same epoch", () => {
+    const local = make_state({ send_message_number: 4 });
+    const remote = make_state({ send_message_number: 1 });
+
+    expect(merge_discards_local_epoch(local, remote)).toBe(false);
+  });
+
+  it("reports no discard for a mismatched conversation", () => {
+    const local = make_state({ epoch: 1 });
+    const remote = {
+      ...make_state({ root_key: "other", epoch: 9 }),
+      conversation_id: "different-conversation",
+    };
+
+    expect(merge_discards_local_epoch(local, remote)).toBe(false);
+  });
+});
+
+describe("retaining skipped message keys across devices", () => {
+  it("keeps the same number of keys a mobile device can hold", () => {
+    const local = make_state({
+      skipped_message_keys: Array.from({ length: 1500 }, (_, index) =>
+        skipped("local-dh-pub", index, 1_000 + index),
+      ),
+    });
+    const remote = make_state({
+      skipped_message_keys: Array.from({ length: 1500 }, (_, index) =>
+        skipped("remote-dh-pub", index, 10_000 + index),
+      ),
+    });
+
+    const merged = merge_ratchet_states(local, remote);
+
+    expect(merged.state.skipped_message_keys).toHaveLength(2000);
+  });
+
+  it("drops the oldest keys first when the merged set overflows", () => {
+    const local = make_state({
+      skipped_message_keys: Array.from({ length: 1500 }, (_, index) =>
+        skipped("local-dh-pub", index, 1_000 + index),
+      ),
+    });
+    const remote = make_state({
+      skipped_message_keys: Array.from({ length: 1500 }, (_, index) =>
+        skipped("remote-dh-pub", index, 10_000 + index),
+      ),
+    });
+
+    const merged = merge_ratchet_states(local, remote);
+    const timestamps = merged.state.skipped_message_keys.map(
+      (k) => k.timestamp,
+    );
+
+    expect(Math.min(...timestamps)).toBe(1_000 + 1000);
+    expect(Math.max(...timestamps)).toBe(10_000 + 1499);
   });
 });

@@ -18,10 +18,12 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { HASH_ALG } from "@/services/crypto/constants";
-import { useState, useCallback, useEffect, useRef } from "react";
-import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
+import type { MailItemUpdatedEventDetail } from "@/hooks/mail_events";
 
+import { useState, useCallback, useEffect, useRef } from "react";
+
+import { HASH_ALG } from "@/services/crypto/constants";
+import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import {
   list_tags,
   create_tag,
@@ -39,11 +41,9 @@ import {
   get_vault_from_memory,
   has_passphrase_in_memory,
 } from "@/services/crypto/memory_key_store";
-import type { MailItemUpdatedEventDetail } from "@/hooks/mail_events";
 import { emit_tags_changed, MAIL_EVENTS } from "@/hooks/mail_events";
 import { use_auth_safe } from "@/contexts/auth_context";
 import { use_i18n } from "@/lib/i18n/context";
-
 
 export interface DecryptedTag {
   id: string;
@@ -176,7 +176,11 @@ async function decrypt_tag_field(
   const encrypted_data = base64_to_array(encrypted);
   const nonce_data = base64_to_array(nonce);
 
-  const decrypted = await decrypt_aes_gcm_with_fallback(key, encrypted_data, nonce_data);
+  const decrypted = await decrypt_aes_gcm_with_fallback(
+    key,
+    encrypted_data,
+    nonce_data,
+  );
 
   return new TextDecoder().decode(decrypted);
 }
@@ -310,6 +314,20 @@ export function use_tags(): UseTagsReturn {
           (tag): tag is DecryptedTag => tag !== null,
         );
 
+        if (
+          response.data.tags.length > 0 &&
+          decrypted_tags.length === 0 &&
+          cached_tags.data.length > 0
+        ) {
+          set_state((prev) => ({
+            ...prev,
+            is_loading: false,
+            error: t("common.failed_to_fetch_tags"),
+          }));
+
+          return;
+        }
+
         cached_tags.data = decrypted_tags;
         cached_tags.total = decrypted_tags.length;
 
@@ -346,7 +364,17 @@ export function use_tags(): UseTagsReturn {
 
         if (this_generation !== counts_generation_ref.current) return;
 
-        if (!response.data) return;
+        if (!response.data) {
+          if (attempt === 2) return;
+
+          await new Promise((resolve) =>
+            setTimeout(resolve, 1000 * (attempt + 1)),
+          );
+
+          if (this_generation !== counts_generation_ref.current) return;
+
+          continue;
+        }
 
         if (counts_adjusted_at_ref.current > fetch_started_at) {
           await new Promise((resolve) => setTimeout(resolve, 400));
@@ -736,7 +764,10 @@ export function use_tags(): UseTagsReturn {
     };
 
     const visibility_handler = () => {
-      if (document.visibilityState === "visible" && has_passphrase_in_memory()) {
+      if (
+        document.visibilityState === "visible" &&
+        has_passphrase_in_memory()
+      ) {
         fetch_counts();
       }
     };
@@ -760,7 +791,10 @@ export function use_tags(): UseTagsReturn {
     window.addEventListener(MAIL_EVENTS.EMAIL_RECEIVED, counts_handler);
     window.addEventListener(MAIL_EVENTS.EMAIL_SENT, counts_handler);
     window.addEventListener(MAIL_EVENTS.MAIL_ACTION, counts_handler);
-    window.addEventListener(MAIL_EVENTS.MAIL_ITEM_UPDATED, item_updated_handler);
+    window.addEventListener(
+      MAIL_EVENTS.MAIL_ITEM_UPDATED,
+      item_updated_handler,
+    );
     window.addEventListener(MAIL_EVENTS.MAIL_ITEMS_REMOVED, counts_handler);
     window.addEventListener(MAIL_EVENTS.TAGS_CHANGED, tags_handler);
     window.addEventListener(MAIL_EVENTS.AUTH_READY, auth_ready_handler);
@@ -777,7 +811,10 @@ export function use_tags(): UseTagsReturn {
         MAIL_EVENTS.MAIL_ITEM_UPDATED,
         item_updated_handler,
       );
-      window.removeEventListener(MAIL_EVENTS.MAIL_ITEMS_REMOVED, counts_handler);
+      window.removeEventListener(
+        MAIL_EVENTS.MAIL_ITEMS_REMOVED,
+        counts_handler,
+      );
       window.removeEventListener(MAIL_EVENTS.TAGS_CHANGED, tags_handler);
       window.removeEventListener(MAIL_EVENTS.AUTH_READY, auth_ready_handler);
       document.removeEventListener("visibilitychange", visibility_handler);

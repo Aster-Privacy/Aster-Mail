@@ -18,6 +18,9 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { get_current_account } from "../account_manager";
+import { api_client } from "../api/client";
+
 import { array_to_base64, base64_to_array } from "./base64";
 import {
   encrypt_vault,
@@ -40,8 +43,6 @@ import { clear_all_ratchet_states } from "./ratchet_state_store";
 import { report_envelope_capability_if_due } from "./envelope_capability";
 import { with_vault_write_lock } from "./vault_write_lock";
 import { collect_vault_key_fingerprints } from "./vault_key_fingerprints";
-import { get_current_account } from "../account_manager";
-import { api_client } from "../api/client";
 
 import { ignore_error } from "@/lib/ignore_error";
 
@@ -568,7 +569,11 @@ async function run_locked_with_vault(
 
     const need_forced_regen =
       !localStorage.getItem(FORCED_REGEN_KEY) && !vault.ratchet_regen_v4_done;
-    if (vault.ratchet_regen_v4_done && !localStorage.getItem(FORCED_REGEN_KEY)) {
+
+    if (
+      vault.ratchet_regen_v4_done &&
+      !localStorage.getItem(FORCED_REGEN_KEY)
+    ) {
       localStorage.setItem(FORCED_REGEN_KEY, "1");
     }
 
@@ -703,6 +708,7 @@ async function run_locked_with_vault(
           ratchet_pq_identity_public: vault.ratchet_pq_identity_public,
           ratchet_pq_identity_seed: vault.ratchet_pq_identity_seed,
         };
+
         next_vault.ratchet_previous_keys = merge_previous_ratchet_keys(
           [old_set],
           vault.ratchet_previous_keys,
@@ -712,7 +718,8 @@ async function run_locked_with_vault(
       next_vault.ratchet_identity_key = ratchet_keys.identity_jwk;
       next_vault.ratchet_identity_public = ratchet_keys.identity_public;
       next_vault.ratchet_signed_prekey = ratchet_keys.signed_prekey_jwk;
-      next_vault.ratchet_signed_prekey_public = ratchet_keys.signed_prekey_public;
+      next_vault.ratchet_signed_prekey_public =
+        ratchet_keys.signed_prekey_public;
       next_vault.ratchet_pq_identity_key = ratchet_keys.pq_identity_secret;
       next_vault.ratchet_pq_identity_public = ratchet_keys.pq_identity_public;
       next_vault.ratchet_pq_identity_seed = ratchet_keys.pq_identity_seed;

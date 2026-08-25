@@ -21,5 +21,12 @@
 export type { EmojiEntry, EmojiCategory } from "./types";
 export { emoji_categories } from "./categories";
 export { get_all_emojis, search_emojis } from "./search";
-export { skin_tones, skin_tone_modifiers, skin_tone_swatches, tone_capable_emoji, is_tone_capable, apply_skin_tone } from "./skin_tones";
+export {
+  skin_tones,
+  skin_tone_modifiers,
+  skin_tone_swatches,
+  tone_capable_emoji,
+  is_tone_capable,
+  apply_skin_tone,
+} from "./skin_tones";
 export type { SkinTone } from "./skin_tones";

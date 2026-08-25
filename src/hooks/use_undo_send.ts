@@ -20,8 +20,10 @@
 //
 import { useState, useEffect, useCallback } from "react";
 
+import type { Attachment } from "@/components/compose/compose_shared";
 import { ignore_error } from "@/lib/ignore_error";
-
+import { show_toast } from "@/components/toast/simple_toast";
+import { get_active_translations } from "@/lib/i18n/translations";
 import {
   cancel_send as cancel_queue_send,
   send_now as send_queue_now,
@@ -46,6 +48,37 @@ export interface PendingSend {
   on_send_immediately?: () => void;
   optimistic_id?: string;
   thread_token?: string;
+  is_restored?: boolean;
+}
+
+export interface PendingSendPayload {
+  to: string[];
+  cc?: string[];
+  bcc?: string[];
+  subject: string;
+  body: string;
+  sender_email?: string;
+  thread_token?: string;
+  attachments?: Attachment[];
+}
+
+const pending_send_payloads = new Map<string, PendingSendPayload>();
+
+export function store_pending_send_payload(
+  id: string,
+  payload: PendingSendPayload,
+): void {
+  pending_send_payloads.set(id, payload);
+}
+
+export function take_pending_send_payload(
+  id: string,
+): PendingSendPayload | undefined {
+  const payload = pending_send_payloads.get(id);
+
+  pending_send_payloads.delete(id);
+
+  return payload;
 }
 
 type UndoSendListener = (pending_sends: PendingSend[]) => void;
@@ -82,7 +115,9 @@ function load_from_storage(): PendingSend[] {
     const parsed = JSON.parse(raw) as PendingSend[];
     const now = Date.now();
 
-    return parsed.filter((p) => p.scheduled_time > now);
+    return parsed
+      .filter((p) => p.scheduled_time > now)
+      .map((p) => ({ ...p, is_restored: true }));
   } catch {
     return [];
   }
@@ -137,6 +172,7 @@ class UndoSendManager {
         window.clearTimeout(pending.timeout_id);
       }
       this.pending_sends.delete(id);
+      pending_send_payloads.delete(id);
       this.notify();
     }
 
@@ -171,6 +207,7 @@ class UndoSendManager {
 
   clear(): void {
     this.pending_sends.clear();
+    pending_send_payloads.clear();
     this.notify();
   }
 }
@@ -185,22 +222,24 @@ export function clear_undo_send_state(): void {
 export interface UndoSendEvent {
   id: string;
   pending: PendingSend;
+  payload?: PendingSendPayload;
 }
 
 export function dispatch_undo_send_event(
   id: string,
   pending: PendingSend,
+  payload?: PendingSendPayload,
 ): void {
   window.dispatchEvent(
     new CustomEvent<UndoSendEvent>("astermail:undo-send", {
-      detail: { id, pending },
+      detail: { id, pending, payload },
     }),
   );
 }
 
 interface UseUndoSendReturn {
   pending_sends: PendingSend[];
-  cancel_send: (id: string) => boolean;
+  cancel_send: (id: string) => Promise<boolean>;
   send_immediately: (id: string) => void;
   get_time_remaining: (id: string) => number;
   remove_pending: (id: string) => void;
@@ -215,22 +254,40 @@ export function use_undo_send(): UseUndoSendReturn {
     return unsubscribe;
   }, []);
 
-  const cancel_send = useCallback((id: string): boolean => {
+  const cancel_send = useCallback(async (id: string): Promise<boolean> => {
     const pending = undo_send_manager.get(id);
 
     if (!pending) return false;
 
-    undo_send_manager.remove(id);
+    let payload: PendingSendPayload | undefined;
 
     if (pending.is_server_queued && pending.server_queue_id) {
-      cancel_server_queued_email(pending.server_queue_id).catch((caught) =>
-        ignore_error("hooks/use_undo_send:use_undo_send", caught),
-      );
+      const cancelled = await cancel_server_queued_email(
+        pending.server_queue_id,
+      ).catch((caught) => {
+        ignore_error("hooks/use_undo_send:use_undo_send", caught);
+
+        return false;
+      });
+
+      if (!cancelled) {
+        show_toast(
+          get_active_translations().common.undo_send_too_late,
+          "error",
+        );
+
+        return false;
+      }
+
+      payload = take_pending_send_payload(id);
+      undo_send_manager.remove(id);
     } else {
+      payload = take_pending_send_payload(id);
+      undo_send_manager.remove(id);
       cancel_queue_send(id);
     }
 
-    dispatch_undo_send_event(id, pending);
+    dispatch_undo_send_event(id, pending, payload);
 
     return true;
   }, []);

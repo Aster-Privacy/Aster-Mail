@@ -18,9 +18,9 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { describe, it, expect, beforeEach, vi } from "vitest";
-
 import type { EncryptedVault } from "@/services/crypto/key_manager";
+
+import { describe, it, expect, beforeEach, vi } from "vitest";
 
 const h = vi.hoisted(() => ({
   vault: null as unknown,
@@ -56,7 +56,9 @@ vi.mock("@/services/crypto/ratchet_plaintext_cache", () => ({
 vi.mock("@/services/api/client", () => ({
   api_client: {
     get: vi.fn(async (url: string) =>
-      url.includes("prekey-bundle") ? { data: h.bundle } : { code: "NOT_FOUND" },
+      url.includes("prekey-bundle")
+        ? { data: h.bundle }
+        : { code: "NOT_FOUND" },
     ),
     put: vi.fn(async () => ({ data: { state_version: 1 } })),
     post: vi.fn(async () => ({ data: { state_version: 1 } })),
@@ -109,9 +111,12 @@ async function send(plaintext: string, sender_vault: EncryptedVault) {
 
   expect(data).not.toBeNull();
 
-  const envelope = build_ratchet_envelope(sender_vault.ratchet_identity_public!, {
-    [RECIPIENT]: data!,
-  });
+  const envelope = build_ratchet_envelope(
+    sender_vault.ratchet_identity_public!,
+    {
+      [RECIPIENT]: data!,
+    },
+  );
 
   return { data: data!, envelope };
 }

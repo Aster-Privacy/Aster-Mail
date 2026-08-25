@@ -25,12 +25,12 @@ import {
   compute_should_remove_from_view,
   destination_views_for_update,
 } from "./view_membership";
+
 import {
   clear_email_cache,
   clear_view_cache,
 } from "@/services/offline_email_cache";
 import { request_cache } from "@/services/api/request_cache";
-
 import { ignore_error } from "@/lib/ignore_error";
 
 interface ViewCacheEntry {
@@ -38,40 +38,73 @@ interface ViewCacheEntry {
   time: number;
   is_stale: boolean;
   conversation_grouping: boolean;
+  page?: number;
+  page_offsets?: [number, number][];
+  access_seq?: number;
 }
 
-const MAX_VIEW_CACHE_ENTRIES = 8;
+const MAX_VIEW_CACHE_ENTRIES = 32;
 
 export const view_cache = new Map<string, ViewCacheEntry>();
 
+let access_counter = 0;
+
+function next_access_seq(): number {
+  access_counter += 1;
+
+  return access_counter;
+}
+
+function access_order(entry: ViewCacheEntry): number {
+  return entry.access_seq ?? 0;
+}
+
+export function get_view_cache(view: string): ViewCacheEntry | undefined {
+  const cached = view_cache.get(view);
+
+  if (!cached) return undefined;
+
+  cached.access_seq = next_access_seq();
+
+  return cached;
+}
+
 export function set_view_cache(view: string, entry: ViewCacheEntry): void {
-  view_cache.set(view, entry);
+  view_cache.set(view, { ...entry, access_seq: next_access_seq() });
 
   if (view_cache.size <= MAX_VIEW_CACHE_ENTRIES) return;
 
-  const by_age = [...view_cache.entries()].sort((a, b) => a[1].time - b[1].time);
+  const by_access = [...view_cache.entries()].sort(
+    (a, b) => access_order(a[1]) - access_order(b[1]),
+  );
 
-  for (let i = 0; i < by_age.length - MAX_VIEW_CACHE_ENTRIES; i++) {
-    if (by_age[i][0] === view) continue;
+  for (let i = 0; i < by_access.length - MAX_VIEW_CACHE_ENTRIES; i++) {
+    if (by_access[i][0] === view) continue;
 
-    view_cache.delete(by_age[i][0]);
+    view_cache.delete(by_access[i][0]);
   }
 }
 
 export function invalidate_mail_cache(view?: string): void {
   if (view) {
     view_cache.delete(view);
-    clear_view_cache(view).catch((caught) => ignore_error("hooks/email_list_cache:invalidate_mail_cache", caught));
+    clear_view_cache(view).catch((caught) =>
+      ignore_error("hooks/email_list_cache:invalidate_mail_cache", caught),
+    );
   } else {
     view_cache.clear();
-    clear_email_cache().catch((caught) => ignore_error("hooks/email_list_cache:invalidate_mail_cache", caught));
+    clear_email_cache().catch((caught) =>
+      ignore_error("hooks/email_list_cache:invalidate_mail_cache", caught),
+    );
   }
   request_cache.invalidate("GET:/mail/v1/messages");
 }
 
 export function clear_mail_cache(): void {
   view_cache.clear();
-  clear_email_cache().catch((caught) => ignore_error("hooks/email_list_cache:clear_mail_cache", caught));
+  clear_email_cache().catch((caught) =>
+    ignore_error("hooks/email_list_cache:clear_mail_cache", caught),
+  );
 }
 
 export function stale_all_view_caches(): void {
@@ -210,6 +243,9 @@ export function remove_email_from_view_cache(email_id: string): void {
           time: cached.time,
           is_stale: true,
           conversation_grouping: cached.conversation_grouping,
+          page: cached.page,
+          page_offsets: cached.page_offsets,
+          access_seq: cached.access_seq,
         });
       }
     }

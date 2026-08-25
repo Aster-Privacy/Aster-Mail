@@ -18,16 +18,18 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { format_bytes } from "@/lib/utils";
-import { show_plan_limit_upgrade } from "@/stores/upgrade_store";
 import type { TranslationKey } from "@/lib/i18n/types";
 
 import {
   FREE_MAX_ATTACHMENT_SIZE,
+  MAX_ATTACHMENTS_PER_SEND,
   MAX_PAID_ATTACHMENT_SIZE,
   get_max_attachment_size,
   get_max_total_attachments_size,
 } from "./attachment_limits";
+
+import { format_bytes } from "@/lib/utils";
+import { show_plan_limit_upgrade } from "@/stores/upgrade_store";
 
 type Translate = (
   key: TranslationKey,
@@ -66,6 +68,12 @@ export function describe_would_exceed_total(
   return t("common.adding_file_would_exceed_limit", {
     name: file_name,
     size: format_bytes(get_max_total_attachments_size()),
+  });
+}
+
+export function describe_too_many_attachments(t: Translate): string {
+  return t("common.too_many_attachments", {
+    count: MAX_ATTACHMENTS_PER_SEND,
   });
 }
 

@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { DomainCheck, DomainHealth } from "@/services/api/domains";
+
 import { describe, expect, it } from "vitest";
 
 import {
@@ -27,8 +29,8 @@ import {
   should_keep_polling,
   sort_checks,
 } from "./domain_health";
+
 import { en } from "@/lib/i18n/translations/en";
-import type { DomainCheck, DomainHealth } from "@/services/api/domains";
 
 function health(overrides: Partial<DomainHealth> = {}): DomainHealth {
   return {
@@ -129,7 +131,9 @@ describe("check_status_key", () => {
 
   it("uses pass copy when the check succeeds", () => {
     expect(
-      check_status_key(check({ key: "dkim", outcome: "pass", reason: undefined })),
+      check_status_key(
+        check({ key: "dkim", outcome: "pass", reason: undefined }),
+      ),
     ).toBe("settings.domain_check_dkim_pass");
   });
 

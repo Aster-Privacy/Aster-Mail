@@ -38,6 +38,7 @@ const expect_inert = (html: string): void => {
   expect(has_event_handler(html)).toBe(false);
   expect(has_javascript_uri(html)).toBe(false);
   const l = lower(html);
+
   expect(l).not.toContain("javascript:");
   expect(l).not.toContain("vbscript:");
   expect(l).not.toContain("<script");
@@ -86,7 +87,8 @@ describe("sanitize_html xss regression", () => {
   });
 
   it("does not emit head style blocks outside sandbox mode", () => {
-    const input = "<head><style>@import url(//evil)</style></head><body>hi</body>";
+    const input =
+      "<head><style>@import url(//evil)</style></head><body>hi</body>";
     const { html } = sanitize_html(input, { sandbox_mode: false });
 
     expect(html).not.toContain("@import");
@@ -120,9 +122,18 @@ describe("sanitize_html adversarial / mutation-XSS", () => {
       name: "data text/html href",
       input: '<a href="data:text/html,<script>alert(1)</script>">x</a>',
     },
-    { name: "iframe js src", input: '<iframe src="javascript:alert(1)"></iframe>' },
-    { name: "object js data", input: '<object data="javascript:alert(1)"></object>' },
-    { name: "embed src", input: '<embed src="data:text/html,<script>alert(1)</script>">' },
+    {
+      name: "iframe js src",
+      input: '<iframe src="javascript:alert(1)"></iframe>',
+    },
+    {
+      name: "object js data",
+      input: '<object data="javascript:alert(1)"></object>',
+    },
+    {
+      name: "embed src",
+      input: '<embed src="data:text/html,<script>alert(1)</script>">',
+    },
     {
       name: "meta refresh redirect",
       input: '<meta http-equiv="refresh" content="0;url=javascript:alert(1)">',
@@ -159,7 +170,7 @@ describe("sanitize_html adversarial / mutation-XSS", () => {
     },
     {
       name: "title breakout",
-      input: '<title></title><img src=x onerror=alert(1)>',
+      input: "<title></title><img src=x onerror=alert(1)>",
     },
     {
       name: "textarea breakout",
@@ -170,17 +181,20 @@ describe("sanitize_html adversarial / mutation-XSS", () => {
   for (const { name, input } of adversarial) {
     it(`renders inert output (default) for ${name}`, () => {
       const { html } = sanitize_html(input);
+
       expect_inert(html);
     });
 
     it(`renders inert output (sandbox) for ${name}`, () => {
       const { html } = sanitize_html(input, { sandbox_mode: true });
+
       expect_inert(html);
     });
   }
 
   it("keeps the combined payload blob inert", () => {
     const combined = adversarial.map((p) => p.input).join("\n");
+
     expect_inert(sanitize_html(combined).html);
     expect_inert(sanitize_html(combined, { sandbox_mode: true }).html);
   });
@@ -191,6 +205,7 @@ describe("sanitize_html adversarial / mutation-XSS", () => {
     const { html } = sanitize_html(input, { sandbox_mode: true });
 
     const host = document.createElement("div");
+
     host.innerHTML = html;
 
     expect(host.querySelectorAll("img").length).toBe(0);
@@ -207,6 +222,7 @@ describe("sanitize_html adversarial / mutation-XSS", () => {
     for (const input of variants) {
       const { html } = sanitize_html(input, { sandbox_mode: true });
       const host = document.createElement("div");
+
       host.innerHTML = html;
 
       expect(host.querySelectorAll("img").length).toBe(0);
@@ -219,7 +235,7 @@ describe("sanitize_html adversarial / mutation-XSS", () => {
 describe("sanitize_html preserves legitimate content (no over-stripping)", () => {
   it("keeps text, formatting, links and lists", () => {
     const input =
-      '<p>Hello <b>world</b> and <i>friends</i>.</p>' +
+      "<p>Hello <b>world</b> and <i>friends</i>.</p>" +
       '<a href="https://example.com/page?a=1">link</a>' +
       "<ul><li>one</li><li>two</li></ul>" +
       "<blockquote>quoted</blockquote>";
@@ -256,7 +272,10 @@ describe("sanitize_html neutralizes CSS overlay clickjacking", () => {
   it("strips viewport-pinning position (fixed/sticky) from inline styles in both modes", () => {
     for (const sandbox of [false, true]) {
       expect(
-        sanitize_style("position:fixed;top:0;left:0;width:100vw;height:100vh", sandbox),
+        sanitize_style(
+          "position:fixed;top:0;left:0;width:100vw;height:100vh",
+          sandbox,
+        ),
       ).not.toMatch(/position\s*:\s*fixed/i);
       expect(sanitize_style("position:sticky;top:0", sandbox)).not.toMatch(
         /position\s*:\s*sticky/i,
@@ -269,6 +288,7 @@ describe("sanitize_html neutralizes CSS overlay clickjacking", () => {
       "a{position:fixed;inset:0;z-index:99999} .y{position:sticky;top:0}",
       true,
     );
+
     expect(out).not.toMatch(/position\s*:\s*fixed/i);
     expect(out).not.toMatch(/position\s*:\s*sticky/i);
   });
@@ -277,9 +297,9 @@ describe("sanitize_html neutralizes CSS overlay clickjacking", () => {
     expect(sanitize_style("position:absolute;top:4px", true)).toMatch(
       /position\s*:\s*absolute/i,
     );
-    expect(
-      sanitize_css_block("a{position:absolute;top:4px}", true),
-    ).toMatch(/position\s*:\s*absolute/i);
+    expect(sanitize_css_block("a{position:absolute;top:4px}", true)).toMatch(
+      /position\s*:\s*absolute/i,
+    );
   });
 
   it("does not mangle legitimate CSS that merely resembles positioning", () => {
@@ -287,13 +307,18 @@ describe("sanitize_html neutralizes CSS overlay clickjacking", () => {
       "background-attachment:fixed;background-position:center;color:red",
       true,
     );
+
     expect(out).toContain("background-attachment:fixed");
     expect(out).toContain("background-position:center");
     expect(out).toContain("color:red");
   });
 
   it("keeps relative/static positioning untouched", () => {
-    const out = sanitize_css_block("a{position:relative}.b{position:static}", true);
+    const out = sanitize_css_block(
+      "a{position:relative}.b{position:static}",
+      true,
+    );
+
     expect(out).toContain("position:relative");
     expect(out).toContain("position:static");
   });
@@ -304,6 +329,7 @@ describe("sanitize_preview_html (top-origin shadow sink)", () => {
     const preview = sanitize_preview_html(
       "<style>body{position:fixed;inset:0}.x{color:red}</style><p>hi</p>",
     );
+
     expect(preview.toLowerCase()).not.toContain("<style");
     expect(preview).not.toContain("position:fixed");
     expect(preview).toContain("hi");
@@ -313,6 +339,7 @@ describe("sanitize_preview_html (top-origin shadow sink)", () => {
     const preview = sanitize_preview_html(
       '<p>Hello <b>world</b></p><a href="https://example.com">link</a>',
     );
+
     expect(preview).toContain("Hello");
     expect(preview.toLowerCase()).toContain("<b>");
     expect(preview).toContain("https://example.com");
@@ -320,8 +347,9 @@ describe("sanitize_preview_html (top-origin shadow sink)", () => {
 
   it("never emits script or event handlers", () => {
     const preview = sanitize_preview_html(
-      '<img src=x onerror=alert(1)><script>alert(1)</script><p>ok</p>',
+      "<img src=x onerror=alert(1)><script>alert(1)</script><p>ok</p>",
     );
+
     expect(has_event_handler(preview)).toBe(false);
     expect(preview.toLowerCase()).not.toContain("<script");
     expect(preview).toContain("ok");
@@ -329,11 +357,14 @@ describe("sanitize_preview_html (top-origin shadow sink)", () => {
 
   it("strips style blocks regardless of attributes/casing", () => {
     expect(
-      sanitize_preview_html('<STYLE type="text/css">*{position:fixed}</STYLE><p>a</p>')
-        .toLowerCase(),
+      sanitize_preview_html(
+        '<STYLE type="text/css">*{position:fixed}</STYLE><p>a</p>',
+      ).toLowerCase(),
     ).not.toContain("position:fixed");
     expect(
-      sanitize_preview_html('<style media="all">x{}</style><p>a</p>').toLowerCase(),
+      sanitize_preview_html(
+        '<style media="all">x{}</style><p>a</p>',
+      ).toLowerCase(),
     ).not.toContain("<style");
   });
 
@@ -341,6 +372,7 @@ describe("sanitize_preview_html (top-origin shadow sink)", () => {
     const preview = sanitize_preview_html(
       '<img src="data:image/png;base64,AAAA"><p>body</p>',
     );
+
     expect(preview.toLowerCase()).toContain("data:image/png");
     expect(preview).toContain("body");
   });
@@ -354,18 +386,21 @@ describe("sanitize_preview_html fixpoint fallback (no DOMParser)", () => {
   it("removes a script tag reconstructed by a single strip pass", () => {
     vi.stubGlobal("DOMParser", undefined);
     const preview = sanitize_preview_html("<scr<script>ipt>alert(1)x");
+
     expect(preview.toLowerCase()).not.toContain("<script");
   });
 
   it("removes a style tag reconstructed by a single strip pass", () => {
     vi.stubGlobal("DOMParser", undefined);
     const preview = sanitize_preview_html("<sty<style>le media=all>x");
+
     expect(preview.toLowerCase()).not.toContain("<style");
   });
 
   it("keeps benign text untouched in the fallback", () => {
     vi.stubGlobal("DOMParser", undefined);
     const preview = sanitize_preview_html("hello <b>world</b>");
+
     expect(preview).toContain("hello");
     expect(preview.toLowerCase()).toContain("<b>");
   });

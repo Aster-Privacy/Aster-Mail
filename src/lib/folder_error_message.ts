@@ -18,17 +18,29 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { invoke, is_desktop } from "@/native/invoke_bridge";
+import type { TranslationKey } from "@/lib/i18n/types";
 
-export async function update_tray_badge(unread_count: number): Promise<void> {
-  if (!is_desktop()) return;
+export const MAX_FOLDER_NAME_LENGTH = 100;
 
-  try {
-    const tooltip =
-      unread_count > 0 ? `Aster Mail - ${unread_count} unread` : "Aster Mail";
+type TranslateFn = (
+  key: TranslationKey,
+  params?: Record<string, string | number>,
+) => string;
 
-    await invoke("set_tray_tooltip", { tooltip });
-  } catch {
-    return;
+export function create_folder_error_message(
+  code: string | undefined,
+  t: TranslateFn,
+): string {
+  switch (code) {
+    case "PLAN_LIMIT_EXCEEDED":
+      return t("common.folder_plan_limit_reached");
+    case "DUPLICATE":
+      return t("common.folder_already_exists");
+    case "INVALID_NAME":
+      return t("common.folder_name_too_long", {
+        max: MAX_FOLDER_NAME_LENGTH,
+      });
+    default:
+      return t("common.failed_to_create_folder_error");
   }
 }

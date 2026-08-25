@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { app_locale } from "@/utils/date_format";
+
 export interface TimeZoneOption {
   id: string;
   city: string;
@@ -49,7 +51,10 @@ export function get_device_time_zone(): string {
   }
 }
 
-export function get_time_zone_offset_minutes(zone: string, at = new Date()): number {
+export function get_time_zone_offset_minutes(
+  zone: string,
+  at = new Date(),
+): number {
   try {
     const formatter = new Intl.DateTimeFormat("en-US", {
       timeZone: zone,
@@ -119,8 +124,9 @@ export function build_time_zone_options(at = new Date()): TimeZoneOption[] {
         region,
         offset_minutes,
         offset_label,
-        search_text:
-          `${city} ${region} ${id} ${offset_label}`.toLowerCase().replace(/_/g, " "),
+        search_text: `${city} ${region} ${id} ${offset_label}`
+          .toLowerCase()
+          .replace(/_/g, " "),
       };
     })
     .sort((a, b) => {
@@ -137,7 +143,7 @@ export function format_time_in_zone(
   at = new Date(),
 ): string {
   try {
-    return new Intl.DateTimeFormat(undefined, {
+    return new Intl.DateTimeFormat(app_locale(), {
       timeZone: zone,
       hour: "numeric",
       minute: "2-digit",

@@ -24,8 +24,7 @@ import {
 } from "@/services/crypto/secure_storage";
 import { api_client } from "@/services/api/client";
 import { write_account_index_hint } from "@/lib/account_index_url";
-import { en } from "@/lib/i18n/translations/en";
-
+import { get_active_translations } from "@/lib/i18n/translations";
 import { ignore_error } from "@/lib/ignore_error";
 
 async function clear_offline_email_cache(): Promise<void> {
@@ -141,7 +140,7 @@ async function get_accounts_data_async(): Promise<AccountsData> {
 
     last_load_failed = localStorage.getItem(ACCOUNTS_KEY) !== null;
   } catch (e) {
-    last_load_failed = true;
+    last_load_failed = localStorage.getItem(ACCOUNTS_KEY) !== null;
     if (import.meta.env.DEV) console.error(e);
   }
 
@@ -150,6 +149,18 @@ async function get_accounts_data_async(): Promise<AccountsData> {
 
 export function accounts_storage_unreadable(): boolean {
   return last_load_failed;
+}
+
+export async function reset_accounts_storage(): Promise<void> {
+  try {
+    localStorage.removeItem(ACCOUNTS_KEY);
+  } catch (caught) {
+    ignore_error("services/account_manager:reset_accounts_storage", caught);
+  }
+
+  cached_data = null;
+  storage_initialized = true;
+  last_load_failed = false;
 }
 
 let account_write_chain: Promise<unknown> = Promise.resolve();
@@ -168,7 +179,7 @@ export function serialize_account_write<T>(
 }
 
 async function save_accounts_data(data: AccountsData): Promise<void> {
-  if (data.accounts.length === 0 && last_load_failed) return;
+  if (last_load_failed) return;
 
   cached_data = data;
   last_load_failed = false;
@@ -365,7 +376,7 @@ export async function add_account(
   if (personal_count >= DEFAULT_MAX_ACCOUNTS) {
     return {
       success: false,
-      error: en.errors.max_accounts.replace(
+      error: get_active_translations().errors.max_accounts.replace(
         "{{ max }}",
         String(DEFAULT_MAX_ACCOUNTS),
       ),
@@ -433,6 +444,43 @@ export async function get_account_kind(
   return account?.kind === "shared" ? "shared" : "personal";
 }
 
+const ACCOUNT_SCOPED_LOCAL_KEYS: readonly string[] = [
+  "aster_pref_migrations_done",
+  "aster_sidebar_state",
+  "aster_crypto_banner_dismissed",
+  "aster_family_2fa_banner_dismissed",
+  "aster_is_family_plan",
+  "aster_has_devices",
+  "aster_last_unread_badge",
+  "astermail_inbox_categories_enabled",
+  "astermail_active_category",
+  "astermail_date_format",
+  "astermail_time_format",
+];
+
+function clear_account_scoped_local_keys(): void {
+  for (const key of ACCOUNT_SCOPED_LOCAL_KEYS) {
+    try {
+      localStorage.removeItem(key);
+    } catch {
+      return;
+    }
+  }
+}
+
+async function clear_account_scoped_preferences_cache(): Promise<void> {
+  clear_account_scoped_local_keys();
+  try {
+    const { clear_preferences_cache } = await import(
+      "@/services/api/preferences"
+    );
+
+    clear_preferences_cache();
+  } catch {
+    return;
+  }
+}
+
 export async function switch_account(
   account_id: string,
 ): Promise<StoredAccount | null> {
@@ -444,6 +492,7 @@ export async function switch_account(
   data.current_account_id = account_id;
   await save_accounts_data(data);
   await clear_offline_email_cache();
+  await clear_account_scoped_preferences_cache();
 
   return account;
 }
@@ -473,6 +522,7 @@ export async function remove_account(
 
   await save_accounts_data(data);
   await clear_offline_email_cache();
+  await clear_account_scoped_preferences_cache();
 
   return { removed: true, switched_to };
 }

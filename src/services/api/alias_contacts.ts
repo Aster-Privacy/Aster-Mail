@@ -55,7 +55,12 @@ export async function list_alias_contacts(
 }
 
 function make_readable_reverse_local(email: string): string {
-  const safe = email.toLowerCase().replace("@", "_at_").replace(/[^a-z0-9_-]/g, "_").slice(0, 50);
+  const safe = email
+    .toLowerCase()
+    .replace("@", "_at_")
+    .replace(/[^a-z0-9_-]/g, "_")
+    .slice(0, 50);
+
   return safe || generate_ghost_local_part();
 }
 
@@ -74,7 +79,9 @@ export async function add_alias_contact(
     const reverse_alias_hash = await sha256_base64(
       `${reverse_local}@${GHOST_DOMAIN}`,
     );
-    const { encrypted, nonce } = await encrypt_alias_field(contact_email.trim());
+    const { encrypted, nonce } = await encrypt_alias_field(
+      contact_email.trim(),
+    );
 
     const response = await api_client.post<{ id: string; success: boolean }>(
       `/addresses/v1/aliases/${alias_id}/contacts`,
@@ -90,7 +97,9 @@ export async function add_alias_contact(
     if (!response.error) return response;
     last = response;
 
-    if (!/in use|already|taken|exists|conflict|duplicate/i.test(response.error)) {
+    if (
+      !/in use|already|taken|exists|conflict|duplicate/i.test(response.error)
+    ) {
       break;
     }
   }
@@ -133,7 +142,10 @@ export async function add_domain_address_contact(
   alias_domain: string,
 ): Promise<ApiResponse<{ id: string; success: boolean }>> {
   const contact_hash = await sha256_base64(contact_email);
-  const key_suffix = contact_hash.replace(/[^a-z0-9]/gi, "").toLowerCase().slice(0, 8);
+  const key_suffix = contact_hash
+    .replace(/[^a-z0-9]/gi, "")
+    .toLowerCase()
+    .slice(0, 8);
   let last: ApiResponse<{ id: string; success: boolean }> | null = null;
 
   for (let attempt = 0; attempt < 5; attempt++) {
@@ -142,7 +154,9 @@ export async function add_domain_address_contact(
     const reverse_alias_hash = await sha256_base64(
       `${reverse_local}@${alias_domain}`,
     );
-    const { encrypted, nonce } = await encrypt_alias_field(contact_email.trim());
+    const { encrypted, nonce } = await encrypt_alias_field(
+      contact_email.trim(),
+    );
 
     const response = await api_client.post<{ id: string; success: boolean }>(
       `/addresses/v1/aliases/domain-addresses/${domain_address_id}/contacts`,
@@ -158,7 +172,9 @@ export async function add_domain_address_contact(
     if (!response.error) return response;
     last = response;
 
-    if (!/in use|already|taken|exists|conflict|duplicate/i.test(response.error)) {
+    if (
+      !/in use|already|taken|exists|conflict|duplicate/i.test(response.error)
+    ) {
       break;
     }
   }

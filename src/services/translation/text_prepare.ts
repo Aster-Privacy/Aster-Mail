@@ -35,7 +35,8 @@ const EMAIL_PATTERN = "[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}";
 const BASE64_PATTERN = "[A-Za-z0-9+/]{24,}={0,2}";
 const CURRENCY_PATTERN =
   "(?:[$\\u20ac\\u00a3\\u00a5\\u20bd\\u20a9\\u20b9]\\s?\\d[\\d.,]*|\\d[\\d.,]*\\s?(?:USD|EUR|GBP|JPY|CHF|CAD|AUD|SEK|NOK|DKK|PLN|RUB|TRY|CNY|KRW))";
-const ISO_DATE_PATTERN = "\\d{4}-\\d{2}-\\d{2}(?:[T ]\\d{2}:\\d{2}(?::\\d{2})?)?";
+const ISO_DATE_PATTERN =
+  "\\d{4}-\\d{2}-\\d{2}(?:[T ]\\d{2}:\\d{2}(?::\\d{2})?)?";
 const NUMERIC_DATE_PATTERN = "\\d{1,2}[\\/.\\-]\\d{1,2}[\\/.\\-]\\d{2,4}";
 const TIME_PATTERN = "\\d{1,2}:\\d{2}(?::\\d{2})?\\s?(?:[AaPp]\\.?[Mm]\\.?)?";
 const PHONE_PATTERN = "\\+?\\d[\\d\\s().-]{7,}\\d";
@@ -195,7 +196,9 @@ function get_fallback_segmenter(
   return sentence_segmenter;
 }
 
-function get_sentence_segmenter(locale: LanguageCode): SentenceSegmenter | null {
+function get_sentence_segmenter(
+  locale: LanguageCode,
+): SentenceSegmenter | null {
   const constructor = get_segmenter_constructor();
 
   if (!constructor) return null;
@@ -222,7 +225,10 @@ export function reset_sentence_segmenters(): void {
   sentence_segmenter = undefined;
 }
 
-export function segment_sentences(text: string, locale: LanguageCode): string[] {
+export function segment_sentences(
+  text: string,
+  locale: LanguageCode,
+): string[] {
   if (!text.trim()) return [];
 
   const segmenter = get_sentence_segmenter(locale);

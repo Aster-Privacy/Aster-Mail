@@ -18,9 +18,26 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import * as openpgp from "openpgp";
-import { HASH_ALG, KEY_DERIVATION_ITERATIONS, array_to_base64, base64_to_array, compute_hash, create_encrypted_key_handle, encrypt_key_material, generate_key_id, generate_random_bytes, log_key_usage, pin_fingerprint, type EncryptedVault, type SecureVaultHandle, type VaultEncryptionResult } from "./key_manager_core";
+
+import {
+  HASH_ALG,
+  KEY_DERIVATION_ITERATIONS,
+  array_to_base64,
+  base64_to_array,
+  compute_hash,
+  create_encrypted_key_handle,
+  encrypt_key_material,
+  generate_key_id,
+  generate_random_bytes,
+  log_key_usage,
+  pin_fingerprint,
+  type EncryptedVault,
+  type SecureVaultHandle,
+  type VaultEncryptionResult,
+} from "./key_manager_core";
+
+import { zero_uint8_array } from "@/services/crypto/secure_memory";
 
 const VAULT_SCHEME_VERSION = 1;
 const VAULT_AAD_PREFIX = "aster-vault-v";

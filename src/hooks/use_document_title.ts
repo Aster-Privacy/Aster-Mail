@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { TranslationKey } from "@/lib/i18n/types";
+
 import { useLayoutEffect, useEffect, useRef } from "react";
 
 import {
@@ -30,7 +32,6 @@ import { use_folders, type DecryptedFolder } from "./use_folders";
 
 import { use_auth_safe } from "@/contexts/auth_context";
 import { use_i18n } from "@/lib/i18n/context";
-import type { TranslationKey } from "@/lib/i18n/types";
 
 type TranslateFn = (
   key: TranslationKey,
@@ -262,6 +263,7 @@ function build_view_title(
 export function use_document_title(options: DocumentTitleOptions = {}): void {
   const { view = "inbox", email_subject, custom_title } = options;
   const { t } = use_i18n();
+
   use_mail_stats();
   const auth = use_auth_safe();
   const user = auth?.user ?? null;

@@ -43,10 +43,15 @@ vi.mock("./ratchet_state_store", () => ({
   save_ratchet_state: vi.fn(),
   load_ratchet_state: vi.fn(),
   list_ratchet_conversations: vi.fn(),
+  archive_ratchet_state: vi.fn(),
 }));
 
-import { api_client } from "@/services/api/client";
 import { sync_ratchet_to_server } from "./ratchet_sync";
+
+import { archive_ratchet_state } from "./ratchet_state_store";
+
+import { api_client } from "@/services/api/client";
+import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 
 const mock_post = api_client.post as unknown as ReturnType<typeof vi.fn>;
 const mock_put = api_client.put as unknown as ReturnType<typeof vi.fn>;
@@ -62,13 +67,10 @@ function make_fake_ratchet(conversation_id: string) {
 async function make_fake_key(): Promise<CryptoKey> {
   const raw = new Uint8Array(32);
 
-  return crypto.subtle.importKey(
-    "raw",
-    raw,
-    { name: "AES-GCM" },
-    false,
-    ["encrypt", "decrypt"],
-  );
+  return crypto.subtle.importKey("raw", raw, { name: "AES-GCM" }, false, [
+    "encrypt",
+    "decrypt",
+  ]);
 }
 
 function ok_response(version: number) {
@@ -215,5 +217,113 @@ describe("sync_ratchet_to_server", () => {
     await sync_ratchet_to_server(ratchet, key);
 
     expect(mock_post).not.toHaveBeenCalled();
+  });
+});
+
+describe("absorbing a conflicting server state", () => {
+  const mock_archive = archive_ratchet_state as unknown as ReturnType<
+    typeof vi.fn
+  >;
+  const mock_decrypt = decrypt_aes_gcm_with_fallback as unknown as ReturnType<
+    typeof vi.fn
+  >;
+
+  function decodable_response(version: number) {
+    return {
+      data: {
+        id: "1",
+        conversation_id: "x",
+        encrypted_state: "AAAA",
+        state_nonce: "AAAA",
+        state_version: version,
+        updated_at: "now",
+      },
+    };
+  }
+
+  function make_state(conversation_id: string, epoch: number, root: string) {
+    return {
+      conversation_id,
+      state: {
+        dh_keypair: { public_key: `dh-${epoch}`, secret_key: "sec" },
+        dh_remote_public: `remote-dh-${epoch}`,
+        root_key: root,
+        chain_key_send: `send-${epoch}`,
+        chain_key_recv: `recv-${epoch}`,
+        send_message_number: 0,
+        recv_message_number: 0,
+        previous_chain_length: 0,
+        epoch,
+        skipped_message_keys: [],
+        version: 2,
+        dirty_since_sync: false,
+        created_at: 1_000,
+        updated_at: 1_000,
+      },
+    };
+  }
+
+  beforeEach(() => {
+    mock_post.mockReset();
+    mock_put.mockReset();
+    mock_get.mockReset();
+    mock_archive.mockReset();
+    mock_decrypt.mockReset();
+  });
+
+  it("archives the local state before a newer server epoch replaces it", async () => {
+    const conversation_id = "conv-epoch-conflict";
+    const local = make_state(conversation_id, 1, "root-local");
+    const remote = make_state(conversation_id, 2, "root-remote");
+
+    mock_decrypt.mockResolvedValue(
+      new TextEncoder().encode(JSON.stringify(remote)),
+    );
+
+    const ratchet = {
+      serialize: vi.fn().mockResolvedValue(local),
+      get_conversation_id: () => conversation_id,
+      adopt_state: vi.fn(),
+    } as unknown as Parameters<typeof sync_ratchet_to_server>[0];
+
+    mock_get.mockResolvedValueOnce(decodable_response(7));
+    mock_get.mockResolvedValue(decodable_response(9));
+    mock_put.mockResolvedValue(err_response("CONFLICT", "version conflict"));
+
+    const key = await make_fake_key();
+
+    await sync_ratchet_to_server(ratchet, key).catch(() => undefined);
+
+    expect(mock_archive).toHaveBeenCalled();
+    expect(mock_archive.mock.calls[0][0]).toMatchObject({
+      conversation_id,
+      state: { root_key: "root-local", epoch: 1 },
+    });
+  });
+
+  it("does not archive when the server state carries the same epoch", async () => {
+    const conversation_id = "conv-same-epoch";
+    const local = make_state(conversation_id, 1, "root-shared");
+    const remote = make_state(conversation_id, 1, "root-shared");
+
+    mock_decrypt.mockResolvedValue(
+      new TextEncoder().encode(JSON.stringify(remote)),
+    );
+
+    const ratchet = {
+      serialize: vi.fn().mockResolvedValue(local),
+      get_conversation_id: () => conversation_id,
+      adopt_state: vi.fn(),
+    } as unknown as Parameters<typeof sync_ratchet_to_server>[0];
+
+    mock_get.mockResolvedValueOnce(decodable_response(7));
+    mock_get.mockResolvedValue(decodable_response(9));
+    mock_put.mockResolvedValue(err_response("CONFLICT", "version conflict"));
+
+    const key = await make_fake_key();
+
+    await sync_ratchet_to_server(ratchet, key).catch(() => undefined);
+
+    expect(mock_archive).not.toHaveBeenCalled();
   });
 });

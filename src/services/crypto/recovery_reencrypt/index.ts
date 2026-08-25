@@ -18,8 +18,17 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-export { reencrypt_identity_scoped_password_change, reencrypt_settings_password_change } from "./entry";
+export {
+  reencrypt_identity_scoped_password_change,
+  reencrypt_settings_password_change,
+} from "./entry";
 export type { ReencryptResult } from "./entry";
-export { re_encrypt_collection, re_encrypt_identity_scoped_setting } from "./key_helpers";
-export { clear_pending_reencryption, store_pending_reencryption } from "./pending";
+export {
+  re_encrypt_collection,
+  re_encrypt_identity_scoped_setting,
+} from "./key_helpers";
+export {
+  clear_pending_reencryption,
+  store_pending_reencryption,
+} from "./pending";
 export { check_and_run_recovery_reencryption } from "./run";

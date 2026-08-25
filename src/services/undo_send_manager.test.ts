@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
 import { undo_send_manager } from "./undo_send_manager";
 import { undo_send_api } from "./api/undo_send";
 
@@ -63,6 +64,7 @@ describe("undo_send_manager conditional polling", () => {
   it("starts polling after queue_email and stops when the queue empties", async () => {
     const scheduled = new Date(Date.now() + 30_000);
     const deadline = new Date(Date.now() + 29_000);
+
     mocked_api.queue_email.mockResolvedValue({
       data: {
         queue_id: "q1",
@@ -114,6 +116,7 @@ describe("undo_send_manager conditional polling", () => {
   it("sync_with_server resumes polling when the server reports a pending send", async () => {
     const scheduled = new Date(Date.now() + 30_000);
     const deadline = new Date(Date.now() + 29_000);
+
     mocked_api.get_pending.mockResolvedValue({
       data: {
         emails: [
@@ -204,6 +207,34 @@ describe("undo_send_manager send finalization", () => {
     expect(on_sent).not.toHaveBeenCalled();
     expect(on_error).toHaveBeenCalledWith("encryption required");
     expect(undo_send_manager.get_send("q1")).toBeUndefined();
+  });
+
+  it("never reports sent while the server still reports a non-terminal status", async () => {
+    const on_sent = vi.fn();
+    const on_error = vi.fn();
+
+    mocked_api.get_status.mockResolvedValue({
+      data: { status: "sending" },
+      error: null,
+    } as never);
+
+    await queue_one({ on_sent, on_error });
+
+    await vi.advanceTimersByTimeAsync(120_000);
+
+    expect(on_sent).not.toHaveBeenCalled();
+    expect(on_error).not.toHaveBeenCalled();
+    expect(undo_send_manager.get_send("q1")).toBeDefined();
+
+    mocked_api.get_status.mockResolvedValue({
+      data: { status: "failed", error_message: "sender address not authorized" },
+      error: null,
+    } as never);
+
+    await vi.advanceTimersByTimeAsync(60_000);
+
+    expect(on_sent).not.toHaveBeenCalled();
+    expect(on_error).toHaveBeenCalledWith("sender address not authorized");
   });
 
   it("reports a failure when the server drops the send from the pending list", async () => {

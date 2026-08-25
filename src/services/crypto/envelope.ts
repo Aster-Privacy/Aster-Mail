@@ -21,20 +21,16 @@
 import { zero_uint8_array } from "./secure_memory";
 import { array_to_base64, base64_to_array } from "./base64";
 import { HASH_ALG } from "./key_manager_core";
-import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import { with_cached_envelope_key } from "./envelope_key_cache";
-
 import {
   normalize_envelope_from,
   normalize_envelope_recipients,
 } from "./envelope_normalize";
 
+import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
+
 export { normalize_envelope_from, normalize_envelope_recipients };
-export {
-  array_to_base64,
-  base64_to_array,
-  first_base64_byte,
-} from "./base64";
+export { array_to_base64, base64_to_array, first_base64_byte } from "./base64";
 
 export function normalize_parsed_envelope<T>(parsed: T): T {
   if (!parsed || typeof parsed !== "object") return parsed;

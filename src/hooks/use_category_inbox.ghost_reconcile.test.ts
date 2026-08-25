@@ -25,6 +25,8 @@ import { createRoot, type Root } from "react-dom/client";
 const mocks = vi.hoisted(() => ({
   fetch_mail_by_ids_reconciled: vi.fn(),
   remove_ids: vi.fn(),
+  remove_ids_absent_from_server: vi.fn(),
+  clear_absent_strikes: vi.fn(),
   suppress_ids: vi.fn(),
 }));
 
@@ -96,6 +98,8 @@ vi.mock("@/services/category_index", () => ({
   subscribe: () => () => {},
   get_version: () => 0,
   remove_ids: mocks.remove_ids,
+  remove_ids_absent_from_server: mocks.remove_ids_absent_from_server,
+  clear_absent_strikes: mocks.clear_absent_strikes,
   suppress_ids: vi.fn(),
   is_recently_read: () => false,
   is_representative_unread: () => false,
@@ -142,6 +146,7 @@ describe("use_category_inbox ghost reconcile", () => {
       globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }
     ).IS_REACT_ACT_ENVIRONMENT = true;
     mocks.remove_ids.mockClear();
+    mocks.remove_ids_absent_from_server.mockClear();
     mocks.fetch_mail_by_ids_reconciled.mockReset();
   });
 
@@ -149,7 +154,7 @@ describe("use_category_inbox ghost reconcile", () => {
     vi.restoreAllMocks();
   });
 
-  it("prunes indexed ids the server no longer returns so the ghost count clears", async () => {
+  it("reports ids the server no longer returns so a repeated absence prunes them", async () => {
     mocks.fetch_mail_by_ids_reconciled.mockResolvedValue({
       emails: [],
       missing_ids: ["gone1", "gone2"],
@@ -161,7 +166,10 @@ describe("use_category_inbox ghost reconcile", () => {
 
     await flush();
 
-    expect(mocks.remove_ids).toHaveBeenCalledWith(["gone1", "gone2"]);
+    expect(mocks.remove_ids_absent_from_server).toHaveBeenCalledWith([
+      "gone1",
+      "gone2",
+    ]);
 
     act(() => root.unmount());
   });

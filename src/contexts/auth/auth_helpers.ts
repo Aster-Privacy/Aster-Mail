@@ -19,17 +19,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
-
-
-
 import { request_cache } from "@/services/api/request_cache";
 import { clear_mail_stats } from "@/hooks/use_mail_stats";
 import { clear_plan_limits_cache } from "@/hooks/use_plan_limits";
 import { clear_attachment_limits_cache } from "@/services/attachment_limits";
 import { clear_aliases_cache } from "@/components/settings/hooks/use_aliases";
-import {
-  clear_plan_cache,
-} from "@/services/plan_limits";
+import { clear_plan_cache } from "@/services/plan_limits";
 import { clear_mail_cache } from "@/hooks/use_email_list";
 import { clear_folders_cache } from "@/hooks/use_folders";
 import { clear_tags_cache } from "@/hooks/use_tags";
@@ -38,9 +33,7 @@ import { clear_attachment_preview_cache } from "@/hooks/use_attachment_previews"
 import { clear_attachment_keys } from "@/services/crypto/inbound_attachment_keys";
 import { clear_unreadable_attachment_rows } from "@/services/crypto/attachment_crypto";
 import { clear_all_ratchet_states } from "@/services/crypto/ratchet_state_store";
-import {
-  clear_preferred_sender_local,
-} from "@/lib/preferred_sender";
+import { clear_preferred_sender_local } from "@/lib/preferred_sender";
 import { clear_search_index } from "@/hooks/use_search";
 import { clear_never_correct_terms } from "@/services/search/spelling";
 import { clear_undo_send_state } from "@/hooks/use_undo_send";
@@ -52,12 +45,9 @@ import {
 import { clear_scheduled_cache } from "@/hooks/use_scheduled_emails";
 import { clear_recovery_email_cache } from "@/services/api/recovery_email";
 import { clear_preferences_cache } from "@/services/api/preferences";
-import {
-  clear_category_index_memory,
-} from "@/services/category_index";
+import { clear_category_index_memory } from "@/services/category_index";
 import { clear_profiles_cache } from "@/services/api/profiles";
 import { clear_unsubscribed_senders_cache } from "@/hooks/use_unsubscribed_senders";
-
 
 export const AUTH_VERIFY_TIMEOUT_MS = 12000;
 
@@ -93,14 +83,26 @@ export async function clear_account_scoped_caches(): Promise<void> {
 
 export function safe_log_error(err: unknown): void {
   if (!import.meta.env.DEV) return;
-  const payload = err instanceof Error ? { name: err.name } : { kind: typeof err };
+  const payload =
+    err instanceof Error ? { name: err.name } : { kind: typeof err };
 
   console.error("auth error", JSON.stringify(payload));
 }
 
-export const with_timeout = async <T,>(p: Promise<T>, ms: number): Promise<T | null> => {
-  return Promise.race<T | null>([
-    p.catch(() => null),
-    new Promise<null>((resolve) => setTimeout(() => resolve(null), ms)),
-  ]);
+export const with_timeout = async <T>(
+  p: Promise<T>,
+  ms: number,
+): Promise<T | null> => {
+  let timer: ReturnType<typeof setTimeout> | null = null;
+
+  try {
+    return await Promise.race<T | null>([
+      p.catch(() => null),
+      new Promise<null>((resolve) => {
+        timer = setTimeout(() => resolve(null), ms);
+      }),
+    ]);
+  } finally {
+    if (timer !== null) clearTimeout(timer);
+  }
 };

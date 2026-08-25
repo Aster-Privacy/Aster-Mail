@@ -23,13 +23,19 @@ const LF = 0x0a;
 const GT = 0x3e;
 const FROM_BYTES = enc.encode("From ");
 
-function line_starts_with_from_quoted(buf: Uint8Array, start: number, end: number): boolean {
+function line_starts_with_from_quoted(
+  buf: Uint8Array,
+  start: number,
+  end: number,
+): boolean {
   let i = start;
+
   while (i < end && buf[i] === GT) i++;
   if (end - i < FROM_BYTES.length) return false;
   for (let j = 0; j < FROM_BYTES.length; j++) {
     if (buf[i + j] !== FROM_BYTES[j]) return false;
   }
+
   return true;
 }
 
@@ -41,16 +47,20 @@ export async function* mboxrd_quote(
 
   const append = (a: Uint8Array, b: Uint8Array): Uint8Array => {
     const out = new Uint8Array(a.length + b.length);
+
     out.set(a, 0);
     out.set(b, a.length);
+
     return out;
   };
 
   for await (const chunk of source) {
     const buf = append(pending, chunk);
+
     pending = new Uint8Array(0);
     const out_parts: Uint8Array[] = [];
     let i = 0;
+
     while (i < buf.length) {
       if (at_line_start) {
         if (line_starts_with_from_quoted(buf, i, buf.length)) {
@@ -62,6 +72,7 @@ export async function* mboxrd_quote(
         at_line_start = false;
       }
       let j = i;
+
       while (j < buf.length && buf[j] !== LF) j++;
       if (j === buf.length) {
         pending = append(pending, buf.subarray(i));
@@ -73,9 +84,11 @@ export async function* mboxrd_quote(
     }
     if (out_parts.length > 0) {
       let total = 0;
+
       for (const p of out_parts) total += p.length;
       const merged = new Uint8Array(total);
       let off = 0;
+
       for (const p of out_parts) {
         merged.set(p, off);
         off += p.length;
@@ -84,8 +97,12 @@ export async function* mboxrd_quote(
     }
   }
   if (pending.length > 0) {
-    if (at_line_start && line_starts_with_from_quoted(pending, 0, pending.length)) {
+    if (
+      at_line_start &&
+      line_starts_with_from_quoted(pending, 0, pending.length)
+    ) {
       const out = new Uint8Array(pending.length + 1);
+
       out[0] = GT;
       out.set(pending, 1);
       yield out;

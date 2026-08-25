@@ -32,7 +32,10 @@ import {
   emit_mail_item_updated,
   type MailItemUpdatedEventDetail,
 } from "./mail_events";
-import { mark_view_stale, remove_email_from_view_cache } from "./email_list_cache";
+import {
+  mark_view_stale,
+  remove_email_from_view_cache,
+} from "./email_list_cache";
 
 import {
   patch_mail_item_metadata,
@@ -63,7 +66,6 @@ import {
   reindex_ids,
 } from "@/services/category_index";
 import { mark_conversation_read } from "@/hooks/mark_conversation_read";
-
 import { ignore_error } from "@/lib/ignore_error";
 
 interface UseEmailListActionsParams {
@@ -327,7 +329,13 @@ export function use_email_list_actions({
       const result = await api_batch_archive({ ids: all_ids, tier: "hot" });
 
       if (result.data?.success) {
-        void bulk_update_metadata_by_ids(all_ids, { is_archived: true }).catch((caught) => ignore_error("hooks/use_email_list_actions:use_email_list_actions", caught));
+        void bulk_update_metadata_by_ids(all_ids, { is_archived: true }).catch(
+          (caught) =>
+            ignore_error(
+              "hooks/use_email_list_actions:use_email_list_actions",
+              caught,
+            ),
+        );
       }
 
       if (!result.data?.success) {
@@ -389,9 +397,7 @@ export function use_email_list_actions({
           is_archived: false,
         } as MailItemUpdatedEventDetail);
         setTimeout(() => {
-          window.dispatchEvent(
-            new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH),
-          );
+          window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
         }, 300);
       }
 
@@ -435,7 +441,12 @@ export function use_email_list_actions({
 
       if (result.success) {
         if (email?.sender_email) {
-          report_spam_sender(email.sender_email).catch((caught) => ignore_error("hooks/use_email_list_actions:use_email_list_actions", caught));
+          report_spam_sender(email.sender_email).catch((caught) =>
+            ignore_error(
+              "hooks/use_email_list_actions:use_email_list_actions",
+              caught,
+            ),
+          );
         }
       } else {
         reindex_ids(all_ids);

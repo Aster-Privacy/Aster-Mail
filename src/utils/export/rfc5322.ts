@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { DecryptedEnvelope } from "@/types/email";
+
 import {
   emit_address_header,
   emit_header,
@@ -73,9 +74,14 @@ function pick_text_encoding(text: string): "7bit" | "quoted-printable" {
   return any_unsafe_for_7bit(text) ? "quoted-printable" : "7bit";
 }
 
-function emit_text_body(text: string, encoding: "7bit" | "quoted-printable"): Uint8Array {
+function emit_text_body(
+  text: string,
+  encoding: "7bit" | "quoted-printable",
+): Uint8Array {
   const normalized = normalize_crlf(text);
+
   if (encoding === "7bit") return bytes(normalized);
+
   return bytes(quoted_printable_encode(normalized));
 }
 
@@ -84,13 +90,18 @@ function html_to_text_fallback(html: string): string {
     repair_comment_markup(html),
     "text/html",
   );
+
   doc.querySelectorAll("script, style").forEach((el) => el.remove());
   doc.querySelectorAll("br").forEach((el) => el.replaceWith("\n"));
-  doc.querySelectorAll("p, div, li, h1, h2, h3, h4, h5, h6").forEach((el) =>
-    el.after("\n"),
-  );
+  doc
+    .querySelectorAll("p, div, li, h1, h2, h3, h4, h5, h6")
+    .forEach((el) => el.after("\n"));
   const text = doc.body.textContent ?? "";
-  return text.replace(/[ \t]+\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim();
+
+  return text
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
 }
 
 interface BuiltHeaders {
@@ -107,26 +118,39 @@ function build_envelope_headers(
   const emitted_names = new Set<string>();
   const parts: string[] = [];
 
-  const raw_message_id = (env.raw_headers ?? []).find(
-    (h) => h.name.toLowerCase() === "message-id",
-  )?.value?.trim();
+  const raw_message_id = (env.raw_headers ?? [])
+    .find((h) => h.name.toLowerCase() === "message-id")
+    ?.value?.trim();
   const message_id =
     raw_message_id && raw_message_id.length > 0
-      ? raw_message_id.startsWith("<") ? raw_message_id : `<${raw_message_id}>`
+      ? raw_message_id.startsWith("<")
+        ? raw_message_id
+        : `<${raw_message_id}>`
       : generate_message_id();
 
   const date = format_rfc5322_date(env.sent_at);
 
   const REPEATABLE = new Set([
     "received",
-    "resent-from", "resent-to", "resent-cc", "resent-bcc",
-    "resent-date", "resent-message-id", "resent-sender",
-    "arc-seal", "arc-message-signature", "arc-authentication-results",
-    "dkim-signature", "authentication-results",
-    "x-original-to", "delivered-to",
+    "resent-from",
+    "resent-to",
+    "resent-cc",
+    "resent-bcc",
+    "resent-date",
+    "resent-message-id",
+    "resent-sender",
+    "arc-seal",
+    "arc-message-signature",
+    "arc-authentication-results",
+    "dkim-signature",
+    "authentication-results",
+    "x-original-to",
+    "delivered-to",
   ]);
+
   for (const h of env.raw_headers ?? []) {
     const lower = h.name.toLowerCase();
+
     if (header_is_body_owned(lower)) continue;
     if (!header_is_verbatim_candidate(lower)) continue;
     if (lower === "message-id") continue;
@@ -155,7 +179,12 @@ function build_envelope_headers(
     parts.push(emit_address_header("Cc", env.cc as Address[]));
     emitted_names.add("cc");
   }
-  if (env.bcc && env.bcc.length > 0 && opts.is_sent_or_draft && !opts.drop_bcc) {
+  if (
+    env.bcc &&
+    env.bcc.length > 0 &&
+    opts.is_sent_or_draft &&
+    !opts.drop_bcc
+  ) {
     parts.push(emit_address_header("Bcc", env.bcc as Address[]));
     emitted_names.add("bcc");
   }
@@ -172,6 +201,7 @@ function partition_attachments(
   if (!html) return { inline: [], regular: atts };
   const inline: ExportAttachment[] = [];
   const regular: ExportAttachment[] = [];
+
   for (const a of atts) {
     if (a.is_inline && a.content_id && html.includes(`cid:${a.content_id}`)) {
       inline.push(a);
@@ -179,18 +209,22 @@ function partition_attachments(
       regular.push(a);
     }
   }
+
   return { inline, regular };
 }
 
 async function* emit_attachment_part(
   att: ExportAttachment,
 ): AsyncGenerator<Uint8Array> {
-  const cid_header = att.content_id ? `Content-ID: <${att.content_id}>\r\n` : "";
+  const cid_header = att.content_id
+    ? `Content-ID: <${att.content_id}>\r\n`
+    : "";
   const disposition = att.is_inline ? "inline" : "attachment";
+
   yield bytes(
-    `Content-Type: ${att.mime_type || "application/octet-stream"}; name="${
-      att.filename.replace(/[\r\n"\\]/g, "_").slice(0, 200)
-    }"\r\n` +
+    `Content-Type: ${att.mime_type || "application/octet-stream"}; name="${att.filename
+      .replace(/[\r\n"\\]/g, "_")
+      .slice(0, 200)}"\r\n` +
       cid_header +
       `Content-Transfer-Encoding: base64\r\n` +
       `Content-Disposition: ${disposition}; ${filename_param(att.filename)}\r\n\r\n`,
@@ -198,8 +232,11 @@ async function* emit_attachment_part(
   const opened = att.open();
   const source: AsyncIterable<Uint8Array> =
     opened instanceof Uint8Array
-      ? (async function* () { yield opened; })()
+      ? (async function* () {
+          yield opened;
+        })()
       : opened;
+
   for await (const chunk of base64_encode_stream(source)) yield chunk;
 }
 
@@ -208,6 +245,7 @@ function* emit_text_part(
   text: string,
 ): Generator<Uint8Array> {
   const encoding = pick_text_encoding(text);
+
   yield bytes(
     `Content-Type: ${mime_type}; charset=utf-8\r\n` +
       `Content-Transfer-Encoding: ${encoding}\r\n\r\n`,
@@ -222,27 +260,28 @@ export async function* serialize_envelope(
   opts: SerializeOptions = {},
 ): AsyncGenerator<Uint8Array> {
   const text_body = env.text_body ?? env.body_text ?? "";
-  const html_body =
-    (env.html_body ?? env.body_html ?? null) || null;
+  const html_body = (env.html_body ?? env.body_html ?? null) || null;
   const has_text = text_body.length > 0;
   const has_html = !!html_body;
   const { inline, regular } = partition_attachments(attachments, html_body);
 
   const headers = build_envelope_headers(env, opts);
+
   yield bytes(headers.out);
   yield bytes("MIME-Version: 1.0\r\n");
 
   if (!has_text && !has_html && attachments.length === 0) {
     yield bytes("Content-Type: text/plain; charset=utf-8\r\n");
     yield bytes("Content-Transfer-Encoding: 7bit\r\n\r\n");
+
     return;
   }
 
   const text_for_alt = has_text
     ? text_body
     : has_html
-    ? html_to_text_fallback(html_body!)
-    : "";
+      ? html_to_text_fallback(html_body!)
+      : "";
 
   const need_mixed = regular.length > 0;
   const need_related = inline.length > 0 && has_html;
@@ -251,7 +290,9 @@ export async function* serialize_envelope(
   if (!need_mixed && !need_related && !need_alt) {
     const which = has_html ? "text/html" : "text/plain";
     const body = has_html ? html_body! : text_body;
+
     for (const chunk of emit_text_part(which, body)) yield chunk;
+
     return;
   }
 
@@ -266,19 +307,25 @@ export async function* serialize_envelope(
     : "";
 
   if (need_mixed) {
-    yield bytes(`Content-Type: multipart/mixed; boundary="${mixed_boundary}"\r\n\r\n`);
+    yield bytes(
+      `Content-Type: multipart/mixed; boundary="${mixed_boundary}"\r\n\r\n`,
+    );
     yield bytes(`--${mixed_boundary}\r\n`);
   }
 
   if (need_alt) {
-    yield bytes(`Content-Type: multipart/alternative; boundary="${alt_boundary}"\r\n\r\n`);
+    yield bytes(
+      `Content-Type: multipart/alternative; boundary="${alt_boundary}"\r\n\r\n`,
+    );
 
     yield bytes(`--${alt_boundary}\r\n`);
     for (const chunk of emit_text_part("text/plain", text_for_alt)) yield chunk;
 
     yield bytes(`--${alt_boundary}\r\n`);
     if (need_related) {
-      yield bytes(`Content-Type: multipart/related; boundary="${related_boundary}"\r\n\r\n`);
+      yield bytes(
+        `Content-Type: multipart/related; boundary="${related_boundary}"\r\n\r\n`,
+      );
       yield bytes(`--${related_boundary}\r\n`);
       for (const chunk of emit_text_part("text/html", html_body!)) yield chunk;
       for (const att of inline) {
@@ -314,15 +361,18 @@ export async function serialize_envelope_to_bytes(
 ): Promise<Uint8Array> {
   const parts: Uint8Array[] = [];
   let total = 0;
+
   for await (const chunk of serialize_envelope(env, attachments, opts)) {
     parts.push(chunk);
     total += chunk.length;
   }
   const out = new Uint8Array(total);
   let off = 0;
+
   for (const p of parts) {
     out.set(p, off);
     off += p.length;
   }
+
   return out;
 }

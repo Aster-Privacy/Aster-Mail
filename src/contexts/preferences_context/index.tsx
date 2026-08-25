@@ -18,6 +18,12 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-export { FONT_SIZE_DEFAULT, FONT_SIZE_MAX, FONT_SIZE_MIN, normalize_font_size_scale } from "./helpers";
+export {
+  FONT_SIZE_DEFAULT,
+  FONT_SIZE_MAX,
+  FONT_SIZE_MIN,
+  label_to_language_code,
+  normalize_font_size_scale,
+} from "./helpers";
 export type { SaveStatus } from "./helpers";
 export { PreferencesProvider, use_preferences } from "./provider";

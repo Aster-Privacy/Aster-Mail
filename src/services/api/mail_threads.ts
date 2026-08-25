@@ -22,12 +22,12 @@ import type { MailItemMetadata } from "@/types/email";
 import type { ReactionSummary } from "./mail";
 
 import { api_client, type ApiResponse } from "./client";
+import { with_folder_unlock } from "./folder_unlock_retry";
 
 import {
   resolve_thread_unlock_token,
   remember_thread_message_ids,
 } from "@/services/folder_context";
-import { with_folder_unlock } from "./folder_unlock_retry";
 
 export interface MailThread {
   user_id: string;
@@ -128,6 +128,7 @@ export async function get_thread_messages(
   options?: { is_trashed?: boolean; is_spam?: boolean },
 ): Promise<ApiResponse<ThreadWithMessages>> {
   const params = new URLSearchParams();
+
   if (options?.is_trashed) params.set("is_trashed", "true");
   if (options?.is_spam) params.set("is_spam", "true");
   const qs = params.toString();
@@ -206,9 +207,12 @@ export interface RethreadResponse {
 export async function rethread_items(
   items: RethreadItem[],
 ): Promise<ApiResponse<RethreadResponse>> {
-  return api_client.post<RethreadResponse>("/mail/v1/messages/threads/rethread", {
-    items,
-  });
+  return api_client.post<RethreadResponse>(
+    "/mail/v1/messages/threads/rethread",
+    {
+      items,
+    },
+  );
 }
 
 async function sha256_hex(value: string): Promise<string> {
@@ -216,6 +220,7 @@ async function sha256_hex(value: string): Promise<string> {
     "SHA-256",
     new TextEncoder().encode(value),
   );
+
   return Array.from(new Uint8Array(hash_buffer))
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
@@ -223,6 +228,7 @@ async function sha256_hex(value: string): Promise<string> {
 
 function sender_domain(normalized_email: string): string {
   const at = normalized_email.lastIndexOf("@");
+
   return at >= 0 ? normalized_email.slice(at + 1) : "";
 }
 
@@ -235,6 +241,7 @@ export async function report_spam_sender(
   const body: { sender_hash: string; sender_domain_hash?: string } = {
     sender_hash,
   };
+
   if (domain) {
     body.sender_domain_hash = await sha256_hex(domain);
   }
@@ -249,6 +256,7 @@ export async function remove_spam_sender(
   const sender_hash = await sha256_hex(normalized);
   const domain = sender_domain(normalized);
   let query = `sender_hash=${encodeURIComponent(sender_hash)}`;
+
   if (domain) {
     query += `&sender_domain_hash=${encodeURIComponent(await sha256_hex(domain))}`;
   }

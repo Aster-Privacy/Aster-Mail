@@ -113,12 +113,18 @@ function collect_hidden_selectors(html: string): hidden_selectors {
     for (const rule of css.matchAll(CSS_RULE_PATTERN)) {
       const declarations = rule[2] ?? "";
 
-      if (!HIDDEN_STYLE_PATTERNS.some((pattern) => pattern.test(declarations))) {
+      if (
+        !HIDDEN_STYLE_PATTERNS.some((pattern) => pattern.test(declarations))
+      ) {
         continue;
       }
 
       for (const selector of (rule[1] ?? "").split(",")) {
-        const target = selector.trim().split(/[\s>+~]+/).pop() ?? "";
+        const target =
+          selector
+            .trim()
+            .split(/[\s>+~]+/)
+            .pop() ?? "";
 
         for (const match of target.matchAll(/\.([A-Za-z0-9_-]+)/g)) {
           classes.add(match[1].toLowerCase());
@@ -278,6 +284,24 @@ export function clear_preview_memo(): void {
   preview_memo.clear();
 }
 
+export function clip_code_points(value: string, cap: number): string {
+  if (cap <= 0) return "";
+  if (value.length <= cap) return value;
+
+  const clipped = value.slice(0, cap);
+  const last_code = clipped.charCodeAt(clipped.length - 1);
+
+  return last_code >= 0xd800 && last_code <= 0xdbff
+    ? clipped.slice(0, -1)
+    : clipped;
+}
+
+export function clip_with_ellipsis(value: string, cap: number): string {
+  if (value.length <= cap) return value;
+
+  return clip_code_points(value, cap).trimEnd() + ELLIPSIS;
+}
+
 export function truncate_with_ellipsis(value: string, cap: number): string {
   if (!value) return "";
 
@@ -286,12 +310,7 @@ export function truncate_with_ellipsis(value: string, cap: number): string {
   if (cap <= 0) return "";
   if (normalized.length <= cap) return normalized;
 
-  const raw_clipped = normalized.slice(0, cap);
-  const last_code = raw_clipped.charCodeAt(raw_clipped.length - 1);
-  const clipped =
-    last_code >= 0xd800 && last_code <= 0xdbff
-      ? raw_clipped.slice(0, -1)
-      : raw_clipped;
+  const clipped = clip_code_points(normalized, cap);
   const last_space = clipped.lastIndexOf(" ");
   const cut = last_space > cap * 0.6 ? clipped.slice(0, last_space) : clipped;
 

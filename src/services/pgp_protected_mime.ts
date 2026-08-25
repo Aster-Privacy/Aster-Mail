@@ -321,7 +321,8 @@ export function build_protected_mime_entity(input: ProtectedMimeInput): string {
   for (const att of input.attachments) {
     const filename = sanitize_filename(att.filename);
     const raw_type = sanitize_header_value(att.content_type);
-    const content_type = raw_type.length === 0 ? "application/octet-stream" : raw_type;
+    const content_type =
+      raw_type.length === 0 ? "application/octet-stream" : raw_type;
 
     mime += `--${boundary}\r\n`;
     mime += `Content-Type: ${content_type}; name="${filename}"\r\n`;

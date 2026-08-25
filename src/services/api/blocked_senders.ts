@@ -18,15 +18,16 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { HASH_ALG } from "@/services/crypto/constants";
+import { user_facing_error } from "@/utils/user_facing_error";
 import { api_client, type ApiResponse } from "./client";
-import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import {
   array_to_base64,
   base64_to_array,
   normalize_email,
 } from "./sender_utils";
 
+import { HASH_ALG } from "@/services/crypto/constants";
+import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import {
   get_or_create_derived_encryption_crypto_key,
   get_derived_encryption_key,
@@ -89,7 +90,9 @@ export async function generate_sender_token(
   is_domain: boolean = false,
 ): Promise<string> {
   const hmac_key = await get_hmac_key();
-  const normalized = is_domain ? email.toLowerCase().trim() : normalize_email(email);
+  const normalized = is_domain
+    ? email.toLowerCase().trim()
+    : normalize_email(email);
   const prefix = is_domain ? "domain:" : "";
   const encoder = new TextEncoder();
   const data = encoder.encode(prefix + normalized);
@@ -207,6 +210,7 @@ export interface BlockedSenderResponse {
 export interface DecryptedBlockedSender {
   id: string;
   sender_token: string;
+  is_unreadable?: boolean;
   email: string;
   name?: string;
   blocked_at: string;
@@ -232,8 +236,9 @@ export async function list_blocked_senders(): Promise<
       return { data: [] };
     }
 
+    const wire_items = response.data.blocked_senders;
     const results = await Promise.allSettled(
-      response.data.blocked_senders.map(async (item) => {
+      wire_items.map(async (item) => {
         const data = await decrypt_block_data(
           item.encrypted_sender_data,
           item.sender_data_nonce,
@@ -255,17 +260,33 @@ export async function list_blocked_senders(): Promise<
 
     const decrypted: DecryptedBlockedSender[] = [];
 
-    for (const result of results) {
+    results.forEach((result, index) => {
       if (result.status === "fulfilled") {
         decrypted.push(result.value);
+
+        return;
       }
-    }
+
+      const item = wire_items[index];
+
+      if (!item) return;
+
+      decrypted.push({
+        id: item.id,
+        sender_token: item.sender_token,
+        is_unreadable: true,
+        email: "",
+        blocked_at: item.created_at,
+        is_domain: item.is_domain,
+        action: item.action,
+        created_at: item.created_at,
+      });
+    });
 
     return { data: decrypted };
   } catch (err) {
     return {
-      error:
-        err instanceof Error ? err.message : "Failed to list blocked senders",
+      error: user_facing_error(err, "Failed to list blocked senders"),
     };
   }
 }
@@ -278,7 +299,9 @@ export async function block_sender(
 ): Promise<ApiResponse<DecryptedBlockedSender>> {
   try {
     const sender_token = await generate_sender_token(email, is_domain);
-    const normalized = is_domain ? email.toLowerCase().trim() : normalize_email(email);
+    const normalized = is_domain
+      ? email.toLowerCase().trim()
+      : normalize_email(email);
     const hash_buffer = await crypto.subtle.digest(
       "SHA-256",
       new TextEncoder().encode(normalized),
@@ -326,7 +349,7 @@ export async function block_sender(
     };
   } catch (err) {
     return {
-      error: err instanceof Error ? err.message : "Failed to block sender",
+      error: user_facing_error(err, "Failed to block sender"),
     };
   }
 }
@@ -343,7 +366,7 @@ export async function unblock_sender(
     return response;
   } catch (err) {
     return {
-      error: err instanceof Error ? err.message : "Failed to unblock sender",
+      error: user_facing_error(err, "Failed to unblock sender"),
     };
   }
 }
@@ -359,7 +382,7 @@ export async function unblock_sender_by_token(
     return response;
   } catch (err) {
     return {
-      error: err instanceof Error ? err.message : "Failed to unblock sender",
+      error: user_facing_error(err, "Failed to unblock sender"),
     };
   }
 }
@@ -382,8 +405,7 @@ export async function bulk_unblock_senders(
     return response;
   } catch (err) {
     return {
-      error:
-        err instanceof Error ? err.message : "Failed to bulk unblock senders",
+      error: user_facing_error(err, "Failed to bulk unblock senders"),
     };
   }
 }
@@ -402,8 +424,7 @@ export async function bulk_unblock_senders_by_tokens(
     return response;
   } catch (err) {
     return {
-      error:
-        err instanceof Error ? err.message : "Failed to bulk unblock senders",
+      error: user_facing_error(err, "Failed to bulk unblock senders"),
     };
   }
 }

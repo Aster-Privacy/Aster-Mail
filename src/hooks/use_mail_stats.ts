@@ -25,8 +25,8 @@ import {
   type InboxUnreadIndexedEventDetail,
   type MailItemUpdatedEventDetail,
 } from "./mail_events";
-import { is_low_network } from "@/services/low_network_state";
 
+import { is_low_network } from "@/services/low_network_state";
 import { get_contacts_count } from "@/services/api/contacts";
 import { list_snoozed_emails } from "@/services/api/snooze";
 import { get_mail_stats } from "@/services/api/mail";
@@ -38,7 +38,10 @@ import {
 import { sync_widget_data } from "@/native/widget_bridge";
 import { update_pwa_badge } from "@/native/pwa_badge";
 import { update_tray_badge } from "@/native/tauri_tray";
-
+import {
+  is_badge_count_enabled,
+  on_badge_count_change,
+} from "@/native/badge_preference";
 import { ignore_error } from "@/lib/ignore_error";
 
 export interface MailStats {
@@ -175,6 +178,7 @@ class MailStatsStore {
     if (this.needs_revalidate) return true;
 
     const effective_ttl = is_low_network() ? LOW_NETWORK_TTL_MS : NORMAL_TTL_MS;
+
     return Date.now() - this.cache.timestamp > effective_ttl;
   }
 
@@ -566,16 +570,25 @@ class MailStatsStore {
     this.notify();
   }
 
+  resync_external_surfaces(): void {
+    this.sync_external_surfaces();
+  }
+
   private sync_external_surfaces(): void {
     const { unread, starred, drafts } = this.cache.data;
+    const badge_unread = is_badge_count_enabled() ? unread : 0;
 
     sync_widget_data(unread, starred, drafts);
-    update_pwa_badge(unread);
-    update_tray_badge(unread);
+    update_pwa_badge(badge_unread);
+    update_tray_badge(badge_unread);
   }
 }
 
 const stats_store = new MailStatsStore();
+
+on_badge_count_change(() => {
+  stats_store.resync_external_surfaces();
+});
 
 const BACKGROUND_RECONCILE_MS = NORMAL_TTL_MS;
 
@@ -593,6 +606,7 @@ if (typeof window !== "undefined") {
   });
 
   setInterval(() => {
+    if (document.visibilityState !== "visible") return;
     if (has_passphrase_in_memory() && stats_store.is_stale()) {
       void stats_store.fetch(false);
     }

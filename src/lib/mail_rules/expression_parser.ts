@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { TranslationKey } from "@/lib/i18n/types";
 import type {
   AddressOperator,
   AttachmentNameOperator,
@@ -184,6 +185,7 @@ function tokenize(text: string): Token[] {
 
   while (i < text.length) {
     const c = text[i];
+
     if (c === " " || c === "\t" || c === "\r" || c === "\n") {
       advance(1);
       continue;
@@ -196,23 +198,44 @@ function tokenize(text: string): Token[] {
     }
     const start_line = line;
     const start_col = col;
+
     if (c === "[") {
-      tokens.push({ kind: "lbracket", value: "[", line: start_line, col: start_col });
+      tokens.push({
+        kind: "lbracket",
+        value: "[",
+        line: start_line,
+        col: start_col,
+      });
       advance(1);
       continue;
     }
     if (c === "]") {
-      tokens.push({ kind: "rbracket", value: "]", line: start_line, col: start_col });
+      tokens.push({
+        kind: "rbracket",
+        value: "]",
+        line: start_line,
+        col: start_col,
+      });
       advance(1);
       continue;
     }
     if (c === "(") {
-      tokens.push({ kind: "lparen", value: "(", line: start_line, col: start_col });
+      tokens.push({
+        kind: "lparen",
+        value: "(",
+        line: start_line,
+        col: start_col,
+      });
       advance(1);
       continue;
     }
     if (c === ")") {
-      tokens.push({ kind: "rparen", value: ")", line: start_line, col: start_col });
+      tokens.push({
+        kind: "rparen",
+        value: ")",
+        line: start_line,
+        col: start_col,
+      });
       advance(1);
       continue;
     }
@@ -224,9 +247,11 @@ function tokenize(text: string): Token[] {
     if (c === '"') {
       advance(1);
       let v = "";
+
       while (i < text.length && text[i] !== '"') {
         if (text[i] === "\\" && i + 1 < text.length) {
           const next = text[i + 1];
+
           if (next === '"' || next === "\\") {
             v += next;
             advance(2);
@@ -243,11 +268,20 @@ function tokenize(text: string): Token[] {
         throw new ParseError("unterminated_string", start_line, start_col);
       }
       advance(1);
-      tokens.push({ kind: "string", value: v, line: start_line, col: start_col });
+      tokens.push({
+        kind: "string",
+        value: v,
+        line: start_line,
+        col: start_col,
+      });
       continue;
     }
-    if ((c >= "0" && c <= "9") || (c === "-" && /[0-9]/.test(text[i + 1] ?? ""))) {
+    if (
+      (c >= "0" && c <= "9") ||
+      (c === "-" && /[0-9]/.test(text[i + 1] ?? ""))
+    ) {
       let v = "";
+
       if (c === "-") {
         v += "-";
         advance(1);
@@ -264,21 +298,33 @@ function tokenize(text: string): Token[] {
           advance(1);
         }
       }
-      tokens.push({ kind: "number", value: v, line: start_line, col: start_col });
+      tokens.push({
+        kind: "number",
+        value: v,
+        line: start_line,
+        col: start_col,
+      });
       continue;
     }
     if (/[A-Za-z_]/.test(c)) {
       let v = "";
+
       while (i < text.length && /[A-Za-z0-9_.\-]/.test(text[i])) {
         v += text[i];
         advance(1);
       }
-      tokens.push({ kind: "ident", value: v, line: start_line, col: start_col });
+      tokens.push({
+        kind: "ident",
+        value: v,
+        line: start_line,
+        col: start_col,
+      });
       continue;
     }
     throw new ParseError(`unexpected_char:${c}`, start_line, start_col);
   }
   tokens.push({ kind: "eof", value: "", line, col });
+
   return tokens;
 }
 
@@ -309,9 +355,12 @@ function field_meta(name: string): FieldMeta | null {
   }
   if (name.startsWith("header.")) {
     const hname = name.slice("header.".length);
+
     if (!hname) return null;
+
     return { internal: "header", kind: "header", header_name: hname };
   }
+
   return null;
 }
 
@@ -330,10 +379,13 @@ class Parser {
   }
   match_keyword(kw: string): boolean {
     const t = this.peek();
+
     if (t.kind === "ident" && t.value.toLowerCase() === kw) {
       this.pos++;
+
       return true;
     }
+
     return false;
   }
 
@@ -343,78 +395,100 @@ class Parser {
   parse_or(): Condition {
     let left = this.parse_and();
     const parts: Condition[] = [left];
+
     while (this.match_keyword("or")) {
       parts.push(this.parse_and());
     }
     if (parts.length === 1) return left;
+
     return { type: "or", conditions: parts };
   }
   parse_and(): Condition {
     let left = this.parse_unary();
     const parts: Condition[] = [left];
+
     while (this.match_keyword("and") || this.is_at_predicate_start()) {
       parts.push(this.parse_unary());
     }
     if (parts.length === 1) return left;
+
     return { type: "and", conditions: parts };
   }
   is_at_predicate_start(): boolean {
     const t = this.peek();
+
     if (t.kind === "eof" || t.kind === "rparen") return false;
     if (t.kind === "lparen") return true;
     if (t.kind === "ident") {
       const v = t.value.toLowerCase();
+
       if (v === "and" || v === "or") return false;
+
       return true;
     }
+
     return false;
   }
   parse_unary(): Condition {
     if (this.match_keyword("not")) {
       const inner = this.parse_unary();
+
       if (inner.type === "and" || inner.type === "or" || inner.type === "not") {
         return { type: "not", condition: inner };
       }
       const bool_flip = try_flip_boolean(inner);
+
       if (bool_flip) return bool_flip;
+
       return { type: "not", condition: inner };
     }
+
     return this.parse_atom();
   }
   parse_atom(): Condition {
     const t = this.peek();
+
     if (t.kind === "lparen") {
       this.consume();
       const inner = this.parse_expr();
       const close = this.peek();
+
       if (close.kind !== "rparen") {
         throw new ParseError("expected_rparen", close.line, close.col);
       }
       this.consume();
+
       return inner;
     }
+
     return this.parse_predicate();
   }
   parse_predicate(): Condition {
     const ft = this.peek();
+
     if (ft.kind !== "ident") {
       throw new ParseError("expected_field", ft.line, ft.col);
     }
     let meta = field_meta(ft.value);
+
     if (!meta && ft.value.toLowerCase() === "header") {
       this.consume();
       const lb = this.peek();
+
       if (lb.kind !== "lbracket") {
         throw new ParseError("expected_field", ft.line, ft.col);
       }
       this.consume();
       const sn = this.peek();
+
       if (sn.kind !== "string" && sn.kind !== "ident") {
         throw new ParseError("expected_string", sn.line, sn.col);
       }
       const header_name = sn.value;
+
       this.consume();
       const rb = this.peek();
+
       if (rb.kind !== "rbracket") {
         throw new ParseError("expected_rparen", rb.line, rb.col);
       }
@@ -429,36 +503,45 @@ class Parser {
 
     if (meta.kind === "boolean") {
       const next = this.peek();
+
       if (next.kind === "ident" && next.value.toLowerCase() === "is") {
         this.consume();
         const v = this.peek();
+
         if (v.kind !== "ident") {
           throw new ParseError("expected_bool_value", v.line, v.col);
         }
         const lv = v.value.toLowerCase();
+
         if (lv !== "true" && lv !== "false") {
           throw new ParseError(`expected_bool_value:${v.value}`, v.line, v.col);
         }
         this.consume();
+
         return build_bool(meta.internal, lv === "true");
       }
+
       return build_bool(meta.internal, true);
     }
 
     if (meta.kind === "auth") {
       if (!this.match_keyword("is")) {
         const k = this.peek();
+
         throw new ParseError("expected_is", k.line, k.col);
       }
       const v = this.peek();
+
       if (v.kind !== "ident") {
         throw new ParseError("expected_auth_value", v.line, v.col);
       }
       const lv = v.value.toLowerCase() as AuthResultValue;
+
       if (!AUTH_VALUES.includes(lv)) {
         throw new ParseError(`expected_auth_value:${v.value}`, v.line, v.col);
       }
       this.consume();
+
       return {
         type: meta.internal as "dkim_result" | "spf_result" | "dmarc_result",
         value: lv,
@@ -468,11 +551,13 @@ class Parser {
     if (meta.kind === "numeric_int" || meta.kind === "numeric_float") {
       const op_t = this.peek();
       let op: NumericOperator | null = null;
+
       if (op_t.kind === "op" && op_t.value in NUMERIC_OP_TOKENS) {
         op = NUMERIC_OP_TOKENS[op_t.value];
         this.consume();
       } else if (op_t.kind === "ident") {
         const lo = op_t.value.toLowerCase();
+
         if (lo === "equals" || lo === "is") op = "equals";
         else if (lo === "greater_than" || lo === "gt") op = "greater_than";
         else if (lo === "less_than" || lo === "lt") op = "less_than";
@@ -482,20 +567,28 @@ class Parser {
         throw new ParseError("expected_numeric_op", op_t.line, op_t.col);
       }
       const v = this.peek();
+
       if (v.kind !== "number") {
         throw new ParseError("expected_number", v.line, v.col);
       }
       this.consume();
       const num =
-        meta.kind === "numeric_float" ? parseFloat(v.value) : parseInt(v.value, 10);
+        meta.kind === "numeric_float"
+          ? parseFloat(v.value)
+          : parseInt(v.value, 10);
+
       if (Number.isNaN(num)) {
         throw new ParseError("invalid_number", v.line, v.col);
       }
       if (meta.internal === "spam_score") {
         return { type: "spam_score", operator: op, value: num };
       }
+
       return {
-        type: meta.internal as "attachment_size" | "total_size" | "recipient_count",
+        type: meta.internal as
+          | "attachment_size"
+          | "total_size"
+          | "recipient_count",
         operator: op,
         value: num,
       };
@@ -503,27 +596,37 @@ class Parser {
 
     if (meta.kind === "date") {
       const op_t = this.peek();
+
       if (op_t.kind !== "ident") {
         throw new ParseError("expected_date_op", op_t.line, op_t.col);
       }
       const op = op_t.value.toLowerCase() as DateOperator;
+
       if (!DATE_OPS.includes(op)) {
-        throw new ParseError(`expected_date_op:${op_t.value}`, op_t.line, op_t.col);
+        throw new ParseError(
+          `expected_date_op:${op_t.value}`,
+          op_t.line,
+          op_t.col,
+        );
       }
       this.consume();
       const v = this.peek();
+
       if (v.kind !== "number") {
         throw new ParseError("expected_number", v.line, v.col);
       }
       this.consume();
       const num = parseInt(v.value, 10);
+
       if (Number.isNaN(num)) {
         throw new ParseError("invalid_number", v.line, v.col);
       }
+
       return { type: "date_received", operator: op, value: num };
     }
 
     const op_tok = this.peek();
+
     if (op_tok.kind !== "ident") {
       throw new ParseError("expected_operator", op_tok.line, op_tok.col);
     }
@@ -532,8 +635,13 @@ class Parser {
     if (meta.kind === "address") {
       const is_direct = (ADDRESS_OPS as string[]).includes(op_name);
       const is_extra = ADDRESS_OPS_EXTRA.includes(op_name);
+
       if (!is_direct && !is_extra) {
-        throw new ParseError(`bad_address_op:${op_tok.value}`, op_tok.line, op_tok.col);
+        throw new ParseError(
+          `bad_address_op:${op_tok.value}`,
+          op_tok.line,
+          op_tok.col,
+        );
       }
       this.consume();
       const v = this.expect_string();
@@ -544,6 +652,7 @@ class Parser {
         | "cc"
         | "bcc"
         | "any_recipient";
+
       if (op_name === "starts_with") {
         return {
           type: addr_type,
@@ -558,6 +667,7 @@ class Parser {
           value: `${escape_regex(v)}$`,
         };
       }
+
       return {
         type: addr_type,
         operator: op_name as AddressOperator,
@@ -567,7 +677,11 @@ class Parser {
 
     if (meta.kind === "text") {
       if (!(TEXT_OPS as string[]).includes(op_name)) {
-        throw new ParseError(`bad_text_op:${op_tok.value}`, op_tok.line, op_tok.col);
+        throw new ParseError(
+          `bad_text_op:${op_tok.value}`,
+          op_tok.line,
+          op_tok.col,
+        );
       }
       this.consume();
       if (op_name === "is_empty") {
@@ -578,6 +692,7 @@ class Parser {
         };
       }
       const v = this.expect_string();
+
       return {
         type: meta.internal as "subject" | "body" | "list_id",
         operator: op_name as TextOperator,
@@ -587,7 +702,11 @@ class Parser {
 
     if (meta.kind === "header") {
       if (!(TEXT_OPS as string[]).includes(op_name)) {
-        throw new ParseError(`bad_text_op:${op_tok.value}`, op_tok.line, op_tok.col);
+        throw new ParseError(
+          `bad_text_op:${op_tok.value}`,
+          op_tok.line,
+          op_tok.col,
+        );
       }
       this.consume();
       if (op_name === "is_empty") {
@@ -599,6 +718,7 @@ class Parser {
         };
       }
       const v = this.expect_string();
+
       return {
         type: "header",
         name: meta.header_name ?? "",
@@ -617,6 +737,7 @@ class Parser {
       }
       this.consume();
       const v = this.expect_string();
+
       return {
         type: "attachment_name",
         operator: op_name as AttachmentNameOperator,
@@ -628,10 +749,12 @@ class Parser {
   }
   expect_string(): string {
     const v = this.peek();
+
     if (v.kind !== "string") {
       throw new ParseError("expected_string", v.line, v.col);
     }
     this.consume();
+
     return v.value;
   }
 }
@@ -660,62 +783,73 @@ function try_flip_boolean(c: Condition): Condition | null {
   ) {
     return { type: c.type, value: !c.value };
   }
+
   return null;
 }
 
-export function friendly_error(code: string): string {
+export type ExpressionErrorTranslate = (
+  key: TranslationKey,
+  params?: Record<string, string | number>,
+) => string;
+
+export function friendly_error(
+  code: string,
+  t: ExpressionErrorTranslate,
+): string {
   const [head, arg] = code.split(":");
+  const value = arg ?? "";
+
   switch (head) {
     case "empty_expression":
-      return "Expression is empty.";
+      return t("mail_rules.expr_empty_expression");
     case "unterminated_string":
-      return "Missing closing quote on a string value.";
+      return t("mail_rules.expr_unterminated_string");
     case "unexpected_char":
-      return `Unexpected character "${arg ?? ""}".`;
+      return t("mail_rules.expr_unexpected_char", { value });
     case "unexpected_token":
-      return `Unexpected "${arg ?? ""}". Check spelling, quotes, and parentheses.`;
+      return t("mail_rules.expr_unexpected_token", { value });
     case "expected_rparen":
-      return "Missing closing parenthesis ).";
+      return t("mail_rules.expr_expected_rparen");
     case "expected_field":
-      return "Expected a field name (for example: from.address, subject, has_attachment).";
+      return t("mail_rules.expr_expected_field");
     case "unknown_field":
-      return `Unknown field "${arg ?? ""}". Try from.address, subject, body, has_attachment, spam_score, date_received.`;
+      return t("mail_rules.expr_unknown_field", { value });
     case "expected_operator":
-      return "Expected an operator (for example: is, contains, ends_with, greater_than).";
+      return t("mail_rules.expr_expected_operator");
     case "expected_string":
-      return "Expected a value in quotes, like \"example.com\".";
+      return t("mail_rules.expr_expected_string");
     case "expected_number":
-      return "Expected a number.";
+      return t("mail_rules.expr_expected_number");
     case "invalid_number":
-      return "Invalid number.";
+      return t("mail_rules.expr_invalid_number");
     case "expected_is":
-      return "Expected the word \"is\".";
+      return t("mail_rules.expr_expected_is");
     case "expected_bool_value":
       return arg
-        ? `Expected true or false, got "${arg}".`
-        : "Expected true or false.";
+        ? t("mail_rules.expr_expected_bool_value_got", { value })
+        : t("mail_rules.expr_expected_bool_value");
     case "expected_auth_value":
       return arg
-        ? `Expected pass, fail, none or missing, got "${arg}".`
-        : "Expected pass, fail, none or missing.";
+        ? t("mail_rules.expr_expected_auth_value_got", { value })
+        : t("mail_rules.expr_expected_auth_value");
     case "expected_numeric_op":
-      return "Expected a numeric comparison (>, <, = or equals).";
+      return t("mail_rules.expr_expected_numeric_op");
     case "expected_date_op":
       return arg
-        ? `Expected older_than_days or newer_than_days, got "${arg}".`
-        : "Expected older_than_days or newer_than_days.";
+        ? t("mail_rules.expr_expected_date_op_got", { value })
+        : t("mail_rules.expr_expected_date_op");
     case "bad_address_op":
-      return `Operator "${arg ?? ""}" is not valid for address fields. Try is, contains, starts_with, ends_with, matches_domain or matches_regex.`;
+      return t("mail_rules.expr_bad_address_op", { value });
     case "bad_text_op":
-      return `Operator "${arg ?? ""}" is not valid for text fields. Try is, contains, starts_with, ends_with, is_empty or matches_regex.`;
+      return t("mail_rules.expr_bad_text_op", { value });
     case "bad_attachment_op":
-      return `Operator "${arg ?? ""}" is not valid for attachment names. Try contains, ends_with or matches_regex.`;
+      return t("mail_rules.expr_bad_attachment_op", { value });
     case "unhandled_field":
-      return "This field is not supported here.";
+      return t("mail_rules.expr_unhandled_field");
     case "internal_error":
-      return "Something went wrong parsing this expression.";
+      return t("mail_rules.expr_internal_error");
     default:
-      return code;
+      return t("mail_rules.expression_parse_error");
   }
 }
 
@@ -728,6 +862,7 @@ export function parse(text: string): ParseResult {
     const parser = new Parser(tokens);
     const ast = parser.parse_expr();
     const trailing = parser.peek();
+
     if (trailing.kind !== "eof") {
       return {
         ok: false,
@@ -736,11 +871,13 @@ export function parse(text: string): ParseResult {
         col: trailing.col,
       };
     }
+
     return { ok: true, ast };
   } catch (e) {
     if (e instanceof ParseError) {
       return { ok: false, error: e.message, line: e.line, col: e.col };
     }
+
     return { ok: false, error: "internal_error", line: 1, col: 1 };
   }
 }
@@ -783,15 +920,18 @@ export function serialize(c: Condition): string {
 function serialize_inner(c: Condition, precedence: number): string {
   if (c.type === "or") {
     const inner = c.conditions.map((x) => serialize_inner(x, 1)).join(" or ");
+
     return precedence > 1 ? `(${inner})` : inner;
   }
   if (c.type === "and") {
     const inner = c.conditions.map((x) => serialize_inner(x, 2)).join(" and ");
+
     return precedence > 2 ? `(${inner})` : inner;
   }
   if (c.type === "not") {
     return `not ${serialize_inner(c.condition, 3)}`;
   }
+
   return serialize_leaf(c);
 }
 
@@ -808,9 +948,11 @@ function serialize_leaf(c: LeafCondition): string {
     case "body":
     case "list_id":
       if (c.operator === "is_empty") return `${c.type} is_empty`;
+
       return `${c.type} ${c.operator} ${quote_string(c.value)}`;
     case "header":
       if (c.operator === "is_empty") return `header.${c.name} is_empty`;
+
       return `header.${c.name} ${c.operator} ${quote_string(c.value)}`;
     case "attachment_name":
       return `attachment.name ${c.operator} ${quote_string(c.value)}`;

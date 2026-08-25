@@ -606,7 +606,11 @@ class ExternalSyncScheduler {
       const iv = base64_to_array(envelope.iv as string);
       const ciphertext = base64_to_array(envelope.data as string);
 
-      const decrypted = await decrypt_aes_gcm_with_fallback(key, ciphertext, iv);
+      const decrypted = await decrypt_aes_gcm_with_fallback(
+        key,
+        ciphertext,
+        iv,
+      );
 
       const decoder = new TextDecoder();
       const configs: unknown = JSON.parse(decoder.decode(decrypted));

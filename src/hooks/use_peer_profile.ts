@@ -46,11 +46,13 @@ export function use_peer_profile(
   useEffect(() => {
     if (low_network || !normalized || !is_aster_email(normalized)) {
       set_profile(null);
+
       return;
     }
 
     let cancelled = false;
     const cached = get_cached_peer_profile(normalized);
+
     if (cached !== undefined) {
       set_profile(cached);
     } else {
@@ -62,6 +64,7 @@ export function use_peer_profile(
     const unsubscribe = subscribe_profile_updates(() => {
       if (cancelled) return;
       const next = get_cached_peer_profile(normalized);
+
       if (next !== undefined) set_profile(next);
     });
 

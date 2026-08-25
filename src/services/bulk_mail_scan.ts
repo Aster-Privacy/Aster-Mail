@@ -37,6 +37,7 @@ export const DECRYPT_YIELD_CHUNK = 25;
 export interface ScanReceivedResult {
   items: MailItem[];
   reached_cap: boolean;
+  failed: boolean;
 }
 
 export async function decrypt_items_metadata_for_action(
@@ -95,6 +96,7 @@ async function scan_pages(
   const items: MailItem[] = [];
   let cursor: string | undefined;
   let reached_cap = false;
+  let failed = false;
   let page_count = 0;
 
   for (;;) {
@@ -102,7 +104,10 @@ async function scan_pages(
 
     const response = await fetch_page(cursor);
 
-    if (!response.data?.items) break;
+    if (!response.data?.items) {
+      failed = true;
+      break;
+    }
 
     items.push(...response.data.items);
     cursor = response.data.next_cursor;
@@ -121,7 +126,7 @@ async function scan_pages(
     await yield_to_browser();
   }
 
-  return { items, reached_cap };
+  return { items, reached_cap, failed };
 }
 
 export function scan_received_items(

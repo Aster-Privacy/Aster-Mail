@@ -100,14 +100,10 @@ describe("extract_reply_to", () => {
 
   it("matches header name case-insensitively", () => {
     expect(
-      extract_reply_to([
-        { name: "reply-to", value: "user@external.example" },
-      ]),
+      extract_reply_to([{ name: "reply-to", value: "user@external.example" }]),
     ).toEqual({ email: "user@external.example" });
     expect(
-      extract_reply_to([
-        { name: "REPLY-TO", value: "user@external.example" },
-      ]),
+      extract_reply_to([{ name: "REPLY-TO", value: "user@external.example" }]),
     ).toEqual({ email: "user@external.example" });
   });
 

@@ -18,8 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
-import { en } from "@/lib/i18n/translations/en";
+import { user_facing_error } from "@/utils/user_facing_error";
 import type {
   CustomFieldDefinition,
   CustomFieldValue,
@@ -30,6 +29,9 @@ import type {
 
 import { api_client, type ApiResponse } from "./client";
 import { get_contacts_encryption_key } from "./contacts";
+
+import { get_active_translations } from "@/lib/i18n/translations";
+import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 
 function array_to_base64(array: Uint8Array): string {
   let binary = "";
@@ -71,7 +73,11 @@ export async function list_custom_field_definitions(): Promise<
     const key = await get_contacts_encryption_key();
     const items = await Promise.all(
       response.data.items.map(async (item) => {
-        const decrypted_name = await decrypt_aes_gcm_with_fallback(key, base64_to_array(item.encrypted_name), base64_to_array(item.name_nonce));
+        const decrypted_name = await decrypt_aes_gcm_with_fallback(
+          key,
+          base64_to_array(item.encrypted_name),
+          base64_to_array(item.name_nonce),
+        );
 
         return {
           id: item.id,
@@ -86,10 +92,7 @@ export async function list_custom_field_definitions(): Promise<
     return { data: items };
   } catch (err) {
     return {
-      error:
-        err instanceof Error
-          ? err.message
-          : "Failed to decrypt field definitions",
+      error: user_facing_error(err, "Failed to decrypt field definitions"),
     };
   }
 }
@@ -160,7 +163,11 @@ export async function list_contact_custom_field_values(
 
     const items = await Promise.all(
       response.data.items.map(async (item) => {
-        const decrypted_value = await decrypt_aes_gcm_with_fallback(key, base64_to_array(item.encrypted_value), base64_to_array(item.value_nonce));
+        const decrypted_value = await decrypt_aes_gcm_with_fallback(
+          key,
+          base64_to_array(item.encrypted_value),
+          base64_to_array(item.value_nonce),
+        );
 
         const definition = field_map.get(item.field_definition_id);
 
@@ -168,7 +175,8 @@ export async function list_contact_custom_field_values(
           id: item.id,
           contact_id: item.contact_id,
           field_definition_id: item.field_definition_id,
-          field_name: definition?.name || en.common.unknown,
+          field_name:
+            definition?.name || get_active_translations().common.unknown,
           field_type: definition?.field_type || "text",
           value: new TextDecoder().decode(decrypted_value),
           created_at: item.created_at,
@@ -179,8 +187,7 @@ export async function list_contact_custom_field_values(
     return { data: items };
   } catch (err) {
     return {
-      error:
-        err instanceof Error ? err.message : "Failed to decrypt field values",
+      error: user_facing_error(err, "Failed to decrypt field values"),
     };
   }
 }

@@ -20,6 +20,51 @@
 //
 import { afterEach, beforeEach, vi } from "vitest";
 
+const NODE_NAME_BY_TYPE: Record<number, string> = {
+  3: "#text",
+  4: "#cdata-section",
+  8: "#comment",
+  9: "#document",
+  11: "#document-fragment",
+};
+
+function inherited_node_name(node: Node): string {
+  let prototype = Object.getPrototypeOf(node);
+
+  while (prototype && prototype !== Node.prototype) {
+    const descriptor = Object.getOwnPropertyDescriptor(prototype, "nodeName");
+
+    if (descriptor && descriptor.get)
+      return descriptor.get.call(node) as string;
+
+    prototype = Object.getPrototypeOf(prototype);
+  }
+
+  return NODE_NAME_BY_TYPE[node.nodeType] ?? "";
+}
+
+function repair_node_name_getter(): void {
+  if (typeof Node === "undefined" || typeof document === "undefined") return;
+
+  const descriptor = Object.getOwnPropertyDescriptor(
+    Node.prototype,
+    "nodeName",
+  );
+
+  if (!descriptor || !descriptor.get) return;
+  if (descriptor.get.call(document.createElement("div")) !== "") return;
+
+  Object.defineProperty(Node.prototype, "nodeName", {
+    configurable: true,
+    enumerable: descriptor.enumerable,
+    get(this: Node): string {
+      return inherited_node_name(this);
+    },
+  });
+}
+
+repair_node_name_getter();
+
 const subtle_crypto_mock = {
   generateKey: vi.fn(),
   importKey: vi.fn(),

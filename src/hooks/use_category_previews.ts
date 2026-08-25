@@ -113,8 +113,9 @@ async function fetch_previews(ids: string[]): Promise<boolean> {
     const response = await list_mail_items({ ids });
 
     if (generation !== get_index_generation()) return false;
+    if (!response.data) return false;
 
-    const items = filter_locked_mail_items(response.data?.items ?? []);
+    const items = filter_locked_mail_items(response.data.items ?? []);
 
     for (const item of items) {
       const envelope = await decrypt_envelope(
@@ -167,7 +168,10 @@ export function use_category_preview_list(
   const ids = useMemo(() => {
     if (!category) return [] as string[];
 
-    return (get_new_head_ids().get(category) ?? []).slice(0, MAX_HOVER_PREVIEWS);
+    return (get_new_head_ids().get(category) ?? []).slice(
+      0,
+      MAX_HOVER_PREVIEWS,
+    );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [category, version]);
 
@@ -269,8 +273,9 @@ export function use_category_previews(enabled: boolean): CategoryPreviews {
         const response = await list_mail_items({ ids: missing });
 
         if (cancelled || generation !== get_index_generation()) return;
+        if (!response.data) return;
 
-        const items = filter_locked_mail_items(response.data?.items ?? []);
+        const items = filter_locked_mail_items(response.data.items ?? []);
 
         for (const item of items) {
           const envelope = await decrypt_envelope(
