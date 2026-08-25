@@ -37,14 +37,12 @@ import { use_search, extract_query_terms } from "@/hooks/use_search";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_date_format } from "@/hooks/use_date_format";
 import { use_i18n } from "@/lib/i18n/context";
+import { show_toast } from "@/components/toast/simple_toast";
 import { resolve_effective_page_size } from "@/lib/inbox_page_size";
 import { use_shift_key_ref } from "@/lib/use_shift_range_select";
 import { use_split_pane } from "@/components/email/inbox/use_split_pane";
 import { filter_locked_folder_emails } from "@/services/locked_folders";
-import {
-  group_search_results,
-  expand_thread_ids,
-} from "./thread_grouping";
+import { group_search_results, expand_thread_ids } from "./thread_grouping";
 
 export function use_search_results_page(props: SearchResultsPageProps) {
   const { query, on_result_click, split_email_id, on_split_close } = props;
@@ -470,7 +468,13 @@ export function use_search_results_page(props: SearchResultsPageProps) {
       const emails = await fetch_as_minimal_emails(ids);
 
       if (emails.length > 0) {
-        await email_actions.bulk_archive(emails);
+        const ok = await email_actions.bulk_archive(emails);
+
+        if (!ok) {
+          show_toast(t("common.failed_to_archive_emails"), "error");
+
+          return;
+        }
         emit_mail_items_removed({ ids: emails.map((e) => e.id) });
       }
       handle_clear_selection();
@@ -483,6 +487,7 @@ export function use_search_results_page(props: SearchResultsPageProps) {
     fetch_as_minimal_emails,
     email_actions,
     handle_clear_selection,
+    t,
   ]);
 
   const handle_bulk_delete = useCallback(async () => {
@@ -494,7 +499,13 @@ export function use_search_results_page(props: SearchResultsPageProps) {
       const emails = await fetch_as_minimal_emails(ids);
 
       if (emails.length > 0) {
-        await email_actions.bulk_delete(emails);
+        const ok = await email_actions.bulk_delete(emails);
+
+        if (!ok) {
+          show_toast(t("common.failed_to_delete_emails"), "error");
+
+          return;
+        }
         emit_mail_items_removed({ ids: emails.map((e) => e.id) });
       }
       handle_clear_selection();
@@ -507,6 +518,7 @@ export function use_search_results_page(props: SearchResultsPageProps) {
     fetch_as_minimal_emails,
     email_actions,
     handle_clear_selection,
+    t,
   ]);
 
   const run_bulk = useCallback(
@@ -557,10 +569,16 @@ export function use_search_results_page(props: SearchResultsPageProps) {
   const handle_bulk_spam = useCallback(
     () =>
       run_bulk(async (emails) => {
-        await email_actions.bulk_mark_spam(emails);
+        const ok = await email_actions.bulk_mark_spam(emails);
+
+        if (!ok) {
+          show_toast(t("common.something_went_wrong"), "error");
+
+          return;
+        }
         emit_mail_items_removed({ ids: emails.map((e) => e.id) });
       }),
-    [run_bulk, email_actions],
+    [run_bulk, email_actions, t],
   );
 
   const handle_select_by_filter = useCallback(

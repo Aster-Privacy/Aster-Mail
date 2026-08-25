@@ -357,8 +357,10 @@ export function ScheduledPopupViewer({
     if (!response.error && response.data) {
       on_edit(response.data);
       on_close();
+    } else {
+      show_toast(response.error || t("common.something_went_wrong"), "error");
     }
-  }, [scheduled_data.id, vault, on_edit, on_close]);
+  }, [scheduled_data.id, vault, on_edit, on_close, t]);
 
   const primary_recipient = scheduled_data.to_recipients[0] || "";
   const recipient_name =

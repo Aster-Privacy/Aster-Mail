@@ -532,9 +532,18 @@ function MobileInbox({
         ? await actions.unarchive_email(email)
         : await actions.archive_email(email);
 
-      if (success) remove_email(email.id);
+      if (success) {
+        remove_email(email.id);
+      } else {
+        show_toast(
+          email.is_archived
+            ? t("common.something_went_wrong")
+            : t("common.failed_to_archive_emails"),
+          "error",
+        );
+      }
     },
-    [actions, remove_email],
+    [actions, remove_email, t],
   );
 
   const handle_delete = useCallback(
@@ -557,7 +566,11 @@ function MobileInbox({
       } else {
         const ok = await actions.delete_email(email);
 
-        if (ok) remove_email(email.id);
+        if (ok) {
+          remove_email(email.id);
+        } else {
+          show_toast(t("common.failed_to_delete_emails"), "error");
+        }
       }
     },
     [
