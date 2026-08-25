@@ -100,14 +100,20 @@ export function BillingAlertBanner() {
         });
     };
 
+    const check_if_visible = () => {
+      if (document.visibilityState === "visible") check();
+    };
+
     check();
     window.addEventListener("focus", check);
     window.addEventListener("aster:plan-changed", check);
+    document.addEventListener("visibilitychange", check_if_visible);
 
     return () => {
       cancelled = true;
       window.removeEventListener("focus", check);
       window.removeEventListener("aster:plan-changed", check);
+      document.removeEventListener("visibilitychange", check_if_visible);
     };
   }, []);
 
