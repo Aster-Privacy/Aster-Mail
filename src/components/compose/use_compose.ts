@@ -44,7 +44,6 @@ import {
 } from "@/hooks/use_sender_aliases";
 import {
   get_preferred_sender_id,
-  sender_id_matches,
   set_preferred_sender_id,
   subscribe_preferred_sender,
 } from "@/lib/preferred_sender";
@@ -89,6 +88,7 @@ import {
   draft_data_to_attachments,
   build_badge_html,
 } from "@/components/compose/compose_draft_helpers";
+import { resolve_auto_sender } from "@/components/compose/sender_auto_selection";
 import { use_compose_attachments } from "@/components/compose/use_compose_attachments";
 import { use_compose_send } from "@/components/compose/use_compose_send";
 import { use_compose_drafts } from "@/components/compose/use_compose_drafts";
@@ -248,7 +248,8 @@ export function use_compose({
     !!my_badge_prefs?.active_badge_slug;
   const active_badge =
     include_badge_signature && my_badge_prefs?.active_badge_slug
-      ? badges.find((b) => b.slug === my_badge_prefs.active_badge_slug) ?? null
+      ? (badges.find((b) => b.slug === my_badge_prefs.active_badge_slug) ??
+        null)
       : null;
 
   useEffect(() => {
@@ -275,9 +276,14 @@ export function use_compose({
   >([]);
 
   const { sender_options, loading: aliases_loading } = use_sender_aliases();
-  const [selected_sender, set_selected_sender] = useState<SenderOption | null>(
-    null,
-  );
+  const [selected_sender, set_selected_sender_state] =
+    useState<SenderOption | null>(null);
+  const sender_auto_selected_ref = useRef(true);
+
+  const set_selected_sender = useCallback((val: SenderOption | null) => {
+    sender_auto_selected_ref.current = false;
+    set_selected_sender_state(val);
+  }, []);
   const [preferred_sender_id, set_preferred_sender_id_state] = useState<
     string | null
   >(() => get_preferred_sender_id());
@@ -388,20 +394,22 @@ export function use_compose({
   });
 
   useEffect(() => {
-    if (sender_options.length > 0 && !selected_sender) {
-      const preferred = preferred_sender_id
-        ? sender_options.find((o) =>
-            sender_id_matches(o.id, preferred_sender_id),
-          )
-        : null;
+    const resolution = resolve_auto_sender(
+      sender_options,
+      selected_sender,
+      preferred_sender_id,
+      sender_auto_selected_ref.current,
+    );
 
-      set_selected_sender(preferred ?? sender_options[0]);
-    }
+    if (!resolution) return;
+
+    sender_auto_selected_ref.current = resolution.is_auto;
+    set_selected_sender_state(resolution.option);
   }, [sender_options, selected_sender, preferred_sender_id]);
 
   useEffect(() => {
     if (ghost_mode.is_ghost_enabled && ghost_mode.ghost_sender) {
-      set_selected_sender(ghost_mode.ghost_sender);
+      set_selected_sender_state(ghost_mode.ghost_sender);
     }
   }, [ghost_mode.is_ghost_enabled, ghost_mode.ghost_sender]);
 
@@ -560,8 +568,7 @@ export function use_compose({
         set_is_loading_forward_attachments(true);
         load_forward_attachments(forward_source_id, {
           body_html: edit_draft.message,
-          is_cancelled: () =>
-            inject_token_ref.current !== attachments_token,
+          is_cancelled: () => inject_token_ref.current !== attachments_token,
           on_dropped: () => {
             if (inject_token_ref.current !== attachments_token) return;
 
@@ -587,7 +594,12 @@ export function use_compose({
               ];
             });
           })
-          .catch((caught) => ignore_error("components/compose/use_compose:load_recent_recipients_fn", caught))
+          .catch((caught) =>
+            ignore_error(
+              "components/compose/use_compose:load_recent_recipients_fn",
+              caught,
+            ),
+          )
           .finally(() => {
             if (inject_token_ref.current === attachments_token) {
               set_is_loading_forward_attachments(false);
@@ -601,7 +613,9 @@ export function use_compose({
         if (message_textarea_ref.current && edit_draft.message) {
           draft_hook.just_loaded_draft_ref.current = true;
           const sanitized_result = sanitize_html(edit_draft.message, {
-            external_content_mode: is_any_lockdown_active() ? "never" : "always",
+            external_content_mode: is_any_lockdown_active()
+              ? "never"
+              : "always",
             lockdown_mode: is_any_lockdown_active(),
           });
           const token = inject_token_ref.current;
@@ -752,8 +766,7 @@ export function use_compose({
     if (!editor) return;
 
     const alias_id =
-      selected_sender &&
-      is_signature_bindable_sender_type(selected_sender.type)
+      selected_sender && is_signature_bindable_sender_type(selected_sender.type)
         ? selected_sender.id
         : null;
     const target = resolve_signature(alias_id) ?? default_signature;
@@ -764,7 +777,10 @@ export function use_compose({
       "[data-aster-signature='1']",
     );
     const raw_html = get_formatted_signature(target);
-    const sanitized = sanitize_html(raw_html, { external_content_mode: is_any_lockdown_active() ? "never" : "always", lockdown_mode: is_any_lockdown_active() });
+    const sanitized = sanitize_html(raw_html, {
+      external_content_mode: is_any_lockdown_active() ? "never" : "always",
+      lockdown_mode: is_any_lockdown_active(),
+    });
     const wrapper = document.createElement("div");
     wrapper.innerHTML = sanitized.html;
     const new_node = wrapper.firstElementChild;
