@@ -91,6 +91,7 @@ import { use_my_badge_prefs } from "@/stores/my_badge_prefs_store";
 import { build_badge_html } from "@/components/compose/compose_draft_helpers";
 
 import { ignore_error } from "@/lib/ignore_error";
+import { signature_allowed_for_draft_type } from "@/utils/signature_scope";
 
 import {
   UseReplyModalProps,
@@ -652,7 +653,11 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
 
       const badge_html = active_badge ? build_badge_html([active_badge]) : "";
 
-      if (preferences.signature_mode === "auto" && default_signature) {
+      if (
+        preferences.signature_mode === "auto" &&
+        default_signature &&
+        signature_allowed_for_draft_type(preferences, "reply")
+      ) {
         content =
           get_formatted_signature(default_signature) +
           badge_html +
@@ -679,6 +684,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
     default_signature,
     preferences.show_aster_branding,
     preferences.signature_mode,
+    preferences.signature_in_replies,
     include_badge_signature,
     active_badge,
     badges_loaded,

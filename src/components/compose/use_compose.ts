@@ -67,6 +67,7 @@ import {
   resolve_cid_references,
 } from "@/lib/cid_resolver";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
+import { signature_allowed_for_draft_type } from "@/utils/signature_scope";
 import { load_forward_attachments } from "@/services/forward_attachments";
 import { show_toast } from "@/components/toast/simple_toast";
 import {
@@ -673,7 +674,12 @@ export function use_compose({
       const initial_signature =
         resolve_signature(initial_sender_alias_id) ?? default_signature;
       const signature_block =
-        preferences.signature_mode === "auto" && initial_signature
+        preferences.signature_mode === "auto" &&
+        initial_signature &&
+        signature_allowed_for_draft_type(
+          preferences,
+          edit_draft?.draft_type ?? "new",
+        )
           ? get_formatted_signature(initial_signature) + badge_html
           : badge_html;
 
@@ -719,6 +725,8 @@ export function use_compose({
     active_badge,
     preferences.show_aster_branding,
     preferences.signature_mode,
+    preferences.signature_in_replies,
+    preferences.signature_in_forwards,
     preferences.compose_font_size,
     preferences.compose_font_color,
     default_signature,
@@ -732,6 +740,14 @@ export function use_compose({
   useEffect(() => {
     if (!content_initialized_ref.current) return;
     if (preferences.signature_mode === "disabled") return;
+    if (
+      !signature_allowed_for_draft_type(
+        preferences,
+        edit_draft?.draft_type ?? "new",
+      )
+    ) {
+      return;
+    }
     const editor = message_textarea_ref.current;
     if (!editor) return;
 
@@ -765,7 +781,10 @@ export function use_compose({
     last_signature_id_ref.current = target.id;
   }, [
     selected_sender,
+    edit_draft,
     preferences.signature_mode,
+    preferences.signature_in_replies,
+    preferences.signature_in_forwards,
     resolve_signature,
     default_signature,
     get_formatted_signature,

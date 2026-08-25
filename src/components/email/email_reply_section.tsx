@@ -40,6 +40,7 @@ import { is_system_email } from "@/lib/utils";
 import { use_should_reduce_motion } from "@/provider";
 import { get_aster_footer } from "@/components/compose/compose_shared";
 import { Spinner } from "@/components/ui/spinner";
+import { signature_allowed_for_draft_type } from "@/utils/signature_scope";
 
 type SendState = "idle" | "queued" | "sending" | "sent" | "error";
 
@@ -106,6 +107,10 @@ export function EmailReplySection({
       return "";
     }
 
+    if (!signature_allowed_for_draft_type(preferences, "reply")) {
+      return "";
+    }
+
     if (preferences.signature_mode === "auto" && default_signature) {
       return get_formatted_signature(default_signature);
     }
@@ -113,7 +118,7 @@ export function EmailReplySection({
     return "";
   }, [
     user,
-    preferences.signature_mode,
+    preferences,
     default_signature,
     get_formatted_signature,
   ]);

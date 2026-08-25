@@ -103,6 +103,7 @@ import { use_signatures } from "@/contexts/signatures_context";
 import { sanitize_html, sanitize_outgoing_html } from "@/lib/html_sanitizer";
 import { inline_email_css } from "@/lib/forward_css_inliner";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
+import { signature_allowed_for_draft_type } from "@/utils/signature_scope";
 import { UseForwardModalProps, apply_inline_image_substitutions } from "./helpers";
 
 export function use_forward_modal({
@@ -337,7 +338,11 @@ export function use_forward_modal({
       const badge_html = active_badge ? build_badge_html([active_badge]) : "";
       let content = "";
 
-      if (preferences.signature_mode === "auto" && default_signature) {
+      if (
+        preferences.signature_mode === "auto" &&
+        default_signature &&
+        signature_allowed_for_draft_type(preferences, "forward")
+      ) {
         const signature_html = get_formatted_signature(default_signature);
 
         content = "<br><br>" + signature_html + badge_html;
@@ -363,6 +368,7 @@ export function use_forward_modal({
     default_signature,
     get_formatted_signature,
     preferences.signature_mode,
+    preferences.signature_in_forwards,
   ]);
 
   useEffect(() => {

@@ -85,6 +85,8 @@ export interface UserPreferences {
   publish_to_keyservers: boolean;
   signature_mode: "disabled" | "auto" | "manual";
   signature_placement: "below" | "above";
+  signature_in_replies?: boolean;
+  signature_in_forwards?: boolean;
   default_signature_id: string | null;
   profile_color: string;
   email_view_mode: "popup" | "split" | "fullpage";
