@@ -24,7 +24,11 @@ import {
   derive_password_hash,
 } from "@/services/crypto/key_manager";
 
-export type CancelPasswordOutcome = "verified" | "invalid" | "error";
+export type CancelPasswordOutcome =
+  | "verified"
+  | "invalid"
+  | "totp_required"
+  | "error";
 
 interface SaltResponse {
   salt: string;
@@ -67,6 +71,7 @@ export async function get_cancel_password_hash(
 
 export async function verify_cancel_password(
   password: string,
+  totp_code?: string,
 ): Promise<CancelPasswordOutcome> {
   if (!password.trim()) return "invalid";
 
@@ -75,15 +80,23 @@ export async function verify_cancel_password(
 
     if (!hash) return "error";
 
+    const body: { password_hash: string; totp_code?: string } = {
+      password_hash: hash,
+    };
+
+    if (totp_code?.trim()) body.totp_code = totp_code.trim();
+
     const verify_response = await api_client.post<VerifyPasswordResponse>(
       "/crypto/v1/encryption/verify-password",
-      { password_hash: hash },
+      body,
     );
 
     if (verify_response.error || !verify_response.data) return "error";
 
-    if (verify_response.data.verified || verify_response.data.totp_required) {
-      return "verified";
+    if (verify_response.data.verified) return "verified";
+
+    if (verify_response.data.totp_required && !body.totp_code) {
+      return "totp_required";
     }
 
     return "invalid";

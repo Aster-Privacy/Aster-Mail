@@ -33,6 +33,10 @@ import { Checkbox } from "@aster/ui";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { use_i18n } from "@/lib/i18n/context";
+import { is_composing } from "@/utils/ime";
+import { is_valid_email } from "@/components/compose/compose_shared";
+
+const MAX_RULE_NAME_LENGTH = 200;
 
 interface ForwardingRuleBuilderProps {
   initial_name?: string;
@@ -49,14 +53,14 @@ interface ForwardingRuleBuilderProps {
   is_saving?: boolean;
 }
 
-const FIELD_KEYS: { value: ForwardingField; key: TranslationKey }[] = [
+export const FIELD_KEYS: { value: ForwardingField; key: TranslationKey }[] = [
   { value: "all", key: "settings.all_emails_option" },
   { value: "from", key: "settings.from_option" },
   { value: "to", key: "settings.to_option" },
   { value: "subject", key: "settings.subject_option" },
 ];
 
-const OPERATOR_KEYS: { value: ForwardingOperator; key: TranslationKey }[] = [
+export const OPERATOR_KEYS: { value: ForwardingOperator; key: TranslationKey }[] = [
   { value: "contains", key: "settings.contains_option" },
   { value: "equals", key: "settings.equals_option" },
   { value: "starts_with", key: "settings.starts_with_option" },
@@ -132,28 +136,48 @@ export function ForwardingRuleBuilder({
     set_conditions(updated);
   };
 
+  const trimmed_addresses = forward_to.map((a) => a.trim());
+
+  const invalid_address_indexes = trimmed_addresses
+    .map((address, index) => ({ address, index }))
+    .filter(
+      (entry) => entry.address.length > 0 && !is_valid_email(entry.address),
+    )
+    .map((entry) => entry.index);
+
+  const incomplete_condition_indexes = conditions
+    .map((condition, index) => ({ condition, index }))
+    .filter((entry) =>
+      entry.condition.field === "all"
+        ? conditions.length > 1
+        : !entry.condition.value.trim(),
+    )
+    .map((entry) => entry.index);
+
+  const valid_addresses = trimmed_addresses.filter((a) => is_valid_email(a));
+
+  const has_valid_address = valid_addresses.length > 0;
+
+  const can_save =
+    has_valid_address &&
+    invalid_address_indexes.length === 0 &&
+    incomplete_condition_indexes.length === 0;
+
   const handle_save = () => {
-    const valid_addresses = forward_to
-      .map((a) => a.trim())
-      .filter((a) => a && a.includes("@"));
+    if (!can_save) return;
 
-    if (valid_addresses.length === 0) return;
-
-    const valid_conditions = conditions.filter(
-      (c) => c.field === "all" || c.value.trim(),
-    );
+    const saved_conditions = conditions.filter((c) => c.field !== "all");
 
     on_save(
-      name.trim() || valid_addresses.join(", "),
+      (name.trim() || valid_addresses.join(", ")).slice(
+        0,
+        MAX_RULE_NAME_LENGTH,
+      ),
       valid_addresses,
-      valid_conditions.length > 0 ? valid_conditions : [],
+      saved_conditions,
       keep_copy,
     );
   };
-
-  const has_valid_address = forward_to.some(
-    (a) => a.trim().length > 0 && a.includes("@"),
-  );
 
   return (
     <div className="space-y-5">
@@ -162,6 +186,7 @@ export function ForwardingRuleBuilder({
           {t("settings.rule_name_optional")}
         </label>
         <Input
+          maxLength={MAX_RULE_NAME_LENGTH}
           placeholder={t("settings.rule_name_placeholder")}
           value={name}
           onChange={(e) => set_name(e.target.value)}
@@ -179,7 +204,12 @@ export function ForwardingRuleBuilder({
               className="flex items-center gap-2 p-2.5 rounded-lg bg-surf-tertiary"
             >
               <select
-                className="px-2.5 py-1.5 rounded-md text-[13px] border bg-transparent border-edge-secondary text-txt-primary"
+                className={`px-2.5 py-1.5 rounded-md text-[13px] border bg-transparent text-txt-primary ${
+                  incomplete_condition_indexes.includes(index) &&
+                  condition.field === "all"
+                    ? "border-danger"
+                    : "border-edge-secondary"
+                }`}
                 value={condition.field}
                 onChange={(e) =>
                   update_condition(index, "field", e.target.value)
@@ -212,6 +242,11 @@ export function ForwardingRuleBuilder({
                     className="flex-1"
                     placeholder={t("settings.value_placeholder")}
                     size="md"
+                    status={
+                      incomplete_condition_indexes.includes(index)
+                        ? "error"
+                        : "default"
+                    }
                     value={condition.value}
                     onChange={(e) =>
                       update_condition(index, "value", e.target.value)
@@ -223,6 +258,7 @@ export function ForwardingRuleBuilder({
               {conditions.length > 1 && (
                 <button
                   className="p-1 rounded-[14px] transition-colors hover:bg-surf-hover"
+                  type="button"
                   onClick={() => remove_condition(index)}
                 >
                   <TrashIcon className="w-3.5 h-3.5 text-txt-muted" />
@@ -235,6 +271,7 @@ export function ForwardingRuleBuilder({
             <button
               className="flex items-center gap-1.5 text-[13px] transition-colors hover:opacity-80"
               style={{ color: "var(--accent-blue)" }}
+              type="button"
               onClick={add_condition}
             >
               <PlusIcon className="w-3.5 h-3.5" />
@@ -242,6 +279,11 @@ export function ForwardingRuleBuilder({
             </button>
           )}
         </div>
+        {incomplete_condition_indexes.length > 0 && (
+          <p className="text-[11px] text-danger mt-1.5">
+            {t("mail_rules.hint_condition_incomplete")}
+          </p>
+        )}
         {conditions.length > 1 && (
           <p className="text-[11px] text-txt-muted">
             {t("settings.and_logic_hint")}
@@ -259,11 +301,14 @@ export function ForwardingRuleBuilder({
               <Input
                 className="flex-1"
                 placeholder={t("settings.email_address_input_placeholder")}
+                status={
+                  invalid_address_indexes.includes(index) ? "error" : "default"
+                }
                 type="email"
                 value={address}
                 onChange={(e) => update_forward_address(index, e.target.value)}
                 onKeyDown={(e) => {
-                  if (e["key"] === "Enter") {
+                  if (e["key"] === "Enter" && !is_composing(e)) {
                     e.preventDefault();
                     if (
                       index === forward_to.length - 1 &&
@@ -277,6 +322,7 @@ export function ForwardingRuleBuilder({
               {forward_to.length > 1 && (
                 <button
                   className="p-1.5 rounded-[14px] transition-colors hover:bg-surf-hover"
+                  type="button"
                   onClick={() => remove_forward_address(index)}
                 >
                   <XMarkIcon className="w-4 h-4 text-txt-muted" />
@@ -285,10 +331,16 @@ export function ForwardingRuleBuilder({
             </div>
           ))}
         </div>
+        {invalid_address_indexes.length > 0 && (
+          <p className="text-[11px] text-danger mt-1.5">
+            {t("common.enter_valid_email")}
+          </p>
+        )}
         {forward_to.length < 10 && (
           <button
             className="flex items-center gap-1.5 text-[13px] mt-1.5 transition-colors hover:opacity-80"
             style={{ color: "var(--accent-blue)" }}
+            type="button"
             onClick={add_forward_address}
           >
             <PlusIcon className="w-3.5 h-3.5" />
@@ -311,10 +363,7 @@ export function ForwardingRuleBuilder({
         <Button variant="ghost" onClick={on_cancel}>
           {t("common.cancel")}
         </Button>
-        <Button
-          disabled={is_saving || !has_valid_address}
-          onClick={handle_save}
-        >
+        <Button disabled={is_saving || !can_save} onClick={handle_save}>
           {is_saving ? <Spinner size="md" /> : t("settings.save_rule")}
         </Button>
       </div>

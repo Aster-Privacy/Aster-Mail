@@ -29,20 +29,20 @@ import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import {
   PLAN_TIERS,
   FAMILY_PLAN_TIERS,
+  CURRENCY_STORAGE_KEY,
+  SUPPORTED_CURRENCIES,
   detect_currency_from_locale,
   is_crypto_provider,
   take_crypto_resume,
   type CryptoResumeSelection,
+  type FamilyPlanTier,
 } from "@/components/settings/billing/billing_constants";
-
+import { create_family_group } from "@/services/api/family";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_mail_stats } from "@/hooks/use_mail_stats";
-import {
-  type CancelReason,
-} from "@/components/settings/billing/cancel_reason_step";
-import {
-  type CancelStep,
-} from "@/components/settings/billing/cancel_impact_step";
+import { use_auth } from "@/contexts/auth/use_auth_hook";
+import { type CancelReason } from "@/components/settings/billing/cancel_reason_step";
+import { type CancelStep } from "@/components/settings/billing/cancel_impact_step";
 import {
   clear_cancel_password_cache,
   get_cancel_password_hash,
@@ -53,7 +53,6 @@ import { list_contacts, decrypt_contacts } from "@/services/api/contacts";
 import { request_cache } from "@/services/api/request_cache";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 import { ignore_error } from "@/lib/ignore_error";
-
 import {
   get_subscription,
   get_billing_history,
@@ -65,9 +64,11 @@ import {
   change_plan,
   get_storage_addons,
   purchase_storage_addon,
+  cancel_storage_addon,
   get_referral_info,
   get_referral_history,
   get_credits,
+  get_academic_discount_status,
   build_referral_invite_url,
   get_cancel_impact,
   format_date,
@@ -75,11 +76,14 @@ import {
   type ReferralHistoryItem,
   type CreditBalanceResponse,
   type StorageAddonItem,
+  type UserActiveAddon,
+  type AcademicDiscountStatusResponse,
   type CancelImpactResponse,
 } from "@/services/api/billing";
 
 export function use_billing_section() {
   const { t } = use_i18n();
+  const { user } = use_auth();
   const { stats } = use_mail_stats();
   const [subscription, set_subscription] =
     useState<SubscriptionResponse | null>(null);
@@ -97,6 +101,8 @@ export function use_billing_section() {
   const [cancel_reason_text, set_cancel_reason_text] = useState("");
   const [cancel_step, set_cancel_step] = useState<CancelStep>("reason");
   const [is_verifying_password, set_is_verifying_password] = useState(false);
+  const [cancel_totp_code, set_cancel_totp_code] = useState("");
+  const [cancel_totp_required, set_cancel_totp_required] = useState(false);
   const [cancel_impact, set_cancel_impact] =
     useState<CancelImpactResponse | null>(null);
   const [is_impact_loading, set_is_impact_loading] = useState(false);
@@ -109,6 +115,8 @@ export function use_billing_section() {
     set_cancel_reason(null);
     set_cancel_reason_text("");
     set_cancel_step("reason");
+    set_cancel_totp_code("");
+    set_cancel_totp_required(false);
     set_cancel_impact(null);
     set_is_verifying_password(false);
     clear_cancel_password_cache();
@@ -147,12 +155,22 @@ export function use_billing_section() {
     if (!cancel_password.trim() || is_verifying_password) return;
     set_is_verifying_password(true);
     set_cancel_password_error("");
-    const outcome = await verify_cancel_password(cancel_password);
+    const outcome = await verify_cancel_password(
+      cancel_password,
+      cancel_totp_code,
+    );
 
     set_is_verifying_password(false);
 
     if (outcome === "verified") {
       set_cancel_step("confirm");
+
+      return;
+    }
+
+    if (outcome === "totp_required") {
+      set_cancel_totp_required(true);
+      set_cancel_password_error(t("settings.please_enter_2fa_code"));
 
       return;
     }
@@ -206,10 +224,27 @@ export function use_billing_section() {
     useState(false);
   const [plan_change_confirm_target, set_plan_change_confirm_target] =
     useState<{ plan: AvailablePlan; interval: string } | null>(null);
-  const [preferred_currency] = useState(detect_currency_from_locale);
+  const [preferred_currency, set_preferred_currency] = useState(
+    detect_currency_from_locale,
+  );
+  const [active_addons, set_active_addons] = useState<UserActiveAddon[]>([]);
+  const [academic_status, set_academic_status] =
+    useState<AcademicDiscountStatusResponse | null>(null);
+  const [plan_type, set_plan_type] = useState<"individual" | "family">(
+    "individual",
+  );
+  const [pending_family_tier, set_pending_family_tier] =
+    useState<FamilyPlanTier | null>(null);
+  const [crypto_family_tier, set_crypto_family_tier] =
+    useState<FamilyPlanTier | null>(null);
+  const [addon_to_cancel, set_addon_to_cancel] =
+    useState<UserActiveAddon | null>(null);
   const [billing_period, set_billing_period] = useState<
     "monthly" | "yearly" | "biennial"
   >("yearly");
+  const [referral_load_failed, set_referral_load_failed] = useState(false);
+  const [subscription_load_failed, set_subscription_load_failed] =
+    useState(false);
   const [referral_info, set_referral_info] = useState<ReferralInfo | null>(
     null,
   );
@@ -233,7 +268,9 @@ export function use_billing_section() {
       while (has_more) {
         const res = await list_contacts({ limit: 100, cursor });
 
-        if (!res.data?.items?.length) break;
+        if (!res.data) throw new Error("list_contacts failed");
+
+        if (!res.data.items?.length) break;
 
         const decrypted = await decrypt_contacts(res.data.items);
 
@@ -265,16 +302,19 @@ export function use_billing_section() {
       window.dispatchEvent(
         new CustomEvent("aster:open-compose-prefilled", {
           detail: {
-            to: all_emails,
+            to: user?.email ? [user.email] : [],
+            bcc: all_emails,
             subject: t("settings.referral_email_subject"),
             body: body_html,
           },
         }),
       );
+    } catch {
+      show_toast(t("common.something_went_wrong_try_again"), "error");
     } finally {
       set_is_sending_referral(false);
     }
-  }, [referral_info, t]);
+  }, [referral_info, t, user]);
 
   const plan_features: Record<string, string[]> = useMemo(
     () => ({
@@ -354,20 +394,48 @@ export function use_billing_section() {
         get_credits(),
       ]);
 
-      if (sub_res.data) set_subscription(sub_res.data);
+      if (sub_res.data) {
+        set_subscription(sub_res.data);
+        set_subscription_load_failed(false);
+      } else {
+        set_subscription_load_failed(true);
+      }
       if (plans_res.data) set_plans(plans_res.data.plans);
       if (hist_res.data) set_history(hist_res.data.items);
-      if (addons_res.data)
+      if (addons_res.data) {
         set_available_addons(addons_res.data.available_addons);
-      if (ref_res.data) set_referral_info(ref_res.data);
+        set_active_addons(addons_res.data.active_addons ?? []);
+      }
+      if (ref_res.data) {
+        set_referral_info(ref_res.data);
+        set_referral_load_failed(false);
+      } else {
+        set_referral_load_failed(true);
+      }
       if (ref_hist_res.data)
         set_referral_history_list(ref_hist_res.data.referrals);
       if (credits_res.data) set_credit_balance(credits_res.data);
     } catch (caught) {
-      ignore_error("pages/mobile/settings/use_billing_section:handle_password_continue", caught);
+      ignore_error(
+        "pages/mobile/settings/use_billing_section:handle_password_continue",
+        caught,
+      );
+      set_subscription_load_failed(true);
     } finally {
       set_is_loading(false);
     }
+  }, []);
+
+  useEffect(() => {
+    const handle_page_show = (e: PageTransitionEvent) => {
+      if (e.persisted) {
+        set_is_action_loading(false);
+      }
+    };
+
+    window.addEventListener("pageshow", handle_page_show);
+
+    return () => window.removeEventListener("pageshow", handle_page_show);
   }, []);
 
   useEffect(() => {
@@ -443,6 +511,7 @@ export function use_billing_section() {
                   request_cache.invalidate("/sync/v1");
                   invalidate_mail_stats();
                   await load_data();
+
                   return;
                 }
               }
@@ -462,6 +531,62 @@ export function use_billing_section() {
 
   const handle_manage_billing = () => {
     set_show_payment_methods(true);
+  };
+
+  const refresh_academic_status = useCallback(async () => {
+    const res = await get_academic_discount_status();
+
+    if (res.data) set_academic_status(res.data);
+  }, []);
+
+  useEffect(() => {
+    refresh_academic_status();
+  }, [refresh_academic_status]);
+
+  const handle_currency_change = useCallback((value: string) => {
+    if (!SUPPORTED_CURRENCIES.some((c) => c.code === value)) return;
+
+    set_preferred_currency(value);
+
+    try {
+      localStorage.setItem(CURRENCY_STORAGE_KEY, value);
+    } catch (caught) {
+      ignore_error(
+        "pages/mobile/settings/use_billing_section:handle_currency_change",
+        caught,
+      );
+    }
+  }, []);
+
+  const handle_cancel_addon = async () => {
+    if (!addon_to_cancel) return;
+
+    set_is_action_loading(true);
+
+    try {
+      const response = await cancel_storage_addon(
+        addon_to_cancel.user_addon_id,
+      );
+
+      if (response.data?.success) {
+        show_toast(t("settings.addon_cancelled"), "success");
+        request_cache.invalidate("/payments/v1");
+        request_cache.invalidate("/sync/v1");
+        invalidate_mail_stats();
+        await load_data();
+      } else {
+        show_toast(t("settings.addon_cancel_failed"), "error");
+      }
+    } catch (caught) {
+      ignore_error(
+        "pages/mobile/settings/use_billing_section:handle_cancel_addon",
+        caught,
+      );
+      show_toast(t("settings.addon_cancel_failed"), "error");
+    } finally {
+      set_is_action_loading(false);
+      set_addon_to_cancel(null);
+    }
   };
 
   const handle_cancel = async () => {
@@ -493,16 +618,34 @@ export function use_billing_section() {
         set_show_cancel_password(false);
         set_cancel_reason(null);
         set_cancel_reason_text("");
+        set_show_cancel_dialog(false);
+        request_cache.invalidate("/payments/v1");
         await load_data();
-      } else {
-        set_cancel_password_error(t("settings.cancel_password_error"));
+
+        return;
       }
+
+      if (response.server_code === "SUBSCRIPTION_NOT_CANCELLABLE") {
+        show_toast(t("settings.cancel_not_cancellable"), "error");
+        set_cancel_password("");
+        set_show_cancel_dialog(false);
+
+        return;
+      }
+
+      if (response.code === "UNAUTHORIZED") {
+        set_cancel_password_error(t("settings.cancel_password_error"));
+        show_toast(t("settings.cancel_password_error"), "error");
+
+        return;
+      }
+
+      show_toast(t("settings.cancel_failed"), "error");
     } catch {
-      set_cancel_password_error(t("settings.cancel_password_error"));
+      show_toast(t("settings.cancel_failed"), "error");
     } finally {
       clear_cancel_password_cache();
       set_is_action_loading(false);
-      set_show_cancel_dialog(false);
     }
   };
 
@@ -513,6 +656,7 @@ export function use_billing_section() {
 
       if (response.data) {
         show_toast(t("settings.subscription_reactivated"), "success");
+        request_cache.invalidate("/payments/v1");
         await load_data();
       } else {
         show_toast(t("settings.failed_reactivate"), "error");
@@ -554,14 +698,19 @@ export function use_billing_section() {
 
     set_is_action_loading(true);
 
-    const result = await start_hosted_checkout(
-      plan.code,
-      checkout_interval,
-      undefined,
-      credit_balance?.balance_cents,
-    );
+    try {
+      const result = await start_hosted_checkout(
+        plan.code,
+        checkout_interval,
+        preferred_currency,
+        credit_balance?.balance_cents,
+      );
 
-    if (!result.ok) {
+      if (!result.ok) {
+        set_is_action_loading(false);
+        show_toast(t("settings.failed_checkout"), "error");
+      }
+    } catch {
       set_is_action_loading(false);
       show_toast(t("settings.failed_checkout"), "error");
     }
@@ -572,25 +721,29 @@ export function use_billing_section() {
     const { plan, interval } = plan_change_confirm_target;
 
     set_is_action_loading(true);
-    const result = await change_plan(plan.code, interval);
+    try {
+      const result = await change_plan(plan.code, interval);
 
-    if (!result.ok) {
-      set_is_action_loading(false);
+      if (!result.ok) {
+        show_toast(t("settings.payment_failed"), "error");
+        set_show_payment_methods(true);
+
+        return;
+      }
+
+      if (result.requires_checkout) return;
+
+      request_cache.invalidate("/payments/v1");
+      invalidate_mail_stats();
+      await load_data();
+      show_toast(t("settings.payment_success"), "success");
+    } catch {
+      show_toast(t("settings.payment_failed"), "error");
+    } finally {
       set_show_plan_change_confirm(false);
       set_plan_change_confirm_target(null);
-      show_toast(t("settings.payment_failed"), "error");
-      set_show_payment_methods(true);
-
-      return;
+      set_is_action_loading(false);
     }
-
-    set_show_plan_change_confirm(false);
-    set_plan_change_confirm_target(null);
-    request_cache.invalidate("/payments/v1");
-    invalidate_mail_stats();
-    await load_data();
-    set_is_action_loading(false);
-    show_toast(t("settings.payment_success"), "success");
   };
 
   const crypto_term_prices_for = (plan_code: string) =>
@@ -637,6 +790,8 @@ export function use_billing_section() {
   };
 
   const handle_addon_pay_card = async (addon: StorageAddonItem) => {
+    if (is_action_loading) return;
+
     set_is_action_loading(true);
     try {
       const response = await purchase_storage_addon(
@@ -657,6 +812,103 @@ export function use_billing_section() {
     }
   };
 
+  const handle_family_select = (tier: FamilyPlanTier) => {
+    set_pending_family_tier(tier);
+  };
+
+  const handle_family_crypto = () => {
+    if (!pending_family_tier) return;
+
+    if (!crypto_term_prices_for(pending_family_tier.id)) {
+      show_toast(t("settings.crypto_price_unavailable"), "error");
+
+      return;
+    }
+
+    set_crypto_family_tier(pending_family_tier);
+    set_pending_family_tier(null);
+  };
+
+  const handle_family_card = async () => {
+    if (!pending_family_tier) return;
+    if (is_action_loading) return;
+
+    const tier = pending_family_tier;
+    const card_interval: "month" | "year" =
+      billing_period === "yearly" ? "year" : "month";
+
+    set_pending_family_tier(null);
+
+    const has_card_sub =
+      !!subscription &&
+      subscription.plan.code !== "free" &&
+      !is_crypto_provider(subscription.payment_provider) &&
+      subscription.has_stripe_subscription !== false;
+
+    if (has_card_sub) {
+      const plan =
+        plans.find((p) => p.code === tier.id) ??
+        ({
+          id: tier.id,
+          code: tier.id,
+          name: tier.name,
+          description: tier.description,
+          storage_limit_bytes: 0,
+          max_attachment_size_bytes: 0,
+          max_email_aliases: 0,
+          max_custom_domains: 0,
+          price_cents:
+            card_interval === "year" ? tier.yearly_cents : tier.monthly_cents,
+          billing_period: card_interval,
+          stripe_price_id: null,
+          is_current: false,
+        } as AvailablePlan);
+
+      set_plan_change_confirm_target({ plan, interval: card_interval });
+      set_show_plan_change_confirm(true);
+
+      return;
+    }
+
+    set_is_action_loading(true);
+
+    try {
+      const origin = window.location.origin;
+      const res = await create_family_group(
+        tier.id,
+        card_interval,
+        `${origin}/?family=success`,
+        `${origin}/?family=cancelled`,
+      );
+      const checkout_url = res.data?.checkout_url;
+
+      if (!checkout_url) {
+        show_toast(t("settings.failed_checkout"), "error");
+        set_is_action_loading(false);
+
+        return;
+      }
+
+      const parsed = new URL(checkout_url);
+
+      if (parsed.protocol !== "https:") {
+        show_toast(t("settings.failed_checkout"), "error");
+        set_is_action_loading(false);
+
+        return;
+      }
+
+      window.location.assign(parsed.toString());
+    } catch (caught) {
+      ignore_error(
+        "pages/mobile/settings/use_billing_section:handle_family_card",
+        caught,
+      );
+      show_toast(t("settings.failed_checkout"), "error");
+      set_is_action_loading(false);
+    }
+  };
+
   const handle_addon_pay_crypto = (addon: StorageAddonItem) => {
     set_crypto_addon(addon);
     set_show_crypto_addon_modal(true);
@@ -666,6 +918,19 @@ export function use_billing_section() {
   const scroll_to_plans = () => {
     plans_ref.current?.scrollIntoView({ behavior: "smooth" });
   };
+
+  const current_billing_interval: "month" | "year" =
+    subscription?.plan.billing_period?.startsWith("year") ? "year" : "month";
+  const has_payment_failed = Boolean(subscription?.payment_failed_at);
+  const grace_days_remaining = subscription?.grace_period_end
+    ? Math.max(
+        0,
+        Math.ceil(
+          (new Date(subscription.grace_period_end).getTime() - Date.now()) /
+            (1000 * 60 * 60 * 24),
+        ),
+      )
+    : 0;
 
   const is_paid_plan = subscription && subscription.plan.code !== "free";
   const is_crypto_sub = is_crypto_provider(subscription?.payment_provider);
@@ -692,6 +957,9 @@ export function use_billing_section() {
     cancel_step,
     set_cancel_step,
     is_verifying_password,
+    cancel_totp_code,
+    set_cancel_totp_code,
+    cancel_totp_required,
     cancel_impact,
     is_impact_loading,
     cancel_effective_date,
@@ -724,9 +992,31 @@ export function use_billing_section() {
     plan_change_confirm_target,
     set_plan_change_confirm_target,
     preferred_currency,
+    handle_currency_change,
     billing_period,
     set_billing_period,
+    active_addons,
+    academic_status,
+    refresh_academic_status,
+    plan_type,
+    set_plan_type,
+    pending_family_tier,
+    set_pending_family_tier,
+    crypto_family_tier,
+    set_crypto_family_tier,
+    handle_family_select,
+    handle_family_card,
+    handle_family_crypto,
+    addon_to_cancel,
+    set_addon_to_cancel,
+    handle_cancel_addon,
+    current_billing_interval,
+    has_payment_failed,
+    grace_days_remaining,
     referral_info,
+    referral_load_failed,
+    subscription_load_failed,
+    load_data,
     referral_history_list,
     is_sending_referral,
     credit_balance,

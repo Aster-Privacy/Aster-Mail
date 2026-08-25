@@ -29,7 +29,11 @@ import {
 import { Button } from "@aster/ui";
 import { Checkbox } from "@aster/ui";
 
-import { ForwardingRuleBuilder } from "./forwarding_rule_builder";
+import {
+  FIELD_KEYS,
+  ForwardingRuleBuilder,
+  OPERATOR_KEYS,
+} from "./forwarding_rule_builder";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { use_shift_range_select } from "@/lib/use_shift_range_select";
@@ -57,7 +61,10 @@ import {
 } from "@/services/api/auto_forward";
 import { get_favicon_url } from "@/lib/favicon_url";
 import { show_toast } from "@/components/toast/simple_toast";
+import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
+import { app_locale, get_display_time_zone } from "@/utils/date_format";
+import { format_decimal } from "@/lib/utils";
 
 export function AutoForwardSection() {
   const { t } = use_i18n();
@@ -65,8 +72,12 @@ export function AutoForwardSection() {
   const [rules, set_rules] = useState<ForwardingRuleResponse[]>([]);
   const [selected_ids, set_selected_ids] = useState<Set<string>>(new Set());
   const [is_loading, set_is_loading] = useState(true);
+  const [load_failed, set_load_failed] = useState(false);
   const [is_deleting, set_is_deleting] = useState(false);
   const [search_query, set_search_query] = useState("");
+  const [confirm_delete_rule, set_confirm_delete_rule] =
+    useState<ForwardingRuleResponse | null>(null);
+  const [confirm_bulk_delete, set_confirm_bulk_delete] = useState(false);
   const [show_builder, set_show_builder] = useState(false);
   const [editing_rule, set_editing_rule] =
     useState<ForwardingRuleResponse | null>(null);
@@ -91,7 +102,12 @@ export function AutoForwardSection() {
 
       if (result.data) {
         set_rules(result.data);
+        set_load_failed(false);
+      } else {
+        set_load_failed(true);
       }
+    } catch {
+      set_load_failed(true);
     } finally {
       set_is_loading(false);
     }
@@ -141,8 +157,26 @@ export function AutoForwardSection() {
     set_selected_ids,
   );
 
+  const existing_ids_key = rules.map((r) => r.id).join(",");
+
+  useEffect(() => {
+    const visible = new Set(existing_ids_key ? existing_ids_key.split(",") : []);
+
+    set_selected_ids((prev) => {
+      if (prev.size === 0) return prev;
+
+      const next = new Set(Array.from(prev).filter((id) => visible.has(id)));
+
+      return next.size === prev.size ? prev : next;
+    });
+  }, [existing_ids_key]);
+
+  const all_filtered_selected =
+    filtered_rules.length > 0 &&
+    filtered_rules.every((r) => selected_ids.has(r.id));
+
   const handle_select_all = () => {
-    if (selected_ids.size === filtered_rules.length) {
+    if (all_filtered_selected) {
       set_selected_ids(new Set());
     } else {
       set_selected_ids(new Set(filtered_rules.map((r) => r.id)));
@@ -160,7 +194,11 @@ export function AutoForwardSection() {
           t("settings.removed_forwarding_rule", { name: rule.name }),
           "success",
         );
+      } else {
+        show_toast(t("common.delete_failed"), "error");
       }
+    } catch {
+      show_toast(t("common.delete_failed"), "error");
     } finally {
       set_is_deleting(false);
     }
@@ -175,15 +213,25 @@ export function AutoForwardSection() {
       const result = await bulk_delete_forwarding_rules(ids);
 
       if (result.data?.success) {
-        set_rules((prev) => prev.filter((r) => !selected_ids.has(r.id)));
+        const deleted_count = result.data.deleted_count;
+
+        if (deleted_count === ids.length) {
+          set_rules((prev) => prev.filter((r) => !selected_ids.has(r.id)));
+        } else {
+          await fetch_rules();
+        }
         show_toast(
           t("settings.removed_forwarding_rules_count", {
-            count: String(result.data.deleted_count),
+            count: deleted_count,
           }),
           "success",
         );
         set_selected_ids(new Set());
+      } else {
+        show_toast(t("common.delete_failed"), "error");
       }
+    } catch {
+      show_toast(t("common.delete_failed"), "error");
     } finally {
       set_is_deleting(false);
     }
@@ -215,6 +263,7 @@ export function AutoForwardSection() {
           r.id === rule.id ? { ...r, is_enabled: !new_enabled } : r,
         ),
       );
+      show_toast(t("common.failed_to_update_rule"), "error");
     }
   };
 
@@ -237,8 +286,11 @@ export function AutoForwardSection() {
           "success",
         );
         fetch_rules();
-      } else if (result.error) {
-        show_toast(result.error, "error");
+      } else {
+        show_toast(
+          result.error || t("common.something_went_wrong_try_again"),
+          "error",
+        );
       }
     } finally {
       set_resending_address(null);
@@ -298,8 +350,11 @@ export function AutoForwardSection() {
           );
           notify_saved(result.data, false);
           close_builder();
-        } else if (result.error) {
-          show_toast(result.error, "error");
+        } else {
+          show_toast(
+            result.error || t("common.something_went_wrong_try_again"),
+            "error",
+          );
         }
       } else {
         const result = await create_forwarding_rule(
@@ -313,8 +368,11 @@ export function AutoForwardSection() {
           set_rules((prev) => [result.data!, ...prev]);
           notify_saved(result.data, true);
           close_builder();
-        } else if (result.error) {
-          show_toast(result.error, "error");
+        } else {
+          show_toast(
+            result.error || t("common.something_went_wrong_try_again"),
+            "error",
+          );
         }
       }
     } finally {
@@ -328,14 +386,24 @@ export function AutoForwardSection() {
     }
 
     return conditions
-      .map((c) => `${c.field} ${c.operator.replace("_", " ")} "${c.value}"`)
-      .join(" AND ");
+      .map((c) => {
+        const field_key = FIELD_KEYS.find((opt) => opt.value === c.field)?.key;
+        const operator_key = OPERATOR_KEYS.find(
+          (opt) => opt.value === c.operator,
+        )?.key;
+
+        return `${field_key ? t(field_key) : c.field} ${
+          operator_key ? t(operator_key) : c.operator
+        } "${c.value}"`;
+      })
+      .join(` ${t("common.and")} `);
   };
 
   const format_date = (date_string: string) => {
     const date = new Date(date_string);
 
-    return date.toLocaleDateString(undefined, {
+    return date.toLocaleDateString(app_locale(), {
+      timeZone: get_display_time_zone(),
       month: "short",
       day: "numeric",
       year: "numeric",
@@ -345,7 +413,9 @@ export function AutoForwardSection() {
   const format_count = (count: number): string => {
     if (count === 0) return "";
     if (count >= 1000)
-      return t("mail.forwarded_count_k", { count: (count / 1000).toFixed(1) });
+      return t("mail.forwarded_count_k", {
+        count: format_decimal(count / 1000, 1),
+      });
 
     return t("mail.forwarded_count", { count });
   };
@@ -391,11 +461,11 @@ export function AutoForwardSection() {
 
         <div className="flex items-center justify-between gap-3">
           <div className="relative flex-1 max-w-xs">
-            <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-txt-muted" />
+            <MagnifyingGlassIcon className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-txt-muted" />
             <Input
               placeholder={t("common.search_forwarding_rules")}
               size="md"
-              style={{ paddingLeft: "38px" }}
+              style={{ paddingInlineStart: "38px" }}
               value={search_query}
               onChange={(e) => set_search_query(e.target.value)}
             />
@@ -406,7 +476,7 @@ export function AutoForwardSection() {
               disabled={is_deleting}
               size="md"
               variant="destructive"
-              onClick={handle_bulk_delete}
+              onClick={() => set_confirm_bulk_delete(true)}
             >
               {is_deleting ? (
                 <Spinner size="md" />
@@ -419,12 +489,13 @@ export function AutoForwardSection() {
         </div>
 
         <Modal
+          close_on_overlay={false}
           is_open={show_builder}
           on_close={close_builder}
           show_close_button={false}
           size="lg"
         >
-          <ModalHeader className="pr-6 pb-3">
+          <ModalHeader className="pe-6 pb-3">
             <ModalTitle className="text-[15px]">
               {editing_rule
                 ? t("settings.edit_forwarding_rule")
@@ -433,6 +504,7 @@ export function AutoForwardSection() {
           </ModalHeader>
           <ModalBody className="px-6 pb-6">
             <ForwardingRuleBuilder
+              key={editing_rule?.id ?? "new"}
               initial_conditions={editing_rule?.conditions}
               initial_forward_to={editing_rule?.forward_to}
               initial_keep_copy={editing_rule?.keep_copy}
@@ -444,7 +516,24 @@ export function AutoForwardSection() {
           </ModalBody>
         </Modal>
 
-        {rules.length === 0 ? (
+        {load_failed && rules.length === 0 ? (
+          <div className="text-center py-8 rounded-xl bg-surf-secondary border border-dashed border-edge-secondary">
+            <p className="text-sm text-txt-muted">
+              {t("common.something_went_wrong_try_again")}
+            </p>
+            <Button
+              className="mt-3"
+              size="sm"
+              variant="secondary"
+              onClick={() => {
+                set_is_loading(true);
+                fetch_rules();
+              }}
+            >
+              {t("common.retry")}
+            </Button>
+          </div>
+        ) : rules.length === 0 ? (
           <div className="text-center py-8 rounded-xl bg-surf-secondary border border-dashed border-edge-secondary">
             <ArrowTopRightOnSquareIcon className="w-6 h-6 mx-auto mb-2 text-txt-muted" />
             <p className="text-sm text-txt-muted">
@@ -465,12 +554,12 @@ export function AutoForwardSection() {
           <div className="rounded-lg overflow-hidden border border-edge-secondary">
             <div className="flex items-center px-4 py-2 border-b border-edge-secondary">
               <Checkbox
-                checked={selected_ids.size === filtered_rules.length}
+                checked={all_filtered_selected}
                 onCheckedChange={handle_select_all}
               />
-              <span className="ml-3 text-xs font-medium text-txt-muted">
+              <span className="ms-3 text-xs font-medium text-txt-muted">
                 {t("settings.forwarding_rules_count", {
-                  count: String(filtered_rules.length),
+                  count: filtered_rules.length,
                 })}
               </span>
             </div>
@@ -603,7 +692,7 @@ export function AutoForwardSection() {
                 </div>
 
                 <div className="flex items-center gap-2 flex-shrink-0">
-                  <span className="text-[11px] mr-1 text-txt-muted">
+                  <span className="text-[11px] me-1 text-txt-muted">
                     {format_date(rule.created_at)}
                   </span>
                   <Button
@@ -618,13 +707,15 @@ export function AutoForwardSection() {
                     variant="secondary"
                     onClick={() => handle_toggle(rule)}
                   >
-                    {rule.is_enabled ? t("common.paused") : t("common.enable")}
+                    {rule.is_enabled
+                      ? t("common.disable")
+                      : t("common.enable")}
                   </Button>
                   <Button
                     disabled={is_deleting}
                     size="md"
                     variant="destructive"
-                    onClick={() => handle_delete(rule)}
+                    onClick={() => set_confirm_delete_rule(rule)}
                   >
                     {t("common.remove")}
                   </Button>
@@ -634,6 +725,35 @@ export function AutoForwardSection() {
           </div>
         )}
       </div>
+
+      <ConfirmationModal
+        confirm_text={t("common.remove")}
+        is_open={confirm_delete_rule !== null}
+        message={t("settings.delete_forwarding_rule_message")}
+        title={t("settings.delete_forwarding_rule_title")}
+        variant="danger"
+        on_cancel={() => set_confirm_delete_rule(null)}
+        on_confirm={() => {
+          const target = confirm_delete_rule;
+
+          set_confirm_delete_rule(null);
+
+          if (target) void handle_delete(target);
+        }}
+      />
+
+      <ConfirmationModal
+        confirm_text={t("common.remove")}
+        is_open={confirm_bulk_delete}
+        message={t("settings.delete_forwarding_rule_message")}
+        title={t("settings.delete_forwarding_rule_title")}
+        variant="danger"
+        on_cancel={() => set_confirm_bulk_delete(false)}
+        on_confirm={() => {
+          set_confirm_bulk_delete(false);
+          void handle_bulk_delete();
+        }}
+      />
     </UpgradeGate>
   );
 }

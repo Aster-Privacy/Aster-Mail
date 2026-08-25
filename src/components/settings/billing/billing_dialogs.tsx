@@ -185,6 +185,8 @@ export function BillingDialogs({
   const [cancel_impact, set_cancel_impact] =
     useState<CancelImpactResponse | null>(null);
   const [is_impact_loading, set_is_impact_loading] = useState(false);
+  const [cancel_totp_code, set_cancel_totp_code] = useState("");
+  const [cancel_totp_required, set_cancel_totp_required] = useState(false);
 
   useEffect(() => {
     if (!show_cancel_dialog) return;
@@ -196,6 +198,8 @@ export function BillingDialogs({
     set_cancel_step("reason");
     set_cancel_impact(null);
     set_is_verifying_password(false);
+    set_cancel_totp_code("");
+    set_cancel_totp_required(false);
     clear_cancel_password_cache();
   }, [
     show_cancel_dialog,
@@ -239,12 +243,22 @@ export function BillingDialogs({
     if (!cancel_password.trim() || is_verifying_password) return;
     set_is_verifying_password(true);
     set_cancel_password_error("");
-    const outcome = await verify_cancel_password(cancel_password);
+    const outcome = await verify_cancel_password(
+      cancel_password,
+      cancel_totp_code,
+    );
 
     set_is_verifying_password(false);
 
     if (outcome === "verified") {
       set_cancel_step("confirm");
+
+      return;
+    }
+
+    if (outcome === "totp_required") {
+      set_cancel_totp_required(true);
+      set_cancel_password_error(t("settings.please_enter_2fa_code"));
 
       return;
     }
@@ -276,6 +290,8 @@ export function BillingDialogs({
           } catch {
             // webhook is the source of truth; this call is best-effort
           }
+          let upgrade_observed = false;
+
           for (let attempt = 0; attempt < 6; attempt++) {
             await new Promise((r) =>
               setTimeout(r, attempt === 0 ? 1000 : 2000),
@@ -286,6 +302,7 @@ export function BillingDialogs({
             if (sub_response.data) {
               set_subscription(sub_response.data);
               if (sub_response.data.plan.code !== "free") {
+                upgrade_observed = true;
                 invalidate_mail_stats();
                 await load_data();
                 break;
@@ -293,7 +310,13 @@ export function BillingDialogs({
             }
             if (attempt === 5) await load_data();
           }
-          show_toast(t("settings.payment_success"), "success");
+
+          if (upgrade_observed) {
+            show_toast(t("settings.payment_success"), "success");
+
+            return;
+          }
+          show_toast(t("settings.payment_processing_delayed"), "info");
         })();
       }
 
@@ -329,6 +352,7 @@ export function BillingDialogs({
                 request_cache.invalidate("/sync/v1");
                 invalidate_mail_stats();
                 await load_data();
+
                 return;
               }
             }
@@ -443,12 +467,13 @@ export function BillingDialogs({
                 </label>
                 <div className="relative">
                   <Input
-                    className="w-full pr-10"
+                    autoComplete="current-password"
+                    className="w-full pe-10"
+                    maxLength={128}
                     placeholder={t("settings.cancel_password_placeholder")}
                     status={cancel_password_error ? "error" : "default"}
                     type={show_cancel_password ? "text" : "password"}
                     value={cancel_password}
-                    maxLength={128}
                     onChange={(e) => {
                       set_cancel_password(clamp_password(e.target.value));
                       set_cancel_password_error("");
@@ -461,7 +486,7 @@ export function BillingDialogs({
                     }}
                   />
                   <button
-                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-txt-muted hover:text-txt-secondary"
+                    className="absolute end-2 top-1/2 -translate-y-1/2 p-1 text-txt-muted hover:text-txt-secondary"
                     tabIndex={-1}
                     type="button"
                     onClick={() =>
@@ -475,6 +500,39 @@ export function BillingDialogs({
                     )}
                   </button>
                 </div>
+                {cancel_totp_required && (
+                  <div className="mt-4">
+                    <label
+                      className="block text-sm font-medium text-txt-secondary mb-2"
+                      htmlFor="cancel-totp-code"
+                    >
+                      {t("settings.authenticator_code")}
+                    </label>
+                    <Input
+                      autoComplete="one-time-code"
+                      className="w-full text-center tracking-[0.5em]"
+                      id="cancel-totp-code"
+                      inputMode="numeric"
+                      maxLength={6}
+                      placeholder="000000"
+                      status={cancel_password_error ? "error" : "default"}
+                      type="text"
+                      value={cancel_totp_code}
+                      onChange={(e) => {
+                        set_cancel_totp_code(
+                          e.target.value.replace(/\D/g, "").slice(0, 6),
+                        );
+                        set_cancel_password_error("");
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          handle_password_continue();
+                        }
+                      }}
+                    />
+                  </div>
+                )}
                 {cancel_password_error && (
                   <p
                     className="text-xs mt-1.5"
@@ -490,7 +548,11 @@ export function BillingDialogs({
                 </AlertDialogCancel>
                 <AlertDialogAction
                   className="max-sm:flex-1"
-                  disabled={!cancel_password.trim() || is_verifying_password}
+                  disabled={
+                    !cancel_password.trim() ||
+                    is_verifying_password ||
+                    (cancel_totp_required && cancel_totp_code.length !== 6)
+                  }
                   onClick={(e) => {
                     e.preventDefault();
                     handle_password_continue();
@@ -509,7 +571,6 @@ export function BillingDialogs({
 
       {selected_plan && (
         <CheckoutModal
-          initial_promo_code={academic_promo_code ?? undefined}
           billing_interval={
             billing_period === "yearly"
               ? "year"
@@ -518,6 +579,7 @@ export function BillingDialogs({
                 : "month"
           }
           currency={preferred_currency}
+          initial_promo_code={academic_promo_code ?? undefined}
           on_close={() => {
             set_show_checkout_modal(false);
             set_selected_plan(null);
@@ -603,7 +665,7 @@ export function BillingDialogs({
         <ModalBody>
           <div className="space-y-2">
             <button
-              className="w-full flex items-center gap-3 rounded-[14px] border p-3.5 text-left transition-colors hover:opacity-80"
+              className="w-full flex items-center gap-3 rounded-[14px] border p-3.5 text-start transition-colors hover:opacity-80"
               style={{
                 backgroundColor: "var(--bg-tertiary)",
                 borderColor: "var(--border-secondary)",
@@ -635,7 +697,7 @@ export function BillingDialogs({
 
             {subscription && !subscription.cancel_at_period_end && (
               <button
-                className="w-full flex items-center gap-3 rounded-[14px] border p-3.5 text-left transition-colors hover:opacity-80"
+                className="w-full flex items-center gap-3 rounded-[14px] border p-3.5 text-start transition-colors hover:opacity-80"
                 style={{
                   backgroundColor: "var(--bg-tertiary)",
                   borderColor: "var(--border-secondary)",
@@ -682,7 +744,7 @@ export function BillingDialogs({
             )}
 
             <button
-              className="w-full flex items-center gap-3 rounded-[14px] p-3.5 text-left transition-colors hover:opacity-80"
+              className="w-full flex items-center gap-3 rounded-[14px] p-3.5 text-start transition-colors hover:opacity-80"
               onClick={() => {
                 set_show_manage_plan(false);
                 setTimeout(() => {
@@ -721,7 +783,6 @@ export function BillingDialogs({
           addon_id={checkout_addon.id}
           billing_interval="month"
           currency={preferred_currency}
-          current_plan_price_cents={subscription?.plan.price_cents}
           on_close={() => {
             set_show_addon_checkout(false);
             set_checkout_addon(null);
