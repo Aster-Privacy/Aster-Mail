@@ -42,13 +42,16 @@ import {
 } from "@/hooks/use_stat_helpers";
 import { emit_mail_changed } from "@/hooks/email_action_types";
 import {
-  bulk_add_folder,
-  bulk_remove_folder,
+  batched_bulk_add_folder,
+  batched_bulk_remove_folder,
   trash_thread,
   report_spam_sender,
   remove_spam_sender,
 } from "@/services/api/mail";
-import { bulk_add_tag, bulk_remove_tag } from "@/services/api/tags";
+import {
+  batched_bulk_add_tag,
+  batched_bulk_remove_tag,
+} from "@/services/api/tags";
 import {
   update_item_metadata,
   bulk_update_metadata_by_ids,
@@ -158,16 +161,16 @@ export function build_context_menu_actions(
       );
 
       update_email(email.id, { folders: remaining_folders });
-      const result = await bulk_remove_folder(all_ids, folder_token);
+      const result = await batched_bulk_remove_folder(all_ids, folder_token);
 
-      if (!result.error) {
+      if (result.success) {
         emit_mail_item_updated({ id: email.id, folders: remaining_folders });
         show_action_toast({
           message: t("common.removed_from_folder", { folder: folder_name }),
           action_type: "folder",
           email_ids: all_ids,
           on_undo: async () => {
-            await bulk_add_folder(all_ids, folder_token);
+            await batched_bulk_add_folder(all_ids, folder_token);
             window.dispatchEvent(
               new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH),
             );
@@ -197,16 +200,16 @@ export function build_context_menu_actions(
     } else {
       update_email(email.id, { folders: [new_folder] });
     }
-    const result = await bulk_add_folder(all_ids, folder_token);
+    const result = await batched_bulk_add_folder(all_ids, folder_token);
 
-    if (!result.error) {
+    if (result.success) {
       emit_mail_item_updated({ id: email.id, folders: [new_folder] });
       show_action_toast({
         message: t("common.moved_to_folder", { folder: folder_name }),
         action_type: "folder",
         email_ids: all_ids,
         on_undo: async () => {
-          await bulk_remove_folder(all_ids, folder_token);
+          await batched_bulk_remove_folder(all_ids, folder_token);
           window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
         },
       });
@@ -240,7 +243,7 @@ export function build_context_menu_actions(
           tags: previous_tags.filter((t) => t.id !== tag_token),
         });
       }
-      const result = await bulk_remove_tag(all_ids, tag_token);
+      const result = await batched_bulk_remove_tag(all_ids, tag_token);
 
       if (!result.error) {
         emit_mail_item_updated({
@@ -252,7 +255,7 @@ export function build_context_menu_actions(
           action_type: "folder",
           email_ids: all_ids,
           on_undo: async () => {
-            await bulk_add_tag(all_ids, tag_token);
+            await batched_bulk_add_tag(all_ids, tag_token);
             window.dispatchEvent(
               new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH),
             );
@@ -274,7 +277,7 @@ export function build_context_menu_actions(
       };
 
       update_email(email.id, { tags: [...previous_tags, new_tag] });
-      const result = await bulk_add_tag(all_ids, tag_token);
+      const result = await batched_bulk_add_tag(all_ids, tag_token);
 
       if (!result.error) {
         emit_mail_item_updated({
@@ -286,7 +289,7 @@ export function build_context_menu_actions(
           action_type: "folder",
           email_ids: all_ids,
           on_undo: async () => {
-            await bulk_remove_tag(all_ids, tag_token);
+            await batched_bulk_remove_tag(all_ids, tag_token);
             window.dispatchEvent(
               new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH),
             );
