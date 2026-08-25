@@ -249,12 +249,14 @@ export function ProfileNotesBox({
 
         if (cancelled) return;
 
-        if (response.data) {
-          set_note(response.data.content);
-          set_original_note(response.data.content);
-          set_load_failed(false);
-        } else {
+        if (response.error) {
           set_load_failed(true);
+        } else {
+          if (response.data) {
+            set_note(response.data.content);
+            set_original_note(response.data.content);
+          }
+          set_load_failed(false);
         }
       } catch (error) {
         if (import.meta.env.DEV) console.error(error);
