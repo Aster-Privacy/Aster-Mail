@@ -122,7 +122,7 @@ export async function execute_internal_send(
     attachments?: Attachment[];
     allow_non_post_quantum?: boolean;
   },
-) {
+): Promise<boolean> {
   const { delay_ms, delay_seconds } = compute_delay(ctx);
 
   if (delay_seconds > 0) {
@@ -144,7 +144,9 @@ export async function execute_internal_send(
             email_ids: [],
             duration_ms: 5000,
             on_view_message: () => {
-              window.dispatchEvent(new CustomEvent("astermail:navigate-to-sent"));
+              window.dispatchEvent(
+                new CustomEvent("astermail:navigate-to-sent"),
+              );
             },
           });
         },
@@ -159,7 +161,7 @@ export async function execute_internal_send(
     );
 
     if (!result) {
-      return;
+      return false;
     }
 
     undo_send_manager.add({
@@ -177,6 +179,8 @@ export async function execute_internal_send(
     });
 
     save_and_close(ctx, result.queue_id, email_data);
+
+    return true;
   } else {
     const email_id = queue_email(
       {
@@ -191,7 +195,9 @@ export async function execute_internal_send(
             email_ids: [],
             duration_ms: 5000,
             on_view_message: () => {
-              window.dispatchEvent(new CustomEvent("astermail:navigate-to-sent"));
+              window.dispatchEvent(
+                new CustomEvent("astermail:navigate-to-sent"),
+              );
             },
           });
         },
@@ -207,10 +213,12 @@ export async function execute_internal_send(
     );
 
     if (email_id === null) {
-      return;
+      return false;
     }
 
     save_and_close(ctx, email_id, email_data);
+
+    return true;
   }
 }
 
@@ -232,7 +240,7 @@ export async function execute_external_email_send(
   pgp_override: boolean | null = null,
   require_encryption = false,
   obscure_subject = false,
-) {
+): Promise<boolean> {
   const { delay_ms, delay_seconds } = compute_delay(ctx);
 
   const use_pgp = pgp_enabled && !email_data.secure_external;
@@ -277,7 +285,7 @@ export async function execute_external_email_send(
     );
 
     if (!result) {
-      return;
+      return false;
     }
 
     undo_send_manager.add({
@@ -296,6 +304,8 @@ export async function execute_external_email_send(
     });
 
     save_and_close(ctx, result.queue_id, email_data);
+
+    return true;
   } else if (delay_seconds > 0 && email_data.secure_external) {
     const email_id = crypto.randomUUID();
 
@@ -359,6 +369,8 @@ export async function execute_external_email_send(
     });
 
     save_and_close(ctx, email_id, email_data);
+
+    return true;
   } else {
     try {
       await execute_external_send(external_email_data, true);
@@ -378,6 +390,7 @@ export async function execute_external_email_send(
           window.dispatchEvent(new CustomEvent("astermail:navigate-to-sent"));
         },
       });
+      return true;
     } catch (err) {
       const msg = (err as Error).message;
 
@@ -387,6 +400,8 @@ export async function execute_external_email_send(
           : msg || ctx.t("common.failed_to_send_external_email"),
         "error",
       );
+
+      return false;
     }
   }
 }
@@ -451,8 +466,7 @@ export async function execute_external_account_email_send(
         undo_send_manager.remove(email_id);
         ctx.set_queued_email_id(null);
         show_toast(
-          (err as Error).message ||
-            ctx.t("common.failed_to_send_via_external"),
+          (err as Error).message || ctx.t("common.failed_to_send_via_external"),
           "error",
         );
       }
@@ -522,10 +536,7 @@ export async function execute_external_account_email_send(
     );
 
     if (!result.data?.success) {
-      show_toast(
-        result.error || ctx.t("common.failed_to_send_email"),
-        "error",
-      );
+      show_toast(result.error || ctx.t("common.failed_to_send_email"), "error");
 
       return false;
     }

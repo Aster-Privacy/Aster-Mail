@@ -432,7 +432,7 @@ export function use_compose_send({
       }
 
       if (has_external || email_data.secure_external) {
-        await execute_external_email_send(
+        const sent_external = await execute_external_email_send(
           ctx,
           email_data,
           pgp_enabled,
@@ -440,7 +440,10 @@ export function use_compose_send({
           preferences.require_encryption === true,
           preferences.obscure_subject_when_encrypted === true,
         );
-        await confirm_draft_deleted();
+
+        if (sent_external) {
+          await confirm_draft_deleted();
+        }
 
         return;
       }
@@ -452,11 +455,14 @@ export function use_compose_send({
 
       if (!consent.proceed) return;
 
-      await execute_internal_send(ctx, {
+      const sent_internal = await execute_internal_send(ctx, {
         ...email_data,
         allow_non_post_quantum: consent.allow_non_post_quantum,
       });
-      await confirm_draft_deleted();
+
+      if (sent_internal) {
+        await confirm_draft_deleted();
+      }
     } catch (error) {
       show_toast(
         error instanceof Error
