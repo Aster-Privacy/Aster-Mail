@@ -24,7 +24,7 @@ import { contact_to_form_data } from "@/components/common/hooks/use_contacts_sta
 import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 
 import {
-  list_contacts,
+  list_all_contacts,
   create_contact_encrypted,
   update_contact_encrypted,
   delete_contact as api_delete_contact,
@@ -180,7 +180,7 @@ export function use_contacts_modal({
     try {
       set_error(null);
       set_is_loading(true);
-      const response = await list_contacts({ limit: 100 });
+      const response = await list_all_contacts();
 
       if (response.error || !response.data) {
         set_error(response.error || t("common.failed_to_fetch_contacts"));

@@ -25,7 +25,7 @@ import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { Capacitor } from "@capacitor/core";
 
 import {
-  list_contacts,
+  list_all_contacts,
   decrypt_contacts,
   create_contact_encrypted,
   update_contact_encrypted,
@@ -108,7 +108,7 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
 
     async function load() {
       try {
-        const response = await list_contacts({ limit: 500 });
+        const response = await list_all_contacts();
 
         if (cancelled || !response.data?.items) return;
         const decrypted = await decrypt_contacts(response.data.items);
@@ -156,7 +156,7 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
   const reload_contacts = useCallback(async () => {
     try {
       request_cache.invalidate("contacts");
-      const response = await list_contacts({ limit: 500 });
+      const response = await list_all_contacts();
 
       if (response.data?.items) {
         const decrypted = await decrypt_contacts(response.data.items);

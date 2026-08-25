@@ -46,7 +46,10 @@ import { use_auth } from "@/contexts/auth_context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { show_action_toast } from "@/components/toast/action_toast";
 import { format_bytes } from "@/lib/utils";
-import { list_contacts, decrypt_contacts } from "@/services/api/contacts";
+import {
+  list_all_contacts,
+  decrypt_contacts,
+} from "@/services/api/contacts";
 import {
   create_scheduled_email,
   type ScheduledEmailContent,
@@ -506,7 +509,7 @@ export function use_forward_modal({
 
     const load_contacts_fn = async () => {
       try {
-        const response = await list_contacts({ limit: 100 });
+        const response = await list_all_contacts();
 
         if (response.data?.items) {
           const decrypted = await decrypt_contacts(response.data.items);

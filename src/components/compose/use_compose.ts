@@ -33,7 +33,10 @@ import {
   useMemo,
 } from "react";
 
-import { list_contacts, decrypt_contacts } from "@/services/api/contacts";
+import {
+  list_all_contacts,
+  decrypt_contacts,
+} from "@/services/api/contacts";
 import {
   list_recent_recipients,
   decrypt_recent_recipients,
@@ -459,7 +462,7 @@ export function use_compose({
   useEffect(() => {
     const load_contacts_fn = async () => {
       try {
-        const response = await list_contacts({ limit: 100 });
+        const response = await list_all_contacts();
 
         if (response.data?.items) {
           const decrypted = await decrypt_contacts(response.data.items);

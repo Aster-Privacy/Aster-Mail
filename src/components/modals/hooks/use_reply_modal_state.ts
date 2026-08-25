@@ -78,7 +78,10 @@ import {
   set_preferred_sender_id,
   subscribe_preferred_sender,
 } from "@/lib/preferred_sender";
-import { list_contacts, decrypt_contacts } from "@/services/api/contacts";
+import {
+  list_all_contacts,
+  decrypt_contacts,
+} from "@/services/api/contacts";
 import {
   sanitize_html,
   sanitize_outgoing_html,
@@ -416,7 +419,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
 
     let cancelled = false;
 
-    list_contacts({ limit: 100 })
+    list_all_contacts()
       .then(async (response) => {
         if (cancelled || !response.data?.items) return;
 
