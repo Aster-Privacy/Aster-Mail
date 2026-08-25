@@ -115,10 +115,48 @@ function sanitize_notification_path(input: unknown): string {
   return "/";
 }
 
+const NOTIFICATION_TEXT_MAX_LENGTH = 200;
+const DEFAULT_NOTIFICATION_TITLE = "AsterMail";
+const DEFAULT_NOTIFICATION_BODY = "You have a new message";
+
+function notification_text(value: unknown, fallback: string): string {
+  if (typeof value !== "string") return fallback;
+
+  const trimmed = value.trim();
+
+  if (!trimmed) return fallback;
+
+  return trimmed.slice(0, NOTIFICATION_TEXT_MAX_LENGTH);
+}
+
+function notification_title(value: unknown): string {
+  return notification_text(value, DEFAULT_NOTIFICATION_TITLE);
+}
+
+function notification_body(value: unknown): string {
+  return notification_text(value, DEFAULT_NOTIFICATION_BODY);
+}
+
+function notification_tag(type: unknown, item_id: unknown): string {
+  const prefix = typeof type === "string" && type ? type : "default";
+
+  if (typeof item_id === "string" && item_id) {
+    return `${prefix}:${item_id}`;
+  }
+
+  return prefix;
+}
+
 self.addEventListener("push", (event: PushEvent) => {
   if (!event.data) return;
 
-  let data: { type?: string; title?: string; body?: string; url?: unknown } = {};
+  let data: {
+    type?: string;
+    title?: string;
+    body?: string;
+    url?: unknown;
+    item_id?: unknown;
+  } = {};
 
   try {
     data = event.data.json();
@@ -141,14 +179,17 @@ self.addEventListener("push", (event: PushEvent) => {
 
       const safe_url = sanitize_notification_path(data.url);
       const options: NotificationOptions = {
-        body: "You have a new message",
+        body: notification_body(data.body),
         icon: "/pwa-192x192.png",
         badge: "/favicon-32x32.png",
-        tag: data.type || "default",
+        tag: notification_tag(data.type, data.item_id),
         data: { url: safe_url },
       };
 
-      await self.registration.showNotification("AsterMail", options);
+      await self.registration.showNotification(
+        notification_title(data.title),
+        options,
+      );
     })(),
   );
 });
