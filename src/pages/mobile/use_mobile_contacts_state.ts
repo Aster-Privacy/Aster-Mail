@@ -37,6 +37,7 @@ import { use_should_reduce_motion } from "@/provider";
 import { show_toast } from "@/components/toast/simple_toast";
 
 import { ignore_error } from "@/lib/ignore_error";
+import { emit_contacts_changed } from "@/hooks/mail_events";
 
 const INITIAL_FORM: ContactFormData = {
   first_name: "",
@@ -283,6 +284,7 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
         }
       }
       await reload_contacts();
+      if (imported > 0) emit_contacts_changed();
       if (imported === 0) {
         show_toast(t("common.no_new_contacts_imported"), "info");
       } else {
@@ -365,7 +367,16 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
 
       updated_form.is_favorite = !contact.is_favorite;
       try {
-        await update_contact_encrypted(contact.id, updated_form);
+        const response = await update_contact_encrypted(
+          contact.id,
+          updated_form,
+        );
+
+        if (response.error) {
+          show_toast(response.error, "error");
+
+          return;
+        }
         set_contacts((prev) =>
           prev.map((c) =>
             c.id === contact.id ? { ...c, is_favorite: !c.is_favorite } : c,
@@ -395,6 +406,7 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
         }
         set_contacts((prev) => prev.filter((c) => c.id !== contact.id));
         set_selected_contact(null);
+        emit_contacts_changed();
         show_toast(t("common.delete") + " \u2713", "success");
       } catch (caught) {
         ignore_error("pages/mobile/use_mobile_contacts_state:handle_back", caught);
@@ -460,6 +472,7 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
       }
     }
     set_contacts((prev) => prev.filter((c) => !deleted_ids.has(c.id)));
+    if (deleted_ids.size > 0) emit_contacts_changed();
     exit_select_mode();
     set_show_delete_confirm(false);
 
@@ -496,6 +509,7 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
         updated_ids.has(c.id) ? { ...c, is_favorite: !all_favorited } : c,
       ),
     );
+    if (updated_ids.size > 0) emit_contacts_changed();
     exit_select_mode();
   }, [contacts, selected_ids, exit_select_mode]);
 
@@ -619,6 +633,14 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
                 : c,
             ),
           );
+          emit_contacts_changed();
+        } else {
+          show_toast(
+            result.error || t("common.failed_to_save_contact"),
+            "error",
+          );
+
+          return;
         }
       } else {
         const result = await create_contact_encrypted(saved_form);
@@ -646,6 +668,7 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
         };
 
         set_contacts((prev) => [new_contact, ...prev]);
+        emit_contacts_changed();
         set_show_create(false);
         set_selected_contact(new_contact);
         return;
@@ -657,7 +680,7 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
     } finally {
       set_is_saving(false);
     }
-  }, [form_data, editing_contact]);
+  }, [form_data, editing_contact, t]);
 
   const favorites_count = useMemo(
     () => contacts.filter((c) => c.is_favorite).length,

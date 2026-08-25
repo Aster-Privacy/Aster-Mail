@@ -4628,6 +4628,7 @@ export interface SettingsTranslations {
   vacation_reply_saved: string;
   vacation_reply_deleted: string;
   vacation_reply_delete_failed: string;
+  domain_order_cancel_failed: string;
   vacation_reply_edit: string;
   vacation_reply_setup: string;
   vacation_reply_toggled_on: string;

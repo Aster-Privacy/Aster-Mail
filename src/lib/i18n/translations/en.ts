@@ -5504,6 +5504,8 @@ export const en: Translations = {
     vacation_reply_deleted: "Vacation reply deleted",
     vacation_reply_delete_failed:
       "Your vacation reply was not deleted. Another attempt should do it.",
+    domain_order_cancel_failed:
+      "This order was not canceled. Another attempt should do it.",
     vacation_reply_edit: "Edit Vacation Reply",
     vacation_reply_setup: "Set Up Vacation Reply",
     vacation_reply_toggled_on: "Vacation reply enabled",

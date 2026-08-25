@@ -100,6 +100,11 @@ export function AliasesSection({
         set_purchased_orders((prev) =>
           prev.filter((order) => order.id !== order_id),
         );
+      } else {
+        show_toast(
+          response.error || t("settings.domain_order_cancel_failed"),
+          "error",
+        );
       }
     } catch (caught) {
       ignore_error("pages/mobile/settings/aliases_section:handle_cancel_order", caught);

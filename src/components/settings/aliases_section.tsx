@@ -29,6 +29,7 @@ import {
 import { Button } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { show_toast } from "@/components/toast/simple_toast";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
 import { show_plan_limit_upgrade } from "@/stores/upgrade_store";
@@ -325,6 +326,11 @@ export function AliasesSection() {
       if (response.data?.success) {
         set_purchased_orders((prev) =>
           prev.filter((order) => order.id !== order_id),
+        );
+      } else {
+        show_toast(
+          response.error || t("settings.domain_order_cancel_failed"),
+          "error",
         );
       }
     } catch (caught) {
