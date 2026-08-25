@@ -4068,6 +4068,8 @@ export const es = {
     primary_address_reset: "Restablecer a tu dirección predeterminada",
     also_receives_at: "También recibe en {{email}}",
     alias_grace_days: "{{days}}d restantes",
+    domain_grace_days: "{{days}}d restantes",
+    domain_grace_upgrade_hint: "Mejora tu plan para mantener este dominio activo",
     alias_reserved: "Reservado",
     alias_grace_upgrade_hint: "Mejora tu plan para mantener este alias activo",
     alias_reserved_upgrade_hint: "Mejora tu plan para reactivar este alias",

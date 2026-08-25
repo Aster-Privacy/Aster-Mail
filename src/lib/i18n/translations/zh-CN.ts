@@ -3692,6 +3692,8 @@ export const zh_CN = {
     primary_address_reset: "重置为默认地址",
     also_receives_at: "同时在 {{email}} 接收",
     alias_grace_days: "剩余{{days}}天",
+    domain_grace_days: "剩余{{days}}天",
+    domain_grace_upgrade_hint: "升级以保持此域名活跃",
     alias_reserved: "已保留",
     alias_grace_upgrade_hint: "升级以保持此别名活跃",
     alias_reserved_upgrade_hint: "升级以重新激活此别名",

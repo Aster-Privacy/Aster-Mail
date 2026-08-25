@@ -4049,6 +4049,8 @@ export const ja = {
     primary_address_reset: "既定のアドレスに戻す",
     also_receives_at: "{{email}} でも受信します",
     alias_grace_days: "残り{{days}}日",
+    domain_grace_days: "残り{{days}}日",
+    domain_grace_upgrade_hint: "このドメインを維持するにはアップグレードしてください",
     alias_reserved: "予約済み",
     alias_grace_upgrade_hint:
       "このエイリアスを維持するにはアップグレードしてください",

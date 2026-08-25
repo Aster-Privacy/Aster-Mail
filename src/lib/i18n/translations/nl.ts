@@ -4001,6 +4001,8 @@ export const nl = {
     primary_address_reset: "Terugzetten naar je standaardadres",
     also_receives_at: "Ontvangt ook op {{email}}",
     alias_grace_days: "{{days}}d resterend",
+    domain_grace_days: "{{days}}d resterend",
+    domain_grace_upgrade_hint: "Upgrade om dit domein actief te houden",
     alias_reserved: "Gereserveerd",
     alias_grace_upgrade_hint: "Upgrade om deze alias actief te houden",
     alias_reserved_upgrade_hint: "Upgrade om deze alias te heractiveren",

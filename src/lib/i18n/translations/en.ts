@@ -4721,6 +4721,8 @@ export const en: Translations = {
     primary_address_reset: "Reset to your default address",
     also_receives_at: "Also receives at {{email}}",
     alias_grace_days: "{{days}}d remaining",
+    domain_grace_days: "{{days}}d remaining",
+    domain_grace_upgrade_hint: "Upgrade to keep this domain active",
     alias_reserved: "Reserved",
     alias_grace_upgrade_hint: "Upgrade to keep this alias active",
     alias_reserved_upgrade_hint: "Upgrade to reactivate this alias",

@@ -3972,6 +3972,8 @@ export const ar = {
     primary_address_reset: "إعادة التعيين إلى عنوانك الافتراضي",
     also_receives_at: "يستقبل أيضًا على {{email}}",
     alias_grace_days: "{{days}} أيام متبقية",
+    domain_grace_days: "{{days}} أيام متبقية",
+    domain_grace_upgrade_hint: "قم بالترقية للحفاظ على هذا النطاق نشطاً",
     alias_reserved: "محجوز",
     alias_grace_upgrade_hint: "قم بالترقية للحفاظ على هذا الاسم المستعار نشطاً",
     alias_reserved_upgrade_hint: "قم بالترقية لإعادة تفعيل هذا الاسم المستعار",

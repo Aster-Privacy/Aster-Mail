@@ -74,6 +74,7 @@ export interface CustomDomain {
   created_at: string;
   verified_at?: string;
   last_verification_at?: string;
+  downgrade_grace_expires_at?: string;
 }
 
 export interface DomainListResponse {
@@ -836,6 +837,12 @@ export function get_status_color(status: string): string {
     default:
       return "bg-gray-500/15 text-gray-600 dark:text-gray-400";
   }
+}
+
+export function get_grace_days_remaining(expires_at: string): number {
+  const diff = new Date(expires_at).getTime() - Date.now();
+
+  return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
 }
 
 export function get_status_label(

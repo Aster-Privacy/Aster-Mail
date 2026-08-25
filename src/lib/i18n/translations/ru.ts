@@ -4065,6 +4065,8 @@ export const ru = {
     primary_address_reset: "Сбросить на адрес по умолчанию",
     also_receives_at: "Также получает на {{email}}",
     alias_grace_days: "{{days}}д осталось",
+    domain_grace_days: "{{days}}д осталось",
+    domain_grace_upgrade_hint: "Перейдите на платный тариф, чтобы сохранить этот домен",
     alias_reserved: "Зарезервировано",
     alias_grace_upgrade_hint:
       "Обновите план, чтобы сохранить этот алиас активным",

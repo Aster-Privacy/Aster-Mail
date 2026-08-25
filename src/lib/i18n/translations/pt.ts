@@ -4076,6 +4076,8 @@ export const pt = {
     primary_address_reset: "Repor o endereço predefinido",
     also_receives_at: "Também recebe em {{email}}",
     alias_grace_days: "{{days}}d restantes",
+    domain_grace_days: "{{days}}d restantes",
+    domain_grace_upgrade_hint: "Faça upgrade para manter este domínio ativo",
     alias_reserved: "Reservado",
     alias_grace_upgrade_hint: "Faça upgrade para manter este alias ativo",
     alias_reserved_upgrade_hint: "Faça upgrade para reativar este alias",

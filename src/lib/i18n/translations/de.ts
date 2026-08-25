@@ -4051,6 +4051,8 @@ export const de = {
     primary_address_reset: "Auf Standardadresse zurücksetzen",
     also_receives_at: "Empfängt auch an {{email}}",
     alias_grace_days: "{{days}}T verbleibend",
+    domain_grace_days: "{{days}}T verbleibend",
+    domain_grace_upgrade_hint: "Upgraden Sie, um diese Domain aktiv zu halten",
     alias_reserved: "Reserviert",
     alias_grace_upgrade_hint: "Upgraden Sie, um diesen Alias aktiv zu halten",
     alias_reserved_upgrade_hint:

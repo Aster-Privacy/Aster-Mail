@@ -4038,6 +4038,8 @@ export const tr = {
     primary_address_reset: "Varsayılan adresine sıfırla",
     also_receives_at: "Ayrıca {{email}} adresinde alır",
     alias_grace_days: "{{days}} gün kaldı",
+    domain_grace_days: "{{days}} gün kaldı",
+    domain_grace_upgrade_hint: "Bu alan adını aktif tutmak için yükseltin",
     alias_reserved: "Ayrılmış",
     alias_grace_upgrade_hint: "Bu takma adı aktif tutmak için yükseltin",
     alias_reserved_upgrade_hint:

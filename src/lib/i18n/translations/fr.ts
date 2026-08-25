@@ -4101,6 +4101,8 @@ export const fr = {
     primary_address_reset: "Rétablir votre adresse par défaut",
     also_receives_at: "Reçoit aussi à {{email}}",
     alias_grace_days: "{{days}}j restants",
+    domain_grace_days: "{{days}}j restants",
+    domain_grace_upgrade_hint: "Effectuez une mise à niveau pour conserver ce domaine actif",
     alias_reserved: "Réservé",
     alias_grace_upgrade_hint:
       "Passez à un plan supérieur pour garder cet alias actif",

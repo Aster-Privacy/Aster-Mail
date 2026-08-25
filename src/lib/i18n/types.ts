@@ -4133,6 +4133,8 @@ export interface SettingsTranslations {
   alias_grace_days: string;
   alias_reserved: string;
   alias_grace_upgrade_hint: string;
+  domain_grace_days: string;
+  domain_grace_upgrade_hint: string;
   alias_reserved_upgrade_hint: string;
   create_alias_display_name_label: string;
   create_alias_display_name_placeholder: string;

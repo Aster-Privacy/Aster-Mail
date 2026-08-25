@@ -4016,6 +4016,8 @@ export const ko = {
     primary_address_reset: "기본 주소로 재설정",
     also_receives_at: "{{email}}에서도 수신합니다",
     alias_grace_days: "{{days}}일 남음",
+    domain_grace_days: "{{days}}일 남음",
+    domain_grace_upgrade_hint: "이 도메인을 유지하려면 업그레이드하세요",
     alias_reserved: "예약됨",
     alias_grace_upgrade_hint: "이 별칭을 유지하려면 업그레이드하세요",
     alias_reserved_upgrade_hint: "이 별칭을 다시 활성화하려면 업그레이드하세요",

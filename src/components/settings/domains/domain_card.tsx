@@ -42,6 +42,7 @@ import { ignore_error } from "@/lib/ignore_error";
 
 import {
   get_dns_records,
+  get_grace_days_remaining,
   get_status_color,
   get_status_label,
   type CustomDomain,
@@ -214,7 +215,23 @@ export function DomainCard({
                   {t("settings.verified_count", { count: verification_count })}
                 </span>
               )}
+              {domain.downgrade_grace_expires_at && (
+                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                  {t("settings.domain_grace_days", {
+                    days: String(
+                      get_grace_days_remaining(
+                        domain.downgrade_grace_expires_at,
+                      ),
+                    ),
+                  })}
+                </span>
+              )}
             </div>
+            {domain.downgrade_grace_expires_at && (
+              <p className="text-xs mt-0.5 text-amber-600 dark:text-amber-400">
+                {t("settings.domain_grace_upgrade_hint")}
+              </p>
+            )}
           </div>
         </div>
 
