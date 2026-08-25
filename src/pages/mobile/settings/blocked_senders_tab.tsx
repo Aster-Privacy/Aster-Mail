@@ -72,10 +72,21 @@ export function BlockedSendersTab() {
     set_is_domain(false);
   }, []);
 
-  const handle_unblock = useCallback(async (token: string) => {
-    await unblock_sender_by_token(token);
-    set_blocked((prev) => prev.filter((b) => b.sender_token !== token));
-  }, []);
+  const handle_unblock = useCallback(
+    async (token: string) => {
+      const removed = blocked.find((b) => b.sender_token === token);
+
+      set_blocked((prev) => prev.filter((b) => b.sender_token !== token));
+
+      const result = await unblock_sender_by_token(token);
+
+      if (!result.data?.success) {
+        if (removed) set_blocked((prev) => [...prev, removed]);
+        show_toast(result.error || t("common.something_went_wrong"), "error");
+      }
+    },
+    [blocked, t],
+  );
 
   const handle_add = useCallback(async () => {
     const value = new_email.trim();

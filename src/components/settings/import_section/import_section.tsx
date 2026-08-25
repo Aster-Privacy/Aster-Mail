@@ -132,9 +132,22 @@ export function ImportSection() {
   }, []);
 
   const handle_delete_recent_job = useCallback(async (id: string) => {
-    set_recent_jobs((prev) => prev.filter((j) => j.id !== id));
+    let removed_job: ImportJob | undefined;
+
+    set_recent_jobs((prev) => {
+      removed_job = prev.find((j) => j.id === id);
+
+      return prev.filter((j) => j.id !== id);
+    });
     try {
-      await delete_import_job(id);
+      const response = await delete_import_job(id);
+      const restored = removed_job;
+
+      if (response.error && restored) {
+        set_recent_jobs((prev) =>
+          prev.some((j) => j.id === id) ? prev : [...prev, restored],
+        );
+      }
     } catch (caught) {
       ignore_error("components/settings/import_section/import_section:ImportSection", caught);
     }

@@ -72,10 +72,21 @@ export function AllowlistTab() {
     set_is_domain(false);
   }, []);
 
-  const handle_remove_allowed = useCallback(async (token: string) => {
-    await remove_allowed_sender_by_token(token);
-    set_allowed((prev) => prev.filter((a) => a.sender_token !== token));
-  }, []);
+  const handle_remove_allowed = useCallback(
+    async (token: string) => {
+      const removed = allowed.find((a) => a.sender_token === token);
+
+      set_allowed((prev) => prev.filter((a) => a.sender_token !== token));
+
+      const result = await remove_allowed_sender_by_token(token);
+
+      if (!result.data?.success) {
+        if (removed) set_allowed((prev) => [...prev, removed]);
+        show_toast(result.error || t("common.something_went_wrong"), "error");
+      }
+    },
+    [allowed, t],
+  );
 
   const handle_add = useCallback(async () => {
     const value = new_email.trim();

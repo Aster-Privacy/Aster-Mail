@@ -215,49 +215,73 @@ export function FamilySection({
     if (!revoke_target) return;
     set_action_loading(true);
     try {
-      await revoke_invite(revoke_target.id);
+      const result = await revoke_invite(revoke_target.id);
+
+      if (result.error) {
+        show_toast(t("settings.fam_org_action_failed"), "error");
+
+        return;
+      }
       set_revoke_target(null);
       await load();
     } finally {
       set_action_loading(false);
     }
-  }, [revoke_target, load]);
+  }, [revoke_target, load, t]);
 
   const handle_remove = useCallback(async () => {
     if (!remove_target) return;
     set_action_loading(true);
     try {
-      await remove_family_member(remove_target.user_id);
+      const result = await remove_family_member(remove_target.user_id);
+
+      if (result.error) {
+        show_toast(t("settings.fam_org_action_failed"), "error");
+
+        return;
+      }
       set_remove_target(null);
       await load();
     } finally {
       set_action_loading(false);
     }
-  }, [remove_target, load]);
+  }, [remove_target, load, t]);
 
   const handle_transfer = useCallback(async () => {
     if (!transfer_target) return;
     set_action_loading(true);
     try {
-      await transfer_family_admin(transfer_target.user_id);
+      const result = await transfer_family_admin(transfer_target.user_id);
+
+      if (result.error) {
+        show_toast(t("settings.fam_org_action_failed"), "error");
+
+        return;
+      }
       set_transfer_target(null);
       await load();
     } finally {
       set_action_loading(false);
     }
-  }, [transfer_target, load]);
+  }, [transfer_target, load, t]);
 
   const handle_leave = useCallback(async () => {
     set_action_loading(true);
     try {
-      await leave_family();
+      const result = await leave_family();
+
+      if (result.error) {
+        show_toast(t("settings.fam_org_action_failed"), "error");
+
+        return;
+      }
       set_show_leave_dialog(false);
       localStorage.removeItem("aster_is_family_plan");
       on_back();
     } finally {
       set_action_loading(false);
     }
-  }, [on_back]);
+  }, [on_back, t]);
 
   if (loading) {
     return (

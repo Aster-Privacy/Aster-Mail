@@ -152,9 +152,26 @@ export function ImportSection({
   }, [load_jobs]);
 
   const handle_delete_job = useCallback(async (id: string) => {
-    set_jobs((prev) => prev.filter((j) => j.id !== id));
+    let removed_job: ImportJob | undefined;
+
+    set_jobs((prev) => {
+      removed_job = prev.find((j) => j.id === id);
+
+      return prev.filter((j) => j.id !== id);
+    });
     try {
-      await delete_import_job(id);
+      const response = await delete_import_job(id);
+      const restored = removed_job;
+
+      if (response.error) {
+        if (restored) {
+          set_jobs((prev) =>
+            prev.some((j) => j.id === id) ? prev : [...prev, restored],
+          );
+        }
+
+        return;
+      }
       window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
       window.dispatchEvent(new CustomEvent("astermail:folders-changed"));
       window.dispatchEvent(new CustomEvent("astermail:refresh-requested"));

@@ -386,7 +386,13 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
   const handle_delete_contact = useCallback(
     async (contact: DecryptedContact) => {
       try {
-        await delete_contact(contact.id);
+        const response = await delete_contact(contact.id);
+
+        if (response.error) {
+          show_toast(response.error, "error");
+
+          return;
+        }
         set_contacts((prev) => prev.filter((c) => c.id !== contact.id));
         set_selected_contact(null);
         show_toast(t("common.delete") + " \u2713", "success");
@@ -442,36 +448,52 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
   const handle_mass_delete = useCallback(async () => {
     const ids = Array.from(selected_ids);
 
+    const deleted_ids = new Set<string>();
+
     for (const id of ids) {
       try {
-        await delete_contact(id);
+        const response = await delete_contact(id);
+
+        if (!response.error) deleted_ids.add(id);
       } catch {
         continue;
       }
     }
-    set_contacts((prev) => prev.filter((c) => !selected_ids.has(c.id)));
+    set_contacts((prev) => prev.filter((c) => !deleted_ids.has(c.id)));
     exit_select_mode();
     set_show_delete_confirm(false);
+
+    if (deleted_ids.size !== ids.length) {
+      show_toast(t("common.something_went_wrong"), "error");
+
+      return;
+    }
     show_toast(t("common.delete") + " \u2713", "success");
   }, [selected_ids, exit_select_mode, t]);
 
   const handle_mass_favorite = useCallback(async () => {
     const selected = contacts.filter((c) => selected_ids.has(c.id));
     const all_favorited = selected.every((c) => c.is_favorite);
+    const updated_ids = new Set<string>();
 
     for (const contact of selected) {
       const updated_form = contact_to_form(contact);
 
       updated_form.is_favorite = !all_favorited;
       try {
-        await update_contact_encrypted(contact.id, updated_form);
+        const response = await update_contact_encrypted(
+          contact.id,
+          updated_form,
+        );
+
+        if (!response.error) updated_ids.add(contact.id);
       } catch {
         continue;
       }
     }
     set_contacts((prev) =>
       prev.map((c) =>
-        selected_ids.has(c.id) ? { ...c, is_favorite: !all_favorited } : c,
+        updated_ids.has(c.id) ? { ...c, is_favorite: !all_favorited } : c,
       ),
     );
     exit_select_mode();

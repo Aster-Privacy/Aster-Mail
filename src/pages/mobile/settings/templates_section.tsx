@@ -182,7 +182,14 @@ export function TemplatesSection({
 
   const handle_delete = useCallback(
     async (id: string) => {
-      await delete_template(id);
+      const response = await delete_template(id);
+
+      if (response.error) {
+        set_error(response.error);
+
+        return;
+      }
+
       set_templates((prev) => prev.filter((tmpl) => tmpl.id !== id));
       reload_context_templates();
     },
