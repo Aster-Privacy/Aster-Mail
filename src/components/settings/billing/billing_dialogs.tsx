@@ -346,7 +346,8 @@ export function BillingDialogs({
             await load_data();
           }
         } catch {
-          show_toast(t("settings.payment_failed"), "error");
+          show_toast(t("settings.payment_processing_delayed"), "info");
+          request_cache.invalidate("/payments/v1");
         }
       })();
     } else {
