@@ -126,7 +126,9 @@ export function use_snooze(): UseSnoozeReturn {
         );
       } catch (err) {
         const message =
-          err instanceof Error ? err.message : "failed to snooze emails";
+          err instanceof Error
+          ? err.message
+          : t("errors.failed_to_snooze_emails");
 
         set_error(message);
         throw err;
@@ -156,7 +158,9 @@ export function use_snooze(): UseSnoozeReturn {
       emit_snoozed_changed();
     } catch (err) {
       const message =
-        err instanceof Error ? err.message : "failed to unsnooze email";
+        err instanceof Error
+        ? err.message
+        : t("errors.failed_to_unsnooze_email");
 
       set_error(message);
       throw err;
@@ -185,7 +189,9 @@ export function use_snooze(): UseSnoozeReturn {
       emit_snoozed_changed();
     } catch (err) {
       const message =
-        err instanceof Error ? err.message : "failed to unsnooze email";
+        err instanceof Error
+        ? err.message
+        : t("errors.failed_to_unsnooze_email");
 
       set_error(message);
       throw err;
@@ -208,7 +214,9 @@ export function use_snooze(): UseSnoozeReturn {
       return response.data || [];
     } catch (err) {
       const message =
-        err instanceof Error ? err.message : "failed to list snoozed emails";
+        err instanceof Error
+        ? err.message
+        : t("errors.failed_to_list_snoozed");
 
       set_error(message);
       throw err;
