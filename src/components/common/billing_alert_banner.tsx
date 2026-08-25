@@ -29,6 +29,7 @@ import { get_subscription } from "@/services/api/billing";
 import { ignore_error } from "@/lib/ignore_error";
 
 const DISMISSED_KEY = "aster_billing_alert_dismissed";
+const RECHECK_INTERVAL_MS = 5 * 60 * 1000;
 
 function get_dismissed(): boolean {
   try {
@@ -70,25 +71,43 @@ export function BillingAlertBanner() {
   const [has_payment_failed, set_has_payment_failed] = useState(false);
 
   useEffect(() => {
-    if (get_dismissed()) return;
-
     let cancelled = false;
+    let last_checked = 0;
 
-    get_subscription()
-      .then((response) => {
-        if (cancelled || response.error || !response.data) return;
+    const check = () => {
+      if (get_dismissed()) return;
 
-        if (!response.data.payment_failed_at) return;
+      const now = Date.now();
 
-        set_has_payment_failed(true);
-        set_grace_days(days_remaining(response.data.grace_period_end));
-      })
-      .catch((caught) => {
-        ignore_error("components/common/billing_alert_banner:load", caught);
-      });
+      if (now - last_checked < RECHECK_INTERVAL_MS) return;
+      last_checked = now;
+
+      get_subscription()
+        .then((response) => {
+          if (cancelled || response.error || !response.data) return;
+
+          if (!response.data.payment_failed_at) {
+            set_has_payment_failed(false);
+
+            return;
+          }
+
+          set_has_payment_failed(true);
+          set_grace_days(days_remaining(response.data.grace_period_end));
+        })
+        .catch((caught) => {
+          ignore_error("components/common/billing_alert_banner:load", caught);
+        });
+    };
+
+    check();
+    window.addEventListener("focus", check);
+    window.addEventListener("aster:plan-changed", check);
 
     return () => {
       cancelled = true;
+      window.removeEventListener("focus", check);
+      window.removeEventListener("aster:plan-changed", check);
     };
   }, []);
 
