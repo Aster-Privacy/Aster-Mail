@@ -42,7 +42,10 @@ import {
   decrypt_items_metadata_for_action,
 } from "@/services/bulk_mail_scan";
 import { Spinner } from "@/components/ui/spinner";
-import { bulk_add_folder, bulk_patch_metadata } from "@/services/api/mail";
+import {
+  batched_bulk_add_folder,
+  batched_bulk_patch_metadata,
+} from "@/services/api/mail";
 import { batch_archive, batch_unarchive } from "@/services/api/archive";
 import { stale_all_view_caches } from "@/hooks/email_list_cache";
 import { decrypt_mail_envelope } from "@/components/email/shared/decrypt_envelope";
@@ -312,7 +315,7 @@ export function SenderActionModal({
         }>;
 
         if (valid_updates.length > 0) {
-          await bulk_patch_metadata({ items: valid_updates });
+          await batched_bulk_patch_metadata(valid_updates);
         }
         stale_all_view_caches();
         await batch_archive({ ids: all_ids, tier: "hot" });
@@ -352,7 +355,7 @@ export function SenderActionModal({
             }>;
 
             if (valid_undo.length > 0) {
-              await bulk_patch_metadata({ items: valid_undo });
+              await batched_bulk_patch_metadata(valid_undo);
             }
             await batch_unarchive({ ids: all_ids });
             invalidate_mail_stats();
@@ -386,7 +389,7 @@ export function SenderActionModal({
         }>;
 
         if (valid_updates.length > 0) {
-          await bulk_patch_metadata({ items: valid_updates });
+          await batched_bulk_patch_metadata(valid_updates);
         }
         emit_mail_items_removed({ ids: all_ids });
         invalidate_mail_stats();
@@ -424,7 +427,7 @@ export function SenderActionModal({
             }>;
 
             if (valid_undo.length > 0) {
-              await bulk_patch_metadata({ items: valid_undo });
+              await batched_bulk_patch_metadata(valid_undo);
             }
             invalidate_mail_stats();
             window.dispatchEvent(
@@ -433,7 +436,7 @@ export function SenderActionModal({
           },
         });
       } else if (action_type === "move" && selected_folder) {
-        await bulk_add_folder(all_ids, selected_folder);
+        await batched_bulk_add_folder(all_ids, selected_folder);
         const folder = folders.find((f) => f.token === selected_folder);
 
         invalidate_mail_stats();

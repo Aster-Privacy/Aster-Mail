@@ -34,7 +34,7 @@ import { Checkbox } from "@aster/ui";
 import { use_shift_range_select } from "@/lib/use_shift_range_select";
 import { Modal, ModalBody } from "@/components/ui/modal";
 import { Spinner } from "@/components/ui/spinner";
-import { bulk_patch_metadata } from "@/services/api/mail";
+import { batched_bulk_patch_metadata } from "@/services/api/mail";
 import {
   scan_received_items,
   DECRYPT_YIELD_CHUNK,
@@ -304,7 +304,7 @@ export function ArchiveNewslettersModal({
       }>;
 
       if (valid_updates.length > 0) {
-        await bulk_patch_metadata({ items: valid_updates });
+        await batched_bulk_patch_metadata(valid_updates);
       }
 
       stale_all_view_caches();
@@ -350,7 +350,7 @@ export function ArchiveNewslettersModal({
     }>;
 
     if (valid_undo.length > 0) {
-      await bulk_patch_metadata({ items: valid_undo });
+      await batched_bulk_patch_metadata(valid_undo);
     }
 
     await batch_unarchive({ ids: last_archived.ids });

@@ -35,7 +35,7 @@ import { use_shift_range_select } from "@/lib/use_shift_range_select";
 import { Modal, ModalBody } from "@/components/ui/modal";
 import { Spinner } from "@/components/ui/spinner";
 import { SnoozeIcon } from "@/components/common/icons";
-import { bulk_patch_metadata } from "@/services/api/mail";
+import { batched_bulk_patch_metadata } from "@/services/api/mail";
 import {
   scan_received_items,
   DECRYPT_YIELD_CHUNK,
@@ -345,7 +345,7 @@ export function MassUnsubscribeModal({
       }>;
 
       if (valid_updates.length > 0) {
-        await bulk_patch_metadata({ items: valid_updates });
+        await batched_bulk_patch_metadata(valid_updates);
       }
 
       stale_all_view_caches();
