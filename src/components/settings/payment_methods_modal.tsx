@@ -335,7 +335,13 @@ export function PaymentMethodsModal({
     async (id: string) => {
       set_default_loading_id(id);
       try {
-        await set_default_payment_method(id);
+        const response = await set_default_payment_method(id);
+
+        if (response.error || !response.data?.success) {
+          show_toast(response.error || t("settings.payment_failed"), "error");
+
+          return;
+        }
         show_toast(t("settings.default_updated"), "success");
         await fetch_methods();
       } catch {
@@ -351,7 +357,13 @@ export function PaymentMethodsModal({
     async (id: string) => {
       set_delete_loading_id(id);
       try {
-        await detach_payment_method(id);
+        const response = await detach_payment_method(id);
+
+        if (response.error || !response.data?.success) {
+          show_toast(response.error || t("settings.payment_failed"), "error");
+
+          return;
+        }
         show_toast(t("settings.card_removed"), "success");
         await fetch_methods();
       } catch {

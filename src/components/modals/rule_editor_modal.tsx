@@ -534,8 +534,16 @@ export function RuleEditorModal({
   const handle_delete = async () => {
     if (!rule) return;
     set_saving(true);
-    await delete_rule(rule.id);
+
+    const deleted = await delete_rule(rule.id);
+
     set_saving(false);
+
+    if (!deleted) {
+      show_toast(t("common.something_went_wrong"), "error");
+
+      return;
+    }
     on_close();
   };
 
