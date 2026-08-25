@@ -48,7 +48,16 @@ import {
 import { print_email } from "@/utils/print_email";
 import { execute_unsubscribe } from "@/utils/unsubscribe_detector";
 import { persist_unsubscribe } from "@/hooks/use_unsubscribed_senders";
-import { adjust_stats_unread } from "@/hooks/use_mail_stats";
+import {
+  adjust_stats_unread,
+  invalidate_mail_stats,
+} from "@/hooks/use_mail_stats";
+import {
+  compute_archive_deltas,
+  compute_trash_deltas,
+  apply_stat_deltas,
+  revert_stat_deltas,
+} from "@/hooks/use_stat_helpers";
 import { conversation_has_unread_sibling } from "@/hooks/unread_read_delta";
 import { report_spam_sender, remove_spam_sender } from "@/services/api/mail";
 import { reindex_ids } from "@/services/category_index";
@@ -158,6 +167,15 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
 
     deps.set_is_archive_loading(true);
 
+    const deltas = deps.mail_item
+      ? compute_archive_deltas({
+          item_type: deps.mail_item.item_type,
+          is_read: deps.is_read,
+        })
+      : null;
+
+    if (deltas) apply_stat_deltas(deltas);
+
     const result = await batch_archive({ ids: [deps.email_id], tier: "hot" });
 
     deps.set_is_archive_loading(false);
@@ -166,12 +184,14 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
       await bulk_update_metadata_by_ids([deps.email_id], {
         is_archived: true,
       });
+      invalidate_mail_stats();
       emit_mail_items_removed({ ids: [deps.email_id] });
       show_action_toast({
         message: deps.t("common.message_archived"),
         action_type: "archive",
         email_ids: [deps.email_id],
         on_undo: async () => {
+          if (deltas) revert_stat_deltas(deltas);
           const undo_result = await batch_unarchive({ ids: [deps.email_id!] });
 
           if (undo_result.error || !undo_result.data?.success) {
@@ -181,12 +201,22 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
           await bulk_update_metadata_by_ids([deps.email_id!], {
             is_archived: false,
           });
+          invalidate_mail_stats();
           window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
         },
       });
       deps.on_close();
+    } else if (deltas) {
+      revert_stat_deltas(deltas);
     }
-  }, [deps.email_id, deps.is_archive_loading, deps.on_close, deps.t]);
+  }, [
+    deps.email_id,
+    deps.is_archive_loading,
+    deps.mail_item,
+    deps.is_read,
+    deps.on_close,
+    deps.t,
+  ]);
 
   const handle_spam = useCallback(async () => {
     if (!deps.email_id || deps.is_spam_loading || !deps.mail_item) return;
@@ -248,6 +278,13 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
 
     deps.set_is_trash_loading(true);
 
+    const deltas = compute_trash_deltas({
+      item_type: deps.mail_item.item_type,
+      is_read: deps.is_read,
+    });
+
+    apply_stat_deltas(deltas);
+
     const result = await update_item_metadata(
       deps.email_id,
       {
@@ -261,12 +298,14 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
     deps.set_is_trash_loading(false);
 
     if (result.success) {
+      invalidate_mail_stats();
       emit_mail_items_removed({ ids: [deps.email_id] });
       show_action_toast({
         message: deps.t("common.message_moved_to_trash"),
         action_type: "trash",
         email_ids: [deps.email_id],
         on_undo: async () => {
+          revert_stat_deltas(deltas);
           await update_item_metadata(
             deps.email_id!,
             {
@@ -275,14 +314,18 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
             },
             { is_trashed: false },
           );
+          invalidate_mail_stats();
           window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
         },
       });
       deps.on_close();
+    } else {
+      revert_stat_deltas(deltas);
     }
   }, [
     deps.email_id,
     deps.is_trash_loading,
+    deps.is_read,
     deps.on_close,
     deps.mail_item,
     deps.t,
