@@ -537,7 +537,9 @@ export function use_auth_provider_state() {
       sync_client.disconnect();
 
       try {
-        await api_client.post("/core/v1/auth/logout", {});
+        const response = await api_client.post("/core/v1/auth/logout", {});
+
+        if (response.error) throw new Error(response.error);
       } catch {
         api_client.clear_session_cookies();
       }
