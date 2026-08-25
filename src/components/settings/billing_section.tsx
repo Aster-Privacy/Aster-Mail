@@ -549,6 +549,7 @@ export function BillingSection() {
       }
 
       request_cache.invalidate("/payments/v1");
+      request_cache.invalidate("/sync/v1");
       invalidate_mail_stats();
       const sub_response = await get_subscription();
       if (sub_response.data) set_subscription(sub_response.data);
@@ -679,6 +680,8 @@ export function BillingSection() {
       if (response.data) {
         show_toast(t("settings.subscription_reactivated"), "success");
         request_cache.invalidate("/payments/v1");
+        request_cache.invalidate("/sync/v1");
+        invalidate_mail_stats();
         await load_data();
       } else {
         show_toast(

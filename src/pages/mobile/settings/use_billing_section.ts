@@ -531,9 +531,13 @@ export function use_billing_section() {
         show_toast(t("settings.subscription_reactivated"), "success");
         request_cache.invalidate("/payments/v1");
         request_cache.invalidate("/sync/v1");
+        invalidate_mail_stats();
         await load_data();
       } else {
-        show_toast(t("settings.failed_reactivate"), "error");
+        show_toast(
+          server_error_text(response.error, t("settings.failed_reactivate")),
+          "error",
+        );
       }
     } catch {
       show_toast(t("settings.failed_reactivate"), "error");
