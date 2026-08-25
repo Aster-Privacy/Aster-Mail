@@ -437,10 +437,7 @@ export async function move_mail_item(
   item_id: string,
   data: MoveToFolderRequest,
 ): Promise<ApiResponse<{ status: string }>> {
-  return api_client.put<{ status: string }>(
-    `/mail/v1/messages/${item_id}/move`,
-    data,
-  );
+  return add_mail_item_folder(item_id, { folder_token: data.folder_token });
 }
 
 export async function restore_mail_item(

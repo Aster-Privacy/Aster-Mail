@@ -47,6 +47,7 @@ import {
   adjust_stats_unread,
 } from "@/hooks/use_mail_stats";
 import { remove_email_from_view_cache } from "@/hooks/email_list_cache";
+import { get_cached_folders } from "@/hooks/use_folders/cache";
 import { ignore_error } from "@/lib/ignore_error";
 
 import {
@@ -296,8 +297,13 @@ export function use_single_actions_folders(params: SingleActionsFolderParams) {
         emit_mail_action("move", [email.id]);
         config.on_success?.("move", email.id);
 
+        const folder_name =
+          get_cached_folders().find(
+            (candidate) => candidate.folder_token === folder_token,
+          )?.name ?? t("common.folder_fallback");
+
         show_action_toast({
-          message: t("common.moved_to_folder", { folder: folder_token }),
+          message: t("common.moved_to_folder", { folder: folder_name }),
           action_type: "folder",
           email_ids: [email.id],
         });
