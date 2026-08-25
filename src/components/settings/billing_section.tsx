@@ -60,6 +60,7 @@ import {
   take_crypto_resume,
   type CryptoResumeSelection,
 } from "@/components/settings/billing/billing_constants";
+import { server_error_text } from "@/components/settings/billing/server_error_text";
 import { CurrentPlanCard } from "@/components/settings/billing/current_plan_card";
 import { CryptoResumeBanner } from "@/components/settings/billing/crypto_resume_banner";
 import { AvailablePlansSection } from "@/components/settings/billing/available_plans_section";
@@ -497,7 +498,10 @@ export function BillingSection() {
         credit_balance?.balance_cents,
       );
       if (!result.ok) {
-        show_toast(t("settings.failed_checkout"), "error");
+        show_toast(
+          server_error_text(result.error, t("settings.failed_checkout")),
+          "error",
+        );
         set_is_action_loading(false);
       } else if (is_tauri) {
         pending_tauri_checkout_ref.current = true;
@@ -528,7 +532,10 @@ export function BillingSection() {
         : await change_plan(plan.code, interval);
 
       if (!result.ok) {
-        show_toast(t("settings.payment_failed"), "error");
+        show_toast(
+          server_error_text(result.error, t("settings.payment_failed")),
+          "error",
+        );
         set_show_payment_methods(true);
         return;
       }
@@ -587,7 +594,13 @@ export function BillingSection() {
           window.location.assign(url);
         }
       } else {
-        show_toast(t("settings.addon_purchase_failed"), "error");
+        show_toast(
+          server_error_text(
+            response.error,
+            t("settings.addon_purchase_failed"),
+          ),
+          "error",
+        );
         set_is_action_loading(false);
       }
     } catch {
