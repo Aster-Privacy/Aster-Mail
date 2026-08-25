@@ -36,7 +36,9 @@ interface FaviconEntry {
   ts: number;
 }
 
-function open_favicon_db(): Promise<IDBDatabase> {
+let db_promise: Promise<IDBDatabase> | null = null;
+
+function open_connection(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
     const timeout_id = setTimeout(() => {
       reject(new Error("favicon IndexedDB open timed out"));
@@ -50,7 +52,20 @@ function open_favicon_db(): Promise<IDBDatabase> {
     };
     request.onsuccess = () => {
       clearTimeout(timeout_id);
-      resolve(request.result);
+      const db = request.result;
+
+      db.onclose = () => {
+        db_promise = null;
+      };
+      db.onversionchange = () => {
+        db_promise = null;
+        try {
+          db.close();
+        } catch (caught) {
+          ignore_error("lib/favicon_cache_db:onversionchange", caught);
+        }
+      };
+      resolve(db);
     };
     request.onupgradeneeded = () => {
       const db = request.result;
@@ -66,6 +81,17 @@ function open_favicon_db(): Promise<IDBDatabase> {
   });
 }
 
+function open_favicon_db(): Promise<IDBDatabase> {
+  if (!db_promise) {
+    db_promise = open_connection().catch((caught) => {
+      db_promise = null;
+      throw caught;
+    });
+  }
+
+  return db_promise;
+}
+
 async function read_entry(domain: string): Promise<FaviconEntry | null> {
   let db: IDBDatabase;
 
@@ -76,14 +102,7 @@ async function read_entry(domain: string): Promise<FaviconEntry | null> {
   }
 
   return new Promise<FaviconEntry | null>((resolve) => {
-    const timeout_id = setTimeout(() => {
-      try {
-        db.close();
-      } catch (caught) {
-        ignore_error("lib/favicon_cache_db:read_entry", caught);
-      }
-      resolve(null);
-    }, IDB_TX_TIMEOUT_MS);
+    const timeout_id = setTimeout(() => resolve(null), IDB_TX_TIMEOUT_MS);
 
     const tx = db.transaction(STORE, "readonly");
     const store = tx.objectStore(STORE);
@@ -97,7 +116,6 @@ async function read_entry(domain: string): Promise<FaviconEntry | null> {
       clearTimeout(timeout_id);
       resolve((request.result as FaviconEntry) ?? null);
     };
-    tx.oncomplete = () => db.close();
   });
 }
 
@@ -156,14 +174,7 @@ export async function cache_favicon_blob(
   }
 
   await new Promise<void>((resolve) => {
-    const timeout_id = setTimeout(() => {
-      try {
-        db.close();
-      } catch (caught) {
-        ignore_error("lib/favicon_cache_db:cache_favicon_blob", caught);
-      }
-      resolve();
-    }, IDB_TX_TIMEOUT_MS);
+    const timeout_id = setTimeout(resolve, IDB_TX_TIMEOUT_MS);
 
     const tx = db.transaction(STORE, "readwrite");
     const store = tx.objectStore(STORE);
@@ -176,7 +187,6 @@ export async function cache_favicon_blob(
     request.onsuccess = () => {};
     tx.oncomplete = () => {
       clearTimeout(timeout_id);
-      db.close();
       resolve();
     };
   });
@@ -192,14 +202,7 @@ export async function evict_stale_favicons(): Promise<void> {
   }
 
   await new Promise<void>((resolve) => {
-    const timeout_id = setTimeout(() => {
-      try {
-        db.close();
-      } catch (caught) {
-        ignore_error("lib/favicon_cache_db:evict_stale_favicons", caught);
-      }
-      resolve();
-    }, IDB_TX_TIMEOUT_MS);
+    const timeout_id = setTimeout(resolve, IDB_TX_TIMEOUT_MS);
 
     const tx = db.transaction(STORE, "readwrite");
     const store = tx.objectStore(STORE);
@@ -219,8 +222,11 @@ export async function evict_stale_favicons(): Promise<void> {
 
       if (now - entry.ts > TTL_MS) {
         const stale_url = live_urls.get(entry.domain);
+
         if (stale_url) {
-          try { URL.revokeObjectURL(stale_url); } catch (caught) {
+          try {
+            URL.revokeObjectURL(stale_url);
+          } catch (caught) {
             ignore_error("lib/favicon_cache_db:evict_stale_favicons", caught);
           }
           live_urls.delete(entry.domain);
@@ -232,7 +238,6 @@ export async function evict_stale_favicons(): Promise<void> {
     };
     tx.oncomplete = () => {
       clearTimeout(timeout_id);
-      db.close();
       resolve();
     };
   });
@@ -259,14 +264,7 @@ export async function purge_favicon_cache(): Promise<void> {
   }
 
   await new Promise<void>((resolve) => {
-    const timeout_id = setTimeout(() => {
-      try {
-        db.close();
-      } catch (caught) {
-        ignore_error("lib/favicon_cache_db:purge_favicon_cache", caught);
-      }
-      resolve();
-    }, IDB_TX_TIMEOUT_MS);
+    const timeout_id = setTimeout(resolve, IDB_TX_TIMEOUT_MS);
 
     const tx = db.transaction(STORE, "readwrite");
     const store = tx.objectStore(STORE);
@@ -280,7 +278,7 @@ export async function purge_favicon_cache(): Promise<void> {
       clearTimeout(timeout_id);
     };
     tx.oncomplete = () => {
-      db.close();
+      clearTimeout(timeout_id);
       resolve();
     };
   });

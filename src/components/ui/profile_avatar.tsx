@@ -20,6 +20,8 @@
 //
 import { useMemo, useState, useCallback, memo, lazy, Suspense } from "react";
 
+import { Skeleton } from "./skeleton";
+
 import {
   is_icon_failed,
   mark_icon_failed,
@@ -40,8 +42,6 @@ import { use_peer_profile } from "@/hooks/use_peer_profile";
 import { is_aster_email } from "@/services/api/profiles";
 import { GHOST_DOMAIN } from "@/services/api/ghost_aliases";
 import mail_logo_url from "@/assets/mail_logo.webp";
-
-import { Skeleton } from "./skeleton";
 
 const SenderProfileTrigger = lazy(() =>
   import("@/components/profile/sender_profile_trigger").then((mod) => ({
@@ -378,14 +378,11 @@ export const ProfileAvatar = memo(function ProfileAvatar({
         {...fetch_priority_attr(is_local_logo_source ? "high" : "low")}
         referrerPolicy="no-referrer"
         src={actual_src}
-        style={
-          show_placeholder
-            ? {
-                position: "absolute",
-                opacity: 0,
-              }
-            : undefined
-        }
+        style={{
+          position: "absolute",
+          inset: 0,
+          opacity: show_placeholder ? 0 : 1,
+        }}
         onError={error_handler}
         onLoad={handle_load}
       />
