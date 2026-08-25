@@ -220,11 +220,13 @@ async function send_subscription_to_server(
     .replace(/\//g, "_")
     .replace(/=+$/, "");
 
-  await api_client.post("/sync/v1/web-push/subscribe", {
+  const response = await api_client.post("/sync/v1/web-push/subscribe", {
     endpoint: subscription.endpoint,
     p256dh,
     auth: auth_key,
     user_agent: navigator.userAgent,
     device_id: get_push_device_id(),
   });
+
+  if (response.error) throw new Error(response.error);
 }
