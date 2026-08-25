@@ -47,6 +47,7 @@ import { is_folder_unlocked } from "@/hooks/use_protected_folder";
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_email_actions } from "@/hooks/use_email_actions";
+import { show_toast } from "@/components/toast/simple_toast";
 import { search_result_to_inbox_email } from "@/components/search/search_modal_types";
 
 interface UseSearchModalOptions {
@@ -173,6 +174,9 @@ export function use_search_modal({
     use_email_actions({
       on_optimistic_update: update_result_locally,
       on_remove_from_list: remove_result_locally,
+      on_error: (error: string) => {
+        show_toast(error, "error");
+      },
     });
 
   useEffect(() => {
