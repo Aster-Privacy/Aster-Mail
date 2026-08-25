@@ -34,6 +34,7 @@ import {
   format_price,
 } from "@/services/api/billing";
 import { payment_url_or_throw } from "@/lib/payment_url";
+import { server_error_text } from "@/components/settings/billing/server_error_text";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 
@@ -136,7 +137,10 @@ export function crypto_addon_term_modal({
         }
         return;
       }
-      show_toast(t("settings.failed_checkout"), "error");
+      show_toast(
+        server_error_text(response.error, t("settings.failed_checkout")),
+        "error",
+      );
     } catch (error) {
       if (import.meta.env.DEV) console.error(error);
       show_toast(t("settings.failed_checkout"), "error");

@@ -601,7 +601,10 @@ export function use_billing_section() {
       if (response.data?.checkout_url) {
         await open_payment_url(response.data.checkout_url);
       } else {
-        show_toast(t("settings.failed_checkout"), "error");
+        show_toast(
+          server_error_text(response.error, t("settings.failed_checkout")),
+          "error",
+        );
       }
     } catch {
       show_toast(t("settings.failed_checkout"), "error");

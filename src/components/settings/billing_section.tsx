@@ -432,7 +432,10 @@ export function BillingSection() {
           credit_balance?.balance_cents,
         );
         if (!result.ok) {
-          show_toast(t("settings.failed_checkout"), "error");
+          show_toast(
+            server_error_text(result.error, t("settings.failed_checkout")),
+            "error",
+          );
         } else {
           pending_tauri_checkout_ref.current = true;
         }

@@ -41,6 +41,7 @@ import {
   type PromoValidateResponse,
 } from "@/services/api/billing";
 import { connection_store } from "@/services/routing/connection_store";
+import { server_error_text } from "@/components/settings/billing/server_error_text";
 import { use_i18n } from "@/lib/i18n/context";
 import { useTheme } from "@/contexts/theme_context";
 import {
@@ -221,7 +222,12 @@ export function CheckoutModal({
         const secret = addon_response.data?.client_secret;
 
         if (!secret) {
-          set_error_message(t("settings.failed_checkout"));
+          set_error_message(
+            server_error_text(
+              addon_response.error,
+              t("settings.failed_checkout"),
+            ),
+          );
           set_phase("error");
 
           return;

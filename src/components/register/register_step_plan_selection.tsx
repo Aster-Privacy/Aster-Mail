@@ -392,7 +392,10 @@ export const RegisterStepPlanSelection = ({
       }
     } else {
       set_is_finalizing(false);
-      show_toast(t("settings.failed_checkout"), "error");
+      show_toast(
+        server_error_text(res.error, t("settings.failed_checkout")),
+        "error",
+      );
     }
   }, [pending_family_tier, billing_interval, t]);
 

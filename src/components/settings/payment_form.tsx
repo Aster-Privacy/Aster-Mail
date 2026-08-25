@@ -49,6 +49,7 @@ import {
   type PromoValidateResponse,
 } from "@/services/api/billing";
 import { PLAN_TIERS } from "@/components/settings/billing/billing_constants";
+import { server_error_text } from "@/components/settings/billing/server_error_text";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 import {
@@ -418,7 +419,9 @@ export function PaymentForm({
           }
           return;
         }
-        set_error_message(t("settings.failed_checkout"));
+        set_error_message(
+          server_error_text(response.error, t("settings.failed_checkout")),
+        );
         set_phase("ready");
       } catch (err) {
         if (import.meta.env.DEV) console.error(err);

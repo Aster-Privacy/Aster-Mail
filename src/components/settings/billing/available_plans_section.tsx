@@ -47,6 +47,7 @@ import { use_currency_rates } from "@/components/settings/billing/use_currency_r
 import { PlanPaymentMethodModal } from "@/components/settings/billing/plan_payment_method_modal";
 import { CryptoTermModal } from "@/components/settings/billing/crypto_term_modal";
 import { create_family_group } from "@/services/api/family";
+import { server_error_text } from "@/components/settings/billing/server_error_text";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 
@@ -184,7 +185,10 @@ export function AvailablePlansSection({
           window.location.href = parsed.toString();
         }
       } else {
-        show_toast(t("settings.failed_checkout"), "error");
+        show_toast(
+          server_error_text(res.error, t("settings.failed_checkout")),
+          "error",
+        );
       }
     } catch {
       show_toast(t("settings.failed_checkout"), "error");
