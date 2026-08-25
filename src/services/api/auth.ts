@@ -67,6 +67,9 @@ interface RegisterRequest {
   pgp_key?: ClientPgpKeyData;
   captcha_token?: string;
   referral_code?: string;
+  acquisition_source?: string;
+  acquisition_medium?: string;
+  acquisition_campaign?: string;
   client_platform?: string;
   recovery_email?: string;
   reservation_claim_token?: string;
@@ -203,6 +206,7 @@ interface ChangePasswordRequest {
   re_encrypted_destinations?: ReEncryptedDestination[];
   re_encrypted_directories?: ReEncryptedDirectory[];
   re_encrypted_domain_addresses?: ReEncryptedDomainAddress[];
+  unreadable_alias_ids?: string[];
   new_password_strength_tier?: number;
 }
 
@@ -236,7 +240,10 @@ export async function register_user(
       api_client.set_csrf(response.data.csrf_token);
     }
     if (response.data.access_token) {
-      api_client.set_dev_token(response.data.access_token, (response.data as { refresh_token?: string }).refresh_token);
+      api_client.set_dev_token(
+        response.data.access_token,
+        (response.data as { refresh_token?: string }).refresh_token,
+      );
     }
     api_client.set_authenticated(true);
   }
@@ -264,7 +271,10 @@ export async function login_user(
       api_client.set_csrf(response.data.csrf_token);
     }
     if (response.data.access_token) {
-      api_client.set_dev_token(response.data.access_token, (response.data as { refresh_token?: string }).refresh_token);
+      api_client.set_dev_token(
+        response.data.access_token,
+        (response.data as { refresh_token?: string }).refresh_token,
+      );
     }
     api_client.set_authenticated(true);
   }
@@ -369,7 +379,6 @@ export async function set_inactivity_settings(
     },
   );
 }
-
 
 export type {
   RegisterRequest,
