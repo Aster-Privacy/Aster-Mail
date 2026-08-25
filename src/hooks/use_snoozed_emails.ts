@@ -383,20 +383,21 @@ export function use_snoozed_emails(): UseSnoozedEmailsReturn {
   }, [user, preferences.date_format, preferences.time_format, t]);
 
   const unsnooze = useCallback(async (mail_item_id: string) => {
-    try {
-      await unsnooze_by_mail_item(mail_item_id);
-      set_state((prev) => ({
-        ...prev,
-        emails: prev.emails.filter((e) => e.id !== mail_item_id),
-        snoozed_items: prev.snoozed_items.filter(
-          (s) => s.mail_item_id !== mail_item_id,
-        ),
-        total: Math.max(0, prev.total - 1),
-      }));
-      emit_snoozed_changed();
-    } catch {
-      return;
+    const response = await unsnooze_by_mail_item(mail_item_id);
+
+    if (response.error) {
+      throw new Error(response.error);
     }
+
+    set_state((prev) => ({
+      ...prev,
+      emails: prev.emails.filter((e) => e.id !== mail_item_id),
+      snoozed_items: prev.snoozed_items.filter(
+        (s) => s.mail_item_id !== mail_item_id,
+      ),
+      total: Math.max(0, prev.total - 1),
+    }));
+    emit_snoozed_changed();
   }, []);
 
   const refresh = useCallback(() => {
