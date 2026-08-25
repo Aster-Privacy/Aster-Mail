@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { } from "../key_manager";
+import type {} from "../key_manager";
 import { api_client } from "@/services/api/client";
 import type { Signature } from "@/services/api/signatures";
 import type { Template } from "@/services/api/templates";
@@ -38,8 +38,7 @@ import {
   RECENT_RECIPIENTS_MAX_LIMIT,
   save_recent_recipients,
 } from "@/services/api/recent_recipients";
-import {  base64_to_array } from "../base64";
-
+import { base64_to_array } from "../base64";
 
 import { re_encrypt_collection } from "./key_helpers";
 export async function re_encrypt_signatures(
@@ -135,35 +134,61 @@ export async function re_encrypt_blocked_senders(
 
   const old_tokens = resp.data.blocked_senders.map((b) => b.sender_token);
 
-  await bulk_unblock_senders_by_tokens(old_tokens).catch(() => {
-    ok = false;
-  });
+  const unblocked = await bulk_unblock_senders_by_tokens(old_tokens).catch(
+    () => ({ error: "failed to clear blocked senders" }),
+  );
+
+  if (unblocked.error) ok = false;
 
   for (const item of decrypted) {
-    await block_sender(
+    const blocked = await block_sender(
       item.email,
       item.name,
       item.action as "spam" | "delete",
       item.is_domain,
-    ).catch(() => {
-      ok = false;
-    });
+    ).catch(() => ({ error: "failed to block sender" }));
+
+    if (blocked.error) ok = false;
   }
 
   return ok;
 }
 
+const ALLOWED_SENDERS_PAGE_SIZE = 500;
+
+async function list_all_allowed_senders(): Promise<
+  AllowedSenderResponse[] | null
+> {
+  const items: AllowedSenderResponse[] = [];
+
+  for (let offset = 0; ; offset += ALLOWED_SENDERS_PAGE_SIZE) {
+    const resp = await api_client.get<{
+      allowed_senders: AllowedSenderResponse[];
+      total: number;
+    }>(
+      `/contacts/v1/allowed_senders?limit=${ALLOWED_SENDERS_PAGE_SIZE}&offset=${offset}`,
+    );
+
+    if (resp.error || !resp.data) return null;
+
+    items.push(...resp.data.allowed_senders);
+
+    if (resp.data.allowed_senders.length < ALLOWED_SENDERS_PAGE_SIZE) {
+      return items;
+    }
+
+    if (items.length >= resp.data.total) return items;
+  }
+}
+
 export async function re_encrypt_allowed_senders(
   old_aes: CryptoKey,
 ): Promise<boolean> {
-  const resp = await api_client.get<{
-    allowed_senders: AllowedSenderResponse[];
-    total: number;
-  }>("/contacts/v1/allowed_senders?limit=500&offset=0");
+  const all_allowed = await list_all_allowed_senders();
 
-  if (resp.error || !resp.data) return false;
+  if (all_allowed === null) return false;
 
-  if (resp.data.allowed_senders.length === 0) return true;
+  if (all_allowed.length === 0) return true;
 
   const decrypted: Array<{
     email: string;
@@ -173,7 +198,7 @@ export async function re_encrypt_allowed_senders(
 
   let ok = true;
 
-  for (const item of resp.data.allowed_senders) {
+  for (const item of all_allowed) {
     try {
       const ct = base64_to_array(item.encrypted_sender_data);
       const iv = base64_to_array(item.sender_data_nonce);
@@ -197,16 +222,22 @@ export async function re_encrypt_allowed_senders(
 
   if (decrypted.length === 0) return ok;
 
-  const old_tokens = resp.data.allowed_senders.map((a) => a.sender_token);
+  const old_tokens = all_allowed.map((a) => a.sender_token);
 
-  await bulk_remove_allowed_senders_by_tokens(old_tokens).catch(() => {
-    ok = false;
-  });
+  const removed = await bulk_remove_allowed_senders_by_tokens(old_tokens).catch(
+    () => ({ error: "failed to clear allowed senders" }),
+  );
+
+  if (removed.error) ok = false;
 
   for (const item of decrypted) {
-    await allow_sender(item.email, item.name, item.is_domain).catch(() => {
-      ok = false;
-    });
+    const allowed = await allow_sender(
+      item.email,
+      item.name,
+      item.is_domain,
+    ).catch(() => ({ error: "failed to allow sender" }));
+
+    if (allowed.error) ok = false;
   }
 
   return ok;
@@ -244,13 +275,17 @@ export async function re_encrypt_recent_recipients(
 
   if (emails.length === 0) return ok;
 
-  await delete_all_recent_recipients().catch(() => {
-    ok = false;
-  });
-  await save_recent_recipients(emails).catch(() => {
-    ok = false;
-  });
+  const cleared = await delete_all_recent_recipients().catch(() => ({
+    error: "failed to clear recent recipients",
+  }));
+
+  if (cleared.error) ok = false;
+
+  const saved = await save_recent_recipients(emails).catch(() => ({
+    error: "failed to save recent recipients",
+  }));
+
+  if (saved.error) ok = false;
 
   return ok;
 }
-

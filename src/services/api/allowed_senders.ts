@@ -286,7 +286,9 @@ export async function allow_sender(
 ): Promise<ApiResponse<DecryptedAllowedSender>> {
   try {
     const sender_token = await generate_sender_token(email, is_domain);
-    const normalized = is_domain ? email.toLowerCase().trim() : normalize_email(email);
+    const normalized = is_domain
+      ? email.toLowerCase().trim()
+      : normalize_email(email);
     const hash_buffer = await crypto.subtle.digest(
       "SHA-256",
       new TextEncoder().encode(normalized),
@@ -373,26 +375,50 @@ export async function remove_allowed_sender_by_token(
   }
 }
 
+const SENDER_TOKEN_BATCH_SIZE = 100;
+
 export async function bulk_remove_allowed_senders_by_tokens(
   sender_tokens: string[],
 ): Promise<ApiResponse<{ success: boolean; removed_count: number }>> {
-  try {
-    const response = await api_client.delete<{
-      success: boolean;
-      removed_count: number;
-    }>("/contacts/v1/allowed_senders/bulk", {
-      body: JSON.stringify({ sender_tokens }),
-    });
+  let total = 0;
+  let first_error: string | undefined;
 
-    return response;
-  } catch (err) {
-    return {
-      error:
-        err instanceof Error
+  for (
+    let start = 0;
+    start < sender_tokens.length;
+    start += SENDER_TOKEN_BATCH_SIZE
+  ) {
+    const batch = sender_tokens.slice(start, start + SENDER_TOKEN_BATCH_SIZE);
+
+    try {
+      const response = await api_client.delete<{
+        success: boolean;
+        removed_count: number;
+      }>("/contacts/v1/allowed_senders/bulk", {
+        body: JSON.stringify({ sender_tokens: batch }),
+      });
+
+      if (response.error || !response.data) {
+        first_error =
+          first_error ??
+          response.error ??
+          "Failed to bulk remove allowed senders";
+        continue;
+      }
+
+      total += response.data.removed_count;
+    } catch (err) {
+      first_error =
+        first_error ??
+        (err instanceof Error
           ? err.message
-          : "Failed to bulk remove allowed senders",
-    };
+          : "Failed to bulk remove allowed senders");
+    }
   }
+
+  if (first_error) return { error: first_error };
+
+  return { data: { success: true, removed_count: total } };
 }
 
 export async function check_allowed_senders(
