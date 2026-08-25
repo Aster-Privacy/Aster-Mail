@@ -21,7 +21,7 @@
 import { useState, useEffect, useCallback } from "react";
 
 import {
-  list_subscriptions,
+  list_all_subscriptions,
   track_subscription,
   unsubscribe,
 } from "@/services/api/subscriptions";
@@ -84,9 +84,9 @@ export function use_unsubscribed_senders() {
       set_is_loaded(true);
       return;
     }
-    list_subscriptions({ status: "unsubscribed", limit: 1000 }).then((res) => {
+    list_all_subscriptions({ status: "unsubscribed" }).then((res) => {
       if (res.data) {
-        for (const sub of res.data.subscriptions) {
+        for (const sub of res.data) {
           cached_unsubscribed.add(sub.sender_email);
         }
       }

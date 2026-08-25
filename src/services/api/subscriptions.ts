@@ -131,6 +131,40 @@ export async function list_subscriptions(
   return api_client.get<ListSubscriptionsResponse>(endpoint);
 }
 
+const SUBSCRIPTIONS_PAGE_SIZE = 100;
+const SUBSCRIPTIONS_MAX_PAGES = 50;
+
+export async function list_all_subscriptions(
+  params: Omit<ListSubscriptionsParams, "limit" | "offset"> = {},
+): Promise<{ data?: Subscription[]; error?: string }> {
+  const collected: Subscription[] = [];
+
+  for (let page = 0; page < SUBSCRIPTIONS_MAX_PAGES; page++) {
+    const result = await list_subscriptions({
+      ...params,
+      limit: SUBSCRIPTIONS_PAGE_SIZE,
+      offset: page * SUBSCRIPTIONS_PAGE_SIZE,
+    });
+
+    if (result.error || !result.data) {
+      return collected.length > 0
+        ? { data: collected }
+        : { error: result.error ?? "failed to list subscriptions" };
+    }
+
+    collected.push(...result.data.subscriptions);
+
+    if (
+      !result.data.has_more ||
+      result.data.subscriptions.length < SUBSCRIPTIONS_PAGE_SIZE
+    ) {
+      break;
+    }
+  }
+
+  return { data: collected };
+}
+
 export async function get_subscription(
   subscription_id: string,
 ): Promise<{ data?: Subscription; error?: string }> {
