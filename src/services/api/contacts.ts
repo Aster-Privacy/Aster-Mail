@@ -390,6 +390,40 @@ export async function list_contacts(
   return api_client.get<ContactsListResponse>(endpoint);
 }
 
+const CONTACTS_PAGE_SIZE = 100;
+const CONTACTS_MAX_PAGES = 200;
+
+export async function list_all_contacts(
+  params: Omit<ListContactsParams, "limit" | "cursor"> = {},
+): Promise<ApiResponse<ContactsListResponse>> {
+  const collected: Contact[] = [];
+  const seen_cursors = new Set<string>();
+  let cursor: string | undefined;
+
+  for (let page = 0; page < CONTACTS_MAX_PAGES; page++) {
+    const response = await list_contacts({
+      ...params,
+      limit: CONTACTS_PAGE_SIZE,
+      cursor,
+    });
+
+    if (response.error || !response.data) {
+      if (collected.length === 0) return response;
+      break;
+    }
+
+    collected.push(...response.data.items);
+
+    const next = response.data.next_cursor;
+
+    if (!response.data.has_more || !next || seen_cursors.has(next)) break;
+    seen_cursors.add(next);
+    cursor = next;
+  }
+
+  return { data: { items: collected, next_cursor: null, has_more: false } };
+}
+
 export async function get_contact(
   contact_id: string,
 ): Promise<ApiResponse<Contact>> {

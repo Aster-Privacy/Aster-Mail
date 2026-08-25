@@ -24,7 +24,7 @@ import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 
 import {
-  list_contacts,
+  list_all_contacts,
   decrypt_contacts,
 } from "@/services/api/contacts";
 import { use_i18n } from "@/lib/i18n/context";
@@ -268,7 +268,7 @@ export function use_contacts_data() {
 
     try {
       set_error(null);
-      const response = await list_contacts({ limit: 100 });
+      const response = await list_all_contacts();
 
       if (response.error || !response.data) {
         set_error(response.error || t("common.failed_to_fetch_contacts"));
