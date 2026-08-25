@@ -64,6 +64,7 @@ import {
 } from "@/utils/unsubscribe_detector";
 import { confirm_unsubscribe_bulk } from "@/components/modals/unsubscribe_confirmation_modal";
 import { map_in_chunks } from "@/lib/scheduling";
+import { show_toast } from "@/components/toast/simple_toast";
 
 interface Subscription {
   id: string;
@@ -349,8 +350,17 @@ export function MassUnsubscribeModal({
       }
 
       stale_all_view_caches();
-      await batch_archive({ ids: all_mail_ids, tier: "hot" });
-      emit_mail_items_removed({ ids: all_mail_ids });
+
+      const archive_result = await batch_archive({
+        ids: all_mail_ids,
+        tier: "hot",
+      });
+
+      if (archive_result.error) {
+        show_toast(t("common.failed_to_archive_emails"), "error");
+      } else {
+        emit_mail_items_removed({ ids: all_mail_ids });
+      }
       invalidate_mail_stats();
 
       set_completed_count(total);

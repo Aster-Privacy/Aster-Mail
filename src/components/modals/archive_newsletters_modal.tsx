@@ -60,6 +60,7 @@ import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
 import { detect_unsubscribe_info } from "@/utils/unsubscribe_detector";
 import { map_in_chunks } from "@/lib/scheduling";
+import { show_toast } from "@/components/toast/simple_toast";
 
 interface NewsletterSender {
   id: string;
@@ -308,7 +309,17 @@ export function ArchiveNewslettersModal({
       }
 
       stale_all_view_caches();
-      await batch_archive({ ids: all_mail_ids, tier: "hot" });
+
+      const archive_result = await batch_archive({
+        ids: all_mail_ids,
+        tier: "hot",
+      });
+
+      if (archive_result.error) {
+        show_toast(t("common.failed_to_archive_emails"), "error");
+
+        return;
+      }
       emit_mail_items_removed({ ids: all_mail_ids });
       invalidate_mail_stats();
 

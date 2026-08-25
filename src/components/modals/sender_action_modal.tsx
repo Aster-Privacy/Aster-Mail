@@ -65,6 +65,7 @@ import { Input } from "@/components/ui/input";
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
 import { map_in_chunks } from "@/lib/scheduling";
+import { show_toast } from "@/components/toast/simple_toast";
 
 interface DecryptedEnvelope {
   from: { name: string; email: string };
@@ -318,7 +319,17 @@ export function SenderActionModal({
           await batched_bulk_patch_metadata(valid_updates);
         }
         stale_all_view_caches();
-        await batch_archive({ ids: all_ids, tier: "hot" });
+
+        const archive_result = await batch_archive({
+          ids: all_ids,
+          tier: "hot",
+        });
+
+        if (archive_result.error) {
+          show_toast(t("common.failed_to_archive_emails"), "error");
+
+          return;
+        }
         emit_mail_items_removed({ ids: all_ids });
         invalidate_mail_stats();
         show_action_toast({
@@ -436,7 +447,16 @@ export function SenderActionModal({
           },
         });
       } else if (action_type === "move" && selected_folder) {
-        await batched_bulk_add_folder(all_ids, selected_folder);
+        const move_result = await batched_bulk_add_folder(
+          all_ids,
+          selected_folder,
+        );
+
+        if (!move_result.success) {
+          show_toast(t("common.failed_to_move_folder"), "error");
+
+          return;
+        }
         const folder = folders.find((f) => f.token === selected_folder);
 
         invalidate_mail_stats();
