@@ -671,7 +671,10 @@ export function BillingSection() {
         request_cache.invalidate("/payments/v1");
         await load_data();
       } else {
-        show_toast(t("settings.failed_reactivate"), "error");
+        show_toast(
+          server_error_text(response.error, t("settings.failed_reactivate")),
+          "error",
+        );
       }
     } catch (error) {
       if (import.meta.env.DEV) console.error(error);
