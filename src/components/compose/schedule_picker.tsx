@@ -22,7 +22,7 @@ import type { TranslationKey } from "@/lib/i18n/types";
 
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { isBefore } from "date-fns";
-import { is_future_instant } from "@/utils/schedule_targets";
+import { is_schedulable_instant } from "@/utils/schedule_targets";
 import {
   ClockIcon,
   CalendarIcon,
@@ -121,7 +121,7 @@ export function SchedulePicker({
         icon: <ClockIcon className="w-4 h-4" />,
         get_date: get_in_one_hour,
       },
-      ...(is_future_instant(get_tonight())
+      ...(is_schedulable_instant(get_tonight())
         ? [
             {
               label: t("common.tonight"),
@@ -157,7 +157,7 @@ export function SchedulePicker({
     (option: QuickOption) => {
       const date = option.get_date();
 
-      if (!is_future_instant(date)) {
+      if (!is_schedulable_instant(date)) {
         show_toast(t("mail.schedule_time_must_be_future"), "error");
 
         return;
@@ -179,7 +179,7 @@ export function SchedulePicker({
       selected_minute,
     );
 
-    if (!is_future_instant(scheduled)) {
+    if (!is_schedulable_instant(scheduled)) {
       show_toast(t("mail.schedule_time_must_be_future"), "error");
 
       return;
@@ -223,7 +223,7 @@ export function SchedulePicker({
       selected_minute,
     );
 
-    return is_future_instant(scheduled);
+    return is_schedulable_instant(scheduled);
   }, [selected_date, selected_hour, selected_minute]);
 
   if (scheduled_time && !force_picker) {

@@ -35,6 +35,17 @@ export function is_future_instant(
   return value.getTime() > now.getTime();
 }
 
+export const SCHEDULE_MINIMUM_LEAD_MS = 60 * 1000;
+
+export function is_schedulable_instant(
+  value: Date | null | undefined,
+  now: Date = new Date(),
+): boolean {
+  if (!value || Number.isNaN(value.getTime())) return false;
+
+  return value.getTime() >= now.getTime() + SCHEDULE_MINIMUM_LEAD_MS;
+}
+
 export const SCHEDULE_MORNING_HOUR = 8;
 
 export const SCHEDULE_EVENING_HOUR = 21;
