@@ -32,6 +32,7 @@ import {
   hide_splash,
   is_native_platform,
 } from "@/native/capacitor_bridge";
+import { initialize_offline_queue } from "@/native/offline_queue";
 import { recover_fallback_sends } from "@/services/send_queue";
 import {
   start_version_check,
@@ -69,6 +70,7 @@ initialize_capacitor().catch((e) => {
 
 if (!is_native_platform()) {
   recover_fallback_sends().catch((caught) => ignore_error("main", caught));
+  initialize_offline_queue().catch((caught) => ignore_error("main", caught));
 }
 
 const cached_prefs_raw = localStorage.getItem("aster_preferences_cache");

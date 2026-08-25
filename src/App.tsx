@@ -20,7 +20,10 @@
 //
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { Route, Routes } from "react-router-dom";
-import { activate_subscription, get_subscription } from "@/services/api/billing";
+import {
+  activate_subscription,
+  get_subscription,
+} from "@/services/api/billing";
 import { FamilyWelcomeModal } from "@/components/settings/billing/family_welcome_modal";
 import { request_cache } from "@/services/api/request_cache";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
@@ -106,7 +109,9 @@ const NotFoundPage = lazy_with_retry(() => import("@/pages/not_found"));
 const LinkDevicePage = lazy_with_retry(() => import("@/pages/link_device"));
 const JoinFamilyPage = lazy_with_retry(() => import("@/pages/join_family"));
 const FamilyClaimPage = lazy_with_retry(() => import("@/pages/family_claim"));
-const CryptoInvoicePage = lazy_with_retry(() => import("@/pages/crypto_invoice"));
+const CryptoInvoicePage = lazy_with_retry(
+  () => import("@/pages/crypto_invoice"),
+);
 const ExternalRedirect = ({ url }: { url: string }) => {
   window.location.href = url;
 
@@ -124,6 +129,7 @@ import { UndoSendPreviewModal } from "@/components/toast/undo_send_preview_modal
 import { EmailNotificationManager } from "@/components/email/email_notification_manager";
 import { FolderUnlockPrompt } from "@/components/folders/folder_unlock_prompt";
 import { OfflineIndicator } from "@/components/common/offline_indicator";
+import { use_offline_queue_failures } from "@/hooks/use_offline_queue_failures";
 import { FullPageLoader } from "@/components/common/full_page_loader";
 import { ErrorBoundary } from "@/components/ui/error_boundary";
 import { AppLock } from "@/components/mobile";
@@ -140,7 +146,10 @@ const FAMILY_WELCOME_SEEN_KEY_PREFIX = "aster_family_welcome_seen_";
 
 function has_seen_family_welcome(account_id: string): boolean {
   try {
-    return localStorage.getItem(`${FAMILY_WELCOME_SEEN_KEY_PREFIX}${account_id}`) === "1";
+    return (
+      localStorage.getItem(`${FAMILY_WELCOME_SEEN_KEY_PREFIX}${account_id}`) ===
+      "1"
+    );
   } catch {
     return false;
   }
@@ -160,7 +169,8 @@ function BillingSuccessHandler() {
   const { t } = use_i18n();
   const { is_authenticated, current_account_id } = use_auth();
   const handled = useRef(false);
-  const [family_welcome, set_family_welcome] = useState<FamilyWelcomeState | null>(null);
+  const [family_welcome, set_family_welcome] =
+    useState<FamilyWelcomeState | null>(null);
   const [individual_welcome, set_individual_welcome] = useState<{
     plan: string;
     billing: string;
@@ -242,7 +252,8 @@ function BillingSuccessHandler() {
             const storage_gb = code === "duo" ? 500 : 3000;
             mark_family_welcome_seen(current_account_id);
             set_family_welcome({
-              plan_name: res.data.plan.name ?? (code === "duo" ? "Duo" : "Family"),
+              plan_name:
+                res.data.plan.name ?? (code === "duo" ? "Duo" : "Family"),
               max_members,
               storage_pool_bytes: storage_gb * 1073741824,
             });
@@ -274,7 +285,9 @@ function BillingSuccessHandler() {
           storage_pool_bytes={family_welcome.storage_pool_bytes}
           on_go_to_family={() => {
             set_family_welcome(null);
-            window.dispatchEvent(new CustomEvent("navigate-settings", { detail: "family" }));
+            window.dispatchEvent(
+              new CustomEvent("navigate-settings", { detail: "family" }),
+            );
           }}
         />
       )}
@@ -285,7 +298,9 @@ function BillingSuccessHandler() {
           on_close={() => set_individual_welcome(null)}
           on_view_billing={() => {
             set_individual_welcome(null);
-            window.dispatchEvent(new CustomEvent("navigate-settings", { detail: "billing" }));
+            window.dispatchEvent(
+              new CustomEvent("navigate-settings", { detail: "billing" }),
+            );
           }}
           plan={individual_welcome.plan}
         />
@@ -295,6 +310,8 @@ function BillingSuccessHandler() {
 }
 
 function App() {
+  use_offline_queue_failures();
+
   useEffect(() => {
     try {
       const params = new URLSearchParams(window.location.search);
@@ -484,7 +501,10 @@ function App() {
               />
               <Route element={<LinkDevicePage />} path="/link-device" />
               <Route element={<JoinFamilyPage />} path="/join/family" />
-              <Route element={<FamilyClaimPage />} path="/family/claim/:token" />
+              <Route
+                element={<FamilyClaimPage />}
+                path="/family/claim/:token"
+              />
               <Route element={<SecureViewPage />} path="/view/:token" />
               <Route
                 element={

@@ -1260,6 +1260,7 @@ export interface CommonTranslations {
   vault_not_available: string;
   no_vault_available: string;
   offline_action_queued: string;
+  offline_action_failed: string;
   failed_to_update: string;
   failed_to_load_search_results: string;
   search_failed_try_again: string;

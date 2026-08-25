@@ -946,6 +946,8 @@ export const en: Translations = {
       "Your private keys are not loaded on this device. Signing in again will unlock them. Your keys on the server are untouched.",
     offline_action_queued:
       "You are offline right now. This is queued and will finish as soon as you reconnect.",
+    offline_action_failed:
+      "A change you made while offline could not be applied. Try it again.",
     failed_to_update: "This change did not save. Another attempt should do it.",
     failed_to_load_search_results:
       "Your search did not finish. Another attempt should do it.",
@@ -4069,16 +4071,21 @@ export const en: Translations = {
     cancel_reason_other: "Something else",
     cancel_reason_text_placeholder: "Anything you want to add? (optional)",
     cancel_reason_placeholder_too_expensive: "What price would have felt fair?",
-    cancel_reason_placeholder_not_using: "What would have made this part of your routine?",
+    cancel_reason_placeholder_not_using:
+      "What would have made this part of your routine?",
     cancel_reason_placeholder_missing_feature: "Which feature do you need?",
-    cancel_reason_placeholder_switched_provider: "Which service did you move to, and what won you over?",
+    cancel_reason_placeholder_switched_provider:
+      "Which service did you move to, and what won you over?",
     cancel_reason_placeholder_bugs: "Which problem affected you most?",
     cancel_reason_placeholder_privacy_trust: "What raised the concern?",
     cancel_reason_placeholder_just_testing: "What were you hoping to find out?",
     cancel_reason_placeholder_other: "What made you decide to cancel?",
-    cancel_reason_detail_required: "Add a short answer so we can act on it, or skip this step.",
-    cancel_not_cancellable: "This subscription can't be canceled in the app. Contact support to cancel it.",
-    cancel_failed: "Your plan wasn't canceled. Your billing is unchanged, so you can try again.",
+    cancel_reason_detail_required:
+      "Add a short answer so we can act on it, or skip this step.",
+    cancel_not_cancellable:
+      "This subscription can't be canceled in the app. Contact support to cancel it.",
+    cancel_failed:
+      "Your plan wasn't canceled. Your billing is unchanged, so you can try again.",
     cancel_reason_skip: "Skip",
     cancel_reason_continue: "Continue",
     cancel_impact_title: "What changes if you cancel",
@@ -4719,11 +4726,14 @@ export const en: Translations = {
     alias_orphaned_hint:
       "Its label was encrypted with your previous password, so this device can't read it. If you remember the address, you can restore the label. Mail sent to this address still arrives, and you can see the full address in the header of any message it delivers.",
     alias_restore_action: "Restore this alias",
-    alias_restore_prompt: "Enter the address. Aster checks it against this alias before restoring the label.",
+    alias_restore_prompt:
+      "Enter the address. Aster checks it against this alias before restoring the label.",
     alias_restore_placeholder: "Address",
     alias_restore_confirm: "Restore",
-    alias_restore_mismatch: "That address doesn't match this alias. Check the header of a message it delivered.",
-    alias_restore_failed: "The alias didn't restore. Another attempt should do it.",
+    alias_restore_mismatch:
+      "That address doesn't match this alias. Check the header of a message it delivered.",
+    alias_restore_failed:
+      "The alias didn't restore. Another attempt should do it.",
     recently_deleted_load_failed:
       "We could not load your recently deleted aliases. Another attempt should do it.",
     invalid_address:

@@ -39,6 +39,7 @@ import { AnimatePresence } from "framer-motion";
 
 import { use_auth } from "@/contexts/auth_context";
 import { use_background_subscription_scan } from "@/hooks/use_background_subscription_scan";
+import { use_offline_queue_failures } from "@/hooks/use_offline_queue_failures";
 import { AppLock } from "@/components/mobile/app_lock";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MobileDrawer } from "@/components/mobile/mobile_drawer";
@@ -252,6 +253,7 @@ function MobileApp() {
   const edit_draft_ref = useRef<EditDraftData | null>(null);
 
   use_background_subscription_scan();
+  use_offline_queue_failures();
 
   const handle_selection_mode_change = useCallback((active: boolean) => {
     set_is_selection_active(active);

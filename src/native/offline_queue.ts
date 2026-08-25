@@ -48,6 +48,7 @@ const FAILED_KEY = "aster_offline_failed_queue";
 const MAX_RETRIES = 3;
 
 let is_processing = false;
+let drain_listeners_registered = false;
 let queue_mutex: Promise<void> = Promise.resolve();
 
 async function run_exclusive<T>(operation: () => Promise<T>): Promise<T> {
@@ -167,7 +168,15 @@ async function migrate_legacy_queue(scoped_key: string): Promise<void> {
 }
 
 export async function initialize_offline_queue(): Promise<void> {
-  if (!is_native_platform()) return;
+  if (!drain_listeners_registered && typeof window !== "undefined") {
+    drain_listeners_registered = true;
+    window.addEventListener("online", () => {
+      process_offline_queue();
+    });
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") process_offline_queue();
+    });
+  }
 
   const status = await get_network_status();
 
