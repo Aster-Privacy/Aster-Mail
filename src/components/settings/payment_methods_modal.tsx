@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { KeyboardEvent } from "react";
+
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { loadStripe, type Stripe } from "@stripe/stripe-js";
 import {
@@ -63,6 +65,7 @@ import {
   build_stripe_appearance,
   build_stripe_element_style,
 } from "@/lib/stripe_appearance";
+import { stripe_locale } from "@/lib/stripe_locale";
 
 function get_pm_icon(pm_type: string) {
   switch (pm_type) {
@@ -163,6 +166,13 @@ function AddPaymentForm({
     t,
   ]);
 
+  const handle_field_key_down = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key !== "Enter") return;
+    e.preventDefault();
+    if (!stripe || !elements || is_submitting) return;
+    void handle_submit();
+  };
+
   const field_wrapper_style = {
     backgroundColor: "var(--bg-tertiary)",
     borderColor: "var(--border-secondary)",
@@ -233,6 +243,7 @@ function AddPaymentForm({
           type="text"
           value={cardholder_name}
           onChange={(e) => set_cardholder_name(e.target.value)}
+          onKeyDown={handle_field_key_down}
         />
       </div>
       <div>
@@ -252,6 +263,7 @@ function AddPaymentForm({
           type="text"
           value={billing_postal}
           onChange={(e) => set_billing_postal(e.target.value)}
+          onKeyDown={handle_field_key_down}
         />
       </div>
       <div className="flex gap-2 justify-end pt-4">
@@ -290,6 +302,7 @@ export function PaymentMethodsModal({
   const tokens = use_stripe_theme_tokens();
   const [methods, set_methods] = useState<PaymentMethodItem[]>([]);
   const [is_loading, set_is_loading] = useState(true);
+  const [load_failed, set_load_failed] = useState(false);
   const [default_loading_id, set_default_loading_id] = useState<string | null>(
     null,
   );
@@ -311,10 +324,12 @@ export function PaymentMethodsModal({
     try {
       const response = await list_payment_methods();
 
+      set_load_failed(!response.data?.payment_methods);
       if (response.data?.payment_methods) {
         set_methods(response.data.payment_methods);
       }
     } catch {
+      set_load_failed(true);
       if (import.meta.env.DEV) {
         console.error("Failed to fetch payment methods");
       }
@@ -335,7 +350,13 @@ export function PaymentMethodsModal({
     async (id: string) => {
       set_default_loading_id(id);
       try {
-        await set_default_payment_method(id);
+        const result = await set_default_payment_method(id);
+
+        if (result.error) {
+          show_toast(t("settings.payment_failed"), "error");
+
+          return;
+        }
         show_toast(t("settings.default_updated"), "success");
         await fetch_methods();
       } catch {
@@ -351,7 +372,13 @@ export function PaymentMethodsModal({
     async (id: string) => {
       set_delete_loading_id(id);
       try {
-        await detach_payment_method(id);
+        const result = await detach_payment_method(id);
+
+        if (result.error) {
+          show_toast(t("settings.payment_failed"), "error");
+
+          return;
+        }
         show_toast(t("settings.card_removed"), "success");
         await fetch_methods();
       } catch {
@@ -384,7 +411,9 @@ export function PaymentMethodsModal({
         return;
       }
 
-      const stripe_loaded = loadStripe(config_response.data.publishable_key);
+      const stripe_loaded = loadStripe(config_response.data.publishable_key, {
+        locale: stripe_locale(),
+      });
 
       set_stripe_promise(stripe_loaded);
 
@@ -540,13 +569,24 @@ export function PaymentMethodsModal({
               borderColor: "var(--border-secondary)",
             }}
           >
-            <CreditCardIcon
-              className="w-8 h-8 mx-auto mb-2"
-              style={{ color: "var(--text-tertiary)" }}
-            />
-            <p className="text-sm" style={{ color: "var(--text-tertiary)" }}>
-              {t("settings.no_payment_methods")}
-            </p>
+            {load_failed ? (
+              <p className="text-sm" style={{ color: "var(--text-tertiary)" }}>
+                {t("common.something_went_wrong_try_again")}
+              </p>
+            ) : (
+              <>
+                <CreditCardIcon
+                  className="w-8 h-8 mx-auto mb-2"
+                  style={{ color: "var(--text-tertiary)" }}
+                />
+                <p
+                  className="text-sm"
+                  style={{ color: "var(--text-tertiary)" }}
+                >
+                  {t("settings.no_payment_methods")}
+                </p>
+              </>
+            )}
           </div>
         )}
 
@@ -559,6 +599,7 @@ export function PaymentMethodsModal({
             options={{
               clientSecret: client_secret,
               appearance: stripe_appearance,
+              locale: stripe_locale(),
             }}
             stripe={stripe_promise}
           >
@@ -583,7 +624,13 @@ export function PaymentMethodsModal({
   };
 
   return (
-    <Modal show_close_button is_open={open} on_close={on_close} size="md">
+    <Modal
+      show_close_button
+      close_on_overlay={false}
+      is_open={open}
+      on_close={on_close}
+      size="md"
+    >
       <ModalHeader>
         <ModalTitle>{t("settings.payment_methods_title")}</ModalTitle>
         <ModalDescription>

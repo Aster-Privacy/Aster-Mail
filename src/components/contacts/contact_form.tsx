@@ -24,7 +24,7 @@ import type {
   DecryptedCustomFieldValue,
 } from "@/types/contacts";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import {
   XMarkIcon,
   StarIcon,
@@ -43,6 +43,8 @@ import { use_i18n } from "@/lib/i18n/context";
 import { cn, EMAIL_REGEX } from "@/lib/utils";
 import { Spinner } from "@/components/ui/spinner";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
+import { use_dialog_shell } from "@/lib/use_dialog_shell";
+import { ConfirmModal } from "@/components/email/inbox/inbox_confirmation_dialog";
 
 interface ContactFormProps {
   is_open: boolean;
@@ -87,6 +89,8 @@ export function ContactForm({
     useState<ContactFormData>(initial_form_data);
   const [errors, set_errors] = useState<Record<string, string>>({});
   const [active_tab, set_active_tab] = useState<TabId>("basic");
+  const [show_discard_confirm, set_show_discard_confirm] = useState(false);
+  const baseline_ref = useRef<string>(JSON.stringify(initial_form_data));
 
   const is_edit_mode = !!contact;
 
@@ -95,7 +99,7 @@ export function ContactForm({
       `${form_data.first_name} ${form_data.last_name}`.trim() ||
       t("common.new_contact")
     );
-  }, [form_data.first_name, form_data.last_name]);
+  }, [form_data.first_name, form_data.last_name, t]);
 
   const preview_email = useMemo(() => {
     return form_data.emails.find((e) => e.trim()) || "";
@@ -118,7 +122,7 @@ export function ContactForm({
       void _last_contacted;
       void _email_count;
 
-      set_form_data({
+      const next: ContactFormData = {
         ...rest,
         emails: contact.emails.length > 0 ? contact.emails : [""],
         phone: contact.phone || "",
@@ -128,12 +132,17 @@ export function ContactForm({
         birthday: contact.birthday || "",
         social_links: contact.social_links || {},
         address: contact.address || {},
-      });
+      };
+
+      baseline_ref.current = JSON.stringify(next);
+      set_form_data(next);
     } else {
+      baseline_ref.current = JSON.stringify(initial_form_data);
       set_form_data(initial_form_data);
     }
     set_errors({});
     set_active_tab("basic");
+    set_show_discard_confirm(false);
   }, [contact, is_open]);
 
   const handle_change = (field: keyof ContactFormData, value: unknown) => {
@@ -221,9 +230,18 @@ export function ContactForm({
   const handle_submit = async () => {
     if (!validate_form() || is_loading) return;
 
+    const seen_emails = new Set<string>();
     const cleaned_data: ContactFormData = {
       ...form_data,
-      emails: form_data.emails.filter((email) => email.trim()),
+      emails: form_data.emails.filter((email) => {
+        const normalized = email.trim().toLowerCase();
+
+        if (!normalized || seen_emails.has(normalized)) return false;
+
+        seen_emails.add(normalized);
+
+        return true;
+      }),
     };
 
     await on_submit(cleaned_data);
@@ -231,6 +249,11 @@ export function ContactForm({
 
   const handle_close = () => {
     if (is_loading) return;
+    if (JSON.stringify(form_data) !== baseline_ref.current) {
+      set_show_discard_confirm(true);
+
+      return;
+    }
     on_close();
   };
 
@@ -247,22 +270,24 @@ export function ContactForm({
 
   const tabs = is_edit_mode ? [...base_tabs, ...edit_tabs] : base_tabs;
 
+  const { dialog_ref, handle_backdrop_pointer_down } =
+    use_dialog_shell<HTMLDivElement>(is_open, handle_close, "contact_form");
+
   if (!is_open) return null;
 
   return (
     <div
       className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-modal-overlay"
       role="presentation"
-      onClick={handle_close}
-      onKeyDown={(e) => {
-        if (e["key"] === "Escape") handle_close();
-      }}
+      onPointerDown={handle_backdrop_pointer_down}
     >
-      {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions, jsx-a11y/click-events-have-key-events */}
       <div
+        ref={dialog_ref}
         className="relative w-full max-w-lg rounded-xl border shadow-2xl overflow-hidden bg-modal-bg border-edge-primary"
+        aria-labelledby="contact_form_title"
+        aria-modal="true"
         role="dialog"
-        onClick={(e) => e.stopPropagation()}
+        tabIndex={-1}
       >
         <div className="flex items-start gap-4 px-6 pt-6 pb-4">
           <div className="relative">
@@ -293,7 +318,10 @@ export function ContactForm({
             </button>
           </div>
           <div className="flex-1 min-w-0">
-            <h2 className="text-lg font-semibold text-txt-primary">
+            <h2
+              className="text-lg font-semibold text-txt-primary"
+              id="contact_form_title"
+            >
               {is_edit_mode
                 ? t("common.edit_contact")
                 : t("common.new_contact")}
@@ -305,7 +333,7 @@ export function ContactForm({
             </p>
           </div>
           <button
-            className="p-2 -mr-2 -mt-2 rounded-[14px] transition-colors hover:bg-black/5 dark:hover:bg-white/5"
+            className="p-2 -me-2 -mt-2 rounded-[14px] transition-colors hover:bg-black/5 dark:hover:bg-white/5"
             onClick={handle_close}
           >
             <XMarkIcon className="w-5 h-5 text-txt-muted" />
@@ -401,10 +429,26 @@ export function ContactForm({
             {is_edit_mode
               ? t("settings.save_changes")
               : t("common.add_contact")}
-            {is_loading && <Spinner className="ml-2" size="sm" />}
+            {is_loading && <Spinner className="ms-2" size="sm" />}
           </Button>
         </div>
       </div>
+
+      <ConfirmModal
+        hide_dont_ask
+        confirm_text={t("mail.discard")}
+        confirm_variant="destructive"
+        description={t("common.unsaved_changes_body")}
+        dont_ask={false}
+        on_dont_ask_change={() => {}}
+        on_cancel={() => set_show_discard_confirm(false)}
+        on_confirm={() => {
+          set_show_discard_confirm(false);
+          on_close();
+        }}
+        show={show_discard_confirm}
+        title={t("common.unsaved_changes_title")}
+      />
     </div>
   );
 }

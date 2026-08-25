@@ -23,6 +23,12 @@ import type {
   DraftAttachmentData,
 } from "@/services/api/multi_drafts";
 import type { TranslationKey } from "@/lib/i18n/types";
+import {
+  app_hour12,
+  app_locale,
+  calendar_day_diff,
+  get_display_time_zone,
+} from "@/utils/date_format";
 
 export interface ComposeToolbarState {
   scheduled_time: Date | null;
@@ -37,7 +43,6 @@ export interface ComposeToolbarState {
   template_picker_element: React.ReactNode;
   active_formats: Set<string>;
   exec_format_command: (command: string) => void;
-  handle_insert_link: () => void;
   trigger_file_select: () => void;
   draft_status: DraftStatus;
   last_saved_time: Date | null;
@@ -111,6 +116,7 @@ export interface EditDraftData {
   bcc_recipients: string[];
   subject: string;
   message: string;
+  from_email?: string;
   updated_at: string;
   attachments?: DraftAttachmentData[];
 }
@@ -119,6 +125,7 @@ export interface DraftRefData {
   recipients: RecipientsState;
   subject: string;
   message: string;
+  from_email?: string;
 }
 
 export {
@@ -217,6 +224,22 @@ export function get_file_icon_color(mime_type: string): {
   };
 }
 
+function dedupe_recipients(emails: string[]): string[] {
+  const seen = new Set<string>();
+  const result: string[] = [];
+
+  for (const email of emails) {
+    const normalized = email.trim().toLowerCase();
+
+    if (!normalized || seen.has(normalized)) continue;
+
+    seen.add(normalized);
+    result.push(email);
+  }
+
+  return result;
+}
+
 export function recipients_reducer(
   state: RecipientsState,
   action: RecipientsAction,
@@ -242,7 +265,7 @@ export function recipients_reducer(
     case "REMOVE_LAST":
       return { ...state, [action.field]: state[action.field].slice(0, -1) };
     case "SET":
-      return { ...state, [action.field]: action.emails };
+      return { ...state, [action.field]: dedupe_recipients(action.emails) };
     case "RESET":
       return { to: [], cc: [], bcc: [] };
   }
@@ -316,14 +339,13 @@ export function format_last_saved(
   t?: (key: TranslationKey, params?: Record<string, string | number>) => string,
 ): string {
   const now = new Date();
-  const is_today =
-    saved_time.getDate() === now.getDate() &&
-    saved_time.getMonth() === now.getMonth() &&
-    saved_time.getFullYear() === now.getFullYear();
+  const is_today = calendar_day_diff(saved_time, now) === 0;
 
-  const time_str = saved_time.toLocaleTimeString([], {
+  const time_str = saved_time.toLocaleTimeString(app_locale(), {
     hour: "numeric",
+    hour12: app_hour12(),
     minute: "2-digit",
+    timeZone: get_display_time_zone(),
   });
 
   if (is_today) {
@@ -332,9 +354,10 @@ export function format_last_saved(
       : `Saved at ${time_str}`;
   }
 
-  const date_str = saved_time.toLocaleDateString([], {
+  const date_str = saved_time.toLocaleDateString(app_locale(), {
     month: "short",
     day: "numeric",
+    timeZone: get_display_time_zone(),
   });
 
   return t

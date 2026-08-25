@@ -47,6 +47,7 @@ import {
   use_stripe_theme_tokens,
   build_stripe_appearance,
 } from "@/lib/stripe_appearance";
+import { stripe_locale } from "@/lib/stripe_locale";
 
 export type checkout_phase =
   | "loading"
@@ -204,7 +205,11 @@ export function CheckoutModal({
 
       const { loadStripe } = await import("@stripe/stripe-js");
 
-      set_stripe_promise(loadStripe(config_response.data.publishable_key));
+      set_stripe_promise(
+        loadStripe(config_response.data.publishable_key, {
+          locale: stripe_locale(),
+        }),
+      );
 
       if (!addon_id) {
         try {
@@ -268,6 +273,7 @@ export function CheckoutModal({
   const elements_options = useMemo(
     () => ({
       appearance: build_stripe_appearance(stripe_tokens),
+      locale: stripe_locale(),
       fonts:
         typeof window !== "undefined"
           ? (() => {
