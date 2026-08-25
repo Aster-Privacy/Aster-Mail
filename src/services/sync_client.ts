@@ -100,6 +100,7 @@ class SyncClient {
   private reconnect_timeout: ReturnType<typeof setTimeout> | null = null;
   private message_handlers: Map<string, MessageHandler[]> = new Map();
   private should_reconnect = false;
+  private gave_up_on_auth = false;
   private auth_error_count = 0;
   private last_auth_error = false;
   private reconnect_attempt = 0;
@@ -133,6 +134,7 @@ class SyncClient {
     }
 
     this.should_reconnect = true;
+    this.gave_up_on_auth = false;
 
     if (this.reconnect_timeout) {
       clearTimeout(this.reconnect_timeout);
@@ -288,7 +290,19 @@ class SyncClient {
   }
 
   reconnect_now(): void {
-    if (!this.should_reconnect) return;
+    if (!this.should_reconnect) {
+      if (!this.gave_up_on_auth) return;
+
+      this.gave_up_on_auth = false;
+      this.auth_error_count = 0;
+      this.last_auth_error = false;
+      this.reconnect_attempt = 0;
+      this.connect().catch((caught) =>
+        ignore_error("services/sync_client:reconnect_now", caught),
+      );
+
+      return;
+    }
 
     if (this.reconnect_timeout) {
       clearTimeout(this.reconnect_timeout);
@@ -337,6 +351,7 @@ class SyncClient {
 
         if (this.auth_error_count > 10) {
           this.should_reconnect = false;
+          this.gave_up_on_auth = true;
 
           return;
         }
@@ -345,6 +360,7 @@ class SyncClient {
 
         if (!api_client.is_authenticated()) {
           this.should_reconnect = false;
+          this.gave_up_on_auth = true;
 
           return;
         }
@@ -556,6 +572,7 @@ class SyncClient {
 
   disconnect(): void {
     this.should_reconnect = false;
+    this.gave_up_on_auth = false;
     this.last_auth_error = false;
     this.auth_error_count = 0;
     this.reconnect_attempt = 0;
