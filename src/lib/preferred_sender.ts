@@ -100,9 +100,12 @@ export function subscribe_preferred_sender(listener: Listener): () => void {
 async function sync_preferred_sender_to_server(
   id: string | null,
 ): Promise<void> {
-  await api_client.put("/settings/v1/preferences/default-sender", {
-    sender_id: id,
-  });
+  const result = await api_client.put(
+    "/settings/v1/preferences/default-sender",
+    { sender_id: id },
+  );
+
+  if (result.error) throw new Error(result.error);
 }
 
 if (typeof window !== "undefined") {
