@@ -49,6 +49,7 @@ import { print_email } from "@/utils/print_email";
 import { execute_unsubscribe } from "@/utils/unsubscribe_detector";
 import { persist_unsubscribe } from "@/hooks/use_unsubscribed_senders";
 import {
+  adjust_stats_spam,
   adjust_stats_unread,
   invalidate_mail_stats,
 } from "@/hooks/use_mail_stats";
@@ -224,6 +225,14 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
     deps.set_is_spam_loading(true);
 
     const prev_is_trashed = deps.mail_item.is_trashed ?? false;
+    const is_received = deps.mail_item.item_type === "received";
+    const is_unread = !deps.is_read;
+
+    if (is_received) {
+      adjust_stats_spam(1);
+      if (is_unread) adjust_stats_unread(-1);
+    }
+
     const result = await update_item_metadata(
       deps.email_id,
       {
@@ -242,12 +251,17 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
       if (sender) {
         report_spam_sender(sender).catch((caught) => ignore_error("components/email/hooks/popup_viewer_actions:use_popup_viewer_actions", caught));
       }
+      invalidate_mail_stats();
       emit_mail_items_removed({ ids: [deps.email_id] });
       show_action_toast({
         message: deps.t("common.message_marked_as_spam"),
         action_type: "spam",
         email_ids: [deps.email_id],
         on_undo: async () => {
+          if (is_received) {
+            adjust_stats_spam(-1);
+            if (is_unread) adjust_stats_unread(1);
+          }
           await update_item_metadata(
             deps.email_id!,
             {
@@ -259,15 +273,20 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
           if (sender) {
             remove_spam_sender(sender).catch((caught) => ignore_error("components/email/hooks/popup_viewer_actions:use_popup_viewer_actions", caught));
           }
+          invalidate_mail_stats();
           window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
         },
       });
       deps.on_close();
+    } else if (is_received) {
+      adjust_stats_spam(-1);
+      if (is_unread) adjust_stats_unread(1);
     }
   }, [
     deps.email_id,
     deps.email?.sender_email,
     deps.is_spam_loading,
+    deps.is_read,
     deps.on_close,
     deps.mail_item,
     deps.t,
