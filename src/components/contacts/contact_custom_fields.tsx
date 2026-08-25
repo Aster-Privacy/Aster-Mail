@@ -279,7 +279,16 @@ export function ContactCustomFields({
         );
 
         if (existing) {
-          await delete_contact_custom_field_value(contact_id, editing_field_id);
+          const response = await delete_contact_custom_field_value(
+            contact_id,
+            editing_field_id,
+          );
+
+          if (response.error) {
+            set_error(response.error);
+
+            return;
+          }
           update_values(
             values.filter((v) => v.field_definition_id !== editing_field_id),
           );

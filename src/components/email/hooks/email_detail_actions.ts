@@ -226,8 +226,12 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
         },
       });
       deps.navigate(deps.get_next_email_destination());
-    } else if (deltas) {
-      revert_stat_deltas(deltas);
+    } else {
+      if (deltas) revert_stat_deltas(deltas);
+      show_toast(
+        result.error || deps.t("common.failed_to_archive_emails"),
+        "error",
+      );
     }
   }, [
     deps.email_id,
@@ -373,9 +377,14 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
             );
           },
         });
+      } else {
+        show_toast(
+          result.error || deps.t("common.failed_to_archive_emails"),
+          "error",
+        );
       }
     },
-    [],
+    [deps.t],
   );
 
   const handle_per_message_trash = useCallback(
@@ -480,6 +489,8 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
         emit_mail_items_removed({ ids: [msg.id] });
         show_toast(deps.t("common.reported_as_phishing"), "success");
         deps.navigate(deps.get_next_email_destination());
+      } else {
+        show_toast(deps.t("common.failed_to_mark_as_spam"), "error");
       }
     },
     [deps.navigate, deps.get_next_email_destination, deps.t],
@@ -508,6 +519,8 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
         emit_mail_items_removed({ ids: [msg.id] });
         show_toast(deps.t("common.marked_as_not_spam"), "success");
         deps.navigate(deps.get_next_email_destination());
+      } else {
+        show_toast(deps.t("common.failed_to_update"), "error");
       }
     },
     [deps.navigate, deps.get_next_email_destination, deps.t],

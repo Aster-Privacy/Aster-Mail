@@ -116,6 +116,11 @@ export function use_message_actions(
             );
           },
         });
+      } else {
+        show_toast(
+          result.error || deps.t("common.failed_to_archive_emails"),
+          "error",
+        );
       }
     },
     [deps.t],
@@ -153,6 +158,8 @@ export function use_message_actions(
             );
           },
         });
+      } else {
+        show_toast(deps.t("common.something_went_wrong"), "error");
       }
     },
     [deps.t],
@@ -204,6 +211,8 @@ export function use_message_actions(
         window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
         show_toast(deps.t("common.reported_as_phishing"), "success");
         deps.on_dismiss();
+      } else {
+        show_toast(deps.t("common.failed_to_mark_as_spam"), "error");
       }
     },
     [deps.on_dismiss, deps.t],
@@ -232,6 +241,8 @@ export function use_message_actions(
         window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
         show_toast(deps.t("common.marked_as_not_spam"), "success");
         deps.on_dismiss();
+      } else {
+        show_toast(deps.t("common.failed_to_update"), "error");
       }
     },
     [deps.on_dismiss, deps.t],

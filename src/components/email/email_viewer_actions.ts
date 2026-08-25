@@ -470,8 +470,12 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
         },
       });
       deps.on_dismiss();
-    } else if (deltas) {
-      revert_stat_deltas(deltas);
+    } else {
+      if (deltas) revert_stat_deltas(deltas);
+      show_toast(
+        result.error || deps.t("common.failed_to_archive_emails"),
+        "error",
+      );
     }
   }, [
     deps.email_id,
@@ -530,8 +534,12 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
         },
       });
       deps.on_dismiss();
-    } else if (deltas) {
-      revert_stat_deltas(deltas);
+    } else {
+      if (deltas) revert_stat_deltas(deltas);
+      show_toast(
+        result.error || deps.t("common.failed_to_unarchive_emails"),
+        "error",
+      );
     }
   }, [
     deps.email_id,

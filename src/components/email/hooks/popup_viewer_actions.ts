@@ -207,8 +207,12 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
         },
       });
       deps.on_close();
-    } else if (deltas) {
-      revert_stat_deltas(deltas);
+    } else {
+      if (deltas) revert_stat_deltas(deltas);
+      show_toast(
+        result.error || deps.t("common.failed_to_archive_emails"),
+        "error",
+      );
     }
   }, [
     deps.email_id,
@@ -691,6 +695,11 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
             );
           },
         });
+      } else {
+        show_toast(
+          result.error || deps.t("common.failed_to_archive_emails"),
+          "error",
+        );
       }
     },
     [deps.t],
@@ -727,6 +736,8 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
             );
           },
         });
+      } else {
+        show_toast(deps.t("common.something_went_wrong"), "error");
       }
     },
     [deps.t],
