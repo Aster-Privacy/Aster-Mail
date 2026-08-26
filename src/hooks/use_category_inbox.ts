@@ -56,6 +56,7 @@ import {
   get_page_ids,
   get_category_total,
   is_index_settled,
+  get_active_tabs,
   is_build_in_progress,
   is_build_stalled,
   subscribe as subscribe_index,
@@ -93,7 +94,10 @@ const EMPTY_STATE: EmailListState = {
   has_initial_load: false,
 };
 
-const MIN_REFRESH_SKELETON_MS = 550;
+const MIN_REFRESH_SKELETON_MS = 300;
+const VISIBLE_REFETCH_MIN_MS = 10_000;
+const PREFETCH_DELAY_MS = 250;
+const PREFETCH_MAX_TABS = 6;
 const LOADING_BACKSTOP_MS = 6_000;
 const MAX_FETCH_RETRIES = 4;
 const FETCH_RETRY_DELAY_MS = 1500;
@@ -339,6 +343,7 @@ export function use_category_inbox(
   const keys_ready_account_ref = useRef<string | null>(null);
   const abort_ref = useRef<AbortController | null>(null);
   const page_cache = useRef<Map<string, InboxEmail[]>>(new Map());
+  const last_arrival_fetch_ref = useRef(0);
   const fetch_retry_ref = useRef<{ sig: string; attempts: number }>({
     sig: "",
     attempts: 0,
@@ -658,6 +663,74 @@ export function use_category_inbox(
     fetch_retry_ref.current = { sig: "", attempts: 0 };
   }, [active_category, page]);
 
+  // Warms the first page of the other category tabs once the visible tab has
+  // settled, so switching tabs renders from cache instead of a skeleton.
+  useEffect(() => {
+    if (!enabled) return;
+    if (page !== 0) return;
+    if (!state.has_initial_load || state.is_loading) return;
+    if (!is_index_settled()) return;
+    if (!has_passphrase_in_memory()) return;
+    if (!user?.email) return;
+
+    let cancelled = false;
+    const account = user.email;
+    const timer = setTimeout(() => {
+      void (async () => {
+        const tabs = get_active_tabs()
+          .filter((tab) => tab !== active_category)
+          .slice(0, PREFETCH_MAX_TABS);
+
+        for (const tab of tabs) {
+          if (cancelled) return;
+          if (fetch_in_flight_ref.current) return;
+
+          const ids = get_page_ids(tab, 0, page_size);
+
+          if (ids.length === 0) continue;
+
+          const key = build_page_cache_key(tab, 0, page_variant, ids);
+
+          if (page_cache.current.has(key)) continue;
+
+          try {
+            const { emails: fetched, request_ok } =
+              await fetch_mail_by_ids_reconciled(ids, format_options, account);
+
+            if (cancelled || !request_ok) return;
+
+            const received_only = fetched.filter(belongs_in_inbox);
+            const grouped =
+              preferences.conversation_grouping !== false
+                ? group_emails_by_thread(received_only)
+                : received_only;
+
+            touch_cache_entry(page_cache.current, key, grouped);
+          } catch {
+            return;
+          }
+        }
+      })();
+    }, PREFETCH_DELAY_MS);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [
+    enabled,
+    active_category,
+    page,
+    page_size,
+    page_variant,
+    index_version,
+    state.has_initial_load,
+    state.is_loading,
+    format_options,
+    user?.email,
+    preferences.conversation_grouping,
+  ]);
+
   useEffect(() => {
     if (!enabled) return;
 
@@ -725,14 +798,41 @@ export function use_category_inbox(
       void fetch_page(page, page_size, { silent: true });
     };
 
+    const handle_email_received = () => {
+      if (!has_passphrase_in_memory()) return;
+      last_arrival_fetch_ref.current = Date.now();
+      page_cache.current.clear();
+      void fetch_page(page, page_size, { silent: true });
+    };
+
+    const handle_visible = () => {
+      if (document.visibilityState !== "visible") return;
+      if (!has_passphrase_in_memory()) return;
+      if (
+        Date.now() - last_arrival_fetch_ref.current <
+        VISIBLE_REFETCH_MIN_MS
+      ) {
+        return;
+      }
+      last_arrival_fetch_ref.current = Date.now();
+      void fetch_page(page, page_size, { silent: true });
+    };
+
     window.addEventListener(
       MAIL_EVENTS.REFRESH_REQUESTED,
       handle_refresh_requested,
     );
     window.addEventListener(MAIL_EVENTS.EMAIL_SENT, handle_email_sent);
+    window.addEventListener(MAIL_EVENTS.EMAIL_RECEIVED, handle_email_received);
+    document.addEventListener("visibilitychange", handle_visible);
 
     return () => {
       cancelled = true;
+      document.removeEventListener("visibilitychange", handle_visible);
+      window.removeEventListener(
+        MAIL_EVENTS.EMAIL_RECEIVED,
+        handle_email_received,
+      );
       window.removeEventListener(MAIL_EVENTS.EMAIL_SENT, handle_email_sent);
       window.removeEventListener(
         MAIL_EVENTS.REFRESH_REQUESTED,

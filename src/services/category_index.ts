@@ -372,10 +372,12 @@ function notify(): void {
   publish_inbox_unread();
 }
 
-function notify_soon(): void {
-  const delay = build_in_progress
-    ? BUILD_NOTIFY_THROTTLE_MS
-    : NOTIFY_THROTTLE_MS;
+function notify_soon(immediate = false): void {
+  const delay = immediate
+    ? 0
+    : build_in_progress
+      ? BUILD_NOTIFY_THROTTLE_MS
+      : NOTIFY_THROTTLE_MS;
 
   if (notify_timer) clearTimeout(notify_timer);
 
@@ -383,6 +385,13 @@ function notify_soon(): void {
     notify_timer = null;
     notify();
   }, delay);
+}
+
+export function flush_pending_notify(): void {
+  if (!notify_timer) return;
+  clearTimeout(notify_timer);
+  notify_timer = null;
+  notify();
 }
 
 const MAX_PERSIST_RETRIES = 3;
@@ -871,6 +880,7 @@ export function upsert_entries(
   incoming: CategoryIndexEntry[],
   generation?: number,
   guard_recent_read = false,
+  immediate_notify = false,
 ): void {
   if (incoming.length === 0) return;
   if (generation !== undefined && generation !== index_generation) return;
@@ -878,7 +888,7 @@ export function upsert_entries(
   if (apply_upsert(incoming, guard_recent_read)) {
     enforce_cap();
     schedule_persist();
-    notify_soon();
+    notify_soon(immediate_notify);
   }
 }
 
@@ -1649,6 +1659,7 @@ async function item_to_entry(item: MailItem): Promise<ItemIndexResult> {
         ? classify(envelope, metadata, {
             custom_categories,
             rule_category: item.rule_category,
+            trust: item,
           })
         : (item.rule_category ?? "primary"),
       ...(envelope ? {} : { needs_reclassify: true }),
@@ -1656,7 +1667,7 @@ async function item_to_entry(item: MailItem): Promise<ItemIndexResult> {
         !!envelope &&
         metadata?.category_pinned === true &&
         !!metadata?.category &&
-        !is_locked_to_primary(envelope),
+        !is_locked_to_primary(envelope, item),
       ...(snoozed_until ? { snoozed_until } : {}),
     },
   };
@@ -2098,6 +2109,9 @@ function schedule_resync(): void {
 
 async function reclassify_id(id: string): Promise<void> {
   if (!has_vault_in_memory()) return;
+
+  const was_indexed = entries_map.has(id);
+
   if (in_flight_reclassify.has(id)) {
     in_flight_reclassify.set(id, true);
 
@@ -2141,7 +2155,7 @@ async function reclassify_id(id: string): Promise<void> {
     }
     if (result.kind === "keep") return;
 
-    upsert_entries([result.entry], generation, true);
+    upsert_entries([result.entry], generation, true, !was_indexed);
   } catch {
     return;
   } finally {
@@ -2299,6 +2313,12 @@ export function start_event_listeners(): void {
   on_mail_event(MAIL_EVENTS.EMAIL_RECEIVED, (detail) => {
     void reclassify_id(detail.email_id);
   });
+
+  if (typeof document !== "undefined") {
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") flush_pending_notify();
+    });
+  }
 
   on_mail_event(MAIL_EVENTS.MAIL_ITEMS_REMOVED, (detail) => {
     remove_ids(detail.ids);

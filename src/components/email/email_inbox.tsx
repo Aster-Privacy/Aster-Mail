@@ -114,6 +114,7 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
     empty_state_visible,
     skeleton_visible,
     effective_total_for_pages,
+    header_display_count,
     total_pages,
     selection,
     scope_for_view,
@@ -262,23 +263,7 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
             can_go_prev={nav.local_can_go_prev}
             current_email_index={nav.local_email_index}
             current_page={current_page}
-            display_count={
-              current_view === "inbox" || current_view === ""
-                ? categories.enabled
-                  ? categories.counts[categories.active_category]?.unread
-                  : mail_stats.unread
-                : current_view === "drafts"
-                  ? mail_stats.drafts
-                  : current_view === "scheduled"
-                    ? mail_stats.scheduled
-                    : current_view === "snoozed"
-                      ? mail_stats.snoozed
-                      : current_view === "spam" || current_view === "trash"
-                        ? effective_total_for_pages
-                        : current_view.startsWith("alias-")
-                          ? filtered_emails.filter((e) => !e.is_read).length
-                          : undefined
-            }
+            display_count={header_display_count}
             excluded_count={selection.excluded_ids.length}
             filtered_count={effective_total_for_pages}
             folders={folders_state.folders
