@@ -36,7 +36,7 @@ import {
 } from "@/services/api/mail";
 import {
   decrypt_mail_metadata,
-  update_item_metadata,
+  update_item_metadata_safe,
 } from "@/services/crypto/mail_metadata";
 import {
   classify,
@@ -2225,7 +2225,7 @@ export async function set_message_category(
   email: InboxEmail,
   category: EmailCategory,
 ): Promise<CategoryWriteResult> {
-  const result = await update_item_metadata(
+  const result = await update_item_metadata_safe(
     email.id,
     {
       encrypted_metadata: email.encrypted_metadata,

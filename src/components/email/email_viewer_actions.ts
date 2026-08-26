@@ -43,7 +43,7 @@ import {
   get_cached_ghost_for_routing_token,
 } from "@/hooks/use_sender_aliases";
 import {
-  update_item_metadata,
+  update_item_metadata_safe,
   bulk_update_metadata_by_ids,
 } from "@/services/crypto/mail_metadata";
 import { batch_archive, batch_unarchive } from "@/services/api/archive";
@@ -322,7 +322,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
       deps.on_dismiss();
     }
 
-    const result = await update_item_metadata(
+    const result = await update_item_metadata_safe(
       deps.email_id,
       {
         encrypted_metadata: current_mail_item.encrypted_metadata,
@@ -384,7 +384,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
 
     deps.set_is_pinned(new_state);
     deps.set_is_pin_loading(true);
-    const result = await update_item_metadata(
+    const result = await update_item_metadata_safe(
       deps.email_id,
       {
         encrypted_metadata: deps.mail_item.encrypted_metadata,
@@ -568,7 +568,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
       if (is_unread) adjust_stats_unread(-1);
     }
 
-    const result = await update_item_metadata(
+    const result = await update_item_metadata_safe(
       deps.email_id,
       {
         encrypted_metadata: deps.mail_item.encrypted_metadata,
@@ -601,7 +601,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
             adjust_stats_spam(-1);
             if (is_unread) adjust_stats_unread(1);
           }
-          await update_item_metadata(
+          const undo_result = await update_item_metadata_safe(
             deps.email_id,
             {
               encrypted_metadata: result.encrypted?.encrypted_metadata,
@@ -609,6 +609,11 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
             },
             { is_spam: false, is_trashed: prev_is_trashed },
           );
+
+          if (!undo_result.success) {
+            invalidate_mail_stats();
+            throw new Error("undo failed");
+          }
           if (sender) {
             remove_spam_sender(sender).catch((caught) =>
               ignore_error(
@@ -649,7 +654,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
       if (is_unread) adjust_stats_unread(1);
     }
 
-    const result = await update_item_metadata(
+    const result = await update_item_metadata_safe(
       deps.email_id,
       {
         encrypted_metadata: deps.mail_item.encrypted_metadata,
@@ -732,7 +737,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
 
     apply_stat_deltas(deltas);
 
-    const result = await update_item_metadata(
+    const result = await update_item_metadata_safe(
       deps.email_id,
       {
         encrypted_metadata: deps.mail_item.encrypted_metadata,
@@ -752,7 +757,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
         email_ids: [deps.email_id],
         on_undo: async () => {
           revert_stat_deltas(deltas);
-          await update_item_metadata(
+          const undo_result = await update_item_metadata_safe(
             deps.email_id,
             {
               encrypted_metadata: result.encrypted?.encrypted_metadata,
@@ -760,6 +765,11 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
             },
             { is_trashed: false },
           );
+
+          if (!undo_result.success) {
+            invalidate_mail_stats();
+            throw new Error("undo failed");
+          }
           window.dispatchEvent(new CustomEvent("astermail:mail-soft-refresh"));
         },
       });

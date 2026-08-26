@@ -23,7 +23,7 @@ import type { InboxEmail } from "@/types/email";
 import { useCallback } from "react";
 
 import {
-  update_item_metadata,
+  update_item_metadata_safe,
   bulk_update_items_metadata,
 } from "@/services/crypto/mail_metadata";
 import {
@@ -70,7 +70,7 @@ export function use_metadata_helpers(): MetadataHelpers {
       data?: { encrypted_metadata?: string; metadata_nonce?: string };
       error?: string;
     }> => {
-      const result = await update_item_metadata(
+      const result = await update_item_metadata_safe(
         email.id,
         {
           encrypted_metadata: email.encrypted_metadata,

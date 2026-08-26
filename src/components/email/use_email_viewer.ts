@@ -30,7 +30,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { get_mail_item, type MailItem } from "@/services/api/mail";
 import { request_cache } from "@/services/api/request_cache";
 import { has_passphrase_in_memory } from "@/services/crypto/memory_key_store";
-import { update_item_metadata } from "@/services/crypto/mail_metadata";
+import { update_item_metadata_safe } from "@/services/crypto/mail_metadata";
 import {
   emit_mail_item_updated,
   MAIL_EVENTS,
@@ -479,7 +479,7 @@ export function use_email_viewer({
               set_is_read(true);
             }
             emit_mail_item_updated({ id: item.id, is_read: true });
-            const result = await update_item_metadata(
+            const result = await update_item_metadata_safe(
               item.id,
               {
                 encrypted_metadata: item.encrypted_metadata,
@@ -692,7 +692,7 @@ export function use_email_viewer({
             set_is_read(true);
           }
           emit_mail_item_updated({ id: item.id, is_read: true });
-          const result = await update_item_metadata(
+          const result = await update_item_metadata_safe(
             item.id,
             {
               encrypted_metadata: item.encrypted_metadata,

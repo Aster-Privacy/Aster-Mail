@@ -353,7 +353,11 @@ export function CommandPalette({
           action_type: "archive",
           email_ids: ids,
           on_undo: async () => {
-            await batch_unarchive({ ids });
+            const undo_result = await batch_unarchive({ ids });
+
+            if (undo_result.error || !undo_result.data?.success) {
+              throw new Error("undo failed");
+            }
             await bulk_update_metadata_by_ids(ids, { is_archived: false });
             window.dispatchEvent(
               new CustomEvent("astermail:mail-soft-refresh"),

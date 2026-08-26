@@ -61,7 +61,7 @@ import {
   remove_spam_sender,
 } from "@/services/api/mail";
 import {
-  update_item_metadata,
+  update_item_metadata_safe,
   bulk_update_metadata_by_ids,
 } from "@/services/crypto/mail_metadata";
 import { batch_archive, batch_unarchive } from "@/services/api/archive";
@@ -280,7 +280,12 @@ export function build_core_context_menu_actions(
         email_ids: all_ids,
         on_undo: async () => {
           revert_stat_deltas(deltas);
-          await batch_unarchive({ ids: all_ids });
+          const undo_result = await batch_unarchive({ ids: all_ids });
+
+          if (undo_result.error || !undo_result.data?.success) {
+            invalidate_mail_stats();
+            throw new Error("undo failed");
+          }
           reindex_ids(archived_index_ids);
           for (const eid of all_ids) {
             emit_mail_item_updated({ id: eid, is_archived: false });
@@ -411,7 +416,7 @@ export function build_core_context_menu_actions(
     if (should_adjust_unread) {
       adjust_stats_unread(new_state ? -1 : 1);
     }
-    const result = await update_item_metadata(
+    const result = await update_item_metadata_safe(
       email.id,
       {
         encrypted_metadata: email.encrypted_metadata,
@@ -441,7 +446,7 @@ export function build_core_context_menu_actions(
           if (should_adjust_unread) {
             adjust_stats_unread(new_state ? 1 : -1);
           }
-          const undo_result = await update_item_metadata(
+          const undo_result = await update_item_metadata_safe(
             email.id,
             {
               encrypted_metadata: result.encrypted?.encrypted_metadata,
@@ -478,7 +483,7 @@ export function build_core_context_menu_actions(
     const new_state = !email.is_pinned;
 
     update_email(email.id, { is_pinned: new_state });
-    const result = await update_item_metadata(
+    const result = await update_item_metadata_safe(
       email.id,
       {
         encrypted_metadata: email.encrypted_metadata,
@@ -502,7 +507,7 @@ export function build_core_context_menu_actions(
         action_type: "pin",
         email_ids: [email.id],
         on_undo: async () => {
-          const undo_result = await update_item_metadata(
+          const undo_result = await update_item_metadata_safe(
             email.id,
             {
               encrypted_metadata: result.encrypted?.encrypted_metadata,
@@ -533,7 +538,7 @@ export function build_core_context_menu_actions(
     update_email(email.id, { is_starred: new_state });
     adjust_stats_starred(new_state ? 1 : -1);
 
-    const result = await update_item_metadata(
+    const result = await update_item_metadata_safe(
       email.id,
       {
         encrypted_metadata: email.encrypted_metadata,
@@ -558,7 +563,7 @@ export function build_core_context_menu_actions(
         email_ids: [email.id],
         on_undo: async () => {
           adjust_stats_starred(new_state ? -1 : 1);
-          const undo_result = await update_item_metadata(
+          const undo_result = await update_item_metadata_safe(
             email.id,
             {
               encrypted_metadata: result.encrypted?.encrypted_metadata,

@@ -53,7 +53,7 @@ import {
   batched_bulk_remove_tag,
 } from "@/services/api/tags";
 import {
-  update_item_metadata,
+  update_item_metadata_safe,
   bulk_update_metadata_by_ids,
 } from "@/services/crypto/mail_metadata";
 import { batch_archive, batch_unarchive } from "@/services/api/archive";
@@ -350,7 +350,7 @@ export function build_context_menu_actions(
       return;
     }
 
-    const result = await update_item_metadata(
+    const result = await update_item_metadata_safe(
       email.id,
       {
         encrypted_metadata: email.encrypted_metadata,
@@ -375,7 +375,7 @@ export function build_context_menu_actions(
         email_ids: [email.id],
         on_undo: async () => {
           revert_stat_deltas(deltas);
-          await update_item_metadata(
+          const undo_result = await update_item_metadata_safe(
             email.id,
             {
               encrypted_metadata: result.encrypted?.encrypted_metadata,
@@ -383,6 +383,11 @@ export function build_context_menu_actions(
             },
             { is_trashed: true },
           );
+
+          if (!undo_result.success) {
+            invalidate_mail_stats();
+            throw new Error("undo failed");
+          }
           emit_mail_item_updated({ id: email.id, is_trashed: true });
           emit_mail_changed();
           window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
@@ -398,7 +403,7 @@ export function build_context_menu_actions(
 
     remove_email(email.id);
     apply_stat_deltas(deltas);
-    const result = await update_item_metadata(
+    const result = await update_item_metadata_safe(
       email.id,
       {
         encrypted_metadata: email.encrypted_metadata,
@@ -429,7 +434,7 @@ export function build_context_menu_actions(
         email_ids: [email.id],
         on_undo: async () => {
           revert_stat_deltas(deltas);
-          await update_item_metadata(
+          const undo_result = await update_item_metadata_safe(
             email.id,
             {
               encrypted_metadata: result.encrypted?.encrypted_metadata,
@@ -437,6 +442,11 @@ export function build_context_menu_actions(
             },
             { is_spam: true },
           );
+
+          if (!undo_result.success) {
+            invalidate_mail_stats();
+            throw new Error("undo failed");
+          }
           emit_mail_item_updated({ id: email.id, is_spam: true });
           if (email.sender_email) {
             report_spam_sender(email.sender_email).catch((caught) =>
@@ -479,7 +489,12 @@ export function build_context_menu_actions(
         email_ids: all_ids,
         on_undo: async () => {
           revert_stat_deltas(deltas);
-          await batch_archive({ ids: all_ids, tier: "hot" });
+          const undo_result = await batch_archive({ ids: all_ids, tier: "hot" });
+
+          if (undo_result.error || !undo_result.data?.success) {
+            invalidate_mail_stats();
+            throw new Error("undo failed");
+          }
           await bulk_update_metadata_by_ids(all_ids, { is_archived: true });
           for (const eid of all_ids) {
             emit_mail_item_updated({ id: eid, is_archived: true });

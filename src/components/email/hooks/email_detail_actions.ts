@@ -49,10 +49,11 @@ import {
   remove_spam_sender,
 } from "@/services/api/mail";
 import {
-  update_item_metadata,
+  update_item_metadata_safe,
   bulk_update_metadata_by_ids,
 } from "@/services/crypto/mail_metadata";
 import { batch_archive, batch_unarchive } from "@/services/api/archive";
+import { reindex_ids } from "@/services/category_index";
 import { show_action_toast } from "@/components/toast/action_toast";
 import { show_toast } from "@/components/toast/simple_toast";
 import {
@@ -223,7 +224,12 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
         email_ids: [deps.email_id],
         on_undo: async () => {
           if (deltas) revert_stat_deltas(deltas);
-          await batch_unarchive({ ids: [deps.email_id!] });
+          const undo_result = await batch_unarchive({ ids: [deps.email_id!] });
+
+          if (undo_result.error || !undo_result.data?.success) {
+            invalidate_mail_stats();
+            throw new Error("undo failed");
+          }
           await bulk_update_metadata_by_ids([deps.email_id!], {
             is_archived: false,
           });
@@ -282,7 +288,7 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
       });
       apply_stat_deltas(deltas);
 
-      const result = await update_item_metadata(
+      const result = await update_item_metadata_safe(
         deps.email_id,
         {
           encrypted_metadata: deps.mail_item.encrypted_metadata,
@@ -303,7 +309,7 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
           email_ids: [deps.email_id],
           on_undo: async () => {
             revert_stat_deltas(deltas);
-            await update_item_metadata(
+            const undo_result = await update_item_metadata_safe(
               deps.email_id!,
               {
                 encrypted_metadata: result.encrypted?.encrypted_metadata,
@@ -311,6 +317,11 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
               },
               { is_trashed: false },
             );
+
+            if (!undo_result.success) {
+              invalidate_mail_stats();
+              throw new Error("undo failed");
+            }
             window.dispatchEvent(
               new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH),
             );
@@ -373,7 +384,12 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
           action_type: "archive",
           email_ids: [msg.id],
           on_undo: async () => {
-            await batch_unarchive({ ids: [msg.id] });
+            const undo_result = await batch_unarchive({ ids: [msg.id] });
+
+            if (undo_result.error || !undo_result.data?.success) {
+              reindex_ids([msg.id]);
+              throw new Error("undo unarchive failed");
+            }
             await bulk_update_metadata_by_ids([msg.id], {
               is_archived: false,
             });
@@ -412,7 +428,7 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
           );
         }
       } else {
-        const result = await update_item_metadata(
+        const result = await update_item_metadata_safe(
           msg.id,
           {
             encrypted_metadata: msg.encrypted_metadata,
@@ -428,7 +444,7 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
             action_type: "trash",
             email_ids: [msg.id],
             on_undo: async () => {
-              await update_item_metadata(
+              const undo_result = await update_item_metadata_safe(
                 msg.id,
                 {
                   encrypted_metadata: result.encrypted?.encrypted_metadata,
@@ -436,6 +452,11 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
                 },
                 { is_trashed: false },
               );
+
+              if (!undo_result.success) {
+                invalidate_mail_stats();
+                throw new Error("undo failed");
+              }
               window.dispatchEvent(
                 new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH),
               );
@@ -473,7 +494,7 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
 
   const handle_per_message_report_phishing = useCallback(
     async (msg: DecryptedThreadMessage) => {
-      const result = await update_item_metadata(
+      const result = await update_item_metadata_safe(
         msg.id,
         {
           encrypted_metadata: msg.encrypted_metadata,
@@ -503,7 +524,7 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
 
   const handle_per_message_not_spam = useCallback(
     async (msg: DecryptedThreadMessage) => {
-      const result = await update_item_metadata(
+      const result = await update_item_metadata_safe(
         msg.id,
         {
           encrypted_metadata: msg.encrypted_metadata,
@@ -565,7 +586,7 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
         adjust_stats_unread(new_read ? -1 : 1);
       }
 
-      update_item_metadata(
+      update_item_metadata_safe(
         message_id,
         {
           encrypted_metadata: msg.encrypted_metadata,

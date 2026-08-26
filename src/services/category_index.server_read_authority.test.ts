@@ -45,6 +45,7 @@ const decrypt_mail_metadata = vi.fn();
 vi.mock("@/services/crypto/mail_metadata", () => ({
   decrypt_mail_metadata: (...args: unknown[]) => decrypt_mail_metadata(...args),
   update_item_metadata: async () => ({ success: true }),
+  update_item_metadata_safe: async () => ({ success: true }),
 }));
 
 vi.mock("@/services/mail_categorizer", () => ({

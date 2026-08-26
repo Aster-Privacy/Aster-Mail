@@ -72,6 +72,8 @@ vi.mock("@/services/api/snooze", () => ({
 vi.mock("@/services/crypto/mail_metadata", () => ({
   decrypt_mail_metadata: async () => null,
   update_item_metadata: (...a: unknown[]) => hoisted.update_item_metadata(...a),
+  update_item_metadata_safe: (...a: unknown[]) =>
+    hoisted.update_item_metadata(...a),
   bulk_update_items_metadata: (...a: unknown[]) =>
     hoisted.bulk_update_items_metadata(...a),
 }));

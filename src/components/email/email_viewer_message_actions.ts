@@ -27,7 +27,6 @@ import { use_date_format } from "@/hooks/use_date_format";
 
 import { is_system_email } from "@/lib/utils";
 import {
-  update_item_metadata,
   update_item_metadata_safe,
   bulk_update_metadata_by_ids,
 } from "@/services/crypto/mail_metadata";
@@ -175,7 +174,7 @@ export function use_message_actions(
           action_type: "trash",
           email_ids: [msg.id],
           on_undo: async () => {
-            await update_item_metadata(
+            const undo_result = await update_item_metadata_safe(
               msg.id,
               {
                 encrypted_metadata: result.encrypted?.encrypted_metadata,
@@ -183,6 +182,10 @@ export function use_message_actions(
               },
               { is_trashed: false },
             );
+
+            if (!undo_result.success) {
+              throw new Error("undo failed");
+            }
             window.dispatchEvent(
               new CustomEvent("astermail:mail-soft-refresh"),
             );
@@ -219,7 +222,7 @@ export function use_message_actions(
 
   const handle_per_message_report_phishing = useCallback(
     async (msg: DecryptedThreadMessage) => {
-      const result = await update_item_metadata(
+      const result = await update_item_metadata_safe(
         msg.id,
         {
           encrypted_metadata: msg.encrypted_metadata,
@@ -250,7 +253,7 @@ export function use_message_actions(
 
   const handle_per_message_not_spam = useCallback(
     async (msg: DecryptedThreadMessage) => {
-      const result = await update_item_metadata(
+      const result = await update_item_metadata_safe(
         msg.id,
         {
           encrypted_metadata: msg.encrypted_metadata,
@@ -316,7 +319,7 @@ export function use_message_actions(
         deps.on_dismiss();
       }
 
-      update_item_metadata(
+      update_item_metadata_safe(
         message_id,
         {
           encrypted_metadata: msg.encrypted_metadata,

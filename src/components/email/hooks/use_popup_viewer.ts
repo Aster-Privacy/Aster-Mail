@@ -32,7 +32,7 @@ import {
   type DraftWithContent,
 } from "@/services/api/multi_drafts";
 import {
-  update_item_metadata,
+  update_item_metadata_safe,
   decrypt_mail_metadata,
 } from "@/services/crypto/mail_metadata";
 import {
@@ -561,7 +561,7 @@ export function use_popup_viewer({
             if (is_received && clears_conversation) {
               adjust_stats_unread(-1);
             }
-            const result = await update_item_metadata(
+            const result = await update_item_metadata_safe(
               current_email_id,
               {
                 encrypted_metadata: mail_data.encrypted_metadata,
