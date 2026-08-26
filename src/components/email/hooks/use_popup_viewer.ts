@@ -1237,6 +1237,7 @@ export function use_popup_viewer({
     handle_read_toggle: actions.handle_read_toggle,
     handle_archive: actions.handle_archive,
     handle_spam: actions.handle_spam,
+    handle_not_spam: actions.handle_not_spam,
     handle_trash: actions.handle_trash,
     handle_pin_toggle: actions.handle_pin_toggle,
     handle_reply: actions.handle_reply,

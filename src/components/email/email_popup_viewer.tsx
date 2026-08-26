@@ -122,6 +122,7 @@ export function EmailPopupViewer({
         is_pin_loading={viewer.is_pin_loading}
         is_pinned={viewer.is_pinned}
         is_read={viewer.is_read}
+        is_spam={viewer.mail_item?.is_spam === true}
         is_spam_loading={viewer.is_spam_loading}
         is_trash_loading={viewer.is_trash_loading}
         mail_item={viewer.mail_item}
@@ -132,6 +133,7 @@ export function EmailPopupViewer({
         on_pin_toggle={viewer.handle_pin_toggle}
         on_print={viewer.handle_print}
         on_read_toggle={viewer.handle_read_toggle}
+        on_not_spam={viewer.handle_not_spam}
         on_spam={() => request_spam(viewer.handle_spam)}
         on_toggle_size={viewer.toggle_size}
         on_trash={viewer.handle_trash}

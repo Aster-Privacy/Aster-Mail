@@ -61,6 +61,7 @@ interface PopupEmailActionsProps {
   is_spam_loading: boolean;
   is_trash_loading: boolean;
   mail_item: MailItem | null;
+  is_spam: boolean;
   unsubscribe_info: UnsubscribeInfo | null;
   on_close: () => void;
   on_drag_start: (e: React.MouseEvent) => void;
@@ -69,6 +70,7 @@ interface PopupEmailActionsProps {
   on_pin_toggle: () => void;
   on_archive: () => void;
   on_spam: () => void;
+  on_not_spam: () => void;
   on_trash: () => void;
   on_read_toggle: () => void;
   on_print: () => void;
@@ -87,6 +89,7 @@ export function PopupEmailActions({
   is_spam_loading,
   is_trash_loading,
   mail_item,
+  is_spam,
   unsubscribe_info,
   on_close,
   on_drag_start,
@@ -95,6 +98,7 @@ export function PopupEmailActions({
   on_pin_toggle,
   on_archive,
   on_spam,
+  on_not_spam,
   on_trash,
   on_read_toggle,
   on_print,
@@ -183,7 +187,13 @@ export function PopupEmailActions({
         </Button>
       </Tooltip>
 
-      <Tooltip tip={t("mail.archive")}>
+      <Tooltip
+        tip={
+          mail_item?.is_archived
+            ? t("mail.move_to_inbox")
+            : t("mail.archive")
+        }
+      >
         <Button
           data-no-drag
           className="h-7 w-7 text-txt-muted hover:text-txt-primary"
@@ -196,14 +206,14 @@ export function PopupEmailActions({
         </Button>
       </Tooltip>
 
-      <Tooltip tip={t("mail.report_spam")}>
+      <Tooltip tip={is_spam ? t("mail.not_spam") : t("mail.report_spam")}>
         <Button
           data-no-drag
           className="h-7 w-7 text-txt-muted hover:text-txt-primary"
           disabled={is_spam_loading}
           size="icon"
           variant="ghost"
-          onClick={on_spam}
+          onClick={is_spam ? on_not_spam : on_spam}
         >
           <NoSymbolIcon className="w-4 h-4" />
         </Button>
@@ -256,9 +266,12 @@ export function PopupEmailActions({
             {is_pinned ? t("mail.unpin") : t("common.pinned_to_top")}
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem disabled={is_spam_loading} onClick={on_spam}>
+          <DropdownMenuItem
+            disabled={is_spam_loading}
+            onClick={is_spam ? on_not_spam : on_spam}
+          >
             <NoSymbolIcon className="w-4 h-4 mr-2" />
-            {t("mail.report_spam")}
+            {is_spam ? t("mail.not_spam") : t("mail.report_spam")}
           </DropdownMenuItem>
           <DropdownMenuItem disabled={is_trash_loading} onClick={on_trash}>
             <TrashIcon className="w-4 h-4 mr-2" />

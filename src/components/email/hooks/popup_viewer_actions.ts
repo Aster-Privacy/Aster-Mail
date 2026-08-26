@@ -348,6 +348,65 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
     deps.t,
   ]);
 
+  const handle_not_spam = useCallback(async () => {
+    if (!deps.email_id || deps.is_spam_loading || !deps.mail_item) return;
+
+    deps.set_is_spam_loading(true);
+
+    const is_received = deps.mail_item.item_type === "received";
+    const is_unread = !deps.is_read;
+
+    if (is_received) {
+      adjust_stats_spam(-1);
+      if (is_unread) adjust_stats_unread(1);
+    }
+
+    const result = await update_item_metadata_safe(
+      deps.email_id,
+      {
+        encrypted_metadata: deps.mail_item.encrypted_metadata,
+        metadata_nonce: deps.mail_item.metadata_nonce,
+        metadata_version: deps.mail_item.metadata_version,
+      },
+      { is_spam: false },
+    );
+
+    deps.set_is_spam_loading(false);
+
+    if (result.success) {
+      const sender = deps.email?.sender_email;
+
+      if (sender) {
+        remove_spam_sender(sender).catch((caught) =>
+          ignore_error(
+            "components/email/hooks/popup_viewer_actions:handle_not_spam",
+            caught,
+          ),
+        );
+      }
+      reindex_ids([deps.email_id]);
+      invalidate_mail_stats();
+      emit_mail_items_removed({ ids: [deps.email_id] });
+      window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_CHANGED));
+      show_toast(deps.t("common.marked_as_not_spam"), "success");
+      deps.on_close();
+    } else {
+      if (is_received) {
+        adjust_stats_spam(1);
+        if (is_unread) adjust_stats_unread(-1);
+      }
+      show_toast(deps.t("common.failed_to_update"), "error");
+    }
+  }, [
+    deps.email_id,
+    deps.email?.sender_email,
+    deps.is_spam_loading,
+    deps.is_read,
+    deps.on_close,
+    deps.mail_item,
+    deps.t,
+  ]);
+
   const handle_trash = useCallback(async () => {
     if (!deps.email_id || deps.is_trash_loading || !deps.mail_item) return;
 
@@ -1005,6 +1064,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
     handle_read_toggle,
     handle_archive,
     handle_spam,
+    handle_not_spam,
     handle_trash,
     handle_pin_toggle,
     handle_reply,
