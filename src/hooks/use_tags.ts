@@ -735,9 +735,22 @@ export function use_tags(): UseTagsReturn {
       }
     };
 
+    let last_revalidate = 0;
+
+    const maybe_revalidate = () => {
+      if (!has_passphrase_in_memory()) return;
+
+      const now = Date.now();
+
+      if (now - last_revalidate < 5_000) return;
+
+      last_revalidate = now;
+      fetch_counts();
+    };
+
     const visibility_handler = () => {
-      if (document.visibilityState === "visible" && has_passphrase_in_memory()) {
-        fetch_counts();
+      if (document.visibilityState === "visible") {
+        maybe_revalidate();
       }
     };
 
@@ -765,6 +778,7 @@ export function use_tags(): UseTagsReturn {
     window.addEventListener(MAIL_EVENTS.TAGS_CHANGED, tags_handler);
     window.addEventListener(MAIL_EVENTS.AUTH_READY, auth_ready_handler);
     document.addEventListener("visibilitychange", visibility_handler);
+    window.addEventListener("focus", maybe_revalidate);
 
     return () => {
       if (counts_debounce) clearTimeout(counts_debounce);
@@ -781,6 +795,7 @@ export function use_tags(): UseTagsReturn {
       window.removeEventListener(MAIL_EVENTS.TAGS_CHANGED, tags_handler);
       window.removeEventListener(MAIL_EVENTS.AUTH_READY, auth_ready_handler);
       document.removeEventListener("visibilitychange", visibility_handler);
+      window.removeEventListener("focus", maybe_revalidate);
     };
   }, [fetch_counts, fetch_tags]);
 

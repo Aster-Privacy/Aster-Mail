@@ -712,13 +712,23 @@ export function use_folders(): UseFoldersReturn {
       }
     };
 
+    let last_revalidate = 0;
+
+    const maybe_revalidate = () => {
+      if (!has_passphrase_in_memory()) return;
+
+      const now = Date.now();
+
+      if (now - last_revalidate < 5_000) return;
+
+      last_revalidate = now;
+      fetch_folders();
+      fetch_counts();
+    };
+
     const visibility_handler = () => {
-      if (
-        document.visibilityState === "visible" &&
-        has_passphrase_in_memory()
-      ) {
-        fetch_folders();
-        fetch_counts();
+      if (document.visibilityState === "visible") {
+        maybe_revalidate();
       }
     };
 
@@ -742,6 +752,7 @@ export function use_folders(): UseFoldersReturn {
     window.addEventListener(MAIL_EVENTS.FOLDERS_CHANGED, folders_handler);
     window.addEventListener(MAIL_EVENTS.AUTH_READY, auth_ready_handler);
     document.addEventListener("visibilitychange", visibility_handler);
+    window.addEventListener("focus", maybe_revalidate);
     channel?.addEventListener("message", broadcast_handler);
 
     return () => {
@@ -759,6 +770,7 @@ export function use_folders(): UseFoldersReturn {
       window.removeEventListener(MAIL_EVENTS.FOLDERS_CHANGED, folders_handler);
       window.removeEventListener(MAIL_EVENTS.AUTH_READY, auth_ready_handler);
       document.removeEventListener("visibilitychange", visibility_handler);
+      window.removeEventListener("focus", maybe_revalidate);
       channel?.removeEventListener("message", broadcast_handler);
     };
   }, [fetch_counts, fetch_folders]);

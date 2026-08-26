@@ -515,9 +515,20 @@ export function use_sidebar_aliases(): UseSidebarAliasesReturn {
       }, 500);
     };
 
+    let last_revalidate = 0;
+
+    const maybe_revalidate = () => {
+      const now = Date.now();
+
+      if (now - last_revalidate < 5_000) return;
+
+      last_revalidate = now;
+      fetch_unread_ref.current?.();
+    };
+
     const handle_visibility = () => {
       if (document.visibilityState === "visible") {
-        fetch_unread_ref.current?.();
+        maybe_revalidate();
       }
     };
 
@@ -533,6 +544,7 @@ export function use_sidebar_aliases(): UseSidebarAliasesReturn {
     window.addEventListener(MAIL_EVENTS.MAIL_ACTION, handle_mail_changed);
     window.addEventListener(MAIL_EVENTS.MAIL_STATS_STALE, handle_mail_changed);
     document.addEventListener("visibilitychange", handle_visibility);
+    window.addEventListener("focus", maybe_revalidate);
 
     return () => {
       if (unread_debounce) clearTimeout(unread_debounce);
@@ -560,6 +572,7 @@ export function use_sidebar_aliases(): UseSidebarAliasesReturn {
         handle_mail_changed,
       );
       document.removeEventListener("visibilitychange", handle_visibility);
+      window.removeEventListener("focus", maybe_revalidate);
     };
   }, []);
 
