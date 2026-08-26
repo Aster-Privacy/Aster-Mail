@@ -640,6 +640,15 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
   const handle_not_spam = useCallback(async () => {
     if (!deps.email_id || deps.is_spam_loading || !deps.mail_item) return;
     deps.set_is_spam_loading(true);
+
+    const is_received = deps.mail_item.item_type === "received";
+    const is_unread = !deps.is_read;
+
+    if (is_received) {
+      adjust_stats_spam(-1);
+      if (is_unread) adjust_stats_unread(1);
+    }
+
     const result = await update_item_metadata(
       deps.email_id,
       {
@@ -663,9 +672,17 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
         );
       }
       reindex_ids([deps.email_id]);
+      invalidate_mail_stats();
+      emit_mail_items_removed({ ids: [deps.email_id] });
       window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
       show_toast(deps.t("common.marked_as_not_spam"), "success");
       deps.on_dismiss();
+    } else {
+      if (is_received) {
+        adjust_stats_spam(1);
+        if (is_unread) adjust_stats_unread(-1);
+      }
+      show_toast(deps.t("common.failed_to_update"), "error");
     }
   }, [
     deps.email_id,
@@ -673,6 +690,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
     deps.is_spam_loading,
     deps.on_dismiss,
     deps.mail_item,
+    deps.is_read,
     deps.t,
   ]);
 

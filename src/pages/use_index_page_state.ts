@@ -848,6 +848,11 @@ export function use_index_page_state() {
               adjust_stats_inbox(moved_ids.length);
               adjust_stats_archived(-moved_ids.length);
               stale_all_view_caches();
+            } else {
+              emit_mail_stats_stale();
+              emit_mail_soft_refresh();
+
+              throw new Error(t("common.failed_to_unarchive_emails"));
             }
           }
           emit_mail_stats_stale();

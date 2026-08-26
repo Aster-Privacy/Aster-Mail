@@ -695,13 +695,17 @@ export function use_sign_in_page() {
 
     set_is_resending(false);
     if (result.data.success) {
+      show_toast(t("common.verification_email_sent"), "success");
       start_resend_cooldown();
+    } else {
+      show_toast(t("common.something_went_wrong"), "error");
     }
   }, [
     pending_verification_hash,
     resend_cooldown,
     is_resending,
     start_resend_cooldown,
+    t,
   ]);
 
   return {
