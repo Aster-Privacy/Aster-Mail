@@ -28,27 +28,7 @@ import { use_i18n } from "@/lib/i18n/context";
 import { get_subscription } from "@/services/api/billing";
 import { ignore_error } from "@/lib/ignore_error";
 
-const DISMISSED_KEY = "aster_billing_alert_dismissed";
 const RECHECK_INTERVAL_MS = 5 * 60 * 1000;
-
-function get_dismissed(): boolean {
-  try {
-    return sessionStorage.getItem(DISMISSED_KEY) === "true";
-  } catch {
-    return false;
-  }
-}
-
-function set_dismissed() {
-  try {
-    sessionStorage.setItem(DISMISSED_KEY, "true");
-  } catch (caught) {
-    ignore_error(
-      "components/common/billing_alert_banner:set_dismissed",
-      caught,
-    );
-  }
-}
 
 function days_remaining(grace_period_end: string | null): number | null {
   if (!grace_period_end) return null;
@@ -66,17 +46,14 @@ export function BillingAlertBanner() {
   const reduce_motion = use_should_reduce_motion();
   const navigate = useNavigate();
   const { t } = use_i18n();
-  const [is_hidden, set_is_hidden] = useState(get_dismissed);
   const [grace_days, set_grace_days] = useState<number | null>(null);
-  const [has_payment_failed, set_has_payment_failed] = useState(false);
+  const [is_past_due, set_is_past_due] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     let last_checked = 0;
 
     const check = () => {
-      if (get_dismissed()) return;
-
       const now = Date.now();
 
       if (now - last_checked < RECHECK_INTERVAL_MS) return;
@@ -86,14 +63,19 @@ export function BillingAlertBanner() {
         .then((response) => {
           if (cancelled || response.error || !response.data) return;
 
-          if (!response.data.payment_failed_at) {
-            set_has_payment_failed(false);
+          const subscription = response.data;
+
+          if (
+            !subscription.payment_failed_at ||
+            subscription.cancel_at_period_end
+          ) {
+            set_is_past_due(false);
 
             return;
           }
 
-          set_has_payment_failed(true);
-          set_grace_days(days_remaining(response.data.grace_period_end));
+          set_is_past_due(true);
+          set_grace_days(days_remaining(subscription.grace_period_end));
         })
         .catch((caught) => {
           ignore_error("components/common/billing_alert_banner:load", caught);
@@ -117,26 +99,19 @@ export function BillingAlertBanner() {
     };
   }, []);
 
-  const should_hide = is_hidden || !has_payment_failed;
-
-  const handle_dismiss = () => {
-    set_is_hidden(true);
-    set_dismissed();
-  };
-
-  const handle_update = () => {
-    set_is_hidden(true);
+  const handle_pay = () => {
     navigate("/settings/billing");
   };
 
   return (
     <AnimatePresence>
-      {!should_hide && (
+      {is_past_due && (
         <motion.div
           animate={{ opacity: 1, height: "auto" }}
           className="w-full flex-shrink-0 overflow-hidden text-white"
           exit={{ opacity: 0, height: 0, overflow: "hidden" }}
           initial={reduce_motion ? false : { opacity: 0, height: 0 }}
+          role="alert"
           style={{ backgroundColor: "#dc2626" }}
           transition={{ duration: reduce_motion ? 0 : 0.2 }}
         >
@@ -151,24 +126,14 @@ export function BillingAlertBanner() {
                     })}
               </span>
             </div>
-            <div className="flex flex-shrink-0 items-center gap-1.5">
-              <button
-                className="rounded-[12px] px-2.5 py-0.5 text-xs font-medium transition-colors"
-                style={{ backgroundColor: "rgba(255, 255, 255, 0.2)" }}
-                type="button"
-                onClick={handle_update}
-              >
-                {t("common.billing_alert_action")}
-              </button>
-              <button
-                className="rounded-[12px] px-2.5 py-0.5 text-xs font-medium transition-colors"
-                style={{ backgroundColor: "rgba(255, 255, 255, 0.1)" }}
-                type="button"
-                onClick={handle_dismiss}
-              >
-                {t("common.dismiss")}
-              </button>
-            </div>
+            <button
+              className="flex-shrink-0 rounded-[12px] px-2.5 py-0.5 text-xs font-medium transition-colors"
+              style={{ backgroundColor: "rgba(255, 255, 255, 0.2)" }}
+              type="button"
+              onClick={handle_pay}
+            >
+              {t("common.billing_alert_action")}
+            </button>
           </div>
         </motion.div>
       )}

@@ -442,10 +442,10 @@ export const nl = {
     continue_anyway: "Toch doorgaan",
     set_as_default: "Als standaard instellen",
     billing_alert_body:
-      "Je laatste betaling is niet gelukt. Werk je betaalmethode bij om je abonnement te behouden.",
+      "Je betaling is niet gelukt. De toegang wordt binnenkort beperkt.",
     billing_alert_body_days:
-      "Je laatste betaling is niet gelukt. Werk je betaalmethode binnen {{days}} dagen bij om je abonnement te behouden.",
-    billing_alert_action: "Betaling bijwerken",
+      "Je betaling is niet gelukt. De toegang wordt over {{days}} dagen beperkt.",
+    billing_alert_action: "Betalen",
     dismiss: "Negeren",
     load_content: "Laden",
     open_link: "Link openen",

@@ -447,10 +447,10 @@ export const pl = {
     continue_anyway: "Kontynuuj mimo to",
     set_as_default: "Ustaw jako domyślne",
     billing_alert_body:
-      "Twoja ostatnia płatność się nie powiodła. Zaktualizuj metodę płatności, aby zachować swój plan.",
+      "Twoja płatność się nie powiodła. Dostęp wkrótce zostanie ograniczony.",
     billing_alert_body_days:
-      "Twoja ostatnia płatność się nie powiodła. Zaktualizuj metodę płatności w ciągu {{days}} dni, aby zachować swój plan.",
-    billing_alert_action: "Zaktualizuj płatność",
+      "Twoja płatność się nie powiodła. Dostęp zostanie ograniczony za {{days}} dni.",
+    billing_alert_action: "Zapłać",
     dismiss: "Odrzuć",
     load_content: "Załaduj",
     open_link: "Otwórz link",

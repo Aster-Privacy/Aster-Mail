@@ -446,11 +446,10 @@ export const tr = {
     go_back: "Geri dön",
     continue_anyway: "Yine de devam et",
     set_as_default: "Varsayılan olarak ayarla",
-    billing_alert_body:
-      "Son ödemeniz alınamadı. Planınızı korumak için ödeme yönteminizi güncelleyin.",
+    billing_alert_body: "Ödemeniz alınamadı. Erişim yakında kısıtlanacak.",
     billing_alert_body_days:
-      "Son ödemeniz alınamadı. Planınızı korumak için {{days}} gün içinde ödeme yönteminizi güncelleyin.",
-    billing_alert_action: "Ödemeyi güncelle",
+      "Ödemeniz alınamadı. Erişim {{days}} gün içinde kısıtlanacak.",
+    billing_alert_action: "Öde",
     dismiss: "Kapat",
     load_content: "Yükle",
     open_link: "Bağlantıyı aç",

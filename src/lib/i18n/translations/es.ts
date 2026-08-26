@@ -451,11 +451,10 @@ export const es = {
     go_back: "Volver",
     continue_anyway: "Continuar de todos modos",
     set_as_default: "Establecer como predeterminado",
-    billing_alert_body:
-      "Tu último pago no se completó. Actualiza tu método de pago para conservar tu plan.",
+    billing_alert_body: "Tu pago no se completó. El acceso se limitará pronto.",
     billing_alert_body_days:
-      "Tu último pago no se completó. Actualiza tu método de pago en {{days}} días para conservar tu plan.",
-    billing_alert_action: "Actualizar el pago",
+      "Tu pago no se completó. El acceso se limitará en {{days}} días.",
+    billing_alert_action: "Pagar",
     dismiss: "Descartar",
     load_content: "Cargar",
     open_link: "Abrir enlace",

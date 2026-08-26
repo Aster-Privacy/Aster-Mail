@@ -518,11 +518,10 @@ export const en: Translations = {
     go_back: "Go back",
     continue_anyway: "Continue anyway",
     set_as_default: "Set as default",
-    billing_alert_body:
-      "Your last payment did not go through. Update your payment method to keep your plan.",
+    billing_alert_body: "Your payment did not go through. Access limited soon.",
     billing_alert_body_days:
-      "Your last payment did not go through. Update your payment method within {{days}} days to keep your plan.",
-    billing_alert_action: "Update payment",
+      "Your payment did not go through. Access limited in {{days}} days.",
+    billing_alert_action: "Pay",
     dismiss: "Dismiss",
     load_content: "Load",
     open_link: "Open link",

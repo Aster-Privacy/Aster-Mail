@@ -453,10 +453,10 @@ export const fr = {
     continue_anyway: "Continuer quand même",
     set_as_default: "Définir par défaut",
     billing_alert_body:
-      "Votre dernier paiement n'a pas abouti. Mettez à jour votre moyen de paiement pour conserver votre forfait.",
+      "Votre paiement n'a pas abouti. L'accès sera bientôt limité.",
     billing_alert_body_days:
-      "Votre dernier paiement n'a pas abouti. Mettez à jour votre moyen de paiement sous {{days}} jours pour conserver votre forfait.",
-    billing_alert_action: "Mettre à jour le paiement",
+      "Votre paiement n'a pas abouti. L'accès sera limité dans {{days}} jours.",
+    billing_alert_action: "Payer",
     dismiss: "Ignorer",
     load_content: "Charger",
     open_link: "Ouvrir le lien",

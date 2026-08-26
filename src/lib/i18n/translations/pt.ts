@@ -390,10 +390,10 @@ export const pt = {
     continue_anyway: "Continuar mesmo assim",
     set_as_default: "Definir como padrão",
     billing_alert_body:
-      "Seu último pagamento não foi concluído. Atualize sua forma de pagamento para manter seu plano.",
+      "Seu pagamento não foi concluído. O acesso será limitado em breve.",
     billing_alert_body_days:
-      "Seu último pagamento não foi concluído. Atualize sua forma de pagamento em {{days}} dias para manter seu plano.",
-    billing_alert_action: "Atualizar pagamento",
+      "Seu pagamento não foi concluído. O acesso será limitado em {{days}} dias.",
+    billing_alert_action: "Pagar",
     dismiss: "Dispensar",
     load_content: "Carregar",
     open_link: "Abrir link",

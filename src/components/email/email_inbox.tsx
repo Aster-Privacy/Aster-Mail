@@ -46,7 +46,6 @@ import {
 } from "@/components/email/inbox/inbox_email_list";
 import { BottomPagination } from "@/components/email/inbox/inbox_bottom_pagination";
 import { StorageBanner } from "@/components/email/inbox/inbox_storage_banner";
-import { PaymentFailedBanner } from "@/components/email/inbox/inbox_payment_failed_banner";
 import { TrashBanner } from "@/components/email/inbox/inbox_trash_banner";
 
 export type {
@@ -394,7 +393,6 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
             />
           )}
 
-        <PaymentFailedBanner />
 
         <StorageBanner
           storage_total_bytes={mail_stats.storage_total_bytes}

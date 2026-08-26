@@ -457,10 +457,10 @@ export const it = {
     continue_anyway: "Continua comunque",
     set_as_default: "Imposta come predefinito",
     billing_alert_body:
-      "Il tuo ultimo pagamento non è andato a buon fine. Aggiorna il metodo di pagamento per mantenere il tuo piano.",
+      "Il tuo pagamento non è andato a buon fine. L'accesso sarà presto limitato.",
     billing_alert_body_days:
-      "Il tuo ultimo pagamento non è andato a buon fine. Aggiorna il metodo di pagamento entro {{days}} giorni per mantenere il tuo piano.",
-    billing_alert_action: "Aggiorna il pagamento",
+      "Il tuo pagamento non è andato a buon fine. L'accesso sarà limitato tra {{days}} giorni.",
+    billing_alert_action: "Paga",
     dismiss: "Ignora",
     load_content: "Carica",
     open_link: "Apri link",
