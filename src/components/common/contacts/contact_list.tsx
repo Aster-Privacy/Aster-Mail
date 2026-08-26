@@ -36,6 +36,7 @@ import {
   StarIcon,
   ClipboardDocumentIcon,
   ArrowDownTrayIcon,
+  EnvelopeIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
 import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
@@ -115,6 +116,7 @@ export function ContactList({
   on_add_click,
   on_import_modal_open,
   on_toggle_select,
+  on_compose_to_selected,
   on_toggle_favorite_selected,
   on_copy_emails,
   on_export_contacts,
@@ -172,6 +174,14 @@ export function ContactList({
               count: selection_state.selected_count,
             })}
           </span>
+          <button
+            aria-label={t("mail.compose")}
+            className="h-8 w-8 inline-flex items-center justify-center rounded-[8px] text-txt-secondary hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+            type="button"
+            onClick={on_compose_to_selected}
+          >
+            <EnvelopeIcon className="w-4 h-4" />
+          </button>
           <button
             aria-label={
               selected_all_favorited
