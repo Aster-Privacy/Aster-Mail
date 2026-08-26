@@ -19,7 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
   ChevronRightIcon,
@@ -49,7 +49,10 @@ import {
   format_storage,
   format_price,
   format_date,
+  get_academic_discount_status,
+  type AcademicDiscountStatusResponse,
 } from "@/services/api/billing";
+import { AcademicDiscountSection } from "@/components/settings/billing/academic_discount_section";
 import { render_billing_dialogs } from "./billing_dialogs";
 import { use_billing_section } from "./use_billing_section";
 
@@ -65,6 +68,18 @@ export function BillingSection({
   const [plan_type, set_plan_type] = useState<"individual" | "family">(
     "individual",
   );
+  const [academic_status, set_academic_status] =
+    useState<AcademicDiscountStatusResponse | null>(null);
+
+  const refresh_academic_status = useCallback(async () => {
+    const res = await get_academic_discount_status();
+
+    if (res.data) set_academic_status(res.data);
+  }, []);
+
+  useEffect(() => {
+    refresh_academic_status();
+  }, [refresh_academic_status]);
 
   const state = use_billing_section();
   const {
@@ -773,6 +788,13 @@ export function BillingSection({
                 credit_balance={credit_balance}
                 set_credit_balance={set_credit_balance}
                 preferred_currency={preferred_currency}
+              />
+            </div>
+
+            <div className="px-4 pt-2">
+              <AcademicDiscountSection
+                academic_status={academic_status}
+                refresh_academic_status={refresh_academic_status}
               />
             </div>
 
