@@ -82,6 +82,8 @@ import {
 } from "@/components/email/hooks/popup_viewer_types";
 import { use_popup_viewer_actions } from "@/components/email/hooks/popup_viewer_actions";
 import { viewer_still_showing } from "@/components/email/thread_reply_target";
+import { request_cache } from "@/services/api/request_cache";
+import { has_passphrase_in_memory } from "@/services/crypto/memory_key_store";
 import { UNDO_SEND_PREVIEW_ID } from "@/components/email/email_viewer_types";
 
 export type {
@@ -150,6 +152,8 @@ export function use_popup_viewer({
   });
   const timestamp_date = useRef<Date | null>(null);
   const fetch_seq_ref = useRef(0);
+  const thread_refresh_in_flight_ref = useRef(false);
+  const last_thread_refresh_ref = useRef(0);
   const mark_as_read_timeout = useRef<number | null>(null);
   const open_email_id_ref = useRef<string | null>(email_id);
   const open_thread_token_ref = useRef<string | null>(null);
@@ -768,9 +772,16 @@ export function use_popup_viewer({
           return;
         }
 
+        request_cache.invalidate(
+          `messages/threads/${encodeURIComponent(detail.thread_token)}/messages`,
+        );
         thread_result = await fetch_and_decrypt_thread_messages(
           detail.thread_token,
           user?.email,
+          {
+            is_trashed: !!mail_item?.is_trashed,
+            is_spam: !!mail_item?.is_spam,
+          },
         );
 
         if (thread_result.messages.length > prev_server_count) break;
@@ -821,6 +832,93 @@ export function use_popup_viewer({
     user?.email,
     preferences.conversation_grouping,
     still_showing,
+    mail_item?.is_trashed,
+    mail_item?.is_spam,
+  ]);
+
+  useEffect(() => {
+    if (!current_thread_token) return;
+    if (preferences.conversation_grouping === false) return;
+
+    const thread_token = current_thread_token;
+
+    const refresh_thread = async (force: boolean) => {
+      if (!has_passphrase_in_memory()) return;
+      if (thread_refresh_in_flight_ref.current) return;
+
+      const now = Date.now();
+
+      if (!force && now - last_thread_refresh_ref.current < 5_000) return;
+
+      thread_refresh_in_flight_ref.current = true;
+      try {
+        request_cache.invalidate(
+          `messages/threads/${encodeURIComponent(thread_token)}/messages`,
+        );
+
+        const thread_result = await fetch_and_decrypt_thread_messages(
+          thread_token,
+          user?.email,
+          {
+            is_trashed: !!mail_item?.is_trashed,
+            is_spam: !!mail_item?.is_spam,
+          },
+        );
+
+        if (thread_result.messages.length === 0) return;
+
+        last_thread_refresh_ref.current = Date.now();
+        set_thread_messages((prev) => {
+          const server_ids = new Set(thread_result.messages.map((m) => m.id));
+          const pending = prev.filter(
+            (m) => m.is_sending === true && !server_ids.has(m.id),
+          );
+
+          return pending.length > 0
+            ? [...thread_result.messages, ...pending]
+            : thread_result.messages;
+        });
+      } finally {
+        thread_refresh_in_flight_ref.current = false;
+      }
+    };
+
+    const maybe_revalidate = () => {
+      if (document.visibilityState !== "visible") return;
+      void refresh_thread(false);
+    };
+
+    const handle_mail_changed = () => {
+      void refresh_thread(true);
+    };
+
+    const poll_interval = window.setInterval(() => {
+      maybe_revalidate();
+    }, 60_000);
+
+    window.addEventListener(MAIL_EVENTS.EMAIL_RECEIVED, handle_mail_changed);
+    window.addEventListener(MAIL_EVENTS.MAIL_CHANGED, handle_mail_changed);
+    window.addEventListener(MAIL_EVENTS.MAIL_SOFT_REFRESH, handle_mail_changed);
+    document.addEventListener("visibilitychange", maybe_revalidate);
+    window.addEventListener("focus", maybe_revalidate);
+
+    return () => {
+      window.clearInterval(poll_interval);
+      window.removeEventListener(MAIL_EVENTS.EMAIL_RECEIVED, handle_mail_changed);
+      window.removeEventListener(MAIL_EVENTS.MAIL_CHANGED, handle_mail_changed);
+      window.removeEventListener(
+        MAIL_EVENTS.MAIL_SOFT_REFRESH,
+        handle_mail_changed,
+      );
+      document.removeEventListener("visibilitychange", maybe_revalidate);
+      window.removeEventListener("focus", maybe_revalidate);
+    };
+  }, [
+    current_thread_token,
+    preferences.conversation_grouping,
+    user?.email,
+    mail_item?.is_trashed,
+    mail_item?.is_spam,
   ]);
 
   useEffect(() => {
