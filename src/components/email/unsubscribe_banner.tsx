@@ -30,7 +30,9 @@ import {
   get_unsubscribe_display_text,
   get_sender_domain,
   execute_unsubscribe,
+  get_manual_unsubscribe_url,
 } from "@/utils/unsubscribe_detector";
+import { open_external } from "@/utils/open_link";
 import { track_subscription } from "@/services/api/subscriptions";
 import { persist_unsubscribe } from "@/hooks/use_unsubscribed_senders";
 import { use_should_reduce_motion } from "@/provider";
@@ -134,9 +136,7 @@ export function UnsubscribeBanner({
             email_ids: [],
           });
         } else {
-          const url =
-            unsubscribe_info.unsubscribe_link ||
-            unsubscribe_info.unsubscribe_mailto;
+          const url = get_manual_unsubscribe_url(unsubscribe_info);
           const lockdown = is_any_lockdown_active();
 
           show_action_toast({
@@ -144,12 +144,13 @@ export function UnsubscribeBanner({
             action_type: "not_spam",
             email_ids: [],
             duration_ms: 15000,
-            ...(!lockdown && {
-              action_label: t("mail.open_unsubscribe_page"),
-              on_undo: async () => {
-                if (url) window.open(url, "_blank", "noopener,noreferrer");
-              },
-            }),
+            ...(!lockdown &&
+              url && {
+                action_label: t("mail.open_unsubscribe_page"),
+                on_undo: async () => {
+                  open_external(url);
+                },
+              }),
           });
         }
       } catch {

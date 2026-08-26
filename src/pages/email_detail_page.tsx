@@ -42,9 +42,13 @@ import { app_locale, get_display_time_zone } from "@/utils/date_format";
 import { show_toast } from "@/components/toast/simple_toast";
 import { block_sender } from "@/services/api/blocked_senders";
 import {
+  get_manual_unsubscribe_url,
   perform_unsubscribe,
   UnsubscribeError,
 } from "@/utils/unsubscribe_detector";
+import { show_action_toast } from "@/components/toast/action_toast";
+import { open_external } from "@/utils/open_link";
+import { is_any_lockdown_active } from "@/services/lockdown_store";
 
 export default function EmailDetailPage() {
   const reduce_motion = use_should_reduce_motion();
@@ -93,7 +97,22 @@ export default function EmailDetailPage() {
       if (result === "api") {
         show_toast(detail.t("mail.successfully_unsubscribed"), "success");
       } else {
-        show_toast(detail.t("mail.unsubscribe_manual_required"), "info");
+        const url = get_manual_unsubscribe_url(info);
+        const lockdown = is_any_lockdown_active();
+
+        show_action_toast({
+          message: detail.t("mail.unsubscribe_manual_required"),
+          action_type: "not_spam",
+          email_ids: [],
+          duration_ms: 15000,
+          ...(!lockdown &&
+            url && {
+              action_label: detail.t("mail.open_unsubscribe_page"),
+              on_undo: async () => {
+                open_external(url);
+              },
+            }),
+        });
       }
     } catch (caught) {
       if (caught instanceof UnsubscribeError && caught.code === "cancelled") {
