@@ -470,10 +470,6 @@ export function start_session_timeout(
   account_id: string,
   on_timeout?: () => void,
 ): void {
-  if ("__TAURI_INTERNALS__" in window) {
-    return;
-  }
-
   stop_session_timeout();
 
   current_account_id = account_id;
