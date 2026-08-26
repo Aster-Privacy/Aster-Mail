@@ -30,22 +30,25 @@ import {
 } from "@/services/api/trusted_devices";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
-
-function format_date(iso: string): string {
-  try {
-    return new Date(iso).toLocaleString();
-  } catch {
-    return iso;
-  }
-}
+import { use_date_format } from "@/hooks/use_date_format";
 
 export function TrustedDevicesSection() {
   const { t } = use_i18n();
+  const { format_full_datetime } = use_date_format();
   const [devices, set_devices] = useState<TrustedDeviceItem[]>([]);
   const [is_loading, set_is_loading] = useState(true);
   const [error, set_error] = useState<string | null>(null);
   const [busy_id, set_busy_id] = useState<string | null>(null);
   const [revoke_all_busy, set_revoke_all_busy] = useState(false);
+
+  const format_when = (value: string | null): string => {
+    if (!value) return "";
+    const parsed = new Date(value);
+
+    if (Number.isNaN(parsed.getTime())) return value;
+
+    return format_full_datetime(parsed);
+  };
 
   const load = useCallback(async () => {
     set_is_loading(true);
@@ -126,11 +129,11 @@ export function TrustedDevicesSection() {
                 </p>
                 <p className="text-xs text-txt-muted truncate">
                   {t("settings.trusted_2fa_last_used", {
-                    when: format_date(d.last_used_at),
+                    when: format_when(d.last_used_at),
                   })}
                   {" - "}
                   {t("settings.trusted_2fa_expires", {
-                    when: format_date(d.expires_at),
+                    when: format_when(d.expires_at),
                   })}
                 </p>
                 {d.ip_snippet ? (

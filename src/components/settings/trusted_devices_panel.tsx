@@ -25,6 +25,7 @@ import { TrashIcon } from "@heroicons/react/24/outline";
 import { Button, UpgradeBtn } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { use_date_format } from "@/hooks/use_date_format";
 import { Spinner } from "@/components/ui/spinner";
 import {
   revoke_device,
@@ -47,17 +48,19 @@ function open_billing_settings() {
   );
 }
 
-function format_date(value: string | null): string {
-  if (!value) return "";
-  try {
-    return new Date(value).toLocaleString();
-  } catch {
-    return value;
-  }
-}
-
 export function TrustedDevicesPanel() {
   const { t } = use_i18n();
+  const { format_full_datetime } = use_date_format();
+
+  const format_when = (value: string | null): string => {
+    if (!value) return "";
+    const parsed = new Date(value);
+
+    if (Number.isNaN(parsed.getTime())) return value;
+
+    return format_full_datetime(parsed);
+  };
+
   const { limits } = use_plan_limits();
   const is_free_plan = !!limits && limits.plan_code === "free";
   const {
@@ -288,12 +291,12 @@ export function TrustedDevicesPanel() {
                   </div>
                   <div className="text-xs mt-1 text-txt-tertiary">
                     {t("settings.trusted_devices_created")}:{" "}
-                    {format_date(device.created_at)}
+                    {format_when(device.created_at)}
                   </div>
                   <div className="text-xs text-txt-tertiary">
                     {t("settings.trusted_devices_last_seen")}:{" "}
                     {device.last_seen_at
-                      ? format_date(device.last_seen_at)
+                      ? format_when(device.last_seen_at)
                       : t("settings.trusted_devices_never")}
                   </div>
                 </div>

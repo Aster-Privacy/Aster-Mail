@@ -24,6 +24,7 @@ import { TrashIcon } from "@heroicons/react/24/outline";
 import { SettingsGroup, SettingsHeader, SettingsRow } from "./shared";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { use_date_format } from "@/hooks/use_date_format";
 import { Spinner } from "@/components/ui/spinner";
 import {
   list_devices,
@@ -33,15 +34,6 @@ import {
 import { show_toast } from "@/components/toast/simple_toast";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 
-function format_date(value: string | null): string {
-  if (!value) return "";
-  try {
-    return new Date(value).toLocaleString();
-  } catch {
-    return value;
-  }
-}
-
 export function TrustedDevicesSection({
   on_back,
   on_close,
@@ -50,12 +42,22 @@ export function TrustedDevicesSection({
   on_close: () => void;
 }) {
   const { t } = use_i18n();
+  const { format_full_datetime } = use_date_format();
   const [devices, set_devices] = useState<Device[]>([]);
   const [loading, set_loading] = useState(true);
   const [revoking_id, set_revoking_id] = useState<string | null>(null);
   const [pending_revoke, set_pending_revoke] = useState<Device | null>(null);
   const [pending_revoke_all, set_pending_revoke_all] = useState(false);
   const [is_revoking_all, set_is_revoking_all] = useState(false);
+
+  const format_when = (value: string | null): string => {
+    if (!value) return "";
+    const parsed = new Date(value);
+
+    if (Number.isNaN(parsed.getTime())) return value;
+
+    return format_full_datetime(parsed);
+  };
 
   const load_devices = useCallback(async () => {
     set_loading(true);
@@ -147,7 +149,7 @@ export function TrustedDevicesSection({
                     <p className="text-[12px] text-[var(--text-muted)]">
                       {t("settings.trusted_devices_last_seen")}:{" "}
                       {device.last_seen_at
-                        ? format_date(device.last_seen_at)
+                        ? format_when(device.last_seen_at)
                         : t("settings.trusted_devices_never")}
                     </p>
                   </div>

@@ -39,6 +39,7 @@ import {
   setup_thread_print_intercept,
 } from "@/utils/print_email";
 import { set_forward_mail_id } from "@/services/forward_store";
+import { use_date_format } from "@/hooks/use_date_format";
 
 export type {
   DecryptedEmail,
@@ -58,6 +59,7 @@ export {
 import { use_email_detail_load } from "./use_email_detail_load";
 
 export function use_email_detail() {
+  const { format_email_detail } = use_date_format();
   const {
     t,
     email_id,
@@ -248,14 +250,14 @@ export function use_email_detail() {
       messages: thread_messages.map((msg) => ({
         sender: msg.display_sender_name || msg.sender_name,
         sender_email: msg.display_sender_email || msg.sender_email,
-        timestamp: new Date(msg.timestamp).toLocaleString(),
+        timestamp: format_email_detail(new Date(msg.timestamp)),
         body: msg.html_content || msg.body,
         to_recipients: msg.to_recipients,
         cc_recipients: msg.cc_recipients,
         bcc_recipients: msg.bcc_recipients,
       })),
     };
-  }, [email, thread_messages]);
+  }, [email, thread_messages, format_email_detail]);
 
   const thread_data_ref = useRef(build_thread_print_data);
 

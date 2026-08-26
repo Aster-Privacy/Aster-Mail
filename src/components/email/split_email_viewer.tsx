@@ -53,6 +53,7 @@ import {
 } from "@/components/email/viewer_shared";
 import { use_spam_confirm } from "@/components/email/use_spam_confirm";
 import { set_forward_mail_id } from "@/services/forward_store";
+import { use_date_format } from "@/hooks/use_date_format";
 import { get_label_hints } from "@/stores/label_hints_store";
 import { execute_unsubscribe } from "@/utils/unsubscribe_detector";
 import { show_action_toast } from "@/components/toast/action_toast";
@@ -110,6 +111,7 @@ export function SplitEmailViewer({
   label_hints,
 }: SplitEmailViewerProps): React.ReactElement {
   const { t } = use_i18n();
+  const { format_email_detail } = use_date_format();
   const { preferences } = use_preferences();
   const { is_unsubscribed, mark_unsubscribed } = use_unsubscribed_senders();
   const { get_tag_by_token } = use_tags();
@@ -400,7 +402,7 @@ export function SplitEmailViewer({
           sender_avatar: "",
           email_subject: last_msg.subject,
           email_body: last_msg.body,
-          email_timestamp: new Date(last_msg.timestamp).toLocaleString(),
+          email_timestamp: format_email_detail(new Date(last_msg.timestamp)),
           original_mail_id: last_msg.id,
         });
       }
@@ -423,6 +425,7 @@ export function SplitEmailViewer({
     on_reply,
     on_forward,
     preferences.default_reply_behavior,
+    format_email_detail,
   ]);
 
   if (viewer.error || (!viewer.email && !viewer.is_loading)) {

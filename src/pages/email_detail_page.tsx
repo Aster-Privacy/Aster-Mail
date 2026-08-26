@@ -35,12 +35,14 @@ import { ReplyModal } from "@/components/modals/reply_modal";
 import { ViewSourceModal } from "@/components/modals/view_source_modal";
 import { use_should_reduce_motion } from "@/provider";
 import { use_email_detail } from "@/components/email/hooks/use_email_detail";
+import { use_date_format } from "@/hooks/use_date_format";
 import { EmailDetailHeader } from "@/components/email/email_detail/email_detail_header";
 import { EmailDetailBody } from "@/components/email/email_detail/email_detail_body";
 import { use_spam_confirm } from "@/components/email/use_spam_confirm";
 
 export default function EmailDetailPage() {
   const reduce_motion = use_should_reduce_motion();
+  const { format_email_detail } = use_date_format();
   const { request_spam, spam_confirm_dialog } = use_spam_confirm();
   const detail = use_email_detail();
   const navigate = useNavigate();
@@ -414,7 +416,7 @@ export default function EmailDetailPage() {
         }
         email_timestamp={
           detail.forward_target
-            ? new Date(detail.forward_target.timestamp).toLocaleString()
+            ? format_email_detail(new Date(detail.forward_target.timestamp))
             : detail.email?.timestamp
         }
         is_external={
