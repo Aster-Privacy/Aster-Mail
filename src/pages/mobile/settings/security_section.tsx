@@ -539,7 +539,10 @@ export function SecuritySection({
         api_client.set_csrf(res.data.csrf_token);
       }
       if (res.data?.access_token) {
-        api_client.set_dev_token(res.data.access_token);
+        api_client.set_dev_token(
+          res.data.access_token,
+          res.data.refresh_token,
+        );
       }
 
       if (master_key_mode) {
