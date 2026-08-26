@@ -66,7 +66,9 @@ export async function auto_save_recipients_to_contacts(
     try {
       const existing = await search_contacts(email, "email", 1);
 
-      if (existing.data?.items?.length) continue;
+      if (existing.error || !existing.data) continue;
+
+      if (existing.data.items?.length) continue;
 
       await create_contact_encrypted({
         ...name_parts_from_email(email),

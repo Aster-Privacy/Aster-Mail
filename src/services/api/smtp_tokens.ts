@@ -151,19 +151,25 @@ export async function list_smtp_tokens(): Promise<
 export async function create_smtp_token(
   request: CreateSmtpTokenRequest,
 ): Promise<ApiResponse<CreateSmtpTokenResult>> {
-  const from_address_hash = await compute_address_hash(
-    request.local_part,
-    request.domain_name,
-  );
-  const { encrypted: label_encrypted, nonce: label_nonce } =
-    await encrypt_address_field(request.name);
+  let api_request: CreateSmtpTokenApiRequest;
 
-  const api_request: CreateSmtpTokenApiRequest = {
-    label_encrypted,
-    label_nonce,
-    from_address: request.from_address,
-    from_address_hash,
-  };
+  try {
+    const from_address_hash = await compute_address_hash(
+      request.local_part,
+      request.domain_name,
+    );
+    const { encrypted: label_encrypted, nonce: label_nonce } =
+      await encrypt_address_field(request.name);
+
+    api_request = {
+      label_encrypted,
+      label_nonce,
+      from_address: request.from_address,
+      from_address_hash,
+    };
+  } catch {
+    return { code: "UNKNOWN_ERROR" };
+  }
 
   if (request.expires_in_days !== undefined) {
     api_request.expires_in_days = request.expires_in_days;
