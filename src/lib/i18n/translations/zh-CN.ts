@@ -3405,8 +3405,6 @@ export const zh_CN = {
     new_email_description: "当您收到新邮件时",
     replies: "回复",
     replies_description: "当有人回复您的邮件时",
-    mentions: "提及",
-    mentions_description: "当有人提及您时",
     toast_position: "通知位置",
     toast_position_description: "通知弹窗在屏幕上出现的位置",
     toast_position_top: "顶部",
@@ -6119,7 +6117,9 @@ export const zh_CN = {
     theme_sync_across_devices_description: "关闭后，此设备可以使用不同的主题。",
     product_updates: "产品动态",
     product_updates_description:
-      "每当有重要功能上线时，你会在收件箱收到一封邮件。安全和政策公告始终会送达。Aster 不会记录你是否打开或点击这些邮件。",
+      "Aster 发布重要更新时，你会收到一封邮件",
+    product_updates_info:
+      "即使关闭此项，安全和政策公告也始终会送达。Aster 不会记录你是否打开或点击这些邮件。",
     product_updates_turned_off: "产品动态已关闭。你可以在这里重新开启。",
     product_updates_save_failed: "产品动态设置未保存。请重试。",
     criterion_passkey: "已注册通行密钥",

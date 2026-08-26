@@ -3843,8 +3843,6 @@ export const pt = {
     new_email_description: "Quando você recebe um novo e-mail",
     replies: "Respostas",
     replies_description: "Quando alguém responde ao seu e-mail",
-    mentions: "Menções",
-    mentions_description: "Quando alguém menciona você",
     toast_position: "Posição das notificações",
     toast_position_description:
       "Onde os pop-ups de notificação aparecem na tela",
@@ -6926,7 +6924,9 @@ export const pt = {
       "Desative para manter um tema diferente neste dispositivo.",
     product_updates: "Novidades do produto",
     product_updates_description:
-      "Receba uma mensagem na caixa de entrada quando um recurso importante for lançado. Avisos de segurança e de políticas sempre chegam. A Aster não registra se você abre ou clica nessas mensagens.",
+      "Receba uma mensagem quando a Aster lançar uma atualização importante",
+    product_updates_info:
+      "Avisos de segurança e de políticas sempre chegam, mesmo com esta opção desativada. A Aster não registra se você abre ou clica nessas mensagens.",
     product_updates_turned_off:
       "As novidades do produto estão desativadas. Você pode reativá-las aqui.",
     product_updates_save_failed:

@@ -2893,10 +2893,9 @@ export interface SettingsTranslations {
   new_email_description: string;
   replies: string;
   replies_description: string;
-  mentions: string;
-  mentions_description: string;
   product_updates: string;
   product_updates_description: string;
+  product_updates_info: string;
   product_updates_turned_off: string;
   product_updates_save_failed: string;
   toast_position: string;

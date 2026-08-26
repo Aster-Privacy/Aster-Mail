@@ -3937,8 +3937,6 @@ export const ar = {
     new_email_description: "عند استلام رسالة جديدة",
     replies: "الردود",
     replies_description: "عندما يرد شخص ما على رسالتك",
-    mentions: "الإشارات",
-    mentions_description: "عندما يشير إليك شخص ما",
     toast_position: "موضع الإشعارات",
     toast_position_description: "أين تظهر الإشعارات المنبثقة على الشاشة",
     toast_position_top: "أعلى",
@@ -6804,7 +6802,9 @@ export const ar = {
     setup_2fa: "إعداد",
     product_updates: "مستجدات المنتج",
     product_updates_description:
-      "احصل على رسالة في بريدك الوارد عند إطلاق ميزة مهمة. تصلك دائمًا إعلانات الأمان والسياسات. لا يسجّل Aster ما إذا كنت تفتح هذه الرسائل أو تنقر فيها.",
+      "احصل على رسالة عند إصدار Aster تحديثًا مهمًا",
+    product_updates_info:
+      "تصلك دائمًا إعلانات الأمان والسياسات، حتى عند إيقاف هذا الخيار. لا يسجّل Aster ما إذا كنت تفتح هذه الرسائل أو تنقر فيها.",
     product_updates_turned_off: "مستجدات المنتج متوقفة. يمكنك تفعيلها من هنا.",
     product_updates_save_failed:
       "لم يُحفظ إعداد مستجدات المنتج. حاول مرة أخرى.",

@@ -3992,8 +3992,6 @@ export const pl = {
     new_email_description: "Gdy otrzymasz nowy e-mail",
     replies: "Odpowiedzi",
     replies_description: "Gdy ktoś odpowie na Twój e-mail",
-    mentions: "Wzmianki",
-    mentions_description: "Gdy ktoś Cię wspomni",
     toast_position: "Pozycja powiadomień",
     toast_position_description: "Gdzie na ekranie pojawiają się powiadomienia",
     toast_position_top: "Góra",
@@ -7062,7 +7060,9 @@ export const pl = {
       "Wyłącz, aby na tym urządzeniu zachować osobny motyw.",
     product_updates: "Nowości w produkcie",
     product_updates_description:
-      "Otrzymuj wiadomość w skrzynce, gdy pojawi się ważna funkcja. Ogłoszenia dotyczące bezpieczeństwa i zasad docierają zawsze. Aster nie zapisuje, czy otwierasz te wiadomości ani czy w nie klikasz.",
+      "Otrzymuj wiadomość, gdy Aster wyda ważną aktualizację",
+    product_updates_info:
+      "Ogłoszenia dotyczące bezpieczeństwa i zasad docierają zawsze, nawet gdy ta opcja jest wyłączona. Aster nie zapisuje, czy otwierasz te wiadomości ani czy w nie klikasz.",
     product_updates_turned_off:
       "Nowości w produkcie są wyłączone. Możesz je tu włączyć ponownie.",
     product_updates_save_failed:

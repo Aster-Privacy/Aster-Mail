@@ -3754,8 +3754,6 @@ export const ja = {
     new_email_description: "新しいメールを受信したとき",
     replies: "返信",
     replies_description: "誰かがあなたのメールに返信したとき",
-    mentions: "メンション",
-    mentions_description: "誰かがあなたをメンションしたとき",
     toast_position: "通知の表示位置",
     toast_position_description: "通知ポップアップが画面のどこに表示されるか",
     toast_position_top: "上部",
@@ -6792,7 +6790,9 @@ export const ja = {
       "オフにすると、この端末だけ別のテーマを使えます。",
     product_updates: "製品のお知らせ",
     product_updates_description:
-      "注目の機能が公開されたときに、受信トレイにお知らせが届きます。セキュリティとポリシーのお知らせは常に届きます。Aster はこれらのメールを開いたかクリックしたかを記録しません。",
+      "Aster が注目の機能を公開したときにお知らせが届きます",
+    product_updates_info:
+      "セキュリティとポリシーのお知らせは、この設定がオフでも常に届きます。Aster はこれらのメールを開いたかクリックしたかを記録しません。",
     product_updates_turned_off:
       "製品のお知らせはオフです。ここでオンに戻せます。",
     product_updates_save_failed:

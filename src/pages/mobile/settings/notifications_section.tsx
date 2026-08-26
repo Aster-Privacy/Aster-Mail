@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useEffect, useState } from "react";
+import { InformationCircleIcon } from "@heroicons/react/24/outline";
 import { Switch } from "@aster/ui";
 
 import { SettingsGroup, SettingsHeader, SettingsRow } from "./shared";
@@ -63,6 +64,8 @@ export function NotificationsSection({
     useState<PermissionState>(get_permission_state);
   const [product_updates, set_product_updates] = useState<boolean | null>(null);
   const [product_updates_busy, set_product_updates_busy] = useState(false);
+  const [product_updates_info_open, set_product_updates_info_open] =
+    useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -280,9 +283,27 @@ export function NotificationsSection({
                 }
               />
               <div className="px-4 pb-2">
-                <p className="text-[12px] text-[var(--text-muted)]">
-                  {t("settings.product_updates_description")}
-                </p>
+                <div className="flex items-start gap-1.5">
+                  <p className="text-[12px] text-[var(--text-muted)]">
+                    {t("settings.product_updates_description")}
+                  </p>
+                  <button
+                    aria-expanded={product_updates_info_open}
+                    aria-label={t("settings.product_updates_info")}
+                    className="flex-shrink-0 text-[var(--text-muted)]"
+                    type="button"
+                    onClick={() =>
+                      set_product_updates_info_open(!product_updates_info_open)
+                    }
+                  >
+                    <InformationCircleIcon className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+                {product_updates_info_open && (
+                  <p className="mt-1 text-[12px] text-[var(--text-muted)]">
+                    {t("settings.product_updates_info")}
+                  </p>
+                )}
               </div>
             </>
           )}

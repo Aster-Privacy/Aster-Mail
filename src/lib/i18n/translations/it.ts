@@ -3889,8 +3889,6 @@ export const it = {
     new_email_description: "Quando ricevi una nuova email",
     replies: "Risposte",
     replies_description: "Quando qualcuno risponde alla tua email",
-    mentions: "Menzioni",
-    mentions_description: "Quando qualcuno ti menziona",
     toast_position: "Posizione delle notifiche",
     toast_position_description:
       "Dove appaiono le notifiche a comparsa sullo schermo",
@@ -6968,7 +6966,9 @@ export const it = {
       "Disattivalo per usare un tema diverso su questo dispositivo.",
     product_updates: "Novità del prodotto",
     product_updates_description:
-      "Ricevi un messaggio in posta in arrivo quando esce una funzione importante. Gli annunci di sicurezza e sulle policy arrivano sempre. Aster non registra se apri questi messaggi o se ci clicchi.",
+      "Ricevi un messaggio quando Aster rilascia un aggiornamento importante",
+    product_updates_info:
+      "Gli annunci di sicurezza e sulle policy arrivano sempre, anche quando questa opzione è disattivata. Aster non registra se apri questi messaggi o se ci clicchi.",
     product_updates_turned_off:
       "Le novità del prodotto sono disattivate. Puoi riattivarle qui.",
     product_updates_save_failed:

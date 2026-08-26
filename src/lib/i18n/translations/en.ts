@@ -2699,11 +2699,11 @@ export const en: Translations = {
     new_email_description: "When you receive a new email",
     replies: "Replies",
     replies_description: "When someone replies to your email",
-    mentions: "Mentions",
-    mentions_description: "When someone mentions you",
     product_updates: "Product updates",
     product_updates_description:
-      "Get a message in your inbox when a notable feature ships. Security and policy announcements always arrive. Aster doesn't record whether you open or click these messages.",
+      "Get a message when Aster releases a notable update",
+    product_updates_info:
+      "Security and policy announcements always arrive, even when this is off. Aster doesn't record whether you open or click these messages.",
     product_updates_turned_off:
       "Product updates are off. You can turn them back on here.",
     product_updates_save_failed:

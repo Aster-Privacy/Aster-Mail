@@ -3831,8 +3831,6 @@ export const es = {
     new_email_description: "Cuando recibes un nuevo correo",
     replies: "Respuestas",
     replies_description: "Cuando alguien responde a tu correo",
-    mentions: "Menciones",
-    mentions_description: "Cuando alguien te menciona",
     toast_position: "Posición de notificaciones",
     toast_position_description:
       "Dónde aparecen las notificaciones emergentes en la pantalla",
@@ -6862,7 +6860,9 @@ export const es = {
     setup_2fa: "Configurar",
     product_updates: "Novedades del producto",
     product_updates_description:
-      "Recibe un mensaje en tu bandeja de entrada cuando lancemos una función destacada. Los avisos de seguridad y de políticas siempre llegan. Aster no registra si abres estos mensajes ni si haces clic en ellos.",
+      "Recibe un mensaje cuando Aster lance una actualización destacada",
+    product_updates_info:
+      "Los avisos de seguridad y de políticas siempre llegan, incluso con esta opción desactivada. Aster no registra si abres estos mensajes ni si haces clic en ellos.",
     product_updates_turned_off:
       "Las novedades del producto están desactivadas. Puedes volver a activarlas aquí.",
     product_updates_save_failed:

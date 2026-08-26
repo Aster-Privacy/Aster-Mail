@@ -3803,8 +3803,6 @@ export const tr = {
     new_email_description: "Yeni bir e-posta aldığınızda",
     replies: "Yanıtlar",
     replies_description: "Birisi e-postanızı yanıtladığında",
-    mentions: "Bahsetmeler",
-    mentions_description: "Birisi sizden bahsettiğinde",
     toast_position: "Bildirim Konumu",
     toast_position_description:
       "Bildirim açılır pencerelerinin ekranda nerede görüneceği",
@@ -6877,7 +6875,9 @@ export const tr = {
       "Bu cihazda farklı bir tema kullanmak için kapatın.",
     product_updates: "Ürün güncellemeleri",
     product_updates_description:
-      "Önemli bir özellik yayımlandığında gelen kutunuza bir ileti gelir. Güvenlik ve ilke duyuruları her zaman ulaşır. Aster bu iletileri açıp açmadığınızı veya tıklayıp tıklamadığınızı kaydetmez.",
+      "Aster önemli bir güncelleme yayımladığında ileti alın",
+    product_updates_info:
+      "Güvenlik ve ilke duyuruları, bu ayar kapalı olsa bile her zaman ulaşır. Aster bu iletileri açıp açmadığınızı veya tıklayıp tıklamadığınızı kaydetmez.",
     product_updates_turned_off:
       "Ürün güncellemeleri kapalı. Buradan yeniden açabilirsiniz.",
     product_updates_save_failed:

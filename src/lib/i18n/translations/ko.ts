@@ -3742,8 +3742,6 @@ export const ko = {
     new_email_description: "새 이메일을 받을 때",
     replies: "답장",
     replies_description: "누군가가 이메일에 답장할 때",
-    mentions: "멘션",
-    mentions_description: "누군가가 나를 멘션할 때",
     toast_position: "알림 위치",
     toast_position_description: "알림 팝업이 화면에 표시되는 위치",
     toast_position_top: "위쪽",
@@ -6599,7 +6597,9 @@ export const ko = {
       "끄면 이 기기에서만 다른 테마를 쓸 수 있습니다.",
     product_updates: "제품 소식",
     product_updates_description:
-      "주요 기능이 출시되면 받은편지함으로 소식을 보내드립니다. 보안 및 정책 공지는 항상 전달됩니다. Aster는 이 메일을 열었는지 클릭했는지 기록하지 않습니다.",
+      "Aster가 주요 업데이트를 출시하면 소식을 받습니다",
+    product_updates_info:
+      "보안 및 정책 공지는 이 설정이 꺼져 있어도 항상 전달됩니다. Aster는 이 메일을 열었는지 클릭했는지 기록하지 않습니다.",
     product_updates_turned_off:
       "제품 소식이 꺼져 있습니다. 여기에서 다시 켤 수 있습니다.",
     product_updates_save_failed:

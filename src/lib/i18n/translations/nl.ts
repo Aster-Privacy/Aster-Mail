@@ -3818,8 +3818,6 @@ export const nl = {
     new_email_description: "Wanneer je een nieuwe e-mail ontvangt",
     replies: "Antwoorden",
     replies_description: "Wanneer iemand op je e-mail antwoordt",
-    mentions: "Vermeldingen",
-    mentions_description: "Wanneer iemand je vermeldt",
     toast_position: "Meldingspositie",
     toast_position_description:
       "Waar meldingspop-ups op het scherm verschijnen",
@@ -6854,7 +6852,9 @@ export const nl = {
       "Zet dit uit om op dit apparaat een eigen thema te houden.",
     product_updates: "Productnieuws",
     product_updates_description:
-      "Ontvang een bericht in je inbox wanneer een noemenswaardige functie uitkomt. Aankondigingen over beveiliging en beleid komen altijd aan. Aster registreert niet of je deze berichten opent of erin klikt.",
+      "Ontvang een bericht wanneer Aster een noemenswaardige update uitbrengt",
+    product_updates_info:
+      "Aankondigingen over beveiliging en beleid komen altijd aan, ook als dit uitstaat. Aster registreert niet of je deze berichten opent of erin klikt.",
     product_updates_turned_off:
       "Productnieuws staat uit. Je kunt het hier weer aanzetten.",
     product_updates_save_failed:

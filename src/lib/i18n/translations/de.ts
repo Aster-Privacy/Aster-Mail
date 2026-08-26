@@ -3879,8 +3879,6 @@ export const de = {
     new_email_description: "Wenn Sie eine neue E-Mail erhalten",
     replies: "Antworten",
     replies_description: "Wenn jemand auf Ihre E-Mail antwortet",
-    mentions: "Erwähnungen",
-    mentions_description: "Wenn jemand Sie erwähnt",
     toast_position: "Benachrichtigungsposition",
     toast_position_description:
       "Wo Benachrichtigungen auf dem Bildschirm erscheinen",
@@ -7029,7 +7027,9 @@ export const de = {
     setup_2fa: "Einrichten",
     product_updates: "Produktneuigkeiten",
     product_updates_description:
-      "Erhalten Sie eine Nachricht in Ihrem Posteingang, wenn eine wichtige Funktion erscheint. Sicherheits- und Richtlinienhinweise kommen immer an. Aster erfasst nicht, ob Sie diese Nachrichten öffnen oder darin klicken.",
+      "Erhalten Sie eine Nachricht, wenn Aster ein wichtiges Update veröffentlicht",
+    product_updates_info:
+      "Sicherheits- und Richtlinienhinweise kommen immer an, auch wenn dies ausgeschaltet ist. Aster erfasst nicht, ob Sie diese Nachrichten öffnen oder darin klicken.",
     product_updates_turned_off:
       "Produktneuigkeiten sind ausgeschaltet. Sie können sie hier wieder einschalten.",
     product_updates_save_failed:

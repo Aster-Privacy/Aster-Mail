@@ -23,9 +23,10 @@ import {
   BellIcon,
   BellAlertIcon,
   BellSlashIcon,
+  InformationCircleIcon,
   MoonIcon,
 } from "@heroicons/react/24/outline";
-import { Button, Switch } from "@aster/ui";
+import { Button, Switch, Tooltip } from "@aster/ui";
 
 import { SettingsSaveIndicatorInline } from "./settings_save_indicator";
 
@@ -164,6 +165,7 @@ interface ToggleSettingProps {
   on_toggle: () => void;
   action?: React.ReactNode;
   disabled?: boolean;
+  info?: string;
 }
 
 function ToggleSetting({
@@ -173,11 +175,26 @@ function ToggleSetting({
   on_toggle,
   action,
   disabled = false,
+  info,
 }: ToggleSettingProps) {
   return (
     <div className="flex items-center justify-between py-3">
       <div className="flex-1 pe-4">
-        <p className="text-sm font-medium text-txt-primary">{title}</p>
+        <div className="flex items-center gap-1.5">
+          <p className="text-sm font-medium text-txt-primary">{title}</p>
+          {info && (
+            <Tooltip tip={info}>
+              <span
+                aria-label={info}
+                className="text-txt-muted"
+                role="img"
+                tabIndex={0}
+              >
+                <InformationCircleIcon className="h-4 w-4" />
+              </span>
+            </Tooltip>
+          )}
+        </div>
         <p className="text-sm mt-0.5 text-txt-muted">{description}</p>
       </div>
       <div className="flex items-center gap-2 flex-shrink-0">
@@ -775,6 +792,7 @@ export function NotificationsSection() {
             description={t("settings.product_updates_description")}
             disabled={product_updates_busy}
             enabled={product_updates}
+            info={t("settings.product_updates_info")}
             on_toggle={handle_product_updates_toggle}
             title={t("settings.product_updates")}
           />
