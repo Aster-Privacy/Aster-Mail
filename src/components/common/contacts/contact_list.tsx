@@ -38,9 +38,15 @@ import {
   ArrowDownTrayIcon,
   EnvelopeIcon,
   TrashIcon,
+  XMarkIcon,
+  FunnelIcon,
+  PhoneIcon,
+  BuildingOffice2Icon,
+  BarsArrowUpIcon,
+  BarsArrowDownIcon,
 } from "@heroicons/react/24/outline";
 import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
-import { Button } from "@aster/ui";
+import { Button, Input } from "@aster/ui";
 import { Switch } from "@aster/ui";
 
 import { Skeleton } from "@/components/ui/skeleton";
@@ -48,6 +54,13 @@ import { MobileMenuButton } from "@/components/layout/sidebar";
 import { use_preferences } from "@/contexts/preferences_context";
 import { EncryptionInfoDropdown } from "@/components/common/encryption_info_dropdown";
 import { ContactAvatar } from "@/components/common/contacts/contact_avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown_menu";
 import { cn } from "@/lib/utils";
 
 interface ContactListProps {
@@ -94,6 +107,9 @@ interface ContactListProps {
   on_compose_email: (email: string) => void;
   on_copy: (text: string, field: string) => void;
   on_scroll_to_letter: (letter: string) => void;
+  search_query: string;
+  set_search_query: (query: string) => void;
+  search_input_ref: RefObject<HTMLInputElement>;
 }
 
 export function ContactList({
@@ -117,6 +133,15 @@ export function ContactList({
   on_import_modal_open,
   on_toggle_select,
   on_compose_to_selected,
+  sort_by,
+  set_sort_by,
+  filter_by,
+  set_filter_by,
+  filter_label,
+  sort_label,
+  search_query,
+  set_search_query,
+  search_input_ref,
   on_toggle_favorite_selected,
   on_copy_emails,
   on_export_contacts,
@@ -165,6 +190,28 @@ export function ContactList({
         >
           <PlusIcon className="w-4 h-4 text-txt-secondary" />
         </Button>
+      </div>
+
+      <div className="relative px-4 pb-2">
+        <MagnifyingGlassIcon className="absolute left-7 top-1/2 -translate-y-1/2 w-[16px] h-[16px] pointer-events-none text-txt-muted" />
+        <Input
+          ref={search_input_ref}
+          className="w-full"
+          placeholder={t("common.search_contacts")}
+          style={{ paddingLeft: "38px", paddingRight: "36px" }}
+          value={search_query}
+          onChange={(e) => set_search_query(e.target.value)}
+        />
+        {search_query && (
+          <button
+            aria-label={t("common.clear")}
+            className="absolute right-6 top-1/2 -translate-y-1/2 p-1.5 rounded-md hover:bg-black/5 dark:hover:bg-white/5"
+            type="button"
+            onClick={() => set_search_query("")}
+          >
+            <XMarkIcon className="w-3.5 h-3.5 text-txt-muted" />
+          </button>
+        )}
       </div>
 
       {has_selection ? (
@@ -225,7 +272,121 @@ export function ContactList({
         </div>
       ) : (
         <div className="flex items-center justify-between px-4 py-2 border-b border-edge-primary">
-          <p className="text-[12px] text-txt-muted pr-3 flex-1">
+          <div className="flex items-center gap-1 flex-1 min-w-0">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  className="h-7 px-2 gap-1 text-[12px]"
+                  size="md"
+                  variant="ghost"
+                >
+                  <FunnelIcon
+                    className="h-3.5 w-3.5"
+                    style={{
+                      color:
+                        filter_by !== "all"
+                          ? "var(--text-primary)"
+                          : "var(--text-muted)",
+                    }}
+                  />
+                  <span
+                    className="hidden sm:inline truncate"
+                    style={{
+                      color:
+                        filter_by !== "all"
+                          ? "var(--text-primary)"
+                          : "var(--text-muted)",
+                    }}
+                  >
+                    {filter_label}
+                  </span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-40">
+                <DropdownMenuItem
+                  className={filter_by === "all" ? "font-medium" : ""}
+                  onClick={() => set_filter_by("all")}
+                >
+                  {t("mail.all")}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className={filter_by === "favorites" ? "font-medium" : ""}
+                  onClick={() => set_filter_by("favorites")}
+                >
+                  <StarIconSolid className="h-3.5 w-3.5 mr-2 text-amber-400" />
+                  {t("common.favorites")}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  className={filter_by === "has_email" ? "font-medium" : ""}
+                  onClick={() => set_filter_by("has_email")}
+                >
+                  <EnvelopeIcon className="h-3.5 w-3.5 mr-2" />
+                  {t("common.has_email")}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className={filter_by === "has_phone" ? "font-medium" : ""}
+                  onClick={() => set_filter_by("has_phone")}
+                >
+                  <PhoneIcon className="h-3.5 w-3.5 mr-2" />
+                  {t("common.has_phone")}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className={filter_by === "has_company" ? "font-medium" : ""}
+                  onClick={() => set_filter_by("has_company")}
+                >
+                  <BuildingOffice2Icon className="h-3.5 w-3.5 mr-2" />
+                  {t("common.has_company")}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  className="h-7 px-2 gap-1 text-[12px]"
+                  size="md"
+                  variant="ghost"
+                >
+                  {sort_by === "name_desc" ? (
+                    <BarsArrowUpIcon className="h-3.5 w-3.5 text-txt-muted" />
+                  ) : (
+                    <BarsArrowDownIcon className="h-3.5 w-3.5 text-txt-muted" />
+                  )}
+                  <span className="hidden sm:inline truncate text-txt-muted">
+                    {sort_label}
+                  </span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-40">
+                <DropdownMenuItem
+                  className={sort_by === "name_asc" ? "font-medium" : ""}
+                  onClick={() => set_sort_by("name_asc")}
+                >
+                  {t("common.name")} A-Z
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className={sort_by === "name_desc" ? "font-medium" : ""}
+                  onClick={() => set_sort_by("name_desc")}
+                >
+                  {t("common.name")} Z-A
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className={sort_by === "company" ? "font-medium" : ""}
+                  onClick={() => set_sort_by("company")}
+                >
+                  {t("common.company")}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className={sort_by === "recent" ? "font-medium" : ""}
+                  onClick={() => set_sort_by("recent")}
+                >
+                  {t("common.recently_added")}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+          <p className="text-[12px] text-txt-muted px-3">
             {t("settings.auto_save_recipients_to_contacts")}
           </p>
           <Switch

@@ -91,6 +91,8 @@ export function ContactsContent({
           on_import_modal_open={() => state.set_is_import_modal_open(true)}
           on_mobile_menu_toggle={on_mobile_menu_toggle}
           on_scroll_to_letter={state.scroll_to_letter}
+          search_input_ref={state.search_input_ref}
+          search_query={state.search_query}
           on_toggle_favorite_selected={state.handle_toggle_favorite_selected}
           on_toggle_select={state.handle_toggle_select}
           selected_all_favorited={state.selected_all_favorited}
@@ -98,6 +100,7 @@ export function ContactsContent({
           selected_ids={state.selected_ids}
           selection_state={state.selection_state}
           set_filter_by={state.set_filter_by}
+          set_search_query={state.set_search_query}
           set_selected_contact={state.set_selected_contact}
           set_sort_by={state.set_sort_by}
           set_view_mode={state.set_view_mode}
