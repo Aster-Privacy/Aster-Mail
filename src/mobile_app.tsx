@@ -50,6 +50,7 @@ import { UndoSendContainer } from "@/components/toast/undo_send_container";
 import { UndoSendPreviewModal } from "@/components/toast/undo_send_preview_modal";
 import { Family2faDialog } from "@/components/common/family_2fa_dialog";
 import { BillingAlertBanner } from "@/components/common/billing_alert_banner";
+import { MobileStorageBanner } from "@/components/common/mobile_storage_banner";
 import { PendingDeletionDialog } from "@/components/common/pending_deletion_dialog";
 import { ErrorBoundary } from "@/components/ui/error_boundary";
 import { FullPageLoader } from "@/components/common/full_page_loader";
@@ -506,6 +507,7 @@ function MobileApp() {
     <AppLock>
       <div className="relative flex h-[100dvh] flex-col bg-[var(--bg-primary)]">
         {!is_auth_route && <BillingAlertBanner />}
+        {!is_auth_route && <MobileStorageBanner />}
         <ErrorBoundary>
           <Suspense fallback={<MobileLoader />}>
             <Routes>
