@@ -59,6 +59,7 @@ import { api_client } from "@/services/api/client";
 import { has_csrf_token } from "@/services/api/csrf";
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
+import { use_date_format } from "@/hooks/use_date_format";
 import {
   type Attachment,
   type DraftStatus,
@@ -128,6 +129,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
   const reduce_motion = use_should_reduce_motion();
   const { user, vault } = use_auth();
   const { preferences } = use_preferences();
+  const { format_email_detail } = use_date_format();
   const {
     default_signature,
     get_formatted_signature,
@@ -476,18 +478,16 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
     return false;
   }, []);
 
-  const format_date = useCallback((timestamp: string): string => {
-    const date = new Date(timestamp);
+  const format_date = useCallback(
+    (timestamp: string): string => {
+      const date = new Date(timestamp);
 
-    return date.toLocaleDateString(undefined, {
-      weekday: "short",
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "numeric",
-      minute: "2-digit",
-    });
-  }, []);
+      if (Number.isNaN(date.getTime())) return timestamp;
+
+      return format_email_detail(date);
+    },
+    [format_email_detail],
+  );
 
   const build_quoted_content = useCallback(
     (for_display: boolean = false): string => {

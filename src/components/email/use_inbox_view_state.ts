@@ -558,7 +558,7 @@ export function use_inbox_view_state(props: EmailInboxProps) {
           recipient_avatar: email.avatar_url,
           original_subject: email.subject,
           original_body: safe_body,
-          original_timestamp: email.timestamp,
+          original_timestamp: email.raw_timestamp ?? email.timestamp,
           thread_token: email.thread_token,
           original_email_id: email.id,
           ...(mode === "reply_all"
@@ -577,7 +577,7 @@ export function use_inbox_view_state(props: EmailInboxProps) {
           sender_avatar: email.avatar_url || mail_logo_url,
           email_subject: email.subject,
           email_body: safe_body,
-          email_timestamp: email.timestamp,
+          email_timestamp: email.raw_timestamp ?? email.timestamp,
           original_mail_id: email.id,
         });
       }
