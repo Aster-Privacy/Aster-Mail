@@ -131,8 +131,18 @@ export function use_email_detail() {
     fetch_email();
   }, [fetch_email]);
 
+  const last_detail_refresh_ref = useRef(0);
+
   useEffect(() => {
     const handle_refresh = () => {
+      last_detail_refresh_ref.current = Date.now();
+      fetch_email();
+    };
+
+    const maybe_revalidate = () => {
+      if (document.visibilityState !== "visible") return;
+      if (Date.now() - last_detail_refresh_ref.current < 5_000) return;
+      last_detail_refresh_ref.current = Date.now();
       fetch_email();
     };
 
@@ -160,6 +170,9 @@ export function use_email_detail() {
       MAIL_EVENTS.THREAD_REPLY_OPTIMISTIC,
       handle_reply_optimistic,
     );
+    window.addEventListener(MAIL_EVENTS.EMAIL_RECEIVED, maybe_revalidate);
+    document.addEventListener("visibilitychange", maybe_revalidate);
+    window.addEventListener("focus", maybe_revalidate);
 
     return () => {
       window.removeEventListener(MAIL_EVENTS.REFRESH_REQUESTED, handle_refresh);
@@ -172,6 +185,9 @@ export function use_email_detail() {
         MAIL_EVENTS.THREAD_REPLY_OPTIMISTIC,
         handle_reply_optimistic,
       );
+      window.removeEventListener(MAIL_EVENTS.EMAIL_RECEIVED, maybe_revalidate);
+      document.removeEventListener("visibilitychange", maybe_revalidate);
+      window.removeEventListener("focus", maybe_revalidate);
     };
   }, [fetch_email, mail_item?.thread_token, email_id]);
 
