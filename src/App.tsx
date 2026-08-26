@@ -26,6 +26,7 @@ import {
   get_subscription,
 } from "@/services/api/billing";
 import { FamilyWelcomeModal } from "@/components/settings/billing/family_welcome_modal";
+import { AddonReturnHandler } from "@/components/common/addon_return_handler";
 import { request_cache } from "@/services/api/request_cache";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -338,6 +339,7 @@ function App() {
   return (
     <AppLock>
       <BillingSuccessHandler />
+      <AddonReturnHandler />
       <SuspensionBanner />
       <PendingDeletionDialog />
       <Family2faDialog />
