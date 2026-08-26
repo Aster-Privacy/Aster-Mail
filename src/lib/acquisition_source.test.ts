@@ -55,11 +55,19 @@ describe("acquisition_source", () => {
 
   it("lowercases labels so counts do not fragment", () => {
     expect(normalize_label("Reddit")).toBe("reddit");
-    expect(capture_source("?utm_source=REDDIT").acquisition_source).toBe("reddit");
+    expect(capture_source("?utm_source=REDDIT").acquisition_source).toBe(
+      "reddit",
+    );
   });
 
   it("rejects hostile or oversized labels", () => {
-    for (const bad of ["<script>", "a b", "user@example.com", "a".repeat(65), ""]) {
+    for (const bad of [
+      "<script>",
+      "<script> alert(1)",
+      "user@example.com",
+      "a".repeat(65),
+      "",
+    ]) {
       expect(normalize_label(bad)).toBeNull();
     }
     expect(capture_source("?utm_source=<script>")).toEqual({});
@@ -114,5 +122,29 @@ describe("acquisition_source", () => {
       "acquisition_campaign",
       "acquisition_source",
     ]);
+  });
+
+  it("normalizes reddit dynamic macro output the same way the backend does", () => {
+    expect(normalize_label("Privacy Launch")).toBe("privacy_launch");
+    expect(normalize_label("Privacy  Launch  v2")).toBe("privacy_launch_v2");
+    expect(normalize_label("  Switch Guide  ")).toBe("switch_guide");
+    expect(normalize_label("US - Broad")).toBe("us_-_broad");
+    expect(normalize_label("US_Broad")).toBe("us_broad");
+    expect(normalize_label("drop table")).toBe("drop_table");
+    expect(normalize_label("   ")).toBeNull();
+    expect(normalize_label("<script> alert(1)")).toBeNull();
+    expect(normalize_label("campaign?x=1")).toBeNull();
+    expect(normalize_label("a b".repeat(40))).toBeNull();
+  });
+
+  it("captures a campaign whose reddit name contains spaces", () => {
+    const captured = capture_source(
+      "?utm_source=Reddit&utm_medium=CPC&utm_campaign=Privacy%20Launch",
+    );
+    expect(captured).toEqual({
+      acquisition_source: "reddit",
+      acquisition_medium: "cpc",
+      acquisition_campaign: "privacy_launch",
+    });
   });
 });

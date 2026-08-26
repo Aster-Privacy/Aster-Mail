@@ -32,10 +32,10 @@ let memory_source: AcquisitionSource = {};
 
 export function normalize_label(raw: string | null | undefined): string | null {
   if (!raw) return null;
-  const trimmed = raw.trim();
-  if (!trimmed || trimmed.length > MAX_LENGTH) return null;
-  if (!VALID_SHAPE.test(trimmed)) return null;
-  return trimmed.toLowerCase();
+  const collapsed = raw.trim().toLowerCase().replace(/\s+/g, "_");
+  if (!collapsed || collapsed.length > MAX_LENGTH) return null;
+  if (!VALID_SHAPE.test(collapsed)) return null;
+  return collapsed;
 }
 
 export function privacy_signal_opt_out(): boolean {
@@ -61,7 +61,10 @@ export function capture_source(search: string): AcquisitionSource {
   for (const field of FIELDS) {
     const value = normalize_label(params.get(field));
     if (value) {
-      const key = field.replace("utm_", "acquisition_") as keyof AcquisitionSource;
+      const key = field.replace(
+        "utm_",
+        "acquisition_",
+      ) as keyof AcquisitionSource;
       captured[key] = value;
     }
   }
