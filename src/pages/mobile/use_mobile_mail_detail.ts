@@ -27,6 +27,10 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { swipe_nav_state } from "./mobile_mail_detail_swipe";
 
 import { use_spam_confirm } from "@/components/email/use_spam_confirm";
+import {
+  use_archive_confirm,
+  use_delete_confirm,
+} from "@/components/email/use_action_confirm";
 import { use_email_detail } from "@/components/email/hooks/use_email_detail";
 import { build_reply_recipient_for_message } from "@/components/email/build_reply_recipient";
 import { use_email_actions } from "@/hooks/use_email_actions";
@@ -67,6 +71,8 @@ export function use_mobile_mail_detail() {
   const { t } = use_i18n();
   const { preferences, update_preference } = use_preferences();
   const { request_spam, spam_confirm_dialog } = use_spam_confirm();
+  const { request_delete, delete_confirm_dialog } = use_delete_confirm();
+  const { request_archive, archive_confirm_dialog } = use_archive_confirm();
   const [is_starred, set_is_starred] = useState<boolean | null>(null);
   const [is_pinned, set_is_pinned] = useState<boolean | null>(null);
   const [expanded_ids, set_expanded_ids] = useState<Set<string>>(new Set());
@@ -386,7 +392,7 @@ export function use_mobile_mail_detail() {
     detail.mail_item?.metadata?.is_archived === true ||
     from_view === "archive";
 
-  const handle_archive = useCallback(async () => {
+  const run_archive = useCallback(async () => {
     if (action_in_flight.current || !detail.email) return;
     action_in_flight.current = true;
     haptic_impact("light");
@@ -414,7 +420,7 @@ export function use_mobile_mail_detail() {
     detail.mail_item?.metadata?.is_trashed === true ||
     from_view === "trash";
 
-  const handle_delete = useCallback(async () => {
+  const run_delete = useCallback(async () => {
     if (action_in_flight.current || !detail.email) return;
     action_in_flight.current = true;
     haptic_impact("light");
@@ -436,6 +442,19 @@ export function use_mobile_mail_detail() {
     remove_email_from_view_cache(detail.email.id);
     advance_after_action();
   }, [detail.email, email_actions, advance_after_action, is_trashed, t]);
+
+  const handle_archive = useCallback(() => {
+    if (is_archived) {
+      void run_archive();
+
+      return;
+    }
+    request_archive(() => run_archive());
+  }, [is_archived, request_archive, run_archive]);
+
+  const handle_delete = useCallback(() => {
+    request_delete(() => run_delete());
+  }, [request_delete, run_delete]);
 
   const handle_spam = useCallback(async () => {
     if (action_in_flight.current || !detail.email) return;
@@ -860,6 +879,10 @@ export function use_mobile_mail_detail() {
     update_preference,
     request_spam,
     spam_confirm_dialog,
+    request_delete,
+    delete_confirm_dialog,
+    request_archive,
+    archive_confirm_dialog,
     is_starred,
     is_pinned,
     expanded_ids,

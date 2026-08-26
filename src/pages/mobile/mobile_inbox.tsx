@@ -57,6 +57,10 @@ import { MobileEmailList } from "@/components/mobile/mobile_email_list";
 import { EmptyTrashModal } from "@/components/email/inbox/inbox_confirmation_dialog";
 import { use_settled_not_found } from "@/components/email/inbox/use_settled_not_found";
 import { use_spam_confirm } from "@/components/email/use_spam_confirm";
+import {
+  use_archive_confirm,
+  use_delete_confirm,
+} from "@/components/email/use_action_confirm";
 import { empty_trash } from "@/services/api/mail";
 import { show_action_toast } from "@/components/toast/action_toast";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -172,6 +176,8 @@ function MobileInbox({
   const actions = use_email_actions();
   const snooze_actions = use_snooze();
   const { request_spam, spam_confirm_dialog } = use_spam_confirm();
+  const { request_delete, delete_confirm_dialog } = use_delete_confirm();
+  const { request_archive, archive_confirm_dialog } = use_archive_confirm();
   const { get_tag_by_token, state: tags_state } = use_tags();
   const { get_folder_by_token, state: folders_state } = use_folders();
   const [active_filter, set_active_filter] = useState<InboxFilterType>("all");
@@ -526,7 +532,7 @@ function MobileInbox({
     exit_selection_mode();
   }, [get_selected_emails, actions, exit_selection_mode]);
 
-  const handle_archive = useCallback(
+  const run_archive = useCallback(
     async (email: InboxEmail) => {
       const success = email.is_archived
         ? await actions.unarchive_email(email)
@@ -546,7 +552,19 @@ function MobileInbox({
     [actions, remove_email, t],
   );
 
-  const handle_delete = useCallback(
+  const handle_archive = useCallback(
+    (email: InboxEmail) => {
+      if (email.is_archived) {
+        void run_archive(email);
+
+        return;
+      }
+      request_archive(() => run_archive(email));
+    },
+    [request_archive, run_archive],
+  );
+
+  const run_delete = useCallback(
     async (email: InboxEmail) => {
       if (is_scheduled_view) {
         const ok = await cancel_scheduled(email.id);
@@ -581,6 +599,13 @@ function MobileInbox({
       cancel_scheduled,
       t,
     ],
+  );
+
+  const handle_delete = useCallback(
+    (email: InboxEmail) => {
+      request_delete(() => run_delete(email));
+    },
+    [request_delete, run_delete],
   );
 
   const handle_toggle_star = useCallback(
@@ -1087,6 +1112,8 @@ function MobileInbox({
       )}
 
       {spam_confirm_dialog}
+      {delete_confirm_dialog}
+      {archive_confirm_dialog}
     </div>
   );
 }

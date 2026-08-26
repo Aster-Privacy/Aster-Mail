@@ -53,6 +53,8 @@ function MobileMailDetail() {
     update_preference,
     request_spam,
     spam_confirm_dialog,
+    delete_confirm_dialog,
+    archive_confirm_dialog,
     is_starred,
     is_pinned,
     expanded_ids,
@@ -420,6 +422,8 @@ function MobileMailDetail() {
         variant="danger"
       />
       {spam_confirm_dialog}
+      {delete_confirm_dialog}
+      {archive_confirm_dialog}
     </motion.div>
   );
 }
