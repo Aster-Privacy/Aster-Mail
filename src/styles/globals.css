@@ -2642,6 +2642,12 @@ input:-webkit-autofill:active {
   );
 }
 
+.account_menu_card .plan_ring,
+.account_menu_row .plan_ring,
+.account_menu_tile .plan_ring {
+  margin: 5px;
+}
+
 .account_menu_manage {
   align-self: center;
   padding: 0 18px;
