@@ -318,7 +318,15 @@ export function use_single_actions_folders(params: SingleActionsFolderParams) {
       set_action_loading("move", true);
 
       try {
-        const result = await move_mail_item(email.id, { folder_token });
+        const current_folders = email.folders ?? email.labels ?? [];
+        const from_folder_token =
+          current_folders.length === 1
+            ? current_folders[0].folder_token
+            : undefined;
+        const result = await move_mail_item(email.id, {
+          folder_token,
+          from_folder_token,
+        });
 
         if (result.error) {
           set_action_error("move", result.error);

@@ -188,6 +188,7 @@ export type MailItemLabelsResponse = MailItemFoldersResponse;
 
 export interface MoveToFolderRequest {
   folder_token: string;
+  from_folder_token?: string;
 }
 
 export interface RestoreMailItemRequest {
@@ -437,10 +438,19 @@ export async function move_mail_item(
   item_id: string,
   data: MoveToFolderRequest,
 ): Promise<ApiResponse<{ status: string }>> {
-  return api_client.put<{ status: string }>(
-    `/mail/v1/messages/${item_id}/move`,
-    data,
-  );
+  const added = await add_mail_item_folder(item_id, {
+    folder_token: data.folder_token,
+  });
+
+  if (added.error) {
+    return added;
+  }
+
+  if (data.from_folder_token && data.from_folder_token !== data.folder_token) {
+    await remove_mail_item_folder(item_id, data.from_folder_token);
+  }
+
+  return added;
 }
 
 export async function restore_mail_item(
