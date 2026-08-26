@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
+import { copy_text_or_throw } from "@/utils/copy_text";
 import type { DecryptedEmailAlias } from "@/services/api/aliases";
 import type { DecryptedDomainAddress } from "@/services/api/domains";
 import type { TranslationKey } from "@/lib/i18n/types";
@@ -53,8 +54,7 @@ import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
 import { PinIcon } from "@/components/common/icons";
 import { AliasDisplayNameEditor } from "@/components/settings/aliases/alias_display_name_editor";
 import { AliasMetaEditor } from "@/components/settings/aliases/alias_meta_editor";
-
-import { ignore_error } from "@/lib/ignore_error";
+import { get_grace_days_remaining } from "./grace_period";
 
 const AVATAR_MAX_SIZE = 256;
 
@@ -192,7 +192,7 @@ function AliasAvatar({
       {!is_locked && profile_picture && (
         <button
           aria-label={t("common.remove_alias_avatar" as TranslationKey)}
-          className="absolute -bottom-1 -right-1 rounded-full border border-edge-secondary bg-surf-card p-1 opacity-0 transition-opacity hover:border-red-500/30 group-hover:opacity-100 focus-visible:opacity-100 disabled:cursor-not-allowed disabled:opacity-50"
+          className="absolute -bottom-1 -end-1 rounded-full border border-edge-secondary bg-surf-card p-1 opacity-0 transition-opacity hover:border-red-500/30 group-hover:opacity-100 focus-visible:opacity-100 disabled:cursor-not-allowed disabled:opacity-50"
           disabled={uploading}
           title={t("common.remove_alias_avatar" as TranslationKey)}
           type="button"
@@ -210,14 +210,6 @@ function AliasAvatar({
       />
     </div>
   );
-}
-
-function get_grace_days_remaining(expires_at: string): number {
-  const now = new Date();
-  const expires = new Date(expires_at);
-  const diff = expires.getTime() - now.getTime();
-
-  return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
 }
 
 interface AliasItemProps {
@@ -354,13 +346,10 @@ export function AliasItem({
 
   const copy_address = async () => {
     try {
-      await navigator.clipboard.writeText(alias.full_address);
+      await copy_text_or_throw(alias.full_address);
       show_toast(t("settings.alias_copied"), "success");
-    } catch (caught) {
-      ignore_error(
-        "components/settings/aliases/alias_card:copy_address",
-        caught,
-      );
+    } catch {
+      show_toast(t("common.failed_to_copy"), "error");
     }
   };
 
@@ -398,7 +387,7 @@ export function AliasItem({
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
               <button
-                className="min-w-0 truncate text-left text-sm font-medium text-txt-primary transition-colors hover:text-txt-secondary"
+                className="min-w-0 truncate text-start text-sm font-medium text-txt-primary transition-colors hover:text-txt-secondary"
                 title={t("common.copy_address")}
                 type="button"
                 onClick={copy_address}
@@ -414,7 +403,7 @@ export function AliasItem({
                 <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
                   <ClockIcon className="w-3 h-3" />
                   {t("settings.alias_grace_days" as TranslationKey, {
-                    days: String(grace_days),
+                    days: grace_days,
                   })}
                 </span>
               )}
@@ -663,13 +652,10 @@ export function DomainAddressItem({
 
   const copy_address = async () => {
     try {
-      await navigator.clipboard.writeText(full_address);
+      await copy_text_or_throw(full_address);
       show_toast(t("settings.address_copied"), "success");
-    } catch (caught) {
-      ignore_error(
-        "components/settings/aliases/alias_card:copy_address",
-        caught,
-      );
+    } catch {
+      show_toast(t("common.failed_to_copy"), "error");
     }
   };
 
@@ -688,7 +674,7 @@ export function DomainAddressItem({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <button
-              className="min-w-0 truncate text-left text-sm font-medium text-txt-primary transition-colors hover:text-txt-secondary"
+              className="min-w-0 truncate text-start text-sm font-medium text-txt-primary transition-colors hover:text-txt-secondary"
               title={t("common.copy_address")}
               type="button"
               onClick={copy_address}

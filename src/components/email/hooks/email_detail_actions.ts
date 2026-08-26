@@ -18,6 +18,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { copy_text_or_throw } from "@/utils/copy_text";
 import type { DecryptedThreadMessage } from "@/types/thread";
 import type { MailItem } from "@/services/api/mail";
 import type {
@@ -27,7 +28,7 @@ import type {
 import type { TranslationKey } from "@/lib/i18n/types";
 import type { NavigateFunction } from "react-router-dom";
 
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 
 import { is_system_email } from "@/lib/utils";
 import { extract_reply_to } from "@/utils/reply_to";
@@ -73,8 +74,8 @@ import {
 } from "@/hooks/use_stat_helpers";
 import { remove_email_from_view_cache } from "@/hooks/email_list_cache";
 import { set_forward_mail_id } from "@/services/forward_store";
-
 import { ignore_error } from "@/lib/ignore_error";
+import { app_locale, get_display_time_zone } from "@/utils/date_format";
 
 export interface EmailDetailActionsDeps {
   email_id: string | undefined;
@@ -115,7 +116,10 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
             sender_email: msg.sender_email,
             first_to: msg.to_recipients?.[0],
             reply_to: parsed_reply_to
-              ? { name: parsed_reply_to.name ?? "", email: parsed_reply_to.email }
+              ? {
+                  name: parsed_reply_to.name ?? "",
+                  email: parsed_reply_to.email,
+                }
               : undefined,
             reply_alias: is_forwarded
               ? { name: msg.sender_name, email: msg.sender_email }
@@ -161,7 +165,10 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
         ...quote_sender,
         original_subject: msg.subject,
         original_body: msg.body,
-        original_timestamp: new Date(msg.timestamp).toLocaleString(),
+        original_timestamp: new Date(msg.timestamp).toLocaleString(
+          app_locale(),
+          { timeZone: get_display_time_zone() },
+        ),
         thread_token: deps.mail_item?.thread_token,
         original_email_id: msg.id,
         is_external: msg.is_external,
@@ -185,6 +192,9 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
     ],
   );
 
+  const [pending_permanent_delete_id, set_pending_permanent_delete_id] =
+    useState<string | null>(null);
+
   const handle_archive = useCallback(async () => {
     if (!deps.email_id || deps.is_archive_loading) return;
 
@@ -198,6 +208,7 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
           is_read,
         })
       : null;
+
     if (deltas) apply_stat_deltas(deltas);
 
     const result = await batch_archive({ ids: [deps.email_id], tier: "hot" });
@@ -223,8 +234,9 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
         },
       });
       deps.navigate(deps.get_next_email_destination());
-    } else if (deltas) {
-      revert_stat_deltas(deltas);
+    } else {
+      if (deltas) revert_stat_deltas(deltas);
+      show_toast(deps.t("common.failed_to_archive_emails"), "error");
     }
   }, [
     deps.email_id,
@@ -232,37 +244,62 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
     deps.get_next_email_destination,
     deps.navigate,
     deps.mail_item,
+    deps.t,
   ]);
+
+  const run_permanent_delete = useCallback(
+    async (id: string) => {
+      const is_open_item = id === deps.email_id;
+      const result = await permanent_delete_mail_item(id);
+
+      if (result.error) {
+        show_toast(deps.t("common.failed_to_permanently_delete"), "error");
+
+        return;
+      }
+      adjust_stats_trash(-1);
+      invalidate_mail_stats();
+      remove_email_from_view_cache(id);
+      emit_mail_items_removed({ ids: [id] });
+      show_action_toast({
+        message: deps.t("common.email_permanently_deleted"),
+        action_type: "trash",
+        email_ids: [id],
+      });
+
+      if (is_open_item) {
+        deps.navigate(deps.get_next_email_destination());
+      }
+    },
+    [deps.email_id, deps.navigate, deps.get_next_email_destination, deps.t],
+  );
+
+  const confirm_permanent_delete = useCallback(async () => {
+    const id = pending_permanent_delete_id;
+
+    if (!id) return;
+
+    set_pending_permanent_delete_id(null);
+    deps.set_is_trash_loading(true);
+    await run_permanent_delete(id);
+    deps.set_is_trash_loading(false);
+  }, [pending_permanent_delete_id, run_permanent_delete]);
 
   const handle_trash = useCallback(async () => {
     if (!deps.email_id || deps.is_trash_loading || !deps.mail_item) return;
 
-    deps.set_is_trash_loading(true);
     deps.set_is_trash_confirm_open(false);
 
     if (deps.mail_item.is_trashed) {
-      const result = await permanent_delete_mail_item(deps.email_id);
-
-      deps.set_is_trash_loading(false);
-
-      if (!result.error) {
-        adjust_stats_trash(-1);
-        invalidate_mail_stats();
-        remove_email_from_view_cache(deps.email_id);
-        emit_mail_items_removed({ ids: [deps.email_id] });
-        show_action_toast({
-          message: deps.t("common.email_permanently_deleted"),
-          action_type: "trash",
-          email_ids: [deps.email_id],
-        });
-        deps.navigate(deps.get_next_email_destination());
-      }
+      set_pending_permanent_delete_id(deps.email_id);
     } else {
+      deps.set_is_trash_loading(true);
       const is_read = deps.mail_item.metadata?.is_read !== false;
       const deltas = compute_trash_deltas({
         item_type: deps.mail_item.item_type,
         is_read,
       });
+
       apply_stat_deltas(deltas);
 
       const result = await update_item_metadata(
@@ -302,6 +339,7 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
         deps.navigate(deps.get_next_email_destination());
       } else {
         revert_stat_deltas(deltas);
+        show_toast(deps.t("common.failed_to_delete_emails"), "error");
       }
     }
   }, [
@@ -364,25 +402,17 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
             );
           },
         });
+      } else {
+        show_toast(deps.t("common.failed_to_archive_emails"), "error");
       }
     },
-    [],
+    [deps.t],
   );
 
   const handle_per_message_trash = useCallback(
     async (msg: DecryptedThreadMessage) => {
       if (deps.mail_item?.is_trashed) {
-        const result = await permanent_delete_mail_item(msg.id);
-
-        if (!result.error) {
-          remove_email_from_view_cache(msg.id);
-          emit_mail_items_removed({ ids: [msg.id] });
-          show_action_toast({
-            message: deps.t("common.email_permanently_deleted"),
-            action_type: "trash",
-            email_ids: [msg.id],
-          });
-        }
+        set_pending_permanent_delete_id(msg.id);
       } else {
         const result = await update_item_metadata(
           msg.id,
@@ -413,6 +443,8 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
               );
             },
           });
+        } else {
+          show_toast(deps.t("common.failed_to_delete_emails"), "error");
         }
       }
     },
@@ -421,17 +453,22 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
 
   const handle_per_message_print = useCallback(
     (msg: DecryptedThreadMessage) => {
-      print_email({
-        subject: msg.subject,
-        sender: msg.display_sender_name || msg.sender_name,
-        sender_email: msg.display_sender_email || msg.sender_email,
-        to: msg.to_recipients || [],
-        cc: msg.cc_recipients,
-        timestamp: new Date(msg.timestamp).toLocaleString(),
-        body: msg.html_content || msg.body,
-      });
+      print_email(
+        {
+          subject: msg.subject,
+          sender: msg.display_sender_name || msg.sender_name,
+          sender_email: msg.display_sender_email || msg.sender_email,
+          to: msg.to_recipients || [],
+          cc: msg.cc_recipients,
+          timestamp: new Date(msg.timestamp).toLocaleString(app_locale(), {
+            timeZone: get_display_time_zone(),
+          }),
+          body: msg.html_content || msg.body,
+        },
+        deps.t,
+      );
     },
-    [],
+    [deps.t],
   );
 
   const handle_per_message_view_source = useCallback(
@@ -454,11 +491,18 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
 
       if (result.success) {
         if (msg.sender_email) {
-          report_spam_sender(msg.sender_email).catch((caught) => ignore_error("components/email/hooks/email_detail_actions:use_email_detail_actions", caught));
+          report_spam_sender(msg.sender_email).catch((caught) =>
+            ignore_error(
+              "components/email/hooks/email_detail_actions:use_email_detail_actions",
+              caught,
+            ),
+          );
         }
         emit_mail_items_removed({ ids: [msg.id] });
         show_toast(deps.t("common.reported_as_phishing"), "success");
         deps.navigate(deps.get_next_email_destination());
+      } else {
+        show_toast(deps.t("common.failed_to_mark_as_spam"), "error");
       }
     },
     [deps.navigate, deps.get_next_email_destination, deps.t],
@@ -477,23 +521,30 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
 
       if (result.success) {
         if (msg.sender_email) {
-          remove_spam_sender(msg.sender_email).catch((caught) => ignore_error("components/email/hooks/email_detail_actions:use_email_detail_actions", caught));
+          remove_spam_sender(msg.sender_email).catch((caught) =>
+            ignore_error(
+              "components/email/hooks/email_detail_actions:use_email_detail_actions",
+              caught,
+            ),
+          );
         }
         emit_mail_items_removed({ ids: [msg.id] });
         show_toast(deps.t("common.marked_as_not_spam"), "success");
         deps.navigate(deps.get_next_email_destination());
+      } else {
+        show_toast(deps.t("common.failed_to_update"), "error");
       }
     },
     [deps.navigate, deps.get_next_email_destination, deps.t],
   );
 
   const handle_toggle_message_read = useCallback(
-    (message_id: string) => {
+    (message_id: string, next_read?: boolean) => {
       const msg = deps.thread_messages.find((m) => m.id === message_id);
 
       if (!msg) return;
 
-      const new_read = !msg.is_read;
+      const new_read = next_read ?? !msg.is_read;
       const is_received = msg.item_type === "received";
 
       const other_unread_in_thread = deps.thread_messages.some(
@@ -556,18 +607,20 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
   );
 
   const handle_copy_text = (text: string, label: string) => {
-    navigator.clipboard
-      .writeText(text)
+    copy_text_or_throw(text)
       .then(() => {
         show_toast(deps.t("common.copied_item", { label }), "success");
       })
-      .catch((caught) => ignore_error("components/email/hooks/email_detail_actions:handle_copy_text", caught));
+      .catch(() => show_toast(deps.t("common.failed_to_copy"), "error"));
   };
 
   return {
     build_reply_modal_data,
     handle_archive,
     handle_trash,
+    pending_permanent_delete_id,
+    set_pending_permanent_delete_id,
+    confirm_permanent_delete,
     handle_copy_text,
     handle_per_message_reply,
     handle_per_message_reply_all,

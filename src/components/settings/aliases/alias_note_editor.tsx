@@ -25,6 +25,7 @@ import { PencilSquareIcon } from "@heroicons/react/24/outline";
 import { Spinner } from "@/components/ui/spinner";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
+import { is_composing } from "@/utils/ime";
 
 const MAX_NOTE_LENGTH = 500;
 
@@ -136,6 +137,8 @@ export function AliasNoteEditor({
   };
 
   const handle_key_down = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (is_composing(event)) return;
+
     if (event.key === "Enter") {
       event.preventDefault();
       commit_save();
@@ -191,7 +194,7 @@ export function AliasNoteEditor({
     return (
       <button
         aria-label={aria_label}
-        className={`mt-1 flex w-full min-w-0 cursor-text items-center gap-1.5 text-left text-[13px] leading-5 ${
+        className={`mt-1 flex w-full min-w-0 cursor-text items-center gap-1.5 text-start text-[13px] leading-5 ${
           has_note
             ? "text-[var(--mobile-text-muted)]"
             : "text-[var(--mobile-text-muted)] opacity-70"
@@ -208,7 +211,7 @@ export function AliasNoteEditor({
   return (
     <button
       aria-label={aria_label}
-      className={`mt-0.5 flex w-full min-w-0 cursor-text items-center gap-1.5 text-left text-xs leading-4 transition-colors hover:text-txt-secondary ${
+      className={`mt-0.5 flex w-full min-w-0 cursor-text items-center gap-1.5 text-start text-xs leading-4 transition-colors hover:text-txt-secondary ${
         has_note ? "text-txt-tertiary" : "text-txt-muted"
       } focus:outline-none focus:ring-0`}
       type="button"

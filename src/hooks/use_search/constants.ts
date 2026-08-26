@@ -19,11 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
-
-
-import {
-  SNAPSHOT_CHUNK_SIZE,
-} from "@/services/search_index_store";
+import { SNAPSHOT_CHUNK_SIZE } from "@/services/search_index_store";
 
 export const ENVELOPE_FETCH_CHUNK = 100;
 export const INDEX_PAGE_LIMIT = 500;
@@ -36,4 +32,3 @@ export const DEEP_SEGMENT_PAUSE_MS = 1500;
 export const MAX_SEARCH_RESULTS = 500;
 export const INDEX_TTL_MS = 5 * 60 * 1000;
 export const INDEX_TTL_MS_LOW_NETWORK = 20 * 60 * 1000;
-

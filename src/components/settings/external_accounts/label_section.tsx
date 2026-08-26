@@ -114,7 +114,9 @@ export function LabelSection({
                   {TAG_COLOR_PRESETS.map((color) => (
                     <button
                       key={color.hex}
-                      aria-label={t("settings.select_color", { name: color.name })}
+                      aria-label={t("settings.select_color", {
+                        name: color.name,
+                      })}
                       className="w-9 h-9 rounded-full"
                       style={{
                         backgroundColor: color.hex,

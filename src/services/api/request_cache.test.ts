@@ -77,10 +77,51 @@ describe("RequestCache invalidation", () => {
 
     cache.invalidate(LIST_KEY);
 
-    const folders = await cache.get_or_fetch("GET:/mail/v1/folders", async () => ({
-      count: 2,
-    }));
+    const folders = await cache.get_or_fetch(
+      "GET:/mail/v1/folders",
+      async () => ({
+        count: 2,
+      }),
+    );
 
     expect(folders.count).toBe(1);
+  });
+});
+
+describe("RequestCache skip_cache", () => {
+  it("does not join a request that was already in flight", async () => {
+    const cache = new RequestCache();
+    const stale = deferred<{ unread: number }>();
+
+    const in_flight = cache.get_or_fetch(LIST_KEY, () => stale.promise);
+
+    const fresh = cache.get_or_fetch(
+      LIST_KEY,
+      async () => ({ unread: 0 }),
+      15_000,
+      true,
+    );
+
+    stale.resolve({ unread: 7 });
+
+    expect((await fresh).unread).toBe(0);
+    expect((await in_flight).unread).toBe(7);
+  });
+
+  it("still stores its response for later cached readers", async () => {
+    const cache = new RequestCache();
+
+    await cache.get_or_fetch(
+      LIST_KEY,
+      async () => ({ unread: 0 }),
+      15_000,
+      true,
+    );
+
+    const cached = await cache.get_or_fetch(LIST_KEY, async () => ({
+      unread: 9,
+    }));
+
+    expect(cached.unread).toBe(0);
   });
 });

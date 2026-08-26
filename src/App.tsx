@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { lazy, Suspense, useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { Route, Routes } from "react-router-dom";
 import {
   activate_subscription,
@@ -33,64 +33,12 @@ import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_auth } from "@/contexts/auth_context";
-
 import { ProtectedRoute } from "@/components/common/protected_route";
 import { SuspensionBanner } from "@/components/common/suspension_overlay";
 import { Family2faDialog } from "@/components/common/family_2fa_dialog";
 import { PendingDeletionDialog } from "@/components/common/pending_deletion_dialog";
 import { DesktopPairGate } from "@/components/common/desktop_pair_gate";
 import { UpdateBanner } from "@/components/updates/update_banner";
-
-function is_chunk_load_error(error: unknown): boolean {
-  if (!(error instanceof Error)) return false;
-  const msg = error.message.toLowerCase();
-
-  return (
-    msg.includes("dynamically imported module") ||
-    msg.includes("failed to fetch dynamically imported module") ||
-    msg.includes("loading chunk") ||
-    msg.includes("loading css chunk")
-  );
-}
-
-const CHUNK_RELOAD_KEY = "aster:chunk_reload_at";
-const CHUNK_RELOAD_COOLDOWN = 30_000;
-
-function safe_chunk_reload(): void {
-  try {
-    const last = Number(sessionStorage.getItem(CHUNK_RELOAD_KEY) || "0");
-    if (Date.now() - last < CHUNK_RELOAD_COOLDOWN) return;
-    sessionStorage.setItem(CHUNK_RELOAD_KEY, String(Date.now()));
-  } catch {
-    return;
-  }
-  window.location.reload();
-}
-
-function lazy_with_retry<T extends { default: React.ComponentType }>(
-  import_fn: () => Promise<T>,
-  retries = 3,
-  delay = 1000,
-): React.LazyExoticComponent<T["default"]> {
-  return lazy(() => {
-    const attempt = (remaining: number): Promise<T> =>
-      import_fn().catch((error: unknown) => {
-        if (is_chunk_load_error(error) && remaining <= 0) {
-          safe_chunk_reload();
-
-          return new Promise<T>(() => {});
-        }
-
-        if (remaining <= 0) throw error;
-
-        return new Promise<T>((resolve) =>
-          setTimeout(() => resolve(attempt(remaining - 1)), delay),
-        );
-      });
-
-    return attempt(retries);
-  });
-}
 
 const IndexPage = lazy_with_retry(() => import("@/pages/index"));
 const SignInPage = lazy_with_retry(() => import("@/pages/sign_in"));
@@ -113,7 +61,9 @@ const NotFoundPage = lazy_with_retry(() => import("@/pages/not_found"));
 const LinkDevicePage = lazy_with_retry(() => import("@/pages/link_device"));
 const JoinFamilyPage = lazy_with_retry(() => import("@/pages/join_family"));
 const FamilyClaimPage = lazy_with_retry(() => import("@/pages/family_claim"));
-const CryptoInvoicePage = lazy_with_retry(() => import("@/pages/crypto_invoice"));
+const CryptoInvoicePage = lazy_with_retry(
+  () => import("@/pages/crypto_invoice"),
+);
 const ExternalRedirect = ({ url }: { url: string }) => {
   window.location.href = url;
 
@@ -133,8 +83,8 @@ import { FolderUnlockPrompt } from "@/components/folders/folder_unlock_prompt";
 import { OfflineIndicator } from "@/components/common/offline_indicator";
 import { FullPageLoader } from "@/components/common/full_page_loader";
 import { ErrorBoundary } from "@/components/ui/error_boundary";
+import { lazy_with_retry } from "@/utils/lazy_with_retry";
 import { AppLock } from "@/components/mobile";
-
 import { ignore_error } from "@/lib/ignore_error";
 
 interface FamilyWelcomeState {
@@ -147,7 +97,10 @@ const FAMILY_WELCOME_SEEN_KEY_PREFIX = "aster_family_welcome_seen_";
 
 function has_seen_family_welcome(account_id: string): boolean {
   try {
-    return localStorage.getItem(`${FAMILY_WELCOME_SEEN_KEY_PREFIX}${account_id}`) === "1";
+    return (
+      localStorage.getItem(`${FAMILY_WELCOME_SEEN_KEY_PREFIX}${account_id}`) ===
+      "1"
+    );
   } catch {
     return false;
   }
@@ -167,7 +120,8 @@ function BillingSuccessHandler() {
   const { t } = use_i18n();
   const { is_authenticated, current_account_id } = use_auth();
   const handled = useRef(false);
-  const [family_welcome, set_family_welcome] = useState<FamilyWelcomeState | null>(null);
+  const [family_welcome, set_family_welcome] =
+    useState<FamilyWelcomeState | null>(null);
   const [individual_welcome, set_individual_welcome] = useState<{
     plan: string;
     billing: string;
@@ -250,6 +204,7 @@ function BillingSuccessHandler() {
           invalidate_mail_stats();
           window.dispatchEvent(new CustomEvent("aster:plan-changed"));
           const code = res.data.plan.code;
+
           if (
             (code === "duo" || code === "family") &&
             current_account_id &&
@@ -257,9 +212,11 @@ function BillingSuccessHandler() {
           ) {
             const max_members = code === "duo" ? 2 : 6;
             const storage_gb = code === "duo" ? 500 : 3000;
+
             mark_family_welcome_seen(current_account_id);
             set_family_welcome({
-              plan_name: res.data.plan.name ?? (code === "duo" ? "Duo" : "Family"),
+              plan_name:
+                res.data.plan.name ?? (code === "duo" ? "Duo" : "Family"),
               max_members,
               storage_pool_bytes: storage_gb * 1073741824,
             });
@@ -269,8 +226,10 @@ function BillingSuccessHandler() {
             )
               ? "year"
               : "month";
+
             set_individual_welcome({ plan: code, billing });
           }
+
           return;
         }
       }
@@ -288,14 +247,16 @@ function BillingSuccessHandler() {
       {family_welcome && (
         <FamilyWelcomeModal
           is_open={true}
-          on_close={() => set_family_welcome(null)}
-          plan_name={family_welcome.plan_name}
           max_members={family_welcome.max_members}
-          storage_pool_bytes={family_welcome.storage_pool_bytes}
+          on_close={() => set_family_welcome(null)}
           on_go_to_family={() => {
             set_family_welcome(null);
-            window.dispatchEvent(new CustomEvent("navigate-settings", { detail: "family" }));
+            window.dispatchEvent(
+              new CustomEvent("navigate-settings", { detail: "family" }),
+            );
           }}
+          plan_name={family_welcome.plan_name}
+          storage_pool_bytes={family_welcome.storage_pool_bytes}
         />
       )}
       {individual_welcome && (
@@ -305,7 +266,9 @@ function BillingSuccessHandler() {
           on_close={() => set_individual_welcome(null)}
           on_view_billing={() => {
             set_individual_welcome(null);
-            window.dispatchEvent(new CustomEvent("navigate-settings", { detail: "billing" }));
+            window.dispatchEvent(
+              new CustomEvent("navigate-settings", { detail: "billing" }),
+            );
           }}
           plan={individual_welcome.plan}
         />
@@ -506,7 +469,10 @@ function App() {
               />
               <Route element={<LinkDevicePage />} path="/link-device" />
               <Route element={<JoinFamilyPage />} path="/join/family" />
-              <Route element={<FamilyClaimPage />} path="/family/claim/:token" />
+              <Route
+                element={<FamilyClaimPage />}
+                path="/family/claim/:token"
+              />
               <Route element={<SecureViewPage />} path="/view/:token" />
               <Route
                 element={

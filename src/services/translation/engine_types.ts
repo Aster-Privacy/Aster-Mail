@@ -88,7 +88,9 @@ export function is_supported_language(value: string): value is LanguageCode {
   return (SUPPORTED_LANGUAGES as readonly string[]).includes(value);
 }
 
-export function normalize_language(value: string | null | undefined): LanguageCode | null {
+export function normalize_language(
+  value: string | null | undefined,
+): LanguageCode | null {
   if (!value) return null;
 
   const base = value.trim().toLowerCase().split(/[-_]/)[0];
@@ -106,7 +108,10 @@ export function direction_for(language: LanguageCode): "ltr" | "rtl" {
   return RTL_LANGUAGES.includes(language) ? "rtl" : "ltr";
 }
 
-export function pivot_route(from: LanguageCode, to: LanguageCode): LanguagePair[] {
+export function pivot_route(
+  from: LanguageCode,
+  to: LanguageCode,
+): LanguagePair[] {
   if (from === to) return [];
 
   if (from === PIVOT_LANGUAGE || to === PIVOT_LANGUAGE) {

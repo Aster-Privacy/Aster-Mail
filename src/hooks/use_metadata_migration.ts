@@ -47,11 +47,17 @@ export function use_metadata_migration(): {
 
     set_is_migrating(true);
 
-    await run_metadata_migration((p) => {
+    const result = await run_metadata_migration((p) => {
       set_progress(p);
     });
 
     set_is_migrating(false);
+
+    if (!result.success) {
+      migration_started.current = false;
+
+      return;
+    }
 
     if (user?.id) {
       sessionStorage.setItem(`${MIGRATION_CHECK_KEY}-${user.id}`, "true");

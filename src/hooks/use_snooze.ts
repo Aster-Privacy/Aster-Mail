@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { user_facing_error } from "@/utils/user_facing_error";
 import { useState, useCallback } from "react";
 
 import { emit_snoozed_changed } from "./mail_events";
@@ -80,7 +81,9 @@ export function use_snooze(): UseSnoozeReturn {
         emit_snoozed_changed();
       } catch (err) {
         const message =
-          err instanceof Error ? err.message : t("errors.failed_to_snooze_email");
+          err instanceof Error
+            ? err.message
+            : t("errors.failed_to_snooze_email");
 
         set_error(message);
         throw err;
@@ -103,7 +106,9 @@ export function use_snooze(): UseSnoozeReturn {
         const response = await bulk_snooze_emails(mail_item_ids, snoozed_until);
 
         if (response.error) {
-          throw new Error(response.error || t("errors.failed_to_snooze_emails"));
+          throw new Error(
+            response.error || t("errors.failed_to_snooze_emails"),
+          );
         }
 
         remove_index_ids(mail_item_ids);
@@ -125,8 +130,7 @@ export function use_snooze(): UseSnoozeReturn {
           }
         );
       } catch (err) {
-        const message =
-          err instanceof Error ? err.message : "failed to snooze emails";
+        const message = user_facing_error(err, "failed to snooze emails");
 
         set_error(message);
         throw err;
@@ -137,62 +141,70 @@ export function use_snooze(): UseSnoozeReturn {
     [t],
   );
 
-  const unsnooze = useCallback(async (snooze_id: string) => {
-    set_is_loading(true);
-    set_error(null);
+  const unsnooze = useCallback(
+    async (snooze_id: string) => {
+      set_is_loading(true);
+      set_error(null);
 
-    try {
-      const response = await unsnooze_email(snooze_id);
+      try {
+        const response = await unsnooze_email(snooze_id);
 
-      if (response.error) {
-        throw new Error(response.error || t("errors.failed_to_unsnooze_email"));
+        if (response.error) {
+          throw new Error(
+            response.error || t("errors.failed_to_unsnooze_email"),
+          );
+        }
+
+        window.dispatchEvent(
+          new CustomEvent("astermail:mail-unsnoozed", {
+            detail: { snooze_id },
+          }),
+        );
+        emit_snoozed_changed();
+      } catch (err) {
+        const message = user_facing_error(err, "failed to unsnooze email");
+
+        set_error(message);
+        throw err;
+      } finally {
+        set_is_loading(false);
       }
+    },
+    [t],
+  );
 
-      window.dispatchEvent(
-        new CustomEvent("astermail:mail-unsnoozed", {
-          detail: { snooze_id },
-        }),
-      );
-      emit_snoozed_changed();
-    } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "failed to unsnooze email";
+  const unsnooze_mail = useCallback(
+    async (mail_item_id: string) => {
+      set_is_loading(true);
+      set_error(null);
 
-      set_error(message);
-      throw err;
-    } finally {
-      set_is_loading(false);
-    }
-  }, [t]);
+      try {
+        const response = await unsnooze_by_mail_item(mail_item_id);
 
-  const unsnooze_mail = useCallback(async (mail_item_id: string) => {
-    set_is_loading(true);
-    set_error(null);
+        if (response.error) {
+          throw new Error(
+            response.error || t("errors.failed_to_unsnooze_email"),
+          );
+        }
 
-    try {
-      const response = await unsnooze_by_mail_item(mail_item_id);
+        reindex_ids([mail_item_id]);
+        window.dispatchEvent(
+          new CustomEvent("astermail:mail-unsnoozed", {
+            detail: { mail_item_id },
+          }),
+        );
+        emit_snoozed_changed();
+      } catch (err) {
+        const message = user_facing_error(err, "failed to unsnooze email");
 
-      if (response.error) {
-        throw new Error(response.error || t("errors.failed_to_unsnooze_email"));
+        set_error(message);
+        throw err;
+      } finally {
+        set_is_loading(false);
       }
-
-      reindex_ids([mail_item_id]);
-      window.dispatchEvent(
-        new CustomEvent("astermail:mail-unsnoozed", {
-          detail: { mail_item_id },
-        }),
-      );
-      emit_snoozed_changed();
-    } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "failed to unsnooze email";
-
-      set_error(message);
-      throw err;
-    } finally {
-      set_is_loading(false);
-    }
-  }, [t]);
+    },
+    [t],
+  );
 
   const list_snoozed = useCallback(async (): Promise<SnoozedItem[]> => {
     set_is_loading(true);
@@ -207,8 +219,7 @@ export function use_snooze(): UseSnoozeReturn {
 
       return response.data || [];
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "failed to list snoozed emails";
+      const message = user_facing_error(err, "failed to list snoozed emails");
 
       set_error(message);
       throw err;

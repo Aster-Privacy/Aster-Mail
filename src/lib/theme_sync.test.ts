@@ -27,6 +27,7 @@ import {
 } from "@/services/api/preferences";
 import {
   build_theme_fields_update,
+  build_theme_mode_update,
   build_theme_sync_toggle_update,
   get_effective_theme_fields,
   is_theme_sync_enabled,
@@ -249,5 +250,71 @@ describe("cross platform round trip", () => {
     for (const key of Object.keys(saved)) {
       expect(reloaded[key]).toEqual(saved[key]);
     }
+  });
+});
+
+describe("build_theme_mode_update", () => {
+  it("drops a dark-only color theme when switching to light", () => {
+    const preferences = make_preferences({
+      theme: "dark",
+      color_theme: "purple",
+    });
+
+    const update = build_theme_mode_update(preferences, "light");
+
+    expect(update.theme).toBe("light");
+    expect(update.color_theme).toBe("default");
+  });
+
+  it("keeps the color theme when switching to dark", () => {
+    const preferences = make_preferences({
+      theme: "light",
+      color_theme: "purple",
+    });
+
+    const update = build_theme_mode_update(preferences, "dark");
+
+    expect(update.theme).toBe("dark");
+    expect(update.color_theme).toBeUndefined();
+  });
+
+  it("drops a dark-only color theme when following the system setting", () => {
+    const preferences = make_preferences({
+      theme: "dark",
+      color_theme: "purple",
+    });
+
+    const update = build_theme_mode_update(preferences, "system");
+
+    expect(update.theme).toBe("system");
+    expect(update.color_theme).toBe("default");
+  });
+
+  it("keeps a custom color theme when switching to light", () => {
+    const preferences = make_preferences({
+      theme: "dark",
+      color_theme: "custom",
+      custom_theme_seed: "#336699",
+    });
+
+    const update = build_theme_mode_update(preferences, "light");
+
+    expect(update.theme).toBe("light");
+    expect(update.color_theme).toBeUndefined();
+  });
+
+  it("writes the web-scoped fields while sync is off", () => {
+    const preferences = make_preferences({
+      theme_sync_enabled_web: false,
+      theme_web: "dark",
+      color_theme_web: "amber",
+    });
+
+    const update = build_theme_mode_update(preferences, "light");
+
+    expect(update.theme_web).toBe("light");
+    expect(update.color_theme_web).toBe("default");
+    expect(update.theme).toBeUndefined();
+    expect(update.color_theme).toBeUndefined();
   });
 });

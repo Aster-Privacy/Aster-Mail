@@ -45,14 +45,17 @@ function strip_quotes(body: string): string {
   const wrote_re = /On .+wrote:\s*/i;
   const match = body.match(wrote_re);
   let processed = body;
+
   if (match && match.index !== undefined) {
     const before = body.substring(0, match.index).trim();
+
     if (before.length > 0) {
       processed = before;
     } else {
       processed = body.substring(match.index + match[0].length);
     }
   }
+
   return (
     processed
       .replace(/^>.*$/gm, "")
@@ -71,6 +74,7 @@ export function SendingMessageBlock({
     if (message.html_content) {
       return message.html_content;
     }
+
     return strip_quotes(message.body);
   }, [message.body, message.html_content]);
   const display_name =
@@ -99,7 +103,8 @@ export function SendingMessageBlock({
             <span
               className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium"
               style={{
-                backgroundColor: "color-mix(in srgb, var(--accent-color) 15%, transparent)",
+                backgroundColor:
+                  "color-mix(in srgb, var(--accent-color) 15%, transparent)",
                 color: "var(--accent-color)",
               }}
             >
@@ -118,8 +123,12 @@ export function SendingMessageBlock({
             sanitized_html={
               is_html_content(clean_body)
                 ? sanitize_html(clean_body, {
-                    external_content_mode: lockdown ? "never" : preferences.load_remote_images,
-                    image_proxy_url: lockdown ? undefined : get_image_proxy_url(),
+                    external_content_mode: lockdown
+                      ? "never"
+                      : preferences.load_remote_images,
+                    image_proxy_url: lockdown
+                      ? undefined
+                      : get_image_proxy_url(),
                     sandbox_mode: true,
                     lockdown_mode: lockdown,
                   }).html

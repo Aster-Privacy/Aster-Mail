@@ -41,6 +41,8 @@ import {
   CalendarIcon,
   UserIcon,
   AdjustmentsHorizontalIcon,
+  ExclamationTriangleIcon,
+  ArrowPathIcon,
 } from "@heroicons/react/24/outline";
 
 import { AdvancedSearchModal } from "@/components/search/advanced_search_modal";
@@ -49,9 +51,11 @@ import { SearchResultSkeleton } from "@/components/search/search_results_list";
 import { CorrectionNotice } from "@/components/search/correction_notice";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import {
+  format_date,
   format_date_short,
   format_time,
-  format_date,
+  get_zoned_parts,
+  local_date_key,
 } from "@/utils/date_format";
 import {
   apply_highlights,
@@ -63,9 +67,10 @@ import { is_page_search_route, set_page_search } from "@/hooks/use_page_search";
 import { use_i18n } from "@/lib/i18n/context";
 import { has_open_overlay_layer } from "@/lib/overlay_layer_stack";
 import { use_preferences } from "@/contexts/preferences_context";
+import { meets_min_search_length } from "@/utils/search_query";
+import { is_composing } from "@/utils/ime";
 
 const DEBOUNCE_MS = 180;
-const MIN_QUERY_LENGTH = 2;
 const PREVIEW_LIMIT = 5;
 const PREVIEW_DEBOUNCE_MS = 90;
 
@@ -148,6 +153,7 @@ export function SearchBar({
 
   const close = useCallback(() => {
     set_is_open(false);
+    window.dispatchEvent(new Event("aster:search-closed"));
   }, []);
 
   const submit_query = useCallback(
@@ -160,7 +166,7 @@ export function SearchBar({
 
         return;
       }
-      if (trimmed.length < MIN_QUERY_LENGTH) return;
+      if (!meets_min_search_length(trimmed)) return;
       on_search_submit(trimmed);
     },
     [on_search_submit],
@@ -228,6 +234,8 @@ export function SearchBar({
   };
 
   const handle_key_down = (e: React.KeyboardEvent) => {
+    if (is_composing(e)) return;
+
     if (e.key === "Escape") {
       e.preventDefault();
       close();
@@ -338,7 +346,7 @@ export function SearchBar({
 
   const preview_query = query.trim();
   const preview_enabled =
-    preview_query.length >= MIN_QUERY_LENGTH && !preview_query.endsWith(":");
+    meets_min_search_length(preview_query) && !preview_query.endsWith(":");
 
   useEffect(() => {
     if (is_page_filter || !is_open) return;
@@ -442,7 +450,7 @@ export function SearchBar({
         <div
           className={`flex items-center transition-colors ${
             is_pill
-              ? `gap-2 h-10 pl-4 pr-1.5 aster_search_field ${
+              ? `gap-2 h-10 ps-4 pe-1.5 aster_search_field ${
                   is_open && !is_page_filter && rect
                     ? "aster_search_open shadow-lg rounded-t-[22px]"
                     : "rounded-full"
@@ -566,7 +574,7 @@ export function SearchBar({
                   const d = new Date();
 
                   d.setDate(d.getDate() - 7);
-                  handle_chip(`after:${d.toISOString().slice(0, 10)}`);
+                  handle_chip(`after:${local_date_key(d)}`);
                 }}
               />
               <Chip
@@ -575,7 +583,7 @@ export function SearchBar({
                 on_click={() => handle_chip("from:")}
               />
               <button
-                className="ml-auto inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+                className="ms-auto inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
                 type="button"
                 onClick={() => {
                   close();
@@ -597,7 +605,28 @@ export function SearchBar({
               </div>
             )}
 
+            {preview_enabled && search_state.error && (
+              <div className="px-6 py-8 flex flex-col items-center justify-center text-center">
+                <ExclamationTriangleIcon className="w-8 h-8 text-[var(--text-muted)] mb-2" />
+                <p className="text-sm text-[var(--text-primary)]">
+                  {search_state.error}
+                </p>
+                <button
+                  className="mt-3 flex items-center gap-1.5 px-3 py-1.5 rounded-[12px] text-xs font-medium transition-colors bg-[var(--accent-blue)] text-[var(--accent-fg,#ffffff)] hover:opacity-90"
+                  type="button"
+                  onClick={() => {
+                    clear_index();
+                    search(preview_query);
+                  }}
+                >
+                  <ArrowPathIcon className="w-3.5 h-3.5" />
+                  {t("common.retry")}
+                </button>
+              </div>
+            )}
+
             {preview_enabled &&
+              !search_state.error &&
               is_preview_loading &&
               preview_results.length === 0 && (
                 <div className="px-1.5 pb-2">
@@ -608,6 +637,7 @@ export function SearchBar({
               )}
 
             {preview_enabled &&
+              !search_state.error &&
               !is_preview_loading &&
               preview_results.length === 0 && (
                 <div className="px-6 py-8 flex flex-col items-center justify-center text-center">
@@ -618,42 +648,44 @@ export function SearchBar({
                 </div>
               )}
 
-            {preview_enabled && preview_results.length > 0 && (
-              <div
-                aria-busy={is_preview_stale}
-                className="border-t border-[var(--border-secondary)] transition-opacity duration-150 motion-reduce:transition-none"
-                style={{ opacity: is_preview_stale ? 0.55 : 1 }}
-              >
-                <CorrectionNotice
-                  correction={active_correction}
-                  on_dismiss={dismiss_correction}
-                />
-                <div className="py-1 max-h-[420px] overflow-y-auto">
-                  {preview_results.map((result) => (
-                    <PreviewRow
-                      key={result.id}
-                      date_options={date_options}
-                      on_click={get_preview_click_handler(result.id)}
-                      result={result}
-                      terms={preview_terms}
-                    />
-                  ))}
-                </div>
-                <button
-                  className="w-full flex items-center gap-3 px-4 py-2.5 text-left text-[13px] border-t border-[var(--border-secondary)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] transition-colors"
-                  type="button"
-                  onClick={() => submit_full(preview_query)}
+            {preview_enabled &&
+              !search_state.error &&
+              preview_results.length > 0 && (
+                <div
+                  aria-busy={is_preview_stale}
+                  className="border-t border-[var(--border-secondary)] transition-opacity duration-150 motion-reduce:transition-none"
+                  style={{ opacity: is_preview_stale ? 0.55 : 1 }}
                 >
-                  <MagnifyingGlassIcon className="w-4 h-4 flex-shrink-0 text-[var(--icon-secondary)]" />
-                  <span className="flex-1 min-w-0 truncate">
-                    {t("mail.view_all_results", { query: effective_query })}
-                  </span>
-                  <span className="flex-shrink-0 text-[11px] text-[var(--text-muted)]">
-                    {t("common.press_enter_to_view_all")}
-                  </span>
-                </button>
-              </div>
-            )}
+                  <CorrectionNotice
+                    correction={active_correction}
+                    on_dismiss={dismiss_correction}
+                  />
+                  <div className="py-1 max-h-[420px] overflow-y-auto">
+                    {preview_results.map((result) => (
+                      <PreviewRow
+                        key={result.id}
+                        date_options={date_options}
+                        on_click={get_preview_click_handler(result.id)}
+                        result={result}
+                        terms={preview_terms}
+                      />
+                    ))}
+                  </div>
+                  <button
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-start text-[13px] border-t border-[var(--border-secondary)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] transition-colors"
+                    type="button"
+                    onClick={() => submit_full(preview_query)}
+                  >
+                    <MagnifyingGlassIcon className="w-4 h-4 flex-shrink-0 text-[var(--icon-secondary)]" />
+                    <span className="flex-1 min-w-0 truncate">
+                      {t("mail.view_all_results", { query: effective_query })}
+                    </span>
+                    <span className="flex-shrink-0 text-[11px] text-[var(--text-muted)]">
+                      {t("common.press_enter_to_view_all")}
+                    </span>
+                  </button>
+                </div>
+              )}
           </div>,
           document.body,
         )}
@@ -677,13 +709,15 @@ function format_preview_date(
   if (Number.isNaN(date.getTime())) return "";
 
   const now = new Date();
+  const date_parts = get_zoned_parts(date);
+  const now_parts = get_zoned_parts(now);
   const same_day =
-    date.getFullYear() === now.getFullYear() &&
-    date.getMonth() === now.getMonth() &&
-    date.getDate() === now.getDate();
+    date_parts.year === now_parts.year &&
+    date_parts.month === now_parts.month &&
+    date_parts.day === now_parts.day;
 
   if (same_day) return format_time(date, options);
-  if (date.getFullYear() === now.getFullYear())
+  if (date_parts.year === now_parts.year)
     return format_date_short(date, options);
 
   return format_date(date, options);
@@ -725,7 +759,7 @@ const PreviewRow = memo(function PreviewRow({
 
   return (
     <button
-      className="w-full flex items-center gap-3 px-4 py-2 text-left hover:bg-[var(--bg-hover)] transition-colors"
+      className="w-full flex items-center gap-3 px-4 py-2 text-start hover:bg-[var(--bg-hover)] transition-colors"
       type="button"
       onClick={on_click}
     >

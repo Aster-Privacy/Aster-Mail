@@ -22,6 +22,7 @@ import * as React from "react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 
 import { cn } from "@/lib/utils";
+import { use_i18n } from "@/lib/i18n/context";
 
 export interface ChipSegmentProps {
   children: React.ReactNode;
@@ -34,10 +35,7 @@ export interface ChipSegmentProps {
   trigger_ref?: React.Ref<HTMLButtonElement>;
 }
 
-function assign_ref<T>(
-  ref: React.Ref<T> | undefined,
-  value: T | null,
-): void {
+function assign_ref<T>(ref: React.Ref<T> | undefined, value: T | null): void {
   if (typeof ref === "function") {
     ref(value);
   } else if (ref) {
@@ -45,7 +43,10 @@ function assign_ref<T>(
   }
 }
 
-export const ChipSegment = React.forwardRef<HTMLButtonElement, ChipSegmentProps>(
+export const ChipSegment = React.forwardRef<
+  HTMLButtonElement,
+  ChipSegmentProps
+>(
   (
     {
       children,
@@ -65,17 +66,17 @@ export const ChipSegment = React.forwardRef<HTMLButtonElement, ChipSegmentProps>
           assign_ref(ref, node);
           assign_ref(trigger_ref, node);
         }}
-        type="button"
-        onClick={on_click}
         className={cn(
           "h-full flex items-center gap-1.5 px-2.5 text-[12.5px] font-medium transition-colors",
           "text-neutral-700 dark:text-neutral-200",
           "hover:bg-neutral-100 dark:hover:bg-neutral-800",
           is_active && "bg-neutral-100 dark:bg-neutral-800",
-          is_first && "rounded-l-[11px]",
-          is_last && "rounded-r-[11px]",
+          is_first && "rounded-s-[11px]",
+          is_last && "rounded-e-[11px]",
           className,
         )}
+        type="button"
+        onClick={on_click}
       >
         {icon && <span className="flex-shrink-0">{icon}</span>}
         <span className="truncate max-w-[200px]">{children}</span>
@@ -92,39 +93,39 @@ interface ChipPillProps {
   className?: string;
 }
 
-export const ChipPill = React.forwardRef<HTMLDivElement, ChipPillProps>(function ChipPill(
-  { children, on_remove, className },
-  ref,
-) {
-  const segments = React.Children.toArray(children).filter(Boolean);
+export const ChipPill = React.forwardRef<HTMLDivElement, ChipPillProps>(
+  function ChipPill({ children, on_remove, className }, ref) {
+    const { t } = use_i18n();
+    const segments = React.Children.toArray(children).filter(Boolean);
 
-  return (
-    <div
-      ref={ref}
-      className={cn(
-        "inline-flex items-stretch h-7 rounded-[12px] border bg-transparent",
-        "border-neutral-200 dark:border-neutral-700",
-        "overflow-hidden divide-x divide-neutral-200 dark:divide-neutral-700",
-        className,
-      )}
-    >
-      {segments}
-      {on_remove && (
-        <span className="h-full flex items-center pr-1 pl-0.5">
-          <button
-            type="button"
-            onClick={on_remove}
-            className={cn(
-              "h-5 w-5 flex items-center justify-center rounded-full transition-colors",
-              "text-neutral-400 hover:bg-neutral-200 hover:text-neutral-700",
-              "dark:hover:bg-neutral-700 dark:hover:text-neutral-200",
-            )}
-            aria-label="remove"
-          >
-            <XMarkIcon className="w-3.5 h-3.5" />
-          </button>
-        </span>
-      )}
-    </div>
-  );
-});
+    return (
+      <div
+        ref={ref}
+        className={cn(
+          "inline-flex items-stretch h-7 rounded-[12px] border bg-transparent",
+          "border-neutral-200 dark:border-neutral-700",
+          "overflow-hidden divide-x divide-neutral-200 dark:divide-neutral-700",
+          className,
+        )}
+      >
+        {segments}
+        {on_remove && (
+          <span className="h-full flex items-center pe-1 ps-0.5">
+            <button
+              aria-label={t("common.remove")}
+              className={cn(
+                "h-5 w-5 flex items-center justify-center rounded-full transition-colors",
+                "text-neutral-400 hover:bg-neutral-200 hover:text-neutral-700",
+                "dark:hover:bg-neutral-700 dark:hover:text-neutral-200",
+              )}
+              type="button"
+              onClick={on_remove}
+            >
+              <XMarkIcon className="w-3.5 h-3.5" />
+            </button>
+          </span>
+        )}
+      </div>
+    );
+  },
+);

@@ -23,6 +23,7 @@ import type {
   EmailCategory,
   MailItemMetadata,
 } from "@/types/email";
+import type { CustomCategoryRule } from "@/data/category_catalog";
 
 import { get_sender_domain } from "@/utils/unsubscribe_detector";
 import { is_official_sender } from "@/lib/utils";
@@ -43,7 +44,6 @@ import {
   TRAVEL_SUBJECT_PATTERNS,
   SHOPPING_SUBJECT_PATTERNS,
 } from "@/data/category_signals";
-import type { CustomCategoryRule } from "@/data/category_catalog";
 import { BUILTIN_CATEGORY_IDS, fold_builtin } from "@/data/category_catalog";
 
 export const CLASSIFIER_VERSION = 3;
@@ -312,10 +312,7 @@ export function classify(
     return "travel";
   }
 
-  if (
-    in_any(SHOPPING_SET) &&
-    matches_any(subject, SHOPPING_SUBJECT_PATTERNS)
-  ) {
+  if (in_any(SHOPPING_SET) && matches_any(subject, SHOPPING_SUBJECT_PATTERNS)) {
     return "shopping";
   }
 

@@ -68,7 +68,10 @@ import {
   plain_text_to_html,
 } from "@/lib/html_sanitizer";
 import { get_image_proxy_url } from "@/lib/image_proxy";
-import { LOCKDOWN_CHANGED_EVENT, is_any_lockdown_active } from "@/services/lockdown_store";
+import {
+  LOCKDOWN_CHANGED_EVENT,
+  is_any_lockdown_active,
+} from "@/services/lockdown_store";
 import { get_current_account } from "@/services/account_manager";
 import {
   set_cached_iframe_height,
@@ -79,7 +82,6 @@ import {
 import { EMAIL_BODY_CSS } from "@/lib/email_body_styles";
 import { MAIL_EVENTS } from "@/hooks/mail_events";
 import { ignore_error } from "@/lib/ignore_error";
-
 import {
   extract_cid_references,
   resolve_cid_references,
@@ -93,6 +95,8 @@ import {
   prefetch_attachment_previews,
   clear_attachment_preview_cache,
 } from "@/services/attachment_preview_cache";
+import { app_locale, get_display_time_zone } from "@/utils/date_format";
+import { clip_code_points } from "@/utils/preview_text";
 
 export interface PreloadedSanitizedContent {
   html: string;
@@ -216,8 +220,11 @@ function evict_stale_cache_entries(): void {
 
     for (let i = 0; i < to_remove; i++) {
       const evicted = entries[i][1];
-      if (evicted.cid_resolved) revoke_cid_blob_urls(evicted.cid_resolved.blob_urls);
-      for (const r of evicted.thread_cid_resolved.values()) revoke_cid_blob_urls(r.blob_urls);
+
+      if (evicted.cid_resolved)
+        revoke_cid_blob_urls(evicted.cid_resolved.blob_urls);
+      for (const r of evicted.thread_cid_resolved.values())
+        revoke_cid_blob_urls(r.blob_urls);
       preload_cache.delete(entries[i][0]);
     }
   }
@@ -226,7 +233,8 @@ function evict_stale_cache_entries(): void {
 export function clear_preload_cache(): void {
   for (const entry of preload_cache.values()) {
     if (entry.cid_resolved) revoke_cid_blob_urls(entry.cid_resolved.blob_urls);
-    for (const r of entry.thread_cid_resolved.values()) revoke_cid_blob_urls(r.blob_urls);
+    for (const r of entry.thread_cid_resolved.values())
+      revoke_cid_blob_urls(r.blob_urls);
   }
   preload_cache.clear();
   clear_attachment_meta_cache();
@@ -249,8 +257,11 @@ export function mark_preload_stale(email_id?: string): void {
 
 export function delete_preloaded_email(email_id: string): void {
   const entry = preload_cache.get(email_id);
+
   if (entry?.cid_resolved) revoke_cid_blob_urls(entry.cid_resolved.blob_urls);
-  if (entry) for (const r of entry.thread_cid_resolved.values()) revoke_cid_blob_urls(r.blob_urls);
+  if (entry)
+    for (const r of entry.thread_cid_resolved.values())
+      revoke_cid_blob_urls(r.blob_urls);
   preload_cache.delete(email_id);
 }
 
@@ -258,9 +269,12 @@ export function pop_preloaded_cid(
   email_id: string,
 ): { html: string; blob_urls: string[] } | null {
   const entry = preload_cache.get(email_id);
+
   if (!entry?.cid_resolved) return null;
   const result = entry.cid_resolved;
+
   preload_cache.set(email_id, { ...entry, cid_resolved: undefined });
+
   return result;
 }
 
@@ -269,11 +283,14 @@ export function pop_preloaded_thread_cid(
 ): { html: string; blob_urls: string[] } | null {
   for (const entry of preload_cache.values()) {
     const result = entry.thread_cid_resolved.get(message_id);
+
     if (result) {
       entry.thread_cid_resolved.delete(message_id);
+
       return result;
     }
   }
+
   return null;
 }
 
@@ -300,102 +317,112 @@ function invalidate_thread_in_preload_cache(
 }
 
 if (typeof window !== "undefined") {
-window.addEventListener(MAIL_EVENTS.THREAD_REPLY_SENT, ((
-  event: CustomEvent<ThreadReplySentEventDetail>,
-) => {
-  if (event.detail) {
-    invalidate_thread_in_preload_cache(
-      event.detail.thread_token,
-      event.detail.original_email_id,
-    );
-  }
-}) as EventListener);
+  window.addEventListener(MAIL_EVENTS.THREAD_REPLY_SENT, ((
+    event: CustomEvent<ThreadReplySentEventDetail>,
+  ) => {
+    if (event.detail) {
+      invalidate_thread_in_preload_cache(
+        event.detail.thread_token,
+        event.detail.original_email_id,
+      );
+    }
+  }) as EventListener);
 
-window.addEventListener(MAIL_EVENTS.THREAD_REPLY_OPTIMISTIC, ((
-  event: CustomEvent<ThreadReplyOptimisticEventDetail>,
-) => {
-  const detail = event.detail;
-  if (!detail) return;
+  window.addEventListener(MAIL_EVENTS.THREAD_REPLY_OPTIMISTIC, ((
+    event: CustomEvent<ThreadReplyOptimisticEventDetail>,
+  ) => {
+    const detail = event.detail;
 
-  const optimistic_msg: DecryptedThreadMessage = {
-    id: detail.optimistic_id,
-    item_type: "sent",
-    sender_name: detail.sender_name,
-    sender_email: detail.sender_email,
-    subject: detail.subject,
-    body: detail.body,
-    timestamp: new Date().toISOString(),
-    is_read: true,
-    is_starred: false,
-    is_deleted: false,
-    is_external: false,
-    to_recipients: detail.to_recipients,
-    cc_recipients: detail.cc_recipients ?? [],
-  };
+    if (!detail) return;
 
-  for (const [key, cached] of preload_cache.entries()) {
-    if (
-      cached.mail_item.thread_token === detail.thread_token ||
-      (detail.original_email_id && key === detail.original_email_id)
-    ) {
-      const already_has = cached.thread_messages.some((m) => m.id === detail.optimistic_id);
-      if (!already_has) {
+    const optimistic_msg: DecryptedThreadMessage = {
+      id: detail.optimistic_id,
+      item_type: "sent",
+      sender_name: detail.sender_name,
+      sender_email: detail.sender_email,
+      subject: detail.subject,
+      body: detail.body,
+      timestamp: new Date().toISOString(),
+      is_read: true,
+      is_starred: false,
+      is_deleted: false,
+      is_external: false,
+      to_recipients: detail.to_recipients,
+      cc_recipients: detail.cc_recipients ?? [],
+    };
+
+    for (const [key, cached] of preload_cache.entries()) {
+      if (
+        cached.mail_item.thread_token === detail.thread_token ||
+        (detail.original_email_id && key === detail.original_email_id)
+      ) {
+        const already_has = cached.thread_messages.some(
+          (m) => m.id === detail.optimistic_id,
+        );
+
+        if (!already_has) {
+          preload_cache.set(key, {
+            ...cached,
+            thread_messages: [...cached.thread_messages, optimistic_msg],
+          });
+        }
+      }
+    }
+  }) as EventListener);
+
+  window.addEventListener(MAIL_EVENTS.THREAD_REPLY_CANCELLED, ((
+    event: CustomEvent<ThreadReplyCancelledEventDetail>,
+  ) => {
+    const detail = event.detail;
+
+    if (!detail) return;
+
+    for (const [key, cached] of preload_cache.entries()) {
+      if (cached.mail_item.thread_token === detail.thread_token) {
         preload_cache.set(key, {
           ...cached,
-          thread_messages: [...cached.thread_messages, optimistic_msg],
+          thread_messages: cached.thread_messages.filter(
+            (m) => m.id !== detail.optimistic_id,
+          ),
         });
       }
     }
-  }
-}) as EventListener);
+  }) as EventListener);
 
-window.addEventListener(MAIL_EVENTS.THREAD_REPLY_CANCELLED, ((
-  event: CustomEvent<ThreadReplyCancelledEventDetail>,
-) => {
-  const detail = event.detail;
-  if (!detail) return;
+  window.addEventListener(MAIL_EVENTS.MAIL_ITEM_UPDATED, ((
+    event: CustomEvent<MailItemUpdatedEventDetail>,
+  ) => {
+    const detail = event.detail;
 
-  for (const [key, cached] of preload_cache.entries()) {
-    if (cached.mail_item.thread_token === detail.thread_token) {
-      preload_cache.set(key, {
-        ...cached,
-        thread_messages: cached.thread_messages.filter((m) => m.id !== detail.optimistic_id),
-      });
-    }
-  }
-}) as EventListener);
+    if (!detail) return;
 
-window.addEventListener(MAIL_EVENTS.MAIL_ITEM_UPDATED, ((
-  event: CustomEvent<MailItemUpdatedEventDetail>,
-) => {
-  const detail = event.detail;
-  if (!detail) return;
+    const cached = preload_cache.get(detail.id);
 
-  const cached = preload_cache.get(detail.id);
-  if (!cached) return;
+    if (!cached) return;
 
-  const has_read_change = detail.is_read !== undefined;
-  const has_metadata_change =
-    detail.encrypted_metadata !== undefined && detail.metadata_nonce !== undefined;
+    const has_read_change = detail.is_read !== undefined;
+    const has_metadata_change =
+      detail.encrypted_metadata !== undefined &&
+      detail.metadata_nonce !== undefined;
 
-  if (!has_read_change && !has_metadata_change) return;
+    if (!has_read_change && !has_metadata_change) return;
 
-  preload_cache.set(detail.id, {
-    ...cached,
-    email: {
-      ...cached.email,
-      ...(has_read_change && { is_read: detail.is_read! }),
-    },
-    mail_item: {
-      ...cached.mail_item,
-      ...(has_read_change && { is_read: detail.is_read }),
-      ...(has_metadata_change && {
-        encrypted_metadata: detail.encrypted_metadata,
-        metadata_nonce: detail.metadata_nonce,
-      }),
-    },
-  });
-}) as EventListener);
+    preload_cache.set(detail.id, {
+      ...cached,
+      email: {
+        ...cached.email,
+        ...(has_read_change && { is_read: detail.is_read! }),
+      },
+      mail_item: {
+        ...cached.mail_item,
+        ...(has_read_change && { is_read: detail.is_read }),
+        ...(has_metadata_change && {
+          encrypted_metadata: detail.encrypted_metadata,
+          metadata_nonce: detail.metadata_nonce,
+        }),
+      },
+    });
+  }) as EventListener);
 }
 
 function presanitize(
@@ -600,6 +627,7 @@ export async function preload_email_detail(
       const subject_bundle = password_protected
         ? { subject: null, body: body_text }
         : extract_subject_bundle(body_text);
+
       if (subject_bundle.subject !== null) {
         body_text = subject_bundle.body;
         if (!envelope.subject) {
@@ -630,6 +658,7 @@ export async function preload_email_detail(
       }
 
       const html_bundle = unwrap_bundle_html(safe_html);
+
       safe_html = html_bundle.html;
       if (html_bundle.subject !== null && !envelope.subject) {
         envelope.subject = html_bundle.subject;
@@ -662,19 +691,22 @@ export async function preload_email_detail(
         subject: envelope.subject || "",
         preview: password_protected
           ? ""
-          : (
+          : clip_code_points(
               body_text ||
-              (safe_html
-                ? safe_html
-                    .replace(/<[^>]*>/g, " ")
-                    .replace(/\s+/g, " ")
-                    .trim()
-                : "")
-            ).substring(0, 200),
-        timestamp: new Date(
-          envelope.sent_at || item.created_at,
-        ).toLocaleString(),
-        is_read: item.is_read === true || (decrypted_metadata?.is_read ?? false),
+                (safe_html
+                  ? safe_html
+                      .replace(/<[^>]*>/g, " ")
+                      .replace(/\s+/g, " ")
+                      .trim()
+                  : ""),
+              200,
+            ),
+        timestamp: new Date(envelope.sent_at || item.created_at).toLocaleString(
+          app_locale(),
+          { timeZone: get_display_time_zone() },
+        ),
+        is_read:
+          item.is_read === true || (decrypted_metadata?.is_read ?? false),
         is_starred: decrypted_metadata?.is_starred ?? false,
         has_attachment: decrypted_metadata?.has_attachments ?? false,
         thread_count: 1,
@@ -702,7 +734,8 @@ export async function preload_email_detail(
         body: body_text || "",
         html_content: safe_html,
         timestamp: item.message_ts || item.created_at,
-        is_read: item.is_read === true || (decrypted_metadata?.is_read ?? false),
+        is_read:
+          item.is_read === true || (decrypted_metadata?.is_read ?? false),
         is_starred: decrypted_metadata?.is_starred ?? false,
         is_deleted: false,
         is_external: item.is_external,
@@ -781,24 +814,35 @@ export async function preload_email_detail(
       );
 
       let cid_resolved: { html: string; blob_urls: string[] } | undefined;
-      const thread_cid_resolved = new Map<string, { html: string; blob_urls: string[] }>();
+      const thread_cid_resolved = new Map<
+        string,
+        { html: string; blob_urls: string[] }
+      >();
 
       await Promise.allSettled(
         thread_messages.map(async (msg) => {
           const sanitized = thread_sanitized.get(msg.id);
+
           if (!sanitized) return;
           if (extract_cid_references(sanitized.html).length === 0) return;
           try {
             const result = await resolve_cid_references(sanitized.html, msg.id);
+
             if (result.unresolved > 0) {
               revoke_cid_blob_urls(result.blob_urls);
 
               return;
             }
             if (result.blob_urls.length > 0) {
-              thread_cid_resolved.set(msg.id, { html: result.html, blob_urls: result.blob_urls });
+              thread_cid_resolved.set(msg.id, {
+                html: result.html,
+                blob_urls: result.blob_urls,
+              });
               if (msg.id === target_id) {
-                cid_resolved = { html: result.html, blob_urls: result.blob_urls };
+                cid_resolved = {
+                  html: result.html,
+                  blob_urls: result.blob_urls,
+                };
               }
             }
           } catch (caught) {
@@ -820,7 +864,9 @@ export async function preload_email_detail(
       }
 
       const old_entry = preload_cache.get(target_id);
-      if (old_entry?.cid_resolved) revoke_cid_blob_urls(old_entry.cid_resolved.blob_urls);
+
+      if (old_entry?.cid_resolved)
+        revoke_cid_blob_urls(old_entry.cid_resolved.blob_urls);
       if (old_entry) {
         for (const [msg_id, r] of old_entry.thread_cid_resolved) {
           if (msg_id === target_id) continue;

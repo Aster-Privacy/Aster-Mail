@@ -47,6 +47,7 @@ import {
 } from "@/data/category_colors";
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
+import { use_dialog_shell } from "@/lib/use_dialog_shell";
 
 interface CustomCategoryModalProps {
   is_open: boolean;
@@ -90,7 +91,9 @@ export function CustomCategoryModal({
     set_name(existing?.name ?? "");
     set_icon(existing?.icon ?? CUSTOM_CATEGORY_ICON_CHOICES[0]);
     set_color(
-      existing ? category_color_key(existing.id, existing) : CUSTOM_CATEGORY_COLOR_CHOICES[0],
+      existing
+        ? category_color_key(existing.id, existing)
+        : CUSTOM_CATEGORY_COLOR_CHOICES[0],
     );
     set_domains_text(terms_to_text(existing?.match_domains ?? []));
     set_keywords_text(terms_to_text(existing?.match_keywords ?? []));
@@ -128,9 +131,7 @@ export function CustomCategoryModal({
       return;
     }
 
-    const invalid_keywords = keywords.filter(
-      (k) => !is_valid_match_keyword(k),
-    );
+    const invalid_keywords = keywords.filter((k) => !is_valid_match_keyword(k));
 
     if (invalid_keywords.length > 0) {
       set_error(
@@ -166,6 +167,13 @@ export function CustomCategoryModal({
   const textarea_class =
     "w-full resize-none rounded-lg border border-edge-primary bg-transparent px-3 py-2 text-[14px] text-txt-primary placeholder:text-txt-muted outline-none transition-colors focus:border-[var(--accent-blue)]";
 
+  const { dialog_ref, handle_backdrop_pointer_down } =
+    use_dialog_shell<HTMLDivElement>(
+      is_open,
+      on_close,
+      "custom_category_modal",
+    );
+
   return (
     <AnimatePresence>
       {is_open && (
@@ -175,13 +183,14 @@ export function CustomCategoryModal({
           exit={{ opacity: 0 }}
           initial={reduce_motion ? false : { opacity: 0 }}
           transition={{ duration: reduce_motion ? 0 : 0.15 }}
-          onClick={on_close}
         >
           <div
             className="absolute inset-0 backdrop-blur-md"
             style={{ backgroundColor: "var(--modal-overlay)" }}
+            onPointerDown={handle_backdrop_pointer_down}
           />
           <motion.div
+            ref={dialog_ref}
             animate={{ opacity: 1, scale: 1 }}
             className={`relative w-full rounded-xl border overflow-hidden bg-modal-bg border-edge-primary max-h-[90vh] overflow-y-auto transition-[max-width] duration-200 ${
               expanded ? "max-w-2xl" : "max-w-md"
@@ -189,6 +198,7 @@ export function CustomCategoryModal({
             exit={{ opacity: 0, scale: 0.96 }}
             initial={reduce_motion ? false : { opacity: 0, scale: 0.96 }}
             style={{ boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.35)" }}
+            tabIndex={-1}
             transition={{ duration: reduce_motion ? 0 : 0.15 }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -240,6 +250,11 @@ export function CustomCategoryModal({
                     type="text"
                     value={name}
                     onChange={(e) => set_name(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key !== "Enter" || !trimmed_name) return;
+                      e.preventDefault();
+                      handle_save();
+                    }}
                   />
                 </div>
 
@@ -285,13 +300,13 @@ export function CustomCategoryModal({
                           aria-label={t(CATEGORY_COLOR_LABEL_KEYS[key])}
                           aria-pressed={is_selected}
                           className="aster_cat_swatch flex h-9 w-9 items-center justify-center rounded-full transition-transform hover:scale-105"
-                          title={t(CATEGORY_COLOR_LABEL_KEYS[key])}
                           style={{
                             ...category_color_style(key),
                             boxShadow: is_selected
                               ? "0 0 0 2px var(--modal-bg), 0 0 0 4px var(--cat-fg)"
                               : "none",
                           }}
+                          title={t(CATEGORY_COLOR_LABEL_KEYS[key])}
                           type="button"
                           onClick={() => set_color(key)}
                         >

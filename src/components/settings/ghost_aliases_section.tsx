@@ -37,12 +37,14 @@ import { INSTANT_ALIAS_DELETE_KEY } from "@/components/settings/hooks/use_aliase
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
+import { app_locale, get_display_time_zone } from "@/utils/date_format";
 
 const GHOST_ALIAS_MAX_LIFETIME_MS = 90 * 24 * 60 * 60 * 1000;
 const GHOST_ALIAS_GRACE_PERIOD_MS = 30 * 24 * 60 * 60 * 1000;
 
 function format_alias_date(date: Date): string {
-  return date.toLocaleDateString(undefined, {
+  return date.toLocaleDateString(app_locale(), {
+    timeZone: get_display_time_zone(),
     month: "short",
     day: "numeric",
     year: "numeric",
@@ -63,8 +65,7 @@ export function GhostAliasesSection() {
   const { limits } = use_plan_limits();
   const can_expire_instantly = useMemo(
     () =>
-      !limits ||
-      (limits.limits[INSTANT_ALIAS_DELETE_KEY]?.limit ?? 0) !== 0,
+      !limits || (limits.limits[INSTANT_ALIAS_DELETE_KEY]?.limit ?? 0) !== 0,
     [limits],
   );
   const [aliases, set_aliases] = useState<DecryptedGhostAlias[]>([]);
@@ -91,7 +92,7 @@ export function GhostAliasesSection() {
 
         decrypted.forEach((a) => register_ghost_email(a.full_address));
         set_aliases(decrypted);
-      } else if (response.error) {
+      } else {
         set_load_error(true);
       }
     } catch {
@@ -128,7 +129,8 @@ export function GhostAliasesSection() {
         if (new Date() < eligible) {
           set_too_new_info({
             is_open: true,
-            eligible_date: eligible.toLocaleDateString(undefined, {
+            eligible_date: eligible.toLocaleDateString(app_locale(), {
+              timeZone: get_display_time_zone(),
               month: "short",
               day: "numeric",
               year: "numeric",
@@ -155,12 +157,21 @@ export function GhostAliasesSection() {
     set_confirm_expire_info(null);
     set_action_loading(alias_id);
     try {
-      await expire_ghost_alias(alias_id);
+      const result = await expire_ghost_alias(alias_id);
+
+      if (result.error) {
+        show_toast(
+          result.error || t("common.something_went_wrong_try_again"),
+          "error",
+        );
+
+        return;
+      }
       await load_aliases();
     } finally {
       set_action_loading(null);
     }
-  }, [confirm_expire_info, load_aliases]);
+  }, [confirm_expire_info, load_aliases, t]);
 
   const handle_extend = useCallback(
     async (alias: DecryptedGhostAlias) => {
@@ -171,7 +182,16 @@ export function GhostAliasesSection() {
       }
       set_action_loading(alias.id);
       try {
-        await extend_ghost_alias(alias.id, 30);
+        const result = await extend_ghost_alias(alias.id, 30);
+
+        if (result.error) {
+          show_toast(
+            result.error || t("common.something_went_wrong_try_again"),
+            "error",
+          );
+
+          return;
+        }
         await load_aliases();
       } finally {
         set_action_loading(null);
@@ -199,7 +219,8 @@ export function GhostAliasesSection() {
   const format_date = (iso?: string) => {
     if (!iso) return "-";
 
-    return new Date(iso).toLocaleDateString(undefined, {
+    return new Date(iso).toLocaleDateString(app_locale(), {
+      timeZone: get_display_time_zone(),
       month: "short",
       day: "numeric",
       year: "numeric",
@@ -234,7 +255,9 @@ export function GhostAliasesSection() {
               />
             </h3>
             <span className="text-xs text-txt-muted">
-              {t("settings.ghost_aliases_this_month", { count: this_month_count })}
+              {t("settings.ghost_aliases_this_month", {
+                count: this_month_count,
+              })}
             </span>
           </div>
           <div className="mt-2 h-px bg-edge-secondary" />
@@ -262,7 +285,9 @@ export function GhostAliasesSection() {
           <Button
             variant="depth"
             onClick={() =>
-              window.dispatchEvent(new CustomEvent("astermail:open-compose-ghost"))
+              window.dispatchEvent(
+                new CustomEvent("astermail:open-compose-ghost"),
+              )
             }
           >
             <PencilSquareIcon className="w-4 h-4" />
@@ -296,7 +321,9 @@ export function GhostAliasesSection() {
                         {alias.full_address}
                       </p>
                       <p className="text-xs text-txt-muted">
-                        {t("settings.ghost_alias_expires_in", { days: days_until(alias.expires_at) ?? 0 })}{" "}
+                        {t("settings.ghost_alias_expires_in", {
+                          days: days_until(alias.expires_at) ?? 0,
+                        })}{" "}
                         ({format_date(alias.expires_at)})
                       </p>
                     </div>
@@ -349,7 +376,9 @@ export function GhostAliasesSection() {
                         {alias.full_address}
                       </p>
                       <p className="text-xs text-txt-muted">
-                        {t("settings.ghost_alias_grace_until", { date: format_date(alias.grace_expires_at) })}
+                        {t("settings.ghost_alias_grace_until", {
+                          date: format_date(alias.grace_expires_at),
+                        })}
                       </p>
                     </div>
                   </div>

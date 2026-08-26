@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { app_locale } from "@/utils/date_format";
+
 interface RailUnreadDotProps {
   count: number;
   label: string;
@@ -41,7 +43,7 @@ export function RailUnreadDot({ count, label }: RailUnreadDotProps) {
             "0 0 0 2px var(--sidebar-bg, var(--bg-secondary, var(--bg-primary)))",
         }}
       />
-      <span className="sr-only">{`${label}: ${safe_count.toLocaleString()}`}</span>
+      <span className="sr-only">{`${label}: ${safe_count.toLocaleString(app_locale())}`}</span>
     </>
   );
 }

@@ -20,7 +20,6 @@
 //
 import type { TranslationKey } from "@/lib/i18n/types";
 
-
 export type TranslateFn = (
   key: TranslationKey,
   params?: Record<string, string | number>,
@@ -159,4 +158,3 @@ export const ATTACHMENT_MIME_MAP: Record<string, string[]> = {
     "application/x-tar",
   ],
 };
-

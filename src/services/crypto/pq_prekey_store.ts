@@ -28,12 +28,13 @@ import {
   get_derived_encryption_key,
   has_vault_in_memory,
 } from "./memory_key_store";
-import { api_client } from "@/services/api/client";
 import {
   derive_ratchet_encryption_key,
   derive_ratchet_encryption_key_from_base,
 } from "./ratchet_sync";
 import { decrypt_with_legacy_derived_keys } from "./legacy_keks";
+
+import { api_client } from "@/services/api/client";
 
 const PQ_PREKEY_STORAGE_PREFIX = "pq_prekey_secret_";
 const PQ_PREKEY_INDEX_KEY = "pq_prekey_secret_index";
@@ -42,8 +43,6 @@ interface StoredPqSecret {
   key_id: number;
   secret_key_b64: string;
 }
-
-
 
 function secure_zero(buffer: Uint8Array): void {
   crypto.getRandomValues(buffer);
@@ -530,6 +529,7 @@ export async function load_pq_secret(
   }
 
   const transient_until = pq_transient_errors.get(rk);
+
   if (transient_until !== undefined && Date.now() < transient_until) {
     return null;
   }
@@ -539,9 +539,8 @@ export async function load_pq_secret(
   if (existing) return existing;
 
   const fetch_promise = (async (): Promise<Uint8Array | null> => {
-    const { secret: remote, not_found } = await fetch_pq_secret_from_server(
-      key_id,
-    );
+    const { secret: remote, not_found } =
+      await fetch_pq_secret_from_server(key_id);
 
     if (remote) {
       clear_pq_secret_missing(rk, uid);

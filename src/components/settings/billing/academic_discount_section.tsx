@@ -18,8 +18,13 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { copy_text_or_throw } from "@/utils/copy_text";
 import { useEffect, useRef, useState } from "react";
-import { AcademicCapIcon, CheckIcon, ClipboardIcon } from "@heroicons/react/24/outline";
+import {
+  AcademicCapIcon,
+  CheckIcon,
+  ClipboardIcon,
+} from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
 import {
@@ -34,6 +39,7 @@ import {
   TURNSTILE_SITE_KEY,
   type TurnstileWidgetRef,
 } from "@/components/auth/turnstile_widget";
+import { is_composing } from "@/utils/ime";
 
 const RESEND_COOLDOWN_SECONDS = 60;
 
@@ -152,7 +158,7 @@ export function AcademicDiscountSection({
   const handle_copy = async () => {
     if (!academic_status?.promo_code) return;
     try {
-      await navigator.clipboard.writeText(academic_status.promo_code);
+      await copy_text_or_throw(academic_status.promo_code);
       set_copied(true);
       setTimeout(() => set_copied(false), 2000);
     } catch {
@@ -233,7 +239,7 @@ export function AcademicDiscountSection({
           >
             {resend_cooldown > 0
               ? t("settings.academic_resend_cooldown", {
-                  seconds: String(resend_cooldown),
+                  seconds: resend_cooldown,
                 })
               : t("settings.academic_resend")}
           </button>
@@ -253,17 +259,17 @@ export function AcademicDiscountSection({
               value={academic_email}
               onChange={(e) => set_academic_email(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Enter") handle_submit();
+                if (e.key === "Enter" && !is_composing(e)) handle_submit();
               }}
             />
             <Button
-              variant="primary"
               className="h-10 shrink-0"
               disabled={
                 !academic_email.trim() ||
                 submitting ||
                 (captcha_required && !turnstile_token)
               }
+              variant="primary"
               onClick={handle_submit}
             >
               {submitting

@@ -36,7 +36,11 @@ export class ExportRateLimiter {
   private refill(): void {
     const now = Date.now();
     const elapsed = (now - this.last_refill) / 1000;
-    this.tokens = Math.min(this.burst, this.tokens + elapsed * this.rate_per_sec);
+
+    this.tokens = Math.min(
+      this.burst,
+      this.tokens + elapsed * this.rate_per_sec,
+    );
     this.last_refill = now;
   }
 
@@ -44,9 +48,11 @@ export class ExportRateLimiter {
     this.refill();
     if (this.tokens >= 1) {
       this.tokens -= 1;
+
       return;
     }
     const wait_ms = Math.ceil(((1 - this.tokens) / this.rate_per_sec) * 1000);
+
     await sleep(wait_ms, signal);
     this.refill();
     this.tokens = Math.max(0, this.tokens - 1);
@@ -59,6 +65,7 @@ export class ExportRateLimiter {
       BASE_BACKOFF_MS * Math.pow(2, this.consecutive_429 - 1),
     );
     const jittered = base * (0.5 + Math.random() * 0.5);
+
     await sleep(jittered, signal);
   }
 
@@ -71,6 +78,7 @@ export function sleep(ms: number, signal?: AbortSignal): Promise<void> {
   return new Promise((resolve, reject) => {
     if (signal?.aborted) {
       reject(new DOMException("aborted", "AbortError"));
+
       return;
     }
     const t = setTimeout(() => {
@@ -81,6 +89,7 @@ export function sleep(ms: number, signal?: AbortSignal): Promise<void> {
       clearTimeout(t);
       reject(new DOMException("aborted", "AbortError"));
     };
+
     signal?.addEventListener("abort", on_abort, { once: true });
   });
 }

@@ -18,13 +18,18 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { } from "@/lib/i18n/types";
+import type {} from "@/lib/i18n/types";
+
+import { useState, useCallback, useRef } from "react";
 
 import {
-  useState,
-  useCallback,
-  useRef,
-} from "react";
+  FONT_SIZE_DEFAULT,
+  SaveStatus,
+  apply_color_theme_class,
+  label_to_language_code,
+  normalize_font_size_scale,
+  normalize_preferences,
+} from "./helpers";
 
 import { use_auth } from "@/contexts/auth_context";
 import { useTheme } from "@/contexts/theme_context";
@@ -42,9 +47,7 @@ import {
   type UserPreferences,
 } from "@/services/api/preferences";
 import { sync_haptic_state } from "@/native/haptic_feedback";
-import {
-  load_notification_preferences,
-} from "@/services/notification_service";
+import { load_notification_preferences } from "@/services/notification_service";
 import { use_i18n } from "@/lib/i18n/context";
 import { configure_session_timeout } from "@/services/session_timeout_service";
 import {
@@ -53,9 +56,18 @@ import {
 } from "@/components/email/hooks/preload_cache";
 import { get_font_stack, get_email_font_stack } from "@/lib/font_options";
 import { get_effective_theme_fields } from "@/lib/theme_sync";
-import { FONT_SIZE_DEFAULT, SaveStatus, apply_color_theme_class, label_to_language_code, normalize_font_size_scale, normalize_preferences } from "./helpers";
-
 import { ignore_error } from "@/lib/ignore_error";
+import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
+
+const SAVE_RETRY_BASE_MS = 3000;
+const MAX_SAVE_RETRY_DELAY_MS = 60000;
+const MAX_SAVE_RETRY_ATTEMPTS = 6;
+
+export function compute_save_retry_delay(attempts: number): number | null {
+  if (attempts >= MAX_SAVE_RETRY_ATTEMPTS) return null;
+
+  return Math.min(SAVE_RETRY_BASE_MS * 2 ** attempts, MAX_SAVE_RETRY_DELAY_MS);
+}
 
 export function use_preferences_core() {
   const { vault, is_completing_registration } = use_auth();
@@ -66,6 +78,7 @@ export function use_preferences_core() {
     const cached = get_cached_preferences();
     const base = normalize_preferences(cached ?? DEFAULT_PREFERENCES);
     const scale = normalize_font_size_scale(base.font_size_scale);
+
     document.documentElement.style.setProperty(
       "--font-scale",
       String(scale / FONT_SIZE_DEFAULT),
@@ -97,20 +110,44 @@ export function use_preferences_core() {
 
   const vault_ref = useRef(vault);
 
-  if (vault) {
-    vault_ref.current = vault;
-  }
+  vault_ref.current = vault ?? vault_ref.current;
+
+  const vault_seen_live_ref = useRef(false);
+
+  const current_vault_for_save = (): typeof vault => {
+    const candidate = vault_ref.current;
+
+    if (!candidate || !candidate.identity_key) return null;
+
+    const live = get_vault_from_memory();
+
+    if (live) {
+      vault_seen_live_ref.current = true;
+
+      if (live.identity_key !== candidate.identity_key) return null;
+
+      return candidate;
+    }
+
+    if (vault_seen_live_ref.current) return null;
+
+    return candidate;
+  };
 
   const set_theme_ref = useRef(set_theme_preference);
+
   set_theme_ref.current = set_theme_preference;
 
   const theme_ref = useRef(theme);
+
   theme_ref.current = theme;
 
   const set_language_ref = useRef(set_language);
+
   set_language_ref.current = set_language;
 
   const preferences_ref = useRef(preferences);
+
   preferences_ref.current = preferences;
 
   const pending_keys_ref = useRef<Set<keyof UserPreferences>>(new Set());
@@ -121,11 +158,14 @@ export function use_preferences_core() {
 
   const debounce_timer = useRef<number | null>(null);
   const saved_indicator_timer = useRef<number | null>(null);
+  const save_retry_timer = useRef<number | null>(null);
+  const save_retry_attempts = useRef(0);
   const latest_prefs_ref = useRef<UserPreferences | null>(null);
   const is_saving_ref = useRef(false);
   const beacon_payload_ref = useRef<{
     encrypted: string;
     nonce: string;
+    identity: string;
   } | null>(null);
 
   const do_save = useCallback(
@@ -134,9 +174,9 @@ export function use_preferences_core() {
         return null;
       }
 
-      const v = vault_ref.current;
+      const v = current_vault_for_save();
 
-      if (!v || !v.identity_key) {
+      if (!v) {
         return null;
       }
 
@@ -147,7 +187,7 @@ export function use_preferences_core() {
         let fresh = null;
 
         try {
-          fresh = await get_preferences(v);
+          fresh = await get_preferences(v, true);
         } catch {
           fresh = null;
         }
@@ -218,6 +258,7 @@ export function use_preferences_core() {
       }
 
       beacon_payload_ref.current = null;
+      save_retry_attempts.current = 0;
       set_save_status("saved");
 
       saved_indicator_timer.current = window.setTimeout(() => {
@@ -228,10 +269,17 @@ export function use_preferences_core() {
       const v = vault_ref.current;
 
       if (v) {
-        load_notification_preferences(v).catch((caught) => ignore_error("contexts/preferences_context/use_preferences_core:use_preferences_core", caught));
+        load_notification_preferences(v).catch((caught) =>
+          ignore_error(
+            "contexts/preferences_context/use_preferences_core:use_preferences_core",
+            caught,
+          ),
+        );
       }
     } else {
       set_save_status("error");
+
+      cache_preferences_locally(prefs);
 
       if (!latest_prefs_ref.current) {
         latest_prefs_ref.current = prefs;
@@ -239,13 +287,28 @@ export function use_preferences_core() {
 
       is_saving_ref.current = false;
 
-      window.setTimeout(() => {
+      if (save_retry_timer.current) {
+        clearTimeout(save_retry_timer.current);
+        save_retry_timer.current = null;
+      }
+
+      if (!current_vault_for_save()) return;
+
+      const delay = compute_save_retry_delay(save_retry_attempts.current);
+
+      if (delay === null) return;
+
+      save_retry_attempts.current += 1;
+
+      save_retry_timer.current = window.setTimeout(() => {
+        save_retry_timer.current = null;
+
         if (is_saving_ref.current) return;
 
         if (latest_prefs_ref.current) {
           flush_save_ref.current();
         }
-      }, 3000);
+      }, delay);
 
       return;
     }
@@ -258,6 +321,7 @@ export function use_preferences_core() {
   }, [do_save]);
 
   const flush_save_ref = useRef(flush_save);
+
   flush_save_ref.current = flush_save;
 
   const schedule_save = useCallback((prefs: UserPreferences) => {
@@ -273,12 +337,16 @@ export function use_preferences_core() {
       clearTimeout(debounce_timer.current);
     }
 
-    const v = vault_ref.current;
+    const v = current_vault_for_save();
 
-    if (v) {
+    if (v && v.identity_key) {
+      const identity = v.identity_key;
+
       prepare_preferences_payload(prefs, v).then((payload) => {
-        if (latest_prefs_ref.current === prefs) {
-          beacon_payload_ref.current = payload;
+        if (latest_prefs_ref.current === prefs && has_loaded_ref.current) {
+          beacon_payload_ref.current = payload
+            ? { encrypted: payload.encrypted, nonce: payload.nonce, identity }
+            : null;
         }
       });
     }
@@ -312,12 +380,16 @@ export function use_preferences_core() {
       saved_indicator_timer.current = null;
     }
 
-    const v = vault_ref.current;
+    const v = current_vault_for_save();
 
-    if (v) {
+    if (v && v.identity_key) {
+      const identity = v.identity_key;
+
       prepare_preferences_payload(updated, v).then((payload) => {
-        if (latest_prefs_ref.current === updated) {
-          beacon_payload_ref.current = payload;
+        if (latest_prefs_ref.current === updated && has_loaded_ref.current) {
+          beacon_payload_ref.current = payload
+            ? { encrypted: payload.encrypted, nonce: payload.nonce, identity }
+            : null;
         }
       });
     }
@@ -452,34 +524,31 @@ export function use_preferences_core() {
     }
 
     latest_prefs_ref.current = reset_preferences;
-    do_save(reset_preferences);
-  }, [do_save]);
+    void flush_save_ref.current();
+  }, []);
 
-  const reset_section = useCallback(
-    (keys: (keyof UserPreferences)[]) => {
-      for (const key of keys) {
-        pending_keys_ref.current.add(key);
-      }
+  const reset_section = useCallback((keys: (keyof UserPreferences)[]) => {
+    for (const key of keys) {
+      pending_keys_ref.current.add(key);
+    }
 
-      const updated = { ...preferences_ref.current };
+    const updated = { ...preferences_ref.current };
 
-      for (const key of keys) {
-        (updated as Record<string, unknown>)[key] = DEFAULT_PREFERENCES[key];
-      }
+    for (const key of keys) {
+      (updated as Record<string, unknown>)[key] = DEFAULT_PREFERENCES[key];
+    }
 
-      if (debounce_timer.current) {
-        clearTimeout(debounce_timer.current);
-        debounce_timer.current = null;
-      }
+    if (debounce_timer.current) {
+      clearTimeout(debounce_timer.current);
+      debounce_timer.current = null;
+    }
 
-      preferences_ref.current = updated;
-      set_preferences(updated);
+    preferences_ref.current = updated;
+    set_preferences(updated);
 
-      latest_prefs_ref.current = updated;
-      do_save(updated);
-    },
-    [do_save],
-  );
+    latest_prefs_ref.current = updated;
+    void flush_save_ref.current();
+  }, []);
 
   const apply_visual_preferences = useCallback(
     (prefs: Partial<UserPreferences>) => {
@@ -530,6 +599,7 @@ export function use_preferences_core() {
       root.classList.toggle("compact-mode", prefs.compact_mode ?? false);
 
       const email_scale = normalize_font_size_scale(prefs.font_size_scale);
+
       root.style.setProperty(
         "--font-scale",
         String(email_scale / FONT_SIZE_DEFAULT),
@@ -576,10 +646,12 @@ export function use_preferences_core() {
     server_base_ref,
     debounce_timer,
     saved_indicator_timer,
+    save_retry_timer,
     latest_prefs_ref,
     is_saving_ref,
     beacon_payload_ref,
     do_save,
+    flush_save,
     schedule_save,
     update_preference,
     update_preferences,

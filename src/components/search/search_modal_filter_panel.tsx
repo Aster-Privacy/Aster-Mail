@@ -212,6 +212,7 @@ export function SearchModalFilterPanel({
                 <FieldRow label={t("mail.from_date")}>
                   <input
                     className={`${FIELD_CLASS} w-full`}
+                    max={filters.date_to || undefined}
                     type="date"
                     value={filters.date_from}
                     onChange={(e) => update("date_from", e.target.value)}
@@ -221,6 +222,7 @@ export function SearchModalFilterPanel({
                 <FieldRow label={t("mail.to_date")}>
                   <input
                     className={`${FIELD_CLASS} w-full`}
+                    min={filters.date_from || undefined}
                     type="date"
                     value={filters.date_to}
                     onChange={(e) => update("date_to", e.target.value)}
@@ -321,7 +323,7 @@ function Section({
 }
 
 function RowDivider() {
-  return <div className="h-px ml-3 bg-edge-secondary" />;
+  return <div className="h-px ms-3 bg-edge-secondary" />;
 }
 
 function FieldRow({

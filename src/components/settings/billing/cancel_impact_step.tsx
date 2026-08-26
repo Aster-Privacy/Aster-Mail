@@ -83,8 +83,8 @@ export function CancelImpactStep({
       lines.push({
         key: "aliases",
         text: t("settings.cancel_impact_aliases", {
-          count: String(impact.aliases_to_disable),
-          days: String(impact.alias_grace_days),
+          count: impact.aliases_to_disable,
+          days: impact.alias_grace_days,
         }),
       });
     }
@@ -93,7 +93,7 @@ export function CancelImpactStep({
       lines.push({
         key: "domains",
         text: t("settings.cancel_impact_domains", {
-          count: String(impact.domains_to_suspend),
+          count: impact.domains_to_suspend,
         }),
       });
     }
@@ -109,7 +109,7 @@ export function CancelImpactStep({
       lines.push({
         key: "templates",
         text: t("settings.cancel_impact_templates", {
-          count: String(impact.templates_to_disable),
+          count: impact.templates_to_disable,
         }),
       });
     }
@@ -118,7 +118,7 @@ export function CancelImpactStep({
       lines.push({
         key: "signatures",
         text: t("settings.cancel_impact_signatures", {
-          count: String(impact.signatures_to_disable),
+          count: impact.signatures_to_disable,
         }),
       });
     }
@@ -127,8 +127,8 @@ export function CancelImpactStep({
       lines.push({
         key: "family",
         text: t("settings.cancel_impact_family", {
-          count: String(impact.family_members_affected),
-          days: String(impact.family_grace_days),
+          count: impact.family_members_affected,
+          days: impact.family_grace_days,
         }),
       });
     }
@@ -137,7 +137,7 @@ export function CancelImpactStep({
       lines.push({
         key: "family_addresses",
         text: t("settings.cancel_impact_family_addresses", {
-          count: String(impact.family_addresses_released),
+          count: impact.family_addresses_released,
         }),
       });
     }
@@ -146,7 +146,7 @@ export function CancelImpactStep({
       lines.push({
         key: "features",
         text: t("settings.cancel_impact_features", {
-          count: String(impact.features_lost.length),
+          count: impact.features_lost.length,
         }),
       });
     }
@@ -187,7 +187,7 @@ export function CancelImpactStep({
 
       <div className="mt-5 flex flex-row items-center gap-2">
         {keep_plan_slot}
-        <div className="ml-auto flex flex-row items-center gap-2">
+        <div className="ms-auto flex flex-row items-center gap-2">
           <button
             className={button_variants({ variant: "ghost", size: "sm" })}
             type="button"

@@ -27,7 +27,9 @@ import {
 } from "@/services/locked_folders";
 
 export function FolderUnlockPrompt() {
-  const [target, set_target] = useState<FolderUnlockRequiredDetail | null>(null);
+  const [target, set_target] = useState<FolderUnlockRequiredDetail | null>(
+    null,
+  );
 
   useEffect(() => {
     const handler = (event: Event) => {

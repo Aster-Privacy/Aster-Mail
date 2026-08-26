@@ -18,10 +18,13 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { FaviconOrInitial } from "@/components/ui/favicon_or_initial";
 import type { TranslationKey } from "@/lib/i18n/types";
+import type { SnoozeTargetId } from "@/utils/snooze_targets";
+import { compute_snooze_target } from "@/utils/snooze_targets";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { format } from "date-fns";
+import { format_datetime_hint } from "@/utils/date_format";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   MagnifyingGlassIcon,
@@ -61,6 +64,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
+import { use_escape_layer } from "@/lib/overlay_layer_stack";
 
 interface DecryptedEnvelope {
   from: { name: string; email: string };
@@ -82,47 +86,19 @@ function get_snooze_options(
   t: (key: TranslationKey, params?: Record<string, string | number>) => string,
 ) {
   return [
-    { label: t("common.later_today"), hours: 4 },
-    { label: t("common.tomorrow"), hours: 24 },
-    { label: t("common.this_weekend"), days: "weekend" as const },
-    { label: t("common.next_week"), days: 7 },
-    { label: t("common.next_month"), days: 30 },
+    { label: t("common.later_today"), id: "later_today" as const },
+    { label: t("common.tomorrow"), id: "tomorrow" as const },
+    { label: t("common.this_weekend"), id: "this_weekend" as const },
+    { label: t("common.next_week"), id: "next_week" as const },
+    { label: t("common.next_month"), id: "next_month" as const },
   ];
 }
 
 function calculate_snooze_date(option: {
   label: string;
-  hours?: number;
-  days?: number | "weekend";
+  id: SnoozeTargetId;
 }): Date {
-  const now = new Date();
-
-  if ("hours" in option && option.hours) {
-    return new Date(now.getTime() + option.hours * 60 * 60 * 1000);
-  }
-
-  if (option.days === "weekend") {
-    const day_of_week = now.getDay();
-    const days_until_saturday =
-      day_of_week === 6 ? 7 : (6 - day_of_week + 7) % 7;
-    const saturday = new Date(now);
-
-    saturday.setDate(now.getDate() + days_until_saturday);
-    saturday.setHours(9, 0, 0, 0);
-
-    return saturday;
-  }
-
-  if (typeof option.days === "number") {
-    const target = new Date(now);
-
-    target.setDate(now.getDate() + option.days);
-    target.setHours(9, 0, 0, 0);
-
-    return target;
-  }
-
-  return now;
+  return compute_snooze_target(option.id);
 }
 
 async function decrypt_envelope_local(
@@ -163,10 +139,17 @@ export function SnoozeSimilarModal({
   const [show_success, set_show_success] = useState(false);
   const [snoozed_count, set_snoozed_count] = useState(0);
 
+  const [scan_failed, set_scan_failed] = useState(false);
+
   const load_senders = useCallback(async (signal?: AbortSignal) => {
     set_is_loading(true);
+    set_scan_failed(false);
     try {
-      const { items: all_items } = await scan_received_items(signal);
+      const { items: all_items, failed } = await scan_received_items(signal);
+
+      if (signal?.aborted) return;
+
+      set_scan_failed(failed);
 
       if (signal?.aborted) return;
 
@@ -258,18 +241,24 @@ export function SnoozeSimilarModal({
     set_selected_senders(new_selected);
   };
 
+  const all_selected =
+    filtered_senders.length > 0 &&
+    filtered_senders.every((s) => selected_senders.has(s.email));
+
   const handle_select_all = () => {
-    if (selected_senders.size === filtered_senders.length) {
-      set_selected_senders(new Set());
+    const next = new Set(selected_senders);
+
+    if (all_selected) {
+      for (const sender of filtered_senders) next.delete(sender.email);
     } else {
-      set_selected_senders(new Set(filtered_senders.map((s) => s.email)));
+      for (const sender of filtered_senders) next.add(sender.email);
     }
+    set_selected_senders(next);
   };
 
   const handle_pick_preset = (option: {
     label: string;
-    hours?: number;
-    days?: number | "weekend";
+    id: SnoozeTargetId;
   }) => {
     set_snooze_date(calculate_snooze_date(option));
     set_snooze_label(option.label);
@@ -277,7 +266,7 @@ export function SnoozeSimilarModal({
 
   const handle_custom_snooze = async (date: Date) => {
     set_snooze_date(date);
-    set_snooze_label(format(date, "MMM d, h:mm a"));
+    set_snooze_label(format_datetime_hint(date));
     set_show_custom_picker(false);
   };
 
@@ -301,7 +290,13 @@ export function SnoozeSimilarModal({
         return;
       }
 
-      if (result.data) {
+      if (!result.data) {
+        show_action_toast({
+          message: t("common.failed_to_snooze_emails"),
+          action_type: "archive",
+          email_ids: [],
+        });
+      } else {
         set_snoozed_count(result.data.snoozed_count);
         set_show_success(true);
 
@@ -313,8 +308,8 @@ export function SnoozeSimilarModal({
 
         show_action_toast({
           message: t("common.emails_snoozed_until", {
-            count: String(result.data.snoozed_count),
-            time: snooze_label?.toLowerCase() ?? "later",
+            count: result.data.snoozed_count,
+            time: (snooze_label ?? t("common.later")).toLowerCase(),
           }),
           action_type: "archive",
           email_ids: all_ids,
@@ -337,9 +332,7 @@ export function SnoozeSimilarModal({
     .reduce((sum, s) => sum + s.count, 0);
 
   const can_execute = selected_senders.size > 0 && snooze_date !== null;
-  const all_selected =
-    selected_senders.size === filtered_senders.length &&
-    filtered_senders.length > 0;
+  use_escape_layer(is_open, on_close, "snooze_similar_modal");
 
   return (
     <>
@@ -355,7 +348,9 @@ export function SnoozeSimilarModal({
             <motion.div
               className="absolute inset-0 backdrop-blur-md"
               style={{ backgroundColor: "var(--modal-overlay)" }}
-              onClick={on_close}
+              onClick={() => {
+                if (!is_executing) on_close();
+              }}
             />
             <motion.div
               animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -407,8 +402,8 @@ export function SnoozeSimilarModal({
                     </p>
                     <p className="text-[12px] text-center mb-6 text-txt-muted">
                       {t("common.emails_will_reappear", {
-                        count: String(snoozed_count),
-                        time: snooze_label?.toLowerCase() ?? "later",
+                        count: snoozed_count,
+                        time: (snooze_label ?? t("common.later")).toLowerCase(),
                       })}
                     </p>
                     <Button size="xl" variant="depth" onClick={on_close}>
@@ -432,11 +427,14 @@ export function SnoozeSimilarModal({
                   <div key="content" className="flex flex-col">
                     <div className="px-4 pb-3">
                       <div className="relative">
-                        <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-txt-muted" />
+                        <MagnifyingGlassIcon className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-txt-muted" />
                         <Input
                           className="w-full"
                           placeholder={t("common.search_senders")}
-                          style={{ paddingLeft: "40px", paddingRight: "16px" }}
+                          style={{
+                            paddingInlineStart: "40px",
+                            paddingInlineEnd: "16px",
+                          }}
                           type="text"
                           value={search_query}
                           onChange={(e) => set_search_query(e.target.value)}
@@ -457,8 +455,19 @@ export function SnoozeSimilarModal({
                           <p className="text-[13px] text-txt-muted">
                             {search_query
                               ? t("common.no_senders_found")
-                              : t("common.no_senders_with_multiple_emails")}
+                              : scan_failed
+                                ? t("common.something_went_wrong_try_again")
+                                : t("common.no_senders_with_multiple_emails")}
                           </p>
+                          {scan_failed && !search_query && (
+                            <button
+                              className="mt-2 text-[12px] font-medium text-accent-primary hover:underline"
+                              type="button"
+                              onClick={() => void load_senders()}
+                            >
+                              {t("common.retry")}
+                            </button>
+                          )}
                         </div>
                       ) : (
                         filtered_senders.map((sender) => {
@@ -489,33 +498,17 @@ export function SnoozeSimilarModal({
                                 onClick={(e) => e.stopPropagation()}
                               />
                               <div className="w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0 overflow-hidden bg-black/[0.03] dark:bg-white/[0.04]">
-                                <img
-                                  alt=""
-                                  className="w-4 h-4 object-contain"
+                                <FaviconOrInitial
+                                  initial={sender.name.charAt(0)}
+                                  initial_class_name="text-[11px] font-medium text-txt-muted"
                                   src={get_favicon_url(
                                     get_email_domain(
                                       sender.email,
                                     ).toLowerCase(),
                                   )}
-                                  onError={(e) => {
-                                    e.currentTarget.style.display = "none";
-                                    const parent =
-                                      e.currentTarget.parentElement;
-
-                                    if (parent) {
-                                      parent.textContent = "";
-                                      const span =
-                                        document.createElement("span");
-
-                                      span.className =
-                                        "text-[11px] font-medium text-txt-muted";
-                                      span.textContent = sender.name.charAt(0);
-                                      parent.appendChild(span);
-                                    }
-                                  }}
                                 />
                               </div>
-                              <div className="flex-1 min-w-0 text-left">
+                              <div className="flex-1 min-w-0 text-start">
                                 <p className="text-[13px] font-medium truncate text-txt-primary">
                                   {sender.name}
                                 </p>
@@ -524,9 +517,11 @@ export function SnoozeSimilarModal({
                                 </p>
                               </div>
                               <span className="text-[11px] tabular-nums flex-shrink-0 text-txt-muted">
-                                {t("common.count_emails", {
-                                  count: String(sender.count),
-                                })}
+                                {sender.count === 1
+                                  ? t("common.one_email")
+                                  : t("common.count_emails", {
+                                      count: sender.count,
+                                    })}
                               </span>
                             </button>
                           );
@@ -561,7 +556,7 @@ export function SnoozeSimilarModal({
                             }}
                           >
                             <ClockIcon className="w-4 h-4 flex-shrink-0 text-txt-muted" />
-                            <span className="flex-1 text-left">
+                            <span className="flex-1 text-start">
                               {option.label}
                             </span>
                             {is_selected && (
@@ -591,7 +586,7 @@ export function SnoozeSimilarModal({
                         }}
                       >
                         <CalendarIcon className="w-4 h-4 flex-shrink-0 text-txt-muted" />
-                        <span className="flex-1 text-left">
+                        <span className="flex-1 text-start">
                           {snooze_label &&
                           !snooze_options.some((o) => o.label === snooze_label)
                             ? snooze_label
@@ -620,8 +615,12 @@ export function SnoozeSimilarModal({
                         />
                         {selected_senders.size > 0
                           ? t("common.senders_emails_count", {
-                              senders: String(selected_senders.size),
-                              emails: String(total_selected_emails),
+                              senders: t("common.sender_count", {
+                                count: selected_senders.size,
+                              }),
+                              emails: t("common.email_count", {
+                                count: total_selected_emails,
+                              }),
                             })
                           : t("common.select_all")}
                       </button>
@@ -646,7 +645,7 @@ export function SnoozeSimilarModal({
       </AnimatePresence>
 
       <CustomSnoozeModal
-        is_open={show_custom_picker}
+        is_open={is_open && show_custom_picker}
         on_close={() => set_show_custom_picker(false)}
         on_snooze={handle_custom_snooze}
       />

@@ -19,25 +19,17 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
-
-import {
-  bulk_action_by_scope,
-  bulk_undo,
-} from "@/services/api/mail";
+import { bulk_action_by_scope, bulk_undo } from "@/services/api/mail";
 import { stale_all_view_caches } from "@/hooks/email_list_cache";
-import {
-  show_action_toast,
-} from "@/components/toast/action_toast";
+import { show_action_toast } from "@/components/toast/action_toast";
 import {
   adjust_stats_unread,
   invalidate_mail_stats,
 } from "@/hooks/use_mail_stats";
 import { use_i18n } from "@/lib/i18n/context";
-import {
-  FULL_MAILBOX_ITEM_CAP,
-} from "@/services/bulk_mail_scan";
+import { FULL_MAILBOX_ITEM_CAP } from "@/services/bulk_mail_scan";
 import { show_toast } from "@/components/toast/simple_toast";
-
+import { emit_mail_soft_refresh } from "@/hooks/mail_events";
 
 export const QUICK_ACTION_CONFIRM_KEYS: Record<
   string,
@@ -59,12 +51,15 @@ export const QUICK_ACTION_CONFIRM_KEYS: Record<
 
 export type Translate = ReturnType<typeof use_i18n>["t"];
 
-export function notify_scan_truncated(reached_cap: boolean, t: Translate): void {
+export function notify_scan_truncated(
+  reached_cap: boolean,
+  t: Translate,
+): void {
   if (!reached_cap) return;
 
   show_toast(
     t("common.bulk_action_truncated", {
-      count: String(FULL_MAILBOX_ITEM_CAP),
+      count: FULL_MAILBOX_ITEM_CAP,
     }),
     "warning",
   );
@@ -77,7 +72,7 @@ export async function mark_all_read_by_scope(t: Translate): Promise<void> {
   });
 
   if (res.error || !res.data) {
-    show_toast(t("common.something_went_wrong"), "error");
+    show_toast(res.error || t("common.something_went_wrong"), "error");
 
     return;
   }
@@ -89,20 +84,26 @@ export async function mark_all_read_by_scope(t: Translate): Promise<void> {
     stale_all_view_caches();
     adjust_stats_unread(-affected_count);
     invalidate_mail_stats();
-    window.dispatchEvent(new CustomEvent("astermail:mail-soft-refresh"));
+    emit_mail_soft_refresh();
   }
 
   show_action_toast({
     message: t("common.emails_marked_as_read", {
-      count: String(affected_count),
+      count: affected_count,
     }),
     action_type: "read",
     email_ids: [],
     on_undo:
       undoable && finished
         ? async () => {
-            adjust_stats_unread(affected_count);
-            await bulk_undo(batch_id);
+            const undo_result = await bulk_undo(batch_id);
+
+            if (!undo_result.data?.success) {
+              throw new Error("undo mark read failed");
+            }
+            adjust_stats_unread(
+              undo_result.data.restored_count || affected_count,
+            );
             stale_all_view_caches();
             invalidate_mail_stats();
             window.dispatchEvent(
@@ -116,4 +117,3 @@ export async function mark_all_read_by_scope(t: Translate): Promise<void> {
     show_toast(t("common.bulk_action_continues_in_background"), "info");
   }
 }
-

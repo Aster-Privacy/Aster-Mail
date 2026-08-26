@@ -19,10 +19,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { DecryptedEnvelope } from "@/types/email";
+
 import { ml_kem768 } from "@noble/post-quantum/ml-kem.js";
+
 import { register_envelope_attachment_keys } from "@/services/crypto/inbound_attachment_keys";
 import { derive_pq_identity_from_seed } from "@/services/crypto/ratchet_manager";
-
 import {
   get_passphrase_bytes,
   get_passphrase_from_memory,
@@ -50,7 +51,6 @@ import {
 } from "@/services/crypto/envelope";
 import { resolve_sender_verification_keys } from "@/services/crypto/sender_verification";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
-
 import { ignore_error } from "@/lib/ignore_error";
 
 const INBOUND_ECIES_MARKER = 0x02;
@@ -68,14 +68,30 @@ async function decompress_zlib(compressed: Uint8Array): Promise<Uint8Array> {
   const writer = ds.writable.getWriter();
   const reader = ds.readable.getReader();
 
-  void writer.write(compressed).catch((caught) => ignore_error("components/email/shared/decrypt_envelope:decompress_zlib", caught));
-  void writer.close().catch((caught) => ignore_error("components/email/shared/decrypt_envelope:decompress_zlib", caught));
+  void writer
+    .write(compressed)
+    .catch((caught) =>
+      ignore_error(
+        "components/email/shared/decrypt_envelope:decompress_zlib",
+        caught,
+      ),
+    );
+  void writer
+    .close()
+    .catch((caught) =>
+      ignore_error(
+        "components/email/shared/decrypt_envelope:decompress_zlib",
+        caught,
+      ),
+    );
 
   const chunks: Uint8Array[] = [];
   let total = 0;
   let done = false;
+
   while (!done) {
     const { value, done: d } = await reader.read();
+
     if (value) {
       total += value.length;
       if (total > MAX_DECOMPRESSED_BYTES) {
@@ -89,10 +105,12 @@ async function decompress_zlib(compressed: Uint8Array): Promise<Uint8Array> {
 
   const result = new Uint8Array(total);
   let offset = 0;
+
   for (const chunk of chunks) {
     result.set(chunk, offset);
     offset += chunk.length;
   }
+
   return result;
 }
 
@@ -101,6 +119,7 @@ async function derive_pq_hybrid_aes_key(
   ml_kem_ss: Uint8Array,
 ): Promise<CryptoKey> {
   const ikm = new Uint8Array(64);
+
   ikm.set(new Uint8Array(ecdh_shared), 0);
   ikm.set(ml_kem_ss.slice(0, 32), 32);
 
@@ -149,6 +168,7 @@ export async function decrypt_inbound_ecies(
       ciphertext,
     );
     const plain = new Uint8Array(decrypted);
+
     return decompress ? await decompress_zlib(plain) : plain;
   } catch {
     return null;
@@ -207,6 +227,7 @@ function resolve_inbound_pq(
 ): string | undefined {
   if (secret) return secret;
   if (!seed) return undefined;
+
   return derive_pq_identity_from_seed(seed)?.pq_identity_secret;
 }
 
@@ -214,6 +235,7 @@ function collect_inbound_ratchet_key_sets(
   vault: EncryptedVault,
 ): InboundRatchetKeySet[] {
   const key_sets: InboundRatchetKeySet[] = [];
+
   if (vault.ratchet_identity_key) {
     key_sets.push({
       ecdh: vault.ratchet_identity_key,
@@ -234,6 +256,7 @@ function collect_inbound_ratchet_key_sets(
       });
     }
   }
+
   return key_sets;
 }
 
@@ -275,15 +298,18 @@ async function decrypt_inbound_with_key_sets(
 
     if (plain) return plain;
   }
+
   return null;
 }
 
 function collect_envelope_identity_keys(vault: EncryptedVault): string[] {
   const keys: string[] = [];
+
   if (vault.identity_key) keys.push(vault.identity_key);
   for (const previous_key of vault.previous_keys ?? []) {
     if (previous_key) keys.push(previous_key);
   }
+
   return keys;
 }
 
@@ -509,6 +535,7 @@ export async function decrypt_mail_envelope<T = DecryptedEnvelope>(
 
         if (decrypted) return decrypted;
       }
+
       return null;
     };
 

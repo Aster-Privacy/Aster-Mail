@@ -18,13 +18,17 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { user_facing_error } from "@/utils/user_facing_error";
 import { Preferences } from "@capacitor/preferences";
 
 import { is_native_platform, get_network_status } from "./capacitor_bridge";
 import { haptic_notification } from "./haptic_feedback";
 
 import { MAIL_EVENTS } from "@/hooks/mail_events";
-import { get_current_account_id } from "@/services/account_manager";
+import {
+  accounts_storage_unreadable,
+  get_current_account_id,
+} from "@/services/account_manager";
 
 export type OfflineActionType =
   | "send_email"
@@ -48,6 +52,7 @@ const FAILED_KEY = "aster_offline_failed_queue";
 const MAX_RETRIES = 3;
 
 let is_processing = false;
+let web_listeners_registered = false;
 let queue_mutex: Promise<void> = Promise.resolve();
 
 async function run_exclusive<T>(operation: () => Promise<T>): Promise<T> {
@@ -73,14 +78,20 @@ function emit_window_event(name: string): void {
   window.dispatchEvent(new CustomEvent(name));
 }
 
-async function resolve_queue_key(): Promise<string> {
-  try {
-    const account_id = await get_current_account_id();
+async function resolve_account_scope(): Promise<string | null> {
+  const account_id = await get_current_account_id();
 
-    return account_id ? `${QUEUE_KEY}:${account_id}` : QUEUE_KEY;
-  } catch {
-    return QUEUE_KEY;
+  if (account_id === null && accounts_storage_unreadable()) {
+    throw new Error("Account storage unavailable. Retry once it is readable.");
   }
+
+  return account_id;
+}
+
+async function resolve_queue_key(): Promise<string> {
+  const account_id = await resolve_account_scope();
+
+  return account_id ? `${QUEUE_KEY}:${account_id}` : QUEUE_KEY;
 }
 
 async function read_raw(key: string): Promise<string | null> {
@@ -166,8 +177,27 @@ async function migrate_legacy_queue(scoped_key: string): Promise<void> {
   await remove_raw(QUEUE_KEY);
 }
 
+function register_web_queue_listeners(): void {
+  if (web_listeners_registered) return;
+  if (typeof window === "undefined") return;
+
+  web_listeners_registered = true;
+
+  window.addEventListener("online", () => {
+    process_offline_queue();
+  });
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") {
+      process_offline_queue();
+    }
+  });
+}
+
 export async function initialize_offline_queue(): Promise<void> {
-  if (!is_native_platform()) return;
+  if (!is_native_platform()) {
+    register_web_queue_listeners();
+  }
 
   const status = await get_network_status();
 
@@ -205,19 +235,35 @@ export async function enqueue_action(
 }
 
 async function read_queue_unlocked(): Promise<QueuedAction[]> {
+  const key = await resolve_queue_key();
+
+  await migrate_legacy_queue(key);
+
+  const stored = await read_raw(key);
+
+  if (!stored) return [];
+
   try {
-    const key = await resolve_queue_key();
+    const parsed = JSON.parse(stored) as QueuedAction[];
 
-    await migrate_legacy_queue(key);
-
-    const stored = await read_raw(key);
-
-    return stored ? JSON.parse(stored) : [];
+    if (Array.isArray(parsed)) return parsed;
   } catch {
-    await write_queue_unlocked([]);
+    await quarantine_unreadable_queue(key, stored);
 
     return [];
   }
+
+  await quarantine_unreadable_queue(key, stored);
+
+  return [];
+}
+
+async function quarantine_unreadable_queue(
+  key: string,
+  raw: string,
+): Promise<void> {
+  await write_raw(`${key}:unreadable`, raw);
+  await remove_raw(key);
 }
 
 async function write_queue_unlocked(queue: QueuedAction[]): Promise<void> {
@@ -245,13 +291,9 @@ export async function remove_from_queue(id: string): Promise<void> {
 }
 
 async function resolve_failed_key(): Promise<string> {
-  try {
-    const account_id = await get_current_account_id();
+  const account_id = await resolve_account_scope();
 
-    return account_id ? `${FAILED_KEY}:${account_id}` : FAILED_KEY;
-  } catch {
-    return FAILED_KEY;
-  }
+  return account_id ? `${FAILED_KEY}:${account_id}` : FAILED_KEY;
 }
 
 async function read_failed_unlocked(): Promise<QueuedAction[]> {
@@ -297,6 +339,10 @@ export async function process_offline_queue(): Promise<void> {
 
   if (!status.connected) return;
 
+  const { is_authenticated } = await import("@/services/api/auth");
+
+  if (!is_authenticated()) return;
+
   is_processing = true;
 
   let replayed_count = 0;
@@ -313,8 +359,7 @@ export async function process_offline_queue(): Promise<void> {
         await haptic_notification("success");
       } catch (error) {
         action.retry_count++;
-        action.last_error =
-          error instanceof Error ? error.message : "Unknown error";
+        action.last_error = user_facing_error(error, "Unknown error");
 
         if (action.retry_count >= MAX_RETRIES) {
           await move_action_to_failed(action);
@@ -619,13 +664,17 @@ export async function clear_queue(): Promise<void> {
 export async function retry_failed_actions(): Promise<void> {
   await run_exclusive(async () => {
     const queue = await read_queue_unlocked();
-    const updated = queue.map((action) => ({
+    const failed = await read_failed_unlocked();
+    const queued_ids = new Set(queue.map((action) => action.id));
+    const revived = failed.filter((action) => !queued_ids.has(action.id));
+    const updated = [...queue, ...revived].map((action) => ({
       ...action,
       retry_count: 0,
       last_error: undefined,
     }));
 
     await write_queue_unlocked(updated);
+    await write_failed_unlocked([]);
   });
   process_offline_queue();
 }

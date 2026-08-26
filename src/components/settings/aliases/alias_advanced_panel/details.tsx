@@ -18,15 +18,19 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { } from "@/services/api/aliases";
-import type { } from "@/lib/i18n/types";
+import type {} from "@/services/api/aliases";
+import type {} from "@/lib/i18n/types";
 
-
+import {
+  MAX_DISPLAY_NAME_LENGTH,
+  MAX_NOTE_LENGTH,
+  PanelRow,
+  TextFieldRow,
+} from "./shared";
 
 import { AliasWebsitesEditor } from "@/components/settings/aliases/alias_websites_editor";
 import { use_i18n } from "@/lib/i18n/context";
 
-import { MAX_DISPLAY_NAME_LENGTH, MAX_NOTE_LENGTH, PanelRow, TextFieldRow } from "./shared";
 export interface AliasDetailsProps {
   alias_address: string;
   alias_address_hash?: string;

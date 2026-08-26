@@ -57,6 +57,7 @@ vi.mock("@/components/compose/use_compose", () => ({
   use_compose: () => ({
     subject: "Quarterly report",
     recipients: { to: ["jesper@example.com"], cc: [], bcc: [] },
+    attachments: [],
     ghost_mode: {
       is_ghost_enabled: false,
       toggle_ghost_mode: () => {},

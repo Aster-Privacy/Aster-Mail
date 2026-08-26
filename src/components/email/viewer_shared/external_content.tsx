@@ -18,16 +18,12 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { } from "@/types/thread";
-import type { } from "@/services/api/mail";
-import type { } from "@/services/api/multi_drafts";
-import type { } from "@/lib/html_sanitizer";
-import type { } from "@/components/email/use_email_viewer";
-import type { } from "@/components/email/hooks/preload_cache";
-
-
-
-
+import type {} from "@/types/thread";
+import type {} from "@/services/api/mail";
+import type {} from "@/services/api/multi_drafts";
+import type {} from "@/lib/html_sanitizer";
+import type {} from "@/components/email/use_email_viewer";
+import type {} from "@/components/email/hooks/preload_cache";
 
 export let loaded_content_email_id: string | null = null;
 
@@ -40,4 +36,3 @@ export function get_external_content_mode(
 export function set_external_content_mode(email_id: string): void {
   loaded_content_email_id = email_id;
 }
-

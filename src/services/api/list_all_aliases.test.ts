@@ -168,9 +168,7 @@ describe("list_all_aliases", () => {
     const result = await list_all_aliases();
 
     expect(result.aliases).toHaveLength(101);
-    expect(
-      result.aliases.filter((a) => a.id === "p0-99"),
-    ).toHaveLength(1);
+    expect(result.aliases.filter((a) => a.id === "p0-99")).toHaveLength(1);
   });
 
   it("surfaces the error and does not loop when the first page fails", async () => {

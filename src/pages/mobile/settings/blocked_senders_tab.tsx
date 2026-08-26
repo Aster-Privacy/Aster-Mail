@@ -20,7 +20,7 @@
 //
 import type { DecryptedBlockedSender } from "@/services/api/blocked_senders";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { PlusIcon, NoSymbolIcon } from "@heroicons/react/24/outline";
 
 import { use_i18n } from "@/lib/i18n/context";
@@ -28,7 +28,6 @@ import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import { show_toast } from "@/components/toast/simple_toast";
 import { ignore_error } from "@/lib/ignore_error";
-
 import {
   list_blocked_senders,
   unblock_sender_by_token,
@@ -39,32 +38,35 @@ export function BlockedSendersTab() {
   const { t } = use_i18n();
   const [blocked, set_blocked] = useState<DecryptedBlockedSender[]>([]);
   const [is_loading, set_is_loading] = useState(true);
+  const [load_error, set_load_error] = useState(false);
   const [show_add_form, set_show_add_form] = useState(false);
   const [new_email, set_new_email] = useState("");
   const [is_domain, set_is_domain] = useState(false);
   const [is_adding, set_is_adding] = useState(false);
+  const pending_tokens = useRef<Set<string>>(new Set());
+
+  const load_senders = useCallback(async () => {
+    set_is_loading(true);
+    try {
+      const result = await list_blocked_senders();
+
+      if (result.data) {
+        set_blocked(result.data);
+        set_load_error(false);
+      } else {
+        set_load_error(true);
+      }
+    } catch (caught) {
+      ignore_error("pages/mobile/settings/blocked_senders_tab:load", caught);
+      set_load_error(true);
+    } finally {
+      set_is_loading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    let cancelled = false;
-
-    async function load() {
-      try {
-        const result = await list_blocked_senders();
-
-        if (cancelled) return;
-        if (result.data) set_blocked(result.data);
-      } catch (caught) {
-        ignore_error("pages/mobile/settings/blocked_senders_tab:load", caught);
-      } finally {
-        if (!cancelled) set_is_loading(false);
-      }
-    }
-    load();
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+    load_senders();
+  }, [load_senders]);
 
   const close_add_form = useCallback(() => {
     set_show_add_form(false);
@@ -72,15 +74,30 @@ export function BlockedSendersTab() {
     set_is_domain(false);
   }, []);
 
-  const handle_unblock = useCallback(async (token: string) => {
-    await unblock_sender_by_token(token);
-    set_blocked((prev) => prev.filter((b) => b.sender_token !== token));
-  }, []);
+  const handle_unblock = useCallback(
+    async (token: string) => {
+      if (pending_tokens.current.has(token)) return;
+      pending_tokens.current.add(token);
+
+      const result = await unblock_sender_by_token(token);
+
+      pending_tokens.current.delete(token);
+
+      if (result.error) {
+        show_toast(t("common.delete_failed"), "error");
+        await load_senders();
+
+        return;
+      }
+      set_blocked((prev) => prev.filter((b) => b.sender_token !== token));
+    },
+    [load_senders, t],
+  );
 
   const handle_add = useCallback(async () => {
     const value = new_email.trim();
 
-    if (!value) return;
+    if (!value || is_adding) return;
 
     if (is_domain) {
       const domain_regex =
@@ -111,13 +128,16 @@ export function BlockedSendersTab() {
           "success",
         );
         close_add_form();
-      } else if (result.error) {
-        show_toast(result.error, "error");
+      } else {
+        show_toast(
+          result.error || t("common.something_went_wrong_try_again"),
+          "error",
+        );
       }
     } finally {
       set_is_adding(false);
     }
-  }, [new_email, is_domain, close_add_form, t]);
+  }, [new_email, is_domain, is_adding, close_add_form, t]);
 
   return (
     <>
@@ -149,7 +169,9 @@ export function BlockedSendersTab() {
             <Input
               autoFocus
               className="w-full"
-              placeholder={is_domain ? "example.com" : t("common.email_placeholder")}
+              placeholder={
+                is_domain ? "example.com" : t("common.email_placeholder")
+              }
               type={is_domain ? "text" : "email"}
               value={new_email}
               onChange={(e) => set_new_email(e.target.value)}
@@ -189,6 +211,19 @@ export function BlockedSendersTab() {
       {is_loading ? (
         <div className="flex items-center justify-center py-12">
           <Spinner size="md" />
+        </div>
+      ) : load_error && blocked.length === 0 ? (
+        <div className="px-4 py-10 text-center">
+          <p className="text-[14px] text-[var(--mobile-text-muted)]">
+            {t("common.something_went_wrong_try_again")}
+          </p>
+          <button
+            className="mt-3 text-[14px] font-medium text-[var(--mobile-accent)]"
+            type="button"
+            onClick={() => load_senders()}
+          >
+            {t("common.retry")}
+          </button>
         </div>
       ) : blocked.length === 0 ? (
         <div className="flex flex-col items-center justify-center gap-3 px-8 pt-12">

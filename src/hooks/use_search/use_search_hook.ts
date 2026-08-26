@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
+import { user_facing_error } from "@/utils/user_facing_error";
 import { useState, useCallback, useEffect, useRef } from "react";
 
 import {
@@ -59,6 +60,7 @@ import {
 } from "./types";
 
 import { type MailItem } from "@/services/api/mail";
+import { meets_min_search_length } from "@/utils/search_query";
 import { parse_search_query } from "@/utils/search_operators";
 import { use_auth } from "@/contexts/auth_context";
 import { use_i18n } from "@/lib/i18n/context";
@@ -97,6 +99,7 @@ export function use_search() {
     error: null,
     index_building: false,
     hidden_spam_trash: 0,
+    index_incomplete: false,
   });
 
   const abort_ref = useRef<AbortController | null>(null);
@@ -109,10 +112,13 @@ export function use_search() {
     ) => Promise<void>
   >(async () => {});
   const last_scan_ref = useRef<ScanCacheEntry | null>(null);
+  const index_incomplete_ref = useRef(false);
   const last_search_ref = useRef<{
     query: string;
     options?: SearchOptions;
   } | null>(null);
+  const result_limit_ref = useRef(MAX_SEARCH_RESULTS);
+  const preserve_limit_ref = useRef(false);
 
   const [autocomplete_state] = useState<AutocompleteState>({
     suggestions: [],
@@ -164,6 +170,12 @@ export function use_search() {
     ) => {
       const my_seq = ++search_seq_ref.current;
 
+      if (preserve_limit_ref.current) {
+        preserve_limit_ref.current = false;
+      } else {
+        result_limit_ref.current = MAX_SEARCH_RESULTS;
+      }
+
       set_state((prev) => ({
         ...prev,
         query,
@@ -171,7 +183,7 @@ export function use_search() {
         error: null,
       }));
 
-      if (!query || query.length < 2) {
+      if (!query || !meets_min_search_length(query)) {
         last_search_ref.current = null;
         last_scan_ref.current = null;
         abort_ref.current?.abort();
@@ -185,6 +197,7 @@ export function use_search() {
           total_results: 0,
           search_time_ms: 0,
           hidden_spam_trash: 0,
+          index_incomplete: false,
         }));
 
         return;
@@ -205,7 +218,7 @@ export function use_search() {
         const parsed = parse_search_query(query);
         const terms = parsed.text_query
           .split(/\s+/)
-          .filter((t) => t.length >= 2)
+          .filter(meets_min_search_length)
           .map((t) => t.toLowerCase());
         const operators = parsed.operators;
 
@@ -221,6 +234,7 @@ export function use_search() {
             total_results: 0,
             search_time_ms: Date.now() - start,
             hidden_spam_trash: 0,
+            index_incomplete: false,
           }));
 
           return;
@@ -285,7 +299,7 @@ export function use_search() {
           candidates.push({
             item,
             entry: data,
-            result: to_search_result(item, envelope, metadata),
+            result: to_search_result(item, envelope, metadata, t),
             excluded_by_scope: excluded,
           });
 
@@ -297,7 +311,7 @@ export function use_search() {
 
           counts.visible++;
 
-          return counts.visible < MAX_SEARCH_RESULTS;
+          return counts.visible < result_limit_ref.current;
         };
 
         let last_flush = 0;
@@ -323,6 +337,7 @@ export function use_search() {
               total_results: partial.length,
               search_time_ms: now - start,
               hidden_spam_trash: counts.hidden,
+              index_incomplete: index_incomplete_ref.current,
             };
           });
         };
@@ -340,6 +355,8 @@ export function use_search() {
             }
           }
         } else {
+          index_incomplete_ref.current = false;
+
           const probe_terms =
             options?.search_body === false ||
             (!index.include_body && index.meta?.include_body !== true);
@@ -357,6 +374,9 @@ export function use_search() {
                 probe_terms,
               }),
               on_chunk: flush_progress,
+              on_unreadable_chunk: () => {
+                index_incomplete_ref.current = true;
+              },
             },
           );
         }
@@ -366,8 +386,8 @@ export function use_search() {
         const results = sorted_results();
         const total_results = results.length;
 
-        if (results.length > MAX_SEARCH_RESULTS) {
-          results.length = MAX_SEARCH_RESULTS;
+        if (results.length > result_limit_ref.current) {
+          results.length = result_limit_ref.current;
         }
 
         if (
@@ -423,6 +443,7 @@ export function use_search() {
               search_time_ms: Date.now() - start,
               has_more: false,
               hidden_spam_trash: 0,
+              index_incomplete: false,
             };
           }
 
@@ -434,15 +455,16 @@ export function use_search() {
             is_searching: false,
             total_results,
             search_time_ms: Date.now() - start,
-            has_more: stopped && total_results >= MAX_SEARCH_RESULTS,
+            has_more: stopped && total_results >= result_limit_ref.current,
             hidden_spam_trash: counts.hidden,
+            index_incomplete: index_incomplete_ref.current,
           };
         });
       } catch (err) {
         if (controller.signal.aborted) return;
         if (my_seq !== search_seq_ref.current) return;
 
-        const message = err instanceof Error ? err.message : "";
+        const message = user_facing_error(err, "");
 
         if (message === "search_index_cancelled") {
           set_state((prev) => ({
@@ -513,6 +535,7 @@ export function use_search() {
       error: null,
       index_building: false,
       hidden_spam_trash: 0,
+      index_incomplete: false,
     });
   }, []);
 
@@ -521,7 +544,7 @@ export function use_search() {
       if (prev.query === query) return prev;
       abort_ref.current?.abort();
 
-      const cleared = query.length < 2;
+      const cleared = !meets_min_search_length(query);
 
       return {
         ...prev,
@@ -533,6 +556,17 @@ export function use_search() {
         total_results: cleared ? 0 : prev.total_results,
       };
     });
+  }, []);
+
+  const load_more = useCallback(() => {
+    const last = last_search_ref.current;
+
+    if (!last) return;
+
+    result_limit_ref.current += MAX_SEARCH_RESULTS;
+    preserve_limit_ref.current = true;
+    last_scan_ref.current = null;
+    void search_ref.current(last.query, last.options);
   }, []);
 
   const start_index_build = useCallback(
@@ -553,7 +587,7 @@ export function use_search() {
     clear_results,
     clear_index,
     start_index_build,
-    load_more: () => {},
+    load_more,
     set_query,
     navigate_to_result: (_id: string) => {},
     get_autocomplete: (_query: string, _field?: string) => {},

@@ -20,6 +20,16 @@
 //
 import type { DecryptedEnvelope } from "@/types/email";
 import type { ExportAttachment } from "@/utils/export";
+import type {
+  ExportScope,
+  ExportError,
+  ExportSource,
+  ExportSourceContext,
+  PipelineMessage,
+} from "./pipeline";
+
+import { hash_prefix } from "./pipeline";
+
 import { list_mail_items } from "@/services/api/mail";
 import { list_attachments } from "@/services/api/attachments";
 import { filter_locked_mail_items } from "@/services/locked_folders";
@@ -28,14 +38,6 @@ import {
   decrypt_attachment_meta,
   decrypt_attachment_data,
 } from "@/services/crypto/attachment_crypto";
-import { hash_prefix } from "./pipeline";
-import type {
-  ExportScope,
-  ExportError,
-  ExportSource,
-  ExportSourceContext,
-  PipelineMessage,
-} from "./pipeline";
 
 const PAGE_SIZE = 500;
 
@@ -54,11 +56,13 @@ function date_boundary_local(value: string, end_of_day: boolean): number {
 function in_date_range(iso: string, scope: ExportScope): boolean {
   if (!scope.date_from && !scope.date_to) return true;
   const t = new Date(iso).getTime();
+
   if (Number.isNaN(t)) return true;
   if (scope.date_from && t < date_boundary_local(scope.date_from, false))
     return false;
   if (scope.date_to && t > date_boundary_local(scope.date_to, true))
     return false;
+
   return true;
 }
 
@@ -72,6 +76,7 @@ async function build_attachments(
   if (has_attachments === false) return result;
 
   let list: Awaited<ReturnType<typeof list_attachments>>;
+
   try {
     list = await list_attachments(mail_id);
   } catch {
@@ -80,6 +85,7 @@ async function build_attachments(
       kind: "attachment",
       code: "attachment_list_failed",
     });
+
     return result;
   }
 
@@ -101,6 +107,7 @@ async function build_attachments(
         att.seq_num,
       );
       const bytes = new Uint8Array(data_buf);
+
       result.push({
         filename: meta.filename,
         mime_type: meta.content_type || "application/octet-stream",
@@ -117,6 +124,7 @@ async function build_attachments(
       });
     }
   }
+
   return result;
 }
 
@@ -133,7 +141,13 @@ export function create_account_message_source(): ExportSource {
         item_type: "all",
         include_spam: true,
       });
-      total = probe.data?.total ?? 0;
+
+      if (probe.error || !probe.data) {
+        throw new Error(probe.error ?? "export_probe_failed");
+      }
+
+      total = probe.data.total ?? 0;
+
       return { total, scope: _scope };
     },
 
@@ -152,7 +166,12 @@ export function create_account_message_source(): ExportSource {
           include_spam: true,
           skip_total: true,
         });
-        if (!page.data?.items?.length) break;
+
+        if (page.error || !page.data) {
+          throw new Error(page.error ?? "export_page_failed");
+        }
+
+        if (!page.data.items?.length) break;
 
         for (const item of filter_locked_mail_items(page.data.items)) {
           if (signal.aborted) return;
@@ -162,6 +181,7 @@ export function create_account_message_source(): ExportSource {
             item.envelope_nonce,
             item.id,
           );
+
           if (!envelope) {
             report_error?.({
               message_id_prefix: await hash_prefix(item.id),
@@ -172,11 +192,13 @@ export function create_account_message_source(): ExportSource {
           }
 
           const decrypted = envelope as DecryptedEnvelope;
+
           if (!in_date_range(decrypted.sent_at || item.created_at, scope)) {
             continue;
           }
 
           const folder_token = item.folder_token;
+
           if (
             scope.folder_tokens?.length &&
             !scope.folder_tokens.includes(folder_token)

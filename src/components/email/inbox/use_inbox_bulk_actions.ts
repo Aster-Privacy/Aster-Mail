@@ -31,7 +31,10 @@ import {
 } from "@/components/toast/action_toast";
 import { show_toast } from "@/components/toast/simple_toast";
 import {
+  get_category_action_ids,
+  is_fully_built,
   is_index_capped,
+  remove_ids as remove_index_ids,
   wait_for_index_ready,
 } from "@/services/category_index";
 import {
@@ -39,6 +42,12 @@ import {
   supports_category_scope,
 } from "@/components/email/inbox/category_bulk_actions";
 import { collect_scope_ids } from "@/components/email/inbox/collect_scope_ids";
+import { batched_bulk_permanent_delete } from "@/services/api/mail";
+import {
+  invalidate_mail_stats,
+  adjust_stats_trash,
+} from "@/hooks/use_mail_stats";
+import { bulk_snooze_emails } from "@/services/api/snooze";
 import {
   batched_bulk_add_folder,
   batched_bulk_remove_folder,
@@ -47,7 +56,7 @@ import {
   batched_bulk_add_tag,
   batched_bulk_remove_tag,
 } from "@/services/api/tags";
-import { PROGRESS_THRESHOLDS } from "@/constants/batch_config";
+import { BATCH_LIMITS, PROGRESS_THRESHOLDS } from "@/constants/batch_config";
 import { MAIL_EVENTS, mail_event_bus } from "@/hooks/mail_events";
 import {
   bulk_action_by_scope,
@@ -114,7 +123,11 @@ export type InboxBulkActionsParams = {
   scope_for_view: BulkScopeFilter | null;
   folders_lookup: Map<string, { name: string; color?: string }>;
   tags_lookup: Map<string, { name: string; color?: string; icon?: string }>;
-  fetch_page: (page: number, size: number) => unknown;
+  fetch_page: (
+    page: number,
+    size: number,
+    options?: { force?: boolean; silent?: boolean },
+  ) => unknown;
   set_current_page: (page: number) => void;
   t: ReturnType<typeof use_i18n>["t"];
 };
@@ -162,8 +175,8 @@ export function use_inbox_bulk_actions({
                 progress_toast_shown = true;
                 show_action_toast({
                   message: t("common.processing_count", {
-                    completed: String(completed),
-                    total: String(total),
+                    completed: completed,
+                    total: total,
                   }),
                   action_type: "progress",
                   email_ids: [],
@@ -194,7 +207,7 @@ export function use_inbox_bulk_actions({
         selection.handle_clear_selection();
         set_current_page(0);
         if (!refetch) return;
-        fetch_page(0, page_size);
+        fetch_page(0, page_size, { force: true });
         mail_event_bus.emit(MAIL_EVENTS.MAIL_CHANGED);
       };
 
@@ -309,6 +322,7 @@ export function use_inbox_bulk_actions({
       selection,
       fetch_page,
       set_current_page,
+      page_size,
       t,
     ],
   );
@@ -321,8 +335,8 @@ export function use_inbox_bulk_actions({
     ): Promise<void> => {
       const name =
         kind === "folder"
-          ? folders_lookup.get(token)?.name || "folder"
-          : tags_lookup.get(token)?.name || "label";
+          ? folders_lookup.get(token)?.name || t("common.folder_fallback")
+          : tags_lookup.get(token)?.name || t("common.label_fallback");
 
       let progress_toast_shown = false;
       let applied = 0;
@@ -333,8 +347,8 @@ export function use_inbox_bulk_actions({
           progress_toast_shown = true;
           show_action_toast({
             message: t("common.processing_count", {
-              completed: String(completed),
-              total: String(total),
+              completed: completed,
+              total: total,
             }),
             action_type: "progress",
             email_ids: [],
@@ -347,11 +361,36 @@ export function use_inbox_bulk_actions({
       };
 
       try {
-        const { ids, capped } = await collect_scope_ids({
-          view: current_view,
-          exclude_ids: selection.excluded_ids,
-          on_progress: (collected) => report(0, collected),
-        });
+        let ids: string[] = [];
+        let capped = false;
+
+        if (categories.enabled) {
+          if (!is_fully_built() || is_index_capped()) {
+            show_toast(
+              is_index_capped()
+                ? t("mail.bulk_action_index_capped")
+                : t("mail.bulk_action_index_not_ready"),
+              "error",
+            );
+
+            return;
+          }
+
+          const excluded = new Set(selection.excluded_ids);
+
+          ids = get_category_action_ids(
+            categories.active_category,
+          ).all_ids.filter((id) => !excluded.has(id));
+        } else {
+          const collected = await collect_scope_ids({
+            view: current_view,
+            exclude_ids: selection.excluded_ids,
+            on_progress: (collected_count) => report(0, collected_count),
+          });
+
+          ids = collected.ids;
+          capped = collected.capped;
+        }
 
         if (ids.length === 0) return;
 
@@ -376,7 +415,7 @@ export function use_inbox_bulk_actions({
         selection.exit_select_all_mode();
         selection.handle_clear_selection();
         set_current_page(0);
-        fetch_page(0, page_size);
+        fetch_page(0, page_size, { force: true });
         mail_event_bus.emit(MAIL_EVENTS.MAIL_CHANGED);
 
         if (failed.size > 0) {
@@ -422,7 +461,7 @@ export function use_inbox_bulk_actions({
       } catch (e) {
         if (import.meta.env.DEV) console.error(e);
         if (applied > 0) {
-          fetch_page(0, page_size);
+          fetch_page(0, page_size, { force: true });
           mail_event_bus.emit(MAIL_EVENTS.MAIL_CHANGED);
         }
         show_toast(t("common.something_went_wrong"), "error");
@@ -431,6 +470,8 @@ export function use_inbox_bulk_actions({
       }
     },
     [
+      categories.enabled,
+      categories.active_category,
       current_view,
       folders_lookup,
       tags_lookup,
@@ -440,6 +481,140 @@ export function use_inbox_bulk_actions({
       page_size,
       t,
     ],
+  );
+
+  const run_scope_snooze = useCallback(
+    async (snooze_until: Date): Promise<void> => {
+      let progress_toast_shown = false;
+
+      const report = (completed: number, total: number) => {
+        if (total < PROGRESS_THRESHOLDS.SHOW_TOAST_PROGRESS) return;
+        if (!progress_toast_shown) {
+          progress_toast_shown = true;
+          show_action_toast({
+            message: t("common.processing_count", {
+              completed: completed,
+              total: total,
+            }),
+            action_type: "progress",
+            email_ids: [],
+            progress: { completed, total },
+          });
+
+          return;
+        }
+        update_progress_toast(completed, total, t);
+      };
+
+      try {
+        let ids: string[] = [];
+        let capped = false;
+
+        if (categories.enabled) {
+          if (!is_fully_built() || is_index_capped()) {
+            show_toast(
+              is_index_capped()
+                ? t("mail.bulk_action_index_capped")
+                : t("mail.bulk_action_index_not_ready"),
+              "error",
+            );
+
+            return;
+          }
+
+          const excluded = new Set(selection.excluded_ids);
+
+          ids = get_category_action_ids(
+            categories.active_category,
+          ).all_ids.filter((id) => !excluded.has(id));
+        } else {
+          const collected = await collect_scope_ids({
+            view: current_view,
+            exclude_ids: selection.excluded_ids,
+            on_progress: (collected_count) => report(0, collected_count),
+          });
+
+          ids = collected.ids;
+          capped = collected.capped;
+        }
+
+        if (ids.length === 0) return;
+
+        let snoozed = 0;
+        let failed = 0;
+
+        for (let i = 0; i < ids.length; i += BATCH_LIMITS.MAIL_BULK) {
+          const chunk = ids.slice(i, i + BATCH_LIMITS.MAIL_BULK);
+          const response = await bulk_snooze_emails(chunk, snooze_until);
+
+          if (response.error) throw new Error(response.error);
+          snoozed += response.data?.snoozed_count ?? chunk.length;
+          failed += response.data?.failed_count ?? 0;
+          report(Math.min(i + chunk.length, ids.length), ids.length);
+        }
+
+        remove_index_ids(ids);
+        selection.exit_select_all_mode();
+        selection.handle_clear_selection();
+        set_current_page(0);
+        fetch_page(0, page_size, { force: true });
+        mail_event_bus.emit(MAIL_EVENTS.MAIL_CHANGED);
+
+        if (failed > 0) {
+          show_toast(
+            t("common.bulk_action_partially_applied", {
+              count: snoozed,
+              total: ids.length,
+            }),
+            "error",
+          );
+
+          return;
+        }
+
+        show_action_toast({
+          message: t("common.conversations_snoozed_bulk", { count: snoozed }),
+          action_type: "snooze",
+          email_ids: [],
+        });
+
+        if (capped) {
+          show_toast(t("mail.bulk_action_index_capped"), "info");
+        }
+      } catch (e) {
+        if (import.meta.env.DEV) console.error(e);
+        fetch_page(0, page_size, { force: true });
+        mail_event_bus.emit(MAIL_EVENTS.MAIL_CHANGED);
+        show_toast(t("common.failed_to_snooze_conversations"), "error");
+      } finally {
+        if (progress_toast_shown) hide_action_toast();
+      }
+    },
+    [
+      categories.enabled,
+      categories.active_category,
+      current_view,
+      selection,
+      fetch_page,
+      set_current_page,
+      page_size,
+      t,
+    ],
+  );
+
+  const handle_snooze_wrapped = useCallback(
+    async (snooze_until: Date): Promise<boolean> => {
+      if (selection.select_all_mode) {
+        queue_select_all_action(() => {
+          void run_scope_snooze(snooze_until);
+        });
+
+        return true;
+      }
+
+      return await toolbar.handle_toolbar_snooze(snooze_until);
+    },
+    [selection, toolbar, run_scope_snooze, queue_select_all_action],
   );
 
   const handle_folder_toggle_wrapped = useCallback(
@@ -470,10 +645,62 @@ export function use_inbox_bulk_actions({
     [selection, toolbar, run_scope_label_action, queue_select_all_action],
   );
 
+  const run_trash_scope_permanent_delete = useCallback(async () => {
+    try {
+      const collected = await collect_scope_ids({
+        view: "trash",
+        exclude_ids: selection.excluded_ids,
+      });
+
+      selection.exit_select_all_mode();
+      selection.handle_clear_selection();
+
+      if (collected.ids.length === 0) return;
+
+      const result = await batched_bulk_permanent_delete(collected.ids);
+      const deleted_count = collected.ids.length - result.failed_ids.length;
+
+      if (deleted_count > 0) {
+        adjust_stats_trash(-deleted_count);
+      }
+      invalidate_mail_stats();
+      set_current_page(0);
+      fetch_page(0, page_size, { force: true });
+      mail_event_bus.emit(MAIL_EVENTS.MAIL_CHANGED);
+
+      if (result.failed_ids.length > 0) {
+        show_toast(
+          t("common.bulk_action_partially_applied", {
+            count: deleted_count,
+            total: collected.ids.length,
+          }),
+          "warning",
+        );
+
+        return;
+      }
+      show_action_toast({
+        message: t("common.emails_permanently_deleted", {
+          count: deleted_count,
+        }),
+        action_type: "trash",
+        email_ids: [],
+      });
+    } catch (e) {
+      if (import.meta.env.DEV) console.error(e);
+      show_toast(t("common.failed_to_permanently_delete"), "error");
+    }
+  }, [selection, fetch_page, set_current_page, page_size, t]);
+
   const handle_delete_wrapped = useCallback(() => {
     if (selection.select_all_mode) {
       queue_select_all_action(() => {
         if (current_view === "trash") {
+          if (selection.excluded_ids.length > 0) {
+            void run_trash_scope_permanent_delete();
+
+            return;
+          }
           toolbar.handle_empty_trash();
           selection.exit_select_all_mode();
           selection.handle_clear_selection();
@@ -491,6 +718,7 @@ export function use_inbox_bulk_actions({
     toolbar,
     current_view,
     run_scope_action,
+    run_trash_scope_permanent_delete,
     queue_select_all_action,
   ]);
 
@@ -595,7 +823,7 @@ export function use_inbox_bulk_actions({
 
       return;
     }
-    toolbar.handle_toolbar_restore();
+    toolbar.handle_toolbar_restore(true);
   }, [selection, toolbar, run_scope_action, queue_select_all_action]);
 
   return {
@@ -612,5 +840,6 @@ export function use_inbox_bulk_actions({
     handle_not_spam_wrapped,
     handle_folder_toggle_wrapped,
     handle_tag_toggle_wrapped,
+    handle_snooze_wrapped,
   };
 }

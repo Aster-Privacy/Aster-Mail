@@ -22,11 +22,6 @@ import type { TranslationKey } from "@/lib/i18n/types";
 import type { DnsProvider } from "@/data/dns_providers";
 
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
-import {
-  TurnstileWidget,
-  type TurnstileWidgetRef,
-  TURNSTILE_SITE_KEY,
-} from "@/components/auth/turnstile_widget";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowRightIcon,
@@ -37,6 +32,18 @@ import {
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
+import {
+  DnsChecklist,
+  type StepStatus,
+  type ChecklistStep,
+} from "./dns_checklist";
+import { DnsStepContent } from "./dns_step_content";
+
+import {
+  TurnstileWidget,
+  type TurnstileWidgetRef,
+  TURNSTILE_SITE_KEY,
+} from "@/components/auth/turnstile_widget";
 import { use_i18n } from "@/lib/i18n/context";
 import {
   Modal,
@@ -54,10 +61,10 @@ import {
   type AddDomainResponse,
 } from "@/services/api/domains";
 import { detect_dns_provider } from "@/data/dns_providers";
-import { DnsChecklist, type StepStatus, type ChecklistStep } from "./dns_checklist";
-import { DnsStepContent } from "./dns_step_content";
-
 import { ignore_error } from "@/lib/ignore_error";
+import { is_composing } from "@/utils/ime";
+import { user_facing_error } from "@/utils/user_facing_error";
+import { apply_input_transform } from "@/utils/input_transform";
 
 const AUTO_CHECK_INTERVAL_MS = 15000;
 
@@ -212,11 +219,18 @@ export function DomainSetupWizard({
   }, [is_open, mode, wizard_steps]);
 
   useEffect(() => {
+    let cancelled = false;
+
     if (mode === "dns" && domain_name && is_open) {
       detect_dns_provider(domain_name).then((provider) => {
+        if (cancelled) return;
         set_detected_provider(provider);
       });
     }
+
+    return () => {
+      cancelled = true;
+    };
   }, [mode, domain_name, is_open]);
 
   const handle_add = async () => {
@@ -249,9 +263,7 @@ export function DomainSetupWizard({
         on_domain_added(response.data);
       }
     } catch (err) {
-      set_error(
-        err instanceof Error ? err.message : t("settings.failed_add_domain"),
-      );
+      set_error(user_facing_error(err, t("settings.failed_add_domain")));
       set_captcha_token(null);
       turnstile_ref.current?.reset();
     } finally {
@@ -293,7 +305,10 @@ export function DomainSetupWizard({
           }),
         );
       } catch (caught) {
-        ignore_error("components/settings/aliases/domain_setup_wizard:poll", caught);
+        ignore_error(
+          "components/settings/aliases/domain_setup_wizard:poll",
+          caught,
+        );
       }
     };
 
@@ -309,6 +324,8 @@ export function DomainSetupWizard({
 
   const run_verification = async () => {
     if (!domain_id) return;
+
+    const previous_statuses = step_statuses;
 
     set_is_verifying(true);
     set_verification_message(null);
@@ -336,14 +353,14 @@ export function DomainSetupWizard({
         set_verification_message(result.message);
         on_domains_changed();
       } else {
-        set_step_statuses((prev) => prev.map(() => "pending"));
+        set_step_statuses(previous_statuses);
         set_verification_message(
           response.error || t("settings.verification_failed_retry"),
         );
       }
     } catch (err) {
       if (import.meta.env.DEV) console.error(err);
-      set_step_statuses((prev) => prev.map(() => "pending"));
+      set_step_statuses(previous_statuses);
       set_verification_message(t("settings.verification_failed_retry"));
     } finally {
       set_is_verifying(false);
@@ -362,7 +379,12 @@ export function DomainSetupWizard({
 
   if (mode === "input") {
     return (
-      <Modal is_open={is_open} on_close={on_close} size="xl">
+      <Modal
+        close_on_overlay={false}
+        is_open={is_open}
+        on_close={on_close}
+        size="xl"
+      >
         <ModalHeader>
           <ModalTitle>
             {at_limit
@@ -396,9 +418,15 @@ export function DomainSetupWizard({
                 placeholder={t("settings.enter_domain_placeholder")}
                 value={domain_input}
                 onChange={(e) =>
-                  set_domain_input(e.target.value.toLowerCase().trim())
+                  set_domain_input(
+                    apply_input_transform(e.target, (v) =>
+                      v.toLowerCase().trim(),
+                    ),
+                  )
                 }
-                onKeyDown={(e) => e["key"] === "Enter" && handle_add()}
+                onKeyDown={(e) =>
+                  e["key"] === "Enter" && !is_composing(e) && handle_add()
+                }
               />
               {domain_input && !validate_domain_name(domain_input).valid && (
                 <p className="text-xs mt-1.5 text-red-500">
@@ -470,7 +498,7 @@ export function DomainSetupWizard({
               ) : (
                 <>
                   {t("common.continue")}
-                  <ArrowRightIcon className="w-4 h-4 ml-1" />
+                  <ArrowRightIcon className="w-4 h-4 ms-1 rtl:-scale-x-100" />
                 </>
               )}
             </Button>
@@ -508,8 +536,8 @@ export function DomainSetupWizard({
               active_step={current_step}
               disabled={is_verifying}
               layout="horizontal"
-              steps={checklist_steps}
               on_step_click={set_current_step}
+              steps={checklist_steps}
             />
           </div>
 
@@ -532,7 +560,6 @@ export function DomainSetupWizard({
               />
             </motion.div>
           </AnimatePresence>
-
         </div>
 
         {verification_message && (
@@ -570,9 +597,9 @@ export function DomainSetupWizard({
           onClick={run_verification}
         >
           {is_verifying ? (
-            <ArrowPathIcon className="w-4 h-4 mr-1.5 animate-spin" />
+            <ArrowPathIcon className="w-4 h-4 me-1.5 animate-spin" />
           ) : (
-            <ArrowPathIcon className="w-4 h-4 mr-1.5" />
+            <ArrowPathIcon className="w-4 h-4 me-1.5" />
           )}
           {is_verifying
             ? t("common.checking")
@@ -589,7 +616,7 @@ export function DomainSetupWizard({
             variant="outline"
             onClick={() => set_current_step((s) => s - 1)}
           >
-            <ArrowLeftIcon className="w-4 h-4 mr-1" />
+            <ArrowLeftIcon className="w-4 h-4 me-1 rtl:-scale-x-100" />
             {t("common.previous")}
           </Button>
           <p className="text-xs text-txt-muted">
@@ -601,7 +628,7 @@ export function DomainSetupWizard({
             onClick={() => set_current_step((s) => s + 1)}
           >
             {t("common.next")}
-            <ArrowRightIcon className="w-4 h-4 ml-1" />
+            <ArrowRightIcon className="w-4 h-4 ms-1 rtl:-scale-x-100" />
           </Button>
         </div>
       </ModalFooter>

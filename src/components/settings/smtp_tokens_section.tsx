@@ -36,17 +36,19 @@ import {
 } from "@/services/api/smtp_tokens";
 import { use_verified_domain_addresses } from "@/components/settings/hooks/use_verified_domain_addresses";
 import { SmtpTokenCreateModal } from "@/components/settings/smtp_token_create_modal";
+import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { InfoPopover } from "@/components/ui/info_popover";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
 import { show_toast } from "@/components/toast/simple_toast";
-
 import { ignore_error } from "@/lib/ignore_error";
+import { app_locale, get_display_time_zone } from "@/utils/date_format";
 
 function format_date_short(iso: string): string {
-  return new Date(iso).toLocaleDateString(undefined, {
+  return new Date(iso).toLocaleDateString(app_locale(), {
+    timeZone: get_display_time_zone(),
     month: "short",
     day: "numeric",
     year: "numeric",
@@ -56,10 +58,15 @@ function format_date_short(iso: string): string {
 export function SmtpTokensSection() {
   const { t } = use_i18n();
   const { limits, is_loading: plan_loading } = use_plan_limits();
-  const { addresses, is_loading: addresses_loading } =
-    use_verified_domain_addresses();
+  const {
+    addresses,
+    is_loading: addresses_loading,
+    load_failed: addresses_load_failed,
+    reload: reload_addresses,
+  } = use_verified_domain_addresses();
   const [tokens, set_tokens] = useState<SmtpToken[]>([]);
   const [tokens_loading, set_tokens_loading] = useState(true);
+  const [tokens_load_failed, set_tokens_load_failed] = useState(false);
   const [revoking_id, set_revoking_id] = useState<string | null>(null);
   const [confirm_revoke_id, set_confirm_revoke_id] = useState<string | null>(
     null,
@@ -71,6 +78,7 @@ export function SmtpTokensSection() {
     try {
       const res = await list_smtp_tokens();
 
+      set_tokens_load_failed(!res.data);
       set_tokens(res.data?.tokens ?? []);
     } finally {
       set_tokens_loading(false);
@@ -89,11 +97,13 @@ export function SmtpTokensSection() {
     set_revoking_id(id);
     try {
       const res = await revoke_smtp_token(id);
+
       if (res.error) {
         show_toast(
           res.error || t("settings.smtp_token_revoke_failed_toast"),
           "error",
         );
+
         return;
       }
       show_toast(t("settings.smtp_token_revoked_toast"), "success");
@@ -132,7 +142,7 @@ export function SmtpTokensSection() {
           className="relative overflow-hidden rounded-2xl p-6"
           style={{ backgroundColor: "var(--accent-mix-b85, #326fd1)" }}
         >
-          <div className="absolute right-5 top-1/2 -translate-y-1/2 flex items-end gap-2 pointer-events-none">
+          <div className="absolute end-5 top-1/2 -translate-y-1/2 flex items-end gap-2 pointer-events-none">
             <KeyIcon className="w-20 h-20 text-white/20" />
           </div>
           <div className="relative z-10">
@@ -161,10 +171,19 @@ export function SmtpTokensSection() {
               }
             >
               {t("settings.smtp_tokens_upgrade_cta")}
-              <ArrowRightIcon className="w-4 h-4" />
+              <ArrowRightIcon className="w-4 h-4 rtl:-scale-x-100" />
             </button>
           </div>
         </div>
+      </div>
+    );
+  }
+
+  if (!addresses_loading && !has_addresses && addresses_load_failed) {
+    return (
+      <div className="space-y-5">
+        {header}
+        <LoadFailedNotice on_retry={() => void reload_addresses()} />
       </div>
     );
   }
@@ -228,7 +247,7 @@ export function SmtpTokensSection() {
           variant="depth"
           onClick={() => set_create_open(true)}
         >
-          <PlusIcon className="w-4 h-4 mr-1.5" />
+          <PlusIcon className="w-4 h-4 me-1.5" />
           {t("settings.smtp_token_generate")}
         </Button>
       </div>
@@ -247,6 +266,10 @@ export function SmtpTokensSection() {
               <Skeleton className="h-8 w-20 rounded-lg" />
             </div>
           ))}
+        </div>
+      ) : tokens_load_failed ? (
+        <div className="py-6">
+          <LoadFailedNotice on_retry={() => void load_tokens()} />
         </div>
       ) : tokens.length === 0 ? (
         <div className="py-6 text-center">
@@ -283,7 +306,7 @@ export function SmtpTokensSection() {
                 </div>
               </div>
               <Button
-                className="flex-shrink-0 ml-3"
+                className="flex-shrink-0 ms-3"
                 disabled={revoking_id === token.id}
                 variant="destructive"
                 onClick={() => set_confirm_revoke_id(token.id)}

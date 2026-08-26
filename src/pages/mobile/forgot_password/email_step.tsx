@@ -61,7 +61,7 @@ export function EmailStep({
           whileTap={button_tap}
           onClick={on_navigate_sign_in}
         >
-          <ChevronLeftIcon className="h-5 w-5" />
+          <ChevronLeftIcon className="h-5 w-5 rtl:-scale-x-100" />
         </motion.button>
       </div>
 
@@ -113,7 +113,10 @@ export function EmailStep({
         >
           <div className={DEPTH_INPUT_WRAPPER_CLASS}>
             <Input
+              autoCapitalize="none"
               autoComplete="username"
+              autoCorrect="off"
+              spellCheck={false}
               className={INNER_INPUT_CLASS}
               maxLength={55}
               placeholder={t("common.yourname_placeholder")}
@@ -126,9 +129,7 @@ export function EmailStep({
 
                 if (at_index !== -1) {
                   const local = sanitize_username(raw.substring(0, at_index));
-                  const domain_part = raw
-                    .substring(at_index + 1)
-                    .toLowerCase();
+                  const domain_part = raw.substring(at_index + 1).toLowerCase();
 
                   set_username(local);
                   if (
@@ -148,7 +149,14 @@ export function EmailStep({
               onKeyDown={(e) => e["key"] === "Enter" && on_next()}
             />
           </div>
-          <div className="relative flex mt-2" style={{ background: "var(--bg-secondary)", borderRadius: 12, padding: 4 }}>
+          <div
+            className="relative flex mt-2"
+            style={{
+              background: "var(--bg-secondary)",
+              borderRadius: 12,
+              padding: 4,
+            }}
+          >
             <div
               className="absolute top-1 bottom-1 rounded-[8px] transition-all duration-200 ease-out"
               style={{

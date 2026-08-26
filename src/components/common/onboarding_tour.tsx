@@ -28,7 +28,7 @@ import { Button } from "@aster/ui";
 import { useTheme } from "@/contexts/theme_context";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_onboarding } from "@/hooks/use_onboarding";
-import { cn } from "@/lib/utils";
+import { cn, format_number } from "@/lib/utils";
 import { use_body_scroll_lock } from "@/lib/body_scroll_lock";
 import {
   is_top_overlay_layer,
@@ -511,7 +511,7 @@ export function OnboardingTour() {
                   >
                     {is_positioned && <div className={get_arrow_class()} />}
                     <button
-                      className="absolute top-4 right-4 z-10 p-2 rounded-[14px] transition-colors hover:bg-black/5 dark:hover:bg-white/10 disabled:opacity-50 text-txt-muted"
+                      className="absolute top-4 end-4 z-10 p-2 rounded-[14px] transition-colors hover:bg-black/5 dark:hover:bg-white/10 disabled:opacity-50 text-txt-muted"
                       disabled={is_transitioning}
                       onClick={handle_skip}
                     >
@@ -532,7 +532,7 @@ export function OnboardingTour() {
                           }}
                         >
                           {t("common.step")} {current_step + 1} {t("common.of")}{" "}
-                          {onboarding_steps.length}
+                          {format_number(onboarding_steps.length)}
                         </div>
                       </div>
 

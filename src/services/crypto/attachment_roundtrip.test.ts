@@ -45,6 +45,7 @@ import {
   decrypt_attachment_meta,
   decrypt_attachment_data,
 } from "./attachment_crypto";
+
 import type { Attachment } from "@/components/compose/compose_shared";
 
 function make_attachment(bytes: Uint8Array): Attachment {
@@ -90,7 +91,11 @@ describe("attachment encrypt -> decrypt real round-trip", () => {
     const original = crypto.getRandomValues(new Uint8Array(16));
 
     await expect(
-      encrypt_attachments_for_send([make_attachment(original)], undefined, true),
+      encrypt_attachments_for_send(
+        [make_attachment(original)],
+        undefined,
+        true,
+      ),
     ).rejects.toThrow(/recipient encryption keys unavailable/);
   });
 });

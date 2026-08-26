@@ -37,7 +37,9 @@ export interface EmptyViewRecoveryState {
   attempts: number;
 }
 
-export function should_recover_empty_view(state: EmptyViewRecoveryState): boolean {
+export function should_recover_empty_view(
+  state: EmptyViewRecoveryState,
+): boolean {
   if (state.categories_enabled) return false;
   if (state.is_client_filtered) return false;
   if (state.is_alias_view) return false;

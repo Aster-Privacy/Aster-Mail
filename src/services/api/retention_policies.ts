@@ -60,9 +60,11 @@ export async function list_retention_policies(): Promise<
   ApiResponse<RetentionPolicy[]>
 > {
   const response = await api_client.get<PoliciesListResponse>(BASE);
+
   if (response.data) {
     return { data: response.data.policies };
   }
+
   return { error: response.error, code: response.code };
 }
 
@@ -93,9 +95,13 @@ export async function preview_retention_policy(
     folder_token,
     retention_days: String(retention_days),
   });
-  const response = await api_client.get<PreviewResponse>(`${BASE}/preview?${qs.toString()}`);
+  const response = await api_client.get<PreviewResponse>(
+    `${BASE}/preview?${qs.toString()}`,
+  );
+
   if (response.data) {
     return { data: response.data.affected_count };
   }
+
   return { error: response.error, code: response.code };
 }

@@ -20,10 +20,10 @@
 //
 export type ListDensity = "compact" | "comfortable";
 
-export function resolve_list_density(
-  value: string | undefined,
-): ListDensity {
-  return value === "comfortable" ? "comfortable" : "compact";
+export function resolve_list_density(value: string | undefined): ListDensity {
+  return value === "comfortable" || value === "spacious"
+    ? "comfortable"
+    : "compact";
 }
 
 export function is_compact_density(

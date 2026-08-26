@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { FaviconOrInitial } from "@/components/ui/favicon_or_initial";
 import type { UnsubscribeInfo } from "@/types/email";
 import type { MailItem } from "@/services/api/mail";
 
@@ -58,6 +59,7 @@ import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 import { Input } from "@/components/ui/input";
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
+import { show_toast } from "@/components/toast/simple_toast";
 import {
   detect_unsubscribe_info,
   execute_unsubscribe,
@@ -129,10 +131,17 @@ export function MassUnsubscribeModal({
   const [failed_count, set_failed_count] = useState(0);
   const [show_success, set_show_success] = useState(false);
 
+  const [scan_failed, set_scan_failed] = useState(false);
+
   const fetch_subscriptions = useCallback(async (signal?: AbortSignal) => {
     set_is_loading(true);
+    set_scan_failed(false);
     try {
-      const { items: all_items } = await scan_received_items(signal);
+      const { items: all_items, failed } = await scan_received_items(signal);
+
+      if (signal?.aborted) return;
+
+      set_scan_failed(failed);
 
       if (signal?.aborted) return;
 
@@ -258,12 +267,19 @@ export function MassUnsubscribeModal({
       .sort((a, b) => b.email_count - a.email_count);
   }, [subscriptions, search_query]);
 
+  const all_selected =
+    filtered_subscriptions.length > 0 &&
+    filtered_subscriptions.every((sub) => selected_ids.has(sub.id));
+
   const handle_select_all = () => {
-    if (selected_ids.size === filtered_subscriptions.length) {
-      set_selected_ids(new Set());
+    const next = new Set(selected_ids);
+
+    if (all_selected) {
+      for (const sub of filtered_subscriptions) next.delete(sub.id);
     } else {
-      set_selected_ids(new Set(filtered_subscriptions.map((sub) => sub.id)));
+      for (const sub of filtered_subscriptions) next.add(sub.id);
     }
+    set_selected_ids(next);
   };
 
   const handle_select = use_shift_range_select(
@@ -281,7 +297,6 @@ export function MassUnsubscribeModal({
     if (!confirmed) return;
 
     set_is_unsubscribing(true);
-    const total = selected_ids.size;
 
     try {
       const selected_subs = subscriptions.filter((sub) =>
@@ -345,15 +360,32 @@ export function MassUnsubscribeModal({
       }>;
 
       if (valid_updates.length > 0) {
-        await bulk_patch_metadata({ items: valid_updates });
+        const patch_result = await bulk_patch_metadata({
+          items: valid_updates,
+        });
+
+        if (patch_result.error) {
+          show_toast(t("common.something_went_wrong_try_again"), "error");
+
+          return;
+        }
       }
 
       stale_all_view_caches();
-      await batch_archive({ ids: all_mail_ids, tier: "hot" });
+      const archive_result = await batch_archive({
+        ids: all_mail_ids,
+        tier: "hot",
+      });
+
+      if (archive_result.error) {
+        show_toast(t("common.something_went_wrong_try_again"), "error");
+
+        return;
+      }
       emit_mail_items_removed({ ids: all_mail_ids });
       invalidate_mail_stats();
 
-      set_completed_count(total);
+      set_completed_count(api_count + links_opened);
       set_subscriptions((prev) =>
         prev.filter((sub) => !selected_ids.has(sub.id)),
       );
@@ -363,10 +395,6 @@ export function MassUnsubscribeModal({
       set_is_unsubscribing(false);
     }
   };
-
-  const all_selected =
-    selected_ids.size === filtered_subscriptions.length &&
-    filtered_subscriptions.length > 0;
 
   return (
     <Modal
@@ -485,13 +513,16 @@ export function MassUnsubscribeModal({
                 <div className="px-3 py-2.5 flex-shrink-0">
                   <div className="relative">
                     <MagnifyingGlassIcon
-                      className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5"
+                      className="absolute start-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5"
                       style={{ color: "var(--text-muted)" }}
                     />
                     <Input
                       className="w-full"
                       placeholder={t("common.search") + "..."}
-                      style={{ paddingLeft: "34px", paddingRight: "12px" }}
+                      style={{
+                        paddingInlineStart: "34px",
+                        paddingInlineEnd: "12px",
+                      }}
                       value={search_query}
                       onChange={(e) => set_search_query(e.target.value)}
                     />
@@ -532,8 +563,19 @@ export function MassUnsubscribeModal({
                       >
                         {search_query
                           ? t("settings.try_different_search")
-                          : t("settings.no_subscriptions_found")}
+                          : scan_failed
+                            ? t("common.something_went_wrong_try_again")
+                            : t("settings.no_subscriptions_found")}
                       </p>
+                      {scan_failed && !search_query && (
+                        <button
+                          className="mt-2 text-[12px] font-medium text-accent-primary hover:underline"
+                          type="button"
+                          onClick={() => void fetch_subscriptions()}
+                        >
+                          {t("common.retry")}
+                        </button>
+                      )}
                     </div>
                   ) : (
                     filtered_subscriptions.map((sub, index) => {
@@ -560,27 +602,14 @@ export function MassUnsubscribeModal({
                             onClick={(e) => e.stopPropagation()}
                           />
                           <div className="w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0 overflow-hidden bg-black/[0.03] dark:bg-white/[0.04]">
-                            <img
-                              alt=""
-                              className="w-4 h-4 object-contain"
+                            <FaviconOrInitial
+                              initial={sub.sender_name.charAt(0)}
+                              initial_class_name="text-[11px] font-medium"
+                              initial_style={{ color: "var(--text-muted)" }}
                               src={get_favicon_url(sub.domain.toLowerCase())}
-                              onError={(e) => {
-                                e.currentTarget.style.display = "none";
-                                const parent = e.currentTarget.parentElement;
-
-                                if (parent) {
-                                  parent.textContent = "";
-                                  const span = document.createElement("span");
-
-                                  span.className = "text-[11px] font-medium";
-                                  span.style.color = "var(--text-muted)";
-                                  span.textContent = sub.sender_name.charAt(0);
-                                  parent.appendChild(span);
-                                }
-                              }}
                             />
                           </div>
-                          <div className="flex-1 min-w-0 text-left">
+                          <div className="flex-1 min-w-0 text-start">
                             <p
                               className="text-[13px] font-medium truncate"
                               style={{ color: "var(--text-primary)" }}

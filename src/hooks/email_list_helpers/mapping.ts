@@ -24,34 +24,23 @@ import type {
   MailItemMetadata,
 } from "@/types/email";
 
+import { format_timestamp } from "./display";
+
 import {
   RATCHET_UNDECRYPTABLE_SENTINEL,
   PGP_UNDECRYPTABLE_SENTINEL,
   is_ratchet_envelope,
 } from "@/utils/email_crypto";
 import { build_body_preview_cached } from "@/utils/preview_text";
-import {
-  classify,
-} from "@/services/mail_categorizer";
+import { classify } from "@/services/mail_categorizer";
 import { get_email_username } from "@/lib/utils";
 import { resolve_forwarding_display } from "@/utils/forwarding_alias";
 import { extract_reply_to } from "@/utils/reply_to";
-import {
-  type MailItem,
-} from "@/services/api/mail";
-import {
-  normalize_envelope_recipients,
-} from "@/services/crypto/envelope";
-import {
-  extract_metadata_from_server,
-} from "@/services/crypto/mail_metadata";
-import {
-  type FormatOptions,
-} from "@/utils/date_format";
-import {
-  get_cached_profile,
-} from "@/services/api/sender_profiles";
-import { format_timestamp } from "./display";
+import { type MailItem } from "@/services/api/mail";
+import { normalize_envelope_recipients } from "@/services/crypto/envelope";
+import { extract_metadata_from_server } from "@/services/crypto/mail_metadata";
+import { type FormatOptions } from "@/utils/date_format";
+import { get_cached_profile } from "@/services/api/sender_profiles";
 
 export function mail_to_email(
   item: MailItem,
@@ -236,4 +225,3 @@ export function mail_to_email_safe(
     }
   }
 }
-

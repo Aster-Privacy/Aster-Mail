@@ -19,10 +19,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
+import { useSyncExternalStore } from "react";
 
 import {
-  useSyncExternalStore,
-} from "react";
+  build_search_index,
+  cached_index,
+  schedule_deep_index,
+} from "./index_cache";
+import { IndexingProgress } from "./types";
 
 import {
   get_index_download_snapshot,
@@ -30,9 +34,6 @@ import {
   subscribe_index_download,
   type IndexDownloadState,
 } from "@/services/search/index_download_control";
-
-import { build_search_index, cached_index, schedule_deep_index } from "./index_cache";
-import { IndexingProgress } from "./types";
 import { ignore_error } from "@/lib/ignore_error";
 
 export let indexing_progress: IndexingProgress = {
@@ -100,7 +101,9 @@ export function resume_index_download(
     return;
   }
 
-  void build_search_index(user_email, include_body).catch((caught) => ignore_error("hooks/use_search/progress:resume_index_download", caught));
+  void build_search_index(user_email, include_body).catch((caught) =>
+    ignore_error("hooks/use_search/progress:resume_index_download", caught),
+  );
 }
 
 export const index_refresh_listeners = new Set<() => void>();
@@ -116,4 +119,3 @@ export function subscribe_index_refresh(cb: () => void): () => void {
     index_refresh_listeners.delete(cb);
   };
 }
-

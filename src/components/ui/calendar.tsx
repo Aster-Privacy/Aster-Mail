@@ -58,8 +58,8 @@ function Calendar({
         day_button: cn(
           "h-9 w-9 p-0 font-normal rounded-full inline-flex items-center justify-center [color:var(--text-primary)] cursor-pointer transition-colors aria-selected:[color:white] aria-selected:[background:transparent]",
         ),
-        range_start: "day-range-start rounded-l-md",
-        range_end: "day-range-end rounded-r-md",
+        range_start: "day-range-start rounded-s-md",
+        range_end: "day-range-end rounded-e-md",
         selected:
           "[background:linear-gradient(to_bottom,var(--accent-mix-w80,#629bf8)_0%,var(--accent-color)_50%,var(--accent-mix-b80,#2f68c5)_100%)] rounded-full [color:white]",
         today:
@@ -74,9 +74,9 @@ function Calendar({
       components={{
         Chevron: ({ orientation }) =>
           orientation === "left" ? (
-            <ChevronLeftIcon className="h-4 w-4" />
+            <ChevronLeftIcon className="h-4 w-4 rtl:-scale-x-100" />
           ) : (
-            <ChevronRightIcon className="h-4 w-4" />
+            <ChevronRightIcon className="h-4 w-4 rtl:-scale-x-100" />
           ),
       }}
       showOutsideDays={showOutsideDays}

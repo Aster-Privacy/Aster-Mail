@@ -18,9 +18,9 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import { useState, useCallback, useEffect } from "react";
 
+import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import {
   set_folder_password,
   verify_folder_password,
@@ -49,6 +49,7 @@ import {
 import { use_folders } from "@/hooks/use_folders";
 import { emit_folders_changed } from "@/hooks/mail_events";
 import { use_i18n } from "@/lib/i18n/context";
+import type { ApiResponse } from "@/services/api/client/helpers";
 
 interface UnlockedFolder {
   folder_id: string;
@@ -136,6 +137,26 @@ export function use_protected_folder(
   folder_id: string,
 ): UseProtectedFolderResult {
   const { t } = use_i18n();
+
+  const describe_password_error = useCallback(
+    (response: ApiResponse<unknown>, fallback: string): string => {
+      switch (response.server_code) {
+        case "INVALID_TWO_FACTOR_CODE":
+          return t("settings.invalid_2fa_code");
+        case "TWO_FACTOR_CODE_REQUIRED":
+          return t("settings.please_enter_2fa_code");
+        case "ACCOUNT_PASSWORD_REQUIRED":
+          return t("common.please_enter_password");
+        case "FOLDER_PASSWORD_ALREADY_SET":
+          return t("common.password_already_set");
+        case "FOLDER_PASSWORD_NOT_SET":
+          return t("common.folder_no_password_protection");
+        default:
+          return fallback;
+      }
+    },
+    [t],
+  );
   const { get_folder_by_id } = use_folders();
   const folder = get_folder_by_id(folder_id);
 
@@ -208,7 +229,16 @@ export function use_protected_folder(
           password_hash: array_to_base64(auth_key),
         });
 
-        if (!verify_response.data?.verified) {
+        if (!verify_response.data) {
+          zero_uint8_array(encryption_key);
+          set_error(
+            verify_response.error || t("common.failed_to_unlock_folder"),
+          );
+
+          return false;
+        }
+
+        if (!verify_response.data.verified) {
           zero_uint8_array(encryption_key);
           set_error(t("errors.wrong_folder_password"));
 
@@ -286,7 +316,12 @@ export function use_protected_folder(
         const response = await set_folder_password(folder_id, data);
 
         if (response.error) {
-          throw new Error(response.error);
+          throw new Error(
+            describe_password_error(
+              response,
+              t("common.failed_to_set_folder_password"),
+            ),
+          );
         }
 
         register_unlock({
@@ -308,7 +343,9 @@ export function use_protected_folder(
         return true;
       } catch (err) {
         set_error(
-          err instanceof Error ? err.message : t("common.failed_to_set_folder_password"),
+          err instanceof Error
+            ? err.message
+            : t("common.failed_to_set_folder_password"),
         );
 
         return false;
@@ -316,7 +353,7 @@ export function use_protected_folder(
         set_is_loading(false);
       }
     },
-    [folder_id, folder, reset_timeout, t],
+    [folder_id, folder, reset_timeout, t, describe_password_error],
   );
 
   const change_password_fn = useCallback(
@@ -346,7 +383,12 @@ export function use_protected_folder(
         const response = await change_folder_password(folder_id, change_data);
 
         if (response.error) {
-          throw new Error(response.error);
+          throw new Error(
+            describe_password_error(
+              response,
+              t("common.failed_to_change_folder_password"),
+            ),
+          );
         }
 
         unlocked.password_salt = change_data.new_password_salt;
@@ -356,7 +398,9 @@ export function use_protected_folder(
         return true;
       } catch (err) {
         set_error(
-          err instanceof Error ? err.message : t("common.failed_to_change_folder_password"),
+          err instanceof Error
+            ? err.message
+            : t("common.failed_to_change_folder_password"),
         );
 
         return false;
@@ -364,7 +408,7 @@ export function use_protected_folder(
         set_is_loading(false);
       }
     },
-    [folder_id, reset_timeout, t],
+    [folder_id, reset_timeout, t, describe_password_error],
   );
 
   const remove_password_fn = useCallback(
@@ -395,7 +439,12 @@ export function use_protected_folder(
         });
 
         if (response.error) {
-          throw new Error(response.error);
+          throw new Error(
+            describe_password_error(
+              response,
+              t("common.failed_to_remove_folder_password"),
+            ),
+          );
         }
 
         clear_folder_timeout(folder_id);
@@ -408,7 +457,9 @@ export function use_protected_folder(
         return true;
       } catch (err) {
         set_error(
-          err instanceof Error ? err.message : t("common.failed_to_remove_folder_password"),
+          err instanceof Error
+            ? err.message
+            : t("common.failed_to_remove_folder_password"),
         );
 
         return false;
@@ -416,7 +467,7 @@ export function use_protected_folder(
         set_is_loading(false);
       }
     },
-    [folder_id, folder, t],
+    [folder_id, folder, t, describe_password_error],
   );
 
   const lock_folder = useCallback(() => {

@@ -109,6 +109,14 @@ export function ComposeWindow({
   });
 
   const resize_anchor_right_ref = useRef<number | null>(null);
+  const resize_cleanup_ref = useRef<(() => void) | null>(null);
+
+  useEffect(() => {
+    return () => {
+      resize_cleanup_ref.current?.();
+      resize_cleanup_ref.current = null;
+    };
+  }, []);
 
   const handle_resize_start = useCallback(
     (e: React.MouseEvent) => {
@@ -144,14 +152,20 @@ export function ComposeWindow({
         set_resize_state({ width: new_width, height: new_height });
       };
 
-      const handle_up = () => {
-        set_is_resizing(false);
+      const detach = () => {
         window.removeEventListener("mousemove", handle_move);
         window.removeEventListener("mouseup", handle_up);
+        resize_cleanup_ref.current = null;
       };
+
+      function handle_up() {
+        set_is_resizing(false);
+        detach();
+      }
 
       window.addEventListener("mousemove", handle_move);
       window.addEventListener("mouseup", handle_up);
+      resize_cleanup_ref.current = detach;
     },
     [effective_width, effective_height, has_been_moved, position],
   );
@@ -200,9 +214,16 @@ export function ComposeWindow({
 
   const schedule_picker = (
     <SchedulePicker
-      disabled={compose.recipients.to.length === 0}
+      disabled={
+        compose.recipients.to.length === 0 || compose.attachments.length > 0
+      }
       on_schedule={compose.set_scheduled_time}
       scheduled_time={compose.scheduled_time}
+      tooltip_key={
+        compose.attachments.length > 0
+          ? "common.scheduled_no_attachments"
+          : "mail.schedule_send"
+      }
     />
   );
 
@@ -227,7 +248,7 @@ export function ComposeWindow({
 
   const compose_with_pickers = {
     ...compose,
-    has_recipients: compose.recipients.to.length > 0,
+    has_recipients: compose.has_sendable_recipients,
     schedule_picker_element: schedule_picker,
     expiration_picker_element: expiration_picker,
     template_picker_element: template_picker,
@@ -331,7 +352,7 @@ export function ComposeWindow({
             onClick={handle_header_click}
             onMouseDown={handle_header_mouse_down}
           >
-            <h2 className="text-sm font-medium truncate flex-1 mr-2 text-txt-primary">
+            <h2 className="text-sm font-medium truncate flex-1 me-2 text-txt-primary">
               {window_title}
             </h2>
             <div
@@ -455,9 +476,7 @@ export function ComposeWindow({
                 <SignaturePicker
                   disabled={compose.is_scheduling}
                   on_select={(content) => {
-                    if (content) {
-                      compose.editor.insert_html(content);
-                    }
+                    compose.editor.apply_signature(content || null);
                   }}
                   open_direction="up"
                 />
@@ -487,11 +506,22 @@ export function ComposeWindow({
             title={t("common.remove_formatting")}
             variant="warning"
           />
+
+          <ConfirmationModal
+            cancel_text={t("common.cancel")}
+            confirm_text={t("mail.discard")}
+            is_open={compose.show_discard_confirm}
+            message={t("common.unsaved_changes_body")}
+            on_cancel={compose.cancel_discard_close}
+            on_confirm={compose.confirm_discard_close}
+            title={t("common.unsaved_changes_title")}
+            variant="danger"
+          />
         </ErrorBoundary>
         {shell_mode === "docked" && (
           <div
             aria-label={t("mail.resize_compose")}
-            className="hidden sm:block absolute bottom-0 left-0 w-4 h-4 cursor-nesw-resize z-10 touch-none"
+            className="hidden sm:block absolute bottom-0 start-0 w-4 h-4 cursor-nesw-resize z-10 touch-none"
             role="button"
             tabIndex={-1}
             onMouseDown={handle_resize_start}

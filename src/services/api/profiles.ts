@@ -18,9 +18,9 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { api_client } from "./client";
-
 import type { Badge } from "./user";
+
+import { api_client } from "./client";
 
 export interface PublicProfile {
   display_name?: string | null;
@@ -58,18 +58,25 @@ let flush_timer: ReturnType<typeof setTimeout> | null = null;
 
 export function is_aster_email(email: string): boolean {
   const at = email.lastIndexOf("@");
+
   if (at < 0) return false;
+
   return ASTER_DOMAINS.has(email.slice(at + 1).toLowerCase());
 }
 
-export function get_cached_peer_profile(email: string): PublicProfile | null | undefined {
+export function get_cached_peer_profile(
+  email: string,
+): PublicProfile | null | undefined {
   const key = email.trim().toLowerCase();
   const entry = cache.get(key);
+
   if (!entry) return undefined;
   if (entry.expires_at < Date.now()) {
     cache.delete(key);
+
     return undefined;
   }
+
   return entry.profile;
 }
 
@@ -94,8 +101,10 @@ async function flush_pending() {
 
   const emails = Array.from(pending.keys()).slice(0, MAX_BATCH);
   const resolvers_by_email: Map<string, PendingResolver[]> = new Map();
+
   for (const email of emails) {
     const list = pending.get(email);
+
     if (list) resolvers_by_email.set(email, list);
     pending.delete(email);
   }
@@ -107,14 +116,17 @@ async function flush_pending() {
     );
     const profiles = response.data?.profiles ?? {};
     const lookup_failed = !response.data;
+
     for (const email of emails) {
       const profile = profiles[email] ?? null;
+
       set_cache(
         email,
         profile,
         lookup_failed ? FAILED_LOOKUP_TTL_MS : CACHE_TTL_MS,
       );
       const resolvers = resolvers_by_email.get(email);
+
       if (resolvers) {
         for (const r of resolvers) r.resolve(profile);
       }
@@ -124,6 +136,7 @@ async function flush_pending() {
     for (const email of emails) {
       set_cache(email, null, FAILED_LOOKUP_TTL_MS);
       const resolvers = resolvers_by_email.get(email);
+
       if (resolvers) {
         for (const r of resolvers) r.resolve(null);
       }
@@ -136,19 +149,24 @@ async function flush_pending() {
   }
 }
 
-export function fetch_peer_profile(email: string): Promise<PublicProfile | null> {
+export function fetch_peer_profile(
+  email: string,
+): Promise<PublicProfile | null> {
   const key = email.trim().toLowerCase();
+
   if (!is_aster_email(key)) {
     return Promise.resolve(null);
   }
 
   const cached = get_cached_peer_profile(key);
+
   if (cached !== undefined) {
     return Promise.resolve(cached);
   }
 
   return new Promise((resolve) => {
     const list = pending.get(key) ?? [];
+
     list.push({ resolve });
     pending.set(key, list);
     if (!flush_timer) {
@@ -159,6 +177,7 @@ export function fetch_peer_profile(email: string): Promise<PublicProfile | null>
 
 export function subscribe_profile_updates(cb: () => void): () => void {
   subscribers.add(cb);
+
   return () => {
     subscribers.delete(cb);
   };

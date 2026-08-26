@@ -26,6 +26,8 @@ import type {
   DomainHealthSeverity,
 } from "@/services/api/domains";
 
+import { app_hour12, get_display_time_zone } from "@/utils/date_format";
+
 export interface HeroCopy {
   title_key: TranslationKey;
   body_key: TranslationKey;
@@ -128,6 +130,8 @@ export function format_checked_at(iso: string, locale: string): string {
 
   return parsed.toLocaleTimeString(locale, {
     hour: "numeric",
+    hour12: app_hour12(),
     minute: "2-digit",
+    timeZone: get_display_time_zone(),
   });
 }

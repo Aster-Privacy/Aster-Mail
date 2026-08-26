@@ -38,6 +38,10 @@ import {
   type ExternalAccountCredentials,
   type ExternalAccountFolder,
 } from "@/services/api/external_accounts";
+import {
+  list_oauth_folders,
+  type OAuthFolderInfo,
+} from "@/services/api/external_accounts/api";
 
 interface FormFields {
   form_email: string;
@@ -56,6 +60,8 @@ interface FormFields {
   form_connection_timeout: number;
   has_stored_password: boolean;
   has_stored_smtp_password: boolean;
+  is_oauth_account: boolean;
+  oauth_account_token: string | null;
 }
 
 interface SmtpEffective {
@@ -91,7 +97,6 @@ export function use_external_accounts_test(
   const [is_fetching_folders, set_is_fetching_folders] = useState(false);
   const [has_fetched_folders, set_has_fetched_folders] = useState(false);
 
-  const abort_ref = useRef<AbortController | null>(null);
   const is_mounted_ref = useRef(true);
 
   useEffect(() => {
@@ -102,16 +107,12 @@ export function use_external_accounts_test(
     };
   }, []);
 
-  useEffect(() => {
-    return () => {
-      if (abort_ref.current) {
-        abort_ref.current.abort();
-      }
-    };
-  }, []);
-
   const clear_test_results = useCallback(() => {
     set_test_result(null);
+    set_smtp_test_result(null);
+  }, []);
+
+  const clear_smtp_test_result = useCallback(() => {
     set_smtp_test_result(null);
   }, []);
 
@@ -155,29 +156,31 @@ export function use_external_accounts_test(
       }
     }
 
-    const sanitized_host = sanitize_hostname(fields.form_host);
+    if (!fields.is_oauth_account) {
+      const sanitized_host = sanitize_hostname(fields.form_host);
 
-    if (!sanitized_host) {
-      errors.push(t("settings.incoming_server_required"));
-    } else if (!HOSTNAME_REGEX.test(sanitized_host)) {
-      errors.push(t("settings.incoming_server_invalid"));
-    } else if (is_private_hostname(sanitized_host)) {
-      errors.push(t("settings.private_address_error"));
+      if (!sanitized_host) {
+        errors.push(t("settings.incoming_server_required"));
+      } else if (!HOSTNAME_REGEX.test(sanitized_host)) {
+        errors.push(t("settings.incoming_server_invalid"));
+      } else if (is_private_hostname(sanitized_host)) {
+        errors.push(t("settings.private_address_error"));
+      }
+
+      if (fields.form_port < 1 || fields.form_port > 65535) {
+        errors.push(t("settings.incoming_port_error"));
+      }
+
+      if (!fields.form_username.trim()) {
+        errors.push(t("settings.username_required"));
+      }
+
+      if (!fields.form_password.trim() && !fields.has_stored_password) {
+        errors.push(t("settings.password_required"));
+      }
     }
 
-    if (fields.form_port < 1 || fields.form_port > 65535) {
-      errors.push(t("settings.incoming_port_error"));
-    }
-
-    if (!fields.form_username.trim()) {
-      errors.push(t("settings.username_required"));
-    }
-
-    if (!fields.form_password.trim() && !fields.has_stored_password) {
-      errors.push(t("settings.password_required"));
-    }
-
-    if (!fields.smtp_same_as_incoming) {
+    if (!fields.is_oauth_account && !fields.smtp_same_as_incoming) {
       const sanitized_smtp_host = sanitize_hostname(fields.form_smtp_host);
 
       if (!sanitized_smtp_host) {
@@ -202,10 +205,7 @@ export function use_external_accounts_test(
       }
     }
 
-    if (
-      fields.form_label_color &&
-      !HEX_COLOR_REGEX.test(fields.form_label_color)
-    ) {
+    if (!HEX_COLOR_REGEX.test(fields.form_label_color)) {
       errors.push(t("settings.label_color_invalid"));
     }
 
@@ -224,6 +224,7 @@ export function use_external_accounts_test(
 
     return true;
   }, [
+    fields.is_oauth_account,
     fields.form_email,
     fields.form_host,
     fields.form_port,
@@ -242,12 +243,14 @@ export function use_external_accounts_test(
   ]);
 
   const handle_test_connection = useCallback(async () => {
-    if (
-      !fields.form_host.trim() ||
-      !fields.form_username.trim() ||
-      !fields.form_password.trim()
-    ) {
+    if (!fields.form_host.trim() || !fields.form_username.trim()) {
       show_toast(t("settings.fill_server_first"), "error");
+
+      return;
+    }
+
+    if (!fields.form_password.trim()) {
+      show_toast(t("settings.password_required"), "error");
 
       return;
     }
@@ -263,7 +266,6 @@ export function use_external_accounts_test(
     set_is_testing(true);
     set_test_result(null);
     set_smtp_test_result(null);
-    abort_ref.current = new AbortController();
 
     try {
       const credentials = build_credentials();
@@ -326,7 +328,6 @@ export function use_external_accounts_test(
     set_is_testing_smtp(true);
     set_smtp_test_result(null);
     set_test_result(null);
-    abort_ref.current = new AbortController();
 
     try {
       const result = await test_smtp_connection({
@@ -375,13 +376,71 @@ export function use_external_accounts_test(
     t,
   ]);
 
+  const fetch_oauth_folders = useCallback(
+    async (account_token: string) => {
+      set_is_fetching_folders(true);
+
+      try {
+        const result = await list_oauth_folders(account_token);
+
+        if (!is_mounted_ref.current) return;
+
+        if (result.data?.folders) {
+          const custom_folders = result.data.folders
+            .filter((f: OAuthFolderInfo) => !is_system_folder(f.name))
+            .map((f: OAuthFolderInfo) => ({
+              name: f.name,
+              path: f.name,
+              delimiter: f.delimiter,
+              message_count: 0,
+              unseen_count: 0,
+              hasChildren: false,
+              is_selectable: true,
+            }));
+
+          set_available_folders(custom_folders);
+          set_has_fetched_folders(true);
+        } else {
+          show_toast(
+            sanitize_display_text(
+              result.error || t("settings.failed_fetch_folders_external"),
+            ),
+            "error",
+          );
+        }
+      } catch (error) {
+        if (import.meta.env.DEV) console.error(error);
+        if (is_mounted_ref.current) {
+          show_toast(t("settings.failed_fetch_folders_external"), "error");
+        }
+      } finally {
+        if (is_mounted_ref.current) {
+          set_is_fetching_folders(false);
+        }
+      }
+    },
+    [t],
+  );
+
   const handle_fetch_folders = useCallback(async () => {
+    if (fields.oauth_account_token) {
+      await fetch_oauth_folders(fields.oauth_account_token);
+
+      return;
+    }
+
     const host = sanitize_hostname(fields.form_host.trim());
     const username = fields.form_username.trim();
     const password = fields.form_password;
 
-    if (!host || !username || !password) {
+    if (!host || !username) {
       show_toast(t("settings.fill_connection_first"), "error");
+
+      return;
+    }
+
+    if (!password) {
+      show_toast(t("settings.password_required"), "error");
 
       return;
     }
@@ -452,10 +511,6 @@ export function use_external_accounts_test(
     set_selected_folders(["INBOX"]);
     set_is_fetching_folders(false);
     set_has_fetched_folders(false);
-    if (abort_ref.current) {
-      abort_ref.current.abort();
-      abort_ref.current = null;
-    }
   }, []);
 
   return {
@@ -465,10 +520,12 @@ export function use_external_accounts_test(
     smtp_test_result,
     available_folders,
     selected_folders,
+    set_selected_folders,
     is_fetching_folders,
     has_fetched_folders,
     is_mounted_ref,
     clear_test_results,
+    clear_smtp_test_result,
     validate_form,
     handle_test_connection,
     handle_test_smtp,

@@ -132,6 +132,30 @@ jobs:
           args: ${{ matrix.args }}
           tauriScript: npm run tauri
 
+      - name: Unbundle host graphics libraries from the AppImage
+        # linuxdeploy copies libwayland-client.so.0 and friends into the AppDir.
+        # They shadow the host copies, Mesa's libEGL_mesa.so.0 then fails to
+        # resolve wl_fixes_interface on any distribution newer than the runner,
+        # and WebKitGTK aborts with EGL_BAD_PARAMETER before the window paints.
+        if: startsWith(matrix.leg, 'linux')
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get install -y squashfs-tools
+          V=$(node -p "require('./package.json').version")
+          TAG="v${V}"
+          shopt -s nullglob
+          for img in src-tauri/target/release/bundle/appimage/*.AppImage; do
+            bash scripts/fix_appimage_libs.sh "$img"
+            rm -f "$img.sig"
+            npm run tauri -- signer sign "$img"
+            gh release upload "$TAG" "$img" "$img.sig" --clobber
+          done
+
       - name: Rename assets to canonical names
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

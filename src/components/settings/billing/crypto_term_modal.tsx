@@ -258,8 +258,11 @@ export function crypto_term_modal({
   const handle_stripe = async () => {
     set_is_loading(true);
     try {
-      const is_tauri = typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
-      const origin = is_tauri ? "https://app.astermail.org" : window.location.origin;
+      const is_tauri =
+        typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+      const origin = is_tauri
+        ? "https://app.astermail.org"
+        : window.location.origin;
       const response = await create_crypto_checkout_session(
         plan_code,
         selected_term,
@@ -271,22 +274,24 @@ export function crypto_term_modal({
         if (is_tauri) {
           const safe_url = payment_url_or_throw(response.data.url);
           const core = await import("@tauri-apps/api/core");
+
           await core.invoke("open_external_url", { url: safe_url });
           on_checkout_opened?.();
           on_close();
         } else {
           window.location.href = payment_url_or_throw(response.data.url);
         }
+
         return;
       }
       show_toast(
         server_error_text(response.error, t("settings.failed_checkout")),
         "error",
       );
+      set_is_loading(false);
     } catch (error) {
       if (import.meta.env.DEV) console.error(error);
       show_toast(t("settings.failed_checkout"), "error");
-    } finally {
       set_is_loading(false);
     }
   };
@@ -321,14 +326,17 @@ export function crypto_term_modal({
         notify_crypto_invoice_changed();
         on_close();
         navigate(`/crypto-invoice/${response.data.id}`);
+
         return;
       }
       if (response.code === "CONFLICT") {
         show_toast(t("settings.crypto_native_too_many_open"), "error");
+
         return;
       }
       if (response.code === "RATE_LIMIT_EXCEEDED") {
         show_toast(t("settings.crypto_native_daily_limit"), "error");
+
         return;
       }
       show_toast(
@@ -354,7 +362,7 @@ export function crypto_term_modal({
   const busy = is_loading || creating_key !== null;
 
   return (
-    <Modal is_open={is_open} on_close={on_close} show_close_button size="md">
+    <Modal show_close_button is_open={is_open} on_close={on_close} size="md">
       {step === "term" ? (
         <>
           <ModalHeader>
@@ -378,7 +386,7 @@ export function crypto_term_modal({
                       term_button_refs.current[index] = element;
                     }}
                     aria-checked={is_selected}
-                    className={`w-full flex items-center justify-between gap-3 rounded-[14px] border p-3.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] disabled:opacity-60 disabled:cursor-not-allowed ${
+                    className={`w-full flex items-center justify-between gap-3 rounded-[14px] border p-3.5 text-start transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] disabled:opacity-60 disabled:cursor-not-allowed ${
                       is_selected
                         ? "bg-brand border-brand"
                         : "bg-surf-tertiary border-edge-secondary hover:bg-surf-hover hover:border-edge-primary"
@@ -392,13 +400,21 @@ export function crypto_term_modal({
                   >
                     <span
                       className="text-sm font-medium"
-                      style={{ color: is_selected ? "var(--accent-fg, #ffffff)" : "var(--text-primary)" }}
+                      style={{
+                        color: is_selected
+                          ? "var(--accent-fg, #ffffff)"
+                          : "var(--text-primary)",
+                      }}
                     >
                       {term_label(term)}
                     </span>
                     <span
                       className="text-sm font-semibold"
-                      style={{ color: is_selected ? "var(--accent-fg, #ffffff)" : "var(--text-primary)" }}
+                      style={{
+                        color: is_selected
+                          ? "var(--accent-fg, #ffffff)"
+                          : "var(--text-primary)",
+                      }}
                     >
                       {t("settings.crypto_modal_price", {
                         amount: format_price(price, CHARGE_CURRENCY),
@@ -414,12 +430,22 @@ export function crypto_term_modal({
             <p className="mt-2 text-xs leading-relaxed text-txt-muted">
               {t("settings.crypto_rate_notice")}
             </p>
+            <div
+              className="mt-3 rounded-[14px] border border-edge-secondary bg-surf-tertiary p-3.5 text-xs leading-relaxed text-txt-secondary"
+              role="note"
+            >
+              {t("settings.crypto_exchange_warning")}
+            </div>
           </ModalBody>
           <ModalFooter>
             <Button disabled={is_loading} variant="outline" onClick={on_close}>
               {t("common.cancel")}
             </Button>
-            <Button disabled={is_loading} variant="primary" onClick={advance_to_method}>
+            <Button
+              disabled={is_loading}
+              variant="primary"
+              onClick={advance_to_method}
+            >
               {native_supported
                 ? t("settings.crypto_native_continue")
                 : t("settings.crypto_modal_confirm")}
@@ -438,7 +464,9 @@ export function crypto_term_modal({
             {coins_status === "loading" ? (
               <div className="flex items-center justify-center gap-3 py-8 text-txt-secondary">
                 <Spinner size="md" />
-                <span className="text-sm">{t("settings.crypto_native_loading_coins")}</span>
+                <span className="text-sm">
+                  {t("settings.crypto_native_loading_coins")}
+                </span>
               </div>
             ) : (
               <div className="space-y-2">
@@ -475,7 +503,7 @@ export function crypto_term_modal({
                   return (
                     <button
                       key={key}
-                      className={`w-full flex items-center justify-between gap-3 rounded-[14px] border p-3.5 text-left transition-colors bg-surf-tertiary hover:bg-surf-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] disabled:opacity-60 ${
+                      className={`w-full flex items-center justify-between gap-3 rounded-[14px] border p-3.5 text-start transition-colors bg-surf-tertiary hover:bg-surf-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] disabled:opacity-60 ${
                         is_restored || coin.recommended
                           ? "border-brand"
                           : "border-edge-secondary hover:border-edge-primary"
@@ -543,17 +571,13 @@ export function crypto_term_modal({
                 </details>
 
                 <button
-                  className="w-full flex items-center justify-between gap-3 rounded-[14px] border border-edge-secondary p-3.5 text-left transition-colors bg-surf-tertiary hover:bg-surf-hover hover:border-edge-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] disabled:opacity-60"
+                  className="w-full flex items-center justify-between gap-3 rounded-[14px] border border-edge-secondary p-3.5 text-start transition-colors bg-surf-tertiary hover:bg-surf-hover hover:border-edge-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] disabled:opacity-60"
                   disabled={busy}
                   type="button"
                   onClick={handle_stripe}
                 >
                   <span className="flex items-center gap-3 min-w-0">
-                    <CoinIcon
-                      chain="generic"
-                      currency="stable"
-                      size={32}
-                    />
+                    <CoinIcon chain="generic" currency="stable" size={32} />
                     <span className="flex flex-col min-w-0">
                       <span className="text-sm font-medium text-txt-primary truncate">
                         {t("settings.crypto_native_stripe_option")}
@@ -573,7 +597,11 @@ export function crypto_term_modal({
             )}
           </ModalBody>
           <ModalFooter>
-            <Button disabled={busy} variant="outline" onClick={() => set_step("term")}>
+            <Button
+              disabled={busy}
+              variant="outline"
+              onClick={() => set_step("term")}
+            >
               {t("common.back")}
             </Button>
           </ModalFooter>

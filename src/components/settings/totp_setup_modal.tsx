@@ -19,8 +19,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useState, useCallback, useEffect, useRef } from "react";
+import { trigger_download } from "@/utils/download_blob";
 import { motion, AnimatePresence } from "framer-motion";
-import { RoundedQrCode } from "@/components/ui/rounded_qr_code";
 import {
   ClipboardDocumentIcon,
   ShieldCheckIcon,
@@ -30,6 +30,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
+import { RoundedQrCode } from "@/components/ui/rounded_qr_code";
 import { show_toast } from "@/components/toast/simple_toast";
 import {
   Modal,
@@ -48,6 +49,7 @@ import {
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
 import mail_logo_url from "@/assets/mail_logo.webp";
+import { copy_text } from "@/utils/copy_text";
 
 interface TotpSetupModalProps {
   is_open: boolean;
@@ -147,18 +149,27 @@ export function TotpSetupModal({
 
   const copy_secret = async () => {
     if (!setup_data) return;
-    await navigator.clipboard.writeText(setup_data.secret);
-    show_toast(t("common.copied_to_clipboard"), "success");
+    if (await copy_text(setup_data.secret)) {
+      show_toast(t("common.copied_to_clipboard"), "success");
+    } else {
+      show_toast(t("common.failed_to_copy"), "error");
+    }
   };
 
   const copy_single_code = async (code: string) => {
-    await navigator.clipboard.writeText(code);
-    show_toast(t("common.copied_to_clipboard"), "success");
+    if (await copy_text(code)) {
+      show_toast(t("common.copied_to_clipboard"), "success");
+    } else {
+      show_toast(t("common.failed_to_copy"), "error");
+    }
   };
 
   const copy_backup_codes = async () => {
-    await navigator.clipboard.writeText(backup_codes.join("\n"));
-    show_toast(t("common.copied_to_clipboard"), "success");
+    if (await copy_text(backup_codes.join("\n"))) {
+      show_toast(t("common.copied_to_clipboard"), "success");
+    } else {
+      show_toast(t("common.failed_to_copy"), "error");
+    }
   };
 
   const handle_done = () => {
@@ -248,16 +259,14 @@ export function TotpSetupModal({
                 onComplete={handle_verify}
               />
               {error && (
-                <p className="text-sm text-center text-red-500 mt-2">
-                  {error}
-                </p>
+                <p className="text-sm text-center text-red-500 mt-2">{error}</p>
               )}
             </div>
           </div>
         ) : null}
       </ModalBody>
       <ModalFooter>
-        <Button variant="outline" onClick={on_close}>
+        <Button variant="outline" onClick={handle_modal_close}>
           {t("common.cancel")}
         </Button>
         <Button
@@ -300,24 +309,19 @@ export function TotpSetupModal({
           </div>
           <div className="flex justify-center gap-2">
             <Button variant="secondary" onClick={copy_backup_codes}>
-              <ClipboardDocumentIcon className="w-4 h-4 mr-2" />
+              <ClipboardDocumentIcon className="w-4 h-4 me-2" />
               {t("settings.copy_all_codes")}
             </Button>
             <Button
               variant="secondary"
               onClick={() => {
-                const content = backup_codes.join("\n");
-                const blob = new Blob([content], { type: "text/plain" });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement("a");
-
-                a.href = url;
-                a.download = "aster-backup-codes.txt";
-                a.click();
-                URL.revokeObjectURL(url);
+                trigger_download(
+                  new Blob([backup_codes.join("\n")], { type: "text/plain" }),
+                  "aster-backup-codes.txt",
+                );
               }}
             >
-              <ArrowDownTrayIcon className="w-4 h-4 mr-2" />
+              <ArrowDownTrayIcon className="w-4 h-4 me-2" />
               {t("common.download")}
             </Button>
           </div>
@@ -349,9 +353,11 @@ export function TotpSetupModal({
   return (
     <>
       <Modal
+        close_on_escape={step === "setup"}
         close_on_overlay={false}
         is_open={is_open}
         on_close={handle_modal_close}
+        show_close_button={step === "setup"}
         size="md"
       >
         <AnimatePresence mode="wait">

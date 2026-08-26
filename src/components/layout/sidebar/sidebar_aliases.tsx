@@ -138,7 +138,7 @@ export const SidebarAliases = memo(function SidebarAliases({
               onClick={on_toggle_section}
             >
               {section_collapsed ? (
-                <ChevronRightIcon className="w-3 h-3" />
+                <ChevronRightIcon className="w-3 h-3 rtl:-scale-x-100" />
               ) : (
                 <ChevronDownIcon className="w-3 h-3" />
               )}
@@ -190,6 +190,7 @@ export const SidebarAliases = memo(function SidebarAliases({
                     alias_refs.current[alias.full_address] = el;
                   }}
                   className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-[12px] ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px]  ${effective_selected === alias_item_id ? "sidebar-active" : ""} ${is_collapsed && effective_selected === alias_item_id ? "sidebar-selected" : ""}`}
+                  data-rail-tip={is_collapsed ? alias.full_address : undefined}
                   style={{
                     zIndex: 1,
                     color:
@@ -201,7 +202,6 @@ export const SidebarAliases = memo(function SidebarAliases({
                         ? "var(--indicator-bg)"
                         : undefined,
                   }}
-                  data-rail-tip={is_collapsed ? alias.full_address : undefined}
                   onClick={() =>
                     handle_nav_click(() => {
                       set_selected_item(alias_item_id);
@@ -224,7 +224,7 @@ export const SidebarAliases = memo(function SidebarAliases({
                   )}
                   {!is_collapsed && (
                     <>
-                      <span className="flex-1 text-left truncate leading-5">
+                      <span className="flex-1 text-start truncate leading-5">
                         {alias.full_address}
                       </span>
                       <CountBadge

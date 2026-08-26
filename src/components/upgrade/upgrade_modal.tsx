@@ -32,6 +32,7 @@ import {
   ModalDescription,
 } from "@/components/ui/modal";
 import { Progress } from "@/components/ui/progress";
+import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { Spinner } from "@/components/ui/spinner";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
@@ -52,6 +53,7 @@ import {
 } from "@/components/settings/billing/billing_constants";
 import { use_currency_rates } from "@/components/settings/billing/use_currency_rates";
 import { PlanCard, Segmented } from "@/components/settings/billing/plan_card";
+import { format_bytes } from "@/lib/utils";
 import {
   close_upgrade_modal,
   show_plan_limit_upgrade,
@@ -136,20 +138,6 @@ function yearly_savings_percent(tier: PlanTier): number {
   return Math.round(((full - tier.yearly_cents) / full) * 100);
 }
 
-function format_bytes(bytes: number) {
-  if (!Number.isFinite(bytes) || bytes <= 0) return "0 B";
-  const units = ["B", "KB", "MB", "GB", "TB"];
-  let value = bytes;
-  let unit_index = 0;
-
-  while (value >= 1024 && unit_index < units.length - 1) {
-    value /= 1024;
-    unit_index++;
-  }
-
-  return `${value.toFixed(value >= 10 || unit_index === 0 ? 0 : 1)} ${units[unit_index]}`;
-}
-
 function is_desktop(): boolean {
   return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
 }
@@ -157,7 +145,7 @@ function is_desktop(): boolean {
 export function UpgradeModal() {
   const { t } = use_i18n();
   const state = use_upgrade_state();
-  const { limits, refresh } = use_plan_limits();
+  const { limits, is_loading: is_loading_limits, refresh } = use_plan_limits();
   const [currency, set_currency] = useState("usd");
   const [interval, set_interval] = useState<"month" | "year">("year");
   const [selected_id, set_selected_id] = useState<string | null>(null);
@@ -302,6 +290,13 @@ export function UpgradeModal() {
   const handle_upgrade = async (tier: PlanTier) => {
     if (is_starting) return;
 
+    if (!limits) {
+      show_toast(t("common.something_went_wrong_try_again"), "error");
+      void refresh();
+
+      return;
+    }
+
     set_selected_id(tier.id);
 
     set_is_starting(true);
@@ -340,11 +335,7 @@ export function UpgradeModal() {
         return;
       }
 
-      const result = await start_hosted_checkout(
-        tier.id,
-        interval,
-        currency,
-      );
+      const result = await start_hosted_checkout(tier.id, interval, currency);
 
       if (!result.ok) {
         show_toast(
@@ -356,6 +347,8 @@ export function UpgradeModal() {
         pending_desktop_checkout_ref.current = true;
         set_is_starting(false);
       }
+
+      set_is_starting(false);
     } catch {
       show_toast(t("settings.failed_checkout"), "error");
       set_is_starting(false);
@@ -383,6 +376,8 @@ export function UpgradeModal() {
       );
     });
   };
+
+  const limits_failed = !is_loading_limits && !limits;
 
   const storage = limits?.storage ?? null;
   const storage_percentage = storage
@@ -448,7 +443,7 @@ export function UpgradeModal() {
                   style={{ color: "var(--destructive)" }}
                 >
                   {t("settings.storage_locked_bounce_warning", {
-                    days: String(storage.days_until_permanent_bounce),
+                    days: storage.days_until_permanent_bounce,
                   })}
                 </p>
               )}
@@ -470,7 +465,7 @@ export function UpgradeModal() {
                 }}
               >
                 {t("settings.usage_of", {
-                  current: String(limit_info.current),
+                  current: limit_info.current,
                   limit:
                     limit_info.limit === -1
                       ? t("settings.usage_unlimited")
@@ -489,11 +484,17 @@ export function UpgradeModal() {
           </div>
         ) : null}
 
-        {tiers.length > 0 && (
+        {limits_failed ? (
+          <LoadFailedNotice on_retry={() => void refresh(true)} />
+        ) : null}
+
+        {!limits_failed && tiers.length > 0 && (
           <>
             <div className="flex items-center justify-center">
               <Segmented
-                on_change={(v) => set_interval(v === "yearly" ? "year" : "month")}
+                on_change={(v) =>
+                  set_interval(v === "yearly" ? "year" : "month")
+                }
                 options={[
                   { id: "monthly", label: t("settings.billing_monthly") },
                   {
@@ -502,7 +503,7 @@ export function UpgradeModal() {
                     badge:
                       savings_percent > 0
                         ? t("settings.save_percent", {
-                            percent: String(savings_percent),
+                            percent: savings_percent,
                           })
                         : undefined,
                   },
@@ -511,14 +512,16 @@ export function UpgradeModal() {
               />
             </div>
 
-            <div className={`grid gap-4 pt-3 ${GRID_COLUMNS[tiers.length] ?? "sm:grid-cols-3"}`}>
+            <div
+              className={`grid gap-4 pt-3 ${GRID_COLUMNS[tiers.length] ?? "sm:grid-cols-3"}`}
+            >
               {tiers.map((tier) => {
                 const is_required = required_tier?.id === tier.id;
 
                 return (
                   <PlanCard
-                    compact
                     key={tier.id}
+                    compact
                     anchor_label={
                       interval === "year"
                         ? format_price(
@@ -537,17 +540,19 @@ export function UpgradeModal() {
                     billed_note={
                       interval === "year" ? t("settings.billed_annually") : null
                     }
-                    cta_disabled={is_starting}
+                    cta_disabled={is_starting || is_loading_limits || !limits}
                     cta_label={t("settings.get_plan", { name: tier.name })}
                     description={null}
-                    featured={is_required || (!required_tier && !!tier.is_recommended)}
+                    featured={
+                      is_required || (!required_tier && !!tier.is_recommended)
+                    }
                     features={tier_features(tier)}
                     is_current={false}
                     name={tier.name}
+                    on_cta={() => handle_upgrade(tier)}
                     period_label={t("settings.per_month_short")}
                     price_label={price_label(tier)}
                     save_label={null}
-                    on_cta={() => handle_upgrade(tier)}
                   />
                 );
               })}
@@ -561,7 +566,7 @@ export function UpgradeModal() {
           </>
         )}
 
-        {tiers.length === 0 && (
+        {!limits_failed && tiers.length === 0 && (
           <ul className="space-y-2.5 text-[13px] text-txt-secondary">
             {[
               t("settings.upgrade_perk_storage"),

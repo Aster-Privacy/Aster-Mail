@@ -30,6 +30,7 @@ import {
   write_dev_mode_cache,
 } from "@/lib/dev_mode_cache";
 import { show_toast } from "@/components/toast/simple_toast";
+import { open_external } from "@/utils/open_link";
 
 function DevInfoRow({ label, value }: { label: string; value: string }) {
   return (
@@ -37,7 +38,7 @@ function DevInfoRow({ label, value }: { label: string; value: string }) {
       <span className="text-[13px] text-[var(--mobile-text-muted)]">
         {label}
       </span>
-      <span className="text-[13px] font-mono text-[var(--mobile-text-primary)] max-w-[60%] truncate text-right">
+      <span className="text-[13px] font-mono text-[var(--mobile-text-primary)] max-w-[60%] truncate text-end">
         {value}
       </span>
     </div>
@@ -61,13 +62,20 @@ export function AboutSection({
   const [dev_loading, set_dev_loading] = useState(true);
 
   useEffect(() => {
+    let cancelled = false;
+
     const load = async () => {
       const { get_dev_mode } = await import("@/services/api/preferences");
       const { get_vault_from_memory } = await import(
         "@/services/crypto/memory_key_store"
       );
+
+      if (cancelled) return;
+
       const vault = get_vault_from_memory();
       const result = await get_dev_mode(vault);
+
+      if (cancelled) return;
 
       if (result.data !== null) {
         set_dev_mode(result.data);
@@ -78,6 +86,10 @@ export function AboutSection({
     };
 
     load();
+
+    return () => {
+      cancelled = true;
+    };
   }, [current_account_id]);
 
   const handle_build_tap = useCallback(async () => {
@@ -93,7 +105,13 @@ export function AboutSection({
       const vault = get_vault_from_memory();
 
       if (!vault) return;
-      await save_dev_mode(true, vault);
+      const saved = await save_dev_mode(true, vault);
+
+      if (!saved.data.success) {
+        show_toast(t("common.something_went_wrong_try_again"), "error");
+
+        return;
+      }
       set_dev_mode(true);
       write_dev_mode_cache(current_account_id, true);
       window.dispatchEvent(
@@ -105,7 +123,7 @@ export function AboutSection({
 
       if (tap_count_ref.current >= 3) {
         show_toast(
-          t("common.taps_to_developer_mode", { count: String(remaining) }),
+          t("common.taps_to_developer_mode", { count: remaining }),
           "info",
         );
       }
@@ -113,7 +131,7 @@ export function AboutSection({
         tap_count_ref.current = 0;
       }, 2000);
     }
-  }, [dev_mode, current_account_id]);
+  }, [dev_mode, current_account_id, t]);
 
   const handle_disable_dev_mode = useCallback(async () => {
     const { save_dev_mode } = await import("@/services/api/preferences");
@@ -123,14 +141,20 @@ export function AboutSection({
     const vault = get_vault_from_memory();
 
     if (!vault) return;
-    await save_dev_mode(false, vault);
+    const saved = await save_dev_mode(false, vault);
+
+    if (!saved.data.success) {
+      show_toast(t("common.something_went_wrong_try_again"), "error");
+
+      return;
+    }
     set_dev_mode(false);
     write_dev_mode_cache(current_account_id, false);
     window.dispatchEvent(
       new CustomEvent("dev-mode-changed", { detail: false }),
     );
     show_toast(t("common.developer_mode_disabled"), "info");
-  }, [current_account_id]);
+  }, [current_account_id, t]);
 
   return (
     <div className="flex h-full flex-col">
@@ -145,30 +169,22 @@ export function AboutSection({
             icon={<InformationCircleIcon className="h-4 w-4" />}
             label={t("settings.build")}
             on_press={handle_build_tap}
-            value={dev_mode ? `1.0.0 (${import.meta.env.MODE})` : "1.0.0"}
+            value={
+              dev_mode
+                ? `${__APP_VERSION__} (${import.meta.env.MODE})`
+                : __APP_VERSION__
+            }
           />
         </SettingsGroup>
 
         <SettingsGroup>
           <SettingsRow
             label={t("auth.privacy_policy")}
-            on_press={() =>
-              window.open(
-                "https://astermail.org/privacy",
-                "_blank",
-                "noopener,noreferrer",
-              )
-            }
+            on_press={() => open_external("https://astermail.org/privacy")}
           />
           <SettingsRow
             label={t("auth.terms_of_service")}
-            on_press={() =>
-              window.open(
-                "https://astermail.org/terms",
-                "_blank",
-                "noopener,noreferrer",
-              )
-            }
+            on_press={() => open_external("https://astermail.org/terms")}
           />
         </SettingsGroup>
 

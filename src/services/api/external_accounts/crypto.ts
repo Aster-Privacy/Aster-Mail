@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { HASH_ALG } from "@/services/crypto/constants";
+
 import type { ExternalAccountData } from "./types";
 import type { TranslationKey } from "@/lib/i18n/types";
 
@@ -180,6 +181,7 @@ export async function decrypt_account_data(
 
   try {
     const buffer = await decrypt_aes_gcm_with_fallback(key, ciphertext, nonce);
+
     decrypted = new Uint8Array(buffer);
   } catch {
     throw new ExternalAccountPasswordError();

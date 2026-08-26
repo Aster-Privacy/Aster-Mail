@@ -58,7 +58,7 @@ export function SuspensionBanner() {
     return () => {
       window.removeEventListener("aster:account-suspended", handle_suspension);
     };
-  }, [handle_suspension]);
+  }, [handle_suspension, t]);
 
   if (!is_visible) {
     return null;

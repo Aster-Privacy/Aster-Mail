@@ -116,8 +116,11 @@ export function crypto_addon_term_modal({
   const handle_confirm = async () => {
     set_is_loading(true);
     try {
-      const is_tauri = typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
-      const origin = is_tauri ? "https://app.astermail.org" : window.location.origin;
+      const is_tauri =
+        typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+      const origin = is_tauri
+        ? "https://app.astermail.org"
+        : window.location.origin;
       const response = await purchase_storage_addon_crypto(
         addon_id,
         selected_term,
@@ -129,28 +132,30 @@ export function crypto_addon_term_modal({
         if (is_tauri) {
           const safe_url = payment_url_or_throw(response.data.url);
           const core = await import("@tauri-apps/api/core");
+
           await core.invoke("open_external_url", { url: safe_url });
           on_checkout_opened?.();
           on_close();
         } else {
           window.location.href = payment_url_or_throw(response.data.url);
         }
+
         return;
       }
       show_toast(
         server_error_text(response.error, t("settings.failed_checkout")),
         "error",
       );
+      set_is_loading(false);
     } catch (error) {
       if (import.meta.env.DEV) console.error(error);
       show_toast(t("settings.failed_checkout"), "error");
-    } finally {
       set_is_loading(false);
     }
   };
 
   return (
-    <Modal is_open={is_open} on_close={on_close} show_close_button size="md">
+    <Modal show_close_button is_open={is_open} on_close={on_close} size="md">
       <ModalHeader>
         <ModalTitle>{t("settings.crypto_modal_title")}</ModalTitle>
         <ModalDescription>{addon_name}</ModalDescription>
@@ -172,7 +177,7 @@ export function crypto_addon_term_modal({
                   term_button_refs.current[index] = element;
                 }}
                 aria-checked={is_selected}
-                className={`w-full flex items-center justify-between gap-3 rounded-[14px] border p-3.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] disabled:opacity-60 disabled:cursor-not-allowed ${
+                className={`w-full flex items-center justify-between gap-3 rounded-[14px] border p-3.5 text-start transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] disabled:opacity-60 disabled:cursor-not-allowed ${
                   is_selected
                     ? "bg-brand border-brand"
                     : "bg-surf-tertiary border-edge-secondary hover:bg-surf-hover hover:border-edge-primary"
@@ -186,13 +191,21 @@ export function crypto_addon_term_modal({
               >
                 <span
                   className="text-sm font-medium"
-                  style={{ color: is_selected ? "var(--accent-fg, #ffffff)" : "var(--text-primary)" }}
+                  style={{
+                    color: is_selected
+                      ? "var(--accent-fg, #ffffff)"
+                      : "var(--text-primary)",
+                  }}
                 >
                   {term_label(term)}
                 </span>
                 <span
                   className="text-sm font-semibold"
-                  style={{ color: is_selected ? "var(--accent-fg, #ffffff)" : "var(--text-primary)" }}
+                  style={{
+                    color: is_selected
+                      ? "var(--accent-fg, #ffffff)"
+                      : "var(--text-primary)",
+                  }}
                 >
                   {t("settings.crypto_modal_price", {
                     amount: format_price(price, CHARGE_CURRENCY),
@@ -205,12 +218,22 @@ export function crypto_addon_term_modal({
         <p className="mt-3 text-xs text-txt-muted">
           {t("settings.crypto_charged_in_usd")}
         </p>
+        <div
+          className="mt-3 rounded-[14px] border border-edge-secondary bg-surf-tertiary p-3.5 text-xs leading-relaxed text-txt-secondary"
+          role="note"
+        >
+          {t("settings.crypto_exchange_warning")}
+        </div>
       </ModalBody>
       <ModalFooter>
         <Button disabled={is_loading} variant="outline" onClick={on_close}>
           {t("common.cancel")}
         </Button>
-        <Button disabled={is_loading} variant="primary" onClick={handle_confirm}>
+        <Button
+          disabled={is_loading}
+          variant="primary"
+          onClick={handle_confirm}
+        >
           {t("settings.crypto_modal_confirm")}
         </Button>
       </ModalFooter>

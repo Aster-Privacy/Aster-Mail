@@ -19,13 +19,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { UserPreferences } from "@/services/api/preferences";
-import { DEFAULT_PREFERENCES } from "@/services/api/preferences";
-import { en } from "@/lib/i18n/translations/en";
-import { is_any_lockdown_active } from "@/services/lockdown_store";
 
+import { DEFAULT_PREFERENCES } from "@/services/api/preferences";
+import { get_active_translations } from "@/lib/i18n/translations";
+import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { ignore_error } from "@/lib/ignore_error";
 
-export type NotificationType = "new_email" | "reply" | "mention";
+export type NotificationType = "new_email" | "reply";
 
 interface NotificationOptions {
   title: string;
@@ -146,7 +146,11 @@ function is_within_quiet_hours(preferences: UserPreferences): boolean {
   const start_minutes = start.hours * 60 + start.minutes;
   const end_minutes = end.hours * 60 + end.minutes;
 
-  if (start_minutes <= end_minutes) {
+  if (start_minutes === end_minutes) {
+    return true;
+  }
+
+  if (start_minutes < end_minutes) {
     return current_minutes >= start_minutes && current_minutes < end_minutes;
   }
 
@@ -170,8 +174,6 @@ function should_notify(
       return preferences.notify_new_email;
     case "reply":
       return preferences.notify_replies;
-    case "mention":
-      return preferences.notify_mentions;
     default:
       return false;
   }
@@ -188,7 +190,7 @@ export async function show_notification(
   }
 
   const display_title = lockdown_active
-    ? en.settings.lockdown_notification_generic
+    ? get_active_translations().settings.lockdown_notification_generic
     : options.title;
   const display_body = lockdown_active ? "" : options.body;
 
@@ -332,7 +334,10 @@ export function notify_new_email(
   return show_notification(
     "new_email",
     {
-      title: en.mail.notification_new_email.replace("{{ sender }}", sender),
+      title: get_active_translations().mail.notification_new_email.replace(
+        "{{ sender }}",
+        sender,
+      ),
       body: subject,
       tag: `email-${email_id}`,
       data: { email_id },
@@ -351,28 +356,12 @@ export function notify_reply(
   return show_notification(
     "reply",
     {
-      title: en.mail.notification_reply.replace("{{ sender }}", sender),
+      title: get_active_translations().mail.notification_reply.replace(
+        "{{ sender }}",
+        sender,
+      ),
       body: subject,
       tag: `reply-${email_id}`,
-      data: { email_id },
-    },
-    preferences,
-    is_any_lockdown_active(),
-  );
-}
-
-export function notify_mention(
-  sender: string,
-  subject: string,
-  email_id: string,
-  preferences: UserPreferences,
-): Promise<Notification | null> {
-  return show_notification(
-    "mention",
-    {
-      title: en.mail.notification_mention.replace("{{ sender }}", sender),
-      body: subject,
-      tag: `mention-${email_id}`,
       data: { email_id },
     },
     preferences,

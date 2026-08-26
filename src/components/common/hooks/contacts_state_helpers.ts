@@ -32,7 +32,46 @@ export type ViewMode = "list" | "compact";
 
 export const BATCH_SIZE = 10;
 
-export function contact_to_form_data(contact: DecryptedContact): ContactFormData {
+export function reconcile_entry_fields(form: ContactFormData): ContactFormData {
+  const next: ContactFormData = { ...form };
+  const email_entries = form.email_entries;
+
+  if (email_entries) {
+    next.email_entries = form.emails.map((value, index) => ({
+      value,
+      type:
+        email_entries.find((entry) => entry.value === value)?.type ??
+        email_entries[index]?.type ??
+        "other",
+    }));
+  }
+
+  const phone_entries = form.phone_entries;
+
+  if (phone_entries) {
+    const phone = (form.phone ?? "").trim();
+    const rest = phone_entries.slice(1);
+
+    next.phone_entries = phone
+      ? [{ value: phone, type: phone_entries[0]?.type ?? "mobile" }, ...rest]
+      : rest;
+  }
+
+  const address_entries = form.address_entries;
+
+  if (address_entries && form.address) {
+    next.address_entries = [
+      { ...form.address, type: address_entries[0]?.type ?? "home" },
+      ...address_entries.slice(1),
+    ];
+  }
+
+  return next;
+}
+
+export function contact_to_form_data(
+  contact: DecryptedContact,
+): ContactFormData {
   const {
     id: _id,
     created_at: _created_at,

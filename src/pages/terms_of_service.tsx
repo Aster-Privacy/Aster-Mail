@@ -22,8 +22,8 @@ import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ChevronLeftIcon } from "@heroicons/react/20/solid";
-import { use_i18n } from "@/lib/i18n/context";
 
+import { use_i18n } from "@/lib/i18n/context";
 import {
   BACK_BUTTON_CLASS,
   BACK_BUTTON_STYLE,
@@ -120,12 +120,12 @@ export default function TermsOfServicePage() {
       <div className="max-w-3xl mx-auto px-6 py-12 pb-16">
         <div className="relative flex items-center justify-center mb-8">
           <motion.button
-            className={`${BACK_BUTTON_CLASS} absolute left-0`}
+            className={`${BACK_BUTTON_CLASS} absolute start-0`}
             style={BACK_BUTTON_STYLE}
             type="button"
             onClick={() => navigate(-1)}
           >
-            <ChevronLeftIcon className="h-5 w-5" />
+            <ChevronLeftIcon className="h-5 w-5 rtl:-scale-x-100" />
           </motion.button>
           <Link className="flex-shrink-0" to="/register">
             <img

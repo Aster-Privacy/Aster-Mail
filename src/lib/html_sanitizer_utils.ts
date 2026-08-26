@@ -28,11 +28,15 @@ import {
 } from "./html_sanitizer_constants";
 import { sanitize_style } from "./html_sanitizer_css";
 
+const LOCAL_IMAGE_SOURCE_PATTERN = /^\s*(?:cid:|data:|blob:|aster:)/i;
+
 export const is_tracking_pixel = (img: HTMLImageElement): boolean => {
   const width = img.getAttribute("width");
   const height = img.getAttribute("height");
   const style = img.getAttribute("style") || "";
   const src = img.getAttribute("src") || "";
+
+  if (LOCAL_IMAGE_SOURCE_PATTERN.test(src)) return false;
 
   if ((width === "1" || width === "0") && (height === "1" || height === "0"))
     return true;
@@ -51,20 +55,72 @@ export const is_tracking_pixel = (img: HTMLImageElement): boolean => {
   )
     return true;
 
-  if (src && TRACKING_PIXEL_URL_PATTERNS.some((p) => p.test(src))) return true;
-
   if (
     src &&
-    !width &&
-    !height &&
-    !style &&
-    !img.getAttribute("alt") &&
-    !img.getAttribute("class")
+    !looks_like_content_image(img) &&
+    TRACKING_PIXEL_URL_PATTERNS.some((p) => p.test(src))
   )
     return true;
 
   return false;
 };
+
+const MAX_PIXEL_DIMENSION = 4;
+
+function declared_dimension(value: string | null): number | null {
+  if (!value) return null;
+
+  const parsed = Number.parseInt(value.trim(), 10);
+
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function style_dimension(style: string, property: string): number | null {
+  const pattern = new RegExp(
+    "(?:^|[;{\\s])" +
+      property +
+      "\\s*:\\s*([0-9]+(?:\\.[0-9]+)?)\\s*(px|%|em|rem)?",
+    "i",
+  );
+  const match = pattern.exec(style);
+
+  if (!match) return null;
+
+  const value = Number.parseFloat(match[1]);
+
+  if (!Number.isFinite(value)) return null;
+
+  const unit = (match[2] || "px").toLowerCase();
+
+  if (unit === "%") return value > 5 ? MAX_PIXEL_DIMENSION + 1 : 0;
+
+  if (unit === "em" || unit === "rem") return value * 16;
+
+  return value;
+}
+
+function looks_like_content_image(img: HTMLImageElement): boolean {
+  if ((img.getAttribute("alt") || "").trim().length > 0) return true;
+
+  const width = declared_dimension(img.getAttribute("width"));
+  const height = declared_dimension(img.getAttribute("height"));
+
+  if (width !== null && width > MAX_PIXEL_DIMENSION) return true;
+  if (height !== null && height > MAX_PIXEL_DIMENSION) return true;
+
+  const style = img.getAttribute("style") || "";
+
+  if (style) {
+    const style_width = style_dimension(style, "width");
+    const style_height = style_dimension(style, "height");
+
+    if (style_width !== null && style_width > MAX_PIXEL_DIMENSION) return true;
+    if (style_height !== null && style_height > MAX_PIXEL_DIMENSION)
+      return true;
+  }
+
+  return false;
+}
 
 export interface StripTrackingResult {
   url: string;
@@ -105,7 +161,10 @@ const SAFE_URL_SCHEMES = new Set([
 ]);
 
 export function is_safe_url(url: string): boolean {
-  const trimmed = [...url].filter((c) => c.charCodeAt(0) > 0x20 && c.charCodeAt(0) !== 0x7f).join("").toLowerCase();
+  const trimmed = [...url]
+    .filter((c) => c.charCodeAt(0) > 0x20 && c.charCodeAt(0) !== 0x7f)
+    .join("")
+    .toLowerCase();
 
   for (const scheme of DANGEROUS_URL_SCHEMES) {
     if (trimmed.startsWith(scheme)) {
@@ -124,6 +183,7 @@ export function is_safe_url(url: string): boolean {
   }
 
   const scheme_match = /^([a-z][a-z0-9+.\-]*):/i.exec(trimmed);
+
   if (scheme_match) {
     return SAFE_URL_SCHEMES.has(scheme_match[1].toLowerCase());
   }
@@ -131,22 +191,50 @@ export function is_safe_url(url: string): boolean {
   return true;
 }
 
+const SRCSET_WHITESPACE_CODES = new Set([32, 9, 10, 13, 12]);
+
+function is_srcset_whitespace(character: string): boolean {
+  return SRCSET_WHITESPACE_CODES.has(character.charCodeAt(0));
+}
+
 export function sanitize_srcset(value: string): string {
-  const parts = value.split(",");
   const safe: string[] = [];
+  let position = 0;
 
-  for (const raw of parts) {
-    const candidate = raw.trim();
-    if (!candidate) continue;
+  while (position < value.length) {
+    while (
+      position < value.length &&
+      (is_srcset_whitespace(value[position]) || value[position] === ",")
+    ) {
+      position += 1;
+    }
 
-    const space_idx = candidate.search(/\s/);
-    const url_part =
-      space_idx === -1 ? candidate : candidate.slice(0, space_idx);
-    const descriptor =
-      space_idx === -1 ? "" : candidate.slice(space_idx).trim();
+    if (position >= value.length) break;
+
+    const url_start = position;
+
+    while (position < value.length && !is_srcset_whitespace(value[position])) {
+      position += 1;
+    }
+
+    let url_part = value.slice(url_start, position);
+    let descriptor = "";
+
+    if (url_part.endsWith(",")) {
+      url_part = url_part.replace(/,+$/, "");
+    } else {
+      const descriptor_start = position;
+
+      while (position < value.length && value[position] !== ",") {
+        position += 1;
+      }
+
+      descriptor = value.slice(descriptor_start, position).trim();
+
+      if (position < value.length) position += 1;
+    }
 
     if (!url_part) continue;
-    if (url_part.toLowerCase().startsWith("data:")) continue;
     if (!is_safe_url(url_part)) continue;
 
     safe.push(descriptor ? `${url_part} ${descriptor}` : url_part);
@@ -157,7 +245,8 @@ export function sanitize_srcset(value: string): string {
 
 const CONDITIONAL_OPEN_REGEX = /<!--\s*\[\s*if\b[^\]]*\]\s*>/gi;
 const REVEALED_OPEN_TAIL_REGEX = /^\s*(?:<!)?--\s*!?\s*>/;
-const LEFTOVER_ENDIF_REGEX = /\s*<!--(?:\s|-)*<!\[endif\](?:\s|-)*>|\s*<!\[endif\]\s*--\s*>/gi;
+const LEFTOVER_ENDIF_REGEX =
+  /\s*<!--(?:\s|-)*<!\[endif\](?:\s|-)*>|\s*<!\[endif\]\s*--\s*>/gi;
 
 export function strip_mso_conditionals(html: string): string {
   if (html.indexOf("[if") === -1 && html.indexOf("[endif]") === -1) return html;
@@ -296,6 +385,7 @@ export function sanitize_attribute(
 
   if (lower_attr === "srcset") {
     const cleaned = sanitize_srcset(attr_value);
+
     return cleaned ? cleaned : null;
   }
 

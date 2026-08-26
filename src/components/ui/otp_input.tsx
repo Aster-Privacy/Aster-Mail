@@ -71,11 +71,13 @@ export function OtpInput({
       return;
     }
 
-    if (cleaned.length > 1) {
-      const next = value.split("");
+    const start = Math.min(index, value.length);
 
-      for (let i = 0; i < cleaned.length && index + i < length; i++) {
-        next[index + i] = cleaned[i];
+    if (cleaned.length > 1) {
+      const next = digits.slice();
+
+      for (let i = 0; i < cleaned.length && start + i < length; i++) {
+        next[start + i] = cleaned[i];
       }
 
       const joined = next.join("").slice(0, length);
@@ -83,17 +85,17 @@ export function OtpInput({
       onChange(joined);
       if (joined.length === length) onComplete?.(joined);
 
-      const last_index = Math.min(index + cleaned.length, length - 1);
+      const last_index = Math.min(start + cleaned.length, length - 1);
 
       box_refs.current[last_index]?.focus();
 
       return;
     }
 
-    set_at(index, cleaned);
+    set_at(start, cleaned);
 
-    if (index < length - 1) {
-      box_refs.current[index + 1]?.focus();
+    if (start < length - 1) {
+      box_refs.current[start + 1]?.focus();
     }
   };
 
@@ -131,7 +133,9 @@ export function OtpInput({
       {digits.map((digit, index) => (
         <input
           key={index}
-          ref={(el) => { box_refs.current[index] = el; }}
+          ref={(el) => {
+            box_refs.current[index] = el;
+          }}
           autoComplete={index === 0 ? "one-time-code" : "off"}
           className={cn(
             "w-11 h-[52px] rounded-[10px] text-center text-xl font-semibold outline-none transition-colors bg-surf-primary text-txt-primary border-2",

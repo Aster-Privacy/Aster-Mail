@@ -259,6 +259,7 @@ export function validate_regex_pattern(pattern: string): string | null {
   if (unsupported) return unsupported;
   try {
     new RegExp(pattern);
+
     return null;
   } catch {
     return "regex_invalid";
@@ -359,6 +360,7 @@ function rule_run_from_wire(w: WireRuleRun): RuleRun {
     w.status === "canceled"
       ? w.status
       : "pending";
+
   return {
     run_id: w.run_id,
     rule_id: w.rule_id,
@@ -454,18 +456,24 @@ function condition_from_wire(w: unknown): Condition | null {
   if (!w || typeof w !== "object") return null;
   const o = w as Record<string, unknown>;
   const field = (o.field ?? o.type) as string;
+
   if (field === "and" || field === "or") {
     const list = Array.isArray(o.conditions) ? o.conditions : [];
     const parsed: Condition[] = [];
+
     for (const item of list) {
       const c = condition_from_wire(item);
+
       if (c) parsed.push(c);
     }
+
     return { type: field, conditions: parsed };
   }
   if (field === "not") {
     const inner = condition_from_wire(o.condition);
+
     if (!inner) return null;
+
     return { type: "not", condition: inner };
   }
   switch (field) {
@@ -553,6 +561,7 @@ function action_to_wire(a: Action): Record<string, unknown> | null {
   switch (a.type) {
     case "move_to":
       if (a.folder_token === null) return null;
+
       return { type: "move_to", folder_token: a.folder_token };
     case "apply_labels":
       return { type: "apply_labels", label_tokens: a.label_tokens };
@@ -583,6 +592,7 @@ function action_from_wire(w: unknown): Action | null {
   if (!w || typeof w !== "object") return null;
   const o = w as Record<string, unknown>;
   const t = o.type as string;
+
   switch (t) {
     case "move_to":
       return { type: "move_to", folder_token: String(o.folder_token ?? "") };
@@ -620,15 +630,20 @@ function action_from_wire(w: unknown): Action | null {
 
 function rule_from_wire(w: WireRule): Rule {
   const conditions: Condition[] = [];
+
   for (const wc of w.conditions ?? []) {
     const c = condition_from_wire(wc);
+
     if (c) conditions.push(c);
   }
   const actions: Action[] = [];
+
   for (const wa of w.actions ?? []) {
     const a = action_from_wire(wa);
+
     if (a) actions.push(a);
   }
+
   return {
     id: w.id,
     name: w.name,
@@ -663,6 +678,7 @@ function update_request_to_wire(
   patch: UpdateRuleRequest,
 ): Record<string, unknown> {
   const out: Record<string, unknown> = {};
+
   if (patch.name !== undefined) out.name = patch.name;
   if (patch.color !== undefined) out.color = patch.color;
   if (patch.enabled !== undefined) out.enabled = patch.enabled;
@@ -674,6 +690,7 @@ function update_request_to_wire(
     out.actions = patch.actions.map(action_to_wire).filter((a) => a !== null);
   }
   if (patch.expression !== undefined) out.expression = patch.expression;
+
   return out;
 }
 
@@ -683,11 +700,13 @@ export async function list_rules(): Promise<ApiResponse<RulesListResponse>> {
   const response = await api_client.get<WireRulesListResponse>(BASE, {
     cache_ttl: 30_000,
   });
+
   if (response.data) {
     return {
       data: { rules: response.data.rules.map(rule_from_wire) },
     };
   }
+
   return { error: response.error, code: response.code };
 }
 
@@ -696,6 +715,7 @@ export async function create_rule(
 ): Promise<ApiResponse<Rule>> {
   const wire = create_request_to_wire(req);
   const response = await api_client.post<WireCreateRuleResponse>(BASE, wire);
+
   if (response.data) {
     const synthesized: Rule = {
       id: response.data.id,
@@ -711,8 +731,10 @@ export async function create_rule(
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
+
     return { data: synthesized };
   }
+
   return { error: response.error, code: response.code };
 }
 
@@ -722,9 +744,11 @@ export async function update_rule(
 ): Promise<ApiResponse<Rule>> {
   const wire = update_request_to_wire(patch);
   const response = await api_client.patch<WireRule>(`${BASE}/${id}`, wire);
+
   if (response.data) {
     return { data: rule_from_wire(response.data) };
   }
+
   return { error: response.error, code: response.code };
 }
 
@@ -751,11 +775,13 @@ export async function run_on_existing(
     `${BASE}/${id}/run-on-existing${query}`,
     {},
   );
+
   if (response.data) {
     return {
       data: response.data.run ? rule_run_from_wire(response.data.run) : null,
     };
   }
+
   return { error: response.error, code: response.code };
 }
 
@@ -765,11 +791,13 @@ export async function get_rule_run(
   const response = await api_client.get<WireRuleRunStatusResponse>(
     `${BASE}/${id}/run`,
   );
+
   if (response.data) {
     return {
       data: response.data.run ? rule_run_from_wire(response.data.run) : null,
     };
   }
+
   return { error: response.error, code: response.code };
 }
 
@@ -783,8 +811,10 @@ export async function list_rule_runs(): Promise<ApiResponse<RuleRun[]>> {
   const response = await api_client.get<WireRuleRunsListResponse>(
     `${BASE}/runs`,
   );
+
   if (response.data) {
     return { data: response.data.runs.map(rule_run_from_wire) };
   }
+
   return { error: response.error, code: response.code };
 }

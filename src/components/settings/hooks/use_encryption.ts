@@ -18,13 +18,19 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useState, useEffect } from "react";
-import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
+import { copy_text_or_throw } from "@/utils/copy_text";
+import type { ApiResponse } from "@/services/api/client";
+import type {
+  KeyserverPublicationState,
+  KeyserverPublicationStatus,
+} from "@/services/api/keys";
 
+import { useState, useEffect, useRef } from "react";
+
+import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { api_client } from "@/services/api/client";
-import type { ApiResponse } from "@/services/api/client";
 import { ensure_pgp_key_published } from "@/services/crypto/ensure_pgp_key_published";
 import { get_user_info } from "@/services/api/auth";
 import {
@@ -32,7 +38,7 @@ import {
   base64_to_array,
 } from "@/services/crypto/key_manager";
 import { generate_recovery_pdf } from "@/services/crypto/recovery_pdf";
-import { trigger_download } from "@/services/export/destination";
+import { trigger_download } from "@/utils/download_blob";
 import { use_preferences } from "@/contexts/preferences_context";
 import {
   publish_key_to_wkd,
@@ -40,10 +46,6 @@ import {
   publish_key_to_keyserver,
   get_keyserver_publication_status,
   clear_external_key_cache,
-} from "@/services/api/keys";
-import type {
-  KeyserverPublicationState,
-  KeyserverPublicationStatus,
 } from "@/services/api/keys";
 import { generate_recovery_codes } from "@/services/crypto/key_manager_pgp";
 import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
@@ -54,6 +56,7 @@ import {
   clear_recovery_key,
 } from "@/services/crypto/recovery_key";
 import { save_recovery_backup } from "@/services/api/recovery";
+import { app_locale, get_display_time_zone } from "@/utils/date_format";
 
 export interface PgpKeyInfo {
   fingerprint: string;
@@ -97,13 +100,17 @@ export function use_encryption() {
   const [pgp_key, set_pgp_key] = useState<PgpKeyInfo | null>(null);
   const [pgp_key_load_failed, set_pgp_key_load_failed] = useState(false);
   const [keyserver_urls, set_keyserver_urls] = useState<string[]>([]);
+  const [keyservers_loaded, set_keyservers_loaded] = useState(false);
   const [keyserver_input, set_keyserver_input] = useState("");
   const [is_saving_keyservers, set_is_saving_keyservers] = useState(false);
-  const [keyserver_published, set_keyserver_published] = useState<boolean | null>(null);
+  const [keyserver_published, set_keyserver_published] = useState<
+    boolean | null
+  >(null);
   const [keyserver_state, set_keyserver_state] =
     useState<KeyserverPublicationState | null>(null);
   const [keyserver_error, set_keyserver_error] = useState<string | null>(null);
-  const [is_publishing_keyserver, set_is_publishing_keyserver] = useState(false);
+  const [is_publishing_keyserver, set_is_publishing_keyserver] =
+    useState(false);
 
   const apply_keyserver_status = (status: KeyserverPublicationStatus) => {
     set_keyserver_published(status.published);
@@ -118,6 +125,7 @@ export function use_encryption() {
       data: null,
       error: "network_error",
     }));
+
     if (result.data) {
       apply_keyserver_status(result.data);
     }
@@ -131,6 +139,7 @@ export function use_encryption() {
     useState(false);
   const [regenerate_confirm_text, set_regenerate_confirm_text] = useState("");
   const [is_regenerating, set_is_regenerating] = useState(false);
+  const is_regenerating_ref = useRef(false);
   const [regenerate_password, set_regenerate_password] = useState("");
   const [regenerate_totp_code, set_regenerate_totp_code] = useState("");
   const [regenerate_totp_required, set_regenerate_totp_required] =
@@ -144,7 +153,8 @@ export function use_encryption() {
   };
 
   const format_date = (date_string: string): string => {
-    return new Date(date_string).toLocaleDateString(undefined, {
+    return new Date(date_string).toLocaleDateString(app_locale(), {
+      timeZone: get_display_time_zone(),
       year: "numeric",
       month: "short",
       day: "numeric",
@@ -162,15 +172,13 @@ export function use_encryption() {
         keyserver_status,
         wkd_status,
       ] = await Promise.all([
-        api_client
-          .get<PgpKeyInfo>("/crypto/v1/encryption/pgp-key")
-          .catch(
-            () =>
-              ({
-                data: undefined,
-                error: "network_error",
-              }) as ApiResponse<PgpKeyInfo>,
-          ),
+        api_client.get<PgpKeyInfo>("/crypto/v1/encryption/pgp-key").catch(
+          () =>
+            ({
+              data: undefined,
+              error: "network_error",
+            }) as ApiResponse<PgpKeyInfo>,
+        ),
         api_client
           .get<RecoveryCodesInfo>("/crypto/v1/encryption/recovery-status")
           .catch(() => ({ data: null, error: null })),
@@ -179,16 +187,20 @@ export function use_encryption() {
           .get<{
             auto_discover_keys: boolean;
             encrypt_by_default: boolean;
+            require_encryption: boolean;
             ipfs_storage_enabled: boolean;
             keyserver_urls: string[];
           }>("/settings/v1/encryption")
           .catch(() => ({ data: null, error: null })),
-        get_keyserver_publication_status()
-          .catch(() => ({ data: null, error: null })),
+        get_keyserver_publication_status().catch(() => ({
+          data: null,
+          error: null,
+        })),
         api_client
-          .get<{ published: boolean; url: string | null }>(
-            "/crypto/v1/keys/publish/wkd/status",
-          )
+          .get<{
+            published: boolean;
+            url: string | null;
+          }>("/crypto/v1/keys/publish/wkd/status")
           .catch(() => ({ data: null, error: null })),
       ]);
 
@@ -203,8 +215,9 @@ export function use_encryption() {
             .catch(() => ({ data: undefined }) as ApiResponse<PgpKeyInfo>);
 
           if (refetched.data) set_pgp_key(refetched.data);
+          else set_pgp_key_load_failed(true);
         }
-      } else if (key_response.error) {
+      } else {
         set_pgp_key_load_failed(true);
       }
       if (recovery_response.data) {
@@ -215,18 +228,41 @@ export function use_encryption() {
       }
 
       if (enc_response.data) {
-        if (enc_response.data.auto_discover_keys !== preferences.auto_discover_keys) {
-          update_preference("auto_discover_keys", enc_response.data.auto_discover_keys, true);
+        set_keyservers_loaded(true);
+        if (
+          enc_response.data.auto_discover_keys !==
+          preferences.auto_discover_keys
+        ) {
+          update_preference(
+            "auto_discover_keys",
+            enc_response.data.auto_discover_keys,
+            true,
+          );
         }
-        if (enc_response.data.encrypt_by_default !== preferences.encrypt_emails) {
-          update_preference("encrypt_emails", enc_response.data.encrypt_by_default, true);
+        if (
+          enc_response.data.encrypt_by_default !== preferences.encrypt_emails
+        ) {
+          update_preference(
+            "encrypt_emails",
+            enc_response.data.encrypt_by_default,
+            true,
+          );
         }
-        if (enc_response.data.keyserver_urls) {
-          set_keyserver_urls(enc_response.data.keyserver_urls);
+        if (
+          enc_response.data.require_encryption !==
+          preferences.require_encryption
+        ) {
+          update_preference(
+            "require_encryption",
+            enc_response.data.require_encryption,
+            true,
+          );
         }
+        set_keyserver_urls(enc_response.data.keyserver_urls ?? []);
         const server_storage_format = enc_response.data.ipfs_storage_enabled
           ? "ipfs"
           : "aster";
+
         if (server_storage_format !== preferences.storage_format) {
           update_preference("storage_format", server_storage_format, true);
         }
@@ -253,12 +289,10 @@ export function use_encryption() {
     if (!pgp_key) return;
 
     try {
-      await navigator.clipboard.writeText(pgp_key.fingerprint);
+      await copy_text_or_throw(pgp_key.fingerprint);
       show_toast(t("settings.copied_to_clipboard"), "success");
-    } catch (error) {
-      if (import.meta.env.DEV) console.error(error);
-
-      return;
+    } catch {
+      show_toast(t("common.failed_to_copy"), "error");
     }
   };
 
@@ -271,10 +305,8 @@ export function use_encryption() {
       });
 
       trigger_download(blob, `aster-public-key-${pgp_key.key_id}.asc`);
-    } catch (error) {
-      if (import.meta.env.DEV) console.error(error);
-
-      return;
+    } catch {
+      show_toast(t("common.download_failed"), "error");
     }
   };
 
@@ -389,7 +421,11 @@ export function use_encryption() {
           ["decrypt"],
         );
 
-        const decrypted = await decrypt_aes_gcm_with_fallback(decryption_key, ciphertext, nonce);
+        const decrypted = await decrypt_aes_gcm_with_fallback(
+          decryption_key,
+          ciphertext,
+          nonce,
+        );
 
         armored_key = new TextDecoder().decode(decrypted);
       } else {
@@ -424,12 +460,10 @@ export function use_encryption() {
     if (!pgp_key) return;
 
     try {
-      await navigator.clipboard.writeText(pgp_key.public_key_armored);
+      await copy_text_or_throw(pgp_key.public_key_armored);
       show_toast(t("settings.copied_to_clipboard"), "success");
-    } catch (error) {
-      if (import.meta.env.DEV) console.error(error);
-
-      return;
+    } catch {
+      show_toast(t("common.failed_to_copy"), "error");
     }
   };
 
@@ -454,12 +488,10 @@ export function use_encryption() {
     try {
       const codes_text = recovery_codes.join("\n");
 
-      await navigator.clipboard.writeText(codes_text);
+      await copy_text_or_throw(codes_text);
       show_toast(t("common.copied_successfully"), "success");
-    } catch (error) {
-      if (import.meta.env.DEV) console.error(error);
-
-      return;
+    } catch {
+      show_toast(t("common.failed_to_copy"), "error");
     }
   };
 
@@ -480,6 +512,8 @@ export function use_encryption() {
       return;
     }
 
+    if (is_regenerating_ref.current) return;
+    is_regenerating_ref.current = true;
     set_is_regenerating(true);
     set_regenerate_error("");
 
@@ -584,12 +618,13 @@ export function use_encryption() {
       if (import.meta.env.DEV) console.error(error);
       set_regenerate_error(t("settings.failed_verify_password"));
     } finally {
+      is_regenerating_ref.current = false;
       set_is_regenerating(false);
     }
   };
 
   const sync_server_encryption_flag = async (
-    field: "auto_discover_keys" | "encrypt_by_default",
+    field: "auto_discover_keys" | "encrypt_by_default" | "require_encryption",
     value: boolean,
   ): Promise<boolean> => {
     try {
@@ -664,6 +699,21 @@ export function use_encryption() {
     }
   };
 
+  const handle_require_encryption_toggle = async () => {
+    const new_value = !preferences.require_encryption;
+
+    update_preference("require_encryption", new_value, true);
+    const ok = await sync_server_encryption_flag(
+      "require_encryption",
+      new_value,
+    );
+
+    if (!ok) {
+      update_preference("require_encryption", !new_value, true);
+      show_toast(t("settings.failed_save_setting"), "error");
+    }
+  };
+
   const handle_wkd_toggle = async () => {
     const new_value = !preferences.publish_to_wkd;
 
@@ -727,12 +777,25 @@ export function use_encryption() {
     set_is_publishing_keyserver(false);
   };
 
-  const save_keyserver_urls = async (urls: string[]) => {
+  const save_keyserver_urls = async (
+    urls: string[],
+    previous: string[],
+  ): Promise<void> => {
     set_is_saving_keyservers(true);
     try {
-      await api_client.put("/settings/v1/encryption", { keyserver_urls: urls });
+      const response = await api_client.put("/settings/v1/encryption", {
+        keyserver_urls: urls,
+      });
+
+      if (response.error) {
+        set_keyserver_urls(previous);
+        show_toast(t("settings.failed_publish_keyserver"), "error");
+
+        return;
+      }
       show_toast(t("settings.keyserver_saved"), "success");
     } catch {
+      set_keyserver_urls(previous);
       show_toast(t("settings.failed_publish_keyserver"), "error");
     } finally {
       set_is_saving_keyservers(false);
@@ -740,32 +803,53 @@ export function use_encryption() {
   };
 
   const handle_add_keyserver = () => {
+    if (!keyservers_loaded) {
+      show_toast(t("common.something_went_wrong_try_again"), "error");
+
+      return;
+    }
+
     const trimmed = keyserver_input.trim().replace(/\/$/, "");
+
     if (!trimmed) return;
     try {
       const parsed = new URL(trimmed);
+
       if (parsed.protocol !== "https:" && parsed.protocol !== "hkps:") {
         show_toast(t("settings.keyserver_invalid_url"), "error");
+
         return;
       }
     } catch {
       show_toast(t("settings.keyserver_invalid_url"), "error");
+
       return;
     }
     if (keyserver_urls.includes(trimmed)) {
       set_keyserver_input("");
+
       return;
     }
+    const previous = keyserver_urls;
     const updated = [...keyserver_urls, trimmed];
+
     set_keyserver_urls(updated);
     set_keyserver_input("");
-    void save_keyserver_urls(updated);
+    void save_keyserver_urls(updated, previous);
   };
 
   const handle_remove_keyserver = (url: string) => {
+    if (!keyservers_loaded) {
+      show_toast(t("common.something_went_wrong_try_again"), "error");
+
+      return;
+    }
+
+    const previous = keyserver_urls;
     const updated = keyserver_urls.filter((u) => u !== url);
+
     set_keyserver_urls(updated);
-    void save_keyserver_urls(updated);
+    void save_keyserver_urls(updated, previous);
   };
 
   const close_export_prompt = () => {
@@ -851,6 +935,7 @@ export function use_encryption() {
     handle_keyserver_toggle,
     handle_auto_discover_keys_toggle,
     handle_encrypt_emails_toggle,
+    handle_require_encryption_toggle,
     handle_storage_format_change,
     close_export_prompt,
     open_export_prompt,

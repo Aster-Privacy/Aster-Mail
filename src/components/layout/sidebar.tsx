@@ -30,6 +30,7 @@ import {
   useLayoutEffect,
   useCallback,
   useMemo,
+  memo,
 } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
@@ -39,7 +40,6 @@ import {
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
-
 
 import { ShareModal } from "@/components/modals/share_modal";
 import { CreateFolderModal } from "@/components/folders/create_folder_modal";
@@ -63,7 +63,10 @@ import { RailTipLayer } from "@/components/layout/sidebar/rail_tip_layer";
 import { use_sidebar_aliases } from "@/hooks/use_sidebar_aliases";
 import { use_preferences } from "@/contexts/preferences_context";
 import { cache_sidebar_state } from "@/services/api/preferences";
-import { is_lockdown_enabled, LOCKDOWN_CHANGED_EVENT } from "@/services/lockdown_store";
+import {
+  is_lockdown_enabled,
+  LOCKDOWN_CHANGED_EVENT,
+} from "@/services/lockdown_store";
 
 function LockdownBanner({
   on_settings_click,
@@ -82,8 +85,10 @@ function LockdownBanner({
     const on_storage = (e: StorageEvent) => {
       if (e.key?.startsWith("aster:lockdown:")) update();
     };
+
     window.addEventListener("storage", on_storage);
     window.addEventListener(LOCKDOWN_CHANGED_EVENT, update);
+
     return () => {
       window.removeEventListener("storage", on_storage);
       window.removeEventListener(LOCKDOWN_CHANGED_EVENT, update);
@@ -103,12 +108,11 @@ function LockdownBanner({
   );
 }
 
-
 interface SidebarProps {
   on_settings_click: (section?: SettingsSection) => void;
   on_modal_open?: () => void;
   on_nav_click?: () => void;
-  on_compose: () => void;
+  on_compose: (initial_to?: string) => void;
   on_draft_click_compose?: (draft: EditDraftData) => void;
   edit_draft?: EditDraftData | null;
   is_mobile_open?: boolean;
@@ -140,7 +144,7 @@ export const MobileMenuButton = ({ on_click }: { on_click: () => void }) => {
   );
 };
 
-export const Sidebar = ({
+const sidebar_base = ({
   on_settings_click,
   on_modal_open,
   on_nav_click,
@@ -211,7 +215,6 @@ export const Sidebar = ({
   const forced_collapse =
     is_tablet || ((preferences.sidebar_minimized ?? false) && !is_mobile);
   const is_collapsed = forced_collapse && !force_expanded;
-
 
   const get_initial_selected_item = () => {
     const path = location.pathname;
@@ -338,7 +341,10 @@ export const Sidebar = ({
   );
 
   const handle_folder_modal = useCallback(
-    (folder: FolderModalData, action: "rename" | "recolor" | "delete" | "move") => {
+    (
+      folder: FolderModalData,
+      action: "rename" | "recolor" | "delete" | "move",
+    ) => {
       set_selected_folder_for_modal(folder);
       set_folder_modal_action(action);
     },
@@ -614,12 +620,12 @@ export const Sidebar = ({
         is_collapsed
           ? undefined
           : is_mobile
-          ? { width: "100vw", minWidth: "100vw", maxWidth: "100vw" }
-          : {
-              width: expanded_width,
-              minWidth: expanded_width,
-              maxWidth: expanded_width,
-            }
+            ? { width: "100vw", minWidth: "100vw", maxWidth: "100vw" }
+            : {
+                width: expanded_width,
+                minWidth: expanded_width,
+                maxWidth: expanded_width,
+              }
       }
     >
       {is_collapsed && is_tablet && (
@@ -635,12 +641,12 @@ export const Sidebar = ({
         </div>
       )}
       <div
-        className={`${is_collapsed ? "px-2" : "px-3"} ${is_mobile || (forced_collapse && !is_collapsed) ? "pr-12 pt-4 pb-3" : "pt-2"} relative`}
+        className={`${is_collapsed ? "px-2" : "px-3"} ${is_mobile || (forced_collapse && !is_collapsed) ? "pe-12 pt-4 pb-3" : "pt-2"} relative`}
       >
         {is_mobile && on_mobile_toggle && (
           <button
             aria-label={t("common.close_menu")}
-            className="absolute top-2 right-2 flex items-center justify-center w-8 h-8 rounded-[8px] transition-colors hover:bg-black/[0.06] dark:hover:bg-white/[0.08] z-10 text-icon-muted"
+            className="absolute top-2 end-2 flex items-center justify-center w-8 h-8 rounded-[8px] transition-colors hover:bg-black/[0.06] dark:hover:bg-white/[0.08] z-10 text-icon-muted"
             onClick={on_mobile_toggle}
           >
             <XMarkIcon className="w-5 h-5" />
@@ -649,7 +655,7 @@ export const Sidebar = ({
         {!is_mobile && forced_collapse && !is_collapsed && (
           <button
             aria-label={t("common.close_menu")}
-            className="absolute top-2 right-2 flex items-center justify-center w-8 h-8 rounded-[8px] transition-colors hover:bg-black/[0.06] dark:hover:bg-white/[0.08] z-10 text-icon-muted"
+            className="absolute top-2 end-2 flex items-center justify-center w-8 h-8 rounded-[8px] transition-colors hover:bg-black/[0.06] dark:hover:bg-white/[0.08] z-10 text-icon-muted"
             type="button"
             onClick={() => set_force_expanded(false)}
           >
@@ -685,6 +691,7 @@ export const Sidebar = ({
       <ShareModal
         is_open={is_share_open}
         on_close={() => set_is_share_open(false)}
+        on_compose_to={(email) => on_compose(email)}
       />
       <CreateFolderModal
         initial_parent_token={create_folder_parent_token}
@@ -697,9 +704,9 @@ export const Sidebar = ({
       <ContactsModal
         is_open={is_contacts_open}
         on_close={() => set_is_contacts_open(false)}
-        on_compose_to={(_email) => {
+        on_compose_to={(email) => {
           set_is_contacts_open(false);
-          on_compose();
+          on_compose(email);
         }}
       />
       <FolderManagementModal
@@ -755,7 +762,7 @@ export const Sidebar = ({
         <div ref={container_ref} className="relative">
           {!is_collapsed && !is_search_active && (
             <div
-              className="pointer-events-none absolute left-0 w-full rounded-md border-edge-primary"
+              className="pointer-events-none absolute start-0 w-full rounded-md border-edge-primary"
               style={{
                 ...indicator_style,
                 top: 0,
@@ -781,11 +788,11 @@ export const Sidebar = ({
             inbox_children_slot={
               inbox_pinned_folders.length > 0 ? (
                 <SidebarFolders
+                  folders_expanded
                   effective_selected={effective_selected}
                   folder_refs={folder_refs}
                   folder_unread_counts={folder_unread_counts}
                   folders={inbox_pinned_folders}
-                  folders_expanded
                   handle_folder_lock={handle_folder_lock}
                   handle_folder_modal={handle_folder_modal}
                   handle_nav_click={handle_nav_click}
@@ -794,7 +801,9 @@ export const Sidebar = ({
                   navigate={navigate}
                   on_drop_emails={on_drop_to_folder}
                   reorder_folders={reorder_folders}
-                  set_create_folder_parent_token={set_create_folder_parent_token}
+                  set_create_folder_parent_token={
+                    set_create_folder_parent_token
+                  }
                   set_folders_expanded={set_folders_expanded}
                   set_is_create_folder_open={set_is_create_folder_open}
                   set_password_modal_folder={set_password_modal_folder}
@@ -932,9 +941,11 @@ export const Sidebar = ({
               />
               <motion.div
                 animate={{ x: 0 }}
-                className="fixed top-0 left-0 h-full z-50"
+                className="fixed top-0 start-0 h-full z-50"
                 exit={{ x: -(window.innerWidth + 20) }}
-                initial={reduce_motion ? false : { x: -(window.innerWidth + 20) }}
+                initial={
+                  reduce_motion ? false : { x: -(window.innerWidth + 20) }
+                }
                 transition={{
                   type: "tween",
                   duration: reduce_motion ? 0 : 0.25,
@@ -952,3 +963,5 @@ export const Sidebar = ({
     </>
   );
 };
+
+export const Sidebar = memo(sidebar_base);

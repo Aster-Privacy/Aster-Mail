@@ -54,18 +54,21 @@ vi.mock("@/services/api/auto_forward", () => ({
   list_forwarding_rules: (...args: unknown[]) => list_forwarding_rules(...args),
   resend_forwarding_confirmation: (...args: unknown[]) =>
     resend_forwarding_confirmation(...args),
-  create_forwarding_rule: (...args: unknown[]) => create_forwarding_rule(...args),
-  update_forwarding_rule: (...args: unknown[]) => update_forwarding_rule(...args),
-  delete_forwarding_rule: (...args: unknown[]) => delete_forwarding_rule(...args),
+  create_forwarding_rule: (...args: unknown[]) =>
+    create_forwarding_rule(...args),
+  update_forwarding_rule: (...args: unknown[]) =>
+    update_forwarding_rule(...args),
+  delete_forwarding_rule: (...args: unknown[]) =>
+    delete_forwarding_rule(...args),
   bulk_delete_forwarding_rules: (...args: unknown[]) =>
     bulk_delete_forwarding_rules(...args),
-  toggle_forwarding_rule: (...args: unknown[]) => toggle_forwarding_rule(...args),
+  toggle_forwarding_rule: (...args: unknown[]) =>
+    toggle_forwarding_rule(...args),
 }));
 
 const { AutoForwardSection } = await import("./auto_forward_section");
 
 declare global {
-  // eslint-disable-next-line no-var
   var IS_REACT_ACT_ENVIRONMENT: boolean;
 }
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;

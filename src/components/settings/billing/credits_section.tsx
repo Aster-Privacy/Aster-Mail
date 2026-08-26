@@ -20,6 +20,7 @@
 //
 import { useState, useEffect } from "react";
 import { CurrencyDollarIcon } from "@heroicons/react/24/outline";
+import { Button } from "@aster/ui";
 
 import {
   format_price,
@@ -36,6 +37,7 @@ import { payment_url_or_throw } from "@/lib/payment_url";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 import { convert_cents } from "@/components/settings/billing/billing_constants";
+import { describe_credit_entry } from "@/utils/billing_description";
 
 function capitalize_words(value: string): string {
   return value
@@ -67,20 +69,26 @@ export function CreditsSection({
   >([]);
   const [show_all_transactions, set_show_all_transactions] = useState(false);
   const [packages, set_packages] = useState<CreditPackageItem[]>([]);
-  const [selected_package, set_selected_package] = useState<CreditPackageItem | null>(null);
+  const [selected_package, set_selected_package] =
+    useState<CreditPackageItem | null>(null);
   const [show_picker, set_show_picker] = useState(false);
   const [buying, set_buying] = useState(false);
+  const [packages_failed, set_packages_failed] = useState(false);
+  const [packages_tick, set_packages_tick] = useState(0);
 
   useEffect(() => {
-    if (show_picker && packages.length === 0) {
-      get_credit_packages().then((res) => {
-        if (res.data?.packages?.length) {
-          set_packages(res.data.packages);
-          set_selected_package(res.data.packages[0]);
-        }
-      });
-    }
-  }, [show_picker, packages.length]);
+    if (!show_picker || packages.length > 0) return;
+    set_packages_failed(false);
+    get_credit_packages().then((res) => {
+      if (res.data?.packages?.length) {
+        set_packages(res.data.packages);
+        set_selected_package(res.data.packages[0]);
+
+        return;
+      }
+      set_packages_failed(true);
+    });
+  }, [show_picker, packages.length, packages_tick]);
 
   useEffect(() => {
     const handle_page_show = (event: PageTransitionEvent) => {
@@ -90,6 +98,7 @@ export function CreditsSection({
     };
 
     window.addEventListener("pageshow", handle_page_show);
+
     return () => window.removeEventListener("pageshow", handle_page_show);
   }, []);
 
@@ -97,7 +106,11 @@ export function CreditsSection({
     if (!selected_package || buying) return;
     set_buying(true);
     try {
-      const res = await purchase_credits(selected_package.id, preferred_currency);
+      const res = await purchase_credits(
+        selected_package.id,
+        preferred_currency,
+      );
+
       if (res.data?.url) {
         window.location.assign(payment_url_or_throw(res.data.url));
       } else {
@@ -128,14 +141,16 @@ export function CreditsSection({
 
       <div className="flex items-center justify-between px-4 py-4 rounded-lg border border-edge-secondary mb-3">
         <div>
-          <p className="text-xs text-txt-muted">{t("settings.credit_balance")}</p>
+          <p className="text-xs text-txt-muted">
+            {t("settings.credit_balance")}
+          </p>
           <p className="text-2xl font-bold text-txt-primary mt-0.5">
-            {credit_balance ? `$${credit_balance.balance_dollars}` : "$0.00"}
+            {format_price(credit_balance?.balance_cents ?? 0)}
           </p>
         </div>
         <button
-          type="button"
           className="aster_btn aster_btn_primary aster_btn_md"
+          type="button"
           onClick={() => set_show_picker((v) => !v)}
         >
           {t("settings.top_up_credits")}
@@ -150,30 +165,50 @@ export function CreditsSection({
             </p>
           </div>
           {packages.length === 0 ? (
-            <p className="text-xs text-txt-muted px-4 py-4">
-              {t("settings.credit_packages_loading")}
-            </p>
+            <div className="flex items-center justify-between gap-3 px-4 py-4">
+              <p className="text-xs text-txt-muted">
+                {packages_failed
+                  ? t("settings.credit_packages_failed")
+                  : t("settings.credit_packages_loading")}
+              </p>
+              {packages_failed && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => set_packages_tick((n) => n + 1)}
+                >
+                  {t("common.retry")}
+                </Button>
+              )}
+            </div>
           ) : (
             <div className="p-4">
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-4">
                 {packages.map((pkg) => {
-                  const price = convert_cents(pkg.price_cents, preferred_currency);
+                  const price = convert_cents(
+                    pkg.price_cents,
+                    preferred_currency,
+                  );
                   const total = convert_cents(
                     pkg.amount_cents + pkg.bonus_cents,
                     preferred_currency,
                   );
-                  const bonus = convert_cents(pkg.bonus_cents, preferred_currency);
+                  const bonus = convert_cents(
+                    pkg.bonus_cents,
+                    preferred_currency,
+                  );
                   const is_selected = selected_package?.id === pkg.id;
+
                   return (
                     <button
                       key={pkg.id}
-                      type="button"
-                      onClick={() => set_selected_package(pkg)}
-                      className={`rounded-lg border p-3 text-left transition-colors ${
+                      className={`rounded-lg border p-3 text-start transition-colors ${
                         is_selected
                           ? "border-blue-500 bg-blue-500/10"
                           : "border-edge-secondary hover:border-edge-primary"
                       }`}
+                      type="button"
+                      onClick={() => set_selected_package(pkg)}
                     >
                       <p className="text-base font-bold text-txt-primary">
                         {format_price(price, preferred_currency)}
@@ -195,127 +230,206 @@ export function CreditsSection({
                 })}
               </div>
               <button
-                type="button"
-                disabled={buying || !selected_package}
-                onClick={handle_buy}
                 className="aster_btn aster_btn_primary aster_btn_lg w-full disabled:opacity-50"
+                disabled={buying || !selected_package}
+                type="button"
+                onClick={handle_buy}
               >
-                {buying ? t("settings.buying_credits") : t("settings.buy_credits")}
+                {buying
+                  ? t("settings.buying_credits")
+                  : t("settings.buy_credits")}
               </button>
             </div>
           )}
         </div>
       )}
 
-      {credit_balance && (Number(credit_balance.balance_cents) > 0 || has_transactions) && (
-        <>
-          <div className="flex items-center justify-between px-4 py-3 rounded-lg border border-edge-secondary mb-3">
-            <div className="flex-1">
-              <p className="text-sm text-txt-primary">
-                {t("settings.use_credits_for_renewals")}
-              </p>
-              <p className="text-xs text-txt-muted mt-0.5">
-                {t("settings.use_credits_for_renewals_description")}
-              </p>
-            </div>
-            <button
-              className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                credit_balance?.use_credits_for_renewals ? "bg-blue-500" : "bg-zinc-600"
-              }`}
-              type="button"
-              onClick={async () => {
-                const new_value = !credit_balance?.use_credits_for_renewals;
-                if (new_value && (credit_balance?.balance_cents ?? 0) <= 0) {
-                  show_toast(t("settings.credits_earn_first"), "error");
-                  return;
-                }
-                try {
-                  const res = await update_credit_settings(new_value);
-                  if (res.data) {
-                    set_credit_balance((prev) =>
-                      prev ? { ...prev, use_credits_for_renewals: new_value, balance_cents: res.data!.balance_cents } : prev,
-                    );
-                    show_toast(t("settings.credits_toggle_updated"), "success");
-                  }
-                } catch {
-                  show_toast(t("settings.credits_toggle_failed"), "error");
-                }
-              }}
-            >
-              <span
-                className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                  credit_balance?.use_credits_for_renewals ? "translate-x-4" : "translate-x-0"
-                }`}
-              />
-            </button>
-          </div>
-
-          {has_transactions && (
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-xs font-medium text-txt-secondary">
-                  {t("settings.recent_transactions")}
+      {credit_balance &&
+        (Number(credit_balance.balance_cents) > 0 || has_transactions) && (
+          <>
+            <div className="flex items-center justify-between px-4 py-3 rounded-lg border border-edge-secondary mb-3">
+              <div className="flex-1">
+                <p className="text-sm text-txt-primary">
+                  {t("settings.use_credits_for_renewals")}
                 </p>
-                <button
-                  className="text-xs text-blue-500 hover:underline"
-                  type="button"
-                  onClick={async () => {
-                    set_show_all_transactions(!show_all_transactions);
-                    if (!show_all_transactions && credit_transactions_list.length === 0) {
-                      const res = await get_credit_transactions(1, 50);
-                      if (res.data) set_credit_transactions_list(res.data.transactions);
+                <p className="text-xs text-txt-muted mt-0.5">
+                  {t("settings.use_credits_for_renewals_description")}
+                </p>
+              </div>
+              <button
+                className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                  credit_balance?.use_credits_for_renewals
+                    ? "bg-blue-500"
+                    : "bg-zinc-600"
+                }`}
+                type="button"
+                onClick={async () => {
+                  const new_value = !credit_balance?.use_credits_for_renewals;
+
+                  if (new_value && (credit_balance?.balance_cents ?? 0) <= 0) {
+                    show_toast(t("settings.credits_earn_first"), "error");
+
+                    return;
+                  }
+                  try {
+                    const res = await update_credit_settings(new_value);
+
+                    if (res.data) {
+                      set_credit_balance((prev) =>
+                        prev
+                          ? {
+                              ...prev,
+                              use_credits_for_renewals: new_value,
+                              balance_cents: res.data!.balance_cents,
+                            }
+                          : prev,
+                      );
+                      show_toast(
+                        t("settings.credits_toggle_updated"),
+                        "success",
+                      );
+                    } else {
+                      show_toast(t("settings.credits_toggle_failed"), "error");
                     }
-                  }}
-                >
-                  {show_all_transactions ? t("common.close") : t("settings.view_all_transactions")}
-                </button>
-              </div>
-              <div className="rounded-lg border overflow-hidden border-edge-secondary">
-                {(show_all_transactions ? credit_transactions_list : credit_balance.recent_transactions).map((tx) => {
-                  const credit_type_labels: Record<string, string> = {
-                    referral_reward: t("settings.credit_type_referral_reward"),
-                    referral_commission: t("settings.credit_type_referral_commission"),
-                    admin_grant: t("settings.credit_type_admin_grant"),
-                    promo: t("settings.credit_type_promo"),
-                    renewal_deduction: t("settings.credit_type_renewal_deduction"),
-                    reversal: t("settings.credit_type_reversal"),
-                    purchase: t("settings.credit_type_purchase"),
-                    install_android_reward: t("settings.credit_type_install_android"),
-                    install_desktop_reward: t("settings.credit_type_install_desktop"),
-                    install_ios_reward: t("settings.credit_type_install_ios"),
-                    refunded: t("settings.credit_type_refunded"),
-                    spent: t("settings.credit_type_spent"),
-                    clawback: t("settings.credit_type_clawback"),
-                    admin_removal: t("settings.credit_type_admin_removal"),
-                    crypto_overpayment: t("settings.credit_type_crypto_overpayment"),
-                    crypto_overpayment_reversal: t("settings.credit_type_crypto_overpayment_reversal"),
-                  };
-                  const type_label =
-                    credit_type_labels[tx.transaction_type] ||
-                    capitalize_words(tx.transaction_type);
-                  const is_positive = tx.amount_cents > 0;
-                  return (
-                    <div key={tx.id} className="flex items-center justify-between px-4 py-2.5 hover:bg-surf-hover transition-colors">
-                      <div>
-                        <p className="text-sm text-txt-primary">{tx.description || capitalize_words(tx.transaction_type)}</p>
-                        <p className="text-xs mt-0.5 text-txt-muted">{format_date(tx.created_at)}</p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className={`text-xs font-medium px-2 py-0.5 rounded ${is_positive ? "bg-green-500/20 text-green-500" : "bg-red-500/20 text-red-500"}`}>
-                          {type_label}
-                        </span>
-                        <p className={`text-sm font-medium ${is_positive ? "text-green-500" : "text-red-500"}`}>
-                          {is_positive ? "+" : ""}{format_price(Math.abs(tx.amount_cents))}
-                        </p>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+                  } catch {
+                    show_toast(t("settings.credits_toggle_failed"), "error");
+                  }
+                }}
+              >
+                <span
+                  className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                    credit_balance?.use_credits_for_renewals
+                      ? "translate-x-4"
+                      : "translate-x-0"
+                  }`}
+                />
+              </button>
             </div>
-          )}
-        </>
-      )}
+
+            {has_transactions && (
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-xs font-medium text-txt-secondary">
+                    {t("settings.recent_transactions")}
+                  </p>
+                  <button
+                    className="text-xs text-blue-500 hover:underline"
+                    type="button"
+                    onClick={async () => {
+                      if (show_all_transactions) {
+                        set_show_all_transactions(false);
+
+                        return;
+                      }
+
+                      if (credit_transactions_list.length > 0) {
+                        set_show_all_transactions(true);
+
+                        return;
+                      }
+
+                      const res = await get_credit_transactions(1, 50);
+
+                      if (!res.data) {
+                        show_toast(
+                          t("common.something_went_wrong_try_again"),
+                          "error",
+                        );
+
+                        return;
+                      }
+                      set_credit_transactions_list(res.data.transactions);
+                      set_show_all_transactions(true);
+                    }}
+                  >
+                    {show_all_transactions
+                      ? t("common.close")
+                      : t("settings.view_all_transactions")}
+                  </button>
+                </div>
+                <div className="rounded-lg border overflow-hidden border-edge-secondary">
+                  {(show_all_transactions
+                    ? credit_transactions_list
+                    : credit_balance.recent_transactions
+                  ).map((tx) => {
+                    const credit_type_labels: Record<string, string> = {
+                      referral_reward: t(
+                        "settings.credit_type_referral_reward",
+                      ),
+                      referral_commission: t(
+                        "settings.credit_type_referral_commission",
+                      ),
+                      admin_grant: t("settings.credit_type_admin_grant"),
+                      promo: t("settings.credit_type_promo"),
+                      renewal_deduction: t(
+                        "settings.credit_type_renewal_deduction",
+                      ),
+                      reversal: t("settings.credit_type_reversal"),
+                      purchase: t("settings.credit_type_purchase"),
+                      install_android_reward: t(
+                        "settings.credit_type_install_android",
+                      ),
+                      install_desktop_reward: t(
+                        "settings.credit_type_install_desktop",
+                      ),
+                      install_ios_reward: t("settings.credit_type_install_ios"),
+                      refunded: t("settings.credit_type_refunded"),
+                      spent: t("settings.credit_type_spent"),
+                      clawback: t("settings.credit_type_clawback"),
+                      admin_removal: t("settings.credit_type_admin_removal"),
+                      crypto_overpayment: t(
+                        "settings.credit_type_crypto_overpayment",
+                      ),
+                      crypto_overpayment_reversal: t(
+                        "settings.credit_type_crypto_overpayment_reversal",
+                      ),
+                      prepaid_switch_residual: t(
+                        "settings.credit_type_prepaid_switch_residual",
+                      ),
+                      prepaid_switch_residual_reversal: t(
+                        "settings.credit_type_prepaid_switch_residual_reversal",
+                      ),
+                    };
+                    const type_label =
+                      credit_type_labels[tx.transaction_type] ||
+                      capitalize_words(tx.transaction_type);
+                    const is_positive = tx.amount_cents > 0;
+
+                    return (
+                      <div
+                        key={tx.id}
+                        className="flex items-center justify-between px-4 py-2.5 hover:bg-surf-hover transition-colors"
+                      >
+                        <div>
+                          <p className="text-sm text-txt-primary">
+                            {describe_credit_entry(tx.description, t) ||
+                              capitalize_words(tx.transaction_type)}
+                          </p>
+                          <p className="text-xs mt-0.5 text-txt-muted">
+                            {format_date(tx.created_at)}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`text-xs font-medium px-2 py-0.5 rounded ${is_positive ? "bg-green-500/20 text-green-500" : "bg-red-500/20 text-red-500"}`}
+                          >
+                            {type_label}
+                          </span>
+                          <p
+                            className={`text-sm font-medium ${is_positive ? "text-green-500" : "text-red-500"}`}
+                          >
+                            {is_positive ? "+" : ""}
+                            {format_price(Math.abs(tx.amount_cents))}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </>
+        )}
     </div>
   );
 }

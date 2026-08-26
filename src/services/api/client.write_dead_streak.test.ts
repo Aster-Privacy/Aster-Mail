@@ -50,6 +50,7 @@ describe("is_write_dead_streak", () => {
 
   it("expires a five-second retry storm after ten minutes", () => {
     const denials_in_ten_minutes = Math.floor(TEN_MINUTES / 5000);
+
     expect(
       is_write_dead_streak(denials_in_ten_minutes, NOW - TEN_MINUTES, NOW),
     ).toBe(true);

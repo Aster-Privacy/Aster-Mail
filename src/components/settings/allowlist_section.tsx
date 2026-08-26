@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
   CheckCircleIcon,
   PlusIcon,
@@ -53,6 +53,8 @@ import {
 } from "@/services/api/allowed_senders";
 import { show_toast } from "@/components/toast/simple_toast";
 import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
+import { app_locale, get_display_time_zone } from "@/utils/date_format";
+import { is_composing } from "@/utils/ime";
 
 export function AllowlistSection() {
   const { t } = use_i18n();
@@ -68,6 +70,7 @@ export function AllowlistSection() {
   const [new_value, set_new_value] = useState("");
   const [is_domain, set_is_domain] = useState(false);
   const [is_adding, set_is_adding] = useState(false);
+  const removing_ids = useRef<Set<string>>(new Set());
 
   const open_add_form = () => {
     set_new_value("");
@@ -117,8 +120,26 @@ export function AllowlistSection() {
     set_selected_ids,
   );
 
+  const visible_ids_key = filtered_senders.map((s) => s.id).join(",");
+
+  useEffect(() => {
+    const visible = new Set(visible_ids_key ? visible_ids_key.split(",") : []);
+
+    set_selected_ids((prev) => {
+      if (prev.size === 0) return prev;
+
+      const next = new Set(Array.from(prev).filter((id) => visible.has(id)));
+
+      return next.size === prev.size ? prev : next;
+    });
+  }, [visible_ids_key]);
+
+  const all_filtered_selected =
+    filtered_senders.length > 0 &&
+    filtered_senders.every((s) => selected_ids.has(s.id));
+
   const handle_select_all = () => {
-    if (selected_ids.size === filtered_senders.length) {
+    if (all_filtered_selected) {
       set_selected_ids(new Set());
     } else {
       set_selected_ids(new Set(filtered_senders.map((s) => s.id)));
@@ -126,17 +147,38 @@ export function AllowlistSection() {
   };
 
   const handle_remove = async (sender: DecryptedAllowedSender) => {
+    if (removing_ids.current.has(sender.id)) return;
+    removing_ids.current.add(sender.id);
+
+    const previous_index = allowed_senders.findIndex((s) => s.id === sender.id);
+
     set_allowed_senders((prev) => prev.filter((s) => s.id !== sender.id));
+
+    const result = await remove_allowed_sender_by_token(sender.sender_token);
+
+    removing_ids.current.delete(sender.id);
+
+    if (!result.data?.success) {
+      set_allowed_senders((prev) => {
+        if (prev.some((s) => s.id === sender.id)) return prev;
+        const next = [...prev];
+
+        next.splice(
+          previous_index < 0 ? next.length : previous_index,
+          0,
+          sender,
+        );
+
+        return next;
+      });
+      show_toast(t("common.something_went_wrong_try_again"), "error");
+
+      return;
+    }
     show_toast(
       t("common.removed_from_allowlist", { email: sender.email }),
       "success",
     );
-
-    const result = await remove_allowed_sender_by_token(sender.sender_token);
-
-    if (!result.data?.success) {
-      set_allowed_senders((prev) => [...prev, sender]);
-    }
   };
 
   const handle_bulk_remove = async () => {
@@ -150,16 +192,27 @@ export function AllowlistSection() {
       const result = await bulk_remove_allowed_senders_by_tokens(tokens);
 
       if (result.data?.success) {
+        const removed_count = result.data.removed_count;
+
+        if (removed_count < tokens.length) {
+          set_selected_ids(new Set());
+          await fetch_allowed_senders();
+          show_toast(t("common.something_went_wrong_try_again"), "error");
+
+          return;
+        }
         set_allowed_senders((prev) =>
           prev.filter((s) => !selected_ids.has(s.id)),
         );
         show_toast(
           t("common.removed_count_from_allowlist", {
-            count: String(result.data.removed_count),
+            count: removed_count,
           }),
           "success",
         );
         set_selected_ids(new Set());
+      } else {
+        show_toast(t("common.something_went_wrong_try_again"), "error");
       }
     } finally {
       set_is_removing(false);
@@ -167,6 +220,7 @@ export function AllowlistSection() {
   };
 
   const handle_add_allowed = async () => {
+    if (is_adding) return;
     if (!new_value.trim()) return;
 
     let value = new_value.trim();
@@ -183,7 +237,7 @@ export function AllowlistSection() {
 
     if (is_domain) {
       const domain_regex =
-        /^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*\.[a-z]{2,}$/i;
+        /^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*\.[a-z][a-z0-9-]+$/i;
 
       if (!domain_regex.test(value) || value.length > 253) {
         show_toast(t("common.please_enter_valid_domain"), "error");
@@ -192,7 +246,7 @@ export function AllowlistSection() {
       }
     } else {
       const email_regex =
-        /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$/;
+        /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?)*\.[a-zA-Z][a-zA-Z0-9-]+$/;
 
       if (!email_regex.test(value)) {
         show_toast(t("common.please_enter_valid_email"), "error");
@@ -225,8 +279,11 @@ export function AllowlistSection() {
           "success",
         );
         close_add_form();
-      } else if (result.error) {
-        show_toast(result.error, "error");
+      } else {
+        show_toast(
+          result.error || t("common.something_went_wrong_try_again"),
+          "error",
+        );
       }
     } finally {
       set_is_adding(false);
@@ -236,7 +293,8 @@ export function AllowlistSection() {
   const format_date = (date_string: string) => {
     const date = new Date(date_string);
 
-    return date.toLocaleDateString(undefined, {
+    return date.toLocaleDateString(app_locale(), {
+      timeZone: get_display_time_zone(),
       month: "short",
       day: "numeric",
       year: "numeric",
@@ -270,11 +328,11 @@ export function AllowlistSection() {
 
       <div className="flex items-center justify-between gap-3">
         <div className="relative flex-1 max-w-xs">
-          <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-txt-muted" />
+          <MagnifyingGlassIcon className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-txt-muted" />
           <Input
             placeholder={t("common.search_allowlist")}
             size="md"
-            style={{ paddingLeft: "38px" }}
+            style={{ paddingInlineStart: "38px" }}
             value={search_query}
             onChange={(e) => set_search_query(e.target.value)}
           />
@@ -292,7 +350,7 @@ export function AllowlistSection() {
             ) : (
               <TrashIcon className="w-4 h-4" />
             )}
-            {t("settings.remove_count", { count: String(selected_ids.size) })}
+            {t("settings.remove_count", { count: selected_ids.size })}
           </Button>
         )}
       </div>
@@ -303,7 +361,7 @@ export function AllowlistSection() {
         show_close_button={false}
         size="md"
       >
-        <ModalHeader className="pr-6">
+        <ModalHeader className="pe-6">
           <ModalTitle className="text-[15px]">
             {t("settings.add_to_allowlist")}
           </ModalTitle>
@@ -323,7 +381,14 @@ export function AllowlistSection() {
               checked={is_domain}
               label={t("settings.entire_domain")}
               name="allowlist_type"
-              onChange={() => set_is_domain(true)}
+              onChange={() => {
+                set_is_domain(true);
+                set_new_value((prev) => {
+                  const at_index = prev.lastIndexOf("@");
+
+                  return at_index >= 0 ? prev.slice(at_index + 1).trim() : prev;
+                });
+              }}
             />
           </div>
           <Input
@@ -337,7 +402,7 @@ export function AllowlistSection() {
             value={new_value}
             onChange={(e) => set_new_value(e.target.value)}
             onKeyDown={(e) => {
-              if (e["key"] === "Enter") {
+              if (e["key"] === "Enter" && !is_composing(e)) {
                 handle_add_allowed();
               }
             }}
@@ -396,12 +461,12 @@ export function AllowlistSection() {
         <div className="rounded-lg overflow-hidden border border-edge-secondary">
           <div className="flex items-center px-4 py-2 border-b border-edge-secondary">
             <Checkbox
-              checked={selected_ids.size === filtered_senders.length}
+              checked={all_filtered_selected}
               onCheckedChange={handle_select_all}
             />
-            <span className="ml-3 text-xs font-medium text-txt-muted">
+            <span className="ms-3 text-xs font-medium text-txt-muted">
               {t("settings.allowed_senders_count", {
-                count: String(filtered_senders.length),
+                count: filtered_senders.length,
               })}
             </span>
           </div>
@@ -419,7 +484,11 @@ export function AllowlistSection() {
                 onCheckedChange={() => handle_select(index)}
               />
 
-              {sender.is_domain ? (
+              {sender.is_unreadable ? (
+                <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0">
+                  <ExclamationTriangleIcon className="w-5 h-5 text-txt-muted" />
+                </div>
+              ) : sender.is_domain ? (
                 <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0">
                   <GlobeAltIcon className="w-5 h-5 text-txt-muted" />
                 </div>
@@ -436,9 +505,13 @@ export function AllowlistSection() {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <span className="text-[13px] font-medium truncate text-txt-primary">
-                    {sender.is_domain ? `*.${sender.email}` : sender.email}
+                    {sender.is_unreadable
+                      ? t("settings.unreadable_entry_title")
+                      : sender.is_domain
+                        ? `*.${sender.email}`
+                        : sender.email}
                   </span>
-                  {sender.is_domain && (
+                  {!sender.is_unreadable && sender.is_domain && (
                     <span
                       className="text-[10px] px-1.5 py-0.5 rounded"
                       style={{
@@ -450,10 +523,17 @@ export function AllowlistSection() {
                     </span>
                   )}
                 </div>
-                {sender.name && !sender.is_domain && (
-                  <p className="text-[12px] truncate text-txt-muted">
-                    {sender.name}
+                {sender.is_unreadable ? (
+                  <p className="text-[12px] text-txt-muted">
+                    {t("settings.unreadable_entry_hint")}
                   </p>
+                ) : (
+                  sender.name &&
+                  !sender.is_domain && (
+                    <p className="text-[12px] truncate text-txt-muted">
+                      {sender.name}
+                    </p>
+                  )
                 )}
               </div>
 

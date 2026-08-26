@@ -18,12 +18,12 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { HASH_ALG } from "@/services/crypto/constants";
-import { array_to_base64, base64_to_array } from "./base64";
 import type { LegacyDerivedKek } from "./key_manager_core";
 
+import { array_to_base64, base64_to_array } from "./base64";
 import { zero_uint8_array } from "./secure_memory";
 
+import { HASH_ALG } from "@/services/crypto/constants";
 import { ignore_error } from "@/lib/ignore_error";
 
 const DERIVED_KEY_LENGTH = 32;
@@ -91,8 +91,6 @@ export async function derive_kek_from_password(
 
   return new Uint8Array(derived_bits);
 }
-
-
 
 export function serialize_kek_for_vault(
   raw_key: Uint8Array,
@@ -208,7 +206,11 @@ export async function decrypt_with_legacy_derived_keys(
     try {
       const key = await derive(base);
 
-      return await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, ciphertext);
+      return await crypto.subtle.decrypt(
+        { name: "AES-GCM", iv },
+        key,
+        ciphertext,
+      );
     } catch {
       continue;
     }
@@ -223,7 +225,10 @@ export async function append_legacy_key_raw_bytes(
   try {
     await remember_legacy_raw(raw);
   } catch (caught) {
-    ignore_error("services/crypto/legacy_keks:append_legacy_key_raw_bytes", caught);
+    ignore_error(
+      "services/crypto/legacy_keks:append_legacy_key_raw_bytes",
+      caught,
+    );
   }
 }
 

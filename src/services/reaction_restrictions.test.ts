@@ -18,10 +18,11 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { DecryptedThreadMessage } from "@/types/thread";
+
 import { describe, expect, it } from "vitest";
 
 import { reaction_restriction } from "./reaction_restrictions";
-import type { DecryptedThreadMessage } from "@/types/thread";
 
 const me = "me@astermail.org";
 
@@ -92,9 +93,7 @@ describe("reaction_restriction", () => {
 
   it("allows a reply-to that matches the sender", () => {
     const message = build_message({
-      raw_headers: [
-        { name: "Reply-To", value: "Sender <sender@example.com>" },
-      ],
+      raw_headers: [{ name: "Reply-To", value: "Sender <sender@example.com>" }],
     });
 
     expect(reaction_restriction(message, me, true)).toBeNull();

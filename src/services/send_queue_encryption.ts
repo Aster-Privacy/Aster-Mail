@@ -19,8 +19,20 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
-export { fetch_internal_public_keys, plain_text_to_html, resolve_own_username_for_key_lookup, resolve_username_for_key_lookup } from "./send_queue_recipients";
+export {
+  fetch_internal_public_keys,
+  plain_text_to_html,
+  resolve_own_username_for_key_lookup,
+  resolve_username_for_key_lookup,
+} from "./send_queue_recipients";
 export { encrypt_with_ephemeral_key } from "./send_queue_ephemeral";
-export { check_post_quantum_coverage, check_send_readiness_internal, encrypt_for_recipients } from "./send_queue_body_encryption";
-export { create_sent_envelope, reencrypt_all_sent_mail } from "./send_queue_envelope";
+export {
+  check_post_quantum_coverage,
+  check_send_readiness_internal,
+  encrypt_for_recipients,
+} from "./send_queue_body_encryption";
+export {
+  create_sent_envelope,
+  reencrypt_all_sent_mail,
+} from "./send_queue_envelope";
 export { execute_external_send, execute_send } from "./send_queue_execute";

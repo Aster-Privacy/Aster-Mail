@@ -98,27 +98,27 @@ export function FolderContextMenu({
       <ContextMenuContent className="w-48">
         {on_create_subfolder && can_have_children && (
           <ContextMenuItem onClick={on_create_subfolder}>
-            <FolderPlusIcon className="mr-2 h-4 w-4" />
+            <FolderPlusIcon className="me-2 h-4 w-4" />
             {t("common.create_subfolder")}
           </ContextMenuItem>
         )}
 
         <ContextMenuItem onClick={on_lock}>
           <LockClosedIcon
-            className="mr-2 h-4 w-4"
+            className="me-2 h-4 w-4"
             style={{ color: password_set ? "var(--color-success)" : undefined }}
           />
           {password_set ? t("common.remove_lock") : t("common.lock")}
         </ContextMenuItem>
 
         <ContextMenuItem onClick={on_rename}>
-          <PencilIcon className="mr-2 h-4 w-4" />
+          <PencilIcon className="me-2 h-4 w-4" />
           {t("common.rename")}
         </ContextMenuItem>
 
         <ContextMenuItem onClick={on_recolor}>
           <FolderIcon
-            className="mr-2 h-4 w-4"
+            className="me-2 h-4 w-4"
             style={{ color: folder_color }}
           />
           {t("common.change_color")}
@@ -130,9 +130,9 @@ export function FolderContextMenu({
             onClick={toggle_notifications}
           >
             {is_muted ? (
-              <BellIcon className="mr-2 h-4 w-4" />
+              <BellIcon className="me-2 h-4 w-4" />
             ) : (
-              <BellSlashIcon className="mr-2 h-4 w-4" />
+              <BellSlashIcon className="me-2 h-4 w-4" />
             )}
             {is_muted
               ? t("common.unmute_notifications")
@@ -142,21 +142,21 @@ export function FolderContextMenu({
 
         {on_move && (
           <ContextMenuItem onClick={on_move}>
-            <ArrowRightIcon className="mr-2 h-4 w-4" />
+            <ArrowRightIcon className="me-2 h-4 w-4 rtl:-scale-x-100" />
             {t("common.move_to")}
           </ContextMenuItem>
         )}
 
         {on_move_up && (
           <ContextMenuItem disabled={!can_move_up} onClick={on_move_up}>
-            <ArrowUpIcon className="mr-2 h-4 w-4" />
+            <ArrowUpIcon className="me-2 h-4 w-4" />
             {t("common.move_up")}
           </ContextMenuItem>
         )}
 
         {on_move_down && (
           <ContextMenuItem disabled={!can_move_down} onClick={on_move_down}>
-            <ArrowDownIcon className="mr-2 h-4 w-4" />
+            <ArrowDownIcon className="me-2 h-4 w-4" />
             {t("common.move_down")}
           </ContextMenuItem>
         )}
@@ -167,7 +167,7 @@ export function FolderContextMenu({
           className="text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400"
           onClick={on_delete}
         >
-          <TrashIcon className="mr-2 h-4 w-4" />
+          <TrashIcon className="me-2 h-4 w-4" />
           {t("common.delete")}
         </ContextMenuItem>
       </ContextMenuContent>

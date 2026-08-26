@@ -18,7 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useRef, useState } from "react";
+import { copy_text_or_throw } from "@/utils/copy_text";
+import { useEffect, useRef, useState } from "react";
 import {
   LinkIcon,
   CheckIcon,
@@ -28,6 +29,10 @@ import { Button } from "@aster/ui";
 
 import { open_external } from "@/utils/open_link";
 import {
+  build_referral_invite_url,
+  get_referral_info,
+} from "@/services/api/billing";
+import {
   Modal,
   ModalHeader,
   ModalTitle,
@@ -36,19 +41,61 @@ import {
 } from "@/components/ui/modal";
 import { Input } from "@/components/ui/input";
 import { use_i18n } from "@/lib/i18n/context";
-
 import { ignore_error } from "@/lib/ignore_error";
+import { show_toast } from "@/components/toast/simple_toast";
+import { is_composing } from "@/utils/ime";
+import { is_valid_email } from "@/components/compose/compose_shared";
+
+const FALLBACK_INVITE_URL = "https://astermail.org";
 
 interface ShareModalProps {
   is_open: boolean;
   on_close: () => void;
+  on_compose_to?: (email: string) => void;
 }
 
-export function ShareModal({ is_open, on_close }: ShareModalProps) {
+export function ShareModal({
+  is_open,
+  on_close,
+  on_compose_to,
+}: ShareModalProps) {
   const { t } = use_i18n();
   const [email, set_email] = useState("");
   const [copy_success, set_copy_success] = useState(false);
+  const [invite_url, set_invite_url] = useState(FALLBACK_INVITE_URL);
   const copy_timeout_ref = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    if (!is_open) {
+      set_email("");
+      set_copy_success(false);
+
+      return;
+    }
+
+    let cancelled = false;
+
+    get_referral_info()
+      .then((response) => {
+        if (cancelled || !response.data?.referral_code) return;
+
+        set_invite_url(build_referral_invite_url(response.data.referral_code));
+      })
+      .catch((caught) =>
+        ignore_error("components/modals/share_modal:load_referral", caught),
+      );
+
+    return () => {
+      cancelled = true;
+    };
+  }, [is_open]);
+
+  useEffect(
+    () => () => {
+      if (copy_timeout_ref.current) clearTimeout(copy_timeout_ref.current);
+    },
+    [],
+  );
 
   const handle_close = () => {
     on_close();
@@ -61,20 +108,27 @@ export function ShareModal({ is_open, on_close }: ShareModalProps) {
   };
 
   const handle_send = () => {
-    if (email) {
-      set_email("");
-    }
+    if (!is_valid_email(email.trim())) return;
+
+    on_compose_to?.(email.trim());
+    handle_close();
   };
 
-  const handle_copy_link = () => {
+  const handle_copy_link = async () => {
     if (copy_timeout_ref.current) {
       clearTimeout(copy_timeout_ref.current);
+      copy_timeout_ref.current = null;
     }
-    navigator.clipboard
-      .writeText("https://astermail.org/invite")
-      .catch((caught) =>
-        ignore_error("components/modals/share_modal:handle_copy_link", caught),
-      );
+
+    try {
+      await copy_text_or_throw(invite_url);
+    } catch (caught) {
+      ignore_error("components/modals/share_modal:handle_copy_link", caught);
+      show_toast(t("common.failed_to_copy"), "error");
+
+      return;
+    }
+
     set_copy_success(true);
     copy_timeout_ref.current = setTimeout(() => {
       set_copy_success(false);
@@ -84,7 +138,7 @@ export function ShareModal({ is_open, on_close }: ShareModalProps) {
 
   const handle_twitter_share = () => {
     const text = encodeURIComponent(t("common.check_out_aster_mail"));
-    const url = encodeURIComponent("https://astermail.org/invite");
+    const url = encodeURIComponent(invite_url);
 
     open_external(
       `https://twitter.com/intent/tweet?text=${text}&url=${url}`,
@@ -94,7 +148,7 @@ export function ShareModal({ is_open, on_close }: ShareModalProps) {
 
   const handle_whatsapp_share = () => {
     const text = encodeURIComponent(
-      `${t("common.check_out_aster_mail")} https://astermail.org/invite`,
+      `${t("common.check_out_aster_mail")} ${invite_url}`,
     );
 
     open_external(`https://wa.me/?text=${text}`);
@@ -151,11 +205,13 @@ export function ShareModal({ is_open, on_close }: ShareModalProps) {
               type="email"
               value={email}
               onChange={(e) => set_email(e.target.value)}
-              onKeyDown={(e) => e["key"] === "Enter" && handle_send()}
+              onKeyDown={(e) =>
+                e["key"] === "Enter" && !is_composing(e) && handle_send()
+              }
             />
             <Button
               className="px-4 font-medium"
-              disabled={!email}
+              disabled={!is_valid_email(email.trim())}
               variant="depth"
               onClick={handle_send}
             >
@@ -203,14 +259,14 @@ export function ShareModal({ is_open, on_close }: ShareModalProps) {
                 <LinkIcon className="w-4 h-4" />
               )}
             </div>
-            <div className="flex-1 text-left">
+            <div className="flex-1 text-start">
               <p
                 className="text-[13px] font-medium"
                 style={{ color: "var(--text-primary)" }}
               >
                 {copy_success
                   ? t("common.link_copied")
-                  : "astermail.org/invite"}
+                  : invite_url.replace(/^https?:\/\//, "")}
               </p>
             </div>
             <span
@@ -230,14 +286,18 @@ export function ShareModal({ is_open, on_close }: ShareModalProps) {
         </div>
 
         <div>
-          <label
+          <span
             className="block text-[12px] font-medium uppercase tracking-wider mb-3"
-            htmlFor="share-social"
+            id="share-social-label"
             style={{ color: "var(--text-muted)" }}
           >
             {t("common.share_on_social")}
-          </label>
-          <div className="flex gap-2">
+          </span>
+          <div
+            aria-labelledby="share-social-label"
+            className="flex gap-2"
+            role="group"
+          >
             {social_buttons.map((btn) => (
               <button
                 key={btn.id}

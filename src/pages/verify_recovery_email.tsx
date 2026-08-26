@@ -31,6 +31,17 @@ function VerifyRecoveryEmailPage() {
   const navigate = useNavigate();
 
   const verified = search_params.get("verified") === "true";
+  const can_close_tab = window.opener !== null;
+
+  const handle_dismiss = () => {
+    window.close();
+
+    window.setTimeout(() => {
+      if (!window.closed) {
+        navigate("/sign-in", { replace: true });
+      }
+    }, 200);
+  };
 
   useEffect(() => {
     sessionStorage.setItem(
@@ -113,9 +124,11 @@ function VerifyRecoveryEmailPage() {
             backgroundColor: "var(--bg-hover, #262626)",
             color: "var(--text-primary, #fafafa)",
           }}
-          onClick={() => window.close()}
+          onClick={handle_dismiss}
         >
-          {t("auth.close_this_tab")}
+          {can_close_tab
+            ? t("auth.close_this_tab")
+            : t("auth.back_to_sign_in")}
         </button>
       </div>
     </div>

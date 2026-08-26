@@ -189,7 +189,11 @@ describe("folder create and reorder flows", () => {
       | undefined;
 
     await act(async () => {
-      duplicate = await latest!.create_new_folder("Work", undefined, "parent_a");
+      duplicate = await latest!.create_new_folder(
+        "Work",
+        undefined,
+        "parent_a",
+      );
       sibling_ok = await latest!.create_new_folder(
         "Work",
         undefined,

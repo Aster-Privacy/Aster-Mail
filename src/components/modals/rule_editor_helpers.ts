@@ -25,6 +25,7 @@ import type {
   LeafCondition,
 } from "@/services/api/mail_rules";
 import type { AddableActionType } from "@/components/mail_rules/add_action_chip";
+
 import {
   default_condition_for_field,
   field_kind,
@@ -40,6 +41,7 @@ export function has_nested_logic(conditions: Condition[]): boolean {
 
 export function flatten_leaves(conditions: Condition[]): LeafCondition[] {
   const out: LeafCondition[] = [];
+
   for (const c of conditions) {
     if (c.type === "and" || c.type === "or") {
       out.push(...flatten_leaves(c.conditions));
@@ -49,6 +51,7 @@ export function flatten_leaves(conditions: Condition[]): LeafCondition[] {
       out.push(c);
     }
   }
+
   return out;
 }
 
@@ -87,6 +90,9 @@ export const strip_unavailable_actions = (list: Action[]): Action[] =>
   list.filter(
     (a) => !UNAVAILABLE_ACTION_TYPES.has(a.type as AddableActionType),
   );
+
+export const keep_unavailable_actions = (list: Action[]): Action[] =>
+  list.filter((a) => UNAVAILABLE_ACTION_TYPES.has(a.type as AddableActionType));
 
 export const ACTION_LABEL_KEYS: Record<
   AddableActionType,
@@ -152,11 +158,32 @@ export function condition_has_value(c: Condition): boolean {
   if (c.type === "header") {
     if (!c.name) return false;
   }
+  if ("operator" in c && c.operator === "is_empty") return true;
   const v = (c as { value?: unknown }).value;
 
   if (typeof v === "string") return v.length > 0;
-  if (typeof v === "number") return !Number.isNaN(v);
+  if (typeof v === "number") {
+    if (Number.isNaN(v)) return false;
+    if (k === "numeric_size" || k === "numeric_plain") return v !== 0;
+
+    return true;
+  }
+
   return v !== undefined && v !== null;
+}
+
+export function condition_ready_to_save(c: Condition): boolean {
+  if (c.type === "and" || c.type === "or") {
+    return c.conditions.every(condition_ready_to_save);
+  }
+  if (c.type === "not") {
+    return condition_ready_to_save(c.condition);
+  }
+  const v = (c as { value?: unknown }).value;
+
+  if (typeof v === "number") return !Number.isNaN(v);
+
+  return condition_has_value(c);
 }
 
 export function has_any_action_value(actions: Action[]): boolean {

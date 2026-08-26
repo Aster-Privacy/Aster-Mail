@@ -20,6 +20,12 @@
 //
 import type { use_i18n } from "@/lib/i18n";
 
+import {
+  app_hour12,
+  calendar_day_diff,
+  get_display_time_zone,
+} from "@/utils/date_format";
+
 type Translate = ReturnType<typeof use_i18n>["t"];
 
 export function format_relative_time(t: Translate, iso: string): string {
@@ -30,7 +36,7 @@ export function format_relative_time(t: Translate, iso: string): string {
   const diff = Date.now() - parsed;
   const mins = Math.floor(diff / 60000);
   const hours = Math.floor(diff / 3600000);
-  const days = Math.floor(diff / 86400000);
+  const days = calendar_day_diff(new Date(parsed), new Date());
 
   if (mins < 2) return t("settings.fam_org_time_just_now");
   if (mins < 60) return t("settings.fam_org_time_minutes", { count: mins });
@@ -66,6 +72,8 @@ export function format_created_at(iso: string, locale: string): string {
     month: "short",
     year: "numeric",
     hour: "numeric",
+    hour12: app_hour12(),
     minute: "2-digit",
+    timeZone: get_display_time_zone(),
   });
 }

@@ -27,6 +27,7 @@ import {
 import {
   get_preferred_sender_id,
   subscribe_preferred_sender,
+  sender_id_matches,
 } from "@/lib/preferred_sender";
 
 export interface PrimaryIdentity {
@@ -48,16 +49,18 @@ export function resolve_primary_identity(
   account_email: string,
 ): PrimaryIdentity {
   const fallback =
-    sender_options.find((o) => o.type === "primary") ?? sender_options[0] ?? null;
+    sender_options.find((o) => o.type === "primary") ??
+    sender_options[0] ??
+    null;
 
   const chosen =
     preferred_sender_id !== null
-      ? sender_options.find(
+      ? (sender_options.find(
           (o) =>
-            o.id === preferred_sender_id &&
+            sender_id_matches(o.id, preferred_sender_id) &&
             o.is_enabled &&
             PRIMARY_IDENTITY_TYPES.has(o.type),
-        ) ?? null
+        ) ?? null)
       : null;
 
   const resolved = chosen ?? fallback;

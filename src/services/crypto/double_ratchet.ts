@@ -18,9 +18,10 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { array_to_base64, base64_to_array } from "./base64";
+
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import { HASH_ALG } from "@/services/crypto/constants";
-import { array_to_base64, base64_to_array } from "./base64";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 
 const ECDH_ALGORITHM = "ECDH";
@@ -29,6 +30,7 @@ const ECDH_CURVE = "P-256";
 const KDF_INFO_ROOT = new TextEncoder().encode("Aster Mail_Root_KDF");
 const KDF_INFO_CHAIN = new TextEncoder().encode("Aster Mail_Chain_KDF");
 const MAX_SKIP = 1000;
+const MAX_TOTAL_SKIPPED_KEYS = 2000;
 
 interface RatchetKeyPair {
   public_key: Uint8Array;
@@ -506,7 +508,10 @@ export class DoubleRatchet {
       await DoubleRatchet.dh_ratchet_on(work, header_dh_public);
     }
 
-    await DoubleRatchet.skip_message_keys_on(work, message.header.message_number);
+    await DoubleRatchet.skip_message_keys_on(
+      work,
+      message.header.message_number,
+    );
 
     if (!work.chain_key_recv) {
       throw new Error("Cannot decrypt: receiving chain not initialized");
@@ -587,6 +592,7 @@ export class DoubleRatchet {
       );
     } catch {
       zero_uint8_array(message_key);
+
       return null;
     }
 
@@ -685,11 +691,11 @@ export class DoubleRatchet {
   private static cleanup_old_skipped_keys_on(state: RatchetState): void {
     const retention_cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
 
-    state.skipped_message_keys = state.skipped_message_keys.filter(
-      (k) => k.timestamp > retention_cutoff,
-    );
+    state.skipped_message_keys = state.skipped_message_keys
+      .filter((k) => k.timestamp > retention_cutoff)
+      .sort((a, b) => a.timestamp - b.timestamp);
 
-    while (state.skipped_message_keys.length > MAX_SKIP) {
+    while (state.skipped_message_keys.length > MAX_TOTAL_SKIPPED_KEYS) {
       state.skipped_message_keys.shift();
     }
   }

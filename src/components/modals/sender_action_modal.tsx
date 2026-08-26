@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { FaviconOrInitial } from "@/components/ui/favicon_or_initial";
 import type { TranslationKey } from "@/lib/i18n/types";
 import type { MailItem } from "@/services/api/mail";
 
@@ -49,6 +50,8 @@ import { decrypt_mail_envelope } from "@/components/email/shared/decrypt_envelop
 import { normalize_envelope_from } from "@/services/crypto/envelope";
 import { get_favicon_url } from "@/lib/favicon_url";
 import { show_action_toast } from "@/components/toast/action_toast";
+import { show_toast } from "@/components/toast/simple_toast";
+import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import {
   encrypt_mail_metadata,
   metadata_flag_patch,
@@ -56,12 +59,16 @@ import {
 import { use_auth } from "@/contexts/auth_context";
 import { get_email_username, get_email_domain } from "@/lib/utils";
 import { has_protected_folder_label } from "@/hooks/use_folders";
-import { emit_mail_items_removed } from "@/hooks/mail_events";
+import {
+  emit_mail_items_removed,
+  emit_mail_soft_refresh,
+} from "@/hooks/mail_events";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 import { Input } from "@/components/ui/input";
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
 import { map_in_chunks } from "@/lib/scheduling";
+import { use_escape_layer } from "@/lib/overlay_layer_stack";
 
 interface DecryptedEnvelope {
   from: { name: string; email: string };
@@ -160,15 +167,26 @@ export function SenderActionModal({
   const [search_query, set_search_query] = useState("");
   const [is_loading, set_is_loading] = useState(true);
   const [is_executing, set_is_executing] = useState(false);
+  const [confirm_delete_open, set_confirm_delete_open] = useState(false);
+  const [scan_failed, set_scan_failed] = useState(false);
   const config = get_action_config(action_type, t);
   const Icon = config.icon;
 
   const load_senders = useCallback(
     async (signal?: AbortSignal) => {
-      if (!vault) return;
+      if (!vault) {
+        set_is_loading(false);
+
+        return;
+      }
       set_is_loading(true);
+      set_scan_failed(false);
       try {
-        const { items: all_items } = await scan_received_items(signal);
+        const { items: all_items, failed } = await scan_received_items(signal);
+
+        if (signal?.aborted) return;
+
+        set_scan_failed(failed);
 
         if (signal?.aborted) return;
 
@@ -235,6 +253,7 @@ export function SenderActionModal({
       set_selected_senders(new Set());
       set_selected_folder(null);
       set_search_query("");
+      set_confirm_delete_open(false);
       const controller = new AbortController();
 
       load_senders(controller.signal);
@@ -265,15 +284,22 @@ export function SenderActionModal({
     set_selected_senders(next);
   };
 
+  const all_selected =
+    filtered_senders.length > 0 &&
+    filtered_senders.every((s) => selected_senders.has(s.email));
+
   const handle_select_all = () => {
-    if (selected_senders.size === filtered_senders.length) {
-      set_selected_senders(new Set());
+    const next = new Set(selected_senders);
+
+    if (all_selected) {
+      for (const sender of filtered_senders) next.delete(sender.email);
     } else {
-      set_selected_senders(new Set(filtered_senders.map((s) => s.email)));
+      for (const sender of filtered_senders) next.add(sender.email);
     }
+    set_selected_senders(next);
   };
 
-  const handle_execute = async () => {
+  const execute_action = async () => {
     if (selected_senders.size === 0) return;
     const selected = senders.filter((s) => selected_senders.has(s.email));
     const all_ids = selected.flatMap((s) => s.ids);
@@ -312,16 +338,33 @@ export function SenderActionModal({
         }>;
 
         if (valid_updates.length > 0) {
-          await bulk_patch_metadata({ items: valid_updates });
+          const patch_result = await bulk_patch_metadata({
+            items: valid_updates,
+          });
+
+          if (patch_result.error) {
+            show_toast(t("common.something_went_wrong_try_again"), "error");
+
+            return;
+          }
         }
         stale_all_view_caches();
-        await batch_archive({ ids: all_ids, tier: "hot" });
+        const archive_result = await batch_archive({
+          ids: all_ids,
+          tier: "hot",
+        });
+
+        if (archive_result.error) {
+          show_toast(t("common.something_went_wrong_try_again"), "error");
+
+          return;
+        }
         emit_mail_items_removed({ ids: all_ids });
         invalidate_mail_stats();
         show_action_toast({
           message: t("common.emails_from_senders_archived", {
-            count: String(total_count),
-            senders: String(selected.length),
+            count: total_count,
+            senders: t("common.sender_count", { count: selected.length }),
           }),
           action_type: "archive",
           email_ids: all_ids,
@@ -352,9 +395,23 @@ export function SenderActionModal({
             }>;
 
             if (valid_undo.length > 0) {
-              await bulk_patch_metadata({ items: valid_undo });
+              const undo_patch_result = await bulk_patch_metadata({
+                items: valid_undo,
+              });
+
+              if (undo_patch_result.error) {
+                show_toast(t("common.something_went_wrong_try_again"), "error");
+
+                return;
+              }
             }
-            await batch_unarchive({ ids: all_ids });
+            const unarchive_result = await batch_unarchive({ ids: all_ids });
+
+            if (unarchive_result.error) {
+              show_toast(t("common.something_went_wrong_try_again"), "error");
+
+              return;
+            }
             invalidate_mail_stats();
             window.dispatchEvent(
               new CustomEvent("astermail:mail-soft-refresh"),
@@ -386,14 +443,22 @@ export function SenderActionModal({
         }>;
 
         if (valid_updates.length > 0) {
-          await bulk_patch_metadata({ items: valid_updates });
+          const patch_result = await bulk_patch_metadata({
+            items: valid_updates,
+          });
+
+          if (patch_result.error) {
+            show_toast(t("common.something_went_wrong_try_again"), "error");
+
+            return;
+          }
         }
         emit_mail_items_removed({ ids: all_ids });
         invalidate_mail_stats();
         show_action_toast({
           message: t("common.emails_from_senders_deleted", {
-            count: String(total_count),
-            senders: String(selected.length),
+            count: total_count,
+            senders: t("common.sender_count", { count: selected.length }),
           }),
           action_type: "trash",
           email_ids: all_ids,
@@ -424,7 +489,15 @@ export function SenderActionModal({
             }>;
 
             if (valid_undo.length > 0) {
-              await bulk_patch_metadata({ items: valid_undo });
+              const undo_patch_result = await bulk_patch_metadata({
+                items: valid_undo,
+              });
+
+              if (undo_patch_result.error) {
+                show_toast(t("common.something_went_wrong_try_again"), "error");
+
+                return;
+              }
             }
             invalidate_mail_stats();
             window.dispatchEvent(
@@ -433,14 +506,20 @@ export function SenderActionModal({
           },
         });
       } else if (action_type === "move" && selected_folder) {
-        await bulk_add_folder(all_ids, selected_folder);
+        const move_result = await bulk_add_folder(all_ids, selected_folder);
+
+        if (move_result.error) {
+          show_toast(t("common.something_went_wrong_try_again"), "error");
+
+          return;
+        }
         const folder = folders.find((f) => f.token === selected_folder);
 
         invalidate_mail_stats();
-        window.dispatchEvent(new CustomEvent("astermail:mail-soft-refresh"));
+        emit_mail_soft_refresh();
         show_action_toast({
           message: t("common.emails_added_to_folder", {
-            count: String(total_count),
+            count: total_count,
             folder: folder?.name || t("mail.folder"),
           }),
           action_type: "archive",
@@ -453,228 +532,267 @@ export function SenderActionModal({
     }
   };
 
-  const all_selected =
-    selected_senders.size === filtered_senders.length &&
-    filtered_senders.length > 0;
+  const selected_email_total = senders
+    .filter((s) => selected_senders.has(s.email))
+    .reduce((sum, s) => sum + s.count, 0);
+
+  const handle_execute = () => {
+    if (action_type === "delete") {
+      set_confirm_delete_open(true);
+
+      return;
+    }
+    execute_action();
+  };
+
+  const handle_confirm_delete = () => {
+    set_confirm_delete_open(false);
+    execute_action();
+  };
 
   const can_execute =
     selected_senders.size > 0 && (action_type !== "move" || selected_folder);
 
+  use_escape_layer(is_open, on_close, "sender_action_modal");
+
   return (
-    <AnimatePresence>
-      {is_open && (
-        <motion.div
-          animate={{ opacity: 1 }}
-          className="fixed inset-0 z-[60] flex items-center justify-center p-4"
-          exit={{ opacity: 0 }}
-          initial={reduce_motion ? false : { opacity: 0 }}
-          transition={{ duration: reduce_motion ? 0 : 0.15 }}
-        >
+    <>
+      <ConfirmationModal
+        confirm_text={t("mail.move_to_trash")}
+        is_open={confirm_delete_open}
+        message={`${t("common.email_count", {
+          count: selected_email_total,
+        })}. ${t("mail.trash_messages_confirmation")}`}
+        title={t("mail.delete_messages_title")}
+        variant="danger"
+        on_cancel={() => set_confirm_delete_open(false)}
+        on_confirm={handle_confirm_delete}
+      />
+      <AnimatePresence>
+        {is_open && (
           <motion.div
-            className="absolute inset-0 backdrop-blur-md"
-            style={{ backgroundColor: "var(--modal-overlay)" }}
-            onClick={on_close}
-          />
-          <motion.div
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            className="relative w-full max-w-md rounded-xl border overflow-hidden bg-modal-bg border-edge-primary"
-            exit={{ opacity: 0, scale: 0.96, y: 0 }}
-            initial={reduce_motion ? false : { opacity: 0, scale: 0.96, y: 0 }}
-            style={{
-              boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.35)",
-            }}
-            transition={{ duration: reduce_motion ? 0 : 0.15, ease: "easeOut" }}
+            animate={{ opacity: 1 }}
+            className="fixed inset-0 z-[60] flex items-center justify-center p-4"
+            exit={{ opacity: 0 }}
+            initial={reduce_motion ? false : { opacity: 0 }}
+            transition={{ duration: reduce_motion ? 0 : 0.15 }}
           >
-            <div className="flex items-center justify-between px-6 py-5">
-              <div className="flex items-center gap-3">
-                <Icon className="w-5 h-5 text-txt-secondary" />
-                <h2 className="text-[16px] font-semibold text-txt-primary">
-                  {config.title}
-                </h2>
-              </div>
-              <button
-                className="p-1.5 rounded-[14px] transition-colors hover:bg-black/[0.05] dark:hover:bg-white/[0.05] text-txt-muted"
-                onClick={on_close}
-              >
-                <XMarkIcon className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="p-4">
-              <div className="relative mb-3">
-                <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-txt-muted" />
-                <Input
-                  className="w-full"
-                  placeholder={t("common.search_senders")}
-                  style={{ paddingLeft: "40px", paddingRight: "16px" }}
-                  type="text"
-                  value={search_query}
-                  onChange={(e) => set_search_query(e.target.value)}
-                />
-              </div>
-
-              <div className="rounded-lg overflow-hidden mb-3 border border-edge-secondary">
-                <div
-                  className="max-h-64 overflow-y-auto"
-                  style={{ scrollbarWidth: "thin" }}
-                >
-                  {is_loading ? (
-                    <div className="flex items-center justify-center py-12">
-                      <Spinner className="text-txt-muted" size="md" />
-                    </div>
-                  ) : filtered_senders.length === 0 ? (
-                    <div className="py-8 text-center">
-                      <p className="text-[13px] text-txt-muted">
-                        {search_query
-                          ? t("common.no_senders_found")
-                          : t("common.no_emails_to_process")}
-                      </p>
-                    </div>
-                  ) : (
-                    filtered_senders.map((sender) => {
-                      const is_selected = selected_senders.has(sender.email);
-
-                      return (
-                        <button
-                          key={sender.email}
-                          className="w-full flex items-center gap-3 px-4 py-2 cursor-pointer select-none transition-colors"
-                          style={{ backgroundColor: "transparent" }}
-                          onClick={() => handle_select(sender.email)}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor =
-                              "var(--bg-hover)";
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor =
-                              "transparent";
-                          }}
-                        >
-                          <Checkbox
-                            checked={is_selected}
-                            onCheckedChange={() => handle_select(sender.email)}
-                            onClick={(e) => e.stopPropagation()}
-                          />
-                          <div className="w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0 overflow-hidden bg-black/[0.03] dark:bg-white/[0.04]">
-                            <img
-                              alt=""
-                              className="w-4 h-4 object-contain"
-                              src={get_favicon_url(
-                                get_email_domain(sender.email).toLowerCase(),
-                              )}
-                              onError={(e) => {
-                                e.currentTarget.style.display = "none";
-                                const parent = e.currentTarget.parentElement;
-
-                                if (parent) {
-                                  parent.textContent = "";
-                                  const span = document.createElement("span");
-
-                                  span.className =
-                                    "text-[11px] font-medium text-txt-muted";
-                                  span.textContent = sender.name.charAt(0);
-                                  parent.appendChild(span);
-                                }
-                              }}
-                            />
-                          </div>
-                          <div className="flex-1 min-w-0 text-left">
-                            <p className="text-[13px] font-medium truncate text-txt-primary">
-                              {sender.name}
-                            </p>
-                            <p className="text-[11px] truncate text-txt-muted">
-                              {sender.email}
-                            </p>
-                          </div>
-                          <span className="text-[11px] tabular-nums flex-shrink-0 text-txt-muted">
-                            {sender.count}
-                          </span>
-                        </button>
-                      );
-                    })
-                  )}
+            <motion.div
+              className="absolute inset-0 backdrop-blur-md"
+              style={{ backgroundColor: "var(--modal-overlay)" }}
+              onClick={on_close}
+            />
+            <motion.div
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              className="relative w-full max-w-md rounded-xl border overflow-hidden bg-modal-bg border-edge-primary"
+              exit={{ opacity: 0, scale: 0.96, y: 0 }}
+              initial={
+                reduce_motion ? false : { opacity: 0, scale: 0.96, y: 0 }
+              }
+              style={{
+                boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.35)",
+              }}
+              transition={{
+                duration: reduce_motion ? 0 : 0.15,
+                ease: "easeOut",
+              }}
+            >
+              <div className="flex items-center justify-between px-6 py-5">
+                <div className="flex items-center gap-3">
+                  <Icon className="w-5 h-5 text-txt-secondary" />
+                  <h2 className="text-[16px] font-semibold text-txt-primary">
+                    {config.title}
+                  </h2>
                 </div>
+                <button
+                  className="p-1.5 rounded-[14px] transition-colors hover:bg-black/[0.05] dark:hover:bg-white/[0.05] text-txt-muted"
+                  onClick={on_close}
+                >
+                  <XMarkIcon className="w-4 h-4" />
+                </button>
               </div>
 
-              {action_type === "move" && selected_senders.size > 0 && (
-                <div className="mb-3">
-                  <p className="text-[12px] font-medium mb-2 text-txt-secondary">
-                    {t("common.select_destination_folder")}
-                  </p>
-                  <div className="rounded-lg overflow-hidden border border-edge-secondary">
-                    <div
-                      className="max-h-32 overflow-y-auto"
-                      style={{ scrollbarWidth: "thin" }}
-                    >
-                      {folders.length === 0 ? (
-                        <div className="py-4 text-center">
-                          <p className="text-[12px] text-txt-muted">
-                            {t("common.no_folders_available")}
-                          </p>
-                        </div>
-                      ) : (
-                        folders.map((folder) => {
-                          const is_selected = selected_folder === folder.token;
+              <div className="p-4">
+                <div className="relative mb-3">
+                  <MagnifyingGlassIcon className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-txt-muted" />
+                  <Input
+                    className="w-full"
+                    placeholder={t("common.search_senders")}
+                    style={{
+                      paddingInlineStart: "40px",
+                      paddingInlineEnd: "16px",
+                    }}
+                    type="text"
+                    value={search_query}
+                    onChange={(e) => set_search_query(e.target.value)}
+                  />
+                </div>
 
-                          return (
-                            <button
-                              key={folder.token}
-                              className={`w-full flex items-center gap-2.5 px-3 py-2 transition-colors ${is_selected ? "bg-surf-secondary" : ""}`}
-                              onClick={() => set_selected_folder(folder.token)}
-                            >
-                              <FolderIcon
-                                className="w-4 h-4 flex-shrink-0"
-                                style={{ color: folder.color || "#3b82f6" }}
+                <div className="rounded-lg overflow-hidden mb-3 border border-edge-secondary">
+                  <div
+                    className="max-h-64 overflow-y-auto"
+                    style={{ scrollbarWidth: "thin" }}
+                  >
+                    {is_loading ? (
+                      <div className="flex items-center justify-center py-12">
+                        <Spinner className="text-txt-muted" size="md" />
+                      </div>
+                    ) : filtered_senders.length === 0 ? (
+                      <div className="py-8 text-center">
+                        <p className="text-[13px] text-txt-muted">
+                          {search_query
+                            ? t("common.no_senders_found")
+                            : scan_failed
+                              ? t("common.something_went_wrong_try_again")
+                              : t("common.no_emails_to_process")}
+                        </p>
+                        {scan_failed && !search_query && (
+                          <button
+                            className="mt-2 text-[12px] font-medium text-accent-primary hover:underline"
+                            type="button"
+                            onClick={() => void load_senders()}
+                          >
+                            {t("common.retry")}
+                          </button>
+                        )}
+                      </div>
+                    ) : (
+                      filtered_senders.map((sender) => {
+                        const is_selected = selected_senders.has(sender.email);
+
+                        return (
+                          <button
+                            key={sender.email}
+                            className="w-full flex items-center gap-3 px-4 py-2 cursor-pointer select-none transition-colors"
+                            style={{ backgroundColor: "transparent" }}
+                            onClick={() => handle_select(sender.email)}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.backgroundColor =
+                                "var(--bg-hover)";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor =
+                                "transparent";
+                            }}
+                          >
+                            <Checkbox
+                              checked={is_selected}
+                              onCheckedChange={() =>
+                                handle_select(sender.email)
+                              }
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                            <div className="w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0 overflow-hidden bg-black/[0.03] dark:bg-white/[0.04]">
+                              <FaviconOrInitial
+                                initial={sender.name.charAt(0)}
+                                initial_class_name="text-[11px] font-medium text-txt-muted"
+                                src={get_favicon_url(
+                                  get_email_domain(sender.email).toLowerCase(),
+                                )}
                               />
-                              <span className="text-[13px] flex-1 text-left truncate text-txt-primary">
-                                {folder.name}
-                              </span>
-                              {is_selected && (
-                                <CheckIcon className="w-4 h-4 flex-shrink-0 text-brand" />
-                              )}
-                            </button>
-                          );
-                        })
-                      )}
-                    </div>
+                            </div>
+                            <div className="flex-1 min-w-0 text-start">
+                              <p className="text-[13px] font-medium truncate text-txt-primary">
+                                {sender.name}
+                              </p>
+                              <p className="text-[11px] truncate text-txt-muted">
+                                {sender.email}
+                              </p>
+                            </div>
+                            <span className="text-[11px] tabular-nums flex-shrink-0 text-txt-muted">
+                              {sender.count}
+                            </span>
+                          </button>
+                        );
+                      })
+                    )}
                   </div>
                 </div>
-              )}
-            </div>
 
-            <div className="flex items-center justify-between px-4 py-3 border-t border-edge-secondary">
-              <button
-                className="flex items-center gap-3 text-[12px] font-medium text-txt-muted"
-                onClick={handle_select_all}
-              >
-                <Checkbox
-                  checked={all_selected}
-                  onCheckedChange={handle_select_all}
-                />
-                {selected_senders.size > 0
-                  ? `${selected_senders.size} ${t("common.selected")}`
-                  : t("common.select_all")}
-              </button>
-              <Button
-                disabled={!can_execute || is_executing}
-                size="xl"
-                variant="depth"
-                onClick={handle_execute}
-              >
-                {is_executing ? (
-                  <Spinner size="md" />
-                ) : (
-                  <>
-                    {config.button_text}
-                    {selected_senders.size > 0
-                      ? ` (${selected_senders.size})`
-                      : ""}
-                  </>
+                {action_type === "move" && selected_senders.size > 0 && (
+                  <div className="mb-3">
+                    <p className="text-[12px] font-medium mb-2 text-txt-secondary">
+                      {t("common.select_destination_folder")}
+                    </p>
+                    <div className="rounded-lg overflow-hidden border border-edge-secondary">
+                      <div
+                        className="max-h-32 overflow-y-auto"
+                        style={{ scrollbarWidth: "thin" }}
+                      >
+                        {folders.length === 0 ? (
+                          <div className="py-4 text-center">
+                            <p className="text-[12px] text-txt-muted">
+                              {t("common.no_folders_available")}
+                            </p>
+                          </div>
+                        ) : (
+                          folders.map((folder) => {
+                            const is_selected =
+                              selected_folder === folder.token;
+
+                            return (
+                              <button
+                                key={folder.token}
+                                className={`w-full flex items-center gap-2.5 px-3 py-2 transition-colors ${is_selected ? "bg-surf-secondary" : ""}`}
+                                onClick={() =>
+                                  set_selected_folder(folder.token)
+                                }
+                              >
+                                <FolderIcon
+                                  className="w-4 h-4 flex-shrink-0"
+                                  style={{ color: folder.color || "#3b82f6" }}
+                                />
+                                <span className="text-[13px] flex-1 text-start truncate text-txt-primary">
+                                  {folder.name}
+                                </span>
+                                {is_selected && (
+                                  <CheckIcon className="w-4 h-4 flex-shrink-0 text-brand" />
+                                )}
+                              </button>
+                            );
+                          })
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 )}
-              </Button>
-            </div>
+              </div>
+
+              <div className="flex items-center justify-between px-4 py-3 border-t border-edge-secondary">
+                <button
+                  className="flex items-center gap-3 text-[12px] font-medium text-txt-muted"
+                  onClick={handle_select_all}
+                >
+                  <Checkbox
+                    checked={all_selected}
+                    onCheckedChange={handle_select_all}
+                  />
+                  {selected_senders.size > 0
+                    ? `${selected_senders.size} ${t("common.selected")}`
+                    : t("common.select_all")}
+                </button>
+                <Button
+                  disabled={!can_execute || is_executing}
+                  size="xl"
+                  variant="depth"
+                  onClick={handle_execute}
+                >
+                  {is_executing ? (
+                    <Spinner size="md" />
+                  ) : (
+                    <>
+                      {config.button_text}
+                      {selected_senders.size > 0
+                        ? ` (${selected_senders.size})`
+                        : ""}
+                    </>
+                  )}
+                </Button>
+              </div>
+            </motion.div>
           </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+        )}
+      </AnimatePresence>
+    </>
   );
 }

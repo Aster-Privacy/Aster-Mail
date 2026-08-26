@@ -32,7 +32,10 @@ import {
 import { Switch, UpgradeBtn } from "@aster/ui";
 
 import { useTheme } from "@/contexts/theme_context";
-import { use_preferences } from "@/contexts/preferences_context";
+import {
+  label_to_language_code,
+  use_preferences,
+} from "@/contexts/preferences_context";
 import {
   Select,
   SelectContent,
@@ -54,6 +57,7 @@ import { TimeZonePicker } from "@/components/settings/appearance/time_zone_picke
 import { get_supported_time_zones } from "@/lib/time_zones";
 import { resolve_list_density } from "@/lib/list_density";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
+import { SettingsSaveIndicatorInline } from "./settings_save_indicator";
 import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
 import {
   FONT_OPTIONS,
@@ -102,10 +106,7 @@ export function AppearanceSection() {
     if (effective_theme_fields.color_theme !== "custom") return;
 
     update_preferences(
-      {
-        ...build_theme_fields_update(preferences, { color_theme: "default" }),
-        custom_theme_overrides: {},
-      },
+      build_theme_fields_update(preferences, { color_theme: "default" }),
       true,
     );
   }, [limits, is_paid_plan, effective_theme_fields.color_theme]);
@@ -230,9 +231,7 @@ export function AppearanceSection() {
   };
 
   const current_language_code =
-    LANGUAGES.find(
-      (lang) => get_display_name(lang.code) === preferences.language,
-    )?.code || "en";
+    label_to_language_code(preferences.language ?? "") ?? "en";
 
   const handle_date_format_change = (value: string) => {
     update_preference("date_format", value, true);
@@ -244,13 +243,19 @@ export function AppearanceSection() {
 
   const time_format_display =
     preferences.time_format === "24h"
-      ? t("settings.twenty_four_hours")
-      : t("settings.twelve_hours");
+      ? t("settings.time_format_24h")
+      : t("settings.time_format_12h");
 
-  const available_time_zones = useMemo<string[]>(
-    () => get_supported_time_zones(),
-    [],
-  );
+  const available_time_zones = useMemo<string[]>(() => {
+    const zones = get_supported_time_zones();
+    const saved = preferences.time_zone;
+
+    if (saved && saved !== "auto" && !zones.includes(saved)) {
+      return [saved, ...zones];
+    }
+
+    return zones;
+  }, [preferences.time_zone]);
 
   const time_zone_value =
     preferences.time_zone &&
@@ -264,6 +269,7 @@ export function AppearanceSection() {
 
   return (
     <div className="space-y-4">
+      <SettingsSaveIndicatorInline />
       <div>
         <div className="mb-4">
           <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
@@ -664,9 +670,11 @@ export function AppearanceSection() {
               <SelectValue>{time_format_display}</SelectValue>
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="12h">{t("settings.twelve_hours")}</SelectItem>
+              <SelectItem value="12h">
+                {t("settings.time_format_12h")}
+              </SelectItem>
               <SelectItem value="24h">
-                {t("settings.twenty_four_hours")}
+                {t("settings.time_format_24h")}
               </SelectItem>
             </SelectContent>
           </Select>
@@ -767,49 +775,6 @@ export function AppearanceSection() {
             </SelectContent>
           </Select>
         </SettingRow>
-      </div>
-
-      <div className="pt-3">
-        <div className="mb-4">
-          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-            <ViewColumnsIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-            {t("settings.email_view_mode")}
-          </h3>
-          <div className="mt-2 h-px bg-edge-secondary" />
-        </div>
-        <p className="text-sm mb-2 text-txt-muted">
-          {t("settings.email_view_description")}
-        </p>
-        <div className="flex gap-4">
-          <ViewModeCard
-            is_selected={preferences.email_view_mode === "popup"}
-            label={t("settings.popup")}
-            mode="popup"
-            on_select={() =>
-              update_preference("email_view_mode", "popup", true)
-            }
-            theme={mockup_theme}
-          />
-          <ViewModeCard
-            is_selected={preferences.email_view_mode === "split"}
-            label={t("settings.split_view")}
-            mode="split"
-            on_select={() =>
-              update_preference("email_view_mode", "split", true)
-            }
-            theme={mockup_theme}
-          />
-          <ViewModeCard
-            is_selected={preferences.email_view_mode === "fullpage"}
-            label={t("settings.full_page")}
-            mode="fullpage"
-            on_select={() =>
-              update_preference("email_view_mode", "fullpage", true)
-            }
-            theme={mockup_theme}
-          />
-        </div>
-
       </div>
 
       <div className="pt-3">

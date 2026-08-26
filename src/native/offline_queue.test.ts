@@ -22,6 +22,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 
 const hoisted = vi.hoisted(() => ({
   account_id: { value: "acct_a" as string | null },
+  storage_unreadable: { value: false },
   update_item_metadata: vi.fn(async () => ({ success: true })),
   get_mail_item: vi.fn(async () => ({
     data: {
@@ -43,6 +44,11 @@ vi.mock("./haptic_feedback", () => ({
 
 vi.mock("@/services/account_manager", () => ({
   get_current_account_id: async () => hoisted.account_id.value,
+  accounts_storage_unreadable: () => hoisted.storage_unreadable.value,
+}));
+
+vi.mock("@/services/api/auth", () => ({
+  is_authenticated: () => true,
 }));
 
 vi.mock("@/services/api/mail", () => ({
@@ -54,7 +60,14 @@ vi.mock("@/services/crypto/mail_metadata", () => ({
   update_item_metadata: hoisted.update_item_metadata,
 }));
 
-import { get_queue, process_offline_queue } from "./offline_queue";
+import {
+  get_failed_actions,
+  get_queue,
+  initialize_offline_queue,
+  process_offline_queue,
+  retry_failed_actions,
+} from "./offline_queue";
+
 import { MAIL_EVENTS } from "@/hooks/mail_events";
 
 const LEGACY_KEY = "aster_offline_queue";
@@ -87,9 +100,9 @@ describe("offline queue account scoping", () => {
     expect(queue).toHaveLength(1);
     expect(queue[0].id).toBe("a1");
     expect(localStorage.getItem(LEGACY_KEY)).toBeNull();
-    expect(
-      JSON.parse(localStorage.getItem(SCOPED_KEY_A) || "[]"),
-    ).toHaveLength(1);
+    expect(JSON.parse(localStorage.getItem(SCOPED_KEY_A) || "[]")).toHaveLength(
+      1,
+    );
   });
 
   it("does not read another account's queue", async () => {
@@ -98,9 +111,9 @@ describe("offline queue account scoping", () => {
     const queue = await get_queue();
 
     expect(queue).toHaveLength(0);
-    expect(
-      JSON.parse(localStorage.getItem(SCOPED_KEY_B) || "[]"),
-    ).toHaveLength(1);
+    expect(JSON.parse(localStorage.getItem(SCOPED_KEY_B) || "[]")).toHaveLength(
+      1,
+    );
   });
 
   it("falls back to the unscoped key when no account is active", async () => {
@@ -171,10 +184,49 @@ describe("offline queue replay events", () => {
     expect(await get_queue()).toHaveLength(0);
   });
 
+  it("replays an action that was parked in the failed store", async () => {
+    hoisted.update_item_metadata.mockResolvedValue({ success: false });
+    localStorage.setItem(SCOPED_KEY_A, JSON.stringify([star_action("a1", 2)]));
+
+    await process_offline_queue();
+
+    expect(await get_failed_actions()).toHaveLength(1);
+
+    hoisted.update_item_metadata.mockResolvedValue({ success: true });
+
+    await retry_failed_actions();
+    await vi.waitFor(async () => {
+      expect(await get_queue()).toHaveLength(0);
+    });
+
+    expect(await get_failed_actions()).toHaveLength(0);
+    expect(hoisted.update_item_metadata).toHaveBeenCalledTimes(2);
+  });
+
   it("emits nothing when the queue is empty", async () => {
     await process_offline_queue();
 
     expect(mail_changed_events).toBe(0);
     expect(stats_stale_events).toBe(0);
+  });
+});
+
+describe("offline queue web replay triggers", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    hoisted.account_id.value = "acct_a";
+    hoisted.update_item_metadata.mockClear();
+    hoisted.update_item_metadata.mockResolvedValue({ success: true });
+  });
+
+  it("drains the queue when the browser comes back online", async () => {
+    await initialize_offline_queue();
+
+    localStorage.setItem(SCOPED_KEY_A, JSON.stringify([star_action("w1")]));
+
+    window.dispatchEvent(new Event("online"));
+    await vi.waitFor(async () => {
+      expect(await get_queue()).toHaveLength(0);
+    });
   });
 });

@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import * as openpgp from "openpgp";
+
 import { type EncryptedKeyHandle } from "./key_manager_core";
 import { unlock_private_key } from "./key_manager_pgp_unlocked_cache";
 import { with_decrypted_key } from "./key_manager_pgp_usage";
@@ -297,7 +298,8 @@ export async function decrypt_message_verified(
 ): Promise<decrypted_message_result> {
   const secret_key_obj = await unlock_private_key(secret_key, passphrase);
 
-  const parsed_verification_keys = await parse_verification_keys(verification_keys);
+  const parsed_verification_keys =
+    await parse_verification_keys(verification_keys);
   const result = await with_aes_kw_fallback(async () =>
     openpgp.decrypt({
       message: await openpgp.readMessage({ armoredMessage: ciphertext }),
@@ -326,7 +328,11 @@ export async function decrypt_message(
   secret_key: string,
   passphrase: string,
 ): Promise<string> {
-  const result = await decrypt_message_verified(ciphertext, secret_key, passphrase);
+  const result = await decrypt_message_verified(
+    ciphertext,
+    secret_key,
+    passphrase,
+  );
 
   return result.plaintext;
 }

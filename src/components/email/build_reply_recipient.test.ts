@@ -213,9 +213,7 @@ describe("build_reply_recipient_for_message", () => {
       sender_name: "Me",
       sender_email: "me@astermail.org",
       to_recipients: [{ name: "Them", email: "them@example.com" }],
-      raw_headers: [
-        { name: "Reply-To", value: "spoofed@bad.example" },
-      ],
+      raw_headers: [{ name: "Reply-To", value: "spoofed@bad.example" }],
     });
 
     expect(result.recipient_email).toBe("them@example.com");
@@ -246,9 +244,7 @@ describe("build_reply_recipient_for_message", () => {
       sender_name: "Hi Example",
       sender_email: "reverse_alias_x@simplelogin.co",
       display_sender_email: "hi@example.com",
-      raw_headers: [
-        { name: "Reply-To", value: "hi@example.com" },
-      ],
+      raw_headers: [{ name: "Reply-To", value: "hi@example.com" }],
     });
 
     expect(result.recipient_email).toBe("reverse_alias_x@simplelogin.co");

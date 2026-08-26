@@ -163,7 +163,19 @@ export const ALLOWED_ATTRIBUTES: Record<string, Set<string>> = {
     "data-aster-signature-id",
   ]),
   a: new Set(["href", "target", "rel", "name"]),
-  img: new Set(["src", "alt", "width", "height", "loading", "srcset"]),
+  img: new Set([
+    "src",
+    "alt",
+    "width",
+    "height",
+    "loading",
+    "srcset",
+    "sizes",
+    "align",
+    "border",
+    "hspace",
+    "vspace",
+  ]),
   div: new Set(["align"]),
   p: new Set(["align"]),
   span: new Set(["align"]),
@@ -248,15 +260,15 @@ export const ALLOWED_DATA_URL_TYPES = new Set([
 ]);
 
 export const TRACKING_PIXEL_PATTERNS = [
-  /width\s*[:=]\s*["']?[01](?!\d)/i,
-  /height\s*[:=]\s*["']?[01](?!\d)/i,
+  /(?:^|[;{\s])width\s*[:=]\s*["']?[01](?!\d)\s*(?:px)?\s*(?:;|$|["'])/i,
+  /(?:^|[;{\s])height\s*[:=]\s*["']?[01](?!\d)\s*(?:px)?\s*(?:;|$|["'])/i,
 ];
 
 export const TRACKING_PIXEL_URL_PATTERNS = [
-  /\/track/i,
+  /\/track(?:ing)?(?:[/?.]|$)/i,
   /\/open\//i,
-  /\/pixel/i,
-  /\/beacon/i,
+  /\/pixel(?:[/?.]|$)/i,
+  /\/beacon(?:[/?.]|$)/i,
   /\/wf\/open/i,
   /\/o\.gif/i,
   /\/t\.gif/i,
@@ -264,7 +276,7 @@ export const TRACKING_PIXEL_URL_PATTERNS = [
   /(?:^|[./])mailchimp\.com.*\/track/i,
   /(?:^|[./])list-manage\.com.*\/track/i,
   /(?:^|[./])sendgrid\.net.*\/wf\//i,
-  /(?:^|[./])amazonses\.com(?:\/|$)/i,
+  /(?:^|[./])amazonses\.com\/(?:[^?#]*\/)?(?:open|track)(?:[/?.]|$)/i,
   /(?:^|[./])doubleclick\.net(?:\/|$)/i,
   /(?:^|[./])mailgun\.org.*\/o\//i,
   /(?:^|[./])sparkpostmail(?:\/|$)/i,

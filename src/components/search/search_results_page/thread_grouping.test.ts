@@ -124,11 +124,26 @@ describe("expand_thread_ids", () => {
 
 describe("keeping a search row stable while results stream in", () => {
   const early: Row[] = [
-    { id: "b", subject: "Trip", thread_token: "t1", raw_timestamp: "2026-08-01T09:00:00Z" },
+    {
+      id: "b",
+      subject: "Trip",
+      thread_token: "t1",
+      raw_timestamp: "2026-08-01T09:00:00Z",
+    },
   ];
   const later: Row[] = [
-    { id: "b", subject: "Trip", thread_token: "t1", raw_timestamp: "2026-08-01T09:00:00Z" },
-    { id: "c", subject: "Trip", thread_token: "t1", raw_timestamp: "2026-08-01T18:00:00Z" },
+    {
+      id: "b",
+      subject: "Trip",
+      thread_token: "t1",
+      raw_timestamp: "2026-08-01T09:00:00Z",
+    },
+    {
+      id: "c",
+      subject: "Trip",
+      thread_token: "t1",
+      raw_timestamp: "2026-08-01T18:00:00Z",
+    },
   ];
 
   it("promotes the newest message onto the representative row", () => {

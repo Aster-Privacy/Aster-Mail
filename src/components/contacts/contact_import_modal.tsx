@@ -38,15 +38,17 @@ import {
   ArrowLeftIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
-import { Spinner } from "@/components/ui/spinner";
 
+import { Spinner } from "@/components/ui/spinner";
 import { use_i18n } from "@/lib/i18n/context";
+import { format_number } from "@/lib/utils";
 import {
   import_csv,
   parse_vcard,
   parse_csv,
 } from "@/services/api/contact_sync";
 import { parse_csv_records } from "@/utils/contact_utils";
+import { user_facing_error } from "@/utils/user_facing_error";
 
 interface ContactImportModalProps {
   on_close: () => void;
@@ -160,19 +162,19 @@ export function ContactImportModal({
 
             set_csv_mapping(auto_mapping);
             set_step("mapping");
+          } else {
+            set_error(t("common.csv_file_empty"));
           }
         }
       } catch (err) {
-        set_error(
-          err instanceof Error ? err.message : t("common.failed_to_read_file"),
-        );
+        set_error(user_facing_error(err, t("common.failed_to_read_file")));
       }
 
       if (input_ref.current) {
         input_ref.current.value = "";
       }
     },
-    [],
+    [t],
   );
 
   const handle_apply_csv_mapping = useCallback(() => {
@@ -198,6 +200,9 @@ export function ContactImportModal({
 
         if (response.error || !response.data) {
           set_error(response.error || t("common.import_failed"));
+          failed += parsed_contacts.length - i;
+          set_import_result({ imported, skipped, failed });
+          set_step("complete");
 
           return;
         }
@@ -210,11 +215,11 @@ export function ContactImportModal({
       set_import_result({ imported, skipped, failed });
       set_step("complete");
     } catch (err) {
-      set_error(err instanceof Error ? err.message : t("common.import_failed"));
+      set_error(user_facing_error(err, t("common.import_failed")));
     } finally {
       set_is_importing(false);
     }
-  }, [parsed_contacts]);
+  }, [parsed_contacts, t]);
 
   const handle_done = useCallback(() => {
     on_import_complete(import_result?.imported || 0);
@@ -225,17 +230,25 @@ export function ContactImportModal({
     return parsed_contacts.slice(0, 5);
   }, [parsed_contacts]);
 
+  const request_close = useCallback(() => {
+    if (is_importing) return;
+    if (import_result && import_result.imported > 0) {
+      on_import_complete(import_result.imported);
+    }
+    on_close();
+  }, [is_importing, import_result, on_import_complete, on_close]);
+
   useEffect(() => {
     const on_key = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return;
       e.stopPropagation();
-      on_close();
+      request_close();
     };
 
     window.addEventListener("keydown", on_key);
 
     return () => window.removeEventListener("keydown", on_key);
-  }, [on_close]);
+  }, [request_close]);
 
   useEffect(() => {
     const previously_focused = document.activeElement as HTMLElement | null;
@@ -251,21 +264,21 @@ export function ContactImportModal({
     <div
       className="fixed inset-0 z-[60] flex items-center justify-center"
       role="presentation"
-      onClick={(e) => e.target === e.currentTarget && on_close()}
+      onClick={(e) => e.target === e.currentTarget && request_close()}
     >
       <div
         aria-hidden="true"
         className="absolute inset-0 backdrop-blur-md"
         style={{ backgroundColor: "var(--modal-overlay)" }}
-        onClick={on_close}
+        onClick={request_close}
       />
 
       {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions, jsx-a11y/click-events-have-key-events */}
       <div
+        ref={dialog_ref}
         aria-labelledby={title_id}
         aria-modal="true"
         className="relative w-full max-w-md mx-4 rounded-xl border overflow-hidden bg-modal-bg border-edge-primary outline-none"
-        ref={dialog_ref}
         role="dialog"
         style={{
           boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.35)",
@@ -281,9 +294,10 @@ export function ContactImportModal({
             {t("common.import_contacts")}
           </h2>
           <button
-            className="p-1 rounded-[14px] transition-colors hover:bg-white/10"
+            className="p-1 rounded-[14px] transition-colors hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed"
+            disabled={is_importing}
             type="button"
-            onClick={on_close}
+            onClick={request_close}
           >
             <XMarkIcon className="w-5 h-5 text-txt-muted" />
           </button>
@@ -339,7 +353,7 @@ export function ContactImportModal({
                     <span className="text-sm font-medium flex-1 truncate text-txt-primary">
                       {header}
                     </span>
-                    <ArrowRightIcon className="w-4 h-4 text-txt-muted" />
+                    <ArrowRightIcon className="w-4 h-4 text-txt-muted rtl:-scale-x-100" />
                     <select
                       className="h-8 px-2 rounded border text-sm min-w-32 bg-modal-bg border-edge-secondary text-txt-primary"
                       value={csv_mapping[header] || ""}
@@ -364,12 +378,12 @@ export function ContactImportModal({
 
               <div className="flex items-center justify-end gap-2 pt-2">
                 <Button variant="ghost" onClick={() => set_step("select")}>
-                  <ArrowLeftIcon className="w-4 h-4 mr-1" />
+                  <ArrowLeftIcon className="w-4 h-4 me-1 rtl:-scale-x-100" />
                   {t("common.back")}
                 </Button>
                 <Button variant="depth" onClick={handle_apply_csv_mapping}>
                   {t("common.continue")}
-                  <ArrowRightIcon className="w-4 h-4 ml-1" />
+                  <ArrowRightIcon className="w-4 h-4 ms-1 rtl:-scale-x-100" />
                 </Button>
               </div>
             </div>
@@ -380,7 +394,9 @@ export function ContactImportModal({
               <p className="text-sm text-txt-secondary">
                 {parsed_contacts.length === 1
                   ? t("common.found_one_contact")
-                  : t("common.found_n_contacts", { count: parsed_contacts.length })}
+                  : t("common.found_n_contacts", {
+                      count: parsed_contacts.length,
+                    })}
               </p>
 
               <div className="space-y-2 max-h-64 overflow-y-auto">
@@ -404,7 +420,9 @@ export function ContactImportModal({
                 ))}
                 {parsed_contacts.length > 5 && (
                   <p className="text-xs text-txt-muted text-center py-2">
-                    {t("common.and_n_more", { count: parsed_contacts.length - 5 })}
+                    {t("common.and_n_more", {
+                      count: parsed_contacts.length - 5,
+                    })}
                   </p>
                 )}
               </div>
@@ -416,7 +434,7 @@ export function ContactImportModal({
                     set_step(file_type === "csv" ? "mapping" : "select")
                   }
                 >
-                  <ArrowLeftIcon className="w-4 h-4 mr-1" />
+                  <ArrowLeftIcon className="w-4 h-4 me-1 rtl:-scale-x-100" />
                   {t("common.back")}
                 </Button>
                 <Button
@@ -427,13 +445,15 @@ export function ContactImportModal({
                   {is_importing ? (
                     <>
                       {t("common.importing")}
-                      <Spinner className="ml-1" size="sm" />
+                      <Spinner className="ms-1" size="sm" />
                     </>
                   ) : (
                     <>
                       {parsed_contacts.length === 1
                         ? t("common.import_one_contact")
-                        : t("common.import_n_contacts", { count: parsed_contacts.length })}
+                        : t("common.import_n_contacts", {
+                            count: parsed_contacts.length,
+                          })}
                     </>
                   )}
                 </Button>
@@ -443,17 +463,28 @@ export function ContactImportModal({
 
           {step === "complete" && import_result && (
             <div className="space-y-4 text-center py-4">
-              <CheckCircleIcon
-                className="w-16 h-16 mx-auto"
-                style={{ color: "var(--color-success)" }}
-              />
+              {import_result.imported === 0 && error ? (
+                <ExclamationTriangleIcon
+                  className="w-16 h-16 mx-auto"
+                  style={{ color: "var(--color-danger)" }}
+                />
+              ) : (
+                <CheckCircleIcon
+                  className="w-16 h-16 mx-auto"
+                  style={{ color: "var(--color-success)" }}
+                />
+              )}
               <div>
                 <p className="text-lg font-semibold text-txt-primary">
-                  {t("common.import_complete")}
+                  {import_result.imported === 0 && error
+                    ? t("common.import_failed")
+                    : t("common.import_complete")}
                 </p>
-                <p className="text-sm text-txt-secondary mt-1">
-                  {t("common.contacts_imported_desc")}
-                </p>
+                {!(import_result.imported === 0 && error) && (
+                  <p className="text-sm text-txt-secondary mt-1">
+                    {t("common.contacts_imported_desc")}
+                  </p>
+                )}
               </div>
 
               <div className="grid grid-cols-3 gap-3">
@@ -465,7 +496,7 @@ export function ContactImportModal({
                     className="text-2xl font-semibold"
                     style={{ color: "#fff" }}
                   >
-                    {import_result.imported}
+                    {format_number(import_result.imported)}
                   </p>
                   <p
                     className="text-xs"
@@ -482,7 +513,7 @@ export function ContactImportModal({
                     className="text-2xl font-semibold"
                     style={{ color: "#fff" }}
                   >
-                    {import_result.skipped}
+                    {format_number(import_result.skipped)}
                   </p>
                   <p
                     className="text-xs"
@@ -499,7 +530,7 @@ export function ContactImportModal({
                     className="text-2xl font-semibold"
                     style={{ color: "#fff" }}
                   >
-                    {import_result.failed}
+                    {format_number(import_result.failed)}
                   </p>
                   <p
                     className="text-xs"

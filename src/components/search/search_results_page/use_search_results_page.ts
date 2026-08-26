@@ -28,7 +28,9 @@ import {
   SearchFiltersState,
   SearchResultsPageProps,
 } from "./helpers";
+import { group_search_results, expand_thread_ids } from "./thread_grouping";
 
+import { zoned_start_of_day } from "@/utils/date_format";
 import { list_mail_items } from "@/services/api/mail";
 import { decrypt_mail_metadata } from "@/services/crypto/mail_metadata";
 import { use_email_actions } from "@/hooks/use_email_actions";
@@ -41,10 +43,7 @@ import { resolve_effective_page_size } from "@/lib/inbox_page_size";
 import { use_shift_key_ref } from "@/lib/use_shift_range_select";
 import { use_split_pane } from "@/components/email/inbox/use_split_pane";
 import { filter_locked_folder_emails } from "@/services/locked_folders";
-import {
-  group_search_results,
-  expand_thread_ids,
-} from "./thread_grouping";
+import { show_toast } from "@/components/toast/simple_toast";
 
 export function use_search_results_page(props: SearchResultsPageProps) {
   const { query, on_result_click, split_email_id, on_split_close } = props;
@@ -105,11 +104,7 @@ export function use_search_results_page(props: SearchResultsPageProps) {
         const now = new Date();
 
         if (filters.date_range === "today") {
-          search_filters.date_from = new Date(
-            now.getFullYear(),
-            now.getMonth(),
-            now.getDate(),
-          ).toISOString();
+          search_filters.date_from = zoned_start_of_day(now).toISOString();
         } else if (filters.date_range === "week") {
           const week_ago = new Date(now);
 
@@ -257,9 +252,11 @@ export function use_search_results_page(props: SearchResultsPageProps) {
     }));
     const grouped = group_search_results(dated, conversation_grouping);
 
-    return grouped.map((r) => ({ ...r, is_selected: selected_ids.has(r.id) }));
+    return grouped.map((r) => ({
+      ...r,
+      is_selected: selected_ids.has(r.id),
+    }));
   }, [
-    conversation_grouping,
     state.results,
     filters.read_status,
     filters.exclude_social,
@@ -267,6 +264,7 @@ export function use_search_results_page(props: SearchResultsPageProps) {
     selected_ids,
     search_terms,
     format_email_list,
+    conversation_grouping,
   ]);
 
   const paged_results = useMemo(() => {
@@ -310,22 +308,15 @@ export function use_search_results_page(props: SearchResultsPageProps) {
     load_more,
   ]);
 
+  const shift_ref = use_shift_key_ref();
+  const last_selected_id_ref = useRef<string | null>(null);
+
   useEffect(() => {
     set_search_page(0);
+    set_selected_ids(new Set());
+    last_selected_id_ref.current = null;
   }, [query]);
 
-  const shift_ref = use_shift_key_ref();
-  const filtered_results_ref = useRef(filtered_results);
-
-  filtered_results_ref.current = filtered_results;
-
-  const expand_selection = useCallback(
-    (ids: string[]): string[] =>
-      expand_thread_ids(filtered_results_ref.current, ids),
-    [],
-  );
-
-  const last_selected_id_ref = useRef<string | null>(null);
   const paged_results_ref = useRef(paged_results);
 
   paged_results_ref.current = paged_results;
@@ -384,15 +375,22 @@ export function use_search_results_page(props: SearchResultsPageProps) {
   );
 
   const fetch_as_minimal_emails = useCallback(
-    async (ids: string[]): Promise<InboxEmail[]> => {
+    async (
+      ids: string[],
+    ): Promise<{ emails: InboxEmail[]; failed: boolean }> => {
       const FETCH_CHUNK_SIZE = 100;
       const items: MailItem[] = [];
+      let failed = false;
 
       for (let i = 0; i < ids.length; i += FETCH_CHUNK_SIZE) {
         const slice = ids.slice(i, i + FETCH_CHUNK_SIZE);
         const res = await list_mail_items({ ids: slice });
 
-        if (res.data) items.push(...res.data.items);
+        if (res.data) {
+          items.push(...res.data.items);
+        } else {
+          failed = true;
+        }
       }
 
       const loaded = await Promise.all(
@@ -430,7 +428,10 @@ export function use_search_results_page(props: SearchResultsPageProps) {
         }),
       );
 
-      return loaded.filter((x): x is InboxEmail => x !== null);
+      return {
+        emails: loaded.filter((x): x is InboxEmail => x !== null),
+        failed,
+      };
     },
     [],
   );
@@ -456,6 +457,16 @@ export function use_search_results_page(props: SearchResultsPageProps) {
     });
   }, []);
 
+  const filtered_results_ref = useRef(filtered_results);
+
+  filtered_results_ref.current = filtered_results;
+
+  const expand_selection = useCallback(
+    (ids: string[]): string[] =>
+      expand_thread_ids(filtered_results_ref.current, ids),
+    [],
+  );
+
   const handle_clear_selection = useCallback(() => {
     set_selected_ids(new Set());
     last_selected_id_ref.current = null;
@@ -467,8 +478,13 @@ export function use_search_results_page(props: SearchResultsPageProps) {
     if (ids.length === 0 || bulk_busy) return;
     set_bulk_busy(true);
     try {
-      const emails = await fetch_as_minimal_emails(ids);
+      const { emails, failed } = await fetch_as_minimal_emails(ids);
 
+      if (failed) {
+        show_toast(t("common.something_went_wrong_try_again"), "error");
+
+        return;
+      }
       if (emails.length > 0) {
         await email_actions.bulk_archive(emails);
         emit_mail_items_removed({ ids: emails.map((e) => e.id) });
@@ -483,6 +499,8 @@ export function use_search_results_page(props: SearchResultsPageProps) {
     fetch_as_minimal_emails,
     email_actions,
     handle_clear_selection,
+    expand_selection,
+    t,
   ]);
 
   const handle_bulk_delete = useCallback(async () => {
@@ -491,8 +509,13 @@ export function use_search_results_page(props: SearchResultsPageProps) {
     if (ids.length === 0 || bulk_busy) return;
     set_bulk_busy(true);
     try {
-      const emails = await fetch_as_minimal_emails(ids);
+      const { emails, failed } = await fetch_as_minimal_emails(ids);
 
+      if (failed) {
+        show_toast(t("common.something_went_wrong_try_again"), "error");
+
+        return;
+      }
       if (emails.length > 0) {
         await email_actions.bulk_delete(emails);
         emit_mail_items_removed({ ids: emails.map((e) => e.id) });
@@ -507,6 +530,8 @@ export function use_search_results_page(props: SearchResultsPageProps) {
     fetch_as_minimal_emails,
     email_actions,
     handle_clear_selection,
+    expand_selection,
+    t,
   ]);
 
   const run_bulk = useCallback(
@@ -516,15 +541,27 @@ export function use_search_results_page(props: SearchResultsPageProps) {
       if (ids.length === 0 || bulk_busy) return;
       set_bulk_busy(true);
       try {
-        const emails = await fetch_as_minimal_emails(ids);
+        const { emails, failed } = await fetch_as_minimal_emails(ids);
 
+        if (failed) {
+          show_toast(t("common.something_went_wrong_try_again"), "error");
+
+          return;
+        }
         if (emails.length > 0) await fn(emails);
         handle_clear_selection();
       } finally {
         set_bulk_busy(false);
       }
     },
-    [selected_ids, bulk_busy, fetch_as_minimal_emails, handle_clear_selection],
+    [
+      selected_ids,
+      bulk_busy,
+      fetch_as_minimal_emails,
+      handle_clear_selection,
+      expand_selection,
+      t,
+    ],
   );
 
   const handle_bulk_mark_read = useCallback(

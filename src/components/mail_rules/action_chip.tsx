@@ -18,6 +18,9 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { TranslationKey } from "@/lib/i18n/types";
+import type { Action, CategoryValue } from "@/services/api/mail_rules";
+
 import * as React from "react";
 import {
   FolderIcon,
@@ -33,14 +36,14 @@ import {
   BellSlashIcon,
 } from "@heroicons/react/24/outline";
 
-import { PinIcon } from "@/components/common/icons";
 import { ChipPill, ChipSegment } from "./chip_pill";
 import { ActionTargetDropdown } from "./dropdowns/action_target_dropdown";
+
+import { PinIcon } from "@/components/common/icons";
 import { use_folders } from "@/hooks/use_folders";
 import { use_tags } from "@/hooks/use_tags";
 import { use_i18n } from "@/lib/i18n/context";
-import type { TranslationKey } from "@/lib/i18n/types";
-import type { Action, CategoryValue } from "@/services/api/mail_rules";
+import { app_locale, get_display_time_zone } from "@/utils/date_format";
 
 interface ActionChipProps {
   action: Action;
@@ -149,8 +152,7 @@ export function ActionChip({
         if (action.label_tokens.length === 0) return t("mail_rules.no_labels");
         const names = action.label_tokens
           .map(
-            (tok) =>
-              tags_state.tags.find((tag) => tag.tag_token === tok)?.name,
+            (tok) => tags_state.tags.find((tag) => tag.tag_token === tok)?.name,
           )
           .filter(Boolean);
 
@@ -167,12 +169,17 @@ export function ActionChip({
       case "snooze":
         if (!action.until_iso8601) return t("mail_rules.snooze_custom");
         try {
-          return new Date(action.until_iso8601).toLocaleString();
+          return new Date(action.until_iso8601).toLocaleString(app_locale(), {
+            timeZone: get_display_time_zone(),
+          });
         } catch {
           return action.until_iso8601;
         }
-      case "categorize":
-        return t(CATEGORY_LABEL[action.category]);
+      case "categorize": {
+        const category_label = CATEGORY_LABEL[action.category];
+
+        return category_label ? t(category_label) : action.category;
+      }
       case "notify":
         return action.enabled
           ? t("mail_rules.notify_on")
@@ -206,13 +213,20 @@ export function ActionChip({
   const action_segment = (
     <ChipSegment
       is_first
-      icon={<Icon className="w-3.5 h-3.5 text-neutral-500 dark:text-neutral-400" />}
+      icon={
+        <Icon className="w-3.5 h-3.5 text-neutral-500 dark:text-neutral-400" />
+      }
     >
       {label_for_action()}
     </ChipSegment>
   );
 
-  if (action.type === "star" || action.type === "skip_inbox" || action.type === "delete" || action.type === "pin") {
+  if (
+    action.type === "star" ||
+    action.type === "skip_inbox" ||
+    action.type === "delete" ||
+    action.type === "pin"
+  ) {
     return (
       <ChipPill on_remove={read_only ? undefined : on_remove}>
         {action_segment}
@@ -233,21 +247,22 @@ export function ActionChip({
       {action.type === "move_to" && (
         <ActionTargetDropdown
           action_type="move_to"
-          value={action.folder_token}
-          open={open}
-          on_open_change={set_open}
           align_offset={align_offset}
           on_commit={(a) => {
             on_change(a);
             set_open(false);
           }}
+          on_open_change={set_open}
+          open={open}
           trigger={
             <ChipSegment
-              trigger_ref={trigger_ref}
               is_active={open}
               on_click={read_only ? undefined : () => set_open(true)}
+              trigger_ref={trigger_ref}
             >
-              <span className={`flex items-center gap-1.5 ${target_text_class ?? ""}`}>
+              <span
+                className={`flex items-center gap-1.5 ${target_text_class ?? ""}`}
+              >
                 {target_color && (
                   <span
                     className="w-2 h-2 rounded-full"
@@ -258,157 +273,158 @@ export function ActionChip({
               </span>
             </ChipSegment>
           }
+          value={action.folder_token}
         />
       )}
       {action.type === "apply_labels" && (
         <ActionTargetDropdown
           action_type="apply_labels"
-          value={action.label_tokens}
-          open={open}
-          on_open_change={set_open}
           align_offset={align_offset}
           on_commit={(a) => on_change(a)}
+          on_open_change={set_open}
+          open={open}
           trigger={
             <ChipSegment
-              trigger_ref={trigger_ref}
               is_active={open}
               on_click={read_only ? undefined : () => set_open(true)}
+              trigger_ref={trigger_ref}
             >
               <span className={target_text_class}>{target_label()}</span>
             </ChipSegment>
           }
+          value={action.label_tokens}
         />
       )}
       {action.type === "mark_as" && (
         <ActionTargetDropdown
           action_type="mark_as"
-          value={action.state}
-          open={open}
-          on_open_change={set_open}
           align_offset={align_offset}
           on_commit={(a) => {
             on_change(a);
             set_open(false);
           }}
+          on_open_change={set_open}
+          open={open}
           trigger={
             <ChipSegment
-              trigger_ref={trigger_ref}
               is_active={open}
               on_click={read_only ? undefined : () => set_open(true)}
+              trigger_ref={trigger_ref}
             >
               <span className={target_text_class}>{target_label()}</span>
             </ChipSegment>
           }
+          value={action.state}
         />
       )}
       {action.type === "forward" && (
         <ActionTargetDropdown
           action_type="forward"
-          value={action.to}
-          open={open}
-          on_open_change={set_open}
           align_offset={align_offset}
           on_commit={(a) => {
             on_change(a);
             set_open(false);
           }}
+          on_open_change={set_open}
+          open={open}
           trigger={
             <ChipSegment
-              trigger_ref={trigger_ref}
               is_active={open}
               on_click={read_only ? undefined : () => set_open(true)}
+              trigger_ref={trigger_ref}
             >
               <span className={target_text_class}>{target_label()}</span>
             </ChipSegment>
           }
+          value={action.to}
         />
       )}
       {action.type === "auto_reply" && (
         <ActionTargetDropdown
           action_type="auto_reply"
-          value={action.template_id}
-          open={open}
-          on_open_change={set_open}
           align_offset={align_offset}
           on_commit={(a) => {
             on_change(a);
             set_open(false);
           }}
+          on_open_change={set_open}
+          open={open}
           trigger={
             <ChipSegment
-              trigger_ref={trigger_ref}
               is_active={open}
               on_click={read_only ? undefined : () => set_open(true)}
+              trigger_ref={trigger_ref}
             >
               <span className={target_text_class}>{target_label()}</span>
             </ChipSegment>
           }
+          value={action.template_id}
         />
       )}
       {action.type === "snooze" && (
         <ActionTargetDropdown
           action_type="snooze"
-          value={action.until_iso8601}
-          open={open}
-          on_open_change={set_open}
           align_offset={align_offset}
           on_commit={(a) => {
             on_change(a);
             set_open(false);
           }}
+          on_open_change={set_open}
+          open={open}
           trigger={
             <ChipSegment
-              trigger_ref={trigger_ref}
               is_active={open}
               on_click={read_only ? undefined : () => set_open(true)}
+              trigger_ref={trigger_ref}
             >
               <span className={target_text_class}>{target_label()}</span>
             </ChipSegment>
           }
+          value={action.until_iso8601}
         />
       )}
       {action.type === "categorize" && (
         <ActionTargetDropdown
           action_type="categorize"
-          value={action.category}
-          open={open}
-          on_open_change={set_open}
           align_offset={align_offset}
           on_commit={(a) => {
             on_change(a);
             set_open(false);
           }}
+          on_open_change={set_open}
+          open={open}
           trigger={
             <ChipSegment
-              trigger_ref={trigger_ref}
               is_active={open}
               on_click={read_only ? undefined : () => set_open(true)}
+              trigger_ref={trigger_ref}
             >
               <span className={target_text_class}>{target_label()}</span>
             </ChipSegment>
           }
+          value={action.category}
         />
       )}
       {action.type === "notify" && (
         <ActionTargetDropdown
           action_type="notify"
-          value={action.enabled}
-          open={open}
-          on_open_change={set_open}
           align_offset={align_offset}
           on_commit={(a) => {
             on_change(a);
             set_open(false);
           }}
+          on_open_change={set_open}
+          open={open}
           trigger={
             <ChipSegment
-              trigger_ref={trigger_ref}
               is_active={open}
               on_click={read_only ? undefined : () => set_open(true)}
+              trigger_ref={trigger_ref}
             >
               <span className={target_text_class}>{target_label()}</span>
             </ChipSegment>
           }
+          value={action.enabled}
         />
       )}
     </ChipPill>

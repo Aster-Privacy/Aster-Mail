@@ -60,6 +60,8 @@ describe("link button selectors", () => {
 
     expect(css).toContain(`a${LINK_BUTTON_EXCLUDE}, a${LINK_BUTTON_EXCLUDE} *`);
     expect(css).not.toMatch(/\na, a \* \{/);
-    expect(css).toContain('a[style*="background" i] *, [bgcolor] > a * { color: inherit !important; }');
+    expect(css).toContain(
+      'a[style*="background" i] *, [bgcolor] > a * { color: inherit !important; }',
+    );
   });
 });

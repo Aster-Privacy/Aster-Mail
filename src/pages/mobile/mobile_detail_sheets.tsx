@@ -18,6 +18,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { copy_text_or_throw } from "@/utils/copy_text";
+import { trigger_download } from "@/utils/download_blob";
 import type { DecryptedThreadMessage } from "@/types/thread";
 import type { UserPreferences } from "@/services/api/preferences";
 import type { TranslationKey } from "@/lib/i18n";
@@ -45,33 +47,25 @@ import {
   InformationCircleIcon,
   ArrowDownTrayIcon,
 } from "@heroicons/react/24/outline";
-import { PinIcon } from "@/components/common/icons";
 import { StarIcon as StarSolidIcon } from "@heroicons/react/24/solid";
-import {
-  addHours,
-  addDays,
-  setHours,
-  setMinutes,
-  nextSaturday,
-  nextMonday,
-  format,
-} from "date-fns";
 
+import { format_datetime_hint } from "@/utils/date_format";
+import { compute_snooze_target } from "@/utils/snooze_targets";
 import { format_safe_date } from "./mobile_thread_message";
 import {
   TOOLBAR_ACTION_MAP,
   ALL_TOOLBAR_ACTION_IDS,
   DEFAULT_TOOLBAR,
+  MAX_TOOLBAR_ACTIONS,
 } from "./mobile_detail_toolbar";
 
+import { PinIcon } from "@/components/common/icons";
 import { use_i18n } from "@/lib/i18n/context";
 import { MobileBottomSheet } from "@/components/mobile/mobile_bottom_sheet";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { show_toast } from "@/components/toast/simple_toast";
 import { format_bytes } from "@/lib/utils";
 import { EncryptionInfoDropdown } from "@/components/common/encryption_info_dropdown";
-
-import { ignore_error } from "@/lib/ignore_error";
 
 export function MobileActionMenuSheet({
   menu_message,
@@ -139,18 +133,29 @@ export function MobileActionMenuSheet({
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
 }) {
   return (
-    <MobileBottomSheet is_open={!!menu_message} on_close={on_close}>
+    <MobileBottomSheet
+      aria_label={t("common.actions")}
+      is_open={!!menu_message}
+      on_close={on_close}
+    >
       <div className="px-4 pb-4">
         {menu_message && (
           <div className="mb-3 flex items-center gap-3">
             <ProfileAvatar
               use_domain_logo
-              email={menu_message.display_sender_email ?? menu_message.sender_email}
-              name={menu_message.display_sender_name ?? menu_message.sender_name}
+              email={
+                menu_message.display_sender_email ?? menu_message.sender_email
+              }
+              name={
+                menu_message.display_sender_name ?? menu_message.sender_name
+              }
               size="sm"
             />
             <div className="min-w-0 flex-1">
-              <p className="truncate text-[14px] font-medium text-[var(--text-primary)]">
+              <p
+                className="truncate text-[14px] font-medium text-[var(--text-primary)]"
+                dir="auto"
+              >
                 {menu_message.display_sender_name ?? menu_message.sender_name}
               </p>
               <p className="truncate text-[12px] text-[var(--text-muted)]">
@@ -162,11 +167,11 @@ export function MobileActionMenuSheet({
 
         <div className="space-y-0.5">
           <button
-            className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-left active:bg-[var(--bg-tertiary)]"
+            className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-start active:bg-[var(--bg-tertiary)]"
             type="button"
             onClick={on_reply}
           >
-            <ArrowUturnLeftIcon className="h-5 w-5 text-[var(--text-muted)]" />
+            <ArrowUturnLeftIcon className="h-5 w-5 text-[var(--text-muted)] rtl:-scale-x-100" />
             <span className="text-[14px] text-[var(--text-primary)]">
               {t("mail.reply")}
             </span>
@@ -176,22 +181,22 @@ export function MobileActionMenuSheet({
               (menu_message.cc_recipients?.length ?? 0) >=
               2 && (
               <button
-                className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-left active:bg-[var(--bg-tertiary)]"
+                className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-start active:bg-[var(--bg-tertiary)]"
                 type="button"
                 onClick={on_reply_all}
               >
-                <ArrowUturnLeftIcon className="h-5 w-5 text-[var(--text-muted)]" />
+                <ArrowUturnLeftIcon className="h-5 w-5 text-[var(--text-muted)] rtl:-scale-x-100" />
                 <span className="text-[14px] text-[var(--text-primary)]">
                   {t("mail.reply_all")}
                 </span>
               </button>
             )}
           <button
-            className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-left active:bg-[var(--bg-tertiary)]"
+            className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-start active:bg-[var(--bg-tertiary)]"
             type="button"
             onClick={on_forward}
           >
-            <ArrowUturnRightIcon className="h-5 w-5 text-[var(--text-muted)]" />
+            <ArrowUturnRightIcon className="h-5 w-5 text-[var(--text-muted)] rtl:-scale-x-100" />
             <span className="text-[14px] text-[var(--text-primary)]">
               {t("mail.forward")}
             </span>
@@ -200,7 +205,7 @@ export function MobileActionMenuSheet({
           <div className="my-1 h-px bg-[var(--border-primary)]" />
 
           <button
-            className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-left active:bg-[var(--bg-tertiary)]"
+            className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-start active:bg-[var(--bg-tertiary)]"
             type="button"
             onClick={on_toggle_star}
           >
@@ -214,17 +219,20 @@ export function MobileActionMenuSheet({
             </span>
           </button>
           <button
-            className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-left active:bg-[var(--bg-tertiary)]"
+            className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-start active:bg-[var(--bg-tertiary)]"
             type="button"
             onClick={on_toggle_pin}
           >
-            <PinIcon className={`h-5 w-5 ${is_pinned ? "-rotate-[38deg] text-[var(--accent-color,#3b82f6)]" : "text-[var(--text-muted)]"}`} filled={is_pinned} />
+            <PinIcon
+              className={`h-5 w-5 ${is_pinned ? "-rotate-[38deg] text-[var(--accent-color,#3b82f6)]" : "text-[var(--text-muted)]"}`}
+              filled={is_pinned}
+            />
             <span className="text-[14px] text-[var(--text-primary)]">
               {is_pinned ? t("mail.unpin") : t("mail.pin_to_top")}
             </span>
           </button>
           <button
-            className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-left active:bg-[var(--bg-tertiary)]"
+            className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-start active:bg-[var(--bg-tertiary)]"
             type="button"
             onClick={on_toggle_read}
           >
@@ -243,7 +251,7 @@ export function MobileActionMenuSheet({
           <div className="my-1 h-px bg-[var(--border-primary)]" />
 
           <button
-            className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-left active:bg-[var(--bg-tertiary)]"
+            className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-start active:bg-[var(--bg-tertiary)]"
             type="button"
             onClick={on_snooze}
           >
@@ -253,7 +261,7 @@ export function MobileActionMenuSheet({
             </span>
           </button>
           <button
-            className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-left active:bg-[var(--bg-tertiary)]"
+            className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-start active:bg-[var(--bg-tertiary)]"
             type="button"
             onClick={on_archive}
           >
@@ -268,7 +276,7 @@ export function MobileActionMenuSheet({
           </button>
           {is_spam ? (
             <button
-              className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-left active:bg-[var(--bg-tertiary)]"
+              className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-start active:bg-[var(--bg-tertiary)]"
               type="button"
               onClick={on_not_spam}
             >
@@ -279,7 +287,7 @@ export function MobileActionMenuSheet({
             </button>
           ) : (
             <button
-              className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-left active:bg-[var(--bg-tertiary)]"
+              className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-start active:bg-[var(--bg-tertiary)]"
               type="button"
               onClick={on_spam}
             >
@@ -290,7 +298,7 @@ export function MobileActionMenuSheet({
             </button>
           )}
           <button
-            className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-left active:bg-[var(--bg-tertiary)]"
+            className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-start active:bg-[var(--bg-tertiary)]"
             type="button"
             onClick={on_trash}
           >
@@ -304,7 +312,7 @@ export function MobileActionMenuSheet({
 
           {menu_source === "message" && (
             <button
-              className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-left active:bg-[var(--bg-tertiary)]"
+              className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-start active:bg-[var(--bg-tertiary)]"
               type="button"
               onClick={on_toggle_dark_mode}
             >
@@ -322,7 +330,7 @@ export function MobileActionMenuSheet({
           )}
           {menu_source === "toolbar" && (
             <button
-              className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-left active:bg-[var(--bg-tertiary)]"
+              className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-start active:bg-[var(--bg-tertiary)]"
               type="button"
               onClick={on_toggle_all_dark_mode}
             >
@@ -339,7 +347,7 @@ export function MobileActionMenuSheet({
             </button>
           )}
           <button
-            className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-left active:bg-[var(--bg-tertiary)]"
+            className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-start active:bg-[var(--bg-tertiary)]"
             type="button"
             onClick={on_print}
           >
@@ -349,7 +357,7 @@ export function MobileActionMenuSheet({
             </span>
           </button>
           <button
-            className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-left active:bg-[var(--bg-tertiary)]"
+            className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-start active:bg-[var(--bg-tertiary)]"
             type="button"
             onClick={on_view_source}
           >
@@ -359,7 +367,7 @@ export function MobileActionMenuSheet({
             </span>
           </button>
           <button
-            className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-left active:bg-[var(--bg-tertiary)]"
+            className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-start active:bg-[var(--bg-tertiary)]"
             type="button"
             onClick={on_copy_id}
           >
@@ -369,7 +377,7 @@ export function MobileActionMenuSheet({
             </span>
           </button>
           <button
-            className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-left active:bg-[var(--bg-tertiary)]"
+            className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-start active:bg-[var(--bg-tertiary)]"
             type="button"
             onClick={on_message_details}
           >
@@ -380,7 +388,7 @@ export function MobileActionMenuSheet({
           </button>
 
           <button
-            className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-left active:bg-[var(--bg-tertiary)]"
+            className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-start active:bg-[var(--bg-tertiary)]"
             type="button"
             onClick={on_block}
           >
@@ -393,7 +401,7 @@ export function MobileActionMenuSheet({
           <div className="my-1 h-px bg-[var(--border-primary)]" />
 
           <button
-            className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-left active:bg-[var(--bg-tertiary)]"
+            className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-start active:bg-[var(--bg-tertiary)]"
             type="button"
             onClick={on_report_phishing}
           >
@@ -406,7 +414,7 @@ export function MobileActionMenuSheet({
           <div className="my-1 h-px bg-[var(--border-primary)]" />
 
           <button
-            className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-left active:bg-[var(--bg-tertiary)]"
+            className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-start active:bg-[var(--bg-tertiary)]"
             type="button"
             onClick={on_customize_toolbar}
           >
@@ -431,7 +439,11 @@ export function MobileViewSourceSheet({
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
 }) {
   return (
-    <MobileBottomSheet is_open={!!message} on_close={on_close}>
+    <MobileBottomSheet
+      aria_label={t("mail.view_source")}
+      is_open={!!message}
+      on_close={on_close}
+    >
       <div className="px-4 pb-4">
         <div className="mb-3 flex items-center justify-between">
           <h3 className="text-[16px] font-semibold text-[var(--text-primary)]">
@@ -444,12 +456,11 @@ export function MobileViewSourceSheet({
               if (message) {
                 const source = message.html_content || message.body || "";
 
-                navigator.clipboard
-                  .writeText(source)
+                copy_text_or_throw(source)
                   .then(() => {
                     show_toast(t("common.copied"), "success");
                   })
-                  .catch((caught) => ignore_error("pages/mobile/mobile_detail_sheets:MobileViewSourceSheet", caught));
+                  .catch(() => show_toast(t("common.failed_to_copy"), "error"));
               }
             }}
           >
@@ -476,7 +487,11 @@ export function MobileSnoozeSheet({
   const { t } = use_i18n();
 
   return (
-    <MobileBottomSheet is_open={is_open} on_close={on_close}>
+    <MobileBottomSheet
+      aria_label={t("common.snooze_label")}
+      is_open={is_open}
+      on_close={on_close}
+    >
       <div className="px-4 pb-4">
         <h3 className="mb-3 text-[16px] font-semibold text-[var(--text-primary)]">
           {t("common.snooze_label")}
@@ -485,28 +500,28 @@ export function MobileSnoozeSheet({
           {[
             {
               label: t("mail.later_today_snooze"),
-              date: addHours(new Date(), 4),
+              date: compute_snooze_target("later_today"),
             },
             {
               label: t("mail.tomorrow_snooze"),
-              date: setMinutes(setHours(addDays(new Date(), 1), 9), 0),
+              date: compute_snooze_target("tomorrow"),
             },
             {
               label: t("mail.this_weekend_snooze"),
-              date: setMinutes(setHours(nextSaturday(new Date()), 9), 0),
+              date: compute_snooze_target("this_weekend"),
             },
             {
               label: t("mail.next_week_snooze"),
-              date: setMinutes(setHours(nextMonday(new Date()), 9), 0),
+              date: compute_snooze_target("next_week"),
             },
             {
               label: t("mail.next_month_snooze"),
-              date: setMinutes(setHours(addDays(new Date(), 30), 9), 0),
+              date: compute_snooze_target("next_month"),
             },
           ].map((opt) => (
             <button
               key={opt.label}
-              className="flex w-full items-center gap-3 rounded-[16px] px-3 py-3 text-left active:bg-[var(--bg-tertiary)]"
+              className="flex w-full items-center gap-3 rounded-[16px] px-3 py-3 text-start active:bg-[var(--bg-tertiary)]"
               type="button"
               onClick={() => on_snooze(opt.date)}
             >
@@ -516,7 +531,7 @@ export function MobileSnoozeSheet({
                   {opt.label}
                 </p>
                 <p className="text-[12px] text-[var(--text-muted)]">
-                  {format(opt.date, "EEE, MMM d 'at' h:mm a")}
+                  {format_datetime_hint(opt.date, true)}
                 </p>
               </div>
             </button>
@@ -545,7 +560,11 @@ export function MobileToolbarCustomizerSheet({
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
 }) {
   return (
-    <MobileBottomSheet is_open={is_open} on_close={on_close}>
+    <MobileBottomSheet
+      aria_label={t("settings.customize_toolbar")}
+      is_open={is_open}
+      on_close={on_close}
+    >
       <div className="px-4 pb-4" style={{ minHeight: 320 }}>
         <h3 className="mb-1 text-[16px] font-semibold text-[var(--text-primary)]">
           {t("settings.customize_toolbar")}
@@ -574,12 +593,17 @@ export function MobileToolbarCustomizerSheet({
                   const current =
                     preferences_toolbar_actions ?? DEFAULT_TOOLBAR;
                   const is_active = current.includes(id);
+                  const at_limit =
+                    !is_active && current.length >= MAX_TOOLBAR_ACTIONS;
                   const Icon = config.icon;
 
                   return (
                     <button
                       key={id}
-                      className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 active:bg-[var(--bg-tertiary)]"
+                      className={`flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 active:bg-[var(--bg-tertiary)] ${
+                        at_limit ? "opacity-40" : ""
+                      }`}
+                      disabled={at_limit}
                       type="button"
                       onClick={() => {
                         if (is_active && current.length <= 1) return;
@@ -593,7 +617,7 @@ export function MobileToolbarCustomizerSheet({
                       <Icon
                         className={`h-5 w-5 ${config.is_danger ? "text-[var(--color-danger,#ef4444)]" : "text-[var(--text-muted)]"}`}
                       />
-                      <span className="flex-1 text-left text-[14px] text-[var(--text-primary)]">
+                      <span className="flex-1 text-start text-[14px] text-[var(--text-primary)]">
                         {t(config.label_key as TranslationKey)}
                       </span>
                       <div
@@ -697,31 +721,28 @@ export function MobileMessageDetailsSheet({
   const headers = message ? build_message_headers(message) : "";
 
   const handle_copy_headers = () => {
-    navigator.clipboard
-      .writeText(headers)
+    copy_text_or_throw(headers)
       .then(() => {
         show_toast(t("mail.headers_copied"), "success");
       })
-      .catch((caught) => ignore_error("pages/mobile/mobile_detail_sheets:handle_copy_headers", caught));
+      .catch(() => show_toast(t("common.failed_to_copy"), "error"));
   };
 
   const handle_download_headers = () => {
     if (!message) return;
 
-    const blob = new Blob([headers], { type: "text/plain;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-
-    a.href = url;
-    a.download = `headers-${message.id}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    trigger_download(
+      new Blob([headers], { type: "text/plain;charset=utf-8" }),
+      `headers-${message.id}.txt`,
+    );
   };
 
   return (
-    <MobileBottomSheet is_open={!!message} on_close={on_close}>
+    <MobileBottomSheet
+      aria_label={t("mail.message_details")}
+      is_open={!!message}
+      on_close={on_close}
+    >
       <div className="px-4 pb-4">
         <h3 className="mb-3 text-[16px] font-semibold text-[var(--text-primary)]">
           {t("mail.message_details")}
@@ -730,10 +751,13 @@ export function MobileMessageDetailsSheet({
         {message && (
           <div className="space-y-2.5 mb-4">
             <div className="flex">
-              <span className="min-w-20 flex-shrink-0 whitespace-nowrap pr-2 text-[12px] font-medium text-[var(--text-muted)]">
+              <span className="min-w-20 flex-shrink-0 whitespace-nowrap pe-2 text-[12px] font-medium text-[var(--text-muted)]">
                 {t("common.from_label")}
               </span>
-              <span className="min-w-0 text-[12px] text-[var(--text-secondary)] break-all">
+              <span
+                className="min-w-0 text-[12px] text-[var(--text-secondary)] break-all"
+                dir="auto"
+              >
                 {message.display_sender_name ?? message.sender_name} &lt;
                 {message.display_sender_email ?? message.sender_email}&gt;
               </span>
@@ -741,7 +765,7 @@ export function MobileMessageDetailsSheet({
 
             {message.to_recipients && message.to_recipients.length > 0 && (
               <div className="flex">
-                <span className="min-w-20 flex-shrink-0 whitespace-nowrap pr-2 text-[12px] font-medium text-[var(--text-muted)]">
+                <span className="min-w-20 flex-shrink-0 whitespace-nowrap pe-2 text-[12px] font-medium text-[var(--text-muted)]">
                   {t("common.to_label")}
                 </span>
                 <span className="min-w-0 text-[12px] text-[var(--text-secondary)] break-all">
@@ -754,7 +778,7 @@ export function MobileMessageDetailsSheet({
 
             {message.cc_recipients && message.cc_recipients.length > 0 && (
               <div className="flex">
-                <span className="min-w-20 flex-shrink-0 whitespace-nowrap pr-2 text-[12px] font-medium text-[var(--text-muted)]">
+                <span className="min-w-20 flex-shrink-0 whitespace-nowrap pe-2 text-[12px] font-medium text-[var(--text-muted)]">
                   {t("common.cc_label")}
                 </span>
                 <span className="min-w-0 text-[12px] text-[var(--text-secondary)] break-all">
@@ -767,7 +791,7 @@ export function MobileMessageDetailsSheet({
 
             {message.bcc_recipients && message.bcc_recipients.length > 0 && (
               <div className="flex">
-                <span className="min-w-20 flex-shrink-0 whitespace-nowrap pr-2 text-[12px] font-medium text-[var(--text-muted)]">
+                <span className="min-w-20 flex-shrink-0 whitespace-nowrap pe-2 text-[12px] font-medium text-[var(--text-muted)]">
                   {t("common.bcc_label")}
                 </span>
                 <span className="min-w-0 text-[12px] text-[var(--text-secondary)] break-all">
@@ -779,7 +803,7 @@ export function MobileMessageDetailsSheet({
             )}
 
             <div className="flex">
-              <span className="min-w-20 flex-shrink-0 whitespace-nowrap pr-2 text-[12px] font-medium text-[var(--text-muted)]">
+              <span className="min-w-20 flex-shrink-0 whitespace-nowrap pe-2 text-[12px] font-medium text-[var(--text-muted)]">
                 {t("common.date_label")}
               </span>
               <span className="text-[12px] text-[var(--text-secondary)]">
@@ -788,16 +812,19 @@ export function MobileMessageDetailsSheet({
             </div>
 
             <div className="flex">
-              <span className="min-w-20 flex-shrink-0 whitespace-nowrap pr-2 text-[12px] font-medium text-[var(--text-muted)]">
+              <span className="min-w-20 flex-shrink-0 whitespace-nowrap pe-2 text-[12px] font-medium text-[var(--text-muted)]">
                 {t("common.subject_label")}
               </span>
-              <span className="min-w-0 text-[12px] text-[var(--text-secondary)] break-words">
+              <span
+                dir="auto"
+                className="min-w-0 text-[12px] text-[var(--text-secondary)] break-words"
+              >
                 {message.subject || t("mail.no_subject")}
               </span>
             </div>
 
             <div className="flex">
-              <span className="min-w-20 flex-shrink-0 whitespace-nowrap pr-2 text-[12px] font-medium text-[var(--text-muted)]">
+              <span className="min-w-20 flex-shrink-0 whitespace-nowrap pe-2 text-[12px] font-medium text-[var(--text-muted)]">
                 {t("mail.message_id_label")}
               </span>
               <span className="min-w-0 text-[12px] text-[var(--text-secondary)] break-all">
@@ -807,7 +834,7 @@ export function MobileMessageDetailsSheet({
 
             {size_bytes != null && size_bytes > 0 && (
               <div className="flex">
-                <span className="min-w-20 flex-shrink-0 whitespace-nowrap pr-2 text-[12px] font-medium text-[var(--text-muted)]">
+                <span className="min-w-20 flex-shrink-0 whitespace-nowrap pe-2 text-[12px] font-medium text-[var(--text-muted)]">
                   {t("mail.size_label")}
                 </span>
                 <span className="text-[12px] text-[var(--text-secondary)]">
@@ -817,7 +844,7 @@ export function MobileMessageDetailsSheet({
             )}
 
             <div className="flex">
-              <span className="min-w-20 flex-shrink-0 whitespace-nowrap pr-2 text-[12px] font-medium text-[var(--text-muted)]">
+              <span className="min-w-20 flex-shrink-0 whitespace-nowrap pe-2 text-[12px] font-medium text-[var(--text-muted)]">
                 {t("mail.location_label")}
               </span>
               <span className="text-[12px] text-[var(--text-secondary)]">
@@ -826,19 +853,19 @@ export function MobileMessageDetailsSheet({
             </div>
 
             <div className="flex items-center">
-              <span className="min-w-20 flex-shrink-0 whitespace-nowrap pr-2 text-[12px] font-medium text-[var(--text-muted)]">
+              <span className="min-w-20 flex-shrink-0 whitespace-nowrap pe-2 text-[12px] font-medium text-[var(--text-muted)]">
                 {t("mail.encryption_label")}
               </span>
               <EncryptionInfoDropdown
                 has_pq_protection={false}
                 has_recipient_key={message.has_recipient_key}
                 is_external={message.is_external}
-                sender_verification={message.sender_verification}
                 label={
                   message.is_external && !message.has_recipient_key
                     ? t("common.protected_in_transit")
                     : t("mail.zero_access_encrypted")
                 }
+                sender_verification={message.sender_verification}
                 size={14}
               />
             </div>

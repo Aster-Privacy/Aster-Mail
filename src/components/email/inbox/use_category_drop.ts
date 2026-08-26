@@ -66,7 +66,9 @@ function index_entry_for(
     is_read: previous?.is_read ?? email.is_read,
     category,
     category_pinned: true,
-    ...(previous?.snoozed_until ? { snoozed_until: previous.snoozed_until } : {}),
+    ...(previous?.snoozed_until
+      ? { snoozed_until: previous.snoozed_until }
+      : {}),
   };
 }
 
@@ -144,7 +146,10 @@ async function move_to_category(
   };
 
   await Promise.all(
-    Array.from({ length: Math.min(CATEGORY_MOVE_CONCURRENCY, emails.length) }, worker),
+    Array.from(
+      { length: Math.min(CATEGORY_MOVE_CONCURRENCY, emails.length) },
+      worker,
+    ),
   );
 
   return { failed_ids, undecryptable_ids };
@@ -189,8 +194,9 @@ export function use_category_drop({
       for (const [target, group] of by_category) {
         const current = group.map(
           (snapshot) =>
-            emails_ref.current.find((email) => email.id === snapshot.email.id) ??
-            snapshot.email,
+            emails_ref.current.find(
+              (email) => email.id === snapshot.email.id,
+            ) ?? snapshot.email,
         );
 
         const outcome = await move_to_category(current, target);

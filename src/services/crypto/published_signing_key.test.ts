@@ -18,22 +18,24 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { EncryptedVault } from "./key_manager_core";
+
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import * as openpgp from "openpgp";
 
-import type { EncryptedVault } from "./key_manager_core";
 import {
   derive_public_keys_from_private,
   generate_identity_keypair,
   sign_detached,
 } from "./key_manager_pgp";
-import { build_pgp_rekey } from "@/services/pgp_rekey_service";
 import {
   reset_published_key_heal_attempts,
   reset_published_signing_key_cache,
   select_published_signing_key,
   signing_key_candidates,
 } from "./published_signing_key";
+
+import { build_pgp_rekey } from "@/services/pgp_rekey_service";
 
 const state = vi.hoisted(() => ({
   email: "owner@astermail.org" as string | undefined,

@@ -33,6 +33,12 @@ import {
   type ConnectProvider,
 } from "../connect_provider_modal";
 
+import { ConnectedAccountCard } from "./connected_account";
+
+import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
+import { ImportJobCard } from "./job_card";
+import { OAUTH_PROVIDERS, PROVIDERS, PROVIDER_TO_OAUTH } from "./providers";
+
 import {
   AlertDialog,
   AlertDialogContent,
@@ -74,12 +80,13 @@ import {
 import { create_folder } from "@/services/api/folders";
 import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
 import { ensure_default_labels } from "@/services/labels/ensure_defaults";
-
-import { ConnectedAccountCard } from "./connected_account";
-import { ImportJobCard } from "./job_card";
-import { OAUTH_PROVIDERS, PROVIDERS, PROVIDER_TO_OAUTH } from "./providers";
-
 import { ignore_error } from "@/lib/ignore_error";
+import {
+  emit_folders_changed,
+  emit_mail_changed,
+  emit_refresh_requested,
+} from "@/hooks/mail_events";
+import { app_locale } from "@/utils/date_format";
 
 export function ImportSection() {
   const { t } = use_i18n();
@@ -95,6 +102,8 @@ export function ImportSection() {
     DecryptedExternalAccount[]
   >([]);
   const [is_loading_accounts, set_is_loading_accounts] = useState(true);
+  const [jobs_load_failed, set_jobs_load_failed] = useState(false);
+  const [accounts_load_failed, set_accounts_load_failed] = useState(false);
   const [syncing_accounts, set_syncing_accounts] = useState<Set<string>>(
     new Set(),
   );
@@ -106,11 +115,11 @@ export function ImportSection() {
   );
   const [delete_messages_on_disconnect, set_delete_messages_on_disconnect] =
     useState(false);
-  const [purging_tokens, set_purging_tokens] = useState<Set<string>>(
-    new Set(),
-  );
+  const [purging_tokens, set_purging_tokens] = useState<Set<string>>(new Set());
   const setup_account_tokens_ref = useRef<Set<string>>(new Set());
   const oauth_cancelled_ref = useRef(false);
+  const oauth_poll_interval_ref = useRef<number | null>(null);
+  const oauth_poll_timeout_ref = useRef<number | null>(null);
   const [oauth_setup_token, set_oauth_setup_token] = useState<string | null>(
     null,
   );
@@ -123,22 +132,39 @@ export function ImportSection() {
 
       if (response.data) {
         set_recent_jobs(response.data.jobs.slice(0, 5));
+        set_jobs_load_failed(false);
+      } else {
+        set_jobs_load_failed(true);
       }
     } catch (error) {
       if (import.meta.env.DEV) console.error(error);
+      set_jobs_load_failed(true);
     }
 
     if (!silent) set_is_loading_jobs(false);
   }, []);
 
-  const handle_delete_recent_job = useCallback(async (id: string) => {
-    set_recent_jobs((prev) => prev.filter((j) => j.id !== id));
-    try {
-      await delete_import_job(id);
-    } catch (caught) {
-      ignore_error("components/settings/import_section/import_section:ImportSection", caught);
-    }
-  }, []);
+  const handle_delete_recent_job = useCallback(
+    async (id: string) => {
+      set_recent_jobs((prev) => prev.filter((j) => j.id !== id));
+      try {
+        const response = await delete_import_job(id);
+
+        if (response.error) {
+          show_toast(t("common.delete_failed"), "error");
+          await load_jobs(true);
+        }
+      } catch (caught) {
+        ignore_error(
+          "components/settings/import_section/import_section:ImportSection",
+          caught,
+        );
+        show_toast(t("common.delete_failed"), "error");
+        await load_jobs(true);
+      }
+    },
+    [load_jobs, t],
+  );
 
   const load_connected_accounts = useCallback(async () => {
     try {
@@ -150,13 +176,42 @@ export function ImportSection() {
         );
 
         set_connected_accounts(oauth_accounts);
+        set_accounts_load_failed(false);
+      } else {
+        set_accounts_load_failed(true);
       }
     } catch (caught) {
-      ignore_error("components/settings/import_section/import_section:ImportSection", caught);
+      ignore_error(
+        "components/settings/import_section/import_section:ImportSection",
+        caught,
+      );
+      set_accounts_load_failed(true);
     } finally {
       set_is_loading_accounts(false);
     }
   }, []);
+
+  const clear_syncing_account = useCallback((account_token: string) => {
+    set_syncing_accounts((prev) => {
+      const next = new Set(prev);
+
+      next.delete(account_token);
+
+      return next;
+    });
+  }, []);
+
+  const run_sync = useCallback(
+    async (account_token: string) => {
+      const result = await trigger_sync(account_token);
+
+      if (result.error) {
+        show_toast(result.error, "error");
+        clear_syncing_account(account_token);
+      }
+    },
+    [clear_syncing_account],
+  );
 
   const setup_oauth_folders = useCallback(
     async (account_token: string) => {
@@ -166,7 +221,7 @@ export function ImportSection() {
 
       if (!vault?.identity_key) {
         set_syncing_accounts((prev) => new Set(prev).add(account_token));
-        await trigger_sync(account_token);
+        await run_sync(account_token);
         load_connected_accounts();
 
         return;
@@ -185,7 +240,7 @@ export function ImportSection() {
 
         if (!folders_result.data?.folders?.length) {
           set_folder_setup_status("idle");
-          await trigger_sync(account_token);
+          await run_sync(account_token);
           load_connected_accounts();
 
           return;
@@ -251,13 +306,18 @@ export function ImportSection() {
                       vault.identity_key,
                     );
 
-                    await create_folder({
+                    const created = await create_folder({
                       folder_token: token,
                       encrypted_name: encrypted,
                       name_nonce: nonce,
                       parent_token: parent_token,
                     });
 
+                    if (created.error) {
+                      folder_failures++;
+                      aborted_branch = true;
+                      continue;
+                    }
                     parent_tokens[full_path] = token;
                   } catch {
                     folder_failures++;
@@ -289,13 +349,17 @@ export function ImportSection() {
                   vault.identity_key,
                 );
 
-                await create_folder({
+                const created = await create_folder({
                   folder_token: token,
                   encrypted_name: encrypted,
                   name_nonce: nonce,
                   parent_token: parent_token,
                 });
 
+                if (created.error) {
+                  folder_failures++;
+                  continue;
+                }
                 mapping[folder.name] = token;
                 parent_tokens[folder.name] = token;
               } catch {
@@ -316,45 +380,64 @@ export function ImportSection() {
         if (oauth_cancelled_ref.current) return;
 
         if (Object.keys(mapping).length > 0) {
-          await save_folder_mapping(account_token, mapping);
+          const saved = await save_folder_mapping(account_token, mapping);
+
+          if (saved.error) {
+            show_toast(t("settings.oauth_folders_error"), "error");
+          }
         }
 
         set_folder_setup_status("idle");
         set_oauth_setup_token(null);
 
-        await trigger_sync(account_token);
+        await run_sync(account_token);
       } catch {
         set_folder_setup_status("idle");
         set_oauth_setup_token(null);
         if (oauth_cancelled_ref.current) return;
         show_toast(t("settings.oauth_folders_error"), "error");
 
-        await trigger_sync(account_token).catch((caught) => ignore_error("components/settings/import_section/import_section:ImportSection", caught));
+        await run_sync(account_token).catch((caught) =>
+          ignore_error(
+            "components/settings/import_section/import_section:ImportSection",
+            caught,
+          ),
+        );
       }
 
       load_connected_accounts();
     },
-    [t, load_connected_accounts, folders_state],
+    [t, load_connected_accounts, folders_state, run_sync],
   );
 
-  const stop_sync = useCallback(async (account_token: string) => {
-    set_syncing_accounts((prev) => {
-      const next = new Set(prev);
-      next.delete(account_token);
-      return next;
-    });
-    try {
-      const result = await cancel_sync(account_token);
-      if (result.error) {
-        show_toast(result.error, "error");
-      } else {
-        show_toast(t("settings.sync_stopped"), "success");
+  const stop_sync = useCallback(
+    async (account_token: string) => {
+      set_syncing_accounts((prev) => {
+        const next = new Set(prev);
+
+        next.delete(account_token);
+
+        return next;
+      });
+      try {
+        const result = await cancel_sync(account_token);
+
+        if (result.error) {
+          show_toast(result.error, "error");
+          set_syncing_accounts((prev) => new Set(prev).add(account_token));
+        } else {
+          show_toast(t("settings.sync_stopped"), "success");
+        }
+      } catch (caught) {
+        ignore_error(
+          "components/settings/import_section/import_section:ImportSection",
+          caught,
+        );
       }
-    } catch (caught) {
-      ignore_error("components/settings/import_section/import_section:ImportSection", caught);
-    }
-    load_connected_accounts();
-  }, [load_connected_accounts, t]);
+      load_connected_accounts();
+    },
+    [load_connected_accounts, t],
+  );
 
   const handle_sync = useCallback(
     async (account_token: string) => {
@@ -379,6 +462,7 @@ export function ImportSection() {
 
       if (sync_active) {
         await stop_sync(account_token);
+
         return;
       }
 
@@ -392,28 +476,17 @@ export function ImportSection() {
         !account.last_sync_at
       ) {
         await setup_oauth_folders(account_token);
+
         return;
       }
 
       set_syncing_accounts((prev) => new Set(prev).add(account_token));
 
       try {
-        const result = await trigger_sync(account_token);
-        if (result.error) {
-          show_toast(result.error, "error");
-          set_syncing_accounts((prev) => {
-            const next = new Set(prev);
-            next.delete(account_token);
-            return next;
-          });
-        }
+        await run_sync(account_token);
       } catch {
         show_toast(t("settings.connected_accounts_error"), "error");
-        set_syncing_accounts((prev) => {
-          const next = new Set(prev);
-          next.delete(account_token);
-          return next;
-        });
+        clear_syncing_account(account_token);
       }
 
       load_connected_accounts();
@@ -426,9 +499,10 @@ export function ImportSection() {
       syncing_accounts,
       purging_tokens,
       stop_sync,
+      run_sync,
+      clear_syncing_account,
     ],
   );
-
 
   const handle_disconnect_click = useCallback((account_token: string) => {
     set_delete_messages_on_disconnect(false);
@@ -445,17 +519,21 @@ export function ImportSection() {
     set_delete_messages_on_disconnect(false);
 
     const account = connected_accounts.find((a) => a.account_token === token);
+
     if (account) {
       stop_sync_polling(account.id);
     }
 
     set_syncing_accounts((prev) => {
       const next = new Set(prev);
+
       next.delete(token);
+
       return next;
     });
 
     let purged_count = 0;
+    let purge_failed = false;
 
     try {
       if (should_delete_messages) {
@@ -463,6 +541,7 @@ export function ImportSection() {
 
         if (purge_result.error) {
           show_toast(purge_result.error, "error");
+          purge_failed = true;
         } else {
           purged_count = purge_result.data?.deleted_count ?? 0;
 
@@ -474,6 +553,7 @@ export function ImportSection() {
             // job lineage until every message is gone. The card shows live
             // progress from the same polling endpoint meanwhile.
             let poll_errors = 0;
+
             for (let i = 0; i < 2400; i++) {
               await new Promise((resolve) => setTimeout(resolve, 1500));
               const prog = await get_sync_progress(token);
@@ -488,12 +568,16 @@ export function ImportSection() {
             }
           }
 
-          window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
-          window.dispatchEvent(new CustomEvent("astermail:folders-changed"));
-          window.dispatchEvent(
-            new CustomEvent("astermail:refresh-requested"),
-          );
+          emit_mail_changed();
+          emit_folders_changed();
+          emit_refresh_requested();
         }
+      }
+
+      if (purge_failed) {
+        load_connected_accounts();
+
+        return;
       }
 
       const result = await delete_external_account(token);
@@ -509,7 +593,7 @@ export function ImportSection() {
         if (should_delete_messages && purged_count > 0) {
           show_toast(
             t("settings.disconnect_deleted_success", {
-              count: purged_count.toLocaleString(),
+              count: purged_count.toLocaleString(app_locale()),
             }),
             "success",
           );
@@ -522,7 +606,9 @@ export function ImportSection() {
     } finally {
       set_purging_tokens((prev) => {
         const next = new Set(prev);
+
         next.delete(token);
+
         return next;
       });
     }
@@ -536,7 +622,7 @@ export function ImportSection() {
     load_connected_accounts,
   ]);
 
-  const handle_cancel_oauth_setup = useCallback(async () => {
+  const handle_cancel_oauth_setup = useCallback(() => {
     oauth_cancelled_ref.current = true;
     const token = oauth_setup_token;
 
@@ -546,21 +632,16 @@ export function ImportSection() {
     if (token) {
       set_syncing_accounts((prev) => {
         const next = new Set(prev);
+
         next.delete(token);
+
         return next;
       });
 
       // Clear from setup tracker so a reconnect attempt runs setup again
       setup_account_tokens_ref.current.delete(token);
 
-      try {
-        await delete_external_account(token);
-        set_connected_accounts((prev) =>
-          prev.filter((a) => a.account_token !== token),
-        );
-      } catch (caught) {
-        ignore_error("components/settings/import_section/import_section:ImportSection", caught);
-      }
+      set_disconnect_token(token);
     }
   }, [oauth_setup_token]);
 
@@ -583,6 +664,7 @@ export function ImportSection() {
     const id = window.setInterval(() => {
       load_jobs(true);
     }, 3000);
+
     return () => window.clearInterval(id);
   }, [has_active_job, load_jobs]);
 
@@ -594,16 +676,34 @@ export function ImportSection() {
     const id = window.setInterval(() => {
       load_connected_accounts();
     }, 60 * 1000);
+
     return () => window.clearInterval(id);
   }, [load_connected_accounts]);
 
+  const stop_oauth_polling = useCallback(() => {
+    if (oauth_poll_interval_ref.current !== null) {
+      window.clearInterval(oauth_poll_interval_ref.current);
+      oauth_poll_interval_ref.current = null;
+    }
+    if (oauth_poll_timeout_ref.current !== null) {
+      window.clearTimeout(oauth_poll_timeout_ref.current);
+      oauth_poll_timeout_ref.current = null;
+    }
+  }, []);
+
+  useEffect(() => () => stop_oauth_polling(), [stop_oauth_polling]);
+
   const trigger_post_oauth_setup = useCallback(() => {
+    stop_oauth_polling();
+
     const snapshot_tokens = new Set(
       connected_accounts.map((a) => a.account_token),
     );
     const snapshot_error_tokens = new Set(
       connected_accounts
-        .filter((a) => a.protocol === "oauth_imap" && a.last_sync_status === "error")
+        .filter(
+          (a) => a.protocol === "oauth_imap" && a.last_sync_status === "error",
+        )
         .map((a) => a.account_token),
     );
 
@@ -611,19 +711,23 @@ export function ImportSection() {
 
     const poll_for_new_account = async () => {
       const response = await list_external_accounts();
+
       if (!response.data) return false;
 
       const oauth_accounts = response.data.filter(
         (a) => a.protocol === "oauth_imap",
       );
+
       set_connected_accounts(oauth_accounts);
 
       // New account connected
       const new_account = oauth_accounts.find(
         (a) => !snapshot_tokens.has(a.account_token),
       );
+
       if (new_account) {
         setup_oauth_folders(new_account.account_token);
+
         return true;
       }
 
@@ -632,10 +736,16 @@ export function ImportSection() {
       // so we can't detect re-auth by status change. Instead, trigger sync for all
       // previously-errored oauth accounts and let the backend handle dedup.
       let kicked = false;
+
       for (const a of oauth_accounts) {
         if (snapshot_error_tokens.has(a.account_token)) {
           set_syncing_accounts((prev) => new Set(prev).add(a.account_token));
-          trigger_sync(a.account_token).catch((caught) => ignore_error("components/settings/import_section/import_section:poll_for_new_account", caught));
+          trigger_sync(a.account_token).catch((caught) =>
+            ignore_error(
+              "components/settings/import_section/import_section:poll_for_new_account",
+              caught,
+            ),
+          );
           kicked = true;
         }
       }
@@ -645,24 +755,39 @@ export function ImportSection() {
     };
 
     poll_for_new_account().then((found) => {
-      if (found) { stopped = true; return; }
+      if (found) {
+        stopped = true;
+
+        return;
+      }
 
       const id = window.setInterval(async () => {
         if (stopped) return;
         const found = await poll_for_new_account();
-        if (found) { stopped = true; window.clearInterval(id); }
+
+        if (found) {
+          stopped = true;
+          stop_oauth_polling();
+        }
       }, 2000);
 
-      window.setTimeout(() => window.clearInterval(id), 300000);
+      oauth_poll_interval_ref.current = id;
+      oauth_poll_timeout_ref.current = window.setTimeout(() => {
+        stopped = true;
+        stop_oauth_polling();
+      }, 300000);
     });
-  }, [connected_accounts, setup_oauth_folders]);
+  }, [connected_accounts, setup_oauth_folders, stop_oauth_polling]);
 
   // Fallback: handle redirect-path OAuth result (popup blocked / Tauri).
   // use_index_page_state clears the URL before we can read it, so it emits a custom event.
   useEffect(() => {
     const handler = () => trigger_post_oauth_setup();
+
     window.addEventListener("astermail:oauth-completed", handler);
-    return () => window.removeEventListener("astermail:oauth-completed", handler);
+
+    return () =>
+      window.removeEventListener("astermail:oauth-completed", handler);
   }, [trigger_post_oauth_setup]);
 
   return (
@@ -680,6 +805,15 @@ export function ImportSection() {
       </div>
 
       {/* Connected accounts - shown at top when present */}
+      {accounts_load_failed && !is_loading_accounts && (
+        <LoadFailedNotice
+          on_retry={() => {
+            set_is_loading_accounts(true);
+            load_connected_accounts();
+          }}
+        />
+      )}
+
       {(is_loading_accounts || connected_accounts.length > 0) && (
         <div>
           <h4 className="text-xs font-semibold uppercase tracking-wide text-txt-muted mb-2">
@@ -693,19 +827,20 @@ export function ImportSection() {
               <ConnectedAccountCard
                 key={account.id}
                 account={account}
-                is_setting_up_folders={
-                  folder_setup_status === "setting_up" &&
-                  oauth_setup_token === account.account_token
-                }
                 is_purging={
                   purging_tokens.has(account.account_token) ||
                   account.last_sync_status === "purging"
+                }
+                is_setting_up_folders={
+                  folder_setup_status === "setting_up" &&
+                  oauth_setup_token === account.account_token
                 }
                 is_syncing={syncing_accounts.has(account.account_token)}
                 on_cancel_setup={handle_cancel_oauth_setup}
                 on_disconnect={handle_disconnect_click}
                 on_reconnect={(provider) => {
                   const mapped = provider as ConnectProvider;
+
                   set_oauth_loading(provider);
                   set_connect_provider(mapped);
                 }}
@@ -714,7 +849,9 @@ export function ImportSection() {
                 on_sync_finished={(token) => {
                   set_syncing_accounts((prev) => {
                     const next = new Set(prev);
+
                     next.delete(token);
+
                     return next;
                   });
                 }}
@@ -735,7 +872,9 @@ export function ImportSection() {
           {PROVIDERS.map((provider) => {
             const is_oauth = OAUTH_PROVIDERS.has(provider.id);
             const is_loading = oauth_loading === provider.id;
-            const any_loading = oauth_loading !== null || connect_provider !== null;
+            const any_loading =
+              oauth_loading !== null || connect_provider !== null;
+
             return (
               <div
                 key={provider.id}
@@ -755,6 +894,7 @@ export function ImportSection() {
                       variant="depth"
                       onClick={() => {
                         const mapped = PROVIDER_TO_OAUTH[provider.id];
+
                         if (mapped) {
                           set_oauth_loading(provider.id);
                           set_connect_provider(mapped);
@@ -786,6 +926,10 @@ export function ImportSection() {
       </div>
 
       {/* Recent one-time imports */}
+      {!is_loading_jobs && jobs_load_failed && (
+        <LoadFailedNotice on_retry={() => load_jobs()} />
+      )}
+
       {!is_loading_jobs && recent_jobs.length > 0 && (
         <div>
           <h4 className="text-xs font-semibold uppercase tracking-wide text-txt-muted mb-2">
@@ -843,13 +987,16 @@ export function ImportSection() {
       />
 
       <ConnectProviderModal
-        provider={connect_provider}
-        on_close={() => { set_connect_provider(null); set_oauth_loading(null); }}
+        on_close={() => {
+          set_connect_provider(null);
+          set_oauth_loading(null);
+        }}
         on_oauth_success={() => {
           set_connect_provider(null);
           set_oauth_loading(null);
           trigger_post_oauth_setup();
         }}
+        provider={connect_provider}
       />
 
       <AlertDialog
@@ -892,7 +1039,7 @@ export function ImportSection() {
 
                   return target && target.email_count > 0
                     ? t("settings.disconnect_delete_messages_label_count", {
-                        count: target.email_count.toLocaleString(),
+                        count: target.email_count.toLocaleString(app_locale()),
                       })
                     : t("settings.disconnect_delete_messages_label");
                 })()}
@@ -922,7 +1069,6 @@ export function ImportSection() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
     </div>
   );
 }

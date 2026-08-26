@@ -22,7 +22,10 @@ import type { StepUpHardwareKeyAssertion } from "./webauthn";
 
 import { api_client } from "./client";
 
-import { derive_password_hash, base64_to_array } from "@/services/crypto/key_manager";
+import {
+  derive_password_hash,
+  base64_to_array,
+} from "@/services/crypto/key_manager";
 
 export interface StepUpCredentials {
   password_hash: string;

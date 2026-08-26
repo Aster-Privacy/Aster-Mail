@@ -18,6 +18,9 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { ChecklistTasksState } from "@/services/api/onboarding";
+import type { SettingsSection } from "@/components/settings/settings_content";
+
 import { useMemo } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { CheckIcon, XMarkIcon } from "@heroicons/react/24/outline";
@@ -26,9 +29,7 @@ import { use_i18n } from "@/lib/i18n/context";
 import { use_should_reduce_motion } from "@/provider";
 import { use_is_mobile } from "@/hooks/use_platform";
 import { use_onboarding_checklist } from "@/hooks/use_onboarding_checklist";
-
-import type { ChecklistTasksState } from "@/services/api/onboarding";
-import type { SettingsSection } from "@/components/settings/settings_content";
+import { open_external } from "@/utils/open_link";
 
 interface OnboardingChecklistProps {
   on_compose: () => void;
@@ -63,7 +64,7 @@ export function OnboardingChecklist({
         key: "install_app",
         label_key: "common.onboarding_checklist_install_app",
         on_click: () => {
-          window.open(DOWNLOAD_URL, "_blank", "noopener,noreferrer");
+          open_external(DOWNLOAD_URL);
           mark_install_app_done();
         },
       },
@@ -112,7 +113,7 @@ export function OnboardingChecklist({
     <AnimatePresence>
       <motion.div
         animate={{ opacity: 1, y: 0 }}
-        className="hidden md:flex fixed bottom-5 right-5 z-30 w-[320px] flex-col overflow-hidden rounded-xl border shadow-lg"
+        className="hidden md:flex fixed bottom-5 end-5 z-30 w-[320px] flex-col overflow-hidden rounded-xl border shadow-lg"
         exit={{ opacity: 0, y: 8 }}
         initial={{ opacity: 0, y: 8 }}
         style={{
@@ -132,11 +133,11 @@ export function OnboardingChecklist({
           </div>
           <button
             aria-label={t("common.onboarding_checklist_dismiss")}
-            className="-mr-1 -mt-1 p-1 rounded-md hover:bg-black/[0.06] dark:hover:bg-white/[0.08] text-txt-muted transition-colors"
+            className="-me-1 -mt-1 p-1 rounded-md hover:bg-black/[0.06] dark:hover:bg-white/[0.08] text-txt-muted transition-colors"
+            type="button"
             onClick={() => {
               void dismiss();
             }}
-            type="button"
           >
             <XMarkIcon className="w-4 h-4" />
           </button>
@@ -149,9 +150,9 @@ export function OnboardingChecklist({
             return (
               <li key={row.key}>
                 <button
-                  className="w-full flex items-center gap-3 px-4 py-2 text-left hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors"
-                  onClick={row.on_click}
+                  className="w-full flex items-center gap-3 px-4 py-2 text-start hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors"
                   type="button"
+                  onClick={row.on_click}
                 >
                   <span
                     className="flex h-[18px] w-[18px] flex-shrink-0 items-center justify-center rounded-full border transition-colors"
@@ -164,7 +165,12 @@ export function OnboardingChecklist({
                         : "transparent",
                     }}
                   >
-                    {done && <CheckIcon className="w-3 h-3 text-white" strokeWidth={3} />}
+                    {done && (
+                      <CheckIcon
+                        className="w-3 h-3 text-white"
+                        strokeWidth={3}
+                      />
+                    )}
                   </span>
                   <span
                     className={

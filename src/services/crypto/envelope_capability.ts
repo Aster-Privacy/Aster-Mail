@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { api_client } from "../api/client";
+
 import { array_to_base64, base64_to_array } from "./base64";
 import { get_vault_from_memory } from "./memory_key_store";
 
@@ -73,7 +74,9 @@ function random_client_id(): string {
     return crypto.randomUUID();
   } catch {
     const bytes = new Uint8Array(16);
+
     crypto.getRandomValues(bytes);
+
     return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
   }
 }
@@ -153,7 +156,8 @@ export async function report_envelope_capability_if_due(
   };
 
   const now = deps.now();
-  const fingerprint = (await deps.identity_fingerprint().catch(() => null)) ?? "";
+  const fingerprint =
+    (await deps.identity_fingerprint().catch(() => null)) ?? "";
   const [last_at, last_fingerprint = ""] = (
     deps.read(LAST_REPORTED_PREFIX + user_id) ?? ""
   ).split("|");

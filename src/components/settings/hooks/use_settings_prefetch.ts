@@ -44,10 +44,19 @@ import { get_recovery_email } from "@/services/api/recovery_email";
 import { get_security_status } from "@/services/api/account";
 import { list_hardware_keys } from "@/services/api/webauthn";
 import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
-
 import { ignore_error } from "@/lib/ignore_error";
 
 type Fetcher = () => Promise<unknown>;
+
+function envelope_error(value: unknown): string | null {
+  if (!value || typeof value !== "object") return null;
+
+  const candidate = (value as { error?: unknown }).error;
+
+  if (typeof candidate === "string" && candidate.length > 0) return candidate;
+
+  return null;
+}
 
 const PANEL_FETCHERS: Record<SettingsPanelName, Fetcher> = {
   auto_forward: () => list_forwarding_rules(),
@@ -94,6 +103,20 @@ const PREFETCH_PANELS: SettingsPanelName[] = [
 
 const PREFETCH_CONCURRENCY = 4;
 
+const revalidate_tokens = new Map<SettingsPanelName, number>();
+
+function next_revalidate_token(panel: SettingsPanelName): number {
+  const token = (revalidate_tokens.get(panel) ?? 0) + 1;
+
+  revalidate_tokens.set(panel, token);
+
+  return token;
+}
+
+function is_current_revalidate(panel: SettingsPanelName, token: number) {
+  return revalidate_tokens.get(panel) === token;
+}
+
 export function use_settings_prefetch(is_active: boolean) {
   const cache = use_settings_cache();
   const last_run_ref = useRef<number>(0);
@@ -133,6 +156,18 @@ export function use_settings_prefetch(is_active: boolean) {
 
         try {
           const data = await PANEL_FETCHERS[panel]();
+          const failure = envelope_error(data);
+
+          if (failure) {
+            cache.set_entry(panel, {
+              data: existing?.data ?? null,
+              error: failure,
+              fetched_at: existing?.fetched_at ?? 0,
+              is_loading: false,
+            });
+
+            return;
+          }
 
           cache.set_entry(panel, {
             data,
@@ -200,6 +235,7 @@ export function use_settings_panel_data<T = unknown>(panel: SettingsPanelName) {
   const revalidate = useCallback(async () => {
     const fetcher = PANEL_FETCHERS[panel];
     const previous = cache.get_entry<T>(panel);
+    const token = next_revalidate_token(panel);
 
     cache.set_entry<T>(panel, {
       data: previous?.data ?? null,
@@ -211,6 +247,21 @@ export function use_settings_panel_data<T = unknown>(panel: SettingsPanelName) {
     try {
       const data = (await fetcher()) as T;
 
+      if (!is_current_revalidate(panel, token)) return data;
+
+      const failure = envelope_error(data);
+
+      if (failure) {
+        cache.set_entry<T>(panel, {
+          data: previous?.data ?? null,
+          error: failure,
+          fetched_at: previous?.fetched_at ?? 0,
+          is_loading: false,
+        });
+
+        return data;
+      }
+
       cache.set_entry<T>(panel, {
         data,
         error: null,
@@ -220,12 +271,15 @@ export function use_settings_panel_data<T = unknown>(panel: SettingsPanelName) {
 
       return data;
     } catch (error) {
-      cache.set_entry<T>(panel, {
-        data: previous?.data ?? null,
-        error,
-        fetched_at: previous?.fetched_at ?? 0,
-        is_loading: false,
-      });
+      if (is_current_revalidate(panel, token)) {
+        cache.set_entry<T>(panel, {
+          data: previous?.data ?? null,
+          error,
+          fetched_at: previous?.fetched_at ?? 0,
+          is_loading: false,
+        });
+      }
+
       throw error;
     }
   }, [cache, panel]);

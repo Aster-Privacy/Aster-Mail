@@ -392,9 +392,7 @@ describe.runIf(RUN)("local stack recovery tiers e2e", () => {
     const recovered_vault = JSON.parse(unwrapped!);
 
     expect(recovered_vault.data_kek).toBe(array_to_base64(account.master_key));
-    expect(recovered_vault.identity_key).toBe(
-      account.vault_data.identity_key,
-    );
+    expect(recovered_vault.identity_key).toBe(account.vault_data.identity_key);
   });
 
   it(
@@ -1057,14 +1055,10 @@ describe.runIf(RUN)("legacy-shape and stale-client safety e2e", () => {
 
   let account: Awaited<ReturnType<typeof build_account>>;
 
-  it(
-    "registers a format 2 account",
-    { timeout: 120000 },
-    async () => {
-      account = await build_account(username, password_v1);
-      await register_account(username, account, MASTER_KEY_VAULT_FORMAT);
-    },
-  );
+  it("registers a format 2 account", { timeout: 120000 }, async () => {
+    account = await build_account(username, password_v1);
+    await register_account(username, account, MASTER_KEY_VAULT_FORMAT);
+  });
 
   it(
     "stale-client code recovery (no vault_format) must not downgrade an MK vault",
@@ -1095,16 +1089,13 @@ describe.runIf(RUN)("legacy-shape and stale-client safety e2e", () => {
     },
   );
 
-  it(
-    "vault version stayed at 2 after the rejected stale-client recovery",
-    async () => {
-      const stored = psql(
-        `SELECT vault_version FROM encrypted_key_vault WHERE user_id = (SELECT id FROM users WHERE LOWER(username) = '${username.toLowerCase()}');`,
-      );
+  it("vault version stayed at 2 after the rejected stale-client recovery", async () => {
+    const stored = psql(
+      `SELECT vault_version FROM encrypted_key_vault WHERE user_id = (SELECT id FROM users WHERE LOWER(username) = '${username.toLowerCase()}');`,
+    );
 
-      expect(stored).toBe("2");
-    },
-  );
+    expect(stored).toBe("2");
+  });
 });
 
 describe.runIf(RUN)("repeated password changes never orphan aliases", () => {
@@ -1180,9 +1171,10 @@ describe.runIf(RUN)("repeated password changes never orphan aliases", () => {
           session,
         );
 
-        expect(change.status, `iteration ${i}: ${JSON.stringify(change.json)}`).toBe(
-          200,
-        );
+        expect(
+          change.status,
+          `iteration ${i}: ${JSON.stringify(change.json)}`,
+        ).toBe(200);
 
         session = {
           access_token: change.json.access_token,

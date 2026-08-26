@@ -26,6 +26,7 @@ import {
   useCallback,
   useRef,
   ReactNode,
+  useMemo,
 } from "react";
 
 import { use_auth } from "@/contexts/auth_context";
@@ -75,26 +76,43 @@ export function SignaturesProvider({ children }: SignaturesProviderProps) {
 
     set_is_loading(true);
 
-    try {
-      const [list_response, default_response] = await Promise.all([
-        list_signatures(),
-        get_default_signature(),
-      ]);
+    let list_loaded = false;
+    let default_loaded = false;
 
-      if (this_generation !== load_generation_ref.current) return;
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      try {
+        const [list_response, default_response] = await Promise.all([
+          list_loaded ? Promise.resolve(null) : list_signatures(),
+          default_loaded ? Promise.resolve(null) : get_default_signature(),
+        ]);
 
-      if (list_response.data) {
-        set_signatures(list_response.data.signatures);
+        if (this_generation !== load_generation_ref.current) return;
+
+        if (list_response && !list_response.error) {
+          list_loaded = true;
+
+          if (list_response.data) {
+            set_signatures(list_response.data.signatures);
+          }
+        }
+
+        if (default_response && !default_response.error) {
+          default_loaded = true;
+          set_default_signature(default_response.data ?? null);
+        }
+      } catch {
+        if (this_generation !== load_generation_ref.current) return;
       }
 
-      if (default_response.data) {
-        set_default_signature(default_response.data);
-      }
-    } catch {
-      if (this_generation !== load_generation_ref.current) return;
+      if (list_loaded && default_loaded) break;
 
-      set_signatures([]);
-      set_default_signature(null);
+      if (attempt < 2) {
+        await new Promise((resolve) => {
+          setTimeout(resolve, 2_000 * (attempt + 1));
+        });
+
+        if (this_generation !== load_generation_ref.current) return;
+      }
     }
 
     set_is_loading(false);
@@ -126,7 +144,8 @@ export function SignaturesProvider({ children }: SignaturesProviderProps) {
             .replace(/"/g, "&quot;")
             .replace(/\n/g, "<br>");
 
-      const separator = preferences.show_signature_separator !== false ? "--<br>" : "";
+      const separator =
+        preferences.show_signature_separator !== false ? "--<br>" : "";
 
       return `<div data-aster-signature="1" data-aster-signature-id="${signature.id}"><br><br>${separator}${content}</div>`;
     },
@@ -140,18 +159,29 @@ export function SignaturesProvider({ children }: SignaturesProviderProps) {
     [signatures],
   );
 
+  const value = useMemo(
+    () => ({
+      signatures,
+      default_signature,
+      is_loading,
+      reload_signatures: load_signatures,
+      get_signature_by_id,
+      get_formatted_signature,
+      resolve_signature,
+    }),
+    [
+      signatures,
+      default_signature,
+      is_loading,
+      load_signatures,
+      get_signature_by_id,
+      get_formatted_signature,
+      resolve_signature,
+    ],
+  );
+
   return (
-    <SignaturesContext.Provider
-      value={{
-        signatures,
-        default_signature,
-        is_loading,
-        reload_signatures: load_signatures,
-        get_signature_by_id,
-        get_formatted_signature,
-        resolve_signature,
-      }}
-    >
+    <SignaturesContext.Provider value={value}>
       {children}
     </SignaturesContext.Provider>
   );

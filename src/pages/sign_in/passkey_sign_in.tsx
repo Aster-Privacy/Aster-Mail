@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { TotpVerifyResponse } from "@/services/api/totp";
+
 import { useState, useCallback } from "react";
 import { FingerPrintIcon } from "@heroicons/react/24/outline";
 import { motion } from "framer-motion";
@@ -28,7 +30,6 @@ import {
   passkey_login_initiate,
   perform_passkey_login,
 } from "@/services/api/passkeys";
-import type { TotpVerifyResponse } from "@/services/api/totp";
 
 export interface PasskeySignInButtonProps {
   remember_me: boolean;
@@ -50,8 +51,10 @@ export function PasskeySignInButton({
 
     try {
       const initiate_resp = await passkey_login_initiate();
+
       if (!initiate_resp.data) {
         on_error(initiate_resp.error || t("errors.generic"));
+
         return;
       }
 
@@ -62,6 +65,7 @@ export function PasskeySignInButton({
 
       if (verify_resp.data) {
         await on_success(verify_resp.data);
+
         return;
       }
       if (verify_resp.error !== "passkey_cancelled") {

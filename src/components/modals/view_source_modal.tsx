@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { copy_text_or_throw } from "@/utils/copy_text";
 import { useCallback, useMemo, useState } from "react";
 import { Button } from "@aster/ui";
 
@@ -30,8 +31,6 @@ import {
 } from "@/components/ui/modal";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
-
-import { ignore_error } from "@/lib/ignore_error";
 
 interface ViewSourceModalProps {
   is_open: boolean;
@@ -225,13 +224,10 @@ export function ViewSourceModal({
 
   const handle_copy = useCallback(async () => {
     try {
-      await navigator.clipboard.writeText(html_body);
+      await copy_text_or_throw(html_body);
       show_toast(t("common.source_copied_to_clipboard"), "success");
-    } catch (caught) {
-      ignore_error(
-        "components/modals/view_source_modal:ViewSourceModal",
-        caught,
-      );
+    } catch {
+      show_toast(t("common.failed_to_copy"), "error");
     }
   }, [html_body, t]);
 
@@ -257,14 +253,14 @@ export function ViewSourceModal({
         </p>
 
         <div
-          className="rounded-lg overflow-auto"
           data-selectable-region
-          tabIndex={-1}
+          className="rounded-lg overflow-auto"
           style={{
             maxHeight: "65vh",
             backgroundColor: "var(--bg-tertiary)",
             border: "1px solid var(--border-secondary)",
           }}
+          tabIndex={-1}
         >
           <table
             className="w-full border-collapse"
@@ -277,7 +273,7 @@ export function ViewSourceModal({
               {lines.map((line, idx) => (
                 <tr key={idx} className="hover:bg-white/[0.03]">
                   <td
-                    className="text-right select-none px-3 text-[12px] leading-relaxed align-top"
+                    className="text-end select-none px-3 text-[12px] leading-relaxed align-top"
                     style={{
                       color: "var(--text-muted)",
                       opacity: 0.5,
@@ -290,7 +286,7 @@ export function ViewSourceModal({
                     {idx + 1}
                   </td>
                   <td
-                    className="text-[13px] leading-relaxed pl-4 pr-4"
+                    className="text-[13px] leading-relaxed ps-4 pe-4"
                     style={{
                       color: "var(--text-secondary)",
                       whiteSpace: wrap_lines ? "pre-wrap" : "pre",

@@ -33,6 +33,12 @@ import {
 } from "@/services/mail_actions";
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
+import {
+  build_send_fingerprint,
+  forget_send,
+  is_duplicate_send,
+  record_send,
+} from "@/components/compose/send_lock";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_signatures } from "@/contexts/signatures_context";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -126,8 +132,21 @@ export function EmailReplySection({
 
     if (now - last_send_time_ref.current < 2000) return;
 
+    const send_fingerprint = build_send_fingerprint(
+      [email.sender.email],
+      email.subject,
+      reply_text,
+    );
+
+    if (is_duplicate_send(send_fingerprint, now)) {
+      set_error_message(t("common.duplicate_send_blocked"));
+
+      return;
+    }
+
     is_sending_ref.current = true;
     last_send_time_ref.current = now;
+    record_send(send_fingerprint, now);
     set_error_message(null);
     set_send_state("queued");
     set_countdown(undo_seconds);
@@ -169,15 +188,17 @@ export function EmailReplySection({
         on_cancel: () => {
           is_sending_ref.current = false;
           set_send_state("idle");
+          forget_send(send_fingerprint);
           set_queued_id(null);
         },
         on_error: (error) => {
           is_sending_ref.current = false;
           set_send_state("error");
+          forget_send(send_fingerprint);
           set_error_message(error);
         },
       },
-      preferences.undo_send_period,
+      undo_seconds * 1000,
     );
 
     if (result.success && result.queued_id) {
@@ -185,15 +206,17 @@ export function EmailReplySection({
     } else if (!result.success) {
       is_sending_ref.current = false;
       set_send_state("error");
+      forget_send(send_fingerprint);
       set_error_message(result.error || t("common.failed_to_send_reply"));
     }
   }, [
     reply_text,
     send_state,
     email,
-    preferences.undo_send_period,
     undo_seconds,
+    undo_enabled,
     get_signature,
+    preferences.show_aster_branding,
     set_reply_text,
     set_show_reply_menu,
     t,
@@ -251,7 +274,8 @@ export function EmailReplySection({
               ? {}
               : {
                   scale: 1.02,
-                  boxShadow: "0 8px 16px color-mix(in srgb, var(--accent-color) 30%, transparent)",
+                  boxShadow:
+                    "0 8px 16px color-mix(in srgb, var(--accent-color) 30%, transparent)",
                 }
           }
           onClick={
@@ -381,7 +405,7 @@ export function EmailReplySection({
                 <EmojiPicker on_select={handle_emoji_select} />
               )}
             </div>
-            <span className="text-xs ml-auto text-txt-tertiary">
+            <span className="text-xs ms-auto text-txt-tertiary">
               {reply_text.length}/1000
             </span>
           </motion.div>

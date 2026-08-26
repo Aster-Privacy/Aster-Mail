@@ -22,9 +22,16 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@aster/ui";
 
 import {
-  sanitize_username,
-  clamp_password,
-} from "@/services/sanitize";
+  Alert,
+  CopyIcon,
+  MethodCard,
+  PasswordStrengthIndicator,
+  page_transition,
+  page_variants,
+} from "./shared";
+import { use_forgot_password } from "./use_forgot_password";
+
+import { sanitize_username, clamp_password } from "@/services/sanitize";
 import {
   EyeIcon,
   EyeSlashIcon,
@@ -33,8 +40,7 @@ import {
 } from "@/components/auth/auth_styles";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
-import { Alert, CopyIcon, MethodCard, PasswordStrengthIndicator, page_transition, page_variants } from "./shared";
-import { use_forgot_password } from "./use_forgot_password";
+import { apply_input_transform } from "@/utils/input_transform";
 
 export default function ForgotPasswordPage() {
   const {
@@ -114,9 +120,12 @@ export default function ForgotPasswordPage() {
               <Input
                 // eslint-disable-next-line jsx-a11y/no-autofocus
                 autoFocus
+                autoCapitalize="none"
                 autoComplete="username"
+                autoCorrect="off"
                 maxLength={55}
                 placeholder={t("common.yourname_placeholder")}
+                spellCheck={false}
                 status={error ? "error" : "default"}
                 type="text"
                 value={username}
@@ -130,17 +139,23 @@ export default function ForgotPasswordPage() {
                       .substring(at_index + 1)
                       .toLowerCase();
 
-                    set_username(local);
                     if (
                       domain_part === "astermail.org" ||
                       domain_part === "astermail.org."
-                    )
+                    ) {
+                      set_username(local);
                       set_email_domain("astermail.org");
-                    else if (
+                    } else if (
                       domain_part === "aster.cx" ||
                       domain_part === "aster.cx."
-                    )
+                    ) {
+                      set_username(local);
                       set_email_domain("aster.cx");
+                    } else {
+                      set_username(
+                        `${local}@${domain_part.replace(/[^a-z0-9.-]/g, "")}`,
+                      );
+                    }
                   } else {
                     set_username(sanitize_username(raw));
                   }
@@ -223,30 +238,30 @@ export default function ForgotPasswordPage() {
                 badge={t("auth.forgot_method_full_restore")}
                 badge_tone="green"
                 description={t("auth.forgot_method_phrase_desc")}
-                title={t("auth.forgot_method_phrase_title")}
                 on_click={() => {
                   set_error("");
                   set_recovery_method("phrase");
                   set_step("phrase_entry");
                 }}
+                title={t("auth.forgot_method_phrase_title")}
               />
               <MethodCard
                 badge={t("auth.forgot_method_full_restore")}
                 badge_tone="green"
                 description={t("auth.forgot_method_code_desc")}
-                title={t("auth.forgot_method_code_title")}
                 on_click={() => {
                   set_error("");
                   set_recovery_method("code");
                   set_step("code");
                 }}
+                title={t("auth.forgot_method_code_title")}
               />
               <MethodCard
                 badge={t("auth.forgot_method_access_only")}
                 badge_tone="amber"
                 description={t("auth.forgot_method_email_desc")}
-                title={t("auth.forgot_method_email_title")}
                 on_click={handle_email_reset_link}
+                title={t("auth.forgot_method_email_title")}
               />
             </div>
 
@@ -372,7 +387,9 @@ export default function ForgotPasswordPage() {
                 type="text"
                 value={recovery_code}
                 onChange={(e) =>
-                  set_recovery_code(e.target.value.toUpperCase())
+                  set_recovery_code(
+                    apply_input_transform(e.target, (v) => v.toUpperCase()),
+                  )
                 }
                 onKeyDown={(e) => e["key"] === "Enter" && handle_code_submit()}
               />
@@ -471,7 +488,9 @@ export default function ForgotPasswordPage() {
                 status={error ? "error" : "default"}
                 type={is_confirm_visible ? "text" : "password"}
                 value={confirm_password}
-                onChange={(e) => set_confirm_password(clamp_password(e.target.value))}
+                onChange={(e) =>
+                  set_confirm_password(clamp_password(e.target.value))
+                }
                 onKeyDown={(e) =>
                   e["key"] === "Enter" && handle_password_submit()
                 }

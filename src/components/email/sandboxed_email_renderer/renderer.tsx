@@ -19,11 +19,25 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useRef, useEffect, useState, useCallback, useMemo } from "react";
+import { should_retry_cid, cid_retry_delay_ms } from "@/lib/cid_retry";
 
 import * as dom_cleanup from "./dom_cleanup";
-
 import { build_measurement_controls } from "./measurement_controls";
 import { attach_iframe_interactions } from "./iframe_interactions";
+import {
+  BODY_PADDING,
+  CONTENT_READY_FALLBACK_MS,
+  SETTLE_REMEASURE_DELAYS_MS,
+  SKELETON_DELAY_MEASURED_MS,
+  SKELETON_DELAY_MS,
+  get_cached_iframe_height,
+  link_hover_ink_for,
+  link_ink_for,
+  needs_settle_remeasure,
+  resolve_native_images,
+  safe_hex,
+} from "./helpers";
+
 import {
   build_email_body_css,
   build_auto_dark_mode_css,
@@ -42,9 +56,7 @@ import {
   derive_visited_ink,
   normalize_hex,
 } from "@/lib/email_ink";
-import {
-  use_resolved_accent,
-} from "@/lib/resolved_accent";
+import { use_resolved_accent } from "@/lib/resolved_accent";
 import { is_transparent_color_value } from "@/lib/html_sanitizer";
 import {
   build_font_face_css,
@@ -60,13 +72,15 @@ import {
 } from "@/lib/cid_resolver";
 import { use_attachment_keys_version } from "@/hooks/use_attachment_keys_version";
 import { useTheme } from "@/contexts/theme_context";
-import { use_preferences, FONT_SIZE_DEFAULT, normalize_font_size_scale } from "@/contexts/preferences_context";
+import {
+  use_preferences,
+  FONT_SIZE_DEFAULT,
+  normalize_font_size_scale,
+} from "@/contexts/preferences_context";
 import { use_i18n } from "@/lib/i18n/context";
 import { connection_store } from "@/services/routing/connection_store";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { reveal_on_fonts_ready } from "@/components/email/reveal_on_fonts_ready";
-import { BODY_PADDING, CONTENT_READY_FALLBACK_MS, SETTLE_REMEASURE_DELAYS_MS, SKELETON_DELAY_MEASURED_MS, SKELETON_DELAY_MS, get_cached_iframe_height, link_hover_ink_for, link_ink_for, needs_settle_remeasure, resolve_native_images, safe_hex } from "./helpers";
-
 import { ignore_error } from "@/lib/ignore_error";
 
 export interface SandboxedEmailRendererProps {
@@ -103,7 +117,9 @@ export function SandboxedEmailRenderer({
 }: SandboxedEmailRendererProps) {
   const { t } = use_i18n();
   const { preferences } = use_preferences();
-  const email_zoom = (normalize_font_size_scale(preferences.font_size_scale) / FONT_SIZE_DEFAULT).toFixed(3);
+  const email_zoom = (
+    normalize_font_size_scale(preferences.font_size_scale) / FONT_SIZE_DEFAULT
+  ).toFixed(3);
   const [zoomed_image, set_zoomed_image] = useState<string | null>(null);
   const zoom_fn_ref = useRef<((src: string | null) => void) | null>(null);
   const base_zoom_ref = useRef(1);
@@ -143,6 +159,9 @@ export function SandboxedEmailRenderer({
   const attachment_keys_version = use_attachment_keys_version(email_id);
   const stable_cid_html_ref = useRef<string | null>(null);
   const pending_revoke_ref = useRef<string[]>([]);
+  const cid_retry_attempt_ref = useRef(0);
+  const cid_retry_timer_ref = useRef<number | null>(null);
+  const [cid_retry, set_cid_retry] = useState(0);
   const prev_email_id_ref = useRef(email_id);
 
   if (prev_email_id_ref.current !== email_id) {
@@ -158,6 +177,11 @@ export function SandboxedEmailRenderer({
       pending_revoke_ref.current = [];
     }
   }, [internal_cid_html]);
+
+  useEffect(() => {
+    cid_retry_attempt_ref.current = 0;
+    set_cid_retry(0);
+  }, [email_id]);
 
   useEffect(() => {
     let cancelled = false;
@@ -187,13 +211,36 @@ export function SandboxedEmailRenderer({
         internal_cid_blob_urls_ref.current = result.blob_urls;
         stable_cid_html_ref.current = result.html;
         set_internal_cid_html(result.html);
+
+        if (
+          result.records_unavailable &&
+          should_retry_cid(cid_retry_attempt_ref.current)
+        ) {
+          const delay = cid_retry_delay_ms(cid_retry_attempt_ref.current);
+
+          cid_retry_attempt_ref.current += 1;
+          cid_retry_timer_ref.current = window.setTimeout(() => {
+            cid_retry_timer_ref.current = null;
+            set_cid_retry((value) => value + 1);
+          }, delay);
+        }
       })
-      .catch((caught) => ignore_error("components/email/sandboxed_email_renderer/renderer:email_zoom", caught));
+      .catch((caught) =>
+        ignore_error(
+          "components/email/sandboxed_email_renderer/renderer:email_zoom",
+          caught,
+        ),
+      );
 
     return () => {
       cancelled = true;
+
+      if (cid_retry_timer_ref.current !== null) {
+        window.clearTimeout(cid_retry_timer_ref.current);
+        cid_retry_timer_ref.current = null;
+      }
     };
-  }, [sanitized_html, email_id, attachment_keys_version]);
+  }, [sanitized_html, email_id, attachment_keys_version, cid_retry]);
 
   useEffect(() => {
     return () => {
@@ -221,65 +268,106 @@ export function SandboxedEmailRenderer({
   const app_is_dark = theme === "dark";
   const is_dark_theme = app_is_dark && !disable_auto_dark_mode;
   const is_html_email = !is_plain_text;
-  const layout_probe =
-    sanitized_html.length > 65536
-      ? sanitized_html.slice(0, 65536)
-      : sanitized_html;
-  const has_block_html =
-    /<(div|p|table|tr|td|h[1-6]|ul|ol|li|blockquote)\b/i.test(layout_probe);
+  const layout_flags = useMemo(() => {
+    const layout_probe =
+      sanitized_html.length > 65536
+        ? sanitized_html.slice(0, 65536)
+        : sanitized_html;
+    const has_block_html =
+      /<(div|p|table|tr|td|h[1-6]|ul|ol|li|blockquote)\b/i.test(layout_probe);
+    const has_table_layout = /<table\b/i.test(layout_probe);
+    const has_designed_bg = (
+      layout_probe.match(/background(?:-color)?\s*:\s*[^;"'}]+/gi) ?? []
+    ).some((declaration) => {
+      const value_match = declaration.match(
+        /background(?:-color)?\s*:\s*([^;"'}]+)$/i,
+      );
+      const value = value_match ? value_match[1].trim() : "";
+
+      return (
+        /^(?:#[0-9a-f]|rgba?\(|hsla?\(|white\b|black\b|[a-z]+gr[ae]y\b)/i.test(
+          value,
+        ) && !is_transparent_color_value(value)
+      );
+    });
+    const has_style_block = /<style\b[^>]*>[\s\S]*?background/i.test(
+      layout_probe,
+    );
+    const has_centered_card =
+      /max-width\s*:\s*[3456789]\d{2}px[^;}"']*;[^"']*margin\s*:[^;}"']*auto/i.test(
+        layout_probe,
+      );
+    const has_newsletter_layout =
+      (has_table_layout &&
+        (/style\s*=\s*["'][^"']*width\s*:\s*[456789]\d{2}px/i.test(
+          layout_probe,
+        ) ||
+          /<table[^>]*(?:width|bgcolor|background)\s*=/i.test(layout_probe) ||
+          (layout_probe.match(/<table\b/gi)?.length ?? 0) > 2)) ||
+      has_designed_bg ||
+      has_style_block ||
+      has_centered_card;
+    const declares_light_scheme = /color-scheme\s*:\s*light\s+only/i.test(
+      layout_probe,
+    );
+
+    return {
+      has_block_html,
+      has_table_layout,
+      has_newsletter_layout,
+      declares_light_scheme,
+    };
+  }, [sanitized_html]);
+  const {
+    has_block_html,
+    has_table_layout,
+    has_newsletter_layout,
+    declares_light_scheme,
+  } = layout_flags;
   const literal_plain_text =
     (is_literal_plain_text ?? is_plain_text) && !has_block_html;
-  const has_table_layout = /<table\b/i.test(layout_probe);
-  const has_designed_bg = (
-    layout_probe.match(/background(?:-color)?\s*:\s*[^;"'}]+/gi) ?? []
-  ).some((declaration) => {
-    const value_match = declaration.match(
-      /background(?:-color)?\s*:\s*([^;"'}]+)$/i,
-    );
-    const value = value_match ? value_match[1].trim() : "";
-
-    return (
-      /^(?:#[0-9a-f]|rgba?\(|hsla?\(|white\b|black\b|[a-z]+gr[ae]y\b)/i.test(value) &&
-      !is_transparent_color_value(value)
-    );
-  });
-  const has_style_block = /<style\b[^>]*>[\s\S]*?background/i.test(layout_probe);
-  const has_centered_card = /max-width\s*:\s*[3456789]\d{2}px[^;}"']*;[^"']*margin\s*:[^;}"']*auto/i.test(layout_probe);
-  const has_newsletter_layout = (has_table_layout && (
-    /style\s*=\s*["'][^"']*width\s*:\s*[456789]\d{2}px/i.test(layout_probe) ||
-    /<table[^>]*(?:width|bgcolor|background)\s*=/i.test(layout_probe) ||
-    (layout_probe.match(/<table\b/gi)?.length ?? 0) > 2
-  )) || has_designed_bg || has_style_block || has_centered_card;
-  const declares_light_scheme = /color-scheme\s*:\s*light\s+only/i.test(layout_probe);
-  const light_override_bg = disable_auto_dark_mode && app_is_dark ? "#ffffff" : "transparent";
+  const light_override_bg =
+    disable_auto_dark_mode && app_is_dark ? "#ffffff" : "transparent";
   const plain_bg = light_override_bg;
   const plain_text_color = force_dark_mode
     ? "#e5e5e5"
     : is_dark_theme
       ? "#e5e5e5"
       : "#111827";
-  const simple_dark_html = is_dark_theme && !force_dark_mode && is_html_email && !has_newsletter_layout && !declares_light_scheme;
+  const simple_dark_html =
+    is_dark_theme &&
+    !force_dark_mode &&
+    is_html_email &&
+    !has_newsletter_layout &&
+    !declares_light_scheme;
   const auto_dark_active =
     is_dark_theme && !force_dark_mode && (!is_html_email || simple_dark_html);
-  const html_text_color = force_dark_mode || simple_dark_html ? "#e5e5e5" : "#111827";
-  const html_bg = force_dark_mode || simple_dark_html
-    ? "transparent"
-    : body_background || light_override_bg;
+  const html_text_color =
+    force_dark_mode || simple_dark_html ? "#e5e5e5" : "#111827";
+  const html_bg =
+    force_dark_mode || simple_dark_html
+      ? "transparent"
+      : body_background || light_override_bg;
   const dyslexia_font_stack =
     "'OpenDyslexic','Google Sans Flex',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif";
-  const email_font_id = preferences.email_font_choice ?? EMAIL_FONT_MATCH_APP_ID;
+  const email_font_id =
+    preferences.email_font_choice ?? EMAIL_FONT_MATCH_APP_ID;
   const resolved_email_font_id =
     email_font_id === EMAIL_FONT_MATCH_APP_ID
       ? (preferences.font_choice ?? "default")
       : email_font_id;
   const base_font = preferences.dyslexia_font
     ? dyslexia_font_stack
-    : get_email_font_stack(preferences.email_font_choice, preferences.font_choice);
+    : get_email_font_stack(
+        preferences.email_font_choice,
+        preferences.font_choice,
+      );
   const email_font_face_css = preferences.dyslexia_font
     ? ""
     : build_font_face_css(resolved_email_font_id);
   const email_font_override_css =
-    !preferences.dyslexia_font && is_email_font_override(preferences.email_font_choice)
+    !preferences.dyslexia_font &&
+    is_email_font_override(preferences.email_font_choice)
       ? `html body, html body *:not(code):not(pre):not(kbd):not(samp) { font-family: ${base_font} !important; }`
       : "";
 
@@ -300,7 +388,9 @@ export function SandboxedEmailRenderer({
     surface: body_ink_surface,
   };
 
-  const [contrast_ready, set_contrast_ready] = useState(!contrast_repair_active);
+  const [contrast_ready, set_contrast_ready] = useState(
+    !contrast_repair_active,
+  );
   const prev_contrast_repair_ref = useRef(contrast_repair_active);
 
   if (prev_contrast_repair_ref.current !== contrast_repair_active) {
@@ -310,7 +400,9 @@ export function SandboxedEmailRenderer({
 
   if (prev_html_ref.current !== sanitized_html) {
     prev_html_ref.current = sanitized_html;
-    const new_cached = email_id ? get_cached_iframe_height(email_id) : undefined;
+    const new_cached = email_id
+      ? get_cached_iframe_height(email_id)
+      : undefined;
 
     set_iframe_height(new_cached ? `${new_cached}px` : "0px");
     set_height_ready(!!new_cached);
@@ -328,7 +420,8 @@ export function SandboxedEmailRenderer({
     ? `a${LINK_BUTTON_EXCLUDE}, a${LINK_BUTTON_EXCLUDE} * { text-decoration: underline !important; text-decoration-color: ${link_ink} !important; text-underline-offset: 2px; }`
     : "";
 
-  const LINK_MEDIA_EXCLUDE = ":not(img):not(picture):not(svg):not(video):not(canvas)";
+  const LINK_MEDIA_EXCLUDE =
+    ":not(img):not(picture):not(svg):not(video):not(canvas)";
   const hover_paint = `var(${LINK_HOVER_VAR}, ${link_hover_paint})`;
   const link_hover_css = `a { transition: none; }
 a${LINK_BUTTON_EXCLUDE}:hover, a${LINK_BUTTON_EXCLUDE}:hover *${LINK_MEDIA_EXCLUDE} {
@@ -355,7 +448,8 @@ a:focus-visible {
     ? build_forced_dark_mode_css(quote_rail_ink, link_ink, link_visited_ink)
     : plain_dark_css;
 
-  const force_light_scheme = is_html_email && !force_dark_mode && !simple_dark_html;
+  const force_light_scheme =
+    is_html_email && !force_dark_mode && !simple_dark_html;
 
   const simple_html = is_html_email && !has_table_layout;
   const html_body_style = simple_html
@@ -363,7 +457,11 @@ a:focus-visible {
     : `background-color:${html_bg};padding:${BODY_PADDING}`;
   const plain_body_style = `background-color:${plain_bg};color:${plain_text_color};padding:${BODY_PADDING};font-family:${base_font};font-size:14px;line-height:1.6;${literal_plain_text ? "white-space:pre-wrap;" : ""}word-wrap:break-word`;
 
-  const iframe_css = build_email_body_css(accent_hex, base_font, email_body_ink);
+  const iframe_css = build_email_body_css(
+    accent_hex,
+    base_font,
+    email_body_ink,
+  );
 
   const html_el_style =
     is_html_email && !force_dark_mode && !simple_dark_html
@@ -376,9 +474,10 @@ a:focus-visible {
     return m === "tor" || m === "tor_snowflake";
   })();
   const is_lockdown_mode = is_any_lockdown_active();
-  const tor_csp = (is_tor_mode || is_lockdown_mode)
-    ? `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' data: blob:; style-src 'unsafe-inline'; font-src 'self' data:; media-src 'none'; object-src 'none'; frame-src 'none'; connect-src 'none'; script-src 'none'; base-uri 'self'; form-action 'none';">`
-    : `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' data: blob: https: http:; style-src 'unsafe-inline'; font-src 'self' data: https: http:; media-src 'none'; object-src 'none'; frame-src 'none'; connect-src 'none'; script-src 'none'; base-uri https: http:; form-action 'none';">`;
+  const tor_csp =
+    is_tor_mode || is_lockdown_mode
+      ? `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' data: blob:; style-src 'unsafe-inline'; font-src 'self' data:; media-src 'none'; object-src 'none'; frame-src 'none'; connect-src 'none'; script-src 'none'; base-uri 'self'; form-action 'none';">`
+      : `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' data: blob: https: http:; style-src 'unsafe-inline'; font-src 'self' data: https: http:; media-src 'none'; object-src 'none'; frame-src 'none'; connect-src 'none'; script-src 'none'; base-uri https: http:; form-action 'none';">`;
 
   const doc_nonce = useMemo(() => {
     doc_nonce_ref.current += 1;
@@ -489,7 +588,11 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
         s.textContent?.includes("light only"),
     );
 
-    if (is_html_email && (!doc_body.style.backgroundColor || doc_body.style.backgroundColor === "transparent")) {
+    if (
+      is_html_email &&
+      (!doc_body.style.backgroundColor ||
+        doc_body.style.backgroundColor === "transparent")
+    ) {
       const first_el = doc_body.firstElementChild as HTMLElement | null;
       const detected_bg =
         first_el?.getAttribute("bgcolor") ||
@@ -498,9 +601,14 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
           ? iframe.contentWindow?.getComputedStyle(first_el).backgroundColor
           : undefined);
 
-      if (detected_bg && detected_bg !== "transparent" && detected_bg !== "rgba(0, 0, 0, 0)") {
+      if (
+        detected_bg &&
+        detected_bg !== "transparent" &&
+        detected_bg !== "rgba(0, 0, 0, 0)"
+      ) {
         doc_body.style.backgroundColor = detected_bg;
-        iframe.contentDocument.documentElement.style.backgroundColor = detected_bg;
+        iframe.contentDocument.documentElement.style.backgroundColor =
+          detected_bg;
       }
     }
 
@@ -524,7 +632,10 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
           view: iframe.contentWindow,
         });
       } catch (caught) {
-        ignore_error("components/email/sandboxed_email_renderer/renderer:tor_csp", caught);
+        ignore_error(
+          "components/email/sandboxed_email_renderer/renderer:tor_csp",
+          caught,
+        );
       }
     }
     set_contrast_ready(true);
@@ -584,7 +695,12 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
 
       Promise.resolve(doc_fonts.ready)
         .then(remeasure_if_current_doc)
-        .catch((caught) => ignore_error("components/email/sandboxed_email_renderer/renderer:remeasure_if_current_doc", caught));
+        .catch((caught) =>
+          ignore_error(
+            "components/email/sandboxed_email_renderer/renderer:remeasure_if_current_doc",
+            caught,
+          ),
+        );
       doc_fonts.addEventListener?.("loadingdone", remeasure_if_current_doc);
     }
 
@@ -663,7 +779,12 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
 
       if (doc_matches) {
         if (body?.hasAttribute("data-aster-processed")) return;
-        if (doc && body && doc.readyState !== "loading" && body.childNodes.length > 0) {
+        if (
+          doc &&
+          body &&
+          doc.readyState !== "loading" &&
+          body.childNodes.length > 0
+        ) {
           handle_load();
 
           return;
@@ -722,151 +843,156 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
 
   return (
     <>
-    {zoomed_image && (
-      <div
-        aria-label={t("common.close")}
-        role="button"
-        style={{
-          position: "fixed",
-          inset: 0,
-          zIndex: 9999,
-          backgroundColor: "rgba(0,0,0,0.88)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          cursor: "zoom-out",
-        }}
-        tabIndex={0}
-        onClick={() => set_zoomed_image(null)}
-        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") set_zoomed_image(null); }}
-      >
-        <button
+      {zoomed_image && (
+        <div
           aria-label={t("common.close")}
+          role="button"
           style={{
-            position: "absolute",
-            top: 16,
-            right: 16,
-            background: "rgba(255,255,255,0.12)",
-            border: "none",
-            borderRadius: "50%",
-            width: 36,
-            height: 36,
+            position: "fixed",
+            inset: 0,
+            zIndex: 9999,
+            backgroundColor: "rgba(0,0,0,0.88)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            cursor: "pointer",
-            color: "#fff",
-            fontSize: 20,
-            lineHeight: 1,
+            cursor: "zoom-out",
           }}
+          tabIndex={0}
           onClick={() => set_zoomed_image(null)}
-        >
-          &#x2715;
-        </button>
-        <div style={{ cursor: "default" }} onClick={(e) => e.stopPropagation()}>
-          <img
-            alt=""
-            src={zoomed_image}
-            style={{
-              maxWidth: "90vw",
-              maxHeight: "90vh",
-              objectFit: "contain",
-              borderRadius: 4,
-              display: "block",
-            }}
-          />
-        </div>
-      </div>
-    )}
-    <div
-      className={`email-frame-container ${class_name || ""}`}
-      style={{
-        backgroundColor: effective_bg,
-        position: "relative",
-        overflow: "hidden",
-      }}
-    >
-      {show_skeleton && (
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            pointerEvents: "none",
-            padding: "20px",
-            display: "flex",
-            flexDirection: "column",
-            gap: "12px",
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") set_zoomed_image(null);
           }}
         >
-          <div
-            className="animate-pulse"
+          <button
+            aria-label={t("common.close")}
             style={{
-              height: "14px",
-              width: "85%",
-              borderRadius: "4px",
-              backgroundColor: app_is_dark
-                ? "rgba(255,255,255,0.06)"
-                : "rgba(0,0,0,0.06)",
+              position: "absolute",
+              top: 16,
+              right: 16,
+              background: "rgba(255,255,255,0.12)",
+              border: "none",
+              borderRadius: "50%",
+              width: 36,
+              height: 36,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              color: "#fff",
+              fontSize: 20,
+              lineHeight: 1,
             }}
-          />
+            onClick={() => set_zoomed_image(null)}
+          >
+            &#x2715;
+          </button>
           <div
-            className="animate-pulse"
-            style={{
-              height: "14px",
-              width: "70%",
-              borderRadius: "4px",
-              backgroundColor: app_is_dark
-                ? "rgba(255,255,255,0.06)"
-                : "rgba(0,0,0,0.06)",
-            }}
-          />
-          <div
-            className="animate-pulse"
-            style={{
-              height: "14px",
-              width: "60%",
-              borderRadius: "4px",
-              backgroundColor: app_is_dark
-                ? "rgba(255,255,255,0.06)"
-                : "rgba(0,0,0,0.06)",
-            }}
-          />
-          <div
-            className="animate-pulse"
-            style={{
-              height: "14px",
-              width: "40%",
-              borderRadius: "4px",
-              backgroundColor: app_is_dark
-                ? "rgba(255,255,255,0.06)"
-                : "rgba(0,0,0,0.06)",
-            }}
-          />
+            style={{ cursor: "default" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              alt=""
+              src={zoomed_image}
+              style={{
+                maxWidth: "90vw",
+                maxHeight: "90vh",
+                objectFit: "contain",
+                borderRadius: 4,
+                display: "block",
+              }}
+            />
+          </div>
         </div>
       )}
-      <iframe
-        ref={(el) => {
-          iframe_ref.current = el;
-        }}
-        referrerPolicy="no-referrer"
-        sandbox="allow-same-origin allow-popups"
-        srcDoc={srcdoc_html}
+      <div
+        className={`email-frame-container ${class_name || ""}`}
         style={{
-          border: "none",
-          width: "100%",
-          height: height_ready ? iframe_height : "0px",
-          maxHeight: "12000px",
-          overflow: "hidden",
-          display: "block",
-          opacity: height_ready && contrast_ready ? 1 : 0,
-          transition: "opacity 110ms ease-out",
           backgroundColor: effective_bg,
-          touchAction: "pan-y",
+          position: "relative",
+          overflow: "hidden",
         }}
-        title={t("mail.email_content")}
-        onLoad={handle_load}
-      />
-    </div>
+      >
+        {show_skeleton && (
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              pointerEvents: "none",
+              padding: "20px",
+              display: "flex",
+              flexDirection: "column",
+              gap: "12px",
+            }}
+          >
+            <div
+              className="animate-pulse"
+              style={{
+                height: "14px",
+                width: "85%",
+                borderRadius: "4px",
+                backgroundColor: app_is_dark
+                  ? "rgba(255,255,255,0.06)"
+                  : "rgba(0,0,0,0.06)",
+              }}
+            />
+            <div
+              className="animate-pulse"
+              style={{
+                height: "14px",
+                width: "70%",
+                borderRadius: "4px",
+                backgroundColor: app_is_dark
+                  ? "rgba(255,255,255,0.06)"
+                  : "rgba(0,0,0,0.06)",
+              }}
+            />
+            <div
+              className="animate-pulse"
+              style={{
+                height: "14px",
+                width: "60%",
+                borderRadius: "4px",
+                backgroundColor: app_is_dark
+                  ? "rgba(255,255,255,0.06)"
+                  : "rgba(0,0,0,0.06)",
+              }}
+            />
+            <div
+              className="animate-pulse"
+              style={{
+                height: "14px",
+                width: "40%",
+                borderRadius: "4px",
+                backgroundColor: app_is_dark
+                  ? "rgba(255,255,255,0.06)"
+                  : "rgba(0,0,0,0.06)",
+              }}
+            />
+          </div>
+        )}
+        <iframe
+          ref={(el) => {
+            iframe_ref.current = el;
+          }}
+          referrerPolicy="no-referrer"
+          sandbox="allow-same-origin allow-popups"
+          srcDoc={srcdoc_html}
+          style={{
+            border: "none",
+            width: "100%",
+            height: height_ready ? iframe_height : "0px",
+            maxHeight: "12000px",
+            overflow: "hidden",
+            display: "block",
+            opacity: height_ready && contrast_ready ? 1 : 0,
+            transition: "opacity 110ms ease-out",
+            backgroundColor: effective_bg,
+            touchAction: "pan-y",
+          }}
+          title={t("mail.email_content")}
+          onLoad={handle_load}
+        />
+      </div>
     </>
   );
 }

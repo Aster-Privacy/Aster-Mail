@@ -28,6 +28,7 @@ import {
   extract_preheader_text,
   strip_preview_filler,
   truncate_with_ellipsis,
+  clip_with_ellipsis,
 } from "./preview_text";
 
 describe("truncate_with_ellipsis", () => {
@@ -109,7 +110,9 @@ describe("truncate_with_ellipsis", () => {
   it("does not split an astral character at the cap", () => {
     const value = `${"a".repeat(9)}\u{1f600}tail`;
 
-    expect(truncate_with_ellipsis(value, 10)).toBe(`${"a".repeat(9)}${ELLIPSIS}`);
+    expect(truncate_with_ellipsis(value, 10)).toBe(
+      `${"a".repeat(9)}${ELLIPSIS}`,
+    );
   });
 });
 
@@ -251,5 +254,19 @@ describe("build_body_preview", () => {
     expect(build_body_preview("Lunch\u200b\u00a0at one?", "")).toBe(
       "Lunch at one?",
     );
+  });
+});
+
+describe("clip_with_ellipsis", () => {
+  it("returns short values untouched", () => {
+    expect(clip_with_ellipsis("hello", 10)).toBe("hello");
+  });
+
+  it("never splits a surrogate pair", () => {
+    const value = "ab" + "\u{1f600}".repeat(5);
+    const result = clip_with_ellipsis(value, 5);
+
+    expect(result).toBe("ab\u{1f600}…");
+    expect(result).not.toContain("�");
   });
 });

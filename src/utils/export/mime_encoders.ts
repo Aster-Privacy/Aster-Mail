@@ -28,8 +28,10 @@ export function classify_text_encoding(
   bytes: Uint8Array,
 ): "7bit" | "quoted-printable" {
   let line_len = 0;
+
   for (let i = 0; i < bytes.length; i++) {
     const b = bytes[i];
+
     if (b > 0x7e || (b < 0x20 && b !== 0x09 && b !== 0x0a && b !== 0x0d)) {
       return "quoted-printable";
     }
@@ -41,6 +43,7 @@ export function classify_text_encoding(
     line_len++;
     if (line_len > 998) return "quoted-printable";
   }
+
   return "7bit";
 }
 
@@ -56,11 +59,14 @@ export function quoted_printable_encode(input: string): string {
     out.push(soft ? line + "=" : line);
     line = "";
   };
+
   for (let i = 0; i < bytes.length; i++) {
     const b = bytes[i];
+
     if (b === 0x0a) {
       if (line.endsWith(" ") || line.endsWith("\t")) {
         const last = line[line.length - 1];
+
         line = line.slice(0, -1) + hex_byte(last.charCodeAt(0));
       }
       out.push(line);
@@ -68,6 +74,7 @@ export function quoted_printable_encode(input: string): string {
       continue;
     }
     let token: string;
+
     if (b === 0x20 || b === 0x09) {
       token = String.fromCharCode(b);
     } else if (b === 0x3d || b < 0x20 || b > 0x7e) {
@@ -81,6 +88,7 @@ export function quoted_printable_encode(input: string): string {
     line += token;
   }
   if (line.length > 0) out.push(line);
+
   return out.join("\r\n");
 }
 
@@ -88,45 +96,53 @@ export async function* qp_encode_stream(
   source: AsyncIterable<Uint8Array> | Uint8Array,
 ): AsyncGenerator<Uint8Array> {
   const enc = new TextEncoder();
-  const chunks: Uint8Array[] =
-    source instanceof Uint8Array ? [source] : [];
+  const chunks: Uint8Array[] = source instanceof Uint8Array ? [source] : [];
+
   if (!(source instanceof Uint8Array)) {
     for await (const c of source) chunks.push(c);
   }
   const total = chunks.reduce((n, c) => n + c.length, 0);
   const buf = new Uint8Array(total);
   let off = 0;
+
   for (const c of chunks) {
     buf.set(c, off);
     off += c.length;
   }
   const text = new TextDecoder("utf-8", { fatal: false }).decode(buf);
+
   yield enc.encode(quoted_printable_encode(text));
 }
 
 function base64_chunk(bytes: Uint8Array): string {
   let out = "";
   let i = 0;
+
   for (; i + 3 <= bytes.length; i += 3) {
     const n = (bytes[i] << 16) | (bytes[i + 1] << 8) | bytes[i + 2];
+
     out += BASE64_ALPHABET[(n >> 18) & 0x3f];
     out += BASE64_ALPHABET[(n >> 12) & 0x3f];
     out += BASE64_ALPHABET[(n >> 6) & 0x3f];
     out += BASE64_ALPHABET[n & 0x3f];
   }
   const rem = bytes.length - i;
+
   if (rem === 1) {
     const n = bytes[i] << 16;
+
     out += BASE64_ALPHABET[(n >> 18) & 0x3f];
     out += BASE64_ALPHABET[(n >> 12) & 0x3f];
     out += "==";
   } else if (rem === 2) {
     const n = (bytes[i] << 16) | (bytes[i + 1] << 8);
+
     out += BASE64_ALPHABET[(n >> 18) & 0x3f];
     out += BASE64_ALPHABET[(n >> 12) & 0x3f];
     out += BASE64_ALPHABET[(n >> 6) & 0x3f];
     out += "=";
   }
+
   return out;
 }
 
@@ -137,16 +153,22 @@ export async function* base64_encode_stream(
   let carry = new Uint8Array(0);
   const iter: AsyncIterable<Uint8Array> =
     source instanceof Uint8Array
-      ? (async function* () { yield source; })()
+      ? (async function* () {
+          yield source;
+        })()
       : source;
+
   for await (const chunk of iter) {
     const combined = new Uint8Array(carry.length + chunk.length);
+
     combined.set(carry, 0);
     combined.set(chunk, carry.length);
     const usable = combined.length - (combined.length % BASE64_LINE_BYTES);
+
     if (usable > 0) {
       const encodable = combined.subarray(0, usable);
       const lines: string[] = [];
+
       for (let i = 0; i < encodable.length; i += BASE64_LINE_BYTES) {
         lines.push(base64_chunk(encodable.subarray(i, i + BASE64_LINE_BYTES)));
       }
@@ -156,8 +178,13 @@ export async function* base64_encode_stream(
   }
   if (carry.length > 0) {
     const tail: string[] = [];
+
     for (let i = 0; i < carry.length; i += BASE64_LINE_BYTES) {
-      tail.push(base64_chunk(carry.subarray(i, Math.min(i + BASE64_LINE_BYTES, carry.length))));
+      tail.push(
+        base64_chunk(
+          carry.subarray(i, Math.min(i + BASE64_LINE_BYTES, carry.length)),
+        ),
+      );
     }
     yield enc.encode(tail.join("\r\n") + "\r\n");
   }

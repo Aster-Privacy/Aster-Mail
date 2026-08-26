@@ -56,6 +56,7 @@ interface EmailDetailHeaderProps {
   set_is_trash_confirm_open: (open: boolean) => void;
   handle_archive: () => void;
   handle_trash: () => void;
+  is_trashed?: boolean;
   handle_print: () => void;
   is_archive_loading: boolean;
   is_trash_loading: boolean;
@@ -79,6 +80,7 @@ export function EmailDetailHeader({
   set_is_trash_confirm_open,
   handle_archive,
   handle_trash,
+  is_trashed = false,
   handle_print,
   is_archive_loading,
   is_trash_loading,
@@ -95,7 +97,7 @@ export function EmailDetailHeader({
   return (
     <div className="flex items-center gap-1 px-2 sm:px-3 py-2 border-b flex-shrink-0 border-edge-secondary">
       {!is_popup && (
-        <div className="md:hidden mr-1">
+        <div className="md:hidden me-1">
           <MobileMenuButton on_click={toggle_mobile_sidebar} />
         </div>
       )}
@@ -122,7 +124,7 @@ export function EmailDetailHeader({
             }
           }}
         >
-          <ArrowLeftIcon className="w-5 h-5 flex-shrink-0" />
+          <ArrowLeftIcon className="w-5 h-5 flex-shrink-0 rtl:-scale-x-100" />
           <span className="text-sm font-medium">{t("common.back")}</span>
         </button>
       )}
@@ -159,14 +161,18 @@ export function EmailDetailHeader({
           </Tooltip>
         )}
 
-        <Tooltip tip={t("mail.move_to_trash")}>
+        <Tooltip
+          tip={
+            is_trashed ? t("mail.delete_permanently") : t("mail.move_to_trash")
+          }
+        >
           <Button
             className="h-8 w-8"
             disabled={is_trash_loading}
             size="icon"
             variant="ghost"
             onClick={() =>
-              preferences.confirm_before_delete
+              preferences.confirm_before_delete && !is_trashed
                 ? set_is_trash_confirm_open(true)
                 : handle_trash()
             }
@@ -224,22 +230,22 @@ export function EmailDetailHeader({
                   : handle_archive()
               }
             >
-              <ArchiveBoxIcon className="w-4 h-4 mr-2" />
+              <ArchiveBoxIcon className="w-4 h-4 me-2" />
               {t("mail.archive")}
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() =>
-                preferences.confirm_before_delete
+                preferences.confirm_before_delete && !is_trashed
                   ? set_is_trash_confirm_open(true)
                   : handle_trash()
               }
             >
-              <TrashIcon className="w-4 h-4 mr-2" />
-              {t("common.delete")}
+              <TrashIcon className="w-4 h-4 me-2" />
+              {is_trashed ? t("mail.delete_permanently") : t("common.delete")}
             </DropdownMenuItem>
             {handle_report_spam && (
               <DropdownMenuItem onClick={handle_report_spam}>
-                <ExclamationCircleIcon className="w-4 h-4 mr-2" />
+                <ExclamationCircleIcon className="w-4 h-4 me-2" />
                 {t("mail.report_spam")}
               </DropdownMenuItem>
             )}
@@ -247,14 +253,14 @@ export function EmailDetailHeader({
           </div>
           <div className="lg:hidden sm:block hidden">
             <DropdownMenuItem onClick={handle_print}>
-              <PrinterIcon className="w-4 h-4 mr-2" />
+              <PrinterIcon className="w-4 h-4 me-2" />
               {t("mail.print")}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
           </div>
           {handle_view_source && (
             <DropdownMenuItem onClick={handle_view_source}>
-              <DocumentTextIcon className="w-4 h-4 mr-2" />
+              <DocumentTextIcon className="w-4 h-4 me-2" />
               {t("mail.view_source")}
             </DropdownMenuItem>
           )}
@@ -264,8 +270,11 @@ export function EmailDetailHeader({
       <div className="flex-1" />
 
       {email_list.length > 0 && current_email_index !== -1 && (
-        <span className="hidden sm:inline text-xs text-txt-muted mr-1">
-          {t("common.x_of_y", { current: current_email_index + 1, total: email_list.length })}
+        <span className="hidden sm:inline text-xs text-txt-muted me-1">
+          {t("common.x_of_y", {
+            current: current_email_index + 1,
+            total: email_list.length,
+          })}
         </span>
       )}
       <Tooltip tip={t("common.previous")}>
@@ -276,7 +285,7 @@ export function EmailDetailHeader({
           variant="ghost"
           onClick={handle_go_newer}
         >
-          <ChevronLeftIcon className="w-4 h-4 text-txt-secondary" />
+          <ChevronLeftIcon className="w-4 h-4 text-txt-secondary rtl:-scale-x-100" />
         </Button>
       </Tooltip>
       <Tooltip tip={t("common.next")}>
@@ -287,7 +296,7 @@ export function EmailDetailHeader({
           variant="ghost"
           onClick={handle_go_older}
         >
-          <ChevronRightIcon className="w-4 h-4 text-txt-secondary" />
+          <ChevronRightIcon className="w-4 h-4 text-txt-secondary rtl:-scale-x-100" />
         </Button>
       </Tooltip>
     </div>

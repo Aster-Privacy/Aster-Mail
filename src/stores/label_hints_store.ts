@@ -34,7 +34,10 @@ export function set_label_hints(email_id: string, hints: LabelHint[]): void {
   }
 }
 
-export function get_label_hints(email_id: string | null | undefined): LabelHint[] {
+export function get_label_hints(
+  email_id: string | null | undefined,
+): LabelHint[] {
   if (!email_id) return [];
+
   return hint_map.get(email_id) || [];
 }

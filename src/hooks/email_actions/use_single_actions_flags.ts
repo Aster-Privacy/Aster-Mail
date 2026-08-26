@@ -478,6 +478,13 @@ export function use_single_actions_flags(params: SingleActionsFlagsParams) {
         email.grouped_email_ids && email.grouped_email_ids.length > 1
           ? email.grouped_email_ids
           : [email.id];
+      const thread_scope_token =
+        email.thread_token &&
+        (grouped_ids.length > 1 ||
+          (preferences.conversation_grouping !== false &&
+            (email.thread_message_count ?? 0) > 1))
+          ? email.thread_token
+          : null;
 
       const offline_result = await try_enqueue_offline_action(
         "delete",
@@ -503,8 +510,8 @@ export function use_single_actions_flags(params: SingleActionsFlagsParams) {
         "delete",
         { is_trashed: true },
         async () => {
-          if (email.thread_token) {
-            const result = await trash_thread(email.thread_token, true);
+          if (thread_scope_token) {
+            const result = await trash_thread(thread_scope_token, true);
 
             if (!result.data) {
               return { error: t("common.failed_to_delete_emails") };
@@ -536,27 +543,36 @@ export function use_single_actions_flags(params: SingleActionsFlagsParams) {
         true,
         {
           message:
-            email.thread_token || grouped_ids.length > 1
+            thread_scope_token || grouped_ids.length > 1
               ? t("common.conversation_moved_to_trash_toast")
               : t("common.message_moved_to_trash"),
           action_type: "trash",
           email_ids: grouped_ids,
           on_undo: async () => {
             revert_stat_deltas(deltas);
-            if (email.thread_token) {
-              await trash_thread(email.thread_token, false);
+            if (thread_scope_token) {
+              const undo_result = await trash_thread(thread_scope_token, false);
+
+              if (undo_result.error) throw new Error("undo trash failed");
               for (const id of grouped_ids) {
                 emit_mail_item_updated({ id, is_trashed: false });
               }
             } else if (grouped_ids.length > 1) {
-              await bulk_update_metadata_by_ids(grouped_ids, {
-                is_trashed: false,
-              });
+              const undo_result = await bulk_update_metadata_by_ids(
+                grouped_ids,
+                { is_trashed: false },
+              );
+
+              if (!undo_result.success) throw new Error("undo trash failed");
               for (const id of grouped_ids) {
                 emit_mail_item_updated({ id, is_trashed: false });
               }
             } else {
-              await update_with_metadata(email, { is_trashed: false });
+              const undo_result = await update_with_metadata(email, {
+                is_trashed: false,
+              });
+
+              if (undo_result.error) throw new Error("undo trash failed");
             }
             emit_mail_soft_refresh();
           },
@@ -574,6 +590,7 @@ export function use_single_actions_flags(params: SingleActionsFlagsParams) {
       update_with_metadata,
       config.on_optimistic_update,
       config.on_remove_from_list,
+      preferences.conversation_grouping,
       t,
     ],
   );

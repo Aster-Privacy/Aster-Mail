@@ -20,19 +20,16 @@
 //
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const { queue_email, queue_email_to_server, parse_undo_send_period } =
-  vi.hoisted(() => ({
-    queue_email: vi.fn((_email: Record<string, unknown>) => "queued-local-id"),
-    queue_email_to_server: vi.fn(async (_email: Record<string, unknown>) => ({
-      queue_id: "queued-server-id",
-    })),
-    parse_undo_send_period: vi.fn(() => 0),
-  }));
+const { queue_email, queue_email_to_server } = vi.hoisted(() => ({
+  queue_email: vi.fn((_email: Record<string, unknown>) => "queued-local-id"),
+  queue_email_to_server: vi.fn(async (_email: Record<string, unknown>) => ({
+    queue_id: "queued-server-id",
+  })),
+}));
 
 vi.mock("./send_queue", () => ({
   queue_email,
   queue_email_to_server,
-  parse_undo_send_period,
   cancel_send: vi.fn(),
   send_now: vi.fn(),
   cancel_server_queued_email: vi.fn(),
@@ -92,13 +89,12 @@ describe("send_reply carries attachments (regression for silent reply-attachment
   });
 
   it("forwards attachments to the server queue (undo-send ON)", async () => {
-    parse_undo_send_period.mockReturnValueOnce(5000);
     const att = make_attachment();
 
     await send_reply(
       { original, message: "my reply", attachments: [att] },
       callbacks,
-      "5 seconds",
+      5000,
     );
 
     expect(queue_email_to_server).toHaveBeenCalledTimes(1);
@@ -108,13 +104,12 @@ describe("send_reply carries attachments (regression for silent reply-attachment
   });
 
   it("forwards attachments to the local queue (undo-send OFF)", async () => {
-    parse_undo_send_period.mockReturnValueOnce(0);
     const att = make_attachment();
 
     await send_reply(
       { original, message: "my reply", attachments: [att] },
       callbacks,
-      "0 seconds",
+      0,
     );
 
     expect(queue_email).toHaveBeenCalledTimes(1);

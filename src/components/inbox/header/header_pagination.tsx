@@ -22,6 +22,7 @@ import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 import { Button, Tooltip } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { app_locale } from "@/utils/date_format";
 
 interface HeaderPaginationProps {
   on_navigate_prev?: () => void;
@@ -82,7 +83,7 @@ export function HeaderPagination({
       : true;
 
   return (
-    <div className="hidden select-none lg:flex items-center gap-0.5 text-xs text-[var(--text-muted)] ml-1">
+    <div className="hidden select-none lg:flex items-center gap-0.5 text-xs text-[var(--text-muted)] ms-1">
       <Tooltip tip={t("common.previous")}>
         <span className="inline-flex">
           <Button
@@ -91,7 +92,6 @@ export function HeaderPagination({
             size="icon"
             tabIndex={prev_disabled ? -1 : undefined}
             variant="ghost"
-            onMouseDown={(e) => e.preventDefault()}
             onClick={() => {
               if (prev_disabled) return;
               if (on_navigate_prev) {
@@ -100,19 +100,21 @@ export function HeaderPagination({
                 on_page_change(current_page - 1);
               }
             }}
+            onMouseDown={(e) => e.preventDefault()}
           >
-            <ChevronLeftIcon className="w-4 h-4" />
+            <ChevronLeftIcon className="w-4 h-4 rtl:-scale-x-100" />
           </Button>
         </span>
       </Tooltip>
       {is_message_mode ? (
         message_index_known && (
           <span className="tabular-nums text-sm min-w-[3ch] text-center">
-            {((current_email_index ?? 0) + 1).toLocaleString()}
+            {((current_email_index ?? 0) + 1).toLocaleString(app_locale())}
             {total_email_count > 0 && (
               <>
                 {" "}
-                {t("common.of")} {total_email_count.toLocaleString()}
+                {t("common.of")}{" "}
+                {total_email_count.toLocaleString(app_locale())}
               </>
             )}
           </span>
@@ -125,8 +127,9 @@ export function HeaderPagination({
             aria-label={`${range_start}-${range_end} ${t("common.of")} ${filtered_count}`}
             className="tabular-nums text-[13px] whitespace-nowrap px-1 text-center"
           >
-            {range_start.toLocaleString()}-{range_end.toLocaleString()}{" "}
-            {t("common.of")} {filtered_count.toLocaleString()}
+            {range_start.toLocaleString(app_locale())}-
+            {range_end.toLocaleString(app_locale())} {t("common.of")}{" "}
+            {filtered_count.toLocaleString(app_locale())}
           </span>
         </Tooltip>
       )}
@@ -138,7 +141,6 @@ export function HeaderPagination({
             size="icon"
             tabIndex={next_disabled ? -1 : undefined}
             variant="ghost"
-            onMouseDown={(e) => e.preventDefault()}
             onClick={() => {
               if (next_disabled) return;
               if (on_navigate_next) {
@@ -147,8 +149,9 @@ export function HeaderPagination({
                 on_page_change(current_page + 1);
               }
             }}
+            onMouseDown={(e) => e.preventDefault()}
           >
-            <ChevronRightIcon className="w-4 h-4" />
+            <ChevronRightIcon className="w-4 h-4 rtl:-scale-x-100" />
           </Button>
         </span>
       </Tooltip>

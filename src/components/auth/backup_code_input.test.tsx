@@ -23,6 +23,7 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
 import { BackupCodeInput } from "./backup_code_input";
+
 import { verify_backup_code_login } from "@/services/api/totp";
 
 vi.mock("@/services/api/totp", () => ({
@@ -63,7 +64,6 @@ vi.mock("@aster/ui", () => ({
 const mocked_verify = vi.mocked(verify_backup_code_login);
 
 declare global {
-  // eslint-disable-next-line no-var
   var IS_REACT_ACT_ENVIRONMENT: boolean;
 }
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
@@ -84,8 +84,7 @@ describe("BackupCodeInput", () => {
     on_cancel: vi.fn(),
   });
 
-  const text_input = () =>
-    container.querySelector("input") as HTMLInputElement;
+  const text_input = () => container.querySelector("input") as HTMLInputElement;
 
   const submit_button = () =>
     Array.from(container.querySelectorAll("button")).find((b) =>
@@ -268,7 +267,10 @@ describe("BackupCodeInput", () => {
   });
 
   it("keeps the code and shows the error on failure", async () => {
-    mocked_verify.mockResolvedValue({ data: undefined, error: "Invalid backup code" });
+    mocked_verify.mockResolvedValue({
+      data: undefined,
+      error: "Invalid backup code",
+    });
     await render();
 
     await type_code("ABCD-EFGH-JKMN");

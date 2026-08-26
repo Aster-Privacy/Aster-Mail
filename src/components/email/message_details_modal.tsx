@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { copy_text_or_throw } from "@/utils/copy_text";
+import { trigger_download } from "@/utils/download_blob";
 import type { DecryptedThreadMessage } from "@/types/thread";
 
 import { useMemo } from "react";
@@ -38,8 +40,6 @@ import { use_i18n } from "@/lib/i18n/context";
 import { use_date_format } from "@/hooks/use_date_format";
 import { show_toast } from "@/components/toast/simple_toast";
 import { resolve_received_on_address } from "@/utils/delivered_to";
-
-import { ignore_error } from "@/lib/ignore_error";
 
 interface MessageDetailsModalProps {
   is_open: boolean;
@@ -66,38 +66,36 @@ export function MessageDetailsModal({
   const { format_full_datetime } = use_date_format();
 
   const headers = useMemo(() => build_headers(message), [message]);
+  const message_id = useMemo(() => {
+    const header = message.raw_headers?.find(
+      (candidate) => candidate.name.toLowerCase() === "message-id",
+    );
+    const value = header?.value.trim();
+
+    if (!value) return null;
+
+    return value.startsWith("<") ? value : `<${value}>`;
+  }, [message]);
 
   if (!is_open) return null;
 
   const handle_copy_headers = () => {
     if (!headers) return;
-    navigator.clipboard
-      .writeText(headers)
+    copy_text_or_throw(headers)
       .then(() => {
         show_toast(t("mail.headers_copied"), "success");
       })
-      .catch((caught) =>
-        ignore_error(
-          "components/email/message_details_modal:handle_copy_headers",
-          caught,
-        ),
-      );
+      .catch(() => show_toast(t("common.failed_to_copy"), "error"));
   };
 
   const handle_download_headers = () => {
     if (!headers) return;
-    const blob = new Blob([headers], { type: "text/plain;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
     const safe_id = message.id.replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 64);
 
-    a.href = url;
-    a.rel = "noopener";
-    a.download = `headers-${safe_id}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    trigger_download(
+      new Blob([headers], { type: "text/plain;charset=utf-8" }),
+      `headers-${safe_id}.txt`,
+    );
   };
 
   return (
@@ -107,7 +105,7 @@ export function MessageDetailsModal({
       </ModalHeader>
       <ModalBody className="space-y-2.5 text-sm">
         <div className="flex">
-          <span className="min-w-24 flex-shrink-0 whitespace-nowrap pr-2 font-medium text-txt-muted">
+          <span className="min-w-24 flex-shrink-0 whitespace-nowrap pe-2 font-medium text-txt-muted">
             {t("common.from_label")}
           </span>
           <span className="min-w-0 text-txt-secondary break-words">
@@ -118,7 +116,7 @@ export function MessageDetailsModal({
 
         {message.to_recipients && message.to_recipients.length > 0 && (
           <div className="flex">
-            <span className="min-w-24 flex-shrink-0 whitespace-nowrap pr-2 font-medium text-txt-muted">
+            <span className="min-w-24 flex-shrink-0 whitespace-nowrap pe-2 font-medium text-txt-muted">
               {t("common.to_label")}
             </span>
             <span className="min-w-0 text-txt-secondary break-words">
@@ -131,7 +129,7 @@ export function MessageDetailsModal({
 
         {message.cc_recipients && message.cc_recipients.length > 0 && (
           <div className="flex">
-            <span className="min-w-24 flex-shrink-0 whitespace-nowrap pr-2 font-medium text-txt-muted">
+            <span className="min-w-24 flex-shrink-0 whitespace-nowrap pe-2 font-medium text-txt-muted">
               {t("common.cc_label")}
             </span>
             <span className="min-w-0 text-txt-secondary break-words">
@@ -144,7 +142,7 @@ export function MessageDetailsModal({
 
         {message.bcc_recipients && message.bcc_recipients.length > 0 && (
           <div className="flex">
-            <span className="min-w-24 flex-shrink-0 whitespace-nowrap pr-2 font-medium text-txt-muted">
+            <span className="min-w-24 flex-shrink-0 whitespace-nowrap pe-2 font-medium text-txt-muted">
               {t("common.bcc_label")}
             </span>
             <span className="min-w-0 text-txt-secondary break-words">
@@ -163,7 +161,7 @@ export function MessageDetailsModal({
 
           return received_on ? (
             <div className="flex">
-              <span className="min-w-24 flex-shrink-0 whitespace-nowrap pr-2 font-medium text-txt-muted">
+              <span className="min-w-24 flex-shrink-0 whitespace-nowrap pe-2 font-medium text-txt-muted">
                 {t("common.received_on_label")}
               </span>
               <span className="min-w-0 text-txt-secondary break-words">
@@ -174,7 +172,7 @@ export function MessageDetailsModal({
         })()}
 
         <div className="flex">
-          <span className="min-w-24 flex-shrink-0 whitespace-nowrap pr-2 font-medium text-txt-muted">
+          <span className="min-w-24 flex-shrink-0 whitespace-nowrap pe-2 font-medium text-txt-muted">
             {t("common.date_label")}
           </span>
           <span className="text-txt-secondary">
@@ -183,26 +181,28 @@ export function MessageDetailsModal({
         </div>
 
         <div className="flex">
-          <span className="min-w-24 flex-shrink-0 whitespace-nowrap pr-2 font-medium text-txt-muted">
+          <span className="min-w-24 flex-shrink-0 whitespace-nowrap pe-2 font-medium text-txt-muted">
             {t("common.subject_label")}
           </span>
-          <span className="min-w-0 text-txt-secondary break-words">
+          <span dir="auto" className="min-w-0 text-txt-secondary break-words">
             {message.subject || t("mail.no_subject")}
           </span>
         </div>
 
-        <div className="flex">
-          <span className="min-w-24 flex-shrink-0 whitespace-nowrap pr-2 font-medium text-txt-muted">
-            {t("mail.message_id_label")}
-          </span>
-          <span className="min-w-0 text-txt-secondary break-all font-mono text-xs">
-            &lt;{message.id}@astermail.org&gt;
-          </span>
-        </div>
+        {message_id && (
+          <div className="flex">
+            <span className="min-w-24 flex-shrink-0 whitespace-nowrap pe-2 font-medium text-txt-muted">
+              {t("mail.message_id_label")}
+            </span>
+            <span className="min-w-0 text-txt-secondary break-all font-mono text-xs">
+              {message_id}
+            </span>
+          </div>
+        )}
 
         {size_bytes != null && size_bytes > 0 && (
           <div className="flex">
-            <span className="min-w-24 flex-shrink-0 whitespace-nowrap pr-2 font-medium text-txt-muted">
+            <span className="min-w-24 flex-shrink-0 whitespace-nowrap pe-2 font-medium text-txt-muted">
               {t("mail.size_label")}
             </span>
             <span className="text-txt-secondary">
@@ -212,19 +212,19 @@ export function MessageDetailsModal({
         )}
 
         <div className="flex items-center">
-          <span className="min-w-24 flex-shrink-0 whitespace-nowrap pr-2 font-medium text-txt-muted">
+          <span className="min-w-24 flex-shrink-0 whitespace-nowrap pe-2 font-medium text-txt-muted">
             {t("mail.encryption_label")}
           </span>
           <EncryptionInfoDropdown
             has_pq_protection={false}
             has_recipient_key={message.has_recipient_key}
             is_external={message.is_external}
-            sender_verification={message.sender_verification}
             label={
               message.is_external && !message.has_recipient_key
                 ? t("common.protected_in_transit")
                 : t("mail.zero_access_encrypted")
             }
+            sender_verification={message.sender_verification}
             size={14}
           />
         </div>

@@ -22,8 +22,14 @@ import type {
   ContextMenuActions,
   UseContextMenuActionsParams,
 } from "./inbox_context_menu_types";
+import type { InboxEmail } from "@/types/email";
 
-import { useMemo } from "react";
+type UseContextMenuActionsHookParams = Omit<
+  UseContextMenuActionsParams,
+  "get_emails"
+> & { emails: InboxEmail[] };
+
+import { useCallback, useMemo, useRef } from "react";
 
 import { build_context_menu_actions } from "./inbox_context_menu_builder";
 
@@ -54,16 +60,20 @@ export function use_context_menu_actions({
   is_drafts_view,
   is_scheduled_view,
   schedule_delete_drafts,
-}: UseContextMenuActionsParams): ContextMenuActions {
+}: UseContextMenuActionsHookParams): ContextMenuActions {
   const { confirm_before_delete, confirm_before_spam, confirm_before_archive } =
     preferences;
+
+  const emails_ref = useRef(emails);
+  emails_ref.current = emails;
+  const get_emails = useCallback(() => emails_ref.current, []);
 
   return useMemo(
     () =>
       build_context_menu_actions({
         t,
         current_view,
-        emails,
+        get_emails,
         update_email,
         remove_email,
         remove_emails,
@@ -93,7 +103,7 @@ export function use_context_menu_actions({
     [
       t,
       current_view,
-      emails,
+      get_emails,
       update_email,
       remove_email,
       remove_emails,

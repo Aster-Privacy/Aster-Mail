@@ -20,12 +20,11 @@
 //
 import { useState, useEffect, useRef, useCallback } from "react";
 
+import { use_i18n } from "@/lib/i18n/context";
+import { show_toast } from "@/components/toast/simple_toast";
+
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
-import {
-  get_preferences,
-  DEFAULT_PREFERENCES,
-} from "@/services/api/preferences";
 import {
   draft_manager,
   type DraftData,
@@ -45,6 +44,7 @@ export interface UseComposeDraftsOptions {
   recipients: RecipientsState;
   subject: string;
   message: string;
+  from_email?: string;
   attachments: Attachment[];
   attachments_ref: React.MutableRefObject<Attachment[]>;
   edit_draft?: EditDraftData | null;
@@ -67,12 +67,16 @@ export interface UseComposeDraftsReturn {
   user_modified_ref: React.MutableRefObject<boolean>;
   handle_delete_draft: () => Promise<void>;
   handle_close: () => void;
+  show_discard_confirm: boolean;
+  confirm_discard_close: () => void;
+  cancel_discard_close: () => void;
 }
 
 export function use_compose_drafts({
   recipients,
   subject,
   message,
+  from_email,
   attachments,
   attachments_ref,
   edit_draft,
@@ -86,31 +90,22 @@ export function use_compose_drafts({
   const { vault } = use_auth();
   const { preferences } = use_preferences();
 
-  const [auto_save_drafts, set_auto_save_drafts] = useState(
-    DEFAULT_PREFERENCES.auto_save_drafts,
-  );
+  const auto_save_drafts = preferences.auto_save_drafts;
+  const { t } = use_i18n();
   const [draft_status, set_draft_status] = useState<DraftStatus>("idle");
   const [last_saved_time, set_last_saved_time] = useState<Date | null>(null);
-  const draft_data_ref = useRef<DraftRefData>({ recipients, subject, message });
+  const draft_data_ref = useRef<DraftRefData>({
+    recipients,
+    subject,
+    message,
+    from_email,
+  });
   const just_loaded_draft_ref = useRef(false);
   const user_modified_ref = useRef(false);
 
   useEffect(() => {
-    const load_preferences = async () => {
-      if (!vault) return;
-      const response = await get_preferences(vault);
-
-      if (response.data) {
-        set_auto_save_drafts(response.data.auto_save_drafts);
-      }
-    };
-
-    load_preferences();
-  }, [vault]);
-
-  useEffect(() => {
-    draft_data_ref.current = { recipients, subject, message };
-  }, [recipients, subject, message]);
+    draft_data_ref.current = { recipients, subject, message, from_email };
+  }, [recipients, subject, message, from_email]);
 
   useEffect(() => {
     if (!auto_save_drafts || !vault || !draft_context_id_ref.current) return;
@@ -166,6 +161,7 @@ export function use_compose_drafts({
         bcc_recipients: data.recipients.bcc,
         subject: data.subject,
         message: data.message,
+        from_email: data.from_email,
         attachments: att_data,
       };
 
@@ -197,7 +193,16 @@ export function use_compose_drafts({
         clearTimeout(save_timer_ref.current);
       }
     };
-  }, [recipients, subject, message, attachments, auto_save_drafts, vault, preferences.low_network_mode]);
+  }, [
+    recipients,
+    subject,
+    message,
+    from_email,
+    attachments,
+    auto_save_drafts,
+    vault,
+    preferences.low_network_mode,
+  ]);
 
   const handle_delete_draft = useCallback(async () => {
     if (save_timer_ref.current) {
@@ -206,8 +211,22 @@ export function use_compose_drafts({
     }
 
     if (draft_context_id_ref.current) {
-      await draft_manager.await_pending_save(draft_context_id_ref.current);
-      await draft_manager.delete_draft(draft_context_id_ref.current);
+      try {
+        await draft_manager.await_pending_save(draft_context_id_ref.current);
+        const deleted = await draft_manager.delete_draft(
+          draft_context_id_ref.current,
+        );
+
+        if (!deleted) {
+          show_toast(t("common.failed_to_delete_draft"), "error");
+
+          return;
+        }
+      } catch {
+        show_toast(t("common.failed_to_delete_draft"), "error");
+
+        return;
+      }
       draft_manager.clear_context(draft_context_id_ref.current);
       draft_context_id_ref.current = null;
     }
@@ -218,9 +237,9 @@ export function use_compose_drafts({
       on_draft_cleared();
     }
     on_close();
-  }, [reset_form, on_draft_cleared, on_close]);
+  }, [reset_form, on_draft_cleared, on_close, t]);
 
-  const handle_close = useCallback(() => {
+  const perform_close = useCallback(() => {
     const context_id = draft_context_id_ref.current;
 
     if (context_id && vault) {
@@ -237,13 +256,16 @@ export function use_compose_drafts({
           data.recipients.cc.length > 0 ||
           data.recipients.bcc.length > 0 ||
           data.subject ||
-          data.message;
+          data.message ||
+          current_attachments.length > 0;
 
         const body_empty = !data.message;
+        const skipped_for_low_network =
+          preferences.low_network_mode && body_empty;
         const should_save =
           has_content &&
           (edit_draft || user_modified_ref.current) &&
-          !(preferences.low_network_mode && body_empty);
+          !skipped_for_low_network;
 
         if (should_save) {
           const close_att_data =
@@ -264,12 +286,32 @@ export function use_compose_drafts({
                   bcc_recipients: data.recipients.bcc,
                   subject: data.subject,
                   message: data.message,
+                  from_email: data.from_email,
                   attachments: close_att_data,
                 },
                 captured_vault,
               )
-              .then(() => draft_manager.clear_context(captured_context_id)),
+              .then((result) => {
+                if (!result.success) {
+                  show_toast(t("common.failed_to_save"), "error");
+                }
+                draft_manager.clear_context(captured_context_id);
+              })
+              .catch(() => {
+                show_toast(t("common.failed_to_save"), "error");
+                draft_manager.clear_context(captured_context_id);
+              }),
           );
+        } else if (
+          has_content &&
+          skipped_for_low_network &&
+          (edit_draft || user_modified_ref.current)
+        ) {
+          const captured_context_id = context_id;
+
+          draft_manager
+            .await_pending_save(captured_context_id)
+            .then(() => draft_manager.clear_context(captured_context_id));
         } else {
           const captured_context_id = context_id;
 
@@ -289,7 +331,46 @@ export function use_compose_drafts({
     if (edit_draft && on_draft_cleared) {
       on_draft_cleared();
     }
-  }, [on_close, edit_draft, on_draft_cleared, vault, auto_save_drafts, preferences.low_network_mode]);
+  }, [
+    on_close,
+    edit_draft,
+    on_draft_cleared,
+    vault,
+    auto_save_drafts,
+    preferences.low_network_mode,
+    t,
+  ]);
+
+  const [show_discard_confirm, set_show_discard_confirm] = useState(false);
+
+  const handle_close = useCallback(() => {
+    const data = draft_data_ref.current;
+    const has_content =
+      data.recipients.to.length > 0 ||
+      data.recipients.cc.length > 0 ||
+      data.recipients.bcc.length > 0 ||
+      !!data.subject ||
+      !!data.message ||
+      attachments_ref.current.length > 0;
+
+    if (!auto_save_drafts && has_content && user_modified_ref.current) {
+      set_show_discard_confirm(true);
+
+      return;
+    }
+
+    perform_close();
+  }, [auto_save_drafts, perform_close, attachments_ref]);
+
+  const confirm_discard_close = useCallback(() => {
+    set_show_discard_confirm(false);
+    perform_close();
+  }, [perform_close]);
+
+  const cancel_discard_close = useCallback(
+    () => set_show_discard_confirm(false),
+    [],
+  );
 
   const flush_pending_draft_ref = useRef<() => void>(() => {});
 
@@ -312,7 +393,8 @@ export function use_compose_drafts({
       data.recipients.cc.length > 0 ||
       data.recipients.bcc.length > 0 ||
       data.subject ||
-      data.message;
+      data.message ||
+      current_attachments.length > 0;
 
     const body_empty = !data.message;
     const should_save =
@@ -335,6 +417,7 @@ export function use_compose_drafts({
         bcc_recipients: data.recipients.bcc,
         subject: data.subject,
         message: data.message,
+        from_email: data.from_email,
         attachments: flush_att_data,
       },
       vault,
@@ -358,6 +441,7 @@ export function use_compose_drafts({
     return () => {
       window.removeEventListener("pagehide", handle_pagehide);
       document.removeEventListener("visibilitychange", handle_visibilitychange);
+      flush_pending_draft_ref.current();
     };
   }, []);
 
@@ -372,5 +456,8 @@ export function use_compose_drafts({
     user_modified_ref,
     handle_delete_draft,
     handle_close,
+    show_discard_confirm,
+    confirm_discard_close,
+    cancel_discard_close,
   };
 }

@@ -21,6 +21,7 @@
 import type { MailItemMetadata } from "@/types/email";
 
 import { api_client, type ApiResponse } from "./client";
+import { with_folder_unlock } from "./folder_unlock_retry";
 
 import { get_unlock_token } from "@/services/folder_unlock_store";
 import {
@@ -30,7 +31,6 @@ import {
   resolve_items_unlock_token,
   set_active_folder_token,
 } from "@/services/folder_context";
-import { with_folder_unlock } from "./folder_unlock_retry";
 
 function get_unlock_token_for_label(
   label_token: string | undefined,

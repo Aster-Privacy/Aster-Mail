@@ -35,7 +35,7 @@ export function EmailListItem({
 
   return (
     <button
-      className={`w-full px-6 py-4 border-b border-edge-secondary text-left cursor-pointer ${
+      className={`w-full px-6 py-4 border-b border-edge-secondary text-start cursor-pointer ${
         is_selected ? "bg-surf-tertiary" : "hover:bg-surf-hover"
       }`}
       onClick={on_click}

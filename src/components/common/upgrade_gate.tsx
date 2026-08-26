@@ -56,11 +56,17 @@ export function UpgradeGate({
   if (variant === "centered") {
     return (
       <div className="flex flex-col items-center justify-center text-center min-h-[60vh] gap-3 px-6">
-        <Badge color="blue">{t("settings.alias_feature_locked_upgrade_plan" as TranslationKey)}</Badge>
-        <h3 className="text-lg font-semibold text-txt-primary">{feature_name}</h3>
+        <Badge color="blue">
+          {t("settings.alias_feature_locked_upgrade_plan" as TranslationKey)}
+        </Badge>
+        <h3 className="text-lg font-semibold text-txt-primary">
+          {feature_name}
+        </h3>
         <p className="text-sm text-txt-secondary max-w-md">{description}</p>
         <p className="text-sm text-txt-muted">
-          {t("settings.available_on_plan" as TranslationKey, { plan: min_plan })}
+          {t("settings.available_on_plan" as TranslationKey, {
+            plan: min_plan,
+          })}
         </p>
         <UpgradeBtn size="lg" onClick={navigate_to_billing}>
           {t("settings.upgrade_to_unlock" as TranslationKey)}
@@ -71,7 +77,9 @@ export function UpgradeGate({
 
   return (
     <div className="flex flex-col items-center justify-center text-center py-6 gap-3 px-6">
-      <Badge color="blue">{t("settings.alias_feature_locked_upgrade_plan" as TranslationKey)}</Badge>
+      <Badge color="blue">
+        {t("settings.alias_feature_locked_upgrade_plan" as TranslationKey)}
+      </Badge>
       <h3 className="text-sm font-semibold text-txt-primary">{feature_name}</h3>
       <p className="text-xs text-txt-secondary max-w-md">{description}</p>
       <p className="text-xs text-txt-muted">

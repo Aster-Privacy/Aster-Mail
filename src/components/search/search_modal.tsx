@@ -46,6 +46,7 @@ import { SearchModalFilterPanel } from "@/components/search/search_modal_filter_
 import { SearchContentBanner } from "@/components/search/search_content_banner";
 import { CorrectionNotice } from "@/components/search/correction_notice";
 import { use_search_modal } from "@/components/search/use_search_modal";
+import { use_escape_layer } from "@/lib/overlay_layer_stack";
 
 export { AdvancedSearchModal } from "@/components/search/advanced_search_modal";
 
@@ -141,6 +142,7 @@ export function SearchModal({
   const is_mobile = use_is_mobile();
   const rect = use_anchor_rect(anchor_ref, is_open && !is_mobile);
   const dropdown_ref = useRef<HTMLDivElement>(null);
+  const last_advanced_query_ref = useRef("");
 
   const {
     state,
@@ -227,10 +229,21 @@ export function SearchModal({
     };
   }, [is_open, handle_close, anchor_ref]);
 
-  const handle_submit_advanced = () => {
-    const query = build_advanced_query();
+  use_escape_layer(is_open, handle_close, "search_modal");
 
-    if (!query) return;
+  const handle_submit_advanced = () => {
+    const advanced = build_advanced_query();
+    const typed = state.query.trim();
+    const carried =
+      typed && typed !== last_advanced_query_ref.current ? typed : "";
+    const query = [carried, advanced].filter(Boolean).join(" ");
+
+    if (!query) {
+      set_show_filters(false);
+
+      return;
+    }
+    last_advanced_query_ref.current = query;
     set_query(query);
     set_show_filters(false);
     if (on_search_submit) {
@@ -430,9 +443,7 @@ export function SearchModal({
                   className="w-full py-3 text-xs font-medium text-center transition-colors duration-150 rounded-[14px] mt-2 text-txt-secondary bg-surf-tertiary hover:bg-surf-hover"
                   onClick={load_more}
                 >
-                  {t("mail.load_more_results", {
-                    remaining: state.total_results - filtered_results.length,
-                  })}
+                  {t("common.load_more")}
                 </button>
               )}
           </div>

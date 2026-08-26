@@ -33,7 +33,10 @@ export function parse_address(value: string): ParsedAddress | undefined {
   const angle_match = trimmed.match(/^(.*?)<\s*([^<>\s]+)\s*>\s*$/);
 
   if (angle_match) {
-    const raw_name = angle_match[1].trim().replace(/^"(.*)"$/, "$1").trim();
+    const raw_name = angle_match[1]
+      .trim()
+      .replace(/^"(.*)"$/, "$1")
+      .trim();
     const email = angle_match[2].trim();
 
     if (!EMAIL_REGEX.test(email)) return undefined;
@@ -52,9 +55,7 @@ export function extract_reply_to(
   raw_headers?: { name: string; value: string }[],
 ): ParsedAddress | undefined {
   if (!raw_headers || raw_headers.length === 0) return undefined;
-  const header = raw_headers.find(
-    (h) => h.name.toLowerCase() === "reply-to",
-  );
+  const header = raw_headers.find((h) => h.name.toLowerCase() === "reply-to");
 
   if (!header) return undefined;
   const first = header.value.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/)[0];

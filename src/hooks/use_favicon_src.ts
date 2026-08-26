@@ -29,7 +29,6 @@ import {
   cache_favicon_blob,
 } from "@/lib/favicon_cache_db";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
-
 import { ignore_error } from "@/lib/ignore_error";
 
 function resolve_initial_src(domain: string): string {
@@ -51,6 +50,7 @@ export function use_favicon_src(domain: string): string {
     if (is_any_lockdown_active()) return;
 
     const method = connection_store.get_method();
+
     if (method === "tor" || method === "tor_snowflake") return;
 
     let cancelled = false;
@@ -79,6 +79,49 @@ const ALLOWED_FAVICON_TYPES = [
 
 const MAX_FAVICON_BYTES = 200 * 1024;
 
+type IdleWindow = Window & {
+  requestIdleCallback?: (
+    callback: () => void,
+    options?: { timeout: number },
+  ) => number;
+};
+
+const store_queue: Array<() => Promise<void>> = [];
+const requested_domains = new Set<string>();
+let store_queue_running = false;
+
+function run_when_idle(task: () => void) {
+  const idle = (window as IdleWindow).requestIdleCallback;
+
+  if (idle) {
+    idle(task, { timeout: 3000 });
+
+    return;
+  }
+
+  window.setTimeout(task, 300);
+}
+
+function drain_store_queue() {
+  if (store_queue_running) return;
+
+  const next = store_queue.shift();
+
+  if (!next) return;
+
+  store_queue_running = true;
+  run_when_idle(() => {
+    next()
+      .catch((caught) =>
+        ignore_error("hooks/use_favicon_src:drain_store_queue", caught),
+      )
+      .finally(() => {
+        store_queue_running = false;
+        drain_store_queue();
+      });
+  });
+}
+
 export function store_favicon_if_api_url(
   domain: string,
   loaded_src: string,
@@ -88,18 +131,34 @@ export function store_favicon_if_api_url(
   if (is_any_lockdown_active()) return;
 
   const method = connection_store.get_method();
+
   if (method === "tor" || method === "tor_snowflake") return;
 
-  routed_fetch(loaded_src, {})
+  if (peek_favicon_object_url(domain)) return;
+  if (requested_domains.has(domain)) return;
+
+  requested_domains.add(domain);
+  store_queue.push(() => fetch_and_cache_favicon(domain, loaded_src));
+  drain_store_queue();
+}
+
+function fetch_and_cache_favicon(
+  domain: string,
+  loaded_src: string,
+): Promise<void> {
+  return routed_fetch(loaded_src, {})
     .then((r) => {
       if (!r.ok) return null;
       const ct = r.headers.get("content-type") ?? "";
+
       if (!ALLOWED_FAVICON_TYPES.some((t) => ct.startsWith(t))) return null;
+
       return r.blob();
     })
     .then((blob) => {
       if (!blob || blob.size > MAX_FAVICON_BYTES) return;
-      cache_favicon_blob(domain, blob);
+
+      return cache_favicon_blob(domain, blob);
     })
     .catch((caught) =>
       ignore_error("hooks/use_favicon_src:store_favicon_if_api_url", caught),

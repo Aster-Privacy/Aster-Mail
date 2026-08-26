@@ -23,6 +23,7 @@ import { show_toast } from "@/components/toast/simple_toast";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 import { get_active_translations } from "@/lib/i18n/translations";
 import { is_low_network } from "@/services/low_network_state";
+import { emit_mail_changed, emit_refresh_requested } from "@/hooks/mail_events";
 
 export interface SyncProgressState {
   status: string;
@@ -76,6 +77,7 @@ export function start_sync_polling(
   account_token: string,
 ): void {
   const existing = polling_intervals.get(account_id);
+
   if (existing) clearTimeout(existing);
 
   account_token_map.set(account_id, account_token);
@@ -85,12 +87,15 @@ export function start_sync_polling(
   const started_at = Date.now();
   let consecutive_errors = 0;
 
-  const finish = (status: "complete" | "error" | "timeout", error_message?: string) => {
+  const finish = (
+    status: "complete" | "error" | "timeout",
+    error_message?: string,
+  ) => {
     polling_intervals.delete(account_id);
     account_token_map.delete(account_id);
 
-    window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
-    window.dispatchEvent(new CustomEvent("astermail:refresh-requested"));
+    emit_mail_changed();
+    emit_refresh_requested();
     invalidate_mail_stats();
 
     const common = get_active_translations().common;
@@ -98,7 +103,9 @@ export function start_sync_polling(
     if (status === "complete") {
       if (error_message?.toLowerCase().includes("quota")) {
         window.dispatchEvent(
-          new CustomEvent("astermail:sync-quota-exceeded", { detail: error_message }),
+          new CustomEvent("astermail:sync-quota-exceeded", {
+            detail: error_message,
+          }),
         );
       } else {
         show_toast(common.sync_complete, "success");
@@ -119,12 +126,15 @@ export function start_sync_polling(
     const timer = setTimeout(async () => {
       if (Date.now() - started_at > MAX_POLL_DURATION_MS) {
         finish("timeout");
+
         return;
       }
 
       if (is_low_network()) {
         const next = setTimeout(schedule_tick, POLL_INTERVAL_MS * 4);
+
         polling_intervals.set(account_id, next);
+
         return;
       }
 
@@ -139,17 +149,21 @@ export function start_sync_polling(
               account_token_map.delete(account_id);
               progress_state.delete(account_id);
               notify_listeners();
+
               return;
             }
           }
           const next = setTimeout(schedule_tick, POLL_INTERVAL_MS * 2);
+
           polling_intervals.set(account_id, next);
+
           return;
         }
 
         consecutive_errors = 0;
         const prev_max = max_seen_total.get(account_id) ?? 0;
         const stable_total = Math.max(result.data.total_messages, prev_max);
+
         max_seen_total.set(account_id, stable_total);
         progress_state.set(account_id, {
           status: result.data.status,
@@ -159,10 +173,14 @@ export function start_sync_polling(
         });
         notify_listeners();
 
-        if (result.data.status === "complete" || result.data.status === "error") {
+        if (
+          result.data.status === "complete" ||
+          result.data.status === "error"
+        ) {
           finish(result.data.status, result.data.error_message ?? undefined);
         } else {
           const next = setTimeout(schedule_tick, POLL_INTERVAL_MS);
+
           polling_intervals.set(account_id, next);
         }
       } catch {
@@ -172,12 +190,15 @@ export function start_sync_polling(
           account_token_map.delete(account_id);
           progress_state.delete(account_id);
           notify_listeners();
+
           return;
         }
         const next = setTimeout(schedule_tick, POLL_INTERVAL_MS * 2);
+
         polling_intervals.set(account_id, next);
       }
     }, POLL_INTERVAL_MS);
+
     polling_intervals.set(account_id, timer);
   };
 

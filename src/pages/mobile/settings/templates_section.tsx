@@ -21,6 +21,7 @@
 import type { DecryptedTemplate } from "@/services/api/templates";
 
 import { useState, useCallback, useEffect } from "react";
+import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   PlusIcon,
@@ -51,6 +52,9 @@ export function TemplatesSection({
   const { t } = use_i18n();
   const { reload_templates: reload_context_templates } = use_templates();
   const [templates, set_templates] = useState<DecryptedTemplate[]>([]);
+  const [confirm_delete_id, set_confirm_delete_id] = useState<string | null>(
+    null,
+  );
   const [is_loading, set_is_loading] = useState(true);
   const [show_form, set_show_form] = useState(false);
   const [editing_id, set_editing_id] = useState<string | null>(null);
@@ -182,7 +186,13 @@ export function TemplatesSection({
 
   const handle_delete = useCallback(
     async (id: string) => {
-      await delete_template(id);
+      const response = await delete_template(id);
+
+      if (response.error) {
+        set_error(response.error);
+
+        return;
+      }
       set_templates((prev) => prev.filter((tmpl) => tmpl.id !== id));
       reload_context_templates();
     },
@@ -208,7 +218,7 @@ export function TemplatesSection({
           >
             <span>{error}</span>
             <button
-              className="ml-2 p-1"
+              className="ms-2 p-1"
               type="button"
               onClick={() => set_error(null)}
             >
@@ -372,7 +382,7 @@ export function TemplatesSection({
                         <button
                           className="text-[13px] text-[var(--mobile-danger)]"
                           type="button"
-                          onClick={() => handle_delete(tmpl.id)}
+                          onClick={() => set_confirm_delete_id(tmpl.id)}
                         >
                           {t("common.delete")}
                         </button>
@@ -385,6 +395,19 @@ export function TemplatesSection({
           )}
         </AnimatePresence>
       </div>
+
+      <ConfirmationModal
+        confirm_text={t("common.delete")}
+        is_open={confirm_delete_id !== null}
+        message={t("settings.delete_template_message")}
+        on_cancel={() => set_confirm_delete_id(null)}
+        on_confirm={() => {
+          if (confirm_delete_id) handle_delete(confirm_delete_id);
+          set_confirm_delete_id(null);
+        }}
+        title={t("settings.delete_template_title")}
+        variant="danger"
+      />
     </div>
   );
 }

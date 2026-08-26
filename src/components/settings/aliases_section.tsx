@@ -28,6 +28,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
+import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
@@ -44,6 +45,7 @@ import {
   TURNSTILE_SITE_KEY,
 } from "@/components/auth/turnstile_widget";
 import { Spinner } from "@/components/ui/spinner";
+import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { SettingsTabBar } from "@/components/settings/settings_tab_bar";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { InfoPopover } from "@/components/ui/info_popover";
@@ -64,8 +66,8 @@ import { AliasImportModal } from "@/components/settings/aliases/alias_import_mod
 import { AliasExportModal } from "@/components/settings/aliases/alias_export_modal";
 import { AliasPreferencesPanel } from "@/components/settings/aliases/alias_preferences_panel";
 import { is_https_payment_url } from "@/lib/payment_url";
-
 import { ignore_error } from "@/lib/ignore_error";
+import { app_locale, get_display_time_zone } from "@/utils/date_format";
 
 export { DomainSetupWizard } from "@/components/settings/aliases/domain_setup_wizard";
 
@@ -163,6 +165,8 @@ export function AliasesSection() {
   });
   const [purchased_orders, set_purchased_orders] = useState<DomainOrder[]>([]);
   const [purchased_loading, set_purchased_loading] = useState(false);
+  const [purchased_load_failed, set_purchased_load_failed] = useState(false);
+  const [purchased_reload, set_purchased_reload] = useState(0);
   const [renewing_order_id, set_renewing_order_id] = useState<string | null>(
     null,
   );
@@ -203,6 +207,7 @@ export function AliasesSection() {
   useEffect(() => {
     if (active_tab !== "domains" || purchase_open) return;
     set_purchased_loading(true);
+    set_purchased_load_failed(false);
     list_domain_orders()
       .then((r) => {
         if (r.data) {
@@ -213,16 +218,20 @@ export function AliasesSection() {
                 !["expired", "refunded", "failed"].includes(o.status),
             ),
           );
+
+          return;
         }
+        set_purchased_load_failed(true);
       })
-      .catch((caught) =>
+      .catch((caught) => {
+        set_purchased_load_failed(true);
         ignore_error(
           "components/settings/aliases_section:close_purchase",
           caught,
-        ),
-      )
+        );
+      })
       .finally(() => set_purchased_loading(false));
-  }, [active_tab, purchase_open]);
+  }, [active_tab, purchase_open, purchased_reload]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -326,12 +335,18 @@ export function AliasesSection() {
         set_purchased_orders((prev) =>
           prev.filter((order) => order.id !== order_id),
         );
+      } else {
+        show_toast(
+          response.error || t("common.something_went_wrong_try_again"),
+          "error",
+        );
       }
     } catch (caught) {
       ignore_error(
         "components/settings/aliases_section:handle_cancel_order",
         caught,
       );
+      show_toast(t("common.something_went_wrong_try_again"), "error");
     } finally {
       set_cancelling_order_id(null);
     }
@@ -543,6 +558,7 @@ export function AliasesSection() {
             <AliasList
               alias_deleting_id={hook.alias_deleting_id}
               aliases={hook.aliases}
+              aliases_load_failed={hook.aliases_load_failed}
               aliases_loading={hook.aliases_loading}
               domain_addr_deleting_id={hook.domain_addr_deleting_id}
               domain_addresses={hook.domain_addresses}
@@ -557,6 +573,7 @@ export function AliasesSection() {
               }
               on_open_domain_editor={set_editing_address_id}
               on_open_editor={set_editing_alias_id}
+              on_reload={hook.load_aliases}
               toggling_id={hook.toggling_id}
             />
           </div>
@@ -566,7 +583,7 @@ export function AliasesSection() {
       {active_tab === "domains" && purchase_open && (
         <div>
           <div className="mb-4">
-            <div className="flex items-center gap-2 -ml-2">
+            <div className="flex items-center gap-2 -ms-2">
               <button
                 aria-label={t("common.back")}
                 className="w-9 h-9 rounded-full flex items-center justify-center text-txt-secondary hover:bg-surf-secondary hover:text-txt-primary transition-colors"
@@ -576,7 +593,7 @@ export function AliasesSection() {
                   )
                 }
               >
-                <ArrowLeftIcon className="w-[18px] h-[18px]" />
+                <ArrowLeftIcon className="w-[18px] h-[18px] rtl:-scale-x-100" />
               </button>
               <h3 className="flex items-center gap-2 text-base font-semibold text-txt-primary">
                 {t("settings.domain_purchase_title")}
@@ -652,7 +669,19 @@ export function AliasesSection() {
               </div>
             )}
 
-          {!hook.domains_loading && hook.max_domains === 0 ? (
+          {!hook.domains_loading && hook.domains_load_failed ? (
+            <div className="p-6 rounded-lg text-center bg-surf-tertiary border border-edge-secondary">
+              <p className="text-sm mb-4 text-txt-secondary">
+                {t("common.something_went_wrong_try_again")}
+              </p>
+              <Button
+                variant="outline"
+                onClick={() => void hook.load_domains()}
+              >
+                {t("common.retry")}
+              </Button>
+            </div>
+          ) : !hook.domains_loading && hook.max_domains === 0 ? (
             <div className="p-6 rounded-lg text-center bg-surf-tertiary border border-edge-secondary">
               <p className="text-sm font-medium mb-1 text-txt-primary">
                 {t("settings.custom_domains_not_available")}
@@ -763,6 +792,10 @@ export function AliasesSection() {
                   <div className="flex justify-center py-6">
                     <Spinner className="text-txt-muted" size="sm" />
                   </div>
+                ) : purchased_load_failed && purchased_orders.length === 0 ? (
+                  <LoadFailedNotice
+                    on_retry={() => set_purchased_reload((value) => value + 1)}
+                  />
                 ) : purchased_orders.length === 0 ? (
                   <div className="text-center py-8 rounded-xl bg-surf-secondary border border-dashed border-edge-secondary mt-3">
                     <ShoppingBagIcon className="w-6 h-6 mx-auto mb-2 text-txt-muted" />
@@ -775,7 +808,7 @@ export function AliasesSection() {
                     {purchased_orders.map((order) => (
                       <div key={order.id}>
                         <div
-                          className={`w-full flex items-center justify-between gap-3 py-3 px-1 text-left ${
+                          className={`w-full flex items-center justify-between gap-3 py-3 px-1 text-start ${
                             order.status === "complete"
                               ? "cursor-default"
                               : "hover:bg-surf-secondary rounded-lg cursor-pointer"
@@ -873,7 +906,9 @@ export function AliasesSection() {
                                       {
                                         date: new Date(
                                           order.expires_at,
-                                        ).toLocaleDateString(),
+                                        ).toLocaleDateString(app_locale(), {
+                                          timeZone: get_display_time_zone(),
+                                        }),
                                       },
                                     )
                                   : ""
@@ -922,6 +957,7 @@ export function AliasesSection() {
       {active_tab === "preferences" && (
         <AliasPreferencesPanel
           available_domains={hook.available_domains_for_aliases ?? []}
+          on_default_domain_change={set_default_alias_domain}
         />
       )}
 

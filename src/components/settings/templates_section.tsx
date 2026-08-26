@@ -30,6 +30,7 @@ import {
 import { Button } from "@aster/ui";
 
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
+import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
@@ -51,6 +52,10 @@ import {
   type DecryptedTemplate,
   type TemplateFormData,
 } from "@/services/api/templates";
+
+const MAX_TEMPLATE_NAME_LENGTH = 200;
+const MAX_TEMPLATE_CATEGORY_LENGTH = 100;
+const MAX_TEMPLATE_CONTENT_LENGTH = 30000;
 
 interface EditorState {
   is_open: boolean;
@@ -80,14 +85,16 @@ export function TemplatesSection() {
   const [is_loading, set_is_loading] = useState(true);
   const [is_initial_load, set_is_initial_load] = useState(true);
   const [error, set_error] = useState<string | null>(null);
+  const [has_unreadable, set_has_unreadable] = useState(false);
   const [editor, set_editor] = useState<EditorState>(initial_editor_state);
   const [deleting_id, set_deleting_id] = useState<string | null>(null);
+  const [confirm_discard_open, set_confirm_discard_open] = useState(false);
+  const [editor_baseline, set_editor_baseline] = useState("");
   const [confirm_delete_id, set_confirm_delete_id] = useState<string | null>(
     null,
   );
-  const [_name_focused, _set_name_focused] = useState(false);
-  const [_category_focused, _set_category_focused] = useState(false);
-  const [_content_focused, _set_content_focused] = useState(false);
+  const [load_failed, set_load_failed] = useState(false);
+  const [editor_error, set_editor_error] = useState<string | null>(null);
 
   const load_templates = useCallback(async () => {
     set_is_loading(true);
@@ -97,8 +104,14 @@ export function TemplatesSection() {
 
     if (response.error) {
       set_error(response.error);
+      set_load_failed(true);
     } else if (response.data) {
+      set_load_failed(false);
       set_templates(response.data.templates);
+      set_has_unreadable(
+        typeof response.data.total === "number" &&
+          response.data.total > response.data.templates.length,
+      );
     }
 
     set_is_loading(false);
@@ -110,6 +123,10 @@ export function TemplatesSection() {
   }, [load_templates]);
 
   const open_create_editor = () => {
+    set_editor_error(null);
+    set_editor_baseline(
+      JSON.stringify({ name: "", category: "", content: "" }),
+    );
     set_editor({
       is_open: true,
       editing_id: null,
@@ -122,6 +139,14 @@ export function TemplatesSection() {
   };
 
   const open_edit_editor = (template: DecryptedTemplate) => {
+    set_editor_error(null);
+    set_editor_baseline(
+      JSON.stringify({
+        name: template.name,
+        category: template.category,
+        content: template.content,
+      }),
+    );
     set_editor({
       is_open: true,
       editing_id: template.id,
@@ -134,7 +159,28 @@ export function TemplatesSection() {
   };
 
   const close_editor = () => {
+    set_editor_error(null);
+    set_editor_baseline("");
+    set_confirm_discard_open(false);
     set_editor(initial_editor_state);
+  };
+
+  const request_close_editor = () => {
+    if (editor.is_saving) return;
+
+    const current = JSON.stringify({
+      name: editor.name,
+      category: editor.category,
+      content: editor.content,
+    });
+
+    if (editor_baseline !== "" && current !== editor_baseline) {
+      set_confirm_discard_open(true);
+
+      return;
+    }
+
+    close_editor();
   };
 
   const name_invalid = editor.show_validation && !editor.name.trim();
@@ -147,6 +193,7 @@ export function TemplatesSection() {
       return;
     }
 
+    set_editor_error(null);
     set_editor((prev) => ({ ...prev, is_saving: true }));
 
     const form_data: TemplateFormData = {
@@ -159,7 +206,7 @@ export function TemplatesSection() {
       const response = await update_template(editor.editing_id, form_data);
 
       if (response.error) {
-        set_error(response.error);
+        set_editor_error(response.error);
         set_editor((prev) => ({ ...prev, is_saving: false }));
 
         return;
@@ -182,7 +229,7 @@ export function TemplatesSection() {
       const response = await create_template(form_data);
 
       if (response.error) {
-        set_error(response.error);
+        set_editor_error(response.error);
         set_editor((prev) => ({ ...prev, is_saving: false }));
 
         return;
@@ -239,6 +286,12 @@ export function TemplatesSection() {
           {t("settings.email_templates_description")}
         </p>
 
+        {has_unreadable && (
+          <p className="mb-4 text-[12px] text-txt-muted">
+            {t("settings.unreadable_entries_notice")}
+          </p>
+        )}
+
         {error && (
           <div
             className="mb-4 p-3 rounded-lg text-sm flex items-center justify-between"
@@ -277,7 +330,7 @@ export function TemplatesSection() {
 
           <Modal
             is_open={editor.is_open}
-            on_close={close_editor}
+            on_close={request_close_editor}
             show_close_button={!editor.is_saving}
             size="lg"
           >
@@ -289,6 +342,14 @@ export function TemplatesSection() {
               </ModalTitle>
             </ModalHeader>
             <ModalBody className="space-y-4">
+              {editor_error && (
+                <p
+                  className="p-3 rounded-lg text-sm bg-red-500/10 text-red-500"
+                  role="alert"
+                >
+                  {editor_error}
+                </p>
+              )}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label
@@ -305,6 +366,7 @@ export function TemplatesSection() {
                     aria-invalid={name_invalid}
                     className="w-full"
                     id="template-name"
+                    maxLength={MAX_TEMPLATE_NAME_LENGTH}
                     placeholder={t("settings.template_name_placeholder")}
                     status={name_invalid ? "error" : "default"}
                     value={editor.name}
@@ -335,6 +397,7 @@ export function TemplatesSection() {
                   <Input
                     className="w-full"
                     id="template-category"
+                    maxLength={MAX_TEMPLATE_CATEGORY_LENGTH}
                     placeholder={t("settings.category_placeholder")}
                     value={editor.category}
                     onChange={(e) =>
@@ -363,6 +426,7 @@ export function TemplatesSection() {
                     content_invalid ? "aster_input_error" : ""
                   }`}
                   id="template-content"
+                  maxLength={MAX_TEMPLATE_CONTENT_LENGTH}
                   placeholder={t("settings.template_content_placeholder")}
                   rows={8}
                   value={editor.content}
@@ -390,7 +454,7 @@ export function TemplatesSection() {
               <Button
                 disabled={editor.is_saving}
                 variant="ghost"
-                onClick={close_editor}
+                onClick={request_close_editor}
               >
                 {t("common.cancel")}
               </Button>
@@ -402,7 +466,7 @@ export function TemplatesSection() {
                 {editor.is_saving ? (
                   <>
                     {t("common.saving")}
-                    <Spinner className="ml-2" size="md" />
+                    <Spinner className="ms-2" size="md" />
                   </>
                 ) : editor.editing_id ? (
                   t("settings.update_template")
@@ -413,7 +477,9 @@ export function TemplatesSection() {
             </ModalFooter>
           </Modal>
 
-          {templates.length === 0 && !editor.is_open ? (
+          {templates.length === 0 && !editor.is_open && load_failed ? (
+            <LoadFailedNotice on_retry={() => void load_templates()} />
+          ) : templates.length === 0 && !editor.is_open ? (
             <div className="text-center py-8 rounded-xl bg-surf-secondary border border-dashed border-edge-secondary">
               <PencilIcon className="w-6 h-6 mx-auto mb-2 text-txt-muted" />
               <p className="text-sm text-txt-muted">
@@ -433,14 +499,20 @@ export function TemplatesSection() {
                   >
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-txt-primary truncate">
+                        <span
+                          className="text-sm font-medium text-txt-primary truncate"
+                          dir="auto"
+                        >
                           {template.name}
                         </span>
                         <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-surf-tertiary text-txt-muted flex-shrink-0">
                           {template.category || t("common.general")}
                         </span>
                       </div>
-                      <p className="text-xs text-txt-muted mt-0.5 line-clamp-1">
+                      <p
+                        className="text-xs text-txt-muted mt-0.5 line-clamp-1"
+                        dir="auto"
+                      >
                         {template.content}
                       </p>
                     </div>
@@ -481,6 +553,16 @@ export function TemplatesSection() {
           )}
         </div>
       </div>
+
+      <ConfirmationModal
+        confirm_text={t("mail.discard")}
+        is_open={confirm_discard_open}
+        message={t("common.discard_changes_message")}
+        on_cancel={() => set_confirm_discard_open(false)}
+        on_confirm={close_editor}
+        title={t("common.discard_changes_title")}
+        variant="danger"
+      />
 
       <ConfirmationModal
         confirm_text={t("common.delete")}

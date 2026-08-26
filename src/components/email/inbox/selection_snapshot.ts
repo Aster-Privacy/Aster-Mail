@@ -40,13 +40,29 @@ export const empty_selection_snapshot: SelectionSnapshot = {
   tag_tokens: [],
 };
 
+function intersect_tokens(
+  current: Set<string> | null,
+  next: Set<string>,
+): Set<string> {
+  if (current === null) return next;
+
+  const merged = new Set<string>();
+
+  for (const token of current) {
+    if (next.has(token)) merged.add(token);
+  }
+
+  return merged;
+}
+
 export function build_selection_snapshot(
   emails: readonly SelectionSnapshotSource[],
 ): SelectionSnapshot {
   const ids: string[] = [];
   const grouped_ids: string[] = [];
-  const folder_tokens = new Set<string>();
-  const tag_tokens = new Set<string>();
+
+  let folder_tokens: Set<string> | null = null;
+  let tag_tokens: Set<string> | null = null;
 
   for (const email of emails) {
     if (!email.is_selected) continue;
@@ -61,14 +77,13 @@ export function build_selection_snapshot(
       grouped_ids.push(email.id);
     }
 
-    if (email.folders) {
-      for (const folder of email.folders)
-        folder_tokens.add(folder.folder_token);
-    }
+    const email_folders = new Set(
+      (email.folders ?? []).map((folder) => folder.folder_token),
+    );
+    const email_tags = new Set((email.tags ?? []).map((tag) => tag.id));
 
-    if (email.tags) {
-      for (const tag of email.tags) tag_tokens.add(tag.id);
-    }
+    folder_tokens = intersect_tokens(folder_tokens, email_folders);
+    tag_tokens = intersect_tokens(tag_tokens, email_tags);
   }
 
   if (ids.length === 0) return empty_selection_snapshot;
@@ -76,7 +91,7 @@ export function build_selection_snapshot(
   return {
     ids,
     grouped_ids,
-    folder_tokens: Array.from(folder_tokens),
-    tag_tokens: Array.from(tag_tokens),
+    folder_tokens: Array.from(folder_tokens ?? []),
+    tag_tokens: Array.from(tag_tokens ?? []),
   };
 }

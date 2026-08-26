@@ -18,10 +18,11 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { describe, it, expect, vi } from "vitest";
 
 import type { DecryptedEmailAlias } from "@/services/api/aliases";
 import type { DecryptedGhostAlias } from "@/services/api/ghost_aliases";
+
+import { describe, it, expect, vi } from "vitest";
 
 vi.mock("@/services/api/aliases", () => ({
   list_all_aliases: vi.fn(),

@@ -31,13 +31,21 @@ function row(id: string, grouped_email_ids?: string[]): InboxEmail {
 describe("entered_current_view", () => {
   it("reports a newly starred message that is absent from the starred view", () => {
     expect(
-      entered_current_view([row("a")], { id: "b", is_starred: true }, "starred"),
+      entered_current_view(
+        [row("a")],
+        { id: "b", is_starred: true },
+        "starred",
+      ),
     ).toBe(true);
   });
 
   it("ignores a starred message that is already on the page", () => {
     expect(
-      entered_current_view([row("b")], { id: "b", is_starred: true }, "starred"),
+      entered_current_view(
+        [row("b")],
+        { id: "b", is_starred: true },
+        "starred",
+      ),
     ).toBe(false);
   });
 

@@ -52,12 +52,16 @@ export const MobileActionSheet = memo(function MobileActionSheet({
   );
 
   return (
-    <MobileBottomSheet is_open={is_open} on_close={on_close}>
+    <MobileBottomSheet
+      aria_label={t("common.actions")}
+      is_open={is_open}
+      on_close={on_close}
+    >
       <div className="px-2 pb-2">
         {items.map((item) => (
           <button
             key={item.label}
-            className={`flex w-full items-center gap-3 rounded-[16px] px-4 py-3 text-left active:bg-[var(--bg-tertiary)] ${
+            className={`flex w-full items-center gap-3 rounded-[16px] px-4 py-3 text-start active:bg-[var(--bg-tertiary)] ${
               item.destructive
                 ? "text-[var(--color-danger,#ef4444)]"
                 : "text-[var(--text-primary)]"

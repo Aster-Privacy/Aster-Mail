@@ -59,7 +59,7 @@ import { haptic_long_press, haptic_impact } from "@/native/haptic_feedback";
 interface MobileEmailRowProps {
   email: InboxEmail;
   on_press: (id: string) => void;
-  on_long_press: (id: string) => void;
+  on_long_press?: (id: string) => void;
   on_toggle_star?: (email: InboxEmail) => void;
   on_archive?: (email: InboxEmail) => void;
   on_delete?: (email: InboxEmail) => void;
@@ -96,6 +96,7 @@ export const MobileEmailRow = memo(function MobileEmailRow(
   const { preferences } = use_preferences();
   const { format_email_list } = use_date_format();
   const show_avatar = preferences.show_profile_pictures !== false;
+  const show_preview = preferences.show_email_preview !== false;
   const select_slot_class = list_select_slot_class(false, show_avatar);
   const long_press_timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const long_press_fired = useRef(false);
@@ -104,7 +105,7 @@ export const MobileEmailRow = memo(function MobileEmailRow(
 
   const handle_touch_start = useCallback(
     (e: React.TouchEvent) => {
-      if (selection_mode) return;
+      if (selection_mode || !on_long_press) return;
       const target = e.target as HTMLElement;
 
       if (target.closest("[data-star-btn]")) return;
@@ -264,7 +265,7 @@ export const MobileEmailRow = memo(function MobileEmailRow(
 
   const row_content = (
     <div
-      className={`flex w-full items-start gap-3 px-4 py-3 text-left transition-colors active:bg-[var(--bg-tertiary)] ${
+      className={`flex w-full items-start gap-3 px-4 py-3 text-start transition-colors active:bg-[var(--bg-tertiary)] ${
         is_selected ? "bg-[var(--accent-color,#3b82f6)]/8" : ""
       }`}
       data-email-id={email.id}
@@ -318,6 +319,7 @@ export const MobileEmailRow = memo(function MobileEmailRow(
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1.5">
           <span
+            dir="auto"
             className={`min-w-0 flex-1 truncate text-[15px] leading-tight ${
               !email.is_read
                 ? "font-semibold text-[var(--text-primary)]"
@@ -359,6 +361,7 @@ export const MobileEmailRow = memo(function MobileEmailRow(
 
         <div className="mt-0.5 flex items-center gap-1.5">
           <span
+            dir="auto"
             className={`min-w-0 flex-1 truncate text-[14px] leading-tight ${
               !email.is_read
                 ? "font-medium text-[var(--text-primary)]"
@@ -399,8 +402,11 @@ export const MobileEmailRow = memo(function MobileEmailRow(
         </div>
 
         <div className="mt-0.5 flex items-center gap-1.5">
-          <span className="min-w-0 flex-1 truncate text-[13px] leading-tight text-[var(--text-muted)]">
-            {email.preview}
+          <span
+            dir="auto"
+            className="min-w-0 flex-1 truncate text-[13px] leading-tight text-[var(--text-muted)]"
+          >
+            {show_preview ? email.preview : ""}
           </span>
 
           <div

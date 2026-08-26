@@ -29,6 +29,7 @@ import { Input } from "@/components/ui/input";
 import { UpgradeGate } from "@/components/common/upgrade_gate";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import {
+  is_push_supported,
   subscribe_to_push,
   unsubscribe_from_push,
 } from "@/services/push_subscription";
@@ -60,7 +61,7 @@ export function NotificationsSection({
   const { is_feature_locked } = use_plan_limits();
   const [permission_state, set_permission_state] =
     useState<PermissionState>(get_permission_state);
-  const [product_updates, set_product_updates] = useState(true);
+  const [product_updates, set_product_updates] = useState<boolean | null>(null);
   const [product_updates_busy, set_product_updates_busy] = useState(false);
 
   useEffect(() => {
@@ -71,6 +72,16 @@ export function NotificationsSection({
       const wants_unsubscribe = params.get("unsubscribe") === "product_updates";
 
       if (wants_unsubscribe) {
+        try {
+          await set_product_updates_subscription(false);
+        } catch {
+          if (cancelled) return;
+          show_toast(t("settings.product_updates_save_failed"), "error");
+          set_product_updates(await get_product_updates_subscription());
+
+          return;
+        }
+
         params.delete("unsubscribe");
         const query = params.toString();
 
@@ -81,15 +92,10 @@ export function NotificationsSection({
             ? `${window.location.pathname}?${query}`
             : window.location.pathname,
         );
-        try {
-          await set_product_updates_subscription(false);
-          if (cancelled) return;
-          set_product_updates(false);
-          show_toast(t("settings.product_updates_turned_off"), "success");
-        } catch {
-          if (cancelled) return;
-          show_toast(t("settings.product_updates_save_failed"), "error");
-        }
+
+        if (cancelled) return;
+        set_product_updates(false);
+        show_toast(t("settings.product_updates_turned_off"), "success");
 
         return;
       }
@@ -98,7 +104,7 @@ export function NotificationsSection({
 
         if (!cancelled) set_product_updates(subscribed);
       } catch {
-        set_product_updates(true);
+        if (!cancelled) set_product_updates(null);
       }
     };
 
@@ -110,7 +116,7 @@ export function NotificationsSection({
   }, [t]);
 
   const handle_product_updates_toggle = async (next: boolean) => {
-    if (product_updates_busy) return;
+    if (product_updates_busy || product_updates === null) return;
     const previous = product_updates;
 
     set_product_updates(next);
@@ -128,8 +134,19 @@ export function NotificationsSection({
   const quiet_start = preferences.quiet_hours_start || "22:00";
   const quiet_end = preferences.quiet_hours_end || "07:00";
 
+  const desktop_enabled =
+    preferences.desktop_notifications && permission_state === "granted";
+
+  const subscribe_to_push_with_warning = async (): Promise<void> => {
+    const subscribed = await subscribe_to_push();
+
+    if (!subscribed && is_push_supported()) {
+      show_toast(t("settings.push_subscribe_failed"), "warning");
+    }
+  };
+
   const handle_desktop_toggle = async () => {
-    const new_value = !preferences.desktop_notifications;
+    const new_value = !desktop_enabled;
 
     if (new_value) {
       if (!("Notification" in window)) {
@@ -158,7 +175,7 @@ export function NotificationsSection({
       }
       update_preference("desktop_notifications", true, true);
       set_permission_state("granted");
-      subscribe_to_push();
+      await subscribe_to_push_with_warning();
 
       return;
     }
@@ -169,7 +186,7 @@ export function NotificationsSection({
   const handle_push_toggle = (v: boolean) => {
     update_preference("push_notifications", v, true);
     if (v) {
-      subscribe_to_push();
+      void subscribe_to_push_with_warning();
     } else {
       unsubscribe_from_push();
     }
@@ -195,7 +212,7 @@ export function NotificationsSection({
             label={t("settings.desktop_notifications")}
             trailing={
               <Switch
-                checked={preferences.desktop_notifications}
+                checked={desktop_enabled}
                 onCheckedChange={handle_desktop_toggle}
               />
             }
@@ -250,31 +267,25 @@ export function NotificationsSection({
               />
             }
           />
-          <SettingsRow
-            label={t("settings.mentions")}
-            trailing={
-              <Switch
-                checked={preferences.notify_mentions}
-                onCheckedChange={(v) =>
-                  update_preference("notify_mentions", v, true)
+          {product_updates !== null && (
+            <>
+              <SettingsRow
+                label={t("settings.product_updates")}
+                trailing={
+                  <Switch
+                    checked={product_updates}
+                    disabled={product_updates_busy}
+                    onCheckedChange={handle_product_updates_toggle}
+                  />
                 }
               />
-            }
-          />
-          <SettingsRow
-            label={t("settings.product_updates")}
-            trailing={
-              <Switch
-                checked={product_updates}
-                onCheckedChange={handle_product_updates_toggle}
-              />
-            }
-          />
-          <div className="px-4 pb-2">
-            <p className="text-[12px] text-[var(--text-muted)]">
-              {t("settings.product_updates_description")}
-            </p>
-          </div>
+              <div className="px-4 pb-2">
+                <p className="text-[12px] text-[var(--text-muted)]">
+                  {t("settings.product_updates_description")}
+                </p>
+              </div>
+            </>
+          )}
         </SettingsGroup>
 
         <UpgradeGate
@@ -302,7 +313,7 @@ export function NotificationsSection({
                     {t("settings.from")}
                   </span>
                   <Input
-                    className="ml-auto"
+                    className="ms-auto"
                     type="time"
                     value={quiet_start}
                     onChange={(e) =>
@@ -319,7 +330,7 @@ export function NotificationsSection({
                     {t("settings.to")}
                   </span>
                   <Input
-                    className="ml-auto"
+                    className="ms-auto"
                     type="time"
                     value={quiet_end}
                     onChange={(e) =>

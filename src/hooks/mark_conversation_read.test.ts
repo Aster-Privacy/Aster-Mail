@@ -22,9 +22,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 const mock_mark_thread_read = vi.fn();
 const mock_emit_mail_soft_refresh = vi.fn();
-const mock_thread_has_unread_entries = vi.fn(
-  (..._args: unknown[]) => false,
-);
+const mock_thread_has_unread_entries = vi.fn((..._args: unknown[]) => false);
 const mock_mark_thread_read_entries = vi.fn((..._args: unknown[]) => {});
 const mock_invalidate_mail_stats = vi.fn();
 
@@ -204,7 +202,6 @@ describe("mark_conversation_read", () => {
 
     expect(mock_mark_thread_read).not.toHaveBeenCalled();
   });
-
 });
 
 describe("collect_conversation_thread_tokens", () => {

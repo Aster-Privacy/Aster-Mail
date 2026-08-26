@@ -18,8 +18,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { motion } from "framer-motion";
 import type { ReactNode } from "react";
+
+import { motion } from "framer-motion";
 
 export interface SettingsTabBarItem<T extends string> {
   key: T;
@@ -46,11 +47,12 @@ export function SettingsTabBar<T extends string>({
         {tabs.map(({ key, label, icon }) => (
           <button
             key={key}
-            role="tab"
             aria-selected={active === key}
             className="relative flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium whitespace-nowrap outline-none transition-colors"
+            role="tab"
             style={{
-              color: active === key ? "var(--text-primary)" : "var(--text-muted)",
+              color:
+                active === key ? "var(--text-primary)" : "var(--text-muted)",
             }}
             type="button"
             onClick={() => on_change(key)}
@@ -59,7 +61,7 @@ export function SettingsTabBar<T extends string>({
             {label}
             {active === key && (
               <motion.span
-                className="absolute left-0 right-0 -bottom-px h-0.5 bg-blue-500"
+                className="absolute start-0 end-0 -bottom-px h-0.5 bg-blue-500"
                 layoutId={`${layout_id}-tab-indicator`}
                 transition={{ type: "spring", stiffness: 500, damping: 40 }}
               />

@@ -18,16 +18,14 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { HASH_ALG } from "@/services/crypto/constants";
 import { array_to_base64, base64_to_array } from "./base64";
-import { api_client } from "@/services/api/client";
 import { get_derived_encryption_key } from "./memory_key_store";
 import { decrypt_with_legacy_derived_keys } from "./legacy_keks";
-import { ignore_error } from "@/lib/ignore_error";
+import { set_cached_ratchet_plaintext } from "./ratchet_plaintext_cache";
 
-import {
-  set_cached_ratchet_plaintext,
-} from "./ratchet_plaintext_cache";
+import { ignore_error } from "@/lib/ignore_error";
+import { api_client } from "@/services/api/client";
+import { HASH_ALG } from "@/services/crypto/constants";
 
 const API_BASE = "/crypto/v1/ratchet";
 const MAX_ESCROW_PLAINTEXT_BYTES = 100 * 1024;
@@ -76,7 +74,10 @@ function flush_escrow_misses(): void {
         JSON.stringify(Object.fromEntries(escrow_misses)),
       );
     } catch (caught) {
-      ignore_error("services/crypto/message_escrow:flush_escrow_misses", caught);
+      ignore_error(
+        "services/crypto/message_escrow:flush_escrow_misses",
+        caught,
+      );
     }
   }, 2000);
 }
@@ -128,7 +129,10 @@ export function clear_escrow_miss_cache(): void {
   try {
     localStorage.removeItem(ESCROW_MISS_STORAGE_KEY);
   } catch (caught) {
-    ignore_error("services/crypto/message_escrow:clear_escrow_miss_cache", caught);
+    ignore_error(
+      "services/crypto/message_escrow:clear_escrow_miss_cache",
+      caught,
+    );
   }
 }
 

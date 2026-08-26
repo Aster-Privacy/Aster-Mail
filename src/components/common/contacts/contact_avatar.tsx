@@ -73,8 +73,13 @@ export function ContactAvatar({
   const { preferences } = use_preferences();
   const low_network = preferences.low_network_mode;
 
-  const peer_profile = use_peer_profile(is_aster && !low_network ? email : null);
-  const effective_avatar_url = low_network ? undefined : (avatar_url || (is_aster ? (peer_profile?.profile_picture ?? undefined) : undefined));
+  const peer_profile = use_peer_profile(
+    is_aster && !low_network ? email : null,
+  );
+  const effective_avatar_url = low_network
+    ? undefined
+    : avatar_url ||
+      (is_aster ? (peer_profile?.profile_picture ?? undefined) : undefined);
 
   const [avatar_failed, set_avatar_failed] = useState(false);
   const [favicon_failed, set_favicon_failed] = useState<boolean>(

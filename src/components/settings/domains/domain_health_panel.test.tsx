@@ -18,13 +18,14 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { DnsProvider } from "@/data/dns_providers";
+import type { DomainCheck, DomainHealth } from "@/services/api/domains";
+
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
 import { en } from "@/lib/i18n/translations/en";
-import type { DnsProvider } from "@/data/dns_providers";
-import type { DomainCheck, DomainHealth } from "@/services/api/domains";
 
 function translate(key: string, params?: Record<string, string | number>) {
   const text = key
@@ -42,7 +43,10 @@ function translate(key: string, params?: Record<string, string | number>) {
 
   return Object.entries(params).reduce(
     (result, [name, value]) =>
-      result.replace(new RegExp(`\\{\\{\\s*${name}\\s*\\}\\}`, "g"), String(value)),
+      result.replace(
+        new RegExp(`\\{\\{\\s*${name}\\s*\\}\\}`, "g"),
+        String(value),
+      ),
     text,
   );
 }
@@ -66,8 +70,7 @@ vi.mock("@/services/api/domains", () => ({
 const detect_dns_provider = vi.fn();
 
 vi.mock("@/data/dns_providers", async (import_original) => {
-  const actual =
-    await import_original<typeof import("@/data/dns_providers")>();
+  const actual = await import_original<typeof import("@/data/dns_providers")>();
 
   return {
     ...actual,
@@ -78,7 +81,6 @@ vi.mock("@/data/dns_providers", async (import_original) => {
 const { DomainHealthPanel } = await import("./domain_health_panel");
 
 declare global {
-  // eslint-disable-next-line no-var
   var IS_REACT_ACT_ENVIRONMENT: boolean;
 }
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;

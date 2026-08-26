@@ -18,11 +18,25 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import * as openpgp from "openpgp";
+
+import {
+  HASH_ALG,
+  KEY_DERIVATION_ITERATIONS,
+  array_to_base64,
+  generate_key_id,
+  generate_random_bytes,
+  get_unbiased_random_index,
+  log_key_usage,
+  pin_fingerprint,
+  type KeyPair,
+  type PgpKeyData,
+  verify_entropy_quality,
+} from "./key_manager_core";
+
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import { clamp_password } from "@/services/sanitize";
 import { normalize_address_ignoring_dots } from "@/utils/address_dots";
-import * as openpgp from "openpgp";
-import { HASH_ALG, KEY_DERIVATION_ITERATIONS, array_to_base64, generate_key_id, generate_random_bytes, get_unbiased_random_index, log_key_usage, pin_fingerprint, type KeyPair, type PgpKeyData, verify_entropy_quality } from "./key_manager_core";
 
 export async function hash_email(email: string): Promise<string> {
   const encoder = new TextEncoder();

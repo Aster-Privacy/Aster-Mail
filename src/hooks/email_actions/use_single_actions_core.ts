@@ -42,6 +42,7 @@ import {
 } from "@/components/toast/action_toast";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
+import { user_facing_error } from "@/utils/user_facing_error";
 
 export function use_single_actions_core(
   state_ctx: ActionStateContext,
@@ -136,8 +137,10 @@ export function use_single_actions_core(
       } catch (err) {
         if (optimistic_toast) hide_action_toast();
         rollback_action(email.id, action_type);
-        const error_message =
-          err instanceof Error ? err.message : t("common.unexpected_error");
+        const error_message = user_facing_error(
+          err,
+          t("common.unexpected_error"),
+        );
 
         set_action_error(action_type, error_message);
 

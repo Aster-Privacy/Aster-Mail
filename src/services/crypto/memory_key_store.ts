@@ -19,12 +19,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
-import { HASH_ALG } from "@/services/crypto/constants";
-import { base64_to_array } from "./base64";
 import type { EncryptedVault } from "./key_manager";
 
 import { sha256 } from "@noble/hashes/sha256";
 
+import { base64_to_array } from "./base64";
 import { array_to_base64 } from "./key_manager_core";
 import {
   SecureBuffer,
@@ -42,7 +41,6 @@ import {
 } from "./crypto_key_cache";
 import { clear_unlocked_key_cache } from "./key_manager_pgp";
 import { clear_envelope_key_cache } from "./envelope_key_cache";
-import { clear_preview_memo } from "@/utils/preview_text";
 import {
   load_legacy_keks_into_memory,
   load_previous_key_derived_keks_into_memory,
@@ -50,8 +48,9 @@ import {
   append_legacy_key_raw_bytes,
 } from "./legacy_keks";
 
-import { en } from "@/lib/i18n/translations/en";
-
+import { clear_preview_memo } from "@/utils/preview_text";
+import { HASH_ALG } from "@/services/crypto/constants";
+import { get_active_translations } from "@/lib/i18n/translations";
 
 export const MASTER_KEY_VAULT_FORMAT = 2;
 
@@ -571,12 +570,13 @@ export function extend_passphrase_timeout(): void {
 
 function validate_passphrase(entered: string): string | null {
   if (!secure_passphrase || secure_passphrase.is_cleared())
-    return en.errors.session_expired_login;
+    return get_active_translations().errors.session_expired_login;
 
   const entered_bytes = new TextEncoder().encode(entered);
   const stored_bytes = secure_passphrase.get_bytes();
 
-  if (!stored_bytes) return en.errors.session_expired_login;
+  if (!stored_bytes)
+    return get_active_translations().errors.session_expired_login;
 
   const entered_hash = sha256(entered_bytes);
   const stored_hash = sha256(stored_bytes);
@@ -592,8 +592,9 @@ function validate_passphrase(entered: string): string | null {
   zero_uint8_array(entered_hash);
   zero_uint8_array(stored_hash);
 
-  if (result !== 0) return en.errors.incorrect_password;
-  if (!vault_in_memory) return en.errors.no_keys_available;
+  if (result !== 0) return get_active_translations().errors.incorrect_password;
+  if (!vault_in_memory)
+    return get_active_translations().errors.no_keys_available;
 
   return null;
 }
@@ -680,4 +681,3 @@ export function get_aes_crypto_key(id: string): CryptoKey | null {
 export function has_aes_crypto_key(id: string): boolean {
   return has_key(`aes:${id}`);
 }
-

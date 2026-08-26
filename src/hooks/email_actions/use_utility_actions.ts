@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { copy_text_or_throw } from "@/utils/copy_text";
 import type { InboxEmail } from "@/types/email";
 import type { ActionStateContext } from "./use_action_state";
 
@@ -39,7 +40,7 @@ export function use_utility_actions(
   const copy_email_id = useCallback(
     async (email: InboxEmail): Promise<boolean> => {
       try {
-        await navigator.clipboard.writeText(email.id);
+        await copy_text_or_throw(email.id);
 
         return true;
       } catch {
@@ -54,7 +55,7 @@ export function use_utility_actions(
   const copy_sender_email = useCallback(
     async (email: InboxEmail): Promise<boolean> => {
       try {
-        await navigator.clipboard.writeText(email.sender_email);
+        await copy_text_or_throw(email.sender_email);
 
         return true;
       } catch {

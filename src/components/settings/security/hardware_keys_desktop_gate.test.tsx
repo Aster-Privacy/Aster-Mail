@@ -60,18 +60,29 @@ vi.mock("@/components/ui/input", () => ({
 }));
 
 vi.mock("@/components/ui/modal", () => ({
-  Modal: ({ children }: { children?: unknown }) => <div>{children as never}</div>,
-  ModalHeader: ({ children }: { children?: unknown }) => <div>{children as never}</div>,
-  ModalTitle: ({ children }: { children?: unknown }) => <div>{children as never}</div>,
-  ModalDescription: ({ children }: { children?: unknown }) => <div>{children as never}</div>,
-  ModalBody: ({ children }: { children?: unknown }) => <div>{children as never}</div>,
-  ModalFooter: ({ children }: { children?: unknown }) => <div>{children as never}</div>,
+  Modal: ({ children }: { children?: unknown }) => (
+    <div>{children as never}</div>
+  ),
+  ModalHeader: ({ children }: { children?: unknown }) => (
+    <div>{children as never}</div>
+  ),
+  ModalTitle: ({ children }: { children?: unknown }) => (
+    <div>{children as never}</div>
+  ),
+  ModalDescription: ({ children }: { children?: unknown }) => (
+    <div>{children as never}</div>
+  ),
+  ModalBody: ({ children }: { children?: unknown }) => (
+    <div>{children as never}</div>
+  ),
+  ModalFooter: ({ children }: { children?: unknown }) => (
+    <div>{children as never}</div>
+  ),
 }));
 
 import { HardwareKeysSection } from "./hardware_keys_section";
 
 declare global {
-  // eslint-disable-next-line no-var
   var IS_REACT_ACT_ENVIRONMENT: boolean;
 }
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;

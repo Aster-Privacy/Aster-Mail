@@ -50,7 +50,6 @@ import {
 } from "@/services/crypto/memory_key_store";
 import { MAIL_EVENTS } from "@/hooks/mail_events";
 import { use_auth_safe } from "@/contexts/auth_context";
-
 import { ignore_error } from "@/lib/ignore_error";
 
 let repair_attempted = false;
@@ -424,10 +423,12 @@ export function use_sidebar_aliases(): UseSidebarAliasesReturn {
 
       try {
         const groups_response = await list_my_groups();
+
         for (const g of groups_response.data ?? []) {
           if (!g.email_local_part || !g.domain_name) continue;
           const full_address = `${g.email_local_part}@${g.domain_name}`;
           const already = merged.some((a) => a.full_address === full_address);
+
           if (already) continue;
           merged.push({
             id: `group-${g.id}`,
@@ -446,10 +447,15 @@ export function use_sidebar_aliases(): UseSidebarAliasesReturn {
         ignore_error("hooks/use_sidebar_aliases:use_sidebar_aliases", caught);
       }
 
-      cached_aliases.data = merged;
-      rebuild_alias_index();
-      set_aliases(merged);
-      notify_alias_subscribers();
+      const alias_list_failed =
+        raw_alias_list === null && cached_aliases.data.length > 0;
+
+      if (!alias_list_failed) {
+        cached_aliases.data = merged;
+        rebuild_alias_index();
+        set_aliases(merged);
+        notify_alias_subscribers();
+      }
 
       void fetch_unread_ref.current?.();
       void backfill_missing_routing_hashes(raw_alias_list ?? undefined);
@@ -484,6 +490,7 @@ export function use_sidebar_aliases(): UseSidebarAliasesReturn {
       set_aliases([]);
       set_is_loading(true);
       set_can_create(false);
+      void fetch_ref.current?.();
     }
 
     if (current_user_id !== null) {

@@ -18,21 +18,23 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { } from "@/lib/i18n/types";
+import type {} from "@/lib/i18n/types";
 import type { ComposeToolbarState } from "@/components/compose/compose_shared";
 
-import {
-  useState,
-} from "react";
+import { useState } from "react";
 import { Button } from "@aster/ui";
-
-import { Spinner } from "@/components/ui/spinner";
-import { use_i18n } from "@/lib/i18n/context";
 
 import { DraftStatusIndicator } from "./draft_status";
 import { FormatTools } from "./format_tools";
 import { InsertTools } from "./insert_tools";
-import { ToolbarButton, read_format_bar_preference, store_format_bar_preference } from "./shared";
+import {
+  ToolbarButton,
+  read_format_bar_preference,
+  store_format_bar_preference,
+} from "./shared";
+
+import { use_i18n } from "@/lib/i18n/context";
+import { Spinner } from "@/components/ui/spinner";
 
 export interface ComposeToolbarProps {
   compose: ComposeToolbarState;
@@ -96,7 +98,7 @@ export function ComposeToolbar({
           </Button>
         )}
 
-        <div className="flex items-center gap-1 ml-1">
+        <div className="flex items-center gap-1 ms-1">
           <ToolbarButton
             active={show_format_bar}
             title={t("mail.text_formatting")}
@@ -118,7 +120,7 @@ export function ComposeToolbar({
           {compose.template_picker_element}
         </div>
 
-        <div className="ml-auto flex items-center gap-2 min-w-0">
+        <div className="ms-auto flex items-center gap-2 min-w-0">
           <DraftStatusIndicator
             compose={compose}
             reduce_motion={reduce_motion}

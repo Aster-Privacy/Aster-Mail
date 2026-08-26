@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { TranslationKey } from "@/lib/i18n/types";
+
 import { useEffect, useState, useCallback, useRef } from "react";
 import { ArrowPathIcon, ArrowDownTrayIcon } from "@heroicons/react/24/outline";
 import { Switch, Button } from "@aster/ui";
@@ -34,20 +36,19 @@ import {
   type DesktopUpdateInfo,
 } from "@/services/updates/updater";
 
+import { format_relative_time_short } from "@/utils/date_utils";
+
 declare const __APP_VERSION__: string;
 const APP_VERSION =
   typeof __APP_VERSION__ !== "undefined" ? __APP_VERSION__ : "dev";
 
-function format_relative(iso: string | null): string | null {
+function format_relative(
+  iso: string | null,
+  t: (key: TranslationKey, params?: Record<string, string | number>) => string,
+): string | null {
   if (!iso) return null;
-  const then = new Date(iso).getTime();
-  const now = Date.now();
-  const diff_min = Math.max(1, Math.round((now - then) / 60_000));
-  if (diff_min < 60) return `${diff_min}m ago`;
-  const diff_hr = Math.round(diff_min / 60);
-  if (diff_hr < 24) return `${diff_hr}h ago`;
-  const diff_day = Math.round(diff_hr / 24);
-  return `${diff_day}d ago`;
+
+  return format_relative_time_short(iso, t);
 }
 
 export function UpdatesSection() {
@@ -63,6 +64,7 @@ export function UpdatesSection() {
   const [progress, set_progress] = useState<number | null>(null);
   const [available, set_available] = useState<DesktopUpdateInfo | null>(null);
   const [status_msg, set_status_msg] = useState<string | null>(null);
+  const [error_msg, set_error_msg] = useState<string | null>(null);
 
   const handle_auto = (v: boolean) => {
     set_auto(v);
@@ -74,8 +76,10 @@ export function UpdatesSection() {
     is_checking_ref.current = true;
     set_checking(true);
     set_status_msg(null);
+    set_error_msg(null);
     try {
       const info = await check_for_update();
+
       set_last_check(get_last_check_iso());
       if (info) {
         set_available(info);
@@ -83,8 +87,8 @@ export function UpdatesSection() {
         set_available(null);
         set_status_msg(t("settings.updates_up_to_date"));
       }
-    } catch (err) {
-      set_status_msg(String((err as Error)?.message ?? err));
+    } catch {
+      set_error_msg(t("settings.updates_check_failed"));
     } finally {
       is_checking_ref.current = false;
       set_checking(false);
@@ -95,16 +99,18 @@ export function UpdatesSection() {
     if (!supported || installing) return;
     set_installing(true);
     set_progress(0);
+    set_error_msg(null);
     try {
       await download_and_install_update((p) => {
         set_progress(update_progress_percent(p));
       });
-    } catch (err) {
-      set_status_msg(String((err as Error)?.message ?? err));
+    } catch {
+      set_error_msg(t("settings.updates_install_failed"));
+    } finally {
       set_installing(false);
       set_progress(null);
     }
-  }, [supported, installing]);
+  }, [supported, installing, t]);
 
   useEffect(() => {
     if (supported && auto) {
@@ -136,18 +142,18 @@ export function UpdatesSection() {
             <p className="text-xs mt-0.5 text-txt-muted">
               {last_check
                 ? t("settings.updates_last_checked", {
-                    when: format_relative(last_check) || "",
+                    when: format_relative(last_check, t) || "",
                   })
                 : t("settings.updates_never_checked")}
             </p>
           </div>
           <Button
-            variant="secondary"
             disabled={!supported || checking || installing}
+            variant="secondary"
             onClick={handle_check}
           >
             <ArrowPathIcon
-              className={`w-4 h-4 mr-1.5 ${checking ? "animate-spin" : ""}`}
+              className={`w-4 h-4 me-1.5 ${checking ? "animate-spin" : ""}`}
             />
             {checking
               ? t("settings.updates_checking")
@@ -177,9 +183,9 @@ export function UpdatesSection() {
               </details>
             )}
             <Button
-              variant="primary"
-              size="sm"
               disabled={installing}
+              size="sm"
+              variant="primary"
               onClick={handle_install}
             >
               {!installing
@@ -187,7 +193,7 @@ export function UpdatesSection() {
                 : progress === null
                   ? t("settings.updates_downloading")
                   : t("settings.updates_installing", {
-                      percent: String(progress),
+                      percent: progress,
                     })}
             </Button>
             {installing && (
@@ -213,6 +219,8 @@ export function UpdatesSection() {
           </div>
         )}
 
+        {error_msg && <p className="text-xs text-red-500">{error_msg}</p>}
+
         {status_msg && !available && (
           <p className="text-xs text-txt-muted">{status_msg}</p>
         )}
@@ -220,7 +228,7 @@ export function UpdatesSection() {
 
       <div className="rounded-xl border border-edge-secondary p-4">
         <div className="flex items-center justify-between">
-          <div className="flex-1 pr-4">
+          <div className="flex-1 pe-4">
             <p className="text-sm font-medium text-txt-primary">
               {t("settings.updates_auto_label")}
             </p>
@@ -228,7 +236,12 @@ export function UpdatesSection() {
               {t("settings.updates_auto_description")}
             </p>
           </div>
-          <Switch size="lg" checked={auto} onCheckedChange={handle_auto} />
+          <Switch
+            aria-label={t("settings.updates_auto_label")}
+            checked={auto}
+            size="lg"
+            onCheckedChange={handle_auto}
+          />
         </div>
       </div>
     </div>

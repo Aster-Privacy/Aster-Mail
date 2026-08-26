@@ -22,6 +22,8 @@ import type { ShortcutActionId } from "@/constants/keyboard_shortcuts";
 
 import { useCallback, useEffect, useRef } from "react";
 
+import { has_open_overlay_layer } from "@/lib/overlay_layer_stack";
+
 export type KeyboardShortcutHandler = () => void;
 
 export type KeyboardShortcutHandlers = {
@@ -100,6 +102,34 @@ function is_typing(): boolean {
   if (active instanceof HTMLElement && active.isContentEditable) return true;
 
   return false;
+}
+
+const ACTIVATABLE_ROLES = new Set([
+  "button",
+  "link",
+  "menuitem",
+  "menuitemcheckbox",
+  "menuitemradio",
+  "option",
+  "tab",
+  "checkbox",
+  "radio",
+  "switch",
+]);
+
+function is_activatable_focus(): boolean {
+  const active = get_active_element();
+
+  if (!active) return false;
+
+  const tag_name = active.tagName.toUpperCase();
+
+  if (tag_name === "BUTTON" || tag_name === "SUMMARY") return true;
+  if (tag_name === "A" && active.hasAttribute("href")) return true;
+
+  const role = active.getAttribute("role");
+
+  return !!role && ACTIVATABLE_ROLES.has(role);
 }
 
 function get_select_all_region(): HTMLElement | null {
@@ -185,7 +215,7 @@ export function use_keyboard_shortcuts(
 
   const handle_keydown = useCallback((e: KeyboardEvent) => {
     const {
-      is_any_modal_open,
+      is_any_modal_open: is_modal_prop_open,
       has_focused_email,
       has_viewed_email,
       enabled,
@@ -204,6 +234,8 @@ export function use_keyboard_shortcuts(
     const has_alt = e.altKey;
 
     if (has_alt) return;
+
+    const is_any_modal_open = is_modal_prop_open || has_open_overlay_layer();
 
     const handle = (handler?: () => void, allow_repeat = false) => {
       if (!handler) return false;
@@ -249,12 +281,12 @@ export function use_keyboard_shortcuts(
 
       const region = get_select_all_region();
 
-      e.preventDefault();
-      e.stopPropagation();
-
-      if (e.repeat) return;
-
       if (region) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (e.repeat) return;
+
         select_region_contents(region);
 
         return;
@@ -262,12 +294,18 @@ export function use_keyboard_shortcuts(
 
       if (is_any_modal_open) return;
 
+      e.preventDefault();
+      e.stopPropagation();
+
+      if (e.repeat) return;
+
       window.dispatchEvent(new CustomEvent("astermail:keyboard-select-all"));
 
       return;
     }
 
     if (is_typing()) return;
+    if (is_any_modal_open) return;
 
     if (key === "c" && !has_cmd && !has_shift) {
       handle(h.on_compose);
@@ -285,8 +323,6 @@ export function use_keyboard_shortcuts(
 
       return;
     }
-
-    if (is_any_modal_open) return;
 
     if (
       pending_go_ref.current &&
@@ -326,6 +362,8 @@ export function use_keyboard_shortcuts(
     }
 
     if ((key === "enter" || key === "o") && !has_cmd && !has_shift) {
+      if (key === "enter" && is_activatable_focus()) return;
+
       if (has_focused_email) {
         handle(h.on_open_email);
       }

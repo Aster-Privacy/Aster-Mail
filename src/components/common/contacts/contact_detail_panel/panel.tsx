@@ -19,26 +19,16 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type {
-  
   ContactFormData,
-  
-  
-  
-  
-  
-  
-  
-  
   EmailEntryType,
   PhoneEntryType,
-  
   DateEntryType,
   RelatedPersonType,
   SocialNetworkType,
   WebsiteType,
   InstantMessengerType,
 } from "@/types/contacts";
-import type { } from "@/lib/i18n";
+import type {} from "@/lib/i18n";
 
 import { useEffect, useRef, useState } from "react";
 import {
@@ -61,12 +51,35 @@ import {
 import { StarIcon as StarSolidIcon } from "@heroicons/react/24/solid";
 import { Button } from "@aster/ui";
 
+import {
+  AddressList,
+  ContactPgpKeyRow,
+  FieldLabel,
+  Section,
+  TypedList,
+} from "./fields";
+import {
+  COLOR_SWATCHES,
+  ContactDetailPanelProps,
+  DATE_TYPE_OPTIONS,
+  DEFAULT_BANNER,
+  EMAIL_TYPE_OPTIONS,
+  EditState,
+  FIELD_CLASS,
+  IM_TYPE_OPTIONS,
+  PHONE_TYPE_OPTIONS,
+  RELATED_TYPE_OPTIONS,
+  SOCIAL_TYPE_OPTIONS,
+  WEBSITE_TYPE_OPTIONS,
+  empty_edit_state,
+  to_edit_state,
+} from "./helpers";
+
+import { app_date_format, format_iso_date } from "@/utils/date_format";
 import { ContactAvatar } from "@/components/common/contacts/contact_avatar";
 import { ContactHistoryPanel } from "@/components/contacts/contact_history_panel";
 import { show_toast } from "@/components/toast/simple_toast";
 import { strip_image_metadata_data_url } from "@/lib/strip_image_metadata";
-import { AddressList, ContactPgpKeyRow, FieldLabel, Section, TypedList } from "./fields";
-import { COLOR_SWATCHES, ContactDetailPanelProps, DATE_TYPE_OPTIONS, DEFAULT_BANNER, EMAIL_TYPE_OPTIONS, EditState, FIELD_CLASS, IM_TYPE_OPTIONS, PHONE_TYPE_OPTIONS, RELATED_TYPE_OPTIONS, SOCIAL_TYPE_OPTIONS, WEBSITE_TYPE_OPTIONS, empty_edit_state, to_edit_state } from "./helpers";
 
 export function ContactDetailPanel({
   t,
@@ -190,9 +203,7 @@ export function ContactDetailPanel({
     if (!is_editing) set_is_editing(true);
   };
 
-  const handle_avatar_file = async (
-    e: React.ChangeEvent<HTMLInputElement>,
-  ) => {
+  const handle_avatar_file = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
 
     if (file_input_ref.current) file_input_ref.current.value = "";
@@ -250,7 +261,8 @@ export function ContactDetailPanel({
           e.preventDefault();
           handle_cancel();
         } else if (
-          (e.key === "Enter" && (e.metaKey || e.ctrlKey)) &&
+          e.key === "Enter" &&
+          (e.metaKey || e.ctrlKey) &&
           is_editing
         ) {
           e.preventDefault();
@@ -264,7 +276,7 @@ export function ContactDetailPanel({
             className="h-[100px] rounded-2xl transition-colors"
             style={{ backgroundColor: banner }}
           />
-          <div className="absolute -bottom-10 left-4">
+          <div className="absolute -bottom-10 start-4">
             <div className="relative group">
               <ContactAvatar
                 avatar_url={draft.avatar_url}
@@ -284,7 +296,7 @@ export function ContactDetailPanel({
               {draft.avatar_url && (
                 <button
                   aria-label={t("common.delete")}
-                  className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-black/80 hover:bg-black flex items-center justify-center ring-2 ring-surf-primary"
+                  className="absolute -bottom-1 -end-1 w-7 h-7 rounded-full bg-black/80 hover:bg-black flex items-center justify-center ring-2 ring-surf-primary"
                   onClick={handle_avatar_clear}
                 >
                   <TrashIcon className="w-3.5 h-3.5 text-white" />
@@ -299,7 +311,7 @@ export function ContactDetailPanel({
               />
             </div>
           </div>
-          <div className="absolute right-4 -bottom-6 flex items-center gap-2 px-2.5 py-2 rounded-full bg-surf-primary border border-edge-primary shadow-lg">
+          <div className="absolute end-4 -bottom-6 flex items-center gap-2 px-2.5 py-2 rounded-full bg-surf-primary border border-edge-primary shadow-lg">
             {COLOR_SWATCHES.map((c) => {
               const active = c.value === banner;
 
@@ -399,9 +411,7 @@ export function ContactDetailPanel({
                   placeholder={t("common.title")}
                   readOnly={!is_editing}
                   value={draft.title}
-                  onChange={(e) =>
-                    handle_field_change("title", e.target.value)
-                  }
+                  onChange={(e) => handle_field_change("title", e.target.value)}
                   onFocus={() => set_is_editing(true)}
                 />
                 <input
@@ -443,7 +453,7 @@ export function ContactDetailPanel({
                 {show_more ? (
                   <ChevronDownIcon className="w-4 h-4" />
                 ) : (
-                  <ChevronRightIcon className="w-4 h-4" />
+                  <ChevronRightIcon className="w-4 h-4 rtl:-scale-x-100" />
                 )}
                 {t("common.phonetic_first_name")}
               </button>
@@ -492,10 +502,6 @@ export function ContactDetailPanel({
                 <TypedList
                   disabled={!is_editing}
                   entries={draft.email_entries}
-                  options={EMAIL_TYPE_OPTIONS}
-                  placeholder="name@example.com"
-                  t={t}
-                  type_default="other"
                   on_add={() =>
                     update_list("email_entries", (l) => [
                       ...l,
@@ -519,6 +525,10 @@ export function ContactDetailPanel({
                       ),
                     )
                   }
+                  options={EMAIL_TYPE_OPTIONS}
+                  placeholder="name@example.com"
+                  t={t}
+                  type_default="other"
                 />
               </div>
               <div>
@@ -526,10 +536,6 @@ export function ContactDetailPanel({
                 <TypedList
                   disabled={!is_editing}
                   entries={draft.phone_entries}
-                  options={PHONE_TYPE_OPTIONS}
-                  placeholder="XXX-XXX-XXXX"
-                  t={t}
-                  type_default="mobile"
                   on_add={() =>
                     update_list("phone_entries", (l) => [
                       ...l,
@@ -553,6 +559,10 @@ export function ContactDetailPanel({
                       ),
                     )
                   }
+                  options={PHONE_TYPE_OPTIONS}
+                  placeholder={t("common.phone_placeholder")}
+                  t={t}
+                  type_default="mobile"
                 />
               </div>
               <div>
@@ -562,10 +572,6 @@ export function ContactDetailPanel({
                 <TypedList
                   disabled={!is_editing}
                   entries={draft.instant_messengers}
-                  options={IM_TYPE_OPTIONS}
-                  placeholder={t("common.username")}
-                  t={t}
-                  type_default="signal"
                   on_add={() =>
                     update_list("instant_messengers", (l) => [
                       ...l,
@@ -591,6 +597,10 @@ export function ContactDetailPanel({
                       ),
                     )
                   }
+                  options={IM_TYPE_OPTIONS}
+                  placeholder={t("common.username")}
+                  t={t}
+                  type_default="signal"
                 />
               </div>
             </Section>
@@ -619,9 +629,7 @@ export function ContactDetailPanel({
                   placeholder={t("common.role")}
                   readOnly={!is_editing}
                   value={draft.role}
-                  onChange={(e) =>
-                    handle_field_change("role", e.target.value)
-                  }
+                  onChange={(e) => handle_field_change("role", e.target.value)}
                   onFocus={() => set_is_editing(true)}
                 />
                 <input
@@ -659,15 +667,17 @@ export function ContactDetailPanel({
 
             <Section title={t("common.personal")}>
               <div>
-                <FieldLabel icon={CakeIcon}>
-                  {t("common.birthday")}
-                </FieldLabel>
+                <FieldLabel icon={CakeIcon}>{t("common.birthday")}</FieldLabel>
                 <input
                   className={FIELD_CLASS}
-                  placeholder="MM/DD/YYYY"
+                  placeholder={app_date_format()}
                   readOnly={!is_editing}
                   type={is_editing ? "date" : "text"}
-                  value={draft.birthday}
+                  value={
+                    is_editing
+                      ? draft.birthday
+                      : format_iso_date(draft.birthday)
+                  }
                   onChange={(e) =>
                     handle_field_change("birthday", e.target.value)
                   }
@@ -675,17 +685,11 @@ export function ContactDetailPanel({
                 />
               </div>
               <div>
-                <FieldLabel icon={CalendarIcon}>
-                  {t("common.dates")}
-                </FieldLabel>
+                <FieldLabel icon={CalendarIcon}>{t("common.dates")}</FieldLabel>
                 <TypedList
                   disabled={!is_editing}
                   entries={draft.date_entries}
                   input_type="date"
-                  options={DATE_TYPE_OPTIONS}
-                  placeholder="YYYY-MM-DD"
-                  t={t}
-                  type_default="anniversary"
                   on_add={() =>
                     update_list("date_entries", (l) => [
                       ...l,
@@ -705,12 +709,14 @@ export function ContactDetailPanel({
                   on_type_change={(idx, type) =>
                     update_list("date_entries", (l) =>
                       l.map((d, i) =>
-                        i === idx
-                          ? { ...d, type: type as DateEntryType }
-                          : d,
+                        i === idx ? { ...d, type: type as DateEntryType } : d,
                       ),
                     )
                   }
+                  options={DATE_TYPE_OPTIONS}
+                  placeholder="YYYY-MM-DD"
+                  t={t}
+                  type_default="anniversary"
                 />
               </div>
               <div>
@@ -720,10 +726,6 @@ export function ContactDetailPanel({
                 <TypedList
                   disabled={!is_editing}
                   entries={draft.related_people}
-                  options={RELATED_TYPE_OPTIONS}
-                  placeholder={t("common.name")}
-                  t={t}
-                  type_default="assistant"
                   on_add={() =>
                     update_list("related_people", (l) => [
                       ...l,
@@ -749,16 +751,17 @@ export function ContactDetailPanel({
                       ),
                     )
                   }
+                  options={RELATED_TYPE_OPTIONS}
+                  placeholder={t("common.name")}
+                  t={t}
+                  type_default="assistant"
                 />
               </div>
               <div>
-                <FieldLabel icon={MapPinIcon}>
-                  {t("common.address")}
-                </FieldLabel>
+                <FieldLabel icon={MapPinIcon}>{t("common.address")}</FieldLabel>
                 <AddressList
                   disabled={!is_editing}
                   entries={draft.address_entries}
-                  t={t}
                   on_add={() =>
                     update_list("address_entries", (l) => [
                       ...l,
@@ -775,6 +778,7 @@ export function ContactDetailPanel({
                       l.filter((_, i) => i !== idx),
                     )
                   }
+                  t={t}
                 />
               </div>
             </Section>
@@ -787,10 +791,6 @@ export function ContactDetailPanel({
                 <TypedList
                   disabled={!is_editing}
                   entries={draft.websites}
-                  options={WEBSITE_TYPE_OPTIONS}
-                  placeholder="https://example.com"
-                  t={t}
-                  type_default="private"
                   on_add={() =>
                     update_list("websites", (l) => [
                       ...l,
@@ -814,6 +814,10 @@ export function ContactDetailPanel({
                       ),
                     )
                   }
+                  options={WEBSITE_TYPE_OPTIONS}
+                  placeholder="https://example.com"
+                  t={t}
+                  type_default="private"
                 />
               </div>
               <div>
@@ -823,10 +827,6 @@ export function ContactDetailPanel({
                 <TypedList
                   disabled={!is_editing}
                   entries={draft.social_networks}
-                  options={SOCIAL_TYPE_OPTIONS}
-                  placeholder="@handle"
-                  t={t}
-                  type_default="twitter"
                   on_add={() =>
                     update_list("social_networks", (l) => [
                       ...l,
@@ -852,6 +852,10 @@ export function ContactDetailPanel({
                       ),
                     )
                   }
+                  options={SOCIAL_TYPE_OPTIONS}
+                  placeholder="@handle"
+                  t={t}
+                  type_default="twitter"
                 />
               </div>
             </Section>
@@ -872,35 +876,34 @@ export function ContactDetailPanel({
 
       <div className="border-t border-edge-primary bg-surf-primary">
         <div className="px-3 md:px-6 py-3 flex items-center justify-between">
-        {is_creating_new || !selected_contact ? (
-          <span />
-        ) : (
-          <Button
-            className="h-9 px-4 text-[13px] !bg-red-500 hover:!bg-red-600 !text-white !border-transparent"
-            onClick={() => on_delete_request(selected_contact)}
-          >
-            {t("common.delete_contact")}
-          </Button>
-        )}
-        <div className="flex items-center gap-2">
-          <Button
-            className="h-9 px-4 text-[13px]"
-            variant="outline"
-            onClick={handle_cancel}
-          >
-            {t("common.cancel")}
-          </Button>
-          <Button
-            className="h-9 px-4 text-[13px]"
-            disabled={is_submitting}
-            onClick={handle_save}
-          >
-            {t("common.save")}
-          </Button>
-        </div>
+          {is_creating_new || !selected_contact ? (
+            <span />
+          ) : (
+            <Button
+              className="h-9 px-4 text-[13px] !bg-red-500 hover:!bg-red-600 !text-white !border-transparent"
+              onClick={() => on_delete_request(selected_contact)}
+            >
+              {t("common.delete_contact")}
+            </Button>
+          )}
+          <div className="flex items-center gap-2">
+            <Button
+              className="h-9 px-4 text-[13px]"
+              variant="outline"
+              onClick={handle_cancel}
+            >
+              {t("common.cancel")}
+            </Button>
+            <Button
+              className="h-9 px-4 text-[13px]"
+              disabled={is_submitting}
+              onClick={handle_save}
+            >
+              {t("common.save")}
+            </Button>
+          </div>
         </div>
       </div>
     </div>
   );
 }
-

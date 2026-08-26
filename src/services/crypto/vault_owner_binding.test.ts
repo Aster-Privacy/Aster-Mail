@@ -18,9 +18,10 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { EncryptedVault } from "./key_manager";
+
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 
-import type { EncryptedVault } from "./key_manager";
 import {
   store_vault_in_memory,
   clear_vault_from_memory,
@@ -29,6 +30,7 @@ import {
   get_vault_owner_id,
   is_vault_owned_by,
 } from "./memory_key_store";
+
 import { subtle_crypto_mock } from "@/tests/setup";
 
 const OWNER_A = "3c74a773-b6e8-40ed-a375-c9a26fe97d04";

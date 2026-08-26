@@ -24,7 +24,9 @@ import { sanitize_outgoing_html } from "./html_sanitizer_compose";
 
 describe("sanitize_outgoing_html dangerous href handling", () => {
   it("strips a dangerous href from an anchor", () => {
-    const out = sanitize_outgoing_html('<p><a href="javascript:alert(1)">x</a></p>');
+    const out = sanitize_outgoing_html(
+      '<p><a href="javascript:alert(1)">x</a></p>',
+    );
 
     expect(out).not.toContain("javascript:");
     expect(out).toContain("x");
@@ -61,7 +63,9 @@ describe("sanitize_outgoing_html dangerous href handling", () => {
   });
 
   it("keeps inline image sources intact", () => {
-    const out = sanitize_outgoing_html('<div><img src="cid:abc123" alt="x"></div>');
+    const out = sanitize_outgoing_html(
+      '<div><img src="cid:abc123" alt="x"></div>',
+    );
 
     expect(out).toContain("cid:abc123");
   });

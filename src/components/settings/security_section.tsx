@@ -18,22 +18,24 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { ApiResponse } from "@/services/api/client";
+import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
+import type { HardwareKeysListResponse } from "@/services/api/webauthn";
+
 import { useState } from "react";
 import { Badge, Button, Switch } from "@aster/ui";
-import { InfoPopover } from "@/components/ui/info_popover";
 import {
   ShieldCheckIcon,
   PhotoIcon,
   CodeBracketIcon,
   CpuChipIcon,
 } from "@heroicons/react/24/outline";
-import type { ApiResponse } from "@/services/api/client";
-import type { HardwareKeysListResponse } from "@/services/api/webauthn";
-import { use_settings_panel_data } from "@/components/settings/hooks/use_settings_prefetch";
 
 import { TotpDisableModal } from "./totp_disable_modal";
 import { RegenerateBackupCodesModal } from "./regenerate_backup_codes_modal";
 
+import { use_settings_panel_data } from "@/components/settings/hooks/use_settings_prefetch";
+import { InfoPopover } from "@/components/ui/info_popover";
 import { KeyRotationModal } from "@/components/modals/key_rotation_modal";
 import { DeleteAccountModal } from "@/components/modals/delete_account_modal";
 import { ConnectionSection } from "@/components/settings/connection_section";
@@ -51,6 +53,7 @@ import { RecoverOlderDataSection } from "@/components/settings/security/recover_
 import { AccountRecoverySection } from "@/components/settings/security/account_recovery_section";
 import { AccountProtectionScore } from "@/components/settings/security/account_protection_score";
 import { use_security } from "@/components/settings/hooks/use_security";
+import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
 import {
@@ -64,7 +67,9 @@ import {
 interface SecuritySectionProps {
   on_account_deleted?: () => void;
   show_inline_totp_setup?: boolean;
-  set_show_inline_totp_setup?: (value: boolean | ((prev: boolean) => boolean)) => void;
+  set_show_inline_totp_setup?: (
+    value: boolean | ((prev: boolean) => boolean),
+  ) => void;
 }
 
 function find_scroll_container(el: HTMLElement): HTMLElement | null {
@@ -129,7 +134,9 @@ export function SecuritySection({
     set_show_inline_totp_setup_prop ?? set_show_inline_totp_setup_local;
   const {
     data: passkey_data,
+    error: passkey_error,
     is_loading: passkey_is_loading,
+    revalidate: revalidate_passkeys,
   } = use_settings_panel_data<ApiResponse<HardwareKeysListResponse>>(
     "passkey_list",
   );
@@ -137,7 +144,13 @@ export function SecuritySection({
   const passkey_loaded = !passkey_is_loading;
 
   const on_two_factor_toggle = () => {
-    if (security.totp_status?.enabled) {
+    if (!security.totp_status) {
+      show_toast(t("settings.failed_load_security_status"), "error");
+      void security.fetch_totp_status();
+
+      return;
+    }
+    if (security.totp_status.enabled) {
       security.set_show_totp_disable_modal(true);
     } else {
       set_show_inline_totp_setup((prev) => !prev);
@@ -146,27 +159,37 @@ export function SecuritySection({
 
   return (
     <div className="space-y-4">
-      <AccountProtectionScore
-        block_remote_images={preferences.block_remote_images}
-        block_tracking_pixels={preferences.block_tracking_pixels}
-        login_alerts_enabled={security.login_alerts_enabled}
-        passkey_registered={passkey_registered}
-        read_receipts_off={!preferences.show_read_receipts}
-        security_loaded={security.security_score_loaded && passkey_loaded}
-        on_criterion_click={[
-          () => scroll_to_id("sec-2fa"),
-          () => scroll_to_id("sec-passkeys"),
-          () => window.dispatchEvent(new CustomEvent("navigate-settings", { detail: "account" })),
-          () => scroll_to_id("sec-2fa"),
-          () => scroll_to_id("sec-tracking"),
-          () => scroll_to_id("sec-images"),
-          () => scroll_to_id("sec-images"),
-          undefined,
-        ]}
-        recovery_email_verified={security.recovery_email_verified}
-        strip_exif_on_compose={preferences.strip_exif_on_compose}
-        totp_enabled={security.totp_status?.enabled ?? false}
-      />
+      {passkey_error && (
+        <LoadFailedNotice on_retry={() => void revalidate_passkeys()} />
+      )}
+      {!passkey_error && (
+        <AccountProtectionScore
+          block_remote_images={preferences.block_remote_images}
+          block_tracking_pixels={preferences.block_tracking_pixels}
+          login_alerts_enabled={security.login_alerts_enabled}
+          on_criterion_click={[
+            () => scroll_to_id("sec-2fa"),
+            () => scroll_to_id("sec-passkeys"),
+            () =>
+              window.dispatchEvent(
+                new CustomEvent("navigate-settings", { detail: "account" }),
+              ),
+            () => scroll_to_id("sec-2fa"),
+            () => scroll_to_id("sec-tracking"),
+            () => scroll_to_id("sec-images"),
+            () => scroll_to_id("sec-images"),
+          ]}
+          passkey_registered={passkey_registered}
+          recovery_email_verified={security.recovery_email_verified}
+          security_loaded={
+            security.security_score_loaded &&
+            passkey_loaded &&
+            !security.totp_status_failed
+          }
+          strip_exif_on_compose={preferences.strip_exif_on_compose}
+          totp_enabled={security.totp_status?.enabled ?? false}
+        />
+      )}
 
       <div id="sec-2fa">
         <BasicsSection
@@ -175,6 +198,7 @@ export function SecuritySection({
             security.handle_totp_setup_success();
           }}
           on_regenerate_backup_codes={() => set_show_regenerate_modal(true)}
+          on_totp_status_retry={() => void security.fetch_totp_status()}
           on_two_factor_toggle={on_two_factor_toggle}
           password_props={{
             confirm_password: security.confirm_password,
@@ -205,6 +229,7 @@ export function SecuritySection({
             security.totp_status?.backup_codes_remaining
           }
           totp_enabled={security.totp_status?.enabled ?? false}
+          totp_status_failed={security.totp_status_failed}
         />
       </div>
 
@@ -226,9 +251,14 @@ export function SecuritySection({
 
       <LoginAlertsSessionsGroup
         login_alerts_enabled={security.login_alerts_enabled}
+        login_alerts_failed={security.login_alerts_failed}
+        login_alerts_loaded={security.login_alerts_loaded}
+        on_reload_login_alerts={() => void security.fetch_login_alerts_status()}
         login_events={security.login_events}
+        login_events_failed={security.login_events_failed}
         login_events_loading={security.login_events_loading}
         on_login_alerts_toggle={security.handle_login_alerts_toggle}
+        on_reload_login_events={security.fetch_login_events}
         on_timeout_change={security.handle_timeout_change}
         on_timeout_toggle={security.handle_timeout_toggle}
         session_timeout_enabled={security.preferences.session_timeout_enabled}
@@ -251,6 +281,7 @@ export function SecuritySection({
 
       <ForwardSecrecyGroup
         forward_secrecy_enabled={security.preferences.forward_secrecy_enabled}
+        forward_secrecy_working={security.forward_secrecy_working}
         key_age_hours={security.key_age_hours}
         key_fingerprint={security.key_fingerprint}
         key_history_limit={security.preferences.key_history_limit}
@@ -279,7 +310,7 @@ export function SecuritySection({
         </div>
 
         <div className="flex items-center justify-between py-4">
-          <div className="flex-1 pr-4">
+          <div className="flex-1 pe-4">
             <p className="text-sm font-medium text-txt-primary">
               {t("settings.tracking_protection_enabled")}
             </p>
@@ -287,21 +318,29 @@ export function SecuritySection({
               {t("settings.tracking_protection_enabled_description")}
             </p>
           </div>
-          <Switch size="lg"
+          <Switch
+            aria-label={t("settings.tracking_protection_enabled")}
             checked={preferences.block_external_content}
+            size="lg"
             onCheckedChange={() => {
               const new_value = !preferences.block_external_content;
 
               if (new_value) {
-                update_preferences({
-                  block_external_content: true,
-                  block_tracking_pixels: true,
-                }, true);
+                update_preferences(
+                  {
+                    block_external_content: true,
+                    block_tracking_pixels: true,
+                  },
+                  true,
+                );
               } else {
-                update_preferences({
-                  block_external_content: false,
-                  block_tracking_pixels: false,
-                }, true);
+                update_preferences(
+                  {
+                    block_external_content: false,
+                    block_tracking_pixels: false,
+                  },
+                  true,
+                );
               }
             }}
           />
@@ -310,17 +349,22 @@ export function SecuritySection({
         {preferences.block_external_content && (
           <>
             <div className="flex items-center justify-between py-4">
-              <div className="flex-1 pr-4">
+              <div className="flex-1 pe-4">
                 <p className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
                   {t("settings.block_spy_pixels")}
-                  <InfoPopover description={t("settings.info_spy_pixels_description")} title={t("settings.info_spy_pixels_title")} />
+                  <InfoPopover
+                    description={t("settings.info_spy_pixels_description")}
+                    title={t("settings.info_spy_pixels_title")}
+                  />
                 </p>
                 <p className="text-sm mt-0.5 text-txt-muted">
                   {t("settings.block_spy_pixels_description")}
                 </p>
               </div>
-              <Switch size="lg"
+              <Switch
+                aria-label={t("settings.block_spy_pixels")}
                 checked={preferences.block_tracking_pixels}
+                size="lg"
                 onCheckedChange={() =>
                   update_preference(
                     "block_tracking_pixels",
@@ -332,10 +376,15 @@ export function SecuritySection({
             </div>
 
             <div className="flex items-center justify-between py-4">
-              <div className="flex-1 pr-4">
+              <div className="flex-1 pe-4">
                 <p className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
                   {t("settings.block_tracking_links")}
-                  <InfoPopover description={t("settings.info_block_tracking_links_description")} title={t("settings.info_block_tracking_links_title")} />
+                  <InfoPopover
+                    description={t(
+                      "settings.info_block_tracking_links_description",
+                    )}
+                    title={t("settings.info_block_tracking_links_title")}
+                  />
                 </p>
                 <p className="text-sm mt-0.5 text-txt-muted">
                   {t("settings.block_tracking_links_description")}
@@ -361,7 +410,7 @@ export function SecuritySection({
         </div>
 
         <div className="flex items-center justify-between py-4">
-          <div className="flex-1 pr-4">
+          <div className="flex-1 pe-4">
             <p className="text-sm font-medium text-txt-primary">
               {t("settings.block_remote_images_label")}
             </p>
@@ -369,25 +418,35 @@ export function SecuritySection({
               {t("settings.block_remote_images_description")}
             </p>
           </div>
-          <Switch size="lg"
+          <Switch
+            aria-label={t("settings.block_remote_images_label")}
             checked={preferences.block_remote_images}
+            size="lg"
             onCheckedChange={() => {
               const new_value = !preferences.block_remote_images;
 
-              update_preferences({
-                block_remote_images: new_value,
-                load_remote_images: new_value ? "never" : "always",
-              }, true);
+              update_preferences(
+                {
+                  block_remote_images: new_value,
+                  load_remote_images: new_value ? "never" : "always",
+                },
+                true,
+              );
             }}
           />
         </div>
 
         {preferences.block_remote_images && (
           <div className="flex items-center justify-between py-4">
-            <div className="flex-1 pr-4">
+            <div className="flex-1 pe-4">
               <p className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
                 {t("settings.remote_image_loading")}
-                <InfoPopover description={t("settings.info_remote_image_loading_description")} title={t("settings.info_remote_image_loading_title")} />
+                <InfoPopover
+                  description={t(
+                    "settings.info_remote_image_loading_description",
+                  )}
+                  title={t("settings.info_remote_image_loading_title")}
+                />
               </p>
               <p className="text-sm mt-0.5 text-txt-muted">
                 {t("settings.remote_image_loading_description")}
@@ -422,17 +481,22 @@ export function SecuritySection({
         )}
 
         <div className="flex items-center justify-between py-4">
-          <div className="flex-1 pr-4">
+          <div className="flex-1 pe-4">
             <p className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
               {t("settings.block_remote_fonts_label")}
-              <InfoPopover description={t("settings.info_block_fonts_description")} title={t("settings.info_block_fonts_title")} />
+              <InfoPopover
+                description={t("settings.info_block_fonts_description")}
+                title={t("settings.info_block_fonts_title")}
+              />
             </p>
             <p className="text-sm mt-0.5 text-txt-muted">
               {t("settings.block_remote_fonts_description")}
             </p>
           </div>
-          <Switch size="lg"
+          <Switch
+            aria-label={t("settings.block_remote_fonts_label")}
             checked={preferences.block_remote_fonts}
+            size="lg"
             onCheckedChange={() =>
               update_preference(
                 "block_remote_fonts",
@@ -444,17 +508,22 @@ export function SecuritySection({
         </div>
 
         <div className="flex items-center justify-between py-4">
-          <div className="flex-1 pr-4">
+          <div className="flex-1 pe-4">
             <p className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
               {t("settings.block_remote_css_label")}
-              <InfoPopover description={t("settings.info_block_css_description")} title={t("settings.info_block_css_title")} />
+              <InfoPopover
+                description={t("settings.info_block_css_description")}
+                title={t("settings.info_block_css_title")}
+              />
             </p>
             <p className="text-sm mt-0.5 text-txt-muted">
               {t("settings.block_remote_css_description")}
             </p>
           </div>
-          <Switch size="lg"
+          <Switch
+            aria-label={t("settings.block_remote_css_label")}
             checked={preferences.block_remote_css}
+            size="lg"
             onCheckedChange={() =>
               update_preference(
                 "block_remote_css",
@@ -466,17 +535,22 @@ export function SecuritySection({
         </div>
 
         <div className="flex items-center justify-between py-4">
-          <div className="flex-1 pr-4">
+          <div className="flex-1 pe-4">
             <p className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
               {t("settings.strip_exif_on_compose_label")}
-              <InfoPopover description={t("settings.info_strip_exif_description")} title={t("settings.info_strip_exif_title")} />
+              <InfoPopover
+                description={t("settings.info_strip_exif_description")}
+                title={t("settings.info_strip_exif_title")}
+              />
             </p>
             <p className="text-sm mt-0.5 text-txt-muted">
               {t("settings.strip_exif_on_compose_description")}
             </p>
           </div>
-          <Switch size="lg"
+          <Switch
+            aria-label={t("settings.strip_exif_on_compose_label")}
             checked={preferences.strip_exif_on_compose}
+            size="lg"
             onCheckedChange={() =>
               update_preference(
                 "strip_exif_on_compose",
@@ -498,7 +572,7 @@ export function SecuritySection({
         </div>
 
         <div className="flex items-center justify-between py-4">
-          <div className="flex-1 pr-4">
+          <div className="flex-1 pe-4">
             <p className="text-sm font-medium text-txt-primary">
               {t("settings.html_rendering_mode_label")}
             </p>
@@ -506,18 +580,21 @@ export function SecuritySection({
               {t("settings.html_rendering_mode_description")}
             </p>
           </div>
-          <Switch size="lg"
+          <Switch
+            aria-label={t("settings.html_rendering_mode_label")}
             checked={preferences.html_rendering_mode === "plain_text"}
+            size="lg"
             onCheckedChange={() =>
               update_preference(
                 "html_rendering_mode",
-                preferences.html_rendering_mode === "plain_text" ? "html" : "plain_text",
+                preferences.html_rendering_mode === "plain_text"
+                  ? "html"
+                  : "plain_text",
                 true,
               )
             }
           />
         </div>
-
       </div>
 
       <div id="sec-vanguard">

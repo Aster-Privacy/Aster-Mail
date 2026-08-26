@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useCallback, useEffect, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Bars3Icon,
@@ -46,6 +46,7 @@ import { use_i18n } from "@/lib/i18n/context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_primary_identity } from "@/lib/primary_identity";
+import { open_external } from "@/utils/open_link";
 
 const HELP_CENTER_URL = "https://astermail.org/help";
 const PRIVACY_URL = "https://astermail.org/privacy";
@@ -104,7 +105,7 @@ function IconButton({
   );
 }
 
-export function TopBar({
+function top_bar_base({
   is_settings_view = false,
   on_mobile_menu_toggle,
   on_search_result_click,
@@ -215,11 +216,11 @@ export function TopBar({
 
   return (
     <header
-      className="flex items-center h-14 pr-2 sm:pr-3 flex-shrink-0 select-none"
+      className="flex items-center h-14 pe-2 sm:pe-3 flex-shrink-0 select-none"
       style={{ backgroundColor: "var(--bg-secondary)" }}
     >
       <div
-        className="flex items-center gap-2 flex-shrink-0 px-2 sm:pl-[22px] sm:pr-3"
+        className="flex items-center gap-2 flex-shrink-0 px-2 sm:ps-[22px] sm:pe-3"
         style={is_mobile ? undefined : { width: left_cluster_width }}
       >
         {is_mobile && (
@@ -258,7 +259,7 @@ export function TopBar({
         </Tooltip>
       </div>
 
-      <div className="flex-1 min-w-0 flex items-center pl-1 md:pl-2">
+      <div className="flex-1 min-w-0 flex items-center ps-1 md:ps-2">
         {is_settings_view ? (
           <div className="w-full" id="settings_search_slot" />
         ) : (
@@ -271,7 +272,7 @@ export function TopBar({
         )}
       </div>
 
-      <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0 ml-auto pl-2">
+      <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0 ms-auto ps-2">
         <DropdownMenu>
           <Tooltip tip={t("common.help")}>
             <DropdownMenuTrigger asChild>
@@ -285,38 +286,26 @@ export function TopBar({
             </DropdownMenuTrigger>
           </Tooltip>
           <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuItem
-              onClick={() =>
-                window.open(HELP_CENTER_URL, "_blank", "noopener,noreferrer")
-              }
-            >
-              <LifebuoyIcon className="w-4 h-4 mr-2" />
+            <DropdownMenuItem onClick={() => open_external(HELP_CENTER_URL)}>
+              <LifebuoyIcon className="w-4 h-4 me-2" />
               {t("settings.bridge_support_help")}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={on_shortcuts_click}>
-              <KeyboardIcon className="w-4 h-4 mr-2" />
+              <KeyboardIcon className="w-4 h-4 me-2" />
               {t("common.keyboard_shortcuts")}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={open_feedback_settings}>
-              <ChatBubbleLeftRightIcon className="w-4 h-4 mr-2" />
+              <ChatBubbleLeftRightIcon className="w-4 h-4 me-2" />
               {t("common.send_feedback_to_aster")}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() =>
-                window.open(PRIVACY_URL, "_blank", "noopener,noreferrer")
-              }
-            >
-              <ShieldCheckIcon className="w-4 h-4 mr-2" />
+            <DropdownMenuItem onClick={() => open_external(PRIVACY_URL)}>
+              <ShieldCheckIcon className="w-4 h-4 me-2" />
               {t("auth.privacy_policy")}
             </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() =>
-                window.open(TERMS_URL, "_blank", "noopener,noreferrer")
-              }
-            >
-              <DocumentTextIcon className="w-4 h-4 mr-2" />
+            <DropdownMenuItem onClick={() => open_external(TERMS_URL)}>
+              <DocumentTextIcon className="w-4 h-4 me-2" />
               {t("auth.terms_of_service")}
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -329,7 +318,7 @@ export function TopBar({
         {is_free_plan && (
           <Tooltip tip={t("common.upgrade_tooltip")}>
             <Button
-              className="hidden sm:inline-flex !h-9 !rounded-full !text-[14px] !font-medium !px-5 ml-1"
+              className="hidden sm:inline-flex !h-9 !rounded-full !text-[14px] !font-medium !px-5 ms-1"
               size="sm"
               variant="depth"
               onClick={open_billing}
@@ -373,7 +362,7 @@ export function TopBar({
             }
           />
           {show_account_tip && !is_accounts_open && (
-            <div className="aster_tip_portal pointer-events-none absolute right-0 top-full mt-1.5 z-[70] text-left">
+            <div className="aster_tip_portal pointer-events-none absolute end-0 top-full mt-1.5 z-[70] text-start">
               <p className="font-medium text-[var(--text-primary)]">
                 {t("common.aster_account")}
               </p>
@@ -388,3 +377,5 @@ export function TopBar({
     </header>
   );
 }
+
+export const TopBar = memo(top_bar_base);

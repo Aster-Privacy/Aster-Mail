@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { InboxFilterType, } from "@/types/email";
+import type { InboxFilterType } from "@/types/email";
 
 import {
   Cog6ToothIcon,
@@ -26,7 +26,7 @@ import {
   ArrowPathIcon,
   CheckIcon,
 } from "@heroicons/react/24/outline";
-import { Button, } from "@aster/ui";
+import { Button } from "@aster/ui";
 
 import {
   DropdownMenu,
@@ -38,7 +38,6 @@ import {
 } from "@/components/ui/dropdown_menu";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
-
 
 export interface MobileOverflowMenuProps {
   handle_refresh: () => void;
@@ -72,31 +71,31 @@ export function MobileOverflowMenu({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuItem onClick={handle_refresh}>
-          <ArrowPathIcon className="w-4 h-4 mr-2" />
+          <ArrowPathIcon className="w-4 h-4 me-2" />
           {t("common.refresh")}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuLabel>{t("mail.filter")}</DropdownMenuLabel>
         <DropdownMenuItem onClick={() => on_filter_change?.("all")}>
-          <span className="w-4 mr-2">
+          <span className="w-4 me-2">
             {active_filter === "all" && <CheckIcon className="w-4 h-4" />}
           </span>
           {t("mail.all_emails")}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => on_filter_change?.("unread")}>
-          <span className="w-4 mr-2">
+          <span className="w-4 me-2">
             {active_filter === "unread" && <CheckIcon className="w-4 h-4" />}
           </span>
           {t("mail.unread_only")}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => on_filter_change?.("read")}>
-          <span className="w-4 mr-2">
+          <span className="w-4 me-2">
             {active_filter === "read" && <CheckIcon className="w-4 h-4" />}
           </span>
           {t("mail.read_only")}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => on_filter_change?.("attachments")}>
-          <span className="w-4 mr-2">
+          <span className="w-4 me-2">
             {active_filter === "attachments" && (
               <CheckIcon className="w-4 h-4" />
             )}
@@ -110,7 +109,7 @@ export function MobileOverflowMenu({
             update_preference("inbox_sort_order", "newest_first", true)
           }
         >
-          <span className="w-4 mr-2">
+          <span className="w-4 me-2">
             {sort_order === "newest_first" && <CheckIcon className="w-4 h-4" />}
           </span>
           {t("mail.newest_first")}
@@ -120,7 +119,7 @@ export function MobileOverflowMenu({
             update_preference("inbox_sort_order", "oldest_first", true)
           }
         >
-          <span className="w-4 mr-2">
+          <span className="w-4 me-2">
             {sort_order === "oldest_first" && <CheckIcon className="w-4 h-4" />}
           </span>
           {t("mail.oldest_first")}
@@ -172,11 +171,10 @@ export function MobileOverflowMenu({
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={on_settings_click}>
-          <Cog6ToothIcon className="w-4 h-4 mr-2" />
+          <Cog6ToothIcon className="w-4 h-4 me-2" />
           {t("settings.title")}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
 }
-

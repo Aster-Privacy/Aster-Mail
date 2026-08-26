@@ -18,13 +18,19 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { collect_vault_key_fingerprints } from "@/services/crypto/vault_key_fingerprints";
-import { useState, useEffect } from "react";
+import type { TotpStatusResponse } from "@/services/api/totp";
 
+import { useState, useEffect, useRef } from "react";
+
+import { resolve_password_change_error } from "../password_change_error";
+
+import { LogoutOthersResponse, SESSION_TIMEOUT_OPTIONS } from "./options";
+import { use_security_fetchers } from "./fetchers";
+
+import { collect_vault_key_fingerprints } from "@/services/crypto/vault_key_fingerprints";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_auth } from "@/contexts/auth_context";
 import { use_settings_cache } from "@/contexts/settings_cache_context";
-import type { TotpStatusResponse } from "@/services/api/totp";
 import {
   change_password,
   get_user_salt,
@@ -33,13 +39,12 @@ import {
 } from "@/services/api/auth";
 import { api_client } from "@/services/api/client";
 import {
+  list_sessions,
   revoke_session,
   revoke_all_sessions,
   type Session,
 } from "@/services/api/sessions";
-import {
-  type SecurityStatusResponse,
-} from "@/services/api/account";
+import { type SecurityStatusResponse } from "@/services/api/account";
 import { compute_password_strength_tier } from "@/services/password_strength_score";
 import {
   hash_email,
@@ -90,11 +95,7 @@ import { sync_vault_with_server } from "@/services/crypto/ensure_ratchet_keys";
 import { use_key_rotation } from "@/hooks/use_key_rotation";
 import { check_password_breach } from "@/services/breach_check";
 import { use_i18n } from "@/lib/i18n/context";
-import { resolve_password_change_error } from "../password_change_error";
 import { show_toast } from "@/components/toast/simple_toast";
-import { LogoutOthersResponse, SESSION_TIMEOUT_OPTIONS } from "./options";
-import { use_security_fetchers } from "./fetchers";
-
 import { ignore_error } from "@/lib/ignore_error";
 
 export function use_security() {
@@ -114,14 +115,21 @@ export function use_security() {
   const [totp_status, set_totp_status] = useState<TotpStatusResponse | null>(
     null,
   );
+  const [totp_status_failed, set_totp_status_failed] = useState(false);
   const [security_score_loaded, set_security_score_loaded] = useState(false);
+  const [forward_secrecy_working, set_forward_secrecy_working] =
+    useState(false);
+  const forward_secrecy_working_ref = useRef(false);
   const [show_totp_setup_modal, set_show_totp_setup_modal] = useState(false);
   const [show_totp_disable_modal, set_show_totp_disable_modal] =
     useState(false);
   const [login_alerts_enabled, set_login_alerts_enabled] = useState(false);
+  const [login_alerts_loaded, set_login_alerts_loaded] = useState(false);
+  const [login_alerts_failed, set_login_alerts_failed] = useState(false);
   const [login_alerts_loading, set_login_alerts_loading] = useState(false);
   const [login_events, set_login_events] = useState<LoginEventEntry[]>([]);
   const [login_events_loading, set_login_events_loading] = useState(false);
+  const [login_events_failed, set_login_events_failed] = useState(false);
   const [show_password_section, set_show_password_section] = useState(false);
   const [current_password, set_current_password] = useState("");
   const [new_password, set_new_password] = useState("");
@@ -142,11 +150,13 @@ export function use_security() {
   } | null>(null);
   const [ipfs_available, set_ipfs_available] = useState(false);
   const [ipfs_storage_enabled, set_ipfs_storage_enabled] = useState(false);
+  const [ipfs_status_loaded, set_ipfs_status_loaded] = useState(false);
   const [ipfs_loading, set_ipfs_loading] = useState(false);
   const [sessions, set_sessions] = useState<Session[]>([]);
   const [sessions_loading, set_sessions_loading] = useState(true);
   const [sessions_error, set_sessions_error] = useState<string | null>(null);
-  const [recovery_email_verified, set_recovery_email_verified] = useState(false);
+  const [recovery_email_verified, set_recovery_email_verified] =
+    useState(false);
   const [security_status, set_security_status] =
     useState<SecurityStatusResponse | null>(null);
 
@@ -158,17 +168,23 @@ export function use_security() {
     hydrate_security_status,
     hydrate_totp_status,
     hydrate_login_alerts_status,
+    fetch_login_alerts_status,
     hydrate_recovery_email_status,
     fetch_sessions,
   } = use_security_fetchers({
     t,
     cache,
     set_totp_status,
+    set_totp_status_failed,
     set_login_alerts_enabled,
+    set_login_alerts_loaded,
+    set_login_alerts_failed,
     set_login_events,
     set_login_events_loading,
+    set_login_events_failed,
     set_ipfs_available,
     set_ipfs_storage_enabled,
+    set_ipfs_status_loaded,
     set_sessions,
     set_sessions_loading,
     set_sessions_error,
@@ -198,6 +214,7 @@ export function use_security() {
 
   const handle_login_alerts_toggle = async () => {
     if (login_alerts_loading) return;
+    if (!login_alerts_loaded) return;
 
     set_login_alerts_loading(true);
     const new_value = !login_alerts_enabled;
@@ -209,10 +226,12 @@ export function use_security() {
 
       if (response.error || !response.data?.success) {
         set_login_alerts_enabled(!new_value);
+        show_toast(response.error || t("common.something_went_wrong"), "error");
       }
     } catch (error) {
       if (import.meta.env.DEV) console.error(error);
       set_login_alerts_enabled(!new_value);
+      show_toast(t("common.something_went_wrong"), "error");
     } finally {
       set_login_alerts_loading(false);
     }
@@ -220,6 +239,7 @@ export function use_security() {
 
   const handle_ipfs_toggle = async () => {
     if (ipfs_loading) return;
+    if (!ipfs_status_loaded) return;
 
     set_ipfs_loading(true);
     const new_value = !ipfs_storage_enabled;
@@ -236,10 +256,12 @@ export function use_security() {
 
       if (response.error || !response.data?.success) {
         set_ipfs_storage_enabled(!new_value);
+        show_toast(response.error || t("common.something_went_wrong"), "error");
       }
     } catch (error) {
       if (import.meta.env.DEV) console.error(error);
       set_ipfs_storage_enabled(!new_value);
+      show_toast(t("common.something_went_wrong"), "error");
     } finally {
       set_ipfs_loading(false);
     }
@@ -385,7 +407,10 @@ export function use_security() {
                   server_vault_response.data.vault_nonce,
                 );
               } catch (caught) {
-                ignore_error("components/settings/hooks/use_security/hook:handle_change_password", caught);
+                ignore_error(
+                  "components/settings/hooks/use_security/hook:handle_change_password",
+                  caught,
+                );
               }
             }
           }
@@ -573,12 +598,19 @@ export function use_security() {
           re_encrypted_destinations,
           re_encrypted_directories,
           re_encrypted_domain_addresses,
+          unreadable_alias_ids: skipped.alias_ids,
           new_password_strength_tier,
         });
       }
 
       if (response.error) {
-        set_password_error(resolve_password_change_error(response.error, t));
+        set_password_error(
+          resolve_password_change_error(
+            response.error,
+            t,
+            response.server_code,
+          ),
+        );
         set_password_loading(false);
 
         return;
@@ -587,7 +619,10 @@ export function use_security() {
       try {
         store_encrypted_vault(user.id, new_encrypted_vault, new_vault_nonce);
       } catch (caught) {
-        ignore_error("components/settings/hooks/use_security/hook:handle_change_password", caught);
+        ignore_error(
+          "components/settings/hooks/use_security/hook:handle_change_password",
+          caught,
+        );
       }
 
       reset_vault_refresh_state();
@@ -596,7 +631,10 @@ export function use_security() {
       try {
         await store_session_passphrase(user.id, new_password);
       } catch (caught) {
-        ignore_error("components/settings/hooks/use_security/hook:handle_change_password", caught);
+        ignore_error(
+          "components/settings/hooks/use_security/hook:handle_change_password",
+          caught,
+        );
       }
 
       if (response.data?.csrf_token) {
@@ -616,7 +654,10 @@ export function use_security() {
           await save_preferences(preferences, vault);
         }
       } catch (caught) {
-        ignore_error("components/settings/hooks/use_security/hook:handle_change_password", caught);
+        ignore_error(
+          "components/settings/hooks/use_security/hook:handle_change_password",
+          caught,
+        );
       }
 
       try {
@@ -626,23 +667,44 @@ export function use_security() {
           await save_dev_mode(dev_mode_result.data, vault);
         }
       } catch (caught) {
-        ignore_error("components/settings/hooks/use_security/hook:handle_change_password", caught);
+        ignore_error(
+          "components/settings/hooks/use_security/hook:handle_change_password",
+          caught,
+        );
       }
 
-      reencrypt_all_sent_mail(current_password, new_password).catch((caught) => ignore_error("components/settings/hooks/use_security/hook:handle_change_password", caught));
+      const note_reencrypt_failure = (caught: unknown) => {
+        const message = t(
+          "settings.password_change_background_reencrypt_failed",
+        );
+
+        set_password_unreadable_notice((prev) => {
+          if (prev.includes(message)) return prev;
+
+          return prev ? `${prev} ${message}` : message;
+        });
+        ignore_error(
+          "components/settings/hooks/use_security/hook:handle_change_password",
+          caught,
+        );
+      };
+
+      reencrypt_all_sent_mail(current_password, new_password).catch(
+        note_reencrypt_failure,
+      );
 
       if (master_key_mode) {
         reencrypt_identity_scoped_password_change(
           old_identity_key,
           vault.identity_key,
-        ).catch((caught) => ignore_error("components/settings/hooks/use_security/hook:handle_change_password", caught));
+        ).catch(note_reencrypt_failure);
       } else {
         reencrypt_settings_password_change(
           current_password,
           new_password,
           old_identity_key,
           vault.identity_key,
-        ).catch((caught) => ignore_error("components/settings/hooks/use_security/hook:handle_change_password", caught));
+        ).catch(note_reencrypt_failure);
       }
 
       set_security_status((prev) => ({
@@ -654,27 +716,30 @@ export function use_security() {
       fetch_security_status();
 
       if (unreadable_item_count > 0) {
-        set_password_unreadable_notice(
-          t("settings.password_changed_items_unreadable").replace(
-            "{{count}}",
-            String(unreadable_item_count),
-          ),
-        );
+        set_password_unreadable_notice((prev) => {
+          const message = t(
+            "settings.password_changed_items_unreadable",
+          ).replace("{{count}}", String(unreadable_item_count));
+
+          return prev ? `${prev} ${message}` : message;
+        });
       }
 
       set_password_success(true);
+      show_toast(t("settings.password_changed_success"), "success");
       set_show_password_section(false);
       set_current_password("");
       set_new_password("");
       set_confirm_password("");
     } catch (err) {
       const msg = err instanceof Error ? err.message : "";
+
       if (msg.startsWith("alias_reencrypt_failed:")) {
         set_password_error(t("settings.alias_reencrypt_failed"));
       } else if (msg.startsWith("contact_reencrypt_failed:")) {
         set_password_error(t("settings.contact_reencrypt_failed"));
       } else {
-        set_password_error(msg || t("settings.failed_change_password"));
+        set_password_error(t("settings.failed_change_password"));
       }
     } finally {
       set_password_loading(false);
@@ -693,76 +758,94 @@ export function use_security() {
     update_preference("session_timeout_minutes", minutes, true);
   };
 
+  const publish_ratchet_keys = async (): Promise<boolean> => {
+    const memory_vault = get_vault_from_memory();
+
+    if (!memory_vault) return false;
+
+    const freshness = await sync_vault_with_server();
+
+    if (freshness.status === "unverified") return false;
+
+    const vault =
+      freshness.status === "adopted" ? freshness.vault : memory_vault;
+
+    if (vault.ratchet_identity_key) return upload_prekey_bundle(vault);
+
+    const ratchet_keys = await generate_ratchet_keys();
+
+    if (!ratchet_keys) return false;
+
+    vault.ratchet_identity_key = ratchet_keys.identity_jwk;
+    vault.ratchet_identity_public = ratchet_keys.identity_public;
+    vault.ratchet_signed_prekey = ratchet_keys.signed_prekey_jwk;
+    vault.ratchet_signed_prekey_public = ratchet_keys.signed_prekey_public;
+
+    const passphrase = get_passphrase_from_memory();
+
+    if (!passphrase || !user?.id) return false;
+
+    await store_vault_in_memory(vault, passphrase, user.id);
+
+    const { encrypted_vault, vault_nonce } = await encrypt_vault(
+      vault,
+      passphrase,
+    );
+
+    const vault_key_fingerprints = await collect_vault_key_fingerprints(vault);
+
+    const push_response = await api_client.put("/crypto/v1/keys/vault", {
+      encrypted_vault,
+      vault_nonce,
+      expected_user_id: user.id,
+      vault_format: vault.vault_format ?? 1,
+      preserve_pq_prekeys: true,
+      ...(vault_key_fingerprints.length ? { vault_key_fingerprints } : {}),
+    });
+
+    if (push_response.error) return false;
+
+    localStorage.setItem(
+      `astermail_encrypted_vault_${user.id}`,
+      encrypted_vault,
+    );
+    localStorage.setItem(`astermail_vault_nonce_${user.id}`, vault_nonce);
+
+    return upload_prekey_bundle(vault);
+  };
+
   const handle_forward_secrecy_toggle = async () => {
+    if (forward_secrecy_working_ref.current) return;
+
     const enabling = !preferences.forward_secrecy_enabled;
 
-    update_preference("forward_secrecy_enabled", enabling, true);
+    if (!enabling) {
+      update_preference("forward_secrecy_enabled", false, true);
 
-    if (enabling) {
-      try {
-        const memory_vault = get_vault_from_memory();
-
-        if (!memory_vault || memory_vault.ratchet_identity_key) return;
-
-        const freshness = await sync_vault_with_server();
-
-        if (freshness.status === "unverified") return;
-
-        const vault =
-          freshness.status === "adopted" ? freshness.vault : memory_vault;
-
-        if (vault.ratchet_identity_key) return;
-
-        const ratchet_keys = await generate_ratchet_keys();
-
-        if (!ratchet_keys) return;
-
-        vault.ratchet_identity_key = ratchet_keys.identity_jwk;
-        vault.ratchet_identity_public = ratchet_keys.identity_public;
-        vault.ratchet_signed_prekey = ratchet_keys.signed_prekey_jwk;
-        vault.ratchet_signed_prekey_public = ratchet_keys.signed_prekey_public;
-
-        const passphrase = get_passphrase_from_memory();
-
-        if (!passphrase || !user?.id) return;
-
-        await store_vault_in_memory(vault, passphrase, user.id);
-
-        const { encrypted_vault, vault_nonce } = await encrypt_vault(
-          vault,
-          passphrase,
-        );
-
-        const vault_key_fingerprints =
-          await collect_vault_key_fingerprints(vault);
-
-        const push_response = await api_client.put("/crypto/v1/keys/vault", {
-          encrypted_vault,
-          vault_nonce,
-          expected_user_id: user.id,
-          vault_format: vault.vault_format ?? 1,
-          preserve_pq_prekeys: true,
-          ...(vault_key_fingerprints.length ? { vault_key_fingerprints } : {}),
-        });
-
-        if (push_response.error) return;
-
-        localStorage.setItem(
-          `astermail_encrypted_vault_${user.id}`,
-          encrypted_vault,
-        );
-        localStorage.setItem(
-          `astermail_vault_nonce_${user.id}`,
-          vault_nonce,
-        );
-
-        await upload_prekey_bundle(vault);
-      } catch (error) {
-        if (import.meta.env.DEV) console.error(error);
-
-        return;
-      }
+      return;
     }
+
+    forward_secrecy_working_ref.current = true;
+    set_forward_secrecy_working(true);
+
+    let published = false;
+
+    try {
+      published = await publish_ratchet_keys();
+    } catch (error) {
+      if (import.meta.env.DEV) console.error(error);
+    } finally {
+      forward_secrecy_working_ref.current = false;
+      set_forward_secrecy_working(false);
+    }
+
+    if (!published) {
+      show_toast(t("settings.forward_secrecy_setup_failed"), "error");
+
+      return;
+    }
+
+    update_preference("forward_secrecy_enabled", true, true);
   };
 
   const get_timeout_description = () => {
@@ -777,7 +860,9 @@ export function use_security() {
       "{{duration}}",
       option
         ? t(option.label_key)
-        : t("settings.n_minutes", { count: preferences.session_timeout_minutes }),
+        : t("settings.n_minutes", {
+            count: preferences.session_timeout_minutes,
+          }),
     );
   };
 
@@ -799,7 +884,9 @@ export function use_security() {
       } else if (response.data) {
         set_logout_others_result({
           success: true,
-          message: response.data.message,
+          message: t("settings.sign_out_everywhere_success", {
+            count: response.data.sessions_revoked ?? 0,
+          }),
         });
       }
     } catch (error) {
@@ -827,13 +914,25 @@ export function use_security() {
           10000,
         ),
       );
-      const response = await Promise.race([revoke_session(session_id), timeout]);
+      const response = await Promise.race([
+        revoke_session(session_id),
+        timeout,
+      ]);
 
       if ("data" in response && response.data?.success) {
         set_sessions((prev) => prev.filter((s) => s.id !== session_id));
       } else {
         const err = "error" in response ? response.error : undefined;
-        set_sessions_error(err || t("settings.failed_sign_out"));
+        const recheck = await list_sessions();
+
+        if (recheck.data) {
+          set_sessions(recheck.data.sessions);
+          if (recheck.data.sessions.some((s) => s.id === session_id)) {
+            set_sessions_error(err || t("settings.failed_sign_out"));
+          }
+        } else {
+          set_sessions_error(err || t("settings.failed_sign_out"));
+        }
       }
     } catch (error) {
       if (import.meta.env.DEV) console.error(error);
@@ -855,15 +954,17 @@ export function use_security() {
 
       if ("data" in response && response.data?.success) {
         const revoked_count = sessions.filter((s) => !s.is_current).length;
+
         set_sessions((prev) => prev.filter((s) => s.is_current));
         show_toast(
           t("settings.sign_out_everywhere_success", {
-            count: String(response.data?.revoked_count ?? revoked_count),
+            count: response.data?.revoked_count ?? revoked_count,
           }),
           "success",
         );
       } else {
         const err = "error" in response ? response.error : undefined;
+
         set_sessions_error(err || t("settings.failed_sign_out"));
       }
     } catch (error) {
@@ -905,6 +1006,7 @@ export function use_security() {
     password_strength_tier: security_status?.password_strength_tier ?? null,
 
     totp_status,
+    totp_status_failed,
     fetch_totp_status,
     show_totp_setup_modal,
     set_show_totp_setup_modal,
@@ -915,12 +1017,18 @@ export function use_security() {
     handle_totp_setup_success,
 
     login_alerts_enabled,
+    login_alerts_loaded,
+    login_alerts_failed,
+    fetch_login_alerts_status,
     handle_login_alerts_toggle,
     login_events,
     login_events_loading,
+    login_events_failed,
+    fetch_login_events,
 
     ipfs_available,
     ipfs_storage_enabled,
+    ipfs_status_loaded,
     handle_ipfs_toggle,
 
     show_password_section,
@@ -949,6 +1057,7 @@ export function use_security() {
     get_timeout_description,
 
     handle_forward_secrecy_toggle,
+    forward_secrecy_working,
 
     key_age_hours,
     key_fingerprint,

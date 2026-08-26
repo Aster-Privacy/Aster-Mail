@@ -23,6 +23,7 @@ import type {
   SubscriptionCacheData,
   SubscriptionCacheCategory,
 } from "@/services/subscription_cache";
+import type { MailItem } from "@/services/api/mail";
 
 import { useEffect, useRef, useCallback, useSyncExternalStore } from "react";
 
@@ -34,14 +35,12 @@ import {
   SUBSCRIPTION_CACHE_VERSION,
 } from "@/services/subscription_cache";
 import { list_mail_items } from "@/services/api/mail";
-import type { MailItem } from "@/services/api/mail";
 import { decrypt_mail_envelope } from "@/components/email/shared/decrypt_envelope";
 import {
   detect_unsubscribe_info,
   get_sender_domain,
 } from "@/utils/unsubscribe_detector";
 import { has_protected_folder_label } from "@/hooks/use_folders";
-
 import { ignore_error } from "@/lib/ignore_error";
 
 interface ScanEnvelope {
@@ -490,21 +489,25 @@ export function use_background_subscription_scan(): void {
   useEffect(() => {
     if (!vault) return;
     if (has_started_ref.current) return;
-    has_started_ref.current = true;
     set_scan_in_flight(true);
 
     let idle_handle: number | null = null;
 
+    const start_scan = () => {
+      has_started_ref.current = true;
+      trigger_scan();
+    };
+
     const timeout_id = setTimeout(() => {
       if (typeof requestIdleCallback === "function") {
-        idle_handle = requestIdleCallback(() => trigger_scan(), {
+        idle_handle = requestIdleCallback(() => start_scan(), {
           timeout: SCAN_IDLE_TIMEOUT_MS,
         });
 
         return;
       }
 
-      trigger_scan();
+      start_scan();
     }, 3000);
 
     return () => {

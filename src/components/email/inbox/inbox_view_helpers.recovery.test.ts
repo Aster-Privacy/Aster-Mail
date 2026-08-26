@@ -45,9 +45,9 @@ describe("should_recover_empty_view", () => {
   });
 
   it("does not recover a genuinely empty mailbox (total 0)", () => {
-    expect(
-      should_recover_empty_view({ ...base, effective_total: 0 }),
-    ).toBe(false);
+    expect(should_recover_empty_view({ ...base, effective_total: 0 })).toBe(
+      false,
+    );
   });
 
   it("does not recover before the first load resolves", () => {
@@ -57,10 +57,12 @@ describe("should_recover_empty_view", () => {
   });
 
   it("does not recover while loading or showing a skeleton", () => {
-    expect(should_recover_empty_view({ ...base, is_loading: true })).toBe(false);
-    expect(
-      should_recover_empty_view({ ...base, skeleton_visible: true }),
-    ).toBe(false);
+    expect(should_recover_empty_view({ ...base, is_loading: true })).toBe(
+      false,
+    );
+    expect(should_recover_empty_view({ ...base, skeleton_visible: true })).toBe(
+      false,
+    );
   });
 
   it("does not recover when the list already has messages", () => {

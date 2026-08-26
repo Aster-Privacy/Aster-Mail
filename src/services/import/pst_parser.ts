@@ -27,11 +27,12 @@ import type {
   PstFolder,
 } from "./types";
 
-import { en } from "@/lib/i18n/translations/en";
 import { MAX_FILE_SIZE } from "./types";
 import { secure_hex } from "./mime_utils";
 
+import { get_active_translations } from "@/lib/i18n/translations";
 import { ignore_error } from "@/lib/ignore_error";
+import { format_decimal } from "@/lib/utils";
 
 function convert_pst_message(msg: PstMessage, index: number): ParsedEmail {
   const message_id =
@@ -74,7 +75,8 @@ function convert_pst_message(msg: PstMessage, index: number): ParsedEmail {
   }
 
   const subject = msg.subject || "(No Subject)";
-  const raw_date = msg.clientSubmitTime || msg.messageDeliveryTime || new Date();
+  const raw_date =
+    msg.clientSubmitTime || msg.messageDeliveryTime || new Date();
   const candidate_date =
     raw_date instanceof Date ? raw_date : new Date(raw_date);
   const date = isNaN(candidate_date.getTime()) ? new Date() : candidate_date;
@@ -129,7 +131,12 @@ export async function parse_pst_file(
     return {
       emails: [],
       errors: [
-        en.errors.file_too_large.replace("{{size}}", (file.size / 1024 / 1024).toFixed(1)).replace("{{limit}}", "500"),
+        get_active_translations()
+          .errors.file_too_large.replace(
+            "{{size}}",
+            format_decimal(file.size / 1024 / 1024, 1),
+          )
+          .replace("{{limit}}", "500"),
       ],
       warnings: [],
     };
@@ -160,10 +167,16 @@ export async function parse_pst_file(
 
             emails.push(parsed);
           } catch (err) {
-            const error_msg = err instanceof Error ? err.message : en.errors.unknown_error;
+            const error_msg =
+              err instanceof Error
+                ? err.message
+                : get_active_translations().errors.unknown_error;
 
             warnings.push(
-              en.errors.failed_parse_pst.replace("{{error}}", error_msg),
+              get_active_translations().errors.failed_parse_pst.replace(
+                "{{error}}",
+                error_msg,
+              ),
             );
           }
           processed++;
@@ -199,12 +212,15 @@ export async function parse_pst_file(
     }
 
     if (emails.length === 0) {
-      errors.push(en.errors.no_emails_in_pst);
+      errors.push(get_active_translations().errors.no_emails_in_pst);
     }
 
     return { emails, errors, warnings };
   } catch (err) {
-    const error_message = err instanceof Error ? err.message : en.errors.unknown_error;
+    const error_message =
+      err instanceof Error
+        ? err.message
+        : get_active_translations().errors.unknown_error;
 
     if (
       error_message.includes("Buffer") ||
@@ -212,9 +228,7 @@ export async function parse_pst_file(
     ) {
       return {
         emails: [],
-        errors: [
-          en.errors.pst_conversion_required,
-        ],
+        errors: [get_active_translations().errors.pst_conversion_required],
         warnings: [],
       };
     }
@@ -222,7 +236,10 @@ export async function parse_pst_file(
     return {
       emails: [],
       errors: [
-        en.errors.failed_parse_pst_file.replace("{{error}}", error_message),
+        get_active_translations().errors.failed_parse_pst_file.replace(
+          "{{error}}",
+          error_message,
+        ),
       ],
       warnings: [],
     };

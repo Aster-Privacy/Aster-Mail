@@ -24,8 +24,8 @@ import { ignore_error } from "@/lib/ignore_error";
 
 export const FREE_MAX_ATTACHMENT_SIZE = 25 * 1024 * 1024;
 export const MAX_PAID_ATTACHMENT_SIZE = 250 * 1024 * 1024;
+export const MAX_ATTACHMENTS_PER_SEND = 50;
 
-const TOTAL_SIZE_MULTIPLIER = 2;
 const CACHE_TTL_MS = 300_000;
 
 let cached_max_bytes = FREE_MAX_ATTACHMENT_SIZE;
@@ -37,7 +37,7 @@ export function get_max_attachment_size(): number {
 }
 
 export function get_max_total_attachments_size(): number {
-  return cached_max_bytes * TOTAL_SIZE_MULTIPLIER;
+  return cached_max_bytes;
 }
 
 export function is_above_free_attachment_limit(size_bytes: number): boolean {
@@ -48,6 +48,10 @@ export function clear_attachment_limits_cache(): void {
   cached_max_bytes = FREE_MAX_ATTACHMENT_SIZE;
   cache_timestamp = 0;
   in_flight = null;
+}
+
+export async function ensure_attachment_limits(): Promise<number> {
+  return refresh_attachment_limits();
 }
 
 export async function refresh_attachment_limits(

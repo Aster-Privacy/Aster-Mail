@@ -18,9 +18,14 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { copy_text_or_throw } from "@/utils/copy_text";
+import { trigger_download } from "@/utils/download_blob";
 import type { DecryptedContact, ContactFormData } from "@/types/contacts";
 
 import { useCallback } from "react";
+
+import { BATCH_SIZE, contact_to_form_data } from "./contacts_state_helpers";
+import { use_contacts_data } from "./use_contacts_data";
 
 import {
   create_contact_encrypted,
@@ -29,13 +34,13 @@ import {
 } from "@/services/api/contacts";
 import { show_toast } from "@/components/toast/simple_toast";
 import { emit_contacts_changed } from "@/hooks/mail_events";
-import { BATCH_SIZE, contact_to_form_data } from "./contacts_state_helpers";
-import { use_contacts_data } from "./use_contacts_data";
-
-import { ignore_error } from "@/lib/ignore_error";
 
 export { contact_to_form_data };
-export type { FilterOption, SortOption, ViewMode } from "./contacts_state_helpers";
+export type {
+  FilterOption,
+  SortOption,
+  ViewMode,
+} from "./contacts_state_helpers";
 
 export function use_contacts_state() {
   const {
@@ -211,6 +216,7 @@ export function use_contacts_state() {
 
           if (response.error) {
             set_error(response.error);
+            show_toast(t("common.failed_to_save_contact"), "error");
             set_is_submitting(false);
 
             return;
@@ -235,6 +241,7 @@ export function use_contacts_state() {
 
           if (response.error || !response.data) {
             set_error(response.error || t("common.failed_to_create_contact"));
+            show_toast(t("common.failed_to_create_contact"), "error");
             set_is_submitting(false);
 
             return;
@@ -260,11 +267,12 @@ export function use_contacts_state() {
             ? err.message
             : t("common.failed_to_save_contact"),
         );
+        show_toast(t("common.failed_to_save_contact"), "error");
       } finally {
         set_is_submitting(false);
       }
     },
-    [editing_contact, selected_contact],
+    [editing_contact, selected_contact, t],
   );
 
   const handle_inline_save = useCallback(
@@ -431,12 +439,25 @@ export function use_contacts_state() {
     set_is_bulk_deleting(false);
 
     try {
+      let failed_count = 0;
+
       for (let i = 0; i < ids_to_delete.length; i += BATCH_SIZE) {
         const batch = ids_to_delete.slice(i, i + BATCH_SIZE);
+        const results = await Promise.allSettled(
+          batch.map((id) => api_delete_contact(id)),
+        );
 
-        await Promise.allSettled(batch.map((id) => api_delete_contact(id)));
+        failed_count += results.filter(
+          (result) => result.status === "rejected" || result.value?.error,
+        ).length;
       }
       emit_contacts_changed();
+      if (failed_count > 0) {
+        show_toast(t("common.failed_to_delete_contacts"), "error");
+        await fetch_contacts();
+
+        return;
+      }
       show_toast(
         t("common.contacts_deleted", { count: delete_count }),
         "success",
@@ -449,7 +470,7 @@ export function use_contacts_state() {
         "error",
       );
     }
-  }, [selected_ids, selected_contact, t]);
+  }, [selected_ids, selected_contact, fetch_contacts, t]);
 
   const handle_compose_to_selected = useCallback(() => {
     const selected_contacts = contacts.filter((c) => selected_ids.has(c.id));
@@ -477,17 +498,17 @@ export function use_contacts_state() {
 
     set_contacts((prev) =>
       prev.map((c) =>
-        selected_ids.has(c.id)
-          ? { ...c, is_favorite: new_favorite_state }
-          : c,
+        selected_ids.has(c.id) ? { ...c, is_favorite: new_favorite_state } : c,
       ),
     );
+
+    const failed_ids = new Set<string>();
 
     try {
       for (let i = 0; i < contacts_to_update.length; i += BATCH_SIZE) {
         const batch = contacts_to_update.slice(i, i + BATCH_SIZE);
 
-        await Promise.allSettled(
+        const results = await Promise.allSettled(
           batch.map((contact) =>
             update_contact_encrypted(contact.id, {
               ...contact_to_form_data(contact),
@@ -495,6 +516,24 @@ export function use_contacts_state() {
             }),
           ),
         );
+
+        results.forEach((result, batch_index) => {
+          if (result.status === "rejected" || result.value?.error) {
+            failed_ids.add(batch[batch_index].id);
+          }
+        });
+      }
+      if (failed_ids.size > 0) {
+        set_contacts((prev) =>
+          prev.map((c) =>
+            failed_ids.has(c.id)
+              ? { ...c, is_favorite: !new_favorite_state }
+              : c,
+          ),
+        );
+        show_toast(t("common.failed_to_update_favorites"), "error");
+
+        return;
       }
       if (update_count > 0) {
         show_toast(
@@ -578,18 +617,12 @@ export function use_contacts_state() {
         ...csv_rows.map((row) => row.map(escape_csv_cell).join(",")),
       ].join("\r\n");
 
-      const blob = new Blob([csv_content], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-
-      link.href = url;
-      link.download = `contacts_${new Date().toISOString().split("T")[0]}.csv`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      trigger_download(
+        new Blob([csv_content], { type: "text/csv;charset=utf-8;" }),
+        `contacts_${new Date().toISOString().split("T")[0]}.csv`,
+      );
     },
-    [contacts, selected_ids],
+    [contacts, selected_ids, t],
   );
 
   const handle_copy_emails = useCallback(() => {
@@ -597,20 +630,23 @@ export function use_contacts_state() {
     const emails = selected_contacts.flatMap((c) => c.emails).filter((e) => e);
 
     if (emails.length > 0) {
-      navigator.clipboard.writeText(emails.join(", ")).catch((caught) => ignore_error("components/common/hooks/use_contacts_state:use_contacts_state", caught));
-      set_copied_field("bulk-emails");
-      if (copy_timeout_ref.current) {
-        clearTimeout(copy_timeout_ref.current);
-      }
-      copy_timeout_ref.current = setTimeout(() => {
-        set_copied_field(null);
-      }, 2000);
+      copy_text_or_throw(emails.join(", "))
+        .then(() => {
+          set_copied_field("bulk-emails");
+          if (copy_timeout_ref.current) {
+            clearTimeout(copy_timeout_ref.current);
+          }
+          copy_timeout_ref.current = setTimeout(() => {
+            set_copied_field(null);
+          }, 2000);
+        })
+        .catch(() => show_toast(t("common.failed_to_copy"), "error"));
     }
   }, [contacts, selected_ids]);
 
   const handle_copy = useCallback(async (text: string, field: string) => {
     try {
-      await navigator.clipboard.writeText(text);
+      await copy_text_or_throw(text);
       set_copied_field(field);
       if (copy_timeout_ref.current) {
         clearTimeout(copy_timeout_ref.current);
@@ -618,10 +654,8 @@ export function use_contacts_state() {
       copy_timeout_ref.current = setTimeout(() => {
         set_copied_field(null);
       }, 2000);
-    } catch (error) {
-      if (import.meta.env.DEV) console.error(error);
-
-      return;
+    } catch {
+      show_toast(t("common.failed_to_copy"), "error");
     }
   }, []);
 

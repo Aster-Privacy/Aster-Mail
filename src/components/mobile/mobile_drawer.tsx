@@ -34,6 +34,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDownIcon } from "@heroicons/react/24/outline";
 
 import { use_platform } from "@/hooks/use_platform";
+import { create_folder_error_message } from "@/lib/folder_error_message";
 import { use_dialog_shell } from "@/lib/use_dialog_shell";
 import { use_should_reduce_motion } from "@/provider";
 import { use_auth } from "@/contexts/auth_context";
@@ -72,8 +73,9 @@ import {
 } from "@/components/mobile/mobile_drawer_sheets";
 import { DrawerNavContent } from "@/components/mobile/mobile_drawer_nav";
 import { FolderDeleteDialog } from "@/components/folders/folder_delete_dialog";
+import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import mail_logo_url from "@/assets/mail_logo.webp";
-
+import { show_toast } from "@/components/toast/simple_toast";
 import { ignore_error } from "@/lib/ignore_error";
 
 interface MobileDrawerProps {
@@ -106,7 +108,6 @@ export const MobileDrawer = memo(function MobileDrawer({
     unread_counts: folder_unread_counts,
     create_new_folder,
     update_existing_folder,
-    delete_existing_folder,
     toggle_folder_lock,
   } = use_folders();
   const {
@@ -126,6 +127,10 @@ export const MobileDrawer = memo(function MobileDrawer({
   const [show_account_menu, set_show_account_menu] = useState(false);
   const [show_create_folder, set_show_create_folder] = useState(false);
   const [show_create_label, set_show_create_label] = useState(false);
+  const [is_creating_folder, set_is_creating_folder] = useState(false);
+  const [is_creating_label, set_is_creating_label] = useState(false);
+  const [confirm_delete_tag, set_confirm_delete_tag] =
+    useState<DecryptedTag | null>(null);
   const [new_folder_name, set_new_folder_name] = useState("");
   const [new_label_name, set_new_label_name] = useState("");
   const [new_folder_color, set_new_folder_color] = useState<string>(
@@ -224,6 +229,9 @@ export const MobileDrawer = memo(function MobileDrawer({
       } else if (editing_folder) {
         e.preventDefault();
         set_editing_folder(null);
+      } else if (confirm_delete_tag) {
+        e.preventDefault();
+        set_confirm_delete_tag(null);
       } else if (editing_tag) {
         e.preventDefault();
         set_editing_tag(null);
@@ -261,6 +269,7 @@ export const MobileDrawer = memo(function MobileDrawer({
     editing_folder,
     deleting_folder,
     editing_tag,
+    confirm_delete_tag,
     password_modal_folder,
     show_logout_confirm,
     on_close,
@@ -391,23 +400,54 @@ export const MobileDrawer = memo(function MobileDrawer({
   const handle_create_folder = useCallback(async () => {
     const name = new_folder_name.trim();
 
-    if (!name) return;
-    await create_new_folder(name, new_folder_color);
+    if (!name || is_creating_folder) return;
+    set_is_creating_folder(true);
+
+    const result = await create_new_folder(name, new_folder_color);
+
+    set_is_creating_folder(false);
+    if (!result.folder) {
+      show_toast(create_folder_error_message(result.code, t), "error");
+
+      return;
+    }
     set_new_folder_name("");
     set_new_folder_color(TAG_COLOR_PRESETS[10].hex);
     set_show_create_folder(false);
-  }, [new_folder_name, new_folder_color, create_new_folder]);
+  }, [
+    new_folder_name,
+    new_folder_color,
+    is_creating_folder,
+    create_new_folder,
+    t,
+  ]);
 
   const handle_create_label = useCallback(async () => {
     const name = new_label_name.trim();
 
-    if (!name) return;
-    await create_new_tag(name, new_label_color, new_label_icon);
+    if (!name || is_creating_label) return;
+    set_is_creating_label(true);
+
+    const created = await create_new_tag(name, new_label_color, new_label_icon);
+
+    set_is_creating_label(false);
+    if (!created) {
+      show_toast(t("common.failed_to_create_label"), "error");
+
+      return;
+    }
     set_new_label_name("");
     set_new_label_color(TAG_COLOR_PRESETS[10].hex);
     set_new_label_icon(undefined);
     set_show_create_label(false);
-  }, [new_label_name, new_label_color, new_label_icon, create_new_tag]);
+  }, [
+    new_label_name,
+    new_label_color,
+    new_label_icon,
+    is_creating_label,
+    create_new_tag,
+    t,
+  ]);
 
   const handle_create_alias = useCallback(async () => {
     const trimmed = new_alias_local.trim().toLowerCase();
@@ -476,7 +516,7 @@ export const MobileDrawer = memo(function MobileDrawer({
     }
 
     set_creating_alias(false);
-  }, [new_alias_local, user_domain, captcha_token, turnstile_required]);
+  }, [new_alias_local, user_domain, captcha_token, turnstile_required, t]);
 
   const handle_open_edit_folder = useCallback((folder: DecryptedFolder) => {
     set_editing_folder(folder);
@@ -489,28 +529,32 @@ export const MobileDrawer = memo(function MobileDrawer({
     const name = edit_folder_name.trim();
 
     if (!name) return;
-    await update_existing_folder(editing_folder.id, name, edit_folder_color);
+    const success = await update_existing_folder(
+      editing_folder.id,
+      name,
+      edit_folder_color,
+    );
+
+    if (!success) {
+      show_toast(t("common.failed_to_rename_folder"), "error");
+
+      return;
+    }
     set_editing_folder(null);
   }, [
     editing_folder,
     edit_folder_name,
     edit_folder_color,
     update_existing_folder,
+    t,
   ]);
 
-  const handle_delete_folder = useCallback(async () => {
+  const handle_delete_folder = useCallback(() => {
     if (!editing_folder) return;
 
-    if (editing_folder.is_password_protected && editing_folder.password_set) {
-      set_deleting_folder(editing_folder);
-      set_editing_folder(null);
-
-      return;
-    }
-
-    await delete_existing_folder(editing_folder.id);
+    set_deleting_folder(editing_folder);
     set_editing_folder(null);
-  }, [editing_folder, delete_existing_folder]);
+  }, [editing_folder]);
 
   const handle_open_edit_tag = useCallback((tag: DecryptedTag) => {
     set_editing_tag(tag);
@@ -524,12 +568,18 @@ export const MobileDrawer = memo(function MobileDrawer({
     const name = edit_tag_name.trim();
 
     if (!name) return;
-    await update_existing_tag(
+    const success = await update_existing_tag(
       editing_tag.id,
       name,
       edit_tag_color,
       edit_tag_icon,
     );
+
+    if (!success) {
+      show_toast(t("common.failed_to_rename_label"), "error");
+
+      return;
+    }
     set_editing_tag(null);
   }, [
     editing_tag,
@@ -537,19 +587,37 @@ export const MobileDrawer = memo(function MobileDrawer({
     edit_tag_color,
     edit_tag_icon,
     update_existing_tag,
+    t,
   ]);
 
-  const handle_delete_tag = useCallback(async () => {
+  const handle_delete_tag = useCallback(() => {
     if (!editing_tag) return;
-    await delete_existing_tag(editing_tag.id);
+
+    set_confirm_delete_tag(editing_tag);
+  }, [editing_tag]);
+
+  const handle_confirm_delete_tag = useCallback(async () => {
+    if (!confirm_delete_tag) return;
+    const success = await delete_existing_tag(confirm_delete_tag.id);
+
+    set_confirm_delete_tag(null);
+    if (!success) {
+      show_toast(t("common.failed_to_delete_label"), "error");
+
+      return;
+    }
     set_editing_tag(null);
-  }, [editing_tag, delete_existing_tag]);
+  }, [confirm_delete_tag, delete_existing_tag, t]);
 
   const handle_toggle_lock = useCallback(
     async (folder_id: string, is_currently_locked: boolean) => {
-      await toggle_folder_lock(folder_id, !is_currently_locked);
+      const success = await toggle_folder_lock(folder_id, !is_currently_locked);
+
+      if (!success) {
+        show_toast(t("common.failed_to_update_folder_encryption"), "error");
+      }
     },
-    [toggle_folder_lock],
+    [toggle_folder_lock, t],
   );
 
   const do_logout = useCallback(async () => {
@@ -601,9 +669,8 @@ export const MobileDrawer = memo(function MobileDrawer({
       <motion.nav
         ref={dialog_ref}
         animate={{ x: is_open ? 0 : -320 }}
-        className="fixed inset-y-0 left-0 z-50 flex w-80 max-w-[85vw] flex-col outline-none"
+        className="fixed inset-y-0 start-0 z-50 flex w-80 max-w-[85vw] flex-col outline-none"
         initial={false}
-        tabIndex={-1}
         style={{
           paddingTop: safe_area_insets.top,
           paddingBottom: safe_area_insets.bottom,
@@ -611,6 +678,7 @@ export const MobileDrawer = memo(function MobileDrawer({
           willChange: "transform",
           pointerEvents: is_open ? "auto" : "none",
         }}
+        tabIndex={-1}
         transition={
           reduce_motion
             ? { duration: 0 }
@@ -648,10 +716,10 @@ export const MobileDrawer = memo(function MobileDrawer({
               />
             </div>
             <div className="min-w-0 flex-1">
-              <span className="block truncate text-left text-[17px] font-semibold text-[var(--text-primary)]">
+              <span className="block truncate text-start text-[17px] font-semibold text-[var(--text-primary)]">
                 Aster Mail
               </span>
-              <span className="block truncate text-left text-[13px] text-[var(--text-muted)]">
+              <span className="block truncate text-start text-[13px] text-[var(--text-muted)]">
                 {primary_identity.email || (user?.email ?? "")}
               </span>
             </div>
@@ -723,6 +791,7 @@ export const MobileDrawer = memo(function MobileDrawer({
         folder_input_ref={folder_input_ref}
         folder_name={new_folder_name}
         handle_create={handle_create_folder}
+        is_creating={is_creating_folder}
         is_open={show_create_folder}
         on_close={() => {
           set_show_create_folder(false);
@@ -735,6 +804,7 @@ export const MobileDrawer = memo(function MobileDrawer({
 
       <CreateLabelSheet
         handle_create={handle_create_label}
+        is_creating={is_creating_label}
         is_open={show_create_label}
         label_color={new_label_color}
         label_icon={new_label_icon}
@@ -787,6 +857,19 @@ export const MobileDrawer = memo(function MobileDrawer({
         set_edit_color={set_edit_tag_color}
         set_edit_icon={set_edit_tag_icon}
         set_edit_name={set_edit_tag_name}
+      />
+
+      <ConfirmationModal
+        cancel_text={t("common.cancel")}
+        confirm_text={t("common.delete")}
+        is_open={!!confirm_delete_tag}
+        message={`${t("common.confirm_delete_label")} "${
+          confirm_delete_tag?.name ?? ""
+        }"?`}
+        on_cancel={() => set_confirm_delete_tag(null)}
+        on_confirm={handle_confirm_delete_tag}
+        title={t("common.delete_label")}
+        variant="danger"
       />
 
       <CreateAliasSheet

@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { EmojiEntry } from "./types";
+
 import { emoji_categories } from "./categories";
 
 export function get_all_emojis(): EmojiEntry[] {

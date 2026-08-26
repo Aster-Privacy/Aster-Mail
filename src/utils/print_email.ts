@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { TranslationKey } from "@/lib/i18n/types";
+
 import {
   is_html_content,
   sanitize_html,
@@ -26,6 +28,11 @@ import {
 import { get_image_proxy_url } from "@/lib/image_proxy";
 import { is_native_platform } from "@/native/capacitor_bridge";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
+
+type Translator = (
+  key: TranslationKey,
+  params?: Record<string, string | number>,
+) => string;
 
 interface PrintEmailData {
   subject: string;
@@ -58,9 +65,9 @@ function escape_html(text: string): string {
 function strip_style_blocks(html: string): string {
   const doc = new DOMParser().parseFromString(html, "text/html");
 
-  doc.querySelectorAll("style, link[rel='stylesheet']").forEach((el) =>
-    el.remove(),
-  );
+  doc
+    .querySelectorAll("style, link[rel='stylesheet']")
+    .forEach((el) => el.remove());
 
   return doc.body.innerHTML;
 }
@@ -120,12 +127,10 @@ export function set_print_content(container: HTMLElement, html: string): void {
 }
 
 function expand_collapsed_sections(root: HTMLElement): void {
-  root
-    .querySelectorAll<HTMLDetailsElement>("details")
-    .forEach((details) => {
-      details.open = true;
-      details.removeAttribute("aria-hidden");
-    });
+  root.querySelectorAll<HTMLDetailsElement>("details").forEach((details) => {
+    details.open = true;
+    details.removeAttribute("aria-hidden");
+  });
 
   root
     .querySelectorAll<HTMLElement>(
@@ -295,39 +300,39 @@ const PRINT_STYLES_NATIVE = `
   ${PRINT_CONTENT_STYLES}
 `;
 
-function build_print_body(email: PrintEmailData): string {
+function build_print_body(email: PrintEmailData, t: Translator): string {
   const to_formatted = format_recipients(email.to);
   const cc_formatted = email.cc ? format_recipients(email.cc) : "";
   const bcc_formatted = email.bcc ? format_recipients(email.bcc) : "";
   const formatted_body = format_body(email.body);
 
   let html = `<div class="ap-header">
-    <div class="ap-subject">${escape_html(email.subject || "(No subject)")}</div>
+    <div class="ap-subject">${escape_html(email.subject || t("common.print_no_subject"))}</div>
     <div class="ap-meta">
-      <span class="ap-label">From:</span>
+      <span class="ap-label">${escape_html(t("common.print_from"))}</span>
       <span class="ap-value">${escape_html(email.sender)} &lt;${escape_html(email.sender_email)}&gt;</span>
     </div>
     <div class="ap-meta">
-      <span class="ap-label">To:</span>
+      <span class="ap-label">${escape_html(t("common.print_to"))}</span>
       <span class="ap-value">${escape_html(to_formatted)}</span>
     </div>`;
 
   if (cc_formatted) {
     html += `<div class="ap-meta">
-      <span class="ap-label">Cc:</span>
+      <span class="ap-label">${escape_html(t("common.print_cc"))}</span>
       <span class="ap-value">${escape_html(cc_formatted)}</span>
     </div>`;
   }
 
   if (bcc_formatted) {
     html += `<div class="ap-meta">
-      <span class="ap-label">Bcc:</span>
+      <span class="ap-label">${escape_html(t("common.print_bcc"))}</span>
       <span class="ap-value">${escape_html(bcc_formatted)}</span>
     </div>`;
   }
 
   html += `<div class="ap-meta">
-      <span class="ap-label">Date:</span>
+      <span class="ap-label">${escape_html(t("common.print_date"))}</span>
       <span class="ap-value">${escape_html(email.timestamp)}</span>
     </div>
   </div>
@@ -401,7 +406,10 @@ export interface PrintThreadData {
   messages: PrintThreadMessage[];
 }
 
-function build_thread_message_html(msg: PrintThreadMessage): string {
+function build_thread_message_html(
+  msg: PrintThreadMessage,
+  t: Translator,
+): string {
   const formatted_body = format_body(msg.body);
   const to_formatted = msg.to_recipients
     ? format_recipients(msg.to_recipients)
@@ -416,33 +424,33 @@ function build_thread_message_html(msg: PrintThreadMessage): string {
   let html = `<div class="ap-thread-msg">
     <div class="ap-msg-header">
       <div class="ap-meta">
-        <span class="ap-label">From:</span>
+        <span class="ap-label">${escape_html(t("common.print_from"))}</span>
         <span class="ap-value">${escape_html(msg.sender)} &lt;${escape_html(msg.sender_email)}&gt;</span>
       </div>`;
 
   if (to_formatted) {
     html += `<div class="ap-meta">
-        <span class="ap-label">To:</span>
+        <span class="ap-label">${escape_html(t("common.print_to"))}</span>
         <span class="ap-value">${escape_html(to_formatted)}</span>
       </div>`;
   }
 
   if (cc_formatted) {
     html += `<div class="ap-meta">
-        <span class="ap-label">Cc:</span>
+        <span class="ap-label">${escape_html(t("common.print_cc"))}</span>
         <span class="ap-value">${escape_html(cc_formatted)}</span>
       </div>`;
   }
 
   if (bcc_formatted) {
     html += `<div class="ap-meta">
-        <span class="ap-label">Bcc:</span>
+        <span class="ap-label">${escape_html(t("common.print_bcc"))}</span>
         <span class="ap-value">${escape_html(bcc_formatted)}</span>
       </div>`;
   }
 
   html += `<div class="ap-meta">
-        <span class="ap-label">Date:</span>
+        <span class="ap-label">${escape_html(t("common.print_date"))}</span>
         <span class="ap-value">${escape_html(msg.timestamp)}</span>
       </div>
     </div>
@@ -452,19 +460,19 @@ function build_thread_message_html(msg: PrintThreadMessage): string {
   return html;
 }
 
-function build_print_thread_body(data: PrintThreadData): string {
+function build_print_thread_body(data: PrintThreadData, t: Translator): string {
   let html = `<div class="ap-header">
-    <div class="ap-subject">${escape_html(data.subject || "(No subject)")}</div>
+    <div class="ap-subject">${escape_html(data.subject || t("common.print_no_subject"))}</div>
   </div>`;
 
   html += data.messages
-    .map((msg) => build_thread_message_html(msg))
+    .map((msg) => build_thread_message_html(msg, t))
     .join('<hr class="ap-divider">');
 
   return html;
 }
 
-export function print_thread(data: PrintThreadData): void {
+export function print_thread(data: PrintThreadData, t: Translator): void {
   document.getElementById("aster-print-root")?.remove();
   document.getElementById("aster-print-styles")?.remove();
 
@@ -478,7 +486,7 @@ export function print_thread(data: PrintThreadData): void {
   const container = document.createElement("div");
 
   container.id = "aster-print-root";
-  set_print_content(container, build_print_thread_body(data));
+  set_print_content(container, build_print_thread_body(data, t));
   expand_collapsed_sections(container);
   document.body.appendChild(container);
 
@@ -491,7 +499,9 @@ export function print_thread(data: PrintThreadData): void {
   if (native) {
     document.body.classList.add("aster-native-print");
     requestAnimationFrame(() => {
-      trigger_native_print(data.subject || "Email").finally(() => {
+      trigger_native_print(
+        data.subject || t("common.print_email_title"),
+      ).finally(() => {
         setTimeout(cleanup, 500);
       });
     });
@@ -504,6 +514,7 @@ export function print_thread(data: PrintThreadData): void {
 
 export function setup_thread_print_intercept(
   get_thread_data: () => PrintThreadData | null,
+  t: Translator,
 ): () => void {
   let cleanup_fn: (() => void) | null = null;
 
@@ -524,7 +535,7 @@ export function setup_thread_print_intercept(
     const container = document.createElement("div");
 
     container.id = "aster-print-root";
-    set_print_content(container, build_print_thread_body(data));
+    set_print_content(container, build_print_thread_body(data, t));
     expand_collapsed_sections(container);
     document.body.appendChild(container);
 
@@ -556,7 +567,7 @@ export function setup_thread_print_intercept(
   };
 }
 
-export function print_email(email: PrintEmailData): void {
+export function print_email(email: PrintEmailData, t: Translator): void {
   document.getElementById("aster-print-root")?.remove();
   document.getElementById("aster-print-styles")?.remove();
 
@@ -570,7 +581,7 @@ export function print_email(email: PrintEmailData): void {
   const container = document.createElement("div");
 
   container.id = "aster-print-root";
-  set_print_content(container, build_print_body(email));
+  set_print_content(container, build_print_body(email, t));
   expand_collapsed_sections(container);
   document.body.appendChild(container);
 
@@ -583,7 +594,9 @@ export function print_email(email: PrintEmailData): void {
   if (native) {
     document.body.classList.add("aster-native-print");
     requestAnimationFrame(() => {
-      trigger_native_print(email.subject || "Email").finally(() => {
+      trigger_native_print(
+        email.subject || t("common.print_email_title"),
+      ).finally(() => {
         setTimeout(cleanup, 500);
       });
     });

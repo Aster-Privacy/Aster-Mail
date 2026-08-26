@@ -18,13 +18,17 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { createContext, useContext, useEffect, useRef, useState } from "react";
+import type { TranslationKey } from "@/lib/i18n/types";
 import type { SettingsSection } from "@/components/settings/settings_content";
+
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 
 export interface DynamicSearchEntry {
   label: string;
+  label_key?: TranslationKey;
   section: SettingsSection;
   breadcrumb: string;
+  crumb_key?: TranslationKey;
   keywords?: string[];
 }
 
@@ -38,16 +42,28 @@ const SearchRegistryContext = createContext<SearchRegistryContextValue>({
   dynamic_entries: [],
 });
 
-export function SearchRegistryProvider({ children }: { children: React.ReactNode }) {
-  const [dynamic_entries, set_dynamic_entries] = useState<DynamicSearchEntry[]>([]);
+export function SearchRegistryProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const [dynamic_entries, set_dynamic_entries] = useState<DynamicSearchEntry[]>(
+    [],
+  );
   const id_counter = useRef(0);
 
   const register = (entries: DynamicSearchEntry[]) => {
     const id = ++id_counter.current;
     const tagged = entries.map((e) => ({ ...e, _reg_id: id }));
+
     set_dynamic_entries((prev) => [...prev, ...tagged]);
+
     return () => {
-      set_dynamic_entries((prev) => prev.filter((e) => (e as typeof e & { _reg_id: number })._reg_id !== id));
+      set_dynamic_entries((prev) =>
+        prev.filter(
+          (e) => (e as typeof e & { _reg_id: number })._reg_id !== id,
+        ),
+      );
     };
   };
 
@@ -75,12 +91,19 @@ export function use_register_search_items(
   items: Array<{ label: string; breadcrumb: string; keywords?: string[] }>,
 ) {
   const { register } = useContext(SearchRegistryContext);
-  const registered = useRef(false);
+  const register_ref = useRef(register);
+  const items_ref = useRef(items);
+
+  register_ref.current = register;
+  items_ref.current = items;
+
+  const entries_key = items
+    .map((item) => `${item.label}::${item.breadcrumb}`)
+    .join("|");
 
   useEffect(() => {
-    if (registered.current) return;
-    registered.current = true;
-    const entries = items.map((item) => ({ ...item, section }));
-    return register(entries);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    const entries = items_ref.current.map((item) => ({ ...item, section }));
+
+    return register_ref.current(entries);
+  }, [entries_key, section]);
 }

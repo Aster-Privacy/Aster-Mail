@@ -86,7 +86,10 @@ describe("email list legacy envelope decrypt heals with a refreshed vault", () =
     h.refreshed_vault = { identity_key: "rotated-identity-key" };
 
     const sealed = await encrypt_envelope_with_identity_key(
-      { subject: "healed by refresh", from: { name: "A", email: "a@example.com" } },
+      {
+        subject: "healed by refresh",
+        from: { name: "A", email: "a@example.com" },
+      },
       "rotated-identity-key",
     );
 
@@ -110,7 +113,10 @@ describe("email list legacy envelope decrypt heals with a refreshed vault", () =
     );
 
     const first_result = await decrypt_envelope(first.encrypted, first.nonce);
-    const second_result = await decrypt_envelope(second.encrypted, second.nonce);
+    const second_result = await decrypt_envelope(
+      second.encrypted,
+      second.nonce,
+    );
 
     expect(first_result?.subject).toBe("first");
     expect(second_result?.subject).toBe("second");

@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { copy_text_or_throw } from "@/utils/copy_text";
 import type {
   PgpKeyInfo,
   RecoveryCodesInfo,
@@ -163,7 +164,8 @@ export function KeyRotationPanel({
                     {t("settings.your_encryption_key")}
                   </p>
                   <p className="text-xs mt-0.5 text-txt-muted">
-                    {pgp_key.algorithm.toUpperCase()}-{pgp_key.key_size} &middot;{" "}
+                    {pgp_key.algorithm.toUpperCase()}-{pgp_key.key_size}{" "}
+                    &middot;{" "}
                     {t("settings.created_date", {
                       date: format_date(pgp_key.created_at),
                     })}
@@ -275,13 +277,19 @@ export function KeyRotationPanel({
                 <Input
                   // eslint-disable-next-line jsx-a11y/no-autofocus
                   autoFocus
+                  maxLength={128}
                   placeholder={t("common.enter_password_prompt")}
                   type="password"
                   value={export_password}
-                  maxLength={128}
-                  onChange={(e) => set_export_password(clamp_password(e.target.value))}
+                  onChange={(e) =>
+                    set_export_password(clamp_password(e.target.value))
+                  }
                   onKeyDown={(e) =>
-                    e["key"] === "Enter" && handle_export_secret_key()
+                    e["key"] === "Enter" &&
+                    !is_exporting_private_key &&
+                    export_password.trim() &&
+                    (!export_totp_required || export_totp_code.length === 6) &&
+                    handle_export_secret_key()
                   }
                 />
               </div>
@@ -302,7 +310,11 @@ export function KeyRotationPanel({
                       )
                     }
                     onKeyDown={(e) =>
-                      e["key"] === "Enter" && handle_export_secret_key()
+                      e["key"] === "Enter" &&
+                      !is_exporting_private_key &&
+                      export_password.trim() &&
+                      export_totp_code.length === 6 &&
+                      handle_export_secret_key()
                     }
                   />
                 </div>
@@ -412,15 +424,14 @@ export function KeyRotationPanel({
                       type="button"
                       onClick={async () => {
                         try {
-                          await navigator.clipboard.writeText(code);
+                          await copy_text_or_throw(code);
                           show_toast(
                             t("settings.copied_to_clipboard"),
                             "success",
                           );
                         } catch (error) {
                           if (import.meta.env.DEV) console.error(error);
-
-                          return;
+                          show_toast(t("common.failed_to_copy"), "error");
                         }
                       }}
                     >
@@ -499,15 +510,20 @@ export function KeyRotationPanel({
                   {t("settings.password")}
                 </label>
                 <Input
+                  maxLength={128}
                   placeholder={t("common.enter_password_prompt")}
                   type="password"
                   value={regenerate_password}
-                  maxLength={128}
-                  onChange={(e) => set_regenerate_password(clamp_password(e.target.value))}
+                  onChange={(e) =>
+                    set_regenerate_password(clamp_password(e.target.value))
+                  }
                   onKeyDown={(e) =>
                     e["key"] === "Enter" &&
+                    !is_regenerating &&
                     regenerate_confirm_text.toLowerCase() === "regenerate" &&
                     regenerate_password.trim() &&
+                    (!regenerate_totp_required ||
+                      regenerate_totp_code.length === 6) &&
                     handle_regenerate_codes()
                   }
                 />
@@ -530,8 +546,10 @@ export function KeyRotationPanel({
                     }
                     onKeyDown={(e) =>
                       e["key"] === "Enter" &&
+                      !is_regenerating &&
                       regenerate_confirm_text.toLowerCase() === "regenerate" &&
                       regenerate_password.trim() &&
+                      regenerate_totp_code.length === 6 &&
                       handle_regenerate_codes()
                     }
                   />

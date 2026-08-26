@@ -20,7 +20,7 @@
 //
 import type { InboxEmail, EmailListState } from "@/types/email";
 import type { FormatOptions } from "@/utils/date_format";
-import type { UseEmailListReturn } from "./email_list_types";
+import type { UseEmailListReturn, FetchPageOptions } from "./email_list_types";
 
 import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { Capacitor } from "@capacitor/core";
@@ -31,9 +31,8 @@ import {
   DEFAULT_PAGE_SIZE,
   type RestoredEmailEntry,
 } from "./email_list_helpers";
-import { resolve_effective_page_size } from "@/lib/inbox_page_size";
 import {
-  view_cache,
+  get_view_cache,
   set_view_cache,
   invalidate_mail_cache,
   clear_mail_cache,
@@ -45,6 +44,7 @@ import { use_email_list_actions } from "./use_email_list_actions";
 import { use_email_list_bulk } from "./use_email_list_bulk";
 import { use_email_list_events } from "./use_email_list_events";
 
+import { resolve_effective_page_size } from "@/lib/inbox_page_size";
 import {
   has_passphrase_in_memory,
   on_keys_ready,
@@ -58,7 +58,6 @@ import {
 } from "@/services/offline_email_cache";
 import { use_online_status } from "@/hooks/use_online_status";
 import { request_cache } from "@/services/api/request_cache";
-
 import { ignore_error } from "@/lib/ignore_error";
 
 export type { UseEmailListReturn } from "./email_list_types";
@@ -96,15 +95,16 @@ export function use_email_list(current_view: string): UseEmailListReturn {
     DEFAULT_PAGE_SIZE,
   );
   const [state, set_state] = useState<EmailListState>(() => {
-    const cached = view_cache.get(current_view);
+    const cached = get_view_cache(current_view);
 
-    if (
-      cached &&
-      cached.state.has_initial_load &&
-      cached.conversation_grouping ===
-        (preferences.conversation_grouping ?? true)
-    ) {
-      return cached.state;
+    if (cached && cached.state.has_initial_load) {
+      const grouping_matches =
+        cached.conversation_grouping ===
+        (preferences.conversation_grouping ?? true);
+
+      return grouping_matches
+        ? cached.state
+        : { ...cached.state, is_loading: true };
     }
 
     return {
@@ -136,19 +136,22 @@ export function use_email_list(current_view: string): UseEmailListReturn {
     set_render_view(current_view);
     page_cache_ref.current.clear();
     page_offset_ref.current.clear();
-    const cached = view_cache.get(current_view);
+    const cached = get_view_cache(current_view);
 
-    if (
-      cached &&
-      cached.state.has_initial_load &&
-      cached.conversation_grouping ===
-        (preferences.conversation_grouping ?? true)
-    ) {
-      set_state(cached.state);
-      page_ref.current = derive_page_from_list_length(
-        cached.state.emails.length,
-        page_size,
+    if (cached && cached.state.has_initial_load) {
+      const grouping_matches =
+        cached.conversation_grouping ===
+        (preferences.conversation_grouping ?? true);
+
+      set_state(
+        grouping_matches ? cached.state : { ...cached.state, is_loading: true },
       );
+      page_ref.current =
+        cached.page ??
+        derive_page_from_list_length(cached.state.emails.length, page_size);
+      if (cached.page_offsets) {
+        page_offset_ref.current = new Map(cached.page_offsets);
+      }
     } else {
       set_state({
         emails: [],
@@ -174,7 +177,12 @@ export function use_email_list(current_view: string): UseEmailListReturn {
   const prev_view_ref = useRef<string | null>(null);
   const prev_user_id_ref = useRef<string | null>(null);
   const fetch_page_ref = useRef<
-    ((page: number, limit: number, force?: boolean) => Promise<void>) | null
+    | ((
+        page: number,
+        limit: number,
+        options?: FetchPageOptions,
+      ) => Promise<void>)
+    | null
   >(null);
   const silent_fetch_ref = useRef<(() => Promise<void>) | null>(null);
   const last_fetch_ref = useRef<{
@@ -184,8 +192,10 @@ export function use_email_list(current_view: string): UseEmailListReturn {
   } | null>(null);
   const PAGE_CACHE_TTL_MS = 20_000;
   const committed_view_ref = useRef(current_view);
+
   committed_view_ref.current = current_view;
   const has_data_ref = useRef(false);
+
   has_data_ref.current = state.has_initial_load && !state.is_loading;
   const main_effect_fetched_ref = useRef(false);
 
@@ -200,10 +210,18 @@ export function use_email_list(current_view: string): UseEmailListReturn {
   );
 
   const fetch_page = useCallback(
-    async (page: number, limit: number, force?: boolean): Promise<void> => {
+    async (
+      page: number,
+      limit: number,
+      options?: FetchPageOptions,
+    ): Promise<void> => {
+      const force = options?.force;
+      const silent = options?.silent;
+
       if (!is_mail_view) return;
       if (!has_passphrase_in_memory()) {
         main_effect_fetched_ref.current = false;
+
         return;
       }
 
@@ -251,7 +269,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
       const { signal } = abort_ref.current;
       const start = Date.now();
 
-      set_state((prev) => ({ ...prev, is_loading: true }));
+      if (!silent) set_state((prev) => ({ ...prev, is_loading: true }));
       fetch_in_flight_ref.current = true;
 
       try {
@@ -276,6 +294,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
               has_initial_load: true,
             }));
           }
+
           return;
         }
 
@@ -288,6 +307,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
               has_load_error: prev.emails.length === 0,
             }));
           }
+
           return;
         }
 
@@ -343,7 +363,9 @@ export function use_email_list(current_view: string): UseEmailListReturn {
         });
 
         if (Capacitor.isNativePlatform() && result.emails.length > 0) {
-          cache_email_list(current_view, result.emails).catch((caught) => ignore_error("hooks/use_email_list:use_email_list", caught));
+          cache_email_list(current_view, result.emails).catch((caught) =>
+            ignore_error("hooks/use_email_list:use_email_list", caught),
+          );
         }
       } catch {
         if (!signal.aborted && committed_view_ref.current === fetch_view) {
@@ -474,6 +496,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
 
     load_more_abort_ref.current?.abort();
     const controller = new AbortController();
+
     load_more_abort_ref.current = controller;
 
     try {
@@ -602,6 +625,8 @@ export function use_email_list(current_view: string): UseEmailListReturn {
         time: Date.now(),
         is_stale: false,
         conversation_grouping: preferences.conversation_grouping ?? true,
+        page: page_ref.current,
+        page_offsets: [...page_offset_ref.current.entries()],
       });
     }
   }, [state, current_view, preferences.conversation_grouping]);
@@ -635,25 +660,37 @@ export function use_email_list(current_view: string): UseEmailListReturn {
 
     if (auth_changed || user_changed || view_changed) {
       last_fetch_ref.current = null;
-      const cached = view_cache.get(current_view);
+      const cached = get_view_cache(current_view);
 
       if (
         view_changed &&
         !auth_changed &&
         !user_changed &&
         cached &&
-        cached.state.has_initial_load &&
-        cached.conversation_grouping ===
-          (preferences.conversation_grouping ?? true)
+        cached.state.has_initial_load
       ) {
+        const grouping_matches =
+          cached.conversation_grouping ===
+          (preferences.conversation_grouping ?? true);
+
         state_view_ref.current = current_view;
-        set_state(cached.state);
-        page_ref.current = derive_page_from_list_length(
-          cached.state.emails.length,
-          page_size,
+        set_state(
+          grouping_matches
+            ? cached.state
+            : { ...cached.state, is_loading: true },
         );
+        page_ref.current =
+          cached.page ??
+          derive_page_from_list_length(cached.state.emails.length, page_size);
+        if (cached.page_offsets) {
+          page_offset_ref.current = new Map(cached.page_offsets);
+        }
         windowed_page_ref.current = false;
-        if (cached.is_stale || Date.now() - cached.time > 30_000) {
+        if (
+          !grouping_matches ||
+          cached.is_stale ||
+          Date.now() - cached.time > 30_000
+        ) {
           silent_fetch_ref.current?.();
         }
 
@@ -727,17 +764,19 @@ export function use_email_list(current_view: string): UseEmailListReturn {
           });
       } else {
         if (nothing_changed && already_has_data) {
-          const cached = view_cache.get(current_view);
+          const cached = get_view_cache(current_view);
+
           if (cached?.is_stale) {
             silent_fetch_ref.current?.();
           }
+
           return () => {
             abort_ref.current?.abort();
             load_more_abort_ref.current?.abort();
           };
         }
         main_effect_fetched_ref.current = true;
-        fetch_page_ref.current?.(0, page_size, true);
+        fetch_page_ref.current?.(0, page_size, { force: true });
       }
     } else if (!is_online && Capacitor.isNativePlatform() && has_keys) {
       get_cached_email_list(current_view)
@@ -855,11 +894,12 @@ export function use_email_list(current_view: string): UseEmailListReturn {
       if (main_effect_fetched_ref.current) {
         main_effect_fetched_ref.current = false;
         triggered = true;
+
         return;
       }
       if (triggered) return;
       triggered = true;
-      fetch_page_ref.current?.(0, page_size, true);
+      fetch_page_ref.current?.(0, page_size, { force: true });
     });
   }, [has_keys, is_mail_view, page_size]);
 
@@ -877,6 +917,8 @@ export function use_email_list(current_view: string): UseEmailListReturn {
   );
 
   const remove_email = useCallback((id: string): void => {
+    page_cache_ref.current.clear();
+    page_offset_ref.current.clear();
     set_state((prev) => ({
       ...prev,
       emails: prev.emails.filter((e) => e.id !== id),
@@ -887,6 +929,9 @@ export function use_email_list(current_view: string): UseEmailListReturn {
   const remove_emails = useCallback((ids: string[]): void => {
     const id_set = new Set(ids);
 
+    page_cache_ref.current.clear();
+    page_offset_ref.current.clear();
+
     set_state((prev) => ({
       ...prev,
       emails: prev.emails.filter((e) => !id_set.has(e.id)),
@@ -894,25 +939,22 @@ export function use_email_list(current_view: string): UseEmailListReturn {
     }));
   }, []);
 
-  const restore_emails = useCallback(
-    (entries: RestoredEmailEntry[]): void => {
-      if (entries.length === 0) return;
-      page_cache_ref.current.clear();
-      set_state((prev) => {
-        const emails = insert_emails_at(prev.emails, entries);
+  const restore_emails = useCallback((entries: RestoredEmailEntry[]): void => {
+    if (entries.length === 0) return;
+    page_cache_ref.current.clear();
+    set_state((prev) => {
+      const emails = insert_emails_at(prev.emails, entries);
 
-        if (emails === prev.emails) return prev;
+      if (emails === prev.emails) return prev;
 
-        return {
-          ...prev,
-          emails,
-          total_messages:
-            prev.total_messages + (emails.length - prev.emails.length),
-        };
-      });
-    },
-    [],
-  );
+      return {
+        ...prev,
+        emails,
+        total_messages:
+          prev.total_messages + (emails.length - prev.emails.length),
+      };
+    });
+  }, []);
 
   use_email_list_events({
     current_view,

@@ -64,7 +64,6 @@ export function EncryptionSection() {
         open_regenerate_confirm={encryption.open_regenerate_confirm}
         pgp_key={encryption.pgp_key}
         pgp_key_load_failed={encryption.pgp_key_load_failed}
-        retry_load_encryption_data={encryption.retry_load_encryption_data}
         recovery_codes={encryption.recovery_codes}
         recovery_info={encryption.recovery_info}
         regenerate_confirm_text={encryption.regenerate_confirm_text}
@@ -72,6 +71,7 @@ export function EncryptionSection() {
         regenerate_password={encryption.regenerate_password}
         regenerate_totp_code={encryption.regenerate_totp_code}
         regenerate_totp_required={encryption.regenerate_totp_required}
+        retry_load_encryption_data={encryption.retry_load_encryption_data}
         set_export_password={encryption.set_export_password}
         set_export_totp_code={encryption.set_export_totp_code}
         set_regenerate_confirm_text={encryption.set_regenerate_confirm_text}
@@ -83,21 +83,26 @@ export function EncryptionSection() {
       />
 
       <StorageFormatPicker
-        storage_format={encryption.preferences.storage_format}
         on_change={encryption.handle_storage_format_change}
+        storage_format={encryption.preferences.storage_format}
       />
 
       <EncryptionSettingsForm
-        handle_auto_discover_keys_toggle={encryption.handle_auto_discover_keys_toggle}
-        handle_encrypt_emails_toggle={encryption.handle_encrypt_emails_toggle}
-        handle_wkd_toggle={encryption.handle_wkd_toggle}
         handle_add_keyserver={encryption.handle_add_keyserver}
-        handle_remove_keyserver={encryption.handle_remove_keyserver}
+        handle_auto_discover_keys_toggle={
+          encryption.handle_auto_discover_keys_toggle
+        }
+        handle_encrypt_emails_toggle={encryption.handle_encrypt_emails_toggle}
         handle_publish_to_keyservers={encryption.handle_publish_to_keyservers}
-        is_saving_keyservers={encryption.is_saving_keyservers}
+        handle_remove_keyserver={encryption.handle_remove_keyserver}
+        handle_require_encryption_toggle={
+          encryption.handle_require_encryption_toggle
+        }
+        handle_wkd_toggle={encryption.handle_wkd_toggle}
         is_publishing_keyserver={encryption.is_publishing_keyserver}
-        keyserver_input={encryption.keyserver_input}
+        is_saving_keyservers={encryption.is_saving_keyservers}
         keyserver_error={encryption.keyserver_error}
+        keyserver_input={encryption.keyserver_input}
         keyserver_published={encryption.keyserver_published}
         keyserver_state={encryption.keyserver_state}
         keyserver_urls={encryption.keyserver_urls}

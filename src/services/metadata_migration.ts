@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { user_facing_error } from "@/utils/user_facing_error";
 import type { MailItemMetadata } from "@/types/email";
 
 import {
@@ -29,13 +30,18 @@ import {
   type MailItem,
 } from "@/services/api/mail";
 import { encrypt_mail_metadata } from "@/services/crypto/mail_metadata";
-
 import { ignore_error } from "@/lib/ignore_error";
 
 const BATCH_SIZE = 50;
 
 export interface MigrationProgress {
-  status: "idle" | "checking" | "migrating" | "completed" | "failed" | "stalled";
+  status:
+    | "idle"
+    | "checking"
+    | "migrating"
+    | "completed"
+    | "failed"
+    | "stalled";
   total_items: number;
   processed_items: number;
   error?: string;
@@ -59,7 +65,10 @@ export function record_migration_failure(): number {
   try {
     localStorage.setItem(STALL_COUNT_KEY, String(next));
   } catch (caught) {
-    ignore_error("services/metadata_migration:record_migration_failure", caught);
+    ignore_error(
+      "services/metadata_migration:record_migration_failure",
+      caught,
+    );
   }
 
   return next;
@@ -257,8 +266,7 @@ export async function run_metadata_migration(
 
     return { success: true };
   } catch (error) {
-    const error_message =
-      error instanceof Error ? error.message : "unknown error";
+    const error_message = user_facing_error(error, "unknown error");
 
     const attempts = record_migration_failure();
     const stalled = attempts >= STALL_THRESHOLD;
@@ -268,7 +276,9 @@ export async function run_metadata_migration(
       total_items,
       processed_items: total_processed,
       error: error_message,
-      banner_i18n_key: stalled ? "errors.metadata_migration_stalled" : undefined,
+      banner_i18n_key: stalled
+        ? "errors.metadata_migration_stalled"
+        : undefined,
     });
 
     return { success: false, error: error_message };

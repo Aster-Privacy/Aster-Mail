@@ -18,13 +18,15 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { } from "@/lib/i18n/types";
+import type {} from "@/lib/i18n/types";
 
 import { api_client, type ApiResponse } from "../client";
 
-
-
-import { AliasActivityResponse, AliasDeliveryLogResponse, AliasRunStatusResponse } from "./types";
+import {
+  AliasActivityResponse,
+  AliasDeliveryLogResponse,
+  AliasRunStatusResponse,
+} from "./types";
 export async function get_alias_activity(
   alias_id: string,
 ): Promise<ApiResponse<AliasActivityResponse>> {

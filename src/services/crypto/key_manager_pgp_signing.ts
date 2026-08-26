@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import * as openpgp from "openpgp";
+
 import { array_to_base64, base64_to_array } from "./key_manager_core";
 
 export async function verify_prekey_signature(

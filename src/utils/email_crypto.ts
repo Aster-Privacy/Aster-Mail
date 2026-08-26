@@ -21,7 +21,6 @@
 import * as openpgp from "openpgp";
 
 import { ignore_error } from "@/lib/ignore_error";
-
 import {
   get_passphrase_from_memory,
   get_vault_from_memory,
@@ -31,9 +30,7 @@ import {
   parse_ratchet_envelope,
   decrypt_ratchet_message,
 } from "@/services/crypto/ratchet_manager";
-import {
-  decrypt_message,
-} from "@/services/crypto/key_manager";
+import { decrypt_message } from "@/services/crypto/key_manager";
 import {
   discover_external_keys_batch,
   type ExternalKeyInfo,
@@ -62,6 +59,7 @@ export async function try_decrypt_ratchet_body(
     if (body_text.includes('"type":"double_ratchet')) {
       return RATCHET_UNDECRYPTABLE_SENTINEL;
     }
+
     return body_text;
   }
 
@@ -510,7 +508,7 @@ export async function try_decrypt_pgp_body(body_text: string): Promise<string> {
 
 export const ASTER_SUBJECT_BUNDLE_MARKER = "ASTER_BUNDLE_V2";
 
-const BUNDLE_MARKER_DELIMITER = "";
+const BUNDLE_MARKER_DELIMITER = "\x01";
 
 export const ASTER_SUBJECT_BUNDLE_PREFIX =
   BUNDLE_MARKER_DELIMITER +
@@ -554,8 +552,10 @@ function read_lenient_json_string(
   if (text[open_quote_index] !== '"') return null;
   let value = "";
   let index = open_quote_index + 1;
+
   while (index < text.length) {
     const char = text[index];
+
     if (char === '"') return { value, next_index: index + 1 };
     if (char !== "\\") {
       value += char;
@@ -563,9 +563,11 @@ function read_lenient_json_string(
       continue;
     }
     const escape = text[index + 1];
+
     if (escape === undefined) break;
     if (escape === "u") {
       const code = text.slice(index + 2, index + 6);
+
       if (/^[0-9a-fA-F]{4}$/.test(code)) {
         value += String.fromCharCode(parseInt(code, 16));
         index += 6;
@@ -578,11 +580,13 @@ function read_lenient_json_string(
     value += JSON_STRING_ESCAPES[escape] ?? escape;
     index += 2;
   }
+
   return { value, next_index: text.length };
 }
 
 function scan_bundle_payload(payload: string): SubjectBundle | null {
   const open_brace = payload.indexOf("{");
+
   if (open_brace === -1) return null;
 
   let subject: string | null = null;
@@ -591,23 +595,29 @@ function scan_bundle_payload(payload: string): SubjectBundle | null {
 
   while (index < payload.length) {
     const key_quote = payload.indexOf('"', index);
+
     if (key_quote === -1) break;
     const key = read_lenient_json_string(payload, key_quote);
+
     if (!key) break;
     const colon = payload.indexOf(":", key.next_index);
+
     if (colon === -1) break;
     let value_start = colon + 1;
+
     while (value_start < payload.length && /\s/.test(payload[value_start])) {
       value_start += 1;
     }
     if (value_start >= payload.length) break;
     if (payload[value_start] !== '"') {
       const comma = payload.indexOf(",", value_start);
+
       if (comma === -1) break;
       index = comma + 1;
       continue;
     }
     const value = read_lenient_json_string(payload, value_start);
+
     if (!value) break;
     if (key.value === "s") subject = value.value;
     if (key.value === "b") body = value.value;
@@ -616,6 +626,7 @@ function scan_bundle_payload(payload: string): SubjectBundle | null {
   }
 
   if (body === null) return null;
+
   return { subject, body };
 }
 
@@ -623,6 +634,7 @@ const MAX_SUBJECT_BUNDLE_DEPTH = 8;
 
 function unwrap_subject_bundle_layer(text: string): SubjectBundle | null {
   const marker_index = text.indexOf(ASTER_SUBJECT_BUNDLE_MARKER);
+
   if (marker_index === -1) return null;
 
   const start_index =
@@ -640,6 +652,7 @@ function unwrap_subject_bundle_layer(text: string): SubjectBundle | null {
 
   try {
     const parsed = JSON.parse(payload);
+
     if (
       parsed &&
       typeof parsed === "object" &&
@@ -664,6 +677,7 @@ export function extract_subject_bundle(decrypted: string): SubjectBundle {
 
   for (let depth = 0; depth < MAX_SUBJECT_BUNDLE_DEPTH; depth += 1) {
     const layer = unwrap_subject_bundle_layer(body);
+
     if (!layer) break;
     if (!subject) subject = layer.subject;
     body = layer.body;
@@ -684,6 +698,7 @@ export function unwrap_bundle_html(html: string | undefined): {
   }
 
   const bundle = extract_subject_bundle(html);
+
   if (bundle.subject === null) return { html, subject: null };
 
   return { html: bundle.body || undefined, subject: bundle.subject };
@@ -733,6 +748,7 @@ export async function decrypt_body_text_with_bundle(
     sender_email,
     message_id,
   );
+
   return extract_subject_bundle(decrypted);
 }
 

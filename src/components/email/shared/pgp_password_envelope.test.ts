@@ -18,10 +18,10 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { DecryptedEnvelope } from "@/types/email";
+
 import { describe, it, expect, vi } from "vitest";
 import * as openpgp from "openpgp";
-
-import type { DecryptedEnvelope } from "@/types/email";
 
 vi.mock("@/services/crypto/memory_key_store", () => ({
   get_vault_from_memory: vi.fn(() => null),
@@ -37,14 +37,15 @@ vi.mock("@/utils/unsubscribe_detector", () => ({
 }));
 
 import {
+  process_envelope_body,
+  build_preview_text,
+} from "./build_email_from_envelope";
+
+import {
   decode_password_protected_body,
   decrypt_pgp_with_password,
   is_password_protected_body,
 } from "@/utils/email_crypto";
-import {
-  process_envelope_body,
-  build_preview_text,
-} from "./build_email_from_envelope";
 
 const PASSPHRASE = "shared-out-of-band-2026";
 

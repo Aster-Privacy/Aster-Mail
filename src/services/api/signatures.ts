@@ -18,9 +18,10 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { user_facing_error } from "@/utils/user_facing_error";
 import { api_client, type ApiResponse } from "./client";
-import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 
+import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import { get_or_create_derived_encryption_crypto_key } from "@/services/crypto/memory_key_store";
 
 export type SignaturePlacement = "above" | "below";
@@ -59,15 +60,21 @@ export interface DecryptedSignature {
   updated_at: string;
 }
 
-function placement_to_int(p: SignaturePlacement | null | undefined): number | null {
+function placement_to_int(
+  p: SignaturePlacement | null | undefined,
+): number | null {
   if (p === "above") return 1;
   if (p === "below") return 0;
+
   return null;
 }
 
-function placement_from_int(p: number | null | undefined): SignaturePlacement | null {
+function placement_from_int(
+  p: number | null | undefined,
+): SignaturePlacement | null {
   if (p === 1) return "above";
   if (p === 0) return "below";
+
   return null;
 }
 
@@ -77,11 +84,11 @@ export function get_signature_for_alias(
 ): DecryptedSignature | null {
   if (alias_id) {
     const bound = signatures.find((s) => s.alias_id === alias_id);
+
     if (bound) return bound;
   }
-  return (
-    signatures.find((s) => s.alias_id === null && s.is_default) || null
-  );
+
+  return signatures.find((s) => s.alias_id === null && s.is_default) || null;
 }
 
 export interface ListSignaturesResponse {
@@ -219,7 +226,10 @@ export async function decrypt_signatures(
   const results = await Promise.allSettled(signatures.map(decrypt_signature));
 
   return results
-    .filter((r): r is PromiseFulfilledResult<DecryptedSignature> => r.status === "fulfilled")
+    .filter(
+      (r): r is PromiseFulfilledResult<DecryptedSignature> =>
+        r.status === "fulfilled",
+    )
     .map((r) => r.value);
 }
 
@@ -240,8 +250,7 @@ export async function list_signatures(): Promise<
     return { data: { signatures: decrypted, total: response.data.total } };
   } catch (err) {
     return {
-      error:
-        err instanceof Error ? err.message : "Failed to decrypt signatures",
+      error: user_facing_error(err, "Failed to decrypt signatures"),
     };
   }
 }
@@ -263,7 +272,7 @@ export async function get_signature(
     return { data: decrypted };
   } catch (err) {
     return {
-      error: err instanceof Error ? err.message : "Failed to decrypt signature",
+      error: user_facing_error(err, "Failed to decrypt signature"),
     };
   }
 }
@@ -289,7 +298,7 @@ export async function get_default_signature(): Promise<
     return { data: decrypted };
   } catch (err) {
     return {
-      error: err instanceof Error ? err.message : "Failed to decrypt signature",
+      error: user_facing_error(err, "Failed to decrypt signature"),
     };
   }
 }
@@ -321,7 +330,7 @@ export async function create_signature(
     );
   } catch (err) {
     return {
-      error: err instanceof Error ? err.message : "Failed to encrypt signature",
+      error: user_facing_error(err, "Failed to encrypt signature"),
     };
   }
 }
@@ -365,7 +374,7 @@ export async function update_signature(
     );
   } catch (err) {
     return {
-      error: err instanceof Error ? err.message : "Failed to encrypt signature",
+      error: user_facing_error(err, "Failed to encrypt signature"),
     };
   }
 }

@@ -18,21 +18,21 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { HASH_ALG } from "@/services/crypto/constants";
 import type { EncryptedVault } from "./crypto/key_manager";
-import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 
 import { api_client } from "./api/client";
 import { check_and_replenish_prekeys } from "./crypto/prekey_service";
 import { refresh_session_activity } from "./session_timeout_service";
 import { connection_store } from "./routing/connection_store";
 import { TorUnavailableError } from "./routing/tor_unavailable_error";
+
+import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
+import { HASH_ALG } from "@/services/crypto/constants";
 import { is_onion_host } from "@/lib/onion_host";
 import {
   is_any_lockdown_active,
   LOCKDOWN_CHANGED_EVENT,
 } from "@/services/lockdown_store";
-
 import {
   MAIL_EVENTS,
   emit_reactions_changed,
@@ -41,8 +41,6 @@ import {
 import { mark_view_stale } from "@/hooks/email_list_cache";
 import { is_low_network } from "@/services/low_network_state";
 import { sync_recent } from "@/services/category_index";
-
-
 import { ignore_error } from "@/lib/ignore_error";
 
 type ServerMessageType =
@@ -229,6 +227,7 @@ class SyncClient {
 
         if (data.type === "auth_success") {
           const is_reconnect = this.reconnect_attempt > 0;
+
           this.authenticated = true;
           this.auth_error_count = 0;
           this.last_auth_error = false;
@@ -311,7 +310,9 @@ class SyncClient {
     }
 
     this.reconnect_attempt = 0;
-    this.connect().catch((caught) => ignore_error("services/sync_client:reconnect_now", caught));
+    this.connect().catch((caught) =>
+      ignore_error("services/sync_client:reconnect_now", caught),
+    );
   }
 
   private schedule_reconnect(): void {
@@ -657,6 +658,7 @@ if (typeof window !== "undefined") {
   });
   window.addEventListener(LOCKDOWN_CHANGED_EVENT, (e) => {
     const detail = (e as CustomEvent).detail;
+
     if (detail?.enabled) {
       sync_client.disconnect();
     }

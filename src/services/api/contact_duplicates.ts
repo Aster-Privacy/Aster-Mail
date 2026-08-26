@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { user_facing_error } from "@/utils/user_facing_error";
 import type {
   DuplicateCandidate,
   DuplicateCandidateWithContacts,
@@ -80,8 +81,7 @@ export async function list_duplicate_candidates(): Promise<
     return { data: { items, total: response.data.total } };
   } catch (err) {
     return {
-      error:
-        err instanceof Error ? err.message : "Failed to process duplicates",
+      error: user_facing_error(err, "Failed to process duplicates"),
     };
   }
 }

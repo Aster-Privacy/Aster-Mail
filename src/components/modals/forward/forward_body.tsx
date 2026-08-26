@@ -193,9 +193,7 @@ export function ForwardBody({
                   </span>
                 </button>
                 {is_forward_visible && (
-                  <QuotedHtmlPreview
-                    html={forward_content_ref.current ?? ""}
-                  />
+                  <QuotedHtmlPreview html={forward_content_ref.current ?? ""} />
                 )}
               </div>
             </div>
@@ -317,7 +315,6 @@ export function ForwardBody({
             ),
             active_formats,
             exec_format_command,
-            handle_insert_link: () => {},
             trigger_file_select,
             draft_status,
             last_saved_time,
@@ -330,9 +327,7 @@ export function ForwardBody({
             <SignaturePicker
               disabled={is_scheduling}
               on_select={(content) => {
-                if (content) {
-                  editor.insert_html(content);
-                }
+                editor.apply_signature(content || null);
               }}
               open_direction="up"
             />

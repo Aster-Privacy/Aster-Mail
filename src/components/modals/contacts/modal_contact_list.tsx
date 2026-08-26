@@ -55,6 +55,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown_menu";
 import { use_should_reduce_motion } from "@/provider";
+import { format_number } from "@/lib/utils";
 
 interface ModalContactListProps {
   contacts: DecryptedContact[];
@@ -146,7 +147,7 @@ export function ModalContactList({
             </h2>
             {contacts.length > 0 && (
               <span className="text-[13px] px-2 py-0.5 rounded-full bg-surf-secondary text-txt-muted">
-                {contacts.length}
+                {format_number(contacts.length)}
               </span>
             )}
           </div>
@@ -168,19 +169,19 @@ export function ModalContactList({
         </div>
 
         <div className="relative">
-          <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-[16px] h-[16px] pointer-events-none text-txt-muted" />
+          <MagnifyingGlassIcon className="absolute start-3 top-1/2 -translate-y-1/2 w-[16px] h-[16px] pointer-events-none text-txt-muted" />
           <Input
             ref={search_input_ref}
             className="w-full"
             placeholder={t("common.search_contacts")}
-            style={{ paddingLeft: "38px", paddingRight: "36px" }}
+            style={{ paddingInlineStart: "38px", paddingInlineEnd: "36px" }}
             value={search_query}
             onChange={(e) => set_search_query(e.target.value)}
           />
           {search_query && (
             <motion.button
               animate={{ opacity: 1, scale: 1 }}
-              className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-md"
+              className="absolute end-2 top-1/2 -translate-y-1/2 p-1.5 rounded-md"
               initial={reduce_motion ? false : { opacity: 0, scale: 0.8 }}
               whileHover={{ backgroundColor: "rgba(0,0,0,0.05)" }}
               onClick={() => set_search_query("")}
@@ -202,8 +203,8 @@ export function ModalContactList({
           </div>
 
           {has_selection ? (
-            <div className="flex items-center gap-1 ml-1 flex-1">
-              <span className="text-[13px] font-medium mr-2 text-txt-primary">
+            <div className="flex items-center gap-1 ms-1 flex-1">
+              <span className="text-[13px] font-medium me-2 text-txt-primary">
                 {t("common.selected_count", {
                   count: selection_state.selected_count,
                 })}
@@ -264,15 +265,11 @@ export function ModalContactList({
             </div>
           ) : (
             <div className="flex items-center justify-between flex-1">
-              <span className="text-[13px] ml-1 text-txt-muted">
+              <span className="text-[13px] ms-1 text-txt-muted">
                 {filtered_contacts.length === contacts.length
-                  ? contacts.length === 1
-                    ? t("common.contact_count_one", {
-                        count: contacts.length,
-                      })
-                    : t("common.contact_count_other", {
-                        count: contacts.length,
-                      })
+                  ? t("common.contact_count", {
+                      count: contacts.length,
+                    })
                   : t("common.n_of_n_contacts", {
                       filtered: filtered_contacts.length,
                       total: contacts.length,
@@ -320,7 +317,7 @@ export function ModalContactList({
                       className={filter_by === "favorites" ? "font-medium" : ""}
                       onClick={() => set_filter_by("favorites")}
                     >
-                      <StarIconSolid className="h-3.5 w-3.5 mr-2 text-amber-400" />
+                      <StarIconSolid className="h-3.5 w-3.5 me-2 text-amber-400" />
                       {t("common.favorites")}
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
@@ -328,14 +325,14 @@ export function ModalContactList({
                       className={filter_by === "has_email" ? "font-medium" : ""}
                       onClick={() => set_filter_by("has_email")}
                     >
-                      <EnvelopeIcon className="h-3.5 w-3.5 mr-2" />
+                      <EnvelopeIcon className="h-3.5 w-3.5 me-2" />
                       {t("common.has_email")}
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       className={filter_by === "has_phone" ? "font-medium" : ""}
                       onClick={() => set_filter_by("has_phone")}
                     >
-                      <PhoneIcon className="h-3.5 w-3.5 mr-2" />
+                      <PhoneIcon className="h-3.5 w-3.5 me-2" />
                       {t("common.has_phone")}
                     </DropdownMenuItem>
                     <DropdownMenuItem
@@ -344,7 +341,7 @@ export function ModalContactList({
                       }
                       onClick={() => set_filter_by("has_company")}
                     >
-                      <BuildingOffice2Icon className="h-3.5 w-3.5 mr-2" />
+                      <BuildingOffice2Icon className="h-3.5 w-3.5 me-2" />
                       {t("common.has_company")}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -455,7 +452,7 @@ export function ModalContactList({
               }}
             />
           </div>
-        ) : contacts.length === 0 ? (
+        ) : error && contacts.length === 0 ? null : contacts.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 px-8">
             <UserPlusIcon className="w-10 h-10 mb-4 text-txt-muted" />
             <h3 className="text-[15px] font-medium mb-1 text-txt-primary">
@@ -556,7 +553,7 @@ export function ModalContactList({
                   <span className="text-[13px] truncate max-w-[100px] hidden sm:block text-txt-secondary">
                     {contact.company}
                   </span>
-                  <ChevronRightIcon className="w-4 h-4 flex-shrink-0 opacity-40 text-txt-muted" />
+                  <ChevronRightIcon className="w-4 h-4 flex-shrink-0 opacity-40 text-txt-muted rtl:-scale-x-100" />
                 </div>
               );
             })}

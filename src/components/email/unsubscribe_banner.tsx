@@ -96,7 +96,7 @@ export function UnsubscribeBanner({
     const delay_ms = delay_seconds * 1000;
 
     show_action_toast({
-      message: t("mail.successfully_unsubscribed"),
+      message: t("settings.unsubscribing"),
       action_type: "not_spam",
       email_ids: [],
       duration_ms: delay_ms,
@@ -116,15 +116,29 @@ export function UnsubscribeBanner({
 
       try {
         const result = await execute_unsubscribe(unsubscribe_info);
+
         if (result === "api") {
-          persist_unsubscribe(sender_email, sender_name, {
-            unsubscribe_link: unsubscribe_info.unsubscribe_link,
-            list_unsubscribe_header: unsubscribe_info.list_unsubscribe_header,
-          }, "auto");
+          persist_unsubscribe(
+            sender_email,
+            sender_name,
+            {
+              unsubscribe_link: unsubscribe_info.unsubscribe_link,
+              list_unsubscribe_header: unsubscribe_info.list_unsubscribe_header,
+            },
+            "auto",
+          );
           on_unsubscribed?.();
+          show_action_toast({
+            message: t("mail.successfully_unsubscribed"),
+            action_type: "not_spam",
+            email_ids: [],
+          });
         } else {
-          const url = unsubscribe_info.unsubscribe_link || unsubscribe_info.unsubscribe_mailto;
+          const url =
+            unsubscribe_info.unsubscribe_link ||
+            unsubscribe_info.unsubscribe_mailto;
           const lockdown = is_any_lockdown_active();
+
           show_action_toast({
             message: t("mail.unsubscribe_manual_required"),
             action_type: "not_spam",
@@ -139,6 +153,7 @@ export function UnsubscribeBanner({
           });
         }
       } catch {
+        set_is_dismissed(false);
         show_action_toast({
           message: t("mail.unsubscribe_failed"),
           action_type: "not_spam",
@@ -173,7 +188,10 @@ export function UnsubscribeBanner({
         >
           <div
             className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center"
-            style={{ backgroundColor: "color-mix(in srgb, var(--accent-color) 10%, transparent)" }}
+            style={{
+              backgroundColor:
+                "color-mix(in srgb, var(--accent-color) 10%, transparent)",
+            }}
           >
             <EnvelopeIcon className="w-5 h-5 text-brand" />
           </div>

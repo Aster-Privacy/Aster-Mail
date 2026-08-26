@@ -37,6 +37,12 @@ export interface AttachmentBytes {
 }
 
 const MAX_CACHED_PREVIEWS = 80;
+
+const HARD_MAX_CACHED_PREVIEWS = 400;
+
+const PREVIEW_EVICT_GRACE_MS = 5000;
+
+const preview_touched_at = new Map<string, number>();
 const MAX_CACHED_BYTE_MAPS = 20;
 
 const preview_urls = new Map<string, string>();
@@ -48,10 +54,15 @@ function touch<T>(store: Map<string, T>, key: string, value: T): void {
   store.set(key, value);
 }
 
-export function get_cached_preview_url(attachment_id: string): string | undefined {
+export function get_cached_preview_url(
+  attachment_id: string,
+): string | undefined {
   const url = preview_urls.get(attachment_id);
 
-  if (url) touch(preview_urls, attachment_id, url);
+  if (url) {
+    touch(preview_urls, attachment_id, url);
+    preview_touched_at.set(attachment_id, Date.now());
+  }
 
   return url;
 }
@@ -70,18 +81,36 @@ export function set_cached_preview_url(
   }
 
   touch(preview_urls, attachment_id, url);
-
-  while (preview_urls.size > MAX_CACHED_PREVIEWS) {
-    const oldest = preview_urls.keys().next().value;
-
-    if (oldest === undefined) break;
-    const evicted = preview_urls.get(oldest);
-
-    preview_urls.delete(oldest);
-    if (evicted) URL.revokeObjectURL(evicted);
-  }
+  preview_touched_at.set(attachment_id, Date.now());
+  evict_stale_previews();
 
   return url;
+}
+
+function evict_stale_previews(): void {
+  const now = Date.now();
+
+  while (preview_urls.size > MAX_CACHED_PREVIEWS) {
+    const over_hard_limit = preview_urls.size > HARD_MAX_CACHED_PREVIEWS;
+    let victim: string | undefined;
+
+    for (const key of preview_urls.keys()) {
+      const touched = preview_touched_at.get(key) ?? 0;
+
+      if (over_hard_limit || now - touched > PREVIEW_EVICT_GRACE_MS) {
+        victim = key;
+        break;
+      }
+    }
+
+    if (victim === undefined) break;
+
+    const evicted = preview_urls.get(victim);
+
+    preview_urls.delete(victim);
+    preview_touched_at.delete(victim);
+    if (evicted) URL.revokeObjectURL(evicted);
+  }
 }
 
 export function get_cached_attachment_bytes(
@@ -94,6 +123,12 @@ export function get_cached_attachment_bytes(
   return bytes;
 }
 
+const record_fetch_failures = new Set<string>();
+
+export function attachment_records_fetch_failed(mail_item_id: string): boolean {
+  return record_fetch_failures.has(mail_item_id);
+}
+
 function fetch_records(mail_item_id: string): Promise<MailAttachment[]> {
   const in_flight = record_fetches.get(mail_item_id);
 
@@ -102,7 +137,14 @@ function fetch_records(mail_item_id: string): Promise<MailAttachment[]> {
   const task = (async () => {
     try {
       const response = await list_attachments(mail_item_id);
-      const records = response.data?.attachments ?? [];
+
+      if (response.error || !response.data) {
+        record_fetch_failures.add(mail_item_id);
+
+        return [];
+      }
+
+      const records = response.data.attachments ?? [];
 
       if (records.length > 0) {
         const byte_map = new Map<string, AttachmentBytes>(
@@ -122,8 +164,12 @@ function fetch_records(mail_item_id: string): Promise<MailAttachment[]> {
         }
       }
 
+      record_fetch_failures.delete(mail_item_id);
+
       return records;
     } catch {
+      record_fetch_failures.add(mail_item_id);
+
       return [];
     }
   })().finally(() => {
@@ -195,7 +241,9 @@ export async function prefetch_attachment_previews(
 
 export function clear_attachment_preview_cache(): void {
   for (const url of preview_urls.values()) URL.revokeObjectURL(url);
+  preview_touched_at.clear();
   preview_urls.clear();
   byte_maps.clear();
   record_fetches.clear();
+  record_fetch_failures.clear();
 }

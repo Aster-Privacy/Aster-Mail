@@ -18,9 +18,9 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { describe, it, expect } from "vitest";
-
 import type { MailItemMetadata } from "@/types/email";
+
+import { describe, it, expect } from "vitest";
 
 import {
   extract_metadata_from_server,
@@ -54,13 +54,42 @@ describe("extract_metadata_from_server", () => {
     expect(merged.is_trashed).toBe(true);
   });
 
-  it("does not un-trash an item whose plaintext column is stale", () => {
+  it("adopts a server restore over a stale encrypted trash flag", () => {
     const merged = extract_metadata_from_server(base({ is_trashed: true }), {
       is_trashed: false,
       item_type: "received",
     });
 
+    expect(merged.is_trashed).toBe(false);
+  });
+
+  it("adopts a server restore over a stale encrypted archive flag", () => {
+    const merged = extract_metadata_from_server(base({ is_archived: true }), {
+      is_archived: false,
+      item_type: "received",
+    });
+
+    expect(merged.is_archived).toBe(false);
+  });
+
+  it("adopts a server restore over a stale encrypted spam flag", () => {
+    const merged = extract_metadata_from_server(base({ is_spam: true }), {
+      is_spam: false,
+      item_type: "received",
+    });
+
+    expect(merged.is_spam).toBe(false);
+  });
+
+  it("keeps the encrypted placement flags when the server omits them", () => {
+    const merged = extract_metadata_from_server(
+      base({ is_trashed: true, is_archived: true, is_spam: true }),
+      { item_type: "received" },
+    );
+
     expect(merged.is_trashed).toBe(true);
+    expect(merged.is_archived).toBe(true);
+    expect(merged.is_spam).toBe(true);
   });
 
   it("lets the server win on star state in both directions", () => {

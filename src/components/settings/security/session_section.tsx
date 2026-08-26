@@ -36,6 +36,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
 import { BrowserIcon } from "@/components/settings/security/browser_icon";
+import { app_locale, get_display_time_zone } from "@/utils/date_format";
 
 const SESSIONS_PER_PAGE = 5;
 
@@ -65,13 +66,19 @@ function format_last_active(date_string: string) {
   if (diff_days < 7)
     return { key: "settings.days_ago" as const, count: diff_days };
 
-  return { key: null, formatted: date.toLocaleDateString() };
+  return {
+    key: null,
+    formatted: date.toLocaleDateString(app_locale(), {
+      timeZone: get_display_time_zone(),
+    }),
+  };
 }
 
 function format_created_at(date_string: string) {
   const date = new Date(date_string);
 
-  return date.toLocaleDateString(undefined, {
+  return date.toLocaleDateString(app_locale(), {
+    timeZone: get_display_time_zone(),
     month: "short",
     day: "numeric",
     year: "numeric",
@@ -181,7 +188,10 @@ export function SessionSection({
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <div className="w-11 h-11 rounded-lg bg-bg-secondary flex items-center justify-center flex-shrink-0">
-                      <BrowserIcon browser={browser_label} className="w-6 h-6" />
+                      <BrowserIcon
+                        browser={browser_label}
+                        className="w-6 h-6"
+                      />
                     </div>
                     <div className="min-w-0">
                       <p className="text-sm font-medium text-txt-primary flex items-center gap-2 flex-wrap">
@@ -255,10 +265,9 @@ export function SessionSection({
                   set_visible_count((prev) => prev + SESSIONS_PER_PAGE)
                 }
               >
-                {t("settings.load_more_sessions").replace(
-                  "{{count}}",
-                  String(sorted_sessions.length - visible_count),
-                )}
+                {t("settings.load_more_sessions", {
+                  count: sorted_sessions.length - visible_count,
+                })}
               </Button>
             </div>
           )}
@@ -283,11 +292,11 @@ export function SessionSection({
                 {revoking_all || logout_others_loading ? (
                   <>
                     {t("settings.signing_out")}
-                    <Spinner className="ml-1.5" size="sm" />
+                    <Spinner className="ms-1.5" size="sm" />
                   </>
                 ) : (
                   <>
-                    <TrashIcon className="w-3.5 h-3.5 mr-1.5" />
+                    <TrashIcon className="w-3.5 h-3.5 me-1.5" />
                     {t("settings.sign_out_all_other")}
                   </>
                 )}

@@ -19,12 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { DecryptedEnvelope } from "@/types/email";
-import {
-  frame_mbox_message,
-  serialize_envelope,
-  FilenameAllocator,
-  type ExportAttachment,
-} from "@/utils/export";
+
 import {
   sink_finalize,
   sink_write_eml,
@@ -32,6 +27,13 @@ import {
   type ExportSink,
 } from "./destination";
 import { ExportRateLimiter } from "./rate_limiter";
+
+import {
+  frame_mbox_message,
+  serialize_envelope,
+  FilenameAllocator,
+  type ExportAttachment,
+} from "@/utils/export";
 
 export interface ExportScope {
   preset: "all" | "custom";
@@ -109,9 +111,11 @@ export async function hash_prefix(input: string): Promise<string> {
   const buf = await crypto.subtle.digest("SHA-256", data);
   const bytes = new Uint8Array(buf);
   let hex = "";
+
   for (let i = 0; i < 4; i++) {
     hex += bytes[i].toString(16).padStart(2, "0");
   }
+
   return hex;
 }
 
@@ -139,6 +143,7 @@ export async function run_export(args: RunExportArgs): Promise<ExportSummary> {
   const emit = () => {
     args.on_progress?.({ ...progress });
   };
+
   emit();
 
   const report_error = (e: ExportError) => {
@@ -186,6 +191,7 @@ export async function run_export(args: RunExportArgs): Promise<ExportSummary> {
             name,
             serialize_envelope(msg.envelope, msg.attachments, serialize_opts),
           );
+
           bytes_written += wrote;
         }
 
@@ -197,6 +203,7 @@ export async function run_export(args: RunExportArgs): Promise<ExportSummary> {
           kind: classify_error(err),
           code: error_code(err),
         };
+
         if (e.kind === "write") {
           errors.push(e);
           args.on_error?.(e);
@@ -240,10 +247,12 @@ function classify_error(err: unknown): ExportError["kind"] {
   if (err instanceof DOMException && err.name === "AbortError")
     return "unknown";
   const msg = (err as Error)?.message ?? "";
+
   if (/decrypt|envelope/i.test(msg)) return "decrypt";
   if (/attachment/i.test(msg)) return "attachment";
   if (/serialize|mime/i.test(msg)) return "serialize";
   if (/write|disk|quota/i.test(msg)) return "write";
+
   return "unknown";
 }
 
@@ -253,5 +262,6 @@ function error_code(err: unknown): string {
     return String((err as { code: unknown }).code);
   }
   if (err instanceof Error) return err.name;
+
   return "Error";
 }

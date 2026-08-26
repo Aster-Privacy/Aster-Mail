@@ -55,7 +55,6 @@ import { clear_escrow_miss_cache } from "@/services/crypto/message_escrow";
 import { clear_translation_cache } from "@/services/translation/translation_cache";
 import { clear_detection_cache } from "@/services/translation/language_detect";
 import { release_engines } from "@/services/translation/engine_registry";
-
 import { ignore_error } from "@/lib/ignore_error";
 
 export async function purge_all_local_data(): Promise<void> {

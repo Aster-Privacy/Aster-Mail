@@ -14,8 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { use_translation } from "@/lib/i18n";
 import type { TranslationKey } from "@/lib/i18n/types";
+
+import { use_translation } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 export type PlanBadgeTier = "star" | "nova" | "supernova";

@@ -19,7 +19,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { api_client } from "@/services/api/client";
-
 import { ignore_error } from "@/lib/ignore_error";
 
 const IDB_STORE = "phishing_blocklist";

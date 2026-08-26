@@ -18,29 +18,10 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type {
-  
-  
-  
-  
-  AddressEntry,
-  
-  
-  
-  
-  
-  
-  
-  AddressEntryType,
-  
-  
-  
-  
-  
-} from "@/types/contacts";
+import type { AddressEntry, AddressEntryType } from "@/types/contacts";
 import type { TranslationKey } from "@/lib/i18n";
 
-import { useEffect,  useState } from "react";
+import { useEffect, useState } from "react";
 import {
   PlusIcon,
   XMarkIcon,
@@ -48,6 +29,13 @@ import {
   KeyIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
+
+import {
+  ADDRESS_TYPE_OPTIONS,
+  FIELD_CLASS,
+  SELECT_CLASS,
+  type_label_key,
+} from "./helpers";
 
 import { show_toast } from "@/components/toast/simple_toast";
 import { Spinner } from "@/components/ui/spinner";
@@ -70,7 +58,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ADDRESS_TYPE_OPTIONS, FIELD_CLASS, SELECT_CLASS, type_label_key } from "./helpers";
 
 export function Section({
   title,
@@ -117,25 +104,39 @@ export function ContactPgpKeyRow({
 }) {
   const [key_info, set_key_info] = useState<ExternalKeyInfo | null>(null);
   const [is_loading, set_is_loading] = useState(true);
+  const [lookup_failed, set_lookup_failed] = useState(false);
+  const [retry_token, set_retry_token] = useState(0);
   const [is_key_open, set_is_key_open] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
 
     set_is_loading(true);
+    set_lookup_failed(false);
     set_key_info(null);
 
-    discover_external_key(email).then((response) => {
-      if (cancelled) return;
+    discover_external_key(email)
+      .then((response) => {
+        if (cancelled) return;
 
-      set_key_info(response.data ?? null);
-      set_is_loading(false);
-    });
+        if (response.data) {
+          set_key_info(response.data);
+        } else {
+          set_lookup_failed(true);
+        }
+        set_is_loading(false);
+      })
+      .catch(() => {
+        if (cancelled) return;
+
+        set_lookup_failed(true);
+        set_is_loading(false);
+      });
 
     return () => {
       cancelled = true;
     };
-  }, [email]);
+  }, [email, retry_token]);
 
   const field_key = `pgp_key_${email}`;
 
@@ -153,6 +154,19 @@ export function ContactPgpKeyRow({
               <p className="text-[12px] text-txt-muted">
                 {t("settings.pgp_key_checking")}
               </p>
+            </div>
+          ) : lookup_failed ? (
+            <div className="flex items-center gap-2 mt-0.5">
+              <p className="text-[12px] text-txt-muted">
+                {t("common.something_went_wrong_try_again")}
+              </p>
+              <button
+                type="button"
+                className="text-[12px] text-accent-primary hover:underline"
+                onClick={() => set_retry_token((value) => value + 1)}
+              >
+                {t("common.retry")}
+              </button>
             </div>
           ) : key_info?.found ? (
             <div className="mt-0.5 space-y-0.5">
@@ -200,7 +214,11 @@ export function ContactPgpKeyRow({
           </Button>
         </div>
       )}
-      <Modal is_open={is_key_open} size="2xl" on_close={() => set_is_key_open(false)}>
+      <Modal
+        is_open={is_key_open}
+        on_close={() => set_is_key_open(false)}
+        size="2xl"
+      >
         <ModalHeader>
           <ModalTitle>{t("settings.view_public_key")}</ModalTitle>
         </ModalHeader>
@@ -340,7 +358,7 @@ export function AddressList({
           <div className="flex items-center gap-2">
             <div className="relative flex-1">
               <select
-                className={`${SELECT_CLASS} pr-7 w-full`}
+                className={`${SELECT_CLASS} pe-7 w-full`}
                 disabled={disabled}
                 value={entry.type}
                 onChange={(e) =>
@@ -355,7 +373,7 @@ export function AddressList({
                   </option>
                 ))}
               </select>
-              <ChevronDownIcon className="w-3.5 h-3.5 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-txt-muted" />
+              <ChevronDownIcon className="w-3.5 h-3.5 absolute end-2 top-1/2 -translate-y-1/2 pointer-events-none text-txt-muted" />
             </div>
             {!disabled && (
               <button
@@ -395,9 +413,7 @@ export function AddressList({
               placeholder={t("common.postal_code_placeholder")}
               readOnly={disabled}
               value={entry.postal_code || ""}
-              onChange={(e) =>
-                on_change(idx, { postal_code: e.target.value })
-              }
+              onChange={(e) => on_change(idx, { postal_code: e.target.value })}
             />
             <input
               className={FIELD_CLASS}

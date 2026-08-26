@@ -23,7 +23,6 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
 declare global {
-  // eslint-disable-next-line no-var
   var IS_REACT_ACT_ENVIRONMENT: boolean;
 }
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
@@ -57,14 +56,30 @@ vi.mock("@/lib/utils", () => ({
 }));
 
 vi.mock("@/components/ui/alert_dialog", () => ({
-  AlertDialog: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
-  AlertDialogAction: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
-  AlertDialogCancel: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
-  AlertDialogContent: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
-  AlertDialogDescription: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
-  AlertDialogFooter: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
-  AlertDialogHeader: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
-  AlertDialogTitle: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
+  AlertDialog: ({ children }: { children?: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
+  AlertDialogAction: ({ children }: { children?: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
+  AlertDialogCancel: ({ children }: { children?: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
+  AlertDialogContent: ({ children }: { children?: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
+  AlertDialogDescription: ({ children }: { children?: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
+  AlertDialogFooter: ({ children }: { children?: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
+  AlertDialogHeader: ({ children }: { children?: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
+  AlertDialogTitle: ({ children }: { children?: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
 }));
 
 vi.mock("@/components/auth/turnstile_widget", () => ({
@@ -86,7 +101,9 @@ vi.mock("@/components/toast/simple_toast", () => ({
 
 vi.mock("./shared", () => ({
   SettingsHeader: () => null,
-  SettingsGroup: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
+  SettingsGroup: ({ children }: { children?: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
 }));
 
 import { FamilySection } from "./family_section";
@@ -174,6 +191,7 @@ describe("mobile FamilySection excludes grace-period (removed) members", () => {
       ...group,
       members: [owner, { ...removed_member, status: "active" }],
     };
+
     get_family_group.mockResolvedValue({ data: both_active, error: null });
 
     render(<FamilySection on_back={() => {}} on_close={() => {}} />);
@@ -181,5 +199,48 @@ describe("mobile FamilySection excludes grace-period (removed) members", () => {
 
     expect(host.textContent).toContain("2/6");
     expect(host.textContent).toContain("ex_friend");
+  });
+});
+
+describe("mobile FamilySection load failure", () => {
+  it("offers a retry instead of pretending the family does not exist", async () => {
+    get_family_group.mockResolvedValue({ data: null, error: "network" });
+
+    render(<FamilySection on_back={() => {}} on_close={() => {}} />);
+    await act(async () => {});
+
+    expect(host.textContent).toContain("common.something_went_wrong_try_again");
+    expect(host.textContent).toContain("common.retry");
+    expect(host.textContent).not.toContain("settings.family_plan_subtitle");
+  });
+
+  it("reloads the family when the retry is pressed", async () => {
+    get_family_group.mockResolvedValue({ data: null, error: "network" });
+
+    render(<FamilySection on_back={() => {}} on_close={() => {}} />);
+    await act(async () => {});
+
+    get_family_group.mockResolvedValue({ data: group, error: null });
+
+    const retry = Array.from(host.querySelectorAll("button")).find((b) =>
+      b.textContent?.includes("common.retry"),
+    );
+
+    await act(async () => {
+      retry?.click();
+    });
+    await act(async () => {});
+
+    expect(host.textContent).toContain("1/6");
+  });
+
+  it("keeps the upsell copy when the account simply has no family", async () => {
+    get_family_group.mockResolvedValue({ data: null, error: null });
+
+    render(<FamilySection on_back={() => {}} on_close={() => {}} />);
+    await act(async () => {});
+
+    expect(host.textContent).toContain("settings.family_plan_subtitle");
+    expect(host.textContent).not.toContain("common.retry");
   });
 });

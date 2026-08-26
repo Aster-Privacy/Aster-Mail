@@ -18,16 +18,15 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { } from "@/services/api/preferences";
-import type { } from "@/services/api/family_org";
+import type {} from "@/services/api/preferences";
+import type {} from "@/services/api/family_org";
 
-import {  Switch } from "@aster/ui";
+import { Switch } from "@aster/ui";
 import {
   LockClosedIcon,
   XMarkIcon,
   PlusIcon,
 } from "@heroicons/react/24/outline";
-
 
 import {
   Select,
@@ -40,11 +39,8 @@ import {
   SUPPORTED_LANGUAGES,
   type LanguageCode,
 } from "@/services/translation/engine_types";
-import {
-  language_display_name,
-} from "@/services/translation/accepted_languages";
+import { language_display_name } from "@/services/translation/accepted_languages";
 import { InfoPopover } from "@/components/ui/info_popover";
-
 
 export interface ToggleSettingProps {
   title: string;
@@ -73,7 +69,7 @@ export function ToggleSetting({
 }: ToggleSettingProps) {
   return (
     <div className="flex items-center justify-between py-4">
-      <div className="flex-1 pr-4">
+      <div className="flex-1 pe-4">
         <p className="flex items-center gap-1.5 text-sm font-medium text-txt-primary">
           {title}
           {!is_redundant_info(info, title, description) && info && (
@@ -82,7 +78,12 @@ export function ToggleSetting({
         </p>
         <p className="text-sm mt-0.5 text-txt-muted">{description}</p>
       </div>
-      <Switch size="lg" checked={enabled} onCheckedChange={on_toggle} />
+      <Switch
+        aria-label={title}
+        checked={enabled}
+        size="lg"
+        onCheckedChange={on_toggle}
+      />
     </div>
   );
 }
@@ -110,7 +111,7 @@ export function SelectSetting({
 }: SelectSettingProps) {
   return (
     <div className="flex items-center justify-between py-4">
-      <div className="flex-1 pr-4">
+      <div className="flex-1 pe-4">
         <p className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
           {title}
           {!is_redundant_info(info, title, description) && info && (
@@ -180,14 +181,14 @@ export function LanguagePicker({
         {selected.map((code) => (
           <span
             key={code}
-            className="inline-flex items-center gap-1.5 rounded-full border border-edge-primary bg-surf-tertiary pl-3 pr-1.5 py-1 text-sm font-medium text-txt-primary"
+            className="inline-flex items-center gap-1.5 rounded-full border border-edge-primary bg-surf-tertiary ps-3 pe-1.5 py-1 text-sm font-medium text-txt-primary"
           >
             {display(code)}
             <button
+              aria-label={display(code)}
+              className="rounded-full p-0.5 text-txt-muted hover:text-txt-primary hover:bg-white/10 transition-colors"
               type="button"
               onClick={() => on_remove(code)}
-              className="rounded-full p-0.5 text-txt-muted hover:text-txt-primary hover:bg-white/10 transition-colors"
-              aria-label={display(code)}
             >
               <XMarkIcon className="w-3.5 h-3.5" />
             </button>
@@ -220,7 +221,7 @@ export function LanguagePicker({
   );
 }
 
-export const UNDO_PRESET_SECONDS = [3, 5, 10, 15, 30] as const;
+export const UNDO_PRESET_SECONDS = [3, 5, 10, 15, 20, 30] as const;
 export const UNDO_MIN_SECONDS = 1;
 export const UNDO_MAX_SECONDS = 30;
 export const UNDO_DEFAULT_SECONDS = 10;
@@ -239,6 +240,21 @@ export function clamp_sidebar_width(value: number): number {
   );
 }
 
+export function undo_send_is_active(
+  enabled: boolean | undefined,
+  seconds: number | undefined,
+): boolean {
+  if (enabled === false) {
+    return false;
+  }
+
+  if (typeof seconds === "number" && Number.isFinite(seconds) && seconds <= 0) {
+    return false;
+  }
+
+  return true;
+}
+
 export function clamp_undo_seconds(value: number): number {
   if (!Number.isFinite(value) || value < UNDO_MIN_SECONDS) {
     return UNDO_DEFAULT_SECONDS;
@@ -246,4 +262,3 @@ export function clamp_undo_seconds(value: number): number {
 
   return Math.min(value, UNDO_MAX_SECONDS);
 }
-

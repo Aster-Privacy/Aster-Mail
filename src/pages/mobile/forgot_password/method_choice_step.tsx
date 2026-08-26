@@ -51,7 +51,7 @@ function MethodCard({
 }: MethodCardProps) {
   return (
     <motion.button
-      className="w-full rounded-xl border p-4 text-left"
+      className="w-full rounded-xl border p-4 text-start"
       style={{
         background: "var(--bg-secondary)",
         borderColor: "var(--border-secondary)",
@@ -113,7 +113,7 @@ export function MethodChoiceStep({
             set_step("email");
           }}
         >
-          <ChevronLeftIcon className="h-5 w-5" />
+          <ChevronLeftIcon className="h-5 w-5 rtl:-scale-x-100" />
         </motion.button>
       </div>
 
@@ -164,25 +164,25 @@ export function MethodChoiceStep({
             badge={t("auth.forgot_method_full_restore")}
             badge_tone="green"
             description={t("auth.forgot_method_phrase_desc")}
+            on_click={on_select_phrase}
             reduce_motion={reduce_motion}
             title={t("auth.forgot_method_phrase_title")}
-            on_click={on_select_phrase}
           />
           <MethodCard
             badge={t("auth.forgot_method_full_restore")}
             badge_tone="green"
             description={t("auth.forgot_method_code_desc")}
+            on_click={on_select_code}
             reduce_motion={reduce_motion}
             title={t("auth.forgot_method_code_title")}
-            on_click={on_select_code}
           />
           <MethodCard
             badge={t("auth.forgot_method_access_only")}
             badge_tone="amber"
             description={t("auth.forgot_method_email_desc")}
+            on_click={on_select_email}
             reduce_motion={reduce_motion}
             title={t("auth.forgot_method_email_title")}
-            on_click={on_select_email}
           />
         </div>
       </motion.div>

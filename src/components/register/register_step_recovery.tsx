@@ -66,7 +66,10 @@ export const RegisterStepRecoveryCodes = ({
           <span className="text-xs text-txt-muted">
             {reg.t("auth.your_new_aster_address")}
           </span>
-          <span className="text-sm font-semibold text-txt-primary notranslate" translate="no">
+          <span
+            className="text-sm font-semibold text-txt-primary notranslate"
+            translate="no"
+          >
             {reg.generated_email}
           </span>
         </div>
@@ -341,7 +344,7 @@ export const RegisterStepRecoveryEmail = ({
         {reg.is_saving_recovery_email ? (
           <>
             {reg.t("common.saving")}
-            <Spinner className="ml-2" size="md" />
+            <Spinner className="ms-2" size="md" />
           </>
         ) : (
           reg.t("common.continue")
@@ -429,7 +432,7 @@ export const RegisterStepRecoveryEmailGate = ({
         {reg.is_saving_recovery_email ? (
           <>
             {reg.t("common.saving")}
-            <Spinner className="ml-2" size="md" />
+            <Spinner className="ms-2" size="md" />
           </>
         ) : (
           reg.t("common.continue")

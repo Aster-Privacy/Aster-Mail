@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useState, useCallback, useEffect } from "react";
+import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { Checkbox } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
@@ -26,7 +27,6 @@ import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import { show_toast } from "@/components/toast/simple_toast";
 import { ignore_error } from "@/lib/ignore_error";
-
 import {
   get_vacation_reply,
   upsert_vacation_reply,
@@ -34,11 +34,15 @@ import {
   toggle_vacation_reply,
   type VacationReplyResponse,
 } from "@/services/api/vacation_reply";
+import { app_locale, get_display_time_zone } from "@/utils/date_format";
 
 export function VacationReplyTab() {
   const { t } = use_i18n();
   const [vacation, set_vacation] = useState<VacationReplyResponse | null>(null);
+  const [confirm_delete_vacation, set_confirm_delete_vacation] =
+    useState(false);
   const [vacation_loading, set_vacation_loading] = useState(true);
+  const [vacation_load_failed, set_vacation_load_failed] = useState(false);
   const [vacation_subject, set_vacation_subject] = useState("");
   const [vacation_body, set_vacation_body] = useState("");
   const [vacation_enabled, set_vacation_enabled] = useState(false);
@@ -47,31 +51,43 @@ export function VacationReplyTab() {
   const [vacation_external_only, set_vacation_external_only] = useState(false);
   const [is_saving_vacation, set_is_saving_vacation] = useState(false);
 
+  const [reload_token, set_reload_token] = useState(0);
+
   useEffect(() => {
     let cancelled = false;
 
     async function load_vacation() {
+      set_vacation_loading(true);
       try {
         const result = await get_vacation_reply();
 
         if (cancelled) return;
-        if (result.data) {
+        if (result.error) {
+          set_vacation_load_failed(true);
+        } else if (result.data) {
+          set_vacation_load_failed(false);
           set_vacation(result.data);
           set_vacation_subject(result.data.subject);
           set_vacation_body(result.data.body);
           set_vacation_enabled(result.data.is_enabled);
           set_vacation_start(
             result.data.start_date
-              ? result.data.start_date.substring(0, 16)
+              ? result.data.start_date.substring(0, 10)
               : "",
           );
           set_vacation_end(
-            result.data.end_date ? result.data.end_date.substring(0, 16) : "",
+            result.data.end_date ? result.data.end_date.substring(0, 10) : "",
           );
           set_vacation_external_only(result.data.external_only);
+        } else {
+          set_vacation_load_failed(false);
         }
       } catch (caught) {
-        ignore_error("pages/mobile/settings/vacation_reply_tab:load_vacation", caught);
+        ignore_error(
+          "pages/mobile/settings/vacation_reply_tab:load_vacation",
+          caught,
+        );
+        if (!cancelled) set_vacation_load_failed(true);
       } finally {
         if (!cancelled) set_vacation_loading(false);
       }
@@ -81,7 +97,7 @@ export function VacationReplyTab() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [reload_token]);
 
   const handle_save_vacation = useCallback(async () => {
     if (!vacation_subject.trim() || !vacation_body.trim()) return;
@@ -91,20 +107,19 @@ export function VacationReplyTab() {
         subject: vacation_subject.trim(),
         body: vacation_body.trim(),
         is_enabled: vacation_enabled,
-        start_date: vacation_start
-          ? new Date(vacation_start).toISOString().slice(0, 10)
-          : null,
-        end_date: vacation_end
-          ? new Date(vacation_end).toISOString().slice(0, 10)
-          : null,
+        start_date: vacation_start ? vacation_start.slice(0, 10) : null,
+        end_date: vacation_end ? vacation_end.slice(0, 10) : null,
         external_only: vacation_external_only,
       });
 
       if (result.data) {
         set_vacation(result.data);
         show_toast(t("settings.vacation_reply_saved"), "success");
-      } else if (result.error) {
-        show_toast(result.error, "error");
+      } else {
+        show_toast(
+          result.error || t("common.something_went_wrong_try_again"),
+          "error",
+        );
       }
     } finally {
       set_is_saving_vacation(false);
@@ -132,10 +147,13 @@ export function VacationReplyTab() {
         set_vacation_end("");
         set_vacation_external_only(false);
         show_toast(t("settings.vacation_reply_deleted"), "success");
+      } else {
+        show_toast(t("common.delete_failed"), "error");
       }
     } catch (err) {
       if (import.meta.env.DEV)
         console.error("failed to delete vacation reply", err);
+      show_toast(t("common.delete_failed"), "error");
     }
   }, [t]);
 
@@ -154,9 +172,12 @@ export function VacationReplyTab() {
             : t("settings.vacation_reply_toggled_off"),
           "success",
         );
-      } else if (result.error) {
+      } else {
         set_vacation_enabled(!new_enabled);
-        show_toast(result.error, "error");
+        show_toast(
+          result.error || t("common.something_went_wrong_try_again"),
+          "error",
+        );
       }
     }
   }, [vacation, vacation_enabled, t]);
@@ -166,6 +187,19 @@ export function VacationReplyTab() {
       {vacation_loading ? (
         <div className="flex items-center justify-center py-12">
           <Spinner size="md" />
+        </div>
+      ) : vacation_load_failed ? (
+        <div className="px-4 py-12 text-center">
+          <p className="text-[14px] text-[var(--mobile-text-muted)]">
+            {t("common.something_went_wrong_try_again")}
+          </p>
+          <button
+            className="mt-3 rounded-[12px] bg-[var(--mobile-bg-card-hover)] px-4 py-2 text-[13px] font-medium text-[var(--mobile-text-primary)]"
+            type="button"
+            onClick={() => set_reload_token((prev) => prev + 1)}
+          >
+            {t("common.retry")}
+          </button>
         </div>
       ) : (
         <div className="px-4 pt-3 space-y-3">
@@ -232,30 +266,11 @@ export function VacationReplyTab() {
                 </label>
                 <Input
                   className="w-full"
+                  max={vacation_end ? vacation_end.substring(0, 10) : undefined}
                   type="date"
                   value={vacation_start ? vacation_start.substring(0, 10) : ""}
-                  onChange={(e) => {
-                    const time_part = vacation_start
-                      ? vacation_start.substring(11, 16)
-                      : "09:00";
-
-                    set_vacation_start(
-                      e.target.value ? `${e.target.value}T${time_part}` : "",
-                    );
-                  }}
+                  onChange={(e) => set_vacation_start(e.target.value)}
                 />
-                {vacation_start && (
-                  <Input
-                    className="mt-1 w-full"
-                    type="time"
-                    value={vacation_start.substring(11, 16) || "09:00"}
-                    onChange={(e) => {
-                      const date_part = vacation_start.substring(0, 10);
-
-                      set_vacation_start(`${date_part}T${e.target.value}`);
-                    }}
-                  />
-                )}
               </div>
               <div>
                 <label className="mb-1 block text-[13px] font-medium text-[var(--mobile-text-muted)]">
@@ -263,30 +278,13 @@ export function VacationReplyTab() {
                 </label>
                 <Input
                   className="w-full"
+                  min={
+                    vacation_start ? vacation_start.substring(0, 10) : undefined
+                  }
                   type="date"
                   value={vacation_end ? vacation_end.substring(0, 10) : ""}
-                  onChange={(e) => {
-                    const time_part = vacation_end
-                      ? vacation_end.substring(11, 16)
-                      : "17:00";
-
-                    set_vacation_end(
-                      e.target.value ? `${e.target.value}T${time_part}` : "",
-                    );
-                  }}
+                  onChange={(e) => set_vacation_end(e.target.value)}
                 />
-                {vacation_end && (
-                  <Input
-                    className="mt-1 w-full"
-                    type="time"
-                    value={vacation_end.substring(11, 16) || "17:00"}
-                    onChange={(e) => {
-                      const date_part = vacation_end.substring(0, 10);
-
-                      set_vacation_end(`${date_part}T${e.target.value}`);
-                    }}
-                  />
-                )}
               </div>
             </div>
 
@@ -305,11 +303,11 @@ export function VacationReplyTab() {
 
           {vacation && vacation.reply_count > 0 && (
             <div className="rounded-xl bg-[var(--mobile-bg-card)] px-4 py-3 text-[13px] text-[var(--mobile-text-muted)]">
-              {vacation.reply_count === 1
-                ? t("settings.vacation_one_reply_sent")
-                : t("settings.vacation_n_replies_sent", { count: vacation.reply_count })}
+              {t("settings.vacation_reply_count", {
+                count: vacation.reply_count,
+              })}
               {vacation.last_replied_at &&
-                ` · ${new Date(vacation.last_replied_at).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}`}
+                ` · ${new Date(vacation.last_replied_at).toLocaleDateString(app_locale(), { timeZone: get_display_time_zone(), month: "short", day: "numeric", year: "numeric" })}`}
             </div>
           )}
 
@@ -338,7 +336,7 @@ export function VacationReplyTab() {
               <button
                 className="rounded-[16px] px-4 py-3 text-[14px] font-medium text-[var(--mobile-danger)] bg-[var(--mobile-bg-card)]"
                 type="button"
-                onClick={handle_delete_vacation}
+                onClick={() => set_confirm_delete_vacation(true)}
               >
                 {t("settings.vacation_reply_delete")}
               </button>
@@ -346,6 +344,18 @@ export function VacationReplyTab() {
           </div>
         </div>
       )}
+      <ConfirmationModal
+        confirm_text={t("common.delete")}
+        is_open={confirm_delete_vacation}
+        message={t("settings.vacation_reply_delete_message")}
+        on_cancel={() => set_confirm_delete_vacation(false)}
+        on_confirm={() => {
+          set_confirm_delete_vacation(false);
+          handle_delete_vacation();
+        }}
+        title={t("settings.vacation_reply_delete_title")}
+        variant="danger"
+      />
     </>
   );
 }

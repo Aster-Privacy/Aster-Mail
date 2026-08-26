@@ -18,12 +18,13 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, type ReactNode } from "react";
 import { Checkbox } from "@aster/ui";
 import { Button } from "@aster/ui";
 
 import { Spinner } from "@/components/ui/spinner";
 import { use_i18n } from "@/lib/i18n/context";
+import { ignore_error } from "@/lib/ignore_error";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -48,6 +49,7 @@ interface ConfirmationModalProps {
   show_dont_ask_again?: boolean;
   learn_more_url?: string;
   learn_more_label?: string;
+  extra_content?: ReactNode;
 }
 
 const VARIANT_MAP: Record<ConfirmationVariant, "destructive" | "primary"> = {
@@ -71,6 +73,7 @@ export function ConfirmationModal({
   show_dont_ask_again = false,
   learn_more_url,
   learn_more_label,
+  extra_content,
 }: ConfirmationModalProps) {
   const { t } = use_i18n();
   const resolved_confirm_text = confirm_text ?? t("common.confirm");
@@ -118,6 +121,8 @@ export function ConfirmationModal({
       set_is_saving(true);
       try {
         await on_dont_ask_again();
+      } catch (err) {
+        ignore_error("confirmation_modal_dont_ask_again", err);
       } finally {
         set_is_saving(false);
       }
@@ -161,6 +166,8 @@ export function ConfirmationModal({
             )}
           </AlertDialogHeader>
 
+          {extra_content}
+
           {show_dont_ask_again && (
             <label
               className="inline-flex items-center gap-2 cursor-pointer select-none mt-5"
@@ -201,7 +208,7 @@ export function ConfirmationModal({
             {is_saving ? (
               <>
                 {t("common.saving")}
-                <Spinner className="ml-2" size="md" />
+                <Spinner className="ms-2" size="md" />
               </>
             ) : (
               resolved_confirm_text

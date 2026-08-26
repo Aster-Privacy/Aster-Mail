@@ -18,6 +18,9 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { TranslationKey } from "@/lib/i18n/types";
+import type { Action } from "@/services/api/mail_rules";
+
 import * as React from "react";
 import { PlusIcon } from "@heroicons/react/24/outline";
 
@@ -28,8 +31,6 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown_menu";
 import { use_i18n } from "@/lib/i18n/context";
-import type { TranslationKey } from "@/lib/i18n/types";
-import type { Action } from "@/services/api/mail_rules";
 
 export type AddableActionType = Action["type"];
 
@@ -53,8 +54,8 @@ export function AddActionChip({ options, on_pick }: AddActionChipProps) {
     <DropdownMenu open={open} onOpenChange={set_open}>
       <DropdownMenuTrigger asChild>
         <button
-          type="button"
           className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-[12px] border border-dashed border-neutral-300 dark:border-neutral-700 text-[12.5px] text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-700 dark:hover:text-neutral-200 transition-colors"
+          type="button"
         >
           <PlusIcon className="w-3.5 h-3.5" />
           <span>{t("mail_rules.add_action")}</span>
@@ -62,21 +63,22 @@ export function AddActionChip({ options, on_pick }: AddActionChipProps) {
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="start"
-        sideOffset={6}
         className="z-[200] w-56 data-[state=closed]:!animate-none data-[state=closed]:!duration-0"
+        sideOffset={6}
       >
         {options.map((opt) => (
           <DropdownMenuItem
             key={opt.type}
+            className="justify-between text-[12.5px]"
             disabled={opt.disabled}
             onSelect={(e) => {
               if (opt.disabled) {
                 e.preventDefault();
+
                 return;
               }
               on_pick(opt.type);
             }}
-            className="justify-between text-[12.5px]"
           >
             <span>{t(opt.label_key)}</span>
             {opt.disabled_hint_key && (

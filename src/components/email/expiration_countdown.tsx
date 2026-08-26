@@ -18,12 +18,13 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { TranslationKey } from "@/lib/i18n/types";
+
 import { useState, useEffect, useMemo } from "react";
 import { FireIcon } from "@heroicons/react/24/outline";
 import { Tooltip } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
-import type { TranslationKey } from "@/lib/i18n/types";
 
 interface ExpirationCountdownProps {
   expires_at: Date | string;

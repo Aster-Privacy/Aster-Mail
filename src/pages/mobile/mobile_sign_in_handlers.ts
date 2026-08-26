@@ -34,8 +34,8 @@ import { is_totp_required_response } from "@/services/api/totp";
 import { is_webauthn_supported } from "@/services/api/webauthn";
 import { emit_auth_ready } from "@/hooks/mail_events";
 import { get_current_account_id } from "@/services/account_manager";
-
 import { ignore_error } from "@/lib/ignore_error";
+import { user_facing_error } from "@/utils/user_facing_error";
 
 type MobileSignInHandlerParams = Pick<
   ReturnType<typeof use_mobile_sign_in>,
@@ -132,13 +132,23 @@ export function build_mobile_sign_in_handlers(
       ? username.substring(0, username.indexOf("@"))
       : username;
     const typed_domain = username.includes("@")
-      ? username.substring(username.indexOf("@") + 1).toLowerCase()
+      ? username
+          .substring(username.indexOf("@") + 1)
+          .toLowerCase()
+          .trim()
       : "";
     const clean_username = sanitize_username(raw_local);
     const final_domain =
       typed_domain === "astermail.org" || typed_domain === "aster.cx"
         ? typed_domain
         : email_domain;
+
+    if (typed_domain && final_domain !== typed_domain) {
+      await timing_safe_delay();
+      set_error(t("errors.sign_in_domain_unsupported"));
+
+      return;
+    }
 
     if (
       !clean_username ||
@@ -391,9 +401,7 @@ export function build_mobile_sign_in_handlers(
       if (err instanceof Error && err.message.includes("decrypt")) {
         set_error(t("errors.wrong_vault_password"));
       } else {
-        set_error(
-          err instanceof Error ? err.message : t("errors.login_failed"),
-        );
+        set_error(user_facing_error(err, t("errors.login_failed")));
       }
       set_is_loading(false);
       set_captcha_token("");

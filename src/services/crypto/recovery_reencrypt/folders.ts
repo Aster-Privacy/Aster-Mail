@@ -19,20 +19,21 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { HASH_ALG } from "@/services/crypto/constants";
-import type { } from "../key_manager";
+import type {} from "../key_manager";
 import { api_client } from "@/services/api/client";
-import type { } from "@/services/api/signatures";
-import type { } from "@/services/api/templates";
-import type { } from "@/services/api/blocked_senders";
-import type { } from "@/services/api/allowed_senders";
-
+import type {} from "@/services/api/signatures";
+import type {} from "@/services/api/templates";
+import type {} from "@/services/api/blocked_senders";
+import type {} from "@/services/api/allowed_senders";
 
 import { re_encrypt_field } from "./key_helpers";
 export async function derive_folder_aes_key(
   identity_key: string,
   usages: KeyUsage[],
 ): Promise<CryptoKey> {
-  const material = new TextEncoder().encode(identity_key + "astermail-labels-v1");
+  const material = new TextEncoder().encode(
+    identity_key + "astermail-labels-v1",
+  );
   const hash = await crypto.subtle.digest(HASH_ALG, material);
 
   return crypto.subtle.importKey(
@@ -129,4 +130,3 @@ export async function re_encrypt_folders(
 
   return ok;
 }
-

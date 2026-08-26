@@ -18,16 +18,14 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { HASH_ALG } from "@/services/crypto/constants";
 import type { EncryptedVault } from "@/services/crypto/key_manager";
-import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
-
-import { api_client } from "./client";
 import type { StepUpCredentials } from "./step_up";
 
+import { api_client } from "./client";
+
+import { HASH_ALG } from "@/services/crypto/constants";
+import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import { hash_recovery_email } from "@/services/crypto/key_manager";
-
-
 import { ignore_error } from "@/lib/ignore_error";
 
 interface GetRecoveryEmailApiResponse {
@@ -65,7 +63,26 @@ interface ResendVerificationApiResponse {
   success: boolean;
 }
 
+const RECOVERY_CACHE_TTL_MS = 30_000;
+
 let cached_recovery_data: RecoveryEmailData | null = null;
+let cached_recovery_at = 0;
+
+function set_cached_recovery_data(data: RecoveryEmailData | null) {
+  cached_recovery_data = data;
+  cached_recovery_at = data ? Date.now() : 0;
+}
+
+function read_cached_recovery_data(): RecoveryEmailData | null {
+  if (!cached_recovery_data) return null;
+  if (Date.now() - cached_recovery_at > RECOVERY_CACHE_TTL_MS) {
+    set_cached_recovery_data(null);
+
+    return null;
+  }
+
+  return cached_recovery_data;
+}
 
 async function derive_recovery_email_key(
   vault: EncryptedVault,
@@ -115,7 +132,11 @@ async function decrypt_recovery_email(
   );
   const nonce_data = Uint8Array.from(atob(nonce), (c) => c.charCodeAt(0));
 
-  const decrypted = await decrypt_aes_gcm_with_fallback(key, encrypted_data, nonce_data);
+  const decrypted = await decrypt_aes_gcm_with_fallback(
+    key,
+    encrypted_data,
+    nonce_data,
+  );
 
   return new TextDecoder().decode(decrypted);
 }
@@ -127,8 +148,10 @@ export async function get_recovery_email(
     return { data: EMPTY_RECOVERY_EMAIL };
   }
 
-  if (cached_recovery_data) {
-    return { data: cached_recovery_data };
+  const cached = read_cached_recovery_data();
+
+  if (cached) {
+    return { data: cached };
   }
 
   try {
@@ -140,37 +163,48 @@ export async function get_recovery_email(
       return { data: EMPTY_RECOVERY_EMAIL };
     }
 
-    const { encrypted_email, email_nonce, verified, has_server_enc } = response.data;
-    const exists = response.data.exists ?? Boolean(encrypted_email && email_nonce);
-    const step_up_required = response.data.step_up_required ?? Boolean(verified);
+    const { encrypted_email, email_nonce, verified, has_server_enc } =
+      response.data;
+    const exists =
+      response.data.exists ?? Boolean(encrypted_email && email_nonce);
+    const step_up_required =
+      response.data.step_up_required ?? Boolean(verified);
 
     if (!encrypted_email || !email_nonce) {
-      cached_recovery_data = {
+      const empty_data: RecoveryEmailData = {
         email: null,
         verified: verified ?? false,
         exists,
         step_up_required,
       };
 
-      return { data: cached_recovery_data };
+      set_cached_recovery_data(empty_data);
+
+      return { data: empty_data };
     }
 
     let email: string | null = null;
+    let decrypt_failed = false;
 
     try {
       email = await decrypt_recovery_email(encrypted_email, email_nonce, vault);
     } catch (caught) {
+      decrypt_failed = true;
       ignore_error("services/api/recovery_email:decrypt", caught);
     }
 
-    cached_recovery_data = {
+    const recovery_data: RecoveryEmailData = {
       email,
       verified: verified ?? false,
       exists,
       step_up_required,
     };
 
-    if (email && cached_recovery_data.verified && !has_server_enc) {
+    if (!decrypt_failed) {
+      set_cached_recovery_data(recovery_data);
+    }
+
+    if (email && recovery_data.verified && !has_server_enc) {
       hash_recovery_email(email)
         .then((email_hash) =>
           api_client.post("/core/v1/recovery/email/server-enc", {
@@ -178,10 +212,15 @@ export async function get_recovery_email(
             email_hash,
           }),
         )
-        .catch((caught) => ignore_error("services/api/recovery_email:get_recovery_email", caught));
+        .catch((caught) =>
+          ignore_error(
+            "services/api/recovery_email:get_recovery_email",
+            caught,
+          ),
+        );
     }
 
-    return { data: cached_recovery_data };
+    return { data: recovery_data };
   } catch {
     return { data: EMPTY_RECOVERY_EMAIL };
   }
@@ -194,7 +233,10 @@ export async function save_recovery_email(
 ): Promise<{ data: { success: boolean }; code?: string; error?: string }> {
   try {
     const normalized = normalize_recovery_email(email);
-    const { encrypted, nonce } = await encrypt_recovery_email(normalized, vault);
+    const { encrypted, nonce } = await encrypt_recovery_email(
+      normalized,
+      vault,
+    );
     const email_hash = await hash_recovery_email(normalized);
 
     const response = await api_client.put<SaveRecoveryEmailApiResponse>(
@@ -317,7 +359,9 @@ export async function check_recovery_email_verified(): Promise<boolean> {
   }
 }
 
-export async function prime_server_recovery_email(vault: EncryptedVault | null): Promise<void> {
+export async function prime_server_recovery_email(
+  vault: EncryptedVault | null,
+): Promise<void> {
   await get_recovery_email(vault);
 }
 

@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { user_facing_error } from "@/utils/user_facing_error";
 import { api_client, type ApiResponse } from "./client";
 
 export interface VacationReplyResponse {
@@ -54,8 +55,7 @@ export async function get_vacation_reply(): Promise<
     return response;
   } catch (err) {
     return {
-      error:
-        err instanceof Error ? err.message : "Failed to get vacation reply",
+      error: user_facing_error(err, "Failed to get vacation reply"),
     };
   }
 }
@@ -72,8 +72,7 @@ export async function upsert_vacation_reply(
     return response;
   } catch (err) {
     return {
-      error:
-        err instanceof Error ? err.message : "Failed to save vacation reply",
+      error: user_facing_error(err, "Failed to save vacation reply"),
     };
   }
 }
@@ -89,8 +88,7 @@ export async function delete_vacation_reply(): Promise<
     return response;
   } catch (err) {
     return {
-      error:
-        err instanceof Error ? err.message : "Failed to delete vacation reply",
+      error: user_facing_error(err, "Failed to delete vacation reply"),
     };
   }
 }
@@ -107,8 +105,7 @@ export async function toggle_vacation_reply(
     return response;
   } catch (err) {
     return {
-      error:
-        err instanceof Error ? err.message : "Failed to toggle vacation reply",
+      error: user_facing_error(err, "Failed to toggle vacation reply"),
     };
   }
 }

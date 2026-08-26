@@ -92,8 +92,6 @@ describe("strip_html_tags_bounded", () => {
 
   it("handles empty and non-string input", () => {
     expect(strip_html_tags_bounded("", 600)).toBe("");
-    expect(
-      strip_html_tags_bounded(null as unknown as string, 600),
-    ).toBe("");
+    expect(strip_html_tags_bounded(null as unknown as string, 600)).toBe("");
   });
 });

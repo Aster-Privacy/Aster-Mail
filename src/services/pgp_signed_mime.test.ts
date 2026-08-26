@@ -19,8 +19,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { writeFileSync } from "node:fs";
+
 import * as openpgp from "openpgp";
 import { beforeAll, describe, expect, it, vi } from "vitest";
+
 import { sign_detached } from "./crypto/key_manager";
 import {
   OBSCURED_SUBJECT_PLACEHOLDER,
@@ -101,7 +103,9 @@ describe("build_protected_mime_entity", () => {
     expect(mime).toContain("To: external@example.org");
     expect(mime).toContain("Subject: =?UTF-8?B?");
     expect(mime).toContain("multipart/alternative");
-    expect(mime).toContain('Content-Disposition: attachment; filename="note.txt"');
+    expect(mime).toContain(
+      'Content-Disposition: attachment; filename="note.txt"',
+    );
     expect(mime).not.toContain("\n\n");
   });
 
@@ -126,7 +130,8 @@ describe("build_protected_mime_entity", () => {
     expect(mime).toContain("multipart/alternative");
     expect(mime).toContain("Content-Type: text/html; charset=utf-8");
 
-    const html_marker = "Content-Type: text/html; charset=utf-8\r\nContent-Transfer-Encoding: base64\r\n\r\n";
+    const html_marker =
+      "Content-Type: text/html; charset=utf-8\r\nContent-Transfer-Encoding: base64\r\n\r\n";
     const html_payload = mime
       .slice(mime.indexOf(html_marker) + html_marker.length)
       .split("\r\n")[0];
@@ -137,7 +142,9 @@ describe("build_protected_mime_entity", () => {
   it("omits the legacy display part unless obscuring is requested", () => {
     const mime = sample_entity();
 
-    expect(mime).not.toContain('text/plain; charset=utf-8; protected-headers="v1"');
+    expect(mime).not.toContain(
+      'text/plain; charset=utf-8; protected-headers="v1"',
+    );
     expect(mime.match(/protected-headers="v1"/g)).toHaveLength(2);
   });
 
@@ -292,7 +299,10 @@ describe("should_attach_signed_mime", () => {
 
   it("never signs secure external sends", () => {
     expect(
-      should_attach_signed_mime({ recipients: external, secure_external: true }),
+      should_attach_signed_mime({
+        recipients: external,
+        secure_external: true,
+      }),
     ).toBe(false);
   });
 
@@ -312,9 +322,9 @@ describe("should_attach_signed_mime", () => {
       },
     ] as never;
 
-    expect(should_attach_signed_mime({ recipients: external, attachments })).toBe(
-      false,
-    );
+    expect(
+      should_attach_signed_mime({ recipients: external, attachments }),
+    ).toBe(false);
     expect(
       should_attach_signed_mime({
         recipients: external,
@@ -422,6 +432,8 @@ describe("build_signed_mime_payload", () => {
     });
 
     expect(payload).toBeUndefined();
-    expect(get_last_signing_skip_reason()).toBe("vault_identity_key_unavailable");
+    expect(get_last_signing_skip_reason()).toBe(
+      "vault_identity_key_unavailable",
+    );
   });
 });

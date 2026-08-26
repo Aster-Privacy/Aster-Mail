@@ -20,13 +20,19 @@
 //
 const hint_map = new Map<string, string[]>();
 
-export function set_recipient_hint(email_id: string, addresses: string[]): void {
+export function set_recipient_hint(
+  email_id: string,
+  addresses: string[],
+): void {
   if (addresses.length > 0) {
     hint_map.set(email_id, addresses);
   }
 }
 
-export function get_recipient_hint(email_id: string | null | undefined): string[] {
+export function get_recipient_hint(
+  email_id: string | null | undefined,
+): string[] {
   if (!email_id) return [];
+
   return hint_map.get(email_id) || [];
 }

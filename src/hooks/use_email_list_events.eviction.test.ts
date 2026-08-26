@@ -18,9 +18,9 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { describe, it, expect } from "vitest";
-
 import type { MailItemUpdatedEventDetail } from "./mail_events";
+
+import { describe, it, expect } from "vitest";
 
 import { compute_should_remove_from_view } from "./use_email_list_events";
 
@@ -108,7 +108,10 @@ describe("compute_should_remove_from_view", () => {
       compute_should_remove_from_view(detail({ is_archived: true }), "inbox"),
     ).toBe(true);
     expect(
-      compute_should_remove_from_view(detail({ is_archived: false }), "archive"),
+      compute_should_remove_from_view(
+        detail({ is_archived: false }),
+        "archive",
+      ),
     ).toBe(true);
     expect(
       compute_should_remove_from_view(detail({ is_archived: true }), "archive"),

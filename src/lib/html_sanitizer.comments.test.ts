@@ -51,9 +51,9 @@ describe("neutralize_unterminated_comments", () => {
   });
 
   it("drops the marker of a comment that is never closed", () => {
-    expect(
-      neutralize_unterminated_comments(`<p>a</p><!-- note <p>b</p>`),
-    ).toBe(`<p>a</p> note <p>b</p>`);
+    expect(neutralize_unterminated_comments(`<p>a</p><!-- note <p>b</p>`)).toBe(
+      `<p>a</p> note <p>b</p>`,
+    );
   });
 
   it("removes an abruptly closed empty comment", () => {

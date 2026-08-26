@@ -23,7 +23,6 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
 declare global {
-  // eslint-disable-next-line no-var
   var IS_REACT_ACT_ENVIRONMENT: boolean;
 }
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
@@ -45,25 +44,28 @@ vi.mock("@/lib/i18n/context", () => ({
   }),
 }));
 
-const MOTION_ONLY_PROPS = vi.hoisted(() => new Set([
-  "initial",
-  "animate",
-  "exit",
-  "transition",
-  "variants",
-  "layout",
-  "layoutId",
-  "whileHover",
-  "whileTap",
-  "whileFocus",
-  "whileDrag",
-  "whileInView",
-  "viewport",
-  "drag",
-  "dragConstraints",
-  "onAnimationStart",
-  "onAnimationComplete",
-]));
+const MOTION_ONLY_PROPS = vi.hoisted(
+  () =>
+    new Set([
+      "initial",
+      "animate",
+      "exit",
+      "transition",
+      "variants",
+      "layout",
+      "layoutId",
+      "whileHover",
+      "whileTap",
+      "whileFocus",
+      "whileDrag",
+      "whileInView",
+      "viewport",
+      "drag",
+      "dragConstraints",
+      "onAnimationStart",
+      "onAnimationComplete",
+    ]),
+);
 
 vi.mock("framer-motion", () => ({
   motion: new Proxy(
@@ -132,7 +134,9 @@ vi.mock("@/components/ui/modal", () => ({
 }));
 
 vi.mock("@/components/ui/select", () => ({
-  Select: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  Select: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
   SelectTrigger: ({ children }: { children: React.ReactNode }) => (
     <div>{children}</div>
   ),
@@ -184,7 +188,10 @@ vi.mock("@/contexts/signatures_context", () => ({
 
 vi.mock("@/hooks/use_editor", () => ({
   use_editor: () => ({
-    format_state: { active_formats: new Set<string>(), is_in_blockquote: false },
+    format_state: {
+      active_formats: new Set<string>(),
+      is_in_blockquote: false,
+    },
     is_mac: false,
     get_html: () => "",
     set_html: vi.fn(),
@@ -275,7 +282,9 @@ function set_default_button(): HTMLButtonElement {
   const btn = Array.from(container.querySelectorAll("button")).find((b) =>
     (b.textContent ?? "").includes("common.set_as_default"),
   ) as HTMLButtonElement | undefined;
+
   if (!btn) throw new Error("set-as-default button not found");
+
   return btn;
 }
 
@@ -284,6 +293,7 @@ describe("SignatureSection set-default ordering", () => {
     await render();
 
     let resolve_patch: (v: unknown) => void = () => {};
+
     h.api.set_default_signature.mockReturnValue(
       new Promise((r) => {
         resolve_patch = r;

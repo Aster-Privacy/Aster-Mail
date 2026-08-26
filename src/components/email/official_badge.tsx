@@ -19,9 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { is_official_sender } from "@/lib/utils";
-
 import { use_i18n } from "@/lib/i18n/context";
-
 import {
   Popover,
   PopoverContent,
@@ -52,9 +50,9 @@ export function OfficialBadge({
         <button
           aria-label={label}
           className={`inline-flex items-center self-center flex-shrink-0 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 ${className}`}
-          onClick={(e) => e.stopPropagation()}
           title={label}
           type="button"
+          onClick={(e) => e.stopPropagation()}
         >
           <img
             alt={label}
@@ -67,8 +65,8 @@ export function OfficialBadge({
       <PopoverContent
         align="start"
         className="w-72 p-3 bg-surf-primary border-edge-primary"
-        onClick={(e) => e.stopPropagation()}
         side="bottom"
+        onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start gap-2.5">
           <img

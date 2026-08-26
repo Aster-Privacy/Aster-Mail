@@ -79,7 +79,7 @@ export function FolderResultRow({
 
   return (
     <button
-      className="flex items-center gap-2.5 w-full px-3 py-2 text-left transition-colors rounded-[14px]"
+      className="flex items-center gap-2.5 w-full px-3 py-2 text-start transition-colors rounded-[14px]"
       style={{
         backgroundColor: is_hovered ? "var(--bg-hover)" : "transparent",
       }}
@@ -96,7 +96,7 @@ export function FolderResultRow({
           {folder.name}
         </span>
         {folder.item_count !== undefined && folder.item_count > 0 && (
-          <span className="text-[11px] ml-2 text-txt-muted">
+          <span className="text-[11px] ms-2 text-txt-muted">
             {folder.item_count === 1
               ? t("mail.folder_item_count_singular", {
                   count: folder.item_count,
@@ -155,7 +155,7 @@ const SearchResultRowBase = forwardRef<
   return (
     <button
       ref={ref}
-      className="flex items-center gap-3 w-full px-3 py-2.5 text-left transition-all rounded-[14px] group"
+      className="flex items-center gap-3 w-full px-3 py-2.5 text-start transition-all rounded-[14px] group"
       style={{
         backgroundColor: is_hovered ? "var(--bg-hover)" : "transparent",
       }}
@@ -207,7 +207,7 @@ const SearchResultRowBase = forwardRef<
       <div className="flex items-center gap-1.5 flex-shrink-0 relative">
         {quick_actions && is_hovered && (
           <div
-            className="absolute right-0 top-0 bottom-0 w-36 pointer-events-none bg-gradient-to-r from-transparent to-[var(--bg-hover)]"
+            className="absolute end-0 top-0 bottom-0 w-36 pointer-events-none bg-gradient-to-r from-transparent to-[var(--bg-hover)]"
             style={{
               ["--tw-gradient-via-position" as string]: "30%",
               ["--tw-gradient-to-position" as string]: "100%",
@@ -216,7 +216,7 @@ const SearchResultRowBase = forwardRef<
         )}
         {quick_actions && (
           <div
-            className="flex items-center gap-0.5 absolute right-0 transition-opacity duration-75"
+            className="flex items-center gap-0.5 absolute end-0 transition-opacity duration-75"
             style={{
               opacity: is_hovered ? 1 : 0,
               pointerEvents: is_hovered ? "auto" : "none",
@@ -359,5 +359,5 @@ export const SearchResultRow = memo(
     same_result(prev.result, next.result) &&
     prev.on_click === next.on_click &&
     prev.quick_actions === next.quick_actions &&
-    prev.query_terms?.join(" ") === next.query_terms?.join(" "),
+    prev.query_terms?.join("\x00") === next.query_terms?.join("\x00"),
 );

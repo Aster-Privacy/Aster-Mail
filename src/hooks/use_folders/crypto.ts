@@ -18,13 +18,11 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { HASH_ALG } from "@/services/crypto/constants";
-
-import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
-import {
-  type FolderDefinition,
-} from "@/services/api/folders";
 import { DecryptedFolder, is_system_folder_type } from "./tree";
+
+import { HASH_ALG } from "@/services/crypto/constants";
+import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
+import { type FolderDefinition } from "@/services/api/folders";
 
 export function array_to_base64(array: Uint8Array): string {
   let binary = "";
@@ -57,7 +55,9 @@ export function generate_folder_token(): string {
   return array_to_base64(bytes);
 }
 
-export async function derive_folder_key(identity_key: string): Promise<CryptoKey> {
+export async function derive_folder_key(
+  identity_key: string,
+): Promise<CryptoKey> {
   const key_material = new TextEncoder().encode(
     identity_key + "astermail-labels-v1",
   );
@@ -173,4 +173,3 @@ export async function decrypt_folder(
     updated_at: folder.updated_at,
   };
 }
-

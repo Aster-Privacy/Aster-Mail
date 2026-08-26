@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { apply_input_transform } from "@/utils/input_transform";
 import type { CodeStepProps } from "./types";
 
 import { motion, AnimatePresence } from "framer-motion";
@@ -62,7 +63,7 @@ export function CodeStep({
             set_step("method_choice");
           }}
         >
-          <ChevronLeftIcon className="h-5 w-5" />
+          <ChevronLeftIcon className="h-5 w-5 rtl:-scale-x-100" />
         </motion.button>
       </div>
 
@@ -121,7 +122,11 @@ export function CodeStep({
               style={{ fontFamily: "monospace", letterSpacing: "0.5px" }}
               type="text"
               value={recovery_code}
-              onChange={(e) => set_recovery_code(e.target.value.toUpperCase())}
+              onChange={(e) =>
+                set_recovery_code(
+                  apply_input_transform(e.target, (v) => v.toUpperCase()),
+                )
+              }
               onKeyDown={(e) => e["key"] === "Enter" && on_submit()}
             />
           </div>

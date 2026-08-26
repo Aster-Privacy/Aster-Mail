@@ -36,11 +36,9 @@ const unsorted = [
 
 describe("sort_emails_by_timestamp", () => {
   it("sorts newest first when descending", () => {
-    expect(sort_emails_by_timestamp(unsorted, "desc").map((e) => e.id)).toEqual([
-      "newest",
-      "middle",
-      "oldest",
-    ]);
+    expect(sort_emails_by_timestamp(unsorted, "desc").map((e) => e.id)).toEqual(
+      ["newest", "middle", "oldest"],
+    );
   });
 
   it("sorts oldest first when ascending", () => {
@@ -53,6 +51,7 @@ describe("sort_emails_by_timestamp", () => {
 
   it("does not mutate the input array", () => {
     const input = [...unsorted];
+
     sort_emails_by_timestamp(input, "asc");
     expect(input.map((e) => e.id)).toEqual(["middle", "newest", "oldest"]);
   });
@@ -62,6 +61,7 @@ describe("sort_emails_by_timestamp", () => {
       { id: "a", timestamp: "2021-01-01T00:00:00.000Z" } as InboxEmail,
       { id: "b", timestamp: "2023-01-01T00:00:00.000Z" } as InboxEmail,
     ];
+
     expect(sort_emails_by_timestamp(items, "desc").map((e) => e.id)).toEqual([
       "b",
       "a",

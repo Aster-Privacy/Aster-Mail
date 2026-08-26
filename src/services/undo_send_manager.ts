@@ -23,7 +23,8 @@ import {
   type QueueEmailRequest,
   type QueuedEmailStatus,
 } from "./api/undo_send";
-import { en } from "@/lib/i18n/translations/en";
+
+import { get_active_translations } from "@/lib/i18n/translations";
 
 export interface PendingSend {
   queue_id: string;
@@ -49,6 +50,8 @@ type PendingSendListener = (sends: PendingSend[]) => void;
 type TerminalSendStatus = "sent" | "cancelled" | "failed";
 
 const FINALIZE_RETRY_DELAYS_MS = [1000, 2000, 4000, 8000, 15000];
+const FINALIZE_UNREACHABLE_RETRY_MS = 30000;
+const MAX_FINALIZE_ROUNDS = 45;
 
 function is_terminal_status(
   status: QueuedEmailStatus["status"],
@@ -60,6 +63,7 @@ class UndoSendManager {
   private pending_sends: Map<string, PendingSend> = new Map();
   private listeners: Set<PendingSendListener> = new Set();
   private poll_interval: number | null = null;
+  private finalize_rounds: Map<string, number> = new Map();
   private finalizing: Set<string> = new Set();
 
   async queue_email(
@@ -70,7 +74,9 @@ class UndoSendManager {
 
     if (response.error || !response.data) {
       if (options.on_error) {
-        options.on_error(response.error || en.errors.failed_queue_email);
+        options.on_error(
+          response.error || get_active_translations().errors.failed_queue_email,
+        );
       }
 
       return null;
@@ -155,7 +161,9 @@ class UndoSendManager {
     if (response.error || !response.data?.success) {
       pending.status = "failed";
       if (pending.on_error) {
-        pending.on_error(response.error || en.errors.failed_send_email);
+        pending.on_error(
+          response.error || get_active_translations().errors.failed_send_email,
+        );
       }
       this.notify_listeners();
 
@@ -265,10 +273,13 @@ class UndoSendManager {
     } else if (status === "cancelled" && pending.on_cancelled) {
       pending.on_cancelled();
     } else if (status === "failed" && pending.on_error) {
-      pending.on_error(error_message || en.errors.failed_send);
+      pending.on_error(
+        error_message || get_active_translations().errors.failed_send,
+      );
     }
 
     this.pending_sends.delete(pending.queue_id);
+    this.finalize_rounds.delete(pending.queue_id);
     this.notify_listeners();
   }
 
@@ -280,6 +291,8 @@ class UndoSendManager {
     this.finalizing.add(queue_id);
 
     try {
+      let server_reachable = false;
+
       for (
         let attempt = 0;
         attempt <= FINALIZE_RETRY_DELAYS_MS.length;
@@ -294,6 +307,10 @@ class UndoSendManager {
         const response = await undo_send_api
           .get_status(queue_id)
           .catch(() => undefined);
+
+        if (response) {
+          server_reachable = true;
+        }
 
         if (response?.data && is_terminal_status(response.data.status)) {
           this.apply_terminal_status(
@@ -322,9 +339,27 @@ class UndoSendManager {
 
       const pending = this.pending_sends.get(queue_id);
 
-      if (pending) {
-        this.apply_terminal_status(pending, "sent");
+      if (!pending) {
+        return;
       }
+
+      const rounds = (this.finalize_rounds.get(queue_id) ?? 0) + 1;
+
+      if (rounds >= MAX_FINALIZE_ROUNDS) {
+        this.finalize_rounds.delete(queue_id);
+        this.apply_terminal_status(
+          pending,
+          server_reachable ? "failed" : "sent",
+        );
+
+        return;
+      }
+
+      this.finalize_rounds.set(queue_id, rounds);
+
+      window.setTimeout(() => {
+        void this.finalize_send(queue_id);
+      }, FINALIZE_UNREACHABLE_RETRY_MS);
     } finally {
       this.finalizing.delete(queue_id);
     }
@@ -406,17 +441,13 @@ class UndoSendManager {
       return;
     }
 
-    if (pending.status !== "pending") {
-      return;
-    }
-
     if (is_terminal_status(status.status)) {
       this.apply_terminal_status(pending, status.status, status.error_message);
 
       return;
     }
 
-    if (status.status !== "pending") {
+    if (pending.status === "pending" && status.status !== "pending") {
       window.clearTimeout(pending.timeout_id);
       pending.status = "sending";
       void this.finalize_send(status.queue_id);
@@ -449,6 +480,7 @@ class UndoSendManager {
     }
 
     this.pending_sends.clear();
+    this.finalize_rounds.clear();
     this.notify_listeners();
   }
 

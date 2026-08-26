@@ -36,7 +36,6 @@ import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { ignore_error } from "@/lib/ignore_error";
-
 import {
   list_deleted_aliases,
   restore_alias,
@@ -44,6 +43,7 @@ import {
   empty_deleted_aliases,
   decrypt_alias_field,
 } from "@/services/api/aliases";
+import { app_locale, get_display_time_zone } from "@/utils/date_format";
 
 interface DecryptedDeletedAlias {
   id: string;
@@ -242,7 +242,8 @@ export function RecentlyDeletedAliasesSection({
   }, [t, load_deleted]);
 
   const format_date = (iso: string) =>
-    new Date(iso).toLocaleDateString(undefined, {
+    new Date(iso).toLocaleDateString(app_locale(), {
+      timeZone: get_display_time_zone(),
       month: "short",
       day: "numeric",
       year: "numeric",
@@ -271,7 +272,7 @@ export function RecentlyDeletedAliasesSection({
     <div>
       <button
         aria-expanded={expanded}
-        className="flex w-full items-center justify-between gap-2 py-2 text-left"
+        className="flex w-full items-center justify-between gap-2 py-2 text-start"
         type="button"
         onClick={() => set_expanded((v) => !v)}
       >
@@ -367,7 +368,7 @@ export function RecentlyDeletedAliasesSection({
                       <>
                         <ArrowUturnLeftIcon
                           aria-hidden="true"
-                          className="w-3.5 h-3.5"
+                          className="w-3.5 h-3.5 rtl:-scale-x-100"
                         />
                         {t("settings.restore_alias_action" as TranslationKey)}
                       </>

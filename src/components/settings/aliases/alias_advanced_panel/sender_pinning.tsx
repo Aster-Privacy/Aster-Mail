@@ -18,17 +18,16 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { } from "@/services/api/aliases";
-import type { } from "@/lib/i18n/types";
+import type {} from "@/services/api/aliases";
+import type {} from "@/lib/i18n/types";
 
-import { useCallback, useEffect,  useState } from "react";
-import {
-  TrashIcon,
-  PlusIcon,
-} from "@heroicons/react/24/outline";
-import { Button, } from "@aster/ui";
+import { useCallback, useEffect, useState } from "react";
+import { TrashIcon, PlusIcon } from "@heroicons/react/24/outline";
+import { Button } from "@aster/ui";
 
+import { INPUT_CLASS, PanelRow } from "./shared";
 
+import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { Spinner } from "@/components/ui/spinner";
@@ -55,8 +54,8 @@ import {
   type DecryptedAliasPin,
   type SenderPinMode,
 } from "@/services/api/alias_pins";
+import { is_composing } from "@/utils/ime";
 
-import { INPUT_CLASS, PanelRow } from "./shared";
 export function SenderPinningPanel({
   alias_id,
   domain_address_id,
@@ -70,6 +69,7 @@ export function SenderPinningPanel({
   const [mode, set_mode] = useState<SenderPinMode>(SENDER_PIN_MODE_OFF);
   const [pins, set_pins] = useState<DecryptedAliasPin[]>([]);
   const [loading, set_loading] = useState(true);
+  const [load_error, set_load_error] = useState(false);
   const [email, set_email] = useState("");
   const [busy, set_busy] = useState(false);
 
@@ -80,6 +80,7 @@ export function SenderPinningPanel({
       return;
     }
     set_loading(true);
+    set_load_error(false);
     try {
       const response = domain_address_id
         ? await list_domain_address_pins(domain_address_id)
@@ -94,8 +95,11 @@ export function SenderPinningPanel({
         );
 
         set_pins(decrypted);
+      } else {
+        set_load_error(true);
       }
     } catch {
+      set_load_error(true);
       set_pins([]);
     } finally {
       set_loading(false);
@@ -221,7 +225,9 @@ export function SenderPinningPanel({
               type="email"
               value={email}
               onChange={(e) => set_email(e.target.value)}
-              onKeyDown={(e) => e["key"] === "Enter" && handle_add()}
+              onKeyDown={(e) =>
+                e["key"] === "Enter" && !is_composing(e) && handle_add()
+              }
             />
             <Button
               disabled={busy || !email.trim()}
@@ -236,6 +242,8 @@ export function SenderPinningPanel({
 
           {loading ? (
             <Spinner size="md" />
+          ) : load_error ? (
+            <LoadFailedNotice on_retry={() => load()} />
           ) : pins.length === 0 ? (
             <p className="text-xs text-txt-muted">
               {t("settings.alias_sender_list_empty")}
@@ -267,4 +275,3 @@ export function SenderPinningPanel({
     </div>
   );
 }
-

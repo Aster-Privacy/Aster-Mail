@@ -44,6 +44,11 @@ vi.mock("@/hooks/use_mail_stats", () => ({
   invalidate_mail_stats: vi.fn(),
 }));
 
+import {
+  run_category_scope_action,
+  CATEGORY_ACTION_CHUNK_SIZE,
+} from "./category_bulk_actions";
+
 import { batch_archive } from "@/services/api/archive";
 import { bulk_update_metadata_by_ids } from "@/services/crypto/mail_metadata";
 import {
@@ -55,10 +60,6 @@ import {
 } from "@/services/category_index";
 import { stale_all_view_caches } from "@/hooks/email_list_cache";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
-import {
-  run_category_scope_action,
-  CATEGORY_ACTION_CHUNK_SIZE,
-} from "./category_bulk_actions";
 
 const mock_batch_archive = vi.mocked(batch_archive);
 const mock_bulk_update = vi.mocked(bulk_update_metadata_by_ids);
@@ -247,7 +248,9 @@ describe("run_category_scope_action", () => {
 
     const removed = mock_remove_ids.mock.calls.flatMap((c) => c[0]);
 
-    expect(removed).toEqual(all_ids.filter((id) => id !== "id_3" && id !== "id_7"));
+    expect(removed).toEqual(
+      all_ids.filter((id) => id !== "id_3" && id !== "id_7"),
+    );
   });
 
   it("marks spam with is_spam and removes ids from the index", async () => {

@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { copy_text_or_throw } from "@/utils/copy_text";
 import { useState } from "react";
 import {
   TrashIcon,
@@ -38,8 +39,6 @@ import { show_toast } from "@/components/toast/simple_toast";
 import { UpgradeGate } from "@/components/common/upgrade_gate";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { DomainHealthPanel } from "@/components/settings/domains/domain_health_panel";
-import { ignore_error } from "@/lib/ignore_error";
-
 import {
   get_dns_records,
   get_grace_days_remaining,
@@ -58,10 +57,10 @@ function DnsRecordItem({ record }: DnsRecordItemProps) {
   const { t } = use_i18n();
   const copy_value = async () => {
     try {
-      await navigator.clipboard.writeText(record.value);
+      await copy_text_or_throw(record.value);
       show_toast(t("settings.copied_to_clipboard"), "success");
-    } catch (caught) {
-      ignore_error("components/settings/domains/domain_card:copy_value", caught);
+    } catch {
+      show_toast(t("common.failed_to_copy"), "error");
     }
   };
 
@@ -194,7 +193,7 @@ export function DomainCard({
             {expanded ? (
               <ChevronDownIcon className="w-4 h-4 text-txt-muted" />
             ) : (
-              <ChevronRightIcon className="w-4 h-4 text-txt-muted" />
+              <ChevronRightIcon className="w-4 h-4 text-txt-muted rtl:-scale-x-100" />
             )}
           </Button>
 
@@ -290,7 +289,7 @@ export function DomainCard({
               </div>
             ) : (
               <div className="flex items-center justify-between py-4">
-                <div className="flex-1 pr-4">
+                <div className="flex-1 pe-4">
                   <p className="text-sm font-medium text-txt-primary">
                     {t("settings.catch_all_label")}
                   </p>
@@ -298,8 +297,10 @@ export function DomainCard({
                     {t("settings.catch_all_description")}
                   </p>
                 </div>
-                <Switch size="lg"
+                <Switch
+                  aria-label={t("settings.catch_all_label")}
                   checked={domain.catch_all_enabled}
+                  size="lg"
                   onCheckedChange={handle_catch_all_toggle}
                 />
               </div>
@@ -324,7 +325,7 @@ export function DomainCard({
                 {showing_all_records ? (
                   <ChevronDownIcon className="w-3.5 h-3.5" />
                 ) : (
-                  <ChevronRightIcon className="w-3.5 h-3.5" />
+                  <ChevronRightIcon className="w-3.5 h-3.5 rtl:-scale-x-100" />
                 )}
                 {t("settings.dns_records_for_domain")}
               </button>

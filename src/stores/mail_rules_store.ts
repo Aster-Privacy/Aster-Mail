@@ -165,13 +165,18 @@ export async function create_rule(
   const response = await api_create_rule(req);
 
   if (response.data) {
-    const next = [...state.rules, response.data].sort(
+    const max_sort_order = state.rules.reduce(
+      (highest, rule) => Math.max(highest, rule.sort_order),
+      -1,
+    );
+    const created = { ...response.data, sort_order: max_sort_order + 1 };
+    const next = [...state.rules, created].sort(
       (a, b) => a.sort_order - b.sort_order,
     );
 
     set_state({ rules: next });
 
-    return response.data;
+    return created;
   }
 
   set_state({ error: response.error || "Failed to create rule" });
@@ -260,9 +265,13 @@ export async function run_on_existing(
     return false;
   }
 
-  store_run(id, response.data ?? null);
+  if (!response.data) {
+    return false;
+  }
 
-  if (is_run_active(response.data ?? null)) {
+  store_run(id, response.data);
+
+  if (is_run_active(response.data)) {
     stop_run_poll(id);
     schedule_run_poll(id);
   }

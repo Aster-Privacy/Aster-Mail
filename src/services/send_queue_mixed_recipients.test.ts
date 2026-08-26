@@ -111,9 +111,12 @@ vi.mock("@/utils/email_crypto", () => ({
 
 import { execute_send } from "./send_queue_encryption";
 import { send_simple_email } from "./api/send";
+
 import type { QueuedEmailInternal } from "./send_queue_types";
 
-function queued(overrides: Partial<QueuedEmailInternal> = {}): QueuedEmailInternal {
+function queued(
+  overrides: Partial<QueuedEmailInternal> = {},
+): QueuedEmailInternal {
   return {
     id: "queued-1",
     to: ["outsider@example.com"],

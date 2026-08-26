@@ -70,7 +70,7 @@ interface EmailDetailBodyProps {
   handle_per_message_view_source: (msg: DecryptedThreadMessage) => void;
   handle_per_message_report_phishing: (msg: DecryptedThreadMessage) => void;
   handle_per_message_not_spam?: (msg: DecryptedThreadMessage) => void;
-  handle_toggle_message_read: (message_id: string) => void;
+  handle_toggle_message_read: (message_id: string, next_read: boolean) => void;
   handle_edit_thread_draft: (draft: DraftWithContent) => void;
   handle_thread_draft_deleted: () => void;
   on_external_content_detected?: (report: ExternalContentReport) => void;
@@ -196,7 +196,8 @@ export function EmailDetailBody({
               <div className="flex items-center gap-2 mb-1 sm:mb-2">
                 <h1 className="text-lg sm:text-xl md:text-2xl font-semibold text-txt-primary break-words flex-1 min-w-0">
                   <span
-                    className="inline-flex items-center mr-2"
+                    dir="auto"
+                    className="inline-flex items-center me-2"
                     style={{ verticalAlign: "-0.15em" }}
                   >
                     <EncryptionInfoDropdown
@@ -357,13 +358,9 @@ export function EmailDetailBody({
                 </span>
                 <span className="text-xs text-txt-muted">
                   (
-                  {email.attachments.length > 1
-                    ? t("common.n_files_plural" as TranslationKey, {
-                        count: email.attachments.length,
-                      })
-                    : t("common.n_files" as TranslationKey, {
-                        count: email.attachments.length,
-                      })}
+                  {t("common.file_count", {
+                    count: email.attachments.length,
+                  })}
                   )
                 </span>
               </div>
@@ -377,7 +374,7 @@ export function EmailDetailBody({
                     <div className="w-6 h-6 sm:w-7 sm:h-7 bg-blue-500 rounded flex items-center justify-center flex-shrink-0">
                       <DocumentTextIcon className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
                     </div>
-                    <div className="text-left min-w-0 flex-1">
+                    <div className="text-start min-w-0 flex-1">
                       <span className="text-xs sm:text-sm font-medium text-txt-primary block truncate">
                         {attachment.name}
                       </span>

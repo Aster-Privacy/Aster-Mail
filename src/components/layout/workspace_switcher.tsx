@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { copy_text_or_throw } from "@/utils/copy_text";
+import { get_zoned_parts } from "@/utils/date_format";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -25,7 +27,6 @@ import {
   PlusIcon,
   PowerIcon,
 } from "@heroicons/react/24/outline";
-
 import { Tooltip } from "@aster/ui";
 
 import { show_toast } from "@/components/toast/simple_toast";
@@ -50,7 +51,6 @@ import { UNLIMITED_ACCOUNTS } from "@/services/plan_limits";
 import { use_primary_identity } from "@/lib/primary_identity";
 import { use_i18n } from "@/lib/i18n/context";
 import { format_bytes, is_official_sender } from "@/lib/utils";
-
 import { ignore_error } from "@/lib/ignore_error";
 
 interface WorkspaceSwitcherProps {
@@ -159,7 +159,7 @@ export function WorkspaceSwitcher({
 
   useEffect(() => {
     if (!is_open) return;
-    const hour = new Date().getHours();
+    const hour = get_zoned_parts(new Date()).hours;
 
     if (hour < 5) set_time_greeting(t("auth.greeting_night"));
     else if (hour < 12) set_time_greeting(t("auth.greeting_morning"));
@@ -265,7 +265,7 @@ export function WorkspaceSwitcher({
   const copy_account_email = useCallback(async () => {
     if (!current_user_email) return;
     try {
-      await navigator.clipboard.writeText(current_user_email);
+      await copy_text_or_throw(current_user_email);
       show_toast(t("common.address_copied_to_clipboard"), "success");
     } catch {
       show_toast(t("common.failed_to_copy"), "error");
@@ -286,6 +286,10 @@ export function WorkspaceSwitcher({
           align={align}
           className="account_menu_surface w-[352px] max-w-[calc(100vw-24px)] p-2 rounded-[24px] data-[state=closed]:animate-none data-[state=closed]:zoom-out-100 data-[state=closed]:slide-in-from-top-0"
           sideOffset={8}
+          style={{
+            boxShadow:
+              "0 18px 40px -12px rgba(0, 0, 0, 0.5), 0 4px 12px -4px rgba(0, 0, 0, 0.3)",
+          }}
           onCloseAutoFocus={(e) => {
             if (pointer_close_ref.current) e.preventDefault();
             pointer_close_ref.current = false;
@@ -297,10 +301,6 @@ export function WorkspaceSwitcher({
           }}
           onPointerDownOutside={() => {
             pointer_close_ref.current = true;
-          }}
-          style={{
-            boxShadow:
-              "0 18px 40px -12px rgba(0, 0, 0, 0.5), 0 4px 12px -4px rgba(0, 0, 0, 0.3)",
           }}
         >
           <div className="account_menu_card rounded-[18px] px-4 py-4">
@@ -342,7 +342,7 @@ export function WorkspaceSwitcher({
                   <PlanBadge plan_code={limits?.plan_code} />
                 </span>
                 <button
-                  className="text-[12px] leading-tight truncate text-left transition-colors hover:text-[var(--text-secondary)]"
+                  className="text-[12px] leading-tight truncate text-start transition-colors hover:text-[var(--text-secondary)]"
                   style={{ color: "var(--text-muted)" }}
                   type="button"
                   onClick={copy_account_email}
@@ -410,7 +410,7 @@ export function WorkspaceSwitcher({
               <div
                 className={`flex flex-col gap-1.5 ${
                   other_accounts.length > 4
-                    ? "aster_scrollbar_thin max-h-[min(52vh,420px)] overflow-y-auto pr-0.5"
+                    ? "aster_scrollbar_thin max-h-[min(52vh,420px)] overflow-y-auto pe-0.5"
                     : ""
                 }`}
               >
@@ -426,8 +426,8 @@ export function WorkspaceSwitcher({
                   return (
                     <a
                       key={acc.id}
-                      className="account_menu_row group relative w-full h-[60px] flex-shrink-0 px-3.5 flex items-center gap-3.5 cursor-pointer no-underline rounded-[16px]"
                       draggable
+                      className="account_menu_row group relative w-full h-[60px] flex-shrink-0 px-3.5 flex items-center gap-3.5 cursor-pointer no-underline rounded-[16px]"
                       href={`/?account=${encodeURIComponent(acc.id)}`}
                       onClick={(e) => {
                         if (
@@ -495,7 +495,7 @@ export function WorkspaceSwitcher({
               </span>
               {is_unlimited_accounts ? null : (
                 <span className="account_menu_tile_meta tabular-nums">
-                  {accounts.length}/{display_max}
+                  {personal_account_count}/{display_max}
                 </span>
               )}
             </button>

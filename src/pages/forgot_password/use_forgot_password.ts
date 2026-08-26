@@ -18,8 +18,12 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { show_toast } from "@/components/toast/simple_toast";
+import { copy_text_or_throw } from "@/utils/copy_text";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+
+import { RecoveryMethod, RecoveryStep } from "./shared";
 
 import { COPY_FEEDBACK_MS } from "@/constants/timings";
 import { useTheme } from "@/contexts/theme_context";
@@ -70,9 +74,17 @@ import {
   timing_safe_delay,
 } from "@/services/sanitize";
 import { use_i18n } from "@/lib/i18n/context";
-import { RecoveryMethod, RecoveryStep } from "./shared";
+import { user_facing_error } from "@/utils/user_facing_error";
 
-import { ignore_error } from "@/lib/ignore_error";
+const TRANSPORT_FAILURE_CODES = new Set([
+  "NETWORK_ERROR",
+  "TIMEOUT_ERROR",
+  "SERVER_ERROR",
+]);
+
+function is_transport_failure(code?: string): boolean {
+  return code !== undefined && TRANSPORT_FAILURE_CODES.has(code);
+}
 
 export function use_forgot_password() {
   const { t } = use_i18n();
@@ -118,7 +130,20 @@ export function use_forgot_password() {
 
   const handle_email_next = () => {
     set_error("");
-    const clean_username = sanitize_username(username.trim());
+    const typed = username.trim();
+    const at_index = typed.indexOf("@");
+    const typed_domain =
+      at_index === -1 ? "" : typed.substring(at_index + 1).toLowerCase();
+
+    if (typed_domain && typed_domain !== email_domain) {
+      set_error(t("errors.sign_in_domain_unsupported"));
+
+      return;
+    }
+
+    const clean_username = sanitize_username(
+      at_index === -1 ? typed : typed.substring(0, at_index),
+    );
 
     if (!clean_username) {
       set_error(t("errors.invalid_username"));
@@ -189,7 +214,11 @@ export function use_forgot_password() {
 
       if (response.error || !response.data) {
         await timing_safe_delay();
-        set_error(t("auth.phrase_recovery_failed"));
+        set_error(
+          is_transport_failure(response.code)
+            ? t("common.something_went_wrong_try_again")
+            : t("auth.phrase_recovery_failed"),
+        );
         set_step("phrase_entry");
 
         return;
@@ -212,7 +241,20 @@ export function use_forgot_password() {
 
   const handle_email_reset_link = async () => {
     set_error("");
-    const clean_username = sanitize_username(username.trim());
+    const typed = username.trim();
+    const at_index = typed.indexOf("@");
+    const typed_domain =
+      at_index === -1 ? "" : typed.substring(at_index + 1).toLowerCase();
+
+    if (typed_domain && typed_domain !== email_domain) {
+      set_error(t("errors.sign_in_domain_unsupported"));
+
+      return;
+    }
+
+    const clean_username = sanitize_username(
+      at_index === -1 ? typed : typed.substring(0, at_index),
+    );
 
     if (!clean_username) {
       set_error(t("errors.invalid_username"));
@@ -223,16 +265,19 @@ export function use_forgot_password() {
     set_step("processing");
     set_processing_status(t("auth.sending_reset_link"));
 
-    try {
-      await forgot_password_email(clean_username, email_domain);
-    } catch (caught) {
-      ignore_error(
-        "pages/forgot_password/use_forgot_password:handle_email_reset_link",
-        caught,
-      );
-    }
+    const reset_response = await forgot_password_email(
+      clean_username,
+      email_domain,
+    );
 
     await timing_safe_delay();
+
+    if (is_transport_failure(reset_response.code)) {
+      set_error(t("common.something_went_wrong_try_again"));
+      set_step("method_choice");
+
+      return;
+    }
 
     set_step("email_sent");
   };
@@ -272,7 +317,11 @@ export function use_forgot_password() {
 
       if (response.error || !response.data) {
         await timing_safe_delay();
-        set_error(response.error || t("auth.invalid_recovery_code"));
+        set_error(
+          response.server_code === "INVALID_RECOVERY_CODE"
+            ? t("auth.invalid_recovery_code")
+            : response.error || t("auth.invalid_recovery_code"),
+        );
         set_step("code");
 
         return;
@@ -440,7 +489,7 @@ export function use_forgot_password() {
       set_step("new_codes");
     } catch (err) {
       await timing_safe_delay();
-      set_error(err instanceof Error ? err.message : t("auth.recovery_failed"));
+      set_error(user_facing_error(err, t("auth.recovery_failed")));
       set_step("password");
     }
   };
@@ -601,7 +650,7 @@ export function use_forgot_password() {
       set_step("new_codes");
     } catch (err) {
       await timing_safe_delay();
-      set_error(err instanceof Error ? err.message : t("auth.recovery_failed"));
+      set_error(user_facing_error(err, t("auth.recovery_failed")));
       set_step("password");
     }
   };
@@ -610,25 +659,30 @@ export function use_forgot_password() {
     const codes_text = new_recovery_codes.join("\n");
 
     try {
-      await navigator.clipboard.writeText(codes_text);
+      await copy_text_or_throw(codes_text);
       set_copy_success(true);
       setTimeout(() => set_copy_success(false), COPY_FEEDBACK_MS);
-    } catch (caught) {
-      ignore_error(
-        "pages/forgot_password/use_forgot_password:handle_copy_codes",
-        caught,
-      );
+    } catch {
+      show_toast(t("common.failed_to_copy"), "error");
     }
   };
 
   const handle_download_pdf = async () => {
-    await generate_recovery_pdf(email, new_recovery_codes, t);
-    set_codes_downloaded(true);
+    try {
+      await generate_recovery_pdf(email, new_recovery_codes, t);
+      set_codes_downloaded(true);
+    } catch {
+      show_toast(t("common.something_went_wrong_try_again"), "error");
+    }
   };
 
   const handle_download_txt = async () => {
-    await download_recovery_text(email, new_recovery_codes, t);
-    set_codes_downloaded(true);
+    try {
+      await download_recovery_text(email, new_recovery_codes, t);
+      set_codes_downloaded(true);
+    } catch {
+      show_toast(t("common.something_went_wrong_try_again"), "error");
+    }
   };
 
   return {

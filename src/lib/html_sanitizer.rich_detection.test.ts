@@ -47,7 +47,9 @@ describe("is_transparent_color_value", () => {
     expect(is_transparent_color_value("rgba(0, 0, 0, 0.5)")).toBe(false);
     expect(is_transparent_color_value("rgb(255, 255, 255)")).toBe(false);
     expect(is_transparent_color_value("url(https://x.test/a.png)")).toBe(false);
-    expect(is_transparent_color_value("linear-gradient(#fff, #000)")).toBe(false);
+    expect(is_transparent_color_value("linear-gradient(#fff, #000)")).toBe(
+      false,
+    );
   });
 });
 
@@ -85,8 +87,10 @@ describe("has_rich_html", () => {
   });
 
   it("still classifies genuine rich content as rich", () => {
-    expect(has_rich_html('<table><tr><td>x</td></tr></table>')).toBe(true);
-    expect(has_rich_html('<div style="background-color: #ffffff">x</div>')).toBe(true);
+    expect(has_rich_html("<table><tr><td>x</td></tr></table>")).toBe(true);
+    expect(
+      has_rich_html('<div style="background-color: #ffffff">x</div>'),
+    ).toBe(true);
     expect(has_rich_html('<img src="https://x.test/a.png">')).toBe(true);
     expect(has_rich_html('<div style="width: 600px">x</div>')).toBe(true);
   });

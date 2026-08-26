@@ -80,8 +80,7 @@ export function TrackingProtectionShield({
     return counts;
   }, [report.cleaned_links]);
 
-  const total_count =
-    spy_pixels.length + report.cleaned_links.length;
+  const total_count = spy_pixels.length + report.cleaned_links.length;
 
   if (!preferences.block_external_content) return null;
   if (total_count === 0) return null;
@@ -100,7 +99,10 @@ export function TrackingProtectionShield({
             className="flex-shrink-0"
             style={{ width: size, height: size, color: "inherit" }}
           />
-          <span className="text-[11px] font-semibold tabular-nums" style={{ color: "inherit" }}>
+          <span
+            className="text-[11px] font-semibold tabular-nums"
+            style={{ color: "inherit" }}
+          >
             {total_count}
           </span>
         </button>
@@ -117,7 +119,7 @@ export function TrackingProtectionShield({
           <span className="text-[13px] font-semibold text-txt-primary">
             {t("mail.tracking_protection")}
           </span>
-          <span className="ml-auto text-[11px] font-medium tabular-nums text-txt-muted">
+          <span className="ms-auto text-[11px] font-medium tabular-nums text-txt-muted">
             {t("mail.n_blocked", { count: total_count })}
           </span>
         </div>
@@ -134,7 +136,7 @@ export function TrackingProtectionShield({
                     key={domain}
                     className="flex items-center justify-between py-1 px-2 rounded text-[12px]"
                   >
-                    <span className="text-txt-secondary font-mono truncate mr-3">
+                    <span className="text-txt-secondary font-mono truncate me-3">
                       {domain}
                     </span>
                     {count > 1 && (

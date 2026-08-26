@@ -47,6 +47,8 @@ import { use_should_reduce_motion } from "@/provider";
 import { PROFILE_COLORS, get_gradient_background } from "@/constants/profile";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_escape_layer } from "@/lib/overlay_layer_stack";
+import { is_composing } from "@/utils/ime";
+import { format_number } from "@/lib/utils";
 
 function get_alias_color(address: string): string {
   let hash = 0;
@@ -178,6 +180,8 @@ function get_email_username(email: string): string {
   return email.split("@")[0] || email;
 }
 
+const GHOST_EXPIRY_OPTIONS = [7, 30, 90];
+
 const SEARCH_VISIBLE_THRESHOLD = 8;
 
 function option_matches_query(option: SenderOption, query: string): boolean {
@@ -212,7 +216,7 @@ function render_option(
       }}
     >
       <button
-        className="flex items-center gap-2 text-left flex-1 min-w-0"
+        className="flex items-center gap-2 text-start flex-1 min-w-0"
         type="button"
         onClick={on_click}
       >
@@ -301,11 +305,17 @@ export function SenderSelector({
     const viewport_w = window.innerWidth;
     const viewport_h = window.innerHeight;
     const panel_width = Math.min(384, viewport_w - 32);
-    const left = Math.min(Math.max(rect.left, 16), viewport_w - panel_width - 16);
+    const left = Math.min(
+      Math.max(rect.left, 16),
+      viewport_w - panel_width - 16,
+    );
     const space_below = viewport_h - rect.bottom - 16;
     const space_above = rect.top - 16;
     const opens_up = space_below < 240 && space_above > space_below;
-    const max_height = Math.min(448, (opens_up ? space_above : space_below) - 4);
+    const max_height = Math.min(
+      448,
+      (opens_up ? space_above : space_below) - 4,
+    );
 
     set_panel_style(
       opens_up
@@ -351,9 +361,7 @@ export function SenderSelector({
   }, [is_open]);
 
   useEffect(() => {
-    const active_row = panel_ref.current?.querySelector(
-      "[data-sender-active]",
-    );
+    const active_row = panel_ref.current?.querySelector("[data-sender-active]");
 
     active_row?.scrollIntoView({ block: "nearest" });
   }, [active_index]);
@@ -460,6 +468,8 @@ export function SenderSelector({
   const handle_search_key_down = (
     event: ReactKeyboardEvent<HTMLInputElement>,
   ) => {
+    if (is_composing(event)) return;
+
     if (event.key === "ArrowDown") {
       event.preventDefault();
       set_active_index((i) => Math.min(i + 1, visible_options.length - 1));
@@ -496,7 +506,7 @@ export function SenderSelector({
         aria-controls={is_open ? panel_id : undefined}
         aria-expanded={is_open}
         aria-haspopup="listbox"
-        className="flex items-center gap-1.5 py-0.5 px-1 -ml-1 rounded transition-colors disabled:opacity-50"
+        className="flex items-center gap-1.5 py-0.5 px-1 -ms-1 rounded transition-colors disabled:opacity-50"
         disabled={disabled}
         type="button"
         onClick={() => set_is_open(!is_open)}
@@ -516,240 +526,242 @@ export function SenderSelector({
 
       {createPortal(
         <AnimatePresence>
-        {is_open && (
-          <motion.div
-            ref={panel_ref}
-            animate={{ opacity: 1, y: 0 }}
-            className="z-[70] rounded-lg shadow-lg overflow-y-auto bg-surf-card border border-edge-secondary scrollbar-hide"
-            exit={{ opacity: 0, y: -8 }}
-            id={panel_id}
-            initial={reduce_motion ? false : { opacity: 0, y: -8 }}
-            style={panel_style}
-            transition={{ duration: reduce_motion ? 0 : 0.15 }}
-          >
-            {show_search && (
-              <div className="sticky top-0 z-10 px-2 pt-2 pb-1.5 bg-surf-card border-b border-edge-secondary">
-                <div className="relative">
-                  <MagnifyingGlassIcon className="w-3.5 h-3.5 absolute left-2 top-1/2 -translate-y-1/2 pointer-events-none text-txt-muted" />
-                  <input
-                    ref={search_input_ref}
-                    className="w-full pl-7 pr-2 py-1.5 text-sm rounded-md bg-surf-secondary text-txt-primary placeholder:text-txt-muted focus:outline-none"
-                    placeholder={t("settings.alias_search_placeholder")}
-                    type="text"
-                    value={search_query}
-                    onChange={(e) => {
-                      set_search_query(e.target.value);
-                      set_active_index(-1);
-                    }}
-                    onKeyDown={handle_search_key_down}
-                  />
-                </div>
-              </div>
-            )}
-            <div className="py-1">
-              {normalized_query && visible_options.length === 0 && (
-                <p className="px-3 py-4 text-sm text-center text-txt-muted">
-                  {t("common.no_results")}
-                </p>
-              )}
-              {primary_options.length > 0 && (
-                <>
-                  {has_multiple_groups && (
-                    <div className="px-3 pt-1.5 pb-1 text-[10px] font-medium uppercase tracking-wider text-txt-muted">
-                      {t("common.sender_group_primary")}
-                    </div>
-                  )}
-                  {primary_options.map((option) =>
-                    render_option(
-                      option,
-                      selected?.id === option.id,
-                      preferred_id === option.id,
-                      active_option_id === option.id,
-                      () => select_option(option),
-                      toggle_preferred,
-                      t,
-                    ),
-                  )}
-                </>
-              )}
-              {alias_options.length > 0 && (
-                <>
-                  {has_multiple_groups && (
-                    <div className="px-3 pt-1.5 pb-1 text-[10px] font-medium uppercase tracking-wider text-txt-muted">
-                      {t("common.sender_group_aliases")}
-                    </div>
-                  )}
-                  {alias_options.map((option) =>
-                    render_option(
-                      option,
-                      selected?.id === option.id,
-                      preferred_id === option.id,
-                      active_option_id === option.id,
-                      () => select_option(option),
-                      toggle_preferred,
-                      t,
-                    ),
-                  )}
-                </>
-              )}
-              {domain_options.length > 0 && (
-                <>
-                  {has_multiple_groups && (
-                    <div className="px-3 pt-1.5 pb-1 text-[10px] font-medium uppercase tracking-wider text-txt-muted">
-                      {t("common.sender_group_custom_domains")}
-                    </div>
-                  )}
-                  {domain_options.map((option) =>
-                    render_option(
-                      option,
-                      selected?.id === option.id,
-                      preferred_id === option.id,
-                      active_option_id === option.id,
-                      () => select_option(option),
-                      toggle_preferred,
-                      t,
-                    ),
-                  )}
-                </>
-              )}
-              {external_options.length > 0 && (
-                <>
-                  {has_multiple_groups && (
-                    <div className="px-3 pt-1.5 pb-1 text-[10px] font-medium uppercase tracking-wider text-txt-muted">
-                      {t("common.sender_group_external")}
-                    </div>
-                  )}
-                  {external_options.map((option) =>
-                    render_option(
-                      option,
-                      selected?.id === option.id,
-                      preferred_id === option.id,
-                      active_option_id === option.id,
-                      () => select_option(option),
-                      toggle_preferred,
-                      t,
-                    ),
-                  )}
-                </>
-              )}
-              {ghost_options.length > 0 && (
-                <>
-                  <div className="px-3 pt-1.5 pb-1 text-[10px] font-medium uppercase tracking-wider text-txt-muted">
-                    {t("common.sender_group_ghost")}
+          {is_open && (
+            <motion.div
+              ref={panel_ref}
+              animate={{ opacity: 1, y: 0 }}
+              className="z-[70] rounded-lg shadow-lg overflow-y-auto bg-surf-card border border-edge-secondary scrollbar-hide"
+              exit={{ opacity: 0, y: -8 }}
+              id={panel_id}
+              initial={reduce_motion ? false : { opacity: 0, y: -8 }}
+              style={panel_style}
+              transition={{ duration: reduce_motion ? 0 : 0.15 }}
+            >
+              {show_search && (
+                <div className="sticky top-0 z-10 px-2 pt-2 pb-1.5 bg-surf-card border-b border-edge-secondary">
+                  <div className="relative">
+                    <MagnifyingGlassIcon className="w-3.5 h-3.5 absolute start-2 top-1/2 -translate-y-1/2 pointer-events-none text-txt-muted" />
+                    <input
+                      ref={search_input_ref}
+                      className="w-full ps-7 pe-2 py-1.5 text-sm rounded-md bg-surf-secondary text-txt-primary placeholder:text-txt-muted focus:outline-none"
+                      placeholder={t("settings.alias_search_placeholder")}
+                      type="text"
+                      value={search_query}
+                      onChange={(e) => {
+                        set_search_query(e.target.value);
+                        set_active_index(-1);
+                      }}
+                      onKeyDown={handle_search_key_down}
+                    />
                   </div>
-                  {ghost_options.map((option) =>
-                    render_option(
-                      option,
-                      selected?.id === option.id,
-                      false,
-                      active_option_id === option.id,
-                      () => select_option(option),
-                      null,
-                      t,
-                    ),
-                  )}
-                </>
+                </div>
               )}
-              {on_create_ghost &&
-                !normalized_query &&
-                !ghost_options.some((g) => g.id === selected?.id) && (
+              <div className="py-1">
+                {normalized_query && visible_options.length === 0 && (
+                  <p className="px-3 py-4 text-sm text-center text-txt-muted">
+                    {t("common.no_results")}
+                  </p>
+                )}
+                {primary_options.length > 0 && (
                   <>
-                    {ghost_options.length === 0 && (
+                    {has_multiple_groups && (
                       <div className="px-3 pt-1.5 pb-1 text-[10px] font-medium uppercase tracking-wider text-txt-muted">
-                        {t("common.sender_group_ghost")}
+                        {t("common.sender_group_primary")}
                       </div>
                     )}
-                    <button
-                      className="w-full px-3 py-2 flex items-center gap-2 text-left transition-colors disabled:opacity-50"
-                      disabled={is_creating_ghost}
-                      type="button"
-                      onClick={() => on_create_ghost()}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor =
-                          "var(--bg-hover)";
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = "transparent";
-                      }}
-                    >
-                      <div
-                        className="rounded-full flex items-center justify-center flex-shrink-0"
-                        style={{
-                          width: 24,
-                          height: 24,
-                          background:
-                            "linear-gradient(135deg, #a855f7 0%, #7c3aed 100%)",
-                          boxShadow:
-                            "inset 0 1px 1px rgba(255,255,255,0.2), inset 0 -1px 1px rgba(0,0,0,0.15)",
-                        }}
-                      >
-                        {is_creating_ghost ? (
-                          <svg
-                            className="w-3 h-3 animate-spin text-white"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            viewBox="0 0 24 24"
-                          >
-                            <circle
-                              cx="12"
-                              cy="12"
-                              r="10"
-                              strokeOpacity="0.25"
-                            />
-                            <path
-                              d="M12 2a10 10 0 0 1 10 10"
-                              strokeLinecap="round"
-                            />
-                          </svg>
-                        ) : (
-                          <svg
-                            className="w-3 h-3 text-white"
-                            fill="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
-                          </svg>
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm text-txt-primary">
-                          {is_creating_ghost
-                            ? t("common.creating")
-                            : t("common.create_ghost_alias")}
-                        </p>
-                        <p className="text-xs text-txt-muted">
-                          {t("common.hide_real_address_expiry", {
-                            days: String(ghost_expiry_days),
-                          })}
-                        </p>
-                      </div>
-                      {on_set_ghost_expiry && (
-                        <select
-                          className="text-[10px] px-1 py-0.5 rounded border bg-transparent appearance-none cursor-pointer border-edge-secondary text-txt-muted"
-                          value={ghost_expiry_days}
-                          onChange={(e) => {
-                            e.stopPropagation();
-                            on_set_ghost_expiry(Number(e.target.value));
-                          }}
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <option value={7}>7d</option>
-                          <option value={30}>30d</option>
-                          <option value={90}>90d</option>
-                        </select>
-                      )}
-                    </button>
-                    {ghost_error && (
-                      <div className="px-3 py-1.5">
-                        <p className="text-xs text-red-500">{ghost_error}</p>
-                      </div>
+                    {primary_options.map((option) =>
+                      render_option(
+                        option,
+                        selected?.id === option.id,
+                        preferred_id === option.id,
+                        active_option_id === option.id,
+                        () => select_option(option),
+                        toggle_preferred,
+                        t,
+                      ),
                     )}
                   </>
                 )}
-            </div>
-          </motion.div>
-        )}
+                {alias_options.length > 0 && (
+                  <>
+                    {has_multiple_groups && (
+                      <div className="px-3 pt-1.5 pb-1 text-[10px] font-medium uppercase tracking-wider text-txt-muted">
+                        {t("common.sender_group_aliases")}
+                      </div>
+                    )}
+                    {alias_options.map((option) =>
+                      render_option(
+                        option,
+                        selected?.id === option.id,
+                        preferred_id === option.id,
+                        active_option_id === option.id,
+                        () => select_option(option),
+                        toggle_preferred,
+                        t,
+                      ),
+                    )}
+                  </>
+                )}
+                {domain_options.length > 0 && (
+                  <>
+                    {has_multiple_groups && (
+                      <div className="px-3 pt-1.5 pb-1 text-[10px] font-medium uppercase tracking-wider text-txt-muted">
+                        {t("common.sender_group_custom_domains")}
+                      </div>
+                    )}
+                    {domain_options.map((option) =>
+                      render_option(
+                        option,
+                        selected?.id === option.id,
+                        preferred_id === option.id,
+                        active_option_id === option.id,
+                        () => select_option(option),
+                        toggle_preferred,
+                        t,
+                      ),
+                    )}
+                  </>
+                )}
+                {external_options.length > 0 && (
+                  <>
+                    {has_multiple_groups && (
+                      <div className="px-3 pt-1.5 pb-1 text-[10px] font-medium uppercase tracking-wider text-txt-muted">
+                        {t("common.sender_group_external")}
+                      </div>
+                    )}
+                    {external_options.map((option) =>
+                      render_option(
+                        option,
+                        selected?.id === option.id,
+                        preferred_id === option.id,
+                        active_option_id === option.id,
+                        () => select_option(option),
+                        toggle_preferred,
+                        t,
+                      ),
+                    )}
+                  </>
+                )}
+                {ghost_options.length > 0 && (
+                  <>
+                    <div className="px-3 pt-1.5 pb-1 text-[10px] font-medium uppercase tracking-wider text-txt-muted">
+                      {t("common.sender_group_ghost")}
+                    </div>
+                    {ghost_options.map((option) =>
+                      render_option(
+                        option,
+                        selected?.id === option.id,
+                        false,
+                        active_option_id === option.id,
+                        () => select_option(option),
+                        null,
+                        t,
+                      ),
+                    )}
+                  </>
+                )}
+                {on_create_ghost &&
+                  !normalized_query &&
+                  !ghost_options.some((g) => g.id === selected?.id) && (
+                    <>
+                      {ghost_options.length === 0 && (
+                        <div className="px-3 pt-1.5 pb-1 text-[10px] font-medium uppercase tracking-wider text-txt-muted">
+                          {t("common.sender_group_ghost")}
+                        </div>
+                      )}
+                      <button
+                        className="w-full px-3 py-2 flex items-center gap-2 text-start transition-colors disabled:opacity-50"
+                        disabled={is_creating_ghost}
+                        type="button"
+                        onClick={() => on_create_ghost()}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor =
+                            "var(--bg-hover)";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = "transparent";
+                        }}
+                      >
+                        <div
+                          className="rounded-full flex items-center justify-center flex-shrink-0"
+                          style={{
+                            width: 24,
+                            height: 24,
+                            background:
+                              "linear-gradient(135deg, #a855f7 0%, #7c3aed 100%)",
+                            boxShadow:
+                              "inset 0 1px 1px rgba(255,255,255,0.2), inset 0 -1px 1px rgba(0,0,0,0.15)",
+                          }}
+                        >
+                          {is_creating_ghost ? (
+                            <svg
+                              className="w-3 h-3 animate-spin text-white"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              viewBox="0 0 24 24"
+                            >
+                              <circle
+                                cx="12"
+                                cy="12"
+                                r="10"
+                                strokeOpacity="0.25"
+                              />
+                              <path
+                                d="M12 2a10 10 0 0 1 10 10"
+                                strokeLinecap="round"
+                              />
+                            </svg>
+                          ) : (
+                            <svg
+                              className="w-3 h-3 text-white"
+                              fill="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+                            </svg>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm text-txt-primary">
+                            {is_creating_ghost
+                              ? t("common.creating")
+                              : t("common.create_ghost_alias")}
+                          </p>
+                          <p className="text-xs text-txt-muted">
+                            {t("common.hide_real_address_expiry", {
+                              days: ghost_expiry_days,
+                            })}
+                          </p>
+                        </div>
+                        {on_set_ghost_expiry && (
+                          <select
+                            className="text-[10px] px-1 py-0.5 rounded border bg-transparent appearance-none cursor-pointer border-edge-secondary text-txt-muted"
+                            value={ghost_expiry_days}
+                            onChange={(e) => {
+                              e.stopPropagation();
+                              on_set_ghost_expiry(Number(e.target.value));
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {GHOST_EXPIRY_OPTIONS.map((days) => (
+                              <option key={days} value={days}>
+                                {`${format_number(days)}${t("common.time_days_short")}`}
+                              </option>
+                            ))}
+                          </select>
+                        )}
+                      </button>
+                      {ghost_error && (
+                        <div className="px-3 py-1.5">
+                          <p className="text-xs text-red-500">{ghost_error}</p>
+                        </div>
+                      )}
+                    </>
+                  )}
+              </div>
+            </motion.div>
+          )}
         </AnimatePresence>,
         document.body,
       )}

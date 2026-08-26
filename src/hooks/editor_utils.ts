@@ -218,6 +218,7 @@ export interface UseEditorOptions {
   is_plain_text_mode?: boolean;
   on_files_drop?: (files: File[]) => void;
   strip_exif_on_compose?: boolean;
+  get_inline_image_budget?: () => number;
 }
 
 export interface ImageResizeState {
@@ -244,6 +245,7 @@ export interface UseEditorReturn {
   insert_emoji: (emoji: string) => void;
   insert_text: (text: string) => void;
   insert_html: (html: string) => void;
+  apply_signature: (html: string | null) => void;
   set_font_color: (color: string) => void;
   set_background_color: (color: string) => void;
   set_font_size: (size: FontSizeLabel) => void;

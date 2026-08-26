@@ -23,10 +23,11 @@ import type {
   DecryptedEmail,
   UseEmailViewerOptions,
 } from "@/components/email/email_viewer_types";
-import { UNDO_SEND_PREVIEW_ID } from "@/components/email/email_viewer_types";
+import type { UndoSendEvent } from "@/hooks/use_undo_send";
 
 import { useState, useEffect, useRef, useCallback } from "react";
 
+import { UNDO_SEND_PREVIEW_ID } from "@/components/email/email_viewer_types";
 import { get_mail_item, type MailItem } from "@/services/api/mail";
 import { request_cache } from "@/services/api/request_cache";
 import { has_passphrase_in_memory } from "@/services/crypto/memory_key_store";
@@ -39,7 +40,6 @@ import {
   type ThreadReplyOptimisticEventDetail,
   type ThreadReplyCancelledEventDetail,
 } from "@/hooks/mail_events";
-import type { UndoSendEvent } from "@/hooks/use_undo_send";
 import { get_email_username } from "@/lib/utils";
 import { extract_reply_to } from "@/utils/reply_to";
 import { resolve_forwarding_display } from "@/utils/forwarding_alias";
@@ -136,8 +136,8 @@ function build_preloaded_email(preloaded: PreloadedEmail): DecryptedEmail {
     timestamp: preloaded.mail_item.created_at,
     is_read: pe.is_read,
     is_starred: pe.is_starred,
-    is_trashed: false,
-    is_archived: false,
+    is_trashed: preloaded.mail_item.is_trashed ?? false,
+    is_archived: preloaded.mail_item.is_archived ?? false,
     body: pe.html_content || pe.body,
     html_content: pe.html_content,
     unsubscribe_info: pe.unsubscribe_info,
@@ -840,6 +840,29 @@ export function use_email_viewer({
   }, [email_id, preferences.mark_as_read_delay, refresh_key]);
 
   useEffect(() => {
+    if (!email_id || !error) return;
+
+    let unsubscribe: (() => void) | null = null;
+    let cancelled = false;
+
+    void import("@/services/crypto/memory_key_store").then((module) => {
+      if (cancelled || module.are_keys_ready()) return;
+
+      unsubscribe = module.on_keys_ready(() => {
+        delete_preloaded_email(email_id);
+        loaded_email_id_ref.current = null;
+        set_error(null);
+        set_refresh_key((k) => k + 1);
+      });
+    });
+
+    return () => {
+      cancelled = true;
+      unsubscribe?.();
+    };
+  }, [email_id, error]);
+
+  useEffect(() => {
     const handle_reactions_changed = () => {
       if (email_id) delete_preloaded_email(email_id);
       set_refresh_key((k) => k + 1);
@@ -1217,6 +1240,7 @@ export function use_email_viewer({
       if (!thread_list_ref.current) return;
       const { all_expanded, all_collapsed, has_unread } =
         thread_list_ref.current;
+
       set_thread_expand_state((prev) => {
         if (
           prev.all_expanded === all_expanded &&
@@ -1225,6 +1249,7 @@ export function use_email_viewer({
         ) {
           return prev;
         }
+
         return { all_expanded, all_collapsed, has_unread };
       });
     };
@@ -1242,6 +1267,7 @@ export function use_email_viewer({
       const expires = new Date(
         Date.now() + 30 * 24 * 60 * 60 * 1000,
       ).toISOString();
+
       set_thread_draft({
         id: draft.id,
         version: draft.version,

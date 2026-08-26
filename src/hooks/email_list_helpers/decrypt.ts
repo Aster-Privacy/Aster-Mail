@@ -18,11 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type {
-  
-  DecryptedEnvelope,
-  
-} from "@/types/email";
+import type { DecryptedEnvelope } from "@/types/email";
 
 import {
   get_passphrase_bytes,
@@ -30,7 +26,7 @@ import {
   get_vault_from_memory,
   wait_for_keys_ready,
 } from "@/services/crypto/memory_key_store";
-import { decrypt_message_with_any_key } from "@/services/crypto/key_manager";
+import { decrypt_pgp_message_parallel } from "@/workers/pgp_decrypt_pool";
 import {
   adopt_refreshed_vault,
   fetch_refreshed_vault,
@@ -106,7 +102,7 @@ async function open_envelope(
 
       const passphrase = pass;
       const decrypt_pgp_with_keys = async (keys: string[]) => {
-        const decrypted = await decrypt_message_with_any_key(
+        const decrypted = await decrypt_pgp_message_parallel(
           text,
           keys,
           passphrase,
@@ -176,6 +172,7 @@ async function open_envelope(
         nonce,
         mail_item_id,
       );
+
       if (ecies_result) return ecies_result;
     }
 
@@ -236,4 +233,3 @@ async function open_envelope(
     return null;
   }
 }
-

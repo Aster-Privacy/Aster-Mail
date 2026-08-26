@@ -19,7 +19,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { Badge } from "@/services/api/user";
-
 import type { DecryptedContact } from "@/types/contacts";
 
 import {
@@ -31,16 +30,14 @@ import {
   useReducer,
 } from "react";
 
+import { UseReplyModalProps } from "./reply_modal_types";
+
 import { use_draggable_modal } from "@/hooks/use_draggable_modal";
 import { use_editor } from "@/hooks/use_editor";
 import { MODAL_SIZES } from "@/constants/modal";
-import {
-  build_reply_recipients,
-} from "@/services/mail_actions";
+import { build_reply_recipients } from "@/services/mail_actions";
 import { build_reply_subject } from "@/lib/reply_subject";
-import {
-  SEND_LOCK_STALL_MS,
-} from "@/components/compose/send_lock";
+import { SEND_LOCK_STALL_MS } from "@/components/compose/send_lock";
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_signatures } from "@/contexts/signatures_context";
@@ -76,6 +73,7 @@ import {
   get_preferred_sender_id,
   set_preferred_sender_id,
   subscribe_preferred_sender,
+  sender_id_matches,
 } from "@/lib/preferred_sender";
 import { list_contacts, decrypt_contacts } from "@/services/api/contacts";
 import {
@@ -87,14 +85,22 @@ import { inline_email_css } from "@/lib/forward_css_inliner";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { fetch_my_badges } from "@/services/api/user";
 import { use_my_badge_prefs } from "@/stores/my_badge_prefs_store";
-import { build_badge_html } from "@/components/compose/compose_draft_helpers";
-
-import { ignore_error } from "@/lib/ignore_error";
-
 import {
-  UseReplyModalProps,
-} from "./reply_modal_types";
+  attachments_to_draft_data,
+  build_badge_html,
+  draft_data_to_attachments,
+} from "@/components/compose/compose_draft_helpers";
+import { ignore_error } from "@/lib/ignore_error";
+import {
+  app_hour12,
+  app_locale,
+  get_display_time_zone,
+} from "@/utils/date_format";
+import { use_escape_layer } from "@/lib/overlay_layer_stack";
 
+function attachments_key(ids: string[]): string {
+  return ids.join(",");
+}
 
 export function use_reply_modal_state(props: UseReplyModalProps) {
   const {
@@ -203,6 +209,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
   const optimistic_id_ref = useRef<string | null>(null);
   const save_draft_timeout = useRef<number | null>(null);
   const last_saved_text = useRef<string>("");
+  const last_saved_attachments = useRef<string>("");
   const is_sending_ref = useRef(false);
   const send_lock_started_at_ref = useRef(0);
   const last_send_time_ref = useRef<number>(0);
@@ -290,7 +297,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
 
     if (preferred_sender_id) {
       const match = sender_options.find(
-        (s) => s.is_enabled && s.id === preferred_sender_id,
+        (s) => s.is_enabled && sender_id_matches(s.id, preferred_sender_id),
       );
 
       if (match) {
@@ -422,7 +429,12 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
 
         if (!cancelled) set_contacts(decrypted);
       })
-      .catch((caught) => ignore_error("components/modals/hooks/use_reply_modal_state:apply", caught));
+      .catch((caught) =>
+        ignore_error(
+          "components/modals/hooks/use_reply_modal_state:apply",
+          caught,
+        ),
+      );
 
     return () => {
       cancelled = true;
@@ -474,12 +486,14 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
   const format_date = useCallback((timestamp: string): string => {
     const date = new Date(timestamp);
 
-    return date.toLocaleDateString(undefined, {
+    return date.toLocaleDateString(app_locale(), {
+      timeZone: get_display_time_zone(),
       weekday: "short",
       year: "numeric",
       month: "short",
       day: "numeric",
       hour: "numeric",
+      hour12: app_hour12(),
       minute: "2-digit",
     });
   }, []);
@@ -557,21 +571,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
     ],
   );
 
-  useEffect(() => {
-    if (!is_open) return;
-
-    const handle_escape = (e: KeyboardEvent) => {
-      if (e["key"] === "Escape") {
-        e.preventDefault();
-        e.stopPropagation();
-        on_close();
-      }
-    };
-
-    document.addEventListener("keydown", handle_escape);
-
-    return () => document.removeEventListener("keydown", handle_escape);
-  }, [is_open, on_close]);
+  use_escape_layer(is_open, on_close, "reply_modal");
 
   const existing_draft_ref = useRef(existing_draft);
 
@@ -594,7 +594,11 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
     send_lock_started_at_ref.current = 0;
     set_is_sending(false);
     set_error_message(null);
-    set_attachments([]);
+    set_attachments(
+      matching_draft?.content.attachments
+        ? draft_data_to_attachments(matching_draft.content.attachments)
+        : [],
+    );
     set_attachment_error(null);
     set_show_quoted(false);
     set_include_quoted(true);
@@ -607,6 +611,9 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
     set_show_delete_confirm(false);
     set_is_plain_text_mode(false);
     last_saved_text.current = matching_draft?.content.message ?? "";
+    last_saved_attachments.current = attachments_key(
+      matching_draft?.content.attachments?.map((a) => a.id) ?? [],
+    );
   }, [is_open, original_email_id]);
 
   useEffect(() => {
@@ -685,6 +692,11 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
     t,
   ]);
 
+  const attachments_signature = useMemo(
+    () => attachments_key(attachments.map((a) => a.id)),
+    [attachments],
+  );
+
   const has_user_content = useCallback((text: string) => {
     if (!text.trim()) return false;
     if (text === initial_content_ref.current) return false;
@@ -694,7 +706,8 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
 
   const save_thread_draft = useCallback(
     async (text: string) => {
-      if (!has_user_content(text) || !original_email_id) return;
+      if (!original_email_id) return;
+      if (!has_user_content(text) && attachments.length === 0) return;
 
       if (!are_keys_ready()) {
         await wait_for_keys_ready();
@@ -727,6 +740,10 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
         bcc_recipients: [],
         subject,
         message: text,
+        attachments:
+          attachments.length > 0
+            ? attachments_to_draft_data(attachments)
+            : undefined,
       };
 
       if (draft_id) {
@@ -744,6 +761,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
         if (result.data) {
           set_draft_version(result.data.version);
           last_saved_text.current = text;
+          last_saved_attachments.current = attachments_signature;
           set_draft_status("saved");
           set_last_saved_time(new Date());
           on_draft_saved?.({
@@ -752,7 +770,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
             content,
           });
         } else {
-          set_draft_status("idle");
+          set_draft_status("error");
         }
       } else {
         const result = await create_draft(
@@ -768,6 +786,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
           set_draft_id(result.data.id);
           set_draft_version(result.data.version);
           last_saved_text.current = text;
+          last_saved_attachments.current = attachments_signature;
           set_draft_status("saved");
           set_last_saved_time(new Date());
           on_draft_saved?.({
@@ -776,7 +795,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
             content,
           });
         } else {
-          set_draft_status("idle");
+          set_draft_status("error");
         }
       }
     },
@@ -791,6 +810,8 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
       draft_id,
       draft_version,
       on_draft_saved,
+      attachments,
+      attachments_signature,
     ],
   );
 
@@ -807,8 +828,9 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
         const current_text = reply_message_ref.current;
 
         if (
-          current_text !== last_saved_text.current &&
-          has_user_content(current_text) &&
+          (current_text !== last_saved_text.current ||
+            attachments_signature !== last_saved_attachments.current) &&
+          (has_user_content(current_text) || attachments_signature !== "") &&
           original_email_id
         ) {
           save_draft_fn_ref.current(current_text);
@@ -816,12 +838,17 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
       }
     }
     prev_is_open_ref.current = is_open;
-  }, [is_open, original_email_id, has_user_content]);
+  }, [is_open, original_email_id, has_user_content, attachments_signature]);
 
   useEffect(() => {
-    if (!is_open || !original_email_id || !has_user_content(reply_message))
+    if (!is_open || !original_email_id) return;
+    if (!has_user_content(reply_message) && attachments_signature === "")
       return;
-    if (reply_message === last_saved_text.current) return;
+    if (
+      reply_message === last_saved_text.current &&
+      attachments_signature === last_saved_attachments.current
+    )
+      return;
 
     if (save_draft_timeout.current) {
       clearTimeout(save_draft_timeout.current);
@@ -842,6 +869,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
     reply_message,
     save_thread_draft,
     has_user_content,
+    attachments_signature,
   ]);
 
   useEffect(() => {
@@ -858,25 +886,6 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
     },
     [editor],
   );
-
-  const handle_insert_link = useCallback(() => {
-    const url = prompt(t("common.enter_url"), "https://");
-
-    if (url?.trim()) {
-      const trimmed_url = url.trim();
-      const selection = window.getSelection();
-      const selected_text = selection?.toString() || "";
-
-      if (!selected_text) {
-        const link_text =
-          prompt(t("common.enter_link_text"), trimmed_url) || trimmed_url;
-
-        editor.insert_link(trimmed_url, link_text);
-      } else {
-        editor.insert_link(trimmed_url);
-      }
-    }
-  }, [editor]);
 
   return {
     t,
@@ -897,6 +906,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
     set_show_cc,
     contacts,
     reply_message,
+    set_reply_message,
     is_sending,
     set_is_sending,
     error_message,
@@ -960,6 +970,5 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
     is_mobile,
     build_quoted_content,
     exec_format_command,
-    handle_insert_link,
   };
 }

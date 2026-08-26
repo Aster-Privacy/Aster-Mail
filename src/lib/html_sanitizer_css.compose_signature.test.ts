@@ -117,12 +117,12 @@ describe("sanitize_compose_style signature paste fidelity", () => {
     expect(sanitize_compose_style("display: none")).toBe("");
     expect(sanitize_compose_style("display: flex")).toBe("");
     expect(sanitize_compose_style("behavior: url(evil.htc)")).toBe("");
-    expect(sanitize_compose_style("background-image: url(https://x/y.png)")).toBe(
+    expect(
+      sanitize_compose_style("background-image: url(https://x/y.png)"),
+    ).toBe("");
+    expect(sanitize_compose_style("border-radius: expression(alert(1))")).toBe(
       "",
     );
-    expect(
-      sanitize_compose_style("border-radius: expression(alert(1))"),
-    ).toBe("");
     expect(sanitize_compose_style("padding: url(https://x)")).toBe("");
     expect(sanitize_compose_style("content: 'x'")).toBe("");
     expect(sanitize_compose_style("z-index: 9999")).toBe("");

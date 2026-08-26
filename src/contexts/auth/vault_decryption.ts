@@ -27,7 +27,10 @@ import {
   has_vault_in_memory,
   has_vault_in_memory_for,
 } from "@/services/crypto/memory_key_store";
-import { auto_rekey_if_needed, reset_rekey_flag } from "@/services/crypto/auto_rekey";
+import {
+  auto_rekey_if_needed,
+  reset_rekey_flag,
+} from "@/services/crypto/auto_rekey";
 import { adopt_master_key_if_needed } from "@/services/crypto/mk_adoption";
 import { check_and_run_recovery_reencryption } from "@/services/crypto/recovery_reencrypt";
 import { ensure_ratchet_keys } from "@/services/crypto/ensure_ratchet_keys";
@@ -87,10 +90,12 @@ async function ensure_pq_prekeys_available(): Promise<void> {
 }
 
 import { get_derived_encryption_key } from "@/services/crypto/memory_key_store";
-import { emit_aliases_changed, emit_contacts_changed } from "@/hooks/mail_events";
+import {
+  emit_aliases_changed,
+  emit_contacts_changed,
+} from "@/hooks/mail_events";
 import { compute_password_strength_tier } from "@/services/password_strength_score";
 import { backfill_password_strength_tier } from "@/services/api/account";
-
 import { ignore_error } from "@/lib/ignore_error";
 
 let vault_decryption_lock: Promise<void> | null = null;
@@ -135,7 +140,9 @@ export async function decrypt_vault_with_lock(
 
     backfill_password_strength_tier(
       compute_password_strength_tier(passphrase),
-    ).catch((caught) => ignore_error("contexts/auth/vault_decryption:reusable", caught));
+    ).catch((caught) =>
+      ignore_error("contexts/auth/vault_decryption:reusable", caught),
+    );
 
     try {
       await adopt_master_key_if_needed(vault, passphrase);
@@ -150,11 +157,17 @@ export async function decrypt_vault_with_lock(
           emit_contacts_changed();
         }
       })
-      .catch((caught) => ignore_error("contexts/auth/vault_decryption:reusable", caught));
+      .catch((caught) =>
+        ignore_error("contexts/auth/vault_decryption:reusable", caught),
+      );
 
-    check_and_run_recovery_reencryption(vault, passphrase).catch((caught) => ignore_error("contexts/auth/vault_decryption:reusable", caught));
+    check_and_run_recovery_reencryption(vault, passphrase).catch((caught) =>
+      ignore_error("contexts/auth/vault_decryption:reusable", caught),
+    );
 
-    ensure_pgp_key_published().catch((caught) => ignore_error("contexts/auth/vault_decryption:reusable", caught));
+    ensure_pgp_key_published().catch((caught) =>
+      ignore_error("contexts/auth/vault_decryption:reusable", caught),
+    );
 
     ensure_ratchet_keys()
       .then(async () => {
@@ -176,9 +189,13 @@ export async function decrypt_vault_with_lock(
 
         await backfill_pq_secrets_to_server();
         await reconcile_pq_secrets_with_server();
-        sync_escrow_to_cache().catch((caught) => ignore_error("contexts/auth/vault_decryption:reusable", caught));
+        sync_escrow_to_cache().catch((caught) =>
+          ignore_error("contexts/auth/vault_decryption:reusable", caught),
+        );
       })
-      .catch((caught) => ignore_error("contexts/auth/vault_decryption:reusable", caught));
+      .catch((caught) =>
+        ignore_error("contexts/auth/vault_decryption:reusable", caught),
+      );
 
     return vault;
   } finally {

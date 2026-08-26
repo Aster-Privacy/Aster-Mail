@@ -33,6 +33,7 @@ import { Switch, Button, Badge } from "@aster/ui";
 import { use_i18n } from "@/lib/i18n/context";
 import { InfoPopover } from "@/components/ui/info_popover";
 import { Spinner } from "@/components/ui/spinner";
+import { is_composing } from "@/utils/ime";
 
 interface ToggleSettingProps {
   title: string;
@@ -51,14 +52,21 @@ function ToggleSetting({
 }: ToggleSettingProps) {
   return (
     <div className="flex items-center justify-between py-4">
-      <div className="flex-1 pr-4">
+      <div className="flex-1 pe-4">
         <p className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
           {title}
-          {info && <InfoPopover description={info.description} title={info.title} />}
+          {info && (
+            <InfoPopover description={info.description} title={info.title} />
+          )}
         </p>
         <p className="text-sm mt-0.5 text-txt-muted">{description}</p>
       </div>
-      <Switch size="lg" checked={enabled} onCheckedChange={on_toggle} />
+      <Switch
+        aria-label={title}
+        checked={enabled}
+        size="lg"
+        onCheckedChange={on_toggle}
+      />
     </div>
   );
 }
@@ -82,6 +90,7 @@ interface EncryptionSettingsFormProps {
   handle_wkd_toggle: () => Promise<void>;
   handle_auto_discover_keys_toggle: () => Promise<void>;
   handle_encrypt_emails_toggle: () => Promise<void>;
+  handle_require_encryption_toggle: () => Promise<void>;
   keyserver_urls: string[];
   keyserver_input: string;
   set_keyserver_input: (v: string) => void;
@@ -101,6 +110,7 @@ export function EncryptionSettingsForm({
   handle_wkd_toggle,
   handle_auto_discover_keys_toggle,
   handle_encrypt_emails_toggle,
+  handle_require_encryption_toggle,
   keyserver_urls,
   keyserver_input,
   set_keyserver_input,
@@ -117,16 +127,26 @@ export function EncryptionSettingsForm({
 
   const keyserver_badge = () => {
     if (keyserver_published === null) return null;
-    if (keyserver_state === "published" || (keyserver_published && !keyserver_state)) {
-      return <Badge color="green">{t("settings.keyserver_status_published")}</Badge>;
+    if (
+      keyserver_state === "published" ||
+      (keyserver_published && !keyserver_state)
+    ) {
+      return (
+        <Badge color="green">{t("settings.keyserver_status_published")}</Badge>
+      );
     }
     if (keyserver_state === "failed") {
       return <Badge color="red">{t("settings.keyserver_status_failed")}</Badge>;
     }
     if (keyserver_state === "awaiting_verification") {
-      return <Badge color="amber">{t("settings.keyserver_status_awaiting")}</Badge>;
+      return (
+        <Badge color="amber">{t("settings.keyserver_status_awaiting")}</Badge>
+      );
     }
-    return <Badge color="gray">{t("settings.keyserver_status_not_published")}</Badge>;
+
+    return (
+      <Badge color="gray">{t("settings.keyserver_status_not_published")}</Badge>
+    );
   };
 
   const keyserver_hint = () => {
@@ -138,6 +158,7 @@ export function EncryptionSettingsForm({
         ? `${t("settings.keyserver_failed_hint")} (${keyserver_error})`
         : t("settings.keyserver_failed_hint");
     }
+
     return t("settings.keyserver_permanent_warning");
   };
 
@@ -157,21 +178,30 @@ export function EncryptionSettingsForm({
       <ToggleSetting
         description={t("settings.auto_discover_keys_description")}
         enabled={preferences.auto_discover_keys}
+        info={{
+          title: t("settings.info_auto_discover_keys_title"),
+          description: t("settings.info_auto_discover_keys_description"),
+        }}
         on_toggle={handle_auto_discover_keys_toggle}
-        info={{ title: t("settings.info_auto_discover_keys_title"), description: t("settings.info_auto_discover_keys_description") }}
         title={t("settings.auto_discover_keys_title")}
       />
       <ToggleSetting
         description={t("settings.encrypt_by_default_description")}
         enabled={preferences.encrypt_emails}
+        info={{
+          title: t("settings.info_encrypt_by_default_title"),
+          description: t("settings.info_encrypt_by_default_description"),
+        }}
         on_toggle={handle_encrypt_emails_toggle}
-        info={{ title: t("settings.info_encrypt_by_default_title"), description: t("settings.info_encrypt_by_default_description") }}
         title={t("settings.encrypt_by_default_title")}
       />
       <ToggleSetting
         description={t("settings.obscure_subject_description")}
         enabled={preferences.obscure_subject_when_encrypted}
-        info={{ title: t("settings.info_obscure_subject_title"), description: t("settings.info_obscure_subject_description") }}
+        info={{
+          title: t("settings.info_obscure_subject_title"),
+          description: t("settings.info_obscure_subject_description"),
+        }}
         on_toggle={() =>
           update_preference(
             "obscure_subject_when_encrypted",
@@ -184,14 +214,11 @@ export function EncryptionSettingsForm({
       <ToggleSetting
         description={t("settings.require_encryption_description")}
         enabled={preferences.require_encryption}
-        info={{ title: t("settings.info_require_encryption_title"), description: t("settings.info_require_encryption_description") }}
-        on_toggle={() =>
-          update_preference(
-            "require_encryption",
-            !preferences.require_encryption,
-            true,
-          )
-        }
+        info={{
+          title: t("settings.info_require_encryption_title"),
+          description: t("settings.info_require_encryption_description"),
+        }}
+        on_toggle={handle_require_encryption_toggle}
         title={t("settings.require_encryption_title")}
       />
       <ToggleSetting
@@ -209,7 +236,10 @@ export function EncryptionSettingsForm({
       <ToggleSetting
         description={t("settings.publish_keys_wkd_description")}
         enabled={preferences.publish_to_wkd}
-        info={{ title: t("settings.info_wkd_title"), description: t("settings.info_wkd_description") }}
+        info={{
+          title: t("settings.info_wkd_title"),
+          description: t("settings.info_wkd_description"),
+        }}
         on_toggle={handle_wkd_toggle}
         title={t("settings.publish_keys_wkd_title")}
       />
@@ -219,15 +249,15 @@ export function EncryptionSettingsForm({
           <ServerStackIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
           {t("settings.keyserver_urls_title")}
           <InfoPopover
-            title={t("settings.info_keyservers_title")}
             description={t("settings.info_keyservers_description")}
+            title={t("settings.info_keyservers_title")}
           />
         </h3>
         <div className="mt-2 h-px bg-edge-secondary" />
       </div>
 
       <div className="flex items-center justify-between py-4 border-b border-b-edge-secondary">
-        <div className="flex-1 pr-4">
+        <div className="flex-1 pe-4">
           <p className="text-sm font-medium text-txt-primary flex items-center gap-2">
             {t("settings.keyserver_publication_status")}
             {keyserver_badge()}
@@ -252,13 +282,15 @@ export function EncryptionSettingsForm({
       <div className="divide-y divide-edge-secondary mt-1">
         {DEFAULT_KEYSERVERS.map((url) => (
           <div key={url} className="flex items-center gap-2 py-2.5">
-            <span className="flex-1 text-sm font-mono text-txt-secondary truncate">{url}</span>
+            <span className="flex-1 text-sm font-mono text-txt-secondary truncate">
+              {url}
+            </span>
             <a
               aria-label={url}
+              className="flex-shrink-0 text-txt-muted hover:text-txt-primary transition-colors"
               href={url}
               rel="noopener noreferrer"
               target="_blank"
-              className="flex-shrink-0 text-txt-muted hover:text-txt-primary transition-colors"
             >
               <ArrowTopRightOnSquareIcon className="w-3.5 h-3.5" />
             </a>
@@ -266,13 +298,15 @@ export function EncryptionSettingsForm({
         ))}
         {keyserver_urls.map((url) => (
           <div key={url} className="flex items-center gap-2 py-2.5">
-            <span className="flex-1 text-sm font-mono text-txt-primary truncate">{url}</span>
+            <span className="flex-1 text-sm font-mono text-txt-primary truncate">
+              {url}
+            </span>
             <a
               aria-label={url}
+              className="flex-shrink-0 text-txt-muted hover:text-txt-primary transition-colors"
               href={url}
               rel="noopener noreferrer"
               target="_blank"
-              className="flex-shrink-0 text-txt-muted hover:text-txt-primary transition-colors"
             >
               <ArrowTopRightOnSquareIcon className="w-3.5 h-3.5" />
             </a>
@@ -291,10 +325,16 @@ export function EncryptionSettingsForm({
             className="flex-1 px-3 h-8 rounded-lg text-sm font-mono bg-transparent"
             disabled={is_saving_keyservers}
             placeholder={t("settings.keyserver_url_placeholder")}
-            style={{ border: "1px solid var(--border-primary)", color: "var(--text-primary)", outline: "none" }}
+            style={{
+              border: "1px solid var(--border-primary)",
+              color: "var(--text-primary)",
+              outline: "none",
+            }}
             value={keyserver_input}
             onChange={(e) => set_keyserver_input(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter") handle_add_keyserver(); }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !is_composing(e)) handle_add_keyserver();
+            }}
           />
           <Button
             disabled={is_saving_keyservers || !keyserver_input.trim()}
@@ -302,7 +342,7 @@ export function EncryptionSettingsForm({
             variant="depth"
             onClick={handle_add_keyserver}
           >
-            <PlusIcon className="w-3.5 h-3.5 mr-1" />
+            <PlusIcon className="w-3.5 h-3.5 me-1" />
             {t("settings.keyserver_add")}
           </Button>
         </div>

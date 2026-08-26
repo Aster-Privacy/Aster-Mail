@@ -44,31 +44,34 @@ function format_time_remaining(
     return t ? t("common.now") : "Now";
   }
 
-  const minutes = Math.floor(diff / 60000);
+  const minutes = Math.max(1, Math.floor(diff / 60000));
   const hours = Math.floor(minutes / 60);
   const days = Math.floor(hours / 24);
+  const day_unit = t ? t("common.time_days_short") : "d";
+  const hour_unit = t ? t("common.time_hours_short") : "h";
+  const minute_unit = t ? t("common.time_minutes_short") : "m";
 
   if (days > 0) {
     const remaining_hours = hours % 24;
 
     if (remaining_hours > 0 && days < 7) {
-      return `${days}d ${remaining_hours}h`;
+      return `${days}${day_unit} ${remaining_hours}${hour_unit}`;
     }
 
-    return `${days}d`;
+    return `${days}${day_unit}`;
   }
 
   if (hours > 0) {
     const remaining_minutes = minutes % 60;
 
     if (remaining_minutes > 0 && hours < 12) {
-      return `${hours}h ${remaining_minutes}m`;
+      return `${hours}${hour_unit} ${remaining_minutes}${minute_unit}`;
     }
 
-    return `${hours}h`;
+    return `${hours}${hour_unit}`;
   }
 
-  return `${minutes}m`;
+  return `${minutes}${minute_unit}`;
 }
 
 function get_update_interval(target: Date): number {

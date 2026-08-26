@@ -29,6 +29,8 @@ import { use_i18n } from "@/lib/i18n/context";
 import { use_overlay_layer } from "@/lib/overlay_layer_stack";
 import { use_signatures } from "@/contexts/signatures_context";
 import { use_preferences } from "@/contexts/preferences_context";
+import { strip_html_tags_bounded } from "@/lib/html_text";
+import { truncate_with_ellipsis } from "@/utils/preview_text";
 
 interface SignaturePickerProps {
   on_select: (content: string, is_html: boolean) => void;
@@ -99,7 +101,7 @@ export function SignaturePicker({
                 handle_select(formatted, true);
               }}
             >
-              <div className="flex-1 text-left min-w-0">
+              <div className="flex-1 text-start min-w-0">
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium text-txt-primary truncate">
                     {signature.name}
@@ -120,7 +122,7 @@ export function SignaturePicker({
                   )}
                 </div>
                 <div className="text-xs text-txt-muted truncate">
-                  {signature.content.substring(0, 50)}
+                  {truncate_with_ellipsis(strip_html_tags_bounded(signature.content, 60), 60)}
                 </div>
               </div>
             </button>

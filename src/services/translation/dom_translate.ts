@@ -46,8 +46,7 @@ const EXCLUDED_SELECTOR = [
 
 const MIN_TRANSLATABLE_LENGTH = 2;
 
-const NON_LINGUISTIC =
-  /^[\s\d\p{P}\p{S}]*$/u;
+const NON_LINGUISTIC = /^[\s\d\p{P}\p{S}]*$/u;
 
 const originals = new WeakMap<Text, string>();
 const translations_by_node = new WeakMap<Text, string>();
@@ -214,7 +213,11 @@ function stash_attribute(root: HTMLElement, name: string, stash: string): void {
   root.setAttribute(stash, root.getAttribute(name) ?? "");
 }
 
-function unstash_attribute(root: HTMLElement, name: string, stash: string): void {
+function unstash_attribute(
+  root: HTMLElement,
+  name: string,
+  stash: string,
+): void {
   if (!root.hasAttribute(stash)) return;
 
   const previous = root.getAttribute(stash) ?? "";

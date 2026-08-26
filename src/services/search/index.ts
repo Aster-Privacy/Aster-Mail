@@ -19,16 +19,18 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
-const RELATIVE_DIVISIONS: { amount: number; unit: Intl.RelativeTimeFormatUnit }[] =
-  [
-    { amount: 60, unit: "second" },
-    { amount: 60, unit: "minute" },
-    { amount: 24, unit: "hour" },
-    { amount: 7, unit: "day" },
-    { amount: 4.34524, unit: "week" },
-    { amount: 12, unit: "month" },
-    { amount: Number.POSITIVE_INFINITY, unit: "year" },
-  ];
+const RELATIVE_DIVISIONS: {
+  amount: number;
+  unit: Intl.RelativeTimeFormatUnit;
+}[] = [
+  { amount: 60, unit: "second" },
+  { amount: 60, unit: "minute" },
+  { amount: 24, unit: "hour" },
+  { amount: 7, unit: "day" },
+  { amount: 4.34524, unit: "week" },
+  { amount: 12, unit: "month" },
+  { amount: Number.POSITIVE_INFINITY, unit: "year" },
+];
 
 export function format_history_timestamp(timestamp: number): string {
   if (!timestamp || Number.isNaN(timestamp)) return "";

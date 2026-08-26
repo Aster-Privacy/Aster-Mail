@@ -37,7 +37,9 @@ self.addEventListener("activate", (event: ExtendableEvent) => {
         if (typeof caches !== "undefined") {
           const keys = await caches.keys();
 
-          await Promise.all(keys.map((k) => caches.delete(k).catch(() => false)));
+          await Promise.all(
+            keys.map((k) => caches.delete(k).catch(() => false)),
+          );
         }
       } catch (caught) {
         ignore_error("sw", caught);
@@ -68,6 +70,7 @@ self.addEventListener("message", (event: ExtendableMessageEvent) => {
         try {
           if (typeof caches !== "undefined") {
             const keys = await caches.keys();
+
             await Promise.all(
               keys.map((k) => caches.delete(k).catch(() => false)),
             );
@@ -115,15 +118,36 @@ function sanitize_notification_path(input: unknown): string {
   return "/";
 }
 
+const PUSH_STRINGS_CACHE = "aster_push_strings";
+const PUSH_STRINGS_URL = "/__aster_push_strings";
+const PUSH_FALLBACK_BODY = "You have a new message";
+
+async function push_notification_body(): Promise<string> {
+  try {
+    const cache = await caches.open(PUSH_STRINGS_CACHE);
+    const stored = await cache.match(PUSH_STRINGS_URL);
+
+    if (!stored) return PUSH_FALLBACK_BODY;
+    const parsed = (await stored.json()) as { new_message?: unknown };
+
+    return typeof parsed.new_message === "string" && parsed.new_message
+      ? parsed.new_message
+      : PUSH_FALLBACK_BODY;
+  } catch {
+    return PUSH_FALLBACK_BODY;
+  }
+}
+
 self.addEventListener("push", (event: PushEvent) => {
   if (!event.data) return;
 
-  let data: { type?: string; title?: string; body?: string; url?: unknown } = {};
+  let data: { type?: string; title?: string; body?: string; url?: unknown } =
+    {};
 
   try {
     data = event.data.json();
   } catch {
-    data = { title: "AsterMail", body: event.data.text() };
+    data = { title: "Aster Mail", body: event.data.text() };
   }
 
   event.waitUntil(
@@ -141,14 +165,14 @@ self.addEventListener("push", (event: PushEvent) => {
 
       const safe_url = sanitize_notification_path(data.url);
       const options: NotificationOptions = {
-        body: "You have a new message",
+        body: await push_notification_body(),
         icon: "/pwa-192x192.png",
         badge: "/favicon-32x32.png",
         tag: data.type || "default",
         data: { url: safe_url },
       };
 
-      await self.registration.showNotification("AsterMail", options);
+      await self.registration.showNotification("Aster Mail", options);
     })(),
   );
 });

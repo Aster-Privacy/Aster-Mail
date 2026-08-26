@@ -71,15 +71,21 @@ export function MailManagementSection() {
       <SettingsTabBar
         active={active_tab}
         layout_id="mail-management"
+        on_change={handle_tab_change}
         tabs={[
-          { key: "external_accounts", label: t("settings.external_accounts_tab") },
+          {
+            key: "external_accounts",
+            label: t("settings.external_accounts_tab"),
+          },
           { key: "blocked", label: t("settings.blocked_tab") },
           { key: "allowlist", label: t("settings.allowlist_tab") },
           { key: "auto_forward", label: t("settings.auto_forward_tab_label") },
-          { key: "vacation_reply", label: t("settings.vacation_reply_tab_label") },
+          {
+            key: "vacation_reply",
+            label: t("settings.vacation_reply_tab_label"),
+          },
           { key: "export", label: t("settings.export_title") },
         ]}
-        on_change={handle_tab_change}
       />
 
       {render_tab("external_accounts", <ExternalAccountsSection />)}

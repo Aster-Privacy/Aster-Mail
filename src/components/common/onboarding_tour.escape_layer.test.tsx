@@ -65,10 +65,7 @@ vi.mock("@/provider", () => ({
 }));
 
 vi.mock("@aster/ui", () => ({
-  Button: ({
-    children,
-    ...props
-  }: ButtonHTMLAttributes<HTMLButtonElement>) => (
+  Button: ({ children, ...props }: ButtonHTMLAttributes<HTMLButtonElement>) => (
     <button {...props}>{children}</button>
   ),
 }));

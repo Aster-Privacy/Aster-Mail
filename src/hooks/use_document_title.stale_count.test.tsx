@@ -61,7 +61,6 @@ vi.useFakeTimers();
 const { use_document_title } = await import("./use_document_title");
 
 declare global {
-  // eslint-disable-next-line no-var
   var IS_REACT_ACT_ENVIRONMENT: boolean;
 }
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;

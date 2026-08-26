@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { Attachment } from "@/components/compose/compose_shared";
+
 import { array_to_base64 } from "./crypto/base64";
 import { is_internal_email } from "./api/keys";
 import { sign_detached } from "./crypto/key_manager";
@@ -119,11 +120,7 @@ export function should_attach_signed_mime(params: {
 export async function build_signed_mime_payload(
   params: SignedMimeParams,
 ): Promise<SignedMimePayload | undefined> {
-  const all_recipients = [
-    ...params.to,
-    ...params.cc,
-    ...(params.bcc ?? []),
-  ];
+  const all_recipients = [...params.to, ...params.cc, ...(params.bcc ?? [])];
 
   if (!has_external_recipient(all_recipients)) return undefined;
 
@@ -132,7 +129,9 @@ export async function build_signed_mime_payload(
 
   if (!vault?.identity_key || !passphrase) {
     report_signing_skipped(
-      vault?.identity_key ? "vault_passphrase_unavailable" : "vault_identity_key_unavailable",
+      vault?.identity_key
+        ? "vault_passphrase_unavailable"
+        : "vault_identity_key_unavailable",
     );
 
     return undefined;

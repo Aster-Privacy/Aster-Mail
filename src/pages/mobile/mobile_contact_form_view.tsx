@@ -139,12 +139,10 @@ export function ContactFormView({
           type="button"
           onClick={on_back}
         >
-          <ChevronLeftIcon className="h-5 w-5" />
+          <ChevronLeftIcon className="h-5 w-5 rtl:-scale-x-100" />
         </button>
         <span className="flex-1 text-[16px] font-semibold text-[var(--text-primary)]">
-          {contact
-            ? t("common.edit")
-            : t("common.add_contact")}
+          {contact ? t("common.edit") : t("common.add_contact")}
         </span>
         <button
           className="rounded-[12px] px-4 py-1.5 text-[14px] font-semibold text-white disabled:opacity-40"
@@ -160,7 +158,7 @@ export function ContactFormView({
         >
           <span className="inline-flex items-center">
             {t("common.save")}
-            {is_saving && <Spinner className="ml-2" size="xs" />}
+            {is_saving && <Spinner className="ms-2" size="xs" />}
           </span>
         </button>
       </div>
@@ -181,9 +179,7 @@ export function ContactFormView({
             {[form_data.first_name, form_data.last_name]
               .filter(Boolean)
               .join(" ") ||
-              (contact
-                ? t("common.edit")
-                : t("common.add_contact"))}
+              (contact ? t("common.edit") : t("common.add_contact"))}
           </p>
           {form_data.emails[0] && (
             <p className="truncate text-[13px] text-[var(--text-muted)]">

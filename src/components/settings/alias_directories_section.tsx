@@ -43,6 +43,9 @@ import { list_domains } from "@/services/api/domains";
 import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
 import { RecentlyDeletedDirectoriesSection } from "@/components/settings/aliases/recently_deleted_directories_section";
 import { show_toast } from "@/components/toast/simple_toast";
+import { ConfirmationModal } from "@/components/modals/confirmation_modal";
+import { ignore_error } from "@/lib/ignore_error";
+import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { LockedFeature } from "@/components/settings/aliases/feature_lock";
@@ -52,6 +55,8 @@ import {
   type TurnstileWidgetRef,
   TURNSTILE_SITE_KEY,
 } from "@/components/auth/turnstile_widget";
+import { is_composing } from "@/utils/ime";
+import { apply_input_transform } from "@/utils/input_transform";
 
 const INPUT_CLASS =
   "flex-1 min-w-[180px] h-10 px-3 rounded-lg bg-transparent border border-edge-secondary text-sm text-txt-primary placeholder:text-txt-muted outline-none";
@@ -64,10 +69,10 @@ export function AliasDirectoriesSection() {
     [],
   );
   const [loading, set_loading] = useState(true);
+  const [load_error, set_load_error] = useState(false);
   const [directory_key, set_directory_key] = useState("");
   const [domain, set_domain] = useState<string>(DIRECTORY_DOMAINS[0]);
   const [custom_domains, set_custom_domains] = useState<string[]>([]);
-  const [separator, set_separator] = useState<"." | "/" | "+" | "#">(".");
   const [busy, set_busy] = useState(false);
   const [checking_availability, set_checking_availability] = useState(false);
   const [is_available, set_is_available] = useState<boolean | null>(null);
@@ -76,11 +81,15 @@ export function AliasDirectoriesSection() {
   );
   const [captcha_token, set_captcha_token] = useState<string | null>(null);
   const [trash_refresh, set_trash_refresh] = useState(0);
+  const [confirm_delete_id, set_confirm_delete_id] = useState<string | null>(
+    null,
+  );
   const turnstile_ref = useRef<TurnstileWidgetRef>(null);
   const turnstile_required = !!TURNSTILE_SITE_KEY;
 
   const load = useCallback(async () => {
     set_loading(true);
+    set_load_error(false);
     try {
       const response = await list_alias_directories();
 
@@ -92,8 +101,11 @@ export function AliasDirectoriesSection() {
         );
 
         set_directories(decrypted);
+      } else {
+        set_load_error(true);
       }
     } catch {
+      set_load_error(true);
       set_directories([]);
     } finally {
       set_loading(false);
@@ -167,7 +179,9 @@ export function AliasDirectoriesSection() {
   }, [directory_key, domain]);
 
   const handle_create = async () => {
-    if (locked || !directory_key.trim()) return;
+    if (locked || busy || !directory_key.trim() || is_available === false) {
+      return;
+    }
     if (turnstile_required && !captcha_token) return;
     set_busy(true);
     try {
@@ -183,13 +197,24 @@ export function AliasDirectoriesSection() {
       turnstile_ref.current?.reset();
 
       if (response.error) {
-        show_toast(t("settings.alias_directory_create_failed"), "error");
+        show_toast(
+          response.error || t("settings.alias_directory_create_failed"),
+          "error",
+        );
       } else {
         set_directory_key("");
         set_is_available(null);
         show_toast(t("settings.alias_directory_created"), "success");
         await load();
       }
+    } catch (caught) {
+      set_captcha_token(null);
+      turnstile_ref.current?.reset();
+      ignore_error(
+        "components/settings/alias_directories_section:handle_create",
+        caught,
+      );
+      show_toast(t("settings.alias_directory_create_failed"), "error");
     } finally {
       set_busy(false);
     }
@@ -271,10 +296,14 @@ export function AliasDirectoriesSection() {
                 value={directory_key}
                 onChange={(e) =>
                   set_directory_key(
-                    e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""),
+                    apply_input_transform(e.target, (v) =>
+                      v.toLowerCase().replace(/[^a-z0-9-]/g, ""),
+                    ),
                   )
                 }
-                onKeyDown={(e) => e["key"] === "Enter" && handle_create()}
+                onKeyDown={(e) =>
+                  e["key"] === "Enter" && !is_composing(e) && handle_create()
+                }
               />
               <Select value={domain} onValueChange={set_domain}>
                 <SelectTrigger className="h-10 w-44 shrink-0 bg-transparent">
@@ -286,20 +315,6 @@ export function AliasDirectoriesSection() {
                       @{d}
                     </SelectItem>
                   ))}
-                </SelectContent>
-              </Select>
-              <Select
-                value={separator}
-                onValueChange={(v) => set_separator(v as "." | "/" | "+" | "#")}
-              >
-                <SelectTrigger className="h-10 w-28 shrink-0 bg-transparent">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value=".">. (dot)</SelectItem>
-                  <SelectItem value="/">/ (slash)</SelectItem>
-                  <SelectItem value="+">+ (plus)</SelectItem>
-                  <SelectItem value="#"># (hash)</SelectItem>
                 </SelectContent>
               </Select>
               <Button
@@ -318,27 +333,31 @@ export function AliasDirectoriesSection() {
               </Button>
             </div>
             {directory_key.trim() && (
-              <p className="text-xs text-txt-muted pl-5">
-                anything{separator}
-                {directory_key}@{domain}
-              </p>
+              <>
+                <p className="text-xs text-txt-muted ps-5">
+                  anything.{directory_key}@{domain}
+                </p>
+                <p className="text-xs text-txt-muted ps-5">
+                  {t("settings.alias_directory_separator_hint")}
+                </p>
+              </>
             )}
             {directory_key.trim() && checking_availability && (
-              <p className="text-xs text-txt-muted pl-5">
+              <p className="text-xs text-txt-muted ps-5">
                 {t("settings.checking_availability")}
               </p>
             )}
             {directory_key.trim() &&
               !checking_availability &&
               is_available === true && (
-                <p className="text-xs text-green-500 pl-5">
+                <p className="text-xs text-green-500 ps-5">
                   {t("settings.alias_directory_available")}
                 </p>
               )}
             {directory_key.trim() &&
               !checking_availability &&
               is_available === false && (
-                <p className="text-xs text-red-500 pl-5">
+                <p className="text-xs text-red-500 ps-5">
                   {t("settings.alias_directory_not_available")}
                 </p>
               )}
@@ -351,7 +370,9 @@ export function AliasDirectoriesSection() {
             )}
           </div>
 
-          {directories.length === 0 ? (
+          {load_error ? (
+            <LoadFailedNotice on_retry={() => load()} />
+          ) : directories.length === 0 ? (
             <div className="text-center py-8 rounded-xl bg-surf-secondary border border-dashed border-edge-secondary">
               <FolderIcon className="w-6 h-6 mx-auto mb-2 text-txt-muted" />
               <p className="text-sm text-txt-muted">
@@ -380,19 +401,20 @@ export function AliasDirectoriesSection() {
                     </p>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    <label className="flex items-center gap-1.5 text-xs text-txt-muted">
+                    <span className="flex items-center gap-1.5 text-xs text-txt-muted">
                       {t("settings.alias_directory_auto_create")}
                       <Switch
+                        aria-label={t("settings.alias_directory_auto_create")}
                         checked={directory.auto_create_enabled}
                         size="lg"
                         onCheckedChange={() => handle_toggle(directory)}
                       />
-                    </label>
+                    </span>
                     <Button
                       className="h-8 w-8 text-red-500 hover:text-red-500 hover:bg-red-500/10"
                       size="icon"
                       variant="ghost"
-                      onClick={() => handle_delete(directory.id)}
+                      onClick={() => set_confirm_delete_id(directory.id)}
                     >
                       <TrashIcon className="w-4 h-4" />
                     </Button>
@@ -405,6 +427,22 @@ export function AliasDirectoriesSection() {
           <RecentlyDeletedDirectoriesSection
             on_restored={load}
             refresh_signal={trash_refresh}
+          />
+
+          <ConfirmationModal
+            confirm_text={t("common.delete")}
+            is_open={confirm_delete_id !== null}
+            message={t("common.action_cannot_be_undone")}
+            title={t("common.are_you_sure")}
+            variant="danger"
+            on_cancel={() => set_confirm_delete_id(null)}
+            on_confirm={() => {
+              const target = confirm_delete_id;
+
+              set_confirm_delete_id(null);
+
+              if (target) void handle_delete(target);
+            }}
           />
         </div>
       </LockedFeature>

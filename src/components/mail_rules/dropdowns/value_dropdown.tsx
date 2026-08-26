@@ -33,6 +33,8 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown_menu";
 import { Input } from "@/components/ui/input";
+
+const MAX_CONDITION_VALUE_LENGTH = 4000;
 import { use_i18n } from "@/lib/i18n/context";
 import { cn } from "@/lib/utils";
 import { field_kind } from "@/components/mail_rules/field_kind";
@@ -41,6 +43,7 @@ import {
   type AuthResultValue,
   type ConditionField,
 } from "@/services/api/mail_rules";
+import { is_composing } from "@/utils/ime";
 
 export type SizeUnit = "B" | "KB" | "MB" | "GB";
 
@@ -64,6 +67,7 @@ export function pick_unit_for_bytes(bytes: number): {
   if (bytes >= UNIT_MULTIPLIER.KB && bytes % UNIT_MULTIPLIER.KB === 0) {
     return { unit: "KB", display: bytes / UNIT_MULTIPLIER.KB };
   }
+
   return { unit: "B", display: bytes };
 }
 
@@ -80,6 +84,17 @@ function clamp_to_safe_int(value: number): number {
   if (value <= 0) return 0;
 
   return Math.min(Math.floor(value), Number.MAX_SAFE_INTEGER);
+}
+
+const SPAM_SCORE_BOUND = 1000;
+
+function clamp_to_score(value: number): number {
+  const bounded = Math.max(
+    -SPAM_SCORE_BOUND,
+    Math.min(SPAM_SCORE_BOUND, value),
+  );
+
+  return Math.round(bounded * 10) / 10;
 }
 
 const AUTH_OPTIONS: AuthResultValue[] = ["pass", "fail", "none", "missing"];
@@ -127,18 +142,18 @@ export function ValueDropdown(props: ValueDropdownProps) {
         <DropdownMenuTrigger asChild>{trigger}</DropdownMenuTrigger>
         <DropdownMenuContent
           align="start"
-          sideOffset={6}
           className="z-[200] w-32"
+          sideOffset={6}
         >
           <DropdownMenuItem
-            onSelect={() => on_commit(true)}
             className="text-[12.5px]"
+            onSelect={() => on_commit(true)}
           >
             {t("mail_rules.op_yes")}
           </DropdownMenuItem>
           <DropdownMenuItem
-            onSelect={() => on_commit(false)}
             className="text-[12.5px]"
+            onSelect={() => on_commit(false)}
           >
             {t("mail_rules.op_no")}
           </DropdownMenuItem>
@@ -157,19 +172,20 @@ export function ValueDropdown(props: ValueDropdownProps) {
     };
 
     void auth_value;
+
     return (
       <DropdownMenu open={open} onOpenChange={on_open_change}>
         <DropdownMenuTrigger asChild>{trigger}</DropdownMenuTrigger>
         <DropdownMenuContent
           align="start"
-          sideOffset={6}
           className="z-[200] w-40"
+          sideOffset={6}
         >
           {AUTH_OPTIONS.map((v) => (
             <DropdownMenuItem
               key={v}
-              onSelect={() => on_commit(v)}
               className="text-[12.5px]"
+              onSelect={() => on_commit(v)}
             >
               {auth_label_map[v]}
             </DropdownMenuItem>
@@ -184,11 +200,19 @@ export function ValueDropdown(props: ValueDropdownProps) {
       <PopoverTrigger asChild>{trigger}</PopoverTrigger>
       <PopoverContent
         align="start"
+        className="z-[200] p-2 bg-[var(--dropdown-bg)] border border-[var(--border-secondary)] rounded-md shadow-md"
         sideOffset={6}
+        onCloseAutoFocus={(e) => e.preventDefault()}
+        onFocusOutside={(e) => {
+          if (should_ignore_outside?.()) e.preventDefault();
+        }}
+        onInteractOutside={(e) => {
+          if (should_ignore_outside?.()) e.preventDefault();
+        }}
         onOpenAutoFocus={(e) => {
           const root = e.currentTarget as HTMLElement | null;
           const input = root?.querySelector<HTMLInputElement>(
-            "input:not([type=\"hidden\"])",
+            'input:not([type="hidden"])',
           );
 
           if (input) {
@@ -203,33 +227,29 @@ export function ValueDropdown(props: ValueDropdownProps) {
             });
           }
         }}
-        onCloseAutoFocus={(e) => e.preventDefault()}
-        onInteractOutside={(e) => {
-          if (should_ignore_outside?.()) e.preventDefault();
-        }}
         onPointerDownOutside={(e) => {
           if (should_ignore_outside?.()) e.preventDefault();
         }}
-        onFocusOutside={(e) => {
-          if (should_ignore_outside?.()) e.preventDefault();
-        }}
-        className="z-[200] p-2 bg-[var(--dropdown-bg)] border border-[var(--border-secondary)] rounded-md shadow-md"
       >
         {kind === "numeric_size" && (
           <NumericSizeInput
-            value={Number(value) || 0}
-            unit={size_unit ?? "MB"}
             on_commit={on_commit}
             on_commit_unit={on_commit_size_unit}
+            unit={size_unit ?? "MB"}
+            value={Number(value) || 0}
           />
         )}
 
         {kind === "numeric_plain" && (
-          <NumericInput value={Number(value) || 0} on_commit={on_commit} />
+          <NumericInput
+            allow_score={field === "spam_score"}
+            on_commit={on_commit}
+            value={Number(value) || 0}
+          />
         )}
 
         {kind === "date" && (
-          <DateDaysInput value={Number(value) || 0} on_commit={on_commit} />
+          <DateDaysInput on_commit={on_commit} value={Number(value) || 0} />
         )}
 
         {(kind === "address" ||
@@ -239,17 +259,18 @@ export function ValueDropdown(props: ValueDropdownProps) {
           <div className="space-y-2 w-64">
             {kind === "header" && (
               <Input
-                size="sm"
+                maxLength={MAX_CONDITION_VALUE_LENGTH}
                 placeholder={t("mail_rules.header_name_placeholder")}
+                size="sm"
                 value={header_name ?? ""}
                 onChange={(e) => on_commit_header_name?.(e.target.value)}
               />
             )}
             <TextValueInput
-              value={typeof value === "string" ? value : ""}
               is_regex={operator === "matches_regex"}
               on_commit={on_commit}
               on_request_close={() => on_open_change(false)}
+              value={typeof value === "string" ? value : ""}
             />
             {(kind === "address" ||
               kind === "text" ||
@@ -263,10 +284,9 @@ export function ValueDropdown(props: ValueDropdownProps) {
                   {t("mail_rules.match_case")}
                 </span>
                 <Switch
+                  aria-label={t("mail_rules.match_case")}
                   checked={!!case_sensitive}
-                  onCheckedChange={(next) =>
-                    on_toggle_case_sensitive?.(next)
-                  }
+                  onCheckedChange={(next) => on_toggle_case_sensitive?.(next)}
                 />
               </div>
             )}
@@ -280,9 +300,11 @@ export function ValueDropdown(props: ValueDropdownProps) {
 function NumericInput({
   value,
   on_commit,
+  allow_score = false,
 }: {
   value: number;
   on_commit: (v: number) => void;
+  allow_score?: boolean;
 }) {
   const [draft, set_draft] = React.useState(String(value));
 
@@ -298,7 +320,9 @@ function NumericInput({
 
       return;
     }
-    const next = clamp_to_safe_int(parsed);
+    const next = allow_score
+      ? clamp_to_score(parsed)
+      : clamp_to_safe_int(parsed);
 
     set_draft(String(next));
     if (next !== value) on_commit(next);
@@ -307,19 +331,20 @@ function NumericInput({
   return (
     <Input
       autoFocus
+      className="w-32"
+      min={allow_score ? -SPAM_SCORE_BOUND : 0}
       size="sm"
+      step={allow_score ? 0.1 : 1}
       type="number"
-      min={0}
       value={draft}
-      onChange={(e) => set_draft(e.target.value)}
       onBlur={commit}
+      onChange={(e) => set_draft(e.target.value)}
       onKeyDown={(e) => {
         if (e.key === "Enter") {
           e.preventDefault();
           commit();
         }
       }}
-      className="w-32"
     />
   );
 }
@@ -374,28 +399,28 @@ function NumericSizeInput({
     <div className="flex items-center gap-1.5">
       <Input
         autoFocus
+        className="w-24"
         size="sm"
         type="number"
         value={draft}
-        onChange={(e) => set_draft(e.target.value)}
         onBlur={() => commit(active_unit, draft)}
+        onChange={(e) => set_draft(e.target.value)}
         onKeyDown={(e) => {
           if (e.key === "Enter") {
             e.preventDefault();
             commit(active_unit, draft);
           }
         }}
-        className="w-24"
       />
       <UnitDropdown
-        unit={active_unit}
-        unit_label={unit_label}
         on_pick={(next) => {
           if (next === active_unit) return;
           set_active_unit(next);
           on_commit_unit?.(next);
           commit(next, draft);
         }}
+        unit={active_unit}
+        unit_label={unit_label}
       />
     </div>
   );
@@ -416,8 +441,8 @@ function UnitDropdown({
     <DropdownMenu open={open} onOpenChange={set_open}>
       <DropdownMenuTrigger asChild>
         <button
-          type="button"
           className="inline-flex items-center justify-between gap-1.5 h-8 min-w-[60px] rounded-[12px] border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-[12.5px] px-2 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+          type="button"
         >
           <span>{unit_label[unit]}</span>
           <span className="text-neutral-400">▾</span>
@@ -425,17 +450,17 @@ function UnitDropdown({
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="start"
-        sideOffset={6}
         className="z-[200] w-32"
+        sideOffset={6}
       >
         {(Object.keys(UNIT_MULTIPLIER) as SizeUnit[]).map((u) => (
           <DropdownMenuItem
             key={u}
+            className="text-[12.5px]"
             onSelect={() => {
               on_pick(u);
               set_open(false);
             }}
-            className="text-[12.5px]"
           >
             {unit_label[u]}
           </DropdownMenuItem>
@@ -477,19 +502,19 @@ function DateDaysInput({
     <div className="flex items-center gap-1.5">
       <Input
         autoFocus
+        className="w-24"
+        min={0}
         size="sm"
         type="number"
-        min={0}
         value={draft}
-        onChange={(e) => set_draft(e.target.value)}
         onBlur={commit}
+        onChange={(e) => set_draft(e.target.value)}
         onKeyDown={(e) => {
           if (e.key === "Enter") {
             e.preventDefault();
             commit();
           }
         }}
-        className="w-24"
       />
       <span className="text-[12.5px] text-neutral-500">
         {t("mail_rules.value_unit_days")}
@@ -512,36 +537,38 @@ function TextValueInput({
   const { t } = use_i18n();
   const input_ref = React.useRef<HTMLInputElement | null>(null);
 
-
   const regex_error = is_regex ? validate_regex_pattern(value) : null;
 
   return (
     <div>
       <Input
         ref={input_ref}
-        size="sm"
-        value={value}
-        placeholder={t("mail_rules.value_placeholder")}
-        onChange={(e) => on_commit(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" && !regex_error) {
-            e.preventDefault();
-            on_request_close?.();
-          }
-        }}
         className={cn(
           regex_error &&
             "border-rose-400 focus-visible:ring-rose-400 focus-visible:border-rose-400",
         )}
+        maxLength={MAX_CONDITION_VALUE_LENGTH}
+        placeholder={t("mail_rules.value_placeholder")}
+        size="sm"
+        value={value}
+        onChange={(e) => on_commit(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && !regex_error && !is_composing(e)) {
+            e.preventDefault();
+            on_request_close?.();
+          }
+        }}
       />
       {regex_error && (
         <div className="text-[11px] text-rose-500 mt-1">
-          {t(`mail_rules.${regex_error}` as
-            | "mail_rules.regex_invalid"
-            | "mail_rules.regex_empty"
-            | "mail_rules.regex_too_long"
-            | "mail_rules.regex_backreference"
-            | "mail_rules.regex_lookaround")}
+          {t(
+            `mail_rules.${regex_error}` as
+              | "mail_rules.regex_invalid"
+              | "mail_rules.regex_empty"
+              | "mail_rules.regex_too_long"
+              | "mail_rules.regex_backreference"
+              | "mail_rules.regex_lookaround",
+          )}
         </div>
       )}
     </div>

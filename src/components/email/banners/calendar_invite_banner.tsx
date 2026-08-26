@@ -36,6 +36,11 @@ import { use_auth } from "@/contexts/auth/use_auth_hook";
 import { find_invite_in_email } from "@/services/calendar/ics_parser";
 import { create_event } from "@/services/api/calendar";
 import { show_action_toast } from "@/components/toast/action_toast";
+import {
+  app_hour12,
+  get_display_time_zone,
+  local_date_key,
+} from "@/utils/date_format";
 
 interface CalendarInviteBannerProps {
   body?: string;
@@ -50,9 +55,10 @@ function format_invite_when(invite: ParsedInvite, locale: string): string {
   const ends = new Date(invite.ends_at);
 
   const date_options: Intl.DateTimeFormatOptions = {
-    weekday: "short",
-    month: "short",
     day: "numeric",
+    month: "short",
+    timeZone: get_display_time_zone(),
+    weekday: "short",
   };
 
   if (invite.is_all_day) {
@@ -61,10 +67,12 @@ function format_invite_when(invite: ParsedInvite, locale: string): string {
 
   const time_options: Intl.DateTimeFormatOptions = {
     hour: "numeric",
+    hour12: app_hour12(),
     minute: "2-digit",
+    timeZone: get_display_time_zone(),
   };
 
-  const same_day = starts.toDateString() === ends.toDateString();
+  const same_day = local_date_key(starts) === local_date_key(ends);
   const start_date = starts.toLocaleDateString(locale, date_options);
   const start_time = starts.toLocaleTimeString(locale, time_options);
   const end_time = ends.toLocaleTimeString(locale, time_options);
@@ -74,6 +82,7 @@ function format_invite_when(invite: ParsedInvite, locale: string): string {
   }
 
   const end_date = ends.toLocaleDateString(locale, date_options);
+
   return `${start_date} ${start_time} - ${end_date} ${end_time}`;
 }
 
@@ -190,8 +199,8 @@ export function CalendarInviteBanner({
           <div className="flex items-center gap-2">
             <button
               className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-[12px] bg-brand text-[var(--accent-fg,#ffffff)] transition-opacity disabled:opacity-60"
-              type="button"
               disabled={is_busy}
+              type="button"
               onClick={() => handle_respond("accepted")}
             >
               <CheckCircleIcon className="w-4 h-4" />
@@ -199,8 +208,8 @@ export function CalendarInviteBanner({
             </button>
             <button
               className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-[12px] border border-edge-primary text-txt-secondary transition-colors hover:bg-black/[0.04] dark:hover:bg-white/[0.04] disabled:opacity-60"
-              type="button"
               disabled={is_busy}
+              type="button"
               onClick={() => handle_respond("tentative")}
             >
               <QuestionMarkCircleIcon className="w-4 h-4" />
@@ -208,8 +217,8 @@ export function CalendarInviteBanner({
             </button>
             <button
               className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-[12px] border border-edge-primary text-txt-secondary transition-colors hover:bg-black/[0.04] dark:hover:bg-white/[0.04] disabled:opacity-60"
-              type="button"
               disabled={is_busy}
+              type="button"
               onClick={() => handle_respond("declined")}
             >
               <XCircleIcon className="w-4 h-4" />

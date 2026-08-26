@@ -89,8 +89,12 @@ function MobileMailDetail() {
     handle_toggle_star,
     handle_toggle_pin,
     is_archived,
+    is_trashed,
     handle_archive,
     handle_delete,
+    show_delete_confirm,
+    set_show_delete_confirm,
+    confirm_permanent_delete,
     handle_spam,
     handle_not_spam,
     handle_print,
@@ -212,9 +216,9 @@ function MobileMailDetail() {
         onTouchMove={handle_touch_move}
         onTouchStart={handle_touch_start}
       >
-        <div className="px-4 pt-2 pb-1">
+        <div dir="auto" className="px-4 pt-2 pb-1">
           <button
-            className={`text-[18px] font-semibold leading-snug text-[var(--text-primary)] text-left w-full ${subject_expanded ? "" : "truncate"}`}
+            className={`text-[18px] font-semibold leading-snug text-[var(--text-primary)] text-start w-full ${subject_expanded ? "" : "truncate"}`}
             type="button"
             onClick={() => set_subject_expanded((prev) => !prev)}
           >
@@ -280,6 +284,8 @@ function MobileMailDetail() {
       <MobileToolbar
         actions={preferences.mobile_toolbar_actions}
         is_archived={is_archived}
+        is_read={email.is_read}
+        is_trashed={is_trashed}
         is_starred={starred}
         on_archive={handle_archive}
         on_delete={handle_delete}
@@ -299,7 +305,15 @@ function MobileMailDetail() {
 
           if (msg) detail.handle_per_message_print(msg);
         }}
-        on_spam={() => request_spam(handle_spam)}
+        is_spam={!!detail.mail_item?.is_spam}
+        on_spam={() => {
+          if (detail.mail_item?.is_spam) {
+            handle_not_spam();
+
+            return;
+          }
+          request_spam(handle_spam);
+        }}
         on_star={handle_toggle_star}
       />
 
@@ -417,6 +431,16 @@ function MobileMailDetail() {
         }}
         on_confirm={handle_block_sender}
         title={detail.t("mail.block_sender")}
+        variant="danger"
+      />
+      <ConfirmationModal
+        cancel_text={detail.t("common.cancel")}
+        confirm_text={detail.t("mail.delete_permanently")}
+        is_open={show_delete_confirm}
+        message={detail.t("mail.delete_email_confirmation")}
+        on_cancel={() => set_show_delete_confirm(false)}
+        on_confirm={confirm_permanent_delete}
+        title={detail.t("mail.delete_permanently_question")}
         variant="danger"
       />
       {spam_confirm_dialog}

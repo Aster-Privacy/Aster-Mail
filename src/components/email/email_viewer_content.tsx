@@ -21,11 +21,13 @@
 import type { Email } from "@/types/email";
 import type { ExternalContentReport } from "@/lib/html_sanitizer";
 import type { PreloadedSanitizedContent } from "@/components/email/hooks/preload_cache";
-
-import { pop_preloaded_cid } from "@/components/email/hooks/preload_cache";
+import type { PhishingLevel } from "@/lib/phishing_analyzer";
 
 import { useMemo, useState, useCallback, useEffect, useRef } from "react";
+import { should_retry_cid, cid_retry_delay_ms } from "@/lib/cid_retry";
+import { resolve_content_blocking } from "@/components/email/resolve_content_blocking";
 
+import { pop_preloaded_cid } from "@/components/email/hooks/preload_cache";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { Separator } from "@/components/ui/separator";
 import { UnsubscribeBanner } from "@/components/email/unsubscribe_banner";
@@ -49,10 +51,12 @@ import { SandboxedEmailRenderer } from "@/components/email/sandboxed_email_rende
 import { TranslationBanner } from "@/components/email/banners/translation_banner";
 import { use_email_translation } from "@/components/email/hooks/use_email_translation";
 import { analyze_email_content } from "@/lib/phishing_analyzer";
-import type { PhishingLevel } from "@/lib/phishing_analyzer";
 import { is_system_email } from "@/lib/utils";
 import { get_image_proxy_url } from "@/lib/image_proxy";
-import { is_lockdown_enabled, LOCKDOWN_CHANGED_EVENT } from "@/services/lockdown_store";
+import {
+  is_lockdown_enabled,
+  LOCKDOWN_CHANGED_EVENT,
+} from "@/services/lockdown_store";
 import { use_auth_safe } from "@/contexts/auth_context";
 import {
   RATCHET_UNDECRYPTABLE_SENTINEL,
@@ -65,7 +69,6 @@ import { EmailTag } from "@/components/ui/email_tag";
 import { use_latched_by_id } from "@/hooks/use_latched_by_id";
 import { use_attachment_keys_version } from "@/hooks/use_attachment_keys_version";
 import { ignore_error } from "@/lib/ignore_error";
-
 import {
   extract_cid_references,
   resolve_cid_references,
@@ -91,12 +94,17 @@ export function EmailViewerContent({
   const [force_load_content, set_force_load_content] = useState(false);
   const [banner_dismissed, set_banner_dismissed] = useState(false);
   const account_id = auth?.current_account_id ?? "";
-  const [lockdown_active, set_lockdown_active] = useState(() => is_lockdown_enabled(account_id));
+  const [lockdown_active, set_lockdown_active] = useState(() =>
+    is_lockdown_enabled(account_id),
+  );
 
   useEffect(() => {
-    const update = () => set_lockdown_active(is_lockdown_enabled(auth?.current_account_id ?? ""));
+    const update = () =>
+      set_lockdown_active(is_lockdown_enabled(auth?.current_account_id ?? ""));
+
     window.addEventListener(LOCKDOWN_CHANGED_EVENT, update);
     window.addEventListener("storage", update);
+
     return () => {
       window.removeEventListener(LOCKDOWN_CHANGED_EVENT, update);
       window.removeEventListener("storage", update);
@@ -167,6 +175,7 @@ export function EmailViewerContent({
 
   const plain_text_html = useMemo(() => {
     if (!html_blocked) return null;
+
     return plain_text_to_html(
       html_to_readable_plain_text(raw_content ?? "", { keep_link_urls: true }),
     );
@@ -197,7 +206,12 @@ export function EmailViewerContent({
       };
     }
 
-    if (preloaded_sanitized && effective_content_mode !== "always" && !lockdown_active) {
+    if (
+      preloaded_sanitized &&
+      effective_content_mode !== "always" &&
+      !lockdown_active &&
+      !force_load_content
+    ) {
       return {
         html: preloaded_sanitized.html,
         external_content: preloaded_sanitized.external_content,
@@ -221,19 +235,29 @@ export function EmailViewerContent({
       };
     }
 
+    const resolved_blocking = resolve_content_blocking({
+      lockdown_active,
+      load_remote_content: force_load_content,
+      preferences: {
+        block_remote_images: preferences.block_remote_images,
+        block_remote_fonts: preferences.block_remote_fonts,
+        block_remote_css: preferences.block_remote_css,
+        block_tracking_pixels: preferences.block_tracking_pixels,
+      },
+    });
+
     return sanitize_html(raw_content, {
-      external_content_mode: lockdown_active ? "never" : effective_content_mode,
+      external_content_mode: lockdown_active
+        ? "never"
+        : force_load_content
+          ? "always"
+          : effective_content_mode,
       image_proxy_url: get_image_proxy_url(),
       sandbox_mode: true,
       lockdown_mode: lockdown_active,
       content_blocking:
         !is_system && preferences.block_external_content
-          ? {
-              block_remote_images: preferences.block_remote_images,
-              block_remote_fonts: preferences.block_remote_fonts,
-              block_remote_css: preferences.block_remote_css,
-              block_tracking_pixels: preferences.block_tracking_pixels,
-            }
+          ? resolved_blocking
           : undefined,
     });
   }, [
@@ -242,6 +266,8 @@ export function EmailViewerContent({
     raw_content,
     effective_content_mode,
     lockdown_active,
+    force_load_content,
+    is_system,
     preferences.block_external_content,
     preferences.block_remote_images,
     preferences.block_remote_fonts,
@@ -271,22 +297,36 @@ export function EmailViewerContent({
 
   const cid_blob_urls_ref = useRef<string[]>([]);
   const cid_preload_consumed_ref = useRef(false);
+  const cid_retry_attempt_ref = useRef(0);
+  const retry_timer_ref = useRef<number | null>(null);
+  const [cid_retry, set_cid_retry] = useState(0);
   const attachment_keys_version = use_attachment_keys_version(email.id);
 
-  const [cid_resolved_html, set_cid_resolved_html] = useState<string | null>(() => {
-    if (effective_content_mode === "always") return null;
-    const preloaded = pop_preloaded_cid(email.id);
-    if (preloaded) {
-      cid_blob_urls_ref.current = preloaded.blob_urls;
-      cid_preload_consumed_ref.current = true;
-      return preloaded.html;
-    }
-    return null;
-  });
+  const [cid_resolved_html, set_cid_resolved_html] = useState<string | null>(
+    () => {
+      if (effective_content_mode === "always") return null;
+      const preloaded = pop_preloaded_cid(email.id);
+
+      if (preloaded) {
+        cid_blob_urls_ref.current = preloaded.blob_urls;
+        cid_preload_consumed_ref.current = true;
+
+        return preloaded.html;
+      }
+
+      return null;
+    },
+  );
+
+  useEffect(() => {
+    cid_retry_attempt_ref.current = 0;
+    set_cid_retry(0);
+  }, [email.id]);
 
   useEffect(() => {
     if (cid_preload_consumed_ref.current) {
       cid_preload_consumed_ref.current = false;
+
       return;
     }
 
@@ -298,14 +338,18 @@ export function EmailViewerContent({
       revoke_cid_blob_urls(cid_blob_urls_ref.current);
       cid_blob_urls_ref.current = [];
       set_cid_resolved_html(null);
+
       return;
     }
 
-    const preloaded = effective_content_mode !== "always" ? pop_preloaded_cid(email.id) : null;
+    const preloaded =
+      effective_content_mode !== "always" ? pop_preloaded_cid(email.id) : null;
+
     if (preloaded) {
       revoke_cid_blob_urls(cid_blob_urls_ref.current);
       cid_blob_urls_ref.current = preloaded.blob_urls;
       set_cid_resolved_html(preloaded.html);
+
       return;
     }
 
@@ -313,22 +357,44 @@ export function EmailViewerContent({
       .then((result) => {
         if (cancelled) {
           revoke_cid_blob_urls(result.blob_urls);
+
           return;
         }
         revoke_cid_blob_urls(cid_blob_urls_ref.current);
         cid_blob_urls_ref.current = result.blob_urls;
         set_cid_resolved_html(result.html);
+
+        if (
+          result.records_unavailable &&
+          should_retry_cid(cid_retry_attempt_ref.current)
+        ) {
+          const delay = cid_retry_delay_ms(cid_retry_attempt_ref.current);
+
+          cid_retry_attempt_ref.current += 1;
+          retry_timer_ref.current = window.setTimeout(() => {
+            retry_timer_ref.current = null;
+            set_cid_retry((value) => value + 1);
+          }, delay);
+        }
       })
-      .catch((caught) => ignore_error("components/email/email_viewer_content:update", caught));
+      .catch((caught) =>
+        ignore_error("components/email/email_viewer_content:update", caught),
+      );
 
     return () => {
       cancelled = true;
+
+      if (retry_timer_ref.current !== null) {
+        window.clearTimeout(retry_timer_ref.current);
+        retry_timer_ref.current = null;
+      }
     };
   }, [
     sanitize_result.html,
     email.id,
     preferences.low_network_mode,
     attachment_keys_version,
+    cid_retry,
   ]);
 
   useEffect(() => {
@@ -359,7 +425,9 @@ export function EmailViewerContent({
       .then((result) => {
         if (!cancelled) set_phishing_level(result.level);
       })
-      .catch((caught) => ignore_error("components/email/email_viewer_content:update", caught))
+      .catch((caught) =>
+        ignore_error("components/email/email_viewer_content:update", caught),
+      )
       .finally(() => {
         if (!cancelled) set_phishing_checked(true);
       });
@@ -389,7 +457,9 @@ export function EmailViewerContent({
     email_id: email.id,
     subject: email.subject ?? "",
     translatable:
-      !is_ratchet_undecryptable && phishing_checked && phishing_level === "safe",
+      !is_ratchet_undecryptable &&
+      phishing_checked &&
+      phishing_level === "safe",
   });
 
   const display_subject =
@@ -417,8 +487,8 @@ export function EmailViewerContent({
         />
       )}
       <CalendarInviteBanner
-        className="mx-6 mt-4"
         body={email.body}
+        className="mx-6 mt-4"
         html_content={email.html_content}
       />
       {extraction.has_purchase_details && extraction.purchase && (
@@ -502,9 +572,9 @@ export function EmailViewerContent({
             />
           ) : html_blocked ? (
             <SandboxedEmailRenderer
-              email_id={email.id}
               is_literal_plain_text
               is_plain_text
+              email_id={email.id}
               on_document_ready={translation.on_document_ready}
               sanitized_html={plain_text_html ?? ""}
             />

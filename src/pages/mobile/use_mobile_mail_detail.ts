@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { copy_text_or_throw } from "@/utils/copy_text";
 import type { DecryptedThreadMessage } from "@/types/thread";
 import type { ExternalContentReport } from "@/lib/html_sanitizer";
 
@@ -50,8 +51,7 @@ import {
   LOCKDOWN_CHANGED_EVENT,
 } from "@/services/lockdown_store";
 import { use_auth_safe } from "@/contexts/auth_context";
-
-import { ignore_error } from "@/lib/ignore_error";
+import { app_locale } from "@/utils/date_format";
 
 export function use_mobile_mail_detail() {
   const navigate = useNavigate();
@@ -102,6 +102,7 @@ export function use_mobile_mail_detail() {
     useState(false);
   const [subject_expanded, set_subject_expanded] = useState(false);
   const [show_block_confirm, set_show_block_confirm] = useState(false);
+  const [show_delete_confirm, set_show_delete_confirm] = useState(false);
   const [blocking_sender, set_blocking_sender] = useState(false);
   const [block_target, set_block_target] = useState<{
     email: string;
@@ -128,6 +129,9 @@ export function use_mobile_mail_detail() {
         set_show_block_confirm(false);
         set_blocking_sender(false);
         set_block_target(null);
+      } else if (show_delete_confirm) {
+        e.preventDefault();
+        set_show_delete_confirm(false);
       } else if (show_snooze_sheet) {
         e.preventDefault();
         set_show_snooze_sheet(false);
@@ -153,6 +157,7 @@ export function use_mobile_mail_detail() {
     view_source_message,
     show_toolbar_customizer,
     show_block_confirm,
+    show_delete_confirm,
     show_snooze_sheet,
     details_message,
   ]);
@@ -345,13 +350,16 @@ export function use_mobile_mail_detail() {
       const current = is_starred ?? detail.email.is_starred;
 
       set_is_starred(!current);
-      try {
-        await email_actions.toggle_star(detail.email as never);
-      } catch {
+      const succeeded = await email_actions.toggle_star(
+        detail.email as never,
+      );
+
+      if (!succeeded) {
         set_is_starred(current);
+        show_toast(t("common.failed_to_update"), "error");
       }
     }
-  }, [detail.email, email_actions, is_starred]);
+  }, [detail.email, email_actions, is_starred, t]);
 
   const handle_toggle_pin = useCallback(async () => {
     if (detail.email) {
@@ -360,13 +368,14 @@ export function use_mobile_mail_detail() {
 
       set_is_pinned(!current);
       set_menu_message(null);
-      try {
-        await email_actions.toggle_pin(detail.email as never);
-      } catch {
+      const succeeded = await email_actions.toggle_pin(detail.email as never);
+
+      if (!succeeded) {
         set_is_pinned(current);
+        show_toast(t("common.failed_to_update"), "error");
       }
     }
-  }, [detail.email, email_actions, is_pinned]);
+  }, [detail.email, email_actions, is_pinned, t]);
 
   const action_in_flight = useRef(false);
 
@@ -386,36 +395,85 @@ export function use_mobile_mail_detail() {
     detail.mail_item?.metadata?.is_archived === true ||
     from_view === "archive";
 
+  const is_trashed =
+    detail.mail_item?.is_trashed === true ||
+    detail.mail_item?.metadata?.is_trashed === true ||
+    from_view === "trash";
+
   const handle_archive = useCallback(async () => {
     if (action_in_flight.current || !detail.email) return;
     action_in_flight.current = true;
     haptic_impact("light");
-    if (is_archived) {
-      await email_actions.unarchive_email(detail.email as never);
-    } else {
-      await email_actions.archive_email(detail.email as never);
+    const archived = is_archived
+      ? await email_actions.unarchive_email(detail.email as never)
+      : await email_actions.archive_email(detail.email as never);
+
+    if (!archived) {
+      action_in_flight.current = false;
+      show_toast(t("common.failed_to_archive_emails"), "error");
+
+      return;
     }
+
     remove_email_from_view_cache(detail.email.id);
     advance_after_action();
-  }, [detail.email, email_actions, advance_after_action, is_archived]);
+  }, [detail.email, email_actions, advance_after_action, is_archived, t]);
 
-  const handle_delete = useCallback(async () => {
+  const perform_delete = useCallback(async () => {
     if (action_in_flight.current || !detail.email) return;
     action_in_flight.current = true;
     haptic_impact("light");
-    await email_actions.delete_email(detail.email as never);
+    const deleted = is_trashed
+      ? await email_actions.permanently_delete(detail.email as never)
+      : await email_actions.delete_email(detail.email as never);
+
+    if (!deleted) {
+      action_in_flight.current = false;
+      show_toast(
+        is_trashed
+          ? t("common.failed_to_permanently_delete")
+          : t("common.failed_to_delete_emails"),
+        "error",
+      );
+
+      return;
+    }
+
     remove_email_from_view_cache(detail.email.id);
     advance_after_action();
-  }, [detail.email, email_actions, advance_after_action]);
+  }, [detail.email, email_actions, advance_after_action, is_trashed, t]);
+
+  const handle_delete = useCallback(() => {
+    if (action_in_flight.current || !detail.email) return;
+    if (is_trashed) {
+      set_show_delete_confirm(true);
+
+      return;
+    }
+    void perform_delete();
+  }, [detail.email, is_trashed, perform_delete]);
+
+  const confirm_permanent_delete = useCallback(() => {
+    set_show_delete_confirm(false);
+    void perform_delete();
+  }, [perform_delete]);
 
   const handle_spam = useCallback(async () => {
     if (action_in_flight.current || !detail.email) return;
     action_in_flight.current = true;
     haptic_impact("light");
-    await email_actions.mark_as_spam(detail.email as never);
+    const marked = await email_actions.mark_as_spam(detail.email as never);
+
+    if (!marked) {
+      action_in_flight.current = false;
+      show_toast(t("common.failed_to_mark_as_spam"), "error");
+
+      return;
+    }
+
     remove_email_from_view_cache(detail.email.id);
     navigate(-1);
-  }, [detail.email, email_actions, navigate]);
+  }, [detail.email, email_actions, navigate, t]);
 
   const handle_not_spam = useCallback(async () => {
     if (action_in_flight.current || !detail.email) return;
@@ -425,19 +483,24 @@ export function use_mobile_mail_detail() {
     haptic_impact("light");
     const ok = await email_actions.unmark_spam(target as never);
 
+    if (!ok) {
+      action_in_flight.current = false;
+      show_toast(t("common.failed_to_move_email"), "error");
+
+      return;
+    }
+
     remove_email_from_view_cache(target.id);
     navigate(-1);
-    if (ok) {
-      show_action_toast({
-        message: t("common.marked_as_not_spam"),
-        action_type: "not_spam",
-        email_ids: [target.id],
-        on_undo: async () => {
-          await email_actions.mark_as_spam(target as never);
-          emit_mail_item_updated({ id: target.id, is_spam: true });
-        },
-      });
-    }
+    show_action_toast({
+      message: t("common.marked_as_not_spam"),
+      action_type: "not_spam",
+      email_ids: [target.id],
+      on_undo: async () => {
+        await email_actions.mark_as_spam(target as never);
+        emit_mail_item_updated({ id: target.id, is_spam: true });
+      },
+    });
   }, [detail.email, email_actions, navigate, t]);
 
   const handle_print = useCallback(() => {
@@ -451,7 +514,7 @@ export function use_mobile_mail_detail() {
     (msg: DecryptedThreadMessage, mode: "reply" | "reply_all" | "forward") => {
       const subject = msg.subject || "";
       const body = msg.body || "";
-      const quoted = `\n\n${t("mail.reply_quote_header", { date: new Date(msg.timestamp).toLocaleString(), name: msg.display_sender_name || msg.sender_name })}\n${body
+      const quoted = `\n\n${t("mail.reply_quote_header", { date: new Date(msg.timestamp).toLocaleString(app_locale()), name: msg.display_sender_name || msg.sender_name })}\n${body
         .split("\n")
         .map((l) => "> " + l)
         .join("\n")}`;
@@ -534,7 +597,12 @@ export function use_mobile_mail_detail() {
         );
       }
     },
-    [t, detail.current_user_email, detail.mail_item?.thread_token],
+    [
+      t,
+      detail.current_user_email,
+      detail.mail_item?.thread_token,
+      preferences.show_aster_branding,
+    ],
   );
 
   const is_dark_mode_message = useCallback(
@@ -629,17 +697,11 @@ export function use_mobile_mail_detail() {
 
   const handle_copy_message_id = useCallback(() => {
     if (menu_message) {
-      navigator.clipboard
-        .writeText(menu_message.id)
+      copy_text_or_throw(menu_message.id)
         .then(() => {
           show_toast(detail.t("common.message_id_copied"), "success");
         })
-        .catch((caught) =>
-          ignore_error(
-            "pages/mobile/use_mobile_mail_detail:handle_back",
-            caught,
-          ),
-        );
+        .catch(() => show_toast(detail.t("common.failed_to_copy"), "error"));
     }
     set_menu_message(null);
   }, [detail, menu_message]);
@@ -658,7 +720,7 @@ export function use_mobile_mail_detail() {
     } else {
       show_toast(result.error || t("errors.failed_to_block_sender"), "error");
     }
-  }, [block_target]);
+  }, [block_target, t]);
 
   const handle_snooze = useCallback(
     async (snoozed_until: Date) => {
@@ -675,7 +737,7 @@ export function use_mobile_mail_detail() {
         show_toast(t("errors.failed_to_snooze"), "error");
       }
     },
-    [snooze_target_id, snooze_actions, navigate],
+    [snooze_target_id, snooze_actions, navigate, t],
   );
 
   const handle_load_external_content = useCallback(() => {
@@ -834,6 +896,9 @@ export function use_mobile_mail_detail() {
     set_subject_expanded,
     show_block_confirm,
     set_show_block_confirm,
+    show_delete_confirm,
+    set_show_delete_confirm,
+    confirm_permanent_delete,
     blocking_sender,
     block_target,
     set_block_target,
@@ -851,6 +916,7 @@ export function use_mobile_mail_detail() {
     handle_toggle_star,
     handle_toggle_pin,
     is_archived,
+    is_trashed,
     handle_archive,
     handle_delete,
     handle_spam,

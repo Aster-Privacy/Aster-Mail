@@ -21,7 +21,7 @@
 import type { SpamSettings } from "@/services/api/preferences";
 import type { MemberRetentionPolicy } from "@/services/api/family_org";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Capacitor } from "@capacitor/core";
 import { CheckIcon, LockClosedIcon } from "@heroicons/react/24/outline";
 import { Switch, UpgradeBtn } from "@aster/ui";
@@ -35,7 +35,9 @@ import {
 } from "./shared";
 
 import { use_preferences } from "@/contexts/preferences_context";
+import { parse_bounded_int } from "@/lib/parse_bounded_int";
 import { use_i18n } from "@/lib/i18n/context";
+import { show_toast } from "@/components/toast/simple_toast";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
 import { Input } from "@/components/ui/input";
@@ -45,11 +47,26 @@ import {
 } from "@/services/api/preferences";
 import { get_member_retention_policy } from "@/services/api/family_org";
 import { ignore_error } from "@/lib/ignore_error";
-
+import {
+  UNDO_PRESET_SECONDS,
+  clamp_undo_seconds,
+  undo_send_is_active,
+} from "@/components/settings/behavior_section/shared";
+import { apply_spam_settings_patch } from "@/components/settings/behavior_section/spam_settings_sync";
+import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
+import { ColorSwatchPicker } from "@/components/settings/appearance/color_swatch_picker";
+import { FONT_SIZE_OPTIONS } from "@/components/compose/compose_toolbar/shared";
+import {
+  DEFAULT_COMPOSE_FONT_COLOR,
+  normalize_compose_font_color,
+  normalize_compose_font_size,
+} from "@/lib/compose_defaults";
 import {
   SWIPE_ACTION_OPTIONS,
   get_swipe_action,
 } from "@/components/mobile/swipe_action_registry";
+
+const COMPOSE_COLOR_SWATCH_PLACEHOLDER = "#3b82f6";
 
 export function BehaviorSection({
   on_back,
@@ -59,7 +76,8 @@ export function BehaviorSection({
   on_close: () => void;
 }) {
   const { t } = use_i18n();
-  const { preferences, update_preference } = use_preferences();
+  const { preferences, update_preference, update_preferences } =
+    use_preferences();
   const { limits } = use_plan_limits();
   const is_paid_plan = !!limits && limits.plan_code !== "free";
 
@@ -68,6 +86,9 @@ export function BehaviorSection({
     spam_sensitivity: "medium",
     spam_filter_enabled: true,
   });
+  const spam_loaded_ref = useRef(false);
+  const [spam_load_failed, set_spam_load_failed] = useState(false);
+  const spam_generation_ref = useRef(0);
   const [family_policy, set_family_policy] =
     useState<MemberRetentionPolicy | null>(null);
   const is_web = !Capacitor.isNativePlatform();
@@ -93,14 +114,43 @@ export function BehaviorSection({
       }
     } else {
       set_mailto_registered(false);
-      localStorage.setItem("aster:mailto_handler", "false");
+      try {
+        localStorage.setItem("aster:mailto_handler", "false");
+      } catch (caught) {
+        ignore_error("settings/behavior_section:handle_mailto_toggle", caught);
+      }
     }
   };
 
+  const load_spam_settings = () => {
+    const generation = ++spam_generation_ref.current;
+
+    get_spam_settings()
+      .then((result) => {
+        if (generation !== spam_generation_ref.current) return;
+
+        if (result.data) {
+          spam_loaded_ref.current = true;
+          set_spam_settings(result.data);
+          set_spam_load_failed(false);
+
+          return;
+        }
+        set_spam_load_failed(true);
+      })
+      .catch((caught) => {
+        if (generation === spam_generation_ref.current) {
+          set_spam_load_failed(true);
+        }
+        ignore_error(
+          "pages/mobile/settings/behavior_section:get_spam_settings",
+          caught,
+        );
+      });
+  };
+
   useEffect(() => {
-    get_spam_settings().then((result) => {
-      if (result.data) set_spam_settings(result.data);
-    });
+    load_spam_settings();
     get_member_retention_policy()
       .then((result) => {
         if (result.data) set_family_policy(result.data);
@@ -114,10 +164,29 @@ export function BehaviorSection({
   }, []);
 
   const update_spam_settings = (patch: Partial<SpamSettings>) => {
-    const updated = { ...spam_settings, ...patch };
+    const generation = ++spam_generation_ref.current;
 
-    set_spam_settings(updated);
-    save_spam_settings(updated);
+    if (spam_loaded_ref.current) {
+      set_spam_settings((current) => ({ ...current, ...patch }));
+    }
+
+    apply_spam_settings_patch({
+      loaded: spam_loaded_ref.current,
+      current: spam_settings,
+      patch,
+      load: get_spam_settings,
+      save: save_spam_settings,
+    }).then((result) => {
+      if (generation !== spam_generation_ref.current) return;
+
+      spam_loaded_ref.current = result.loaded;
+      set_spam_settings(result.next);
+      set_spam_load_failed(!result.loaded);
+
+      if (!result.saved) {
+        show_toast(t("settings.failed_save_setting"), "error");
+      }
+    });
   };
 
   const conversation_order_options: { value: "asc" | "desc"; label: string }[] =
@@ -138,6 +207,27 @@ export function BehaviorSection({
     { value: "30", label: t("settings.retention_30_days") },
     { value: "never", label: t("settings.retention_never") },
   ];
+
+  const compose_font_size_options = FONT_SIZE_OPTIONS.map((option) => ({
+    value: option.value,
+    label: t(option.label_key),
+  }));
+  const compose_font_size = normalize_compose_font_size(
+    preferences.compose_font_size,
+  );
+  const compose_font_color = normalize_compose_font_color(
+    preferences.compose_font_color,
+  );
+  const has_compose_font_color =
+    compose_font_color !== DEFAULT_COMPOSE_FONT_COLOR;
+
+  const commit_compose_font_color = (value: string) => {
+    update_preference(
+      "compose_font_color",
+      normalize_compose_font_color(value),
+      true,
+    );
+  };
 
   const mark_read_options: {
     value: "immediate" | "1_second" | "3_seconds" | "never";
@@ -175,12 +265,16 @@ export function BehaviorSection({
     },
   ];
 
-  const undo_presets = [3, 5, 10, 15, 30];
+  const undo_presets = UNDO_PRESET_SECONDS;
   const [undo_custom_input, set_undo_custom_input] = useState<string | null>(
     null,
   );
-  const undo_custom_matches_preset = undo_presets.includes(
+  const undo_send_active = undo_send_is_active(
+    preferences.undo_send_enabled,
     preferences.undo_send_seconds,
+  );
+  const undo_custom_matches_preset = undo_presets.includes(
+    preferences.undo_send_seconds as (typeof undo_presets)[number],
   );
 
   const signature_mode_options: {
@@ -232,6 +326,47 @@ export function BehaviorSection({
           />
         </SettingsGroup>
 
+        <SettingsGroup title={t("settings.compose_defaults_title")}>
+          <OptionList
+            on_change={(v) =>
+              update_preference(
+                "compose_font_size",
+                normalize_compose_font_size(v),
+                true,
+              )
+            }
+            options={compose_font_size_options}
+            value={compose_font_size}
+          />
+          <SettingsRow
+            label={t("settings.compose_default_font_color")}
+            trailing={
+              <div className="flex items-center gap-3">
+                <ColorSwatchPicker
+                  label={t("settings.compose_default_font_color_picker_label")}
+                  size="sm"
+                  value={
+                    has_compose_font_color
+                      ? compose_font_color
+                      : COMPOSE_COLOR_SWATCH_PLACEHOLDER
+                  }
+                  onChange={commit_compose_font_color}
+                />
+                <button
+                  className="rounded-[12px] border border-[var(--border-primary)] px-3 py-1.5 text-[13px] text-[var(--text-primary)] disabled:opacity-50"
+                  disabled={!has_compose_font_color}
+                  type="button"
+                  onClick={() =>
+                    commit_compose_font_color(DEFAULT_COMPOSE_FONT_COLOR)
+                  }
+                >
+                  {t("settings.compose_default_font_color_reset")}
+                </button>
+              </div>
+            }
+          />
+        </SettingsGroup>
+
         <SettingsGroup title={t("settings.reading_and_conversations")}>
           <SettingsRow
             label={t("settings.conversation_grouping")}
@@ -259,6 +394,17 @@ export function BehaviorSection({
                     !preferences.show_message_size,
                     true,
                   )
+                }
+              />
+            }
+          />
+          <SettingsRow
+            label={t("settings.quick_preview_text")}
+            trailing={
+              <Switch
+                checked={preferences.show_email_preview !== false}
+                onCheckedChange={(v) =>
+                  update_preference("show_email_preview", v, true)
                 }
               />
             }
@@ -426,12 +572,7 @@ export function BehaviorSection({
               />
               <SettingsRow
                 label={t("settings.block_tracking_links")}
-                trailing={
-                  <Switch
-                    disabled
-                    checked={preferences.block_external_content}
-                  />
-                }
+                value={t("common.active")}
               />
             </>
           )}
@@ -470,14 +611,31 @@ export function BehaviorSection({
             label={t("settings.undo_send")}
             trailing={
               <Switch
-                checked={preferences.undo_send_enabled}
-                onCheckedChange={(v) =>
-                  update_preference("undo_send_enabled", v, true)
-                }
+                checked={undo_send_active}
+                onCheckedChange={(v) => {
+                  if (!v) {
+                    update_preference("undo_send_enabled", false, true);
+
+                    return;
+                  }
+
+                  const seconds = clamp_undo_seconds(
+                    preferences.undo_send_seconds,
+                  );
+
+                  update_preferences(
+                    {
+                      undo_send_enabled: true,
+                      undo_send_seconds: seconds,
+                      undo_send_period: `${seconds} seconds`,
+                    },
+                    true,
+                  );
+                }}
               />
             }
           />
-          {preferences.undo_send_enabled && (
+          {undo_send_active && (
             <div className="px-4 pb-3 pt-1">
               <p className="mb-1.5 text-[13px] text-[var(--text-muted)]">
                 {t("settings.cancellation_period")}
@@ -498,7 +656,13 @@ export function BehaviorSection({
                     }
                     type="button"
                     onClick={() => {
-                      update_preference("undo_send_seconds", sec, true);
+                      update_preferences(
+                        {
+                          undo_send_seconds: sec,
+                          undo_send_period: `${sec} seconds`,
+                        },
+                        true,
+                      );
                       set_undo_custom_input(null);
                     }}
                   >
@@ -529,14 +693,16 @@ export function BehaviorSection({
                         : preferences.undo_send_seconds)
                     }
                     onBlur={(e) => {
-                      const parsed = parseInt(e.target.value, 10);
+                      const parsed = parse_bounded_int(e.target.value, 1, 30);
 
-                      if (
-                        Number.isFinite(parsed) &&
-                        parsed >= 1 &&
-                        parsed <= 30
-                      ) {
-                        update_preference("undo_send_seconds", parsed, true);
+                      if (parsed !== null) {
+                        update_preferences(
+                          {
+                            undo_send_seconds: parsed,
+                            undo_send_period: `${parsed} seconds`,
+                          },
+                          true,
+                        );
                       }
                       set_undo_custom_input(null);
                     }}
@@ -627,107 +793,119 @@ export function BehaviorSection({
         </SettingsGroup>
 
         <SettingsGroup title={t("settings.spam_filtering_title")}>
-          <SettingsRow
-            label={t("settings.spam_filter_enabled")}
-            trailing={
-              <Switch
-                checked={spam_settings.spam_filter_enabled}
-                onCheckedChange={() =>
-                  update_spam_settings({
-                    spam_filter_enabled: !spam_settings.spam_filter_enabled,
-                  })
+          {spam_load_failed && (
+            <div className="px-4 py-3">
+              <LoadFailedNotice on_retry={load_spam_settings} />
+            </div>
+          )}
+          {!spam_load_failed && (
+            <>
+              <SettingsRow
+                label={t("settings.spam_filter_enabled")}
+                trailing={
+                  <Switch
+                    checked={spam_settings.spam_filter_enabled}
+                    onCheckedChange={() =>
+                      update_spam_settings({
+                        spam_filter_enabled: !spam_settings.spam_filter_enabled,
+                      })
+                    }
+                  />
                 }
               />
-            }
-          />
-          {spam_settings.spam_filter_enabled && (
-            <>
-              <div className="px-4 py-2">
-                <p className="mb-2 text-[13px] text-[var(--text-muted)]">
-                  {t("settings.spam_sensitivity")}
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {spam_sensitivity_options.map((opt) => (
-                    <button
-                      key={opt.value}
-                      className={`rounded-[12px] px-3 py-1.5 text-[13px] font-medium ${
-                        spam_settings.spam_sensitivity === opt.value
-                          ? "text-white"
-                          : "bg-[var(--mobile-bg-card-hover)] text-[var(--text-secondary)]"
-                      }`}
-                      style={
-                        spam_settings.spam_sensitivity === opt.value
-                          ? chip_selected_style
-                          : undefined
-                      }
-                      type="button"
-                      onClick={() =>
-                        update_spam_settings({ spam_sensitivity: opt.value })
-                      }
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div className="px-4 py-2">
-                <p className="mb-2 text-[13px] text-[var(--text-muted)]">
-                  {t("settings.auto_delete_spam_after")}
-                </p>
-                {(() => {
-                  const spam_enforced =
-                    !!family_policy?.enforce_on_members &&
-                    family_policy.spam_retention_days != null;
-                  const effective_value = spam_enforced
-                    ? family_policy!.spam_retention_days === 0
-                      ? "never"
-                      : String(family_policy!.spam_retention_days)
-                    : spam_settings.spam_retention_days === 0
-                      ? "never"
-                      : String(spam_settings.spam_retention_days);
+              {spam_settings.spam_filter_enabled && (
+                <>
+                  <div className="px-4 py-2">
+                    <p className="mb-2 text-[13px] text-[var(--text-muted)]">
+                      {t("settings.spam_sensitivity")}
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {spam_sensitivity_options.map((opt) => (
+                        <button
+                          key={opt.value}
+                          className={`rounded-[12px] px-3 py-1.5 text-[13px] font-medium ${
+                            spam_settings.spam_sensitivity === opt.value
+                              ? "text-white"
+                              : "bg-[var(--mobile-bg-card-hover)] text-[var(--text-secondary)]"
+                          }`}
+                          style={
+                            spam_settings.spam_sensitivity === opt.value
+                              ? chip_selected_style
+                              : undefined
+                          }
+                          type="button"
+                          onClick={() =>
+                            update_spam_settings({
+                              spam_sensitivity: opt.value,
+                            })
+                          }
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="px-4 py-2">
+                    <p className="mb-2 text-[13px] text-[var(--text-muted)]">
+                      {t("settings.auto_delete_spam_after")}
+                    </p>
+                    {(() => {
+                      const spam_locked =
+                        !!family_policy?.enforce_on_members &&
+                        family_policy.spam_retention_days != null;
+                      const spam_enforced = spam_locked;
+                      const effective_value = spam_locked
+                        ? family_policy!.spam_retention_days === 0
+                          ? "never"
+                          : String(family_policy!.spam_retention_days)
+                        : spam_settings.spam_retention_days === 0
+                          ? "never"
+                          : String(spam_settings.spam_retention_days);
 
-                  return (
-                    <>
-                      {spam_enforced && (
-                        <p className="mb-2 flex items-center gap-1 text-[12px] text-amber-500">
-                          <LockClosedIcon className="h-3 w-3 flex-shrink-0" />
-                          {t("settings.controlled_by_family_admin")}
-                        </p>
-                      )}
-                      <div className="flex flex-wrap gap-2">
-                        {spam_retention_options.map((opt) => (
-                          <button
-                            key={opt.value}
-                            className={`rounded-[12px] px-3 py-1.5 text-[13px] font-medium ${
-                              effective_value === opt.value
-                                ? "text-white"
-                                : "bg-[var(--mobile-bg-card-hover)] text-[var(--text-secondary)]"
-                            } ${spam_enforced ? "opacity-60 cursor-not-allowed" : ""}`}
-                            disabled={spam_enforced}
-                            style={
-                              effective_value === opt.value
-                                ? chip_selected_style
-                                : undefined
-                            }
-                            type="button"
-                            onClick={() => {
-                              if (spam_enforced) return;
-                              update_spam_settings({
-                                spam_retention_days:
-                                  opt.value === "never"
-                                    ? 0
-                                    : parseInt(opt.value, 10),
-                              });
-                            }}
-                          >
-                            {opt.label}
-                          </button>
-                        ))}
-                      </div>
-                    </>
-                  );
-                })()}
-              </div>
+                      return (
+                        <>
+                          {spam_locked && (
+                            <p className="mb-2 flex items-center gap-1 text-[12px] text-amber-500">
+                              <LockClosedIcon className="h-3 w-3 flex-shrink-0" />
+                              {t("settings.controlled_by_family_admin")}
+                            </p>
+                          )}
+                          <div className="flex flex-wrap gap-2">
+                            {spam_retention_options.map((opt) => (
+                              <button
+                                key={opt.value}
+                                className={`rounded-[12px] px-3 py-1.5 text-[13px] font-medium ${
+                                  effective_value === opt.value
+                                    ? "text-white"
+                                    : "bg-[var(--mobile-bg-card-hover)] text-[var(--text-secondary)]"
+                                } ${spam_enforced ? "opacity-60 cursor-not-allowed" : ""}`}
+                                disabled={spam_enforced}
+                                style={
+                                  effective_value === opt.value
+                                    ? chip_selected_style
+                                    : undefined
+                                }
+                                type="button"
+                                onClick={() => {
+                                  if (spam_enforced) return;
+                                  update_spam_settings({
+                                    spam_retention_days:
+                                      opt.value === "never"
+                                        ? 0
+                                        : parseInt(opt.value, 10),
+                                  });
+                                }}
+                              >
+                                {opt.label}
+                              </button>
+                            ))}
+                          </div>
+                        </>
+                      );
+                    })()}
+                  </div>
+                </>
+              )}
             </>
           )}
         </SettingsGroup>
@@ -771,7 +949,7 @@ export function BehaviorSection({
                 return (
                   <button
                     key={id}
-                    className="flex w-full items-center gap-3 px-4 py-3 text-left active:bg-[var(--mobile-bg-card-hover)]"
+                    className="flex w-full items-center gap-3 px-4 py-3 text-start active:bg-[var(--mobile-bg-card-hover)]"
                     type="button"
                     onClick={() =>
                       update_preference("swipe_left_action", id, true)
@@ -805,7 +983,7 @@ export function BehaviorSection({
                 return (
                   <button
                     key={id}
-                    className="flex w-full items-center gap-3 px-4 py-3 text-left active:bg-[var(--mobile-bg-card-hover)]"
+                    className="flex w-full items-center gap-3 px-4 py-3 text-start active:bg-[var(--mobile-bg-card-hover)]"
                     type="button"
                     onClick={() =>
                       update_preference("swipe_right_action", id, true)
@@ -864,6 +1042,7 @@ export function BehaviorSection({
                     {action.label}
                   </span>
                   <Switch
+                    aria-label={action.label}
                     checked={is_enabled}
                     disabled={is_enabled && current.length <= 1}
                     onCheckedChange={(checked) => {

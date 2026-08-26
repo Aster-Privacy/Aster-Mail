@@ -18,9 +18,10 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { user_facing_error } from "@/utils/user_facing_error";
 import { api_client, type ApiResponse } from "./client";
-import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 
+import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import { get_or_create_derived_encryption_crypto_key } from "@/services/crypto/memory_key_store";
 
 export interface TemplateFormData {
@@ -182,7 +183,10 @@ export async function decrypt_templates(
   const results = await Promise.allSettled(templates.map(decrypt_template));
 
   return results
-    .filter((r): r is PromiseFulfilledResult<DecryptedTemplate> => r.status === "fulfilled")
+    .filter(
+      (r): r is PromiseFulfilledResult<DecryptedTemplate> =>
+        r.status === "fulfilled",
+    )
     .map((r) => r.value);
 }
 
@@ -202,7 +206,7 @@ export async function list_templates(): Promise<
     return { data: { templates: decrypted, total: response.data.total } };
   } catch (err) {
     return {
-      error: err instanceof Error ? err.message : "Failed to decrypt templates",
+      error: user_facing_error(err, "Failed to decrypt templates"),
     };
   }
 }
@@ -224,7 +228,7 @@ export async function get_template(
     return { data: decrypted };
   } catch (err) {
     return {
-      error: err instanceof Error ? err.message : "Failed to decrypt template",
+      error: user_facing_error(err, "Failed to decrypt template"),
     };
   }
 }
@@ -256,7 +260,7 @@ export async function create_template(
     );
   } catch (err) {
     return {
-      error: err instanceof Error ? err.message : "Failed to encrypt template",
+      error: user_facing_error(err, "Failed to encrypt template"),
     };
   }
 }
@@ -299,7 +303,7 @@ export async function update_template(
     );
   } catch (err) {
     return {
-      error: err instanceof Error ? err.message : "Failed to encrypt template",
+      error: user_facing_error(err, "Failed to encrypt template"),
     };
   }
 }

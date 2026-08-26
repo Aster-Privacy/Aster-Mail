@@ -41,13 +41,21 @@ export function ContactsModal({
 
   if (!is_open) return null;
 
+  const has_child_dialog =
+    modal.is_form_open || !!modal.contact_to_delete || modal.is_bulk_deleting;
+
+  const dismiss_from_backdrop = () => {
+    if (has_child_dialog) return;
+    on_close();
+  };
+
   return (
     <div
       className="fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-6"
       role="presentation"
-      onClick={on_close}
+      onClick={dismiss_from_backdrop}
       onKeyDown={(e) => {
-        if (e["key"] === "Escape") on_close();
+        if (e["key"] === "Escape") dismiss_from_backdrop();
       }}
     >
       <div
@@ -57,6 +65,8 @@ export function ContactsModal({
       {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions, jsx-a11y/click-events-have-key-events */}
       <div
         className="relative w-full max-w-[580px] rounded-xl border overflow-hidden bg-modal-bg border-edge-primary"
+        aria-label={modal.t("common.contacts")}
+        aria-modal="true"
         role="dialog"
         style={{
           boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.35)",

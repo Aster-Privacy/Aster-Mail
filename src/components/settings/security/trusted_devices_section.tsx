@@ -29,11 +29,15 @@ import {
   TrustedDeviceItem,
 } from "@/services/api/trusted_devices";
 import { show_toast } from "@/components/toast/simple_toast";
+import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { use_i18n } from "@/lib/i18n/context";
+import { app_locale, get_display_time_zone } from "@/utils/date_format";
 
 function format_date(iso: string): string {
   try {
-    return new Date(iso).toLocaleString();
+    return new Date(iso).toLocaleString(app_locale(), {
+      timeZone: get_display_time_zone(),
+    });
   } catch {
     return iso;
   }
@@ -46,14 +50,20 @@ export function TrustedDevicesSection() {
   const [error, set_error] = useState<string | null>(null);
   const [busy_id, set_busy_id] = useState<string | null>(null);
   const [revoke_all_busy, set_revoke_all_busy] = useState(false);
+  const [confirm_revoke_id, set_confirm_revoke_id] = useState<string | null>(
+    null,
+  );
+  const [confirm_revoke_all, set_confirm_revoke_all] = useState(false);
 
   const load = useCallback(async () => {
     set_is_loading(true);
     set_error(null);
     const res = await list_trusted_devices();
+
     if (res.error) {
       set_error(res.error);
       set_is_loading(false);
+
       return;
     }
     set_devices(res.data?.devices ?? []);
@@ -65,11 +75,14 @@ export function TrustedDevicesSection() {
   }, [load]);
 
   const handle_revoke = async (id: string) => {
+    set_confirm_revoke_id(null);
     set_busy_id(id);
     const res = await revoke_trusted_device(id);
+
     set_busy_id(null);
     if (res.error) {
       show_toast(res.error, "error");
+
       return;
     }
     set_devices((prev) => prev.filter((d) => d.id !== id));
@@ -77,11 +90,14 @@ export function TrustedDevicesSection() {
   };
 
   const handle_revoke_all = async () => {
+    set_confirm_revoke_all(false);
     set_revoke_all_busy(true);
     const res = await revoke_all_trusted_devices();
+
     set_revoke_all_busy(false);
     if (res.error) {
       show_toast(res.error, "error");
+
       return;
     }
     set_devices([]);
@@ -142,7 +158,7 @@ export function TrustedDevicesSection() {
               <Button
                 disabled={busy_id === d.id}
                 variant="outline"
-                onClick={() => handle_revoke(d.id)}
+                onClick={() => set_confirm_revoke_id(d.id)}
               >
                 {busy_id === d.id
                   ? t("common.loading")
@@ -155,7 +171,7 @@ export function TrustedDevicesSection() {
             <Button
               disabled={revoke_all_busy}
               variant="outline"
-              onClick={handle_revoke_all}
+              onClick={() => set_confirm_revoke_all(true)}
             >
               {revoke_all_busy
                 ? t("common.loading")
@@ -164,6 +180,30 @@ export function TrustedDevicesSection() {
           </div>
         </div>
       )}
+
+      <ConfirmationModal
+        cancel_text={t("common.cancel")}
+        confirm_text={t("settings.trusted_2fa_revoke")}
+        is_open={confirm_revoke_id !== null}
+        message={t("settings.trusted_2fa_revoke_confirm")}
+        on_cancel={() => set_confirm_revoke_id(null)}
+        on_confirm={() => {
+          if (confirm_revoke_id) void handle_revoke(confirm_revoke_id);
+        }}
+        title={t("settings.trusted_2fa_title")}
+        variant="danger"
+      />
+
+      <ConfirmationModal
+        cancel_text={t("common.cancel")}
+        confirm_text={t("settings.trusted_2fa_revoke_all")}
+        is_open={confirm_revoke_all}
+        message={t("settings.trusted_2fa_revoke_all_confirm")}
+        on_cancel={() => set_confirm_revoke_all(false)}
+        on_confirm={() => void handle_revoke_all()}
+        title={t("settings.trusted_2fa_title")}
+        variant="danger"
+      />
     </div>
   );
 }

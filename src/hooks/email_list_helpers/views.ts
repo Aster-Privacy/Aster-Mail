@@ -19,12 +19,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
-import {
-  type ListMailItemsParams,
-} from "@/services/api/mail";
+import { type ListMailItemsParams } from "@/services/api/mail";
 import { get_alias_hash_by_address } from "@/hooks/use_sidebar_aliases";
-
-
 
 export const DEFAULT_PAGE_SIZE = 50;
 
@@ -107,4 +103,3 @@ export const OUTGOING_VIEWS = new Set<string>(["sent", "drafts", "scheduled"]);
 export function is_outgoing_view(current_view: string | undefined): boolean {
   return current_view != null && OUTGOING_VIEWS.has(current_view);
 }
-

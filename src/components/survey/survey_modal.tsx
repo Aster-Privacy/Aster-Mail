@@ -243,7 +243,12 @@ export function SurveyModal({
   );
 
   return (
-    <Modal is_open={is_open} size="lg" on_close={on_close}>
+    <Modal
+      close_on_overlay={false}
+      is_open={is_open}
+      on_close={on_close}
+      size="lg"
+    >
       <ModalHeader>
         <ModalTitle>{t("survey.modal_title")}</ModalTitle>
         <ModalDescription>{t("survey.modal_subtitle")}</ModalDescription>

@@ -54,7 +54,11 @@ const format_blocked_message = (
     ).length;
 
     if (image_count > 0) {
-      parts.push(t("common.n_images", { count: image_count }));
+      parts.push(
+        image_count === 1
+          ? t("common.images_count", { count: image_count })
+          : t("common.n_images", { count: image_count }),
+      );
     }
   }
 

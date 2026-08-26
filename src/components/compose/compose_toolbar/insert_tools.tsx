@@ -18,26 +18,24 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { } from "@/lib/i18n/types";
+import type {} from "@/lib/i18n/types";
 import type { ComposeToolbarState } from "@/components/compose/compose_shared";
 
-import {
-  useId,
-  useState,
-  useRef,
-  useEffect,
-  useCallback,
-} from "react";
+import { useId, useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
-import {  AnimatePresence } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
+
+import { LinkPopover } from "./link_popover";
+import {
+  ToolbarButton,
+  use_anchored_layer,
+  use_frozen_selection,
+} from "./shared";
 
 import { AttachmentIcon } from "@/components/common/icons";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_escape_layer } from "@/lib/overlay_layer_stack";
 import EmojiPicker from "@/components/compose/emoji_picker";
-
-import { LinkPopover } from "./link_popover";
-import { ToolbarButton, use_anchored_layer, use_frozen_selection } from "./shared";
 
 const EMOJI_PICKER_WIDTH = 296;
 const EMOJI_PICKER_MAX_HEIGHT = 332;
@@ -203,4 +201,3 @@ export function InsertTools({ compose }: { compose: ComposeToolbarState }) {
     </>
   );
 }
-

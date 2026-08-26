@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { EncryptedVault } from "./key_manager_core";
+
 import {
   MASTER_KEY_VAULT_FORMAT,
   derive_encryption_key_from_passphrase,

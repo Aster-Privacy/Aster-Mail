@@ -55,7 +55,6 @@ import {
   useCallback,
   useEffect,
   useRef,
-  lazy,
   Suspense,
   type ReactNode,
 } from "react";
@@ -65,14 +64,14 @@ import {
   SettingsHeader,
   SettingsAnimatedSection,
 } from "./settings/shared";
-import { FullPageLoader } from "@/components/common/full_page_loader";
+import { resolve_mobile_section } from "./settings/section_routing";
 import { AccountSection } from "./settings/account_section";
 import { AppearanceSection } from "./settings/appearance_section";
 import { AccessibilitySection } from "./settings/accessibility_section";
 import { SecuritySection } from "./settings/security_section";
 import { EncryptionSection } from "./settings/encryption_section";
 import { AliasesSection } from "./settings/aliases_section";
-const BillingSection = lazy(() =>
+const BillingSection = lazy_with_retry(() =>
   import("./settings/billing_section").then((m) => ({
     default: m.BillingSection,
   })),
@@ -96,6 +95,9 @@ import { FamilySection } from "./settings/family_section";
 import { ConnectionSection } from "./settings/connection_section";
 import { AliasDirectoriesSection } from "./settings/alias_directories_section";
 
+import { SettingsSaveIndicatorInline } from "@/components/settings/settings_save_indicator";
+import { FullPageLoader } from "@/components/common/full_page_loader";
+import { lazy_with_retry } from "@/utils/lazy_with_retry";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { format_bytes } from "@/lib/utils";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
@@ -113,7 +115,6 @@ import {
   write_dev_mode_cache,
 } from "@/lib/dev_mode_cache";
 import { refresh_family_plan_flag } from "@/services/api/family";
-
 import { ignore_error } from "@/lib/ignore_error";
 
 function MobileSettingsPage() {
@@ -138,8 +139,21 @@ function MobileSettingsPage() {
   const section_ref = useRef<SettingsSection | null>(null);
 
   useEffect(() => {
+    let cancelled = false;
+
     list_devices().then((res) => {
-      set_has_devices((res.data?.devices?.length ?? 0) > 0);
+      if (cancelled) return;
+
+      if (res.error) {
+        set_has_devices(true);
+
+        return;
+      }
+
+      set_has_devices(
+        (res.data?.devices ?? []).filter((d) => d.device_type !== "bridge")
+          .length > 0,
+      );
     });
 
     const cached = read_dev_mode_cache(current_account_id);
@@ -150,7 +164,7 @@ function MobileSettingsPage() {
       const vault = get_vault_from_memory();
       const result = await get_dev_mode(vault);
 
-      if (result.data === null) return;
+      if (cancelled || result.data === null) return;
 
       set_dev_mode_enabled(result.data);
       write_dev_mode_cache(current_account_id, result.data);
@@ -159,6 +173,10 @@ function MobileSettingsPage() {
     load_dev_mode();
 
     refresh_family_plan_flag(set_is_family_plan);
+
+    return () => {
+      cancelled = true;
+    };
   }, [current_account_id]);
 
   useEffect(() => {
@@ -179,9 +197,12 @@ function MobileSettingsPage() {
   const { section: path_section } = useParams<{ section?: string }>();
 
   const open_section = useCallback((s: SettingsSection) => {
-    section_ref.current = s;
-    set_section(s);
-    window.history.pushState({ settings_section: s }, "");
+    const resolved = resolve_mobile_section(s);
+
+    if (!resolved) return;
+    section_ref.current = resolved;
+    set_section(resolved);
+    window.history.pushState({ settings_section: resolved }, "");
   }, []);
 
   useEffect(() => {
@@ -228,6 +249,20 @@ function MobileSettingsPage() {
   }, [open_section]);
 
   useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<string>).detail;
+
+      if (typeof detail === "string" && detail) {
+        open_section(detail as SettingsSection);
+      }
+    };
+
+    window.addEventListener("navigate-settings", handler);
+
+    return () => window.removeEventListener("navigate-settings", handler);
+  }, [open_section]);
+
+  useEffect(() => {
     const handle_popstate = () => {
       if (section_ref.current) {
         section_ref.current = null;
@@ -245,7 +280,10 @@ function MobileSettingsPage() {
     try {
       await logout();
     } catch (caught) {
-      ignore_error("pages/mobile/mobile_settings_page:MobileSettingsPage", caught);
+      ignore_error(
+        "pages/mobile/mobile_settings_page:MobileSettingsPage",
+        caught,
+      );
     }
   }, [logout]);
 
@@ -333,9 +371,7 @@ function MobileSettingsPage() {
     sender_filters: (
       <SenderFiltersSection on_back={close_section} on_close={handle_back} />
     ),
-    family: (
-      <FamilySection on_back={close_section} on_close={handle_back} />
-    ),
+    family: <FamilySection on_back={close_section} on_close={handle_back} />,
     connection: (
       <ConnectionSection on_back={close_section} on_close={handle_back} />
     ),
@@ -358,6 +394,9 @@ function MobileSettingsPage() {
         if (is_closing) navigate("/", { replace: true });
       }}
     >
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-50 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+        <SettingsSaveIndicatorInline className="pointer-events-auto shadow-lg" />
+      </div>
       <AnimatePresence mode="wait">
         {section ? (
           <SettingsAnimatedSection key={section}>
@@ -380,7 +419,7 @@ function MobileSettingsPage() {
             <div className="flex-1 overflow-y-auto pb-12">
               <div className="px-4 pt-3 pb-1">
                 <button
-                  className="flex w-full items-center gap-3.5 rounded-[16px] bg-[var(--mobile-bg-card)] px-4 py-3.5 text-left active:opacity-80"
+                  className="flex w-full items-center gap-3.5 rounded-[16px] bg-[var(--mobile-bg-card)] px-4 py-3.5 text-start active:opacity-80"
                   type="button"
                   onClick={() => open_section("account")}
                 >
@@ -405,7 +444,7 @@ function MobileSettingsPage() {
                       {user?.email ?? ""}
                     </p>
                   </div>
-                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)]" />
+                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
                 </button>
 
                 <div className="mt-2.5 rounded-xl bg-[var(--mobile-bg-card)] px-3.5 py-3">
@@ -445,7 +484,7 @@ function MobileSettingsPage() {
 
               <SettingsGroup title={t("settings.general")}>
                 <button
-                  className="flex w-full items-center gap-3 px-4 py-3 text-left active:opacity-80"
+                  className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
                   type="button"
                   onClick={() => open_section("appearance")}
                 >
@@ -453,10 +492,10 @@ function MobileSettingsPage() {
                   <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
                     {t("settings.appearance")}
                   </span>
-                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)]" />
+                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
                 </button>
                 <button
-                  className="flex w-full items-center gap-3 px-4 py-3 text-left active:opacity-80"
+                  className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
                   type="button"
                   onClick={() => open_section("accessibility")}
                 >
@@ -464,10 +503,10 @@ function MobileSettingsPage() {
                   <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
                     {t("settings.accessibility")}
                   </span>
-                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)]" />
+                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
                 </button>
                 <button
-                  className="flex w-full items-center gap-3 px-4 py-3 text-left active:opacity-80"
+                  className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
                   type="button"
                   onClick={() => open_section("security")}
                 >
@@ -475,10 +514,10 @@ function MobileSettingsPage() {
                   <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
                     {t("settings.security")}
                   </span>
-                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)]" />
+                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
                 </button>
                 <button
-                  className="flex w-full items-center gap-3 px-4 py-3 text-left active:opacity-80"
+                  className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
                   type="button"
                   onClick={() => open_section("encryption")}
                 >
@@ -486,11 +525,11 @@ function MobileSettingsPage() {
                   <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
                     {t("settings.encryption")}
                   </span>
-                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)]" />
+                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
                 </button>
                 {has_devices && (
                   <button
-                    className="flex w-full items-center gap-3 px-4 py-3 text-left active:opacity-80"
+                    className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
                     type="button"
                     onClick={() => open_section("trusted_devices")}
                   >
@@ -498,11 +537,11 @@ function MobileSettingsPage() {
                     <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
                       {t("settings.trusted_devices")}
                     </span>
-                    <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)]" />
+                    <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
                   </button>
                 )}
                 <button
-                  className="flex w-full items-center gap-3 px-4 py-3 text-left active:opacity-80"
+                  className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
                   type="button"
                   onClick={() => open_section("aliases")}
                 >
@@ -510,10 +549,10 @@ function MobileSettingsPage() {
                   <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
                     {t("settings.aliases_and_domains")}
                   </span>
-                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)]" />
+                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
                 </button>
                 <button
-                  className="flex w-full items-center gap-3 px-4 py-3 text-left active:opacity-80"
+                  className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
                   type="button"
                   onClick={() => open_section("ghost_aliases")}
                 >
@@ -521,10 +560,10 @@ function MobileSettingsPage() {
                   <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
                     {t("settings.ghost_aliases")}
                   </span>
-                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)]" />
+                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
                 </button>
                 <button
-                  className="flex w-full items-center gap-3 px-4 py-3 text-left active:opacity-80"
+                  className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
                   type="button"
                   onClick={() => open_section("alias_directories")}
                 >
@@ -532,10 +571,10 @@ function MobileSettingsPage() {
                   <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
                     {t("settings.alias_directories_title")}
                   </span>
-                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)]" />
+                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
                 </button>
                 <button
-                  className="flex w-full items-center gap-3 px-4 py-3 text-left active:opacity-80"
+                  className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
                   type="button"
                   onClick={() => open_section("billing")}
                 >
@@ -543,10 +582,10 @@ function MobileSettingsPage() {
                   <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
                     {t("settings.billing")}
                   </span>
-                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)]" />
+                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
                 </button>
                 <button
-                  className="flex w-full items-center gap-3 px-4 py-3 text-left active:opacity-80"
+                  className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
                   type="button"
                   onClick={() => open_section("referral")}
                 >
@@ -554,11 +593,11 @@ function MobileSettingsPage() {
                   <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
                     {t("settings.refer_a_friend")}
                   </span>
-                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)]" />
+                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
                 </button>
                 {is_family_plan && (
                   <button
-                    className="flex w-full items-center gap-3 px-4 py-3 text-left active:opacity-80"
+                    className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
                     type="button"
                     onClick={() => open_section("family")}
                   >
@@ -566,14 +605,14 @@ function MobileSettingsPage() {
                     <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
                       {t("settings.family_plan_title")}
                     </span>
-                    <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)]" />
+                    <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
                   </button>
                 )}
               </SettingsGroup>
 
               <SettingsGroup title={t("settings.mail_section")}>
                 <button
-                  className="flex w-full items-center gap-3 px-4 py-3 text-left active:opacity-80"
+                  className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
                   type="button"
                   onClick={() => open_section("notifications")}
                 >
@@ -581,10 +620,10 @@ function MobileSettingsPage() {
                   <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
                     {t("settings.notifications")}
                   </span>
-                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)]" />
+                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
                 </button>
                 <button
-                  className="flex w-full items-center gap-3 px-4 py-3 text-left active:opacity-80"
+                  className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
                   type="button"
                   onClick={() => open_section("behavior")}
                 >
@@ -592,10 +631,10 @@ function MobileSettingsPage() {
                   <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
                     {t("settings.behavior")}
                   </span>
-                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)]" />
+                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
                 </button>
                 <button
-                  className="flex w-full items-center gap-3 px-4 py-3 text-left active:opacity-80"
+                  className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
                   type="button"
                   onClick={() => open_section("signatures")}
                 >
@@ -603,10 +642,10 @@ function MobileSettingsPage() {
                   <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
                     {t("settings.signature")}
                   </span>
-                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)]" />
+                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
                 </button>
                 <button
-                  className="flex w-full items-center gap-3 px-4 py-3 text-left active:opacity-80"
+                  className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
                   type="button"
                   onClick={() => open_section("templates")}
                 >
@@ -614,10 +653,10 @@ function MobileSettingsPage() {
                   <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
                     {t("settings.templates")}
                   </span>
-                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)]" />
+                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
                 </button>
                 <button
-                  className="flex w-full items-center gap-3 px-4 py-3 text-left active:opacity-80"
+                  className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
                   type="button"
                   onClick={() => open_section("import")}
                 >
@@ -625,10 +664,10 @@ function MobileSettingsPage() {
                   <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
                     {t("common.import")}
                   </span>
-                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)]" />
+                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
                 </button>
                 <button
-                  className="flex w-full items-center gap-3 px-4 py-3 text-left active:opacity-80"
+                  className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
                   type="button"
                   onClick={() => open_section("external_accounts")}
                 >
@@ -636,10 +675,10 @@ function MobileSettingsPage() {
                   <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
                     {t("settings.external_accounts")}
                   </span>
-                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)]" />
+                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
                 </button>
                 <button
-                  className="flex w-full items-center gap-3 px-4 py-3 text-left active:opacity-80"
+                  className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
                   type="button"
                   onClick={() => open_section("sender_filters")}
                 >
@@ -647,10 +686,10 @@ function MobileSettingsPage() {
                   <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
                     {t("settings.mail_management")}
                   </span>
-                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)]" />
+                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
                 </button>
                 <button
-                  className="flex w-full items-center gap-3 px-4 py-3 text-left active:opacity-80"
+                  className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
                   type="button"
                   onClick={() => open_section("mail_rules")}
                 >
@@ -658,10 +697,10 @@ function MobileSettingsPage() {
                   <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
                     {t("mail_rules.title")}
                   </span>
-                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)]" />
+                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
                 </button>
                 <button
-                  className="flex w-full items-center gap-3 px-4 py-3 text-left active:opacity-80"
+                  className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
                   type="button"
                   onClick={() => open_section("connection")}
                 >
@@ -669,13 +708,13 @@ function MobileSettingsPage() {
                   <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
                     {t("settings.connection.title" as Parameters<typeof t>[0])}
                   </span>
-                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)]" />
+                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
                 </button>
               </SettingsGroup>
 
               <SettingsGroup title={t("settings.about")}>
                 <button
-                  className="flex w-full items-center gap-3 px-4 py-3 text-left active:opacity-80"
+                  className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
                   type="button"
                   onClick={() => open_section("about")}
                 >
@@ -683,10 +722,10 @@ function MobileSettingsPage() {
                   <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
                     {t("settings.advanced")}
                   </span>
-                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)]" />
+                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
                 </button>
                 <button
-                  className="flex w-full items-center gap-3 px-4 py-3 text-left active:opacity-80"
+                  className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
                   type="button"
                   onClick={() => open_section("feedback")}
                 >
@@ -694,11 +733,11 @@ function MobileSettingsPage() {
                   <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
                     {t("settings.feedback")}
                   </span>
-                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)]" />
+                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
                 </button>
                 {dev_mode_enabled && (
                   <button
-                    className="flex w-full items-center gap-3 px-4 py-3 text-left active:opacity-80"
+                    className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
                     type="button"
                     onClick={() => open_section("developer")}
                   >
@@ -706,7 +745,7 @@ function MobileSettingsPage() {
                     <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
                       {t("settings.developer")}
                     </span>
-                    <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)]" />
+                    <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
                   </button>
                 )}
               </SettingsGroup>

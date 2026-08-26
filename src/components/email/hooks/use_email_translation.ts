@@ -407,7 +407,9 @@ export function use_email_translation({
     status,
     source_language,
     target_language,
-    limited_quality: source_language ? has_limited_quality(source_language) : false,
+    limited_quality: source_language
+      ? has_limited_quality(source_language)
+      : false,
     showing_original,
     translated_subject,
     translate,

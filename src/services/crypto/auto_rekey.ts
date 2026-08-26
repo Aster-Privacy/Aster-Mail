@@ -18,29 +18,33 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { HASH_ALG } from "@/services/crypto/constants";
 import {
   get_vault_from_memory,
   get_derived_encryption_key,
 } from "./memory_key_store";
 import { zero_uint8_array } from "./secure_memory";
+
+import { HASH_ALG } from "@/services/crypto/constants";
 import { list_aliases } from "@/services/api/aliases";
 import { list_contacts } from "@/services/api/contacts";
 import { rekey_user_data } from "@/services/api/auth";
-
 
 let rekey_attempted = false;
 
 function b64_to_arr(b64: string): Uint8Array {
   const bin = atob(b64);
   const out = new Uint8Array(bin.length);
+
   for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+
   return out;
 }
 
 function arr_to_b64(arr: Uint8Array): string {
   let bin = "";
+
   for (let i = 0; i < arr.length; i++) bin += String.fromCharCode(arr[i]);
+
   return btoa(bin);
 }
 
@@ -71,20 +75,30 @@ async function try_decrypt_with_keys(
 ): Promise<ArrayBuffer | null> {
   for (const key of keys) {
     try {
-      return await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, ciphertext);
+      return await crypto.subtle.decrypt(
+        { name: "AES-GCM", iv },
+        key,
+        ciphertext,
+      );
     } catch {
       continue;
     }
   }
+
   return null;
 }
 
-async function derive_hmac_key(raw: Uint8Array, info_str: string): Promise<CryptoKey> {
+async function derive_hmac_key(
+  raw: Uint8Array,
+  info_str: string,
+): Promise<CryptoKey> {
   const info = new TextEncoder().encode(info_str);
   const combined = new Uint8Array(raw.byteLength + info.length);
+
   combined.set(raw, 0);
   combined.set(info, raw.byteLength);
   const hash = await crypto.subtle.digest(HASH_ALG, combined);
+
   return crypto.subtle.importKey(
     "raw",
     hash,
@@ -107,6 +121,7 @@ export async function auto_rekey_if_needed(): Promise<boolean> {
   }
 
   const old_decrypt_keys: CryptoKey[] = [];
+
   for (const kek of vault.legacy_keks) {
     try {
       old_decrypt_keys.push(await import_decrypt_key(b64_to_arr(kek.k)));
@@ -125,7 +140,10 @@ export async function auto_rekey_if_needed(): Promise<boolean> {
 
   const current_decrypt = await import_decrypt_key(new_raw);
   const new_encrypt = await import_encrypt_key(new_raw);
-  const new_alias_hmac = await derive_hmac_key(new_raw, "astermail-alias-hmac-v1");
+  const new_alias_hmac = await derive_hmac_key(
+    new_raw,
+    "astermail-alias-hmac-v1",
+  );
   const new_contacts_hmac = await derive_hmac_key(new_raw, "contacts-hmac-v2");
 
   zero_uint8_array(new_raw);
@@ -144,6 +162,7 @@ export async function auto_rekey_if_needed(): Promise<boolean> {
 
   outer_aliases: while (true) {
     const response = await list_aliases({ limit: 100, offset });
+
     if (response.error || !response.data) break;
 
     for (const alias of response.data.aliases) {
@@ -153,13 +172,18 @@ export async function auto_rekey_if_needed(): Promise<boolean> {
       const iv = b64_to_arr(alias.local_part_nonce);
 
       try {
-        await crypto.subtle.decrypt({ name: "AES-GCM", iv }, current_decrypt, ct);
+        await crypto.subtle.decrypt(
+          { name: "AES-GCM", iv },
+          current_decrypt,
+          ct,
+        );
         continue;
       } catch {
         // stale - try old keys
       }
 
       const plaintext = await try_decrypt_with_keys(ct, iv, old_decrypt_keys);
+
       if (!plaintext) continue;
 
       found_stale = true;
@@ -188,7 +212,12 @@ export async function auto_rekey_if_needed(): Promise<boolean> {
       if (alias.encrypted_display_name && alias.display_name_nonce) {
         const dn_ct = b64_to_arr(alias.encrypted_display_name);
         const dn_iv = b64_to_arr(alias.display_name_nonce);
-        const dn_plain = await try_decrypt_with_keys(dn_ct, dn_iv, old_decrypt_keys);
+        const dn_plain = await try_decrypt_with_keys(
+          dn_ct,
+          dn_iv,
+          old_decrypt_keys,
+        );
+
         if (dn_plain) {
           const new_dn_iv = crypto.getRandomValues(new Uint8Array(12));
           const new_dn_ct = await crypto.subtle.encrypt(
@@ -196,6 +225,7 @@ export async function auto_rekey_if_needed(): Promise<boolean> {
             new_encrypt,
             dn_plain,
           );
+
           entry.encrypted_display_name = arr_to_b64(new Uint8Array(new_dn_ct));
           entry.display_name_nonce = arr_to_b64(new_dn_iv);
         }
@@ -221,9 +251,11 @@ export async function auto_rekey_if_needed(): Promise<boolean> {
 
   outer_contacts: while (true) {
     const params: { limit: number; cursor?: string } = { limit: 100 };
+
     if (cursor) params.cursor = cursor;
 
     const response = await list_contacts(params);
+
     if (response.error || !response.data) break;
 
     for (const contact of response.data.items) {
@@ -231,13 +263,18 @@ export async function auto_rekey_if_needed(): Promise<boolean> {
       const iv = b64_to_arr(contact.data_nonce);
 
       try {
-        await crypto.subtle.decrypt({ name: "AES-GCM", iv }, current_decrypt, ct);
+        await crypto.subtle.decrypt(
+          { name: "AES-GCM", iv },
+          current_decrypt,
+          ct,
+        );
         continue;
       } catch {
         // stale - try old keys
       }
 
       const plaintext = await try_decrypt_with_keys(ct, iv, old_decrypt_keys);
+
       if (!plaintext) continue;
 
       found_stale = true;
@@ -251,8 +288,11 @@ export async function auto_rekey_if_needed(): Promise<boolean> {
       const parsed = JSON.parse(new TextDecoder().decode(plaintext));
       const first_name: string = parsed.first_name ?? "";
       const last_name: string = parsed.last_name ?? "";
-      const emails: string[] = Array.isArray(parsed.emails) ? parsed.emails : [];
-      const searchable = `${first_name} ${last_name} ${emails.join(" ")}`.toLowerCase();
+      const emails: string[] = Array.isArray(parsed.emails)
+        ? parsed.emails
+        : [];
+      const searchable =
+        `${first_name} ${last_name} ${emails.join(" ")}`.toLowerCase();
       const token_sig = await crypto.subtle.sign(
         "HMAC",
         new_contacts_hmac,
@@ -276,6 +316,7 @@ export async function auto_rekey_if_needed(): Promise<boolean> {
   if (!found_stale) return false;
 
   await rekey_user_data({ re_encrypted_aliases, re_encrypted_contacts });
+
   return true;
 }
 

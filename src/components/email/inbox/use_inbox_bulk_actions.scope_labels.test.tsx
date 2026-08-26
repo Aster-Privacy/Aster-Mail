@@ -81,7 +81,6 @@ vi.mock("@/hooks/use_sidebar_aliases", () => ({
 import { use_inbox_bulk_actions } from "./use_inbox_bulk_actions";
 
 declare global {
-  // eslint-disable-next-line no-var
   var IS_REACT_ACT_ENVIRONMENT: boolean;
 }
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
@@ -182,6 +181,7 @@ beforeEach(() => {
 describe("select-all folder and tag actions", () => {
   it("applies the folder to every conversation in scope, not just the loaded page", async () => {
     const { params } = make_params();
+
     render_hook(params);
 
     act(() => {
@@ -200,6 +200,7 @@ describe("select-all folder and tag actions", () => {
 
   it("enumerates ids without asking the server for envelopes", async () => {
     const { params } = make_params();
+
     render_hook(params);
 
     act(() => {
@@ -234,6 +235,7 @@ describe("select-all folder and tag actions", () => {
 
   it("reports the true affected count in the toast", async () => {
     const { params } = make_params();
+
     render_hook(params);
 
     act(() => {
@@ -250,6 +252,7 @@ describe("select-all folder and tag actions", () => {
 
   it("applies tags across the whole scope too", async () => {
     const { params } = make_params();
+
     render_hook(params);
 
     act(() => {
@@ -265,6 +268,7 @@ describe("select-all folder and tag actions", () => {
 
   it("removes a folder across the whole scope", async () => {
     const { params } = make_params();
+
     render_hook(params);
 
     act(() => {

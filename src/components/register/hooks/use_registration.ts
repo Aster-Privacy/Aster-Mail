@@ -18,7 +18,10 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { copy_text_or_throw } from "@/utils/copy_text";
+import { safe_local_set } from "@/lib/safe_storage";
 import type { RegistrationStep } from "@/components/register/register_types";
+import { current_source } from "@/lib/acquisition_source";
 import type { RegisterRequest } from "@/services/api/auth";
 import type { EncryptedVault } from "@/services/crypto/key_manager_core";
 
@@ -82,8 +85,7 @@ import { check_password_breach } from "@/services/breach_check";
 import { EMAIL_REGEX } from "@/lib/utils";
 import { use_i18n } from "@/lib/i18n/context";
 import { prefetch_plans } from "@/components/register/register_step_plan_selection";
-
-import { ignore_error } from "@/lib/ignore_error";
+import { user_facing_error } from "@/utils/user_facing_error";
 
 export async function build_registration_ratchet_fields(): Promise<
   Partial<EncryptedVault>
@@ -197,6 +199,9 @@ export function use_registration(options?: RegistrationClaimOptions) {
 
   useEffect(() => {
     document.title = `${t("auth.sign_up")} | ${t("common.aster_mail")}`;
+  }, [t]);
+
+  useEffect(() => {
     prefetch_plans();
   }, []);
 
@@ -265,7 +270,6 @@ export function use_registration(options?: RegistrationClaimOptions) {
   const last_phrase_vault_ref = useRef<string>("");
   const registration_password_hash_ref = useRef<string>("");
   const [phrase_wrap_error, set_phrase_wrap_error] = useState(false);
-
   useEffect(() => {
     if (has_existing_session) {
       navigate("/", { replace: true });
@@ -571,6 +575,7 @@ export function use_registration(options?: RegistrationClaimOptions) {
         client_platform: import.meta.env.DEV ? "desktop" : undefined,
         referral_code:
           new URLSearchParams(window.location.search).get("ref") || undefined,
+        ...current_source(),
         reservation_claim_token: options?.claim_token || undefined,
       };
 
@@ -637,9 +642,7 @@ export function use_registration(options?: RegistrationClaimOptions) {
       );
     } catch (err) {
       await timing_safe_delay();
-      set_error(
-        err instanceof Error ? err.message : t("auth.registration_failed"),
-      );
+      set_error(user_facing_error(err, t("auth.registration_failed")));
       set_step("email");
       registration_promise_ref.current = null;
     }
@@ -649,25 +652,19 @@ export function use_registration(options?: RegistrationClaimOptions) {
     const codes_text = recovery_codes.join("\n");
 
     try {
-      await navigator.clipboard.writeText(codes_text);
+      await copy_text_or_throw(codes_text);
       show_toast(t("auth.recovery_codes_copied"), "success");
-    } catch (caught) {
-      ignore_error(
-        "components/register/hooks/use_registration:handle_copy_codes",
-        caught,
-      );
+    } catch {
+      show_toast(t("common.failed_to_copy"), "error");
     }
   };
 
   const handle_copy_single_code = async (code: string) => {
     try {
-      await navigator.clipboard.writeText(code);
+      await copy_text_or_throw(code);
       show_toast(t("auth.recovery_code_copied"), "success");
-    } catch (caught) {
-      ignore_error(
-        "components/register/hooks/use_registration:handle_copy_single_code",
-        caught,
-      );
+    } catch {
+      show_toast(t("common.failed_to_copy"), "error");
     }
   };
 
@@ -691,13 +688,10 @@ export function use_registration(options?: RegistrationClaimOptions) {
 
   const handle_copy_phrase = async () => {
     try {
-      await navigator.clipboard.writeText(recovery_phrase);
+      await copy_text_or_throw(recovery_phrase);
       show_toast(t("auth.recovery_phrase_copied"), "success");
-    } catch (caught) {
-      ignore_error(
-        "components/register/hooks/use_registration:handle_copy_phrase",
-        caught,
-      );
+    } catch {
+      show_toast(t("common.failed_to_copy"), "error");
     }
   };
 
@@ -819,7 +813,7 @@ export function use_registration(options?: RegistrationClaimOptions) {
 
   const finalize_registration = async () => {
     document.getElementById("initial-loader")?.remove();
-    localStorage.setItem("show_onboarding", "true");
+    safe_local_set("show_onboarding", "true");
 
     if (vault) {
       try {
@@ -916,8 +910,16 @@ export function use_registration(options?: RegistrationClaimOptions) {
     if (resend_cooldown > 0 || is_resending_verification) return;
 
     set_is_resending_verification(true);
-    await resend_recovery_verification(recovery_email.trim());
+
+    const result = await resend_recovery_verification(recovery_email.trim());
+
     set_is_resending_verification(false);
+
+    if (!result.data.success) {
+      show_toast(t("common.failed_to_send_verification"), "error");
+
+      return;
+    }
     start_resend_cooldown();
     show_toast(t("common.verification_email_sent"), "success");
   }, [

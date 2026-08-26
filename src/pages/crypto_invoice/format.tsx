@@ -19,7 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
-
+import { app_locale } from "@/utils/date_format";
 
 export function pretty_chain(chain: string): string {
   const known: Record<string, string> = {
@@ -92,7 +92,7 @@ export function format_locked_rate(rate_usd: string): string | null {
 
   const fraction_digits = parsed >= 1 ? 2 : 6;
 
-  return new Intl.NumberFormat(undefined, {
+  return new Intl.NumberFormat(app_locale(), {
     style: "currency",
     currency: "USD",
     minimumFractionDigits: fraction_digits,
@@ -100,14 +100,18 @@ export function format_locked_rate(rate_usd: string): string | null {
   }).format(parsed);
 }
 
-export function elapsed_fraction(created_at: string, expires_at: string, now: number): number {
+export function elapsed_fraction(
+  created_at: string,
+  expires_at: string,
+  now: number,
+): number {
   const start = Date.parse(created_at);
   const end = Date.parse(expires_at);
 
-  if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) return 0;
+  if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start)
+    return 0;
 
   const fraction = (now - start) / (end - start);
 
   return Math.min(1, Math.max(0, fraction));
 }
-

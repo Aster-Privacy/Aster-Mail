@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { user_facing_error } from "@/utils/user_facing_error";
 import {
   type ConnectionInfoResponse,
   type ConnectionMethod,
@@ -32,10 +33,9 @@ import {
   is_snowflake_supported,
   is_cdn_relay_supported,
 } from "./tor_transport";
-
-import { api_client } from "@/services/api/client";
 import { is_relay_host_allowed } from "./cdn_relay_transport";
 
+import { api_client } from "@/services/api/client";
 import { ignore_error } from "@/lib/ignore_error";
 
 const STORAGE_KEY = "aster_connection_method";
@@ -53,8 +53,13 @@ class ConnectionStore {
   async initialize(): Promise<void> {
     const raw_method = await this.load_persisted_value(STORAGE_KEY);
     const is_valid = (v: string | null): v is ConnectionMethod =>
-      v === "direct" || v === "tor" || v === "tor_snowflake" || v === "cdn_relay";
-    let method: ConnectionMethod = is_valid(raw_method) ? (raw_method as ConnectionMethod) : "direct";
+      v === "direct" ||
+      v === "tor" ||
+      v === "tor_snowflake" ||
+      v === "cdn_relay";
+    let method: ConnectionMethod = is_valid(raw_method)
+      ? (raw_method as ConnectionMethod)
+      : "direct";
 
     const supported =
       method === "direct" ||
@@ -82,9 +87,13 @@ class ConnectionStore {
     this.notify_listeners();
 
     if (method === "tor" || method === "tor_snowflake") {
-      this.bootstrap_tor_then_sync(method).catch((caught) => ignore_error("services/routing/connection_store:is_valid", caught));
+      this.bootstrap_tor_then_sync(method).catch((caught) =>
+        ignore_error("services/routing/connection_store:is_valid", caught),
+      );
     } else {
-      this.fetch_connection_info().catch((caught) => ignore_error("services/routing/connection_store:is_valid", caught));
+      this.fetch_connection_info().catch((caught) =>
+        ignore_error("services/routing/connection_store:is_valid", caught),
+      );
     }
   }
 
@@ -92,8 +101,13 @@ class ConnectionStore {
     method: ConnectionMethod,
   ): Promise<void> {
     if (is_tor_connected()) {
-      this.sync_from_server().catch((caught) => ignore_error("services/routing/connection_store:is_valid", caught));
-      this.fetch_connection_info().catch((caught) => ignore_error("services/routing/connection_store:is_valid", caught));
+      this.sync_from_server().catch((caught) =>
+        ignore_error("services/routing/connection_store:is_valid", caught),
+      );
+      this.fetch_connection_info().catch((caught) =>
+        ignore_error("services/routing/connection_store:is_valid", caught),
+      );
+
       return;
     }
 
@@ -104,12 +118,15 @@ class ConnectionStore {
       await tor_start(method === "tor_snowflake");
       this.state.status = "connected";
       this.notify_listeners();
-      this.sync_from_server().catch((caught) => ignore_error("services/routing/connection_store:is_valid", caught));
-      this.fetch_connection_info().catch((caught) => ignore_error("services/routing/connection_store:is_valid", caught));
+      this.sync_from_server().catch((caught) =>
+        ignore_error("services/routing/connection_store:is_valid", caught),
+      );
+      this.fetch_connection_info().catch((caught) =>
+        ignore_error("services/routing/connection_store:is_valid", caught),
+      );
     } catch (err) {
       this.state.status = "error";
-      this.state.error_message =
-        err instanceof Error ? err.message : "Tor failed to start";
+      this.state.error_message = user_facing_error(err, "Tor failed to start");
       this.notify_listeners();
     }
   }
@@ -118,7 +135,10 @@ class ConnectionStore {
     try {
       await this.fetch_connection_info();
     } catch (caught) {
-      ignore_error("services/routing/connection_store:sync_from_server", caught);
+      ignore_error(
+        "services/routing/connection_store:sync_from_server",
+        caught,
+      );
     }
   }
 
@@ -174,7 +194,9 @@ class ConnectionStore {
     this.notify_listeners();
 
     if (method === "cdn_relay" && !this.state.cdn_relay_url) {
-      this.fetch_connection_info().catch((caught) => ignore_error("services/routing/connection_store:set_method", caught));
+      this.fetch_connection_info().catch((caught) =>
+        ignore_error("services/routing/connection_store:set_method", caught),
+      );
     }
   }
 
@@ -190,7 +212,9 @@ class ConnectionStore {
     cdn_relay_url: string | null,
   ): Promise<void> {
     const safe_cdn_relay_url =
-      cdn_relay_url && is_relay_host_allowed(cdn_relay_url) ? cdn_relay_url : null;
+      cdn_relay_url && is_relay_host_allowed(cdn_relay_url)
+        ? cdn_relay_url
+        : null;
 
     this.state.api_onion_url = api_onion_url;
     this.state.mail_onion_url = mail_onion_url;
@@ -248,6 +272,10 @@ export const connection_store = new ConnectionStore();
 
 if (typeof window !== "undefined") {
   window.addEventListener("astermail:tor-connected", () => {
-    connection_store.fetch_connection_info().catch((caught) => ignore_error("services/routing/connection_store:set_status", caught));
+    connection_store
+      .fetch_connection_info()
+      .catch((caught) =>
+        ignore_error("services/routing/connection_store:set_status", caught),
+      );
   });
 }

@@ -150,7 +150,10 @@ export function IncomingMailSection({
             {t("settings.username")}
           </label>
           <Input
+            autoCapitalize="none"
             autoComplete="username"
+            autoCorrect="off"
+            spellCheck={false}
             className="w-full"
             id="ext-account-username"
             maxLength={254}
@@ -170,7 +173,7 @@ export function IncomingMailSection({
           <div className="relative">
             <Input
               autoComplete="current-password"
-              className="w-full pr-10"
+              className="w-full pe-10"
               id="ext-account-password"
               placeholder={
                 has_stored_password
@@ -189,7 +192,7 @@ export function IncomingMailSection({
                   ? t("settings.hide_password_toggle")
                   : t("settings.show_password_toggle")
               }
-              className="absolute right-2 top-1/2 -translate-y-1/2"
+              className="absolute end-2 top-1/2 -translate-y-1/2"
               type="button"
               onClick={() => set_show_password(!show_password)}
             >

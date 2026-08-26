@@ -34,6 +34,7 @@ import {
 } from "@heroicons/react/24/outline";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { app_locale } from "@/utils/date_format";
 
 interface EncryptionStatusProps {
   pgp_key: PgpKeyInfo | null;
@@ -130,7 +131,7 @@ export function EncryptionStatus({
           <div className="grid grid-cols-2 gap-4">
             <div>
               <p className="text-2xl font-semibold tabular-nums text-txt-primary">
-                {pgp_key.decrypt_count.toLocaleString()}
+                {pgp_key.decrypt_count.toLocaleString(app_locale())}
               </p>
               <p className="text-xs text-txt-muted">
                 {t("settings.emails_decrypted")}

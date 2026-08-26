@@ -35,16 +35,24 @@ import {
 } from "@/components/ui/dropdown_menu";
 import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
-import { TAG_COLOR_PRESETS } from "@/components/ui/email_tag";
+import {
+  TAG_COLOR_PRESETS,
+  tag_color_label_key,
+} from "@/components/ui/email_tag";
 import {
   use_folders,
   build_folder_tree,
   flatten_folder_tree,
 } from "@/hooks/use_folders";
 import { use_should_reduce_motion } from "@/provider";
+import {
+  MAX_FOLDER_NAME_LENGTH,
+  create_folder_error_message,
+} from "@/lib/folder_error_message";
 import { use_i18n } from "@/lib/i18n/context";
+import { is_composing } from "@/utils/ime";
+import { use_dialog_shell } from "@/lib/use_dialog_shell";
 
-const MAX_FOLDER_NAME_LENGTH = 100;
 
 interface CreateFolderModalProps {
   is_open: boolean;
@@ -104,7 +112,7 @@ export function CreateFolderModal({
     }
 
     return null;
-  }, [trimmed_name, folders_state.folders, selected_parent_token]);
+  }, [trimmed_name, folders_state.folders, selected_parent_token, t]);
 
   const handle_create = async () => {
     if (!trimmed_name || is_creating || validation_error) return;
@@ -125,12 +133,8 @@ export function CreateFolderModal({
       set_folder_name("");
       set_selected_color(TAG_COLOR_PRESETS[10].hex);
       set_selected_parent_token(undefined);
-    } else if (result.code === "PLAN_LIMIT_EXCEEDED") {
-      set_error(t("common.folder_plan_limit_reached"));
-    } else if (result.error) {
-      set_error(result.error);
     } else {
-      set_error(t("common.failed_to_create_folder_error"));
+      set_error(create_folder_error_message(result.code, t));
     }
   };
 
@@ -149,6 +153,13 @@ export function CreateFolderModal({
       )
     : undefined;
 
+  const { dialog_ref, handle_backdrop_pointer_down } =
+    use_dialog_shell<HTMLDivElement>(
+      is_open,
+      handle_close,
+      "create_folder_modal",
+    );
+
   return (
     <AnimatePresence>
       {is_open && (
@@ -158,13 +169,14 @@ export function CreateFolderModal({
           exit={{ opacity: 0 }}
           initial={reduce_motion ? false : { opacity: 0 }}
           transition={{ duration: reduce_motion ? 0 : 0.15 }}
-          onClick={handle_close}
         >
           <div
             className="absolute inset-0 backdrop-blur-md"
             style={{ backgroundColor: "var(--modal-overlay)" }}
+            onPointerDown={handle_backdrop_pointer_down}
           />
           <motion.div
+            ref={dialog_ref}
             animate={{ opacity: 1, scale: 1 }}
             className="relative w-full max-w-md rounded-xl border overflow-hidden bg-modal-bg border-edge-primary"
             exit={{ opacity: 0, scale: 0.96 }}
@@ -172,6 +184,7 @@ export function CreateFolderModal({
             style={{
               boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.35)",
             }}
+            tabIndex={-1}
             transition={{ duration: reduce_motion ? 0 : 0.15 }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -203,7 +216,11 @@ export function CreateFolderModal({
                     type="text"
                     value={folder_name}
                     onChange={(e) => set_folder_name(e.target.value)}
-                    onKeyDown={(e) => e["key"] === "Enter" && handle_create()}
+                    onKeyDown={(e) =>
+                      e["key"] === "Enter" &&
+                      !is_composing(e) &&
+                      handle_create()
+                    }
                   />
                 </div>
 
@@ -217,7 +234,7 @@ export function CreateFolderModal({
                   >
                     <DropdownMenuTrigger asChild>
                       <button
-                        className="flex w-full items-center gap-2 rounded-lg border border-edge-primary px-3 py-2 text-[14px] text-left text-txt-primary transition-colors hover:bg-surface-secondary focus:outline-none"
+                        className="flex w-full items-center gap-2 rounded-lg border border-edge-primary px-3 py-2 text-[14px] text-start text-txt-primary transition-colors hover:bg-surface-secondary focus:outline-none"
                         type="button"
                       >
                         {selected_parent ? (
@@ -251,13 +268,13 @@ export function CreateFolderModal({
                       {parent_options.map((node) => (
                         <DropdownMenuItem
                           key={node.folder.id}
-                          style={{ paddingLeft: 8 + node.depth * 14 }}
+                          style={{ paddingInlineStart: 8 + node.depth * 14 }}
                           onClick={() =>
                             set_selected_parent_token(node.folder.folder_token)
                           }
                         >
                           <FolderIcon
-                            className="w-4 h-4 mr-2 flex-shrink-0"
+                            className="w-4 h-4 me-2 flex-shrink-0"
                             style={{ color: node.folder.color || "#3b82f6" }}
                           />
                           <span className="truncate">{node.folder.name}</span>
@@ -268,13 +285,17 @@ export function CreateFolderModal({
                 </div>
 
                 <div>
-                  <label
+                  <span
                     className="block text-[13px] font-medium mb-2 text-txt-secondary"
-                    htmlFor="create-folder-color"
+                    id="create-folder-color-label"
                   >
                     {t("common.color")}
-                  </label>
-                  <div className="flex flex-wrap gap-2">
+                  </span>
+                  <div
+                    aria-labelledby="create-folder-color-label"
+                    className="flex flex-wrap gap-2"
+                    role="group"
+                  >
                     {TAG_COLOR_PRESETS.map((color) => (
                       <button
                         key={color.hex}
@@ -286,7 +307,7 @@ export function CreateFolderModal({
                               ? `0 0 0 2px var(--modal-bg), 0 0 0 4px ${color.hex}`
                               : "none",
                         }}
-                        title={color.name}
+                        title={t(tag_color_label_key(color.variant))}
                         onClick={() => set_selected_color(color.hex)}
                       />
                     ))}

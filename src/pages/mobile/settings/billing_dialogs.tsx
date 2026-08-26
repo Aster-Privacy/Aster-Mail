@@ -19,13 +19,17 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
-import {
-  EyeIcon,
-  EyeSlashIcon,
-} from "@heroicons/react/24/outline";
+import type { use_billing_section } from "./use_billing_section";
 
+import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 
 import { clamp_password } from "@/services/sanitize";
+import {
+  PLAN_TIERS,
+  convert_cents,
+  is_crypto_provider,
+} from "@/components/settings/billing/billing_constants";
+import { format_price } from "@/services/api/billing";
 import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import {
@@ -38,9 +42,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert_dialog";
-import {
-  CancelReasonStep,
-} from "@/components/settings/billing/cancel_reason_step";
+import { CancelReasonStep } from "@/components/settings/billing/cancel_reason_step";
 import {
   CancelImpactStep,
   type CancelStep,
@@ -50,14 +52,12 @@ import {
   read_billing_interval,
 } from "@/components/settings/billing/cancel_offer";
 import { CancelOfferStep } from "@/components/settings/billing/cancel_offer_step";
-import { is_crypto_provider } from "@/components/settings/billing/billing_constants";
 import { show_toast } from "@/components/toast/simple_toast";
 import { PaymentMethodsModal } from "@/components/settings/payment_methods_modal";
 import { PlanPaymentMethodModal } from "@/components/settings/billing/plan_payment_method_modal";
 import { PlanChangeConfirmModal } from "@/components/settings/billing/plan_change_confirm_modal";
 import { CryptoTermModal } from "@/components/settings/billing/crypto_term_modal";
 import { CryptoAddonTermModal } from "@/components/settings/billing/crypto_addon_term_modal";
-import type { use_billing_section } from "./use_billing_section";
 
 export function render_billing_dialogs(
   state: ReturnType<typeof use_billing_section>,
@@ -74,6 +74,9 @@ export function render_billing_dialogs(
     set_cancel_password_error,
     show_cancel_password,
     set_show_cancel_password,
+    cancel_totp_code,
+    set_cancel_totp_code,
+    cancel_totp_required,
     cancel_reason,
     set_cancel_reason,
     cancel_reason_text,
@@ -110,6 +113,17 @@ export function render_billing_dialogs(
     plan_change_confirm_target,
     set_plan_change_confirm_target,
     preferred_currency,
+    billing_period,
+    credit_balance,
+    pending_family_tier,
+    set_pending_family_tier,
+    crypto_family_tier,
+    set_crypto_family_tier,
+    handle_family_card,
+    handle_family_crypto,
+    addon_to_cancel,
+    set_addon_to_cancel,
+    handle_cancel_addon,
     handle_cancel,
     handle_pay_with_card,
     handle_confirm_plan_change,
@@ -264,12 +278,13 @@ export function render_billing_dialogs(
                 </label>
                 <div className="relative">
                   <Input
-                    className="w-full pr-10"
+                    autoComplete="current-password"
+                    className="w-full pe-10"
+                    maxLength={128}
                     placeholder={t("settings.cancel_password_placeholder")}
                     status={cancel_password_error ? "error" : "default"}
                     type={show_cancel_password ? "text" : "password"}
                     value={cancel_password}
-                    maxLength={128}
                     onChange={(e) => {
                       set_cancel_password(clamp_password(e.target.value));
                       set_cancel_password_error("");
@@ -282,7 +297,7 @@ export function render_billing_dialogs(
                     }}
                   />
                   <button
-                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-txt-muted hover:text-txt-secondary"
+                    className="absolute end-2 top-1/2 -translate-y-1/2 p-1 text-txt-muted hover:text-txt-secondary"
                     tabIndex={-1}
                     type="button"
                     onClick={() =>
@@ -296,6 +311,39 @@ export function render_billing_dialogs(
                     )}
                   </button>
                 </div>
+                {cancel_totp_required && (
+                  <div className="mt-4">
+                    <label
+                      className="block text-sm font-medium text-txt-secondary mb-2"
+                      htmlFor="mobile-cancel-totp-code"
+                    >
+                      {t("settings.authenticator_code")}
+                    </label>
+                    <Input
+                      autoComplete="one-time-code"
+                      className="w-full text-center tracking-[0.5em]"
+                      id="mobile-cancel-totp-code"
+                      inputMode="numeric"
+                      maxLength={6}
+                      placeholder="000000"
+                      status={cancel_password_error ? "error" : "default"}
+                      type="text"
+                      value={cancel_totp_code}
+                      onChange={(e) => {
+                        set_cancel_totp_code(
+                          e.target.value.replace(/\D/g, "").slice(0, 6),
+                        );
+                        set_cancel_password_error("");
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          handle_password_continue();
+                        }
+                      }}
+                    />
+                  </div>
+                )}
                 {cancel_password_error && (
                   <p
                     className="text-xs mt-1.5"
@@ -311,7 +359,11 @@ export function render_billing_dialogs(
                 </AlertDialogCancel>
                 <AlertDialogAction
                   className="flex-1"
-                  disabled={!cancel_password.trim() || is_verifying_password}
+                  disabled={
+                    !cancel_password.trim() ||
+                    is_verifying_password ||
+                    (cancel_totp_required && cancel_totp_code.length !== 6)
+                  }
                   onClick={(e) => {
                     e.preventDefault();
                     handle_password_continue();
@@ -330,9 +382,26 @@ export function render_billing_dialogs(
 
       {method_modal_plan && (
         <PlanPaymentMethodModal
-          open={show_method_modal}
-          plan_name={method_modal_plan.name}
           busy={is_action_loading}
+          credit_balance_cents={Math.min(
+            credit_balance?.balance_cents ?? 0,
+            (billing_period === "yearly"
+              ? PLAN_TIERS.find((p) => p.id === method_modal_plan.code)
+                  ?.yearly_cents
+              : billing_period === "biennial"
+                ? PLAN_TIERS.find((p) => p.id === method_modal_plan.code)
+                    ?.biennial_cents
+                : PLAN_TIERS.find((p) => p.id === method_modal_plan.code)
+                    ?.monthly_cents) ?? method_modal_plan.price_cents,
+          )}
+          credits_apply_to_card={
+            !(
+              !!subscription &&
+              subscription.plan.code !== "free" &&
+              !is_crypto_provider(subscription.payment_provider) &&
+              subscription.has_stripe_subscription !== false
+            )
+          }
           on_choose_card={() => {
             const plan = method_modal_plan;
 
@@ -351,6 +420,8 @@ export function render_billing_dialogs(
             set_show_method_modal(false);
             set_method_modal_plan(null);
           }}
+          open={show_method_modal}
+          plan_name={method_modal_plan.name}
         />
       )}
 
@@ -386,9 +457,11 @@ export function render_billing_dialogs(
 
       {addon_method_target && (
         <PlanPaymentMethodModal
-          open={show_addon_method_modal}
-          plan_name={addon_method_target.name}
           busy={is_action_loading}
+          credit_balance_cents={Math.min(
+            credit_balance?.balance_cents ?? 0,
+            addon_method_target.price_cents,
+          )}
           on_choose_card={() => {
             const addon = addon_method_target;
 
@@ -407,6 +480,31 @@ export function render_billing_dialogs(
             set_show_addon_method_modal(false);
             set_addon_method_target(null);
           }}
+          open={show_addon_method_modal}
+          plan_name={addon_method_target.name}
+        />
+      )}
+
+      {pending_family_tier && (
+        <PlanPaymentMethodModal
+          busy={is_action_loading}
+          on_choose_card={handle_family_card}
+          on_choose_crypto={handle_family_crypto}
+          on_close={() => set_pending_family_tier(null)}
+          open={!!pending_family_tier}
+          plan_name={pending_family_tier.name}
+        />
+      )}
+
+      {crypto_family_tier && (
+        <CryptoTermModal
+          is_open={!!crypto_family_tier}
+          monthly_price_cents={crypto_family_tier.monthly_cents}
+          on_close={() => set_crypto_family_tier(null)}
+          plan_code={crypto_family_tier.id}
+          plan_name={crypto_family_tier.name}
+          preferred_currency={preferred_currency}
+          yearly_price_cents={crypto_family_tier.yearly_cents}
         />
       )}
 
@@ -428,16 +526,64 @@ export function render_billing_dialogs(
         <PlanChangeConfirmModal
           billing_interval={plan_change_confirm_target.interval}
           is_confirming={is_action_loading}
-          open={show_plan_change_confirm}
-          plan_code={plan_change_confirm_target.plan.code}
-          plan_name={plan_change_confirm_target.plan.name}
           on_close={() => {
             set_show_plan_change_confirm(false);
             set_plan_change_confirm_target(null);
           }}
           on_confirm={handle_confirm_plan_change}
+          open={show_plan_change_confirm}
+          plan_code={plan_change_confirm_target.plan.code}
+          plan_name={plan_change_confirm_target.plan.name}
         />
       )}
+
+      <AlertDialog
+        open={!!addon_to_cancel}
+        onOpenChange={(open) => {
+          if (!open) set_addon_to_cancel(null);
+        }}
+      >
+        <AlertDialogContent className="w-[calc(100%-2rem)] max-w-[520px]">
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {t("settings.confirm_cancel_addon")}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("settings.confirm_cancel_addon_description")}
+              {addon_to_cancel && (
+                <span className="mt-2 block font-medium text-[var(--text-primary)]">
+                  {addon_to_cancel.size_label} -{" "}
+                  {format_price(
+                    convert_cents(
+                      addon_to_cancel.price_cents,
+                      preferred_currency,
+                    ),
+                    preferred_currency,
+                  )}
+                  {t("settings.per_month_short")}
+                </span>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="max-sm:flex-row max-sm:gap-3">
+            <AlertDialogCancel className="max-sm:flex-1">
+              {t("common.cancel")}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="aster_btn_destructive max-sm:flex-1"
+              disabled={is_action_loading}
+              onClick={(e) => {
+                e.preventDefault();
+                handle_cancel_addon();
+              }}
+            >
+              {is_action_loading
+                ? t("settings.cancelling")
+                : t("settings.confirm_cancel_addon")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <PaymentMethodsModal
         on_close={() => set_show_payment_methods(false)}

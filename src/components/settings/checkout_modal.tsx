@@ -48,6 +48,7 @@ import {
   use_stripe_theme_tokens,
   build_stripe_appearance,
 } from "@/lib/stripe_appearance";
+import { stripe_locale } from "@/lib/stripe_locale";
 
 export type checkout_phase =
   | "loading"
@@ -133,7 +134,6 @@ interface CheckoutModalProps {
   price_display: string;
   addon_id?: string;
   price_cents?: number;
-  current_plan_price_cents?: number;
   initial_promo_code?: string;
   on_close: () => void;
   on_success: () => void;
@@ -148,7 +148,6 @@ export function CheckoutModal({
   price_display,
   addon_id,
   price_cents,
-  current_plan_price_cents,
   initial_promo_code,
   on_close,
   on_success,
@@ -172,10 +171,7 @@ export function CheckoutModal({
 
   const colors = useMemo(() => get_theme_colors(theme === "dark"), [theme]);
 
-  const effective_price_cents =
-    (addon_id && price_cents && current_plan_price_cents
-      ? price_cents + current_plan_price_cents
-      : price_cents) ?? 0;
+  const effective_price_cents = price_cents ?? 0;
 
   const initialize = useCallback(async () => {
     set_phase("loading");
@@ -205,7 +201,11 @@ export function CheckoutModal({
 
       const { loadStripe } = await import("@stripe/stripe-js");
 
-      set_stripe_promise(loadStripe(config_response.data.publishable_key));
+      set_stripe_promise(
+        loadStripe(config_response.data.publishable_key, {
+          locale: stripe_locale(),
+        }),
+      );
 
       if (!addon_id) {
         try {
@@ -274,6 +274,7 @@ export function CheckoutModal({
   const elements_options = useMemo(
     () => ({
       appearance: build_stripe_appearance(stripe_tokens),
+      locale: stripe_locale(),
       fonts:
         typeof window !== "undefined"
           ? (() => {

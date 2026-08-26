@@ -20,7 +20,7 @@
 //
 import type { VerifiedDomainAddress } from "@/components/settings/hooks/use_verified_domain_addresses";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ClipboardDocumentIcon,
@@ -45,6 +45,7 @@ import {
 } from "@/services/api/smtp_tokens";
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
+import { copy_text } from "@/utils/copy_text";
 
 interface SmtpTokenCreateModalProps {
   is_open: boolean;
@@ -99,12 +100,29 @@ export function SmtpTokenCreateModal({
     set_created(null);
   }, []);
 
+  const was_open_ref = useRef(false);
+
   useEffect(() => {
-    if (is_open) {
-      reset_state();
-      set_bound_address(addresses[0]?.value ?? "");
+    if (!is_open) {
+      was_open_ref.current = false;
+
+      return;
     }
-  }, [is_open, addresses, reset_state]);
+
+    if (was_open_ref.current) return;
+    was_open_ref.current = true;
+    reset_state();
+  }, [is_open, reset_state]);
+
+  useEffect(() => {
+    if (!is_open || step !== "form" || bound_address) return;
+    set_bound_address(addresses[0]?.value ?? "");
+  }, [is_open, step, addresses, bound_address]);
+
+  const handle_dismiss = () => {
+    if (step !== "form") on_created();
+    on_close();
+  };
 
   const handle_create = async () => {
     if (!name.trim() || !bound_address) return;
@@ -146,8 +164,11 @@ export function SmtpTokenCreateModal({
   };
 
   const copy_value = async (value: string) => {
-    await navigator.clipboard.writeText(value);
-    show_toast(t("common.copied_to_clipboard"), "success");
+    if (await copy_text(value)) {
+      show_toast(t("common.copied_to_clipboard"), "success");
+    } else {
+      show_toast(t("common.failed_to_copy"), "error");
+    }
   };
 
   const copy_all = async () => {
@@ -161,8 +182,11 @@ export function SmtpTokenCreateModal({
       `${t("settings.smtp_token_password")}: ${created.token}`,
     ];
 
-    await navigator.clipboard.writeText(lines.join("\n"));
-    show_toast(t("common.copied_to_clipboard"), "success");
+    if (await copy_text(lines.join("\n"))) {
+      show_toast(t("common.copied_to_clipboard"), "success");
+    } else {
+      show_toast(t("common.failed_to_copy"), "error");
+    }
   };
 
   const handle_done = () => {
@@ -193,6 +217,12 @@ export function SmtpTokenCreateModal({
             status={error ? "error" : "default"}
             value={name}
             onChange={(e) => set_name(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key !== "Enter") return;
+              if (!name.trim() || !bound_address || is_loading) return;
+              e.preventDefault();
+              handle_create();
+            }}
           />
         </div>
         <div>
@@ -242,7 +272,10 @@ export function SmtpTokenCreateModal({
     if (!created) return null;
 
     const rows: { label: string; value: string; mono?: boolean }[] = [
-      { label: t("settings.smtp_token_host"), value: created.smtp_settings.host },
+      {
+        label: t("settings.smtp_token_host"),
+        value: created.smtp_settings.host,
+      },
       {
         label: t("settings.smtp_token_port"),
         value: String(created.smtp_settings.port),
@@ -278,7 +311,7 @@ export function SmtpTokenCreateModal({
             {rows.map((row) => (
               <button
                 key={row.label}
-                className="w-full flex items-center justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-black/5 dark:hover:bg-white/5"
+                className="w-full flex items-center justify-between gap-3 px-4 py-3 text-start transition-colors hover:bg-black/5 dark:hover:bg-white/5"
                 type="button"
                 onClick={() => copy_value(row.value)}
               >
@@ -301,7 +334,7 @@ export function SmtpTokenCreateModal({
           </div>
           <div className="flex justify-center">
             <Button variant="secondary" onClick={copy_all}>
-              <ClipboardDocumentIcon className="w-4 h-4 mr-2" />
+              <ClipboardDocumentIcon className="w-4 h-4 me-2" />
               {t("settings.smtp_token_copy_all")}
             </Button>
           </div>
@@ -318,9 +351,10 @@ export function SmtpTokenCreateModal({
 
   return (
     <Modal
+      close_on_escape={step === "form"}
       close_on_overlay={false}
       is_open={is_open}
-      on_close={on_close}
+      on_close={handle_dismiss}
       show_close_button={step === "form"}
       size="md"
     >

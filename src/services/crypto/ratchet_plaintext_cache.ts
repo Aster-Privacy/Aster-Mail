@@ -40,9 +40,7 @@ interface CachedPlaintext {
   stored_at: number;
 }
 
-async function namespaced_cache_id(
-  message_id: string,
-): Promise<string | null> {
+async function namespaced_cache_id(message_id: string): Promise<string | null> {
   try {
     const { get_current_account_id, accounts_storage_unreadable } =
       await import("@/services/account_manager");

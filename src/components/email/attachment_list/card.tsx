@@ -18,10 +18,10 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { } from "@/lib/i18n/types";
+import type {} from "@/lib/i18n/types";
 
-
-
+import { DownloadIcon, FileDocIcon } from "./icons";
+import { DecryptedAttachmentInfo } from "./types";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { format_bytes } from "@/lib/utils";
@@ -31,9 +31,6 @@ import {
   is_previewable_image,
   is_previewable_pdf,
 } from "@/lib/attachment_utils";
-
-import { DownloadIcon, FileDocIcon } from "./icons";
-import { DecryptedAttachmentInfo } from "./types";
 
 export function AttachmentCard({
   att,
@@ -72,7 +69,7 @@ export function AttachmentCard({
           />
           {is_pdf && (
             <div
-              className="absolute bottom-1.5 left-1.5 px-1.5 py-0.5 rounded text-[9px] font-bold text-white"
+              className="absolute bottom-1.5 start-1.5 px-1.5 py-0.5 rounded text-[9px] font-bold text-white"
               style={{ backgroundColor: "#ea4335" }}
             >
               PDF
@@ -114,4 +111,3 @@ export function AttachmentCard({
     </div>
   );
 }
-

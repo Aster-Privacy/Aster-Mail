@@ -108,8 +108,8 @@ vi.mock("@/services/api/aliases", () => ({
 }));
 
 vi.mock("@/hooks/mail_events", async (import_original) => {
-  const actual =
-    await import_original<typeof import("@/hooks/mail_events")>();
+  const actual = await import_original<typeof import("@/hooks/mail_events")>();
+
   return { ...actual, emit_aliases_changed: vi.fn() };
 });
 

@@ -38,7 +38,6 @@ import { persist_unsubscribe } from "@/hooks/use_unsubscribed_senders";
 import { show_action_toast } from "@/components/toast/action_toast";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { use_preferences } from "@/contexts/preferences_context";
-
 import { ignore_error } from "@/lib/ignore_error";
 
 export function MobileUnsubscribeBanner({
@@ -89,7 +88,12 @@ export function MobileUnsubscribeBanner({
       sender_name: email.sender,
       unsubscribe_link: info.unsubscribe_link,
       list_unsubscribe_header: info.list_unsubscribe_header,
-    }).catch((caught) => ignore_error("pages/mobile/mobile_detail_banners:handle_unsubscribe", caught));
+    }).catch((caught) =>
+      ignore_error(
+        "pages/mobile/mobile_detail_banners:handle_unsubscribe",
+        caught,
+      ),
+    );
 
     show_action_toast({
       message: t("mail.successfully_unsubscribed"),
@@ -112,15 +116,22 @@ export function MobileUnsubscribeBanner({
 
       try {
         const result = await execute_unsubscribe(info as never);
+
         if (result === "api") {
-          persist_unsubscribe(email.sender_email, email.sender || "", {
-            unsubscribe_link: info.unsubscribe_link,
-            list_unsubscribe_header: info.list_unsubscribe_header,
-          }, "auto");
+          persist_unsubscribe(
+            email.sender_email,
+            email.sender || "",
+            {
+              unsubscribe_link: info.unsubscribe_link,
+              list_unsubscribe_header: info.list_unsubscribe_header,
+            },
+            "auto",
+          );
         }
         if (result !== "api") {
           const url = info.unsubscribe_link || info.unsubscribe_mailto;
           const lockdown = is_any_lockdown_active();
+
           show_action_toast({
             message: t("mail.unsubscribe_manual_required"),
             action_type: "not_spam",
@@ -192,24 +203,22 @@ export function MobileExternalContentBanner({
   if (report.has_remote_images) {
     const count = report.blocked_items.filter((i) => i.type === "image").length;
 
-    if (count > 0) parts.push(count === 1 ? t("common.images_count").replace("{{count}}", "1") : t("common.images_count_plural").replace("{{count}}", String(count)));
+    if (count > 0) parts.push(t("common.images_count", { count }));
   }
-  if (report.has_tracking_pixels)
-    parts.push(t("common.tracking_pixels"));
+  if (report.has_tracking_pixels) parts.push(t("common.tracking_pixels"));
   if (report.has_remote_fonts) parts.push(t("common.fonts"));
   if (report.has_remote_css) parts.push(t("common.stylesheets"));
   const message =
-    parts.length > 0 ? parts.join(", ") : t("common.blocked_items_count").replace("{{count}}", String(report.blocked_count));
+    parts.length > 0
+      ? parts.join(", ")
+      : t("common.blocked_items_count", { count: report.blocked_count });
 
   return (
     <div className="mx-4 mt-3 rounded-lg border border-[var(--border-primary)] bg-[var(--bg-secondary)] px-3 py-2.5">
       <div className="flex items-center gap-3">
         <ShieldExclamationIcon className="h-5 w-5 shrink-0 text-amber-500" />
         <p className="min-w-0 flex-1 text-[13px] text-[var(--text-primary)]">
-          {t("mail.external_content_blocked").replace(
-            "{{message}}",
-            message,
-          )}
+          {t("mail.external_content_blocked", { message })}
         </p>
         <div className="flex shrink-0 items-center gap-1.5">
           <button

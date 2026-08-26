@@ -37,10 +37,7 @@ vi.mock("@/services/api/auth", () => ({
   rekey_user_data: (payload: unknown) => rekey_user_data(payload),
 }));
 
-import {
-  alias_is_restorable,
-  restore_orphaned_alias,
-} from "./aliases/restore";
+import { alias_is_restorable, restore_orphaned_alias } from "./aliases/restore";
 import type { DecryptedEmailAlias } from "./aliases/types";
 
 const orphaned_alias = (
@@ -62,9 +59,7 @@ describe("alias_is_restorable", () => {
       alias_is_restorable(orphaned_alias({ routing_address_hash: "" })),
     ).toBe(false);
     expect(
-      alias_is_restorable(
-        orphaned_alias({ routing_address_hash: undefined }),
-      ),
+      alias_is_restorable(orphaned_alias({ routing_address_hash: undefined })),
     ).toBe(false);
   });
 });

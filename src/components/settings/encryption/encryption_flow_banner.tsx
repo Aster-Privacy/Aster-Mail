@@ -32,6 +32,7 @@ const GROUP_COUNT = 4;
 
 function generate_hex_groups(): string {
   const bytes = new Uint8Array((GROUP_COUNT * GROUP_SIZE) / 2);
+
   crypto.getRandomValues(bytes);
   const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join(
     "",
@@ -73,7 +74,7 @@ export function EncryptionFlowBanner({
           "0 1px 3px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.1)",
       }}
     >
-      <div className="absolute right-5 top-1/2 -translate-y-1/2 flex items-end gap-2 pointer-events-none">
+      <div className="absolute end-5 top-1/2 -translate-y-1/2 flex items-end gap-2 pointer-events-none">
         <KeyIcon
           className="w-9 h-9 text-white/[0.15]"
           style={{ transform: "translateY(-18px) rotate(-15deg)" }}

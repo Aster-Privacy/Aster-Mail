@@ -94,5 +94,5 @@ export interface DeleteFolderOutcome {
   success: boolean;
   purged_items?: number;
   error?: string;
+  code?: string;
 }
-

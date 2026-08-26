@@ -18,9 +18,10 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { HASH_ALG } from "@/services/crypto/constants";
+import { user_facing_error } from "@/utils/user_facing_error";
 import type { EncryptedVault } from "./key_manager";
 
+import { HASH_ALG } from "@/services/crypto/constants";
 import {
   create_draft,
   update_draft,
@@ -31,13 +32,13 @@ import {
 } from "@/services/api/multi_drafts";
 import { emit_drafts_changed, emit_draft_updated } from "@/hooks/mail_events";
 
-
 export interface DraftData {
   to_recipients: string[];
   cc_recipients: string[];
   bcc_recipients: string[];
   subject: string;
   message: string;
+  from_email?: string;
   attachments?: DraftAttachmentData[];
 }
 
@@ -97,6 +98,7 @@ async function compute_content_hash(data: DraftData): Promise<string> {
     bcc: data.bcc_recipients,
     subject: data.subject,
     message: data.message,
+    from: data.from_email || "",
     att: (data.attachments || []).map((a) => a.id).sort(),
   });
   const encoder = new TextEncoder();
@@ -213,6 +215,7 @@ class DraftManager {
       bcc_recipients: data.bcc_recipients,
       subject: data.subject,
       message: data.message,
+      from_email: data.from_email || undefined,
       attachments:
         data.attachments && data.attachments.length > 0
           ? data.attachments
@@ -354,6 +357,7 @@ class DraftManager {
     })();
 
     const save_seq = ++context.save_seq;
+
     context.pending_save = save_promise;
 
     try {
@@ -367,7 +371,7 @@ class DraftManager {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : "Failed to save draft",
+        error: user_facing_error(error, "Failed to save draft"),
       };
     } finally {
       if (context.save_seq === save_seq) {
@@ -422,4 +426,3 @@ class DraftManager {
 }
 
 export const draft_manager = new DraftManager();
-

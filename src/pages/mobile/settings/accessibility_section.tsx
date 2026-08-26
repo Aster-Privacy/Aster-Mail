@@ -21,11 +21,7 @@
 import { useEffect, useState } from "react";
 import { Switch } from "@aster/ui";
 
-import {
-  SettingsGroup,
-  SettingsHeader,
-  SettingsRow,
-} from "./shared";
+import { SettingsGroup, SettingsHeader, SettingsRow } from "./shared";
 
 import {
   use_preferences,
@@ -34,6 +30,7 @@ import {
   FONT_SIZE_DEFAULT,
 } from "@/contexts/preferences_context";
 import { use_i18n } from "@/lib/i18n/context";
+import { is_composing } from "@/utils/ime";
 import { KeyboardShortcutsModal } from "@/components/modals/keyboard_shortcuts_modal";
 
 export function AccessibilitySection({
@@ -58,8 +55,11 @@ export function AccessibilitySection({
   const clamp_font_size = (n: number) =>
     Math.max(FONT_SIZE_MIN, Math.min(FONT_SIZE_MAX, Math.round(n)));
 
-  const commit_font_size = (n: number) => {
-    update_preference("font_size_scale", clamp_font_size(n), true);
+  const commit_font_size = (n: number, immediate = true) => {
+    const v = clamp_font_size(n);
+
+    set_font_size_input(String(v));
+    update_preference("font_size_scale", v, immediate);
   };
 
   const [shortcuts_modal_open, set_shortcuts_modal_open] = useState(false);
@@ -83,7 +83,9 @@ export function AccessibilitySection({
                 step={1}
                 type="range"
                 value={font_size}
-                onChange={(e) => commit_font_size(Number(e.target.value))}
+                onChange={(e) =>
+                  commit_font_size(Number(e.target.value), false)
+                }
               />
               <input
                 aria-label={t("settings.font_size")}
@@ -110,6 +112,11 @@ export function AccessibilitySection({
                   commit_font_size(parsed);
                 }}
                 onChange={(e) => set_font_size_input(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !is_composing(e)) {
+                    (e.target as HTMLInputElement).blur();
+                  }
+                }}
               />
               <span className="text-xs text-txt-muted">px</span>
             </div>
@@ -135,7 +142,9 @@ export function AccessibilitySection({
             trailing={
               <Switch
                 checked={preferences.high_contrast}
-                onCheckedChange={(v) => update_preference("high_contrast", v, true)}
+                onCheckedChange={(v) =>
+                  update_preference("high_contrast", v, true)
+                }
               />
             }
           />
@@ -155,7 +164,9 @@ export function AccessibilitySection({
             trailing={
               <Switch
                 checked={preferences.link_underlines}
-                onCheckedChange={(v) => update_preference("link_underlines", v, true)}
+                onCheckedChange={(v) =>
+                  update_preference("link_underlines", v, true)
+                }
               />
             }
           />
@@ -167,7 +178,9 @@ export function AccessibilitySection({
             trailing={
               <Switch
                 checked={preferences.dyslexia_font}
-                onCheckedChange={(v) => update_preference("dyslexia_font", v, true)}
+                onCheckedChange={(v) =>
+                  update_preference("dyslexia_font", v, true)
+                }
               />
             }
           />
@@ -176,7 +189,9 @@ export function AccessibilitySection({
             trailing={
               <Switch
                 checked={preferences.text_spacing}
-                onCheckedChange={(v) => update_preference("text_spacing", v, true)}
+                onCheckedChange={(v) =>
+                  update_preference("text_spacing", v, true)
+                }
               />
             }
           />
@@ -188,7 +203,9 @@ export function AccessibilitySection({
             trailing={
               <Switch
                 checked={preferences.reduce_motion}
-                onCheckedChange={(v) => update_preference("reduce_motion", v, true)}
+                onCheckedChange={(v) =>
+                  update_preference("reduce_motion", v, true)
+                }
               />
             }
           />
@@ -197,7 +214,23 @@ export function AccessibilitySection({
             trailing={
               <Switch
                 checked={preferences.compact_mode}
-                onCheckedChange={(v) => update_preference("compact_mode", v, true)}
+                onCheckedChange={(v) =>
+                  update_preference("compact_mode", v, true)
+                }
+              />
+            }
+          />
+        </SettingsGroup>
+
+        <SettingsGroup title={t("settings.low_network_mode_section_title")}>
+          <SettingsRow
+            label={t("settings.low_network_mode_label")}
+            trailing={
+              <Switch
+                checked={preferences.low_network_mode}
+                onCheckedChange={(v) =>
+                  update_preference("low_network_mode", v, true)
+                }
               />
             }
           />

@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { parse_calendar_date } from "@/utils/date_utils";
 
 export function parse_csv_records(text: string): string[][] {
   const records: string[][] = [];
@@ -68,8 +69,9 @@ export function parse_csv_records(text: string): string[][] {
 
 export function get_days_until_birthday(birthday: string): number {
   const today = new Date();
+
   today.setHours(0, 0, 0, 0);
-  const birth_date = new Date(birthday);
+  const birth_date = parse_calendar_date(birthday);
   const this_year_birthday = new Date(
     today.getFullYear(),
     birth_date.getMonth(),

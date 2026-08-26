@@ -18,7 +18,9 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { user_facing_error } from "@/utils/user_facing_error";
 import type { EncryptedVault } from "@/services/crypto/key_manager";
+import type { TranslationKey } from "@/lib/i18n/types";
 
 import { useEffect, useMemo, useCallback, useRef } from "react";
 import { useLocation } from "react-router-dom";
@@ -30,7 +32,12 @@ import {
   clear_session_passphrase,
 } from "./session_passphrase";
 import { purge_all_local_data } from "./purge_local_data";
-
+import {
+  clear_account_scoped_caches,
+  safe_log_error,
+  with_timeout,
+} from "./auth_helpers";
+import { use_auth_account_state } from "./use_auth_account_state";
 
 import {
   api_client,
@@ -56,10 +63,7 @@ import {
   perform_shared_mailbox_login,
   clear_shared_mailbox_session,
 } from "@/services/shared_mailbox_session";
-import {
-  get_account_limit,
-  link_account_device,
-} from "@/services/api/switch";
+import { get_account_limit, link_account_device } from "@/services/api/switch";
 import { sync_client } from "@/services/sync_client";
 import {
   start_session_timeout,
@@ -75,6 +79,7 @@ import { ensure_default_labels } from "@/services/labels/ensure_defaults";
 import { show_toast } from "@/components/toast/simple_toast";
 import { hard_redirect } from "@/lib/hard_redirect";
 import { clear_device_session } from "@/native/desktop_device_auth";
+import { process_offline_queue } from "@/native/offline_queue";
 import {
   account_index_routing_enabled,
   app_pathname,
@@ -83,20 +88,11 @@ import {
   redirect_to_account_index,
   take_url_account_request,
 } from "@/lib/account_index_url";
-import { clear_app_lock_config, clear_session_unlock } from "@/services/app_lock_store";
 import {
-  delete_category_index_for_account,
-} from "@/services/category_index";
-import type { TranslationKey } from "@/lib/i18n/types";
-
-import {
-  clear_account_scoped_caches,
-  safe_log_error,
-  with_timeout,
-} from "./auth_helpers";
-
-import { use_auth_account_state } from "./use_auth_account_state";
-
+  clear_app_lock_config,
+  clear_session_unlock,
+} from "@/services/app_lock_store";
+import { delete_category_index_for_account } from "@/services/category_index";
 import { ignore_error } from "@/lib/ignore_error";
 
 export function use_auth_provider_state() {
@@ -222,8 +218,10 @@ export function use_auth_provider_state() {
           } catch (e) {
             safe_log_error(e);
 
-            const message = e instanceof Error ? e.message : "";
-            const access_gone = /unavailable|no longer|not found/i.test(message);
+            const message = user_facing_error(e, "");
+            const access_gone = /unavailable|no longer|not found/i.test(
+              message,
+            );
 
             if (access_gone) {
               await clear_shared_mailbox_session(target.id);
@@ -342,7 +340,10 @@ export function use_auth_provider_state() {
         if ("__TAURI_INTERNALS__" in window) return;
         hard_redirect(nav_target);
       } catch (caught) {
-        ignore_error("contexts/auth/use_auth_provider_state:use_auth_provider_state", caught);
+        ignore_error(
+          "contexts/auth/use_auth_provider_state:use_auth_provider_state",
+          caught,
+        );
       }
     }, 6000);
 
@@ -354,12 +355,14 @@ export function use_auth_provider_state() {
         safe_log_error(e);
       }
 
-      await with_timeout(clear_device_session(), 2000).catch((caught) => ignore_error("contexts/auth/use_auth_provider_state:use_auth_provider_state", caught));
-
-      await with_timeout(
-        api_client.post("/core/v1/auth/logout", {}),
-        3000,
+      await with_timeout(clear_device_session(), 2000).catch((caught) =>
+        ignore_error(
+          "contexts/auth/use_auth_provider_state:use_auth_provider_state",
+          caught,
+        ),
       );
+
+      await with_timeout(api_client.post("/core/v1/auth/logout", {}), 3000);
 
       if (other && current_id) {
         stop_session_timeout();
@@ -406,10 +409,18 @@ export function use_auth_provider_state() {
           navigate(nav_target);
         }
       } catch (caught) {
-        ignore_error("contexts/auth/use_auth_provider_state:use_auth_provider_state", caught);
+        ignore_error(
+          "contexts/auth/use_auth_provider_state:use_auth_provider_state",
+          caught,
+        );
       }
     }
-  }, [clear_local_auth_data, navigate, state.accounts, state.current_account_id]);
+  }, [
+    clear_local_auth_data,
+    navigate,
+    state.accounts,
+    state.current_account_id,
+  ]);
 
   const logout_all_handler = useCallback(async () => {
     const fallback_timer = window.setTimeout(() => {
@@ -417,7 +428,10 @@ export function use_auth_provider_state() {
         if ("__TAURI_INTERNALS__" in window) return;
         hard_redirect("/sign-in");
       } catch (caught) {
-        ignore_error("contexts/auth/use_auth_provider_state:use_auth_provider_state", caught);
+        ignore_error(
+          "contexts/auth/use_auth_provider_state:use_auth_provider_state",
+          caught,
+        );
       }
     }, 6000);
 
@@ -429,12 +443,14 @@ export function use_auth_provider_state() {
         safe_log_error(e);
       }
 
-      await with_timeout(clear_device_session(), 2000).catch((caught) => ignore_error("contexts/auth/use_auth_provider_state:use_auth_provider_state", caught));
-
-      await with_timeout(
-        api_client.post("/core/v1/auth/logout-all", {}),
-        3000,
+      await with_timeout(clear_device_session(), 2000).catch((caught) =>
+        ignore_error(
+          "contexts/auth/use_auth_provider_state:use_auth_provider_state",
+          caught,
+        ),
       );
+
+      await with_timeout(api_client.post("/core/v1/auth/logout-all", {}), 3000);
 
       await with_timeout(clear_local_auth_data(), 4000);
     } catch (e) {
@@ -446,7 +462,10 @@ export function use_auth_provider_state() {
           navigate("/sign-in");
         }
       } catch (caught) {
-        ignore_error("contexts/auth/use_auth_provider_state:use_auth_provider_state", caught);
+        ignore_error(
+          "contexts/auth/use_auth_provider_state:use_auth_provider_state",
+          caught,
+        );
       }
     }
   }, [clear_local_auth_data, navigate]);
@@ -456,7 +475,12 @@ export function use_auth_provider_state() {
       message_key: TranslationKey,
       reason?: string,
     ) => {
-      await clear_device_session().catch((caught) => ignore_error("contexts/auth/use_auth_provider_state:sign_out_keeping_other_accounts", caught));
+      await clear_device_session().catch((caught) =>
+        ignore_error(
+          "contexts/auth/use_auth_provider_state:sign_out_keeping_other_accounts",
+          caught,
+        ),
+      );
 
       const path = app_pathname();
       const current_id = state.current_account_id;
@@ -471,7 +495,14 @@ export function use_auth_provider_state() {
         if (path === "/sign-in") return;
 
         show_toast(t(message_key), "info");
-        await api_client.clear_session_cookies().catch((caught) => ignore_error("contexts/auth/use_auth_provider_state:sign_out_keeping_other_accounts", caught));
+        await api_client
+          .clear_session_cookies()
+          .catch((caught) =>
+            ignore_error(
+              "contexts/auth/use_auth_provider_state:sign_out_keeping_other_accounts",
+              caught,
+            ),
+          );
         navigate("/sign-in");
 
         return;
@@ -483,7 +514,12 @@ export function use_auth_provider_state() {
       if (current_id) {
         clear_session_timeout_data(current_id);
         clear_session_unlock(current_id);
-        await clear_session_passphrase(current_id).catch((caught) => ignore_error("contexts/auth/use_auth_provider_state:sign_out_keeping_other_accounts", caught));
+        await clear_session_passphrase(current_id).catch((caught) =>
+          ignore_error(
+            "contexts/auth/use_auth_provider_state:sign_out_keeping_other_accounts",
+            caught,
+          ),
+        );
       }
 
       set_is_adding_account(true);
@@ -517,9 +553,11 @@ export function use_auth_provider_state() {
 
       if (Date.now() < session_expired_muted_until.current) return;
       const still_valid = await api_client.check_auth_status();
+
       if (still_valid) {
         api_client.set_authenticated(true);
         re_trigger_keys_ready();
+
         return;
       }
 
@@ -628,6 +666,12 @@ export function use_auth_provider_state() {
 
   useEffect(() => {
     if (!state.is_authenticated) return;
+
+    process_offline_queue().catch(safe_log_error);
+  }, [state.is_authenticated, state.current_account_id]);
+
+  useEffect(() => {
+    if (!state.is_authenticated) return;
     let cancelled = false;
 
     const resolve_account_limit = async () => {
@@ -640,6 +684,7 @@ export function use_auth_provider_state() {
       if (cancelled) return;
 
       let limit = link_result?.data?.max_accounts;
+      let lookup_failed = !link_result?.data;
 
       if (limit === undefined) {
         const limit_result = await get_account_limit().catch((e) => {
@@ -650,6 +695,7 @@ export function use_auth_provider_state() {
 
         if (cancelled) return;
         limit = limit_result?.data?.max_accounts;
+        lookup_failed = !limit_result?.data;
       }
 
       if (limit !== undefined && limit !== 0) {
@@ -657,6 +703,8 @@ export function use_auth_provider_state() {
 
         return;
       }
+
+      if (lookup_failed) return;
 
       const plan_code = await get_current_plan_code().catch((e) => {
         safe_log_error(e);

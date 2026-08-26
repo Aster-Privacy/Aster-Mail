@@ -18,9 +18,10 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import { array_to_base64 } from "./base64";
 import { HASH_ALG } from "./constants";
+
+import { zero_uint8_array } from "@/services/crypto/secure_memory";
 
 export { array_to_base64, base64_to_array } from "./base64";
 export { HASH_ALG } from "./constants";
@@ -74,6 +75,7 @@ export function merge_previous_ratchet_keys(
       if (!set.ratchet_identity_public) return false;
       if (seen.has(set.ratchet_identity_public)) return false;
       seen.add(set.ratchet_identity_public);
+
       return true;
     })
     .slice(0, RATCHET_PREVIOUS_KEYS_LIMIT);

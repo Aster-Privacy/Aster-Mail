@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
+import { user_facing_error } from "@/utils/user_facing_error";
 import type {
   ContactEmailStats,
   ContactHistoryResponse,
@@ -27,6 +27,8 @@ import type {
 
 import { api_client, type ApiResponse } from "./client";
 import { get_contacts_encryption_key } from "./contacts";
+
+import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 
 function base64_to_array(base64: string): Uint8Array {
   const binary = atob(base64);
@@ -80,7 +82,11 @@ export async function get_contact_history(
 
         if (item.encrypted_subject && item.subject_nonce) {
           try {
-            const decrypted = await decrypt_aes_gcm_with_fallback(key, base64_to_array(item.encrypted_subject), base64_to_array(item.subject_nonce));
+            const decrypted = await decrypt_aes_gcm_with_fallback(
+              key,
+              base64_to_array(item.encrypted_subject),
+              base64_to_array(item.subject_nonce),
+            );
 
             subject = new TextDecoder().decode(decrypted);
           } catch {
@@ -109,7 +115,7 @@ export async function get_contact_history(
     };
   } catch (err) {
     return {
-      error: err instanceof Error ? err.message : "Failed to decrypt history",
+      error: user_facing_error(err, "Failed to decrypt history"),
     };
   }
 }

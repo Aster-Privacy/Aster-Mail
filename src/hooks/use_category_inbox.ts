@@ -20,7 +20,7 @@
 //
 import type { InboxEmail, EmailListState, EmailCategory } from "@/types/email";
 import type { FormatOptions } from "@/utils/date_format";
-import type { UseEmailListReturn } from "./email_list_types";
+import type { UseEmailListReturn, FetchPageOptions } from "./email_list_types";
 import type { BulkActionResult } from "./bulk_action_result";
 
 import {
@@ -39,12 +39,12 @@ import {
   DEFAULT_PAGE_SIZE,
   type RestoredEmailEntry,
 } from "./email_list_helpers";
-import { resolve_effective_page_size } from "@/lib/inbox_page_size";
 import { use_email_list_actions } from "./use_email_list_actions";
 import { use_email_list_bulk } from "./use_email_list_bulk";
 import { MAIL_EVENTS } from "./mail_events";
-import { mark_preload_stale } from "@/components/email/hooks/preload_cache";
 
+import { resolve_effective_page_size } from "@/lib/inbox_page_size";
+import { mark_preload_stale } from "@/components/email/hooks/preload_cache";
 import {
   has_passphrase_in_memory,
   on_keys_ready,
@@ -61,7 +61,10 @@ import {
   subscribe as subscribe_index,
   get_version as get_index_version,
   remove_ids,
+  remove_ids_absent_from_server,
+  clear_absent_strikes,
   suppress_ids,
+  clear_suppressed_ids,
   remove_thread_entries,
   reindex_ids,
   request_full_rebuild,
@@ -79,7 +82,6 @@ import { get_thread_messages, trash_thread } from "@/services/api/mail";
 import { batch_archive as api_batch_archive } from "@/services/api/archive";
 import { bulk_update_metadata_by_ids } from "@/services/crypto/mail_metadata";
 import { emit_mail_soft_refresh } from "@/hooks/email_action_types";
-
 import { ignore_error } from "@/lib/ignore_error";
 
 const EMPTY_STATE: EmailListState = {
@@ -247,6 +249,7 @@ export function use_category_inbox(
   useEffect(() => {
     const handle_item_update = (event: Event) => {
       const detail = (event as CustomEvent).detail;
+
       mark_preload_stale(detail.id);
 
       const rep_id = get_thread_rep_id(detail.id);
@@ -345,7 +348,12 @@ export function use_category_inbox(
   );
   const fetch_in_flight_ref = useRef(false);
   const fetch_page_ref = useRef<
-    ((page: number, limit: number, force?: boolean) => Promise<void>) | null
+    | ((
+        page: number,
+        limit: number,
+        options?: FetchPageOptions,
+      ) => Promise<void>)
+    | null
   >(null);
 
   if (prev_category_ref.current !== active_category) {
@@ -405,6 +413,7 @@ export function use_category_inbox(
         last_signature_ref.current = "";
       }
 
+      clear_suppressed_ids();
       void init_category_index();
     };
 
@@ -465,8 +474,11 @@ export function use_category_inbox(
     async (
       target_page: number,
       limit: number,
-      silent = false,
+      options?: FetchPageOptions,
     ): Promise<void> => {
+      const silent = options?.silent === true;
+      const force = options?.force === true;
+
       if (!enabled) return;
       if (!has_passphrase_in_memory()) {
         last_signature_ref.current = "";
@@ -487,7 +499,7 @@ export function use_category_inbox(
         }
         fetch_retry_timer_ref.current = setTimeout(() => {
           fetch_retry_timer_ref.current = null;
-          void fetch_page_ref.current?.(target_page, limit);
+          void fetch_page_ref.current?.(target_page, limit, options);
         }, FETCH_RETRY_DELAY_MS);
 
         return true;
@@ -523,7 +535,7 @@ export function use_category_inbox(
       const cache_key = page_cache_key(target_page, ids);
       const cached = page_cache.current.get(cache_key);
 
-      if (cached) {
+      if (cached && !force) {
         abort_ref.current = null;
         touch_cache_entry(page_cache.current, cache_key, cached);
         set_state((prev) => build_list_state(prev, cached, total, has_more));
@@ -568,8 +580,10 @@ export function use_category_inbox(
           fetch_retry_timer_ref.current = null;
         }
 
+        clear_absent_strikes(fetched.map((email) => email.id));
+
         if (missing_ids.length > 0) {
-          remove_ids(missing_ids);
+          remove_ids_absent_from_server(missing_ids);
         }
 
         if (unrenderable_ids.length > 0) {
@@ -708,7 +722,7 @@ export function use_category_inbox(
     const handle_email_sent = () => {
       if (!has_passphrase_in_memory()) return;
       page_cache.current.clear();
-      void fetch_page(page, page_size, true);
+      void fetch_page(page, page_size, { silent: true });
     };
 
     window.addEventListener(
@@ -788,6 +802,7 @@ export function use_category_inbox(
   const refresh = useCallback(() => {
     page_cache.current.clear();
     last_signature_ref.current = "";
+    clear_suppressed_ids();
     void fetch_page(page, page_size);
   }, [fetch_page, page, page_size]);
 
@@ -834,8 +849,15 @@ export function use_category_inbox(
       void (async () => {
         try {
           const response = await get_thread_messages(token);
-          const messages = response.data?.messages ?? [];
-          const total = response.data?.thread?.message_count ?? messages.length;
+
+          if (!response.data) {
+            reindex_ids(removed);
+
+            return;
+          }
+
+          const messages = response.data.messages ?? [];
+          const total = response.data.thread?.message_count ?? messages.length;
           const sibling_ids = messages
             .filter(
               (message) =>

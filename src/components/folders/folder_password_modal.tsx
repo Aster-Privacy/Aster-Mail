@@ -37,6 +37,7 @@ import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
 import { UpgradeGate } from "@/components/common/upgrade_gate";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
+import { use_dialog_shell } from "@/lib/use_dialog_shell";
 
 interface FolderPasswordModalProps {
   is_open: boolean;
@@ -154,7 +155,7 @@ function PasswordInput({
       <Input
         // eslint-disable-next-line jsx-a11y/no-autofocus
         autoFocus={auto_focus}
-        className="pr-11"
+        className="pe-11"
         id={id}
         placeholder={placeholder}
         status={status}
@@ -164,7 +165,7 @@ function PasswordInput({
         onKeyDown={on_key_down}
       />
       <button
-        className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center focus:outline-none text-txt-muted"
+        className="absolute end-3 top-1/2 -translate-y-1/2 flex items-center justify-center focus:outline-none text-txt-muted"
         type="button"
         onClick={on_toggle_visibility}
       >
@@ -191,6 +192,7 @@ export function FolderPasswordModal({
   const { is_feature_locked } = use_plan_limits();
   const {
     is_loading,
+    is_unlocked,
     error: hook_error,
     unlock_folder,
     set_password,
@@ -205,13 +207,16 @@ export function FolderPasswordModal({
   const [show_confirm, set_show_confirm] = useState(false);
   const [show_current, set_show_current] = useState(false);
   const [error, set_error] = useState("");
+  const [error_sync, set_error_sync] = useState(0);
   const [internal_mode, set_internal_mode] = useState<
     "setup" | "unlock" | "change" | "remove"
-  >(mode === "settings" ? "change" : mode);
+  >(mode === "settings" ? (is_unlocked ? "change" : "unlock") : mode);
 
   useEffect(() => {
     if (is_open) {
-      set_internal_mode(mode === "settings" ? "change" : mode);
+      set_internal_mode(
+        mode === "settings" ? (is_unlocked ? "change" : "unlock") : mode,
+      );
       set_password_state("");
       set_confirm_password("");
       set_current_password("");
@@ -223,7 +228,20 @@ export function FolderPasswordModal({
     if (hook_error) {
       set_error(hook_error);
     }
-  }, [hook_error]);
+  }, [hook_error, error_sync]);
+
+  const handle_mode_switch = (next: "change" | "remove") => {
+    if (next === internal_mode) return;
+
+    set_internal_mode(next);
+    set_password_state("");
+    set_confirm_password("");
+    set_current_password("");
+    set_show_password(false);
+    set_show_confirm(false);
+    set_show_current(false);
+    set_error("");
+  };
 
   const strength = get_password_strength(password, t);
 
@@ -249,6 +267,10 @@ export function FolderPasswordModal({
 
       const success = await set_password(password);
 
+      if (!success) {
+        set_error_sync((v) => v + 1);
+      }
+
       if (success) {
         on_success?.();
         on_close();
@@ -262,7 +284,18 @@ export function FolderPasswordModal({
 
       const success = await unlock_folder(password);
 
+      if (!success) {
+        set_error_sync((v) => v + 1);
+      }
+
       if (success) {
+        if (mode === "settings") {
+          set_password_state("");
+          set_error("");
+          set_internal_mode("change");
+
+          return;
+        }
         on_success?.();
         on_close();
       }
@@ -290,6 +323,10 @@ export function FolderPasswordModal({
 
       const success = await change_password(current_password, password);
 
+      if (!success) {
+        set_error_sync((v) => v + 1);
+      }
+
       if (success) {
         on_success?.();
         on_close();
@@ -302,6 +339,10 @@ export function FolderPasswordModal({
       }
 
       const success = await remove_password(password);
+
+      if (!success) {
+        set_error_sync((v) => v + 1);
+      }
 
       if (success) {
         on_success?.();
@@ -464,12 +505,8 @@ export function FolderPasswordModal({
 
   const render_remove_content = () => (
     <div className="space-y-4">
-      <div
-        className="flex items-start gap-3 p-3 rounded-lg bg-red-600 dark:bg-red-700"
-      >
-        <ExclamationTriangleIcon
-          className="w-5 h-5 flex-shrink-0 mt-0.5 text-white"
-        />
+      <div className="flex items-start gap-3 p-3 rounded-lg bg-red-600 dark:bg-red-700">
+        <ExclamationTriangleIcon className="w-5 h-5 flex-shrink-0 mt-0.5 text-white" />
         <div>
           <p className="text-[13px] font-medium mb-0.5 text-white">
             {t("settings.remove_protection_warning_title")}
@@ -532,6 +569,13 @@ export function FolderPasswordModal({
     }
   };
 
+  const { dialog_ref, handle_backdrop_pointer_down } =
+    use_dialog_shell<HTMLDivElement>(
+      is_open,
+      handle_close,
+      "folder_password_modal",
+    );
+
   return (
     <AnimatePresence>
       {is_open && (
@@ -541,13 +585,14 @@ export function FolderPasswordModal({
           exit={{ opacity: 0 }}
           initial={reduce_motion ? false : { opacity: 0 }}
           transition={{ duration: reduce_motion ? 0 : 0.15 }}
-          onClick={handle_close}
         >
           <div
             className="absolute inset-0 backdrop-blur-md"
             style={{ backgroundColor: "var(--modal-overlay)" }}
+            onPointerDown={handle_backdrop_pointer_down}
           />
           <motion.div
+            ref={dialog_ref}
             animate={{ opacity: 1 }}
             className="relative w-full max-w-[400px] rounded-xl border overflow-hidden bg-modal-bg border-edge-primary"
             exit={{ opacity: 0 }}
@@ -555,8 +600,8 @@ export function FolderPasswordModal({
             style={{
               boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.35)",
             }}
+            tabIndex={-1}
             transition={{ duration: reduce_motion ? 0 : 0.15 }}
-            onClick={(e) => e.stopPropagation()}
           >
             <div className="px-6 pt-6 pb-4">
               <div className="flex items-start justify-between mb-4">
@@ -574,7 +619,7 @@ export function FolderPasswordModal({
                 </button>
               </div>
 
-              {mode === "settings" && (
+              {mode === "settings" && internal_mode !== "unlock" && (
                 <div className="relative flex p-1 rounded-lg mb-4 bg-surf-tertiary">
                   <motion.div
                     className="absolute top-1 bottom-1 rounded-md bg-surf-card"
@@ -598,7 +643,7 @@ export function FolderPasswordModal({
                           ? "var(--text-primary)"
                           : "var(--text-muted)",
                     }}
-                    onClick={() => set_internal_mode("change")}
+                    onClick={() => handle_mode_switch("change")}
                   >
                     {t("settings.change_folder_password")}
                   </button>
@@ -610,7 +655,7 @@ export function FolderPasswordModal({
                           ? "var(--text-primary)"
                           : "var(--text-muted)",
                     }}
-                    onClick={() => set_internal_mode("remove")}
+                    onClick={() => handle_mode_switch("remove")}
                   >
                     {t("settings.remove_protection")}
                   </button>

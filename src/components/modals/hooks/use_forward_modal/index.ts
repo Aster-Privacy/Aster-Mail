@@ -18,5 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-export { apply_inline_image_substitutions } from "./helpers";
+export {
+  apply_inline_image_substitutions,
+  merge_pending_recipients,
+} from "./helpers";
 export { use_forward_modal } from "./hook";

@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { EncryptedVault } from "./key_manager_core";
+
 import { select_private_key_matching_public } from "./key_manager_pgp";
 
 const CACHE_TTL_MS = 5 * 60 * 1000;

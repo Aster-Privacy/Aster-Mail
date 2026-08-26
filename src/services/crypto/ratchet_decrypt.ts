@@ -495,7 +495,9 @@ async function init_receiver_from_bootstrap(
 async function snapshot_ratchet_state(
   ratchet: DoubleRatchet,
 ): Promise<SerializedState> {
-  return JSON.parse(JSON.stringify(await ratchet.serialize())) as SerializedState;
+  return JSON.parse(
+    JSON.stringify(await ratchet.serialize()),
+  ) as SerializedState;
 }
 
 async function carry_forward_skipped_keys(
@@ -589,7 +591,9 @@ async function decrypt_ratchet_for_recipient(
     if (plaintext !== null && ratchet_origin === "archived") {
       const archived_snapshot = await snapshot_ratchet_state(ratchet!);
       const archived_epoch = archived_snapshot.state.epoch ?? 0;
-      const primary_epoch = loaded_snapshot ? (loaded_snapshot.state.epoch ?? 0) : -1;
+      const primary_epoch = loaded_snapshot
+        ? (loaded_snapshot.state.epoch ?? 0)
+        : -1;
 
       if (archived_epoch > primary_epoch) {
         if (loaded_snapshot) {

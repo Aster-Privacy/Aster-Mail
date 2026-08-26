@@ -71,6 +71,7 @@ afterEach(() => {
 describe("escape keeps the opened email open", () => {
   it("does not close the viewer on Escape", () => {
     const on_close_viewer = vi.fn();
+
     mount(on_close_viewer);
 
     press("Escape");
@@ -80,6 +81,7 @@ describe("escape keeps the opened email open", () => {
 
   it("still closes the viewer on u", () => {
     const on_close_viewer = vi.fn();
+
     mount(on_close_viewer);
 
     press("u");

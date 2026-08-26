@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { apply_input_transform } from "@/utils/input_transform";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ArrowPathIcon,
@@ -43,7 +44,8 @@ import {
 } from "@/components/ui/select";
 import { use_auth } from "@/contexts/auth_context";
 import { use_i18n } from "@/lib/i18n/context";
-import { format_bytes } from "@/lib/utils";
+import { format_bytes, format_number } from "@/lib/utils";
+import { ELLIPSIS } from "@/utils/preview_text";
 import {
   check_address_availability,
   type FamilyGroupResponse,
@@ -72,8 +74,10 @@ import {
   cache_shared_mailbox_secret,
 } from "@/services/shared_mailbox_session";
 import { get_session_passphrase } from "@/contexts/auth/session_passphrase";
-
+import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { ignore_error } from "@/lib/ignore_error";
+import { is_composing } from "@/utils/ime";
+import { user_facing_error } from "@/utils/user_facing_error";
 
 const DEFAULT_ALLOCATION_BYTES = 10 * 1024 ** 3;
 
@@ -104,6 +108,7 @@ export function SharedMailboxesTab({
   const [pending_delete, set_pending_delete] =
     useState<SharedMailboxInfo | null>(null);
   const availability_timer = useRef<number | null>(null);
+  const availability_request_ref = useRef(0);
 
   const active_members = group.members.filter((m) => m.status === "active");
   const me = active_members.find((m) => m.user_id === my_user_id);
@@ -136,13 +141,16 @@ export function SharedMailboxesTab({
     const prefix = new_prefix.trim();
 
     if (prefix.length < 3) {
+      availability_request_ref.current += 1;
       set_address_available(null);
 
       return;
     }
     availability_timer.current = window.setTimeout(async () => {
+      const request_id = ++availability_request_ref.current;
       const response = await check_address_availability(prefix, new_domain);
 
+      if (request_id !== availability_request_ref.current) return;
       set_address_available(response.data ? response.data.available : null);
     }, 450);
 
@@ -208,7 +216,15 @@ export function SharedMailboxesTab({
   const handle_create = useCallback(async () => {
     const prefix = new_prefix.trim();
 
-    if (prefix.length < 3 || creating || !me) return;
+    if (
+      prefix.length < 3 ||
+      creating ||
+      !me ||
+      at_mailbox_limit ||
+      address_available === false
+    ) {
+      return;
+    }
 
     set_creating(true);
     try {
@@ -255,7 +271,12 @@ export function SharedMailboxesTab({
         response.data.mailbox_user_id,
         material.login_secret,
         response.data.credential_epoch,
-      ).catch((caught) => ignore_error("components/settings/billing/shared_mailboxes_tab:SharedMailboxesTab", caught));
+      ).catch((caught) =>
+        ignore_error(
+          "components/settings/billing/shared_mailboxes_tab:SharedMailboxesTab",
+          caught,
+        ),
+      );
 
       const owner_grant = await seal_grant(
         {
@@ -274,6 +295,7 @@ export function SharedMailboxesTab({
         owner_grant,
         response.data.credential_epoch,
       );
+
       if (reissue.error) {
         reissue = await add_shared_mailbox_grant(
           response.data.id,
@@ -290,7 +312,12 @@ export function SharedMailboxesTab({
         return;
       }
 
-      await sync_shared_mailbox_grants().catch((caught) => ignore_error("components/settings/billing/shared_mailboxes_tab:SharedMailboxesTab", caught));
+      await sync_shared_mailbox_grants().catch((caught) =>
+        ignore_error(
+          "components/settings/billing/shared_mailboxes_tab:SharedMailboxesTab",
+          caught,
+        ),
+      );
       set_new_prefix("");
       set_address_available(null);
       show_toast(t("shared_mailboxes.created"), "success");
@@ -298,16 +325,27 @@ export function SharedMailboxesTab({
       set_expanded(response.data.id);
     } catch (e) {
       show_toast(
-        e instanceof Error ? e.message : t("shared_mailboxes.create_failed"),
+        user_facing_error(e, t("shared_mailboxes.create_failed")),
         "error",
       );
     } finally {
       set_creating(false);
     }
-  }, [new_prefix, new_domain, creating, me, my_user_id, remaining_pool, t, load]);
+  }, [
+    new_prefix,
+    new_domain,
+    creating,
+    me,
+    my_user_id,
+    remaining_pool,
+    at_mailbox_limit,
+    address_available,
+    t,
+    load,
+  ]);
 
   const handle_rotate = useCallback(
-    async (mailbox_id: string): Promise<boolean> => {
+    async (mailbox_id: string, silent = false): Promise<boolean> => {
       if (busy_mailbox) return false;
       set_busy_mailbox(mailbox_id);
       try {
@@ -372,27 +410,36 @@ export function SharedMailboxesTab({
         });
 
         if (response.error) {
-          show_toast(
-            response.code === "CONFLICT"
-              ? t("shared_mailboxes.rotate_conflict")
-              : response.error,
-            "error",
-          );
+          if (!silent) {
+            show_toast(
+              response.code === "CONFLICT"
+                ? t("shared_mailboxes.rotate_conflict")
+                : t("settings.fam_org_action_failed"),
+              "error",
+            );
+          }
 
           return false;
         }
 
         await clear_shared_mailbox_session(mailbox.mailbox_user_id);
-        await sync_shared_mailbox_grants().catch((caught) => ignore_error("components/settings/billing/shared_mailboxes_tab:SharedMailboxesTab", caught));
-        show_toast(t("shared_mailboxes.rotated"), "success");
+        await sync_shared_mailbox_grants().catch((caught) =>
+          ignore_error(
+            "components/settings/billing/shared_mailboxes_tab:SharedMailboxesTab",
+            caught,
+          ),
+        );
+        if (!silent) show_toast(t("shared_mailboxes.rotated"), "success");
         await load();
 
         return true;
       } catch (e) {
-        show_toast(
-          e instanceof Error ? e.message : t("settings.fam_org_action_failed"),
-          "error",
-        );
+        if (!silent) {
+          show_toast(
+            user_facing_error(e, t("settings.fam_org_action_failed")),
+            "error",
+          );
+        }
 
         return false;
       } finally {
@@ -420,12 +467,13 @@ export function SharedMailboxesTab({
           );
 
           if (response.error) {
-            show_toast(response.error, "error");
+            show_toast(t("settings.fam_org_action_failed"), "error");
 
             return;
           }
           set_busy_mailbox(null);
-          const fully_removed = await handle_rotate(mailbox.id);
+          const fully_removed = await handle_rotate(mailbox.id, true);
+
           show_toast(
             fully_removed
               ? t("shared_mailboxes.grant_revoked")
@@ -446,7 +494,7 @@ export function SharedMailboxesTab({
         await load();
       } catch (e) {
         show_toast(
-          e instanceof Error ? e.message : t("settings.fam_org_action_failed"),
+          user_facing_error(e, t("settings.fam_org_action_failed")),
           "error",
         );
       } finally {
@@ -466,12 +514,17 @@ export function SharedMailboxesTab({
       const response = await delete_shared_mailbox(mailbox.id);
 
       if (response.error) {
-        show_toast(response.error, "error");
+        show_toast(t("settings.fam_org_action_failed"), "error");
 
         return;
       }
       await clear_shared_mailbox_session(mailbox.mailbox_user_id);
-      await sync_shared_mailbox_grants().catch((caught) => ignore_error("components/settings/billing/shared_mailboxes_tab:SharedMailboxesTab", caught));
+      await sync_shared_mailbox_grants().catch((caught) =>
+        ignore_error(
+          "components/settings/billing/shared_mailboxes_tab:SharedMailboxesTab",
+          caught,
+        ),
+      );
       show_toast(t("shared_mailboxes.deleted"), "success");
       await load();
     } catch {
@@ -483,10 +536,23 @@ export function SharedMailboxesTab({
 
   const handle_open = useCallback(
     async (mailbox: SharedMailboxInfo) => {
-      await sync_shared_mailbox_grants().catch((caught) => ignore_error("components/settings/billing/shared_mailboxes_tab:SharedMailboxesTab", caught));
+      const synced = await sync_shared_mailbox_grants().catch((caught) => {
+        ignore_error(
+          "components/settings/billing/shared_mailboxes_tab:SharedMailboxesTab",
+          caught,
+        );
+
+        return [] as SharedMailboxInfo[];
+      });
+
+      if (!synced.some((m) => m.mailbox_user_id === mailbox.mailbox_user_id)) {
+        show_toast(t("shared_mailboxes.access_unavailable"), "error");
+
+        return;
+      }
       await switch_to_account(mailbox.mailbox_user_id);
     },
-    [switch_to_account],
+    [switch_to_account, t],
   );
 
   return (
@@ -501,17 +567,21 @@ export function SharedMailboxesTab({
             value={new_prefix}
             onChange={(e) => {
               set_new_prefix(
-                e.target.value.toLowerCase().replace(/[^a-z0-9.]/g, ""),
+                apply_input_transform(e.target, (v) =>
+                  v.toLowerCase().replace(/[^a-z0-9.]/g, ""),
+                ),
               );
               set_address_available(null);
             }}
-            onKeyDown={(e) => e.key === "Enter" && handle_create()}
+            onKeyDown={(e) =>
+              e.key === "Enter" && !is_composing(e) && handle_create()
+            }
           />
           <span className="text-txt-muted text-sm px-1 select-none shrink-0">
             @
           </span>
           <Select value={new_domain} onValueChange={set_new_domain}>
-            <SelectTrigger className="border-0 border-l border-black/10 dark:border-white/10 rounded-none bg-transparent h-full shadow-none text-sm min-w-0 max-w-[160px] px-2">
+            <SelectTrigger className="border-0 border-s border-black/10 dark:border-white/10 rounded-none bg-transparent h-full shadow-none text-sm min-w-0 max-w-[160px] px-2">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -523,6 +593,7 @@ export function SharedMailboxesTab({
         <Button
           disabled={
             creating ||
+            !me ||
             at_mailbox_limit ||
             new_prefix.trim().length < 3 ||
             address_available === false
@@ -531,11 +602,7 @@ export function SharedMailboxesTab({
           variant="depth"
           onClick={handle_create}
         >
-          {creating ? (
-            <Spinner size="sm" />
-          ) : (
-            <PlusIcon className="w-4 h-4" />
-          )}{" "}
+          {creating ? <Spinner size="sm" /> : <PlusIcon className="w-4 h-4" />}{" "}
           {t("shared_mailboxes.create")}
         </Button>
       </div>
@@ -553,11 +620,11 @@ export function SharedMailboxesTab({
         <p className="text-[11px] text-txt-muted">
           {at_mailbox_limit
             ? t("shared_mailboxes.limit_reached", {
-                max: String(max_mailboxes),
+                max: max_mailboxes,
               })
             : t("shared_mailboxes.create_hint", {
-                count: String(mailboxes.length),
-                max: max_mailboxes === -1 ? "∞" : String(max_mailboxes ?? "…"),
+                count: mailboxes.length,
+                max: max_mailboxes === -1 ? "∞" : (max_mailboxes ?? ELLIPSIS),
               })}
         </p>
       )}
@@ -566,6 +633,13 @@ export function SharedMailboxesTab({
         <div className="flex items-center gap-2 py-6 justify-center">
           <Spinner size="sm" />
         </div>
+      ) : load_failed && mailboxes.length === 0 ? (
+        <LoadFailedNotice
+          on_retry={() => {
+            set_loading(true);
+            void load();
+          }}
+        />
       ) : mailboxes.length === 0 ? (
         <div className="flex flex-col items-center py-10 gap-3">
           <InboxStackIcon className="w-12 h-12 text-txt-muted" />
@@ -592,10 +666,8 @@ export function SharedMailboxesTab({
               >
                 <div className="flex items-center gap-2 px-3 py-2.5">
                   <button
-                    className="flex items-center gap-2.5 flex-1 min-w-0 text-left"
-                    onClick={() =>
-                      set_expanded(is_open ? null : mailbox.id)
-                    }
+                    className="flex items-center gap-2.5 flex-1 min-w-0 text-start"
+                    onClick={() => set_expanded(is_open ? null : mailbox.id)}
                   >
                     <ChevronRightIcon
                       className={`w-3.5 h-3.5 text-txt-muted flex-shrink-0 transition-transform duration-200 ${is_open ? "rotate-90" : ""}`}
@@ -617,7 +689,7 @@ export function SharedMailboxesTab({
                   </button>
                   <span className="aster_badge aster_badge_gray flex-shrink-0 text-xs flex items-center gap-1">
                     <UsersIcon className="w-3 h-3" />
-                    {mailbox.grants.length}
+                    {format_number(mailbox.grants.length)}
                   </span>
                   {mailbox.my_grant && mailbox.status === "active" && (
                     <button
@@ -625,7 +697,7 @@ export function SharedMailboxesTab({
                       disabled={is_busy}
                       onClick={() => handle_open(mailbox)}
                     >
-                      <ArrowRightIcon className="w-3.5 h-3.5" />
+                      <ArrowRightIcon className="w-3.5 h-3.5 rtl:-scale-x-100" />
                       {t("shared_mailboxes.open")}
                     </button>
                   )}
@@ -664,9 +736,7 @@ export function SharedMailboxesTab({
                       <span>
                         {t("shared_mailboxes.storage_line", {
                           used: format_bytes(mailbox.storage_used_bytes),
-                          total: format_bytes(
-                            mailbox.allocated_storage_bytes,
-                          ),
+                          total: format_bytes(mailbox.allocated_storage_bytes),
                         })}
                       </span>
                     </div>
@@ -737,10 +807,10 @@ export function SharedMailboxesTab({
             ? `${pending_delete.username}@${pending_delete.email_domain}`
             : "",
         })}
-        title={t("shared_mailboxes.delete_confirm_title")}
-        variant="danger"
         on_cancel={() => set_pending_delete(null)}
         on_confirm={handle_delete}
+        title={t("shared_mailboxes.delete_confirm_title")}
+        variant="danger"
       />
     </div>
   );

@@ -23,15 +23,16 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
 declare global {
-  // eslint-disable-next-line no-var
   var IS_REACT_ACT_ENVIRONMENT: boolean;
 }
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
-const update_member_storage = vi.fn(async (_user_id: string, _bytes: number) => ({
-  data: {},
-  error: null,
-}));
+const update_member_storage = vi.fn(
+  async (_user_id: string, _bytes: number) => ({
+    data: {},
+    error: null,
+  }),
+);
 
 const translate = (key: string, params?: Record<string, unknown>) =>
   params ? `${key} ${Object.values(params).join(",")}` : key;
@@ -55,24 +56,37 @@ vi.mock("@/services/api/family", () => ({
 
 vi.mock("@/services/api/family_org", () => ({}));
 vi.mock("@/services/api/billing", () => ({ change_plan: vi.fn() }));
-vi.mock("@/services/api/aliases", () => ({ check_alias_availability: vi.fn() }));
+vi.mock("@/services/api/aliases", () => ({
+  check_alias_availability: vi.fn(),
+}));
 vi.mock("@/components/toast/simple_toast", () => ({ show_toast: vi.fn() }));
 vi.mock("./family_kids_addresses", () => ({ KidsContent: () => null }));
 vi.mock("@/components/auth/turnstile_widget", () => ({
   TurnstileWidget: () => null,
   TURNSTILE_SITE_KEY: "test",
 }));
-vi.mock("@/components/ui/profile_avatar", () => ({ ProfileAvatar: () => null }));
+vi.mock("@/components/ui/profile_avatar", () => ({
+  ProfileAvatar: () => null,
+}));
 vi.mock("@aster/ui", () => ({
   Switch: () => null,
-  Button: ({ children, onClick }: { children?: React.ReactNode; onClick?: () => void }) => (
-    <button onClick={onClick}>{children}</button>
+  Button: ({
+    children,
+    onClick,
+  }: {
+    children?: React.ReactNode;
+    onClick?: () => void;
+  }) => <button onClick={onClick}>{children}</button>,
+  Badge: ({ children }: { children?: React.ReactNode }) => (
+    <span>{children}</span>
   ),
-  Badge: ({ children }: { children?: React.ReactNode }) => <span>{children}</span>,
-  Tooltip: ({ children }: { children?: React.ReactNode }) => <span>{children}</span>,
+  Tooltip: ({ children }: { children?: React.ReactNode }) => (
+    <span>{children}</span>
+  ),
 }));
 
 import { MemberRow } from "./family_section";
+
 import type { FamilyMemberInfo } from "@/services/api/family";
 
 const GiB = 1073741824;
@@ -114,8 +128,9 @@ function render(node: React.ReactElement) {
 function set_range(input: HTMLInputElement, value: string) {
   const setter = Object.getOwnPropertyDescriptor(
     window.HTMLInputElement.prototype,
-    "value"
+    "value",
   )!.set!;
+
   act(() => {
     setter.call(input, value);
     input.dispatchEvent(new Event("input", { bubbles: true }));
@@ -159,13 +174,13 @@ describe("MemberRow owner self storage management", () => {
   it("shows the storage-edit control on the owner's own row", () => {
     render(
       <MemberRow
-        member={owner}
         is_owner_view={true}
-        pool_remaining_bytes={0}
+        member={owner}
+        on_reload={async () => {}}
         on_remove={() => {}}
         on_transfer={() => {}}
-        on_reload={async () => {}}
-      />
+        pool_remaining_bytes={0}
+      />,
     );
     expect(host.querySelector(EDIT)).not.toBeNull();
   });
@@ -173,13 +188,13 @@ describe("MemberRow owner self storage management", () => {
   it("hides transfer and remove on the owner's own row", () => {
     render(
       <MemberRow
-        member={owner}
         is_owner_view={true}
-        pool_remaining_bytes={0}
+        member={owner}
+        on_reload={async () => {}}
         on_remove={() => {}}
         on_transfer={() => {}}
-        on_reload={async () => {}}
-      />
+        pool_remaining_bytes={0}
+      />,
     );
     expect(host.querySelector(TRANSFER)).toBeNull();
     expect(host.querySelector(REMOVE)).toBeNull();
@@ -188,13 +203,13 @@ describe("MemberRow owner self storage management", () => {
   it("still shows edit, transfer, and remove for a non-owner member", () => {
     render(
       <MemberRow
-        member={member}
         is_owner_view={true}
-        pool_remaining_bytes={0}
+        member={member}
+        on_reload={async () => {}}
         on_remove={() => {}}
         on_transfer={() => {}}
-        on_reload={async () => {}}
-      />
+        pool_remaining_bytes={0}
+      />,
     );
     expect(host.querySelector(EDIT)).not.toBeNull();
     expect(host.querySelector(TRANSFER)).not.toBeNull();
@@ -204,18 +219,19 @@ describe("MemberRow owner self storage management", () => {
   it("lets the owner drag their allocation down at TB scale, freeing the pool", () => {
     render(
       <MemberRow
-        member={owner}
         is_owner_view={true}
-        pool_remaining_bytes={0}
+        member={owner}
+        on_reload={async () => {}}
         on_remove={() => {}}
         on_transfer={() => {}}
-        on_reload={async () => {}}
-      />
+        pool_remaining_bytes={0}
+      />,
     );
     act(() => {
       (host.querySelector(EDIT) as HTMLButtonElement).click();
     });
     const slider = host.querySelector('[role="slider"]') as HTMLElement;
+
     expect(slider).not.toBeNull();
     expect(Number(slider.getAttribute("aria-valuemin"))).toBe(1);
     expect(Number(slider.getAttribute("aria-valuemax"))).toBe(3073);
@@ -226,25 +242,28 @@ describe("MemberRow owner self storage management", () => {
 
   it("saves the reduced owner allocation via update_member_storage and reloads", async () => {
     const on_reload = vi.fn(async () => {});
+
     render(
       <MemberRow
-        member={owner}
         is_owner_view={true}
-        pool_remaining_bytes={0}
+        member={owner}
+        on_reload={on_reload}
         on_remove={() => {}}
         on_transfer={() => {}}
-        on_reload={on_reload}
-      />
+        pool_remaining_bytes={0}
+      />,
     );
     act(() => {
       (host.querySelector(EDIT) as HTMLButtonElement).click();
     });
     const slider = host.querySelector('[role="slider"]') as HTMLElement;
+
     set_slider(slider, 512);
 
     const save_btn = Array.from(host.querySelectorAll("button")).find(
-      (b) => b.textContent === "settings.fam_org_member_save"
+      (b) => b.textContent === "settings.fam_org_member_save",
     ) as HTMLButtonElement;
+
     expect(save_btn).toBeTruthy();
 
     await act(async () => {
@@ -260,24 +279,26 @@ describe("MemberRow owner self storage management", () => {
   it("saves an exact typed allocation via the manual number input", async () => {
     render(
       <MemberRow
-        member={owner}
         is_owner_view={true}
-        pool_remaining_bytes={0}
+        member={owner}
+        on_reload={async () => {}}
         on_remove={() => {}}
         on_transfer={() => {}}
-        on_reload={async () => {}}
-      />
+        pool_remaining_bytes={0}
+      />,
     );
     act(() => {
       (host.querySelector(EDIT) as HTMLButtonElement).click();
     });
     const box = host.querySelector('input[type="number"]') as HTMLInputElement;
+
     expect(box).not.toBeNull();
     set_range(box, "1000");
 
     const save_btn = Array.from(host.querySelectorAll("button")).find(
-      (b) => b.textContent === "settings.fam_org_member_save"
+      (b) => b.textContent === "settings.fam_org_member_save",
     ) as HTMLButtonElement;
+
     await act(async () => {
       save_btn.click();
     });
@@ -289,23 +310,25 @@ describe("MemberRow owner self storage management", () => {
   it("clamps a typed allocation above the pool ceiling on save", async () => {
     render(
       <MemberRow
-        member={owner}
         is_owner_view={true}
-        pool_remaining_bytes={0}
+        member={owner}
+        on_reload={async () => {}}
         on_remove={() => {}}
         on_transfer={() => {}}
-        on_reload={async () => {}}
-      />
+        pool_remaining_bytes={0}
+      />,
     );
     act(() => {
       (host.querySelector(EDIT) as HTMLButtonElement).click();
     });
     const box = host.querySelector('input[type="number"]') as HTMLInputElement;
+
     set_range(box, "999999");
 
     const save_btn = Array.from(host.querySelectorAll("button")).find(
-      (b) => b.textContent === "settings.fam_org_member_save"
+      (b) => b.textContent === "settings.fam_org_member_save",
     ) as HTMLButtonElement;
+
     await act(async () => {
       save_btn.click();
     });

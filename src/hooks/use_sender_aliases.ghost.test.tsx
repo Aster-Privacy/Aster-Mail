@@ -38,14 +38,18 @@ vi.mock("@/services/api/aliases", () => ({
     total: 0,
   })),
   decrypt_aliases: vi.fn(async () => []),
-  compute_alias_hash: vi.fn(async (local: string, domain: string) => `H:${local}@${domain}`),
+  compute_alias_hash: vi.fn(
+    async (local: string, domain: string) => `H:${local}@${domain}`,
+  ),
 }));
 
 vi.mock("@/services/api/domains", () => ({
   list_domains: vi.fn(async () => ({ data: { domains: [] } })),
   list_domain_addresses: vi.fn(async () => ({ data: { addresses: [] } })),
   decrypt_domain_addresses: vi.fn(async () => []),
-  compute_address_hash: vi.fn(async (local: string, domain: string) => `A:${local}@${domain}`),
+  compute_address_hash: vi.fn(
+    async (local: string, domain: string) => `A:${local}@${domain}`,
+  ),
 }));
 
 vi.mock("@/services/account_manager", () => ({
@@ -114,8 +118,10 @@ let latest_loading = true;
 
 function Probe() {
   const { sender_options, loading } = use_sender_aliases();
+
   latest_options = sender_options;
   latest_loading = loading;
+
   return null;
 }
 
@@ -152,6 +158,7 @@ describe("use_sender_aliases ghost inclusion (reply-from-ghost bug)", () => {
     expect(latest_loading).toBe(false);
 
     const ghost = latest_options.find((o) => o.type === "ghost");
+
     expect(ghost, "ghost alias must appear in the From selector").toBeDefined();
     expect(ghost?.email).toBe(GHOST_ADDRESS);
     expect(ghost?.is_enabled).toBe(true);
@@ -166,7 +173,8 @@ describe("use_sender_aliases ghost inclusion (reply-from-ghost bug)", () => {
 
     const inbound_to = [GHOST_ADDRESS];
     const match = latest_options.find(
-      (s) => s.is_enabled && s.email.toLowerCase() === inbound_to[0].toLowerCase(),
+      (s) =>
+        s.is_enabled && s.email.toLowerCase() === inbound_to[0].toLowerCase(),
     );
 
     expect(
@@ -183,8 +191,13 @@ describe("use_sender_aliases ghost inclusion (reply-from-ghost bug)", () => {
     await flush();
 
     const routing_token = `H:${GHOST_LOCAL}@astermail.org`;
-    expect(get_cached_ghost_for_routing_token(routing_token)).toBe(GHOST_ADDRESS);
-    expect(get_cached_ghost_for_routing_token("H:other@astermail.org")).toBeUndefined();
+
+    expect(get_cached_ghost_for_routing_token(routing_token)).toBe(
+      GHOST_ADDRESS,
+    );
+    expect(
+      get_cached_ghost_for_routing_token("H:other@astermail.org"),
+    ).toBeUndefined();
     expect(get_cached_ghost_for_routing_token(undefined)).toBeUndefined();
   });
 });

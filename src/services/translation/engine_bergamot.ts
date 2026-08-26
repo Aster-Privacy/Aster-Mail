@@ -18,16 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import {
-  BatchTranslator,
-  type BergamotModelEntry,
-  setWorkerUrlResolver,
-  TranslatorBacking,
-} from "@/vendor/bergamot/translator.js";
-
 import { register_engine } from "./engine_registry";
-import { ignore_error } from "@/lib/ignore_error";
-
 import {
   EngineUnavailableError,
   type LanguageCode,
@@ -35,6 +26,14 @@ import {
   pivot_route,
   type TranslationEngine,
 } from "./engine_types";
+
+import {
+  BatchTranslator,
+  type BergamotModelEntry,
+  setWorkerUrlResolver,
+  TranslatorBacking,
+} from "@/vendor/bergamot/translator.js";
+import { ignore_error } from "@/lib/ignore_error";
 
 export const BERGAMOT_ENGINE_ID = "bergamot";
 export const MODEL_VERSION = "v1";
@@ -211,7 +210,9 @@ class BergamotEngine implements TranslationEngine {
       this.availability = this.get_backing()
         .loadModelRegistery()
         .then((entries) => ({
-          pairs: new Set(entries.map((entry) => pair_key(entry.from, entry.to))),
+          pairs: new Set(
+            entries.map((entry) => pair_key(entry.from, entry.to)),
+          ),
           bytes: new Map(
             entries.map((entry) => [
               pair_key(entry.from, entry.to),
@@ -231,7 +232,11 @@ class BergamotEngine implements TranslationEngine {
     return this.availability;
   }
 
-  private route_supported(map: AvailabilityMap, from: LanguageCode, to: LanguageCode): boolean {
+  private route_supported(
+    map: AvailabilityMap,
+    from: LanguageCode,
+    to: LanguageCode,
+  ): boolean {
     const hops = pivot_route(from, to);
 
     if (hops.length === 0) return true;
@@ -245,7 +250,10 @@ class BergamotEngine implements TranslationEngine {
     return this.route_supported(await this.load_availability(), from, to);
   }
 
-  async requires_download(from: LanguageCode, to: LanguageCode): Promise<number> {
+  async requires_download(
+    from: LanguageCode,
+    to: LanguageCode,
+  ): Promise<number> {
     const map = await this.load_availability();
     const hops = pivot_route(from, to)
       .map((hop) => pair_key(hop.from, hop.to))

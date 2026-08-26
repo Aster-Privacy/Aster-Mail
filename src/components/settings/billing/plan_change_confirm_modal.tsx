@@ -56,14 +56,18 @@ export function PlanChangeConfirmModal({
   on_confirm,
 }: plan_change_confirm_modal_props) {
   const { t } = use_i18n();
-  const [preview, set_preview] = useState<PlanChangePreviewResponse | null>(null);
+  const [preview, set_preview] = useState<PlanChangePreviewResponse | null>(
+    null,
+  );
   const [loading, set_loading] = useState(false);
   const [preview_failed, set_preview_failed] = useState(false);
+  const [retry_tick, set_retry_tick] = useState(0);
   const fetch_gen = useRef(0);
 
   useEffect(() => {
     if (open) {
       const gen = ++fetch_gen.current;
+
       set_loading(true);
       set_preview(null);
       set_preview_failed(false);
@@ -82,7 +86,7 @@ export function PlanChangeConfirmModal({
       set_preview_failed(false);
       set_loading(false);
     }
-  }, [open, plan_code, billing_interval]);
+  }, [open, plan_code, billing_interval, retry_tick]);
 
   const currency = preview?.currency ?? "usd";
 
@@ -106,9 +110,18 @@ export function PlanChangeConfirmModal({
             <div className="w-5 h-5 rounded-full animate-spin border-2 border-edge-secondary border-t-txt-muted" />
           </div>
         ) : preview_failed ? (
-          <p className="text-sm text-txt-secondary py-2">
-            {t("settings.plan_change_preview_failed")}
-          </p>
+          <div className="flex flex-col items-start gap-3 py-2">
+            <p className="text-sm text-txt-secondary">
+              {t("settings.plan_change_preview_failed")}
+            </p>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => set_retry_tick((n) => n + 1)}
+            >
+              {t("common.retry")}
+            </Button>
+          </div>
         ) : (
           <div className="flex flex-col gap-3">
             {preview && preview.credit_cents > 0 && (
@@ -135,11 +148,7 @@ export function PlanChangeConfirmModal({
         )}
       </ModalBody>
       <ModalFooter>
-        <Button
-          disabled={is_confirming}
-          variant="outline"
-          onClick={on_close}
-        >
+        <Button disabled={is_confirming} variant="outline" onClick={on_close}>
           {t("common.cancel")}
         </Button>
         <Button

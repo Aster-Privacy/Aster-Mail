@@ -21,6 +21,8 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
+import { app_locale } from "@/utils/date_format";
+
 export const EMAIL_REGEX =
   /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
 
@@ -36,13 +38,39 @@ export function format_bytes(bytes: number): string {
     units.length - 1,
   );
   const value = bytes / Math.pow(1024, i);
+  const digits = i > 0 && value < 10 ? 1 : 0;
 
-  return `${value < 10 ? value.toFixed(1) : Math.round(value)} ${units[i]}`;
+  return `${format_decimal(value, digits)} ${units[i]}`;
+}
+
+export function format_decimal(value: number, digits: number): string {
+  try {
+    return new Intl.NumberFormat(app_locale(), {
+      minimumFractionDigits: digits,
+      maximumFractionDigits: digits,
+    }).format(value);
+  } catch {
+    return value.toFixed(digits);
+  }
+}
+
+export function format_number(value: number): string {
+  if (!Number.isFinite(value)) return String(value);
+
+  try {
+    return new Intl.NumberFormat(app_locale()).format(value);
+  } catch {
+    return String(value);
+  }
 }
 
 export function normalize_untrusted_url(value: string): string {
-  return value.normalize("NFC")
-    .replace(/[\u0000-\u001F\u007F-\u009F\u200B-\u200F\u2028\u2029\u202A-\u202E\u2060\u2066-\u2069\uFEFF]/g, "")
+  return value
+    .normalize("NFC")
+    .replace(
+      /[\u0000-\u001F\u007F-\u009F\u200B-\u200F\u2028\u2029\u202A-\u202E\u2060\u2066-\u2069\uFEFF]/g,
+      "",
+    )
     .trim();
 }
 
@@ -113,9 +141,7 @@ export function is_official_sender(email?: string | null): boolean {
   return OFFICIAL_SENDER_ROLES.has(parts.local_part);
 }
 
-export function get_email_username(
-  email: string | null | undefined,
-): string {
+export function get_email_username(email: string | null | undefined): string {
   return email?.split("@")[0] || "";
 }
 

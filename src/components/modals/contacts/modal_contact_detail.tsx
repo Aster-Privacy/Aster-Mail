@@ -43,12 +43,25 @@ import {
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
-import { RELATIONSHIP_LABELS } from "@/types/contacts";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { EmailProfileTrigger } from "@/components/email/email_profile_trigger";
 import { use_should_reduce_motion } from "@/provider";
 import { use_external_link } from "@/contexts/external_link_context";
 import { build_contact_social_url } from "@/utils/contact_links";
+import { parse_calendar_date } from "@/utils/date_utils";
+import { app_locale, get_display_time_zone } from "@/utils/date_format";
+
+const relationship_label = (
+  relationship: string,
+  t: (key: TranslationKey) => string,
+): string => {
+  if (relationship === "work") return t("common.work");
+  if (relationship === "personal") return t("common.personal");
+  if (relationship === "family") return t("common.family");
+  if (relationship === "other") return t("common.other");
+
+  return relationship;
+};
 
 interface ModalContactDetailProps {
   selected_contact: DecryptedContact;
@@ -89,14 +102,14 @@ export function ModalContactDetail({
     >
       <div className="flex items-center justify-between px-5 py-3.5 border-b border-edge-secondary">
         <motion.button
-          className="flex items-center gap-1 text-[14px] font-medium py-1.5 px-2 -ml-2 rounded-lg transition-colors text-txt-secondary"
+          className="flex items-center gap-1 text-[14px] font-medium py-1.5 px-2 -ms-2 rounded-lg transition-colors text-txt-secondary"
           whileHover={{
             x: -2,
             backgroundColor: "rgba(0,0,0,0.03)",
           }}
           onClick={on_back}
         >
-          <ArrowLeftIcon className="w-4 h-4" />
+          <ArrowLeftIcon className="w-4 h-4 rtl:-scale-x-100" />
           <span>{t("common.back")}</span>
         </motion.button>
         <motion.button
@@ -282,8 +295,7 @@ export function ModalContactDetail({
                   {t("common.relationship")}
                 </p>
                 <p className="text-[14px] -mt-0.5 text-txt-primary">
-                  {RELATIONSHIP_LABELS[selected_contact.relationship] ||
-                    selected_contact.relationship}
+                  {relationship_label(selected_contact.relationship, t)}
                 </p>
               </div>
             </div>
@@ -299,14 +311,14 @@ export function ModalContactDetail({
                   {t("common.birthday")}
                 </p>
                 <p className="text-[14px] -mt-0.5 text-txt-primary">
-                  {new Date(selected_contact.birthday).toLocaleDateString(
-                    undefined,
-                    {
-                      month: "long",
-                      day: "numeric",
-                      year: "numeric",
-                    },
-                  )}
+                  {parse_calendar_date(
+                    selected_contact.birthday,
+                  ).toLocaleDateString(app_locale(), {
+                    timeZone: get_display_time_zone(),
+                    month: "long",
+                    day: "numeric",
+                    year: "numeric",
+                  })}
                 </p>
               </div>
             </div>
@@ -407,7 +419,10 @@ export function ModalContactDetail({
                 <p className="text-[11px] font-medium uppercase tracking-wider text-txt-muted">
                   {t("common.notes")}
                 </p>
-                <p className="text-[14px] leading-relaxed whitespace-pre-wrap -mt-0.5 text-txt-primary">
+                <p
+                  className="text-[14px] leading-relaxed whitespace-pre-wrap -mt-0.5 text-txt-primary"
+                  dir="auto"
+                >
                   {selected_contact.notes}
                 </p>
               </div>

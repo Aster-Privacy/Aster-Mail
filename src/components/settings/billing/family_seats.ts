@@ -42,16 +42,22 @@ export interface SeatUsage {
 }
 
 export function seat_breakdown_total(breakdown: SeatBreakdown): number {
-  return breakdown.active_members
-    + breakdown.pending_invites
-    + breakdown.reserved_addresses;
+  return (
+    breakdown.active_members +
+    breakdown.pending_invites +
+    breakdown.reserved_addresses
+  );
 }
 
 export function family_seat_usage(group: SeatSource): SeatUsage {
-  const active_members = group.members.filter(m => m.status === "active").length;
-  const seats_used = typeof group.seats_used === "number"
-    ? group.seats_used
-    : active_members + group.pending_invites.length;
+  const active_members = group.members.filter(
+    (m) => m.status === "active",
+  ).length;
+  const seats_used =
+    typeof group.seats_used === "number"
+      ? group.seats_used
+      : active_members + group.pending_invites.length;
+
   return {
     active_members,
     seats_used,

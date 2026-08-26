@@ -226,9 +226,7 @@ export class GlobalSanitizer {
     }
 
     if (!USERNAME_REGEX.test(trimmed)) {
-      throw new SanitizerError(
-        "username can only contain letters and numbers",
-      );
+      throw new SanitizerError("username can only contain letters and numbers");
     }
 
     return trimmed;

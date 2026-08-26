@@ -18,14 +18,16 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { EncryptedVault } from "./key_manager";
+
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 
-import type { EncryptedVault } from "./key_manager";
 import {
   store_vault_in_memory,
   clear_vault_from_memory,
   verify_passphrase_for_export,
 } from "./memory_key_store";
+
 import { subtle_crypto_mock } from "@/tests/setup";
 
 function build_vault(): EncryptedVault {
@@ -52,9 +54,9 @@ describe("validate_passphrase constant-time comparison", () => {
   it("validates the correct passphrase as true", async () => {
     await store_vault_in_memory(build_vault(), "correct horse battery staple");
 
-    expect(
-      verify_passphrase_for_export("correct horse battery staple"),
-    ).toBe(true);
+    expect(verify_passphrase_for_export("correct horse battery staple")).toBe(
+      true,
+    );
   });
 
   it("rejects a wrong passphrase as false", async () => {

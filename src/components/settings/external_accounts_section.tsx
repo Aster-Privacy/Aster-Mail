@@ -21,6 +21,8 @@
 import { PlusIcon, ServerStackIcon } from "@heroicons/react/24/outline";
 import { Button, Checkbox } from "@aster/ui";
 
+import { Spinner } from "@/components/ui/spinner";
+
 import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
 import {
   AlertDialog,
@@ -30,14 +32,19 @@ import {
   AlertDialogTitle,
   AlertDialogDescription,
   AlertDialogCancel,
-  AlertDialogAction,
 } from "@/components/ui/alert_dialog";
+import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { use_external_accounts } from "@/components/settings/hooks/use_external_accounts";
 import { AccountList } from "@/components/settings/external_accounts/account_list";
+import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { AddAccountForm } from "@/components/settings/external_accounts/add_account_form";
 
 export function ExternalAccountsSection() {
   const state = use_external_accounts();
+  const { limits } = use_plan_limits();
+  const account_limit = limits?.limits["max_multi_accounts"]?.limit ?? -1;
+  const at_account_limit =
+    account_limit > 0 && state.accounts.length >= account_limit;
 
   if (state.is_loading) {
     return <SettingsSkeleton variant="list" />;
@@ -51,21 +58,25 @@ export function ExternalAccountsSection() {
             <ServerStackIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
             {state.t("settings.external_accounts")}
           </h3>
-          {state.accounts.length < 5 && (
-            <Button
-              className="gap-2"
-              variant="depth"
-              onClick={state.open_add_form}
-            >
-              <PlusIcon className="w-4 h-4" />
-              {state.t("settings.add_account")}
-            </Button>
-          )}
+          <Button
+            className="gap-2"
+            disabled={at_account_limit}
+            variant="depth"
+            onClick={state.open_add_form}
+          >
+            <PlusIcon className="w-4 h-4" />
+            {state.t("settings.add_account")}
+          </Button>
         </div>
         <div className="mt-2 h-px bg-edge-secondary" />
         <p className="text-sm mt-3 text-txt-muted">
           {state.t("settings.external_accounts_description")}
         </p>
+        {at_account_limit && (
+          <p className="text-[12px] mt-2 text-txt-muted">
+            {state.t("settings.plan_limit_reached")}
+          </p>
+        )}
       </div>
 
       {(state.show_add_form || state.editing_account) && (
@@ -74,6 +85,7 @@ export function ExternalAccountsSection() {
           close_form={state.close_form}
           editing_account={state.editing_account}
           form_archive_sent={state.form_archive_sent}
+          is_oauth_account={state.is_oauth_account}
           form_connection_timeout={state.form_connection_timeout}
           form_delete_after_fetch={state.form_delete_after_fetch}
           form_display_name={state.form_display_name}
@@ -94,8 +106,6 @@ export function ExternalAccountsSection() {
           form_use_tls={state.form_use_tls}
           form_username={state.form_username}
           form_visible={state.form_visible}
-          has_stored_password={state.has_stored_password}
-          has_stored_smtp_password={state.has_stored_smtp_password}
           handle_connection_timeout_change={
             state.handle_connection_timeout_change
           }
@@ -118,8 +128,12 @@ export function ExternalAccountsSection() {
           handle_test_smtp={state.handle_test_smtp}
           handle_username_change={state.handle_username_change}
           has_fetched_folders={state.has_fetched_folders}
+          has_stored_password={state.has_stored_password}
+          has_stored_smtp_password={state.has_stored_smtp_password}
           is_fetching_folders={state.is_fetching_folders}
           is_form_busy={state.is_form_busy}
+          prefill_failed={state.prefill_failed}
+          retry_prefill={state.retry_prefill}
           is_submitting={state.is_submitting}
           is_testing={state.is_testing}
           is_testing_smtp={state.is_testing_smtp}
@@ -149,24 +163,28 @@ export function ExternalAccountsSection() {
         />
       )}
 
-      <AccountList
-        accounts={state.accounts}
-        expanded_error_ids={state.expanded_error_ids}
-        failed_icons={state.failed_icons}
-        format_sync_time={state.format_sync_time}
-        handle_edit={state.handle_edit}
-        handle_sync={state.handle_sync}
-        handle_toggle={state.handle_toggle}
-        set_failed_icons={state.set_failed_icons}
-        set_purge_target={state.set_purge_target}
-        t={state.t}
-        toggle_error_expand={state.toggle_error_expand}
-      />
+      {state.load_error && state.accounts.length === 0 ? (
+        <LoadFailedNotice on_retry={() => state.reload_accounts()} />
+      ) : (
+        <AccountList
+          accounts={state.accounts}
+          expanded_error_ids={state.expanded_error_ids}
+          failed_icons={state.failed_icons}
+          format_sync_time={state.format_sync_time}
+          handle_edit={state.handle_edit}
+          handle_sync={state.handle_sync}
+          handle_toggle={state.handle_toggle}
+          set_failed_icons={state.set_failed_icons}
+          set_purge_target={state.set_purge_target}
+          t={state.t}
+          toggle_error_expand={state.toggle_error_expand}
+        />
+      )}
 
       <AlertDialog
         open={!!state.purge_target}
         onOpenChange={(open) => {
-          if (!open) {
+          if (!open && !state.is_purging) {
             state.set_purge_target(null);
             state.set_purge_also_delete_messages(false);
           }
@@ -175,6 +193,7 @@ export function ExternalAccountsSection() {
         <AlertDialogContent
           className="gap-0 p-0 overflow-hidden max-w-[380px]"
           on_overlay_click={() => {
+            if (state.is_purging) return;
             state.set_purge_target(null);
             state.set_purge_also_delete_messages(false);
           }}
@@ -191,6 +210,7 @@ export function ExternalAccountsSection() {
             <label className="mt-4 flex items-center gap-2.5 cursor-pointer select-none">
               <Checkbox
                 checked={state.purge_also_delete_messages}
+                disabled={state.is_purging}
                 onCheckedChange={(v) =>
                   state.set_purge_also_delete_messages(v === true)
                 }
@@ -204,23 +224,26 @@ export function ExternalAccountsSection() {
             <AlertDialogCancel asChild>
               <Button
                 className="mt-0 max-sm:flex-1"
+                disabled={state.is_purging}
                 size="xl"
                 variant="outline"
               >
                 {state.t("common.cancel")}
               </Button>
             </AlertDialogCancel>
-            <AlertDialogAction asChild>
-              <Button
-                className="max-sm:flex-1"
-                disabled={state.is_purging}
-                size="xl"
-                variant="destructive"
-                onClick={state.handle_purge_confirm}
-              >
-                {state.t("settings.disconnect_button")}
-              </Button>
-            </AlertDialogAction>
+            <Button
+              className="max-sm:flex-1"
+              disabled={state.is_purging}
+              size="xl"
+              variant="destructive"
+              onClick={state.handle_purge_confirm}
+            >
+              {state.is_purging ? (
+                <Spinner size="sm" />
+              ) : (
+                state.t("settings.disconnect_button")
+              )}
+            </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

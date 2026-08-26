@@ -28,6 +28,7 @@ import { Spinner } from "@/components/ui/spinner";
 
 interface FormFooterProps {
   editing_account: DecryptedExternalAccount | null;
+  is_oauth_account: boolean;
   is_testing: boolean;
   is_testing_smtp: boolean;
   is_submitting: boolean;
@@ -41,6 +42,7 @@ interface FormFooterProps {
 
 export function FormFooter({
   editing_account,
+  is_oauth_account,
   is_testing,
   is_testing_smtp,
   is_submitting,
@@ -54,6 +56,8 @@ export function FormFooter({
   return (
     <div className="sticky bottom-0 z-10 px-6 py-4 border-t rounded-b-xl flex items-center justify-between bg-modal-bg border-edge-primary">
       <div className="flex items-center gap-2">
+        {!is_oauth_account && (
+          <>
         <Button
           aria-label={t("settings.test_incoming_connection")}
           className="gap-1.5"
@@ -84,6 +88,8 @@ export function FormFooter({
           )}
           {t("settings.test_smtp")}
         </Button>
+          </>
+        )}
       </div>
       <div className="flex items-center gap-3">
         <Button disabled={is_submitting} variant="ghost" onClick={close_form}>

@@ -19,10 +19,11 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { EncryptedVault } from "./key_manager_core";
+
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
 import { encrypt_vault, decrypt_vault } from "./key_manager";
-import type { EncryptedVault } from "./key_manager_core";
 
 const h = vi.hoisted(() => ({
   state: {

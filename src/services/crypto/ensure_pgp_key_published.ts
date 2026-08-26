@@ -44,9 +44,9 @@ export type PgpPublishHealResult =
   | "skipped"
   | "failed";
 
-export async function ensure_pgp_key_published(
-  options?: { force?: boolean },
-): Promise<PgpPublishHealResult> {
+export async function ensure_pgp_key_published(options?: {
+  force?: boolean;
+}): Promise<PgpPublishHealResult> {
   const account = await get_current_account().catch(() => null);
   const account_id = account?.user?.id;
 

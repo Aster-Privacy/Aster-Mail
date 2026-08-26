@@ -68,7 +68,10 @@ export function StorageFormatPicker({
         <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
           <CircleStackIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
           {t("settings.storage_format_title")}
-          <InfoPopover description={t("settings.info_storage_format_description")} title={t("settings.info_storage_format_title")} />
+          <InfoPopover
+            description={t("settings.info_storage_format_description")}
+            title={t("settings.info_storage_format_title")}
+          />
         </h3>
         <div className="mt-2 h-px bg-edge-secondary" />
       </div>
@@ -78,7 +81,7 @@ export function StorageFormatPicker({
 
       <div className="grid grid-cols-2 gap-3">
         <button
-          className="rounded-[14px] text-left transition-all"
+          className="rounded-[14px] text-start transition-all"
           style={{ backgroundColor: "var(--bg-tertiary)" }}
           type="button"
           onClick={() => handle_select("aster")}
@@ -109,7 +112,7 @@ export function StorageFormatPicker({
         </button>
 
         <button
-          className="rounded-[14px] text-left transition-all"
+          className="rounded-[14px] text-start transition-all"
           style={{ backgroundColor: "var(--bg-tertiary)" }}
           type="button"
           onClick={() => handle_select("ipfs")}

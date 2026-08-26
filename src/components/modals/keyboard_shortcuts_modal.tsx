@@ -49,12 +49,21 @@ interface ShortcutSection {
 
 function ShortcutToggle({
   enabled,
+  label,
   on_toggle,
 }: {
   enabled: boolean;
+  label: string;
   on_toggle: () => void;
 }) {
-  return <Switch checked={enabled} size="sm" onCheckedChange={on_toggle} />;
+  return (
+    <Switch
+      aria-label={label}
+      checked={enabled}
+      size="sm"
+      onCheckedChange={on_toggle}
+    />
+  );
 }
 
 export function KeyboardShortcutsModal({
@@ -276,6 +285,7 @@ export function KeyboardShortcutsModal({
                   </span>
                   <ShortcutToggle
                     enabled={preferences.keyboard_shortcuts_enabled}
+                    label={t("common.enable_shortcuts")}
                     on_toggle={handle_toggle_shortcuts}
                   />
                 </div>
@@ -345,7 +355,7 @@ export function KeyboardShortcutsModal({
                             >
                               {t(shortcut_description_keys[shortcut.action_id])}
                             </span>
-                            <div className="flex items-center gap-2 ml-4">
+                            <div className="flex items-center gap-2 ms-4">
                               <div className="flex items-center gap-0.5">
                                 {keys.map((key, kidx) => (
                                   <kbd

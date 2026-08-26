@@ -25,11 +25,44 @@ import type {
   CsvRow,
 } from "./types";
 
-import { en } from "@/lib/i18n/translations/en";
 import { MAX_FILE_SIZE } from "./types";
 import { secure_hex } from "./mime_utils";
 
-function parse_csv_records(content: string): string[][] {
+import { get_active_translations } from "@/lib/i18n/translations";
+import { format_decimal } from "@/lib/utils";
+
+function detect_delimiter(content: string): string {
+  const break_index = [content.indexOf("\r"), content.indexOf("\n")].filter(
+    (value) => value !== -1,
+  );
+  const newline = break_index.length > 0 ? Math.min(...break_index) : -1;
+  const header = newline === -1 ? content : content.slice(0, newline);
+  let tabs = 0;
+  let commas = 0;
+  let in_quotes = false;
+
+  for (let i = 0; i < header.length; i++) {
+    const char = header[i];
+
+    if (char === '"') {
+      if (in_quotes && header[i + 1] === '"') {
+        i++;
+
+        continue;
+      }
+      in_quotes = !in_quotes;
+
+      continue;
+    }
+    if (in_quotes) continue;
+    if (char === "\t") tabs++;
+    else if (char === ",") commas++;
+  }
+
+  return tabs > commas ? "\t" : ",";
+}
+
+function parse_csv_records(content: string, delimiter: string): string[][] {
   const records: string[][] = [];
   let record: string[] = [];
   let current = "";
@@ -73,7 +106,7 @@ function parse_csv_records(content: string): string[][] {
       in_quotes = true;
       field_started = true;
       field_quoted = true;
-    } else if (char === ",") {
+    } else if (char === delimiter) {
       push_field();
     } else if (char === "\r") {
       if (next_char === "\n") i++;
@@ -94,7 +127,7 @@ function parse_csv_records(content: string): string[][] {
 }
 
 function parse_csv(content: string): CsvRow[] {
-  const records = parse_csv_records(content);
+  const records = parse_csv_records(content, detect_delimiter(content));
 
   if (records.length < 2) return [];
 
@@ -214,7 +247,12 @@ export async function parse_csv_file(
     return {
       emails: [],
       errors: [
-        en.errors.file_too_large.replace("{{size}}", (file.size / 1024 / 1024).toFixed(1)).replace("{{limit}}", "500"),
+        get_active_translations()
+          .errors.file_too_large.replace(
+            "{{size}}",
+            format_decimal(file.size / 1024 / 1024, 1),
+          )
+          .replace("{{limit}}", "500"),
       ],
       warnings: [],
     };
@@ -228,7 +266,7 @@ export async function parse_csv_file(
     if (rows.length === 0) {
       return {
         emails: [],
-        errors: [en.errors.no_data_in_csv],
+        errors: [get_active_translations().errors.no_data_in_csv],
         warnings: [],
       };
     }
@@ -243,7 +281,12 @@ export async function parse_csv_file(
       if (email) {
         emails.push(email);
       } else {
-        warnings.push(en.errors.row_skipped.replace("{{number}}", String(i + 2)));
+        warnings.push(
+          get_active_translations().errors.row_skipped.replace(
+            "{{number}}",
+            String(i + 2),
+          ),
+        );
       }
 
       if (on_progress && i % 100 === 0) {
@@ -264,17 +307,23 @@ export async function parse_csv_file(
     }
 
     if (emails.length === 0) {
-      errors.push(en.errors.no_valid_emails_csv);
+      errors.push(get_active_translations().errors.no_valid_emails_csv);
     }
 
     return { emails, errors, warnings };
   } catch (err) {
-    const error_msg = err instanceof Error ? err.message : en.errors.unknown_error;
+    const error_msg =
+      err instanceof Error
+        ? err.message
+        : get_active_translations().errors.unknown_error;
 
     return {
       emails: [],
       errors: [
-        en.errors.failed_parse_csv.replace("{{error}}", error_msg),
+        get_active_translations().errors.failed_parse_csv.replace(
+          "{{error}}",
+          error_msg,
+        ),
       ],
       warnings: [],
     };

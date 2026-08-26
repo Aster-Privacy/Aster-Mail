@@ -20,11 +20,7 @@
 //
 import { describe, it, expect } from "vitest";
 
-import {
-  array_to_base64,
-  base64_to_array,
-  first_base64_byte,
-} from "./base64";
+import { array_to_base64, base64_to_array, first_base64_byte } from "./base64";
 
 describe("first_base64_byte", () => {
   it("matches a full decode for every leading byte value", () => {

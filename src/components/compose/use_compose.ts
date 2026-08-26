@@ -46,6 +46,7 @@ import {
   get_preferred_sender_id,
   set_preferred_sender_id,
   subscribe_preferred_sender,
+  sender_id_matches,
 } from "@/lib/preferred_sender";
 import {
   use_ghost_mode,
@@ -60,6 +61,8 @@ import { use_my_badge_prefs } from "@/stores/my_badge_prefs_store";
 import { is_internal_email } from "@/services/api/keys";
 import { draft_manager } from "@/services/crypto/encrypted_drafts";
 import { sanitize_html } from "@/lib/html_sanitizer";
+import { escape_html } from "@/hooks/editor_utils";
+import { get_max_total_attachments_size } from "@/services/attachment_limits";
 import { build_compose_default_block } from "@/lib/compose_defaults";
 import {
   extract_cid_references,
@@ -91,7 +94,6 @@ import { use_compose_attachments } from "@/components/compose/use_compose_attach
 import { use_compose_send } from "@/components/compose/use_compose_send";
 import { use_compose_drafts } from "@/components/compose/use_compose_drafts";
 import { use_compose_editor } from "@/components/compose/use_compose_editor";
-
 import { ignore_error } from "@/lib/ignore_error";
 
 export interface UseComposeOptions {
@@ -117,8 +119,6 @@ export interface UseComposeReturn {
   show_delete_confirm: boolean;
   draft_status: DraftStatus;
   last_saved_time: Date | null;
-  send_error: string | null;
-  restore_error: string | null;
   attachment_error: string | null;
   set_attachment_error: (val: string | null) => void;
   is_loading_forward_attachments: boolean;
@@ -143,6 +143,7 @@ export interface UseComposeReturn {
   confirm_plain_text_mode: () => void;
   cancel_plain_text_confirm: () => void;
   has_external_recipients: boolean;
+  has_sendable_recipients: boolean;
   expires_at: Date | null;
   set_expires_at: (val: Date | null) => void;
   expiry_password: string | null;
@@ -170,7 +171,6 @@ export interface UseComposeReturn {
   handle_editor_paste: (e: React.ClipboardEvent) => void;
   handle_template_select: (content: string) => void;
   exec_format_command: (command: string) => void;
-  handle_insert_link: () => void;
   handle_send: () => Promise<void>;
   is_sending: boolean;
   handle_scheduled_send: () => Promise<void>;
@@ -178,6 +178,9 @@ export interface UseComposeReturn {
   handle_show_delete_confirm: () => void;
   handle_hide_delete_confirm: () => void;
   handle_close: () => void;
+  show_discard_confirm: boolean;
+  confirm_discard_close: () => void;
+  cancel_discard_close: () => void;
   pgp_enabled: boolean;
   toggle_pgp: () => void;
 
@@ -246,7 +249,8 @@ export function use_compose({
     !!my_badge_prefs?.active_badge_slug;
   const active_badge =
     include_badge_signature && my_badge_prefs?.active_badge_slug
-      ? badges.find((b) => b.slug === my_badge_prefs.active_badge_slug) ?? null
+      ? (badges.find((b) => b.slug === my_badge_prefs.active_badge_slug) ??
+        null)
       : null;
 
   useEffect(() => {
@@ -297,6 +301,7 @@ export function use_compose({
   const files_drop_ref = useRef<((files: File[]) => void) | null>(null);
 
   const recipients_ref = useRef(recipients);
+
   recipients_ref.current = recipients;
 
   const get_recipient_name = useCallback(() => {
@@ -314,7 +319,14 @@ export function use_compose({
     set_message,
     on_files_drop: (files: File[]) => files_drop_ref.current?.(files),
     get_recipient_name,
+    get_inline_image_budget: () =>
+      get_max_total_attachments_size() -
+      attachment_hook.get_total_attachments_size(),
   });
+
+  const is_plain_text_ref = useRef(editor_hook.is_plain_text_mode);
+
+  is_plain_text_ref.current = editor_hook.is_plain_text_mode;
 
   const reset_form = useCallback(() => {
     dispatch_recipients({ type: "RESET" });
@@ -336,10 +348,15 @@ export function use_compose({
     attachment_hook.set_attachment_error(null);
   }, [attachment_hook.set_attachment_error]);
 
+  const outgoing_message = editor_hook.is_plain_text_mode
+    ? escape_html(message).replace(/\n/g, "<br>")
+    : message;
+
   const draft_hook = use_compose_drafts({
     recipients,
     subject,
-    message,
+    message: outgoing_message,
+    from_email: selected_sender?.email,
     attachments: attachment_hook.attachments,
     attachments_ref: attachment_hook.attachments_ref,
     edit_draft,
@@ -361,11 +378,21 @@ export function use_compose({
     return all_recipients.some((r) => !is_internal_email(r));
   }, [recipients]);
 
+  const attachment_count = attachment_hook.attachments.length;
+
+  useEffect(() => {
+    if (attachment_count === 0 || !scheduled_time) return;
+
+    set_scheduled_time(null);
+    show_toast(t("common.scheduled_no_attachments"), "warning");
+  }, [attachment_count, scheduled_time, t]);
+
   const send_hook = use_compose_send({
     recipients,
     subject,
-    message,
+    message: outgoing_message,
     attachments: attachment_hook.attachments,
+    is_loading_forward_attachments,
     contacts,
     selected_sender,
     has_external_recipients,
@@ -387,19 +414,36 @@ export function use_compose({
 
   useEffect(() => {
     if (sender_options.length > 0 && !selected_sender) {
+      const draft_from = edit_draft?.from_email?.toLowerCase();
+      const draft_sender = draft_from
+        ? sender_options.find((o) => o.email.toLowerCase() === draft_from)
+        : null;
       const preferred = preferred_sender_id
-        ? sender_options.find((o) => o.id === preferred_sender_id)
+        ? sender_options.find((o) =>
+            sender_id_matches(o.id, preferred_sender_id),
+          )
         : null;
 
-      set_selected_sender(preferred ?? sender_options[0]);
+      set_selected_sender(draft_sender ?? preferred ?? sender_options[0]);
     }
-  }, [sender_options, selected_sender, preferred_sender_id]);
+  }, [sender_options, selected_sender, preferred_sender_id, edit_draft]);
+
+  const pre_ghost_sender_ref = useRef<SenderOption | null>(null);
 
   useEffect(() => {
     if (ghost_mode.is_ghost_enabled && ghost_mode.ghost_sender) {
+      if (selected_sender?.id !== ghost_mode.ghost_sender.id) {
+        pre_ghost_sender_ref.current = selected_sender;
+      }
       set_selected_sender(ghost_mode.ghost_sender);
+
+      return;
     }
-  }, [ghost_mode.is_ghost_enabled, ghost_mode.ghost_sender]);
+
+    if (!pre_ghost_sender_ref.current) return;
+    set_selected_sender(pre_ghost_sender_ref.current);
+    pre_ghost_sender_ref.current = null;
+  }, [ghost_mode.is_ghost_enabled, ghost_mode.ghost_sender, selected_sender]);
 
   const update_input = useCallback(
     (field: keyof InputsState, value: string) => {
@@ -415,6 +459,117 @@ export function use_compose({
     },
     [],
   );
+
+  const pending_recipient_inputs = useMemo(() => {
+    const fields: (keyof RecipientsState)[] = ["to", "cc", "bcc"];
+
+    return fields
+      .map((field) => ({ field, email: inputs[field].trim() }))
+      .filter((entry) => is_valid_email(entry.email));
+  }, [inputs]);
+
+  const has_sendable_recipients =
+    recipients.to.length > 0 ||
+    pending_recipient_inputs.some((entry) => entry.field === "to");
+
+  useEffect(() => {
+    if (pending_recipient_inputs.length === 0) return;
+
+    const data = draft_hook.draft_data_ref.current;
+    const merged: RecipientsState = {
+      to: [...data.recipients.to],
+      cc: [...data.recipients.cc],
+      bcc: [...data.recipients.bcc],
+    };
+
+    pending_recipient_inputs.forEach((entry) => {
+      if (merged[entry.field].includes(entry.email)) return;
+      merged[entry.field].push(entry.email);
+    });
+
+    draft_hook.draft_data_ref.current = { ...data, recipients: merged };
+  });
+
+  useEffect(() => {
+    const commit_pending_recipients = () => {
+      if (document.visibilityState !== "hidden") return;
+      if (is_sending_ref.current) return;
+
+      pending_recipient_inputs.forEach((entry) =>
+        add_recipient(entry.field, entry.email),
+      );
+    };
+
+    document.addEventListener("visibilitychange", commit_pending_recipients);
+
+    return () =>
+      document.removeEventListener(
+        "visibilitychange",
+        commit_pending_recipients,
+      );
+  }, [pending_recipient_inputs, add_recipient]);
+
+  const [pending_send_mode, set_pending_send_mode] = useState<
+    "send" | "schedule" | null
+  >(null);
+
+  const invalid_recipient_inputs = useMemo(() => {
+    const fields: (keyof RecipientsState)[] = ["to", "cc", "bcc"];
+
+    return fields
+      .map((field) => inputs[field].trim())
+      .filter((value) => value.length > 0 && !is_valid_email(value));
+  }, [inputs]);
+
+  const flush_pending_recipients = useCallback(
+    (mode: "send" | "schedule") => {
+      if (invalid_recipient_inputs.length > 0) {
+        show_toast(t("common.please_enter_valid_email"), "error");
+
+        return true;
+      }
+
+      if (pending_recipient_inputs.length === 0) return false;
+
+      pending_recipient_inputs.forEach((entry) =>
+        add_recipient(entry.field, entry.email),
+      );
+      set_pending_send_mode(mode);
+
+      return true;
+    },
+    [invalid_recipient_inputs, pending_recipient_inputs, add_recipient, t],
+  );
+
+  const handle_send = useCallback(async () => {
+    if (flush_pending_recipients("send")) return;
+
+    await send_hook.handle_send();
+  }, [flush_pending_recipients, send_hook.handle_send]);
+
+  const handle_scheduled_send = useCallback(async () => {
+    if (flush_pending_recipients("schedule")) return;
+
+    await send_hook.handle_scheduled_send();
+  }, [flush_pending_recipients, send_hook.handle_scheduled_send]);
+
+  useEffect(() => {
+    if (!pending_send_mode) return;
+
+    const mode = pending_send_mode;
+
+    set_pending_send_mode(null);
+    if (mode === "schedule") {
+      void send_hook.handle_scheduled_send();
+
+      return;
+    }
+    void send_hook.handle_send();
+  }, [
+    pending_send_mode,
+    send_hook.handle_send,
+    send_hook.handle_scheduled_send,
+  ]);
 
   const remove_recipient = useCallback(
     (field: keyof RecipientsState, email: string) => {
@@ -435,14 +590,16 @@ export function use_compose({
     () => set_visibility((prev) => ({ ...prev, bcc: true })),
     [],
   );
-  const hide_cc_field = useCallback(
-    () => set_visibility((prev) => ({ ...prev, cc: false })),
-    [],
-  );
-  const hide_bcc_field = useCallback(
-    () => set_visibility((prev) => ({ ...prev, bcc: false })),
-    [],
-  );
+  const hide_cc_field = useCallback(() => {
+    dispatch_recipients({ type: "SET", field: "cc", emails: [] });
+    set_inputs((prev) => ({ ...prev, cc: "" }));
+    set_visibility((prev) => ({ ...prev, cc: false }));
+  }, []);
+  const hide_bcc_field = useCallback(() => {
+    dispatch_recipients({ type: "SET", field: "bcc", emails: [] });
+    set_inputs((prev) => ({ ...prev, bcc: "" }));
+    set_visibility((prev) => ({ ...prev, bcc: false }));
+  }, []);
 
   useEffect(() => {
     const load_contacts_fn = async () => {
@@ -556,13 +713,14 @@ export function use_compose({
         set_is_loading_forward_attachments(true);
         load_forward_attachments(forward_source_id, {
           body_html: edit_draft.message,
-          is_cancelled: () =>
-            inject_token_ref.current !== attachments_token,
-          on_dropped: () => {
+          is_cancelled: () => inject_token_ref.current !== attachments_token,
+          on_dropped: (_count, reason) => {
             if (inject_token_ref.current !== attachments_token) return;
 
             attachment_hook.set_attachment_error(
-              t("common.forward_attachments_locked"),
+              reason === "unavailable"
+                ? t("common.forward_attachments_unavailable")
+                : t("common.forward_attachments_locked"),
             );
           },
         })
@@ -583,7 +741,12 @@ export function use_compose({
               ];
             });
           })
-          .catch((caught) => ignore_error("components/compose/use_compose:load_recent_recipients_fn", caught))
+          .catch((caught) =>
+            ignore_error(
+              "components/compose/use_compose:load_recent_recipients_fn",
+              caught,
+            ),
+          )
           .finally(() => {
             if (inject_token_ref.current === attachments_token) {
               set_is_loading_forward_attachments(false);
@@ -597,7 +760,9 @@ export function use_compose({
         if (message_textarea_ref.current && edit_draft.message) {
           draft_hook.just_loaded_draft_ref.current = true;
           const sanitized_result = sanitize_html(edit_draft.message, {
-            external_content_mode: is_any_lockdown_active() ? "never" : "always",
+            external_content_mode: is_any_lockdown_active()
+              ? "never"
+              : "always",
             lockdown_mode: is_any_lockdown_active(),
           });
           const token = inject_token_ref.current;
@@ -610,7 +775,11 @@ export function use_compose({
               if (!message_textarea_ref.current) return;
 
               message_textarea_ref.current.innerHTML = resolved_html;
-              set_message(message_textarea_ref.current.innerHTML);
+              set_message(
+                is_plain_text_ref.current
+                  ? message_textarea_ref.current.innerText
+                  : message_textarea_ref.current.innerHTML,
+              );
             },
           );
         }
@@ -675,7 +844,13 @@ export function use_compose({
           : badge_html;
 
       if (is_fresh_reply_forward && edit_draft) {
-        content = signature_block + edit_draft.message;
+        content =
+          build_compose_default_block(
+            preferences.compose_font_size,
+            preferences.compose_font_color,
+          ) +
+          signature_block +
+          edit_draft.message;
       } else {
         content =
           build_compose_default_block(
@@ -703,7 +878,11 @@ export function use_compose({
           if (!message_textarea_ref.current) return;
 
           message_textarea_ref.current.innerHTML = resolved_html;
-          set_message(message_textarea_ref.current.innerHTML);
+          set_message(
+            is_plain_text_ref.current
+              ? message_textarea_ref.current.innerText
+              : message_textarea_ref.current.innerHTML,
+          );
         },
       );
     }, INITIAL_CONTENT_DELAY_MS);
@@ -726,18 +905,20 @@ export function use_compose({
   ]);
 
   const last_signature_id_ref = useRef<string | null>(null);
+
   useEffect(() => {
     if (!content_initialized_ref.current) return;
     if (preferences.signature_mode === "disabled") return;
     const editor = message_textarea_ref.current;
+
     if (!editor) return;
 
     const alias_id =
-      selected_sender &&
-      is_signature_bindable_sender_type(selected_sender.type)
+      selected_sender && is_signature_bindable_sender_type(selected_sender.type)
         ? selected_sender.id
         : null;
     const target = resolve_signature(alias_id) ?? default_signature;
+
     if (!target) return;
     if (last_signature_id_ref.current === target.id) return;
 
@@ -745,12 +926,18 @@ export function use_compose({
       "[data-aster-signature='1']",
     );
     const raw_html = get_formatted_signature(target);
-    const sanitized = sanitize_html(raw_html, { external_content_mode: is_any_lockdown_active() ? "never" : "always", lockdown_mode: is_any_lockdown_active() });
+    const sanitized = sanitize_html(raw_html, {
+      external_content_mode: is_any_lockdown_active() ? "never" : "always",
+      lockdown_mode: is_any_lockdown_active(),
+    });
     const wrapper = document.createElement("div");
+
     wrapper.innerHTML = sanitized.html;
     const new_node = wrapper.firstElementChild;
+
     if (!new_node) {
       last_signature_id_ref.current = target.id;
+
       return;
     }
     if (existing) {
@@ -758,7 +945,9 @@ export function use_compose({
     } else {
       editor.insertBefore(new_node, editor.firstChild);
     }
-    set_message(editor.innerHTML);
+    set_message(
+      is_plain_text_ref.current ? editor.innerText : editor.innerHTML,
+    );
     last_signature_id_ref.current = target.id;
   }, [
     selected_sender,
@@ -784,42 +973,29 @@ export function use_compose({
         !e.shiftKey
       ) {
         e.preventDefault();
-        window.dispatchEvent(new CustomEvent("astermail:compose-send"));
+
+        if (!has_sendable_recipients) return;
+
+        if (scheduled_time) {
+          void handle_scheduled_send();
+
+          return;
+        }
+
+        void handle_send();
       }
     };
 
     editor_el.addEventListener("keydown", handle_keydown);
 
     return () => editor_el.removeEventListener("keydown", handle_keydown);
-  }, [enable_ctrl_enter_send]);
-
-  useEffect(() => {
-    if (!enable_ctrl_enter_send) return;
-
-    const handle_compose_send = () => {
-      if (recipients.to.length > 0) {
-        window.dispatchEvent(new CustomEvent("astermail:trigger-send"));
-      }
-    };
-
-    window.addEventListener("astermail:compose-send", handle_compose_send);
-
-    return () =>
-      window.removeEventListener("astermail:compose-send", handle_compose_send);
-  }, [recipients.to.length, enable_ctrl_enter_send]);
-
-  useEffect(() => {
-    if (!enable_ctrl_enter_send) return;
-
-    const handle_trigger_send = () => {
-      send_hook.handle_send();
-    };
-
-    window.addEventListener("astermail:trigger-send", handle_trigger_send);
-
-    return () =>
-      window.removeEventListener("astermail:trigger-send", handle_trigger_send);
-  }, [send_hook.handle_send, enable_ctrl_enter_send]);
+  }, [
+    enable_ctrl_enter_send,
+    has_sendable_recipients,
+    scheduled_time,
+    handle_send,
+    handle_scheduled_send,
+  ]);
 
   useEffect(() => {
     const handle_undo_event = (event: CustomEvent<UndoSendEvent>) => {
@@ -903,8 +1079,6 @@ export function use_compose({
     show_delete_confirm,
     draft_status: draft_hook.draft_status,
     last_saved_time: draft_hook.last_saved_time,
-    send_error: send_hook.send_error,
-    restore_error: send_hook.restore_error,
     attachment_error: attachment_hook.attachment_error,
     set_attachment_error: attachment_hook.set_attachment_error,
     is_loading_forward_attachments,
@@ -929,6 +1103,7 @@ export function use_compose({
     confirm_plain_text_mode: editor_hook.confirm_plain_text_mode,
     cancel_plain_text_confirm: editor_hook.cancel_plain_text_confirm,
     has_external_recipients,
+    has_sendable_recipients,
     expires_at,
     set_expires_at,
     expiry_password,
@@ -959,16 +1134,18 @@ export function use_compose({
     handle_editor_paste: editor_hook.handle_editor_paste,
     handle_template_select: editor_hook.handle_template_select,
     exec_format_command: editor_hook.exec_format_command,
-    handle_insert_link: editor_hook.handle_insert_link,
-    handle_send: send_hook.handle_send,
+    handle_send,
     is_sending: send_hook.is_sending,
-    handle_scheduled_send: send_hook.handle_scheduled_send,
+    handle_scheduled_send,
     handle_delete_draft: draft_hook.handle_delete_draft,
     handle_show_delete_confirm,
     pgp_enabled: send_hook.pgp_enabled,
     toggle_pgp: send_hook.toggle_pgp,
     handle_hide_delete_confirm,
     handle_close: draft_hook.handle_close,
+    show_discard_confirm: draft_hook.show_discard_confirm,
+    confirm_discard_close: draft_hook.confirm_discard_close,
+    cancel_discard_close: draft_hook.cancel_discard_close,
 
     schedule_picker_element: null,
     expiration_picker_element: null,

@@ -25,43 +25,56 @@ import {
   derive_link_ink,
   normalize_hex,
 } from "@/lib/email_ink";
-import {
-  DEFAULT_ACCENT_COLOR,
-} from "@/lib/resolved_accent";
+import { DEFAULT_ACCENT_COLOR } from "@/lib/resolved_accent";
 import { get_image_proxy_url } from "@/lib/image_proxy";
 import { api_client } from "@/services/api/client";
 import { routed_fetch } from "@/services/routing/routing_provider";
 import { connection_store } from "@/services/routing/connection_store";
 import { translated_language } from "@/services/translation/dom_translate";
-
-
 import { ignore_error } from "@/lib/ignore_error";
 
 export const IMAGE_PROXY_URL = get_image_proxy_url();
 
 export function sniff_image_type(bytes: Uint8Array): string | null {
   if (bytes.length >= 4) {
-    if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47)
+    if (
+      bytes[0] === 0x89 &&
+      bytes[1] === 0x50 &&
+      bytes[2] === 0x4e &&
+      bytes[3] === 0x47
+    )
       return "image/png";
-    if (bytes[0] === 0xff && bytes[1] === 0xd8)
-      return "image/jpeg";
+    if (bytes[0] === 0xff && bytes[1] === 0xd8) return "image/jpeg";
     if (bytes[0] === 0x47 && bytes[1] === 0x49 && bytes[2] === 0x46)
       return "image/gif";
     if (
       bytes.length >= 12 &&
-      bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46 &&
-      bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50
+      bytes[0] === 0x52 &&
+      bytes[1] === 0x49 &&
+      bytes[2] === 0x46 &&
+      bytes[3] === 0x46 &&
+      bytes[8] === 0x57 &&
+      bytes[9] === 0x45 &&
+      bytes[10] === 0x42 &&
+      bytes[11] === 0x50
     )
       return "image/webp";
   }
   try {
-    const prefix = new TextDecoder().decode(bytes.subarray(0, Math.min(64, bytes.length)));
+    const prefix = new TextDecoder().decode(
+      bytes.subarray(0, Math.min(64, bytes.length)),
+    );
     const trimmed = prefix.trimStart().replace(/^﻿/, "");
+
     if (trimmed.startsWith("<svg") || trimmed.startsWith("<?xml"))
       return "image/svg+xml";
   } catch (caught) {
-    ignore_error("components/email/sandboxed_email_renderer/helpers:sniff_image_type", caught);
+    ignore_error(
+      "components/email/sandboxed_email_renderer/helpers:sniff_image_type",
+      caught,
+    );
   }
+
   return null;
 }
 
@@ -101,12 +114,17 @@ export async function resolve_native_images(doc: Document): Promise<void> {
         : `https://app.astermail.org${src}`;
 
       let parsed_url: URL;
+
       try {
         parsed_url = new URL(url);
       } catch {
         return;
       }
-      const expected_proxy = new URL(IMAGE_PROXY_URL, "https://app.astermail.org");
+      const expected_proxy = new URL(
+        IMAGE_PROXY_URL,
+        "https://app.astermail.org",
+      );
+
       if (
         parsed_url.origin !== expected_proxy.origin ||
         parsed_url.pathname !== expected_proxy.pathname
@@ -147,8 +165,13 @@ export const BODY_PADDING = "8px 16px 16px 16px";
 export const HEX_COLOR_PATTERN = /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i;
 export const FALLBACK_ACCENT = DEFAULT_ACCENT_COLOR;
 
-export function safe_hex(value: string | undefined, fallback = FALLBACK_ACCENT): string {
-  return value && HEX_COLOR_PATTERN.test(value.trim()) ? value.trim() : fallback;
+export function safe_hex(
+  value: string | undefined,
+  fallback = FALLBACK_ACCENT,
+): string {
+  return value && HEX_COLOR_PATTERN.test(value.trim())
+    ? value.trim()
+    : fallback;
 }
 
 export function expand_hex(value: string): string {
@@ -194,7 +217,10 @@ export function fit_zoom_for(
 
   const needed = available_width / natural_width;
 
-  return Math.round(Math.max(MIN_FIT_ZOOM, Math.min(base_zoom, needed)) * 1000) / 1000;
+  return (
+    Math.round(Math.max(MIN_FIT_ZOOM, Math.min(base_zoom, needed)) * 1000) /
+    1000
+  );
 }
 
 export const COLLAPSED_CONTENT_HEIGHT_PX = 8;
@@ -304,7 +330,9 @@ export const SKELETON_DELAY_MS = 180;
 export const SKELETON_DELAY_MEASURED_MS = 90;
 
 export function needs_settle_remeasure(body: HTMLElement): boolean {
-  return body.querySelector("img,video,canvas,svg,iframe,object,embed") !== null;
+  return (
+    body.querySelector("img,video,canvas,svg,iframe,object,embed") !== null
+  );
 }
 
 export function dispatch_iframe_ready(email_id: string): void {
@@ -329,4 +357,3 @@ export function set_cached_iframe_height(
 export function clear_iframe_height_cache(): void {
   iframe_height_cache.clear();
 }
-

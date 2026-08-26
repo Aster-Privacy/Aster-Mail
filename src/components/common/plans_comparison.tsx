@@ -153,13 +153,6 @@ function get_features(
       supernova: true,
     },
     {
-      name: t("settings.feature_read_receipts"),
-      free: false,
-      star: false,
-      nova: false,
-      supernova: true,
-    },
-    {
       name: t("settings.feature_email_templates"),
       free: "3",
       star: "10",
@@ -567,7 +560,7 @@ function get_features(
     },
     {
       name: t("settings.feature_imap_smtp"),
-      free: true,
+      free: false,
       star: true,
       nova: true,
       supernova: true,
@@ -776,7 +769,7 @@ export function PlansComparison({
           variant="ghost"
           onClick={on_back}
         >
-          <ArrowLeftIcon className="w-4 h-4" />
+          <ArrowLeftIcon className="w-4 h-4 rtl:-scale-x-100" />
           <span className="hidden sm:inline">
             {t("settings.back_to_plans")}
           </span>
@@ -837,7 +830,7 @@ export function PlansComparison({
             <table className="w-full">
               <thead>
                 <tr>
-                  <th className="text-left py-4 px-4 w-1/4">
+                  <th className="text-start py-4 px-4 w-1/4">
                     <span className="text-sm font-medium text-txt-tertiary">
                       {t("settings.features")}
                     </span>

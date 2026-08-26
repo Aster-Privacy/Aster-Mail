@@ -91,8 +91,10 @@ describe("category_colors", () => {
         const token = `--cat-${key}-${slot}:`;
         const declarations = globals_css.split(token).length - 1;
 
-        expect(declarations, `${token} declared ${declarations} time(s)`)
-          .toBeGreaterThanOrEqual(key === "accent" && slot === "fg" ? 1 : 2);
+        expect(
+          declarations,
+          `${token} declared ${declarations} time(s)`,
+        ).toBeGreaterThanOrEqual(key === "accent" && slot === "fg" ? 1 : 2);
       }
     }
   });
@@ -122,8 +124,10 @@ describe("category_colors", () => {
         globals_css.indexOf(".high-contrast {"),
       );
 
-      expect(light, `--cat-${key}-fg missing a high-contrast value`)
-        .toBeGreaterThan(0);
+      expect(
+        light,
+        `--cat-${key}-fg missing a high-contrast value`,
+      ).toBeGreaterThan(0);
     }
   });
 });

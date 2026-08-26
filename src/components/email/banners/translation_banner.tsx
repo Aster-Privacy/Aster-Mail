@@ -18,6 +18,9 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { LanguageCode } from "@/services/translation/engine_types";
+import type { TranslationStatus } from "@/components/email/hooks/use_email_translation";
+
 import { useEffect, useState } from "react";
 import { GlobeAltIcon } from "@heroicons/react/24/outline";
 import { AnimatePresence, motion } from "framer-motion";
@@ -27,9 +30,6 @@ import { use_i18n } from "@/lib/i18n/context";
 import { InfoPopover } from "@/components/ui/info_popover";
 import { language_display_name } from "@/services/translation/accepted_languages";
 import { available_source_languages } from "@/services/translation/translate_document";
-import type { LanguageCode } from "@/services/translation/engine_types";
-import type { TranslationStatus } from "@/components/email/hooks/use_email_translation";
-
 import { ignore_error } from "@/lib/ignore_error";
 
 interface TranslationBannerProps {

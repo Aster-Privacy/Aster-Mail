@@ -61,7 +61,9 @@ async function build_index(): Promise<Map<string, string>> {
   return next;
 }
 
-export function get_cached_contact_id(email: string): string | null | undefined {
+export function get_cached_contact_id(
+  email: string,
+): string | null | undefined {
   if (!index) return undefined;
 
   return index.get(normalize(email)) ?? null;

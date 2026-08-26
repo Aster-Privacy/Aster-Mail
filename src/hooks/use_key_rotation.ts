@@ -37,6 +37,7 @@ import {
 import { store_encrypted_vault } from "@/contexts/auth/session_passphrase";
 import { with_vault_write_lock } from "@/services/crypto/vault_write_lock";
 import { show_toast } from "@/components/toast/simple_toast";
+import { user_facing_error } from "@/utils/user_facing_error";
 
 export interface KeyRotationState {
   show_modal: boolean;
@@ -95,8 +96,7 @@ export function use_key_rotation(options?: { auto_check?: boolean }) {
 
       return result;
     } catch (error) {
-      const error_message =
-        error instanceof Error ? error.message : t("common.unknown_error");
+      const error_message = user_facing_error(error, t("common.unknown_error"));
 
       set_state((prev) => ({
         ...prev,
@@ -112,7 +112,7 @@ export function use_key_rotation(options?: { auto_check?: boolean }) {
         error: error_message,
       };
     }
-  }, [is_authenticated, has_keys, preferences]);
+  }, [is_authenticated, has_keys, preferences, t]);
 
   const perform_rotation = useCallback(
     async (password: string): Promise<string | null> => {
@@ -176,7 +176,11 @@ export function use_key_rotation(options?: { auto_check?: boolean }) {
 
         if (result.success && result.new_vault) {
           if (result.encrypted_vault && result.vault_nonce) {
-            store_encrypted_vault(user.id, result.encrypted_vault, result.vault_nonce);
+            store_encrypted_vault(
+              user.id,
+              result.encrypted_vault,
+              result.vault_nonce,
+            );
           }
 
           set_state((prev) => ({
@@ -193,7 +197,7 @@ export function use_key_rotation(options?: { auto_check?: boolean }) {
 
         return result.error ?? t("common.failed_to_rotate_keys");
       } catch (error) {
-        return error instanceof Error ? error.message : t("common.rotation_failed");
+        return user_facing_error(error, t("common.rotation_failed"));
       } finally {
         is_rotating_ref.current = false;
       }

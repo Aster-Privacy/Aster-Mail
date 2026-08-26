@@ -103,7 +103,10 @@ export function ThemeCard({
       >
         <div
           className="w-full h-full rounded-lg overflow-hidden"
-          style={{ border: get_border_color(), backgroundColor: get_bg_color() }}
+          style={{
+            border: get_border_color(),
+            backgroundColor: get_bg_color(),
+          }}
         >
           {get_mockup()}
         </div>

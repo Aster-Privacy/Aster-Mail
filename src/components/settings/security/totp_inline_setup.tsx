@@ -19,15 +19,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useState, useCallback, useEffect, useRef } from "react";
-import { RoundedQrCode } from "@/components/ui/rounded_qr_code";
 import {
   ClipboardDocumentIcon,
   ExclamationTriangleIcon,
   QuestionMarkCircleIcon,
 } from "@heroicons/react/24/outline";
-
-import { show_toast } from "@/components/toast/simple_toast";
 import { Button } from "@aster/ui";
+
+import { RoundedQrCode } from "@/components/ui/rounded_qr_code";
+import { show_toast } from "@/components/toast/simple_toast";
 import { OtpInput } from "@/components/ui/otp_input";
 import { TotpBackupCodesModal } from "@/components/settings/security/totp_backup_codes_modal";
 import {
@@ -37,17 +37,32 @@ import {
 } from "@/services/api/totp";
 import { use_i18n } from "@/lib/i18n/context";
 import mail_logo_url from "@/assets/mail_logo.webp";
+import { copy_text } from "@/utils/copy_text";
 
 interface TotpInlineSetupProps {
   on_success: () => void;
 }
 
+const SETUP_CACHE_TTL_MS = 9 * 60 * 1000;
+
 let cached_setup_data: TotpSetupInitiateResponse | null = null;
+let cached_setup_at = 0;
+
+function read_cached_setup(): TotpSetupInitiateResponse | null {
+  if (!cached_setup_data) return null;
+  if (Date.now() - cached_setup_at > SETUP_CACHE_TTL_MS) {
+    cached_setup_data = null;
+
+    return null;
+  }
+
+  return cached_setup_data;
+}
 
 export function TotpInlineSetup({ on_success }: TotpInlineSetupProps) {
   const { t } = use_i18n();
   const [setup_data, set_setup_data] =
-    useState<TotpSetupInitiateResponse | null>(cached_setup_data);
+    useState<TotpSetupInitiateResponse | null>(read_cached_setup());
   const [verification_code, set_verification_code] = useState("");
   const [backup_codes, set_backup_codes] = useState<string[]>([]);
   const [show_backup_codes, set_show_backup_codes] = useState(false);
@@ -71,6 +86,7 @@ export function TotpInlineSetup({ on_success }: TotpInlineSetupProps) {
 
     if (response.data) {
       cached_setup_data = response.data;
+      cached_setup_at = Date.now();
       set_setup_data(response.data);
     }
 
@@ -80,7 +96,7 @@ export function TotpInlineSetup({ on_success }: TotpInlineSetupProps) {
   useEffect(() => {
     if (!initiated_ref.current) {
       initiated_ref.current = true;
-      if (!cached_setup_data) {
+      if (!read_cached_setup()) {
         initiate_setup();
       }
     }
@@ -99,6 +115,10 @@ export function TotpInlineSetup({ on_success }: TotpInlineSetupProps) {
     });
 
     if (response.error) {
+      if (!read_cached_setup()) {
+        set_setup_data(null);
+        void initiate_setup();
+      }
       set_error(response.error);
       verifying_ref.current = false;
       set_is_loading(false);
@@ -123,8 +143,11 @@ export function TotpInlineSetup({ on_success }: TotpInlineSetupProps) {
 
   const copy_secret = async () => {
     if (!setup_data) return;
-    await navigator.clipboard.writeText(setup_data.secret);
-    show_toast(t("common.copied_to_clipboard"), "success");
+    if (await copy_text(setup_data.secret)) {
+      show_toast(t("common.copied_to_clipboard"), "success");
+    } else {
+      show_toast(t("common.failed_to_copy"), "error");
+    }
   };
 
   return (
@@ -152,7 +175,7 @@ export function TotpInlineSetup({ on_success }: TotpInlineSetupProps) {
               style={{ borderTopColor: "var(--color-info)" }}
             />
           </div>
-        ) : error && !setup_data ? (
+        ) : error && !setup_data && !is_loading ? (
           <div className="flex flex-col items-center justify-center py-8 space-y-4">
             <ExclamationTriangleIcon className="w-10 h-10 text-red-500" />
             <p className="text-sm text-center text-red-500">{error}</p>
@@ -163,7 +186,11 @@ export function TotpInlineSetup({ on_success }: TotpInlineSetupProps) {
         ) : setup_data ? (
           <div className="flex flex-col lg:flex-row gap-3 lg:items-start min-w-0">
             <div className="flex-shrink-0 flex justify-center">
-              <RoundedQrCode logo_src={mail_logo_url} size={210} value={setup_data.otpauth_uri} />
+              <RoundedQrCode
+                logo_src={mail_logo_url}
+                size={210}
+                value={setup_data.otpauth_uri}
+              />
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm text-txt-secondary">
@@ -188,9 +215,7 @@ export function TotpInlineSetup({ on_success }: TotpInlineSetupProps) {
                   onChange={handle_code_change}
                   onComplete={handle_verify}
                 />
-                {error && (
-                  <p className="text-sm text-red-500 mt-2">{error}</p>
-                )}
+                {error && <p className="text-sm text-red-500 mt-2">{error}</p>}
               </div>
             </div>
           </div>

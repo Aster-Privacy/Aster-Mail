@@ -46,7 +46,10 @@ export function SyncHealthDot({ account, t }: SyncHealthDotProps) {
 
   if (account.needs_reauth) {
     dot_color = "rgb(245, 158, 11)";
-    dot_label = t("settings.connected_accounts_reauth_needed");
+    dot_label =
+      account.protocol === "oauth_imap"
+        ? t("settings.connected_accounts_reauth_needed")
+        : t("settings.connected_accounts_password_reauth_needed");
   } else if (account.last_sync_status === "success") {
     dot_color = "rgb(34, 197, 94)";
     dot_label = t("common.last_sync_successful");
@@ -96,8 +99,8 @@ export function SyncStatusIndicator({
     if (progress) {
       if (has_progress) {
         label = t("settings.syncing_progress", {
-          processed: String(progress.processed),
-          total: String(progress.total),
+          processed: progress.processed,
+          total: progress.total,
         });
       } else if (progress.status === "checking") {
         label = t("settings.sync_checking_new");
@@ -147,7 +150,9 @@ export function SyncStatusIndicator({
         style={{ color: "rgb(245, 158, 11)" }}
       >
         <ExclamationTriangleIcon className="w-3 h-3" />
-        {t("settings.connected_accounts_reauth_needed")}
+        {account.protocol === "oauth_imap"
+          ? t("settings.connected_accounts_reauth_needed")
+          : t("settings.connected_accounts_password_reauth_needed")}
       </span>
     );
   }

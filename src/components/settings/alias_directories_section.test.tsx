@@ -486,3 +486,65 @@ describe("AliasDirectoriesSection recently deleted", () => {
     );
   });
 });
+
+describe("AliasDirectoriesSection load failure", () => {
+  let container: HTMLDivElement;
+  let root: Root;
+
+  const flush = async () => {
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+  };
+
+  beforeEach(() => {
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+  });
+
+  afterEach(async () => {
+    await act(async () => {
+      root.unmount();
+    });
+    container.remove();
+    list_alias_directories.mockClear();
+  });
+
+  it("offers a retry instead of an empty directory list", async () => {
+    list_alias_directories.mockRejectedValueOnce(new Error("offline"));
+
+    await act(async () => {
+      root.render(<AliasDirectoriesSection />);
+    });
+    await flush();
+
+    expect(container.textContent).toContain("common.retry");
+    expect(container.textContent).not.toContain(
+      "settings.alias_directories_empty",
+    );
+  });
+
+  it("reloads the directories when the retry is pressed", async () => {
+    list_alias_directories.mockRejectedValueOnce(new Error("offline"));
+
+    await act(async () => {
+      root.render(<AliasDirectoriesSection />);
+    });
+    await flush();
+
+    const before = list_alias_directories.mock.calls.length;
+    const retry = Array.from(container.querySelectorAll("button")).find((b) =>
+      b.textContent?.includes("common.retry"),
+    );
+
+    await act(async () => {
+      retry?.click();
+    });
+    await flush();
+
+    expect(list_alias_directories.mock.calls.length).toBeGreaterThan(before);
+    expect(container.textContent).not.toContain("common.retry");
+  });
+});

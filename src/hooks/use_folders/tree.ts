@@ -19,9 +19,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
-
-
-
 export interface DecryptedFolder {
   id: string;
   folder_token: string;
@@ -107,7 +104,7 @@ export function build_folder_tree(
     [...items].sort(compare_sibling_folders).map((folder) => ({
       folder,
       children:
-        depth < 4
+        depth < MAX_FOLDER_DEPTH
           ? build(by_parent.get(folder.folder_token) || [], depth + 1)
           : [],
       depth,
@@ -172,6 +169,8 @@ export function flatten_folder_tree(nodes: FolderTreeNode[]): FolderTreeNode[] {
   return result;
 }
 
+export const MAX_FOLDER_DEPTH = 4;
+
 export function flatten_visible_tree(
   nodes: FolderTreeNode[],
   expanded: Set<string>,
@@ -233,4 +232,3 @@ export function partition_folders_by_parent(
 
   return { pinned, rest };
 }
-

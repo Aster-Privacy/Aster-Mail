@@ -216,7 +216,6 @@ export function clear_all_keys(): void {
   stop_cleanup_timer();
 }
 
-
 export function on_session_expire(callback: () => void): () => void {
   const check_interval = setInterval(() => {
     if (is_session_expired() && session_start_time !== null) {

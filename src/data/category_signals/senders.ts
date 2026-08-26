@@ -114,4 +114,3 @@ export const BULK_SENDER_LOCALPARTS: readonly string[] = [
   "2fa",
   "otp",
 ];
-

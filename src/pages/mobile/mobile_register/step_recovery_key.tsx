@@ -80,7 +80,10 @@ export function StepRecoveryKey({
               <span className="text-xs text-[var(--text-muted)]">
                 {reg.t("auth.your_new_aster_address")}
               </span>
-              <span className="text-sm font-semibold text-[var(--text-primary)] notranslate" translate="no">
+              <span
+                className="text-sm font-semibold text-[var(--text-primary)] notranslate"
+                translate="no"
+              >
                 {reg.generated_email}
               </span>
             </motion.div>

@@ -18,10 +18,14 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 
 import { use_should_reduce_motion } from "@/provider";
+import { get_cached_folders } from "@/hooks/use_folders";
+import { bulk_add_folder, bulk_remove_folder } from "@/services/api/mail";
+import { mail_event_bus, MAIL_EVENTS } from "@/hooks/mail_events";
+import { show_action_toast } from "@/components/toast/action_toast";
 import {
   type EmailPopupViewerProps,
   FULLSCREEN_MARGIN,
@@ -55,6 +59,103 @@ export function EmailPopupViewer({
     grouped_email_ids,
   });
 
+  const [available_folders, set_available_folders] =
+    useState(get_cached_folders);
+  const [folder_overrides, set_folder_overrides] = useState<
+    Record<string, boolean>
+  >({});
+  const folder_move_in_flight = useRef(false);
+
+  useEffect(() => {
+    const sync_folders = () => set_available_folders(get_cached_folders());
+
+    sync_folders();
+
+    return mail_event_bus.subscribe(MAIL_EVENTS.FOLDERS_CHANGED, sync_folders);
+  }, []);
+
+  useEffect(() => {
+    set_folder_overrides({});
+  }, [email_id]);
+
+  const folder_options = useMemo(
+    () =>
+      available_folders
+        .filter((folder) => !folder.is_system && !folder.is_password_protected)
+        .map((folder) => ({
+          id: folder.folder_token,
+          name: folder.name,
+          color: folder.color ?? "",
+        })),
+    [available_folders],
+  );
+
+  const applied_folder_tokens = useMemo(() => {
+    const base = new Set(
+      (viewer.mail_item?.folders ?? []).map((folder) => folder.token),
+    );
+
+    Object.entries(folder_overrides).forEach(([token, applied]) => {
+      if (applied) {
+        base.add(token);
+      } else {
+        base.delete(token);
+      }
+    });
+
+    return [...base];
+  }, [viewer.mail_item?.folders, folder_overrides]);
+
+  const handle_folder_toggle = useCallback(
+    async (folder_token: string) => {
+      if (!email_id || folder_move_in_flight.current) return;
+
+      const was_applied = applied_folder_tokens.includes(folder_token);
+      const folder_name =
+        folder_options.find((folder) => folder.id === folder_token)?.name ??
+        viewer.t("common.folder_fallback");
+
+      folder_move_in_flight.current = true;
+
+      let failed = false;
+
+      try {
+        const result = was_applied
+          ? await bulk_remove_folder([email_id], folder_token)
+          : await bulk_add_folder([email_id], folder_token);
+
+        failed = !!result.error;
+      } catch {
+        failed = true;
+      } finally {
+        folder_move_in_flight.current = false;
+      }
+
+      if (failed) {
+        show_action_toast({
+          message: viewer.t("common.failed_to_move_email"),
+          action_type: "folder",
+          email_ids: [email_id],
+        });
+
+        return;
+      }
+
+      set_folder_overrides((prev) => ({
+        ...prev,
+        [folder_token]: !was_applied,
+      }));
+      show_action_toast({
+        message: was_applied
+          ? viewer.t("common.removed_from_folder", { folder: folder_name })
+          : viewer.t("common.moved_to_folder", { folder: folder_name }),
+        action_type: "folder",
+        email_ids: [email_id],
+      });
+    },
+    [email_id, applied_folder_tokens, folder_options, viewer.t],
+  );
+
   const memoized_draft = useMemo(
     () =>
       viewer.thread_draft
@@ -65,7 +166,12 @@ export function EmailPopupViewer({
             content: viewer.thread_draft.content,
           }
         : null,
-    [viewer.thread_draft?.id, viewer.thread_draft?.version, viewer.thread_draft?.reply_to_id, viewer.thread_draft?.content],
+    [
+      viewer.thread_draft?.id,
+      viewer.thread_draft?.version,
+      viewer.thread_draft?.reply_to_id,
+      viewer.thread_draft?.content,
+    ],
   );
 
   if (!email_id && !local_email) return null;
@@ -115,25 +221,32 @@ export function EmailPopupViewer({
       onClick={(e) => e.stopPropagation()}
     >
       <PopupEmailActions
+        applied_folder_tokens={applied_folder_tokens}
+        folders={folder_options}
         is_archive_loading={viewer.is_archive_loading}
+        is_archived={viewer.mail_item?.is_archived === true}
         is_dragging={viewer.is_dragging}
         is_fullscreen={viewer.is_fullscreen}
         is_pin_loading={viewer.is_pin_loading}
         is_pinned={viewer.is_pinned}
         is_read={viewer.is_read}
+        is_spam={viewer.mail_item?.is_spam === true}
         is_spam_loading={viewer.is_spam_loading}
         is_trash_loading={viewer.is_trash_loading}
         mail_item={viewer.mail_item}
         on_archive={viewer.handle_archive}
         on_close={on_close}
         on_drag_start={viewer.handle_drag_start}
+        on_folder_toggle={handle_folder_toggle}
         on_fullscreen={viewer.handle_fullscreen}
+        on_not_spam={viewer.handle_not_spam}
         on_pin_toggle={viewer.handle_pin_toggle}
         on_print={viewer.handle_print}
         on_read_toggle={viewer.handle_read_toggle}
         on_spam={() => request_spam(viewer.handle_spam)}
         on_toggle_size={viewer.toggle_size}
         on_trash={viewer.handle_trash}
+        on_unarchive={viewer.handle_unarchive}
         on_unsubscribe={viewer.handle_unsubscribe}
         popup_size={viewer.popup_size}
         t={viewer.t}
@@ -151,13 +264,14 @@ export function EmailPopupViewer({
         format_email_popup={viewer.format_email_popup}
         is_fullscreen={viewer.is_fullscreen}
         is_spam={viewer.mail_item?.is_spam === true}
+        label_hints={label_hints}
+        loaded_content_types={viewer.loaded_content_types}
         mail_item={viewer.mail_item}
         on_close={on_close}
         on_compose={on_compose}
         on_dismiss_external_content={viewer.handle_dismiss_external_content}
         on_draft_saved={viewer.handle_draft_saved}
         on_external_content_detected={viewer.handle_external_content_detected}
-        loaded_content_types={viewer.loaded_content_types}
         on_load_external_content={viewer.handle_load_external_content}
         on_per_message_archive={viewer.handle_per_message_archive}
         on_per_message_forward={viewer.handle_per_message_forward}
@@ -179,7 +293,6 @@ export function EmailPopupViewer({
         thread_messages={viewer.thread_messages}
         thread_token={viewer.mail_item?.thread_token}
         timestamp_date={viewer.timestamp_date}
-        label_hints={label_hints}
       />
       {spam_confirm_dialog}
     </motion.div>

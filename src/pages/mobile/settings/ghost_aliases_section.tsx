@@ -32,10 +32,12 @@ import {
 } from "@/services/api/ghost_aliases";
 import { register_ghost_email } from "@/stores/ghost_alias_store";
 import { Spinner } from "@/components/ui/spinner";
+import { show_toast } from "@/components/toast/simple_toast";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { INSTANT_ALIAS_DELETE_KEY } from "@/components/settings/hooks/use_aliases";
+import { app_locale, get_display_time_zone } from "@/utils/date_format";
 
 export function GhostAliasesSection({
   on_back,
@@ -53,7 +55,11 @@ export function GhostAliasesSection({
   );
   const [aliases, set_aliases] = useState<DecryptedGhostAlias[]>([]);
   const [loading, set_loading] = useState(true);
+  const [load_error, set_load_error] = useState(false);
   const [action_loading, set_action_loading] = useState<string | null>(null);
+  const [confirm_expire_id, set_confirm_expire_id] = useState<string | null>(
+    null,
+  );
   const [too_new_info, set_too_new_info] = useState<{
     is_open: boolean;
     eligible_date: string | null;
@@ -61,6 +67,7 @@ export function GhostAliasesSection({
 
   const load_aliases = useCallback(async () => {
     set_loading(true);
+    set_load_error(false);
     try {
       const response = await list_ghost_aliases();
 
@@ -69,9 +76,11 @@ export function GhostAliasesSection({
 
         decrypted.forEach((a) => register_ghost_email(a.full_address));
         set_aliases(decrypted);
+      } else {
+        set_load_error(true);
       }
     } catch {
-      set_aliases([]);
+      set_load_error(true);
     } finally {
       set_loading(false);
     }
@@ -92,7 +101,8 @@ export function GhostAliasesSection({
         if (new Date() < eligible) {
           set_too_new_info({
             is_open: true,
-            eligible_date: eligible.toLocaleDateString(undefined, {
+            eligible_date: eligible.toLocaleDateString(app_locale(), {
+              timeZone: get_display_time_zone(),
               month: "short",
               day: "numeric",
               year: "numeric",
@@ -102,28 +112,68 @@ export function GhostAliasesSection({
           return;
         }
       }
-      set_action_loading(alias_id);
-      try {
-        await expire_ghost_alias(alias_id);
-        await load_aliases();
-      } finally {
-        set_action_loading(null);
-      }
+      set_confirm_expire_id(alias_id);
     },
-    [load_aliases, aliases, can_expire_instantly],
+    [aliases, can_expire_instantly],
   );
+
+  const expire_grace_date = useMemo(
+    () =>
+      new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString(
+        app_locale(),
+        {
+          timeZone: get_display_time_zone(),
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        },
+      ),
+    [confirm_expire_id],
+  );
+
+  const confirm_expire = useCallback(async () => {
+    if (!confirm_expire_id) return;
+    const alias_id = confirm_expire_id;
+
+    set_confirm_expire_id(null);
+    set_action_loading(alias_id);
+    try {
+      const result = await expire_ghost_alias(alias_id);
+
+      if (result.error) {
+        show_toast(
+          result.error || t("common.something_went_wrong_try_again"),
+          "error",
+        );
+
+        return;
+      }
+      await load_aliases();
+    } finally {
+      set_action_loading(null);
+    }
+  }, [confirm_expire_id, load_aliases, t]);
 
   const handle_extend = useCallback(
     async (alias_id: string) => {
       set_action_loading(alias_id);
       try {
-        await extend_ghost_alias(alias_id, 30);
+        const result = await extend_ghost_alias(alias_id, 30);
+
+        if (result.error) {
+          show_toast(
+            result.error || t("common.something_went_wrong_try_again"),
+            "error",
+          );
+
+          return;
+        }
         await load_aliases();
       } finally {
         set_action_loading(null);
       }
     },
-    [load_aliases],
+    [load_aliases, t],
   );
 
   const now = new Date();
@@ -137,7 +187,8 @@ export function GhostAliasesSection({
   const format_date = (iso?: string) => {
     if (!iso) return "-";
 
-    return new Date(iso).toLocaleDateString(undefined, {
+    return new Date(iso).toLocaleDateString(app_locale(), {
+      timeZone: get_display_time_zone(),
       month: "short",
       day: "numeric",
       year: "numeric",
@@ -179,6 +230,19 @@ export function GhostAliasesSection({
         {loading ? (
           <div className="flex justify-center py-10">
             <Spinner size="md" />
+          </div>
+        ) : load_error ? (
+          <div className="px-4 py-10 text-center">
+            <p className="text-[14px] text-[var(--text-muted)]">
+              {t("settings.aliases_load_failed")}
+            </p>
+            <button
+              className="mt-3 text-[14px] font-medium text-[var(--mobile-accent)]"
+              type="button"
+              onClick={() => load_aliases()}
+            >
+              {t("common.retry")}
+            </button>
           </div>
         ) : aliases.length === 0 ? (
           <div className="px-4 py-10 text-center">
@@ -294,6 +358,16 @@ export function GhostAliasesSection({
         }
         title={t("settings.ghost_alias_too_new_title")}
         variant="info"
+      />
+      <ConfirmationModal
+        is_open={confirm_expire_id !== null}
+        message={t("settings.ghost_alias_expire_confirm_message", {
+          date: expire_grace_date,
+        })}
+        on_cancel={() => set_confirm_expire_id(null)}
+        on_confirm={confirm_expire}
+        title={t("settings.ghost_alias_expire_confirm_title")}
+        variant="danger"
       />
     </div>
   );

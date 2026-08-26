@@ -29,7 +29,9 @@ import type {
 } from "./types";
 
 import { CARRIER_TRACKING_URLS, CARRIER_NAMES } from "./types";
-import { en } from "@/lib/i18n/translations/en";
+
+import { get_active_translations } from "@/lib/i18n/translations";
+import { app_locale } from "@/utils/date_format";
 import {
   html_to_readable_plain_text,
   is_html_content,
@@ -100,12 +102,21 @@ function currency_symbol(currency: string): string {
 }
 
 function format_amount(value: number, currency: string): string {
-  const digits = value.toLocaleString("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+  const locale = app_locale();
 
-  return `${currency_symbol(currency)}${digits}`;
+  try {
+    return new Intl.NumberFormat(locale, {
+      style: "currency",
+      currency,
+    }).format(value);
+  } catch {
+    const digits = value.toLocaleString(locale, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+
+    return `${currency_symbol(currency)}${digits}`;
+  }
 }
 
 function escape_regex(value: string): string {
@@ -253,7 +264,8 @@ function reconcile_amounts(amounts: PurchaseAmounts): PurchaseAmounts {
   if (!total || !subtotal) return amounts;
 
   const tolerance = Math.max(0.02, total.value * 0.005);
-  const charges = subtotal.value + (tax?.value ?? 0) + (shipping_cost?.value ?? 0);
+  const charges =
+    subtotal.value + (tax?.value ?? 0) + (shipping_cost?.value ?? 0);
 
   if (discount) {
     if (Math.abs(charges - discount.value - total.value) <= tolerance) {
@@ -614,7 +626,7 @@ function extract_merchant_name(from_email: string, from_name: string): string {
     }
   }
 
-  return from_name || en.common.unknown_merchant;
+  return from_name || get_active_translations().common.unknown_merchant;
 }
 
 export function extract_purchase_details(
@@ -926,10 +938,20 @@ export function extract_email_details(
     has_purchase_details: is_purchase,
     has_shipping_details: is_shipping,
     purchase: is_purchase
-      ? extract_purchase_details(clean_subject, clean_text, from_email, from_name)
+      ? extract_purchase_details(
+          clean_subject,
+          clean_text,
+          from_email,
+          from_name,
+        )
       : null,
     shipping: is_shipping
-      ? extract_shipping_details(clean_subject, clean_text, body_html, from_email)
+      ? extract_shipping_details(
+          clean_subject,
+          clean_text,
+          body_html,
+          from_email,
+        )
       : null,
     extracted_at: Date.now(),
   };

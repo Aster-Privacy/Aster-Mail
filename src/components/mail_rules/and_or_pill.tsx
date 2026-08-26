@@ -18,7 +18,10 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { MatchMode } from "@/services/api/mail_rules";
+
 import * as React from "react";
+
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -26,7 +29,6 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown_menu";
 import { use_i18n } from "@/lib/i18n/context";
-import type { MatchMode } from "@/services/api/mail_rules";
 
 interface AndOrPillProps {
   mode: MatchMode;
@@ -37,7 +39,8 @@ interface AndOrPillProps {
 export function AndOrPill({ mode, on_change, read_only }: AndOrPillProps) {
   const { t } = use_i18n();
   const [open, set_open] = React.useState(false);
-  const label = mode === "all" ? t("mail_rules.and_label") : t("mail_rules.or_label");
+  const label =
+    mode === "all" ? t("mail_rules.and_label") : t("mail_rules.or_label");
 
   const pill = (
     <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400 text-[11px] font-medium uppercase tracking-wide select-none">
@@ -50,30 +53,30 @@ export function AndOrPill({ mode, on_change, read_only }: AndOrPillProps) {
   return (
     <DropdownMenu open={open} onOpenChange={set_open}>
       <DropdownMenuTrigger asChild>
-        <button type="button" className="cursor-pointer">
+        <button className="cursor-pointer" type="button">
           {pill}
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="center"
-        sideOffset={6}
         className="z-[200] w-32"
+        sideOffset={6}
       >
         <DropdownMenuItem
+          className="text-[12.5px]"
           onSelect={() => {
             on_change("all");
             set_open(false);
           }}
-          className="text-[12.5px]"
         >
           {t("mail_rules.and_label")}
         </DropdownMenuItem>
         <DropdownMenuItem
+          className="text-[12.5px]"
           onSelect={() => {
             on_change("any");
             set_open(false);
           }}
-          className="text-[12.5px]"
         >
           {t("mail_rules.or_label")}
         </DropdownMenuItem>

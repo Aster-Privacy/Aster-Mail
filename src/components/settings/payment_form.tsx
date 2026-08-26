@@ -48,7 +48,10 @@ import {
   format_price,
   type PromoValidateResponse,
 } from "@/services/api/billing";
-import { PLAN_TIERS } from "@/components/settings/billing/billing_constants";
+import {
+  PLAN_TIERS,
+  convert_cents,
+} from "@/components/settings/billing/billing_constants";
 import { server_error_text } from "@/components/settings/billing/server_error_text";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
@@ -56,6 +59,7 @@ import {
   use_stripe_theme_tokens,
   build_stripe_element_style,
 } from "@/lib/stripe_appearance";
+import { is_composing } from "@/utils/ime";
 
 interface payment_form_props {
   plan_name: string;
@@ -138,10 +142,14 @@ export function PaymentForm({
     [stripe_tokens],
   );
 
+  const applied_promo_result = addon_id ? null : promo_result;
+
   const { discounted_cents, is_free } = useMemo(
-    () => compute_discount(price_cents, promo_result),
-    [price_cents, promo_result],
+    () => compute_discount(price_cents, applied_promo_result),
+    [price_cents, applied_promo_result],
   );
+
+  const [force_payment_fields, set_force_payment_fields] = useState(false);
 
   const credits_applied_cents = useMemo(() => {
     if (addon_id) return 0;
@@ -155,9 +163,14 @@ export function PaymentForm({
     discounted_cents - credits_applied_cents,
   );
 
-  const discounted_display = format_price(discounted_cents, currency);
+  const discounted_display = format_price(
+    convert_cents(discounted_cents, currency),
+    currency,
+  );
   const show_strikethrough =
-    promo_result?.valid && discounted_cents !== price_cents;
+    applied_promo_result?.valid && discounted_cents !== price_cents;
+
+  const requires_payment = !is_free || force_payment_fields;
 
   const create_intent_for_plan = useCallback(async (): Promise<{
     secret: string | null;
@@ -175,19 +188,27 @@ export function PaymentForm({
       );
 
       if (sub_response.error) {
-        return { secret: null, error: sub_response.error };
+        return {
+          secret: null,
+          error:
+            sub_response.server_code === "CREDIT_BALANCE_CHANGED"
+              ? t("common.credit_balance_changed")
+              : sub_response.error,
+        };
       }
 
       return {
         secret: sub_response.data?.client_secret || null,
         error: sub_response.data?.client_secret
           ? null
-          : "empty client_secret from server",
+          : t("settings.payment_failed"),
       };
     } catch (err) {
+      if (import.meta.env.DEV) console.error(err);
+
       return {
         secret: null,
-        error: err instanceof Error ? err.message : "network error",
+        error: t("settings.payment_failed"),
       };
     }
   }, [
@@ -210,6 +231,53 @@ export function PaymentForm({
     }, 1500);
   }, [set_phase, t, on_success, on_close]);
 
+  const finish_pending_activation = useCallback(() => {
+    set_phase("success");
+    show_toast(t("settings.payment_activation_pending"), "info");
+    setTimeout(() => {
+      on_success();
+      on_close();
+    }, 3000);
+  }, [set_phase, t, on_success, on_close]);
+
+  const activate_after_charge = useCallback(async (): Promise<boolean> => {
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      const activate = await activate_subscription();
+
+      if (activate.data?.activated) return true;
+
+      if (attempt < 2) {
+        await new Promise((resolve) => {
+          setTimeout(resolve, 1500 * (attempt + 1));
+        });
+      }
+    }
+
+    return false;
+  }, []);
+
+  const change_payment_method = useCallback(
+    (next: "card" | "wallet" | "cashapp" | "crypto") => {
+      if (next === selected_method) return;
+
+      set_error_message("");
+      set_field_state({
+        number: { complete: false, error: null },
+        expiry: { complete: false, error: null },
+        cvc: { complete: false, error: null },
+      });
+      set_ready_count(0);
+      set_selected_method(next);
+    },
+    [selected_method, set_error_message],
+  );
+
+  const create_intent_ref = useRef(create_intent_for_plan);
+
+  useEffect(() => {
+    create_intent_ref.current = create_intent_for_plan;
+  }, [create_intent_for_plan]);
+
   useEffect(() => {
     if (!stripe || is_free) {
       set_payment_request(null);
@@ -221,7 +289,10 @@ export function PaymentForm({
 
     if (payment_request_ref.current) {
       payment_request_ref.current.update({
-        total: { label: plan_name, amount: total_after_credits_cents },
+        total: {
+          label: plan_name,
+          amount: convert_cents(total_after_credits_cents, currency),
+        },
       });
 
       return;
@@ -230,7 +301,10 @@ export function PaymentForm({
     const pr = stripe.paymentRequest({
       country: "US",
       currency: currency.toLowerCase(),
-      total: { label: plan_name, amount: total_after_credits_cents },
+      total: {
+        label: plan_name,
+        amount: convert_cents(total_after_credits_cents, currency),
+      },
       requestPayerName: true,
       requestPayerEmail: true,
     });
@@ -247,7 +321,8 @@ export function PaymentForm({
       set_phase("processing");
       set_error_message("");
       try {
-        const { secret, error: intent_error } = await create_intent_for_plan();
+        const { secret, error: intent_error } =
+          await create_intent_ref.current();
 
         if (!secret) {
           ev.complete("fail");
@@ -285,6 +360,7 @@ export function PaymentForm({
             { payment_method: ev.paymentMethod.id },
             { handleActions: false },
           );
+
           conf_error = result.error;
           conf_intent = result.paymentIntent || undefined;
         } else {
@@ -296,6 +372,7 @@ export function PaymentForm({
             },
             redirect: "if_required",
           });
+
           conf_error = result.error;
           conf_intent = result.paymentIntent || undefined;
         }
@@ -314,11 +391,8 @@ export function PaymentForm({
           await stripe.confirmCardPayment(secret);
         }
 
-        const activate = await activate_subscription();
-
-        if (!activate.data?.activated) {
-          set_error_message(t("settings.payment_failed"));
-          set_phase("ready");
+        if (!(await activate_after_charge())) {
+          finish_pending_activation();
 
           return;
         }
@@ -330,6 +404,8 @@ export function PaymentForm({
       }
     });
   }, [
+    finish_pending_activation,
+    activate_after_charge,
     stripe,
     discounted_cents,
     total_after_credits_cents,
@@ -337,7 +413,6 @@ export function PaymentForm({
     plan_name,
     is_free,
     addon_id,
-    create_intent_for_plan,
     set_phase,
     set_error_message,
     t,
@@ -374,6 +449,11 @@ export function PaymentForm({
         if (!response.data.valid) {
           show_toast(t("settings.promo_invalid"), "error");
         }
+      } else {
+        show_toast(
+          response.error || t("common.something_went_wrong_try_again"),
+          "error",
+        );
       }
     } catch {
       set_promo_result({
@@ -411,12 +491,15 @@ export function PaymentForm({
         if (response.data?.url) {
           try {
             const parsed = new URL(response.data.url);
-            if (parsed.protocol !== "https:") throw new Error("invalid_protocol");
+
+            if (parsed.protocol !== "https:")
+              throw new Error("invalid_protocol");
             window.location.href = parsed.toString();
           } catch {
             set_error_message(t("settings.failed_checkout"));
             set_phase("ready");
           }
+
           return;
         }
         set_error_message(
@@ -462,6 +545,7 @@ export function PaymentForm({
       }
 
       if (!elements) {
+        set_force_payment_fields(true);
         set_error_message(t("settings.payment_failed"));
         set_phase("ready");
 
@@ -487,6 +571,7 @@ export function PaymentForm({
         const card_number = elements.getElement(CardNumberElement);
 
         if (!card_number) {
+          set_force_payment_fields(true);
           set_error_message(t("settings.payment_failed"));
           set_phase("ready");
 
@@ -527,11 +612,8 @@ export function PaymentForm({
         return;
       }
 
-      const activate = await activate_subscription();
-
-      if (!activate.data?.activated) {
-        set_error_message(t("settings.payment_failed"));
-        set_phase("ready");
+      if (!(await activate_after_charge())) {
+        finish_pending_activation();
 
         return;
       }
@@ -554,6 +636,8 @@ export function PaymentForm({
     set_phase,
     set_error_message,
     finish_success,
+    finish_pending_activation,
+    activate_after_charge,
     t,
   ]);
 
@@ -678,7 +762,7 @@ export function PaymentForm({
         plan_name={plan_name}
         price_cents={price_cents}
         price_display={price_display}
-        promo_result={promo_result}
+        promo_result={applied_promo_result}
         show_strikethrough={!!show_strikethrough}
       />
 
@@ -692,62 +776,64 @@ export function PaymentForm({
         </div>
       )}
 
-      <div>
-        <label
-          className="block text-xs font-medium mb-2"
-          style={{ color: colors.text_secondary }}
-        >
-          {t("settings.promo_code")}
-        </label>
-        <div className="flex gap-2 items-center">
-          <input
-            className="flex-1"
-            disabled={phase === "processing"}
-            placeholder={t("settings.promo_code_placeholder")}
-            style={native_input_style("promo")}
-            type="text"
-            value={promo_code}
-            onBlur={() => set_focused_field(null)}
-            onChange={(e) => {
-              set_promo_code(e.target.value);
-              set_promo_result(null);
-            }}
-            onFocus={() => set_focused_field("promo")}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                handle_validate_promo();
-              }
-            }}
-            onMouseEnter={() => set_hovered_field("promo")}
-            onMouseLeave={() => set_hovered_field(null)}
-          />
-          <Button
-            disabled={
-              !promo_code.trim() ||
-              is_validating_promo ||
-              phase === "processing"
-            }
-            size="lg"
-            style={{ height: "44px" }}
-            variant="outline"
-            onClick={handle_validate_promo}
+      {!addon_id && (
+        <div>
+          <label
+            className="block text-xs font-medium mb-2"
+            style={{ color: colors.text_secondary }}
           >
-            {is_validating_promo ? (
-              <Spinner size="xs" />
-            ) : (
-              t("settings.promo_apply")
-            )}
-          </Button>
+            {t("settings.promo_code")}
+          </label>
+          <div className="flex gap-2 items-center">
+            <input
+              className="flex-1"
+              disabled={phase === "processing"}
+              placeholder={t("settings.promo_code_placeholder")}
+              style={native_input_style("promo")}
+              type="text"
+              value={promo_code}
+              onBlur={() => set_focused_field(null)}
+              onChange={(e) => {
+                set_promo_code(e.target.value);
+                set_promo_result(null);
+              }}
+              onFocus={() => set_focused_field("promo")}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !is_composing(e)) {
+                  e.preventDefault();
+                  handle_validate_promo();
+                }
+              }}
+              onMouseEnter={() => set_hovered_field("promo")}
+              onMouseLeave={() => set_hovered_field(null)}
+            />
+            <Button
+              disabled={
+                !promo_code.trim() ||
+                is_validating_promo ||
+                phase === "processing"
+              }
+              size="lg"
+              style={{ height: "44px" }}
+              variant="outline"
+              onClick={handle_validate_promo}
+            >
+              {is_validating_promo ? (
+                <Spinner size="xs" />
+              ) : (
+                t("settings.promo_apply")
+              )}
+            </Button>
+          </div>
+          {promo_result && !promo_result.valid && (
+            <p className="text-xs mt-1.5" style={{ color: colors.danger }}>
+              {t("settings.promo_invalid")}
+            </p>
+          )}
         </div>
-        {promo_result && !promo_result.valid && (
-          <p className="text-xs mt-1.5" style={{ color: colors.danger }}>
-            {t("settings.promo_invalid")}
-          </p>
-        )}
-      </div>
+      )}
 
-      {!is_free && (
+      {requires_payment && (
         <div className="flex gap-2 flex-wrap">
           {(
             [
@@ -770,7 +856,7 @@ export function PaymentForm({
                 color: selected_method === m ? "#ffffff" : colors.text_primary,
               }}
               type="button"
-              onClick={() => set_selected_method(m)}
+              onClick={() => change_payment_method(m)}
             >
               {m === "card"
                 ? t("settings.checkout_method_card")
@@ -784,7 +870,7 @@ export function PaymentForm({
         </div>
       )}
 
-      {!is_free &&
+      {requires_payment &&
         selected_method === "wallet" &&
         can_make_wallet_payment &&
         payment_request && (
@@ -802,7 +888,7 @@ export function PaymentForm({
           />
         )}
 
-      {!is_free && selected_method === "cashapp" && (
+      {requires_payment && selected_method === "cashapp" && (
         <div
           className="rounded-xl p-4 text-sm"
           style={{
@@ -815,66 +901,76 @@ export function PaymentForm({
         </div>
       )}
 
-      {!is_free && selected_method === "crypto" && (() => {
-        const tier = PLAN_TIERS.find((p) => p.id === plan_code);
-        const monthly_cents = tier?.monthly_cents ?? price_cents;
-        const yearly_cents = tier?.yearly_cents ?? price_cents * 12;
-        const term_options: Array<1 | 3 | 6 | 12 | 24> = [1, 3, 6, 12, 24];
-        const term_label_map: Record<1 | 3 | 6 | 12 | 24, string> = {
-          1: t("settings.crypto_term_1mo"),
-          3: t("settings.crypto_term_3mo"),
-          6: t("settings.crypto_term_6mo"),
-          12: t("settings.crypto_term_12mo"),
-          24: t("settings.crypto_term_24mo"),
-        };
-        const compute = (term: 1 | 3 | 6 | 12 | 24) => {
-          if (term === 12) return yearly_cents;
-          if (term === 24) return yearly_cents * 2;
+      {requires_payment &&
+        selected_method === "crypto" &&
+        (() => {
+          const tier = PLAN_TIERS.find((p) => p.id === plan_code);
+          const monthly_cents = tier?.monthly_cents ?? price_cents;
+          const yearly_cents = tier?.yearly_cents ?? price_cents * 12;
+          const term_options: Array<1 | 3 | 6 | 12 | 24> = [1, 3, 6, 12, 24];
+          const term_label_map: Record<1 | 3 | 6 | 12 | 24, string> = {
+            1: t("settings.crypto_term_1mo"),
+            3: t("settings.crypto_term_3mo"),
+            6: t("settings.crypto_term_6mo"),
+            12: t("settings.crypto_term_12mo"),
+            24: t("settings.crypto_term_24mo"),
+          };
+          const compute = (term: 1 | 3 | 6 | 12 | 24) => {
+            if (term === 12) return yearly_cents;
+            if (term === 24) return yearly_cents * 2;
 
-          return monthly_cents * term;
-        };
+            return monthly_cents * term;
+          };
 
-        return (
-          <div className="space-y-2">
-            <p className="text-xs" style={{ color: colors.text_tertiary }}>
-              {t("settings.crypto_select_term")}
-            </p>
-            {term_options.map((term) => {
-              const is_selected = crypto_term === term;
-              const cents = compute(term);
+          return (
+            <div className="space-y-2">
+              <p className="text-xs" style={{ color: colors.text_tertiary }}>
+                {t("settings.crypto_select_term")}
+              </p>
+              {term_options.map((term) => {
+                const is_selected = crypto_term === term;
+                const cents = compute(term);
 
-              return (
-                <button
-                  key={term}
-                  className="w-full flex items-center justify-between rounded-[14px] border p-3.5 text-left transition-colors"
-                  disabled={phase === "processing"}
-                  style={{
-                    backgroundColor: is_selected ? colors.accent : colors.bg_input,
-                    borderColor: is_selected ? colors.accent : colors.border_rest,
-                  }}
-                  type="button"
-                  onClick={() => set_crypto_term(term)}
-                >
-                  <span
-                    className="text-sm font-medium"
-                    style={{ color: is_selected ? "#ffffff" : colors.text_primary }}
+                return (
+                  <button
+                    key={term}
+                    className="w-full flex items-center justify-between rounded-[14px] border p-3.5 text-start transition-colors"
+                    disabled={phase === "processing"}
+                    style={{
+                      backgroundColor: is_selected
+                        ? colors.accent
+                        : colors.bg_input,
+                      borderColor: is_selected
+                        ? colors.accent
+                        : colors.border_rest,
+                    }}
+                    type="button"
+                    onClick={() => set_crypto_term(term)}
                   >
-                    {term_label_map[term]}
-                  </span>
-                  <span
-                    className="text-sm font-semibold"
-                    style={{ color: is_selected ? "#ffffff" : colors.text_primary }}
-                  >
-                    {format_price(cents, currency)}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        );
-      })()}
+                    <span
+                      className="text-sm font-medium"
+                      style={{
+                        color: is_selected ? "#ffffff" : colors.text_primary,
+                      }}
+                    >
+                      {term_label_map[term]}
+                    </span>
+                    <span
+                      className="text-sm font-semibold"
+                      style={{
+                        color: is_selected ? "#ffffff" : colors.text_primary,
+                      }}
+                    >
+                      {format_price(convert_cents(cents, currency), currency)}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          );
+        })()}
 
-      {!is_free && selected_method === "card" && (
+      {requires_payment && selected_method === "card" && (
         <StripeCardFields
           billing_postal={billing_postal}
           cardholder_input_ref={cardholder_input_ref}
@@ -904,10 +1000,21 @@ export function PaymentForm({
         </div>
       )}
 
+      {!addon_id && selected_method !== "crypto" && (
+        <p
+          className="text-[11px] leading-relaxed"
+          style={{ color: colors.text_tertiary }}
+        >
+          {t("settings.autorenew_notice", {
+            amount: `${price_display}${interval_label}`,
+          })}
+        </p>
+      )}
+
       <Button
         className="w-full"
         disabled={
-          (!is_free &&
+          (requires_payment &&
             selected_method !== "crypto" &&
             (!stripe ||
               !elements ||
@@ -930,7 +1037,7 @@ export function PaymentForm({
         )}
       </Button>
 
-      {!is_free && (
+      {requires_payment && (
         <p
           className="text-center text-[11px]"
           style={{ color: colors.text_tertiary }}

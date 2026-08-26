@@ -117,6 +117,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
       <button
         ref={inbox_ref}
         className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-[12px] ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px]  ${effective_selected === "inbox" ? "sidebar-active" : ""} ${is_collapsed && effective_selected === "inbox" ? "sidebar-selected" : ""}`}
+        data-rail-tip={is_collapsed ? t("mail.inbox") : undefined}
         style={{
           zIndex: 1,
           color:
@@ -128,7 +129,6 @@ export const SidebarNavSection = memo(function SidebarNavSection({
               ? "var(--indicator-bg)"
               : undefined,
         }}
-        data-rail-tip={is_collapsed ? t("mail.inbox") : undefined}
         onClick={() =>
           handle_nav_click(() => {
             set_selected_item("inbox");
@@ -150,7 +150,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
           <RailUnreadDot count={stats.unread} label={t("mail.inbox")} />
         ) : (
           <>
-            <span className="flex-1 text-left">{t("mail.inbox")}</span>
+            <span className="flex-1 text-start">{t("mail.inbox")}</span>
             <CountBadge
               count={stats.unread}
               is_active={effective_selected === "inbox"}
@@ -165,6 +165,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
       <button
         ref={sent_ref}
         className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-[12px] ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px]  ${effective_selected === "sent" ? "sidebar-active" : ""} ${is_collapsed && effective_selected === "sent" ? "sidebar-selected" : ""}`}
+        data-rail-tip={is_collapsed ? t("mail.sent") : undefined}
         style={{
           zIndex: 1,
           color:
@@ -176,7 +177,6 @@ export const SidebarNavSection = memo(function SidebarNavSection({
               ? "var(--indicator-bg)"
               : undefined,
         }}
-        data-rail-tip={is_collapsed ? t("mail.sent") : undefined}
         onClick={() =>
           handle_nav_click(() => {
             set_selected_item("sent");
@@ -194,13 +194,14 @@ export const SidebarNavSection = memo(function SidebarNavSection({
           }}
         />
         {!is_collapsed && (
-          <span className="flex-1 text-left">{t("mail.sent")}</span>
+          <span className="flex-1 text-start">{t("mail.sent")}</span>
         )}
       </button>
 
       <button
         ref={scheduled_ref}
         className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-[12px] ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px]  ${effective_selected === "scheduled" ? "sidebar-active" : ""} ${is_collapsed && effective_selected === "scheduled" ? "sidebar-selected" : ""}`}
+        data-rail-tip={is_collapsed ? t("mail.scheduled") : undefined}
         style={{
           zIndex: 1,
           color:
@@ -212,7 +213,6 @@ export const SidebarNavSection = memo(function SidebarNavSection({
               ? "var(--indicator-bg)"
               : undefined,
         }}
-        data-rail-tip={is_collapsed ? t("mail.scheduled") : undefined}
         onClick={() =>
           handle_nav_click(() => {
             set_selected_item("scheduled");
@@ -230,13 +230,14 @@ export const SidebarNavSection = memo(function SidebarNavSection({
           }}
         />
         {!is_collapsed && (
-          <span className="flex-1 text-left">{t("mail.scheduled")}</span>
+          <span className="flex-1 text-start">{t("mail.scheduled")}</span>
         )}
       </button>
 
       <button
         ref={snoozed_ref}
         className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-[12px] ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px]  ${effective_selected === "snoozed" ? "sidebar-active" : ""} ${is_collapsed && effective_selected === "snoozed" ? "sidebar-selected" : ""}`}
+        data-rail-tip={is_collapsed ? t("mail.snoozed") : undefined}
         style={{
           zIndex: 1,
           color:
@@ -248,7 +249,6 @@ export const SidebarNavSection = memo(function SidebarNavSection({
               ? "var(--indicator-bg)"
               : undefined,
         }}
-        data-rail-tip={is_collapsed ? t("mail.snoozed") : undefined}
         onClick={() =>
           handle_nav_click(() => {
             set_selected_item("snoozed");
@@ -266,13 +266,14 @@ export const SidebarNavSection = memo(function SidebarNavSection({
           }}
         />
         {!is_collapsed && (
-          <span className="flex-1 text-left">{t("mail.snoozed")}</span>
+          <span className="flex-1 text-start">{t("mail.snoozed")}</span>
         )}
       </button>
 
       <button
         ref={drafts_ref}
         className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-[12px] ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px]  ${effective_selected === "drafts" ? "sidebar-active" : ""} ${is_collapsed && effective_selected === "drafts" ? "sidebar-selected" : ""}`}
+        data-rail-tip={is_collapsed ? t("mail.drafts") : undefined}
         style={{
           zIndex: 1,
           color:
@@ -284,7 +285,6 @@ export const SidebarNavSection = memo(function SidebarNavSection({
               ? "var(--indicator-bg)"
               : undefined,
         }}
-        data-rail-tip={is_collapsed ? t("mail.drafts") : undefined}
         onClick={() =>
           handle_nav_click(() => {
             set_selected_item("drafts");
@@ -302,7 +302,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
           }}
         />
         {!is_collapsed && (
-          <span className="flex-1 text-left">{t("mail.drafts")}</span>
+          <span className="flex-1 text-start">{t("mail.drafts")}</span>
         )}
       </button>
 
@@ -313,7 +313,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
             onClick={on_toggle_section}
           >
             {section_collapsed ? (
-              <ChevronRightIcon className="w-3 h-3" />
+              <ChevronRightIcon className="w-3 h-3 rtl:-scale-x-100" />
             ) : (
               <ChevronDownIcon className="w-3 h-3" />
             )}
@@ -331,6 +331,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
           <button
             ref={starred_ref}
             className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-[12px] ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px]  ${effective_selected === "starred" ? "sidebar-active" : ""} ${is_collapsed && effective_selected === "starred" ? "sidebar-selected" : ""}`}
+            data-rail-tip={is_collapsed ? t("mail.starred") : undefined}
             style={{
               zIndex: 1,
               color:
@@ -342,7 +343,6 @@ export const SidebarNavSection = memo(function SidebarNavSection({
                   ? "var(--indicator-bg)"
                   : undefined,
             }}
-            data-rail-tip={is_collapsed ? t("mail.starred") : undefined}
             onClick={() =>
               handle_nav_click(() => {
                 set_selected_item("starred");
@@ -360,13 +360,14 @@ export const SidebarNavSection = memo(function SidebarNavSection({
               }}
             />
             {!is_collapsed && (
-              <span className="flex-1 text-left">{t("mail.starred")}</span>
+              <span className="flex-1 text-start">{t("mail.starred")}</span>
             )}
           </button>
 
           <button
             ref={all_mail_ref}
             className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-[12px] ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px]  ${effective_selected === "all" ? "sidebar-active" : ""} ${is_collapsed && effective_selected === "all" ? "sidebar-selected" : ""}`}
+            data-rail-tip={is_collapsed ? t("mail.all_mail") : undefined}
             style={{
               zIndex: 1,
               color:
@@ -378,7 +379,6 @@ export const SidebarNavSection = memo(function SidebarNavSection({
                   ? "var(--indicator-bg)"
                   : undefined,
             }}
-            data-rail-tip={is_collapsed ? t("mail.all_mail") : undefined}
             onClick={() =>
               handle_nav_click(() => {
                 set_selected_item("all");
@@ -396,13 +396,14 @@ export const SidebarNavSection = memo(function SidebarNavSection({
               }}
             />
             {!is_collapsed && (
-              <span className="flex-1 text-left">{t("mail.all_mail")}</span>
+              <span className="flex-1 text-start">{t("mail.all_mail")}</span>
             )}
           </button>
 
           <button
             ref={archive_ref}
             className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-[12px] ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px]  ${effective_selected === "archive" ? "sidebar-active" : ""} ${is_collapsed && effective_selected === "archive" ? "sidebar-selected" : ""}`}
+            data-rail-tip={is_collapsed ? t("mail.archive") : undefined}
             style={{
               zIndex: 1,
               color:
@@ -414,7 +415,6 @@ export const SidebarNavSection = memo(function SidebarNavSection({
                   ? "var(--indicator-bg)"
                   : undefined,
             }}
-            data-rail-tip={is_collapsed ? t("mail.archive") : undefined}
             onClick={() =>
               handle_nav_click(() => {
                 set_selected_item("archive");
@@ -432,13 +432,14 @@ export const SidebarNavSection = memo(function SidebarNavSection({
               }}
             />
             {!is_collapsed && (
-              <span className="flex-1 text-left">{t("mail.archive")}</span>
+              <span className="flex-1 text-start">{t("mail.archive")}</span>
             )}
           </button>
 
           <button
             ref={spam_ref}
             className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-[12px] ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px]  ${effective_selected === "spam" ? "sidebar-active" : ""} ${is_collapsed && effective_selected === "spam" ? "sidebar-selected" : ""}`}
+            data-rail-tip={is_collapsed ? t("mail.spam") : undefined}
             style={{
               zIndex: 1,
               color:
@@ -450,7 +451,6 @@ export const SidebarNavSection = memo(function SidebarNavSection({
                   ? "var(--indicator-bg)"
                   : undefined,
             }}
-            data-rail-tip={is_collapsed ? t("mail.spam") : undefined}
             onClick={() =>
               handle_nav_click(() => {
                 set_selected_item("spam");
@@ -468,13 +468,14 @@ export const SidebarNavSection = memo(function SidebarNavSection({
               }}
             />
             {!is_collapsed && (
-              <span className="flex-1 text-left">{t("mail.spam")}</span>
+              <span className="flex-1 text-start">{t("mail.spam")}</span>
             )}
           </button>
 
           <button
             ref={trash_ref}
             className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-[12px] ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px]  ${effective_selected === "trash" ? "sidebar-active" : ""} ${is_collapsed && effective_selected === "trash" ? "sidebar-selected" : ""}`}
+            data-rail-tip={is_collapsed ? t("mail.trash") : undefined}
             style={{
               zIndex: 1,
               color:
@@ -486,7 +487,6 @@ export const SidebarNavSection = memo(function SidebarNavSection({
                   ? "var(--indicator-bg)"
                   : undefined,
             }}
-            data-rail-tip={is_collapsed ? t("mail.trash") : undefined}
             onClick={() =>
               handle_nav_click(() => {
                 set_selected_item("trash");
@@ -504,13 +504,14 @@ export const SidebarNavSection = memo(function SidebarNavSection({
               }}
             />
             {!is_collapsed && (
-              <span className="flex-1 text-left">{t("mail.trash")}</span>
+              <span className="flex-1 text-start">{t("mail.trash")}</span>
             )}
           </button>
 
           <button
             ref={contacts_ref}
             className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-[12px] ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px]  ${effective_selected === "contacts" ? "sidebar-active" : ""} ${is_collapsed && effective_selected === "contacts" ? "sidebar-selected" : ""}`}
+            data-rail-tip={is_collapsed ? t("common.contacts") : undefined}
             style={{
               zIndex: 1,
               color:
@@ -522,7 +523,6 @@ export const SidebarNavSection = memo(function SidebarNavSection({
                   ? "var(--indicator-bg)"
                   : undefined,
             }}
-            data-rail-tip={is_collapsed ? t("common.contacts") : undefined}
             onClick={() =>
               handle_nav_click(() => {
                 set_selected_item("contacts");
@@ -540,13 +540,14 @@ export const SidebarNavSection = memo(function SidebarNavSection({
               }}
             />
             {!is_collapsed && (
-              <span className="flex-1 text-left">{t("common.contacts")}</span>
+              <span className="flex-1 text-start">{t("common.contacts")}</span>
             )}
           </button>
 
           <button
             ref={subscriptions_ref}
             className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-[12px] ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px]  ${effective_selected === "subscriptions" ? "sidebar-active" : ""} ${is_collapsed && effective_selected === "subscriptions" ? "sidebar-selected" : ""}`}
+            data-rail-tip={is_collapsed ? t("common.subscriptions") : undefined}
             style={{
               zIndex: 1,
               color:
@@ -558,7 +559,6 @@ export const SidebarNavSection = memo(function SidebarNavSection({
                   ? "var(--indicator-bg)"
                   : undefined,
             }}
-            data-rail-tip={is_collapsed ? t("common.subscriptions") : undefined}
             onClick={() =>
               handle_nav_click(() => {
                 set_selected_item("subscriptions");
@@ -576,7 +576,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
               }}
             />
             {!is_collapsed && (
-              <span className="flex-1 text-left">
+              <span className="flex-1 text-start">
                 {t("common.subscriptions")}
               </span>
             )}

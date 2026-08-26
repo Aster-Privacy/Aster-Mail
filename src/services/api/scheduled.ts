@@ -18,15 +18,19 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { HASH_ALG } from "@/services/crypto/constants";
 import type { EncryptedVault } from "@/services/crypto/key_manager";
-import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 
 import { api_client, type ApiResponse, type ApiErrorCode } from "./client";
 import { is_internal_email } from "./keys";
 
+import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
+import { HASH_ALG } from "@/services/crypto/constants";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 
+export interface ScheduledEnvelopeSender {
+  name: string;
+  email: string;
+}
 
 export interface ScheduledEmailContent {
   to_recipients: string[];
@@ -35,6 +39,7 @@ export interface ScheduledEmailContent {
   subject: string;
   body: string;
   scheduled_at: string;
+  from?: ScheduledEnvelopeSender;
 }
 
 export interface ScheduledEmail {
@@ -89,6 +94,7 @@ export interface CreateScheduledRequest {
   is_external?: boolean;
   ephemeral_key?: string;
   base_nonce?: string;
+  sender_alias_hash?: string;
 }
 
 export class ScheduledEncryptionError extends Error {
@@ -174,7 +180,11 @@ async function decrypt_scheduled_content(
   let plaintext_buffer: ArrayBuffer;
 
   try {
-    plaintext_buffer = await decrypt_aes_gcm_with_fallback(key, ciphertext, nonce_bytes);
+    plaintext_buffer = await decrypt_aes_gcm_with_fallback(
+      key,
+      ciphertext,
+      nonce_bytes,
+    );
   } catch {
     throw new ScheduledDecryptionError(
       "Failed to decrypt scheduled email content",
@@ -215,7 +225,11 @@ async function decrypt_with_ephemeral_key(
   let plaintext_buffer: ArrayBuffer;
 
   try {
-    plaintext_buffer = await decrypt_aes_gcm_with_fallback(key, ciphertext, nonce_bytes);
+    plaintext_buffer = await decrypt_aes_gcm_with_fallback(
+      key,
+      ciphertext,
+      nonce_bytes,
+    );
   } catch {
     throw new ScheduledDecryptionError(
       "Failed to decrypt scheduled email with ephemeral key",
@@ -412,7 +426,7 @@ export async function get_scheduled_email(
         status: response.data.status as ScheduledEmailStatus,
         created_at: response.data.created_at,
         updated_at: response.data.updated_at,
-        content,
+        content: { ...content, scheduled_at: response.data.scheduled_at },
       },
     };
   } catch (error) {
@@ -428,9 +442,8 @@ export async function get_scheduled_email(
 export async function cancel_scheduled_email(
   email_id: string,
 ): Promise<ApiResponse<CancelScheduledResult>> {
-  const response = await api_client.patch<{ status: string }>(
+  const response = await api_client.delete<{ success: boolean }>(
     `/mail/v1/scheduled/${email_id}`,
-    { cancel: true },
   );
 
   if (response.error || !response.data) {
@@ -469,6 +482,7 @@ export interface CreateScheduledResponse {
 export async function create_scheduled_email(
   _vault: EncryptedVault,
   content: ScheduledEmailContent,
+  sender_alias_hash?: string,
 ): Promise<ApiResponse<CreateScheduledResponse>> {
   const all_recipients = [
     ...content.to_recipients,
@@ -491,6 +505,7 @@ export async function create_scheduled_email(
     is_external: has_external,
     ephemeral_key: encrypted.ephemeral_key,
     base_nonce: encrypted.base_nonce,
+    ...(sender_alias_hash ? { sender_alias_hash } : {}),
   };
 
   const response = await api_client.post<CreateScheduledApiResponse>(

@@ -32,11 +32,14 @@ import {
 } from "@/services/api/devices";
 import { show_toast } from "@/components/toast/simple_toast";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
+import { app_locale, get_display_time_zone } from "@/utils/date_format";
 
 function format_date(value: string | null): string {
   if (!value) return "";
   try {
-    return new Date(value).toLocaleString();
+    return new Date(value).toLocaleString(app_locale(), {
+      timeZone: get_display_time_zone(),
+    });
   } catch {
     return value;
   }
@@ -52,6 +55,7 @@ export function TrustedDevicesSection({
   const { t } = use_i18n();
   const [devices, set_devices] = useState<Device[]>([]);
   const [loading, set_loading] = useState(true);
+  const [load_error, set_load_error] = useState(false);
   const [revoking_id, set_revoking_id] = useState<string | null>(null);
   const [pending_revoke, set_pending_revoke] = useState<Device | null>(null);
   const [pending_revoke_all, set_pending_revoke_all] = useState(false);
@@ -59,15 +63,18 @@ export function TrustedDevicesSection({
 
   const load_devices = useCallback(async () => {
     set_loading(true);
+    set_load_error(false);
     try {
       const response = await list_devices();
 
+      if (response.error) set_load_error(true);
       set_devices(
         (response.data?.devices ?? []).filter(
           (d) => d.device_type !== "bridge",
         ),
       );
     } catch {
+      set_load_error(true);
       set_devices([]);
     } finally {
       set_loading(false);
@@ -95,20 +102,21 @@ export function TrustedDevicesSection({
   );
 
   const handle_revoke_all = useCallback(async () => {
+    if (is_revoking_all) return;
     set_is_revoking_all(true);
     const responses = await Promise.all(
       devices.map((device) => revoke_device(device.id)),
     );
 
     const failed = responses.find((r) => r.error);
+
     if (failed?.error) {
       show_toast(failed.error, "error");
-    } else {
-      await load_devices();
     }
+    await load_devices();
     set_is_revoking_all(false);
     set_pending_revoke_all(false);
-  }, [devices, load_devices]);
+  }, [devices, is_revoking_all, load_devices]);
 
   return (
     <div className="flex h-full flex-col">
@@ -127,6 +135,19 @@ export function TrustedDevicesSection({
         {loading ? (
           <div className="flex justify-center py-10">
             <Spinner size="md" />
+          </div>
+        ) : load_error ? (
+          <div className="px-4 py-10 text-center">
+            <p className="text-[14px] text-[var(--text-muted)]">
+              {t("common.something_went_wrong_try_again")}
+            </p>
+            <button
+              className="mt-3 text-[14px] font-medium text-[var(--mobile-accent)]"
+              type="button"
+              onClick={() => load_devices()}
+            >
+              {t("common.retry")}
+            </button>
           </div>
         ) : devices.length === 0 ? (
           <div className="px-4 py-10 text-center text-[14px] text-[var(--text-muted)]">

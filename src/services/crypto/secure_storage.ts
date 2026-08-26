@@ -18,15 +18,12 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { HASH_ALG } from "@/services/crypto/constants";
 import { array_to_base64, base64_to_array } from "./base64";
-import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import {
   get_derived_encryption_key,
   has_vault_in_memory,
   clear_vault_from_memory,
 } from "./memory_key_store";
-import { en } from "@/lib/i18n/translations/en";
 import {
   delete_database as delete_encrypted_db,
   encrypted_clear_all,
@@ -39,13 +36,15 @@ import {
   delete_device_wrap_key,
 } from "./device_key_store";
 
+import { get_active_translations } from "@/lib/i18n/translations";
+import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
+import { HASH_ALG } from "@/services/crypto/constants";
 import { stop_session_timeout } from "@/services/session_timeout_service";
 import { sync_client } from "@/services/sync_client";
 import { undo_send_manager } from "@/services/undo_send_manager";
 import { clear_notification_state } from "@/services/notification_service";
 import { clear_external_key_cache } from "@/services/api/keys";
 import { clear_csrf_cache } from "@/services/api/csrf";
-
 import { ignore_error } from "@/lib/ignore_error";
 
 const CURRENT_VERSION = 1;
@@ -83,8 +82,6 @@ interface DerivedKeys {
 
 let cached_keys: DerivedKeys | null = null;
 let cached_key_fingerprint: string | null = null;
-
-
 
 function generate_random_bytes(length: number): Uint8Array {
   const arr = new Uint8Array(length);
@@ -227,13 +224,13 @@ async function hkdf_derive_hmac_key(
 
 async function get_derived_keys(): Promise<DerivedKeys> {
   if (!has_vault_in_memory()) {
-    throw new Error(en.errors.session_expired_login);
+    throw new Error(get_active_translations().errors.session_expired_login);
   }
 
   const encryption_key = get_derived_encryption_key();
 
   if (!encryption_key) {
-    throw new Error(en.errors.key_material_unavailable);
+    throw new Error(get_active_translations().errors.key_material_unavailable);
   }
 
   const key_fingerprint = await fingerprint_key(encryption_key);
@@ -395,6 +392,7 @@ export async function secure_decrypt(encrypted_data: string): Promise<string> {
   } catch (error) {
     if (import.meta.env.DEV) {
       const name = error instanceof Error ? error.name : "unknown";
+
       console.error("secure_decrypt: AES-GCM decrypt failed", { name });
     }
     throw new SecureStorageError("wrong_password");

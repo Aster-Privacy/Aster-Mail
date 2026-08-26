@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { EmailListState, InboxEmail } from "@/types/email";
+import type { FetchPageOptions } from "@/hooks/email_list_types";
 
 import { useEffect, type MutableRefObject } from "react";
 
@@ -53,7 +54,12 @@ interface UseEmailListEventsParams {
   page_size?: number;
   set_state: React.Dispatch<React.SetStateAction<EmailListState>>;
   fetch_page_ref: MutableRefObject<
-    ((page: number, limit: number, force?: boolean) => Promise<void>) | null
+    | ((
+        page: number,
+        limit: number,
+        options?: FetchPageOptions,
+      ) => Promise<void>)
+    | null
   >;
   silent_fetch_ref: MutableRefObject<(() => Promise<void>) | null>;
   last_fetch_ref: MutableRefObject<{
@@ -216,13 +222,15 @@ export function use_email_list_events({
       mark_view_stale();
       mark_preload_stale();
       set_state((prev) =>
-        prev.has_initial_load ? { ...prev, has_initial_load: false } : prev,
+        prev.has_initial_load && prev.emails.length === 0
+          ? { ...prev, has_initial_load: false }
+          : prev,
       );
       if (debounce_timer) {
         clearTimeout(debounce_timer);
       }
       debounce_timer = setTimeout(() => {
-        fetch_page_ref.current?.(0, page_size, true);
+        fetch_page_ref.current?.(0, page_size, { force: true });
       }, 150);
     };
 
@@ -376,7 +384,10 @@ export function use_email_list_events({
           detail,
         );
 
-        if (needs_refetch || entered_current_view(prev.emails, detail, current_view)) {
+        if (
+          needs_refetch ||
+          entered_current_view(prev.emails, detail, current_view)
+        ) {
           schedule_silent_refetch();
         }
 

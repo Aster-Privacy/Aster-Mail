@@ -18,10 +18,10 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { } from "@/services/api/aliases";
-import type { } from "@/lib/i18n/types";
+import type {} from "@/services/api/aliases";
+import type {} from "@/lib/i18n/types";
 
-import { useCallback, useEffect,  useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   TrashIcon,
   PlusIcon,
@@ -29,8 +29,8 @@ import {
 } from "@heroicons/react/24/outline";
 import { Button, Switch } from "@aster/ui";
 
-
 import { AliasRuleEditorModal } from "@/components/settings/aliases/alias_rule_editor_modal";
+import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { Spinner } from "@/components/ui/spinner";
@@ -97,6 +97,7 @@ export function RulesPanel({
   const { t } = use_i18n();
   const [rules, set_rules] = useState<AliasRule[]>([]);
   const [loading, set_loading] = useState(true);
+  const [load_error, set_load_error] = useState(false);
   const [modal_open, set_modal_open] = useState(false);
   const [editing_rule, set_editing_rule] = useState<AliasRule | null>(null);
 
@@ -107,13 +108,19 @@ export function RulesPanel({
       return;
     }
     set_loading(true);
+    set_load_error(false);
     try {
       const response = domain_address_id
         ? await list_domain_address_rules(domain_address_id)
         : await list_alias_rules(alias_id!);
 
-      if (response.data) set_rules(response.data.rules ?? []);
+      if (response.data) {
+        set_rules(response.data.rules ?? []);
+      } else {
+        set_load_error(true);
+      }
     } catch {
+      set_load_error(true);
       set_rules([]);
     } finally {
       set_loading(false);
@@ -207,6 +214,8 @@ export function RulesPanel({
 
       {loading ? (
         <Spinner size="md" />
+      ) : load_error ? (
+        <LoadFailedNotice on_retry={() => load()} />
       ) : rules.length === 0 ? (
         <p className="text-xs text-txt-muted">
           {t("settings.alias_rules_empty")}
@@ -227,6 +236,7 @@ export function RulesPanel({
                 </p>
               </div>
               <Switch
+                aria-label={describe_conditions(rule.conditions)}
                 checked={rule.is_enabled}
                 size="lg"
                 onCheckedChange={() => handle_toggle(rule)}
@@ -266,4 +276,3 @@ export function RulesPanel({
     </div>
   );
 }
-

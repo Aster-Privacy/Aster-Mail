@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
+import { safe_local_set } from "@/lib/safe_storage";
 import { loadStripe } from "@stripe/stripe-js";
 
 import {
@@ -76,6 +77,7 @@ import { PlanChangeConfirmModal } from "@/components/settings/billing/plan_chang
 import { CryptoAddonTermModal } from "@/components/settings/billing/crypto_addon_term_modal";
 import { CryptoTermModal } from "@/components/settings/billing/crypto_term_modal";
 import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
+import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import {
   clear_cancel_password_cache,
   get_cancel_password_hash,
@@ -131,6 +133,8 @@ export function BillingSection() {
   const [academic_status, set_academic_status] =
     useState<AcademicDiscountStatusResponse | null>(null);
   const [is_initial_load, set_is_initial_load] = useState(true);
+  const [subscription_load_failed, set_subscription_load_failed] =
+    useState(false);
   const [show_crypto_modal, set_show_crypto_modal] = useState(false);
   const [crypto_plan, set_crypto_plan] = useState<AvailablePlan | null>(null);
   const [crypto_resume, set_crypto_resume] =
@@ -175,7 +179,7 @@ export function BillingSection() {
       const new_currency = e.target.value;
 
       set_preferred_currency(new_currency);
-      localStorage.setItem(CURRENCY_STORAGE_KEY, new_currency);
+      safe_local_set(CURRENCY_STORAGE_KEY, new_currency);
     },
     [],
   );
@@ -211,7 +215,6 @@ export function BillingSection() {
           { label: t("settings.plan_feat_smart_folders"), on: false },
           { label: t("settings.plan_feat_vanguard"), on: false },
           { label: t("settings.lockdown_title"), on: false },
-          { label: t("settings.plan_feat_read_receipts"), on: false },
         ],
         nova: [
           { label: t("settings.plan_feat_storage_500"), on: true },
@@ -231,7 +234,6 @@ export function BillingSection() {
           { label: t("settings.plan_feat_smart_folders"), on: true },
           { label: t("settings.plan_feat_vanguard"), on: true },
           { label: t("settings.lockdown_title"), on: true },
-          { label: t("settings.plan_feat_read_receipts"), on: false },
         ],
         supernova: [
           { label: t("settings.plan_feat_storage_5tb"), on: true },
@@ -251,7 +253,6 @@ export function BillingSection() {
           { label: t("settings.plan_feat_smart_folders"), on: true },
           { label: t("settings.plan_feat_vanguard"), on: true },
           { label: t("settings.lockdown_title"), on: true },
-          { label: t("settings.plan_feat_read_receipts"), on: true },
         ],
       }),
       [t],
@@ -294,6 +295,9 @@ export function BillingSection() {
 
       if (sub_response.data) {
         set_subscription(sub_response.data);
+        set_subscription_load_failed(false);
+      } else {
+        set_subscription_load_failed(true);
       }
       if (plans_response.data) {
         set_plans(plans_response.data.plans);
@@ -313,6 +317,7 @@ export function BillingSection() {
       }
     } catch (error) {
       if (import.meta.env.DEV) console.error(error);
+      set_subscription_load_failed(true);
 
       return;
     } finally {
@@ -326,7 +331,9 @@ export function BillingSection() {
         set_is_action_loading(false);
       }
     };
+
     window.addEventListener("pageshow", handle_page_show);
+
     return () => window.removeEventListener("pageshow", handle_page_show);
   }, []);
 
@@ -360,7 +367,9 @@ export function BillingSection() {
         load_data();
       })();
     };
+
     window.addEventListener("focus", handle_focus);
+
     return () => window.removeEventListener("focus", handle_focus);
   }, [load_data]);
 
@@ -453,6 +462,7 @@ export function BillingSection() {
           preferred_currency,
           credit_balance?.balance_cents,
         );
+
         if (!result.ok) {
           show_toast(
             server_error_text(result.error, t("settings.failed_checkout")),
@@ -466,6 +476,7 @@ export function BillingSection() {
         show_toast(t("settings.failed_checkout"), "error");
       }
       set_is_action_loading(false);
+
       return;
     }
 
@@ -512,6 +523,7 @@ export function BillingSection() {
     if (has_card_sub && !is_tauri) {
       set_plan_change_confirm_target({ plan, interval: checkout_interval });
       set_show_plan_change_confirm(true);
+
       return;
     }
 
@@ -523,6 +535,7 @@ export function BillingSection() {
         preferred_currency,
         credit_balance?.balance_cents,
       );
+
       if (!result.ok) {
         show_toast(
           server_error_text(result.error, t("settings.failed_checkout")),
@@ -564,6 +577,7 @@ export function BillingSection() {
           "error",
         );
         set_show_payment_methods(true);
+
         return;
       }
 
@@ -579,6 +593,7 @@ export function BillingSection() {
       request_cache.invalidate("/sync/v1");
       invalidate_mail_stats();
       const sub_response = await get_subscription();
+
       if (sub_response.data) set_subscription(sub_response.data);
       await load_data();
       show_toast(t("settings.payment_success"), "success");
@@ -616,8 +631,10 @@ export function BillingSection() {
       if (url) {
         const is_tauri =
           typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+
         if (is_tauri) {
           const core = await import("@tauri-apps/api/core");
+
           await core.invoke("open_external_url", { url });
           plan_before_checkout_ref.current = subscription?.plan.code ?? null;
           pending_tauri_checkout_ref.current = true;
@@ -659,7 +676,7 @@ export function BillingSection() {
 
       if (!password_hash) {
         set_cancel_password_error(t("settings.cancel_password_error"));
-        show_toast(t("settings.failed_cancel_subscription"), "error");
+        show_toast(t("settings.cancel_password_error"), "error");
 
         return;
       }
@@ -676,27 +693,38 @@ export function BillingSection() {
         set_show_cancel_password(false);
         set_cancel_reason(null);
         set_cancel_reason_text("");
+        set_show_cancel_dialog(false);
         request_cache.invalidate("/payments/v1");
         await load_data();
-      } else if (response.code === "UNAUTHORIZED") {
-        set_cancel_password_error(t("settings.incorrect_password_error"));
-        show_toast(t("settings.incorrect_password_error"), "error");
-      } else {
-        show_toast(
-          server_error_text(
-            response.error,
-            t("settings.failed_cancel_subscription"),
-          ),
-          "error",
-        );
+
+        return;
       }
+
+      if (response.server_code === "SUBSCRIPTION_NOT_CANCELLABLE") {
+        show_toast(t("settings.cancel_not_cancellable"), "error");
+        set_cancel_password("");
+        set_show_cancel_dialog(false);
+
+        return;
+      }
+
+      if (response.code === "UNAUTHORIZED") {
+        set_cancel_password_error(t("settings.cancel_password_error"));
+        show_toast(t("settings.cancel_password_error"), "error");
+
+        return;
+      }
+
+      show_toast(
+        server_error_text(response.error, t("settings.cancel_failed")),
+        "error",
+      );
     } catch (error) {
       if (import.meta.env.DEV) console.error(error);
-      show_toast(t("settings.failed_cancel_subscription"), "error");
+      show_toast(t("settings.cancel_failed"), "error");
     } finally {
       clear_cancel_password_cache();
       set_is_action_loading(false);
-      set_show_cancel_dialog(false);
     }
   };
 
@@ -788,6 +816,17 @@ export function BillingSection() {
     return <SettingsSkeleton variant="billing" />;
   }
 
+  if (subscription_load_failed && !subscription) {
+    return (
+      <LoadFailedNotice
+        on_retry={() => {
+          set_is_initial_load(true);
+          load_data();
+        }}
+      />
+    );
+  }
+
   return (
     <div className="space-y-6">
       <CryptoResumeBanner />
@@ -864,8 +903,8 @@ export function BillingSection() {
 
       <CreditsSection
         credit_balance={credit_balance}
-        set_credit_balance={set_credit_balance}
         preferred_currency={preferred_currency}
+        set_credit_balance={set_credit_balance}
       />
 
       <AcademicDiscountSection
@@ -909,20 +948,7 @@ export function BillingSection() {
 
       {method_modal_plan && (
         <PlanPaymentMethodModal
-          open={show_method_modal}
-          plan_name={method_modal_plan.name}
           busy={is_action_loading}
-          credits_apply_to_card={
-            !(
-              !!subscription &&
-              subscription.plan.code !== "free" &&
-              !is_crypto_provider(subscription.payment_provider) &&
-              subscription.has_stripe_subscription !== false &&
-              !(
-                typeof window !== "undefined" && "__TAURI_INTERNALS__" in window
-              )
-            )
-          }
           credit_balance_cents={Math.min(
             credit_balance?.balance_cents ?? 0,
             (billing_period === "yearly"
@@ -934,6 +960,17 @@ export function BillingSection() {
                 : PLAN_TIERS.find((p) => p.id === method_modal_plan.code)
                     ?.monthly_cents) ?? method_modal_plan.price_cents,
           )}
+          credits_apply_to_card={
+            !(
+              !!subscription &&
+              subscription.plan.code !== "free" &&
+              !is_crypto_provider(subscription.payment_provider) &&
+              subscription.has_stripe_subscription !== false &&
+              !(
+                typeof window !== "undefined" && "__TAURI_INTERNALS__" in window
+              )
+            )
+          }
           on_choose_card={() => {
             const plan = method_modal_plan;
 
@@ -952,13 +989,13 @@ export function BillingSection() {
             set_show_method_modal(false);
             set_method_modal_plan(null);
           }}
+          open={show_method_modal}
+          plan_name={method_modal_plan.name}
         />
       )}
 
       {addon_method_target && (
         <PlanPaymentMethodModal
-          open={show_addon_method_modal}
-          plan_name={addon_method_target.name}
           busy={is_action_loading}
           credit_balance_cents={Math.min(
             credit_balance?.balance_cents ?? 0,
@@ -982,6 +1019,8 @@ export function BillingSection() {
             set_show_addon_method_modal(false);
             set_addon_method_target(null);
           }}
+          open={show_addon_method_modal}
+          plan_name={addon_method_target.name}
         />
       )}
 
@@ -1007,14 +1046,14 @@ export function BillingSection() {
         <PlanChangeConfirmModal
           billing_interval={plan_change_confirm_target.interval}
           is_confirming={is_action_loading}
-          open={show_plan_change_confirm}
-          plan_code={plan_change_confirm_target.plan.code}
-          plan_name={plan_change_confirm_target.plan.name}
           on_close={() => {
             set_show_plan_change_confirm(false);
             set_plan_change_confirm_target(null);
           }}
           on_confirm={handle_confirm_plan_change}
+          open={show_plan_change_confirm}
+          plan_code={plan_change_confirm_target.plan.code}
+          plan_name={plan_change_confirm_target.plan.name}
         />
       )}
 

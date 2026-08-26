@@ -18,20 +18,19 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { } from "@/lib/i18n/types";
+import type {} from "@/lib/i18n/types";
+
+import { ClockIcon, TrashIcon } from "@heroicons/react/24/outline";
 
 import {
-  ClockIcon,
-  TrashIcon,
-} from "@heroicons/react/24/outline";
-
+  format_relative_time,
+  get_status_icon,
+  get_status_label,
+} from "./status";
 
 import { use_i18n } from "@/lib/i18n/context";
-import {
-  type ImportJob,
-} from "@/services/api/email_import";
-
-import { format_relative_time, get_status_icon, get_status_label } from "./status";
+import { type ImportJob } from "@/services/api/email_import";
+import { app_locale } from "@/utils/date_format";
 
 export function ImportJobCard({
   job,
@@ -43,7 +42,9 @@ export function ImportJobCard({
   const { t } = use_i18n();
   const source_label = job.source.charAt(0).toUpperCase() + job.source.slice(1);
   const skipped_text =
-    job.skipped_emails > 0 ? `, ${t("settings.n_skipped", { count: job.skipped_emails })}` : "";
+    job.skipped_emails > 0
+      ? `, ${t("settings.n_skipped", { count: job.skipped_emails })}`
+      : "";
   const can_delete = job.status !== "processing" && job.status !== "pending";
 
   const is_failed = job.status === "failed" || job.status === "cancelled";
@@ -60,7 +61,7 @@ export function ImportJobCard({
         >
           {job.status === "completed"
             ? t("settings.imported_skipped", {
-                imported: job.processed_emails.toLocaleString(),
+                imported: job.processed_emails.toLocaleString(app_locale()),
                 skipped: skipped_text,
               })
             : get_status_label(job.status, t)}
@@ -71,9 +72,9 @@ export function ImportJobCard({
         <span>{format_relative_time(job.created_at, t)}</span>
         {can_delete && (
           <button
-            type="button"
             aria-label={t("common.delete")}
-            className="p-1 rounded hover:bg-surf-tertiary text-txt-muted ml-1"
+            className="p-1 rounded hover:bg-surf-tertiary text-txt-muted ms-1"
+            type="button"
             onClick={() => on_delete(job.id)}
           >
             <TrashIcon className="w-4 h-4" />
@@ -83,4 +84,3 @@ export function ImportJobCard({
     </div>
   );
 }
-

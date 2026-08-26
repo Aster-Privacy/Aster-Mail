@@ -54,8 +54,9 @@ vi.mock("./envelope", () => ({
 
     return { encrypted_data: id, nonce: `nonce-${blob_counter}`, version: 1 };
   }),
-  decrypt_metadata: vi.fn(async (blob: { encrypted_data: string }) =>
-    blob_store.get(blob.encrypted_data) ?? null,
+  decrypt_metadata: vi.fn(
+    async (blob: { encrypted_data: string }) =>
+      blob_store.get(blob.encrypted_data) ?? null,
   ),
   derive_metadata_key: vi.fn(async () => ({}) as CryptoKey),
   base64_to_array: vi.fn(() => new Uint8Array(0)),

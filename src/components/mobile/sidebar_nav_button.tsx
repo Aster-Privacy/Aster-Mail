@@ -20,6 +20,8 @@
 //
 import { useCallback, useRef, type ReactNode } from "react";
 
+import { app_locale } from "@/utils/date_format";
+
 export interface SidebarNavButtonProps {
   icon: ReactNode;
   label: string;
@@ -118,7 +120,7 @@ export function SidebarNavButton({
       >
         {icon}
       </span>
-      <span className="min-w-0 flex-1 truncate text-left">{label}</span>
+      <span className="min-w-0 flex-1 truncate text-start">{label}</span>
       {trailing}
       {count != null && count > 0 && (
         <span
@@ -127,7 +129,9 @@ export function SidebarNavButton({
             color: active ? "var(--text-secondary)" : "var(--text-muted)",
           }}
         >
-          {count > 999 ? "999+" : count.toLocaleString()}
+          {count > 999
+            ? `${(999).toLocaleString(app_locale())}+`
+            : count.toLocaleString(app_locale())}
         </span>
       )}
     </button>

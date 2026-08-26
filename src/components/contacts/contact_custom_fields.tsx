@@ -47,6 +47,9 @@ import {
   set_contact_custom_field_value,
   delete_contact_custom_field_value,
 } from "@/services/api/contact_custom_fields";
+import { is_composing } from "@/utils/ime";
+import { user_facing_error } from "@/utils/user_facing_error";
+import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 
 interface ContactCustomFieldsProps {
   contact_id: string;
@@ -98,6 +101,8 @@ export function ContactCustomFields({
     string | null
   >(null);
   const [error, set_error] = useState<string | null>(null);
+  const [pending_delete_definition_id, set_pending_delete_definition_id] =
+    useState<string | null>(null);
   const [values, set_values] =
     useState<DecryptedCustomFieldValue[]>(field_values);
 
@@ -123,28 +128,37 @@ export function ContactCustomFields({
     try {
       const response = await list_custom_field_definitions();
 
-      if (response.data) {
-        set_definitions(response.data);
+      if (response.error || !response.data) {
+        set_error(response.error || t("common.failed_to_load_custom_fields"));
 
-        const values_response = await list_contact_custom_field_values(
-          contact_id,
-          response.data,
+        return;
+      }
+
+      set_definitions(response.data);
+
+      const values_response = await list_contact_custom_field_values(
+        contact_id,
+        response.data,
+      );
+
+      if (values_response.error || !values_response.data) {
+        set_error(
+          values_response.error || t("common.failed_to_load_custom_fields"),
         );
 
-        if (values_response.data) {
-          update_values(values_response.data);
-        }
+        return;
       }
+
+      set_error(null);
+      update_values(values_response.data);
     } catch (err) {
       set_error(
-        err instanceof Error
-          ? err.message
-          : t("common.failed_to_load_custom_fields"),
+        user_facing_error(err, t("common.failed_to_load_custom_fields")),
       );
     } finally {
       set_is_loading(false);
     }
-  }, [contact_id, update_values]);
+  }, [contact_id, update_values, t]);
 
   useEffect(() => {
     load_definitions();
@@ -172,13 +186,11 @@ export function ContactCustomFields({
       set_new_field_name("");
       set_new_field_type("text");
     } catch (err) {
-      set_error(
-        err instanceof Error ? err.message : t("common.failed_to_create_field"),
-      );
+      set_error(user_facing_error(err, t("common.failed_to_create_field")));
     } finally {
       set_is_adding(false);
     }
-  }, [new_field_name, new_field_type]);
+  }, [new_field_name, new_field_type, t]);
 
   const handle_delete_definition = useCallback(
     async (definition_id: string) => {
@@ -208,7 +220,7 @@ export function ContactCustomFields({
         set_deleting_definition_id(null);
       }
     },
-    [values, update_values],
+    [values, update_values, t],
   );
 
   const handle_start_edit = useCallback(
@@ -279,7 +291,17 @@ export function ContactCustomFields({
         );
 
         if (existing) {
-          await delete_contact_custom_field_value(contact_id, editing_field_id);
+          const response = await delete_contact_custom_field_value(
+            contact_id,
+            editing_field_id,
+          );
+
+          if (response.error) {
+            set_error(response.error);
+
+            return;
+          }
+
           update_values(
             values.filter((v) => v.field_definition_id !== editing_field_id),
           );
@@ -289,9 +311,7 @@ export function ContactCustomFields({
       set_editing_field_id(null);
       set_editing_value("");
     } catch (err) {
-      set_error(
-        err instanceof Error ? err.message : t("common.failed_to_save_value"),
-      );
+      set_error(user_facing_error(err, t("common.failed_to_save_value")));
     } finally {
       set_saving_field_id(null);
     }
@@ -302,6 +322,7 @@ export function ContactCustomFields({
     values,
     update_values,
     definitions,
+    t,
   ]);
 
   const handle_cancel_edit = useCallback(() => {
@@ -328,6 +349,20 @@ export function ContactCustomFields({
 
   return (
     <div className="space-y-4">
+      <ConfirmationModal
+        confirm_text={t("common.delete")}
+        is_open={pending_delete_definition_id !== null}
+        message={t("common.delete_custom_field_message")}
+        title={t("common.delete_custom_field_title")}
+        variant="danger"
+        on_cancel={() => set_pending_delete_definition_id(null)}
+        on_confirm={() => {
+          const target = pending_delete_definition_id;
+
+          set_pending_delete_definition_id(null);
+          if (target) handle_delete_definition(target);
+        }}
+      />
       <div className="flex items-center justify-between">
         <label className="text-sm font-medium text-foreground-600">
           {t("common.custom_fields")}
@@ -369,7 +404,9 @@ export function ContactCustomFields({
                     disabled={disabled || is_deleting}
                     size="md"
                     variant="ghost"
-                    onClick={() => handle_delete_definition(definition.id)}
+                    onClick={() =>
+                      set_pending_delete_definition_id(definition.id)
+                    }
                   >
                     {is_deleting ? (
                       <div className="w-3 h-3 border-2 border-danger border-t-transparent rounded-full animate-spin" />
@@ -391,7 +428,8 @@ export function ContactCustomFields({
                       value={editing_value}
                       onChange={(e) => set_editing_value(e.target.value)}
                       onKeyDown={(e) => {
-                        if (e["key"] === "Enter") handle_save_value();
+                        if (e["key"] === "Enter" && !is_composing(e))
+                          handle_save_value();
                         if (e["key"] === "Escape") handle_cancel_edit();
                       }}
                     />
@@ -441,7 +479,7 @@ export function ContactCustomFields({
           })}
         </AnimatePresence>
 
-        {definitions.length === 0 && (
+        {definitions.length === 0 && !error && (
           <p className="text-sm text-foreground-500 text-center py-4">
             {t("common.no_custom_fields_yet")}
           </p>
@@ -459,7 +497,8 @@ export function ContactCustomFields({
             value={new_field_name}
             onChange={(e) => set_new_field_name(e.target.value)}
             onKeyDown={(e) => {
-              if (e["key"] === "Enter") handle_create_definition();
+              if (e["key"] === "Enter" && !is_composing(e))
+                handle_create_definition();
             }}
           />
           <select

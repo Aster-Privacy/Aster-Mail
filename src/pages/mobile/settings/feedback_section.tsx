@@ -28,8 +28,17 @@ import { use_i18n } from "@/lib/i18n/context";
 import { Spinner } from "@/components/ui/spinner";
 import { api_client } from "@/services/api/client";
 import { API_ENDPOINTS } from "@/services/api/endpoints";
-
 import { ignore_error } from "@/lib/ignore_error";
+import { show_toast } from "@/components/toast/simple_toast";
+import { is_desktop } from "@/native/invoke_bridge";
+
+const FEEDBACK_CATEGORIES = [
+  { value: "general", label_key: "settings.feedback_category_general" },
+  { value: "feature", label_key: "settings.feedback_category_idea" },
+  { value: "bug", label_key: "settings.feedback_category_bug" },
+] as const;
+
+type FeedbackCategory = (typeof FEEDBACK_CATEGORIES)[number]["value"];
 
 export function FeedbackSection({
   on_back,
@@ -42,26 +51,45 @@ export function FeedbackSection({
   const [message, set_message] = useState("");
   const [is_sending, set_is_sending] = useState(false);
   const [sent, set_sent] = useState(false);
+  const [category, set_category] = useState<FeedbackCategory>("general");
 
   const handle_submit = useCallback(async () => {
     if (!message.trim() || is_sending) return;
     set_is_sending(true);
     try {
-      await api_client.post<{ success: boolean }>(
+      const response = await api_client.post<{ success: boolean }>(
         API_ENDPOINTS.core.feedback.base,
-        { message: message.trim() },
+        {
+          message: message.trim(),
+          category,
+          platform: is_desktop() ? "desktop" : "web",
+        },
       );
+
+      if (response.error) {
+        show_toast(
+          response.code === "RATE_LIMIT_EXCEEDED" ||
+            response.code === "FORBIDDEN"
+            ? t("settings.too_many_requests")
+            : t("settings.failed_send_feedback"),
+          "error",
+        );
+
+        return;
+      }
       set_sent(true);
       set_message("");
+      set_category("general");
     } catch (caught) {
       ignore_error(
         "pages/mobile/settings/feedback_section:FeedbackSection",
         caught,
       );
+      show_toast(t("common.something_went_wrong_try_again"), "error");
     } finally {
       set_is_sending(false);
     }
-  }, [message, is_sending]);
+  }, [message, is_sending, category, t]);
 
   return (
     <div className="flex h-full flex-col">
@@ -83,6 +111,29 @@ export function FeedbackSection({
             <p className="mb-3 text-[14px] text-[var(--mobile-text-muted)]">
               {t("settings.feedback_description")}
             </p>
+            <div className="mb-3 flex flex-wrap gap-2">
+              {FEEDBACK_CATEGORIES.map((option) => (
+                <button
+                  key={option.value}
+                  aria-pressed={category === option.value}
+                  className="rounded-full px-3 py-1.5 text-[13px] font-medium"
+                  style={{
+                    background:
+                      category === option.value
+                        ? "var(--accent-color)"
+                        : "var(--mobile-bg-card)",
+                    color:
+                      category === option.value
+                        ? "#fff"
+                        : "var(--mobile-text-muted)",
+                  }}
+                  type="button"
+                  onClick={() => set_category(option.value)}
+                >
+                  {t(option.label_key)}
+                </button>
+              ))}
+            </div>
             <textarea
               className="w-full resize-none rounded-xl bg-[var(--mobile-bg-card)] p-4 text-[15px] text-[var(--mobile-text-primary)] placeholder:text-[var(--mobile-text-muted)] outline-none"
               maxLength={2000}

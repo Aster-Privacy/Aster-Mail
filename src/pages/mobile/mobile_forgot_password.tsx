@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { show_toast } from "@/components/toast/simple_toast";
+import { copy_text_or_throw } from "@/utils/copy_text";
 import type { RecoveryStep } from "./forgot_password/types";
 
 import { useNavigate } from "react-router-dom";
@@ -84,8 +86,8 @@ import {
   timing_safe_delay,
 } from "@/services/sanitize";
 import { use_i18n } from "@/lib/i18n/context";
-
 import { ignore_error } from "@/lib/ignore_error";
+import { user_facing_error } from "@/utils/user_facing_error";
 
 export default function MobileForgotPasswordPage() {
   const { t } = use_i18n();
@@ -98,7 +100,9 @@ export default function MobileForgotPasswordPage() {
   const [step, set_step] = useState<RecoveryStep>("email");
   const [email, set_email] = useState("");
   const [username, set_username] = useState("");
-  const [email_domain, set_email_domain] = useState<"astermail.org" | "aster.cx">("astermail.org");
+  const [email_domain, set_email_domain] = useState<
+    "astermail.org" | "aster.cx"
+  >("astermail.org");
   const [recovery_code, set_recovery_code] = useState("");
   const [password, set_password] = useState("");
   const [confirm_password, set_confirm_password] = useState("");
@@ -161,7 +165,10 @@ export default function MobileForgotPasswordPage() {
     try {
       await forgot_password_email(clean_username, email_domain);
     } catch (caught) {
-      ignore_error("pages/mobile/mobile_forgot_password:handle_email_reset_link", caught);
+      ignore_error(
+        "pages/mobile/mobile_forgot_password:handle_email_reset_link",
+        caught,
+      );
     }
 
     await timing_safe_delay();
@@ -389,7 +396,7 @@ export default function MobileForgotPasswordPage() {
       set_step("new_codes");
     } catch (err) {
       await timing_safe_delay();
-      set_error(err instanceof Error ? err.message : t("auth.recovery_failed"));
+      set_error(user_facing_error(err, t("auth.recovery_failed")));
       set_step("password");
     }
   };
@@ -429,7 +436,11 @@ export default function MobileForgotPasswordPage() {
 
       if (response.error || !response.data) {
         await timing_safe_delay();
-        set_error(response.error || t("auth.invalid_recovery_code"));
+        set_error(
+          response.server_code === "INVALID_RECOVERY_CODE"
+            ? t("auth.invalid_recovery_code")
+            : response.error || t("auth.invalid_recovery_code"),
+        );
         set_step("code");
 
         return;
@@ -532,7 +543,10 @@ export default function MobileForgotPasswordPage() {
           new_identity_keypair.secret_key,
         );
 
-      const pgp_key_data = await prepare_pgp_key_data(new_identity_keypair, password);
+      const pgp_key_data = await prepare_pgp_key_data(
+        new_identity_keypair,
+        password,
+      );
 
       if (!vault.previous_keys) {
         vault.previous_keys = [];
@@ -608,7 +622,7 @@ export default function MobileForgotPasswordPage() {
       set_step("new_codes");
     } catch (err) {
       await timing_safe_delay();
-      set_error(err instanceof Error ? err.message : t("auth.recovery_failed"));
+      set_error(user_facing_error(err, t("auth.recovery_failed")));
       set_step("password");
     }
   };
@@ -617,20 +631,28 @@ export default function MobileForgotPasswordPage() {
     const codes_text = new_recovery_codes.join("\n");
 
     try {
-      await navigator.clipboard.writeText(codes_text);
+      await copy_text_or_throw(codes_text);
       set_copy_success(true);
       setTimeout(() => set_copy_success(false), COPY_FEEDBACK_MS);
-    } catch (caught) {
-      ignore_error("pages/mobile/mobile_forgot_password:handle_copy_codes", caught);
+    } catch {
+      show_toast(t("common.failed_to_copy"), "error");
     }
   };
 
   const handle_download_pdf = async () => {
-    await generate_recovery_pdf(email, new_recovery_codes, t);
+    try {
+      await generate_recovery_pdf(email, new_recovery_codes, t);
+    } catch {
+      show_toast(t("common.something_went_wrong_try_again"), "error");
+    }
   };
 
   const handle_download_txt = async () => {
-    await download_recovery_text(email, new_recovery_codes, t);
+    try {
+      await download_recovery_text(email, new_recovery_codes, t);
+    } catch {
+      show_toast(t("common.something_went_wrong_try_again"), "error");
+    }
   };
 
   const navigate_sign_in = () => navigate("/sign-in");
@@ -659,9 +681,6 @@ export default function MobileForgotPasswordPage() {
           <MethodChoiceStep
             error={error}
             is_dark={is_dark}
-            reduce_motion={reduce_motion}
-            set_error={set_error}
-            set_step={set_step}
             on_select_code={() => {
               set_error("");
               set_recovery_method("code");
@@ -673,6 +692,9 @@ export default function MobileForgotPasswordPage() {
               set_recovery_method("phrase");
               set_step("phrase");
             }}
+            reduce_motion={reduce_motion}
+            set_error={set_error}
+            set_step={set_step}
           />
         );
 
@@ -681,12 +703,12 @@ export default function MobileForgotPasswordPage() {
           <PhraseStep
             error={error}
             is_dark={is_dark}
+            on_submit={handle_phrase_submit}
             phrase_words={phrase_words}
             reduce_motion={reduce_motion}
             set_error={set_error}
             set_step={set_step}
             update_phrase_word={update_phrase_word}
-            on_submit={handle_phrase_submit}
           />
         );
 

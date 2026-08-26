@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { copy_text_or_throw } from "@/utils/copy_text";
 import type { DecryptedEmailAlias } from "@/services/api/aliases";
 import type { DecryptedDomainAddress } from "@/services/api/domains";
 
@@ -306,7 +307,7 @@ export function AliasEditorPage({
 
   const copy_address = async () => {
     try {
-      await navigator.clipboard.writeText(heading);
+      await copy_text_or_throw(heading);
       show_toast(t("common.email_copied"), "success");
     } catch {
       show_toast(t("common.failed_to_copy"), "error");
@@ -324,11 +325,11 @@ export function AliasEditorPage({
   return (
     <div className="space-y-4">
       <button
-        className="-ml-2 flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-[13px] font-medium text-txt-secondary transition-colors hover:bg-surf-hover hover:text-txt-primary"
+        className="-ms-2 flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-[13px] font-medium text-txt-secondary transition-colors hover:bg-surf-hover hover:text-txt-primary"
         type="button"
         onClick={on_back}
       >
-        <ArrowLeftIcon className="h-4 w-4 shrink-0" />
+        <ArrowLeftIcon className="h-4 w-4 shrink-0 rtl:-scale-x-100" />
         {t("common.back")}
       </button>
 
@@ -337,7 +338,7 @@ export function AliasEditorPage({
           <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
             <AtSymbolIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
             <button
-              className="min-w-0 truncate rounded-none text-left transition-colors hover:text-txt-secondary"
+              className="min-w-0 truncate rounded-none text-start transition-colors hover:text-txt-secondary"
               title={t("common.copy_address")}
               type="button"
               onClick={copy_address}
@@ -350,7 +351,7 @@ export function AliasEditorPage({
 
         {alias && on_toggle_enabled && (
           <div className="flex items-center justify-between py-4">
-            <div className="flex-1 pr-4">
+            <div className="flex-1 pe-4">
               <p className="text-sm font-medium text-txt-primary">
                 {alias.is_enabled ? t("common.active") : t("common.inactive")}
               </p>

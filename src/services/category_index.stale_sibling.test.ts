@@ -64,6 +64,8 @@ import {
   clear_category_index,
 } from "@/services/category_index";
 
+const SIBLING_VERIFY_COOLDOWN_MS = 60000;
+
 const BASE_NOW = 1_700_000_000_000;
 
 function build_item(
@@ -216,7 +218,9 @@ describe("category_index stale unread thread siblings", () => {
       if (ids) {
         return {
           data: {
-            items: [build_item("older_sibling", true, "2026-01-01T00:00:00.000Z")],
+            items: [
+              build_item("older_sibling", true, "2026-01-01T00:00:00.000Z"),
+            ],
             has_more: false,
             next_cursor: null,
           },
@@ -239,7 +243,7 @@ describe("category_index stale unread thread siblings", () => {
     expect(get_counts().primary!.unread).toBe(0);
   });
 
-  it("clears the ghost when the sibling no longer exists on the server", async () => {
+  it("keeps the ghost until a second lookup confirms the sibling is gone", async () => {
     list_mail_items.mockImplementation(async (args: unknown) => {
       const ids = ids_of(args);
 
@@ -255,6 +259,12 @@ describe("category_index stale unread thread siblings", () => {
 
     expect(is_representative_unread("rep_read")).toBe(true);
 
+    reconcile_unread_thread_siblings([{ id: "rep_read", is_read: true }]);
+    await flush();
+
+    expect(is_representative_unread("rep_read")).toBe(true);
+
+    vi.setSystemTime(new Date(Date.now() + SIBLING_VERIFY_COOLDOWN_MS + 1));
     reconcile_unread_thread_siblings([{ id: "rep_read", is_read: true }]);
     await flush();
 
@@ -311,7 +321,9 @@ describe("category_index stale unread thread siblings", () => {
       if (ids) {
         return {
           data: {
-            items: [build_item("older_sibling", true, "2026-01-01T00:00:00.000Z")],
+            items: [
+              build_item("older_sibling", true, "2026-01-01T00:00:00.000Z"),
+            ],
             has_more: false,
             next_cursor: null,
           },

@@ -94,7 +94,11 @@ export function ComposeModal({
     return false;
   }, []);
 
-  use_escape_layer(is_open, on_close, "compose_modal");
+  use_escape_layer(
+    is_open && !compose.show_discard_confirm,
+    compose.handle_close,
+    "compose_modal",
+  );
 
   return (
     <AnimatePresence>
@@ -129,7 +133,7 @@ export function ComposeModal({
                 ? "sm:w-[320px] sm:h-auto sm:rounded-t-lg"
                 : compose_shell_mode(is_minimized, is_expanded) === "expanded"
                   ? "inset-0 sm:inset-4 sm:w-auto sm:h-auto sm:rounded-lg"
-                  : "inset-0 sm:inset-auto sm:bottom-auto sm:left-auto sm:right-auto sm:h-[600px] sm:w-[700px] sm:max-w-[90vw] sm:max-h-[85vh] sm:rounded-lg"
+                  : "inset-0 sm:inset-auto sm:bottom-auto sm:start-auto sm:end-auto sm:h-[600px] sm:w-[700px] sm:max-w-[90vw] sm:max-h-[85vh] sm:rounded-lg"
             }`}
             exit={{ opacity: 0, y: is_mobile ? 100 : 0 }}
             initial={
@@ -286,12 +290,20 @@ export function ComposeModal({
                 show_expiration
                 compose={{
                   ...compose,
-                  has_recipients: compose.recipients.to.length > 0,
+                  has_recipients: compose.has_sendable_recipients,
                   schedule_picker_element: (
                     <SchedulePicker
-                      disabled={compose.recipients.to.length === 0}
+                      disabled={
+                        compose.recipients.to.length === 0 ||
+                        compose.attachments.length > 0
+                      }
                       on_schedule={compose.set_scheduled_time}
                       scheduled_time={compose.scheduled_time}
+                      tooltip_key={
+                        compose.attachments.length > 0
+                          ? "common.scheduled_no_attachments"
+                          : "mail.schedule_send"
+                      }
                     />
                   ),
                   expiration_picker_element: (
@@ -316,9 +328,7 @@ export function ComposeModal({
                   <SignaturePicker
                     disabled={compose.is_scheduling}
                     on_select={(content) => {
-                      if (content) {
-                        compose.editor.insert_html(content);
-                      }
+                      compose.editor.apply_signature(content || null);
                     }}
                     open_direction="up"
                   />
@@ -346,6 +356,17 @@ export function ComposeModal({
                 on_confirm={compose.confirm_plain_text_mode}
                 title={t("mail.remove_formatting")}
                 variant="warning"
+              />
+
+              <ConfirmationModal
+                cancel_text={t("common.cancel")}
+                confirm_text={t("mail.discard")}
+                is_open={compose.show_discard_confirm}
+                message={t("common.unsaved_changes_body")}
+                on_cancel={compose.cancel_discard_close}
+                on_confirm={compose.confirm_discard_close}
+                title={t("common.unsaved_changes_title")}
+                variant="danger"
               />
             </ErrorBoundary>
           </motion.div>

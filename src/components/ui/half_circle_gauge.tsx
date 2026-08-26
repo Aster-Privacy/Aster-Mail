@@ -30,7 +30,12 @@ interface HalfCircleGaugeProps {
   className?: string;
 }
 
-function polar_to_cartesian(cx: number, cy: number, r: number, angle_deg: number) {
+function polar_to_cartesian(
+  cx: number,
+  cy: number,
+  r: number,
+  angle_deg: number,
+) {
   const angle_rad = (angle_deg * Math.PI) / 180;
 
   return {

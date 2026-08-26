@@ -43,6 +43,7 @@ import { NavSectionSkeleton } from "@/components/common/nav_section_skeleton";
 import { FolderContextMenu } from "@/components/folders/folder_context_menu";
 import { is_folder_unlocked } from "@/hooks/use_protected_folder";
 import { use_i18n } from "@/lib/i18n/context";
+import { show_toast } from "@/components/toast/simple_toast";
 
 export interface FolderModalData {
   folder_id: string;
@@ -189,7 +190,7 @@ export const SidebarFolders = memo(function SidebarFolders({
               onClick={on_toggle_section}
             >
               {section_collapsed ? (
-                <ChevronRightIcon className="w-3 h-3" />
+                <ChevronRightIcon className="w-3 h-3 rtl:-scale-x-100" />
               ) : (
                 <ChevronDownIcon className="w-3 h-3" />
               )}
@@ -242,7 +243,7 @@ export const SidebarFolders = memo(function SidebarFolders({
               ? get_sibling_folders(folders, folder.id)
               : [];
             const sibling_index = siblings.findIndex((f) => f.id === folder.id);
-            const handle_sibling_reorder = (direction: number) => {
+            const handle_sibling_reorder = async (direction: number) => {
               const target = sibling_index + direction;
 
               if (
@@ -263,7 +264,9 @@ export const SidebarFolders = memo(function SidebarFolders({
                 .map((f, i) => ({ id: f.id, sort_order: i }))
                 .filter((entry, i) => next[i].sort_order !== entry.sort_order);
 
-              void reorder_folders(entries);
+              if (!(await reorder_folders(entries))) {
+                show_toast(t("common.something_went_wrong_try_again"), "error");
+              }
             };
             const is_locked_closed =
               folder.is_locked ||
@@ -392,16 +395,17 @@ export const SidebarFolders = memo(function SidebarFolders({
                       folder_refs.current[folder.folder_token] = el;
                     }}
                     className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-[12px] ${is_collapsed ? "px-0" : ""} h-8 text-[14px]  ${effective_selected === folder_item_id ? "sidebar-active" : ""} ${is_collapsed && effective_selected === folder_item_id ? "sidebar-selected" : ""} ${drag_over_token === folder.folder_token ? "ring-2 ring-brand/60 bg-brand/10" : ""}`}
+                    data-rail-tip={is_collapsed ? folder.name : undefined}
                     style={{
                       zIndex: 1,
-                      marginLeft: is_collapsed ? undefined : `${row_inset}px`,
+                      marginInlineStart: is_collapsed ? undefined : `${row_inset}px`,
                       width: is_collapsed
                         ? undefined
                         : `calc(100% - ${row_inset}px)`,
-                      paddingLeft: is_collapsed
+                      paddingInlineStart: is_collapsed
                         ? undefined
                         : `${hasChildren ? 18 : 10}px`,
-                      paddingRight: is_collapsed ? undefined : "10px",
+                      paddingInlineEnd: is_collapsed ? undefined : "10px",
                       color:
                         effective_selected === folder_item_id
                           ? "var(--text-primary)"
@@ -414,7 +418,6 @@ export const SidebarFolders = memo(function SidebarFolders({
                             ? "var(--indicator-bg)"
                             : undefined,
                     }}
-                    data-rail-tip={is_collapsed ? folder.name : undefined}
                     onClick={() =>
                       handle_nav_click(() => {
                         if (folder.is_password_protected) {
@@ -509,7 +512,7 @@ export const SidebarFolders = memo(function SidebarFolders({
                         {is_expanded ? (
                           <ChevronDownIcon className="w-3 h-3" />
                         ) : (
-                          <ChevronRightIcon className="w-3 h-3" />
+                          <ChevronRightIcon className="w-3 h-3 rtl:-scale-x-100" />
                         )}
                       </span>
                     )}
@@ -522,7 +525,7 @@ export const SidebarFolders = memo(function SidebarFolders({
                         (folder.is_password_protected &&
                           (!folder.password_set ||
                             !is_folder_unlocked(folder.id)))) && (
-                        <LockClosedIcon className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 p-0.5 rounded-full text-icon-active bg-surf-secondary" />
+                        <LockClosedIcon className="absolute -bottom-0.5 -end-0.5 w-2.5 h-2.5 p-0.5 rounded-full text-icon-active bg-surf-secondary" />
                       )}
                     </div>
                     {is_collapsed && !is_locked_closed && (
@@ -537,11 +540,11 @@ export const SidebarFolders = memo(function SidebarFolders({
                     )}
                     {!is_collapsed && (
                       <>
-                        <span className="flex-1 text-left truncate">
+                        <span className="flex-1 text-start truncate">
                           {folder.name}
                         </span>
                         {is_locked_closed && (
-                          <LockClosedIcon className="w-3 h-3 ml-1 text-icon-muted" />
+                          <LockClosedIcon className="w-3 h-3 ms-1 text-icon-muted" />
                         )}
                         {!is_locked_closed && (
                           <CountBadge

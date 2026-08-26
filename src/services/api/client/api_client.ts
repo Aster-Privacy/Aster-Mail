@@ -73,12 +73,11 @@ import {
   write_last_auth_ms,
 } from "./helpers";
 
-import { en } from "@/lib/i18n/translations/en";
+import { get_active_translations } from "@/lib/i18n/translations";
 import { refresh_session_activity } from "@/services/session_timeout_service";
 import { extend_passphrase_timeout } from "@/services/crypto/memory_key_store";
 import { get_device_id } from "@/services/device_id";
 import { ignore_error } from "@/lib/ignore_error";
-
 import {
   routed_fetch,
   get_effective_base_url,
@@ -86,6 +85,7 @@ import {
   get_effective_retry_count,
   get_effective_retry_delay,
 } from "@/services/routing/routing_provider";
+import { should_show_server_message } from "./server_message";
 
 export class ApiClient {
   private refresh_timeout: number | null = null;
@@ -1451,7 +1451,10 @@ export class ApiClient {
       is_app_network_locked() &&
       !is_endpoint_allowed_while_locked(endpoint)
     ) {
-      return { error: "App is locked", code: "APP_LOCKED" };
+      return {
+        error: get_active_translations().common.app_locked,
+        code: "APP_LOCKED",
+      };
     }
 
     if (is_identity_establishing_endpoint(endpoint)) {
@@ -1527,7 +1530,7 @@ export class ApiClient {
 
     const url = `${get_effective_base_url(API_BASE_URL)}${endpoint}`;
     let last_error: ApiResponse<T> = {
-      error: "Request failed",
+      error: this.get_generic_error_message("UNKNOWN_ERROR"),
       code: "UNKNOWN_ERROR",
     };
     let has_attempted_refresh = false;
@@ -1551,7 +1554,9 @@ export class ApiClient {
           try {
             error_data = await response.json();
           } catch {
-            error_data = { error: response.statusText };
+            error_data = import.meta.env.DEV
+              ? { error: response.statusText }
+              : {};
           }
 
           const error_code = get_error_code_from_status(response.status);
@@ -1597,7 +1602,9 @@ export class ApiClient {
             window.dispatchEvent(new Event("aster:verification-required"));
 
             return {
-              error: "Recovery email verification required",
+              error:
+                get_active_translations().auth
+                  .recovery_email_required_gate_title,
               code: "FORBIDDEN",
             };
           }
@@ -1609,8 +1616,7 @@ export class ApiClient {
             window.dispatchEvent(new Event(PENDING_DELETION_EVENT));
 
             return {
-              error:
-                error_data.error || "This account is scheduled for deletion",
+              error: get_active_translations().common.pending_deletion_body,
               code: "FORBIDDEN",
               server_code: PENDING_DELETION_SERVER_CODE,
             };
@@ -1637,12 +1643,14 @@ export class ApiClient {
           ) {
             window.dispatchEvent(
               new CustomEvent("aster:account-suspended", {
-                detail: { reason: error_data.error || "Account suspended" },
+                detail: {
+                  reason: get_active_translations().common.account_suspended,
+                },
               }),
             );
 
             return {
-              error: error_data.error || "Account suspended",
+              error: get_active_translations().common.account_suspended,
               code: "FORBIDDEN",
             };
           }
@@ -1652,7 +1660,7 @@ export class ApiClient {
             error_data.code === "ABUSE_ACCOUNT_LIMIT"
           ) {
             return {
-              error: error_data.error || "Account limit reached",
+              error: get_active_translations().common.account_limit_reached,
               code: "ABUSE_ACCOUNT_LIMIT",
             };
           }
@@ -1662,7 +1670,9 @@ export class ApiClient {
             error_data.code === "RECOVERY_EMAIL_REQUIRED"
           ) {
             return {
-              error: error_data.error || "Recovery email required",
+              error:
+                get_active_translations().auth
+                  .recovery_email_required_gate_title,
               code: "RECOVERY_EMAIL_REQUIRED",
             };
           }
@@ -1675,7 +1685,8 @@ export class ApiClient {
               window.dispatchEvent(
                 new CustomEvent("aster:plan-limit-hit", {
                   detail: {
-                    message: error_data.error || "Plan limit reached",
+                    message:
+                      get_active_translations().settings.plan_limit_reached,
                     resource:
                       (error_data.details?.resource as string | undefined) ??
                       null,
@@ -1685,7 +1696,7 @@ export class ApiClient {
             }
 
             return {
-              error: error_data.error || "Plan limit reached",
+              error: get_active_translations().settings.plan_limit_reached,
               code: "FORBIDDEN",
               server_code: "PLAN_LIMIT_EXCEEDED",
             };
@@ -1699,16 +1710,24 @@ export class ApiClient {
               window.dispatchEvent(
                 new CustomEvent("aster:storage-full", {
                   detail: {
-                    message: error_data.error || "Storage full",
+                    message: get_active_translations().settings.storage_full,
                   },
                 }),
               );
             }
 
             return {
-              error: error_data.error || "Storage quota exceeded",
+              error: get_active_translations().settings.storage_full,
               code: "UNKNOWN_ERROR",
               server_code: "STORAGE_QUOTA_EXCEEDED",
+            };
+          }
+
+          if (response.status === 413) {
+            return {
+              error: get_active_translations().errors.upload_too_large,
+              code: "UNKNOWN_ERROR",
+              server_code: "PAYLOAD_TOO_LARGE",
             };
           }
 
@@ -1720,13 +1739,13 @@ export class ApiClient {
               new CustomEvent("aster:already-signed-in", {
                 detail: {
                   message:
-                    error_data.error || "Already signed in on this device",
+                    get_active_translations().errors.account_already_added,
                 },
               }),
             );
 
             return {
-              error: error_data.error || "Already signed in on this device",
+              error: get_active_translations().errors.account_already_added,
               code: "CONFLICT",
               server_code: "ALREADY_SIGNED_IN_ON_DEVICE",
             };
@@ -1737,7 +1756,7 @@ export class ApiClient {
             error_data.code === "USERNAME_IN_USE"
           ) {
             return {
-              error: error_data.error || "This username is already taken",
+              error: get_active_translations().auth.username_in_use,
               code: "USERNAME_IN_USE",
             };
           }
@@ -1780,12 +1799,19 @@ export class ApiClient {
             }
           }
 
-          const sanitized_error = import.meta.env.DEV
-            ? error_data.error ||
-              `Request failed with status ${response.status}`
-            : response.status < 500 && error_data.error
-              ? error_data.error
-              : this.get_generic_error_message(error_code);
+          const generic_rate_limit =
+            error_code === "RATE_LIMIT_EXCEEDED" && !error_data.resets_at;
+
+          const sanitized_error = generic_rate_limit
+            ? this.get_generic_error_message("RATE_LIMIT_EXCEEDED")
+            : import.meta.env.DEV
+              ? error_data.error ||
+                `Request failed with status ${response.status}`
+              : response.status < 500 &&
+                  error_data.error &&
+                  should_show_server_message(error_data.code, error_data.error)
+                ? error_data.error
+                : this.get_generic_error_message(error_code);
 
           last_error = {
             error: sanitized_error,
@@ -1867,7 +1893,7 @@ export class ApiClient {
                 code: "SERVER_ERROR",
               };
 
-              if (attempt < retry) {
+              if (attempt < retry && !is_state_changing_method(method)) {
                 await this.delay(retry_delay * (attempt + 1));
                 continue;
               }
@@ -1886,12 +1912,12 @@ export class ApiClient {
         if (error instanceof Error) {
           if (error.name === "AbortError") {
             last_error = {
-              error: "Request timed out",
+              error: this.get_generic_error_message("TIMEOUT_ERROR"),
               code: "TIMEOUT_ERROR",
             };
           } else {
             last_error = {
-              error: error.message || "Network error",
+              error: this.get_generic_error_message("NETWORK_ERROR"),
               code: "NETWORK_ERROR",
             };
           }
@@ -1914,25 +1940,25 @@ export class ApiClient {
   private get_generic_error_message(code: ApiErrorCode): string {
     switch (code) {
       case "UNAUTHORIZED":
-        return en.errors.auth_required;
+        return get_active_translations().errors.auth_required;
       case "FORBIDDEN":
-        return en.errors.no_permission;
+        return get_active_translations().errors.no_permission;
       case "NOT_FOUND":
-        return en.errors.not_found;
+        return get_active_translations().errors.not_found;
       case "VALIDATION_ERROR":
-        return en.errors.invalid_request;
+        return get_active_translations().errors.invalid_request;
       case "CONFLICT":
-        return en.errors.conflict;
+        return get_active_translations().errors.conflict;
       case "RATE_LIMIT_EXCEEDED":
-        return en.errors.rate_limited;
+        return get_active_translations().errors.rate_limited;
       case "SERVER_ERROR":
-        return en.errors.internal_error;
+        return get_active_translations().errors.internal_error;
       case "NETWORK_ERROR":
-        return en.errors.connection_failed;
+        return get_active_translations().errors.connection_failed;
       case "TIMEOUT_ERROR":
-        return en.errors.request_timeout;
+        return get_active_translations().errors.request_timeout;
       default:
-        return en.errors.unexpected_error;
+        return get_active_translations().errors.unexpected_error;
     }
   }
 

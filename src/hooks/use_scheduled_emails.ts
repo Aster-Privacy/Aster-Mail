@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { InboxEmail, MailItemType } from "@/types/email";
+import type { TranslationKey } from "@/lib/i18n/types";
 
 import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 
@@ -43,7 +44,6 @@ import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_i18n } from "@/lib/i18n/context";
-import type { TranslationKey } from "@/lib/i18n/types";
 import {
   format_time,
   format_weekday_short,
@@ -196,6 +196,7 @@ async function fetch_scheduled_from_api(
     )
     .map((r) => r.value)
     .filter((e): e is ScheduledListItem => e !== null)
+    .filter((e) => e.status !== "cancelled" && e.status !== "sent")
     .sort(
       (a, b) =>
         new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime(),
@@ -250,15 +251,18 @@ export function use_scheduled_emails(
     abort_ref.current = new AbortController();
     const { signal } = abort_ref.current;
     const seq = ++fetch_seq_ref.current;
-    const is_current = () => seq === fetch_seq_ref.current && mounted_ref.current;
+    const is_current = () =>
+      seq === fetch_seq_ref.current && mounted_ref.current;
 
     if (!has_loaded_ref.current) set_is_loading(true);
     set_error(null);
 
-    const timeout_id = setTimeout(
-      () => abort_ref.current?.abort(),
-      FETCH_TIMEOUT_MS,
-    );
+    let timed_out = false;
+
+    const timeout_id = setTimeout(() => {
+      timed_out = true;
+      abort_ref.current?.abort();
+    }, FETCH_TIMEOUT_MS);
 
     try {
       const timestamp_labels: ScheduledTimestampLabels = {
@@ -274,7 +278,13 @@ export function use_scheduled_emails(
         t,
       );
 
-      if (signal.aborted || !is_current()) return;
+      if (signal.aborted || !is_current()) {
+        if (timed_out && is_current()) {
+          set_error(t("common.failed_to_load_scheduled_emails"));
+        }
+
+        return;
+      }
 
       if (result) {
         has_loaded_ref.current = true;
@@ -426,14 +436,9 @@ export function use_scheduled_emails(
       }
     };
 
-    const unsub_scheduled = on_mail_event(
-      MAIL_EVENTS.SCHEDULED_CHANGED,
-      (detail) => {
-        if (detail.action === "created" || detail.action === "sent") {
-          refresh();
-        }
-      },
-    );
+    const unsub_scheduled = on_mail_event(MAIL_EVENTS.SCHEDULED_CHANGED, () => {
+      handle_change();
+    });
 
     const handle_visibility = () => {
       if (document.visibilityState === "visible") {

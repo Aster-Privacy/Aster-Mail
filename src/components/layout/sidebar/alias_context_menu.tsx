@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { copy_text_or_throw } from "@/utils/copy_text";
 import type { DecryptedEmailAlias } from "@/services/api/aliases";
 
 import {
@@ -27,7 +28,6 @@ import {
 } from "@heroicons/react/24/outline";
 
 import { PinIcon } from "@/components/common/icons";
-
 import {
   ContextMenu,
   ContextMenuContent,
@@ -41,8 +41,6 @@ import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
 import { update_alias, toggle_alias_pin } from "@/services/api/aliases";
 import { emit_aliases_changed } from "@/hooks/mail_events";
-
-import { ignore_error } from "@/lib/ignore_error";
 
 interface AliasContextMenuProps {
   children: React.ReactNode;
@@ -62,13 +60,10 @@ export function AliasContextMenu({
 
   const copy_address = async () => {
     try {
-      await navigator.clipboard.writeText(alias.full_address);
+      await copy_text_or_throw(alias.full_address);
       show_toast(t("settings.alias_copied"), "success");
-    } catch (caught) {
-      ignore_error(
-        "components/layout/sidebar/alias_context_menu:copy_address",
-        caught,
-      );
+    } catch {
+      show_toast(t("common.failed_to_copy"), "error");
     }
   };
 
@@ -86,11 +81,14 @@ export function AliasContextMenu({
     try {
       const response = await toggle_alias_pin(alias.id);
 
-      if (response.error) {
-        show_toast(response.error, "error");
+      if (response.error || !response.data) {
+        show_toast(
+          response.error || t("settings.alias_toggle_failed"),
+          "error",
+        );
       } else {
         show_toast(
-          response.data?.is_pinned
+          response.data.is_pinned
             ? t("settings.alias_pinned_toast")
             : t("settings.alias_unpinned_toast"),
           "success",
@@ -134,14 +132,14 @@ export function AliasContextMenu({
       <ContextMenuTrigger asChild>{children}</ContextMenuTrigger>
       <ContextMenuContent className="w-48">
         <ContextMenuItem onClick={copy_address}>
-          <ClipboardDocumentIcon className="mr-2 h-4 w-4" />
+          <ClipboardDocumentIcon className="me-2 h-4 w-4" />
           {t("common.copy_address")}
         </ContextMenuItem>
 
         {is_real_alias && (
           <ContextMenuItem onClick={toggle_pin}>
             <PinIcon
-              className={`mr-2 h-4 w-4 ${alias.is_pinned ? "-rotate-[38deg]" : ""}`}
+              className={`me-2 h-4 w-4 ${alias.is_pinned ? "-rotate-[38deg]" : ""}`}
               filled={!!alias.is_pinned}
               style={{
                 color: alias.is_pinned
@@ -158,7 +156,7 @@ export function AliasContextMenu({
         {is_real_alias && (
           <ContextMenuItem onClick={toggle_enabled}>
             <PowerIcon
-              className="mr-2 h-4 w-4"
+              className="me-2 h-4 w-4"
               style={{
                 color: alias.is_enabled
                   ? "var(--color-red-500, #ef4444)"
@@ -180,7 +178,7 @@ export function AliasContextMenu({
         <ContextMenuSeparator />
 
         <ContextMenuItem onClick={on_manage}>
-          <Cog6ToothIcon className="mr-2 h-4 w-4" />
+          <Cog6ToothIcon className="me-2 h-4 w-4" />
           {t("common.manage")}
         </ContextMenuItem>
       </ContextMenuContent>

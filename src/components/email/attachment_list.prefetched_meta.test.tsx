@@ -84,7 +84,6 @@ const { prefetch_attachment_meta, clear_attachment_meta_cache } = await import(
 );
 
 declare global {
-  // eslint-disable-next-line no-var
   var IS_REACT_ACT_ENVIRONMENT: boolean;
 }
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
@@ -126,7 +125,9 @@ describe("AttachmentList with prefetched attachment metadata", () => {
     clear_attachment_meta_cache();
     list_attachments_mock.mockReset();
     batch_attachment_meta_mock.mockReset();
-    list_attachments_mock.mockResolvedValue({ data: { attachments: [], total: 0 } });
+    list_attachments_mock.mockResolvedValue({
+      data: { attachments: [], total: 0 },
+    });
     batch_attachment_meta_mock.mockResolvedValue(meta_payload());
 
     Object.defineProperty(URL, "createObjectURL", {

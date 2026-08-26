@@ -19,14 +19,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
-import {
-  type ParsedEmail,
-} from "@/services/import/parser";
-import {
-  type ImportSource,
-} from "@/services/api/email_import";
+import { type ParsedEmail } from "@/services/import/parser";
+import { type ImportSource } from "@/services/api/email_import";
 import { extract_email_address } from "@/services/import/mime_utils";
-
 
 export interface ImportModalProps {
   is_open: boolean;
@@ -279,4 +274,3 @@ export function detect_item_type(
 
   return "received";
 }
-

@@ -18,24 +18,20 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { } from "@/services/api/aliases";
-import type { } from "@/lib/i18n/types";
+import type {} from "@/services/api/aliases";
+import type {} from "@/lib/i18n/types";
 
-import { useCallback, useEffect,  useState } from "react";
-import {
-  TrashIcon,
-  PlusIcon,
-  NoSymbolIcon,
-} from "@heroicons/react/24/outline";
-import { Button, } from "@aster/ui";
+import { useCallback, useEffect, useState } from "react";
+import { TrashIcon, PlusIcon, NoSymbolIcon } from "@heroicons/react/24/outline";
+import { Button } from "@aster/ui";
 
+import { INPUT_CLASS } from "./shared";
 
+import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { Spinner } from "@/components/ui/spinner";
-import {
-  get_alias_preferences,
-} from "@/services/api/aliases";
+import { get_alias_preferences } from "@/services/api/aliases";
 import {
   list_alias_contacts,
   add_alias_contact,
@@ -48,9 +44,8 @@ import {
   decrypt_alias_contact,
   type DecryptedAliasContact,
 } from "@/services/api/alias_contacts";
-
-import { INPUT_CLASS } from "./shared";
 import { ignore_error } from "@/lib/ignore_error";
+import { is_composing } from "@/utils/ime";
 
 export function ContactsPanel({
   alias_id,
@@ -68,6 +63,7 @@ export function ContactsPanel({
   const { t } = use_i18n();
   const [contacts, set_contacts] = useState<DecryptedAliasContact[]>([]);
   const [loading, set_loading] = useState(true);
+  const [load_error, set_load_error] = useState(false);
   const [email, set_email] = useState("");
   const [busy, set_busy] = useState(false);
   const [readable_reverse, set_readable_reverse] = useState(false);
@@ -78,7 +74,12 @@ export function ContactsPanel({
       .then((r) => {
         if (r.data?.readable_reverse_aliases) set_readable_reverse(true);
       })
-      .catch((caught) => ignore_error("components/settings/aliases/alias_advanced_panel/contacts:ContactsPanel", caught));
+      .catch((caught) =>
+        ignore_error(
+          "components/settings/aliases/alias_advanced_panel/contacts:ContactsPanel",
+          caught,
+        ),
+      );
   }, [locked]);
 
   const load = useCallback(async () => {
@@ -88,6 +89,7 @@ export function ContactsPanel({
       return;
     }
     set_loading(true);
+    set_load_error(false);
     try {
       const response = domain_address_id
         ? await list_domain_address_contacts(domain_address_id)
@@ -101,8 +103,11 @@ export function ContactsPanel({
         );
 
         set_contacts(decrypted);
+      } else {
+        set_load_error(true);
       }
     } catch {
+      set_load_error(true);
       set_contacts([]);
     } finally {
       set_loading(false);
@@ -193,7 +198,9 @@ export function ContactsPanel({
           type="email"
           value={email}
           onChange={(e) => set_email(e.target.value)}
-          onKeyDown={(e) => e["key"] === "Enter" && handle_add()}
+          onKeyDown={(e) =>
+            e["key"] === "Enter" && !is_composing(e) && handle_add()
+          }
         />
         <Button
           disabled={busy || !email.trim()}
@@ -208,6 +215,8 @@ export function ContactsPanel({
 
       {loading ? (
         <Spinner size="md" />
+      ) : load_error ? (
+        <LoadFailedNotice on_retry={() => load()} />
       ) : contacts.length === 0 ? (
         <p className="text-xs text-txt-muted">
           {t("settings.alias_contacts_empty")}
@@ -254,4 +263,3 @@ export function ContactsPanel({
     </div>
   );
 }
-

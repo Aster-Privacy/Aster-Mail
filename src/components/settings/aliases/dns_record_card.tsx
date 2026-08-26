@@ -18,17 +18,17 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { copy_text_or_throw } from "@/utils/copy_text";
+import type { TranslationKey } from "@/lib/i18n/types";
+import type { DnsRecord } from "@/services/api/domains";
+
 import { useCallback } from "react";
 import { ClipboardDocumentIcon } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
-import type { TranslationKey } from "@/lib/i18n/types";
 import { show_toast } from "@/components/toast/simple_toast";
 import { format_record_host, type DnsProvider } from "@/data/dns_providers";
-import type { DnsRecord } from "@/services/api/domains";
-
-import { ignore_error } from "@/lib/ignore_error";
 
 const CAVEAT_KEYS: Record<string, TranslationKey> = {
   mx_replaces_existing: "common.dns_caveat_mx_replaces_existing",
@@ -58,19 +58,17 @@ export function DnsRecordCard({
   const copy_to_clipboard = useCallback(
     async (text: string) => {
       try {
-        await navigator.clipboard.writeText(text);
+        await copy_text_or_throw(text);
         show_toast(t("common.copied"), "success");
-      } catch (caught) {
-        ignore_error("components/settings/aliases/dns_record_card:DnsRecordCard", caught);
+      } catch {
+        show_toast(t("common.failed_to_copy"), "error");
       }
     },
     [t],
   );
 
   return (
-    <div
-      className="p-3 rounded-lg bg-surf-secondary border border-edge-secondary"
-    >
+    <div className="p-3 rounded-lg bg-surf-secondary border border-edge-secondary">
       <div className="flex items-center gap-2 mb-2">
         <span className="text-xs font-mono px-2 py-0.5 rounded bg-surf-tertiary text-txt-secondary">
           {record.record_type}

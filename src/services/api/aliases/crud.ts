@@ -18,14 +18,26 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { } from "@/lib/i18n/types";
+import type {} from "@/lib/i18n/types";
 
 import { api_client, type ApiResponse } from "../client";
 
-
-
-import { compute_alias_hash, compute_routing_hash, encrypt_alias_field } from "./crypto";
-import { AliasLimitResponse, AliasPreferences, BulkCreateAliasItem, BulkCreateAliasResponse, CheckAvailabilityResponse, CreateAliasRequest, CreateAliasResponse, EmailAlias, UpdateAliasRequest } from "./types";
+import {
+  compute_alias_hash,
+  compute_routing_hash,
+  encrypt_alias_field,
+} from "./crypto";
+import {
+  AliasLimitResponse,
+  AliasPreferences,
+  BulkCreateAliasItem,
+  BulkCreateAliasResponse,
+  CheckAvailabilityResponse,
+  CreateAliasRequest,
+  CreateAliasResponse,
+  EmailAlias,
+  UpdateAliasRequest,
+} from "./types";
 import { MAX_ALIAS_WEBSITES, normalize_website_url } from "./website";
 export async function get_alias(
   alias_id: string,
@@ -239,4 +251,3 @@ export async function update_alias_preferences(
     prefs,
   );
 }
-

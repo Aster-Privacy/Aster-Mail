@@ -18,8 +18,9 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { array_to_base64, base64_to_array } from "./base64";
 import type { EncryptedVault } from "./key_manager_core";
+
+import { array_to_base64, base64_to_array } from "./base64";
 
 const MAX_VAULT_KEY_FINGERPRINTS = 128;
 

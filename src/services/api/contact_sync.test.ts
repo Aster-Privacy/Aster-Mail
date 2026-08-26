@@ -83,3 +83,65 @@ describe("parse_vcard (Gmail vCard import)", () => {
     expect(contacts[0].last_name).toBe("Van Helsing");
   });
 });
+
+describe("parse_vcard (round trip with the Aster exporter)", () => {
+  it("keeps every phone number instead of only the last one", () => {
+    const vcard =
+      "BEGIN:VCARD\nVERSION:3.0\nFN:Ada Lovelace\nN:Lovelace;Ada;;;\n" +
+      "TEL;TYPE=CELL:+15550001\nTEL;TYPE=WORK:+15550002\nTEL;TYPE=HOME:+15550003\n" +
+      "END:VCARD\n";
+
+    const [contact] = parse_vcard(vcard);
+
+    expect(contact.phone).toBe("+15550001");
+    expect(contact.phone_entries).toEqual([
+      { value: "+15550001", type: "mobile" },
+      { value: "+15550002", type: "work" },
+      { value: "+15550003", type: "home" },
+    ]);
+  });
+
+  it("unescapes commas, semicolons and newlines written by the exporter", () => {
+    const vcard =
+      "BEGIN:VCARD\nVERSION:4.0\nFN:Ada Lovelace\nN:Lovelace;Ada;;;\n" +
+      "ORG:Acme\\, Inc.\nNOTE:Met at Acme\\, Inc.\\nCall back\n" +
+      "EMAIL:ada@example.com\nEND:VCARD\n";
+
+    const [contact] = parse_vcard(vcard);
+
+    expect(contact.company).toBe("Acme, Inc.");
+    expect(contact.notes).toBe("Met at Acme, Inc.\nCall back");
+  });
+
+  it("records the type of each email address and drops duplicates", () => {
+    const vcard =
+      "BEGIN:VCARD\nVERSION:3.0\nFN:Ada Lovelace\n" +
+      "EMAIL;TYPE=WORK:ada@work.example\nEMAIL;TYPE=HOME:mailto:ada@home.example\n" +
+      "EMAIL:ADA@WORK.EXAMPLE\nEND:VCARD\n";
+
+    const [contact] = parse_vcard(vcard);
+
+    expect(contact.emails).toEqual(["ada@work.example", "ada@home.example"]);
+    expect(contact.email_entries).toEqual([
+      { value: "ada@work.example", type: "work" },
+      { value: "ada@home.example", type: "home" },
+    ]);
+  });
+
+  it("imports the structured postal address", () => {
+    const vcard =
+      "BEGIN:VCARD\nVERSION:3.0\nFN:Ada Lovelace\n" +
+      "ADR;TYPE=HOME:;;12 Baker St;London;;NW1 6XE;United Kingdom\nEND:VCARD\n";
+
+    const [contact] = parse_vcard(vcard);
+
+    expect(contact.address).toEqual({
+      street: "12 Baker St",
+      city: "London",
+      state: undefined,
+      postal_code: "NW1 6XE",
+      country: "United Kingdom",
+    });
+    expect(contact.address_entries?.[0].type).toBe("home");
+  });
+});

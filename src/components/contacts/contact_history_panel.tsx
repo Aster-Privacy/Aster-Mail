@@ -31,6 +31,12 @@ import {
 import { use_i18n } from "@/lib/i18n/context";
 import { cn } from "@/lib/utils";
 import { use_search } from "@/hooks/use_search";
+import {
+  app_hour12,
+  app_locale,
+  calendar_day_diff,
+  get_display_time_zone,
+} from "@/utils/date_format";
 
 interface ContactHistoryPanelProps {
   contact_email: string;
@@ -49,21 +55,30 @@ function format_relative_date(
 ): string {
   const date = new Date(date_string);
   const now = new Date();
-  const diff = now.getTime() - date.getTime();
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const days = calendar_day_diff(date, now);
 
   if (days === 0) {
-    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    return date.toLocaleTimeString(app_locale(), {
+      hour: "2-digit",
+      hour12: app_hour12(),
+      minute: "2-digit",
+      timeZone: get_display_time_zone(),
+    });
   }
   if (days === 1) return t("common.yesterday");
   if (days < 7) return t("common.x_days_ago", { count: days });
   if (days < 365)
-    return date.toLocaleDateString([], { month: "short", day: "numeric" });
+    return date.toLocaleDateString(app_locale(), {
+      month: "short",
+      day: "numeric",
+      timeZone: get_display_time_zone(),
+    });
 
-  return date.toLocaleDateString([], {
+  return date.toLocaleDateString(app_locale(), {
     year: "numeric",
     month: "short",
     day: "numeric",
+    timeZone: get_display_time_zone(),
   });
 }
 
@@ -92,6 +107,7 @@ export function ContactHistoryPanel({
   const activities = useMemo<HistoryEntry[]>(() => {
     const seen = new Set<string>();
     const out: HistoryEntry[] = [];
+
     for (const r of received.state.results) {
       if (seen.has(r.id)) continue;
       seen.add(r.id);
@@ -116,6 +132,7 @@ export function ContactHistoryPanel({
       (a, b) =>
         new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
     );
+
     return out;
   }, [received.state.results, sent.state.results]);
 
@@ -152,13 +169,10 @@ export function ContactHistoryPanel({
           {activities.map((activity) => (
             <button
               key={activity.id}
+              className="w-full flex items-center gap-3 px-2 py-2.5 text-start hover:bg-black/[0.04] dark:hover:bg-white/[0.04] rounded-[14px] transition-colors cursor-pointer"
               type="button"
-              className="w-full flex items-center gap-3 px-2 py-2.5 text-left hover:bg-black/[0.04] dark:hover:bg-white/[0.04] rounded-[14px] transition-colors cursor-pointer"
               onClick={() => {
-                navigate(
-                  { pathname: "/", hash: activity.id },
-                  { state: { search_query: `from:${contact_email}` } },
-                );
+                navigate(`/email/${activity.id}`);
               }}
             >
               {activity.is_sent ? (
@@ -169,6 +183,7 @@ export function ContactHistoryPanel({
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between gap-2">
                   <span
+                    dir="auto"
                     className={cn(
                       "text-[13px] truncate text-txt-primary",
                       !activity.subject && "italic text-txt-muted",

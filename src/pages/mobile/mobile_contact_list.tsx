@@ -66,6 +66,9 @@ interface MobileContactListProps {
   on_contact_press: (contact: DecryptedContact) => void;
   on_long_press_start: (id: string) => void;
   on_long_press_end: () => void;
+  on_long_press_consume: () => boolean;
+  on_retry_load: () => void;
+  load_failed: boolean;
   toggle_select: (id: string) => void;
   select_all: () => void;
   deselect_all: () => void;
@@ -96,6 +99,9 @@ export function MobileContactList({
   on_contact_press,
   on_long_press_start,
   on_long_press_end,
+  on_long_press_consume,
+  on_retry_load,
+  load_failed,
   toggle_select,
   select_all,
   deselect_all,
@@ -126,12 +132,14 @@ export function MobileContactList({
             className="rounded-[12px] px-3 py-1.5 text-[13px] font-medium text-[var(--accent-color,#3b82f6)] active:opacity-70"
             type="button"
             onClick={
+              filtered_contacts.length > 0 &&
               selected_ids.size === filtered_contacts.length
                 ? deselect_all
                 : select_all
             }
           >
-            {selected_ids.size === filtered_contacts.length
+            {filtered_contacts.length > 0 &&
+            selected_ids.size === filtered_contacts.length
               ? t("common.deselect_all")
               : t("common.select_all")}
           </button>
@@ -145,7 +153,12 @@ export function MobileContactList({
                 <button
                   className="rounded-[12px] px-3 py-1.5 text-[13px] font-medium text-[var(--text-secondary)] active:opacity-70"
                   type="button"
-                  onClick={() => set_is_select_mode(true)}
+                  disabled={filtered_contacts.length === 0}
+                  onClick={() => {
+                    if (filtered_contacts.length === 0) return;
+                    set_is_select_mode(true);
+                    select_all();
+                  }}
                 >
                   {t("common.select_all")}
                 </button>
@@ -274,7 +287,26 @@ export function MobileContactList({
           </div>
         )}
 
-        {!is_loading && filtered_contacts.length === 0 && (
+        {!is_loading && load_failed && contacts.length === 0 && (
+          <div className="flex flex-col items-center justify-center gap-3 px-8 pt-20">
+            <UsersIcon
+              className="h-14 w-14 text-[var(--text-muted)]"
+              strokeWidth={1}
+            />
+            <p className="text-center text-[15px] font-medium text-[var(--text-primary)]">
+              {t("common.failed_to_load_contacts")}
+            </p>
+            <button
+              className="rounded-[12px] bg-[var(--bg-tertiary)] px-4 py-2 text-[14px] font-medium text-[var(--text-primary)] active:opacity-70"
+              type="button"
+              onClick={on_retry_load}
+            >
+              {t("common.retry")}
+            </button>
+          </div>
+        )}
+
+        {!is_loading && !load_failed && filtered_contacts.length === 0 && (
           <div className="flex flex-col items-center justify-center gap-3 px-8 pt-20">
             <UsersIcon
               className="h-14 w-14 text-[var(--text-muted)]"
@@ -313,9 +345,11 @@ export function MobileContactList({
                 return (
                   <button
                     key={contact.id}
-                    className={`flex w-full items-center gap-3 px-4 py-2.5 text-left active:bg-[var(--bg-tertiary)] ${is_select_mode && is_selected ? "bg-[var(--bg-selected,color-mix(in srgb, var(--accent-color) 8%, transparent))]" : ""}`}
+                    className={`flex w-full items-center gap-3 px-4 py-2.5 text-start active:bg-[var(--bg-tertiary)] ${is_select_mode && is_selected ? "bg-[var(--bg-selected,color-mix(in srgb, var(--accent-color) 8%, transparent))]" : ""}`}
                     type="button"
                     onClick={() => {
+                      if (on_long_press_consume()) return;
+
                       if (is_select_mode) {
                         toggle_select(contact.id);
                       } else {
@@ -325,6 +359,7 @@ export function MobileContactList({
                     onContextMenu={(e) => e.preventDefault()}
                     onTouchCancel={on_long_press_end}
                     onTouchEnd={on_long_press_end}
+                    onTouchMove={on_long_press_end}
                     onTouchStart={() => on_long_press_start(contact.id)}
                   >
                     {is_select_mode ? (
@@ -361,7 +396,7 @@ export function MobileContactList({
                       )}
                     </div>
                     {!is_select_mode && (
-                      <ChevronRightIcon className="h-4 w-4 shrink-0 text-[var(--text-muted)]" />
+                      <ChevronRightIcon className="h-4 w-4 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
                     )}
                   </button>
                 );

@@ -35,7 +35,13 @@ interface InfoPopoverProps {
   icon_class?: string;
 }
 
-export function InfoPopover({ title, description, learn_more_url, learn_more_label, icon_class }: InfoPopoverProps) {
+export function InfoPopover({
+  title,
+  description,
+  learn_more_url,
+  learn_more_label,
+  icon_class,
+}: InfoPopoverProps) {
   const { t } = use_translation();
 
   return (
@@ -65,10 +71,10 @@ export function InfoPopover({ title, description, learn_more_url, learn_more_lab
         </p>
         {learn_more_url && (
           <a
-            href={learn_more_url}
-            target="_blank"
-            rel="noopener noreferrer"
             className="inline-block mt-2.5 text-xs text-brand hover:underline"
+            href={learn_more_url}
+            rel="noopener noreferrer"
+            target="_blank"
           >
             {learn_more_label ?? t("common.learn_more")}
           </a>

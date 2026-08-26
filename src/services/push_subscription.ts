@@ -86,8 +86,22 @@ async function get_vapid_public_key(): Promise<string | null> {
   }
 }
 
+function is_desktop_shell(): boolean {
+  return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+}
+
+export function is_push_supported(): boolean {
+  return (
+    !is_desktop_shell() &&
+    typeof navigator !== "undefined" &&
+    "serviceWorker" in navigator &&
+    typeof window !== "undefined" &&
+    "PushManager" in window
+  );
+}
+
 async function get_push_subscription(): Promise<PushSubscription | null> {
-  if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+  if (!is_push_supported()) {
     return null;
   }
 
@@ -98,7 +112,7 @@ async function get_push_subscription(): Promise<PushSubscription | null> {
 
 export async function subscribe_to_push(): Promise<boolean> {
   try {
-    if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+    if (!is_push_supported()) {
       return false;
     }
 
@@ -119,6 +133,7 @@ export async function subscribe_to_push(): Promise<boolean> {
       });
     } catch {
       const existing = await registration.pushManager.getSubscription();
+
       if (existing) {
         replaced_endpoint = existing.endpoint;
         await existing.unsubscribe();

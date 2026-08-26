@@ -19,12 +19,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
-import type { DecryptedEnvelope, } from "@/types/email";
+import type { DecryptedEnvelope } from "@/types/email";
 
-
-import {
-  reencrypt_mail_item_envelope,
-} from "@/services/api/mail";
+import { reencrypt_mail_item_envelope } from "@/services/api/mail";
 import {
   decrypt_envelope_with_bytes,
   decrypt_envelope_with_identity_key,
@@ -45,9 +42,7 @@ import {
 } from "@/services/crypto/vault_refresh";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import { register_envelope_attachment_keys } from "@/services/crypto/inbound_attachment_keys";
-import {
-  normalize_envelope_from,
-} from "@/services/crypto/envelope_normalize";
+import { normalize_envelope_from } from "@/services/crypto/envelope_normalize";
 
 export async function try_decrypt_with_identity_key(
   encrypted: string | Uint8Array,
@@ -336,4 +331,3 @@ async function open_search_envelope(
     return null;
   }
 }
-

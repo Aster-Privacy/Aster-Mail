@@ -18,11 +18,11 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { HASH_ALG } from "@/services/crypto/constants";
 import { array_to_base64 } from "./base64";
 import { get_derived_encryption_key } from "./memory_key_store";
 import { derive_ratchet_encryption_key } from "./ratchet_sync";
 
+import { HASH_ALG } from "@/services/crypto/constants";
 import { ignore_error } from "@/lib/ignore_error";
 
 export async function derive_conversation_id(

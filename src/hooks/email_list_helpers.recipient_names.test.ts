@@ -18,10 +18,11 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { describe, it, expect } from "vitest";
 
 import type { DecryptedEnvelope } from "@/types/email";
 import type { MailItem } from "@/services/api/mail";
+
+import { describe, it, expect } from "vitest";
 
 import { mail_to_email } from "./email_list_helpers";
 
@@ -34,7 +35,9 @@ function make_item(): MailItem {
   } as unknown as MailItem;
 }
 
-function make_envelope(to: { name: string; email: string }[]): DecryptedEnvelope {
+function make_envelope(
+  to: { name: string; email: string }[],
+): DecryptedEnvelope {
   return {
     from: { name: "Jesper", email: "jesper@astermail.org" },
     to,

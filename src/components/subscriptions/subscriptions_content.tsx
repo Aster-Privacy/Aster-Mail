@@ -35,6 +35,7 @@ import { use_subscription_scan_in_flight } from "@/hooks/use_background_subscrip
 import { use_i18n } from "@/lib/i18n/context";
 import { use_page_search } from "@/hooks/use_page_search";
 import { use_external_link } from "@/contexts/external_link_context";
+import { calendar_day_diff } from "@/utils/date_format";
 import {
   CATEGORY_TAG_VARIANT,
   get_category_label,
@@ -51,10 +52,9 @@ function format_relative_date(
 ): string {
   const date = new Date(iso_date);
   const now = new Date();
-  const diff_ms = now.getTime() - date.getTime();
-  const diff_days = Math.floor(diff_ms / (1000 * 60 * 60 * 24));
+  const diff_days = calendar_day_diff(date, now);
 
-  if (diff_days === 0) return t("common.today");
+  if (diff_days <= 0) return t("common.today");
   if (diff_days === 1) return t("common.yesterday");
   if (diff_days < 7) return t("common.days_ago_short", { count: diff_days });
   if (diff_days < 30)
@@ -191,21 +191,33 @@ export function SubscriptionsContent({
     [shift_ref],
   );
 
+  const visible_selected_count = useMemo(
+    () => current_list.filter((s) => selected_ids.has(s.sender_email)).length,
+    [current_list, selected_ids],
+  );
+
   const handle_toggle_select_all = useCallback(() => {
-    if (selected_ids.size === current_list.length) {
+    if (
+      current_list.length > 0 &&
+      visible_selected_count === current_list.length
+    ) {
       set_selected_ids(new Set());
     } else {
       set_selected_ids(new Set(current_list.map((s) => s.sender_email)));
     }
-  }, [selected_ids.size, current_list]);
+  }, [visible_selected_count, current_list]);
 
   const handle_bulk_unsubscribe = useCallback(async () => {
     const emails = Array.from(selected_ids);
 
-    const did_unsubscribe = await bulk_unsubscribe(emails);
+    const failed = await bulk_unsubscribe(emails);
 
-    if (did_unsubscribe) {
-      set_selected_ids(new Set());
+    if (!failed) return;
+
+    set_selected_ids(new Set(failed));
+
+    if (failed.length > 0) {
+      set_failed_unsub_ids((prev) => new Set([...prev, ...failed]));
     }
   }, [selected_ids, bulk_unsubscribe]);
 
@@ -269,7 +281,7 @@ export function SubscriptionsContent({
             }}
           >
             {t("settings.active_count", {
-              count: String(active_subscriptions.length),
+              count: active_subscriptions.length,
             })}
           </button>
           <button
@@ -284,7 +296,7 @@ export function SubscriptionsContent({
             }}
           >
             {t("common.unsubscribed_count", {
-              count: String(unsubscribed_subscriptions.length),
+              count: unsubscribed_subscriptions.length,
             })}
           </button>
         </div>
@@ -310,13 +322,13 @@ export function SubscriptionsContent({
             <div className="flex items-center gap-2 px-4 py-1.5 border-b border-edge-primary">
               <Checkbox
                 checked={
-                  selected_ids.size > 0 &&
-                  selected_ids.size === current_list.length
+                  visible_selected_count > 0 &&
+                  visible_selected_count === current_list.length
                 }
                 className="flex-shrink-0"
                 indeterminate={
-                  selected_ids.size > 0 &&
-                  selected_ids.size < current_list.length
+                  visible_selected_count > 0 &&
+                  visible_selected_count < current_list.length
                 }
                 onCheckedChange={handle_toggle_select_all}
               />
@@ -329,6 +341,7 @@ export function SubscriptionsContent({
             <SubscriptionRow
               key={sub.sender_email}
               active_tab={active_tab}
+              is_clickable={!!on_sender_search}
               is_selected={selected_ids.has(sub.sender_email)}
               on_click={handle_sender_click}
               on_open_unsubscribe_page={handle_open_unsubscribe_page}
@@ -385,6 +398,7 @@ interface SubscriptionRowProps {
   is_selected: boolean;
   active_tab: "active" | "unsubscribed";
   unsub_failed?: boolean;
+  is_clickable: boolean;
   on_click: (sub: CachedSubscription) => void;
   on_toggle_select: (sender_email: string) => void;
   on_unsubscribe: (e: React.MouseEvent, sender_email: string) => void;
@@ -400,6 +414,7 @@ function SubscriptionRow({
   is_selected,
   active_tab,
   unsub_failed,
+  is_clickable,
   on_click,
   on_toggle_select,
   on_unsubscribe,
@@ -416,8 +431,12 @@ function SubscriptionRow({
 
   return (
     <div
-      className="flex items-center gap-3 px-4 py-2.5 border-b border-edge-primary hover:bg-black/[0.02] dark:hover:bg-white/[0.02] cursor-pointer transition-colors"
-      onClick={() => on_click(sub)}
+      className={`flex items-center gap-3 px-4 py-2.5 border-b border-edge-primary transition-colors ${
+        is_clickable
+          ? "hover:bg-black/[0.02] dark:hover:bg-white/[0.02] cursor-pointer"
+          : ""
+      }`}
+      onClick={is_clickable ? () => on_click(sub) : undefined}
     >
       {active_tab === "active" && (
         <div className="flex-shrink-0" onClick={(e) => e.stopPropagation()}>
@@ -457,7 +476,11 @@ function SubscriptionRow({
           <span className="truncate">{sub.sender_email}</span>
           <span>·</span>
           <span className="flex-shrink-0">
-            {t("settings.emails_count", { count: String(sub.email_count) })}
+            {sub.email_count === 1
+              ? t("common.one_email")
+              : t("settings.emails_count", {
+                  count: sub.email_count,
+                })}
           </span>
           <span>·</span>
           <span className="flex-shrink-0">

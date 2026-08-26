@@ -89,9 +89,11 @@ export function TemplateGalleryModal({
 
   const filtered = React.useMemo(() => {
     if (!normalized) return RULE_TEMPLATES;
+
     return RULE_TEMPLATES.filter((tpl) => {
       const name = t(tpl.name_key).toLowerCase();
       const desc = t(tpl.description_key).toLowerCase();
+
       return name.includes(normalized) || desc.includes(normalized);
     });
   }, [normalized, t]);
@@ -107,9 +109,9 @@ export function TemplateGalleryModal({
 
       <ModalBody className="space-y-5">
         <Input
-          value={query}
-          size="md"
           placeholder={t("mail_rules.templates_search_placeholder")}
+          size="md"
+          value={query}
           onChange={(e) => set_query(e.target.value)}
         />
 
@@ -121,8 +123,10 @@ export function TemplateGalleryModal({
 
         {RULE_TEMPLATE_CATEGORIES.map((category) => {
           const items = filtered.filter((tpl) => tpl.category === category);
+
           if (items.length === 0) return null;
           const CategoryIcon = CATEGORY_ICON[category];
+
           return (
             <div key={category}>
               <div className="flex items-center gap-1.5 mb-2 text-[11px] font-semibold uppercase tracking-wide text-txt-tertiary">
@@ -133,9 +137,9 @@ export function TemplateGalleryModal({
                 {items.map((tpl) => (
                   <button
                     key={tpl.id}
+                    className="group text-start rounded-xl border border-neutral-200 dark:border-neutral-700 bg-surf-primary p-3 transition-colors hover:bg-surf-secondary hover:border-neutral-300 dark:hover:border-neutral-600 cursor-pointer"
                     type="button"
                     onClick={() => on_select(tpl)}
-                    className="group text-left rounded-xl border border-neutral-200 dark:border-neutral-700 bg-surf-primary p-3 transition-colors hover:bg-surf-secondary hover:border-neutral-300 dark:hover:border-neutral-600 cursor-pointer"
                   >
                     <div className="text-[13px] font-medium text-txt-primary mb-0.5">
                       {t(tpl.name_key)}

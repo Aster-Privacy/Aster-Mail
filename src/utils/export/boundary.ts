@@ -20,13 +20,17 @@
 //
 function base64url(bytes: Uint8Array): string {
   let s = "";
+
   for (let i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i]);
+
   return btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
 }
 
 export function random_boundary(): string {
   const rand = new Uint8Array(12);
+
   crypto.getRandomValues(rand);
+
   return `=_aster_${base64url(rand)}`;
 }
 
@@ -36,12 +40,15 @@ export function body_contains_boundary(
 ): boolean {
   if (typeof body === "string") return body.includes(boundary);
   const needle = new TextEncoder().encode(boundary);
+
   outer: for (let i = 0; i + needle.length <= body.length; i++) {
     for (let j = 0; j < needle.length; j++) {
       if (body[i + j] !== needle[j]) continue outer;
     }
+
     return true;
   }
+
   return false;
 }
 
@@ -49,6 +56,7 @@ export function safe_boundary_for(...bodies: (string | Uint8Array)[]): string {
   for (let attempt = 0; attempt < 8; attempt++) {
     const candidate = random_boundary();
     let collision = false;
+
     for (const b of bodies) {
       if (body_contains_boundary(b, candidate)) {
         collision = true;
@@ -57,5 +65,6 @@ export function safe_boundary_for(...bodies: (string | Uint8Array)[]): string {
     }
     if (!collision) return candidate;
   }
+
   return random_boundary();
 }

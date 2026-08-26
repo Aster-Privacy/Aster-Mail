@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { copy_text_or_throw } from "@/utils/copy_text";
 import type { ContactFormData } from "@/types/contacts";
 import type { TranslationKey } from "@/lib/i18n/types";
 
@@ -71,9 +72,12 @@ const ASTER_DOMAINS = new Set(["astermail.org", "aster.cx"]);
 
 function extract_root_domain(email: string): string {
   const match = email.match(/@([^@]+)$/);
+
   if (!match) return "";
   const parts = match[1].toLowerCase().split(".");
+
   if (parts.length >= 2) return parts.slice(-2).join(".");
+
   return match[1].toLowerCase();
 }
 
@@ -98,9 +102,9 @@ export function SenderProfileTrigger({
   const [is_open, set_is_open] = useState(false);
   const [show_notes, set_show_notes] = useState(false);
   const [is_contact_loading, set_is_contact_loading] = useState(false);
-  const [existing_contact_id, set_existing_contact_id] = useState<string | null>(
-    () => get_cached_contact_id(email) ?? null,
-  );
+  const [existing_contact_id, set_existing_contact_id] = useState<
+    string | null
+  >(() => get_cached_contact_id(email) ?? null);
   const [is_blocking, set_is_blocking] = useState(false);
   const [is_allowlist_loading, set_is_allowlist_loading] = useState(false);
   const [is_allowlisted, set_is_allowlisted] = useState(false);
@@ -126,6 +130,7 @@ export function SenderProfileTrigger({
         check_allowed_senders([email]),
         check_blocked_senders([email]),
       ]);
+
       set_is_allowlisted(allowlist_set.has(email.trim().toLowerCase()));
       set_is_blocked(blocked_set.has(email.trim().toLowerCase()));
     } catch {
@@ -136,6 +141,7 @@ export function SenderProfileTrigger({
   useEffect(() => {
     if (!is_open) {
       set_show_notes(false);
+
       return;
     }
     load_status();
@@ -150,18 +156,10 @@ export function SenderProfileTrigger({
 
   const handle_copy_email = useCallback(async () => {
     try {
-      await navigator.clipboard.writeText(email);
+      await copy_text_or_throw(email);
       show_toast(t("common.email_copied"), "success");
     } catch {
-      const ta = document.createElement("textarea");
-      ta.value = email;
-      ta.style.position = "fixed";
-      ta.style.opacity = "0";
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand("copy");
-      document.body.removeChild(ta);
-      show_toast(t("common.email_copied"), "success");
+      show_toast(t("common.failed_to_copy"), "error");
     }
   }, [email, t]);
 
@@ -171,12 +169,16 @@ export function SenderProfileTrigger({
     try {
       if (existing_contact_id) {
         const result = await delete_contact(existing_contact_id);
+
         if (result.data) {
           show_toast(t("common.removed_from_contacts"), "success");
           set_existing_contact_id(null);
           emit_contacts_changed();
-        } else if (result.error) {
-          show_toast(result.error, "error");
+        } else {
+          show_toast(
+            result.error || t("common.something_went_wrong_try_again"),
+            "error",
+          );
         }
       } else {
         const parts = display_name.split(" ");
@@ -187,12 +189,16 @@ export function SenderProfileTrigger({
           is_favorite: false,
         };
         const result = await create_contact_encrypted(contact_data);
+
         if (result.data) {
           show_toast(t("common.added_to_contacts"), "success");
           set_existing_contact_id(result.data.id);
           emit_contacts_changed();
-        } else if (result.error) {
-          show_toast(result.error, "error");
+        } else {
+          show_toast(
+            result.error || t("common.something_went_wrong_try_again"),
+            "error",
+          );
         }
       }
     } catch {
@@ -200,7 +206,14 @@ export function SenderProfileTrigger({
     } finally {
       set_is_contact_loading(false);
     }
-  }, [email, display_name, is_contact_loading, has_keys, existing_contact_id, t]);
+  }, [
+    email,
+    display_name,
+    is_contact_loading,
+    has_keys,
+    existing_contact_id,
+    t,
+  ]);
 
   const handle_allowlist_action = useCallback(async () => {
     if (is_allowlist_loading || !has_keys) return;
@@ -208,19 +221,27 @@ export function SenderProfileTrigger({
     try {
       if (is_allowlisted) {
         const result = await remove_allowed_sender(email);
+
         if (result.data) {
           show_toast(t("common.removed_from_allowlist", { email }), "success");
           set_is_allowlisted(false);
-        } else if (result.error) {
-          show_toast(result.error, "error");
+        } else {
+          show_toast(
+            result.error || t("common.something_went_wrong_try_again"),
+            "error",
+          );
         }
       } else {
         const result = await allow_sender(email, name);
+
         if (result.data) {
           show_toast(t("common.added_to_allowlist", { email }), "success");
           set_is_allowlisted(true);
-        } else if (result.error) {
-          show_toast(result.error, "error");
+        } else {
+          show_toast(
+            result.error || t("common.something_went_wrong_try_again"),
+            "error",
+          );
         }
       }
     } catch {
@@ -236,21 +257,29 @@ export function SenderProfileTrigger({
     try {
       if (is_blocked) {
         const result = await unblock_sender(email);
+
         if (result.data) {
           show_toast(t("common.unblocked_email", { email }), "success");
           set_is_blocked(false);
           emit_mail_changed();
-        } else if (result.error) {
-          show_toast(result.error, "error");
+        } else {
+          show_toast(
+            result.error || t("common.something_went_wrong_try_again"),
+            "error",
+          );
         }
       } else {
         const result = await block_sender(email, name);
+
         if (result.data) {
           show_toast(t("common.blocked_email", { email }), "success");
           set_is_blocked(true);
           emit_mail_changed();
-        } else if (result.error) {
-          show_toast(result.error, "error");
+        } else {
+          show_toast(
+            result.error || t("common.something_went_wrong_try_again"),
+            "error",
+          );
         }
       }
     } catch {

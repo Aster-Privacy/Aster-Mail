@@ -148,7 +148,11 @@ export function FullPageLoader() {
                 {t("common.loading_stuck")}
               </span>
               <div className="flex items-center gap-2">
-                <Button onClick={handle_reload_click} size="sm" variant="outline">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handle_reload_click}
+                >
                   {t("common.reload_page")}
                 </Button>
               </div>

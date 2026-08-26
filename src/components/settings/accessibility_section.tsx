@@ -18,10 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { Switch } from "@aster/ui";
-import { InfoPopover } from "@/components/ui/info_popover";
-import { Slider } from "@/components/ui/slider";
 import {
   AdjustmentsHorizontalIcon,
   EyeIcon,
@@ -31,6 +29,8 @@ import {
   WifiIcon,
 } from "@heroicons/react/24/outline";
 
+import { InfoPopover } from "@/components/ui/info_popover";
+import { Slider } from "@/components/ui/slider";
 import { KeyboardShortcutsModal } from "@/components/modals/keyboard_shortcuts_modal";
 import {
   use_preferences,
@@ -39,6 +39,8 @@ import {
   FONT_SIZE_DEFAULT,
 } from "@/contexts/preferences_context";
 import { use_i18n } from "@/lib/i18n/context";
+import { is_composing } from "@/utils/ime";
+import { label_toggle_children } from "@/lib/labeled_control";
 
 interface SettingRowProps {
   label: string;
@@ -47,13 +49,19 @@ interface SettingRowProps {
 }
 
 function SettingRow({ label, description, children }: SettingRowProps) {
+  const label_id = useId();
+
   return (
     <div className="flex items-center justify-between py-3">
-      <div className="flex-1 pr-4">
-        <p className="text-sm font-medium text-txt-primary">{label}</p>
+      <div className="flex-1 pe-4">
+        <p className="text-sm font-medium text-txt-primary" id={label_id}>
+          {label}
+        </p>
         <p className="text-sm mt-0.5 text-txt-muted">{description}</p>
       </div>
-      <div className="flex-shrink-0">{children}</div>
+      <div className="flex-shrink-0">
+        {label_toggle_children(children, label_id)}
+      </div>
     </div>
   );
 }
@@ -74,11 +82,11 @@ export function AccessibilitySection() {
   const clamp_font_size = (n: number) =>
     Math.max(FONT_SIZE_MIN, Math.min(FONT_SIZE_MAX, Math.round(n)));
 
-  const commit_font_size = (n: number) => {
+  const commit_font_size = (n: number, immediate = true) => {
     const v = clamp_font_size(n);
 
     set_font_size_input(String(v));
-    update_preference("font_size_scale", v, true);
+    update_preference("font_size_scale", v, immediate);
   };
 
   const [shortcuts_modal_open, set_shortcuts_modal_open] = useState(false);
@@ -104,7 +112,7 @@ export function AccessibilitySection() {
             max={FONT_SIZE_MAX}
             min={FONT_SIZE_MIN}
             value={font_size}
-            onChange={commit_font_size}
+            onChange={(v) => commit_font_size(v, false)}
           />
           <div className="flex items-center gap-2">
             <input
@@ -133,7 +141,7 @@ export function AccessibilitySection() {
               }}
               onChange={(e) => set_font_size_input(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Enter") {
+                if (e.key === "Enter" && !is_composing(e)) {
                   (e.target as HTMLInputElement).blur();
                 }
               }}
@@ -173,8 +181,9 @@ export function AccessibilitySection() {
           description={t("settings.high_contrast_description")}
           label={t("settings.high_contrast")}
         >
-          <Switch size="lg"
+          <Switch
             checked={preferences.high_contrast}
+            size="lg"
             onCheckedChange={(v) => update_preference("high_contrast", v, true)}
           />
         </SettingRow>
@@ -182,18 +191,24 @@ export function AccessibilitySection() {
           description={t("settings.reduce_transparency_description")}
           label={t("settings.reduce_transparency")}
         >
-          <Switch size="lg"
+          <Switch
             checked={preferences.reduce_transparency}
-            onCheckedChange={(v) => update_preference("reduce_transparency", v, true)}
+            size="lg"
+            onCheckedChange={(v) =>
+              update_preference("reduce_transparency", v, true)
+            }
           />
         </SettingRow>
         <SettingRow
           description={t("settings.underline_links_description")}
           label={t("settings.underline_links")}
         >
-          <Switch size="lg"
+          <Switch
             checked={preferences.link_underlines}
-            onCheckedChange={(v) => update_preference("link_underlines", v, true)}
+            size="lg"
+            onCheckedChange={(v) =>
+              update_preference("link_underlines", v, true)
+            }
           />
         </SettingRow>
       </div>
@@ -213,8 +228,9 @@ export function AccessibilitySection() {
           description={t("settings.dyslexia_friendly_font_description")}
           label={t("settings.dyslexia_friendly_font")}
         >
-          <Switch size="lg"
+          <Switch
             checked={preferences.dyslexia_font}
+            size="lg"
             onCheckedChange={(v) => update_preference("dyslexia_font", v, true)}
           />
         </SettingRow>
@@ -222,8 +238,9 @@ export function AccessibilitySection() {
           description={t("settings.text_spacing_description")}
           label={t("settings.text_spacing")}
         >
-          <Switch size="lg"
+          <Switch
             checked={preferences.text_spacing}
+            size="lg"
             onCheckedChange={(v) => update_preference("text_spacing", v, true)}
           />
         </SettingRow>
@@ -244,8 +261,9 @@ export function AccessibilitySection() {
           description={t("settings.reduce_motion_description")}
           label={t("settings.reduce_motion")}
         >
-          <Switch size="lg"
+          <Switch
             checked={preferences.reduce_motion}
+            size="lg"
             onCheckedChange={(v) => update_preference("reduce_motion", v, true)}
           />
         </SettingRow>
@@ -253,8 +271,9 @@ export function AccessibilitySection() {
           description={t("settings.compact_mode_description")}
           label={t("settings.compact_mode")}
         >
-          <Switch size="lg"
+          <Switch
             checked={preferences.compact_mode}
+            size="lg"
             onCheckedChange={(v) => update_preference("compact_mode", v, true)}
           />
         </SettingRow>
@@ -272,7 +291,7 @@ export function AccessibilitySection() {
           {t("settings.keyboard_shortcuts_description")}
         </p>
         <div className="flex items-center justify-between py-3">
-          <div className="flex-1 pr-4">
+          <div className="flex-1 pe-4">
             <p className="text-sm font-medium text-txt-primary">
               {t("common.enable_shortcuts")}
             </p>
@@ -289,8 +308,10 @@ export function AccessibilitySection() {
             >
               ?
             </button>
-            <Switch size="lg"
+            <Switch
+              aria-label={t("common.enable_shortcuts")}
               checked={preferences.keyboard_shortcuts_enabled}
+              size="lg"
               onCheckedChange={(v) =>
                 update_preference("keyboard_shortcuts_enabled", v, true)
               }
@@ -308,7 +329,7 @@ export function AccessibilitySection() {
           <div className="mt-2 h-px bg-edge-secondary" />
         </div>
         <div className="flex items-center justify-between py-3">
-          <div className="flex-1 pr-4">
+          <div className="flex-1 pe-4">
             <p className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
               {t("settings.low_network_mode_label")}
               <InfoPopover
@@ -321,8 +342,10 @@ export function AccessibilitySection() {
             </p>
           </div>
           <div className="flex-shrink-0">
-            <Switch size="lg"
+            <Switch
+              aria-label={t("settings.low_network_mode_label")}
               checked={preferences.low_network_mode}
+              size="lg"
               onCheckedChange={(v) =>
                 update_preference("low_network_mode", v, true)
               }

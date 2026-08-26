@@ -19,7 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { DecryptedThreadMessage } from "@/types/thread";
-import type { } from "@/services/api/mail";
+import type {} from "@/services/api/mail";
 import type { DraftWithContent } from "@/services/api/multi_drafts";
 import type { ExternalContentReport } from "@/lib/html_sanitizer";
 import type { DecryptedEmail } from "@/components/email/use_email_viewer";
@@ -29,7 +29,6 @@ import React, { useState, useCallback, useEffect, useMemo } from "react";
 
 import { use_preferences } from "@/contexts/preferences_context";
 import { is_system_email } from "@/lib/utils";
-
 import {
   ThreadMessagesList,
   type ThreadMessagesListRef,
@@ -58,7 +57,7 @@ export interface ViewerThreadContentProps {
   on_view_source: (msg: DecryptedThreadMessage) => void;
   on_report_phishing: (msg: DecryptedThreadMessage) => void;
   on_not_spam?: (msg: DecryptedThreadMessage) => void;
-  on_toggle_message_read: (message_id: string) => void;
+  on_toggle_message_read: (message_id: string, next_read: boolean) => void;
   on_edit_thread_draft?: (draft: DraftWithContent) => void;
   on_thread_draft_deleted?: () => void;
   on_draft_saved?: (draft: {
@@ -218,8 +217,8 @@ export function ViewerThreadContent({
         />
       )}
       <CalendarInviteBanner
-        className="mx-3 @md:mx-4 mb-3"
         body={email.body}
+        className="mx-3 @md:mx-4 mb-3"
         html_content={email.html_content}
       />
       <ThreadMessagesList
@@ -236,12 +235,15 @@ export function ViewerThreadContent({
         inline_reply_is_external={is_external_thread}
         inline_reply_msg={inline_reply_msg}
         inline_reply_thread_token={email.thread_token}
+        loaded_content_types={loaded_content_types}
         messages={thread_messages}
         on_archive={on_archive}
         on_close_inline_reply={handle_close_inline_reply}
         on_draft_saved={on_draft_saved}
         on_external_content_detected={on_external_content_detected}
         on_forward={handle_inline_forward}
+        on_load_external_content={on_load_external_content}
+        on_manual_unsubscribed={on_manual_unsubscribed}
         on_not_spam={on_not_spam}
         on_print={on_print}
         on_reply={handle_inline_reply}
@@ -250,15 +252,12 @@ export function ViewerThreadContent({
         on_set_inline_mode={handle_set_inline_mode}
         on_toggle_message_read={on_toggle_message_read}
         on_trash={on_trash}
-        on_view_source={on_view_source}
         on_unsubscribe={on_unsubscribe}
-        on_manual_unsubscribed={on_manual_unsubscribed}
-        unsubscribe_url={unsubscribe_url}
-        loaded_content_types={loaded_content_types}
-        on_load_external_content={on_load_external_content}
+        on_view_source={on_view_source}
         preloaded_sanitized={thread_sanitized}
         size_bytes={size_bytes}
         subject={email.subject}
+        unsubscribe_url={unsubscribe_url}
       />
 
       {thread_draft && !inline_reply_msg && (
@@ -266,18 +265,19 @@ export function ViewerThreadContent({
           current_user_email={current_user_email}
           current_user_name={current_user_name}
           draft={thread_draft}
-          thread_token={email.thread_token}
           on_deleted={() => on_thread_draft_deleted?.()}
           on_edit={(draft) => {
             const target =
               thread_messages.find((m) => m.id === draft.reply_to_id) ??
               thread_messages[thread_messages.length - 1];
+
             if (!target) return;
             set_inline_reply_msg(target);
             set_inline_mode(
               draft.draft_type === "forward" ? "forward" : "reply",
             );
           }}
+          thread_token={email.thread_token}
         />
       )}
 
@@ -292,4 +292,3 @@ export function ViewerThreadContent({
     </div>
   );
 }
-

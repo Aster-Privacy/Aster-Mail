@@ -136,7 +136,9 @@ describe("translation_cache", () => {
       write_translation(key(`big${index}`), [chunk, chunk]);
     }
 
-    expect(translation_cache_stats().bytes).toBeLessThanOrEqual(MAX_CACHE_BYTES);
+    expect(translation_cache_stats().bytes).toBeLessThanOrEqual(
+      MAX_CACHE_BYTES,
+    );
     expect(translation_cache_stats().entries).toBeLessThan(30);
   });
 

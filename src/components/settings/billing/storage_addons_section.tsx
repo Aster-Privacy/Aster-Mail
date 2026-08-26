@@ -26,8 +26,12 @@ import {
   type StorageAddonItem,
   type UserActiveAddon,
 } from "@/services/api/billing";
-import { ADDON_BADGES, convert_cents } from "@/components/settings/billing/billing_constants";
+import {
+  ADDON_BADGES,
+  convert_cents,
+} from "@/components/settings/billing/billing_constants";
 import { use_i18n } from "@/lib/i18n/context";
+import { app_locale, get_display_time_zone } from "@/utils/date_format";
 
 interface StorageAddonsSectionProps {
   available_addons: StorageAddonItem[];
@@ -84,13 +88,19 @@ export function StorageAddonsSection({
                     {addon.size_label}
                   </p>
                   <p className="text-xs text-txt-muted">
-                    {format_price(convert_cents(addon.price_cents, preferred_currency), preferred_currency)}
+                    {format_price(
+                      convert_cents(addon.price_cents, preferred_currency),
+                      preferred_currency,
+                    )}
                     {t("settings.per_month_short")}
                   </p>
                   {addon.cancel_at_period_end && addon.current_period_end && (
                     <p className="text-xs text-amber-500 mt-0.5">
                       {t("settings.cancels")}{" "}
-                      {new Date(addon.current_period_end).toLocaleDateString()}
+                      {new Date(addon.current_period_end).toLocaleDateString(
+                        app_locale(),
+                        { timeZone: get_display_time_zone() },
+                      )}
                     </p>
                   )}
                 </div>
@@ -116,7 +126,7 @@ export function StorageAddonsSection({
           return (
             <button
               key={addon.id}
-              className="relative p-3 rounded-[14px] border text-left transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="relative p-3 rounded-[14px] border text-start transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               style={{
                 backgroundColor:
                   selected_storage === addon.id
@@ -139,7 +149,7 @@ export function StorageAddonsSection({
             >
               {badge && (
                 <span
-                  className="absolute -top-2 right-2 text-[10px] font-semibold px-2 py-0.5 rounded-full text-[var(--accent-fg,#ffffff)]"
+                  className="absolute -top-2 end-2 text-[10px] font-semibold px-2 py-0.5 rounded-full text-[var(--accent-fg,#ffffff)]"
                   style={{
                     backgroundColor: "var(--accent-color-hover)",
                   }}
@@ -153,7 +163,10 @@ export function StorageAddonsSection({
                 {addon.name}
               </p>
               <p className="text-xs text-txt-muted mt-0.5">
-                {format_price(convert_cents(addon.price_cents, preferred_currency), preferred_currency)}
+                {format_price(
+                  convert_cents(addon.price_cents, preferred_currency),
+                  preferred_currency,
+                )}
                 {t("settings.per_month_short")}
               </p>
             </button>

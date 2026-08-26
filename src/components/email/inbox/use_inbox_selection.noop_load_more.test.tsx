@@ -44,7 +44,6 @@ vi.mock("@/lib/use_shift_range_select", () => ({
 import { use_inbox_selection } from "@/components/email/inbox/use_inbox_selection";
 
 declare global {
-  // eslint-disable-next-line no-var
   var IS_REACT_ACT_ENVIRONMENT: boolean;
 }
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;

@@ -51,7 +51,6 @@ import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_attachment_previews } from "@/hooks/use_attachment_previews";
 import { ignore_error } from "@/lib/ignore_error";
-
 import {
   is_compact_density,
   list_row_intrinsic_height,
@@ -65,6 +64,31 @@ import {
 
 export const HOVER_PRELOAD_DELAY_MS = 220;
 export const HOVER_PRELOAD_MAX_ATTEMPTS = 10;
+const HOVER_PRELOAD_IDLE_TIMEOUT_MS = 1200;
+
+type IdleWindow = Window & {
+  requestIdleCallback?: (
+    callback: () => void,
+    options?: { timeout: number },
+  ) => number;
+  cancelIdleCallback?: (handle: number) => void;
+};
+
+function request_idle(task: () => void): () => void {
+  const idle_window = window as IdleWindow;
+
+  if (typeof idle_window.requestIdleCallback === "function") {
+    const handle = idle_window.requestIdleCallback(task, {
+      timeout: HOVER_PRELOAD_IDLE_TIMEOUT_MS,
+    });
+
+    return () => idle_window.cancelIdleCallback?.(handle);
+  }
+
+  const timer = window.setTimeout(task, 0);
+
+  return () => window.clearTimeout(timer);
+}
 
 export interface SelectionMenuScope {
   count: number;
@@ -81,7 +105,7 @@ export interface SelectionMenuScope {
   on_restore: () => void;
   on_mark_not_spam: () => void;
   on_move_to_inbox: () => void;
-  on_snooze: (snooze_until: Date) => Promise<void>;
+  on_snooze: (snooze_until: Date) => Promise<boolean | void>;
   on_custom_snooze: () => void;
   on_folder_toggle: (folder_id: string) => void;
   on_tag_toggle: (tag_token: string) => void;
@@ -110,7 +134,7 @@ export interface EmailListProps {
   on_toggle_read: (email: InboxEmail) => void;
   on_toggle_star: (email: InboxEmail) => void;
   on_toggle_pin: (email: InboxEmail) => void;
-  on_snooze: (email: InboxEmail, snooze_until: Date) => Promise<void>;
+  on_snooze: (email: InboxEmail, snooze_until: Date) => Promise<boolean | void>;
   on_custom_snooze: (email: InboxEmail) => void;
   on_unsnooze: (email: InboxEmail) => Promise<void>;
   on_archive: (email: InboxEmail) => void;
@@ -171,15 +195,19 @@ export function EmailList({
   const { preferences } = use_preferences();
   const hover_timer_ref = useRef<number | null>(null);
   const last_preloaded_ref = useRef<string | null>(null);
+  const cancel_idle_ref = useRef<(() => void) | null>(null);
   const [menu_email, set_menu_email] = useState<InboxEmail | null>(null);
   const close_time_ref = useRef(0);
   const closed_email_id_ref = useRef<string | null>(null);
   const menu_email_ref = useRef<InboxEmail | null>(null);
   const on_tag_toggle_ref = useRef(on_tag_toggle);
+
   on_tag_toggle_ref.current = on_tag_toggle;
   const on_folder_toggle_ref = useRef(on_folder_toggle);
+
   on_folder_toggle_ref.current = on_folder_toggle;
   const selection_menu_ref = useRef(selection_menu);
+
   selection_menu_ref.current = selection_menu;
 
   const all_emails = useMemo(
@@ -333,18 +361,21 @@ export function EmailList({
             return;
           }
 
-          last_preloaded_ref.current = email_id;
-          preload_email_detail(
-            email_id,
-            user?.email,
-            false,
-            preferences.conversation_grouping !== false,
-          ).catch((caught) =>
-            ignore_error(
-              "components/email/inbox/inbox_email_list:start",
-              caught,
-            ),
-          );
+          cancel_idle_ref.current = request_idle(() => {
+            cancel_idle_ref.current = null;
+            last_preloaded_ref.current = email_id;
+            preload_email_detail(
+              email_id,
+              user?.email,
+              false,
+              preferences.conversation_grouping !== false,
+            ).catch((caught) =>
+              ignore_error(
+                "components/email/inbox/inbox_email_list:start",
+                caught,
+              ),
+            );
+          });
         }, HOVER_PRELOAD_DELAY_MS);
       };
 
@@ -358,13 +389,23 @@ export function EmailList({
     ],
   );
 
+  const cancel_hover_preload = useCallback(() => {
+    if (hover_timer_ref.current !== null) {
+      window.clearTimeout(hover_timer_ref.current);
+      hover_timer_ref.current = null;
+    }
+
+    if (cancel_idle_ref.current !== null) {
+      cancel_idle_ref.current();
+      cancel_idle_ref.current = null;
+    }
+  }, []);
+
   useEffect(() => {
     return () => {
-      if (hover_timer_ref.current !== null) {
-        window.clearTimeout(hover_timer_ref.current);
-      }
+      cancel_hover_preload();
     };
-  }, []);
+  }, [cancel_hover_preload]);
   const show_hover_actions = !is_special_view;
 
   const selection_ref = useRef<SelectionSnapshot>(empty_selection_snapshot);
@@ -445,6 +486,7 @@ export function EmailList({
                   onClickCapture={handle_row_click_capture}
                   onContextMenu={() => handle_row_context_menu(email)}
                   onMouseEnter={() => handle_hover_preload(email.id)}
+                  onMouseLeave={cancel_hover_preload}
                 >
                   {render_email_item(email)}
                 </div>
@@ -464,6 +506,7 @@ export function EmailList({
                   onClickCapture={handle_row_click_capture}
                   onContextMenu={() => handle_row_context_menu(email)}
                   onMouseEnter={() => handle_hover_preload(email.id)}
+                  onMouseLeave={cancel_hover_preload}
                 >
                   {render_email_item(email)}
                 </div>
@@ -515,11 +558,6 @@ export function EmailList({
           }
           on_folder_toggle={run_menu_action(stable_on_folder_toggle)}
           on_forward={run_menu_action(() => on_forward(live_menu_email))}
-          on_open_in_new_window={
-            on_open_in_new_window
-              ? run_menu_action(() => on_open_in_new_window(live_menu_email))
-              : undefined
-          }
           on_mark_not_spam={run_menu_action(() =>
             menu_uses_selection && selection_menu
               ? selection_menu.on_mark_not_spam()
@@ -540,6 +578,11 @@ export function EmailList({
               ? selection_menu.on_move_to_inbox()
               : on_move_to_inbox(live_menu_email),
           )}
+          on_open_in_new_window={
+            on_open_in_new_window
+              ? run_menu_action(() => on_open_in_new_window(live_menu_email))
+              : undefined
+          }
           on_reply={run_menu_action(() => on_reply(live_menu_email))}
           on_reply_all={
             on_reply_all
@@ -658,7 +701,7 @@ function SkeletonEmailRow({
       <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 overflow-hidden">
         <div className="flex items-center gap-2 min-w-0">
           <Skeleton className="h-4 w-full max-w-[100px]" />
-          <Skeleton className="w-10 h-3 sm:hidden ml-auto flex-shrink-0" />
+          <Skeleton className="w-10 h-3 sm:hidden ms-auto flex-shrink-0" />
         </div>
         <div className="flex items-center gap-2 sm:contents min-w-0 overflow-hidden">
           <Skeleton className="h-4 flex-1 min-w-0 max-w-[140px]" />
@@ -699,9 +742,9 @@ export function EmptyState({
           </p>
           {on_retry && (
             <Button
-              variant="outline"
-              size="sm"
               className="mt-3"
+              size="sm"
+              variant="outline"
               onClick={on_retry}
             >
               {t("common.retry")}
@@ -745,7 +788,7 @@ export function EmptyState({
         subtitle: t("mail.empty_starred_subtitle"),
       };
     }
-    if (current_view === "archived") {
+    if (current_view === "archive") {
       return {
         icon: ArchiveBoxArrowDownIcon,
         icon_color: "text-txt-muted",
@@ -896,7 +939,7 @@ export function LockedFolderState({
           {t("mail.enter_password_to_access", { folder: folder_name })}
         </p>
         <Button variant="depth" onClick={() => set_show_unlock_modal(true)}>
-          <LockClosedIcon className="w-4 h-4 mr-2" />
+          <LockClosedIcon className="w-4 h-4 me-2" />
           {t("settings.unlock_folder")}
         </Button>
       </div>

@@ -19,7 +19,18 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { decrypt_vault, encrypt_vault, type EncryptedVault } from "./key_manager";
+import { get_current_account } from "../account_manager";
+import {
+  consume_inactive_key_set,
+  fetch_inactive_key_set,
+  list_inactive_key_sets,
+} from "../api/recovery";
+
+import {
+  decrypt_vault,
+  encrypt_vault,
+  type EncryptedVault,
+} from "./key_manager";
 import {
   merge_previous_ratchet_keys,
   retain_previous_ratchet_keys,
@@ -35,12 +46,6 @@ import {
   verify_vault_roundtrip,
 } from "./ensure_ratchet_keys";
 import { with_vault_write_lock } from "./vault_write_lock";
-import { get_current_account } from "../account_manager";
-import {
-  consume_inactive_key_set,
-  fetch_inactive_key_set,
-  list_inactive_key_sets,
-} from "../api/recovery";
 
 export async function count_inactive_key_sets(): Promise<number> {
   const listed = await list_inactive_key_sets();

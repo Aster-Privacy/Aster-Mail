@@ -48,6 +48,10 @@ import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_email_actions } from "@/hooks/use_email_actions";
 import { search_result_to_inbox_email } from "@/components/search/search_modal_types";
+import { meets_min_search_length } from "@/utils/search_query";
+import { local_date_key } from "@/utils/date_format";
+import { show_toast } from "@/components/toast/simple_toast";
+import { use_i18n } from "@/lib/i18n/context";
 
 interface UseSearchModalOptions {
   is_open: boolean;
@@ -56,6 +60,27 @@ interface UseSearchModalOptions {
   on_initial_query_consumed?: () => void;
   on_search_submit?: (query: string) => void;
   on_result_click?: (id: string) => void;
+}
+
+function build_default_filters(): FilterState {
+  return {
+    fields: ["all"],
+    has_attachments: undefined,
+    is_starred: undefined,
+    date_from: "",
+    date_to: "",
+    scope: "all",
+    search_content: true,
+    from: "",
+    to: "",
+    subject: "",
+    has_words: "",
+    does_not_have: "",
+    size_op: "greater",
+    size_value: "",
+    size_unit: "mb",
+    within_days: "",
+  };
 }
 
 export function use_search_modal({
@@ -67,6 +92,7 @@ export function use_search_modal({
   on_result_click,
 }: UseSearchModalOptions) {
   const navigate = useNavigate();
+  const { t } = use_i18n();
   const { user } = use_auth();
   const { preferences, update_preference } = use_preferences();
   const content_search_enabled = preferences.search_encrypted_content;
@@ -113,24 +139,9 @@ export function use_search_modal({
   const [selected_index, set_selected_index] = useState(-1);
   const [show_filters, set_show_filters] = useState(false);
   const [show_autocomplete, set_show_autocomplete] = useState(false);
-  const [filters, set_filters] = useState<FilterState>({
-    fields: ["all"],
-    has_attachments: undefined,
-    is_starred: undefined,
-    date_from: "",
-    date_to: "",
-    scope: "all",
-    search_content: true,
-    from: "",
-    to: "",
-    subject: "",
-    has_words: "",
-    does_not_have: "",
-    size_op: "greater",
-    size_value: "",
-    size_unit: "mb",
-    within_days: "",
-  });
+  const [filters, set_filters] = useState<FilterState>(() =>
+    build_default_filters(),
+  );
   const [search_history, set_search_history] = useState<SearchHistoryEntry[]>(
     [],
   );
@@ -280,12 +291,16 @@ export function use_search_modal({
       if (!user?.id || !state.query) return;
       const result = await save_search_to_storage(user.id, name, state.query);
 
-      if (result.success && result.search) {
-        set_saved_searches((prev) => [result.search!, ...prev]);
+      if (!result.success || !result.search) {
+        show_toast(t("common.something_went_wrong_try_again"), "error");
+
+        return;
       }
+
+      set_saved_searches((prev) => [result.search!, ...prev]);
       set_show_save_dialog(false);
     },
-    [user?.id, state.query],
+    [user?.id, state.query, t],
   );
 
   const handle_clear_data = useCallback(
@@ -316,7 +331,7 @@ export function use_search_modal({
   );
 
   const filtered_folders = useMemo(() => {
-    if (!state.query || state.query.length < 2) return [];
+    if (!state.query || !meets_min_search_length(state.query)) return [];
     const raw_lower = state.query.toLowerCase();
     const folder_op_match = raw_lower.match(/^folder:["']?([^"']+)["']?$/);
     const query_lower = folder_op_match ? folder_op_match[1].trim() : raw_lower;
@@ -442,6 +457,7 @@ export function use_search_modal({
     set_show_autocomplete(false);
     set_show_clear_menu(false);
     set_local_updates(new Map());
+    set_filters(build_default_filters());
     on_close();
   }, [
     clear_results,
@@ -512,7 +528,7 @@ export function use_search_modal({
       set_query(query);
       set_selected_index(-1);
 
-      if (query.length >= 2 && !filtered_results.length) {
+      if (meets_min_search_length(query) && !filtered_results.length) {
         set_show_autocomplete(true);
         get_autocomplete(query, filters.fields[0]);
       } else {
@@ -583,7 +599,7 @@ export function use_search_modal({
         const d = new Date();
 
         d.setDate(d.getDate() - days);
-        parts.push(`after:${d.toISOString().slice(0, 10)}`);
+        parts.push(`after:${local_date_key(d)}`);
       }
     }
     if (filters.date_from) parts.push(`after:${filters.date_from}`);

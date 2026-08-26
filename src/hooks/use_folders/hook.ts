@@ -21,6 +21,20 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 
 import {
+  DeleteFolderOutcome,
+  broadcast_folders_changed,
+  cached_folders,
+  get_folder_broadcast_channel,
+} from "./cache";
+import {
+  decrypt_folder,
+  encrypt_folder_field,
+  generate_folder_token,
+} from "./crypto";
+import { DecryptedFolder, FolderCounts, FoldersState } from "./tree";
+import { UseFoldersReturn } from "./types";
+
+import {
   list_folders,
   create_folder,
   update_folder,
@@ -50,10 +64,6 @@ import {
 } from "@/hooks/mail_events";
 import { use_auth_safe } from "@/contexts/auth_context";
 import { use_i18n } from "@/lib/i18n/context";
-import { DeleteFolderOutcome, broadcast_folders_changed, cached_folders, get_folder_broadcast_channel } from "./cache";
-import { decrypt_folder, encrypt_folder_field, generate_folder_token } from "./crypto";
-import { DecryptedFolder, FolderCounts, FoldersState } from "./tree";
-import { UseFoldersReturn } from "./types";
 
 export function use_folders(): UseFoldersReturn {
   const { t } = use_i18n();
@@ -131,6 +141,20 @@ export function use_folders(): UseFoldersReturn {
           (f): f is DecryptedFolder => f !== null,
         );
 
+        if (
+          response.data.folders.length > 0 &&
+          decrypted_folders.length === 0 &&
+          cached_folders.data.length > 0
+        ) {
+          set_state((prev) => ({
+            ...prev,
+            is_loading: false,
+            error: t("common.failed_to_fetch_folders"),
+          }));
+
+          return;
+        }
+
         cached_folders.data = decrypted_folders;
         cached_folders.total = decrypted_folders.length;
 
@@ -175,7 +199,17 @@ export function use_folders(): UseFoldersReturn {
 
         if (this_generation !== counts_generation_ref.current) return;
 
-        if (!response.data) return;
+        if (!response.data) {
+          if (attempt === 2) return;
+
+          await new Promise((resolve) =>
+            setTimeout(resolve, 1000 * (attempt + 1)),
+          );
+
+          if (this_generation !== counts_generation_ref.current) return;
+
+          continue;
+        }
 
         if (counts_adjusted_at_ref.current > fetch_started_at) {
           await new Promise((resolve) => setTimeout(resolve, 400));
@@ -229,10 +263,11 @@ export function use_folders(): UseFoldersReturn {
         return { folder: null, code: "NO_VAULT" };
       }
 
+      const normalized_parent = parent_token || null;
       const duplicate_exists = cached_folders.data.some(
         (f) =>
           f.name.toLowerCase() === trimmed_name.toLowerCase() &&
-          f.parent_token === parent_token,
+          (f.parent_token || null) === normalized_parent,
       );
 
       if (duplicate_exists) {
@@ -462,7 +497,11 @@ export function use_folders(): UseFoldersReturn {
         const response = await delete_folder(folder_id, options);
 
         if (response.error && response.code !== "NOT_FOUND") {
-          return { success: false, error: response.error };
+          return {
+            success: false,
+            error: response.error,
+            code: response.code,
+          };
         }
 
         set_state((prev) => {

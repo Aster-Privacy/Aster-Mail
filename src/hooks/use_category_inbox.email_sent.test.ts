@@ -108,6 +108,8 @@ vi.mock("@/services/category_index", () => ({
   subscribe: () => () => {},
   get_version: () => 0,
   remove_ids: vi.fn(),
+  remove_ids_absent_from_server: vi.fn(),
+  clear_absent_strikes: vi.fn(),
   suppress_ids: vi.fn(),
   is_recently_read: () => false,
   is_representative_unread: () => false,
@@ -196,6 +198,7 @@ describe("use_category_inbox email sent", () => {
     ).toBeGreaterThan(initial_fetches);
 
     const states_after_dispatch = states.slice(states_before_dispatch);
+
     expect(states_after_dispatch.some((s) => s.is_loading)).toBe(false);
     expect(states.at(-1)!.is_loading).toBe(false);
 

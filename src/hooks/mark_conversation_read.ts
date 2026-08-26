@@ -29,7 +29,6 @@ import {
   thread_has_unread_entries,
 } from "@/services/category_index";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
-
 import { ignore_error } from "@/lib/ignore_error";
 
 const THREAD_READ_CONCURRENCY = 10;

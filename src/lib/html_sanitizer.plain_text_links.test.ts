@@ -20,7 +20,10 @@
 //
 import { describe, expect, it } from "vitest";
 
-import { html_to_readable_plain_text, plain_text_to_html } from "./html_sanitizer";
+import {
+  html_to_readable_plain_text,
+  plain_text_to_html,
+} from "./html_sanitizer";
 
 const verify_url =
   "https://account.example.com/verify?token=abc123&mid=6425522";

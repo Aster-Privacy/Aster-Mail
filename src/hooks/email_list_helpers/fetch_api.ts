@@ -24,21 +24,25 @@ import type {
   MailItemMetadata,
 } from "@/types/email";
 
+import { decrypt_envelope } from "./decrypt";
+import { should_keep_email_in_view } from "./display";
+import { group_emails_by_thread, sort_emails_by_timestamp } from "./grouping";
+import { mail_to_email_safe } from "./mapping";
 import {
-  classify,
-  is_locked_to_primary,
-} from "@/services/mail_categorizer";
+  build_view_list_params,
+  DEFAULT_PAGE_SIZE,
+  MAX_PAGE_TOP_UP_ROUNDS,
+  UNKNOWN_TOTAL,
+} from "./views";
+
+import { classify, is_locked_to_primary } from "@/services/mail_categorizer";
 import {
   list_mail_items,
   type ListMailItemsParams,
   type MailItem,
 } from "@/services/api/mail";
-import {
-  decrypt_mail_metadata,
-} from "@/services/crypto/mail_metadata";
-import {
-  type FormatOptions,
-} from "@/utils/date_format";
+import { decrypt_mail_metadata } from "@/services/crypto/mail_metadata";
+import { type FormatOptions } from "@/utils/date_format";
 import { decrypt_body_text_with_bundle } from "@/utils/email_crypto";
 import { is_reaction_payload_body } from "@/lib/reaction_payload";
 import {
@@ -46,15 +50,8 @@ import {
   is_folder_token_locked,
   request_folder_unlock,
 } from "@/services/locked_folders";
-import {
-  resolve_sender_profiles,
-} from "@/services/api/sender_profiles";
+import { resolve_sender_profiles } from "@/services/api/sender_profiles";
 import { map_sync_in_chunks } from "@/lib/scheduling";
-import { decrypt_envelope } from "./decrypt";
-import { should_keep_email_in_view } from "./display";
-import { group_emails_by_thread, sort_emails_by_timestamp } from "./grouping";
-import { mail_to_email_safe } from "./mapping";
-import { build_view_list_params, DEFAULT_PAGE_SIZE, MAX_PAGE_TOP_UP_ROUNDS, UNKNOWN_TOTAL } from "./views";
 
 const MAP_CHUNK_SIZE = 25;
 
@@ -117,7 +114,7 @@ export async function fetch_mail_from_api(
     : Math.max(0, raw_total - hidden_count);
   let has_more = response.data.has_more;
   let next_cursor = response.data.next_cursor;
-  let raw_consumed = returned_items.length;
+  let raw_consumed = response.data.items.length;
 
   const process_items = async (batch: MailItem[]) => {
     const results = await Promise.allSettled(
@@ -127,7 +124,11 @@ export async function fetch_mail_from_api(
         const has_metadata = !!(item.encrypted_metadata && item.metadata_nonce);
 
         const [envelope, metadata] = await Promise.all([
-          decrypt_envelope(item.encrypted_envelope, item.envelope_nonce, item.id),
+          decrypt_envelope(
+            item.encrypted_envelope,
+            item.envelope_nonce,
+            item.id,
+          ),
           has_metadata
             ? decrypt_mail_metadata(
                 item.encrypted_metadata!,
@@ -158,16 +159,15 @@ export async function fetch_mail_from_api(
     if (signal.aborted) return null;
 
     const successful = results
-      .filter(
-        (
-          r,
-        ): r is PromiseFulfilledResult<{
-          item: MailItem;
-          envelope: DecryptedEnvelope | null;
-          metadata: MailItemMetadata | null;
-        }> => r.status === "fulfilled",
+      .map((r, index) =>
+        r.status === "fulfilled"
+          ? r.value
+          : {
+              item: batch[index],
+              envelope: null as DecryptedEnvelope | null,
+              metadata: null as MailItemMetadata | null,
+            },
       )
-      .map((r) => r.value)
       .filter(({ envelope }) => {
         const is_reaction_body =
           is_reaction_payload_body(envelope?.body_text) ||
@@ -198,9 +198,7 @@ export async function fetch_mail_from_api(
 
     if (signal.aborted) return null;
 
-    let emails = mapped.filter(
-      (email): email is InboxEmail => email !== null,
-    );
+    let emails = mapped.filter((email): email is InboxEmail => email !== null);
 
     if (view === "inbox" && category_index_module) {
       const index_entries = successful
@@ -287,6 +285,7 @@ export async function fetch_mail_from_api(
     if (!top_up_response.data) break;
 
     const top_up_returned = top_up_response.data.items;
+    const top_up_visible = filter_locked_mail_items(top_up_returned);
 
     if (top_up_returned.length === 0) {
       has_more = top_up_response.data.has_more;
@@ -299,7 +298,7 @@ export async function fetch_mail_from_api(
 
     const seen_ids = new Set(collected.map((e) => e.id));
     const top_up_batch = await process_items(
-      top_up_returned.filter((item) => item.is_reaction !== true),
+      top_up_visible.filter((item) => item.is_reaction !== true),
     );
 
     if (top_up_batch === null) return null;

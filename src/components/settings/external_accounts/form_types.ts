@@ -30,6 +30,7 @@ import type {
 
 export interface AddAccountFormProps {
   editing_account: DecryptedExternalAccount | null;
+  is_oauth_account: boolean;
   form_visible: boolean;
   close_form: () => void;
   form_email: string;
@@ -83,6 +84,8 @@ export interface AddAccountFormProps {
   form_delete_after_fetch: boolean;
   set_form_delete_after_fetch: (value: boolean) => void;
   is_form_busy: boolean;
+  prefill_failed: boolean;
+  retry_prefill: () => void;
   handle_protocol_change: (protocol: "imap" | "pop3") => void;
   handle_email_change: (email: string) => void;
   handle_host_change: (value: string) => void;

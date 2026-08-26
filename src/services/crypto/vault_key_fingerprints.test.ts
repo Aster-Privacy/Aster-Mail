@@ -18,10 +18,11 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { EncryptedVault } from "./key_manager_core";
+
 import { describe, expect, it } from "vitest";
 
 import { collect_vault_key_fingerprints } from "./vault_key_fingerprints";
-import type { EncryptedVault } from "./key_manager_core";
 
 function base_vault(): EncryptedVault {
   return {
@@ -86,9 +87,7 @@ describe("collect_vault_key_fingerprints", () => {
     point.set(x, 1);
     point.set(y, 33);
 
-    const digest = new Uint8Array(
-      await crypto.subtle.digest("SHA-256", point),
-    );
+    const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", point));
     const expected = btoa(String.fromCharCode(...digest));
 
     const fingerprints = await collect_vault_key_fingerprints({

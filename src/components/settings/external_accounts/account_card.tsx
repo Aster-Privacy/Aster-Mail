@@ -36,6 +36,7 @@ import {
   SyncHealthDot,
   SyncStatusIndicator,
 } from "@/components/settings/external_accounts/sync_status";
+import { app_locale } from "@/utils/date_format";
 
 interface AccountCardProps {
   account: DecryptedExternalAccount;
@@ -100,7 +101,7 @@ export function AccountCard({
               className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
               style={{
                 backgroundColor: account.is_enabled
-                  ? account.label_color
+                  ? `${account.label_color}26`
                   : "var(--bg-tertiary)",
               }}
             >
@@ -167,7 +168,7 @@ export function AccountCard({
                 <span className="text-[12px] text-txt-muted">&middot;</span>
                 <span className="text-[11px] text-txt-muted">
                   {t("settings.email_count", {
-                    count: account.email_count.toLocaleString(),
+                    count: account.email_count.toLocaleString(app_locale()),
                   })}
                 </span>
               </>
@@ -193,9 +194,10 @@ export function AccountCard({
             </Button>
           ) : (
             <>
-              <Switch size="lg"
+              <Switch
                 aria-label={`${account.is_enabled ? t("common.disable") : t("common.enable")} ${account.email}`}
                 checked={account.is_enabled}
+                size="lg"
                 onCheckedChange={() => handle_toggle(account)}
               />
               <Button
@@ -220,7 +222,7 @@ export function AccountCard({
             <PencilIcon className="w-4 h-4" />
           </Button>
           <Button
-            aria-label={`${t("common.delete_mail_from")} ${account.email}`}
+            aria-label={`${t("settings.remove_account")} ${account.email}`}
             size="md"
             variant="ghost"
             onClick={() => set_purge_target(account)}
@@ -231,14 +233,20 @@ export function AccountCard({
       </div>
       {account.last_sync_status === "error" &&
         expanded_error_ids.has(account.id) && (
-          <div className="px-4 pb-3 pt-0" style={{ paddingLeft: "3.75rem" }}>
+          <div className="px-4 pb-3 pt-0" style={{ paddingInlineStart: "3.75rem" }}>
             <div
               className="px-3 py-2 rounded-lg text-xs leading-relaxed"
               role="alert"
-              style={{ backgroundColor: "rgba(220,38,38,0.08)", color: "rgb(220,38,38)" }}
+              style={{
+                backgroundColor: "rgba(220,38,38,0.08)",
+                color: "rgb(220,38,38)",
+              }}
             >
               {account.last_sync_error
-                ? account.last_sync_error.replace(/^IMAP authentication failed:\s*/i, "")
+                ? account.last_sync_error.replace(
+                    /^IMAP authentication failed:\s*/i,
+                    "",
+                  )
                 : t("settings.sync_failed_detail", {
                     time:
                       format_sync_time(account.last_sync_at) ||

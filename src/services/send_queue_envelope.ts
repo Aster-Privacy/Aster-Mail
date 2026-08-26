@@ -18,16 +18,31 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { en } from "@/lib/i18n/translations/en";
-import { HASH_ALG } from "@/services/crypto/constants";
-import { type MailItemMetadata } from "@/types/email";
 import { list_encrypted_mail_items, update_mail_item } from "./api/mail";
-import { array_to_base64, base64_to_array, decrypt_envelope_with_bytes, encrypt_envelope_with_bytes } from "./crypto/envelope";
+import {
+  array_to_base64,
+  base64_to_array,
+  decrypt_envelope_with_bytes,
+  encrypt_envelope_with_bytes,
+} from "./crypto/envelope";
 import { encrypt_mail_metadata } from "./crypto/mail_metadata";
-import { get_passphrase_bytes, get_vault_from_memory } from "./crypto/memory_key_store";
+import {
+  get_passphrase_bytes,
+  get_vault_from_memory,
+} from "./crypto/memory_key_store";
 import { zero_uint8_array } from "./crypto/secure_memory";
 import { plain_text_to_html } from "./send_queue_recipients";
-import { SendError, create_error, type EnvelopeData, type MailEnvelope, type QueuedEmailInternal } from "./send_queue_types";
+import {
+  SendError,
+  create_error,
+  type EnvelopeData,
+  type MailEnvelope,
+  type QueuedEmailInternal,
+} from "./send_queue_types";
+
+import { type MailItemMetadata } from "@/types/email";
+import { HASH_ALG } from "@/services/crypto/constants";
+import { get_active_translations } from "@/lib/i18n/translations";
 import { repair_comment_markup } from "@/lib/html_sanitizer_utils";
 
 const HTML_TAG_PROBE = /<[a-z][\s\S]*>/i;
@@ -42,14 +57,14 @@ export async function create_sent_envelope(
   if (!vault || !vault.identity_key) {
     throw create_error(
       "vault_unavailable",
-      en.errors.encryption_keys_unavailable,
+      get_active_translations().errors.encryption_keys_unavailable,
     );
   }
 
   if (!passphrase_bytes) {
     throw create_error(
       "vault_unavailable",
-      en.errors.session_expired_send,
+      get_active_translations().errors.session_expired_send,
     );
   }
 
@@ -72,16 +87,20 @@ export async function create_sent_envelope(
         }
 
         doc
-          .querySelectorAll("script, style, head, noscript, template, iframe, object, embed")
+          .querySelectorAll(
+            "script, style, head, noscript, template, iframe, object, embed",
+          )
           .forEach((el) => el.remove());
 
         doc.querySelectorAll("br").forEach((el) => {
           el.replaceWith(doc.createTextNode("\n"));
         });
 
-        doc.querySelectorAll("p, div, li, tr, h1, h2, h3, h4, h5, h6").forEach((el) => {
-          el.append(doc.createTextNode("\n"));
-        });
+        doc
+          .querySelectorAll("p, div, li, tr, h1, h2, h3, h4, h5, h6")
+          .forEach((el) => {
+            el.append(doc.createTextNode("\n"));
+          });
 
         const text = doc.body?.textContent || "";
 
@@ -140,7 +159,10 @@ export async function create_sent_envelope(
     if ((err as SendError).type) {
       throw err;
     }
-    throw create_error("encryption_failed", en.errors.failed_encrypt_envelope);
+    throw create_error(
+      "encryption_failed",
+      get_active_translations().errors.failed_encrypt_envelope,
+    );
   }
 }
 

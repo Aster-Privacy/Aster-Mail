@@ -83,4 +83,3 @@ export async function resolve_sender_verification_keys(
     return [];
   }
 }
-

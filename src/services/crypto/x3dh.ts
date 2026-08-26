@@ -18,10 +18,9 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { HASH_ALG } from "@/services/crypto/constants";
-import { base64_to_array } from "./base64";
 import { ml_kem768 } from "@noble/post-quantum/ml-kem.js";
 
+import { base64_to_array } from "./base64";
 import {
   import_ke_public_key,
   import_ke_private_key,
@@ -30,6 +29,7 @@ import {
 import { load_pq_secret } from "./pq_prekey_store";
 import { is_pqxdh_transcript_binding_enabled } from "./crypto_enforcement_policy";
 
+import { HASH_ALG } from "@/services/crypto/constants";
 import { ignore_error } from "@/lib/ignore_error";
 
 const ECDH_ALGORITHM = "ECDH";
@@ -83,7 +83,6 @@ interface PqReceiverInput {
   pq_ciphertext: Uint8Array;
   pq_key_id: number;
 }
-
 
 async function generate_ephemeral_keypair(): Promise<{
   public_key: CryptoKey;
@@ -434,7 +433,9 @@ export async function perform_x3dh_receiver(
 
       import("./pq_secret_reconciler")
         .then((m) => m.handle_missing_pq_secret())
-        .catch((caught) => ignore_error("services/crypto/x3dh:perform_x3dh_receiver", caught));
+        .catch((caught) =>
+          ignore_error("services/crypto/x3dh:perform_x3dh_receiver", caught),
+        );
       throw new Error("Missing PQ prekey secret for the supplied key id");
     }
 

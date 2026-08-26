@@ -20,13 +20,13 @@
 //
 import { describe, expect, it } from "vitest";
 
-import { sanitize_html } from "@/lib/html_sanitizer";
-
 import {
   collapse_empty_block_runs,
   collapse_forwarded_content,
   collapse_quoted_replies,
 } from "./dom_cleanup";
+
+import { sanitize_html } from "@/lib/html_sanitizer";
 
 type translate_fn = Parameters<typeof collapse_forwarded_content>[1];
 
@@ -94,7 +94,9 @@ describe("quoted original stays out of the visible body", () => {
       `<div><img src="cid:note@aster" alt=""></div><div class="protonmail_quote">-------- Original Message --------<br><blockquote class="protonmail_quote">Quoted original.</blockquote></div>`,
     );
 
-    expect(doc.body.querySelector("details.aster-forwarded-collapse")).not.toBeNull();
+    expect(
+      doc.body.querySelector("details.aster-forwarded-collapse"),
+    ).not.toBeNull();
     expect(visible_text(doc)).not.toContain("Quoted original.");
     expect(collapsed_text(doc)).toContain("Quoted original.");
   });

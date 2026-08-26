@@ -24,6 +24,7 @@ import {
   ExclamationTriangleIcon,
   ArrowDownTrayIcon,
 } from "@heroicons/react/24/outline";
+import { trigger_download } from "@/utils/download_blob";
 import { Button } from "@aster/ui";
 
 import { show_toast } from "@/components/toast/simple_toast";
@@ -36,6 +37,7 @@ import {
   ModalFooter,
 } from "@/components/ui/modal";
 import { use_i18n } from "@/lib/i18n/context";
+import { copy_text } from "@/utils/copy_text";
 
 interface TotpBackupCodesModalProps {
   is_open: boolean;
@@ -51,17 +53,30 @@ export function TotpBackupCodesModal({
   const { t } = use_i18n();
 
   const copy_single_code = async (code: string) => {
-    await navigator.clipboard.writeText(code);
-    show_toast(t("common.copied_to_clipboard"), "success");
+    if (await copy_text(code)) {
+      show_toast(t("common.copied_to_clipboard"), "success");
+    } else {
+      show_toast(t("common.failed_to_copy"), "error");
+    }
   };
 
   const copy_backup_codes = async () => {
-    await navigator.clipboard.writeText(backup_codes.join("\n"));
-    show_toast(t("common.copied_to_clipboard"), "success");
+    if (await copy_text(backup_codes.join("\n"))) {
+      show_toast(t("common.copied_to_clipboard"), "success");
+    } else {
+      show_toast(t("common.failed_to_copy"), "error");
+    }
   };
 
   return (
-    <Modal close_on_overlay={false} is_open={is_open} on_close={on_done} size="md">
+    <Modal
+      close_on_escape={false}
+      close_on_overlay={false}
+      is_open={is_open}
+      on_close={on_done}
+      show_close_button={false}
+      size="md"
+    >
       <ModalHeader>
         <div className="flex items-center gap-3">
           <ShieldCheckIcon className="w-6 h-6 text-txt-primary flex-shrink-0" />
@@ -89,24 +104,19 @@ export function TotpBackupCodesModal({
           </div>
           <div className="flex justify-center gap-2">
             <Button variant="secondary" onClick={copy_backup_codes}>
-              <ClipboardDocumentIcon className="w-4 h-4 mr-2" />
+              <ClipboardDocumentIcon className="w-4 h-4 me-2" />
               {t("settings.copy_all_codes")}
             </Button>
             <Button
               variant="secondary"
               onClick={() => {
-                const content = backup_codes.join("\n");
-                const blob = new Blob([content], { type: "text/plain" });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement("a");
-
-                a.href = url;
-                a.download = "aster-backup-codes.txt";
-                a.click();
-                URL.revokeObjectURL(url);
+                trigger_download(
+                  new Blob([backup_codes.join("\n")], { type: "text/plain" }),
+                  "aster-backup-codes.txt",
+                );
               }}
             >
-              <ArrowDownTrayIcon className="w-4 h-4 mr-2" />
+              <ArrowDownTrayIcon className="w-4 h-4 me-2" />
               {t("common.download")}
             </Button>
           </div>

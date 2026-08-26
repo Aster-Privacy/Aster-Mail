@@ -20,7 +20,10 @@
 //
 import { describe, expect, it } from "vitest";
 
-import { pre_process_email_html, type PreProcessOptions } from "./email_pre_process";
+import {
+  pre_process_email_html,
+  type PreProcessOptions,
+} from "./email_pre_process";
 
 const options: PreProcessOptions = {
   forwarded_label: "Forwarded message",
@@ -87,7 +90,9 @@ describe("pre_process_email_html forwarded gmail_quote", () => {
     const out = pre_process_email_html(html, options);
 
     expect(out).toContain("Original Thunderbird message content.");
-    expect(out).toMatch(/class="moz-cite-prefix"[^>]*style="display:\s*block;?"/);
+    expect(out).toMatch(
+      /class="moz-cite-prefix"[^>]*style="display:\s*block;?"/,
+    );
   });
 
   it("still collapses quoted history when there is a real reply above it", () => {
@@ -107,7 +112,9 @@ describe("pre_process_email_html forwarded gmail_quote", () => {
 
     expect(out).toContain("The Yahoo forwarded text that must stay visible.");
     expect(out).not.toContain("aster-quote-toggle");
-    expect(out).toMatch(/class="yahoo_quoted"[^>]*style="[^"]*display:\s*block/);
+    expect(out).toMatch(
+      /class="yahoo_quoted"[^>]*style="[^"]*display:\s*block/,
+    );
   });
 
   it("still collapses the gmail_quote when the user added a note above it", () => {
@@ -133,10 +140,7 @@ describe("pre_process_email_html forwarded gmail_quote", () => {
     expect(details_match?.[1]).toContain("Hello from Aster!");
     expect(details_match?.[1]).toContain("Sent with");
 
-    const visible_before_details = out.slice(
-      0,
-      out.indexOf("<details"),
-    );
+    const visible_before_details = out.slice(0, out.indexOf("<details"));
 
     expect(visible_before_details).not.toContain("Hello from Aster!");
   });

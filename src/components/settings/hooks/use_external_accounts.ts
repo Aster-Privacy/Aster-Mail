@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -51,6 +51,12 @@ import {
   sanitize_display_text,
 } from "@/components/settings/hooks/external_accounts_utils";
 import { use_external_accounts_form } from "@/components/settings/hooks/use_external_accounts_form";
+import {
+  emit_folders_changed,
+  emit_mail_changed,
+  emit_refresh_requested,
+} from "@/hooks/mail_events";
+import { app_locale, get_display_time_zone } from "@/utils/date_format";
 
 export type { TlsMethod, I18nTranslate };
 export {
@@ -74,7 +80,7 @@ export function use_external_accounts() {
     [t],
   );
   const tls_method_options = useMemo(() => get_tls_method_options(t), [t]);
-  const { create_new_tag } = use_tags();
+  const { create_new_tag, state: tags_state } = use_tags();
 
   const form = use_external_accounts_form(t);
 
@@ -95,15 +101,25 @@ export function use_external_accounts() {
     new Set(),
   );
 
+  const [load_error, set_load_error] = useState(false);
+
   const fetch_accounts = useCallback(async () => {
     try {
       const result = await list_external_accounts(
         t("settings.connected_accounts_fallback_name"),
       );
 
-      if (result.data && form.is_mounted_ref.current) {
+      if (!form.is_mounted_ref.current) return;
+
+      if (result.data) {
         set_accounts(result.data);
+        set_load_error(false);
+      } else {
+        set_load_error(true);
       }
+    } catch (error) {
+      if (import.meta.env.DEV) console.error(error);
+      if (form.is_mounted_ref.current) set_load_error(true);
     } finally {
       if (form.is_mounted_ref.current) {
         set_is_loading(false);
@@ -152,6 +168,39 @@ export function use_external_accounts() {
     }
   }, [accounts]);
 
+  const save_account_settings = useCallback(
+    async (account_token: string): Promise<boolean> => {
+      const results = await Promise.allSettled([
+        update_sync_settings(account_token, {
+          sync_frequency: form.form_sync_frequency,
+          sync_folders: form.selected_folders,
+          max_messages_per_sync: 500,
+          sync_since_date: null,
+        }),
+        update_advanced_settings(account_token, {
+          tls_method: form.form_tls_method,
+          connection_timeout_seconds: form.form_connection_timeout,
+          idle_timeout_seconds: 300,
+          max_concurrent_connections: 1,
+          archive_sent_to_remote: form.form_archive_sent,
+          delete_after_fetch: form.form_delete_after_fetch,
+        }),
+      ]);
+
+      return results.every(
+        (result) => result.status === "fulfilled" && !result.value.error,
+      );
+    },
+    [
+      form.form_sync_frequency,
+      form.selected_folders,
+      form.form_tls_method,
+      form.form_connection_timeout,
+      form.form_archive_sent,
+      form.form_delete_after_fetch,
+    ],
+  );
+
   const handle_submit = useCallback(async () => {
     if (form.is_form_busy) return;
     if (!form.validate_form()) return;
@@ -170,16 +219,27 @@ export function use_external_accounts() {
           display_name,
           label_name,
           form.form_label_color,
-          credentials,
+          form.is_oauth_account ? undefined : credentials,
           form.editing_account.is_enabled,
           undefined,
-          form.form_protocol,
+          form.is_oauth_account ? undefined : form.form_protocol,
         );
 
         if (!form.is_mounted_ref.current) return;
 
         if (result.data) {
-          show_toast(t("settings.account_updated"), "success");
+          const settings_saved = await save_account_settings(
+            form.editing_account.account_token,
+          );
+
+          if (!form.is_mounted_ref.current) return;
+
+          show_toast(
+            settings_saved
+              ? t("settings.account_updated")
+              : t("settings.account_settings_not_saved"),
+            settings_saved ? "success" : "warning",
+          );
           await fetch_accounts();
           form.close_form();
         } else {
@@ -196,6 +256,13 @@ export function use_external_accounts() {
 
         if (tag) {
           tag_token = tag.tag_token;
+        } else {
+          const existing = tags_state.tags.find(
+            (candidate) =>
+              candidate.name.toLowerCase() === label_name.toLowerCase(),
+          );
+
+          if (existing) tag_token = existing.tag_token;
         }
 
         const result = await create_external_account(
@@ -213,24 +280,16 @@ export function use_external_accounts() {
         if (result.data) {
           const account_token = result.data.account_token;
 
-          await Promise.allSettled([
-            update_sync_settings(account_token, {
-              sync_frequency: form.form_sync_frequency,
-              sync_folders: form.selected_folders,
-              max_messages_per_sync: 500,
-              sync_since_date: null,
-            }),
-            update_advanced_settings(account_token, {
-              tls_method: form.form_tls_method,
-              connection_timeout_seconds: form.form_connection_timeout,
-              idle_timeout_seconds: 300,
-              max_concurrent_connections: 1,
-              archive_sent_to_remote: form.form_archive_sent,
-              delete_after_fetch: form.form_delete_after_fetch,
-            }),
-          ]);
+          const settings_saved = await save_account_settings(account_token);
 
-          show_toast(t("settings.account_added"), "success");
+          if (!form.is_mounted_ref.current) return;
+
+          show_toast(
+            settings_saved
+              ? t("settings.account_added")
+              : t("settings.account_settings_not_saved"),
+            settings_saved ? "success" : "warning",
+          );
           await fetch_accounts();
           form.close_form();
 
@@ -280,12 +339,19 @@ export function use_external_accounts() {
     form.form_archive_sent,
     form.form_delete_after_fetch,
     create_new_tag,
+    tags_state.tags,
     fetch_accounts,
+    save_account_settings,
     t,
   ]);
 
+  const toggling_ids = useRef<Set<string>>(new Set());
+
   const handle_toggle = useCallback(
     async (account: DecryptedExternalAccount) => {
+      if (toggling_ids.current.has(account.id)) return;
+      toggling_ids.current.add(account.id);
+
       const new_enabled = !account.is_enabled;
 
       if (!new_enabled) {
@@ -319,30 +385,35 @@ export function use_external_accounts() {
             a.id === account.id ? { ...a, is_enabled: !new_enabled } : a,
           ),
         );
+      } finally {
+        toggling_ids.current.delete(account.id);
       }
     },
     [t],
   );
 
-  const handle_sync = useCallback(async (account: DecryptedExternalAccount) => {
-    if (check_is_syncing(account.id)) return;
+  const handle_sync = useCallback(
+    async (account: DecryptedExternalAccount) => {
+      if (check_is_syncing(account.id)) return;
 
-    try {
-      const result = await trigger_sync(account.account_token);
+      try {
+        const result = await trigger_sync(account.account_token);
 
-      if (result.data?.success) {
-        global_start_sync_polling(account.id, account.account_token);
-      } else {
-        show_toast(
-          sanitize_display_text(result.error || t("settings.failed_sync")),
-          "error",
-        );
+        if (result.data?.success) {
+          global_start_sync_polling(account.id, account.account_token);
+        } else {
+          show_toast(
+            sanitize_display_text(result.error || t("settings.failed_sync")),
+            "error",
+          );
+        }
+      } catch (error) {
+        if (import.meta.env.DEV) console.error(error);
+        show_toast(t("settings.failed_sync"), "error");
       }
-    } catch (error) {
-      if (import.meta.env.DEV) console.error(error);
-      show_toast(t("settings.failed_sync"), "error");
-    }
-  }, [t]);
+    },
+    [t],
+  );
 
   const handle_purge_confirm = useCallback(async () => {
     if (!purge_target || is_purging) return;
@@ -363,11 +434,14 @@ export function use_external_accounts() {
           if (form.is_mounted_ref.current) {
             show_toast(
               sanitize_display_text(
-                purge_result.error || t("settings.failed_delete_emails_external"),
+                purge_result.error ||
+                  t("settings.failed_delete_emails_external"),
               ),
               "error",
             );
           }
+
+          return;
         } else {
           purged_count = purge_result.data?.deleted_count ?? 0;
 
@@ -376,6 +450,7 @@ export function use_external_accounts() {
           // lineage until every message is gone.
           if (purged_count > 0) {
             let poll_errors = 0;
+
             for (let i = 0; i < 2400; i++) {
               await new Promise((resolve) => setTimeout(resolve, 1500));
               const prog = await get_sync_progress(target.account_token);
@@ -390,11 +465,9 @@ export function use_external_accounts() {
             }
           }
 
-          window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
-          window.dispatchEvent(new CustomEvent("astermail:folders-changed"));
-          window.dispatchEvent(
-            new CustomEvent("astermail:refresh-requested"),
-          );
+          emit_mail_changed();
+          emit_folders_changed();
+          emit_refresh_requested();
         }
       }
 
@@ -403,16 +476,13 @@ export function use_external_accounts() {
       if (!form.is_mounted_ref.current) return;
 
       if (delete_result.error) {
-        show_toast(
-          sanitize_display_text(delete_result.error),
-          "error",
-        );
+        show_toast(sanitize_display_text(delete_result.error), "error");
       } else {
         set_accounts((prev) => prev.filter((a) => a.id !== target.id));
         if (also_delete && purged_count > 0) {
           show_toast(
             t("settings.disconnect_deleted_success", {
-              count: purged_count.toLocaleString(),
+              count: purged_count.toLocaleString(app_locale()),
             }),
             "success",
           );
@@ -449,30 +519,34 @@ export function use_external_accounts() {
     });
   }, []);
 
-  const format_sync_time = useCallback((date_string: string | null) => {
-    if (!date_string) return null;
-    const date = new Date(date_string);
+  const format_sync_time = useCallback(
+    (date_string: string | null) => {
+      if (!date_string) return null;
+      const date = new Date(date_string);
 
-    if (Number.isNaN(date.getTime())) return null;
+      if (Number.isNaN(date.getTime())) return null;
 
-    const now = new Date();
-    const diff_ms = now.getTime() - date.getTime();
-    const diff_minutes = Math.floor(diff_ms / 60000);
+      const now = new Date();
+      const diff_ms = now.getTime() - date.getTime();
+      const diff_minutes = Math.floor(diff_ms / 60000);
 
-    if (diff_minutes < 1) return t("common.just_now");
-    if (diff_minutes < 60)
-      return t("common.minutes_ago_short", { count: diff_minutes });
+      if (diff_minutes < 1) return t("common.just_now");
+      if (diff_minutes < 60)
+        return t("common.minutes_ago_short", { count: diff_minutes });
 
-    const diff_hours = Math.floor(diff_minutes / 60);
+      const diff_hours = Math.floor(diff_minutes / 60);
 
-    if (diff_hours < 24)
-      return t("common.hours_ago_short", { count: diff_hours });
+      if (diff_hours < 24)
+        return t("common.hours_ago_short", { count: diff_hours });
 
-    return date.toLocaleDateString(undefined, {
-      month: "short",
-      day: "numeric",
-    });
-  }, [t]);
+      return date.toLocaleDateString(app_locale(), {
+        timeZone: get_display_time_zone(),
+        month: "short",
+        day: "numeric",
+      });
+    },
+    [t],
+  );
 
   return {
     t,
@@ -480,8 +554,11 @@ export function use_external_accounts() {
     tls_method_options,
     accounts,
     is_loading,
+    load_error,
+    reload_accounts: fetch_accounts,
     show_add_form: form.show_add_form,
     editing_account: form.editing_account,
+    is_oauth_account: form.is_oauth_account,
     is_submitting: form.is_submitting,
     is_testing: form.is_testing,
     test_result: form.test_result,
@@ -505,6 +582,8 @@ export function use_external_accounts() {
     has_stored_password: form.has_stored_password,
     has_stored_smtp_password: form.has_stored_smtp_password,
     is_loading_account_settings: form.is_loading_account_settings,
+    prefill_failed: form.prefill_failed,
+    retry_prefill: form.retry_prefill,
     form_use_tls: form.form_use_tls,
     set_form_use_tls: form.set_form_use_tls,
     form_label_name: form.form_label_name,

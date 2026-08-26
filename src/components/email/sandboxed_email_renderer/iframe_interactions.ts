@@ -148,21 +148,15 @@ export function attach_iframe_interactions(
     );
   };
 
-  iframe_doc.addEventListener(
-    "touchstart",
-    forward_touch("touchstart"),
-    { passive: true },
-  );
-  iframe_doc.addEventListener(
-    "touchmove",
-    forward_touch("touchmove"),
-    { passive: true },
-  );
-  iframe_doc.addEventListener(
-    "touchend",
-    forward_touch("touchend"),
-    { passive: true },
-  );
+  iframe_doc.addEventListener("touchstart", forward_touch("touchstart"), {
+    passive: true,
+  });
+  iframe_doc.addEventListener("touchmove", forward_touch("touchmove"), {
+    passive: true,
+  });
+  iframe_doc.addEventListener("touchend", forward_touch("touchend"), {
+    passive: true,
+  });
 
   iframe_body.addEventListener("click", (e) => {
     const target = e.target as HTMLElement;
@@ -214,9 +208,7 @@ export function attach_iframe_interactions(
 
   iframe_doc.addEventListener("keydown", (e) => {
     const is_select_all =
-      (e.ctrlKey || e.metaKey) &&
-      !e.altKey &&
-      (e.key === "a" || e.key === "A");
+      (e.ctrlKey || e.metaKey) && !e.altKey && (e.key === "a" || e.key === "A");
 
     if (!is_select_all) return;
 

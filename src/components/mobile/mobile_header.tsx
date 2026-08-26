@@ -61,7 +61,7 @@ export const MobileHeader = memo(function MobileHeader({
             type="button"
             onClick={on_back}
           >
-            <ChevronLeftIcon className="h-6 w-6" />
+            <ChevronLeftIcon className="h-6 w-6 rtl:-scale-x-100" />
           </button>
         )}
 

@@ -21,7 +21,8 @@
 import type { TranslationKey } from "@/lib/i18n/types";
 
 import { is_native_platform } from "@/native/capacitor_bridge";
-import { trigger_download } from "@/services/export/destination";
+import { trigger_download } from "@/utils/download_blob";
+import { app_locale, get_display_time_zone } from "@/utils/date_format";
 
 type Translator = (
   key: TranslationKey,
@@ -72,7 +73,7 @@ export async function generate_recovery_pdf(
   doc.setTextColor(60, 60, 60);
   doc.text(`${t("common.recovery_pdf_account")} ${email}`, 20, 58);
   doc.text(
-    `${t("common.recovery_pdf_generated")} ${new Date().toLocaleString()}`,
+    `${t("common.recovery_pdf_generated")} ${new Date().toLocaleString(app_locale(), { timeZone: get_display_time_zone() })}`,
     20,
     65,
   );
@@ -252,7 +253,7 @@ export async function generate_recovery_phrase_pdf(
   doc.setTextColor(60, 60, 60);
   doc.text(`${t("common.recovery_pdf_account")} ${email}`, 20, 58);
   doc.text(
-    `${t("common.recovery_pdf_generated")} ${new Date().toLocaleString()}`,
+    `${t("common.recovery_pdf_generated")} ${new Date().toLocaleString(app_locale(), { timeZone: get_display_time_zone() })}`,
     20,
     65,
   );

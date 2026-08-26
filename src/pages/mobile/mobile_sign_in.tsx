@@ -299,7 +299,7 @@ export default function MobileSignInPage() {
                 whileTap={{ scale: 0.9 }}
                 onClick={() => navigate("/welcome")}
               >
-                <ChevronLeftIcon className="h-5 w-5" />
+                <ChevronLeftIcon className="h-5 w-5 rtl:-scale-x-100" />
               </motion.button>
             </motion.div>
           )}
@@ -357,7 +357,10 @@ export default function MobileSignInPage() {
                   <UserCircleIcon />
                 </div>
                 <Input
+                  autoCapitalize="none"
                   autoComplete="username"
+                  autoCorrect="off"
+                  spellCheck={false}
                   className={INNER_INPUT_WITH_ICON_CLASS}
                   disabled={is_loading}
                   maxLength={55}
@@ -569,7 +572,7 @@ export default function MobileSignInPage() {
                 <span>
                   {t("auth.dont_have_account")} {t("auth.sign_up")}
                 </span>
-                <ArrowRightIcon className="h-4 w-4" />
+                <ArrowRightIcon className="h-4 w-4 rtl:-scale-x-100" />
               </motion.button>
             </motion.div>
           </motion.div>

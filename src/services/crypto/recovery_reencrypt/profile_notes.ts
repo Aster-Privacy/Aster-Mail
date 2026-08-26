@@ -19,14 +19,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { HASH_ALG } from "@/services/crypto/constants";
-import type { } from "../key_manager";
+import type {} from "../key_manager";
 import { api_client } from "@/services/api/client";
-import type { } from "@/services/api/signatures";
-import type { } from "@/services/api/templates";
-import type { } from "@/services/api/blocked_senders";
-import type { } from "@/services/api/allowed_senders";
-import { array_to_base64, base64_to_array } from "../base64";
 
+import type {} from "@/services/api/signatures";
+import type {} from "@/services/api/templates";
+import type {} from "@/services/api/blocked_senders";
+import type {} from "@/services/api/allowed_senders";
+import { array_to_base64, base64_to_array } from "../base64";
 
 import { import_aes_key } from "./key_helpers";
 export async function derive_profile_notes_hmac_key(
@@ -78,7 +78,11 @@ export async function re_encrypt_profile_notes(
     try {
       const ct = base64_to_array(note.encrypted_note);
       const iv = base64_to_array(note.note_nonce);
-      const pt = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, old_aes, ct);
+      const pt = await crypto.subtle.decrypt(
+        { name: "AES-GCM", iv },
+        old_aes,
+        ct,
+      );
 
       const new_iv = crypto.getRandomValues(new Uint8Array(12));
       const new_ct = await crypto.subtle.encrypt(
@@ -98,7 +102,9 @@ export async function re_encrypt_profile_notes(
         new_hmac,
         integrity_input,
       );
-      const new_integrity_hash = array_to_base64(new Uint8Array(new_integrity_sig));
+      const new_integrity_hash = array_to_base64(
+        new Uint8Array(new_integrity_sig),
+      );
 
       await api_client.put("/settings/v1/profile_notes", {
         email_token: note.email_token,
@@ -114,4 +120,3 @@ export async function re_encrypt_profile_notes(
 
   return ok;
 }
-

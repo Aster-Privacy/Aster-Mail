@@ -74,10 +74,10 @@ export function QuotedHtmlPreview({ html }: { html: string }) {
 
   return (
     <div
-      ref={container_ref}
       dangerouslySetInnerHTML={{ __html: sanitized_html }}
-      className="mt-2 py-3 px-4 rounded-md text-sm leading-relaxed overflow-y-auto max-h-[150px] bg-surf-tertiary text-txt-secondary"
+      ref={container_ref}
       data-selectable-region
+      className="mt-2 py-3 px-4 rounded-md text-sm leading-relaxed overflow-y-auto max-h-[150px] bg-surf-tertiary text-txt-secondary"
       style={{ wordBreak: "break-word" }}
       tabIndex={-1}
     />

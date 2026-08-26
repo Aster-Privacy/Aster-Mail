@@ -18,18 +18,19 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { InboxEmail } from "@/types/email";
+
 import { useCallback, useMemo } from "react";
 
 import { use_context_menu_actions } from "@/components/email/inbox/inbox_context_menu_handler";
 import { use_folders } from "@/hooks/use_folders";
 import { use_tags } from "@/hooks/use_tags";
-import type { InboxEmail } from "@/types/email";
 
 export type SplitEmailViewParams = {
   split_email_id: string | null | undefined;
   email_state: { emails: InboxEmail[] };
   filtered_emails: InboxEmail[];
-  handle_snooze: (email_id: string, snooze_until: Date) => Promise<void>;
+  handle_snooze: (email_id: string, snooze_until: Date) => Promise<boolean | void>;
   handle_unsnooze: (email_id: string) => Promise<void>;
   tags_state: ReturnType<typeof use_tags>["state"];
   folders_state: ReturnType<typeof use_folders>["state"];

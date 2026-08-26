@@ -158,7 +158,14 @@ export function TotpDisableModal({
   };
 
   return (
-    <Modal is_open={is_open} on_close={on_close} size="md">
+    <Modal
+      close_on_escape={!is_loading}
+      close_on_overlay={!is_loading}
+      is_open={is_open}
+      on_close={on_close}
+      show_close_button={!is_loading}
+      size="md"
+    >
       <ModalHeader>
         <div className="flex items-center gap-3">
           <ExclamationTriangleIcon className="w-5 h-5 text-red-500 flex-shrink-0" />
@@ -205,18 +212,19 @@ export function TotpDisableModal({
             </label>
             <div className="relative">
               <Input
-                className="w-full pr-10"
+                autoComplete="current-password"
+                className="w-full pe-10"
                 disabled={is_loading}
                 id="disable-password"
+                maxLength={128}
                 placeholder={t("settings.enter_your_password_placeholder")}
                 status={error ? "error" : "default"}
                 type={show_password ? "text" : "password"}
                 value={password}
-                maxLength={128}
                 onChange={(e) => set_password(clamp_password(e.target.value))}
               />
               <button
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-txt-muted"
+                className="absolute end-3 top-1/2 -translate-y-1/2 text-txt-muted"
                 type="button"
                 onClick={() => set_show_password(!show_password)}
               >

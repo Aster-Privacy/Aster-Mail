@@ -48,6 +48,7 @@ import {
   read_offer_prefill,
   type OfferRole,
 } from "@/components/register/academic_offer_prefill";
+import { is_composing } from "@/utils/ime";
 
 interface RegisterStepAcademicOfferProps {
   reg: UseRegistrationReturn;
@@ -141,9 +142,11 @@ export const RegisterStepAcademicOffer = ({
     let cancelled = false;
     const check = async () => {
       const res = await get_academic_discount_status();
+
       if (!cancelled && res.data?.status === "verified") set_verified(true);
     };
     const id = setInterval(check, 4000);
+
     void check();
 
     return () => {
@@ -257,7 +260,10 @@ export const RegisterStepAcademicOffer = ({
           role="tab"
           style={
             role === "student"
-              ? { backgroundColor: "var(--accent-blue)", color: "var(--accent-fg, #ffffff)" }
+              ? {
+                  backgroundColor: "var(--accent-blue)",
+                  color: "var(--accent-fg, #ffffff)",
+                }
               : { color: "var(--text-tertiary)" }
           }
           type="button"
@@ -272,7 +278,10 @@ export const RegisterStepAcademicOffer = ({
           role="tab"
           style={
             role === "journalist"
-              ? { backgroundColor: "var(--accent-blue)", color: "var(--accent-fg, #ffffff)" }
+              ? {
+                  backgroundColor: "var(--accent-blue)",
+                  color: "var(--accent-fg, #ffffff)",
+                }
               : { color: "var(--text-tertiary)" }
           }
           type="button"
@@ -284,7 +293,7 @@ export const RegisterStepAcademicOffer = ({
       </div>
 
       {role === "student" ? (
-        <div className="w-full mt-5 space-y-3 text-left">
+        <div className="w-full mt-5 space-y-3 text-start">
           <input
             autoFocus
             className="w-full h-12 px-4 rounded-xl border border-edge-secondary bg-transparent text-[15px] text-txt-primary placeholder:text-txt-muted focus:outline-none focus:border-blue-500"
@@ -294,7 +303,7 @@ export const RegisterStepAcademicOffer = ({
             value={academic_email}
             onChange={(e) => set_academic_email(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === "Enter") handle_submit();
+              if (e.key === "Enter" && !is_composing(e)) handle_submit();
             }}
           />
           {captcha_required && (
@@ -323,7 +332,7 @@ export const RegisterStepAcademicOffer = ({
         </div>
       ) : (
         <div className="w-full mt-5 space-y-3">
-          <ol className="w-full rounded-xl border border-edge-secondary px-4 py-4 text-left space-y-3">
+          <ol className="w-full rounded-xl border border-edge-secondary px-4 py-4 text-start space-y-3">
             {[
               t("auth.academic_offer_j_step1"),
               t("auth.academic_offer_j_step2"),

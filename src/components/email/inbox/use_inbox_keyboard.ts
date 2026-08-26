@@ -22,6 +22,8 @@ import type { InboxEmail } from "@/types/email";
 
 import { useEffect } from "react";
 
+import { is_popup_email_open } from "@/components/email/hooks/popup_email_registry";
+
 interface ContextMenuActions {
   handle_archive: (email: InboxEmail) => void;
   handle_delete: (email: InboxEmail) => void;
@@ -43,34 +45,36 @@ export function use_inbox_keyboard(
 ) {
   useEffect(() => {
     const find_email = (id: string) => emails.find((e) => e.id === id);
+    const find_unowned_email = (id: string) =>
+      is_popup_email_open(id) ? undefined : find_email(id);
     const handle_archive = (e: Event) => {
       const detail = (e as CustomEvent<{ id: string }>).detail;
-      const email = find_email(detail.id);
+      const email = find_unowned_email(detail.id);
 
       if (email) context_menu_actions.handle_archive(email);
     };
     const handle_delete = (e: Event) => {
       const detail = (e as CustomEvent<{ id: string }>).detail;
-      const email = find_email(detail.id);
+      const email = find_unowned_email(detail.id);
 
       if (email) context_menu_actions.handle_delete(email);
     };
     const handle_spam = (e: Event) => {
       const detail = (e as CustomEvent<{ id: string }>).detail;
-      const email = find_email(detail.id);
+      const email = find_unowned_email(detail.id);
 
       if (email) context_menu_actions.handle_spam(email);
     };
     const handle_mark_read = (e: Event) => {
       const detail = (e as CustomEvent<{ id: string }>).detail;
-      const email = find_email(detail.id);
+      const email = find_unowned_email(detail.id);
 
       if (email && !email.is_read)
         context_menu_actions.handle_toggle_read(email);
     };
     const handle_mark_unread = (e: Event) => {
       const detail = (e as CustomEvent<{ id: string }>).detail;
-      const email = find_email(detail.id);
+      const email = find_unowned_email(detail.id);
 
       if (email && email.is_read && email.item_type !== "sent")
         context_menu_actions.handle_toggle_read(email);

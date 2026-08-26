@@ -18,7 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { HASH_ALG } from "@/services/crypto/constants";
 import { array_to_base64 } from "./base64";
 import {
   EncryptedVault,
@@ -27,8 +26,9 @@ import {
 } from "./key_manager";
 import { zero_uint8_array } from "./secure_memory";
 
-const PBKDF2_ITERATIONS = 310000;
+import { HASH_ALG } from "@/services/crypto/constants";
 
+const PBKDF2_ITERATIONS = 310000;
 
 function canonicalize_recovery_code(code: string): string {
   const stripped = code.toUpperCase().replace(/[^A-Z0-9]/g, "");

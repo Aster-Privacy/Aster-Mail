@@ -18,8 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
-import { sanitize_download_filename } from "@/lib/attachment_utils";
+import { user_facing_error } from "@/utils/user_facing_error";
+import { trigger_download } from "@/utils/download_blob";
 import type {
   ContactAttachment,
   ContactAttachmentMeta,
@@ -29,6 +29,8 @@ import type {
 
 import { api_client, type ApiResponse } from "./client";
 import { get_contacts_encryption_key } from "./contacts";
+
+import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 
 function array_to_base64(array: Uint8Array): string {
   let binary = "";
@@ -115,7 +117,11 @@ export async function list_contact_attachments(contact_id: string): Promise<
     const key = await get_contacts_encryption_key();
     const items = await Promise.all(
       response.data.items.map(async (item) => {
-        const decrypted_meta = await decrypt_aes_gcm_with_fallback(key, base64_to_array(item.encrypted_meta), base64_to_array(item.meta_nonce));
+        const decrypted_meta = await decrypt_aes_gcm_with_fallback(
+          key,
+          base64_to_array(item.encrypted_meta),
+          base64_to_array(item.meta_nonce),
+        );
 
         const meta: ContactAttachmentMeta = JSON.parse(
           new TextDecoder().decode(decrypted_meta),
@@ -128,8 +134,7 @@ export async function list_contact_attachments(contact_id: string): Promise<
     return { data: { items, total: response.data.total } };
   } catch (err) {
     return {
-      error:
-        err instanceof Error ? err.message : "Failed to decrypt attachments",
+      error: user_facing_error(err, "Failed to decrypt attachments"),
     };
   }
 }
@@ -149,9 +154,17 @@ export async function get_contact_attachment(
   try {
     const key = await get_contacts_encryption_key();
 
-    const decrypted_data = await decrypt_aes_gcm_with_fallback(key, base64_to_array(response.data.encrypted_data), base64_to_array(response.data.data_nonce));
+    const decrypted_data = await decrypt_aes_gcm_with_fallback(
+      key,
+      base64_to_array(response.data.encrypted_data),
+      base64_to_array(response.data.data_nonce),
+    );
 
-    const decrypted_meta = await decrypt_aes_gcm_with_fallback(key, base64_to_array(response.data.encrypted_meta), base64_to_array(response.data.meta_nonce));
+    const decrypted_meta = await decrypt_aes_gcm_with_fallback(
+      key,
+      base64_to_array(response.data.encrypted_meta),
+      base64_to_array(response.data.meta_nonce),
+    );
 
     const meta: ContactAttachmentMeta = JSON.parse(
       new TextDecoder().decode(decrypted_meta),
@@ -170,8 +183,7 @@ export async function get_contact_attachment(
     };
   } catch (err) {
     return {
-      error:
-        err instanceof Error ? err.message : "Failed to decrypt attachment",
+      error: user_facing_error(err, "Failed to decrypt attachment"),
     };
   }
 }
@@ -189,14 +201,5 @@ export function download_attachment(
   data: Uint8Array,
   meta: ContactAttachmentMeta,
 ): void {
-  const blob = new Blob([data], { type: meta.mime_type });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-
-  a.href = url;
-  a.download = sanitize_download_filename(meta.filename);
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  trigger_download(new Blob([data], { type: meta.mime_type }), meta.filename);
 }

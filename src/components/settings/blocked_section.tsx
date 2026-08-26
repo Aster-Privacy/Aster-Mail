@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
   NoSymbolIcon,
   PlusIcon,
@@ -53,6 +53,8 @@ import {
   type DecryptedBlockedSender,
 } from "@/services/api/blocked_senders";
 import { show_toast } from "@/components/toast/simple_toast";
+import { app_locale, get_display_time_zone } from "@/utils/date_format";
+import { is_composing } from "@/utils/ime";
 
 export function BlockedSection() {
   const { t } = use_i18n();
@@ -68,6 +70,7 @@ export function BlockedSection() {
   const [new_email, set_new_email] = useState("");
   const [is_domain, set_is_domain] = useState(false);
   const [is_adding, set_is_adding] = useState(false);
+  const unblocking_ids = useRef<Set<string>>(new Set());
 
   const open_add_form = () => {
     set_new_email("");
@@ -117,8 +120,26 @@ export function BlockedSection() {
     set_selected_ids,
   );
 
+  const visible_ids_key = filtered_senders.map((s) => s.id).join(",");
+
+  useEffect(() => {
+    const visible = new Set(visible_ids_key ? visible_ids_key.split(",") : []);
+
+    set_selected_ids((prev) => {
+      if (prev.size === 0) return prev;
+
+      const next = new Set(Array.from(prev).filter((id) => visible.has(id)));
+
+      return next.size === prev.size ? prev : next;
+    });
+  }, [visible_ids_key]);
+
+  const all_filtered_selected =
+    filtered_senders.length > 0 &&
+    filtered_senders.every((s) => selected_ids.has(s.id));
+
   const handle_select_all = () => {
-    if (selected_ids.size === filtered_senders.length) {
+    if (all_filtered_selected) {
       set_selected_ids(new Set());
     } else {
       set_selected_ids(new Set(filtered_senders.map((s) => s.id)));
@@ -126,14 +147,35 @@ export function BlockedSection() {
   };
 
   const handle_unblock = async (sender: DecryptedBlockedSender) => {
+    if (unblocking_ids.current.has(sender.id)) return;
+    unblocking_ids.current.add(sender.id);
+
+    const previous_index = blocked_senders.findIndex((s) => s.id === sender.id);
+
     set_blocked_senders((prev) => prev.filter((s) => s.id !== sender.id));
-    show_toast(t("common.unblocked_email", { email: sender.email }), "success");
 
     const result = await unblock_sender_by_token(sender.sender_token);
 
+    unblocking_ids.current.delete(sender.id);
+
     if (!result.data?.success) {
-      set_blocked_senders((prev) => [...prev, sender]);
+      set_blocked_senders((prev) => {
+        if (prev.some((s) => s.id === sender.id)) return prev;
+        const next = [...prev];
+
+        next.splice(
+          previous_index < 0 ? next.length : previous_index,
+          0,
+          sender,
+        );
+
+        return next;
+      });
+      show_toast(t("common.something_went_wrong_try_again"), "error");
+
+      return;
     }
+    show_toast(t("common.unblocked_email", { email: sender.email }), "success");
   };
 
   const handle_bulk_unblock = async () => {
@@ -147,16 +189,27 @@ export function BlockedSection() {
       const result = await bulk_unblock_senders_by_tokens(tokens);
 
       if (result.data?.success) {
+        const unblocked_count = result.data.unblocked_count;
+
+        if (unblocked_count < tokens.length) {
+          set_selected_ids(new Set());
+          await fetch_blocked_senders();
+          show_toast(t("common.something_went_wrong_try_again"), "error");
+
+          return;
+        }
         set_blocked_senders((prev) =>
           prev.filter((s) => !selected_ids.has(s.id)),
         );
         show_toast(
           t("common.unblocked_count_senders", {
-            count: String(result.data.unblocked_count),
+            count: unblocked_count,
           }),
           "success",
         );
         set_selected_ids(new Set());
+      } else {
+        show_toast(t("common.something_went_wrong_try_again"), "error");
       }
     } finally {
       set_is_unblocking(false);
@@ -164,13 +217,15 @@ export function BlockedSection() {
   };
 
   const handle_add_blocked = async () => {
+    if (is_adding) return;
+
     const value = new_email.trim();
 
     if (!value) return;
 
     if (is_domain) {
       const domain_regex =
-        /^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*\.[a-z]{2,}$/i;
+        /^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*\.[a-z][a-z0-9-]+$/i;
 
       if (!domain_regex.test(value) || value.length > 253) {
         show_toast(t("common.please_enter_valid_domain"), "error");
@@ -192,14 +247,20 @@ export function BlockedSection() {
       const result = await block_sender(value, undefined, "spam", is_domain);
 
       if (result.data) {
-        set_blocked_senders((prev) => [result.data!, ...prev]);
+        set_blocked_senders((prev) => [
+          result.data!,
+          ...prev.filter((s) => s.id !== result.data!.id),
+        ]);
         show_toast(
           t("common.blocked_email", { email: result.data.email }),
           "success",
         );
         close_add_form();
-      } else if (result.error) {
-        show_toast(result.error, "error");
+      } else {
+        show_toast(
+          result.error || t("common.something_went_wrong_try_again"),
+          "error",
+        );
       }
     } finally {
       set_is_adding(false);
@@ -209,7 +270,8 @@ export function BlockedSection() {
   const format_date = (date_string: string) => {
     const date = new Date(date_string);
 
-    return date.toLocaleDateString(undefined, {
+    return date.toLocaleDateString(app_locale(), {
+      timeZone: get_display_time_zone(),
       month: "short",
       day: "numeric",
       year: "numeric",
@@ -243,11 +305,11 @@ export function BlockedSection() {
 
       <div className="flex items-center justify-between gap-3">
         <div className="relative flex-1 max-w-xs">
-          <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-txt-muted" />
+          <MagnifyingGlassIcon className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-txt-muted" />
           <Input
             placeholder={t("common.search_blocked_senders")}
             size="md"
-            style={{ paddingLeft: "38px" }}
+            style={{ paddingInlineStart: "38px" }}
             value={search_query}
             onChange={(e) => set_search_query(e.target.value)}
           />
@@ -276,7 +338,7 @@ export function BlockedSection() {
         show_close_button={false}
         size="md"
       >
-        <ModalHeader className="pr-6">
+        <ModalHeader className="pe-6">
           <ModalTitle className="text-[15px]">
             {t("mail.block_sender")}
           </ModalTitle>
@@ -292,7 +354,6 @@ export function BlockedSection() {
               name="blocklist_type"
               onChange={() => {
                 set_is_domain(false);
-                set_new_email("");
               }}
             />
             <Radio
@@ -301,7 +362,11 @@ export function BlockedSection() {
               name="blocklist_type"
               onChange={() => {
                 set_is_domain(true);
-                set_new_email("");
+                set_new_email((prev) => {
+                  const at_index = prev.lastIndexOf("@");
+
+                  return at_index >= 0 ? prev.slice(at_index + 1).trim() : prev;
+                });
               }}
             />
           </div>
@@ -316,7 +381,7 @@ export function BlockedSection() {
             value={new_email}
             onChange={(e) => set_new_email(e.target.value)}
             onKeyDown={(e) => {
-              if (e["key"] === "Enter") {
+              if (e["key"] === "Enter" && !is_composing(e)) {
                 handle_add_blocked();
               }
             }}
@@ -375,13 +440,13 @@ export function BlockedSection() {
         <div className="rounded-lg overflow-hidden border border-edge-secondary">
           <div className="flex items-center px-4 py-2 border-b border-edge-secondary">
             <Checkbox
-              checked={selected_ids.size === filtered_senders.length}
+              checked={all_filtered_selected}
               className="p-2 -m-2"
               onCheckedChange={handle_select_all}
             />
-            <span className="ml-3 text-xs font-medium text-txt-muted">
+            <span className="ms-3 text-xs font-medium text-txt-muted">
               {t("settings.blocked_senders_count", {
-                count: String(filtered_senders.length),
+                count: filtered_senders.length,
               })}
             </span>
           </div>
@@ -400,7 +465,11 @@ export function BlockedSection() {
                 onCheckedChange={() => handle_select(index)}
               />
 
-              {sender.is_domain ? (
+              {sender.is_unreadable ? (
+                <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0">
+                  <ExclamationTriangleIcon className="w-5 h-5 text-txt-muted" />
+                </div>
+              ) : sender.is_domain ? (
                 <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0">
                   <GlobeAltIcon className="w-5 h-5 text-txt-muted" />
                 </div>
@@ -417,9 +486,13 @@ export function BlockedSection() {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <span className="text-[13px] font-medium truncate text-txt-primary">
-                    {sender.is_domain ? `*.${sender.email}` : sender.email}
+                    {sender.is_unreadable
+                      ? t("settings.unreadable_entry_title")
+                      : sender.is_domain
+                        ? `*.${sender.email}`
+                        : sender.email}
                   </span>
-                  {sender.is_domain && (
+                  {!sender.is_unreadable && sender.is_domain && (
                     <span
                       className="text-[10px] px-1.5 py-0.5 rounded"
                       style={{
@@ -431,10 +504,17 @@ export function BlockedSection() {
                     </span>
                   )}
                 </div>
-                {sender.name && !sender.is_domain && (
-                  <p className="text-[12px] truncate text-txt-muted">
-                    {sender.name}
+                {sender.is_unreadable ? (
+                  <p className="text-[12px] text-txt-muted">
+                    {t("settings.unreadable_entry_hint")}
                   </p>
+                ) : (
+                  sender.name &&
+                  !sender.is_domain && (
+                    <p className="text-[12px] truncate text-txt-muted">
+                      {sender.name}
+                    </p>
+                  )
                 )}
               </div>
 

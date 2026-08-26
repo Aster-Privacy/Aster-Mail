@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { EncryptedVault } from "@/services/crypto/key_manager_core";
+
 import {
   decrypt_vault,
   derive_public_keys_from_private,
@@ -32,7 +34,6 @@ import {
 import { with_vault_write_lock } from "@/services/crypto/vault_write_lock";
 import { get_vault_history, update_vault } from "@/services/api/key_rotation";
 import { get_current_account } from "@/services/account_manager";
-import type { EncryptedVault } from "@/services/crypto/key_manager_core";
 
 async function derive_public_or_null(
   armored_secret_key: string,

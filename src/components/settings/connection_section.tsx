@@ -79,6 +79,19 @@ export function ConnectionSection() {
         await connection_store.set_method(method);
 
         if (method === "cdn_relay") {
+          await connection_store.fetch_connection_info();
+
+          if (!connection_store.get_cdn_relay_url()) {
+            await connection_store.set_method("direct");
+            connection_store.set_status(
+              "error",
+              t("settings.connection.status_error"),
+            );
+            show_toast(t("settings.connection.status_error"), "error");
+
+            return;
+          }
+
           connection_store.set_status("connected");
           show_toast(t("settings.connection.status_connected"), "success");
         } else {
@@ -133,7 +146,7 @@ export function ConnectionSection() {
               aria-disabled={is_disabled}
               aria-pressed={is_selected}
               className={cn(
-                "rounded-[14px] transition-colors text-left cursor-pointer",
+                "rounded-[14px] transition-colors text-start cursor-pointer",
                 is_disabled && "opacity-50 pointer-events-none",
               )}
               role="button"

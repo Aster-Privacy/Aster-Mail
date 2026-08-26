@@ -27,7 +27,6 @@ import {
   type OnboardingState,
 } from "@/services/api/onboarding";
 import { use_auth } from "@/contexts/auth_context";
-
 import { ignore_error } from "@/lib/ignore_error";
 
 interface UseOnboardingReturn {
@@ -89,13 +88,19 @@ export function use_onboarding(): UseOnboardingReturn {
       is_completed?: boolean,
       is_skipped?: boolean,
     ) => {
-      if (!vault || is_updating_ref.current) return;
+      if (!vault) return;
 
       if (pending_update_ref.current) {
         clearTimeout(pending_update_ref.current);
       }
 
-      pending_update_ref.current = setTimeout(async () => {
+      const run_update = async () => {
+        if (is_updating_ref.current) {
+          pending_update_ref.current = setTimeout(run_update, 300);
+
+          return;
+        }
+
         is_updating_ref.current = true;
 
         try {
@@ -110,7 +115,9 @@ export function use_onboarding(): UseOnboardingReturn {
         } finally {
           is_updating_ref.current = false;
         }
-      }, 300);
+      };
+
+      pending_update_ref.current = setTimeout(run_update, 300);
     },
     [vault],
   );

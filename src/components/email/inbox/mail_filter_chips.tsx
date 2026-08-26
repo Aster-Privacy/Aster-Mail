@@ -35,6 +35,8 @@ import {
 } from "@/components/ui/dropdown_menu";
 import { use_i18n } from "@/lib/i18n/context";
 import { AdvancedSearchModal } from "@/components/search/advanced_search_modal";
+import { is_composing } from "@/utils/ime";
+import { local_date_key } from "@/utils/date_format";
 
 type DateWindowKey =
   | "any"
@@ -98,7 +100,7 @@ function date_window_boundary(days: number): string {
 
   boundary.setDate(boundary.getDate() - days);
 
-  return boundary.toISOString().slice(0, 10);
+  return local_date_key(boundary);
 }
 
 export function build_chip_query(filters: ChipFilters): string {
@@ -210,7 +212,7 @@ function AddressChip({
           value={draft}
           onChange={(e) => set_draft(e.target.value)}
           onKeyDown={(e) => {
-            if (e.key === "Enter") {
+            if (e.key === "Enter" && !is_composing(e)) {
               e.preventDefault();
               on_apply(draft);
               set_is_open(false);
@@ -238,7 +240,7 @@ export function MailFilterChips({
   const apply = useCallback(
     (next: ChipFilters) => {
       set_filters(next);
-      if (has_any_filter(next)) on_search_submit(build_chip_query(next));
+      on_search_submit(has_any_filter(next) ? build_chip_query(next) : "");
     },
     [on_search_submit],
   );
@@ -315,6 +317,7 @@ export function MailFilterChips({
                 <input
                   aria-label={t("settings.export_scope_date_from")}
                   className="w-full h-8 px-2 rounded-md border bg-[var(--bg-primary)] border-[var(--border-secondary)] text-xs text-[var(--text-primary)] outline-none"
+                  max={filters.custom_before || undefined}
                   type="date"
                   value={filters.custom_after}
                   onChange={(event) =>
@@ -328,6 +331,7 @@ export function MailFilterChips({
                 <input
                   aria-label={t("settings.export_scope_date_to")}
                   className="w-full h-8 px-2 rounded-md border bg-[var(--bg-primary)] border-[var(--border-secondary)] text-xs text-[var(--text-primary)] outline-none"
+                  min={filters.custom_after || undefined}
                   type="date"
                   value={filters.custom_before}
                   onChange={(event) =>

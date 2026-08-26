@@ -131,7 +131,7 @@ function CheckRow({
         </div>
       </div>
       {failed && record && showing_record && (
-        <div className="mt-2 ml-8">
+        <div className="mt-2 ms-8">
           <DnsRecordCard
             domain={domain_name}
             provider={provider}
@@ -240,7 +240,10 @@ export function DomainHealthPanel({
     <div>
       <div className={`p-4 rounded-lg border ${tone.wrap}`}>
         <div className="flex items-start gap-3">
-          <HeroIcon className={`w-6 h-6 flex-shrink-0 ${tone.icon}`} tone={copy.tone} />
+          <HeroIcon
+            className={`w-6 h-6 flex-shrink-0 ${tone.icon}`}
+            tone={copy.tone}
+          />
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-txt-primary">
               {t(copy.title_key, { domain: domain_name })}
@@ -269,7 +272,9 @@ export function DomainHealthPanel({
       {provider && (
         <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-txt-muted">
           <span>
-            {t("settings.domain_provider_detected", { provider: provider.name })}
+            {t("settings.domain_provider_detected", {
+              provider: provider.name,
+            })}
           </span>
           {dashboard_url && (
             <a
@@ -295,7 +300,9 @@ export function DomainHealthPanel({
             </p>
           )}
           {should_keep_polling(health) && !error && (
-            <p className="mt-0.5">{t("settings.domain_health_auto_checking")}</p>
+            <p className="mt-0.5">
+              {t("settings.domain_health_auto_checking")}
+            </p>
           )}
         </div>
         <Button
@@ -305,7 +312,7 @@ export function DomainHealthPanel({
           onClick={() => load_health(true)}
         >
           <ArrowPathIcon
-            className={`w-4 h-4 mr-1.5 ${refreshing ? "animate-spin" : ""}`}
+            className={`w-4 h-4 me-1.5 ${refreshing ? "animate-spin" : ""}`}
           />
           {refreshing
             ? t("settings.domain_health_checking")

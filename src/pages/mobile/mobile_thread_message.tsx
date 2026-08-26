@@ -20,6 +20,7 @@
 //
 import type { DecryptedThreadMessage } from "@/types/thread";
 import type { TranslationKey } from "@/lib/i18n";
+import type { PhishingLevel } from "@/lib/phishing_analyzer";
 
 import { useMemo, useEffect, useState } from "react";
 import {
@@ -29,6 +30,10 @@ import {
 } from "@heroicons/react/24/outline";
 
 import { SandboxedEmailRenderer } from "@/components/email/sandboxed_email_renderer";
+import { TranslationBanner } from "@/components/email/banners/translation_banner";
+import { use_email_translation } from "@/components/email/hooks/use_email_translation";
+import { analyze_email_content } from "@/lib/phishing_analyzer";
+import { ignore_error } from "@/lib/ignore_error";
 import {
   sanitize_html,
   is_html_content,
@@ -40,6 +45,11 @@ import {
 import { is_system_email } from "@/lib/utils";
 import { get_image_proxy_url } from "@/lib/image_proxy";
 import { MobileAttachmentRow } from "@/components/mobile/mobile_attachment_row";
+import { show_toast } from "@/components/toast/simple_toast";
+import {
+  attachment_error_key,
+  download_attachment_by_id,
+} from "@/utils/attachment_download";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { use_preferences } from "@/contexts/preferences_context";
 import {
@@ -122,8 +132,10 @@ export function MobileThreadMessage({
   useEffect(() => {
     const update = () =>
       set_lockdown_active(is_lockdown_enabled(auth?.current_account_id ?? ""));
+
     window.addEventListener(LOCKDOWN_CHANGED_EVENT, update);
     window.addEventListener("storage", update);
+
     return () => {
       window.removeEventListener(LOCKDOWN_CHANGED_EVENT, update);
       window.removeEventListener("storage", update);
@@ -261,6 +273,69 @@ export function MobileThreadMessage({
 
   const sanitized_html = sanitize_result.html;
 
+  const translation_enabled = preferences.translate_incoming !== "off";
+
+  const [downloading_attachment_id, set_downloading_attachment_id] = useState<
+    string | null
+  >(null);
+  const [phishing_level, set_phishing_level] = useState<PhishingLevel>("safe");
+  const [phishing_checked, set_phishing_checked] = useState(false);
+
+  useEffect(() => {
+    if (!translation_enabled) {
+      set_phishing_level("safe");
+      set_phishing_checked(false);
+
+      return;
+    }
+
+    let cancelled = false;
+
+    set_phishing_level("safe");
+    set_phishing_checked(false);
+
+    analyze_email_content(
+      message.html_content ?? "",
+      message.body ?? "",
+      message.sender_name ?? "",
+      message.sender_email ?? "",
+      !is_system,
+    )
+      .then((result) => {
+        if (!cancelled) set_phishing_level(result.level);
+      })
+      .catch((caught) =>
+        ignore_error("pages/mobile/mobile_thread_message:analyze", caught),
+      )
+      .finally(() => {
+        if (!cancelled) set_phishing_checked(true);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    translation_enabled,
+    message.id,
+    message.html_content,
+    message.body,
+    message.sender_name,
+    message.sender_email,
+    is_system,
+  ]);
+
+  const translation = use_email_translation({
+    account_id,
+    email_id: message.id,
+    subject: message.subject ?? "",
+    translatable:
+      !is_ratchet_undecryptable &&
+      message.is_spam !== true &&
+      message.item_type !== "draft" &&
+      phishing_checked &&
+      phishing_level === "safe",
+  });
+
   useEffect(() => {
     if (
       is_expanded &&
@@ -387,7 +462,7 @@ export function MobileThreadMessage({
                 type="button"
                 onClick={() => on_reply(message)}
               >
-                <ArrowUturnLeftIcon className="h-4 w-4" />
+                <ArrowUturnLeftIcon className="h-4 w-4 rtl:-scale-x-100" />
               </button>
               <button
                 className="flex h-8 items-center gap-1 rounded-[12px] px-2.5 text-[var(--text-secondary)] active:opacity-70"
@@ -400,7 +475,7 @@ export function MobileThreadMessage({
                 type="button"
                 onClick={() => on_forward(message)}
               >
-                <ArrowUturnRightIcon className="h-4 w-4" />
+                <ArrowUturnRightIcon className="h-4 w-4 rtl:-scale-x-100" />
               </button>
               <button
                 className="flex h-8 w-8 items-center justify-center rounded-[8px] text-[var(--text-secondary)] active:opacity-70"
@@ -469,16 +544,32 @@ export function MobileThreadMessage({
             {t("mail.encrypted_message_unavailable")}
           </p>
         ) : (
-          <SandboxedEmailRenderer
-            body_background={sanitize_result.body_background}
-            email_id={message.id}
-            force_dark_mode={force_dark_mode}
-            disable_auto_dark_mode={disable_auto_dark_mode}
-            is_plain_text={!has_rich_html(clean_body)}
-            load_remote_content={!lockdown_active && load_remote_content}
-            sanitized_html={sanitized_html}
-            variant="mobile"
-          />
+          <>
+            {translation.status !== "idle" && (
+              <div className="px-4 pb-2">
+                <TranslationBanner
+                  limited_quality={translation.limited_quality}
+                  on_show_original={translation.show_original}
+                  on_translate={translation.translate}
+                  showing_original={translation.showing_original}
+                  source_language={translation.source_language}
+                  status={translation.status}
+                  target_language={translation.target_language}
+                />
+              </div>
+            )}
+            <SandboxedEmailRenderer
+              body_background={sanitize_result.body_background}
+              disable_auto_dark_mode={disable_auto_dark_mode}
+              email_id={message.id}
+              force_dark_mode={force_dark_mode}
+              is_plain_text={!has_rich_html(clean_body)}
+              load_remote_content={!lockdown_active && load_remote_content}
+              on_document_ready={translation.on_document_ready}
+              sanitized_html={sanitized_html}
+              variant="mobile"
+            />
+          </>
         )}
       </div>
 
@@ -489,7 +580,20 @@ export function MobileThreadMessage({
               key={att.id}
               content_type={att.content_type}
               filename={att.filename}
+              is_downloading={downloading_attachment_id === att.id}
               size={att.size}
+              on_download={async () => {
+                if (downloading_attachment_id) return;
+                set_downloading_attachment_id(att.id);
+
+                try {
+                  await download_attachment_by_id(att.id, message.id);
+                } catch (error) {
+                  show_toast(t(attachment_error_key(error)), "error");
+                } finally {
+                  set_downloading_attachment_id(null);
+                }
+              }}
             />
           ))}
         </div>
@@ -508,7 +612,7 @@ export function MobileThreadMessage({
           type="button"
           onClick={() => on_reply(message)}
         >
-          <ArrowUturnLeftIcon className="h-4 w-4" />
+          <ArrowUturnLeftIcon className="h-4 w-4 rtl:-scale-x-100" />
           {t("mail.reply")}
         </button>
         <button
@@ -522,7 +626,7 @@ export function MobileThreadMessage({
           type="button"
           onClick={() => on_forward(message)}
         >
-          <ArrowUturnRightIcon className="h-4 w-4" />
+          <ArrowUturnRightIcon className="h-4 w-4 rtl:-scale-x-100" />
           {t("mail.forward")}
         </button>
       </div>

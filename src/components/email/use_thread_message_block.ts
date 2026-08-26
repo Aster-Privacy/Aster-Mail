@@ -19,18 +19,18 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { DecryptedThreadMessage } from "@/types/thread";
+import { resolve_content_blocking } from "./resolve_content_blocking";
 import type {
   ExternalContentReport,
   ImageLoadMode,
 } from "@/lib/html_sanitizer";
 import type { PreloadedSanitizedContent } from "@/components/email/hooks/preload_cache";
-
-import { pop_preloaded_thread_cid } from "@/components/email/hooks/preload_cache";
+import type { PhishingLevel } from "@/lib/phishing_analyzer";
 
 import { useState, useMemo, useEffect, useRef } from "react";
 
+import { pop_preloaded_thread_cid } from "@/components/email/hooks/preload_cache";
 import { dispatch_iframe_ready } from "@/components/email/sandboxed_email_renderer";
-
 import { is_ghost_email } from "@/stores/ghost_alias_store";
 import {
   sanitize_html,
@@ -41,7 +41,6 @@ import {
   strip_html_tags,
 } from "@/lib/html_sanitizer";
 import { is_system_email } from "@/lib/utils";
-
 import { get_image_proxy_url } from "@/lib/image_proxy";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
@@ -49,7 +48,6 @@ import { use_date_format } from "@/hooks/use_date_format";
 import { use_latched_by_id } from "@/hooks/use_latched_by_id";
 import { use_email_translation } from "@/components/email/hooks/use_email_translation";
 import { analyze_email_content } from "@/lib/phishing_analyzer";
-import type { PhishingLevel } from "@/lib/phishing_analyzer";
 import {
   extract_cid_references,
   extract_cid_inline_filenames,
@@ -73,8 +71,8 @@ import {
 } from "@/hooks/use_alias_delivery";
 import { use_auth_safe } from "@/contexts/auth_context";
 import { use_attachment_keys_version } from "@/hooks/use_attachment_keys_version";
-
 import { ignore_error } from "@/lib/ignore_error";
+import { clip_with_ellipsis } from "@/utils/preview_text";
 
 export interface ThreadMessageBlockProps {
   message: DecryptedThreadMessage;
@@ -140,14 +138,17 @@ function strip_quotes(body: string): string {
   const wrote_re = /On .+wrote:\s*/i;
   const match = body.match(wrote_re);
   let processed = body;
+
   if (match && match.index !== undefined) {
     const before = body.substring(0, match.index).trim();
+
     if (before.length > 0) {
       processed = before;
     } else {
       processed = body.substring(match.index + match[0].length);
     }
   }
+
   return (
     processed
       .replace(/^>.*$/gm, "")
@@ -155,7 +156,6 @@ function strip_quotes(body: string): string {
       .trim() || body
   );
 }
-
 
 export function use_thread_message_block(props: ThreadMessageBlockProps) {
   const {
@@ -222,7 +222,7 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
     }
     const plain = strip_html_tags(clean_body).replace(/\s+/g, " ").trim();
 
-    return plain.length > 120 ? plain.substring(0, 120) + "..." : plain;
+    return clip_with_ellipsis(plain, 120);
   }, [clean_body, password_protected, t]);
 
   const [lockdown_active, set_lockdown_active] = useState(() =>
@@ -232,13 +232,19 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
   useEffect(() => {
     const update = () =>
       set_lockdown_active(is_lockdown_enabled(auth?.current_account_id ?? ""));
+
     window.addEventListener(LOCKDOWN_CHANGED_EVENT, update);
     window.addEventListener("storage", update);
+
     return () => {
       window.removeEventListener(LOCKDOWN_CHANGED_EVENT, update);
       window.removeEventListener("storage", update);
     };
   }, [auth?.current_account_id]);
+
+  const is_body_visible =
+    message.is_deleted !== true &&
+    (is_expanded || is_last_in_thread || is_single_message);
 
   const is_system = is_system_email(message.sender_email);
   const is_ghost_sender = is_ghost_email(message.sender_email);
@@ -291,7 +297,7 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
   const [phishing_checked, set_phishing_checked] = useState(false);
 
   useEffect(() => {
-    if (!translation_enabled) {
+    if (!translation_enabled || !is_body_visible) {
       set_phishing_level("safe");
       set_phishing_checked(false);
 
@@ -313,7 +319,12 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
       .then((result) => {
         if (!cancelled) set_phishing_level(result.level);
       })
-      .catch((caught) => ignore_error("components/email/use_thread_message_block:update", caught))
+      .catch((caught) =>
+        ignore_error(
+          "components/email/use_thread_message_block:update",
+          caught,
+        ),
+      )
       .finally(() => {
         if (!cancelled) set_phishing_checked(true);
       });
@@ -323,6 +334,7 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
     };
   }, [
     translation_enabled,
+    is_body_visible,
     message.id,
     message.html_content,
     message.body,
@@ -336,6 +348,7 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
     email_id: message.id,
     subject: message.subject ?? "",
     translatable:
+      is_body_visible &&
       !is_ratchet_undecryptable &&
       message.is_spam !== true &&
       message.item_type !== "draft" &&
@@ -362,9 +375,14 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
     loaded_content_types && loaded_content_types.size > 0;
 
   const sanitized_content = useMemo(() => {
+    if (!is_body_visible) {
+      return { html: "", report: null, body_background: undefined };
+    }
+
     if (
       preloaded_sanitized &&
       base_image_mode !== "always" &&
+      !load_remote_content &&
       !has_loaded_types
     ) {
       const report: ExternalContentReport | null =
@@ -387,31 +405,31 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
       };
     }
 
-    const block_images = loaded_content_types?.has("image")
-      ? false
-      : preferences.block_remote_images;
-    const block_fonts = loaded_content_types?.has("font")
-      ? false
-      : preferences.block_remote_fonts;
-    const block_css = loaded_content_types?.has("css")
-      ? false
-      : preferences.block_remote_css;
-    const block_pixels = loaded_content_types?.has("tracking_pixel")
-      ? false
-      : preferences.block_tracking_pixels;
+    const resolved_blocking = resolve_content_blocking({
+      lockdown_active,
+      load_remote_content,
+      loaded_content_types,
+      preferences: {
+        block_remote_images: preferences.block_remote_images,
+        block_remote_fonts: preferences.block_remote_fonts,
+        block_remote_css: preferences.block_remote_css,
+        block_tracking_pixels: preferences.block_tracking_pixels,
+      },
+    });
 
     const result = sanitize_html(clean_body, {
-      external_content_mode: lockdown_active ? "never" : base_image_mode,
+      external_content_mode: lockdown_active
+        ? "never"
+        : load_remote_content
+          ? "always"
+          : base_image_mode,
       image_proxy_url: get_image_proxy_url(),
       sandbox_mode: true,
       lockdown_mode: lockdown_active,
       content_blocking:
         !is_system && (lockdown_active || preferences.block_external_content)
           ? {
-              block_remote_images: lockdown_active || block_images,
-              block_remote_fonts: lockdown_active || block_fonts,
-              block_remote_css: lockdown_active || block_css,
-              block_tracking_pixels: lockdown_active || block_pixels,
+              ...resolved_blocking,
             }
           : undefined,
     });
@@ -427,9 +445,11 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
       body_background: result.body_background,
     };
   }, [
+    is_body_visible,
     preloaded_sanitized,
     clean_body,
     base_image_mode,
+    load_remote_content,
     has_loaded_types,
     loaded_content_types,
     lockdown_active,
@@ -465,11 +485,14 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
     () => {
       if (!is_expanded || base_image_mode === "always") return null;
       const preloaded = pop_preloaded_thread_cid(message.id);
+
       if (preloaded) {
         cid_blob_urls_ref.current = preloaded.blob_urls;
         cid_preload_consumed_ref.current = true;
+
         return preloaded.html;
       }
+
       return null;
     },
   );
@@ -477,6 +500,7 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
   useEffect(() => {
     if (cid_preload_consumed_ref.current) {
       cid_preload_consumed_ref.current = false;
+
       return;
     }
 
@@ -493,6 +517,7 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
       revoke_cid_blob_urls(cid_blob_urls_ref.current);
       cid_blob_urls_ref.current = [];
       set_cid_resolved_html(null);
+
       return;
     }
 
@@ -500,10 +525,12 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
       base_image_mode !== "always"
         ? pop_preloaded_thread_cid(message.id)
         : null;
+
     if (preloaded) {
       revoke_cid_blob_urls(cid_blob_urls_ref.current);
       cid_blob_urls_ref.current = preloaded.blob_urls;
       set_cid_resolved_html(preloaded.html);
+
       return;
     }
 
@@ -511,13 +538,19 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
       .then((result) => {
         if (cancelled) {
           revoke_cid_blob_urls(result.blob_urls);
+
           return;
         }
         revoke_cid_blob_urls(cid_blob_urls_ref.current);
         cid_blob_urls_ref.current = result.blob_urls;
         set_cid_resolved_html(result.html);
       })
-      .catch((caught) => ignore_error("components/email/use_thread_message_block:update", caught));
+      .catch((caught) =>
+        ignore_error(
+          "components/email/use_thread_message_block:update",
+          caught,
+        ),
+      );
 
     return () => {
       cancelled = true;
@@ -546,6 +579,7 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
 
   const plain_text_html = useMemo(() => {
     if (!html_blocked) return null;
+
     return plain_text_to_html(
       html_to_readable_plain_text(clean_body, { keep_link_urls: true }),
     );

@@ -1659,7 +1659,7 @@ button.press_scale:active {
 [contenteditable="true"] ul,
 [contenteditable="true"] ol {
   margin: 0.5rem 0;
-  padding-left: 1.5rem;
+  padding-inline-start: 1.5rem;
 }
 
 [contenteditable="true"] ul {
@@ -1687,7 +1687,6 @@ button.press_scale:active {
 .aster_skeleton {
   background: rgba(0, 0, 0, 0.06);
   animation: aster_skeleton_pulse 1.6s ease-in-out infinite;
-  will-change: opacity;
 }
 
 .dark .aster_skeleton {
@@ -1864,10 +1863,26 @@ button.press_scale:active {
   --color-input-border: var(--input-border);
   --color-sidebar-bg-custom: var(--sidebar-bg);
   --color-sidebar-hover-custom: var(--sidebar-hover);
-  --color-blue-50: color-mix(in srgb, var(--accent-color) 5%, var(--bg-primary));
-  --color-blue-100: color-mix(in srgb, var(--accent-color) 10%, var(--bg-primary));
-  --color-blue-200: color-mix(in srgb, var(--accent-color) 20%, var(--bg-primary));
-  --color-blue-300: color-mix(in srgb, var(--accent-color) 40%, var(--bg-primary));
+  --color-blue-50: color-mix(
+    in srgb,
+    var(--accent-color) 5%,
+    var(--bg-primary)
+  );
+  --color-blue-100: color-mix(
+    in srgb,
+    var(--accent-color) 10%,
+    var(--bg-primary)
+  );
+  --color-blue-200: color-mix(
+    in srgb,
+    var(--accent-color) 20%,
+    var(--bg-primary)
+  );
+  --color-blue-300: color-mix(
+    in srgb,
+    var(--accent-color) 40%,
+    var(--bg-primary)
+  );
   --color-blue-400: var(--accent-mix-w70, #76a8f9);
   --color-blue-500: var(--accent-color);
   --color-blue-600: var(--accent-color);
@@ -2001,9 +2016,7 @@ aside[data-collapsed="true"] .sidebar-nav-btn.sidebar-selected {
   border: 2px solid transparent;
   border-radius: 9999px;
   background:
-    linear-gradient(
-        var(--plan-ring-gap-color, var(--bg-primary, #ffffff)) 0 0
-      )
+    linear-gradient(var(--plan-ring-gap-color, var(--bg-primary, #ffffff)) 0 0)
       padding-box,
     var(--plan-ring-gradient) border-box;
   pointer-events: none;
@@ -2076,11 +2089,7 @@ aside[data-collapsed="true"] .sidebar-nav-btn.sidebar-selected {
     #ffffff 93%,
     var(--mail_row_selected_bg)
   );
-  --text-tertiary: color-mix(
-    in srgb,
-    #ffffff 88%,
-    var(--mail_row_selected_bg)
-  );
+  --text-tertiary: color-mix(in srgb, #ffffff 88%, var(--mail_row_selected_bg));
   --text-muted: color-mix(in srgb, #ffffff 82%, var(--mail_row_selected_bg));
   --icon-muted: var(--text-muted);
 }
@@ -2688,7 +2697,7 @@ input:-webkit-autofill:active {
   min-height: 54px;
   padding: 0 14px;
   border-radius: 16px;
-  text-align: left;
+  text-align: start;
   background-color: color-mix(
     in srgb,
     var(--text-primary) 9%,

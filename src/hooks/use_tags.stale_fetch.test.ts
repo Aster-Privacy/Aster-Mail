@@ -119,8 +119,9 @@ describe("use_tags stale fetch", () => {
   }
 
   beforeEach(async () => {
-    (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean })
-      .IS_REACT_ACT_ENVIRONMENT = true;
+    (
+      globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }
+    ).IS_REACT_ACT_ENVIRONMENT = true;
     mocks.list_tags.mockClear();
     mocks.resolvers.length = 0;
     clear_tags_cache();

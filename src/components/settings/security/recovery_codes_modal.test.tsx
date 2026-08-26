@@ -23,6 +23,7 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
 import { RecoveryCodesModal } from "./recovery_codes_modal";
+
 import { api_client } from "@/services/api/client";
 import { save_recovery_backup } from "@/services/api/recovery";
 import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
@@ -65,13 +66,8 @@ vi.mock("@/components/toast/simple_toast", () => ({
 }));
 
 vi.mock("@/components/ui/modal", () => ({
-  Modal: ({
-    is_open,
-    children,
-  }: {
-    is_open: boolean;
-    children?: unknown;
-  }) => (is_open ? <div data-testid="modal">{children as never}</div> : null),
+  Modal: ({ is_open, children }: { is_open: boolean; children?: unknown }) =>
+    is_open ? <div data-testid="modal">{children as never}</div> : null,
   ModalHeader: ({ children }: { children?: unknown }) => (
     <div>{children as never}</div>
   ),
@@ -126,8 +122,8 @@ function render_modal(props: { has_codes?: boolean } = {}) {
   act(() => {
     root.render(
       <RecoveryCodesModal
-        has_codes={props.has_codes ?? false}
         is_open
+        has_codes={props.has_codes ?? false}
         on_close={() => {}}
         on_saved={() => {}}
       />,
@@ -320,7 +316,9 @@ describe("RecoveryCodesModal", () => {
     await act(async () => {
       find_button("settings.recovery_codes_generate").click();
     });
-    await wait_until(() => container.querySelector("#codes-totp-code") !== null);
+    await wait_until(
+      () => container.querySelector("#codes-totp-code") !== null,
+    );
 
     expect(mocked_save).not.toHaveBeenCalled();
 

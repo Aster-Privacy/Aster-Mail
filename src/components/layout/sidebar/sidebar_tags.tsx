@@ -115,7 +115,7 @@ export const SidebarTags = memo(function SidebarTags({
               onClick={on_toggle_section}
             >
               {section_collapsed ? (
-                <ChevronRightIcon className="w-3 h-3" />
+                <ChevronRightIcon className="w-3 h-3 rtl:-scale-x-100" />
               ) : (
                 <ChevronDownIcon className="w-3 h-3" />
               )}
@@ -172,6 +172,7 @@ export const SidebarTags = memo(function SidebarTags({
                     tag_refs.current[tag.tag_token] = el;
                   }}
                   className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-[12px] ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px]  ${effective_selected === tag_item_id ? "sidebar-active" : ""} ${is_collapsed && effective_selected === tag_item_id ? "sidebar-selected" : ""} ${drag_over_token === tag.tag_token ? "ring-2 ring-brand/60 bg-brand/10" : ""}`}
+                  data-rail-tip={is_collapsed ? tag.name : undefined}
                   style={{
                     zIndex: 1,
                     color:
@@ -185,7 +186,6 @@ export const SidebarTags = memo(function SidebarTags({
                           ? "var(--indicator-bg)"
                           : undefined,
                   }}
-                  data-rail-tip={is_collapsed ? tag.name : undefined}
                   onClick={() =>
                     handle_nav_click(() => {
                       set_selected_item(tag_item_id);
@@ -255,7 +255,7 @@ export const SidebarTags = memo(function SidebarTags({
                     );
                   })()}
                   {!is_collapsed && (
-                    <span className="flex-1 text-left truncate leading-5">
+                    <span className="flex-1 text-start truncate leading-5">
                       {tag.name}
                     </span>
                   )}

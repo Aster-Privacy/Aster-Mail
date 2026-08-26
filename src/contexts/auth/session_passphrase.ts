@@ -18,7 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import {
   get_or_create_session_key,
   clear_session_key,
@@ -28,6 +27,7 @@ import {
   RequiresReauthError,
 } from "./session_key_db";
 
+import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import {
   check_session_expired,
   clear_session_timeout_data,
@@ -174,6 +174,7 @@ export async function get_session_passphrase(
         localStorage.removeItem(SESSION_PASSPHRASE_IV_KEY_PREFIX + account_id);
         throw err;
       }
+
       return null;
     }
   }

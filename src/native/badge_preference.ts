@@ -18,27 +18,25 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { api_client } from "@/services/api/client";
+let badge_count_enabled = true;
 
-export type ExportAuditKind = "started" | "completed" | "aborted";
+const listeners = new Set<() => void>();
 
-export interface ExportAuditEvent {
-  kind: ExportAuditKind;
-  count: number;
-  total_bytes: number;
-  format: "mbox" | "eml_dir";
+export function is_badge_count_enabled(): boolean {
+  return badge_count_enabled;
 }
 
-export async function emit_export_event(event: ExportAuditEvent): Promise<void> {
-  try {
-    await api_client.post("/account/v1/events/export", {
-      kind: event.kind,
-      count: event.count,
-      total_bytes: event.total_bytes,
-      format: event.format,
-      ts: new Date().toISOString(),
-    });
-  } catch {
-    // audit failure must never block the user-facing export
-  }
+export function set_badge_count_enabled(value: boolean): void {
+  if (badge_count_enabled === value) return;
+
+  badge_count_enabled = value;
+  listeners.forEach((listener) => listener());
+}
+
+export function on_badge_count_change(listener: () => void): () => void {
+  listeners.add(listener);
+
+  return () => {
+    listeners.delete(listener);
+  };
 }

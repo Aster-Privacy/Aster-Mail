@@ -556,7 +556,9 @@ describe("slim_envelope_for_index", () => {
 
 describe("index_storage_ceiling", () => {
   it("leaves room below the quota", () => {
-    expect(index_storage_ceiling(0, 10 * 1024 * 1024 * 1024)).toBeGreaterThan(0);
+    expect(index_storage_ceiling(0, 10 * 1024 * 1024 * 1024)).toBeGreaterThan(
+      0,
+    );
   });
 
   it("reports no headroom once usage passes the ceiling", () => {
@@ -604,9 +606,7 @@ describe("snapshot writer under storage pressure", () => {
     await writer!.add_page(page.items, page.entries);
 
     expect(writer!.storage_exhausted()).toBe(true);
-    expect(keys_with("_chunk_")).toEqual([
-      `search_index_account-1_chunk_${0}`,
-    ]);
+    expect(keys_with("_chunk_")).toEqual([`search_index_account-1_chunk_${0}`]);
   });
 
   it("removes a chunk whose gram record could not be written", async () => {

@@ -18,12 +18,10 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { LeafCondition } from "@/services/api/mail_rules";
+
 import * as React from "react";
-import {
-  NoSymbolIcon,
-  TrashIcon,
-  TagIcon,
-} from "@heroicons/react/24/outline";
+import { NoSymbolIcon, TrashIcon, TagIcon } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
 import {
@@ -39,15 +37,8 @@ import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 import { ConditionChip } from "@/components/mail_rules/condition_chip";
 import { AddConditionChip } from "@/components/mail_rules/add_condition_chip";
-import { AndOrPill } from "@/components/mail_rules/and_or_pill";
 import { ChipPill, ChipSegment } from "@/components/mail_rules/chip_pill";
-import {
-  default_condition_for_field,
-} from "@/components/mail_rules/field_kind";
-import type {
-  LeafCondition,
-  MatchMode,
-} from "@/services/api/mail_rules";
+import { default_condition_for_field } from "@/components/mail_rules/field_kind";
 import {
   create_alias_rule,
   update_alias_rule,
@@ -60,9 +51,18 @@ import {
   type AliasRuleActions,
 } from "@/services/api/alias_rules";
 
+const ALIAS_RULE_OPERATORS = [
+  "is",
+  "contains",
+  "starts_with",
+  "ends_with",
+  "matches_regex",
+];
+
 function to_leaf(c: AliasRuleCondition): LeafCondition {
   const field = c.field === "all" ? "from" : c.field;
   const op = (c.operator === "equals" ? "is" : c.operator) as never;
+
   return { type: field, operator: op, value: c.value } as LeafCondition;
 }
 
@@ -70,17 +70,27 @@ function from_leaf(leaf: LeafCondition): AliasRuleCondition {
   if ("value" in leaf && typeof leaf.value === "string") {
     const field = leaf.type as AliasRuleField;
     const valid_fields: AliasRuleField[] = ["from", "to", "subject", "all"];
-    const safe_field: AliasRuleField = valid_fields.includes(field) ? field : "from";
-    const op_raw = "operator" in leaf ? leaf.operator as string : "contains";
-    const op: AliasRuleOperator =
-      op_raw === "is" ? "equals"
-      : op_raw === "does_not_contain" ? "contains"
-      : op_raw === "is_not" ? "equals"
-      : op_raw === "matches_domain" ? "contains"
-      : op_raw === "is_empty" ? "contains"
-      : (op_raw as AliasRuleOperator);
+    const safe_field: AliasRuleField = valid_fields.includes(field)
+      ? field
+      : "from";
+    const op_raw = "operator" in leaf ? (leaf.operator as string) : "contains";
+    const supported: AliasRuleOperator[] = [
+      "contains",
+      "equals",
+      "starts_with",
+      "ends_with",
+      "matches_regex",
+    ];
+    const mapped = op_raw === "is" ? "equals" : op_raw;
+    const op: AliasRuleOperator = supported.includes(
+      mapped as AliasRuleOperator,
+    )
+      ? (mapped as AliasRuleOperator)
+      : "contains";
+
     return { field: safe_field, operator: op, value: leaf.value };
   }
+
   return { field: "from", operator: "contains", value: "" };
 }
 
@@ -108,8 +118,9 @@ export function AliasRuleEditorModal({
   const { t } = use_i18n();
   const is_edit = !!rule;
 
-  const [conditions, set_conditions] = React.useState<LeafCondition[]>([default_leaf()]);
-  const [match_mode, set_match_mode] = React.useState<MatchMode>("all");
+  const [conditions, set_conditions] = React.useState<LeafCondition[]>([
+    default_leaf(),
+  ]);
   const [has_all_field, set_has_all_field] = React.useState(false);
   const [actions, set_actions] = React.useState<AliasRuleActions>({});
   const [label_value, set_label_value] = React.useState("");
@@ -119,17 +130,17 @@ export function AliasRuleEditorModal({
     if (!is_open) return;
     if (rule) {
       const all_cond = rule.conditions.find((c) => c.field === "all");
+
       set_has_all_field(!!all_cond);
       const leaves = rule.conditions
         .filter((c) => c.field !== "all")
         .map(to_leaf);
+
       set_conditions(leaves.length > 0 ? leaves : [default_leaf()]);
-      set_match_mode("all");
       set_actions(rule.actions);
       set_label_value(rule.actions.label ?? "");
     } else {
       set_conditions([default_leaf()]);
-      set_match_mode("all");
       set_has_all_field(false);
       set_actions({});
       set_label_value("");
@@ -143,11 +154,14 @@ export function AliasRuleEditorModal({
   const remove_condition = (index: number) => {
     set_conditions((prev) => {
       const next = prev.filter((_, i) => i !== index);
+
       return next.length > 0 ? next : [default_leaf()];
     });
   };
 
-  const add_condition = (field: Parameters<typeof default_condition_for_field>[0]) => {
+  const add_condition = (
+    field: Parameters<typeof default_condition_for_field>[0],
+  ) => {
     set_conditions((prev) => [...prev, default_condition_for_field(field)]);
   };
 
@@ -161,21 +175,24 @@ export function AliasRuleEditorModal({
   const handle_save = async () => {
     if (!has_action) {
       show_toast(t("settings.alias_rule_needs_action"), "error");
+
       return;
     }
 
     const alias_conditions: AliasRuleCondition[] = has_all_field
       ? [{ field: "all", operator: "contains", value: "" }]
-      : conditions.map(from_leaf).filter(
-          (c) => c.field === "all" || c.value.trim().length > 0,
-        );
+      : conditions
+          .map(from_leaf)
+          .filter((c) => c.field === "all" || c.value.trim().length > 0);
 
     if (alias_conditions.length === 0) {
       show_toast(t("settings.alias_rule_needs_condition"), "error");
+
       return;
     }
 
     const final_actions: AliasRuleActions = {};
+
     if (actions.block) final_actions.block = true;
     if (actions.to_trash) final_actions.to_trash = true;
     if (label_value.trim()) final_actions.label = label_value.trim();
@@ -210,7 +227,9 @@ export function AliasRuleEditorModal({
         show_toast(resp.error, "error");
       } else {
         show_toast(
-          is_edit ? t("settings.alias_rule_updated") : t("settings.alias_rule_added"),
+          is_edit
+            ? t("settings.alias_rule_updated")
+            : t("settings.alias_rule_added"),
           "success",
         );
         on_saved();
@@ -222,10 +241,17 @@ export function AliasRuleEditorModal({
   };
 
   return (
-    <Modal close_on_overlay={false} is_open={is_open} size="2xl" on_close={on_close}>
+    <Modal
+      close_on_overlay={false}
+      is_open={is_open}
+      on_close={on_close}
+      size="2xl"
+    >
       <ModalHeader>
         <ModalTitle>
-          {is_edit ? t("settings.alias_rule_edit_title") : t("settings.alias_rule_new_title")}
+          {is_edit
+            ? t("settings.alias_rule_edit_title")
+            : t("settings.alias_rule_new_title")}
         </ModalTitle>
         <ModalDescription>
           {t("settings.alias_rules_description")}
@@ -238,12 +264,6 @@ export function AliasRuleEditorModal({
             <p className="text-xs font-semibold uppercase tracking-widest text-txt-muted">
               {t("settings.alias_rule_when")}
             </p>
-            {!has_all_field && conditions.length > 1 && (
-              <AndOrPill
-                mode={match_mode}
-                on_change={set_match_mode}
-              />
-            )}
           </div>
 
           {has_all_field ? (
@@ -259,6 +279,7 @@ export function AliasRuleEditorModal({
               {conditions.map((cond, idx) => (
                 <ConditionChip
                   key={idx}
+                  allowed_operators={ALIAS_RULE_OPERATORS}
                   condition={cond}
                   on_change={(next) => update_condition(idx, next)}
                   on_remove={() => remove_condition(idx)}
@@ -266,9 +287,9 @@ export function AliasRuleEditorModal({
               ))}
               <AddConditionChip on_pick={add_condition} />
               <Button
+                className="h-7 text-xs text-txt-muted hover:text-txt-primary"
                 size="sm"
                 variant="ghost"
-                className="h-7 text-xs text-txt-muted hover:text-txt-primary"
                 onClick={() => {
                   set_has_all_field(true);
                   set_conditions([default_leaf()]);
@@ -285,25 +306,33 @@ export function AliasRuleEditorModal({
             {t("settings.alias_rule_then")}
           </p>
           <div className="flex flex-wrap gap-2">
-            <ChipPill on_remove={actions.block ? () => toggle_action("block") : undefined}>
+            <ChipPill
+              on_remove={
+                actions.block ? () => toggle_action("block") : undefined
+              }
+            >
               <ChipSegment
                 is_first
-                is_last={!actions.block}
                 icon={<NoSymbolIcon className="w-3 h-3" />}
-                on_click={() => toggle_action("block")}
                 is_active={!!actions.block}
+                is_last={!actions.block}
+                on_click={() => toggle_action("block")}
               >
                 {t("settings.alias_rule_action_block")}
               </ChipSegment>
             </ChipPill>
 
-            <ChipPill on_remove={actions.to_trash ? () => toggle_action("to_trash") : undefined}>
+            <ChipPill
+              on_remove={
+                actions.to_trash ? () => toggle_action("to_trash") : undefined
+              }
+            >
               <ChipSegment
                 is_first
-                is_last={!actions.to_trash}
                 icon={<TrashIcon className="w-3 h-3" />}
-                on_click={() => toggle_action("to_trash")}
                 is_active={!!actions.to_trash}
+                is_last={!actions.to_trash}
+                on_click={() => toggle_action("to_trash")}
               >
                 {t("settings.alias_rule_action_to_trash")}
               </ChipSegment>
@@ -320,7 +349,9 @@ export function AliasRuleEditorModal({
               <ChipSegment is_last>
                 <input
                   className="bg-transparent outline-none text-sm text-txt-primary placeholder:text-txt-muted w-28 min-w-0"
-                  placeholder={t("settings.alias_rule_action_label_placeholder")}
+                  placeholder={t(
+                    "settings.alias_rule_action_label_placeholder",
+                  )}
                   value={label_value}
                   onChange={(e) => set_label_value(e.target.value)}
                 />
@@ -340,7 +371,9 @@ export function AliasRuleEditorModal({
           onClick={handle_save}
         >
           {saving && <Spinner size="xs" />}
-          {is_edit ? t("settings.alias_rule_save_changes") : t("settings.alias_rule_save")}
+          {is_edit
+            ? t("settings.alias_rule_save_changes")
+            : t("settings.alias_rule_save")}
         </Button>
       </ModalFooter>
     </Modal>

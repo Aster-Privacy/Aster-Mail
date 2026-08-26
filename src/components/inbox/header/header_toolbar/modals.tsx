@@ -19,18 +19,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
+import { QUICK_ACTION_CONFIRM_KEYS } from "./helpers";
 
 import { SenderActionModal } from "@/components/modals/sender_action_modal";
 import { MassUnsubscribeModal } from "@/components/modals/mass_unsubscribe_modal";
 import { SnoozeSimilarModal } from "@/components/modals/snooze_similar_modal";
 import { ArchiveNewslettersModal } from "@/components/modals/archive_newsletters_modal";
-import {
-  use_folders,
-} from "@/hooks/use_folders";
+import { use_folders } from "@/hooks/use_folders";
 import { use_i18n } from "@/lib/i18n/context";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
-
-import { QUICK_ACTION_CONFIRM_KEYS } from "./helpers";
 
 export interface ToolbarModalsProps {
   is_sender_modal_open: boolean;
@@ -107,17 +104,16 @@ export function ToolbarModals({
             ? t(quick_action_copy.message as Parameters<typeof t>[0])
             : ""
         }
+        on_cancel={handle_quick_action_cancel}
+        on_confirm={handle_quick_action_confirm}
+        on_dont_ask_again={handle_quick_action_dont_ask_again}
         title={
           quick_action_copy
             ? t(quick_action_copy.title as Parameters<typeof t>[0])
             : ""
         }
         variant="info"
-        on_cancel={handle_quick_action_cancel}
-        on_confirm={handle_quick_action_confirm}
-        on_dont_ask_again={handle_quick_action_dont_ask_again}
       />
     </>
   );
 }
-

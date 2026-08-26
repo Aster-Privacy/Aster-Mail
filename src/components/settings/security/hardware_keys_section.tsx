@@ -19,9 +19,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useState, useEffect, useCallback } from "react";
-import { KeyIcon, TrashIcon, PlusIcon, PencilIcon } from "@heroicons/react/24/outline";
+import {
+  KeyIcon,
+  TrashIcon,
+  PlusIcon,
+  PencilIcon,
+} from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
+import { ConfirmModal } from "@/components/email/inbox/inbox_confirmation_dialog";
 import { show_toast } from "@/components/toast/simple_toast";
 import { Input } from "@/components/ui/input";
 import {
@@ -43,18 +49,24 @@ import {
   is_webauthn_supported,
   HardwareKeyInfo,
 } from "@/services/api/webauthn";
+import { app_locale, get_display_time_zone } from "@/utils/date_format";
+import { is_composing } from "@/utils/ime";
 
 export function HardwareKeysSection() {
   const { t } = use_i18n();
   const [keys, set_keys] = useState<HardwareKeyInfo[]>([]);
   const [is_loading, set_is_loading] = useState(true);
   const [is_registering, set_is_registering] = useState(false);
+  const [load_failed, set_load_failed] = useState(false);
   const [show_add_modal, set_show_add_modal] = useState(false);
   const [key_name, set_key_name] = useState("");
   const [removing_key_id, set_removing_key_id] = useState<string | null>(null);
   const [editing_key_id, set_editing_key_id] = useState<string | null>(null);
   const [rename_draft, set_rename_draft] = useState("");
   const [is_saving_rename, set_is_saving_rename] = useState(false);
+  const [pending_delete, set_pending_delete] = useState<HardwareKeyInfo | null>(
+    null,
+  );
 
   const fetch_keys = useCallback(async () => {
     set_is_loading(true);
@@ -62,6 +74,9 @@ export function HardwareKeysSection() {
 
     if (response.data) {
       set_keys(response.data.keys);
+      set_load_failed(false);
+    } else {
+      set_load_failed(true);
     }
     set_is_loading(false);
   }, []);
@@ -130,6 +145,7 @@ export function HardwareKeysSection() {
       set_keys((prev) => prev.filter((k) => k.id !== key_id));
     }
     set_removing_key_id(null);
+    set_pending_delete(null);
   };
 
   const start_rename = (key: HardwareKeyInfo) => {
@@ -144,14 +160,18 @@ export function HardwareKeysSection() {
 
   const save_rename = async (key_id: string) => {
     const trimmed = rename_draft.trim() || null;
+
     set_is_saving_rename(true);
     const resp = await rename_hardware_key(key_id, trimmed);
+
     set_is_saving_rename(false);
     if (resp.error) {
       show_toast(resp.error, "error");
     } else {
       set_keys((prev) =>
-        prev.map((k) => (k.id === key_id ? { ...k, name_encrypted: trimmed } : k)),
+        prev.map((k) =>
+          k.id === key_id ? { ...k, name_encrypted: trimmed } : k,
+        ),
       );
       set_editing_key_id(null);
       show_toast(t("passkeys.rename_saved"), "success");
@@ -166,7 +186,8 @@ export function HardwareKeysSection() {
   };
 
   const format_date = (date_str: string) => {
-    return new Date(date_str).toLocaleDateString(undefined, {
+    return new Date(date_str).toLocaleDateString(app_locale(), {
+      timeZone: get_display_time_zone(),
       year: "numeric",
       month: "short",
       day: "numeric",
@@ -193,7 +214,7 @@ export function HardwareKeysSection() {
               variant="secondary"
               onClick={() => set_show_add_modal(true)}
             >
-              <PlusIcon className="w-4 h-4 mr-1.5" />
+              <PlusIcon className="w-4 h-4 me-1.5" />
               {t("settings.add_security_key")}
             </Button>
           )}
@@ -211,14 +232,29 @@ export function HardwareKeysSection() {
           </div>
         ) : (
           <div className="space-y-2">
-            {keys.length === 0 && (
-              <div className="py-6 text-center">
-                <KeyIcon className="w-8 h-8 text-txt-muted mx-auto mb-2" />
-                <p className="text-sm text-txt-muted">
-                  {t("settings.no_security_keys")}
-                </p>
-              </div>
-            )}
+            {keys.length === 0 &&
+              (load_failed ? (
+                <div className="py-6 text-center">
+                  <p className="text-sm text-txt-muted">
+                    {t("common.something_went_wrong_try_again")}
+                  </p>
+                  <Button
+                    className="mt-3"
+                    size="sm"
+                    variant="secondary"
+                    onClick={fetch_keys}
+                  >
+                    {t("common.retry")}
+                  </Button>
+                </div>
+              ) : (
+                <div className="py-6 text-center">
+                  <KeyIcon className="w-8 h-8 text-txt-muted mx-auto mb-2" />
+                  <p className="text-sm text-txt-muted">
+                    {t("settings.no_security_keys")}
+                  </p>
+                </div>
+              ))}
 
             {keys.map((key) => (
               <div
@@ -238,14 +274,15 @@ export function HardwareKeysSection() {
                           value={rename_draft}
                           onChange={(e) => set_rename_draft(e.target.value)}
                           onKeyDown={(e) => {
-                            if (e.key === "Enter") save_rename(key.id);
+                            if (e.key === "Enter" && !is_composing(e))
+                              save_rename(key.id);
                             if (e.key === "Escape") cancel_rename();
                           }}
                         />
                         <Button
-                          variant="ghost"
-                          size="sm"
                           disabled={is_saving_rename}
+                          size="sm"
+                          variant="ghost"
                           onClick={() => save_rename(key.id)}
                         >
                           {is_saving_rename ? (
@@ -255,8 +292,8 @@ export function HardwareKeysSection() {
                           )}
                         </Button>
                         <Button
-                          variant="ghost"
                           size="sm"
+                          variant="ghost"
                           onClick={cancel_rename}
                         >
                           {t("common.cancel")}
@@ -292,11 +329,7 @@ export function HardwareKeysSection() {
                       className="p-1.5 rounded-[14px] transition-colors hover:bg-surf-tertiary"
                       disabled={removing_key_id === key.id}
                       type="button"
-                      onClick={() => {
-                        if (window.confirm(t("settings.confirm_remove_key"))) {
-                          handle_remove(key.id);
-                        }
-                      }}
+                      onClick={() => set_pending_delete(key)}
                     >
                       <TrashIcon className="w-4 h-4 text-red-500" />
                     </button>
@@ -327,6 +360,7 @@ export function HardwareKeysSection() {
         </ModalHeader>
         <ModalBody>
           <Input
+            maxLength={100}
             placeholder={t("settings.key_name_placeholder")}
             type="text"
             value={key_name}
@@ -353,6 +387,25 @@ export function HardwareKeysSection() {
           </Button>
         </ModalFooter>
       </Modal>
+
+      <ConfirmModal
+        hide_dont_ask
+        confirm_text={t("common.delete")}
+        confirm_variant="destructive"
+        description={t("passkeys.delete_security_key_description", {
+          name:
+            pending_delete?.name_encrypted ||
+            t("passkeys.unnamed_security_key"),
+        })}
+        dont_ask={false}
+        on_cancel={() => set_pending_delete(null)}
+        on_confirm={() => {
+          if (pending_delete) void handle_remove(pending_delete.id);
+        }}
+        on_dont_ask_change={() => {}}
+        show={!!pending_delete}
+        title={t("passkeys.delete_security_key_title")}
+      />
     </>
   );
 }
