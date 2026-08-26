@@ -330,7 +330,7 @@ function top_bar_base({
 
         <div
           ref={account_tip_anchor}
-          className="relative"
+          className={`relative ${is_free_plan ? "" : "ms-1.5"}`}
           onMouseEnter={open_account_tip}
           onMouseLeave={leave_account_tip}
           onPointerDownCapture={close_account_tip}
