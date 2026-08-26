@@ -641,7 +641,10 @@ export function use_security() {
         api_client.set_csrf(response.data.csrf_token);
       }
       if (response.data?.access_token) {
-        api_client.set_dev_token(response.data.access_token);
+        api_client.set_dev_token(
+          response.data.access_token,
+          response.data.refresh_token,
+        );
       }
 
       try {
