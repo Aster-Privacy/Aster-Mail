@@ -8356,7 +8356,6 @@ export const de = {
     "2_custom_domains": "2 benutzerdefinierte Domains",
     "50mb_attachments": "50 MB Anhänge",
     plan_free_price: "Kostenlos",
-    "1gb_secure_storage": "1 GB sicherer Speicher",
     "50gb_secure_storage": "50 GB sicherer Speicher",
     "10_email_aliases": "10 E-Mail-Aliasse",
     "5_custom_domains": "5 benutzerdefinierte Domains",

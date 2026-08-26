@@ -7457,7 +7457,6 @@ export interface AuthTranslations {
   "2_custom_domains": string;
   "50mb_attachments": string;
   plan_free_price: string;
-  "1gb_secure_storage": string;
   "50gb_secure_storage": string;
   "10_email_aliases": string;
   "5_custom_domains": string;

@@ -8371,7 +8371,6 @@ export const it = {
     "2_custom_domains": "2 domini personalizzati",
     "50mb_attachments": "50 MB allegati",
     plan_free_price: "Gratuito",
-    "1gb_secure_storage": "1 GB di archiviazione sicura",
     "50gb_secure_storage": "50 GB di archiviazione sicura",
     "10_email_aliases": "10 alias email",
     "5_custom_domains": "5 domini personalizzati",

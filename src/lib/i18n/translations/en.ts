@@ -8248,7 +8248,6 @@ export const en: Translations = {
     "2_custom_domains": "2 custom domains",
     "50mb_attachments": "50 MB attachments",
     plan_free_price: "Free",
-    "1gb_secure_storage": "1 GB secure storage",
     "50gb_secure_storage": "50 GB secure storage",
     "10_email_aliases": "10 email aliases",
     "5_custom_domains": "5 custom domains",

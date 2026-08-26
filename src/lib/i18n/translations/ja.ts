@@ -8145,7 +8145,6 @@ export const ja = {
     "2_custom_domains": "2個のカスタムドメイン",
     "50mb_attachments": "50 MBの添付ファイル",
     plan_free_price: "無料",
-    "1gb_secure_storage": "1 GBセキュアストレージ",
     "50gb_secure_storage": "50 GBセキュアストレージ",
     "10_email_aliases": "10個のメールエイリアス",
     "5_custom_domains": "5個のカスタムドメイン",

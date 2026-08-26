@@ -8324,7 +8324,6 @@ export const pt = {
     "2_custom_domains": "2 domínios personalizados",
     "50mb_attachments": "Anexos de 50 MB",
     plan_free_price: "Gratuito",
-    "1gb_secure_storage": "1 GB de armazenamento seguro",
     "50gb_secure_storage": "50 GB de armazenamento seguro",
     "10_email_aliases": "10 aliases de e-mail",
     "5_custom_domains": "5 domínios personalizados",

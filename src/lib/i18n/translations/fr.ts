@@ -8355,7 +8355,6 @@ export const fr = {
     "2_custom_domains": "2 domaines personnalisés",
     "50mb_attachments": "Pièces jointes de 50 Mo",
     plan_free_price: "Gratuit",
-    "1gb_secure_storage": "1 Go de stockage sécurisé",
     "50gb_secure_storage": "50 Go de stockage sécurisé",
     "10_email_aliases": "10 alias e-mail",
     "5_custom_domains": "5 domaines personnalisés",

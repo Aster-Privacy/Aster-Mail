@@ -7371,7 +7371,6 @@ export const zh_CN = {
     "2_custom_domains": "2个自定义域名",
     "50mb_attachments": "50 MB 附件",
     plan_free_price: "免费",
-    "1gb_secure_storage": "1 GB 安全存储",
     "50gb_secure_storage": "50 GB 安全存储",
     "10_email_aliases": "10个邮箱别名",
     "5_custom_domains": "5个自定义域名",

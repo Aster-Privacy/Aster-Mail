@@ -560,7 +560,7 @@ function get_features(
     },
     {
       name: t("settings.feature_imap_smtp"),
-      free: true,
+      free: false,
       star: true,
       nova: true,
       supernova: true,

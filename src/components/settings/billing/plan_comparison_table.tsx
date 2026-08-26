@@ -61,8 +61,8 @@ export function get_plan_comparison_rows(
       label: t("settings.plan_f_signed_in_accounts"),
       free: "1",
       star: "2",
-      nova: "4",
-      supernova: "6",
+      nova: "5",
+      supernova: "20",
     },
     {
       label: cap(t("settings.plan_f_aliases", { value: "" })),
@@ -88,9 +88,9 @@ export function get_plan_comparison_rows(
     {
       label: cap(t("settings.plan_f_send_limit", { value: "" })),
       free: "200",
-      star: t("settings.unlimited"),
-      nova: t("settings.unlimited"),
-      supernova: t("settings.unlimited"),
+      star: "1,000",
+      nova: "1,000",
+      supernova: "1,000",
     },
     {
       label: cap(t("settings.plan_f_signatures", { value: "" })),
@@ -143,7 +143,7 @@ export function get_plan_comparison_rows(
     },
     {
       label: t("settings.plan_f_imap_smtp"),
-      free: "✓",
+      free: "-",
       star: "✓",
       nova: "✓",
       supernova: "✓",

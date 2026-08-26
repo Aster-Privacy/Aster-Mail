@@ -8238,7 +8238,6 @@ export const nl = {
     "2_custom_domains": "2 aangepaste domeinen",
     "50mb_attachments": "50 MB bijlagen",
     plan_free_price: "Gratis",
-    "1gb_secure_storage": "1 GB veilige opslag",
     "50gb_secure_storage": "50 GB veilige opslag",
     "10_email_aliases": "10 e-mailaliassen",
     "5_custom_domains": "5 aangepaste domeinen",

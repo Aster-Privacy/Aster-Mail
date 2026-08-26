@@ -8261,7 +8261,6 @@ export const tr = {
     "2_custom_domains": "2 özel alan adı",
     "50mb_attachments": "50 MB ek",
     plan_free_price: "Ücretsiz",
-    "1gb_secure_storage": "1 GB güvenli depolama",
     "50gb_secure_storage": "50 GB güvenli depolama",
     "10_email_aliases": "10 e-posta takma adı",
     "5_custom_domains": "5 özel alan adı",

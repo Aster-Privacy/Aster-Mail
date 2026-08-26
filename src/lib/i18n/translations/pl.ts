@@ -8522,7 +8522,6 @@ export const pl = {
     "2_custom_domains": "2 domeny niestandardowe",
     "50mb_attachments": "50 MB załączników",
     plan_free_price: "Za darmo",
-    "1gb_secure_storage": "1 GB bezpiecznego miejsca",
     "50gb_secure_storage": "50 GB bezpiecznego miejsca",
     "10_email_aliases": "10 aliasów e-mail",
     "5_custom_domains": "5 domen niestandardowych",

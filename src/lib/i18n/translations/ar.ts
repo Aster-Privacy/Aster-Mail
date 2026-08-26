@@ -8249,7 +8249,6 @@ export const ar = {
     "2_custom_domains": "نطاقان مخصصان",
     "50mb_attachments": "50 ميجابايت مرفقات",
     plan_free_price: "مجاني",
-    "1gb_secure_storage": "1 جيجابايت تخزين آمن",
     "50gb_secure_storage": "50 جيجابايت تخزين آمن",
     "10_email_aliases": "10 أسماء بريد مستعارة",
     "5_custom_domains": "5 نطاقات مخصصة",

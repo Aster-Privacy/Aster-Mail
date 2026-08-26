@@ -8504,7 +8504,6 @@ export const ru = {
     "2_custom_domains": "2 пользовательских домена",
     "50mb_attachments": "50 МБ вложения",
     plan_free_price: "Бесплатно",
-    "1gb_secure_storage": "1 ГБ безопасного хранилища",
     "50gb_secure_storage": "50 ГБ безопасного хранилища",
     "10_email_aliases": "10 псевдонимов электронной почты",
     "5_custom_domains": "5 пользовательских доменов",

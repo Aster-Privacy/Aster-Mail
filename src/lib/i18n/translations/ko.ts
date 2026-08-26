@@ -7921,7 +7921,6 @@ export const ko = {
     "2_custom_domains": "2개 사용자 정의 도메인",
     "50mb_attachments": "50 MB 첨부 파일",
     plan_free_price: "무료",
-    "1gb_secure_storage": "1 GB 보안 저장 공간",
     "50gb_secure_storage": "50 GB 보안 저장 공간",
     "10_email_aliases": "10개 이메일 별칭",
     "5_custom_domains": "5개 사용자 정의 도메인",
