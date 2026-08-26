@@ -425,12 +425,12 @@ export function BehaviorSection({
                 }
               />
               <SettingsRow
+                description={t("settings.block_tracking_links_description")}
                 label={t("settings.block_tracking_links")}
-                trailing={
-                  <Switch
-                    disabled
-                    checked={preferences.block_external_content}
-                  />
+                value={
+                  preferences.block_external_content
+                    ? t("common.active")
+                    : t("common.inactive")
                 }
               />
             </>

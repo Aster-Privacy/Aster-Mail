@@ -89,7 +89,7 @@ export function SettingsRow({
   on_press,
   trailing,
   destructive,
-  description: _description,
+  description,
 }: {
   icon?: ReactNode;
   label: string;
@@ -130,10 +130,17 @@ export function SettingsRow({
           {icon}
         </span>
       )}
-      <span
-        className={`min-w-0 flex-1 text-[15px] ${destructive ? "text-[var(--color-danger,#ef4444)]" : "text-[var(--text-primary)]"}`}
-      >
-        {label}
+      <span className="min-w-0 flex-1">
+        <span
+          className={`block text-[15px] ${destructive ? "text-[var(--color-danger,#ef4444)]" : "text-[var(--text-primary)]"}`}
+        >
+          {label}
+        </span>
+        {description && (
+          <span className="mt-0.5 block text-[13px] text-[var(--text-muted)]">
+            {description}
+          </span>
+        )}
       </span>
       {value && (
         <span className="shrink-0 text-[14px] text-[var(--text-muted)]">
