@@ -25,7 +25,15 @@ import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 
 import { use_popup_drag_resize } from "@/components/email/hooks/popup_viewer_drag";
 import { REPLY_ARRIVAL_POLL_DELAYS_MS } from "@/components/email/use_email_viewer";
-import { get_mail_item, type MailItem } from "@/services/api/mail";
+import {
+  get_mail_item,
+  batched_bulk_add_folder,
+  batched_bulk_remove_folder,
+  type MailItem,
+} from "@/services/api/mail";
+import { use_folders } from "@/hooks/use_folders";
+import { show_action_toast } from "@/components/toast/action_toast";
+import { show_toast } from "@/components/toast/simple_toast";
 import {
   get_draft_by_thread,
   type DraftContent,
@@ -270,6 +278,127 @@ export function use_popup_viewer({
 
     set_external_content_state({ mode: cached || "blocked", report: null });
   }, [email_id]);
+
+  const { state: folders_state } = use_folders();
+
+  const popup_folders = useMemo(
+    () =>
+      folders_state.folders
+        .filter((f) => !f.is_system)
+        .map((f) => ({
+          id: f.folder_token,
+          name: f.name,
+          color: f.color || "#6366f1",
+        })),
+    [folders_state.folders],
+  );
+
+  const handle_folder_toggle = useCallback(
+    async (folder_token: string) => {
+      if (!email_id) return;
+
+      const folder = popup_folders.find((f) => f.id === folder_token);
+      const folder_name = folder?.name || t("common.folder_fallback");
+      const previous_folders = mail_item?.folders || [];
+      const is_assigned = previous_folders.some(
+        (f) => f.token === folder_token,
+      );
+      const ids =
+        grouped_email_ids && grouped_email_ids.length > 1
+          ? grouped_email_ids
+          : [email_id];
+
+      if (is_assigned) {
+        const remaining = previous_folders.filter(
+          (f) => f.token !== folder_token,
+        );
+
+        set_mail_item((prev) =>
+          prev ? { ...prev, folders: remaining } : prev,
+        );
+
+        const result = await batched_bulk_remove_folder(ids, folder_token);
+
+        if (!result.success) {
+          set_mail_item((prev) =>
+            prev ? { ...prev, folders: previous_folders } : prev,
+          );
+          show_toast(t("common.failed_to_update"), "error");
+
+          return;
+        }
+        emit_mail_item_updated({
+          id: email_id,
+          folders: remaining.map((f) => ({
+            folder_token: f.token,
+            name: f.name,
+            color: f.color,
+          })),
+        });
+        show_action_toast({
+          message: t("common.removed_from_folder", { folder: folder_name }),
+          action_type: "folder",
+          email_ids: ids,
+          on_undo: async () => {
+            const undo_result = await batched_bulk_add_folder(
+              ids,
+              folder_token,
+            );
+
+            if (!undo_result.success) throw new Error("undo folder failed");
+            window.dispatchEvent(
+              new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH),
+            );
+          },
+        });
+
+        return;
+      }
+
+      const next_folders = [
+        ...previous_folders,
+        { token: folder_token, name: folder_name, color: folder?.color || "" },
+      ];
+
+      set_mail_item((prev) =>
+        prev ? { ...prev, folders: next_folders } : prev,
+      );
+
+      const result = await batched_bulk_add_folder(ids, folder_token);
+
+      if (!result.success) {
+        set_mail_item((prev) =>
+          prev ? { ...prev, folders: previous_folders } : prev,
+        );
+        show_toast(t("common.failed_to_update"), "error");
+
+        return;
+      }
+      emit_mail_item_updated({
+        id: email_id,
+        folders: next_folders.map((f) => ({
+          folder_token: f.token,
+          name: f.name,
+          color: f.color,
+        })),
+      });
+      show_action_toast({
+        message: t("common.moved_to_folder", { folder: folder_name }),
+        action_type: "folder",
+        email_ids: ids,
+        on_undo: async () => {
+          const undo_result = await batched_bulk_remove_folder(
+            ids,
+            folder_token,
+          );
+
+          if (!undo_result.success) throw new Error("undo folder failed");
+          window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
+        },
+      });
+    },
+    [email_id, grouped_email_ids, mail_item?.folders, popup_folders, t],
+  );
 
   const actions = use_popup_viewer_actions({
     email_id,
@@ -1240,6 +1369,8 @@ export function use_popup_viewer({
     handle_not_spam: actions.handle_not_spam,
     handle_trash: actions.handle_trash,
     handle_pin_toggle: actions.handle_pin_toggle,
+    popup_folders,
+    handle_folder_toggle,
     handle_reply: actions.handle_reply,
     handle_forward: actions.handle_forward,
     handle_print: actions.handle_print,

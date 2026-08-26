@@ -36,6 +36,7 @@ import {
   PrinterIcon,
   FolderIcon,
   NoSymbolIcon,
+  CheckIcon,
 } from "@heroicons/react/24/outline";
 import { Button, Tooltip } from "@aster/ui";
 
@@ -46,6 +47,9 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown_menu";
 
@@ -62,6 +66,8 @@ interface PopupEmailActionsProps {
   is_trash_loading: boolean;
   mail_item: MailItem | null;
   is_spam: boolean;
+  folders: Array<{ id: string; name: string; color: string }>;
+  on_folder_toggle: (folder_token: string) => void;
   unsubscribe_info: UnsubscribeInfo | null;
   on_close: () => void;
   on_drag_start: (e: React.MouseEvent) => void;
@@ -90,6 +96,8 @@ export function PopupEmailActions({
   is_trash_loading,
   mail_item,
   is_spam,
+  folders,
+  on_folder_toggle,
   unsubscribe_info,
   on_close,
   on_drag_start,
@@ -279,10 +287,49 @@ export function PopupEmailActions({
               ? t("mail.delete_permanently")
               : t("mail.move_to_trash")}
           </DropdownMenuItem>
-          <DropdownMenuItem disabled>
-            <FolderIcon className="w-4 h-4 mr-2" />
-            {t("mail.move_to_folder")}
-          </DropdownMenuItem>
+          {folders.length > 0 ? (
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger>
+                <FolderIcon className="w-4 h-4 mr-2" />
+                {t("mail.move_to_folder")}
+              </DropdownMenuSubTrigger>
+              <DropdownMenuSubContent className="w-48">
+                {folders.map((folder) => {
+                  const is_current = (mail_item?.folders || []).some(
+                    (f) => f.token === folder.id,
+                  );
+
+                  return (
+                    <DropdownMenuItem
+                      key={folder.id}
+                      onSelect={(e) => {
+                        e.preventDefault();
+                        on_folder_toggle(folder.id);
+                      }}
+                    >
+                      {is_current && (
+                        <CheckIcon className="mr-0.5 h-3 w-3 flex-shrink-0" />
+                      )}
+                      <span
+                        className="mr-1.5 h-2.5 w-2.5 rounded-full flex-shrink-0"
+                        style={
+                          folder.color.startsWith("#")
+                            ? { backgroundColor: folder.color }
+                            : {}
+                        }
+                      />
+                      <span className="truncate">{folder.name}</span>
+                    </DropdownMenuItem>
+                  );
+                })}
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
+          ) : (
+            <DropdownMenuItem disabled>
+              <FolderIcon className="w-4 h-4 mr-2" />
+              {t("mail.move_to_folder")}
+            </DropdownMenuItem>
+          )}
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={on_print}>
             <PrinterIcon className="w-4 h-4 mr-2" />

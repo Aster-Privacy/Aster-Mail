@@ -116,6 +116,7 @@ export function EmailPopupViewer({
       onClick={(e) => e.stopPropagation()}
     >
       <PopupEmailActions
+        folders={viewer.popup_folders}
         is_archive_loading={viewer.is_archive_loading}
         is_dragging={viewer.is_dragging}
         is_fullscreen={viewer.is_fullscreen}
@@ -133,6 +134,7 @@ export function EmailPopupViewer({
         on_pin_toggle={viewer.handle_pin_toggle}
         on_print={viewer.handle_print}
         on_read_toggle={viewer.handle_read_toggle}
+        on_folder_toggle={viewer.handle_folder_toggle}
         on_not_spam={viewer.handle_not_spam}
         on_spam={() => request_spam(viewer.handle_spam)}
         on_toggle_size={viewer.toggle_size}
