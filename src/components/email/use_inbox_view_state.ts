@@ -51,7 +51,7 @@ import {
   reindex_ids as reindex_category_ids,
 } from "@/services/category_index";
 import { use_settled_not_found } from "@/components/email/inbox/use_settled_not_found";
-import { category_for_tab } from "@/services/mail_categorizer";
+import { effective_category } from "@/services/effective_category";
 import { is_folder_unlocked } from "@/hooks/use_protected_folder";
 import { use_snooze } from "@/hooks/use_snooze";
 import { use_mail_stats } from "@/hooks/use_mail_stats";
@@ -495,7 +495,7 @@ export function use_inbox_view_state(props: EmailInboxProps) {
 
   const handle_category_change = useCallback(
     async (email: InboxEmail, category: EmailCategory) => {
-      if (category_for_tab(email.mail_category) === category) return;
+      if (effective_category(email) === category) return;
       const outcome = await set_message_category(email, category);
 
       if (outcome.applied) {

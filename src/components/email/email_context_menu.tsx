@@ -48,7 +48,7 @@ import {
 
 import { PinIcon } from "@/components/common/icons";
 import { use_i18n } from "@/lib/i18n/context";
-import { category_for_tab } from "@/services/mail_categorizer";
+import { effective_category } from "@/services/effective_category";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -542,10 +542,9 @@ function EmailContextMenuContentInner({
                     on_category_change(key);
                   }}
                 >
-                  {!selection &&
-                    category_for_tab(email.mail_category) === key && (
-                      <CheckIcon className="me-0.5 h-3 w-3 flex-shrink-0" />
-                    )}
+                  {!selection && effective_category(email) === key && (
+                    <CheckIcon className="me-0.5 h-3 w-3 flex-shrink-0" />
+                  )}
                   <Icon className="me-2 h-4 w-4" />
                   <span className="truncate">{t(label_key)}</span>
                 </ContextMenuItem>

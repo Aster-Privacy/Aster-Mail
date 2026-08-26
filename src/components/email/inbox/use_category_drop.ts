@@ -25,6 +25,7 @@ import type { CategoryIndexEntry } from "@/services/category_index";
 import { useCallback, useRef } from "react";
 
 import { category_for_tab } from "@/services/mail_categorizer";
+import { effective_category } from "@/services/effective_category";
 import {
   clear_recent_pin,
   get_index_entries,
@@ -229,8 +230,7 @@ export function use_category_drop({
       const id_set = new Set(email_ids);
       const targets = emails_ref.current.filter(
         (email) =>
-          id_set.has(email.id) &&
-          category_for_tab(email.mail_category) !== category,
+          id_set.has(email.id) && effective_category(email) !== category,
       );
 
       if (targets.length === 0) return Promise.resolve();
@@ -243,7 +243,7 @@ export function use_category_drop({
       );
       const snapshots: CategorySnapshot[] = targets.map((email) => ({
         email,
-        mail_category: email.mail_category,
+        mail_category: effective_category(email),
         entry: entries.get(email.id),
       }));
 
