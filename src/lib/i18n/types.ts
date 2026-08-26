@@ -1795,7 +1795,6 @@ export interface CommonTranslations {
   forward_attachments_unavailable: string;
   image: string;
   system: string;
-  beta: string;
   failed_to_permanently_delete: string;
   failed_to_delete_emails: string;
   failed_to_mark_as_read: string;
@@ -3040,6 +3039,16 @@ export interface SettingsTranslations {
   translate_never_languages_description: string;
   translate_add_language: string;
   translate_auto_detected: string;
+  translate_confirm_title: string;
+  translate_confirm_description: string;
+  translate_confirm_enable: string;
+  translation_packs: string;
+  translation_packs_description: string;
+  translation_packs_empty: string;
+  translation_packs_total: string;
+  translation_packs_remove: string;
+  translation_packs_remove_all: string;
+  translation_packs_unavailable: string;
   block_external_content: string;
   block_external_content_description: string;
   blocking_mode: string;
@@ -6472,6 +6481,8 @@ export interface MailTranslations {
   preview_failed: string;
   translation_offer: string;
   translation_translate: string;
+  translation_offer_download: string;
+  translation_translate_download: string;
   translation_in_progress: string;
   translation_translated_from: string;
   translation_limited_quality: string;

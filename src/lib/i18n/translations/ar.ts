@@ -20,7 +20,6 @@
 //
 export const ar = {
   common: {
-    beta: "تجريبي",
     delete_folder_account_password: "كلمة سر الحساب",
     delete_folder_step_up_hint:
       "هذا المجلد محمي بكلمة سر. أدخل كلمة سر حسابك لحذفه.",
@@ -4007,6 +4006,16 @@ export const ar = {
       "لا تترجم البريد بهذه اللغات أبدًا، في أي وضع.",
     translate_add_language: "إضافة لغة",
     translate_auto_detected: "تم اكتشافها تلقائيًا من جهازك",
+    translate_confirm_title: "هل تريد تشغيل الترجمة؟",
+    translate_confirm_description: "يترجم Aster البريد على جهازك، لذا لا يُرسل أي شيء تقرأه إلى خدمة ترجمة. في أول مرة تترجم فيها من لغة ما، ينزّل Aster حزمة لغة بحجم 20 إلى 55 ميغابايت ويحتفظ بها على هذا الجهاز. يمكنك إزالة الحزم في أي وقت.",
+    translate_confirm_enable: "تشغيل",
+    translation_packs: "حزم اللغات المنزّلة",
+    translation_packs_description: "تُخزَّن حزم اللغات على هذا الجهاز. أزل حزمة لتحرير مساحة. سينزّلها Aster مرة أخرى في المرة التالية التي تترجم فيها تلك اللغة.",
+    translation_packs_empty: "لم تنزّل أي حزمة لغة بعد.",
+    translation_packs_total: "{{size}} مستخدمة على هذا الجهاز",
+    translation_packs_remove: "إزالة",
+    translation_packs_remove_all: "إزالة الكل",
+    translation_packs_unavailable: "لا يستطيع هذا المتصفح تخزين حزم اللغات، لذا ينزّلها Aster في كل مرة تترجم فيها.",
 
     block_external_content: "حظر المحتوى الخارجي",
     block_external_content_description: "حظر المحتوى الخارجي حتى تختار تحميله",
@@ -7251,6 +7260,8 @@ export const ar = {
     attachments: "المرفقات",
     translation_offer: "هذه الرسالة باللغة {{language}}.",
     translation_translate: "ترجمة",
+    translation_offer_download: "هذه الرسالة بلغة {{language}}. ستؤدي ترجمتها إلى تنزيل حزمة لغة.",
+    translation_translate_download: "ترجمة (تنزيل {{size}})",
     translation_in_progress: "جارٍ الترجمة على جهازك…",
     translation_translated_from: "تمت الترجمة من اللغة {{language}} على جهازك.",
     translation_limited_quality: "قد تكون جودة الترجمة أقل لهذه اللغة.",

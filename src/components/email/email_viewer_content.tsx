@@ -557,6 +557,7 @@ export function EmailViewerContent({
             />
           )}
           <TranslationBanner
+            download_bytes={translation.download_bytes}
             limited_quality={translation.limited_quality}
             on_show_original={translation.show_original}
             on_translate={translation.translate}

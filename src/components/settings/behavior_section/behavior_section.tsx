@@ -19,12 +19,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { SpamSettings } from "@/services/api/preferences";
-import { commit_on_enter } from "@/lib/commit_on_enter";
 import type { MemberRetentionPolicy } from "@/services/api/family_org";
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Capacitor } from "@capacitor/core";
-import { Badge, Button, Switch } from "@aster/ui";
+import { Button, Switch } from "@aster/ui";
 import {
   BookOpenIcon,
   PencilSquareIcon,
@@ -55,6 +54,8 @@ import {
   clamp_sidebar_width,
   clamp_undo_seconds,
 } from "./shared";
+import { TranslationPacks } from "./translation_packs";
+import { apply_spam_settings_patch } from "./spam_settings_sync";
 
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_auth } from "@/contexts/auth_context";
@@ -68,7 +69,7 @@ import {
   get_spam_settings,
   save_spam_settings,
 } from "@/services/api/preferences";
-import { apply_spam_settings_patch } from "./spam_settings_sync";
+import { commit_on_enter } from "@/lib/commit_on_enter";
 import { get_member_retention_policy } from "@/services/api/family_org";
 import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
 import { Input } from "@/components/ui/input";
@@ -220,6 +221,9 @@ export function BehaviorSection() {
   const [family_policy, set_family_policy] =
     useState<MemberRetentionPolicy | null>(null);
   const [show_grouping_dialog, set_show_grouping_dialog] = useState(false);
+  const [pending_translate_mode, set_pending_translate_mode] = useState<
+    "ask" | "always" | null
+  >(null);
   const [mailto_registered, set_mailto_registered] = useState(() => {
     try {
       return localStorage.getItem("aster:mailto_handler") === "true";
@@ -624,7 +628,6 @@ export function BehaviorSection() {
           <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
             <LanguageIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
             {t("settings.translation")}
-            <Badge color="purple">{t("common.beta")}</Badge>
           </h3>
           <div className="mt-2 h-px bg-edge-secondary" />
         </div>
@@ -635,13 +638,17 @@ export function BehaviorSection() {
             title: t("settings.translate_incoming"),
             description: t("settings.translate_incoming_info"),
           }}
-          on_change={(v) =>
-            update_preference(
-              "translate_incoming",
-              v as "off" | "ask" | "always",
-              true,
-            )
-          }
+          on_change={(v) => {
+            const mode = v as "off" | "ask" | "always";
+
+            if (mode !== "off" && preferences.translate_incoming === "off") {
+              set_pending_translate_mode(mode);
+
+              return;
+            }
+
+            update_preference("translate_incoming", mode, true);
+          }}
           options={[
             { value: "off", label: t("settings.translate_off") },
             { value: "ask", label: t("settings.translate_ask") },
@@ -676,6 +683,8 @@ export function BehaviorSection() {
               title={t("settings.translate_never_languages")}
               ui_locale={language}
             />
+
+            <TranslationPacks />
           </>
         )}
       </div>
@@ -1272,6 +1281,45 @@ export function BehaviorSection() {
           title={t("settings.developer_mode")}
         />
       </div>
+
+      <AlertDialog
+        open={pending_translate_mode !== null}
+        onOpenChange={(open) => {
+          if (!open) set_pending_translate_mode(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {t("settings.translate_confirm_title")}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("settings.translate_confirm_description")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="max-sm:flex-row max-sm:gap-3">
+            <AlertDialogCancel className="max-sm:flex-1">
+              {t("common.cancel")}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="max-sm:flex-1"
+              onClick={() => {
+                if (pending_translate_mode) {
+                  update_preference(
+                    "translate_incoming",
+                    pending_translate_mode,
+                    true,
+                  );
+                }
+
+                set_pending_translate_mode(null);
+              }}
+            >
+              {t("settings.translate_confirm_enable")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <AlertDialog
         open={show_grouping_dialog}

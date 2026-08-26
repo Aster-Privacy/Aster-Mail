@@ -70,6 +70,14 @@ describe("primary_target", () => {
     expect(primary_target(["fr", "de"])).toBe("fr");
   });
 
+  it("prefers a configured reading language over the interface locale", () => {
+    expect(primary_target(["fr", "de"], "en")).toBe("fr");
+  });
+
+  it("falls back to the interface locale when nothing is accepted", () => {
+    expect(primary_target([], "de")).toBe("de");
+  });
+
   it("falls back to the pivot language when empty", () => {
     expect(primary_target([])).toBe("en");
   });

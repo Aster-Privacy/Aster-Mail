@@ -20,7 +20,6 @@
 //
 export const pt = {
   common: {
-    beta: "Beta",
     delete_folder_account_password: "Senha da conta",
     delete_folder_step_up_hint:
       "Esta pasta é protegida por senha. Digite a senha da sua conta para excluí-la.",
@@ -3916,6 +3915,16 @@ export const pt = {
       "Nunca traduzir o correio nestes idiomas, em nenhum modo.",
     translate_add_language: "Adicionar idioma",
     translate_auto_detected: "Detetado automaticamente no seu dispositivo",
+    translate_confirm_title: "Ativar a tradução?",
+    translate_confirm_description: "O Aster traduz o correio no seu dispositivo, por isso nada do que lê é enviado para um serviço de tradução. Da primeira vez que traduz a partir de um idioma, o Aster transfere um pacote de idioma de 20 a 55 MB e guarda-o neste dispositivo. Pode remover os pacotes quando quiser.",
+    translate_confirm_enable: "Ativar",
+    translation_packs: "Pacotes de idioma transferidos",
+    translation_packs_description: "Os pacotes de idioma são guardados neste dispositivo. Remova um pacote para libertar espaço. O Aster transfere-o novamente da próxima vez que traduzir esse idioma.",
+    translation_packs_empty: "Ainda não transferiu nenhum pacote de idioma.",
+    translation_packs_total: "{{size}} usados neste dispositivo",
+    translation_packs_remove: "Remover",
+    translation_packs_remove_all: "Remover tudo",
+    translation_packs_unavailable: "Este navegador não consegue guardar pacotes de idioma, por isso o Aster transfere-os sempre que traduz.",
 
     block_external_content: "Bloquear Conteúdo Externo",
     block_external_content_description:
@@ -7309,6 +7318,8 @@ export const pt = {
     attachments: "Anexos",
     translation_offer: "Esta mensagem está em {{language}}.",
     translation_translate: "Traduzir",
+    translation_offer_download: "Esta mensagem está em {{language}}. Traduzi-la transfere um pacote de idioma.",
+    translation_translate_download: "Traduzir (transferência de {{size}})",
     translation_in_progress: "A traduzir no seu dispositivo…",
     translation_translated_from:
       "Traduzido do {{language}} no seu dispositivo.",

@@ -20,7 +20,6 @@
 //
 export const pl = {
   common: {
-    beta: "Beta",
     delete_folder_account_password: "Hasło konta",
     delete_folder_step_up_hint:
       "Ten folder jest chroniony hasłem. Wpisz hasło konta, aby go usunąć.",
@@ -4064,6 +4063,16 @@ export const pl = {
       "Nigdy nie tłumacz poczty w tych językach, w żadnym trybie.",
     translate_add_language: "Dodaj język",
     translate_auto_detected: "Wykryto automatycznie na Twoim urządzeniu",
+    translate_confirm_title: "Włączyć tłumaczenie?",
+    translate_confirm_description: "Aster tłumaczy pocztę na Twoim urządzeniu, więc nic, co czytasz, nie jest wysyłane do usługi tłumaczeniowej. Przy pierwszym tłumaczeniu z danego języka Aster pobiera pakiet językowy o rozmiarze od 20 do 55 MB i zachowuje go na tym urządzeniu. Pakiety możesz usunąć w dowolnej chwili.",
+    translate_confirm_enable: "Włącz",
+    translation_packs: "Pobrane pakiety językowe",
+    translation_packs_description: "Pakiety językowe są przechowywane na tym urządzeniu. Usuń pakiet, aby zwolnić miejsce. Aster pobierze go ponownie przy następnym tłumaczeniu tego języka.",
+    translation_packs_empty: "Nie pobrano jeszcze żadnych pakietów językowych.",
+    translation_packs_total: "{{size}} zajęte na tym urządzeniu",
+    translation_packs_remove: "Usuń",
+    translation_packs_remove_all: "Usuń wszystkie",
+    translation_packs_unavailable: "Ta przeglądarka nie może przechowywać pakietów językowych, więc Aster pobiera je przy każdym tłumaczeniu.",
 
     block_external_content: "Blokuj treści zewnętrzne",
     block_external_content_description:
@@ -7506,6 +7515,8 @@ export const pl = {
     attachments: "Załączniki",
     translation_offer: "Ta wiadomość jest w języku {{language}}.",
     translation_translate: "Przetłumacz",
+    translation_offer_download: "Ta wiadomość jest w języku {{language}}. Tłumaczenie pobierze pakiet językowy.",
+    translation_translate_download: "Przetłumacz (pobieranie {{size}})",
     translation_in_progress: "Tłumaczenie na Twoim urządzeniu…",
     translation_translated_from:
       "Przetłumaczono z języka {{language}} na Twoim urządzeniu.",

@@ -20,7 +20,6 @@
 //
 export const zh_CN = {
   common: {
-    beta: "测试版",
     delete_folder_account_password: "账户密码",
     delete_folder_step_up_hint: "该文件夹受密码保护。请输入账户密码以删除它。",
     delete_folder_totp_code: "双重验证码",
@@ -3471,6 +3470,16 @@ export const zh_CN = {
       "在任何模式下都不翻译这些语言的邮件。",
     translate_add_language: "添加语言",
     translate_auto_detected: "已从您的设备自动检测",
+    translate_confirm_title: "要开启翻译吗？",
+    translate_confirm_description: "Aster 在你的设备上翻译邮件，因此你阅读的内容不会发送到翻译服务。首次从某种语言翻译时，Aster 会下载 20 到 55 MB 的语言包并保存在此设备上。你可以随时移除语言包。",
+    translate_confirm_enable: "开启",
+    translation_packs: "已下载的语言包",
+    translation_packs_description: "语言包保存在此设备上。移除语言包可释放空间。下次翻译该语言时，Aster 会重新下载。",
+    translation_packs_empty: "你还没有下载任何语言包。",
+    translation_packs_total: "已在此设备上使用 {{size}}",
+    translation_packs_remove: "移除",
+    translation_packs_remove_all: "全部移除",
+    translation_packs_unavailable: "此浏览器无法保存语言包，因此 Aster 每次翻译时都会下载。",
 
     block_external_content: "屏蔽外部内容",
     block_external_content_description: "屏蔽外部内容，直到您选择加载",
@@ -6430,6 +6439,8 @@ export const zh_CN = {
     attachments: "附件",
     translation_offer: "此邮件为{{language}}。",
     translation_translate: "翻译",
+    translation_offer_download: "此邮件为{{language}}。翻译时会下载语言包。",
+    translation_translate_download: "翻译（下载 {{size}}）",
     translation_in_progress: "正在您的设备上翻译…",
     translation_translated_from: "已在您的设备上从{{language}}翻译。",
     translation_limited_quality: "该语言的翻译质量可能较低。",

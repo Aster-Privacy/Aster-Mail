@@ -41,6 +41,11 @@ import {
   should_keep_translation,
 } from "@/services/translation/language_detect";
 import {
+  grant_route_consent,
+  route_consent_granted,
+} from "@/services/translation/download_consent";
+import {
+  pending_download_bytes,
   translate_message_body,
   translate_plain_text,
 } from "@/services/translation/translate_document";
@@ -58,6 +63,7 @@ export interface EmailTranslationControl {
   source_language: LanguageCode | null;
   target_language: LanguageCode;
   limited_quality: boolean;
+  download_bytes: number;
   showing_original: boolean;
   translated_subject: string | null;
   translate: () => void;
@@ -170,6 +176,7 @@ export function use_email_translation({
   const [translated_subject, set_translated_subject] = useState<string | null>(
     null,
   );
+  const [download_bytes, set_download_bytes] = useState(0);
   const showing_original_ref = useRef(showing_original);
 
   showing_original_ref.current = showing_original;
@@ -208,6 +215,7 @@ export function use_email_translation({
     set_source_language(null);
     set_showing_original(false);
     set_translated_subject(null);
+    set_download_bytes(0);
   }, [email_id, abort_active]);
 
   useEffect(() => abort_active, [abort_active]);
@@ -224,6 +232,7 @@ export function use_email_translation({
       const controller = new AbortController();
 
       abort_ref.current = controller;
+      set_download_bytes(0);
       set_status("translating");
 
       const result = await translate_message_body({
@@ -263,6 +272,26 @@ export function use_email_translation({
     [account_id, email_id, subject, abort_active],
   );
 
+  const offer_translation = useCallback(
+    async (from: LanguageCode, automatic: boolean) => {
+      const { target_language: to } = config_ref.current;
+      const bytes = await pending_download_bytes(from, to);
+
+      if (source_ref.current !== from) return;
+
+      if (automatic && (bytes === 0 || route_consent_granted(from, to))) {
+        set_download_bytes(0);
+        void run_translation(from);
+
+        return;
+      }
+
+      set_download_bytes(bytes);
+      set_status("offer");
+    },
+    [run_translation],
+  );
+
   const run_detection = useCallback(
     (body: HTMLElement) => {
       const {
@@ -286,6 +315,7 @@ export function use_email_translation({
         source_ref.current = null;
         set_source_language(null);
         set_status("idle");
+        set_download_bytes(0);
 
         return;
       }
@@ -293,13 +323,13 @@ export function use_email_translation({
       source_ref.current = decision.language;
       set_source_language(decision.language);
 
-      if (decision.kind === "translate") {
-        void run_translation(decision.language);
-      } else {
-        set_status("offer");
-      }
+      set_download_bytes(0);
+
+      if (decision.kind === "offer") set_status("offer");
+
+      void offer_translation(decision.language, decision.kind === "translate");
     },
-    [email_id, translatable, run_translation],
+    [email_id, translatable, offer_translation],
   );
 
   const on_document_ready = useCallback(
@@ -334,6 +364,7 @@ export function use_email_translation({
     set_source_language(null);
     set_showing_original(false);
     set_translated_subject(null);
+    set_download_bytes(0);
     set_status("idle");
   }, [abort_active]);
 
@@ -379,7 +410,12 @@ export function use_email_translation({
   const translate = useCallback(() => {
     const from = source_ref.current;
 
-    if (from) void run_translation(from);
+    if (!from) return;
+
+    grant_route_consent(from, config_ref.current.target_language);
+    set_download_bytes(0);
+
+    void run_translation(from);
   }, [run_translation]);
 
   const show_original = useCallback(() => {
@@ -410,6 +446,7 @@ export function use_email_translation({
     limited_quality: source_language
       ? has_limited_quality(source_language)
       : false,
+    download_bytes,
     showing_original,
     translated_subject,
     translate,

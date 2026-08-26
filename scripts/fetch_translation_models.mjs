@@ -8,16 +8,26 @@ const RECORDS_URL =
 const SERVER_ROOT = "https://firefox.settings.services.mozilla.com/v1/";
 
 const MODEL_PAIRS = [
-  { pair: "aren", source: "ar", version: "2.2" },
-  { pair: "iten", source: "it", version: "1.0" },
-  { pair: "jaen", source: "ja", version: "2.1" },
-  { pair: "koen", source: "ko", version: "2.1" },
-  { pair: "nlen", source: "nl", version: "1.0" },
-  { pair: "plen", source: "pl", version: "1.0" },
-  { pair: "pten", source: "pt", version: "1.0" },
-  { pair: "ruen", source: "ru", version: "1.1" },
-  { pair: "tren", source: "tr", version: "1.0" },
-  { pair: "zhen", source: "zh-Hans", version: "2.1" },
+  { pair: "aren", from: "ar", to: "en", version: "2.2" },
+  { pair: "iten", from: "it", to: "en", version: "1.0" },
+  { pair: "jaen", from: "ja", to: "en", version: "2.1" },
+  { pair: "koen", from: "ko", to: "en", version: "2.1" },
+  { pair: "nlen", from: "nl", to: "en", version: "1.0" },
+  { pair: "plen", from: "pl", to: "en", version: "1.0" },
+  { pair: "pten", from: "pt", to: "en", version: "1.0" },
+  { pair: "ruen", from: "ru", to: "en", version: "1.1" },
+  { pair: "tren", from: "tr", to: "en", version: "1.0" },
+  { pair: "zhen", from: "zh-Hans", to: "en", version: "2.1" },
+  { pair: "enar", from: "en", to: "ar", version: "2.2" },
+  { pair: "enit", from: "en", to: "it", version: "2.1" },
+  { pair: "enja", from: "en", to: "ja", version: "2.3" },
+  { pair: "enko", from: "en", to: "ko", version: "2.1" },
+  { pair: "ennl", from: "en", to: "nl", version: "2.1" },
+  { pair: "enpl", from: "en", to: "pl", version: "2.1" },
+  { pair: "enpt", from: "en", to: "pt", version: "2.1" },
+  { pair: "enru", from: "en", to: "ru", version: "2.1" },
+  { pair: "entr", from: "en", to: "tr", version: "1.0" },
+  { pair: "enzh", from: "en", to: "zh-Hans", version: "2.2" },
 ];
 
 const REGISTRY_FILE_TYPES = ["model", "lex", "vocab", "srcvocab", "trgvocab"];
@@ -68,14 +78,14 @@ async function load_records() {
 function select_records(records, entry) {
   const matches = records.filter(
     (record) =>
-      record.fromLang === entry.source &&
-      record.toLang === "en" &&
+      record.fromLang === entry.from &&
+      record.toLang === entry.to &&
       record.version === entry.version &&
       REGISTRY_FILE_TYPES.includes(record.fileType),
   );
 
   if (matches.length === 0) {
-    fail(`no records for ${entry.source}->en at version ${entry.version}`);
+    fail(`no records for ${entry.from}->${entry.to} at version ${entry.version}`);
   }
 
   const by_type = new Map();
@@ -83,7 +93,7 @@ function select_records(records, entry) {
   for (const record of matches) {
     if (by_type.has(record.fileType)) {
       fail(
-        `duplicate ${record.fileType} record for ${entry.source}->en at version ${entry.version}`,
+        `duplicate ${record.fileType} record for ${entry.from}->${entry.to} at version ${entry.version}`,
       );
     }
 
@@ -226,7 +236,7 @@ const records = await load_records();
 console.log(`translation models: ${MODEL_PAIRS.length} pair(s) requested`);
 
 for (const entry of MODEL_PAIRS) {
-  console.log(`${entry.pair} (${entry.source}->en v${entry.version})`);
+  console.log(`${entry.pair} (${entry.from}->${entry.to} v${entry.version})`);
 
   for (const record of select_records(records, entry)) {
     await download_record(base, entry.pair, record);

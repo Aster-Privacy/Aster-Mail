@@ -1274,7 +1274,6 @@ export const en: Translations = {
       "Some attachments couldn't be added to this message.",
     image: "Image",
     system: "System",
-    beta: "Beta",
     failed_to_permanently_delete:
       "These items were not removed. Another attempt should do it.",
     failed_to_delete_emails:
@@ -2882,6 +2881,16 @@ export const en: Translations = {
       "Never translate mail in these languages, in any mode.",
     translate_add_language: "Add language",
     translate_auto_detected: "Auto-detected from your device",
+    translate_confirm_title: "Turn on translation?",
+    translate_confirm_description: "Aster translates mail on your device, so nothing you read is sent to a translation service. The first time you translate from a language, Aster downloads a language pack of 20 to 55 MB and keeps it on this device. You can remove packs at any time.",
+    translate_confirm_enable: "Turn on",
+    translation_packs: "Downloaded language packs",
+    translation_packs_description: "Language packs are stored on this device. Remove a pack to free up space. Aster downloads it again the next time you translate that language.",
+    translation_packs_empty: "You haven't downloaded any language packs yet.",
+    translation_packs_total: "{{size}} used on this device",
+    translation_packs_remove: "Remove",
+    translation_packs_remove_all: "Remove all",
+    translation_packs_unavailable: "This browser can't store language packs, so Aster downloads them each time you translate.",
 
     block_external_content: "Block External Content",
     block_external_content_description:
@@ -7129,6 +7138,8 @@ export const en: Translations = {
     preview_failed: "The preview did not load. Opening the email will show it.",
     translation_offer: "This message is in {{language}}.",
     translation_translate: "Translate",
+    translation_offer_download: "This message is in {{language}}. Translating it downloads a language pack.",
+    translation_translate_download: "Translate ({{size}} download)",
     translation_in_progress: "Translating on your device…",
     translation_translated_from: "Translated from {{language}} on your device.",
     translation_limited_quality:

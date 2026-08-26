@@ -35,55 +35,65 @@ import {
 } from "@/vendor/bergamot/translator.js";
 import { ignore_error } from "@/lib/ignore_error";
 
+import { open_model_cache, pack_cached } from "./model_cache";
+import { join_url, model_base, registry_url } from "./model_source";
+
 export const BERGAMOT_ENGINE_ID = "bergamot";
 export const MODEL_VERSION = "v1";
 
 const WORKER_URL = "/bergamot/translator-worker.js";
-const DEFAULT_MODEL_BASE = "/bergamot/models/v1";
-const MODEL_REGISTRY_REVISION = "2";
-
-function model_base(): string {
-  const configured =
-    typeof import.meta !== "undefined"
-      ? (import.meta.env?.VITE_TRANSLATION_MODEL_URL as string | undefined)
-      : undefined;
-
-  const base = (configured ?? DEFAULT_MODEL_BASE).replace(/\/+$/, "");
-
-  if (/^https?:\/\//i.test(base) && !/^https:\/\//i.test(base)) {
-    return DEFAULT_MODEL_BASE;
-  }
-
-  return base;
-}
-
-function join_url(base: string, name: string): string {
-  const origin_ref =
-    typeof location !== "undefined"
-      ? location.href
-      : "https://app.astermail.org/";
-  const root = new URL(base, origin_ref);
-  const root_dir = root.href.endsWith("/") ? root.href : `${root.href}/`;
-  const resolved = new URL(name, root_dir);
-
-  if (resolved.origin !== root.origin) {
-    throw new EngineUnavailableError("translation model url origin mismatch");
-  }
-
-  return resolved.href;
-}
 
 class SelfHostedBacking extends TranslatorBacking {
   private readonly base: string;
 
   constructor(base: string) {
     super({
-      registryUrl: `${base}/registry.json?r=${MODEL_REGISTRY_REVISION}`,
+      registryUrl: registry_url(base),
       pivotLanguage: PIVOT_LANGUAGE,
       cacheSize: 16384,
     });
 
     this.base = base;
+  }
+
+  private cache_handle: Promise<Cache | null> | null = null;
+
+  private model_cache(): Promise<Cache | null> {
+    if (!this.cache_handle) this.cache_handle = open_model_cache();
+
+    return this.cache_handle;
+  }
+
+  async fetch(
+    url: string,
+    checksum?: string,
+    extra?: { signal?: AbortSignal },
+  ): Promise<ArrayBuffer> {
+    const cache = await this.model_cache();
+
+    if (cache) {
+      const hit = await cache.match(url).catch(() => undefined);
+
+      if (hit) {
+        const cached = await hit.arrayBuffer();
+
+        if (await matches_checksum(cached, checksum)) return cached;
+
+        await cache.delete(url).catch(() => false);
+      }
+    }
+
+    const buffer = await super.fetch(url, checksum, extra);
+
+    if (cache) {
+      try {
+        await cache.put(url, new Response(buffer.slice(0)));
+      } catch (caught) {
+        ignore_error("services/translation/engine_bergamot:cache_put", caught);
+      }
+    }
+
+    return buffer;
   }
 
   async loadModelRegistery(): Promise<BergamotModelEntry[]> {
@@ -176,6 +186,31 @@ function pair_key(from: string, to: string): string {
   return `${from}>${to}`;
 }
 
+function pack_id(hop: string): string {
+  return hop.replace(">", "");
+}
+
+async function matches_checksum(
+  buffer: ArrayBuffer,
+  checksum?: string,
+): Promise<boolean> {
+  if (!checksum) return false;
+  if (typeof crypto === "undefined" || !crypto.subtle) return false;
+
+  try {
+    const digest = await crypto.subtle.digest("SHA-256", buffer);
+    const hex = Array.from(new Uint8Array(digest))
+      .map((byte) => byte.toString(16).padStart(2, "0"))
+      .join("");
+
+    return hex === checksum.toLowerCase();
+  } catch (caught) {
+    ignore_error("services/translation/engine_bergamot:digest", caught);
+
+    return false;
+  }
+}
+
 class BergamotEngine implements TranslationEngine {
   readonly id = BERGAMOT_ENGINE_ID;
 
@@ -259,7 +294,15 @@ class BergamotEngine implements TranslationEngine {
       .map((hop) => pair_key(hop.from, hop.to))
       .filter((hop) => !this.loaded_pairs.has(hop));
 
-    return this.bytes_for(map, hops);
+    if (hops.length === 0) return 0;
+
+    const pending: string[] = [];
+
+    for (const hop of hops) {
+      if (!(await pack_cached(pack_id(hop)))) pending.push(hop);
+    }
+
+    return this.bytes_for(map, pending);
   }
 
   async prepare(from: LanguageCode, to: LanguageCode): Promise<void> {

@@ -20,7 +20,6 @@
 //
 export const ja = {
   common: {
-    beta: "ベータ",
     delete_folder_account_password: "アカウントのパスワード",
     delete_folder_step_up_hint:
       "このフォルダはパスワードで保護されています。削除するにはアカウントのパスワードを入力してください。",
@@ -3825,6 +3824,16 @@ export const ja = {
       "これらの言語のメールは、どのモードでも翻訳しません。",
     translate_add_language: "言語を追加",
     translate_auto_detected: "お使いのデバイスから自動検出",
+    translate_confirm_title: "翻訳を有効にしますか？",
+    translate_confirm_description: "Aster はデバイス上でメールを翻訳するため、読んだ内容が翻訳サービスに送信されることはありません。ある言語から初めて翻訳するときに、Aster は 20〜55 MB の言語パックをダウンロードし、このデバイスに保存します。パックはいつでも削除できます。",
+    translate_confirm_enable: "有効にする",
+    translation_packs: "ダウンロード済みの言語パック",
+    translation_packs_description: "言語パックはこのデバイスに保存されます。空き容量を増やすにはパックを削除してください。その言語を次に翻訳するときに Aster が再度ダウンロードします。",
+    translation_packs_empty: "言語パックはまだダウンロードされていません。",
+    translation_packs_total: "このデバイスで {{size}} 使用中",
+    translation_packs_remove: "削除",
+    translation_packs_remove_all: "すべて削除",
+    translation_packs_unavailable: "このブラウザは言語パックを保存できないため、Aster は翻訳のたびにダウンロードします。",
 
     block_external_content: "外部コンテンツをブロック",
     block_external_content_description:
@@ -7139,6 +7148,8 @@ export const ja = {
     attachments: "添付ファイル",
     translation_offer: "このメッセージは{{language}}です。",
     translation_translate: "翻訳",
+    translation_offer_download: "このメッセージは{{language}}です。翻訳すると言語パックをダウンロードします。",
+    translation_translate_download: "翻訳（{{size}} をダウンロード）",
     translation_in_progress: "お使いの端末で翻訳しています…",
     translation_translated_from: "お使いの端末で{{language}}から翻訳しました。",
     translation_limited_quality: "この言語の翻訳品質は低くなる場合があります。",

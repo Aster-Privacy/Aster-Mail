@@ -20,7 +20,6 @@
 //
 export const ru = {
   common: {
-    beta: "Бета",
     delete_folder_account_password: "Пароль учётной записи",
     delete_folder_step_up_hint:
       "Эта папка защищена паролем. Введите пароль учётной записи, чтобы удалить её.",
@@ -4032,6 +4031,16 @@ export const ru = {
       "Никогда не переводить почту на этих языках, ни в одном режиме.",
     translate_add_language: "Добавить язык",
     translate_auto_detected: "Определено автоматически на вашем устройстве",
+    translate_confirm_title: "Включить перевод?",
+    translate_confirm_description: "Aster переводит почту на вашем устройстве, поэтому ничего из прочитанного не отправляется в службу перевода. При первом переводе с какого-либо языка Aster загружает языковой пакет размером от 20 до 55 МБ и сохраняет его на этом устройстве. Пакеты можно удалить в любое время.",
+    translate_confirm_enable: "Включить",
+    translation_packs: "Загруженные языковые пакеты",
+    translation_packs_description: "Языковые пакеты хранятся на этом устройстве. Удалите пакет, чтобы освободить место. Aster загрузит его снова при следующем переводе с этого языка.",
+    translation_packs_empty: "Вы ещё не загрузили ни одного языкового пакета.",
+    translation_packs_total: "Занято на этом устройстве: {{size}}",
+    translation_packs_remove: "Удалить",
+    translation_packs_remove_all: "Удалить все",
+    translation_packs_unavailable: "Этот браузер не может хранить языковые пакеты, поэтому Aster загружает их при каждом переводе.",
 
     block_external_content: "Блокировать внешнее содержимое",
     block_external_content_description:
@@ -7477,6 +7486,8 @@ export const ru = {
     attachments: "Вложения",
     translation_offer: "Это сообщение на {{language}}.",
     translation_translate: "Перевести",
+    translation_offer_download: "Это сообщение на языке {{language}}. При переводе будет загружен языковой пакет.",
+    translation_translate_download: "Перевести (загрузка {{size}})",
     translation_in_progress: "Перевод на вашем устройстве…",
     translation_translated_from:
       "Переведено с языка {{language}} на вашем устройстве.",

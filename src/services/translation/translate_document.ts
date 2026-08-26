@@ -106,6 +106,23 @@ export async function available_source_languages(
   return checks.filter((entry) => entry.ok).map((entry) => entry.code);
 }
 
+export async function pending_download_bytes(
+  from: LanguageCode,
+  to: LanguageCode,
+): Promise<number> {
+  if (from === to) return 0;
+
+  const engine = await get_engine();
+
+  if (!engine) return 0;
+
+  try {
+    return await engine.requires_download(from, to);
+  } catch {
+    return 0;
+  }
+}
+
 function unmasked_acceptable(
   original: string,
   translated: string | undefined,

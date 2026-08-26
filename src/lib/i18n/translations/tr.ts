@@ -20,7 +20,6 @@
 //
 export const tr = {
   common: {
-    beta: "Beta",
     delete_folder_account_password: "Hesap parolası",
     delete_folder_step_up_hint:
       "Bu klasör parola korumalı. Silmek için hesap parolanızı girin.",
@@ -3876,6 +3875,16 @@ export const tr = {
       "Bu dillerdeki postayı hiçbir modda çevirme.",
     translate_add_language: "Dil ekle",
     translate_auto_detected: "Cihazınızdan otomatik algılandı",
+    translate_confirm_title: "Çeviri açılsın mı?",
+    translate_confirm_description: "Aster postaları cihazınızda çevirir, bu yüzden okuduğunuz hiçbir şey bir çeviri hizmetine gönderilmez. Bir dilden ilk kez çeviri yaptığınızda Aster 20 ila 55 MB boyutunda bir dil paketi indirir ve bu cihazda saklar. Paketleri istediğiniz zaman kaldırabilirsiniz.",
+    translate_confirm_enable: "Aç",
+    translation_packs: "İndirilen dil paketleri",
+    translation_packs_description: "Dil paketleri bu cihazda saklanır. Yer açmak için bir paketi kaldırın. Aster, o dili bir sonraki çevirinizde paketi yeniden indirir.",
+    translation_packs_empty: "Henüz hiç dil paketi indirmediniz.",
+    translation_packs_total: "Bu cihazda {{size}} kullanılıyor",
+    translation_packs_remove: "Kaldır",
+    translation_packs_remove_all: "Tümünü kaldır",
+    translation_packs_unavailable: "Bu tarayıcı dil paketlerini saklayamıyor, bu yüzden Aster her çeviride paketleri yeniden indirir.",
 
     block_external_content: "Harici İçeriği Engelle",
     block_external_content_description:
@@ -7256,6 +7265,8 @@ export const tr = {
     attachments: "Ekler",
     translation_offer: "Bu ileti {{language}} dilinde.",
     translation_translate: "Çevir",
+    translation_offer_download: "Bu ileti {{language}} dilinde. Çevirmek bir dil paketi indirir.",
+    translation_translate_download: "Çevir ({{size}} indirme)",
     translation_in_progress: "Cihazınızda çevriliyor…",
     translation_translated_from: "Cihazınızda {{language}} dilinden çevrildi.",
     translation_limited_quality:

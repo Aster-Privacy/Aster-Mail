@@ -31,12 +31,14 @@ import { InfoPopover } from "@/components/ui/info_popover";
 import { language_display_name } from "@/services/translation/accepted_languages";
 import { available_source_languages } from "@/services/translation/translate_document";
 import { ignore_error } from "@/lib/ignore_error";
+import { format_bytes } from "@/lib/utils";
 
 interface TranslationBannerProps {
   status: TranslationStatus;
   source_language: LanguageCode | null;
   target_language: LanguageCode;
   limited_quality: boolean;
+  download_bytes: number;
   showing_original: boolean;
   on_translate: () => void;
   on_show_original: () => void;
@@ -47,6 +49,7 @@ export function TranslationBanner({
   source_language,
   target_language,
   limited_quality,
+  download_bytes,
   showing_original,
   on_translate,
   on_show_original,
@@ -92,6 +95,12 @@ export function TranslationBanner({
 
   const message = (() => {
     if (status === "offer") {
+      if (download_bytes > 0) {
+        return t("mail.translation_offer_download", {
+          language: language_name,
+        });
+      }
+
       return t("mail.translation_offer", { language: language_name });
     }
 
@@ -171,7 +180,11 @@ export function TranslationBanner({
               type="button"
               onClick={on_translate}
             >
-              {t("mail.translation_translate")}
+              {download_bytes > 0
+                ? t("mail.translation_translate_download", {
+                    size: format_bytes(download_bytes),
+                  })
+                : t("mail.translation_translate")}
             </button>
           )}
           {status === "translated" && (

@@ -21,7 +21,6 @@
 
 export const it = {
   common: {
-    beta: "Beta",
     delete_folder_account_password: "Password dell'account",
     delete_folder_step_up_hint:
       "Questa cartella è protetta da password. Inserisca la password del suo account per eliminarla.",
@@ -3977,6 +3976,16 @@ export const it = {
       "Non tradurre mai la posta in queste lingue, in nessuna modalità.",
     translate_add_language: "Aggiungi lingua",
     translate_auto_detected: "Rilevato automaticamente dal tuo dispositivo",
+    translate_confirm_title: "Attivare la traduzione?",
+    translate_confirm_description: "Aster traduce la posta sul tuo dispositivo, quindi nulla di ciò che leggi viene inviato a un servizio di traduzione. La prima volta che traduci da una lingua, Aster scarica un pacchetto lingua da 20 a 55 MB e lo conserva su questo dispositivo. Puoi rimuovere i pacchetti in qualsiasi momento.",
+    translate_confirm_enable: "Attiva",
+    translation_packs: "Pacchetti lingua scaricati",
+    translation_packs_description: "I pacchetti lingua sono archiviati su questo dispositivo. Rimuovi un pacchetto per liberare spazio. Aster lo scarica di nuovo la prossima volta che traduci quella lingua.",
+    translation_packs_empty: "Non hai ancora scaricato nessun pacchetto lingua.",
+    translation_packs_total: "{{size}} usati su questo dispositivo",
+    translation_packs_remove: "Rimuovi",
+    translation_packs_remove_all: "Rimuovi tutto",
+    translation_packs_unavailable: "Questo browser non può archiviare i pacchetti lingua, quindi Aster li scarica a ogni traduzione.",
 
     block_external_content: "Blocca contenuto esterno",
     block_external_content_description:
@@ -7348,6 +7357,8 @@ export const it = {
     attachments: "Allegati",
     translation_offer: "Questo messaggio è in {{language}}.",
     translation_translate: "Traduci",
+    translation_offer_download: "Questo messaggio è in {{language}}. Tradurlo scarica un pacchetto lingua.",
+    translation_translate_download: "Traduci (download di {{size}})",
     translation_in_progress: "Traduzione sul tuo dispositivo…",
     translation_translated_from:
       "Tradotto dal {{language}} sul tuo dispositivo.",

@@ -20,7 +20,6 @@
 //
 export const nl = {
   common: {
-    beta: "Bèta",
     delete_folder_account_password: "Accountwachtwoord",
     delete_folder_step_up_hint:
       "Deze map is beveiligd met een wachtwoord. Voer uw accountwachtwoord in om de map te verwijderen.",
@@ -3887,6 +3886,16 @@ export const nl = {
       "E-mail in deze talen in geen enkele modus vertalen.",
     translate_add_language: "Taal toevoegen",
     translate_auto_detected: "Automatisch gedetecteerd op je apparaat",
+    translate_confirm_title: "Vertaling inschakelen?",
+    translate_confirm_description: "Aster vertaalt e-mail op je apparaat, dus niets wat je leest wordt naar een vertaaldienst gestuurd. De eerste keer dat je vanuit een taal vertaalt, downloadt Aster een taalpakket van 20 tot 55 MB en bewaart het op dit apparaat. Je kunt pakketten op elk moment verwijderen.",
+    translate_confirm_enable: "Inschakelen",
+    translation_packs: "Gedownloade taalpakketten",
+    translation_packs_description: "Taalpakketten worden op dit apparaat opgeslagen. Verwijder een pakket om ruimte vrij te maken. Aster downloadt het opnieuw wanneer je die taal weer vertaalt.",
+    translation_packs_empty: "Je hebt nog geen taalpakketten gedownload.",
+    translation_packs_total: "{{size}} gebruikt op dit apparaat",
+    translation_packs_remove: "Verwijderen",
+    translation_packs_remove_all: "Alles verwijderen",
+    translation_packs_unavailable: "Deze browser kan geen taalpakketten opslaan, dus Aster downloadt ze elke keer dat je vertaalt.",
 
     block_external_content: "Externe inhoud blokkeren",
     block_external_content_description:
@@ -7237,6 +7246,8 @@ export const nl = {
     attachments: "Bijlagen",
     translation_offer: "Dit bericht is in het {{language}}.",
     translation_translate: "Vertalen",
+    translation_offer_download: "Dit bericht is in het {{language}}. Vertalen downloadt een taalpakket.",
+    translation_translate_download: "Vertalen ({{size}} download)",
     translation_in_progress: "Vertalen op je apparaat…",
     translation_translated_from:
       "Vertaald uit het {{language}} op je apparaat.",

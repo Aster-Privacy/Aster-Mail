@@ -20,7 +20,6 @@
 //
 export const fr = {
   common: {
-    beta: "Bêta",
     delete_folder_account_password: "Mot de passe du compte",
     delete_folder_step_up_hint:
       "Ce dossier est protégé par un mot de passe. Saisissez le mot de passe de votre compte pour le supprimer.",
@@ -3936,6 +3935,16 @@ export const fr = {
       "Ne jamais traduire le courrier dans ces langues, quel que soit le mode.",
     translate_add_language: "Ajouter une langue",
     translate_auto_detected: "Détecté automatiquement depuis votre appareil",
+    translate_confirm_title: "Activer la traduction ?",
+    translate_confirm_description: "Aster traduit le courrier sur votre appareil, donc rien de ce que vous lisez n'est envoyé à un service de traduction. La première fois que vous traduisez depuis une langue, Aster télécharge un pack linguistique de 20 à 55 Mo et le conserve sur cet appareil. Vous pouvez supprimer les packs à tout moment.",
+    translate_confirm_enable: "Activer",
+    translation_packs: "Packs linguistiques téléchargés",
+    translation_packs_description: "Les packs linguistiques sont stockés sur cet appareil. Supprimez un pack pour libérer de l'espace. Aster le télécharge à nouveau la prochaine fois que vous traduisez cette langue.",
+    translation_packs_empty: "Vous n'avez encore téléchargé aucun pack linguistique.",
+    translation_packs_total: "{{size}} utilisés sur cet appareil",
+    translation_packs_remove: "Supprimer",
+    translation_packs_remove_all: "Tout supprimer",
+    translation_packs_unavailable: "Ce navigateur ne peut pas stocker les packs linguistiques, donc Aster les télécharge à chaque traduction.",
 
     block_external_content: "Bloquer le contenu externe",
     block_external_content_description:
@@ -7320,6 +7329,8 @@ export const fr = {
     attachments: "Pièces jointes",
     translation_offer: "Ce message est en {{language}}.",
     translation_translate: "Traduire",
+    translation_offer_download: "Ce message est en {{language}}. Le traduire télécharge un pack linguistique.",
+    translation_translate_download: "Traduire (téléchargement de {{size}})",
     translation_in_progress: "Traduction sur votre appareil…",
     translation_translated_from: "Traduit du {{language}} sur votre appareil.",
     translation_limited_quality:

@@ -20,7 +20,6 @@
 //
 export const ko = {
   common: {
-    beta: "베타",
     delete_folder_account_password: "계정 비밀번호",
     delete_folder_step_up_hint:
       "이 폴더는 비밀번호로 보호되어 있습니다. 삭제하려면 계정 비밀번호를 입력하세요.",
@@ -3812,6 +3811,16 @@ export const ko = {
       "이 언어의 메일은 어떤 모드에서도 번역하지 않습니다.",
     translate_add_language: "언어 추가",
     translate_auto_detected: "기기에서 자동 감지됨",
+    translate_confirm_title: "번역을 켤까요?",
+    translate_confirm_description: "Aster는 기기에서 메일을 번역하므로 읽는 내용이 번역 서비스로 전송되지 않습니다. 어떤 언어에서 처음 번역할 때 Aster가 20~55MB 크기의 언어 팩을 다운로드해 이 기기에 보관합니다. 언제든지 팩을 제거할 수 있습니다.",
+    translate_confirm_enable: "켜기",
+    translation_packs: "다운로드한 언어 팩",
+    translation_packs_description: "언어 팩은 이 기기에 저장됩니다. 공간을 확보하려면 팩을 제거하세요. 해당 언어를 다시 번역할 때 Aster가 다시 다운로드합니다.",
+    translation_packs_empty: "아직 다운로드한 언어 팩이 없습니다.",
+    translation_packs_total: "이 기기에서 {{size}} 사용 중",
+    translation_packs_remove: "제거",
+    translation_packs_remove_all: "모두 제거",
+    translation_packs_unavailable: "이 브라우저는 언어 팩을 저장할 수 없으므로 Aster가 번역할 때마다 다운로드합니다.",
 
     block_external_content: "외부 콘텐츠 차단",
     block_external_content_description:
@@ -6940,6 +6949,8 @@ export const ko = {
     attachments: "첨부 파일",
     translation_offer: "이 메시지는 {{language}}입니다.",
     translation_translate: "번역",
+    translation_offer_download: "이 메시지는 {{language}}입니다. 번역하면 언어 팩을 다운로드합니다.",
+    translation_translate_download: "번역({{size}} 다운로드)",
     translation_in_progress: "기기에서 번역 중…",
     translation_translated_from: "기기에서 {{language}}에서 번역됨.",
     translation_limited_quality: "이 언어는 번역 품질이 낮을 수 있습니다.",
