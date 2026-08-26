@@ -29,6 +29,8 @@ import type { NavigateFunction } from "react-router-dom";
 
 import { useCallback } from "react";
 
+import { use_date_format } from "@/hooks/use_date_format";
+
 import { is_system_email } from "@/lib/utils";
 import { extract_reply_to } from "@/utils/reply_to";
 import { build_reply_recipient } from "@/components/email/build_reply_recipient";
@@ -103,6 +105,8 @@ export interface EmailDetailActionsDeps {
 }
 
 export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
+  const { format_email_detail } = use_date_format();
+
   const build_reply_modal_data = useCallback(
     (msg: DecryptedThreadMessage, is_reply_all: boolean): ReplyModalData => {
       const is_own_message = msg.item_type === "sent";
@@ -164,7 +168,7 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
         ...quote_sender,
         original_subject: msg.subject,
         original_body: msg.body,
-        original_timestamp: new Date(msg.timestamp).toLocaleString(),
+        original_timestamp: format_email_detail(new Date(msg.timestamp)),
         thread_token: deps.mail_item?.thread_token,
         original_email_id: msg.id,
         is_external: msg.is_external,
@@ -185,6 +189,7 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
       deps.mail_item?.thread_token,
       deps.mail_item?.routing_token,
       deps.thread_ghost_email,
+      format_email_detail,
     ],
   );
 
@@ -452,11 +457,11 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
         sender_email: msg.display_sender_email || msg.sender_email,
         to: msg.to_recipients || [],
         cc: msg.cc_recipients,
-        timestamp: new Date(msg.timestamp).toLocaleString(),
+        timestamp: format_email_detail(new Date(msg.timestamp)),
         body: msg.html_content || msg.body,
       });
     },
-    [],
+    [format_email_detail],
   );
 
   const handle_per_message_view_source = useCallback(

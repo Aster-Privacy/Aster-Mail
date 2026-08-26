@@ -28,6 +28,8 @@ import type {
 
 import { useCallback } from "react";
 
+import { use_date_format } from "@/hooks/use_date_format";
+
 import { is_system_email, is_astermail_sender } from "@/lib/utils";
 import { extract_reply_to } from "@/utils/reply_to";
 import { build_reply_recipient } from "@/components/email/build_reply_recipient";
@@ -105,6 +107,8 @@ export interface PopupActionsDeps {
 }
 
 export function use_popup_viewer_actions(deps: PopupActionsDeps) {
+  const { format_email_detail } = use_date_format();
+
   const handle_read_toggle = useCallback(async () => {
     if (!deps.email_id || !deps.mail_item) return;
 
@@ -686,7 +690,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
           : {}),
         original_subject: msg.subject,
         original_body: msg.body,
-        original_timestamp: new Date(msg.timestamp).toLocaleString(),
+        original_timestamp: format_email_detail(new Date(msg.timestamp)),
         thread_token: deps.current_thread_token || undefined,
         original_email_id: msg.id,
         is_external: msg.is_external,
@@ -701,7 +705,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
 
       return data;
     },
-    [deps.current_thread_token],
+    [deps.current_thread_token, format_email_detail],
   );
 
   const handle_per_message_reply = useCallback(
@@ -737,12 +741,12 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
         sender_avatar: "",
         email_subject: msg.subject,
         email_body: msg.body,
-        email_timestamp: new Date(msg.timestamp).toLocaleString(),
+        email_timestamp: format_email_detail(new Date(msg.timestamp)),
         is_external: msg.is_external,
         original_mail_id: msg.id,
       });
     },
-    [deps.on_forward],
+    [deps.on_forward, format_email_detail],
   );
 
   const handle_per_message_archive = useCallback(
@@ -842,11 +846,11 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
         sender_email: msg.display_sender_email || msg.sender_email,
         to: msg.to_recipients || [],
         cc: msg.cc_recipients,
-        timestamp: new Date(msg.timestamp).toLocaleString(),
+        timestamp: format_email_detail(new Date(msg.timestamp)),
         body: msg.html_content || msg.body,
       });
     },
-    [],
+    [format_email_detail],
   );
 
   const handle_per_message_report_phishing = useCallback(

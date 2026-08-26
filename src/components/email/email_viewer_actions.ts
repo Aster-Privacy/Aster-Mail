@@ -768,10 +768,10 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
       to: deps.email.to,
       cc: deps.email.cc,
       bcc: deps.email.bcc,
-      timestamp: deps.format_email_detail(new Date(deps.email.timestamp)),
+      timestamp: deps.email.timestamp,
       body: deps.email.html_content || deps.email.body,
     });
-  }, [deps.email, deps.format_email_detail]);
+  }, [deps.email]);
 
   const handle_unsubscribe = useCallback(async () => {
     if (!deps.email?.unsubscribe_info) return;
@@ -884,7 +884,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
           : {}),
         original_subject: msg.subject,
         original_body: msg.body,
-        original_timestamp: new Date(msg.timestamp).toLocaleString(),
+        original_timestamp: deps.format_email_detail(new Date(msg.timestamp)),
         thread_token: deps.email?.thread_token,
         original_email_id: msg.id,
         is_external: msg.is_external || deps.is_external,
@@ -901,7 +901,12 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
 
       return base;
     },
-    [deps.email?.thread_token, deps.is_external, deps.thread_ghost_email],
+    [
+      deps.email?.thread_token,
+      deps.is_external,
+      deps.thread_ghost_email,
+      deps.format_email_detail,
+    ],
   );
 
   const {

@@ -491,7 +491,7 @@ export function use_mobile_mail_detail() {
     (msg: DecryptedThreadMessage, mode: "reply" | "reply_all" | "forward") => {
       const subject = msg.subject || "";
       const body = msg.body || "";
-      const quoted = `\n\n${t("mail.reply_quote_header", { date: new Date(msg.timestamp).toLocaleString(), name: msg.display_sender_name || msg.sender_name })}\n${body
+      const quoted = `\n\n${t("mail.reply_quote_header", { date: format_email_detail(new Date(msg.timestamp)), name: msg.display_sender_name || msg.sender_name })}\n${body
         .split("\n")
         .map((l) => "> " + l)
         .join("\n")}`;
@@ -574,7 +574,12 @@ export function use_mobile_mail_detail() {
         );
       }
     },
-    [t, detail.current_user_email, detail.mail_item?.thread_token],
+    [
+      t,
+      detail.current_user_email,
+      detail.mail_item?.thread_token,
+      format_email_detail,
+    ],
   );
 
   const is_dark_mode_message = useCallback(

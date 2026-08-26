@@ -23,6 +23,8 @@ import type { ReplyData } from "@/components/email/email_viewer_types";
 
 import { useCallback } from "react";
 
+import { use_date_format } from "@/hooks/use_date_format";
+
 import { is_system_email } from "@/lib/utils";
 import {
   update_item_metadata,
@@ -59,6 +61,8 @@ export function use_message_actions(
     is_reply_all: boolean,
   ) => ReplyData,
 ) {
+  const { format_email_detail } = use_date_format();
+
   const handle_per_message_reply = useCallback(
     (msg: DecryptedThreadMessage) => {
       if (!deps.on_reply || is_system_email(msg.sender_email)) return;
@@ -88,11 +92,11 @@ export function use_message_actions(
         sender_avatar: "",
         email_subject: msg.subject,
         email_body: msg.body,
-        email_timestamp: new Date(msg.timestamp).toLocaleString(),
+        email_timestamp: format_email_detail(new Date(msg.timestamp)),
         original_mail_id: msg.id,
       });
     },
-    [deps.on_forward],
+    [deps.on_forward, format_email_detail],
   );
 
   const handle_per_message_archive = useCallback(
@@ -199,11 +203,11 @@ export function use_message_actions(
         sender_email: msg.display_sender_email || msg.sender_email,
         to: msg.to_recipients || [],
         cc: msg.cc_recipients,
-        timestamp: new Date(msg.timestamp).toLocaleString(),
+        timestamp: format_email_detail(new Date(msg.timestamp)),
         body: msg.html_content || msg.body,
       });
     },
-    [],
+    [format_email_detail],
   );
 
   const handle_per_message_view_source = useCallback(
