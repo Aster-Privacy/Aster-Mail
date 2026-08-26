@@ -38,7 +38,12 @@ import {
 import { print_email } from "@/utils/print_email";
 import { adjust_stats_unread } from "@/hooks/use_mail_stats";
 import { conversation_has_unread_sibling } from "@/hooks/unread_read_delta";
-import { report_spam_sender, remove_spam_sender } from "@/services/api/mail";
+import {
+  report_spam_sender,
+  remove_spam_sender,
+  permanent_delete_mail_item,
+} from "@/services/api/mail";
+import { remove_email_from_view_cache } from "@/hooks/email_list_cache";
 import { reindex_ids } from "@/services/category_index";
 import { set_forward_mail_id } from "@/services/forward_store";
 
@@ -128,6 +133,26 @@ export function use_message_actions(
 
   const handle_per_message_trash = useCallback(
     async (msg: DecryptedThreadMessage) => {
+      if (deps.mail_item?.is_trashed) {
+        const permanent = await permanent_delete_mail_item(msg.id);
+
+        if (!permanent.error) {
+          remove_email_from_view_cache(msg.id);
+          emit_mail_items_removed({ ids: [msg.id] });
+          show_action_toast({
+            message: deps.t("common.email_permanently_deleted"),
+            action_type: "trash",
+            email_ids: [msg.id],
+          });
+        } else {
+          show_toast(
+            permanent.error || deps.t("common.something_went_wrong"),
+            "error",
+          );
+        }
+
+        return;
+      }
       const result = await update_item_metadata(
         msg.id,
         {
@@ -162,7 +187,7 @@ export function use_message_actions(
         show_toast(deps.t("common.something_went_wrong"), "error");
       }
     },
-    [deps.t],
+    [deps.t, deps.mail_item],
   );
 
   const handle_per_message_print = useCallback(

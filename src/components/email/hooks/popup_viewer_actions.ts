@@ -57,6 +57,7 @@ import {
 import { remove_email_from_view_cache } from "@/hooks/email_list_cache";
 import {
   compute_archive_deltas,
+  compute_unarchive_deltas,
   compute_trash_deltas,
   apply_stat_deltas,
   revert_stat_deltas,
@@ -173,6 +174,42 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
     if (!deps.email_id || deps.is_archive_loading) return;
 
     deps.set_is_archive_loading(true);
+
+    if (deps.mail_item?.is_archived) {
+      const unarchive_deltas = compute_unarchive_deltas({
+        item_type: deps.mail_item.item_type,
+        is_read: deps.is_read,
+      });
+
+      apply_stat_deltas(unarchive_deltas);
+
+      const unarchive_result = await batch_unarchive({ ids: [deps.email_id] });
+
+      deps.set_is_archive_loading(false);
+
+      if (unarchive_result.data?.success) {
+        await bulk_update_metadata_by_ids([deps.email_id], {
+          is_archived: false,
+        });
+        invalidate_mail_stats();
+        emit_mail_item_updated({ id: deps.email_id, is_archived: false });
+        reindex_ids([deps.email_id]);
+        show_action_toast({
+          message: deps.t("common.moved_to_inbox_toast"),
+          action_type: "restore",
+          email_ids: [deps.email_id],
+        });
+        deps.on_close();
+      } else {
+        revert_stat_deltas(unarchive_deltas);
+        show_toast(
+          unarchive_result.error || deps.t("common.failed_to_unarchive_emails"),
+          "error",
+        );
+      }
+
+      return;
+    }
 
     const deltas = deps.mail_item
       ? compute_archive_deltas({
@@ -740,6 +777,26 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
 
   const handle_per_message_trash = useCallback(
     async (msg: DecryptedThreadMessage) => {
+      if (deps.mail_item?.is_trashed) {
+        const permanent = await permanent_delete_mail_item(msg.id);
+
+        if (!permanent.error) {
+          remove_email_from_view_cache(msg.id);
+          emit_mail_items_removed({ ids: [msg.id] });
+          show_action_toast({
+            message: deps.t("common.email_permanently_deleted"),
+            action_type: "trash",
+            email_ids: [msg.id],
+          });
+        } else {
+          show_toast(
+            permanent.error || deps.t("common.something_went_wrong"),
+            "error",
+          );
+        }
+
+        return;
+      }
       const result = await update_item_metadata(
         msg.id,
         {
@@ -773,7 +830,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
         show_toast(deps.t("common.something_went_wrong"), "error");
       }
     },
-    [deps.t],
+    [deps.t, deps.mail_item],
   );
 
   const handle_per_message_print = useCallback(

@@ -409,21 +409,33 @@ export function use_mobile_mail_detail() {
     advance_after_action();
   }, [detail.email, email_actions, advance_after_action, is_archived, t]);
 
+  const is_trashed =
+    detail.mail_item?.is_trashed === true ||
+    detail.mail_item?.metadata?.is_trashed === true ||
+    from_view === "trash";
+
   const handle_delete = useCallback(async () => {
     if (action_in_flight.current || !detail.email) return;
     action_in_flight.current = true;
     haptic_impact("light");
-    const ok = await email_actions.delete_email(detail.email as never);
+    const ok = is_trashed
+      ? await email_actions.permanently_delete(detail.email as never)
+      : await email_actions.delete_email(detail.email as never);
 
     if (!ok) {
       action_in_flight.current = false;
-      show_toast(t("common.failed_to_delete_emails"), "error");
+      show_toast(
+        is_trashed
+          ? t("common.failed_to_permanently_delete")
+          : t("common.failed_to_delete_emails"),
+        "error",
+      );
 
       return;
     }
     remove_email_from_view_cache(detail.email.id);
     advance_after_action();
-  }, [detail.email, email_actions, advance_after_action, t]);
+  }, [detail.email, email_actions, advance_after_action, is_trashed, t]);
 
   const handle_spam = useCallback(async () => {
     if (action_in_flight.current || !detail.email) return;
