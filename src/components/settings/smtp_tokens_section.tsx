@@ -153,7 +153,7 @@ export function SmtpTokensSection() {
               {t("settings.smtp_tokens_upgrade_title")}
             </h3>
             <p
-              className="text-sm text-blue-100/70 mb-5 max-w-[320px]"
+              className="text-sm text-white/75 mb-5 max-w-[320px]"
               style={{ textShadow: "0 1px 2px rgba(0,0,0,0.1)" }}
             >
               {t("settings.smtp_tokens_upgrade_description")}

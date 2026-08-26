@@ -360,7 +360,7 @@ export function AliasesSection({
                 {t("settings.domain_purchase_banner_title")}
               </h3>
               <p
-                className="text-[13px] text-blue-100/70 mb-4"
+                className="text-[13px] text-white/75 mb-4"
                 style={{ textShadow: "0 1px 2px rgba(0, 0, 0, 0.1)" }}
               >
                 {t("settings.domain_purchase_banner_subtitle")}
