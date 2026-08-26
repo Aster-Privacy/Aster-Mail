@@ -24,28 +24,62 @@ import { request_cache } from "@/services/api/request_cache";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
+import type { TranslationKey } from "@/lib/i18n/types";
 import { use_auth } from "@/contexts/auth_context";
 import { ignore_error } from "@/lib/ignore_error";
 
-const ADDON_RETURN_KEY = "aster_addon_return";
+const RETURN_KEY = "aster_checkout_return";
 
-export function AddonReturnHandler() {
+interface ReturnFlow {
+  param: string;
+  success_key: TranslationKey;
+  cancelled_key: TranslationKey | null;
+}
+
+const FLOWS: ReturnFlow[] = [
+  {
+    param: "addon_purchase",
+    success_key: "settings.addon_purchased",
+    cancelled_key: null,
+  },
+  {
+    param: "crypto",
+    success_key: "settings.crypto_success_toast",
+    cancelled_key: "settings.crypto_cancelled_toast",
+  },
+  {
+    param: "family",
+    success_key: "settings.checkout_welcome",
+    cancelled_key: "settings.billing_checkout_cancelled",
+  },
+];
+
+export function CheckoutReturnHandler() {
   const { t } = use_i18n();
   const { is_authenticated } = use_auth();
   const handled = useRef(false);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const outcome = params.get("addon_purchase");
+    let stashed: string | null = null;
 
-    if (outcome !== "success" && outcome !== "cancelled") return;
+    for (const flow of FLOWS) {
+      const outcome = params.get(flow.param);
+
+      if (outcome !== "success" && outcome !== "cancelled") continue;
+
+      stashed = `${flow.param}:${outcome}`;
+      params.delete(flow.param);
+    }
+
+    if (!stashed) return;
 
     try {
-      sessionStorage.setItem(ADDON_RETURN_KEY, outcome);
+      sessionStorage.setItem(RETURN_KEY, stashed);
     } catch (caught) {
-      ignore_error("components/common/addon_return_handler:stash", caught);
+      ignore_error("components/common/checkout_return_handler:stash", caught);
     }
-    params.delete("addon_purchase");
+
     const query = params.toString();
 
     window.history.replaceState(
@@ -58,26 +92,35 @@ export function AddonReturnHandler() {
   useEffect(() => {
     if (!is_authenticated || handled.current) return;
 
-    let outcome: string | null = null;
+    let stashed: string | null = null;
 
     try {
-      outcome = sessionStorage.getItem(ADDON_RETURN_KEY);
-      if (outcome) sessionStorage.removeItem(ADDON_RETURN_KEY);
+      stashed = sessionStorage.getItem(RETURN_KEY);
+      if (stashed) sessionStorage.removeItem(RETURN_KEY);
     } catch (caught) {
-      ignore_error("components/common/addon_return_handler:consume", caught);
+      ignore_error("components/common/checkout_return_handler:consume", caught);
     }
 
-    if (!outcome) return;
+    if (!stashed) return;
 
     handled.current = true;
 
-    if (outcome !== "success") return;
+    const [param, outcome] = stashed.split(":");
+    const flow = FLOWS.find((candidate) => candidate.param === param);
+
+    if (!flow) return;
+
+    if (outcome !== "success") {
+      if (flow.cancelled_key) show_toast(t(flow.cancelled_key), "info");
+
+      return;
+    }
 
     request_cache.invalidate("/payments/v1");
     request_cache.invalidate("/sync/v1");
     invalidate_mail_stats();
     window.dispatchEvent(new CustomEvent("aster:plan-changed"));
-    show_toast(t("settings.addon_purchased"), "success");
+    show_toast(t(flow.success_key), "success");
   }, [is_authenticated, t]);
 
   return null;

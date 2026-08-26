@@ -51,8 +51,9 @@ import { UndoSendPreviewModal } from "@/components/toast/undo_send_preview_modal
 import { Family2faDialog } from "@/components/common/family_2fa_dialog";
 import { BillingAlertBanner } from "@/components/common/billing_alert_banner";
 import { MobileStorageBanner } from "@/components/common/mobile_storage_banner";
-import { AddonReturnHandler } from "@/components/common/addon_return_handler";
+import { CheckoutReturnHandler } from "@/components/common/checkout_return_handler";
 import { MobileBillingReturnHandler } from "@/pages/mobile/mobile_billing_return_handler";
+import { MobileDomainOrderReturn } from "@/pages/mobile/mobile_domain_order_return";
 import { PendingDeletionDialog } from "@/components/common/pending_deletion_dialog";
 import { ErrorBoundary } from "@/components/ui/error_boundary";
 import { FullPageLoader } from "@/components/common/full_page_loader";
@@ -509,7 +510,8 @@ function MobileApp() {
     <AppLock>
       <div className="relative flex h-[100dvh] flex-col bg-[var(--bg-primary)]">
         <MobileBillingReturnHandler />
-        <AddonReturnHandler />
+        <CheckoutReturnHandler />
+        <MobileDomainOrderReturn />
         {!is_auth_route && <BillingAlertBanner />}
         {!is_auth_route && <MobileStorageBanner />}
         <ErrorBoundary>
