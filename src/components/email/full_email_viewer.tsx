@@ -49,6 +49,7 @@ import {
   ViewerToolbarActions,
   ViewerThreadContent,
   ViewerErrorState,
+  ViewerViewSource,
   get_external_content_mode,
   set_external_content_mode,
 } from "@/components/email/viewer_shared";
@@ -624,6 +625,10 @@ export function FullEmailViewer({
         </div>
       </div>
       {spam_confirm_dialog}
+      <ViewerViewSource
+        on_close={() => viewer.set_view_source_message(null)}
+        view_source_message={viewer.view_source_message}
+      />
     </div>
   );
 }

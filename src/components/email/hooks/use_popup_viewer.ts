@@ -128,6 +128,8 @@ export function use_popup_viewer({
   const [error, set_error] = useState<string | null>(null);
   const [is_read, set_is_read] = useState(true);
   const [is_pinned, set_is_pinned] = useState(false);
+  const [view_source_message, set_view_source_message] =
+    useState<DecryptedThreadMessage | null>(null);
   const [is_archive_loading, set_is_archive_loading] = useState(false);
   const [is_spam_loading, set_is_spam_loading] = useState(false);
   const [is_trash_loading, set_is_trash_loading] = useState(false);
@@ -1256,5 +1258,7 @@ export function use_popup_viewer({
       actions.handle_per_message_report_phishing,
     handle_per_message_not_spam: actions.handle_per_message_not_spam,
     handle_toggle_message_read: actions.handle_toggle_message_read,
+    view_source_message,
+    set_view_source_message,
   };
 }

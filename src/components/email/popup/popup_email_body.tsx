@@ -90,6 +90,7 @@ interface PopupEmailBodyProps {
   on_per_message_not_spam?: (msg: DecryptedThreadMessage) => void;
   is_spam?: boolean;
   on_toggle_message_read: (message_id: string) => void;
+  on_view_source: (message: DecryptedThreadMessage) => void;
   on_draft_saved?: (draft: {
     id: string;
     version: number;
@@ -135,6 +136,7 @@ export function PopupEmailBody({
   on_per_message_not_spam,
   is_spam,
   on_toggle_message_read,
+  on_view_source,
   on_draft_saved,
   existing_draft,
   thread_token,
@@ -313,6 +315,7 @@ export function PopupEmailBody({
             on_report_phishing={on_per_message_report_phishing}
             on_set_inline_mode={set_inline_mode}
             on_toggle_message_read={on_toggle_message_read}
+            on_view_source={on_view_source}
             on_trash={on_per_message_trash}
             on_unsubscribe={
               email.unsubscribe_info?.has_unsubscribe && !is_system_email(email.sender_email) && !is_unsubscribed(email.sender_email)

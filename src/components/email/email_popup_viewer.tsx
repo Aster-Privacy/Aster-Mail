@@ -29,6 +29,7 @@ import {
 } from "@/components/email/hooks/use_popup_viewer";
 import { PopupEmailActions } from "@/components/email/popup/popup_email_actions";
 import { PopupEmailBody } from "@/components/email/popup/popup_email_body";
+import { ViewerViewSource } from "@/components/email/viewer_shared";
 import { use_spam_confirm } from "@/components/email/use_spam_confirm";
 
 export function EmailPopupViewer({
@@ -174,6 +175,7 @@ export function EmailPopupViewer({
         }
         on_per_message_trash={viewer.handle_per_message_trash}
         on_toggle_message_read={viewer.handle_toggle_message_read}
+        on_view_source={viewer.set_view_source_message}
         snoozed_until={snoozed_until}
         t={viewer.t}
         thread_messages={viewer.thread_messages}
@@ -182,6 +184,10 @@ export function EmailPopupViewer({
         label_hints={label_hints}
       />
       {spam_confirm_dialog}
+      <ViewerViewSource
+        on_close={() => viewer.set_view_source_message(null)}
+        view_source_message={viewer.view_source_message}
+      />
     </motion.div>
   );
 
