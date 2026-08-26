@@ -5480,6 +5480,12 @@ export const en: Translations = {
       "Shown as the sender name when you reply from this alias.",
     aliases_description:
       "Create alternate email addresses that forward to your main inbox. Use them to protect your privacy or organize incoming mail.",
+    twin_address_title: "Your matching address",
+    twin_address_reserved_description:
+      "{{ address }} is reserved for your account, so no one else can register it. Create it as an alias whenever you want to send and receive from it.",
+    twin_address_available_description:
+      "{{ address }} is the matching address on the other Aster domain. Create it as an alias to send and receive from it.",
+    twin_address_create: "Create alias",
     custom_domain_addresses_note:
       "You can also create addresses on your verified custom domains.",
     alias_taken_try_different:

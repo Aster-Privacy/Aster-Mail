@@ -4820,6 +4820,12 @@ export const pt = {
       "Exibido como o nome do remetente quando você responde deste alias.",
     aliases_description:
       "Crie endereços de e-mail alternativos que encaminham parsua caixa de entrada principal. Use-os para proteger sua privacidade ou organizar e-mails recebidos.",
+    twin_address_title: "O seu endereço correspondente",
+    twin_address_reserved_description:
+      "{{ address }} está reservado para a sua conta, por isso mais ninguém o pode registar. Crie-o como alias quando quiser enviar e receber a partir dele.",
+    twin_address_available_description:
+      "{{ address }} é o endereço correspondente no outro domínio Aster. Crie-o como alias para enviar e receber a partir dele.",
+    twin_address_create: "Criar alias",
     custom_domain_addresses_note:
       "Você também pode criar endereços nos seus domínios personalizados verificados.",
     alias_taken_try_different:

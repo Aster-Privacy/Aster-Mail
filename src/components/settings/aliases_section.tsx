@@ -53,6 +53,7 @@ import {
 } from "@/components/settings/aliases/alias_form";
 import { AliasEditorPage } from "@/components/settings/aliases/alias_editor_page";
 import { AliasList } from "@/components/settings/aliases/alias_list";
+import { TwinAddressCard } from "@/components/settings/aliases/twin_address_card";
 import { DomainSetupWizard } from "@/components/settings/aliases/domain_setup_wizard";
 import { DomainPurchaseFlow } from "@/components/settings/aliases/domain_purchase_flow";
 import { DomainCardV2 } from "@/components/settings/aliases/domain_card_v2";
@@ -184,6 +185,11 @@ export function AliasesSection() {
   const [editing_address_id, set_editing_address_id] = useState<string | null>(
     null,
   );
+  const [twin_refresh, set_twin_refresh] = useState(0);
+  const [twin_prefill, set_twin_prefill] = useState<{
+    local_part: string;
+    domain: string;
+  } | null>(null);
   const [show_import_modal, set_show_import_modal] = useState(false);
   const [show_export_modal, set_show_export_modal] = useState(false);
   const [default_alias_domain, set_default_alias_domain] = useState<
@@ -523,12 +529,22 @@ export function AliasesSection() {
               {t("settings.aliases_description")}
             </p>
 
+            <TwinAddressCard
+              refresh_token={twin_refresh}
+              on_claim={(local_part, domain) => {
+                set_twin_prefill({ local_part, domain });
+                hook.set_show_create_alias_modal(true);
+              }}
+            />
+
             <div className="flex gap-2 mb-2">
               <Button
                 className="flex-1"
                 size="xl"
                 variant="depth"
                 onClick={() => {
+                  set_twin_prefill(null);
+
                   const total_count =
                     (hook.alias_counts?.count ?? hook.aliases.length) +
                     hook.domain_addresses.length;
@@ -934,11 +950,17 @@ export function AliasesSection() {
         current_count={hook.alias_counts?.count ?? hook.aliases.length}
         custom_domains={hook.domains}
         domain_addresses={hook.domain_addresses}
-        initial_domain={default_alias_domain}
+        initial_domain={twin_prefill?.domain ?? default_alias_domain}
+        initial_local_part={twin_prefill?.local_part}
         is_open={hook.show_create_alias_modal}
         max_aliases={hook.alias_counts?.max ?? hook.max_aliases}
-        on_close={() => hook.set_show_create_alias_modal(false)}
+        on_close={() => {
+          set_twin_prefill(null);
+          hook.set_show_create_alias_modal(false);
+        }}
         on_created={() => {
+          set_twin_prefill(null);
+          set_twin_refresh((value) => value + 1);
           hook.load_aliases();
           hook.load_alias_counts();
           hook.load_domain_addresses(hook.domains);

@@ -4714,6 +4714,12 @@ export const ja = {
       "このエイリアスから返信する際に送信者名として表示されます。",
     aliases_description:
       "メインの受信トレイに転送される別のメールアドレスを作成します。プライバシーの保護や受信メールの整理に使用できます。",
+    twin_address_title: "対応するアドレス",
+    twin_address_reserved_description:
+      "{{ address }} はあなたのアカウント用に予約されているため、他の人は登録できません。このアドレスで送受信したくなったら、エイリアスとして作成してください。",
+    twin_address_available_description:
+      "{{ address }} はもう一方の Aster ドメインで対応するアドレスです。このアドレスで送受信するには、エイリアスとして作成してください。",
+    twin_address_create: "エイリアスを作成",
     custom_domain_addresses_note:
       "認証済みのカスタムドメインでもアドレスを作成できます。",
     alias_taken_try_different:

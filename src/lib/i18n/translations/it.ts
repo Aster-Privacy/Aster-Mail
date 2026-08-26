@@ -5642,6 +5642,12 @@ export const it = {
       "Mostrato come nome mittente quando rispondi da questo alias.",
     aliases_description:
       "Crea indirizzi email alternativi che inoltrano alla tua casella principale. Usali per proteggere la tua privacy o organizzare la posta in arrivo.",
+    twin_address_title: "Il tuo indirizzo corrispondente",
+    twin_address_reserved_description:
+      "{{ address }} è riservato al tuo account, quindi nessun altro può registrarlo. Crealo come alias quando vuoi inviare e ricevere da questo indirizzo.",
+    twin_address_available_description:
+      "{{ address }} è l'indirizzo corrispondente sull'altro dominio Aster. Crealo come alias per inviare e ricevere da questo indirizzo.",
+    twin_address_create: "Crea alias",
     custom_domain_addresses_note:
       "Puoi anche creare indirizzi sui tuoi domini personalizzati verificati.",
     alias_taken_try_different:

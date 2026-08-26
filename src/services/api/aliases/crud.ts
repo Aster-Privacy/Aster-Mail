@@ -29,6 +29,7 @@ import {
 } from "./crypto";
 import {
   AliasLimitResponse,
+  TwinAddressResponse,
   AliasPreferences,
   BulkCreateAliasItem,
   BulkCreateAliasResponse,
@@ -226,6 +227,12 @@ export async function get_alias_limit(): Promise<
   ApiResponse<AliasLimitResponse>
 > {
   return api_client.get<AliasLimitResponse>("/addresses/v1/aliases/limit");
+}
+
+export async function get_twin_address(): Promise<
+  ApiResponse<TwinAddressResponse>
+> {
+  return api_client.get<TwinAddressResponse>("/addresses/v1/aliases/twin");
 }
 
 export async function bulk_create_aliases(

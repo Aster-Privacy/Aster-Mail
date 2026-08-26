@@ -4939,6 +4939,10 @@ export interface SettingsTranslations {
   address_label: string;
   display_name_sender_note: string;
   aliases_description: string;
+  twin_address_title: string;
+  twin_address_reserved_description: string;
+  twin_address_available_description: string;
+  twin_address_create: string;
   custom_domain_addresses_note: string;
   alias_taken_try_different: string;
   alias_is_available: string;

@@ -124,6 +124,20 @@ export interface CheckAvailabilityResponse {
   available: boolean;
 }
 
+export type TwinAddressState =
+  | "reserved"
+  | "available"
+  | "claimed"
+  | "taken"
+  | "unsupported";
+
+export interface TwinAddressResponse {
+  address: string;
+  domain: string;
+  local_part: string;
+  state: TwinAddressState;
+}
+
 export interface AliasCountsResponse {
   count: number;
   max: number;

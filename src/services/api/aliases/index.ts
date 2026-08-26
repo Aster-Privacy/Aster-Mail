@@ -37,6 +37,7 @@ export {
   delete_alias,
   get_alias,
   get_alias_limit,
+  get_twin_address,
   get_alias_preferences,
   reencrypt_alias_local_part,
   toggle_alias_pin,
@@ -87,6 +88,8 @@ export type {
   DeliveryEvent,
   EmailAlias,
   ListDeletedAliasesResponse,
+  TwinAddressResponse,
+  TwinAddressState,
   UpdateAliasRequest,
 } from "./types";
 export { validate_local_part } from "./validate";

@@ -4768,6 +4768,12 @@ export const de = {
       "Wird als Absendername angezeigt, wenn Sie von diesem Alias antworten.",
     aliases_description:
       "Erstellen Sie alternative E-Mail-Adressen, die an Ihren Hauptposteingang weiterleiten. Verwenden Sie sie zum Schutz Ihrer Privatsphäre oder zur Organisation eingehender E-Mails.",
+    twin_address_title: "Ihre passende Adresse",
+    twin_address_reserved_description:
+      "{{ address }} ist für Ihr Konto reserviert, niemand sonst kann sie registrieren. Erstellen Sie sie als Alias, wenn Sie damit senden und empfangen möchten.",
+    twin_address_available_description:
+      "{{ address }} ist die passende Adresse auf der anderen Aster-Domain. Erstellen Sie sie als Alias, um damit zu senden und zu empfangen.",
+    twin_address_create: "Alias erstellen",
     custom_domain_addresses_note:
       "Sie können auch Adressen auf Ihren verifizierten benutzerdefinierten Domains erstellen.",
     alias_taken_try_different:

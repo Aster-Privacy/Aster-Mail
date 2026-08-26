@@ -4267,6 +4267,12 @@ export const zh_CN = {
     display_name_sender_note: "当您从此别名回复时显示的发件人名称。",
     aliases_description:
       "创建转发到主收件箱的备用邮箱地址。用于保护隐私或整理收件。",
+    twin_address_title: "你的对应地址",
+    twin_address_reserved_description:
+      "{{ address }} 已为你的账户保留，其他人无法注册。想用它收发邮件时，可以将它创建为别名。",
+    twin_address_available_description:
+      "{{ address }} 是另一个 Aster 域名上的对应地址。将它创建为别名即可用它收发邮件。",
+    twin_address_create: "创建别名",
     custom_domain_addresses_note: "您还可以在已验证的自定义域名上创建地址。",
     alias_taken_try_different: "此别名已被占用。请尝试其他名称。",
     upgrade_plan_more_aliases: "升级套餐以创建更多别名并解锁更多功能。",

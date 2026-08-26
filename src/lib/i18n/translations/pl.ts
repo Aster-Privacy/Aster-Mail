@@ -4956,6 +4956,12 @@ export const pl = {
       "Wyświetlana jako nazwa nadawcy, gdy odpowiadasz z tego aliasu.",
     aliases_description:
       "Utwórz alternatywne adresy e-mail, które przekierowują do Twojej głównej skrzynki. Użyj ich do ochrony prywatności lub organizowania poczty przychodzącej.",
+    twin_address_title: "Twój adres bliźniaczy",
+    twin_address_reserved_description:
+      "{{ address }} jest zarezerwowany dla Twojego konta, więc nikt inny nie może go zarejestrować. Utwórz go jako alias, gdy zechcesz z niego wysyłać i odbierać.",
+    twin_address_available_description:
+      "{{ address }} to odpowiadający adres w drugiej domenie Aster. Utwórz go jako alias, aby z niego wysyłać i odbierać.",
+    twin_address_create: "Utwórz alias",
     custom_domain_addresses_note:
       "Możesz również tworzyć adresy na zweryfikowanych domenach niestandardowych.",
     alias_taken_try_different:

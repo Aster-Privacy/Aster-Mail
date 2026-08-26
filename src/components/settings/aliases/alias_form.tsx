@@ -94,6 +94,7 @@ interface CreateAliasModalProps {
   custom_domains: CustomDomain[];
   domain_addresses: (DecryptedDomainAddress & { domain_name: string })[];
   initial_domain?: string;
+  initial_local_part?: string;
 }
 
 export function CreateAliasModal({
@@ -106,6 +107,7 @@ export function CreateAliasModal({
   custom_domains,
   domain_addresses,
   initial_domain,
+  initial_local_part,
 }: CreateAliasModalProps) {
   const { t } = use_i18n();
   const { is_feature_locked } = use_plan_limits();
@@ -140,7 +142,7 @@ export function CreateAliasModal({
 
   useEffect(() => {
     if (is_open) {
-      set_local_part("");
+      set_local_part(initial_local_part ?? "");
       set_display_name("");
       set_note("");
       set_domain(resolve_initial_domain());

@@ -4857,6 +4857,12 @@ export const fr = {
       "Affiché comme nom d'expéditeur lorsque vous répondez depuis cet alias.",
     aliases_description:
       "Créez des adresses e-mail alternatives qui redirigent vers votre boîte de réception principale. Utilisez-les pour protéger votre vie privée ou organiser le courrier entrant.",
+    twin_address_title: "Votre adresse jumelle",
+    twin_address_reserved_description:
+      "{{ address }} est réservée à votre compte, donc personne d'autre ne peut l'enregistrer. Créez-la comme alias quand vous voulez envoyer et recevoir avec elle.",
+    twin_address_available_description:
+      "{{ address }} est l'adresse correspondante sur l'autre domaine Aster. Créez-la comme alias pour envoyer et recevoir avec elle.",
+    twin_address_create: "Créer un alias",
     custom_domain_addresses_note:
       "Vous pouvez également créer des adresses sur vos domaines personnalisés vérifiés.",
     alias_taken_try_different:
