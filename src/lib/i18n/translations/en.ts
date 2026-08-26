@@ -4012,6 +4012,10 @@ export const en: Translations = {
       "Checkout cancelled. Your account is safe and nothing was charged - you can try again anytime from Settings.",
     payment_failed:
       "We could not charge your payment method. Another attempt, or an update in Settings, Billing, will sort it out.",
+    finish_plan_setup_title: "Finish setting up your {{plan}} plan",
+    finish_plan_setup_message:
+      "You closed checkout before paying. Your account stays on the free plan until you finish.",
+    finish_plan_setup_action: "Finish setting up",
     payment_processing_delayed:
       "Your payment is being processed. It may take a moment to activate.",
     payment_details: "Payment Details",

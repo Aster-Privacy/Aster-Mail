@@ -5736,6 +5736,10 @@ export const ar = {
     promo_forever: "مُطبَّق طوال فترة الاشتراك",
     discount_first_year: "السنة الأولى",
     discount_first_month: "الشهر الأول",
+    finish_plan_setup_title: "أكمل إعداد خطة {{plan}}",
+    finish_plan_setup_message:
+      "لقد أغلقت صفحة الدفع قبل إتمامه. يبقى حسابك على الخطة المجانية حتى تنتهي.",
+    finish_plan_setup_action: "أكمل الإعداد",
     payment_processing_delayed: "جارٍ معالجة دفعتك. قد تستغرق لحظة للتفعيل.",
     card_number: "رقم البطاقة",
     card_expiry: "تاريخ الانتهاء",

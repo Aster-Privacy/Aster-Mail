@@ -6303,6 +6303,10 @@ export const de = {
     or_pay_with_card: "Oder mit Karte bezahlen",
     password_breach_warning:
       "Dieses Passwort wurde in einem bekannten Datenleck gefunden. Ein anderes hält Ihr Konto sicherer.",
+    finish_plan_setup_title: "Richte deinen {{plan}}-Tarif fertig ein",
+    finish_plan_setup_message:
+      "Du hast die Kasse vor der Zahlung geschlossen. Dein Konto bleibt im kostenlosen Tarif, bis du fertig bist.",
+    finish_plan_setup_action: "Einrichtung abschließen",
     payment_processing_delayed:
       "Ihre Zahlung wird bearbeitet. Die Aktivierung kann einen Moment dauern.",
     pdf: "PDF",

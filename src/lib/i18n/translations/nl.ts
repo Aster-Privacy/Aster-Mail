@@ -6163,6 +6163,10 @@ export const nl = {
     or_pay_with_card: "Of betalen met kaart",
     password_breach_warning:
       "Dit wachtwoord is gevonden in een datalek. Gebruik een ander wachtwoord.",
+    finish_plan_setup_title: "Rond het instellen van je {{plan}}-abonnement af",
+    finish_plan_setup_message:
+      "Je hebt het afrekenen gesloten voordat je betaalde. Je account blijft op het gratis abonnement tot je klaar bent.",
+    finish_plan_setup_action: "Instellen afronden",
     payment_processing_delayed:
       "Betaalverwerking wordt vertraagd. Controleer uw betaalmethode.",
     pdf: "PDF",

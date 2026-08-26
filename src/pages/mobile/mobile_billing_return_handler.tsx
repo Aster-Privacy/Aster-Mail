@@ -23,8 +23,9 @@ import { useNavigate } from "react-router-dom";
 
 import {
   activate_subscription,
-  BILLING_TARGET_PLAN_KEY,
+  clear_checkout_target,
   get_subscription,
+  read_checkout_target,
 } from "@/services/api/billing";
 import { request_cache } from "@/services/api/request_cache";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
@@ -92,7 +93,7 @@ export function MobileBillingReturnHandler() {
     clear_key(BILLING_RETURN_KEY);
 
     if (billing === "cancelled") {
-      clear_key(BILLING_TARGET_PLAN_KEY);
+      clear_checkout_target();
       show_toast(t("settings.billing_checkout_cancelled"), "info");
 
       return;
@@ -110,9 +111,9 @@ export function MobileBillingReturnHandler() {
         );
       }
 
-      const target = read_key(BILLING_TARGET_PLAN_KEY);
+      const target = read_checkout_target()?.plan_code ?? null;
 
-      clear_key(BILLING_TARGET_PLAN_KEY);
+      clear_checkout_target();
 
       for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
         await new Promise((resolve) =>

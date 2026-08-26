@@ -6236,6 +6236,11 @@ export const fr = {
     or_pay_with_card: "Ou payer par carte",
     password_breach_warning:
       "Ce mot de passe a été détecté dans une fuite de données.",
+    finish_plan_setup_title:
+      "Terminez la configuration de votre offre {{plan}}",
+    finish_plan_setup_message:
+      "Vous avez fermé le paiement avant de régler. Votre compte reste sur l'offre gratuite jusqu'à ce que vous terminiez.",
+    finish_plan_setup_action: "Terminer la configuration",
     payment_processing_delayed:
       "Le traitement du paiement peut prendre quelques minutes.",
     pdf: "PDF",

@@ -6071,6 +6071,9 @@ export const ja = {
     or_pay_with_card: "またはカードで支払う",
     password_breach_warning:
       "このパスワードは既知のデータ侵害で見つかっています。別のパスワードにするとアカウントをより安全に保てます。",
+    finish_plan_setup_title: "{{plan}} プランの設定を完了",
+    finish_plan_setup_message: "お支払いの前にチェックアウトを閉じました。完了するまで、アカウントは無料プランのままです。",
+    finish_plan_setup_action: "設定を完了",
     payment_processing_delayed:
       "お支払いを処理中です。有効化には少し時間がかかることがあります。",
     pdf: "PDF",

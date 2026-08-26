@@ -5960,6 +5960,10 @@ export const tr = {
     promo_forever: "Abonelik süresince uygulandı",
     discount_first_year: "İlk yıl",
     discount_first_month: "İlk ay",
+    finish_plan_setup_title: "{{plan}} planınızın kurulumunu tamamlayın",
+    finish_plan_setup_message:
+      "Ödeme yapmadan önce ödeme sayfasını kapattınız. Kurulumu tamamlayana kadar hesabınız ücretsiz planda kalır.",
+    finish_plan_setup_action: "Kurulumu tamamla",
     payment_processing_delayed:
       "Ödemeniz işleniyor. Etkinleşmesi biraz zaman alabilir.",
     card_number: "Kart numarası",

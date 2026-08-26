@@ -5807,6 +5807,10 @@ export const ko = {
     promo_forever: "구독 기간 동안 계속 적용됩니다",
     discount_first_year: "첫 해",
     discount_first_month: "첫 달",
+    finish_plan_setup_title: "{{plan}} 요금제 설정 마치기",
+    finish_plan_setup_message:
+      "결제를 마치기 전에 결제 화면을 닫았습니다. 설정을 마칠 때까지 계정은 무료 요금제로 유지됩니다.",
+    finish_plan_setup_action: "설정 마치기",
     payment_processing_delayed:
       "결제 처리 중입니다. 활성화되기까지 잠시 시간이 걸릴 수 있습니다.",
     card_number: "카드 번호",

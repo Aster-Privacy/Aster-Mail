@@ -250,6 +250,7 @@ export async function start_hosted_checkout(
     return { ok: false, error: response.error || "no_checkout_url" };
   }
 
+  remember_checkout_target(plan_code, billing_interval);
   await open_payment_url(url);
 
   return { ok: true };
@@ -300,9 +301,46 @@ export async function preview_plan_change(
 
 export const BILLING_TARGET_PLAN_KEY = "aster_billing_target_plan";
 
-export function remember_checkout_target(plan_code: string): void {
+export interface CheckoutTarget {
+  plan_code: string;
+  billing_interval: string;
+}
+
+export function remember_checkout_target(
+  plan_code: string,
+  billing_interval: string = "month",
+): void {
   try {
-    sessionStorage.setItem(BILLING_TARGET_PLAN_KEY, plan_code);
+    sessionStorage.setItem(
+      BILLING_TARGET_PLAN_KEY,
+      plan_code + "|" + billing_interval,
+    );
+  } catch {
+    return;
+  }
+}
+
+export function read_checkout_target(): CheckoutTarget | null {
+  let raw: string | null = null;
+
+  try {
+    raw = sessionStorage.getItem(BILLING_TARGET_PLAN_KEY);
+  } catch {
+    return null;
+  }
+
+  if (!raw) return null;
+
+  const [plan_code, billing_interval] = raw.split("|");
+
+  if (!plan_code) return null;
+
+  return { plan_code, billing_interval: billing_interval || "month" };
+}
+
+export function clear_checkout_target(): void {
+  try {
+    sessionStorage.removeItem(BILLING_TARGET_PLAN_KEY);
   } catch {
     return;
   }
@@ -330,7 +368,7 @@ export async function change_plan(
   }
 
   if (response.data.checkout_url) {
-    remember_checkout_target(plan_code);
+    remember_checkout_target(plan_code, billing_interval);
     await open_payment_url(response.data.checkout_url);
     return { ok: true, requires_checkout: true };
   }

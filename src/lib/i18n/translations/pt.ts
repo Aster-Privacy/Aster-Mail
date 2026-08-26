@@ -6010,6 +6010,10 @@ export const pt = {
     promo_forever: "para sempre",
     discount_first_year: "Primeiro ano",
     discount_first_month: "Primeiro mês",
+    finish_plan_setup_title: "Conclua a configuração do seu plano {{plan}}",
+    finish_plan_setup_message:
+      "Você fechou o checkout antes de pagar. A sua conta permanece no plano gratuito até você concluir.",
+    finish_plan_setup_action: "Concluir configuração",
     payment_processing_delayed:
       "Seu pagamento está sendo processado. Isso pode levar alguns minutos.",
     card_number: "Número do cartão",

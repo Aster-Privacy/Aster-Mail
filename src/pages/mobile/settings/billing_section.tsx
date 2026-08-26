@@ -42,6 +42,7 @@ import { use_currency_rates } from "@/components/settings/billing/use_currency_r
 import { Spinner } from "@/components/ui/spinner";
 import { CreditsSection } from "@/components/settings/billing/credits_section";
 import { CryptoResumeBanner } from "@/components/settings/billing/crypto_resume_banner";
+import { ResumeCheckoutCard } from "@/components/settings/billing/resume_checkout_card";
 import { show_toast } from "@/components/toast/simple_toast";
 import {
   build_referral_invite_url,
@@ -120,6 +121,10 @@ export function BillingSection({
           <>
             <div className="px-4 pt-4">
               <CryptoResumeBanner class_name="mb-4" />
+              <ResumeCheckoutCard
+                class_name="mb-4"
+                current_plan_code={subscription?.plan.code ?? null}
+              />
               <div
                 className="relative overflow-hidden rounded-2xl p-5"
                 style={{

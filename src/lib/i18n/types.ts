@@ -4932,6 +4932,9 @@ export interface SettingsTranslations {
   payment_success: string;
   billing_checkout_cancelled: string;
   payment_failed: string;
+  finish_plan_setup_title: string;
+  finish_plan_setup_message: string;
+  finish_plan_setup_action: string;
   payment_processing_delayed: string;
   payment_details: string;
   card_number: string;

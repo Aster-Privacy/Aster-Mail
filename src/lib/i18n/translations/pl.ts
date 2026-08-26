@@ -5985,6 +5985,10 @@ export const pl = {
     promo_forever: "Obowiązuje przez cały czas trwania subskrypcji",
     discount_first_year: "Pierwszy rok",
     discount_first_month: "Pierwszy miesiąc",
+    finish_plan_setup_title: "Dokończ konfigurację planu {{plan}}",
+    finish_plan_setup_message:
+      "Zamykasz stronę płatności przed jej opłaceniem. Twoje konto pozostaje w planie darmowym, dopóki nie dokończysz konfiguracji.",
+    finish_plan_setup_action: "Dokończ konfigurację",
     payment_processing_delayed:
       "Twoja płatność jest przetwarzana. Aktywacja może chwilę potrwać.",
     card_number: "Numer karty",

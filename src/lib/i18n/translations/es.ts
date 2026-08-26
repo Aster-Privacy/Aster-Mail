@@ -6174,6 +6174,10 @@ export const es = {
     or_pay_with_card: "O pagar con tarjeta",
     password_breach_warning:
       "Esta contraseña fue detectada en una filtración de datos.",
+    finish_plan_setup_title: "Termina de configurar tu plan {{plan}}",
+    finish_plan_setup_message:
+      "Cerraste el pago antes de completarlo. Tu cuenta sigue en el plan gratuito hasta que termines.",
+    finish_plan_setup_action: "Terminar la configuración",
     payment_processing_delayed:
       "El procesamiento del pago puede tardar unos minutos.",
     pdf: "PDF",

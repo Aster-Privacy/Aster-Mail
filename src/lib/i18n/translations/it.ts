@@ -6022,6 +6022,10 @@ export const it = {
     promo_forever: "Applicato per tutta la durata dell'abbonamento",
     discount_first_year: "Primo anno",
     discount_first_month: "Primo mese",
+    finish_plan_setup_title: "Completa la configurazione del piano {{plan}}",
+    finish_plan_setup_message:
+      "Hai chiuso il pagamento prima di completarlo. Il tuo account resta sul piano gratuito finché non lo completi.",
+    finish_plan_setup_action: "Completa la configurazione",
     payment_processing_delayed:
       "Il tuo pagamento è in elaborazione. Potrebbe volerci un momento per attivarlo.",
     card_number: "Numero carta",

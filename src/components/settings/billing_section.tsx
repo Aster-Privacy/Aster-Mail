@@ -63,6 +63,7 @@ import {
 import { server_error_text } from "@/components/settings/billing/server_error_text";
 import { CurrentPlanCard } from "@/components/settings/billing/current_plan_card";
 import { CryptoResumeBanner } from "@/components/settings/billing/crypto_resume_banner";
+import { ResumeCheckoutCard } from "@/components/settings/billing/resume_checkout_card";
 import { AvailablePlansSection } from "@/components/settings/billing/available_plans_section";
 import { StorageAddonsSection } from "@/components/settings/billing/storage_addons_section";
 import { CreditsSection } from "@/components/settings/billing/credits_section";
@@ -790,6 +791,10 @@ export function BillingSection() {
   return (
     <div className="space-y-6">
       <CryptoResumeBanner />
+
+      <ResumeCheckoutCard
+        current_plan_code={subscription?.plan.code ?? null}
+      />
 
       <CurrentPlanCard
         current_billing_interval={current_billing_interval}

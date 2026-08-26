@@ -22,8 +22,9 @@ import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { Route, Routes } from "react-router-dom";
 import {
   activate_subscription,
-  BILLING_TARGET_PLAN_KEY,
+  clear_checkout_target,
   get_subscription,
+  read_checkout_target,
 } from "@/services/api/billing";
 import { FamilyWelcomeModal } from "@/components/settings/billing/family_welcome_modal";
 import { CheckoutReturnHandler } from "@/components/common/checkout_return_handler";
@@ -218,11 +219,7 @@ function BillingSuccessHandler() {
     }
 
     if (billing === "cancelled") {
-      try {
-        sessionStorage.removeItem(BILLING_TARGET_PLAN_KEY);
-      } catch (caught) {
-        ignore_error("App:BillingSuccessHandler", caught);
-      }
+      clear_checkout_target();
       show_toast(t("settings.billing_checkout_cancelled"), "info");
 
       return;
@@ -236,14 +233,9 @@ function BillingSuccessHandler() {
       } catch {
         // best-effort; webhook is source of truth
       }
-      let target: string | null = null;
+      const target = read_checkout_target()?.plan_code ?? null;
 
-      try {
-        target = sessionStorage.getItem(BILLING_TARGET_PLAN_KEY);
-        sessionStorage.removeItem(BILLING_TARGET_PLAN_KEY);
-      } catch (caught) {
-        ignore_error("App:BillingSuccessHandler", caught);
-      }
+      clear_checkout_target();
 
       for (let i = 0; i < 8; i++) {
         await new Promise((r) => setTimeout(r, i === 0 ? 800 : 1500));

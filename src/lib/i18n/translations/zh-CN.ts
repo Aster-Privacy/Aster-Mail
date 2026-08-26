@@ -5635,6 +5635,9 @@ export const zh_CN = {
       "仅适用于您的 {{period}}，之后恢复为 {{price}}{{interval}}",
     promo_then_reverts: "之后恢复为 {{price}}{{interval}}，{{months}} 个月后",
     per_two_years: "/两年",
+    finish_plan_setup_title: "完成 {{plan}} 套餐设置",
+    finish_plan_setup_message: "您在付款前关闭了结账页面。完成之前，您的账户将保持免费套餐。",
+    finish_plan_setup_action: "完成设置",
     payment_processing_delayed:
       "支付处理中，可能需要几分钟。我们会发邮件确认。",
     subscription_activated: "订阅已激活",
