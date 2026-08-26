@@ -153,7 +153,7 @@ export function get_plan_comparison_rows(
       free: "-",
       star: "2",
       nova: "5",
-      supernova: "5",
+      supernova: "20",
     },
     {
       label: t("settings.plan_f_alias_avatars"),
