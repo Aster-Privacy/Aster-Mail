@@ -24,8 +24,12 @@ import type { SenderOption } from "@/hooks/use_sender_aliases";
 import { useState, useRef, useCallback } from "react";
 
 import {
+  build_send_fingerprint,
   can_acquire_send_lock,
+  forget_send,
+  is_duplicate_send,
   is_repeat_send,
+  record_send,
   is_attachment_set_incomplete,
 } from "@/components/compose/send_lock";
 import { use_i18n } from "@/lib/i18n/context";
@@ -270,10 +274,24 @@ export function use_compose_send({
 
     if (is_repeat_send(last_send_time_ref.current, now)) return;
 
+    const send_fingerprint = build_send_fingerprint(
+      [...recipients.to, ...recipients.cc, ...recipients.bcc],
+      subject,
+      stripped_body,
+      attachments.map((a) => `${a.name}:${a.data.byteLength}`).join(","),
+    );
+
+    if (is_duplicate_send(send_fingerprint, now)) {
+      show_toast(t("common.duplicate_send_blocked"), "error");
+
+      return;
+    }
+
     is_sending_ref.current = true;
     send_lock_started_at_ref.current = now;
     set_is_sending(true);
     last_send_time_ref.current = now;
+    record_send(send_fingerprint, now);
 
     if (save_timer_ref.current) {
       clearTimeout(save_timer_ref.current);
@@ -351,6 +369,7 @@ export function use_compose_send({
           if (import.meta.env.DEV) console.error(error);
           show_toast(t("common.failed_to_queue_offline"), "error");
           last_send_time_ref.current = 0;
+          forget_send(send_fingerprint);
         } finally {
           is_sending_ref.current = false;
           send_lock_started_at_ref.current = 0;
@@ -463,6 +482,7 @@ export function use_compose_send({
       if (has_external && has_internal) {
         show_toast(t("common.cannot_mix_recipients"), "error");
         last_send_time_ref.current = 0;
+        forget_send(send_fingerprint);
 
         return;
       }
@@ -491,6 +511,7 @@ export function use_compose_send({
 
       if (!consent.proceed) {
         last_send_time_ref.current = 0;
+        forget_send(send_fingerprint);
 
         return;
       }
@@ -511,6 +532,7 @@ export function use_compose_send({
         "error",
       );
       last_send_time_ref.current = 0;
+      forget_send(send_fingerprint);
     } finally {
       is_sending_ref.current = false;
       send_lock_started_at_ref.current = 0;

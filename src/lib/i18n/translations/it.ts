@@ -726,6 +726,8 @@ export const it = {
       "Questi contatti non sono stati rimossi. Un altro tentativo dovrebbe bastare.",
     failed_to_update_favorites:
       "I suoi preferiti non sono stati aggiornati. Un altro tentativo dovrebbe bastare.",
+    contacts_import_partial:
+      "Sono stati importati solo {{imported}} contatti su {{total}}. Importi di nuovo il file per aggiungere gli altri.",
     failed_to_import_contacts:
       "L'importazione dei contatti non si è completata. Un altro tentativo dovrebbe bastare. I suoi contatti esistenti sono invariati.",
     failed_to_read_file:
@@ -1597,6 +1599,8 @@ export const it = {
       "Questi file sono stati protetti e crittografati durante il transito.",
     subject_too_long:
       "Il suo oggetto supera il limite di 998 caratteri. Una versione più breve verrà inviata.",
+    duplicate_send_blocked:
+      "Questo messaggio è appena stato inviato. Controlla la cartella Inviata prima di inviarlo di nuovo.",
     empty_body_error:
       "Un oggetto o un po' di testo del messaggio sono necessari prima di poter inviare.",
     aster_user: "Utente Aster",
@@ -2312,8 +2316,7 @@ export const it = {
       "Conferme d'ordine, aggiornamenti di spedizione e avvisi di consegna.",
     category_info_custom:
       "Email che corrispondono alle tue regole personalizzate per questa categoria.",
-    muted_categories:
-      "Categorie silenziate",
+    muted_categories: "Categorie silenziate",
     muted_categories_description:
       "Attiva una categoria per silenziare le sue notifiche. Le categorie silenziate continuano a ricevere email e appaiono nella tua casella di posta.",
     muted_categories_empty:
@@ -5395,6 +5398,8 @@ export const it = {
     key_published_keyserver: "Chiave pubblicata sul keyserver",
     failed_publish_keyserver:
       "La sua chiave pubblica non è stata pubblicata sul keyserver. Un altro tentativo dovrebbe bastare.",
+    mailto_unregister_manual:
+      "Per impedire ad Aster Mail di aprire i link mailto, rimuovi il gestore nelle impostazioni del browser.",
     failed_save_setting: "Impossibile salvare l'impostazione. Riprova.",
     keys_cannot_remove_keyservers:
       "Una volta che una chiave è su un keyserver pubblico, non può essere rimossa. Vale la pena rifletterci prima di pubblicarla.",

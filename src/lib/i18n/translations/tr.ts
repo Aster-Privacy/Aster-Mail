@@ -713,6 +713,8 @@ export const tr = {
       "Bu kişiler kaldırılmadı. Bir kez daha denemek genellikle yeterli olur.",
     failed_to_update_favorites:
       "Sık kullanılanlarınız güncellenmedi. Bir kez daha denemek genellikle yeterli olur.",
+    contacts_import_partial:
+      "{{total}} kişiden yalnızca {{imported}} tanesi içe aktarıldı. Kalanları eklemek için dosyayı yeniden içe aktarın.",
     failed_to_import_contacts:
       "Kişi içe aktarımı tamamlanmadı. Bir kez daha denemek genellikle yeterli olur. Mevcut kişileriniz olduğu gibi.",
     failed_to_read_file: "Bu dosya okunamadı. Farklı biri işe yarar.",
@@ -1293,6 +1295,8 @@ export const tr = {
     block: "Engelle",
     state_province: "Eyalet / İl",
     files_end_to_end_encrypted: "Bu dosyalar uçtan uca şifrelidir.",
+    duplicate_send_blocked:
+      "Bu ileti az önce gönderildi. Yeniden göndermeden önce Gönderilenler klasörünü kontrol edin.",
     empty_body_error:
       "Bunun gönderilebilmesi için bir konu ya da bir miktar mesaj metnine ihtiyaç var.",
     subject_too_long:
@@ -2283,8 +2287,7 @@ export const tr = {
       "Sipariş onayları, kargo güncellemeleri ve teslimat bildirimleri.",
     category_info_custom:
       "Bu kategori için özel kurallarınızla eşleşen e-postalar.",
-    muted_categories:
-      "Sessize alınan kategoriler",
+    muted_categories: "Sessize alınan kategoriler",
     muted_categories_description:
       "Bir kategorinin bildirimlerini susturmak için onu aç. Sessize alınan kategoriler posta almaya devam eder ve gelen kutunda görünür.",
     muted_categories_empty:
@@ -4555,6 +4558,8 @@ export const tr = {
     key_published_keyserver: "Anahtar sunucuya yayınlandı",
     failed_publish_keyserver:
       "Genel anahtarınız anahtar sunucusuna yayımlanmadı. Bir kez daha denemek genellikle yeterli olur.",
+    mailto_unregister_manual:
+      "Aster Mail'in mailto bağlantılarını açmasını durdurmak için işleyiciyi tarayıcı ayarlarınızdan kaldırın.",
     failed_save_setting: "Ayar kaydedilemedi. Lütfen tekrar deneyin.",
     keys_cannot_remove_keyservers:
       "Bir anahtar genel anahtar sunucusuna gönderildikten sonra geri çekilemez. Yayımlamadan önce iyice düşünmeye değer.",

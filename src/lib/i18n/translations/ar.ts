@@ -708,6 +708,8 @@ export const ar = {
       "جهات الاتصال هذه لم تُزَل. محاولة أخرى ينبغي أن تنجح.",
     failed_to_update_favorites:
       "المفضّلة لم تُحدَّث. محاولة أخرى ينبغي أن تنجح.",
+    contacts_import_partial:
+      "تم استيراد {{imported}} من أصل {{total}} جهة اتصال فقط. استورد الملف مرة أخرى لإضافة البقية.",
     failed_to_import_contacts:
       "استيراد جهات الاتصال لم يكتمل. محاولة أخرى ينبغي أن تنجح. جهات الاتصال الحالية لم تتغير.",
     failed_to_read_file: "تعذّرت قراءة هذا الملف. ملف آخر سيعمل.",
@@ -1246,6 +1248,8 @@ export const ar = {
     state_province: "الولاية / المقاطعة",
     files_end_to_end_encrypted: "هذه الملفات مشفرة من طرف إلى طرف.",
     files_protected_in_transit: "هذه الملفات كانت محمية ومشفرة أثناء النقل.",
+    duplicate_send_blocked:
+      "تم إرسال هذه الرسالة للتو. تحقق من مجلد العناصر المرسلة قبل إرسالها مرة أخرى.",
     empty_body_error: "موضوع أو نص رسالة لازم قبل أن تُرسل.",
     subject_too_long: "الموضوع يتجاوز حد 998 حرفًا. نسخة أقصر ستُرسل.",
     notification_banner_no_thanks: "لا شكرًا",
@@ -2390,8 +2394,7 @@ export const ar = {
       "حجوزات وخطط رحلات وتأكيدات من شركات الطيران والفنادق وخدمات النقل.",
     category_info_shopping: "تأكيدات الطلبات وتحديثات الشحن وإشعارات التوصيل.",
     category_info_custom: "رسائل تطابق قواعدك المخصصة لهذه الفئة.",
-    muted_categories:
-      "الفئات المكتومة",
+    muted_categories: "الفئات المكتومة",
     muted_categories_description:
       "فعّل فئة لكتم إشعاراتها. تستمر الفئات المكتومة في استقبال البريد وتظهر في صندوق الوارد.",
     muted_categories_empty:
@@ -4642,6 +4645,8 @@ export const ar = {
     key_published_keyserver: "تم نشر المفتاح إلى خادم المفاتيح",
     failed_publish_keyserver:
       "مفتاحك العام لم يُنشر إلى خادم المفاتيح. محاولة أخرى ينبغي أن تنجح.",
+    mailto_unregister_manual:
+      "لإيقاف فتح روابط mailto في Aster Mail، أزل المعالج من إعدادات المتصفح.",
     failed_save_setting: "تعذر حفظ الإعداد. يرجى المحاولة مرة أخرى.",
     keys_cannot_remove_keyservers:
       "بمجرد وصول المفتاح إلى خادم مفاتيح عمومي، لا يمكن سحبه. الأمر يستحق التروّي قبل النشر.",

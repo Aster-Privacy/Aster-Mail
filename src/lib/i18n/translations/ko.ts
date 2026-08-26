@@ -708,6 +708,8 @@ export const ko = {
       "이 연락처들이 제거되지 않았습니다. 다시 시도하면 됩니다.",
     failed_to_update_favorites:
       "즐겨찾기가 업데이트되지 않았습니다. 다시 시도하면 됩니다.",
+    contacts_import_partial:
+      "연락처 {{total}}개 중 {{imported}}개만 가져왔습니다. 나머지를 추가하려면 파일을 다시 가져오세요.",
     failed_to_import_contacts:
       "연락처 가져오기가 완료되지 않았습니다. 다시 시도하면 됩니다. 기존 연락처는 그대로입니다.",
     failed_to_read_file: "이 파일을 읽을 수 없었습니다. 다른 파일이면 됩니다.",
@@ -1261,6 +1263,8 @@ export const ko = {
     files_end_to_end_encrypted: "이 파일은 종단간 암호화되어 있습니다.",
     files_protected_in_transit:
       "이 파일은 전송 중에 보호되고 암호화되었습니다.",
+    duplicate_send_blocked:
+      "이 메일은 방금 발송되었습니다. 다시 보내기 전에 보낸편지함을 확인하세요.",
     empty_body_error: "이 메일이 발송되려면 제목이나 본문이 필요합니다.",
     subject_too_long:
       "제목이 998자 제한을 넘습니다. 더 짧은 형태면 발송됩니다.",
@@ -2129,8 +2133,7 @@ export const ko = {
     category_info_shopping: "주문 확인, 배송 업데이트, 배달 알림입니다.",
     category_info_custom:
       "이 카테고리의 사용자 지정 규칙과 일치하는 메일입니다.",
-    muted_categories:
-      "음소거된 카테고리",
+    muted_categories: "음소거된 카테고리",
     muted_categories_description:
       "카테고리를 켜면 해당 알림이 음소거됩니다. 음소거된 카테고리도 메일을 계속 받고 받은 편지함에 표시됩니다.",
     muted_categories_empty:
@@ -4450,6 +4453,8 @@ export const ko = {
     key_published_keyserver: "키서버에 키가 게시되었습니다",
     failed_publish_keyserver:
       "공개 키가 키 서버에 게시되지 않았습니다. 다시 시도하면 됩니다.",
+    mailto_unregister_manual:
+      "Aster Mail이 mailto 링크를 열지 않도록 하려면 브라우저 설정에서 처리기를 제거하세요.",
     failed_save_setting: "설정을 저장할 수 없습니다. 다시 시도하세요.",
     keys_cannot_remove_keyservers:
       "공개 키 서버에 한 번 게시된 키는 내릴 수 없습니다. 게시 전에 잘 생각해두면 좋습니다.",

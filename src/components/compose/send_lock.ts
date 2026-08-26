@@ -44,3 +44,90 @@ export function is_attachment_set_incomplete(
 ): boolean {
   return is_loading_forward_attachments === true;
 }
+
+export const DUPLICATE_SEND_WINDOW_MS = 30000;
+
+const RECENT_SEND_LIMIT = 24;
+
+const recent_sends = new Map<string, number>();
+
+function hash_send_content(value: string): string {
+  let hash = 2166136261;
+
+  for (let index = 0; index < value.length; index += 1) {
+    hash ^= value.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+
+  return `${(hash >>> 0).toString(36)}:${value.length.toString(36)}`;
+}
+
+function prune_recent_sends(now: number): void {
+  for (const [fingerprint, sent_at] of recent_sends) {
+    if (now - sent_at >= DUPLICATE_SEND_WINDOW_MS)
+      recent_sends.delete(fingerprint);
+  }
+
+  while (recent_sends.size > RECENT_SEND_LIMIT) {
+    const oldest = recent_sends.keys().next();
+
+    if (oldest.done) break;
+
+    recent_sends.delete(oldest.value);
+  }
+}
+
+export function build_send_fingerprint(
+  recipients: string[],
+  subject: string,
+  body: string,
+  extra = "",
+): string {
+  const normalized_recipients = recipients
+    .map((recipient) => recipient.trim().toLowerCase())
+    .filter((recipient) => recipient.length > 0)
+    .sort()
+    .join(",");
+
+  const normalized_subject = subject.replace(/\s+/g, " ").trim().toLowerCase();
+  const normalized_body = body.replace(/\s+/g, " ").trim();
+
+  if (normalized_recipients.length === 0) return "";
+
+  if (normalized_subject.length === 0 && normalized_body.length === 0)
+    return "";
+
+  return hash_send_content(
+    `${normalized_recipients}|${normalized_subject}|${normalized_body}|${extra}`,
+  );
+}
+
+export function is_duplicate_send(fingerprint: string, now: number): boolean {
+  if (fingerprint.length === 0) return false;
+
+  prune_recent_sends(now);
+
+  const sent_at = recent_sends.get(fingerprint);
+
+  if (sent_at === undefined) return false;
+
+  return now - sent_at < DUPLICATE_SEND_WINDOW_MS;
+}
+
+export function record_send(fingerprint: string, now: number): void {
+  if (fingerprint.length === 0) return;
+
+  recent_sends.delete(fingerprint);
+  recent_sends.set(fingerprint, now);
+  prune_recent_sends(now);
+}
+
+export function forget_send(fingerprint: string): void {
+  if (fingerprint.length === 0) return;
+
+  recent_sends.delete(fingerprint);
+}
+
+export function reset_recent_sends(): void {
+  recent_sends.clear();
+}

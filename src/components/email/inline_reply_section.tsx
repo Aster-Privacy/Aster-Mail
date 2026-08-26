@@ -35,6 +35,12 @@ import {
 } from "@/services/mail_actions";
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
+import {
+  build_send_fingerprint,
+  forget_send,
+  is_duplicate_send,
+  record_send,
+} from "@/components/compose/send_lock";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_signatures } from "@/contexts/signatures_context";
 import { show_action_toast } from "@/components/toast/action_toast";
@@ -356,8 +362,21 @@ export const InlineReplySection = forwardRef<
 
     if (now - last_send_time_ref.current < 2000) return;
 
+    const send_fingerprint = build_send_fingerprint(
+      [sender_email],
+      subject,
+      reply_text,
+    );
+
+    if (is_duplicate_send(send_fingerprint, now)) {
+      set_error_message(t("common.duplicate_send_blocked"));
+
+      return;
+    }
+
     is_sending_ref.current = true;
     last_send_time_ref.current = now;
+    record_send(send_fingerprint, now);
     set_error_message(null);
     set_send_state("queued");
     set_countdown(undo_seconds);
@@ -454,12 +473,14 @@ export const InlineReplySection = forwardRef<
         on_cancel: () => {
           is_sending_ref.current = false;
           set_send_state("idle");
+          forget_send(send_fingerprint);
           set_queued_id(null);
           on_sending_end?.();
         },
         on_error: (error) => {
           is_sending_ref.current = false;
           set_send_state("error");
+          forget_send(send_fingerprint);
           set_error_message(error);
           on_sending_end?.();
         },
@@ -483,6 +504,7 @@ export const InlineReplySection = forwardRef<
     } else if (!result.success) {
       is_sending_ref.current = false;
       set_send_state("error");
+      forget_send(send_fingerprint);
       set_error_message(result.error || t("common.failed_to_send_reply"));
       on_sending_end?.();
     }

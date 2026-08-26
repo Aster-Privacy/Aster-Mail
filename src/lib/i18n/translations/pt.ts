@@ -617,6 +617,8 @@ export const pt = {
       "Estes contatos não foram removidos. Outra tentativa deve funcionar.",
     failed_to_update_favorites:
       "Seus favoritos não foram atualizados. Outra tentativa deve funcionar.",
+    contacts_import_partial:
+      "Apenas {{imported}} de {{total}} contatos foram importados. Importe o arquivo novamente para adicionar os restantes.",
     failed_to_import_contacts:
       "A importação de contatos não terminou. Outra tentativa deve funcionar. Seus contatos existentes permanecem inalterados.",
     failed_to_read_file: "Este arquivo não pôde ser lido. Outro vai funcionar.",
@@ -1192,6 +1194,8 @@ export const pt = {
     state_province: "Estado / Província",
     files_end_to_end_encrypted:
       "Estes arquivos possuem criptografia de ponta a ponta.",
+    duplicate_send_blocked:
+      "Esta mensagem acabou de ser enviada. Confira a pasta Enviados antes de enviá-la novamente.",
     empty_body_error:
       "Um assunto ou algum texto na mensagem é necessário antes de enviar.",
     subject_too_long:
@@ -2300,8 +2304,7 @@ export const pt = {
       "Confirmações de pedidos, atualizações de envio e avisos de entrega.",
     category_info_custom:
       "E-mails que correspondem às suas regras personalizadas para esta categoria.",
-    muted_categories:
-      "Categorias silenciadas",
+    muted_categories: "Categorias silenciadas",
     muted_categories_description:
       "Ativa uma categoria para silenciar as notificações dela. As categorias silenciadas continuam a receber correio e aparecem na tua caixa de entrada.",
     muted_categories_empty:
@@ -4602,6 +4605,8 @@ export const pt = {
     key_published_keyserver: "Chave publicada no servidor de chaves",
     failed_publish_keyserver:
       "Sua chave pública não foi publicada no servidor de chaves. Outra tentativa deve funcionar.",
+    mailto_unregister_manual:
+      "Para o Aster Mail deixar de abrir links mailto, remova o manipulador nas definições do navegador.",
     failed_save_setting:
       "Não foi possível salvar a configuração. Tente novamente.",
     keys_cannot_remove_keyservers:

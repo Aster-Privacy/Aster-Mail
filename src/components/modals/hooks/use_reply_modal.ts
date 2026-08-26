@@ -46,8 +46,12 @@ import {
 } from "@/components/email/build_reply_from_address";
 import { get_undo_send_delay_ms } from "@/services/send_queue";
 import {
+  build_send_fingerprint,
   can_acquire_send_lock,
+  forget_send,
+  is_duplicate_send,
   is_repeat_send,
+  record_send,
 } from "@/components/compose/send_lock";
 import { auto_save_recipients_to_contacts } from "@/services/contacts_auto_save";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -313,9 +317,22 @@ export function use_reply_modal(props: UseReplyModalProps) {
       return;
     }
 
+    const send_fingerprint = build_send_fingerprint(
+      [...send_recipients.to, ...send_recipients.cc],
+      original_subject,
+      reply_message,
+    );
+
+    if (is_duplicate_send(send_fingerprint, now)) {
+      set_error_message(t("common.duplicate_send_blocked"));
+
+      return;
+    }
+
     is_sending_ref.current = true;
     send_lock_started_at_ref.current = now;
     last_send_time_ref.current = now;
+    record_send(send_fingerprint, now);
     set_error_message(null);
     set_is_sending(true);
 
@@ -375,6 +392,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
         is_sending_ref.current = false;
         send_lock_started_at_ref.current = 0;
         last_send_time_ref.current = 0;
+        forget_send(send_fingerprint);
         set_error_message(ext_result.error);
         set_is_sending(false);
 
@@ -475,6 +493,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
           send_lock_started_at_ref.current = 0;
           set_is_sending(false);
           last_send_time_ref.current = 0;
+          forget_send(send_fingerprint);
           if (optimistic_id_ref.current && pending_thread_token_ref.current) {
             emit_thread_reply_cancelled({
               optimistic_id: optimistic_id_ref.current,
@@ -498,6 +517,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
           show_toast(error || t("common.failed_to_send_reply"), "error", 10000);
           set_is_sending(false);
           last_send_time_ref.current = 0;
+          forget_send(send_fingerprint);
           pending_thread_token_ref.current = null;
         },
       },
@@ -598,6 +618,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
       set_error_message(result.error || t("common.failed_to_send_reply"));
       set_is_sending(false);
       last_send_time_ref.current = 0;
+      forget_send(send_fingerprint);
     }
   }, [
     t,

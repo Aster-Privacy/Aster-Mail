@@ -716,6 +716,8 @@ export const pl = {
       "Te kontakty nie zostały usunięte. Kolejna próba powinna to załatwić.",
     failed_to_update_favorites:
       "Ulubione nie zostały zaktualizowane. Kolejna próba powinna to załatwić.",
+    contacts_import_partial:
+      "Zaimportowano tylko {{imported}} z {{total}} kontaktów. Zaimportuj plik ponownie, aby dodać pozostałe.",
     failed_to_import_contacts:
       "Import kontaktów nie został zakończony. Kolejna próba powinna to załatwić. Istniejące kontakty pozostają bez zmian.",
     failed_to_read_file: "Tego pliku nie udało się odczytać. Inny zadziała.",
@@ -1297,6 +1299,8 @@ export const pl = {
     files_end_to_end_encrypted: "Te pliki są szyfrowane end-to-end.",
     files_protected_in_transit:
       "Te pliki były chronione i szyfrowane podczas przesyłania.",
+    duplicate_send_blocked:
+      "Ta wiadomość została właśnie wysłana. Sprawdź folder Wysłane, zanim wyślesz ją ponownie.",
     empty_body_error:
       "Temat lub treść wiadomości jest potrzebny przed wysłaniem.",
     subject_too_long:
@@ -2443,8 +2447,7 @@ export const pl = {
       "Potwierdzenia zamówień, aktualizacje wysyłki i powiadomienia o dostawie.",
     category_info_custom:
       "Wiadomości pasujące do Twoich własnych reguł dla tej kategorii.",
-    muted_categories:
-      "Wyciszone kategorie",
+    muted_categories: "Wyciszone kategorie",
     muted_categories_description:
       "Włącz kategorię, aby wyciszyć jej powiadomienia. Wyciszone kategorie nadal odbierają pocztę i pojawiają się w skrzynce odbiorczej.",
     muted_categories_empty:
@@ -4738,6 +4741,8 @@ export const pl = {
     key_published_keyserver: "Klucz opublikowany na serwerze kluczy",
     failed_publish_keyserver:
       "Klucz publiczny nie został opublikowany na serwerze kluczy. Kolejna próba powinna to załatwić.",
+    mailto_unregister_manual:
+      "Aby Aster Mail przestał otwierać odnośniki mailto, usuń procedurę obsługi w ustawieniach przeglądarki.",
     failed_save_setting: "Nie udało się zapisać ustawienia. Spróbuj ponownie.",
     keys_cannot_remove_keyservers:
       "Klucz raz opublikowany na publicznym serwerze kluczy nie może zostać stamtąd zdjęty. Warto przemyśleć przed publikacją.",

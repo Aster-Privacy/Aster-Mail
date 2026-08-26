@@ -787,6 +787,8 @@ export const en: Translations = {
       "These contacts were not removed. Another attempt should do it.",
     failed_to_update_favorites:
       "Your favorites did not update. Another attempt should do it.",
+    contacts_import_partial:
+      "Only {{imported}} of {{total}} contacts imported. Import the file again to add the rest.",
     failed_to_import_contacts:
       "The contact import did not finish. Another attempt should do it. Your existing contacts are unchanged.",
     failed_to_read_file:
@@ -1220,6 +1222,8 @@ export const en: Translations = {
     post_quantum_send_anyway: "Send anyway",
     empty_body_error:
       "A subject or some message text is needed before this can send.",
+    duplicate_send_blocked:
+      "This message just went out. Check your Sent folder before you send it again.",
     subject_too_long:
       "Your subject is over the 998 character limit. A shorter version will send.",
     failed_to_schedule_email:
@@ -2785,8 +2789,7 @@ export const en: Translations = {
       "Order confirmations, shipping updates, and delivery notices.",
     category_info_custom:
       "Emails matching your custom rules for this category.",
-    muted_categories:
-      "Muted categories",
+    muted_categories: "Muted categories",
     muted_categories_description:
       "Turn on a category to silence its notifications. Muted categories still receive mail and appear in your inbox.",
     muted_categories_empty:
@@ -5240,6 +5243,8 @@ export const en: Translations = {
     key_published_keyserver: "Key published to keyserver",
     failed_publish_keyserver:
       "Your public key did not publish to the keyserver. Another attempt should do it.",
+    mailto_unregister_manual:
+      "To stop Aster Mail from opening mailto links, remove the handler in your browser settings.",
     failed_save_setting: "Setting could not be saved. Please try again.",
     keys_cannot_remove_keyservers:
       "Once a key is on a public keyserver, it cannot be taken down. Worth thinking through before publishing.",

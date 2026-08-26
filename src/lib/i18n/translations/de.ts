@@ -698,6 +698,8 @@ export const de = {
       "Diese Kontakte wurden nicht entfernt. Ein erneuter Versuch genügt meist.",
     failed_to_update_favorites:
       "Ihre Favoriten wurden nicht aktualisiert. Ein erneuter Versuch genügt meist.",
+    contacts_import_partial:
+      "Nur {{imported}} von {{total}} Kontakten wurden importiert. Importieren Sie die Datei erneut, um die übrigen hinzuzufügen.",
     failed_to_import_contacts:
       "Der Kontaktimport wurde nicht abgeschlossen. Ein erneuter Versuch genügt meist. Ihre bestehenden Kontakte bleiben unverändert.",
     failed_to_read_file:
@@ -1293,6 +1295,8 @@ export const de = {
       "Diese E-Mail ließ sich nicht für einen späteren Versand in die Warteschlange stellen. Ein erneuter Versuch genügt meist. Ihr Entwurf bleibt gesichert.",
     cannot_mix_recipients:
       "Aster-Nutzer und externe Adressen lassen sich nicht in derselben E-Mail kombinieren. Ein Versand als zwei getrennte Nachrichten funktioniert.",
+    duplicate_send_blocked:
+      "Diese Nachricht wurde gerade gesendet. Prüfen Sie Ihren Ordner „Gesendet“, bevor Sie sie erneut senden.",
     empty_body_error:
       "Ein Betreff oder etwas Nachrichtentext wird vor dem Senden benötigt.",
     subject_too_long:
@@ -2324,8 +2328,7 @@ export const de = {
       "Bestellbestätigungen, Versandaktualisierungen und Lieferhinweise.",
     category_info_custom:
       "E-Mails, die deinen eigenen Regeln für diese Kategorie entsprechen.",
-    muted_categories:
-      "Stummgeschaltete Kategorien",
+    muted_categories: "Stummgeschaltete Kategorien",
     muted_categories_description:
       "Aktiviere eine Kategorie, um ihre Benachrichtigungen stummzuschalten. Stummgeschaltete Kategorien empfangen weiterhin E-Mails und erscheinen in deinem Posteingang.",
     muted_categories_empty:
@@ -5764,6 +5767,8 @@ export const de = {
       "Ihr Schlüssel ließ sich gerade nicht exportieren. Ein erneuter Versuch genügt meist. Ihr Schlüssel bleibt unverändert.",
     failed_publish_keyserver:
       "Ihr öffentlicher Schlüssel wurde nicht zum Keyserver veröffentlicht. Ein erneuter Versuch genügt meist.",
+    mailto_unregister_manual:
+      "Um zu verhindern, dass Aster Mail mailto-Links öffnet, entfernst du den Handler in den Browsereinstellungen.",
     failed_save_setting:
       "Einstellung konnte nicht gespeichert werden. Bitte erneut versuchen.",
     enter_current_password_required:

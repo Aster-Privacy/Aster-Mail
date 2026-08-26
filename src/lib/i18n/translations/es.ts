@@ -722,6 +722,8 @@ export const es = {
       "Estos contactos no se eliminaron. Otro intento debería resolverlo.",
     failed_to_update_favorites:
       "Tus favoritos no se actualizaron. Otro intento debería resolverlo.",
+    contacts_import_partial:
+      "Solo se importaron {{imported}} de {{total}} contactos. Importa el archivo de nuevo para añadir el resto.",
     failed_to_import_contacts:
       "La importación de contactos no se completó. Otro intento debería resolverlo. Tus contactos existentes no han cambiado.",
     failed_to_read_file:
@@ -1302,6 +1304,8 @@ export const es = {
     state_province: "Estado / Provincia",
     files_end_to_end_encrypted:
       "Estos archivos están cifrados de extremo a extremo.",
+    duplicate_send_blocked:
+      "Este mensaje acaba de enviarse. Revisa tu carpeta Enviados antes de enviarlo de nuevo.",
     empty_body_error:
       "Añade un asunto o algo de texto al mensaje antes de enviar.",
     subject_too_long:
@@ -2282,8 +2286,7 @@ export const es = {
       "Confirmaciones de pedidos, actualizaciones de envío y avisos de entrega.",
     category_info_custom:
       "Correos que coinciden con tus reglas personalizadas para esta categoría.",
-    muted_categories:
-      "Categorías silenciadas",
+    muted_categories: "Categorías silenciadas",
     muted_categories_description:
       "Activa una categoría para silenciar sus avisos. Las categorías silenciadas siguen recibiendo correo y aparecen en tu bandeja de entrada.",
     muted_categories_empty:
@@ -4592,6 +4595,8 @@ export const es = {
     key_published_keyserver: "Clave publicada en servidor de claves",
     failed_publish_keyserver:
       "Tu clave pública no se publicó en el servidor de claves. Otro intento debería resolverlo.",
+    mailto_unregister_manual:
+      "Para que Aster Mail deje de abrir los enlaces mailto, quita el controlador en la configuración del navegador.",
     failed_save_setting:
       "No se pudo guardar la configuración. Inténtalo de nuevo.",
     keys_cannot_remove_keyservers:

@@ -705,6 +705,8 @@ export const nl = {
       "Deze contacten zijn niet verwijderd. Een nieuwe poging zou werken.",
     failed_to_update_favorites:
       "Uw favorieten zijn niet bijgewerkt. Een nieuwe poging zou werken.",
+    contacts_import_partial:
+      "Slechts {{imported}} van {{total}} contacten zijn geïmporteerd. Importeer het bestand opnieuw om de rest toe te voegen.",
     failed_to_import_contacts:
       "De contactimport is niet voltooid. Een nieuwe poging zou werken. Uw bestaande contacten zijn ongewijzigd.",
     failed_to_read_file:
@@ -1288,6 +1290,8 @@ export const nl = {
       "Deze bestanden waren beveiligd en versleuteld tijdens het transport.",
     failed_to_queue_offline:
       "We konden deze e-mail niet in de wachtrij plaatsen voor later verzenden. Een nieuwe poging zou werken. Uw concept is opgeslagen.",
+    duplicate_send_blocked:
+      "Dit bericht is net verzonden. Bekijk je map Verzonden voordat je het opnieuw verstuurt.",
     empty_body_error:
       "Een onderwerp of wat berichttekst is nodig voordat dit kan worden verzonden.",
     subject_too_long:
@@ -2235,8 +2239,7 @@ export const nl = {
       "Bestelbevestigingen, verzendupdates en bezorgmeldingen.",
     category_info_custom:
       "E-mails die overeenkomen met je eigen regels voor deze categorie.",
-    muted_categories:
-      "Gedempte categorieën",
+    muted_categories: "Gedempte categorieën",
     muted_categories_description:
       "Schakel een categorie in om de meldingen ervan te dempen. Gedempte categorieën ontvangen nog steeds e-mail en verschijnen in je inbox.",
     muted_categories_empty:
@@ -4521,6 +4524,8 @@ export const nl = {
     key_published_keyserver: "Sleutel gepubliceerd naar sleutelserver",
     failed_publish_keyserver:
       "Uw openbare sleutel is niet gepubliceerd op de keyserver. Een nieuwe poging zou werken.",
+    mailto_unregister_manual:
+      "Om te voorkomen dat Aster Mail mailto-links opent, verwijder je de handler in je browserinstellingen.",
     failed_save_setting:
       "Instelling kon niet worden opgeslagen. Probeer het opnieuw.",
     keys_cannot_remove_keyservers:

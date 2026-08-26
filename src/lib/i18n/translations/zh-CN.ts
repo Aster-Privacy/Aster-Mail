@@ -587,6 +587,8 @@ export const zh_CN = {
       "您对这个联系人的更改未能保存，再试一次应该可以。之前的版本还在。",
     failed_to_delete_contacts: "这些联系人未能移除，再试一次应该可以。",
     failed_to_update_favorites: "您的收藏未能更新，再试一次应该可以。",
+    contacts_import_partial:
+      "{{total}} 个联系人中只导入了 {{imported}} 个。再次导入该文件以添加其余联系人。",
     failed_to_import_contacts:
       "联系人导入未能完成，再试一次应该可以。您现有的联系人没有变化。",
     failed_to_read_file: "这个文件无法读取，换一个可以。",
@@ -1082,6 +1084,8 @@ export const zh_CN = {
     state_province: "省/州",
     files_end_to_end_encrypted: "这些文件已端到端加密。",
     files_protected_in_transit: "这些文件在传输过程中受到保护和加密。",
+    duplicate_send_blocked:
+      "这封邮件刚刚已发送。再次发送前，请先查看已发送文件夹。",
     empty_body_error: "这封邮件需要填写主题或正文才能发送。",
     subject_too_long: "您的主题超过了 998 个字符的限制，缩短一些就可以发送。",
     ghost_label: "幽灵",
@@ -2007,12 +2011,10 @@ export const zh_CN = {
     category_info_travel: "来自航空公司、酒店和网约车的预订、行程和确认信息。",
     category_info_shopping: "订单确认、发货更新和送达通知。",
     category_info_custom: "符合此类别自定义规则的邮件。",
-    muted_categories:
-      "已静音的类别",
+    muted_categories: "已静音的类别",
     muted_categories_description:
       "开启某个类别即可静音它的通知。静音的类别仍会收到邮件并显示在收件箱中。",
-    muted_categories_empty:
-      "开启收件箱类别，以选择要静音的类别。",
+    muted_categories_empty: "开启收件箱类别，以选择要静音的类别。",
     custom_categories_title: "自定义分类",
     custom_categories_tutorial:
       "创建属于你自己的分类。按发件人域名或主题关键词匹配邮件。",
@@ -4067,6 +4069,8 @@ export const zh_CN = {
     key_published_keyserver: "密钥已发布到密钥服务器",
     failed_publish_keyserver:
       "您的公钥未能发布到密钥服务器，再试一次应该可以。",
+    mailto_unregister_manual:
+      "若不想让 Aster Mail 打开 mailto 链接，请在浏览器设置中移除该处理程序。",
     failed_save_setting: "无法保存设置，请重试。",
     keys_cannot_remove_keyservers:
       "一旦密钥发布到公开的密钥服务器上，就无法撤回，发布前值得仔细斟酌。",

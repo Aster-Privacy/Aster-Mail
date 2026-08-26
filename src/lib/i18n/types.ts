@@ -1419,6 +1419,7 @@ export interface CommonTranslations {
   contacts_unstarred_other: string;
   contacts_unstarred_one: string;
   failed_to_update_favorites: string;
+  contacts_import_partial: string;
   failed_to_import_contacts: string;
   failed_to_read_file: string;
   import_failed: string;
@@ -1751,6 +1752,7 @@ export interface CommonTranslations {
   failed_to_queue_offline: string;
   cannot_mix_recipients: string;
   empty_body_error: string;
+  duplicate_send_blocked: string;
   subject_too_long: string;
   failed_to_schedule_email: string;
   failed_to_restore_draft: string;
@@ -4729,6 +4731,7 @@ export interface SettingsTranslations {
   failed_remove_wkd: string;
   key_published_keyserver: string;
   failed_publish_keyserver: string;
+  mailto_unregister_manual: string;
   failed_save_setting: string;
   keys_cannot_remove_keyservers: string;
   copied_to_clipboard: string;

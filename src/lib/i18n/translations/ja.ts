@@ -712,6 +712,8 @@ export const ja = {
       "これらの連絡先は削除されませんでした。もう一度試すと通ることが多いです。",
     failed_to_update_favorites:
       "お気に入りが更新されませんでした。もう一度試すと通ることが多いです。",
+    contacts_import_partial:
+      "{{total}} 件中 {{imported}} 件の連絡先のみインポートされました。残りを追加するには、ファイルをもう一度インポートしてください。",
     failed_to_import_contacts:
       "連絡先のインポートが完了しませんでした。もう一度試すと通ることが多いです。既存の連絡先には変更ありません。",
     failed_to_read_file:
@@ -1289,6 +1291,8 @@ export const ja = {
       "これらのファイルはエンドツーエンドで暗号化されています。",
     files_protected_in_transit:
       "これらのファイルは転送中に保護・暗号化されていました。",
+    duplicate_send_blocked:
+      "このメッセージは送信されたばかりです。もう一度送信する前に、送信済みフォルダを確認してください。",
     empty_body_error: "送信する前に、件名か本文のテキストが必要です。",
     subject_too_long:
       "件名が 998 文字の上限を超えています。短くすると送信できます。",
@@ -2214,8 +2218,7 @@ export const ja = {
       "航空会社、ホテル、配車サービスからの予約、旅程、確認メール。",
     category_info_shopping: "注文確認、配送状況の更新、配達通知。",
     category_info_custom: "このカテゴリのカスタムルールに一致するメール。",
-    muted_categories:
-      "ミュート中のカテゴリ",
+    muted_categories: "ミュート中のカテゴリ",
     muted_categories_description:
       "カテゴリをオンにすると、その通知をミュートします。ミュートしたカテゴリもメールを受信し、受信トレイに表示されます。",
     muted_categories_empty:
@@ -4499,6 +4502,8 @@ export const ja = {
     key_published_keyserver: "キーサーバーにキーを公開しました",
     failed_publish_keyserver:
       "公開鍵は鍵サーバーに公開されませんでした。もう一度試すと通ることが多いです。",
+    mailto_unregister_manual:
+      "Aster Mail で mailto リンクを開かないようにするには、ブラウザの設定でハンドラを削除します。",
     failed_save_setting: "設定を保存できませんでした。もう一度お試しください。",
     keys_cannot_remove_keyservers:
       "鍵を公開鍵サーバーに公開すると、後から取り下げることはできません。公開する前に、よく検討する価値があります。",

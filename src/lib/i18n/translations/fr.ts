@@ -723,6 +723,8 @@ export const fr = {
       "Ces contacts n'ont pas été retirés. Un autre essai devrait suffire.",
     failed_to_update_favorites:
       "Vos favoris ne se sont pas mis à jour. Un autre essai devrait suffire.",
+    contacts_import_partial:
+      "Seuls {{imported}} contacts sur {{total}} ont été importés. Importez de nouveau le fichier pour ajouter les autres.",
     failed_to_import_contacts:
       "L'import des contacts ne s'est pas terminé. Un autre essai devrait suffire. Vos contacts existants sont inchangés.",
     failed_to_read_file:
@@ -1311,6 +1313,8 @@ export const fr = {
     block: "Bloquer",
     state_province: "État / Province",
     files_end_to_end_encrypted: "Ces fichiers sont chiffrés de bout en bout.",
+    duplicate_send_blocked:
+      "Ce message vient de partir. Vérifiez votre dossier Envoyés avant de le renvoyer.",
     empty_body_error:
       "Un objet ou un peu de texte est nécessaire avant l'envoi.",
     subject_too_long:
@@ -2293,8 +2297,7 @@ export const fr = {
       "Confirmations de commande, mises à jour de livraison et avis de livraison.",
     category_info_custom:
       "E-mails correspondant à vos règles personnalisées pour cette catégorie.",
-    muted_categories:
-      "Catégories en sourdine",
+    muted_categories: "Catégories en sourdine",
     muted_categories_description:
       "Activez une catégorie pour mettre ses notifications en sourdine. Les catégories en sourdine continuent de recevoir des e-mails et apparaissent dans votre boîte de réception.",
     muted_categories_empty:
@@ -4631,6 +4634,8 @@ export const fr = {
     key_published_keyserver: "Clé publiée sur le serveur de clés",
     failed_publish_keyserver:
       "Votre clé publique ne s'est pas publiée sur le serveur de clés. Un autre essai devrait suffire.",
+    mailto_unregister_manual:
+      "Pour empêcher Aster Mail d'ouvrir les liens mailto, supprimez le gestionnaire dans les réglages de votre navigateur.",
     failed_save_setting:
       "Impossible d'enregistrer le paramètre. Veuillez réessayer.",
     keys_cannot_remove_keyservers:
