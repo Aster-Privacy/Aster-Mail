@@ -707,6 +707,7 @@ export interface CommonTranslations {
   search: string;
   close: string;
   confirm: string;
+  contact_support: string;
   back: string;
   next: string;
   previous: string;
@@ -4344,6 +4345,7 @@ export interface SettingsTranslations {
   onboarding_search_title: string;
   onboarding_search_description: string;
   delete_imported_emails_confirm: string;
+  import_delete_warning: string;
   all_emails_filter: string;
   choose_label_color: string;
   hex_color_value: string;
@@ -4582,6 +4584,19 @@ export interface SettingsTranslations {
   domain_purchase_crypto_warning_hint: string;
   domain_purchase_included_heading: string;
   domain_purchase_renew: string;
+  domain_purchase_manage: string;
+  domain_purchase_manage_description: string;
+  domain_purchase_manage_status: string;
+  domain_purchase_manage_status_active: string;
+  domain_purchase_manage_status_expiring: string;
+  domain_purchase_manage_registered: string;
+  domain_purchase_manage_expires: string;
+  domain_purchase_manage_term: string;
+  domain_purchase_manage_paid: string;
+  domain_purchase_manage_auto_renew_note: string;
+  domain_purchase_manage_dns: string;
+  domain_purchase_manage_support_note: string;
+  domain_purchase_manage_support_subject: string;
   domain_purchase_filter_all: string;
   domain_purchase_filter_available: string;
   domain_purchase_filter_taken: string;

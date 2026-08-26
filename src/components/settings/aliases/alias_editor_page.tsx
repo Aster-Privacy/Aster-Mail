@@ -18,7 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { copy_text_or_throw } from "@/utils/copy_text";
 import type { DecryptedEmailAlias } from "@/services/api/aliases";
 import type { DecryptedDomainAddress } from "@/services/api/domains";
 
@@ -31,13 +30,14 @@ import {
   InboxArrowDownIcon,
   NoSymbolIcon,
   ShieldCheckIcon,
-  SparklesIcon,
   UserGroupIcon,
+  WrenchScrewdriverIcon,
 } from "@heroicons/react/24/outline";
 import { Switch } from "@aster/ui";
 
 import { format_created_at } from "./alias_stats_format";
 
+import { copy_text_or_throw } from "@/utils/copy_text";
 import { Spinner } from "@/components/ui/spinner";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
@@ -225,7 +225,7 @@ export function AliasEditorPage({
 
     entries.push({
       key: "rules",
-      icon: SparklesIcon,
+      icon: WrenchScrewdriverIcon,
       label: t("settings.alias_rules_title"),
       locked: rules_locked,
       feature: "has_alias_rules",

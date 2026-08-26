@@ -34,11 +34,11 @@ import {
 } from "../connect_provider_modal";
 
 import { ConnectedAccountCard } from "./connected_account";
-
-import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { ImportJobCard } from "./job_card";
 import { OAUTH_PROVIDERS, PROVIDERS, PROVIDER_TO_OAUTH } from "./providers";
 
+import { ConfirmModal } from "@/components/email/inbox/inbox_confirmation_dialog";
+import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -144,6 +144,10 @@ export function ImportSection() {
     if (!silent) set_is_loading_jobs(false);
   }, []);
 
+  const [pending_delete_job_id, set_pending_delete_job_id] = useState<
+    string | null
+  >(null);
+
   const handle_delete_recent_job = useCallback(
     async (id: string) => {
       set_recent_jobs((prev) => prev.filter((j) => j.id !== id));
@@ -205,8 +209,11 @@ export function ImportSection() {
     async (account_token: string) => {
       const result = await trigger_sync(account_token);
 
-      if (result.error) {
-        show_toast(result.error, "error");
+      if (!result.data?.success) {
+        show_toast(
+          result.data?.message || result.error || t("settings.failed_sync"),
+          "error",
+        );
         clear_syncing_account(account_token);
       }
     },
@@ -940,7 +947,7 @@ export function ImportSection() {
               <ImportJobCard
                 key={job.id}
                 job={job}
-                on_delete={handle_delete_recent_job}
+                on_delete={set_pending_delete_job_id}
               />
             ))}
           </div>
@@ -1069,6 +1076,24 @@ export function ImportSection() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <ConfirmModal
+        hide_dont_ask
+        confirm_text={t("common.delete")}
+        confirm_variant="destructive"
+        description={t("settings.import_delete_warning")}
+        dont_ask={false}
+        on_cancel={() => set_pending_delete_job_id(null)}
+        on_confirm={() => {
+          const id = pending_delete_job_id;
+
+          set_pending_delete_job_id(null);
+          if (id) void handle_delete_recent_job(id);
+        }}
+        on_dont_ask_change={() => {}}
+        show={pending_delete_job_id !== null}
+        title={t("settings.delete_imported_emails_confirm")}
+      />
     </div>
   );
 }

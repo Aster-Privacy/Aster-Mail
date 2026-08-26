@@ -29,6 +29,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
+import { is_composing } from "@/utils/ime";
 import { show_toast } from "@/components/toast/simple_toast";
 import {
   Modal,
@@ -39,6 +40,13 @@ import {
   ModalFooter,
 } from "@/components/ui/modal";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   create_smtp_token,
   type CreateSmtpTokenResult,
@@ -138,29 +146,33 @@ export function SmtpTokenCreateModal({
     set_is_loading(true);
     set_error("");
 
-    const response = await create_smtp_token({
-      name: name.trim(),
-      from_address: selected.value,
-      domain_name: selected.domain_name,
-      local_part: selected.local_part,
-    });
+    try {
+      const response = await create_smtp_token({
+        name: name.trim(),
+        from_address: selected.value,
+        domain_name: selected.domain_name,
+        local_part: selected.local_part,
+      });
 
-    if (response.error || !response.data) {
-      if (response.code === "FORBIDDEN") {
-        set_error(t("settings.smtp_token_error_forbidden"));
-      } else if (response.code === "CONFLICT") {
-        set_error(t("settings.smtp_token_error_conflict"));
-      } else {
-        set_error(response.error ?? t("settings.smtp_token_create_failed"));
+      if (response.error || !response.data) {
+        if (response.code === "FORBIDDEN") {
+          set_error(t("settings.smtp_token_error_forbidden"));
+        } else if (response.code === "CONFLICT") {
+          set_error(t("settings.smtp_token_error_conflict"));
+        } else {
+          set_error(response.error ?? t("settings.smtp_token_create_failed"));
+        }
+
+        return;
       }
+
+      set_created(response.data);
+      set_step("reveal");
+    } catch {
+      set_error(t("settings.smtp_token_create_failed"));
+    } finally {
       set_is_loading(false);
-
-      return;
     }
-
-    set_created(response.data);
-    set_step("reveal");
-    set_is_loading(false);
   };
 
   const copy_value = async (value: string) => {
@@ -218,7 +230,7 @@ export function SmtpTokenCreateModal({
             value={name}
             onChange={(e) => set_name(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key !== "Enter") return;
+              if (e.key !== "Enter" || is_composing(e)) return;
               if (!name.trim() || !bound_address || is_loading) return;
               e.preventDefault();
               handle_create();
@@ -232,18 +244,22 @@ export function SmtpTokenCreateModal({
           >
             {t("settings.smtp_token_address_label")}
           </label>
-          <select
-            className="aster_input aster_input_lg w-full cursor-pointer"
-            id="smtp-token-address"
-            value={bound_address}
-            onChange={(e) => set_bound_address(e.target.value)}
-          >
-            {addresses.map((addr) => (
-              <option key={addr.value} value={addr.value}>
-                {addr.value}
-              </option>
-            ))}
-          </select>
+          <Select value={bound_address} onValueChange={set_bound_address}>
+            <SelectTrigger
+              aria-label={t("settings.smtp_token_address_label")}
+              className="h-11 w-full text-sm"
+              id="smtp-token-address"
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {addresses.map((addr) => (
+                <SelectItem key={addr.value} value={addr.value}>
+                  {addr.value}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <p className="text-xs text-txt-muted mt-1.5">
             {t("settings.smtp_token_address_hint")}
           </p>
@@ -307,37 +323,39 @@ export function SmtpTokenCreateModal({
           </ModalDescription>
         </ModalHeader>
         <ModalBody className="space-y-4">
-          <div className="rounded-xl border border-edge-secondary bg-surf-primary divide-y divide-edge-secondary">
+          <div className="overflow-hidden rounded-xl border border-edge-secondary bg-surf-primary divide-y divide-edge-secondary">
             {rows.map((row) => (
               <button
                 key={row.label}
-                className="w-full flex items-center justify-between gap-3 px-4 py-3 text-start transition-colors hover:bg-black/5 dark:hover:bg-white/5"
+                aria-label={`${t("common.copy")} ${row.label}`}
+                className="group w-full grid grid-cols-[5.5rem_minmax(0,1fr)_1.25rem] items-center gap-3 px-4 py-3 text-start transition-colors hover:bg-black/[0.04] focus-visible:bg-black/[0.04] focus-visible:outline-none dark:hover:bg-white/[0.06] dark:focus-visible:bg-white/[0.06]"
                 type="button"
                 onClick={() => copy_value(row.value)}
               >
-                <span className="text-xs text-txt-muted flex-shrink-0">
+                <span className="text-xs font-medium text-txt-muted">
                   {row.label}
                 </span>
-                <span className="flex items-center gap-2 min-w-0">
-                  <span
-                    className={[
-                      "text-sm text-txt-primary truncate",
-                      row.mono ? "font-mono" : "",
-                    ].join(" ")}
-                  >
-                    {row.value}
-                  </span>
-                  <ClipboardDocumentIcon className="w-4 h-4 text-txt-muted flex-shrink-0" />
+                <span
+                  className={[
+                    "min-w-0 text-sm text-txt-primary text-end",
+                    row.mono ? "font-mono break-all" : "truncate",
+                  ].join(" ")}
+                >
+                  {row.value}
                 </span>
+                <ClipboardDocumentIcon className="w-4 h-4 justify-self-end text-txt-muted transition-colors group-hover:text-txt-primary" />
               </button>
             ))}
           </div>
-          <div className="flex justify-center">
-            <Button variant="secondary" onClick={copy_all}>
-              <ClipboardDocumentIcon className="w-4 h-4 me-2" />
-              {t("settings.smtp_token_copy_all")}
-            </Button>
-          </div>
+          <Button
+            className="w-full"
+            size="lg"
+            variant="secondary"
+            onClick={copy_all}
+          >
+            <ClipboardDocumentIcon className="w-4 h-4 me-2" />
+            {t("settings.smtp_token_copy_all")}
+          </Button>
           <DisclosureCallout />
         </ModalBody>
         <ModalFooter>

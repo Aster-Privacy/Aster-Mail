@@ -40,10 +40,7 @@ import {
   renew_domain_order,
   type DomainOrder,
 } from "@/services/api/domains";
-import {
-  TurnstileWidget,
-  TURNSTILE_SITE_KEY,
-} from "@/components/auth/turnstile_widget";
+import { TURNSTILE_SITE_KEY } from "@/components/auth/turnstile_widget";
 import { Spinner } from "@/components/ui/spinner";
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { SettingsTabBar } from "@/components/settings/settings_tab_bar";
@@ -60,6 +57,7 @@ import { DomainSetupWizard } from "@/components/settings/aliases/domain_setup_wi
 import { DomainPurchaseFlow } from "@/components/settings/aliases/domain_purchase_flow";
 import { DomainCardV2 } from "@/components/settings/aliases/domain_card_v2";
 import { DomainDeleteModal } from "@/components/settings/aliases/domain_delete_modal";
+import { PurchasedDomainManageModal } from "@/components/settings/aliases/purchased_domain_manage_modal";
 import { AliasDirectoriesSection } from "@/components/settings/alias_directories_section";
 import { GhostAliasesSection } from "@/components/settings/ghost_aliases_section";
 import { AliasImportModal } from "@/components/settings/aliases/alias_import_modal";
@@ -177,6 +175,9 @@ export function AliasesSection() {
   const [renew_captcha_order_id, set_renew_captcha_order_id] = useState<
     string | null
   >(null);
+  const [manage_order_id, set_manage_order_id] = useState<string | null>(null);
+  const manage_order =
+    purchased_orders.find((order) => order.id === manage_order_id) ?? null;
   const [editing_alias_id, set_editing_alias_id] = useState<string | null>(
     null,
   );
@@ -520,11 +521,6 @@ export function AliasesSection() {
             </div>
             <p className="text-sm mb-2 text-txt-muted">
               {t("settings.aliases_description")}
-              {hook.domains.filter((d) => d.status === "active").length > 0 && (
-                <span className="block mt-0.5 text-txt-tertiary">
-                  {t("settings.custom_domain_addresses_note")}
-                </span>
-              )}
             </p>
 
             <div className="flex gap-2 mb-2">
@@ -809,15 +805,17 @@ export function AliasesSection() {
                       <div key={order.id}>
                         <div
                           className={`w-full flex items-center justify-between gap-3 py-3 px-1 text-start ${
-                            order.status === "complete"
+                            order.status === "pending_payment"
                               ? "cursor-default"
                               : "hover:bg-surf-secondary rounded-lg cursor-pointer"
                           }`}
                           onClick={() => {
-                            if (
-                              order.status === "complete" ||
-                              order.status === "pending_payment"
-                            ) {
+                            if (order.status === "pending_payment") {
+                              return;
+                            }
+                            if (order.status === "complete") {
+                              set_manage_order_id(order.id);
+
                               return;
                             }
                             set_purchase_order_id(
@@ -863,33 +861,17 @@ export function AliasesSection() {
                             {order.status === "complete" && (
                               <button
                                 className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border border-edge-secondary text-txt-secondary hover:text-txt-primary hover:bg-surf-secondary transition-colors"
-                                disabled={
-                                  renewing_order_id === order.id ||
-                                  renew_captcha_order_id === order.id
-                                }
                                 type="button"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  if (TURNSTILE_SITE_KEY) {
-                                    set_renew_errors((prev) => {
-                                      const next = { ...prev };
-
-                                      delete next[order.id];
-
-                                      return next;
-                                    });
-                                    set_renew_captcha_order_id(order.id);
-
-                                    return;
-                                  }
-                                  handle_renew(order.id);
+                                  set_manage_order_id(order.id);
                                 }}
                               >
                                 {(renewing_order_id === order.id ||
                                   renew_captcha_order_id === order.id) && (
                                   <Spinner size="xs" />
                                 )}
-                                {t("settings.domain_purchase_renew")}
+                                {t("settings.domain_purchase_manage")}
                               </button>
                             )}
                             <span
@@ -926,20 +908,6 @@ export function AliasesSection() {
                             </span>
                           </span>
                         </div>
-                        {renew_captcha_order_id === order.id &&
-                          renewing_order_id !== order.id && (
-                            <TurnstileWidget
-                              class_name="flex justify-end pb-3 px-1"
-                              on_verify={(token) =>
-                                handle_renew(order.id, token)
-                              }
-                            />
-                          )}
-                        {renew_errors[order.id] && (
-                          <p className="text-xs text-[var(--color-danger)] px-1 pb-2">
-                            {renew_errors[order.id]}
-                          </p>
-                        )}
                       </div>
                     ))}
                   </div>
@@ -1066,6 +1034,44 @@ export function AliasesSection() {
         on_confirm={hook.confirm_domain_addr_delete}
         title={t("common.delete_address")}
         variant="danger"
+      />
+
+      <PurchasedDomainManageModal
+        captcha_pending={
+          manage_order !== null && renew_captcha_order_id === manage_order.id
+        }
+        custom_domain={
+          manage_order?.custom_domain_id
+            ? hook.domains.find((d) => d.id === manage_order.custom_domain_id)
+            : undefined
+        }
+        is_open={manage_order !== null}
+        on_close={() => {
+          set_manage_order_id(null);
+          set_renew_captcha_order_id(null);
+        }}
+        on_open_setup={hook.handle_open_setup}
+        on_renew={(captcha_token) => {
+          if (!manage_order) return;
+          if (TURNSTILE_SITE_KEY && !captcha_token) {
+            set_renew_errors((prev) => {
+              const next = { ...prev };
+
+              delete next[manage_order.id];
+
+              return next;
+            });
+            set_renew_captcha_order_id(manage_order.id);
+
+            return;
+          }
+          void handle_renew(manage_order.id, captcha_token);
+        }}
+        order={manage_order}
+        renew_error={manage_order ? renew_errors[manage_order.id] : undefined}
+        renewing={
+          manage_order !== null && renewing_order_id === manage_order.id
+        }
       />
     </div>
   );

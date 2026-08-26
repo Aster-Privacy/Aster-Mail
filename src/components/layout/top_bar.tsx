@@ -25,6 +25,7 @@ import {
   Cog6ToothIcon,
   ChatBubbleLeftRightIcon,
   DocumentTextIcon,
+  EnvelopeIcon,
   LifebuoyIcon,
   QuestionMarkCircleIcon,
   ShieldCheckIcon,
@@ -49,6 +50,7 @@ import { use_primary_identity } from "@/lib/primary_identity";
 import { open_external } from "@/utils/open_link";
 
 const HELP_CENTER_URL = "https://astermail.org/help";
+const SUPPORT_ADDRESS = "hello@astermail.org";
 const PRIVACY_URL = "https://astermail.org/privacy";
 const TERMS_URL = "https://astermail.org/terms";
 
@@ -147,6 +149,17 @@ function top_bar_base({
       new CustomEvent("navigate-settings", { detail: "feedback" }),
     );
   }, []);
+
+  const open_support_compose = useCallback(() => {
+    if (window.location.pathname.startsWith("/settings")) {
+      navigate("/");
+    }
+    window.dispatchEvent(
+      new CustomEvent("aster:open-compose-prefilled", {
+        detail: { to: [SUPPORT_ADDRESS], subject: "", body: "" },
+      }),
+    );
+  }, [navigate]);
 
   const leave_account_tip = useCallback(() => {
     account_tip_blocked.current = false;
@@ -277,7 +290,7 @@ function top_bar_base({
           <Tooltip tip={t("common.help")}>
             <DropdownMenuTrigger asChild>
               <button
-                aria-label={t("settings.category_support")}
+                aria-label={t("common.help")}
                 className="flex items-center justify-center w-9 h-9 rounded-full transition-colors text-[var(--text-primary)] hover:bg-[var(--bg-hover)] focus:outline-none"
                 type="button"
               >
@@ -295,6 +308,10 @@ function top_bar_base({
               {t("common.keyboard_shortcuts")}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={open_support_compose}>
+              <EnvelopeIcon className="w-4 h-4 me-2" />
+              {t("common.contact_support")}
+            </DropdownMenuItem>
             <DropdownMenuItem onClick={open_feedback_settings}>
               <ChatBubbleLeftRightIcon className="w-4 h-4 me-2" />
               {t("common.send_feedback_to_aster")}
