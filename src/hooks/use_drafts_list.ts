@@ -638,9 +638,20 @@ export function use_drafts_list(is_active: boolean): UseDraftsListReturn {
       },
     );
 
+    let last_revalidate = 0;
+
+    const maybe_revalidate = () => {
+      const now = Date.now();
+
+      if (now - last_revalidate < 5_000) return;
+
+      last_revalidate = now;
+      handle_change();
+    };
+
     const handle_visibility = () => {
       if (document.visibilityState === "visible") {
-        handle_change();
+        maybe_revalidate();
       }
     };
 
@@ -648,6 +659,7 @@ export function use_drafts_list(is_active: boolean): UseDraftsListReturn {
     window.addEventListener(MAIL_EVENTS.EMAIL_SENT, handle_change);
     window.addEventListener(MAIL_EVENTS.MAIL_STATS_STALE, handle_change);
     document.addEventListener("visibilitychange", handle_visibility);
+    window.addEventListener("focus", maybe_revalidate);
 
     return () => {
       if (debounced_refresh_ref.current) {
@@ -659,6 +671,7 @@ export function use_drafts_list(is_active: boolean): UseDraftsListReturn {
       window.removeEventListener(MAIL_EVENTS.EMAIL_SENT, handle_change);
       window.removeEventListener(MAIL_EVENTS.MAIL_STATS_STALE, handle_change);
       document.removeEventListener("visibilitychange", handle_visibility);
+      window.removeEventListener("focus", maybe_revalidate);
     };
   }, [is_active, has_keys, refresh, update_draft_in_list]);
 

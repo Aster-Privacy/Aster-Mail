@@ -434,11 +434,30 @@ export function use_snoozed_emails(): UseSnoozedEmailsReturn {
       }));
     };
 
+    let last_revalidate = 0;
+
+    const maybe_revalidate = () => {
+      const now = Date.now();
+
+      if (now - last_revalidate < 5_000) return;
+
+      last_revalidate = now;
+      handle_change();
+    };
+
+    const handle_visibility = () => {
+      if (document.visibilityState === "visible") {
+        maybe_revalidate();
+      }
+    };
+
     window.addEventListener(MAIL_EVENTS.SNOOZED_CHANGED, handle_change);
     window.addEventListener(
       MAIL_EVENTS.MAIL_ITEMS_REMOVED,
       handle_items_removed,
     );
+    document.addEventListener("visibilitychange", handle_visibility);
+    window.addEventListener("focus", maybe_revalidate);
     window.addEventListener(MAIL_EVENTS.FOLDERS_CHANGED, handle_change);
     window.addEventListener(MAIL_EVENTS.PROTECTED_FOLDERS_READY, handle_change);
     window.addEventListener("astermail:folder-locked", handle_change);
@@ -455,6 +474,8 @@ export function use_snoozed_emails(): UseSnoozedEmailsReturn {
         handle_change,
       );
       window.removeEventListener("astermail:folder-locked", handle_change);
+      document.removeEventListener("visibilitychange", handle_visibility);
+      window.removeEventListener("focus", maybe_revalidate);
     };
   }, [fetch_snoozed]);
 

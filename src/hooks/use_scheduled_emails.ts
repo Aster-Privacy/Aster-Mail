@@ -504,21 +504,34 @@ export function use_scheduled_emails(
       handle_change();
     });
 
+    let last_revalidate = 0;
+
+    const maybe_revalidate = () => {
+      const now = Date.now();
+
+      if (now - last_revalidate < 5_000) return;
+
+      last_revalidate = now;
+      handle_change();
+    };
+
     const handle_visibility = () => {
       if (document.visibilityState === "visible") {
-        handle_change();
+        maybe_revalidate();
       }
     };
 
     window.addEventListener(MAIL_EVENTS.EMAIL_SENT, handle_change);
     window.addEventListener(MAIL_EVENTS.MAIL_STATS_STALE, handle_change);
     document.addEventListener("visibilitychange", handle_visibility);
+    window.addEventListener("focus", maybe_revalidate);
 
     return () => {
       unsub_scheduled();
       window.removeEventListener(MAIL_EVENTS.EMAIL_SENT, handle_change);
       window.removeEventListener(MAIL_EVENTS.MAIL_STATS_STALE, handle_change);
       document.removeEventListener("visibilitychange", handle_visibility);
+      window.removeEventListener("focus", maybe_revalidate);
     };
   }, [is_active, has_keys, refresh]);
 
