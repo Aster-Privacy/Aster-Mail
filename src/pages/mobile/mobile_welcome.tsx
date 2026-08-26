@@ -81,6 +81,7 @@ export default function MobileWelcomePage() {
               alt="Aster Mail"
               className="h-12"
               decoding="async"
+              draggable={false}
               src="/text_logo.png"
             />
           </motion.div>

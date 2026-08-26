@@ -794,7 +794,12 @@ export default function SecureViewPage() {
           )}
         >
           <div className="flex flex-col items-center gap-3 text-center">
-            <img alt="Aster Mail" className="h-8 w-auto" src="/text_logo.png" />
+            <img
+              alt="Aster Mail"
+              className="h-8 w-auto"
+              draggable={false}
+              src="/text_logo.png"
+            />
             <h1 className="text-lg font-semibold text-txt-primary">
               {sv("secure_view.title")}
             </h1>

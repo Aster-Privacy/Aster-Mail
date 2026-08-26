@@ -152,6 +152,7 @@ export function BackupCodeInput({
             alt="Aster"
             className="h-10"
             decoding="async"
+            draggable={false}
             src="/text_logo.png"
           />
         </div>

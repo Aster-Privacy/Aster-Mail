@@ -134,6 +134,7 @@ export default function SignInPage() {
               alt="Aster"
               className="h-10 mb-8"
               decoding="async"
+              draggable={false}
               src="/text_logo.png"
             />
             <div
@@ -472,6 +473,7 @@ export default function SignInPage() {
               alt="Aster"
               className="h-10 mb-8"
               decoding="async"
+              draggable={false}
               src="/text_logo.png"
             />
             <div
@@ -592,6 +594,7 @@ export default function SignInPage() {
               alt="Aster"
               className="h-10"
               decoding="async"
+              draggable={false}
               src="/text_logo.png"
             />
 

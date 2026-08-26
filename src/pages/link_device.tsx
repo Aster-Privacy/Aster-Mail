@@ -303,6 +303,7 @@ export default function LinkDevice() {
               alt="Aster"
               className="h-10 mb-8"
               decoding="async"
+              draggable={false}
               src="/text_logo.png"
             />
             <svg
@@ -360,6 +361,7 @@ export default function LinkDevice() {
               alt="Aster"
               className="h-10 mb-8"
               decoding="async"
+              draggable={false}
               src="/text_logo.png"
             />
             <h1 className="text-xl font-semibold text-txt-primary text-center">
@@ -431,6 +433,7 @@ export default function LinkDevice() {
             alt="Aster"
             className="h-10 mb-8"
             decoding="async"
+            draggable={false}
             src="/text_logo.png"
           />
           <h1 className="text-xl font-semibold text-txt-primary text-center">

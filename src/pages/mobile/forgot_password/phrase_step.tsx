@@ -74,6 +74,7 @@ export function PhraseStep({
           alt="Aster"
           className="h-8"
           decoding="async"
+          draggable={false}
           src="/text_logo.png"
           variants={reduce_motion ? undefined : fade_up_item}
         />

@@ -178,7 +178,13 @@ export const Checkbox = ({ checked, disabled, onChange }: CheckboxProps) => (
 );
 
 export const Logo = () => (
-  <img alt="Aster" className="h-12" decoding="async" src="/text_logo.png" />
+  <img
+    alt="Aster"
+    className="h-12"
+    decoding="async"
+    draggable={false}
+    src="/text_logo.png"
+  />
 );
 
 export const UserCircleIcon = () => (

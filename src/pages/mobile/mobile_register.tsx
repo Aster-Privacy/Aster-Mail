@@ -261,6 +261,7 @@ export default function MobileRegisterPage() {
               alt="Aster"
               className="h-6 shrink-0"
               decoding="async"
+              draggable={false}
               src="/text_logo.png"
             />
             <div className="h-1 flex-1 rounded-full bg-[var(--border-secondary)] overflow-hidden">

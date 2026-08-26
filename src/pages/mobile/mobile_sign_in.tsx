@@ -317,6 +317,7 @@ export default function MobileSignInPage() {
                 alt="Aster"
                 className="h-10"
                 decoding="async"
+                draggable={false}
                 src="/text_logo.png"
               />
             </motion.div>
