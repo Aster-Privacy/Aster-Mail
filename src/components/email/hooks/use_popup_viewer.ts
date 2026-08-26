@@ -302,6 +302,7 @@ export function use_popup_viewer({
     }
 
     const fetch_seq = ++fetch_seq_ref.current;
+    const is_stale = () => fetch_seq !== fetch_seq_ref.current;
 
     set_email(null);
     set_mail_item(null);
@@ -314,6 +315,10 @@ export function use_popup_viewer({
       email_id,
       preferences.conversation_grouping !== false,
     );
+
+    if (is_stale()) {
+      return;
+    }
 
     if (preloaded) {
       const pe = preloaded.email;
@@ -385,6 +390,10 @@ export function use_popup_viewer({
 
     const response = await get_mail_item(email_id);
 
+    if (is_stale()) {
+      return;
+    }
+
     if (response.error) {
       set_error(response.error);
 
@@ -410,6 +419,10 @@ export function use_popup_viewer({
         ...response.data,
         metadata: decrypted_metadata ?? undefined,
       };
+
+      if (is_stale()) {
+        return;
+      }
 
       set_mail_item(item_with_metadata);
       set_is_read(decrypted_metadata?.is_read ?? false);
@@ -465,6 +478,10 @@ export function use_popup_viewer({
           sender_verification: envelope.sender_verification,
         };
 
+        if (is_stale()) {
+          return;
+        }
+
         set_email(decrypted);
 
         set_current_thread_token(response.data.thread_token || null);
@@ -490,6 +507,10 @@ export function use_popup_viewer({
             },
           );
 
+          if (is_stale()) {
+            return;
+          }
+
           if (thread_result.messages.length > 0) {
             set_thread_messages(thread_result.messages);
           } else {
@@ -505,6 +526,10 @@ export function use_popup_viewer({
             grouped_email_ids,
             user?.email,
           );
+
+          if (is_stale()) {
+            return;
+          }
 
           if (group_messages.length > 0) {
             set_thread_messages(group_messages);
