@@ -26,6 +26,7 @@ import { useCallback } from "react";
 import { is_system_email } from "@/lib/utils";
 import {
   update_item_metadata,
+  update_item_metadata_safe,
   bulk_update_metadata_by_ids,
 } from "@/services/crypto/mail_metadata";
 import { batch_archive, batch_unarchive } from "@/services/api/archive";
@@ -153,7 +154,7 @@ export function use_message_actions(
 
         return;
       }
-      const result = await update_item_metadata(
+      const result = await update_item_metadata_safe(
         msg.id,
         {
           encrypted_metadata: msg.encrypted_metadata,

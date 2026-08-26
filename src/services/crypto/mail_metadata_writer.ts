@@ -280,6 +280,18 @@ export async function update_item_metadata(
   }
 }
 
+export async function update_item_metadata_safe(
+  item_id: string,
+  current: MetadataUpdateOptions,
+  updates: Partial<MailItemMetadata>,
+): Promise<UpdateResult> {
+  try {
+    return await update_item_metadata(item_id, current, updates);
+  } catch {
+    return { success: false };
+  }
+}
+
 export async function bulk_update_items_metadata(
   items: Array<{
     id: string;

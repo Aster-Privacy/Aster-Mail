@@ -37,7 +37,7 @@ import { use_preferences } from "@/contexts/preferences_context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { show_action_toast } from "@/components/toast/action_toast";
 import { get_aster_footer } from "@/components/compose/compose_shared";
-import { update_item_metadata } from "@/services/crypto/mail_metadata";
+import { update_item_metadata_safe } from "@/services/crypto/mail_metadata";
 import { emit_mail_item_updated } from "@/hooks/mail_events";
 import { preload_email_detail } from "@/components/email/hooks/use_email_detail";
 import { haptic_impact } from "@/native/haptic_feedback";
@@ -247,7 +247,7 @@ export function use_mobile_mail_detail() {
         return next;
       });
 
-      update_item_metadata(
+      update_item_metadata_safe(
         msg.id,
         {
           encrypted_metadata: msg.encrypted_metadata,

@@ -39,7 +39,7 @@ import { ChevronUpDownIcon } from "@heroicons/react/24/outline";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
-import { update_item_metadata } from "@/services/crypto/mail_metadata";
+import { update_item_metadata_safe } from "@/services/crypto/mail_metadata";
 import {
   emit_mail_item_updated,
   emit_mail_soft_refresh,
@@ -428,7 +428,7 @@ export const ThreadMessagesList = forwardRef<
         return next;
       });
 
-      update_item_metadata(
+      update_item_metadata_safe(
         msg.id,
         {
           encrypted_metadata: msg.encrypted_metadata,
@@ -542,7 +542,7 @@ export const ThreadMessagesList = forwardRef<
 
       adjust_stats_starred(new_starred ? 1 : -1);
 
-      update_item_metadata(
+      update_item_metadata_safe(
         msg.id,
         {
           encrypted_metadata: msg.encrypted_metadata,
@@ -610,7 +610,7 @@ export const ThreadMessagesList = forwardRef<
 
         const final_read_state = read_ids_ref.current.has(msg.id);
 
-        update_item_metadata(
+        update_item_metadata_safe(
           msg.id,
           {
             encrypted_metadata: msg.encrypted_metadata,

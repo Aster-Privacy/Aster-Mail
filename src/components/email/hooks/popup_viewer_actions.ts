@@ -34,6 +34,7 @@ import { build_reply_recipient } from "@/components/email/build_reply_recipient"
 import { build_reply_from_address } from "@/components/email/build_reply_from_address";
 import {
   update_item_metadata,
+  update_item_metadata_safe,
   bulk_update_metadata_by_ids,
 } from "@/services/crypto/mail_metadata";
 import { batch_archive, batch_unarchive } from "@/services/api/archive";
@@ -131,7 +132,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
       deps.on_close();
     }
 
-    const result = await update_item_metadata(
+    const result = await update_item_metadata_safe(
       deps.email_id,
       {
         encrypted_metadata: deps.mail_item.encrypted_metadata,

@@ -37,7 +37,7 @@ import {
   fetch_and_decrypt_thread_messages,
   fetch_and_decrypt_virtual_group,
 } from "@/services/thread_service";
-import { update_item_metadata } from "@/services/crypto/mail_metadata";
+import { update_item_metadata_safe } from "@/services/crypto/mail_metadata";
 import {
   get_draft,
   get_draft_by_thread,
@@ -430,7 +430,7 @@ export function use_email_detail_load() {
             adjust_stats_unread(-1);
           }
           emit_mail_item_updated({ id: email_id, is_read: true });
-          update_item_metadata(
+          update_item_metadata_safe(
             email_id,
             {
               encrypted_metadata: item.encrypted_metadata,
@@ -661,7 +661,7 @@ export function use_email_detail_load() {
             adjust_stats_unread(-1);
           }
           emit_mail_item_updated({ id: email_id, is_read: true });
-          update_item_metadata(
+          update_item_metadata_safe(
             email_id,
             {
               encrypted_metadata: mail_data.encrypted_metadata,
