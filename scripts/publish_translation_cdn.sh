@@ -19,6 +19,9 @@ if [ ! -f public/bergamot/models/v1/registry.json ]; then
   exit 1
 fi
 
+echo "publish cdn: verifying the local corpus"
+node scripts/verify_translation_models.mjs
+
 echo "publish cdn: creating $BUCKET if it does not exist"
 npx wrangler r2 bucket create "$BUCKET" 2>&1 | tail -2 || true
 
