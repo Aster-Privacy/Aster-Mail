@@ -104,7 +104,11 @@ export function UndoSendContainer({
         email_ids: [],
         duration_ms: remaining * 1000,
         on_undo: async () => {
-          await cancel_send(pending_data.id);
+          const cancelled = await cancel_send(pending_data.id);
+
+          if (!cancelled) {
+            throw new Error("undo_send_cancel_rejected");
+          }
         },
         on_view_message: pending_data.body
           ? () => {

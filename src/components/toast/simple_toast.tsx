@@ -29,7 +29,12 @@ import {
 
 import { use_should_reduce_motion } from "@/provider";
 import { use_translation } from "@/lib/i18n";
-import { use_preferences } from "@/contexts/preferences_context";
+import {
+  use_toast_position,
+  type ToastPosition,
+} from "@/components/toast/toast_position";
+
+export type { ToastPosition };
 
 type ToastIconType = "success" | "warning" | "error" | "info";
 
@@ -157,71 +162,13 @@ function get_toast_icon(icon_type?: ToastIconType) {
   }
 }
 
-export type ToastPosition =
-  | "top"
-  | "bottom"
-  | "top-right"
-  | "bottom-right"
-  | "top-left"
-  | "bottom-left";
-
 interface SimpleToastProps {
   position?: ToastPosition;
 }
 
-interface ToastPositionLayout {
-  anchor: string;
-  align: string;
-  column: string;
-  style: { top: string } | { bottom: string };
-}
-
-const TOP_STYLE = { top: "calc(env(safe-area-inset-top, 0px) + 12px)" };
-const BOTTOM_STYLE = { bottom: "24px" };
-
-const TOAST_POSITION_LAYOUT: Record<ToastPosition, ToastPositionLayout> = {
-  top: {
-    anchor: "left-1/2 -translate-x-1/2",
-    align: "items-center",
-    column: "flex-col",
-    style: TOP_STYLE,
-  },
-  bottom: {
-    anchor: "left-1/2 -translate-x-1/2",
-    align: "items-center",
-    column: "flex-col-reverse",
-    style: BOTTOM_STYLE,
-  },
-  "top-right": {
-    anchor: "right-4",
-    align: "items-end",
-    column: "flex-col",
-    style: TOP_STYLE,
-  },
-  "top-left": {
-    anchor: "left-4",
-    align: "items-start",
-    column: "flex-col",
-    style: TOP_STYLE,
-  },
-  "bottom-right": {
-    anchor: "right-4",
-    align: "items-end",
-    column: "flex-col-reverse",
-    style: BOTTOM_STYLE,
-  },
-  "bottom-left": {
-    anchor: "left-4",
-    align: "items-start",
-    column: "flex-col-reverse",
-    style: BOTTOM_STYLE,
-  },
-};
-
 export function SimpleToast({ position }: SimpleToastProps) {
   const reduce_motion = use_should_reduce_motion();
   const { t } = use_translation();
-  const { preferences } = use_preferences();
   const [toasts, set_toasts] = useState<ToastState[]>([]);
 
   useEffect(() => {
@@ -262,14 +209,7 @@ export function SimpleToast({ position }: SimpleToastProps) {
     };
   }, [t]);
 
-  const effective_position = position ?? preferences.toast_position;
-  const layout =
-    TOAST_POSITION_LAYOUT[effective_position] ?? TOAST_POSITION_LAYOUT.bottom;
-  const is_top =
-    effective_position === "top" ||
-    effective_position === "top-right" ||
-    effective_position === "top-left";
-  const y_offset = is_top ? -20 : 20;
+  const { layout, y_offset } = use_toast_position(position);
 
   return (
     <div
@@ -306,7 +246,7 @@ export function SimpleToast({ position }: SimpleToastProps) {
               </span>
               {toast.action && (
                 <button
-                  className="flex-shrink-0 text-[13px] font-semibold text-accent-primary hover:underline"
+                  className="flex-shrink-0 text-[13px] font-semibold text-brand hover:underline"
                   onClick={() => {
                     const run = toast.action?.on_click;
 

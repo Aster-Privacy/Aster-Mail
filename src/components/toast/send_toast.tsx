@@ -25,13 +25,17 @@ import { XMarkIcon } from "@heroicons/react/24/outline";
 
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
+import {
+  use_toast_position,
+  type ToastPosition,
+} from "@/components/toast/toast_position";
 
 interface SendToastProps {
   email_id: string;
   total_seconds: number;
   on_undo: () => void;
   on_send_now: () => void;
-  position?: "top" | "bottom";
+  position?: ToastPosition;
 }
 
 export function SendToast({
@@ -39,7 +43,7 @@ export function SendToast({
   total_seconds,
   on_undo,
   on_send_now,
-  position = "bottom",
+  position,
 }: SendToastProps) {
   const reduce_motion = use_should_reduce_motion();
   const { t } = use_i18n();
@@ -67,7 +71,7 @@ export function SendToast({
   }, [email_id, total_seconds]);
 
   const progress_percentage = (remaining_seconds / total_seconds) * 100;
-  const is_top = position === "top";
+  const { layout, is_top } = use_toast_position(position);
   const y_offset = is_top ? -50 : 50;
 
   return (
@@ -75,14 +79,10 @@ export function SendToast({
       {is_visible && (
         <motion.div
           animate={{ opacity: 1, y: 0 }}
-          className="fixed left-1/2 -translate-x-1/2 z-[100] shadow-2xl bg-modal-bg border-edge-primary"
+          className={`fixed ${layout.anchor} z-[100] shadow-2xl bg-modal-bg border-edge-primary`}
           exit={{ opacity: 0, y: y_offset }}
           initial={reduce_motion ? false : { opacity: 0, y: y_offset }}
-          style={
-            is_top
-              ? { top: `calc(env(safe-area-inset-top, 0px) + 12px)` }
-              : { bottom: "24px" }
-          }
+          style={layout.style}
           transition={{ duration: reduce_motion ? 0 : 0.2 }}
         >
           <div className="border rounded-lg overflow-hidden min-w-[320px] border-edge-secondary">

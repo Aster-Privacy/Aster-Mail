@@ -33,6 +33,10 @@ import {
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
 import { Spinner } from "@/components/ui/spinner";
+import {
+  use_toast_position,
+  type ToastPosition,
+} from "@/components/toast/toast_position";
 
 export interface ActionToastState {
   id: string;
@@ -189,10 +193,10 @@ export function set_island_visible(visible: boolean) {
 }
 
 interface ActionToastProps {
-  position?: "top" | "bottom";
+  position?: ToastPosition;
 }
 
-export function ActionToast({ position = "bottom" }: ActionToastProps) {
+export function ActionToast({ position }: ActionToastProps) {
   const { t } = use_i18n();
   const reduce_motion = use_should_reduce_motion();
   const [toast, set_toast] = useState<ActionToastState | null>(null);
@@ -242,6 +246,12 @@ export function ActionToast({ position = "bottom" }: ActionToastProps) {
       }, 2000);
     } catch (error) {
       if (import.meta.env.DEV) console.error(error);
+      const is_current = current_toast?.id === toast.id;
+
+      if (is_current && toast_timeout) {
+        clearTimeout(toast_timeout);
+        toast_timeout = null;
+      }
       set_toast((prev) =>
         prev
           ? {
@@ -251,6 +261,12 @@ export function ActionToast({ position = "bottom" }: ActionToastProps) {
             }
           : null,
       );
+      if (is_current) {
+        toast_timeout = setTimeout(() => {
+          current_toast = null;
+          toast_listeners.forEach((listener) => listener(null));
+        }, 5000);
+      }
     } finally {
       set_is_undoing(false);
     }
@@ -266,8 +282,7 @@ export function ActionToast({ position = "bottom" }: ActionToastProps) {
       ? Math.round((toast.progress.completed / toast.progress.total) * 100)
       : 0;
 
-  const is_top = position === "top";
-  const y_offset = is_top ? -20 : 20;
+  const { layout, y_offset } = use_toast_position(position, is_island_up);
 
   return (
     <AnimatePresence>
@@ -275,14 +290,10 @@ export function ActionToast({ position = "bottom" }: ActionToastProps) {
         <motion.div
           key="action-toast"
           animate={{ opacity: 1, y: 0 }}
-          className={`fixed left-1/2 -translate-x-1/2 z-[100] ${is_top ? "" : is_island_up ? "bottom-20" : "bottom-6"}`}
+          className={`fixed ${layout.anchor} z-[100]`}
           exit={{ opacity: 0, y: y_offset }}
           initial={reduce_motion ? false : { opacity: 0, y: y_offset }}
-          style={
-            is_top
-              ? { top: `calc(env(safe-area-inset-top, 0px) + 12px)` }
-              : undefined
-          }
+          style={layout.style}
           transition={{ duration: reduce_motion ? 0 : 0.15 }}
         >
           <div
