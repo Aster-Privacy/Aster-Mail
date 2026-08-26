@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { SenderVerificationStatus } from "@/types/email";
+
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -107,12 +109,48 @@ const SYSTEM_SENDER_ROLES = new Set([
   "postmaster",
 ]);
 
-export function is_system_email(email?: string | null): boolean {
+export interface SenderTrustSource {
+  sender_email?: string | null;
+  sender?: { email?: string | null } | string | null;
+  system_origin?: boolean;
+  is_external?: boolean;
+  sender_verification?: SenderVerificationStatus;
+}
+
+function trust_source_address(source: SenderTrustSource): string | null {
+  if (source.sender_email) return source.sender_email;
+
+  if (source.sender && typeof source.sender === "object") {
+    return source.sender.email ?? null;
+  }
+
+  return null;
+}
+
+function has_system_origin(source: SenderTrustSource): boolean {
+  return source.system_origin === true && source.is_external !== true;
+}
+
+export function is_official_address(email?: string | null): boolean {
+  const parts = official_sender_parts(email);
+
+  if (!parts) return false;
+
+  return OFFICIAL_SENDER_ROLES.has(parts.local_part);
+}
+
+export function is_system_address(email?: string | null): boolean {
   const parts = official_sender_parts(email);
 
   if (!parts) return false;
 
   return SYSTEM_SENDER_ROLES.has(parts.local_part);
+}
+
+export function is_system_email(source: SenderTrustSource): boolean {
+  if (!has_system_origin(source)) return false;
+
+  return is_system_address(trust_source_address(source));
 }
 
 // Every role here MUST also be a reserved username and reserved alias in the
@@ -133,12 +171,28 @@ const OFFICIAL_SENDER_ROLES = new Set([
   "updates",
 ]);
 
-export function is_official_sender(email?: string | null): boolean {
-  const parts = official_sender_parts(email);
+export function trust_source_for_display(
+  source: SenderTrustSource,
+  displayed_email?: string | null,
+): SenderTrustSource {
+  const shown = (displayed_email ?? trust_source_address(source) ?? "")
+    .trim()
+    .toLowerCase();
+  const actual = (trust_source_address(source) ?? "").trim().toLowerCase();
 
-  if (!parts) return false;
+  if (!shown || shown !== actual) return { sender_email: displayed_email };
 
-  return OFFICIAL_SENDER_ROLES.has(parts.local_part);
+  return source;
+}
+
+export function is_official_sender(source: SenderTrustSource): boolean {
+  if (!is_official_address(trust_source_address(source))) return false;
+
+  if (has_system_origin(source)) return true;
+
+  return (
+    source.is_external !== true && source.sender_verification === "verified"
+  );
 }
 
 export function get_email_username(email: string | null | undefined): string {

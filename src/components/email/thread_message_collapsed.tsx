@@ -35,6 +35,7 @@ import {
 import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
 import { Tooltip } from "@aster/ui";
 
+import { is_system_email, trust_source_for_display } from "@/lib/utils";
 import { EmailTag } from "@/components/ui/email_tag";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import {
@@ -96,6 +97,9 @@ export function render_collapsed_thread_message(
         className="flex-shrink-0 mt-0.5"
         email={show_sender_email}
         name={show_sender_name}
+        sender_authenticated={is_system_email(
+          trust_source_for_display(message, show_sender_email),
+        )}
         size="md"
       />
       <div className="flex-1 min-w-0">

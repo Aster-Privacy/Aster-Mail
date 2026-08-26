@@ -55,7 +55,7 @@ export function use_message_actions(
 ) {
   const handle_per_message_reply = useCallback(
     (msg: DecryptedThreadMessage) => {
-      if (!deps.on_reply || is_system_email(msg.sender_email)) return;
+      if (!deps.on_reply || is_system_email(msg)) return;
       const is_reply_all =
         deps.preferences_default_reply_behavior === "reply_all";
 
@@ -66,7 +66,7 @@ export function use_message_actions(
 
   const handle_per_message_reply_all = useCallback(
     (msg: DecryptedThreadMessage) => {
-      if (!deps.on_reply || is_system_email(msg.sender_email)) return;
+      if (!deps.on_reply || is_system_email(msg)) return;
       deps.on_reply(build_reply_data(msg, true));
     },
     [deps.on_reply, build_reply_data],

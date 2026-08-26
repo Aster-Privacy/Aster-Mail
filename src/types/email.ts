@@ -58,6 +58,7 @@ export interface UnsubscribeInfo {
   list_unsubscribe_header?: string;
   list_unsubscribe_post?: string;
   unsubscribe_mailto?: string;
+  unsubscribe_page_url?: string;
   method: "link" | "mailto" | "one-click" | "none";
 }
 
@@ -150,6 +151,8 @@ export interface InboxEmail {
   avatar_url: string;
   is_encrypted?: boolean;
   is_external?: boolean;
+  system_origin?: boolean;
+  sender_verification?: SenderVerificationStatus;
   labels?: InboxEmailLabel[];
   folders?: InboxEmailFolder[];
   tags?: InboxEmailTag[];

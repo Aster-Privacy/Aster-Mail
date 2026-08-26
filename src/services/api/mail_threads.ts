@@ -49,6 +49,7 @@ export interface ThreadMessageItem {
   metadata_nonce?: string;
   metadata_version?: number;
   is_external?: boolean;
+  system_origin?: boolean;
   send_status?: string;
   send_error?: string;
   message_ts: string;

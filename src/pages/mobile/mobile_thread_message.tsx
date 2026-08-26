@@ -193,7 +193,7 @@ export function MobileThreadMessage({
     return plain.length > 60 ? plain.substring(0, 60) + "..." : plain;
   }, [clean_body, password_protected, t]);
 
-  const is_system = is_system_email(message.sender_email);
+  const is_system = is_system_email(message);
   const show_sender_name = message.display_sender_name ?? message.sender_name;
   const show_sender_email =
     message.display_sender_email ?? message.sender_email;
@@ -378,6 +378,7 @@ export function MobileThreadMessage({
               use_domain_logo
               email={show_sender_email}
               name={show_sender_name}
+              sender_authenticated={is_system}
               size="sm"
             />
           </div>
@@ -439,6 +440,7 @@ export function MobileThreadMessage({
             use_domain_logo
             email={show_sender_email}
             name={show_sender_name}
+            sender_authenticated={is_system}
             size="md"
           />
         </div>
@@ -582,7 +584,6 @@ export function MobileThreadMessage({
               content_type={att.content_type}
               filename={att.filename}
               is_downloading={downloading_attachment_id === att.id}
-              size={att.size}
               on_download={async () => {
                 if (downloading_attachment_id) return;
                 set_downloading_attachment_id(att.id);
@@ -595,6 +596,7 @@ export function MobileThreadMessage({
                   set_downloading_attachment_id(null);
                 }
               }}
+              size={att.size}
             />
           ))}
         </div>

@@ -56,7 +56,7 @@ export function ViewerUnsubscribeBanner({
 
   if (dismissed) return null;
   if (!email.unsubscribe_info?.has_unsubscribe) return null;
-  if (is_system_email(email.sender_email)) return null;
+  if (is_system_email(email)) return null;
 
   const info = email.unsubscribe_info;
 

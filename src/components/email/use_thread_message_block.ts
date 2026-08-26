@@ -246,7 +246,7 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
     message.is_deleted !== true &&
     (is_expanded || is_last_in_thread || is_single_message);
 
-  const is_system = is_system_email(message.sender_email);
+  const is_system = is_system_email(message);
   const is_ghost_sender = is_ghost_email(message.sender_email);
   const show_sender_name = message.display_sender_name ?? message.sender_name;
   const show_sender_email =

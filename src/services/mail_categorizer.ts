@@ -24,6 +24,7 @@ import type {
   MailItemMetadata,
 } from "@/types/email";
 import type { CustomCategoryRule } from "@/data/category_catalog";
+import type { SenderTrustSource } from "@/lib/utils";
 
 import { get_sender_domain } from "@/utils/unsubscribe_detector";
 import { is_official_sender } from "@/lib/utils";
@@ -196,6 +197,7 @@ function match_custom_category(
 export interface ClassifyOptions {
   custom_categories?: readonly CustomCategoryRule[] | null;
   rule_category?: string | null;
+  trust?: SenderTrustSource | null;
 }
 
 let active_custom_categories: readonly CustomCategoryRule[] = [];
@@ -220,13 +222,19 @@ function resolve_rule_category(
   return custom ? rule_category : null;
 }
 
-export function is_locked_to_primary(envelope: DecryptedEnvelope): boolean {
+export function is_locked_to_primary(
+  envelope: DecryptedEnvelope,
+  trust?: SenderTrustSource | null,
+): boolean {
   const email = envelope.from?.email || "";
 
   return (
     domain_in_set(get_sender_domain(email), ASTER_SET) &&
-    envelope.sender_verification !== "invalid" &&
-    is_official_sender(email)
+    is_official_sender({
+      ...(trust ?? {}),
+      sender_email: email,
+      sender_verification: envelope.sender_verification,
+    })
   );
 }
 
@@ -235,7 +243,7 @@ export function classify(
   metadata?: MailItemMetadata | null,
   options?: ClassifyOptions,
 ): EmailCategory {
-  if (is_locked_to_primary(envelope)) return "primary";
+  if (is_locked_to_primary(envelope, options?.trust)) return "primary";
 
   if (metadata?.category_pinned && metadata.category) {
     return metadata.category;

@@ -181,7 +181,7 @@ export function use_email_detail() {
           ? thread_messages[thread_messages.length - 1]
           : null;
 
-      if (last_msg && !is_system_email(last_msg.sender_email)) {
+      if (last_msg && !is_system_email(last_msg)) {
         set_reply_modal_data(
           actions.build_reply_modal_data(
             last_msg,

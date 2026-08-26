@@ -69,7 +69,13 @@ import { SnoozeBadge } from "@/components/ui/snooze_badge";
 import { ExpirationCountdown } from "@/components/email/expiration_countdown";
 import { AttachmentChip } from "@/components/email/attachment_chip";
 import { fetch_priority_attr } from "@/lib/fetch_priority";
-import { cn, format_number, is_system_email } from "@/lib/utils";
+import {
+  cn,
+  format_number,
+  is_system_address,
+  is_system_email,
+  trust_source_for_display,
+} from "@/lib/utils";
 import { is_compact_density, list_select_slot_class } from "@/lib/list_density";
 import {
   get_alias_hash_by_address,
@@ -143,7 +149,7 @@ export const InboxEmailListItem = memo(
         email.sender_email,
       );
       const peer_profile = use_peer_profile(
-        is_system_email(profile_target_email) ? null : profile_target_email,
+        is_system_address(profile_target_email) ? null : profile_target_email,
       );
       const show_sender_email = outgoing_names
         ? profile_target_email
@@ -410,7 +416,7 @@ export const InboxEmailListItem = memo(
                         : "group-hover/avatar:opacity-0",
                     )}
                   >
-                    {is_system_email(email.sender_email) ? (
+                    {is_system_email(email) ? (
                       <img
                         alt={t("common.aster_mail")}
                         className={cn(
@@ -429,6 +435,9 @@ export const InboxEmailListItem = memo(
                           peer_profile?.profile_picture ?? email.avatar_url
                         }
                         name={peer_profile?.display_name ?? show_sender_name}
+                        sender_authenticated={is_system_email(
+                          trust_source_for_display(email, show_sender_email),
+                        )}
                         size={compact_rows ? "sm_compact" : "sm"}
                         use_domain_logo={show_profile_pictures}
                       />
@@ -479,13 +488,13 @@ export const InboxEmailListItem = memo(
                 )}
 
               <span
-                dir="auto"
                 className={cn(
                   "truncate text-sm",
                   email.is_read
                     ? "font-normal text-txt-muted"
                     : "font-semibold text-txt-primary",
                 )}
+                dir="auto"
               >
                 {resolve_list_display_name({
                   outgoing_names,
@@ -496,9 +505,12 @@ export const InboxEmailListItem = memo(
               </span>
 
               <OfficialBadge
+                address_only={!!outgoing_names}
                 className="hidden sm:inline-flex"
-                email={
-                  outgoing_names ? profile_target_email : email.sender_email
+                sender={
+                  outgoing_names
+                    ? { sender_email: profile_target_email }
+                    : trust_source_for_display(email, email.sender_email)
                 }
               />
 
@@ -529,7 +541,7 @@ export const InboxEmailListItem = memo(
             </div>
 
             <div className="flex-1 min-w-0 overflow-hidden flex items-center gap-1.5">
-              {is_system_email(email.sender_email) && (
+              {is_system_email(email) && (
                 <EmailTag
                   className="flex-shrink-0 hidden sm:inline-flex"
                   icon="info"
@@ -713,19 +725,19 @@ export const InboxEmailListItem = memo(
                 )}
               >
                 <span
-                  dir="auto"
                   className={cn(
                     "truncate",
                     email.is_read
                       ? "font-normal text-txt-tertiary"
                       : "font-medium text-txt-primary",
                   )}
+                  dir="auto"
                 >
                   {email.subject || t("mail.no_subject")}
                 </span>
                 {show_email_preview &&
                   (search_preview_node || email.preview) && (
-                    <span dir="auto" className="text-txt-muted">
+                    <span className="text-txt-muted" dir="auto">
                       {" \u2014 "}
                       {search_preview_node ||
                         (email.preview === RATCHET_UNDECRYPTABLE_SENTINEL ||

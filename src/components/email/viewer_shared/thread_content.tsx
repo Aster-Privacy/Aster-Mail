@@ -147,7 +147,7 @@ export function ViewerThreadContent({
       if (thread_messages.length === 0) return;
       const last = thread_messages[thread_messages.length - 1];
 
-      if (!is_system_email(last.sender_email)) {
+      if (!is_system_email(last)) {
         const wants_reply_all =
           (e as CustomEvent<{ reply_all?: boolean }>).detail?.reply_all ===
             true || preferences.default_reply_behavior === "reply_all";

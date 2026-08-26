@@ -49,6 +49,7 @@ export interface DecryptedThreadMessage {
   is_starred: boolean;
   is_deleted: boolean;
   is_external: boolean;
+  system_origin?: boolean;
   has_recipient_key?: boolean;
   is_sending?: boolean;
   send_status?: string;

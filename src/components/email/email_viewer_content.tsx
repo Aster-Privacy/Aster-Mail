@@ -164,7 +164,7 @@ export function EmailViewerContent({
     ],
   );
 
-  const is_system = is_system_email(email.sender.email);
+  const is_system = is_system_email(email);
   const is_plain_text = !raw_content || !has_rich_html(raw_content);
   const is_literal_plain_text = !raw_content || !is_html_content(raw_content);
 
@@ -530,7 +530,7 @@ export function EmailViewerContent({
               <p className="font-medium text-txt-secondary">
                 {email.sender.name}
               </p>
-              {is_system_email(email.sender.email) && (
+              {is_system_email(email) && (
                 <EmailTag
                   className="flex-shrink-0"
                   icon="info"

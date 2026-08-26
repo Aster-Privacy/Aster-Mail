@@ -35,7 +35,7 @@ import {
   store_favicon_if_api_url,
 } from "@/hooks/use_favicon_src";
 import { get_avatar_color, get_contrast_text } from "@/lib/avatar_color";
-import { get_root_domain, is_official_sender } from "@/lib/utils";
+import { get_root_domain, is_official_address } from "@/lib/utils";
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_peer_profile } from "@/hooks/use_peer_profile";
@@ -59,6 +59,7 @@ interface ProfileAvatarProps {
   clickable?: boolean;
   on_compose?: (email: string) => void;
   profile_color?: string;
+  sender_authenticated?: boolean;
 }
 
 const SIZE_MAP: Record<string, number> = {
@@ -116,6 +117,7 @@ export const ProfileAvatar = memo(function ProfileAvatar({
   clickable = false,
   on_compose,
   profile_color,
+  sender_authenticated = false,
 }: ProfileAvatarProps) {
   const { user } = use_auth();
   const { preferences } = use_preferences();
@@ -143,10 +145,11 @@ export const ProfileAvatar = memo(function ProfileAvatar({
   const domain = useMemo(() => (email ? extract_domain(email) : ""), [email]);
   const normalized_email = (email || "").trim().toLowerCase();
   const is_aster_mail =
-    ASTER_SYSTEM_EMAILS.has(normalized_email) ||
-    (SYSTEM_LOCAL_PARTS.has(normalized_email.split("@")[0]) &&
-      ASTER_DOMAINS.has(domain)) ||
-    is_official_sender(normalized_email);
+    sender_authenticated &&
+    (ASTER_SYSTEM_EMAILS.has(normalized_email) ||
+      (SYSTEM_LOCAL_PARTS.has(normalized_email.split("@")[0]) &&
+        ASTER_DOMAINS.has(domain)) ||
+      is_official_address(normalized_email));
 
   if (email !== prev_email || resolved_image_url !== prev_image_url) {
     set_prev_email(email);

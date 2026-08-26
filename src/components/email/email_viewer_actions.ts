@@ -163,7 +163,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
     if (
       !deps.email ||
       !deps.on_reply ||
-      is_system_email(deps.email.sender_email)
+      is_system_email(deps.email)
     )
       return;
     const is_reply_all =

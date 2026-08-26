@@ -50,7 +50,7 @@ import { has_stored_session_passphrase } from "@/contexts/auth/session_passphras
 import { UNLIMITED_ACCOUNTS } from "@/services/plan_limits";
 import { use_primary_identity } from "@/lib/primary_identity";
 import { use_i18n } from "@/lib/i18n/context";
-import { format_bytes, is_official_sender } from "@/lib/utils";
+import { format_bytes, is_official_address } from "@/lib/utils";
 import { ignore_error } from "@/lib/ignore_error";
 
 interface WorkspaceSwitcherProps {
@@ -323,7 +323,7 @@ export function WorkspaceSwitcher({
                     `${time_greeting}${t("auth.greeting_comma")}`}
                 </span>
                 <span className="flex items-center gap-1.5 min-w-0">
-                  {is_official_sender(current_user_email) && (
+                  {is_official_address(current_user_email) && (
                     <img
                       alt={t("mail.official_sender")}
                       className="block h-4 w-4 flex-shrink-0"

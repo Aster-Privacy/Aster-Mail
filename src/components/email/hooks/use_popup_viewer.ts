@@ -409,6 +409,8 @@ export function use_popup_viewer({
         display_sender_name: pe.display_sender_name,
         display_sender_email: pe.display_sender_email,
         forwarding_service: pe.forwarding_service,
+        is_external: pe.is_external,
+        system_origin: pe.system_origin,
         subject: pe.subject,
         preview: pe.preview,
         timestamp: format_email_detail(timestamp_date.current),
@@ -548,6 +550,8 @@ export function use_popup_viewer({
               : undefined;
           })(),
           sender_verification: envelope.sender_verification,
+          is_external: response.data.is_external,
+          system_origin: response.data.system_origin,
         };
 
         set_email(decrypted);

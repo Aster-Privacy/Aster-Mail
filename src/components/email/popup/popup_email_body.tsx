@@ -155,13 +155,13 @@ export function PopupEmailBody({
   >("reply");
 
   const handle_inline_reply = useCallback((msg: DecryptedThreadMessage) => {
-    if (is_system_email(msg.sender_email)) return;
+    if (is_system_email(msg)) return;
     set_inline_reply_msg(msg);
     set_inline_mode("reply");
   }, []);
 
   const handle_inline_reply_all = useCallback((msg: DecryptedThreadMessage) => {
-    if (is_system_email(msg.sender_email)) return;
+    if (is_system_email(msg)) return;
     set_inline_reply_msg(msg);
     set_inline_mode("reply_all");
   }, []);
@@ -181,7 +181,7 @@ export function PopupEmailBody({
     "success" | "manual"
   > => {
     if (!email?.unsubscribe_info?.has_unsubscribe) return "success";
-    if (is_system_email(email.sender_email)) return "success";
+    if (is_system_email(email)) return "success";
 
     const info = email.unsubscribe_info;
 
@@ -341,7 +341,7 @@ export function PopupEmailBody({
             on_trash={on_per_message_trash}
             on_unsubscribe={
               email.unsubscribe_info?.has_unsubscribe &&
-              !is_system_email(email.sender_email) &&
+              !is_system_email(email) &&
               !is_unsubscribed(email.sender_email)
                 ? handle_unsubscribe
                 : undefined

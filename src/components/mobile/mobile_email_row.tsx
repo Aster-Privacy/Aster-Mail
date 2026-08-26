@@ -39,6 +39,7 @@ import {
 import { get_swipe_action } from "@/components/mobile/swipe_action_registry";
 import { PinIcon } from "@/components/common/icons";
 import { OfficialBadge } from "@/components/email/official_badge";
+import { is_system_email, trust_source_for_display } from "@/lib/utils";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { SnoozeBadge } from "@/components/ui/snooze_badge";
 import {
@@ -102,6 +103,7 @@ export const MobileEmailRow = memo(function MobileEmailRow(
   const long_press_fired = useRef(false);
 
   const touch_start_pos = useRef<{ x: number; y: number } | null>(null);
+
 
   const handle_touch_start = useCallback(
     (e: React.TouchEvent) => {
@@ -288,6 +290,9 @@ export const MobileEmailRow = memo(function MobileEmailRow(
             use_domain_logo
             email={show_sender_email}
             name={show_sender_name}
+            sender_authenticated={is_system_email(
+              trust_source_for_display(email, show_sender_email),
+            )}
             size="md"
           />
           {selection_mode && is_selected && (
@@ -319,17 +324,25 @@ export const MobileEmailRow = memo(function MobileEmailRow(
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1.5">
           <span
-            dir="auto"
             className={`min-w-0 flex-1 truncate text-[15px] leading-tight ${
               !email.is_read
                 ? "font-semibold text-[var(--text-primary)]"
                 : "text-[var(--text-secondary)]"
             }`}
+            dir="auto"
           >
             {display_name_label}
           </span>
 
-          <OfficialBadge className="shrink-0" email={show_sender_email} />
+          <OfficialBadge
+            address_only={!!outgoing_names}
+            className="shrink-0"
+            sender={
+              outgoing_names
+                ? { sender_email: show_sender_email }
+                : trust_source_for_display(email, show_sender_email)
+            }
+          />
 
           {alias_delivery && (
             <Tooltip
@@ -361,12 +374,12 @@ export const MobileEmailRow = memo(function MobileEmailRow(
 
         <div className="mt-0.5 flex items-center gap-1.5">
           <span
-            dir="auto"
             className={`min-w-0 flex-1 truncate text-[14px] leading-tight ${
               !email.is_read
                 ? "font-medium text-[var(--text-primary)]"
                 : "text-[var(--text-secondary)]"
             }`}
+            dir="auto"
           >
             {email.subject || t("mail.no_subject")}
           </span>
@@ -403,8 +416,8 @@ export const MobileEmailRow = memo(function MobileEmailRow(
 
         <div className="mt-0.5 flex items-center gap-1.5">
           <span
-            dir="auto"
             className="min-w-0 flex-1 truncate text-[13px] leading-tight text-[var(--text-muted)]"
+            dir="auto"
           >
             {show_preview ? email.preview : ""}
           </span>

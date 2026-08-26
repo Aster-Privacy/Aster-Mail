@@ -157,6 +157,7 @@ export function build_single_thread_message(
     created_at: string;
     is_external: boolean;
     has_recipient_key?: boolean;
+    system_origin?: boolean;
     encrypted_metadata?: string;
     metadata_nonce?: string;
     message_group_id?: string;
@@ -191,6 +192,7 @@ export function build_single_thread_message(
     is_external: item.is_external,
     has_recipient_key: item.has_recipient_key,
     encrypted_metadata: item.encrypted_metadata,
+    system_origin: item.system_origin,
     metadata_nonce: item.metadata_nonce,
     to_recipients: envelope.to || [],
     cc_recipients: envelope.cc || [],

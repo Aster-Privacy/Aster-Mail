@@ -18,7 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { copy_text_or_throw } from "@/utils/copy_text";
 import type { ThreadMessageBlockProps } from "./use_thread_message_block";
 
 import {
@@ -48,6 +47,8 @@ import { Tooltip } from "@aster/ui";
 import { render_collapsed_thread_message } from "./thread_message_collapsed";
 import { use_thread_message_block } from "./use_thread_message_block";
 
+import { copy_text_or_throw } from "@/utils/copy_text";
+import { is_system_email, trust_source_for_display } from "@/lib/utils";
 import { EmailTag } from "@/components/ui/email_tag";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import {
@@ -207,6 +208,7 @@ export function ThreadMessageBlock(
             className="flex-shrink-0 mt-0.5"
             email={message.sender_email}
             name={message.sender_name}
+            sender_authenticated={is_system_email(message)}
             size="md"
           />
         ) : (
@@ -219,6 +221,9 @@ export function ThreadMessageBlock(
               use_domain_logo
               email={show_sender_email}
               name={show_sender_name}
+              sender_authenticated={is_system_email(
+                trust_source_for_display(message, show_sender_email),
+              )}
               size="md"
             />
           </SenderProfileTrigger>
@@ -239,10 +244,7 @@ export function ThreadMessageBlock(
               </SenderProfileTrigger>
             )}
             {!is_own_message && (
-              <OfficialBadge
-                className="flex-shrink-0"
-                email={message.sender_email}
-              />
+              <OfficialBadge className="flex-shrink-0" sender={message} />
             )}
             <span className="text-xs text-txt-muted truncate hidden sm:inline max-w-full">
               &lt;{show_sender_email}&gt;
@@ -570,8 +572,8 @@ export function ThreadMessageBlock(
                     {t("common.subject_label")}
                   </span>
                   <span
-                    dir="auto"
                     className="min-w-0 text-txt-secondary break-words"
+                    dir="auto"
                   >
                     {message.subject || t("mail.no_subject")}
                   </span>

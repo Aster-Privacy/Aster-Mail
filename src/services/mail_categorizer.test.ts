@@ -63,8 +63,21 @@ describe("classify", () => {
       category_pinned: true,
     } as unknown as MailItemMetadata;
 
-    expect(classify(envelope, metadata)).toBe("primary");
-    expect(is_locked_to_primary(envelope)).toBe(true);
+    const trust = { system_origin: true, is_external: false };
+
+    expect(classify(envelope, metadata, { trust })).toBe("primary");
+    expect(is_locked_to_primary(envelope, trust)).toBe(true);
+  });
+
+  it("does not lock a spoofed inbound copy of a sign-in alert to Primary", () => {
+    const envelope = make_envelope({
+      from: { name: "Aster Mail", email: "no-reply@astermail.org" },
+      subject: "New Sign-In to Your Aster Mail Account",
+    });
+    const trust = { system_origin: false, is_external: true };
+
+    expect(is_locked_to_primary(envelope, trust)).toBe(false);
+    expect(is_locked_to_primary(envelope)).toBe(false);
   });
 
   it("honors a pin on personal mail from an Aster address", () => {

@@ -68,6 +68,7 @@ export interface MailItem {
   sender_sealed?: string;
   folder_token: string;
   is_external: boolean;
+  system_origin?: boolean;
   has_recipient_key?: boolean;
   thread_token?: string;
   thread_message_count?: number;

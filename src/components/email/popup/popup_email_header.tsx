@@ -18,7 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { copy_text_or_throw } from "@/utils/copy_text";
 import type { DecryptedThreadMessage } from "@/types/thread";
 import type { TranslationKey } from "@/lib/i18n";
 import type { MailItem } from "@/services/api/mail";
@@ -28,6 +27,7 @@ import type { ExternalContentReport } from "@/lib/html_sanitizer";
 import { useState, useMemo } from "react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 
+import { copy_text_or_throw } from "@/utils/copy_text";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import {
   Popover,
@@ -45,7 +45,7 @@ import {
   type TagIconName,
 } from "@/components/ui/email_tag";
 import { use_tags } from "@/hooks/use_tags";
-import { is_system_email } from "@/lib/utils";
+import { is_system_email, trust_source_for_display } from "@/lib/utils";
 import { OfficialBadge } from "@/components/email/official_badge";
 import { get_label_hints } from "@/stores/label_hints_store";
 
@@ -142,7 +142,7 @@ export function PopupEmailHeader({
           ? label_hints
           : store_hints;
 
-    if (is_system_email(email.sender_email)) {
+    if (is_system_email(email)) {
       return [
         {
           token: "__system__",
@@ -188,8 +188,8 @@ export function PopupEmailHeader({
         </div>
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1 flex-1 min-w-0">
           <h1
-            dir="auto"
             className="text-lg font-semibold leading-snug break-words text-txt-primary"
+            dir="auto"
           >
             {email.subject || t("mail.no_subject")}
           </h1>
@@ -226,6 +226,9 @@ export function PopupEmailHeader({
             email={show_sender_email}
             name={show_sender_name}
             on_compose={on_compose}
+            sender_authenticated={is_system_email(
+              trust_source_for_display(email, show_sender_email),
+            )}
             size="md"
           />
 
@@ -234,7 +237,7 @@ export function PopupEmailHeader({
               <span className="font-medium text-sm text-txt-primary">
                 {show_sender_name}
               </span>
-              <OfficialBadge email={email.sender_email} />
+              <OfficialBadge sender={email} />
               {snoozed_until && (
                 <SnoozeBadge
                   className="flex-shrink-0"
@@ -430,8 +433,8 @@ export function PopupEmailHeader({
                       {t("common.subject_label")}
                     </span>
                     <span
-                      dir="auto"
                       className="min-w-0 text-txt-secondary break-words"
+                      dir="auto"
                     >
                       {email.subject || t("mail.no_subject")}
                     </span>

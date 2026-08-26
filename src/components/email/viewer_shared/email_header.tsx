@@ -38,7 +38,7 @@ import {
 } from "@/components/ui/popover";
 import { EncryptionInfoDropdown } from "@/components/common/encryption_info_dropdown";
 import { TrackingProtectionShield } from "@/components/email/tracking_protection_shield";
-import { is_system_email } from "@/lib/utils";
+import { is_system_email, trust_source_for_display } from "@/lib/utils";
 import { OfficialBadge } from "@/components/email/official_badge";
 import {
   EmailTag,
@@ -93,7 +93,7 @@ export function ViewerEmailHeader({
 }: ViewerEmailHeaderProps): React.ReactElement {
   const { t } = use_i18n();
   const peer_profile = use_peer_profile(
-    is_system_email(email.sender_email) ? null : email.sender_email,
+    is_system_email(email) ? null : email.sender_email,
   );
   const peer_badge = peer_profile?.active_badge ?? null;
   const show_sender_badge =
@@ -121,7 +121,7 @@ export function ViewerEmailHeader({
               />
             )}
           </div>
-          <h1 dir="auto" className={`${subject_class} text-txt-primary`}>
+          <h1 className={`${subject_class} text-txt-primary`} dir="auto">
             {email.subject || t("mail.no_subject")}
           </h1>
           {mail_item?.labels
@@ -150,6 +150,9 @@ export function ViewerEmailHeader({
           email={show_sender_email}
           image_url={peer_profile?.profile_picture ?? undefined}
           name={display_sender}
+          sender_authenticated={is_system_email(
+            trust_source_for_display(email, show_sender_email),
+          )}
           size={avatar_size}
         />
         <div className="flex-1 min-w-0">
@@ -164,7 +167,7 @@ export function ViewerEmailHeader({
               >
                 <span className="text-txt-primary">{display_sender}</span>
               </EmailProfileTrigger>
-              <OfficialBadge email={email.sender_email} size="md" />
+              <OfficialBadge sender={email} size="md" />
               {show_sender_badge && peer_badge && (
                 <BadgeChip
                   badge={peer_badge}
@@ -181,7 +184,7 @@ export function ViewerEmailHeader({
               >
                 &lt;{show_sender_email}&gt;
               </button>
-              {is_system_email(email.sender_email) && (
+              {is_system_email(email) && (
                 <EmailTag
                   className="flex-shrink-0"
                   icon="info"
@@ -319,8 +322,8 @@ export function ViewerEmailHeader({
                     {t("common.subject_label")}
                   </span>
                   <span
-                    dir="auto"
                     className="min-w-0 text-txt-secondary break-words"
+                    dir="auto"
                   >
                     {email.subject || t("mail.no_subject")}
                   </span>

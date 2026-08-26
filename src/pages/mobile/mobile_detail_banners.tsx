@@ -71,7 +71,7 @@ export function MobileUnsubscribeBanner({
   }, []);
 
   if (dismissed || !email.unsubscribe_info?.has_unsubscribe) return null;
-  if (is_system_email(email.sender_email)) return null;
+  if (is_system_email(email)) return null;
 
   const info = email.unsubscribe_info;
   const domain = get_sender_domain(email.sender_email);

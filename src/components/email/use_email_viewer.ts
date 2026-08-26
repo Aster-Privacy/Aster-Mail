@@ -660,6 +660,8 @@ export function use_email_viewer({
             ? { name: parsed_reply_to.name ?? "", email: parsed_reply_to.email }
             : undefined,
           sender_verification: envelope.sender_verification,
+          is_external: item.is_external,
+          system_origin: item.system_origin,
         });
         set_is_external(item.is_external);
         set_has_recipient_key(!!item.has_recipient_key);

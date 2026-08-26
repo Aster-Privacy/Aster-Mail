@@ -20,6 +20,7 @@
 //
 import type { Email } from "@/types/email";
 
+import { is_system_email } from "@/lib/utils";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 
 export function EmailListItem({
@@ -46,6 +47,7 @@ export function EmailListItem({
             use_domain_logo
             email={email.sender.email}
             name={email.sender.name}
+            sender_authenticated={is_system_email(email)}
             size="md"
           />
         </div>

@@ -288,7 +288,7 @@ export function ThreadMessageActions({
       <div className="flex items-center gap-2 px-4 pt-2 pb-3 border-t border-[var(--border-thread-divider)]">
         {on_reply && (
           <Button
-            className={`gap-1.5 ${is_system_email(message.sender_email) ? "opacity-50 pointer-events-none" : ""}`}
+            className={`gap-1.5 ${is_system_email(message) ? "opacity-50 pointer-events-none" : ""}`}
             size="md"
             onClick={() => on_reply(message)}
           >
@@ -298,7 +298,7 @@ export function ThreadMessageActions({
         )}
         {show_reply_all && (
           <Button
-            className={`gap-1.5 ${is_system_email(message.sender_email) ? "opacity-50 pointer-events-none" : ""}`}
+            className={`gap-1.5 ${is_system_email(message) ? "opacity-50 pointer-events-none" : ""}`}
             size="md"
             variant="outline"
             onClick={() => on_reply_all(message)}

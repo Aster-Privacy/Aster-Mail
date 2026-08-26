@@ -353,7 +353,7 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
 
   const handle_per_message_reply = useCallback(
     (msg: DecryptedThreadMessage) => {
-      if (is_system_email(msg.sender_email)) return;
+      if (is_system_email(msg)) return;
       const is_reply_all =
         deps.preferences_default_reply_behavior === "reply_all";
 
@@ -365,7 +365,7 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
 
   const handle_per_message_reply_all = useCallback(
     (msg: DecryptedThreadMessage) => {
-      if (is_system_email(msg.sender_email)) return;
+      if (is_system_email(msg)) return;
       deps.set_reply_modal_data(build_reply_modal_data(msg, true));
       deps.set_is_reply_modal_open(true);
     },

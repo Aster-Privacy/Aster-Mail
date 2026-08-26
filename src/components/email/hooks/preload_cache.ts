@@ -30,6 +30,7 @@ import type {
   ThreadReplyCancelledEventDetail,
   MailItemUpdatedEventDetail,
 } from "@/hooks/mail_events";
+import type { SenderTrustSource } from "@/lib/utils";
 
 import { get_email_username, is_system_email } from "@/lib/utils";
 import { extract_reply_to } from "@/utils/reply_to";
@@ -428,11 +429,11 @@ if (typeof window !== "undefined") {
 function presanitize(
   html_content: string | undefined,
   body: string,
-  sender_email: string,
+  sender: SenderTrustSource,
 ): PreloadedSanitizedContent {
   const raw = html_content || body;
   const is_plain = !raw || !has_rich_html(raw);
-  const is_system = is_system_email(sender_email);
+  const is_system = is_system_email(sender);
 
   if (!is_html_content(raw)) {
     return {
@@ -684,6 +685,8 @@ export async function preload_email_detail(
         sender: envelope.from.name || get_email_username(envelope.from.email),
         sender_email: envelope.from.email,
         ...(forwarding ?? {}),
+        is_external: item.is_external,
+        system_origin: item.system_origin,
         raw_headers: envelope.raw_headers,
         reply_to: preload_reply_to
           ? { name: preload_reply_to.name, email: preload_reply_to.email }
@@ -739,6 +742,7 @@ export async function preload_email_detail(
         is_starred: decrypted_metadata?.is_starred ?? false,
         is_deleted: false,
         is_external: item.is_external,
+        system_origin: item.system_origin,
         encrypted_metadata: item.encrypted_metadata,
         metadata_nonce: item.metadata_nonce,
         to_recipients: envelope.to || [],
@@ -792,17 +796,13 @@ export async function preload_email_detail(
         await next_idle();
         thread_sanitized.set(
           msg.id,
-          presanitize(msg.html_content, msg.body, msg.sender_email),
+          presanitize(msg.html_content, msg.body, msg),
         );
       }
 
       await next_idle();
 
-      const main_sanitized = presanitize(
-        safe_html,
-        body_text,
-        envelope.from.email,
-      );
+      const main_sanitized = presanitize(safe_html, body_text, single_message);
 
       void next_idle(1500).then(() =>
         premeasure_height(

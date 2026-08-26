@@ -233,7 +233,7 @@ export function EmailDetailBody({
           </div>
 
           {email.unsubscribe_info?.has_unsubscribe &&
-            !is_system_email(email.sender_email) && (
+            !is_system_email(email) && (
               <div className="mb-4 sm:mb-6">
                 <UnsubscribeBanner
                   sender_email={email.sender_email}

@@ -186,7 +186,7 @@ export function FullEmailViewer({
           ? label_hints
           : store_hints;
 
-    if (viewer.email && is_system_email(viewer.email.sender_email)) {
+    if (viewer.email && is_system_email(viewer.email)) {
       return [
         {
           token: "__system__",
@@ -334,7 +334,7 @@ export function FullEmailViewer({
     const email = viewer.email;
 
     if (!email?.unsubscribe_info?.has_unsubscribe) return "success";
-    if (is_system_email(email.sender_email)) return "success";
+    if (is_system_email(email)) return "success";
 
     const info = email.unsubscribe_info;
 
@@ -623,7 +623,7 @@ export function FullEmailViewer({
                 on_trash={viewer.handle_per_message_trash}
                 on_unsubscribe={
                   email.unsubscribe_info?.has_unsubscribe &&
-                  !is_system_email(email.sender_email) &&
+                  !is_system_email(email) &&
                   !is_unsubscribed(email.sender_email)
                     ? handle_unsubscribe
                     : undefined

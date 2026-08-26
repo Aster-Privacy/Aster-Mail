@@ -262,15 +262,15 @@ export function EmailReplySection({
       {!show_reply_menu ? (
         <motion.button
           className="w-full py-3 px-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold rounded-lg shadow-md transition-shadow duration-200"
-          disabled={is_system_email(email.sender.email)}
+          disabled={is_system_email(email)}
           style={{
-            opacity: is_system_email(email.sender.email) ? 0.6 : 1,
-            cursor: is_system_email(email.sender.email)
+            opacity: is_system_email(email) ? 0.6 : 1,
+            cursor: is_system_email(email)
               ? "not-allowed"
               : "pointer",
           }}
           whileHover={
-            is_system_email(email.sender.email)
+            is_system_email(email)
               ? {}
               : {
                   scale: 1.02,
@@ -279,7 +279,7 @@ export function EmailReplySection({
                 }
           }
           onClick={
-            is_system_email(email.sender.email)
+            is_system_email(email)
               ? undefined
               : () => set_show_reply_menu(true)
           }

@@ -53,6 +53,8 @@ export interface DecryptedEmail {
   raw_headers?: { name: string; value: string }[];
   reply_to?: EmailRecipient;
   sender_verification?: SenderVerificationStatus;
+  is_external?: boolean;
+  system_origin?: boolean;
 }
 
 export interface ReplyData {
@@ -70,6 +72,7 @@ export interface ReplyData {
   original_cc?: string[];
   original_to?: string[];
   is_external?: boolean;
+  system_origin?: boolean;
   thread_ghost_email?: string;
   reply_from_address?: string;
   original_rfc_message_id?: string;
@@ -83,6 +86,7 @@ export interface ForwardData {
   email_body: string;
   email_timestamp: string;
   is_external?: boolean;
+  system_origin?: boolean;
   original_mail_id?: string;
 }
 
