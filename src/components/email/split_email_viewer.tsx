@@ -31,6 +31,7 @@ import {
   hex_to_variant,
   type TagIconName,
 } from "@/components/ui/email_tag";
+import { SnoozeBadge } from "@/components/ui/snooze_badge";
 import { use_tags } from "@/hooks/use_tags";
 import {
   get_cached_iframe_height,
@@ -97,7 +98,7 @@ export function SplitEmailViewer({
   email_id,
   local_email,
   on_close,
-  snoozed_until: _snoozed_until,
+  snoozed_until,
   on_reply,
   on_forward,
   on_navigate_prev,
@@ -590,6 +591,13 @@ export function SplitEmailViewer({
                     }
                   />
                 ))}
+                {snoozed_until && (
+                  <SnoozeBadge
+                    className="flex-shrink-0"
+                    size="default"
+                    snoozed_until={snoozed_until}
+                  />
+                )}
               </div>
 
               <ViewerThreadContent
