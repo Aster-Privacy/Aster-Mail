@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 
-import { parse_csv_records } from "./contact_utils";
+import { parse_csv_records, parse_birthday } from "./contact_utils";
 
 describe("parse_csv_records", () => {
   it("keeps a quoted field with embedded newlines as one field", () => {
@@ -60,5 +60,21 @@ describe("parse_csv_records", () => {
       ["a", "b"],
       ["1", "2"],
     ]);
+  });
+});
+
+describe("parse_birthday", () => {
+  it("reads a date-only birthday in the local time zone", () => {
+    const parsed = parse_birthday("1990-05-04");
+
+    expect(parsed.getFullYear()).toBe(1990);
+    expect(parsed.getMonth()).toBe(4);
+    expect(parsed.getDate()).toBe(4);
+  });
+
+  it("still parses a full timestamp", () => {
+    const parsed = parse_birthday("1990-05-04T12:00:00Z");
+
+    expect(Number.isNaN(parsed.getTime())).toBe(false);
   });
 });

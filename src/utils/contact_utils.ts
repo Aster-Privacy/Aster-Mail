@@ -66,10 +66,24 @@ export function parse_csv_records(text: string): string[][] {
   return records.filter((record) => record.some((value) => value !== ""));
 }
 
+export function parse_birthday(birthday: string): Date {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(birthday.trim());
+
+  if (match) {
+    return new Date(
+      Number(match[1]),
+      Number(match[2]) - 1,
+      Number(match[3]),
+    );
+  }
+
+  return new Date(birthday);
+}
+
 export function get_days_until_birthday(birthday: string): number {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const birth_date = new Date(birthday);
+  const birth_date = parse_birthday(birthday);
   const this_year_birthday = new Date(
     today.getFullYear(),
     birth_date.getMonth(),

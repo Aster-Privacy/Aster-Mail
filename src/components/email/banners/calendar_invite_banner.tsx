@@ -32,6 +32,8 @@ import {
 
 import { cn } from "@/lib/utils";
 import { use_i18n } from "@/lib/i18n/context";
+import { use_date_format } from "@/hooks/use_date_format";
+import { get_display_time_zone } from "@/utils/date_format";
 import { use_auth } from "@/contexts/auth/use_auth_hook";
 import { find_invite_in_email } from "@/services/calendar/ics_parser";
 import { create_event } from "@/services/api/calendar";
@@ -45,35 +47,35 @@ interface CalendarInviteBannerProps {
 
 const RESPONSE_TARGET_CALENDAR = "personal";
 
-function format_invite_when(invite: ParsedInvite, locale: string): string {
+function format_invite_when(
+  invite: ParsedInvite,
+  locale: string,
+  format_time: (date: Date) => string,
+): string {
   const starts = new Date(invite.starts_at);
   const ends = new Date(invite.ends_at);
+  const time_zone = get_display_time_zone();
 
   const date_options: Intl.DateTimeFormatOptions = {
     weekday: "short",
     month: "short",
     day: "numeric",
+    ...(time_zone ? { timeZone: time_zone } : {}),
   };
 
   if (invite.is_all_day) {
     return starts.toLocaleDateString(locale, date_options);
   }
 
-  const time_options: Intl.DateTimeFormatOptions = {
-    hour: "numeric",
-    minute: "2-digit",
-  };
-
-  const same_day = starts.toDateString() === ends.toDateString();
   const start_date = starts.toLocaleDateString(locale, date_options);
-  const start_time = starts.toLocaleTimeString(locale, time_options);
-  const end_time = ends.toLocaleTimeString(locale, time_options);
+  const end_date = ends.toLocaleDateString(locale, date_options);
+  const start_time = format_time(starts);
+  const end_time = format_time(ends);
 
-  if (same_day) {
+  if (start_date === end_date) {
     return `${start_date} · ${start_time} - ${end_time}`;
   }
 
-  const end_date = ends.toLocaleDateString(locale, date_options);
   return `${start_date} ${start_time} - ${end_date} ${end_time}`;
 }
 
@@ -83,6 +85,7 @@ export function CalendarInviteBanner({
   className,
 }: CalendarInviteBannerProps) {
   const { t, language } = use_i18n();
+  const { format_time } = use_date_format();
   const { vault } = use_auth();
 
   const invite = useMemo(
@@ -96,8 +99,8 @@ export function CalendarInviteBanner({
   const [is_busy, set_is_busy] = useState(false);
 
   const when_label = useMemo(
-    () => (invite ? format_invite_when(invite, language) : ""),
-    [invite, language],
+    () => (invite ? format_invite_when(invite, language, format_time) : ""),
+    [invite, language, format_time],
   );
 
   if (!invite || invite.method === "reply" || invite.method === "cancel") {

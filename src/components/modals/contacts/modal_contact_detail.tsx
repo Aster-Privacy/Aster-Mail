@@ -48,6 +48,7 @@ import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { EmailProfileTrigger } from "@/components/email/email_profile_trigger";
 import { use_should_reduce_motion } from "@/provider";
 import { use_external_link } from "@/contexts/external_link_context";
+import { parse_birthday } from "@/utils/contact_utils";
 import { build_contact_social_url } from "@/utils/contact_links";
 
 interface ModalContactDetailProps {
@@ -299,14 +300,13 @@ export function ModalContactDetail({
                   {t("common.birthday")}
                 </p>
                 <p className="text-[14px] -mt-0.5 text-txt-primary">
-                  {new Date(selected_contact.birthday).toLocaleDateString(
-                    undefined,
-                    {
-                      month: "long",
-                      day: "numeric",
-                      year: "numeric",
-                    },
-                  )}
+                  {parse_birthday(
+                    selected_contact.birthday,
+                  ).toLocaleDateString(undefined, {
+                    month: "long",
+                    day: "numeric",
+                    year: "numeric",
+                  })}
                 </p>
               </div>
             </div>
