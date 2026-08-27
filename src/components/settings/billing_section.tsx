@@ -70,6 +70,7 @@ import { server_error_text } from "@/components/settings/billing/server_error_te
 import { CurrentPlanCard } from "@/components/settings/billing/current_plan_card";
 import { CryptoResumeBanner } from "@/components/settings/billing/crypto_resume_banner";
 import { ResumeCheckoutCard } from "@/components/settings/billing/resume_checkout_card";
+import { WinBackOfferCard } from "@/components/settings/billing/win_back_offer_card";
 import { AvailablePlansSection } from "@/components/settings/billing/available_plans_section";
 import { PlanComparisonSection } from "@/components/settings/billing/plan_comparison_section";
 import { StorageAddonsSection } from "@/components/settings/billing/storage_addons_section";
@@ -868,6 +869,11 @@ export function BillingSection() {
       <CryptoResumeBanner />
 
       <ResumeCheckoutCard current_plan_code={subscription?.plan.code ?? null} />
+
+      <WinBackOfferCard
+        offer={subscription?.pending_offer}
+        on_choose_plan={scroll_to_plans}
+      />
 
       <CurrentPlanCard
         current_billing_interval={current_billing_interval}

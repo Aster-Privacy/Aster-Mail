@@ -5546,6 +5546,12 @@ export interface SettingsTranslations {
   finish_plan_setup_title: string;
   finish_plan_setup_message: string;
   finish_plan_setup_action: string;
+  win_back_offer_title: string;
+  win_back_offer_expires_today: string;
+  win_back_offer_expires_tomorrow: string;
+  win_back_offer_expires_in: string;
+  win_back_offer_auto_applied: string;
+  win_back_offer_action: string;
   payment_activation_pending: string;
   payment_processing_delayed: string;
   payment_details: string;

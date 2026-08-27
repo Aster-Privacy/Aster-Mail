@@ -4472,6 +4472,13 @@ export const en: Translations = {
     finish_plan_setup_message:
       "You closed checkout before paying. Your account stays on the free plan until you finish.",
     finish_plan_setup_action: "Finish setting up",
+    win_back_offer_title: "Your {{discount}} is waiting",
+    win_back_offer_expires_today: "This is the last day to use it.",
+    win_back_offer_expires_tomorrow: "It ends tomorrow.",
+    win_back_offer_expires_in: "It ends in {{days}} days.",
+    win_back_offer_auto_applied:
+      "The discount is on your account, so checkout applies it for you. Code {{code}}.",
+    win_back_offer_action: "Choose a plan",
     payment_activation_pending:
       "Your payment went through, but your plan is not active yet. Refresh in a moment. If it stays inactive, contact support.",
     payment_processing_delayed:

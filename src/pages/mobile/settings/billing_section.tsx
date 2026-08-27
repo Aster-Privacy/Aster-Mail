@@ -53,6 +53,7 @@ import { CreditsSection } from "@/components/settings/billing/credits_section";
 import { AcademicDiscountSection } from "@/components/settings/billing/academic_discount_section";
 import { CryptoResumeBanner } from "@/components/settings/billing/crypto_resume_banner";
 import { ResumeCheckoutCard } from "@/components/settings/billing/resume_checkout_card";
+import { WinBackOfferCard } from "@/components/settings/billing/win_back_offer_card";
 import { show_toast } from "@/components/toast/simple_toast";
 import {
   build_referral_invite_url,
@@ -151,6 +152,10 @@ export function BillingSection({
               <ResumeCheckoutCard
                 class_name="mb-4"
                 current_plan_code={subscription?.plan.code ?? null}
+              />
+              <WinBackOfferCard
+                class_name="mb-4"
+                offer={subscription?.pending_offer}
               />
               {has_payment_failed && (
                 <div className="mb-4 flex items-start gap-3 rounded-2xl bg-red-600 p-4">

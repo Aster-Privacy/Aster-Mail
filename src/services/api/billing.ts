@@ -48,6 +48,12 @@ export interface StorageInfo {
   is_over_limit: boolean;
 }
 
+export interface PendingOffer {
+  code: string;
+  discount_label: string;
+  expires_at: string;
+}
+
 export interface SubscriptionResponse {
   plan: PlanInfo;
   status: string;
@@ -62,6 +68,7 @@ export interface SubscriptionResponse {
   paid_until?: string | null;
   has_stripe_subscription?: boolean;
   active_discount_description?: string | null;
+  pending_offer?: PendingOffer | null;
 }
 
 export interface AvailablePlan {
