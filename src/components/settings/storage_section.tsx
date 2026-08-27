@@ -386,9 +386,10 @@ export function StorageSection() {
     }
   };
 
-  const handle_cancel_addon = async () => {
+  const handle_cancel_addon = async (event: React.MouseEvent) => {
     if (!addon_to_cancel) return;
 
+    event.preventDefault();
     set_is_action_loading(true);
     try {
       const response = await cancel_storage_addon(
@@ -413,9 +414,10 @@ export function StorageSection() {
     }
   };
 
-  const handle_cleanup = async () => {
+  const handle_cleanup = async (event: React.MouseEvent) => {
     if (!cleanup_target) return;
 
+    event.preventDefault();
     set_is_action_loading(true);
     try {
       const response =
@@ -655,7 +657,15 @@ export function StorageSection() {
                         {t(style.label_key)}
                         {is_cleanable && entry.item_count > 0 && (
                           <button
-                            className="rounded-md px-1.5 py-0.5 text-xs font-medium text-brand transition-colors hover:bg-surf-tertiary disabled:opacity-50"
+                            aria-busy={
+                              is_action_loading && cleanup_target === entry.name
+                            }
+                            aria-label={
+                              entry.name === "spam"
+                                ? t("mail.empty_spam")
+                                : t("mail.empty_trash")
+                            }
+                            className="inline-flex items-center justify-center rounded-md px-1.5 py-0.5 text-xs font-medium text-brand transition-colors hover:bg-surf-tertiary disabled:cursor-default disabled:hover:bg-transparent"
                             disabled={is_action_loading}
                             type="button"
                             onClick={() =>
@@ -664,9 +674,24 @@ export function StorageSection() {
                               )
                             }
                           >
-                            {entry.name === "spam"
-                              ? t("mail.empty_spam")
-                              : t("mail.empty_trash")}
+                            <span className="relative inline-flex items-center justify-center">
+                              <span
+                                className={
+                                  is_action_loading &&
+                                  cleanup_target === entry.name
+                                    ? "invisible"
+                                    : undefined
+                                }
+                              >
+                                {entry.name === "spam"
+                                  ? t("mail.empty_spam")
+                                  : t("mail.empty_trash")}
+                              </span>
+                              {is_action_loading &&
+                                cleanup_target === entry.name && (
+                                  <Spinner className="absolute" size="xs" />
+                                )}
+                            </span>
                           </button>
                         )}
                       </span>
