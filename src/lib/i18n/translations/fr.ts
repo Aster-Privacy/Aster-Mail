@@ -814,6 +814,7 @@ export const fr = {
     birthday_tomorrow: "Demain",
     contact_details: "Détails du contact",
     history: "Historique",
+    all_mail: "Tous les messages",
     import_contacts: "Importer des contacts",
     import_choose_file_desc:
       "Choisissez un fichier pour importer des contacts. Formats pris en charge : vCard (.vcf) et CSV.",
@@ -2632,8 +2633,10 @@ export const fr = {
     feature_alias_directory: "Création automatique par répertoire",
     feature_instant_alias_delete: "Suppression instantanée des alias",
     feature_reverse_alias: "Répondre depuis l'alias",
-    first_addon_discount_applied: "Vos {{months}} premiers mois bénéficient de {{percent}} % de réduction",
-    first_addon_discount_applied_singular: "Votre premier mois bénéficie de {{percent}} % de réduction",
+    first_addon_discount_applied:
+      "Vos {{months}} premiers mois bénéficient de {{percent}} % de réduction",
+    first_addon_discount_applied_singular:
+      "Votre premier mois bénéficie de {{percent}} % de réduction",
     credits_will_be_applied:
       "{{amount}} de crédits seront appliqués au paiement",
     minimize_sidebar: "Réduire la barre latérale",
@@ -4556,7 +4559,8 @@ export const fr = {
     also_receives_at: "Reçoit aussi à {{email}}",
     alias_grace_days: "{{days}}j restants",
     domain_grace_days: "{{days}}j restants",
-    domain_grace_upgrade_hint: "Effectuez une mise à niveau pour conserver ce domaine actif",
+    domain_grace_upgrade_hint:
+      "Effectuez une mise à niveau pour conserver ce domaine actif",
     alias_reserved: "Réservé",
     alias_grace_upgrade_hint:
       "Passez à un plan supérieur pour garder cet alias actif",
@@ -5421,6 +5425,42 @@ export const fr = {
     plan_f_send_limit: "{{value}} e-mails quotidiens",
     plan_f_templates: "{{value}} modèles d'e-mail",
     plan_f_read_receipts: "Accusés de réception",
+    plan_tip_attachments:
+      "La taille totale des pièces jointes d'un message. Un même fichier peut atteindre 50 Mo.",
+    plan_tip_signed_in_accounts:
+      "Le nombre de comptes Aster que tu peux garder connectés sur le même appareil en même temps. Chaque compte conserve son propre abonnement ; basculer entre eux demande le mot de passe de chaque compte.",
+    plan_tip_send_limit:
+      "Compte les adresses hors d'Aster et se réinitialise chaque jour à 00:00 UTC. Les nouveaux comptes démarrent plus bas et atteignent la limite complète au cours de la première semaine.",
+    plan_tip_ghost_aliases:
+      "Envoie des e-mails depuis une adresse aléatoire pour que les destinataires ne puissent jamais remonter à ta véritable identité.",
+    plan_tip_smart_folders:
+      "Organise automatiquement les e-mails dans des dossiers selon les règles que tu définis.",
+    plan_tip_folder_lock:
+      "Verrouille les dossiers sensibles derrière un mot de passe séparé pour une couche de sécurité supplémentaire.",
+    plan_tip_sender_pinning:
+      "Lock an alias to specific senders - only they can reach you through it.",
+    plan_tip_alias_rules:
+      "Block or trash emails per alias based on sender or subject.",
+    plan_tip_reverse_alias:
+      "Reply to any email without revealing your real address.",
+    plan_tip_alias_directory:
+      "Mail to anything.key@astermail.org auto-creates a new alias on the fly.",
+    plan_tip_instant_alias_delete:
+      "Supprimez des alias et faites expirer des alias fantômes tout de suite - Supernova ignore le délai de suppression de 30 jours.",
+    plan_tip_zero_knowledge:
+      "Nous ne pouvons jamais lire tes données, même si nous y étions contraints. Tes clés de chiffrement ne quittent jamais ton appareil.",
+    plan_tip_tracker_protection:
+      "Les pixels de pistage invisibles sont supprimés avant que les e-mails n'atteignent ta boîte de réception.",
+    plan_tip_key_rotation:
+      "Fais tourner automatiquement tes clés de chiffrement à intervalles réguliers pour une sécurité accrue.",
+    plan_tip_imap_smtp:
+      "Connect Apple Mail, Thunderbird, Outlook, or any IMAP client. Powered by the Aster Bridge companion app running on your device.",
+    plan_tip_external_accounts:
+      "Lie et synchronise les e-mails de fournisseurs externes comme Gmail ou Outlook directement dans Aster via IMAP ou POP3.",
+    plan_tip_carddav:
+      "Sync your contacts to Contacts on macOS and iOS, DAVx5 on Android, or any CardDAV client. Powered by the Aster Bridge companion app running on your device.",
+    plan_tip_alias_avatars:
+      "Définis des photos de profil uniques pour chaque alias et adresse de domaine personnalisé",
     plan_f_custom_themes: "Thèmes personnalisés",
     plan_f_smart_folders: "Dossiers intelligents",
     plan_f_imap_smtp: "Accès IMAP et SMTP",
@@ -5518,7 +5558,8 @@ export const fr = {
     usage_linked_accounts: "Comptes connectés",
     upgrade_linked_accounts_note:
       "Tous vos comptes sont en sécurité. Il s'agit du nombre de comptes que cet appareil garde connectés en même temps.",
-    upgrade_linked_accounts_link: "Découvrez le fonctionnement des comptes multiples",
+    upgrade_linked_accounts_link:
+      "Découvrez le fonctionnement des comptes multiples",
     usage_of: "{{current}} sur {{limit}}",
     usage_unlimited: "Illimité",
     usage_at_limit: "Limite atteinte",
@@ -5578,7 +5619,8 @@ export const fr = {
       "Votre banque a refusé la carte. Essayez un autre moyen de paiement.",
     card_removed: "Moyen de paiement supprimé",
     default_updated: "Moyen de paiement par défaut mis à jour",
-    payment_settled: "Moyen de paiement par défaut mis à jour. Votre solde impayé est réglé.",
+    payment_settled:
+      "Moyen de paiement par défaut mis à jour. Votre solde impayé est réglé.",
     payment_still_due:
       "Votre carte est enregistrée, mais votre solde impayé n'a pas été réglé. Essayez une autre carte pour conserver votre offre.",
     no_payment_methods: "Aucun moyen de paiement enregistré",
@@ -6818,7 +6860,8 @@ export const fr = {
     win_back_offer_expires_today: "C’est le dernier jour pour en profiter.",
     win_back_offer_expires_tomorrow: "Elle se termine demain.",
     win_back_offer_expires_in: "Elle se termine dans {{days}} jours.",
-    win_back_offer_auto_applied: "La remise est déjà sur votre compte, le paiement l’applique pour vous. Code {{code}}.",
+    win_back_offer_auto_applied:
+      "La remise est déjà sur votre compte, le paiement l’applique pour vous. Code {{code}}.",
     win_back_offer_action: "Choisir une offre",
     payment_processing_delayed:
       "Le traitement du paiement peut prendre quelques minutes.",
@@ -8034,6 +8077,7 @@ export const fr = {
     filter_smaller: "Plus petit que : {{ value }}",
     filter_subject: "Objet : {{ value }}",
     filter_to: "À : {{ value }}",
+    filter_contact: "Contact : {{ value }}",
     filter_type_archive: "Archive",
     filter_type_audio: "Audio",
     filter_type_document: "Document",

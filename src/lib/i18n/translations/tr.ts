@@ -801,6 +801,7 @@ export const tr = {
     birthday_tomorrow: "Yarın",
     contact_details: "Kişi Ayrıntıları",
     history: "Geçmiş",
+    all_mail: "Tüm postalar",
     import_contacts: "Kişileri İçe Aktar",
     import_choose_file_desc:
       "Kişileri içe aktarmak için bir dosya seçin. Desteklenen formatlar: vCard (.vcf) ve CSV.",
@@ -2615,7 +2616,8 @@ export const tr = {
     feature_alias_directory: "Dizin otomatik oluşturma",
     feature_instant_alias_delete: "Anında rumuz silme",
     feature_reverse_alias: "Rumuzdan yanıtla",
-    first_addon_discount_applied: "İlk {{months}} ayınız %{{percent}} indirimli",
+    first_addon_discount_applied:
+      "İlk {{months}} ayınız %{{percent}} indirimli",
     first_addon_discount_applied_singular: "İlk ayınız %{{percent}} indirimli",
     credits_will_be_applied:
       "Ödeme sırasında {{amount}} tutarında kredi uygulanacak",
@@ -5332,6 +5334,42 @@ export const tr = {
     plan_f_send_limit: "Günlük {{value}} e-posta",
     plan_f_templates: "{{value}} e-posta şablonu",
     plan_f_read_receipts: "Okundu bilgileri",
+    plan_tip_attachments:
+      "Bir iletideki tüm eklerin toplam boyutu. Tek bir dosya en fazla 50 MB olabilir.",
+    plan_tip_signed_in_accounts:
+      "Aynı cihazda aynı anda kaç Aster hesabında oturum açık tutabileceğin. Her hesap kendi aboneliğini korur ve hesaplar arasında geçerken o hesabın parolası istenir.",
+    plan_tip_send_limit:
+      "Aster dışındaki adresleri sayar ve her gün 00.00 UTC'de sıfırlanır. Yeni hesaplar daha düşük bir limitle başlar ve ilk hafta içinde tam limite ulaşır.",
+    plan_tip_ghost_aliases:
+      "E-postalarını rastgele bir adresten gönder, böylece alıcılar gerçek kimliğine ulaşamaz.",
+    plan_tip_smart_folders:
+      "Belirlediğin kurallara göre e-postaları klasörlere otomatik olarak yerleştir.",
+    plan_tip_folder_lock:
+      "Hassas klasörleri ayrı bir parolayla kilitleyerek ek bir güvenlik katmanı ekle.",
+    plan_tip_sender_pinning:
+      "Bir takma adı belirli göndericilere kilitle: yalnızca onlar bu adres üzerinden sana ulaşabilir.",
+    plan_tip_alias_rules:
+      "Her takma ad için gönderici veya konuya göre e-postaları engelle ya da çöpe taşı.",
+    plan_tip_reverse_alias:
+      "Gerçek adresini göstermeden her e-postayı yanıtla.",
+    plan_tip_alias_directory:
+      "herhangibirsey.anahtar@astermail.org adresine gelen e-posta anında yeni bir takma ad oluşturur.",
+    plan_tip_instant_alias_delete:
+      "Takma adları sil ve hayalet takma adları hemen sonlandır: Supernova'da 30 günlük silme beklemesi yok.",
+    plan_tip_zero_knowledge:
+      "Verilerini asla okuyamayız, zorlansak bile. Şifreleme anahtarların cihazından hiç çıkmaz.",
+    plan_tip_tracker_protection:
+      "Görünmez izleme pikselleri, e-postalar gelen kutuna ulaşmadan önce temizlenir.",
+    plan_tip_key_rotation:
+      "Daha güçlü güvenlik için şifreleme anahtarlarını düzenli aralıklarla otomatik olarak değiştir.",
+    plan_tip_imap_smtp:
+      "Apple Mail, Thunderbird, Outlook veya herhangi bir IMAP istemcisini bağla. Cihazında çalışan Aster Bridge yardımcı uygulamasıyla çalışır.",
+    plan_tip_external_accounts:
+      "Gmail veya Outlook gibi harici sağlayıcılardaki e-postaları IMAP ya da POP3 ile doğrudan Aster'da bağla ve eşitle.",
+    plan_tip_carddav:
+      "Kişilerini macOS ve iOS'taki Kişiler, Android'deki DAVx5 veya herhangi bir CardDAV istemcisiyle eşitle. Cihazında çalışan Aster Bridge yardımcı uygulamasıyla çalışır.",
+    plan_tip_alias_avatars:
+      "Her takma ad ve özel alan adı adresi için ayrı profil fotoğrafı belirle.",
     plan_f_custom_themes: "Özel temalar",
     plan_f_smart_folders: "Akıllı klasörler",
     plan_f_imap_smtp: "IMAP ve SMTP erişimi",
@@ -5429,7 +5467,8 @@ export const tr = {
     usage_linked_accounts: "Oturum açılmış hesaplar",
     upgrade_linked_accounts_note:
       "Tüm hesaplarınız güvende. Bu, bu cihazın aynı anda oturumu açık tuttuğu hesap sayısıdır.",
-    upgrade_linked_accounts_link: "Birden fazla hesabın nasıl çalıştığını okuyun",
+    upgrade_linked_accounts_link:
+      "Birden fazla hesabın nasıl çalıştığını okuyun",
     usage_of: "{{current}} / {{limit}}",
     usage_unlimited: "Sınırsız",
     usage_at_limit: "Sınırda",
@@ -5486,7 +5525,8 @@ export const tr = {
       "Bankanız kartı reddetti. Farklı bir ödeme yöntemi deneyin.",
     card_removed: "Ödeme yöntemi kaldırıldı",
     default_updated: "Varsayılan ödeme yöntemi güncellendi",
-    payment_settled: "Varsayılan ödeme yöntemi güncellendi. Ödenmemiş tutarınız ödendi.",
+    payment_settled:
+      "Varsayılan ödeme yöntemi güncellendi. Ödenmemiş tutarınız ödendi.",
     payment_still_due:
       "Kartınız kaydedildi ancak ödenmemiş tutarınız ödenmedi. Planınızı korumak için başka bir kart deneyin.",
     no_payment_methods: "Kayıtlı ödeme yöntemi yok",
@@ -6519,7 +6559,8 @@ export const tr = {
     win_back_offer_expires_today: "Kullanmak için son gün bugün.",
     win_back_offer_expires_tomorrow: "Yarın sona eriyor.",
     win_back_offer_expires_in: "{{days}} gün sonra sona eriyor.",
-    win_back_offer_auto_applied: "İndirim zaten hesabınızda, bu yüzden ödemede sizin için uygulanır. Kod {{code}}.",
+    win_back_offer_auto_applied:
+      "İndirim zaten hesabınızda, bu yüzden ödemede sizin için uygulanır. Kod {{code}}.",
     win_back_offer_action: "Plan seçin",
     payment_processing_delayed:
       "Ödemeniz işleniyor. Etkinleşmesi biraz zaman alabilir.",
@@ -8113,6 +8154,7 @@ export const tr = {
     filter_not_prefix: "Değil ",
     filter_from: "Kimden: {{ value }}",
     filter_to: "Kime: {{ value }}",
+    filter_contact: "Kişi: {{ value }}",
     filter_subject: "Konu: {{ value }}",
     filter_no_attachments: "Ek yok",
     filter_has_type: "{{ type }} var",

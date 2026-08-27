@@ -795,6 +795,7 @@ export const nl = {
     birthday_tomorrow: "Morgen",
     contact_details: "Contactgegevens",
     history: "Geschiedenis",
+    all_mail: "Alle e-mail",
     import_contacts: "Contacten importeren",
     import_choose_file_desc:
       "Kies een bestand om contacten uit te importeren. Ondersteunde formaten: vCard (.vcf) en CSV.",
@@ -2566,8 +2567,10 @@ export const nl = {
     feature_alias_directory: "Automatisch aanmaken via directory",
     feature_instant_alias_delete: "Aliassen direct verwijderen",
     feature_reverse_alias: "Antwoorden vanaf alias",
-    first_addon_discount_applied: "Je eerste {{months}} maanden zijn {{percent}}% goedkoper",
-    first_addon_discount_applied_singular: "Je eerste maand is {{percent}}% goedkoper",
+    first_addon_discount_applied:
+      "Je eerste {{months}} maanden zijn {{percent}}% goedkoper",
+    first_addon_discount_applied_singular:
+      "Je eerste maand is {{percent}}% goedkoper",
     credits_will_be_applied:
       "{{amount}} aan tegoed wordt toegepast bij het afrekenen",
     minimize_sidebar: "Zijbalk minimaliseren",
@@ -5361,6 +5364,42 @@ export const nl = {
     plan_f_send_limit: "{{value}} dagelijkse e-mails",
     plan_f_templates: "{{value}} e-mailsjablonen",
     plan_f_read_receipts: "Leesbevestigingen",
+    plan_tip_attachments:
+      "De totale grootte van alle bijlagen in één bericht. Eén bestand mag maximaal 50 MB zijn.",
+    plan_tip_signed_in_accounts:
+      "Hoeveel Aster-accounts je tegelijk aangemeld kunt houden op hetzelfde apparaat. Elk account houdt zijn eigen abonnement en bij het wisselen vraagt Aster om het wachtwoord van dat account.",
+    plan_tip_send_limit:
+      "Telt adressen buiten Aster en wordt elke dag om 00:00 UTC opnieuw ingesteld. Nieuwe accounts beginnen lager en bereiken de volledige limiet in de eerste week.",
+    plan_tip_ghost_aliases:
+      "Verstuur e-mail vanaf een willekeurig adres, zodat ontvangers het nooit naar je echte identiteit kunnen herleiden.",
+    plan_tip_smart_folders:
+      "Orden e-mail automatisch in mappen op basis van regels die je zelf instelt.",
+    plan_tip_folder_lock:
+      "Vergrendel gevoelige mappen achter een apart wachtwoord voor extra beveiliging.",
+    plan_tip_sender_pinning:
+      "Koppel een alias aan specifieke afzenders: alleen zij kunnen je via dat adres bereiken.",
+    plan_tip_alias_rules:
+      "Blokkeer e-mail of verplaats die naar de prullenmand per alias, op basis van afzender of onderwerp.",
+    plan_tip_reverse_alias:
+      "Beantwoord elke e-mail zonder je echte adres te tonen.",
+    plan_tip_alias_directory:
+      "E-mail naar vanalles.sleutel@astermail.org maakt direct een nieuwe alias aan.",
+    plan_tip_instant_alias_delete:
+      "Verwijder aliassen en laat ghost-aliassen meteen verlopen: met Supernova vervalt de wachttijd van 30 dagen.",
+    plan_tip_zero_knowledge:
+      "We kunnen je gegevens nooit lezen, ook niet onder dwang. Je encryptiesleutels verlaten je apparaat nooit.",
+    plan_tip_tracker_protection:
+      "Onzichtbare trackingpixels worden verwijderd voordat e-mail je postvak bereikt.",
+    plan_tip_key_rotation:
+      "Vernieuw je encryptiesleutels automatisch met vaste tussenpozen voor extra beveiliging.",
+    plan_tip_imap_smtp:
+      "Verbind Apple Mail, Thunderbird, Outlook of elke IMAP-client. Werkt via de Aster Bridge-app op je apparaat.",
+    plan_tip_external_accounts:
+      "Koppel en synchroniseer e-mail van externe providers zoals Gmail of Outlook rechtstreeks in Aster via IMAP of POP3.",
+    plan_tip_carddav:
+      "Synchroniseer je contacten met Contacten op macOS en iOS, DAVx5 op Android of elke CardDAV-client. Werkt via de Aster Bridge-app op je apparaat.",
+    plan_tip_alias_avatars:
+      "Stel een eigen profielfoto in voor elke alias en elk adres op je eigen domein.",
     plan_f_custom_themes: "Aangepaste thema's",
     plan_f_smart_folders: "Slimme mappen",
     plan_f_imap_smtp: "IMAP- en SMTP-toegang",
@@ -5514,7 +5553,8 @@ export const nl = {
       "Je bank heeft de kaart geweigerd. Probeer een andere betaalmethode.",
     card_removed: "Betaalmethode verwijderd",
     default_updated: "Standaard betaalmethode bijgewerkt",
-    payment_settled: "Standaard betaalmethode bijgewerkt. Je openstaande bedrag is betaald.",
+    payment_settled:
+      "Standaard betaalmethode bijgewerkt. Je openstaande bedrag is betaald.",
     payment_still_due:
       "Je kaart is opgeslagen, maar je openstaande bedrag is niet betaald. Probeer een andere kaart om je abonnement te behouden.",
     no_payment_methods: "Geen betaalmethoden opgeslagen",
@@ -6737,10 +6777,12 @@ export const nl = {
       "Je hebt het afrekenen gesloten voordat je betaalde. Je account blijft op het gratis abonnement tot je klaar bent.",
     finish_plan_setup_action: "Instellen afronden",
     win_back_offer_title: "Je {{discount}} staat klaar",
-    win_back_offer_expires_today: "Vandaag is de laatste dag om hem te gebruiken.",
+    win_back_offer_expires_today:
+      "Vandaag is de laatste dag om hem te gebruiken.",
     win_back_offer_expires_tomorrow: "Hij loopt morgen af.",
     win_back_offer_expires_in: "Hij loopt over {{days}} dagen af.",
-    win_back_offer_auto_applied: "De korting staat al op je account, dus die wordt bij het afrekenen toegepast. Code {{code}}.",
+    win_back_offer_auto_applied:
+      "De korting staat al op je account, dus die wordt bij het afrekenen toegepast. Code {{code}}.",
     win_back_offer_action: "Kies een abonnement",
     payment_processing_delayed:
       "Betaalverwerking wordt vertraagd. Controleer uw betaalmethode.",
@@ -7992,6 +8034,7 @@ export const nl = {
     filter_not_prefix: "Niet ",
     filter_from: "Van: {{ value }}",
     filter_to: "Aan: {{ value }}",
+    filter_contact: "Contact: {{ value }}",
     filter_subject: "Onderwerp: {{ value }}",
     filter_no_attachments: "Geen bijlagen",
     filter_has_type: "Heeft {{ type }}",

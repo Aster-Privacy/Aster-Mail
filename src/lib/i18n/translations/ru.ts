@@ -804,6 +804,7 @@ export const ru = {
     birthday_tomorrow: "Завтра",
     contact_details: "Данные контакта",
     history: "История",
+    all_mail: "Все письма",
     import_contacts: "Импорт контактов",
     import_choose_file_desc:
       "Выберите файл для импорта контактов. Поддерживаемые форматы: vCard (.vcf) и CSV.",
@@ -2751,8 +2752,10 @@ export const ru = {
     feature_alias_directory: "Автосоздание каталогов",
     feature_instant_alias_delete: "Мгновенное удаление псевдонимов",
     feature_reverse_alias: "Ответ от псевдонима",
-    first_addon_discount_applied: "Первые {{months}} месяцев со скидкой {{percent}}%",
-    first_addon_discount_applied_singular: "Первый месяц со скидкой {{percent}}%",
+    first_addon_discount_applied:
+      "Первые {{months}} месяцев со скидкой {{percent}}%",
+    first_addon_discount_applied_singular:
+      "Первый месяц со скидкой {{percent}}%",
     credits_will_be_applied:
       "{{amount}} в виде кредитов будет применено при оформлении",
     minimize_sidebar: "Свернуть боковую панель",
@@ -4635,7 +4638,8 @@ export const ru = {
     also_receives_at: "Также получает на {{email}}",
     alias_grace_days: "{{days}}д осталось",
     domain_grace_days: "{{days}}д осталось",
-    domain_grace_upgrade_hint: "Перейдите на платный тариф, чтобы сохранить этот домен",
+    domain_grace_upgrade_hint:
+      "Перейдите на платный тариф, чтобы сохранить этот домен",
     alias_reserved: "Зарезервировано",
     alias_grace_upgrade_hint:
       "Обновите план, чтобы сохранить этот алиас активным",
@@ -5486,6 +5490,42 @@ export const ru = {
     plan_f_send_limit: "{{value}} писем в день",
     plan_f_templates: "{{value}} шаблонов писем",
     plan_f_read_receipts: "Уведомления о прочтении",
+    plan_tip_attachments:
+      "Общий размер всех вложений в одном письме. Размер одного файла может достигать 50 МБ.",
+    plan_tip_signed_in_accounts:
+      "Сколько аккаунтов Aster можно одновременно держать авторизованными на одном устройстве. У каждого аккаунта своя подписка, а при переключении запрашивается пароль этого аккаунта.",
+    plan_tip_send_limit:
+      "Учитываются адреса за пределами Aster, счётчик обнуляется ежедневно в 00:00 UTC. У новых аккаунтов лимит ниже и достигает полного значения в течение первой недели.",
+    plan_tip_ghost_aliases:
+      "Отправляйте письма со случайного адреса, чтобы получатели не смогли связать их с вашей настоящей личностью.",
+    plan_tip_smart_folders:
+      "Автоматически раскладывайте письма по папкам по заданным вами правилам.",
+    plan_tip_folder_lock:
+      "Защитите важные папки отдельным паролем для дополнительной безопасности.",
+    plan_tip_sender_pinning:
+      "Привяжите псевдоним к определённым отправителям: только они смогут написать вам на этот адрес.",
+    plan_tip_alias_rules:
+      "Блокируйте или отправляйте в корзину письма для каждого псевдонима по отправителю или теме.",
+    plan_tip_reverse_alias:
+      "Отвечайте на любое письмо, не раскрывая свой настоящий адрес.",
+    plan_tip_alias_directory:
+      "Письмо на что-угодно.ключ@astermail.org автоматически создаёт новый псевдоним.",
+    plan_tip_instant_alias_delete:
+      "Удаляйте псевдонимы и закрывайте скрытые псевдонимы сразу: в Supernova не нужно ждать 30 дней до удаления.",
+    plan_tip_zero_knowledge:
+      "Мы никогда не сможем прочитать ваши данные, даже по требованию. Ключи шифрования не покидают ваше устройство.",
+    plan_tip_tracker_protection:
+      "Невидимые пиксели отслеживания удаляются до того, как письмо попадёт в ваш почтовый ящик.",
+    plan_tip_key_rotation:
+      "Автоматически меняйте ключи шифрования через равные промежутки времени для большей безопасности.",
+    plan_tip_imap_smtp:
+      "Подключите Apple Mail, Thunderbird, Outlook или любой клиент IMAP. Работает через приложение Aster Bridge на вашем устройстве.",
+    plan_tip_external_accounts:
+      "Подключайте и синхронизируйте почту внешних провайдеров, например Gmail или Outlook, прямо в Aster по IMAP или POP3.",
+    plan_tip_carddav:
+      "Синхронизируйте контакты с приложением «Контакты» на macOS и iOS, DAVx5 на Android или любым клиентом CardDAV. Работает через приложение Aster Bridge на вашем устройстве.",
+    plan_tip_alias_avatars:
+      "Задайте отдельные изображения профиля для каждого псевдонима и адреса на своём домене.",
     plan_f_custom_themes: "Свои темы",
     plan_f_smart_folders: "Умные папки",
     plan_f_imap_smtp: "Доступ по IMAP и SMTP",
@@ -5637,7 +5677,8 @@ export const ru = {
       "Банк отклонил эту карту. Попробуйте другой способ оплаты.",
     card_removed: "Способ оплаты удалён",
     default_updated: "Способ оплаты по умолчанию обновлён",
-    payment_settled: "Способ оплаты по умолчанию обновлён. Задолженность погашена.",
+    payment_settled:
+      "Способ оплаты по умолчанию обновлён. Задолженность погашена.",
     payment_still_due:
       "Карта сохранена, но задолженность не погашена. Попробуйте другую карту, чтобы сохранить тариф.",
     no_payment_methods: "Нет сохранённых способов оплаты",
@@ -6891,10 +6932,12 @@ export const ru = {
       "Вы закрыли оформление заказа до оплаты. Ваша учётная запись остаётся на бесплатном тарифе, пока вы не завершите оплату.",
     finish_plan_setup_action: "Завершить настройку",
     win_back_offer_title: "Ваш {{discount}} ждёт",
-    win_back_offer_expires_today: "Сегодня последний день, когда его можно использовать.",
+    win_back_offer_expires_today:
+      "Сегодня последний день, когда его можно использовать.",
     win_back_offer_expires_tomorrow: "Он заканчивается завтра.",
     win_back_offer_expires_in: "Он заканчивается через {{days}} дн.",
-    win_back_offer_auto_applied: "Скидка уже привязана к вашей учётной записи, поэтому она применится при оплате. Код {{code}}.",
+    win_back_offer_auto_applied:
+      "Скидка уже привязана к вашей учётной записи, поэтому она применится при оплате. Код {{code}}.",
     win_back_offer_action: "Выбрать тариф",
     payment_processing_delayed:
       "Ваш платёж обрабатывается. Активация может занять немного времени.",
@@ -8173,6 +8216,7 @@ export const ru = {
     filter_smaller: "Меньше: {{ value }}",
     filter_subject: "Тема: {{ value }}",
     filter_to: "Кому: {{ value }}",
+    filter_contact: "Контакт: {{ value }}",
     filter_type_archive: "Архив",
     filter_type_audio: "Аудио",
     filter_type_document: "Документ",

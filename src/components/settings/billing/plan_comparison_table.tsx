@@ -32,6 +32,7 @@ export interface ComparisonRow {
   star: string;
   nova: string;
   supernova: string;
+  tip?: string;
 }
 
 const cap = (s: string) => {
@@ -65,6 +66,7 @@ export function get_plan_comparison_rows(
     {
       category: limits,
       label: cap(t("settings.plan_f_attachments", { value: "" })),
+      tip: t("settings.plan_tip_attachments"),
       free: "25 MB",
       star: "50 MB",
       nova: "100 MB",
@@ -73,6 +75,7 @@ export function get_plan_comparison_rows(
     {
       category: limits,
       label: t("settings.plan_f_signed_in_accounts"),
+      tip: t("settings.plan_tip_signed_in_accounts"),
       free: "1",
       star: "2",
       nova: "5",
@@ -81,6 +84,7 @@ export function get_plan_comparison_rows(
     {
       category: limits,
       label: cap(t("settings.plan_f_send_limit", { value: "" })),
+      tip: t("settings.plan_tip_send_limit"),
       free: "200",
       star: "1,000",
       nova: "1,000",
@@ -97,6 +101,7 @@ export function get_plan_comparison_rows(
     {
       category: mail,
       label: cap(t("settings.plan_f_ghost_aliases", { value: "" })),
+      tip: t("settings.plan_tip_ghost_aliases"),
       free: "5",
       star: "25",
       nova: unlimited,
@@ -145,6 +150,7 @@ export function get_plan_comparison_rows(
     {
       category: mail,
       label: t("settings.plan_f_catch_all"),
+      tip: t("settings.catch_all_description"),
       free: no,
       star: yes,
       nova: yes,
@@ -177,6 +183,7 @@ export function get_plan_comparison_rows(
     {
       category: mail,
       label: t("settings.plan_f_smart_folders"),
+      tip: t("settings.plan_tip_smart_folders"),
       free: no,
       star: no,
       nova: yes,
@@ -185,6 +192,7 @@ export function get_plan_comparison_rows(
     {
       category: mail,
       label: t("settings.f_folder_lock"),
+      tip: t("settings.plan_tip_folder_lock"),
       free: no,
       star: no,
       nova: yes,
@@ -193,6 +201,7 @@ export function get_plan_comparison_rows(
     {
       category: aliases,
       label: t("settings.plan_f_alias_avatars"),
+      tip: t("settings.plan_tip_alias_avatars"),
       free: no,
       star: yes,
       nova: yes,
@@ -201,6 +210,7 @@ export function get_plan_comparison_rows(
     {
       category: aliases,
       label: t("settings.feature_alias_sender_pinning"),
+      tip: t("settings.plan_tip_sender_pinning"),
       free: no,
       star: yes,
       nova: yes,
@@ -209,6 +219,7 @@ export function get_plan_comparison_rows(
     {
       category: aliases,
       label: t("settings.feature_per_alias_rules"),
+      tip: t("settings.plan_tip_alias_rules"),
       free: no,
       star: yes,
       nova: yes,
@@ -233,6 +244,7 @@ export function get_plan_comparison_rows(
     {
       category: aliases,
       label: t("settings.feature_reverse_alias"),
+      tip: t("settings.plan_tip_reverse_alias"),
       free: no,
       star: yes,
       nova: yes,
@@ -241,6 +253,7 @@ export function get_plan_comparison_rows(
     {
       category: aliases,
       label: t("settings.feature_alias_directory"),
+      tip: t("settings.plan_tip_alias_directory"),
       free: no,
       star: no,
       nova: yes,
@@ -249,6 +262,7 @@ export function get_plan_comparison_rows(
     {
       category: aliases,
       label: t("settings.feature_instant_alias_delete"),
+      tip: t("settings.plan_tip_instant_alias_delete"),
       free: no,
       star: no,
       nova: no,
@@ -265,6 +279,7 @@ export function get_plan_comparison_rows(
     {
       category: privacy,
       label: t("settings.f_zero_knowledge"),
+      tip: t("settings.plan_tip_zero_knowledge"),
       free: yes,
       star: yes,
       nova: yes,
@@ -273,6 +288,7 @@ export function get_plan_comparison_rows(
     {
       category: privacy,
       label: t("settings.plan_f_tracker_protection"),
+      tip: t("settings.plan_tip_tracker_protection"),
       free: yes,
       star: yes,
       nova: yes,
@@ -281,6 +297,7 @@ export function get_plan_comparison_rows(
     {
       category: privacy,
       label: t("settings.plan_f_custom_key_rotation"),
+      tip: t("settings.plan_tip_key_rotation"),
       free: yes,
       star: yes,
       nova: yes,
@@ -289,6 +306,7 @@ export function get_plan_comparison_rows(
     {
       category: apps,
       label: t("settings.plan_f_imap_smtp"),
+      tip: t("settings.plan_tip_imap_smtp"),
       free: no,
       star: yes,
       nova: yes,
@@ -297,6 +315,7 @@ export function get_plan_comparison_rows(
     {
       category: apps,
       label: t("settings.plan_f_external_accounts"),
+      tip: t("settings.plan_tip_external_accounts"),
       free: no,
       star: "2",
       nova: "5",
@@ -305,6 +324,7 @@ export function get_plan_comparison_rows(
     {
       category: apps,
       label: t("settings.plan_f_carddav_import"),
+      tip: t("settings.plan_tip_carddav"),
       free: no,
       star: yes,
       nova: yes,

@@ -786,6 +786,7 @@ export const ar = {
     birthday_tomorrow: "غدًا",
     contact_details: "تفاصيل جهة الاتصال",
     history: "السجل",
+    all_mail: "كل الرسائل",
     import_contacts: "استيراد جهات الاتصال",
     import_choose_file_desc:
       "اختر ملفًا لاستيراد جهات الاتصال منه. الصيغ المدعومة: vCard (.vcf) وCSV.",
@@ -5431,6 +5432,42 @@ export const ar = {
     plan_f_send_limit: "{{value}} رسالة يوميًا",
     plan_f_templates: "{{value}} قوالب بريد",
     plan_f_read_receipts: "إيصالات القراءة",
+    plan_tip_attachments:
+      "الحجم الإجمالي للمرفقات في الرسالة الواحدة. حجم الملف الواحد لا يتجاوز 50 ميغابايت.",
+    plan_tip_signed_in_accounts:
+      "عدد حسابات Aster التي يمكنك إبقاؤها مسجلة على الجهاز نفسه في الوقت ذاته. يبقى كل حساب باشتراكه الخاص؛ والتبديل بينها يطلب كلمة مرور ذلك الحساب.",
+    plan_tip_send_limit:
+      "تُحتسب العناوين خارج Aster، ويُعاد ضبط العدّاد يوميًا عند الساعة 00:00 بالتوقيت العالمي المنسق. تبدأ الحسابات الجديدة بحد أقل ثم ترتفع إلى الحد الكامل خلال الأسبوع الأول.",
+    plan_tip_ghost_aliases:
+      "أرسل الرسائل من عنوان عشوائي حتى لا يستطيع المستلمون تتبعه إلى هويتك الحقيقية.",
+    plan_tip_smart_folders:
+      "نظّم الرسائل تلقائياً في مجلدات بناءً على قواعد تحددها.",
+    plan_tip_folder_lock:
+      "أقفل المجلدات الحساسة خلف كلمة مرور منفصلة لطبقة أمان إضافية.",
+    plan_tip_sender_pinning:
+      "Lock an alias to specific senders - only they can reach you through it.",
+    plan_tip_alias_rules:
+      "Block or trash emails per alias based on sender or subject.",
+    plan_tip_reverse_alias:
+      "Reply to any email without revealing your real address.",
+    plan_tip_alias_directory:
+      "Mail to anything.key@astermail.org auto-creates a new alias on the fly.",
+    plan_tip_instant_alias_delete:
+      "احذف الأسماء المستعارة وأنهِ الأسماء الشبحية فورًا - تتخطى Supernova مدة انتظار الحذف البالغة 30 يومًا.",
+    plan_tip_zero_knowledge:
+      "لا نستطيع قراءة بياناتك أبداً، حتى لو أُجبرنا. مفاتيح التشفير لا تغادر جهازك أبداً.",
+    plan_tip_tracker_protection:
+      "تُجرَّد بيكسلات التتبع غير المرئية قبل وصول الرسائل إلى صندوقك.",
+    plan_tip_key_rotation:
+      "دوّر مفاتيح التشفير تلقائياً على فترات منتظمة لأمان أقوى.",
+    plan_tip_imap_smtp:
+      "Connect Apple Mail, Thunderbird, Outlook, or any IMAP client. Powered by the Aster Bridge companion app running on your device.",
+    plan_tip_external_accounts:
+      "اربط وزامن البريد من مزودين خارجيين مثل Gmail أو Outlook مباشرة في Aster عبر IMAP أو POP3.",
+    plan_tip_carddav:
+      "Sync your contacts to Contacts on macOS and iOS, DAVx5 on Android, or any CardDAV client. Powered by the Aster Bridge companion app running on your device.",
+    plan_tip_alias_avatars:
+      "اضبط صور ملف فريدة لكل اسم مستعار وعنوان نطاق مخصص",
     plan_f_custom_themes: "السمات المخصصة",
     plan_f_smart_folders: "مجلدات ذكية",
     plan_f_imap_smtp: "وصول IMAP وSMTP",
@@ -6452,7 +6489,8 @@ export const ar = {
     win_back_offer_expires_today: "اليوم هو آخر يوم لاستخدامه.",
     win_back_offer_expires_tomorrow: "ينتهي غدًا.",
     win_back_offer_expires_in: "ينتهي خلال {{days}} يومًا.",
-    win_back_offer_auto_applied: "الخصم موجود بالفعل في حسابك، لذا يُطبَّق عند الدفع. الرمز {{code}}.",
+    win_back_offer_auto_applied:
+      "الخصم موجود بالفعل في حسابك، لذا يُطبَّق عند الدفع. الرمز {{code}}.",
     win_back_offer_action: "اختر خطة",
     payment_processing_delayed: "جارٍ معالجة دفعتك. قد تستغرق لحظة للتفعيل.",
     card_number: "رقم البطاقة",
@@ -6912,8 +6950,7 @@ export const ar = {
       "أوقف هذا الخيار للاحتفاظ بسمة مختلفة على هذا الجهاز.",
     setup_2fa: "إعداد",
     product_updates: "مستجدات المنتج",
-    product_updates_description:
-      "احصل على رسالة عند إصدار Aster تحديثًا مهمًا",
+    product_updates_description: "احصل على رسالة عند إصدار Aster تحديثًا مهمًا",
     product_updates_info:
       "تصلك دائمًا إعلانات الأمان والسياسات، حتى عند إيقاف هذا الخيار. لا يسجّل Aster ما إذا كنت تفتح هذه الرسائل أو تنقر فيها.",
     product_updates_turned_off: "مستجدات المنتج متوقفة. يمكنك تفعيلها من هنا.",
@@ -8083,6 +8120,7 @@ export const ar = {
     filter_not_prefix: "ليس ",
     filter_from: "من: {{ value }}",
     filter_to: "إلى: {{ value }}",
+    filter_contact: "جهة الاتصال: {{ value }}",
     filter_subject: "الموضوع: {{ value }}",
     filter_no_attachments: "بدون مرفقات",
     filter_has_type: "يحتوي {{ type }}",

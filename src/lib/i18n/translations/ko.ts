@@ -452,7 +452,8 @@ export const ko = {
     continue_anyway: "계속 진행",
     set_as_default: "기본값으로 설정",
     billing_alert_body: "결제가 완료되지 않았습니다. 곧 액세스가 제한됩니다.",
-    billing_alert_body_days: "결제가 완료되지 않았습니다. {{days}}일 후에 액세스가 제한됩니다.",
+    billing_alert_body_days:
+      "결제가 완료되지 않았습니다. {{days}}일 후에 액세스가 제한됩니다.",
     billing_alert_action: "결제하기",
     dismiss: "닫기",
     load_content: "로드",
@@ -787,6 +788,7 @@ export const ko = {
     birthday_tomorrow: "내일",
     contact_details: "연락처 세부 정보",
     history: "기록",
+    all_mail: "전체 메일",
     import_contacts: "연락처 가져오기",
     import_choose_file_desc:
       "가져올 연락처 파일을 선택하세요. 지원 형식: vCard (.vcf) 및 CSV.",
@@ -2453,7 +2455,8 @@ export const ko = {
     feature_alias_directory: "디렉터리 자동 생성",
     feature_instant_alias_delete: "별칭 즉시 삭제",
     feature_reverse_alias: "별칭으로 답장",
-    first_addon_discount_applied: "첫 {{months}}개월을 {{percent}}% 할인받습니다",
+    first_addon_discount_applied:
+      "첫 {{months}}개월을 {{percent}}% 할인받습니다",
     first_addon_discount_applied_singular: "첫 달을 {{percent}}% 할인받습니다",
     credits_will_be_applied: "결제 시 {{amount}}의 크레딧이 적용됩니다",
     minimize_sidebar: "사이드바 최소화",
@@ -5259,6 +5262,42 @@ export const ko = {
     plan_f_send_limit: "일일 {{value}}개 이메일",
     plan_f_templates: "{{value}}개 이메일 템플릿",
     plan_f_read_receipts: "읽음 확인",
+    plan_tip_attachments:
+      "메일 한 통의 총 첨부 파일 크기입니다. 파일 하나는 최대 50MB입니다.",
+    plan_tip_signed_in_accounts:
+      "동일한 기기에서 동시에 로그인을 유지할 수 있는 Aster 계정 수. 각 계정은 자체 구독으로 유지되며, 전환할 때 해당 계정의 비밀번호를 요청합니다.",
+    plan_tip_send_limit:
+      "Aster 외부 주소를 기준으로 세며, 매일 00:00 UTC에 초기화됩니다. 새 계정은 더 낮은 한도로 시작해 첫 주 동안 전체 한도까지 올라갑니다.",
+    plan_tip_ghost_aliases:
+      "무작위 주소에서 이메일을 보내 수신자가 귀하의 실제 신원으로 추적할 수 없도록 하십시오.",
+    plan_tip_smart_folders:
+      "정의한 규칙에 따라 이메일을 자동으로 폴더에 정리하십시오.",
+    plan_tip_folder_lock:
+      "민감한 폴더를 별도의 비밀번호로 잠궈 추가 보안 계층을 제공하십시오.",
+    plan_tip_sender_pinning:
+      "Lock an alias to specific senders - only they can reach you through it.",
+    plan_tip_alias_rules:
+      "Block or trash emails per alias based on sender or subject.",
+    plan_tip_reverse_alias:
+      "Reply to any email without revealing your real address.",
+    plan_tip_alias_directory:
+      "Mail to anything.key@astermail.org auto-creates a new alias on the fly.",
+    plan_tip_instant_alias_delete:
+      "별칭을 삭제하고 고스트 별칭을 바로 만료시키세요. Supernova는 30일 삭제 대기를 건너뜁니다.",
+    plan_tip_zero_knowledge:
+      "강제되어도 데이터를 읽을 수 없습니다. 암호화 키는 기기를 떠나지 않습니다.",
+    plan_tip_tracker_protection:
+      "보이지 않는 추적 픽셀이 이메일이 받은편지함에 도달하기 전에 제거됩니다.",
+    plan_tip_key_rotation:
+      "강력한 보안을 위해 정기적인 간격으로 암호화 키를 자동 회전하십시오.",
+    plan_tip_imap_smtp:
+      "Connect Apple Mail, Thunderbird, Outlook, or any IMAP client. Powered by the Aster Bridge companion app running on your device.",
+    plan_tip_external_accounts:
+      "Gmail이나 Outlook과 같은 외부 제공자의 이메일을 IMAP 또는 POP3를 통해 Aster에 직접 연결하고 동기화하십시오.",
+    plan_tip_carddav:
+      "Sync your contacts to Contacts on macOS and iOS, DAVx5 on Android, or any CardDAV client. Powered by the Aster Bridge companion app running on your device.",
+    plan_tip_alias_avatars:
+      "각 별칭 및 맞춤 도메인 주소에 고유한 프로필 사진을 설정하십시오",
     plan_f_custom_themes: "커스텀 테마",
     plan_f_smart_folders: "스마트 폴더",
     plan_f_imap_smtp: "IMAP 및 SMTP 접근",
@@ -5407,7 +5446,8 @@ export const ko = {
       "은행에서 이 카드를 거절했습니다. 다른 결제 수단을 사용해 보세요.",
     card_removed: "결제 수단이 제거되었습니다",
     default_updated: "기본 결제 수단이 업데이트되었습니다",
-    payment_settled: "기본 결제 수단이 업데이트되었습니다. 미결제 금액이 결제되었습니다.",
+    payment_settled:
+      "기본 결제 수단이 업데이트되었습니다. 미결제 금액이 결제되었습니다.",
     payment_still_due:
       "카드가 저장되었지만 미결제 금액이 결제되지 않았습니다. 요금제를 유지하려면 다른 카드를 사용해 보세요.",
     no_payment_methods: "저장된 결제 수단이 없습니다",
@@ -5466,10 +5506,13 @@ export const ko = {
       "삭제되는 항목은 없습니다. 다시 구독하면 새 플랜 한도 내에서 비활성화된 항목이 복원됩니다.",
     cancel_impact_continue: "취소 계속하기",
     cancel_offer_title: "대신 더 작은 요금제로 변경",
-    cancel_offer_description: "더 저렴한 요금제로 변경하고 계정을 그대로 사용할 수 있습니다.",
-    cancel_offer_body: "{{plan}}은(는) 월 {{price}}입니다. 메일, 별칭, 설정은 그대로 유지됩니다.",
+    cancel_offer_description:
+      "더 저렴한 요금제로 변경하고 계정을 그대로 사용할 수 있습니다.",
+    cancel_offer_body:
+      "{{plan}}은(는) 월 {{price}}입니다. 메일, 별칭, 설정은 그대로 유지됩니다.",
     cancel_offer_switch: "{{plan}}(으)로 변경",
-    cancel_offer_hint: "더 작은 요금제의 한도를 초과하는 항목은 해지할 때와 동일하게 사용 중지됩니다.",
+    cancel_offer_hint:
+      "더 작은 요금제의 한도를 초과하는 항목은 해지할 때와 동일하게 사용 중지됩니다.",
     cancel_offer_continue: "해지 계속하기",
     cancel_final_title: "취소 확인",
     cancel_final_description:
@@ -6288,7 +6331,8 @@ export const ko = {
     win_back_offer_expires_today: "오늘이 사용할 수 있는 마지막 날입니다.",
     win_back_offer_expires_tomorrow: "내일 종료됩니다.",
     win_back_offer_expires_in: "{{days}}일 뒤에 종료됩니다.",
-    win_back_offer_auto_applied: "할인이 이미 계정에 적용되어 있어 결제 시 자동으로 반영됩니다. 코드 {{code}}.",
+    win_back_offer_auto_applied:
+      "할인이 이미 계정에 적용되어 있어 결제 시 자동으로 반영됩니다. 코드 {{code}}.",
     win_back_offer_action: "요금제 선택",
     payment_processing_delayed:
       "결제 처리 중입니다. 활성화되기까지 잠시 시간이 걸릴 수 있습니다.",
@@ -7781,6 +7825,7 @@ export const ko = {
     filter_not_prefix: "아님:",
     filter_from: "보낸 사람: {{ value }}",
     filter_to: "받는 사람: {{ value }}",
+    filter_contact: "연락처: {{ value }}",
     filter_subject: "제목: {{ value }}",
     filter_no_attachments: "첨부 파일 없음",
     filter_has_type: "{{ type }} 있음",

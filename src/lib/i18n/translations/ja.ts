@@ -454,8 +454,10 @@ export const ja = {
     go_back: "戻る",
     continue_anyway: "続行する",
     set_as_default: "デフォルトに設定",
-    billing_alert_body: "お支払いが完了しませんでした。まもなくアクセスが制限されます。",
-    billing_alert_body_days: "お支払いが完了しませんでした。{{days}}日後にアクセスが制限されます。",
+    billing_alert_body:
+      "お支払いが完了しませんでした。まもなくアクセスが制限されます。",
+    billing_alert_body_days:
+      "お支払いが完了しませんでした。{{days}}日後にアクセスが制限されます。",
     billing_alert_action: "支払う",
     dismiss: "閉じる",
     load_content: "読み込む",
@@ -797,6 +799,7 @@ export const ja = {
     birthday_tomorrow: "明日",
     contact_details: "連絡先の詳細",
     history: "履歴",
+    all_mail: "すべてのメール",
     import_contacts: "連絡先をインポート",
     import_choose_file_desc:
       "連絡先をインポートするファイルを選択してください。対応形式：vCard (.vcf) およびCSV。",
@@ -2542,8 +2545,10 @@ export const ja = {
     feature_alias_directory: "ディレクトリの自動作成",
     feature_instant_alias_delete: "エイリアスの即時削除",
     feature_reverse_alias: "エイリアスから返信",
-    first_addon_discount_applied: "最初の {{months}} か月が {{percent}}% オフになります",
-    first_addon_discount_applied_singular: "最初の 1 か月が {{percent}}% オフになります",
+    first_addon_discount_applied:
+      "最初の {{months}} か月が {{percent}}% オフになります",
+    first_addon_discount_applied_singular:
+      "最初の 1 か月が {{percent}}% オフになります",
     credits_will_be_applied: "お支払い時に{{amount}}のクレジットが適用されます",
     minimize_sidebar: "サイドバーを最小化",
     minimize_sidebar_description:
@@ -4427,7 +4432,8 @@ export const ja = {
     also_receives_at: "{{email}} でも受信します",
     alias_grace_days: "残り{{days}}日",
     domain_grace_days: "残り{{days}}日",
-    domain_grace_upgrade_hint: "このドメインを維持するにはアップグレードしてください",
+    domain_grace_upgrade_hint:
+      "このドメインを維持するにはアップグレードしてください",
     alias_reserved: "予約済み",
     alias_grace_upgrade_hint:
       "このエイリアスを維持するにはアップグレードしてください",
@@ -5321,6 +5327,42 @@ export const ja = {
     plan_f_send_limit: "1日{{value}}通のメール送信",
     plan_f_templates: "{{value}}のメールテンプレート",
     plan_f_read_receipts: "開封確認",
+    plan_tip_attachments:
+      "1 通あたりの添付ファイルの合計サイズです。1 ファイルは最大 50 MB です。",
+    plan_tip_signed_in_accounts:
+      "同じデバイスで同時にサインインしておける Aster アカウントの数です。各アカウントは独自のサブスクリプションのままで、切り替えるときはそのアカウントのパスワードを求められます。",
+    plan_tip_send_limit:
+      "Aster 以外のアドレスを数え、毎日 00:00 UTC にリセットされます。新しいアカウントはより低い上限から始まり、最初の 1 週間で上限まで引き上げられます。",
+    plan_tip_ghost_aliases:
+      "ランダム化されたアドレスからメールを送ることで、受信者が本当のあなたを追跡できないようにします。",
+    plan_tip_smart_folders:
+      "定義したルールに基づき、メールを自動でフォルダに振り分けます。",
+    plan_tip_folder_lock:
+      "機密のフォルダを別パスワードでロックして、もう一段のセキュリティを追加します。",
+    plan_tip_sender_pinning:
+      "Lock an alias to specific senders - only they can reach you through it.",
+    plan_tip_alias_rules:
+      "Block or trash emails per alias based on sender or subject.",
+    plan_tip_reverse_alias:
+      "Reply to any email without revealing your real address.",
+    plan_tip_alias_directory:
+      "Mail to anything.key@astermail.org auto-creates a new alias on the fly.",
+    plan_tip_instant_alias_delete:
+      "エイリアスの削除とゴーストエイリアスの失効をすぐに実行できます。Supernova では30日間の削除待機がありません。",
+    plan_tip_zero_knowledge:
+      "強制されてもあなたのデータを読むことはできません。暗号鍵はデバイスから離れません。",
+    plan_tip_tracker_protection:
+      "見えないトラッキングピクセルは、メールが受信箱に届く前に除去されます。",
+    plan_tip_key_rotation:
+      "暗号鍵を定期的に自動でローテーションし、セキュリティを強化します。",
+    plan_tip_imap_smtp:
+      "Connect Apple Mail, Thunderbird, Outlook, or any IMAP client. Powered by the Aster Bridge companion app running on your device.",
+    plan_tip_external_accounts:
+      "Gmail や Outlook などの外部プロバイダーのメールを、IMAP または POP3 経由で Aster 内で直接連携・同期します。",
+    plan_tip_carddav:
+      "Sync your contacts to Contacts on macOS and iOS, DAVx5 on Android, or any CardDAV client. Powered by the Aster Bridge companion app running on your device.",
+    plan_tip_alias_avatars:
+      "各エイリアスとカスタムドメインのアドレスに固有のプロフィール画像を設定できます",
     plan_f_custom_themes: "カスタムテーマ",
     plan_f_smart_folders: "スマートフォルダ",
     plan_f_imap_smtp: "IMAP & SMTPアクセス",
@@ -5475,7 +5517,8 @@ export const ja = {
       "銀行がこのカードを承認しませんでした。別のお支払い方法をお試しください。",
     card_removed: "お支払い方法を削除しました",
     default_updated: "デフォルトのお支払い方法を更新しました",
-    payment_settled: "デフォルトのお支払い方法を更新しました。未払い残高のお支払いが完了しました。",
+    payment_settled:
+      "デフォルトのお支払い方法を更新しました。未払い残高のお支払いが完了しました。",
     payment_still_due:
       "カードを保存しましたが、未払い残高のお支払いは完了していません。プランを維持するには別のカードをお試しください。",
     no_payment_methods: "保存されたお支払い方法はありません",
@@ -5536,10 +5579,13 @@ export const ja = {
       "削除されるものはありません。再登録すると、新しいプランの上限の範囲で無効化された項目が復元されます。",
     cancel_impact_continue: "解約手続きに進む",
     cancel_offer_title: "小さいプランに変更する",
-    cancel_offer_description: "料金の低いプランに変更して、アカウントをそのまま使えます。",
-    cancel_offer_body: "{{plan}} は月額 {{price}} です。メール、エイリアス、設定はそのまま残ります。",
+    cancel_offer_description:
+      "料金の低いプランに変更して、アカウントをそのまま使えます。",
+    cancel_offer_body:
+      "{{plan}} は月額 {{price}} です。メール、エイリアス、設定はそのまま残ります。",
     cancel_offer_switch: "{{plan}} に変更",
-    cancel_offer_hint: "小さいプランの上限を超えているものは、解約した場合と同じように無効になります。",
+    cancel_offer_hint:
+      "小さいプランの上限を超えているものは、解約した場合と同じように無効になります。",
     cancel_offer_continue: "解約手続きを続ける",
     cancel_final_title: "解約の確認",
     cancel_final_description:
@@ -6559,13 +6605,15 @@ export const ja = {
     password_breach_warning:
       "このパスワードは既知のデータ侵害で見つかっています。別のパスワードにするとアカウントをより安全に保てます。",
     finish_plan_setup_title: "{{plan}} プランの設定を完了",
-    finish_plan_setup_message: "お支払いの前にチェックアウトを閉じました。完了するまで、アカウントは無料プランのままです。",
+    finish_plan_setup_message:
+      "お支払いの前にチェックアウトを閉じました。完了するまで、アカウントは無料プランのままです。",
     finish_plan_setup_action: "設定を完了",
     win_back_offer_title: "{{discount}} をご用意しています",
     win_back_offer_expires_today: "ご利用は本日までです。",
     win_back_offer_expires_tomorrow: "明日で終了します。",
     win_back_offer_expires_in: "あと {{days}} 日で終了します。",
-    win_back_offer_auto_applied: "割引はすでにアカウントに適用済みなので、チェックアウト時に自動で反映されます。コード {{code}}。",
+    win_back_offer_auto_applied:
+      "割引はすでにアカウントに適用済みなので、チェックアウト時に自動で反映されます。コード {{code}}。",
     win_back_offer_action: "プランを選ぶ",
     payment_processing_delayed:
       "お支払いを処理中です。有効化には少し時間がかかることがあります。",
@@ -7882,6 +7930,7 @@ export const ja = {
     filter_not_prefix: "以外の",
     filter_from: "差出人：{{ value }}",
     filter_to: "宛先：{{ value }}",
+    filter_contact: "連絡先：{{ value }}",
     filter_subject: "件名：{{ value }}",
     filter_no_attachments: "添付ファイルなし",
     filter_has_type: "{{ type }} あり",

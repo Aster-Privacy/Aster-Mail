@@ -816,6 +816,7 @@ export const it = {
     birthday_tomorrow: "Domani",
     contact_details: "Dettagli contatto",
     history: "Cronologia",
+    all_mail: "Tutta la posta",
     import_contacts: "Importa contatti",
     import_choose_file_desc:
       "Scegli un file da cui importare i contatti. Formati supportati: vCard (.vcf) e CSV.",
@@ -2649,8 +2650,10 @@ export const it = {
     feature_alias_directory: "Creazione automatica da directory",
     feature_instant_alias_delete: "Eliminazione istantanea degli alias",
     feature_reverse_alias: "Rispondi dall'alias",
-    first_addon_discount_applied: "I tuoi primi {{months}} mesi hanno il {{percent}}% di sconto",
-    first_addon_discount_applied_singular: "Il tuo primo mese ha il {{percent}}% di sconto",
+    first_addon_discount_applied:
+      "I tuoi primi {{months}} mesi hanno il {{percent}}% di sconto",
+    first_addon_discount_applied_singular:
+      "Il tuo primo mese ha il {{percent}}% di sconto",
     credits_will_be_applied:
       "{{amount}} in crediti verranno applicati al pagamento",
     minimize_sidebar: "Riduci la barra laterale",
@@ -4263,6 +4266,42 @@ export const it = {
     plan_f_send_limit: "{{value}} email giornaliere",
     plan_f_templates: "{{value}} modelli email",
     plan_f_read_receipts: "Conferme di lettura",
+    plan_tip_attachments:
+      "La dimensione totale di tutti gli allegati di un messaggio. Un singolo file può arrivare a 50 MB.",
+    plan_tip_signed_in_accounts:
+      "Quanti account Aster puoi tenere connessi contemporaneamente sullo stesso dispositivo. Ogni account mantiene il proprio abbonamento e per passare da uno all'altro devi inserire la password di quell'account.",
+    plan_tip_send_limit:
+      "Conta gli indirizzi esterni ad Aster e si azzera ogni giorno alle 00:00 UTC. I nuovi account partono da un limite più basso e raggiungono quello pieno nella prima settimana.",
+    plan_tip_ghost_aliases:
+      "Invia email da un indirizzo casuale, così i destinatari non possono risalire alla tua identità reale.",
+    plan_tip_smart_folders:
+      "Organizza automaticamente le email in cartelle in base alle regole che definisci.",
+    plan_tip_folder_lock:
+      "Blocca le cartelle riservate dietro una password separata per un livello di sicurezza in più.",
+    plan_tip_sender_pinning:
+      "Vincola un alias a mittenti specifici: solo loro possono contattarti tramite quell'alias.",
+    plan_tip_alias_rules:
+      "Blocca o cestina le email di ogni alias in base al mittente o all'oggetto.",
+    plan_tip_reverse_alias:
+      "Rispondi a qualsiasi email senza rivelare il tuo indirizzo reale.",
+    plan_tip_alias_directory:
+      "Le email inviate a qualsiasicosa.chiave@astermail.org creano automaticamente un nuovo alias.",
+    plan_tip_instant_alias_delete:
+      "Elimina gli alias e fai scadere gli alias fantasma subito: con Supernova non devi attendere i 30 giorni previsti per l'eliminazione.",
+    plan_tip_zero_knowledge:
+      "Non possiamo mai leggere i tuoi dati, nemmeno se costretti. Le tue chiavi di crittografia non lasciano mai il tuo dispositivo.",
+    plan_tip_tracker_protection:
+      "I pixel di tracciamento invisibili vengono rimossi prima che le email arrivino nella tua casella.",
+    plan_tip_key_rotation:
+      "Ruota automaticamente le tue chiavi di crittografia a intervalli regolari per una sicurezza maggiore.",
+    plan_tip_imap_smtp:
+      "Collega Apple Mail, Thunderbird, Outlook o qualsiasi client IMAP. Funziona con l'app companion Aster Bridge in esecuzione sul tuo dispositivo.",
+    plan_tip_external_accounts:
+      "Collega e sincronizza le email di provider esterni come Gmail o Outlook direttamente in Aster tramite IMAP o POP3.",
+    plan_tip_carddav:
+      "Sincronizza i tuoi contatti con Contatti su macOS e iOS, DAVx5 su Android o qualsiasi client CardDAV. Funziona con l'app companion Aster Bridge in esecuzione sul tuo dispositivo.",
+    plan_tip_alias_avatars:
+      "Imposta immagini del profilo diverse per ogni alias e per ogni indirizzo di dominio personalizzato.",
     plan_f_custom_themes: "Temi personalizzati",
     plan_f_smart_folders: "Cartelle intelligenti",
     plan_f_imap_smtp: "Accesso IMAP e SMTP",
@@ -4417,7 +4456,8 @@ export const it = {
       "La tua banca ha rifiutato la carta. Prova un altro metodo di pagamento.",
     card_removed: "Metodo di pagamento rimosso",
     default_updated: "Metodo di pagamento predefinito aggiornato",
-    payment_settled: "Metodo di pagamento predefinito aggiornato. Il tuo saldo in sospeso è stato pagato.",
+    payment_settled:
+      "Metodo di pagamento predefinito aggiornato. Il tuo saldo in sospeso è stato pagato.",
     payment_still_due:
       "La tua carta è stata salvata, ma il tuo saldo in sospeso non è stato pagato. Prova un'altra carta per mantenere il tuo piano.",
     no_payment_methods: "Nessun metodo di pagamento salvato",
@@ -5393,7 +5433,8 @@ export const it = {
     also_receives_at: "Riceve anche su {{email}}",
     alias_grace_days: "{{days}}g rimanenti",
     domain_grace_days: "{{days}}g rimanenti",
-    domain_grace_upgrade_hint: "Esegui l'upgrade per mantenere attivo questo dominio",
+    domain_grace_upgrade_hint:
+      "Esegui l'upgrade per mantenere attivo questo dominio",
     alias_reserved: "Riservato",
     alias_grace_upgrade_hint:
       "Esegui l'upgrade per mantenere attivo questo alias",
@@ -6597,7 +6638,8 @@ export const it = {
     win_back_offer_expires_today: "Oggi è l’ultimo giorno per usarlo.",
     win_back_offer_expires_tomorrow: "Scade domani.",
     win_back_offer_expires_in: "Scade tra {{days}} giorni.",
-    win_back_offer_auto_applied: "Lo sconto è già sul tuo account, quindi il pagamento lo applica per te. Codice {{code}}.",
+    win_back_offer_auto_applied:
+      "Lo sconto è già sul tuo account, quindi il pagamento lo applica per te. Codice {{code}}.",
     win_back_offer_action: "Scegli un piano",
     payment_processing_delayed:
       "Il tuo pagamento è in elaborazione. Potrebbe volerci un momento per attivarlo.",
@@ -8219,6 +8261,7 @@ export const it = {
     filter_not_prefix: "Non ",
     filter_from: "Da: {{ value }}",
     filter_to: "A: {{ value }}",
+    filter_contact: "Contatto: {{ value }}",
     filter_subject: "Oggetto: {{ value }}",
     filter_no_attachments: "Nessun allegato",
     filter_has_type: "Ha {{ type }}",

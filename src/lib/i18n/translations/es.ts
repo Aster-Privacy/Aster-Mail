@@ -810,6 +810,7 @@ export const es = {
     birthday_tomorrow: "Mañana",
     contact_details: "Detalles del contacto",
     history: "Historial",
+    all_mail: "Todo el correo",
     import_contacts: "Importar contactos",
     import_choose_file_desc:
       "Elige un archivo para importar contactos. Formatos compatibles: vCard (.vcf) y CSV.",
@@ -2620,8 +2621,10 @@ export const es = {
     feature_alias_directory: "Creación automática mediante directorio",
     feature_instant_alias_delete: "Eliminación instantánea de alias",
     feature_reverse_alias: "Responder desde el alias",
-    first_addon_discount_applied: "Tus primeros {{months}} meses tienen un {{percent}} % de descuento",
-    first_addon_discount_applied_singular: "Tu primer mes tiene un {{percent}} % de descuento",
+    first_addon_discount_applied:
+      "Tus primeros {{months}} meses tienen un {{percent}} % de descuento",
+    first_addon_discount_applied_singular:
+      "Tu primer mes tiene un {{percent}} % de descuento",
     credits_will_be_applied:
       "Se aplicarán {{amount}} en créditos al finalizar la compra",
     minimize_sidebar: "Minimizar barra lateral",
@@ -4521,7 +4524,8 @@ export const es = {
     also_receives_at: "También recibe en {{email}}",
     alias_grace_days: "{{days}}d restantes",
     domain_grace_days: "{{days}}d restantes",
-    domain_grace_upgrade_hint: "Mejora tu plan para mantener este dominio activo",
+    domain_grace_upgrade_hint:
+      "Mejora tu plan para mantener este dominio activo",
     alias_reserved: "Reservado",
     alias_grace_upgrade_hint: "Mejora tu plan para mantener este alias activo",
     alias_reserved_upgrade_hint: "Mejora tu plan para reactivar este alias",
@@ -5374,6 +5378,42 @@ export const es = {
     plan_f_send_limit: "{{value}} correos diarios",
     plan_f_templates: "{{value}} plantillas de correo",
     plan_f_read_receipts: "Acuses de recibo",
+    plan_tip_attachments:
+      "El tamaño total de los archivos adjuntos de un mensaje. Cada archivo puede ocupar hasta 50 MB.",
+    plan_tip_signed_in_accounts:
+      "Cuántas cuentas de Aster puedes tener con sesión iniciada en el mismo dispositivo a la vez. Cada cuenta mantiene su propia suscripción; al cambiar entre ellas se pedirá la contraseña de esa cuenta.",
+    plan_tip_send_limit:
+      "Cuenta las direcciones de fuera de Aster y se reinicia cada día a las 00:00 UTC. Las cuentas nuevas empiezan más abajo y llegan al límite completo durante la primera semana.",
+    plan_tip_ghost_aliases:
+      "Envía correos desde una dirección aleatoria para que los destinatarios nunca puedan rastrearla hasta tu identidad real.",
+    plan_tip_smart_folders:
+      "Organiza los correos en carpetas de forma automática según las reglas que definas.",
+    plan_tip_folder_lock:
+      "Bloquea carpetas sensibles tras una contraseña independiente para añadir una capa extra de seguridad.",
+    plan_tip_sender_pinning:
+      "Lock an alias to specific senders - only they can reach you through it.",
+    plan_tip_alias_rules:
+      "Block or trash emails per alias based on sender or subject.",
+    plan_tip_reverse_alias:
+      "Reply to any email without revealing your real address.",
+    plan_tip_alias_directory:
+      "Mail to anything.key@astermail.org auto-creates a new alias on the fly.",
+    plan_tip_instant_alias_delete:
+      "Elimina alias y caduca alias fantasma de inmediato: Supernova se salta la espera de eliminación de 30 días.",
+    plan_tip_zero_knowledge:
+      "Nunca podemos leer tus datos, ni aunque se nos obligara. Tus claves de cifrado nunca salen de tu dispositivo.",
+    plan_tip_tracker_protection:
+      "Los píxeles de rastreo invisibles se eliminan antes de que los correos lleguen a tu bandeja de entrada.",
+    plan_tip_key_rotation:
+      "Rota tus claves de cifrado automáticamente a intervalos regulares para una seguridad mayor.",
+    plan_tip_imap_smtp:
+      "Connect Apple Mail, Thunderbird, Outlook, or any IMAP client. Powered by the Aster Bridge companion app running on your device.",
+    plan_tip_external_accounts:
+      "Vincula y sincroniza correos de proveedores externos como Gmail u Outlook directamente en Aster por IMAP o POP3.",
+    plan_tip_carddav:
+      "Sync your contacts to Contacts on macOS and iOS, DAVx5 on Android, or any CardDAV client. Powered by the Aster Bridge companion app running on your device.",
+    plan_tip_alias_avatars:
+      "Pon fotos de perfil únicas para cada alias y dirección de dominio personalizado",
     plan_f_custom_themes: "Temas personalizados",
     plan_f_smart_folders: "Carpetas inteligentes",
     plan_f_imap_smtp: "Acceso IMAP y SMTP",
@@ -5528,7 +5568,8 @@ export const es = {
       "Tu banco rechazó la tarjeta. Prueba con otro método de pago.",
     card_removed: "Método de pago eliminado",
     default_updated: "Método de pago predeterminado actualizado",
-    payment_settled: "Método de pago predeterminado actualizado. Tu saldo pendiente está pagado.",
+    payment_settled:
+      "Método de pago predeterminado actualizado. Tu saldo pendiente está pagado.",
     payment_still_due:
       "Tu tarjeta está guardada, pero tu saldo pendiente no se ha pagado. Prueba con otra tarjeta para mantener tu plan.",
     no_payment_methods: "No hay métodos de pago guardados",
@@ -6751,7 +6792,8 @@ export const es = {
     win_back_offer_expires_today: "Hoy es el último día para usarlo.",
     win_back_offer_expires_tomorrow: "Termina mañana.",
     win_back_offer_expires_in: "Termina en {{days}} días.",
-    win_back_offer_auto_applied: "El descuento ya está en tu cuenta, así que el pago lo aplica por ti. Código {{code}}.",
+    win_back_offer_auto_applied:
+      "El descuento ya está en tu cuenta, así que el pago lo aplica por ti. Código {{code}}.",
     win_back_offer_action: "Elegir un plan",
     payment_processing_delayed:
       "El procesamiento del pago puede tardar unos minutos.",
@@ -7942,6 +7984,7 @@ export const es = {
     filter_smaller: "Menor que: {{ value }}",
     filter_subject: "Asunto: {{ value }}",
     filter_to: "Para: {{ value }}",
+    filter_contact: "Contacto: {{ value }}",
     filter_type_archive: "Archivo comprimido",
     filter_type_audio: "Audio",
     filter_type_document: "Documento",

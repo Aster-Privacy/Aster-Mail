@@ -650,6 +650,7 @@ export const zh_CN = {
     birthday_tomorrow: "明天",
     contact_details: "联系人详情",
     history: "历史记录",
+    all_mail: "全部邮件",
     import_contacts: "导入联系人",
     import_choose_file_desc:
       "选择要导入联系人的文件。支持的格式：vCard (.vcf) 和 CSV。",
@@ -1881,7 +1882,8 @@ export const zh_CN = {
     recover_older_data_button: "解锁较早的数据",
     resurrection_old_password: "旧密码",
     resurrection_old_password_prompt: "输入您在重置前使用的密码",
-    resurrection_success: "较早的数据已解锁。您之前的邮件和别名可以再次正常打开。",
+    resurrection_success:
+      "较早的数据已解锁。您之前的邮件和别名可以再次正常打开。",
     resurrection_failed: "未能解锁较早的数据。请检查密码或短语后再试一次。",
     phrase_wrap_save_failed: "您的恢复短语未能保存到服务器，再试一次应该可以。",
     smtp_tokens: "SMTP 令牌",
@@ -4807,6 +4809,37 @@ export const zh_CN = {
     plan_f_send_limit: "每日{{value}}封邮件",
     plan_f_templates: "{{value}}个邮件模板",
     plan_f_read_receipts: "已读回执",
+    plan_tip_attachments: "每封邮件的附件总大小。单个文件最大 50 MB。",
+    plan_tip_signed_in_accounts:
+      "您可以在同一台设备上同时保持多少个 Aster 账户登录。每个账户保持独立订阅；切换时会要求输入该账户的密码。",
+    plan_tip_send_limit:
+      "按 Aster 以外的地址计数，每天 00:00 UTC 重置。新账户从较低的额度开始，在第一周内逐步提升到完整额度。",
+    plan_tip_ghost_aliases:
+      "使用随机地址发送邮件，让收件人永远无法追溯到您的真实身份。",
+    plan_tip_smart_folders: "根据您定义的规则自动将邮件归入文件夹。",
+    plan_tip_folder_lock: "将敏感文件夹锁定在独立密码之后，增加一层安全保护。",
+    plan_tip_sender_pinning:
+      "Lock an alias to specific senders - only they can reach you through it.",
+    plan_tip_alias_rules:
+      "Block or trash emails per alias based on sender or subject.",
+    plan_tip_reverse_alias:
+      "Reply to any email without revealing your real address.",
+    plan_tip_alias_directory:
+      "Mail to anything.key@astermail.org auto-creates a new alias on the fly.",
+    plan_tip_instant_alias_delete:
+      "随时删除别名并停用隐身别名 - Supernova 可跳过 30 天删除等待。",
+    plan_tip_zero_knowledge:
+      "即使被强制要求，我们也无法读取您的数据。您的加密密钥永远不会离开您的设备。",
+    plan_tip_tracker_protection:
+      "在邮件到达您的收件箱之前剥离不可见的追踪像素。",
+    plan_tip_key_rotation: "定期自动轮换您的加密密钥以获得更强的安全性。",
+    plan_tip_imap_smtp:
+      "Connect Apple Mail, Thunderbird, Outlook, or any IMAP client. Powered by the Aster Bridge companion app running on your device.",
+    plan_tip_external_accounts:
+      "通过 IMAP 或 POP3 直接在 Aster 中链接并同步 Gmail 或 Outlook 等外部提供商的邮件。",
+    plan_tip_carddav:
+      "Sync your contacts to Contacts on macOS and iOS, DAVx5 on Android, or any CardDAV client. Powered by the Aster Bridge companion app running on your device.",
+    plan_tip_alias_avatars: "为每个别名和自定义域名地址设置独特的头像",
     plan_f_custom_themes: "自定义主题",
     plan_f_smart_folders: "智能文件夹",
     plan_f_imap_smtp: "IMAP 和 SMTP 访问",
@@ -5001,7 +5034,8 @@ export const zh_CN = {
     cancel_impact_continue: "继续取消",
     cancel_offer_title: "改用更小的套餐",
     cancel_offer_description: "你可以改用价格更低的套餐，并继续使用此账户。",
-    cancel_offer_body: "{{plan}} 每月 {{price}}。你的邮件、别名和设置都会保留。",
+    cancel_offer_body:
+      "{{plan}} 每月 {{price}}。你的邮件、别名和设置都会保留。",
     cancel_offer_switch: "改用 {{plan}}",
     cancel_offer_hint: "超出较小套餐限制的内容会像取消订阅时一样被停用。",
     cancel_offer_continue: "继续取消",
@@ -6056,13 +6090,15 @@ export const zh_CN = {
     promo_then_reverts: "之后恢复为 {{price}}{{interval}}，{{months}} 个月后",
     per_two_years: "/两年",
     finish_plan_setup_title: "完成 {{plan}} 套餐设置",
-    finish_plan_setup_message: "您在付款前关闭了结账页面。完成之前，您的账户将保持免费套餐。",
+    finish_plan_setup_message:
+      "您在付款前关闭了结账页面。完成之前，您的账户将保持免费套餐。",
     finish_plan_setup_action: "完成设置",
     win_back_offer_title: "您的{{discount}}正在等您",
     win_back_offer_expires_today: "今天是最后一天。",
     win_back_offer_expires_tomorrow: "优惠明天结束。",
     win_back_offer_expires_in: "优惠将在 {{days}} 天后结束。",
-    win_back_offer_auto_applied: "折扣已在您的账户中，结账时会自动应用。优惠码 {{code}}。",
+    win_back_offer_auto_applied:
+      "折扣已在您的账户中，结账时会自动应用。优惠码 {{code}}。",
     win_back_offer_action: "选择套餐",
     payment_processing_delayed:
       "支付处理中，可能需要几分钟。我们会发邮件确认。",
@@ -6222,8 +6258,7 @@ export const zh_CN = {
     theme_sync_across_devices: "在设备之间同步主题",
     theme_sync_across_devices_description: "关闭后，此设备可以使用不同的主题。",
     product_updates: "产品动态",
-    product_updates_description:
-      "Aster 发布重要更新时，你会收到一封邮件",
+    product_updates_description: "Aster 发布重要更新时，你会收到一封邮件",
     product_updates_info:
       "即使关闭此项，安全和政策公告也始终会送达。Aster 不会记录你是否打开或点击这些邮件。",
     product_updates_turned_off: "产品动态已关闭。你可以在这里重新开启。",
@@ -7107,6 +7142,7 @@ export const zh_CN = {
     filter_not_prefix: "非",
     filter_from: "发件人：{{ value }}",
     filter_to: "收件人：{{ value }}",
+    filter_contact: "联系人：{{ value }}",
     filter_subject: "主题：{{ value }}",
     filter_no_attachments: "无附件",
     filter_has_type: "包含 {{ type }}",

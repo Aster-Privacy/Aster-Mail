@@ -902,6 +902,7 @@ export const en: Translations = {
     birthday_tomorrow: "Tomorrow",
     contact_details: "Contact Details",
     history: "History",
+    all_mail: "All mail",
     import_contacts: "Import Contacts",
     import_choose_file_desc:
       "Choose a file to import contacts from. Supported formats: vCard (.vcf) and CSV.",
@@ -4277,6 +4278,42 @@ export const en: Translations = {
     plan_f_send_limit: "{{value}} daily emails",
     plan_f_templates: "{{value}} email templates",
     plan_f_read_receipts: "Read receipts",
+    plan_tip_attachments:
+      "The total size of all attachments on one message. A single file can be up to 50 MB.",
+    plan_tip_signed_in_accounts:
+      "How many Aster accounts you can keep signed in on the same device at the same time. Each account remains its own subscription; switching between them prompts for that account's password.",
+    plan_tip_send_limit:
+      "Counts addresses outside Aster and resets daily at 00:00 UTC. New accounts start lower and reach the full limit during their first week.",
+    plan_tip_ghost_aliases:
+      "Send emails from a randomized address so recipients can never trace it back to your real identity.",
+    plan_tip_smart_folders:
+      "Automatically organize emails into folders based on rules you define.",
+    plan_tip_folder_lock:
+      "Lock sensitive folders behind a separate password for an extra layer of security.",
+    plan_tip_sender_pinning:
+      "Lock an alias to specific senders - only they can reach you through it.",
+    plan_tip_alias_rules:
+      "Block or trash emails per alias based on sender or subject.",
+    plan_tip_reverse_alias:
+      "Reply to any email without revealing your real address.",
+    plan_tip_alias_directory:
+      "Mail to anything.key@astermail.org auto-creates a new alias on the fly.",
+    plan_tip_instant_alias_delete:
+      "Delete aliases and expire ghost aliases right away - Supernova skips the 30-day deletion wait.",
+    plan_tip_zero_knowledge:
+      "We can never read your data, even if compelled to. Your encryption keys never leave your device.",
+    plan_tip_tracker_protection:
+      "Invisible tracking pixels are stripped before emails reach your inbox.",
+    plan_tip_key_rotation:
+      "Automatically rotate your encryption keys at regular intervals for stronger security.",
+    plan_tip_imap_smtp:
+      "Connect Apple Mail, Thunderbird, Outlook, or any IMAP client. Powered by the Aster Bridge companion app running on your device.",
+    plan_tip_external_accounts:
+      "Link and sync emails from external providers like Gmail or Outlook directly in Aster via IMAP or POP3.",
+    plan_tip_carddav:
+      "Sync your contacts to Contacts on macOS and iOS, DAVx5 on Android, or any CardDAV client. Powered by the Aster Bridge companion app running on your device.",
+    plan_tip_alias_avatars:
+      "Set unique profile pictures for each alias and custom domain address",
     plan_f_custom_themes: "Custom themes",
     plan_f_smart_folders: "Smart folders",
     plan_f_imap_smtp: "IMAP & SMTP access",
@@ -4497,8 +4534,10 @@ export const en: Translations = {
     subscribe_now: "Subscribe Now",
     stripe_secure_notice: "Secured by Stripe. Your payment info is encrypted.",
     preparing_checkout: "Preparing checkout...",
-    first_addon_discount_applied: "Your first {{months}} months are {{percent}}% off",
-    first_addon_discount_applied_singular: "Your first month is {{percent}}% off",
+    first_addon_discount_applied:
+      "Your first {{months}} months are {{percent}}% off",
+    first_addon_discount_applied_singular:
+      "Your first month is {{percent}}% off",
     credits_will_be_applied:
       "{{amount}} in credits will be applied at checkout",
     checkout_method_card: "Card",
@@ -4541,7 +4580,8 @@ export const en: Translations = {
       "Your bank declined the card. Try a different payment method.",
     card_removed: "Payment method removed",
     default_updated: "Default payment method updated",
-    payment_settled: "Default payment method updated. Your outstanding balance is paid.",
+    payment_settled:
+      "Default payment method updated. Your outstanding balance is paid.",
     payment_still_due:
       "Your card is saved, but your outstanding balance was not paid. Try a different card to keep your plan.",
     no_payment_methods: "No payment methods saved",
@@ -8015,6 +8055,7 @@ export const en: Translations = {
     filter_not_prefix: "Not ",
     filter_from: "From: {{ value }}",
     filter_to: "To: {{ value }}",
+    filter_contact: "Contact: {{ value }}",
     filter_subject: "Subject: {{ value }}",
     filter_no_attachments: "No attachments",
     filter_has_type: "Has {{ type }}",

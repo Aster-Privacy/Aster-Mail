@@ -782,6 +782,7 @@ export const de = {
     birthday_tomorrow: "Morgen",
     contact_details: "Kontaktdetails",
     history: "Verlauf",
+    all_mail: "Alle Nachrichten",
     import_contacts: "Kontakte importieren",
     import_choose_file_desc:
       "Wählen Sie eine Datei zum Importieren von Kontakten. Unterstützte Formate: vCard (.vcf) und CSV.",
@@ -2663,8 +2664,10 @@ export const de = {
     feature_alias_directory: "Verzeichnis-Autoerstellung",
     feature_instant_alias_delete: "Sofortiges Löschen von Aliassen",
     feature_reverse_alias: "Aus Alias antworten",
-    first_addon_discount_applied: "Deine ersten {{months}} Monate sind {{percent}} % günstiger",
-    first_addon_discount_applied_singular: "Dein erster Monat ist {{percent}} % günstiger",
+    first_addon_discount_applied:
+      "Deine ersten {{months}} Monate sind {{percent}} % günstiger",
+    first_addon_discount_applied_singular:
+      "Dein erster Monat ist {{percent}} % günstiger",
     credits_will_be_applied:
       "{{amount}} Guthaben wird beim Bezahlvorgang angerechnet",
     minimize_sidebar: "Seitenleiste minimieren",
@@ -5425,6 +5428,42 @@ export const de = {
     plan_f_send_limit: "{{value}} tägliche E-Mails",
     plan_f_templates: "{{value}} E-Mail-Vorlagen",
     plan_f_read_receipts: "Lesebestätigungen",
+    plan_tip_attachments:
+      "Die Gesamtgröße aller Anhänge einer Nachricht. Eine einzelne Datei darf bis zu 50 MB groß sein.",
+    plan_tip_signed_in_accounts:
+      "Wie viele Aster-Konten Sie gleichzeitig auf demselben Gerät angemeldet halten können. Jedes Konto bleibt ein eigenes Abonnement; beim Wechseln wird das Passwort des jeweiligen Kontos abgefragt.",
+    plan_tip_send_limit:
+      "Zählt Adressen außerhalb von Aster und wird täglich um 00:00 UTC zurückgesetzt. Neue Konten starten niedriger und erreichen das volle Limit in der ersten Woche.",
+    plan_tip_ghost_aliases:
+      "Senden Sie E-Mails von einer zufälligen Adresse, damit Empfänger sie nie zu Ihrer echten Identität zurückverfolgen können.",
+    plan_tip_smart_folders:
+      "Organisieren Sie E-Mails automatisch in Ordnern basierend auf von Ihnen definierten Regeln.",
+    plan_tip_folder_lock:
+      "Sperren Sie sensible Ordner mit einem separaten Passwort für eine zusätzliche Sicherheitsebene.",
+    plan_tip_sender_pinning:
+      "Lock an alias to specific senders - only they can reach you through it.",
+    plan_tip_alias_rules:
+      "Block or trash emails per alias based on sender or subject.",
+    plan_tip_reverse_alias:
+      "Reply to any email without revealing your real address.",
+    plan_tip_alias_directory:
+      "Mail to anything.key@astermail.org auto-creates a new alias on the fly.",
+    plan_tip_instant_alias_delete:
+      "Aliase sofort löschen und Ghost-Aliase sofort auslaufen lassen - Supernova überspringt die 30-tägige Löschwartezeit.",
+    plan_tip_zero_knowledge:
+      "Wir können Ihre Daten niemals lesen, selbst wenn wir dazu gezwungen werden. Ihre Verschlüsselungsschlüssel verlassen nie Ihr Gerät.",
+    plan_tip_tracker_protection:
+      "Unsichtbare Tracking-Pixel werden entfernt, bevor E-Mails Ihren Posteingang erreichen.",
+    plan_tip_key_rotation:
+      "Rotieren Sie Ihre Verschlüsselungsschlüssel automatisch in regelmäßigen Abständen für stärkere Sicherheit.",
+    plan_tip_imap_smtp:
+      "Connect Apple Mail, Thunderbird, Outlook, or any IMAP client. Powered by the Aster Bridge companion app running on your device.",
+    plan_tip_external_accounts:
+      "Verknüpfen und synchronisieren Sie E-Mails von externen Anbietern wie Gmail oder Outlook direkt in Aster per IMAP oder POP3.",
+    plan_tip_carddav:
+      "Sync your contacts to Contacts on macOS and iOS, DAVx5 on Android, or any CardDAV client. Powered by the Aster Bridge companion app running on your device.",
+    plan_tip_alias_avatars:
+      "Legen Sie einzigartige Profilbilder für jeden Alias und jede benutzerdefinierte Domain-Adresse fest",
     plan_f_custom_themes: "Eigene Designs",
     plan_f_smart_folders: "Intelligente Ordner",
     plan_f_imap_smtp: "IMAP- & SMTP-Zugang",
@@ -5581,7 +5620,8 @@ export const de = {
       "Deine Bank hat die Karte abgelehnt. Versuche eine andere Zahlungsmethode.",
     card_removed: "Zahlungsmethode entfernt",
     default_updated: "Standard-Zahlungsmethode aktualisiert",
-    payment_settled: "Standard-Zahlungsmethode aktualisiert. Ihr offener Betrag ist bezahlt.",
+    payment_settled:
+      "Standard-Zahlungsmethode aktualisiert. Ihr offener Betrag ist bezahlt.",
     payment_still_due:
       "Ihre Karte ist gespeichert, aber Ihr offener Betrag wurde nicht bezahlt. Versuchen Sie es mit einer anderen Karte, um Ihren Tarif zu behalten.",
     no_payment_methods: "Keine Zahlungsmethoden gespeichert",
@@ -6885,10 +6925,12 @@ export const de = {
       "Du hast die Kasse vor der Zahlung geschlossen. Dein Konto bleibt im kostenlosen Tarif, bis du fertig bist.",
     finish_plan_setup_action: "Einrichtung abschließen",
     win_back_offer_title: "Dein {{discount}} wartet auf dich",
-    win_back_offer_expires_today: "Heute ist der letzte Tag, um ihn einzulösen.",
+    win_back_offer_expires_today:
+      "Heute ist der letzte Tag, um ihn einzulösen.",
     win_back_offer_expires_tomorrow: "Er endet morgen.",
     win_back_offer_expires_in: "Er endet in {{days}} Tagen.",
-    win_back_offer_auto_applied: "Der Rabatt liegt bereits auf deinem Konto, die Kasse zieht ihn für dich ab. Code {{code}}.",
+    win_back_offer_auto_applied:
+      "Der Rabatt liegt bereits auf deinem Konto, die Kasse zieht ihn für dich ab. Code {{code}}.",
     win_back_offer_action: "Tarif wählen",
     payment_processing_delayed:
       "Ihre Zahlung wird bearbeitet. Die Aktivierung kann einen Moment dauern.",
@@ -8122,6 +8164,7 @@ export const de = {
     filter_smaller: "Kleiner: {{ value }}",
     filter_subject: "Betreff: {{ value }}",
     filter_to: "An: {{ value }}",
+    filter_contact: "Kontakt: {{ value }}",
     filter_type_archive: "Archiv",
     filter_type_audio: "Audio",
     filter_type_document: "Dokument",

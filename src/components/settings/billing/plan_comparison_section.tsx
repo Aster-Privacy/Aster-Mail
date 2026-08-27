@@ -26,6 +26,11 @@ import {
   get_plan_comparison_rows,
   type ComparisonRow,
 } from "@/components/settings/billing/plan_comparison_table";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { use_i18n } from "@/lib/i18n/context";
 import mail_logo_url from "@/assets/mail_logo.webp";
 
@@ -55,6 +60,41 @@ function render_cell(value: string) {
   }
 
   return <span className="text-sm font-medium text-txt-primary">{value}</span>;
+}
+
+function FeatureLabel({ label, tip }: { label: string; tip?: string }) {
+  const [is_open, set_is_open] = useState(false);
+
+  if (!tip) {
+    return <>{label}</>;
+  }
+
+  return (
+    <Popover open={is_open} onOpenChange={set_is_open}>
+      <PopoverTrigger asChild>
+        <button
+          className="rounded text-start underline decoration-dotted underline-offset-4 transition-colors hover:text-txt-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+          type="button"
+          onBlur={() => set_is_open(false)}
+          onFocus={() => set_is_open(true)}
+          onMouseEnter={() => set_is_open(true)}
+          onMouseLeave={() => set_is_open(false)}
+        >
+          {label}
+        </button>
+      </PopoverTrigger>
+      <PopoverContent
+        align="start"
+        className="z-[200] w-72 max-w-[calc(100vw-24px)] rounded-xl border border-edge-primary bg-modal-bg p-3 text-sm leading-relaxed text-txt-muted shadow-lg"
+        collisionPadding={12}
+        side="top"
+        sideOffset={6}
+        onOpenAutoFocus={(event) => event.preventDefault()}
+      >
+        {tip}
+      </PopoverContent>
+    </Popover>
+  );
 }
 
 interface PlanComparisonSectionProps {
@@ -150,7 +190,7 @@ export function PlanComparisonSection({
                       className="w-[200px] border-b border-e border-edge-secondary px-5 py-3 text-start text-sm font-normal text-txt-muted"
                       scope="row"
                     >
-                      {row.label}
+                      <FeatureLabel label={row.label} tip={row.tip} />
                     </th>
                     {COLUMNS.map((key) => (
                       <td
