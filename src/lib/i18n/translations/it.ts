@@ -2170,7 +2170,7 @@ export const it = {
     resurrection_old_password_prompt:
       "Inserisca la password che usava prima del ripristino",
     resurrection_success:
-      "I suoi dati precedenti sono sbloccati. I messaggi meno recenti si aprono di nuovo normalmente.",
+      "I suoi dati precedenti sono sbloccati. I messaggi e gli alias meno recenti si aprono di nuovo normalmente.",
     resurrection_failed:
       "Non è stato possibile sbloccare i dati precedenti. Verifichi la password o la frase e riprovi.",
     phrase_wrap_save_failed:

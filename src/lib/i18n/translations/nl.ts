@@ -3534,7 +3534,7 @@ export const nl = {
     resurrection_old_password_prompt:
       "Voer het wachtwoord in dat u vóór de reset gebruikte",
     resurrection_success:
-      "Uw oudere gegevens zijn ontgrendeld. Oudere e-mails openen weer normaal.",
+      "Uw oudere gegevens zijn ontgrendeld. Oudere e-mails en aliassen openen weer normaal.",
     resurrection_failed:
       "Hiermee zijn de oudere gegevens niet ontgrendeld. Controleer het wachtwoord of de zin en probeer het opnieuw.",
     phrase_wrap_save_failed:
