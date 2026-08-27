@@ -710,35 +710,40 @@ export async function batched_bulk_patch_metadata(
   options?: BatchedBulkOptions,
 ): Promise<BatchedMetadataResult> {
   const { BATCH_LIMITS } = await import("@/constants/batch_config");
-  const batch_size = BATCH_LIMITS.MAIL_BULK;
-  const succeeded_ids: string[] = [];
-  const failed_ids: string[] = [];
-  let was_cancelled = false;
+  const { process_batches, batch_retry_after_ms } = await import(
+    "@/services/batch_processor"
+  );
+  const items_by_id = new Map(items.map((item) => [item.id, item]));
 
-  for (let i = 0; i < items.length; i += batch_size) {
-    if (options?.signal?.aborted) {
-      was_cancelled = true;
-      break;
-    }
+  const result = await process_batches({
+    ids: [...items_by_id.keys()],
+    batch_size: BATCH_LIMITS.MAIL_BULK,
+    signal: options?.signal,
+    on_progress: options?.on_progress,
+    process_batch: async (batch_ids) => {
+      const batch = batch_ids
+        .map((id) => items_by_id.get(id))
+        .filter((item): item is BulkPatchMetadataItem => item !== undefined);
+      const response = await bulk_patch_metadata({ items: batch }).catch(
+        () => null,
+      );
 
-    const batch = items.slice(i, i + batch_size);
-    const response = await bulk_patch_metadata({ items: batch }).catch(
-      () => null,
-    );
+      if (!response) return { ok: false };
 
-    if (response && !response.error) {
-      succeeded_ids.push(...batch.map((item) => item.id));
-    } else {
-      failed_ids.push(...batch.map((item) => item.id));
-    }
+      return {
+        ok: !response.error,
+        retry_after_ms: batch_retry_after_ms(response),
+      };
+    },
+  });
 
-    options?.on_progress?.(
-      succeeded_ids.length + failed_ids.length,
-      items.length,
-    );
-  }
+  const failed = new Set(result.failed_ids);
 
-  return { succeeded_ids, failed_ids, was_cancelled };
+  return {
+    succeeded_ids: [...items_by_id.keys()].filter((id) => !failed.has(id)),
+    failed_ids: result.failed_ids,
+    was_cancelled: result.was_cancelled,
+  };
 }
 
 export interface BatchedBulkResult {
@@ -759,7 +764,9 @@ async function run_batched_operation(
   api_call: (batch: string[]) => Promise<ApiResponse<unknown>>,
   options?: BatchedBulkOptions,
 ): Promise<BatchedBulkResult> {
-  const { process_batches } = await import("@/services/batch_processor");
+  const { process_batches, batch_retry_after_ms } = await import(
+    "@/services/batch_processor"
+  );
 
   const result = await process_batches({
     ids,
@@ -769,7 +776,10 @@ async function run_batched_operation(
     process_batch: async (batch) => {
       const response = await api_call(batch);
 
-      return !response.error;
+      return {
+        ok: !response.error,
+        retry_after_ms: batch_retry_after_ms(response),
+      };
     },
   });
 
