@@ -21,16 +21,12 @@
 import { Fragment, useMemo, useState } from "react";
 import { ChevronDownIcon, XCircleIcon } from "@heroicons/react/24/outline";
 import { CheckCircleIcon } from "@heroicons/react/24/solid";
+import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 
 import {
   get_plan_comparison_rows,
   type ComparisonRow,
 } from "@/components/settings/billing/plan_comparison_table";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { use_i18n } from "@/lib/i18n/context";
 import mail_logo_url from "@/assets/mail_logo.webp";
 
@@ -63,37 +59,33 @@ function render_cell(value: string) {
 }
 
 function FeatureLabel({ label, tip }: { label: string; tip?: string }) {
-  const [is_open, set_is_open] = useState(false);
-
   if (!tip) {
     return <>{label}</>;
   }
 
   return (
-    <Popover open={is_open} onOpenChange={set_is_open}>
-      <PopoverTrigger asChild>
+    <TooltipPrimitive.Root>
+      <TooltipPrimitive.Trigger asChild>
         <button
           className="rounded text-start underline decoration-dotted underline-offset-4 transition-colors hover:text-txt-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-brand"
           type="button"
-          onBlur={() => set_is_open(false)}
-          onFocus={() => set_is_open(true)}
-          onMouseEnter={() => set_is_open(true)}
-          onMouseLeave={() => set_is_open(false)}
         >
           {label}
         </button>
-      </PopoverTrigger>
-      <PopoverContent
-        align="start"
-        className="z-[200] w-72 max-w-[calc(100vw-24px)] rounded-xl border border-edge-primary bg-modal-bg p-3 text-sm leading-relaxed text-txt-muted shadow-lg"
-        collisionPadding={12}
-        side="top"
-        sideOffset={6}
-        onOpenAutoFocus={(event) => event.preventDefault()}
-      >
-        {tip}
-      </PopoverContent>
-    </Popover>
+      </TooltipPrimitive.Trigger>
+      <TooltipPrimitive.Portal>
+        <TooltipPrimitive.Content
+          align="start"
+          className="z-[200] w-72 max-w-[calc(100vw-24px)] rounded-xl border border-edge-primary bg-modal-bg p-3 text-sm leading-relaxed text-txt-muted shadow-lg"
+          collisionPadding={12}
+          side="top"
+          sideOffset={6}
+          style={{ pointerEvents: "none" }}
+        >
+          {tip}
+        </TooltipPrimitive.Content>
+      </TooltipPrimitive.Portal>
+    </TooltipPrimitive.Root>
   );
 }
 
@@ -137,75 +129,81 @@ export function PlanComparisonSection({
       </div>
 
       {is_open && (
-        <div className="mt-4 overflow-x-auto">
-          <table className="w-full min-w-[640px] table-fixed border-separate border-spacing-0 overflow-hidden rounded-2xl border border-edge-secondary bg-surf-primary">
-            <thead>
-              <tr>
-                <th className="w-[200px] border-b border-e border-edge-secondary" />
-                {COLUMNS.map((key) => (
-                  <th
-                    key={key}
-                    className="border-b border-e border-edge-secondary px-4 py-4 text-center align-top last:border-e-0"
-                    scope="col"
-                  >
-                    <span
-                      className="text-base font-semibold"
-                      style={{
-                        color:
-                          active_column === key
-                            ? "var(--accent-blue)"
-                            : "var(--text-primary)",
-                      }}
-                    >
-                      {column_labels[key]}
-                    </span>
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((row, index) => (
-                <Fragment key={row.label}>
-                  {(index === 0 ||
-                    rows[index - 1].category !== row.category) && (
-                    <tr>
-                      <td
-                        className="border-b border-edge-secondary px-5 py-4"
-                        colSpan={COLUMNS.length + 1}
-                      >
-                        <span className="flex items-center gap-2.5 text-[15px] font-semibold text-txt-primary">
-                          <img
-                            alt=""
-                            aria-hidden="true"
-                            className="h-6 w-6 rounded-md"
-                            src={mail_logo_url}
-                          />
-                          {row.category}
-                        </span>
-                      </td>
-                    </tr>
-                  )}
-                  <tr>
+        <TooltipPrimitive.Provider
+          disableHoverableContent
+          delayDuration={200}
+          skipDelayDuration={0}
+        >
+          <div className="mt-4 overflow-x-auto">
+            <table className="w-full min-w-[640px] table-fixed border-separate border-spacing-0 overflow-hidden rounded-2xl border border-edge-secondary bg-surf-primary">
+              <thead>
+                <tr>
+                  <th className="w-[200px] border-b border-e border-edge-secondary" />
+                  {COLUMNS.map((key) => (
                     <th
-                      className="w-[200px] border-b border-e border-edge-secondary px-5 py-3 text-start text-sm font-normal text-txt-muted"
-                      scope="row"
+                      key={key}
+                      className="border-b border-e border-edge-secondary px-4 py-4 text-center align-top last:border-e-0"
+                      scope="col"
                     >
-                      <FeatureLabel label={row.label} tip={row.tip} />
-                    </th>
-                    {COLUMNS.map((key) => (
-                      <td
-                        key={key}
-                        className="border-b border-e border-edge-secondary px-4 py-3 text-center align-middle tabular-nums last:border-e-0"
+                      <span
+                        className="text-base font-semibold"
+                        style={{
+                          color:
+                            active_column === key
+                              ? "var(--accent-blue)"
+                              : "var(--text-primary)",
+                        }}
                       >
-                        {render_cell(row[key])}
-                      </td>
-                    ))}
-                  </tr>
-                </Fragment>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                        {column_labels[key]}
+                      </span>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((row, index) => (
+                  <Fragment key={row.label}>
+                    {(index === 0 ||
+                      rows[index - 1].category !== row.category) && (
+                      <tr>
+                        <td
+                          className="border-b border-edge-secondary px-5 py-4"
+                          colSpan={COLUMNS.length + 1}
+                        >
+                          <span className="flex items-center gap-2.5 text-[15px] font-semibold text-txt-primary">
+                            <img
+                              alt=""
+                              aria-hidden="true"
+                              className="h-6 w-6 rounded-md"
+                              src={mail_logo_url}
+                            />
+                            {row.category}
+                          </span>
+                        </td>
+                      </tr>
+                    )}
+                    <tr>
+                      <th
+                        className="w-[200px] border-b border-e border-edge-secondary px-5 py-3 text-start text-sm font-normal text-txt-muted"
+                        scope="row"
+                      >
+                        <FeatureLabel label={row.label} tip={row.tip} />
+                      </th>
+                      {COLUMNS.map((key) => (
+                        <td
+                          key={key}
+                          className="border-b border-e border-edge-secondary px-4 py-3 text-center align-middle tabular-nums last:border-e-0"
+                        >
+                          {render_cell(row[key])}
+                        </td>
+                      ))}
+                    </tr>
+                  </Fragment>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </TooltipPrimitive.Provider>
       )}
     </div>
   );
