@@ -2058,11 +2058,7 @@ aside[data-collapsed="true"] .sidebar-nav-btn.sidebar-selected {
 .plan_ring::before {
   content: "";
   position: absolute;
-  top: 50%;
-  left: 50%;
-  width: calc(100% + 10px);
-  height: calc(100% + 10px);
-  transform: translate(-50%, -50%);
+  inset: -5px;
   z-index: -1;
   box-sizing: border-box;
   border: 2px solid transparent;
@@ -2836,16 +2832,30 @@ input:-webkit-autofill:active {
   flex: 0 0 auto;
 }
 
-.account_avatar_button:hover .account_avatar_ring,
-.account_avatar_button[data-state="open"] .account_avatar_ring {
+.account_avatar_button:hover .account_avatar_ring:not(.plan_ring),
+.account_avatar_button[data-state="open"] .account_avatar_ring:not(.plan_ring) {
   box-shadow: 0 0 0 3px var(--bg-hover);
 }
 
-.account_avatar_button:hover .account_avatar_ring.plan_ring,
-.account_avatar_button[data-state="open"] .account_avatar_ring.plan_ring {
-  box-shadow:
-    0 0 0 3px var(--plan-ring-gap-color, var(--bg-secondary)),
-    0 0 0 8px var(--bg-hover);
+.account_avatar_ring.plan_ring {
+  box-shadow: none;
+}
+
+.account_avatar_ring.plan_ring::after {
+  content: "";
+  position: absolute;
+  inset: -8px;
+  z-index: -2;
+  border-radius: 9999px;
+  background-color: transparent;
+  transition: background-color 120ms ease;
+  pointer-events: none;
+}
+
+.account_avatar_button:hover .account_avatar_ring.plan_ring::after,
+.account_avatar_button[data-state="open"]
+  .account_avatar_ring.plan_ring::after {
+  background-color: var(--bg-hover);
 }
 
 @media (prefers-reduced-motion: reduce) {
