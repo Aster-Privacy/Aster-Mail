@@ -2308,6 +2308,8 @@ export const zh_CN = {
     feature_alias_directory: "目录自动创建",
     feature_instant_alias_delete: "即时删除别名",
     feature_reverse_alias: "从别名回复",
+    first_addon_discount_applied: "前 {{months}} 个月享 {{percent}}% 折扣",
+    first_addon_discount_applied_singular: "首月享 {{percent}}% 折扣",
     credits_will_be_applied: "结账时将抵扣 {{amount}} 的额度",
     minimize_sidebar: "最小化侧边栏",
     minimize_sidebar_description: "将侧边栏收起为图标以节省空间",

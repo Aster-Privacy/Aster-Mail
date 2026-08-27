@@ -2663,6 +2663,8 @@ export const de = {
     feature_alias_directory: "Verzeichnis-Autoerstellung",
     feature_instant_alias_delete: "Sofortiges Löschen von Aliassen",
     feature_reverse_alias: "Aus Alias antworten",
+    first_addon_discount_applied: "Deine ersten {{months}} Monate sind {{percent}} % günstiger",
+    first_addon_discount_applied_singular: "Dein erster Monat ist {{percent}} % günstiger",
     credits_will_be_applied:
       "{{amount}} Guthaben wird beim Bezahlvorgang angerechnet",
     minimize_sidebar: "Seitenleiste minimieren",

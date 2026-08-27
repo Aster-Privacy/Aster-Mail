@@ -2751,6 +2751,8 @@ export const ru = {
     feature_alias_directory: "Автосоздание каталогов",
     feature_instant_alias_delete: "Мгновенное удаление псевдонимов",
     feature_reverse_alias: "Ответ от псевдонима",
+    first_addon_discount_applied: "Первые {{months}} месяцев со скидкой {{percent}}%",
+    first_addon_discount_applied_singular: "Первый месяц со скидкой {{percent}}%",
     credits_will_be_applied:
       "{{amount}} в виде кредитов будет применено при оформлении",
     minimize_sidebar: "Свернуть боковую панель",

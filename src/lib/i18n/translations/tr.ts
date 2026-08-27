@@ -2615,6 +2615,8 @@ export const tr = {
     feature_alias_directory: "Dizin otomatik oluşturma",
     feature_instant_alias_delete: "Anında rumuz silme",
     feature_reverse_alias: "Rumuzdan yanıtla",
+    first_addon_discount_applied: "İlk {{months}} ayınız %{{percent}} indirimli",
+    first_addon_discount_applied_singular: "İlk ayınız %{{percent}} indirimli",
     credits_will_be_applied:
       "Ödeme sırasında {{amount}} tutarında kredi uygulanacak",
     minimize_sidebar: "Kenar Çubuğunu Küçült",

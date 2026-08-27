@@ -847,6 +847,10 @@ export function StorageSection() {
         <PlanPaymentMethodModal
           busy={is_action_loading}
           credit_balance_cents={credit_balance?.balance_cents}
+          discount_duration_months={
+            promo?.eligible ? promo.duration_months : undefined
+          }
+          discount_percent_off={promo?.eligible ? promo.percent_off : undefined}
           on_choose_card={() => {
             const addon = addon_method_target;
 

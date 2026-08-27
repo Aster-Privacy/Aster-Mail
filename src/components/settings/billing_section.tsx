@@ -110,6 +110,11 @@ export function BillingSection() {
     [],
   );
   const [active_addons, set_active_addons] = useState<UserActiveAddon[]>([]);
+  const [addon_promo, set_addon_promo] = useState({
+    eligible: false,
+    percent_off: 0,
+    duration_months: 0,
+  });
   const [show_cancel_addon_dialog, set_show_cancel_addon_dialog] =
     useState(false);
   const [addon_to_cancel, set_addon_to_cancel] =
@@ -325,6 +330,18 @@ export function BillingSection() {
       if (addons_response.data) {
         set_available_addons(addons_response.data.available_addons);
         set_active_addons(addons_response.data.active_addons);
+
+        const percent_off = addons_response.data.promo_percent_off ?? 0;
+        const duration_months = addons_response.data.promo_duration_months ?? 0;
+
+        set_addon_promo({
+          eligible:
+            addons_response.data.promo_eligible === true &&
+            percent_off > 0 &&
+            duration_months > 0,
+          percent_off,
+          duration_months,
+        });
       }
       if (credits_response.data) {
         set_credit_balance(credits_response.data);
@@ -850,9 +867,7 @@ export function BillingSection() {
     <div className="space-y-6">
       <CryptoResumeBanner />
 
-      <ResumeCheckoutCard
-        current_plan_code={subscription?.plan.code ?? null}
-      />
+      <ResumeCheckoutCard current_plan_code={subscription?.plan.code ?? null} />
 
       <CurrentPlanCard
         current_billing_interval={current_billing_interval}
@@ -948,7 +963,8 @@ export function BillingSection() {
               is_open={show_crypto_modal}
               monthly_price_cents={tier.monthly_cents}
               on_checkout_opened={() => {
-                plan_before_checkout_ref.current = subscription?.plan.code ?? null;
+                plan_before_checkout_ref.current =
+                  subscription?.plan.code ?? null;
                 pending_tauri_checkout_ref.current = true;
               }}
               on_close={() => {
@@ -1019,6 +1035,12 @@ export function BillingSection() {
             credit_balance?.balance_cents ?? 0,
             addon_method_target.price_cents,
           )}
+          discount_duration_months={
+            addon_promo.eligible ? addon_promo.duration_months : undefined
+          }
+          discount_percent_off={
+            addon_promo.eligible ? addon_promo.percent_off : undefined
+          }
           on_choose_card={() => {
             const addon = addon_method_target;
 
@@ -1091,7 +1113,10 @@ export function BillingSection() {
         load_data={load_data}
         on_switch_plan={(offer) => {
           if (offer.is_family) {
-            handle_family_plan_change(offer.plan_code, current_billing_interval);
+            handle_family_plan_change(
+              offer.plan_code,
+              current_billing_interval,
+            );
 
             return;
           }

@@ -2637,6 +2637,8 @@ export const pt = {
     feature_alias_directory: "Criação automática por diretório",
     feature_instant_alias_delete: "Exclusão instantânea de aliases",
     feature_reverse_alias: "Responder a partir do alias",
+    first_addon_discount_applied: "Os seus primeiros {{months}} meses têm {{percent}}% de desconto",
+    first_addon_discount_applied_singular: "O seu primeiro mês tem {{percent}}% de desconto",
     credits_will_be_applied:
       "{{amount}} em créditos serão aplicados na finalização da compra",
     minimize_sidebar: "Minimizar Barra Lateral",

@@ -5558,6 +5558,8 @@ export interface SettingsTranslations {
   subscribe_now: string;
   stripe_secure_notice: string;
   preparing_checkout: string;
+  first_addon_discount_applied: string;
+  first_addon_discount_applied_singular: string;
   credits_will_be_applied: string;
   checkout_method_card: string;
   checkout_method_wallet: string;

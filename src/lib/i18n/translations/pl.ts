@@ -2784,6 +2784,8 @@ export const pl = {
     feature_alias_directory: "Automatyczne tworzenie z katalogu",
     feature_instant_alias_delete: "Natychmiastowe usuwanie aliasów",
     feature_reverse_alias: "Odpowiadanie z aliasu",
+    first_addon_discount_applied: "Pierwsze {{months}} miesiące taniej o {{percent}}%",
+    first_addon_discount_applied_singular: "Pierwszy miesiąc taniej o {{percent}}%",
     credits_will_be_applied:
       "Środki w wysokości {{amount}} zostaną naliczone przy płatności",
     minimize_sidebar: "Zminimalizuj pasek boczny",

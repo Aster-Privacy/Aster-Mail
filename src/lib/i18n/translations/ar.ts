@@ -2714,6 +2714,8 @@ export const ar = {
     feature_alias_directory: "الإنشاء التلقائي للدليل",
     feature_instant_alias_delete: "حذف فوري للأسماء المستعارة",
     feature_reverse_alias: "الرد من اسم مستعار",
+    first_addon_discount_applied: "أول {{months}} أشهر بخصم {{percent}}%",
+    first_addon_discount_applied_singular: "شهرك الأول بخصم {{percent}}%",
     credits_will_be_applied: "سيتم تطبيق رصيد بقيمة {{amount}} عند الدفع",
     minimize_sidebar: "تصغير الشريط الجانبي",
     minimize_sidebar_description:

@@ -2453,6 +2453,8 @@ export const ko = {
     feature_alias_directory: "디렉터리 자동 생성",
     feature_instant_alias_delete: "별칭 즉시 삭제",
     feature_reverse_alias: "별칭으로 답장",
+    first_addon_discount_applied: "첫 {{months}}개월을 {{percent}}% 할인받습니다",
+    first_addon_discount_applied_singular: "첫 달을 {{percent}}% 할인받습니다",
     credits_will_be_applied: "결제 시 {{amount}}의 크레딧이 적용됩니다",
     minimize_sidebar: "사이드바 최소화",
     minimize_sidebar_description:

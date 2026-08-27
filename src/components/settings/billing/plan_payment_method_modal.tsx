@@ -22,6 +22,7 @@ import {
   CreditCardIcon,
   CurrencyDollarIcon,
   SparklesIcon,
+  TagIcon,
 } from "@heroicons/react/24/outline";
 
 import {
@@ -40,6 +41,8 @@ interface plan_payment_method_modal_props {
   busy?: boolean;
   credit_balance_cents?: number;
   credits_apply_to_card?: boolean;
+  discount_percent_off?: number;
+  discount_duration_months?: number;
   on_close: () => void;
   on_choose_card: () => void;
   on_choose_crypto: () => void;
@@ -51,6 +54,8 @@ export function PlanPaymentMethodModal({
   busy = false,
   credit_balance_cents,
   credits_apply_to_card = true,
+  discount_percent_off,
+  discount_duration_months,
   on_close,
   on_choose_card,
   on_choose_crypto,
@@ -59,6 +64,21 @@ export function PlanPaymentMethodModal({
   const credit_amount =
     credits_apply_to_card && credit_balance_cents && credit_balance_cents > 0
       ? format_price(credit_balance_cents)
+      : null;
+  const discount_note =
+    discount_percent_off &&
+    discount_percent_off > 0 &&
+    discount_duration_months &&
+    discount_duration_months > 0
+      ? t(
+          discount_duration_months === 1
+            ? "settings.first_addon_discount_applied_singular"
+            : "settings.first_addon_discount_applied",
+          {
+            percent: String(discount_percent_off),
+            months: String(discount_duration_months),
+          },
+        )
       : null;
 
   return (
@@ -92,6 +112,12 @@ export function PlanPaymentMethodModal({
               >
                 {t("settings.checkout_method_card")}
               </div>
+              {discount_note && (
+                <div className="flex items-center gap-1.5 mt-1 text-xs text-emerald-500">
+                  <TagIcon className="w-3.5 h-3.5 flex-shrink-0" />
+                  <span>{discount_note}</span>
+                </div>
+              )}
               {credit_amount && (
                 <div className="flex items-center gap-1.5 mt-1 text-xs text-emerald-500">
                   <SparklesIcon className="w-3.5 h-3.5 flex-shrink-0" />

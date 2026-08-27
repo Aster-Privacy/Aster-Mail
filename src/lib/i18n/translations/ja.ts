@@ -2542,6 +2542,8 @@ export const ja = {
     feature_alias_directory: "ディレクトリの自動作成",
     feature_instant_alias_delete: "エイリアスの即時削除",
     feature_reverse_alias: "エイリアスから返信",
+    first_addon_discount_applied: "最初の {{months}} か月が {{percent}}% オフになります",
+    first_addon_discount_applied_singular: "最初の 1 か月が {{percent}}% オフになります",
     credits_will_be_applied: "お支払い時に{{amount}}のクレジットが適用されます",
     minimize_sidebar: "サイドバーを最小化",
     minimize_sidebar_description:

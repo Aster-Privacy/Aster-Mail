@@ -2649,6 +2649,8 @@ export const it = {
     feature_alias_directory: "Creazione automatica da directory",
     feature_instant_alias_delete: "Eliminazione istantanea degli alias",
     feature_reverse_alias: "Rispondi dall'alias",
+    first_addon_discount_applied: "I tuoi primi {{months}} mesi hanno il {{percent}}% di sconto",
+    first_addon_discount_applied_singular: "Il tuo primo mese ha il {{percent}}% di sconto",
     credits_will_be_applied:
       "{{amount}} in crediti verranno applicati al pagamento",
     minimize_sidebar: "Riduci la barra laterale",

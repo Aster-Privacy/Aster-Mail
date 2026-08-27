@@ -2566,6 +2566,8 @@ export const nl = {
     feature_alias_directory: "Automatisch aanmaken via directory",
     feature_instant_alias_delete: "Aliassen direct verwijderen",
     feature_reverse_alias: "Antwoorden vanaf alias",
+    first_addon_discount_applied: "Je eerste {{months}} maanden zijn {{percent}}% goedkoper",
+    first_addon_discount_applied_singular: "Je eerste maand is {{percent}}% goedkoper",
     credits_will_be_applied:
       "{{amount}} aan tegoed wordt toegepast bij het afrekenen",
     minimize_sidebar: "Zijbalk minimaliseren",

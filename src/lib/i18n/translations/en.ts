@@ -4486,6 +4486,8 @@ export const en: Translations = {
     subscribe_now: "Subscribe Now",
     stripe_secure_notice: "Secured by Stripe. Your payment info is encrypted.",
     preparing_checkout: "Preparing checkout...",
+    first_addon_discount_applied: "Your first {{months}} months are {{percent}}% off",
+    first_addon_discount_applied_singular: "Your first month is {{percent}}% off",
     credits_will_be_applied:
       "{{amount}} in credits will be applied at checkout",
     checkout_method_card: "Card",
