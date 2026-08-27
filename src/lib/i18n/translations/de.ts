@@ -2176,7 +2176,7 @@ export const de = {
     resurrection_old_password_prompt:
       "Geben Sie das Passwort ein, das Sie vor dem Zurücksetzen verwendet haben",
     resurrection_success:
-      "Ihre älteren Daten sind entsperrt. Frühere E-Mails lassen sich wieder normal öffnen.",
+      "Ihre älteren Daten sind entsperrt. Frühere E-Mails und Aliasse lassen sich wieder normal öffnen.",
     resurrection_failed:
       "Damit ließen sich die älteren Daten nicht entsperren. Prüfen Sie das Passwort oder die Phrase und versuchen Sie es erneut.",
     phrase_wrap_save_failed:

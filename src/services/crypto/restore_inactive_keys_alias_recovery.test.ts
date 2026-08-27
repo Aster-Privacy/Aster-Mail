@@ -89,6 +89,14 @@ function vault_with_storage_key(raw_key: Uint8Array) {
   };
 }
 
+function legacy_vault() {
+  return {
+    identity_key: "identity",
+    signed_prekey: "prekey",
+    signed_prekey_private: "prekey-private",
+  };
+}
+
 describe("alias recovery after a password change", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -197,6 +205,28 @@ describe("alias recovery after a password change", () => {
 
     expect(await decrypt_alias_field(sealed.encrypted, sealed.nonce)).toBe(
       "banking@astermail.org",
+    );
+  });
+  it("reads an alias sealed under the retired key when the live vault is a legacy vault", async () => {
+    const old_key = random_key();
+    const sealed = await seal_under(old_key, "work@astermail.org");
+
+    archived_vault.value = vault_with_storage_key(old_key);
+
+    await store_vault_in_memory(
+      legacy_vault() as never,
+      NEW_PASSWORD,
+      "user-1",
+    );
+
+    await expect(
+      decrypt_alias_field(sealed.encrypted, sealed.nonce),
+    ).rejects.toThrow();
+
+    expect(await restore_inactive_key_sets(OLD_PASSWORD)).toBe(1);
+
+    expect(await decrypt_alias_field(sealed.encrypted, sealed.nonce)).toBe(
+      "work@astermail.org",
     );
   });
 });

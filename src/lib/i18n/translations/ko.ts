@@ -3396,7 +3396,7 @@ export const ko = {
     resurrection_old_password_prompt:
       "재설정 전에 사용했던 비밀번호를 입력하세요",
     resurrection_success:
-      "이전 데이터의 잠금이 해제되었습니다. 예전 메일을 다시 정상적으로 열 수 있습니다.",
+      "이전 데이터의 잠금이 해제되었습니다. 예전 메일과 별칭을 다시 정상적으로 열 수 있습니다.",
     resurrection_failed:
       "이전 데이터를 잠금 해제하지 못했습니다. 비밀번호나 문구를 확인하고 다시 시도하세요.",
     phrase_wrap_save_failed:

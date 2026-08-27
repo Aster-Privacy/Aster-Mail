@@ -2145,7 +2145,7 @@ export const tr = {
     resurrection_old_password_prompt:
       "Sıfırlamadan önce kullandığınız parolayı girin",
     resurrection_success:
-      "Eski verilerinizin kilidi açıldı. Önceki postalarınız yeniden normal şekilde açılıyor.",
+      "Eski verilerinizin kilidi açıldı. Önceki postalarınız ve takma adlarınız yeniden normal şekilde açılıyor.",
     resurrection_failed:
       "Bu, eski verilerin kilidini açmadı. Parolayı veya ifadeyi kontrol edip tekrar deneyin.",
     phrase_wrap_save_failed:

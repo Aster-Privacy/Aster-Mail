@@ -1881,7 +1881,7 @@ export const zh_CN = {
     recover_older_data_button: "解锁较早的数据",
     resurrection_old_password: "旧密码",
     resurrection_old_password_prompt: "输入您在重置前使用的密码",
-    resurrection_success: "较早的数据已解锁。您之前的邮件可以再次正常打开。",
+    resurrection_success: "较早的数据已解锁。您之前的邮件和别名可以再次正常打开。",
     resurrection_failed: "未能解锁较早的数据。请检查密码或短语后再试一次。",
     phrase_wrap_save_failed: "您的恢复短语未能保存到服务器，再试一次应该可以。",
     smtp_tokens: "SMTP 令牌",

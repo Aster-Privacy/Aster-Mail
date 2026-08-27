@@ -2118,7 +2118,7 @@ export const en: Translations = {
     resurrection_old_password_prompt:
       "Enter the password you used before the reset",
     resurrection_success:
-      "Your older data is unlocked. Earlier mail opens normally again.",
+      "Your older data is unlocked. Earlier mail and aliases open normally again.",
     resurrection_failed:
       "That did not unlock the older data. Check the password or phrase and try again.",
     phrase_wrap_save_failed:
