@@ -19,43 +19,42 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { Fragment, useMemo, useState } from "react";
-import {
-  CheckIcon,
-  ChevronDownIcon,
-  MinusIcon,
-} from "@heroicons/react/24/outline";
+import { ChevronDownIcon, XCircleIcon } from "@heroicons/react/24/outline";
+import { CheckCircleIcon } from "@heroicons/react/24/solid";
 
 import {
   get_plan_comparison_rows,
   type ComparisonRow,
 } from "@/components/settings/billing/plan_comparison_table";
 import { use_i18n } from "@/lib/i18n/context";
+import mail_logo_url from "@/assets/mail_logo.webp";
 
 type ColumnKey = "free" | "star" | "nova" | "supernova";
 
 const COLUMNS: ColumnKey[] = ["free", "star", "nova", "supernova"];
 
 function render_cell(value: string) {
-  if (value === "\u2713") {
+  if (value === "✓") {
     return (
-      <CheckIcon
+      <CheckCircleIcon
         aria-hidden="true"
-        className="mx-auto h-4 w-4"
-        style={{ color: "var(--accent-blue)" }}
+        className="mx-auto block h-[22px] w-[22px]"
+        style={{ color: "#22c55e" }}
       />
     );
   }
 
   if (value === "-") {
     return (
-      <MinusIcon
+      <XCircleIcon
         aria-hidden="true"
-        className="mx-auto h-4 w-4 text-txt-muted"
+        className="mx-auto block h-[22px] w-[22px]"
+        style={{ color: "#dc2626", strokeWidth: 1.8 }}
       />
     );
   }
 
-  return value;
+  return <span className="text-sm font-medium text-txt-primary">{value}</span>;
 }
 
 interface PlanComparisonSectionProps {
@@ -98,27 +97,28 @@ export function PlanComparisonSection({
       </div>
 
       {is_open && (
-        <div className="mt-4 overflow-x-auto rounded-xl border border-edge-secondary">
-          <table className="w-full min-w-[560px] border-collapse text-sm">
+        <div className="mt-4 overflow-x-auto">
+          <table className="w-full min-w-[640px] table-fixed border-separate border-spacing-0 overflow-hidden rounded-2xl border border-edge-secondary bg-surf-primary">
             <thead>
-              <tr className="bg-surf-tertiary">
-                <th
-                  className="sticky start-0 z-10 bg-surf-tertiary px-4 py-3 text-start text-xs font-semibold uppercase tracking-wide text-txt-muted"
-                  scope="col"
-                >
-                  {t("settings.feature")}
-                </th>
+              <tr>
+                <th className="w-[200px] border-b border-e border-edge-secondary" />
                 {COLUMNS.map((key) => (
                   <th
                     key={key}
-                    className={`px-3 py-3 text-center text-xs font-semibold uppercase tracking-wide ${
-                      active_column === key
-                        ? "text-txt-primary"
-                        : "text-txt-muted"
-                    }`}
+                    className="border-b border-e border-edge-secondary px-4 py-4 text-center align-top last:border-e-0"
                     scope="col"
                   >
-                    {column_labels[key]}
+                    <span
+                      className="text-base font-semibold"
+                      style={{
+                        color:
+                          active_column === key
+                            ? "var(--accent-blue)"
+                            : "var(--text-primary)",
+                      }}
+                    >
+                      {column_labels[key]}
+                    </span>
                   </th>
                 ))}
               </tr>
@@ -129,18 +129,25 @@ export function PlanComparisonSection({
                   {(index === 0 ||
                     rows[index - 1].category !== row.category) && (
                     <tr>
-                      <th
-                        className="sticky start-0 z-10 border-t border-edge-secondary bg-surf-tertiary px-4 py-2 text-start text-[11px] font-semibold uppercase tracking-wide text-txt-muted"
+                      <td
+                        className="border-b border-edge-secondary px-5 py-4"
                         colSpan={COLUMNS.length + 1}
-                        scope="colgroup"
                       >
-                        {row.category}
-                      </th>
+                        <span className="flex items-center gap-2.5 text-[15px] font-semibold text-txt-primary">
+                          <img
+                            alt=""
+                            aria-hidden="true"
+                            className="h-6 w-6 rounded-md"
+                            src={mail_logo_url}
+                          />
+                          {row.category}
+                        </span>
+                      </td>
                     </tr>
                   )}
-                  <tr className="border-t border-edge-secondary">
+                  <tr>
                     <th
-                      className="sticky start-0 z-10 bg-surf-secondary px-4 py-2.5 text-start font-normal text-txt-secondary"
+                      className="w-[200px] border-b border-e border-edge-secondary px-5 py-3 text-start text-sm font-normal text-txt-muted"
                       scope="row"
                     >
                       {row.label}
@@ -148,11 +155,7 @@ export function PlanComparisonSection({
                     {COLUMNS.map((key) => (
                       <td
                         key={key}
-                        className={`px-3 py-2.5 text-center tabular-nums ${
-                          active_column === key
-                            ? "font-semibold text-txt-primary"
-                            : "text-txt-secondary"
-                        }`}
+                        className="border-b border-e border-edge-secondary px-4 py-3 text-center align-middle tabular-nums last:border-e-0"
                       >
                         {render_cell(row[key])}
                       </td>
