@@ -43,6 +43,7 @@ import {
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { show_toast } from "@/components/toast/simple_toast";
+import { RecoverOlderDataSection } from "@/components/settings/security/recover_older_data_section";
 import { use_i18n } from "@/lib/i18n/context";
 import { clamp_password } from "@/services/sanitize";
 import { Spinner } from "@/components/ui/spinner";
@@ -1033,6 +1034,10 @@ export function SecuritySection({
             </div>
           )}
         </SettingsGroup>
+
+        <div className="px-4">
+          <RecoverOlderDataSection />
+        </div>
 
         <SettingsGroup title={t("settings.session_security")}>
           <div className="px-4 py-3">
