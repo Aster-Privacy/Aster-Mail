@@ -5426,6 +5426,10 @@ export const tr = {
     usage_signatures: "İmzalar",
     usage_ghost_aliases: "Bu Ayki Ghost Takma Adları",
     usage_storage: "Depolama",
+    usage_linked_accounts: "Oturum açılmış hesaplar",
+    upgrade_linked_accounts_note:
+      "Tüm hesaplarınız güvende. Bu, bu cihazın aynı anda oturumu açık tuttuğu hesap sayısıdır.",
+    upgrade_linked_accounts_link: "Birden fazla hesabın nasıl çalıştığını okuyun",
     usage_of: "{{current}} / {{limit}}",
     usage_unlimited: "Sınırsız",
     usage_at_limit: "Sınırda",

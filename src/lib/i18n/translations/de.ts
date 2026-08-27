@@ -5519,6 +5519,10 @@ export const de = {
     usage_signatures: "Signaturen",
     usage_ghost_aliases: "Ghost-Aliase diesen Monat",
     usage_storage: "Speicher",
+    usage_linked_accounts: "Angemeldete Konten",
+    upgrade_linked_accounts_note:
+      "Alle Ihre Konten sind sicher. So viele Konten hält dieses Gerät gleichzeitig angemeldet.",
+    upgrade_linked_accounts_link: "So funktionieren mehrere Konten",
     usage_of: "{{current}} von {{limit}}",
     usage_unlimited: "Unbegrenzt",
     usage_at_limit: "Am Limit",

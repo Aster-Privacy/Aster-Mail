@@ -4425,6 +4425,10 @@ export const en: Translations = {
       "You have reached the {{resource}} limit on the {{plan}} plan. Upgrade to unlock more and keep your inbox moving.",
     upgrade_modal_description_generic:
       "You have reached a limit on your current plan. Upgrade to unlock more and keep your inbox moving.",
+    usage_linked_accounts: "Signed-in accounts",
+    upgrade_linked_accounts_note:
+      "Every account you have is safe. This is how many accounts this device keeps signed in at the same time.",
+    upgrade_linked_accounts_link: "Read how multiple accounts work",
     upgrade_generic_resource: "Plan limit",
     upgrade_perk_storage: "More storage for years of mail",
     upgrade_perk_aliases: "More aliases and custom domains",

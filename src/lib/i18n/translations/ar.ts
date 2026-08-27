@@ -5518,6 +5518,10 @@ export const ar = {
     usage_signatures: "التوقيعات",
     usage_ghost_aliases: "الأسماء المستعارة الشبحية هذا الشهر",
     usage_storage: "التخزين",
+    usage_linked_accounts: "الحسابات التي سجّلت الدخول إليها",
+    upgrade_linked_accounts_note:
+      "جميع حساباتك آمنة. هذا هو عدد الحسابات التي يبقيها هذا الجهاز مسجّلة الدخول في الوقت نفسه.",
+    upgrade_linked_accounts_link: "تعرّف على طريقة عمل الحسابات المتعددة",
     usage_of: "{{current}} من {{limit}}",
     usage_unlimited: "غير محدود",
     usage_at_limit: "عند الحد",

@@ -5577,6 +5577,10 @@ export const ru = {
     usage_signatures: "Подписи",
     usage_ghost_aliases: "Призрачные псевдонимы за этот месяц",
     usage_storage: "Хранилище",
+    usage_linked_accounts: "Аккаунты с выполненным входом",
+    upgrade_linked_accounts_note:
+      "Все ваши аккаунты в безопасности. Это количество аккаунтов, вход в которые устройство сохраняет одновременно.",
+    upgrade_linked_accounts_link: "Узнайте, как работают несколько аккаунтов",
     usage_of: "{{current}} из {{limit}}",
     usage_unlimited: "Безлимитно",
     usage_at_limit: "Достигнут лимит",

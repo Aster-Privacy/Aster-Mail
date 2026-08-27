@@ -73,6 +73,7 @@ const LIMIT_LABEL_KEY: Record<UpgradeLimitKey, string> = {
   max_html_signatures: "settings.usage_signatures",
   max_custom_filters: "settings.usage_filters",
   max_custom_categories: "settings.usage_custom_categories",
+  max_linked_accounts: "settings.usage_linked_accounts",
   generic: "settings.upgrade_generic_resource",
 };
 
@@ -414,6 +415,23 @@ export function UpgradeModal() {
       </ModalHeader>
 
       <ModalBody className="space-y-4">
+        {state.limit_key === "max_linked_accounts" ? (
+          <div className="rounded-2xl border border-edge-secondary bg-surf-tertiary px-3.5 py-2.5">
+            <p className="text-[13px] text-txt-secondary">
+              {t("settings.upgrade_linked_accounts_note")}
+            </p>
+            <a
+              className="mt-1 inline-block text-[13px] font-medium underline"
+              href="https://astermail.org/multiple-accounts"
+              rel="noopener noreferrer"
+              style={{ color: "var(--accent-color)" }}
+              target="_blank"
+            >
+              {t("settings.upgrade_linked_accounts_link")}
+            </a>
+          </div>
+        ) : null}
+
         {required_tier ? (
           <div
             className="flex items-center gap-2.5 rounded-2xl px-3.5 py-2.5"

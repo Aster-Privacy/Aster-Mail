@@ -4891,6 +4891,10 @@ export const zh_CN = {
     usage_signatures: "签名",
     usage_ghost_aliases: "本月幽灵别名",
     usage_storage: "存储空间",
+    usage_linked_accounts: "已登录的账户",
+    upgrade_linked_accounts_note:
+      "你的所有账户都是安全的。这是此设备同时保持登录状态的账户数量。",
+    upgrade_linked_accounts_link: "了解多账户的运作方式",
     usage_of: "{{current}}/{{limit}}",
     usage_unlimited: "无限制",
     usage_at_limit: "已达上限",

@@ -5515,6 +5515,10 @@ export const fr = {
     usage_signatures: "Signatures",
     usage_ghost_aliases: "Alias fantômes ce mois-ci",
     usage_storage: "Stockage",
+    usage_linked_accounts: "Comptes connectés",
+    upgrade_linked_accounts_note:
+      "Tous vos comptes sont en sécurité. Il s'agit du nombre de comptes que cet appareil garde connectés en même temps.",
+    upgrade_linked_accounts_link: "Découvrez le fonctionnement des comptes multiples",
     usage_of: "{{current}} sur {{limit}}",
     usage_unlimited: "Illimité",
     usage_at_limit: "Limite atteinte",

@@ -5453,6 +5453,10 @@ export const nl = {
     usage_signatures: "Handtekeningen",
     usage_ghost_aliases: "Ghost-aliassen deze maand",
     usage_storage: "Opslag",
+    usage_linked_accounts: "Aangemelde accounts",
+    upgrade_linked_accounts_note:
+      "Al je accounts zijn veilig. Dit is het aantal accounts dat dit apparaat tegelijk aangemeld houdt.",
+    upgrade_linked_accounts_link: "Lees hoe meerdere accounts werken",
     usage_of: "{{current}} van {{limit}}",
     usage_unlimited: "Onbeperkt",
     usage_at_limit: "Limiet bereikt",

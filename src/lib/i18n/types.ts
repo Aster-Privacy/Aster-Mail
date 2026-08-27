@@ -4294,6 +4294,9 @@ export interface SettingsTranslations {
   upgrade_modal_title: string;
   upgrade_modal_description_specific: string;
   upgrade_modal_description_generic: string;
+  usage_linked_accounts: string;
+  upgrade_linked_accounts_note: string;
+  upgrade_linked_accounts_link: string;
   upgrade_generic_resource: string;
   upgrade_perk_storage: string;
   upgrade_perk_aliases: string;

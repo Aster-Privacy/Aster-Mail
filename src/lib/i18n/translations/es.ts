@@ -5467,6 +5467,10 @@ export const es = {
     usage_signatures: "Firmas",
     usage_ghost_aliases: "Alias fantasma este mes",
     usage_storage: "Almacenamiento",
+    usage_linked_accounts: "Cuentas con sesión iniciada",
+    upgrade_linked_accounts_note:
+      "Todas tus cuentas están a salvo. Este es el número de cuentas que este dispositivo mantiene con la sesión iniciada al mismo tiempo.",
+    upgrade_linked_accounts_link: "Descubre cómo funcionan varias cuentas",
     usage_of: "{{current}} de {{limit}}",
     usage_unlimited: "Ilimitado",
     usage_at_limit: "En el límite",

@@ -4355,6 +4355,10 @@ export const it = {
     usage_signatures: "Firme",
     usage_ghost_aliases: "Alias Ghost questo mese",
     usage_storage: "Archiviazione",
+    usage_linked_accounts: "Account con accesso eseguito",
+    upgrade_linked_accounts_note:
+      "Tutti i tuoi account sono al sicuro. Questo è il numero di account che questo dispositivo mantiene connessi contemporaneamente.",
+    upgrade_linked_accounts_link: "Scopri come funzionano più account",
     usage_of: "{{current}} di {{limit}}",
     usage_unlimited: "Illimitato",
     usage_at_limit: "Al limite",

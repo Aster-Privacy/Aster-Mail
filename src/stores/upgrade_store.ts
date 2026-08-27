@@ -30,6 +30,7 @@ export type UpgradeLimitKey =
   | "max_html_signatures"
   | "max_custom_filters"
   | "max_custom_categories"
+  | "max_linked_accounts"
   | "generic";
 
 export interface UpgradeState {
@@ -84,6 +85,9 @@ const RESOURCE_TO_LIMIT_KEY: Record<string, UpgradeLimitKey> = {
   "custom filters": "max_custom_filters",
   categories: "max_custom_categories",
   "custom categories": "max_custom_categories",
+  accounts: "max_linked_accounts",
+  "linked accounts": "max_linked_accounts",
+  "signed-in accounts": "max_linked_accounts",
 };
 
 function resolve_limit_key(resource: string | null): UpgradeLimitKey {

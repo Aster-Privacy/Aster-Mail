@@ -5348,6 +5348,10 @@ export const ko = {
     usage_signatures: "서명",
     usage_ghost_aliases: "이번 달 고스트 별칭",
     usage_storage: "저장 공간",
+    usage_linked_accounts: "로그인된 계정",
+    upgrade_linked_accounts_note:
+      "모든 계정은 안전합니다. 이 기기가 동시에 로그인 상태로 유지하는 계정 수입니다.",
+    upgrade_linked_accounts_link: "여러 계정이 작동하는 방식 알아보기",
     usage_of: "{{limit}} 중 {{current}}",
     usage_unlimited: "무제한",
     usage_at_limit: "한도에 도달",

@@ -5658,6 +5658,10 @@ export const pl = {
     usage_signatures: "Podpisy",
     usage_ghost_aliases: "Aliasy duchów w tym miesiącu",
     usage_storage: "Miejsce",
+    usage_linked_accounts: "Zalogowane konta",
+    upgrade_linked_accounts_note:
+      "Wszystkie Twoje konta są bezpieczne. To liczba kont, które to urządzenie utrzymuje zalogowane jednocześnie.",
+    upgrade_linked_accounts_link: "Sprawdź, jak działają liczne konta",
     usage_of: "{{current}} z {{limit}}",
     usage_unlimited: "Bez limitu",
     usage_at_limit: "Osiągnięto limit",

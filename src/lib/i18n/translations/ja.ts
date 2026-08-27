@@ -5412,6 +5412,10 @@ export const ja = {
     usage_signatures: "署名",
     usage_ghost_aliases: "今月のGhostエイリアス",
     usage_storage: "ストレージ",
+    usage_linked_accounts: "サインイン中のアカウント",
+    upgrade_linked_accounts_note:
+      "お使いのアカウントはすべて安全です。これは、このデバイスが同時にサインインした状態で保持できるアカウントの数です。",
+    upgrade_linked_accounts_link: "複数アカウントの仕組みを見る",
     usage_of: "{{current}} / {{limit}}",
     usage_unlimited: "無制限",
     usage_at_limit: "上限に達しました",
