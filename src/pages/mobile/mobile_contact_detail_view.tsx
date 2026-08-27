@@ -21,6 +21,7 @@
 import type { DecryptedContact } from "@/types/contacts";
 
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import {
   StarIcon as StarOutline,
   EnvelopeIcon,
@@ -35,6 +36,7 @@ import {
   PencilSquareIcon,
   TrashIcon,
   LinkIcon,
+  MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
 import { StarIcon as StarSolid } from "@heroicons/react/24/solid";
 
@@ -42,6 +44,7 @@ import { use_i18n } from "@/lib/i18n/context";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { use_external_link } from "@/contexts/external_link_context";
 import { build_contact_social_url } from "@/utils/contact_links";
+import { build_contact_mail_query } from "@/utils/contact_mail_search";
 
 function DetailCard({ children }: { children: React.ReactNode }) {
   return (
@@ -143,6 +146,8 @@ export function ContactDetailView({
     contact.emails[0] ||
     "";
   const primary_email = contact.emails[0] ?? "";
+  const navigate = useNavigate();
+  const contact_mail_query = build_contact_mail_query(contact.emails);
   const has_address =
     contact.address &&
     Object.values(contact.address).some((v) => v && v.trim());
@@ -260,6 +265,24 @@ export function ContactDetailView({
               </div>
               <span className="text-[11px] font-medium text-[var(--text-muted)]">
                 {t("common.call")}
+              </span>
+            </motion.button>
+          )}
+          {contact_mail_query && (
+            <motion.button
+              className="flex flex-col items-center gap-1.5"
+              type="button"
+              onClick={() =>
+                navigate("/search", {
+                  state: { search_query: contact_mail_query },
+                })
+              }
+            >
+              <div className="flex h-11 w-11 items-center justify-center rounded-full text-[var(--text-secondary)]">
+                <MagnifyingGlassIcon className="h-5 w-5" />
+              </div>
+              <span className="text-[11px] font-medium text-[var(--text-muted)]">
+                {t("common.all_mail")}
               </span>
             </motion.button>
           )}

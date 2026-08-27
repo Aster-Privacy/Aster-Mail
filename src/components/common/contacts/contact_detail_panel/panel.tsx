@@ -47,9 +47,13 @@ import {
   StarIcon,
   ChevronDownIcon,
   ChevronRightIcon,
+  MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
 import { StarIcon as StarSolidIcon } from "@heroicons/react/24/solid";
 import { Button } from "@aster/ui";
+import { useNavigate } from "react-router-dom";
+
+import { build_contact_mail_query } from "@/utils/contact_mail_search";
 
 import {
   AddressList,
@@ -87,6 +91,7 @@ export function ContactDetailPanel({
   show_history,
   set_show_history,
   on_compose_email,
+  on_search_mail,
   on_copy,
   on_delete_request,
   on_inline_save,
@@ -101,6 +106,20 @@ export function ContactDetailPanel({
   const [draft, set_draft] = useState<EditState | null>(null);
   const [show_more, set_show_more] = useState(false);
   const file_input_ref = useRef<HTMLInputElement>(null);
+  const navigate = useNavigate();
+  const contact_mail_query = build_contact_mail_query(
+    selected_contact?.emails ?? [],
+  );
+
+  const handle_search_mail = () => {
+    if (!contact_mail_query) return;
+    if (on_search_mail) {
+      on_search_mail(contact_mail_query);
+
+      return;
+    }
+    navigate("/", { state: { search_query: contact_mail_query } });
+  };
 
   useEffect(() => {
     if (is_creating_new) {
@@ -351,6 +370,16 @@ export function ContactDetailPanel({
               <ClockIcon className="w-4 h-4" />
               {t("common.history")}
             </button>
+            {contact_mail_query && (
+              <button
+                className="flex items-center gap-2 h-9 px-3.5 rounded-full bg-black/5 dark:bg-white/[0.06] hover:bg-black/10 dark:hover:bg-white/10 text-[13px] font-medium text-txt-primary transition-colors"
+                type="button"
+                onClick={handle_search_mail}
+              >
+                <MagnifyingGlassIcon className="w-4 h-4" />
+                {t("common.all_mail")}
+              </button>
+            )}
             <button
               className="flex items-center gap-2 h-9 px-3.5 rounded-full bg-black/5 dark:bg-white/[0.06] hover:bg-black/10 dark:hover:bg-white/10 text-[13px] font-medium text-txt-primary transition-colors"
               type="button"
@@ -370,7 +399,7 @@ export function ContactDetailPanel({
 
         {show_history && selected_contact ? (
           <ContactHistoryPanel
-            contact_email={selected_contact.emails[0] || ""}
+            contact_emails={selected_contact.emails}
           />
         ) : (
           <div className="space-y-10">

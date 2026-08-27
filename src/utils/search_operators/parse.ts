@@ -83,6 +83,7 @@ export function validate_operator(operator: ParsedOperator): boolean {
   switch (operator.type) {
     case "from":
     case "to":
+    case "contact":
     case "subject":
     case "label":
     case "folder":

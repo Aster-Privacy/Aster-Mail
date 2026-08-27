@@ -31,6 +31,7 @@ import {
 import { use_i18n } from "@/lib/i18n/context";
 import { cn } from "@/lib/utils";
 import { use_search } from "@/hooks/use_search";
+import { normalize_contact_addresses } from "@/utils/contact_mail_search";
 import {
   app_hour12,
   app_locale,
@@ -39,7 +40,7 @@ import {
 } from "@/utils/date_format";
 
 interface ContactHistoryPanelProps {
-  contact_email: string;
+  contact_emails: string[];
 }
 
 interface HistoryEntry {
@@ -83,18 +84,24 @@ function format_relative_date(
 }
 
 export function ContactHistoryPanel({
-  contact_email,
+  contact_emails,
 }: ContactHistoryPanelProps) {
   const { t } = use_i18n();
   const navigate = useNavigate();
   const received = use_search();
   const sent = use_search();
 
+  const addresses = useMemo(
+    () => normalize_contact_addresses(contact_emails),
+    [contact_emails.join(",")],
+  );
+  const address_key = addresses.join(",");
+
   useEffect(() => {
-    if (!contact_email) return;
-    received.search(`from:${contact_email}`);
-    sent.search(`to:${contact_email}`);
-  }, [contact_email]);
+    if (addresses.length === 0) return;
+    received.search(addresses.map((a) => `from:${a}`).join(" "));
+    sent.search(addresses.map((a) => `to:${a}`).join(" "));
+  }, [address_key]);
 
   const is_loading =
     received.state.is_searching ||

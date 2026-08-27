@@ -232,6 +232,13 @@ export function create_active_filters(
           negation_prefix +
           (t ? t("mail.filter_to", { value: op.value }) : `To: ${op.value}`);
         break;
+      case "contact":
+        label =
+          negation_prefix +
+          (t
+            ? t("mail.filter_contact", { value: op.value })
+            : `Contact: ${op.value}`);
+        break;
       case "subject":
         label =
           negation_prefix +

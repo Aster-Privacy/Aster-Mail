@@ -22,7 +22,7 @@ import type { TranslationKey } from "@/lib/i18n/types";
 import type { InboxEmail } from "@/types/email";
 
 import { useState, useCallback, useRef, useMemo, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { MagnifyingGlassIcon, XMarkIcon } from "@heroicons/react/24/outline";
 
@@ -49,6 +49,10 @@ const FILTERS: { id: SearchFilter; label: TranslationKey }[] = [
 
 function MobileSearchPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const initial_query = (
+    (location.state as { search_query?: string } | null)?.search_query || ""
+  ).trim();
   const { t } = use_i18n();
   const reduce_motion = use_should_reduce_motion();
   const search = use_search();
@@ -58,7 +62,7 @@ function MobileSearchPage() {
     preferences.low_network_mode,
   );
   const input_ref = useRef<HTMLInputElement>(null);
-  const [query, set_query] = useState("");
+  const [query, set_query] = useState(initial_query);
   const [active_filter, set_active_filter] = useState<SearchFilter>("all");
   const [did_search, set_did_search] = useState(false);
   const [visible_count, set_visible_count] = useState(page_size);
@@ -68,12 +72,21 @@ function MobileSearchPage() {
   const actions = use_email_actions();
 
   useEffect(() => {
+    if (initial_query) return;
     const timer = setTimeout(() => {
       input_ref.current?.focus();
     }, 100);
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [initial_query]);
+
+  useEffect(() => {
+    if (!initial_query) return;
+    set_query(initial_query);
+    set_star_overrides({});
+    set_did_search(true);
+    search.search(initial_query);
+  }, [initial_query]);
 
   const handle_back = useCallback(() => {
     navigate(-1);

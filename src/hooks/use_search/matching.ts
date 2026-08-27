@@ -105,6 +105,20 @@ export function matches_operator(
     }
     case "to":
       return collect_recipient_text(envelope).includes(val);
+    case "contact": {
+      const forwarding = resolve_forwarding_display(
+        envelope.from,
+        envelope.raw_headers,
+      );
+      const from = envelope_sender(envelope);
+      const sender = `${from.email} ${from.name} ${
+        forwarding?.display_sender_email || ""
+      } ${forwarding?.display_sender_name || ""}`.toLowerCase();
+
+      return (
+        sender.includes(val) || collect_recipient_text(envelope).includes(val)
+      );
+    }
     case "subject":
       return (envelope.subject || "").toLowerCase().includes(val);
     case "has": {
@@ -259,6 +273,8 @@ export function matches_operator(
 
 export const BODY_CONTENT_OPERATOR_TYPES = new Set(["filename", "attachment"]);
 
+export const ANY_OF_OPERATOR_TYPES = new Set(["from", "to", "contact"]);
+
 export function operator_needs_body(op: ParsedOperator): boolean {
   if (BODY_CONTENT_OPERATOR_TYPES.has(op.type)) return true;
   if (op.type === "has") {
@@ -290,7 +306,39 @@ export function matches_query(
 ): boolean {
   if (!envelope) return false;
 
+  const or_groups = new Map<string, ParsedOperator[]>();
+
   for (const op of operators) {
+    if (op.negated || !ANY_OF_OPERATOR_TYPES.has(op.type)) continue;
+    const group = or_groups.get(op.type);
+
+    if (group) group.push(op);
+    else or_groups.set(op.type, [op]);
+  }
+
+  const grouped = new Set<ParsedOperator>();
+
+  for (const group of or_groups.values()) {
+    if (group.length < 2 && group[0].type !== "contact") continue;
+    group.forEach((op) => grouped.add(op));
+
+    const any_match = group.some((op) =>
+      matches_operator(
+        op,
+        envelope,
+        metadata,
+        item,
+        label_name_to_tokens,
+        search_body_text,
+      ),
+    );
+
+    if (!any_match) return false;
+  }
+
+  for (const op of operators) {
+    if (grouped.has(op)) continue;
+
     const result = matches_operator(
       op,
       envelope,
