@@ -27,6 +27,7 @@ import type { TranslationKey } from "@/lib/i18n";
 import type { LocalEmailData } from "@/components/email/email_viewer_types";
 import type { CachedSubscription } from "@/services/subscription_cache";
 import type { SettingsSection } from "@/components/settings/settings_content";
+import type { DropViewTarget } from "@/components/email/inbox/category_drag";
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
@@ -57,6 +58,9 @@ import { use_show_mobile_ui } from "@/hooks/use_platform";
 import {
   adjust_stats_inbox,
   adjust_stats_archived,
+  adjust_stats_starred,
+  adjust_stats_spam,
+  adjust_stats_trash,
 } from "@/hooks/use_mail_stats";
 import { stale_all_view_caches } from "@/hooks/email_list_cache";
 import {
@@ -942,6 +946,189 @@ export function use_index_page_state() {
     [t, current_view],
   );
 
+  const handle_drop_to_view = useCallback(
+    async (email_ids: string[], view: DropViewTarget) => {
+      if (email_ids.length === 0) return;
+      if (current_view === view) return;
+      if (current_view === "drafts" || current_view === "scheduled") {
+        show_toast(t("common.cannot_move_from_view"), "error");
+
+        return;
+      }
+
+      const source_is_inbox_like =
+        current_view === "inbox" ||
+        current_view === "" ||
+        current_view === "all" ||
+        current_view === "starred" ||
+        current_view === "snoozed" ||
+        current_view.startsWith("folder-") ||
+        current_view.startsWith("tag-") ||
+        current_view.startsWith("alias-");
+
+      if (view === "starred") {
+        const star_result = await bulk_update_metadata_by_ids(email_ids, {
+          is_starred: true,
+        });
+        const starred_ids = email_ids.filter(
+          (id) => !star_result.failed_ids.includes(id),
+        );
+
+        if (starred_ids.length === 0) {
+          show_toast(t("common.failed_to_update_emails"), "error");
+
+          return;
+        }
+
+        adjust_stats_starred(starred_ids.length);
+        for (const id of starred_ids) {
+          emit_mail_item_updated({ id, is_starred: true });
+        }
+        emit_mail_stats_stale();
+
+        show_action_toast({
+          message: t("common.conversations_starred_bulk", {
+            count: starred_ids.length,
+          }),
+          action_type: "star",
+          email_ids: starred_ids,
+          on_undo: async () => {
+            await bulk_update_metadata_by_ids(starred_ids, {
+              is_starred: false,
+            });
+            adjust_stats_starred(-starred_ids.length);
+            for (const id of starred_ids) {
+              emit_mail_item_updated({ id, is_starred: false });
+            }
+            emit_mail_stats_stale();
+            emit_mail_soft_refresh();
+          },
+        });
+
+        return;
+      }
+
+      emit_mail_items_removed({ ids: email_ids });
+
+      if (view === "archive") {
+        const archive_result = await api_batch_archive_chunked(email_ids);
+
+        if (!archive_result.success) {
+          emit_mail_soft_refresh();
+          show_toast(t("common.failed_to_archive_emails"), "error");
+
+          return;
+        }
+
+        await bulk_update_metadata_by_ids(email_ids, {
+          is_archived: true,
+          is_trashed: false,
+          is_spam: false,
+        }).catch((caught) =>
+          ignore_error("pages/use_index_page_state:handle_drop_to_view", caught),
+        );
+
+        if (source_is_inbox_like) adjust_stats_inbox(-email_ids.length);
+        adjust_stats_archived(email_ids.length);
+        stale_all_view_caches();
+        remove_category_index_ids(email_ids);
+        emit_mail_stats_stale();
+
+        show_action_toast({
+          message: t("common.n_conversations_archived", {
+            count: email_ids.length,
+          }),
+          action_type: "archive",
+          email_ids,
+          on_undo: async () => {
+            const undo_result = await api_batch_unarchive_chunked(email_ids);
+
+            if (undo_result.success) {
+              await bulk_update_metadata_by_ids(email_ids, {
+                is_archived: false,
+              }).catch((caught) =>
+                ignore_error(
+                  "pages/use_index_page_state:handle_drop_to_view",
+                  caught,
+                ),
+              );
+              if (source_is_inbox_like) adjust_stats_inbox(email_ids.length);
+              adjust_stats_archived(-email_ids.length);
+              stale_all_view_caches();
+            }
+            emit_mail_stats_stale();
+            emit_mail_soft_refresh();
+          },
+        });
+
+        return;
+      }
+
+      const is_spam_drop = view === "spam";
+      const move_result = await bulk_update_metadata_by_ids(
+        email_ids,
+        is_spam_drop
+          ? { is_spam: true, is_trashed: false }
+          : { is_trashed: true },
+      );
+      const moved_ids = email_ids.filter(
+        (id) => !move_result.failed_ids.includes(id),
+      );
+
+      if (moved_ids.length === 0) {
+        emit_mail_soft_refresh();
+        show_toast(
+          is_spam_drop
+            ? t("common.failed_to_mark_as_spam")
+            : t("common.failed_to_delete_emails"),
+          "error",
+        );
+
+        return;
+      }
+
+      if (move_result.failed_ids.length > 0) emit_mail_soft_refresh();
+
+      if (source_is_inbox_like) adjust_stats_inbox(-moved_ids.length);
+      if (is_spam_drop) {
+        adjust_stats_spam(moved_ids.length);
+      } else {
+        adjust_stats_trash(moved_ids.length);
+      }
+      stale_all_view_caches();
+      remove_category_index_ids(moved_ids);
+      emit_mail_stats_stale();
+
+      show_action_toast({
+        message: is_spam_drop
+          ? t("common.n_conversations_marked_as_spam", {
+              count: moved_ids.length,
+            })
+          : t("common.n_conversations_moved_to_trash", {
+              count: moved_ids.length,
+            }),
+        action_type: is_spam_drop ? "spam" : "trash",
+        email_ids: moved_ids,
+        on_undo: async () => {
+          await bulk_update_metadata_by_ids(
+            moved_ids,
+            is_spam_drop ? { is_spam: false } : { is_trashed: false },
+          );
+          if (source_is_inbox_like) adjust_stats_inbox(moved_ids.length);
+          if (is_spam_drop) {
+            adjust_stats_spam(-moved_ids.length);
+          } else {
+            adjust_stats_trash(-moved_ids.length);
+          }
+          stale_all_view_caches();
+          emit_mail_stats_stale();
+          emit_mail_soft_refresh();
+        },
+      });
+    },
+    [t, current_view],
+  );
+
   const handle_drop_to_tag = useCallback(
     async (email_ids: string[], tag_token: string, tag_name: string) => {
       if (email_ids.length === 0) {
@@ -1540,6 +1727,7 @@ export function use_index_page_state() {
     set_checkout_success,
     toggle_mobile_sidebar,
     handle_drop_to_folder,
+    handle_drop_to_view,
     handle_drop_to_tag,
     open_compose,
     handle_reply,

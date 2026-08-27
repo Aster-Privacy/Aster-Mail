@@ -335,23 +335,28 @@ export function SubscriptionsContent({
       ) : (
         <div className="flex-1 overflow-y-auto">
           {active_tab === "active" && current_list.length > 0 && (
-            <div className="flex items-center gap-2 px-4 py-1.5 border-b border-edge-primary">
+            <button
+              aria-pressed={visible_selected_count === current_list.length}
+              className="w-full flex items-center gap-2 px-4 py-2 border-b border-edge-primary text-left cursor-pointer transition-colors duration-150 hover:bg-surf-secondary focus-visible:outline-none focus-visible:bg-surf-secondary"
+              onClick={handle_toggle_select_all}
+              type="button"
+            >
               <Checkbox
                 checked={
                   visible_selected_count > 0 &&
                   visible_selected_count === current_list.length
                 }
-                className="flex-shrink-0"
+                className="flex-shrink-0 pointer-events-none"
                 indeterminate={
                   visible_selected_count > 0 &&
                   visible_selected_count < current_list.length
                 }
-                onCheckedChange={handle_toggle_select_all}
+                tabIndex={-1}
               />
               <span className="text-xs text-txt-muted">
                 {t("common.select_all")}
               </span>
-            </div>
+            </button>
           )}
           {current_list.map((sub) => (
             <SubscriptionRow

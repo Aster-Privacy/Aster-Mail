@@ -640,13 +640,16 @@ export function MassUnsubscribeModal({
                   style={{ borderTop: "1px solid var(--border-secondary)" }}
                 >
                   <button
-                    className="flex items-center gap-3 text-[12px] font-medium"
+                    aria-pressed={all_selected}
+                    className="flex items-center gap-3 text-[12px] font-medium -mx-2 px-2 py-1.5 rounded-[10px] cursor-pointer transition-colors hover:bg-black/[0.04] dark:hover:bg-white/[0.06]"
                     style={{ color: "var(--text-muted)" }}
                     onClick={handle_select_all}
+                    type="button"
                   >
                     <Checkbox
                       checked={all_selected}
-                      onCheckedChange={handle_select_all}
+                      className="pointer-events-none"
+                      tabIndex={-1}
                     />
                     {selected_ids.size > 0
                       ? `${selected_ids.size} ${t("common.selected")}`

@@ -256,6 +256,12 @@ export default function IndexPage() {
     [],
   );
 
+  const handle_drop_to_view = useCallback(
+    (...params: Parameters<typeof state.handle_drop_to_view>) =>
+      state_ref.current.handle_drop_to_view(...params),
+    [],
+  );
+
   const handle_drop_to_tag = useCallback(
     (...params: Parameters<typeof state.handle_drop_to_tag>) =>
       state_ref.current.handle_drop_to_tag(...params),
@@ -388,6 +394,7 @@ export default function IndexPage() {
                 on_draft_click_compose={handle_sidebar_draft_click}
                 on_drop_to_folder={handle_drop_to_folder}
                 on_drop_to_tag={handle_drop_to_tag}
+                on_drop_to_view={handle_drop_to_view}
                 on_mobile_toggle={handle_mobile_menu_toggle}
                 on_modal_open={close_transient_views}
                 on_nav_click={handle_sidebar_nav_click}

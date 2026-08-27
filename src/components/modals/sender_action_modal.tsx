@@ -760,12 +760,15 @@ export function SenderActionModal({
 
               <div className="flex items-center justify-between px-4 py-3 border-t border-edge-secondary">
                 <button
-                  className="flex items-center gap-3 text-[12px] font-medium text-txt-muted"
+                  aria-pressed={all_selected}
+                  className="flex items-center gap-3 text-[12px] font-medium text-txt-muted -mx-2 px-2 py-1.5 rounded-[10px] cursor-pointer transition-colors hover:bg-black/[0.04] dark:hover:bg-white/[0.06]"
                   onClick={handle_select_all}
+                  type="button"
                 >
                   <Checkbox
                     checked={all_selected}
-                    onCheckedChange={handle_select_all}
+                    className="pointer-events-none"
+                    tabIndex={-1}
                   />
                   {selected_senders.size > 0
                     ? `${selected_senders.size} ${t("common.selected")}`
