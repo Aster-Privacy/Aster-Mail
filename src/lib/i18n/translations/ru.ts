@@ -6890,6 +6890,12 @@ export const ru = {
     finish_plan_setup_message:
       "Вы закрыли оформление заказа до оплаты. Ваша учётная запись остаётся на бесплатном тарифе, пока вы не завершите оплату.",
     finish_plan_setup_action: "Завершить настройку",
+    win_back_offer_title: "Ваш {{discount}} ждёт",
+    win_back_offer_expires_today: "Сегодня последний день, когда его можно использовать.",
+    win_back_offer_expires_tomorrow: "Он заканчивается завтра.",
+    win_back_offer_expires_in: "Он заканчивается через {{days}} дн.",
+    win_back_offer_auto_applied: "Скидка уже привязана к вашей учётной записи, поэтому она применится при оплате. Код {{code}}.",
+    win_back_offer_action: "Выбрать тариф",
     payment_processing_delayed:
       "Ваш платёж обрабатывается. Активация может занять немного времени.",
     pdf: "PDF",

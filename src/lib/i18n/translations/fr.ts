@@ -6814,6 +6814,12 @@ export const fr = {
     finish_plan_setup_message:
       "Vous avez fermé le paiement avant de régler. Votre compte reste sur l'offre gratuite jusqu'à ce que vous terminiez.",
     finish_plan_setup_action: "Terminer la configuration",
+    win_back_offer_title: "Votre {{discount}} vous attend",
+    win_back_offer_expires_today: "C’est le dernier jour pour en profiter.",
+    win_back_offer_expires_tomorrow: "Elle se termine demain.",
+    win_back_offer_expires_in: "Elle se termine dans {{days}} jours.",
+    win_back_offer_auto_applied: "La remise est déjà sur votre compte, le paiement l’applique pour vous. Code {{code}}.",
+    win_back_offer_action: "Choisir une offre",
     payment_processing_delayed:
       "Le traitement du paiement peut prendre quelques minutes.",
     pdf: "PDF",

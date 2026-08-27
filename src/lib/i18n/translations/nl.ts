@@ -6736,6 +6736,12 @@ export const nl = {
     finish_plan_setup_message:
       "Je hebt het afrekenen gesloten voordat je betaalde. Je account blijft op het gratis abonnement tot je klaar bent.",
     finish_plan_setup_action: "Instellen afronden",
+    win_back_offer_title: "Je {{discount}} staat klaar",
+    win_back_offer_expires_today: "Vandaag is de laatste dag om hem te gebruiken.",
+    win_back_offer_expires_tomorrow: "Hij loopt morgen af.",
+    win_back_offer_expires_in: "Hij loopt over {{days}} dagen af.",
+    win_back_offer_auto_applied: "De korting staat al op je account, dus die wordt bij het afrekenen toegepast. Code {{code}}.",
+    win_back_offer_action: "Kies een abonnement",
     payment_processing_delayed:
       "Betaalverwerking wordt vertraagd. Controleer uw betaalmethode.",
     pdf: "PDF",

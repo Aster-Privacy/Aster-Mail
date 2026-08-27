@@ -6284,6 +6284,12 @@ export const ko = {
     finish_plan_setup_message:
       "결제를 마치기 전에 결제 화면을 닫았습니다. 설정을 마칠 때까지 계정은 무료 요금제로 유지됩니다.",
     finish_plan_setup_action: "설정 마치기",
+    win_back_offer_title: "{{discount}} 혜택이 기다리고 있습니다",
+    win_back_offer_expires_today: "오늘이 사용할 수 있는 마지막 날입니다.",
+    win_back_offer_expires_tomorrow: "내일 종료됩니다.",
+    win_back_offer_expires_in: "{{days}}일 뒤에 종료됩니다.",
+    win_back_offer_auto_applied: "할인이 이미 계정에 적용되어 있어 결제 시 자동으로 반영됩니다. 코드 {{code}}.",
+    win_back_offer_action: "요금제 선택",
     payment_processing_delayed:
       "결제 처리 중입니다. 활성화되기까지 잠시 시간이 걸릴 수 있습니다.",
     card_number: "카드 번호",

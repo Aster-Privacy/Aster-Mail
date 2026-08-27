@@ -6515,6 +6515,12 @@ export const tr = {
     finish_plan_setup_message:
       "Ödeme yapmadan önce ödeme sayfasını kapattınız. Kurulumu tamamlayana kadar hesabınız ücretsiz planda kalır.",
     finish_plan_setup_action: "Kurulumu tamamla",
+    win_back_offer_title: "{{discount}} indiriminiz sizi bekliyor",
+    win_back_offer_expires_today: "Kullanmak için son gün bugün.",
+    win_back_offer_expires_tomorrow: "Yarın sona eriyor.",
+    win_back_offer_expires_in: "{{days}} gün sonra sona eriyor.",
+    win_back_offer_auto_applied: "İndirim zaten hesabınızda, bu yüzden ödemede sizin için uygulanır. Kod {{code}}.",
+    win_back_offer_action: "Plan seçin",
     payment_processing_delayed:
       "Ödemeniz işleniyor. Etkinleşmesi biraz zaman alabilir.",
     card_number: "Kart numarası",

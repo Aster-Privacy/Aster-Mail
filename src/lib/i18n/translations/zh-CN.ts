@@ -6058,6 +6058,12 @@ export const zh_CN = {
     finish_plan_setup_title: "完成 {{plan}} 套餐设置",
     finish_plan_setup_message: "您在付款前关闭了结账页面。完成之前，您的账户将保持免费套餐。",
     finish_plan_setup_action: "完成设置",
+    win_back_offer_title: "您的{{discount}}正在等您",
+    win_back_offer_expires_today: "今天是最后一天。",
+    win_back_offer_expires_tomorrow: "优惠明天结束。",
+    win_back_offer_expires_in: "优惠将在 {{days}} 天后结束。",
+    win_back_offer_auto_applied: "折扣已在您的账户中，结账时会自动应用。优惠码 {{code}}。",
+    win_back_offer_action: "选择套餐",
     payment_processing_delayed:
       "支付处理中，可能需要几分钟。我们会发邮件确认。",
     subscription_activated: "订阅已激活",

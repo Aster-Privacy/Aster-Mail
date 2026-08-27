@@ -6448,6 +6448,12 @@ export const ar = {
     finish_plan_setup_message:
       "لقد أغلقت صفحة الدفع قبل إتمامه. يبقى حسابك على الخطة المجانية حتى تنتهي.",
     finish_plan_setup_action: "أكمل الإعداد",
+    win_back_offer_title: "خصم {{discount}} في انتظارك",
+    win_back_offer_expires_today: "اليوم هو آخر يوم لاستخدامه.",
+    win_back_offer_expires_tomorrow: "ينتهي غدًا.",
+    win_back_offer_expires_in: "ينتهي خلال {{days}} يومًا.",
+    win_back_offer_auto_applied: "الخصم موجود بالفعل في حسابك، لذا يُطبَّق عند الدفع. الرمز {{code}}.",
+    win_back_offer_action: "اختر خطة",
     payment_processing_delayed: "جارٍ معالجة دفعتك. قد تستغرق لحظة للتفعيل.",
     card_number: "رقم البطاقة",
     card_expiry: "تاريخ الانتهاء",

@@ -6561,6 +6561,12 @@ export const ja = {
     finish_plan_setup_title: "{{plan}} プランの設定を完了",
     finish_plan_setup_message: "お支払いの前にチェックアウトを閉じました。完了するまで、アカウントは無料プランのままです。",
     finish_plan_setup_action: "設定を完了",
+    win_back_offer_title: "{{discount}} をご用意しています",
+    win_back_offer_expires_today: "ご利用は本日までです。",
+    win_back_offer_expires_tomorrow: "明日で終了します。",
+    win_back_offer_expires_in: "あと {{days}} 日で終了します。",
+    win_back_offer_auto_applied: "割引はすでにアカウントに適用済みなので、チェックアウト時に自動で反映されます。コード {{code}}。",
+    win_back_offer_action: "プランを選ぶ",
     payment_processing_delayed:
       "お支払いを処理中です。有効化には少し時間がかかることがあります。",
     pdf: "PDF",

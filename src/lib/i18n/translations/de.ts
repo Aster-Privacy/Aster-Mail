@@ -6884,6 +6884,12 @@ export const de = {
     finish_plan_setup_message:
       "Du hast die Kasse vor der Zahlung geschlossen. Dein Konto bleibt im kostenlosen Tarif, bis du fertig bist.",
     finish_plan_setup_action: "Einrichtung abschließen",
+    win_back_offer_title: "Dein {{discount}} wartet auf dich",
+    win_back_offer_expires_today: "Heute ist der letzte Tag, um ihn einzulösen.",
+    win_back_offer_expires_tomorrow: "Er endet morgen.",
+    win_back_offer_expires_in: "Er endet in {{days}} Tagen.",
+    win_back_offer_auto_applied: "Der Rabatt liegt bereits auf deinem Konto, die Kasse zieht ihn für dich ab. Code {{code}}.",
+    win_back_offer_action: "Tarif wählen",
     payment_processing_delayed:
       "Ihre Zahlung wird bearbeitet. Die Aktivierung kann einen Moment dauern.",
     pdf: "PDF",

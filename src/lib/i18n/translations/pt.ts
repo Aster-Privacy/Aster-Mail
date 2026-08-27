@@ -6576,6 +6576,12 @@ export const pt = {
     finish_plan_setup_message:
       "Você fechou o checkout antes de pagar. A sua conta permanece no plano gratuito até você concluir.",
     finish_plan_setup_action: "Concluir configuração",
+    win_back_offer_title: "O seu {{discount}} está à espera",
+    win_back_offer_expires_today: "Hoje é o último dia para usar.",
+    win_back_offer_expires_tomorrow: "Termina amanhã.",
+    win_back_offer_expires_in: "Termina em {{days}} dias.",
+    win_back_offer_auto_applied: "O desconto já está na sua conta, por isso o checkout aplica-o por si. Código {{code}}.",
+    win_back_offer_action: "Escolher um plano",
     payment_processing_delayed:
       "Seu pagamento está sendo processado. Isso pode levar alguns minutos.",
     card_number: "Número do cartão",

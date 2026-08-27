@@ -6747,6 +6747,12 @@ export const es = {
     finish_plan_setup_message:
       "Cerraste el pago antes de completarlo. Tu cuenta sigue en el plan gratuito hasta que termines.",
     finish_plan_setup_action: "Terminar la configuración",
+    win_back_offer_title: "Tu {{discount}} te espera",
+    win_back_offer_expires_today: "Hoy es el último día para usarlo.",
+    win_back_offer_expires_tomorrow: "Termina mañana.",
+    win_back_offer_expires_in: "Termina en {{days}} días.",
+    win_back_offer_auto_applied: "El descuento ya está en tu cuenta, así que el pago lo aplica por ti. Código {{code}}.",
+    win_back_offer_action: "Elegir un plan",
     payment_processing_delayed:
       "El procesamiento del pago puede tardar unos minutos.",
     pdf: "PDF",

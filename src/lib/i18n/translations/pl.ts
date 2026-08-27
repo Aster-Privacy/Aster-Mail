@@ -6694,6 +6694,12 @@ export const pl = {
     finish_plan_setup_message:
       "Zamykasz stronę płatności przed jej opłaceniem. Twoje konto pozostaje w planie darmowym, dopóki nie dokończysz konfiguracji.",
     finish_plan_setup_action: "Dokończ konfigurację",
+    win_back_offer_title: "Twoje {{discount}} czeka",
+    win_back_offer_expires_today: "Dziś ostatni dzień, by z niego skorzystać.",
+    win_back_offer_expires_tomorrow: "Kończy się jutro.",
+    win_back_offer_expires_in: "Kończy się za {{days}} dni.",
+    win_back_offer_auto_applied: "Rabat jest już na Twoim koncie, więc płatność zastosuje go za Ciebie. Kod {{code}}.",
+    win_back_offer_action: "Wybierz plan",
     payment_processing_delayed:
       "Twoja płatność jest przetwarzana. Aktywacja może chwilę potrwać.",
     card_number: "Numer karty",
