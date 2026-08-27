@@ -20,10 +20,20 @@
 //
 import type { SettingsSection } from "@/components/settings/settings_content";
 
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { Button, Switch } from "@aster/ui";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert_dialog";
 import { use_i18n } from "@/lib/i18n/context";
 import { next_radio_index } from "@/lib/radiogroup_navigation";
 import { use_escape_layer } from "@/lib/overlay_layer_stack";
@@ -325,6 +335,7 @@ export function QuickSettingsPanel({
   const { theme_preference, set_theme_preference } = useTheme();
   const { preferences, update_preference, update_preferences } =
     use_preferences();
+  const [show_grouping_dialog, set_show_grouping_dialog] = useState(false);
 
   const handle_theme_select = (mode: "light" | "dark" | "system") => {
     set_theme_preference(mode);
@@ -341,6 +352,26 @@ export function QuickSettingsPanel({
     get_effective_theme_fields(preferences).color_theme === "default";
 
   use_escape_layer(is_open, on_close, "quick_settings_panel", false);
+
+  useEffect(() => {
+    if (!is_open || typeof window === "undefined" || !window.matchMedia) return;
+
+    const query = window.matchMedia("(min-width: 1024px)");
+
+    if (!query.matches) {
+      on_close();
+
+      return;
+    }
+
+    const handle_change = (event: MediaQueryListEvent) => {
+      if (!event.matches) on_close();
+    };
+
+    query.addEventListener("change", handle_change);
+
+    return () => query.removeEventListener("change", handle_change);
+  }, [is_open, on_close]);
 
   if (!is_open) return null;
 
@@ -405,11 +436,16 @@ export function QuickSettingsPanel({
 
         <QuickSection title={t("settings.quick_inbox_list")}>
           <QuickToggle
-            checked={preferences.conversation_grouping ?? true}
+            checked={preferences.conversation_grouping !== false}
             label={t("settings.conversation_grouping")}
-            on_change={(next) =>
-              update_preference("conversation_grouping", next, true)
-            }
+            on_change={(next) => {
+              if (!next) {
+                set_show_grouping_dialog(true);
+
+                return;
+              }
+              update_preference("conversation_grouping", true, true);
+            }}
           />
           <QuickToggle
             checked={preferences.inbox_categories_enabled !== false}
@@ -489,6 +525,36 @@ export function QuickSettingsPanel({
 
         <div className="h-3 flex-shrink-0" />
       </div>
+
+      <AlertDialog
+        open={show_grouping_dialog}
+        onOpenChange={set_show_grouping_dialog}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {t("settings.conversation_grouping_confirm_title")}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("settings.conversation_grouping_confirm_description")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="max-sm:flex-row max-sm:gap-3">
+            <AlertDialogCancel className="max-sm:flex-1">
+              {t("common.cancel")}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="max-sm:flex-1"
+              onClick={() => {
+                update_preference("conversation_grouping", false, true);
+                set_show_grouping_dialog(false);
+              }}
+            >
+              {t("common.confirm")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </aside>
   );
 }
