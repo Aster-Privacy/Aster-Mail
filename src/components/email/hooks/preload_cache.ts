@@ -29,6 +29,7 @@ import type {
   ThreadReplyOptimisticEventDetail,
   ThreadReplyCancelledEventDetail,
   MailItemUpdatedEventDetail,
+  ThreadDraftChangedEventDetail,
 } from "@/hooks/mail_events";
 import type { SenderTrustSource } from "@/lib/utils";
 
@@ -317,7 +318,29 @@ function invalidate_thread_in_preload_cache(
   }
 }
 
+function apply_thread_draft_to_preload_cache(
+  thread_token: string,
+  draft: DraftWithContent | null,
+): void {
+  for (const [key, cached] of preload_cache.entries()) {
+    if (cached.mail_item.thread_token !== thread_token) continue;
+
+    preload_cache.set(key, { ...cached, thread_draft: draft });
+  }
+}
+
 if (typeof window !== "undefined") {
+  window.addEventListener(MAIL_EVENTS.THREAD_DRAFT_CHANGED, ((
+    event: CustomEvent<ThreadDraftChangedEventDetail>,
+  ) => {
+    if (!event.detail) return;
+
+    apply_thread_draft_to_preload_cache(
+      event.detail.thread_token,
+      event.detail.draft,
+    );
+  }) as EventListener);
+
   window.addEventListener(MAIL_EVENTS.THREAD_REPLY_SENT, ((
     event: CustomEvent<ThreadReplySentEventDetail>,
   ) => {

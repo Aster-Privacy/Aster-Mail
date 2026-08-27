@@ -173,6 +173,27 @@ export const InlineReplySection = forwardRef<
     : 0;
 
   useEffect(() => {
+    if (!matching_draft) return;
+    if (draft_id === matching_draft.id) {
+      if (matching_draft.version > draft_version) {
+        set_draft_version(matching_draft.version);
+      }
+
+      return;
+    }
+    if (draft_id) return;
+
+    const typed = reply_text_ref.current;
+
+    if (typed.trim() && typed !== last_saved_text.current) return;
+
+    set_draft_id(matching_draft.id);
+    set_draft_version(matching_draft.version);
+    last_saved_text.current = matching_draft.content.message ?? "";
+    set_reply_text(matching_draft.content.message ?? "");
+  }, [matching_draft, draft_id, draft_version]);
+
+  useEffect(() => {
     if (!is_visible) {
       is_sending_ref.current = false;
       set_send_state("idle");

@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { DraftWithContent } from "@/services/api/multi_drafts";
+
 export const MAIL_EVENTS = {
   MAIL_CHANGED: "astermail:mail-changed",
   MAIL_ITEM_UPDATED: "astermail:mail-item-updated",
@@ -26,6 +28,7 @@ export const MAIL_EVENTS = {
   EMAIL_RECEIVED: "astermail:email-received",
   DRAFTS_CHANGED: "astermail:drafts-changed",
   DRAFT_UPDATED: "astermail:draft-updated",
+  THREAD_DRAFT_CHANGED: "astermail:thread-draft-changed",
   FOLDERS_CHANGED: "astermail:folders-changed",
   UNDO_SEND: "astermail:undo-send",
   MAIL_ACTION: "astermail:mail-action",
@@ -76,6 +79,11 @@ export interface DraftUpdatedEventDetail {
   bcc_recipients: string[];
   subject: string;
   message: string;
+}
+
+export interface ThreadDraftChangedEventDetail {
+  thread_token: string;
+  draft: DraftWithContent | null;
 }
 
 export interface UndoSendEventDetail {
@@ -160,6 +168,7 @@ type EventDetailMap = {
   [MAIL_EVENTS.EMAIL_RECEIVED]: EmailReceivedEventDetail;
   [MAIL_EVENTS.DRAFTS_CHANGED]: undefined;
   [MAIL_EVENTS.DRAFT_UPDATED]: DraftUpdatedEventDetail;
+  [MAIL_EVENTS.THREAD_DRAFT_CHANGED]: ThreadDraftChangedEventDetail;
   [MAIL_EVENTS.FOLDERS_CHANGED]: undefined;
   [MAIL_EVENTS.MAIL_ACTION]: MailActionEventDetail;
   [MAIL_EVENTS.UNDO_SEND]: UndoSendEventDetail;
@@ -294,6 +303,12 @@ export function emit_mail_action(detail: MailActionEventDetail): void {
 
 export function emit_draft_updated(detail: DraftUpdatedEventDetail): void {
   mail_event_bus.emit(MAIL_EVENTS.DRAFT_UPDATED, detail);
+}
+
+export function emit_thread_draft_changed(
+  detail: ThreadDraftChangedEventDetail,
+): void {
+  mail_event_bus.emit(MAIL_EVENTS.THREAD_DRAFT_CHANGED, detail);
 }
 
 export function emit_scheduled_changed(

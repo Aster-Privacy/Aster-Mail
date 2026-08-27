@@ -26,6 +26,10 @@ import { HASH_ALG } from "@/services/crypto/constants";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import { get_active_translations } from "@/lib/i18n/translations";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
+import {
+  emit_drafts_changed,
+  emit_thread_draft_changed,
+} from "@/hooks/mail_events";
 
 export type DraftType = "new" | "reply" | "forward";
 
@@ -584,6 +588,17 @@ export async function get_draft(
   }
 }
 
+function announce_draft_saved(draft: Draft, content: DraftContent): void {
+  if (draft.thread_token) {
+    emit_thread_draft_changed({
+      thread_token: draft.thread_token,
+      draft: { ...draft, content },
+    });
+  }
+
+  emit_drafts_changed();
+}
+
 export async function create_draft(
   content: DraftContent,
   vault: EncryptedVault,
@@ -634,20 +649,21 @@ export async function create_draft(
   invalidate_mail_stats();
 
   const now = new Date().toISOString();
-
-  return {
-    data: {
-      id: response.data.id,
-      draft_type,
-      reply_to_id,
-      forward_from_id,
-      thread_token,
-      version: response.data.version,
-      created_at: now,
-      updated_at: now,
-      expires_at: calculate_draft_expiration(),
-    },
+  const created: Draft = {
+    id: response.data.id,
+    draft_type,
+    reply_to_id,
+    forward_from_id,
+    thread_token,
+    version: response.data.version,
+    created_at: now,
+    updated_at: now,
+    expires_at: calculate_draft_expiration(),
   };
+
+  announce_draft_saved(created, content);
+
+  return { data: created };
 }
 
 export async function update_draft(
@@ -726,20 +742,21 @@ export async function update_draft(
   invalidate_mail_stats();
 
   const now = new Date().toISOString();
-
-  return {
-    data: {
-      id: draft_id,
-      draft_type,
-      reply_to_id,
-      forward_from_id,
-      thread_token,
-      version: response.data.version,
-      created_at: now,
-      updated_at: now,
-      expires_at: calculate_draft_expiration(),
-    },
+  const updated: Draft = {
+    id: draft_id,
+    draft_type,
+    reply_to_id,
+    forward_from_id,
+    thread_token,
+    version: response.data.version,
+    created_at: now,
+    updated_at: now,
+    expires_at: calculate_draft_expiration(),
   };
+
+  announce_draft_saved(updated, content);
+
+  return { data: updated };
 }
 
 export async function delete_draft(
@@ -762,9 +779,20 @@ export async function delete_thread_draft(
   draft_id: string,
   thread_token?: string,
 ): Promise<ApiResponse<DeleteDraftResult>> {
+  const announce_removed = (): void => {
+    if (thread_token) {
+      emit_thread_draft_changed({ thread_token, draft: null });
+    }
+
+    emit_drafts_changed();
+  };
   const by_id = await delete_draft(draft_id);
 
-  if (by_id.data?.success) return by_id;
+  if (by_id.data?.success) {
+    announce_removed();
+
+    return by_id;
+  }
   if (by_id.code !== "NOT_FOUND") return by_id;
   if (!thread_token) return { data: { success: true } };
 
@@ -774,10 +802,16 @@ export async function delete_thread_draft(
   );
 
   if (current.error || !current.data?.id || current.data.id === draft_id) {
+    announce_removed();
+
     return { data: { success: true } };
   }
 
-  return delete_draft(current.data.id);
+  const by_thread = await delete_draft(current.data.id);
+
+  if (by_thread.data?.success) announce_removed();
+
+  return by_thread;
 }
 
 export async function get_draft_by_thread(
