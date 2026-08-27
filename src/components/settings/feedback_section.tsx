@@ -103,7 +103,7 @@ export function FeedbackSection() {
               className={cn(
                 "px-3 py-1.5 rounded-full text-xs font-medium border transition-colors",
                 category === option.value
-                  ? "border-[var(--accent-color)] text-[var(--accent-color)] bg-[var(--accent-color)]/10"
+                  ? "border-transparent bg-[var(--accent-color)] text-[var(--accent-fg,#ffffff)] font-semibold"
                   : "border-edge-secondary text-txt-secondary hover:text-txt-primary",
               )}
               type="button"
