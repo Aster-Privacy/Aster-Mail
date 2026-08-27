@@ -33,6 +33,7 @@ export async function get_account_limit(): Promise<
 > {
   return api_client.get<AccountLimitResponse>(
     "/payments/v1/plans/account-limit",
+    { skip_upgrade_prompt: true },
   );
 }
 
@@ -42,6 +43,7 @@ export async function link_account_device(): Promise<
   return api_client.post<AccountLimitResponse>(
     "/payments/v1/plans/account-limit/link",
     {},
+    { skip_upgrade_prompt: true },
   );
 }
 
