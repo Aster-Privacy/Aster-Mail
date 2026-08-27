@@ -337,7 +337,8 @@ async function open_system_notification_settings_os(): Promise<boolean> {
 export function NotificationsSection() {
   const { preferences, update_preference } = use_preferences();
   const { t } = use_i18n();
-  const { is_feature_locked } = use_plan_limits();
+  const { is_feature_locked, load_failed: plan_load_failed } =
+    use_plan_limits();
   const [permission_state, set_permission_state] = useState<PermissionState>(
     () => (is_tauri ? "default" : get_permission_state()),
   );
@@ -450,7 +451,13 @@ export function NotificationsSection() {
   const subscribe_to_push_with_warning = async (): Promise<void> => {
     const subscribed = await subscribe_to_push();
 
-    if (!subscribed && is_push_supported()) {
+    if (subscribed) {
+      update_preference("push_notifications", true, true);
+
+      return;
+    }
+
+    if (is_push_supported()) {
       show_toast(t("settings.push_subscribe_failed"), "warning");
     }
   };
@@ -530,6 +537,7 @@ export function NotificationsSection() {
     }
 
     update_preference("desktop_notifications", false, true);
+    update_preference("push_notifications", false, true);
     unsubscribe_from_push();
   };
 
@@ -807,7 +815,7 @@ export function NotificationsSection() {
         <UpgradeGate
           description={t("settings.quiet_hours_locked")}
           feature_name={t("settings.quiet_hours")}
-          is_locked={is_feature_locked("has_quiet_hours")}
+          is_locked={!plan_load_failed && is_feature_locked("has_quiet_hours")}
           min_plan="Star"
         >
           <div>

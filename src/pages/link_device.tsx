@@ -18,8 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { TranslationKey } from "@/lib/i18n";
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@aster/ui";
@@ -41,6 +39,7 @@ import { show_toast } from "@/components/toast/simple_toast";
 import { Spinner } from "@/components/ui/spinner";
 import { PlanUpgradeSelection } from "@/components/settings/billing/plan_upgrade_selection";
 import { is_composing } from "@/utils/ime";
+import { classify_link_error } from "@/pages/link_device_error";
 
 type PageState =
   | "input"
@@ -55,46 +54,6 @@ interface DeviceInfo {
   ed25519_pk: string;
   mlkem_pk: string;
   x25519_pk: string;
-}
-
-// Maps a backend device-code error to a clear, user-facing message and whether
-// the user should start over (the code is gone) vs retry the same step.
-function classify_link_error(response: {
-  error?: string;
-  code?: string;
-  resets_at?: string;
-}): { key: TranslationKey; restart: boolean } {
-  const raw = (response.error || "").toLowerCase();
-  const code = (response.code || "").toUpperCase();
-
-  if (
-    raw.includes("already enrolled") ||
-    raw.includes("already linked") ||
-    code === "CONFLICT"
-  ) {
-    return { key: "auth.link_device_already_linked", restart: false };
-  }
-  if (
-    code === "RATE_LIMITED" ||
-    Boolean(response.resets_at) ||
-    raw.includes("rate limit") ||
-    raw.includes("too many")
-  ) {
-    return { key: "auth.link_device_rate_limited", restart: false };
-  }
-  if (raw.includes("suspend")) {
-    return { key: "auth.link_device_account_suspended", restart: false };
-  }
-  if (
-    raw.includes("expired") ||
-    raw.includes("not found") ||
-    raw.includes("no longer") ||
-    raw.includes("invalid or expired")
-  ) {
-    return { key: "auth.link_device_expired_code", restart: true };
-  }
-
-  return { key: "auth.link_device_failed", restart: false };
 }
 
 export default function LinkDevice() {
@@ -470,10 +429,7 @@ export default function LinkDevice() {
             onClick={handle_verify}
           >
             {is_verifying ? (
-              <>
-                {t("auth.link_device_verifying")}
-                <Spinner className="ms-2" size="sm" />
-              </>
+              <Spinner size="sm" />
             ) : (
               t("auth.link_device_verify_button")
             )}

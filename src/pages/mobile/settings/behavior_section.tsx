@@ -157,7 +157,7 @@ export function BehaviorSection({
       })
       .catch((caught) =>
         ignore_error(
-          "pages/mobile/settings/behavior_section:handle_mailto_toggle",
+          "pages/mobile/settings/behavior_section:get_member_retention_policy",
           caught,
         ),
       );

@@ -989,7 +989,16 @@ export function use_security() {
     set_password_breach_warning(false);
   };
 
+  const toggle_password_section = (show: boolean) => {
+    if (show) {
+      set_password_success(false);
+      set_password_error("");
+    }
+    set_show_password_section(show);
+  };
+
   const handle_password_cancel = () => {
+    set_password_success(false);
     set_show_password_section(false);
     set_current_password("");
     set_new_password("");
@@ -1035,7 +1044,7 @@ export function use_security() {
     handle_ipfs_toggle,
 
     show_password_section,
-    set_show_password_section,
+    set_show_password_section: toggle_password_section,
     current_password,
     set_current_password,
     new_password,

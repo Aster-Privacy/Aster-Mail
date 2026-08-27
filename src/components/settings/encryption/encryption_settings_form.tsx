@@ -71,7 +71,7 @@ function ToggleSetting({
   );
 }
 
-const DEFAULT_KEYSERVERS = ["https://keys.openpgp.org"];
+export const DEFAULT_KEYSERVERS = ["https://keys.openpgp.org"];
 
 interface EncryptionSettingsFormProps {
   preferences: {

@@ -37,18 +37,10 @@ import {
 import { use_should_reduce_motion } from "@/provider";
 
 const pulse_style = `
-  @keyframes tour-breathe {
-    0%, 100% {
-      box-shadow: 0 0 0 3px var(--tour-color-fade);
-    }
-    50% {
-      box-shadow: 0 0 0 6px var(--tour-color-fade);
-    }
-  }
   .tour-highlight-box {
     border: 2px solid var(--tour-color);
-    animation: tour-breathe 2.5s ease-in-out infinite;
-    border-radius: 8px;
+    box-shadow: 0 0 20px 2px var(--tour-color-fade);
+    border-radius: 10px;
     pointer-events: none;
   }
   .tour-arrow {
@@ -127,7 +119,7 @@ function get_onboarding_steps(
       title: t("settings.title"),
       description: t("common.customize_settings_description"),
       target_selector: "[data-onboarding='settings-button']",
-      position: "left",
+      position: "bottom",
     },
     {
       title: t("common.youre_ready"),
@@ -328,13 +320,16 @@ export function OnboardingTour() {
   const progress = ((current_step + 1) / onboarding_steps.length) * 100;
   const is_final_step = current_step === onboarding_steps.length - 1;
 
-  const get_tooltip_style = (): React.CSSProperties => {
+  const TOOLTIP_WIDTH = 400;
+  const TOOLTIP_HEIGHT = 280;
+
+  const get_tooltip_position = (): { top: number; left: number } | null => {
     if (!target_rect || current.position === "center") {
-      return {};
+      return null;
     }
 
-    const tooltip_width = 400;
-    const tooltip_height = 280;
+    const tooltip_width = TOOLTIP_WIDTH;
+    const tooltip_height = TOOLTIP_HEIGHT;
     const gap = 20;
 
     let top = 0;
@@ -362,11 +357,43 @@ export function OnboardingTour() {
     top = Math.max(16, Math.min(top, window.innerHeight - tooltip_height - 16));
     left = Math.max(16, Math.min(left, window.innerWidth - tooltip_width - 16));
 
+    return { top, left };
+  };
+
+  const get_tooltip_style = (): React.CSSProperties => {
+    const position = get_tooltip_position();
+
+    if (!position) return {};
+
     return {
       position: "absolute",
-      top,
-      left,
-      width: tooltip_width,
+      top: position.top,
+      left: position.left,
+      width: TOOLTIP_WIDTH,
+    };
+  };
+
+  const get_arrow_style = (): React.CSSProperties => {
+    const position = get_tooltip_position();
+
+    if (!position || !target_rect) return {};
+
+    const inset = 20;
+
+    if (current.position === "bottom" || current.position === "top") {
+      const center = target_rect.left + target_rect.width / 2 - position.left;
+
+      return {
+        left: Math.max(inset, Math.min(center, TOOLTIP_WIDTH - inset)) - 6,
+        marginLeft: 0,
+      };
+    }
+
+    const center = target_rect.top + target_rect.height / 2 - position.top;
+
+    return {
+      top: Math.max(inset, Math.min(center, TOOLTIP_HEIGHT - inset)) - 6,
+      marginTop: 0,
     };
   };
 
@@ -428,7 +455,7 @@ export function OnboardingTour() {
                           <rect
                             fill="black"
                             height={target_rect.height + 16}
-                            rx="8"
+                            rx="10"
                             width={target_rect.width + 16}
                             x={target_rect.left - 8}
                             y={target_rect.top - 8}
@@ -438,8 +465,8 @@ export function OnboardingTour() {
                       <rect
                         fill={
                           is_dark
-                            ? "rgba(0, 0, 0, 0.85)"
-                            : "rgba(0, 0, 0, 0.75)"
+                            ? "rgba(0, 0, 0, 0.62)"
+                            : "rgba(0, 0, 0, 0.45)"
                         }
                         height="100%"
                         mask={`url(#spotlight-mask-${current_step})`}
@@ -460,8 +487,8 @@ export function OnboardingTour() {
                             ? "var(--accent-color-hover)"
                             : "var(--accent-color)",
                           "--tour-color-fade": is_dark
-                            ? "color-mix(in srgb, var(--accent-color-hover) 25%, transparent)"
-                            : "color-mix(in srgb, var(--accent-color) 20%, transparent)",
+                            ? "color-mix(in srgb, var(--accent-color-hover) 30%, transparent)"
+                            : "color-mix(in srgb, var(--accent-color) 25%, transparent)",
                         } as React.CSSProperties
                       }
                     />
@@ -474,8 +501,8 @@ export function OnboardingTour() {
                     role="button"
                     style={{
                       backgroundColor: is_dark
-                        ? "rgba(0, 0, 0, 0.85)"
-                        : "rgba(0, 0, 0, 0.75)",
+                        ? "rgba(0, 0, 0, 0.62)"
+                        : "rgba(0, 0, 0, 0.45)",
                     }}
                     tabIndex={0}
                     onClick={handle_skip}
@@ -509,7 +536,12 @@ export function OnboardingTour() {
                       ease: "easeOut",
                     }}
                   >
-                    {is_positioned && <div className={get_arrow_class()} />}
+                    {is_positioned && (
+                      <div
+                        className={get_arrow_class()}
+                        style={get_arrow_style()}
+                      />
+                    )}
                     <button
                       className="absolute top-4 end-4 z-10 p-2 rounded-[14px] transition-colors hover:bg-black/5 dark:hover:bg-white/10 disabled:opacity-50 text-txt-muted"
                       disabled={is_transitioning}
@@ -520,20 +552,10 @@ export function OnboardingTour() {
 
                     <div className="px-8 pt-8 pb-6">
                       <div className="flex items-start gap-1 mb-3">
-                        <div
-                          className="text-sm font-medium px-2.5 py-1 rounded-md"
-                          style={{
-                            backgroundColor: is_dark
-                              ? "color-mix(in srgb, var(--accent-color-hover) 15%, transparent)"
-                              : "color-mix(in srgb, var(--accent-color) 10%, transparent)",
-                            color: is_dark
-                              ? "var(--accent-color-hover)"
-                              : "var(--accent-color)",
-                          }}
-                        >
+                        <span className="aster_badge aster_badge_blue tabular-nums select-none">
                           {t("common.step")} {current_step + 1} {t("common.of")}{" "}
                           {format_number(onboarding_steps.length)}
-                        </div>
+                        </span>
                       </div>
 
                       <h2 className="text-2xl font-bold mb-3 text-txt-primary">

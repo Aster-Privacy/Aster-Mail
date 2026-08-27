@@ -59,7 +59,10 @@ import {
   emit_mail_soft_refresh,
 } from "@/hooks/mail_events";
 import { print_email } from "@/utils/print_email";
-import { execute_unsubscribe } from "@/utils/unsubscribe_detector";
+import {
+  execute_unsubscribe,
+  get_manual_unsubscribe_url,
+} from "@/utils/unsubscribe_detector";
 import { persist_unsubscribe } from "@/hooks/use_unsubscribed_senders";
 import {
   adjust_stats_spam,
@@ -159,96 +162,94 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
     [deps.t],
   );
 
-  const handle_reply = useCallback((options?: { reply_all?: boolean }) => {
-    if (
-      !deps.email ||
-      !deps.on_reply ||
-      is_system_email(deps.email)
-    )
-      return;
-    const is_reply_all =
-      options?.reply_all === true ||
-      deps.preferences_default_reply_behavior === "reply_all";
-    const is_own_message =
-      deps.mail_item?.item_type === "sent" ||
-      (!!deps.current_user_email &&
-        same_address_ignoring_dots(
-          deps.email.sender_email,
-          deps.current_user_email,
-        ));
-    const is_forwarded = !is_own_message && !!deps.email.display_sender_email;
-    const { recipient_name, recipient_email } = build_reply_recipient(
-      {
-        sender_name: deps.email.sender,
-        sender_email: deps.email.sender_email,
-        first_to: deps.email.to?.[0],
-        reply_to: deps.email.reply_to,
-        reply_alias: is_forwarded
-          ? { name: deps.email.sender, email: deps.email.sender_email }
-          : undefined,
-        own_addresses: deps.current_user_email
-          ? [deps.current_user_email]
-          : undefined,
-      },
-      is_own_message,
-    );
+  const handle_reply = useCallback(
+    (options?: { reply_all?: boolean }) => {
+      if (!deps.email || !deps.on_reply || is_system_email(deps.email)) return;
+      const is_reply_all =
+        options?.reply_all === true ||
+        deps.preferences_default_reply_behavior === "reply_all";
+      const is_own_message =
+        deps.mail_item?.item_type === "sent" ||
+        (!!deps.current_user_email &&
+          same_address_ignoring_dots(
+            deps.email.sender_email,
+            deps.current_user_email,
+          ));
+      const is_forwarded = !is_own_message && !!deps.email.display_sender_email;
+      const { recipient_name, recipient_email } = build_reply_recipient(
+        {
+          sender_name: deps.email.sender,
+          sender_email: deps.email.sender_email,
+          first_to: deps.email.to?.[0],
+          reply_to: deps.email.reply_to,
+          reply_alias: is_forwarded
+            ? { name: deps.email.sender, email: deps.email.sender_email }
+            : undefined,
+          own_addresses: deps.current_user_email
+            ? [deps.current_user_email]
+            : undefined,
+        },
+        is_own_message,
+      );
 
-    const to_emails = deps.email.to?.map((r) => r.email) ?? [];
-    const cc_emails = deps.email.cc?.map((r) => r.email) ?? [];
-    const reply_from_address = build_reply_from_address(
-      {
-        sender_email: deps.email.sender_email,
-        received_on_alias:
-          resolve_received_on_alias(
-            deps.mail_item?.routing_token,
-            get_cached_aliases(),
-          ) ??
-          get_cached_alias_for_routing_token(deps.mail_item?.routing_token) ??
-          get_cached_ghost_for_routing_token(deps.mail_item?.routing_token),
-      },
-      is_own_message,
-    );
+      const to_emails = deps.email.to?.map((r) => r.email) ?? [];
+      const cc_emails = deps.email.cc?.map((r) => r.email) ?? [];
+      const reply_from_address = build_reply_from_address(
+        {
+          sender_email: deps.email.sender_email,
+          received_on_alias:
+            resolve_received_on_alias(
+              deps.mail_item?.routing_token,
+              get_cached_aliases(),
+            ) ??
+            get_cached_alias_for_routing_token(deps.mail_item?.routing_token) ??
+            get_cached_ghost_for_routing_token(deps.mail_item?.routing_token),
+        },
+        is_own_message,
+      );
 
-    const rfc_message_id = deps.email.raw_headers?.find(
-      (h) => h.name.toLowerCase() === "message-id",
-    )?.value;
+      const rfc_message_id = deps.email.raw_headers?.find(
+        (h) => h.name.toLowerCase() === "message-id",
+      )?.value;
 
-    const data: ReplyData = {
-      recipient_name,
-      recipient_email,
-      recipient_avatar: "",
-      ...(is_forwarded
-        ? {
-            quote_sender_name:
-              deps.email.display_sender_name || deps.email.sender,
-            quote_sender_email: deps.email.display_sender_email,
-          }
-        : {}),
-      original_subject: deps.email.subject,
-      original_body: deps.email.body,
-      original_timestamp: deps.email.timestamp,
-      thread_token: deps.email.thread_token,
-      original_email_id: deps.email.id,
-      is_external: deps.is_external,
-      original_to: to_emails,
-      reply_from_address,
-      original_rfc_message_id: rfc_message_id,
-    };
+      const data: ReplyData = {
+        recipient_name,
+        recipient_email,
+        recipient_avatar: "",
+        ...(is_forwarded
+          ? {
+              quote_sender_name:
+                deps.email.display_sender_name || deps.email.sender,
+              quote_sender_email: deps.email.display_sender_email,
+            }
+          : {}),
+        original_subject: deps.email.subject,
+        original_body: deps.email.body,
+        original_timestamp: deps.email.timestamp,
+        thread_token: deps.email.thread_token,
+        original_email_id: deps.email.id,
+        is_external: deps.is_external,
+        original_to: to_emails,
+        reply_from_address,
+        original_rfc_message_id: rfc_message_id,
+      };
 
-    if (is_reply_all) {
-      data.reply_all = true;
-      data.original_cc = cc_emails;
-    }
+      if (is_reply_all) {
+        data.reply_all = true;
+        data.original_cc = cc_emails;
+      }
 
-    deps.on_reply(data);
-  }, [
-    deps.email,
-    deps.on_reply,
-    deps.preferences_default_reply_behavior,
-    deps.is_external,
-    deps.mail_item,
-    deps.current_user_email,
-  ]);
+      deps.on_reply(data);
+    },
+    [
+      deps.email,
+      deps.on_reply,
+      deps.preferences_default_reply_behavior,
+      deps.is_external,
+      deps.mail_item,
+      deps.current_user_email,
+    ],
+  );
 
   const handle_forward = useCallback(() => {
     if (!deps.email || !deps.on_forward) return;
@@ -701,6 +702,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
     if (deps.mail_item.is_trashed) {
       deps.set_is_trash_loading(true);
       const deleted = !!(await permanent_delete_mail_item(deps.email_id)).data;
+
       deps.set_is_trash_loading(false);
 
       if (deleted) {
@@ -844,7 +846,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
           "auto",
         );
       } else {
-        const url = info.unsubscribe_link || info.unsubscribe_mailto;
+        const url = get_manual_unsubscribe_url(info);
         const lockdown = is_any_lockdown_active();
 
         show_action_toast({
@@ -852,12 +854,13 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
           action_type: "not_spam",
           email_ids: [],
           duration_ms: 15000,
-          ...(!lockdown && {
-            action_label: deps.t("mail.open_unsubscribe_page"),
-            on_undo: async () => {
-              if (url) open_external(url);
-            },
-          }),
+          ...(!lockdown &&
+            url && {
+              action_label: deps.t("mail.open_unsubscribe_page"),
+              on_undo: async () => {
+                open_external(url);
+              },
+            }),
         });
       }
     } catch {

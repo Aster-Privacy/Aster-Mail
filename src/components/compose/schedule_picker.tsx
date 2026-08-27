@@ -22,7 +22,6 @@ import type { TranslationKey } from "@/lib/i18n/types";
 
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { isBefore } from "date-fns";
-import { is_future_instant } from "@/utils/schedule_targets";
 import {
   ClockIcon,
   CalendarIcon,
@@ -32,6 +31,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { Button, Tooltip } from "@aster/ui";
 
+import { is_future_instant } from "@/utils/schedule_targets";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
@@ -223,7 +223,8 @@ export function SchedulePicker({
           <ClockIcon className="w-3.5 h-3.5" />
           <span>{format_datetime_hint(scheduled_time, false)}</span>
           <button
-            className="ms-0.5 hover:bg-blue-500/20 rounded p-0.5 transition-colors"
+            className="ms-0.5 hover:bg-blue-500/20 rounded p-0.5 transition-colors disabled:opacity-50"
+            disabled={disabled}
             type="button"
             onClick={handle_clear}
           >

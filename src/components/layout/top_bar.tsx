@@ -88,16 +88,19 @@ function IconButton({
   children,
   label,
   on_click,
+  onboarding_key,
 }: {
   children: React.ReactNode;
   label: string;
   on_click: () => void;
+  onboarding_key?: string;
 }) {
   return (
     <Tooltip tip={label}>
       <button
         aria-label={label}
         className="flex items-center justify-center w-9 h-9 rounded-full transition-colors text-[var(--text-primary)] hover:bg-[var(--bg-hover)] focus:outline-none"
+        data-onboarding={onboarding_key}
         type="button"
         onClick={on_click}
       >
@@ -328,7 +331,11 @@ function top_bar_base({
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <IconButton label={t("settings.title")} on_click={on_settings_click}>
+        <IconButton
+          label={t("settings.title")}
+          on_click={on_settings_click}
+          onboarding_key="settings-button"
+        >
           <Cog6ToothIcon className="w-5 h-5" />
         </IconButton>
 

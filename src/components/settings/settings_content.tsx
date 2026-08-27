@@ -41,7 +41,11 @@ import {
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
-import { BillingSection, FamilySection } from "./settings_lazy_sections";
+import {
+  BillingSection,
+  FamilySection,
+  StorageSection,
+} from "./settings_lazy_sections";
 import { set_persisted_section } from "./settings_content_helpers";
 import { use_settings_content } from "./use_settings_content";
 
@@ -152,6 +156,12 @@ function SettingsContentInner(props: SettingsContentProps) {
         return (
           <Suspense fallback={<SettingsSkeleton variant="billing" />}>
             <BillingSection />
+          </Suspense>
+        );
+      case "storage":
+        return (
+          <Suspense fallback={<SettingsSkeleton />}>
+            <StorageSection />
           </Suspense>
         );
       case "family":
@@ -501,10 +511,11 @@ function SettingsContentInner(props: SettingsContentProps) {
               is_onion_host()
                 ? undefined
                 : () => {
-                    on_section_change("billing");
+                    on_section_change("storage");
                     scroll_to_storage_addons();
                   }
             }
+            on_open={() => on_section_change("storage")}
             storage_percentage={storage_percentage}
             storage_total_bytes={
               mail_stats_ready ? mail_stats.storage_total_bytes : 0
@@ -528,6 +539,7 @@ function SettingsContentInner(props: SettingsContentProps) {
               {!show_mobile_nav && (
                 <span className="md:hidden -ms-1.5 inline-flex">
                   <Button
+                    aria-label={t("common.back")}
                     size="icon"
                     variant="ghost"
                     onClick={() => set_show_mobile_nav(true)}
@@ -548,7 +560,12 @@ function SettingsContentInner(props: SettingsContentProps) {
             </div>
 
             <div className="flex flex-1 items-center justify-end">
-              <Button size="icon" variant="ghost" onClick={on_close}>
+              <Button
+                aria-label={t("common.close")}
+                size="icon"
+                variant="ghost"
+                onClick={on_close}
+              >
                 <XMarkIcon className="w-5 h-5" />
               </Button>
             </div>

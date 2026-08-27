@@ -21,7 +21,6 @@
 import type { DecryptedTemplate } from "@/services/api/templates";
 
 import { useState, useCallback, useEffect } from "react";
-import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   PlusIcon,
@@ -31,9 +30,11 @@ import {
 
 import { SettingsHeader } from "./shared";
 
+import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_templates } from "@/contexts/templates_context";
 import { Spinner } from "@/components/ui/spinner";
+import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { Input } from "@/components/ui/input";
 import {
   list_templates,
@@ -86,6 +87,9 @@ export function TemplatesSection({
     set_show_form(true);
   }, []);
 
+  const [load_failed, set_load_failed] = useState(false);
+  const [reload_token, set_reload_token] = useState(0);
+
   useEffect(() => {
     let cancelled = false;
 
@@ -93,17 +97,23 @@ export function TemplatesSection({
       const res = await list_templates();
 
       if (!cancelled) {
-        if (res.error) set_error(res.error);
-        else if (res.data) set_templates(res.data.templates);
+        if (res.data) {
+          set_templates(res.data.templates);
+          set_load_failed(false);
+        } else {
+          set_error(res.error || null);
+          set_load_failed(true);
+        }
         set_is_loading(false);
       }
     }
+    set_is_loading(true);
     load();
 
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [reload_token]);
 
   const handle_save = useCallback(async () => {
     if (is_saving) return;
@@ -346,7 +356,13 @@ export function TemplatesSection({
                   {t("settings.add_template")}
                 </motion.button>
               </div>
-              {templates.length === 0 ? (
+              {templates.length === 0 && load_failed ? (
+                <div className="px-4 pt-6">
+                  <LoadFailedNotice
+                    on_retry={() => set_reload_token((prev) => prev + 1)}
+                  />
+                </div>
+              ) : templates.length === 0 ? (
                 <div className="flex flex-col items-center justify-center gap-3 px-8 pt-16">
                   <DocumentTextIcon className="h-16 w-16 text-[var(--mobile-text-muted)] opacity-40" />
                   <p className="text-center text-[15px] text-[var(--mobile-text-muted)]">

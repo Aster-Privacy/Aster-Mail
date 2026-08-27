@@ -189,14 +189,21 @@ export async function fetch_onboarding_checklist(): Promise<ChecklistFetchResult
   }
 }
 
-export async function dismiss_onboarding_checklist(): Promise<void> {
+export async function dismiss_onboarding_checklist(): Promise<boolean> {
   try {
-    await api_client.post<void>("/core/v1/onboarding/checklist/dismiss", {});
+    const response = await api_client.post<void>(
+      "/core/v1/onboarding/checklist/dismiss",
+      {},
+    );
+
+    return !response.error;
   } catch (caught) {
     ignore_error(
       "services/api/onboarding:dismiss_onboarding_checklist",
       caught,
     );
+
+    return false;
   }
 }
 

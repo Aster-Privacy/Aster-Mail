@@ -337,18 +337,12 @@ export const RegisterStepRecoveryEmail = ({
       <Button
         className="w-full mt-6"
         disabled={reg.is_saving_recovery_email}
+        is_loading={reg.is_saving_recovery_email}
         size="xl"
         variant="depth"
         onClick={reg.handle_recovery_email_continue}
       >
-        {reg.is_saving_recovery_email ? (
-          <>
-            {reg.t("common.saving")}
-            <Spinner className="ms-2" size="md" />
-          </>
-        ) : (
-          reg.t("common.continue")
-        )}
+        {reg.t("common.continue")}
       </Button>
 
       {!reg.recovery_email_required && (
@@ -425,18 +419,12 @@ export const RegisterStepRecoveryEmailGate = ({
       <Button
         className="w-full mt-6"
         disabled={reg.is_saving_recovery_email}
+        is_loading={reg.is_saving_recovery_email}
         size="xl"
         variant="depth"
         onClick={reg.handle_recovery_email_gate_submit}
       >
-        {reg.is_saving_recovery_email ? (
-          <>
-            {reg.t("common.saving")}
-            <Spinner className="ms-2" size="md" />
-          </>
-        ) : (
-          reg.t("common.continue")
-        )}
+        {reg.t("common.continue")}
       </Button>
     </motion.div>
   );

@@ -443,7 +443,7 @@ export function PopupEmailHeader({
                     <>
                       <div className="border-t border-edge-primary pt-2 mt-1">
                         <button
-                          className="text-xs text-accent-primary hover:text-accent-secondary transition-colors"
+                          className="text-xs text-brand hover:text-brand-hover transition-colors"
                           onClick={() => set_show_headers(!show_headers)}
                         >
                           {show_headers

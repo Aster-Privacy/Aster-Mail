@@ -100,7 +100,7 @@ export function ContactPgpKeyRow({
 }: {
   email: string;
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
-  on_copy: (text: string, field: string) => void;
+  on_copy: (text: string, field: string) => void | Promise<boolean | void>;
 }) {
   const [key_info, set_key_info] = useState<ExternalKeyInfo | null>(null);
   const [is_loading, set_is_loading] = useState(true);
@@ -161,8 +161,8 @@ export function ContactPgpKeyRow({
                 {t("common.something_went_wrong_try_again")}
               </p>
               <button
+                className="text-[12px] text-brand hover:underline"
                 type="button"
-                className="text-[12px] text-accent-primary hover:underline"
                 onClick={() => set_retry_token((value) => value + 1)}
               >
                 {t("common.retry")}
@@ -205,8 +205,13 @@ export function ContactPgpKeyRow({
           <Button
             size="sm"
             variant="ghost"
-            onClick={() => {
-              on_copy(key_info.public_key as string, field_key);
+            onClick={async () => {
+              const copied = await on_copy(
+                key_info.public_key as string,
+                field_key,
+              );
+
+              if (copied === false) return;
               show_toast(t("common.copied"), "success");
             }}
           >
@@ -236,9 +241,11 @@ export function ContactPgpKeyRow({
             <Button
               size="sm"
               variant="ghost"
-              onClick={() => {
+              onClick={async () => {
                 if (!key_info?.public_key) return;
-                on_copy(key_info.public_key, field_key);
+                const copied = await on_copy(key_info.public_key, field_key);
+
+                if (copied === false) return;
                 show_toast(t("common.copied"), "success");
               }}
             >

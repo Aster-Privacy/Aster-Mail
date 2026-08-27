@@ -35,6 +35,7 @@ import {
 import { use_i18n } from "@/lib/i18n/context";
 import { CountBadge } from "@/components/common/count_badge";
 import { NavSectionSkeleton } from "@/components/common/nav_section_skeleton";
+import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { RailUnreadDot } from "@/components/common/rail_unread_dot";
 import { PROFILE_COLORS, get_gradient_background } from "@/constants/profile";
 import { AliasContextMenu } from "@/components/layout/sidebar/alias_context_menu";
@@ -100,6 +101,8 @@ interface SidebarAliasesProps {
   section_collapsed?: boolean;
   on_toggle_section?: () => void;
   unread_counts?: Record<string, number>;
+  load_failed?: boolean;
+  on_retry?: () => void;
 }
 
 export const SidebarAliases = memo(function SidebarAliases({
@@ -118,6 +121,8 @@ export const SidebarAliases = memo(function SidebarAliases({
   section_collapsed = false,
   on_toggle_section,
   unread_counts = {},
+  load_failed = false,
+  on_retry,
 }: SidebarAliasesProps) {
   const { t } = use_i18n();
 
@@ -147,10 +152,11 @@ export const SidebarAliases = memo(function SidebarAliases({
               </span>
             </button>
             <button
+              aria-label={t("settings.create_alias")}
               className="p-1 rounded-[14px]  hover:bg-black/[0.06] dark:hover:bg-white/[0.08] text-icon-muted"
               onClick={on_create_alias}
             >
-              <PlusIcon className="w-4 h-4" />
+              <PlusIcon aria-hidden="true" className="w-4 h-4" />
             </button>
           </div>
         </div>
@@ -261,11 +267,14 @@ export const SidebarAliases = memo(function SidebarAliases({
         {aliases.length === 0 &&
           !is_loading &&
           !is_collapsed &&
-          !section_collapsed && (
+          !section_collapsed &&
+          (load_failed && on_retry ? (
+            <LoadFailedNotice on_retry={on_retry} />
+          ) : (
             <p className="text-[11px] px-2.5 py-2 text-txt-muted">
               {t("common.no_aliases_yet")}
             </p>
-          )}
+          ))}
       </div>
     </>
   );

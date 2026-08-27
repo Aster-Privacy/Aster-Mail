@@ -27,6 +27,7 @@ import { XMarkIcon } from "@heroicons/react/24/outline";
 import { cn } from "@/lib/utils";
 import { use_dialog_shell } from "@/lib/use_dialog_shell";
 import { use_should_reduce_motion } from "@/provider";
+import { use_i18n } from "@/lib/i18n/context";
 
 interface ModalProps {
   is_open: boolean;
@@ -79,6 +80,7 @@ export function Modal({
   z_index,
 }: ModalProps) {
   const reduce_motion = use_should_reduce_motion();
+  const { t } = use_i18n();
   const instance_id = React.useId().replace(/:/g, "");
 
   const { dialog_ref, handle_backdrop_pointer_down } =
@@ -144,6 +146,7 @@ export function Modal({
           >
             {show_close_button && (
               <button
+                aria-label={t("common.close")}
                 className="aster_modal_close absolute end-5 top-5 z-10 flex items-center justify-center rounded-[14px] transition-colors hover:bg-black/5 dark:hover:bg-white/10"
                 style={{ width: 28, height: 28, padding: 0 }}
                 type="button"

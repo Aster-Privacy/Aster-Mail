@@ -18,7 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { copy_text_or_throw } from "@/utils/copy_text";
 import type { Badge, BadgePreferences } from "@/services/api/user";
 import type { StepUpCredentials } from "@/services/api/step_up";
 import type { RecoveryEmailData } from "@/services/api/recovery_email";
@@ -36,6 +35,7 @@ import { Button, Switch } from "@aster/ui";
 
 import { StepUpModal } from "./step_up_modal";
 
+import { copy_text_or_throw } from "@/utils/copy_text";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
@@ -182,15 +182,8 @@ function RecoveryModal({
         <Button variant="ghost" onClick={on_close}>
           {t("common.cancel")}
         </Button>
-        <Button disabled={saving} onClick={handle_save}>
-          {saving ? (
-            <>
-              {t("common.saving")}
-              <Spinner className="ms-2" size="md" />
-            </>
-          ) : (
-            t("common.save")
-          )}
+        <Button disabled={saving} is_loading={saving} onClick={handle_save}>
+          {t("common.save")}
         </Button>
       </ModalFooter>
     </Modal>

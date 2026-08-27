@@ -30,6 +30,22 @@ import { Input } from "@/components/ui/input";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_escape_layer } from "@/lib/overlay_layer_stack";
 
+function normalize_hex_color(value: string): string | null {
+  const trimmed = value.trim().toLowerCase().replace(/^#/, "");
+
+  if (/^[0-9a-f]{3}$/.test(trimmed)) {
+    const [r, g, b] = trimmed;
+
+    return `#${r}${r}${g}${g}${b}${b}`;
+  }
+
+  if (/^[0-9a-f]{6}$/.test(trimmed)) {
+    return `#${trimmed}`;
+  }
+
+  return null;
+}
+
 export function ColorPickerPopover({
   font_color,
   bg_color,
@@ -246,6 +262,16 @@ export function ColorPickerPopover({
                   }}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
+                      const normalized = normalize_hex_color(custom_hex);
+
+                      if (normalized) {
+                        set_custom_hex(normalized);
+                        if (mode === "text") {
+                          on_font_color_change(normalized);
+                        } else {
+                          on_bg_color_change(normalized);
+                        }
+                      }
                       set_open(false);
                     }
                   }}

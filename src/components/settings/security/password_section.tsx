@@ -273,6 +273,11 @@ export function PasswordSection({
                   }
                 />
                 <button
+                  aria-label={
+                    show_current_password
+                      ? t("settings.hide_password_toggle")
+                      : t("settings.show_password_toggle")
+                  }
                   className="absolute end-3 top-1/2 -translate-y-1/2 text-txt-muted"
                   type="button"
                   onClick={() =>
@@ -311,6 +316,11 @@ export function PasswordSection({
                   }
                 />
                 <button
+                  aria-label={
+                    show_new_password
+                      ? t("settings.hide_password_toggle")
+                      : t("settings.show_password_toggle")
+                  }
                   className="absolute end-3 top-1/2 -translate-y-1/2 text-txt-muted"
                   type="button"
                   onClick={() => set_show_new_password(!show_new_password)}
@@ -397,12 +407,11 @@ export function PasswordSection({
           </Button>
           <Button
             disabled={!can_submit}
+            is_loading={password_loading}
             variant="depth"
             onClick={on_change_password}
           >
-            {password_loading
-              ? t("settings.updating")
-              : t("settings.update_password")}
+            {t("settings.update_password")}
           </Button>
         </ModalFooter>
       </Modal>

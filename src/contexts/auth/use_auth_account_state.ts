@@ -764,19 +764,16 @@ export function use_auth_account_state() {
 
       const link_result = await link_account_device();
 
-      if (link_result.error) {
+      if (link_result.code === "FORBIDDEN") {
         await storage_remove_account(user.id);
         clear_vault_from_memory();
         set_is_adding_account(false);
 
         return {
           success: false,
-          error:
-            link_result.code === "FORBIDDEN"
-              ? t("auth.account_limit_for_plan", {
-                  max: link_result.data?.max_accounts ?? 0,
-                })
-              : link_result.error,
+          error: t("auth.account_limit_for_plan", {
+            max: link_result.data?.max_accounts ?? 0,
+          }),
         };
       }
 

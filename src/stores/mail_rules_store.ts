@@ -159,9 +159,17 @@ export async function load_rules(): Promise<void> {
   }
 }
 
+let last_save_error: string | null = null;
+
+export function get_last_save_error(): string | null {
+  return last_save_error;
+}
+
 export async function create_rule(
   req: CreateRuleRequest,
 ): Promise<Rule | null> {
+  last_save_error = null;
+
   const response = await api_create_rule(req);
 
   if (response.data) {
@@ -179,6 +187,7 @@ export async function create_rule(
     return created;
   }
 
+  last_save_error = response.error ?? null;
   set_state({ error: response.error || "Failed to create rule" });
 
   return null;
@@ -188,6 +197,8 @@ export async function update_rule(
   id: string,
   patch: UpdateRuleRequest,
 ): Promise<Rule | null> {
+  last_save_error = null;
+
   const previous = state.rules;
   const optimistic = state.rules.map((r) =>
     r.id === id ? ({ ...r, ...patch } as Rule) : r,
@@ -205,6 +216,7 @@ export async function update_rule(
     return response.data;
   }
 
+  last_save_error = response.error ?? null;
   set_state({
     rules: previous,
     error: response.error || "Failed to update rule",
@@ -217,6 +229,7 @@ export async function delete_rule(id: string): Promise<boolean> {
   const previous = state.rules;
 
   set_state({ rules: state.rules.filter((r) => r.id !== id) });
+  stop_run_poll(id);
 
   const response = await api_delete_rule(id);
 

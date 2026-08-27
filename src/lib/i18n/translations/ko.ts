@@ -1016,15 +1016,15 @@ export const ko = {
     purchase_thank_you: "구매해 주셔서 감사합니다. 구독이 활성화되었습니다.",
     view_billing_settings: "결제 설정 보기",
     welcome_description:
-      "안전하고 개인적인 이메일 플랫폼을 시작하는 데 도움이 되는 간단한 둘러보기를 해보겠습니다.",
+      "이 둘러보기는 약 1분 걸립니다. 첫날에 도움이 되는 네 가지를 안내합니다.",
     organize_with_folders: "폴더로 정리하기",
     organize_folders_description:
-      "이메일을 정리하기 위한 사용자 정의 폴더를 만드세요. 폴더 옆의 + 버튼을 클릭하여 첫 번째 폴더를 만드세요.",
+      "메일을 폴더로 끌어다 놓아 정리하거나, 여러 개를 선택해 한 번에 옮길 수 있습니다. 폴더를 추가하려면 폴더 옆의 +를 클릭하세요.",
     customize_settings_description:
-      "환경을 맞춤 설정하고, 보안 설정을 관리하며, 계정 환경설정을 구성하세요.",
-    youre_ready: "준비 완료",
+      "설정에서 별칭을 추가하고, 사용자 지정 도메인을 연결하고, 2단계 인증을 켤 수 있습니다.",
+    youre_ready: "준비되었습니다",
     youre_ready_description:
-      "다 됐습니다! Aster Mail 사용을 시작할 준비가 되었습니다. 이메일은 종단간 암호화되어 완전히 비공개입니다.",
+      "메일은 종단 간 암호화되며 키는 회원님만 가지고 있습니다. 아무 때나 ?를 누르면 모든 키보드 단축키를 볼 수 있습니다.",
     skip_tour: "둘러보기 건너뛰기",
     get_started: "시작하기",
     setup_complete: "설정 완료!",
@@ -1272,6 +1272,11 @@ export const ko = {
     subject_too_long:
       "제목이 998자 제한을 넘습니다. 더 짧은 형태면 발송됩니다.",
     notification_banner_no_thanks: "괜찮습니다",
+    payment_past_due_message:
+      "지난 결제가 처리되지 않았습니다. 요금제를 유지하려면 결제 수단을 업데이트하세요.",
+    payment_past_due_message_days:
+      "지난 결제가 처리되지 않았습니다. 요금제를 유지하려면 {{days}}일 이내에 결제 수단을 업데이트하세요.",
+    payment_past_due_action: "결제 업데이트",
     ghost_label: "고스트",
     ghost_mode_tooltip:
       "고스트 모드로 전송되었습니다. 실제 주소가 숨겨졌습니다.",
@@ -1675,6 +1680,23 @@ export const ko = {
     onboarding_checklist_import_mail: "이전 메일 가져오기",
     onboarding_checklist_recovery_method: "복구 방법 추가",
     onboarding_checklist_first_email: "첫 번째 이메일 보내기",
+    first_run_title: "받은편지함이 준비되었습니다",
+    first_run_subtitle:
+      "기존 메일을 지금 가져오거나 나중에 설정에서 가져올 수 있습니다.",
+    first_run_import: "메일 가져오기",
+    first_run_skip: "빈 받은편지함으로 시작",
+    first_run_privacy_note:
+      "메일은 사용자의 기기에서 암호화됩니다. Aster는 내용을 읽을 수 없습니다.",
+    recovery_reminder_title: "계정으로 돌아올 방법 추가",
+    recovery_reminder_body:
+      "Aster는 비밀번호로 메일을 암호화하므로 누구도 대신 재설정할 수 없습니다. 접근을 유지하려면 복구 이메일을 추가하세요.",
+    recovery_reminder_action: "복구 이메일 추가",
+    recovery_reminder_later: "나중에",
+    plan_prompt_title: "무료 요금제를 사용 중입니다",
+    plan_prompt_body:
+      "유료 요금제에서는 저장 공간이 늘어나고 맞춤 도메인과 무제한 별칭을 사용할 수 있습니다.",
+    plan_prompt_action: "요금제 보기",
+    plan_prompt_dismiss: "닫기",
     device_revoked:
       "이 기기가 계정에서 제거되어 로그아웃되었습니다. 본인이 아니라면 astermail.org/security에서 즉시 비밀번호를 변경하세요.",
     allow_sender: "허용 목록에 추가",
@@ -3616,6 +3638,13 @@ export const ko = {
     ipfs_disabled_description:
       "분산형 복원력 있는 저장소를 위해 IPFS에 첨부 파일을 저장합니다",
     forward_secrecy: "전방 비밀성",
+    forward_secrecy_disable_title: "순방향 비밀성을 끌까요?",
+    forward_secrecy_disable_message:
+      "새 메시지에 순환 키가 더 이상 사용되지 않으므로, 나중에 유출된 키로 더 많은 메일이 열릴 수 있습니다. 언제든지 다시 켤 수 있습니다.",
+    login_alerts_disable_title: "로그인 알림을 끌까요?",
+    login_alerts_disable_message:
+      "새 기기가 계정에 로그인할 때 이메일을 받지 않게 됩니다.",
+    turn_off_action: "끄기",
     forward_secrecy_enabled_description: "키가 {{frequency}}마다 교체됩니다",
     forward_secrecy_disabled_description:
       "보안 강화를 위해 자동으로 암호화 키를 교체합니다",
@@ -3812,15 +3841,18 @@ export const ko = {
     translate_add_language: "언어 추가",
     translate_auto_detected: "기기에서 자동 감지됨",
     translate_confirm_title: "번역을 켤까요?",
-    translate_confirm_description: "Aster는 기기에서 메일을 번역하므로 읽는 내용이 번역 서비스로 전송되지 않습니다. 어떤 언어에서 처음 번역할 때 Aster가 20~55MB 크기의 언어 팩을 다운로드해 이 기기에 보관합니다. 언제든지 팩을 제거할 수 있습니다.",
+    translate_confirm_description:
+      "Aster는 기기에서 메일을 번역하므로 읽는 내용이 번역 서비스로 전송되지 않습니다. 어떤 언어에서 처음 번역할 때 Aster가 20~55MB 크기의 언어 팩을 다운로드해 이 기기에 보관합니다. 언제든지 팩을 제거할 수 있습니다.",
     translate_confirm_enable: "켜기",
     translation_packs: "다운로드한 언어 팩",
-    translation_packs_description: "언어 팩은 이 기기에 저장됩니다. 공간을 확보하려면 팩을 제거하세요. 해당 언어를 다시 번역할 때 Aster가 다시 다운로드합니다.",
+    translation_packs_description:
+      "언어 팩은 이 기기에 저장됩니다. 공간을 확보하려면 팩을 제거하세요. 해당 언어를 다시 번역할 때 Aster가 다시 다운로드합니다.",
     translation_packs_empty: "아직 다운로드한 언어 팩이 없습니다.",
     translation_packs_total: "이 기기에서 {{size}} 사용 중",
     translation_packs_remove: "제거",
     translation_packs_remove_all: "모두 제거",
-    translation_packs_unavailable: "이 브라우저는 언어 팩을 저장할 수 없으므로 Aster가 번역할 때마다 다운로드합니다.",
+    translation_packs_unavailable:
+      "이 브라우저는 언어 팩을 저장할 수 없으므로 Aster가 번역할 때마다 다운로드합니다.",
 
     block_external_content: "외부 콘텐츠 차단",
     block_external_content_description:
@@ -4129,12 +4161,15 @@ export const ko = {
     any_email_import_description: "MBOX, EML, CSV, PST 파일",
     search_history: "검색 기록",
     folders_limit: "폴더",
-    onboarding_compose_title: "새 이메일 작성",
-    onboarding_compose_description: "새 이메일을 작성하려면 여기를 클릭하세요",
-    onboarding_search_title: "이메일 검색",
-    onboarding_search_description: "검색 바를 사용하여 이메일을 찾으세요",
+    onboarding_compose_title: "첫 메일 작성하기",
+    onboarding_compose_description:
+      "받은편지함에서 C를 누르면 작성이 시작됩니다. Aster는 메일을 보내기 전에 기기에서 암호화합니다.",
+    onboarding_search_title: "비공개로 무엇이든 찾기",
+    onboarding_search_description:
+      "/를 누르면 검색으로 바로 이동합니다. 키보드에서 손을 떼지 않고 보낸 사람, 날짜, 첨부 파일로 좁힐 수 있습니다.",
     delete_imported_emails_confirm: "가져온 이메일을 삭제하시겠습니까?",
-    import_delete_warning: "이 가져오기로 추가된 메일이 영구적으로 삭제됩니다. 되돌릴 수 없습니다.",
+    import_delete_warning:
+      "이 가져오기로 추가된 메일이 영구적으로 삭제됩니다. 되돌릴 수 없습니다.",
     all_emails_filter: "모든 이메일",
     choose_label_color: "라벨 색상 선택",
     hex_color_value: "16진수 색상 값",
@@ -5169,7 +5204,7 @@ export const ko = {
     billing_banner_cta: "옵션 살펴보기",
     storage_addons: "추가 저장 공간",
     storage_addons_monthly_note:
-      "추가 저장 공간은 요금제를 연간 결제하더라도 매월 청구됩니다.",
+      "추가 저장 공간은 매월 갱신되며 요금제와 별도로 청구됩니다. 암호화폐로 결제하면 선결제 기간을 직접 선택할 수 있습니다.",
     storage_addons_description:
       "더 많은 공간이 필요하세요? 계정에 추가 암호화된 저장 공간을 구매하세요.",
     per_month_short: "/월",
@@ -5264,6 +5299,35 @@ export const ko = {
     storage_warning_title: "저장 공간이 얼마 남지 않았습니다.",
     storage_warning_description:
       "저장 공간의 90%를 넘게 사용했습니다. 이메일 일부를 정리하거나 요금제를 업그레이드하면 새 메일이 계속 흐릅니다.",
+    storage_overview_description:
+      "무엇이 저장 공간을 차지하는지 확인하고 필요 없는 항목을 정리하세요.",
+    storage_promo_title: "추가 저장 공간 할인",
+    storage_promo_body:
+      "추가 저장 공간 첫 {{months}}개월을 {{percent}}% 할인받으세요.",
+    storage_promo_body_singular:
+      "추가 저장 공간 첫 달을 {{percent}}% 할인받으세요.",
+    storage_promo_note: "할인은 첫 저장 공간 애드온에만 적용됩니다.",
+    storage_select_option_first:
+      "저장 공간을 더 구입하려면 먼저 옵션을 선택하세요.",
+    storage_promo_cta: "추가 상품 보기",
+    storage_used_of_total: "{{total}} 중 {{used}} 사용",
+    storage_free_space: "{{size}} 남음, 저장 공간의 {{percent}} 사용 중",
+    storage_breakdown_title: "저장 공간 사용 내역",
+    storage_breakdown_empty: "아직 저장 공간을 사용하지 않았습니다.",
+    storage_col_category: "카테고리",
+    storage_col_items: "항목",
+    storage_col_size: "크기",
+    storage_col_share: "비율",
+    storage_capacity_title: "용량",
+    storage_included_with_plan: "요금제 제공 용량",
+    storage_from_addons: "추가 상품 용량",
+    storage_family_allocation: "가족 할당량",
+    storage_total_capacity: "총 용량",
+    storage_available: "사용 가능",
+    storage_cleanup_done: "저장 공간을 확보했습니다",
+    storage_cleanup_failed: "공간을 확보하지 못했습니다. 다시 시도하세요.",
+    storage_cleanup_confirm:
+      "{{count}}개 항목을 영구히 삭제하고 {{size}}를 확보합니다. 되돌릴 수 없습니다.",
     storage_locked_title: "저장 공간이 가득 찼습니다.",
     storage_locked_description:
       "공간을 비울 때까지 새 메일이 잠시 멈춰 있습니다. 이메일 일부를 정리하거나 요금제를 업그레이드하면 다시 흐릅니다. 기존 메일은 안전합니다.",
@@ -5319,6 +5383,9 @@ export const ko = {
     stripe_not_configured: "결제 시스템이 설정되지 않았습니다.",
     try_again: "다시 시도",
     view_all_features: "모든 기능 보기",
+    plan_everything_in: "{{plan}}의 모든 기능에 더해",
+    compare_features_show: "요금제별 기능 비교",
+    compare_features_hide: "비교 숨기기",
     compare_plans: "모든 플랜 비교",
     feature: "기능",
     manage_payment_methods: "결제 수단 관리",
@@ -5329,6 +5396,9 @@ export const ko = {
     card_expires: "만료",
     adding_card: "추가 중...",
     card_added: "결제 수단이 추가되었습니다",
+    payment_retry_succeeded: "결제가 완료되었습니다. 요금제가 계속 유지됩니다.",
+    payment_retry_failed:
+      "은행에서 이 카드를 거절했습니다. 다른 결제 수단을 사용해 보세요.",
     card_removed: "결제 수단이 제거되었습니다",
     default_updated: "기본 결제 수단이 업데이트되었습니다",
     payment_settled: "기본 결제 수단이 업데이트되었습니다. 미결제 금액이 결제되었습니다.",
@@ -5450,7 +5520,7 @@ export const ko = {
     credit_transactions: "크레딧 거래",
     referral_program: "추천 프로그램",
     referral_program_description:
-      "친구를 Aster에 초대하고 친구가 결제할 때마다 크레딧을 적립하세요.",
+      "친구를 Aster Mail에 초대하세요. 친구가 계정을 사용하기 시작하면 두 사람 모두 저장 공간 {{ amount }}을(를) 받습니다.",
     your_referral_link: "내 추천 링크",
     copy_link: "링크 복사",
     link_copied: "링크가 클립보드에 복사됨",
@@ -5462,11 +5532,11 @@ export const ko = {
     referral_not_eligible_description: "나중에 다시 시도해 주세요.",
     referral_loading: "추천 정보 로드 중...",
     referral_history: "추천 기록",
-    no_referrals_yet: "아직 추천이 없습니다. 링크를 공유하여 시작하세요!",
+    no_referrals_yet: "아직 초대가 없습니다. 링크를 공유해 시작하세요.",
     referral_status_pending: "대기 중",
     referral_status_completed: "완료됨",
     referral_reward_info:
-      "친구는 첫 결제에 할인을 받고, 회원님은 친구의 모든 결제에서 수익을 얻습니다.",
+      "나와 친구가 각각 저장 공간 {{ amount }}을(를) 받습니다. 친구가 계정을 며칠 사용하면 저장 공간이 지급되고, 친구가 Aster Mail을 계속 쓰는 동안 내 계정에 유지됩니다.",
     referral_commission_info:
       "추천인이 구독을 유지하는 한 모든 결제의 {{ percent }}%를 적립합니다.",
     referral_max_credits: "최대 수익: 연간 {{ value }}",
@@ -5685,7 +5755,8 @@ export const ko = {
     domain_purchase_included_heading: "도메인에 포함된 모든 기능",
     domain_purchase_renew: "갱신",
     domain_purchase_manage: "관리",
-    domain_purchase_manage_description: "이 등록 정보를 확인하고 만료 전에 갱신하세요.",
+    domain_purchase_manage_description:
+      "이 등록 정보를 확인하고 만료 전에 갱신하세요.",
     domain_purchase_manage_status: "상태",
     domain_purchase_manage_status_active: "활성",
     domain_purchase_manage_status_expiring: "곧 만료",
@@ -5693,9 +5764,11 @@ export const ko = {
     domain_purchase_manage_expires: "만료일",
     domain_purchase_manage_term: "기간",
     domain_purchase_manage_paid: "결제 금액",
-    domain_purchase_manage_auto_renew_note: "이 도메인은 자동으로 갱신되지 않습니다. 계속 사용하려면 만료일 전에 갱신하세요.",
+    domain_purchase_manage_auto_renew_note:
+      "이 도메인은 자동으로 갱신되지 않습니다. 계속 사용하려면 만료일 전에 갱신하세요.",
     domain_purchase_manage_dns: "도메인 설정 열기",
-    domain_purchase_manage_support_note: "이 도메인을 다른 등록기관으로 이전하거나 환불을 문의하려면 지원팀에 연락하세요.",
+    domain_purchase_manage_support_note:
+      "이 도메인을 다른 등록기관으로 이전하거나 환불을 문의하려면 지원팀에 연락하세요.",
     domain_purchase_manage_support_subject: "{{domain}} 관련 문의",
     domain_purchase_filter_all: "전체",
     domain_purchase_filter_available: "사용 가능",
@@ -6273,11 +6346,10 @@ export const ko = {
       "기자이신가요? 기자증과 함께 지원팀에 문의하면 코드를 받을 수 있습니다.",
     refer_a_friend: "친구 추천",
     referral_how_it_works: "작동 방식",
-    referral_step_share: "친구, 가족, 동료에게 고유한 추천 링크를 공유하세요.",
-    referral_step_signup:
-      "추천 링크를 사용하여 Aster에 가입하고 유료 플랜을 구독하면 됩니다.",
+    referral_step_share: "초대 링크를 친구, 가족, 동료에게 공유하세요.",
+    referral_step_signup: "친구가 내 링크로 계정을 만들고 사용하기 시작합니다.",
     referral_step_earn:
-      "친구가 구독을 유지하는 한 모든 결제의 일부를 적립합니다.",
+      "두 사람 모두 저장 공간 {{ amount }}을(를) 받으며, 최대 {{ max }}까지 쌓입니다.",
     referral_rewards: "보상",
     credits_title: "크레딧",
     credits_subtitle: "다양한 작업 완료로 Aster 크레딧을 적립하세요.",
@@ -6292,11 +6364,11 @@ export const ko = {
     credit_task_ios_title: "iOS용 Aster 앱 다운로드",
     credit_task_ios_hint_coming: "곧 출시 예정",
     credit_task_earned: "적립됨",
-    send_referral_to_contacts: "모든 연락처에게 이메일 보내기",
+    send_referral_to_contacts: "모든 연락처에 이메일 보내기",
     referral_email_subject:
       "Aster Mail을 사용해 보세요 - 모두를 위한 개인 이메일",
     referral_email_body:
-      "안녕하세요!\n\n저는 Aster Mail을 사용 중인데 정말 마음에 듭니다. 종단간 암호화되어 Aster 서버조차 이메일을 읽을 수 없습니다.\n\n관심이 있으시면 제 추천 링크를 사용해 주세요:\n\n{{ referral_link }}\n\n구독하시면 첫 결제에 할인이 적용되고, 저에게는 약간의 크레딧이 적립됩니다. 부담 없이 살펴보세요.\n\n감사합니다",
+      "안녕하세요.\n\n한동안 Aster Mail을 쓰고 있는데 아주 마음에 듭니다. 모든 내용이 종단 간 암호화되어 있어서 본인 말고는 아무도 메일을 읽을 수 없습니다. 서비스를 운영하는 쪽도 마찬가지입니다.\n\n한번 써보고 싶다면 제 초대 링크입니다.\n\n{{ referral_link }}\n\n사용을 시작하면 두 사람 모두 저장 공간 {{ amount }}을(를) 받으니 그쪽에도 이득입니다.\n\n감사합니다",
     referral_no_contacts: "연락처가 없습니다. 먼저 연락처를 추가하세요!",
     referral_loading_contacts: "연락처 불러오는 중...",
     two_factor_auth_disabled: "이중 인증이 비활성화되었습니다",
@@ -6660,6 +6732,47 @@ export const ko = {
     referral_discount_auto_apply:
       "결제 시 자동으로 적용되므로 따로 입력할 필요가 없습니다.",
     referral_discount_expires: "{{ date }}에 만료",
+    invite_storage_line: "두 사람 모두 저장 공간 {{ amount }}을(를) 받습니다",
+    invite_storage_note:
+      "이 링크로 무료 계정을 만드세요. 계정을 사용하기 시작하면 두 계정 모두에 저장 공간이 지급됩니다.",
+    invite_discount_note:
+      "나중에 유료 요금제로 바꾸면 {{ percent }}% 할인도 받습니다.",
+    invite_cta_create_account_storage: "무료 계정 만들기",
+    invite_friends: "친구 초대",
+    invite_sidebar_earned: "{{ amount }} 획득",
+    referral_storage_headline:
+      "친구가 가입할 때마다 저장 공간 {{ amount }}을(를) 받으세요",
+    referral_storage_subhead:
+      "친구도 {{ amount }}을(를) 받습니다. 친구가 계정을 사용하기 시작하면 지급되며 최대 {{ max }}까지입니다.",
+    referral_storage_earned_badge: "{{ amount }} 획득",
+    referral_active_referrals: "활성",
+    referral_share_button: "초대 공유",
+    referral_show_qr: "QR 코드 보기",
+    referral_hide_qr: "QR 코드 숨기기",
+    referral_qr_hint: "휴대폰 카메라를 이 코드에 비추면 초대가 열립니다.",
+    referral_qr_alt: "Aster Mail 초대 링크 QR 코드",
+    referral_share_title: "Aster Mail에서 함께해요",
+    referral_share_message:
+      "저는 종단 간 암호화 메일을 쓰려고 Aster Mail을 사용합니다. 제 링크로 가입하면 두 사람 모두 저장 공간 {{ amount }}을(를) 받습니다.",
+    referral_shared: "초대를 공유했습니다",
+    referral_message_copied: "초대 메시지를 복사했습니다",
+    referral_bonus_gauge_label: "획득한 저장 공간",
+    referral_bonus_max: "최대: {{ value }}",
+    referral_status_active: "활성",
+    referral_email_all_contacts_hint:
+      "주소록의 모든 연락처에 메시지를 한 통씩 보냅니다.",
+    referral_claim_title: "초대를 받으셨나요?",
+    referral_claim_description:
+      "초대에 있는 코드를 입력하면 두 사람 모두 저장 공간 {{ amount }}을(를) 받습니다. {{ date }}까지 추가할 수 있습니다.",
+    referral_claim_placeholder: "초대 코드",
+    referral_claim_button: "코드 추가",
+    referral_claim_success:
+      "초대를 추가했습니다. Aster Mail을 며칠 사용하면 저장 공간이 지급됩니다.",
+    referral_claim_invalid: "유효하지 않은 초대 코드입니다.",
+    referral_claim_window_closed:
+      "이 계정에 초대 코드를 추가할 수 있는 기간이 끝났습니다.",
+    referral_claim_already: "이 계정에는 이미 초대가 등록되어 있습니다.",
+    referral_claim_self: "자신의 초대 코드는 사용할 수 없습니다.",
     domain_purchase_not_released:
       "도메인 구매는 아직 제공되지 않습니다. 다음 업데이트에서 지원할 예정입니다.",
     domain_step_ownership_title: "이 도메인의 소유자임을 증명하세요",
@@ -6955,7 +7068,8 @@ export const ko = {
     attachments: "첨부 파일",
     translation_offer: "이 메시지는 {{language}}입니다.",
     translation_translate: "번역",
-    translation_offer_download: "이 메시지는 {{language}}입니다. 번역하면 언어 팩을 다운로드합니다.",
+    translation_offer_download:
+      "이 메시지는 {{language}}입니다. 번역하면 언어 팩을 다운로드합니다.",
     translation_translate_download: "번역({{size}} 다운로드)",
     translation_in_progress: "기기에서 번역 중…",
     translation_translated_from: "기기에서 {{language}}에서 번역됨.",

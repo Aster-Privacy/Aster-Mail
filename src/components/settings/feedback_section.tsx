@@ -133,12 +133,11 @@ export function FeedbackSection() {
           <Button
             className="h-9 px-4"
             disabled={!feedback_text.trim() || is_sending}
+            is_loading={is_sending}
             variant="depth"
             onClick={handle_send}
           >
-            {is_sending
-              ? t("settings.sending")
-              : t("settings.send_feedback_button")}
+            {t("settings.send_feedback_button")}
           </Button>
         </div>
       </div>

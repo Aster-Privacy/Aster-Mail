@@ -265,9 +265,11 @@ export function render_billing_dialogs(
                   handle_cancel();
                 }}
               >
-                {is_action_loading
-                  ? t("settings.cancelling")
-                  : t("settings.cancel_final_confirm")}
+                {is_action_loading ? (
+                  <Spinner size="sm" />
+                ) : (
+                  t("settings.cancel_final_confirm")
+                )}
               </AlertDialogAction>
             </AlertDialogFooter>
           ) : (
@@ -577,9 +579,11 @@ export function render_billing_dialogs(
                 handle_cancel_addon();
               }}
             >
-              {is_action_loading
-                ? t("settings.cancelling")
-                : t("settings.confirm_cancel_addon")}
+              {is_action_loading ? (
+                <Spinner size="sm" />
+              ) : (
+                t("settings.confirm_cancel_addon")
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

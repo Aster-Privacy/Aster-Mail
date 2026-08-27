@@ -43,6 +43,7 @@ import {
   UserGroupIcon,
   HomeModernIcon,
   Squares2X2Icon,
+  CircleStackIcon,
 } from "@heroicons/react/24/outline";
 
 import {
@@ -60,6 +61,7 @@ export type SettingsSection =
   | "trusted_devices"
   | "aliases"
   | "billing"
+  | "storage"
   | "family"
   | "referral"
   | "import"
@@ -88,6 +90,7 @@ export const SETTINGS_SECTION_IDS: SettingsSection[] = [
   "trusted_devices",
   "aliases",
   "billing",
+  "storage",
   "family",
   "referral",
   "import",
@@ -110,6 +113,7 @@ export function is_settings_section(value: string): value is SettingsSection {
 }
 
 const SECTION_ALIASES: Record<string, SettingsSection> = {
+  storage_addons: "storage",
   ghost_aliases: "aliases",
   alias_directories: "aliases",
   external_accounts: "import",
@@ -378,6 +382,34 @@ export function get_nav_items(
             },
           ]
         : []),
+      ...(!on_onion
+        ? [
+            {
+              id: "storage" as Section,
+              label: t("settings.storage"),
+              icon: CircleStackIcon,
+              description:
+                "Storage usage by category, cleanup tools, and storage add-ons",
+              keywords: [
+                "storage",
+                "space",
+                "quota",
+                "usage",
+                "disk",
+                "gb",
+                "tb",
+                "full",
+                "storage addon",
+                "add storage",
+                "buy storage",
+                "free up space",
+                "empty trash",
+                "empty spam",
+                "attachments size",
+              ],
+            },
+          ]
+        : []),
       ...(is_family_plan
         ? [
             {
@@ -401,7 +433,7 @@ export function get_nav_items(
         : []),
       {
         id: "referral",
-        label: t("settings.refer_a_friend"),
+        label: t("settings.invite_friends"),
         icon: UserGroupIcon,
         description:
           "Invite friends to Aster Mail and earn account credits as rewards",

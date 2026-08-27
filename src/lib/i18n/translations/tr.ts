@@ -1044,15 +1044,15 @@ export const tr = {
       "Satın aldığınız için teşekkürler. Aboneliğiniz artık aktif.",
     view_billing_settings: "Fatura ayarlarını görüntüle",
     welcome_description:
-      "Güvenli, özel e-posta platformunuzla başlamanıza yardımcı olmak için hızlı bir tur yapalım.",
-    organize_with_folders: "Klasörlerle Düzenleyin",
+      "Bu tur yaklaşık bir dakika sürer. İlk günü kolaylaştıran dört şeyi anlatır.",
+    organize_with_folders: "Klasörlerle düzenleyin",
     organize_folders_description:
-      "E-postalarınızı düzenlemek için özel klasörler oluşturun. İlk klasörünüzü oluşturmak için Klasörler yanındaki + düğmesine tıklayın.",
+      "Bir mesajı klasöre sürükleyerek yerleştirin ya da birkaçını seçip birlikte taşıyın. Klasör eklemek için Klasörler yanındaki + işaretine tıklayın.",
     customize_settings_description:
-      "Deneyiminizi özelleştirin, güvenlik ayarlarını yönetin ve hesap tercihlerinizi yapılandırın.",
+      "Ayarlar bölümünde takma ad ekler, kendi alan adınızı bağlar ve iki adımlı doğrulamayı açarsınız.",
     youre_ready: "Hazırsınız",
     youre_ready_description:
-      "Hepsi bu! Aster Mail'i kullanmaya hazırsınız. E-postalarınız uçtan uca şifreli ve tamamen gizlidir.",
+      "Postanız uçtan uca şifrelenir ve anahtarlar yalnızca sizde olur. Tüm klavye kısayollarını görmek için istediğiniz zaman ? tuşuna basın.",
     skip_tour: "Turu atla",
     get_started: "Başla",
     setup_complete: "Kurulum tamamlandı!",
@@ -1306,6 +1306,11 @@ export const tr = {
     subject_too_long:
       "Konunuz 998 karakter sınırının üzerinde. Daha kısa bir sürüm gönderilebilir.",
     notification_banner_no_thanks: "Hayır, teşekkürler",
+    payment_past_due_message:
+      "Son ödemeniz alınamadı. Planınızı sürdürmek için ödeme yönteminizi güncelleyin.",
+    payment_past_due_message_days:
+      "Son ödemeniz alınamadı. Planınızı sürdürmek için {{days}} gün içinde ödeme yönteminizi güncelleyin.",
+    payment_past_due_action: "Ödemeyi güncelle",
     ghost_label: "Hayalet",
     ghost_mode_tooltip: "Ghost Modu ile gönderildi. Gerçek adresiniz gizlendi.",
     bounced_label: "Geri Döndü",
@@ -1870,6 +1875,23 @@ export const tr = {
     onboarding_checklist_import_mail: "Eski postanızı içe aktarın",
     onboarding_checklist_recovery_method: "Kurtarma yöntemi ekleyin",
     onboarding_checklist_first_email: "İlk e-postanızı gönderin",
+    first_run_title: "Gelen kutunuz hazır",
+    first_run_subtitle:
+      "Mevcut postanızı şimdi taşıyın ya da bunu daha sonra Ayarlar'da yapın.",
+    first_run_import: "Postamı içe aktar",
+    first_run_skip: "Boş gelen kutusuyla başla",
+    first_run_privacy_note:
+      "Postanız cihazınızda şifrelenir. Aster onu okuyamaz.",
+    recovery_reminder_title: "Hesabınıza geri dönmenin bir yolunu ekleyin",
+    recovery_reminder_body:
+      "Aster postanızı parolanızla şifreler, bu yüzden kimse onu sizin için sıfırlayamaz. Erişiminizi korumak için bir kurtarma e-postası ekleyin.",
+    recovery_reminder_action: "Kurtarma e-postası ekle",
+    recovery_reminder_later: "Daha sonra",
+    plan_prompt_title: "Ücretsiz plandasınız",
+    plan_prompt_body:
+      "Ücretli planlar daha fazla depolama, özel alan adları ve sınırsız takma ad sunar.",
+    plan_prompt_action: "Planları gör",
+    plan_prompt_dismiss: "Kapat",
     or: "veya",
     help: "Yardım",
     go_to_inbox: "Gelen kutusuna git",
@@ -3674,6 +3696,14 @@ export const tr = {
     ipfs_disabled_description:
       "Merkeziyetsiz, dayanıklı depolama için ekleri IPFS üzerinde saklayın",
     forward_secrecy: "İleri Gizlilik",
+    forward_secrecy_disable_title: "İleri gizliliği kapatmak istiyor musunuz?",
+    forward_secrecy_disable_message:
+      "Yeni iletiler döngüsel anahtarları kullanmayı bırakır, bu yüzden daha sonra sızan bir anahtar postanızın daha fazlasını açabilir. Bu özelliği istediğiniz zaman yeniden açabilirsiniz.",
+    login_alerts_disable_title:
+      "Oturum açma uyarılarını kapatmak istiyor musunuz?",
+    login_alerts_disable_message:
+      "Hesabınızda yeni bir cihaz oturum açtığında artık e-posta almazsınız.",
+    turn_off_action: "Kapat",
     forward_secrecy_enabled_description: "Anahtarlar {{frequency}} döndürülür",
     forward_secrecy_disabled_description:
       "Gelişmiş güvenlik için şifreleme anahtarlarını otomatik döndür",
@@ -3876,15 +3906,18 @@ export const tr = {
     translate_add_language: "Dil ekle",
     translate_auto_detected: "Cihazınızdan otomatik algılandı",
     translate_confirm_title: "Çeviri açılsın mı?",
-    translate_confirm_description: "Aster postaları cihazınızda çevirir, bu yüzden okuduğunuz hiçbir şey bir çeviri hizmetine gönderilmez. Bir dilden ilk kez çeviri yaptığınızda Aster 20 ila 55 MB boyutunda bir dil paketi indirir ve bu cihazda saklar. Paketleri istediğiniz zaman kaldırabilirsiniz.",
+    translate_confirm_description:
+      "Aster postaları cihazınızda çevirir, bu yüzden okuduğunuz hiçbir şey bir çeviri hizmetine gönderilmez. Bir dilden ilk kez çeviri yaptığınızda Aster 20 ila 55 MB boyutunda bir dil paketi indirir ve bu cihazda saklar. Paketleri istediğiniz zaman kaldırabilirsiniz.",
     translate_confirm_enable: "Aç",
     translation_packs: "İndirilen dil paketleri",
-    translation_packs_description: "Dil paketleri bu cihazda saklanır. Yer açmak için bir paketi kaldırın. Aster, o dili bir sonraki çevirinizde paketi yeniden indirir.",
+    translation_packs_description:
+      "Dil paketleri bu cihazda saklanır. Yer açmak için bir paketi kaldırın. Aster, o dili bir sonraki çevirinizde paketi yeniden indirir.",
     translation_packs_empty: "Henüz hiç dil paketi indirmediniz.",
     translation_packs_total: "Bu cihazda {{size}} kullanılıyor",
     translation_packs_remove: "Kaldır",
     translation_packs_remove_all: "Tümünü kaldır",
-    translation_packs_unavailable: "Bu tarayıcı dil paketlerini saklayamıyor, bu yüzden Aster her çeviride paketleri yeniden indirir.",
+    translation_packs_unavailable:
+      "Bu tarayıcı dil paketlerini saklayamıyor, bu yüzden Aster her çeviride paketleri yeniden indirir.",
 
     block_external_content: "Harici İçeriği Engelle",
     block_external_content_description:
@@ -4215,14 +4248,15 @@ export const tr = {
     any_email_import_description: "MBOX, EML, CSV, PST dosyaları",
     search_history: "Arama geçmişi",
     folders_limit: "Klasörler",
-    onboarding_compose_title: "Yeni E-posta Yaz",
+    onboarding_compose_title: "İlk mesajınızı yazın",
     onboarding_compose_description:
-      "Yeni bir e-posta yazmak için buraya tıklayın",
-    onboarding_search_title: "E-postalarınızı Arayın",
+      "Yazmaya başlamak için gelen kutunuzda C tuşuna basın. Aster, mesajı göndermeden önce cihazınızda şifreler.",
+    onboarding_search_title: "Her şeyi gizlilikle bulun",
     onboarding_search_description:
-      "Herhangi bir e-postayı bulmak için arama çubuğunu kullanın",
+      "Doğrudan aramaya gitmek için / tuşuna basın. Klavyeden ayrılmadan sonuçları gönderene, tarihe veya eklere göre daraltın.",
     delete_imported_emails_confirm: "İçe aktarılan e-postalar silinsin mi?",
-    import_delete_warning: "Bu işlem, bu içe aktarmayla gelen iletileri kalıcı olarak siler. Bunu geri alamazsın.",
+    import_delete_warning:
+      "Bu işlem, bu içe aktarmayla gelen iletileri kalıcı olarak siler. Bunu geri alamazsın.",
     all_emails_filter: "Tüm e-postalar",
     choose_label_color: "Etiket rengini seçin",
     hex_color_value: "Onaltılık renk değeri",
@@ -5340,6 +5374,37 @@ export const tr = {
     storage_warning_title: "Depolama alanınız azalıyor.",
     storage_warning_description:
       "Depolama alanınızın %90'ından fazlasını kullandınız. Bir miktar e-postayı temizlemek ya da planınızı yükseltmek yeni postaların akışını sürdürür.",
+    storage_overview_description:
+      "Alanınızı neyin kullandığını görün ve ihtiyacınız olmayanları temizleyin.",
+    storage_promo_title: "Ek depolamada tasarruf edin",
+    storage_promo_body:
+      "Ek depolamanın ilk {{months}} ayında %{{percent}} indirim kazanın.",
+    storage_promo_body_singular:
+      "Ek depolamanın ilk ayında %{{percent}} indirim kazanın.",
+    storage_promo_note:
+      "İndirim yalnızca ilk depolama eklentinizde geçerlidir.",
+    storage_select_option_first:
+      "Daha fazla depolama satın almak için önce bir seçenek belirle.",
+    storage_promo_cta: "Eklentileri gör",
+    storage_used_of_total: "{{total}} alanın {{used}} kadarı kullanıldı",
+    storage_free_space:
+      "{{size}} boş, depolamanızın {{percent}} kadarı kullanıldı",
+    storage_breakdown_title: "Depolamanızı ne kullanıyor",
+    storage_breakdown_empty: "Depolamanızda henüz bir şey yok.",
+    storage_col_category: "Kategori",
+    storage_col_items: "Öğeler",
+    storage_col_size: "Boyut",
+    storage_col_share: "Pay",
+    storage_capacity_title: "Kapasite",
+    storage_included_with_plan: "Planınıza dahil",
+    storage_from_addons: "Eklentilerden",
+    storage_family_allocation: "Aile tahsisi",
+    storage_total_capacity: "Toplam kapasite",
+    storage_available: "Kullanılabilir",
+    storage_cleanup_done: "Alan boşaltıldı",
+    storage_cleanup_failed: "Alan boşaltılamadı. Tekrar deneyin.",
+    storage_cleanup_confirm:
+      "Bu işlem {{count}} öğeyi kalıcı olarak siler ve {{size}} boşaltır. Geri alınamaz.",
     storage_locked_title: "Depolama alanınız doldu.",
     storage_locked_description:
       "Yer açana kadar yeni postalar duraklatıldı. Bir miktar e-postayı temizlemek ya da planınızı yükseltmek akışı geri getirir. Mevcut postalarınız güvende.",
@@ -5397,6 +5462,9 @@ export const tr = {
     stripe_not_configured: "Ödeme sistemi yapılandırılmamış.",
     try_again: "Tekrar Dene",
     view_all_features: "Tüm özellikleri görüntüle",
+    plan_everything_in: "{{plan}} planındaki her şey, ayrıca",
+    compare_features_show: "Özellikleri plana göre karşılaştır",
+    compare_features_hide: "Karşılaştırmayı gizle",
     compare_plans: "Tüm planları karşılaştır",
     feature: "Özellik",
     manage_payment_methods: "Ödeme Yöntemlerini Yönet",
@@ -5407,6 +5475,9 @@ export const tr = {
     card_expires: "Son kullanma",
     adding_card: "Ekleniyor...",
     card_added: "Ödeme yöntemi eklendi",
+    payment_retry_succeeded: "Ödemeniz alındı. Planınız etkin kalıyor.",
+    payment_retry_failed:
+      "Bankanız kartı reddetti. Farklı bir ödeme yöntemi deneyin.",
     card_removed: "Ödeme yöntemi kaldırıldı",
     default_updated: "Varsayılan ödeme yöntemi güncellendi",
     payment_settled: "Varsayılan ödeme yöntemi güncellendi. Ödenmemiş tutarınız ödendi.",
@@ -5536,11 +5607,11 @@ export const tr = {
     referral_not_eligible: "Tavsiyeler şu anda kullanılamıyor.",
     referral_loading: "Tavsiye bilgileri yükleniyor...",
     referral_history: "Tavsiye Geçmişi",
-    no_referrals_yet: "Henüz tavsiye yok. Başlamak için bağlantınızı paylaşın!",
+    no_referrals_yet: "Henüz davet yok. Başlamak için bağlantınızı paylaşın.",
     referral_status_pending: "Bekleyen",
     referral_status_completed: "Tamamlanan",
     referral_reward_info:
-      "Arkadaşınız ilk ödemesinde indirim alır, siz de yaptığı her ödemeden kazanırsınız.",
+      "Siz ve arkadaşınız {{ amount }} ek depolama alanı kazanırsınız. Depolama, arkadaşınız hesabını birkaç gün kullandıktan sonra gelir ve Aster Mail'i kullanmaya devam ettiği sürece hesabınızda kalır.",
     referral_commission_info:
       "Abone kaldıkları sürece tavsiyelerinizin yaptığı her ödemenin %{{ percent }}'ini kazanırsınız.",
     referral_max_credits: "Maksimum kazanç: yılda {{ value }}",
@@ -5871,7 +5942,8 @@ export const tr = {
     domain_purchase_included_heading: "Alan adınıza dahil olan her şey",
     domain_purchase_renew: "Yenile",
     domain_purchase_manage: "Yönet",
-    domain_purchase_manage_description: "Bu kaydı gözden geçir ve süresi dolmadan yenile.",
+    domain_purchase_manage_description:
+      "Bu kaydı gözden geçir ve süresi dolmadan yenile.",
     domain_purchase_manage_status: "Durum",
     domain_purchase_manage_status_active: "Etkin",
     domain_purchase_manage_status_expiring: "Yakında sona eriyor",
@@ -5879,9 +5951,11 @@ export const tr = {
     domain_purchase_manage_expires: "Bitiş tarihi",
     domain_purchase_manage_term: "Süre",
     domain_purchase_manage_paid: "Ödenen",
-    domain_purchase_manage_auto_renew_note: "Bu alan adı otomatik olarak yenilenmez. Elinde tutmak için bitiş tarihinden önce yenile.",
+    domain_purchase_manage_auto_renew_note:
+      "Bu alan adı otomatik olarak yenilenmez. Elinde tutmak için bitiş tarihinden önce yenile.",
     domain_purchase_manage_dns: "Alan adı kurulumunu aç",
-    domain_purchase_manage_support_note: "Bu alan adını başka bir kayıt kuruluşuna taşımak ya da geri ödeme sormak için destek ile iletişime geç.",
+    domain_purchase_manage_support_note:
+      "Bu alan adını başka bir kayıt kuruluşuna taşımak ya da geri ödeme sormak için destek ile iletişime geç.",
     domain_purchase_manage_support_subject: "{{domain}} ile ilgili yardım",
     domain_purchase_filter_all: "Tümü",
     domain_purchase_filter_available: "Uygun",
@@ -5968,13 +6042,13 @@ export const tr = {
       "Makbuz e-postalarından satın alma ayrıntılarını otomatik çıkarın",
     referral_not_eligible_description: "Lütfen daha sonra tekrar deneyin.",
     referral_program_description:
-      "Arkadaşlarınızı Aster'e davet edin ve yaptıkları her ödemeden kredi kazanın.",
+      "Bir arkadaşınızı Aster Mail'e davet edin. Arkadaşınız hesabını kullanmaya başlayınca ikiniz de {{ amount }} ek depolama alanı kazanırsınız.",
     show_badges_in_signature_description:
       "Giden e-postalarda imza alanında rozetlerinizi gösterin.",
     show_message_size_description:
       "Gelen kutusu listesinde her e-postanın boyutunu göster",
     storage_addons_monthly_note:
-      "Ek depolama, planınız yıllık faturalandırılsa bile aylık faturalandırılır.",
+      "Eklentiler her ay yenilenir ve planınızdan ayrı faturalandırılır. Kripto ile öderseniz, ne kadar süre için peşin ödeyeceğinizi siz seçersiniz.",
     storage_addons_description:
       "Daha fazla alana mı ihtiyacınız var? Hesabınız için ek şifreli depolama satın alın.",
     storage_format_description:
@@ -6508,11 +6582,10 @@ export const tr = {
     refer_a_friend: "Arkadaşını Davet Et",
     referral_how_it_works: "Nasıl Çalışır",
     referral_step_share:
-      "Benzersiz davet bağlantınızı arkadaşlarınızla, ailenizle veya meslektaşlarınızla paylaşın.",
-    referral_step_signup:
-      "Bağlantınızı kullanarak Aster'e kaydoluyorlar ve ücretli bir plana abone oluyorlar.",
+      "Davet bağlantınızı arkadaşlarınızla, ailenizle veya iş arkadaşlarınızla paylaşın.",
+    referral_step_signup: "Bağlantınızla hesap oluşturup kullanmaya başlarlar.",
     referral_step_earn:
-      "Abone kaldıkları sürece yaptıkları her ödemeden pay kazanırsınız.",
+      "İkiniz de {{ amount }} ek depolama alanı kazanırsınız, en fazla {{ max }}.",
     referral_rewards: "Ödüller",
     credits_title: "Krediler",
     credits_subtitle: "Farklı görevleri tamamlayarak Aster kredisi kazanın.",
@@ -6527,10 +6600,10 @@ export const tr = {
     credit_task_ios_title: "iOS için Aster uygulamasını indirin",
     credit_task_ios_hint_coming: "Yakında",
     credit_task_earned: "Kazanıldı",
-    send_referral_to_contacts: "Tüm Kişilere E-posta Gönder",
+    send_referral_to_contacts: "Tüm kişilere e-posta gönder",
     referral_email_subject: "Aster Mail'i deneyin - herkes için özel e-posta",
     referral_email_body:
-      "Merhaba!\n\nAster Mail kullanıyorum ve gerçekten beğendim. Uçtan uca şifreli olduğu için e-postalarınızı yalnızca siz okuyabiliyorsunuz; Aster bile göremez.\n\nDenemeye karar verirseniz, davet bağlantım:\n\n{{ referral_link }}\n\nAbone olursanız ilk ödemenizde indirim alırsınız, ben de biraz kredi kazanırım, ama zorunluluk yok. Sadece beğeneceğinizi düşündüm.\n\nİyi günler",
+      "Merhaba,\n\nbir süredir Aster Mail kullanıyorum ve gerçekten memnunum. Her şey uçtan uca şifreli, yani senden başka kimse e-postalarını okuyamıyor. Servisi işletenler bile okuyamıyor.\n\nDenemek istersen davet bağlantım şu:\n\n{{ referral_link }}\n\nSen kullanmaya başlayınca ikimiz de {{ amount }} ek depolama alanı kazanıyoruz, yani sen de kazançlı çıkıyorsun.\n\nSevgiler",
     referral_no_contacts: "Kişi bulunamadı. Önce kişi ekleyin!",
     referral_loading_contacts: "Kişiler yükleniyor...",
     two_factor_auth_disabled: "İki faktörlü doğrulama devre dışı bırakıldı",
@@ -6939,6 +7012,47 @@ export const tr = {
     referral_discount_auto_apply:
       "Ödeme sırasında otomatik uygulanır, girmenize gerek yok.",
     referral_discount_expires: "{{ date }} tarihinde sona erer",
+    invite_storage_line:
+      "İkiniz de {{ amount }} ek depolama alanı kazanırsınız",
+    invite_storage_note:
+      "Bu bağlantıyla ücretsiz hesabınızı oluşturun. Kendi hesabınızı kullanmaya başlayınca depolama iki hesaba da gelir.",
+    invite_discount_note:
+      "Ayrıca ileride ücretli bir plana geçerseniz %{{ percent }} indirim.",
+    invite_cta_create_account_storage: "Ücretsiz hesabımı oluştur",
+    invite_friends: "Arkadaş davet et",
+    invite_sidebar_earned: "{{ amount }} kazanıldı",
+    referral_storage_headline:
+      "Katılan her arkadaşınız için {{ amount }} depolama alanı kazanın",
+    referral_storage_subhead:
+      "Arkadaşınız da {{ amount }} kazanır. Depolama, hesabını kullanmaya başlayınca gelir, en fazla {{ max }}.",
+    referral_storage_earned_badge: "{{ amount }} kazanıldı",
+    referral_active_referrals: "Etkin",
+    referral_share_button: "Daveti paylaş",
+    referral_show_qr: "QR kodunu göster",
+    referral_hide_qr: "QR kodunu gizle",
+    referral_qr_hint: "Daveti açmak için telefon kamerasını bu koda tutun.",
+    referral_qr_alt: "Aster Mail davet bağlantınızın QR kodu",
+    referral_share_title: "Aster Mail'de bana katıl",
+    referral_share_message:
+      "Uçtan uca şifreli e-posta için Aster Mail kullanıyorum. Bağlantımla katıl, ikimiz de {{ amount }} ek depolama alanı kazanalım.",
+    referral_shared: "Davet paylaşıldı",
+    referral_message_copied: "Davet metni kopyalandı",
+    referral_bonus_gauge_label: "Kazanılan depolama",
+    referral_bonus_max: "En fazla: {{ value }}",
+    referral_status_active: "Etkin",
+    referral_email_all_contacts_hint:
+      "Adres defterinizdeki her kişiye bir mesaj gönderir.",
+    referral_claim_title: "Davet edildiniz mi?",
+    referral_claim_description:
+      "Davetinizdeki kodu girin, ikiniz de {{ amount }} ek depolama alanı kazanın. Eklemek için {{ date }} tarihine kadar vaktiniz var.",
+    referral_claim_placeholder: "Davet kodu",
+    referral_claim_button: "Kodu ekle",
+    referral_claim_success:
+      "Davet eklendi. Aster Mail'i birkaç gün kullandıktan sonra depolama alanınız gelir.",
+    referral_claim_invalid: "Bu davet kodu geçerli değil.",
+    referral_claim_window_closed: "Bu hesaba davet kodu ekleme süresi doldu.",
+    referral_claim_already: "Bu hesapta zaten bir davet var.",
+    referral_claim_self: "Kendi davet kodunuzu kullanamazsınız.",
     domain_purchase_not_released:
       "Alan adı satın alma henüz kullanılamıyor. Yaklaşan bir güncellemede geliyor.",
     domain_step_ownership_title: "Bu alan adının sizin olduğunu kanıtlayın",
@@ -7271,7 +7385,8 @@ export const tr = {
     attachments: "Ekler",
     translation_offer: "Bu ileti {{language}} dilinde.",
     translation_translate: "Çevir",
-    translation_offer_download: "Bu ileti {{language}} dilinde. Çevirmek bir dil paketi indirir.",
+    translation_offer_download:
+      "Bu ileti {{language}} dilinde. Çevirmek bir dil paketi indirir.",
     translation_translate_download: "Çevir ({{size}} indirme)",
     translation_in_progress: "Cihazınızda çevriliyor…",
     translation_translated_from: "Cihazınızda {{language}} dilinden çevrildi.",

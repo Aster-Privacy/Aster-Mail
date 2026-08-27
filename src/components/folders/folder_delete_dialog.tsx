@@ -248,6 +248,12 @@ export function FolderDeleteDialog({
     t,
   ]);
 
+  const handle_dismiss = useCallback(() => {
+    if (is_loading) return;
+
+    on_close();
+  }, [is_loading, on_close]);
+
   const is_sheet = variant === "sheet";
 
   const confirm_disabled =
@@ -308,7 +314,7 @@ export function FolderDeleteDialog({
 
           {totp_state_failed && (
             <button
-              className="self-start text-[13px] font-medium text-accent-blue hover:underline"
+              className="self-start text-[13px] font-medium text-brand hover:text-brand-hover hover:underline"
               type="button"
               onClick={() => {
                 set_error("");
@@ -411,7 +417,7 @@ export function FolderDeleteDialog({
       <MobileBottomSheet
         aria_label={t("common.delete_folder")}
         is_open={is_open}
-        on_close={on_close}
+        on_close={handle_dismiss}
       >
         <div className="overflow-y-auto px-4 pb-4">
           <p className="text-[16px] font-semibold text-[var(--text-primary)]">
@@ -449,11 +455,12 @@ export function FolderDeleteDialog({
                 <Button
                   className="flex-1 rounded-[16px] py-3 text-[15px] font-medium"
                   disabled={confirm_disabled}
+                  is_loading={is_loading}
                   type="button"
                   variant="destructive"
                   onClick={handle_delete}
                 >
-                  {is_loading ? t("common.deleting") : t("common.delete")}
+                  {t("common.delete")}
                 </Button>
               </div>
             </>
@@ -464,7 +471,7 @@ export function FolderDeleteDialog({
   }
 
   return (
-    <Modal is_open={is_open} on_close={on_close} size="md">
+    <Modal is_open={is_open} on_close={handle_dismiss} size="md">
       <ModalHeader>
         <div className="flex items-center gap-3">
           <TrashIcon className="w-5 h-5 text-red-500 flex-shrink-0" />
@@ -507,13 +514,12 @@ export function FolderDeleteDialog({
             <Button
               className="flex-1"
               disabled={confirm_disabled}
+              is_loading={is_loading}
               size="xl"
               variant="destructive"
               onClick={handle_delete}
             >
-              {is_loading
-                ? t("common.deleting")
-                : `${t("common.delete")} ${t("mail.folder")}`}
+              {`${t("common.delete")} ${t("mail.folder")}`}
             </Button>
           </>
         )}

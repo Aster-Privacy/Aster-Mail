@@ -21,19 +21,19 @@
 import type { ChecklistTasksState } from "@/services/api/onboarding";
 import type { SettingsSection } from "@/components/settings/settings_content";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { CheckIcon, XMarkIcon } from "@heroicons/react/24/outline";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { use_should_reduce_motion } from "@/provider";
-import { use_is_mobile } from "@/hooks/use_platform";
 import { use_onboarding_checklist } from "@/hooks/use_onboarding_checklist";
 import { open_external } from "@/utils/open_link";
 
 interface OnboardingChecklistProps {
   on_compose: () => void;
   on_open_settings: (section: SettingsSection) => void;
+  on_all_tasks_done?: () => void;
 }
 
 interface ChecklistRow {
@@ -51,28 +51,29 @@ const DOWNLOAD_URL = "https://astermail.org/download";
 export function OnboardingChecklist({
   on_compose,
   on_open_settings,
+  on_all_tasks_done,
 }: OnboardingChecklistProps): JSX.Element | null {
   const { t } = use_i18n();
   const reduce_motion = use_should_reduce_motion();
-  const is_mobile = use_is_mobile();
   const { state, is_loading, dismiss, refresh, mark_install_app_done } =
     use_onboarding_checklist();
+  const reported_done_ref = useRef(false);
 
   const rows: ChecklistRow[] = useMemo(
     () => [
-      {
-        key: "install_app",
-        label_key: "common.onboarding_checklist_install_app",
-        on_click: () => {
-          open_external(DOWNLOAD_URL);
-          mark_install_app_done();
-        },
-      },
       {
         key: "import_mail",
         label_key: "common.onboarding_checklist_import_mail",
         on_click: () => {
           on_open_settings("import");
+          void refresh();
+        },
+      },
+      {
+        key: "first_email",
+        label_key: "common.onboarding_checklist_first_email",
+        on_click: () => {
+          on_compose();
           void refresh();
         },
       },
@@ -85,27 +86,32 @@ export function OnboardingChecklist({
         },
       },
       {
-        key: "first_email",
-        label_key: "common.onboarding_checklist_first_email",
+        key: "install_app",
+        label_key: "common.onboarding_checklist_install_app",
         on_click: () => {
-          on_compose();
-          void refresh();
+          open_external(DOWNLOAD_URL);
+          mark_install_app_done();
         },
       },
     ],
     [on_compose, on_open_settings, mark_install_app_done, refresh],
   );
 
-  if (is_loading || !state || is_mobile) return null;
-  if (state.dismissed_at) return null;
-
   const total = rows.length;
-  const completed = rows.reduce(
-    (acc, row) => (state.tasks[row.key] ? acc + 1 : acc),
-    0,
-  );
+  const completed = state
+    ? rows.reduce((acc, row) => (state.tasks[row.key] ? acc + 1 : acc), 0)
+    : 0;
+  const all_tasks_done = !!state && completed === total;
 
-  if (completed === total) return null;
+  useEffect(() => {
+    if (!all_tasks_done || reported_done_ref.current) return;
+    reported_done_ref.current = true;
+    on_all_tasks_done?.();
+  }, [all_tasks_done, on_all_tasks_done]);
+
+  if (is_loading || !state) return null;
+  if (state.dismissed_at) return null;
+  if (all_tasks_done) return null;
 
   const transition = reduce_motion ? { duration: 0 } : { duration: 0.2 };
 
@@ -113,7 +119,7 @@ export function OnboardingChecklist({
     <AnimatePresence>
       <motion.div
         animate={{ opacity: 1, y: 0 }}
-        className="hidden md:flex fixed bottom-5 end-5 z-30 w-[320px] flex-col overflow-hidden rounded-xl border shadow-lg"
+        className="fixed bottom-24 start-4 end-4 z-30 flex flex-col overflow-hidden rounded-xl border shadow-lg md:bottom-5 md:start-auto md:end-5 md:w-[320px]"
         exit={{ opacity: 0, y: 8 }}
         initial={{ opacity: 0, y: 8 }}
         style={{

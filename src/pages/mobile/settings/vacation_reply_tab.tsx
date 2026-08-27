@@ -19,9 +19,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useState, useCallback, useEffect } from "react";
-import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { Checkbox } from "@aster/ui";
 
+import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { use_i18n } from "@/lib/i18n/context";
 import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
@@ -328,9 +328,11 @@ export function VacationReplyTab() {
               type="button"
               onClick={handle_save_vacation}
             >
-              {is_saving_vacation
-                ? t("common.saving")
-                : t("settings.vacation_reply_save")}
+              {is_saving_vacation ? (
+                <Spinner size="sm" />
+              ) : (
+                t("settings.vacation_reply_save")
+              )}
             </button>
             {vacation && (
               <button

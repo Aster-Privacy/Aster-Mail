@@ -385,6 +385,12 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
             />
           )}
 
+        {!categories.enabled && !show_full_email_viewer && (
+          <div
+            aria-hidden="true"
+            className="border-t border-edge-secondary shrink-0"
+          />
+        )}
 
         <StorageBanner
           storage_total_bytes={mail_stats.storage_total_bytes}

@@ -246,10 +246,11 @@ export function TotpDisableModal({
         </Button>
         <Button
           disabled={!is_valid_disable_code(code) || !password || is_loading}
+          is_loading={is_loading}
           variant="destructive"
           onClick={handle_disable}
         >
-          {is_loading ? t("settings.disabling") : t("settings.disable_2fa")}
+          {t("settings.disable_2fa")}
         </Button>
       </ModalFooter>
     </Modal>

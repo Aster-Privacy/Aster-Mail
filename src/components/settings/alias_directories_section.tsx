@@ -411,6 +411,7 @@ export function AliasDirectoriesSection() {
                       />
                     </span>
                     <Button
+                      aria-label={t("common.delete")}
                       className="h-8 w-8 text-red-500 hover:text-red-500 hover:bg-red-500/10"
                       size="icon"
                       variant="ghost"
@@ -433,8 +434,6 @@ export function AliasDirectoriesSection() {
             confirm_text={t("common.delete")}
             is_open={confirm_delete_id !== null}
             message={t("common.action_cannot_be_undone")}
-            title={t("common.are_you_sure")}
-            variant="danger"
             on_cancel={() => set_confirm_delete_id(null)}
             on_confirm={() => {
               const target = confirm_delete_id;
@@ -443,6 +442,8 @@ export function AliasDirectoriesSection() {
 
               if (target) void handle_delete(target);
             }}
+            title={t("common.are_you_sure")}
+            variant="danger"
           />
         </div>
       </LockedFeature>

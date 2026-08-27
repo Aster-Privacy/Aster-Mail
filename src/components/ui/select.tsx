@@ -36,10 +36,23 @@ const SelectTrigger = React.forwardRef<
 SelectTrigger.displayName = SelectPrimitive.Trigger.displayName;
 
 function use_wheel_scroll() {
+  const detach_ref = React.useRef<(() => void) | null>(null);
+
+  React.useEffect(() => {
+    return () => {
+      detach_ref.current?.();
+      detach_ref.current = null;
+    };
+  }, []);
+
   return React.useCallback((node: HTMLDivElement | null) => {
+    detach_ref.current?.();
+    detach_ref.current = null;
+
     if (!node) return;
 
     const handle_wheel = (event: WheelEvent) => {
+      if (event.ctrlKey || event.metaKey) return;
       if (node.scrollHeight <= node.clientHeight) return;
 
       const line_height = 16;
@@ -57,6 +70,7 @@ function use_wheel_scroll() {
     };
 
     node.addEventListener("wheel", handle_wheel, { passive: false });
+    detach_ref.current = () => node.removeEventListener("wheel", handle_wheel);
   }, []);
 }
 

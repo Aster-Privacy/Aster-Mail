@@ -120,6 +120,19 @@ function MobileMailDetail() {
     get_last_message,
   } = use_mobile_mail_detail();
 
+  if (detail.error) {
+    return (
+      <div className="flex h-full flex-col">
+        <MobileHeader on_back={handle_back} title="" />
+        <div className="flex flex-1 flex-col items-center justify-center gap-2 px-8">
+          <p className="text-center text-[15px] text-[var(--text-muted)]">
+            {detail.error}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   if (detail.is_loading || !detail.email) {
     return (
       <div className="flex h-full flex-col">
@@ -140,19 +153,6 @@ function MobileMailDetail() {
             <Skeleton className="h-4 w-3/4 rounded" />
             <Skeleton className="h-4 w-2/3 rounded" />
           </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (detail.error) {
-    return (
-      <div className="flex h-full flex-col">
-        <MobileHeader on_back={handle_back} title="" />
-        <div className="flex flex-1 flex-col items-center justify-center gap-2 px-8">
-          <p className="text-center text-[15px] text-[var(--text-muted)]">
-            {detail.error}
-          </p>
         </div>
       </div>
     );
@@ -216,7 +216,7 @@ function MobileMailDetail() {
         onTouchMove={handle_touch_move}
         onTouchStart={handle_touch_start}
       >
-        <div dir="auto" className="px-4 pt-2 pb-1">
+        <div className="px-4 pt-2 pb-1" dir="auto">
           <button
             className={`text-[18px] font-semibold leading-snug text-[var(--text-primary)] text-start w-full ${subject_expanded ? "" : "truncate"}`}
             type="button"
@@ -285,8 +285,9 @@ function MobileMailDetail() {
         actions={preferences.mobile_toolbar_actions}
         is_archived={is_archived}
         is_read={email.is_read}
-        is_trashed={is_trashed}
+        is_spam={!!detail.mail_item?.is_spam}
         is_starred={starred}
+        is_trashed={is_trashed}
         on_archive={handle_archive}
         on_delete={handle_delete}
         on_mark_read={() => {
@@ -305,7 +306,6 @@ function MobileMailDetail() {
 
           if (msg) detail.handle_per_message_print(msg);
         }}
-        is_spam={!!detail.mail_item?.is_spam}
         on_spam={() => {
           if (detail.mail_item?.is_spam) {
             handle_not_spam();

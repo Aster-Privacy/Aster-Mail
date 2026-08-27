@@ -1006,15 +1006,15 @@ export const ar = {
     purchase_thank_you: "شكرًا لشرائك. اشتراكك نشط الآن.",
     view_billing_settings: "عرض إعدادات الفوترة",
     welcome_description:
-      "لنأخذ جولة سريعة لمساعدتك على البدء مع منصة بريدك الإلكتروني الآمنة والخاصة.",
-    organize_with_folders: "نظّم بالمجلدات",
+      "تستغرق هذه الجولة دقيقة تقريبًا، وتغطي أربعة أمور تسهّل يومك الأول.",
+    organize_with_folders: "التنظيم بالمجلدات",
     organize_folders_description:
-      "أنشئ مجلدات مخصصة لتنظيم رسائلك. انقر على زر + بجانب المجلدات لإنشاء أول مجلد.",
+      "اسحب رسالة إلى مجلد لحفظها، أو حدّد عدة رسائل وانقلها معًا. لإضافة مجلد، انقر على + بجانب المجلدات.",
     customize_settings_description:
-      "خصص تجربتك، وأدر إعدادات الأمان، وقم بتكوين تفضيلات حسابك.",
-    youre_ready: "أنت جاهز للانطلاق",
+      "من الإعدادات تضيف اسمًا مستعارًا، وتربط نطاقًا مخصصًا، وتفعّل المصادقة الثنائية.",
+    youre_ready: "أنت جاهز",
     youre_ready_description:
-      "هذا كل شيء! أنت مستعد لبدء استخدام Aster Mail. رسائلك مشفرة من طرف إلى طرف وخاصة تمامًا.",
+      "بريدك مشفّر من طرف إلى طرف، والمفاتيح لديك وحدك. اضغط ؟ في أي وقت لعرض جميع اختصارات لوحة المفاتيح.",
     skip_tour: "تخطي الجولة",
     get_started: "ابدأ الآن",
     setup_complete: "اكتمل الإعداد!",
@@ -1257,6 +1257,11 @@ export const ar = {
     empty_body_error: "موضوع أو نص رسالة لازم قبل أن تُرسل.",
     subject_too_long: "الموضوع يتجاوز حد 998 حرفًا. نسخة أقصر ستُرسل.",
     notification_banner_no_thanks: "لا شكرًا",
+    payment_past_due_message:
+      "لم تتم عملية الدفع الأخيرة. حدّث طريقة الدفع للاحتفاظ بخطتك.",
+    payment_past_due_message_days:
+      "لم تتم عملية الدفع الأخيرة. حدّث طريقة الدفع خلال {{days}} يومًا للاحتفاظ بخطتك.",
+    payment_past_due_action: "تحديث الدفع",
     ghost_label: "شبح",
     ghost_mode_tooltip: "تم الإرسال عبر وضع الشبح. تم إخفاء عنوانك الحقيقي.",
     bounced_label: "مرفوضة",
@@ -1687,6 +1692,21 @@ export const ar = {
     onboarding_checklist_import_mail: "استيراد بريدك القديم",
     onboarding_checklist_recovery_method: "إضافة طريقة استرداد",
     onboarding_checklist_first_email: "أرسل أول رسالة",
+    first_run_title: "صندوق بريدك جاهز",
+    first_run_subtitle: "انقل بريدك الحالي الآن أو لاحقًا من الإعدادات.",
+    first_run_import: "استيراد بريدي",
+    first_run_skip: "ابدأ بصندوق فارغ",
+    first_run_privacy_note: "يُشفَّر بريدك على جهازك. لا تستطيع Aster قراءته.",
+    recovery_reminder_title: "أضف وسيلة للعودة إلى حسابك",
+    recovery_reminder_body:
+      "تُشفّر Aster بريدك بكلمة سرك، لذا لا يستطيع أحد إعادة تعيينها نيابة عنك. أضف بريدًا للاسترداد للحفاظ على وصولك.",
+    recovery_reminder_action: "إضافة بريد للاسترداد",
+    recovery_reminder_later: "لاحقًا",
+    plan_prompt_title: "أنت على الخطة المجانية",
+    plan_prompt_body:
+      "تضيف الخطط المدفوعة مساحة أكبر ونطاقات مخصصة وأسماء مستعارة غير محدودة.",
+    plan_prompt_action: "عرض الخطط",
+    plan_prompt_dismiss: "إخفاء",
     device_revoked:
       "تمت إزالة هذا الجهاز من حسابك وتم تسجيل خروجك. إن لم يكن هذا أنت، قم بتغيير كلمة المرور فورًا على astermail.org/security.",
     allow_sender: "إضافة إلى قائمة السماح",
@@ -3815,6 +3835,13 @@ export const ar = {
     ipfs_disabled_description:
       "تخزين المرفقات على IPFS للتخزين اللامركزي والمرن",
     forward_secrecy: "السرية الأمامية",
+    forward_secrecy_disable_title: "إيقاف السرية التامة للتوجيه؟",
+    forward_secrecy_disable_message:
+      "تتوقف الرسائل الجديدة عن استخدام مفاتيح متبدلة، لذا يمكن لمفتاح يتسرب لاحقًا أن يفتح قدرًا أكبر من بريدك. يمكنك تشغيلها مرة أخرى في أي وقت.",
+    login_alerts_disable_title: "إيقاف تنبيهات تسجيل الدخول؟",
+    login_alerts_disable_message:
+      "تتوقف عن تلقي رسالة بريد عندما يسجل جهاز جديد الدخول إلى حسابك.",
+    turn_off_action: "إيقاف",
     forward_secrecy_enabled_description: "يتم تدوير المفاتيح {{frequency}}",
     forward_secrecy_disabled_description:
       "تدوير مفاتيح التشفير تلقائيًا لتعزيز الأمان",
@@ -4007,15 +4034,18 @@ export const ar = {
     translate_add_language: "إضافة لغة",
     translate_auto_detected: "تم اكتشافها تلقائيًا من جهازك",
     translate_confirm_title: "هل تريد تشغيل الترجمة؟",
-    translate_confirm_description: "يترجم Aster البريد على جهازك، لذا لا يُرسل أي شيء تقرأه إلى خدمة ترجمة. في أول مرة تترجم فيها من لغة ما، ينزّل Aster حزمة لغة بحجم 20 إلى 55 ميغابايت ويحتفظ بها على هذا الجهاز. يمكنك إزالة الحزم في أي وقت.",
+    translate_confirm_description:
+      "يترجم Aster البريد على جهازك، لذا لا يُرسل أي شيء تقرأه إلى خدمة ترجمة. في أول مرة تترجم فيها من لغة ما، ينزّل Aster حزمة لغة بحجم 20 إلى 55 ميغابايت ويحتفظ بها على هذا الجهاز. يمكنك إزالة الحزم في أي وقت.",
     translate_confirm_enable: "تشغيل",
     translation_packs: "حزم اللغات المنزّلة",
-    translation_packs_description: "تُخزَّن حزم اللغات على هذا الجهاز. أزل حزمة لتحرير مساحة. سينزّلها Aster مرة أخرى في المرة التالية التي تترجم فيها تلك اللغة.",
+    translation_packs_description:
+      "تُخزَّن حزم اللغات على هذا الجهاز. أزل حزمة لتحرير مساحة. سينزّلها Aster مرة أخرى في المرة التالية التي تترجم فيها تلك اللغة.",
     translation_packs_empty: "لم تنزّل أي حزمة لغة بعد.",
     translation_packs_total: "{{size}} مستخدمة على هذا الجهاز",
     translation_packs_remove: "إزالة",
     translation_packs_remove_all: "إزالة الكل",
-    translation_packs_unavailable: "لا يستطيع هذا المتصفح تخزين حزم اللغات، لذا ينزّلها Aster في كل مرة تترجم فيها.",
+    translation_packs_unavailable:
+      "لا يستطيع هذا المتصفح تخزين حزم اللغات، لذا ينزّلها Aster في كل مرة تترجم فيها.",
 
     block_external_content: "حظر المحتوى الخارجي",
     block_external_content_description: "حظر المحتوى الخارجي حتى تختار تحميله",
@@ -4327,12 +4357,15 @@ export const ar = {
     any_email_import_description: "ملفات MBOX أو EML أو CSV أو PST",
     search_history: "سجل البحث",
     folders_limit: "المجلدات",
-    onboarding_compose_title: "كتابة رسائل جديدة",
-    onboarding_compose_description: "انقر هنا لكتابة رسالة جديدة",
-    onboarding_search_title: "بحث في رسائلك",
-    onboarding_search_description: "استخدم شريط البحث للعثور على أي رسالة",
+    onboarding_compose_title: "اكتب رسالتك الأولى",
+    onboarding_compose_description:
+      "اضغط C في صندوق الوارد لبدء الكتابة. يشفّر Aster الرسالة على جهازك قبل إرسالها.",
+    onboarding_search_title: "ابحث عن أي شيء بخصوصية",
+    onboarding_search_description:
+      "اضغط / للانتقال مباشرة إلى البحث. ضيّق النتائج حسب المرسل أو التاريخ أو المرفقات دون ترك لوحة المفاتيح.",
     delete_imported_emails_confirm: "حذف الرسائل المستوردة؟",
-    import_delete_warning: "يؤدي هذا إلى حذف الرسائل التي جلبها هذا الاستيراد نهائيًا. لا يمكنك التراجع عن ذلك.",
+    import_delete_warning:
+      "يؤدي هذا إلى حذف الرسائل التي جلبها هذا الاستيراد نهائيًا. لا يمكنك التراجع عن ذلك.",
     all_emails_filter: "جميع الرسائل",
     choose_label_color: "اختر لون التصنيف",
     hex_color_value: "قيمة اللون السداسي",
@@ -5343,7 +5376,7 @@ export const ar = {
     billing_banner_cta: "استكشاف الخيارات",
     storage_addons: "تخزين إضافي",
     storage_addons_monthly_note:
-      "تتم فوترة التخزين الإضافي شهريًا، حتى إذا كانت خطتك تُفوتر سنويًا.",
+      "تتجدد الإضافات كل شهر وتتم فوترتها بشكل منفصل عن خطتك. إذا دفعت بالعملات المشفرة، فأنت تختار مدة الدفع المسبق.",
     storage_addons_description:
       "تحتاج مساحة أكبر؟ اشترِ مساحة تخزين مشفرة إضافية لحسابك.",
     per_month_short: "/شهريًا",
@@ -5438,6 +5471,34 @@ export const ar = {
     storage_warning_title: "تخزينك قارب على النفاد.",
     storage_warning_description:
       "استخدمت أكثر من 90% من تخزينك. حذف بعض الرسائل أو ترقية الخطة يبقي البريد الجديد متدفقًا.",
+    storage_overview_description:
+      "اطّلع على ما يشغل مساحتك واحذف ما لا تحتاج إليه.",
+    storage_promo_title: "وفّر في مساحة التخزين الإضافية",
+    storage_promo_body:
+      "احصل على خصم {{percent}}% على أول {{months}} أشهر من المساحة الإضافية.",
+    storage_promo_body_singular:
+      "احصل على خصم {{percent}}% على شهرك الأول من المساحة الإضافية.",
+    storage_promo_note: "ينطبق الخصم على أول إضافة تخزين فقط.",
+    storage_select_option_first: "لشراء مساحة إضافية، حدد خيارًا أولاً.",
+    storage_promo_cta: "عرض الإضافات",
+    storage_used_of_total: "{{used}} من {{total}} مستخدمة",
+    storage_free_space: "{{size}} متاحة، و{{percent}} من مساحتك مستخدمة",
+    storage_breakdown_title: "ما يشغل مساحة التخزين",
+    storage_breakdown_empty: "لا شيء يشغل مساحتك حتى الآن.",
+    storage_col_category: "الفئة",
+    storage_col_items: "العناصر",
+    storage_col_size: "الحجم",
+    storage_col_share: "النسبة",
+    storage_capacity_title: "السعة",
+    storage_included_with_plan: "المضمّنة في خطتك",
+    storage_from_addons: "من الإضافات",
+    storage_family_allocation: "حصة العائلة",
+    storage_total_capacity: "السعة الإجمالية",
+    storage_available: "المتاحة",
+    storage_cleanup_done: "تم تحرير مساحة",
+    storage_cleanup_failed: "تعذّر تحرير مساحة. حاول مرة أخرى.",
+    storage_cleanup_confirm:
+      "سيؤدي هذا إلى حذف {{count}} عنصرًا نهائيًا وتحرير {{size}}. لا يمكن التراجع عن ذلك.",
     storage_locked_title: "تخزينك ممتلئ.",
     storage_locked_description:
       "البريد الجديد متوقف حتى تتوفر مساحة. حذف بعض الرسائل أو ترقية الخطة يعيد تدفقه. البريد الموجود بأمان.",
@@ -5492,6 +5553,9 @@ export const ar = {
     stripe_not_configured: "نظام الدفع غير مُكوّن.",
     try_again: "حاول مجددًا",
     view_all_features: "عرض جميع الميزات",
+    plan_everything_in: "كل مزايا {{plan}}، بالإضافة إلى",
+    compare_features_show: "مقارنة الميزات حسب الخطة",
+    compare_features_hide: "إخفاء المقارنة",
     compare_plans: "مقارنة جميع الخطط",
     feature: "الميزة",
     manage_payment_methods: "إدارة طرق الدفع",
@@ -5502,6 +5566,8 @@ export const ar = {
     card_expires: "تنتهي",
     adding_card: "جارٍ الإضافة...",
     card_added: "تمت إضافة طريقة الدفع",
+    payment_retry_succeeded: "تم إتمام الدفع. تظل خطتك نشطة.",
+    payment_retry_failed: "رفض المصرف هذه البطاقة. جرّب طريقة دفع أخرى.",
     card_removed: "تمت إزالة طريقة الدفع",
     default_updated: "تم تحديث طريقة الدفع الافتراضية",
     payment_settled: "تم تحديث طريقة الدفع الافتراضية. تم سداد المبلغ المستحق.",
@@ -5625,7 +5691,7 @@ export const ar = {
     credit_transactions: "معاملات الأرصدة",
     referral_program: "برنامج الإحالة",
     referral_program_description:
-      "ادعُ أصدقاءك إلى Aster واكسب رصيدًا من كل دفعة يقومون بها.",
+      "ادعُ صديقًا إلى Aster Mail. يحصل كلاكما على {{ amount }} من التخزين الإضافي بمجرد أن يبدأ باستخدام حسابه.",
     your_referral_link: "رابط الإحالة الخاص بك",
     copy_link: "نسخ الرابط",
     link_copied: "تم نسخ الرابط إلى الحافظة",
@@ -5637,11 +5703,11 @@ export const ar = {
     referral_not_eligible_description: "يرجى المحاولة لاحقًا.",
     referral_loading: "جارٍ تحميل معلومات الإحالة...",
     referral_history: "سجل الإحالات",
-    no_referrals_yet: "لا توجد إحالات بعد. شارك رابطك للبدء!",
+    no_referrals_yet: "لا توجد دعوات بعد. شارك رابطك للبدء.",
     referral_status_pending: "معلقة",
     referral_status_completed: "مكتملة",
     referral_reward_info:
-      "يحصل صديقك على خصم على أول دفعة، وتكسب أنت من كل دفعة يقوم بها.",
+      "تحصل أنت وصديقك على {{ amount }} من التخزين الإضافي لكل منكما. يصل التخزين بعد أن يستخدم حسابه بضعة أيام، ويبقى في حسابك ما دام يواصل استخدام Aster Mail.",
     referral_commission_info:
       "تكسب {{ percent }}% من كل دفعة يقوم بها من أحلتهم، طالما بقوا مشتركين.",
     referral_max_credits: "الحد الأقصى للأرباح: {{ value }} سنويًا",
@@ -5855,7 +5921,8 @@ export const ar = {
     domain_purchase_included_heading: "كل ما يشمله نطاقك",
     domain_purchase_renew: "تجديد",
     domain_purchase_manage: "إدارة",
-    domain_purchase_manage_description: "راجع هذا التسجيل وجدّده قبل انتهاء صلاحيته.",
+    domain_purchase_manage_description:
+      "راجع هذا التسجيل وجدّده قبل انتهاء صلاحيته.",
     domain_purchase_manage_status: "الحالة",
     domain_purchase_manage_status_active: "نشط",
     domain_purchase_manage_status_expiring: "ينتهي قريبًا",
@@ -5863,9 +5930,11 @@ export const ar = {
     domain_purchase_manage_expires: "تاريخ الانتهاء",
     domain_purchase_manage_term: "المدة",
     domain_purchase_manage_paid: "المبلغ المدفوع",
-    domain_purchase_manage_auto_renew_note: "لا يتجدد هذا النطاق تلقائيًا. للاحتفاظ به، جدّده قبل تاريخ الانتهاء.",
+    domain_purchase_manage_auto_renew_note:
+      "لا يتجدد هذا النطاق تلقائيًا. للاحتفاظ به، جدّده قبل تاريخ الانتهاء.",
     domain_purchase_manage_dns: "فتح إعداد النطاق",
-    domain_purchase_manage_support_note: "لنقل هذا النطاق إلى مسجّل آخر أو للسؤال عن استرداد المبلغ، تواصل مع الدعم.",
+    domain_purchase_manage_support_note:
+      "لنقل هذا النطاق إلى مسجّل آخر أو للسؤال عن استرداد المبلغ، تواصل مع الدعم.",
     domain_purchase_manage_support_subject: "مساعدة بشأن {{domain}}",
     domain_purchase_filter_all: "الكل",
     domain_purchase_filter_available: "متاح",
@@ -6441,10 +6510,10 @@ export const ar = {
       "هل أنت صحفي؟ تواصل مع الدعم مع إثبات اعتمادك الصحفي للحصول على الرمز.",
     refer_a_friend: "أحِل صديقًا",
     referral_how_it_works: "كيف يعمل",
-    referral_step_share:
-      "شارك رابط الإحالة الفريد الخاص بك مع الأصدقاء والعائلة أو الزملاء.",
-    referral_step_signup: "يسجّلون في Aster عبر رابطك ويشتركون في خطة مدفوعة.",
-    referral_step_earn: "تكسب نسبة من كل دفعة يقومون بها، طالما بقوا مشتركين.",
+    referral_step_share: "شارك رابط الدعوة مع الأصدقاء أو العائلة أو الزملاء.",
+    referral_step_signup: "ينشئون حسابًا عبر رابطك ويبدأون باستخدامه.",
+    referral_step_earn:
+      "يحصل كل منكما على {{ amount }} من التخزين الإضافي، حتى {{ max }}.",
     referral_rewards: "المكافآت",
     credits_title: "الرصيد",
     credits_subtitle: "اكسب رصيدًا في Aster بإتمام مهام مختلفة.",
@@ -6458,10 +6527,10 @@ export const ar = {
     credit_task_ios_title: "تنزيل تطبيق Aster لـ iOS",
     credit_task_ios_hint_coming: "قريبًا",
     credit_task_earned: "مكتسب",
-    send_referral_to_contacts: "إرسال بريد لجميع جهات الاتصال",
+    send_referral_to_contacts: "إرسال بريد إلى جميع جهات الاتصال",
     referral_email_subject: "جرّب Aster Mail - بريد خاص للجميع",
     referral_email_body:
-      "مرحبًا!\n\nأنا أستخدم Aster Mail وأحبّه كثيرًا. إنه مشفر من طرف إلى طرف لذا لا يستطيع أحد قراءة رسائلك سواك، ولا حتى Aster أنفسهم.\n\nإن أردت تجربته، إليك رابط الإحالة الخاص بي:\n\n{{ referral_link }}\n\nتحصل على خصم على أول دفعة إن اشتركت، وأحصل أنا على رصيد بسيط، لكن لا إلزام. ظننت فقط أنك ستقدّره.\n\nمع التحية",
+      "مرحبًا،\n\nأستخدم Aster Mail منذ فترة وأنا معجب به كثيرًا. كل شيء مشفّر من طرف إلى طرف، فلا أحد يستطيع قراءة رسائلك سواك، ولا حتى القائمون على الخدمة.\n\nإذا أردت تجربته، هذا رابط دعوتي:\n\n{{ referral_link }}\n\nنحصل كلانا على {{ amount }} من التخزين الإضافي بمجرد أن تبدأ باستخدامه، فلك نصيب من ذلك أيضًا.\n\nتحياتي",
     referral_no_contacts:
       "لم يتم العثور على جهات اتصال. أضف بعض جهات الاتصال أولًا!",
     referral_loading_contacts: "جارٍ تحميل جهات الاتصال...",
@@ -6863,6 +6932,47 @@ export const ar = {
     referral_discount_auto_apply:
       "يُطبَّق تلقائيًا عند الدفع، دون الحاجة إلى إدخاله.",
     referral_discount_expires: "تنتهي في {{ date }}",
+    invite_storage_line: "يحصل كلاكما على {{ amount }} من التخزين الإضافي",
+    invite_storage_note:
+      "أنشئ حسابك المجاني عبر هذا الرابط. يصل التخزين إلى الحسابين بمجرد أن تبدأ باستخدام حسابك.",
+    invite_discount_note:
+      "إضافة إلى خصم {{ percent }}% إذا انتقلت يومًا إلى خطة مدفوعة.",
+    invite_cta_create_account_storage: "إنشاء حسابي المجاني",
+    invite_friends: "دعوة الأصدقاء",
+    invite_sidebar_earned: "{{ amount }} مكتسبة",
+    referral_storage_headline:
+      "احصل على {{ amount }} من التخزين عن كل صديق ينضم",
+    referral_storage_subhead:
+      "يحصل صديقك على {{ amount }} أيضًا. يصل التخزين بمجرد أن يبدأ باستخدام حسابه، حتى {{ max }}.",
+    referral_storage_earned_badge: "{{ amount }} مكتسبة",
+    referral_active_referrals: "نشطة",
+    referral_share_button: "مشاركة الدعوة",
+    referral_show_qr: "إظهار رمز QR",
+    referral_hide_qr: "إخفاء رمز QR",
+    referral_qr_hint: "وجّه كاميرا الهاتف إلى هذا الرمز لفتح الدعوة.",
+    referral_qr_alt: "رمز QR لرابط دعوتك إلى Aster Mail",
+    referral_share_title: "انضم إليّ في Aster Mail",
+    referral_share_message:
+      "أستخدم Aster Mail للبريد المشفّر من طرف إلى طرف. انضم عبر رابطي ونحصل كلانا على {{ amount }} من التخزين الإضافي.",
+    referral_shared: "تمت مشاركة الدعوة",
+    referral_message_copied: "تم نسخ نص الدعوة",
+    referral_bonus_gauge_label: "التخزين المكتسب",
+    referral_bonus_max: "الحد الأقصى: {{ value }}",
+    referral_status_active: "نشطة",
+    referral_email_all_contacts_hint:
+      "يرسل رسالة واحدة إلى كل جهة اتصال في دفتر العناوين.",
+    referral_claim_title: "هل تلقيت دعوة؟",
+    referral_claim_description:
+      "أدخل الرمز الوارد في دعوتك ليحصل كلاكما على {{ amount }} من التخزين الإضافي. أمامك حتى {{ date }} لإضافته.",
+    referral_claim_placeholder: "رمز الدعوة",
+    referral_claim_button: "إضافة الرمز",
+    referral_claim_success:
+      "تمت إضافة الدعوة. يصل التخزين بعد أن تستخدم Aster Mail بضعة أيام.",
+    referral_claim_invalid: "رمز الدعوة هذا غير صالح.",
+    referral_claim_window_closed:
+      "انتهت المدة المتاحة لإضافة رمز دعوة إلى هذا الحساب.",
+    referral_claim_already: "هذا الحساب مرتبط بدعوة بالفعل.",
+    referral_claim_self: "لا يمكنك استخدام رمز دعوتك الخاص.",
     domain_purchase_not_released:
       "شراء النطاقات غير متاح بعد. سيصل في تحديث قادم.",
     domain_step_ownership_title: "أثبت ملكيتك لهذا النطاق",
@@ -7266,7 +7376,8 @@ export const ar = {
     attachments: "المرفقات",
     translation_offer: "هذه الرسالة باللغة {{language}}.",
     translation_translate: "ترجمة",
-    translation_offer_download: "هذه الرسالة بلغة {{language}}. ستؤدي ترجمتها إلى تنزيل حزمة لغة.",
+    translation_offer_download:
+      "هذه الرسالة بلغة {{language}}. ستؤدي ترجمتها إلى تنزيل حزمة لغة.",
     translation_translate_download: "ترجمة (تنزيل {{size}})",
     translation_in_progress: "جارٍ الترجمة على جهازك…",
     translation_translated_from: "تمت الترجمة من اللغة {{language}} على جهازك.",

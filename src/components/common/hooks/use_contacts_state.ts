@@ -18,8 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { copy_text_or_throw } from "@/utils/copy_text";
-import { trigger_download } from "@/utils/download_blob";
 import type { DecryptedContact, ContactFormData } from "@/types/contacts";
 
 import { useCallback } from "react";
@@ -27,6 +25,8 @@ import { useCallback } from "react";
 import { BATCH_SIZE, contact_to_form_data } from "./contacts_state_helpers";
 import { use_contacts_data } from "./use_contacts_data";
 
+import { trigger_download } from "@/utils/download_blob";
+import { copy_text_or_throw } from "@/utils/copy_text";
 import {
   create_contact_encrypted,
   update_contact_encrypted,
@@ -654,8 +654,12 @@ export function use_contacts_state() {
       copy_timeout_ref.current = setTimeout(() => {
         set_copied_field(null);
       }, 2000);
+
+      return true;
     } catch {
       show_toast(t("common.failed_to_copy"), "error");
+
+      return false;
     }
   }, []);
 

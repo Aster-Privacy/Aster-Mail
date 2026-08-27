@@ -42,6 +42,7 @@ import {
 } from "@/services/api/billing";
 import { connection_store } from "@/services/routing/connection_store";
 import { server_error_text } from "@/components/settings/billing/server_error_text";
+import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 import { useTheme } from "@/contexts/theme_context";
 import {
@@ -208,13 +209,17 @@ export function CheckoutModal({
       );
 
       if (!addon_id) {
-        try {
-          const credits_response = await get_credits();
+        const credits_response = await get_credits();
 
-          set_credit_balance_cents(credits_response.data?.balance_cents ?? 0);
-        } catch {
+        if (!credits_response.data) {
           set_credit_balance_cents(0);
+          set_error_message(t("settings.failed_checkout"));
+          set_phase("error");
+
+          return;
         }
+
+        set_credit_balance_cents(credits_response.data.balance_cents ?? 0);
       }
 
       if (addon_id) {
@@ -257,14 +262,21 @@ export function CheckoutModal({
         set_is_validating_promo(true);
         validate_promo_code(initial_promo_code)
           .then((res) => {
-            if (res.data?.valid) set_promo_result(res.data);
+            if (res.data) {
+              set_promo_result(res.data);
+            } else {
+              show_toast(
+                res.error || t("common.something_went_wrong_try_again"),
+                "error",
+              );
+            }
           })
           .finally(() => set_is_validating_promo(false));
       }
     } else if (!open) {
       has_initialized.current = false;
     }
-  }, [open, initialize, initial_promo_code, addon_id]);
+  }, [open, initialize, initial_promo_code, addon_id, t]);
 
   const handle_close = useCallback(() => {
     if (phase === "processing") return;

@@ -18,13 +18,13 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { show_toast } from "@/components/toast/simple_toast";
-import { copy_text_or_throw } from "@/utils/copy_text";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@aster/ui";
 
+import { copy_text_or_throw } from "@/utils/copy_text";
+import { show_toast } from "@/components/toast/simple_toast";
 import { COPY_FEEDBACK_MS } from "@/constants/timings";
 import { useTheme } from "@/contexts/theme_context";
 import { use_should_reduce_motion } from "@/provider";
@@ -221,19 +221,29 @@ export default function ResetPasswordPage() {
   const navigate = useNavigate();
   const { theme } = useTheme();
   const is_dark = theme === "dark";
-  const [search_params] = useSearchParams();
-
-  const token = useMemo(
-    () => (search_params.get("token") || "").trim(),
-    [search_params],
+  const [initial_params] = useState(
+    () => new URLSearchParams(window.location.search),
   );
 
-  const account_email = useMemo(
-    () => (search_params.get("email") || "").trim().toLowerCase(),
-    [search_params],
+  const [token] = useState(() => (initial_params.get("token") || "").trim());
+
+  const [account_email] = useState(() =>
+    (initial_params.get("email") || "").trim().toLowerCase(),
   );
 
   const [step, set_step] = useState<ResetStep>(token ? "consent" : "invalid");
+
+  useEffect(() => {
+    if (step !== "success" && step !== "invalid") return;
+
+    if (!token && !account_email) return;
+
+    const clean_url = new URL(window.location.href);
+
+    clean_url.searchParams.delete("token");
+    clean_url.searchParams.delete("email");
+    window.history.replaceState({}, "", clean_url.toString());
+  }, [step, token, account_email]);
   const [consent_checked, set_consent_checked] = useState(false);
   const [consent_email, set_consent_email] = useState("");
   const [password, set_password] = useState("");
@@ -245,6 +255,7 @@ export default function ResetPasswordPage() {
   const [new_recovery_codes, set_new_recovery_codes] = useState<string[]>([]);
   const [is_key_visible, set_is_key_visible] = useState(false);
   const [copy_success, set_copy_success] = useState(false);
+  const [codes_downloaded, set_codes_downloaded] = useState(false);
 
   const handle_consent_continue = () => {
     set_error("");
@@ -421,6 +432,7 @@ export default function ResetPasswordPage() {
   const handle_download_pdf = async () => {
     try {
       await generate_recovery_pdf(recovery_doc_email, new_recovery_codes, t);
+      set_codes_downloaded(true);
     } catch {
       show_toast(t("common.something_went_wrong_try_again"), "error");
     }
@@ -429,6 +441,7 @@ export default function ResetPasswordPage() {
   const handle_download_txt = async () => {
     try {
       await download_recovery_text(recovery_doc_email, new_recovery_codes, t);
+      set_codes_downloaded(true);
     } catch {
       show_toast(t("common.something_went_wrong_try_again"), "error");
     }
@@ -780,7 +793,9 @@ export default function ResetPasswordPage() {
                 set_step("success");
               }}
             >
-              {t("auth.continue_without_download")}
+              {codes_downloaded
+                ? t("common.continue")
+                : t("auth.continue_without_download")}
             </button>
           </motion.div>
         );

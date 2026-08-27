@@ -156,7 +156,8 @@ export const RegisterStepWelcome = ({ reg }: RegisterStepWelcomeProps) => {
         >
           {reg.t("auth.privacy_policy")}
         </a>
-        .
+        .{" "}
+        {reg.t("auth.copyright", { year: new Date().getFullYear().toString() })}
       </p>
     </motion.div>
   );

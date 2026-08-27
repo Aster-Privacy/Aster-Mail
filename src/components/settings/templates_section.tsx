@@ -303,7 +303,9 @@ export function TemplatesSection() {
           >
             <span>{error}</span>
             <button
+              aria-label={t("common.close")}
               className="p-1 rounded hover:bg-red-500/20"
+              type="button"
               onClick={() => set_error(null)}
             >
               <XMarkIcon className="w-4 h-4" />
@@ -464,10 +466,7 @@ export function TemplatesSection() {
                 onClick={handle_save}
               >
                 {editor.is_saving ? (
-                  <>
-                    {t("common.saving")}
-                    <Spinner className="ms-2" size="md" />
-                  </>
+                  <Spinner size="md" />
                 ) : editor.editing_id ? (
                   t("settings.update_template")
                 ) : (

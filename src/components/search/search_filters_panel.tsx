@@ -384,11 +384,14 @@ export function SaveSearchDialog({
   const input_ref = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (is_open) {
-      set_name("");
-      set_error("");
-      setTimeout(() => input_ref.current?.focus(), 100);
-    }
+    if (!is_open) return;
+
+    set_name("");
+    set_error("");
+
+    const handle = setTimeout(() => input_ref.current?.focus(), 100);
+
+    return () => clearTimeout(handle);
   }, [is_open]);
 
   const handle_save = useCallback(() => {

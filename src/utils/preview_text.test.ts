@@ -101,6 +101,24 @@ describe("strip_preview_filler", () => {
     );
   });
 
+  it("collapses fixed-width spaces used to pad a preheader", () => {
+    const padded = `Tune in for a special Apple Event.${" ".repeat(200)}`;
+
+    expect(strip_preview_filler(padded)).toBe(
+      "Tune in for a special Apple Event.",
+    );
+  });
+
+  it("collapses braille blanks used to pad a preheader", () => {
+    expect(strip_preview_filler(`Watch now${"⠀".repeat(120)}hidden`)).toBe(
+      "Watch now hidden",
+    );
+  });
+
+  it("keeps words apart when a non-breaking space separates them", () => {
+    expect(strip_preview_filler("Apple Event")).toBe("Apple Event");
+  });
+
   it("removes interlinear annotation markers", () => {
     expect(strip_preview_filler("a￹b￺c￻d")).toBe("abcd");
   });

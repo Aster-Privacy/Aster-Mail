@@ -124,6 +124,8 @@ export function ImportSection() {
     null,
   );
 
+  const deleted_job_ids_ref = useRef<Set<string>>(new Set());
+
   const load_jobs = useCallback(async (silent = false) => {
     if (!silent) set_is_loading_jobs(true);
 
@@ -131,7 +133,11 @@ export function ImportSection() {
       const response = await list_import_jobs();
 
       if (response.data) {
-        set_recent_jobs(response.data.jobs.slice(0, 5));
+        set_recent_jobs(
+          response.data.jobs
+            .filter((job) => !deleted_job_ids_ref.current.has(job.id))
+            .slice(0, 5),
+        );
         set_jobs_load_failed(false);
       } else {
         set_jobs_load_failed(true);
@@ -150,11 +156,14 @@ export function ImportSection() {
 
   const handle_delete_recent_job = useCallback(
     async (id: string) => {
+      deleted_job_ids_ref.current.add(id);
       set_recent_jobs((prev) => prev.filter((j) => j.id !== id));
       try {
         const response = await delete_import_job(id);
 
         if (response.error) {
+          if (import.meta.env.DEV) console.error(response.error);
+          deleted_job_ids_ref.current.delete(id);
           show_toast(t("common.delete_failed"), "error");
           await load_jobs(true);
         }
@@ -163,6 +172,7 @@ export function ImportSection() {
           "components/settings/import_section/import_section:ImportSection",
           caught,
         );
+        deleted_job_ids_ref.current.delete(id);
         show_toast(t("common.delete_failed"), "error");
         await load_jobs(true);
       }

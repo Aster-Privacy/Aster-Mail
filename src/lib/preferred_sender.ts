@@ -79,9 +79,17 @@ export function set_preferred_sender_id(id: string | null): void {
 
   write_local(id);
   if (current !== id) notify(id);
-  sync_preferred_sender_to_server(id).catch((caught) =>
-    ignore_error("lib/preferred_sender:set_preferred_sender_id", caught),
-  );
+  sync_preferred_sender_to_server(id)
+    .then((saved) => {
+      if (saved) return;
+      if (read_local() !== id) return;
+
+      write_local(current);
+      if (current !== id) notify(current);
+    })
+    .catch((caught) =>
+      ignore_error("lib/preferred_sender:set_preferred_sender_id", caught),
+    );
 }
 
 export function clear_preferred_sender_local(): void {
@@ -99,10 +107,15 @@ export function subscribe_preferred_sender(listener: Listener): () => void {
 
 async function sync_preferred_sender_to_server(
   id: string | null,
-): Promise<void> {
-  await api_client.put("/settings/v1/preferences/default-sender", {
-    sender_id: id,
-  });
+): Promise<boolean> {
+  const response = await api_client.put(
+    "/settings/v1/preferences/default-sender",
+    {
+      sender_id: id,
+    },
+  );
+
+  return !response.error;
 }
 
 if (typeof window !== "undefined") {

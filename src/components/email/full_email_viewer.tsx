@@ -53,7 +53,10 @@ import {
   set_external_content_mode,
 } from "@/components/email/viewer_shared";
 import { use_spam_confirm } from "@/components/email/use_spam_confirm";
-import { execute_unsubscribe } from "@/utils/unsubscribe_detector";
+import {
+  execute_unsubscribe,
+  get_manual_unsubscribe_url,
+} from "@/utils/unsubscribe_detector";
 import { get_label_hints } from "@/stores/label_hints_store";
 import { show_action_toast } from "@/components/toast/action_toast";
 import {
@@ -368,7 +371,7 @@ export function FullEmailViewer({
         ...(!is_any_lockdown_active() && {
           action_label: t("mail.open_unsubscribe_page"),
           on_undo: async () => {
-            const url = info.unsubscribe_link || info.unsubscribe_mailto;
+            const url = get_manual_unsubscribe_url(info);
 
             if (url) open_external(url);
           },

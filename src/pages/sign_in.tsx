@@ -177,6 +177,7 @@ export default function SignInPage() {
     set_available_2fa_methods([]);
     set_active_2fa_method("totp");
     set_password("");
+    set_captcha_token("");
   };
 
   const handle_login = async () => {
@@ -320,6 +321,8 @@ export default function SignInPage() {
         await timing_safe_delay();
         set_error(t("errors.login_failed"));
         set_is_loading(false);
+        set_captcha_token("");
+        turnstile_ref.current?.reset();
 
         return;
       }
@@ -419,6 +422,8 @@ export default function SignInPage() {
         if (!add_result.success) {
           set_error(add_result.error || t("errors.login_failed"));
           set_is_loading(false);
+          set_captcha_token("");
+          turnstile_ref.current?.reset();
 
           return;
         }
@@ -709,6 +714,7 @@ export default function SignInPage() {
                     spellCheck={false}
                     status={error ? "error" : "default"}
                     type="text"
+                    value={username}
                     onChange={(e) => {
                       const raw = e.target.value;
                       const at_index = raw.indexOf("@");
@@ -741,7 +747,6 @@ export default function SignInPage() {
                         set_username(sanitize_username(raw));
                       }
                     }}
-                    value={username}
                   />
                   <div className="relative flex mt-2 aster_input !p-1 !h-auto">
                     <div
@@ -839,14 +844,7 @@ export default function SignInPage() {
                 type="submit"
                 variant="depth"
               >
-                {is_loading ? (
-                  <>
-                    {t("auth.signing_in")}
-                    <Spinner className="ms-2" size="md" />
-                  </>
-                ) : (
-                  t("auth.sign_in")
-                )}
+                {is_loading ? <Spinner size="md" /> : t("auth.sign_in")}
               </Button>
             </form>
 

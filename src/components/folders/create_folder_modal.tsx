@@ -33,7 +33,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown_menu";
-import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import {
   TAG_COLOR_PRESETS,
@@ -52,7 +51,6 @@ import {
 import { use_i18n } from "@/lib/i18n/context";
 import { is_composing } from "@/utils/ime";
 import { use_dialog_shell } from "@/lib/use_dialog_shell";
-
 
 interface CreateFolderModalProps {
   is_open: boolean;
@@ -353,13 +351,13 @@ export function CreateFolderModal({
               <Button
                 className="text-white"
                 disabled={!trimmed_name || is_creating || !!validation_error}
+                is_loading={is_creating}
                 size="xl"
                 style={{ backgroundColor: selected_color }}
                 variant="depth"
                 onClick={handle_create}
               >
-                {is_creating && <Spinner size="md" />}
-                {is_creating ? t("common.creating") : t("common.create_folder")}
+                {t("common.create_folder")}
               </Button>
             </div>
           </motion.div>

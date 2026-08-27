@@ -31,6 +31,7 @@ import {
 } from "@heroicons/react/24/outline";
 
 import { NavSectionSkeleton } from "@/components/common/nav_section_skeleton";
+import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { TagContextMenu } from "@/components/tags/tag_context_menu";
 import { tag_icon_map } from "@/components/ui/email_tag";
 import { use_i18n } from "@/lib/i18n/context";
@@ -66,6 +67,8 @@ interface SidebarTagsProps {
   ) => void;
   section_collapsed?: boolean;
   on_toggle_section?: () => void;
+  load_failed?: boolean;
+  on_retry?: () => void;
 }
 
 export const SidebarTags = memo(function SidebarTags({
@@ -84,6 +87,8 @@ export const SidebarTags = memo(function SidebarTags({
   on_drop_emails,
   section_collapsed = false,
   on_toggle_section,
+  load_failed = false,
+  on_retry,
 }: SidebarTagsProps) {
   const { t } = use_i18n();
 
@@ -124,10 +129,11 @@ export const SidebarTags = memo(function SidebarTags({
               </span>
             </button>
             <button
+              aria-label={t("common.create_label")}
               className="p-1 rounded-[14px]  hover:bg-black/[0.06] dark:hover:bg-white/[0.08] text-icon-muted"
               onClick={() => set_is_create_tag_open(true)}
             >
-              <PlusIcon className="w-4 h-4" />
+              <PlusIcon aria-hidden="true" className="w-4 h-4" />
             </button>
           </div>
         </div>
@@ -287,11 +293,14 @@ export const SidebarTags = memo(function SidebarTags({
         {all_tags.length === 0 &&
           !is_loading &&
           !is_collapsed &&
-          !section_collapsed && (
+          !section_collapsed &&
+          (load_failed && on_retry ? (
+            <LoadFailedNotice on_retry={on_retry} />
+          ) : (
             <p className="text-[11px] px-2.5 py-2 text-txt-muted">
               {t("common.no_labels_yet")}
             </p>
-          )}
+          ))}
       </div>
     </>
   );

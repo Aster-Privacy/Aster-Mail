@@ -19,7 +19,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useState, useEffect, useCallback } from "react";
-import { submit_on_enter } from "@/lib/commit_on_enter";
 import {
   TrashIcon,
   ExclamationTriangleIcon,
@@ -32,6 +31,7 @@ import { Button } from "@aster/ui";
 
 import { TFn } from "./helpers";
 
+import { submit_on_enter } from "@/lib/commit_on_enter";
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { Input } from "@/components/ui/input";
 import { InfoPopover } from "@/components/ui/info_popover";
@@ -395,14 +395,20 @@ export function FiltersContent({
   const [consent_payload, set_consent_payload] = useState<unknown>(null);
   const [consent_kind, set_consent_kind] =
     useState<ConsentKind>("filter_create");
+  const [filters_load_failed, set_filters_load_failed] = useState(false);
 
   const load = useCallback(async () => {
+    set_filters_load_failed(false);
     try {
       const r = await list_org_filters();
 
       if (r.data) set_filters(r.data);
-      else show_toast(t("settings.fam_org_filters_load_failed"), "error");
+      else {
+        set_filters_load_failed(true);
+        show_toast(t("settings.fam_org_filters_load_failed"), "error");
+      }
     } catch {
+      set_filters_load_failed(true);
       show_toast(t("settings.fam_org_filters_load_failed"), "error");
     } finally {
       set_loading(false);
@@ -668,7 +674,11 @@ export function FiltersContent({
         </ModalFooter>
       </Modal>
 
-      {!loading && filters.length === 0 && (
+      {!loading && filters.length === 0 && filters_load_failed && (
+        <LoadFailedNotice on_retry={() => void load()} />
+      )}
+
+      {!loading && filters.length === 0 && !filters_load_failed && (
         <div className="text-center py-8 rounded-xl bg-surf-secondary border border-dashed border-edge-secondary">
           <FunnelIcon className="w-12 h-12 mx-auto mb-2 text-txt-tertiary" />
           <p className="text-sm text-txt-muted mb-1">

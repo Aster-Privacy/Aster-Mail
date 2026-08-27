@@ -63,6 +63,7 @@ export interface Draft {
 
 export interface DraftWithContent extends Draft {
   content: DraftContent;
+  is_undecryptable?: boolean;
 }
 
 interface DraftApiResponse {
@@ -340,9 +341,10 @@ function first_string(record: Record<string, unknown>, keys: string[]): string {
 }
 
 export function normalize_draft_content(parsed: unknown): DraftContent {
-  const record = (
-    parsed && typeof parsed === "object" ? parsed : {}
-  ) as Record<string, unknown>;
+  const record = (parsed && typeof parsed === "object" ? parsed : {}) as Record<
+    string,
+    unknown
+  >;
   const from_record = record.from as { email?: unknown } | undefined;
   const from_object_email =
     from_record && typeof from_record === "object"
@@ -497,6 +499,7 @@ async function decrypt_list_item(
   } catch {
     return {
       ...transform_api_response_to_draft(item),
+      is_undecryptable: true,
       content: {
         to_recipients: [],
         cc_recipients: [],

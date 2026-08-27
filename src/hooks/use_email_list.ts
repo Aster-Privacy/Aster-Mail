@@ -79,6 +79,17 @@ export function derive_page_from_list_length(
   return Math.max(0, Math.ceil(list_length / page_size) - 1);
 }
 
+export function resolve_refresh_offset(
+  windowed: boolean,
+  active_page: number,
+  window_size: number,
+  page_offsets: Map<number, number>,
+): number {
+  if (!windowed) return 0;
+
+  return page_offsets.get(active_page) ?? active_page * window_size;
+}
+
 export function use_email_list(current_view: string): UseEmailListReturn {
   const {
     has_keys,
@@ -414,7 +425,12 @@ export function use_email_list(current_view: string): UseEmailListReturn {
     const refresh_limit = windowed
       ? window_size
       : (active_page + 1) * page_size;
-    const refresh_offset = windowed ? active_page * window_size : 0;
+    const refresh_offset = resolve_refresh_offset(
+      windowed,
+      active_page,
+      window_size,
+      page_offset_ref.current,
+    );
 
     try {
       const result = await fetch_mail_from_api(

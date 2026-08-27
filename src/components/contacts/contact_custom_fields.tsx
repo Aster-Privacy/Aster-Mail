@@ -353,8 +353,6 @@ export function ContactCustomFields({
         confirm_text={t("common.delete")}
         is_open={pending_delete_definition_id !== null}
         message={t("common.delete_custom_field_message")}
-        title={t("common.delete_custom_field_title")}
-        variant="danger"
         on_cancel={() => set_pending_delete_definition_id(null)}
         on_confirm={() => {
           const target = pending_delete_definition_id;
@@ -362,6 +360,8 @@ export function ContactCustomFields({
           set_pending_delete_definition_id(null);
           if (target) handle_delete_definition(target);
         }}
+        title={t("common.delete_custom_field_title")}
+        variant="danger"
       />
       <div className="flex items-center justify-between">
         <label className="text-sm font-medium text-foreground-600">
@@ -386,10 +386,10 @@ export function ContactCustomFields({
                 initial={reduce_motion ? false : { opacity: 0, y: -10 }}
               >
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-xs font-medium text-foreground-500">
+                  <span className="text-xs font-medium text-txt-secondary">
                     {definition.name}
                   </span>
-                  <span className="text-[10px] text-foreground-400 bg-default-100 px-1.5 py-0.5 rounded">
+                  <span className="text-[10px] text-txt-muted bg-surf-tertiary px-1.5 py-0.5 rounded">
                     {FIELD_TYPE_LABEL_KEYS[definition.field_type] === "URL"
                       ? "URL"
                       : t(
@@ -434,20 +434,20 @@ export function ContactCustomFields({
                       }}
                     />
                     <Button
-                      className="p-1.5 h-auto text-success hover:bg-success/10"
+                      className="p-1.5 h-auto text-aster-success hover:bg-aster-success/10"
                       disabled={is_saving}
                       size="md"
                       variant="ghost"
                       onClick={handle_save_value}
                     >
                       {is_saving ? (
-                        <div className="w-4 h-4 border-2 border-success border-t-transparent rounded-full animate-spin" />
+                        <div className="w-4 h-4 border-2 border-aster-success border-t-transparent rounded-full animate-spin" />
                       ) : (
                         <CheckIcon className="w-4 h-4" />
                       )}
                     </Button>
                     <Button
-                      className="p-1.5 h-auto text-foreground-500 hover:bg-default-100"
+                      className="p-1.5 h-auto text-txt-secondary hover:bg-surf-hover"
                       disabled={is_saving}
                       size="md"
                       variant="ghost"
@@ -459,7 +459,7 @@ export function ContactCustomFields({
                 ) : (
                   <div
                     className={cn(
-                      "flex items-center gap-2 p-2 rounded-lg border border-divider cursor-pointer hover:bg-default-50 transition-colors",
+                      "flex items-center gap-2 p-2 rounded-lg border border-edge-secondary cursor-pointer hover:bg-surf-hover transition-colors",
                       disabled && "cursor-not-allowed opacity-50",
                     )}
                     onClick={() => !disabled && handle_start_edit(definition)}
@@ -467,11 +467,11 @@ export function ContactCustomFields({
                     {current_value ? (
                       <span className="text-sm flex-1">{current_value}</span>
                     ) : (
-                      <span className="text-sm text-foreground-400 flex-1 italic">
+                      <span className="text-sm text-txt-muted flex-1 italic">
                         {t("common.click_to_add_value")}
                       </span>
                     )}
-                    <PencilIcon className="w-4 h-4 text-foreground-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <PencilIcon className="w-4 h-4 text-txt-muted opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>
                 )}
               </motion.div>
@@ -480,14 +480,14 @@ export function ContactCustomFields({
         </AnimatePresence>
 
         {definitions.length === 0 && !error && (
-          <p className="text-sm text-foreground-500 text-center py-4">
+          <p className="text-sm text-txt-secondary text-center py-4">
             {t("common.no_custom_fields_yet")}
           </p>
         )}
       </div>
 
-      <div className="border-t border-divider pt-4">
-        <p className="text-xs text-foreground-500 mb-3">
+      <div className="border-t border-edge-secondary pt-4">
+        <p className="text-xs text-txt-secondary mb-3">
           {t("common.add_new_field_type")}
         </p>
         <div className="flex items-center gap-2">
@@ -502,7 +502,7 @@ export function ContactCustomFields({
             }}
           />
           <select
-            className="h-9 px-2 rounded-lg border border-divider bg-background text-sm"
+            className="h-9 px-2 rounded-lg border border-edge-secondary bg-background text-sm"
             value={new_field_type}
             onChange={(e) =>
               set_new_field_type(e.target.value as CustomFieldType)

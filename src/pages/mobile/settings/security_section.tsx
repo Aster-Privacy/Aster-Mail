@@ -88,6 +88,7 @@ import { TotpSetupModal } from "@/components/settings/totp_setup_modal";
 import { TotpDisableModal } from "@/components/settings/totp_disable_modal";
 import { RegenerateBackupCodesModal } from "@/components/settings/regenerate_backup_codes_modal";
 import { DeleteAccountModal } from "@/components/modals/delete_account_modal";
+import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { check_password_breach } from "@/services/breach_check";
 import { UpgradeGate } from "@/components/common/upgrade_gate";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
@@ -144,6 +145,7 @@ export function SecuritySection({
     success: boolean;
     message: string;
   } | null>(null);
+  const [totp_failed, set_totp_failed] = useState(false);
 
   const fetch_alerts = useCallback(async () => {
     try {
@@ -163,32 +165,27 @@ export function SecuritySection({
     }
   }, []);
 
-  useEffect(() => {
-    const fetch_status = async () => {
-      try {
-        const res = await get_totp_status();
-
-        if (res.data) set_totp_status(res.data);
-      } catch (err) {
-        if (import.meta.env.DEV)
-          console.error("failed to fetch TOTP status", err);
-      }
-    };
-
-    fetch_status();
-    fetch_alerts();
-  }, [fetch_alerts]);
-
   const refetch_totp_status = useCallback(async () => {
     try {
       const res = await get_totp_status();
 
-      if (res.data) set_totp_status(res.data);
+      if (res.data) {
+        set_totp_status(res.data);
+        set_totp_failed(false);
+      } else {
+        set_totp_failed(true);
+      }
     } catch (err) {
       if (import.meta.env.DEV)
         console.error("failed to fetch TOTP status", err);
+      set_totp_failed(true);
     }
   }, []);
+
+  useEffect(() => {
+    void refetch_totp_status();
+    fetch_alerts();
+  }, [fetch_alerts, refetch_totp_status]);
 
   const handle_two_factor_toggle = useCallback(() => {
     if (!totp_status) {
@@ -212,12 +209,15 @@ export function SecuritySection({
     refetch_totp_status();
   }, [refetch_totp_status]);
 
+  const [confirm_login_alerts_off, set_confirm_login_alerts_off] =
+    useState(false);
+
   const handle_totp_disable_success = useCallback(() => {
     set_totp_status((prev) => (prev ? { ...prev, enabled: false } : null));
     refetch_totp_status();
   }, [refetch_totp_status]);
 
-  const handle_login_alerts_toggle = useCallback(async () => {
+  const run_login_alerts_toggle = useCallback(async () => {
     if (login_alerts_loading) return;
     if (!login_alerts_loaded) return;
     set_login_alerts_loading(true);
@@ -238,6 +238,15 @@ export function SecuritySection({
       set_login_alerts_loading(false);
     }
   }, [login_alerts_enabled, login_alerts_loaded, login_alerts_loading, t]);
+
+  const handle_login_alerts_toggle = useCallback(() => {
+    if (login_alerts_enabled) {
+      set_confirm_login_alerts_off(true);
+
+      return;
+    }
+    void run_login_alerts_toggle();
+  }, [login_alerts_enabled, run_login_alerts_toggle]);
 
   const handle_change_password = useCallback(async () => {
     set_pw_error("");
@@ -665,10 +674,21 @@ export function SecuritySection({
             icon={<DevicePhoneMobileIcon className="h-4 w-4" />}
             label={t("settings.two_factor_auth")}
             trailing={
-              <Switch
-                checked={totp_status?.enabled ?? false}
-                onCheckedChange={handle_two_factor_toggle}
-              />
+              totp_failed && !totp_status ? (
+                <button
+                  className="text-xs font-medium text-brand hover:underline"
+                  type="button"
+                  onClick={() => void refetch_totp_status()}
+                >
+                  {t("common.retry")}
+                </button>
+              ) : (
+                <Switch
+                  checked={totp_status?.enabled ?? false}
+                  disabled={!totp_status}
+                  onCheckedChange={handle_two_factor_toggle}
+                />
+              )
             }
           />
           {totp_status?.enabled &&
@@ -701,7 +721,7 @@ export function SecuritySection({
             trailing={
               login_alerts_failed && !login_alerts_loaded ? (
                 <button
-                  className="text-xs font-medium text-accent-primary hover:underline"
+                  className="text-xs font-medium text-brand hover:underline"
                   type="button"
                   onClick={() => void fetch_alerts()}
                 >
@@ -1104,6 +1124,19 @@ export function SecuritySection({
         is_open={show_delete_modal}
         on_close={() => set_show_delete_modal(false)}
         on_deleted={() => navigate("/sign-in")}
+      />
+      <ConfirmationModal
+        cancel_text={t("common.cancel")}
+        confirm_text={t("settings.turn_off_action")}
+        is_open={confirm_login_alerts_off}
+        message={t("settings.login_alerts_disable_message")}
+        on_cancel={() => set_confirm_login_alerts_off(false)}
+        on_confirm={() => {
+          set_confirm_login_alerts_off(false);
+          void run_login_alerts_toggle();
+        }}
+        title={t("settings.login_alerts_disable_title")}
+        variant="danger"
       />
     </div>
   );

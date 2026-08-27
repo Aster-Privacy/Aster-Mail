@@ -55,6 +55,7 @@ import {
 } from "@/lib/alias_rule_delivery";
 import {
   create_rule,
+  get_last_save_error,
   update_rule,
   delete_rule,
   run_on_existing,
@@ -520,7 +521,10 @@ export function RuleEditorModal({
           : await create_rule(req);
 
       if (!result) {
-        show_toast(t("mail_rules.save_failed"), "error");
+        show_toast(
+          get_last_save_error() || t("mail_rules.save_failed"),
+          "error",
+        );
         set_saving(false);
 
         return;
@@ -1029,13 +1033,13 @@ export function RuleEditorModal({
         confirm_text={t("mail.discard")}
         is_open={confirm_discard_open}
         message={t("common.discard_changes_message")}
-        title={t("common.discard_changes_title")}
-        variant="danger"
         on_cancel={() => set_confirm_discard_open(false)}
         on_confirm={() => {
           set_confirm_discard_open(false);
           on_close();
         }}
+        title={t("common.discard_changes_title")}
+        variant="danger"
       />
     </Modal>
   );

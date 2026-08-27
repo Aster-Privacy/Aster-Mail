@@ -18,13 +18,13 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { show_toast } from "@/components/toast/simple_toast";
-import { copy_text_or_throw } from "@/utils/copy_text";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { RecoveryMethod, RecoveryStep } from "./shared";
 
+import { copy_text_or_throw } from "@/utils/copy_text";
+import { show_toast } from "@/components/toast/simple_toast";
 import { COPY_FEEDBACK_MS } from "@/constants/timings";
 import { useTheme } from "@/contexts/theme_context";
 import { use_should_reduce_motion } from "@/provider";
@@ -110,6 +110,15 @@ export function use_forgot_password() {
   const [is_key_visible, set_is_key_visible] = useState(false);
   const [copy_success, set_copy_success] = useState(false);
   const [codes_downloaded, set_codes_downloaded] = useState(false);
+  const copy_timer_ref = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (copy_timer_ref.current !== null) {
+        window.clearTimeout(copy_timer_ref.current);
+      }
+    };
+  }, []);
 
   const [recovery_token, set_recovery_token] = useState("");
   const [vault_backup, set_vault_backup] = useState<VaultBackup | null>(null);
@@ -272,7 +281,14 @@ export function use_forgot_password() {
 
     await timing_safe_delay();
 
-    if (is_transport_failure(reset_response.code)) {
+    if (reset_response.code === "RATE_LIMIT_EXCEEDED") {
+      set_error(t("errors.rate_limit"));
+      set_step("method_choice");
+
+      return;
+    }
+
+    if (reset_response.error || !reset_response.data) {
       set_error(t("common.something_went_wrong_try_again"));
       set_step("method_choice");
 
@@ -661,7 +677,15 @@ export function use_forgot_password() {
     try {
       await copy_text_or_throw(codes_text);
       set_copy_success(true);
-      setTimeout(() => set_copy_success(false), COPY_FEEDBACK_MS);
+
+      if (copy_timer_ref.current !== null) {
+        window.clearTimeout(copy_timer_ref.current);
+      }
+
+      copy_timer_ref.current = window.setTimeout(() => {
+        copy_timer_ref.current = null;
+        set_copy_success(false);
+      }, COPY_FEEDBACK_MS);
     } catch {
       show_toast(t("common.failed_to_copy"), "error");
     }

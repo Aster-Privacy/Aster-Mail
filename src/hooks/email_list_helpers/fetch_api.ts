@@ -220,11 +220,12 @@ export async function fetch_mail_from_api(
                 is_read: item.is_read === true || (metadata?.is_read ?? false),
                 category: classify(envelope!, metadata, {
                   rule_category: item.rule_category,
+                  trust: item,
                 }),
                 category_pinned:
                   metadata?.category_pinned === true &&
                   !!metadata?.category &&
-                  !is_locked_to_primary(envelope!),
+                  !is_locked_to_primary(envelope!, item),
               },
             ];
           } catch {

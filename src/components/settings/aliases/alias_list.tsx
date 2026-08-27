@@ -143,11 +143,11 @@ function UndecryptableAliasCard({
     >
       <div
         className={`flex w-10 h-10 items-center justify-center rounded-full flex-shrink-0 ${
-          orphaned ? "bg-accent-primary/10" : "bg-amber-500/10"
+          orphaned ? "bg-brand/10" : "bg-amber-500/10"
         }`}
       >
         {orphaned ? (
-          <InformationCircleIcon className="w-5 h-5 text-accent-primary" />
+          <InformationCircleIcon className="w-5 h-5 text-brand" />
         ) : (
           <ExclamationTriangleIcon className="w-5 h-5 text-amber-500" />
         )}
@@ -165,7 +165,7 @@ function UndecryptableAliasCard({
         </p>
         {restorable && !restore_open && (
           <button
-            className="mt-1.5 text-xs font-medium text-accent-primary hover:underline"
+            className="mt-1.5 text-xs font-medium text-brand hover:underline"
             type="button"
             onClick={() => set_restore_open(true)}
           >
@@ -182,10 +182,10 @@ function UndecryptableAliasCard({
                 autoFocus
                 autoCapitalize="none"
                 autoCorrect="off"
-                spellCheck={false}
                 className="h-8 text-xs"
                 disabled={restoring}
                 placeholder={t("settings.alias_restore_placeholder")}
+                spellCheck={false}
                 value={claimed_local_part}
                 onChange={(event) => {
                   set_claimed_local_part(event.target.value);
@@ -533,7 +533,7 @@ export function AliasList({
           {t("settings.aliases_load_failed")}
         </p>
         {on_reload && (
-          <Button onClick={on_reload} size="sm" variant="outline">
+          <Button size="sm" variant="outline" onClick={on_reload}>
             {t("common.retry")}
           </Button>
         )}

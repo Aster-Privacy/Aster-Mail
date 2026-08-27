@@ -77,7 +77,9 @@ export async function refresh_attachment_limits(
         cached_max_bytes = limit;
       }
 
-      cache_timestamp = Date.now();
+      if (response.data) {
+        cache_timestamp = Date.now();
+      }
     } catch (error) {
       ignore_error("services/attachment_limits:refresh", error);
     } finally {

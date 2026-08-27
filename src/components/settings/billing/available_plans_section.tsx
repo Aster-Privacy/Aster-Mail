@@ -18,9 +18,12 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { TranslationKey } from "@/lib/i18n/types";
+
 import { useState } from "react";
 import { SparklesIcon, ShieldCheckIcon } from "@heroicons/react/24/outline";
 
+import { CrownIcon } from "@/components/ui/crown_icon";
 import {
   PlanCard,
   Segmented,
@@ -42,7 +45,6 @@ import {
   type FamilyPlanTier,
 } from "@/components/settings/billing/billing_constants";
 import { compute_plan_recommendation } from "@/components/settings/billing/plan_recommendation";
-import type { TranslationKey } from "@/lib/i18n/types";
 import { scroll_to_storage_addons } from "@/components/layout/storage_meter";
 import { use_currency_rates } from "@/components/settings/billing/use_currency_rates";
 import { PlanPaymentMethodModal } from "@/components/settings/billing/plan_payment_method_modal";
@@ -110,6 +112,8 @@ function Tabs<T extends string>({
 interface AvailablePlansSectionProps {
   subscription: SubscriptionResponse | null;
   plans: AvailablePlan[];
+  plans_load_failed?: boolean;
+  on_reload_plans?: () => void;
   billing_period: "monthly" | "yearly" | "biennial";
   set_billing_period: (value: "monthly" | "yearly" | "biennial") => void;
   preferred_currency: string;
@@ -128,6 +132,8 @@ interface AvailablePlansSectionProps {
 export function AvailablePlansSection({
   subscription,
   plans,
+  plans_load_failed,
+  on_reload_plans,
   billing_period,
   set_billing_period,
   preferred_currency,
@@ -294,7 +300,7 @@ export function AvailablePlansSection({
       {recommendation.is_paid && current_plan_name && (
         <div className="mb-5 rounded-xl border border-edge-secondary bg-surf-tertiary px-4 py-3">
           <div className="flex items-start gap-3">
-            <SparklesIcon className="w-5 h-5 mt-0.5 flex-shrink-0 text-txt-primary" />
+            <CrownIcon className="w-5 h-5 mt-0.5 flex-shrink-0 text-txt-primary" />
             <div className="min-w-0">
               <p className="text-sm font-semibold text-txt-primary">
                 {recommendation.is_top_tier
@@ -389,6 +395,13 @@ export function AvailablePlansSection({
                 }
                 features={features}
                 is_current={is_current}
+                lead_in={
+                  tier.max_members === 2
+                    ? null
+                    : t("settings.plan_everything_in", {
+                        plan: FAMILY_PLAN_TIERS[0].name,
+                      })
+                }
                 name={tier.name}
                 on_cta={() => {
                   if (!is_current) handle_family_select(tier);
@@ -496,6 +509,12 @@ export function AvailablePlansSection({
                 featured={recommendation.recommended_plan_code === tier.id}
                 features={plan_features[tier.id] ?? []}
                 is_current={is_current}
+                lead_in={t("settings.plan_everything_in", {
+                  plan:
+                    tier_index === 0
+                      ? t("settings.plan_free")
+                      : PLAN_TIERS[tier_index - 1].name,
+                })}
                 name={tier.name}
                 on_cta={() => {
                   if (is_current) return;
@@ -503,9 +522,19 @@ export function AvailablePlansSection({
 
                   if (api_plan) {
                     on_upgrade(api_plan);
-                  } else {
-                    show_toast(t("settings.plans_coming_soon"), "info");
+
+                    return;
                   }
+                  if (plans_load_failed) {
+                    show_toast(
+                      t("common.something_went_wrong_try_again"),
+                      "error",
+                    );
+                    on_reload_plans?.();
+
+                    return;
+                  }
+                  show_toast(t("settings.plans_coming_soon"), "info");
                 }}
                 period_label={period_label}
                 price_label={format_price(

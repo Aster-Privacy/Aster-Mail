@@ -275,7 +275,7 @@ export function LoginAlertsSessionsGroup({
         action={
           login_alerts_failed && !login_alerts_loaded ? (
             <button
-              className="text-xs font-medium text-accent-primary hover:underline"
+              className="text-xs font-medium text-brand hover:underline"
               type="button"
               onClick={on_reload_login_alerts}
             >
@@ -321,7 +321,7 @@ export function LoginAlertsSessionsGroup({
               {t("common.something_went_wrong_try_again")}
             </p>
             <button
-              className="mt-2 text-xs font-medium text-accent-primary hover:underline"
+              className="mt-2 text-xs font-medium text-brand hover:underline"
               type="button"
               onClick={on_reload_login_events}
             >
@@ -359,7 +359,7 @@ export function LoginAlertsSessionsGroup({
             ))}
             {login_events.length > SIGN_IN_PREVIEW_COUNT && (
               <button
-                className="mt-1 text-xs font-medium text-accent-primary hover:underline"
+                className="mt-1 text-xs font-medium text-brand hover:underline"
                 type="button"
                 onClick={() => set_show_all_sign_ins((prev) => !prev)}
               >

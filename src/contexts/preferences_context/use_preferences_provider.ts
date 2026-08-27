@@ -678,6 +678,8 @@ export function use_preferences_provider() {
         return;
       }
 
+      cache_preferences_locally(latest_prefs_ref.current);
+
       const method = connection_store.get_method();
 
       if (method === "tor" || method === "tor_snowflake") {

@@ -19,7 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useState, useEffect, useRef, useCallback } from "react";
-import { DocumentTextIcon, CheckCircleIcon } from "@heroicons/react/24/outline";
+import { DocumentTextIcon } from "@heroicons/react/24/outline";
 
 import {
   get_profile_note,
@@ -30,6 +30,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { use_auth } from "@/contexts/auth_context";
 import { use_i18n } from "@/lib/i18n/context";
+import { SaveStatusIndicator } from "@/components/common/save_status_indicator";
 
 interface ProfileNotesBoxProps {
   email: string;
@@ -291,29 +292,12 @@ export function ProfileNotesBox({
             {t("common.notes")}
           </span>
         </div>
-        {save_status === "saving" && (
-          <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-            <span className="text-[11px] text-blue-500">
-              {t("common.saving")}
-            </span>
-          </div>
-        )}
-        {save_status === "saved" && (
-          <div className="flex items-center gap-1">
-            <CheckCircleIcon className="w-3.5 h-3.5 text-blue-500" />
-            <span className="text-[11px] text-blue-500">{t("mail.saved")}</span>
-          </div>
-        )}
-        {save_status === "error" && (
-          <span className="text-[11px] text-red-500">
-            {t("common.error_label")}
-          </span>
-        )}
-        {save_status === "too_long" && (
+        {save_status === "too_long" ? (
           <span className="text-[11px] text-red-500">
             {t("common.alias_note_too_long")}
           </span>
+        ) : (
+          <SaveStatusIndicator status={save_status} />
         )}
       </div>
 

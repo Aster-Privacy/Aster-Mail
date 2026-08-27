@@ -54,6 +54,7 @@ import {
 } from "@/services/api/family_org";
 import { type FamilyMemberInfo } from "@/services/api/family";
 import { show_toast } from "@/components/toast/simple_toast";
+import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { use_i18n } from "@/lib/i18n/context";
 import type {} from "@/lib/i18n/types";
 
@@ -65,10 +66,12 @@ export function ActivityContent({ members }: { members: FamilyMemberInfo[] }) {
   const [loading, set_loading] = useState(true);
   const [filter_type, set_filter_type] = useState("");
   const [search, set_search] = useState("");
+  const [load_failed, set_load_failed] = useState(false);
 
   const load_page = useCallback(
     async (p: number, ft?: string) => {
       set_loading(true);
+      set_load_failed(false);
       try {
         const r = await get_activity_log(p, 20, ft);
 
@@ -78,9 +81,11 @@ export function ActivityContent({ members }: { members: FamilyMemberInfo[] }) {
           set_total(r.data.total);
           set_page(p);
         } else {
+          set_load_failed(true);
           show_toast(t("settings.fam_org_action_failed"), "error");
         }
       } catch {
+        set_load_failed(true);
         show_toast(t("settings.fam_org_activity_load_failed"), "error");
       } finally {
         set_loading(false);
@@ -143,6 +148,10 @@ export function ActivityContent({ members }: { members: FamilyMemberInfo[] }) {
       </span>
       {loading && entries.length === 0 ? (
         <SkeletonRows count={4} />
+      ) : entries.length === 0 && load_failed ? (
+        <LoadFailedNotice
+          on_retry={() => void load_page(1, filter_type || undefined)}
+        />
       ) : entries.length === 0 ? (
         <div className="flex flex-col items-center py-10 gap-3">
           <ChartBarIcon className="w-12 h-12 text-txt-muted" />

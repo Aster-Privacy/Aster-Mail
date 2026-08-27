@@ -41,7 +41,10 @@ import { get_latest_expanded_id } from "@/services/thread_service";
 import { use_preferences } from "@/contexts/preferences_context";
 import { PopupEmailHeader } from "@/components/email/popup/popup_email_header";
 import { is_system_email } from "@/lib/utils";
-import { execute_unsubscribe } from "@/utils/unsubscribe_detector";
+import {
+  execute_unsubscribe,
+  get_manual_unsubscribe_url,
+} from "@/utils/unsubscribe_detector";
 import { show_action_toast } from "@/components/toast/action_toast";
 import {
   persist_unsubscribe,
@@ -215,7 +218,7 @@ export function PopupEmailBody({
         ...(!is_any_lockdown_active() && {
           action_label: t("mail.open_unsubscribe_page"),
           on_undo: async () => {
-            const url = info.unsubscribe_link || info.unsubscribe_mailto;
+            const url = get_manual_unsubscribe_url(info);
 
             if (url) open_external(url);
           },

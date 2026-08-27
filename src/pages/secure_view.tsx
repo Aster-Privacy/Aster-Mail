@@ -49,10 +49,22 @@ import { app_locale, get_display_time_zone } from "@/utils/date_format";
 type ViewState =
   | "loading"
   | "not_found"
+  | "load_failed"
   | "expired"
   | "deleted"
   | "ready"
   | "unlocked";
+
+const RETRYABLE_METADATA_STATUSES = [408, 425, 429, 500, 502, 503, 504];
+
+function is_transient_load_failure(err: unknown): boolean {
+  const message = err instanceof Error ? err.message : "";
+  const match = /^secure_view_metadata_failed_(\d+)$/.exec(message);
+
+  if (!match) return true;
+
+  return RETRYABLE_METADATA_STATUSES.includes(Number(match[1]));
+}
 
 const SECURE_BODY_CSS =
   EMAIL_BODY_CSS +
@@ -167,6 +179,7 @@ export default function SecureViewPage() {
   }, []);
 
   const [view_state, set_view_state] = useState<ViewState>("loading");
+  const [reload_count, set_reload_count] = useState(0);
   const [metadata, set_metadata] = useState<SecureViewMetadata | null>(null);
   const [password, set_password] = useState("");
   const [auth_proof, set_auth_proof] = useState<string | null>(null);
@@ -242,9 +255,11 @@ export default function SecureViewPage() {
         }
 
         set_view_state("ready");
-      } catch {
+      } catch (err) {
         if (cancelled) return;
-        set_view_state("not_found");
+        set_view_state(
+          is_transient_load_failure(err) ? "load_failed" : "not_found",
+        );
       }
     };
 
@@ -253,7 +268,7 @@ export default function SecureViewPage() {
     return () => {
       cancelled = true;
     };
-  }, [token, sv]);
+  }, [token, sv, reload_count]);
 
   const sender_label = useMemo(() => {
     if (!metadata) return "";
@@ -562,6 +577,24 @@ export default function SecureViewPage() {
             <p className="text-center text-sm text-txt-tertiary">
               {sv("secure_view.not_found")}
             </p>
+          </div>
+        );
+
+      case "load_failed":
+        return (
+          <div className="flex w-full flex-col items-center gap-4 rounded-2xl border border-edge-secondary bg-surf-card p-8">
+            <p className="text-center text-sm text-txt-tertiary">
+              {t("common.something_went_wrong_try_again")}
+            </p>
+            <Button
+              variant="outline"
+              onClick={() => {
+                set_view_state("loading");
+                set_reload_count((value) => value + 1);
+              }}
+            >
+              {t("common.retry")}
+            </Button>
           </div>
         );
 

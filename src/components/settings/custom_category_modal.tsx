@@ -226,7 +226,12 @@ export function CustomCategoryModal({
                       <ArrowsPointingOutIcon className="w-4 h-4" />
                     )}
                   </Button>
-                  <Button size="icon" variant="ghost" onClick={on_close}>
+                  <Button
+                    aria-label={t("common.close")}
+                    size="icon"
+                    variant="ghost"
+                    onClick={on_close}
+                  >
                     <XMarkIcon className="w-5 h-5" />
                   </Button>
                 </div>

@@ -27,6 +27,7 @@ import { CalendarIcon, PaperAirplaneIcon } from "@heroicons/react/24/outline";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
 import { show_toast } from "@/components/toast/simple_toast";
 import { parse_calendar_date } from "@/utils/date_utils";
 import { Calendar } from "@/components/ui/calendar";
@@ -106,61 +107,63 @@ function VacationDatePicker({
       >
         {label}
       </label>
-      <Popover open={is_open} onOpenChange={set_is_open}>
-        <PopoverTrigger asChild>
-          <button
-            className="w-full flex items-center gap-2 rounded-[14px] border px-3 py-2 text-sm text-start transition-colors"
-            style={{
-              backgroundColor: "var(--bg-primary)",
-              borderColor: "var(--border-primary)",
-              color: date ? "var(--text-primary)" : "var(--text-muted)",
-            }}
-            type="button"
-          >
-            <CalendarIcon className="w-4 h-4 flex-shrink-0 opacity-60" />
-            <span className="flex-1 truncate">{display_text}</span>
-            {date && (
-              <span
-                className="text-xs opacity-60 hover:opacity-100 transition-opacity cursor-pointer"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  on_clear();
-                }}
-              >
-                ✕
-              </span>
-            )}
-          </button>
-        </PopoverTrigger>
-        <PopoverContent
-          align="start"
-          className="w-auto min-w-[280px] p-0 bg-surf-primary border-edge-primary z-[70]"
-          side="bottom"
-          sideOffset={4}
-        >
-          <div className="p-3">
-            <Calendar
-              disabled={disabled_days}
-              mode="single"
-              selected={date ? zoned_calendar_day(date) : undefined}
-              onSelect={(d) => {
-                if (d) {
-                  on_date_change(zoned_instant_from_calendar_day(d, 0, 0));
-                }
+      <div className="relative">
+        <Popover open={is_open} onOpenChange={set_is_open}>
+          <PopoverTrigger asChild>
+            <button
+              className="w-full flex items-center gap-2 rounded-[14px] border px-3 py-2 text-sm text-start transition-colors"
+              style={{
+                backgroundColor: "var(--bg-primary)",
+                borderColor: "var(--border-primary)",
+                color: date ? "var(--text-primary)" : "var(--text-muted)",
               }}
-            />
-            <div className="mt-3">
-              <Button
-                className="w-full"
-                size="md"
-                onClick={() => set_is_open(false)}
-              >
-                {t("common.done")}
-              </Button>
+              type="button"
+            >
+              <CalendarIcon className="w-4 h-4 flex-shrink-0 opacity-60" />
+              <span className="flex-1 truncate">{display_text}</span>
+              {date && <span className="w-3 flex-shrink-0" />}
+            </button>
+          </PopoverTrigger>
+          <PopoverContent
+            align="start"
+            className="w-auto min-w-[280px] p-0 bg-surf-primary border-edge-primary z-[70]"
+            side="bottom"
+            sideOffset={4}
+          >
+            <div className="p-3">
+              <Calendar
+                disabled={disabled_days}
+                mode="single"
+                selected={date ? zoned_calendar_day(date) : undefined}
+                onSelect={(d) => {
+                  if (d) {
+                    on_date_change(zoned_instant_from_calendar_day(d, 0, 0));
+                  }
+                }}
+              />
+              <div className="mt-3">
+                <Button
+                  className="w-full"
+                  size="md"
+                  onClick={() => set_is_open(false)}
+                >
+                  {t("common.done")}
+                </Button>
+              </div>
             </div>
-          </div>
-        </PopoverContent>
-      </Popover>
+          </PopoverContent>
+        </Popover>
+        {date && (
+          <button
+            aria-label={t("common.clear")}
+            className="absolute end-2 top-1/2 -translate-y-1/2 text-xs opacity-60 hover:opacity-100 transition-opacity"
+            type="button"
+            onClick={on_clear}
+          >
+            ✕
+          </button>
+        )}
+      </div>
     </div>
   );
 }
@@ -178,6 +181,7 @@ export function VacationReplySection() {
   const [subject, set_subject] = useState("");
   const [body, set_body] = useState("");
   const [is_enabled, set_is_enabled] = useState(false);
+  const [is_toggling, set_is_toggling] = useState(false);
   const [start_date, set_start_date] = useState<Date | null>(null);
   const [end_date, set_end_date] = useState<Date | null>(null);
   const [external_only, set_external_only] = useState(false);
@@ -314,28 +318,34 @@ export function VacationReplySection() {
 
   const handle_toggle = useCallback(
     async (enabled: boolean) => {
+      if (is_toggling) return;
       set_is_enabled(enabled);
       if (vacation) {
-        const result = await toggle_vacation_reply(enabled);
+        set_is_toggling(true);
+        try {
+          const result = await toggle_vacation_reply(enabled);
 
-        if (result.data) {
-          set_vacation(result.data);
-          show_toast(
-            enabled
-              ? t("settings.vacation_reply_toggled_on")
-              : t("settings.vacation_reply_toggled_off"),
-            "success",
-          );
-        } else {
-          set_is_enabled(!enabled);
-          show_toast(
-            result.error || t("common.something_went_wrong_try_again"),
-            "error",
-          );
+          if (result.data) {
+            set_vacation(result.data);
+            show_toast(
+              enabled
+                ? t("settings.vacation_reply_toggled_on")
+                : t("settings.vacation_reply_toggled_off"),
+              "success",
+            );
+          } else {
+            set_is_enabled(!enabled);
+            show_toast(
+              result.error || t("common.something_went_wrong_try_again"),
+              "error",
+            );
+          }
+        } finally {
+          set_is_toggling(false);
         }
       }
     },
-    [vacation, t],
+    [vacation, t, is_toggling],
   );
 
   if (is_loading) {
@@ -349,13 +359,13 @@ export function VacationReplySection() {
           {t("common.something_went_wrong_try_again")}
         </p>
         <Button
+          size="sm"
+          variant="secondary"
           onClick={() => {
             set_is_loading(true);
             set_load_failed(false);
             void load_vacation();
           }}
-          size="sm"
-          variant="secondary"
         >
           {t("common.retry")}
         </Button>
@@ -411,10 +421,17 @@ export function VacationReplySection() {
               </span>
             </div>
             <Button
+              disabled={is_toggling}
               variant="secondary"
               onClick={() => handle_toggle(!vacation.is_enabled)}
             >
-              {vacation.is_enabled ? t("common.disable") : t("common.enable")}
+              {is_toggling ? (
+                <Spinner size="sm" />
+              ) : vacation.is_enabled ? (
+                t("common.disable")
+              ) : (
+                t("common.enable")
+              )}
             </Button>
           </div>
         )}
@@ -527,12 +544,11 @@ export function VacationReplySection() {
                 <Button
                   className="text-red-500 hover:text-red-600 hover:bg-red-500/10"
                   disabled={is_deleting}
+                  is_loading={is_deleting}
                   variant="ghost"
                   onClick={() => set_confirm_delete_open(true)}
                 >
-                  {is_deleting
-                    ? t("common.deleting")
-                    : t("settings.vacation_reply_delete")}
+                  {t("settings.vacation_reply_delete")}
                 </Button>
               )}
             </div>
@@ -542,12 +558,11 @@ export function VacationReplySection() {
               </Button>
               <Button
                 disabled={is_saving || !subject.trim() || !body.trim()}
+                is_loading={is_saving}
                 variant="depth"
                 onClick={handle_save}
               >
-                {is_saving
-                  ? t("common.saving")
-                  : t("settings.vacation_reply_save")}
+                {t("settings.vacation_reply_save")}
               </Button>
             </div>
           </ModalFooter>
@@ -557,10 +572,10 @@ export function VacationReplySection() {
           confirm_text={t("common.delete")}
           is_open={confirm_delete_open}
           message={t("common.action_cannot_be_undone")}
-          title={t("settings.vacation_reply_delete")}
-          variant="danger"
           on_cancel={() => set_confirm_delete_open(false)}
           on_confirm={handle_delete}
+          title={t("settings.vacation_reply_delete")}
+          variant="danger"
         />
       </div>
     </UpgradeGate>

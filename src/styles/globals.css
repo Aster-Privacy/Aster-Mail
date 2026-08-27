@@ -1471,6 +1471,58 @@
   --cat-slate-fg: #e2e8f0;
 }
 
+:root {
+  --storage-emails: #2563eb;
+  --storage-attachments: #0d9488;
+  --storage-drafts: #d97706;
+  --storage-spam: #e11d48;
+  --storage-trash: #7c3aed;
+  --storage-other: #64748b;
+  --storage-track: rgba(100, 116, 139, 0.22);
+  --capacity-plan: #4f46e5;
+  --capacity-addons: #0891b2;
+  --capacity-family: #db2777;
+}
+
+.dark {
+  --storage-emails: #3b82f6;
+  --storage-attachments: #2dd4bf;
+  --storage-drafts: #fbbf24;
+  --storage-spam: #fb7185;
+  --storage-trash: #a78bfa;
+  --storage-other: #94a3b8;
+  --storage-track: rgba(148, 163, 184, 0.26);
+  --capacity-plan: #818cf8;
+  --capacity-addons: #22d3ee;
+  --capacity-family: #f472b6;
+}
+
+.high-contrast {
+  --storage-emails: #1d4ed8;
+  --storage-attachments: #0f766e;
+  --storage-drafts: #b45309;
+  --storage-spam: #be123c;
+  --storage-trash: #6d28d9;
+  --storage-other: #475569;
+  --storage-track: rgba(71, 85, 105, 0.35);
+  --capacity-plan: #4338ca;
+  --capacity-addons: #0e7490;
+  --capacity-family: #be185d;
+}
+
+.dark.high-contrast {
+  --storage-emails: #60a5fa;
+  --storage-attachments: #5eead4;
+  --storage-drafts: #fcd34d;
+  --storage-spam: #fda4af;
+  --storage-trash: #c4b5fd;
+  --storage-other: #cbd5e1;
+  --storage-track: rgba(203, 213, 225, 0.3);
+  --capacity-plan: #a5b4fc;
+  --capacity-addons: #67e8f9;
+  --capacity-family: #f9a8d4;
+}
+
 .aster_cat_badge {
   display: inline-flex;
   align-items: center;

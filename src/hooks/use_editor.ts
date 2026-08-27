@@ -22,7 +22,6 @@ import { useCallback, useEffect } from "react";
 
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
-
 import { sanitize_compose_paste, sanitize_html } from "@/lib/html_sanitizer";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
 import {
@@ -198,35 +197,42 @@ export function use_editor({
 
           const reader = new FileReader();
 
+          reader.onerror = () => {
+            show_toast(t("common.valid_image_error"), "error");
+          };
           reader.onload = async () => {
-            let data_url = reader.result as string;
-            const arr_buf = Uint8Array.from(
-              atob(data_url.split(",")[1] || ""),
-              (c) => c.charCodeAt(0),
-            ).buffer;
+            try {
+              let data_url = reader.result as string;
+              const arr_buf = Uint8Array.from(
+                atob(data_url.split(",")[1] || ""),
+                (c) => c.charCodeAt(0),
+              ).buffer;
 
-            if (!validate_image_magic_bytes(arr_buf, file.type)) {
+              if (!validate_image_magic_bytes(arr_buf, file.type)) {
+                show_toast(t("common.valid_image_error"), "error");
+
+                return;
+              }
+
+              if (strip_exif_on_compose) {
+                data_url = await strip_image_metadata_data_url(data_url);
+              }
+
+              const escaped_name = file.name
+                .replace(/&/g, "&amp;")
+                .replace(/"/g, "&quot;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;");
+
+              document.execCommand(
+                "insertHTML",
+                false,
+                `<div><img src="${data_url}" data-filename="${escaped_name}" draggable="true" style="max-width: 100%; height: auto; display: block; margin: 8px 0;" /></div><div><br></div>`,
+              );
+              handle_input();
+            } catch {
               show_toast(t("common.valid_image_error"), "error");
-
-              return;
             }
-
-            if (strip_exif_on_compose) {
-              data_url = await strip_image_metadata_data_url(data_url);
-            }
-
-            const escaped_name = file.name
-              .replace(/&/g, "&amp;")
-              .replace(/"/g, "&quot;")
-              .replace(/</g, "&lt;")
-              .replace(/>/g, "&gt;");
-
-            document.execCommand(
-              "insertHTML",
-              false,
-              `<div><img src="${data_url}" data-filename="${escaped_name}" draggable="true" style="max-width: 100%; height: auto; display: block; margin: 8px 0;" /></div><div><br></div>`,
-            );
-            handle_input();
           };
           reader.readAsDataURL(file);
 
@@ -336,36 +342,43 @@ export function use_editor({
         const file = image_files[0];
         const reader = new FileReader();
 
+        reader.onerror = () => {
+          show_toast(t("common.valid_image_error"), "error");
+        };
         reader.onload = async () => {
-          let data_url = reader.result as string;
-          const arr_buf = Uint8Array.from(
-            atob(data_url.split(",")[1] || ""),
-            (c) => c.charCodeAt(0),
-          ).buffer;
+          try {
+            let data_url = reader.result as string;
+            const arr_buf = Uint8Array.from(
+              atob(data_url.split(",")[1] || ""),
+              (c) => c.charCodeAt(0),
+            ).buffer;
 
-          if (!validate_image_magic_bytes(arr_buf, file.type)) {
+            if (!validate_image_magic_bytes(arr_buf, file.type)) {
+              show_toast(t("common.valid_image_error"), "error");
+
+              return;
+            }
+
+            if (strip_exif_on_compose) {
+              data_url = await strip_image_metadata_data_url(data_url);
+            }
+
+            const escaped_name = file.name
+              .replace(/&/g, "&amp;")
+              .replace(/"/g, "&quot;")
+              .replace(/</g, "&lt;")
+              .replace(/>/g, "&gt;");
+
+            drop_editor.focus();
+            document.execCommand(
+              "insertHTML",
+              false,
+              `<div><img src="${data_url}" data-filename="${escaped_name}" draggable="true" style="max-width: 100%; height: auto; display: block; margin: 8px 0;" /></div><div><br></div>`,
+            );
+            handle_input();
+          } catch {
             show_toast(t("common.valid_image_error"), "error");
-
-            return;
           }
-
-          if (strip_exif_on_compose) {
-            data_url = await strip_image_metadata_data_url(data_url);
-          }
-
-          const escaped_name = file.name
-            .replace(/&/g, "&amp;")
-            .replace(/"/g, "&quot;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;");
-
-          drop_editor.focus();
-          document.execCommand(
-            "insertHTML",
-            false,
-            `<div><img src="${data_url}" data-filename="${escaped_name}" draggable="true" style="max-width: 100%; height: auto; display: block; margin: 8px 0;" /></div><div><br></div>`,
-          );
-          handle_input();
         };
         reader.readAsDataURL(file);
       }
@@ -375,8 +388,14 @@ export function use_editor({
         ...image_files.slice(can_inline_first ? 1 : 0),
       ];
 
-      if (all_non_inline.length > 0 && on_files_drop) {
-        on_files_drop(all_non_inline);
+      if (all_non_inline.length > 0) {
+        if (on_files_drop) {
+          on_files_drop(all_non_inline);
+        } else if (non_image_files.length > 0) {
+          show_toast(t("common.valid_image_error"), "error");
+        } else {
+          show_toast(t("common.image_size_error"), "error");
+        }
       }
     },
     [

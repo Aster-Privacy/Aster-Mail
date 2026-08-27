@@ -24,7 +24,6 @@ import type {
   Section,
   SettingsContentProps,
 } from "./settings_content_helpers";
-import { safe_local_set } from "@/lib/safe_storage";
 
 import {
   useState,
@@ -47,6 +46,7 @@ import {
   set_persisted_section,
 } from "./settings_content_helpers";
 
+import { safe_local_set } from "@/lib/safe_storage";
 import { start_scroll_seek } from "@/components/settings/settings_scroll_target";
 import { SETTINGS_SEARCH_REGISTRY } from "@/components/settings/search_registry";
 import { use_search_registry } from "@/components/settings/search_context";
@@ -201,6 +201,7 @@ export function use_settings_content(props: SettingsContentProps) {
     trusted_devices: null,
     aliases: null,
     billing: null,
+    storage: null,
     family: null,
     referral: null,
     import: null,

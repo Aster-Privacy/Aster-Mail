@@ -183,6 +183,14 @@ export function AliasExportModal({
 
         if (cancelled) return;
 
+        if (
+          directory_response.error ||
+          ghost_response.error ||
+          counts_response.error
+        ) {
+          set_error(t("settings.alias_export_load_failed"));
+        }
+
         if (directory_response.data) {
           const decrypted = await Promise.all(
             directory_response.data.directories.map((directory) =>

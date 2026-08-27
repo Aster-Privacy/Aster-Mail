@@ -1026,15 +1026,15 @@ export const nl = {
     purchase_thank_you: "Bedankt voor je aankoop. Je abonnement is nu actief.",
     view_billing_settings: "Factuurinstellingen bekijken",
     welcome_description:
-      "Laten we een korte rondleiding doen om je op weg te helpen met je veilige, privé e-mailplatform.",
-    organize_with_folders: "Organiseren met mappen",
+      "Deze rondleiding duurt ongeveer een minuut. Je ziet vier dingen die de eerste dag makkelijker maken.",
+    organize_with_folders: "Ordenen met mappen",
     organize_folders_description:
-      "Maak aangepaste mappen aan om je e-mails te organiseren. Klik op de + knop naast Mappen om je eerste map aan te maken.",
+      "Sleep een bericht naar een map om het op te bergen, of selecteer er meerdere en verplaats ze samen. Klik op de + naast Mappen om een map toe te voegen.",
     customize_settings_description:
-      "Pas je ervaring aan, beheer beveiligingsinstellingen en configureer je accountvoorkeuren.",
-    youre_ready: "Je bent klaar om te beginnen",
+      "In Instellingen voeg je een alias toe, koppel je een eigen domein en schakel je tweestapsverificatie in.",
+    youre_ready: "Je bent klaar",
     youre_ready_description:
-      "Dat is alles! Je bent helemaal klaar om Aster Mail te gebruiken. Je e-mails zijn end-to-end versleuteld en volledig privé.",
+      "Je e-mail is end-to-end versleuteld en alleen jij hebt de sleutels. Druk op elk moment op ? om alle sneltoetsen te zien.",
     skip_tour: "Rondleiding overslaan",
     get_started: "Aan de slag",
     setup_complete: "Instelling voltooid!",
@@ -1310,6 +1310,11 @@ export const nl = {
     n_conversations_marked_as_spam:
       "{{ count }} gesprekken als spam gemarkeerd",
     notification_banner_no_thanks: "Nee, bedankt",
+    payment_past_due_message:
+      "Je laatste betaling is niet gelukt. Werk je betaalmethode bij om je abonnement te behouden.",
+    payment_past_due_message_days:
+      "Je laatste betaling is niet gelukt. Werk je betaalmethode binnen {{days}} dagen bij om je abonnement te behouden.",
+    payment_past_due_action: "Betaling bijwerken",
     ghost_label: "Ghost",
     ghost_mode_tooltip:
       "Verzonden via Ghost-modus. Je echte adres was verborgen.",
@@ -1720,6 +1725,24 @@ export const nl = {
     on_separator: "op",
     onboarding_checklist_dismiss: "Verberg",
     onboarding_checklist_first_email: "Stuur je eerste e-mail",
+    first_run_title: "Je postvak is klaar",
+    first_run_subtitle:
+      "Breng je bestaande e-mail nu over of doe dit later in Instellingen.",
+    first_run_import: "Mijn mail importeren",
+    first_run_skip: "Beginnen met een leeg postvak",
+    first_run_privacy_note:
+      "Je mail wordt op je apparaat versleuteld. Aster kan die niet lezen.",
+    recovery_reminder_title:
+      "Voeg een manier toe om terug in je account te komen",
+    recovery_reminder_body:
+      "Aster versleutelt je mail met je wachtwoord, dus niemand kan het voor je herstellen. Voeg een herstel-e-mailadres toe om toegang te houden.",
+    recovery_reminder_action: "Herstel-e-mailadres toevoegen",
+    recovery_reminder_later: "Later",
+    plan_prompt_title: "Je gebruikt het gratis abonnement",
+    plan_prompt_body:
+      "Betaalde abonnementen geven meer opslag, eigen domeinen en onbeperkte aliassen.",
+    plan_prompt_action: "Abonnementen bekijken",
+    plan_prompt_dismiss: "Sluiten",
     onboarding_checklist_import_mail: "Importeer je e-mail",
     onboarding_checklist_install_app: "Installeer de app",
     onboarding_checklist_recovery_method: "Stel een herstelmethode in",
@@ -3687,6 +3710,13 @@ export const nl = {
     ipfs_disabled_description:
       "Sla bijlagen op IPFS op voor gedecentraliseerde, veerkrachtige opslag",
     forward_secrecy: "Forward secrecy",
+    forward_secrecy_disable_title: "Forward secrecy uitschakelen?",
+    forward_secrecy_disable_message:
+      "Nieuwe berichten gebruiken geen roterende sleutels meer, dus een sleutel die later uitlekt kan meer van je e-mail openen. Je kunt dit altijd weer inschakelen.",
+    login_alerts_disable_title: "Inlogmeldingen uitschakelen?",
+    login_alerts_disable_message:
+      "Je ontvangt geen e-mail meer wanneer een nieuw apparaat zich aanmeldt bij je account.",
+    turn_off_action: "Uitschakelen",
     forward_secrecy_enabled_description: "Sleutels roteren {{frequency}}",
     forward_secrecy_disabled_description:
       "Roteer automatisch versleutelingssleutels voor verbeterde beveiliging",
@@ -3887,15 +3917,18 @@ export const nl = {
     translate_add_language: "Taal toevoegen",
     translate_auto_detected: "Automatisch gedetecteerd op je apparaat",
     translate_confirm_title: "Vertaling inschakelen?",
-    translate_confirm_description: "Aster vertaalt e-mail op je apparaat, dus niets wat je leest wordt naar een vertaaldienst gestuurd. De eerste keer dat je vanuit een taal vertaalt, downloadt Aster een taalpakket van 20 tot 55 MB en bewaart het op dit apparaat. Je kunt pakketten op elk moment verwijderen.",
+    translate_confirm_description:
+      "Aster vertaalt e-mail op je apparaat, dus niets wat je leest wordt naar een vertaaldienst gestuurd. De eerste keer dat je vanuit een taal vertaalt, downloadt Aster een taalpakket van 20 tot 55 MB en bewaart het op dit apparaat. Je kunt pakketten op elk moment verwijderen.",
     translate_confirm_enable: "Inschakelen",
     translation_packs: "Gedownloade taalpakketten",
-    translation_packs_description: "Taalpakketten worden op dit apparaat opgeslagen. Verwijder een pakket om ruimte vrij te maken. Aster downloadt het opnieuw wanneer je die taal weer vertaalt.",
+    translation_packs_description:
+      "Taalpakketten worden op dit apparaat opgeslagen. Verwijder een pakket om ruimte vrij te maken. Aster downloadt het opnieuw wanneer je die taal weer vertaalt.",
     translation_packs_empty: "Je hebt nog geen taalpakketten gedownload.",
     translation_packs_total: "{{size}} gebruikt op dit apparaat",
     translation_packs_remove: "Verwijderen",
     translation_packs_remove_all: "Alles verwijderen",
-    translation_packs_unavailable: "Deze browser kan geen taalpakketten opslaan, dus Aster downloadt ze elke keer dat je vertaalt.",
+    translation_packs_unavailable:
+      "Deze browser kan geen taalpakketten opslaan, dus Aster downloadt ze elke keer dat je vertaalt.",
 
     block_external_content: "Externe inhoud blokkeren",
     block_external_content_description:
@@ -4195,10 +4228,11 @@ export const nl = {
     any_email_import_description: "MBOX-, EML-, CSV-, PST-bestanden",
     search_history: "Zoekgeschiedenis",
     folders_limit: "Mappen",
-    onboarding_compose_title: "Nieuwe e-mails opstellen",
-    onboarding_search_title: "Je e-mails doorzoeken",
+    onboarding_compose_title: "Schrijf je eerste bericht",
+    onboarding_search_title: "Vind alles, privé",
     delete_imported_emails_confirm: "Geïmporteerde e-mails verwijderen?",
-    import_delete_warning: "Hiermee verwijder je de berichten uit deze import definitief. Je kunt dit niet ongedaan maken.",
+    import_delete_warning:
+      "Hiermee verwijder je de berichten uit deze import definitief. Je kunt dit niet ongedaan maken.",
     all_emails_filter: "Alle e-mails",
     choose_label_color: "Kies labelkleur",
     hex_color_value: "Hex-kleurwaarde",
@@ -5271,7 +5305,7 @@ export const nl = {
     billing_banner_cta: "Opties bekijken",
     storage_addons: "Extra opslag",
     storage_addons_monthly_note:
-      "Extra opslag wordt maandelijks gefactureerd, ook als je abonnement jaarlijks wordt gefactureerd.",
+      "Add-ons worden elke maand verlengd en apart van je abonnement gefactureerd. Betaal je met crypto, dan kies je zelf hoelang je vooruitbetaalt.",
     storage_addons_description:
       "Meer ruimte nodig? Koop extra versleutelde opslag voor je account.",
     per_month_short: "/mnd",
@@ -5368,6 +5402,36 @@ export const nl = {
     storage_warning_title: "U hebt nog weinig opslag.",
     storage_warning_description:
       "U hebt meer dan 90% van uw opslag gebruikt. Wat e-mails wissen of uw abonnement upgraden houdt nieuwe post stromend.",
+    storage_overview_description:
+      "Bekijk wat je ruimte gebruikt en ruim op wat je niet nodig hebt.",
+    storage_promo_title: "Bespaar op extra opslag",
+    storage_promo_body:
+      "Krijg {{percent}}% korting op je eerste {{months}} maanden extra opslag.",
+    storage_promo_body_singular:
+      "Krijg {{percent}}% korting op je eerste maand extra opslag.",
+    storage_promo_note:
+      "De korting geldt alleen voor je eerste opslaguitbreiding.",
+    storage_select_option_first:
+      "Selecteer eerst een optie om meer opslag te kopen.",
+    storage_promo_cta: "Add-ons bekijken",
+    storage_used_of_total: "{{used}} van {{total}} gebruikt",
+    storage_free_space: "{{size}} vrij, {{percent}} van je opslag gebruikt",
+    storage_breakdown_title: "Wat je opslag gebruikt",
+    storage_breakdown_empty: "Je opslag is nog leeg.",
+    storage_col_category: "Categorie",
+    storage_col_items: "Items",
+    storage_col_size: "Grootte",
+    storage_col_share: "Aandeel",
+    storage_capacity_title: "Capaciteit",
+    storage_included_with_plan: "Inbegrepen bij je abonnement",
+    storage_from_addons: "Van add-ons",
+    storage_family_allocation: "Gezinstoewijzing",
+    storage_total_capacity: "Totale capaciteit",
+    storage_available: "Beschikbaar",
+    storage_cleanup_done: "Opslag vrijgemaakt",
+    storage_cleanup_failed: "Kan geen ruimte vrijmaken. Probeer het opnieuw.",
+    storage_cleanup_confirm:
+      "Hiermee verwijder je {{count}} items definitief en maak je {{size}} vrij. Je kunt dit niet ongedaan maken.",
     storage_locked_title: "Uw opslag is vol.",
     storage_locked_description:
       "Nieuwe post is gepauzeerd tot u ruimte vrijmaakt. Wat e-mails wissen of uw abonnement upgraden laat het weer stromen. Bestaande post is veilig.",
@@ -5425,6 +5489,9 @@ export const nl = {
     stripe_not_configured: "Betaalsysteem is niet geconfigureerd.",
     try_again: "Opnieuw proberen",
     view_all_features: "Alle functies bekijken",
+    plan_everything_in: "Alles uit {{plan}}, plus",
+    compare_features_show: "Functies per abonnement vergelijken",
+    compare_features_hide: "Vergelijking verbergen",
     compare_plans: "Alle abonnementen vergelijken",
     feature: "Functie",
     manage_payment_methods: "Betaalmethoden beheren",
@@ -5435,6 +5502,10 @@ export const nl = {
     card_expires: "Verloopt",
     adding_card: "Toevoegen...",
     card_added: "Betaalmethode toegevoegd",
+    payment_retry_succeeded:
+      "Je betaling is gelukt. Je abonnement blijft actief.",
+    payment_retry_failed:
+      "Je bank heeft de kaart geweigerd. Probeer een andere betaalmethode.",
     card_removed: "Betaalmethode verwijderd",
     default_updated: "Standaard betaalmethode bijgewerkt",
     payment_settled: "Standaard betaalmethode bijgewerkt. Je openstaande bedrag is betaald.",
@@ -5565,7 +5636,7 @@ export const nl = {
     credit_transactions: "Tegoedtransacties",
     referral_program: "Verwijzingsprogramma",
     referral_program_description:
-      "Nodig vrienden uit voor Aster en verdien tegoed op elke betaling die ze doen.",
+      "Nodig een vriend uit voor Aster Mail. Jullie krijgen allebei {{ amount }} extra opslag zodra die het account gaat gebruiken.",
     your_referral_link: "Jouw verwijzingslink",
     copy_link: "Link kopiëren",
     link_copied: "Link gekopieerd naar klembord",
@@ -5577,11 +5648,11 @@ export const nl = {
     referral_not_eligible_description: "Probeer het later opnieuw.",
     referral_loading: "Verwijzingsgegevens laden...",
     referral_history: "Verwijzingsgeschiedenis",
-    no_referrals_yet: "Nog geen verwijzingen. Deel je link om te beginnen!",
+    no_referrals_yet: "Nog geen uitnodigingen. Deel je link om te beginnen.",
     referral_status_pending: "In behandeling",
     referral_status_completed: "Voltooid",
     referral_reward_info:
-      "Je vriend krijgt korting op de eerste betaling en jij verdient aan elke betaling die hij doet.",
+      "Jij en je vriend krijgen allebei {{ amount }} extra opslag. De opslag komt binnen zodra die het account een paar dagen gebruikt, en blijft op jouw account zolang die Aster Mail blijft gebruiken.",
     referral_commission_info:
       "Je verdient {{ percent }}% van elke betaling die je verwijzingen doen, zolang ze geabonneerd blijven.",
     referral_max_credits: "Maximale verdiensten: {{ value }} per jaar",
@@ -5702,9 +5773,9 @@ export const nl = {
     mbox_import: "MBOX",
     eml_import: "EML",
     onboarding_compose_description:
-      "Klik hier om een nieuwe e-mail op te stellen",
+      "Druk op C in je postvak om te beginnen met schrijven. Aster versleutelt het bericht op je apparaat voordat het wordt verzonden.",
     onboarding_search_description:
-      "Gebruik de zoekbalk om elke e-mail te vinden",
+      "Druk op / om meteen naar zoeken te gaan. Filter resultaten op afzender, datum of bijlagen zonder het toetsenbord te verlaten.",
     delete_signature_title: "Handtekening verwijderen",
     delete_signature_message:
       "Weet je zeker dat je deze handtekening wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.",
@@ -5828,7 +5899,8 @@ export const nl = {
     domain_purchase_included_heading: "Alles wat bij je domein is inbegrepen",
     domain_purchase_renew: "Verlengen",
     domain_purchase_manage: "Beheren",
-    domain_purchase_manage_description: "Bekijk deze registratie en verleng die voordat ze verloopt.",
+    domain_purchase_manage_description:
+      "Bekijk deze registratie en verleng die voordat ze verloopt.",
     domain_purchase_manage_status: "Status",
     domain_purchase_manage_status_active: "Actief",
     domain_purchase_manage_status_expiring: "Verloopt binnenkort",
@@ -5836,9 +5908,11 @@ export const nl = {
     domain_purchase_manage_expires: "Verloopt",
     domain_purchase_manage_term: "Looptijd",
     domain_purchase_manage_paid: "Betaald",
-    domain_purchase_manage_auto_renew_note: "Dit domein wordt niet automatisch verlengd. Verleng het voor de vervaldatum om het te behouden.",
+    domain_purchase_manage_auto_renew_note:
+      "Dit domein wordt niet automatisch verlengd. Verleng het voor de vervaldatum om het te behouden.",
     domain_purchase_manage_dns: "Domeininstellingen openen",
-    domain_purchase_manage_support_note: "Neem contact op met support om dit domein naar een andere registrar te verhuizen of naar een terugbetaling te vragen.",
+    domain_purchase_manage_support_note:
+      "Neem contact op met support om dit domein naar een andere registrar te verhuizen of naar een terugbetaling te vragen.",
     domain_purchase_manage_support_subject: "Hulp bij {{domain}}",
     domain_purchase_filter_all: "Alle",
     domain_purchase_filter_available: "Beschikbaar",
@@ -6725,16 +6799,18 @@ export const nl = {
       "Journalist? Neem contact op met support met je perskaart om je code te ontvangen.",
     refer_a_friend: "Vriend doorverwijzen",
     referral_email_body:
-      "He, ik gebruik Aster Mail voor versleutelde e-mail. Probeer het eens! Meld je aan via mijn link: {{referral_link}}",
+      "Hoi,\n\nik gebruik Aster Mail nu een tijdje en het bevalt me erg goed. Alles is end-to-end versleuteld, dus niemand kan je e-mail lezen behalve jijzelf. Zelfs de beheerders niet.\n\nWil je het proberen, dit is mijn uitnodigingslink:\n\n{{ referral_link }}\n\nWe krijgen allebei {{ amount }} extra opslag zodra jij het gaat gebruiken, dus jij hebt er ook wat aan.\n\nGroeten",
     referral_email_subject: "Probeer Aster Mail",
     referral_how_it_works: "Hoe het werkt",
     referral_loading_contacts: "Contacten laden...",
     referral_no_contacts: "Geen contacten gevonden",
     referral_rewards: "Beloningen",
     referral_step_earn:
-      "Je verdient een deel van elke betaling die ze doen, zolang ze geabonneerd blijven.",
-    referral_step_share: "Uw link delen",
-    referral_step_signup: "Vriend meldt zich aan",
+      "Jullie krijgen allebei {{ amount }} extra opslag, tot {{ max }}.",
+    referral_step_share:
+      "Deel je uitnodigingslink met vrienden, familie of collega's.",
+    referral_step_signup:
+      "Zij maken een account aan met jouw link en gaan het gebruiken.",
     registered: "Geregistreerd",
     remote_image_loading: "Externe afbeeldingen laden",
     remote_image_loading_description:
@@ -6753,7 +6829,7 @@ export const nl = {
     security_keys_description:
       "Gebruik een fysieke beveiligingssleutel als tweede factor",
     select_color: "Kleur {{name}} selecteren",
-    send_referral_to_contacts: "Doorverwijzing naar contacten sturen",
+    send_referral_to_contacts: "Alle contacten mailen",
     show_signature_separator: "Handtekeningscheider",
     show_signature_separator_description:
       "Voeg een '--' scheidingslijn toe boven uw handtekening in uitgaande e-mails.",
@@ -6915,6 +6991,48 @@ export const nl = {
     referral_discount_auto_apply:
       "Wordt automatisch toegepast bij het afrekenen, je hoeft niets in te vullen.",
     referral_discount_expires: "Verloopt op {{ date }}",
+    invite_storage_line: "Jullie krijgen allebei {{ amount }} extra opslag",
+    invite_storage_note:
+      "Maak je gratis account aan met deze link. De opslag komt op beide accounts zodra je het jouwe gaat gebruiken.",
+    invite_discount_note:
+      "Plus {{ percent }}% korting als je ooit overstapt naar een betaald abonnement.",
+    invite_cta_create_account_storage: "Mijn gratis account aanmaken",
+    invite_friends: "Vrienden uitnodigen",
+    invite_sidebar_earned: "{{ amount }} verdiend",
+    referral_storage_headline:
+      "Krijg {{ amount }} opslag voor elke vriend die meedoet",
+    referral_storage_subhead:
+      "Je vriend krijgt ook {{ amount }}. De opslag komt binnen zodra die het account gaat gebruiken, tot {{ max }}.",
+    referral_storage_earned_badge: "{{ amount }} verdiend",
+    referral_active_referrals: "Actief",
+    referral_share_button: "Uitnodiging delen",
+    referral_show_qr: "QR-code tonen",
+    referral_hide_qr: "QR-code verbergen",
+    referral_qr_hint:
+      "Richt een telefooncamera op deze code om de uitnodiging te openen.",
+    referral_qr_alt: "QR-code voor je Aster Mail-uitnodigingslink",
+    referral_share_title: "Kom bij mij op Aster Mail",
+    referral_share_message:
+      "Ik gebruik Aster Mail voor end-to-end versleutelde e-mail. Meld je aan met mijn link en we krijgen allebei {{ amount }} extra opslag.",
+    referral_shared: "Uitnodiging gedeeld",
+    referral_message_copied: "Uitnodigingsbericht gekopieerd",
+    referral_bonus_gauge_label: "Verdiende opslag",
+    referral_bonus_max: "Maximum: {{ value }}",
+    referral_status_active: "Actief",
+    referral_email_all_contacts_hint:
+      "Stuurt één bericht naar elk contact in je adresboek.",
+    referral_claim_title: "Ben je uitgenodigd?",
+    referral_claim_description:
+      "Voer de code uit je uitnodiging in en jullie krijgen allebei {{ amount }} extra opslag. Je hebt tot {{ date }} om die toe te voegen.",
+    referral_claim_placeholder: "Uitnodigingscode",
+    referral_claim_button: "Code toevoegen",
+    referral_claim_success:
+      "Uitnodiging toegevoegd. Je opslag komt binnen zodra je Aster Mail een paar dagen gebruikt.",
+    referral_claim_invalid: "Die uitnodigingscode is niet geldig.",
+    referral_claim_window_closed:
+      "De periode om een uitnodigingscode aan dit account toe te voegen is voorbij.",
+    referral_claim_already: "Aan dit account is al een uitnodiging gekoppeld.",
+    referral_claim_self: "Je kunt je eigen uitnodigingscode niet gebruiken.",
     domain_purchase_not_released:
       "Domeinen kopen is nog niet beschikbaar. Dat komt in een volgende update.",
     domain_step_ownership_title: "Bewijs dat dit domein van jou is",
@@ -7252,7 +7370,8 @@ export const nl = {
     attachments: "Bijlagen",
     translation_offer: "Dit bericht is in het {{language}}.",
     translation_translate: "Vertalen",
-    translation_offer_download: "Dit bericht is in het {{language}}. Vertalen downloadt een taalpakket.",
+    translation_offer_download:
+      "Dit bericht is in het {{language}}. Vertalen downloadt een taalpakket.",
     translation_translate_download: "Vertalen ({{size}} download)",
     translation_in_progress: "Vertalen op je apparaat…",
     translation_translated_from:

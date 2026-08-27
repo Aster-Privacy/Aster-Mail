@@ -282,8 +282,10 @@ export function resolve_alias_delivery(
 interface UseSidebarAliasesReturn {
   aliases: DecryptedEmailAlias[];
   is_loading: boolean;
+  load_failed: boolean;
   can_create: boolean;
   unread_counts: Record<string, number>;
+  refresh: () => Promise<void>;
 }
 
 export function use_sidebar_aliases(): UseSidebarAliasesReturn {
@@ -296,6 +298,7 @@ export function use_sidebar_aliases(): UseSidebarAliasesReturn {
     cached_aliases.data.length === 0,
   );
   const [can_create, set_can_create] = useState(false);
+  const [load_failed, set_load_failed] = useState(false);
   const [unread_counts, set_unread_counts] = useState<Record<string, number>>(
     {},
   );
@@ -450,6 +453,8 @@ export function use_sidebar_aliases(): UseSidebarAliasesReturn {
       const alias_list_failed =
         raw_alias_list === null && cached_aliases.data.length > 0;
 
+      set_load_failed(raw_alias_list === null);
+
       if (!alias_list_failed) {
         cached_aliases.data = merged;
         rebuild_alias_index();
@@ -469,6 +474,7 @@ export function use_sidebar_aliases(): UseSidebarAliasesReturn {
 
       set_is_loading(false);
     } catch {
+      set_load_failed(true);
       set_is_loading(false);
     }
   }, []);
@@ -573,7 +579,9 @@ export function use_sidebar_aliases(): UseSidebarAliasesReturn {
   return {
     aliases,
     is_loading,
+    load_failed,
     can_create,
     unread_counts,
+    refresh: fetch_aliases,
   };
 }

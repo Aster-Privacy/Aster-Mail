@@ -22,6 +22,7 @@ import { CameraIcon } from "@heroicons/react/24/solid";
 
 import { ProfileAvatar } from "./profile_avatar";
 
+import { show_toast } from "@/components/toast/simple_toast";
 import {
   PROFILE_PICTURE_ACCEPT,
   use_profile_picture_upload,
@@ -58,7 +59,12 @@ export function AccountAvatarButton({
 }: AccountAvatarButtonProps) {
   const { t } = use_i18n();
   const { file_ref, uploading, preview, open_picker, handle_file } =
-    use_profile_picture_upload();
+    use_profile_picture_upload({
+      on_error: (message) => {
+        if (!message) return;
+        show_toast(message, "error");
+      },
+    });
 
   return (
     <div className={`relative flex-shrink-0 ${className}`}>

@@ -107,8 +107,11 @@ export function TotpVerification({
       return;
     }
 
+    set_error(t("common.something_went_wrong_try_again"));
     verifying_ref.current = false;
     set_is_loading(false);
+    input_ref.current?.focus();
+    input_ref.current?.select();
   };
 
   useEffect(() => {
@@ -174,10 +177,11 @@ export function TotpVerification({
         <Button
           className="w-full"
           disabled={is_loading || code.length !== TOTP_CODE_LENGTH}
+          is_loading={is_loading}
           variant="depth"
           onClick={handle_verify}
         >
-          {is_loading ? t("common.verifying") : t("common.continue")}
+          {t("common.continue")}
         </Button>
 
         <Button

@@ -159,7 +159,9 @@ export function AllowlistTab() {
             <Input
               autoFocus
               className="w-full"
-              placeholder={is_domain ? "example.com" : "email@example.com"}
+              placeholder={
+                is_domain ? "example.com" : t("common.email_placeholder")
+              }
               type={is_domain ? "text" : "email"}
               value={new_email}
               onChange={(e) => set_new_email(e.target.value)}

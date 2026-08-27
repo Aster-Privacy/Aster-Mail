@@ -19,10 +19,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import * as React from "react";
-import { commit_on_enter } from "@/lib/commit_on_enter";
 import { PlusIcon, ClockIcon } from "@heroicons/react/24/outline";
 import { Button, Switch } from "@aster/ui";
 
+import { commit_on_enter } from "@/lib/commit_on_enter";
 import {
   Modal,
   ModalHeader,
@@ -86,8 +86,14 @@ export function use_folder_retention(): UseFolderRetention {
     fetch_folders,
     get_folder_by_token,
   } = use_folders();
-  const { limits, is_loading: plan_loading } = use_plan_limits();
-  const entitled = (limits?.limits["has_folder_retention"]?.limit ?? 0) >= 1;
+  const {
+    limits,
+    is_loading: plan_loading,
+    load_failed: plan_load_failed,
+  } = use_plan_limits();
+  const entitled =
+    plan_load_failed ||
+    (limits?.limits["has_folder_retention"]?.limit ?? 0) >= 1;
 
   const [policies, set_policies] = React.useState<RetentionPolicy[]>([]);
   const [loading, set_loading] = React.useState(true);
@@ -427,8 +433,6 @@ export function FolderRetentionSection() {
         confirm_text={t("folder_retention.remove")}
         is_open={confirm_delete_policy !== null}
         message={t("common.action_cannot_be_undone")}
-        title={t("folder_retention.delete")}
-        variant="danger"
         on_cancel={() => set_confirm_delete_policy(null)}
         on_confirm={() => {
           const target = confirm_delete_policy;
@@ -437,6 +441,8 @@ export function FolderRetentionSection() {
 
           if (target) void r.handle_delete(target);
         }}
+        title={t("folder_retention.delete")}
+        variant="danger"
       />
     </div>
   );

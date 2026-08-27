@@ -26,6 +26,8 @@ import {
 
 import { get_active_translations } from "@/lib/i18n/translations";
 
+export type UndoCancelResult = "cancelled" | "expired" | "failed";
+
 export interface PendingSend {
   queue_id: string;
   recipient: string;
@@ -106,26 +108,34 @@ class UndoSendManager {
   }
 
   async cancel_send(queue_id: string): Promise<boolean> {
+    return (await this.cancel_send_with_reason(queue_id)) === "cancelled";
+  }
+
+  async cancel_send_with_reason(queue_id: string): Promise<UndoCancelResult> {
     const pending = this.pending_sends.get(queue_id);
 
     if (!pending) {
-      return false;
+      return "expired";
     }
 
     if (pending.status !== "pending") {
-      return false;
+      return "expired";
     }
 
     const now = new Date();
 
     if (now > pending.can_cancel_until) {
-      return false;
+      return "expired";
     }
 
     const response = await undo_send_api.cancel_email(queue_id);
 
-    if (response.error || !response.data?.success) {
-      return false;
+    if (response.error) {
+      return "failed";
+    }
+
+    if (!response.data?.success) {
+      return "expired";
     }
 
     window.clearTimeout(pending.timeout_id);
@@ -138,7 +148,7 @@ class UndoSendManager {
     this.pending_sends.delete(queue_id);
     this.notify_listeners();
 
-    return true;
+    return "cancelled";
   }
 
   async send_immediately(queue_id: string): Promise<boolean> {

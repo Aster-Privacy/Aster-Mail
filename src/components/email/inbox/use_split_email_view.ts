@@ -30,7 +30,10 @@ export type SplitEmailViewParams = {
   split_email_id: string | null | undefined;
   email_state: { emails: InboxEmail[] };
   filtered_emails: InboxEmail[];
-  handle_snooze: (email_id: string, snooze_until: Date) => Promise<boolean | void>;
+  handle_snooze: (
+    email_id: string,
+    snooze_until: Date,
+  ) => Promise<boolean | void>;
   handle_unsnooze: (email_id: string) => Promise<void>;
   tags_state: ReturnType<typeof use_tags>["state"];
   folders_state: ReturnType<typeof use_folders>["state"];

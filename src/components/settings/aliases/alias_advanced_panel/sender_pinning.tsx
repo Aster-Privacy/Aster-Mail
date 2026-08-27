@@ -259,6 +259,7 @@ export function SenderPinningPanel({
                     {pin.sender}
                   </span>
                   <Button
+                    aria-label={t("common.remove")}
                     className="h-7 w-7 text-red-500 hover:text-red-500 hover:bg-red-500/10"
                     size="icon"
                     variant="ghost"

@@ -332,10 +332,7 @@ export function TagManagementModal({
                 onClick={handle_recolor}
               >
                 {is_loading ? (
-                  <>
-                    {t("common.saving")}
-                    <Spinner className="ms-2" size="md" />
-                  </>
+                  <Spinner size="md" />
                 ) : (
                   `${t("common.save")} ${t("common.color")}`
                 )}
@@ -392,14 +389,7 @@ export function TagManagementModal({
                 variant="depth"
                 onClick={handle_reicon}
               >
-                {is_loading ? (
-                  <>
-                    {t("common.saving")}
-                    <Spinner className="ms-2" size="md" />
-                  </>
-                ) : (
-                  t("common.save")
-                )}
+                {is_loading ? <Spinner size="md" /> : t("common.save")}
               </Button>
             </ModalFooter>
           </>
@@ -456,11 +446,12 @@ export function TagManagementModal({
               <Button
                 className="flex-1"
                 disabled={is_loading}
+                is_loading={is_loading}
                 size="xl"
                 variant="destructive"
                 onClick={handle_delete}
               >
-                {is_loading ? t("common.deleting") : t("common.delete")}
+                {t("common.delete")}
               </Button>
             </ModalFooter>
           </>

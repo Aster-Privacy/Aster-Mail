@@ -19,9 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useState, useMemo, useCallback, useEffect } from "react";
-import { submit_on_enter } from "@/lib/commit_on_enter";
 import { addHours, addDays, isBefore } from "date-fns";
-import { is_future_instant } from "@/utils/schedule_targets";
 import {
   ClockIcon,
   CalendarIcon,
@@ -33,6 +31,8 @@ import {
 } from "@heroicons/react/24/outline";
 import { Button, Tooltip } from "@aster/ui";
 
+import { is_future_instant } from "@/utils/schedule_targets";
+import { submit_on_enter } from "@/lib/commit_on_enter";
 import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
 import {
@@ -146,8 +146,10 @@ export function ExpirationPicker({
     set_show_password(false);
   }, [show_password_dialog, password]);
 
-  const quick_options: QuickOption[] = useMemo(
-    () => [
+  const quick_options: QuickOption[] = useMemo(() => {
+    void is_open;
+
+    return [
       {
         label: t("mail.one_hour_option"),
         description: format_time(get_one_hour()),
@@ -172,9 +174,8 @@ export function ExpirationPicker({
         icon: <CalendarIcon className="w-4 h-4" />,
         get_date: get_thirty_days,
       },
-    ],
-    [t],
-  );
+    ];
+  }, [t, is_open]);
 
   const handle_quick_select = useCallback(
     (option: QuickOption) => {
@@ -310,7 +311,8 @@ export function ExpirationPicker({
           {has_protection && (
             <button
               aria-label={t("common.clear")}
-              className="hover:bg-red-500/20 rounded p-0.5 transition-colors text-danger"
+              className="hover:bg-red-500/20 rounded p-0.5 transition-colors text-danger disabled:opacity-50"
+              disabled={disabled}
               type="button"
               onClick={handle_clear}
             >

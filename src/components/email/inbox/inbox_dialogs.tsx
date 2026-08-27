@@ -254,11 +254,12 @@ export function InboxDialogs({
               <Button
                 className="max-sm:flex-1"
                 disabled={is_emptying_spam}
+                is_loading={is_emptying_spam}
                 size="xl"
                 variant="destructive"
                 onClick={confirm_empty_spam}
               >
-                {is_emptying_spam ? t("common.deleting") : t("mail.delete_all")}
+                {t("mail.delete_all")}
               </Button>
             </AlertDialogAction>
           </AlertDialogFooter>

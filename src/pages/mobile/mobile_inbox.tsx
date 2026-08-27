@@ -20,7 +20,7 @@
 //
 import type { InboxEmail, InboxFilterType } from "@/types/email";
 
-import { useState, useCallback, useMemo, useEffect } from "react";
+import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   FunnelIcon,
@@ -171,6 +171,16 @@ function MobileInbox({
   const [selection_mode, set_selection_mode] = useState(false);
   const [selected_ids, set_selected_ids] = useState<Set<string>>(new Set());
   const [is_refreshing, set_is_refreshing] = useState(false);
+  const refresh_timer_ref = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(
+    () => () => {
+      if (refresh_timer_ref.current !== null) {
+        clearTimeout(refresh_timer_ref.current);
+      }
+    },
+    [],
+  );
   const [snooze_email_target, set_snooze_email_target] =
     useState<InboxEmail | null>(null);
   const [scheduled_target_id, set_scheduled_target_id] = useState<
@@ -386,32 +396,54 @@ function MobileInbox({
     return active_emails.filter((e) => selected_ids.has(e.id));
   }, [active_emails, selected_ids]);
 
+  const bulk_action_ref = useRef(false);
+  const [bulk_action_busy, set_bulk_action_busy] = useState(false);
+
+  const run_bulk_action = useCallback(
+    async (action: () => Promise<void>): Promise<void> => {
+      if (bulk_action_ref.current) return;
+
+      bulk_action_ref.current = true;
+      set_bulk_action_busy(true);
+
+      try {
+        await action();
+      } finally {
+        bulk_action_ref.current = false;
+        set_bulk_action_busy(false);
+      }
+    },
+    [],
+  );
+
   const is_archive_view = current_view === "archive";
 
   const handle_bulk_archive = useCallback(async () => {
-    const emails = get_selected_emails();
+    await run_bulk_action(async () => {
+      const emails = get_selected_emails();
 
-    if (emails.length === 0) return;
-    haptic_impact("medium");
-    const ok = is_archive_view
-      ? await actions.bulk_unarchive(emails)
-      : await actions.bulk_archive(emails);
+      if (emails.length === 0) return;
+      haptic_impact("medium");
+      const ok = is_archive_view
+        ? await actions.bulk_unarchive(emails)
+        : await actions.bulk_archive(emails);
 
-    if (ok) {
-      for (const email of emails) {
-        remove_email(email.id);
+      if (ok) {
+        for (const email of emails) {
+          remove_email(email.id);
+        }
+      } else {
+        show_toast(
+          t(
+            is_archive_view
+              ? "common.failed_to_move_email"
+              : "common.failed_to_archive_emails",
+          ),
+          "error",
+        );
       }
-    } else {
-      show_toast(
-        t(
-          is_archive_view
-            ? "common.failed_to_move_email"
-            : "common.failed_to_archive_emails",
-        ),
-        "error",
-      );
-    }
-    exit_selection_mode();
+      exit_selection_mode();
+    });
   }, [
     get_selected_emails,
     actions,
@@ -419,6 +451,7 @@ function MobileInbox({
     exit_selection_mode,
     is_archive_view,
     t,
+    run_bulk_action,
   ]);
 
   const run_permanent_delete = useCallback(
@@ -443,51 +476,53 @@ function MobileInbox({
   );
 
   const handle_bulk_delete = useCallback(async () => {
-    const emails = get_selected_emails();
+    await run_bulk_action(async () => {
+      const emails = get_selected_emails();
 
-    if (emails.length === 0) return;
-    haptic_impact("medium");
+      if (emails.length === 0) return;
+      haptic_impact("medium");
 
-    if (is_drafts_view) {
-      schedule_delete_drafts(emails.map((email) => email.id));
-      exit_selection_mode();
+      if (is_drafts_view) {
+        schedule_delete_drafts(emails.map((email) => email.id));
+        exit_selection_mode();
 
-      return;
-    }
-
-    if (is_scheduled_view) {
-      let failed = 0;
-
-      for (const email of emails) {
-        const cancelled = await cancel_scheduled_email(email.id);
-
-        if (!cancelled) failed += 1;
+        return;
       }
 
-      if (failed > 0) {
+      if (is_scheduled_view) {
+        let failed = 0;
+
+        for (const email of emails) {
+          const cancelled = await cancel_scheduled_email(email.id);
+
+          if (!cancelled) failed += 1;
+        }
+
+        if (failed > 0) {
+          show_toast(t("common.failed_to_delete_emails"), "error");
+        }
+        exit_selection_mode();
+
+        return;
+      }
+
+      if (is_trash_view) {
+        set_permanent_delete_target(emails);
+
+        return;
+      }
+
+      const ok = await actions.bulk_delete(emails);
+
+      if (ok) {
+        for (const email of emails) {
+          remove_email(email.id);
+        }
+      } else {
         show_toast(t("common.failed_to_delete_emails"), "error");
       }
       exit_selection_mode();
-
-      return;
-    }
-
-    if (is_trash_view) {
-      set_permanent_delete_target(emails);
-
-      return;
-    }
-
-    const ok = await actions.bulk_delete(emails);
-
-    if (ok) {
-      for (const email of emails) {
-        remove_email(email.id);
-      }
-    } else {
-      show_toast(t("common.failed_to_delete_emails"), "error");
-    }
-    exit_selection_mode();
+    });
   }, [
     get_selected_emails,
     actions,
@@ -499,24 +534,34 @@ function MobileInbox({
     schedule_delete_drafts,
     cancel_scheduled_email,
     t,
+    run_bulk_action,
   ]);
 
   const handle_bulk_unmark_spam = useCallback(async () => {
-    const emails = get_selected_emails();
+    await run_bulk_action(async () => {
+      const emails = get_selected_emails();
 
-    if (emails.length === 0) return;
-    haptic_impact("medium");
-    const ok = await actions.bulk_unmark_spam(emails);
+      if (emails.length === 0) return;
+      haptic_impact("medium");
+      const ok = await actions.bulk_unmark_spam(emails);
 
-    if (ok) {
-      for (const email of emails) {
-        remove_email(email.id);
+      if (ok) {
+        for (const email of emails) {
+          remove_email(email.id);
+        }
+      } else {
+        show_toast(t("common.failed_to_move_email"), "error");
       }
-    } else {
-      show_toast(t("common.failed_to_move_email"), "error");
-    }
-    exit_selection_mode();
-  }, [get_selected_emails, actions, remove_email, exit_selection_mode, t]);
+      exit_selection_mode();
+    });
+  }, [
+    get_selected_emails,
+    actions,
+    remove_email,
+    exit_selection_mode,
+    t,
+    run_bulk_action,
+  ]);
 
   const confirm_permanent_delete = useCallback(async () => {
     const targets = permanent_delete_target;
@@ -528,24 +573,28 @@ function MobileInbox({
   }, [permanent_delete_target, run_permanent_delete, exit_selection_mode]);
 
   const handle_bulk_toggle_star = useCallback(async () => {
-    const emails = get_selected_emails();
+    await run_bulk_action(async () => {
+      const emails = get_selected_emails();
 
-    if (emails.length === 0) return;
-    const any_unstarred = emails.some((e) => !e.is_starred);
+      if (emails.length === 0) return;
+      const any_unstarred = emails.some((e) => !e.is_starred);
 
-    await actions.bulk_star(emails, any_unstarred);
-    exit_selection_mode();
-  }, [get_selected_emails, actions, exit_selection_mode]);
+      await actions.bulk_star(emails, any_unstarred);
+      exit_selection_mode();
+    });
+  }, [get_selected_emails, actions, exit_selection_mode, run_bulk_action]);
 
   const handle_bulk_toggle_read = useCallback(async () => {
-    const emails = get_selected_emails();
+    await run_bulk_action(async () => {
+      const emails = get_selected_emails();
 
-    if (emails.length === 0) return;
-    const any_unread = emails.some((e) => !e.is_read);
+      if (emails.length === 0) return;
+      const any_unread = emails.some((e) => !e.is_read);
 
-    await actions.bulk_mark_read(emails, any_unread);
-    exit_selection_mode();
-  }, [get_selected_emails, actions, exit_selection_mode]);
+      await actions.bulk_mark_read(emails, any_unread);
+      exit_selection_mode();
+    });
+  }, [get_selected_emails, actions, exit_selection_mode, run_bulk_action]);
 
   const handle_archive = useCallback(
     async (email: InboxEmail) => {
@@ -790,7 +839,15 @@ function MobileInbox({
 
   const handle_refresh = useCallback(() => {
     set_is_refreshing(true);
-    setTimeout(() => set_is_refreshing(false), 1000);
+
+    if (refresh_timer_ref.current !== null) {
+      clearTimeout(refresh_timer_ref.current);
+    }
+
+    refresh_timer_ref.current = setTimeout(() => {
+      refresh_timer_ref.current = null;
+      set_is_refreshing(false);
+    }, 1000);
     if (is_drafts_view) {
       refresh_drafts();
 
@@ -850,6 +907,23 @@ function MobileInbox({
       set_show_empty_trash_dialog(false);
     }
   }, [mail_state.emails, remove_email, t]);
+
+  const selected_emails = useMemo(
+    () =>
+      selection_mode ? active_emails.filter((e) => selected_ids.has(e.id)) : [],
+    [selection_mode, active_emails, selected_ids],
+  );
+
+  const bulk_star_adds = selected_emails.some((e) => !e.is_starred);
+  const bulk_read_marks_read = selected_emails.some((e) => !e.is_read);
+
+  const scheduled_error_visible =
+    is_scheduled_view &&
+    Boolean(scheduled_state.error) &&
+    !scheduled_state.is_loading;
+
+  const drafts_error_visible =
+    is_drafts_view && Boolean(drafts_state.error) && !drafts_state.is_loading;
 
   return (
     <div
@@ -986,100 +1060,124 @@ function MobileInbox({
         </div>
       ) : null}
 
+      {!folder_not_found && !tag_not_found && scheduled_error_visible && (
+        <div className="flex flex-col items-center justify-center flex-1 px-4 py-20">
+          <ExclamationTriangleIcon
+            className="w-12 h-12 mb-4 text-txt-muted"
+            strokeWidth={1}
+          />
+          <p className="text-sm font-medium text-txt-primary mb-1">
+            {scheduled_state.error}
+          </p>
+          <button
+            className="mt-3 rounded-full bg-[var(--accent-color,#3b82f6)] px-5 py-2 text-[13px] font-medium text-[var(--accent-fg,#ffffff)]"
+            type="button"
+            onClick={refresh_scheduled}
+          >
+            {t("common.retry")}
+          </button>
+        </div>
+      )}
+
+      {!folder_not_found && !tag_not_found && drafts_error_visible && (
+        <div className="flex flex-col items-center justify-center flex-1 px-4 py-20">
+          <ExclamationTriangleIcon
+            className="w-12 h-12 mb-4 text-txt-muted"
+            strokeWidth={1}
+          />
+          <p className="text-sm font-medium text-txt-primary mb-1">
+            {drafts_state.error}
+          </p>
+          <button
+            className="mt-3 rounded-full bg-[var(--accent-color,#3b82f6)] px-5 py-2 text-[13px] font-medium text-[var(--accent-fg,#ffffff)]"
+            type="button"
+            onClick={refresh_drafts}
+          >
+            {t("common.retry")}
+          </button>
+        </div>
+      )}
+
       {!folder_not_found &&
         !tag_not_found &&
-        is_drafts_view &&
-        drafts_state.error &&
-        !drafts_state.is_loading && (
-          <div className="flex flex-col items-center justify-center flex-1 px-4 py-20">
-            <ExclamationTriangleIcon
-              className="w-12 h-12 mb-4 text-txt-muted"
-              strokeWidth={1}
-            />
-            <p className="text-sm font-medium text-txt-primary mb-1">
-              {drafts_state.error}
-            </p>
-            <button
-              className="mt-3 rounded-full bg-[var(--accent-color,#3b82f6)] px-5 py-2 text-[13px] font-medium text-[var(--accent-fg,#ffffff)]"
-              type="button"
-              onClick={refresh_drafts}
-            >
-              {t("common.retry")}
-            </button>
-          </div>
-        )}
-
-      {!folder_not_found && !tag_not_found && (
-        <MobileEmailList
-          current_view={current_view}
-          emails={enriched_unpinned}
-          has_initial_load={
-            is_drafts_view
-              ? !drafts_state.is_loading
-              : is_scheduled_view
-                ? !scheduled_state.is_loading
-                : mail_state.has_initial_load
-          }
-          has_load_error={
-            is_drafts_view || is_scheduled_view
-              ? false
-              : mail_state.has_load_error
-          }
-          has_more={
-            is_drafts_view
-              ? drafts_state.has_more
-              : is_scheduled_view
+        !scheduled_error_visible &&
+        !drafts_error_visible && (
+          <MobileEmailList
+            current_view={current_view}
+            emails={enriched_unpinned}
+            has_initial_load={
+              is_drafts_view
+                ? !drafts_state.is_loading
+                : is_scheduled_view
+                  ? !scheduled_state.is_loading
+                  : mail_state.has_initial_load
+            }
+            has_load_error={
+              is_drafts_view
+                ? Boolean(drafts_state.error)
+                : is_scheduled_view
+                  ? Boolean(scheduled_state.error)
+                  : mail_state.has_load_error
+            }
+            has_more={
+              is_drafts_view
+                ? drafts_state.has_more
+                : is_scheduled_view
+                  ? false
+                  : mail_state.has_more
+            }
+            is_loading={
+              is_drafts_view
+                ? drafts_state.is_loading
+                : is_scheduled_view
+                  ? scheduled_state.is_loading
+                  : mail_state.is_loading
+            }
+            is_loading_more={
+              is_drafts_view || is_scheduled_view
                 ? false
-                : mail_state.has_more
-          }
-          is_loading={
-            is_drafts_view
-              ? drafts_state.is_loading
-              : is_scheduled_view
-                ? scheduled_state.is_loading
-                : mail_state.is_loading
-          }
-          is_loading_more={
-            is_drafts_view || is_scheduled_view
-              ? false
-              : mail_state.is_loading_more
-          }
-          is_refreshing={is_refreshing}
-          on_archive={
-            is_drafts_view || is_scheduled_view ? undefined : handle_archive
-          }
-          on_delete={handle_delete}
-          on_drag_select={selection_mode ? handle_drag_select : undefined}
-          on_email_press={handle_email_press}
-          on_load_more={handle_load_more}
-          on_long_press={handle_long_press}
-          on_mark_spam={
-            is_drafts_view || is_scheduled_view ? undefined : handle_mark_spam
-          }
-          on_refresh={handle_refresh}
-          on_snooze={
-            is_drafts_view ||
-            is_scheduled_view ||
-            is_trash_view ||
-            is_spam_view
-              ? undefined
-              : handle_snooze
-          }
-          on_toggle_read={
-            is_drafts_view || is_scheduled_view ? undefined : handle_toggle_read
-          }
-          on_toggle_star={
-            is_drafts_view || is_scheduled_view ? undefined : handle_toggle_star
-          }
-          pinned_emails={
-            enriched_pinned.length > 0 ? enriched_pinned : undefined
-          }
-          selected_ids={selected_ids}
-          selection_mode={selection_mode}
-          swipe_left_action={preferences.swipe_left_action}
-          swipe_right_action={preferences.swipe_right_action}
-        />
-      )}
+                : mail_state.is_loading_more
+            }
+            is_refreshing={is_refreshing}
+            on_archive={
+              is_drafts_view || is_scheduled_view ? undefined : handle_archive
+            }
+            on_delete={handle_delete}
+            on_drag_select={selection_mode ? handle_drag_select : undefined}
+            on_email_press={handle_email_press}
+            on_load_more={handle_load_more}
+            on_long_press={handle_long_press}
+            on_mark_spam={
+              is_drafts_view || is_scheduled_view ? undefined : handle_mark_spam
+            }
+            on_refresh={handle_refresh}
+            on_snooze={
+              is_drafts_view ||
+              is_scheduled_view ||
+              is_trash_view ||
+              is_spam_view
+                ? undefined
+                : handle_snooze
+            }
+            on_toggle_read={
+              is_drafts_view || is_scheduled_view
+                ? undefined
+                : handle_toggle_read
+            }
+            on_toggle_star={
+              is_drafts_view || is_scheduled_view
+                ? undefined
+                : handle_toggle_star
+            }
+            pinned_emails={
+              enriched_pinned.length > 0 ? enriched_pinned : undefined
+            }
+            selected_ids={selected_ids}
+            selection_mode={selection_mode}
+            swipe_left_action={preferences.swipe_left_action}
+            swipe_right_action={preferences.swipe_right_action}
+          />
+        )}
 
       {selection_mode && (
         <div
@@ -1091,7 +1189,8 @@ function MobileInbox({
         >
           {!is_drafts_view && !is_scheduled_view && is_spam_view && (
             <button
-              className="flex flex-1 flex-col items-center gap-1 py-3 text-[var(--text-secondary)] active:text-[var(--text-primary)]"
+              className="flex flex-1 flex-col items-center gap-1 py-3 text-[var(--text-secondary)] active:text-[var(--text-primary)] disabled:opacity-50"
+              disabled={bulk_action_busy}
               type="button"
               onClick={handle_bulk_unmark_spam}
             >
@@ -1101,7 +1200,8 @@ function MobileInbox({
           )}
           {!is_drafts_view && !is_scheduled_view && !is_spam_view && (
             <button
-              className="flex flex-1 flex-col items-center gap-1 py-3 text-[var(--text-secondary)] active:text-[var(--text-primary)]"
+              className="flex flex-1 flex-col items-center gap-1 py-3 text-[var(--text-secondary)] active:text-[var(--text-primary)] disabled:opacity-50"
+              disabled={bulk_action_busy}
               type="button"
               onClick={handle_bulk_archive}
             >
@@ -1116,7 +1216,8 @@ function MobileInbox({
             </button>
           )}
           <button
-            className="flex flex-1 flex-col items-center gap-1 py-3 text-[var(--text-secondary)] active:text-[var(--text-primary)]"
+            className="flex flex-1 flex-col items-center gap-1 py-3 text-[var(--text-secondary)] active:text-[var(--text-primary)] disabled:opacity-50"
+            disabled={bulk_action_busy}
             type="button"
             onClick={handle_bulk_delete}
           >
@@ -1125,38 +1226,46 @@ function MobileInbox({
           </button>
           {!is_drafts_view && !is_scheduled_view && (
             <button
-              className="flex flex-1 flex-col items-center gap-1 py-3 text-[var(--text-secondary)] active:text-[var(--text-primary)]"
+              className="flex flex-1 flex-col items-center gap-1 py-3 text-[var(--text-secondary)] active:text-[var(--text-primary)] disabled:opacity-50"
+              disabled={bulk_action_busy}
               type="button"
               onClick={handle_bulk_toggle_star}
             >
               <StarIcon className="h-5 w-5" />
-              <span className="text-[11px]">{t("mail.star")}</span>
+              <span className="text-[11px]">
+                {bulk_star_adds ? t("mail.star") : t("mail.unstar")}
+              </span>
             </button>
           )}
           {!is_drafts_view && !is_scheduled_view && (
             <button
-              className="flex flex-1 flex-col items-center gap-1 py-3 text-[var(--text-secondary)] active:text-[var(--text-primary)]"
+              className="flex flex-1 flex-col items-center gap-1 py-3 text-[var(--text-secondary)] active:text-[var(--text-primary)] disabled:opacity-50"
+              disabled={bulk_action_busy}
               type="button"
               onClick={handle_bulk_toggle_read}
             >
               <EnvelopeOpenIcon className="h-5 w-5" />
-              <span className="text-[11px]">{t("mail.mark_as_read")}</span>
+              <span className="text-[11px]">
+                {bulk_read_marks_read
+                  ? t("mail.mark_as_read")
+                  : t("mail.mark_as_unread")}
+              </span>
             </button>
           )}
         </div>
       )}
 
       <ConfirmModal
+        hide_dont_ask
         confirm_text={t("mail.delete_permanently")}
         confirm_variant="destructive"
         description={t("common.action_cannot_be_undone")}
         dont_ask={false}
-        hide_dont_ask
-        show={!!permanent_delete_target}
-        title={t("mail.delete_permanently_question")}
         on_cancel={() => set_permanent_delete_target(null)}
         on_confirm={() => void confirm_permanent_delete()}
         on_dont_ask_change={() => undefined}
+        show={!!permanent_delete_target}
+        title={t("mail.delete_permanently_question")}
       />
 
       <EmptyTrashModal

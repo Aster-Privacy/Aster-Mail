@@ -1040,15 +1040,15 @@ export const ja = {
       "ご購入ありがとうございます。サブスクリプションが有効になりました。",
     view_billing_settings: "請求設定を表示",
     welcome_description:
-      "安全でプライベートなメールプラットフォームの使い方をクイックツアーでご紹介します。",
-    organize_with_folders: "フォルダで整理",
+      "このツアーは約1分です。最初の日に役立つ4つのポイントを紹介します。",
+    organize_with_folders: "フォルダで整理する",
     organize_folders_description:
-      "カスタムフォルダを作成してメールを整理しましょう。フォルダの横にある+ボタンをクリックして最初のフォルダを作成してください。",
+      "メールをフォルダにドラッグして整理できます。複数選択してまとめて移動することもできます。フォルダを追加するには、フォルダの横の + をクリックします。",
     customize_settings_description:
-      "体験をカスタマイズし、セキュリティ設定を管理し、アカウントの設定を変更しましょう。",
+      "設定では、エイリアスの追加、独自ドメインの接続、2ファクタ認証の有効化ができます。",
     youre_ready: "準備完了",
     youre_ready_description:
-      "以上です！Aster Mailの使用を開始する準備ができました。あなたのメールはエンドツーエンドで暗号化され、完全にプライベートです。",
+      "メールはエンドツーエンドで暗号化され、鍵はあなただけが持っています。? を押すと、いつでもすべてのキーボードショートカットを確認できます。",
     skip_tour: "ツアーをスキップ",
     get_started: "はじめる",
     setup_complete: "セットアップ完了！",
@@ -1300,6 +1300,11 @@ export const ja = {
     subject_too_long:
       "件名が 998 文字の上限を超えています。短くすると送信できます。",
     notification_banner_no_thanks: "いいえ、結構です",
+    payment_past_due_message:
+      "前回のお支払いを処理できませんでした。プランを継続するには、お支払い方法を更新してください。",
+    payment_past_due_message_days:
+      "前回のお支払いを処理できませんでした。プランを継続するには、{{days}}日以内にお支払い方法を更新してください。",
+    payment_past_due_action: "支払いを更新",
     ghost_label: "ゴースト",
     ghost_mode_tooltip:
       "Ghostモードで送信されました。あなたの本当のアドレスは非表示でした。",
@@ -1747,6 +1752,23 @@ export const ja = {
     on_separator: "で",
     onboarding_checklist_dismiss: "非表示",
     onboarding_checklist_first_email: "最初のメールを送信",
+    first_run_title: "受信トレイの準備ができました",
+    first_run_subtitle:
+      "既存のメールを今すぐ移行するか、後で設定から移行できます。",
+    first_run_import: "メールを取り込む",
+    first_run_skip: "空の受信トレイで始める",
+    first_run_privacy_note:
+      "メールはお使いのデバイスで暗号化されます。Aster が読むことはできません。",
+    recovery_reminder_title: "アカウントに戻る手段を追加",
+    recovery_reminder_body:
+      "Aster はパスワードでメールを暗号化するため、誰もパスワードを再設定できません。アクセスを保つために復旧用メールアドレスを追加してください。",
+    recovery_reminder_action: "復旧用メールを追加",
+    recovery_reminder_later: "あとで",
+    plan_prompt_title: "無料プランをご利用中です",
+    plan_prompt_body:
+      "有料プランでは、容量が増え、独自ドメインと無制限のエイリアスを使えます。",
+    plan_prompt_action: "プランを見る",
+    plan_prompt_dismiss: "閉じる",
     onboarding_checklist_import_mail: "古いメールをインポート",
     onboarding_checklist_install_app: "アプリをインストール",
     onboarding_checklist_recovery_method: "復旧方法を追加",
@@ -3623,6 +3645,13 @@ export const ja = {
     ipfs_disabled_description:
       "分散型で回復力のあるIPFSストレージに添付ファイルを保存します",
     forward_secrecy: "前方秘匿性",
+    forward_secrecy_disable_title: "前方秘匿性をオフにしますか？",
+    forward_secrecy_disable_message:
+      "新しいメッセージでローテーション鍵が使われなくなるため、後から漏えいした鍵でより多くのメールが復号される可能性があります。いつでもオンに戻せます。",
+    login_alerts_disable_title: "ログイン通知をオフにしますか？",
+    login_alerts_disable_message:
+      "新しいデバイスがアカウントにサインインしたときのメールが届かなくなります。",
+    turn_off_action: "オフにする",
     forward_secrecy_enabled_description:
       "キーは{{frequency}}ごとにローテーションされます",
     forward_secrecy_disabled_description:
@@ -3825,15 +3854,18 @@ export const ja = {
     translate_add_language: "言語を追加",
     translate_auto_detected: "お使いのデバイスから自動検出",
     translate_confirm_title: "翻訳を有効にしますか？",
-    translate_confirm_description: "Aster はデバイス上でメールを翻訳するため、読んだ内容が翻訳サービスに送信されることはありません。ある言語から初めて翻訳するときに、Aster は 20〜55 MB の言語パックをダウンロードし、このデバイスに保存します。パックはいつでも削除できます。",
+    translate_confirm_description:
+      "Aster はデバイス上でメールを翻訳するため、読んだ内容が翻訳サービスに送信されることはありません。ある言語から初めて翻訳するときに、Aster は 20〜55 MB の言語パックをダウンロードし、このデバイスに保存します。パックはいつでも削除できます。",
     translate_confirm_enable: "有効にする",
     translation_packs: "ダウンロード済みの言語パック",
-    translation_packs_description: "言語パックはこのデバイスに保存されます。空き容量を増やすにはパックを削除してください。その言語を次に翻訳するときに Aster が再度ダウンロードします。",
+    translation_packs_description:
+      "言語パックはこのデバイスに保存されます。空き容量を増やすにはパックを削除してください。その言語を次に翻訳するときに Aster が再度ダウンロードします。",
     translation_packs_empty: "言語パックはまだダウンロードされていません。",
     translation_packs_total: "このデバイスで {{size}} 使用中",
     translation_packs_remove: "削除",
     translation_packs_remove_all: "すべて削除",
-    translation_packs_unavailable: "このブラウザは言語パックを保存できないため、Aster は翻訳のたびにダウンロードします。",
+    translation_packs_unavailable:
+      "このブラウザは言語パックを保存できないため、Aster は翻訳のたびにダウンロードします。",
 
     block_external_content: "外部コンテンツをブロック",
     block_external_content_description:
@@ -4164,13 +4196,15 @@ export const ja = {
     any_email_import_description: "MBOX、EML、CSV、PSTファイル",
     search_history: "検索履歴",
     folders_limit: "フォルダ",
-    onboarding_compose_title: "新しいメールを作成",
+    onboarding_compose_title: "最初のメールを書く",
     onboarding_compose_description:
-      "ここをクリックして新しいメールを作成します",
-    onboarding_search_title: "メールを検索",
-    onboarding_search_description: "検索バーを使ってメールを見つけましょう",
+      "受信トレイで C を押すと作成が始まります。Aster は送信前にお使いのデバイス上でメールを暗号化します。",
+    onboarding_search_title: "プライバシーを保ったまま検索",
+    onboarding_search_description:
+      "/ を押すと検索に直接移動します。キーボードから手を離さずに、送信者、日付、添付ファイルで絞り込めます。",
     delete_imported_emails_confirm: "インポートしたメールを削除しますか？",
-    import_delete_warning: "このインポートで取り込んだメールが完全に削除されます。元に戻すことはできません。",
+    import_delete_warning:
+      "このインポートで取り込んだメールが完全に削除されます。元に戻すことはできません。",
     all_emails_filter: "すべてのメール",
     choose_label_color: "ラベルの色を選択",
     hex_color_value: "16進数カラーコード",
@@ -5230,7 +5264,7 @@ export const ja = {
     billing_banner_cta: "オプションを見る",
     storage_addons: "追加ストレージ",
     storage_addons_monthly_note:
-      "追加ストレージは、プランが年払いの場合でも月ごとに請求されます。",
+      "アドオンは毎月更新され、プランとは別に請求されます。暗号資産で支払う場合は、前払いする期間を選べます。",
     storage_addons_description:
       "もっとスペースが必要ですか？アカウントに追加の暗号化ストレージを購入できます。",
     storage_purchase_coming_soon:
@@ -5328,6 +5362,36 @@ export const ja = {
     storage_warning_title: "ストレージの残量が少なくなっています。",
     storage_warning_description:
       "ストレージの 90 % 以上を使用しています。メールを整理するか、プランをアップグレードすると、新着メールを引き続き受け取れます。",
+    storage_overview_description:
+      "何が容量を使っているかを確認して、不要なものを削除できます。",
+    storage_promo_title: "追加ストレージがお得です",
+    storage_promo_body:
+      "追加ストレージの最初の {{months}} か月が {{percent}}% オフになります。",
+    storage_promo_body_singular:
+      "追加ストレージの初月が {{percent}}% オフになります。",
+    storage_promo_note: "割引は最初のストレージアドオンのみに適用されます。",
+    storage_select_option_first:
+      "ストレージを追加するには、最初にオプションを選択します。",
+    storage_promo_cta: "アドオンを見る",
+    storage_used_of_total: "{{total}} 中 {{used}} を使用",
+    storage_free_space: "残り {{size}}、ストレージの {{percent}} を使用中",
+    storage_breakdown_title: "ストレージの使用状況",
+    storage_breakdown_empty: "まだストレージを使用していません。",
+    storage_col_category: "カテゴリ",
+    storage_col_items: "アイテム数",
+    storage_col_size: "サイズ",
+    storage_col_share: "割合",
+    storage_capacity_title: "容量",
+    storage_included_with_plan: "プランに含まれる容量",
+    storage_from_addons: "アドオン分",
+    storage_family_allocation: "ファミリー割り当て",
+    storage_total_capacity: "合計容量",
+    storage_available: "空き容量",
+    storage_cleanup_done: "ストレージを解放しました",
+    storage_cleanup_failed:
+      "空き容量を作成できませんでした。もう一度お試しください。",
+    storage_cleanup_confirm:
+      "{{count}} 件を完全に削除して {{size}} を解放します。この操作は取り消せません。",
     storage_locked_title: "ストレージが満杯です。",
     storage_locked_description:
       "空き容量ができるまで、新着メールは一時停止します。メールを削除するか、プランをアップグレードすると、再び受信できるようになります。既存のメールは安全です。",
@@ -5386,6 +5450,9 @@ export const ja = {
     stripe_not_configured: "決済システムが設定されていません。",
     try_again: "もう一度試す",
     view_all_features: "すべての機能を見る",
+    plan_everything_in: "{{plan}}のすべての機能に加えて",
+    compare_features_show: "プランごとに機能を比較",
+    compare_features_hide: "比較を非表示",
     compare_plans: "すべてのプランを比較",
     feature: "機能",
     manage_payment_methods: "お支払い方法を管理",
@@ -5396,6 +5463,10 @@ export const ja = {
     card_expires: "有効期限",
     adding_card: "追加中...",
     card_added: "お支払い方法を追加しました",
+    payment_retry_succeeded:
+      "お支払いが完了しました。プランは引き続き有効です。",
+    payment_retry_failed:
+      "銀行がこのカードを承認しませんでした。別のお支払い方法をお試しください。",
     card_removed: "お支払い方法を削除しました",
     default_updated: "デフォルトのお支払い方法を更新しました",
     payment_settled: "デフォルトのお支払い方法を更新しました。未払い残高のお支払いが完了しました。",
@@ -5523,7 +5594,7 @@ export const ja = {
     credit_transactions: "クレジット取引",
     referral_program: "紹介プログラム",
     referral_program_description:
-      "友達をAsterに招待して、友達が支払うたびにクレジットを獲得できます。",
+      "友だちを Aster Mail に招待しましょう。相手がアカウントを使い始めると、お二人ともストレージが {{ amount }} 増えます。",
     your_referral_link: "あなたの紹介リンク",
     copy_link: "リンクをコピー",
     link_copied: "リンクをクリップボードにコピーしました",
@@ -5535,11 +5606,11 @@ export const ja = {
     referral_not_eligible_description: "後でもう一度お試しください。",
     referral_loading: "紹介情報を読み込み中...",
     referral_history: "紹介履歴",
-    no_referrals_yet: "まだ紹介がありません。リンクを共有して始めましょう！",
+    no_referrals_yet: "招待はまだありません。リンクを共有して始めましょう。",
     referral_status_pending: "保留中",
     referral_status_completed: "完了",
     referral_reward_info:
-      "友達は初回のお支払いが割引になり、あなたは友達のすべてのお支払いから収益を得られます。",
+      "あなたと友だちのそれぞれにストレージが {{ amount }} 追加されます。相手がアカウントを数日使うと追加され、Aster Mail を使い続けているあいだはあなたのアカウントに残ります。",
     referral_commission_info:
       "紹介した方がサブスクリプションを継続する限り、すべてのお支払いの{{ percent }}%を獲得できます。",
     referral_max_credits: "最大獲得額：年間 {{ value }}",
@@ -5759,7 +5830,8 @@ export const ja = {
     domain_purchase_included_heading: "ドメインに含まれるすべての機能",
     domain_purchase_renew: "更新",
     domain_purchase_manage: "管理",
-    domain_purchase_manage_description: "この登録内容を確認し、期限が切れる前に更新してください。",
+    domain_purchase_manage_description:
+      "この登録内容を確認し、期限が切れる前に更新してください。",
     domain_purchase_manage_status: "ステータス",
     domain_purchase_manage_status_active: "有効",
     domain_purchase_manage_status_expiring: "まもなく期限切れ",
@@ -5767,9 +5839,11 @@ export const ja = {
     domain_purchase_manage_expires: "有効期限",
     domain_purchase_manage_term: "契約期間",
     domain_purchase_manage_paid: "支払い額",
-    domain_purchase_manage_auto_renew_note: "このドメインは自動更新されません。使い続けるには、有効期限までに更新してください。",
+    domain_purchase_manage_auto_renew_note:
+      "このドメインは自動更新されません。使い続けるには、有効期限までに更新してください。",
     domain_purchase_manage_dns: "ドメイン設定を開く",
-    domain_purchase_manage_support_note: "このドメインを他のレジストラに移管する場合や返金について確認する場合は、サポートに問い合わせてください。",
+    domain_purchase_manage_support_note:
+      "このドメインを他のレジストラに移管する場合や返金について確認する場合は、サポートに問い合わせてください。",
     domain_purchase_manage_support_subject: "{{domain}} に関するお問い合わせ",
     domain_purchase_filter_all: "すべて",
     domain_purchase_filter_available: "利用可能",
@@ -6557,7 +6631,7 @@ export const ja = {
       "ジャーナリストの方は、記者証を添えてサポートまでご連絡ください。",
     refer_a_friend: "友達を紹介",
     referral_email_body:
-      "こんにちは！\n\nAster Mailを使っていてとても気に入っています。エンドツーエンド暗号化されているので、あなた以外誰もメールを読めません（Aster自身でさえも）。\n\nよかったら使ってみてください。私の紹介リンクはこちらです：\n\n{{ referral_link }}\n\nご登録いただくと初回のお支払いが割引になり、私にも少しクレジットが入りますが、無理に勧めるつもりはありません。ただ気に入ってもらえると思って共有しました。\n\nよろしくお願いします",
+      "こんにちは。\n\nしばらく Aster Mail を使っていますが、とても気に入っています。すべてがエンドツーエンドで暗号化されているので、あなた以外は誰もメールを読めません。運営者でさえ読めません。\n\n試してみたい場合は、こちらが私の招待リンクです。\n\n{{ referral_link }}\n\nあなたが使い始めると二人ともストレージが {{ amount }} 増えるので、あなたにもメリットがあります。\n\nそれでは",
     referral_email_subject:
       "Aster Mailをお試しください - みんなのためのプライベートメール",
     referral_how_it_works: "仕組み",
@@ -6566,11 +6640,10 @@ export const ja = {
       "連絡先が見つかりません。まず連絡先を追加してください！",
     referral_rewards: "報酬",
     referral_step_earn:
-      "友達がサブスクリプションを継続する限り、すべてのお支払いの一部を獲得できます。",
-    referral_step_share:
-      "あなた固有の紹介リンクを友達、家族、同僚に共有してください。",
+      "お二人ともストレージが {{ amount }} 増えます。最大 {{ max }} までです。",
+    referral_step_share: "招待リンクを友だちや家族、同僚に共有します。",
     referral_step_signup:
-      "友達があなたのリンクからAsterに登録して有料プランに申し込みます。",
+      "相手があなたのリンクでアカウントを作成し、使い始めます。",
     registered: "登録済み",
     remote_image_loading: "リモート画像の読み込み",
     remote_image_loading_description:
@@ -6854,6 +6927,48 @@ export const ja = {
     referral_discount_auto_apply:
       "購入手続きで自動的に適用されます。入力は不要です。",
     referral_discount_expires: "{{ date }} に期限切れ",
+    invite_storage_line: "お二人ともストレージが {{ amount }} 増えます",
+    invite_storage_note:
+      "このリンクから無料アカウントを作成してください。あなたが使い始めると、両方のアカウントにストレージが追加されます。",
+    invite_discount_note:
+      "さらに、有料プランに変更する場合は {{ percent }}% 割引になります。",
+    invite_cta_create_account_storage: "無料アカウントを作成",
+    invite_friends: "友だちを招待",
+    invite_sidebar_earned: "{{ amount }} 獲得",
+    referral_storage_headline:
+      "友だちが参加するたびにストレージが {{ amount }} 増えます",
+    referral_storage_subhead:
+      "友だちにも {{ amount }} が付きます。相手がアカウントを使い始めると追加され、最大 {{ max }} までです。",
+    referral_storage_earned_badge: "{{ amount }} 獲得",
+    referral_active_referrals: "有効",
+    referral_share_button: "招待を共有",
+    referral_show_qr: "QR コードを表示",
+    referral_hide_qr: "QR コードを非表示",
+    referral_qr_hint:
+      "スマートフォンのカメラをこのコードに向けると招待が開きます。",
+    referral_qr_alt: "Aster Mail の招待リンクの QR コード",
+    referral_share_title: "Aster Mail で一緒に使いませんか",
+    referral_share_message:
+      "エンドツーエンドで暗号化されたメールのために Aster Mail を使っています。私のリンクから参加すると、二人ともストレージが {{ amount }} 増えます。",
+    referral_shared: "招待を共有しました",
+    referral_message_copied: "招待メッセージをコピーしました",
+    referral_bonus_gauge_label: "獲得したストレージ",
+    referral_bonus_max: "上限: {{ value }}",
+    referral_status_active: "有効",
+    referral_email_all_contacts_hint:
+      "アドレス帳のすべての連絡先にメッセージを 1 通送ります。",
+    referral_claim_title: "招待を受けましたか",
+    referral_claim_description:
+      "招待に記載されたコードを入力すると、お二人ともストレージが {{ amount }} 増えます。追加できるのは {{ date }} までです。",
+    referral_claim_placeholder: "招待コード",
+    referral_claim_button: "コードを追加",
+    referral_claim_success:
+      "招待を追加しました。Aster Mail を数日使うとストレージが追加されます。",
+    referral_claim_invalid: "その招待コードは無効です。",
+    referral_claim_window_closed:
+      "このアカウントに招待コードを追加できる期間は終了しました。",
+    referral_claim_already: "このアカウントにはすでに招待が登録されています。",
+    referral_claim_self: "自分の招待コードは使えません。",
     domain_purchase_not_released:
       "ドメインの購入はまだ利用できません。今後のアップデートで対応します。",
     domain_step_ownership_title: "このドメインの所有者であることを証明する",
@@ -7154,7 +7269,8 @@ export const ja = {
     attachments: "添付ファイル",
     translation_offer: "このメッセージは{{language}}です。",
     translation_translate: "翻訳",
-    translation_offer_download: "このメッセージは{{language}}です。翻訳すると言語パックをダウンロードします。",
+    translation_offer_download:
+      "このメッセージは{{language}}です。翻訳すると言語パックをダウンロードします。",
     translation_translate_download: "翻訳（{{size}} をダウンロード）",
     translation_in_progress: "お使いの端末で翻訳しています…",
     translation_translated_from: "お使いの端末で{{language}}から翻訳しました。",

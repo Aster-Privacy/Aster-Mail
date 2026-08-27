@@ -19,7 +19,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useState, useCallback, useEffect, useRef } from "react";
-import { trigger_download } from "@/utils/download_blob";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ClipboardDocumentIcon,
@@ -30,6 +29,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
+import { trigger_download } from "@/utils/download_blob";
 import { RoundedQrCode } from "@/components/ui/rounded_qr_code";
 import { show_toast } from "@/components/toast/simple_toast";
 import {
@@ -271,10 +271,11 @@ export function TotpSetupModal({
         </Button>
         <Button
           disabled={verification_code.length !== 6 || is_loading || !setup_data}
+          is_loading={is_loading}
           variant="depth"
           onClick={() => handle_verify()}
         >
-          {is_loading ? t("common.verifying") : t("common.verify")}
+          {t("common.verify")}
         </Button>
       </ModalFooter>
     </>

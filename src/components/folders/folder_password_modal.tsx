@@ -30,7 +30,6 @@ import {
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
-import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import { use_protected_folder } from "@/hooks/use_protected_folder";
 import { use_should_reduce_motion } from "@/provider";
@@ -246,6 +245,8 @@ export function FolderPasswordModal({
   const strength = get_password_strength(password, t);
 
   const handle_submit = async () => {
+    if (is_loading) return;
+
     set_error("");
 
     if (internal_mode === "setup") {
@@ -701,14 +702,14 @@ export function FolderPasswordModal({
                 </Button>
                 <Button
                   disabled={is_loading}
+                  is_loading={is_loading}
                   size="xl"
                   variant={
                     internal_mode === "remove" ? "destructive" : "primary"
                   }
                   onClick={handle_submit}
                 >
-                  {is_loading && <Spinner size="md" />}
-                  {is_loading ? t("common.processing") : get_submit_label()}
+                  {get_submit_label()}
                 </Button>
               </div>
             )}

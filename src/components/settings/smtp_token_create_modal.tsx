@@ -273,12 +273,11 @@ export function SmtpTokenCreateModal({
         </Button>
         <Button
           disabled={!name.trim() || !bound_address || is_loading}
+          is_loading={is_loading}
           variant="depth"
           onClick={handle_create}
         >
-          {is_loading
-            ? t("common.creating")
-            : t("settings.smtp_token_generate")}
+          {t("settings.smtp_token_generate")}
         </Button>
       </ModalFooter>
     </>

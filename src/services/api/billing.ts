@@ -21,6 +21,12 @@
 import { api_client } from "./client";
 
 import { format_bytes } from "@/lib/utils";
+import {
+  bonus_bytes_max,
+  bonus_bytes_per_referral,
+  referral_bytes,
+  referral_count,
+} from "@/lib/referral_bonus";
 import { payment_url_or_throw } from "@/lib/payment_url";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
 
@@ -609,6 +615,9 @@ export interface UserActiveAddon {
 export interface StorageAddonsResponse {
   available_addons: StorageAddonItem[];
   active_addons: UserActiveAddon[];
+  promo_eligible?: boolean;
+  promo_percent_off?: number;
+  promo_duration_months?: number;
 }
 
 export interface PurchaseAddonResponse {
@@ -622,6 +631,8 @@ export async function get_storage_addons() {
 export async function purchase_storage_addon(
   addon_id: string,
   apply_credits_cents?: number,
+  success_url?: string,
+  cancel_url?: string,
 ) {
   return api_client.post<PurchaseAddonResponse>(
     "/sync/v1/storage/addons/purchase",
@@ -630,6 +641,8 @@ export async function purchase_storage_addon(
       ...(apply_credits_cents && apply_credits_cents > 0
         ? { apply_credits_cents }
         : {}),
+      ...(success_url ? { success_url } : {}),
+      ...(cancel_url ? { cancel_url } : {}),
     },
   );
 }
@@ -973,6 +986,10 @@ export interface ReferralInfo {
   earned_install_ios_cents?: number;
   earned_install_android_cents?: number;
   earned_install_desktop_cents?: number;
+  activated_referrals: number;
+  bonus_bytes_earned: number;
+  bonus_bytes_per_referral: number;
+  bonus_bytes_max: number;
 }
 
 export interface ReferralHistoryItem {
@@ -982,6 +999,8 @@ export interface ReferralHistoryItem {
   referrer_credit_cents: number;
   created_at: string;
   completed_at: string | null;
+  bonus_bytes: number;
+  activated_at: string | null;
 }
 
 export interface ReferralHistoryResponse {
@@ -996,10 +1015,26 @@ export interface MyReferralStatus {
   discount_issued_at: string | null;
   discount_redeemed_at: string | null;
   discount_expires_at: string | null;
+  can_claim: boolean;
+  claim_window_ends_at: string | null;
+  bonus_bytes: number;
 }
 
 export async function get_my_referral_status() {
-  return api_client.get<MyReferralStatus>("/payments/v1/referrals/me");
+  const response = await api_client.get<MyReferralStatus>(
+    "/payments/v1/referrals/me",
+  );
+
+  if (!response.data) return response;
+
+  return {
+    ...response,
+    data: {
+      ...response.data,
+      can_claim: response.data.can_claim === true,
+      bonus_bytes: bonus_bytes_per_referral(response.data.bonus_bytes),
+    },
+  };
 }
 
 export interface MyAffiliateStatus {
@@ -1044,7 +1079,23 @@ export async function list_my_affiliate_payout_requests() {
 }
 
 export async function get_referral_info() {
-  return api_client.get<ReferralInfo>("/payments/v1/referrals");
+  const response = await api_client.get<ReferralInfo>("/payments/v1/referrals");
+
+  if (!response.data) return response;
+
+  return {
+    ...response,
+    data: {
+      ...response.data,
+      total_referrals: referral_count(response.data.total_referrals),
+      activated_referrals: referral_count(response.data.activated_referrals),
+      bonus_bytes_earned: referral_bytes(response.data.bonus_bytes_earned),
+      bonus_bytes_per_referral: bonus_bytes_per_referral(
+        response.data.bonus_bytes_per_referral,
+      ),
+      bonus_bytes_max: bonus_bytes_max(response.data.bonus_bytes_max),
+    },
+  };
 }
 
 export function build_referral_invite_url(referral_code: string): string {
@@ -1057,7 +1108,37 @@ export function build_referral_invite_url(referral_code: string): string {
 }
 
 export async function get_referral_history() {
-  return api_client.get<ReferralHistoryResponse>(
+  const response = await api_client.get<ReferralHistoryResponse>(
     "/payments/v1/referrals/history",
   );
+
+  if (!response.data) return response;
+
+  return {
+    ...response,
+    data: {
+      ...response.data,
+      referrals: (response.data.referrals ?? []).map((item) => ({
+        ...item,
+        bonus_bytes: referral_bytes(item.bonus_bytes),
+      })),
+    },
+  };
+}
+
+export interface ClaimReferralResponse {
+  accepted: boolean;
+  referrer_display_name: string | null;
+  bonus_bytes_per_referral: number;
+}
+
+export async function claim_referral_code(code: string) {
+  return api_client.post<ClaimReferralResponse>(
+    "/payments/v1/referrals/claim",
+    { code },
+  );
+}
+
+export async function record_referral_share() {
+  return api_client.post<void>("/payments/v1/referrals/share", {});
 }

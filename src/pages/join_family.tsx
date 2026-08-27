@@ -206,9 +206,7 @@ export default function JoinFamilyPage() {
           )}
           <Link
             className={`aster_btn aster_btn_lg w-full text-center block ${
-              preview_unreachable
-                ? "aster_btn_secondary"
-                : "aster_btn_primary"
+              preview_unreachable ? "aster_btn_secondary" : "aster_btn_primary"
             }`}
             to="/sign-in"
           >
@@ -224,7 +222,7 @@ export default function JoinFamilyPage() {
       <div className="max-w-sm w-full space-y-6">
         <div className="text-center space-y-3 flex flex-col items-center">
           <Logo />
-          <UserGroupIcon className="w-12 h-12 text-accent-blue" />
+          <UserGroupIcon className="w-12 h-12 text-brand" />
           <div>
             <h1 className="text-2xl font-bold text-txt-primary">
               {t("settings.family_join_title")}
@@ -320,13 +318,7 @@ export default function JoinFamilyPage() {
             disabled={joining}
             onClick={handle_join}
           >
-            {joining ? (
-              <>
-                {t("settings.family_join_joining")} <Spinner size="sm" />
-              </>
-            ) : (
-              t("settings.family_join_accept")
-            )}
+            {joining ? <Spinner size="sm" /> : t("settings.family_join_accept")}
           </button>
         ) : (
           <div className="space-y-3">
@@ -340,9 +332,7 @@ export default function JoinFamilyPage() {
             )}
             <Link
               className={`aster_btn aster_btn_lg w-full text-center block ${
-                is_authenticated
-                  ? "aster_btn_primary"
-                  : "aster_btn_secondary"
+                is_authenticated ? "aster_btn_primary" : "aster_btn_secondary"
               }`}
               to={`/sign-in?next=${encodeURIComponent(`/join/family?token=${token}`)}`}
             >

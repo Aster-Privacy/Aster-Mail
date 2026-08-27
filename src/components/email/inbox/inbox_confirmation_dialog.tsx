@@ -167,11 +167,12 @@ export function EmptyTrashModal({
             <Button
               className="max-sm:flex-1"
               disabled={is_emptying}
+              is_loading={is_emptying}
               size="xl"
               variant="destructive"
               onClick={on_confirm}
             >
-              {is_emptying ? t("common.deleting") : t("mail.delete_all")}
+              {t("mail.delete_all")}
             </Button>
           </AlertDialogAction>
         </AlertDialogFooter>

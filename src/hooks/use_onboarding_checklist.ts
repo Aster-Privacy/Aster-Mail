@@ -143,11 +143,18 @@ export function use_onboarding_checklist(): UseOnboardingChecklistReturn {
   }, [vault, load]);
 
   const dismiss = useCallback(async () => {
+    const was_dismissed = dismissed_ref.current;
+
     dismissed_ref.current = true;
     set_state((prev) =>
       prev ? { ...prev, dismissed_at: new Date().toISOString() } : prev,
     );
-    await dismiss_onboarding_checklist();
+
+    const ok = await dismiss_onboarding_checklist();
+
+    if (ok || cancelled_ref.current) return;
+    dismissed_ref.current = was_dismissed;
+    set_state((prev) => (prev ? { ...prev, dismissed_at: null } : prev));
   }, []);
 
   const refresh = useCallback(async () => {

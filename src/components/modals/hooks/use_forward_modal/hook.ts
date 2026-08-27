@@ -667,11 +667,7 @@ export function use_forward_modal({
 
     if (preferences.auto_save_recent_recipients) {
       void auto_save_recipients_to_contacts(
-        [
-          ...send_recipients.to,
-          ...send_recipients.cc,
-          ...send_recipients.bcc,
-        ],
+        [...send_recipients.to, ...send_recipients.cc, ...send_recipients.bcc],
         { own_addresses: user?.email ? [user.email] : [] },
       );
     }

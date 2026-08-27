@@ -19,7 +19,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { ApiResponse } from "@/services/api/client";
-import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import type { HardwareKeysListResponse } from "@/services/api/webauthn";
 
 import { useState } from "react";
@@ -34,12 +33,14 @@ import {
 import { TotpDisableModal } from "./totp_disable_modal";
 import { RegenerateBackupCodesModal } from "./regenerate_backup_codes_modal";
 
+import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { use_settings_panel_data } from "@/components/settings/hooks/use_settings_prefetch";
 import { InfoPopover } from "@/components/ui/info_popover";
 import { KeyRotationModal } from "@/components/modals/key_rotation_modal";
 import { DeleteAccountModal } from "@/components/modals/delete_account_modal";
 import { ConnectionSection } from "@/components/settings/connection_section";
 import { PasskeySection } from "@/components/settings/security/passkey_section";
+import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import {
   LoginAlertsSessionsGroup,
   ExternalLinkWarningsGroup,
@@ -126,6 +127,9 @@ export function SecuritySection({
     use_preferences();
   const [show_delete_modal, set_show_delete_modal] = useState(false);
   const [show_regenerate_modal, set_show_regenerate_modal] = useState(false);
+  const [pending_disable, set_pending_disable] = useState<
+    "forward_secrecy" | "login_alerts" | null
+  >(null);
   const [show_inline_totp_setup_local, set_show_inline_totp_setup_local] =
     useState(false);
   const show_inline_totp_setup =
@@ -142,6 +146,44 @@ export function SecuritySection({
   );
   const passkey_registered = (passkey_data?.data?.keys?.length ?? 0) > 0;
   const passkey_loaded = !passkey_is_loading;
+
+  const confirm_disable_copy = {
+    forward_secrecy: {
+      title: t("settings.forward_secrecy_disable_title"),
+      message: t("settings.forward_secrecy_disable_message"),
+    },
+    login_alerts: {
+      title: t("settings.login_alerts_disable_title"),
+      message: t("settings.login_alerts_disable_message"),
+    },
+  };
+
+  const handle_confirmed_disable = () => {
+    const target = pending_disable;
+
+    set_pending_disable(null);
+    if (target === "forward_secrecy")
+      void security.handle_forward_secrecy_toggle();
+    if (target === "login_alerts") void security.handle_login_alerts_toggle();
+  };
+
+  const on_forward_secrecy_toggle = () => {
+    if (preferences.forward_secrecy_enabled) {
+      set_pending_disable("forward_secrecy");
+
+      return;
+    }
+    void security.handle_forward_secrecy_toggle();
+  };
+
+  const on_login_alerts_toggle = () => {
+    if (security.login_alerts_enabled) {
+      set_pending_disable("login_alerts");
+
+      return;
+    }
+    void security.handle_login_alerts_toggle();
+  };
 
   const on_two_factor_toggle = () => {
     if (!security.totp_status) {
@@ -253,11 +295,11 @@ export function SecuritySection({
         login_alerts_enabled={security.login_alerts_enabled}
         login_alerts_failed={security.login_alerts_failed}
         login_alerts_loaded={security.login_alerts_loaded}
-        on_reload_login_alerts={() => void security.fetch_login_alerts_status()}
         login_events={security.login_events}
         login_events_failed={security.login_events_failed}
         login_events_loading={security.login_events_loading}
-        on_login_alerts_toggle={security.handle_login_alerts_toggle}
+        on_login_alerts_toggle={on_login_alerts_toggle}
+        on_reload_login_alerts={() => void security.fetch_login_alerts_status()}
         on_reload_login_events={security.fetch_login_events}
         on_timeout_change={security.handle_timeout_change}
         on_timeout_toggle={security.handle_timeout_toggle}
@@ -286,7 +328,7 @@ export function SecuritySection({
         key_fingerprint={security.key_fingerprint}
         key_history_limit={security.preferences.key_history_limit}
         key_rotation_hours={security.preferences.key_rotation_hours}
-        on_forward_secrecy_toggle={security.handle_forward_secrecy_toggle}
+        on_forward_secrecy_toggle={on_forward_secrecy_toggle}
         on_key_history_change={(limit) =>
           security.update_preference("key_history_limit", limit, true)
         }
@@ -657,6 +699,21 @@ export function SecuritySection({
           set_show_delete_modal(false);
           on_account_deleted?.();
         }}
+      />
+
+      <ConfirmationModal
+        cancel_text={t("common.cancel")}
+        confirm_text={t("settings.turn_off_action")}
+        is_open={pending_disable !== null}
+        message={
+          pending_disable ? confirm_disable_copy[pending_disable].message : ""
+        }
+        on_cancel={() => set_pending_disable(null)}
+        on_confirm={handle_confirmed_disable}
+        title={
+          pending_disable ? confirm_disable_copy[pending_disable].title : ""
+        }
+        variant="danger"
       />
     </div>
   );

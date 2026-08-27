@@ -462,7 +462,11 @@ export function RecipientField({
               resolved_statuses.set(email, found);
               resolved_ref.current.add(email);
               in_flight_ref.current.delete(email);
-            } else if (!result.data || result.data.length === 0) {
+            } else if (
+              !result.data ||
+              result.data.length === 0 ||
+              result.error
+            ) {
               in_flight_ref.current.delete(email);
               const count = (retry_count_ref.current.get(email) || 0) + 1;
 
@@ -754,7 +758,7 @@ export function RecipientField({
               title={t("common.carbon_copy")}
               onClick={on_show_cc}
             >
-              Cc
+              {t("mail.cc")}
             </button>
           )}
           {!show_bcc && (
@@ -763,7 +767,7 @@ export function RecipientField({
               title={t("common.blind_carbon_copy")}
               onClick={on_show_bcc}
             >
-              Bcc
+              {t("mail.bcc")}
             </button>
           )}
         </div>

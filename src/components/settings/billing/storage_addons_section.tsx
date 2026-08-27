@@ -30,6 +30,7 @@ import {
   ADDON_BADGES,
   convert_cents,
 } from "@/components/settings/billing/billing_constants";
+import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
 
@@ -176,16 +177,19 @@ export function StorageAddonsSection({
 
       <Button
         className="w-full mt-3"
-        disabled={!selected_storage || is_action_loading}
+        disabled={is_action_loading}
         size="xl"
         variant="depth"
         onClick={() => {
-          if (!selected_storage) return;
           const addon = available_addons.find((a) => a.id === selected_storage);
 
-          if (addon) {
-            on_purchase_addon(addon);
+          if (!addon) {
+            show_toast(t("settings.storage_select_option_first"), "info");
+
+            return;
           }
+
+          on_purchase_addon(addon);
         }}
       >
         {t("common.buy_more_storage")}

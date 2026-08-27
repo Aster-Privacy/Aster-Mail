@@ -124,7 +124,7 @@ export function InsertTools({ compose }: { compose: ComposeToolbarState }) {
         <AttachmentIcon className="w-4 h-4" />
       </ToolbarButton>
 
-      {editor && (
+      {editor && !compose.is_plain_text_mode && (
         <div>
           <button
             ref={link_btn_ref}

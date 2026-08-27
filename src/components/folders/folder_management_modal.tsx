@@ -118,7 +118,7 @@ export function FolderManagementModal({
 
   const can_rename = trimmed_name && !rename_validation_error;
 
-  const movable_folders = useMemo(() => {
+  const move_targets = useMemo(() => {
     const descendants = new Set<string>();
     const collect = (token: string) => {
       descendants.add(token);
@@ -148,7 +148,11 @@ export function FolderManagementModal({
       return depth - 1;
     };
 
-    const height_of = (token: string): number => {
+    const height_of = (token: string, seen: Set<string>): number => {
+      if (seen.has(token)) return 0;
+
+      seen.add(token);
+
       const children = folders_state.folders.filter(
         (f) => f.parent_token === token,
       );
@@ -156,26 +160,32 @@ export function FolderManagementModal({
       if (children.length === 0) return 0;
 
       return (
-        1 + Math.max(...children.map((c) => height_of(c.folder_token)))
+        1 + Math.max(...children.map((c) => height_of(c.folder_token, seen)))
       );
     };
 
-    const moved_height = self ? height_of(self.folder_token) : 0;
+    const moved_height = self ? height_of(self.folder_token, new Set()) : 0;
 
-    return folders_state.folders.filter(
-      (f) =>
-        !f.is_system &&
-        !descendants.has(f.folder_token) &&
-        depth_of(f.folder_token) + 1 + moved_height <= MAX_FOLDER_DEPTH,
-    );
+    const inbox = folders_state.folders.find((f) => f.folder_type === "inbox");
+
+    return {
+      folders: folders_state.folders.filter(
+        (f) =>
+          !f.is_system &&
+          !descendants.has(f.folder_token) &&
+          depth_of(f.folder_token) + 1 + moved_height <= MAX_FOLDER_DEPTH,
+      ),
+      inbox_token:
+        inbox &&
+        !descendants.has(inbox.folder_token) &&
+        depth_of(inbox.folder_token) + 1 + moved_height <= MAX_FOLDER_DEPTH
+          ? inbox.folder_token
+          : undefined,
+    };
   }, [folder_id, folders_state.folders]);
 
-  const inbox_token = useMemo(
-    () =>
-      folders_state.folders.find((f) => f.folder_type === "inbox")
-        ?.folder_token,
-    [folders_state.folders],
-  );
+  const movable_folders = move_targets.folders;
+  const inbox_token = move_targets.inbox_token;
 
   useEffect(() => {
     set_new_name(folder_name);
@@ -185,6 +195,8 @@ export function FolderManagementModal({
   }, [folder_name, folder_color, is_open]);
 
   const handle_rename = async () => {
+    if (is_loading) return;
+
     if (!trimmed_name) {
       set_error(t("common.folder_name_cannot_be_empty"));
 
@@ -212,6 +224,8 @@ export function FolderManagementModal({
   };
 
   const handle_recolor = async () => {
+    if (is_loading) return;
+
     set_is_loading(true);
     set_error("");
 
@@ -231,6 +245,8 @@ export function FolderManagementModal({
   };
 
   const handle_encrypt = async () => {
+    if (is_loading) return;
+
     set_is_loading(true);
     set_error("");
 
@@ -246,6 +262,8 @@ export function FolderManagementModal({
   };
 
   const handle_move = useCallback(async () => {
+    if (is_loading) return;
+
     set_is_loading(true);
     set_error("");
 
@@ -264,7 +282,20 @@ export function FolderManagementModal({
     } else {
       set_error(t("common.failed_to_move_folder"));
     }
-  }, [folder_id, selected_parent_token, update_existing_folder, on_close, t]);
+  }, [
+    is_loading,
+    folder_id,
+    selected_parent_token,
+    update_existing_folder,
+    on_close,
+    t,
+  ]);
+
+  const handle_dismiss = useCallback(() => {
+    if (is_loading) return;
+
+    on_close();
+  }, [is_loading, on_close]);
 
   const render_content = () => {
     switch (action) {
@@ -338,15 +369,14 @@ export function FolderManagementModal({
               <Button
                 className="flex-1"
                 disabled={is_loading}
+                is_loading={is_loading}
                 size="xl"
                 variant={is_locked ? "destructive" : "primary"}
                 onClick={handle_encrypt}
               >
-                {is_loading
-                  ? t("common.processing")
-                  : is_locked
-                    ? t("common.unlock_folder")
-                    : t("common.lock_folder")}
+                {is_locked
+                  ? t("common.unlock_folder")
+                  : t("common.lock_folder")}
               </Button>
             </ModalFooter>
           </>
@@ -489,10 +519,7 @@ export function FolderManagementModal({
                 onClick={handle_recolor}
               >
                 {is_loading ? (
-                  <>
-                    {t("common.saving")}
-                    <Spinner className="ms-2" size="md" />
-                  </>
+                  <Spinner className="ms-2" size="md" />
                 ) : (
                   `${t("common.save")} ${t("common.color")}`
                 )}
@@ -574,14 +601,7 @@ export function FolderManagementModal({
                 variant="depth"
                 onClick={handle_move}
               >
-                {is_loading ? (
-                  <>
-                    {t("common.saving")}
-                    <Spinner className="ms-2" size="md" />
-                  </>
-                ) : (
-                  t("common.move_folder")
-                )}
+                {is_loading ? <Spinner size="md" /> : t("common.move_folder")}
               </Button>
             </ModalFooter>
           </>
@@ -606,7 +626,7 @@ export function FolderManagementModal({
   }
 
   return (
-    <Modal is_open={is_open} on_close={on_close} size="md">
+    <Modal is_open={is_open} on_close={handle_dismiss} size="md">
       {render_content()}
     </Modal>
   );

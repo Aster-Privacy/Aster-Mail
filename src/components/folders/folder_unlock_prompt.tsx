@@ -55,6 +55,7 @@ export function FolderUnlockPrompt() {
 
   return (
     <FolderPasswordModal
+      key={target.folder_id}
       folder_id={target.folder_id}
       folder_name={target.folder_name}
       is_open={true}

@@ -44,6 +44,7 @@ import { clear_search_index } from "@/hooks/use_search";
 import { clear_never_correct_terms } from "@/services/search/spelling";
 import { lock_all_folders } from "@/hooks/use_protected_folder";
 import { clear_attachment_preview_cache } from "@/hooks/use_attachment_previews";
+import { clear_attachment_preview_cache as revoke_attachment_preview_blobs } from "@/services/attachment_preview_cache";
 import { clear_all_app_lock_data } from "@/services/app_lock_store";
 import { clear_category_index } from "@/services/category_index";
 import { clear_vault_from_memory } from "@/services/crypto/memory_key_store";
@@ -57,7 +58,7 @@ import { clear_detection_cache } from "@/services/translation/language_detect";
 import { release_engines } from "@/services/translation/engine_registry";
 import { ignore_error } from "@/lib/ignore_error";
 
-export async function purge_all_local_data(): Promise<void> {
+export async function purge_all_local_data(): Promise<boolean> {
   const errors: Error[] = [];
 
   stop_session_timeout();
@@ -110,6 +111,7 @@ export async function purge_all_local_data(): Promise<void> {
   clear_attachment_keys();
   clear_unreadable_attachment_rows();
   clear_attachment_preview_cache();
+  revoke_attachment_preview_blobs();
   clear_translation_cache();
   clear_detection_cache();
   release_engines();
@@ -160,4 +162,6 @@ export async function purge_all_local_data(): Promise<void> {
   if (errors.length > 0 && import.meta.env.DEV) {
     errors.forEach((err) => console.error("purge_all_local_data:", err));
   }
+
+  return errors.length === 0;
 }

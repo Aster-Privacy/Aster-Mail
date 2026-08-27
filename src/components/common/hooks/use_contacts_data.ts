@@ -581,6 +581,13 @@ export function use_contacts_data() {
 
       if (imported_contacts.length === 0 && contacts_to_import.length > 0) {
         set_error(t("common.failed_to_import_contacts"));
+      } else if (imported_contacts.length < contacts_to_import.length) {
+        set_error(
+          t("common.contacts_import_partial", {
+            imported: imported_contacts.length,
+            total: contacts_to_import.length,
+          }),
+        );
       }
     } catch (err) {
       set_error(

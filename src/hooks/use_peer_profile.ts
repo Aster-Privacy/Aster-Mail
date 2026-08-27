@@ -35,17 +35,17 @@ export function use_peer_profile(
   const { preferences } = use_preferences();
   const low_network = preferences.low_network_mode;
   const normalized = email ? email.trim().toLowerCase() : "";
-  const initial =
-    !low_network && normalized && is_aster_email(normalized)
-      ? get_cached_peer_profile(normalized)
-      : null;
-  const [profile, set_profile] = useState<PublicProfile | null | undefined>(
-    initial,
-  );
+  const enabled = !low_network && !!normalized && is_aster_email(normalized);
+  const read_cache = () =>
+    enabled ? get_cached_peer_profile(normalized) : null;
+  const [entry, set_entry] = useState<{
+    email: string;
+    profile: PublicProfile | null | undefined;
+  }>(() => ({ email: normalized, profile: read_cache() }));
 
   useEffect(() => {
-    if (low_network || !normalized || !is_aster_email(normalized)) {
-      set_profile(null);
+    if (!enabled) {
+      set_entry({ email: normalized, profile: null });
 
       return;
     }
@@ -54,10 +54,10 @@ export function use_peer_profile(
     const cached = get_cached_peer_profile(normalized);
 
     if (cached !== undefined) {
-      set_profile(cached);
+      set_entry({ email: normalized, profile: cached });
     } else {
       fetch_peer_profile(normalized).then((result) => {
-        if (!cancelled) set_profile(result);
+        if (!cancelled) set_entry({ email: normalized, profile: result });
       });
     }
 
@@ -65,14 +65,14 @@ export function use_peer_profile(
       if (cancelled) return;
       const next = get_cached_peer_profile(normalized);
 
-      if (next !== undefined) set_profile(next);
+      if (next !== undefined) set_entry({ email: normalized, profile: next });
     });
 
     return () => {
       cancelled = true;
       unsubscribe();
     };
-  }, [normalized, low_network]);
+  }, [normalized, enabled]);
 
-  return profile;
+  return entry.email === normalized ? entry.profile : read_cache();
 }

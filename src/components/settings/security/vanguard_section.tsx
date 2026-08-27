@@ -83,6 +83,7 @@ function LockdownSection({ account_id }: { account_id: string }) {
   const [totp_loading, set_totp_loading] = useState(false);
   const [creds_error, set_creds_error] = useState<string | null>(null);
   const [disabling, set_disabling] = useState(false);
+  const [enabling, set_enabling] = useState(false);
 
   useEffect(() => {
     if (!account_id) return;
@@ -103,15 +104,20 @@ function LockdownSection({ account_id }: { account_id: string }) {
 
   const handle_toggle = (checked: boolean) => {
     if (checked) {
-      enable_lockdown().then((res) => {
-        if (res.error) {
-          show_toast(res.error, "error");
-        } else {
-          set_lockdown_enabled(account_id, true);
-          set_enabled(true);
-          show_toast(t("settings.lockdown_enabled_toast"), "success");
-        }
-      });
+      if (enabling) return;
+
+      set_enabling(true);
+      enable_lockdown()
+        .then((res) => {
+          if (res.error) {
+            show_toast(res.error, "error");
+          } else {
+            set_lockdown_enabled(account_id, true);
+            set_enabled(true);
+            show_toast(t("settings.lockdown_enabled_toast"), "success");
+          }
+        })
+        .finally(() => set_enabling(false));
     } else {
       set_totp_loading(true);
       fetch_step_up_requirements()
@@ -207,6 +213,7 @@ function LockdownSection({ account_id }: { account_id: string }) {
           <Switch
             aria-label={t("settings.lockdown_enable")}
             checked={enabled}
+            disabled={enabling}
             size="lg"
             onCheckedChange={handle_toggle}
           />
@@ -259,11 +266,6 @@ function LockdownSection({ account_id }: { account_id: string }) {
             {creds_error && (
               <p className="text-xs text-red-500">{creds_error}</p>
             )}
-            {disabling && (
-              <p className="text-xs text-txt-muted">
-                {t("settings.verifying_credentials")}
-              </p>
-            )}
           </div>
         </ModalBody>
         <ModalFooter>
@@ -286,12 +288,11 @@ function LockdownSection({ account_id }: { account_id: string }) {
               !password ||
               (totp_required && totp_code.length !== 6)
             }
+            is_loading={disabling}
             variant="destructive"
             onClick={confirm_disable}
           >
-            {disabling
-              ? t("settings.verifying_credentials")
-              : t("settings.lockdown_disable")}
+            {t("settings.lockdown_disable")}
           </Button>
         </ModalFooter>
       </Modal>

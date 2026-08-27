@@ -107,7 +107,19 @@ export function same_preview_entry(
   if (previous.attachments.length !== attachments.length) return false;
 
   for (let i = 0; i < attachments.length; i++) {
-    if (previous.attachments[i].id !== attachments[i].id) return false;
+    const before = previous.attachments[i];
+    const next = attachments[i];
+
+    if (
+      before.id !== next.id ||
+      before.filename !== next.filename ||
+      before.content_type !== next.content_type ||
+      before.size_bytes !== next.size_bytes ||
+      before.type_label !== next.type_label ||
+      before.type_color !== next.type_color
+    ) {
+      return false;
+    }
   }
 
   return true;

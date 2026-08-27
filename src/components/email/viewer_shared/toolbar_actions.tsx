@@ -196,6 +196,19 @@ export function ViewerToolbarActions({
         })
       : t("mail.move_to_trash");
 
+  const assigned_folder_tokens = (mail_item?.folders ?? []).map((f) => f.token);
+  const can_move_to_inbox =
+    assigned_folder_tokens.length > 0 &&
+    !is_trashed_item &&
+    !is_spam &&
+    !is_archived &&
+    !!on_folder_toggle;
+
+  const move_to_inbox = () => {
+    if (!on_folder_toggle) return;
+    assigned_folder_tokens.forEach((token) => on_folder_toggle(token));
+  };
+
   const collapse_expand_button =
     thread_messages.length > 1 ? (
       <Tooltip
@@ -451,6 +464,22 @@ export function ViewerToolbarActions({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="w-48">
+                {can_move_to_inbox && (
+                  <>
+                    <DropdownMenuItem
+                      onSelect={(e) => {
+                        e.preventDefault();
+                        move_to_inbox();
+                      }}
+                    >
+                      <InboxIcon className="me-2 h-4 w-4 flex-shrink-0" />
+                      <span className="truncate">
+                        {t("mail.move_to_inbox")}
+                      </span>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                  </>
+                )}
                 {folders.map((folder) => {
                   const current_folders = mail_item?.folders || [];
                   const is_current = current_folders.some(
@@ -558,6 +587,22 @@ export function ViewerToolbarActions({
                 {t("mail.move_to_folder")}
               </DropdownMenuSubTrigger>
               <DropdownMenuSubContent className="w-48">
+                {can_move_to_inbox && (
+                  <>
+                    <DropdownMenuItem
+                      onSelect={(e) => {
+                        e.preventDefault();
+                        move_to_inbox();
+                      }}
+                    >
+                      <InboxIcon className="me-2 h-4 w-4 flex-shrink-0" />
+                      <span className="truncate">
+                        {t("mail.move_to_inbox")}
+                      </span>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                  </>
+                )}
                 {folders.map((folder) => {
                   const current_folders = mail_item?.folders || [];
                   const is_current = current_folders.some(

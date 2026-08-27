@@ -49,7 +49,11 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
     return <FullPageLoader />;
   }
 
-  if (!is_authenticated && !is_completing_registration) {
+  if (!is_authenticated) {
+    if (is_completing_registration) {
+      return <FullPageLoader />;
+    }
+
     const search = location.search || window.location.search;
 
     return (

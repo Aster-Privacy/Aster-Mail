@@ -18,13 +18,13 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { copy_text_or_throw } from "@/utils/copy_text";
 import type { DecryptedContact, ContactFormData } from "@/types/contacts";
 import type { CreateTab } from "./mobile_contact_form_view";
 
 import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { Capacitor } from "@capacitor/core";
 
+import { copy_text_or_throw } from "@/utils/copy_text";
 import {
   list_contacts,
   decrypt_contacts,
@@ -159,21 +159,25 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
     set_load_tick((value) => value + 1);
   }, []);
 
-  const reload_contacts = useCallback(async () => {
+  const reload_contacts = useCallback(async (): Promise<boolean> => {
     try {
       request_cache.invalidate("contacts");
       const response = await list_contacts({ limit: 500 });
 
-      if (response.data?.items) {
-        const decrypted = await decrypt_contacts(response.data.items);
+      if (!response.data?.items) return false;
 
-        set_contacts(decrypted);
-      }
+      const decrypted = await decrypt_contacts(response.data.items);
+
+      set_contacts(decrypted);
+
+      return true;
     } catch (caught) {
       ignore_error(
         "pages/mobile/use_mobile_contacts_state:use_mobile_contacts_state",
         caught,
       );
+
+      return false;
     }
   }, []);
 
@@ -288,7 +292,8 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
           continue;
         }
       }
-      await reload_contacts();
+      const reloaded = await reload_contacts();
+
       if (imported === 0) {
         show_toast(t("common.no_new_contacts_imported"), "info");
       } else {
@@ -296,6 +301,10 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
           t("common.n_contacts_imported", { count: imported }),
           "success",
         );
+      }
+
+      if (!reloaded) {
+        show_toast(t("errors.connection_failed"), "warning");
       }
     } catch (err) {
       if (import.meta.env.DEV) console.error("Contact sync failed:", err);
@@ -540,7 +549,13 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
     await handle_mass_delete();
   }, [pending_delete_contact, handle_delete_contact, handle_mass_delete]);
 
+  const mass_favorite_ref = useRef(false);
+
   const handle_mass_favorite = useCallback(async () => {
+    if (mass_favorite_ref.current) return;
+
+    mass_favorite_ref.current = true;
+
     const selected = contacts.filter((c) => selected_ids.has(c.id));
     const all_favorited = selected.every((c) => c.is_favorite);
 
@@ -572,6 +587,7 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
     if (updated_ids.size < selected.length) {
       show_toast(t("common.failed_to_update_favorites"), "error");
     }
+    mass_favorite_ref.current = false;
   }, [contacts, selected_ids, exit_select_mode, t]);
 
   const handle_mass_copy_emails = useCallback(() => {

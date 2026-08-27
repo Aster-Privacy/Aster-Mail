@@ -32,3 +32,8 @@ export const FamilySection = lazy_with_retry(() =>
     default: m.FamilySection,
   })),
 );
+export const StorageSection = lazy_with_retry(() =>
+  import("@/components/settings/storage_section").then((m) => ({
+    default: m.StorageSection,
+  })),
+);

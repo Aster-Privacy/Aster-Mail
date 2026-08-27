@@ -160,7 +160,9 @@ export function AutoForwardSection() {
   const existing_ids_key = rules.map((r) => r.id).join(",");
 
   useEffect(() => {
-    const visible = new Set(existing_ids_key ? existing_ids_key.split(",") : []);
+    const visible = new Set(
+      existing_ids_key ? existing_ids_key.split(",") : [],
+    );
 
     set_selected_ids((prev) => {
       if (prev.size === 0) return prev;
@@ -215,11 +217,14 @@ export function AutoForwardSection() {
       if (result.data?.success) {
         const deleted_count = result.data.deleted_count;
 
-        if (deleted_count === ids.length) {
-          set_rules((prev) => prev.filter((r) => !selected_ids.has(r.id)));
-        } else {
+        if (deleted_count < ids.length) {
+          set_selected_ids(new Set());
           await fetch_rules();
+          show_toast(t("common.something_went_wrong_try_again"), "error");
+
+          return;
         }
+        set_rules((prev) => prev.filter((r) => !selected_ids.has(r.id)));
         show_toast(
           t("settings.removed_forwarding_rules_count", {
             count: deleted_count,
@@ -696,6 +701,7 @@ export function AutoForwardSection() {
                     {format_date(rule.created_at)}
                   </span>
                   <Button
+                    aria-label={t("common.edit")}
                     size="md"
                     variant="secondary"
                     onClick={() => open_builder(rule)}
@@ -707,9 +713,7 @@ export function AutoForwardSection() {
                     variant="secondary"
                     onClick={() => handle_toggle(rule)}
                   >
-                    {rule.is_enabled
-                      ? t("common.disable")
-                      : t("common.enable")}
+                    {rule.is_enabled ? t("common.disable") : t("common.enable")}
                   </Button>
                   <Button
                     disabled={is_deleting}
@@ -730,8 +734,6 @@ export function AutoForwardSection() {
         confirm_text={t("common.remove")}
         is_open={confirm_delete_rule !== null}
         message={t("settings.delete_forwarding_rule_message")}
-        title={t("settings.delete_forwarding_rule_title")}
-        variant="danger"
         on_cancel={() => set_confirm_delete_rule(null)}
         on_confirm={() => {
           const target = confirm_delete_rule;
@@ -740,19 +742,21 @@ export function AutoForwardSection() {
 
           if (target) void handle_delete(target);
         }}
+        title={t("settings.delete_forwarding_rule_title")}
+        variant="danger"
       />
 
       <ConfirmationModal
         confirm_text={t("common.remove")}
         is_open={confirm_bulk_delete}
         message={t("settings.delete_forwarding_rule_message")}
-        title={t("settings.delete_forwarding_rule_title")}
-        variant="danger"
         on_cancel={() => set_confirm_bulk_delete(false)}
         on_confirm={() => {
           set_confirm_bulk_delete(false);
           void handle_bulk_delete();
         }}
+        title={t("settings.delete_forwarding_rule_title")}
+        variant="danger"
       />
     </UpgradeGate>
   );

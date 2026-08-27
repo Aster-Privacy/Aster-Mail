@@ -133,6 +133,18 @@ export function use_subscriptions() {
     };
   }, [subscriptions, vault]);
 
+  const persist_cache = useCallback(async (): Promise<boolean> => {
+    if (!cache_ref.current) return false;
+
+    const saved = await save_subscription_cache(cache_ref.current, vault!);
+
+    if (!saved) {
+      show_toast(t("common.save_failed"), "error");
+    }
+
+    return saved;
+  }, [vault, t]);
+
   const unsubscribe_sender = useCallback(
     async (
       sender_email: string,
@@ -205,7 +217,7 @@ export function use_subscriptions() {
           show_toast(t("mail.unsubscribe_manual_required"), "info");
         }
 
-        await save_subscription_cache(cache_ref.current, vault!);
+        await persist_cache();
         mutating_ref.current--;
         window.dispatchEvent(
           new CustomEvent(UNSUBSCRIBE_EVENT, { detail: { sender_email } }),
@@ -239,7 +251,7 @@ export function use_subscriptions() {
           : "failed";
       }
     },
-    [subscriptions, vault, t],
+    [subscriptions, vault, t, persist_cache],
   );
 
   const bulk_unsubscribe = useCallback(
@@ -275,7 +287,7 @@ export function use_subscriptions() {
         };
         set_subscriptions(optimistic);
 
-        await save_subscription_cache(cache_ref.current, vault!);
+        await persist_cache();
 
         const failed: string[] = [];
 
@@ -341,6 +353,7 @@ export function use_subscriptions() {
 
       try {
         const current_subs = cache_ref.current?.subscriptions || subscriptions;
+        const previous_cache = cache_ref.current;
         const updated = current_subs.map((s) =>
           s.sender_email === sender_email
             ? { ...s, status: "active" as const, unsubscribed_at: undefined }
@@ -354,12 +367,18 @@ export function use_subscriptions() {
           version: SUBSCRIPTION_CACHE_VERSION,
         };
         set_subscriptions(updated);
-        await save_subscription_cache(cache_ref.current, vault!);
+
+        const saved = await persist_cache();
+
+        if (!saved) {
+          cache_ref.current = previous_cache;
+          set_subscriptions(current_subs);
+        }
       } finally {
         mutating_ref.current--;
       }
     },
-    [subscriptions, vault],
+    [subscriptions, persist_cache],
   );
 
   return {

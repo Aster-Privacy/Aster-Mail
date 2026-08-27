@@ -45,11 +45,22 @@ import { UpgradeGate } from "@/components/common/upgrade_gate";
 import { use_i18n } from "@/lib/i18n/context";
 import { FullPageLoader } from "@/components/common/full_page_loader";
 import { QuickSettingsPanel } from "@/components/settings/quick_settings_panel";
+import { Spinner } from "@/components/ui/spinner";
+const load_settings_content = () =>
+  import("@/components/settings/settings_content");
 const SettingsContent = lazy(() =>
-  import("@/components/settings/settings_content").then((m) => ({
+  load_settings_content().then((m) => ({
     default: m.SettingsContent,
   })),
 );
+
+function SettingsFallback() {
+  return (
+    <div className="flex-1 flex items-center justify-center">
+      <Spinner className="h-6 w-6 text-txt-tertiary" size="lg" />
+    </div>
+  );
+}
 const ContactsContent = lazy(() =>
   import("@/components/common/contacts_content").then((m) => ({
     default: m.ContactsContent,
@@ -91,9 +102,21 @@ import { ForwardModal } from "@/components/modals/forward_modal";
 import { EmailPopupViewer } from "@/components/email/email_popup_viewer";
 import { ScheduledPopupViewer } from "@/components/scheduled/scheduled_popup_viewer";
 import { NotificationBanner } from "@/components/common/notification_banner";
+import { PaymentPastDueBanner } from "@/components/common/payment_past_due_banner";
+import { use_payment_past_due } from "@/hooks/use_payment_past_due";
 import { SurveyBanner } from "@/components/survey/survey_banner";
 import { BillingAlertBanner } from "@/components/common/billing_alert_banner";
 import { OnboardingChecklist } from "@/components/onboarding/onboarding_checklist";
+import { FirstRunSetup } from "@/components/onboarding/first_run_setup";
+import { RecoveryReminder } from "@/components/onboarding/recovery_reminder";
+import { PlanPrompt } from "@/components/onboarding/plan_prompt";
+import { OnboardingTour } from "@/components/common/onboarding_tour";
+import {
+  clear_first_run_tour,
+  is_first_run_setup_pending,
+  is_first_run_tour_pending,
+} from "@/lib/first_run";
+import { use_is_mobile } from "@/hooks/use_platform";
 import { ignore_error } from "@/lib/ignore_error";
 
 function use_mount_latch(is_open: boolean): boolean {
@@ -109,9 +132,38 @@ function use_mount_latch(is_open: boolean): boolean {
 export default function IndexPage() {
   const state = use_index_page_state();
   const { t } = use_i18n();
+  const payment_past_due = use_payment_past_due();
   const navigate = useNavigate();
   const { section } = useParams<{ section?: string }>();
   const [is_quick_settings_open, set_is_quick_settings_open] = useState(false);
+  const [first_run_setup_done, set_first_run_setup_done] = useState(
+    () => !is_first_run_setup_pending(),
+  );
+  const [checklist_complete, set_checklist_complete] = useState(false);
+  const is_mobile = use_is_mobile();
+  const handle_checklist_complete = useCallback(() => {
+    set_checklist_complete(true);
+  }, []);
+
+  useEffect(() => {
+    if (!is_mobile || !first_run_setup_done) return;
+
+    if (is_first_run_tour_pending()) clear_first_run_tour();
+  }, [is_mobile, first_run_setup_done]);
+
+  useEffect(() => {
+    if (first_run_setup_done) return;
+
+    let cancelled = false;
+    const timer = window.setTimeout(() => {
+      if (!cancelled) void load_settings_content();
+    }, 400);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [first_run_setup_done]);
 
   const settings_section = resolve_settings_section(section);
   const settings_popup_mode =
@@ -296,7 +348,11 @@ export default function IndexPage() {
         className="h-screen w-full flex flex-col overflow-hidden"
         style={{ height: "100dvh", backgroundColor: "var(--bg-secondary)" }}
       >
-        <NotificationBanner />
+        {payment_past_due.is_past_due ? (
+          <PaymentPastDueBanner state={payment_past_due} />
+        ) : (
+          <NotificationBanner />
+        )}
         <SurveyBanner />
         <BillingAlertBanner />
         <TopBar
@@ -310,7 +366,7 @@ export default function IndexPage() {
         />
         <div className="flex-1 flex transition-colors duration-200 overflow-hidden">
           {state.is_settings_route && !settings_popup_mode ? (
-            <Suspense fallback={<FullPageLoader />}>
+            <Suspense fallback={<SettingsFallback />}>
               <SettingsContent
                 on_close={state.close_settings}
                 on_section_change={(next_section, replace) => {
@@ -658,13 +714,36 @@ export default function IndexPage() {
         on_draft_cleared={state.handle_draft_cleared}
         on_toggle_minimize={state.toggle_minimize}
       />
-      {!state.is_settings_route && (
-        <OnboardingChecklist
-          on_compose={state.open_compose}
-          on_open_settings={(section) => {
-            state.open_settings(section);
-          }}
-        />
+      <FirstRunSetup
+        on_done={() => set_first_run_setup_done(true)}
+        on_import={() => {
+          state.open_settings("import");
+        }}
+      />
+      {!state.is_settings_route && first_run_setup_done && !is_mobile && (
+        <OnboardingTour />
+      )}
+      {!state.is_settings_route && first_run_setup_done && (
+        <>
+          <OnboardingChecklist
+            on_all_tasks_done={handle_checklist_complete}
+            on_compose={state.open_compose}
+            on_open_settings={(section) => {
+              state.open_settings(section);
+            }}
+          />
+          <RecoveryReminder
+            on_open_recovery={() => {
+              state.open_settings("account");
+            }}
+          />
+          <PlanPrompt
+            checklist_complete={checklist_complete}
+            on_open_plans={() => {
+              state.open_settings("billing");
+            }}
+          />
+        </>
       )}
       {purchase_modal_mounted && (
         <Suspense fallback={null}>

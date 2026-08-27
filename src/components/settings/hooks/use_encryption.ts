@@ -18,7 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { copy_text_or_throw } from "@/utils/copy_text";
 import type { ApiResponse } from "@/services/api/client";
 import type {
   KeyserverPublicationState,
@@ -27,6 +26,7 @@ import type {
 
 import { useState, useEffect, useRef } from "react";
 
+import { copy_text_or_throw } from "@/utils/copy_text";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -38,6 +38,7 @@ import {
   base64_to_array,
 } from "@/services/crypto/key_manager";
 import { generate_recovery_pdf } from "@/services/crypto/recovery_pdf";
+import { DEFAULT_KEYSERVERS } from "@/components/settings/encryption/encryption_settings_form";
 import { trigger_download } from "@/utils/download_blob";
 import { use_preferences } from "@/contexts/preferences_context";
 import {
@@ -216,6 +217,8 @@ export function use_encryption() {
 
           if (refetched.data) set_pgp_key(refetched.data);
           else set_pgp_key_load_failed(true);
+        } else if (heal_result !== "no_local_key") {
+          set_pgp_key_load_failed(true);
         }
       } else {
         set_pgp_key_load_failed(true);
@@ -471,8 +474,21 @@ export function use_encryption() {
     if (!recovery_codes || recovery_codes.length === 0) return;
 
     try {
+      let address = user_email;
+
+      if (!address) {
+        const response = await get_user_info().catch(() => ({
+          data: null,
+        }));
+
+        if (response.data?.email) {
+          address = response.data.email;
+          set_user_email(response.data.email);
+        }
+      }
+
       await generate_recovery_pdf(
-        user_email || "your-account@astermail.org",
+        address || "your-account@astermail.org",
         recovery_codes,
         t,
       );
@@ -722,7 +738,7 @@ export function use_encryption() {
     if (new_value) {
       const result = await publish_key_to_wkd();
 
-      if (result.error) {
+      if (result.error || result.data?.success === false) {
         update_preference("publish_to_wkd", false, true);
         show_toast(t("settings.failed_publish_wkd"), "error");
       } else {
@@ -731,7 +747,7 @@ export function use_encryption() {
     } else {
       const result = await unpublish_key_from_wkd();
 
-      if (result.error) {
+      if (result.error || result.data?.success === false) {
         update_preference("publish_to_wkd", true, true);
         show_toast(t("settings.failed_remove_wkd"), "error");
       } else {
@@ -766,7 +782,7 @@ export function use_encryption() {
 
     const result = await publish_key_to_keyserver();
 
-    if (result.error) {
+    if (result.error || result.data?.success === false) {
       show_toast(t("settings.failed_publish_keyserver"), "error");
     } else {
       update_preference("publish_to_keyservers", true, true);
@@ -825,7 +841,10 @@ export function use_encryption() {
 
       return;
     }
-    if (keyserver_urls.includes(trimmed)) {
+    if (
+      keyserver_urls.includes(trimmed) ||
+      DEFAULT_KEYSERVERS.includes(trimmed)
+    ) {
       set_keyserver_input("");
 
       return;

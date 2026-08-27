@@ -18,7 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { copy_text_or_throw } from "@/utils/copy_text";
 import { useState } from "react";
 import {
   TrashIcon,
@@ -33,12 +32,14 @@ import {
 import { Button } from "@aster/ui";
 import { Switch } from "@aster/ui";
 
+import { copy_text_or_throw } from "@/utils/copy_text";
 import { use_i18n } from "@/lib/i18n/context";
 import { Spinner } from "@/components/ui/spinner";
 import { show_toast } from "@/components/toast/simple_toast";
 import { UpgradeGate } from "@/components/common/upgrade_gate";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { DomainHealthPanel } from "@/components/settings/domains/domain_health_panel";
+import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import {
   get_dns_records,
   get_grace_days_remaining,
@@ -142,21 +143,21 @@ export function DomainCard({
   const [dns_records, set_dns_records] = useState<DnsRecord[]>([]);
   const [loading_records, set_loading_records] = useState(false);
   const [showing_all_records, set_showing_all_records] = useState(false);
+  const [records_failed, set_records_failed] = useState(false);
   const load_dns_records = async () => {
     if (dns_records.length > 0) return;
 
     set_loading_records(true);
-    try {
-      const response = await get_dns_records(domain.id);
+    set_records_failed(false);
 
-      if (response.data) {
-        set_dns_records((response.data as DnsRecordsResponse).records);
-      }
-    } catch (error) {
-      if (import.meta.env.DEV) console.error(error);
-    } finally {
-      set_loading_records(false);
+    const response = await get_dns_records(domain.id);
+
+    if (response.data) {
+      set_dns_records((response.data as DnsRecordsResponse).records);
+    } else {
+      set_records_failed(true);
     }
+    set_loading_records(false);
   };
 
   const handle_expand = () => {
@@ -185,6 +186,8 @@ export function DomainCard({
       <div className="flex items-center justify-between p-4">
         <div className="flex items-center gap-3 flex-1 min-w-0">
           <Button
+            aria-expanded={expanded}
+            aria-label={domain.domain_name}
             className="h-6 w-6 flex-shrink-0"
             size="icon"
             variant="ghost"
@@ -258,6 +261,7 @@ export function DomainCard({
           )}
 
           <Button
+            aria-label={t("common.delete")}
             className="text-red-500 hover:text-red-500 hover:bg-red-500/10"
             disabled={deleting}
             size="icon"
@@ -315,6 +319,8 @@ export function DomainCard({
 
           {loading_records ? (
             <div />
+          ) : records_failed ? (
+            <LoadFailedNotice on_retry={() => void load_dns_records()} />
           ) : dns_records.length > 0 ? (
             <div>
               <button

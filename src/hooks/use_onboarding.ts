@@ -28,6 +28,10 @@ import {
 } from "@/services/api/onboarding";
 import { use_auth } from "@/contexts/auth_context";
 import { ignore_error } from "@/lib/ignore_error";
+import {
+  clear_first_run_tour,
+  is_first_run_tour_pending,
+} from "@/lib/first_run";
 
 interface UseOnboardingReturn {
   state: OnboardingState | null;
@@ -57,7 +61,7 @@ export function use_onboarding(): UseOnboardingReturn {
       return;
     }
 
-    if (localStorage.getItem("show_onboarding") !== "true") {
+    if (!is_first_run_tour_pending()) {
       set_is_loading(false);
       set_has_initialized(true);
 
@@ -166,7 +170,7 @@ export function use_onboarding(): UseOnboardingReturn {
     const current_state = state || DEFAULT_ONBOARDING_STATE;
 
     set_is_skipped(true);
-    localStorage.removeItem("show_onboarding");
+    clear_first_run_tour();
 
     if (pending_update_ref.current) {
       clearTimeout(pending_update_ref.current);
@@ -185,7 +189,7 @@ export function use_onboarding(): UseOnboardingReturn {
     const current_state = state || DEFAULT_ONBOARDING_STATE;
 
     set_is_completed(true);
-    localStorage.removeItem("show_onboarding");
+    clear_first_run_tour();
 
     if (pending_update_ref.current) {
       clearTimeout(pending_update_ref.current);
@@ -217,7 +221,7 @@ export function use_onboarding(): UseOnboardingReturn {
     !is_completed &&
     !is_skipped &&
     !!vault &&
-    localStorage.getItem("show_onboarding") === "true";
+    is_first_run_tour_pending();
 
   return {
     state,

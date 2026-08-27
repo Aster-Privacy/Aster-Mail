@@ -85,11 +85,9 @@ export function ConnectionSection({
               ),
           "info",
         );
-      } catch (e) {
+      } catch {
         show_toast(
-          e instanceof Error
-            ? e.message
-            : t("settings.connection.status_error" as Parameters<typeof t>[0]),
+          t("settings.connection.status_error" as Parameters<typeof t>[0]),
           "error",
         );
       } finally {

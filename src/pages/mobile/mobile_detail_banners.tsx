@@ -32,7 +32,9 @@ import { is_system_email } from "@/lib/utils";
 import {
   execute_unsubscribe,
   get_sender_domain,
+  get_manual_unsubscribe_url,
 } from "@/utils/unsubscribe_detector";
+import { open_external } from "@/utils/open_link";
 import { track_subscription } from "@/services/api/subscriptions";
 import { persist_unsubscribe } from "@/hooks/use_unsubscribed_senders";
 import { show_action_toast } from "@/components/toast/action_toast";
@@ -129,7 +131,7 @@ export function MobileUnsubscribeBanner({
           );
         }
         if (result !== "api") {
-          const url = info.unsubscribe_link || info.unsubscribe_mailto;
+          const url = get_manual_unsubscribe_url(info);
           const lockdown = is_any_lockdown_active();
 
           show_action_toast({
@@ -137,12 +139,13 @@ export function MobileUnsubscribeBanner({
             action_type: "not_spam",
             email_ids: [],
             duration_ms: 15000,
-            ...(!lockdown && {
-              action_label: t("mail.open_unsubscribe_page"),
-              on_undo: async () => {
-                if (url) window.open(url, "_blank", "noopener,noreferrer");
-              },
-            }),
+            ...(!lockdown &&
+              url && {
+                action_label: t("mail.open_unsubscribe_page"),
+                on_undo: async () => {
+                  open_external(url);
+                },
+              }),
           });
         }
       } catch {

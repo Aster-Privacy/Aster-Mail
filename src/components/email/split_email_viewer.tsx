@@ -54,7 +54,10 @@ import {
 import { use_spam_confirm } from "@/components/email/use_spam_confirm";
 import { set_forward_mail_id } from "@/services/forward_store";
 import { get_label_hints } from "@/stores/label_hints_store";
-import { execute_unsubscribe } from "@/utils/unsubscribe_detector";
+import {
+  execute_unsubscribe,
+  get_manual_unsubscribe_url,
+} from "@/utils/unsubscribe_detector";
 import { show_action_toast } from "@/components/toast/action_toast";
 import {
   persist_unsubscribe,
@@ -67,6 +70,7 @@ export type SplitReplyData = ReplyData;
 export type SplitForwardData = ForwardData;
 
 import type { LocalEmailData } from "@/components/email/email_viewer_types";
+
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
 
 interface SplitEmailViewerProps {
@@ -367,7 +371,7 @@ export function SplitEmailViewer({
         ...(!is_any_lockdown_active() && {
           action_label: t("mail.open_unsubscribe_page"),
           on_undo: async () => {
-            const url = info.unsubscribe_link || info.unsubscribe_mailto;
+            const url = get_manual_unsubscribe_url(info);
 
             if (url) open_external(url);
           },

@@ -249,7 +249,7 @@ export function use_external_accounts_test(
       return;
     }
 
-    if (!fields.form_password.trim()) {
+    if (!fields.form_password.trim() && !fields.has_stored_password) {
       show_toast(t("settings.password_required"), "error");
 
       return;

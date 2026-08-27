@@ -119,6 +119,7 @@ interface BillingDialogsProps {
   preferred_currency: string;
   show_payment_methods: boolean;
   set_show_payment_methods: React.Dispatch<React.SetStateAction<boolean>>;
+  auto_add_card: boolean;
   show_manage_plan: boolean;
   set_show_manage_plan: React.Dispatch<React.SetStateAction<boolean>>;
   show_switch_billing_dialog: boolean;
@@ -169,6 +170,7 @@ export function BillingDialogs({
   preferred_currency,
   show_payment_methods,
   set_show_payment_methods,
+  auto_add_card,
   show_manage_plan,
   set_show_manage_plan,
   show_switch_billing_dialog,
@@ -500,9 +502,11 @@ export function BillingDialogs({
                   handle_cancel();
                 }}
               >
-                {is_action_loading
-                  ? t("settings.cancelling")
-                  : t("settings.cancel_final_confirm")}
+                {is_action_loading ? (
+                  <Spinner size="sm" />
+                ) : (
+                  t("settings.cancel_final_confirm")
+                )}
               </AlertDialogAction>
             </AlertDialogFooter>
           ) : (
@@ -692,6 +696,7 @@ export function BillingDialogs({
       )}
 
       <PaymentMethodsModal
+        auto_add_card={auto_add_card}
         on_close={() => set_show_payment_methods(false)}
         open={show_payment_methods}
       />
@@ -969,9 +974,11 @@ export function BillingDialogs({
                 }
               }}
             >
-              {is_action_loading
-                ? t("settings.cancelling")
-                : t("settings.confirm_cancel_addon")}
+              {is_action_loading ? (
+                <Spinner size="sm" />
+              ) : (
+                t("settings.confirm_cancel_addon")
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

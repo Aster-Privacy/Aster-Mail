@@ -1075,12 +1075,11 @@ export function CryptoInvoiceView({ id }: { id?: string }) {
                   aria-busy={is_cancelling}
                   className="w-full"
                   disabled={is_cancelling}
+                  is_loading={is_cancelling}
                   variant="outline"
                   onClick={() => set_confirm_cancel_open(true)}
                 >
-                  {is_cancelling
-                    ? t("settings.cancelling")
-                    : t("settings.crypto_native_cancel_invoice")}
+                  {t("settings.crypto_native_cancel_invoice")}
                 </Button>
               )}
             </div>

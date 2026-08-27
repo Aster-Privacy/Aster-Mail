@@ -18,7 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { copy_text_or_throw } from "@/utils/copy_text";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -31,6 +30,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { Switch } from "@aster/ui";
 
+import { copy_text_or_throw } from "@/utils/copy_text";
 import {
   Select,
   SelectContent,
@@ -69,6 +69,7 @@ import {
   type FamilyGroupResponse,
   type SeatBreakdown,
 } from "@/services/api/family";
+import { use_sticky_value } from "@/hooks/use_sticky_value";
 
 const DOMAINS = ["astermail.org", "aster.cx"];
 const GIB = 1073741824;
@@ -117,6 +118,7 @@ export function KidsContent({ group }: { group: FamilyGroupResponse }) {
     address: string;
   } | null>(null);
   const [releasing, set_releasing] = useState(false);
+  const release_target_view = use_sticky_value(release_target);
   const [load_failed, set_load_failed] = useState(false);
   const [regenerating_id, set_regenerating_id] = useState<string | null>(null);
   const turnstile_ref = useRef<TurnstileWidgetRef>(null);
@@ -380,11 +382,11 @@ export function KidsContent({ group }: { group: FamilyGroupResponse }) {
                 autoFocus
                 autoCapitalize="none"
                 autoCorrect="off"
-                spellCheck={false}
                 className={`flex-1 min-w-0 h-10 px-3 rounded-lg bg-transparent border text-sm text-txt-primary placeholder:text-txt-muted outline-none ${address_border}`}
                 id="kid-address"
                 maxLength={40}
                 placeholder={t("settings.fam_kids_username_ph")}
+                spellCheck={false}
                 value={username}
                 onChange={(e) =>
                   set_username(
@@ -619,7 +621,7 @@ export function KidsContent({ group }: { group: FamilyGroupResponse }) {
           <ModalTitle>{t("settings.fam_kids_release_modal_title")}</ModalTitle>
           <ModalDescription>
             {t("settings.fam_kids_release_modal_body", {
-              address: release_target?.address ?? "",
+              address: release_target_view?.address ?? "",
             })}
           </ModalDescription>
         </ModalHeader>

@@ -50,7 +50,11 @@ export function CategorySettingsSection() {
   const { preferences, update_preference, update_preferences } =
     use_preferences();
   const { t } = use_i18n();
-  const { limits, is_loading: plan_loading } = use_plan_limits();
+  const {
+    limits,
+    is_loading: plan_loading,
+    load_failed: plan_load_failed,
+  } = use_plan_limits();
   const [modal_open, set_modal_open] = useState(false);
   const [editing_rule, set_editing_rule] = useState<CustomCategoryRule | null>(
     null,
@@ -63,7 +67,9 @@ export function CategorySettingsSection() {
 
   const category_limit = limits
     ? (limits.limits["max_custom_categories"]?.limit ?? -1)
-    : 0;
+    : plan_load_failed
+      ? -1
+      : 0;
   const is_unlimited = category_limit < 0;
   const at_limit = !is_unlimited && custom_categories.length >= category_limit;
   const can_add_custom = is_unlimited || category_limit > 0;

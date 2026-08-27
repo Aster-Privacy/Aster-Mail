@@ -259,6 +259,10 @@ export function is_identity_establishing_endpoint(endpoint: string): boolean {
   return IDENTITY_ESTABLISHING_ENDPOINTS.includes(path);
 }
 
+export function is_auth_endpoint(endpoint: string): boolean {
+  return endpoint.split("?")[0].startsWith("/core/v1/auth/");
+}
+
 export const DEFAULT_TIMEOUT = 30000;
 export const DEFAULT_RETRY_COUNT = 0;
 export const DEFAULT_RETRY_DELAY = 1000;

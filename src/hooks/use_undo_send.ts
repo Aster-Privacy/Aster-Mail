@@ -18,16 +18,17 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { Attachment } from "@/components/compose/compose_shared";
+
 import { useState, useEffect, useCallback } from "react";
 
-import type { Attachment } from "@/components/compose/compose_shared";
 import { ignore_error } from "@/lib/ignore_error";
 import { show_toast } from "@/components/toast/simple_toast";
 import { get_active_translations } from "@/lib/i18n/translations";
 import {
   cancel_send as cancel_queue_send,
   send_now as send_queue_now,
-  cancel_server_queued_email,
+  cancel_server_queued_email_with_reason,
   send_server_queued_immediately,
 } from "@/services/send_queue";
 
@@ -116,7 +117,10 @@ function load_from_storage(): PendingSend[] {
     const now = Date.now();
 
     return parsed
-      .filter((p) => p.scheduled_time > now)
+      .filter(
+        (p) =>
+          p.scheduled_time > now && !!p.is_server_queued && !!p.server_queue_id,
+      )
       .map((p) => ({ ...p, is_restored: true }));
   } catch {
     return [];
@@ -262,17 +266,19 @@ export function use_undo_send(): UseUndoSendReturn {
     let payload: PendingSendPayload | undefined;
 
     if (pending.is_server_queued && pending.server_queue_id) {
-      const cancelled = await cancel_server_queued_email(
+      const outcome = await cancel_server_queued_email_with_reason(
         pending.server_queue_id,
       ).catch((caught) => {
         ignore_error("hooks/use_undo_send:use_undo_send", caught);
 
-        return false;
+        return "failed" as const;
       });
 
-      if (!cancelled) {
+      if (outcome !== "cancelled") {
         show_toast(
-          get_active_translations().common.undo_send_too_late,
+          outcome === "failed"
+            ? get_active_translations().common.something_went_wrong_try_again
+            : get_active_translations().common.undo_send_too_late,
           "error",
         );
 

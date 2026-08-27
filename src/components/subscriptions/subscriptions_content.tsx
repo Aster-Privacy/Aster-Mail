@@ -21,7 +21,7 @@
 import type { CachedSubscription } from "@/services/subscription_cache";
 import type { TranslationKey } from "@/lib/i18n/types";
 
-import { useState, useMemo, useCallback, useRef } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { MagnifyingGlassIcon, Bars3Icon } from "@heroicons/react/24/outline";
 import { ShieldCheckIcon } from "@heroicons/react/24/solid";
 import { Button, Checkbox } from "@aster/ui";
@@ -36,6 +36,7 @@ import { use_i18n } from "@/lib/i18n/context";
 import { use_page_search } from "@/hooks/use_page_search";
 import { use_external_link } from "@/contexts/external_link_context";
 import { calendar_day_diff } from "@/utils/date_format";
+import { get_manual_unsubscribe_url } from "@/utils/unsubscribe_detector";
 import {
   CATEGORY_TAG_VARIANT,
   get_category_label,
@@ -98,6 +99,21 @@ export function SubscriptionsContent({
     () => subscriptions.filter((s) => s.status === "unsubscribed"),
     [subscriptions],
   );
+
+  useEffect(() => {
+    set_selected_ids((prev) => {
+      if (prev.size === 0) return prev;
+
+      const still_active = new Set(
+        active_subscriptions.map((s) => s.sender_email),
+      );
+      const next = new Set(
+        Array.from(prev).filter((email) => still_active.has(email)),
+      );
+
+      return next.size === prev.size ? prev : next;
+    });
+  }, [active_subscriptions]);
 
   const current_list = useMemo(() => {
     const base =
@@ -236,7 +252,7 @@ export function SubscriptionsContent({
   const handle_open_unsubscribe_page = useCallback(
     (e: React.MouseEvent, sub: CachedSubscription) => {
       e.stopPropagation();
-      const link = sub.unsubscribe_link || sub.list_unsubscribe_header;
+      const link = get_manual_unsubscribe_url(sub);
 
       if (link) {
         handle_external_link(link);
@@ -490,8 +506,7 @@ function SubscriptionRow({
       </div>
 
       {active_tab === "active" ? (
-        unsub_failed &&
-        (sub.unsubscribe_link || sub.list_unsubscribe_header) ? (
+        unsub_failed && get_manual_unsubscribe_url(sub) ? (
           <button
             className="px-3 py-1 rounded-[12px] text-xs font-medium transition-all duration-150 flex-shrink-0 hover:brightness-110"
             style={{

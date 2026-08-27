@@ -60,7 +60,7 @@ export interface ContactDetailPanelProps {
   on_edit: (contact: DecryptedContact) => void;
   on_delete_request: (contact: DecryptedContact) => void;
   on_compose_email: (email: string) => void;
-  on_copy: (text: string, field: string) => void;
+  on_copy: (text: string, field: string) => void | Promise<boolean | void>;
   on_inline_save?: (
     contact: DecryptedContact,
     data: ContactFormData,

@@ -19,7 +19,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useState, useEffect, useRef, useCallback } from "react";
-import { CheckCircleIcon } from "@heroicons/react/24/outline";
 
 import {
   get_profile_note,
@@ -29,6 +28,7 @@ import {
 } from "@/services/api/profile_notes";
 import { use_auth } from "@/contexts/auth_context";
 import { use_i18n } from "@/lib/i18n/context";
+import { SaveStatusIndicator } from "@/components/common/save_status_indicator";
 
 interface ProfileNotesInlineProps {
   email: string;
@@ -290,25 +290,11 @@ export function ProfileNotesInline({ email }: ProfileNotesInlineProps) {
         <span className="text-[10px] font-medium uppercase tracking-wider text-txt-muted">
           {t("common.notes")}
         </span>
-        {save_status === "saving" && (
-          <div className="flex items-center gap-1">
-            <div className="w-2.5 h-2.5 border-[1.5px] border-blue-500 border-t-transparent rounded-full animate-spin" />
-            <span className="text-[10px] text-blue-500">
-              {t("common.saving")}
-            </span>
-          </div>
-        )}
-        {save_status === "saved" && (
-          <div className="flex items-center gap-0.5">
-            <CheckCircleIcon className="w-3 h-3 text-blue-500" />
-            <span className="text-[10px] text-blue-500">{t("mail.saved")}</span>
-          </div>
-        )}
-        {save_status === "error" && (
-          <span className="text-[10px] text-red-500">
-            {t("common.error_label")}
-          </span>
-        )}
+        {save_status === "error" ||
+        save_status === "saving" ||
+        save_status === "saved" ? (
+          <SaveStatusIndicator status={save_status} />
+        ) : null}
         {save_status === "too_long" && (
           <span className="text-[10px] text-red-500">
             {t("common.alias_note_too_long")}

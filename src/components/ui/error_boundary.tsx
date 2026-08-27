@@ -18,11 +18,11 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { copy_text_or_throw } from "@/utils/copy_text";
 import { Component, ReactNode } from "react";
 import { ClipboardDocumentIcon } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
+import { copy_text_or_throw } from "@/utils/copy_text";
 import { show_toast } from "@/components/toast/simple_toast";
 import { open_external } from "@/utils/open_link";
 import { use_i18n } from "@/lib/i18n/context";
@@ -223,7 +223,7 @@ export function EmailErrorFallback({ on_retry }: EmailErrorFallbackProps) {
         <button
           className="px-4 py-2 text-sm rounded-[14px] transition-colors"
           style={{
-            backgroundColor: "var(--accent-primary)",
+            backgroundColor: "var(--accent-color)",
             color: "white",
           }}
           onClick={on_retry}

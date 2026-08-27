@@ -142,19 +142,27 @@ function transform_draft(
   no_recipients_text: string,
   no_subject_text: string,
   draft_category_text: string,
+  undecryptable_text: string,
 ): DraftListItem {
   const recipients =
     draft.content.to_recipients.join(", ") || no_recipients_text;
-  const display_name =
-    recipients.length > 30 ? `${recipients.substring(0, 30)}...` : recipients;
+  const display_name = draft.is_undecryptable
+    ? undecryptable_text
+    : recipients.length > 30
+      ? `${recipients.substring(0, 30)}...`
+      : recipients;
 
   return {
     id: draft.id,
     item_type: "draft" as MailItemType,
     sender_name: display_name,
     sender_email: draft.content.to_recipients[0] || "",
-    subject: draft.content.subject || no_subject_text,
-    preview: build_list_preview(strip_html_tags(draft.content.message)),
+    subject: draft.is_undecryptable
+      ? undecryptable_text
+      : draft.content.subject || no_subject_text,
+    preview: draft.is_undecryptable
+      ? ""
+      : build_list_preview(strip_html_tags(draft.content.message)),
     timestamp: format_email_list_timestamp(
       new Date(draft.updated_at),
       format_options,
@@ -191,6 +199,7 @@ async function fetch_drafts_from_api(
   no_recipients_text: string,
   no_subject_text: string,
   draft_category_text: string,
+  undecryptable_text: string,
 ): Promise<{ drafts: DraftListItem[]; has_more: boolean } | null> {
   const vault = get_vault_from_memory();
 
@@ -207,6 +216,7 @@ async function fetch_drafts_from_api(
       no_recipients_text,
       no_subject_text,
       draft_category_text,
+      undecryptable_text,
     ),
   );
 
@@ -280,6 +290,7 @@ export function use_drafts_list(is_active: boolean): UseDraftsListReturn {
         t("common.no_recipients"),
         t("mail.no_subject"),
         t("common.draft_category"),
+        t("common.unable_to_decrypt"),
       );
 
       if (signal.aborted || !is_current()) {

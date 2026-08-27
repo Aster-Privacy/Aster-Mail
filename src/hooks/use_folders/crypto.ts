@@ -110,6 +110,32 @@ export async function decrypt_folder_field(
   return new TextDecoder().decode(decrypted);
 }
 
+export function build_undecryptable_folder(
+  folder: FolderDefinition,
+  fallback_name: string,
+): DecryptedFolder {
+  const folder_type = folder.folder_type ?? "custom";
+
+  return {
+    id: folder.id,
+    folder_token: folder.folder_token,
+    name: fallback_name,
+    color: undefined,
+    icon: undefined,
+    is_system: folder.is_system || is_system_folder_type(folder_type),
+    is_locked: folder.is_locked ?? false,
+    folder_type,
+    is_password_protected: folder.is_password_protected ?? false,
+    password_set: folder.password_set ?? false,
+    sort_order: folder.sort_order,
+    parent_token: folder.parent_token,
+    item_count: folder.item_count,
+    unread_count: folder.unread_count,
+    created_at: folder.created_at,
+    updated_at: folder.updated_at,
+  };
+}
+
 export async function decrypt_folder(
   folder: FolderDefinition,
   identity_key: string,

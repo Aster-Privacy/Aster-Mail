@@ -91,6 +91,8 @@ export const SidebarAccountSwitcher = memo(function SidebarAccountSwitcher({
 }: SidebarAccountSwitcherProps) {
   const { t } = use_i18n();
 
+  const invite_label = t("settings.invite_friends");
+
   return (
     <div className="mt-auto flex-shrink-0">
       <div
@@ -100,9 +102,10 @@ export const SidebarAccountSwitcher = memo(function SidebarAccountSwitcher({
           <StorageMeter
             className="mb-3"
             on_buy_more={() => {
-              on_settings_click("billing");
+              on_settings_click("storage");
               scroll_to_storage_addons();
             }}
+            on_open={() => on_settings_click("storage")}
             storage_percentage={storage_percentage}
             storage_total_bytes={storage_total_bytes}
             storage_used_bytes={storage_used_bytes}
@@ -111,9 +114,9 @@ export const SidebarAccountSwitcher = memo(function SidebarAccountSwitcher({
 
         {is_collapsed ? (
           <div className="flex flex-col items-center gap-0.5">
-            <Tooltip tip={t("settings.refer_a_friend")}>
+            <Tooltip tip={invite_label}>
               <button
-                aria-label={t("settings.refer_a_friend")}
+                aria-label={invite_label}
                 className="sidebar-rail-btn"
                 type="button"
                 onClick={() => {
@@ -141,13 +144,14 @@ export const SidebarAccountSwitcher = memo(function SidebarAccountSwitcher({
           <div className="flex items-center gap-1">
             <button
               className="flex-1 flex items-center gap-2 px-2 py-1.5 rounded-[12px] text-[12px] hover:bg-black/[0.04] dark:hover:bg-white/[0.04] text-txt-muted"
+              type="button"
               onClick={() => {
                 on_modal_open?.();
                 on_settings_click("referral");
               }}
             >
-              <UserGroupIcon className="w-3.5 h-3.5" />
-              <span>{t("settings.refer_a_friend")}</span>
+              <UserGroupIcon className="w-3.5 h-3.5 flex-shrink-0" />
+              <span className="truncate">{invite_label}</span>
             </button>
             {on_toggle_collapse && (
               <Tooltip tip={t("common.collapse_sidebar")}>

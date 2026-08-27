@@ -26,16 +26,23 @@ import {
   type BillingHistoryItem,
 } from "@/services/api/billing";
 import { use_i18n } from "@/lib/i18n/context";
+import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { describe_billing_entry } from "@/utils/billing_description";
 
 interface BillingHistorySectionProps {
   history: BillingHistoryItem[];
+  load_failed?: boolean;
+  on_retry?: () => void;
 }
 
-export function BillingHistorySection({ history }: BillingHistorySectionProps) {
+export function BillingHistorySection({
+  history,
+  load_failed,
+  on_retry,
+}: BillingHistorySectionProps) {
   const { t } = use_i18n();
 
-  if (history.length === 0) return null;
+  if (history.length === 0 && !(load_failed && on_retry)) return null;
 
   return (
     <div className="border-t border-edge-secondary pt-8">
@@ -46,53 +53,57 @@ export function BillingHistorySection({ history }: BillingHistorySectionProps) {
         </h3>
         <div className="mt-2 h-px bg-edge-secondary" />
       </div>
-      <div className="rounded-lg border overflow-hidden border-edge-secondary">
-        <div>
-          {history.map((item) => (
-            <div
-              key={item.id}
-              className="flex items-center justify-between px-4 py-3 hover:bg-surf-hover transition-colors"
-            >
-              <div>
-                <p className="text-sm text-txt-primary">
-                  {describe_billing_entry(item.description, t) ||
-                    item.plan_name ||
-                    t("settings.payment")}
-                </p>
-                <p className="text-xs mt-0.5 text-txt-muted">
-                  {format_date(item.created_at)}
-                </p>
-              </div>
-              <div className="flex items-center gap-3">
-                <span
-                  className={
-                    item.status === "paid"
-                      ? "aster_badge aster_badge_green"
-                      : item.status === "failed"
-                        ? "aster_badge aster_badge_red"
-                        : "aster_badge aster_badge_amber"
-                  }
-                >
-                  {t(`settings.invoice_status_${item.status}` as any)}
-                </span>
-                <p className="text-sm font-medium text-txt-primary">
-                  {format_price(item.amount_cents, item.currency)}
-                </p>
-                {item.invoice_pdf_url && (
-                  <a
-                    className="text-xs text-blue-500 hover:underline"
-                    href={item.invoice_pdf_url}
-                    rel="noopener noreferrer"
-                    target="_blank"
+      {history.length === 0 && load_failed && on_retry ? (
+        <LoadFailedNotice on_retry={on_retry} />
+      ) : (
+        <div className="rounded-lg border overflow-hidden border-edge-secondary">
+          <div>
+            {history.map((item) => (
+              <div
+                key={item.id}
+                className="flex items-center justify-between px-4 py-3 hover:bg-surf-hover transition-colors"
+              >
+                <div>
+                  <p className="text-sm text-txt-primary">
+                    {describe_billing_entry(item.description, t) ||
+                      item.plan_name ||
+                      t("settings.payment")}
+                  </p>
+                  <p className="text-xs mt-0.5 text-txt-muted">
+                    {format_date(item.created_at)}
+                  </p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span
+                    className={
+                      item.status === "paid"
+                        ? "aster_badge aster_badge_green"
+                        : item.status === "failed"
+                          ? "aster_badge aster_badge_red"
+                          : "aster_badge aster_badge_amber"
+                    }
                   >
-                    PDF
-                  </a>
-                )}
+                    {t(`settings.invoice_status_${item.status}` as any)}
+                  </span>
+                  <p className="text-sm font-medium text-txt-primary">
+                    {format_price(item.amount_cents, item.currency)}
+                  </p>
+                  {item.invoice_pdf_url && (
+                    <a
+                      className="text-xs text-blue-500 hover:underline"
+                      href={item.invoice_pdf_url}
+                      rel="noopener noreferrer"
+                      target="_blank"
+                    >
+                      PDF
+                    </a>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

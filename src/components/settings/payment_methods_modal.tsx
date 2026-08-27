@@ -59,6 +59,7 @@ import {
   type PaymentMethodActionResponse,
 } from "@/services/api/billing";
 import { show_toast } from "@/components/toast/simple_toast";
+import { notify_billing_updated } from "@/lib/payment_action";
 import { connection_store } from "@/services/routing/connection_store";
 import { use_i18n } from "@/lib/i18n/context";
 import {
@@ -97,7 +98,7 @@ function get_pm_icon(pm_type: string) {
 }
 
 interface AddPaymentFormProps {
-  on_added: () => void;
+  on_added: (payment_method_id: string | null) => void;
   on_cancel: () => void;
 }
 
@@ -133,17 +134,20 @@ function AddPaymentForm({
     set_is_submitting(true);
 
     try {
-      const { error } = await stripe.confirmCardSetup(client_secret, {
-        payment_method: {
-          card: card_number,
-          billing_details: {
-            name: cardholder_name || undefined,
-            address: billing_postal
-              ? { postal_code: billing_postal }
-              : undefined,
+      const { error, setupIntent } = await stripe.confirmCardSetup(
+        client_secret,
+        {
+          payment_method: {
+            card: card_number,
+            billing_details: {
+              name: cardholder_name || undefined,
+              address: billing_postal
+                ? { postal_code: billing_postal }
+                : undefined,
+            },
           },
         },
-      });
+      );
 
       if (error) {
         show_toast(error.message || t("settings.payment_failed"), "error");
@@ -153,7 +157,11 @@ function AddPaymentForm({
       }
 
       show_toast(t("settings.card_added"), "success");
-      on_added();
+      on_added(
+        typeof setupIntent?.payment_method === "string"
+          ? setupIntent.payment_method
+          : (setupIntent?.payment_method?.id ?? null),
+      );
     } catch {
       show_toast(t("settings.payment_failed"), "error");
       set_is_submitting(false);
@@ -294,11 +302,13 @@ function AddPaymentForm({
 interface PaymentMethodsModalProps {
   open: boolean;
   on_close: () => void;
+  auto_add_card?: boolean;
 }
 
 export function PaymentMethodsModal({
   open,
   on_close,
+  auto_add_card = false,
 }: PaymentMethodsModalProps) {
   const { t } = use_i18n();
   const tokens = use_stripe_theme_tokens();
@@ -315,6 +325,8 @@ export function PaymentMethodsModal({
   const [stripe_promise, set_stripe_promise] =
     useState<Promise<Stripe | null> | null>(null);
   const [client_secret, set_client_secret] = useState<string | null>(null);
+  const [is_preparing, set_is_preparing] = useState(false);
+  const [add_error, set_add_error] = useState<string | null>(null);
 
   const stripe_appearance = useMemo(
     () => build_stripe_appearance(tokens),
@@ -345,6 +357,7 @@ export function PaymentMethodsModal({
       fetch_methods();
       set_show_add_form(false);
       set_client_secret(null);
+      set_add_error(null);
     }
   }, [open, fetch_methods]);
 
@@ -410,11 +423,14 @@ export function PaymentMethodsModal({
     const method = connection_store.get_method();
 
     if (method === "tor" || method === "tor_snowflake") {
+      set_add_error(t("settings.connection.tor_blocked"));
       show_toast(t("settings.connection.tor_blocked"), "error");
 
       return;
     }
 
+    set_add_error(null);
+    set_is_preparing(true);
     try {
       const config_response = await get_stripe_config();
 
@@ -422,6 +438,7 @@ export function PaymentMethodsModal({
         !config_response.data?.publishable_key ||
         !config_response.data.is_enabled
       ) {
+        set_add_error(t("settings.stripe_not_configured"));
         show_toast(t("settings.stripe_not_configured"), "error");
 
         return;
@@ -431,47 +448,95 @@ export function PaymentMethodsModal({
         locale: stripe_locale(),
       });
 
-      set_stripe_promise(stripe_loaded);
+      const [stripe_instance, setup_response] = await Promise.all([
+        stripe_loaded.catch(() => null),
+        create_setup_intent(),
+      ]);
 
-      const setup_response = await create_setup_intent();
+      if (!stripe_instance) {
+        set_add_error(t("settings.stripe_not_configured"));
+        show_toast(t("settings.stripe_not_configured"), "error");
+
+        return;
+      }
 
       if (!setup_response.data?.client_secret) {
+        set_add_error(t("settings.payment_failed"));
         show_toast(t("settings.payment_failed"), "error");
 
         return;
       }
 
+      set_stripe_promise(stripe_loaded);
       set_client_secret(setup_response.data.client_secret);
       set_show_add_form(true);
     } catch {
+      set_add_error(t("settings.payment_failed"));
       show_toast(t("settings.payment_failed"), "error");
+    } finally {
+      set_is_preparing(false);
     }
   }, [t]);
 
-  const handle_added = useCallback(async () => {
-    set_show_add_form(false);
-    set_client_secret(null);
-    await fetch_methods();
+  useEffect(() => {
+    if (!open || !auto_add_card || is_loading) return;
+    if (show_add_form || is_preparing || add_error) return;
+    if (methods.length > 0) return;
 
-    const response = await list_payment_methods();
-    const updated = response.data?.payment_methods || [];
-    const has_default = updated.some((m) => m.is_default);
+    void handle_show_add_form();
+  }, [
+    open,
+    auto_add_card,
+    is_loading,
+    show_add_form,
+    is_preparing,
+    add_error,
+    methods.length,
+    handle_show_add_form,
+  ]);
 
-    if (!has_default && updated.length > 0) {
-      try {
-        const response = await set_default_payment_method(updated[0].id);
+  const handle_added = useCallback(
+    async (payment_method_id: string | null) => {
+      set_show_add_form(false);
+      set_client_secret(null);
+      await fetch_methods();
 
-        if (response.data?.retry_attempted) {
-          report_default_outcome(response.data);
-        }
+      const response = await list_payment_methods();
+      const updated = response.data?.payment_methods || [];
+      const has_default = updated.some((m) => m.is_default);
+      const target_id =
+        payment_method_id ?? (updated.length > 0 ? updated[0].id : null);
+      const should_set_default =
+        target_id !== null && (auto_add_card || !has_default);
 
-        await fetch_methods();
-      } catch (err) {
-        if (import.meta.env.DEV)
-          console.error("failed to set default payment method", err);
+      if (!should_set_default) {
+        notify_billing_updated();
+
+        return;
       }
-    }
-  }, [fetch_methods, report_default_outcome]);
+
+      const result = await set_default_payment_method(target_id);
+
+      if (result.error) {
+        show_toast(t("settings.payment_failed"), "error");
+
+        return;
+      }
+      await fetch_methods();
+
+      if (result.data?.retry_attempted) {
+        if (result.data.retry_succeeded) {
+          show_toast(t("settings.payment_retry_succeeded"), "success");
+        } else {
+          show_toast(t("settings.payment_retry_failed"), "error");
+          set_add_error(t("settings.payment_retry_failed"));
+        }
+      }
+
+      notify_billing_updated();
+    },
+    [auto_add_card, fetch_methods, t],
+  );
 
   const handle_cancel_add = useCallback(() => {
     set_show_add_form(false);
@@ -624,14 +689,36 @@ export function PaymentMethodsModal({
             />
           </Elements>
         ) : (
-          <Button
-            className="w-full"
-            variant="outline"
-            onClick={handle_show_add_form}
-          >
-            <PlusIcon className="w-4 h-4" />
-            {t("settings.add_payment_method")}
-          </Button>
+          <div className="space-y-2">
+            {add_error && (
+              <p
+                className="text-sm"
+                role="alert"
+                style={{ color: "var(--color-error, #dc2626)" }}
+              >
+                {add_error}
+              </p>
+            )}
+            <Button
+              className="w-full"
+              disabled={is_preparing}
+              variant="outline"
+              onClick={handle_show_add_form}
+            >
+              {is_preparing ? (
+                <span
+                  className="w-4 h-4 rounded-full animate-spin"
+                  style={{
+                    border: "2px solid var(--border-secondary)",
+                    borderTopColor: "var(--text-tertiary)",
+                  }}
+                />
+              ) : (
+                <PlusIcon className="w-4 h-4" />
+              )}
+              {t("settings.add_payment_method")}
+            </Button>
+          </div>
         )}
       </div>
     );

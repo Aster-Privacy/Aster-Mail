@@ -942,15 +942,15 @@ export const pt = {
     purchase_thank_you: "Obrigado pela sua compra. Sua assinatura está ativa.",
     view_billing_settings: "Ver configurações de cobrança",
     welcome_description:
-      "Vamos fazer um tour rápido para ajudá-lo a começar com sua plataforma de e-mail segura e privada.",
-    organize_with_folders: "Organize com Pastas",
+      "Este tour leva cerca de um minuto. Ele cobre quatro coisas que facilitam o primeiro dia.",
+    organize_with_folders: "Organize com pastas",
     organize_folders_description:
-      "Crie pastas personalizadas para organizar seus e-mails. Clique no botão + ao lado de Pastas para criar a primeira.",
+      "Arraste uma mensagem para uma pasta para arquivá-la, ou selecione várias e mova-as juntas. Para criar uma pasta, clique no + ao lado de Pastas.",
     customize_settings_description:
-      "Personalize sua experiência, gerencie configurações de segurança e configure as preferências da sua conta.",
-    youre_ready: "Você Está Pronto",
+      "Em Configurações você adiciona um alias, conecta um domínio próprio e ativa a autenticação de dois fatores.",
+    youre_ready: "Tudo pronto",
     youre_ready_description:
-      "É isso! Você está pronto para começar a usar o Aster Mail. Seus e-mails são criptografados de ponta a ponta e completamente privados.",
+      "Seu e-mail é criptografado de ponta a ponta e só você tem as chaves. Pressione ? a qualquer momento para ver todos os atalhos de teclado.",
     skip_tour: "Pular tour",
     get_started: "Começar",
     setup_complete: "Configuração concluída!",
@@ -1206,6 +1206,11 @@ export const pt = {
     subject_too_long:
       "Seu assunto ultrapassa o limite de 998 caracteres. Uma versão mais curta vai ser enviada.",
     notification_banner_no_thanks: "Não, obrigado",
+    payment_past_due_message:
+      "Seu último pagamento não foi processado. Atualize sua forma de pagamento para manter seu plano.",
+    payment_past_due_message_days:
+      "Seu último pagamento não foi processado. Atualize sua forma de pagamento em até {{days}} dias para manter seu plano.",
+    payment_past_due_action: "Atualizar pagamento",
     ghost_label: "Fantasma",
     ghost_mode_tooltip:
       "Enviado via Modo Fantasma. Seu endereço real foi ocultado.",
@@ -1631,6 +1636,23 @@ export const pt = {
     on_separator: "em",
     onboarding_checklist_dismiss: "Ocultar",
     onboarding_checklist_first_email: "Envie seu primeiro e-mail",
+    first_run_title: "A tua caixa de entrada está pronta",
+    first_run_subtitle:
+      "Traga o seu e-mail atual agora ou faça isso depois em Definições.",
+    first_run_import: "Importar o meu correio",
+    first_run_skip: "Começar com uma caixa vazia",
+    first_run_privacy_note:
+      "O teu correio é cifrado no teu dispositivo. A Aster não o consegue ler.",
+    recovery_reminder_title: "Adiciona uma forma de voltar à tua conta",
+    recovery_reminder_body:
+      "A Aster cifra o teu correio com a tua palavra-passe, por isso ninguém a pode repor por ti. Adiciona um email de recuperação para manteres o acesso.",
+    recovery_reminder_action: "Adicionar email de recuperação",
+    recovery_reminder_later: "Mais tarde",
+    plan_prompt_title: "Estás no plano gratuito",
+    plan_prompt_body:
+      "Os planos pagos acrescentam mais armazenamento, domínios personalizados e aliases ilimitados.",
+    plan_prompt_action: "Ver planos",
+    plan_prompt_dismiss: "Dispensar",
     onboarding_checklist_import_mail: "Importe seus e-mails antigos",
     onboarding_checklist_install_app: "Instale o aplicativo",
     onboarding_checklist_recovery_method: "Adicione um método de recuperação",
@@ -3711,6 +3733,13 @@ export const pt = {
     ipfs_disabled_description:
       "Armazenar anexos no IPFS para armazenamento descentralizado e resiliente",
     forward_secrecy: "Sigilo Direto",
+    forward_secrecy_disable_title: "Desativar o sigilo de encaminhamento?",
+    forward_secrecy_disable_message:
+      "As novas mensagens deixam de usar chaves rotativas, por isso uma chave divulgada mais tarde pode abrir mais do seu correio. Pode ativar de novo quando quiser.",
+    login_alerts_disable_title: "Desativar os alertas de início de sessão?",
+    login_alerts_disable_message:
+      "Deixa de receber um email quando um novo dispositivo inicia sessão na sua conta.",
+    turn_off_action: "Desativar",
     forward_secrecy_enabled_description:
       "As chaves são rotacionadas {{frequency}}",
     forward_secrecy_disabled_description:
@@ -3916,15 +3945,18 @@ export const pt = {
     translate_add_language: "Adicionar idioma",
     translate_auto_detected: "Detetado automaticamente no seu dispositivo",
     translate_confirm_title: "Ativar a tradução?",
-    translate_confirm_description: "O Aster traduz o correio no seu dispositivo, por isso nada do que lê é enviado para um serviço de tradução. Da primeira vez que traduz a partir de um idioma, o Aster transfere um pacote de idioma de 20 a 55 MB e guarda-o neste dispositivo. Pode remover os pacotes quando quiser.",
+    translate_confirm_description:
+      "O Aster traduz o correio no seu dispositivo, por isso nada do que lê é enviado para um serviço de tradução. Da primeira vez que traduz a partir de um idioma, o Aster transfere um pacote de idioma de 20 a 55 MB e guarda-o neste dispositivo. Pode remover os pacotes quando quiser.",
     translate_confirm_enable: "Ativar",
     translation_packs: "Pacotes de idioma transferidos",
-    translation_packs_description: "Os pacotes de idioma são guardados neste dispositivo. Remova um pacote para libertar espaço. O Aster transfere-o novamente da próxima vez que traduzir esse idioma.",
+    translation_packs_description:
+      "Os pacotes de idioma são guardados neste dispositivo. Remova um pacote para libertar espaço. O Aster transfere-o novamente da próxima vez que traduzir esse idioma.",
     translation_packs_empty: "Ainda não transferiu nenhum pacote de idioma.",
     translation_packs_total: "{{size}} usados neste dispositivo",
     translation_packs_remove: "Remover",
     translation_packs_remove_all: "Remover tudo",
-    translation_packs_unavailable: "Este navegador não consegue guardar pacotes de idioma, por isso o Aster transfere-os sempre que traduz.",
+    translation_packs_unavailable:
+      "Este navegador não consegue guardar pacotes de idioma, por isso o Aster transfere-os sempre que traduz.",
 
     block_external_content: "Bloquear Conteúdo Externo",
     block_external_content_description:
@@ -4261,13 +4293,15 @@ export const pt = {
     any_email_import_description: "Arquivos MBOX, EML, CSV, PST",
     search_history: "Histórico de pesquisa",
     folders_limit: "Pastas",
-    onboarding_compose_title: "Redigir Novos E-mails",
-    onboarding_compose_description: "Clique aqui para redigir um novo e-mail",
-    onboarding_search_title: "Pesquisar Seus E-mails",
+    onboarding_compose_title: "Escreva sua primeira mensagem",
+    onboarding_compose_description:
+      "Pressione C na sua caixa de entrada para começar a escrever. O Aster criptografa a mensagem no seu dispositivo antes do envio.",
+    onboarding_search_title: "Encontre tudo, com privacidade",
     onboarding_search_description:
-      "Use a barra de pesquisa para encontrar qualquer e-mail",
+      "Pressione / para ir direto à busca. Refine os resultados por remetente, data ou anexos sem tirar as mãos do teclado.",
     delete_imported_emails_confirm: "Excluir e-mails importados?",
-    import_delete_warning: "Isto elimina definitivamente as mensagens trazidas por esta importação. Não pode anular esta ação.",
+    import_delete_warning:
+      "Isto elimina definitivamente as mensagens trazidas por esta importação. Não pode anular esta ação.",
     all_emails_filter: "Todos os e-mails",
     choose_label_color: "Escolher cor da etiqueta",
     hex_color_value: "Valor de cor hexadecimal",
@@ -5393,6 +5427,37 @@ export const pt = {
     storage_warning_title: "Você está com pouco armazenamento.",
     storage_warning_description:
       "Você usou mais de 90% do seu armazenamento. Limpar alguns e-mails, ou fazer upgrade do plano, manterá os novos chegando.",
+    storage_overview_description:
+      "Veja o que está usando seu espaço e remova o que não precisa.",
+    storage_promo_title: "Economize em armazenamento extra",
+    storage_promo_body:
+      "Receba {{percent}}% de desconto nos primeiros {{months}} meses de armazenamento adicional.",
+    storage_promo_body_singular:
+      "Receba {{percent}}% de desconto no primeiro mês de armazenamento adicional.",
+    storage_promo_note:
+      "O desconto vale apenas para o seu primeiro complemento de armazenamento.",
+    storage_select_option_first:
+      "Para comprar mais armazenamento, selecione primeiro uma opção.",
+    storage_promo_cta: "Ver complementos",
+    storage_used_of_total: "{{used}} de {{total}} em uso",
+    storage_free_space:
+      "{{size}} livres, {{percent}} do seu armazenamento em uso",
+    storage_breakdown_title: "O que está usando seu armazenamento",
+    storage_breakdown_empty: "Ainda não há nada no seu armazenamento.",
+    storage_col_category: "Categoria",
+    storage_col_items: "Itens",
+    storage_col_size: "Tamanho",
+    storage_col_share: "Proporção",
+    storage_capacity_title: "Capacidade",
+    storage_included_with_plan: "Incluído no seu plano",
+    storage_from_addons: "De complementos",
+    storage_family_allocation: "Alocação da família",
+    storage_total_capacity: "Capacidade total",
+    storage_available: "Disponível",
+    storage_cleanup_done: "Espaço liberado",
+    storage_cleanup_failed: "Não foi possível liberar espaço. Tente novamente.",
+    storage_cleanup_confirm:
+      "Isso exclui permanentemente {{count}} itens e libera {{size}}. Não é possível desfazer.",
     storage_locked_title: "Seu armazenamento está cheio.",
     storage_locked_description:
       "Novos e-mails ficam pausados até você liberar espaço. Limpar alguns e-mails, ou fazer upgrade do plano, vai liberar o fluxo. O correio existente está seguro.",
@@ -5448,6 +5513,9 @@ export const pt = {
     stripe_not_configured: "O sistema de pagamento não está configurado.",
     try_again: "Tentar novamente",
     view_all_features: "Ver todos os recursos",
+    plan_everything_in: "Tudo do {{plan}}, mais",
+    compare_features_show: "Comparar recursos por plano",
+    compare_features_hide: "Ocultar comparação",
     compare_plans: "Comparar todos os planos",
     feature: "Recurso",
     manage_payment_methods: "Gerenciar métodos de pagamento",
@@ -5458,6 +5526,10 @@ export const pt = {
     card_expires: "Expira",
     adding_card: "Adicionando...",
     card_added: "Método de pagamento adicionado",
+    payment_retry_succeeded:
+      "O seu pagamento foi concluído. O seu plano continua ativo.",
+    payment_retry_failed:
+      "O seu banco recusou o cartão. Experimente outro método de pagamento.",
     card_removed: "Método de pagamento removido",
     default_updated: "Método de pagamento padrão atualizado",
     payment_settled: "Método de pagamento padrão atualizado. O seu saldo pendente está pago.",
@@ -5587,11 +5659,11 @@ export const pt = {
     referral_loading: "Carregando informações de indicação...",
     referral_history: "Histórico de indicações",
     no_referrals_yet:
-      "Nenhuma indicação ainda. Compartilhe seu link para começar!",
+      "Nenhum convite ainda. Compartilhe seu link para começar.",
     referral_status_pending: "Pendente",
     referral_status_completed: "Concluída",
     referral_reward_info:
-      "Seu amigo ganha um desconto no primeiro pagamento e você ganha em cada pagamento que ele fizer.",
+      "Você e seu amigo recebem {{ amount }} de armazenamento extra cada um. O armazenamento chega depois que ele usa a conta por alguns dias e continua na sua conta enquanto ele seguir usando o Aster Mail.",
     referral_commission_info:
       "Você ganha {{ percent }}% de cada pagamento dos seus indicados, enquanto permanecerem assinantes.",
     referral_max_credits: "Ganhos máximos: {{ value }} por ano",
@@ -5815,7 +5887,7 @@ export const pt = {
     billing_banner_subtitle:
       "Faça upgrade do seu plano ou compre armazenamento adicional para manter sua privacidade protegida.",
     storage_addons_monthly_note:
-      "O armazenamento adicional é cobrado mensalmente, mesmo que seu plano seja cobrado anualmente.",
+      "Os complementos são renovados todos os meses e cobrados separadamente do seu plano. Se pagar com cripto, você escolhe por quanto tempo pagar antecipadamente.",
     storage_addons_description:
       "Precisa de mais espaço? Compre armazenamento criptografado adicional parsua conta.",
     storage_purchase_coming_soon:
@@ -5836,7 +5908,7 @@ export const pt = {
     use_credits_for_renewals_description:
       "Aplique automaticamente seu saldo de créditos nas renovações de planos e complementos. Se o saldo não cobrir o valor total, o restante será cobrado no seu método de pagamento.",
     referral_program_description:
-      "Convide amigos para o Aster e ganhe crédito em cada pagamento que eles fizerem.",
+      "Convide um amigo para o Aster Mail. Vocês dois recebem {{ amount }} de armazenamento extra assim que ele começar a usar a conta.",
     referral_not_eligible_description: "Por favor, tente novamente mais tarde.",
     billing_address_description:
       "Adicione seus dados de cobrança para aparecerem nas faturas.",
@@ -5939,7 +6011,8 @@ export const pt = {
     domain_purchase_included_heading: "Tudo incluído com o seu domínio",
     domain_purchase_renew: "Renovar",
     domain_purchase_manage: "Gerir",
-    domain_purchase_manage_description: "Reveja este registo e renove-o antes de expirar.",
+    domain_purchase_manage_description:
+      "Reveja este registo e renove-o antes de expirar.",
     domain_purchase_manage_status: "Estado",
     domain_purchase_manage_status_active: "Ativo",
     domain_purchase_manage_status_expiring: "Expira em breve",
@@ -5947,9 +6020,11 @@ export const pt = {
     domain_purchase_manage_expires: "Expira",
     domain_purchase_manage_term: "Duração",
     domain_purchase_manage_paid: "Pago",
-    domain_purchase_manage_auto_renew_note: "Este domínio não é renovado automaticamente. Para o manter, renove-o antes da data de expiração.",
+    domain_purchase_manage_auto_renew_note:
+      "Este domínio não é renovado automaticamente. Para o manter, renove-o antes da data de expiração.",
     domain_purchase_manage_dns: "Abrir configuração do domínio",
-    domain_purchase_manage_support_note: "Para transferir este domínio para outro registador ou perguntar sobre um reembolso, contacte o suporte.",
+    domain_purchase_manage_support_note:
+      "Para transferir este domínio para outro registador ou perguntar sobre um reembolso, contacte o suporte.",
     domain_purchase_manage_support_subject: "Ajuda com {{domain}}",
     domain_purchase_filter_all: "Todos",
     domain_purchase_filter_available: "Disponíveis",
@@ -6565,10 +6640,12 @@ export const pt = {
       "Jornalista? Contacte o suporte com as suas credenciais de imprensa para receber o seu código.",
     refer_a_friend: "Indicar um amigo",
     referral_how_it_works: "Como funciona",
-    referral_step_share: "Compartilhe seu link único",
-    referral_step_signup: "Seu amigo cria uma conta",
+    referral_step_share:
+      "Compartilhe seu link de convite com amigos, familiares ou colegas.",
+    referral_step_signup:
+      "Eles criam uma conta com o seu link e começam a usá-la.",
     referral_step_earn:
-      "Você ganha uma parte de cada pagamento que eles fizerem, enquanto permanecerem assinantes.",
+      "Cada um recebe {{ amount }} de armazenamento extra, até {{ max }}.",
     referral_rewards: "Suas recompensas",
     credits_title: "Créditos",
     credits_subtitle: "Ganhe créditos e aplique-os nas renovações do plano.",
@@ -6583,11 +6660,11 @@ export const pt = {
     credit_task_ios_title: "Instalar no iOS",
     credit_task_ios_hint_coming: "Em breve",
     credit_task_earned: "Crédito ganho",
-    send_referral_to_contacts: "Enviar indicação para contatos",
+    send_referral_to_contacts: "Enviar e-mail para todos os contatos",
     referral_email_subject:
       "Experimente o Aster Mail - E-mail privado e criptografado",
     referral_email_body:
-      "Olá! Estou usando o Aster Mail para e-mail privado e criptografado. Use meu link para criar sua conta: {{referral_link}}",
+      "Oi,\n\nuso o Aster Mail há um tempo e gosto bastante. Tudo é criptografado de ponta a ponta, então ninguém consegue ler seus e-mails além de você. Nem quem administra o serviço.\n\nSe quiser experimentar, este é o meu link de convite:\n\n{{ referral_link }}\n\nNós dois recebemos {{ amount }} de armazenamento extra quando você começar a usar, então você também ganha algo.\n\nAbraço",
     referral_no_contacts: "Nenhum contato com endereço de e-mail encontrado.",
     referral_loading_contacts: "Carregando contatos...",
     "connection.tor_warning":
@@ -6987,6 +7064,49 @@ export const pt = {
     referral_discount_auto_apply:
       "Aplicado automaticamente no pagamento, sem precisar digitar.",
     referral_discount_expires: "Expira em {{ date }}",
+    invite_storage_line:
+      "Vocês dois recebem {{ amount }} de armazenamento extra",
+    invite_storage_note:
+      "Crie sua conta gratuita com este link. O armazenamento chega nas duas contas assim que você começar a usar a sua.",
+    invite_discount_note:
+      "Além disso, {{ percent }}% de desconto se um dia você assinar um plano pago.",
+    invite_cta_create_account_storage: "Criar minha conta gratuita",
+    invite_friends: "Convidar amigos",
+    invite_sidebar_earned: "{{ amount }} ganhos",
+    referral_storage_headline:
+      "Ganhe {{ amount }} de armazenamento por cada amigo que entrar",
+    referral_storage_subhead:
+      "Seu amigo também recebe {{ amount }}. O armazenamento chega quando ele começa a usar a conta, até {{ max }}.",
+    referral_storage_earned_badge: "{{ amount }} ganhos",
+    referral_active_referrals: "Ativos",
+    referral_share_button: "Compartilhar convite",
+    referral_show_qr: "Mostrar código QR",
+    referral_hide_qr: "Ocultar código QR",
+    referral_qr_hint:
+      "Aponte a câmera de um celular para este código para abrir o convite.",
+    referral_qr_alt: "Código QR do seu link de convite do Aster Mail",
+    referral_share_title: "Venha para o Aster Mail comigo",
+    referral_share_message:
+      "Uso o Aster Mail para ter e-mail criptografado de ponta a ponta. Entre pelo meu link e nós dois ganhamos {{ amount }} de armazenamento extra.",
+    referral_shared: "Convite compartilhado",
+    referral_message_copied: "Mensagem de convite copiada",
+    referral_bonus_gauge_label: "Armazenamento ganho",
+    referral_bonus_max: "Máximo: {{ value }}",
+    referral_status_active: "Ativo",
+    referral_email_all_contacts_hint:
+      "Envia uma mensagem para cada contato do seu catálogo de endereços.",
+    referral_claim_title: "Você foi convidado?",
+    referral_claim_description:
+      "Digite o código do seu convite e vocês dois recebem {{ amount }} de armazenamento extra. Você tem até {{ date }} para adicioná-lo.",
+    referral_claim_placeholder: "Código de convite",
+    referral_claim_button: "Adicionar código",
+    referral_claim_success:
+      "Convite adicionado. Seu armazenamento chega depois que você usar o Aster Mail por alguns dias.",
+    referral_claim_invalid: "Esse código de convite não é válido.",
+    referral_claim_window_closed:
+      "O prazo para adicionar um código de convite a esta conta terminou.",
+    referral_claim_already: "Esta conta já tem um convite associado.",
+    referral_claim_self: "Você não pode usar o seu próprio código de convite.",
     domain_purchase_not_released:
       "A compra de domínios ainda não está disponível. Ela chega em uma atualização futura.",
     domain_step_ownership_title: "Comprove que o domínio é seu",
@@ -7324,7 +7444,8 @@ export const pt = {
     attachments: "Anexos",
     translation_offer: "Esta mensagem está em {{language}}.",
     translation_translate: "Traduzir",
-    translation_offer_download: "Esta mensagem está em {{language}}. Traduzi-la transfere um pacote de idioma.",
+    translation_offer_download:
+      "Esta mensagem está em {{language}}. Traduzi-la transfere um pacote de idioma.",
     translation_translate_download: "Traduzir (transferência de {{size}})",
     translation_in_progress: "A traduzir no seu dispositivo…",
     translation_translated_from:

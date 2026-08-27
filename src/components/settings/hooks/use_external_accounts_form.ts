@@ -275,16 +275,19 @@ export function use_external_accounts_form(t: I18nTranslate) {
   const handle_email_change = useCallback(
     (email: string) => {
       set_form_email(email);
-      set_form_username(email);
+      if (!editing_account) {
+        set_form_username(email);
+      }
       if (!form_label_name || form_label_name === form_email) {
         set_form_label_name(email);
       }
-      if (smtp_same_as_incoming) {
+      if (smtp_same_as_incoming && !editing_account) {
         set_form_smtp_username(email);
       }
       test_hook.clear_test_results();
     },
     [
+      editing_account,
       form_label_name,
       form_email,
       smtp_same_as_incoming,

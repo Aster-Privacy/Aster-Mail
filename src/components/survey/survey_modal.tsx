@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
 import {
   Modal,
@@ -65,6 +65,7 @@ export function SurveyModal({
   const [answers, set_answers] = useState<Record<string, string>>({});
   const [is_submitting, set_is_submitting] = useState(false);
   const [show_errors, set_show_errors] = useState(false);
+  const question_refs = useRef<Record<string, HTMLDivElement | null>>({});
 
   const plan_name = plan_code
     ? plan_code.charAt(0).toUpperCase() + plan_code.slice(1)
@@ -200,6 +201,15 @@ export function SurveyModal({
     if (has_missing_answers) {
       set_show_errors(true);
 
+      const first_incomplete = choice_questions.find(question_is_incomplete);
+      const element = first_incomplete
+        ? question_refs.current[first_incomplete.key]
+        : null;
+
+      if (element && typeof element.scrollIntoView === "function") {
+        element.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+
       return;
     }
 
@@ -255,7 +265,12 @@ export function SurveyModal({
       </ModalHeader>
       <ModalBody className="space-y-6">
         {choice_questions.map((question) => (
-          <div key={question.key}>
+          <div
+            key={question.key}
+            ref={(element) => {
+              question_refs.current[question.key] = element;
+            }}
+          >
             <p
               className="text-sm font-medium mb-2"
               style={{ color: "var(--text-primary)" }}

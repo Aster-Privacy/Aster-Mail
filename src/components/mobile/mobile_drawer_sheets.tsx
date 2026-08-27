@@ -718,11 +718,12 @@ export function CreateAliasSheet({
                 creating ||
                 (turnstile_required && !captcha_token)
               }
+              is_loading={creating}
               type="button"
               variant="depth"
               onClick={handle_create}
             >
-              {creating ? t("common.creating") : t("common.create")}
+              {t("common.create")}
             </Button>
           </>
         )}

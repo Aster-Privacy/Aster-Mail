@@ -32,7 +32,10 @@ const PREHEADER_MIN_CHARS = 4;
 const PREHEADER_MAX_CHARS = 600;
 
 const FILLER_CHARS =
-  /[\u200b\u200c\u200d\u2060\u2066-\u2069\ufeff\u034f\u00ad\u00a0\u180e\u3164\ufff9-\ufffc]/g;
+  /[\u200b\u200c\u200d\u2060\u2066-\u2069\ufeff\u034f\u00ad\u180e\u3164\ufff9-\ufffc]/g;
+
+const SPACE_LIKE_CHARS =
+  /[\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u2800\u3000]/g;
 
 const HIDDEN_STYLE_PATTERNS = [
   /display\s*:\s*none/i,
@@ -61,7 +64,11 @@ type hidden_selectors = {
 export function strip_preview_filler(value: string): string {
   if (!value) return "";
 
-  return value.replace(FILLER_CHARS, "").replace(/\s+/g, " ").trim();
+  return value
+    .replace(FILLER_CHARS, "")
+    .replace(SPACE_LIKE_CHARS, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function drop_at_rule_groups(css: string): string {

@@ -225,7 +225,9 @@ export function PopupEmailActions({
       </Tooltip>
 
       <Tooltip
-        tip={is_spam && on_not_spam ? t("mail.not_spam") : t("mail.report_spam")}
+        tip={
+          is_spam && on_not_spam ? t("mail.not_spam") : t("mail.report_spam")
+        }
       >
         <Button
           data-no-drag
@@ -295,7 +297,10 @@ export function PopupEmailActions({
               {t("mail.move_to_inbox")}
             </DropdownMenuItem>
           ) : (
-            <DropdownMenuItem disabled={is_archive_loading} onClick={on_archive}>
+            <DropdownMenuItem
+              disabled={is_archive_loading}
+              onClick={on_archive}
+            >
               <ArchiveBoxIcon className="w-4 h-4 me-2" />
               {t("mail.archive")}
             </DropdownMenuItem>
@@ -324,6 +329,27 @@ export function PopupEmailActions({
                 {t("mail.move_to_folder")}
               </DropdownMenuSubTrigger>
               <DropdownMenuSubContent className="w-48">
+                {applied_folder_tokens.length > 0 &&
+                  !mail_item?.is_trashed &&
+                  !is_spam &&
+                  !is_archived && (
+                    <>
+                      <DropdownMenuItem
+                        onSelect={(e) => {
+                          e.preventDefault();
+                          applied_folder_tokens.forEach((token) =>
+                            on_folder_toggle(token),
+                          );
+                        }}
+                      >
+                        <InboxIcon className="w-4 h-4 me-2 flex-shrink-0" />
+                        <span className="truncate">
+                          {t("mail.move_to_inbox")}
+                        </span>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                    </>
+                  )}
                 {folders.map((folder) => {
                   const is_current = applied_folder_tokens.includes(folder.id);
 

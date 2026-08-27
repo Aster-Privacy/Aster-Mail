@@ -219,9 +219,19 @@ export function BlockedSection() {
   const handle_add_blocked = async () => {
     if (is_adding) return;
 
-    const value = new_email.trim();
+    let value = new_email.trim();
 
     if (!value) return;
+
+    if (is_domain) {
+      value = value.replace(/^https?:\/\//i, "").replace(/\/+$/, "");
+    }
+
+    if (value.length > 254) {
+      show_toast(t("common.value_too_long"), "error");
+
+      return;
+    }
 
     if (is_domain) {
       const domain_regex =

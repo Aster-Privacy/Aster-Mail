@@ -27,7 +27,6 @@ import {
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
-import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import {
   Modal,
@@ -204,6 +203,11 @@ export function DeleteAccountModal({
             }
           />
           <Button
+            aria-label={
+              show_password
+                ? t("settings.hide_password_toggle")
+                : t("settings.show_password_toggle")
+            }
             className="absolute end-1 top-1/2 -translate-y-1/2 h-7 w-7"
             disabled={is_deleting}
             size="icon"
@@ -238,18 +242,12 @@ export function DeleteAccountModal({
         <Button
           className="flex-1"
           disabled={!is_confirmed || is_deleting}
+          is_loading={is_deleting}
           size="xl"
           variant="destructive"
           onClick={handle_delete}
         >
-          {is_deleting ? (
-            <>
-              {t("settings.deleting_account")}
-              <Spinner className="ms-2" size="md" />
-            </>
-          ) : (
-            t("settings.delete_account_title")
-          )}
+          {t("settings.delete_account_title")}
         </Button>
       </ModalFooter>
     </Modal>

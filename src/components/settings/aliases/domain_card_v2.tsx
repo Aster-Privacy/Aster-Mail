@@ -230,6 +230,8 @@ export function DomainCardV2({
       <div className="flex items-center justify-between p-4">
         <div className="flex items-center gap-3 flex-1 min-w-0">
           <Button
+            aria-expanded={expanded}
+            aria-label={domain.domain_name}
             className="h-6 w-6 flex-shrink-0"
             size="icon"
             variant="ghost"
@@ -306,6 +308,7 @@ export function DomainCardV2({
           )}
 
           <Button
+            aria-label={t("common.delete")}
             className="text-red-500 hover:text-red-500 hover:bg-red-500/10"
             disabled={deleting}
             size="icon"

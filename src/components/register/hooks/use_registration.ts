@@ -18,16 +18,17 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { copy_text_or_throw } from "@/utils/copy_text";
-import { safe_local_set } from "@/lib/safe_storage";
 import type { RegistrationStep } from "@/components/register/register_types";
-import { current_source } from "@/lib/acquisition_source";
 import type { RegisterRequest } from "@/services/api/auth";
 import type { EncryptedVault } from "@/services/crypto/key_manager_core";
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
+import { current_source } from "@/lib/acquisition_source";
+import { mark_first_run } from "@/lib/first_run";
+import { safe_local_set } from "@/lib/safe_storage";
+import { copy_text_or_throw } from "@/utils/copy_text";
 import { useTheme } from "@/contexts/theme_context";
 import { use_auth } from "@/contexts/auth_context";
 import { get_default_profile_color } from "@/constants/profile";
@@ -264,12 +265,15 @@ export function use_registration(options?: RegistrationClaimOptions) {
     null,
   );
   const complete_registration_ref = useRef<() => Promise<void>>();
+  const plan_step_shown_ref = useRef(false);
+  const persist_state_promise_ref = useRef<Promise<void> | null>(null);
   const saving_recovery_email_ref = useRef(false);
   const recovery_phrase_ref = useRef("");
   const phrase_wrap_promise_ref = useRef<Promise<boolean> | null>(null);
   const last_phrase_vault_ref = useRef<string>("");
   const registration_password_hash_ref = useRef<string>("");
   const [phrase_wrap_error, set_phrase_wrap_error] = useState(false);
+
   useEffect(() => {
     if (has_existing_session) {
       navigate("/", { replace: true });
@@ -811,9 +815,10 @@ export function use_registration(options?: RegistrationClaimOptions) {
     return EMAIL_REGEX.test(email_value);
   };
 
-  const finalize_registration = async () => {
+  const write_registration_state = async () => {
     document.getElementById("initial-loader")?.remove();
     safe_local_set("show_onboarding", "true");
+    mark_first_run();
 
     if (vault) {
       try {
@@ -832,6 +837,22 @@ export function use_registration(options?: RegistrationClaimOptions) {
         if (import.meta.env.DEV) console.error(e);
       }
     }
+  };
+
+  const persist_registration_state = (): Promise<void> => {
+    if (!persist_state_promise_ref.current) {
+      persist_state_promise_ref.current = write_registration_state().catch(
+        (e: unknown) => {
+          if (import.meta.env.DEV) console.error(e);
+        },
+      );
+    }
+
+    return persist_state_promise_ref.current;
+  };
+
+  const finalize_registration = async () => {
+    await persist_registration_state();
 
     set_is_completing_registration(false);
 
@@ -844,12 +865,16 @@ export function use_registration(options?: RegistrationClaimOptions) {
     set_recovery_phrase("");
     set_phrase_confirm_challenges([]);
     set_phrase_confirm_answers([]);
-    if (is_claim) {
-      await finalize_registration();
+
+    if (!is_claim && !plan_step_shown_ref.current) {
+      plan_step_shown_ref.current = true;
+      prefetch_plans();
+      void persist_registration_state();
+      set_step("plan_selection");
 
       return;
     }
-    set_step("plan_selection");
+    await finalize_registration();
   };
 
   complete_registration_ref.current = complete_registration;
@@ -1113,11 +1138,16 @@ export function use_registration(options?: RegistrationClaimOptions) {
   };
 
   const handle_advance_from_recovery_key = async () => {
-    if (recovery_email_required && recovery_email.trim()) {
-      await handle_recovery_email_continue();
-    } else {
-      set_step("recovery_email");
+    if (recovery_email_required) {
+      if (recovery_email.trim()) {
+        await handle_recovery_email_continue();
+      } else {
+        set_step("recovery_email");
+      }
+
+      return;
     }
+    await complete_registration();
   };
 
   return {

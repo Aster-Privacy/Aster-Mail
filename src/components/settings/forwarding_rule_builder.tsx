@@ -60,7 +60,10 @@ export const FIELD_KEYS: { value: ForwardingField; key: TranslationKey }[] = [
   { value: "subject", key: "settings.subject_option" },
 ];
 
-export const OPERATOR_KEYS: { value: ForwardingOperator; key: TranslationKey }[] = [
+export const OPERATOR_KEYS: {
+  value: ForwardingOperator;
+  key: TranslationKey;
+}[] = [
   { value: "contains", key: "settings.contains_option" },
   { value: "equals", key: "settings.equals_option" },
   { value: "starts_with", key: "settings.starts_with_option" },
@@ -257,6 +260,7 @@ export function ForwardingRuleBuilder({
 
               {conditions.length > 1 && (
                 <button
+                  aria-label={t("common.remove")}
                   className="p-1 rounded-[14px] transition-colors hover:bg-surf-hover"
                   type="button"
                   onClick={() => remove_condition(index)}
@@ -321,6 +325,7 @@ export function ForwardingRuleBuilder({
               />
               {forward_to.length > 1 && (
                 <button
+                  aria-label={t("common.remove")}
                   className="p-1.5 rounded-[14px] transition-colors hover:bg-surf-hover"
                   type="button"
                   onClick={() => remove_forward_address(index)}

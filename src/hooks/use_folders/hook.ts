@@ -27,6 +27,7 @@ import {
   get_folder_broadcast_channel,
 } from "./cache";
 import {
+  build_undecryptable_folder,
   decrypt_folder,
   encrypt_folder_field,
   generate_folder_token,
@@ -143,8 +144,7 @@ export function use_folders(): UseFoldersReturn {
 
         if (
           response.data.folders.length > 0 &&
-          decrypted_folders.length === 0 &&
-          cached_folders.data.length > 0
+          decrypted_folders.length === 0
         ) {
           set_state((prev) => ({
             ...prev,
@@ -155,33 +155,42 @@ export function use_folders(): UseFoldersReturn {
           return;
         }
 
-        cached_folders.data = decrypted_folders;
-        cached_folders.total = decrypted_folders.length;
+        const undecryptable_folders = response.data.folders.filter(
+          (_folder: FolderDefinition, index: number) =>
+            decrypted_results[index] === null,
+        );
+
+        const visible_folders = [
+          ...decrypted_folders,
+          ...undecryptable_folders.map((folder: FolderDefinition) =>
+            build_undecryptable_folder(folder, t("common.unable_to_decrypt")),
+          ),
+        ];
+
+        cached_folders.data = visible_folders;
+        cached_folders.total = visible_folders.length;
 
         set_state({
-          folders: decrypted_folders,
+          folders: visible_folders,
           is_loading: false,
           error: null,
           total: response.data.total,
         });
 
-        const has_protected = decrypted_folders.some(
+        const has_protected = visible_folders.some(
           (f) => f.is_password_protected && f.password_set,
         );
 
         if (has_protected) {
           emit_protected_folders_ready();
         }
-      } catch (err) {
+      } catch {
         if (this_generation !== fetch_generation_ref.current) return;
 
         set_state((prev) => ({
           ...prev,
           is_loading: false,
-          error:
-            err instanceof Error
-              ? err.message
-              : t("common.failed_to_fetch_folders"),
+          error: t("common.failed_to_fetch_folders"),
         }));
       }
     },
@@ -467,6 +476,8 @@ export function use_folders(): UseFoldersReturn {
 
             return { ...prev, folders: previous };
           });
+          emit_folders_changed();
+          broadcast_folders_changed();
 
           return false;
         }
@@ -481,6 +492,8 @@ export function use_folders(): UseFoldersReturn {
 
           return { ...prev, folders: previous };
         });
+        emit_folders_changed();
+        broadcast_folders_changed();
 
         return false;
       }

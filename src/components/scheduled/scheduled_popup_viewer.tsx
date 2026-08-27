@@ -79,6 +79,7 @@ import {
   app_locale,
   get_display_time_zone,
 } from "@/utils/date_format";
+import { Spinner } from "@/components/ui/spinner";
 
 interface ScheduledData {
   id: string;
@@ -416,41 +417,50 @@ export function ScheduledPopupViewer({
       >
         <Button
           data-no-drag
+          aria-label={t("common.close")}
           className="h-7 w-7 text-txt-muted hover:text-txt-primary"
           size="icon"
           variant="ghost"
           onClick={on_close}
         >
-          <XMarkIcon className="w-4 h-4" />
+          <XMarkIcon aria-hidden="true" className="w-4 h-4" />
         </Button>
 
         {!is_fullscreen && (
           <Button
             data-no-drag
+            aria-label={
+              popup_size === "default"
+                ? t("common.expand")
+                : t("common.minimize")
+            }
             className="h-7 w-7 text-txt-muted hover:text-txt-primary"
             size="icon"
             variant="ghost"
             onClick={toggle_size}
           >
             {popup_size === "default" ? (
-              <ArrowsPointingOutIcon className="w-4 h-4" />
+              <ArrowsPointingOutIcon aria-hidden="true" className="w-4 h-4" />
             ) : (
-              <ArrowsPointingInIcon className="w-4 h-4" />
+              <ArrowsPointingInIcon aria-hidden="true" className="w-4 h-4" />
             )}
           </Button>
         )}
 
         <Button
           data-no-drag
+          aria-label={
+            is_fullscreen ? t("common.exit_fullscreen") : t("common.fullscreen")
+          }
           className="h-7 w-7 text-txt-muted hover:text-txt-primary"
           size="icon"
           variant="ghost"
           onClick={handle_fullscreen}
         >
           {is_fullscreen ? (
-            <ArrowsPointingInIcon className="w-4 h-4" />
+            <ArrowsPointingInIcon aria-hidden="true" className="w-4 h-4" />
           ) : (
-            <ArrowTopRightOnSquareIcon className="w-4 h-4" />
+            <ArrowTopRightOnSquareIcon aria-hidden="true" className="w-4 h-4" />
           )}
         </Button>
 
@@ -462,55 +472,59 @@ export function ScheduledPopupViewer({
 
         <SchedulePicker
           force_picker
+          on_schedule={handle_reschedule}
           scheduled_time={new Date(current_scheduled_at)}
           tooltip_key="common.reschedule"
           trigger={
             <Button
               data-no-drag
+              aria-label={t("common.reschedule")}
               className="h-7 w-7 text-txt-muted hover:text-txt-primary"
               disabled={is_rescheduling}
               size="icon"
               variant="ghost"
             >
-              <ClockIcon className="w-4 h-4" />
+              <ClockIcon aria-hidden="true" className="w-4 h-4" />
             </Button>
           }
-          on_schedule={handle_reschedule}
         />
 
         {on_edit && (
           <Button
             data-no-drag
+            aria-label={t("common.edit")}
             className="h-7 w-7 text-txt-muted hover:text-txt-primary"
             disabled={is_loading_content}
             size="icon"
             variant="ghost"
             onClick={handle_edit}
           >
-            <PencilIcon className="w-4 h-4" />
+            <PencilIcon aria-hidden="true" className="w-4 h-4" />
           </Button>
         )}
 
         <Button
           data-no-drag
+          aria-label={t("mail.cancel_scheduled_email")}
           className="h-7 w-7 text-txt-muted hover:text-red-500"
           disabled={is_cancelling}
           size="icon"
           variant="ghost"
           onClick={() => set_show_cancel_confirm(true)}
         >
-          <TrashIcon className="w-4 h-4" />
+          <TrashIcon aria-hidden="true" className="w-4 h-4" />
         </Button>
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
               data-no-drag
+              aria-label={t("common.more")}
               className="h-7 w-7 text-txt-muted hover:text-txt-primary"
               size="icon"
               variant="ghost"
             >
-              <EllipsisHorizontalIcon className="w-4 h-4" />
+              <EllipsisHorizontalIcon aria-hidden="true" className="w-4 h-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
@@ -547,8 +561,8 @@ export function ScheduledPopupViewer({
       <div className="flex-1 overflow-y-auto">
         <div className="p-4">
           <h1
-            dir="auto"
             className="text-lg font-semibold leading-snug mb-4 break-words text-txt-primary"
+            dir="auto"
           >
             {scheduled_data.subject || t("mail.no_subject")}
           </h1>
@@ -666,7 +680,7 @@ export function ScheduledPopupViewer({
                         <span className="min-w-14 flex-shrink-0 whitespace-nowrap pe-2 text-txt-muted">
                           {t("common.subject_label")}
                         </span>
-                        <span dir="auto" className="text-txt-secondary">
+                        <span className="text-txt-secondary" dir="auto">
                           {scheduled_data.subject || t("mail.no_subject")}
                         </span>
                       </div>
@@ -731,14 +745,16 @@ export function ScheduledPopupViewer({
           <Button
             className="flex-1"
             disabled={is_sending_now}
+            is_loading={is_sending_now}
             variant="depth"
             onClick={handle_send_now}
           >
             <PaperAirplaneIcon className="w-4 h-4" />
-            {is_sending_now ? t("common.sending") : t("common.send_now")}
+            {t("common.send_now")}
           </Button>
           <SchedulePicker
             force_picker
+            on_schedule={handle_reschedule}
             scheduled_time={new Date(current_scheduled_at)}
             tooltip_key="common.reschedule"
             trigger={
@@ -751,7 +767,6 @@ export function ScheduledPopupViewer({
                 {t("common.reschedule")}
               </button>
             }
-            on_schedule={handle_reschedule}
           />
           {on_edit && (
             <button
@@ -760,7 +775,7 @@ export function ScheduledPopupViewer({
               onClick={handle_edit}
             >
               <PencilIcon className="w-4 h-4" />
-              {is_loading_content ? t("common.loading") : t("common.edit")}
+              {is_loading_content ? <Spinner size="sm" /> : t("common.edit")}
             </button>
           )}
         </div>
@@ -768,9 +783,8 @@ export function ScheduledPopupViewer({
 
       <ConfirmationModal
         cancel_text={t("mail.keep_scheduled")}
-        confirm_text={
-          is_cancelling ? t("mail.cancelling") : t("mail.cancel_email")
-        }
+        confirm_text={t("mail.cancel_email")}
+        is_loading={is_cancelling}
         is_open={show_cancel_confirm}
         message={t("mail.cancel_scheduled_confirmation")}
         on_cancel={() => set_show_cancel_confirm(false)}

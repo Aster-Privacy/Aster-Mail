@@ -23,7 +23,6 @@ import { AnimatePresence, motion } from "framer-motion";
 import { TagIcon } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
-import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import {
   EmailTag,
@@ -248,13 +247,13 @@ export function CreateTagModal({ is_open, on_close }: CreateTagModalProps) {
               <Button
                 className="text-white"
                 disabled={!trimmed_name || is_creating || !!validation_error}
+                is_loading={is_creating}
                 size="xl"
                 style={{ backgroundColor: selected_color }}
                 variant="depth"
                 onClick={handle_create}
               >
-                {is_creating ? t("common.creating") : t("common.create_label")}
-                {is_creating && <Spinner className="ms-2" size="md" />}
+                {t("common.create_label")}
               </Button>
             </div>
           </motion.div>

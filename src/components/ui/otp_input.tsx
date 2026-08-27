@@ -44,10 +44,26 @@ export function OtpInput({
   onComplete,
 }: OtpInputProps) {
   const box_refs = useRef<Array<HTMLInputElement | null>>([]);
+  const autofocus_done_ref = useRef(false);
+  const restore_index_ref = useRef<number | null>(null);
 
   useEffect(() => {
-    if (autofocus) box_refs.current[0]?.focus();
-  }, [autofocus]);
+    if (disabled) return;
+
+    if (autofocus && !autofocus_done_ref.current) {
+      autofocus_done_ref.current = true;
+      box_refs.current[0]?.focus();
+
+      return;
+    }
+
+    const restore_index = restore_index_ref.current;
+
+    if (restore_index === null) return;
+
+    restore_index_ref.current = null;
+    box_refs.current[restore_index]?.focus();
+  }, [autofocus, disabled]);
 
   const digits = Array.from({ length }, (_, i) => value[i] ?? "");
 
@@ -148,6 +164,9 @@ export function OtpInput({
           maxLength={1}
           type="text"
           value={digit}
+          onBlur={(e) => {
+            restore_index_ref.current = e.target.disabled ? index : null;
+          }}
           onChange={(e) => handle_change(index, e.target.value)}
           onFocus={(e) => e.target.select()}
           onKeyDown={(e) => handle_key_down(index, e)}

@@ -41,7 +41,9 @@ const CHECK_INTERVAL_MS = 6 * 60 * 60 * 1000;
 export function UpdateBanner() {
   const { t } = use_i18n();
   const [info, set_info] = useState<DesktopUpdateInfo | null>(null);
-  const [dismissed, set_dismissed] = useState(false);
+  const [dismissed_version, set_dismissed_version] = useState<string | null>(
+    null,
+  );
   const [installing, set_installing] = useState(false);
   const [progress, set_progress] = useState<UpdateProgress | null>(null);
 
@@ -71,7 +73,7 @@ export function UpdateBanner() {
     };
   }, []);
 
-  if (!info || dismissed) return null;
+  if (!info || dismissed_version === info.version) return null;
 
   const percent = update_progress_percent(progress);
 
@@ -92,7 +94,7 @@ export function UpdateBanner() {
 
   const handle_dismiss = () => {
     mark_version_notified(info.version);
-    set_dismissed(true);
+    set_dismissed_version(info.version);
   };
 
   return (

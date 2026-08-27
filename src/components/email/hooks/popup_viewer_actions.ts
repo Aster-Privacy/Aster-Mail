@@ -46,7 +46,10 @@ import {
   emit_mail_items_removed,
 } from "@/hooks/mail_events";
 import { print_email } from "@/utils/print_email";
-import { execute_unsubscribe } from "@/utils/unsubscribe_detector";
+import {
+  execute_unsubscribe,
+  get_manual_unsubscribe_url,
+} from "@/utils/unsubscribe_detector";
 import { persist_unsubscribe } from "@/hooks/use_unsubscribed_senders";
 import {
   adjust_stats_trash,
@@ -611,9 +614,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
             );
           }
         } else {
-          const url =
-            unsubscribe_info.unsubscribe_link ||
-            unsubscribe_info.unsubscribe_mailto;
+          const url = get_manual_unsubscribe_url(unsubscribe_info);
           const lockdown = is_any_lockdown_active();
 
           show_action_toast({
@@ -621,12 +622,13 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
             action_type: "not_spam",
             email_ids: [],
             duration_ms: 15000,
-            ...(!lockdown && {
-              action_label: deps.t("mail.open_unsubscribe_page"),
-              on_undo: async () => {
-                if (url) open_external(url);
-              },
-            }),
+            ...(!lockdown &&
+              url && {
+                action_label: deps.t("mail.open_unsubscribe_page"),
+                on_undo: async () => {
+                  open_external(url);
+                },
+              }),
           });
         }
       } catch {

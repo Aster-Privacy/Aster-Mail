@@ -18,7 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { copy_text_or_throw } from "@/utils/copy_text";
 import type { TranslationKey } from "@/lib/i18n/types";
 
 import { useState, useCallback, useEffect } from "react";
@@ -31,6 +30,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
+import { copy_text_or_throw } from "@/utils/copy_text";
 import { EmailTag } from "@/components/ui/email_tag";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
@@ -67,6 +67,7 @@ import {
   app_locale,
   get_display_time_zone,
 } from "@/utils/date_format";
+import { Spinner } from "@/components/ui/spinner";
 
 interface ScheduledData {
   id: string;
@@ -302,10 +303,11 @@ export function SplitScheduledViewer({
               </button>
             </div>
             <button
+              aria-label={t("common.close")}
               className="p-1.5 rounded-[14px] transition-colors hover:bg-surf-hover flex-shrink-0 -mt-1 -me-1 text-txt-muted"
               onClick={on_close}
             >
-              <XMarkIcon className="w-5 h-5" />
+              <XMarkIcon aria-hidden="true" className="w-5 h-5" />
             </button>
           </div>
 
@@ -406,14 +408,16 @@ export function SplitScheduledViewer({
         <Button
           className="flex-1"
           disabled={is_sending_now}
+          is_loading={is_sending_now}
           variant="depth"
           onClick={handle_send_now}
         >
           <PaperAirplaneIcon className="w-4 h-4" />
-          {is_sending_now ? t("common.sending") : t("common.send_now")}
+          {t("common.send_now")}
         </Button>
         <SchedulePicker
           force_picker
+          on_schedule={handle_reschedule}
           scheduled_time={new Date(current_scheduled_at)}
           tooltip_key="common.reschedule"
           trigger={
@@ -426,7 +430,6 @@ export function SplitScheduledViewer({
               {t("common.reschedule")}
             </button>
           }
-          on_schedule={handle_reschedule}
         />
         {on_edit && (
           <button
@@ -435,23 +438,23 @@ export function SplitScheduledViewer({
             onClick={handle_edit}
           >
             <PencilIcon className="w-4 h-4" />
-            {is_loading_content ? t("common.loading") : t("common.edit")}
+            {is_loading_content ? <Spinner size="sm" /> : t("common.edit")}
           </button>
         )}
         <button
+          aria-label={t("mail.cancel_scheduled_email")}
           className="h-10 w-10 flex items-center justify-center rounded-[10px] transition-colors hover:bg-surf-hover disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={is_cancelling}
           onClick={() => set_show_cancel_confirm(true)}
         >
-          <TrashIcon className="w-4 h-4 text-red-500" />
+          <TrashIcon aria-hidden="true" className="w-4 h-4 text-red-500" />
         </button>
       </div>
 
       <ConfirmationModal
         cancel_text={t("mail.keep_scheduled")}
-        confirm_text={
-          is_cancelling ? t("mail.cancelling") : t("mail.cancel_email")
-        }
+        confirm_text={t("mail.cancel_email")}
+        is_loading={is_cancelling}
         is_open={show_cancel_confirm}
         message={t("mail.cancel_scheduled_confirmation")}
         on_cancel={() => set_show_cancel_confirm(false)}

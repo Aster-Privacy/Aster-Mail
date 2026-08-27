@@ -18,7 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { copy_text_or_throw } from "@/utils/copy_text";
 import type { TranslationKey } from "@/lib/i18n/types";
 import type { DnsRecord } from "@/services/api/domains";
 
@@ -26,6 +25,7 @@ import { useCallback } from "react";
 import { ClipboardDocumentIcon } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
+import { copy_text_or_throw } from "@/utils/copy_text";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { format_record_host, type DnsProvider } from "@/data/dns_providers";
@@ -82,7 +82,7 @@ export function DnsRecordCard({
           className={`text-xs px-2 py-0.5 rounded ${
             record.required === false
               ? "bg-surf-tertiary text-txt-muted"
-              : "bg-accent-primary/10 text-accent-primary"
+              : "bg-brand/10 text-brand"
           }`}
         >
           {record.required === false

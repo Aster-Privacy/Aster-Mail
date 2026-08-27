@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { LockClosedIcon, CheckCircleIcon } from "@heroicons/react/24/solid";
 import { ShieldCheckIcon } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
@@ -34,6 +35,7 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { Spinner } from "@/components/ui/spinner";
+import { use_auth } from "@/contexts/auth_context";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -56,6 +58,7 @@ import { PlanCard, Segmented } from "@/components/settings/billing/plan_card";
 import { format_bytes } from "@/lib/utils";
 import {
   close_upgrade_modal,
+  is_on_auth_route,
   show_plan_limit_upgrade,
   show_storage_full_upgrade,
   use_upgrade_state,
@@ -127,6 +130,8 @@ const GRID_COLUMNS: Record<number, string> = {
 function upgrade_tiers(plan_code: string | null): PlanTier[] {
   const index = PLAN_TIERS.findIndex((tier) => tier.id === plan_code);
 
+  if (index === -1 && plan_code && plan_code !== "free") return [];
+
   return PLAN_TIERS.slice(index + 1);
 }
 
@@ -144,7 +149,10 @@ function is_desktop(): boolean {
 
 export function UpgradeModal() {
   const { t } = use_i18n();
+  const location = useLocation();
   const state = use_upgrade_state();
+  const { is_authenticated } = use_auth();
+  const is_blocked = is_on_auth_route(location.pathname) || !is_authenticated;
   const { limits, is_loading: is_loading_limits, refresh } = use_plan_limits();
   const [currency, set_currency] = useState("usd");
   const [interval, set_interval] = useState<"month" | "year">("year");
@@ -191,11 +199,17 @@ export function UpgradeModal() {
   }, []);
 
   useEffect(() => {
-    if (state.is_open) {
+    if (is_blocked && state.is_open) {
+      close_upgrade_modal();
+    }
+  }, [is_blocked, state.is_open]);
+
+  useEffect(() => {
+    if (state.is_open && !is_blocked) {
       refresh(true);
       set_is_starting(false);
     }
-  }, [state.is_open, refresh]);
+  }, [state.is_open, is_blocked, refresh]);
 
   useEffect(() => {
     const handle_focus = () => {
@@ -327,7 +341,7 @@ export function UpgradeModal() {
         }
 
         request_cache.invalidate("/payments/v1");
-        await refresh();
+        await refresh(true);
         show_toast(t("settings.payment_success"), "success");
         close_upgrade_modal();
         set_is_starting(false);
@@ -389,7 +403,11 @@ export function UpgradeModal() {
     : 0;
 
   return (
-    <Modal is_open={state.is_open} on_close={close_upgrade_modal} size="2xl">
+    <Modal
+      is_open={state.is_open && !is_blocked}
+      on_close={close_upgrade_modal}
+      size="2xl"
+    >
       <ModalHeader>
         <ModalTitle>{title}</ModalTitle>
         <ModalDescription>{description}</ModalDescription>

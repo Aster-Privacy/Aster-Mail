@@ -290,10 +290,7 @@ export function SessionSection({
                 onClick={() => set_show_confirm_all(true)}
               >
                 {revoking_all || logout_others_loading ? (
-                  <>
-                    {t("settings.signing_out")}
-                    <Spinner className="ms-1.5" size="sm" />
-                  </>
+                  <Spinner size="sm" />
                 ) : (
                   <>
                     <TrashIcon className="w-3.5 h-3.5 me-1.5" />

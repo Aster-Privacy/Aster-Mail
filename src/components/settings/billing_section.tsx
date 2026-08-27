@@ -19,9 +19,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
-import { safe_local_set } from "@/lib/safe_storage";
 import { loadStripe } from "@stripe/stripe-js";
 
+import { safe_local_set } from "@/lib/safe_storage";
+import {
+  consume_payment_method_request,
+  OPEN_PAYMENT_METHODS_EVENT,
+} from "@/lib/payment_action";
 import {
   get_subscription,
   get_available_plans,
@@ -50,6 +54,7 @@ import {
 import { request_cache } from "@/services/api/request_cache";
 import { use_mail_stats, invalidate_mail_stats } from "@/hooks/use_mail_stats";
 import { show_toast } from "@/components/toast/simple_toast";
+import { addon_return_url } from "@/lib/addon_return_url";
 import { use_i18n } from "@/lib/i18n/context";
 import {
   PLAN_TIERS,
@@ -66,6 +71,7 @@ import { CurrentPlanCard } from "@/components/settings/billing/current_plan_card
 import { CryptoResumeBanner } from "@/components/settings/billing/crypto_resume_banner";
 import { ResumeCheckoutCard } from "@/components/settings/billing/resume_checkout_card";
 import { AvailablePlansSection } from "@/components/settings/billing/available_plans_section";
+import { PlanComparisonSection } from "@/components/settings/billing/plan_comparison_section";
 import { StorageAddonsSection } from "@/components/settings/billing/storage_addons_section";
 import { CreditsSection } from "@/components/settings/billing/credits_section";
 import { AcademicDiscountSection } from "@/components/settings/billing/academic_discount_section";
@@ -90,6 +96,7 @@ export function BillingSection() {
     useState<SubscriptionResponse | null>(null);
   const [plans, set_plans] = useState<AvailablePlan[]>([]);
   const [history, set_history] = useState<BillingHistoryItem[]>([]);
+  const [history_load_failed, set_history_load_failed] = useState(false);
   const [is_action_loading, set_is_action_loading] = useState(false);
   const [show_cancel_dialog, set_show_cancel_dialog] = useState(false);
   const [show_checkout_modal, set_show_checkout_modal] = useState(false);
@@ -127,18 +134,44 @@ export function BillingSection() {
   );
   const [cancel_reason_text, set_cancel_reason_text] = useState("");
   const [show_payment_methods, set_show_payment_methods] = useState(false);
+  const [auto_add_card, set_auto_add_card] = useState(false);
   const [show_manage_plan, set_show_manage_plan] = useState(false);
   const [credit_balance, set_credit_balance] =
     useState<CreditBalanceResponse | null>(null);
   const [academic_status, set_academic_status] =
     useState<AcademicDiscountStatusResponse | null>(null);
   const [is_initial_load, set_is_initial_load] = useState(true);
+  const [plans_load_failed, set_plans_load_failed] = useState(false);
   const [subscription_load_failed, set_subscription_load_failed] =
     useState(false);
   const [show_crypto_modal, set_show_crypto_modal] = useState(false);
   const [crypto_plan, set_crypto_plan] = useState<AvailablePlan | null>(null);
   const [crypto_resume, set_crypto_resume] =
     useState<CryptoResumeSelection | null>(null);
+
+  useEffect(() => {
+    const open_payment_methods = () => {
+      set_auto_add_card(true);
+      set_show_payment_methods(true);
+    };
+
+    if (consume_payment_method_request()) open_payment_methods();
+
+    const handle_request = () => {
+      consume_payment_method_request();
+      open_payment_methods();
+    };
+
+    window.addEventListener(OPEN_PAYMENT_METHODS_EVENT, handle_request);
+
+    return () => {
+      window.removeEventListener(OPEN_PAYMENT_METHODS_EVENT, handle_request);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!show_payment_methods) set_auto_add_card(false);
+  }, [show_payment_methods]);
 
   useEffect(() => {
     if (plans.length === 0) return;
@@ -200,59 +233,34 @@ export function BillingSection() {
         star: [
           { label: t("settings.plan_feat_storage_50"), on: true },
           { label: t("settings.plan_feat_aliases_15"), on: true },
+          {
+            label: t("settings.plan_f_ghost_aliases", { value: "25" }),
+            on: true,
+          },
           { label: t("settings.plan_feat_domains_5"), on: true },
           { label: t("settings.plan_feat_attachments_50"), on: true },
-          { label: t("settings.plan_feat_mail_rules_unlimited"), on: true },
-          { label: t("settings.plan_feat_e2ee"), on: true },
-          { label: t("settings.plan_feat_zero_knowledge"), on: true },
-          { label: t("settings.plan_feat_tracker"), on: true },
-          { label: t("settings.plan_feat_advanced_aliases"), on: true },
           { label: t("settings.plan_feat_catch_all"), on: true },
-          { label: t("settings.plan_feat_auto_forward"), on: true },
-          { label: t("settings.plan_feat_priority_support"), on: true },
           { label: t("settings.plan_feat_imap_smtp"), on: true },
-          { label: t("settings.plan_feat_folder_lock"), on: false },
-          { label: t("settings.plan_feat_smart_folders"), on: false },
-          { label: t("settings.plan_feat_vanguard"), on: false },
-          { label: t("settings.lockdown_title"), on: false },
+          { label: t("settings.plan_feat_priority_support"), on: true },
         ],
         nova: [
           { label: t("settings.plan_feat_storage_500"), on: true },
           { label: t("settings.plan_feat_aliases_unlimited"), on: true },
           { label: t("settings.plan_feat_domains_30"), on: true },
           { label: t("settings.plan_feat_attachments_100"), on: true },
-          { label: t("settings.plan_feat_mail_rules_unlimited"), on: true },
-          { label: t("settings.plan_feat_e2ee"), on: true },
-          { label: t("settings.plan_feat_zero_knowledge"), on: true },
-          { label: t("settings.plan_feat_tracker"), on: true },
-          { label: t("settings.plan_feat_advanced_aliases"), on: true },
-          { label: t("settings.plan_feat_catch_all"), on: true },
-          { label: t("settings.plan_feat_auto_forward"), on: true },
-          { label: t("settings.plan_feat_priority_support"), on: true },
-          { label: t("settings.plan_feat_imap_smtp"), on: true },
-          { label: t("settings.plan_feat_folder_lock"), on: true },
-          { label: t("settings.plan_feat_smart_folders"), on: true },
           { label: t("settings.plan_feat_vanguard"), on: true },
-          { label: t("settings.lockdown_title"), on: true },
+          { label: t("settings.plan_feat_smart_folders"), on: true },
+          { label: t("settings.plan_feat_folder_lock"), on: true },
+          { label: t("settings.plan_f_external_accounts"), on: true },
         ],
         supernova: [
           { label: t("settings.plan_feat_storage_5tb"), on: true },
-          { label: t("settings.plan_feat_aliases_unlimited"), on: true },
           { label: t("settings.plan_feat_domains_unlimited"), on: true },
           { label: t("settings.plan_feat_attachments_250"), on: true },
-          { label: t("settings.plan_feat_mail_rules_unlimited"), on: true },
-          { label: t("settings.plan_feat_e2ee"), on: true },
-          { label: t("settings.plan_feat_zero_knowledge"), on: true },
-          { label: t("settings.plan_feat_tracker"), on: true },
-          { label: t("settings.plan_feat_advanced_aliases"), on: true },
-          { label: t("settings.plan_feat_catch_all"), on: true },
-          { label: t("settings.plan_feat_auto_forward"), on: true },
-          { label: t("settings.plan_feat_priority_support"), on: true },
-          { label: t("settings.plan_feat_imap_smtp"), on: true },
-          { label: t("settings.plan_feat_folder_lock"), on: true },
-          { label: t("settings.plan_feat_smart_folders"), on: true },
-          { label: t("settings.plan_feat_vanguard"), on: true },
-          { label: t("settings.lockdown_title"), on: true },
+          { label: t("settings.feature_instant_alias_delete"), on: true },
+          { label: t("settings.plan_f_encrypted_exports"), on: true },
+          { label: t("settings.plan_f_support_dedicated"), on: true },
+          { label: t("settings.plan_f_early_access"), on: true },
         ],
       }),
       [t],
@@ -301,9 +309,15 @@ export function BillingSection() {
       }
       if (plans_response.data) {
         set_plans(plans_response.data.plans);
+        set_plans_load_failed(false);
+      } else {
+        set_plans_load_failed(true);
       }
       if (history_response.data) {
         set_history(history_response.data.items);
+        set_history_load_failed(false);
+      } else {
+        set_history_load_failed(true);
       }
       if (limits_response.data) {
         set_plan_limits(limits_response.data);
@@ -318,6 +332,7 @@ export function BillingSection() {
     } catch (error) {
       if (import.meta.env.DEV) console.error(error);
       set_subscription_load_failed(true);
+      set_plans_load_failed(true);
 
       return;
     } finally {
@@ -402,6 +417,8 @@ export function BillingSection() {
       request_cache.invalidate("/sync/v1");
       invalidate_mail_stats();
       load_data();
+    }
+    if (params.get("addon_purchase")) {
       const url = new URL(window.location.href);
 
       url.searchParams.delete("addon_purchase");
@@ -625,6 +642,8 @@ export function BillingSection() {
       const response = await purchase_storage_addon(
         addon.id,
         credit_balance?.balance_cents,
+        addon_return_url("success"),
+        addon_return_url("cancelled"),
       );
       const url = response.data?.url;
 
@@ -859,6 +878,9 @@ export function BillingSection() {
         handle_currency_change={handle_currency_change}
         is_action_loading={is_action_loading}
         on_family_plan_change={handle_family_plan_change}
+        on_reload_plans={() => {
+          void load_data();
+        }}
         on_tauri_checkout_opened={() => {
           plan_before_checkout_ref.current = subscription?.plan.code ?? null;
           pending_tauri_checkout_ref.current = true;
@@ -866,21 +888,13 @@ export function BillingSection() {
         on_upgrade={handle_select_plan}
         plan_features={plan_features}
         plans={plans}
+        plans_load_failed={plans_load_failed}
         preferred_currency={preferred_currency}
         set_billing_period={set_billing_period}
         subscription={subscription}
       />
 
-      <div className="flex justify-center mt-2 mb-4">
-        <a
-          className="text-sm font-medium text-blue-500 hover:text-blue-400 transition-colors underline-offset-4 hover:underline"
-          href="https://astermail.org/pricing#features"
-          rel="noopener noreferrer"
-          target="_blank"
-        >
-          {t("settings.view_all_features")}
-        </a>
-      </div>
+      <PlanComparisonSection current_plan_code={subscription?.plan.code} />
 
       <StorageAddonsSection
         active_addons={active_addons}
@@ -899,7 +913,11 @@ export function BillingSection() {
         set_selected_storage={set_selected_storage}
       />
 
-      <BillingHistorySection history={history} />
+      <BillingHistorySection
+        history={history}
+        load_failed={history_load_failed}
+        on_retry={() => void load_data()}
+      />
 
       <CreditsSection
         credit_balance={credit_balance}
@@ -1060,6 +1078,7 @@ export function BillingSection() {
       <BillingDialogs
         academic_promo_code={academic_status?.promo_code ?? null}
         addon_to_cancel={addon_to_cancel}
+        auto_add_card={auto_add_card}
         billing_period={billing_period}
         cancel_password={cancel_password}
         cancel_password_error={cancel_password_error}

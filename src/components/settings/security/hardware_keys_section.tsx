@@ -380,10 +380,11 @@ export function HardwareKeysSection() {
           </Button>
           <Button
             disabled={is_registering}
+            is_loading={is_registering}
             variant="depth"
             onClick={handle_register}
           >
-            {is_registering ? t("common.loading") : t("common.continue")}
+            {t("common.continue")}
           </Button>
         </ModalFooter>
       </Modal>

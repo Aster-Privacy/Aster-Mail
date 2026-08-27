@@ -55,6 +55,8 @@ export function LinkDialog({
   const [internal_open, set_internal_open] = useState(false);
   const url_input_ref = useRef<HTMLInputElement>(null);
   const closing_ref = useRef(false);
+  const close_timer_ref = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const frames_ref = useRef<number[]>([]);
 
   useEffect(() => {
     if (open) {
@@ -62,21 +64,39 @@ export function LinkDialog({
       set_url("https://");
       set_text(selected_text || "");
       set_error("");
-      requestAnimationFrame(() => {
-        set_internal_open(true);
-        requestAnimationFrame(() => url_input_ref.current?.focus());
-      });
+      frames_ref.current.push(
+        requestAnimationFrame(() => {
+          set_internal_open(true);
+          frames_ref.current.push(
+            requestAnimationFrame(() => url_input_ref.current?.focus()),
+          );
+        }),
+      );
     } else {
       closing_ref.current = false;
       set_internal_open(false);
     }
   }, [open, selected_text]);
 
+  useEffect(
+    () => () => {
+      if (close_timer_ref.current !== null) {
+        clearTimeout(close_timer_ref.current);
+        close_timer_ref.current = null;
+      }
+      for (const frame of frames_ref.current) {
+        cancelAnimationFrame(frame);
+      }
+      frames_ref.current = [];
+    },
+    [],
+  );
+
   const close_with_animation = useCallback((action: () => void) => {
     if (closing_ref.current) return;
     closing_ref.current = true;
     set_internal_open(false);
-    setTimeout(action, 150);
+    close_timer_ref.current = setTimeout(action, 150);
   }, []);
 
   const handle_submit = useCallback(() => {

@@ -86,6 +86,7 @@ function LockdownBanner({
       if (e.key?.startsWith("aster:lockdown:")) update();
     };
 
+    update();
     window.addEventListener("storage", on_storage);
     window.addEventListener(LOCKDOWN_CHANGED_EVENT, update);
 
@@ -167,12 +168,15 @@ const sidebar_base = ({
     state: folders_state,
     unread_counts: folder_unread_counts,
     reorder_folders,
+    refresh: refresh_folders,
   } = use_folders();
-  const { state: tags_state } = use_tags();
+  const { state: tags_state, refresh: refresh_tags } = use_tags();
   const {
     aliases,
     is_loading: aliases_loading,
+    load_failed: aliases_load_failed,
     unread_counts: alias_unread_counts,
+    refresh: refresh_aliases,
   } = use_sidebar_aliases();
   const { preferences, update_preference } = use_preferences();
 
@@ -318,6 +322,18 @@ const sidebar_base = ({
   const folder_refs = useRef<Record<string, HTMLButtonElement | null>>({});
   const tag_refs = useRef<Record<string, HTMLButtonElement | null>>({});
   const alias_refs = useRef<Record<string, HTMLButtonElement | null>>({});
+  const create_alias_timer_ref = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+
+  useEffect(
+    () => () => {
+      if (create_alias_timer_ref.current !== null) {
+        clearTimeout(create_alias_timer_ref.current);
+      }
+    },
+    [],
+  );
 
   const handle_folder_lock = useCallback(
     (folder: FolderModalData, password_set: boolean) => {
@@ -840,8 +856,10 @@ const sidebar_base = ({
             handle_nav_click={handle_nav_click}
             is_collapsed={is_collapsed}
             is_loading={folders_state.is_loading}
+            load_failed={Boolean(folders_state.error)}
             navigate={navigate}
             on_drop_emails={on_drop_to_folder}
+            on_retry={() => void refresh_folders()}
             on_toggle_section={toggle_folders_collapsed}
             reorder_folders={reorder_folders}
             section_collapsed={preferences.sidebar_folders_collapsed}
@@ -859,8 +877,10 @@ const sidebar_base = ({
             is_collapsed={is_collapsed}
             is_loading={tags_state.is_loading}
             labels_expanded={labels_expanded}
+            load_failed={Boolean(tags_state.error)}
             navigate={navigate}
             on_drop_emails={on_drop_to_tag}
+            on_retry={() => void refresh_tags()}
             on_toggle_section={toggle_labels_collapsed}
             section_collapsed={preferences.sidebar_labels_collapsed}
             set_is_create_tag_open={set_is_create_tag_open}
@@ -878,15 +898,23 @@ const sidebar_base = ({
             handle_nav_click={handle_nav_click}
             is_collapsed={is_collapsed}
             is_loading={aliases_loading}
+            load_failed={aliases_load_failed}
             navigate={navigate}
             on_create_alias={() => {
               on_settings_click("aliases");
-              setTimeout(() => {
+
+              if (create_alias_timer_ref.current !== null) {
+                clearTimeout(create_alias_timer_ref.current);
+              }
+
+              create_alias_timer_ref.current = setTimeout(() => {
+                create_alias_timer_ref.current = null;
                 window.dispatchEvent(
                   new CustomEvent("astermail:auto-open-create-alias"),
                 );
               }, 100);
             }}
+            on_retry={() => void refresh_aliases()}
             on_settings_click={on_settings_click}
             on_toggle_section={toggle_aliases_collapsed}
             section_collapsed={preferences.sidebar_aliases_collapsed}

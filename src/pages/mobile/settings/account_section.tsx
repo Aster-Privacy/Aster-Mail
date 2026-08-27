@@ -155,15 +155,8 @@ function RecoveryModal({
         <Button variant="ghost" onClick={on_close}>
           {t("common.cancel")}
         </Button>
-        <Button disabled={saving} onClick={handle_save}>
-          {saving ? (
-            <>
-              {t("common.saving")}
-              <Spinner className="ms-2" size="md" />
-            </>
-          ) : (
-            t("common.save")
-          )}
+        <Button disabled={saving} is_loading={saving} onClick={handle_save}>
+          {t("common.save")}
         </Button>
       </ModalFooter>
     </Modal>

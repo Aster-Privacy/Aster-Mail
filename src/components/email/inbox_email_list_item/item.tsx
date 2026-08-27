@@ -51,6 +51,7 @@ import {
 } from "./helpers";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { strip_preview_filler } from "@/utils/preview_text";
 import {
   RATCHET_UNDECRYPTABLE_SENTINEL,
   PGP_UNDECRYPTABLE_SENTINEL,
@@ -733,7 +734,7 @@ export const InboxEmailListItem = memo(
                   )}
                   dir="auto"
                 >
-                  {email.subject || t("mail.no_subject")}
+                  {strip_preview_filler(email.subject) || t("mail.no_subject")}
                 </span>
                 {show_email_preview &&
                   (search_preview_node || email.preview) && (

@@ -31,6 +31,8 @@ import {
 } from "@heroicons/react/24/outline";
 import { Switch, UpgradeBtn } from "@aster/ui";
 
+import { SettingsSaveIndicatorInline } from "./settings_save_indicator";
+
 import { useTheme } from "@/contexts/theme_context";
 import {
   label_to_language_code,
@@ -57,7 +59,6 @@ import { TimeZonePicker } from "@/components/settings/appearance/time_zone_picke
 import { get_supported_time_zones } from "@/lib/time_zones";
 import { resolve_list_density } from "@/lib/list_density";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
-import { SettingsSaveIndicatorInline } from "./settings_save_indicator";
 import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
 import {
   FONT_OPTIONS,
@@ -96,8 +97,8 @@ export function AppearanceSection() {
     use_preferences();
   const { t, set_language } = use_i18n();
   const [show_more_themes, set_show_more_themes] = useState(false);
-  const { limits } = use_plan_limits();
-  const is_paid_plan = !!limits && limits.plan_code !== "free";
+  const { limits, load_failed: plan_load_failed } = use_plan_limits();
+  const is_paid_plan = limits ? limits.plan_code !== "free" : plan_load_failed;
   const effective_theme_fields = get_effective_theme_fields(preferences);
   const theme_sync_enabled = is_theme_sync_enabled(preferences);
 

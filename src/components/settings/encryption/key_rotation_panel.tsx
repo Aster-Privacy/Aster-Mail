@@ -18,7 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { copy_text_or_throw } from "@/utils/copy_text";
 import type {
   PgpKeyInfo,
   RecoveryCodesInfo,
@@ -36,6 +35,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
+import { copy_text_or_throw } from "@/utils/copy_text";
 import { InfoPopover } from "@/components/ui/info_popover";
 import { use_i18n } from "@/lib/i18n/context";
 import { clamp_password } from "@/services/sanitize";
@@ -121,6 +121,7 @@ export function KeyRotationPanel({
   regenerate_totp_required,
   regenerate_error,
   codes_key,
+  recovery_info,
   codes_remaining,
   codes_total,
   codes_used,
@@ -356,10 +357,12 @@ export function KeyRotationPanel({
           <div className="mt-2 h-px bg-edge-secondary" />
         </div>
         <p className="text-sm mb-4 text-txt-muted">
-          {t("settings.codes_remaining_count", {
-            remaining: codes_remaining,
-            total: codes_total,
-          })}
+          {recovery_info
+            ? t("settings.codes_remaining_count", {
+                remaining: codes_remaining,
+                total: codes_total,
+              })
+            : t("common.something_went_wrong_try_again")}
         </p>
 
         <div className="rounded-lg bg-surf-tertiary border border-edge-secondary">
@@ -382,18 +385,20 @@ export function KeyRotationPanel({
               )}
             </div>
             <div className="flex gap-1">
-              {Array.from({ length: codes_total }).map((_, i) => (
-                <div
-                  key={i}
-                  className="flex-1 h-1.5 rounded-full"
-                  style={{
-                    backgroundColor:
-                      i < codes_remaining
-                        ? "var(--accent-color)"
-                        : "var(--border-secondary)",
-                  }}
-                />
-              ))}
+              {(recovery_info ? Array.from({ length: codes_total }) : []).map(
+                (_, i) => (
+                  <div
+                    key={i}
+                    className="flex-1 h-1.5 rounded-full"
+                    style={{
+                      backgroundColor:
+                        i < codes_remaining
+                          ? "var(--accent-color)"
+                          : "var(--border-secondary)",
+                    }}
+                  />
+                ),
+              )}
             </div>
           </div>
 

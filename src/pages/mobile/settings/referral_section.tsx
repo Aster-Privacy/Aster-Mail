@@ -37,7 +37,7 @@ export function ReferralSection({
       <SettingsHeader
         on_back={on_back}
         on_close={on_close}
-        title={t("settings.refer_a_friend")}
+        title={t("settings.invite_friends")}
       />
       <div className="flex-1 overflow-y-auto px-4 py-4 pb-8">
         <ReferralTab />

@@ -375,6 +375,7 @@ export function BehaviorSection() {
       }
     } else {
       set_mailto_registered(false);
+      localStorage.setItem("aster:mailto_handler", "false");
       try {
         const unregister = (
           navigator as Navigator & {
@@ -382,14 +383,20 @@ export function BehaviorSection() {
           }
         ).unregisterProtocolHandler;
 
-        unregister?.call(
+        if (!unregister) {
+          show_toast(t("settings.mailto_unregister_manual"), "info");
+
+          return;
+        }
+
+        unregister.call(
           navigator,
           "mailto",
           `${window.location.origin}/compose?to=%s`,
         );
-        localStorage.setItem("aster:mailto_handler", "false");
       } catch (caught) {
         ignore_error("settings/behavior_section:handle_mailto_toggle", caught);
+        show_toast(t("settings.mailto_unregister_manual"), "info");
       }
     }
   };

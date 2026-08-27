@@ -55,6 +55,7 @@ export interface PlanCardProps {
   cta_disabled: boolean;
   on_cta: () => void;
   features: PlanFeature[];
+  lead_in?: string | null;
   compact?: boolean;
 }
 
@@ -73,6 +74,7 @@ export function PlanCard({
   cta_disabled,
   on_cta,
   features,
+  lead_in,
   compact = false,
 }: PlanCardProps) {
   const highlighted = featured || is_current;
@@ -147,36 +149,41 @@ export function PlanCard({
         {cta_label}
       </Button>
 
-      <ul
-        className={`border-t space-y-2.5 list-none ${
-          compact ? "mt-4 pt-4" : "mt-5 pt-5"
-        }`}
+      <div
+        className={`border-t ${compact ? "mt-4 pt-4" : "mt-5 pt-5"}`}
         style={{
           borderTopColor: featured
             ? "color-mix(in srgb, var(--accent-color) 40%, transparent)"
             : "var(--border-secondary)",
         }}
       >
-        {features.map((feature, i) => (
-          <li
-            key={i}
-            className="flex items-start gap-2.5 text-sm text-txt-secondary"
-          >
-            {feature.on ? (
-              <CheckCircleIcon
-                className="w-[18px] h-[18px] flex-shrink-0 mt-0.5"
-                style={{ color: "var(--accent-blue)" }}
-              />
-            ) : (
-              <XCircleIcon
-                className="w-[18px] h-[18px] flex-shrink-0 mt-0.5"
-                style={{ color: "var(--color-danger)" }}
-              />
-            )}
-            <span>{render_feature_label(feature.label)}</span>
-          </li>
-        ))}
-      </ul>
+        {lead_in && (
+          <p className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-txt-muted">
+            {lead_in}
+          </p>
+        )}
+        <ul className="space-y-2.5 list-none">
+          {features.map((feature, i) => (
+            <li
+              key={i}
+              className="flex items-start gap-2.5 text-sm text-txt-secondary"
+            >
+              {feature.on ? (
+                <CheckCircleIcon
+                  className="w-[18px] h-[18px] flex-shrink-0 mt-0.5"
+                  style={{ color: "var(--accent-blue)" }}
+                />
+              ) : (
+                <XCircleIcon
+                  className="w-[18px] h-[18px] flex-shrink-0 mt-0.5"
+                  style={{ color: "var(--color-danger)" }}
+                />
+              )}
+              <span>{render_feature_label(feature.label)}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 }

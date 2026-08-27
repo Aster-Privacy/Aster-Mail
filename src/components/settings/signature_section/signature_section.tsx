@@ -203,6 +203,7 @@ export function SignatureSection() {
           >
             <span>{error}</span>
             <Button
+              aria-label={t("common.close")}
               className="p-1"
               size="icon"
               variant="ghost"
@@ -611,10 +612,7 @@ export function SignatureSection() {
                 onClick={handle_save}
               >
                 {editor.is_saving ? (
-                  <>
-                    {t("common.saving")}
-                    <Spinner className="ms-2" size="md" />
-                  </>
+                  <Spinner size="md" />
                 ) : editor.editing_id ? (
                   t("settings.update_signature")
                 ) : (

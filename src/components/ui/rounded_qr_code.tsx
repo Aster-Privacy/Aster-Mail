@@ -28,6 +28,7 @@ interface RoundedQrCodeProps {
   size?: number;
   logo_src?: string;
   aria_label?: string;
+  quiet_zone?: number;
 }
 
 const QR_MODULE_COLOR = "#0f172a";
@@ -36,14 +37,19 @@ const QR_QUIET_ZONE = 6;
 const QR_LOGO_TIMEOUT_MS = 4000;
 const QR_FRAME_GAP_CAP_MS = 200;
 
-function build_qr_options(value: string, size: number, logo_src?: string) {
+function build_qr_options(
+  value: string,
+  size: number,
+  quiet_zone: number,
+  logo_src?: string,
+) {
   return {
     width: size,
     height: size,
     type: "svg" as const,
     data: value,
     image: logo_src ?? "",
-    margin: QR_QUIET_ZONE,
+    margin: quiet_zone,
     qrOptions: {
       errorCorrectionLevel: "H" as const,
     },
@@ -139,6 +145,7 @@ export function RoundedQrCode({
   size = 240,
   logo_src,
   aria_label,
+  quiet_zone = QR_QUIET_ZONE,
 }: RoundedQrCodeProps) {
   const { t } = use_i18n();
   const container_ref = useRef<HTMLDivElement>(null);
@@ -156,11 +163,13 @@ export function RoundedQrCode({
 
     if (!qr_ref.current) {
       qr_ref.current = new QRCodeStyling(
-        build_qr_options(value, size, logo_src),
+        build_qr_options(value, size, quiet_zone, logo_src),
       );
       qr_ref.current.append(container);
     } else {
-      qr_ref.current.update(build_qr_options(value, size, logo_src));
+      qr_ref.current.update(
+        build_qr_options(value, size, quiet_zone, logo_src),
+      );
     }
 
     let observer: MutationObserver | null = null;
@@ -225,7 +234,7 @@ export function RoundedQrCode({
 
         is_logo_dropped = true;
         visible_ms = 0;
-        qr_ref.current?.update(build_qr_options(value, size));
+        qr_ref.current?.update(build_qr_options(value, size, quiet_zone));
       }
 
       frame = requestAnimationFrame(poll);
@@ -234,7 +243,7 @@ export function RoundedQrCode({
     frame = requestAnimationFrame(poll);
 
     return stop_watching;
-  }, [value, logo_src, size, clip_id]);
+  }, [value, logo_src, size, quiet_zone, clip_id]);
 
   return (
     <div

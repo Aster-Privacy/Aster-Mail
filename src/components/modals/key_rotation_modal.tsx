@@ -110,12 +110,12 @@ export function KeyRotationModal({
 
     set_error("");
     set_state("rotating");
-    set_password("");
 
     try {
       const rotation_error = await on_rotate(password_copy);
 
       if (rotation_error === null) {
+        set_password("");
         set_state("success");
         close_timeout_ref.current = window.setTimeout(() => {
           close_timeout_ref.current = null;

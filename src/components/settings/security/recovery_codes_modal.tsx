@@ -18,8 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { apply_input_transform } from "@/utils/input_transform";
-import { copy_text_or_throw } from "@/utils/copy_text";
 import { useState, useEffect, useRef, useCallback } from "react";
 import {
   ArrowDownTrayIcon,
@@ -29,6 +27,8 @@ import {
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
+import { copy_text_or_throw } from "@/utils/copy_text";
+import { apply_input_transform } from "@/utils/input_transform";
 import { show_toast } from "@/components/toast/simple_toast";
 import {
   Modal,
@@ -354,14 +354,13 @@ export function RecoveryCodesModal({
             </Button>
             <Button
               disabled={!password.trim() || is_working}
+              is_loading={is_working}
               variant="depth"
               onClick={handle_generate}
             >
-              {is_working
-                ? t("common.verifying")
-                : has_codes
-                  ? t("settings.recovery_codes_regenerate")
-                  : t("settings.recovery_codes_generate")}
+              {has_codes
+                ? t("settings.recovery_codes_regenerate")
+                : t("settings.recovery_codes_generate")}
             </Button>
           </ModalFooter>
         </>

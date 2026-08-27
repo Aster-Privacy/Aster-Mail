@@ -19,7 +19,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useState, useRef, useEffect, useCallback } from "react";
-import { trigger_download } from "@/utils/download_blob";
 import {
   ArrowDownTrayIcon,
   ClipboardDocumentIcon,
@@ -28,6 +27,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
+import { trigger_download } from "@/utils/download_blob";
 import { show_toast } from "@/components/toast/simple_toast";
 import {
   Modal,
@@ -193,12 +193,11 @@ export function RegenerateBackupCodesModal({
             </Button>
             <Button
               disabled={code.length !== 6 || is_loading}
+              is_loading={is_loading}
               variant="depth"
               onClick={handle_regenerate}
             >
-              {is_loading
-                ? t("common.verifying")
-                : t("settings.regenerate_backup_codes")}
+              {t("settings.regenerate_backup_codes")}
             </Button>
           </ModalFooter>
         </>

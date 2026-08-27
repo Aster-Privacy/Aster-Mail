@@ -32,6 +32,7 @@ import {
   undo_send_manager,
   type PendingSend,
   type QueueEmailOptions,
+  type UndoCancelResult,
 } from "./undo_send_manager";
 import { type QueueEmailRequest } from "./api/undo_send";
 import { array_to_base64 } from "./crypto/envelope";
@@ -671,6 +672,12 @@ export async function cancel_server_queued_email(
   queue_id: string,
 ): Promise<boolean> {
   return undo_send_manager.cancel_send(queue_id);
+}
+
+export async function cancel_server_queued_email_with_reason(
+  queue_id: string,
+): Promise<UndoCancelResult> {
+  return undo_send_manager.cancel_send_with_reason(queue_id);
 }
 
 export async function send_server_queued_immediately(

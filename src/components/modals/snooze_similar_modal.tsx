@@ -18,13 +18,10 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { FaviconOrInitial } from "@/components/ui/favicon_or_initial";
 import type { TranslationKey } from "@/lib/i18n/types";
 import type { SnoozeTargetId } from "@/utils/snooze_targets";
-import { compute_snooze_target } from "@/utils/snooze_targets";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { format_datetime_hint } from "@/utils/date_format";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   MagnifyingGlassIcon,
@@ -37,6 +34,9 @@ import {
 import { Button } from "@aster/ui";
 import { Checkbox } from "@aster/ui";
 
+import { format_datetime_hint } from "@/utils/date_format";
+import { compute_snooze_target } from "@/utils/snooze_targets";
+import { FaviconOrInitial } from "@/components/ui/favicon_or_initial";
 import { Spinner } from "@/components/ui/spinner";
 import { CustomSnoozeModal } from "@/components/modals/custom_snooze_modal";
 import {
@@ -332,6 +332,7 @@ export function SnoozeSimilarModal({
     .reduce((sum, s) => sum + s.count, 0);
 
   const can_execute = selected_senders.size > 0 && snooze_date !== null;
+
   use_escape_layer(is_open, on_close, "snooze_similar_modal");
 
   return (
@@ -461,7 +462,7 @@ export function SnoozeSimilarModal({
                           </p>
                           {scan_failed && !search_query && (
                             <button
-                              className="mt-2 text-[12px] font-medium text-accent-primary hover:underline"
+                              className="mt-2 text-[12px] font-medium text-brand hover:underline"
                               type="button"
                               onClick={() => void load_senders()}
                             >
@@ -542,7 +543,7 @@ export function SnoozeSimilarModal({
                             className={`w-full flex items-center gap-2.5 px-3 py-1.5 rounded-[12px] text-[13px] transition-colors ${is_selected ? "" : "text-txt-primary"}`}
                             style={
                               is_selected
-                                ? { color: "var(--accent-primary)" }
+                                ? { color: "var(--accent-color)" }
                                 : undefined
                             }
                             onClick={() => handle_pick_preset(option)}
@@ -562,7 +563,7 @@ export function SnoozeSimilarModal({
                             {is_selected && (
                               <CheckIcon
                                 className="w-4 h-4 flex-shrink-0"
-                                style={{ color: "var(--accent-primary)" }}
+                                style={{ color: "var(--accent-color)" }}
                               />
                             )}
                           </button>
@@ -573,7 +574,7 @@ export function SnoozeSimilarModal({
                         style={
                           snooze_label &&
                           !snooze_options.some((o) => o.label === snooze_label)
-                            ? { color: "var(--accent-primary)" }
+                            ? { color: "var(--accent-color)" }
                             : undefined
                         }
                         onClick={() => set_show_custom_picker(true)}
@@ -598,7 +599,7 @@ export function SnoozeSimilarModal({
                           ) && (
                             <CheckIcon
                               className="w-4 h-4 flex-shrink-0"
-                              style={{ color: "var(--accent-primary)" }}
+                              style={{ color: "var(--accent-color)" }}
                             />
                           )}
                       </button>

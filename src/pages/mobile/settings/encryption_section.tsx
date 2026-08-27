@@ -18,7 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { copy_text_or_throw } from "@/utils/copy_text";
 import { useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import {
@@ -41,11 +40,13 @@ import {
   chip_selected_style,
 } from "./shared";
 
+import { copy_text_or_throw } from "@/utils/copy_text";
 import { use_i18n } from "@/lib/i18n/context";
 import { clamp_password } from "@/services/sanitize";
 import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
+import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { UpgradeGate } from "@/components/common/upgrade_gate";
 import { api_client } from "@/services/api/client";
 import { derive_password_hash } from "@/services/crypto/key_manager";
@@ -218,11 +219,7 @@ export function EncryptionSection({
               type="button"
               onClick={handle_authenticate}
             >
-              {is_loading ? (
-                <Spinner size="md" />
-              ) : (
-                t("settings.verifying_credentials").replace("...", "")
-              )}
+              {is_loading ? <Spinner size="md" /> : t("common.verify")}
             </motion.button>
           </div>
         </div>
@@ -379,12 +376,18 @@ export function EncryptionSection({
         {!enc.pgp_key && (
           <SettingsGroup title={t("settings.encryption_keys")}>
             <div className="px-4 py-3">
-              <div className="text-center py-8 rounded-2xl bg-[var(--mobile-bg-card)]">
-                <KeyIcon className="w-6 h-6 mx-auto mb-2 text-[var(--mobile-text-muted)]" />
-                <p className="text-[13px] text-[var(--mobile-text-muted)]">
-                  {t("settings.no_encryption_key")}
-                </p>
-              </div>
+              {enc.pgp_key_load_failed ? (
+                <LoadFailedNotice
+                  on_retry={() => void enc.retry_load_encryption_data()}
+                />
+              ) : (
+                <div className="text-center py-8 rounded-2xl bg-[var(--mobile-bg-card)]">
+                  <KeyIcon className="w-6 h-6 mx-auto mb-2 text-[var(--mobile-text-muted)]" />
+                  <p className="text-[13px] text-[var(--mobile-text-muted)]">
+                    {t("settings.no_encryption_key")}
+                  </p>
+                </div>
+              )}
             </div>
           </SettingsGroup>
         )}

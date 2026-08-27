@@ -242,6 +242,7 @@ export function RulesPanel({
                 onCheckedChange={() => handle_toggle(rule)}
               />
               <Button
+                aria-label={t("common.edit")}
                 className="h-7 w-7"
                 size="icon"
                 variant="ghost"
@@ -253,6 +254,7 @@ export function RulesPanel({
                 <PencilSquareIcon className="w-4 h-4 text-txt-muted" />
               </Button>
               <Button
+                aria-label={t("common.delete")}
                 className="h-7 w-7 text-red-500 hover:text-red-500 hover:bg-red-500/10"
                 size="icon"
                 variant="ghost"

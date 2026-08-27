@@ -121,6 +121,7 @@ import { ignore_error } from "@/lib/ignore_error";
 import { copy_text, copy_text_or_throw } from "@/utils/copy_text";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
 import { format_decimal } from "@/lib/utils";
+import { use_sticky_value } from "@/hooks/use_sticky_value";
 
 export function FamilySection({ is_family_plan }: FamilySectionProps) {
   const { t } = use_i18n();
@@ -154,6 +155,8 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
   const [transfer_target, set_transfer_target] =
     useState<FamilyMemberInfo | null>(null);
   const [show_leave_dialog, set_show_leave_dialog] = useState(false);
+  const remove_target_view = use_sticky_value(remove_target);
+  const transfer_target_view = use_sticky_value(transfer_target);
   const [action_loading, set_action_loading] = useState(false);
   const [changing_plan, set_changing_plan] = useState(false);
   const [show_upgrade_confirm, set_show_upgrade_confirm] = useState(false);
@@ -1925,12 +1928,12 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
           <AlertDialogHeader>
             <AlertDialogTitle>
               {t("settings.family_remove_confirm_title", {
-                name: remove_target?.username ?? "",
+                name: remove_target_view?.username ?? "",
               })}
             </AlertDialogTitle>
             <AlertDialogDescription>
               {t("settings.family_remove_confirm_body", {
-                name: remove_target?.username ?? "",
+                name: remove_target_view?.username ?? "",
               })}
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -1959,12 +1962,12 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
           <AlertDialogHeader>
             <AlertDialogTitle>
               {t("settings.family_transfer_confirm_title", {
-                name: transfer_target?.username ?? "",
+                name: transfer_target_view?.username ?? "",
               })}
             </AlertDialogTitle>
             <AlertDialogDescription>
               {t("settings.family_transfer_confirm_body", {
-                name: transfer_target?.username ?? "",
+                name: transfer_target_view?.username ?? "",
               })}
             </AlertDialogDescription>
           </AlertDialogHeader>

@@ -18,7 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { copy_text_or_throw } from "@/utils/copy_text";
 import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import {
@@ -39,6 +38,7 @@ import { Switch } from "@aster/ui";
 
 import { SettingsHeader } from "./shared";
 
+import { copy_text_or_throw } from "@/utils/copy_text";
 import { use_i18n } from "@/lib/i18n/context";
 import { format_number } from "@/lib/utils";
 import { Spinner } from "@/components/ui/spinner";
@@ -67,6 +67,7 @@ import { AliasNoteEditor } from "@/components/settings/aliases/alias_note_editor
 import { get_grace_days_remaining } from "@/components/settings/aliases/grace_period";
 import { AliasWebsitesEditor } from "@/components/settings/aliases/alias_websites_editor";
 import { ignore_error } from "@/lib/ignore_error";
+import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
 
 const ALIASES_PER_PAGE = 50;
@@ -696,7 +697,11 @@ export function AliasesSection({
                 {t("common.add_domain")}
               </motion.button>
 
-              {hook.domains_loading ? null : hook.domains.length === 0 ? (
+              {hook.domains_loading ? null : hook.domains_load_failed ? (
+                <div className="py-4">
+                  <LoadFailedNotice on_retry={() => void hook.load_domains()} />
+                </div>
+              ) : hook.domains.length === 0 ? (
                 <div className="flex flex-col items-center py-8">
                   <LinkIcon className="h-12 w-12 text-[var(--mobile-text-muted)] opacity-40 mb-2" />
                   <p className="text-[13px] text-[var(--mobile-text-muted)]">

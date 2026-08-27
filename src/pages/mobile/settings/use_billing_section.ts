@@ -53,6 +53,7 @@ import { show_toast } from "@/components/toast/simple_toast";
 import { list_contacts, decrypt_contacts } from "@/services/api/contacts";
 import { request_cache } from "@/services/api/request_cache";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
+import { addon_return_url } from "@/lib/addon_return_url";
 import { ignore_error } from "@/lib/ignore_error";
 import {
   get_subscription,
@@ -245,6 +246,11 @@ export function use_billing_section() {
     "monthly" | "yearly" | "biennial"
   >("yearly");
   const [referral_load_failed, set_referral_load_failed] = useState(false);
+  const [plans_load_failed, set_plans_load_failed] = useState(false);
+  const [addons_load_failed, set_addons_load_failed] = useState(false);
+  const [history_load_failed, set_history_load_failed] = useState(false);
+  const [referral_history_load_failed, set_referral_history_load_failed] =
+    useState(false);
   const [subscription_load_failed, set_subscription_load_failed] =
     useState(false);
   const [referral_info, set_referral_info] = useState<ReferralInfo | null>(
@@ -256,6 +262,20 @@ export function use_billing_section() {
   const [is_sending_referral, set_is_sending_referral] = useState(false);
   const [credit_balance, set_credit_balance] =
     useState<CreditBalanceResponse | null>(null);
+  const [credits_load_failed, set_credits_load_failed] = useState(false);
+
+  const resolve_credit_cents = useCallback(async (): Promise<number | null> => {
+    if (!credits_load_failed) return credit_balance?.balance_cents ?? 0;
+
+    const retry = await get_credits();
+
+    if (!retry.data) return null;
+
+    set_credit_balance(retry.data);
+    set_credits_load_failed(false);
+
+    return retry.data.balance_cents ?? 0;
+  }, [credit_balance, credits_load_failed]);
 
   const handle_send_referral = useCallback(async () => {
     if (!referral_info) return;
@@ -402,11 +422,24 @@ export function use_billing_section() {
       } else {
         set_subscription_load_failed(true);
       }
-      if (plans_res.data) set_plans(plans_res.data.plans);
-      if (hist_res.data) set_history(hist_res.data.items);
+      if (plans_res.data) {
+        set_plans(plans_res.data.plans);
+        set_plans_load_failed(false);
+      } else {
+        set_plans_load_failed(true);
+      }
+      if (hist_res.data) {
+        set_history(hist_res.data.items);
+        set_history_load_failed(false);
+      } else {
+        set_history_load_failed(true);
+      }
       if (addons_res.data) {
         set_available_addons(addons_res.data.available_addons);
         set_active_addons(addons_res.data.active_addons ?? []);
+        set_addons_load_failed(false);
+      } else {
+        set_addons_load_failed(true);
       }
       if (ref_res.data) {
         set_referral_info(ref_res.data);
@@ -414,15 +447,28 @@ export function use_billing_section() {
       } else {
         set_referral_load_failed(true);
       }
-      if (ref_hist_res.data)
+      if (ref_hist_res.data) {
         set_referral_history_list(ref_hist_res.data.referrals);
-      if (credits_res.data) set_credit_balance(credits_res.data);
+        set_referral_history_load_failed(false);
+      } else {
+        set_referral_history_load_failed(true);
+      }
+      if (credits_res.data) {
+        set_credit_balance(credits_res.data);
+        set_credits_load_failed(false);
+      } else {
+        set_credits_load_failed(true);
+      }
     } catch (caught) {
       ignore_error(
         "pages/mobile/settings/use_billing_section:handle_password_continue",
         caught,
       );
       set_subscription_load_failed(true);
+      set_plans_load_failed(true);
+      set_addons_load_failed(true);
+      set_history_load_failed(true);
+      set_referral_history_load_failed(true);
     } finally {
       set_is_loading(false);
     }
@@ -712,11 +758,20 @@ export function use_billing_section() {
     set_is_action_loading(true);
 
     try {
+      const credit_cents = await resolve_credit_cents();
+
+      if (credit_cents === null) {
+        set_is_action_loading(false);
+        show_toast(t("settings.failed_checkout"), "error");
+
+        return;
+      }
+
       const result = await start_hosted_checkout(
         plan.code,
         checkout_interval,
         preferred_currency,
-        credit_balance?.balance_cents,
+        credit_cents,
       );
 
       if (!result.ok) {
@@ -832,9 +887,20 @@ export function use_billing_section() {
 
     set_is_action_loading(true);
     try {
+      const credit_cents = await resolve_credit_cents();
+
+      if (credit_cents === null) {
+        set_is_action_loading(false);
+        show_toast(t("settings.addon_purchase_failed"), "error");
+
+        return;
+      }
+
       const response = await purchase_storage_addon(
         addon.id,
-        credit_balance?.balance_cents,
+        credit_cents,
+        addon_return_url("success"),
+        addon_return_url("cancelled"),
       );
       const url = response.data?.url;
 
@@ -1057,6 +1123,10 @@ export function use_billing_section() {
     referral_info,
     referral_load_failed,
     subscription_load_failed,
+    plans_load_failed,
+    addons_load_failed,
+    history_load_failed,
+    referral_history_load_failed,
     load_data,
     referral_history_list,
     is_sending_referral,

@@ -69,6 +69,7 @@ import { use_i18n } from "@/lib/i18n/context";
 import { use_auth } from "@/contexts/auth_context";
 import { copy_text } from "@/utils/copy_text";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
+import { use_sticky_value } from "@/hooks/use_sticky_value";
 
 const GB = 1_073_741_824;
 const DEFAULT_STORAGE_GB = 500;
@@ -135,6 +136,8 @@ export function FamilySection({
   const [transfer_target, set_transfer_target] =
     useState<FamilyMemberInfo | null>(null);
   const [show_leave_dialog, set_show_leave_dialog] = useState(false);
+  const remove_target_view = use_sticky_value(remove_target);
+  const transfer_target_view = use_sticky_value(transfer_target);
   const [action_loading, set_action_loading] = useState(false);
   const [load_error, set_load_error] = useState(false);
 
@@ -687,7 +690,7 @@ export function FamilySection({
             <AlertDialogTitle>
               {t("settings.family_remove_confirm_title").replace(
                 "{{name}}",
-                remove_target?.username ?? "",
+                remove_target_view?.username ?? "",
               )}
             </AlertDialogTitle>
             <AlertDialogDescription>
@@ -720,7 +723,7 @@ export function FamilySection({
             <AlertDialogTitle>
               {t("settings.family_transfer_confirm_title").replace(
                 "{{name}}",
-                transfer_target?.username ?? "",
+                transfer_target_view?.username ?? "",
               )}
             </AlertDialogTitle>
             <AlertDialogDescription>

@@ -28,6 +28,8 @@ import {
   BanknotesIcon,
   ClockIcon,
   CheckCircleIcon,
+  ShareIcon,
+  QrCodeIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
@@ -49,6 +51,7 @@ import {
   request_affiliate_payout,
   list_my_affiliate_payout_requests,
   build_referral_invite_url,
+  claim_referral_code,
   format_price,
   format_date,
   type ReferralInfo,
@@ -64,6 +67,10 @@ import { copy_text } from "@/utils/copy_text";
 import { ignore_error } from "@/lib/ignore_error";
 import { use_auth } from "@/contexts/auth/use_auth_hook";
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
+import { RoundedQrCode } from "@/components/ui/rounded_qr_code";
+import { format_bytes } from "@/lib/utils";
+import { share_invite, copy_invite_link } from "@/lib/referral_share";
+import { invalidate_referral_summary } from "@/hooks/use_referral_summary";
 
 const AFFILIATE_MIN_PAYOUT_CENTS = 500;
 
@@ -98,6 +105,7 @@ export function ReferralTab() {
   const { t } = use_i18n();
   const { user } = use_auth();
   const [info_load_failed, set_info_load_failed] = useState(false);
+  const [history_load_failed, set_history_load_failed] = useState(false);
   const [referral_info, set_referral_info] = useState<ReferralInfo | null>(
     null,
   );
@@ -119,6 +127,10 @@ export function ReferralTab() {
   const [payout_amount_input, set_payout_amount_input] = useState("");
   const [payout_amount_touched, set_payout_amount_touched] = useState(false);
   const [is_irs_confirm_open, set_is_irs_confirm_open] = useState(false);
+  const [is_qr_visible, set_is_qr_visible] = useState(false);
+  const [is_sharing, set_is_sharing] = useState(false);
+  const [claim_input, set_claim_input] = useState("");
+  const [is_claiming, set_is_claiming] = useState(false);
 
   useEffect(() => {
     if (payout_amount_touched || !my_affiliate_status) return;
@@ -298,6 +310,50 @@ export function ReferralTab() {
     }
   }, [referral_info, t, user]);
 
+  const handle_claim = useCallback(async () => {
+    const code = claim_input.trim();
+
+    if (!code) return;
+
+    set_is_claiming(true);
+
+    try {
+      const res = await claim_referral_code(code);
+
+      if (res.data?.accepted) {
+        set_claim_input("");
+        show_toast(t("settings.referral_claim_success"), "success");
+        invalidate_referral_summary();
+
+        const status_res = await get_my_referral_status();
+
+        if (status_res.data) set_my_referral_status(status_res.data);
+
+        return;
+      }
+
+      const messages: Record<string, string> = {
+        REFERRAL_CODE_INVALID: t("settings.referral_claim_invalid"),
+        REFERRAL_CLAIM_WINDOW_CLOSED: t(
+          "settings.referral_claim_window_closed",
+        ),
+        REFERRAL_ALREADY_CLAIMED: t("settings.referral_claim_already"),
+        REFERRAL_CODE_SELF: t("settings.referral_claim_self"),
+      };
+
+      show_toast(
+        messages[res.server_code ?? ""] ??
+          t("common.something_went_wrong_try_again"),
+        "error",
+      );
+    } catch (caught) {
+      ignore_error("components/settings/referral_tab:handle_claim", caught);
+      show_toast(t("common.something_went_wrong_try_again"), "error");
+    } finally {
+      set_is_claiming(false);
+    }
+  }, [claim_input, t]);
+
   const load_data = useCallback(async () => {
     set_is_loading(true);
 
@@ -325,6 +381,9 @@ export function ReferralTab() {
 
       if (history_res.data) {
         set_referral_history(history_res.data.referrals);
+        set_history_load_failed(false);
+      } else {
+        set_history_load_failed(true);
       }
 
       if (my_status_res.data) {
@@ -340,6 +399,7 @@ export function ReferralTab() {
       }
     } catch (caught) {
       set_info_load_failed(true);
+      set_history_load_failed(true);
       ignore_error("components/settings/referral_tab:load_data", caught);
     } finally {
       set_is_loading(false);
@@ -803,6 +863,68 @@ export function ReferralTab() {
     (referral_info.credits_earned_cents || 0) +
     (referral_info.commission_earned_cents || 0);
 
+  const invite_url = build_referral_invite_url(referral_info.referral_code);
+  const bonus_amount = format_bytes(referral_info.bonus_bytes_per_referral);
+  const bonus_max = format_bytes(referral_info.bonus_bytes_max);
+  const bonus_earned = format_bytes(referral_info.bonus_bytes_earned);
+
+  const handle_share = async () => {
+    set_is_sharing(true);
+
+    try {
+      const outcome = await share_invite(
+        t("settings.referral_share_title"),
+        t("settings.referral_share_message", { amount: bonus_amount }),
+        invite_url,
+      );
+
+      if (outcome === "shared") {
+        show_toast(t("settings.referral_shared"), "success");
+      } else if (outcome === "copied") {
+        show_toast(t("settings.referral_message_copied"), "success");
+      } else {
+        show_toast(t("common.failed_to_copy"), "error");
+      }
+    } finally {
+      set_is_sharing(false);
+    }
+  };
+
+  const claim_section = my_referral_status?.can_claim ? (
+    <div className="mb-5 rounded-2xl border border-edge-secondary p-4 bg-surf-tertiary">
+      <p className="text-sm font-semibold text-txt-primary">
+        {t("settings.referral_claim_title")}
+      </p>
+      <p className="text-xs text-txt-muted mt-1">
+        {t("settings.referral_claim_description", {
+          amount: bonus_amount,
+          date: my_referral_status.claim_window_ends_at
+            ? format_date(my_referral_status.claim_window_ends_at)
+            : "",
+        })}
+      </p>
+      <div className="flex items-center gap-2 mt-3">
+        <input
+          className="h-9 flex-1 min-w-0 px-3 rounded-lg bg-surf-primary border border-edge-secondary text-sm text-txt-primary font-mono uppercase"
+          disabled={is_claiming}
+          maxLength={16}
+          placeholder={t("settings.referral_claim_placeholder")}
+          value={claim_input}
+          onChange={(e) => set_claim_input(e.target.value.toUpperCase())}
+        />
+        <button
+          className="h-9 px-3 rounded-lg text-sm font-semibold bg-blue-600 text-white inline-flex items-center gap-2 whitespace-nowrap hover:bg-blue-700 transition-colors disabled:opacity-50"
+          disabled={is_claiming || !claim_input.trim()}
+          type="button"
+          onClick={handle_claim}
+        >
+          {is_claiming && <ArrowPathIcon className="w-4 h-4 animate-spin" />}
+          {t("settings.referral_claim_button")}
+        </button>
+      </div>
+    </div>
+  ) : null;
+
   return (
     <div>
       {affiliate_section}
@@ -831,20 +953,29 @@ export function ReferralTab() {
           <div className="relative z-10">
             <div className="flex items-start justify-between gap-3 mb-1">
               <h3
-                className="text-lg font-bold text-white tracking-tight"
+                className="text-lg font-bold text-white tracking-tight max-w-[380px]"
                 style={{ textShadow: "0 1px 3px rgba(0, 0, 0, 0.15)" }}
               >
-                {t("settings.your_referral_link")}
+                {t("settings.referral_storage_headline", {
+                  amount: bonus_amount,
+                })}
               </h3>
-              <span className="flex-shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full bg-white/15 text-white tabular-nums">
-                {format_price(total_earned_cents)} {t("settings.total_earned")}
-              </span>
+              {referral_info.bonus_bytes_earned > 0 && (
+                <span className="flex-shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full bg-white/15 text-white tabular-nums">
+                  {t("settings.referral_storage_earned_badge", {
+                    amount: bonus_earned,
+                  })}
+                </span>
+              )}
             </div>
             <p
               className="text-sm text-white/70 mb-4 max-w-[420px]"
               style={{ textShadow: "0 1px 2px rgba(0, 0, 0, 0.1)" }}
             >
-              {t("settings.referral_program_description")}
+              {t("settings.referral_storage_subhead", {
+                amount: bonus_amount,
+                max: bonus_max,
+              })}
             </p>
             <div className="flex flex-col sm:flex-row gap-2">
               <div className="flex-1 h-9 px-3 rounded-lg bg-black/20 border border-white/10 flex items-center gap-2 min-w-0">
@@ -855,19 +986,29 @@ export function ReferralTab() {
               </div>
               <div className="flex gap-2">
                 <button
-                  className="h-9 px-3 rounded-lg text-sm font-semibold bg-white inline-flex items-center justify-center gap-2 whitespace-nowrap"
+                  className="h-9 px-3 rounded-lg text-sm font-semibold bg-white inline-flex items-center justify-center gap-2 whitespace-nowrap disabled:opacity-60"
+                  disabled={is_sharing}
                   style={{
                     color: "var(--accent-mix-b70, #1e3a8a)",
                     boxShadow:
                       "0 2px 8px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.9) inset",
                   }}
                   type="button"
+                  onClick={handle_share}
+                >
+                  {is_sharing ? (
+                    <ArrowPathIcon className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <ShareIcon className="w-4 h-4" />
+                  )}
+                  {t("settings.referral_share_button")}
+                </button>
+                <button
+                  aria-label={t("settings.copy_link")}
+                  className="h-9 px-3 rounded-lg text-sm font-semibold bg-black/20 border border-white/10 text-white inline-flex items-center justify-center gap-2 whitespace-nowrap hover:bg-black/30 transition-colors"
+                  type="button"
                   onClick={async () => {
-                    if (
-                      await copy_text(
-                        build_referral_invite_url(referral_info.referral_code),
-                      )
-                    ) {
+                    if (await copy_invite_link(invite_url)) {
                       show_toast(t("settings.link_copied"), "success");
                     } else {
                       show_toast(t("common.failed_to_copy"), "error");
@@ -878,28 +1019,57 @@ export function ReferralTab() {
                   {t("settings.copy_link")}
                 </button>
                 <button
-                  className="h-9 px-3 rounded-lg text-sm font-semibold bg-white inline-flex items-center justify-center gap-2 whitespace-nowrap disabled:opacity-60"
-                  disabled={is_sending_referral}
-                  style={{
-                    color: "var(--accent-mix-b70, #1e3a8a)",
-                    boxShadow:
-                      "0 2px 8px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.9) inset",
-                  }}
+                  aria-label={
+                    is_qr_visible
+                      ? t("settings.referral_hide_qr")
+                      : t("settings.referral_show_qr")
+                  }
+                  className="h-9 w-9 rounded-lg bg-black/20 border border-white/10 text-white inline-flex items-center justify-center hover:bg-black/30 transition-colors"
                   type="button"
-                  onClick={handle_send_referral}
+                  onClick={() => set_is_qr_visible((visible) => !visible)}
                 >
-                  {is_sending_referral ? (
-                    <ArrowPathIcon className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <EnvelopeIcon className="w-4 h-4" />
-                  )}
-                  {t("settings.send_referral_to_contacts")}
+                  <QrCodeIcon className="w-4 h-4" />
                 </button>
               </div>
+            </div>
+
+            {is_qr_visible && (
+              <div className="mt-4 flex flex-col items-center gap-2">
+                <RoundedQrCode
+                  aria_label={t("settings.referral_qr_alt")}
+                  quiet_zone={12}
+                  size={204}
+                  value={invite_url}
+                />
+                <p className="text-xs text-white/70 text-center">
+                  {t("settings.referral_qr_hint")}
+                </p>
+              </div>
+            )}
+
+            <div className="mt-4 pt-3 border-t border-white/15">
+              <button
+                className="text-xs font-medium text-white/80 inline-flex items-center gap-1.5 hover:text-white transition-colors disabled:opacity-60"
+                disabled={is_sending_referral}
+                type="button"
+                onClick={handle_send_referral}
+              >
+                {is_sending_referral ? (
+                  <ArrowPathIcon className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <EnvelopeIcon className="w-3.5 h-3.5" />
+                )}
+                {t("settings.send_referral_to_contacts")}
+              </button>
+              <p className="text-[11px] text-white/60 mt-1">
+                {t("settings.referral_email_all_contacts_hint")}
+              </p>
             </div>
           </div>
         </div>
       )}
+
+      {claim_section}
 
       {my_discount_section}
 
@@ -916,14 +1086,17 @@ export function ReferralTab() {
           icon={ClockIcon}
           label={t("settings.pending_referrals")}
           max={referral_info.total_referrals}
-          value={referral_info.pending_referrals}
+          value={Math.max(
+            0,
+            referral_info.total_referrals - referral_info.activated_referrals,
+          )}
         />
         <StatRing
           color_class="text-green-500"
           icon={CheckCircleIcon}
-          label={t("settings.completed_referrals")}
+          label={t("settings.referral_active_referrals")}
           max={referral_info.total_referrals}
-          value={referral_info.completed_referrals}
+          value={referral_info.activated_referrals}
         />
       </div>
 
@@ -954,7 +1127,10 @@ export function ReferralTab() {
                 3
               </span>
               <span className="text-sm text-txt-secondary">
-                {t("settings.referral_step_earn")}
+                {t("settings.referral_step_earn", {
+                  amount: bonus_amount,
+                  max: bonus_max,
+                })}
               </span>
             </li>
           </ol>
@@ -968,26 +1144,35 @@ export function ReferralTab() {
           </p>
           <div className="rounded-lg border border-edge-secondary p-4 space-y-2 bg-surf-tertiary">
             <p className="text-sm text-txt-secondary">
-              {t("settings.referral_reward_info")}
+              {t("settings.referral_reward_info", {
+                amount: bonus_amount,
+                max: bonus_max,
+              })}
             </p>
             <p className="text-sm text-txt-secondary">
               {t("settings.referral_commission_info", {
                 percent: referral_info.commission_percent || 10,
               })}
             </p>
-            {referral_info.max_credits_cents > 0 && (
+            {referral_info.bonus_bytes_max > 0 && (
               <div className="pt-2 flex flex-col items-center">
                 <SemicircleGauge
-                  bottom_label={`${t("settings.referral_gauge_earned_label")} ${format_price(total_earned_cents)}`}
+                  bottom_label={`${t("settings.referral_bonus_gauge_label")} ${bonus_earned}`}
                   percent={
-                    (total_earned_cents / referral_info.max_credits_cents) * 100
+                    (referral_info.bonus_bytes_earned /
+                      referral_info.bonus_bytes_max) *
+                    100
                   }
                 />
                 <p className="text-xs text-txt-muted mt-2 text-center">
-                  {t("settings.referral_max_credits", {
-                    value: format_price(referral_info.max_credits_cents),
-                  })}
+                  {t("settings.referral_bonus_max", { value: bonus_max })}
                 </p>
+                {total_earned_cents > 0 && (
+                  <p className="text-xs text-txt-muted mt-1 text-center">
+                    {t("settings.referral_gauge_earned_label")}{" "}
+                    {format_price(total_earned_cents)}
+                  </p>
+                )}
               </div>
             )}
           </div>
@@ -1016,15 +1201,22 @@ export function ReferralTab() {
                 <div className="flex items-center gap-2">
                   <span
                     className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                      ref_item.status === "completed"
+                      ref_item.activated_at || ref_item.status === "completed"
                         ? "bg-green-500/15 text-green-500"
                         : "bg-yellow-500/15 text-yellow-500"
                     }`}
                   >
-                    {ref_item.status === "completed"
-                      ? t("settings.referral_status_completed")
-                      : t("settings.referral_status_pending")}
+                    {ref_item.activated_at
+                      ? t("settings.referral_status_active")
+                      : ref_item.status === "completed"
+                        ? t("settings.referral_status_completed")
+                        : t("settings.referral_status_pending")}
                   </span>
+                  {ref_item.bonus_bytes > 0 && (
+                    <p className="text-sm font-medium text-green-500">
+                      +{format_bytes(ref_item.bonus_bytes)}
+                    </p>
+                  )}
                   {ref_item.referrer_credit_cents > 0 && (
                     <p className="text-sm font-medium text-green-500">
                       +{format_price(ref_item.referrer_credit_cents)}
@@ -1034,6 +1226,8 @@ export function ReferralTab() {
               </div>
             ))}
           </div>
+        ) : history_load_failed ? (
+          <LoadFailedNotice on_retry={() => void load_data()} />
         ) : (
           <div className="rounded-xl border border-edge-secondary py-8 text-center">
             <UserGroupIcon className="w-8 h-8 text-txt-muted mx-auto mb-2" />

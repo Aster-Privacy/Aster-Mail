@@ -248,6 +248,7 @@ export function ContactsPanel({
                     : t("settings.alias_contact_block")}
                 </Button>
                 <Button
+                  aria-label={t("common.delete")}
                   className="h-7 w-7 text-red-500 hover:text-red-500 hover:bg-red-500/10"
                   size="icon"
                   variant="ghost"

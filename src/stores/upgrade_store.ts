@@ -65,7 +65,7 @@ function subscribe(listener: () => void) {
   };
 }
 
-function get_snapshot(): UpgradeState {
+export function get_upgrade_snapshot(): UpgradeState {
   return current;
 }
 
@@ -93,11 +93,32 @@ function resolve_limit_key(resource: string | null): UpgradeLimitKey {
   return RESOURCE_TO_LIMIT_KEY[key] ?? "generic";
 }
 
+const AUTH_ROUTES = [
+  "/sign-in",
+  "/register",
+  "/signup",
+  "/invite",
+  "/forgot-password",
+  "/reset-password",
+  "/verify-recovery-email",
+  "/link-device",
+];
+
+export function is_on_auth_route(pathname?: string): boolean {
+  if (!pathname && typeof window === "undefined") return false;
+  const path = pathname ?? window.location.pathname;
+
+  return AUTH_ROUTES.some(
+    (route) => path === route || path.startsWith(`${route}/`),
+  );
+}
+
 export function show_plan_limit_upgrade(opts: {
   resource?: string | null;
   message?: string | null;
   feature?: string | null;
 }) {
+  if (is_on_auth_route()) return;
   current = {
     is_open: true,
     reason: "plan_limit",
@@ -110,6 +131,7 @@ export function show_plan_limit_upgrade(opts: {
 }
 
 export function show_storage_full_upgrade(opts?: { message?: string | null }) {
+  if (is_on_auth_route()) return;
   current = {
     is_open: true,
     reason: "storage_full",
@@ -128,7 +150,11 @@ export function close_upgrade_modal() {
 }
 
 export function use_upgrade_state(): UpgradeState {
-  return useSyncExternalStore(subscribe, get_snapshot, get_snapshot);
+  return useSyncExternalStore(
+    subscribe,
+    get_upgrade_snapshot,
+    get_upgrade_snapshot,
+  );
 }
 
 if (import.meta.env.DEV && typeof window !== "undefined") {

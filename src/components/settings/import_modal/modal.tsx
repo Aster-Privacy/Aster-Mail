@@ -763,10 +763,7 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
                   }}
                 >
                   {is_processing ? (
-                    <>
-                      {t("common.processing")}
-                      <Spinner className="ms-2" size="md" />
-                    </>
+                    <Spinner size="md" />
                   ) : (
                     t("settings.browse_files")
                   )}
@@ -990,6 +987,7 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
               </h2>
               {step !== "progress" && (
                 <button
+                  aria-label={t("common.close")}
                   className="p-1 rounded-[14px] transition-colors hover:bg-white/10"
                   type="button"
                   onClick={handle_close}

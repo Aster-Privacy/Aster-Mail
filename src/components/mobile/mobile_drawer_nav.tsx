@@ -55,6 +55,7 @@ import { is_folder_unlocked } from "@/hooks/use_protected_folder";
 import { PROFILE_COLORS, get_gradient_background } from "@/constants/profile";
 import { SidebarNavButton } from "@/components/mobile/sidebar_nav_button";
 import { NavSectionSkeleton } from "@/components/common/nav_section_skeleton";
+import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 
 function get_alias_color(address: string): string {
   let hash = 0;
@@ -118,12 +119,18 @@ interface DrawerNavContentProps {
   handle_nav: (path: string) => void;
   folders: DecryptedFolder[];
   folders_loading: boolean;
+  folders_load_failed?: boolean;
+  on_retry_folders?: () => void;
   folder_unread_counts: Record<string, number>;
   tags: DecryptedTag[];
   tags_loading: boolean;
+  tags_load_failed?: boolean;
+  on_retry_tags?: () => void;
   tag_counts: Record<string, number>;
   aliases: SidebarAlias[];
   aliases_loading: boolean;
+  aliases_load_failed?: boolean;
+  on_retry_aliases?: () => void;
   alias_unread_counts?: Record<string, number>;
   stats: {
     inbox: number;
@@ -158,12 +165,18 @@ export const DrawerNavContent = memo(function DrawerNavContent({
   handle_nav,
   folders,
   folders_loading,
+  folders_load_failed = false,
+  on_retry_folders,
   folder_unread_counts,
   tags,
   tags_loading,
+  tags_load_failed = false,
+  on_retry_tags,
   tag_counts,
   aliases,
   aliases_loading,
+  aliases_load_failed = false,
+  on_retry_aliases,
   alias_unread_counts = {},
   stats,
   on_open_create_folder,
@@ -352,6 +365,10 @@ export const DrawerNavContent = memo(function DrawerNavContent({
       {folders.length === 0 &&
         (folders_loading ? (
           <NavSectionSkeleton rows={3} />
+        ) : folders_load_failed && on_retry_folders ? (
+          <div className="px-2.5 py-1">
+            <LoadFailedNotice on_retry={on_retry_folders} />
+          </div>
         ) : (
           <p className="px-2.5 py-2 text-[11px] text-[var(--text-muted)]">
             {t("common.no_folders_yet")}
@@ -495,6 +512,10 @@ export const DrawerNavContent = memo(function DrawerNavContent({
       {tags.length === 0 &&
         (tags_loading ? (
           <NavSectionSkeleton rows={2} />
+        ) : tags_load_failed && on_retry_tags ? (
+          <div className="px-2.5 py-1">
+            <LoadFailedNotice on_retry={on_retry_tags} />
+          </div>
         ) : (
           <p className="px-2.5 py-2 text-[11px] text-[var(--text-muted)]">
             {t("common.no_labels_yet")}
@@ -548,6 +569,10 @@ export const DrawerNavContent = memo(function DrawerNavContent({
       {aliases.length === 0 &&
         (aliases_loading ? (
           <NavSectionSkeleton rows={2} />
+        ) : aliases_load_failed && on_retry_aliases ? (
+          <div className="px-2.5 py-1">
+            <LoadFailedNotice on_retry={on_retry_aliases} />
+          </div>
         ) : (
           <p className="px-2.5 py-2 text-[11px] text-[var(--text-muted)]">
             {t("common.no_aliases_yet")}

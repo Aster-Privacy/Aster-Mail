@@ -20,7 +20,7 @@
 //
 import type { InboxEmail } from "@/types/email";
 
-import { memo, useRef, useCallback, useMemo } from "react";
+import { memo, useRef, useCallback, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import {
   AtSymbolIcon,
@@ -49,6 +49,7 @@ import {
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { list_select_slot_class } from "@/lib/list_density";
+import { strip_preview_filler } from "@/utils/preview_text";
 import { use_date_format } from "@/hooks/use_date_format";
 import {
   outgoing_profile_email,
@@ -104,6 +105,15 @@ export const MobileEmailRow = memo(function MobileEmailRow(
 
   const touch_start_pos = useRef<{ x: number; y: number } | null>(null);
 
+  useEffect(
+    () => () => {
+      if (long_press_timer.current) {
+        clearTimeout(long_press_timer.current);
+        long_press_timer.current = null;
+      }
+    },
+    [],
+  );
 
   const handle_touch_start = useCallback(
     (e: React.TouchEvent) => {
@@ -280,6 +290,7 @@ export const MobileEmailRow = memo(function MobileEmailRow(
           (e.currentTarget as HTMLElement).click();
         }
       }}
+      onTouchCancel={handle_touch_end}
       onTouchEnd={handle_touch_end}
       onTouchMove={handle_touch_move}
       onTouchStart={handle_touch_start}
@@ -419,7 +430,7 @@ export const MobileEmailRow = memo(function MobileEmailRow(
             className="min-w-0 flex-1 truncate text-[13px] leading-tight text-[var(--text-muted)]"
             dir="auto"
           >
-            {show_preview ? email.preview : ""}
+            {show_preview ? strip_preview_filler(email.preview) : ""}
           </span>
 
           <div

@@ -63,6 +63,7 @@ import {
   TAURI_TOKEN_KEY,
   clear_last_auth_ms,
   get_error_code_from_status,
+  is_auth_endpoint,
   is_identity_establishing_endpoint,
   is_local_hostname,
   is_offline_tombstoned,
@@ -72,6 +73,7 @@ import {
   unlock_token_cache_suffix,
   write_last_auth_ms,
 } from "./helpers";
+import { should_show_server_message } from "./server_message";
 
 import { get_active_translations } from "@/lib/i18n/translations";
 import { refresh_session_activity } from "@/services/session_timeout_service";
@@ -85,7 +87,6 @@ import {
   get_effective_retry_count,
   get_effective_retry_delay,
 } from "@/services/routing/routing_provider";
-import { should_show_server_message } from "./server_message";
 
 export class ApiClient {
   private refresh_timeout: number | null = null;
@@ -1681,7 +1682,9 @@ export class ApiClient {
             response.status === 403 &&
             error_data.code === "PLAN_LIMIT_EXCEEDED"
           ) {
-            if (!skip_upgrade_prompt) {
+            const on_auth_endpoint = is_auth_endpoint(endpoint);
+
+            if (!skip_upgrade_prompt && !on_auth_endpoint) {
               window.dispatchEvent(
                 new CustomEvent("aster:plan-limit-hit", {
                   detail: {
@@ -1695,8 +1698,18 @@ export class ApiClient {
               );
             }
 
+            const device_max = error_data.details?.effective_max as
+              | number
+              | undefined;
+
             return {
-              error: get_active_translations().settings.plan_limit_reached,
+              error:
+                on_auth_endpoint && typeof device_max === "number"
+                  ? get_active_translations().auth.account_limit_for_plan.replace(
+                      "{{max}}",
+                      String(device_max),
+                    )
+                  : get_active_translations().settings.plan_limit_reached,
               code: "FORBIDDEN",
               server_code: "PLAN_LIMIT_EXCEEDED",
             };
@@ -1706,7 +1719,7 @@ export class ApiClient {
             response.status === 413 &&
             error_data.code === "STORAGE_QUOTA_EXCEEDED"
           ) {
-            if (!skip_upgrade_prompt) {
+            if (!skip_upgrade_prompt && !is_auth_endpoint(endpoint)) {
               window.dispatchEvent(
                 new CustomEvent("aster:storage-full", {
                   detail: {

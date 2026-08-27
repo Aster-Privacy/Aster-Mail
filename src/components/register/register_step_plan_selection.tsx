@@ -19,7 +19,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { UseRegistrationReturn } from "@/components/register/hooks/use_registration";
-import { safe_local_set } from "@/lib/safe_storage";
 import type { AvailablePlan } from "@/services/api/billing";
 import { server_error_text } from "@/components/settings/billing/server_error_text";
 
@@ -32,6 +31,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
+import { safe_local_set } from "@/lib/safe_storage";
 import { Logo } from "@/components/auth/auth_styles";
 import { Spinner } from "@/components/ui/spinner";
 import { pricing_comparison_url } from "@/lib/canonical_urls";
@@ -70,10 +70,13 @@ import {
   page_transition,
 } from "@/components/register/register_types";
 import { read_offer_prefill } from "@/components/register/academic_offer_prefill";
+import { clear_first_run_plan, restore_first_run_plan } from "@/lib/first_run";
 
 interface RegisterStepPlanSelectionProps {
   reg: UseRegistrationReturn;
 }
+
+const PLAN_LOAD_TIMEOUT_MS = 12000;
 
 interface SelectedCheckout {
   plan: AvailablePlan;
@@ -344,7 +347,12 @@ export const RegisterStepPlanSelection = ({
     let cancelled = false;
 
     (async () => {
-      const loaded = await load_plans();
+      const loaded = await Promise.race([
+        load_plans(),
+        new Promise<AvailablePlan[]>((resolve) =>
+          setTimeout(() => resolve([]), PLAN_LOAD_TIMEOUT_MS),
+        ),
+      ]);
 
       if (!cancelled) {
         set_plans(loaded);
@@ -383,6 +391,7 @@ export const RegisterStepPlanSelection = ({
     set_pending_tier(null);
     set_is_finalizing(true);
     safe_local_set("show_onboarding", "true");
+    clear_first_run_plan();
 
     const result = await start_hosted_checkout(
       pending_tier.plan.code,
@@ -391,6 +400,7 @@ export const RegisterStepPlanSelection = ({
     );
 
     if (!result.ok) {
+      restore_first_run_plan();
       set_is_finalizing(false);
       show_toast(
         server_error_text(result.error, t("settings.failed_checkout")),
@@ -419,6 +429,7 @@ export const RegisterStepPlanSelection = ({
     set_pending_family_tier(null);
     set_is_finalizing(true);
     safe_local_set("show_onboarding", "true");
+    clear_first_run_plan();
     const res = await create_family_group(tier.id, billing_interval);
 
     if (res.data?.checkout_url) {
@@ -432,10 +443,12 @@ export const RegisterStepPlanSelection = ({
           set_is_finalizing(false);
         }
       } catch {
+        restore_first_run_plan();
         set_is_finalizing(false);
         show_toast(t("settings.failed_checkout"), "error");
       }
     } else {
+      restore_first_run_plan();
       set_is_finalizing(false);
       show_toast(
         server_error_text(res.error, t("settings.failed_checkout")),
@@ -461,6 +474,7 @@ export const RegisterStepPlanSelection = ({
   }, [is_finalizing, reg]);
 
   const handle_checkout_success = useCallback(async () => {
+    clear_first_run_plan();
     set_is_finalizing(true);
     try {
       await reg.finalize_registration();
@@ -883,6 +897,7 @@ export const RegisterStepPlanSelection = ({
           enable_native={false}
           is_open={!!crypto_family_tier}
           monthly_price_cents={crypto_family_tier.monthly_cents}
+          on_checkout_opened={clear_first_run_plan}
           on_close={() => set_crypto_family_tier(null)}
           plan_code={crypto_family_tier.id}
           plan_name={crypto_family_tier.name}
@@ -891,32 +906,30 @@ export const RegisterStepPlanSelection = ({
         />
       )}
 
-      {!is_loading && (
-        <div className="w-full flex flex-col items-center mt-5 mb-4 gap-3">
-          <button
-            className="text-sm font-medium hover:underline disabled:opacity-60"
-            disabled={is_finalizing}
-            style={{ color: "var(--accent-blue)" }}
-            type="button"
-            onClick={handle_continue_free}
+      <div className="w-full flex flex-col items-center mt-5 mb-4 gap-3">
+        <button
+          className="text-sm font-medium hover:underline disabled:opacity-60"
+          disabled={is_finalizing}
+          style={{ color: "var(--accent-blue)" }}
+          type="button"
+          onClick={handle_continue_free}
+        >
+          {t("auth.plan_continue_as_free")}
+        </button>
+        <Button as_child variant="outline">
+          <a
+            href={pricing_comparison_url()}
+            rel="noopener noreferrer"
+            target="_blank"
           >
-            {t("auth.plan_continue_as_free")}
-          </button>
-          <Button as_child variant="outline">
-            <a
-              href={pricing_comparison_url()}
-              rel="noopener noreferrer"
-              target="_blank"
-            >
-              <span>{t("auth.plan_view_full_features")}</span>
-              <ArrowTopRightOnSquareIcon className="w-4 h-4" />
-            </a>
-          </Button>
-          <p className="mt-2 text-xs text-txt-muted text-center max-w-md">
-            {t("auth.plan_footer_reassurance")}
-          </p>
-        </div>
-      )}
+            <span>{t("auth.plan_view_full_features")}</span>
+            <ArrowTopRightOnSquareIcon className="w-4 h-4" />
+          </a>
+        </Button>
+        <p className="mt-2 text-xs text-txt-muted text-center max-w-md">
+          {t("auth.plan_footer_reassurance")}
+        </p>
+      </div>
 
       {is_finalizing && (
         <div
@@ -963,6 +976,7 @@ export const RegisterStepPlanSelection = ({
           enable_native={false}
           is_open={!!crypto_tier}
           monthly_price_cents={crypto_tier.tier.monthly_cents}
+          on_checkout_opened={clear_first_run_plan}
           on_close={() => set_crypto_tier(null)}
           plan_code={crypto_tier.plan.code}
           plan_name={crypto_tier.tier.name}

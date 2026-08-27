@@ -22,7 +22,6 @@ import { useState, useEffect, useRef, type ReactNode } from "react";
 import { Checkbox } from "@aster/ui";
 import { Button } from "@aster/ui";
 
-import { Spinner } from "@/components/ui/spinner";
 import { use_i18n } from "@/lib/i18n/context";
 import { ignore_error } from "@/lib/ignore_error";
 import {
@@ -50,6 +49,7 @@ interface ConfirmationModalProps {
   learn_more_url?: string;
   learn_more_label?: string;
   extra_content?: ReactNode;
+  is_loading?: boolean;
 }
 
 const VARIANT_MAP: Record<ConfirmationVariant, "destructive" | "primary"> = {
@@ -74,6 +74,7 @@ export function ConfirmationModal({
   learn_more_url,
   learn_more_label,
   extra_content,
+  is_loading = false,
 }: ConfirmationModalProps) {
   const { t } = use_i18n();
   const resolved_confirm_text = confirm_text ?? t("common.confirm");
@@ -83,6 +84,7 @@ export function ConfirmationModal({
   const [internal_open, set_internal_open] = useState(false);
   const closing_ref = useRef(false);
   const button_variant = VARIANT_MAP[variant];
+  const is_busy = is_saving || is_loading;
 
   useEffect(() => {
     if (is_open) {
@@ -191,7 +193,7 @@ export function ConfirmationModal({
         <AlertDialogFooter className="flex-row gap-3 px-6 pb-6 pt-2 sm:justify-end">
           <Button
             className="mt-0 max-sm:flex-1"
-            disabled={is_saving}
+            disabled={is_busy}
             size="xl"
             variant="outline"
             onClick={handle_cancel}
@@ -200,19 +202,13 @@ export function ConfirmationModal({
           </Button>
           <Button
             className="max-sm:flex-1"
-            disabled={is_saving}
+            disabled={is_busy}
+            is_loading={is_busy}
             size="xl"
             variant={button_variant}
             onClick={handle_confirm}
           >
-            {is_saving ? (
-              <>
-                {t("common.saving")}
-                <Spinner className="ms-2" size="md" />
-              </>
-            ) : (
-              resolved_confirm_text
-            )}
+            {resolved_confirm_text}
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>

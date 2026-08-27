@@ -1044,15 +1044,15 @@ export const ru = {
     purchase_thank_you: "Спасибо за покупку. Ваша подписка теперь активна.",
     view_billing_settings: "Просмотр настроек оплаты",
     welcome_description:
-      "Давайте совершим быстрый обзор, чтобы помочь вам начать работу с вашей безопасной и приватной почтовой платформой.",
-    organize_with_folders: "Организуйте с помощью папок",
+      "Знакомство займёт около минуты. Оно охватывает четыре вещи, которые упрощают первый день.",
+    organize_with_folders: "Порядок с папками",
     organize_folders_description:
-      "Создавайте пользовательские папки для организации писем. Нажмите кнопку + рядом с «Папки», чтобы создать первую папку.",
+      "Перетащите письмо в папку, чтобы убрать его, или выделите несколько и переместите вместе. Чтобы создать папку, нажмите + рядом с разделом папок.",
     customize_settings_description:
-      "Настройте свой опыт, управляйте параметрами безопасности и конфигурируйте предпочтения аккаунта.",
+      "В настройках вы добавляете псевдоним, подключаете свой домен и включаете двухфакторную аутентификацию.",
     youre_ready: "Всё готово",
     youre_ready_description:
-      "Вот и всё! Вы готовы начать использовать Aster Mail. Ваши письма зашифрованы сквозным шифрованием и полностью конфиденциальны.",
+      "Ваша почта зашифрована сквозным шифрованием, и ключи есть только у вас. Нажмите ? в любой момент, чтобы увидеть все сочетания клавиш.",
     skip_tour: "Пропустить обзор",
     get_started: "Начать",
     setup_complete: "Настройка завершена!",
@@ -1306,6 +1306,11 @@ export const ru = {
     subject_too_long:
       "Тема превышает лимит в 998 символов. Более короткий вариант отправится без проблем.",
     notification_banner_no_thanks: "Нет, спасибо",
+    payment_past_due_message:
+      "Последний платеж не прошел. Обновите способ оплаты, чтобы сохранить тариф.",
+    payment_past_due_message_days:
+      "Последний платеж не прошел. Обновите способ оплаты в течение {{days}} дней, чтобы сохранить тариф.",
+    payment_past_due_action: "Обновить оплату",
     ghost_label: "Призрак",
     ghost_mode_tooltip:
       "Отправлено через режим «Призрак». Ваш настоящий адрес был скрыт.",
@@ -1732,6 +1737,22 @@ export const ru = {
     on_separator: "в",
     onboarding_checklist_dismiss: "Скрыть",
     onboarding_checklist_first_email: "Отправьте первое письмо",
+    first_run_title: "Ваш почтовый ящик готов",
+    first_run_subtitle: "Перенесите свою почту сейчас или позже в настройках.",
+    first_run_import: "Импортировать почту",
+    first_run_skip: "Начать с пустого ящика",
+    first_run_privacy_note:
+      "Ваша почта шифруется на вашем устройстве. Aster не может её прочитать.",
+    recovery_reminder_title: "Добавьте способ вернуться в аккаунт",
+    recovery_reminder_body:
+      "Aster шифрует вашу почту вашим паролем, поэтому никто не сможет сбросить его за вас. Добавьте резервный адрес, чтобы сохранить доступ.",
+    recovery_reminder_action: "Добавить резервный адрес",
+    recovery_reminder_later: "Позже",
+    plan_prompt_title: "У вас бесплатный тариф",
+    plan_prompt_body:
+      "Платные тарифы дают больше места, собственные домены и неограниченные псевдонимы.",
+    plan_prompt_action: "Посмотреть тарифы",
+    plan_prompt_dismiss: "Скрыть",
     onboarding_checklist_import_mail: "Импортируйте старую почту",
     onboarding_checklist_install_app: "Установите приложение",
     onboarding_checklist_recovery_method: "Добавьте способ восстановления",
@@ -3828,6 +3849,13 @@ export const ru = {
     ipfs_disabled_description:
       "Храните вложения в IPFS для децентрализованного и надёжного хранения",
     forward_secrecy: "Прямая секретность",
+    forward_secrecy_disable_title: "Отключить прямую секретность?",
+    forward_secrecy_disable_message:
+      "Новые сообщения перестают использовать сменяемые ключи, поэтому утёкший позже ключ откроет больше вашей почты. Вы можете включить эту функцию снова в любой момент.",
+    login_alerts_disable_title: "Отключить оповещения о входе?",
+    login_alerts_disable_message:
+      "Вы перестанете получать письмо, когда новое устройство входит в вашу учётную запись.",
+    turn_off_action: "Отключить",
     forward_secrecy_enabled_description: "Ключи обновляются {{frequency}}",
     forward_secrecy_disabled_description:
       "Автоматическое обновление ключей шифрования для повышенной безопасности",
@@ -4032,15 +4060,18 @@ export const ru = {
     translate_add_language: "Добавить язык",
     translate_auto_detected: "Определено автоматически на вашем устройстве",
     translate_confirm_title: "Включить перевод?",
-    translate_confirm_description: "Aster переводит почту на вашем устройстве, поэтому ничего из прочитанного не отправляется в службу перевода. При первом переводе с какого-либо языка Aster загружает языковой пакет размером от 20 до 55 МБ и сохраняет его на этом устройстве. Пакеты можно удалить в любое время.",
+    translate_confirm_description:
+      "Aster переводит почту на вашем устройстве, поэтому ничего из прочитанного не отправляется в службу перевода. При первом переводе с какого-либо языка Aster загружает языковой пакет размером от 20 до 55 МБ и сохраняет его на этом устройстве. Пакеты можно удалить в любое время.",
     translate_confirm_enable: "Включить",
     translation_packs: "Загруженные языковые пакеты",
-    translation_packs_description: "Языковые пакеты хранятся на этом устройстве. Удалите пакет, чтобы освободить место. Aster загрузит его снова при следующем переводе с этого языка.",
+    translation_packs_description:
+      "Языковые пакеты хранятся на этом устройстве. Удалите пакет, чтобы освободить место. Aster загрузит его снова при следующем переводе с этого языка.",
     translation_packs_empty: "Вы ещё не загрузили ни одного языкового пакета.",
     translation_packs_total: "Занято на этом устройстве: {{size}}",
     translation_packs_remove: "Удалить",
     translation_packs_remove_all: "Удалить все",
-    translation_packs_unavailable: "Этот браузер не может хранить языковые пакеты, поэтому Aster загружает их при каждом переводе.",
+    translation_packs_unavailable:
+      "Этот браузер не может хранить языковые пакеты, поэтому Aster загружает их при каждом переводе.",
 
     block_external_content: "Блокировать внешнее содержимое",
     block_external_content_description:
@@ -4371,14 +4402,15 @@ export const ru = {
     any_email_import_description: "Файлы MBOX, EML, CSV, PST",
     search_history: "История поиска",
     folders_limit: "Папки",
-    onboarding_compose_title: "Написать новое письмо",
+    onboarding_compose_title: "Напишите первое письмо",
     onboarding_compose_description:
-      "Нажмите здесь, чтобы написать новое письмо",
-    onboarding_search_title: "Поиск по письмам",
+      "Нажмите C во входящих, чтобы начать писать. Aster шифрует письмо на вашем устройстве перед отправкой.",
+    onboarding_search_title: "Находите всё, приватно",
     onboarding_search_description:
-      "Используйте строку поиска, чтобы найти любое письмо",
+      "Нажмите /, чтобы сразу перейти к поиску. Сужайте результаты по отправителю, дате или вложениям, не отрываясь от клавиатуры.",
     delete_imported_emails_confirm: "Удалить импортированные письма?",
-    import_delete_warning: "Письма, добавленные этим импортом, будут удалены навсегда. Отменить это действие нельзя.",
+    import_delete_warning:
+      "Письма, добавленные этим импортом, будут удалены навсегда. Отменить это действие нельзя.",
     all_emails_filter: "Все письма",
     choose_label_color: "Выберите цвет метки",
     hex_color_value: "Шестнадцатеричное значение цвета",
@@ -5496,6 +5528,36 @@ export const ru = {
     storage_warning_title: "В хранилище остаётся мало места.",
     storage_warning_description:
       "Использовано более 90% хранилища. Удаление части писем или повышение тарифа обычно сохраняет поток новых писем.",
+    storage_overview_description:
+      "Посмотрите, что занимает место, и удалите ненужное.",
+    storage_promo_title: "Выгодное дополнительное хранилище",
+    storage_promo_body:
+      "Получите скидку {{percent}}% на первые {{months}} месяца дополнительного хранилища.",
+    storage_promo_body_singular:
+      "Получите скидку {{percent}}% на первый месяц дополнительного хранилища.",
+    storage_promo_note:
+      "Скидка действует только на первое дополнение хранилища.",
+    storage_select_option_first:
+      "Чтобы купить больше места, сначала выберите вариант.",
+    storage_promo_cta: "Посмотреть дополнения",
+    storage_used_of_total: "Использовано {{used}} из {{total}}",
+    storage_free_space: "Свободно {{size}}, использовано {{percent}} хранилища",
+    storage_breakdown_title: "Что занимает хранилище",
+    storage_breakdown_empty: "В хранилище пока ничего нет.",
+    storage_col_category: "Категория",
+    storage_col_items: "Элементы",
+    storage_col_size: "Размер",
+    storage_col_share: "Доля",
+    storage_capacity_title: "Объем",
+    storage_included_with_plan: "Включено в тариф",
+    storage_from_addons: "От дополнений",
+    storage_family_allocation: "Семейная квота",
+    storage_total_capacity: "Общий объем",
+    storage_available: "Доступно",
+    storage_cleanup_done: "Место освобождено",
+    storage_cleanup_failed: "Не удалось освободить место. Повторите попытку.",
+    storage_cleanup_confirm:
+      "Будет безвозвратно удалено элементов: {{count}}, освободится {{size}}. Отменить это нельзя.",
     storage_locked_title: "Хранилище заполнено.",
     storage_locked_description:
       "Поступление новых писем приостановлено до освобождения места. Удаление части писем или повышение тарифа возвращает их поток. Существующая почта в безопасности.",
@@ -5550,6 +5612,9 @@ export const ru = {
     stripe_not_configured: "Платёжная система не настроена.",
     try_again: "Повторить попытку",
     view_all_features: "Посмотреть все функции",
+    plan_everything_in: "Всё из тарифа {{plan}}, плюс",
+    compare_features_show: "Сравнить возможности по тарифам",
+    compare_features_hide: "Скрыть сравнение",
     compare_plans: "Сравнить все тарифы",
     feature: "Функция",
     manage_payment_methods: "Управление способами оплаты",
@@ -5560,6 +5625,10 @@ export const ru = {
     card_expires: "Срок действия",
     adding_card: "Добавление...",
     card_added: "Способ оплаты добавлен",
+    payment_retry_succeeded:
+      "Платеж прошел успешно. Ваш тариф остается активным.",
+    payment_retry_failed:
+      "Банк отклонил эту карту. Попробуйте другой способ оплаты.",
     card_removed: "Способ оплаты удалён",
     default_updated: "Способ оплаты по умолчанию обновлён",
     payment_settled: "Способ оплаты по умолчанию обновлён. Задолженность погашена.",
@@ -5688,11 +5757,11 @@ export const ru = {
     referral_not_eligible: "Реферальная программа сейчас недоступна.",
     referral_loading: "Загрузка реферальных данных...",
     referral_history: "История рефералов",
-    no_referrals_yet: "Рефералов пока нет. Поделитесь ссылкой, чтобы начать!",
+    no_referrals_yet: "Приглашений пока нет. Поделитесь ссылкой, чтобы начать.",
     referral_status_pending: "В ожидании",
     referral_status_completed: "Завершён",
     referral_reward_info:
-      "Ваш друг получает скидку на первый платёж, а вы зарабатываете с каждого его платежа.",
+      "Вы и ваш друг получаете по {{ amount }} дополнительного хранилища. Оно появляется после того, как друг пользуется аккаунтом пару дней, и остаётся у вас, пока он продолжает пользоваться Aster Mail.",
     referral_commission_info:
       "Вы получаете {{ percent }}% с каждого платежа ваших рефералов, пока они подписаны.",
     referral_max_credits: "Максимальный заработок: {{ value }} в год",
@@ -5938,7 +6007,7 @@ export const ru = {
     billing_banner_subtitle:
       "Повысьте тариф или приобретите дополнительное хранилище для защиты вашей конфиденциальности.",
     storage_addons_monthly_note:
-      "Дополнительное хранилище оплачивается ежемесячно, даже если тариф оплачивается ежегодно.",
+      "Дополнения продлеваются каждый месяц и оплачиваются отдельно от тарифа. При оплате криптовалютой вы сами выбираете срок предоплаты.",
     storage_addons_description:
       "Нужно больше места? Приобретите дополнительное зашифрованное хранилище для вашего аккаунта.",
     storage_purchase_coming_soon:
@@ -5959,7 +6028,7 @@ export const ru = {
     use_credits_for_renewals_description:
       "Автоматически применять баланс кредитов для продления тарифа и дополнений. Если баланса недостаточно, остаток будет списан с вашего способа оплаты.",
     referral_program_description:
-      "Приглашайте друзей в Aster и получайте кредиты с каждого их платежа.",
+      "Пригласите друга в Aster Mail. Вы оба получите {{ amount }} дополнительного хранилища, как только он начнёт пользоваться аккаунтом.",
     referral_not_eligible_description: "Пожалуйста, попробуйте позже.",
     billing_address_description:
       "Добавьте платёжные реквизиты для отображения в счетах.",
@@ -6062,7 +6131,8 @@ export const ru = {
     domain_purchase_included_heading: "Что входит в стоимость домена",
     domain_purchase_renew: "Продлить",
     domain_purchase_manage: "Управление",
-    domain_purchase_manage_description: "Проверьте эту регистрацию и продлите ее до окончания срока.",
+    domain_purchase_manage_description:
+      "Проверьте эту регистрацию и продлите ее до окончания срока.",
     domain_purchase_manage_status: "Статус",
     domain_purchase_manage_status_active: "Активен",
     domain_purchase_manage_status_expiring: "Скоро истекает",
@@ -6070,9 +6140,11 @@ export const ru = {
     domain_purchase_manage_expires: "Истекает",
     domain_purchase_manage_term: "Срок",
     domain_purchase_manage_paid: "Оплачено",
-    domain_purchase_manage_auto_renew_note: "Этот домен не продлевается автоматически. Чтобы сохранить его, продлите его до даты окончания срока.",
+    domain_purchase_manage_auto_renew_note:
+      "Этот домен не продлевается автоматически. Чтобы сохранить его, продлите его до даты окончания срока.",
     domain_purchase_manage_dns: "Открыть настройку домена",
-    domain_purchase_manage_support_note: "Чтобы перенести домен к другому регистратору или спросить о возврате средств, свяжитесь с поддержкой.",
+    domain_purchase_manage_support_note:
+      "Чтобы перенести домен к другому регистратору или спросить о возврате средств, свяжитесь с поддержкой.",
     domain_purchase_manage_support_subject: "Помощь с {{domain}}",
     domain_purchase_filter_all: "Все",
     domain_purchase_filter_available: "Доступные",
@@ -6892,18 +6964,18 @@ export const ru = {
       "Журналист? Обратитесь в поддержку с пресс-картой, чтобы получить код.",
     refer_a_friend: "Пригласить друга",
     referral_email_body:
-      "Привет!\n\nЯ пользуюсь Aster Mail и мне очень нравится. Почта зашифрована сквозным шифрованием, поэтому никто кроме тебя не может её прочитать. Даже сам Aster.\n\nЕсли хочешь попробовать, вот моя реферальная ссылка:\n\n{{ referral_link }}\n\nТы получишь скидку на первый платёж, если оформишь подписку, а я немного кредитов, но без давления. Просто подумал, вдруг понравится.\n\nС уважением",
+      "Привет!\n\nЯ уже некоторое время пользуюсь Aster Mail, и мне очень нравится. Всё зашифровано сквозным шифрованием, поэтому прочитать твою почту не может никто, кроме тебя. Даже те, кто управляет сервисом.\n\nЕсли хочешь попробовать, вот моя ссылка-приглашение:\n\n{{ referral_link }}\n\nКак только ты начнёшь им пользоваться, мы оба получим {{ amount }} дополнительного хранилища, так что тебе тоже будет польза.\n\nВсего доброго",
     referral_email_subject: "Попробуй Aster Mail - приватная почта для всех",
     referral_how_it_works: "Как это работает",
     referral_loading_contacts: "Загрузка контактов...",
     referral_no_contacts: "Контакты не найдены. Сначала добавьте контакты!",
     referral_rewards: "Вознаграждения",
     referral_step_earn:
-      "Вы получаете долю с каждого их платежа, пока они остаются подписчиками.",
+      "Каждый получает {{ amount }} дополнительного хранилища, до {{ max }}.",
     referral_step_share:
-      "Поделитесь уникальной реферальной ссылкой с друзьями, семьёй или коллегами.",
+      "Поделитесь ссылкой-приглашением с друзьями, семьёй или коллегами.",
     referral_step_signup:
-      "Они регистрируются в Aster по вашей ссылке и подписываются на платный тариф.",
+      "Они создают аккаунт по вашей ссылке и начинают им пользоваться.",
     registered: "Зарегистрирован",
     remote_image_loading: "Загрузка внешних изображений",
     remote_image_loading_description:
@@ -6922,7 +6994,7 @@ export const ru = {
     security_keys_description:
       "Использовать аппаратные ключи безопасности или пароли для входа",
     select_color: "Выбрать цвет {{name}}",
-    send_referral_to_contacts: "Пригласить всех контактов по email",
+    send_referral_to_contacts: "Отправить письмо всем контактам",
     show_signature_separator: "Разделитель подписи",
     show_signature_separator_description:
       "Добавить строку-разделитель '--' над подписью в исходящих письмах.",
@@ -7092,6 +7164,49 @@ export const ru = {
     referral_discount_auto_apply:
       "Применяется автоматически при оплате, вводить ничего не нужно.",
     referral_discount_expires: "Действует до {{ date }}",
+    invite_storage_line:
+      "Вы оба получите {{ amount }} дополнительного хранилища",
+    invite_storage_note:
+      "Создайте бесплатный аккаунт по этой ссылке. Хранилище появится на обоих аккаунтах, как только вы начнёте пользоваться своим.",
+    invite_discount_note:
+      "А ещё скидка {{ percent }}%, если однажды перейдёте на платный тариф.",
+    invite_cta_create_account_storage: "Создать бесплатный аккаунт",
+    invite_friends: "Пригласить друзей",
+    invite_sidebar_earned: "получено {{ amount }}",
+    referral_storage_headline:
+      "Получайте {{ amount }} хранилища за каждого присоединившегося друга",
+    referral_storage_subhead:
+      "Ваш друг тоже получит {{ amount }}. Хранилище появляется, когда он начинает пользоваться аккаунтом, до {{ max }}.",
+    referral_storage_earned_badge: "получено {{ amount }}",
+    referral_active_referrals: "Активные",
+    referral_share_button: "Поделиться приглашением",
+    referral_show_qr: "Показать QR-код",
+    referral_hide_qr: "Скрыть QR-код",
+    referral_qr_hint:
+      "Наведите камеру телефона на этот код, чтобы открыть приглашение.",
+    referral_qr_alt: "QR-код вашей ссылки-приглашения в Aster Mail",
+    referral_share_title: "Присоединяйтесь ко мне в Aster Mail",
+    referral_share_message:
+      "Я пользуюсь Aster Mail ради почты со сквозным шифрованием. Зарегистрируйтесь по моей ссылке, и мы оба получим {{ amount }} дополнительного хранилища.",
+    referral_shared: "Приглашение отправлено",
+    referral_message_copied: "Текст приглашения скопирован",
+    referral_bonus_gauge_label: "Полученное хранилище",
+    referral_bonus_max: "Максимум: {{ value }}",
+    referral_status_active: "Активно",
+    referral_email_all_contacts_hint:
+      "Отправляет по одному письму каждому контакту из адресной книги.",
+    referral_claim_title: "Вас пригласили?",
+    referral_claim_description:
+      "Введите код из приглашения, и вы оба получите {{ amount }} дополнительного хранилища. Добавить его можно до {{ date }}.",
+    referral_claim_placeholder: "Код приглашения",
+    referral_claim_button: "Добавить код",
+    referral_claim_success:
+      "Приглашение добавлено. Хранилище появится, когда вы попользуетесь Aster Mail пару дней.",
+    referral_claim_invalid: "Этот код приглашения недействителен.",
+    referral_claim_window_closed:
+      "Срок, в течение которого можно добавить код приглашения к этому аккаунту, истёк.",
+    referral_claim_already: "К этому аккаунту уже привязано приглашение.",
+    referral_claim_self: "Нельзя использовать собственный код приглашения.",
     domain_purchase_not_released:
       "Покупка доменов пока недоступна. Она появится в одном из следующих обновлений.",
     domain_step_ownership_title: "Подтвердите, что домен ваш",
@@ -7492,7 +7607,8 @@ export const ru = {
     attachments: "Вложения",
     translation_offer: "Это сообщение на {{language}}.",
     translation_translate: "Перевести",
-    translation_offer_download: "Это сообщение на языке {{language}}. При переводе будет загружен языковой пакет.",
+    translation_offer_download:
+      "Это сообщение на языке {{language}}. При переводе будет загружен языковой пакет.",
     translation_translate_download: "Перевести (загрузка {{size}})",
     translation_in_progress: "Перевод на вашем устройстве…",
     translation_translated_from:

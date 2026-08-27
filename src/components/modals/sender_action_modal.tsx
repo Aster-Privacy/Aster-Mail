@@ -18,7 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { FaviconOrInitial } from "@/components/ui/favicon_or_initial";
 import type { TranslationKey } from "@/lib/i18n/types";
 import type { MailItem } from "@/services/api/mail";
 
@@ -36,6 +35,7 @@ import {
 import { Button } from "@aster/ui";
 import { Checkbox } from "@aster/ui";
 
+import { FaviconOrInitial } from "@/components/ui/favicon_or_initial";
 import { yield_to_browser } from "@/lib/scheduling";
 import {
   scan_received_items,
@@ -563,10 +563,10 @@ export function SenderActionModal({
         message={`${t("common.email_count", {
           count: selected_email_total,
         })}. ${t("mail.trash_messages_confirmation")}`}
-        title={t("mail.delete_messages_title")}
-        variant="danger"
         on_cancel={() => set_confirm_delete_open(false)}
         on_confirm={handle_confirm_delete}
+        title={t("mail.delete_messages_title")}
+        variant="danger"
       />
       <AnimatePresence>
         {is_open && (
@@ -648,7 +648,7 @@ export function SenderActionModal({
                         </p>
                         {scan_failed && !search_query && (
                           <button
-                            className="mt-2 text-[12px] font-medium text-accent-primary hover:underline"
+                            className="mt-2 text-[12px] font-medium text-brand hover:underline"
                             type="button"
                             onClick={() => void load_senders()}
                           >

@@ -19,9 +19,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { UseRegistrationReturn } from "@/components/register/hooks/use_registration";
+import type { CSSProperties } from "react";
 
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 
+import { Spinner } from "@/components/ui/spinner";
 import { use_should_reduce_motion } from "@/provider";
 import {
   page_variants,
@@ -31,6 +34,37 @@ import {
 interface RegisterStepKeysProps {
   reg: UseRegistrationReturn;
 }
+
+const ADVANCE_MS = 1100;
+const START_SCALE = 0.08;
+
+const sweep_style = `
+  @keyframes key_setup_advance {
+    from {
+      transform: scaleX(var(--advance-from));
+    }
+    to {
+      transform: scaleX(var(--advance-to));
+    }
+  }
+  @keyframes key_setup_sweep {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(400%);
+    }
+  }
+  .key_setup_sweep {
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.55),
+      transparent
+    );
+    animation: key_setup_sweep 1.2s ease-in-out infinite;
+  }
+`;
 
 export const RegisterStepKeys = ({ reg }: RegisterStepKeysProps) => {
   const reduce_motion = use_should_reduce_motion();
@@ -48,10 +82,24 @@ export const RegisterStepKeys = ({ reg }: RegisterStepKeysProps) => {
   const current_step_index = steps.findIndex(
     (s) => s === reg.generation_status,
   );
+  const is_final_step = current_step_index === steps.length - 1;
   const progress =
     current_step_index >= 0
-      ? ((current_step_index + 1) / steps.length) * 100
-      : 10;
+      ? ((current_step_index + 1) / (steps.length + 1)) * 100
+      : 8;
+  const target_scale = progress / 100;
+  const [advance, set_advance] = useState({
+    from: START_SCALE,
+    to: target_scale,
+  });
+
+  useEffect(() => {
+    set_advance((previous) =>
+      previous.to === target_scale
+        ? previous
+        : { from: previous.to, to: target_scale },
+    );
+  }, [target_scale]);
 
   return (
     <motion.div
@@ -63,7 +111,9 @@ export const RegisterStepKeys = ({ reg }: RegisterStepKeysProps) => {
       transition={page_transition}
       variants={page_variants}
     >
-      <div className="h-10 w-10 border-[3px] border-blue-500 border-t-transparent rounded-full animate-spin" />
+      <style>{sweep_style}</style>
+
+      <Spinner className="h-10 w-10 text-[var(--accent-color)]" size="lg" />
 
       <h2 className="text-xl font-semibold mt-8 text-txt-primary">
         {reg.t("auth.setting_up_account")}
@@ -73,27 +123,39 @@ export const RegisterStepKeys = ({ reg }: RegisterStepKeysProps) => {
 
       <div className="w-full mt-8">
         <div
-          className="h-1 w-full rounded-full overflow-hidden"
+          className="relative h-1 w-full overflow-hidden rounded-full"
           style={{
             backgroundColor: reg.is_dark
               ? "rgba(255, 255, 255, 0.1)"
               : "rgba(0, 0, 0, 0.08)",
           }}
         >
-          <motion.div
-            animate={{ width: `${progress}%` }}
-            className="h-full rounded-full"
-            initial={reduce_motion ? false : { width: "0%" }}
-            style={{
-              backgroundColor: reg.is_dark
-                ? "var(--accent-color-hover)"
-                : "var(--accent-color)",
-            }}
-            transition={{
-              duration: reduce_motion ? 0 : 0.3,
-              ease: "easeOut",
-            }}
+          <div
+            key={reduce_motion ? "static" : `${advance.from}-${advance.to}`}
+            className="h-full w-full origin-left rounded-full"
+            style={
+              {
+                backgroundColor: reg.is_dark
+                  ? "var(--accent-color-hover)"
+                  : "var(--accent-color)",
+                transform: `scaleX(${advance.to})`,
+                "--advance-from": advance.from,
+                "--advance-to": advance.to,
+                animation: reduce_motion
+                  ? "none"
+                  : `key_setup_advance ${ADVANCE_MS}ms cubic-bezier(0.22, 0.61, 0.36, 1) forwards`,
+              } as CSSProperties
+            }
           />
+
+          {is_final_step && !reduce_motion && (
+            <div
+              className="pointer-events-none absolute inset-y-0 start-0 overflow-hidden"
+              style={{ width: `${progress}%` }}
+            >
+              <div className="key_setup_sweep absolute inset-y-0 w-1/3" />
+            </div>
+          )}
         </div>
       </div>
 

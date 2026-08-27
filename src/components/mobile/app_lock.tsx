@@ -224,7 +224,9 @@ function WebPinOverlay({
     wiping_ref.current = true;
     set_wiping(true);
     try {
-      await purge_all_local_data();
+      const purged = await purge_all_local_data();
+
+      if (!purged) await purge_all_local_data();
     } finally {
       window.location.href = "/";
     }
@@ -532,6 +534,7 @@ export function AppLock({ children }: { children: React.ReactNode }) {
 
   const [is_locked, set_is_locked] = useState(false);
   const [is_authenticating, set_is_authenticating] = useState(false);
+  const [unlock_error, set_unlock_error] = useState<string | null>(null);
   const [biometry_name, set_biometry_name] = useState("Biometric");
   const [last_active, set_last_active] = useState(Date.now());
   const [is_web_locked, set_is_web_locked] = useState(() => {
@@ -607,6 +610,7 @@ export function AppLock({ children }: { children: React.ReactNode }) {
   const handle_unlock = useCallback(async () => {
     if (is_authenticating) return;
     set_is_authenticating(true);
+    set_unlock_error(null);
     try {
       const success = await authenticate_biometric(
         t("common.unlock_aster_mail"),
@@ -615,6 +619,8 @@ export function AppLock({ children }: { children: React.ReactNode }) {
       if (success) {
         set_is_locked(false);
         set_last_active(Date.now());
+      } else {
+        set_unlock_error(t("errors.authentication_failed"));
       }
     } finally {
       set_is_authenticating(false);
@@ -753,6 +759,9 @@ export function AppLock({ children }: { children: React.ReactNode }) {
                 <p className="mt-1 text-sm text-muted-foreground">
                   {t("common.use_biometry_to_unlock", { name: biometry_name })}
                 </p>
+                {unlock_error && (
+                  <p className="mt-2 text-sm text-red-500">{unlock_error}</p>
+                )}
               </div>
               <button
                 className={cn(

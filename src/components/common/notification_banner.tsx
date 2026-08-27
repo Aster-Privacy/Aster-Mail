@@ -138,7 +138,16 @@ export function NotificationBanner() {
       return;
     }
 
-    const result = await Notification.requestPermission();
+    let result: NotificationPermission;
+
+    try {
+      result = await Notification.requestPermission();
+    } catch (permission_error) {
+      if (import.meta.env.DEV) console.error(permission_error);
+      show_toast(t("common.something_went_wrong_try_again"), "error");
+
+      return;
+    }
 
     set_browser_permission(result);
 

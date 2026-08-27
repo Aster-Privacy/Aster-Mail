@@ -23,6 +23,7 @@ import type {} from "@/services/api/mail";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { strip_html_tags } from "@/lib/html_sanitizer";
+import { strip_preview_filler } from "@/utils/preview_text";
 
 export const MIN_LIST_WIDTH = 280;
 export const SNIPPET_WINDOW = 120;
@@ -30,7 +31,7 @@ export const SLOW_SEARCH_MS = 6000;
 
 export function extract_snippet(preview: string, terms: string[]): string {
   if (!preview || terms.length === 0) return "";
-  const plain = strip_html_tags(preview);
+  const plain = strip_preview_filler(strip_html_tags(preview));
   const lower = plain.toLowerCase();
 
   let earliest_index = -1;

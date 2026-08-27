@@ -39,7 +39,6 @@ import {
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
-import { Spinner } from "@/components/ui/spinner";
 import { use_i18n } from "@/lib/i18n/context";
 import { format_number } from "@/lib/utils";
 import {
@@ -97,16 +96,13 @@ export function ContactImportModal({
     failed: number;
   } | null>(null);
   const [error, set_error] = useState<string | null>(null);
+  const [is_drag_active, set_is_drag_active] = useState(false);
   const input_ref = useRef<HTMLInputElement>(null);
   const dialog_ref = useRef<HTMLDivElement>(null);
   const title_id = useId();
 
-  const handle_file_select = useCallback(
-    async (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-
-      if (!file) return;
-
+  const handle_file = useCallback(
+    async (file: File) => {
       set_error(null);
 
       try {
@@ -175,6 +171,44 @@ export function ContactImportModal({
       }
     },
     [t],
+  );
+
+  const handle_file_select = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+
+      if (!file) return;
+
+      void handle_file(file);
+    },
+    [handle_file],
+  );
+
+  const handle_drop = useCallback(
+    (e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      set_is_drag_active(false);
+
+      const file = e.dataTransfer.files?.[0];
+
+      if (!file) return;
+
+      void handle_file(file);
+    },
+    [handle_file],
+  );
+
+  const handle_drag_over = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    set_is_drag_active(true);
+  }, []);
+
+  const handle_drag_leave = useCallback(
+    (e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      set_is_drag_active(false);
+    },
+    [],
   );
 
   const handle_apply_csv_mapping = useCallback(() => {
@@ -316,8 +350,13 @@ export function ContactImportModal({
               </p>
 
               <div
-                className="border-2 border-dashed rounded-xl p-8 text-center cursor-pointer bg-surf-secondary border-edge-secondary"
+                className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer bg-surf-secondary ${
+                  is_drag_active ? "border-brand" : "border-edge-secondary"
+                }`}
                 onClick={() => input_ref.current?.click()}
+                onDragLeave={handle_drag_leave}
+                onDragOver={handle_drag_over}
+                onDrop={handle_drop}
               >
                 <ArrowUpTrayIcon className="w-10 h-10 mx-auto text-txt-muted mb-3" />
                 <p className="text-sm font-medium text-txt-primary">
@@ -439,23 +478,17 @@ export function ContactImportModal({
                 </Button>
                 <Button
                   disabled={is_importing || parsed_contacts.length === 0}
+                  is_loading={is_importing}
                   variant="depth"
                   onClick={handle_import}
                 >
-                  {is_importing ? (
-                    <>
-                      {t("common.importing")}
-                      <Spinner className="ms-1" size="sm" />
-                    </>
-                  ) : (
-                    <>
-                      {parsed_contacts.length === 1
-                        ? t("common.import_one_contact")
-                        : t("common.import_n_contacts", {
-                            count: parsed_contacts.length,
-                          })}
-                    </>
-                  )}
+                  <>
+                    {parsed_contacts.length === 1
+                      ? t("common.import_one_contact")
+                      : t("common.import_n_contacts", {
+                          count: parsed_contacts.length,
+                        })}
+                  </>
                 </Button>
               </div>
             </div>

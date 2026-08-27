@@ -238,6 +238,56 @@ describe("EmailContextMenuContent selection scope", () => {
     expect(other[0].querySelector("svg")).toBeNull();
   });
 
+  it("offers move to inbox only when the message sits in a user folder", async () => {
+    const on_folder_toggle = vi.fn();
+
+    render({ on_folder_toggle });
+
+    expect(text()).not.toContain("mail.move_to_inbox");
+
+    render({
+      on_folder_toggle,
+      email: {
+        ...email,
+        folders: [{ folder_token: "f-1", name: "One", color: "#111111" }],
+      },
+    });
+
+    const item = Array.from(container!.querySelectorAll("button")).find(
+      (button) => button.textContent === "mail.move_to_inbox",
+    );
+
+    await act(async () => {
+      item!.click();
+    });
+
+    expect(on_folder_toggle).toHaveBeenCalledWith("f-1");
+  });
+
+  it("offers move to inbox for a selection whose messages share a folder", () => {
+    render({
+      selection,
+      folders: [
+        { id: "f-1", name: "One", color: "#111111", is_assigned: true },
+        { id: "f-2", name: "Two", color: "#222222", is_assigned: false },
+      ],
+    });
+
+    expect(text()).toContain("mail.move_to_inbox");
+  });
+
+  it("hides move to inbox outside the inbox views", () => {
+    render({
+      current_view: "trash",
+      email: {
+        ...email,
+        folders: [{ folder_token: "f-1", name: "One", color: "#111111" }],
+      },
+    });
+
+    expect(text()).not.toContain("mail.move_to_inbox");
+  });
+
   it("routes a selection action to its handler", async () => {
     const on_archive = vi.fn();
 

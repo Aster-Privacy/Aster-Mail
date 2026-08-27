@@ -46,6 +46,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import { commit_on_enter } from "@/lib/commit_on_enter";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
+import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import {
   use_external_accounts,
   get_folder_depth,
@@ -222,10 +223,10 @@ export function ExternalAccountsSection({
                   autoCapitalize="none"
                   autoComplete="username"
                   autoCorrect="off"
-                  spellCheck={false}
                   className="w-full"
                   maxLength={254}
                   placeholder={state.t("settings.username_placeholder")}
+                  spellCheck={false}
                   type="text"
                   value={state.form_username}
                   onChange={(e) => state.handle_username_change(e.target.value)}
@@ -337,10 +338,10 @@ export function ExternalAccountsSection({
                       autoCapitalize="none"
                       autoComplete="username"
                       autoCorrect="off"
-                      spellCheck={false}
                       className="w-full"
                       maxLength={254}
                       placeholder={state.t("settings.username_placeholder")}
+                      spellCheck={false}
                       type="text"
                       value={state.form_smtp_username}
                       onChange={(e) =>
@@ -700,6 +701,11 @@ export function ExternalAccountsSection({
             paddingBottom: "max(12px, env(safe-area-inset-bottom, 12px))",
           }}
         >
+          {state.prefill_failed && (
+            <div className="pb-2">
+              <LoadFailedNotice on_retry={state.retry_prefill} />
+            </div>
+          )}
           <div className="flex gap-2 pb-2">
             <Button
               className="flex-1 gap-1.5"

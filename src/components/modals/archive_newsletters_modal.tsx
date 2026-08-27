@@ -18,7 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { FaviconOrInitial } from "@/components/ui/favicon_or_initial";
 import type { MailItem } from "@/services/api/mail";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
@@ -32,6 +31,7 @@ import {
 import { Button } from "@aster/ui";
 import { Checkbox } from "@aster/ui";
 
+import { FaviconOrInitial } from "@/components/ui/favicon_or_initial";
 import { use_shift_range_select } from "@/lib/use_shift_range_select";
 import { Modal, ModalBody } from "@/components/ui/modal";
 import { Spinner } from "@/components/ui/spinner";
@@ -570,7 +570,7 @@ export function ArchiveNewslettersModal({
                       </p>
                       {scan_failed && !search_query && (
                         <button
-                          className="mt-2 text-[12px] font-medium text-accent-primary hover:underline"
+                          className="mt-2 text-[12px] font-medium text-brand hover:underline"
                           type="button"
                           onClick={() => void fetch_newsletters()}
                         >

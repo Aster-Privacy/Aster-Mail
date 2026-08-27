@@ -19,7 +19,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
-import { copy_text_or_throw } from "@/utils/copy_text";
 import type { DecryptedEmailAlias } from "@/services/api/aliases";
 import type { DecryptedDomainAddress } from "@/services/api/domains";
 import type { TranslationKey } from "@/lib/i18n/types";
@@ -38,6 +37,9 @@ import {
 } from "@heroicons/react/24/outline";
 import { Badge, Button, Checkbox, Switch } from "@aster/ui";
 
+import { get_grace_days_remaining } from "./grace_period";
+
+import { copy_text_or_throw } from "@/utils/copy_text";
 import { Spinner } from "@/components/ui/spinner";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -54,7 +56,6 @@ import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
 import { PinIcon } from "@/components/common/icons";
 import { AliasDisplayNameEditor } from "@/components/settings/aliases/alias_display_name_editor";
 import { AliasMetaEditor } from "@/components/settings/aliases/alias_meta_editor";
-import { get_grace_days_remaining } from "./grace_period";
 
 const AVATAR_MAX_SIZE = 256;
 
@@ -481,6 +482,7 @@ export function AliasItem({
           />
 
           <Button
+            aria-label={t("common.delete")}
             className="h-8 w-8 hover:text-red-500 hover:bg-red-500/10"
             disabled={deleting}
             size="icon"
@@ -776,6 +778,7 @@ export function DomainAddressItem({
           />
 
           <Button
+            aria-label={t("common.delete")}
             className="h-8 w-8 hover:text-red-500 hover:bg-red-500/10"
             disabled={deleting}
             size="icon"

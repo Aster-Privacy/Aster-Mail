@@ -33,6 +33,7 @@ import {
   purchase_storage_addon_crypto,
   format_price,
 } from "@/services/api/billing";
+import { addon_return_url } from "@/lib/addon_return_url";
 import { payment_url_or_throw } from "@/lib/payment_url";
 import { server_error_text } from "@/components/settings/billing/server_error_text";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -124,8 +125,8 @@ export function crypto_addon_term_modal({
       const response = await purchase_storage_addon_crypto(
         addon_id,
         selected_term,
-        `${origin}/?addon_purchase=success`,
-        `${origin}/?addon_purchase=cancelled`,
+        addon_return_url("success") ?? `${origin}/?addon_purchase=success`,
+        addon_return_url("cancelled") ?? `${origin}/?addon_purchase=cancelled`,
       );
 
       if (response.data?.url) {

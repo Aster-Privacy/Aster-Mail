@@ -124,8 +124,10 @@ export function BackupCodeInput({
       return;
     }
 
+    set_error(t("common.something_went_wrong_try_again"));
     verifying_ref.current = false;
     set_is_loading(false);
+    input_ref.current?.focus();
   };
 
   const handle_input_change = (value: string) => {
@@ -171,10 +173,10 @@ export function BackupCodeInput({
             autoCapitalize="none"
             autoComplete="one-time-code"
             autoCorrect="off"
-            spellCheck={false}
             className="text-center text-lg font-mono tracking-wider uppercase"
             disabled={is_loading}
             placeholder={t("auth.backup_code_placeholder")}
+            spellCheck={false}
             status={error ? "error" : "default"}
             type="text"
             value={code}
@@ -216,10 +218,11 @@ export function BackupCodeInput({
                 code.replace(/[^A-Z0-9]/gi, "").length,
               )
             }
+            is_loading={is_loading}
             variant="depth"
             onClick={handle_verify}
           >
-            {is_loading ? t("common.verifying") : t("common.continue")}
+            {t("common.continue")}
           </Button>
         </div>
 

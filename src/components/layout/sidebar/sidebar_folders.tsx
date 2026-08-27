@@ -40,6 +40,7 @@ import {
 import { CountBadge } from "@/components/common/count_badge";
 import { RailUnreadDot } from "@/components/common/rail_unread_dot";
 import { NavSectionSkeleton } from "@/components/common/nav_section_skeleton";
+import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { FolderContextMenu } from "@/components/folders/folder_context_menu";
 import { is_folder_unlocked } from "@/hooks/use_protected_folder";
 import { use_i18n } from "@/lib/i18n/context";
@@ -92,6 +93,8 @@ interface SidebarFoldersProps {
   reorder_folders?: (
     entries: { id: string; sort_order: number }[],
   ) => Promise<boolean>;
+  load_failed?: boolean;
+  on_retry?: () => void;
 }
 
 export const SidebarFolders = memo(function SidebarFolders({
@@ -116,6 +119,8 @@ export const SidebarFolders = memo(function SidebarFolders({
   on_toggle_section,
   variant = "section",
   reorder_folders,
+  load_failed = false,
+  on_retry,
 }: SidebarFoldersProps) {
   const { t } = use_i18n();
   const is_pinned = variant === "pinned";
@@ -398,7 +403,9 @@ export const SidebarFolders = memo(function SidebarFolders({
                     data-rail-tip={is_collapsed ? folder.name : undefined}
                     style={{
                       zIndex: 1,
-                      marginInlineStart: is_collapsed ? undefined : `${row_inset}px`,
+                      marginInlineStart: is_collapsed
+                        ? undefined
+                        : `${row_inset}px`,
                       width: is_collapsed
                         ? undefined
                         : `calc(100% - ${row_inset}px)`,
@@ -586,6 +593,8 @@ export const SidebarFolders = memo(function SidebarFolders({
           !is_pinned &&
           (is_loading ? (
             <NavSectionSkeleton rows={3} />
+          ) : load_failed && on_retry ? (
+            <LoadFailedNotice on_retry={on_retry} />
           ) : (
             <p className="text-[11px] px-2.5 py-2 text-txt-muted">
               {t("common.no_folders_yet")}

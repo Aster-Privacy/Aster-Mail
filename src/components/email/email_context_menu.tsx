@@ -214,6 +214,20 @@ function EmailContextMenuContentInner({
   const current_folder_id =
     email_folders.length > 0 ? email_folders[0].folder_token : "";
 
+  const assigned_folder_ids = selection
+    ? folders.filter((folder) => folder.is_assigned).map((folder) => folder.id)
+    : current_folder_id
+      ? [current_folder_id]
+      : [];
+  const can_move_to_inbox =
+    assigned_folder_ids.length > 0 &&
+    !!on_folder_toggle &&
+    !is_trash &&
+    !is_spam &&
+    !is_archive &&
+    !is_drafts &&
+    !is_scheduled;
+
   return (
     <ContextMenuContent className="w-56">
       {selection && (
@@ -462,6 +476,22 @@ function EmailContextMenuContentInner({
               {t("mail.folder")}
             </ContextMenuSubTrigger>
             <ContextMenuSubContent>
+              {can_move_to_inbox && (
+                <>
+                  <ContextMenuItem
+                    onSelect={(e) => {
+                      e.preventDefault();
+                      assigned_folder_ids.forEach((folder_id) =>
+                        on_folder_toggle(folder_id),
+                      );
+                    }}
+                  >
+                    <InboxIcon className="me-2 h-4 w-4 flex-shrink-0" />
+                    <span className="truncate">{t("mail.move_to_inbox")}</span>
+                  </ContextMenuItem>
+                  <ContextMenuSeparator />
+                </>
+              )}
               {folders.map((folder) => (
                 <ContextMenuItem
                   key={folder.id}

@@ -104,6 +104,7 @@ import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { use_should_reduce_motion } from "@/provider";
 import { use_mail_stats } from "@/hooks/use_mail_stats";
 import { use_i18n } from "@/lib/i18n/context";
+import { use_referral_summary } from "@/hooks/use_referral_summary";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { use_auth } from "@/contexts/auth_context";
@@ -120,6 +121,13 @@ import { ignore_error } from "@/lib/ignore_error";
 function MobileSettingsPage() {
   const navigate = useNavigate();
   const { t } = use_i18n();
+  const { referral_info } = use_referral_summary();
+  const referral_hint =
+    referral_info && referral_info.bonus_bytes_earned > 0
+      ? t("settings.invite_sidebar_earned", {
+          amount: format_bytes(referral_info.bonus_bytes_earned),
+        })
+      : null;
   const { user, logout, current_account_id } = use_auth();
   const { stats } = use_mail_stats();
   const { preferences, update_preference, save_now } = use_preferences();
@@ -591,8 +599,13 @@ function MobileSettingsPage() {
                 >
                   <UserGroupIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
                   <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
-                    {t("settings.refer_a_friend")}
+                    {t("settings.invite_friends")}
                   </span>
+                  {referral_hint && (
+                    <span className="shrink-0 text-[13px] tabular-nums text-[var(--text-muted)]">
+                      {referral_hint}
+                    </span>
+                  )}
                   <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
                 </button>
                 {is_family_plan && (

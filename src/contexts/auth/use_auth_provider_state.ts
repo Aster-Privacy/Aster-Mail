@@ -18,7 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { user_facing_error } from "@/utils/user_facing_error";
 import type { EncryptedVault } from "@/services/crypto/key_manager";
 import type { TranslationKey } from "@/lib/i18n/types";
 
@@ -39,6 +38,7 @@ import {
 } from "./auth_helpers";
 import { use_auth_account_state } from "./use_auth_account_state";
 
+import { user_facing_error } from "@/utils/user_facing_error";
 import {
   api_client,
   type SessionReestablishResult,
@@ -59,10 +59,7 @@ import {
   get_account_kind,
   accounts_storage_unreadable,
 } from "@/services/account_manager";
-import {
-  perform_shared_mailbox_login,
-  clear_shared_mailbox_session,
-} from "@/services/shared_mailbox_session";
+import { perform_shared_mailbox_login } from "@/services/shared_mailbox_session";
 import { get_account_limit, link_account_device } from "@/services/api/switch";
 import { sync_client } from "@/services/sync_client";
 import {
@@ -222,11 +219,6 @@ export function use_auth_provider_state() {
             const access_gone = /unavailable|no longer|not found/i.test(
               message,
             );
-
-            if (access_gone) {
-              await clear_shared_mailbox_session(target.id);
-              await storage_remove_account(target.id);
-            }
 
             const remaining = await get_all_accounts();
             const fallback = remaining.find((a) => a.kind !== "shared");
@@ -574,10 +566,12 @@ export function use_auth_provider_state() {
     const handle_session_timeout = async () => {
       sync_client.disconnect();
 
-      try {
-        await api_client.post("/core/v1/auth/logout", {});
-      } catch {
-        api_client.clear_session_cookies();
+      const logout_result = await api_client
+        .post("/core/v1/auth/logout", {})
+        .catch(() => null);
+
+      if (!logout_result || logout_result.error) {
+        await api_client.clear_session_cookies();
       }
 
       await sign_out_keeping_other_accounts("common.signed_out_inactivity");

@@ -790,6 +790,7 @@ export async function get_rule_run(
 ): Promise<ApiResponse<RuleRun | null>> {
   const response = await api_client.get<WireRuleRunStatusResponse>(
     `${BASE}/${id}/run`,
+    { cache_ttl: 0 },
   );
 
   if (response.data) {

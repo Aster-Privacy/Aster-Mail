@@ -21,10 +21,6 @@
 
 import { motion } from "framer-motion";
 import {
-  describe_billing_entry,
-  describe_plan,
-} from "@/utils/billing_description";
-import {
   ChevronRightIcon,
   CheckIcon,
   ExclamationTriangleIcon,
@@ -39,6 +35,10 @@ import { SettingsGroup, SettingsHeader } from "./shared";
 import { render_billing_dialogs } from "./billing_dialogs";
 import { use_billing_section } from "./use_billing_section";
 
+import {
+  describe_billing_entry,
+  describe_plan,
+} from "@/utils/billing_description";
 import {
   PLAN_TIERS,
   FAMILY_PLAN_TIERS,
@@ -61,6 +61,7 @@ import {
   format_date,
 } from "@/services/api/billing";
 import { copy_text } from "@/utils/copy_text";
+import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 
 export function BillingSection({
   on_back,
@@ -102,6 +103,10 @@ export function BillingSection({
     referral_info,
     referral_history_list,
     subscription_load_failed,
+    plans_load_failed,
+    addons_load_failed,
+    history_load_failed,
+    referral_history_load_failed,
     load_data,
     is_sending_referral,
     credit_balance,
@@ -458,6 +463,11 @@ export function BillingSection({
                     </div>
                   </div>
                 )}
+                {addons_load_failed && available_addons.length === 0 && (
+                  <div className="mb-2">
+                    <LoadFailedNotice on_retry={() => void load_data()} />
+                  </div>
+                )}
                 <div className="grid grid-cols-2 gap-2">
                   {available_addons.map((addon) => (
                     <button
@@ -492,7 +502,7 @@ export function BillingSection({
                 </div>
                 <motion.button
                   className="flex w-full items-center justify-center rounded-xl py-3 mt-3 text-[15px] font-semibold text-white disabled:opacity-50"
-                  disabled={!selected_storage || is_action_loading}
+                  disabled={is_action_loading}
                   style={{
                     background:
                       "linear-gradient(180deg, var(--accent-mix-w80, #629bf8) 0%, var(--accent-color) 50%, var(--accent-mix-b80, #2f68c5) 100%)",
@@ -505,10 +515,17 @@ export function BillingSection({
                       (a) => a.id === selected_storage,
                     );
 
-                    if (addon) {
-                      set_addon_method_target(addon);
-                      set_show_addon_method_modal(true);
+                    if (!addon) {
+                      show_toast(
+                        t("settings.storage_select_option_first"),
+                        "info",
+                      );
+
+                      return;
                     }
+
+                    set_addon_method_target(addon);
+                    set_show_addon_method_modal(true);
                   }}
                 >
                   {t("common.buy_more_storage")}
@@ -842,6 +859,14 @@ export function BillingSection({
 
                                   if (api_plan) {
                                     handle_select_plan(api_plan);
+                                  } else if (plans_load_failed) {
+                                    show_toast(
+                                      t(
+                                        "common.something_went_wrong_try_again",
+                                      ),
+                                      "error",
+                                    );
+                                    void load_data();
                                   } else {
                                     show_toast(
                                       t("settings.plans_coming_soon"),
@@ -904,6 +929,14 @@ export function BillingSection({
                 </div>
               </SettingsGroup>
             </div>
+
+            {history.length === 0 && history_load_failed && (
+              <SettingsGroup title={t("settings.billing_history")}>
+                <div className="px-4 py-3">
+                  <LoadFailedNotice on_retry={() => void load_data()} />
+                </div>
+              </SettingsGroup>
+            )}
 
             {history.length > 0 && (
               <SettingsGroup title={t("settings.billing_history")}>
@@ -1134,11 +1167,19 @@ export function BillingSection({
                       </div>
                     )}
 
-                    {referral_history_list.length === 0 && (
-                      <p className="text-xs text-txt-muted text-center py-3">
-                        {t("settings.no_referrals_yet")}
-                      </p>
-                    )}
+                    {referral_history_list.length === 0 &&
+                      referral_history_load_failed && (
+                        <div className="py-3">
+                          <LoadFailedNotice on_retry={() => void load_data()} />
+                        </div>
+                      )}
+
+                    {referral_history_list.length === 0 &&
+                      !referral_history_load_failed && (
+                        <p className="text-xs text-txt-muted text-center py-3">
+                          {t("settings.no_referrals_yet")}
+                        </p>
+                      )}
                   </>
                 ) : (
                   <div className="text-center py-4">

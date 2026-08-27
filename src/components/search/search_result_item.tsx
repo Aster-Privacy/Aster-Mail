@@ -25,6 +25,7 @@ import { FolderIcon } from "@heroicons/react/24/outline";
 
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { strip_html_tags } from "@/lib/html_sanitizer";
+import { strip_preview_filler } from "@/utils/preview_text";
 import { format_relative_time } from "@/utils/date_utils";
 import { use_i18n } from "@/lib/i18n/context";
 import {
@@ -127,7 +128,7 @@ const SearchResultRowBase = forwardRef<
 
   const preview_lines = useMemo(() => {
     const raw_preview = result.preview || "";
-    const plain_text = strip_html_tags(raw_preview);
+    const plain_text = strip_preview_filler(strip_html_tags(raw_preview));
     const lines = plain_text
       .split(/\n/)
       .filter((l) => l.trim())

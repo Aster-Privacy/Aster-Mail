@@ -22,6 +22,7 @@ import type { DecryptedEnvelope, UnsubscribeInfo } from "@/types/email";
 import type { DecryptedThreadMessage } from "@/types/thread";
 
 import { get_email_username } from "@/lib/utils";
+import { get_active_translations } from "@/lib/i18n/translations";
 import {
   try_decrypt_ratchet_body,
   try_decrypt_pgp_body,
@@ -156,8 +157,8 @@ export function build_single_thread_message(
     message_ts?: string;
     created_at: string;
     is_external: boolean;
-    has_recipient_key?: boolean;
     system_origin?: boolean;
+    has_recipient_key?: boolean;
     encrypted_metadata?: string;
     metadata_nonce?: string;
     message_group_id?: string;
@@ -179,7 +180,7 @@ export function build_single_thread_message(
     sender_name:
       envelope.from.name ||
       get_email_username(envelope.from.email) ||
-      "Unknown",
+      get_active_translations().common.unknown_sender,
     sender_email: envelope.from.email || "",
     ...(forwarding ?? {}),
     subject: envelope.subject || "",
@@ -190,9 +191,9 @@ export function build_single_thread_message(
     is_starred: decrypted_metadata?.is_starred ?? false,
     is_deleted: false,
     is_external: item.is_external,
+    system_origin: item.system_origin,
     has_recipient_key: item.has_recipient_key,
     encrypted_metadata: item.encrypted_metadata,
-    system_origin: item.system_origin,
     metadata_nonce: item.metadata_nonce,
     to_recipients: envelope.to || [],
     cc_recipients: envelope.cc || [],

@@ -150,8 +150,8 @@ export function use_inbox_navigation({
         }
         if (hints.length > 0) {
           label_hints_map[e.id] = hints;
-          set_label_hints(e.id, hints);
         }
+        set_label_hints(e.id, hints);
       });
       on_email_list_change(
         all_visible.map((e) => e.id),

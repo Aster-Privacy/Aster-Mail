@@ -133,6 +133,13 @@ export function AboutSection({
     }
   }, [dev_mode, current_account_id, t]);
 
+  useEffect(
+    () => () => {
+      if (tap_timer_ref.current) clearTimeout(tap_timer_ref.current);
+    },
+    [],
+  );
+
   const handle_disable_dev_mode = useCallback(async () => {
     const { save_dev_mode } = await import("@/services/api/preferences");
     const { get_vault_from_memory } = await import(

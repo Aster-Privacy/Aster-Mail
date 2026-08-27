@@ -64,7 +64,7 @@ export function ComposeToolbar({
 
   return (
     <div className="relative flex-shrink-0">
-      {show_format_bar && (
+      {show_format_bar && !compose.is_plain_text_mode && (
         <div
           aria-label={t("mail.text_formatting")}
           className="px-3 pt-1.5 flex items-center gap-0.5 overflow-x-auto scrollbar-hide"
@@ -99,15 +99,33 @@ export function ComposeToolbar({
         )}
 
         <div className="flex items-center gap-1 ms-1">
-          <ToolbarButton
-            active={show_format_bar}
-            title={t("mail.text_formatting")}
-            onClick={toggle_format_bar}
-          >
-            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M5 17v2h14v-2H5zm4.5-4.2h5l.9 2.2h2.1L12.75 4h-1.5L6.5 15h2.1l.9-2.2zm2.5-6.13L13.87 11h-3.74L12 6.67z" />
-            </svg>
-          </ToolbarButton>
+          {!compose.is_plain_text_mode && (
+            <ToolbarButton
+              active={show_format_bar}
+              title={t("mail.text_formatting")}
+              onClick={toggle_format_bar}
+            >
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M5 17v2h14v-2H5zm4.5-4.2h5l.9 2.2h2.1L12.75 4h-1.5L6.5 15h2.1l.9-2.2zm2.5-6.13L13.87 11h-3.74L12 6.67z" />
+              </svg>
+            </ToolbarButton>
+          )}
+
+          {compose.toggle_plain_text_mode && (
+            <ToolbarButton
+              active={compose.is_plain_text_mode}
+              title={
+                compose.is_plain_text_mode
+                  ? t("common.switch_to_rich_text")
+                  : t("common.switch_to_plain_text")
+              }
+              onClick={compose.toggle_plain_text_mode}
+            >
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M4 5h16v2H4V5zm0 4h16v2H4V9zm0 4h10v2H4v-2zm0 4h10v2H4v-2z" />
+              </svg>
+            </ToolbarButton>
+          )}
 
           <InsertTools compose={compose} />
 

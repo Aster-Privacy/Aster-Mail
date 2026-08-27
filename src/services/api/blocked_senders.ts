@@ -18,7 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { user_facing_error } from "@/utils/user_facing_error";
 import { api_client, type ApiResponse } from "./client";
 import {
   array_to_base64,
@@ -26,6 +25,8 @@ import {
   normalize_email,
 } from "./sender_utils";
 
+import { user_facing_error } from "@/utils/user_facing_error";
+import { get_active_translations } from "@/lib/i18n/translations";
 import { HASH_ALG } from "@/services/crypto/constants";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import {
@@ -286,7 +287,10 @@ export async function list_blocked_senders(): Promise<
     return { data: decrypted };
   } catch (err) {
     return {
-      error: user_facing_error(err, "Failed to list blocked senders"),
+      error: user_facing_error(
+        err,
+        get_active_translations().common.something_went_wrong_try_again,
+      ),
     };
   }
 }
@@ -332,7 +336,11 @@ export async function block_sender(
     );
 
     if (response.error || !response.data) {
-      return { error: response.error || "Failed to block sender" };
+      return {
+        error:
+          response.error ||
+          get_active_translations().common.failed_to_block_sender,
+      };
     }
 
     return {
@@ -349,7 +357,10 @@ export async function block_sender(
     };
   } catch (err) {
     return {
-      error: user_facing_error(err, "Failed to block sender"),
+      error: user_facing_error(
+        err,
+        get_active_translations().common.failed_to_block_sender,
+      ),
     };
   }
 }
@@ -366,7 +377,10 @@ export async function unblock_sender(
     return response;
   } catch (err) {
     return {
-      error: user_facing_error(err, "Failed to unblock sender"),
+      error: user_facing_error(
+        err,
+        get_active_translations().common.something_went_wrong_try_again,
+      ),
     };
   }
 }
@@ -382,7 +396,10 @@ export async function unblock_sender_by_token(
     return response;
   } catch (err) {
     return {
-      error: user_facing_error(err, "Failed to unblock sender"),
+      error: user_facing_error(
+        err,
+        get_active_translations().common.something_went_wrong_try_again,
+      ),
     };
   }
 }
@@ -405,7 +422,10 @@ export async function bulk_unblock_senders(
     return response;
   } catch (err) {
     return {
-      error: user_facing_error(err, "Failed to bulk unblock senders"),
+      error: user_facing_error(
+        err,
+        get_active_translations().common.something_went_wrong_try_again,
+      ),
     };
   }
 }
@@ -424,7 +444,10 @@ export async function bulk_unblock_senders_by_tokens(
     return response;
   } catch (err) {
     return {
-      error: user_facing_error(err, "Failed to bulk unblock senders"),
+      error: user_facing_error(
+        err,
+        get_active_translations().common.something_went_wrong_try_again,
+      ),
     };
   }
 }

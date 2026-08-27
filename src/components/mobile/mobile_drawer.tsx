@@ -103,12 +103,16 @@ export const MobileDrawer = memo(function MobileDrawer({
   }, [user?.email]);
   const { preferences, update_preference } = use_preferences();
   const [show_logout_confirm, set_show_logout_confirm] = useState(false);
+  const logout_confirm_timer_ref = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
   const {
     state: folders_state,
     unread_counts: folder_unread_counts,
     create_new_folder,
     update_existing_folder,
     toggle_folder_lock,
+    refresh: refresh_folders,
   } = use_folders();
   const {
     state: tags_state,
@@ -116,11 +120,14 @@ export const MobileDrawer = memo(function MobileDrawer({
     create_new_tag,
     update_existing_tag,
     delete_existing_tag,
+    refresh: refresh_tags,
   } = use_tags();
   const {
     aliases,
     is_loading: aliases_loading,
+    load_failed: aliases_load_failed,
     unread_counts: alias_unread_counts,
+    refresh: refresh_aliases,
   } = use_sidebar_aliases();
   const { stats } = use_mail_stats();
 
@@ -275,8 +282,22 @@ export const MobileDrawer = memo(function MobileDrawer({
     on_close,
   ]);
 
+  useEffect(
+    () => () => {
+      if (logout_confirm_timer_ref.current !== null) {
+        clearTimeout(logout_confirm_timer_ref.current);
+      }
+    },
+    [],
+  );
+
   useEffect(() => {
     if (!is_open) {
+      if (logout_confirm_timer_ref.current !== null) {
+        clearTimeout(logout_confirm_timer_ref.current);
+        logout_confirm_timer_ref.current = null;
+      }
+
       set_show_account_menu(false);
       set_show_create_folder(false);
       set_show_create_label(false);
@@ -297,15 +318,19 @@ export const MobileDrawer = memo(function MobileDrawer({
   }, [is_open]);
 
   useEffect(() => {
-    if (show_create_folder) {
-      setTimeout(() => folder_input_ref.current?.focus(), 100);
-    }
+    if (!show_create_folder) return;
+
+    const handle = setTimeout(() => folder_input_ref.current?.focus(), 100);
+
+    return () => clearTimeout(handle);
   }, [show_create_folder]);
 
   useEffect(() => {
-    if (show_create_label) {
-      setTimeout(() => label_input_ref.current?.focus(), 100);
-    }
+    if (!show_create_label) return;
+
+    const handle = setTimeout(() => label_input_ref.current?.focus(), 100);
+
+    return () => clearTimeout(handle);
   }, [show_create_label]);
 
   useLayoutEffect(() => {
@@ -632,7 +657,14 @@ export const MobileDrawer = memo(function MobileDrawer({
     if (preferences.skip_logout_confirmation) {
       do_logout();
     } else {
-      setTimeout(() => set_show_logout_confirm(true), 300);
+      if (logout_confirm_timer_ref.current !== null) {
+        clearTimeout(logout_confirm_timer_ref.current);
+      }
+
+      logout_confirm_timer_ref.current = setTimeout(() => {
+        logout_confirm_timer_ref.current = null;
+        set_show_logout_confirm(true);
+      }, 300);
     }
   }, [preferences.skip_logout_confirmation, do_logout]);
 
@@ -740,9 +772,11 @@ export const MobileDrawer = memo(function MobileDrawer({
               active_path={active_path}
               alias_unread_counts={alias_unread_counts}
               aliases={aliases}
+              aliases_load_failed={aliases_load_failed}
               aliases_loading={aliases_loading}
               folder_unread_counts={folder_unread_counts}
               folders={folders}
+              folders_load_failed={Boolean(folders_state.error)}
               folders_loading={folders_state.is_loading}
               handle_nav={handle_nav}
               indicator_style={indicator_style}
@@ -765,10 +799,14 @@ export const MobileDrawer = memo(function MobileDrawer({
               on_open_edit_folder={handle_open_edit_folder}
               on_open_edit_tag={handle_open_edit_tag}
               on_password_modal={set_password_modal_folder}
+              on_retry_aliases={() => void refresh_aliases()}
+              on_retry_folders={() => void refresh_folders()}
+              on_retry_tags={() => void refresh_tags()}
               on_toggle_lock={handle_toggle_lock}
               stats={stats}
               tag_counts={tag_counts}
               tags={tags}
+              tags_load_failed={Boolean(tags_state.error)}
               tags_loading={tags_state.is_loading}
             />
           </div>

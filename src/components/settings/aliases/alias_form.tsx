@@ -440,7 +440,6 @@ export function CreateAliasModal({
                     autoFocus
                     autoCapitalize="none"
                     autoCorrect="off"
-                    spellCheck={false}
                     className={`flex-1 min-w-0 h-10 px-3 rounded-lg bg-transparent border text-sm text-txt-primary placeholder:text-txt-muted outline-none ${
                       local_part && !current_validation.valid
                         ? "border-red-500"
@@ -452,6 +451,7 @@ export function CreateAliasModal({
                     }`}
                     id="alias-address"
                     placeholder={t("settings.alias_local_part_placeholder")}
+                    spellCheck={false}
                     value={local_part}
                     onChange={(e) =>
                       set_local_part(
@@ -654,10 +654,11 @@ export function CreateAliasModal({
           ) : (
             <Button
               disabled={!can_submit}
+              is_loading={saving}
               variant="depth"
               onClick={handle_create}
             >
-              {saving ? t("common.creating") : t("settings.create_alias")}
+              {t("settings.create_alias")}
             </Button>
           )}
         </ModalFooter>

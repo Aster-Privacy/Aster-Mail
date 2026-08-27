@@ -255,6 +255,19 @@ export function use_sign_in_page() {
 
     if (params.get("checkout") !== "success") return;
 
+    const scrub_checkout_params = () => {
+      const clean_url = new URL(window.location.href);
+
+      clean_url.searchParams.delete("checkout");
+      clean_url.searchParams.delete("ep");
+      clean_url.searchParams.delete("en");
+      clean_url.searchParams.delete("u");
+      clean_url.searchParams.delete("plan");
+      clean_url.searchParams.delete("billing");
+      clean_url.hash = "";
+      window.history.replaceState({}, "", clean_url.toString());
+    };
+
     const ep = params.get("ep");
     const en = params.get("en");
     const checkout_username = params.get("u") || "";
@@ -334,6 +347,7 @@ export function use_sign_in_page() {
             set_active_2fa_method("totp");
           }
           set_totp_required(true);
+          scrub_checkout_params();
 
           return;
         }
@@ -402,19 +416,11 @@ export function use_sign_in_page() {
           JSON.stringify({ plan: checkout_plan, billing: checkout_billing }),
         );
 
-        const clean_url = new URL(window.location.href);
-
-        clean_url.searchParams.delete("checkout");
-        clean_url.searchParams.delete("ep");
-        clean_url.searchParams.delete("en");
-        clean_url.searchParams.delete("u");
-        clean_url.searchParams.delete("plan");
-        clean_url.searchParams.delete("billing");
-        clean_url.hash = "";
-        window.history.replaceState({}, "", clean_url.toString());
+        scrub_checkout_params();
 
         hard_redirect(get_safe_next_path());
       } catch (err) {
+        scrub_checkout_params();
         set_is_checkout_login(false);
         set_username(checkout_username);
         if (err instanceof Error && /decrypt/i.test(err.message)) {
@@ -456,6 +462,7 @@ export function use_sign_in_page() {
           sessionStorage.setItem("aster_suspended", "true");
           set_error(t("common.account_suspended"));
           set_is_loading(false);
+          set_captcha_token("");
           set_totp_required(false);
           set_pending_login_token("");
           set_available_2fa_methods([]);
@@ -526,6 +533,7 @@ export function use_sign_in_page() {
           if (!vault) {
             set_error(t("passkeys.vault_needs_password"));
             set_is_loading(false);
+            set_captcha_token("");
             set_totp_required(false);
             set_pending_login_token("");
             set_available_2fa_methods([]);
@@ -591,6 +599,7 @@ export function use_sign_in_page() {
           if (!add_result.success) {
             set_error(add_result.error || t("errors.login_failed"));
             set_is_loading(false);
+            set_captcha_token("");
             set_totp_required(false);
             set_pending_login_token("");
             set_available_2fa_methods([]);
@@ -656,6 +665,7 @@ export function use_sign_in_page() {
           return;
         }
         set_is_loading(false);
+        set_captcha_token("");
         set_totp_required(false);
         set_pending_login_token("");
         set_available_2fa_methods([]);

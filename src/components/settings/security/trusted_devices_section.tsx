@@ -31,6 +31,7 @@ import {
 import { show_toast } from "@/components/toast/simple_toast";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { use_i18n } from "@/lib/i18n/context";
+import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
 
 function format_date(iso: string): string {
@@ -121,7 +122,7 @@ export function TrustedDevicesSection() {
       {is_loading ? (
         <p className="text-sm text-txt-muted">{t("common.loading")}</p>
       ) : error ? (
-        <p className="text-sm text-red-500">{error}</p>
+        <LoadFailedNotice on_retry={load} />
       ) : devices.length === 0 ? (
         <div className="py-6 text-center">
           <ShieldCheckIcon className="w-8 h-8 text-txt-muted mx-auto mb-2" />
@@ -157,12 +158,11 @@ export function TrustedDevicesSection() {
               </div>
               <Button
                 disabled={busy_id === d.id}
+                is_loading={busy_id === d.id}
                 variant="outline"
                 onClick={() => set_confirm_revoke_id(d.id)}
               >
-                {busy_id === d.id
-                  ? t("common.loading")
-                  : t("settings.trusted_2fa_revoke")}
+                {t("settings.trusted_2fa_revoke")}
               </Button>
             </div>
           ))}
@@ -170,12 +170,11 @@ export function TrustedDevicesSection() {
           <div className="pt-2">
             <Button
               disabled={revoke_all_busy}
+              is_loading={revoke_all_busy}
               variant="outline"
               onClick={() => set_confirm_revoke_all(true)}
             >
-              {revoke_all_busy
-                ? t("common.loading")
-                : t("settings.trusted_2fa_revoke_all")}
+              {t("settings.trusted_2fa_revoke_all")}
             </Button>
           </div>
         </div>
