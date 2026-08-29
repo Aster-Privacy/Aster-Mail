@@ -49,7 +49,10 @@ import {
   get_cancel_password_hash,
   verify_cancel_password,
 } from "@/components/settings/billing/cancel_password";
-import { show_toast } from "@/components/toast/simple_toast";
+import {
+  show_toast,
+  TOAST_DURATION_BILLING_MS,
+} from "@/components/toast/simple_toast";
 import { list_contacts, decrypt_contacts } from "@/services/api/contacts";
 import { request_cache } from "@/services/api/request_cache";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
@@ -83,6 +86,7 @@ import {
   type AcademicDiscountStatusResponse,
   type CancelImpactResponse,
 } from "@/services/api/billing";
+import { checkout_error_text } from "@/components/settings/billing/checkout_error_text";
 
 export function use_billing_section() {
   const { t } = use_i18n();
@@ -525,7 +529,11 @@ export function use_billing_section() {
       window.history.replaceState({}, "", url.toString());
     }
     if (params.get("crypto") === "cancelled") {
-      show_toast(t("settings.crypto_cancelled_toast"), "info");
+      show_toast(
+        t("settings.crypto_cancelled_toast"),
+        "info",
+        TOAST_DURATION_BILLING_MS,
+      );
       const url = new URL(window.location.href);
 
       url.searchParams.delete("crypto");
@@ -563,17 +571,29 @@ export function use_billing_section() {
                   return;
                 }
               }
-              show_toast(t("settings.payment_processing_delayed"), "info");
+              show_toast(
+                t("settings.payment_processing_delayed"),
+                "info",
+                TOAST_DURATION_BILLING_MS,
+              );
               request_cache.invalidate("/payments/v1");
               await load_data();
             }
           } catch {
-            show_toast(t("settings.payment_processing_delayed"), "info");
+            show_toast(
+              t("settings.payment_processing_delayed"),
+              "info",
+              TOAST_DURATION_BILLING_MS,
+            );
             request_cache.invalidate("/payments/v1");
           }
         })();
       } else {
-        show_toast(t("settings.payment_failed"), "error");
+        show_toast(
+          t("settings.payment_failed"),
+          "error",
+          TOAST_DURATION_BILLING_MS,
+        );
       }
     }
   }, [load_data, t]);
@@ -624,14 +644,22 @@ export function use_billing_section() {
         invalidate_mail_stats();
         await load_data();
       } else {
-        show_toast(t("settings.addon_cancel_failed"), "error");
+        show_toast(
+          t("settings.addon_cancel_failed"),
+          "error",
+          TOAST_DURATION_BILLING_MS,
+        );
       }
     } catch (caught) {
       ignore_error(
         "pages/mobile/settings/use_billing_section:handle_cancel_addon",
         caught,
       );
-      show_toast(t("settings.addon_cancel_failed"), "error");
+      show_toast(
+        t("settings.addon_cancel_failed"),
+        "error",
+        TOAST_DURATION_BILLING_MS,
+      );
     } finally {
       set_is_action_loading(false);
       set_addon_to_cancel(null);
@@ -762,7 +790,11 @@ export function use_billing_section() {
 
       if (credit_cents === null) {
         set_is_action_loading(false);
-        show_toast(t("settings.failed_checkout"), "error");
+        show_toast(
+          t("settings.failed_checkout"),
+          "error",
+          TOAST_DURATION_BILLING_MS,
+        );
 
         return;
       }
@@ -776,11 +808,19 @@ export function use_billing_section() {
 
       if (!result.ok) {
         set_is_action_loading(false);
-        show_toast(t("settings.failed_checkout"), "error");
+        show_toast(
+          t("settings.failed_checkout"),
+          "error",
+          TOAST_DURATION_BILLING_MS,
+        );
       }
     } catch {
       set_is_action_loading(false);
-      show_toast(t("settings.failed_checkout"), "error");
+      show_toast(
+        t("settings.failed_checkout"),
+        "error",
+        TOAST_DURATION_BILLING_MS,
+      );
     }
   };
 
@@ -798,12 +838,17 @@ export function use_billing_section() {
         await open_payment_url(response.data.checkout_url);
       } else {
         show_toast(
-          server_error_text(response.error, t("settings.failed_checkout")),
+          checkout_error_text(t, response.server_code),
           "error",
+          TOAST_DURATION_BILLING_MS,
         );
       }
     } catch {
-      show_toast(t("settings.failed_checkout"), "error");
+      show_toast(
+        t("settings.failed_checkout"),
+        "error",
+        TOAST_DURATION_BILLING_MS,
+      );
     } finally {
       set_is_action_loading(false);
     }
@@ -818,7 +863,11 @@ export function use_billing_section() {
       const result = await change_plan(plan.code, interval);
 
       if (!result.ok) {
-        show_toast(t("settings.payment_failed"), "error");
+        show_toast(
+          t("settings.payment_failed"),
+          "error",
+          TOAST_DURATION_BILLING_MS,
+        );
         set_show_payment_methods(true);
 
         return;
@@ -831,7 +880,11 @@ export function use_billing_section() {
       await load_data();
       show_toast(t("settings.payment_success"), "success");
     } catch {
-      show_toast(t("settings.payment_failed"), "error");
+      show_toast(
+        t("settings.payment_failed"),
+        "error",
+        TOAST_DURATION_BILLING_MS,
+      );
     } finally {
       set_show_plan_change_confirm(false);
       set_plan_change_confirm_target(null);
@@ -908,7 +961,10 @@ export function use_billing_section() {
         window.location.assign(url);
       } else {
         show_toast(
-          server_error_text(response.error, t("settings.addon_purchase_failed")),
+          server_error_text(
+            response.error,
+            t("settings.addon_purchase_failed"),
+          ),
           "error",
         );
         set_is_action_loading(false);
@@ -936,13 +992,19 @@ export function use_billing_section() {
     set_pending_family_tier(null);
   };
 
-  const handle_family_card = async () => {
+  const handle_family_card = async (term_id?: string) => {
     if (!pending_family_tier) return;
     if (is_action_loading) return;
 
     const tier = pending_family_tier;
     const card_interval: "month" | "year" =
-      billing_period === "yearly" ? "year" : "month";
+      term_id === "monthly"
+        ? "month"
+        : term_id === "yearly"
+          ? "year"
+          : billing_period === "yearly"
+            ? "year"
+            : "month";
 
     set_pending_family_tier(null);
 
@@ -990,7 +1052,11 @@ export function use_billing_section() {
       const checkout_url = res.data?.checkout_url;
 
       if (!checkout_url) {
-        show_toast(t("settings.failed_checkout"), "error");
+        show_toast(
+          t("settings.failed_checkout"),
+          "error",
+          TOAST_DURATION_BILLING_MS,
+        );
         set_is_action_loading(false);
 
         return;
@@ -999,7 +1065,11 @@ export function use_billing_section() {
       const parsed = new URL(checkout_url);
 
       if (parsed.protocol !== "https:") {
-        show_toast(t("settings.failed_checkout"), "error");
+        show_toast(
+          t("settings.failed_checkout"),
+          "error",
+          TOAST_DURATION_BILLING_MS,
+        );
         set_is_action_loading(false);
 
         return;
@@ -1011,7 +1081,11 @@ export function use_billing_section() {
         "pages/mobile/settings/use_billing_section:handle_family_card",
         caught,
       );
-      show_toast(t("settings.failed_checkout"), "error");
+      show_toast(
+        t("settings.failed_checkout"),
+        "error",
+        TOAST_DURATION_BILLING_MS,
+      );
       set_is_action_loading(false);
     }
   };

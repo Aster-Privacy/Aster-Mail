@@ -495,6 +495,45 @@ export function render_billing_dialogs(
           on_close={() => set_pending_family_tier(null)}
           open={!!pending_family_tier}
           plan_name={pending_family_tier.name}
+          selected_term={
+            billing_period === "monthly"
+              ? "monthly"
+              : billing_period === "yearly"
+                ? "yearly"
+                : "biennial"
+          }
+          term_options={[
+            {
+              id: "monthly",
+              label: t("settings.billing_monthly"),
+              per_month_cents: pending_family_tier.monthly_cents,
+              total_cents: pending_family_tier.monthly_cents,
+              save_cents: 0,
+            },
+            {
+              id: "yearly",
+              label: t("settings.billing_yearly"),
+              per_month_cents: Math.round(
+                pending_family_tier.yearly_cents / 12,
+              ),
+              total_cents: pending_family_tier.yearly_cents,
+              save_cents:
+                pending_family_tier.monthly_cents * 12 -
+                pending_family_tier.yearly_cents,
+            },
+            {
+              id: "biennial",
+              label: t("settings.biennial"),
+              per_month_cents: Math.round(
+                pending_family_tier.biennial_cents / 24,
+              ),
+              total_cents: pending_family_tier.biennial_cents,
+              save_cents:
+                pending_family_tier.monthly_cents * 24 -
+                pending_family_tier.biennial_cents,
+              crypto_only: true,
+            },
+          ]}
         />
       )}
 

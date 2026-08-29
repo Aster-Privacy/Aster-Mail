@@ -35,9 +35,12 @@ import {
 } from "@/services/api/billing";
 import { addon_return_url } from "@/lib/addon_return_url";
 import { payment_url_or_throw } from "@/lib/payment_url";
-import { server_error_text } from "@/components/settings/billing/server_error_text";
-import { show_toast } from "@/components/toast/simple_toast";
+import {
+  show_toast,
+  TOAST_DURATION_BILLING_MS,
+} from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
+import { checkout_error_text } from "./checkout_error_text";
 
 type TermMonths = 1 | 3 | 6 | 12 | 24;
 
@@ -144,13 +147,18 @@ export function crypto_addon_term_modal({
         return;
       }
       show_toast(
-        server_error_text(response.error, t("settings.failed_checkout")),
+        checkout_error_text(t, response.server_code),
         "error",
+        TOAST_DURATION_BILLING_MS,
       );
       set_is_loading(false);
     } catch (error) {
       if (import.meta.env.DEV) console.error(error);
-      show_toast(t("settings.failed_checkout"), "error");
+      show_toast(
+        t("settings.failed_checkout"),
+        "error",
+        TOAST_DURATION_BILLING_MS,
+      );
       set_is_loading(false);
     }
   };

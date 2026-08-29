@@ -63,9 +63,9 @@ async function render_card(current_plan_code: string | null) {
 }
 
 function button_by_text(text: string): HTMLButtonElement {
-  const match = Array.from(
-    container!.querySelectorAll("button"),
-  ).find((node) => node.textContent === text);
+  const match = Array.from(container!.querySelectorAll("button")).find(
+    (node) => node.textContent === text,
+  );
 
   if (!match) throw new Error("button not found: " + text);
 
@@ -148,7 +148,10 @@ describe("ResumeCheckoutCard", () => {
       button_by_text("settings.finish_plan_setup_action").click();
     });
 
-    expect(toast_mock).toHaveBeenCalledWith("settings.failed_checkout", "error");
+    expect(toast_mock).toHaveBeenCalledWith(
+      "settings.failed_checkout",
+      "error",
+    );
   });
 
   it("dismisses without reopening checkout", async () => {

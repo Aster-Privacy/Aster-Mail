@@ -139,6 +139,9 @@ export default function IndexPage() {
     () => !is_first_run_setup_pending(),
   );
   const [checklist_complete, set_checklist_complete] = useState(false);
+  const [checklist_visible, set_checklist_visible] = useState<boolean | null>(
+    null,
+  );
   const is_mobile = use_is_mobile();
   const handle_checklist_complete = useCallback(() => {
     set_checklist_complete(true);
@@ -323,7 +326,7 @@ export default function IndexPage() {
 
     try {
       if (sessionStorage.getItem("aster_pending_domain_order")) {
-        state.open_settings("aliases" as SettingsSection);
+        state.open_settings("domains" as SettingsSection);
       }
     } catch (caught) {
       ignore_error("pages/index:toggle_quick_settings", caught);
@@ -731,11 +734,13 @@ export default function IndexPage() {
       {!state.is_settings_route && first_run_setup_done && (
         <>
           <OnboardingChecklist
+            hidden={is_quick_settings_open}
             on_all_tasks_done={handle_checklist_complete}
             on_compose={state.open_compose}
             on_open_settings={(section) => {
               state.open_settings(section);
             }}
+            on_visibility_change={set_checklist_visible}
           />
           <RecoveryReminder
             on_open_recovery={() => {
@@ -744,6 +749,7 @@ export default function IndexPage() {
           />
           <PlanPrompt
             checklist_complete={checklist_complete}
+            checklist_visible={checklist_visible}
             on_open_plans={() => {
               state.open_settings("billing");
             }}

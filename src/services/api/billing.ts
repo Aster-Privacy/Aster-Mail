@@ -212,15 +212,25 @@ export function billing_return_origin(): string {
   return window.location.origin;
 }
 
+export function billing_return_path(): string {
+  if (typeof window === "undefined") return "/";
+  if ("__TAURI_INTERNALS__" in window) return "/";
+
+  const path = window.location.pathname;
+
+  return path.startsWith("/") && !path.startsWith("//") ? path : "/";
+}
+
 export function billing_return_urls(): {
   success_url: string;
   cancel_url: string;
 } {
   const origin = billing_return_origin();
+  const path = billing_return_path();
 
   return {
-    success_url: `${origin}/?billing=success`,
-    cancel_url: `${origin}/?billing=cancelled`,
+    success_url: `${origin}${path}?billing=success`,
+    cancel_url: `${origin}${path}?billing=cancelled`,
   };
 }
 
@@ -252,7 +262,7 @@ export async function start_hosted_checkout(
   billing_interval: string = "month",
   currency?: string,
   apply_credits_cents?: number,
-): Promise<{ ok: boolean; error?: string }> {
+): Promise<{ ok: boolean; error?: string; server_code?: string }> {
   const response = await create_checkout_session(
     plan_code,
     billing_interval,
@@ -263,7 +273,11 @@ export async function start_hosted_checkout(
   const url = response.data?.url;
 
   if (!url) {
-    return { ok: false, error: response.error || "no_checkout_url" };
+    return {
+      ok: false,
+      error: response.error || "no_checkout_url",
+      server_code: response.server_code,
+    };
   }
 
   remember_checkout_target(plan_code, billing_interval);
@@ -370,7 +384,12 @@ export async function change_plan(
   billing_interval: string = "month",
   success_url?: string,
   cancel_url?: string,
-): Promise<{ ok: boolean; requires_checkout: boolean; error?: string }> {
+): Promise<{
+  ok: boolean;
+  requires_checkout: boolean;
+  error?: string;
+  server_code?: string;
+}> {
   const response = await api_client.post<{
     plan_code?: string;
     billing_interval?: string;
@@ -387,6 +406,7 @@ export async function change_plan(
       ok: false,
       requires_checkout: false,
       error: response.error || "change_failed",
+      server_code: response.server_code,
     };
   }
 

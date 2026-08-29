@@ -3200,6 +3200,12 @@ export const en: Translations = {
     continue_to_checkout: "Continue to Checkout",
     redirect_payment_description:
       "You will be redirected to our secure payment provider to complete your purchase.",
+    billing_unavailable:
+      "Payments are temporarily unavailable. Try again in a few minutes.",
+    checkout_rate_limited:
+      "Too many attempts. Wait a minute, then try again.",
+    checkout_already_active:
+      "You already have an active subscription. Refresh the page to see it.",
     plan_not_available:
       "This plan is not available for purchase right now. Another plan, or checking back later, will work.",
     failed_checkout:
@@ -3223,15 +3229,15 @@ export const en: Translations = {
       "Pay from a wallet you control. If you send funds from an exchange or a swap service, the payment arrives from an address that is not yours and the processor cannot match it to your order. Complete the payment within the time the checkout page shows.",
     crypto_energy_toggle: "Energy use of these networks",
     crypto_energy_btc:
-      "Bitcoin: an estimated 700 to 1,400 kWh and 300 to 700 kg CO2e per transaction. Source: Cambridge Centre for Alternative Finance, Cambridge Bitcoin Electricity Consumption Index, 2026.",
+      "Bitcoin: an estimated 700 to 1,400 kWh per transaction. Source: Cambridge Bitcoin Electricity Consumption Index, 2026.",
     crypto_energy_eth:
-      "Ethereum: an estimated 0.01 to 0.05 kWh and a few grams of CO2e per transaction, roughly 99.9% below its pre-2022 proof-of-work figure. Source: Ethereum Foundation energy consumption page, citing CCRI, 2026.",
+      "Ethereum: an estimated 0.01 to 0.05 kWh per transaction, and networks that settle on it, such as Base, use less again. Source: Ethereum Foundation, citing CCRI, 2026.",
     crypto_energy_l2:
       "Networks that batch transactions and settle them together on Ethereum, such as Base, use materially less than an Ethereum mainnet transaction. We have no primary source we would stand behind for a single number, so we do not publish one.",
     crypto_energy_xmr:
       "Monero: proof-of-work, mined on general-purpose processors. We have not found a current figure we would stand behind, so we do not publish one.",
     crypto_energy_caveat:
-      "These are third-party estimates, not measurements taken by us. Dividing a network's total energy by its transaction count is a contested way to attribute energy: Bitcoin's consumption is driven by mining, not by how many transactions people make, so one more transaction does not add a proportional amount. We publish these so you can weigh them yourself. We make no environmental claim about any payment method and we do not offset anything on your behalf.",
+      "These are third-party estimates rather than our own measurements, and per-transaction figures are contested. We make no environmental claim about any payment method.",
     crypto_native_continue: "Continue",
     crypto_native_choose_method: "Choose how to pay",
     crypto_native_loading_coins: "Loading payment options...",
@@ -3262,7 +3268,7 @@ export const en: Translations = {
       "This payment is being processed. This page updates on its own, so there is nothing you need to do.",
     crypto_native_copy_invoice_ref: "Copy invoice reference",
     crypto_native_no_wallet_handler:
-      "No wallet app opened. Copy the address above and paste it into your wallet instead.",
+      "No wallet app opened. Copy the address and paste it into your wallet instead.",
     crypto_native_copied: "Copied to clipboard",
     crypto_native_network_warning:
       "Send only {{coin}} on the {{chain}} network. Sending any other asset or using another network will result in loss of funds.",
@@ -3272,7 +3278,7 @@ export const en: Translations = {
       "Your rate is locked until this invoice expires.",
     crypto_native_rate_value: "Rate used: 1 {{coin}} = {{rate}}",
     crypto_native_commit_notice:
-      "Choosing a coin creates your order with an obligation to pay, and locks your exchange rate. You pay by sending the funds yourself from your own wallet.",
+      "Pick a coin to lock your exchange rate. You then send the payment yourself, from your own wallet.",
     crypto_native_expires_in: "Expires in {{time}}",
     crypto_native_status_awaiting: "Waiting for payment",
     crypto_native_status_detected: "Payment detected",
@@ -3303,6 +3309,19 @@ export const en: Translations = {
       "This payment was cancelled. Nothing was charged. You can start a new payment whenever you are ready.",
     crypto_native_start_new_payment: "Start a new payment",
     crypto_native_check_now: "Check now",
+    crypto_native_checking: "Checking",
+    crypto_native_check_no_change:
+      "We haven't seen your payment yet, but we're still watching.",
+    crypto_native_check_updated: "Payment status updated: {{status}}",
+    crypto_native_check_failed:
+      "We could not reach the network. Your payment is not affected. Try again in a moment.",
+    crypto_native_last_checked: "Last checked at {{time}}",
+    crypto_native_copy_amount: "Copy amount",
+    crypto_native_copy_address: "Copy address",
+    crypto_native_verify_address:
+      "Check the address on your wallet screen against the one shown here before you send. Only this address is monitored for your order.",
+    crypto_native_fee_headroom:
+      "If your wallet takes its network fee out of the amount you enter, add a little extra so the full amount arrives.",
     crypto_native_expired_do_not_send:
       "Do not send to the address on this invoice. Funds sent now need a manual review before they can be credited.",
     crypto_native_not_found: "We couldn't find this invoice",
@@ -3328,12 +3347,12 @@ export const en: Translations = {
     crypto_native_cancel_confirm_body:
       "The payment address will stop being monitored. Do not send funds to it after cancelling. You can start a new payment at any time.",
     crypto_native_hint_awaiting:
-      "Send the exact amount to the address above. We watch the network for it automatically.",
+      "We check the network for your transaction automatically.",
     crypto_native_hint_detected:
-      "Your transaction is on the network. Waiting for it to be included in a block.",
+      "Your transaction has reached the network and is waiting to be included in a block.",
     crypto_native_hint_confirming:
-      "Confirming on the network. Your plan activates as soon as this finishes.",
-    crypto_native_hint_credited: "Payment confirmed. Your plan is active.",
+      "Waiting for network confirmations. Your plan activates when they complete.",
+    crypto_native_hint_credited: "Confirmed. Your plan is active.",
     crypto_native_time_remaining: "Time remaining",
     crypto_native_expiring_soon:
       "Under 5 minutes left. If this window closes before your payment arrives, you can start a new one at the current rate.",
@@ -4049,6 +4068,8 @@ export const en: Translations = {
     fam_org_time_one_day_ago: "1 day ago",
     fam_org_grace_banner:
       "Your family plan expires {{date}} - renew to keep access",
+    fam_org_grace_banner_expired:
+      "Your family plan expired {{date}} - renew to restore access",
     fam_org_grace_banner_soon:
       "Your family plan expires soon - renew to keep access",
     fam_org_cancelled_banner:
@@ -4057,6 +4078,7 @@ export const en: Translations = {
     fam_org_heading: "Family",
     fam_org_status_active: "Active",
     fam_org_status_expiring: "Expiring",
+    fam_org_status_expired: "Expired",
     fam_org_status_cancelled: "Cancelled",
     fam_org_members_count:
       "{{used}} of {{max}} seats used · {{count}} seats available",
@@ -4348,6 +4370,22 @@ export const en: Translations = {
     feature_linked_accounts: "Linked accounts",
     plan_f_receipt_tracking: "Receipt & shipping tracking",
     plan_f_early_access: "Early access to new features",
+    plan_desc_ghost_aliases:
+      "Send from a random address that hides your identity",
+    plan_desc_advanced_aliases: "Avatars, sender pinning, and per-alias rules",
+    plan_desc_catch_all: "Receive mail sent to any address at your domain",
+    plan_desc_apps: "Connect any mail app through Aster Bridge",
+    plan_desc_vanguard: "Extra defense against phishing and trackers",
+    plan_desc_smart_folders: "Folders that fill themselves from your rules",
+    plan_desc_folder_lock: "Lock private folders behind a second password",
+    plan_desc_external_accounts: "Read your other mailboxes inside Aster",
+    plan_desc_alias_directory: "New aliases are created as mail arrives",
+    plan_desc_multi_accounts: "Stay signed in to several accounts at once",
+    plan_desc_instant_alias_delete: "Remove aliases without the 30-day wait",
+    plan_desc_encrypted_exports: "Download your mail as an encrypted archive",
+    plan_desc_support_dedicated:
+      "Live chat with a contact who knows your account",
+    plan_desc_early_access: "Try new features before everyone else",
     plan_feat_storage_50: "50 GB encrypted storage",
     plan_feat_storage_500: "500 GB encrypted storage",
     plan_feat_storage_5tb: "5 TB encrypted storage",
@@ -4419,6 +4457,8 @@ export const en: Translations = {
     storage_breakdown_empty: "Nothing is using your storage yet.",
     storage_col_category: "Category",
     storage_col_items: "Items",
+    storage_items_count: "{{count}} items",
+    storage_items_count_one: "{{count}} item",
     storage_col_size: "Size",
     storage_col_share: "Share",
     storage_capacity_title: "Capacity",
@@ -4498,6 +4538,14 @@ export const en: Translations = {
     discount_first_year: "First year",
     discount_first_month: "First month",
     checkout_title: "Complete Your Purchase",
+    checkout_term_title: "Subscription length",
+    checkout_term_save: "Save {{amount}}",
+    checkout_term_per_month: "{{amount}}/month",
+    checkout_term_crypto_only: "Crypto only",
+    checkout_card_term_unavailable:
+      "The 2-year term is available when you pay with crypto.",
+    checkout_term_total: "{{amount}} total",
+    checkout_method_title: "Payment method",
     checkout_description: "Enter your payment details to subscribe.",
     autorenew_notice:
       "Your subscription renews automatically at {amount} until you cancel it. To avoid the next charge, cancel in Settings before your renewal date.",
@@ -4507,6 +4555,9 @@ export const en: Translations = {
     payment_success: "Payment successful!",
     billing_checkout_cancelled:
       "Checkout cancelled. Your account is safe and nothing was charged - you can try again anytime from Settings.",
+    upgrade_resume_title: "Finish your upgrade",
+    upgrade_resume_description:
+      "You left checkout before paying. Pick up where you left off.",
     payment_failed:
       "We could not charge your payment method. Another attempt, or an update in Settings, Billing, will sort it out.",
     finish_plan_setup_title: "Finish setting up your {{plan}} plan",
@@ -5806,7 +5857,7 @@ export const en: Translations = {
     domain_purchase_discount_tooltip:
       "First year sale price from our registrar. Renews at {{price}} per year afterwards.",
     domain_purchase_purchased_info:
-      "These are domains you bought through Aster. We register them for you with WHOIS privacy, set up all the mail DNS automatically, and you can create addresses on them right away. Each one renews only when you approve it. ICANN locks new registrations for their first 60 days, and after that our support team handles transfers out to another registrar.",
+      "These are domains you bought through Aster. We register them for you with WHOIS privacy, set up all the mail DNS automatically, and you can create addresses on them right away. Each one renews only when you approve it. If you'd like to move a domain to another registrar later, our support team handles the transfer. ICANN locks new registrations for their first 60 days.",
     domain_purchase_dont_have:
       "Don't have a domain? Click here to purchase one.",
     domain_purchase_sort_price: "Lowest price",
@@ -5817,6 +5868,8 @@ export const en: Translations = {
     domain_purchase_purchased_expires: "Expires {{date}}",
     domain_purchase_purchased_in_progress: "Being set up...",
     domain_purchase_purchased_awaiting: "Awaiting payment",
+    domain_purchase_awaiting_note:
+      "We haven't received your payment yet. Finish checkout to complete your order, or close this window and pay later from Purchased domains.",
     domain_purchase_done_warmup:
       "Heads up: it can take up to an hour for your domain's DNS to spread across the internet, and providers like Gmail treat brand-new domains cautiously at first. Deliverability improves as your domain builds history.",
     domain_purchase_create_first_address: "Create your first address",
@@ -5837,6 +5890,13 @@ export const en: Translations = {
     domain_promo_cta: "Link your domain",
     domains_description:
       "Add your own domain to create addresses and send email from your domain. Verified domains appear in the alias domain selector.",
+    domains_page_description:
+      "Use your own domain with Aster Mail. Add a domain you already own, or buy a new one and Aster Mail sets up DNS for you. Verified domains appear in the alias domain selector.",
+    add_or_buy_domain: "Add or buy domain",
+    add_domain_you_own: "Add a domain you own",
+    buy_new_domain: "Buy a new domain",
+    search_domains_placeholder: "Search your domains",
+    no_matching_domains: "No domains match your search.",
     domains_send_receive_description:
       "Add your own domain to send and receive email. You will need access to your domain\u2019s DNS settings to complete verification.",
     verification_failed_retry: "Verification failed. Please try again.",
@@ -8196,6 +8256,7 @@ export const en: Translations = {
     link_device_confirming: "Linking device...",
     link_device_cancel: "Cancel",
     link_device_desktop: "Desktop app",
+    link_device_signed_in_as: "Signed in as",
     link_device_success: "Device linked",
     link_device_success_description:
       "Your desktop app is now linked. You can close this tab.",

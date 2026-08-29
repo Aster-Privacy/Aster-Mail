@@ -2158,6 +2158,23 @@ export const ja = {
       "{{member}} はファミリープールの容量を超えています。利用可能なのは {{avail}} のみです。より小さい値を選んでください。",
     fam_org_action_failed: "問題が発生しました。もう一度お試しください。",
     fam_org_invite_exists: "このメールアドレス宛ての招待はすでに保留中です。",
+    plan_desc_ghost_aliases: "身元を隠すランダムなアドレスから送信できます",
+    plan_desc_advanced_aliases:
+      "アバター、送信者の固定、エイリアスごとのルール",
+    plan_desc_catch_all: "独自ドメインのどのアドレス宛のメールも受け取れます",
+    plan_desc_apps: "Aster Bridge で好きなメールアプリを接続できます",
+    plan_desc_vanguard: "フィッシングとトラッカーへの追加の防御",
+    plan_desc_smart_folders: "ルールに従って自動的に振り分けられるフォルダ",
+    plan_desc_folder_lock: "プライベートなフォルダを別のパスワードで保護",
+    plan_desc_external_accounts: "ほかのメールボックスを Aster 内で読めます",
+    plan_desc_alias_directory:
+      "メールの到着に合わせて新しいエイリアスを自動作成",
+    plan_desc_multi_accounts:
+      "複数のアカウントに同時にサインインしたままにできます",
+    plan_desc_instant_alias_delete: "30 日待たずにエイリアスを削除できます",
+    plan_desc_encrypted_exports: "メールを暗号化アーカイブとしてダウンロード",
+    plan_desc_support_dedicated: "アカウントを把握した担当者とのライブチャット",
+    plan_desc_early_access: "新機能をいち早く試せます",
     plan_feat_storage_50: "50 GB の暗号化ストレージ",
     plan_feat_storage_500: "500 GB の暗号化ストレージ",
     plan_feat_storage_5tb: "5 TB の暗号化ストレージ",
@@ -3359,6 +3376,8 @@ export const ja = {
     fam_org_time_one_day_ago: "1 日前",
     fam_org_grace_banner:
       "ファミリープランは {{date}} に期限切れになります。アクセスを維持するには更新してください",
+    fam_org_grace_banner_expired:
+      "ファミリープランは {{date}} に期限切れになりました。アクセスを回復するには更新してください",
     fam_org_grace_banner_soon:
       "ファミリープランはまもなく期限切れになります。アクセスを維持するには更新してください",
     fam_org_cancelled_banner:
@@ -3367,6 +3386,7 @@ export const ja = {
     fam_org_heading: "ファミリー",
     fam_org_status_active: "有効",
     fam_org_status_expiring: "期限切れ間近",
+    fam_org_status_expired: "期限切れ",
     fam_org_status_cancelled: "キャンセル済み",
     fam_org_members_count:
       "{{max}} 席中 {{used}} 席を使用中 · 空き {{count}} 席",
@@ -4059,6 +4079,12 @@ export const ja = {
     continue_to_checkout: "お支払いに進む",
     redirect_payment_description:
       "安全な決済プロバイダーにリダイレクトされ、購入が完了します。",
+    billing_unavailable:
+      "支払いは一時的にご利用いただけません。数分後にもう一度お試しください。",
+    checkout_rate_limited:
+      "試行回数が多すぎます。1分ほど待ってからもう一度お試しください。",
+    checkout_already_active:
+      "有効なサブスクリプションがすでにあります。ページを更新すると表示されます。",
     plan_not_available:
       "このプランは現在ご購入いただけません。別のプランか、後ほどの再確認でしたらご利用いただけます。",
     failed_checkout:
@@ -4783,6 +4809,13 @@ export const ja = {
       "所有権を確認しメールを有効にするには、ドメインレジストラに以下のDNSレコードを追加してください：",
     domains_description:
       "アドレスを作成し、自分のドメインからメールを送信するためにドメインを追加します。認証済みのドメインはエイリアスドメインセレクターに表示されます。",
+    domains_page_description:
+      "Aster Mail で自分のドメインを使用できます。すでに所有しているドメインを追加するか、新しいドメインを購入すると、Aster Mail が DNS を設定します。認証済みのドメインはエイリアスドメインセレクターに表示されます。",
+    add_or_buy_domain: "ドメインを追加または購入",
+    add_domain_you_own: "所有しているドメインを追加",
+    buy_new_domain: "新しいドメインを購入",
+    search_domains_placeholder: "ドメインを検索",
+    no_matching_domains: "検索に一致するドメインはありません。",
     domains_send_receive_description:
       "メールの送受信のためにドメインを追加します。認証を完了するにはドメインのDNS設定にアクセスする必要があります。",
     verification_failed_retry: "認証に失敗しました。もう一度お試しください。",
@@ -5423,6 +5456,8 @@ export const ja = {
     storage_breakdown_empty: "まだストレージを使用していません。",
     storage_col_category: "カテゴリ",
     storage_col_items: "アイテム数",
+    storage_items_count: "{{count}} 件",
+    storage_items_count_one: "{{count}} 件",
     storage_col_size: "サイズ",
     storage_col_share: "割合",
     storage_capacity_title: "容量",
@@ -5477,6 +5512,14 @@ export const ja = {
     promo_applying: "適用中...",
     promo_apply: "適用",
     checkout_title: "購入を完了",
+    checkout_term_title: "契約期間",
+    checkout_term_save: "{{amount}} お得",
+    checkout_term_per_month: "{{amount}}/月",
+    checkout_term_crypto_only: "暗号資産のみ",
+    checkout_card_term_unavailable:
+      "2年契約は暗号資産でのお支払い時にご利用いただけます。",
+    checkout_term_total: "合計 {{amount}}",
+    checkout_method_title: "支払い方法",
     checkout_description:
       "お支払い情報を入力してサブスクリプションに登録してください。",
     autorenew_notice:
@@ -5911,7 +5954,7 @@ export const ja = {
     domain_purchase_discount_tooltip:
       "レジストラによる初年度セール価格です。以降は年 {{price}} で更新されます。",
     domain_purchase_purchased_info:
-      "ここには、Asterを通じて購入したドメインが表示されます。WHOISプライバシー付きで登録し、メール用DNSをすべて自動設定するので、すぐにアドレスを作成できます。更新はお客様の承認がある場合のみ行われます。ICANNの規定により新規登録は最初の60日間は移管できず、その後はサポートチームが他のレジストラへの移管を承ります。",
+      "ここには、Asterを通じて購入したドメインが表示されます。WHOISプライバシー付きで登録し、メール用DNSをすべて自動設定するので、すぐにアドレスを作成できます。更新はお客様の承認がある場合のみ行われます。後で他のレジストラへ移管したい場合は、サポートチームが移管を承ります。ICANNの規定により、新規登録は最初の60日間は移管できません。",
     domain_purchase_dont_have:
       "ドメインをお持ちでない場合は、こちらをクリックして購入できます。",
     domain_purchase_sort_price: "価格が安い順",
@@ -5923,6 +5966,8 @@ export const ja = {
     domain_purchase_purchased_expires: "{{date}} に期限切れ",
     domain_purchase_purchased_in_progress: "設定中...",
     domain_purchase_purchased_awaiting: "支払い待ち",
+    domain_purchase_awaiting_note:
+      "お支払いはまだ確認できていません。チェックアウトを完了して注文を確定するか、このウィンドウを閉じて後で「購入したドメイン」からお支払いください。",
     domain_purchase_done_warmup:
       "ご注意: ドメインのDNSがインターネット全体に反映されるまで最大1時間かかることがあり、Gmailなどのプロバイダーは新しいドメインを最初は慎重に扱います。ドメインの実績が増えるにつれて到達率は向上します。",
     domain_purchase_create_first_address: "最初のアドレスを作成",
@@ -6212,7 +6257,7 @@ export const ja = {
       "この支払いは処理中です。このページは自動で更新されるため、操作は不要です。",
     crypto_native_copy_invoice_ref: "請求書の参照番号をコピー",
     crypto_native_no_wallet_handler:
-      "ウォレットアプリが開きませんでした。上のアドレスをコピーしてウォレットに貼り付けてください。",
+      "ウォレットアプリが開きませんでした。アドレスをコピーしてウォレットに貼り付けてください。",
     crypto_native_copied: "クリップボードにコピーしました",
     crypto_native_network_warning:
       "{{chain}} ネットワークの {{coin}} のみを送金してください。他の資産を送金したり、別のネットワークを使用したりすると資金を失います。",
@@ -6250,6 +6295,19 @@ export const ja = {
       "この支払いはキャンセルされました。請求は発生していません。いつでも新しい支払いを開始できます。",
     crypto_native_start_new_payment: "新しい支払いを開始",
     crypto_native_check_now: "今すぐ確認",
+    crypto_native_checking: "確認中",
+    crypto_native_check_no_change:
+      "まだお支払いを確認できていませんが、引き続き確認しています。",
+    crypto_native_check_updated: "支払い状況を更新しました: {{status}}",
+    crypto_native_check_failed:
+      "ネットワークに接続できませんでした。支払いには影響ありません。しばらくしてからもう一度お試しください。",
+    crypto_native_last_checked: "最終確認: {{time}}",
+    crypto_native_copy_amount: "金額をコピー",
+    crypto_native_copy_address: "アドレスをコピー",
+    crypto_native_verify_address:
+      "送金前に、ウォレットの画面に表示されたアドレスとここに表示されたアドレスを照合してください。ご注文で監視しているのはこのアドレスのみです。",
+    crypto_native_fee_headroom:
+      "ウォレットがネットワーク手数料を入力額から差し引く場合は、満額が届くよう少し多めに入力してください。",
     crypto_native_expired_do_not_send:
       "この請求のアドレスには送金しないでください。今送金された資金は、反映される前に手動確認が必要になります。",
     crypto_native_not_found: "この請求が見つかりませんでした",
@@ -6275,12 +6333,12 @@ export const ja = {
     crypto_native_cancel_confirm_body:
       "支払いアドレスの監視を停止します。キャンセル後はこのアドレスに送金しないでください。新しい支払いはいつでも開始できます。",
     crypto_native_hint_awaiting:
-      "上記のアドレスに正確な金額を送金してください。ネットワークは自動的に監視しています。",
+      "お客様の取引をネットワーク上で自動的に確認しています。",
     crypto_native_hint_detected:
-      "トランザクションはネットワーク上にあります。ブロックへの取り込みを待っています。",
+      "取引がネットワークに到達し、ブロックへの取り込みを待っています。",
     crypto_native_hint_confirming:
-      "ネットワークで承認中です。完了次第、プランが有効になります。",
-    crypto_native_hint_credited: "支払いが確認されました。プランが有効です。",
+      "ネットワークの承認を待っています。承認が完了するとプランが有効になります。",
+    crypto_native_hint_credited: "承認されました。プランが有効です。",
     crypto_native_time_remaining: "残り時間",
     crypto_native_expiring_soon:
       "残り5分未満です。お支払いが届く前にこの受付時間が終了した場合は、現在のレートで新しいお支払いを開始できます。",
@@ -6980,6 +7038,9 @@ export const ja = {
     save_annually_hint: "年額プランなら 20% お得",
     billing_checkout_cancelled:
       "購入手続きをキャンセルしました。アカウントはそのままで、請求は発生していません。設定からいつでもやり直せます。",
+    upgrade_resume_title: "アップグレードの完了",
+    upgrade_resume_description:
+      "お支払いが完了する前にチェックアウトを終了しました。続きから再開できます。",
     referral_your_discount: "あなたの割引",
     referral_discount_active: "有効",
     referral_discount_redeemed: "利用済み",
@@ -7094,18 +7155,18 @@ export const ja = {
       "ご自身が管理するウォレットからお支払いください。取引所やスワップサービスから送金すると、支払いはご自身のものではないアドレスから届くため、決済事業者が注文と照合できません。決済ページに表示された時間内にお支払いを完了してください。",
     crypto_energy_toggle: "これらのネットワークのエネルギー消費",
     crypto_energy_btc:
-      "ビットコイン: 1 取引あたり推定 700〜1,400 kWh、CO2e 300〜700 kg。出典: Cambridge Centre for Alternative Finance「Cambridge Bitcoin Electricity Consumption Index」2026 年。",
+      "ビットコイン: 1件あたり推定700〜1,400 kWh。出典: Cambridge Bitcoin Electricity Consumption Index、2026年。",
     crypto_energy_eth:
-      "Ethereum: 1 取引あたり推定 0.01〜0.05 kWh、CO2e は数グラムで、2022 年以前のプルーフ・オブ・ワーク時と比べて約 99.9% 低い水準です。出典: Ethereum Foundation のエネルギー消費ページ (CCRI 引用)、2026 年。",
+      "イーサリアム: 1件あたり推定0.01〜0.05 kWh。Base などイーサリアム上で決済するネットワークはさらに少なくなります。出典: Ethereum Foundation（CCRI を引用）、2026年。",
     crypto_energy_l2:
       "Base のように取引をまとめて Ethereum 上で一括決済するネットワークは、Ethereum メインネットの取引よりも大幅に消費が少なくなります。単一の数値を示せる一次情報源がないため、数値は公表していません。",
     crypto_energy_xmr:
       "Monero: プルーフ・オブ・ワークを採用し、汎用プロセッサでマイニングされます。裏付けできる最新の数値が見つからないため、公表していません。",
     crypto_energy_caveat:
-      "これらは第三者による推計であり、当社の実測値ではありません。ネットワーク全体のエネルギーを取引件数で割る方法は、帰属のさせ方として議論があります。ビットコインの消費はマイニングによって決まり、取引件数によって決まるわけではないため、取引が 1 件増えても比例して増えるわけではありません。ご自身で判断できるよう公表しています。当社はいずれの支払い方法についても環境に関する主張は行わず、お客様に代わってオフセットも行いません。",
+      "これらは第三者による推定値で、当社の測定値ではありません。1件あたりの数値には異論もあります。当社はいずれの支払い方法についても環境に関する主張を行いません。",
     crypto_native_rate_value: "適用レート: 1 {{coin}} = {{rate}}",
     crypto_native_commit_notice:
-      "通貨を選ぶと支払い義務のある注文が作成され、為替レートが固定されます。お支払いはご自身のウォレットから送金して行います。",
+      "コインを選ぶとレートが固定されます。その後、ご自分のウォレットから送金してください。",
     feature_1000_emails: "メール 1,000 通",
     fam_kids_tab: "子ども",
     fam_kids_title: "子ども用に予約したアドレス",
@@ -8513,6 +8574,7 @@ export const ja = {
     link_device_confirming: "デバイスをリンク中...",
     link_device_cancel: "キャンセル",
     link_device_desktop: "デスクトップアプリ",
+    link_device_signed_in_as: "ログイン中のアカウント",
     link_device_success: "デバイスがリンクされました",
     link_device_success_description:
       "デスクトップアプリがリンクされました。このタブを閉じることができます。",

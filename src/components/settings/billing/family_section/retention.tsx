@@ -19,12 +19,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useState, useEffect, useCallback, useRef } from "react";
-import { commit_on_enter } from "@/lib/commit_on_enter";
 import { InformationCircleIcon } from "@heroicons/react/24/outline";
 import { Switch, Button } from "@aster/ui";
 
 import { ConsentGateDialog } from "./filters";
 
+import { commit_on_enter } from "@/lib/commit_on_enter";
 import { Input } from "@/components/ui/input";
 import { InfoPopover } from "@/components/ui/info_popover";
 import { Spinner } from "@/components/ui/spinner";

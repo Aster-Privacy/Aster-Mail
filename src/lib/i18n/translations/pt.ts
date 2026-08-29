@@ -2240,6 +2240,28 @@ export const pt = {
     fam_org_action_failed: "Algo correu mal. Tente novamente.",
     fam_org_invite_exists:
       "Já existe um convite pendente para este endereço de email.",
+    plan_desc_ghost_aliases:
+      "Envie de um endereço aleatório que esconde a sua identidade",
+    plan_desc_advanced_aliases:
+      "Avatares, fixação de remetentes e regras por alias",
+    plan_desc_catch_all:
+      "Receba mensagens enviadas a qualquer endereço do seu domínio",
+    plan_desc_apps: "Ligue qualquer app de email através do Aster Bridge",
+    plan_desc_vanguard: "Defesa extra contra phishing e rastreadores",
+    plan_desc_smart_folders:
+      "Pastas que se preenchem sozinhas com as suas regras",
+    plan_desc_folder_lock: "Bloqueie pastas privadas com uma segunda senha",
+    plan_desc_external_accounts:
+      "Leia as suas outras caixas de correio dentro do Aster",
+    plan_desc_alias_directory:
+      "Novos aliases são criados assim que chega email",
+    plan_desc_multi_accounts:
+      "Mantenha várias contas com sessão iniciada ao mesmo tempo",
+    plan_desc_instant_alias_delete: "Remova aliases sem esperar 30 dias",
+    plan_desc_encrypted_exports: "Baixe o seu email num arquivo criptografado",
+    plan_desc_support_dedicated:
+      "Chat ao vivo com um contacto que conhece a sua conta",
+    plan_desc_early_access: "Experimente novidades antes de todos",
     plan_feat_storage_50: "50 GB de armazenamento criptografado",
     plan_feat_storage_500: "500 GB de armazenamento criptografado",
     plan_feat_storage_5tb: "5 TB de armazenamento criptografado",
@@ -3440,6 +3462,8 @@ export const pt = {
     fam_org_time_one_day_ago: "há 1 dia",
     fam_org_grace_banner:
       "O seu plano de família expira a {{date}} - renove para manter o acesso",
+    fam_org_grace_banner_expired:
+      "O seu plano de família expirou a {{date}} - renove para restaurar o acesso",
     fam_org_grace_banner_soon:
       "O seu plano de família expira em breve - renove para manter o acesso",
     fam_org_cancelled_banner:
@@ -3448,6 +3472,7 @@ export const pt = {
     fam_org_heading: "Família",
     fam_org_status_active: "Ativo",
     fam_org_status_expiring: "A expirar",
+    fam_org_status_expired: "Expirado",
     fam_org_status_cancelled: "Cancelado",
     fam_org_members_count:
       "{{used}} de {{max}} vagas usadas · {{count}} vagas disponíveis",
@@ -4158,6 +4183,12 @@ export const pt = {
     continue_to_checkout: "Continuar para o Pagamento",
     redirect_payment_description:
       "Você será redirecionado para nosso provedor de pagamento seguro para concluir sua compra.",
+    billing_unavailable:
+      "Os pagamentos estão temporariamente indisponíveis. Tente novamente em alguns minutos.",
+    checkout_rate_limited:
+      "Demasiadas tentativas. Aguarde um minuto e tente novamente.",
+    checkout_already_active:
+      "Já tem uma subscrição ativa. Atualize a página para a ver.",
     plan_not_available:
       "Este plano não está disponível para compra no momento. Outro plano, ou verificar mais tarde, vai funcionar.",
     failed_checkout:
@@ -4887,6 +4918,13 @@ export const pt = {
       "Adicione estes registros DNS ao seu registrador de domínio para verificar a propriedade e ativar o e-mail:",
     domains_description:
       "Adicione seu próprio domínio para criar endereços e enviar e-mails do seu domínio. Domínios verificados aparecem no seletor de domínio de alias.",
+    domains_page_description:
+      "Use seu próprio domínio com o Aster Mail. Adicione um domínio que você já possui ou compre um novo e o Aster Mail configura o DNS para você. Domínios verificados aparecem no seletor de domínio de alias.",
+    add_or_buy_domain: "Adicionar ou comprar domínio",
+    add_domain_you_own: "Adicionar um domínio que você possui",
+    buy_new_domain: "Comprar um novo domínio",
+    search_domains_placeholder: "Pesquisar seus domínios",
+    no_matching_domains: "Nenhum domínio corresponde à sua pesquisa.",
     domains_send_receive_description:
       "Adicione seu próprio domínio para enviar e receber e-mails. Você precisará acessar as configurações DNS do seu domínio para concluir a verificação.",
     verification_failed_retry:
@@ -5487,6 +5525,8 @@ export const pt = {
     storage_breakdown_empty: "Ainda não há nada no seu armazenamento.",
     storage_col_category: "Categoria",
     storage_col_items: "Itens",
+    storage_items_count: "{{count}} itens",
+    storage_items_count_one: "{{count}} item",
     storage_col_size: "Tamanho",
     storage_col_share: "Proporção",
     storage_capacity_title: "Capacidade",
@@ -5538,6 +5578,14 @@ export const pt = {
     promo_applying: "Aplicando...",
     promo_apply: "Aplicar",
     checkout_title: "Conclua sua compra",
+    checkout_term_title: "Duração da assinatura",
+    checkout_term_save: "Economize {{amount}}",
+    checkout_term_per_month: "{{amount}}/mês",
+    checkout_term_crypto_only: "Somente cripto",
+    checkout_card_term_unavailable:
+      "O plano de 2 anos está disponível ao pagar com cripto.",
+    checkout_term_total: "{{amount}} no total",
+    checkout_method_title: "Forma de pagamento",
     checkout_description: "Insira seus dados de pagamento para assinar.",
     autorenew_notice:
       "Sua assinatura é renovada automaticamente por {amount} até você cancelá-la. Para evitar a próxima cobrança, cancele em Configurações antes da data de renovação.",
@@ -6086,7 +6134,7 @@ export const pt = {
     domain_purchase_discount_tooltip:
       "Preço promocional do primeiro ano do nosso registrador. Depois renova por {{price}} ao ano.",
     domain_purchase_purchased_info:
-      "Estes são os domínios que você comprou pela Aster. Nós os registramos para você com privacidade WHOIS, configuramos todo o DNS de e-mail automaticamente e você pode criar endereços neles imediatamente. Cada um só é renovado com a sua aprovação. A ICANN bloqueia registros novos nos primeiros 60 dias e, depois disso, nossa equipe de suporte cuida da transferência para outro registrador.",
+      "Estes são os domínios que você comprou pela Aster. Nós os registramos para você com privacidade WHOIS, configuramos todo o DNS de e-mail automaticamente e você pode criar endereços neles imediatamente. Cada um só é renovado com a sua aprovação. Se mais tarde você quiser mover um domínio para outro registrador, nossa equipe de suporte cuida da transferência. A ICANN bloqueia registros novos nos primeiros 60 dias.",
     domain_purchase_dont_have:
       "Não tem um domínio? Clique aqui para comprar um.",
     domain_purchase_sort_price: "Menor preço",
@@ -6097,6 +6145,8 @@ export const pt = {
     domain_purchase_purchased_expires: "Expira em {{date}}",
     domain_purchase_purchased_in_progress: "Em configuração...",
     domain_purchase_purchased_awaiting: "Aguardando pagamento",
+    domain_purchase_awaiting_note:
+      "Ainda não recebemos seu pagamento. Conclua o checkout para finalizar seu pedido, ou feche esta janela e pague mais tarde em Domínios comprados.",
     domain_purchase_done_warmup:
       "Atenção: o DNS do seu domínio pode levar até uma hora para se propagar pela internet, e provedores como o Gmail tratam domínios novos com cautela no início. A entregabilidade melhora conforme seu domínio ganha histórico.",
     domain_purchase_create_first_address: "Crie seu primeiro endereço",
@@ -6475,7 +6525,7 @@ export const pt = {
       "Este pagamento está sendo processado. Esta página se atualiza sozinha, você não precisa fazer nada.",
     crypto_native_copy_invoice_ref: "Copiar referência da fatura",
     crypto_native_no_wallet_handler:
-      "Nenhum aplicativo de carteira foi aberto. Copie o endereço acima e cole na sua carteira.",
+      "Nenhuma aplicação de carteira foi aberta. Copie o endereço e cole-o na sua carteira.",
     crypto_native_copied: "Copiado para a área de transferência",
     crypto_native_network_warning:
       "Envie apenas {{coin}} na rede {{chain}}. Enviar qualquer outro ativo ou usar outra rede resultará na perda dos fundos.",
@@ -6513,6 +6563,19 @@ export const pt = {
       "Este pagamento foi cancelado. Não foi cobrado nada. Pode iniciar um novo pagamento quando quiser.",
     crypto_native_start_new_payment: "Iniciar um novo pagamento",
     crypto_native_check_now: "Verificar agora",
+    crypto_native_checking: "A verificar",
+    crypto_native_check_no_change:
+      "Ainda não vimos o seu pagamento, mas continuamos atentos.",
+    crypto_native_check_updated: "Estado do pagamento atualizado: {{status}}",
+    crypto_native_check_failed:
+      "Não conseguimos aceder à rede. O seu pagamento não é afetado. Tente novamente daqui a pouco.",
+    crypto_native_last_checked: "Última verificação às {{time}}",
+    crypto_native_copy_amount: "Copiar montante",
+    crypto_native_copy_address: "Copiar endereço",
+    crypto_native_verify_address:
+      "Antes de enviar, compare o endereço no ecrã da sua carteira com o que aparece aqui. Só este endereço é monitorizado para a sua encomenda.",
+    crypto_native_fee_headroom:
+      "Se a sua carteira descontar a taxa de rede do valor introduzido, adicione um pouco mais para que chegue o valor completo.",
     crypto_native_expired_do_not_send:
       "Não envie nada para o endereço desta fatura. Os fundos enviados agora precisam de uma verificação manual antes de serem creditados.",
     crypto_native_not_found: "Não encontramos esta fatura",
@@ -6539,12 +6602,12 @@ export const pt = {
     crypto_native_cancel_confirm_body:
       "O endereço de pagamento deixará de ser monitorado. Não envie fundos para ele após o cancelamento. Você pode iniciar um novo pagamento a qualquer momento.",
     crypto_native_hint_awaiting:
-      "Envie o valor exato para o endereço acima. Monitoramos a rede automaticamente.",
+      "Verificamos a rede automaticamente à procura da sua transação.",
     crypto_native_hint_detected:
-      "Sua transação está na rede. Aguardando a inclusão em um bloco.",
+      "A sua transação chegou à rede e aguarda inclusão num bloco.",
     crypto_native_hint_confirming:
-      "Confirmando na rede. Seu plano é ativado assim que isso terminar.",
-    crypto_native_hint_credited: "Pagamento confirmado. Seu plano está ativo.",
+      "A aguardar confirmações da rede. O seu plano é ativado quando terminarem.",
+    crypto_native_hint_credited: "Confirmado. O seu plano está ativo.",
     crypto_native_time_remaining: "Tempo restante",
     crypto_native_expiring_soon:
       "Restam menos de 5 minutos. Se esta janela fechar antes de o pagamento chegar, você pode iniciar um novo com a cotação atual.",
@@ -7110,6 +7173,9 @@ export const pt = {
     save_annually_hint: "Economize 20% no plano anual",
     billing_checkout_cancelled:
       "Pagamento cancelado. Sua conta está segura e nada foi cobrado. Você pode tentar de novo quando quiser em Ajustes.",
+    upgrade_resume_title: "Conclua seu upgrade",
+    upgrade_resume_description:
+      "Você saiu do checkout antes de pagar. Continue de onde parou.",
     referral_your_discount: "Seu desconto",
     referral_discount_active: "Ativo",
     referral_discount_redeemed: "Resgatado",
@@ -7225,18 +7291,18 @@ export const pt = {
       "Pague a partir de uma carteira que você controla. Se enviar fundos de uma corretora ou de um serviço de troca, o pagamento chega de um endereço que não é seu e o processador não consegue associá-lo ao seu pedido. Conclua o pagamento dentro do tempo indicado na página de pagamento.",
     crypto_energy_toggle: "Consumo de energia dessas redes",
     crypto_energy_btc:
-      "Bitcoin: entre 700 e 1.400 kWh e entre 300 e 700 kg de CO2e por transação, segundo estimativas. Fonte: Cambridge Centre for Alternative Finance, Cambridge Bitcoin Electricity Consumption Index, 2026.",
+      "Bitcoin: entre 700 e 1400 kWh estimados por transação. Fonte: Cambridge Bitcoin Electricity Consumption Index, 2026.",
     crypto_energy_eth:
-      "Ethereum: entre 0,01 e 0,05 kWh e poucos gramas de CO2e por transação, cerca de 99,9% abaixo do valor de prova de trabalho anterior a 2022. Fonte: página de consumo de energia da Ethereum Foundation, citando o CCRI, 2026.",
+      "Ethereum: entre 0,01 e 0,05 kWh estimados por transação, e as redes que liquidam nela, como a Base, consomem ainda menos. Fonte: Ethereum Foundation, citando a CCRI, 2026.",
     crypto_energy_l2:
       "As redes que agrupam transações e as liquidam juntas no Ethereum, como a Base, consomem bem menos que uma transação na rede principal do Ethereum. Não temos uma fonte primária que sustentaríamos para um número único, então não publicamos nenhum.",
     crypto_energy_xmr:
       "Monero: prova de trabalho, minerada em processadores de uso geral. Não encontramos um número atual que sustentaríamos, então não publicamos nenhum.",
     crypto_energy_caveat:
-      "São estimativas de terceiros, não medições feitas por nós. Dividir a energia total de uma rede pelo número de transações é uma forma contestada de atribuir energia: o consumo do Bitcoin vem da mineração, não de quantas transações as pessoas fazem, então uma transação a mais não acrescenta um valor proporcional. Publicamos esses dados para você avaliar por conta própria. Não fazemos nenhuma alegação ambiental sobre qualquer forma de pagamento e não compensamos nada em seu nome.",
+      "São estimativas de terceiros e não medições nossas, e os valores por transação são contestados. Não fazemos qualquer alegação ambiental sobre nenhum método de pagamento.",
     crypto_native_rate_value: "Taxa usada: 1 {{coin}} = {{rate}}",
     crypto_native_commit_notice:
-      "Escolher uma moeda cria seu pedido com obrigação de pagamento e trava sua taxa de câmbio. Você paga enviando os fundos da sua própria carteira.",
+      "Escolha uma moeda para fixar a sua taxa de câmbio. Depois envia o pagamento a partir da sua própria carteira.",
     feature_1000_emails: "1.000 e-mails",
     fam_kids_tab: "Crianças",
     fam_kids_title: "Endereços reservados para crianças",
@@ -8678,6 +8744,7 @@ export const pt = {
     link_device_confirm_prompt: "Deseja vincular este dispositivo à sua conta?",
     link_device_confirming: "Vinculando dispositivo...",
     link_device_desktop: "Aplicativo desktop",
+    link_device_signed_in_as: "Sessão iniciada como",
     link_device_enter_code:
       "Digite o código mostrado no seu aplicativo desktop.",
     link_device_expired_code:

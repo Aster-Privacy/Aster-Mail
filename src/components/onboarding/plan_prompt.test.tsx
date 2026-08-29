@@ -57,7 +57,7 @@ const {
   FIRST_RUN_TOUR_KEY,
 } = await import("@/lib/first_run");
 
-function mount(checklist_complete: boolean) {
+function mount(checklist_complete: boolean, checklist_visible = false) {
   const container = document.createElement("div");
   let root: Root | null = null;
 
@@ -66,6 +66,7 @@ function mount(checklist_complete: boolean) {
     root.render(
       <PlanPrompt
         checklist_complete={checklist_complete}
+        checklist_visible={checklist_visible}
         on_open_plans={() => {}}
       />,
     );
@@ -90,6 +91,18 @@ describe("PlanPrompt", () => {
 
     await act(async () => {
       await vi.advanceTimersByTimeAsync(5000);
+    });
+
+    expect(view.container.textContent).toBe("");
+    view.unmount();
+  });
+
+  it("stays hidden while the checklist is on screen, even after the tour", async () => {
+    const view = mount(false, true);
+
+    await act(async () => {
+      clear_first_run_tour();
+      await vi.advanceTimersByTimeAsync(120000);
     });
 
     expect(view.container.textContent).toBe("");

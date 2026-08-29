@@ -266,10 +266,7 @@ export function MemberGroupsContent() {
       .then((r) => {
         if (r.data) set_my_groups(r.data);
         else
-          show_toast(
-            t("settings.fam_org_groups_members_load_failed"),
-            "error",
-          );
+          show_toast(t("settings.fam_org_groups_members_load_failed"), "error");
       })
       .catch((caught) =>
         ignore_error(

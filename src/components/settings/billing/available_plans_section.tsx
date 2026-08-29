@@ -21,7 +21,7 @@
 import type { TranslationKey } from "@/lib/i18n/types";
 
 import { useState } from "react";
-import { SparklesIcon, ShieldCheckIcon } from "@heroicons/react/24/outline";
+import { ShieldCheckIcon } from "@heroicons/react/24/outline";
 
 import { CrownIcon } from "@/components/ui/crown_icon";
 import {
@@ -44,15 +44,22 @@ import {
   is_crypto_provider,
   type FamilyPlanTier,
 } from "@/components/settings/billing/billing_constants";
-import { compute_plan_recommendation } from "@/components/settings/billing/plan_recommendation";
+import {
+  compute_plan_recommendation,
+  DEFAULT_RECOMMENDED_PLAN,
+  DEFAULT_RECOMMENDED_FAMILY_PLAN,
+} from "@/components/settings/billing/plan_recommendation";
 import { scroll_to_storage_addons } from "@/components/layout/storage_meter";
 import { use_currency_rates } from "@/components/settings/billing/use_currency_rates";
 import { PlanPaymentMethodModal } from "@/components/settings/billing/plan_payment_method_modal";
 import { CryptoTermModal } from "@/components/settings/billing/crypto_term_modal";
 import { create_family_group } from "@/services/api/family";
-import { server_error_text } from "@/components/settings/billing/server_error_text";
-import { show_toast } from "@/components/toast/simple_toast";
+import {
+  show_toast,
+  TOAST_DURATION_BILLING_MS,
+} from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
+import { checkout_error_text } from "./checkout_error_text";
 
 const TIER_DESCRIPTION_KEYS: Record<string, TranslationKey> = {
   star: "auth.plan_star_description",
@@ -77,15 +84,20 @@ function Tabs<T extends string>({
   on_change,
 }: SegmentedProps<T>) {
   return (
-    <div className="max-w-full overflow-x-auto scrollbar-hide">
-      <div className="inline-flex items-center gap-4 sm:gap-8 flex-wrap justify-center border-b border-edge-secondary">
+    <div className="w-full max-w-xs">
+      <div
+        className="grid w-full border-b border-edge-secondary"
+        style={{
+          gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))`,
+        }}
+      >
         {options.map((opt) => {
           const active = value === opt.id;
 
           return (
             <button
               key={opt.id}
-              className={`relative shrink-0 px-4 pt-1 pb-2.5 text-sm font-semibold transition-colors focus:outline-none whitespace-nowrap ${
+              className={`relative px-4 pt-1 pb-2.5 text-sm font-semibold transition-colors focus:outline-none whitespace-nowrap ${
                 active
                   ? "text-txt-primary"
                   : "text-txt-muted hover:text-txt-secondary"
@@ -162,11 +174,17 @@ export function AvailablePlansSection({
     set_pending_family_tier(tier);
   };
 
-  const handle_family_card = async () => {
+  const handle_family_card = async (term_id?: string) => {
     if (!pending_family_tier || family_loading) return;
     const tier = pending_family_tier;
     const card_interval: "month" | "year" =
-      billing_period === "yearly" ? "year" : "month";
+      term_id === "monthly"
+        ? "month"
+        : term_id === "yearly"
+          ? "year"
+          : billing_period === "yearly"
+            ? "year"
+            : "month";
 
     const has_existing_sub =
       !!subscription &&
@@ -209,12 +227,17 @@ export function AvailablePlansSection({
         }
       } else {
         show_toast(
-          server_error_text(res.error, t("settings.failed_checkout")),
+          checkout_error_text(t, res.server_code),
           "error",
+          TOAST_DURATION_BILLING_MS,
         );
       }
     } catch {
-      show_toast(t("settings.failed_checkout"), "error");
+      show_toast(
+        t("settings.failed_checkout"),
+        "error",
+        TOAST_DURATION_BILLING_MS,
+      );
     } finally {
       set_family_loading(false);
       set_pending_family_tier(null);
@@ -235,6 +258,36 @@ export function AvailablePlansSection({
     storage_used_bytes: subscription?.storage?.used_bytes,
     storage_limit_bytes: subscription?.storage?.total_limit_bytes,
   });
+  const individual_current_index = PLAN_TIERS.findIndex(
+    (tier) => tier.id === subscription?.plan.code,
+  );
+  const family_current_index = FAMILY_PLAN_TIERS.findIndex(
+    (tier) => tier.id === subscription?.plan.code,
+  );
+  const individual_top_tier =
+    recommendation.ladder === "individual" &&
+    recommendation.is_top_tier &&
+    individual_current_index === PLAN_TIERS.length - 1;
+  const family_top_tier =
+    recommendation.ladder === "family" &&
+    recommendation.is_top_tier &&
+    family_current_index === FAMILY_PLAN_TIERS.length - 1;
+  const individual_recommended_code =
+    recommendation.recommended_plan_code ??
+    (individual_current_index > -1
+      ? (PLAN_TIERS[individual_current_index + 1]?.id ?? null)
+      : DEFAULT_RECOMMENDED_PLAN);
+  const family_recommended_code =
+    recommendation.recommended_family_plan_code ??
+    (family_current_index > -1
+      ? (FAMILY_PLAN_TIERS[family_current_index + 1]?.id ?? null)
+      : DEFAULT_RECOMMENDED_FAMILY_PLAN);
+  const visible_individual_tiers = individual_top_tier
+    ? PLAN_TIERS.filter((tier) => tier.id === subscription?.plan.code)
+    : PLAN_TIERS;
+  const visible_family_tiers = family_top_tier
+    ? FAMILY_PLAN_TIERS.filter((tier) => tier.id === subscription?.plan.code)
+    : FAMILY_PLAN_TIERS;
   const current_plan_name =
     [...PLAN_TIERS, ...FAMILY_PLAN_TIERS].find(
       (tier) => tier.id === subscription?.plan.code,
@@ -253,7 +306,7 @@ export function AvailablePlansSection({
     <div className="pt-4" id="available-plans">
       <div className="mb-4">
         <h3 className="flex items-center gap-2 text-base font-semibold text-txt-primary">
-          <SparklesIcon className="w-4 h-4 text-txt-primary flex-shrink-0" />
+          <CrownIcon className="w-4 h-4 text-txt-primary flex-shrink-0" />
           {t("settings.available_plans")}
         </h3>
         <div className="mt-2 h-px bg-edge-secondary" />
@@ -337,8 +390,14 @@ export function AvailablePlansSection({
       )}
 
       {plan_type === "family" && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3">
-          {FAMILY_PLAN_TIERS.map((tier) => {
+        <div
+          className={`grid gap-4 pt-3 ${
+            family_top_tier
+              ? "grid-cols-1 max-w-sm mx-auto"
+              : "grid-cols-1 sm:grid-cols-2"
+          }`}
+        >
+          {visible_family_tiers.map((tier) => {
             const is_same_plan = subscription?.plan.code === tier.id;
             const is_current =
               is_same_plan && current_billing_interval === card_interval;
@@ -355,6 +414,7 @@ export function AvailablePlansSection({
             ).map((feature) => ({
               label: t(feature.label_key),
               on: feature.on,
+              icon: feature.icon,
             }));
 
             return (
@@ -369,10 +429,11 @@ export function AvailablePlansSection({
                     : null
                 }
                 badge={
-                  recommendation.recommended_family_plan_code === tier.id &&
-                  !is_current
-                    ? t("settings.plan_recommended")
-                    : null
+                  is_current
+                    ? t("settings.current_plan")
+                    : family_recommended_code === tier.id
+                      ? t("settings.plan_recommended")
+                      : null
                 }
                 billed_note={
                   billing_period === "yearly"
@@ -390,9 +451,7 @@ export function AvailablePlansSection({
                       : t("settings.get_plan", { name: tier.name })
                 }
                 description={tier_description(tier, t)}
-                featured={
-                  recommendation.recommended_family_plan_code === tier.id
-                }
+                featured={family_recommended_code === tier.id}
                 features={features}
                 is_current={is_current}
                 lead_in={
@@ -438,6 +497,45 @@ export function AvailablePlansSection({
           }}
           open={!!pending_family_tier}
           plan_name={pending_family_tier.name}
+          selected_term={
+            billing_period === "monthly"
+              ? "monthly"
+              : billing_period === "yearly"
+                ? "yearly"
+                : "biennial"
+          }
+          term_options={[
+            {
+              id: "monthly",
+              label: t("settings.billing_monthly"),
+              per_month_cents: pending_family_tier.monthly_cents,
+              total_cents: pending_family_tier.monthly_cents,
+              save_cents: 0,
+            },
+            {
+              id: "yearly",
+              label: t("settings.billing_yearly"),
+              per_month_cents: Math.round(
+                pending_family_tier.yearly_cents / 12,
+              ),
+              total_cents: pending_family_tier.yearly_cents,
+              save_cents:
+                pending_family_tier.monthly_cents * 12 -
+                pending_family_tier.yearly_cents,
+            },
+            {
+              id: "biennial",
+              label: t("settings.biennial"),
+              per_month_cents: Math.round(
+                pending_family_tier.biennial_cents / 24,
+              ),
+              total_cents: pending_family_tier.biennial_cents,
+              save_cents:
+                pending_family_tier.monthly_cents * 24 -
+                pending_family_tier.biennial_cents,
+              crypto_only: true,
+            },
+          ]}
         />
       )}
 
@@ -455,8 +553,15 @@ export function AvailablePlansSection({
       )}
 
       {plan_type === "individual" && (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-3">
-          {PLAN_TIERS.map((tier, tier_index) => {
+        <div
+          className={`grid gap-4 pt-3 ${
+            individual_top_tier
+              ? "grid-cols-1 max-w-sm mx-auto"
+              : "grid-cols-1 sm:grid-cols-3"
+          }`}
+        >
+          {visible_individual_tiers.map((tier) => {
+            const tier_index = PLAN_TIERS.findIndex((p) => p.id === tier.id);
             const current_plan_code = subscription?.plan.code;
             const current_tier_index = PLAN_TIERS.findIndex(
               (p) => p.id === current_plan_code,
@@ -483,10 +588,11 @@ export function AvailablePlansSection({
                     : null
                 }
                 badge={
-                  recommendation.recommended_plan_code === tier.id &&
-                  !is_current
-                    ? t("settings.plan_recommended")
-                    : null
+                  is_current
+                    ? t("settings.current_plan")
+                    : individual_recommended_code === tier.id
+                      ? t("settings.plan_recommended")
+                      : null
                 }
                 billed_note={
                   billing_period === "yearly"
@@ -506,7 +612,7 @@ export function AvailablePlansSection({
                         : t("settings.get_plan", { name: tier.name })
                 }
                 description={tier_description(tier, t)}
-                featured={recommendation.recommended_plan_code === tier.id}
+                featured={individual_recommended_code === tier.id}
                 features={plan_features[tier.id] ?? []}
                 is_current={is_current}
                 lead_in={t("settings.plan_everything_in", {
@@ -534,7 +640,11 @@ export function AvailablePlansSection({
 
                     return;
                   }
-                  show_toast(t("settings.plans_coming_soon"), "info");
+                  show_toast(
+                    t("settings.plans_coming_soon"),
+                    "info",
+                    TOAST_DURATION_BILLING_MS,
+                  );
                 }}
                 period_label={period_label}
                 price_label={format_price(

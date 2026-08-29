@@ -85,10 +85,10 @@ export function TwinAddressCard({
           <p className="text-sm font-semibold text-txt-primary">
             {t("settings.twin_address_title")}
           </p>
-          <p className="mt-1 break-all text-sm text-txt-muted">{description}</p>
+          <p className="mt-1 break-words text-sm text-txt-muted">{description}</p>
         </div>
         <Button
-          className="shrink-0"
+          className="shrink-0 self-center"
           size="sm"
           variant="secondary"
           onClick={() => on_claim(twin.local_part, twin.domain)}

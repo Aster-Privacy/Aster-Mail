@@ -2231,6 +2231,31 @@ export const fr = {
     fam_org_action_failed: "Une erreur est survenue. Veuillez réessayer.",
     fam_org_invite_exists:
       "Une invitation est déjà en attente pour cette adresse e-mail.",
+    plan_desc_ghost_aliases:
+      "Envoyez depuis une adresse aléatoire qui masque votre identité",
+    plan_desc_advanced_aliases:
+      "Avatars, épinglage d'expéditeurs et règles par alias",
+    plan_desc_catch_all:
+      "Recevez les messages envoyés à n'importe quelle adresse de votre domaine",
+    plan_desc_apps:
+      "Connectez n'importe quelle app de messagerie via Aster Bridge",
+    plan_desc_vanguard:
+      "Protection renforcée contre l'hameçonnage et les traqueurs",
+    plan_desc_smart_folders: "Des dossiers qui se remplissent selon vos règles",
+    plan_desc_folder_lock:
+      "Verrouillez vos dossiers privés avec un second mot de passe",
+    plan_desc_external_accounts: "Consultez vos autres boîtes mail dans Aster",
+    plan_desc_alias_directory:
+      "De nouveaux alias se créent à l'arrivée des messages",
+    plan_desc_multi_accounts:
+      "Restez connecté à plusieurs comptes en même temps",
+    plan_desc_instant_alias_delete:
+      "Supprimez des alias sans attendre 30 jours",
+    plan_desc_encrypted_exports:
+      "Téléchargez votre courrier dans une archive chiffrée",
+    plan_desc_support_dedicated:
+      "Chat en direct avec un contact qui connaît votre compte",
+    plan_desc_early_access: "Essayez les nouveautés avant tout le monde",
     plan_feat_storage_50: "50 Go de stockage chiffré",
     plan_feat_storage_500: "500 Go de stockage chiffré",
     plan_feat_storage_5tb: "5 To de stockage chiffré",
@@ -3448,6 +3473,8 @@ export const fr = {
     fam_org_time_one_day_ago: "il y a 1 jour",
     fam_org_grace_banner:
       "Votre forfait Famille expire le {{date}} - renouvelez-le pour conserver l'accès",
+    fam_org_grace_banner_expired:
+      "Votre forfait Famille a expiré le {{date}} - renouvelez-le pour rétablir l'accès",
     fam_org_grace_banner_soon:
       "Votre forfait Famille expire bientôt - renouvelez-le pour conserver l'accès",
     fam_org_cancelled_banner:
@@ -3456,6 +3483,7 @@ export const fr = {
     fam_org_heading: "Famille",
     fam_org_status_active: "Actif",
     fam_org_status_expiring: "Expire bientôt",
+    fam_org_status_expired: "Expiré",
     fam_org_status_cancelled: "Annulé",
     fam_org_members_count:
       "{{used}} places sur {{max}} utilisées · {{count}} places disponibles",
@@ -4181,6 +4209,12 @@ export const fr = {
     continue_to_checkout: "Continuer vers le paiement",
     redirect_payment_description:
       "Vous serez redirigé vers notre fournisseur de paiement sécurisé pour finaliser votre achat.",
+    billing_unavailable:
+      "Les paiements sont momentanément indisponibles. Réessayez dans quelques minutes.",
+    checkout_rate_limited:
+      "Trop de tentatives. Patientez une minute, puis réessayez.",
+    checkout_already_active:
+      "Vous avez déjà un abonnement actif. Actualisez la page pour le voir.",
     plan_not_available:
       "Ce plan n'est pas disponible à l'achat pour l'instant. Un autre plan, ou un nouvel essai plus tard, fonctionnera.",
     failed_checkout:
@@ -4927,6 +4961,13 @@ export const fr = {
       "Ajoutez ces enregistrements DNS à votre registraire de domaine pour vérifier la propriété et activer l'e-mail :",
     domains_description:
       "Ajoutez votre propre domaine pour créer des adresses et envoyer des e-mails depuis votre domaine. Les domaines vérifiés apparaissent dans le sélecteur de domaine d'alias.",
+    domains_page_description:
+      "Utilisez votre propre domaine avec Aster Mail. Ajoutez un domaine que vous possédez déjà, ou achetez-en un nouveau et Aster Mail configure le DNS pour vous. Les domaines vérifiés apparaissent dans le sélecteur de domaine d'alias.",
+    add_or_buy_domain: "Ajouter ou acheter un domaine",
+    add_domain_you_own: "Ajouter un domaine que vous possédez",
+    buy_new_domain: "Acheter un nouveau domaine",
+    search_domains_placeholder: "Rechercher dans vos domaines",
+    no_matching_domains: "Aucun domaine ne correspond à votre recherche.",
     domains_send_receive_description:
       "Ajoutez votre propre domaine pour envoyer et recevoir des e-mails. Vous aurez besoin d'accéder aux paramètres DNS de votre domaine pour compléter la vérification.",
     verification_failed_retry: "Échec de la vérification. Veuillez réessayer.",
@@ -5526,6 +5567,8 @@ export const fr = {
     storage_breakdown_empty: "Rien n'occupe encore votre stockage.",
     storage_col_category: "Catégorie",
     storage_col_items: "Éléments",
+    storage_items_count: "{{count}} éléments",
+    storage_items_count_one: "{{count}} élément",
     storage_col_size: "Taille",
     storage_col_share: "Part",
     storage_capacity_title: "Capacité",
@@ -5579,6 +5622,14 @@ export const fr = {
     promo_applying: "Application en cours...",
     promo_apply: "Appliquer",
     checkout_title: "Finalisez votre achat",
+    checkout_term_title: "Durée de l'abonnement",
+    checkout_term_save: "Économisez {{amount}}",
+    checkout_term_per_month: "{{amount}}/mois",
+    checkout_term_crypto_only: "Crypto uniquement",
+    checkout_card_term_unavailable:
+      "La durée de 2 ans est disponible en payant en crypto.",
+    checkout_term_total: "{{amount}} au total",
+    checkout_method_title: "Moyen de paiement",
     checkout_description:
       "Saisissez vos informations de paiement pour vous abonner.",
     autorenew_notice:
@@ -6164,7 +6215,7 @@ export const fr = {
     domain_purchase_discount_tooltip:
       "Prix promotionnel de première année de notre registrar. Ensuite, renouvellement à {{price}} par an.",
     domain_purchase_purchased_info:
-      "Voici les domaines que vous avez achetés via Aster. Nous les enregistrons pour vous avec la confidentialité WHOIS, configurons automatiquement tout le DNS du courrier, et vous pouvez y créer des adresses immédiatement. Chaque domaine n'est renouvelé qu'avec votre accord. L'ICANN verrouille les nouvelles inscriptions pendant leurs 60 premiers jours, ensuite notre support s'occupe du transfert vers un autre registrar.",
+      "Voici les domaines que vous avez achetés via Aster. Nous les enregistrons pour vous avec la confidentialité WHOIS, configurons automatiquement tout le DNS du courrier, et vous pouvez y créer des adresses immédiatement. Chaque domaine n'est renouvelé qu'avec votre accord. Si vous souhaitez plus tard déplacer un domaine vers un autre registrar, notre support s'occupe du transfert. L'ICANN verrouille les nouvelles inscriptions pendant leurs 60 premiers jours.",
     domain_purchase_dont_have:
       "Pas de domaine ? Cliquez ici pour en acheter un.",
     domain_purchase_sort_price: "Prix le plus bas",
@@ -6176,6 +6227,8 @@ export const fr = {
     domain_purchase_purchased_expires: "Expire le {{date}}",
     domain_purchase_purchased_in_progress: "Configuration en cours...",
     domain_purchase_purchased_awaiting: "En attente de paiement",
+    domain_purchase_awaiting_note:
+      "Nous n'avons pas encore reçu votre paiement. Terminez le paiement pour finaliser votre commande, ou fermez cette fenêtre et payez plus tard depuis Domaines achetés.",
     domain_purchase_done_warmup:
       "À savoir : le DNS de votre domaine peut mettre jusqu'à une heure à se propager sur internet, et des fournisseurs comme Gmail traitent avec prudence les domaines tout neufs. La délivrabilité s'améliore à mesure que votre domaine se construit un historique.",
     domain_purchase_create_first_address: "Créez votre première adresse",
@@ -6396,7 +6449,7 @@ export const fr = {
       "Ce paiement est en cours de traitement. Cette page se met à jour toute seule, vous n'avez rien à faire.",
     crypto_native_copy_invoice_ref: "Copier la référence de la facture",
     crypto_native_no_wallet_handler:
-      "Aucune application de portefeuille ne s'est ouverte. Copiez l'adresse ci-dessus et collez-la dans votre portefeuille.",
+      "Aucune application de portefeuille ne s'est ouverte. Copiez l'adresse et collez-la dans votre portefeuille.",
     crypto_native_copied: "Copié dans le presse-papiers",
     crypto_native_network_warning:
       "N'envoyez que des {{coin}} sur le réseau {{chain}}. Envoyer un autre actif ou utiliser un autre réseau entraînera la perte des fonds.",
@@ -6434,6 +6487,19 @@ export const fr = {
       "Ce paiement a été annulé. Rien n'a été débité. Vous pouvez lancer un nouveau paiement quand vous le souhaitez.",
     crypto_native_start_new_payment: "Lancer un nouveau paiement",
     crypto_native_check_now: "Vérifier maintenant",
+    crypto_native_checking: "Vérification",
+    crypto_native_check_no_change:
+      "Nous n'avons pas encore vu votre paiement, mais nous continuons à surveiller.",
+    crypto_native_check_updated: "Statut du paiement mis à jour : {{status}}",
+    crypto_native_check_failed:
+      "Le réseau est injoignable. Votre paiement n'est pas affecté. Réessayez dans un instant.",
+    crypto_native_last_checked: "Dernière vérification à {{time}}",
+    crypto_native_copy_amount: "Copier le montant",
+    crypto_native_copy_address: "Copier l'adresse",
+    crypto_native_verify_address:
+      "Avant d'envoyer, comparez l'adresse affichée dans votre portefeuille avec celle indiquée ici. Seule cette adresse est surveillée pour votre commande.",
+    crypto_native_fee_headroom:
+      "Si votre portefeuille prélève les frais de réseau sur le montant saisi, ajoutez un peu plus pour que le montant complet arrive.",
     crypto_native_expired_do_not_send:
       "N'envoyez rien à l'adresse de cette facture. Les fonds envoyés maintenant devront faire l'objet d'une vérification manuelle avant d'être crédités.",
     crypto_native_not_found: "Nous n'avons pas trouvé cette facture",
@@ -6460,12 +6526,12 @@ export const fr = {
     crypto_native_cancel_confirm_body:
       "L'adresse de paiement ne sera plus surveillée. N'y envoyez pas de fonds après l'annulation. Vous pouvez démarrer un nouveau paiement à tout moment.",
     crypto_native_hint_awaiting:
-      "Envoyez le montant exact à l'adresse ci-dessus. Nous surveillons le réseau automatiquement.",
+      "Nous surveillons le réseau automatiquement pour votre transaction.",
     crypto_native_hint_detected:
-      "Votre transaction est sur le réseau. En attente de son inclusion dans un bloc.",
+      "Votre transaction a atteint le réseau et attend d'être incluse dans un bloc.",
     crypto_native_hint_confirming:
-      "Confirmation en cours sur le réseau. Votre offre s'active dès que c'est terminé.",
-    crypto_native_hint_credited: "Paiement confirmé. Votre offre est active.",
+      "En attente des confirmations du réseau. Votre offre s'active dès qu'elles sont terminées.",
+    crypto_native_hint_credited: "Confirmé. Votre offre est active.",
     crypto_native_time_remaining: "Temps restant",
     crypto_native_expiring_soon:
       "Moins de 5 minutes restantes. Si ce délai expire avant l'arrivée de votre paiement, vous pouvez en démarrer un nouveau au taux actuel.",
@@ -7124,6 +7190,9 @@ export const fr = {
     save_annually_hint: "Économisez 20 % avec l’offre annuelle",
     billing_checkout_cancelled:
       "Paiement annulé. Votre compte est intact et rien n’a été débité : vous pouvez réessayer quand vous voulez depuis les Réglages.",
+    upgrade_resume_title: "Finalisez votre abonnement",
+    upgrade_resume_description:
+      "Vous avez quitté le paiement avant de payer. Reprenez là où vous vous êtes arrêté.",
     referral_your_discount: "Votre remise",
     referral_discount_active: "Actif",
     referral_discount_redeemed: "Utilisée",
@@ -7241,18 +7310,18 @@ export const fr = {
       "Payez depuis un portefeuille que vous contrôlez. Si vous envoyez des fonds depuis une plateforme d'échange ou un service de conversion, le paiement provient d'une adresse qui n'est pas la vôtre et le prestataire ne peut pas le rattacher à votre commande. Effectuez le paiement dans le délai indiqué sur la page de paiement.",
     crypto_energy_toggle: "Consommation d’énergie de ces réseaux",
     crypto_energy_btc:
-      "Bitcoin : entre 700 et 1 400 kWh et entre 300 et 700 kg de CO2e par transaction, selon les estimations. Source : Cambridge Centre for Alternative Finance, Cambridge Bitcoin Electricity Consumption Index, 2026.",
+      "Bitcoin : entre 700 et 1 400 kWh estimés par transaction. Source : Cambridge Bitcoin Electricity Consumption Index, 2026.",
     crypto_energy_eth:
-      "Ethereum : entre 0,01 et 0,05 kWh et quelques grammes de CO2e par transaction, soit environ 99,9 % de moins qu’avant le passage hors preuve de travail en 2022. Source : page sur la consommation d’énergie de l’Ethereum Foundation, citant le CCRI, 2026.",
+      "Ethereum : entre 0,01 et 0,05 kWh estimés par transaction, et les réseaux qui y règlent leurs transactions, comme Base, consomment encore moins. Source : Ethereum Foundation, citant CCRI, 2026.",
     crypto_energy_l2:
       "Les réseaux qui regroupent les transactions et les règlent ensemble sur Ethereum, comme Base, consomment nettement moins qu’une transaction sur le réseau principal Ethereum. Nous n’avons pas de source primaire que nous soutiendrions pour un chiffre unique, nous n’en publions donc aucun.",
     crypto_energy_xmr:
       "Monero : preuve de travail, minée sur des processeurs génériques. Nous n’avons pas trouvé de chiffre actuel que nous soutiendrions, nous n’en publions donc aucun.",
     crypto_energy_caveat:
-      "Ce sont des estimations de tiers, pas des mesures effectuées par nos soins. Diviser l’énergie totale d’un réseau par son nombre de transactions est une méthode d’attribution contestée : la consommation de Bitcoin dépend du minage, pas du nombre de transactions, donc une transaction de plus n’ajoute pas une quantité proportionnelle. Nous publions ces chiffres pour que vous puissiez les évaluer vous-même. Nous ne formulons aucune allégation environnementale sur un moyen de paiement et nous ne compensons rien en votre nom.",
+      "Ce sont des estimations de tiers et non nos propres mesures, et les chiffres par transaction sont contestés. Nous ne formulons aucune allégation environnementale sur les moyens de paiement.",
     crypto_native_rate_value: "Taux appliqué : 1 {{coin}} = {{rate}}",
     crypto_native_commit_notice:
-      "Choisir une cryptomonnaie crée votre commande avec obligation de paiement et bloque votre taux de change. Vous payez en envoyant vous-même les fonds depuis votre portefeuille.",
+      "Choisissez une cryptomonnaie pour bloquer votre taux de change. Vous envoyez ensuite le paiement vous-même depuis votre propre portefeuille.",
     feature_1000_emails: "1 000 e-mails",
     fam_kids_tab: "Enfants",
     fam_kids_title: "Adresses réservées pour les enfants",
@@ -8718,6 +8787,7 @@ export const fr = {
     link_device_confirm_prompt: "Confirmer l'association de l'appareil ?",
     link_device_confirming: "Confirmation en cours...",
     link_device_desktop: "Associer un appareil de bureau",
+    link_device_signed_in_as: "Connecté en tant que",
     link_device_enter_code: "Entrez le code affiché sur votre autre appareil.",
     link_device_expired_code: "Code expiré",
     link_device_failed: "Échec de la liaison de l'appareil",

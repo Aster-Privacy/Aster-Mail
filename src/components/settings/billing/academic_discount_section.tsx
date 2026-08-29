@@ -18,7 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { copy_text_or_throw } from "@/utils/copy_text";
 import { useEffect, useRef, useState } from "react";
 import {
   AcademicCapIcon,
@@ -27,6 +26,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
+import { copy_text_or_throw } from "@/utils/copy_text";
 import {
   request_academic_verification,
   resend_academic_verification,

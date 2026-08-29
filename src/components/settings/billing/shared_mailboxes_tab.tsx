@@ -18,7 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { apply_input_transform } from "@/utils/input_transform";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ArrowPathIcon,
@@ -32,6 +31,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
+import { apply_input_transform } from "@/utils/input_transform";
 import { show_toast } from "@/components/toast/simple_toast";
 import { Spinner } from "@/components/ui/spinner";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";

@@ -2177,6 +2177,27 @@ export const nl = {
     fam_org_action_failed: "Er ging iets mis. Probeer het opnieuw.",
     fam_org_invite_exists:
       "Er is al een openstaande uitnodiging voor dit e-mailadres.",
+    plan_desc_ghost_aliases:
+      "Verstuur vanaf een willekeurig adres dat je identiteit verbergt",
+    plan_desc_advanced_aliases:
+      "Avatars, afzenders vastzetten en regels per alias",
+    plan_desc_catch_all:
+      "Ontvang mail die naar elk adres op je domein wordt gestuurd",
+    plan_desc_apps: "Koppel elke mail-app via Aster Bridge",
+    plan_desc_vanguard: "Extra bescherming tegen phishing en trackers",
+    plan_desc_smart_folders:
+      "Mappen die zichzelf vullen op basis van je regels",
+    plan_desc_folder_lock: "Vergrendel privémappen met een tweede wachtwoord",
+    plan_desc_external_accounts: "Lees je andere mailboxen binnen Aster",
+    plan_desc_alias_directory:
+      "Nieuwe aliassen ontstaan zodra er mail binnenkomt",
+    plan_desc_multi_accounts: "Blijf tegelijk op meerdere accounts ingelogd",
+    plan_desc_instant_alias_delete:
+      "Verwijder aliassen zonder de wachttijd van 30 dagen",
+    plan_desc_encrypted_exports: "Download je mail als een versleuteld archief",
+    plan_desc_support_dedicated:
+      "Livechat met een contactpersoon die je account kent",
+    plan_desc_early_access: "Probeer nieuwe functies eerder dan anderen",
     plan_feat_storage_50: "50 GB versleutelde opslag",
     plan_feat_storage_500: "500 GB versleutelde opslag",
     plan_feat_storage_5tb: "5 TB versleutelde opslag",
@@ -3380,6 +3401,8 @@ export const nl = {
     fam_org_time_one_day_ago: "1 dag geleden",
     fam_org_grace_banner:
       "Je gezinsabonnement verloopt op {{date}} - verleng om toegang te behouden",
+    fam_org_grace_banner_expired:
+      "Je gezinsabonnement is op {{date}} verlopen - verleng om je toegang te herstellen",
     fam_org_grace_banner_soon:
       "Je gezinsabonnement verloopt binnenkort - verleng om toegang te behouden",
     fam_org_cancelled_banner:
@@ -3388,6 +3411,7 @@ export const nl = {
     fam_org_heading: "Gezin",
     fam_org_status_active: "Actief",
     fam_org_status_expiring: "Verloopt binnenkort",
+    fam_org_status_expired: "Verlopen",
     fam_org_status_cancelled: "Geannuleerd",
     fam_org_members_count:
       "{{used}} van {{max}} plekken gebruikt · {{count}} plekken beschikbaar",
@@ -4096,6 +4120,12 @@ export const nl = {
     continue_to_checkout: "Doorgaan naar afrekenen",
     redirect_payment_description:
       "Je wordt doorgestuurd naar onze beveiligde betalingsprovider om je aankoop te voltooien.",
+    billing_unavailable:
+      "Betalingen zijn tijdelijk niet beschikbaar. Probeer het over een paar minuten opnieuw.",
+    checkout_rate_limited:
+      "Te veel pogingen. Wacht een minuut en probeer het opnieuw.",
+    checkout_already_active:
+      "Je hebt al een actief abonnement. Vernieuw de pagina om het te zien.",
     plan_not_available:
       "Dit abonnement is op dit moment niet te koop. Een ander abonnement of later terugkomen werkt.",
     failed_checkout:
@@ -4797,6 +4827,13 @@ export const nl = {
       "Voeg deze DNS-records toe bij je domeinregistrar om eigendom te verifiëren en e-mail in te schakelen:",
     domains_description:
       "Voeg je eigen domein toe om adressen aan te maken en e-mail te verzenden vanaf je domein. Geverifieerde domeinen verschijnen in de alias-domeinkiezer.",
+    domains_page_description:
+      "Gebruik je eigen domein met Aster Mail. Voeg een domein toe dat je al bezit, of koop een nieuw domein en Aster Mail stelt de DNS voor je in. Geverifieerde domeinen verschijnen in de alias-domeinkiezer.",
+    add_or_buy_domain: "Domein toevoegen of kopen",
+    add_domain_you_own: "Een eigen domein toevoegen",
+    buy_new_domain: "Een nieuw domein kopen",
+    search_domains_placeholder: "Je domeinen doorzoeken",
+    no_matching_domains: "Geen domeinen komen overeen met je zoekopdracht.",
     domains_send_receive_description:
       "Voeg je eigen domein toe om e-mail te verzenden en ontvangen. Je hebt toegang nodig tot de DNS-instellingen van je domein om de verificatie te voltooien.",
     verification_failed_retry: "Verificatie mislukt. Probeer het opnieuw.",
@@ -5461,6 +5498,8 @@ export const nl = {
     storage_breakdown_empty: "Je opslag is nog leeg.",
     storage_col_category: "Categorie",
     storage_col_items: "Items",
+    storage_items_count: "{{count}} items",
+    storage_items_count_one: "{{count}} item",
     storage_col_size: "Grootte",
     storage_col_share: "Aandeel",
     storage_capacity_title: "Capaciteit",
@@ -5514,6 +5553,14 @@ export const nl = {
     promo_applying: "Toepassen...",
     promo_apply: "Toepassen",
     checkout_title: "Voltooi je aankoop",
+    checkout_term_title: "Abonnementsduur",
+    checkout_term_save: "Bespaar {{amount}}",
+    checkout_term_per_month: "{{amount}}/maand",
+    checkout_term_crypto_only: "Alleen crypto",
+    checkout_card_term_unavailable:
+      "De looptijd van 2 jaar is beschikbaar als je met crypto betaalt.",
+    checkout_term_total: "{{amount}} totaal",
+    checkout_method_title: "Betaalmethode",
     checkout_description: "Voer je betaalgegevens in om je te abonneren.",
     autorenew_notice:
       "Je abonnement wordt automatisch verlengd voor {amount} totdat je het opzegt. Zeg op in Instellingen vóór de verlengingsdatum om de volgende afschrijving te voorkomen.",
@@ -5974,7 +6021,7 @@ export const nl = {
     domain_purchase_discount_tooltip:
       "Aanbiedingsprijs voor het eerste jaar van onze registrar. Daarna verlenging voor {{price}} per jaar.",
     domain_purchase_purchased_info:
-      "Dit zijn de domeinen die je via Aster hebt gekocht. We registreren ze voor je met WHOIS privacy, stellen alle mail DNS automatisch in, en je kunt er direct adressen op aanmaken. Elk domein wordt alleen verlengd met jouw goedkeuring. ICANN vergrendelt nieuwe registraties de eerste 60 dagen, daarna regelt ons supportteam de verhuizing naar een andere registrar.",
+      "Dit zijn de domeinen die je via Aster hebt gekocht. We registreren ze voor je met WHOIS privacy, stellen alle mail DNS automatisch in, en je kunt er direct adressen op aanmaken. Elk domein wordt alleen verlengd met jouw goedkeuring. Wil je een domein later naar een andere registrar verhuizen, dan regelt ons supportteam de overdracht. ICANN vergrendelt nieuwe registraties de eerste 60 dagen.",
     domain_purchase_dont_have: "Nog geen domein? Klik hier om er een te kopen.",
     domain_purchase_sort_price: "Laagste prijs",
     domain_purchase_leave_title: "Aster Mail verlaten?",
@@ -5985,6 +6032,8 @@ export const nl = {
     domain_purchase_purchased_expires: "Verloopt op {{date}}",
     domain_purchase_purchased_in_progress: "Wordt ingesteld...",
     domain_purchase_purchased_awaiting: "Wacht op betaling",
+    domain_purchase_awaiting_note:
+      "We hebben je betaling nog niet ontvangen. Rond het afrekenen af om je bestelling te voltooien, of sluit dit venster en betaal later via Gekochte domeinen.",
     domain_purchase_done_warmup:
       "Let op: het kan tot een uur duren voordat de DNS van je domein zich over het internet verspreidt, en providers zoals Gmail behandelen gloednieuwe domeinen aanvankelijk voorzichtig. De bezorgbaarheid verbetert naarmate je domein historie opbouwt.",
     domain_purchase_create_first_address: "Maak je eerste adres",
@@ -6316,7 +6365,7 @@ export const nl = {
       "Deze betaling wordt verwerkt. Deze pagina werkt zichzelf bij, je hoeft niets te doen.",
     crypto_native_copy_invoice_ref: "Factuurreferentie kopiëren",
     crypto_native_no_wallet_handler:
-      "Er is geen wallet-app geopend. Kopieer het adres hierboven en plak het in je wallet.",
+      "Er is geen wallet-app geopend. Kopieer het adres en plak het in je wallet.",
     crypto_native_copied: "Gekopieerd naar klembord",
     crypto_native_network_warning:
       "Stuur alleen {{coin}} via het {{chain}}-netwerk. Een ander asset sturen of een ander netwerk gebruiken leidt tot verlies van je tegoed.",
@@ -6353,6 +6402,19 @@ export const nl = {
       "Deze betaling is geannuleerd. Er is niets in rekening gebracht. Je kunt op elk moment een nieuwe betaling starten.",
     crypto_native_start_new_payment: "Nieuwe betaling starten",
     crypto_native_check_now: "Nu controleren",
+    crypto_native_checking: "Bezig met controleren",
+    crypto_native_check_no_change:
+      "We hebben je betaling nog niet gezien, maar we blijven kijken.",
+    crypto_native_check_updated: "Betaalstatus bijgewerkt: {{status}}",
+    crypto_native_check_failed:
+      "We konden het netwerk niet bereiken. Je betaling is niet beïnvloed. Probeer het zo opnieuw.",
+    crypto_native_last_checked: "Laatst gecontroleerd om {{time}}",
+    crypto_native_copy_amount: "Bedrag kopiëren",
+    crypto_native_copy_address: "Adres kopiëren",
+    crypto_native_verify_address:
+      "Vergelijk voor het versturen het adres op je wallet-scherm met het adres dat hier staat. Alleen dit adres wordt voor je bestelling gevolgd.",
+    crypto_native_fee_headroom:
+      "Als je wallet de netwerkkosten van het ingevoerde bedrag afhaalt, tel er dan iets bij op zodat het volledige bedrag aankomt.",
     crypto_native_expired_do_not_send:
       "Stuur niets naar het adres op deze factuur. Bedragen die je nu stuurt, moeten handmatig worden gecontroleerd voordat ze kunnen worden bijgeschreven.",
     crypto_native_not_found: "We konden deze factuur niet vinden",
@@ -6378,12 +6440,12 @@ export const nl = {
     crypto_native_cancel_confirm_body:
       "Het betaaladres wordt niet langer gecontroleerd. Stuur er na het annuleren geen tegoed meer naartoe. Je kunt op elk moment een nieuwe betaling starten.",
     crypto_native_hint_awaiting:
-      "Stuur het exacte bedrag naar het adres hierboven. Wij controleren het netwerk automatisch.",
+      "We controleren het netwerk automatisch op je transactie.",
     crypto_native_hint_detected:
-      "Je transactie staat op het netwerk. We wachten tot die in een blok wordt opgenomen.",
+      "Je transactie heeft het netwerk bereikt en wacht op opname in een blok.",
     crypto_native_hint_confirming:
-      "Bevestigen op het netwerk. Je abonnement wordt actief zodra dit klaar is.",
-    crypto_native_hint_credited: "Betaling bevestigd. Je abonnement is actief.",
+      "Wachten op netwerkbevestigingen. Je abonnement wordt actief zodra ze klaar zijn.",
+    crypto_native_hint_credited: "Bevestigd. Je abonnement is actief.",
     crypto_native_time_remaining: "Resterende tijd",
     crypto_native_expiring_soon:
       "Minder dan 5 minuten over. Sluit dit venster voordat je betaling binnen is, dan kun je een nieuwe starten tegen de huidige koers.",
@@ -7038,6 +7100,9 @@ export const nl = {
     save_annually_hint: "Bespaar 20% met een jaarabonnement",
     billing_checkout_cancelled:
       "Afrekenen geannuleerd. Je account is veilig en er is niets afgeschreven. Je kunt het altijd opnieuw proberen via Instellingen.",
+    upgrade_resume_title: "Rond je upgrade af",
+    upgrade_resume_description:
+      "Je hebt het afrekenen verlaten voordat je betaalde. Ga verder waar je gebleven was.",
     referral_your_discount: "Je korting",
     referral_discount_active: "Actief",
     referral_discount_redeemed: "Ingewisseld",
@@ -7152,18 +7217,18 @@ export const nl = {
       "Betaal vanuit een wallet die je zelf beheert. Als je geld verstuurt vanaf een exchange of een wisseldienst, komt de betaling van een adres dat niet van jou is en kan de verwerker deze niet aan je bestelling koppelen. Rond de betaling af binnen de tijd die de afrekenpagina toont.",
     crypto_energy_toggle: "Energieverbruik van deze netwerken",
     crypto_energy_btc:
-      "Bitcoin: naar schatting 700 tot 1.400 kWh en 300 tot 700 kg CO2e per transactie. Bron: Cambridge Centre for Alternative Finance, Cambridge Bitcoin Electricity Consumption Index, 2026.",
+      "Bitcoin: naar schatting 700 tot 1.400 kWh per transactie. Bron: Cambridge Bitcoin Electricity Consumption Index, 2026.",
     crypto_energy_eth:
-      "Ethereum: naar schatting 0,01 tot 0,05 kWh en enkele grammen CO2e per transactie, ongeveer 99,9% minder dan het proof-of-workcijfer van vóór 2022. Bron: pagina over energieverbruik van de Ethereum Foundation, met CCRI als bron, 2026.",
+      "Ethereum: naar schatting 0,01 tot 0,05 kWh per transactie, en netwerken die erop afrekenen, zoals Base, gebruiken nog minder. Bron: Ethereum Foundation, met een verwijzing naar CCRI, 2026.",
     crypto_energy_l2:
       "Netwerken die transacties bundelen en samen op Ethereum afwikkelen, zoals Base, verbruiken beduidend minder dan een transactie op het Ethereum-mainnet. We hebben geen primaire bron waar we voor zouden instaan voor één getal, dus publiceren we er geen.",
     crypto_energy_xmr:
       "Monero: proof of work, gedolven op algemene processors. We hebben geen actueel cijfer gevonden waar we voor zouden instaan, dus publiceren we er geen.",
     crypto_energy_caveat:
-      "Dit zijn schattingen van derden, geen metingen van ons. Het totale energieverbruik van een netwerk delen door het aantal transacties is een omstreden manier van toerekenen: het verbruik van Bitcoin wordt bepaald door mining, niet door hoeveel transacties mensen doen, dus één extra transactie voegt niet evenredig iets toe. We publiceren dit zodat je het zelf kunt wegen. We doen geen milieuclaim over welke betaalmethode dan ook en compenseren niets namens jou.",
+      "Dit zijn schattingen van derden en geen eigen metingen, en cijfers per transactie zijn omstreden. We doen geen milieuclaim over welke betaalmethode dan ook.",
     crypto_native_rate_value: "Gebruikte koers: 1 {{coin}} = {{rate}}",
     crypto_native_commit_notice:
-      "Een munt kiezen maakt je bestelling met betalingsverplichting aan en zet je wisselkoers vast. Je betaalt door het bedrag zelf vanuit je wallet te sturen.",
+      "Kies een munt om je wisselkoers vast te zetten. Daarna stuur je de betaling zelf vanuit je eigen wallet.",
     feature_1000_emails: "1.000 e-mails",
     fam_kids_tab: "Kinderen",
     fam_kids_title: "Gereserveerde adressen voor kinderen",
@@ -8623,6 +8688,7 @@ export const nl = {
     link_device_confirming: "Apparaat koppelen...",
     link_device_cancel: "Annuleren",
     link_device_desktop: "Desktop-app",
+    link_device_signed_in_as: "Aangemeld als",
     link_device_success: "Apparaat gekoppeld",
     link_device_success_description:
       "Je desktop-app is nu gekoppeld. Je kunt dit tabblad sluiten.",

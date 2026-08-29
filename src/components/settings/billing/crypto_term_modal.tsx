@@ -42,8 +42,10 @@ import {
 import { payment_url_or_throw } from "@/lib/payment_url";
 import { Spinner } from "@/components/ui/spinner";
 import { CoinIcon } from "@/components/ui/coin_icon";
-import { server_error_text } from "@/components/settings/billing/server_error_text";
-import { show_toast } from "@/components/toast/simple_toast";
+import {
+  show_toast,
+  TOAST_DURATION_BILLING_MS,
+} from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 import {
   FAMILY_PLAN_TIERS,
@@ -51,6 +53,7 @@ import {
   notify_crypto_invoice_changed,
   remember_crypto_selection,
 } from "@/components/settings/billing/billing_constants";
+import { checkout_error_text } from "./checkout_error_text";
 
 type TermMonths = 1 | 3 | 6 | 12 | 24;
 type Step = "term" | "method";
@@ -285,13 +288,18 @@ export function crypto_term_modal({
         return;
       }
       show_toast(
-        server_error_text(response.error, t("settings.failed_checkout")),
+        checkout_error_text(t, response.server_code),
         "error",
+        TOAST_DURATION_BILLING_MS,
       );
       set_is_loading(false);
     } catch (error) {
       if (import.meta.env.DEV) console.error(error);
-      show_toast(t("settings.failed_checkout"), "error");
+      show_toast(
+        t("settings.failed_checkout"),
+        "error",
+        TOAST_DURATION_BILLING_MS,
+      );
       set_is_loading(false);
     }
   };
@@ -330,22 +338,35 @@ export function crypto_term_modal({
         return;
       }
       if (response.code === "CONFLICT") {
-        show_toast(t("settings.crypto_native_too_many_open"), "error");
+        show_toast(
+          t("settings.crypto_native_too_many_open"),
+          "error",
+          TOAST_DURATION_BILLING_MS,
+        );
 
         return;
       }
       if (response.code === "RATE_LIMIT_EXCEEDED") {
-        show_toast(t("settings.crypto_native_daily_limit"), "error");
+        show_toast(
+          t("settings.crypto_native_daily_limit"),
+          "error",
+          TOAST_DURATION_BILLING_MS,
+        );
 
         return;
       }
       show_toast(
-        server_error_text(response.error, t("settings.failed_checkout")),
+        checkout_error_text(t, response.server_code),
         "error",
+        TOAST_DURATION_BILLING_MS,
       );
     } catch (error) {
       if (import.meta.env.DEV) console.error(error);
-      show_toast(t("settings.failed_checkout"), "error");
+      show_toast(
+        t("settings.failed_checkout"),
+        "error",
+        TOAST_DURATION_BILLING_MS,
+      );
     } finally {
       set_creating_key(null);
     }
@@ -360,6 +381,9 @@ export function crypto_term_modal({
   };
 
   const busy = is_loading || creating_key !== null;
+  const has_restored_coin = sorted_coins.some(
+    (coin) => `${coin.currency}:${coin.chain}` === initial_coin_key,
+  );
 
   return (
     <Modal show_close_button is_open={is_open} on_close={on_close} size="md">
@@ -499,12 +523,16 @@ export function crypto_term_modal({
                   const key = `${coin.currency}:${coin.chain}`;
                   const is_creating = creating_key === key;
                   const is_restored = initial_coin_key === key;
+                  const is_highlighted = has_restored_coin
+                    ? is_restored
+                    : coin.recommended;
 
                   return (
                     <button
                       key={key}
-                      className={`w-full flex items-center justify-between gap-3 rounded-[14px] border p-3.5 text-start transition-colors bg-surf-tertiary hover:bg-surf-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] disabled:opacity-60 ${
-                        is_restored || coin.recommended
+                      aria-busy={is_creating}
+                      className={`w-full flex items-center justify-between gap-3 rounded-[14px] border p-3.5 text-start transition-colors bg-surf-tertiary hover:bg-surf-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] disabled:cursor-not-allowed ${
+                        is_highlighted
                           ? "border-brand"
                           : "border-edge-secondary hover:border-edge-primary"
                       }`}
@@ -530,29 +558,23 @@ export function crypto_term_modal({
                           </span>
                         </span>
                       </span>
-                      {is_creating ? (
-                        <Spinner size="sm" />
-                      ) : is_restored ? (
-                        <span
-                          className="shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold"
-                          style={{
-                            backgroundColor: "var(--accent-color)",
-                            color: "var(--accent-fg, #ffffff)",
-                          }}
-                        >
-                          {t("settings.crypto_native_resume_selected")}
-                        </span>
-                      ) : coin.recommended ? (
-                        <span
-                          className="shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold"
-                          style={{
-                            backgroundColor: "var(--accent-color)",
-                            color: "var(--accent-fg, #ffffff)",
-                          }}
-                        >
-                          {t("settings.crypto_native_recommended")}
-                        </span>
-                      ) : null}
+                      <span className="flex h-6 shrink-0 items-center justify-end">
+                        {is_creating ? (
+                          <Spinner size="sm" />
+                        ) : is_highlighted ? (
+                          <span
+                            className="rounded-full px-2 py-0.5 text-[11px] font-semibold"
+                            style={{
+                              backgroundColor: "var(--accent-color)",
+                              color: "var(--accent-fg, #ffffff)",
+                            }}
+                          >
+                            {is_restored
+                              ? t("settings.crypto_native_resume_selected")
+                              : t("settings.crypto_native_recommended")}
+                          </span>
+                        ) : null}
+                      </span>
                     </button>
                   );
                 })}
@@ -564,14 +586,13 @@ export function crypto_term_modal({
                   <div className="mt-2 space-y-1.5 text-xs leading-relaxed text-txt-muted">
                     <p>{t("settings.crypto_energy_btc")}</p>
                     <p>{t("settings.crypto_energy_eth")}</p>
-                    <p>{t("settings.crypto_energy_l2")}</p>
-                    <p>{t("settings.crypto_energy_xmr")}</p>
                     <p>{t("settings.crypto_energy_caveat")}</p>
                   </div>
                 </details>
 
                 <button
-                  className="w-full flex items-center justify-between gap-3 rounded-[14px] border border-edge-secondary p-3.5 text-start transition-colors bg-surf-tertiary hover:bg-surf-hover hover:border-edge-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] disabled:opacity-60"
+                  aria-busy={is_loading}
+                  className="w-full flex items-center justify-between gap-3 rounded-[14px] border border-edge-secondary p-3.5 text-start transition-colors bg-surf-tertiary hover:bg-surf-hover hover:border-edge-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] disabled:cursor-not-allowed"
                   disabled={busy}
                   type="button"
                   onClick={handle_stripe}
@@ -587,11 +608,13 @@ export function crypto_term_modal({
                       </span>
                     </span>
                   </span>
-                  {is_loading ? (
-                    <Spinner size="sm" />
-                  ) : (
-                    <BanknotesIcon className="w-5 h-5 shrink-0 text-txt-muted" />
-                  )}
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center">
+                    {is_loading ? (
+                      <Spinner size="sm" />
+                    ) : (
+                      <BanknotesIcon className="w-5 h-5 text-txt-muted" />
+                    )}
+                  </span>
                 </button>
               </div>
             )}

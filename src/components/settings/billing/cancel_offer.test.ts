@@ -20,10 +20,7 @@
 //
 import { describe, it, expect } from "vitest";
 
-import {
-  get_downgrade_offer,
-  read_billing_interval,
-} from "./cancel_offer";
+import { get_downgrade_offer, read_billing_interval } from "./cancel_offer";
 
 describe("read_billing_interval", () => {
   it("maps the stored billing period onto a term", () => {

@@ -2335,6 +2335,22 @@ export const ar = {
     fam_org_action_failed: "حدث خطأ ما. يرجى المحاولة مرة أخرى.",
     fam_org_invite_exists:
       "توجد بالفعل دعوة معلّقة لعنوان البريد الإلكتروني هذا.",
+    plan_desc_ghost_aliases: "أرسل من عنوان عشوائي يخفي هويتك",
+    plan_desc_advanced_aliases:
+      "صور رمزية وتثبيت المرسلين وقواعد لكل اسم مستعار",
+    plan_desc_catch_all: "استقبل الرسائل المرسلة إلى أي عنوان في نطاقك",
+    plan_desc_apps: "اربط أي تطبيق بريد عبر Aster Bridge",
+    plan_desc_vanguard: "حماية إضافية من التصيد والمتعقبات",
+    plan_desc_smart_folders: "مجلدات تمتلئ تلقائيًا وفق قواعدك",
+    plan_desc_folder_lock: "اقفل المجلدات الخاصة بكلمة سر ثانية",
+    plan_desc_external_accounts: "اقرأ صناديق بريدك الأخرى داخل Aster",
+    plan_desc_alias_directory: "تُنشأ أسماء مستعارة جديدة فور وصول الرسائل",
+    plan_desc_multi_accounts: "ابق مسجل الدخول في عدة حسابات في آن واحد",
+    plan_desc_instant_alias_delete:
+      "احذف الأسماء المستعارة دون انتظار 30 يومًا",
+    plan_desc_encrypted_exports: "نزّل بريدك في أرشيف مشفر",
+    plan_desc_support_dedicated: "دردشة مباشرة مع مسؤول يعرف حسابك",
+    plan_desc_early_access: "جرّب الميزات الجديدة قبل الجميع",
     plan_feat_storage_50: "50 جيجابايت تخزين مشفر",
     plan_feat_storage_500: "500 جيجابايت تخزين مشفر",
     plan_feat_storage_5tb: "5 تيرابايت تخزين مشفر",
@@ -3485,6 +3501,8 @@ export const ar = {
     fam_org_time_one_day_ago: "قبل يوم واحد",
     fam_org_grace_banner:
       "تنتهي خطتك العائلية في {{date}} - جدِّد للحفاظ على الوصول",
+    fam_org_grace_banner_expired:
+      "انتهت خطتك العائلية في {{date}} - جدِّد لاستعادة الوصول",
     fam_org_grace_banner_soon:
       "تنتهي خطتك العائلية قريبًا - جدِّد للحفاظ على الوصول",
     fam_org_cancelled_banner: "تم إلغاء خطتك العائلية - سيفقد الأعضاء الوصول",
@@ -3492,6 +3510,7 @@ export const ar = {
     fam_org_heading: "العائلة",
     fam_org_status_active: "نشطة",
     fam_org_status_expiring: "على وشك الانتهاء",
+    fam_org_status_expired: "منتهية",
     fam_org_status_cancelled: "ملغاة",
     fam_org_members_count:
       "تم استخدام {{used}} من {{max}} مقعدًا · {{count}} مقاعد متاحة",
@@ -4227,6 +4246,12 @@ export const ar = {
     continue_to_checkout: "المتابعة إلى الدفع",
     redirect_payment_description:
       "سيتم توجيهك إلى مزود الدفع الآمن لإتمام عملية الشراء.",
+    billing_unavailable:
+      "المدفوعات غير متاحة مؤقتًا. أعد المحاولة بعد بضع دقائق.",
+    checkout_rate_limited:
+      "محاولات كثيرة جدًا. انتظر دقيقة ثم أعد المحاولة.",
+    checkout_already_active:
+      "لديك اشتراك نشط بالفعل. حدّث الصفحة لعرضه.",
     plan_not_available:
       "هذه الخطة غير متاحة للشراء حاليًا. خطة أخرى أو العودة لاحقًا ستعمل.",
     failed_checkout:
@@ -4915,6 +4940,13 @@ export const ar = {
       "أضف سجلات DNS هذه إلى مسجل نطاقك للتحقق من الملكية وتفعيل البريد:",
     domains_description:
       "أضف نطاقك الخاص لإنشاء عناوين وإرسال بريد من نطاقك. تظهر النطاقات الموثقة في محدد نطاق الاسم المستعار.",
+    domains_page_description:
+      "استخدم نطاقك الخاص مع Aster Mail. أضف نطاقًا تملكه بالفعل، أو اشترِ نطاقًا جديدًا ويقوم Aster Mail بإعداد DNS لك. تظهر النطاقات الموثقة في محدد نطاق الاسم المستعار.",
+    add_or_buy_domain: "إضافة نطاق أو شراؤه",
+    add_domain_you_own: "إضافة نطاق تملكه",
+    buy_new_domain: "شراء نطاق جديد",
+    search_domains_placeholder: "البحث في نطاقاتك",
+    no_matching_domains: "لا توجد نطاقات مطابقة لبحثك.",
     domains_send_receive_description:
       "أضف نطاقك الخاص لإرسال واستقبال البريد. ستحتاج إلى الوصول إلى إعدادات DNS لنطاقك لإكمال التحقق.",
     verification_failed_retry: "فشل التحقق. يرجى المحاولة مجددًا.",
@@ -5526,6 +5558,8 @@ export const ar = {
     storage_breakdown_empty: "لا شيء يشغل مساحتك حتى الآن.",
     storage_col_category: "الفئة",
     storage_col_items: "العناصر",
+    storage_items_count: "{{count}} عنصر",
+    storage_items_count_one: "عنصر واحد",
     storage_col_size: "الحجم",
     storage_col_share: "النسبة",
     storage_capacity_title: "السعة",
@@ -5577,6 +5611,14 @@ export const ar = {
     promo_applying: "جارٍ التطبيق...",
     promo_apply: "تطبيق",
     checkout_title: "أكمل عملية الشراء",
+    checkout_term_title: "مدة الاشتراك",
+    checkout_term_save: "وفّر {{amount}}",
+    checkout_term_per_month: "{{amount}}/شهر",
+    checkout_term_crypto_only: "العملات المشفّرة فقط",
+    checkout_card_term_unavailable:
+      "مدة السنتين متاحة عند الدفع بالعملات المشفّرة.",
+    checkout_term_total: "{{amount}} الإجمالي",
+    checkout_method_title: "طريقة الدفع",
     checkout_description: "أدخل تفاصيل الدفع للاشتراك.",
     autorenew_notice:
       "يتجدد اشتراكك تلقائيًا بمبلغ {amount} إلى أن تلغيه. لتجنب الرسوم التالية، ألغِ الاشتراك من الإعدادات قبل تاريخ التجديد.",
@@ -5993,7 +6035,7 @@ export const ar = {
     domain_purchase_discount_tooltip:
       "سعر السنة الأولى المخفض من المسجّل لدينا. بعد ذلك يتجدد بسعر {{price}} سنويًا.",
     domain_purchase_purchased_info:
-      "هذه هي النطاقات التي اشتريتها عبر Aster. نسجلها لك مع خصوصية WHOIS، ونعد جميع سجلات DNS للبريد تلقائيًا، ويمكنك إنشاء عناوين عليها فورًا. لا يتجدد أي نطاق إلا بموافقتك. تقفل ICANN التسجيلات الجديدة خلال أول 60 يومًا، وبعد ذلك يتولى فريق الدعم لدينا نقل النطاق إلى مسجل آخر.",
+      "هذه هي النطاقات التي اشتريتها عبر Aster. نسجلها لك مع خصوصية WHOIS، ونعد جميع سجلات DNS للبريد تلقائيًا، ويمكنك إنشاء عناوين عليها فورًا. لا يتجدد أي نطاق إلا بموافقتك. إذا أردت لاحقًا نقل نطاق إلى مسجل آخر، يتولى فريق الدعم لدينا عملية النقل. تقفل ICANN التسجيلات الجديدة خلال أول 60 يومًا.",
     domain_purchase_dont_have: "لا تملك نطاقًا؟ انقر هنا لشراء واحد.",
     domain_purchase_sort_price: "الأقل سعرًا",
     domain_purchase_leave_title: "هل تريد مغادرة Aster Mail؟",
@@ -6004,6 +6046,8 @@ export const ar = {
     domain_purchase_purchased_expires: "تنتهي في {{date}}",
     domain_purchase_purchased_in_progress: "قيد الإعداد...",
     domain_purchase_purchased_awaiting: "في انتظار الدفع",
+    domain_purchase_awaiting_note:
+      "لم نستلم دفعتك بعد. أكمل عملية الدفع لإتمام طلبك، أو أغلق هذه النافذة وادفع لاحقًا من قسم النطاقات المشتراة.",
     domain_purchase_done_warmup:
       "تنبيه: قد يستغرق انتشار DNS لنطاقك عبر الإنترنت ما يصل إلى ساعة، ويتعامل مزودون مثل Gmail بحذر مع النطاقات الجديدة تمامًا في البداية. تتحسن قابلية التسليم مع تراكم سجل نطاقك.",
     domain_purchase_create_first_address: "أنشئ عنوانك الأول",
@@ -6349,7 +6393,7 @@ export const ar = {
       "تتم معالجة هذه الدفعة. تُحدَّث هذه الصفحة تلقائيًا، فلا حاجة لأي إجراء منك.",
     crypto_native_copy_invoice_ref: "نسخ مرجع الفاتورة",
     crypto_native_no_wallet_handler:
-      "لم يُفتح أي تطبيق محفظة. انسخ العنوان أعلاه والصقه في محفظتك بدلاً من ذلك.",
+      "لم يُفتح أي تطبيق محفظة. انسخ العنوان والصقه في محفظتك.",
     crypto_native_copied: "تم النسخ إلى الحافظة",
     crypto_native_network_warning:
       "أرسل {{coin}} فقط عبر شبكة {{chain}}. إرسال أي أصل آخر أو استخدام شبكة أخرى سيؤدي إلى فقدان الأموال.",
@@ -6387,6 +6431,18 @@ export const ar = {
       "تم إلغاء هذه العملية. لم يتم خصم أي مبلغ. يمكنك بدء عملية دفع جديدة في أي وقت.",
     crypto_native_start_new_payment: "بدء عملية دفع جديدة",
     crypto_native_check_now: "تحقق الآن",
+    crypto_native_checking: "جارٍ التحقق",
+    crypto_native_check_no_change: "لم نر دفعتك بعد، لكننا ما زلنا نراقب.",
+    crypto_native_check_updated: "تم تحديث حالة الدفع: {{status}}",
+    crypto_native_check_failed:
+      "تعذّر الوصول إلى الشبكة. لم تتأثر دفعتك. حاول مرة أخرى بعد قليل.",
+    crypto_native_last_checked: "آخر تحقق في {{time}}",
+    crypto_native_copy_amount: "نسخ المبلغ",
+    crypto_native_copy_address: "نسخ العنوان",
+    crypto_native_verify_address:
+      "قبل الإرسال، قارن العنوان الظاهر على شاشة محفظتك بالعنوان المعروض هنا. هذا العنوان وحده هو المراقَب لطلبك.",
+    crypto_native_fee_headroom:
+      "إذا كانت محفظتك تخصم رسوم الشبكة من المبلغ الذي تدخله، فأضف قليلاً فوقه ليصل المبلغ كاملاً.",
     crypto_native_expired_do_not_send:
       "لا ترسل أي أموال إلى العنوان الموجود في هذه الفاتورة. الأموال المُرسَلة الآن تحتاج إلى مراجعة يدوية قبل إضافتها إلى رصيدك.",
     crypto_native_not_found: "تعذر العثور على هذه الفاتورة",
@@ -6411,13 +6467,12 @@ export const ar = {
     crypto_native_cancel_confirm_title: "إلغاء هذه الفاتورة؟",
     crypto_native_cancel_confirm_body:
       "سيتوقف رصد عنوان الدفع. لا ترسل أي أموال إليه بعد الإلغاء. يمكنك بدء عملية دفع جديدة في أي وقت.",
-    crypto_native_hint_awaiting:
-      "أرسل المبلغ بالضبط إلى العنوان أعلاه. نراقب الشبكة تلقائيًا بحثًا عنه.",
+    crypto_native_hint_awaiting: "نتحقق من الشبكة تلقائياً بحثاً عن معاملتك.",
     crypto_native_hint_detected:
-      "معاملتك موجودة على الشبكة. في انتظار إدراجها في كتلة.",
+      "وصلت معاملتك إلى الشبكة وتنتظر إدراجها في كتلة.",
     crypto_native_hint_confirming:
-      "جارٍ التأكيد على الشبكة. تُفعَّل خطتك بمجرد الانتهاء.",
-    crypto_native_hint_credited: "تم تأكيد الدفع. خطتك نشطة الآن.",
+      "في انتظار تأكيدات الشبكة. تُفعَّل خطتك فور اكتمالها.",
+    crypto_native_hint_credited: "تم التأكيد. خطتك نشطة.",
     crypto_native_time_remaining: "الوقت المتبقي",
     crypto_native_expiring_soon:
       "بقي أقل من 5 دقائق. إذا انتهت هذه المهلة قبل وصول دفعتك، يمكنك بدء دفعة جديدة بالسعر الحالي.",
@@ -6974,6 +7029,9 @@ export const ar = {
     save_annually_hint: "وفّر 20% مع الاشتراك السنوي",
     billing_checkout_cancelled:
       "تم إلغاء الدفع. حسابك بأمان ولم يُخصم أي مبلغ، ويمكنك المحاولة مرة أخرى في أي وقت من الإعدادات.",
+    upgrade_resume_title: "أكمل ترقية خطتك",
+    upgrade_resume_description:
+      "غادرت صفحة الدفع قبل إتمامها. تابع من حيث توقفت.",
     referral_your_discount: "خصمك",
     referral_discount_active: "نشط",
     referral_discount_redeemed: "مُستخدم",
@@ -7085,18 +7143,18 @@ export const ar = {
       "ادفع من محفظة تتحكم فيها. إذا أرسلت الأموال من منصة تداول أو خدمة تبادل، فسيصل الدفع من عنوان ليس عنوانك ولن يتمكن معالج الدفع من مطابقته مع طلبك. أكمل الدفع خلال المدة الظاهرة في صفحة الدفع.",
     crypto_energy_toggle: "استهلاك الطاقة في هذه الشبكات",
     crypto_energy_btc:
-      "Bitcoin: ما يقدَّر بـ 700 إلى 1,400 كيلوواط ساعة و300 إلى 700 كجم مكافئ ثاني أكسيد الكربون لكل معاملة. المصدر: Cambridge Centre for Alternative Finance، مؤشر Cambridge Bitcoin Electricity Consumption Index، 2026.",
+      "بيتكوين: ما يقدَّر بين 700 و1400 كيلوواط ساعة لكل معاملة. المصدر: Cambridge Bitcoin Electricity Consumption Index، 2026.",
     crypto_energy_eth:
-      "Ethereum: ما يقدَّر بـ 0.01 إلى 0.05 كيلوواط ساعة وبضعة غرامات من مكافئ ثاني أكسيد الكربون لكل معاملة، أي أقل بنحو 99.9% من قيمتها قبل 2022 مع إثبات العمل. المصدر: صفحة استهلاك الطاقة لدى Ethereum Foundation نقلًا عن CCRI، 2026.",
+      "إيثريوم: ما يقدَّر بين 0.01 و0.05 كيلوواط ساعة لكل معاملة، والشبكات التي تُسوّى عليه مثل Base تستهلك أقل من ذلك. المصدر: Ethereum Foundation نقلاً عن CCRI، 2026.",
     crypto_energy_l2:
       "الشبكات التي تجمع المعاملات وتسوّيها معًا على Ethereum، مثل Base، تستهلك أقل بكثير من معاملة على شبكة Ethereum الرئيسية. لا نملك مصدرًا أوليًا ندعمه لرقم واحد، لذا لا ننشر رقمًا.",
     crypto_energy_xmr:
       "Monero: يعتمد على إثبات العمل ويُعدَّن على معالجات عامة الاستخدام. لم نجد رقمًا حديثًا ندعمه، لذا لا ننشر رقمًا.",
     crypto_energy_caveat:
-      "هذه تقديرات من جهات خارجية وليست قياسات أجريناها بأنفسنا. وقسمة إجمالي طاقة الشبكة على عدد معاملاتها طريقة متنازع عليها في توزيع الطاقة: فاستهلاك Bitcoin تحدّده عمليات التعدين لا عدد المعاملات، لذا لا تضيف معاملة إضافية قدرًا متناسبًا. ننشر هذه الأرقام لتقيّمها بنفسك. ولا نقدّم أي ادّعاء بيئي بشأن أي طريقة دفع، ولا نجري أي تعويض كربوني نيابةً عنك.",
+      "هذه تقديرات من جهات خارجية وليست قياسات أجريناها، والأرقام لكل معاملة محل خلاف. نحن لا نقدّم أي ادعاء بيئي عن أي طريقة دفع.",
     crypto_native_rate_value: "السعر المستخدَم: 1 {{coin}} = {{rate}}",
     crypto_native_commit_notice:
-      "يؤدي اختيار عملة إلى إنشاء طلبك مع التزام بالدفع وتثبيت سعر الصرف. وتدفع بإرسال المبلغ بنفسك من محفظتك.",
+      "اختر عملة لتثبيت سعر الصرف. ثم ترسل الدفعة بنفسك من محفظتك الخاصة.",
     feature_1000_emails: "1,000 رسالة",
     fam_kids_tab: "الأطفال",
     fam_kids_title: "عناوين محجوزة للأطفال",
@@ -8598,6 +8656,7 @@ export const ar = {
     link_device_confirming: "جارٍ ربط الجهاز...",
     link_device_cancel: "إلغاء",
     link_device_desktop: "تطبيق سطح المكتب",
+    link_device_signed_in_as: "تسجيل الدخول باسم",
     link_device_success: "تم ربط الجهاز",
     link_device_success_description:
       "تطبيق سطح المكتب الخاص بك مرتبط الآن. يمكنك إغلاق هذه التبويبة.",

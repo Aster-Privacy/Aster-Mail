@@ -64,7 +64,10 @@ import {
 } from "@/services/api/billing";
 import { request_cache } from "@/services/api/request_cache";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
-import { show_toast } from "@/components/toast/simple_toast";
+import {
+  show_toast,
+  TOAST_DURATION_BILLING_MS,
+} from "@/components/toast/simple_toast";
 import {
   PLAN_TIERS,
   convert_cents,
@@ -327,7 +330,11 @@ export function BillingDialogs({
 
             return;
           }
-          show_toast(t("settings.payment_processing_delayed"), "info");
+          show_toast(
+            t("settings.payment_processing_delayed"),
+            "info",
+            TOAST_DURATION_BILLING_MS,
+          );
         })();
       }
 
@@ -367,17 +374,29 @@ export function BillingDialogs({
                 return;
               }
             }
-            show_toast(t("settings.payment_processing_delayed"), "info");
+            show_toast(
+              t("settings.payment_processing_delayed"),
+              "info",
+              TOAST_DURATION_BILLING_MS,
+            );
             request_cache.invalidate("/payments/v1");
             await load_data();
           }
         } catch {
-          show_toast(t("settings.payment_processing_delayed"), "info");
+          show_toast(
+            t("settings.payment_processing_delayed"),
+            "info",
+            TOAST_DURATION_BILLING_MS,
+          );
           request_cache.invalidate("/payments/v1");
         }
       })();
     } else {
-      show_toast(t("settings.payment_failed"), "error");
+      show_toast(
+        t("settings.payment_failed"),
+        "error",
+        TOAST_DURATION_BILLING_MS,
+      );
     }
   }, [t, load_data]);
 
@@ -962,11 +981,19 @@ export function BillingDialogs({
                     invalidate_mail_stats();
                     await load_data();
                   } else {
-                    show_toast(t("settings.addon_cancel_failed"), "error");
+                    show_toast(
+                      t("settings.addon_cancel_failed"),
+                      "error",
+                      TOAST_DURATION_BILLING_MS,
+                    );
                   }
                 } catch (error) {
                   if (import.meta.env.DEV) console.error(error);
-                  show_toast(t("settings.addon_cancel_failed"), "error");
+                  show_toast(
+                    t("settings.addon_cancel_failed"),
+                    "error",
+                    TOAST_DURATION_BILLING_MS,
+                  );
                 } finally {
                   set_is_action_loading(false);
                   set_show_cancel_addon_dialog(false);

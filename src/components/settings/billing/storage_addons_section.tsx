@@ -78,11 +78,11 @@ export function StorageAddonsSection({
           <h4 className="text-sm font-medium text-txt-secondary mb-2">
             {t("settings.active_addons")}
           </h4>
-          <div className="space-y-2">
+          <div className="divide-y divide-edge-secondary border-y border-edge-secondary">
             {active_addons.map((addon) => (
               <div
                 key={addon.user_addon_id}
-                className="flex items-center justify-between p-3 rounded-lg bg-surf-tertiary border border-edge-secondary"
+                className="flex items-center justify-between px-1 py-3"
               >
                 <div>
                   <p className="text-sm font-medium text-txt-primary">
