@@ -8337,6 +8337,7 @@ export const es = {
     too_many_2fa_attempts:
       "Demasiados intentos de 2FA. Espera unos minutos antes de volver a intentarlo.",
     sign_in_session_expired:
+    back_to_link_device: "Volver a vincular dispositivo",
       "Tu sesión de inicio expiró. Vuelve atrás e inicia sesión de nuevo.",
     backup_codes_remaining_after_login: "Quedan {{count}} códigos de respaldo",
     backup_code_description:
@@ -8692,6 +8693,15 @@ export const es = {
     pair_device_confirm:
       "¿Deseas vincular {{ name }} con tu cuenta de Aster Mail?",
     pair_device_confirm_button: "Confirmar",
+    link_device_change_account: "Cambiar de cuenta",
+    link_device_choose_account: "Elige una cuenta",
+    link_device_choose_account_description:
+      "Para vincular tu aplicación de escritorio",
+    link_device_choose_account_note:
+      "Tus claves de cifrado nunca salen de tus dispositivos.",
+    link_device_use_another_account: "Usar otra cuenta",
+    link_device_use_this_account: "Usar esta cuenta",
+    link_device_other_accounts: "Cambiar a otra cuenta",
     pair_device_description:
       "Escanea el código QR con tu aplicación Aster para vincular este dispositivo.",
     pair_device_failed: "Error al vincular el dispositivo",

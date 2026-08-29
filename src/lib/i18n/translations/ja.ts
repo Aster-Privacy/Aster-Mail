@@ -8221,6 +8221,7 @@ export const ja = {
       "このコードは使用済みです。認証アプリに新しいコードが表示されるのを待ってから、もう一度お試しください。",
     too_many_2fa_attempts:
       "2FA の試行回数が多すぎます。数分待ってから再試行してください。",
+    back_to_link_device: "デバイスを連携に戻る",
     sign_in_session_expired:
       "サインインセッションの有効期限が切れました。戻って再度サインインしてください。",
     backup_codes_remaining_after_login:
@@ -8590,6 +8591,14 @@ export const ja = {
     security_key_verification: "セキュリティキーの確認",
     passkey_sign_in: "パスキーでサインイン",
     tap_security_key:
+    link_device_change_account: "アカウントを切り替える",
+    link_device_choose_account: "アカウントを選択",
+    link_device_choose_account_description: "デスクトップアプリを連携します",
+    link_device_choose_account_note:
+      "暗号鍵がお使いのデバイスから出ることはありません。",
+    link_device_use_another_account: "別のアカウントを使用",
+    link_device_use_this_account: "このアカウントを使用",
+    link_device_other_accounts: "別のアカウントに切り替える",
       "セキュリティキーをタップするか、パスキーを使用してサインインしてください",
     use_another_method: "別の確認方法を使用",
     webauthn_not_supported:

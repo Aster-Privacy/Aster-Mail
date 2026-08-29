@@ -8334,6 +8334,7 @@ export const nl = {
       "Deze code is zojuist gebruikt. Wacht tot je authenticator-app een nieuwe code toont en probeer het opnieuw.",
     too_many_2fa_attempts:
       "Te veel 2FA-pogingen. Wacht enkele minuten voordat u het opnieuw probeert.",
+    back_to_link_device: "Terug naar Apparaat koppelen",
     sign_in_session_expired:
       "Uw aanmeldsessie is verlopen. Ga terug en meld u opnieuw aan.",
     backup_codes_remaining_after_login: "{{count}} back-upcodes over",
@@ -8704,6 +8705,14 @@ export const nl = {
     security_key_verification: "Beveiligingssleutelverificatie",
     passkey_sign_in: "Aanmelden met toegangssleutel",
     tap_security_key:
+    link_device_change_account: "Account wijzigen",
+    link_device_choose_account: "Kies een account",
+    link_device_choose_account_description: "Om je desktop-app te koppelen",
+    link_device_choose_account_note:
+      "Je encryptiesleutels verlaten nooit je apparaten.",
+    link_device_use_another_account: "Een ander account gebruiken",
+    link_device_use_this_account: "Dit account gebruiken",
+    link_device_other_accounts: "Overschakelen naar een ander account",
       "Tik op je beveiligingssleutel of gebruik je wachtwoordsleutel om in te loggen",
     use_another_method: "Een andere verificatiemethode gebruiken",
     webauthn_not_supported:

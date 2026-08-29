@@ -3096,3 +3096,32 @@ input:-webkit-autofill:active {
   box-shadow: inset 0 0 0 1px
     color-mix(in srgb, var(--text-primary) 18%, transparent);
 }
+
+.link_device_code_input {
+  background-color: color-mix(
+    in srgb,
+    var(--text-primary) 5%,
+    var(--bg-primary)
+  );
+  box-shadow: inset 0 0 0 1px
+    color-mix(in srgb, var(--text-primary) 10%, transparent);
+  outline: none;
+  transition: box-shadow 120ms ease;
+}
+
+.link_device_code_input:focus {
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--text-primary) 26%, transparent),
+    0 0 0 3px color-mix(in srgb, var(--text-primary) 8%, transparent);
+}
+
+.link_device_success_mark {
+  background-color: color-mix(in srgb, #22c55e 14%, transparent);
+  color: #22c55e;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .link_device_code_input {
+    transition: none;
+  }
+}

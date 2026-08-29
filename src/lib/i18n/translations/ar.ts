@@ -8321,6 +8321,7 @@ export const ar = {
       "رمز النسخ الاحتياطي مكوّن من 12 حرفًا (8 للرموز القديمة). مراجعة العدد غالبًا ما تحل الأمر.",
     two_fa_temporarily_locked:
       "محاولات فاشلة كثيرة جدًا. تم قفل التحقق بخطوتين لمدة 15 دقيقة تقريبًا.",
+    back_to_link_device: "العودة إلى ربط جهاز",
     two_fa_code_already_used:
       "تم استخدام هذا الرمز للتو. انتظر حتى يعرض تطبيق المصادقة رمزًا جديدًا ثم حاول مرة أخرى.",
     too_many_2fa_attempts:
@@ -8668,6 +8669,14 @@ export const ar = {
       "الربط لم يكتمل. البداية من جديد عادةً ما تحل الأمر. حسابك لم يتغير.",
     link_device_try_again: "لم ينجح ذلك. البداية من جديد عادةً ما تحل الأمر.",
     trust_this_device_30_days: "الوثوق بهذا الجهاز لمدة 30 يومًا",
+    link_device_change_account: "تغيير الحساب",
+    link_device_choose_account: "اختر حسابًا",
+    link_device_choose_account_description: "لربط تطبيق سطح المكتب",
+    link_device_choose_account_note:
+      "مفاتيح التشفير الخاصة بك لا تغادر أجهزتك أبدًا.",
+    link_device_use_another_account: "استخدام حساب آخر",
+    link_device_use_this_account: "استخدام هذا الحساب",
+    link_device_other_accounts: "التبديل إلى حساب آخر",
     security_key_verification: "التحقق بمفتاح الأمان",
     passkey_sign_in: "تسجيل الدخول بمفتاح مرور",
     tap_security_key:

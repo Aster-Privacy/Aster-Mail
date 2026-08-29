@@ -8439,6 +8439,7 @@ export const fr = {
     too_many_2fa_attempts:
       "Trop de tentatives 2FA. Veuillez patienter quelques minutes avant de réessayer.",
     sign_in_session_expired:
+    back_to_link_device: "Retour à Associer un appareil",
       "Votre session de connexion a expiré. Revenez en arrière et reconnectez-vous.",
     backup_codes_remaining_after_login: "{{count}} codes de secours restants",
     backup_code_description:
@@ -8804,6 +8805,15 @@ export const fr = {
     pair_device_confirm_button: "Confirmer",
     pair_device_description:
       "Scannez le code QR avec votre application Aster pour associer cet appareil.",
+    link_device_change_account: "Changer de compte",
+    link_device_choose_account: "Choisissez un compte",
+    link_device_choose_account_description:
+      "Pour associer votre application de bureau",
+    link_device_choose_account_note:
+      "Vos clés de chiffrement ne quittent jamais vos appareils.",
+    link_device_use_another_account: "Utiliser un autre compte",
+    link_device_use_this_account: "Utiliser ce compte",
+    link_device_other_accounts: "Passer à un autre compte",
     pair_device_failed: "Échec de l'association de l'appareil",
     pair_device_invalid: "Code d'association invalide",
     pair_device_open_app: "Ouvrir l'application",

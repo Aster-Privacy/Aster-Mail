@@ -8449,6 +8449,7 @@ export const it = {
     two_fa_code_already_used:
       "Questo codice è appena stato usato. Attendi che l'app di autenticazione mostri un nuovo codice e riprova.",
     too_many_2fa_attempts:
+    back_to_link_device: "Torna a Collega dispositivo",
       "Troppi tentativi 2FA. Attendi qualche minuto prima di riprovare.",
     sign_in_session_expired:
       "La sessione di accesso è scaduta. Torna indietro e accedi di nuovo.",
@@ -8805,6 +8806,14 @@ export const it = {
     link_device_title: "Collega dispositivo",
     link_device_try_again: "Non ha funzionato. Ricominciare di solito risolve.",
     link_device_verify_button: "Continua",
+    link_device_change_account: "Cambia account",
+    link_device_choose_account: "Scegli un account",
+    link_device_choose_account_description: "Per collegare la tua app desktop",
+    link_device_choose_account_note:
+      "Le tue chiavi di crittografia non lasciano mai i tuoi dispositivi.",
+    link_device_use_another_account: "Usa un altro account",
+    link_device_use_this_account: "Usa questo account",
+    link_device_other_accounts: "Passa a un altro account",
     link_device_verifying: "Verifica...",
     pair_device_cancel: "Annulla",
     pair_device_confirm: "Vuoi associare {{ name }} al tuo account Aster Mail?",

@@ -8338,6 +8338,7 @@ export const tr = {
     two_fa_code_already_used:
       "Bu kod az önce kullanıldı. Kimlik doğrulayıcı uygulamanız yeni bir kod gösterene kadar bekleyip tekrar deneyin.",
     too_many_2fa_attempts:
+    back_to_link_device: "Cihaz bağla ekranına dön",
       "Çok fazla 2FA denemesi. Lütfen birkaç dakika bekleyip tekrar deneyin.",
     sign_in_session_expired:
       "Oturum açma süreniz doldu. Geri dönüp tekrar giriş yapın.",
@@ -8703,6 +8704,15 @@ export const tr = {
     trust_this_device_30_days: "Bu cihaza 30 gün güven",
     security_key_verification: "Güvenlik Anahtarı Doğrulaması",
     passkey_sign_in: "Geçiş anahtarıyla oturum aç",
+    link_device_change_account: "Hesap değiştir",
+    link_device_choose_account: "Bir hesap seçin",
+    link_device_choose_account_description:
+      "Masaüstü uygulamanızı bağlamak için",
+    link_device_choose_account_note:
+      "Şifreleme anahtarlarınız cihazlarınızdan asla çıkmaz.",
+    link_device_use_another_account: "Başka bir hesap kullan",
+    link_device_use_this_account: "Bu hesabı kullan",
+    link_device_other_accounts: "Başka bir hesaba geç",
     tap_security_key:
       "Güvenlik anahtarınıza dokunun veya oturum açmak için şifre anahtarınızı kullanın",
     use_another_method: "Başka bir doğrulama yöntemi kullanın",

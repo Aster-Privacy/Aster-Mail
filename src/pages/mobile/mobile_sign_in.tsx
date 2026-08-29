@@ -36,6 +36,7 @@ import {
   TurnstileWidget,
   TURNSTILE_SITE_KEY,
 } from "@/components/auth/turnstile_widget";
+import { get_safe_next_path } from "@/pages/sign_in_helpers";
 import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import { TotpVerification } from "@/components/auth/totp_verification";
@@ -108,6 +109,9 @@ export default function MobileSignInPage() {
   if (auth_loading || has_existing_session) {
     return null;
   }
+
+  const returns_to_link_device =
+    get_safe_next_path().replace(/^\/u\/\d+/, "") === "/link-device";
 
   const { handle_cancel_add_account, handle_totp_cancel, handle_login } =
     build_mobile_sign_in_handlers({
@@ -283,7 +287,9 @@ export default function MobileSignInPage() {
                     strokeLinejoin="round"
                   />
                 </svg>
-                {t("auth.back_to_inbox")}
+                {returns_to_link_device
+                  ? t("auth.back_to_link_device")
+                  : t("auth.back_to_inbox")}
               </button>
             </motion.div>
           ) : (

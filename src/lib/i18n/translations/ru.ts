@@ -8583,6 +8583,7 @@ export const ru = {
       "Этот код уже был использован. Подождите, пока приложение-аутентификатор покажет новый код, и попробуйте снова.",
     too_many_2fa_attempts:
       "Слишком много попыток 2FA. Подождите несколько минут и попробуйте снова.",
+    back_to_link_device: "Назад к привязке устройства",
     sign_in_session_expired:
       "Сессия входа истекла. Вернитесь назад и войдите снова.",
     backup_codes_remaining_after_login: "Осталось резервных кодов: {{count}}",
@@ -8937,6 +8938,15 @@ export const ru = {
     link_device_try_again: "Не получилось. Обычно помогает начать заново.",
     link_device_verify_button: "Продолжить",
     link_device_verifying: "Проверка...",
+    link_device_change_account: "Сменить аккаунт",
+    link_device_choose_account: "Выберите аккаунт",
+    link_device_choose_account_description:
+      "Чтобы привязать приложение для компьютера",
+    link_device_choose_account_note:
+      "Ключи шифрования никогда не покидают ваши устройства.",
+    link_device_use_another_account: "Использовать другой аккаунт",
+    link_device_use_this_account: "Использовать этот аккаунт",
+    link_device_other_accounts: "Перейти в другой аккаунт",
     pair_device_cancel: "Отмена",
     pair_device_confirm:
       "Хотите связать {{ name }} с вашим аккаунтом Aster Mail?",

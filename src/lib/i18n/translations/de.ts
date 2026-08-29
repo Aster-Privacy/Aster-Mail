@@ -8517,6 +8517,7 @@ export const de = {
       "Dieser Code wurde gerade verwendet. Warte, bis deine Authenticator-App einen neuen Code anzeigt, und versuche es erneut.",
     too_many_2fa_attempts:
       "Zu viele 2FA-Versuche. Bitte warten Sie einige Minuten und versuchen Sie es erneut.",
+    back_to_link_device: "Zurück zu „Gerät verknüpfen“",
     sign_in_session_expired:
       "Ihre Anmeldesitzung ist abgelaufen. Gehen Sie zurück und melden Sie sich erneut an.",
     backup_codes_remaining_after_login: "{{count}} Backup-Codes übrig",
@@ -8890,6 +8891,15 @@ export const de = {
     link_device_try_again:
       "Hat nicht geklappt. Ein erneuter Versuch löst das Problem in der Regel.",
     link_device_verify_button: "Weiter",
+    link_device_change_account: "Konto wechseln",
+    link_device_choose_account: "Konto auswählen",
+    link_device_choose_account_description:
+      "Um deine Desktop-App zu verknüpfen",
+    link_device_choose_account_note:
+      "Deine Schlüssel verlassen niemals deine Geräte.",
+    link_device_use_another_account: "Anderes Konto verwenden",
+    link_device_use_this_account: "Dieses Konto verwenden",
+    link_device_other_accounts: "Zu einem anderen Konto wechseln",
     link_device_verifying: "Wird geprüft...",
     pair_device_cancel: "Abbrechen",
     pair_device_confirm:

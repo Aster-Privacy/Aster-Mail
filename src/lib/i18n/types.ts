@@ -7492,6 +7492,13 @@ export interface AuthTranslations {
   link_device_upgrade_description: string;
   link_device_upgrade_cta: string;
   link_device_upgrade_failed: string;
+  link_device_change_account: string;
+  link_device_choose_account: string;
+  link_device_choose_account_description: string;
+  link_device_choose_account_note: string;
+  link_device_use_another_account: string;
+  link_device_use_this_account: string;
+  link_device_other_accounts: string;
   link_device_already_linked: string;
   link_device_rate_limited: string;
   link_device_account_suspended: string;
@@ -7509,6 +7516,7 @@ export interface AuthTranslations {
   two_fa_temporarily_locked: string;
   two_fa_code_already_used: string;
   too_many_2fa_attempts: string;
+  back_to_link_device: string;
   sign_in_session_expired: string;
   backup_codes_remaining_after_login: string;
   backup_code_description: string;

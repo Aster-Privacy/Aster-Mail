@@ -75,6 +75,7 @@ import {
 import { ensure_default_labels } from "@/services/labels/ensure_defaults";
 import { show_toast } from "@/components/toast/simple_toast";
 import { hard_redirect } from "@/lib/hard_redirect";
+import { take_post_switch_path } from "@/lib/post_switch_path";
 import { clear_device_session } from "@/native/desktop_device_auth";
 import { process_offline_queue } from "@/native/offline_queue";
 import {
@@ -127,6 +128,10 @@ export function use_auth_provider_state() {
       if (previous_account_id && previous_account_id !== target.id) {
         params.set("from", previous_account_id);
       }
+
+      const return_path = take_post_switch_path();
+
+      if (return_path) params.set("next", return_path);
 
       navigate(`/sign-in?${params.toString()}`);
     },
@@ -209,7 +214,7 @@ export function use_auth_provider_state() {
               result.encrypted_vault,
               result.vault_nonce,
             );
-            hard_redirect("/");
+            hard_redirect(take_post_switch_path() ?? "/");
 
             return;
           } catch (e) {
@@ -275,7 +280,7 @@ export function use_auth_provider_state() {
           }
 
           if (session_result === "ok" || session_result === "unavailable") {
-            hard_redirect("/");
+            hard_redirect(take_post_switch_path() ?? "/");
 
             return;
           }

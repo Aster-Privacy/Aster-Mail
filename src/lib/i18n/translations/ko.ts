@@ -8001,6 +8001,7 @@ export const ko = {
       "이 코드는 방금 사용되었습니다. 인증 앱에 새 코드가 표시될 때까지 기다린 후 다시 시도하세요.",
     too_many_2fa_attempts:
       "2FA 시도가 너무 많습니다. 몇 분 기다린 후 다시 시도하세요.",
+    back_to_link_device: "기기 연결으로 돌아가기",
     sign_in_session_expired:
       "로그인 세션이 만료되었습니다. 돌아가서 다시 로그인하세요.",
     backup_codes_remaining_after_login: "남은 백업 코드 {{count}}개",
@@ -8349,6 +8350,13 @@ export const ko = {
     tap_security_key: "보안 키를 탭 또는 터치하세요",
     use_another_method: "다른 방법 사용",
     webauthn_not_supported: "이 브라우저는 보안 키를 지원하지 않습니다",
+    link_device_change_account: "계정 변경",
+    link_device_choose_account: "계정 선택",
+    link_device_choose_account_description: "데스크톱 앱을 연결합니다",
+    link_device_choose_account_note: "암호화 키는 기기를 벗어나지 않습니다.",
+    link_device_use_another_account: "다른 계정 사용",
+    link_device_use_this_account: "이 계정 사용",
+    link_device_other_accounts: "다른 계정으로 전환",
     account_flagged_notice:
       "보안 시스템이 이 계정을 표시했습니다. 문의가 필요하면 hello@astermail.org로 연락하세요.",
     registration_suspended:

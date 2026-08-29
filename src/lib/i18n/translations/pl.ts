@@ -8606,6 +8606,7 @@ export const pl = {
     too_many_2fa_attempts:
       "Zbyt wiele prób 2FA. Odczekaj kilka minut przed ponowną próbą.",
     sign_in_session_expired:
+    back_to_link_device: "Powrót do Połącz urządzenie",
       "Sesja logowania wygasła. Wróć i zaloguj się ponownie.",
     backup_codes_remaining_after_login: "Pozostało {{count}} kodów zapasowych",
     backup_code_description:
@@ -8968,6 +8969,15 @@ export const pl = {
     tap_security_key:
       "Dotknij klucza bezpieczeństwa lub użyj klucza dostępu, aby się zalogować",
     use_another_method: "Użyj innej metody weryfikacji",
+    link_device_change_account: "Zmień konto",
+    link_device_choose_account: "Wybierz konto",
+    link_device_choose_account_description:
+      "Aby połączyć aplikację na komputer",
+    link_device_choose_account_note:
+      "Twoje klucze szyfrowania nigdy nie opuszczają Twoich urządzeń.",
+    link_device_use_another_account: "Użyj innego konta",
+    link_device_use_this_account: "Użyj tego konta",
+    link_device_other_accounts: "Przełącz na inne konto",
     webauthn_not_supported:
       "Ta przeglądarka nie obsługuje kluczy bezpieczeństwa. Spróbuj z inną przeglądarką lub zaloguj się hasłem.",
     account_flagged_notice:

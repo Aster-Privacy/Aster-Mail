@@ -7438,6 +7438,7 @@ export const zh_CN = {
     two_fa_code_already_used:
       "该验证码刚刚已被使用。请等待验证器应用显示新验证码后再试。",
     too_many_2fa_attempts: "2FA 尝试次数过多。请等待几分钟后重试。",
+    back_to_link_device: "返回“关联设备”",
     sign_in_session_expired: "登录会话已过期。请返回并重新登录。",
     backup_codes_remaining_after_login: "剩余 {{count}} 个备份码",
     backup_code_description: "输入您的一个备份代码以登录",
@@ -7761,6 +7762,13 @@ export const zh_CN = {
     security_key_verification: "安全密钥验证",
     passkey_sign_in: "使用通行密钥登录",
     tap_security_key: "点按您的安全密钥或使用通行密钥登录",
+    link_device_change_account: "切换账号",
+    link_device_choose_account: "选择账号",
+    link_device_choose_account_description: "以关联桌面应用",
+    link_device_choose_account_note: "您的加密密钥始终保存在您的设备上。",
+    link_device_use_another_account: "使用其他账号",
+    link_device_use_this_account: "使用此账号",
+    link_device_other_accounts: "切换到其他账号",
     use_another_method: "使用其他验证方式",
     webauthn_not_supported:
       "此浏览器不支持安全密钥。换一个浏览器，或使用密码登录，即可继续。",
