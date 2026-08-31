@@ -151,7 +151,7 @@ jobs:
           for img in src-tauri/target/release/bundle/appimage/*.AppImage; do
             bash scripts/fix_appimage_libs.sh "$img"
             rm -f "$img.sig"
-            npm run tauri -- signer sign "$img"
+            npm run tauri -- signer sign --password "" "$img"
             gh release upload "$TAG" "$img" "$img.sig" --clobber
           done
 
