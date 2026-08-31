@@ -30,7 +30,7 @@ This URL always resolves to the asset of the latest published GitHub Release. Th
    - `latest.json` (see template below)
 6. Start the release body with the Aster Mail wordmark and the standard alert, then the release notes:
    ```
-   <p align="center">
+   <p align="left">
      <picture>
        <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/Aster-Privacy/Aster-Mail/01a79449e4706b43cd790419736ed24bfbea95c0/public/aster_mail_logo_dark.png">
        <img alt="Aster Mail" src="https://raw.githubusercontent.com/Aster-Privacy/Aster-Mail/01a79449e4706b43cd790419736ed24bfbea95c0/public/aster_mail_logo_light.png" width="320">

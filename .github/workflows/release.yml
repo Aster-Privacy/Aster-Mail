@@ -359,7 +359,7 @@ jobs:
             *aster_mail_logo*) ;;
             *)
               {
-                echo '<p align="center">'
+                echo '<p align="left">'
                 echo '  <picture>'
                 echo "    <source media=\"(prefers-color-scheme: dark)\" srcset=\"${RAW}/aster_mail_logo_dark.png\">"
                 echo "    <img alt=\"Aster Mail\" src=\"${RAW}/aster_mail_logo_light.png\" width=\"320\">"
