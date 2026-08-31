@@ -29,11 +29,16 @@ export const MAX_ATTACHMENTS_PER_SEND = 50;
 const CACHE_TTL_MS = 300_000;
 
 let cached_max_bytes = FREE_MAX_ATTACHMENT_SIZE;
+let cached_upgrade_max_bytes = MAX_PAID_ATTACHMENT_SIZE;
 let cache_timestamp = 0;
 let in_flight: Promise<number> | null = null;
 
 export function get_max_attachment_size(): number {
   return cached_max_bytes;
+}
+
+export function get_upgrade_attachment_size(): number {
+  return cached_upgrade_max_bytes;
 }
 
 export function get_max_total_attachments_size(): number {
@@ -46,6 +51,7 @@ export function is_above_free_attachment_limit(size_bytes: number): boolean {
 
 export function clear_attachment_limits_cache(): void {
   cached_max_bytes = FREE_MAX_ATTACHMENT_SIZE;
+  cached_upgrade_max_bytes = MAX_PAID_ATTACHMENT_SIZE;
   cache_timestamp = 0;
   in_flight = null;
 }
@@ -70,11 +76,24 @@ export async function refresh_attachment_limits(
   in_flight = (async () => {
     try {
       const response = await get_available_plans();
-      const current = response.data?.plans.find((plan) => plan.is_current);
+      const plans = response.data?.plans ?? [];
+      const current = plans.find((plan) => plan.is_current);
       const limit = current?.max_attachment_size_bytes;
 
       if (typeof limit === "number" && limit > 0) {
         cached_max_bytes = limit;
+      }
+
+      const upgrade_ceiling = plans.reduce(
+        (highest, plan) =>
+          plan.max_attachment_size_bytes > highest
+            ? plan.max_attachment_size_bytes
+            : highest,
+        cached_max_bytes,
+      );
+
+      if (upgrade_ceiling > 0) {
+        cached_upgrade_max_bytes = upgrade_ceiling;
       }
 
       if (response.data) {

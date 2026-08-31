@@ -21,11 +21,10 @@
 import type { TranslationKey } from "@/lib/i18n/types";
 
 import {
-  FREE_MAX_ATTACHMENT_SIZE,
   MAX_ATTACHMENTS_PER_SEND,
-  MAX_PAID_ATTACHMENT_SIZE,
   get_max_attachment_size,
   get_max_total_attachments_size,
+  get_upgrade_attachment_size,
 } from "./attachment_limits";
 
 import { format_bytes } from "@/lib/utils";
@@ -38,15 +37,15 @@ type Translate = (
 
 export function describe_oversized_file(t: Translate, file_name: string) {
   const max_size = get_max_attachment_size();
-  const can_upgrade =
-    max_size <= FREE_MAX_ATTACHMENT_SIZE && max_size < MAX_PAID_ATTACHMENT_SIZE;
+  const upgrade_size = get_upgrade_attachment_size();
+  const can_upgrade = upgrade_size > max_size;
 
   if (can_upgrade) {
     return {
       message: t("common.file_exceeds_max_size_upgradable", {
         name: file_name,
         size: format_bytes(max_size),
-        max_size: format_bytes(MAX_PAID_ATTACHMENT_SIZE),
+        max_size: format_bytes(upgrade_size),
       }),
       can_upgrade,
     };
