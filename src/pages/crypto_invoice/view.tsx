@@ -23,7 +23,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   CheckCircleIcon,
-  CheckIcon,
   ClipboardDocumentIcon,
   ClockIcon,
   ExclamationTriangleIcon,
@@ -51,6 +50,7 @@ import {
 import {
   coin_title,
   elapsed_fraction,
+  format_clock_time,
   format_countdown,
   format_locked_rate,
   outstanding_atomic,
@@ -62,6 +62,7 @@ import { normalize_invoice } from "./normalize";
 import {
   CopyField,
   DetailRow,
+  InvoiceSkeleton,
   LiveStatus,
   Meter,
   PageShell,
@@ -91,6 +92,74 @@ import {
   request_crypto_resume,
 } from "@/components/settings/billing/billing_constants";
 
+type Translate = ReturnType<typeof use_i18n>["t"];
+
+function status_steps(t: Translate, is_addon: boolean): StatusStep[] {
+  return [
+    {
+      key: "pending",
+      label: t("settings.crypto_native_status_awaiting"),
+      hint: t("settings.crypto_native_hint_awaiting"),
+    },
+    {
+      key: "detected",
+      label: t("settings.crypto_native_status_detected"),
+      hint: t("settings.crypto_native_hint_detected"),
+    },
+    {
+      key: "confirming",
+      label: t("settings.crypto_native_status_confirming_short"),
+      hint: is_addon
+        ? t("settings.crypto_native_hint_confirming_addon")
+        : t("settings.crypto_native_hint_confirming"),
+    },
+    {
+      key: "paid",
+      label: t("settings.crypto_native_status_credited"),
+      hint: is_addon
+        ? t("settings.crypto_native_hint_credited_addon")
+        : t("settings.crypto_native_hint_credited"),
+    },
+  ];
+}
+
+function status_index(status: string): number {
+  switch (status) {
+    case "detected":
+      return 1;
+    case "confirming":
+      return 2;
+    case "paid":
+      return 3;
+    case "underpaid":
+      return 1;
+    default:
+      return 0;
+  }
+}
+
+function status_text(t: Translate, invoice: CryptoNativeInvoiceStatus): string {
+  if (!KNOWN_STATUSES.has(invoice.status)) {
+    return t("settings.crypto_native_status_processing");
+  }
+
+  switch (invoice.status) {
+    case "underpaid":
+      return t("settings.crypto_native_status_underpaid");
+    case "manual_review":
+      return t("settings.crypto_native_manual_review");
+    case "confirming":
+      return invoice.min_confirmations > 0
+        ? t("settings.crypto_native_status_confirming", {
+            current: invoice.confirmations,
+            required: invoice.min_confirmations,
+          })
+        : t("settings.crypto_native_status_confirming_short");
+    default:
+      return status_steps(t, false)[status_index(invoice.status)].label;
+  }
+}
+
 export default function CryptoInvoicePage() {
   const { id } = useParams<{ id: string }>();
 
@@ -112,8 +181,8 @@ export function CryptoInvoiceView({ id }: { id?: string }) {
   const [is_cancelling, set_is_cancelling] = useState(false);
   const [is_checking_now, set_is_checking_now] = useState(false);
   const [confirm_cancel_open, set_confirm_cancel_open] = useState(false);
-  const [copied_value, set_copied_value] = useState<string | null>(null);
-  const [wallet_unhandled, set_wallet_unhandled] = useState(false);
+  const [last_checked_at, set_last_checked_at] = useState<number | null>(null);
+  const latest_invoice = useRef<CryptoNativeInvoiceStatus | null>(null);
   const credited_notified = useRef(false);
   const cancel_notified = useRef(false);
   const cancel_requested = useRef(false);
@@ -121,7 +190,6 @@ export function CryptoInvoiceView({ id }: { id?: string }) {
   const poll_interval_ref = useRef(POLL_INTERVAL_MS);
   const has_loaded_ref = useRef(false);
   const load_state_ref = useRef<LoadState>("loading");
-  const copied_timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const wallet_timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const go_to_billing = useCallback(() => {
@@ -164,7 +232,9 @@ export function CryptoInvoiceView({ id }: { id?: string }) {
       set_has_server_clock(
         Number.isFinite(Date.parse(normalized.server_time ?? "")),
       );
+      latest_invoice.current = normalized;
       set_invoice(normalized);
+      set_last_checked_at(Date.now());
       apply_load_state("ready");
 
       return true;
@@ -209,14 +279,44 @@ export function CryptoInvoiceView({ id }: { id?: string }) {
     consecutive_failures.current = 0;
     poll_interval_ref.current = POLL_INTERVAL_MS;
 
+    const status_before = invoice?.status;
+    const received_before = invoice?.amount_received_atomic ?? "0";
+
     try {
-      if (!(await fetch_invoice()) && load_state_ref.current !== "not_found") {
-        show_toast(t("common.something_went_wrong_try_again"), "error");
+      const fresh = await fetch_invoice();
+
+      if (!fresh) {
+        if (load_state_ref.current !== "not_found") {
+          show_toast(t("settings.crypto_native_check_failed"), "error");
+        }
+
+        return;
       }
+
+      const next = latest_invoice.current;
+
+      if (!next) return;
+      if (next.status === "paid") return;
+
+      if (
+        next.status !== status_before ||
+        next.amount_received_atomic !== received_before
+      ) {
+        show_toast(
+          t("settings.crypto_native_check_updated", {
+            status: status_text(t, next),
+          }),
+          "success",
+        );
+
+        return;
+      }
+
+      show_toast(t("settings.crypto_native_check_no_change"), "info");
     } finally {
       set_is_checking_now(false);
     }
-  }, [fetch_invoice, is_checking_now, t]);
+  }, [fetch_invoice, invoice, is_checking_now, t]);
 
   useEffect(() => {
     void fetch_invoice();
@@ -288,7 +388,6 @@ export function CryptoInvoiceView({ id }: { id?: string }) {
 
   useEffect(() => {
     return () => {
-      if (copied_timer.current) clearTimeout(copied_timer.current);
       if (wallet_timer.current) clearTimeout(wallet_timer.current);
     };
   }, []);
@@ -325,27 +424,24 @@ export function CryptoInvoiceView({ id }: { id?: string }) {
         return;
       }
 
-      set_copied_value(value);
-
-      if (copied_timer.current) clearTimeout(copied_timer.current);
-
-      copied_timer.current = setTimeout(() => set_copied_value(null), 2_000);
       show_toast(t("settings.crypto_native_copied"), "success");
     },
     [t],
   );
 
   const handle_open_wallet = useCallback(() => {
-    set_wallet_unhandled(false);
-
     if (wallet_timer.current) clearTimeout(wallet_timer.current);
 
     wallet_timer.current = setTimeout(() => {
       if (document.visibilityState === "visible" && document.hasFocus()) {
-        set_wallet_unhandled(true);
+        show_toast(
+          t("settings.crypto_native_no_wallet_handler"),
+          "info",
+          5_000,
+        );
       }
     }, 1_800);
-  }, []);
+  }, [t]);
 
   const handle_cancel = useCallback(async () => {
     if (!id) return;
@@ -390,19 +486,7 @@ export function CryptoInvoiceView({ id }: { id?: string }) {
         back_label={t("settings.crypto_native_view_billing")}
         on_back={go_to_billing}
       >
-        <div className="flex flex-col items-center gap-4">
-          <span className="relative flex h-12 w-12 items-center justify-center">
-            <span className="absolute inset-0 animate-ping rounded-full bg-brand opacity-30" />
-            <span
-              className="relative h-12 w-12 animate-spin rounded-full border-2 border-transparent"
-              style={{
-                borderTopColor: "var(--accent-color)",
-                borderRightColor: "var(--accent-color)",
-              }}
-            />
-          </span>
-          <p className="text-sm text-txt-secondary">{t("common.loading")}</p>
-        </div>
+        <InvoiceSkeleton />
       </PageShell>
     );
   }
@@ -509,7 +593,11 @@ export function CryptoInvoiceView({ id }: { id?: string }) {
             initial={{ opacity: 0, y: 8 }}
           >
             <ResultCard
-              body={t("settings.crypto_native_paid_body")}
+              body={
+                invoice?.kind === "storage_addon"
+                  ? t("settings.crypto_native_paid_body_addon")
+                  : t("settings.crypto_native_paid_body")
+              }
               icon={<CheckCircleIcon className="w-8 h-8" />}
               title={t("settings.crypto_native_paid_title")}
               tone="accent"
@@ -631,44 +719,8 @@ export function CryptoInvoiceView({ id }: { id?: string }) {
     );
   }
 
-  const steps: StatusStep[] = [
-    {
-      key: "pending",
-      label: t("settings.crypto_native_status_awaiting"),
-      hint: t("settings.crypto_native_hint_awaiting"),
-    },
-    {
-      key: "detected",
-      label: t("settings.crypto_native_status_detected"),
-      hint: t("settings.crypto_native_hint_detected"),
-    },
-    {
-      key: "confirming",
-      label: t("settings.crypto_native_status_confirming_short"),
-      hint: t("settings.crypto_native_hint_confirming"),
-    },
-    {
-      key: "paid",
-      label: t("settings.crypto_native_status_credited"),
-      hint: t("settings.crypto_native_hint_credited"),
-    },
-  ];
-
-  const active_index = (() => {
-    switch (invoice.status) {
-      case "detected":
-        return 1;
-      case "confirming":
-        return 2;
-      case "paid":
-        return 3;
-      case "underpaid":
-        return 1;
-      default:
-        return 0;
-    }
-  })();
-
+  const steps = status_steps(t, invoice.kind === "storage_addon");
+  const active_index = status_index(invoice.status);
   const status_hint = (() => {
     if (is_unknown_status) return t("settings.crypto_native_hint_processing");
 
@@ -681,18 +733,7 @@ export function CryptoInvoiceView({ id }: { id?: string }) {
         return steps[active_index].hint;
     }
   })();
-  const status_label = (() => {
-    if (is_unknown_status) return t("settings.crypto_native_status_processing");
-
-    switch (invoice.status) {
-      case "underpaid":
-        return t("settings.crypto_native_status_underpaid");
-      case "manual_review":
-        return t("settings.crypto_native_manual_review");
-      default:
-        return steps[active_index].label;
-    }
-  })();
+  const status_label = status_text(t, invoice);
   const expiry_fraction = elapsed_fraction(
     invoice.created_at,
     invoice.expires_at,
@@ -760,8 +801,8 @@ export function CryptoInvoiceView({ id }: { id?: string }) {
               <div className="w-full space-y-2.5">
                 {has_outstanding_balance && (
                   <CopyField
+                    copy_hint={t("settings.crypto_native_copy_amount")}
                     copy_value={amount_due_decimal}
-                    is_copied={copied_value === amount_due_decimal}
                     label={
                       is_underpaid
                         ? t("settings.crypto_native_send_remaining")
@@ -775,7 +816,7 @@ export function CryptoInvoiceView({ id }: { id?: string }) {
 
                 {has_outstanding_balance && (
                   <CopyField
-                    is_copied={copied_value === invoice.address}
+                    copy_hint={t("settings.crypto_native_copy_address")}
                     label={t("settings.crypto_native_to_address")}
                     on_copy={handle_copy}
                     value={invoice.address}
@@ -784,25 +825,25 @@ export function CryptoInvoiceView({ id }: { id?: string }) {
                 )}
 
                 {has_outstanding_balance && wallet_uri && (
-                  <>
-                    <a
-                      className="aster_btn aster_btn_secondary aster_btn_md flex w-full items-center justify-center gap-2"
-                      href={wallet_uri}
-                      onClick={handle_open_wallet}
-                    >
-                      <WalletIcon className="w-4 h-4" />
-                      {t("settings.crypto_native_open_wallet")}
-                    </a>
+                  <a
+                    className="aster_btn aster_btn_primary aster_btn_md flex w-full items-center justify-center gap-2"
+                    href={wallet_uri}
+                    onClick={handle_open_wallet}
+                  >
+                    <WalletIcon className="w-4 h-4" />
+                    {t("settings.crypto_native_open_wallet")}
+                  </a>
+                )}
 
-                    {wallet_unhandled && (
-                      <p
-                        className="text-xs leading-relaxed text-aster-text-secondary"
-                        role="status"
-                      >
-                        {t("settings.crypto_native_no_wallet_handler")}
-                      </p>
-                    )}
-                  </>
+                {has_outstanding_balance && (
+                  <div className="space-y-1.5 pt-0.5">
+                    <p className="text-xs leading-relaxed text-txt-secondary">
+                      {t("settings.crypto_native_verify_address")}
+                    </p>
+                    <p className="text-xs leading-relaxed text-txt-muted">
+                      {t("settings.crypto_native_fee_headroom")}
+                    </p>
+                  </div>
                 )}
               </div>
             </div>
@@ -849,6 +890,16 @@ export function CryptoInvoiceView({ id }: { id?: string }) {
                   })}
                 </p>
               )}
+              {last_checked_at !== null && (
+                <p
+                  aria-live="polite"
+                  className="mt-1 text-xs leading-relaxed text-txt-muted"
+                >
+                  {t("settings.crypto_native_last_checked", {
+                    time: format_clock_time(last_checked_at),
+                  })}
+                </p>
+              )}
             </div>
 
             <div
@@ -873,16 +924,24 @@ export function CryptoInvoiceView({ id }: { id?: string }) {
               {(is_active_payment || is_manual_review) && (
                 <div className="mt-4">
                   <Button
+                    aria-busy={is_checking_now}
                     className="w-full"
                     disabled={is_checking_now}
                     variant="outline"
                     onClick={handle_check_now}
                   >
-                    {is_checking_now ? (
-                      <Spinner className="h-4 w-4" size="sm" />
-                    ) : (
-                      t("settings.crypto_native_check_now")
-                    )}
+                    <span className="inline-flex items-center justify-center gap-2">
+                      {is_checking_now && (
+                        <Spinner
+                          aria-hidden="true"
+                          className="h-4 w-4"
+                          size="sm"
+                        />
+                      )}
+                      {is_checking_now
+                        ? t("settings.crypto_native_checking")
+                        : t("settings.crypto_native_check_now")}
+                    </span>
                   </Button>
                 </div>
               )}
@@ -999,11 +1058,7 @@ export function CryptoInvoiceView({ id }: { id?: string }) {
                     <span className="font-mono text-xs">
                       {truncate_middle(invoice.id, 8, 6)}
                     </span>
-                    {copied_value === invoice.id ? (
-                      <CheckIcon className="w-3.5 h-3.5 shrink-0 text-aster-success" />
-                    ) : (
-                      <ClipboardDocumentIcon className="w-3.5 h-3.5 shrink-0 text-txt-muted transition-colors group-hover:text-txt-primary" />
-                    )}
+                    <ClipboardDocumentIcon className="w-3.5 h-3.5 shrink-0 text-txt-muted transition-colors group-hover:text-txt-primary" />
                   </button>
                 </DetailRow>
               </div>
@@ -1022,11 +1077,7 @@ export function CryptoInvoiceView({ id }: { id?: string }) {
                     <span className="font-mono text-xs text-txt-primary">
                       {truncate_middle(invoice.txids[0])}
                     </span>
-                    {copied_value === invoice.txids[0] ? (
-                      <CheckIcon className="w-4 h-4 shrink-0 text-aster-success" />
-                    ) : (
-                      <ClipboardDocumentIcon className="w-4 h-4 shrink-0 text-txt-muted transition-colors group-hover:text-txt-primary" />
-                    )}
+                    <ClipboardDocumentIcon className="w-4 h-4 shrink-0 text-txt-muted transition-colors group-hover:text-txt-primary" />
                   </button>
                 </div>
               )}
