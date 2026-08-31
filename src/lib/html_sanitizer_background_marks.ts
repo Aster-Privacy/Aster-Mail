@@ -20,8 +20,6 @@
 //
 export const BACKGROUND_IMAGE_MARK = "data-aster-bg-image";
 
-const RULE_PATTERN = /([^{}]+)\{([^{}]*)\}/g;
-
 const BACKGROUND_IMAGE_DECLARATION = /background(?:-image)?\s*:[^;]*url\s*\(/i;
 
 function rule_selector_text(raw: string): string {
@@ -32,13 +30,30 @@ function rule_selector_text(raw: string): string {
 
 export function selectors_with_background_image(css: string): string[] {
   const selectors: string[] = [];
-  const pattern = new RegExp(RULE_PATTERN.source, RULE_PATTERN.flags);
-  let match;
+  let index = 0;
 
-  while ((match = pattern.exec(css)) !== null) {
-    if (!BACKGROUND_IMAGE_DECLARATION.test(match[2] || "")) continue;
+  while (index < css.length) {
+    const open = css.indexOf("{", index);
 
-    const selector_text = rule_selector_text(match[1] || "");
+    if (open === -1) break;
+
+    const close = css.indexOf("}", open + 1);
+
+    if (close === -1) break;
+
+    const nested = css.indexOf("{", open + 1);
+
+    if (nested !== -1 && nested < close) {
+      index = open + 1;
+      continue;
+    }
+
+    const selector_text = rule_selector_text(css.slice(index, open));
+    const declarations = css.slice(open + 1, close);
+
+    index = close + 1;
+
+    if (!BACKGROUND_IMAGE_DECLARATION.test(declarations)) continue;
 
     for (const part of selector_text.split(",")) {
       const trimmed = part.trim();
