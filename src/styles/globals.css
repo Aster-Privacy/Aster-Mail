@@ -70,14 +70,7 @@
   --accent-mix-b85: #326fd1;
   --accent-alpha-75: rgba(59, 130, 246, 0.75);
   --accent-color-hover: #2563eb;
-  --plan-ring-gradient: conic-gradient(
-    from 135deg,
-    var(--accent-mix-w70, #76a8f9) 0deg,
-    var(--accent-color, #3b82f6) 90deg,
-    var(--accent-mix-b80, #2f68c5) 200deg,
-    var(--accent-color, #3b82f6) 280deg,
-    var(--accent-mix-w70, #76a8f9) 360deg
-  );
+  --plan-ring-color: var(--accent-color, #3b82f6);
   --accent-blue: #3b82f6;
   --accent-blue-hover: #2563eb;
   --avatar-bg: #e5e7eb;
@@ -2055,19 +2048,13 @@ aside[data-collapsed="true"] .sidebar-nav-btn.sidebar-selected {
   isolation: isolate;
 }
 
-.plan_ring::before {
-  content: "";
-  position: absolute;
-  inset: -5px;
-  z-index: -1;
-  box-sizing: border-box;
-  border: 2px solid transparent;
+.plan_ring > * {
+  box-sizing: content-box;
+  margin: -3px;
+  border: 3px solid var(--plan-ring-gap-color, var(--bg-primary, #ffffff));
   border-radius: 9999px;
-  background:
-    linear-gradient(var(--plan-ring-gap-color, var(--bg-primary, #ffffff)) 0 0)
-      padding-box,
-    var(--plan-ring-gradient) border-box;
-  pointer-events: none;
+  outline: 2px solid var(--plan-ring-color, var(--accent-color, #3b82f6));
+  outline-offset: 0;
 }
 
 .list_scrolling > * {
