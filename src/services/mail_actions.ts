@@ -177,10 +177,10 @@ export async function send_reply(
   callbacks: MailActionCallbacks,
   undo_send_delay_ms: number = 0,
 ): Promise<MailActionResult> {
-  const { get_current_account } = await import("./account_manager");
-  const current_account = await get_current_account();
+  const { resolve_current_user } = await import("./current_identity");
+  const current_user = await resolve_current_user();
 
-  if (!current_account) {
+  if (!current_user?.email) {
     const error = get_active_translations().errors.no_active_account;
 
     callbacks.on_error?.(error);
@@ -188,7 +188,7 @@ export async function send_reply(
     return { success: false, error };
   }
 
-  const current_user_email = current_account.user.email;
+  const current_user_email = current_user.email;
   const { to: recipients, cc: cc_recipients } = build_reply_recipients(
     params,
     current_user_email,

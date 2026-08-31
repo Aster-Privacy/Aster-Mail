@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { get_current_account } from "./account_manager";
+import { resolve_current_user } from "./current_identity";
 import { create_attachment } from "./api/attachments";
 import { mark_thread_read } from "./api/mail";
 import { send_external_email, send_simple_email } from "./api/send";
@@ -68,14 +68,14 @@ export async function execute_send(email: QueuedEmailInternal): Promise<void> {
     throw readiness.error;
   }
 
-  const current_account = await get_current_account();
+  const current_user = await resolve_current_user();
 
-  if (!current_account?.user?.email) {
+  if (!current_user?.email) {
     throw new SendError(
       get_active_translations().errors.no_authenticated_account,
     );
   }
-  const sender_email = email.sender_email || current_account.user.email;
+  const sender_email = email.sender_email || current_user.email;
 
   const all_recipients = [
     ...email.to,
@@ -385,14 +385,14 @@ export async function execute_external_send(
     ephemeral_body,
   );
 
-  const current_account = await get_current_account();
+  const current_user = await resolve_current_user();
 
-  if (!current_account?.user?.email) {
+  if (!current_user?.email) {
     throw new SendError(
       get_active_translations().errors.no_authenticated_account,
     );
   }
-  const sender_email = email.sender_email || current_account.user.email;
+  const sender_email = email.sender_email || current_user.email;
 
   const internal_email: QueuedEmailInternal = {
     id: crypto.randomUUID(),

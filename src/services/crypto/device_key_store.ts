@@ -25,6 +25,24 @@ const WRAP_KEY_ID = "device_wrap_key_v2";
 
 let cached_wrap_key: CryptoKey | null = null;
 let wrap_key_promise: Promise<CryptoKey | null> | null = null;
+let keychain_reset_requested = false;
+
+async function request_native_keychain_reset(): Promise<void> {
+  if (keychain_reset_requested) return;
+  keychain_reset_requested = true;
+
+  if (typeof window === "undefined" || !("__TAURI_INTERNALS__" in window)) {
+    return;
+  }
+
+  try {
+    const { invoke } = await import("@tauri-apps/api/core");
+
+    await invoke("reset_webkit_crypto_keychain");
+  } catch {
+    return;
+  }
+}
 
 function indexed_db_available(): boolean {
   try {
@@ -82,6 +100,40 @@ function read_stored_key(db: IDBDatabase): Promise<CryptoKey | null> {
   });
 }
 
+function delete_stored_key(db: IDBDatabase): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(STORE_NAME, "readwrite");
+
+    transaction.objectStore(STORE_NAME).delete(WRAP_KEY_ID);
+    transaction.oncomplete = () => resolve();
+    transaction.onabort = () =>
+      reject(transaction.error ?? new Error("device_key_store: delete aborted"));
+    transaction.onerror = () =>
+      reject(transaction.error ?? new Error("device_key_store: delete failed"));
+  });
+}
+
+async function key_survives_round_trip(key: CryptoKey): Promise<boolean> {
+  try {
+    const nonce = crypto.getRandomValues(new Uint8Array(12));
+    const probe = new Uint8Array([1]);
+    const sealed = await crypto.subtle.encrypt(
+      { name: "AES-GCM", iv: nonce },
+      key,
+      probe,
+    );
+    const opened = await crypto.subtle.decrypt(
+      { name: "AES-GCM", iv: nonce },
+      key,
+      sealed,
+    );
+
+    return new Uint8Array(opened)[0] === 1;
+  } catch {
+    return false;
+  }
+}
+
 function claim_key_slot(
   db: IDBDatabase,
   candidate: CryptoKey,
@@ -103,6 +155,10 @@ function claim_key_slot(
 
       store.put(candidate, WRAP_KEY_ID);
     };
+    existing_request.onerror = (event) => {
+      event.preventDefault();
+      store.put(candidate, WRAP_KEY_ID);
+    };
 
     transaction.oncomplete = () => resolve(winner);
     transaction.onabort = () =>
@@ -122,10 +178,29 @@ async function load_or_create_wrap_key(): Promise<CryptoKey | null> {
   try {
     db = await open_device_key_db();
 
-    const existing = await read_stored_key(db);
+    let existing: CryptoKey | null = null;
+    let slot_is_unusable = false;
+
+    try {
+      existing = await read_stored_key(db);
+    } catch {
+      slot_is_unusable = true;
+    }
 
     if (existing) {
-      return existing;
+      if (await key_survives_round_trip(existing)) {
+        return existing;
+      }
+
+      slot_is_unusable = true;
+    }
+
+    if (slot_is_unusable) {
+      try {
+        await delete_stored_key(db);
+      } catch {
+        return null;
+      }
     }
 
     const candidate = await crypto.subtle.generateKey(
@@ -133,8 +208,15 @@ async function load_or_create_wrap_key(): Promise<CryptoKey | null> {
       false,
       ["encrypt", "decrypt"],
     );
+    const claimed = await claim_key_slot(db, candidate);
 
-    return await claim_key_slot(db, candidate);
+    if (await key_survives_round_trip(claimed)) {
+      return claimed;
+    }
+
+    await request_native_keychain_reset();
+
+    return null;
   } catch {
     return null;
   } finally {

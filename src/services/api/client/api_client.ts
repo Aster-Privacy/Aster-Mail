@@ -1290,6 +1290,13 @@ export class ApiClient {
     return this._cached_user_info;
   }
 
+  adopt_user_info(info: CachedUserInfo | null): void {
+    if (!info?.user_id) return;
+    if (this.is_identity_mismatch(info.user_id)) return;
+
+    this._cached_user_info = { ...this._cached_user_info, ...info };
+  }
+
   async check_auth_status(): Promise<boolean> {
     if (this.auth_check_promise) {
       return this.auth_check_promise;

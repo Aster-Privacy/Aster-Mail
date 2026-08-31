@@ -21,7 +21,7 @@
 import type { DecryptedThreadMessage } from "@/types/thread";
 import type { QueuedEmailInternal } from "./send_queue_types";
 
-import { get_current_account } from "./account_manager";
+import { resolve_current_user } from "./current_identity";
 import {
   encrypt_for_recipients,
   create_sent_envelope,
@@ -130,16 +130,16 @@ export async function send_reaction(
     };
   }
 
-  const current_account = await get_current_account();
+  const current_user = await resolve_current_user();
 
-  if (!current_account) {
+  if (!current_user?.email) {
     return {
       success: false,
       error: get_active_translations().errors.no_active_account,
     };
   }
 
-  const primary_email = current_account.user.email;
+  const primary_email = current_user.email;
   const restriction = reaction_restriction(
     message,
     primary_email,

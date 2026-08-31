@@ -53,7 +53,7 @@ import {
   build_signed_mime_payload,
   should_attach_signed_mime,
 } from "./send_queue_signed_mime";
-import { get_current_account } from "./account_manager";
+import { resolve_current_user } from "./current_identity";
 
 import {
   enqueue_action,
@@ -487,14 +487,14 @@ async function prepare_email_for_server_queue(
     inline_images.length > 0 ? recipient_body : email.body;
   const all_attachments = [...(email.attachments || []), ...inline_attachments];
 
-  const current_account = await get_current_account();
+  const current_user = await resolve_current_user();
 
-  if (!current_account?.user?.email) {
+  if (!current_user?.email) {
     throw new SendError(
       get_active_translations().errors.no_authenticated_account,
     );
   }
-  const sender_email = email.sender_email || current_account.user.email;
+  const sender_email = email.sender_email || current_user.email;
 
   const bundled_body_for_recipient = build_subject_bundle(
     email.subject || "",

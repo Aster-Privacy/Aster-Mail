@@ -305,8 +305,13 @@ fn ensure_system_wayland() {
 }
 
 #[cfg(target_os = "macos")]
+static WEBKIT_KEYCHAIN_RESET_DONE: std::sync::atomic::AtomicBool =
+    std::sync::atomic::AtomicBool::new(false);
+
+#[cfg(target_os = "macos")]
 fn clear_stale_webkit_keychain() {
     use std::process::Command;
+
     for _ in 0..5 {
         let result = Command::new("security")
             .args(["delete-generic-password", "-s", "com.astermail.mail", "-l", "Aster Mail Desktop web mail web crypto master key"])
@@ -316,6 +321,26 @@ fn clear_stale_webkit_keychain() {
             _ => break,
         }
     }
+}
+
+#[cfg(target_os = "macos")]
+#[tauri::command]
+fn reset_webkit_crypto_keychain() -> bool {
+    use std::sync::atomic::Ordering;
+
+    if WEBKIT_KEYCHAIN_RESET_DONE.swap(true, Ordering::SeqCst) {
+        return false;
+    }
+
+    clear_stale_webkit_keychain();
+
+    true
+}
+
+#[cfg(not(target_os = "macos"))]
+#[tauri::command]
+fn reset_webkit_crypto_keychain() -> bool {
+    false
 }
 
 fn main() {
@@ -359,6 +384,7 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             frontend_ready,
             frontend_painted,
+            reset_webkit_crypto_keychain,
             badge::set_unread_badge,
             set_tray_visible,
             set_close_to_tray,
@@ -384,9 +410,6 @@ fn main() {
             device::crypto::crypto_hmac_sign,
         ])
         .setup(|app| {
-            #[cfg(target_os = "macos")]
-            clear_stale_webkit_keychain();
-
             let window_config = app
                 .config()
                 .app
