@@ -6193,6 +6193,9 @@ export const ko = {
     cardholder_name_placeholder: "성명",
     billing_postal_placeholder: "12345",
     crypto_pay_button: "암호화폐로 결제",
+    crypto_summary_plan: "요금제",
+    crypto_summary_addon: "부가 기능",
+    crypto_summary_length: "기간",
     crypto_modal_title: "암호화폐로 결제",
     crypto_term_1mo: "1개월",
     crypto_term_3mo: "3개월",
@@ -6261,6 +6264,8 @@ export const ko = {
       "이 청구서는 이미 결제가 접수되어 더 이상 취소할 수 없습니다.",
     crypto_native_paid_title: "모두 완료되었습니다",
     crypto_native_paid_body: "요금제가 활성화되었습니다. 감사합니다!",
+    crypto_native_paid_body_addon:
+      "스토리지 추가 용량이 활성화되었습니다. 감사합니다!",
     crypto_native_go_to_inbox: "받은편지함으로 이동",
     crypto_native_view_billing: "결제 정보로 돌아가기",
     crypto_native_invoice_cancelled: "청구서가 취소되었습니다",
@@ -6314,7 +6319,11 @@ export const ko = {
       "거래가 네트워크에 도달했으며 블록에 포함되기를 기다리고 있습니다.",
     crypto_native_hint_confirming:
       "네트워크 승인을 기다리는 중입니다. 승인이 끝나면 요금제가 활성화됩니다.",
+    crypto_native_hint_confirming_addon:
+      "네트워크 승인을 기다리는 중입니다. 승인이 끝나면 스토리지 추가 용량이 활성화됩니다.",
     crypto_native_hint_credited: "승인되었습니다. 요금제가 활성화되었습니다.",
+    crypto_native_hint_credited_addon:
+      "승인되었습니다. 스토리지 추가 용량이 활성 상태입니다.",
     crypto_native_time_remaining: "남은 시간",
     crypto_native_expiring_soon:
       "5분 미만 남았습니다. 결제가 도착하기 전에 이 시간이 끝나면 현재 환율로 새 결제를 시작할 수 있습니다.",

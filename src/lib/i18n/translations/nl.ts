@@ -6392,6 +6392,8 @@ export const nl = {
       "Voor deze factuur is al een betaling ontvangen, dus deze kan niet meer worden geannuleerd.",
     crypto_native_paid_title: "Je bent helemaal klaar",
     crypto_native_paid_body: "Je abonnement is nu actief. Bedankt!",
+    crypto_native_paid_body_addon:
+      "Je opslaguitbreiding is nu actief. Bedankt!",
     crypto_native_go_to_inbox: "Naar postvak IN",
     crypto_native_view_billing: "Terug naar facturering",
     crypto_native_invoice_cancelled: "Factuur geannuleerd",
@@ -6445,7 +6447,11 @@ export const nl = {
       "Je transactie heeft het netwerk bereikt en wacht op opname in een blok.",
     crypto_native_hint_confirming:
       "Wachten op netwerkbevestigingen. Je abonnement wordt actief zodra ze klaar zijn.",
+    crypto_native_hint_confirming_addon:
+      "Wachten op netwerkbevestigingen. Je opslaguitbreiding wordt geactiveerd zodra ze binnen zijn.",
     crypto_native_hint_credited: "Bevestigd. Je abonnement is actief.",
+    crypto_native_hint_credited_addon:
+      "Bevestigd. Je opslaguitbreiding is actief.",
     crypto_native_time_remaining: "Resterende tijd",
     crypto_native_expiring_soon:
       "Minder dan 5 minuten over. Sluit dit venster voordat je betaling binnen is, dan kun je een nieuwe starten tegen de huidige koers.",
@@ -6466,6 +6472,9 @@ export const nl = {
     crypto_no_renew_notice: "Dit abonnement wordt niet automatisch verlengd",
     crypto_paid_until: "Betaald tot {{date}} (crypto)",
     crypto_pay_button: "Betalen met crypto",
+    crypto_summary_plan: "Abonnement",
+    crypto_summary_addon: "Add-on",
+    crypto_summary_length: "Duur",
     crypto_pay_now: "Nu betalen",
     crypto_renew_link: "Handmatig verlengen",
     crypto_select_term: "Looptijd selecteren",

@@ -6407,6 +6407,8 @@ export const es = {
       "Esta factura ya recibió un pago, por lo que ya no se puede cancelar.",
     crypto_native_paid_title: "Todo listo",
     crypto_native_paid_body: "Tu plan ya está activo. ¡Gracias!",
+    crypto_native_paid_body_addon:
+      "Tu complemento de almacenamiento ya está activo. ¡Gracias!",
     crypto_native_go_to_inbox: "Ir a la bandeja de entrada",
     crypto_native_view_billing: "Volver a facturación",
     crypto_native_invoice_cancelled: "Factura cancelada",
@@ -6460,7 +6462,11 @@ export const es = {
       "Tu transacción ha llegado a la red y espera a incluirse en un bloque.",
     crypto_native_hint_confirming:
       "Esperando confirmaciones de la red. Tu plan se activa cuando terminen.",
+    crypto_native_hint_confirming_addon:
+      "Esperando las confirmaciones de la red. Tu complemento de almacenamiento se activa cuando terminan.",
     crypto_native_hint_credited: "Confirmado. Tu plan está activo.",
+    crypto_native_hint_credited_addon:
+      "Confirmado. Tu complemento de almacenamiento está activo.",
     crypto_native_time_remaining: "Tiempo restante",
     crypto_native_expiring_soon:
       "Quedan menos de 5 minutos. Si esta ventana se cierra antes de que llegue tu pago, puedes iniciar uno nuevo al precio actual.",
@@ -6481,6 +6487,9 @@ export const es = {
     crypto_no_renew_notice: "Este plan no se renueva automáticamente.",
     crypto_paid_until: "Pagado hasta el {{date}} (cripto)",
     crypto_pay_button: "Pagar con cripto",
+    crypto_summary_plan: "Plan",
+    crypto_summary_addon: "Complemento",
+    crypto_summary_length: "Duración",
     crypto_pay_now: "Pagar ahora con cripto",
     crypto_renew_link: "Renovar",
     crypto_select_term: "Seleccionar duración",

@@ -6500,6 +6500,9 @@ export const it = {
     cardholder_name_placeholder: "Nome completo",
     billing_postal_placeholder: "12345",
     crypto_pay_button: "Paga con crypto",
+    crypto_summary_plan: "Piano",
+    crypto_summary_addon: "Componente aggiuntivo",
+    crypto_summary_length: "Durata",
     crypto_modal_title: "Paga con crypto",
     crypto_term_1mo: "1 mese",
     crypto_term_3mo: "3 mesi",
@@ -6570,6 +6573,8 @@ export const it = {
       "Questa fattura ha già ricevuto un pagamento, quindi non può più essere annullata.",
     crypto_native_paid_title: "È tutto pronto",
     crypto_native_paid_body: "Il tuo piano è ora attivo. Grazie!",
+    crypto_native_paid_body_addon:
+      "Il tuo componente aggiuntivo di archiviazione è ora attivo. Grazie!",
     crypto_native_go_to_inbox: "Vai alla posta in arrivo",
     crypto_native_view_billing: "Torna alla fatturazione",
     crypto_native_invoice_cancelled: "Fattura annullata",
@@ -6623,7 +6628,11 @@ export const it = {
       "La tua transazione ha raggiunto la rete e attende di essere inclusa in un blocco.",
     crypto_native_hint_confirming:
       "In attesa delle conferme di rete. Il tuo piano si attiva al termine.",
+    crypto_native_hint_confirming_addon:
+      "In attesa delle conferme di rete. Il tuo componente aggiuntivo di archiviazione si attiva al termine.",
     crypto_native_hint_credited: "Confermato. Il tuo piano è attivo.",
+    crypto_native_hint_credited_addon:
+      "Confermato. Il tuo componente aggiuntivo di archiviazione è attivo.",
     crypto_native_time_remaining: "Tempo rimanente",
     crypto_native_expiring_soon:
       "Meno di 5 minuti rimasti. Se questa finestra si chiude prima che arrivi il pagamento, puoi avviarne uno nuovo al tasso attuale.",

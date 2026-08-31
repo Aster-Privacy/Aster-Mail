@@ -19,7 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
-import { app_locale } from "@/utils/date_format";
+import { app_locale, get_display_time_zone } from "@/utils/date_format";
 
 export function pretty_chain(chain: string): string {
   const known: Record<string, string> = {
@@ -41,6 +41,19 @@ export function coin_title(display_name: string, chain: string): string {
   return display_name.toLowerCase().endsWith(suffix.toLowerCase())
     ? display_name.slice(0, display_name.length - suffix.length).trim()
     : display_name;
+}
+
+export function format_clock_time(ms: number): string {
+  try {
+    return new Date(ms).toLocaleTimeString(app_locale(), {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      timeZone: get_display_time_zone(),
+    });
+  } catch {
+    return new Date(ms).toLocaleTimeString();
+  }
 }
 
 export function format_countdown(ms: number): string {

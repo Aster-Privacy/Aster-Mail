@@ -6353,6 +6353,9 @@ export const ar = {
     cardholder_name_placeholder: "الاسم الكامل",
     billing_postal_placeholder: "12345",
     crypto_pay_button: "الدفع بالعملة المشفرة",
+    crypto_summary_plan: "الخطة",
+    crypto_summary_addon: "الإضافة",
+    crypto_summary_length: "المدة",
     crypto_modal_title: "الدفع بالعملة المشفرة",
     crypto_term_1mo: "شهر واحد",
     crypto_term_3mo: "3 أشهر",
@@ -6421,6 +6424,7 @@ export const ar = {
       "تم استلام دفعة لهذه الفاتورة بالفعل، لذا لم يعد بالإمكان إلغاؤها.",
     crypto_native_paid_title: "كل شيء جاهز",
     crypto_native_paid_body: "خطتك نشطة الآن. شكرًا لك!",
+    crypto_native_paid_body_addon: "إضافة التخزين نشطة الآن. شكرًا لك!",
     crypto_native_go_to_inbox: "الانتقال إلى البريد الوارد",
     crypto_native_view_billing: "العودة إلى الفوترة",
     crypto_native_invoice_cancelled: "تم إلغاء الفاتورة",
@@ -6472,7 +6476,10 @@ export const ar = {
       "وصلت معاملتك إلى الشبكة وتنتظر إدراجها في كتلة.",
     crypto_native_hint_confirming:
       "في انتظار تأكيدات الشبكة. تُفعَّل خطتك فور اكتمالها.",
+    crypto_native_hint_confirming_addon:
+      "في انتظار تأكيدات الشبكة. تُفعَّل إضافة التخزين عند اكتمالها.",
     crypto_native_hint_credited: "تم التأكيد. خطتك نشطة.",
+    crypto_native_hint_credited_addon: "تم التأكيد. إضافة التخزين نشطة.",
     crypto_native_time_remaining: "الوقت المتبقي",
     crypto_native_expiring_soon:
       "بقي أقل من 5 دقائق. إذا انتهت هذه المهلة قبل وصول دفعتك، يمكنك بدء دفعة جديدة بالسعر الحالي.",

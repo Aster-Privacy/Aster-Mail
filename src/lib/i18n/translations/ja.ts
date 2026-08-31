@@ -6285,6 +6285,8 @@ export const ja = {
       "この請求はすでに入金を受け取っているため、キャンセルできません。",
     crypto_native_paid_title: "完了しました",
     crypto_native_paid_body: "プランが有効になりました。ありがとうございます！",
+    crypto_native_paid_body_addon:
+      "ストレージアドオンが有効になりました。ありがとうございます！",
     crypto_native_go_to_inbox: "受信トレイへ",
     crypto_native_view_billing: "請求に戻る",
     crypto_native_invoice_cancelled: "請求をキャンセルしました",
@@ -6338,7 +6340,11 @@ export const ja = {
       "取引がネットワークに到達し、ブロックへの取り込みを待っています。",
     crypto_native_hint_confirming:
       "ネットワークの承認を待っています。承認が完了するとプランが有効になります。",
+    crypto_native_hint_confirming_addon:
+      "ネットワークの承認を待っています。完了するとストレージアドオンが有効になります。",
     crypto_native_hint_credited: "承認されました。プランが有効です。",
+    crypto_native_hint_credited_addon:
+      "承認されました。ストレージアドオンが有効です。",
     crypto_native_time_remaining: "残り時間",
     crypto_native_expiring_soon:
       "残り5分未満です。お支払いが届く前にこの受付時間が終了した場合は、現在のレートで新しいお支払いを開始できます。",
@@ -6358,6 +6364,9 @@ export const ja = {
     crypto_no_renew_notice: "仮想通貨での購入は自動更新されません。",
     crypto_paid_until: "{{date}}まで有効（仮想通貨）",
     crypto_pay_button: "仮想通貨で支払う",
+    crypto_summary_plan: "プラン",
+    crypto_summary_addon: "オプション",
+    crypto_summary_length: "期間",
     crypto_pay_now: "仮想通貨で支払う",
     crypto_renew_link: "仮想通貨で更新",
     crypto_select_term:

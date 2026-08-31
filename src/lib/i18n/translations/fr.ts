@@ -6477,6 +6477,8 @@ export const fr = {
       "Un paiement a déjà été reçu pour cette facture, elle ne peut donc plus être annulée.",
     crypto_native_paid_title: "Tout est prêt",
     crypto_native_paid_body: "Votre offre est maintenant active. Merci !",
+    crypto_native_paid_body_addon:
+      "Votre option de stockage est maintenant active. Merci !",
     crypto_native_go_to_inbox: "Aller à la boîte de réception",
     crypto_native_view_billing: "Retour à la facturation",
     crypto_native_invoice_cancelled: "Facture annulée",
@@ -6531,7 +6533,11 @@ export const fr = {
       "Votre transaction a atteint le réseau et attend d'être incluse dans un bloc.",
     crypto_native_hint_confirming:
       "En attente des confirmations du réseau. Votre offre s'active dès qu'elles sont terminées.",
+    crypto_native_hint_confirming_addon:
+      "En attente des confirmations du réseau. Votre option de stockage s’active dès qu’elles sont terminées.",
     crypto_native_hint_credited: "Confirmé. Votre offre est active.",
+    crypto_native_hint_credited_addon:
+      "Confirmé. Votre option de stockage est active.",
     crypto_native_time_remaining: "Temps restant",
     crypto_native_expiring_soon:
       "Moins de 5 minutes restantes. Si ce délai expire avant l'arrivée de votre paiement, vous pouvez en démarrer un nouveau au taux actuel.",
@@ -6552,6 +6558,9 @@ export const fr = {
     crypto_no_renew_notice: "Ce forfait ne se renouvelle pas automatiquement.",
     crypto_paid_until: "Payé jusqu'au {{date}} (crypto)",
     crypto_pay_button: "Payer avec de la crypto",
+    crypto_summary_plan: "Offre",
+    crypto_summary_addon: "Option",
+    crypto_summary_length: "Durée",
     crypto_pay_now: "Payer maintenant en crypto",
     crypto_renew_link: "Renouveler",
     crypto_select_term: "Sélectionner la durée",

@@ -6421,6 +6421,9 @@ export const tr = {
     cardholder_name_placeholder: "Ad Soyad",
     billing_postal_placeholder: "12345",
     crypto_pay_button: "Kripto ile öde",
+    crypto_summary_plan: "Plan",
+    crypto_summary_addon: "Ek paket",
+    crypto_summary_length: "Süre",
     crypto_modal_title: "Kripto ile öde",
     crypto_term_1mo: "1 ay",
     crypto_term_3mo: "3 ay",
@@ -6489,6 +6492,8 @@ export const tr = {
       "Bu fatura için zaten bir ödeme alındı, bu nedenle artık iptal edilemez.",
     crypto_native_paid_title: "Her şey hazır",
     crypto_native_paid_body: "Planınız artık etkin. Teşekkürler!",
+    crypto_native_paid_body_addon:
+      "Depolama eklentiniz artık etkin. Teşekkürler!",
     crypto_native_go_to_inbox: "Gelen kutusuna git",
     crypto_native_view_billing: "Faturalandırmaya dön",
     crypto_native_invoice_cancelled: "Fatura iptal edildi",
@@ -6543,7 +6548,10 @@ export const tr = {
       "İşleminiz ağa ulaştı ve bir bloğa eklenmeyi bekliyor.",
     crypto_native_hint_confirming:
       "Ağ onayları bekleniyor. Onaylar tamamlandığında planınız etkinleşir.",
+    crypto_native_hint_confirming_addon:
+      "Ağ onayları bekleniyor. Onaylar tamamlandığında depolama eklentiniz etkinleşir.",
     crypto_native_hint_credited: "Onaylandı. Planınız etkin.",
+    crypto_native_hint_credited_addon: "Onaylandı. Depolama eklentiniz etkin.",
     crypto_native_time_remaining: "Kalan süre",
     crypto_native_expiring_soon:
       "5 dakikadan az kaldı. Ödemeniz ulaşmadan bu süre dolarsa güncel kurla yeni bir ödeme başlatabilirsiniz.",

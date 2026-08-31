@@ -5990,6 +5990,9 @@ export const zh_CN = {
     or_pay_with_card: "或使用信用卡支付",
     cashapp_redirect_notice: "您将被重定向到 Cash App 以完成支付。",
     crypto_pay_button: "用加密货币支付",
+    crypto_summary_plan: "套餐",
+    crypto_summary_addon: "附加项",
+    crypto_summary_length: "时长",
     crypto_modal_title: "加密货币支付",
     crypto_modal_price: "金额：{{amount}}",
     crypto_modal_confirm: "确认支付",
@@ -6046,6 +6049,7 @@ export const zh_CN = {
     crypto_native_cancel_has_payment: "此账单已收到付款，因此无法再取消。",
     crypto_native_paid_title: "一切就绪",
     crypto_native_paid_body: "您的套餐已生效。谢谢！",
+    crypto_native_paid_body_addon: "您的存储扩容已生效。谢谢！",
     crypto_native_go_to_inbox: "前往收件箱",
     crypto_native_view_billing: "返回账单",
     crypto_native_invoice_cancelled: "发票已取消",
@@ -6094,7 +6098,10 @@ export const zh_CN = {
     crypto_native_hint_detected: "你的交易已进入网络，正在等待被打包进区块。",
     crypto_native_hint_confirming:
       "正在等待网络确认。确认完成后你的方案即会启用。",
+    crypto_native_hint_confirming_addon:
+      "正在等待网络确认。确认完成后，你的存储扩容即刻生效。",
     crypto_native_hint_credited: "已确认。你的方案已启用。",
+    crypto_native_hint_credited_addon: "已确认。你的存储扩容已生效。",
     crypto_native_time_remaining: "剩余时间",
     crypto_native_expiring_soon:
       "剩余不到 5 分钟。如果在款项到达前此时段结束，你可以按当前汇率重新发起一笔付款。",

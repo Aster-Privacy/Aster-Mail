@@ -3217,6 +3217,9 @@ export const hi = {
       "हम अभी चेकआउट नहीं खोल सके। एक और कोशिश से काम बन जाना चाहिए। आपकी बिलिंग वैसी ही है।",
     checkout_welcome: "Aster में आपका स्वागत है। आपकी सदस्यता चालू है।",
     crypto_pay_button: "क्रिप्टो से भुगतान करें",
+    crypto_summary_plan: "प्लान",
+    crypto_summary_addon: "ऐड-ऑन",
+    crypto_summary_length: "अवधि",
     crypto_modal_title: "क्रिप्टो से भुगतान करें",
     crypto_term_1mo: "1 महीना",
     crypto_term_3mo: "3 महीने",
@@ -3304,6 +3307,7 @@ export const hi = {
       "इस इनवॉइस पर भुगतान आ चुका है, इसलिए अब इसे रद्द नहीं किया जा सकता।",
     crypto_native_paid_title: "सब तैयार है",
     crypto_native_paid_body: "आपका प्लान अब चालू है। धन्यवाद।",
+    crypto_native_paid_body_addon: "आपका स्टोरेज ऐड-ऑन अब चालू है। धन्यवाद।",
     crypto_native_go_to_inbox: "इनबॉक्स पर जाएं",
     crypto_native_view_billing: "बिलिंग पर वापस जाएं",
     crypto_native_invoice_cancelled: "इनवॉइस रद्द कर दी गई",
@@ -3357,7 +3361,11 @@ export const hi = {
       "आपका लेनदेन नेटवर्क तक पहुंच गया है और किसी ब्लॉक में शामिल होने का इंतज़ार कर रहा है।",
     crypto_native_hint_confirming:
       "नेटवर्क पुष्टिकरण का इंतज़ार है। पूरे होते ही आपका प्लान चालू हो जाएगा।",
+    crypto_native_hint_confirming_addon:
+      "नेटवर्क पुष्टिकरण का इंतज़ार है। पूरे होते ही आपका स्टोरेज ऐड-ऑन चालू हो जाएगा।",
     crypto_native_hint_credited: "पुष्टि हो गई। आपका प्लान चालू है।",
+    crypto_native_hint_credited_addon:
+      "पुष्टि हो गई। आपका स्टोरेज ऐड-ऑन चालू है।",
     crypto_native_time_remaining: "बचा हुआ समय",
     crypto_native_expiring_soon:
       "5 मिनट से कम बचे हैं। अगर आपका भुगतान आने से पहले यह अवधि खत्म हो जाए, तो आप मौजूदा दर पर नया भुगतान शुरू कर सकते हैं।",

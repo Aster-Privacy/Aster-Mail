@@ -6516,6 +6516,7 @@ export const ru = {
       "По этому счёту уже получен платёж, поэтому отменить его больше нельзя.",
     crypto_native_paid_title: "Всё готово",
     crypto_native_paid_body: "Ваш тариф активен. Спасибо!",
+    crypto_native_paid_body_addon: "Дополнительное хранилище активно. Спасибо!",
     crypto_native_go_to_inbox: "Перейти во входящие",
     crypto_native_view_billing: "Назад к оплате",
     crypto_native_invoice_cancelled: "Счет отменен",
@@ -6569,7 +6570,11 @@ export const ru = {
       "Ваша транзакция попала в сеть и ожидает включения в блок.",
     crypto_native_hint_confirming:
       "Ожидаем подтверждений сети. План активируется, как только они завершатся.",
+    crypto_native_hint_confirming_addon:
+      "Ожидаем подтверждения сети. Дополнительное хранилище активируется после их завершения.",
     crypto_native_hint_credited: "Подтверждено. Ваш план активен.",
+    crypto_native_hint_credited_addon:
+      "Подтверждено. Дополнительное хранилище активно.",
     crypto_native_time_remaining: "Оставшееся время",
     crypto_native_expiring_soon:
       "Осталось менее 5 минут. Если это окно закроется до поступления платежа, вы можете начать новый по текущему курсу.",
@@ -6590,6 +6595,9 @@ export const ru = {
     crypto_no_renew_notice: "Крипто-покупки не продлеваются автоматически.",
     crypto_paid_until: "Оплачено до {{date}} (крипто)",
     crypto_pay_button: "Оплатить криптовалютой",
+    crypto_summary_plan: "Тариф",
+    crypto_summary_addon: "Дополнение",
+    crypto_summary_length: "Срок",
     crypto_pay_now: "Оплатить криптовалютой",
     crypto_renew_link: "Продлить криптовалютой",
     crypto_select_term:

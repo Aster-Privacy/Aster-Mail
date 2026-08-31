@@ -6600,6 +6600,9 @@ export const pl = {
     cardholder_name_placeholder: "Imię i nazwisko",
     billing_postal_placeholder: "00-000",
     crypto_pay_button: "Zapłać kryptowalutą",
+    crypto_summary_plan: "Plan",
+    crypto_summary_addon: "Dodatek",
+    crypto_summary_length: "Okres",
     crypto_modal_title: "Zapłać kryptowalutą",
     crypto_term_1mo: "1 miesiąc",
     crypto_term_3mo: "3 miesiące",
@@ -6669,6 +6672,8 @@ export const pl = {
       "Ta faktura otrzymała już płatność, więc nie można jej anulować.",
     crypto_native_paid_title: "Wszystko gotowe",
     crypto_native_paid_body: "Twój plan jest już aktywny. Dziękujemy!",
+    crypto_native_paid_body_addon:
+      "Dodatek pojemności jest już aktywny. Dziękujemy!",
     crypto_native_go_to_inbox: "Przejdź do skrzynki odbiorczej",
     crypto_native_view_billing: "Wróć do rozliczeń",
     crypto_native_invoice_cancelled: "Faktura anulowana",
@@ -6722,7 +6727,11 @@ export const pl = {
       "Twoja transakcja dotarła do sieci i czeka na dodanie do bloku.",
     crypto_native_hint_confirming:
       "Czekamy na potwierdzenia sieci. Twój plan aktywuje się po ich zakończeniu.",
+    crypto_native_hint_confirming_addon:
+      "Czekamy na potwierdzenia sieci. Dodatek pojemności aktywuje się po ich zakończeniu.",
     crypto_native_hint_credited: "Potwierdzono. Twój plan jest aktywny.",
+    crypto_native_hint_credited_addon:
+      "Potwierdzono. Dodatek pojemności jest aktywny.",
     crypto_native_time_remaining: "Pozostały czas",
     crypto_native_expiring_soon:
       "Zostało mniej niż 5 minut. Jeśli to okno zamknie się przed dotarciem płatności, możesz rozpocząć nową po aktualnym kursie.",

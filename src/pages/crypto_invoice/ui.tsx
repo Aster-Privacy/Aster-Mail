@@ -25,6 +25,7 @@ import {
   ClipboardDocumentIcon,
 } from "@heroicons/react/24/outline";
 
+
 import { Spinner } from "@/components/ui/spinner";
 
 export interface StatusStep {
@@ -133,18 +134,18 @@ export const ResultCard = result_card;
 export interface CopyFieldProps {
   label: string;
   value: string;
+  copy_hint: string;
   copy_value?: string;
   value_class?: string;
-  is_copied?: boolean;
   on_copy: (value: string) => void;
 }
 
 export function copy_field({
   label,
   value,
+  copy_hint,
   copy_value,
   value_class = "text-sm",
-  is_copied = false,
   on_copy,
 }: CopyFieldProps) {
   return (
@@ -157,11 +158,8 @@ export function copy_field({
         <span className="text-[11px] font-medium uppercase tracking-wide text-txt-muted">
           {label}
         </span>
-        {is_copied ? (
-          <CheckIcon className="w-4 h-4 shrink-0 text-aster-success" />
-        ) : (
-          <ClipboardDocumentIcon className="w-4 h-4 shrink-0 text-txt-muted transition-colors group-hover:text-txt-primary" />
-        )}
+        <span className="sr-only">{copy_hint}</span>
+        <ClipboardDocumentIcon className="w-4 h-4 shrink-0 text-txt-muted transition-colors group-hover:text-txt-primary" />
       </span>
       <span
         className={`mt-1.5 block break-all font-mono font-semibold leading-snug text-txt-primary ${value_class}`}
@@ -342,3 +340,78 @@ export function meter({ fraction, label, value_max, value_now }: MeterProps) {
 }
 
 export const Meter = meter;
+
+const SKELETON_TONE = "animate-pulse bg-black/[0.04] dark:bg-white/[0.06]";
+
+function skeleton_bar({ className }: { className: string }) {
+  return <div className={`${SKELETON_TONE} rounded-lg ${className}`} />;
+}
+
+const SkeletonBar = skeleton_bar;
+
+export function invoice_skeleton() {
+  return (
+    <div
+      aria-busy="true"
+      className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[1.05fr_1fr]"
+    >
+      <section className="rounded-3xl border border-edge-secondary bg-surf-secondary p-6 sm:p-7">
+        <div className="flex items-center gap-3">
+          <div className={`${SKELETON_TONE} h-10 w-10 shrink-0 rounded-full`} />
+          <div className="min-w-0 flex-1 space-y-2">
+            <SkeletonBar className="h-5 w-40 max-w-full" />
+            <SkeletonBar className="h-3 w-24 max-w-full" />
+          </div>
+        </div>
+
+        <div className="mt-4 space-y-2">
+          <SkeletonBar className="h-3.5 w-full" />
+          <SkeletonBar className="h-3.5 w-4/5" />
+        </div>
+
+        <div className="mt-5 flex flex-col items-center gap-4">
+          <div className="flex flex-col items-center gap-2">
+            <div className="rounded-[20px] border border-edge-secondary bg-surf-tertiary p-2.5">
+              <div className={`${SKELETON_TONE} h-52 w-52 rounded-[12px]`} />
+            </div>
+            <SkeletonBar className="h-3 w-44 max-w-full" />
+          </div>
+
+          <div className="w-full space-y-2.5">
+            <SkeletonBar className="h-[68px] w-full rounded-2xl" />
+            <SkeletonBar className="h-[68px] w-full rounded-2xl" />
+          </div>
+        </div>
+      </section>
+
+      <section className="flex flex-col gap-5">
+        <div className="rounded-3xl border border-edge-secondary bg-surf-secondary p-6 sm:p-7">
+          <SkeletonBar className="h-3 w-20" />
+          <SkeletonBar className="mt-3 h-7 w-32 max-w-full" />
+          <SkeletonBar className="mt-3 h-3 w-48 max-w-full" />
+          <div className="mt-5 space-y-3">
+            <SkeletonBar className="h-3.5 w-full" />
+            <SkeletonBar className="h-3.5 w-3/5" />
+          </div>
+        </div>
+
+        <div className="rounded-3xl border border-edge-secondary bg-surf-secondary p-6 sm:p-7">
+          <SkeletonBar className="h-4 w-28" />
+          <div className="mt-5 space-y-4">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <div key={index} className="flex items-start gap-3">
+                <div className={`${SKELETON_TONE} h-6 w-6 shrink-0 rounded-full`} />
+                <div className="flex-1 space-y-2">
+                  <SkeletonBar className="h-3.5 w-1/3" />
+                  <SkeletonBar className="h-3 w-4/5" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+export const InvoiceSkeleton = invoice_skeleton;

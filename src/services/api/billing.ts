@@ -480,6 +480,7 @@ export interface CryptoNativeInvoiceResponse {
 
 export interface CryptoNativeInvoiceStatus {
   id: string;
+  kind?: string;
   currency: string;
   chain: string;
   display_name: string;
@@ -542,6 +543,18 @@ export async function create_crypto_native_invoice(
   return api_client.post<CryptoNativeInvoiceResponse>(
     "/payments/v1/crypto-native/invoice",
     { plan_code, term_months, currency, chain },
+  );
+}
+
+export async function create_crypto_native_addon_invoice(
+  addon_id: string,
+  term_months: number,
+  currency: string,
+  chain: string,
+) {
+  return api_client.post<CryptoNativeInvoiceResponse>(
+    "/payments/v1/crypto-native/invoice",
+    { addon_id, term_months, currency, chain },
   );
 }
 

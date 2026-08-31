@@ -6484,6 +6484,9 @@ export const pt = {
     cardholder_name_placeholder: "Nome como no cartão",
     billing_postal_placeholder: "CEP",
     crypto_pay_button: "Pagar com cripto",
+    crypto_summary_plan: "Plano",
+    crypto_summary_addon: "Complemento",
+    crypto_summary_length: "Duração",
     crypto_modal_title: "Pagar com criptomoeda",
     crypto_term_1mo: "1 mês",
     crypto_term_3mo: "3 meses",
@@ -6553,6 +6556,8 @@ export const pt = {
       "Esta fatura já recebeu um pagamento, por isso não pode mais ser cancelada.",
     crypto_native_paid_title: "Tudo pronto",
     crypto_native_paid_body: "Seu plano já está ativo. Obrigado!",
+    crypto_native_paid_body_addon:
+      "Seu complemento de armazenamento já está ativo. Obrigado!",
     crypto_native_go_to_inbox: "Ir para a caixa de entrada",
     crypto_native_view_billing: "Voltar para faturamento",
     crypto_native_invoice_cancelled: "Fatura cancelada",
@@ -6607,7 +6612,11 @@ export const pt = {
       "A sua transação chegou à rede e aguarda inclusão num bloco.",
     crypto_native_hint_confirming:
       "A aguardar confirmações da rede. O seu plano é ativado quando terminarem.",
+    crypto_native_hint_confirming_addon:
+      "Aguardando as confirmações da rede. Seu complemento de armazenamento é ativado quando elas terminam.",
     crypto_native_hint_credited: "Confirmado. O seu plano está ativo.",
+    crypto_native_hint_credited_addon:
+      "Confirmado. Seu complemento de armazenamento está ativo.",
     crypto_native_time_remaining: "Tempo restante",
     crypto_native_expiring_soon:
       "Restam menos de 5 minutos. Se esta janela fechar antes de o pagamento chegar, você pode iniciar um novo com a cotação atual.",

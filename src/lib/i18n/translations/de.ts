@@ -6501,6 +6501,8 @@ export const de = {
       "Für diese Rechnung ist bereits eine Zahlung eingegangen, sie kann daher nicht mehr storniert werden.",
     crypto_native_paid_title: "Alles erledigt",
     crypto_native_paid_body: "Ihr Tarif ist jetzt aktiv. Vielen Dank!",
+    crypto_native_paid_body_addon:
+      "Ihr Speicher-Add-on ist jetzt aktiv. Vielen Dank!",
     crypto_native_go_to_inbox: "Zum Posteingang",
     crypto_native_view_billing: "Zurück zur Abrechnung",
     crypto_native_invoice_cancelled: "Rechnung storniert",
@@ -6554,7 +6556,11 @@ export const de = {
       "Deine Transaktion hat das Netzwerk erreicht und wartet auf die Aufnahme in einen Block.",
     crypto_native_hint_confirming:
       "Warten auf Netzwerkbestätigungen. Dein Tarif wird aktiv, sobald sie abgeschlossen sind.",
+    crypto_native_hint_confirming_addon:
+      "Warten auf Netzwerkbestätigungen. Ihr Speicher-Add-on wird nach deren Abschluss aktiviert.",
     crypto_native_hint_credited: "Bestätigt. Dein Tarif ist aktiv.",
+    crypto_native_hint_credited_addon:
+      "Bestätigt. Ihr Speicher-Add-on ist aktiv.",
     crypto_native_time_remaining: "Verbleibende Zeit",
     crypto_native_expiring_soon:
       "Weniger als 5 Minuten übrig. Läuft dieses Fenster ab, bevor Ihre Zahlung eintrifft, können Sie eine neue Zahlung zum aktuellen Kurs starten.",
@@ -6575,6 +6581,9 @@ export const de = {
     crypto_no_renew_notice: "Krypto-Käufe verlängern sich nicht automatisch.",
     crypto_paid_until: "Bezahlt bis {{date}} (Krypto)",
     crypto_pay_button: "Mit Krypto bezahlen",
+    crypto_summary_plan: "Tarif",
+    crypto_summary_addon: "Add-on",
+    crypto_summary_length: "Laufzeit",
     crypto_pay_now: "Mit Krypto bezahlen",
     crypto_renew_link: "Mit Krypto verlängern",
     crypto_select_term:

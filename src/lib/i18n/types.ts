@@ -3304,6 +3304,9 @@ export interface SettingsTranslations {
   failed_checkout: string;
   checkout_welcome: string;
   crypto_pay_button: string;
+  crypto_summary_plan: string;
+  crypto_summary_addon: string;
+  crypto_summary_length: string;
   crypto_modal_title: string;
   crypto_term_1mo: string;
   crypto_term_3mo: string;
@@ -3369,6 +3372,7 @@ export interface SettingsTranslations {
   crypto_native_cancel_has_payment: string;
   crypto_native_paid_title: string;
   crypto_native_paid_body: string;
+  crypto_native_paid_body_addon: string;
   crypto_native_go_to_inbox: string;
   crypto_native_view_billing: string;
   crypto_native_invoice_cancelled: string;
@@ -3407,7 +3411,9 @@ export interface SettingsTranslations {
   crypto_native_hint_awaiting: string;
   crypto_native_hint_detected: string;
   crypto_native_hint_confirming: string;
+  crypto_native_hint_confirming_addon: string;
   crypto_native_hint_credited: string;
+  crypto_native_hint_credited_addon: string;
   crypto_native_time_remaining: string;
   crypto_native_expiring_soon: string;
   crypto_native_hint_underpaid: string;

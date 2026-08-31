@@ -3212,6 +3212,9 @@ export const en: Translations = {
       "We could not open checkout just now. Another attempt should do it. Your billing is unchanged.",
     checkout_welcome: "Welcome to Aster! Your subscription is active.",
     crypto_pay_button: "Pay with crypto",
+    crypto_summary_plan: "Plan",
+    crypto_summary_addon: "Add-on",
+    crypto_summary_length: "Length",
     crypto_modal_title: "Pay with crypto",
     crypto_term_1mo: "1 month",
     crypto_term_3mo: "3 months",
@@ -3299,6 +3302,8 @@ export const en: Translations = {
       "This invoice has already received a payment, so it can no longer be cancelled.",
     crypto_native_paid_title: "You're all set",
     crypto_native_paid_body: "Your plan is now active. Thank you!",
+    crypto_native_paid_body_addon:
+      "Your storage add-on is now active. Thank you!",
     crypto_native_go_to_inbox: "Go to inbox",
     crypto_native_view_billing: "Back to billing",
     crypto_native_invoice_cancelled: "Invoice cancelled",
@@ -3352,7 +3357,11 @@ export const en: Translations = {
       "Your transaction has reached the network and is waiting to be included in a block.",
     crypto_native_hint_confirming:
       "Waiting for network confirmations. Your plan activates when they complete.",
+    crypto_native_hint_confirming_addon:
+      "Waiting for network confirmations. Your storage add-on activates when they complete.",
     crypto_native_hint_credited: "Confirmed. Your plan is active.",
+    crypto_native_hint_credited_addon:
+      "Confirmed. Your storage add-on is active.",
     crypto_native_time_remaining: "Time remaining",
     crypto_native_expiring_soon:
       "Under 5 minutes left. If this window closes before your payment arrives, you can start a new one at the current rate.",

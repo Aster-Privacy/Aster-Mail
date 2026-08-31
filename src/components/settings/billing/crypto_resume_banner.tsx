@@ -30,6 +30,7 @@ import {
 import { ConfirmModal } from "@/components/email/inbox/inbox_confirmation_dialog";
 import { CoinIcon } from "@/components/ui/coin_icon";
 import { use_i18n } from "@/lib/i18n/context";
+import { prefetch_crypto_invoice_page } from "@/pages/crypto_invoice/prefetch";
 import {
   cancel_crypto_native_invoice,
   format_price,
@@ -190,6 +191,12 @@ export function CryptoResumeBanner({
     Number.isFinite(Date.parse(invoice.expires_at))
       ? `${invoice_key(invoice)}|${invoice.expires_at}`
       : "";
+
+  useEffect(() => {
+    if (!invoice) return;
+
+    prefetch_crypto_invoice_page();
+  }, [invoice]);
 
   useEffect(() => {
     if (!countdown_key) return;
