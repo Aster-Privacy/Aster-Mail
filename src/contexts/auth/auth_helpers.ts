@@ -49,6 +49,7 @@ import { clear_preferences_cache } from "@/services/api/preferences";
 import { clear_category_index_memory } from "@/services/category_index";
 import { clear_profiles_cache } from "@/services/api/profiles";
 import { clear_unsubscribed_senders_cache } from "@/hooks/use_unsubscribed_senders";
+import { clear_removed_items } from "@/services/removed_items";
 
 export const AUTH_VERIFY_TIMEOUT_MS = 12000;
 
@@ -79,6 +80,7 @@ export async function clear_account_scoped_caches(): Promise<void> {
   clear_unreadable_attachment_rows();
   clear_profiles_cache();
   clear_unsubscribed_senders_cache();
+  clear_removed_items();
   request_cache.clear();
   await clear_all_ratchet_states();
 }

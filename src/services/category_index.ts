@@ -62,6 +62,8 @@ import {
 } from "@/lib/category_preview_text";
 import { yield_to_browser } from "@/lib/scheduling";
 
+import { is_recently_removed } from "@/services/removed_items";
+
 const DB_NAME = "astermail_category_index";
 const STORE_NAME = "indexes";
 const BUILD_FETCH_SIZE = 150;
@@ -733,6 +735,9 @@ function apply_upsert(
   for (const raw of incoming) {
     if (!raw.id) continue;
     const existing = entries_map.get(raw.id);
+
+    if (!existing && is_recently_removed(raw.id)) continue;
+
     let entry = raw;
 
     if (guard_recent_read && existing?.is_read && !raw.is_read) {
