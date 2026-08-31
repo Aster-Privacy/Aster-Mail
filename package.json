@@ -64,7 +64,7 @@
     "@capacitor/splash-screen": "^6.0.0",
     "@capacitor/status-bar": "^6.0.0",
     "@capawesome/capacitor-app-update": "^6.0.0",
-    "@fontsource/google-sans-flex": "^5.2.2",
+    "@fontsource/google-sans-flex": "^5.3.1",
     "@heroicons/react": "^2.2.0",
     "@noble/ciphers": "^1.2.0",
     "@noble/curves": "^1.7.0",
