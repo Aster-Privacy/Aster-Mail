@@ -23,6 +23,7 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
 const change_plan_mock = vi.fn();
+const start_checkout_mock = vi.fn();
 const clear_target_mock = vi.fn();
 const read_target_mock = vi.fn();
 const toast_mock = vi.fn();
@@ -37,6 +38,7 @@ vi.mock("@/components/toast/simple_toast", () => ({
 
 vi.mock("@/services/api/billing", () => ({
   change_plan: change_plan_mock,
+  start_hosted_checkout: start_checkout_mock,
   clear_checkout_target: clear_target_mock,
   read_checkout_target: read_target_mock,
 }));
@@ -75,10 +77,12 @@ function button_by_text(text: string): HTMLButtonElement {
 describe("ResumeCheckoutCard", () => {
   beforeEach(async () => {
     change_plan_mock.mockReset();
+    start_checkout_mock.mockReset();
     clear_target_mock.mockReset();
     read_target_mock.mockReset();
     toast_mock.mockReset();
     change_plan_mock.mockResolvedValue({ ok: true, requires_checkout: true });
+    start_checkout_mock.mockResolvedValue({ ok: true });
 
     if (root) await act(async () => root!.unmount());
 
@@ -131,7 +135,7 @@ describe("ResumeCheckoutCard", () => {
       button_by_text("settings.finish_plan_setup_action").click();
     });
 
-    expect(change_plan_mock).toHaveBeenCalledWith("star", "year");
+    expect(start_checkout_mock).toHaveBeenCalledWith("star", "year");
     expect(toast_mock).not.toHaveBeenCalled();
   });
 
@@ -140,7 +144,7 @@ describe("ResumeCheckoutCard", () => {
       plan_code: "star",
       billing_interval: "month",
     });
-    change_plan_mock.mockResolvedValue({ ok: false, requires_checkout: false });
+    start_checkout_mock.mockResolvedValue({ ok: false });
 
     await render_card("free");
 
@@ -151,6 +155,7 @@ describe("ResumeCheckoutCard", () => {
     expect(toast_mock).toHaveBeenCalledWith(
       "settings.failed_checkout",
       "error",
+      8_000,
     );
   });
 

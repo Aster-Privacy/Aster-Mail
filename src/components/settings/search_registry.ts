@@ -415,7 +415,7 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
     label_key: "settings.storage_format_title",
     section: "storage",
     breadcrumb: "Storage > Storage format",
-    crumb_key: "settings_search.storage",
+    crumb_key: "settings.storage_format_title",
     keywords: ["ipfs", "decentralized"],
   },
   {
