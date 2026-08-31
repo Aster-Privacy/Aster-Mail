@@ -36,6 +36,7 @@ const LOCALES = [
   "nl",
   "pl",
   "tr",
+  "hi",
 ];
 
 const NO_PLURAL_ONE_FORM = new Set(["zh-CN", "ja", "ko"]);

@@ -33,7 +33,8 @@ export type LanguageCode =
   | "ru"
   | "nl"
   | "pl"
-  | "tr";
+  | "tr"
+  | "hi";
 
 export interface Language {
   code: LanguageCode;
