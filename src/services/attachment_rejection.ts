@@ -24,7 +24,7 @@ import {
   MAX_ATTACHMENTS_PER_SEND,
   get_max_attachment_size,
   get_max_total_attachments_size,
-  get_upgrade_attachment_size,
+  get_upgrade_target,
 } from "./attachment_limits";
 
 import { format_bytes } from "@/lib/utils";
@@ -35,19 +35,23 @@ type Translate = (
   params?: Record<string, string | number>,
 ) => string;
 
-export function describe_oversized_file(t: Translate, file_name: string) {
+export function describe_oversized_file(
+  t: Translate,
+  file_name: string,
+  file_size?: number,
+) {
   const max_size = get_max_attachment_size();
-  const upgrade_size = get_upgrade_attachment_size();
-  const can_upgrade = upgrade_size > max_size;
+  const upgrade = get_upgrade_target(file_size);
 
-  if (can_upgrade) {
+  if (upgrade) {
     return {
       message: t("common.file_exceeds_max_size_upgradable", {
         name: file_name,
         size: format_bytes(max_size),
-        max_size: format_bytes(upgrade_size),
+        max_size: format_bytes(upgrade.max_bytes),
       }),
-      can_upgrade,
+      can_upgrade: true,
+      upgrade_plan_code: upgrade.code || null,
     };
   }
 
@@ -56,7 +60,8 @@ export function describe_oversized_file(t: Translate, file_name: string) {
       name: file_name,
       size: format_bytes(max_size),
     }),
-    can_upgrade,
+    can_upgrade: false,
+    upgrade_plan_code: null,
   };
 }
 
@@ -76,9 +81,13 @@ export function describe_too_many_attachments(t: Translate): string {
   });
 }
 
-export function prompt_attachment_upgrade(message?: string): void {
+export function prompt_attachment_upgrade(
+  message?: string,
+  plan_code?: string | null,
+): void {
   show_plan_limit_upgrade({
     resource: "attachments",
     message: message ?? null,
+    preselect_plan: plan_code ?? null,
   });
 }

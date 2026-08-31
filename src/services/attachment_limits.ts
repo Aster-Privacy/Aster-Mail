@@ -28,8 +28,16 @@ export const MAX_ATTACHMENTS_PER_SEND = 50;
 
 const CACHE_TTL_MS = 300_000;
 
+const UPGRADE_PLAN_CODES = ["star", "nova", "supernova"];
+
+export interface PlanAttachmentLimit {
+  code: string;
+  max_bytes: number;
+}
+
 let cached_max_bytes = FREE_MAX_ATTACHMENT_SIZE;
 let cached_upgrade_max_bytes = MAX_PAID_ATTACHMENT_SIZE;
+let cached_plan_limits: PlanAttachmentLimit[] = [];
 let cache_timestamp = 0;
 let in_flight: Promise<number> | null = null;
 
@@ -39,6 +47,32 @@ export function get_max_attachment_size(): number {
 
 export function get_upgrade_attachment_size(): number {
   return cached_upgrade_max_bytes;
+}
+
+export function get_upgrade_target(
+  needed_bytes?: number,
+): PlanAttachmentLimit | null {
+  const larger = cached_plan_limits
+    .filter(
+      (plan) =>
+        plan.max_bytes > cached_max_bytes &&
+        UPGRADE_PLAN_CODES.includes(plan.code),
+    )
+    .sort((a, b) => a.max_bytes - b.max_bytes);
+
+  if (larger.length === 0) {
+    return cached_upgrade_max_bytes > cached_max_bytes
+      ? { code: "", max_bytes: cached_upgrade_max_bytes }
+      : null;
+  }
+
+  if (typeof needed_bytes === "number" && needed_bytes > 0) {
+    const fits = larger.find((plan) => plan.max_bytes >= needed_bytes);
+
+    if (fits) return fits;
+  }
+
+  return larger[larger.length - 1];
 }
 
 export function get_max_total_attachments_size(): number {
@@ -52,6 +86,7 @@ export function is_above_free_attachment_limit(size_bytes: number): boolean {
 export function clear_attachment_limits_cache(): void {
   cached_max_bytes = FREE_MAX_ATTACHMENT_SIZE;
   cached_upgrade_max_bytes = MAX_PAID_ATTACHMENT_SIZE;
+  cached_plan_limits = [];
   cache_timestamp = 0;
   in_flight = null;
 }
@@ -95,6 +130,13 @@ export async function refresh_attachment_limits(
       if (upgrade_ceiling > 0) {
         cached_upgrade_max_bytes = upgrade_ceiling;
       }
+
+      cached_plan_limits = plans
+        .filter((plan) => plan.max_attachment_size_bytes > 0)
+        .map((plan) => ({
+          code: plan.code,
+          max_bytes: plan.max_attachment_size_bytes,
+        }));
 
       if (response.data) {
         cache_timestamp = Date.now();

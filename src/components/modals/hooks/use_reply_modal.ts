@@ -929,12 +929,15 @@ export function use_reply_modal(props: UseReplyModalProps) {
         }
 
         if (file.size > get_max_attachment_size()) {
-          const rejection = describe_oversized_file(t, file.name);
+          const rejection = describe_oversized_file(t, file.name, file.size);
 
           set_attachment_error(rejection.message);
 
           if (rejection.can_upgrade)
-            prompt_attachment_upgrade(rejection.message);
+            prompt_attachment_upgrade(
+              rejection.message,
+              rejection.upgrade_plan_code,
+            );
           continue;
         }
 
@@ -1003,12 +1006,15 @@ export function use_reply_modal(props: UseReplyModalProps) {
         }
 
         if (file.size > get_max_attachment_size()) {
-          const rejection = describe_oversized_file(t, file.name);
+          const rejection = describe_oversized_file(t, file.name, file.size);
 
           set_attachment_error(rejection.message);
 
           if (rejection.can_upgrade)
-            prompt_attachment_upgrade(rejection.message);
+            prompt_attachment_upgrade(
+              rejection.message,
+              rejection.upgrade_plan_code,
+            );
           continue;
         }
 
