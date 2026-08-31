@@ -28,11 +28,19 @@ This URL always resolves to the asset of the latest published GitHub Release. Th
    - The versioned Tauri bundles with their `.sig` files (for example `Aster.Mail_<version>_x64-setup.exe`, `Aster.Mail_<version>_x64_en-US.msi`, `Aster.Mail_<version>_amd64.AppImage`, `Aster.Mail_<version>_universal.dmg`, `Aster.Mail_universal.app.tar.gz`)
    - Fixed-name copies that the website download links depend on: `Aster-Mail-x64-setup.exe`, `Aster-Mail-x64.msi`, `Aster-Mail-x64.AppImage`, `Aster-Mail-amd64.deb`, `Aster-Mail-x86_64.rpm`, `Aster-Mail-universal.dmg`, `Aster-Mail.apk`, each with its `.sig` where one exists
    - `latest.json` (see template below)
-6. Start the release body with the standard alert, then the release notes:
+6. Start the release body with the Aster Mail wordmark and the standard alert, then the release notes:
    ```
+   <p align="center">
+     <picture>
+       <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/Aster-Privacy/Aster-Mail/01a79449e4706b43cd790419736ed24bfbea95c0/public/aster_mail_logo_dark.png">
+       <img alt="Aster Mail" src="https://raw.githubusercontent.com/Aster-Privacy/Aster-Mail/01a79449e4706b43cd790419736ed24bfbea95c0/public/aster_mail_logo_light.png" width="320">
+     </picture>
+   </p>
+
    > [!NOTE]
    > These files are for new installations. If Aster Mail is already installed, it updates automatically.
    ```
+   The `promote_to_latest` job in `release.yml` adds both of these to any release that is missing them, so you only write this by hand for a release you publish outside the workflow.
 7. Mark the release as **Latest**. The desktop clients will pick it up on next check (every 6 hours, or manually via Settings -> Updates).
 
 ## latest.json template
