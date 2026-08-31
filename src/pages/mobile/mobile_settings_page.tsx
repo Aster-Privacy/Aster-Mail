@@ -71,12 +71,6 @@ import { AccessibilitySection } from "./settings/accessibility_section";
 import { SecuritySection } from "./settings/security_section";
 import { EncryptionSection } from "./settings/encryption_section";
 import { AliasesSection } from "./settings/aliases_section";
-const BillingSection = lazy_with_retry(() =>
-  import("./settings/billing_section").then((m) => ({
-    default: m.BillingSection,
-  })),
-);
-
 import { NotificationsSection } from "./settings/notifications_section";
 import { BehaviorSection } from "./settings/behavior_section";
 import { SignaturesSection } from "./settings/signatures_section";
@@ -97,7 +91,6 @@ import { AliasDirectoriesSection } from "./settings/alias_directories_section";
 
 import { SettingsSaveIndicatorInline } from "@/components/settings/settings_save_indicator";
 import { FullPageLoader } from "@/components/common/full_page_loader";
-import { lazy_with_retry } from "@/utils/lazy_with_retry";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { format_bytes } from "@/lib/utils";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
@@ -117,6 +110,13 @@ import {
 } from "@/lib/dev_mode_cache";
 import { refresh_family_plan_flag } from "@/services/api/family";
 import { ignore_error } from "@/lib/ignore_error";
+import { lazy_with_retry } from "@/utils/lazy_with_retry";
+
+const BillingSection = lazy_with_retry(() =>
+  import("./settings/billing_section").then((m) => ({
+    default: m.BillingSection,
+  })),
+);
 
 function MobileSettingsPage() {
   const navigate = useNavigate();

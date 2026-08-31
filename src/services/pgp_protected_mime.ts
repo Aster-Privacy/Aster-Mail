@@ -147,6 +147,15 @@ function wrap_base64(data: string): string {
   return out;
 }
 
+const HTML_ENTITY_TEXT: Record<string, string> = {
+  "&nbsp;": " ",
+  "&amp;": "&",
+  "&lt;": "<",
+  "&gt;": ">",
+  "&quot;": '"',
+  "&#39;": "'",
+};
+
 export function html_to_plain_text(html: string): string {
   let out = "";
   let i = 0;
@@ -188,13 +197,10 @@ export function html_to_plain_text(html: string): string {
     i += 1;
   }
 
-  const decoded = out
-    .replace(/&nbsp;/g, " ")
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'");
+  const decoded = out.replace(
+    /&(?:nbsp|amp|lt|gt|quot|#39);/g,
+    (entity) => HTML_ENTITY_TEXT[entity] ?? entity,
+  );
 
   let collapsed = "";
   let blank_run = 0;

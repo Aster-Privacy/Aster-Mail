@@ -303,11 +303,7 @@ class UndoSendManager {
     try {
       let server_reachable = false;
 
-      for (
-        let attempt = 0;
-        attempt <= FINALIZE_RETRY_DELAYS_MS.length;
-        attempt++
-      ) {
+      for (let attempt = 0; ; attempt++) {
         const pending = this.pending_sends.get(queue_id);
 
         if (!pending) {
@@ -338,11 +334,11 @@ class UndoSendManager {
           return;
         }
 
-        const delay = FINALIZE_RETRY_DELAYS_MS[attempt];
-
-        if (delay === undefined) {
+        if (attempt >= FINALIZE_RETRY_DELAYS_MS.length) {
           break;
         }
+
+        const delay = FINALIZE_RETRY_DELAYS_MS[attempt];
 
         await new Promise((resolve) => window.setTimeout(resolve, delay));
       }

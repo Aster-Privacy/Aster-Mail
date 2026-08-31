@@ -311,9 +311,7 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
                 : undefined
             }
             on_page_change={
-              show_full_email_viewer || nav.effective_email_id
-                ? undefined
-                : handle_page_change
+              nav.effective_email_id ? undefined : handle_page_change
             }
             on_quick_settings_click={on_quick_settings_click}
             on_restore={handle_restore_wrapped}
@@ -330,11 +328,7 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
                 selection.get_tag_status_for_selection(tag_token) === "all",
               );
             }}
-            on_toggle_select_all={
-              show_full_email_viewer
-                ? undefined
-                : selection.handle_toggle_select_all
-            }
+            on_toggle_select_all={selection.handle_toggle_select_all}
             on_toggle_star={handle_toggle_star_wrapped}
             on_unarchive={handle_unarchive_wrapped}
             on_view_change={on_view_change}

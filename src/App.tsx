@@ -42,6 +42,24 @@ import { Family2faDialog } from "@/components/common/family_2fa_dialog";
 import { PendingDeletionDialog } from "@/components/common/pending_deletion_dialog";
 import { DesktopPairGate } from "@/components/common/desktop_pair_gate";
 import { UpdateBanner } from "@/components/updates/update_banner";
+import { ActionToast } from "@/components/toast/action_toast";
+import { SimpleToast } from "@/components/toast/simple_toast";
+import { PostQuantumSendPrompt } from "@/components/compose/post_quantum_send_prompt";
+import { UnsubscribeConfirmationModal } from "@/components/modals/unsubscribe_confirmation_modal";
+import { PurchaseSuccessModal } from "@/components/modals/purchase_success_modal";
+import { UpgradeModal } from "@/components/upgrade/upgrade_modal";
+import { show_checkout_cancelled_upgrade } from "@/stores/upgrade_store";
+import { PLAN_TIERS } from "@/components/settings/billing/billing_constants";
+import { UndoSendContainer } from "@/components/toast/undo_send_container";
+import { UndoSendPreviewModal } from "@/components/toast/undo_send_preview_modal";
+import { EmailNotificationManager } from "@/components/email/email_notification_manager";
+import { FolderUnlockPrompt } from "@/components/folders/folder_unlock_prompt";
+import { OfflineIndicator } from "@/components/common/offline_indicator";
+import { FullPageLoader } from "@/components/common/full_page_loader";
+import { ErrorBoundary } from "@/components/ui/error_boundary";
+import { AppLock } from "@/components/mobile";
+import { ignore_error } from "@/lib/ignore_error";
+import { lazy_with_retry } from "@/utils/lazy_with_retry";
 
 const IndexPage = lazy_with_retry(() => import("@/pages/index"));
 const SignInPage = lazy_with_retry(() => import("@/pages/sign_in"));
@@ -72,25 +90,6 @@ const ExternalRedirect = ({ url }: { url: string }) => {
 
   return null;
 };
-
-import { ActionToast } from "@/components/toast/action_toast";
-import { SimpleToast } from "@/components/toast/simple_toast";
-import { PostQuantumSendPrompt } from "@/components/compose/post_quantum_send_prompt";
-import { UnsubscribeConfirmationModal } from "@/components/modals/unsubscribe_confirmation_modal";
-import { PurchaseSuccessModal } from "@/components/modals/purchase_success_modal";
-import { UpgradeModal } from "@/components/upgrade/upgrade_modal";
-import { show_checkout_cancelled_upgrade } from "@/stores/upgrade_store";
-import { PLAN_TIERS } from "@/components/settings/billing/billing_constants";
-import { UndoSendContainer } from "@/components/toast/undo_send_container";
-import { UndoSendPreviewModal } from "@/components/toast/undo_send_preview_modal";
-import { EmailNotificationManager } from "@/components/email/email_notification_manager";
-import { FolderUnlockPrompt } from "@/components/folders/folder_unlock_prompt";
-import { OfflineIndicator } from "@/components/common/offline_indicator";
-import { FullPageLoader } from "@/components/common/full_page_loader";
-import { ErrorBoundary } from "@/components/ui/error_boundary";
-import { lazy_with_retry } from "@/utils/lazy_with_retry";
-import { AppLock } from "@/components/mobile";
-import { ignore_error } from "@/lib/ignore_error";
 
 interface FamilyWelcomeState {
   plan_name: string;

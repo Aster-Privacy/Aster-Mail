@@ -84,17 +84,36 @@ const URL_ATTRIBUTES = [
   "xlink:href",
 ];
 
+const PRINTABLE_DATA_MEDIA_TYPES = [
+  "image/apng",
+  "image/avif",
+  "image/bmp",
+  "image/gif",
+  "image/jpeg",
+  "image/jpg",
+  "image/png",
+  "image/webp",
+  "image/x-icon",
+];
+
 function is_executable_url(value: string): boolean {
   const normalized = [...value]
     .filter((c) => c.charCodeAt(0) > 0x20 && c.charCodeAt(0) !== 0x7f)
     .join("")
     .toLowerCase();
 
-  return (
+  if (
     normalized.startsWith("javascript:") ||
-    normalized.startsWith("vbscript:") ||
-    normalized.startsWith("data:text/html")
-  );
+    normalized.startsWith("vbscript:")
+  ) {
+    return true;
+  }
+
+  if (!normalized.startsWith("data:")) return false;
+
+  const media_type = normalized.slice("data:".length).split(/[;,]/)[0];
+
+  return !PRINTABLE_DATA_MEDIA_TYPES.includes(media_type);
 }
 
 export function set_print_content(container: HTMLElement, html: string): void {
