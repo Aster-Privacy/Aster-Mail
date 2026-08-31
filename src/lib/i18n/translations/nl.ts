@@ -8705,6 +8705,7 @@ export const nl = {
     security_key_verification: "Beveiligingssleutelverificatie",
     passkey_sign_in: "Aanmelden met toegangssleutel",
     tap_security_key:
+      "Tik op je beveiligingssleutel of gebruik je wachtwoordsleutel om in te loggen",
     link_device_change_account: "Account wijzigen",
     link_device_choose_account: "Kies een account",
     link_device_choose_account_description: "Om je desktop-app te koppelen",
@@ -8713,7 +8714,6 @@ export const nl = {
     link_device_use_another_account: "Een ander account gebruiken",
     link_device_use_this_account: "Dit account gebruiken",
     link_device_other_accounts: "Overschakelen naar een ander account",
-      "Tik op je beveiligingssleutel of gebruik je wachtwoordsleutel om in te loggen",
     use_another_method: "Een andere verificatiemethode gebruiken",
     webauthn_not_supported:
       "Deze browser ondersteunt geen beveiligingssleutels. Een andere browser, of inloggen met je wachtwoord, werkt.",

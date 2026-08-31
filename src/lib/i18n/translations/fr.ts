@@ -8439,8 +8439,8 @@ export const fr = {
     too_many_2fa_attempts:
       "Trop de tentatives 2FA. Veuillez patienter quelques minutes avant de réessayer.",
     sign_in_session_expired:
-    back_to_link_device: "Retour à Associer un appareil",
       "Votre session de connexion a expiré. Revenez en arrière et reconnectez-vous.",
+    back_to_link_device: "Retour à Associer un appareil",
     backup_codes_remaining_after_login: "{{count}} codes de secours restants",
     backup_code_description:
       "Saisissez un de vos codes de secours pour vous connecter",

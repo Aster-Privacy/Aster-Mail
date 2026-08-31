@@ -8271,6 +8271,7 @@ export const en: Translations = {
       "Linking a Bridge device needs a Star plan or higher. Upgrade to continue.",
     link_device_upgrade_title: "Upgrade to link this device",
     link_device_upgrade_description:
+      "Connecting a desktop Bridge to your account needs a Star plan or higher. Pick a plan below and your device links right after checkout.",
     link_device_change_account: "Change account",
     link_device_choose_account: "Choose an account",
     link_device_choose_account_description: "To link your desktop app",
@@ -8279,7 +8280,6 @@ export const en: Translations = {
     link_device_use_another_account: "Use another account",
     link_device_use_this_account: "Use this account",
     link_device_other_accounts: "Switch to another account",
-      "Connecting a desktop Bridge to your account needs a Star plan or higher. Pick a plan below and your device links right after checkout.",
     link_device_upgrade_cta: "Upgrade to Star",
     link_device_upgrade_failed:
       "Could not start checkout. Please try again or open Billing in Settings.",
@@ -8306,8 +8306,8 @@ export const en: Translations = {
     two_fa_code_already_used:
       "That code was just used. Wait for your authenticator app to show a new code, then try again.",
     too_many_2fa_attempts:
-    back_to_link_device: "Back to link device",
       "Too many 2FA attempts. Please wait a few minutes before trying again.",
+    back_to_link_device: "Back to link device",
     sign_in_session_expired:
       "Your sign-in session expired. Go back and sign in again.",
     backup_codes_remaining_after_login: "{{count}} backup codes remaining",

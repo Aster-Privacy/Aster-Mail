@@ -8606,8 +8606,8 @@ export const pl = {
     too_many_2fa_attempts:
       "Zbyt wiele prób 2FA. Odczekaj kilka minut przed ponowną próbą.",
     sign_in_session_expired:
-    back_to_link_device: "Powrót do Połącz urządzenie",
       "Sesja logowania wygasła. Wróć i zaloguj się ponownie.",
+    back_to_link_device: "Powrót do Połącz urządzenie",
     backup_codes_remaining_after_login: "Pozostało {{count}} kodów zapasowych",
     backup_code_description:
       "Wprowadź jeden z kodów zapasowych, aby się zalogować",

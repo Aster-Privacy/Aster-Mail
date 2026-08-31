@@ -8337,8 +8337,8 @@ export const es = {
     too_many_2fa_attempts:
       "Demasiados intentos de 2FA. Espera unos minutos antes de volver a intentarlo.",
     sign_in_session_expired:
-    back_to_link_device: "Volver a vincular dispositivo",
       "Tu sesión de inicio expiró. Vuelve atrás e inicia sesión de nuevo.",
+    back_to_link_device: "Volver a vincular dispositivo",
     backup_codes_remaining_after_login: "Quedan {{count}} códigos de respaldo",
     backup_code_description:
       "Ingresa uno de tus códigos de respaldo para iniciar sesión",

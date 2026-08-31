@@ -8338,8 +8338,8 @@ export const tr = {
     two_fa_code_already_used:
       "Bu kod az önce kullanıldı. Kimlik doğrulayıcı uygulamanız yeni bir kod gösterene kadar bekleyip tekrar deneyin.",
     too_many_2fa_attempts:
-    back_to_link_device: "Cihaz bağla ekranına dön",
       "Çok fazla 2FA denemesi. Lütfen birkaç dakika bekleyip tekrar deneyin.",
+    back_to_link_device: "Cihaz bağla ekranına dön",
     sign_in_session_expired:
       "Oturum açma süreniz doldu. Geri dönüp tekrar giriş yapın.",
     backup_codes_remaining_after_login: "{{count}} yedek kod kaldı",
