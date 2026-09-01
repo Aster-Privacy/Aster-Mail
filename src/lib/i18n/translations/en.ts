@@ -8468,7 +8468,9 @@ export const en: Translations = {
     please_enter_email_address: "Your email is needed here.",
     please_enter_recovery_code: "One of your recovery codes is needed here.",
     invalid_recovery_code:
-      "That recovery code did not match. Another one from your saved list should work.",
+      "That code does not match this account. Check it against your saved list and enter it again. Spacing and capital letters do not matter.",
+    recovery_locked_out:
+      "This account has had too many recovery attempts. You can try again in {{time}}. None of your codes were used, so you still have all of them.",
     invalid_backup_code:
       "That backup code did not match. Each code works only once, so try the next unused one from your list.",
     new_password_placeholder: "New password",
@@ -8477,7 +8479,8 @@ export const en: Translations = {
     recovery_failed:
       "Recovery did not finish. Starting over usually does it. Your account is unchanged.",
     add_special_characters: "Add special characters (!@#$%)",
-    recovery_codes_start_with_aster: "Recovery codes start with 'ASTER-'",
+    recovery_codes_start_with_aster:
+      "A recovery code looks like ASTER-XXXX-XXXX-XXXX-XXXX. Check the code and enter it again.",
     verifying_recovery_code: "Verifying recovery code...",
     recovery_session_expired:
       "This recovery session has ended. Starting the recovery flow again will pick it up. Your account is unchanged.",

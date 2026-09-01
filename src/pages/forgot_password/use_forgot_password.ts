@@ -77,6 +77,8 @@ import {
 import { use_i18n } from "@/lib/i18n/context";
 import { user_facing_error } from "@/utils/user_facing_error";
 
+import { recovery_error_message } from "./recovery_error";
+
 const TRANSPORT_FAILURE_CODES = new Set([
   "NETWORK_ERROR",
   "TIMEOUT_ERROR",
@@ -334,11 +336,7 @@ export function use_forgot_password() {
 
       if (response.error || !response.data) {
         await timing_safe_delay();
-        set_error(
-          response.server_code === "INVALID_RECOVERY_CODE"
-            ? t("auth.invalid_recovery_code")
-            : response.error || t("auth.invalid_recovery_code"),
-        );
+        set_error(recovery_error_message(response, t));
         set_step("code");
 
         return;
