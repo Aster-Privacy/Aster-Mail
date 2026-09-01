@@ -6657,7 +6657,18 @@ export const ko = {
     ghost_alias_expires_in: "{{ days }}일 후 만료",
     ghost_alias_extend: "연장",
     ghost_alias_expire_now: "지금 만료",
-    ghost_alias_expire_confirm_title: "이 별칭을 만료시키시겠습니까?",
+    ghost_alias_expire_confirm_title: "이 고스트 별칭을 만료할까요?",
+    ghost_alias_expire_confirm_message_named:
+      "{{address}}을(를) 만료하시겠습니까? 복구할 수 없습니다. 유예 기간은 {{date}}까지입니다.",
+    delete_aliases_confirmation_count:
+      "별칭 {{count}}개를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
+    delete_alias_confirmation_named:
+      "{{address}}을(를) 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
+    delete_address_confirmation_named:
+      "{{address}}을(를) 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
+    alias_directory_delete_title: "디렉터리 삭제",
+    alias_directory_delete_message:
+      "{{address}} 디렉터리를 삭제하시겠습니까? 이 패턴의 새 주소로 오는 메일은 더 이상 도착하지 않습니다. 이미 만들어진 별칭은 계속 작동합니다.",
     ghost_alias_expire_confirm_message:
       "이 별칭을 만료시키시겠습니까? 복구할 수 없습니다. 유예 기간은 {{date}}까지 계속됩니다.",
     ghost_alias_max_extension_toast:

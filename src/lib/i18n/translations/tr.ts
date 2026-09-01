@@ -6928,7 +6928,18 @@ export const tr = {
     ghost_alias_expires_in: "{{ days }} gün içinde süresi doluyor",
     ghost_alias_extend: "Uzat",
     ghost_alias_expire_now: "Süresini bitir",
-    ghost_alias_expire_confirm_title: "Bu takma ad sona ersin mi?",
+    ghost_alias_expire_confirm_title: "Bu hayalet takma ad sona ersin mi?",
+    ghost_alias_expire_confirm_message_named:
+      "{{address}} adresinin süresini doldurmak istediğinizden emin misiniz? Geri alamazsınız. Ek süre {{date}} tarihine kadar devam eder.",
+    delete_aliases_confirmation_count:
+      "{{count}} takma adı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
+    delete_alias_confirmation_named:
+      "{{address}} adresini silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
+    delete_address_confirmation_named:
+      "{{address}} adresini silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
+    alias_directory_delete_title: "Dizini sil",
+    alias_directory_delete_message:
+      "{{address}} dizinini silmek istediğinizden emin misiniz? Bu kalıptaki yeni adreslere gelen postalar artık ulaşmaz. Daha önce oluşturulan takma adlar çalışmaya devam eder.",
     ghost_alias_expire_confirm_message:
       "Bu takma adı sona erdirmek istediğinizden emin misiniz? Geri alamazsınız. Ek süre {{date}} tarihine kadar devam edecek.",
     ghost_alias_max_extension_toast:

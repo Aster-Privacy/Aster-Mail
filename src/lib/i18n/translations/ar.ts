@@ -6845,8 +6845,18 @@ export const ar = {
     ghost_alias_expires_in: "ينتهي خلال {{ days }} يوم",
     ghost_alias_extend: "تمديد",
     ghost_alias_expire_now: "إنهاء",
-    ghost_alias_expire_confirm_title:
-      "هل تريد إنهاء صلاحية هذا الاسم المستعار؟",
+    ghost_alias_expire_confirm_title: "هل تريد إنهاء صلاحية هذا الاسم المستعار الشبح؟",
+    ghost_alias_expire_confirm_message_named:
+      "هل أنت متأكد أنك تريد إنهاء صلاحية {{address}}؟ لن تتمكن من استعادته. ستستمر فترة السماح حتى {{date}}.",
+    delete_aliases_confirmation_count:
+      "هل أنت متأكد أنك تريد حذف {{count}} من الأسماء المستعارة؟ لا يمكن التراجع عن هذا الإجراء.",
+    delete_alias_confirmation_named:
+      "هل أنت متأكد أنك تريد حذف {{address}}؟ لا يمكن التراجع عن هذا الإجراء.",
+    delete_address_confirmation_named:
+      "هل أنت متأكد أنك تريد حذف {{address}}؟ لا يمكن التراجع عن هذا الإجراء.",
+    alias_directory_delete_title: "حذف الدليل",
+    alias_directory_delete_message:
+      "هل أنت متأكد أنك تريد حذف الدليل {{address}}؟ لن تصل الرسائل إلى العناوين الجديدة بهذا النمط. تستمر الأسماء المستعارة التي أنشأها الدليل في العمل.",
     ghost_alias_expire_confirm_message:
       "هل أنت متأكد أنك تريد إنهاء صلاحية هذا الاسم المستعار؟ لن تتمكن من استعادته. ستستمر فترة السماح حتى {{date}}.",
     ghost_alias_max_extension_toast:

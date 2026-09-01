@@ -81,6 +81,10 @@ export function GhostAliasesSection() {
     grace_date: string;
   } | null>(null);
 
+  const expiring_alias_address = confirm_expire_info
+    ? aliases.find((a) => a.id === confirm_expire_info.alias_id)?.full_address
+    : undefined;
+
   const load_aliases = useCallback(async () => {
     set_loading(true);
     set_load_error(false);
@@ -406,9 +410,16 @@ export function GhostAliasesSection() {
       <ConfirmationModal
         is_open={confirm_expire_info !== null}
         learn_more_url="https://astermail.org/blog/what-ghost-aliases-are-and-how-they-work"
-        message={t("settings.ghost_alias_expire_confirm_message", {
-          date: confirm_expire_info?.grace_date ?? "",
-        })}
+        message={
+          expiring_alias_address
+            ? t("settings.ghost_alias_expire_confirm_message_named", {
+                address: expiring_alias_address,
+                date: confirm_expire_info?.grace_date ?? "",
+              })
+            : t("settings.ghost_alias_expire_confirm_message", {
+                date: confirm_expire_info?.grace_date ?? "",
+              })
+        }
         on_cancel={() => set_confirm_expire_info(null)}
         on_confirm={confirm_expire}
         title={t("settings.ghost_alias_expire_confirm_title")}

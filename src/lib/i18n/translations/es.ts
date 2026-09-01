@@ -6708,7 +6708,18 @@ export const es = {
     ghost_alias_expire_now: "Expirar ahora",
     ghost_alias_max_extension_toast:
       "Este alias fantasma ya alcanzó su vida útil máxima de 90 días y no se puede extender más.",
-    ghost_alias_expire_confirm_title: "¿Expirar este alias?",
+    ghost_alias_expire_confirm_title: "¿Caducar este alias fantasma?",
+    ghost_alias_expire_confirm_message_named:
+      "¿Seguro que quieres caducar {{address}}? No podrás recuperarlo. Su periodo de gracia durará hasta el {{date}}.",
+    delete_aliases_confirmation_count:
+      "¿Seguro que quieres eliminar {{count}} alias? Esta acción no se puede deshacer.",
+    delete_alias_confirmation_named:
+      "¿Seguro que quieres eliminar {{address}}? Esta acción no se puede deshacer.",
+    delete_address_confirmation_named:
+      "¿Seguro que quieres eliminar {{address}}? Esta acción no se puede deshacer.",
+    alias_directory_delete_title: "Eliminar directorio",
+    alias_directory_delete_message:
+      "¿Seguro que quieres eliminar el directorio {{address}}? El correo dirigido a direcciones nuevas de este patrón dejará de llegar. Los alias que ya creó seguirán funcionando.",
     ghost_alias_expire_confirm_message:
       "¿Seguro que quieres expirar este alias? No podrás recuperarlo. Su período de gracia durará hasta el {{date}}.",
     ghost_alias_expired_grace: "Expirado - período de gracia",

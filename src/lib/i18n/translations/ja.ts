@@ -6511,7 +6511,18 @@ export const ja = {
     feature_tracker_protection: "トラッカー保護",
     ghost_alias_active: "アクティブ",
     ghost_alias_expire_now: "期限切れにする",
-    ghost_alias_expire_confirm_title: "このエイリアスを失効させますか？",
+    ghost_alias_expire_confirm_title: "このゴーストエイリアスを失効させますか？",
+    ghost_alias_expire_confirm_message_named:
+      "{{address}} を失効させてもよろしいですか？元に戻すことはできません。猶予期間は{{date}}まで続きます。",
+    delete_aliases_confirmation_count:
+      "{{count}} 件のエイリアスを削除してもよろしいですか？この操作は元に戻せません。",
+    delete_alias_confirmation_named:
+      "{{address}} を削除してもよろしいですか？この操作は元に戻せません。",
+    delete_address_confirmation_named:
+      "{{address}} を削除してもよろしいですか？この操作は元に戻せません。",
+    alias_directory_delete_title: "ディレクトリを削除",
+    alias_directory_delete_message:
+      "ディレクトリ {{address}} を削除してもよろしいですか？このパターンの新しいアドレス宛のメールは届かなくなります。すでに作成されたエイリアスは引き続き使えます。",
     ghost_alias_expire_confirm_message:
       "本当にこのエイリアスを失効させますか？元に戻すことはできません。猶予期間は{{date}}まで続きます。",
     ghost_alias_max_extension_toast:

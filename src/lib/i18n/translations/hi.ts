@@ -6678,7 +6678,18 @@ export const hi = {
     ghost_alias_expire_now: "खत्म करें",
     ghost_alias_max_extension_toast:
       "यह घोस्ट एलियास पहले ही अपनी 90 दिन की अधिकतम अवधि पर है और इसे और नहीं बढ़ाया जा सकता।",
-    ghost_alias_expire_confirm_title: "यह एलियास खत्म करें?",
+    ghost_alias_expire_confirm_title: "इस घोस्ट उपनाम की अवधि समाप्त करें?",
+    ghost_alias_expire_confirm_message_named:
+      "क्या आप वाकई {{address}} की अवधि समाप्त करना चाहते हैं? आप इसे वापस नहीं पा सकेंगे। इसकी छूट अवधि {{date}} तक चलेगी।",
+    delete_aliases_confirmation_count:
+      "क्या आप वाकई {{count}} उपनाम हटाना चाहते हैं? यह क्रिया वापस नहीं ली जा सकती।",
+    delete_alias_confirmation_named:
+      "क्या आप वाकई {{address}} हटाना चाहते हैं? यह क्रिया वापस नहीं ली जा सकती।",
+    delete_address_confirmation_named:
+      "क्या आप वाकई {{address}} हटाना चाहते हैं? यह क्रिया वापस नहीं ली जा सकती।",
+    alias_directory_delete_title: "निर्देशिका हटाएं",
+    alias_directory_delete_message:
+      "क्या आप वाकई {{address}} निर्देशिका हटाना चाहते हैं? इस पैटर्न के नए पतों पर मेल आना बंद हो जाएगा। पहले बनाए गए उपनाम काम करते रहेंगे।",
     ghost_alias_expire_confirm_message:
       "क्या आप वाकई यह एलियास खत्म करना चाहते हैं? आप इसे वापस नहीं पा सकेंगे। इसकी रियायती अवधि {{date}} तक चलेगी।",
     ghost_alias_expired_grace: "खत्म हो चुका (रियायती अवधि)",

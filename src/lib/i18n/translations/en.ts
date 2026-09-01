@@ -6665,7 +6665,18 @@ export const en: Translations = {
     ghost_alias_expire_now: "Expire",
     ghost_alias_max_extension_toast:
       "This ghost alias is already at its maximum lifetime of 90 days and can't be extended further.",
-    ghost_alias_expire_confirm_title: "Expire this alias?",
+    ghost_alias_expire_confirm_title: "Expire this ghost alias?",
+    ghost_alias_expire_confirm_message_named:
+      "Are you sure you want to expire {{address}}? You won't be able to recover it. Its grace period will run until {{date}}.",
+    delete_aliases_confirmation_count:
+      "Are you sure you want to delete {{count}} aliases? This action cannot be undone.",
+    delete_alias_confirmation_named:
+      "Are you sure you want to delete {{address}}? This action cannot be undone.",
+    delete_address_confirmation_named:
+      "Are you sure you want to delete {{address}}? This action cannot be undone.",
+    alias_directory_delete_title: "Delete Directory",
+    alias_directory_delete_message:
+      "Are you sure you want to delete the {{address}} directory? Mail to new addresses on this pattern stops arriving. Aliases this directory already created keep working.",
     ghost_alias_expire_confirm_message:
       "Are you sure you want to expire this alias? You won't be able to recover it. Its grace period will run until {{date}}.",
     ghost_alias_expired_grace: "Expired (grace period)",

@@ -500,7 +500,7 @@ export function CreateAliasModal({
                   <Select value={domain} onValueChange={handle_domain_change}>
                     <SelectTrigger className="h-10 w-auto shrink-0 rounded-lg border border-edge-secondary bg-transparent text-sm px-3 focus:ring-0 focus:ring-offset-0">
                       <span className="text-txt-muted me-0.5">@</span>
-                      <SelectValue />
+                      <span className="truncate">{domain}</span>
                     </SelectTrigger>
                     <SelectContent>
                       {standard_domains.length > 0 && (

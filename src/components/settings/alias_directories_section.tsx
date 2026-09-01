@@ -95,6 +95,10 @@ export function AliasDirectoriesSection() {
   const [confirm_delete_id, set_confirm_delete_id] = useState<string | null>(
     null,
   );
+
+  const directory_pending_delete = directories.find(
+    (d) => d.id === confirm_delete_id,
+  );
   const turnstile_ref = useRef<TurnstileWidgetRef>(null);
   const turnstile_required = !!TURNSTILE_SITE_KEY;
 
@@ -448,7 +452,13 @@ export function AliasDirectoriesSection() {
           <ConfirmationModal
             confirm_text={t("common.delete")}
             is_open={confirm_delete_id !== null}
-            message={t("common.action_cannot_be_undone")}
+            message={
+              directory_pending_delete
+                ? t("settings.alias_directory_delete_message", {
+                    address: `anything.${directory_pending_delete.label}@${directory_pending_delete.domain}`,
+                  })
+                : t("common.action_cannot_be_undone")
+            }
             on_cancel={() => set_confirm_delete_id(null)}
             on_confirm={() => {
               const target = confirm_delete_id;
@@ -457,7 +467,7 @@ export function AliasDirectoriesSection() {
 
               if (target) void handle_delete(target);
             }}
-            title={t("common.are_you_sure")}
+            title={t("settings.alias_directory_delete_title")}
             variant="danger"
           />
         </div>

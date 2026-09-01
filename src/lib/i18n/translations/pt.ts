@@ -6979,7 +6979,18 @@ export const pt = {
     domain_placeholder: "exemplo.com",
     ghost_alias_active: "Ativo",
     ghost_alias_expire_now: "Expirar agora",
-    ghost_alias_expire_confirm_title: "Expirar este alias?",
+    ghost_alias_expire_confirm_title: "Expirar este alias fantasma?",
+    ghost_alias_expire_confirm_message_named:
+      "Tem certeza de que deseja expirar {{address}}? Você não poderá recuperá-lo. O período de carência vai até {{date}}.",
+    delete_aliases_confirmation_count:
+      "Tem certeza de que deseja excluir {{count}} aliases? Esta ação não pode ser desfeita.",
+    delete_alias_confirmation_named:
+      "Tem certeza de que deseja excluir {{address}}? Esta ação não pode ser desfeita.",
+    delete_address_confirmation_named:
+      "Tem certeza de que deseja excluir {{address}}? Esta ação não pode ser desfeita.",
+    alias_directory_delete_title: "Excluir diretório",
+    alias_directory_delete_message:
+      "Tem certeza de que deseja excluir o diretório {{address}}? As mensagens para novos endereços com esse padrão deixarão de chegar. Os aliases já criados continuam funcionando.",
     ghost_alias_expire_confirm_message:
       "Tem certeza de que deseja expirar este alias? Você não poderá recuperá-lo. O período de carência durará até {{date}}.",
     ghost_alias_max_extension_toast:

@@ -6696,7 +6696,18 @@ export const nl = {
     feature_tracker_protection: "Trackerbeveiliging",
     ghost_alias_active: "Actief",
     ghost_alias_expire_now: "Nu laten verlopen",
-    ghost_alias_expire_confirm_title: "Dit alias laten verlopen?",
+    ghost_alias_expire_confirm_title: "Deze ghost-alias laten verlopen?",
+    ghost_alias_expire_confirm_message_named:
+      "Weet je zeker dat je {{address}} wilt laten verlopen? Je kunt het alias niet herstellen. De respijtperiode loopt tot {{date}}.",
+    delete_aliases_confirmation_count:
+      "Weet je zeker dat je {{count}} aliassen wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.",
+    delete_alias_confirmation_named:
+      "Weet je zeker dat je {{address}} wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.",
+    delete_address_confirmation_named:
+      "Weet je zeker dat je {{address}} wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.",
+    alias_directory_delete_title: "Directory verwijderen",
+    alias_directory_delete_message:
+      "Weet je zeker dat je de directory {{address}} wilt verwijderen? E-mail aan nieuwe adressen met dit patroon komt niet meer aan. Aliassen die al zijn aangemaakt blijven werken.",
     ghost_alias_expire_confirm_message:
       "Weet je zeker dat je dit alias wilt laten verlopen? Je kunt het niet herstellen. De respijtperiode loopt tot {{date}}.",
     ghost_alias_max_extension_toast:

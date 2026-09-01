@@ -7113,7 +7113,18 @@ export const pl = {
     ghost_alias_expires_in: "Wygasa za {{ days }} dni",
     ghost_alias_extend: "Przedłuż",
     ghost_alias_expire_now: "Wygaś teraz",
-    ghost_alias_expire_confirm_title: "Wygasić ten alias?",
+    ghost_alias_expire_confirm_title: "Wygasić ten alias widmo?",
+    ghost_alias_expire_confirm_message_named:
+      "Czy na pewno chcesz wygasić {{address}}? Nie będzie można go odzyskać. Okres karencji potrwa do {{date}}.",
+    delete_aliases_confirmation_count:
+      "Czy na pewno chcesz usunąć aliasy w liczbie {{count}}? Tej operacji nie można cofnąć.",
+    delete_alias_confirmation_named:
+      "Czy na pewno chcesz usunąć {{address}}? Tej operacji nie można cofnąć.",
+    delete_address_confirmation_named:
+      "Czy na pewno chcesz usunąć {{address}}? Tej operacji nie można cofnąć.",
+    alias_directory_delete_title: "Usuń katalog",
+    alias_directory_delete_message:
+      "Czy na pewno chcesz usunąć katalog {{address}}? Poczta na nowe adresy w tym wzorcu przestanie przychodzić. Utworzone już aliasy działają dalej.",
     ghost_alias_expire_confirm_message:
       "Czy na pewno chcesz wygasić ten alias? Nie będzie można go odzyskać. Okres karencji potrwa do {{date}}.",
     ghost_alias_max_extension_toast:

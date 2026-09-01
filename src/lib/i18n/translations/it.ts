@@ -7025,7 +7025,18 @@ export const it = {
     ghost_alias_expires_in: "Scade tra {{ days }} giorni",
     ghost_alias_extend: "Estendi",
     ghost_alias_expire_now: "Scadi",
-    ghost_alias_expire_confirm_title: "Far scadere questo alias?",
+    ghost_alias_expire_confirm_title: "Far scadere questo alias fantasma?",
+    ghost_alias_expire_confirm_message_named:
+      "Vuoi davvero far scadere {{address}}? Non potrai recuperarlo. Il periodo di tolleranza durerà fino al {{date}}.",
+    delete_aliases_confirmation_count:
+      "Vuoi davvero eliminare {{count}} alias? Questa azione non può essere annullata.",
+    delete_alias_confirmation_named:
+      "Vuoi davvero eliminare {{address}}? Questa azione non può essere annullata.",
+    delete_address_confirmation_named:
+      "Vuoi davvero eliminare {{address}}? Questa azione non può essere annullata.",
+    alias_directory_delete_title: "Elimina directory",
+    alias_directory_delete_message:
+      "Vuoi davvero eliminare la directory {{address}}? La posta inviata a nuovi indirizzi di questo schema non arriverà più. Gli alias già creati continuano a funzionare.",
     ghost_alias_expire_confirm_message:
       "Sei sicuro di voler far scadere questo alias? Non potrai recuperarlo. Il periodo di grazia durerà fino al {{date}}.",
     ghost_alias_max_extension_toast:

@@ -6827,7 +6827,18 @@ export const de = {
     ghost_alias_expire_now: "Ablaufen lassen",
     ghost_alias_max_extension_toast:
       "Dieser Ghost-Alias hat bereits seine maximale Lebensdauer von 90 Tagen erreicht und kann nicht weiter verlängert werden.",
-    ghost_alias_expire_confirm_title: "Diesen Alias ablaufen lassen?",
+    ghost_alias_expire_confirm_title: "Diesen Ghost-Alias ablaufen lassen?",
+    ghost_alias_expire_confirm_message_named:
+      "Möchten Sie {{address}} wirklich ablaufen lassen? Der Alias kann danach nicht wiederhergestellt werden. Die Karenzzeit läuft bis zum {{date}}.",
+    delete_aliases_confirmation_count:
+      "Möchten Sie {{count}} Aliasse wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
+    delete_alias_confirmation_named:
+      "Möchten Sie {{address}} wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
+    delete_address_confirmation_named:
+      "Möchten Sie {{address}} wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
+    alias_directory_delete_title: "Verzeichnis löschen",
+    alias_directory_delete_message:
+      "Möchten Sie das Verzeichnis {{address}} wirklich löschen? E-Mails an neue Adressen dieses Musters kommen nicht mehr an. Bereits erstellte Aliasse funktionieren weiterhin.",
     ghost_alias_expire_confirm_message:
       "Möchten Sie diesen Alias wirklich ablaufen lassen? Er kann danach nicht wiederhergestellt werden. Die Karenzzeit läuft bis zum {{date}}.",
     ghost_alias_expired_grace: "Abgelaufen (Kulanzzeit)",

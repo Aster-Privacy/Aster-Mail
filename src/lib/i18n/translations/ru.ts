@@ -6835,7 +6835,18 @@ export const ru = {
     feature_tracker_protection: "Защита от трекеров",
     ghost_alias_active: "Активен",
     ghost_alias_expire_now: "Деактивировать",
-    ghost_alias_expire_confirm_title: "Завершить срок действия этого алиаса?",
+    ghost_alias_expire_confirm_title: "Завершить срок действия этого призрачного алиаса?",
+    ghost_alias_expire_confirm_message_named:
+      "Вы уверены, что хотите завершить срок действия {{address}}? Восстановить его будет невозможно. Льготный период продлится до {{date}}.",
+    delete_aliases_confirmation_count:
+      "Вы уверены, что хотите удалить алиасы в количестве {{count}}? Это действие нельзя отменить.",
+    delete_alias_confirmation_named:
+      "Вы уверены, что хотите удалить {{address}}? Это действие нельзя отменить.",
+    delete_address_confirmation_named:
+      "Вы уверены, что хотите удалить {{address}}? Это действие нельзя отменить.",
+    alias_directory_delete_title: "Удалить каталог",
+    alias_directory_delete_message:
+      "Вы уверены, что хотите удалить каталог {{address}}? Письма на новые адреса этого шаблона перестанут приходить. Уже созданные алиасы продолжат работать.",
     ghost_alias_expire_confirm_message:
       "Вы уверены, что хотите завершить срок действия этого алиаса? Восстановить его будет невозможно. Льготный период продлится до {{date}}.",
     ghost_alias_max_extension_toast:

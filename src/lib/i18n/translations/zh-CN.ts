@@ -5686,7 +5686,18 @@ export const zh_CN = {
     ghost_alias_grace_until: "宽限期至 {{date}}",
     ghost_alias_extend: "延长",
     ghost_alias_expire_now: "立即停用",
-    ghost_alias_expire_confirm_title: "要使此别名失效吗？",
+    ghost_alias_expire_confirm_title: "要使此幽灵别名失效吗？",
+    ghost_alias_expire_confirm_message_named:
+      "确定要使 {{address}} 失效吗？该操作无法恢复。宽限期将持续到 {{date}}。",
+    delete_aliases_confirmation_count:
+      "确定要删除 {{count}} 个别名吗？该操作无法撤销。",
+    delete_alias_confirmation_named:
+      "确定要删除 {{address}} 吗？该操作无法撤销。",
+    delete_address_confirmation_named:
+      "确定要删除 {{address}} 吗？该操作无法撤销。",
+    alias_directory_delete_title: "删除目录",
+    alias_directory_delete_message:
+      "确定要删除目录 {{address}} 吗？发往该模式下新地址的邮件将不再送达。已创建的别名仍可继续使用。",
     ghost_alias_expire_confirm_message:
       "确定要使此别名失效吗？该操作无法恢复。宽限期将持续到 {{date}}。",
     ghost_alias_max_extension_toast:

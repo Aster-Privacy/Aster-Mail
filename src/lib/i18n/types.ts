@@ -6078,6 +6078,12 @@ export interface SettingsTranslations {
   ghost_aliases_compose_cta: string;
   ghost_alias_max_extension_toast: string;
   ghost_alias_expire_confirm_title: string;
+  ghost_alias_expire_confirm_message_named: string;
+  delete_aliases_confirmation_count: string;
+  delete_alias_confirmation_named: string;
+  delete_address_confirmation_named: string;
+  alias_directory_delete_title: string;
+  alias_directory_delete_message: string;
   ghost_alias_expire_confirm_message: string;
   recently_deleted_aliases_title: string;
   recently_deleted_aliases_description: string;

@@ -6779,7 +6779,18 @@ export const fr = {
     ghost_alias_expire_now: "Faire expirer maintenant",
     ghost_alias_max_extension_toast:
       "Cet alias fantôme a atteint sa durée de vie maximale de 90 jours et ne peut plus être prolongé.",
-    ghost_alias_expire_confirm_title: "Faire expirer cet alias ?",
+    ghost_alias_expire_confirm_title: "Faire expirer cet alias fantôme ?",
+    ghost_alias_expire_confirm_message_named:
+      "Voulez-vous vraiment faire expirer {{address}} ? Vous ne pourrez pas le récupérer. Son délai de grâce court jusqu'au {{date}}.",
+    delete_aliases_confirmation_count:
+      "Voulez-vous vraiment supprimer {{count}} alias ? Cette action est irréversible.",
+    delete_alias_confirmation_named:
+      "Voulez-vous vraiment supprimer {{address}} ? Cette action est irréversible.",
+    delete_address_confirmation_named:
+      "Voulez-vous vraiment supprimer {{address}} ? Cette action est irréversible.",
+    alias_directory_delete_title: "Supprimer le répertoire",
+    alias_directory_delete_message:
+      "Voulez-vous vraiment supprimer le répertoire {{address}} ? Les messages envoyés aux nouvelles adresses de ce modèle n'arriveront plus. Les alias déjà créés continuent de fonctionner.",
     ghost_alias_expire_confirm_message:
       "Voulez-vous vraiment faire expirer cet alias ? Vous ne pourrez pas le récupérer. Son délai de grâce durera jusqu'au {{date}}.",
     ghost_alias_expired_grace: "Expiré - période de grâce",
