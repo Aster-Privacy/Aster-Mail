@@ -69,6 +69,7 @@ import {
   type SenderOption,
 } from "@/hooks/use_sender_aliases";
 import { use_ghost_mode } from "@/hooks/use_ghost_mode";
+import { use_ghost_sender_binding } from "@/hooks/use_ghost_sender_binding";
 import {
   get_preferred_sender_id,
   set_preferred_sender_id,
@@ -469,11 +470,11 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
     };
   }, [inputs.to, inputs.cc, recipients.to, recipients.cc]);
 
-  useEffect(() => {
-    if (ghost_mode.is_ghost_enabled && ghost_mode.ghost_sender) {
-      set_selected_sender(ghost_mode.ghost_sender);
-    }
-  }, [ghost_mode.is_ghost_enabled, ghost_mode.ghost_sender]);
+  const select_sender = use_ghost_sender_binding(
+    ghost_mode,
+    selected_sender,
+    set_selected_sender,
+  );
 
   const is_mobile = useMemo(() => {
     if (typeof window !== "undefined") {
@@ -895,7 +896,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
     preferences,
     sender_options,
     selected_sender,
-    set_selected_sender,
+    set_selected_sender: select_sender,
     ghost_mode,
     preferred_sender_id,
     recipients,

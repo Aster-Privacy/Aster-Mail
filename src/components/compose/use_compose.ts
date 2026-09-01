@@ -52,6 +52,7 @@ import {
   use_ghost_mode,
   type UseGhostModeReturn,
 } from "@/hooks/use_ghost_mode";
+import { use_ghost_sender_binding } from "@/hooks/use_ghost_sender_binding";
 import { type UndoSendEvent } from "@/hooks/use_undo_send";
 import { use_i18n } from "@/lib/i18n/context";
 import { fetch_my_badges } from "@/services/api/user";
@@ -428,22 +429,11 @@ export function use_compose({
     }
   }, [sender_options, selected_sender, preferred_sender_id, edit_draft]);
 
-  const pre_ghost_sender_ref = useRef<SenderOption | null>(null);
-
-  useEffect(() => {
-    if (ghost_mode.is_ghost_enabled && ghost_mode.ghost_sender) {
-      if (selected_sender?.id !== ghost_mode.ghost_sender.id) {
-        pre_ghost_sender_ref.current = selected_sender;
-      }
-      set_selected_sender(ghost_mode.ghost_sender);
-
-      return;
-    }
-
-    if (!pre_ghost_sender_ref.current) return;
-    set_selected_sender(pre_ghost_sender_ref.current);
-    pre_ghost_sender_ref.current = null;
-  }, [ghost_mode.is_ghost_enabled, ghost_mode.ghost_sender, selected_sender]);
+  const select_sender = use_ghost_sender_binding(
+    ghost_mode,
+    selected_sender,
+    set_selected_sender,
+  );
 
   const update_input = useCallback(
     (field: keyof InputsState, value: string) => {
@@ -1090,7 +1080,7 @@ export function use_compose({
     sender_options,
     aliases_loading,
     selected_sender,
-    set_selected_sender,
+    set_selected_sender: select_sender,
     preferred_sender_id,
     set_preferred_sender,
     ghost_mode,

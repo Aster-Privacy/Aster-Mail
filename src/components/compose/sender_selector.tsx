@@ -352,8 +352,11 @@ export function SenderSelector({
     options.filter((o) => o.type === "ghost").length,
   );
 
+  const awaiting_created_ghost_ref = useRef(false);
+
   useEffect(() => {
     if (is_open) {
+      awaiting_created_ghost_ref.current = false;
       set_search_query("");
       set_active_index(-1);
       requestAnimationFrame(() => search_input_ref.current?.focus());
@@ -369,7 +372,12 @@ export function SenderSelector({
   useEffect(() => {
     const ghost_count = options.filter((o) => o.type === "ghost").length;
 
-    if (ghost_count > prev_ghost_count.current && is_open) {
+    if (
+      ghost_count > prev_ghost_count.current &&
+      is_open &&
+      awaiting_created_ghost_ref.current
+    ) {
+      awaiting_created_ghost_ref.current = false;
       set_is_open(false);
     }
     prev_ghost_count.current = ghost_count;
@@ -673,7 +681,10 @@ export function SenderSelector({
                         className="w-full px-3 py-2 flex items-center gap-2 text-start transition-colors disabled:opacity-50"
                         disabled={is_creating_ghost}
                         type="button"
-                        onClick={() => on_create_ghost()}
+                        onClick={() => {
+                          awaiting_created_ghost_ref.current = true;
+                          on_create_ghost();
+                        }}
                         onMouseEnter={(e) => {
                           e.currentTarget.style.backgroundColor =
                             "var(--bg-hover)";

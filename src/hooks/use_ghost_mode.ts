@@ -46,6 +46,7 @@ export interface UseGhostModeReturn {
   is_ghost_enabled: boolean;
   is_thread_locked: boolean;
   toggle_ghost_mode: () => void;
+  disable_ghost_mode: () => void;
   ghost_sender: SenderOption | null;
   ghost_expiry_days: number;
   set_ghost_expiry_days: (days: number) => void;
@@ -351,33 +352,40 @@ export function use_ghost_mode(
     [ghost_sender, ghost_expiry_days, t],
   );
 
+  const disable_ghost_mode = useCallback(() => {
+    set_is_ghost_enabled(false);
+    set_error(null);
+
+    if (!is_thread_locked) set_ghost_sender(null);
+  }, [is_thread_locked]);
+
   const toggle_ghost_mode = useCallback(() => {
-    if (is_thread_locked) {
-      if (is_ghost_enabled) {
-        set_is_ghost_enabled(false);
-        set_error(null);
-      } else if (ghost_sender) {
-        set_is_ghost_enabled(true);
-      } else {
-        activate_ghost_mode();
-      }
+    if (is_ghost_enabled) {
+      disable_ghost_mode();
 
       return;
     }
 
-    if (is_ghost_enabled) {
-      set_is_ghost_enabled(false);
-      set_ghost_sender(null);
-      set_error(null);
-    } else {
-      activate_ghost_mode();
+    if (is_thread_locked && ghost_sender) {
+      set_is_ghost_enabled(true);
+
+      return;
     }
-  }, [is_ghost_enabled, is_thread_locked, ghost_sender, activate_ghost_mode]);
+
+    activate_ghost_mode();
+  }, [
+    is_ghost_enabled,
+    is_thread_locked,
+    ghost_sender,
+    activate_ghost_mode,
+    disable_ghost_mode,
+  ]);
 
   return {
     is_ghost_enabled,
     is_thread_locked,
     toggle_ghost_mode,
+    disable_ghost_mode,
     ghost_sender,
     ghost_expiry_days,
     set_ghost_expiry_days: update_ghost_expiry_days,
