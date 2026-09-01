@@ -39,12 +39,24 @@ describe("resolve_signature_placement", () => {
     expect(resolve_signature_placement(null, "above")).toBe("above");
   });
 
-  it("defaults to below", () => {
-    expect(resolve_signature_placement(undefined, undefined)).toBe("below");
+  it("defaults to above", () => {
+    expect(resolve_signature_placement(undefined, undefined)).toBe("above");
   });
 });
 
 describe("assemble_reply_with_placement", () => {
+  it("keeps the signature above the quote when nothing was typed above it", () => {
+    const result = assemble_reply_with_placement(
+      signature,
+      quote,
+      () => "below",
+    );
+
+    expect(result.indexOf("aster-signature")).toBeLessThan(
+      result.indexOf("aster_quote"),
+    );
+  });
+
   it("moves the signature after the quote when placement is below", () => {
     const result = assemble_reply_with_placement(
       `Hello${signature}`,

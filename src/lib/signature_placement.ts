@@ -29,7 +29,7 @@ export function resolve_signature_placement(
   }
   if (preference === "above" || preference === "below") return preference;
 
-  return "below";
+  return "above";
 }
 
 export function assemble_reply_with_placement(
@@ -53,6 +53,10 @@ export function assemble_reply_with_placement(
 
   if (!signature) return reply_body + quoted_content;
 
+  if (!has_body_outside_signature(root)) {
+    return reply_body + quoted_content;
+  }
+
   if (
     resolve_placement(signature.getAttribute("data-aster-signature-id")) !==
     "below"
@@ -64,4 +68,16 @@ export function assemble_reply_with_placement(
   signature.remove();
 
   return root.innerHTML + quoted_content + signature_html;
+}
+
+function has_body_outside_signature(root: HTMLElement): boolean {
+  const clone = root.cloneNode(true) as HTMLElement;
+  const blocks = clone.querySelectorAll('[data-aster-signature="1"]');
+  const signature_clone = blocks[blocks.length - 1];
+
+  if (signature_clone) signature_clone.remove();
+
+  if ((clone.textContent || "").trim().length > 0) return true;
+
+  return !!clone.querySelector("img, table, blockquote, hr");
 }

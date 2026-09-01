@@ -518,7 +518,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   publish_to_wkd: false,
   publish_to_keyservers: false,
   signature_mode: "auto",
-  signature_placement: "below",
+  signature_placement: "above",
   default_signature_id: null,
   profile_color: "#3b82f6",
   email_view_mode: "split",

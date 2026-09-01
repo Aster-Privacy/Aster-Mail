@@ -186,7 +186,7 @@ export function use_signature_section() {
     (preferences.signature_mode as SignatureMode) || "auto",
   );
   const [local_placement, set_local_placement] = useState<"below" | "above">(
-    preferences.signature_placement || "below",
+    preferences.signature_placement || "above",
   );
 
   useEffect(() => {
@@ -194,7 +194,7 @@ export function use_signature_section() {
   }, [preferences.signature_mode]);
 
   useEffect(() => {
-    set_local_placement(preferences.signature_placement || "below");
+    set_local_placement(preferences.signature_placement || "above");
   }, [preferences.signature_placement]);
 
   const load_signatures = useCallback(async () => {
