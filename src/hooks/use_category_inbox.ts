@@ -56,6 +56,7 @@ import {
   get_page_ids,
   get_category_total,
   is_index_settled,
+  get_index_entry_count,
   get_active_tabs,
   is_build_in_progress,
   is_build_stalled,
@@ -520,7 +521,7 @@ export function use_category_inbox(
       abort_ref.current?.abort();
 
       if (ids.length === 0) {
-        const built = is_index_settled();
+        const built = is_index_settled() && get_index_entry_count() > 0;
 
         abort_ref.current = null;
         set_state({
@@ -1059,7 +1060,13 @@ export function use_category_inbox(
     async (ids: string[]): Promise<BulkActionResult> => {
       remove_ids(ids);
 
-      return raw_bulk.bulk_delete(ids);
+      const result = await raw_bulk.bulk_delete(ids);
+
+      if (result.failed_ids.length > 0) {
+        reindex_ids(result.failed_ids);
+      }
+
+      return result;
     },
     [raw_bulk],
   );
