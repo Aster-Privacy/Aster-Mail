@@ -7624,6 +7624,7 @@ export interface AuthTranslations {
   recovery_failed: string;
   add_special_characters: string;
   recovery_codes_start_with_aster: string;
+  recovery_locked_out: string;
   verifying_recovery_code: string;
   recovery_session_expired: string;
   recovering_account_data: string;
