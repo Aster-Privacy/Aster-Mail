@@ -9722,6 +9722,13 @@ export const pt = {
     delete_confirm_title: "Excluir caixa compartilhada",
     access_unavailable: "Esta caixa compartilhada não está mais disponível",
   },
+  review_prompt: {
+    banner_message:
+      "Pode avaliar o Aster Mail no Trustpilot. As avaliações são públicas e esta mensagem aparece apenas uma vez.",
+    banner_open: "Abrir o Trustpilot",
+    banner_dismiss: "Não, obrigado",
+    opens_in_new_tab: "Abre o Trustpilot num novo separador",
+  },
   survey: {
     banner_title: "Ajude a melhorar o Aster Mail",
     banner_message:

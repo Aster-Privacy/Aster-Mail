@@ -57,6 +57,7 @@ export interface TranslationNamespace {
   compose: ComposeTranslations;
   passkeys: PasskeysTranslations;
   shared_mailboxes: SharedMailboxesTranslations;
+  review_prompt: ReviewPromptTranslations;
   survey: SurveyTranslations;
   calendar: CalendarTranslations;
   settings_search: SettingsSearchTranslations;
@@ -8004,6 +8005,13 @@ export interface BadgesTranslations {
   badge_stargazer_description: string;
 }
 
+export interface ReviewPromptTranslations {
+  banner_message: string;
+  banner_open: string;
+  banner_dismiss: string;
+  opens_in_new_tab: string;
+}
+
 export interface SurveyTranslations {
   banner_title: string;
   banner_message: string;
@@ -8072,6 +8080,7 @@ export type TranslationKey =
   | `compose.${keyof ComposeTranslations}`
   | `passkeys.${keyof PasskeysTranslations}`
   | `shared_mailboxes.${keyof SharedMailboxesTranslations}`
+  | `review_prompt.${keyof ReviewPromptTranslations}`
   | `survey.${keyof SurveyTranslations}`
   | `calendar.${keyof CalendarTranslations}`
   | `settings_search.${keyof SettingsSearchTranslations}`;

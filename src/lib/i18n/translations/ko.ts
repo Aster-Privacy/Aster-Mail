@@ -9243,6 +9243,13 @@ export const ko = {
     delete_confirm_title: "공유 메일함 삭제",
     access_unavailable: "이 공유 메일함은 더 이상 사용할 수 없습니다",
   },
+  review_prompt: {
+    banner_message:
+      "Trustpilot에서 Aster Mail을 평가할 수 있습니다. 리뷰는 공개되며 이 안내는 한 번만 표시됩니다.",
+    banner_open: "Trustpilot 열기",
+    banner_dismiss: "괜찮습니다",
+    opens_in_new_tab: "Trustpilot을 새 탭에서 엽니다",
+  },
   survey: {
     banner_title: "Aster Mail 개선에 도움을 주세요",
     banner_message:

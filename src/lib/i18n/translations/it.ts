@@ -4806,8 +4806,7 @@ export const it = {
       "Verrai reindirizzato al nostro fornitore di pagamento sicuro per completare l'acquisto.",
     billing_unavailable:
       "I pagamenti non sono disponibili al momento. Riprova tra qualche minuto.",
-    checkout_rate_limited:
-      "Troppi tentativi. Attendi un minuto, poi riprova.",
+    checkout_rate_limited: "Troppi tentativi. Attendi un minuto, poi riprova.",
     checkout_already_active:
       "Hai già un abbonamento attivo. Aggiorna la pagina per vederlo.",
     plan_not_available:
@@ -9776,6 +9775,13 @@ export const it = {
       "Eliminare {{address}}? L'indirizzo smetterà di ricevere posta e non potrà essere registrato di nuovo.",
     delete_confirm_title: "Elimina casella condivisa",
     access_unavailable: "Questa casella condivisa non è più disponibile",
+  },
+  review_prompt: {
+    banner_message:
+      "Puoi recensire Aster Mail su Trustpilot. Le recensioni sono pubbliche e vedi questo messaggio una sola volta.",
+    banner_open: "Apri Trustpilot",
+    banner_dismiss: "No, grazie",
+    opens_in_new_tab: "Apre Trustpilot in una nuova scheda",
   },
   survey: {
     banner_title: "Aiutaci a migliorare Aster Mail",

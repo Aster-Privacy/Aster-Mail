@@ -4248,10 +4248,8 @@ export const ar = {
       "سيتم توجيهك إلى مزود الدفع الآمن لإتمام عملية الشراء.",
     billing_unavailable:
       "المدفوعات غير متاحة مؤقتًا. أعد المحاولة بعد بضع دقائق.",
-    checkout_rate_limited:
-      "محاولات كثيرة جدًا. انتظر دقيقة ثم أعد المحاولة.",
-    checkout_already_active:
-      "لديك اشتراك نشط بالفعل. حدّث الصفحة لعرضه.",
+    checkout_rate_limited: "محاولات كثيرة جدًا. انتظر دقيقة ثم أعد المحاولة.",
+    checkout_already_active: "لديك اشتراك نشط بالفعل. حدّث الصفحة لعرضه.",
     plan_not_available:
       "هذه الخطة غير متاحة للشراء حاليًا. خطة أخرى أو العودة لاحقًا ستعمل.",
     failed_checkout:
@@ -9565,6 +9563,13 @@ export const ar = {
       "هل تريد حذف {{address}}؟ سيتوقف العنوان عن استقبال البريد ولا يمكن تسجيله مجددًا.",
     delete_confirm_title: "حذف صندوق البريد المشترك",
     access_unavailable: "صندوق البريد المشترك هذا لم يعد متاحًا",
+  },
+  review_prompt: {
+    banner_message:
+      "يمكنك تقييم Aster Mail على Trustpilot. التقييمات علنية، وتظهر لك هذه الرسالة مرة واحدة فقط.",
+    banner_open: "فتح Trustpilot",
+    banner_dismiss: "لا، شكرًا",
+    opens_in_new_tab: "يفتح Trustpilot في علامة تبويب جديدة",
   },
   survey: {
     banner_title: "ساعدنا في تحسين Aster Mail",
