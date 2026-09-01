@@ -96,6 +96,20 @@ async function flush(): Promise<void> {
   });
 }
 
+async function flush_until(is_done: () => boolean): Promise<void> {
+  for (let attempt = 0; attempt < 20; attempt++) {
+    await flush();
+
+    if (is_done()) return;
+  }
+}
+
+async function flush_times(count: number): Promise<void> {
+  for (let attempt = 0; attempt < count; attempt++) {
+    await flush();
+  }
+}
+
 describe("use_tags stale fetch", () => {
   let container: HTMLDivElement;
   let root: Root;
@@ -168,14 +182,14 @@ describe("use_tags stale fetch", () => {
     await act(async () => {
       resolve_new(["fresh"]);
     });
-    await flush();
+    await flush_until(() => names.length > 0);
 
     expect(names).toEqual(["fresh"]);
 
     await act(async () => {
       resolve_old(["stale"]);
     });
-    await flush();
+    await flush_times(8);
 
     expect(names).toEqual(["fresh"]);
   });
