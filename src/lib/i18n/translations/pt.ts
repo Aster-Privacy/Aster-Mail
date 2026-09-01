@@ -840,7 +840,7 @@ export const pt = {
     email_copied: "E-mail copiado",
     message_id_copied: "ID da mensagem copiado",
     draft_deleted: "Rascunho excluído permanentemente",
-    no_recipients: "Pelo menos um destinatário é necessário antes de enviar.",
+    no_recipients: "Sem destinatários",
     sync_complete: "Sincronização concluída",
     sync_timeout:
       "A sincronização está a demorar mais do que o esperado e pode ainda estar a correr.",

@@ -1034,7 +1034,7 @@ export const en: Translations = {
     email_copied: "Email copied",
     message_id_copied: "Message ID copied",
     draft_deleted: "Draft permanently deleted",
-    no_recipients: "At least one recipient is needed before sending.",
+    no_recipients: "No recipients",
     sync_complete: "Sync complete",
     sync_timeout:
       "Sync is taking longer than expected and may still be running.",

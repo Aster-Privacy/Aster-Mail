@@ -906,7 +906,7 @@ export const de = {
     email_copied: "E-Mail kopiert",
     message_id_copied: "Nachrichten-ID kopiert",
     draft_deleted: "Entwurf endgültig gelöscht",
-    no_recipients: "Mindestens ein Empfänger wird vor dem Senden benötigt.",
+    no_recipients: "Keine Empfänger",
     sync_complete: "Synchronisierung abgeschlossen",
     sync_timeout:
       "Die Synchronisierung dauert länger als erwartet und läuft möglicherweise noch.",

@@ -26,6 +26,7 @@ import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { Capacitor } from "@capacitor/core";
 
 import { drop_removed_after } from "@/services/removed_items";
+import { merge_silent_refresh_emails } from "./email_list_helpers/silent_refresh";
 
 import {
   fetch_mail_from_api,
@@ -424,6 +425,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
 
     page_cache_ref.current.clear();
 
+    const start = Date.now();
     const controller = new AbortController();
     const { signal } = controller;
     const active_page = page_ref.current;
@@ -469,15 +471,11 @@ export function use_email_list(current_view: string): UseEmailListReturn {
       state_view_ref.current = current_view;
 
       set_state((prev) => {
-        const selected_ids = new Set(
-          prev.emails.filter((e) => e.is_selected).map((e) => e.id),
+        const emails = merge_silent_refresh_emails(
+          prev.emails,
+          result.emails,
+          start,
         );
-        const emails =
-          selected_ids.size > 0
-            ? result.emails.map((e) =>
-                selected_ids.has(e.id) ? { ...e, is_selected: true } : e,
-              )
-            : result.emails;
 
         return {
           emails,

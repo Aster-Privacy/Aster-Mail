@@ -910,7 +910,7 @@ export const ar = {
     email_copied: "تم نسخ البريد",
     message_id_copied: "تم نسخ معرف الرسالة",
     draft_deleted: "تم حذف المسودة نهائيًا",
-    no_recipients: "مستلم واحد على الأقل لازم قبل الإرسال.",
+    no_recipients: "لا مستلمين",
     sync_complete: "اكتملت المزامنة",
     sync_timeout:
       "يستغرق المزامنة وقتاً أطول من المتوقع وقد تكون لا تزال جارية.",

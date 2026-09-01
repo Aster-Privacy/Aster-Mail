@@ -264,13 +264,23 @@ export const iframe_height_cache = new Map<string, number>();
 export let last_viewer_width = 0;
 export let cache_measure_width = 0;
 
-export function email_viewer_measure_width(): number {
+export function live_viewer_measure_width(): number {
   if (typeof document === "undefined") return 0;
 
   const container = document.querySelector(".email-frame-container");
   const width = container?.clientWidth ?? 0;
 
   if (width > 0) last_viewer_width = width;
+
+  return width;
+}
+
+export function email_viewer_measure_width(): number {
+  if (typeof document === "undefined") return 0;
+
+  const width = live_viewer_measure_width();
+
+  if (width > 0) return width;
   if (last_viewer_width > 0) return last_viewer_width;
 
   return Math.max(400, window.innerWidth - 320);
@@ -282,11 +292,11 @@ export function sync_cache_measure_width(): void {
   const now = typeof performance !== "undefined" ? performance.now() : 0;
 
   if (cache_measure_width > 0 && now - width_checked_at < 250) return;
-  width_checked_at = now;
 
-  const width = email_viewer_measure_width();
+  const width = live_viewer_measure_width();
 
   if (width <= 0) return;
+  width_checked_at = now;
   if (cache_measure_width === 0) {
     cache_measure_width = width;
 

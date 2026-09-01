@@ -951,7 +951,7 @@ export const fr = {
     email_copied: "E-mail copié",
     message_id_copied: "ID du message copié",
     draft_deleted: "Brouillon supprimé définitivement",
-    no_recipients: "Au moins un destinataire est nécessaire avant l'envoi.",
+    no_recipients: "Aucun destinataire",
     sync_complete: "Synchronisation terminée",
     sync_timeout:
       "La synchronisation prend plus de temps que prévu et est peut-être encore en cours.",
@@ -9231,7 +9231,7 @@ export const fr = {
     no_emails_in_pst: "Aucun e-mail trouvé dans le fichier PST",
     no_keys_available: "Aucune clé disponible",
     no_permission: "Permission refusée",
-    no_recipients: "Aucun destinataire",
+    no_recipients: "Au moins un destinataire est nécessaire avant l'envoi.",
     no_valid_emails_csv: "Aucune adresse e-mail valide dans le CSV",
     pst_conversion_required: "Conversion PST requise",
     rate_limited:

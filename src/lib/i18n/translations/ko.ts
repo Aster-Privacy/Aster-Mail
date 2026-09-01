@@ -921,7 +921,7 @@ export const ko = {
     email_copied: "이메일 복사됨",
     message_id_copied: "메시지 ID 복사됨",
     draft_deleted: "임시 저장이 영구 삭제됨",
-    no_recipients: "발송하려면 받는 사람이 최소 한 명 필요합니다.",
+    no_recipients: "받는 사람 없음",
     sync_complete: "동기화 완료",
     sync_timeout: "동기화가 예상보다 오래 걸리며 아직 실행 중일 수 있습니다.",
     session_expired_login:

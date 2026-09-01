@@ -925,7 +925,7 @@ export const nl = {
     email_copied: "E-mail gekopieerd",
     message_id_copied: "Bericht-ID gekopieerd",
     draft_deleted: "Concept permanent verwijderd",
-    no_recipients: "Minstens één ontvanger is nodig voor verzending.",
+    no_recipients: "Geen ontvangers",
     sync_complete: "Synchronisatie voltooid",
     sync_timeout:
       "De synchronisatie duurt langer dan verwacht en is mogelijk nog bezig.",

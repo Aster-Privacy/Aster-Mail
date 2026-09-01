@@ -766,7 +766,7 @@ export const zh_CN = {
     email_copied: "邮箱已复制",
     message_id_copied: "消息 ID 已复制",
     draft_deleted: "草稿已永久删除",
-    no_recipients: "发送前至少需要一位收件人。",
+    no_recipients: "无收件人",
     sync_complete: "同步完成",
     sync_timeout: "同步时间比预期更长，可能仍在运行中。",
     session_expired_login:

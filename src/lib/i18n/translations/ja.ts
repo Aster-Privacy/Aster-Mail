@@ -937,7 +937,7 @@ export const ja = {
     email_copied: "メールをコピーしました",
     message_id_copied: "メッセージIDをコピーしました",
     draft_deleted: "下書きを完全に削除しました",
-    no_recipients: "送信する前に、少なくとも 1 件の宛先が必要です。",
+    no_recipients: "宛先なし",
     sync_complete: "同期完了",
     sync_timeout:
       "同期が予想より時間がかかっており、まだ実行中の可能性があります。",

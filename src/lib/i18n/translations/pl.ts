@@ -941,7 +941,7 @@ export const pl = {
     email_copied: "E-mail skopiowany",
     message_id_copied: "ID wiadomości skopiowany",
     draft_deleted: "Szkic trwale usunięty",
-    no_recipients: "Co najmniej jeden odbiorca jest potrzebny przed wysłaniem.",
+    no_recipients: "Brak odbiorców",
     sync_complete: "Synchronizacja zakończona",
     sync_timeout:
       "Synchronizacja trwa dłużej niż oczekiwano i może jeszcze trwać.",

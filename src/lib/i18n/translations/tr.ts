@@ -939,7 +939,7 @@ export const tr = {
     email_copied: "E-posta kopyalandı",
     message_id_copied: "Mesaj kimliği kopyalandı",
     draft_deleted: "Taslak kalıcı olarak silindi",
-    no_recipients: "Gönderilebilmesi için en az bir alıcıya ihtiyaç var.",
+    no_recipients: "Alıcı yok",
     sync_complete: "Senkronizasyon tamamlandı",
     sync_timeout:
       "Senkronizasyon beklenenden uzun sürüyor ve hâlâ devam ediyor olabilir.",

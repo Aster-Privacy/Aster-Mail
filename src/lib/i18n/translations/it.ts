@@ -951,7 +951,7 @@ export const it = {
     email_copied: "Email copiata",
     message_id_copied: "ID messaggio copiato",
     draft_deleted: "Bozza eliminata definitivamente",
-    no_recipients: "Almeno un destinatario è necessario prima di inviare.",
+    no_recipients: "Nessun destinatario",
     sync_complete: "Sincronizzazione completata",
     sync_timeout:
       "La sincronizzazione impiega più tempo del previsto e potrebbe essere ancora in corso.",

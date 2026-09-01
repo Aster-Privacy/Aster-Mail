@@ -946,7 +946,7 @@ export const es = {
     email_copied: "Correo copiado",
     message_id_copied: "ID de mensaje copiado",
     draft_deleted: "Borrador eliminado permanentemente",
-    no_recipients: "Añade al menos un destinatario antes de enviar.",
+    no_recipients: "Sin destinatarios",
     sync_complete: "Sincronización completada",
     sync_timeout:
       "La sincronización tarda más de lo esperado y puede estar todavía en marcha.",
@@ -9106,7 +9106,7 @@ export const es = {
     no_emails_in_pst: "No se encontraron correos en el archivo PST",
     no_keys_available: "No hay claves disponibles",
     no_permission: "Permiso denegado",
-    no_recipients: "Sin destinatarios",
+    no_recipients: "Añade al menos un destinatario antes de enviar.",
     no_valid_emails_csv: "No hay correos válidos en el CSV",
     pst_conversion_required: "Se requiere conversión PST",
     rate_limited:
