@@ -22,7 +22,7 @@ import { use_encryption } from "@/components/settings/hooks/use_encryption";
 import { EncryptionFlowBanner } from "@/components/settings/encryption/encryption_flow_banner";
 import { KeyRotationPanel } from "@/components/settings/encryption/key_rotation_panel";
 import { EncryptionSettingsForm } from "@/components/settings/encryption/encryption_settings_form";
-import { StorageFormatPicker } from "@/components/settings/encryption/storage_format_picker";
+import { StorageFormatPicker } from "@/components/settings/storage/storage_format_picker";
 import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
 
 export function EncryptionSection() {
