@@ -22,6 +22,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 vi.mock("@/services/api/billing", () => ({
   get_available_plans: vi.fn(),
+  get_current_plan: vi.fn(),
 }));
 
 vi.mock("@/services/api/client", () => ({
@@ -35,7 +36,7 @@ import {
   FREE_MAX_ATTACHMENT_SIZE,
 } from "./attachment_limits";
 
-import { get_available_plans } from "@/services/api/billing";
+import { get_available_plans, get_current_plan } from "@/services/api/billing";
 
 const PAID_LIMIT = 250 * 1024 * 1024;
 
@@ -45,8 +46,14 @@ describe("ensure_attachment_limits", () => {
     clear_attachment_limits_cache();
     vi.mocked(get_available_plans).mockResolvedValue({
       data: {
-        plans: [{ is_current: true, max_attachment_size_bytes: PAID_LIMIT }],
+        plans: [
+          { code: "free", max_attachment_size_bytes: FREE_MAX_ATTACHMENT_SIZE },
+          { code: "nova", max_attachment_size_bytes: PAID_LIMIT },
+        ],
       },
+    } as never);
+    vi.mocked(get_current_plan).mockResolvedValue({
+      data: { plan: { code: "nova", max_attachment_size_bytes: PAID_LIMIT } },
     } as never);
   });
 
@@ -62,6 +69,12 @@ describe("ensure_attachment_limits", () => {
     await ensure_attachment_limits();
     await ensure_attachment_limits();
 
-    expect(vi.mocked(get_available_plans)).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(get_current_plan)).toHaveBeenCalledTimes(1);
+  });
+
+  it("ignores the is_current flag the server never sends", async () => {
+    await ensure_attachment_limits();
+
+    expect(get_max_attachment_size()).toBe(PAID_LIMIT);
   });
 });

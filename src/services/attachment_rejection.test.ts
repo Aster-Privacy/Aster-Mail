@@ -22,6 +22,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 vi.mock("@/services/api/billing", () => ({
   get_available_plans: vi.fn(),
+  get_current_plan: vi.fn(),
 }));
 
 vi.mock("@/services/api/client", () => ({
@@ -38,7 +39,7 @@ import {
 } from "./attachment_limits";
 import { describe_oversized_file } from "./attachment_rejection";
 
-import { get_available_plans } from "@/services/api/billing";
+import { get_available_plans, get_current_plan } from "@/services/api/billing";
 
 const PROD_PLANS = [
   { code: "free", max_attachment_size_bytes: 26214400, is_current: false },
@@ -63,6 +64,11 @@ async function load_plans(current_code: string) {
         ...plan,
         is_current: plan.code === current_code,
       })),
+    },
+  } as never);
+  vi.mocked(get_current_plan).mockResolvedValue({
+    data: {
+      plan: PROD_PLANS.find((plan) => plan.code === current_code),
     },
   } as never);
 

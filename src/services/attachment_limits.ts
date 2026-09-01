@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { get_available_plans } from "@/services/api/billing";
+import { get_available_plans, get_current_plan } from "@/services/api/billing";
 import { api_client } from "@/services/api/client";
 import { ignore_error } from "@/lib/ignore_error";
 
@@ -110,10 +110,12 @@ export async function refresh_attachment_limits(
 
   in_flight = (async () => {
     try {
-      const response = await get_available_plans();
+      const [response, current_response] = await Promise.all([
+        get_available_plans(),
+        get_current_plan(),
+      ]);
       const plans = response.data?.plans ?? [];
-      const current = plans.find((plan) => plan.is_current);
-      const limit = current?.max_attachment_size_bytes;
+      const limit = current_response.data?.plan.max_attachment_size_bytes;
 
       if (typeof limit === "number" && limit > 0) {
         cached_max_bytes = limit;

@@ -192,6 +192,17 @@ export async function get_available_plans() {
   return api_client.get<AvailablePlansResponse>("/payments/v1/plans");
 }
 
+export interface CurrentPlanResponse {
+  plan: AvailablePlan;
+  subscription_state: string;
+  started_at: string;
+  expires_at: string | null;
+}
+
+export async function get_current_plan() {
+  return api_client.get<CurrentPlanResponse>("/payments/v1/plans/current");
+}
+
 export interface CurrencyRatesResponse {
   base: string;
   rates: Record<string, number>;
