@@ -1954,6 +1954,20 @@ export const zh_CN = {
       "{{member}} 超出了家庭存储池的容量。仅剩 {{avail}} 可用，请选择更小的数值。",
     fam_org_action_failed: "出了点问题，请重试。",
     fam_org_invite_exists: "该邮箱地址已有一个待处理的邀请。",
+    plan_desc_ghost_aliases: "使用随机地址发送，隐藏你的真实身份",
+    plan_desc_advanced_aliases: "头像、发件人锁定和按别名设置的规则",
+    plan_desc_catch_all: "接收发往你域名下任意地址的邮件",
+    plan_desc_apps: "通过 Aster Bridge 连接任意邮件应用",
+    plan_desc_vanguard: "针对钓鱼和追踪器的额外防护",
+    plan_desc_smart_folders: "按你的规则自动归类的文件夹",
+    plan_desc_folder_lock: "用第二道密码锁定私密文件夹",
+    plan_desc_external_accounts: "在 Aster 中查看你的其他邮箱",
+    plan_desc_alias_directory: "邮件到达时自动创建新别名",
+    plan_desc_multi_accounts: "同时保持多个账户登录",
+    plan_desc_instant_alias_delete: "删除别名无需等待 30 天",
+    plan_desc_encrypted_exports: "将邮件下载为加密存档",
+    plan_desc_support_dedicated: "与了解你账户的专属人员实时聊天",
+    plan_desc_early_access: "抢先体验新功能",
     plan_feat_storage_50: "50 GB 加密存储",
     plan_feat_storage_500: "500 GB 加密存储",
     plan_feat_storage_5tb: "5 TB 加密存储",
@@ -2303,6 +2317,7 @@ export const zh_CN = {
       "你正在使用 {{plan_name}} 套餐。可在“家庭”标签页中管理成员、存储空间和设置。",
     go_to_family_settings: "前往家庭设置",
     category_advanced_aliases: "高级别名",
+    feature_extra_alias_domains: "额外的别名域名",
     feature_alias_sender_pinning: "发件人锁定",
     feature_per_alias_rules: "针对每个别名的规则（屏蔽与过滤）",
     feature_alias_stats_restore: "别名统计与恢复",
@@ -2580,6 +2595,8 @@ export const zh_CN = {
     alias_feature_locked_contacts: "升级你的套餐以使用反向别名联系人。",
     alias_feature_locked_sender_pinning: "升级你的套餐以使用发件人锁定。",
     requires_plan: "需要 {{plan}}",
+    alias_domain_group_extra: "附加域名",
+    alias_domain_requires_plan: "此域名适用于 {{plan}} 及以上套餐。",
     alias_feature_locked_view_plans: "查看套餐",
     alias_feature_locked_upgrade_plan: "升级套餐",
     alias_feature_locked_upgrade_cta: "升级",
@@ -3039,12 +3056,15 @@ export const zh_CN = {
     fam_org_time_today: "今天",
     fam_org_time_one_day_ago: "1 天前",
     fam_org_grace_banner: "您的家庭套餐将于 {{date}} 到期 - 续订以保留访问权限",
+    fam_org_grace_banner_expired:
+      "您的家庭套餐已于 {{date}} 到期 - 续订以恢复访问权限",
     fam_org_grace_banner_soon: "您的家庭套餐即将到期 - 续订以保留访问权限",
     fam_org_cancelled_banner: "您的家庭套餐已取消 - 成员将失去访问权限",
     fam_org_manage_billing: "管理账单",
     fam_org_heading: "家庭",
     fam_org_status_active: "已启用",
     fam_org_status_expiring: "即将到期",
+    fam_org_status_expired: "已到期",
     fam_org_status_cancelled: "已取消",
     fam_org_members_count:
       "已使用 {{max}} 个席位中的 {{used}} 个 · {{count}} 个可用",
@@ -3682,6 +3702,21 @@ export const zh_CN = {
     continue_to_checkout: "继续结账",
     redirect_payment_description:
       "您将被重定向到我们的安全支付提供商以完成购买。",
+    billing_unavailable: "支付暂时不可用。请几分钟后重试。",
+    checkout_rate_limited: "尝试次数过多。请等待一分钟后重试。",
+    checkout_already_active: "你已有有效订阅。刷新页面即可查看。",
+    checkout_session_mismatch: "这个会话在其他网络或浏览器上开始。请退出登录后重新登录再试。",
+    checkout_family_group_member: "你已经在一个家庭群组中。请先退出该群组，再创建新的群组。",
+    checkout_family_plan_active: "你的家庭方案已经生效。刷新页面即可查看。",
+    checkout_crypto_open_invoice_limit: "你有太多未完成的加密货币账单。请先完成或取消其中一个，然后重试。",
+    checkout_crypto_active_card: "用加密货币付款前，请先取消银行卡订阅。",
+    checkout_unpaid_subscription: "上一笔账单尚未支付。请在设置的账单中付清，然后重试。",
+    checkout_pending_cancellation: "你的订阅已设置为取消。更换方案前，请重新开启自动续订。",
+    checkout_duplicate_subscription: "你已经有这项订阅。刷新页面即可查看。",
+    checkout_provider_unreachable: "支付服务商暂无响应。请等待一分钟后重试，未产生任何扣款。",
+    checkout_sca_required: "这笔付款需要你的银行确认。请按银行的提示操作，然后重试。",
+    checkout_card_declined: "你的银行拒绝了这张卡。请换一张卡，或联系你的银行。",
+    checkout_collection_failed: "未能完成收款。请在设置的账单中更新支付方式，然后重试。",
     plan_not_available: "这个方案目前无法购买，换一个方案或稍后再来看看可以。",
     failed_checkout:
       "我们暂时无法打开结算页面，再试一次应该可以。您的账单没有变化。",
@@ -4322,6 +4357,13 @@ export const zh_CN = {
       "将这些 DNS 记录添加到您的域名注册商以验证所有权并启用邮件：",
     domains_description:
       "添加您自己的域名以创建地址并从您的域名发送邮件。已验证的域名将显示在别名域名选择器中。",
+    domains_page_description:
+      "在 Aster Mail 中使用您自己的域名。添加您已拥有的域名，或购买一个新域名，Aster Mail 会为您设置 DNS。已验证的域名将显示在别名域名选择器中。",
+    add_or_buy_domain: "添加或购买域名",
+    add_domain_you_own: "添加您已拥有的域名",
+    buy_new_domain: "购买新域名",
+    search_domains_placeholder: "搜索您的域名",
+    no_matching_domains: "没有与您的搜索匹配的域名。",
     domains_send_receive_description:
       "添加您自己的域名以收发邮件。您需要访问域名的 DNS 设置才能完成验证。",
     verification_failed_retry: "验证失败，请重试。",
@@ -4797,6 +4839,8 @@ export const zh_CN = {
     subscribe: "订阅",
     free_plan_includes: "3个别名 · 1个自定义域名",
     upgrade_for_more: "升级以解锁更多存储空间、别名和功能",
+    free_upgrade_title: "使用 {{plan}} 获得更多",
+    free_upgrade_price_note: "套餐低至每月 {{price}}。",
     upgrade_for_more_short: "解锁更多",
     plans_coming_soon: "套餐订阅即将推出，敬请期待！",
     free_plan_description:
@@ -4895,6 +4939,8 @@ export const zh_CN = {
     storage_breakdown_empty: "你的存储空间还没有任何内容。",
     storage_col_category: "类别",
     storage_col_items: "项目数",
+    storage_items_count: "{{count}} 项",
+    storage_items_count_one: "{{count}} 项",
     storage_col_size: "大小",
     storage_col_share: "占比",
     storage_capacity_title: "容量",
@@ -4945,6 +4991,16 @@ export const zh_CN = {
     promo_applying: "应用中...",
     promo_apply: "应用",
     checkout_title: "完成购买",
+    checkout_term_title: "订阅时长",
+    checkout_term_save: "省 {{amount}}",
+    checkout_term_per_month: "{{amount}}/月",
+    checkout_term_crypto_only: "仅限加密货币",
+    checkout_card_term_unavailable: "使用加密货币付款时可选择 2 年期。",
+    checkout_term_total: "共 {{amount}}",
+    checkout_method_description: "选择你的付款方式。",
+    checkout_method_card_note: "自动续订，直到你取消为止。",
+    checkout_method_crypto_note: "按所选时长一次性付款，不会自动续订。",
+    checkout_method_title: "支付方式",
     checkout_description: "输入付款信息以完成订阅。",
     autorenew_notice:
       "订阅将按 {amount} 自动续订，直至你取消。若要避免下次扣款，请在续订日期前于“设置”中取消。",
@@ -5343,7 +5399,7 @@ export const zh_CN = {
     domain_purchase_discount_tooltip:
       "注册商提供的首年优惠价。此后每年以 {{price}} 续费。",
     domain_purchase_purchased_info:
-      "这些是您通过 Aster 购买的域名。我们会以 WHOIS 隐私保护为您注册,自动配置全部邮件 DNS,您可以立即在上面创建地址。每个域名仅在您批准时才会续费。根据 ICANN 规定，新注册的域名在前 60 天内无法转出，之后由我们的客服团队协助转移到其他注册商。",
+      "这些是您通过 Aster 购买的域名。我们会以 WHOIS 隐私保护为您注册,自动配置全部邮件 DNS,您可以立即在上面创建地址。每个域名仅在您批准时才会续费。如果您以后想把域名转移到其他注册商，我们的客服团队会协助完成转移。根据 ICANN 规定，新注册的域名在前 60 天内无法转出。",
     domain_purchase_dont_have: "还没有域名?点击这里购买。",
     domain_purchase_sort_price: "价格从低到高",
     domain_purchase_leave_title: "离开 Aster Mail？",
@@ -5353,6 +5409,8 @@ export const zh_CN = {
     domain_purchase_purchased_expires: "{{date}} 到期",
     domain_purchase_purchased_in_progress: "正在设置...",
     domain_purchase_purchased_awaiting: "等待付款",
+    domain_purchase_awaiting_note:
+      "我们尚未收到您的付款。完成结账即可完成订单，或者关闭此窗口，稍后在已购域名中付款。",
     domain_purchase_done_warmup:
       "请注意：您域名的 DNS 可能需要最多一小时才能在互联网上传播，Gmail 等服务商起初会谨慎对待全新域名。随着域名积累历史，送达率会逐步提升。",
     domain_purchase_create_first_address: "创建您的第一个地址",
@@ -5952,6 +6010,9 @@ export const zh_CN = {
     or_pay_with_card: "或使用信用卡支付",
     cashapp_redirect_notice: "您将被重定向到 Cash App 以完成支付。",
     crypto_pay_button: "用加密货币支付",
+    crypto_summary_plan: "套餐",
+    crypto_summary_addon: "附加项",
+    crypto_summary_length: "时长",
     crypto_modal_title: "加密货币支付",
     crypto_modal_price: "金额：{{amount}}",
     crypto_modal_confirm: "确认支付",
@@ -5983,7 +6044,7 @@ export const zh_CN = {
       "此付款正在处理中。本页面会自动更新，你无需做任何操作。",
     crypto_native_copy_invoice_ref: "复制账单参考号",
     crypto_native_no_wallet_handler:
-      "未打开任何钱包应用。请复制上面的地址并粘贴到你的钱包中。",
+      "没有钱包应用打开。请复制地址并粘贴到你的钱包中。",
     crypto_native_copied: "已复制到剪贴板",
     crypto_native_network_warning:
       "仅可通过 {{chain}} 网络发送 {{coin}}。发送其他资产或使用其他网络将导致资金损失。",
@@ -6002,12 +6063,14 @@ export const zh_CN = {
     crypto_native_manual_review_body:
       "您的付款需要一次快速的人工核对。我们会尽快为您的账户入账。",
     crypto_native_transaction: "交易",
-    crypto_native_refund_notice: "多付的金额和退款将计入您的 Aster 账户余额。",
+    crypto_native_refund_notice:
+      "如果你支付的金额超过应付金额，多出的部分会以美元计入你的 Aster 账户余额。你也可以要求我们退款。",
     crypto_native_cancel_invoice: "取消此账单",
     crypto_native_cancel_failed: "无法取消此账单。",
     crypto_native_cancel_has_payment: "此账单已收到付款，因此无法再取消。",
     crypto_native_paid_title: "一切就绪",
     crypto_native_paid_body: "您的套餐已生效。谢谢！",
+    crypto_native_paid_body_addon: "您的存储扩容已生效。谢谢！",
     crypto_native_go_to_inbox: "前往收件箱",
     crypto_native_view_billing: "返回账单",
     crypto_native_invoice_cancelled: "发票已取消",
@@ -6018,6 +6081,18 @@ export const zh_CN = {
       "此付款已取消，未产生任何扣款。您可以随时发起新的付款。",
     crypto_native_start_new_payment: "发起新的付款",
     crypto_native_check_now: "立即检查",
+    crypto_native_checking: "正在检查",
+    crypto_native_check_no_change: "我们还没有看到你的付款，但会继续查看。",
+    crypto_native_check_updated: "付款状态已更新：{{status}}",
+    crypto_native_check_failed:
+      "无法连接到网络。你的付款不受影响。请稍后再试。",
+    crypto_native_last_checked: "上次检查时间 {{time}}",
+    crypto_native_copy_amount: "复制金额",
+    crypto_native_copy_address: "复制地址",
+    crypto_native_verify_address:
+      "发送前请将钱包屏幕上的地址与此处显示的地址逐字核对。我们只会为你的订单监控这个地址。",
+    crypto_native_fee_headroom:
+      "如果你的钱包会从你输入的金额中扣除网络手续费，请多加一点，确保全额到账。",
     crypto_native_expired_do_not_send:
       "请勿向此账单中的地址转账。现在发送的资金需要人工审核后才能入账。",
     crypto_native_not_found: "未找到此账单",
@@ -6040,12 +6115,14 @@ export const zh_CN = {
     crypto_native_cancel_confirm_title: "要取消此账单吗？",
     crypto_native_cancel_confirm_body:
       "系统将停止监控该付款地址。取消后请勿再向该地址转账。您可以随时发起新的付款。",
-    crypto_native_hint_awaiting:
-      "请向上方地址发送准确金额。我们会自动监控网络。",
-    crypto_native_hint_detected: "您的交易已进入网络，正在等待被打包进区块。",
+    crypto_native_hint_awaiting: "我们会自动在网络上查找你的交易。",
+    crypto_native_hint_detected: "你的交易已进入网络，正在等待被打包进区块。",
     crypto_native_hint_confirming:
-      "正在网络上确认。确认完成后您的套餐将立即生效。",
-    crypto_native_hint_credited: "付款已确认，您的套餐已生效。",
+      "正在等待网络确认。确认完成后你的方案即会启用。",
+    crypto_native_hint_confirming_addon:
+      "正在等待网络确认。确认完成后，你的存储扩容即刻生效。",
+    crypto_native_hint_credited: "已确认。你的方案已启用。",
+    crypto_native_hint_credited_addon: "已确认。你的存储扩容已生效。",
     crypto_native_time_remaining: "剩余时间",
     crypto_native_expiring_soon:
       "剩余不到 5 分钟。如果在款项到达前此时段结束，你可以按当前汇率重新发起一笔付款。",
@@ -6281,6 +6358,9 @@ export const zh_CN = {
     save_annually_hint: "选择年付可省 20%",
     billing_checkout_cancelled:
       "结账已取消。你的账户不受影响，也没有产生任何扣款。你随时可以在设置中重试。",
+    upgrade_resume_title: "完成您的升级",
+    upgrade_resume_description:
+      "您在付款前离开了结账页面。可以从上次中断的地方继续。",
     referral_your_discount: "你的折扣",
     referral_discount_active: "有效",
     referral_discount_redeemed: "已使用",
@@ -6379,23 +6459,23 @@ export const zh_CN = {
     domain_provider_detected: "你的 DNS 由 {{provider}} 管理",
     domain_provider_open: "打开 {{provider}}",
     crypto_rate_notice:
-      "当你选择币种时，我们会锁定汇率并显示需要发送的确切金额。该汇率在比特币和门罗币上保持 60 分钟，在以太坊网络上保持 30 分钟。在你亲自发送付款之前，不会扣取任何费用。",
+      "当你选择币种时，我们会锁定汇率并显示需要发送的确切金额。该汇率在比特币上保持 60 分钟，在以太坊网络上保持 30 分钟。在你亲自发送付款之前，不会扣取任何费用。",
     crypto_exchange_warning:
       "请使用你自己掌控的钱包付款。如果从交易所或兑换服务转账，付款将来自并非你本人的地址，支付处理方无法将其与你的订单匹配。请在结账页面显示的时间内完成付款。",
     crypto_energy_toggle: "这些网络的能源消耗",
     crypto_energy_btc:
-      "比特币：每笔交易估计消耗 700 至 1400 千瓦时，排放 300 至 700 千克二氧化碳当量。来源：Cambridge Centre for Alternative Finance，Cambridge Bitcoin Electricity Consumption Index，2026 年。",
+      "比特币：每笔交易估计消耗 700 至 1400 千瓦时。来源：剑桥比特币电力消耗指数，2026 年。",
     crypto_energy_eth:
-      "以太坊：每笔交易估计消耗 0.01 至 0.05 千瓦时，排放数克二氧化碳当量，比 2022 年前的工作量证明时期低约 99.9%。来源：以太坊基金会能源消耗页面，引用 CCRI，2026 年。",
+      "以太坊：每笔交易估计消耗 0.01 至 0.05 千瓦时；在以太坊上结算的网络（如 Base）消耗更少。来源：以太坊基金会援引 CCRI，2026 年。",
     crypto_energy_l2:
       "像 Base 这样把交易打包并在以太坊上统一结算的网络，其消耗明显低于一笔以太坊主网交易。我们没有可以背书的一手来源给出单一数字，因此不公布具体数值。",
     crypto_energy_xmr:
       "门罗币：采用工作量证明，使用通用处理器挖矿。我们没有找到可以背书的当前数据，因此不公布数值。",
     crypto_energy_caveat:
-      "这些是第三方估算，并非我们的实测数据。用网络的总能耗除以交易笔数来分摊能耗是一种有争议的做法：比特币的能耗由挖矿驱动，而不取决于人们做了多少笔交易，因此多一笔交易并不会按比例增加能耗。我们公布这些数据，供你自行判断。我们不对任何付款方式作出环保声明，也不代表你进行任何碳抵消。",
+      "这些是第三方估算值，并非我们的实测数据，且按笔计算的数字存在争议。我们不对任何付款方式作出环保声明。",
     crypto_native_rate_value: "使用的汇率：1 {{coin}} = {{rate}}",
     crypto_native_commit_notice:
-      "选择币种即创建带付款义务的订单并锁定汇率。你需要自己从钱包中发送资金完成付款。",
+      "选择一种币种即可锁定汇率。然后从你自己的钱包发送付款。",
     feature_1000_emails: "1,000 封邮件",
     fam_kids_tab: "儿童",
     fam_kids_title: "为儿童保留的地址",
@@ -7373,6 +7453,7 @@ export const zh_CN = {
     keep_signed_in: "保持登录状态",
     secure_devices_only: "仅在安全设备上",
     back_to_inbox: "返回收件箱",
+    back_to_link_device: "返回“关联设备”",
     enter_password_placeholder: "输入密码",
     authenticating: "验证中...",
     fetching_auth_data: "获取验证数据中...",
@@ -7515,6 +7596,8 @@ export const zh_CN = {
     please_enter_email_address: "这里需要您的邮箱地址。",
     please_enter_recovery_code: "这里需要您的一个恢复码。",
     invalid_recovery_code: "这个恢复码不匹配，从您保存的列表中换一个应该可以。",
+    recovery_locked_out:
+      "此账户的恢复尝试次数过多。你可以在 {{time}} 后重试。你的恢复码均未被使用，所以仍然全部有效。",
     invalid_backup_code:
       "这个备用码不匹配。每个备用码只能使用一次，请试试列表中下一个未使用的备用码。",
     new_password_placeholder: "新密码",
@@ -7695,6 +7778,14 @@ export const zh_CN = {
     link_device_confirming: "正在关联设备...",
     link_device_cancel: "取消",
     link_device_desktop: "桌面应用",
+    link_device_signed_in_as: "当前登录账号",
+    link_device_change_account: "切换账号",
+    link_device_choose_account: "选择账号",
+    link_device_choose_account_description: "以关联桌面应用",
+    link_device_choose_account_note: "您的加密密钥始终保存在您的设备上。",
+    link_device_use_another_account: "使用其他账号",
+    link_device_use_this_account: "使用此账号",
+    link_device_other_accounts: "切换到其他账号",
     link_device_success: "设备已关联",
     link_device_success_description: "您的桌面应用已关联。您可以关闭此标签页。",
     link_device_invalid_code:
@@ -8521,6 +8612,13 @@ export const zh_CN = {
       "删除 {{address}}？该地址将不再接收邮件，且无法重新注册。",
     delete_confirm_title: "删除共享邮箱",
     access_unavailable: "此共享邮箱已不可用",
+  },
+  review_prompt: {
+    banner_message:
+      "你可以在 Trustpilot 上评价 Aster Mail。评价是公开的，此提示只显示一次。",
+    banner_open: "打开 Trustpilot",
+    banner_dismiss: "暂不需要",
+    opens_in_new_tab: "在新标签页中打开 Trustpilot",
   },
   survey: {
     banner_title: "帮助我们改进 Aster Mail",

@@ -2072,6 +2072,20 @@ export const ko = {
       "{{member}}는 가족 풀 용량을 초과합니다. {{avail}}만 사용할 수 있습니다. 더 작은 값을 선택하세요.",
     fam_org_action_failed: "문제가 발생했습니다. 다시 시도해 주세요.",
     fam_org_invite_exists: "이 이메일 주소로 보낸 초대가 이미 대기 중입니다.",
+    plan_desc_ghost_aliases: "신원을 감추는 임의 주소로 보냅니다",
+    plan_desc_advanced_aliases: "아바타, 발신자 고정, 별칭별 규칙",
+    plan_desc_catch_all: "내 도메인의 모든 주소로 온 메일을 받습니다",
+    plan_desc_apps: "Aster Bridge로 원하는 메일 앱을 연결합니다",
+    plan_desc_vanguard: "피싱과 추적기에 대한 추가 방어",
+    plan_desc_smart_folders: "규칙에 따라 스스로 채워지는 폴더",
+    plan_desc_folder_lock: "비공개 폴더를 두 번째 비밀번호로 잠급니다",
+    plan_desc_external_accounts: "다른 메일함을 Aster 안에서 읽습니다",
+    plan_desc_alias_directory: "메일이 도착하면 새 별칭이 만들어집니다",
+    plan_desc_multi_accounts: "여러 계정에 동시에 로그인한 상태를 유지합니다",
+    plan_desc_instant_alias_delete: "30일을 기다리지 않고 별칭을 삭제합니다",
+    plan_desc_encrypted_exports: "메일을 암호화된 보관 파일로 내려받습니다",
+    plan_desc_support_dedicated: "내 계정을 아는 담당자와의 실시간 채팅",
+    plan_desc_early_access: "새 기능을 누구보다 먼저 사용해 보세요",
     plan_feat_storage_50: "50GB 암호화 저장 공간",
     plan_feat_storage_500: "500GB 암호화 저장 공간",
     plan_feat_storage_5tb: "5TB 암호화 저장 공간",
@@ -2448,6 +2462,7 @@ export const ko = {
       "{{plan_name}} 요금제를 사용 중입니다. 가족 탭에서 구성원, 저장 공간, 설정을 관리하세요.",
     go_to_family_settings: "가족 설정으로 이동",
     category_advanced_aliases: "고급 별칭",
+    feature_extra_alias_domains: "추가 별칭 도메인",
     feature_alias_sender_pinning: "발신자 고정",
     feature_per_alias_rules: "별칭별 규칙 (차단 및 필터)",
     feature_alias_stats_restore: "별칭 통계 및 복원",
@@ -2758,6 +2773,8 @@ export const ko = {
     alias_feature_locked_sender_pinning:
       "발신자 고정을 사용하려면 요금제를 업그레이드하세요.",
     requires_plan: "{{plan}} 필요",
+    alias_domain_group_extra: "추가 도메인",
+    alias_domain_requires_plan: "이 도메인은 {{plan}} 플랜 이상에서 사용할 수 있습니다.",
     alias_feature_locked_view_plans: "요금제 보기",
     alias_feature_locked_upgrade_plan: "요금제 업그레이드",
     alias_feature_locked_upgrade_cta: "업그레이드",
@@ -3254,6 +3271,8 @@ export const ko = {
     fam_org_time_one_day_ago: "1일 전",
     fam_org_grace_banner:
       "가족 요금제가 {{date}}에 만료됩니다 - 계속 이용하려면 갱신하세요",
+    fam_org_grace_banner_expired:
+      "가족 요금제가 {{date}}에 만료되었습니다 - 다시 이용하려면 갱신하세요",
     fam_org_grace_banner_soon:
       "가족 요금제가 곧 만료됩니다 - 계속 이용하려면 갱신하세요",
     fam_org_cancelled_banner:
@@ -3262,6 +3281,7 @@ export const ko = {
     fam_org_heading: "가족",
     fam_org_status_active: "활성",
     fam_org_status_expiring: "만료 예정",
+    fam_org_status_expired: "만료됨",
     fam_org_status_cancelled: "취소됨",
     fam_org_members_count:
       "좌석 {{max}}개 중 {{used}}개 사용 중 · 사용 가능 {{count}}개",
@@ -4032,6 +4052,30 @@ export const ko = {
     continue_to_checkout: "결제 진행",
     redirect_payment_description:
       "구매를 완료하기 위해 안전한 결제 제공업체로 이동합니다.",
+    billing_unavailable:
+      "결제를 일시적으로 사용할 수 없습니다. 몇 분 후에 다시 시도하세요.",
+    checkout_rate_limited:
+      "시도 횟수가 너무 많습니다. 잠시 기다린 후 다시 시도하세요.",
+    checkout_already_active:
+      "이미 활성 구독이 있습니다. 페이지를 새로 고치면 표시됩니다.",
+    checkout_session_mismatch:
+      "이 세션은 다른 네트워크나 브라우저에서 시작되었습니다. 로그아웃한 후 다시 로그인하고 시도하세요.",
+    checkout_family_group_member:
+      "이미 가족 그룹에 속해 있습니다. 새 그룹을 만들기 전에 현재 그룹에서 나가세요.",
+    checkout_family_plan_active: "가족 요금제가 이미 사용 중입니다. 페이지를 새로 고치면 표시됩니다.",
+    checkout_crypto_open_invoice_limit:
+      "처리 중인 암호화폐 청구서가 너무 많습니다. 하나를 완료하거나 취소한 후 다시 시도하세요.",
+    checkout_crypto_active_card: "암호화폐로 결제하기 전에 카드 구독을 취소하세요.",
+    checkout_unpaid_subscription:
+      "마지막 청구서가 결제되지 않았습니다. 설정의 결제에서 납부한 후 다시 시도하세요.",
+    checkout_pending_cancellation: "구독이 취소 예정입니다. 요금제를 변경하기 전에 자동 갱신을 다시 켜세요.",
+    checkout_duplicate_subscription: "이 구독을 이미 사용 중입니다. 페이지를 새로 고치면 표시됩니다.",
+    checkout_provider_unreachable:
+      "결제 서비스가 응답하지 않습니다. 잠시 기다린 후 다시 시도하세요. 청구된 금액은 없습니다.",
+    checkout_sca_required: "이 결제는 은행 확인이 필요합니다. 은행 안내에 따른 후 다시 시도하세요.",
+    checkout_card_declined: "은행에서 카드를 거절했습니다. 다른 카드를 사용하거나 은행에 문의하세요.",
+    checkout_collection_failed:
+      "결제를 처리하지 못했습니다. 설정의 결제에서 결제 수단을 업데이트한 후 다시 시도하세요.",
     plan_not_available:
       "이 요금제는 지금 구매할 수 없습니다. 다른 요금제나 잠시 뒤에 다시 확인하면 됩니다.",
     failed_checkout:
@@ -4727,6 +4771,13 @@ export const ko = {
       "소유권을 확인하고 이메일을 활성화하려면 도메인 등록 기관에 이 DNS 레코드를 추가하세요:",
     domains_description:
       "자신의 도메인을 추가하여 주소를 만들고 도메인에서 이메일을 보내세요. 인증된 도메인은 별칭 도메인 선택기에 표시됩니다.",
+    domains_page_description:
+      "Aster Mail에서 자신의 도메인을 사용하세요. 이미 소유한 도메인을 추가하거나 새 도메인을 구입하면 Aster Mail이 DNS를 설정합니다. 인증된 도메인은 별칭 도메인 선택기에 표시됩니다.",
+    add_or_buy_domain: "도메인 추가 또는 구입",
+    add_domain_you_own: "소유한 도메인 추가",
+    buy_new_domain: "새 도메인 구입",
+    search_domains_placeholder: "내 도메인 검색",
+    no_matching_domains: "검색과 일치하는 도메인이 없습니다.",
     domains_send_receive_description:
       "이메일을 보내고 받기 위해 자신의 도메인을 추가하세요. 인증을 완료하려면 도메인의 DNS 설정에 접근해야 합니다.",
     verification_failed_retry: "인증 실패. 다시 시도해 주세요.",
@@ -5250,6 +5301,8 @@ export const ko = {
     free_plan_includes: "별칭 3개 · 사용자 정의 도메인 1개",
     upgrade_for_more:
       "업그레이드하여 더 많은 저장 공간, 별칭 및 기능을 잠금 해제하세요",
+    free_upgrade_title: "{{plan}}(으)로 더 많은 기능 사용",
+    free_upgrade_price_note: "요금제는 월 {{price}}부터 시작합니다.",
     upgrade_for_more_short: "잠금 해제하여 더 많은 기능",
     plans_coming_soon: "플랜 구독이 곧 제공됩니다!",
     free_plan_description:
@@ -5357,6 +5410,8 @@ export const ko = {
     storage_breakdown_empty: "아직 저장 공간을 사용하지 않았습니다.",
     storage_col_category: "카테고리",
     storage_col_items: "항목",
+    storage_items_count: "{{count}}개",
+    storage_items_count_one: "{{count}}개",
     storage_col_size: "크기",
     storage_col_share: "비율",
     storage_capacity_title: "용량",
@@ -5409,6 +5464,18 @@ export const ko = {
     promo_applying: "적용 중...",
     promo_apply: "적용",
     checkout_title: "구매 완료",
+    checkout_term_title: "구독 기간",
+    checkout_term_save: "{{amount}} 절약",
+    checkout_term_per_month: "{{amount}}/월",
+    checkout_term_crypto_only: "암호화폐 전용",
+    checkout_card_term_unavailable:
+      "2년 약정은 암호화폐로 결제할 때 이용할 수 있습니다.",
+    checkout_term_total: "총 {{amount}}",
+    checkout_method_description: "결제 방법을 선택하세요.",
+    checkout_method_card_note: "취소할 때까지 자동으로 갱신됩니다.",
+    checkout_method_crypto_note:
+      "선택한 기간만큼 한 번만 결제합니다. 자동 갱신은 없습니다.",
+    checkout_method_title: "결제 수단",
     checkout_description: "구독하려면 결제 정보를 입력하세요.",
     autorenew_notice:
       "구독은 해지할 때까지 {amount}으로 자동 갱신됩니다. 다음 결제를 방지하려면 갱신일 전에 설정에서 해지하세요.",
@@ -5833,7 +5900,7 @@ export const ko = {
     domain_purchase_discount_tooltip:
       "등록기관의 첫해 할인 가격입니다. 이후에는 연 {{price}}에 갱신됩니다.",
     domain_purchase_purchased_info:
-      "Aster를 통해 구매한 도메인이 여기에 표시됩니다. WHOIS 개인정보 보호와 함께 등록해 드리고 메일 DNS를 모두 자동으로 설정하므로 바로 주소를 만들 수 있습니다. 각 도메인은 회원님이 승인할 때만 갱신됩니다. ICANN 규정에 따라 신규 등록은 첫 60일 동안 이전이 잠기며, 그 이후에는 지원팀이 다른 등록기관으로의 이전을 처리해 드립니다.",
+      "Aster를 통해 구매한 도메인이 여기에 표시됩니다. WHOIS 개인정보 보호와 함께 등록해 드리고 메일 DNS를 모두 자동으로 설정하므로 바로 주소를 만들 수 있습니다. 각 도메인은 회원님이 승인할 때만 갱신됩니다. 나중에 도메인을 다른 등록기관으로 이전하고 싶다면 지원팀이 이전을 처리해 드립니다. ICANN 규정에 따라 신규 등록은 첫 60일 동안 이전이 잠깁니다.",
     domain_purchase_dont_have: "도메인이 없으신가요? 여기를 클릭해 구매하세요.",
     domain_purchase_sort_price: "낮은 가격순",
     domain_purchase_leave_title: "Aster Mail을 떠나시겠어요?",
@@ -5843,6 +5910,8 @@ export const ko = {
     domain_purchase_purchased_expires: "{{date}} 만료",
     domain_purchase_purchased_in_progress: "설정 중...",
     domain_purchase_purchased_awaiting: "결제 대기 중",
+    domain_purchase_awaiting_note:
+      "아직 결제가 확인되지 않았습니다. 결제를 완료해 주문을 마치거나, 이 창을 닫고 나중에 구매한 도메인에서 결제할 수 있습니다.",
     domain_purchase_done_warmup:
       "참고: 도메인의 DNS가 인터넷에 전파되는 데 최대 1시간이 걸릴 수 있으며, Gmail 같은 제공업체는 갓 만들어진 도메인을 처음에는 신중하게 다룹니다. 도메인 이력이 쌓일수록 전달률이 좋아집니다.",
     domain_purchase_create_first_address: "첫 주소 만들기",
@@ -6151,6 +6220,9 @@ export const ko = {
     cardholder_name_placeholder: "성명",
     billing_postal_placeholder: "12345",
     crypto_pay_button: "암호화폐로 결제",
+    crypto_summary_plan: "요금제",
+    crypto_summary_addon: "부가 기능",
+    crypto_summary_length: "기간",
     crypto_modal_title: "암호화폐로 결제",
     crypto_term_1mo: "1개월",
     crypto_term_3mo: "3개월",
@@ -6192,7 +6264,7 @@ export const ko = {
       "이 결제는 처리 중입니다. 이 페이지는 자동으로 업데이트되므로 따로 하실 일은 없습니다.",
     crypto_native_copy_invoice_ref: "청구서 참조 번호 복사",
     crypto_native_no_wallet_handler:
-      "지갑 앱이 열리지 않았습니다. 위 주소를 복사해 지갑에 붙여넣으세요.",
+      "지갑 앱이 열리지 않았습니다. 주소를 복사해 지갑에 붙여넣으세요.",
     crypto_native_copied: "클립보드에 복사됨",
     crypto_native_network_warning:
       "{{chain}} 네트워크의 {{coin}}만 보내세요. 다른 자산을 보내거나 다른 네트워크를 사용하면 자금을 잃게 됩니다.",
@@ -6212,13 +6284,15 @@ export const ko = {
       "결제에 대한 간단한 수동 확인이 필요합니다. 곧 계정에 반영해 드리겠습니다.",
     crypto_native_transaction: "트랜잭션",
     crypto_native_refund_notice:
-      "초과 결제 및 환불은 Aster 계정 잔액으로 적립됩니다.",
+      "청구 금액보다 많이 보내면 초과분은 미구 달러로 Aster 계정 잔액에 적립됩니다. 적립 대신 환불을 요청할 수도 있습니다.",
     crypto_native_cancel_invoice: "이 청구서 취소",
     crypto_native_cancel_failed: "이 청구서를 취소하지 못했습니다.",
     crypto_native_cancel_has_payment:
       "이 청구서는 이미 결제가 접수되어 더 이상 취소할 수 없습니다.",
     crypto_native_paid_title: "모두 완료되었습니다",
     crypto_native_paid_body: "요금제가 활성화되었습니다. 감사합니다!",
+    crypto_native_paid_body_addon:
+      "스토리지 추가 용량이 활성화되었습니다. 감사합니다!",
     crypto_native_go_to_inbox: "받은편지함으로 이동",
     crypto_native_view_billing: "결제 정보로 돌아가기",
     crypto_native_invoice_cancelled: "청구서가 취소되었습니다",
@@ -6229,6 +6303,19 @@ export const ko = {
       "이 결제는 취소되었습니다. 청구된 금액은 없습니다. 언제든지 새 결제를 시작할 수 있습니다.",
     crypto_native_start_new_payment: "새 결제 시작",
     crypto_native_check_now: "지금 확인",
+    crypto_native_checking: "확인 중",
+    crypto_native_check_no_change:
+      "아직 결제를 확인하지 못했지만 계속 확인하고 있습니다.",
+    crypto_native_check_updated: "결제 상태가 업데이트되었습니다: {{status}}",
+    crypto_native_check_failed:
+      "네트워크에 연결하지 못했습니다. 결제에는 영향이 없습니다. 잠시 후 다시 시도하세요.",
+    crypto_native_last_checked: "마지막 확인 {{time}}",
+    crypto_native_copy_amount: "금액 복사",
+    crypto_native_copy_address: "주소 복사",
+    crypto_native_verify_address:
+      "보내기 전에 지갑 화면의 주소와 여기 표시된 주소를 대조하세요. 주문에 대해 모니터링하는 주소는 이 주소뿐입니다.",
+    crypto_native_fee_headroom:
+      "지갑이 입력한 금액에서 네트워크 수수료를 차감한다면, 전액이 도착하도록 조금 더 넉넉히 보내세요.",
     crypto_native_expired_do_not_send:
       "이 청구서의 주소로 보내지 마세요. 지금 보낸 자금은 반영되기 전에 수동 검토가 필요합니다.",
     crypto_native_not_found: "이 청구서를 찾을 수 없습니다",
@@ -6254,13 +6341,16 @@ export const ko = {
     crypto_native_cancel_confirm_body:
       "결제 주소 모니터링이 중단됩니다. 취소 후에는 이 주소로 자금을 보내지 마세요. 새 결제는 언제든지 시작할 수 있습니다.",
     crypto_native_hint_awaiting:
-      "위 주소로 정확한 금액을 보내세요. 네트워크를 자동으로 확인하고 있습니다.",
+      "네트워크에서 거래를 자동으로 확인하고 있습니다.",
     crypto_native_hint_detected:
-      "트랜잭션이 네트워크에 등록되었습니다. 블록에 포함되기를 기다리는 중입니다.",
+      "거래가 네트워크에 도달했으며 블록에 포함되기를 기다리고 있습니다.",
     crypto_native_hint_confirming:
-      "네트워크에서 승인 중입니다. 완료되는 즉시 요금제가 활성화됩니다.",
-    crypto_native_hint_credited:
-      "결제가 확인되었습니다. 요금제가 활성화되었습니다.",
+      "네트워크 승인을 기다리는 중입니다. 승인이 끝나면 요금제가 활성화됩니다.",
+    crypto_native_hint_confirming_addon:
+      "네트워크 승인을 기다리는 중입니다. 승인이 끝나면 스토리지 추가 용량이 활성화됩니다.",
+    crypto_native_hint_credited: "승인되었습니다. 요금제가 활성화되었습니다.",
+    crypto_native_hint_credited_addon:
+      "승인되었습니다. 스토리지 추가 용량이 활성 상태입니다.",
     crypto_native_time_remaining: "남은 시간",
     crypto_native_expiring_soon:
       "5분 미만 남았습니다. 결제가 도착하기 전에 이 시간이 끝나면 현재 환율로 새 결제를 시작할 수 있습니다.",
@@ -6781,6 +6871,9 @@ export const ko = {
     save_annually_hint: "연간 결제로 20% 절약",
     billing_checkout_cancelled:
       "결제를 취소했습니다. 계정은 그대로이며 아무것도 청구되지 않았습니다. 설정에서 언제든 다시 시도할 수 있습니다.",
+    upgrade_resume_title: "업그레이드를 완료하세요",
+    upgrade_resume_description:
+      "결제를 완료하기 전에 결제 페이지를 나갔습니다. 중단한 부분부터 이어서 진행할 수 있습니다.",
     referral_your_discount: "내 할인",
     referral_discount_active: "사용 가능",
     referral_discount_redeemed: "사용됨",
@@ -6888,23 +6981,23 @@ export const ko = {
     domain_provider_detected: "DNS는 {{provider}}에서 관리합니다",
     domain_provider_open: "{{provider}} 열기",
     crypto_rate_notice:
-      "코인을 선택하면 환율을 고정하고 보내야 할 정확한 금액을 알려드립니다. 환율은 비트코인과 모네로에서 60분, 이더리움 네트워크에서 30분 동안 유지됩니다. 직접 결제를 보내기 전까지는 아무것도 청구되지 않습니다.",
+      "코인을 선택하면 환율을 고정하고 보내야 할 정확한 금액을 알려드립니다. 환율은 비트코인에서 60분, 이더리움 네트워크에서 30분 동안 유지됩니다. 직접 결제를 보내기 전까지는 아무것도 청구되지 않습니다.",
     crypto_exchange_warning:
       "직접 관리하는 지갑에서 결제하세요. 거래소나 스왑 서비스에서 자금을 보내면 본인 소유가 아닌 주소에서 결제가 도착하므로 결제 처리업체가 주문과 대조할 수 없습니다. 결제 페이지에 표시된 시간 안에 결제를 완료하세요.",
     crypto_energy_toggle: "이 네트워크들의 에너지 사용량",
     crypto_energy_btc:
-      "비트코인: 거래당 약 700~1,400 kWh와 300~700 kg CO2e로 추정됩니다. 출처: Cambridge Centre for Alternative Finance, Cambridge Bitcoin Electricity Consumption Index, 2026.",
+      "비트코인: 거래당 약 700~1,400kWh로 추정됩니다. 출처: Cambridge Bitcoin Electricity Consumption Index, 2026.",
     crypto_energy_eth:
-      "이더리움: 거래당 약 0.01~0.05 kWh와 몇 그램의 CO2e로, 2022년 이전 작업 증명 수치보다 약 99.9% 낮습니다. 출처: Ethereum Foundation 에너지 소비 페이지, CCRI 인용, 2026.",
+      "이더리움: 거래당 약 0.01~0.05kWh로 추정되며, Base처럼 이더리움에서 정산하는 네트워크는 이보다 더 적습니다. 출처: Ethereum Foundation, CCRI 인용, 2026.",
     crypto_energy_l2:
       "Base처럼 거래를 묶어 이더리움에서 한꺼번에 정산하는 네트워크는 이더리움 메인넷 거래보다 훨씬 적게 소비합니다. 하나의 수치를 제시할 만한 1차 출처가 없어 수치는 공개하지 않습니다.",
     crypto_energy_xmr:
       "모네로: 작업 증명 방식이며 범용 프로세서로 채굴합니다. 신뢰할 만한 최신 수치를 찾지 못해 공개하지 않습니다.",
     crypto_energy_caveat:
-      "이 수치는 제3자 추정치이며 저희가 직접 측정한 값이 아닙니다. 네트워크 전체 에너지를 거래 건수로 나누는 방식은 논쟁의 여지가 있는 산정법입니다. 비트코인의 소비량은 채굴에 좌우되며 사람들이 거래를 몇 번 하는지에 따라 정해지지 않으므로, 거래 하나가 늘어도 비례해 늘지 않습니다. 직접 판단하실 수 있도록 공개합니다. 저희는 어떤 결제 수단에 대해서도 환경 관련 주장을 하지 않으며, 고객을 대신해 상쇄 조치를 하지 않습니다.",
+      "모두 제3자의 추정치이며 저희가 측정한 값이 아니고, 거래당 수치에는 이견이 있습니다. 저희는 어떤 결제 수단에 대해서도 환경 관련 주장을 하지 않습니다.",
     crypto_native_rate_value: "적용 환율: 1 {{coin}} = {{rate}}",
     crypto_native_commit_notice:
-      "코인을 선택하면 결제 의무가 있는 주문이 생성되고 환율이 고정됩니다. 결제는 본인 지갑에서 직접 송금해 진행합니다.",
+      "코인을 선택하면 환율이 고정됩니다. 그 다음 본인 지갑에서 직접 결제를 보내세요.",
     feature_1000_emails: "메일 1,000통",
     fam_kids_tab: "자녀",
     fam_kids_title: "자녀용 예약 주소",
@@ -7929,6 +8022,7 @@ export const ko = {
     keep_signed_in: "로그인 상태 유지",
     secure_devices_only: "보안 기기에서만",
     back_to_inbox: "받은 편지함으로 돌아가기",
+    back_to_link_device: "기기 연결으로 돌아가기",
     enter_password_placeholder: "비밀번호를 입력하세요",
     authenticating: "인증 중...",
     fetching_auth_data: "인증 데이터 가져오는 중...",
@@ -8083,6 +8177,8 @@ export const ko = {
     please_enter_recovery_code: "여기에는 복구 코드 중 하나가 필요합니다.",
     invalid_recovery_code:
       "이 복구 코드는 일치하지 않습니다. 저장해둔 목록의 다른 코드면 됩니다.",
+    recovery_locked_out:
+      "이 계정에서 복구 시도가 너무 많았습니다. {{time}} 후에 다시 시도할 수 있습니다. 복구 코드는 하나도 사용되지 않았으므로 모두 그대로 남아 있습니다.",
     invalid_backup_code:
       "이 백업 코드가 일치하지 않습니다. 코드는 한 번만 사용할 수 있으니 목록에서 사용하지 않은 다음 코드를 사용해 보세요.",
     new_password_placeholder: "새 비밀번호",
@@ -8276,6 +8372,14 @@ export const ko = {
     link_device_confirming: "연결 중...",
     link_device_cancel: "취소",
     link_device_desktop: "데스크톱 앱",
+    link_device_signed_in_as: "로그인 계정",
+    link_device_change_account: "계정 변경",
+    link_device_choose_account: "계정 선택",
+    link_device_choose_account_description: "데스크톱 앱을 연결합니다",
+    link_device_choose_account_note: "암호화 키는 기기를 벗어나지 않습니다.",
+    link_device_use_another_account: "다른 계정 사용",
+    link_device_use_this_account: "이 계정 사용",
+    link_device_other_accounts: "다른 계정으로 전환",
     link_device_success: "기기가 연결되었습니다",
     link_device_success_description:
       "기기가 성공적으로 연결되어 메일에 접근할 수 있습니다.",
@@ -9167,6 +9271,13 @@ export const ko = {
       "{{address}}을(를) 삭제할까요? 이 주소는 더 이상 메일을 받지 못하며 다시 등록할 수 없습니다.",
     delete_confirm_title: "공유 메일함 삭제",
     access_unavailable: "이 공유 메일함은 더 이상 사용할 수 없습니다",
+  },
+  review_prompt: {
+    banner_message:
+      "Trustpilot에서 Aster Mail을 평가할 수 있습니다. 리뷰는 공개되며 이 안내는 한 번만 표시됩니다.",
+    banner_open: "Trustpilot 열기",
+    banner_dismiss: "괜찮습니다",
+    opens_in_new_tab: "Trustpilot을 새 탭에서 엽니다",
   },
   survey: {
     banner_title: "Aster Mail 개선에 도움을 주세요",

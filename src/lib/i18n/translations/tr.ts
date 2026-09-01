@@ -2225,6 +2225,22 @@ export const tr = {
     fam_org_action_failed: "Bir şeyler ters gitti. Lütfen tekrar deneyin.",
     fam_org_invite_exists:
       "Bu e-posta adresi için zaten bekleyen bir davet var.",
+    plan_desc_ghost_aliases:
+      "Kimliğinizi gizleyen rastgele bir adresten gönderin",
+    plan_desc_advanced_aliases:
+      "Avatarlar, gönderen sabitleme ve takma ad kuralları",
+    plan_desc_catch_all: "Alan adınızdaki her adrese gelen postayı alın",
+    plan_desc_apps: "Aster Bridge ile istediğiniz posta uygulamasını bağlayın",
+    plan_desc_vanguard: "Kimlik avına ve izleyicilere karşı ek koruma",
+    plan_desc_smart_folders: "Kurallarınıza göre kendini dolduran klasörler",
+    plan_desc_folder_lock: "Özel klasörleri ikinci bir parolayla kilitleyin",
+    plan_desc_external_accounts: "Diğer posta kutularınızı Aster içinde okuyun",
+    plan_desc_alias_directory: "Posta geldikçe yeni takma adlar oluşur",
+    plan_desc_multi_accounts: "Aynı anda birden fazla hesapta oturumda kalın",
+    plan_desc_instant_alias_delete: "Takma adları 30 gün beklemeden silin",
+    plan_desc_encrypted_exports: "Postanızı şifreli bir arşiv olarak indirin",
+    plan_desc_support_dedicated: "Hesabınızı bilen bir yetkiliyle canlı sohbet",
+    plan_desc_early_access: "Yeni özellikleri herkesten önce deneyin",
     plan_feat_storage_50: "50 GB şifreli depolama",
     plan_feat_storage_500: "500 GB şifreli depolama",
     plan_feat_storage_5tb: "5 TB şifreli depolama",
@@ -2609,6 +2625,7 @@ export const tr = {
       "{{plan_name}} planındasınız. Üyeleri, depolamayı ve ayarları Aile sekmesinden yönetin.",
     go_to_family_settings: "Aile Ayarlarına Git",
     category_advanced_aliases: "Gelişmiş Rumuzlar",
+    feature_extra_alias_domains: "Ek takma ad alan adları",
     feature_alias_sender_pinning: "Gönderen sabitleme",
     feature_per_alias_rules: "Rumuz başına kurallar (engelleme ve filtreleme)",
     feature_alias_stats_restore: "Rumuz istatistikleri ve geri yükleme",
@@ -2915,6 +2932,8 @@ export const tr = {
     alias_feature_locked_sender_pinning:
       "Gönderen sabitlemeyi kullanmak için planınızı yükseltin.",
     requires_plan: "{{plan}} gerekir",
+    alias_domain_group_extra: "Ek alan adları",
+    alias_domain_requires_plan: "Bu alan adı {{plan}} planı ve üzerinde kullanılabilir.",
     alias_feature_locked_view_plans: "Planları görüntüle",
     alias_feature_locked_upgrade_plan: "Planı yükselt",
     alias_feature_locked_upgrade_cta: "Yükselt",
@@ -3404,6 +3423,8 @@ export const tr = {
     fam_org_time_one_day_ago: "1 gün önce",
     fam_org_grace_banner:
       "Aile planınızın süresi {{date}} tarihinde doluyor - erişimi sürdürmek için yenileyin",
+    fam_org_grace_banner_expired:
+      "Aile planınızın süresi {{date}} tarihinde doldu - erişimi geri kazanmak için yenileyin",
     fam_org_grace_banner_soon:
       "Aile planınızın süresi yakında doluyor - erişimi sürdürmek için yenileyin",
     fam_org_cancelled_banner:
@@ -3412,6 +3433,7 @@ export const tr = {
     fam_org_heading: "Aile",
     fam_org_status_active: "Etkin",
     fam_org_status_expiring: "Süresi doluyor",
+    fam_org_status_expired: "Süresi doldu",
     fam_org_status_cancelled: "İptal edildi",
     fam_org_members_count:
       "{{max}} yerin {{used}} tanesi kullanıldı · {{count}} kullanılabilir yer",
@@ -4111,6 +4133,36 @@ export const tr = {
     continue_to_checkout: "Ödemeye Devam Et",
     redirect_payment_description:
       "Satın alma işleminizi tamamlamak için güvenli ödeme sağlayıcımıza yönlendirileceksiniz.",
+    billing_unavailable:
+      "Ödemeler geçici olarak kullanılamıyor. Birkaç dakika sonra yeniden deneyin.",
+    checkout_rate_limited:
+      "Çok fazla deneme yapıldı. Bir dakika bekleyip yeniden deneyin.",
+    checkout_already_active:
+      "Zaten etkin bir aboneliğiniz var. Görmek için sayfayı yenileyin.",
+    checkout_session_mismatch:
+      "Oturumunuz farklı bir ağda veya tarayıcıda başladı. Çıkış yapın, yeniden giriş yapın ve tekrar deneyin.",
+    checkout_family_group_member:
+      "Zaten bir aile grubundasınız. Yeni bir grup oluşturmadan önce bu gruptan ayrılın.",
+    checkout_family_plan_active:
+      "Aile planınız zaten etkin. Görmek için sayfayı yenileyin.",
+    checkout_crypto_open_invoice_limit:
+      "Çok fazla açık kripto faturanız var. Birini tamamlayın veya iptal edin, sonra yeniden deneyin.",
+    checkout_crypto_active_card:
+      "Kripto ile ödeme yapmadan önce kartlı aboneliğinizi iptal edin.",
+    checkout_unpaid_subscription:
+      "Son faturanız ödenmedi. Ayarlar, Faturalandırma bölümünden ödeyin ve yeniden deneyin.",
+    checkout_pending_cancellation:
+      "Aboneliğiniz iptal edilmek üzere ayarlandı. Plan değiştirmeden önce yenilemeyi tekrar açın.",
+    checkout_duplicate_subscription:
+      "Bu abonelik zaten sizde var. Görmek için sayfayı yenileyin.",
+    checkout_provider_unreachable:
+      "Ödeme sağlayıcımız yanıt vermiyor. Bir dakika bekleyip yeniden deneyin. Hiçbir tutar tahsil edilmedi.",
+    checkout_sca_required:
+      "Bankanızın bu ödemeyi onaylaması gerekiyor. Bankanızın yönlendirmesini izleyin ve yeniden deneyin.",
+    checkout_card_declined:
+      "Bankanız kartı reddetti. Başka bir kart kullanın veya bankanızla iletişime geçin.",
+    checkout_collection_failed:
+      "Ödeme tahsil edilemedi. Ayarlar, Faturalandırma bölümünden ödeme yönteminizi güncelleyin ve yeniden deneyin.",
     plan_not_available:
       "Bu plan şu anda satın alınamıyor. Başka bir plan ya da daha sonra tekrar bakmak işe yarar.",
     failed_checkout:
@@ -4837,6 +4889,13 @@ export const tr = {
       "Sahipliği doğrulamak ve e-postayı etkinleştirmek için bu DNS kayıtlarını alan adı kayıt firmanıza ekleyin:",
     domains_description:
       "Adres oluşturmak ve alan adınızdan e-posta göndermek için kendi alan adınızı ekleyin. Doğrulanmış alan adları takma ad alan adı seçicisinde görünür.",
+    domains_page_description:
+      "Aster Mail ile kendi alan adınızı kullanın. Zaten sahip olduğunuz bir alan adını ekleyin veya yeni bir alan adı satın alın, Aster Mail DNS'i sizin için ayarlar. Doğrulanmış alan adları takma ad alan adı seçicisinde görünür.",
+    add_or_buy_domain: "Alan adı ekle veya satın al",
+    add_domain_you_own: "Sahip olduğunuz alan adını ekleyin",
+    buy_new_domain: "Yeni alan adı satın al",
+    search_domains_placeholder: "Alan adlarınızda arama yapın",
+    no_matching_domains: "Aramanızla eşleşen alan adı yok.",
     domains_send_receive_description:
       "E-posta göndermek ve almak için kendi alan adınızı ekleyin. Doğrulamayı tamamlamak için alan adınızın DNS ayarlarına erişmeniz gerekecek.",
     verification_failed_retry: "Doğrulama başarısız. Lütfen tekrar deneyin.",
@@ -5325,6 +5384,8 @@ export const tr = {
     free_plan_includes: "3 takma ad · 1 özel alan adı",
     upgrade_for_more:
       "Daha fazla depolama, takma ad ve özellik açmak için yükseltin",
+    free_upgrade_title: "{{plan}} ile daha fazlasını yapın",
+    free_upgrade_price_note: "Planlar ayda {{price}} fiyatından başlar.",
     upgrade_for_more_short: "Daha fazlası için açın",
     plans_coming_soon: "Plan abonelikleri yakında geliyor. Takipte kalın!",
     plan_f_storage: "{{value}} şifreli depolama",
@@ -5433,6 +5494,8 @@ export const tr = {
     storage_breakdown_empty: "Depolamanızda henüz bir şey yok.",
     storage_col_category: "Kategori",
     storage_col_items: "Öğeler",
+    storage_items_count: "{{count}} öğe",
+    storage_items_count_one: "{{count}} öğe",
     storage_col_size: "Boyut",
     storage_col_share: "Pay",
     storage_capacity_title: "Kapasite",
@@ -5487,6 +5550,18 @@ export const tr = {
     promo_applying: "Uygulanıyor...",
     promo_apply: "Uygula",
     checkout_title: "Satın Alma İşlemini Tamamlayın",
+    checkout_term_title: "Abonelik süresi",
+    checkout_term_save: "{{amount}} tasarruf edin",
+    checkout_term_per_month: "{{amount}}/ay",
+    checkout_term_crypto_only: "Yalnızca kripto",
+    checkout_card_term_unavailable:
+      "2 yıllık süre kripto ile ödeme yaptığınızda kullanılabilir.",
+    checkout_term_total: "toplam {{amount}}",
+    checkout_method_description: "Nasıl ödemek istediğinizi seçin.",
+    checkout_method_card_note: "İptal edene kadar otomatik olarak yenilenir.",
+    checkout_method_crypto_note:
+      "Seçtiğiniz süre için bir kez ödersiniz. Hiçbir şey otomatik yenilenmez.",
+    checkout_method_title: "Ödeme yöntemi",
     checkout_description: "Abone olmak için ödeme bilgilerinizi girin.",
     autorenew_notice:
       "Aboneliğiniz siz iptal edene kadar {amount} tutarında otomatik olarak yenilenir. Sonraki ücretlendirmeyi önlemek için yenileme tarihinden önce Ayarlar'dan iptal edin.",
@@ -6017,7 +6092,7 @@ export const tr = {
     domain_purchase_discount_tooltip:
       "Kayıt şirketimizin ilk yıl indirimli fiyatı. Sonrasında yılda {{price}} ile yenilenir.",
     domain_purchase_purchased_info:
-      "Bunlar Aster üzerinden satın aldığınız alan adlarıdır. Onları sizin için WHOIS gizliliğiyle kaydeder, tüm posta DNS kayıtlarını otomatik olarak kurarız ve üzerlerinde hemen adres oluşturabilirsiniz. Her alan adı yalnızca sizin onayınızla yenilenir. ICANN yeni kayıtları ilk 60 gün boyunca kilitler, sonrasında başka bir kayıt şirketine taşıma işlemini destek ekibimiz yürütür.",
+      "Bunlar Aster üzerinden satın aldığınız alan adlarıdır. Onları sizin için WHOIS gizliliğiyle kaydeder, tüm posta DNS kayıtlarını otomatik olarak kurarız ve üzerlerinde hemen adres oluşturabilirsiniz. Her alan adı yalnızca sizin onayınızla yenilenir. Bir alan adını daha sonra başka bir kayıt şirketine taşımak isterseniz, taşıma işlemini destek ekibimiz yürütür. ICANN yeni kayıtları ilk 60 gün boyunca kilitler.",
     domain_purchase_dont_have:
       "Alan adınız yok mu? Satın almak için buraya tıklayın.",
     domain_purchase_sort_price: "En düşük fiyat",
@@ -6029,6 +6104,8 @@ export const tr = {
     domain_purchase_purchased_expires: "{{date}} tarihinde sona eriyor",
     domain_purchase_purchased_in_progress: "Ayarlanıyor...",
     domain_purchase_purchased_awaiting: "Ödeme bekleniyor",
+    domain_purchase_awaiting_note:
+      "Ödemenizi henüz almadık. Siparişinizi tamamlamak için ödemeyi bitirin veya bu pencereyi kapatıp daha sonra Satın alınan alan adları bölümünden ödeyin.",
     domain_purchase_done_warmup:
       "Not: Alan adınızın DNS'inin internete yayılması bir saati bulabilir ve Gmail gibi sağlayıcılar yepyeni alan adlarına başlangıçta temkinli yaklaşır. Alan adınız geçmiş oluşturdukça teslimat oranı iyileşir.",
     domain_purchase_create_first_address: "İlk adresinizi oluşturun",
@@ -6377,6 +6454,9 @@ export const tr = {
     cardholder_name_placeholder: "Ad Soyad",
     billing_postal_placeholder: "12345",
     crypto_pay_button: "Kripto ile öde",
+    crypto_summary_plan: "Plan",
+    crypto_summary_addon: "Ek paket",
+    crypto_summary_length: "Süre",
     crypto_modal_title: "Kripto ile öde",
     crypto_term_1mo: "1 ay",
     crypto_term_3mo: "3 ay",
@@ -6418,7 +6498,7 @@ export const tr = {
       "Bu ödeme işleniyor. Bu sayfa kendi kendine güncellenir, yapmanız gereken bir şey yok.",
     crypto_native_copy_invoice_ref: "Fatura referansını kopyala",
     crypto_native_no_wallet_handler:
-      "Hiçbir cüzdan uygulaması açılmadı. Yukarıdaki adresi kopyalayıp cüzdanınıza yapıştırın.",
+      "Hiçbir cüzdan uygulaması açılmadı. Adresi kopyalayıp cüzdanınıza yapıştırın.",
     crypto_native_copied: "Panoya kopyalandı",
     crypto_native_network_warning:
       "Yalnızca {{chain}} ağı üzerinden {{coin}} gönderin. Başka bir varlık göndermek veya başka bir ağ kullanmak fonların kaybına yol açar.",
@@ -6438,13 +6518,15 @@ export const tr = {
       "Ödemeniz kısa bir manuel kontrol gerektiriyor. Hesabınıza kısa süre içinde yansıtacağız.",
     crypto_native_transaction: "İşlem",
     crypto_native_refund_notice:
-      "Fazla ödemeler ve iadeler Aster hesap bakiyenize aktarılır.",
+      "Ödenmesi gereken tutardan fazlasını gönderirseniz fazla kısım ABD doları olarak Aster hesap bakiyenize eklenir. Bunun yerine iade edilmesini de isteyebilirsiniz.",
     crypto_native_cancel_invoice: "Bu faturayı iptal et",
     crypto_native_cancel_failed: "Bu fatura iptal edilemedi.",
     crypto_native_cancel_has_payment:
       "Bu fatura için zaten bir ödeme alındı, bu nedenle artık iptal edilemez.",
     crypto_native_paid_title: "Her şey hazır",
     crypto_native_paid_body: "Planınız artık etkin. Teşekkürler!",
+    crypto_native_paid_body_addon:
+      "Depolama eklentiniz artık etkin. Teşekkürler!",
     crypto_native_go_to_inbox: "Gelen kutusuna git",
     crypto_native_view_billing: "Faturalandırmaya dön",
     crypto_native_invoice_cancelled: "Fatura iptal edildi",
@@ -6455,6 +6537,19 @@ export const tr = {
       "Bu ödeme iptal edildi. Herhangi bir tahsilat yapılmadı. İstediğiniz zaman yeni bir ödeme başlatabilirsiniz.",
     crypto_native_start_new_payment: "Yeni ödeme başlat",
     crypto_native_check_now: "Şimdi kontrol et",
+    crypto_native_checking: "Kontrol ediliyor",
+    crypto_native_check_no_change:
+      "Ödemenizi henüz görmedik ama izlemeye devam ediyoruz.",
+    crypto_native_check_updated: "Ödeme durumu güncellendi: {{status}}",
+    crypto_native_check_failed:
+      "Ağa ulaşamadık. Ödemeniz bundan etkilenmez. Birazdan tekrar deneyin.",
+    crypto_native_last_checked: "Son kontrol {{time}}",
+    crypto_native_copy_amount: "Tutarı kopyala",
+    crypto_native_copy_address: "Adresi kopyala",
+    crypto_native_verify_address:
+      "Göndermeden önce cüzdan ekranınızdaki adresi burada gösterilenle karşılaştırın. Siparişiniz için yalnızca bu adres izlenir.",
+    crypto_native_fee_headroom:
+      "Cüzdanınız ağ ücretini girdiğiniz tutardan düşüyorsa, tutarın tamamı ulaşsın diye biraz fazlasını ekleyin.",
     crypto_native_expired_do_not_send:
       "Bu faturadaki adrese gönderim yapmayın. Şimdi gönderilen fonların hesabınıza geçmesi için manuel inceleme gerekir.",
     crypto_native_not_found: "Bu faturayı bulamadık",
@@ -6481,12 +6576,15 @@ export const tr = {
     crypto_native_cancel_confirm_body:
       "Ödeme adresi artık izlenmeyecek. İptalden sonra bu adrese fon göndermeyin. İstediğiniz zaman yeni bir ödeme başlatabilirsiniz.",
     crypto_native_hint_awaiting:
-      "Yukarıdaki adrese tam tutarı gönderin. Ağı sizin için otomatik olarak izliyoruz.",
+      "İşleminiz için ağı otomatik olarak kontrol ediyoruz.",
     crypto_native_hint_detected:
-      "İşleminiz ağda. Bir bloğa dahil edilmesi bekleniyor.",
+      "İşleminiz ağa ulaştı ve bir bloğa eklenmeyi bekliyor.",
     crypto_native_hint_confirming:
-      "Ağda onaylanıyor. Bu tamamlanır tamamlanmaz planınız etkinleşir.",
-    crypto_native_hint_credited: "Ödeme onaylandı. Planınız etkin.",
+      "Ağ onayları bekleniyor. Onaylar tamamlandığında planınız etkinleşir.",
+    crypto_native_hint_confirming_addon:
+      "Ağ onayları bekleniyor. Onaylar tamamlandığında depolama eklentiniz etkinleşir.",
+    crypto_native_hint_credited: "Onaylandı. Planınız etkin.",
+    crypto_native_hint_credited_addon: "Onaylandı. Depolama eklentiniz etkin.",
     crypto_native_time_remaining: "Kalan süre",
     crypto_native_expiring_soon:
       "5 dakikadan az kaldı. Ödemeniz ulaşmadan bu süre dolarsa güncel kurla yeni bir ödeme başlatabilirsiniz.",
@@ -7058,6 +7156,9 @@ export const tr = {
     save_annually_hint: "Yıllık planla %20 tasarruf edin",
     billing_checkout_cancelled:
       "Ödeme iptal edildi. Hesabınız güvende ve hiçbir tutar tahsil edilmedi. İstediğiniz zaman Ayarlar’dan yeniden deneyebilirsiniz.",
+    upgrade_resume_title: "Yükseltmenizi tamamlayın",
+    upgrade_resume_description:
+      "Ödemeyi tamamlamadan çıktınız. Kaldığınız yerden devam edin.",
     referral_your_discount: "İndiriminiz",
     referral_discount_active: "Etkin",
     referral_discount_redeemed: "Kullanıldı",
@@ -7168,23 +7269,23 @@ export const tr = {
     domain_provider_detected: "DNS kayıtlarınızı {{provider}} yönetiyor",
     domain_provider_open: "{{provider}} aç",
     crypto_rate_notice:
-      "Bir coin seçtiğinizde bir kur sabitler ve göndermeniz gereken tam tutarı gösteririz. Kur, Bitcoin ve Monero’da 60 dakika, Ethereum ağlarında 30 dakika geçerlidir. Ödemeyi kendiniz göndermeden sizden hiçbir tutar alınmaz.",
+      "Bir coin seçtiğinizde bir kur sabitler ve göndermeniz gereken tam tutarı gösteririz. Kur, Bitcoin’de 60 dakika, Ethereum ağlarında 30 dakika geçerlidir. Ödemeyi kendiniz göndermeden sizden hiçbir tutar alınmaz.",
     crypto_exchange_warning:
       "Kendi kontrolündeki bir cüzdandan öde. Parayı bir borsadan veya takas hizmetinden gönderirsen ödeme sana ait olmayan bir adresten gelir ve ödeme sağlayıcı bunu siparişinle eşleştiremez. Ödemeyi, ödeme sayfasında gösterilen süre içinde tamamla.",
     crypto_energy_toggle: "Bu ağların enerji kullanımı",
     crypto_energy_btc:
-      "Bitcoin: işlem başına tahminen 700 ila 1.400 kWh ve 300 ila 700 kg CO2e. Kaynak: Cambridge Centre for Alternative Finance, Cambridge Bitcoin Electricity Consumption Index, 2026.",
+      "Bitcoin: işlem başına tahmini 700 ila 1.400 kWh. Kaynak: Cambridge Bitcoin Electricity Consumption Index, 2026.",
     crypto_energy_eth:
-      "Ethereum: işlem başına tahminen 0,01 ila 0,05 kWh ve birkaç gram CO2e; bu, 2022 öncesi iş ispatı değerinin yaklaşık %99,9 altındadır. Kaynak: Ethereum Foundation enerji tüketimi sayfası, CCRI’ye atıfla, 2026.",
+      "Ethereum: işlem başına tahmini 0,01 ila 0,05 kWh; Base gibi Ethereum üzerinde uzlaşan ağlar daha da az kullanır. Kaynak: Ethereum Foundation, CCRI kaynaklı, 2026.",
     crypto_energy_l2:
       "Base gibi işlemleri toplayıp Ethereum üzerinde birlikte kapatan ağlar, Ethereum ana ağındaki bir işlemden belirgin biçimde daha az tüketir. Tek bir sayının arkasında duracağımız birincil bir kaynağımız olmadığı için bir değer yayımlamıyoruz.",
     crypto_energy_xmr:
       "Monero: iş ispatı kullanır ve genel amaçlı işlemcilerde madenciliği yapılır. Arkasında durabileceğimiz güncel bir değer bulamadığımız için bir sayı yayımlamıyoruz.",
     crypto_energy_caveat:
-      "Bunlar üçüncü taraf tahminleridir, bizim yaptığımız ölçümler değildir. Bir ağın toplam enerjisini işlem sayısına bölmek, tartışmalı bir atfetme yöntemidir: Bitcoin’in tüketimini madencilik belirler, insanların kaç işlem yaptığı değil; bu yüzden bir işlem daha orantılı bir miktar eklemez. Kendiniz değerlendirebilesiniz diye bunları yayımlıyoruz. Hiçbir ödeme yöntemi hakkında çevresel bir iddiada bulunmuyor ve sizin adınıza herhangi bir denkleştirme yapmıyoruz.",
+      "Bunlar bizim ölçümlerimiz değil, üçüncü taraf tahminleridir ve işlem başına rakamlar tartışmalıdır. Hiçbir ödeme yöntemi için çevresel bir iddiada bulunmuyoruz.",
     crypto_native_rate_value: "Kullanılan kur: 1 {{coin}} = {{rate}}",
     crypto_native_commit_notice:
-      "Bir coin seçmek, ödeme yükümlülüğü olan siparişinizi oluşturur ve kurunuzu sabitler. Ödemeyi kendi cüzdanınızdan göndererek yaparsınız.",
+      "Kurunuzu sabitlemek için bir kripto para seçin. Ödemeyi ardından kendi cüzdanınızdan siz gönderirsiniz.",
     feature_1000_emails: "1.000 e-posta",
     fam_kids_tab: "Çocuklar",
     fam_kids_title: "Çocuklar için ayrılmış adresler",
@@ -8264,6 +8365,7 @@ export const tr = {
     keep_signed_in: "Oturumu açık tut",
     secure_devices_only: "yalnızca güvenli cihazlarda",
     back_to_inbox: "Gelen kutusuna dön",
+    back_to_link_device: "Cihaz bağla ekranına dön",
     enter_password_placeholder: "Parolanızı girin",
     authenticating: "Kimlik doğrulanıyor...",
     fetching_auth_data: "Kimlik doğrulama verileri alınıyor...",
@@ -8424,6 +8526,8 @@ export const tr = {
       "Burada kurtarma kodlarınızdan birine ihtiyaç var.",
     invalid_recovery_code:
       "Bu kurtarma kodu örtüşmedi. Kayıtlı listenizdeki başka biri işe yarar.",
+    recovery_locked_out:
+      "Bu hesapta çok fazla kurtarma denemesi yapıldı. {{time}} sonra yeniden deneyebilirsin. Kodlarının hiçbiri kullanılmadı, dolayısıyla hepsi hâlâ elinde.",
     invalid_backup_code:
       "Bu yedek kod eşleşmiyor. Her kod yalnızca bir kez çalışır, bu yüzden listenizdeki kullanılmamış bir sonraki kodu deneyin.",
     new_password_placeholder: "Yeni parola",
@@ -8628,6 +8732,16 @@ export const tr = {
     link_device_confirming: "Cihaz bağlanıyor...",
     link_device_cancel: "İptal",
     link_device_desktop: "Masaüstü uygulaması",
+    link_device_signed_in_as: "Oturum açan hesap",
+    link_device_change_account: "Hesap değiştir",
+    link_device_choose_account: "Bir hesap seçin",
+    link_device_choose_account_description:
+      "Masaüstü uygulamanızı bağlamak için",
+    link_device_choose_account_note:
+      "Şifreleme anahtarlarınız cihazlarınızdan asla çıkmaz.",
+    link_device_use_another_account: "Başka bir hesap kullan",
+    link_device_use_this_account: "Bu hesabı kullan",
+    link_device_other_accounts: "Başka bir hesaba geç",
     link_device_success: "Cihaz bağlandı",
     link_device_success_description:
       "Masaüstü uygulamanız artık bağlandı. Bu sekmeyi kapatabilirsiniz.",
@@ -9548,6 +9662,13 @@ export const tr = {
       "{{address}} silinsin mi? Adres artık posta almayacak ve yeniden kaydedilemeyecek.",
     delete_confirm_title: "Ortak posta kutusunu sil",
     access_unavailable: "Bu ortak posta kutusu artık kullanılamıyor",
+  },
+  review_prompt: {
+    banner_message:
+      "Aster Mail'i Trustpilot'ta değerlendirebilirsiniz. Değerlendirmeler herkese açıktır ve bu bildirimi yalnızca bir kez görürsünüz.",
+    banner_open: "Trustpilot'u aç",
+    banner_dismiss: "Hayır, teşekkürler",
+    opens_in_new_tab: "Trustpilot'u yeni sekmede açar",
   },
   survey: {
     banner_title: "Aster Mail'i geliştirmemize yardım edin",

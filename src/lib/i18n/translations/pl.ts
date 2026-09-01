@@ -2382,6 +2382,26 @@ export const pl = {
     fam_org_action_failed: "Coś poszło nie tak. Spróbuj ponownie.",
     fam_org_invite_exists:
       "Dla tego adresu e-mail istnieje już oczekujące zaproszenie.",
+    plan_desc_ghost_aliases:
+      "Wysyłaj z losowego adresu, który ukrywa twoją tożsamość",
+    plan_desc_advanced_aliases:
+      "Awatary, przypinanie nadawców i reguły dla aliasów",
+    plan_desc_catch_all:
+      "Odbieraj pocztę wysłaną na dowolny adres w twojej domenie",
+    plan_desc_apps: "Podłącz dowolną aplikację pocztową przez Aster Bridge",
+    plan_desc_vanguard: "Dodatkowa ochrona przed phishingiem i śledzeniem",
+    plan_desc_smart_folders:
+      "Foldery, które same wypełniają się według twoich reguł",
+    plan_desc_folder_lock: "Zablokuj prywatne foldery drugim hasłem",
+    plan_desc_external_accounts: "Czytaj swoje inne skrzynki w Aster",
+    plan_desc_alias_directory: "Nowe aliasy powstają wraz z nadejściem poczty",
+    plan_desc_multi_accounts:
+      "Pozostań zalogowany na kilku kontach jednocześnie",
+    plan_desc_instant_alias_delete: "Usuwaj aliasy bez czekania 30 dni",
+    plan_desc_encrypted_exports:
+      "Pobierz swoją pocztę jako zaszyfrowane archiwum",
+    plan_desc_support_dedicated: "Czat na żywo z osobą, która zna twoje konto",
+    plan_desc_early_access: "Wypróbuj nowe funkcje przed innymi",
     plan_feat_storage_50: "50 GB zaszyfrowanej przestrzeni",
     plan_feat_storage_500: "500 GB zaszyfrowanej przestrzeni",
     plan_feat_storage_5tb: "5 TB zaszyfrowanej przestrzeni",
@@ -2778,6 +2798,7 @@ export const pl = {
       "Korzystasz z planu {{plan_name}}. Zarządzaj członkami, pamięcią i ustawieniami na karcie Rodzina.",
     go_to_family_settings: "Przejdź do ustawień rodziny",
     category_advanced_aliases: "Zaawansowane aliasy",
+    feature_extra_alias_domains: "Dodatkowe domeny aliasów",
     feature_alias_sender_pinning: "Przypinanie nadawców",
     feature_per_alias_rules: "Reguły dla aliasów (blokowanie i filtrowanie)",
     feature_alias_stats_restore: "Statystyki aliasów i przywracanie",
@@ -3094,6 +3115,8 @@ export const pl = {
     alias_feature_locked_sender_pinning:
       "Przejdź na wyższy plan, aby korzystać z przypinania nadawców.",
     requires_plan: "Wymaga {{plan}}",
+    alias_domain_group_extra: "Dodatkowe domeny",
+    alias_domain_requires_plan: "Ta domena jest dostępna w planie {{plan}} i wyższych.",
     alias_feature_locked_view_plans: "Zobacz plany",
     alias_feature_locked_upgrade_plan: "Zmień plan na wyższy",
     alias_feature_locked_upgrade_cta: "Ulepsz",
@@ -3588,6 +3611,8 @@ export const pl = {
     fam_org_time_one_day_ago: "1 dzień temu",
     fam_org_grace_banner:
       "Twój plan rodzinny wygasa {{date}} - odnów, aby zachować dostęp",
+    fam_org_grace_banner_expired:
+      "Twój plan rodzinny wygasł {{date}} - odnów, aby przywrócić dostęp",
     fam_org_grace_banner_soon:
       "Twój plan rodzinny wkrótce wygasa - odnów, aby zachować dostęp",
     fam_org_cancelled_banner:
@@ -3596,6 +3621,7 @@ export const pl = {
     fam_org_heading: "Rodzina",
     fam_org_status_active: "Aktywny",
     fam_org_status_expiring: "Wygasa",
+    fam_org_status_expired: "Wygasł",
     fam_org_status_cancelled: "Anulowany",
     fam_org_members_count:
       "Wykorzystano {{used}} z {{max}} miejsc · {{count}} dostępne miejsca",
@@ -4301,6 +4327,36 @@ export const pl = {
     continue_to_checkout: "Przejdź do płatności",
     redirect_payment_description:
       "Zostaniesz przekierowany do naszego bezpiecznego dostawcy płatności, aby dokończyć zakup.",
+    billing_unavailable:
+      "Płatności są chwilowo niedostępne. Spróbuj ponownie za kilka minut.",
+    checkout_rate_limited:
+      "Zbyt wiele prób. Odczekaj minutę i spróbuj ponownie.",
+    checkout_already_active:
+      "Masz już aktywną subskrypcję. Odśwież stronę, aby ją zobaczyć.",
+    checkout_session_mismatch:
+      "Twoja sesja rozpoczęła się w innej sieci lub przeglądarce. Wyloguj się, zaloguj ponownie i spróbuj jeszcze raz.",
+    checkout_family_group_member:
+      "Należysz już do grupy rodzinnej. Opuść ją, zanim utworzysz nową.",
+    checkout_family_plan_active:
+      "Twój plan rodzinny jest już aktywny. Odśwież stronę, aby go zobaczyć.",
+    checkout_crypto_open_invoice_limit:
+      "Masz zbyt wiele otwartych faktur kryptowalutowych. Zakończ lub anuluj jedną z nich i spróbuj ponownie.",
+    checkout_crypto_active_card:
+      "Anuluj subskrypcję opłacaną kartą, zanim zapłacisz kryptowalutą.",
+    checkout_unpaid_subscription:
+      "Twoja ostatnia faktura jest nieopłacona. Ureguluj ją w Ustawieniach, Rozliczenia, i spróbuj ponownie.",
+    checkout_pending_cancellation:
+      "Twoja subskrypcja ma zostać anulowana. Włącz odnawianie z powrotem, zanim zmienisz plan.",
+    checkout_duplicate_subscription:
+      "Masz już tę subskrypcję. Odśwież stronę, aby ją zobaczyć.",
+    checkout_provider_unreachable:
+      "Nasz dostawca płatności nie odpowiada. Odczekaj minutę i spróbuj ponownie. Nic nie zostało pobrane.",
+    checkout_sca_required:
+      "Twój bank musi potwierdzić tę płatność. Postępuj zgodnie ze wskazówkami banku i spróbuj ponownie.",
+    checkout_card_declined:
+      "Twój bank odrzucił kartę. Użyj innej karty lub skontaktuj się z bankiem.",
+    checkout_collection_failed:
+      "Nie udało się pobrać płatności. Zaktualizuj metodę płatności w Ustawieniach, Rozliczenia, i spróbuj ponownie.",
     plan_not_available:
       "Ten plan nie jest obecnie dostępny do zakupu. Inny plan lub powrót później zadziała.",
     failed_checkout:
@@ -5022,6 +5078,13 @@ export const pl = {
       "Dodaj te rekordy DNS u rejestratora domeny, aby zweryfikować własność i włączyć pocztę:",
     domains_description:
       "Dodaj własną domenę, aby tworzyć adresy i wysyłać e-maile z Twojej domeny. Zweryfikowane domeny pojawiają się w selektorze domen aliasów.",
+    domains_page_description:
+      "Używaj własnej domeny z Aster Mail. Dodaj domenę, którą już posiadasz, lub kup nową, a Aster Mail skonfiguruje DNS za Ciebie. Zweryfikowane domeny pojawiają się w selektorze domen aliasów.",
+    add_or_buy_domain: "Dodaj lub kup domenę",
+    add_domain_you_own: "Dodaj posiadaną domenę",
+    buy_new_domain: "Kup nową domenę",
+    search_domains_placeholder: "Szukaj w swoich domenach",
+    no_matching_domains: "Żadna domena nie pasuje do wyszukiwania.",
     domains_send_receive_description:
       "Dodaj własną domenę, aby wysyłać i odbierać e-maile. Będziesz potrzebować dostępu do ustawień DNS domeny, aby ukończyć weryfikację.",
     verification_failed_retry:
@@ -5559,6 +5622,8 @@ export const pl = {
     free_plan_includes: "3 aliasy · 1 własna domena",
     upgrade_for_more:
       "Ulepsz, aby odblokować więcej miejsca, aliasów i funkcji",
+    free_upgrade_title: "Zyskaj więcej dzięki {{plan}}",
+    free_upgrade_price_note: "Plany zaczynają się od {{price}} miesięcznie.",
     upgrade_for_more_short: "Odblokuj więcej",
     plans_coming_soon: "Subskrypcje planów już wkrótce. Bądź na bieżąco!",
     free_plan_description:
@@ -5667,6 +5732,8 @@ export const pl = {
     storage_breakdown_empty: "Nic jeszcze nie zajmuje miejsca.",
     storage_col_category: "Kategoria",
     storage_col_items: "Elementy",
+    storage_items_count: "{{count}} elementów",
+    storage_items_count_one: "{{count}} element",
     storage_col_size: "Rozmiar",
     storage_col_share: "Udział",
     storage_capacity_title: "Pojemność",
@@ -5719,6 +5786,19 @@ export const pl = {
     promo_applying: "Stosowanie...",
     promo_apply: "Zastosuj",
     checkout_title: "Dokończ zakup",
+    checkout_term_title: "Długość subskrypcji",
+    checkout_term_save: "Oszczędzasz {{amount}}",
+    checkout_term_per_month: "{{amount}}/miesiąc",
+    checkout_term_crypto_only: "Tylko kryptowaluty",
+    checkout_card_term_unavailable:
+      "Okres 2-letni jest dostępny przy płatności kryptowalutami.",
+    checkout_term_total: "{{amount}} łącznie",
+    checkout_method_description: "Wybierz sposób płatności.",
+    checkout_method_card_note:
+      "Odnawia się automatycznie, dopóki nie anulujesz.",
+    checkout_method_crypto_note:
+      "Płacisz raz za wybrany okres. Nic nie odnawia się automatycznie.",
+    checkout_method_title: "Metoda płatności",
     checkout_description: "Wprowadź dane płatności, aby subskrybować.",
     autorenew_notice:
       "Subskrypcja odnawia się automatycznie za {amount}, dopóki jej nie anulujesz. Aby uniknąć kolejnej opłaty, anuluj ją w Ustawieniach przed datą odnowienia.",
@@ -6154,7 +6234,7 @@ export const pl = {
     domain_purchase_discount_tooltip:
       "Promocyjna cena pierwszego roku od naszego rejestratora. Później odnowienie za {{price}} rocznie.",
     domain_purchase_purchased_info:
-      "To domeny kupione przez Aster. Rejestrujemy je dla Ciebie z prywatnością WHOIS, automatycznie konfigurujemy cały DNS poczty i od razu możesz tworzyć na nich adresy. Każda domena odnawia się tylko za Twoją zgodą. ICANN blokuje nowe rejestracje przez pierwsze 60 dni, a później nasz zespół pomocy zajmuje się przeniesieniem do innego rejestratora.",
+      "To domeny kupione przez Aster. Rejestrujemy je dla Ciebie z prywatnością WHOIS, automatycznie konfigurujemy cały DNS poczty i od razu możesz tworzyć na nich adresy. Każda domena odnawia się tylko za Twoją zgodą. Jeśli później zechcesz przenieść domenę do innego rejestratora, nasz zespół pomocy zajmie się transferem. ICANN blokuje nowe rejestracje przez pierwsze 60 dni.",
     domain_purchase_dont_have: "Nie masz domeny? Kliknij tutaj, aby ją kupić.",
     domain_purchase_sort_price: "Najniższa cena",
     domain_purchase_leave_title: "Opuścić Aster Mail?",
@@ -6164,6 +6244,8 @@ export const pl = {
     domain_purchase_purchased_expires: "Wygasa {{date}}",
     domain_purchase_purchased_in_progress: "W trakcie konfiguracji...",
     domain_purchase_purchased_awaiting: "Oczekiwanie na płatność",
+    domain_purchase_awaiting_note:
+      "Nie otrzymaliśmy jeszcze Twojej płatności. Dokończ płatność, aby sfinalizować zamówienie, albo zamknij to okno i zapłać później w sekcji Kupione domeny.",
     domain_purchase_done_warmup:
       "Uwaga: propagacja DNS Twojej domeny w internecie może potrwać do godziny, a dostawcy tacy jak Gmail początkowo ostrożnie traktują zupełnie nowe domeny. Dostarczalność poprawia się w miarę budowania historii domeny.",
     domain_purchase_create_first_address: "Utwórz pierwszy adres",
@@ -6552,6 +6634,9 @@ export const pl = {
     cardholder_name_placeholder: "Imię i nazwisko",
     billing_postal_placeholder: "00-000",
     crypto_pay_button: "Zapłać kryptowalutą",
+    crypto_summary_plan: "Plan",
+    crypto_summary_addon: "Dodatek",
+    crypto_summary_length: "Okres",
     crypto_modal_title: "Zapłać kryptowalutą",
     crypto_term_1mo: "1 miesiąc",
     crypto_term_3mo: "3 miesiące",
@@ -6593,7 +6678,7 @@ export const pl = {
       "Ta płatność jest przetwarzana. Strona odświeża się sama, nie musisz nic robić.",
     crypto_native_copy_invoice_ref: "Kopiuj numer referencyjny faktury",
     crypto_native_no_wallet_handler:
-      "Nie otwarto żadnej aplikacji portfela. Skopiuj powyższy adres i wklej go w swoim portfelu.",
+      "Nie otworzyła się żadna aplikacja portfela. Skopiuj adres i wklej go w swoim portfelu.",
     crypto_native_copied: "Skopiowano do schowka",
     crypto_native_network_warning:
       "Wysyłaj wyłącznie {{coin}} w sieci {{chain}}. Wysłanie innego aktywa lub użycie innej sieci spowoduje utratę środków.",
@@ -6614,13 +6699,15 @@ export const pl = {
       "Twoja płatność wymaga krótkiej weryfikacji ręcznej. Wkrótce zasilimy Twoje konto.",
     crypto_native_transaction: "Transakcja",
     crypto_native_refund_notice:
-      "Nadpłaty i zwroty są zapisywane na saldzie Twojego konta Aster.",
+      "Jeśli wyślesz więcej niż należna kwota, nadwyżka trafi na saldo Twojego konta Aster w dolarach amerykańskich. Możesz też poprosić nas o jej zwrot.",
     crypto_native_cancel_invoice: "Anuluj tę fakturę",
     crypto_native_cancel_failed: "Nie udało się anulować tej faktury.",
     crypto_native_cancel_has_payment:
       "Ta faktura otrzymała już płatność, więc nie można jej anulować.",
     crypto_native_paid_title: "Wszystko gotowe",
     crypto_native_paid_body: "Twój plan jest już aktywny. Dziękujemy!",
+    crypto_native_paid_body_addon:
+      "Dodatek pojemności jest już aktywny. Dziękujemy!",
     crypto_native_go_to_inbox: "Przejdź do skrzynki odbiorczej",
     crypto_native_view_billing: "Wróć do rozliczeń",
     crypto_native_invoice_cancelled: "Faktura anulowana",
@@ -6631,6 +6718,19 @@ export const pl = {
       "Ta płatność została anulowana. Nic nie zostało pobrane. Możesz rozpocząć nową płatność w dowolnej chwili.",
     crypto_native_start_new_payment: "Rozpocznij nową płatność",
     crypto_native_check_now: "Sprawdź teraz",
+    crypto_native_checking: "Sprawdzanie",
+    crypto_native_check_no_change:
+      "Nie widzimy jeszcze Twojej płatności, ale nadal ją śledzimy.",
+    crypto_native_check_updated: "Zaktualizowano status płatności: {{status}}",
+    crypto_native_check_failed:
+      "Nie udało się połączyć z siecią. Nie ma to wpływu na Twoją płatność. Spróbuj ponownie za chwilę.",
+    crypto_native_last_checked: "Ostatnie sprawdzenie o {{time}}",
+    crypto_native_copy_amount: "Kopiuj kwotę",
+    crypto_native_copy_address: "Kopiuj adres",
+    crypto_native_verify_address:
+      "Przed wysłaniem porównaj adres na ekranie portfela z adresem pokazanym tutaj. Tylko ten adres jest monitorowany dla Twojego zamówienia.",
+    crypto_native_fee_headroom:
+      "Jeśli Twój portfel pobiera opłatę sieciową z wpisanej kwoty, dodaj trochę więcej, aby dotarła pełna kwota.",
     crypto_native_expired_do_not_send:
       "Nie wysyłaj środków na adres z tej faktury. Środki wysłane teraz wymagają ręcznej weryfikacji, zanim będą mogły zostać zaksięgowane.",
     crypto_native_not_found: "Nie znaleźliśmy tej faktury",
@@ -6656,13 +6756,16 @@ export const pl = {
     crypto_native_cancel_confirm_body:
       "Adres płatności przestanie być monitorowany. Po anulowaniu nie wysyłaj na niego środków. Nową płatność możesz rozpocząć w dowolnej chwili.",
     crypto_native_hint_awaiting:
-      "Wyślij dokładną kwotę na powyższy adres. Automatycznie monitorujemy sieć.",
+      "Automatycznie sprawdzamy sieć w poszukiwaniu Twojej transakcji.",
     crypto_native_hint_detected:
-      "Twoja transakcja jest w sieci. Czekamy na jej dołączenie do bloku.",
+      "Twoja transakcja dotarła do sieci i czeka na dodanie do bloku.",
     crypto_native_hint_confirming:
-      "Trwa potwierdzanie w sieci. Plan aktywuje się zaraz po zakończeniu.",
-    crypto_native_hint_credited:
-      "Płatność potwierdzona. Twój plan jest aktywny.",
+      "Czekamy na potwierdzenia sieci. Twój plan aktywuje się po ich zakończeniu.",
+    crypto_native_hint_confirming_addon:
+      "Czekamy na potwierdzenia sieci. Dodatek pojemności aktywuje się po ich zakończeniu.",
+    crypto_native_hint_credited: "Potwierdzono. Twój plan jest aktywny.",
+    crypto_native_hint_credited_addon:
+      "Potwierdzono. Dodatek pojemności jest aktywny.",
     crypto_native_time_remaining: "Pozostały czas",
     crypto_native_expiring_soon:
       "Zostało mniej niż 5 minut. Jeśli to okno zamknie się przed dotarciem płatności, możesz rozpocząć nową po aktualnym kursie.",
@@ -7242,6 +7345,9 @@ export const pl = {
     save_annually_hint: "Oszczędź 20% przy planie rocznym",
     billing_checkout_cancelled:
       "Anulowano płatność. Twoje konto jest bezpieczne i nic nie zostało pobrane. Możesz spróbować ponownie w Ustawieniach.",
+    upgrade_resume_title: "Dokończ ulepszenie planu",
+    upgrade_resume_description:
+      "Zakup nie został opłacony. Dokończ go od miejsca, w którym przerwano.",
     referral_your_discount: "Twoja zniżka",
     referral_discount_active: "Aktywna",
     referral_discount_redeemed: "Wykorzystana",
@@ -7352,23 +7458,23 @@ export const pl = {
     domain_provider_detected: "Twoim DNS zarządza {{provider}}",
     domain_provider_open: "Otwórz {{provider}}",
     crypto_rate_notice:
-      "Gdy wybierzesz walutę, blokujemy kurs wymiany i pokazujemy dokładną kwotę do wysłania. Kurs obowiązuje 60 minut w sieci Bitcoin i Monero oraz 30 minut w sieciach Ethereum. Nic nie zostanie pobrane, dopóki sam nie wyślesz płatności.",
+      "Gdy wybierzesz walutę, blokujemy kurs wymiany i pokazujemy dokładną kwotę do wysłania. Kurs obowiązuje 60 minut w sieci Bitcoin oraz 30 minut w sieciach Ethereum. Nic nie zostanie pobrane, dopóki sam nie wyślesz płatności.",
     crypto_exchange_warning:
       "Płać z portfela, który kontrolujesz. Jeśli wyślesz środki z giełdy lub serwisu wymiany, płatność przyjdzie z adresu, który nie należy do Ciebie, a operator nie powiąże jej z Twoim zamówieniem. Dokończ płatność w czasie podanym na stronie płatności.",
     crypto_energy_toggle: "Zużycie energii przez te sieci",
     crypto_energy_btc:
-      "Bitcoin: szacunkowo od 700 do 1400 kWh i od 300 do 700 kg ekwiwalentu CO2 na transakcję. Źródło: Cambridge Centre for Alternative Finance, Cambridge Bitcoin Electricity Consumption Index, 2026.",
+      "Bitcoin: szacunkowo od 700 do 1400 kWh na transakcję. Źródło: Cambridge Bitcoin Electricity Consumption Index, 2026.",
     crypto_energy_eth:
-      "Ethereum: szacunkowo od 0,01 do 0,05 kWh i kilka gramów ekwiwalentu CO2 na transakcję, czyli około 99,9% mniej niż przed przejściem z proof of work w 2022 roku. Źródło: strona Ethereum Foundation o zużyciu energii, powołująca się na CCRI, 2026.",
+      "Ethereum: szacunkowo od 0,01 do 0,05 kWh na transakcję, a sieci rozliczające się na nim, takie jak Base, zużywają jeszcze mniej. Źródło: Ethereum Foundation, powołując się na CCRI, 2026.",
     crypto_energy_l2:
       "Sieci, które grupują transakcje i rozliczają je razem w Ethereum, na przykład Base, zużywają wyraźnie mniej niż transakcja w głównej sieci Ethereum. Nie mamy źródła pierwotnego, za którym byśmy stali, aby podać jedną liczbę, więc jej nie publikujemy.",
     crypto_energy_xmr:
       "Monero: proof of work, wydobywane na procesorach ogólnego przeznaczenia. Nie znaleźliśmy aktualnej liczby, za którą byśmy stali, więc jej nie publikujemy.",
     crypto_energy_caveat:
-      "To szacunki podmiotów zewnętrznych, a nie nasze pomiary. Dzielenie całkowitej energii sieci przez liczbę transakcji to sporny sposób przypisywania energii: zużycie Bitcoina wynika z wydobycia, a nie z tego, ile transakcji wykonują ludzie, więc jedna transakcja więcej nie dodaje proporcjonalnej ilości. Publikujemy te dane, abyś mógł ocenić je samodzielnie. Nie formułujemy żadnych twierdzeń środowiskowych o jakiejkolwiek metodzie płatności i niczego nie kompensujemy w Twoim imieniu.",
+      "To szacunki podmiotów zewnętrznych, a nie nasze pomiary, a wartości na transakcję bywają kwestionowane. Nie formułujemy żadnych deklaracji środowiskowych o metodach płatności.",
     crypto_native_rate_value: "Zastosowany kurs: 1 {{coin}} = {{rate}}",
     crypto_native_commit_notice:
-      "Wybór waluty tworzy zamówienie z obowiązkiem zapłaty i blokuje kurs wymiany. Płacisz, wysyłając środki samodzielnie ze swojego portfela.",
+      "Wybierz walutę, aby zablokować kurs wymiany. Płatność wysyłasz następnie samodzielnie ze swojego portfela.",
     feature_1000_emails: "1000 wiadomości",
     fam_kids_tab: "Dzieci",
     fam_kids_title: "Zarezerwowane adresy dla dzieci",
@@ -8527,6 +8633,7 @@ export const pl = {
     keep_signed_in: "Pozostań zalogowany",
     secure_devices_only: "tylko na bezpiecznych urządzeniach",
     back_to_inbox: "Powrót do skrzynki",
+    back_to_link_device: "Powrót do Połącz urządzenie",
     enter_password_placeholder: "Wprowadź hasło",
     authenticating: "Uwierzytelnianie...",
     fetching_auth_data: "Pobieranie danych uwierzytelniania...",
@@ -8685,6 +8792,8 @@ export const pl = {
       "Jeden z kodów odzyskiwania jest potrzebny tutaj.",
     invalid_recovery_code:
       "Ten kod odzyskiwania nie pasuje. Inny z zapisanej listy powinien zadziałać.",
+    recovery_locked_out:
+      "To konto miało zbyt wiele prób odzyskiwania. Możesz spróbować ponownie za {{time}}. Żaden z Twoich kodów nie został użyty, więc nadal masz je wszystkie.",
     invalid_backup_code:
       "Ten kod zapasowy nie pasuje. Każdy kod działa tylko raz, więc wypróbuj następny nieużyty kod z listy.",
     new_password_placeholder: "Nowe hasło",
@@ -8888,6 +8997,16 @@ export const pl = {
     link_device_confirming: "Łączenie urządzenia...",
     link_device_cancel: "Anuluj",
     link_device_desktop: "Aplikacja desktopowa",
+    link_device_signed_in_as: "Zalogowano jako",
+    link_device_change_account: "Zmień konto",
+    link_device_choose_account: "Wybierz konto",
+    link_device_choose_account_description:
+      "Aby połączyć aplikację na komputer",
+    link_device_choose_account_note:
+      "Twoje klucze szyfrowania nigdy nie opuszczają Twoich urządzeń.",
+    link_device_use_another_account: "Użyj innego konta",
+    link_device_use_this_account: "Użyj tego konta",
+    link_device_other_accounts: "Przełącz na inne konto",
     link_device_success: "Urządzenie połączone",
     link_device_success_description:
       "Twoja aplikacja desktopowa jest teraz połączona. Możesz zamknąć tę kartę.",
@@ -9820,6 +9939,13 @@ export const pl = {
       "Usunąć {{address}}? Adres przestanie odbierać pocztę i nie będzie mógł zostać ponownie zarejestrowany.",
     delete_confirm_title: "Usuń wspólną skrzynkę",
     access_unavailable: "Ta wspólna skrzynka nie jest już dostępna",
+  },
+  review_prompt: {
+    banner_message:
+      "Możesz ocenić Aster Mail w serwisie Trustpilot. Opinie są publiczne, a ten komunikat zobaczysz tylko raz.",
+    banner_open: "Otwórz Trustpilot",
+    banner_dismiss: "Nie, dziękuję",
+    opens_in_new_tab: "Otwiera Trustpilot w nowej karcie",
   },
   survey: {
     banner_title: "Pomóż ulepszyć Aster Mail",
