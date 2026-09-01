@@ -33,10 +33,15 @@ import { use_plan_limits } from "@/hooks/use_plan_limits";
 import {
   is_alias_limit_error,
   prompt_alias_limit_upgrade,
+  prompt_upgrade,
 } from "@/components/settings/aliases/feature_lock";
 import { ConfirmModal } from "@/components/email/inbox/inbox_confirmation_dialog";
 import { emit_aliases_changed } from "@/hooks/mail_events";
-import { min_plan_for_feature } from "@/components/settings/billing/billing_constants";
+import {
+  is_premium_alias_domain,
+  min_plan_for_feature,
+  plan_allows_premium_alias_domains,
+} from "@/components/settings/billing/billing_constants";
 import {
   Select,
   SelectContent,
@@ -110,9 +115,11 @@ export function CreateAliasModal({
   initial_local_part,
 }: CreateAliasModalProps) {
   const { t } = use_i18n();
-  const { is_feature_locked } = use_plan_limits();
+  const { is_feature_locked, limits } = use_plan_limits();
   const display_name_locked = is_feature_locked("has_alias_avatars");
   const display_name_min_plan = min_plan_for_feature("has_alias_avatars");
+  const premium_domains_allowed = plan_allows_premium_alias_domains(limits?.plan_code);
+  const premium_domain_min_plan = min_plan_for_feature("star");
   const [local_part, set_local_part] = useState("");
   const [display_name, set_display_name] = useState("");
   const [note, set_note] = useState("");
@@ -121,7 +128,11 @@ export function CreateAliasModal({
     if (initial_domain && available_domains.includes(initial_domain))
       return initial_domain;
 
-    return available_domains[0] || DEFAULT_DOMAINS[0];
+    const selectable = available_domains.filter(
+      (d) => !is_premium_alias_domain(d) || premium_domains_allowed,
+    );
+
+    return selectable[0] || DEFAULT_DOMAINS[0];
   };
   const [domain, set_domain] = useState(resolve_initial_domain);
   const [saving, set_saving] = useState(false);
@@ -321,9 +332,28 @@ export function CreateAliasModal({
     ? validate_domain_local_part(local_part)
     : validate_local_part(local_part);
 
-  const standard_domains = available_domains.filter((d) =>
-    DEFAULT_DOMAINS.includes(d),
+  const standard_domains = available_domains.filter(
+    (d) => DEFAULT_DOMAINS.includes(d) && !is_premium_alias_domain(d),
   );
+  const premium_domains = available_domains.filter((d) =>
+    is_premium_alias_domain(d),
+  );
+
+  const handle_domain_change = (next: string) => {
+    if (is_premium_alias_domain(next) && !premium_domains_allowed) {
+      prompt_upgrade(
+        t("settings.alias_domain_requires_plan", {
+          plan: premium_domain_min_plan?.name ?? "Star",
+        }),
+        "aliases",
+        "has_advanced_aliases",
+      );
+
+      return;
+    }
+
+    set_domain(next);
+  };
   const custom_domain_options = available_domains.filter(
     (d) => !DEFAULT_DOMAINS.includes(d),
   );
@@ -467,7 +497,7 @@ export function CreateAliasModal({
                       handle_create();
                     }}
                   />
-                  <Select value={domain} onValueChange={set_domain}>
+                  <Select value={domain} onValueChange={handle_domain_change}>
                     <SelectTrigger className="h-10 w-auto shrink-0 rounded-lg border border-edge-secondary bg-transparent text-sm px-3 focus:ring-0 focus:ring-offset-0">
                       <span className="text-txt-muted me-0.5">@</span>
                       <SelectValue />
@@ -481,6 +511,28 @@ export function CreateAliasModal({
                           {standard_domains.map((d) => (
                             <SelectItem key={d} value={d}>
                               {d}
+                            </SelectItem>
+                          ))}
+                        </>
+                      )}
+                      {premium_domains.length > 0 && (
+                        <>
+                          <div className="px-2 py-1.5 text-[11px] font-medium uppercase tracking-wider mt-1 text-txt-muted">
+                            {t("settings.alias_domain_group_extra")}
+                          </div>
+                          {premium_domains.map((d) => (
+                            <SelectItem key={d} value={d}>
+                              <span className="flex items-center gap-2">
+                                {d}
+                                {!premium_domains_allowed && (
+                                  <span className="inline-flex shrink-0 items-center gap-1 rounded-md border border-edge-secondary bg-surf-tertiary px-1.5 py-0.5 text-[11px] font-medium text-txt-muted">
+                                    <LockClosedIcon className="h-3 w-3" />
+                                    {t("settings.requires_plan", {
+                                      plan: premium_domain_min_plan?.name ?? "Star",
+                                    })}
+                                  </span>
+                                )}
+                              </span>
                             </SelectItem>
                           ))}
                         </>

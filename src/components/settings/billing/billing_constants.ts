@@ -441,6 +441,32 @@ export const FEATURE_MIN_PLAN: Record<string, string> = {
   has_receipt_tracking: "supernova",
 };
 
+export const PREMIUM_ALIAS_DOMAINS = ["astermail.me", "astermail.net"];
+
+const PREMIUM_ALIAS_DOMAIN_PLANS = [
+  "star",
+  "nova",
+  "supernova",
+  "duo",
+  "family",
+  "family_duo",
+  "family_full",
+  "pro",
+  "business",
+];
+
+export function is_premium_alias_domain(domain: string): boolean {
+  return PREMIUM_ALIAS_DOMAINS.includes(domain.toLowerCase());
+}
+
+export function plan_allows_premium_alias_domains(
+  plan_code: string | null | undefined,
+): boolean {
+  if (!plan_code) return false;
+
+  return PREMIUM_ALIAS_DOMAIN_PLANS.includes(plan_code.toLowerCase());
+}
+
 export function min_plan_for_feature(feature: string | null): PlanTier | null {
   if (!feature) return null;
   const code = FEATURE_MIN_PLAN[feature] ?? feature;

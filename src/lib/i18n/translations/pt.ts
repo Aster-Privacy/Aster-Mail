@@ -2653,6 +2653,7 @@ export const pt = {
       "Você está no plano {{plan_name}}. Gerencie membros, armazenamento e configurações na aba Família.",
     go_to_family_settings: "Ir para Configurações da Família",
     category_advanced_aliases: "Aliases Avançados",
+    feature_extra_alias_domains: "Domínios de alias adicionais",
     feature_alias_sender_pinning: "Fixação de remetente",
     feature_per_alias_rules: "Regras por alias (bloquear e filtrar)",
     feature_alias_stats_restore: "Estatísticas e restauração de alias",
@@ -2969,6 +2970,8 @@ export const pt = {
     alias_feature_locked_sender_pinning:
       "Faça upgrade do seu plano para usar a fixação de remetente.",
     requires_plan: "Requer {{plan}}",
+    alias_domain_group_extra: "Domínios adicionais",
+    alias_domain_requires_plan: "Este domínio está disponível no plano {{plan}} e superiores.",
     alias_feature_locked_view_plans: "Ver planos",
     alias_feature_locked_upgrade_plan: "Fazer upgrade do plano",
     alias_feature_locked_upgrade_cta: "Fazer upgrade",

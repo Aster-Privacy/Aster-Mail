@@ -2724,6 +2724,7 @@ export const ar = {
       "أنت مشترك في خطة {{plan_name}}. أدِر الأعضاء والتخزين والإعدادات من علامة تبويب العائلة.",
     go_to_family_settings: "الانتقال إلى إعدادات العائلة",
     category_advanced_aliases: "أسماء مستعارة متقدمة",
+    feature_extra_alias_domains: "نطاقات أسماء مستعارة إضافية",
     feature_alias_sender_pinning: "تثبيت المُرسِل",
     feature_per_alias_rules: "قواعد لكل اسم مستعار (الحظر والتصفية)",
     feature_alias_stats_restore: "إحصاءات الاسم المستعار واستعادته",
@@ -3022,6 +3023,8 @@ export const ar = {
     alias_feature_locked_sender_pinning:
       "قم بترقية خطتك لاستخدام تثبيت المُرسِل.",
     requires_plan: "يتطلب {{plan}}",
+    alias_domain_group_extra: "نطاقات إضافية",
+    alias_domain_requires_plan: "هذا النطاق متاح في خطة {{plan}} وما فوقها.",
     alias_feature_locked_view_plans: "عرض الخطط",
     alias_feature_locked_upgrade_plan: "ترقية الخطة",
     alias_feature_locked_upgrade_cta: "ترقية",

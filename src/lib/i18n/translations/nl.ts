@@ -2581,6 +2581,7 @@ export const nl = {
       "Je hebt het {{plan_name}}-abonnement. Beheer leden, opslag en instellingen op het tabblad Gezin.",
     go_to_family_settings: "Ga naar Gezinsinstellingen",
     category_advanced_aliases: "Geavanceerde aliassen",
+    feature_extra_alias_domains: "Extra aliasdomeinen",
     feature_alias_sender_pinning: "Afzender vastzetten",
     feature_per_alias_rules: "Regels per alias (blokkeren en filteren)",
     feature_alias_stats_restore: "Aliasstatistieken en herstel",
@@ -2903,6 +2904,8 @@ export const nl = {
     alias_feature_locked_sender_pinning:
       "Upgrade je abonnement om afzender vastzetten te gebruiken.",
     requires_plan: "Vereist {{plan}}",
+    alias_domain_group_extra: "Extra domeinen",
+    alias_domain_requires_plan: "Dit domein is beschikbaar vanaf het {{plan}}-abonnement.",
     alias_feature_locked_view_plans: "Abonnementen bekijken",
     alias_feature_locked_upgrade_plan: "Abonnement upgraden",
     alias_feature_locked_upgrade_cta: "Upgraden",

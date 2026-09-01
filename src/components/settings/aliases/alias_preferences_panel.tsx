@@ -20,7 +20,7 @@
 //
 import type { AliasPreferences } from "@/services/api/aliases";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AdjustmentsHorizontalIcon } from "@heroicons/react/24/outline";
 import { Switch, UpgradeBtn } from "@aster/ui";
 
@@ -36,6 +36,10 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
+import {
+  is_premium_alias_domain,
+  plan_allows_premium_alias_domains,
+} from "@/components/settings/billing/billing_constants";
 import { show_toast } from "@/components/toast/simple_toast";
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { ignore_error } from "@/lib/ignore_error";
@@ -80,7 +84,15 @@ export function AliasPreferencesPanel({
   on_default_domain_change,
 }: AliasPreferencesPanelProps) {
   const { t } = use_i18n();
-  const { is_feature_locked } = use_plan_limits();
+  const { is_feature_locked, limits } = use_plan_limits();
+
+  const selectable_domains = useMemo(() => {
+    if (plan_allows_premium_alias_domains(limits?.plan_code)) {
+      return available_domains;
+    }
+
+    return available_domains.filter((d) => !is_premium_alias_domain(d));
+  }, [available_domains, limits?.plan_code]);
 
   const [loading, set_loading] = useState(true);
   const [prefs, set_prefs] = useState<AliasPreferences>({
@@ -179,7 +191,7 @@ export function AliasPreferencesPanel({
           <LoadFailedNotice on_retry={load_prefs} />
         ) : (
           <>
-            {available_domains.length > 0 && (
+            {selectable_domains.length > 0 && (
               <PrefRow
                 description={t("settings.alias_pref_default_domain_desc")}
                 label={t("settings.alias_pref_default_domain")}
@@ -187,9 +199,9 @@ export function AliasPreferencesPanel({
                 <Select
                   value={
                     prefs.alias_default_domain &&
-                    available_domains.includes(prefs.alias_default_domain)
+                    selectable_domains.includes(prefs.alias_default_domain)
                       ? prefs.alias_default_domain
-                      : (available_domains[0] ?? "")
+                      : (selectable_domains[0] ?? "")
                   }
                   onValueChange={(v) => {
                     save_pref({ alias_default_domain: v });
@@ -202,7 +214,7 @@ export function AliasPreferencesPanel({
                     />
                   </SelectTrigger>
                   <SelectContent>
-                    {available_domains.map((d) => (
+                    {selectable_domains.map((d) => (
                       <SelectItem key={d} value={d}>
                         {d}
                       </SelectItem>

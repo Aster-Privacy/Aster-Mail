@@ -2625,6 +2625,7 @@ export const tr = {
       "{{plan_name}} planındasınız. Üyeleri, depolamayı ve ayarları Aile sekmesinden yönetin.",
     go_to_family_settings: "Aile Ayarlarına Git",
     category_advanced_aliases: "Gelişmiş Rumuzlar",
+    feature_extra_alias_domains: "Ek takma ad alan adları",
     feature_alias_sender_pinning: "Gönderen sabitleme",
     feature_per_alias_rules: "Rumuz başına kurallar (engelleme ve filtreleme)",
     feature_alias_stats_restore: "Rumuz istatistikleri ve geri yükleme",
@@ -2931,6 +2932,8 @@ export const tr = {
     alias_feature_locked_sender_pinning:
       "Gönderen sabitlemeyi kullanmak için planınızı yükseltin.",
     requires_plan: "{{plan}} gerekir",
+    alias_domain_group_extra: "Ek alan adları",
+    alias_domain_requires_plan: "Bu alan adı {{plan}} planı ve üzerinde kullanılabilir.",
     alias_feature_locked_view_plans: "Planları görüntüle",
     alias_feature_locked_upgrade_plan: "Planı yükselt",
     alias_feature_locked_upgrade_cta: "Yükselt",

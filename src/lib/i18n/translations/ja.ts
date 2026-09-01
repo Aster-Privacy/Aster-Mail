@@ -2555,6 +2555,7 @@ export const ja = {
       "現在{{plan_name}}プランをご利用中です。メンバー、ストレージ、設定はファミリータブで管理できます。",
     go_to_family_settings: "ファミリー設定へ移動",
     category_advanced_aliases: "高度なエイリアス",
+    feature_extra_alias_domains: "追加のエイリアスドメイン",
     feature_alias_sender_pinning: "送信者の固定",
     feature_per_alias_rules: "エイリアスごとのルール（ブロックとフィルター）",
     feature_alias_stats_restore: "エイリアスの統計と復元",
@@ -2876,6 +2877,8 @@ export const ja = {
     alias_feature_locked_sender_pinning:
       "送信者の固定を使用するにはプランをアップグレードしてください。",
     requires_plan: "{{plan}} が必要です",
+    alias_domain_group_extra: "追加ドメイン",
+    alias_domain_requires_plan: "このドメインは {{plan}} プラン以上でご利用いただけます。",
     alias_feature_locked_view_plans: "プランを表示",
     alias_feature_locked_upgrade_plan: "プランをアップグレード",
     alias_feature_locked_upgrade_cta: "アップグレード",

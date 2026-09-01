@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   ArrowUpTrayIcon,
   CheckCircleIcon,
@@ -28,6 +28,11 @@ import {
 import { Button } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { use_plan_limits } from "@/hooks/use_plan_limits";
+import {
+  is_premium_alias_domain,
+  plan_allows_premium_alias_domains,
+} from "@/components/settings/billing/billing_constants";
 import {
   Modal,
   ModalHeader,
@@ -343,7 +348,12 @@ interface AliasImportModalProps {
   })[];
 }
 
-const SYSTEM_DOMAINS = new Set(["astermail.org", "aster.cx"]);
+const SYSTEM_DOMAINS = new Set([
+  "astermail.org",
+  "aster.cx",
+  "astermail.me",
+  "astermail.net",
+]);
 
 export function AliasImportModal({
   is_open,
@@ -355,6 +365,16 @@ export function AliasImportModal({
   existing_domain_addresses = [],
 }: AliasImportModalProps) {
   const { t } = use_i18n();
+  const { limits } = use_plan_limits();
+
+  const selectable_domains = useMemo(() => {
+    if (plan_allows_premium_alias_domains(limits?.plan_code)) {
+      return available_domains;
+    }
+
+    return available_domains.filter((d) => !is_premium_alias_domain(d));
+  }, [available_domains, limits?.plan_code]);
+
   const file_ref = useRef<HTMLInputElement>(null);
   const drop_ref = useRef<HTMLDivElement>(null);
 
@@ -363,7 +383,7 @@ export function AliasImportModal({
   const [parsed_rows, set_parsed_rows] = useState<ParsedRow[]>([]);
   const [preview_rows, set_preview_rows] = useState<PreviewRow[]>([]);
   const [target_domain, set_target_domain] = useState<string>(
-    available_domains[0] ?? "",
+    selectable_domains[0] ?? "",
   );
   const [selected_indices, set_selected_indices] = useState<Set<number>>(
     new Set(),
@@ -379,7 +399,7 @@ export function AliasImportModal({
     set_drag_over(false);
     set_parsed_rows([]);
     set_preview_rows([]);
-    set_target_domain(available_domains[0] ?? "");
+    set_target_domain(selectable_domains[0] ?? "");
     set_selected_indices(new Set());
     set_conflict_mode("skip");
     set_progress_current(0);
@@ -443,7 +463,7 @@ export function AliasImportModal({
     }
 
     set_error_msg(null);
-    const domain = available_domains[0] ?? "";
+    const domain = selectable_domains[0] ?? "";
 
     set_parsed_rows(parsed);
     set_target_domain(domain);
@@ -788,7 +808,7 @@ export function AliasImportModal({
           <div className="space-y-4">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-2">
-                {available_domains.length > 1 && (
+                {selectable_domains.length > 1 && (
                   <>
                     <span className="text-sm text-txt-muted shrink-0">
                       {t("settings.alias_import_target_domain")}
@@ -798,7 +818,7 @@ export function AliasImportModal({
                       value={target_domain}
                       onChange={(e) => handle_domain_change(e.target.value)}
                     >
-                      {available_domains.map((d) => (
+                      {selectable_domains.map((d) => (
                         <option key={d} value={d}>
                           {d}
                         </option>
@@ -806,7 +826,7 @@ export function AliasImportModal({
                     </select>
                   </>
                 )}
-                {available_domains.length === 1 && (
+                {selectable_domains.length === 1 && (
                   <span className="text-sm text-txt-muted">
                     {t("settings.alias_import_target_domain")}{" "}
                     <span className="font-mono text-txt-primary">

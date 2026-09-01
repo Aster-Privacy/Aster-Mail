@@ -48,6 +48,10 @@ import { ignore_error } from "@/lib/ignore_error";
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
+import {
+  PREMIUM_ALIAS_DOMAINS,
+  plan_allows_premium_alias_domains,
+} from "@/components/settings/billing/billing_constants";
 import { LockedFeature } from "@/components/settings/aliases/feature_lock";
 import { InfoHint } from "@/components/settings/aliases/info_hint";
 import {
@@ -63,7 +67,14 @@ const INPUT_CLASS =
 
 export function AliasDirectoriesSection() {
   const { t } = use_i18n();
-  const { is_feature_locked, is_loading: limits_loading } = use_plan_limits();
+  const {
+    is_feature_locked,
+    is_loading: limits_loading,
+    limits,
+  } = use_plan_limits();
+  const premium_domains_allowed = plan_allows_premium_alias_domains(
+    limits?.plan_code,
+  );
   const locked = is_feature_locked("max_alias_directories");
   const [directories, set_directories] = useState<DecryptedAliasDirectory[]>(
     [],
@@ -310,7 +321,11 @@ export function AliasDirectoriesSection() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {[...DIRECTORY_DOMAINS, ...custom_domains].map((d) => (
+                  {[
+                    ...DIRECTORY_DOMAINS,
+                    ...(premium_domains_allowed ? PREMIUM_ALIAS_DOMAINS : []),
+                    ...custom_domains,
+                  ].map((d) => (
                     <SelectItem key={d} value={d}>
                       @{d}
                     </SelectItem>

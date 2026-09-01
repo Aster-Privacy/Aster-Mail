@@ -5568,6 +5568,7 @@ export interface SettingsTranslations {
   plan_f_quiet_hours: string;
   plan_f_alias_avatars: string;
   category_advanced_aliases: string;
+  feature_extra_alias_domains: string;
   feature_alias_sender_pinning: string;
   feature_per_alias_rules: string;
   feature_alias_stats_restore: string;
@@ -6296,6 +6297,8 @@ export interface SettingsTranslations {
   alias_feature_locked_upgrade_cta: string;
   feature_requires_upgrade: string;
   requires_plan: string;
+  alias_domain_group_extra: string;
+  alias_domain_requires_plan: string;
   alias_feature_locked_view_plans: string;
   alias_rule_cancel: string;
   alias_rule_close: string;

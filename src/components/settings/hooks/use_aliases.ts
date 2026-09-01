@@ -54,7 +54,12 @@ import {
 } from "@/services/api/domains";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
 
-const DEFAULT_DOMAINS = ["astermail.org", "aster.cx"];
+const DEFAULT_DOMAINS = [
+  "astermail.org",
+  "aster.cx",
+  "astermail.me",
+  "astermail.net",
+];
 
 interface AliasesCache {
   aliases: DecryptedEmailAlias[];

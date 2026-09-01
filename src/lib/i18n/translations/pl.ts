@@ -2798,6 +2798,7 @@ export const pl = {
       "Korzystasz z planu {{plan_name}}. Zarządzaj członkami, pamięcią i ustawieniami na karcie Rodzina.",
     go_to_family_settings: "Przejdź do ustawień rodziny",
     category_advanced_aliases: "Zaawansowane aliasy",
+    feature_extra_alias_domains: "Dodatkowe domeny aliasów",
     feature_alias_sender_pinning: "Przypinanie nadawców",
     feature_per_alias_rules: "Reguły dla aliasów (blokowanie i filtrowanie)",
     feature_alias_stats_restore: "Statystyki aliasów i przywracanie",
@@ -3114,6 +3115,8 @@ export const pl = {
     alias_feature_locked_sender_pinning:
       "Przejdź na wyższy plan, aby korzystać z przypinania nadawców.",
     requires_plan: "Wymaga {{plan}}",
+    alias_domain_group_extra: "Dodatkowe domeny",
+    alias_domain_requires_plan: "Ta domena jest dostępna w planie {{plan}} i wyższych.",
     alias_feature_locked_view_plans: "Zobacz plany",
     alias_feature_locked_upgrade_plan: "Zmień plan na wyższy",
     alias_feature_locked_upgrade_cta: "Ulepsz",

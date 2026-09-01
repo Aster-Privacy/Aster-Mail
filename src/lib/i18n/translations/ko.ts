@@ -2462,6 +2462,7 @@ export const ko = {
       "{{plan_name}} 요금제를 사용 중입니다. 가족 탭에서 구성원, 저장 공간, 설정을 관리하세요.",
     go_to_family_settings: "가족 설정으로 이동",
     category_advanced_aliases: "고급 별칭",
+    feature_extra_alias_domains: "추가 별칭 도메인",
     feature_alias_sender_pinning: "발신자 고정",
     feature_per_alias_rules: "별칭별 규칙 (차단 및 필터)",
     feature_alias_stats_restore: "별칭 통계 및 복원",
@@ -2772,6 +2773,8 @@ export const ko = {
     alias_feature_locked_sender_pinning:
       "발신자 고정을 사용하려면 요금제를 업그레이드하세요.",
     requires_plan: "{{plan}} 필요",
+    alias_domain_group_extra: "추가 도메인",
+    alias_domain_requires_plan: "이 도메인은 {{plan}} 플랜 이상에서 사용할 수 있습니다.",
     alias_feature_locked_view_plans: "요금제 보기",
     alias_feature_locked_upgrade_plan: "요금제 업그레이드",
     alias_feature_locked_upgrade_cta: "업그레이드",

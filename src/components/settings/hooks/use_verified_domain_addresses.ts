@@ -31,7 +31,12 @@ import {
 } from "@/services/crypto/memory_key_store";
 import { MAIL_EVENTS } from "@/hooks/mail_events";
 
-const DEFAULT_DOMAINS = ["astermail.org", "aster.cx"];
+const DEFAULT_DOMAINS = [
+  "astermail.org",
+  "aster.cx",
+  "astermail.me",
+  "astermail.net",
+];
 
 export interface VerifiedDomainAddress {
   value: string;

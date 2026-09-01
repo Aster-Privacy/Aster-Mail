@@ -36,7 +36,12 @@ import { get_root_domain } from "@/lib/utils";
 import { use_peer_profile } from "@/hooks/use_peer_profile";
 import { use_preferences } from "@/contexts/preferences_context";
 
-const ASTER_DOMAINS = new Set(["astermail.org", "aster.cx"]);
+const ASTER_DOMAINS = new Set([
+  "astermail.org",
+  "aster.cx",
+  "astermail.me",
+  "astermail.net",
+]);
 
 interface ContactAvatarProps {
   name?: string;

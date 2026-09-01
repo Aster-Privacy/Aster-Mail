@@ -183,6 +183,13 @@ function get_features(
       supernova: "",
     },
     {
+      name: t("settings.feature_extra_alias_domains"),
+      free: false,
+      star: true,
+      nova: true,
+      supernova: true,
+    },
+    {
       name: t("settings.feature_alias_sender_pinning"),
       free: false,
       star: true,

@@ -2651,6 +2651,7 @@ export const fr = {
       "Vous êtes sur le forfait {{plan_name}}. Gérez les membres, le stockage et les paramètres dans l'onglet Famille.",
     go_to_family_settings: "Accéder aux paramètres Famille",
     category_advanced_aliases: "Alias avancés",
+    feature_extra_alias_domains: "Domaines d'alias supplémentaires",
     feature_alias_sender_pinning: "Épinglage d'expéditeur",
     feature_per_alias_rules: "Règles par alias (blocage et filtrage)",
     feature_alias_stats_restore: "Statistiques et restauration d'alias",
@@ -2968,6 +2969,8 @@ export const fr = {
     alias_feature_locked_sender_pinning:
       "Améliorez votre forfait pour utiliser l'épinglage d'expéditeur.",
     requires_plan: "Nécessite {{plan}}",
+    alias_domain_group_extra: "Domaines supplémentaires",
+    alias_domain_requires_plan: "Ce domaine est disponible à partir du forfait {{plan}}.",
     alias_feature_locked_view_plans: "Voir les forfaits",
     alias_feature_locked_upgrade_plan: "Améliorer le forfait",
     alias_feature_locked_upgrade_cta: "Améliorer",

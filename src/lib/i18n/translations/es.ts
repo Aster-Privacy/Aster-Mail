@@ -2634,6 +2634,7 @@ export const es = {
       "Tienes el plan {{plan_name}}. Gestiona los miembros, el almacenamiento y los ajustes en la pestaña Familia.",
     go_to_family_settings: "Ir a los ajustes de Familia",
     category_advanced_aliases: "Alias avanzados",
+    feature_extra_alias_domains: "Dominios de alias adicionales",
     feature_alias_sender_pinning: "Fijación de remitentes",
     feature_per_alias_rules: "Reglas por alias (bloqueo y filtro)",
     feature_alias_stats_restore: "Estadísticas y restauración de alias",
@@ -2946,6 +2947,8 @@ export const es = {
     alias_feature_locked_sender_pinning:
       "Mejora tu plan para usar la fijación de remitentes.",
     requires_plan: "Requiere {{plan}}",
+    alias_domain_group_extra: "Dominios adicionales",
+    alias_domain_requires_plan: "Este dominio está disponible en el plan {{plan}} y superiores.",
     alias_feature_locked_view_plans: "Ver planes",
     alias_feature_locked_upgrade_plan: "Mejorar plan",
     alias_feature_locked_upgrade_cta: "Mejorar",

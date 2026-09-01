@@ -2763,6 +2763,7 @@ export const ru = {
       "Вы используете план {{plan_name}}. Управляйте участниками, хранилищем и настройками на вкладке «Семья».",
     go_to_family_settings: "Перейти к настройкам семьи",
     category_advanced_aliases: "Расширенные псевдонимы",
+    feature_extra_alias_domains: "Дополнительные домены алиасов",
     feature_alias_sender_pinning: "Закрепление отправителей",
     feature_per_alias_rules:
       "Правила для псевдонимов (блокировка и фильтрация)",
@@ -3081,6 +3082,8 @@ export const ru = {
     alias_feature_locked_sender_pinning:
       "Перейдите на другой план, чтобы использовать закрепление отправителей.",
     requires_plan: "Требуется {{plan}}",
+    alias_domain_group_extra: "Дополнительные домены",
+    alias_domain_requires_plan: "Этот домен доступен на тарифе {{plan}} и выше.",
     alias_feature_locked_view_plans: "Посмотреть планы",
     alias_feature_locked_upgrade_plan: "Улучшить план",
     alias_feature_locked_upgrade_cta: "Улучшить",

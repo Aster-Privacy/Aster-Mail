@@ -2677,6 +2677,7 @@ export const de = {
       "Du nutzt den Tarif {{plan_name}}. Verwalte Mitglieder, Speicher und Einstellungen im Tab Familie.",
     go_to_family_settings: "Zu den Familieneinstellungen",
     category_advanced_aliases: "Erweiterte Aliase",
+    feature_extra_alias_domains: "Zusätzliche Alias-Domains",
     feature_alias_sender_pinning: "Absender-Bindung",
     feature_per_alias_rules: "Regeln pro Alias (blockieren & filtern)",
     feature_alias_stats_restore: "Alias-Statistiken & Wiederherstellung",
@@ -3007,6 +3008,8 @@ export const de = {
     alias_feature_locked_sender_pinning:
       "Wechsle deinen Tarif, um die Absender-Bindung zu nutzen.",
     requires_plan: "Erfordert {{plan}}",
+    alias_domain_group_extra: "Zusätzliche Domains",
+    alias_domain_requires_plan: "Diese Domain ist ab dem {{plan}}-Tarif verfügbar.",
     alias_feature_locked_view_plans: "Tarife ansehen",
     alias_feature_locked_upgrade_plan: "Tarif upgraden",
     alias_feature_locked_upgrade_cta: "Upgraden",

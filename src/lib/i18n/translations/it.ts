@@ -2664,6 +2664,7 @@ export const it = {
       "Hai il piano {{plan_name}}. Gestisci membri, spazio e impostazioni nella scheda Famiglia.",
     go_to_family_settings: "Vai alle impostazioni Famiglia",
     category_advanced_aliases: "Alias avanzati",
+    feature_extra_alias_domains: "Domini alias aggiuntivi",
     feature_alias_sender_pinning: "Blocco del mittente",
     feature_per_alias_rules: "Regole per alias (blocco e filtro)",
     feature_alias_stats_restore: "Statistiche e ripristino degli alias",
@@ -2978,6 +2979,8 @@ export const it = {
     alias_feature_locked_sender_pinning:
       "Aggiorna il tuo piano per usare il blocco del mittente.",
     requires_plan: "Richiede {{plan}}",
+    alias_domain_group_extra: "Domini aggiuntivi",
+    alias_domain_requires_plan: "Questo dominio è disponibile dal piano {{plan}} in su.",
     alias_feature_locked_view_plans: "Visualizza i piani",
     alias_feature_locked_upgrade_plan: "Aggiorna piano",
     alias_feature_locked_upgrade_cta: "Aggiorna",
