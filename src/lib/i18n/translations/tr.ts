@@ -4136,6 +4136,30 @@ export const tr = {
       "Çok fazla deneme yapıldı. Bir dakika bekleyip yeniden deneyin.",
     checkout_already_active:
       "Zaten etkin bir aboneliğiniz var. Görmek için sayfayı yenileyin.",
+    checkout_session_mismatch:
+      "Oturumunuz farklı bir ağda veya tarayıcıda başladı. Çıkış yapın, yeniden giriş yapın ve tekrar deneyin.",
+    checkout_family_group_member:
+      "Zaten bir aile grubundasınız. Yeni bir grup oluşturmadan önce bu gruptan ayrılın.",
+    checkout_family_plan_active:
+      "Aile planınız zaten etkin. Görmek için sayfayı yenileyin.",
+    checkout_crypto_open_invoice_limit:
+      "Çok fazla açık kripto faturanız var. Birini tamamlayın veya iptal edin, sonra yeniden deneyin.",
+    checkout_crypto_active_card:
+      "Kripto ile ödeme yapmadan önce kartlı aboneliğinizi iptal edin.",
+    checkout_unpaid_subscription:
+      "Son faturanız ödenmedi. Ayarlar, Faturalandırma bölümünden ödeyin ve yeniden deneyin.",
+    checkout_pending_cancellation:
+      "Aboneliğiniz iptal edilmek üzere ayarlandı. Plan değiştirmeden önce yenilemeyi tekrar açın.",
+    checkout_duplicate_subscription:
+      "Bu abonelik zaten sizde var. Görmek için sayfayı yenileyin.",
+    checkout_provider_unreachable:
+      "Ödeme sağlayıcımız yanıt vermiyor. Bir dakika bekleyip yeniden deneyin. Hiçbir tutar tahsil edilmedi.",
+    checkout_sca_required:
+      "Bankanızın bu ödemeyi onaylaması gerekiyor. Bankanızın yönlendirmesini izleyin ve yeniden deneyin.",
+    checkout_card_declined:
+      "Bankanız kartı reddetti. Başka bir kart kullanın veya bankanızla iletişime geçin.",
+    checkout_collection_failed:
+      "Ödeme tahsil edilemedi. Ayarlar, Faturalandırma bölümünden ödeme yönteminizi güncelleyin ve yeniden deneyin.",
     plan_not_available:
       "Bu plan şu anda satın alınamıyor. Başka bir plan ya da daha sonra tekrar bakmak işe yarar.",
     failed_checkout:
@@ -6421,6 +6445,9 @@ export const tr = {
     cardholder_name_placeholder: "Ad Soyad",
     billing_postal_placeholder: "12345",
     crypto_pay_button: "Kripto ile öde",
+    crypto_summary_plan: "Plan",
+    crypto_summary_addon: "Ek paket",
+    crypto_summary_length: "Süre",
     crypto_modal_title: "Kripto ile öde",
     crypto_term_1mo: "1 ay",
     crypto_term_3mo: "3 ay",
@@ -6457,6 +6484,11 @@ export const tr = {
     crypto_native_send_remaining: "Kalan tutarı gönderin",
     crypto_native_to_address: "Bu adrese",
     crypto_native_open_wallet: "Cüzdanda aç",
+    crypto_native_paid_body_addon:
+      "Depolama eklentiniz artık etkin. Teşekkürler!",
+    crypto_native_hint_confirming_addon:
+      "Ağ onayları bekleniyor. Onaylar tamamlandığında depolama eklentiniz etkinleşir.",
+    crypto_native_hint_credited_addon: "Onaylandı. Depolama eklentiniz etkin.",
     crypto_native_status_processing: "İşleniyor",
     crypto_native_hint_processing:
       "Bu ödeme işleniyor. Bu sayfa kendi kendine güncellenir, yapmanız gereken bir şey yok.",
@@ -8338,8 +8370,8 @@ export const tr = {
     two_fa_code_already_used:
       "Bu kod az önce kullanıldı. Kimlik doğrulayıcı uygulamanız yeni bir kod gösterene kadar bekleyip tekrar deneyin.",
     too_many_2fa_attempts:
-    back_to_link_device: "Cihaz bağla ekranına dön",
       "Çok fazla 2FA denemesi. Lütfen birkaç dakika bekleyip tekrar deneyin.",
+    back_to_link_device: "Cihaz bağla ekranına dön",
     sign_in_session_expired:
       "Oturum açma süreniz doldu. Geri dönüp tekrar giriş yapın.",
     backup_codes_remaining_after_login: "{{count}} yedek kod kaldı",

@@ -4248,10 +4248,32 @@ export const ar = {
       "سيتم توجيهك إلى مزود الدفع الآمن لإتمام عملية الشراء.",
     billing_unavailable:
       "المدفوعات غير متاحة مؤقتًا. أعد المحاولة بعد بضع دقائق.",
-    checkout_rate_limited:
-      "محاولات كثيرة جدًا. انتظر دقيقة ثم أعد المحاولة.",
-    checkout_already_active:
-      "لديك اشتراك نشط بالفعل. حدّث الصفحة لعرضه.",
+    checkout_rate_limited: "محاولات كثيرة جدًا. انتظر دقيقة ثم أعد المحاولة.",
+    checkout_already_active: "لديك اشتراك نشط بالفعل. حدّث الصفحة لعرضه.",
+    checkout_session_mismatch:
+      "بدأت جلستك على شبكة أو متصفح مختلف. سجّل الخروج ثم سجّل الدخول وأعد المحاولة.",
+    checkout_family_group_member:
+      "أنت منضم بالفعل إلى مجموعة عائلية. غادرها قبل إنشاء مجموعة جديدة.",
+    checkout_family_plan_active:
+      "خطتك العائلية نشطة بالفعل. حدّث الصفحة لعرضها.",
+    checkout_crypto_open_invoice_limit:
+      "لديك فواتير عملات رقمية مفتوحة أكثر من اللازم. أكمل إحداها أو ألغها ثم أعد المحاولة.",
+    checkout_crypto_active_card:
+      "ألغِ اشتراكك بالبطاقة قبل الدفع بالعملات الرقمية.",
+    checkout_unpaid_subscription:
+      "فاتورتك الأخيرة غير مدفوعة. سدّدها من الإعدادات، الفوترة، ثم أعد المحاولة.",
+    checkout_pending_cancellation:
+      "اشتراكك مضبوط على الإلغاء. أعد تفعيل التجديد قبل تغيير الخطة.",
+    checkout_duplicate_subscription:
+      "لديك هذا الاشتراك بالفعل. حدّث الصفحة لعرضه.",
+    checkout_provider_unreachable:
+      "مزوّد الدفع لا يستجيب. انتظر دقيقة ثم أعد المحاولة. لم يُخصم أي مبلغ.",
+    checkout_sca_required:
+      "يحتاج مصرفك إلى تأكيد هذه الدفعة. اتبع تعليمات المصرف ثم أعد المحاولة.",
+    checkout_card_declined:
+      "رفض مصرفك البطاقة. استخدم بطاقة أخرى أو تواصل مع مصرفك.",
+    checkout_collection_failed:
+      "تعذّر تحصيل الدفعة. حدّث طريقة الدفع من الإعدادات، الفوترة، ثم أعد المحاولة.",
     plan_not_available:
       "هذه الخطة غير متاحة للشراء حاليًا. خطة أخرى أو العودة لاحقًا ستعمل.",
     failed_checkout:
@@ -6353,6 +6375,9 @@ export const ar = {
     cardholder_name_placeholder: "الاسم الكامل",
     billing_postal_placeholder: "12345",
     crypto_pay_button: "الدفع بالعملة المشفرة",
+    crypto_summary_plan: "الخطة",
+    crypto_summary_addon: "الإضافة",
+    crypto_summary_length: "المدة",
     crypto_modal_title: "الدفع بالعملة المشفرة",
     crypto_term_1mo: "شهر واحد",
     crypto_term_3mo: "3 أشهر",
@@ -6388,6 +6413,10 @@ export const ar = {
     crypto_native_send_remaining: "أرسل المبلغ المتبقي",
     crypto_native_to_address: "إلى هذا العنوان",
     crypto_native_open_wallet: "فتح في المحفظة",
+    crypto_native_paid_body_addon: "إضافة التخزين نشطة الآن. شكرًا لك!",
+    crypto_native_hint_confirming_addon:
+      "في انتظار تأكيدات الشبكة. تُفعَّل إضافة التخزين عند اكتمالها.",
+    crypto_native_hint_credited_addon: "تم التأكيد. إضافة التخزين نشطة.",
     crypto_native_status_processing: "قيد المعالجة",
     crypto_native_hint_processing:
       "تتم معالجة هذه الدفعة. تُحدَّث هذه الصفحة تلقائيًا، فلا حاجة لأي إجراء منك.",

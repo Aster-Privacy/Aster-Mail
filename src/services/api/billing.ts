@@ -192,6 +192,35 @@ export async function get_available_plans() {
   return api_client.get<AvailablePlansResponse>("/payments/v1/plans");
 }
 
+export interface CurrentPlanDetail {
+  id: string;
+  code: string;
+  name: string;
+  description: string | null;
+  storage_limit_bytes: number;
+  max_attachment_size_bytes: number;
+  max_email_aliases: number;
+  max_custom_domains: number;
+  price_cents: number;
+  yearly_price_cents: number;
+  billing_period: string | null;
+  sort_order: number;
+}
+
+export interface CurrentPlanResponse {
+  plan: CurrentPlanDetail;
+  subscription_state: string | null;
+  started_at: string | null;
+  expires_at: string | null;
+  cancel_at_period_end: boolean;
+  payment_failed_at: string | null;
+  grace_period_end: string | null;
+}
+
+export async function get_current_plan() {
+  return api_client.get<CurrentPlanResponse>("/payments/v1/plans/current");
+}
+
 export interface CurrencyRatesResponse {
   base: string;
   rates: Record<string, number>;
@@ -480,6 +509,7 @@ export interface CryptoNativeInvoiceResponse {
 
 export interface CryptoNativeInvoiceStatus {
   id: string;
+  kind?: string;
   currency: string;
   chain: string;
   display_name: string;
@@ -542,6 +572,18 @@ export async function create_crypto_native_invoice(
   return api_client.post<CryptoNativeInvoiceResponse>(
     "/payments/v1/crypto-native/invoice",
     { plan_code, term_months, currency, chain },
+  );
+}
+
+export async function create_crypto_native_addon_invoice(
+  addon_id: string,
+  term_months: number,
+  currency: string,
+  chain: string,
+) {
+  return api_client.post<CryptoNativeInvoiceResponse>(
+    "/payments/v1/crypto-native/invoice",
+    { addon_id, term_months, currency, chain },
   );
 }
 

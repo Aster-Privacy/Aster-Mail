@@ -4806,10 +4806,33 @@ export const it = {
       "Verrai reindirizzato al nostro fornitore di pagamento sicuro per completare l'acquisto.",
     billing_unavailable:
       "I pagamenti non sono disponibili al momento. Riprova tra qualche minuto.",
-    checkout_rate_limited:
-      "Troppi tentativi. Attendi un minuto, poi riprova.",
+    checkout_rate_limited: "Troppi tentativi. Attendi un minuto, poi riprova.",
     checkout_already_active:
       "Hai già un abbonamento attivo. Aggiorna la pagina per vederlo.",
+    checkout_session_mismatch:
+      "La tua sessione è iniziata su una rete o un browser diverso. Esci, accedi di nuovo e riprova.",
+    checkout_family_group_member:
+      "Fai già parte di un gruppo famiglia. Esci dal gruppo prima di crearne uno nuovo.",
+    checkout_family_plan_active:
+      "Il tuo piano famiglia è già attivo. Aggiorna la pagina per vederlo.",
+    checkout_crypto_open_invoice_limit:
+      "Hai troppe fatture crypto aperte. Completane o annullane una, poi riprova.",
+    checkout_crypto_active_card:
+      "Annulla l'abbonamento con carta prima di pagare in crypto.",
+    checkout_unpaid_subscription:
+      "La tua ultima fattura non è stata pagata. Saldala in Impostazioni, Fatturazione, poi riprova.",
+    checkout_pending_cancellation:
+      "Il tuo abbonamento è impostato per essere annullato. Riattiva il rinnovo prima di cambiare piano.",
+    checkout_duplicate_subscription:
+      "Hai già questo abbonamento. Aggiorna la pagina per vederlo.",
+    checkout_provider_unreachable:
+      "Il nostro fornitore di pagamenti non risponde. Attendi un minuto, poi riprova. Non è stato addebitato nulla.",
+    checkout_sca_required:
+      "La tua banca deve confermare questo pagamento. Segui le indicazioni della banca, poi riprova.",
+    checkout_card_declined:
+      "La tua banca ha rifiutato la carta. Usa un'altra carta oppure contatta la banca.",
+    checkout_collection_failed:
+      "Non siamo riusciti a incassare il pagamento. Aggiorna il metodo di pagamento in Impostazioni, Fatturazione, poi riprova.",
     plan_not_available:
       "Questo piano non è disponibile per l'acquisto in questo momento. Un altro piano, o riprovare più tardi, funzionerà.",
     failed_checkout:
@@ -6500,6 +6523,9 @@ export const it = {
     cardholder_name_placeholder: "Nome completo",
     billing_postal_placeholder: "12345",
     crypto_pay_button: "Paga con crypto",
+    crypto_summary_plan: "Piano",
+    crypto_summary_addon: "Componente aggiuntivo",
+    crypto_summary_length: "Durata",
     crypto_modal_title: "Paga con crypto",
     crypto_term_1mo: "1 mese",
     crypto_term_3mo: "3 mesi",
@@ -6536,6 +6562,12 @@ export const it = {
     crypto_native_send_remaining: "Invia l'importo rimanente",
     crypto_native_to_address: "A questo indirizzo",
     crypto_native_open_wallet: "Apri nel wallet",
+    crypto_native_paid_body_addon:
+      "Il tuo componente aggiuntivo di archiviazione è ora attivo. Grazie!",
+    crypto_native_hint_confirming_addon:
+      "In attesa delle conferme di rete. Il tuo componente aggiuntivo di archiviazione si attiva al termine.",
+    crypto_native_hint_credited_addon:
+      "Confermato. Il tuo componente aggiuntivo di archiviazione è attivo.",
     crypto_native_status_processing: "In elaborazione",
     crypto_native_hint_processing:
       "Questo pagamento è in elaborazione. La pagina si aggiorna da sola, non devi fare nulla.",
@@ -8449,8 +8481,8 @@ export const it = {
     two_fa_code_already_used:
       "Questo codice è appena stato usato. Attendi che l'app di autenticazione mostri un nuovo codice e riprova.",
     too_many_2fa_attempts:
-    back_to_link_device: "Torna a Collega dispositivo",
       "Troppi tentativi 2FA. Attendi qualche minuto prima di riprovare.",
+    back_to_link_device: "Torna a Collega dispositivo",
     sign_in_session_expired:
       "La sessione di accesso è scaduta. Torna indietro e accedi di nuovo.",
     backup_codes_remaining_after_login: "{{count}} codici di backup rimanenti",

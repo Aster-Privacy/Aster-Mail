@@ -4182,6 +4182,30 @@ export const de = {
       "Zu viele Versuche. Warten Sie eine Minute und versuchen Sie es erneut.",
     checkout_already_active:
       "Sie haben bereits ein aktives Abonnement. Aktualisieren Sie die Seite, um es zu sehen.",
+    checkout_session_mismatch:
+      "Ihre Sitzung wurde in einem anderen Netzwerk oder Browser gestartet. Melden Sie sich ab, wieder an und versuchen Sie es erneut.",
+    checkout_family_group_member:
+      "Sie gehören bereits zu einer Familiengruppe. Verlassen Sie sie, bevor Sie eine neue erstellen.",
+    checkout_family_plan_active:
+      "Ihr Familientarif ist bereits aktiv. Aktualisieren Sie die Seite, um ihn zu sehen.",
+    checkout_crypto_open_invoice_limit:
+      "Sie haben zu viele offene Krypto-Rechnungen. Schließen Sie eine ab oder stornieren Sie sie und versuchen Sie es erneut.",
+    checkout_crypto_active_card:
+      "Kündigen Sie Ihr Kartenabo, bevor Sie mit Krypto bezahlen.",
+    checkout_unpaid_subscription:
+      "Ihre letzte Rechnung ist offen. Begleichen Sie sie unter Einstellungen, Abrechnung, und versuchen Sie es erneut.",
+    checkout_pending_cancellation:
+      "Ihr Abo ist zur Kündigung vorgemerkt. Aktivieren Sie die Verlängerung wieder, bevor Sie den Tarif wechseln.",
+    checkout_duplicate_subscription:
+      "Sie haben dieses Abo bereits. Aktualisieren Sie die Seite, um es zu sehen.",
+    checkout_provider_unreachable:
+      "Unser Zahlungsanbieter antwortet nicht. Warten Sie eine Minute und versuchen Sie es erneut. Es wurde nichts abgebucht.",
+    checkout_sca_required:
+      "Ihre Bank muss diese Zahlung bestätigen. Folgen Sie der Aufforderung Ihrer Bank und versuchen Sie es erneut.",
+    checkout_card_declined:
+      "Ihre Bank hat die Karte abgelehnt. Verwenden Sie eine andere Karte oder wenden Sie sich an Ihre Bank.",
+    checkout_collection_failed:
+      "Die Zahlung konnte nicht eingezogen werden. Aktualisieren Sie Ihre Zahlungsmethode unter Einstellungen, Abrechnung, und versuchen Sie es erneut.",
     plan_not_available:
       "Dieser Tarif ist derzeit nicht zum Kauf verfügbar. Ein anderer Tarif oder ein Blick zu späterer Zeit funktioniert.",
     failed_checkout:
@@ -6466,6 +6490,12 @@ export const de = {
     crypto_native_send_remaining: "Senden Sie den Restbetrag",
     crypto_native_to_address: "An diese Adresse",
     crypto_native_open_wallet: "In Wallet öffnen",
+    crypto_native_paid_body_addon:
+      "Ihr Speicher-Add-on ist jetzt aktiv. Vielen Dank!",
+    crypto_native_hint_confirming_addon:
+      "Warten auf Netzwerkbestätigungen. Ihr Speicher-Add-on wird nach deren Abschluss aktiviert.",
+    crypto_native_hint_credited_addon:
+      "Bestätigt. Ihr Speicher-Add-on ist aktiv.",
     crypto_native_status_processing: "Wird verarbeitet",
     crypto_native_hint_processing:
       "Diese Zahlung wird verarbeitet. Die Seite aktualisiert sich von selbst, du musst nichts tun.",
@@ -6575,6 +6605,9 @@ export const de = {
     crypto_no_renew_notice: "Krypto-Käufe verlängern sich nicht automatisch.",
     crypto_paid_until: "Bezahlt bis {{date}} (Krypto)",
     crypto_pay_button: "Mit Krypto bezahlen",
+    crypto_summary_plan: "Tarif",
+    crypto_summary_addon: "Add-on",
+    crypto_summary_length: "Laufzeit",
     crypto_pay_now: "Mit Krypto bezahlen",
     crypto_renew_link: "Mit Krypto verlängern",
     crypto_select_term:

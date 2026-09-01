@@ -4175,6 +4175,30 @@ export const es = {
       "Demasiados intentos. Espera un minuto y vuelve a intentarlo.",
     checkout_already_active:
       "Ya tienes una suscripción activa. Actualiza la página para verla.",
+    checkout_session_mismatch:
+      "Tu sesión empezó en otra red u otro navegador. Cierra sesión, vuelve a entrar e inténtalo de nuevo.",
+    checkout_family_group_member:
+      "Ya perteneces a un grupo familiar. Sal de él antes de crear uno nuevo.",
+    checkout_family_plan_active:
+      "Tu plan familiar ya está activo. Actualiza la página para verlo.",
+    checkout_crypto_open_invoice_limit:
+      "Tienes demasiadas facturas de criptomonedas abiertas. Termina o cancela una y vuelve a intentarlo.",
+    checkout_crypto_active_card:
+      "Cancela tu suscripción con tarjeta antes de pagar con criptomonedas.",
+    checkout_unpaid_subscription:
+      "Tu última factura está pendiente de pago. Págala en Ajustes, Facturación, y vuelve a intentarlo.",
+    checkout_pending_cancellation:
+      "Tu suscripción está programada para cancelarse. Vuelve a activar la renovación antes de cambiar de plan.",
+    checkout_duplicate_subscription:
+      "Ya tienes esta suscripción. Actualiza la página para verla.",
+    checkout_provider_unreachable:
+      "Nuestro proveedor de pagos no responde. Espera un minuto y vuelve a intentarlo. No se ha cobrado nada.",
+    checkout_sca_required:
+      "Tu banco tiene que confirmar este pago. Sigue las indicaciones de tu banco y vuelve a intentarlo.",
+    checkout_card_declined:
+      "Tu banco rechazó la tarjeta. Usa otra tarjeta o ponte en contacto con tu banco.",
+    checkout_collection_failed:
+      "No hemos podido cobrar el pago. Actualiza tu método de pago en Ajustes, Facturación, y vuelve a intentarlo.",
     plan_not_available:
       "Este plan no está disponible para compra ahora mismo. Otro plan, o volver más tarde, funcionará.",
     failed_checkout:
@@ -6374,6 +6398,12 @@ export const es = {
     crypto_native_send_remaining: "Envía el importe restante",
     crypto_native_to_address: "A esta dirección",
     crypto_native_open_wallet: "Abrir en la cartera",
+    crypto_native_paid_body_addon:
+      "Tu complemento de almacenamiento ya está activo. ¡Gracias!",
+    crypto_native_hint_confirming_addon:
+      "Esperando las confirmaciones de la red. Tu complemento de almacenamiento se activa cuando terminan.",
+    crypto_native_hint_credited_addon:
+      "Confirmado. Tu complemento de almacenamiento está activo.",
     crypto_native_status_processing: "Procesando",
     crypto_native_hint_processing:
       "Este pago se está procesando. Esta página se actualiza sola, no tienes que hacer nada.",
@@ -6481,6 +6511,9 @@ export const es = {
     crypto_no_renew_notice: "Este plan no se renueva automáticamente.",
     crypto_paid_until: "Pagado hasta el {{date}} (cripto)",
     crypto_pay_button: "Pagar con cripto",
+    crypto_summary_plan: "Plan",
+    crypto_summary_addon: "Complemento",
+    crypto_summary_length: "Duración",
     crypto_pay_now: "Pagar ahora con cripto",
     crypto_renew_link: "Renovar",
     crypto_select_term: "Seleccionar duración",
@@ -8337,8 +8370,8 @@ export const es = {
     too_many_2fa_attempts:
       "Demasiados intentos de 2FA. Espera unos minutos antes de volver a intentarlo.",
     sign_in_session_expired:
-    back_to_link_device: "Volver a vincular dispositivo",
       "Tu sesión de inicio expiró. Vuelve atrás e inicia sesión de nuevo.",
+    back_to_link_device: "Volver a vincular dispositivo",
     backup_codes_remaining_after_login: "Quedan {{count}} códigos de respaldo",
     backup_code_description:
       "Ingresa uno de tus códigos de respaldo para iniciar sesión",

@@ -3702,6 +3702,27 @@ export const zh_CN = {
     billing_unavailable: "支付暂时不可用。请几分钟后重试。",
     checkout_rate_limited: "尝试次数过多。请等待一分钟后重试。",
     checkout_already_active: "你已有有效订阅。刷新页面即可查看。",
+    checkout_session_mismatch:
+      "这个会话在其他网络或浏览器上开始。请退出登录后重新登录再试。",
+    checkout_family_group_member:
+      "你已经在一个家庭群组中。请先退出该群组，再创建新的群组。",
+    checkout_family_plan_active: "你的家庭方案已经生效。刷新页面即可查看。",
+    checkout_crypto_open_invoice_limit:
+      "你有太多未完成的加密货币账单。请先完成或取消其中一个，然后重试。",
+    checkout_crypto_active_card: "用加密货币付款前，请先取消银行卡订阅。",
+    checkout_unpaid_subscription:
+      "上一笔账单尚未支付。请在设置的账单中付清，然后重试。",
+    checkout_pending_cancellation:
+      "你的订阅已设置为取消。更换方案前，请重新开启自动续订。",
+    checkout_duplicate_subscription: "你已经有这项订阅。刷新页面即可查看。",
+    checkout_provider_unreachable:
+      "支付服务商暂无响应。请等待一分钟后重试，未产生任何扣款。",
+    checkout_sca_required:
+      "这笔付款需要你的银行确认。请按银行的提示操作，然后重试。",
+    checkout_card_declined:
+      "你的银行拒绝了这张卡。请换一张卡，或联系你的银行。",
+    checkout_collection_failed:
+      "未能完成收款。请在设置的账单中更新支付方式，然后重试。",
     plan_not_available: "这个方案目前无法购买，换一个方案或稍后再来看看可以。",
     failed_checkout:
       "我们暂时无法打开结算页面，再试一次应该可以。您的账单没有变化。",
@@ -5990,6 +6011,9 @@ export const zh_CN = {
     or_pay_with_card: "或使用信用卡支付",
     cashapp_redirect_notice: "您将被重定向到 Cash App 以完成支付。",
     crypto_pay_button: "用加密货币支付",
+    crypto_summary_plan: "套餐",
+    crypto_summary_addon: "附加项",
+    crypto_summary_length: "时长",
     crypto_modal_title: "加密货币支付",
     crypto_modal_price: "金额：{{amount}}",
     crypto_modal_confirm: "确认支付",
@@ -6016,6 +6040,10 @@ export const zh_CN = {
     crypto_native_send_remaining: "请发送剩余金额",
     crypto_native_to_address: "收款地址",
     crypto_native_open_wallet: "在钱包中打开",
+    crypto_native_paid_body_addon: "您的存储扩容已生效。谢谢！",
+    crypto_native_hint_confirming_addon:
+      "正在等待网络确认。确认完成后，你的存储扩容即刻生效。",
+    crypto_native_hint_credited_addon: "已确认。你的存储扩容已生效。",
     crypto_native_status_processing: "处理中",
     crypto_native_hint_processing:
       "此付款正在处理中。本页面会自动更新，你无需做任何操作。",

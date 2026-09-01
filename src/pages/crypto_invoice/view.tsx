@@ -182,6 +182,7 @@ export function CryptoInvoiceView({ id }: { id?: string }) {
   const [is_checking_now, set_is_checking_now] = useState(false);
   const [confirm_cancel_open, set_confirm_cancel_open] = useState(false);
   const [last_checked_at, set_last_checked_at] = useState<number | null>(null);
+  const [wallet_handler_missing, set_wallet_handler_missing] = useState(false);
   const latest_invoice = useRef<CryptoNativeInvoiceStatus | null>(null);
   const credited_notified = useRef(false);
   const cancel_notified = useRef(false);
@@ -432,8 +433,11 @@ export function CryptoInvoiceView({ id }: { id?: string }) {
   const handle_open_wallet = useCallback(() => {
     if (wallet_timer.current) clearTimeout(wallet_timer.current);
 
+    set_wallet_handler_missing(false);
+
     wallet_timer.current = setTimeout(() => {
       if (document.visibilityState === "visible" && document.hasFocus()) {
+        set_wallet_handler_missing(true);
         show_toast(
           t("settings.crypto_native_no_wallet_handler"),
           "info",
@@ -834,6 +838,17 @@ export function CryptoInvoiceView({ id }: { id?: string }) {
                     {t("settings.crypto_native_open_wallet")}
                   </a>
                 )}
+
+                {has_outstanding_balance &&
+                  wallet_uri &&
+                  wallet_handler_missing && (
+                    <p
+                      className="text-xs leading-relaxed text-txt-secondary"
+                      role="status"
+                    >
+                      {t("settings.crypto_native_no_wallet_handler")}
+                    </p>
+                  )}
 
                 {has_outstanding_balance && (
                   <div className="space-y-1.5 pt-0.5">

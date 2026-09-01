@@ -31,6 +31,18 @@ const SERVER_CODE_KEYS: Record<string, TranslationKey> = {
   STRIPE_ERROR: "settings.billing_unavailable",
   RATE_LIMIT_EXCEEDED: "settings.checkout_rate_limited",
   CONFLICT: "settings.checkout_already_active",
+  FINGERPRINT_MISMATCH: "settings.checkout_session_mismatch",
+  FAMILY_GROUP_MEMBER: "settings.checkout_family_group_member",
+  FAMILY_PLAN_ACTIVE: "settings.checkout_family_plan_active",
+  CRYPTO_OPEN_INVOICE_LIMIT: "settings.checkout_crypto_open_invoice_limit",
+  CRYPTO_ACTIVE_CARD_SUBSCRIPTION: "settings.checkout_crypto_active_card",
+  UNPAID_SUBSCRIPTION: "settings.checkout_unpaid_subscription",
+  PENDING_CANCELLATION: "settings.checkout_pending_cancellation",
+  DUPLICATE_SUBSCRIPTION: "settings.checkout_duplicate_subscription",
+  PROVIDER_UNREACHABLE: "settings.checkout_provider_unreachable",
+  SCA_REQUIRED: "settings.checkout_sca_required",
+  CARD_DECLINED: "settings.checkout_card_declined",
+  COLLECTION_FAILED: "settings.checkout_collection_failed",
 };
 
 export function checkout_error_text(

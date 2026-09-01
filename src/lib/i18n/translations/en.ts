@@ -3202,16 +3202,42 @@ export const en: Translations = {
       "You will be redirected to our secure payment provider to complete your purchase.",
     billing_unavailable:
       "Payments are temporarily unavailable. Try again in a few minutes.",
-    checkout_rate_limited:
-      "Too many attempts. Wait a minute, then try again.",
+    checkout_rate_limited: "Too many attempts. Wait a minute, then try again.",
     checkout_already_active:
       "You already have an active subscription. Refresh the page to see it.",
+    checkout_session_mismatch:
+      "Your session started on a different network or browser. Sign out, sign back in, and try again.",
+    checkout_family_group_member:
+      "You already belong to a family group. Leave it before you create a new one.",
+    checkout_family_plan_active:
+      "Your family plan is already active. Refresh the page to see it.",
+    checkout_crypto_open_invoice_limit:
+      "You have too many open crypto invoices. Finish or cancel one, then try again.",
+    checkout_crypto_active_card:
+      "Cancel your card subscription before you pay with crypto.",
+    checkout_unpaid_subscription:
+      "Your last invoice is unpaid. Settle it in Settings, Billing, then try again.",
+    checkout_pending_cancellation:
+      "Your subscription is set to cancel. Turn renewal back on before you change plans.",
+    checkout_duplicate_subscription:
+      "You already have this subscription. Refresh the page to see it.",
+    checkout_provider_unreachable:
+      "Our payment provider is not responding. Wait a minute, then try again. Nothing was charged.",
+    checkout_sca_required:
+      "Your bank needs to confirm this payment. Follow the prompt from your bank, then try again.",
+    checkout_card_declined:
+      "Your bank declined the card. Use another card, or contact your bank.",
+    checkout_collection_failed:
+      "We could not collect the payment. Update your payment method in Settings, Billing, then try again.",
     plan_not_available:
       "This plan is not available for purchase right now. Another plan, or checking back later, will work.",
     failed_checkout:
       "We could not open checkout just now. Another attempt should do it. Your billing is unchanged.",
     checkout_welcome: "Welcome to Aster! Your subscription is active.",
     crypto_pay_button: "Pay with crypto",
+    crypto_summary_plan: "Plan",
+    crypto_summary_addon: "Add-on",
+    crypto_summary_length: "Length",
     crypto_modal_title: "Pay with crypto",
     crypto_term_1mo: "1 month",
     crypto_term_3mo: "3 months",
@@ -3263,6 +3289,12 @@ export const en: Translations = {
     crypto_native_send_remaining: "Send the remaining",
     crypto_native_to_address: "To this address",
     crypto_native_open_wallet: "Open in wallet",
+    crypto_native_paid_body_addon:
+      "Your storage add-on is now active. Thank you!",
+    crypto_native_hint_confirming_addon:
+      "Waiting for network confirmations. Your storage add-on activates when they complete.",
+    crypto_native_hint_credited_addon:
+      "Confirmed. Your storage add-on is active.",
     crypto_native_status_processing: "Processing",
     crypto_native_hint_processing:
       "This payment is being processed. This page updates on its own, so there is nothing you need to do.",
@@ -8271,15 +8303,15 @@ export const en: Translations = {
       "Linking a Bridge device needs a Star plan or higher. Upgrade to continue.",
     link_device_upgrade_title: "Upgrade to link this device",
     link_device_upgrade_description:
+      "Your encryption keys never leave your devices.",
     link_device_change_account: "Change account",
     link_device_choose_account: "Choose an account",
     link_device_choose_account_description: "To link your desktop app",
     link_device_choose_account_note:
-      "Your encryption keys never leave your devices.",
+      "Connecting a desktop Bridge to your account needs a Star plan or higher. Pick a plan below and your device links right after checkout.",
     link_device_use_another_account: "Use another account",
     link_device_use_this_account: "Use this account",
     link_device_other_accounts: "Switch to another account",
-      "Connecting a desktop Bridge to your account needs a Star plan or higher. Pick a plan below and your device links right after checkout.",
     link_device_upgrade_cta: "Upgrade to Star",
     link_device_upgrade_failed:
       "Could not start checkout. Please try again or open Billing in Settings.",
@@ -8306,8 +8338,8 @@ export const en: Translations = {
     two_fa_code_already_used:
       "That code was just used. Wait for your authenticator app to show a new code, then try again.",
     too_many_2fa_attempts:
-    back_to_link_device: "Back to link device",
       "Too many 2FA attempts. Please wait a few minutes before trying again.",
+    back_to_link_device: "Back to link device",
     sign_in_session_expired:
       "Your sign-in session expired. Go back and sign in again.",
     backup_codes_remaining_after_login: "{{count}} backup codes remaining",

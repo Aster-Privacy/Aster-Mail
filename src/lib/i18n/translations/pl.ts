@@ -4330,6 +4330,30 @@ export const pl = {
       "Zbyt wiele prób. Odczekaj minutę i spróbuj ponownie.",
     checkout_already_active:
       "Masz już aktywną subskrypcję. Odśwież stronę, aby ją zobaczyć.",
+    checkout_session_mismatch:
+      "Twoja sesja rozpoczęła się w innej sieci lub przeglądarce. Wyloguj się, zaloguj ponownie i spróbuj jeszcze raz.",
+    checkout_family_group_member:
+      "Należysz już do grupy rodzinnej. Opuść ją, zanim utworzysz nową.",
+    checkout_family_plan_active:
+      "Twój plan rodzinny jest już aktywny. Odśwież stronę, aby go zobaczyć.",
+    checkout_crypto_open_invoice_limit:
+      "Masz zbyt wiele otwartych faktur kryptowalutowych. Zakończ lub anuluj jedną z nich i spróbuj ponownie.",
+    checkout_crypto_active_card:
+      "Anuluj subskrypcję opłacaną kartą, zanim zapłacisz kryptowalutą.",
+    checkout_unpaid_subscription:
+      "Twoja ostatnia faktura jest nieopłacona. Ureguluj ją w Ustawieniach, Rozliczenia, i spróbuj ponownie.",
+    checkout_pending_cancellation:
+      "Twoja subskrypcja ma zostać anulowana. Włącz odnawianie z powrotem, zanim zmienisz plan.",
+    checkout_duplicate_subscription:
+      "Masz już tę subskrypcję. Odśwież stronę, aby ją zobaczyć.",
+    checkout_provider_unreachable:
+      "Nasz dostawca płatności nie odpowiada. Odczekaj minutę i spróbuj ponownie. Nic nie zostało pobrane.",
+    checkout_sca_required:
+      "Twój bank musi potwierdzić tę płatność. Postępuj zgodnie ze wskazówkami banku i spróbuj ponownie.",
+    checkout_card_declined:
+      "Twój bank odrzucił kartę. Użyj innej karty lub skontaktuj się z bankiem.",
+    checkout_collection_failed:
+      "Nie udało się pobrać płatności. Zaktualizuj metodę płatności w Ustawieniach, Rozliczenia, i spróbuj ponownie.",
     plan_not_available:
       "Ten plan nie jest obecnie dostępny do zakupu. Inny plan lub powrót później zadziała.",
     failed_checkout:
@@ -6600,6 +6624,9 @@ export const pl = {
     cardholder_name_placeholder: "Imię i nazwisko",
     billing_postal_placeholder: "00-000",
     crypto_pay_button: "Zapłać kryptowalutą",
+    crypto_summary_plan: "Plan",
+    crypto_summary_addon: "Dodatek",
+    crypto_summary_length: "Okres",
     crypto_modal_title: "Zapłać kryptowalutą",
     crypto_term_1mo: "1 miesiąc",
     crypto_term_3mo: "3 miesiące",
@@ -6636,6 +6663,12 @@ export const pl = {
     crypto_native_send_remaining: "Wyślij pozostałą kwotę",
     crypto_native_to_address: "Na ten adres",
     crypto_native_open_wallet: "Otwórz w portfelu",
+    crypto_native_paid_body_addon:
+      "Dodatek pojemności jest już aktywny. Dziękujemy!",
+    crypto_native_hint_confirming_addon:
+      "Czekamy na potwierdzenia sieci. Dodatek pojemności aktywuje się po ich zakończeniu.",
+    crypto_native_hint_credited_addon:
+      "Potwierdzono. Dodatek pojemności jest aktywny.",
     crypto_native_status_processing: "Przetwarzanie",
     crypto_native_hint_processing:
       "Ta płatność jest przetwarzana. Strona odświeża się sama, nie musisz nic robić.",
@@ -8606,8 +8639,8 @@ export const pl = {
     too_many_2fa_attempts:
       "Zbyt wiele prób 2FA. Odczekaj kilka minut przed ponowną próbą.",
     sign_in_session_expired:
-    back_to_link_device: "Powrót do Połącz urządzenie",
       "Sesja logowania wygasła. Wróć i zaloguj się ponownie.",
+    back_to_link_device: "Powrót do Połącz urządzenie",
     backup_codes_remaining_after_login: "Pozostało {{count}} kodów zapasowych",
     backup_code_description:
       "Wprowadź jeden z kodów zapasowych, aby się zalogować",

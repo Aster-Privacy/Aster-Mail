@@ -4126,6 +4126,30 @@ export const nl = {
       "Te veel pogingen. Wacht een minuut en probeer het opnieuw.",
     checkout_already_active:
       "Je hebt al een actief abonnement. Vernieuw de pagina om het te zien.",
+    checkout_session_mismatch:
+      "Je sessie is op een ander netwerk of in een andere browser gestart. Log uit, log weer in en probeer het opnieuw.",
+    checkout_family_group_member:
+      "Je hoort al bij een gezinsgroep. Verlaat die groep voordat je een nieuwe maakt.",
+    checkout_family_plan_active:
+      "Je gezinsabonnement is al actief. Vernieuw de pagina om het te zien.",
+    checkout_crypto_open_invoice_limit:
+      "Je hebt te veel openstaande cryptofacturen. Rond er een af of annuleer er een en probeer het opnieuw.",
+    checkout_crypto_active_card:
+      "Zeg je kaartabonnement op voordat je met crypto betaalt.",
+    checkout_unpaid_subscription:
+      "Je laatste factuur is niet betaald. Betaal die in Instellingen, Facturering, en probeer het opnieuw.",
+    checkout_pending_cancellation:
+      "Je abonnement staat ingesteld om op te zeggen. Zet verlenging weer aan voordat je van abonnement wisselt.",
+    checkout_duplicate_subscription:
+      "Je hebt dit abonnement al. Vernieuw de pagina om het te zien.",
+    checkout_provider_unreachable:
+      "Onze betalingsprovider reageert niet. Wacht een minuut en probeer het opnieuw. Er is niets afgeschreven.",
+    checkout_sca_required:
+      "Je bank moet deze betaling bevestigen. Volg de instructies van je bank en probeer het opnieuw.",
+    checkout_card_declined:
+      "Je bank heeft de kaart geweigerd. Gebruik een andere kaart of neem contact op met je bank.",
+    checkout_collection_failed:
+      "We konden de betaling niet innen. Werk je betaalmethode bij in Instellingen, Facturering, en probeer het opnieuw.",
     plan_not_available:
       "Dit abonnement is op dit moment niet te koop. Een ander abonnement of later terugkomen werkt.",
     failed_checkout:
@@ -6360,6 +6384,12 @@ export const nl = {
     crypto_native_send_remaining: "Stuur het resterende bedrag",
     crypto_native_to_address: "Naar dit adres",
     crypto_native_open_wallet: "Openen in wallet",
+    crypto_native_paid_body_addon:
+      "Je opslaguitbreiding is nu actief. Bedankt!",
+    crypto_native_hint_confirming_addon:
+      "Wachten op netwerkbevestigingen. Je opslaguitbreiding wordt geactiveerd zodra ze binnen zijn.",
+    crypto_native_hint_credited_addon:
+      "Bevestigd. Je opslaguitbreiding is actief.",
     crypto_native_status_processing: "Wordt verwerkt",
     crypto_native_hint_processing:
       "Deze betaling wordt verwerkt. Deze pagina werkt zichzelf bij, je hoeft niets te doen.",
@@ -6466,6 +6496,9 @@ export const nl = {
     crypto_no_renew_notice: "Dit abonnement wordt niet automatisch verlengd",
     crypto_paid_until: "Betaald tot {{date}} (crypto)",
     crypto_pay_button: "Betalen met crypto",
+    crypto_summary_plan: "Abonnement",
+    crypto_summary_addon: "Add-on",
+    crypto_summary_length: "Duur",
     crypto_pay_now: "Nu betalen",
     crypto_renew_link: "Handmatig verlengen",
     crypto_select_term: "Looptijd selecteren",
@@ -8704,16 +8737,15 @@ export const nl = {
     trust_this_device_30_days: "Dit apparaat 30 dagen vertrouwen",
     security_key_verification: "Beveiligingssleutelverificatie",
     passkey_sign_in: "Aanmelden met toegangssleutel",
-    tap_security_key:
+    tap_security_key: "Je encryptiesleutels verlaten nooit je apparaten.",
     link_device_change_account: "Account wijzigen",
     link_device_choose_account: "Kies een account",
     link_device_choose_account_description: "Om je desktop-app te koppelen",
     link_device_choose_account_note:
-      "Je encryptiesleutels verlaten nooit je apparaten.",
+      "Tik op je beveiligingssleutel of gebruik je wachtwoordsleutel om in te loggen",
     link_device_use_another_account: "Een ander account gebruiken",
     link_device_use_this_account: "Dit account gebruiken",
     link_device_other_accounts: "Overschakelen naar een ander account",
-      "Tik op je beveiligingssleutel of gebruik je wachtwoordsleutel om in te loggen",
     use_another_method: "Een andere verificatiemethode gebruiken",
     webauthn_not_supported:
       "Deze browser ondersteunt geen beveiligingssleutels. Een andere browser, of inloggen met je wachtwoord, werkt.",

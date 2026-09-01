@@ -4055,6 +4055,30 @@ export const ko = {
       "시도 횟수가 너무 많습니다. 잠시 기다린 후 다시 시도하세요.",
     checkout_already_active:
       "이미 활성 구독이 있습니다. 페이지를 새로 고치면 표시됩니다.",
+    checkout_session_mismatch:
+      "이 세션은 다른 네트워크나 브라우저에서 시작되었습니다. 로그아웃한 후 다시 로그인하고 시도하세요.",
+    checkout_family_group_member:
+      "이미 가족 그룹에 속해 있습니다. 새 그룹을 만들기 전에 현재 그룹에서 나가세요.",
+    checkout_family_plan_active:
+      "가족 요금제가 이미 사용 중입니다. 페이지를 새로 고치면 표시됩니다.",
+    checkout_crypto_open_invoice_limit:
+      "처리 중인 암호화폐 청구서가 너무 많습니다. 하나를 완료하거나 취소한 후 다시 시도하세요.",
+    checkout_crypto_active_card:
+      "암호화폐로 결제하기 전에 카드 구독을 취소하세요.",
+    checkout_unpaid_subscription:
+      "마지막 청구서가 결제되지 않았습니다. 설정의 결제에서 납부한 후 다시 시도하세요.",
+    checkout_pending_cancellation:
+      "구독이 취소 예정입니다. 요금제를 변경하기 전에 자동 갱신을 다시 켜세요.",
+    checkout_duplicate_subscription:
+      "이 구독을 이미 사용 중입니다. 페이지를 새로 고치면 표시됩니다.",
+    checkout_provider_unreachable:
+      "결제 서비스가 응답하지 않습니다. 잠시 기다린 후 다시 시도하세요. 청구된 금액은 없습니다.",
+    checkout_sca_required:
+      "이 결제는 은행 확인이 필요합니다. 은행 안내에 따른 후 다시 시도하세요.",
+    checkout_card_declined:
+      "은행에서 카드를 거절했습니다. 다른 카드를 사용하거나 은행에 문의하세요.",
+    checkout_collection_failed:
+      "결제를 처리하지 못했습니다. 설정의 결제에서 결제 수단을 업데이트한 후 다시 시도하세요.",
     plan_not_available:
       "이 요금제는 지금 구매할 수 없습니다. 다른 요금제나 잠시 뒤에 다시 확인하면 됩니다.",
     failed_checkout:
@@ -6193,6 +6217,9 @@ export const ko = {
     cardholder_name_placeholder: "성명",
     billing_postal_placeholder: "12345",
     crypto_pay_button: "암호화폐로 결제",
+    crypto_summary_plan: "요금제",
+    crypto_summary_addon: "부가 기능",
+    crypto_summary_length: "기간",
     crypto_modal_title: "암호화폐로 결제",
     crypto_term_1mo: "1개월",
     crypto_term_3mo: "3개월",
@@ -6229,6 +6256,12 @@ export const ko = {
     crypto_native_send_remaining: "남은 금액 보내기",
     crypto_native_to_address: "받는 주소",
     crypto_native_open_wallet: "지갑에서 열기",
+    crypto_native_paid_body_addon:
+      "스토리지 추가 용량이 활성화되었습니다. 감사합니다!",
+    crypto_native_hint_confirming_addon:
+      "네트워크 승인을 기다리는 중입니다. 승인이 끝나면 스토리지 추가 용량이 활성화됩니다.",
+    crypto_native_hint_credited_addon:
+      "승인되었습니다. 스토리지 추가 용량이 활성 상태입니다.",
     crypto_native_status_processing: "처리 중",
     crypto_native_hint_processing:
       "이 결제는 처리 중입니다. 이 페이지는 자동으로 업데이트되므로 따로 하실 일은 없습니다.",
