@@ -198,6 +198,11 @@ export function EmailList({
   const cancel_idle_ref = useRef<(() => void) | null>(null);
   const [menu_email, set_menu_email] = useState<InboxEmail | null>(null);
   const close_time_ref = useRef(0);
+  const hover_preload_ref = useRef<((email_id: string) => void) | null>(null);
+  const cancel_hover_preload_ref = useRef<(() => void) | null>(null);
+  const row_context_menu_ref = useRef<((email: InboxEmail) => void) | null>(
+    null,
+  );
   const closed_email_id_ref = useRef<string | null>(null);
   const menu_email_ref = useRef<InboxEmail | null>(null);
   const on_tag_toggle_ref = useRef(on_tag_toggle);
@@ -406,6 +411,9 @@ export function EmailList({
       cancel_hover_preload();
     };
   }, [cancel_hover_preload]);
+  hover_preload_ref.current = handle_hover_preload;
+  cancel_hover_preload_ref.current = cancel_hover_preload;
+
   const show_hover_actions = !is_special_view;
 
   const selection_ref = useRef<SelectionSnapshot>(empty_selection_snapshot);
@@ -435,6 +443,8 @@ export function EmailList({
     }
   };
 
+  row_context_menu_ref.current = handle_row_context_menu;
+
   const hover_archive = show_hover_actions ? on_archive : undefined;
   const hover_delete = show_hover_actions ? on_delete : undefined;
   const hover_mark_not_spam = show_hover_actions ? on_mark_not_spam : undefined;
@@ -443,6 +453,66 @@ export function EmailList({
   const hover_spam = show_hover_actions ? on_spam : undefined;
   const hover_toggle_read = show_hover_actions ? on_toggle_read : undefined;
   const hover_toggle_star = show_hover_actions ? on_toggle_star : undefined;
+
+  const email_by_id = useMemo(() => {
+    const map = new Map<string, InboxEmail>();
+
+    for (const email of all_emails) map.set(email.id, email);
+
+    return map;
+  }, [all_emails]);
+
+  const email_by_id_ref = useRef(email_by_id);
+
+  email_by_id_ref.current = email_by_id;
+
+  const hovered_row_ref = useRef<string | null>(null);
+
+  const row_id_from_event = (e: React.MouseEvent): string | null => {
+    const target = e.target as HTMLElement | null;
+    const row = target?.closest?.("[data-row-email-id]") as HTMLElement | null;
+
+    return row?.dataset["rowEmailId"] ?? null;
+  };
+
+  const handle_list_mouse_over = useCallback((e: React.MouseEvent) => {
+    const id = row_id_from_event(e);
+
+    if (id === hovered_row_ref.current) return;
+
+    hovered_row_ref.current = id;
+
+    if (id === null) {
+      cancel_hover_preload_ref.current?.();
+
+      return;
+    }
+
+    hover_preload_ref.current?.(id);
+  }, []);
+
+  const handle_list_mouse_out = useCallback((e: React.MouseEvent) => {
+    const next = e.relatedTarget as Node | null;
+
+    if (next instanceof HTMLElement && next.closest("[data-row-email-id]")) {
+      return;
+    }
+
+    if (hovered_row_ref.current === null) return;
+
+    hovered_row_ref.current = null;
+    cancel_hover_preload_ref.current?.();
+  }, []);
+
+  const handle_list_context_menu = useCallback((e: React.MouseEvent) => {
+    const id = row_id_from_event(e);
+
+    if (id === null) return;
+
+    const email = email_by_id_ref.current.get(id);
+
+    if (email) row_context_menu_ref.current?.(email);
+  }, []);
 
   const render_email_item = (email: InboxEmail) => (
     <InboxEmailListItem
@@ -473,20 +543,23 @@ export function EmailList({
   return (
     <ContextMenu modal={false} onOpenChange={handle_menu_open_change}>
       <ContextMenuTrigger asChild onContextMenu={handle_trigger_context_menu}>
-        <div style={{ display: "contents" }}>
+        <div
+          style={{ display: "contents" }}
+          onClickCapture={handle_row_click_capture}
+          onContextMenu={handle_list_context_menu}
+          onMouseOver={handle_list_mouse_over}
+          onMouseOut={handle_list_mouse_out}
+        >
           {pinned_emails.length > 0 && (
             <>
               {pinned_emails.map((email) => (
                 <div
                   key={email.id}
+                  data-row-email-id={email.id}
                   style={{
                     contentVisibility: "auto",
                     containIntrinsicSize: `auto ${list_row_intrinsic_height(density, preferences.compact_mode ?? false, email.has_attachment)}px`,
                   }}
-                  onClickCapture={handle_row_click_capture}
-                  onContextMenu={() => handle_row_context_menu(email)}
-                  onMouseEnter={() => handle_hover_preload(email.id)}
-                  onMouseLeave={cancel_hover_preload}
                 >
                   {render_email_item(email)}
                 </div>
@@ -499,14 +572,11 @@ export function EmailList({
               {primary_emails.map((email) => (
                 <div
                   key={email.id}
+                  data-row-email-id={email.id}
                   style={{
                     contentVisibility: "auto",
                     containIntrinsicSize: `auto ${list_row_intrinsic_height(density, preferences.compact_mode ?? false, email.has_attachment)}px`,
                   }}
-                  onClickCapture={handle_row_click_capture}
-                  onContextMenu={() => handle_row_context_menu(email)}
-                  onMouseEnter={() => handle_hover_preload(email.id)}
-                  onMouseLeave={cancel_hover_preload}
                 >
                   {render_email_item(email)}
                 </div>

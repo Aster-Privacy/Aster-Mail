@@ -37,6 +37,7 @@ export function RailTipLayer() {
   const timer_ref = useRef<number | null>(null);
   const target_ref = useRef<HTMLElement | null>(null);
   const node_ref = useRef<HTMLDivElement | null>(null);
+  const tip_visible_ref = useRef(false);
 
   useEffect(() => {
     const clear_timer = () => {
@@ -54,8 +55,16 @@ export function RailTipLayer() {
     };
 
     const hide = () => {
+      if (
+        timer_ref.current === null &&
+        target_ref.current === null &&
+        !tip_visible_ref.current
+      ) {
+        return;
+      }
       clear_timer();
       clear_target();
+      tip_visible_ref.current = false;
       set_tip(null);
     };
 
@@ -66,6 +75,7 @@ export function RailTipLayer() {
       const rect = el.getBoundingClientRect();
 
       el.setAttribute("aria-describedby", TIP_ID);
+      tip_visible_ref.current = true;
       set_tip({
         text,
         top: rect.top + rect.height / 2,
@@ -116,23 +126,31 @@ export function RailTipLayer() {
       }
     };
 
-    document.addEventListener("pointerover", handle_over);
-    document.addEventListener("focusin", handle_focus_in);
-    document.addEventListener("focusout", handle_focus_out);
+    const rail_root: HTMLElement | Document =
+      document.querySelector<HTMLElement>("[data-sidebar-root]") ?? document;
+
+    rail_root.addEventListener("pointerover", handle_over as EventListener);
+    rail_root.addEventListener("pointerleave", hide);
+    rail_root.addEventListener("focusin", handle_focus_in as EventListener);
+    rail_root.addEventListener("focusout", handle_focus_out as EventListener);
     document.addEventListener("pointerdown", hide);
     window.addEventListener("blur", hide);
-    window.addEventListener("scroll", hide, true);
+    window.addEventListener("scroll", hide, { capture: true, passive: true });
     window.addEventListener("resize", hide);
 
     return () => {
       clear_timer();
       clear_target();
-      document.removeEventListener("pointerover", handle_over);
-      document.removeEventListener("focusin", handle_focus_in);
-      document.removeEventListener("focusout", handle_focus_out);
+      rail_root.removeEventListener("pointerover", handle_over as EventListener);
+      rail_root.removeEventListener("pointerleave", hide);
+      rail_root.removeEventListener("focusin", handle_focus_in as EventListener);
+      rail_root.removeEventListener(
+        "focusout",
+        handle_focus_out as EventListener,
+      );
       document.removeEventListener("pointerdown", hide);
       window.removeEventListener("blur", hide);
-      window.removeEventListener("scroll", hide, true);
+      window.removeEventListener("scroll", hide, { capture: true });
       window.removeEventListener("resize", hide);
     };
   }, []);

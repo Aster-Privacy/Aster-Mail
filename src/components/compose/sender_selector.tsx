@@ -339,13 +339,20 @@ export function SenderSelector({
   useEffect(() => {
     if (!is_open) return;
 
+    let frame = 0;
+    const schedule = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(reposition_panel);
+    };
+
     reposition_panel();
-    window.addEventListener("resize", reposition_panel);
-    window.addEventListener("scroll", reposition_panel, true);
+    window.addEventListener("resize", schedule);
+    window.addEventListener("scroll", schedule, true);
 
     return () => {
-      window.removeEventListener("resize", reposition_panel);
-      window.removeEventListener("scroll", reposition_panel, true);
+      cancelAnimationFrame(frame);
+      window.removeEventListener("resize", schedule);
+      window.removeEventListener("scroll", schedule, true);
     };
   }, [is_open, reposition_panel]);
   const prev_ghost_count = useRef(

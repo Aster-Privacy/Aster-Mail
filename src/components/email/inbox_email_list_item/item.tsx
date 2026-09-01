@@ -21,7 +21,15 @@
 import type {} from "@/types/email";
 import type {} from "@/hooks/use_attachment_previews";
 
-import { forwardRef, memo, useMemo, useState, useRef, useEffect } from "react";
+import {
+  forwardRef,
+  memo,
+  useCallback,
+  useMemo,
+  useState,
+  useRef,
+  useEffect,
+} from "react";
 import {
   ArchiveBoxArrowDownIcon,
   ArrowUturnLeftIcon,
@@ -192,6 +200,11 @@ export const InboxEmailListItem = memo(
       );
 
       const [is_dragging, set_is_dragging] = useState(false);
+      const [row_engaged, set_row_engaged] = useState(false);
+
+      const engage_row = useCallback(() => {
+        set_row_engaged(true);
+      }, []);
       const drag_image_ref = useRef<HTMLDivElement | null>(null);
       const [alias_version, set_alias_version] = useState(0);
 
@@ -354,6 +367,8 @@ export const InboxEmailListItem = memo(
           onClick={() => on_email_click(email.id)}
           onDragEnd={handle_drag_end}
           onDragStart={handle_drag_start}
+          onFocusCapture={engage_row}
+          onMouseEnter={engage_row}
           onKeyDown={(e) => {
             if (e["key"] === "Enter" || e["key"] === " ") {
               e.preventDefault();
@@ -867,7 +882,7 @@ export const InboxEmailListItem = memo(
                 )}
             </span>
 
-            {show_hover_actions && (
+            {show_hover_actions && row_engaged && (
               <div
                 className={cn(
                   "absolute end-3 sm:end-4 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 ps-10",

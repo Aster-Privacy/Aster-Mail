@@ -631,6 +631,7 @@ const sidebar_base = ({
         is_collapsed ? "w-16 min-w-16 max-w-16" : ""
       }`}
       data-collapsed={is_collapsed ? "true" : "false"}
+      data-sidebar-root="true"
       role="navigation"
       style={
         is_collapsed
