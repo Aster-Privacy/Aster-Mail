@@ -30,14 +30,52 @@ import { HASH_ALG } from "@/services/crypto/constants";
 
 const PBKDF2_ITERATIONS = 310000;
 
-function canonicalize_recovery_code(code: string): string {
+const RECOVERY_CODE_SEGMENT_LENGTH = 4;
+const RECOVERY_CODE_SEGMENT_COUNTS = [4, 3];
+
+export function canonicalize_recovery_code(code: string): string {
   const stripped = code.toUpperCase().replace(/[^A-Z0-9]/g, "");
 
-  if (stripped.startsWith("ASTER") && stripped.length === 17) {
-    return `ASTER-${stripped.slice(5, 9)}-${stripped.slice(9, 13)}-${stripped.slice(13)}`;
+  if (stripped.startsWith("ASTER")) {
+    const body = stripped.slice(5);
+
+    for (const segment_count of RECOVERY_CODE_SEGMENT_COUNTS) {
+      if (body.length !== segment_count * RECOVERY_CODE_SEGMENT_LENGTH) {
+        continue;
+      }
+
+      const segments: string[] = [];
+
+      for (let i = 0; i < segment_count; i++) {
+        segments.push(
+          body.slice(
+            i * RECOVERY_CODE_SEGMENT_LENGTH,
+            (i + 1) * RECOVERY_CODE_SEGMENT_LENGTH,
+          ),
+        );
+      }
+
+      return `ASTER-${segments.join("-")}`;
+    }
   }
 
   return code.toUpperCase().replace(/[^A-Z0-9-]/g, "");
+}
+
+export function is_valid_recovery_code(code: string): boolean {
+  const segments = canonicalize_recovery_code(code).split("-");
+
+  if (segments[0] !== "ASTER") {
+    return false;
+  }
+
+  if (!RECOVERY_CODE_SEGMENT_COUNTS.includes(segments.length - 1)) {
+    return false;
+  }
+
+  return segments
+    .slice(1)
+    .every((segment) => /^[A-Z0-9]{4}$/.test(segment));
 }
 
 export interface VaultBackup {

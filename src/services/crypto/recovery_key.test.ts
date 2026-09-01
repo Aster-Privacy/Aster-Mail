@@ -29,6 +29,8 @@ import {
   encrypt_recovery_key_with_code,
   decrypt_recovery_key_with_code,
   hash_recovery_code,
+  canonicalize_recovery_code,
+  is_valid_recovery_code,
   generate_recovery_share_data,
   generate_all_recovery_shares,
   clear_recovery_key,
@@ -418,5 +420,45 @@ describe("Security Properties", () => {
 
     expect(encrypted1.salt).not.toBe(encrypted2.salt);
     expect(encrypted1.nonce).not.toBe(encrypted2.nonce);
+  });
+});
+
+describe("canonicalize_recovery_code", () => {
+  const four_segment = "ASTER-ABCD-EFGH-JKLM-NPQR";
+  const three_segment = "ASTER-ABCD-EFGH-JKLM";
+
+  it("leaves an exactly formatted code unchanged so stored hashes keep matching", () => {
+    expect(canonicalize_recovery_code(four_segment)).toBe(four_segment);
+    expect(canonicalize_recovery_code(three_segment)).toBe(three_segment);
+  });
+
+  it("normalizes separator variations of a four segment code", () => {
+    const variants = [
+      "ASTER ABCD EFGH JKLM NPQR",
+      "ASTERABCDEFGHJKLMNPQR",
+      "aster abcd efgh jklm npqr",
+      "ASTER–ABCD–EFGH–JKLM–NPQR",
+      "  ASTER-ABCD-EFGH-JKLM-NPQR  ",
+    ];
+
+    for (const variant of variants) {
+      expect(canonicalize_recovery_code(variant)).toBe(four_segment);
+    }
+  });
+
+  it("hashes separator variations to the same value", async () => {
+    const expected = await hash_recovery_code(four_segment);
+
+    expect(await hash_recovery_code("ASTER ABCD EFGH JKLM NPQR")).toBe(expected);
+    expect(await hash_recovery_code("ASTERABCDEFGHJKLMNPQR")).toBe(expected);
+  });
+
+  it("accepts both supported code lengths and rejects malformed input", () => {
+    expect(is_valid_recovery_code(four_segment)).toBe(true);
+    expect(is_valid_recovery_code(three_segment)).toBe(true);
+    expect(is_valid_recovery_code("ASTER ABCD EFGH JKLM NPQR")).toBe(true);
+    expect(is_valid_recovery_code("ASTER-ABCD-EFGH")).toBe(false);
+    expect(is_valid_recovery_code("NOTACODE")).toBe(false);
+    expect(is_valid_recovery_code("")).toBe(false);
   });
 });
