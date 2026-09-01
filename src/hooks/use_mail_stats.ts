@@ -160,6 +160,7 @@ class MailStatsStore {
   private debounce_timer: ReturnType<typeof setTimeout> | null = null;
   private reconcile_timer: ReturnType<typeof setTimeout> | null = null;
   private late_reconcile_timer: ReturnType<typeof setTimeout> | null = null;
+  private last_external_surfaces: string | null = null;
   private user_id: string | null = null;
   private account_generation = 0;
   private refetch_queued = false;
@@ -318,6 +319,7 @@ class MailStatsStore {
         return;
       }
     });
+    this.sync_external_surfaces();
   }
 
   async fetch(force: boolean = false): Promise<MailStats | null> {
@@ -571,12 +573,18 @@ class MailStatsStore {
   }
 
   resync_external_surfaces(): void {
+    this.last_external_surfaces = null;
     this.sync_external_surfaces();
   }
 
   private sync_external_surfaces(): void {
     const { unread, starred, drafts } = this.cache.data;
     const badge_unread = is_badge_count_enabled() ? unread : 0;
+    const signature = `${badge_unread}|${unread}|${starred}|${drafts}`;
+
+    if (signature === this.last_external_surfaces) return;
+
+    this.last_external_surfaces = signature;
 
     sync_widget_data(unread, starred, drafts);
     update_pwa_badge(badge_unread);
