@@ -320,14 +320,22 @@ export interface PlanChangePreviewResponse {
   credit_cents: number;
   amount_due_cents: number;
   currency: string;
+  discount_cents?: number;
+  promo_code_applied?: boolean;
+  discount_description?: string | null;
 }
 
 export async function preview_plan_change(
   plan_code: string,
   billing_interval: string = "month",
+  promo_code?: string,
 ): Promise<{ data?: PlanChangePreviewResponse; error?: string }> {
+  const promo_query = promo_code
+    ? `&promo_code=${encodeURIComponent(promo_code)}`
+    : "";
+
   return api_client.get<PlanChangePreviewResponse>(
-    `/payments/v1/change-plan-preview?plan_code=${encodeURIComponent(plan_code)}&billing_interval=${encodeURIComponent(billing_interval)}`,
+    `/payments/v1/change-plan-preview?plan_code=${encodeURIComponent(plan_code)}&billing_interval=${encodeURIComponent(billing_interval)}${promo_query}`,
     { skip_cache: true },
   );
 }
@@ -384,6 +392,7 @@ export async function change_plan(
   billing_interval: string = "month",
   success_url?: string,
   cancel_url?: string,
+  promo_code?: string,
 ): Promise<{
   ok: boolean;
   requires_checkout: boolean;
@@ -399,6 +408,7 @@ export async function change_plan(
     billing_interval,
     success_url: success_url ?? billing_return_urls().success_url,
     cancel_url: cancel_url ?? billing_return_urls().cancel_url,
+    ...(promo_code ? { promo_code } : {}),
   });
 
   if (response.error || !response.data) {

@@ -43,7 +43,7 @@ interface plan_change_confirm_modal_props {
   billing_interval: string;
   is_confirming: boolean;
   on_close: () => void;
-  on_confirm: () => void;
+  on_confirm: (promo_code?: string) => void;
 }
 
 export function PlanChangeConfirmModal({
@@ -62,6 +62,9 @@ export function PlanChangeConfirmModal({
   const [loading, set_loading] = useState(false);
   const [preview_failed, set_preview_failed] = useState(false);
   const [retry_tick, set_retry_tick] = useState(0);
+  const [promo_input, set_promo_input] = useState("");
+  const [applied_promo_code, set_applied_promo_code] = useState("");
+  const [promo_error, set_promo_error] = useState("");
   const fetch_gen = useRef(0);
 
   useEffect(() => {
@@ -71,22 +74,42 @@ export function PlanChangeConfirmModal({
       set_loading(true);
       set_preview(null);
       set_preview_failed(false);
-      preview_plan_change(plan_code, billing_interval).then((res) => {
-        if (fetch_gen.current !== gen) return;
-        if (res.data) {
-          set_preview(res.data);
-        } else {
-          set_preview_failed(true);
-        }
-        set_loading(false);
-      });
+      preview_plan_change(plan_code, billing_interval, applied_promo_code).then(
+        (res) => {
+          if (fetch_gen.current !== gen) return;
+          if (res.data) {
+            set_preview(res.data);
+            if (applied_promo_code && !res.data.promo_code_applied) {
+              set_promo_error(t("settings.promo_invalid"));
+              set_applied_promo_code("");
+            }
+          } else if (applied_promo_code) {
+            set_promo_error(res.error || t("settings.promo_invalid"));
+            set_applied_promo_code("");
+          } else {
+            set_preview_failed(true);
+          }
+          set_loading(false);
+        },
+      );
     } else {
       fetch_gen.current++;
       set_preview(null);
       set_preview_failed(false);
       set_loading(false);
+      set_promo_input("");
+      set_applied_promo_code("");
+      set_promo_error("");
     }
-  }, [open, plan_code, billing_interval, retry_tick]);
+  }, [open, plan_code, billing_interval, retry_tick, applied_promo_code, t]);
+
+  const apply_promo = () => {
+    const code = promo_input.trim();
+
+    if (!code || loading) return;
+    set_promo_error("");
+    set_applied_promo_code(code);
+  };
 
   const currency = preview?.currency ?? "usd";
 
@@ -134,6 +157,16 @@ export function PlanChangeConfirmModal({
                 </span>
               </div>
             )}
+            {preview && (preview.discount_cents ?? 0) > 0 && (
+              <div className="flex items-center justify-between text-sm py-2 px-3 rounded-lg bg-surface-secondary">
+                <span className="text-txt-secondary">
+                  {preview.discount_description || t("common.discount")}
+                </span>
+                <span className="font-medium text-txt-primary">
+                  -{format_price(preview.discount_cents ?? 0, currency)}
+                </span>
+              </div>
+            )}
             <div className="flex items-center justify-between text-sm py-2 px-3 rounded-lg bg-surface-secondary">
               <span className="font-semibold text-txt-primary">
                 {t("settings.plan_change_due_today")}
@@ -143,6 +176,49 @@ export function PlanChangeConfirmModal({
                   ? format_price(preview.amount_due_cents, currency)
                   : "-"}
               </span>
+            </div>
+            <div className="flex flex-col gap-2">
+              <label
+                className="text-xs font-medium text-txt-secondary"
+                htmlFor="plan_change_promo_code"
+              >
+                {t("settings.promo_code")}
+              </label>
+              <div className="flex items-center gap-2">
+                <input
+                  autoComplete="off"
+                  className="flex-1 px-3 py-2 text-sm rounded-lg bg-surface-secondary border border-edge-secondary text-txt-primary placeholder:text-txt-muted"
+                  disabled={is_confirming}
+                  id="plan_change_promo_code"
+                  placeholder={t("settings.promo_code_placeholder")}
+                  value={promo_input}
+                  onChange={(event) => set_promo_input(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") {
+                      event.preventDefault();
+                      apply_promo();
+                    }
+                  }}
+                />
+                <Button
+                  disabled={
+                    is_confirming || loading || promo_input.trim().length === 0
+                  }
+                  size="sm"
+                  variant="outline"
+                  onClick={apply_promo}
+                >
+                  {t("settings.promo_apply")}
+                </Button>
+              </div>
+              {promo_error && (
+                <p className="text-xs text-red-500">{promo_error}</p>
+              )}
+              {preview?.promo_code_applied && (
+                <p className="text-xs text-txt-secondary">
+                  {t("settings.promo_applied")}
+                </p>
+              )}
             </div>
           </div>
         )}
@@ -154,7 +230,7 @@ export function PlanChangeConfirmModal({
         <Button
           disabled={loading || is_confirming || !preview}
           variant="primary"
-          onClick={on_confirm}
+          onClick={() => on_confirm(applied_promo_code || undefined)}
         >
           {is_confirming
             ? t("settings.plan_change_confirming")
