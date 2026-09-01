@@ -21,7 +21,15 @@
 import type { TranslationKey } from "@/lib/i18n/types";
 import type { SettingsSection } from "@/components/settings/settings_content";
 
-import { createContext, useContext, useEffect, useRef, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 export interface DynamicSearchEntry {
   label: string;
@@ -52,7 +60,7 @@ export function SearchRegistryProvider({
   );
   const id_counter = useRef(0);
 
-  const register = (entries: DynamicSearchEntry[]) => {
+  const register = useCallback((entries: DynamicSearchEntry[]) => {
     const id = ++id_counter.current;
     const tagged = entries.map((e) => ({ ...e, _reg_id: id }));
 
@@ -65,10 +73,15 @@ export function SearchRegistryProvider({
         ),
       );
     };
-  };
+  }, []);
+
+  const context_value = useMemo(
+    () => ({ register, dynamic_entries }),
+    [register, dynamic_entries],
+  );
 
   return (
-    <SearchRegistryContext.Provider value={{ register, dynamic_entries }}>
+    <SearchRegistryContext.Provider value={context_value}>
       {children}
     </SearchRegistryContext.Provider>
   );

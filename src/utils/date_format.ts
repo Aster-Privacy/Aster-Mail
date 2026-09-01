@@ -32,6 +32,24 @@ export interface FormatOptions {
   time_format: TimeFormatPreference;
 }
 
+const formatter_cache = new Map<string, Intl.DateTimeFormat>();
+
+function date_formatter(
+  locale: string | undefined,
+  options: Intl.DateTimeFormatOptions,
+): Intl.DateTimeFormat {
+  const key = `${locale ?? ""}|${JSON.stringify(options)}`;
+  const cached = formatter_cache.get(key);
+
+  if (cached) return cached;
+
+  const created = new Intl.DateTimeFormat(locale, options);
+
+  formatter_cache.set(key, created);
+
+  return created;
+}
+
 let display_time_zone: string | undefined;
 
 let display_time_format: TimeFormatPreference | undefined;
@@ -144,7 +162,7 @@ export function format_datetime_hint(
   with_weekday = false,
   with_year = false,
 ): string {
-  return new Intl.DateTimeFormat(app_locale(), {
+  return date_formatter(app_locale(), {
     weekday: with_weekday ? "short" : undefined,
     year: with_year ? "numeric" : undefined,
     month: "short",
@@ -157,7 +175,7 @@ export function format_datetime_hint(
 }
 
 export function format_weekday_time(date: Date): string {
-  return new Intl.DateTimeFormat(app_locale(), {
+  return date_formatter(app_locale(), {
     weekday: "short",
     hour: "numeric",
     minute: "2-digit",
@@ -167,7 +185,7 @@ export function format_weekday_time(date: Date): string {
 }
 
 export function format_weekday_date(date: Date): string {
-  return new Intl.DateTimeFormat(app_locale(), {
+  return date_formatter(app_locale(), {
     weekday: "short",
     month: "short",
     day: "numeric",
@@ -189,7 +207,7 @@ export function format_hour_choice(
 
 export function local_date_key(date: Date): string {
   try {
-    return new Intl.DateTimeFormat("en-CA", {
+    return date_formatter("en-CA", {
       timeZone: get_display_time_zone(),
       year: "numeric",
       month: "2-digit",
@@ -201,7 +219,7 @@ export function local_date_key(date: Date): string {
 }
 
 function zone_offset_ms(instant: number, zone: string): number {
-  const parts = new Intl.DateTimeFormat("en-US", {
+  const parts = date_formatter("en-US", {
     timeZone: zone,
     hour12: false,
     year: "numeric",
@@ -345,7 +363,7 @@ function active_locale(): string | undefined {
 
 export function locale_date_format(): DateFormatPreference {
   try {
-    const order = new Intl.DateTimeFormat(active_locale(), {
+    const order = date_formatter(active_locale(), {
       year: "numeric",
       month: "2-digit",
       day: "2-digit",
@@ -366,7 +384,7 @@ export function locale_date_format(): DateFormatPreference {
 
 export function locale_time_format(): TimeFormatPreference {
   try {
-    const resolved = new Intl.DateTimeFormat(active_locale(), {
+    const resolved = date_formatter(active_locale(), {
       hour: "numeric",
     }).resolvedOptions() as Intl.ResolvedDateTimeFormatOptions & {
       hourCycle?: string;
@@ -408,7 +426,7 @@ export function get_zoned_parts(date: Date): ZonedParts {
     };
   }
 
-  const parts = new Intl.DateTimeFormat("en-US", {
+  const parts = date_formatter("en-US", {
     timeZone: display_time_zone,
     year: "numeric",
     month: "numeric",
@@ -510,7 +528,7 @@ export function format_time(
     return `${pad(hours)}:${minutes}`;
   }
 
-  const parts = new Intl.DateTimeFormat(
+  const parts = date_formatter(
     active_locale(),
     zoned({
       hour: "numeric",
@@ -532,7 +550,7 @@ export function format_date_short(
 ): string {
   const parts = get_zoned_parts(date);
   const day = parts.day;
-  const month = new Intl.DateTimeFormat(
+  const month = date_formatter(
     active_locale(),
     zoned({ month: "short" }),
   ).format(date);
@@ -550,7 +568,7 @@ export function format_date_short(
 }
 
 export function format_weekday_short(date: Date): string {
-  return new Intl.DateTimeFormat(
+  return date_formatter(
     active_locale(),
     zoned({ weekday: "short" }),
   ).format(date);
@@ -560,11 +578,11 @@ export function format_full_date(
   date: Date,
   options: FormatOptions = default_options(),
 ): string {
-  const weekday = new Intl.DateTimeFormat(
+  const weekday = date_formatter(
     active_locale(),
     zoned({ weekday: "long" }),
   ).format(date);
-  const month = new Intl.DateTimeFormat(
+  const month = date_formatter(
     active_locale(),
     zoned({ month: "long" }),
   ).format(date);
@@ -595,7 +613,7 @@ export function format_full_datetime(
     });
   }
 
-  return new Intl.DateTimeFormat(
+  return date_formatter(
     active_locale(),
     zoned({
       weekday: "long",
