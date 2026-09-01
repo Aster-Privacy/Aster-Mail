@@ -20,7 +20,7 @@
 //
 import { useSyncExternalStore } from "react";
 
-export type UpgradeReason = "plan_limit" | "storage_full" | "checkout_cancelled";
+export type UpgradeReason = "plan_limit" | "storage_full";
 
 export type UpgradeLimitKey =
   | "max_email_aliases"
@@ -40,8 +40,6 @@ export interface UpgradeState {
   feature_key: string | null;
   resource_label: string | null;
   server_message: string | null;
-  preselect_plan_code: string | null;
-  preselect_interval: "month" | "year" | null;
 }
 
 const initial_state: UpgradeState = {
@@ -51,8 +49,6 @@ const initial_state: UpgradeState = {
   feature_key: null,
   resource_label: null,
   server_message: null,
-  preselect_plan_code: null,
-  preselect_interval: null,
 };
 
 let current: UpgradeState = initial_state;
@@ -134,8 +130,6 @@ export function show_plan_limit_upgrade(opts: {
     feature_key: opts.feature ?? null,
     resource_label: opts.resource ?? null,
     server_message: opts.message ?? null,
-    preselect_plan_code: null,
-    preselect_interval: null,
   };
   notify();
 }
@@ -149,26 +143,6 @@ export function show_storage_full_upgrade(opts?: { message?: string | null }) {
     feature_key: null,
     resource_label: null,
     server_message: opts?.message ?? null,
-    preselect_plan_code: null,
-    preselect_interval: null,
-  };
-  notify();
-}
-
-export function show_checkout_cancelled_upgrade(opts: {
-  plan_code: string;
-  interval: "month" | "year";
-}) {
-  if (is_on_auth_route()) return;
-  current = {
-    is_open: true,
-    reason: "checkout_cancelled",
-    limit_key: "generic",
-    feature_key: null,
-    resource_label: null,
-    server_message: null,
-    preselect_plan_code: opts.plan_code,
-    preselect_interval: opts.interval,
   };
   notify();
 }

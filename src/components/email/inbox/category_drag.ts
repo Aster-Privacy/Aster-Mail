@@ -22,8 +22,6 @@ import { useSyncExternalStore } from "react";
 
 export const EMAIL_DRAG_MIME = "application/x-astermail-emails";
 
-export type DropViewTarget = "starred" | "archive" | "spam" | "trash";
-
 let is_dragging = false;
 const listeners = new Set<() => void>();
 

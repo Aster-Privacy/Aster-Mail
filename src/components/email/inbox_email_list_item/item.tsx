@@ -368,7 +368,6 @@ export const InboxEmailListItem = memo(
                 "group/avatar aster_select_focus relative flex-shrink-0 flex items-center justify-center cursor-pointer",
                 select_slot_class,
               )}
-              data-select-toggle="true"
               role="button"
               tabIndex={0}
               onClick={(e) => {

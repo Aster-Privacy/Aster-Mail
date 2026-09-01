@@ -26,7 +26,11 @@ import {
   get_plan_comparison_rows,
   type ComparisonRow,
 } from "@/components/settings/billing/plan_comparison_table";
-import { InfoPopover } from "@/components/ui/info_popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { use_i18n } from "@/lib/i18n/context";
 import mail_logo_url from "@/assets/mail_logo.webp";
 
@@ -59,24 +63,37 @@ function render_cell(value: string) {
 }
 
 function FeatureLabel({ label, tip }: { label: string; tip?: string }) {
+  const [is_open, set_is_open] = useState(false);
+
   if (!tip) {
     return <>{label}</>;
   }
 
-  const words = label.split(" ");
-  const last_word = words.pop();
-  const leading_words = words.join(" ");
-
   return (
-    <span>
-      {leading_words ? `${leading_words} ` : ""}
-      <span className="whitespace-nowrap">
-        {last_word}
-        <span className="ms-1.5 inline-block translate-y-[3px]">
-          <InfoPopover description={tip} title={label} />
-        </span>
-      </span>
-    </span>
+    <Popover open={is_open} onOpenChange={set_is_open}>
+      <PopoverTrigger asChild>
+        <button
+          className="rounded text-start underline decoration-dotted underline-offset-4 transition-colors hover:text-txt-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+          type="button"
+          onBlur={() => set_is_open(false)}
+          onFocus={() => set_is_open(true)}
+          onMouseEnter={() => set_is_open(true)}
+          onMouseLeave={() => set_is_open(false)}
+        >
+          {label}
+        </button>
+      </PopoverTrigger>
+      <PopoverContent
+        align="start"
+        className="z-[200] w-72 max-w-[calc(100vw-24px)] rounded-xl border border-edge-primary bg-modal-bg p-3 text-sm leading-relaxed text-txt-muted shadow-lg"
+        collisionPadding={12}
+        side="top"
+        sideOffset={6}
+        onOpenAutoFocus={(event) => event.preventDefault()}
+      >
+        {tip}
+      </PopoverContent>
+    </Popover>
   );
 }
 

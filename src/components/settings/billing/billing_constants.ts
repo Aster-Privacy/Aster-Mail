@@ -19,7 +19,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { TranslationKey } from "@/lib/i18n/types";
-import type { PlanFeatureIcon } from "@/components/settings/billing/plan_feature_icons";
 
 export const ADDON_BADGES: Record<string, "popular" | "best_value"> = {
   "100 GB": "popular",
@@ -364,58 +363,29 @@ export function detect_currency_from_locale(): string {
 export interface FamilyPlanFeature {
   label_key: TranslationKey;
   on: boolean;
-  icon?: PlanFeatureIcon;
 }
 
 export const FAMILY_PLAN_DUO_FEATURES: FamilyPlanFeature[] = [
-  { label_key: "settings.family_feat_members_2", on: true, icon: "members" },
-  { label_key: "settings.family_feat_pool_1tb", on: true, icon: "storage" },
-  {
-    label_key: "settings.family_feat_everything_nova",
-    on: true,
-    icon: "everything",
-  },
-  { label_key: "settings.family_shared_aliases", on: true, icon: "alias" },
-  {
-    label_key: "settings.family_feat_domain_sharing",
-    on: true,
-    icon: "domain",
-  },
-  { label_key: "settings.family_feat_invite", on: true, icon: "invite" },
-  {
-    label_key: "settings.family_feat_security_policies",
-    on: true,
-    icon: "shield",
-  },
-  { label_key: "settings.plan_f_support_priority", on: true, icon: "support" },
+  { label_key: "settings.family_feat_members_2", on: true },
+  { label_key: "settings.family_feat_pool_1tb", on: true },
+  { label_key: "settings.family_feat_everything_nova", on: true },
+  { label_key: "settings.family_shared_aliases", on: true },
+  { label_key: "settings.family_feat_domain_sharing", on: true },
+  { label_key: "settings.family_feat_invite", on: true },
+  { label_key: "settings.family_feat_security_policies", on: true },
+  { label_key: "settings.plan_f_support_priority", on: true },
 ];
 
 export const FAMILY_PLAN_FAMILY_FEATURES: FamilyPlanFeature[] = [
-  { label_key: "settings.family_feat_members_6", on: true, icon: "members" },
-  { label_key: "settings.family_feat_pool_3tb", on: true, icon: "storage" },
-  {
-    label_key: "settings.family_feat_everything_supernova",
-    on: true,
-    icon: "everything",
-  },
-  { label_key: "settings.family_shared_aliases", on: true, icon: "alias" },
-  { label_key: "settings.family_feat_org_groups", on: true, icon: "org" },
-  {
-    label_key: "settings.family_feat_activity_log",
-    on: true,
-    icon: "activity",
-  },
-  { label_key: "settings.family_feat_retention", on: true, icon: "retention" },
-  {
-    label_key: "settings.family_feat_storage_controls",
-    on: true,
-    icon: "controls",
-  },
-  {
-    label_key: "settings.family_feat_admin_transfer",
-    on: true,
-    icon: "transfer",
-  },
+  { label_key: "settings.family_feat_members_6", on: true },
+  { label_key: "settings.family_feat_pool_3tb", on: true },
+  { label_key: "settings.family_feat_everything_supernova", on: true },
+  { label_key: "settings.family_shared_aliases", on: true },
+  { label_key: "settings.family_feat_org_groups", on: true },
+  { label_key: "settings.family_feat_activity_log", on: true },
+  { label_key: "settings.family_feat_retention", on: true },
+  { label_key: "settings.family_feat_storage_controls", on: true },
+  { label_key: "settings.family_feat_admin_transfer", on: true },
 ];
 
 export const FEATURE_MIN_PLAN: Record<string, string> = {
@@ -446,11 +416,4 @@ export function min_plan_for_feature(feature: string | null): PlanTier | null {
   const code = FEATURE_MIN_PLAN[feature] ?? feature;
 
   return PLAN_TIERS.find((tier) => tier.id === code) ?? null;
-}
-
-export function crypto_term_months(term_id: string | undefined): number {
-  if (term_id === "biennial") return 24;
-  if (term_id === "monthly") return 1;
-
-  return 12;
 }

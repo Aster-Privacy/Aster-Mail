@@ -822,21 +822,13 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
       ]
     : [];
 
-  const grace_has_lapsed =
-    group.status === "grace" &&
-    !!group.grace_period_end &&
-    new Date(group.grace_period_end).getTime() <= Date.now();
-
   return (
     <div className="space-y-4 w-full min-w-0">
       {group.status !== "active" && (
         <div
           className="flex items-center gap-3 px-4 py-3 rounded-xl"
           style={{
-            background:
-              group.status === "grace" && !grace_has_lapsed
-                ? "#f59e0b"
-                : "#ef4444",
+            background: group.status === "grace" ? "#f59e0b" : "#ef4444",
             border: "none",
           }}
         >
@@ -844,17 +836,12 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
           <p className="text-sm font-medium flex-1 min-w-0 text-white">
             {group.status === "grace"
               ? group.grace_period_end
-                ? t(
-                    grace_has_lapsed
-                      ? "settings.fam_org_grace_banner_expired"
-                      : "settings.fam_org_grace_banner",
-                    {
-                      date: new Date(group.grace_period_end).toLocaleDateString(
-                        app_locale(),
-                        { timeZone: get_display_time_zone() },
-                      ),
-                    },
-                  )
+                ? t("settings.fam_org_grace_banner", {
+                    date: new Date(group.grace_period_end).toLocaleDateString(
+                      app_locale(),
+                      { timeZone: get_display_time_zone() },
+                    ),
+                  })
                 : t("settings.fam_org_grace_banner_soon")
               : t("settings.fam_org_cancelled_banner")}
           </p>
@@ -880,13 +867,9 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
             <span className="aster_badge aster_badge_green">
               {t("settings.fam_org_status_active")}
             </span>
-          ) : group.status === "grace" && !grace_has_lapsed ? (
+          ) : group.status === "grace" ? (
             <span className="aster_badge aster_badge_amber">
               {t("settings.fam_org_status_expiring")}
-            </span>
-          ) : group.status === "grace" ? (
-            <span className="aster_badge aster_badge_red">
-              {t("settings.fam_org_status_expired")}
             </span>
           ) : (
             <span className="aster_badge aster_badge_red">

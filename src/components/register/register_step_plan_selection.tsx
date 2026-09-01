@@ -20,6 +20,7 @@
 //
 import type { UseRegistrationReturn } from "@/components/register/hooks/use_registration";
 import type { AvailablePlan } from "@/services/api/billing";
+import { server_error_text } from "@/components/settings/billing/server_error_text";
 
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { motion } from "framer-motion";
@@ -49,10 +50,7 @@ import {
 } from "@/services/api/billing";
 import { create_family_group } from "@/services/api/family";
 import { request_cache } from "@/services/api/request_cache";
-import {
-  show_toast,
-  TOAST_DURATION_BILLING_MS,
-} from "@/components/toast/simple_toast";
+import { show_toast } from "@/components/toast/simple_toast";
 import {
   PLAN_TIERS,
   FAMILY_PLAN_TIERS,
@@ -73,7 +71,6 @@ import {
 } from "@/components/register/register_types";
 import { read_offer_prefill } from "@/components/register/academic_offer_prefill";
 import { clear_first_run_plan, restore_first_run_plan } from "@/lib/first_run";
-import { checkout_error_text } from "@/components/settings/billing/checkout_error_text";
 
 interface RegisterStepPlanSelectionProps {
   reg: UseRegistrationReturn;
@@ -406,9 +403,8 @@ export const RegisterStepPlanSelection = ({
       restore_first_run_plan();
       set_is_finalizing(false);
       show_toast(
-        checkout_error_text(t, result.server_code),
+        server_error_text(result.error, t("settings.failed_checkout")),
         "error",
-        TOAST_DURATION_BILLING_MS,
       );
 
       return;
@@ -449,19 +445,14 @@ export const RegisterStepPlanSelection = ({
       } catch {
         restore_first_run_plan();
         set_is_finalizing(false);
-        show_toast(
-          t("settings.failed_checkout"),
-          "error",
-          TOAST_DURATION_BILLING_MS,
-        );
+        show_toast(t("settings.failed_checkout"), "error");
       }
     } else {
       restore_first_run_plan();
       set_is_finalizing(false);
       show_toast(
-        checkout_error_text(t, res.server_code),
+        server_error_text(res.error, t("settings.failed_checkout")),
         "error",
-        TOAST_DURATION_BILLING_MS,
       );
     }
   }, [pending_family_tier, billing_interval, t]);
@@ -678,7 +669,6 @@ export const RegisterStepPlanSelection = ({
             ).map((feature) => ({
               label: t(feature.label_key),
               on: feature.on,
-              icon: feature.icon,
             }));
 
             return (

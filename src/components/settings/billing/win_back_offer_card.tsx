@@ -18,11 +18,10 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { PendingOffer } from "@/services/api/billing";
-
 import { SparklesIcon } from "@heroicons/react/24/solid";
 
 import { use_i18n } from "@/lib/i18n/context";
+import type { PendingOffer } from "@/services/api/billing";
 
 interface WinBackOfferCardProps {
   offer: PendingOffer | null | undefined;
@@ -30,10 +29,7 @@ interface WinBackOfferCardProps {
   class_name?: string;
 }
 
-export function days_until(
-  expires_at: string,
-  now: number = Date.now(),
-): number | null {
+export function days_until(expires_at: string, now: number = Date.now()): number | null {
   const expiry = Date.parse(expires_at);
 
   if (Number.isNaN(expiry)) return null;

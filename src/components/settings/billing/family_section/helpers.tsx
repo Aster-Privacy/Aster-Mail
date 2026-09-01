@@ -19,7 +19,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { TranslationKey } from "@/lib/i18n/types";
-
 import {
   app_hour12,
   app_locale,

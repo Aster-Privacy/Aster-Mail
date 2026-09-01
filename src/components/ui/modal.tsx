@@ -21,7 +21,6 @@
 "use client";
 
 import * as React from "react";
-import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 
@@ -100,19 +99,20 @@ export function Modal({
     [instance_id],
   );
 
-  const overlay = (
+  return (
     <AnimatePresence>
       {is_open && (
         <div
           className="fixed inset-0 flex items-center justify-center"
           style={{ zIndex: z_index ?? 60 }}
         >
-          <div
-            className="absolute inset-0 backdrop-blur-sm sm:backdrop-blur-md"
-            style={{
-              backgroundColor: "var(--modal-overlay)",
-              transform: "translateZ(0)",
-            }}
+          <motion.div
+            animate={{ opacity: 1 }}
+            className="absolute inset-0 backdrop-blur-md"
+            exit={{ opacity: 0 }}
+            initial={reduce_motion ? false : { opacity: 0 }}
+            style={{ backgroundColor: "var(--modal-overlay)" }}
+            transition={{ duration: reduce_motion ? 0 : 0.2 }}
             onPointerDown={
               close_on_overlay ? handle_backdrop_pointer_down : undefined
             }
@@ -166,10 +166,6 @@ export function Modal({
       )}
     </AnimatePresence>
   );
-
-  if (typeof document === "undefined") return overlay;
-
-  return createPortal(overlay, document.body);
 }
 
 export function ModalHeader({ children, className }: ModalHeaderProps) {

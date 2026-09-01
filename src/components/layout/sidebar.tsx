@@ -54,8 +54,6 @@ import { use_i18n } from "@/lib/i18n/context";
 import { use_folders, partition_folders_by_parent } from "@/hooks/use_folders";
 import { use_tags } from "@/hooks/use_tags";
 import { use_should_reduce_motion } from "@/provider";
-import type { DropViewTarget } from "@/components/email/inbox/category_drag";
-
 import { SidebarNavSection } from "@/components/layout/sidebar/sidebar_nav_section";
 import { SidebarFolders } from "@/components/layout/sidebar/sidebar_folders";
 import { SidebarTags } from "@/components/layout/sidebar/sidebar_tags";
@@ -131,7 +129,6 @@ interface SidebarProps {
     tag_token: string,
     tag_name: string,
   ) => void;
-  on_drop_to_view?: (email_ids: string[], view: DropViewTarget) => void;
 }
 
 export const MobileMenuButton = ({ on_click }: { on_click: () => void }) => {
@@ -160,7 +157,6 @@ const sidebar_base = ({
   is_search_active = false,
   on_drop_to_folder,
   on_drop_to_tag,
-  on_drop_to_view,
 }: SidebarProps) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -835,7 +831,6 @@ const sidebar_base = ({
             inbox_ref={inbox_ref}
             is_collapsed={is_collapsed}
             navigate={navigate}
-            on_drop_to_view={on_drop_to_view}
             on_toggle_section={toggle_more_collapsed}
             scheduled_ref={scheduled_ref}
             section_collapsed={preferences.sidebar_more_collapsed}

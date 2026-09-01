@@ -44,13 +44,11 @@ const TOUR_DWELL_MS = 45 * 1000;
 interface PlanPromptProps {
   on_open_plans: () => void;
   checklist_complete?: boolean;
-  checklist_visible?: boolean | null;
 }
 
 export function PlanPrompt({
   on_open_plans,
   checklist_complete = false,
-  checklist_visible = false,
 }: PlanPromptProps): JSX.Element | null {
   const { t } = use_i18n();
   const reduce_motion = use_should_reduce_motion();
@@ -59,12 +57,6 @@ export function PlanPrompt({
   useEffect(() => {
     let cancelled = false;
     let timer: number | undefined;
-
-    if (checklist_visible !== false) {
-      set_is_open(false);
-
-      return;
-    }
 
     if (!is_first_run_plan_pending() || is_first_run_setup_pending()) return;
 
@@ -129,7 +121,7 @@ export function PlanPrompt({
       window.removeEventListener(FIRST_RUN_TOUR_DONE_EVENT, handle_tour_done);
       if (timer) window.clearTimeout(timer);
     };
-  }, [checklist_complete, checklist_visible]);
+  }, [checklist_complete]);
 
   const close = () => {
     clear_first_run_plan();

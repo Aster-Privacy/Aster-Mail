@@ -2382,26 +2382,6 @@ export const pl = {
     fam_org_action_failed: "Coś poszło nie tak. Spróbuj ponownie.",
     fam_org_invite_exists:
       "Dla tego adresu e-mail istnieje już oczekujące zaproszenie.",
-    plan_desc_ghost_aliases:
-      "Wysyłaj z losowego adresu, który ukrywa twoją tożsamość",
-    plan_desc_advanced_aliases:
-      "Awatary, przypinanie nadawców i reguły dla aliasów",
-    plan_desc_catch_all:
-      "Odbieraj pocztę wysłaną na dowolny adres w twojej domenie",
-    plan_desc_apps: "Podłącz dowolną aplikację pocztową przez Aster Bridge",
-    plan_desc_vanguard: "Dodatkowa ochrona przed phishingiem i śledzeniem",
-    plan_desc_smart_folders:
-      "Foldery, które same wypełniają się według twoich reguł",
-    plan_desc_folder_lock: "Zablokuj prywatne foldery drugim hasłem",
-    plan_desc_external_accounts: "Czytaj swoje inne skrzynki w Aster",
-    plan_desc_alias_directory: "Nowe aliasy powstają wraz z nadejściem poczty",
-    plan_desc_multi_accounts:
-      "Pozostań zalogowany na kilku kontach jednocześnie",
-    plan_desc_instant_alias_delete: "Usuwaj aliasy bez czekania 30 dni",
-    plan_desc_encrypted_exports:
-      "Pobierz swoją pocztę jako zaszyfrowane archiwum",
-    plan_desc_support_dedicated: "Czat na żywo z osobą, która zna twoje konto",
-    plan_desc_early_access: "Wypróbuj nowe funkcje przed innymi",
     plan_feat_storage_50: "50 GB zaszyfrowanej przestrzeni",
     plan_feat_storage_500: "500 GB zaszyfrowanej przestrzeni",
     plan_feat_storage_5tb: "5 TB zaszyfrowanej przestrzeni",
@@ -3608,8 +3588,6 @@ export const pl = {
     fam_org_time_one_day_ago: "1 dzień temu",
     fam_org_grace_banner:
       "Twój plan rodzinny wygasa {{date}} - odnów, aby zachować dostęp",
-    fam_org_grace_banner_expired:
-      "Twój plan rodzinny wygasł {{date}} - odnów, aby przywrócić dostęp",
     fam_org_grace_banner_soon:
       "Twój plan rodzinny wkrótce wygasa - odnów, aby zachować dostęp",
     fam_org_cancelled_banner:
@@ -3618,7 +3596,6 @@ export const pl = {
     fam_org_heading: "Rodzina",
     fam_org_status_active: "Aktywny",
     fam_org_status_expiring: "Wygasa",
-    fam_org_status_expired: "Wygasł",
     fam_org_status_cancelled: "Anulowany",
     fam_org_members_count:
       "Wykorzystano {{used}} z {{max}} miejsc · {{count}} dostępne miejsca",
@@ -4324,12 +4301,6 @@ export const pl = {
     continue_to_checkout: "Przejdź do płatności",
     redirect_payment_description:
       "Zostaniesz przekierowany do naszego bezpiecznego dostawcy płatności, aby dokończyć zakup.",
-    billing_unavailable:
-      "Płatności są chwilowo niedostępne. Spróbuj ponownie za kilka minut.",
-    checkout_rate_limited:
-      "Zbyt wiele prób. Odczekaj minutę i spróbuj ponownie.",
-    checkout_already_active:
-      "Masz już aktywną subskrypcję. Odśwież stronę, aby ją zobaczyć.",
     plan_not_available:
       "Ten plan nie jest obecnie dostępny do zakupu. Inny plan lub powrót później zadziała.",
     failed_checkout:
@@ -5051,13 +5022,6 @@ export const pl = {
       "Dodaj te rekordy DNS u rejestratora domeny, aby zweryfikować własność i włączyć pocztę:",
     domains_description:
       "Dodaj własną domenę, aby tworzyć adresy i wysyłać e-maile z Twojej domeny. Zweryfikowane domeny pojawiają się w selektorze domen aliasów.",
-    domains_page_description:
-      "Używaj własnej domeny z Aster Mail. Dodaj domenę, którą już posiadasz, lub kup nową, a Aster Mail skonfiguruje DNS za Ciebie. Zweryfikowane domeny pojawiają się w selektorze domen aliasów.",
-    add_or_buy_domain: "Dodaj lub kup domenę",
-    add_domain_you_own: "Dodaj posiadaną domenę",
-    buy_new_domain: "Kup nową domenę",
-    search_domains_placeholder: "Szukaj w swoich domenach",
-    no_matching_domains: "Żadna domena nie pasuje do wyszukiwania.",
     domains_send_receive_description:
       "Dodaj własną domenę, aby wysyłać i odbierać e-maile. Będziesz potrzebować dostępu do ustawień DNS domeny, aby ukończyć weryfikację.",
     verification_failed_retry:
@@ -5703,8 +5667,6 @@ export const pl = {
     storage_breakdown_empty: "Nic jeszcze nie zajmuje miejsca.",
     storage_col_category: "Kategoria",
     storage_col_items: "Elementy",
-    storage_items_count: "{{count}} elementów",
-    storage_items_count_one: "{{count}} element",
     storage_col_size: "Rozmiar",
     storage_col_share: "Udział",
     storage_capacity_title: "Pojemność",
@@ -5757,14 +5719,6 @@ export const pl = {
     promo_applying: "Stosowanie...",
     promo_apply: "Zastosuj",
     checkout_title: "Dokończ zakup",
-    checkout_term_title: "Długość subskrypcji",
-    checkout_term_save: "Oszczędzasz {{amount}}",
-    checkout_term_per_month: "{{amount}}/miesiąc",
-    checkout_term_crypto_only: "Tylko kryptowaluty",
-    checkout_card_term_unavailable:
-      "Okres 2-letni jest dostępny przy płatności kryptowalutami.",
-    checkout_term_total: "{{amount}} łącznie",
-    checkout_method_title: "Metoda płatności",
     checkout_description: "Wprowadź dane płatności, aby subskrybować.",
     autorenew_notice:
       "Subskrypcja odnawia się automatycznie za {amount}, dopóki jej nie anulujesz. Aby uniknąć kolejnej opłaty, anuluj ją w Ustawieniach przed datą odnowienia.",
@@ -6200,7 +6154,7 @@ export const pl = {
     domain_purchase_discount_tooltip:
       "Promocyjna cena pierwszego roku od naszego rejestratora. Później odnowienie za {{price}} rocznie.",
     domain_purchase_purchased_info:
-      "To domeny kupione przez Aster. Rejestrujemy je dla Ciebie z prywatnością WHOIS, automatycznie konfigurujemy cały DNS poczty i od razu możesz tworzyć na nich adresy. Każda domena odnawia się tylko za Twoją zgodą. Jeśli później zechcesz przenieść domenę do innego rejestratora, nasz zespół pomocy zajmie się transferem. ICANN blokuje nowe rejestracje przez pierwsze 60 dni.",
+      "To domeny kupione przez Aster. Rejestrujemy je dla Ciebie z prywatnością WHOIS, automatycznie konfigurujemy cały DNS poczty i od razu możesz tworzyć na nich adresy. Każda domena odnawia się tylko za Twoją zgodą. ICANN blokuje nowe rejestracje przez pierwsze 60 dni, a później nasz zespół pomocy zajmuje się przeniesieniem do innego rejestratora.",
     domain_purchase_dont_have: "Nie masz domeny? Kliknij tutaj, aby ją kupić.",
     domain_purchase_sort_price: "Najniższa cena",
     domain_purchase_leave_title: "Opuścić Aster Mail?",
@@ -6210,8 +6164,6 @@ export const pl = {
     domain_purchase_purchased_expires: "Wygasa {{date}}",
     domain_purchase_purchased_in_progress: "W trakcie konfiguracji...",
     domain_purchase_purchased_awaiting: "Oczekiwanie na płatność",
-    domain_purchase_awaiting_note:
-      "Nie otrzymaliśmy jeszcze Twojej płatności. Dokończ płatność, aby sfinalizować zamówienie, albo zamknij to okno i zapłać później w sekcji Kupione domeny.",
     domain_purchase_done_warmup:
       "Uwaga: propagacja DNS Twojej domeny w internecie może potrwać do godziny, a dostawcy tacy jak Gmail początkowo ostrożnie traktują zupełnie nowe domeny. Dostarczalność poprawia się w miarę budowania historii domeny.",
     domain_purchase_create_first_address: "Utwórz pierwszy adres",
@@ -6641,7 +6593,7 @@ export const pl = {
       "Ta płatność jest przetwarzana. Strona odświeża się sama, nie musisz nic robić.",
     crypto_native_copy_invoice_ref: "Kopiuj numer referencyjny faktury",
     crypto_native_no_wallet_handler:
-      "Nie otworzyła się żadna aplikacja portfela. Skopiuj adres i wklej go w swoim portfelu.",
+      "Nie otwarto żadnej aplikacji portfela. Skopiuj powyższy adres i wklej go w swoim portfelu.",
     crypto_native_copied: "Skopiowano do schowka",
     crypto_native_network_warning:
       "Wysyłaj wyłącznie {{coin}} w sieci {{chain}}. Wysłanie innego aktywa lub użycie innej sieci spowoduje utratę środków.",
@@ -6679,19 +6631,6 @@ export const pl = {
       "Ta płatność została anulowana. Nic nie zostało pobrane. Możesz rozpocząć nową płatność w dowolnej chwili.",
     crypto_native_start_new_payment: "Rozpocznij nową płatność",
     crypto_native_check_now: "Sprawdź teraz",
-    crypto_native_checking: "Sprawdzanie",
-    crypto_native_check_no_change:
-      "Nie widzimy jeszcze Twojej płatności, ale nadal ją śledzimy.",
-    crypto_native_check_updated: "Zaktualizowano status płatności: {{status}}",
-    crypto_native_check_failed:
-      "Nie udało się połączyć z siecią. Nie ma to wpływu na Twoją płatność. Spróbuj ponownie za chwilę.",
-    crypto_native_last_checked: "Ostatnie sprawdzenie o {{time}}",
-    crypto_native_copy_amount: "Kopiuj kwotę",
-    crypto_native_copy_address: "Kopiuj adres",
-    crypto_native_verify_address:
-      "Przed wysłaniem porównaj adres na ekranie portfela z adresem pokazanym tutaj. Tylko ten adres jest monitorowany dla Twojego zamówienia.",
-    crypto_native_fee_headroom:
-      "Jeśli Twój portfel pobiera opłatę sieciową z wpisanej kwoty, dodaj trochę więcej, aby dotarła pełna kwota.",
     crypto_native_expired_do_not_send:
       "Nie wysyłaj środków na adres z tej faktury. Środki wysłane teraz wymagają ręcznej weryfikacji, zanim będą mogły zostać zaksięgowane.",
     crypto_native_not_found: "Nie znaleźliśmy tej faktury",
@@ -6717,12 +6656,13 @@ export const pl = {
     crypto_native_cancel_confirm_body:
       "Adres płatności przestanie być monitorowany. Po anulowaniu nie wysyłaj na niego środków. Nową płatność możesz rozpocząć w dowolnej chwili.",
     crypto_native_hint_awaiting:
-      "Automatycznie sprawdzamy sieć w poszukiwaniu Twojej transakcji.",
+      "Wyślij dokładną kwotę na powyższy adres. Automatycznie monitorujemy sieć.",
     crypto_native_hint_detected:
-      "Twoja transakcja dotarła do sieci i czeka na dodanie do bloku.",
+      "Twoja transakcja jest w sieci. Czekamy na jej dołączenie do bloku.",
     crypto_native_hint_confirming:
-      "Czekamy na potwierdzenia sieci. Twój plan aktywuje się po ich zakończeniu.",
-    crypto_native_hint_credited: "Potwierdzono. Twój plan jest aktywny.",
+      "Trwa potwierdzanie w sieci. Plan aktywuje się zaraz po zakończeniu.",
+    crypto_native_hint_credited:
+      "Płatność potwierdzona. Twój plan jest aktywny.",
     crypto_native_time_remaining: "Pozostały czas",
     crypto_native_expiring_soon:
       "Zostało mniej niż 5 minut. Jeśli to okno zamknie się przed dotarciem płatności, możesz rozpocząć nową po aktualnym kursie.",
@@ -7302,9 +7242,6 @@ export const pl = {
     save_annually_hint: "Oszczędź 20% przy planie rocznym",
     billing_checkout_cancelled:
       "Anulowano płatność. Twoje konto jest bezpieczne i nic nie zostało pobrane. Możesz spróbować ponownie w Ustawieniach.",
-    upgrade_resume_title: "Dokończ ulepszenie planu",
-    upgrade_resume_description:
-      "Zakup nie został opłacony. Dokończ go od miejsca, w którym przerwano.",
     referral_your_discount: "Twoja zniżka",
     referral_discount_active: "Aktywna",
     referral_discount_redeemed: "Wykorzystana",
@@ -7420,18 +7357,18 @@ export const pl = {
       "Płać z portfela, który kontrolujesz. Jeśli wyślesz środki z giełdy lub serwisu wymiany, płatność przyjdzie z adresu, który nie należy do Ciebie, a operator nie powiąże jej z Twoim zamówieniem. Dokończ płatność w czasie podanym na stronie płatności.",
     crypto_energy_toggle: "Zużycie energii przez te sieci",
     crypto_energy_btc:
-      "Bitcoin: szacunkowo od 700 do 1400 kWh na transakcję. Źródło: Cambridge Bitcoin Electricity Consumption Index, 2026.",
+      "Bitcoin: szacunkowo od 700 do 1400 kWh i od 300 do 700 kg ekwiwalentu CO2 na transakcję. Źródło: Cambridge Centre for Alternative Finance, Cambridge Bitcoin Electricity Consumption Index, 2026.",
     crypto_energy_eth:
-      "Ethereum: szacunkowo od 0,01 do 0,05 kWh na transakcję, a sieci rozliczające się na nim, takie jak Base, zużywają jeszcze mniej. Źródło: Ethereum Foundation, powołując się na CCRI, 2026.",
+      "Ethereum: szacunkowo od 0,01 do 0,05 kWh i kilka gramów ekwiwalentu CO2 na transakcję, czyli około 99,9% mniej niż przed przejściem z proof of work w 2022 roku. Źródło: strona Ethereum Foundation o zużyciu energii, powołująca się na CCRI, 2026.",
     crypto_energy_l2:
       "Sieci, które grupują transakcje i rozliczają je razem w Ethereum, na przykład Base, zużywają wyraźnie mniej niż transakcja w głównej sieci Ethereum. Nie mamy źródła pierwotnego, za którym byśmy stali, aby podać jedną liczbę, więc jej nie publikujemy.",
     crypto_energy_xmr:
       "Monero: proof of work, wydobywane na procesorach ogólnego przeznaczenia. Nie znaleźliśmy aktualnej liczby, za którą byśmy stali, więc jej nie publikujemy.",
     crypto_energy_caveat:
-      "To szacunki podmiotów zewnętrznych, a nie nasze pomiary, a wartości na transakcję bywają kwestionowane. Nie formułujemy żadnych deklaracji środowiskowych o metodach płatności.",
+      "To szacunki podmiotów zewnętrznych, a nie nasze pomiary. Dzielenie całkowitej energii sieci przez liczbę transakcji to sporny sposób przypisywania energii: zużycie Bitcoina wynika z wydobycia, a nie z tego, ile transakcji wykonują ludzie, więc jedna transakcja więcej nie dodaje proporcjonalnej ilości. Publikujemy te dane, abyś mógł ocenić je samodzielnie. Nie formułujemy żadnych twierdzeń środowiskowych o jakiejkolwiek metodzie płatności i niczego nie kompensujemy w Twoim imieniu.",
     crypto_native_rate_value: "Zastosowany kurs: 1 {{coin}} = {{rate}}",
     crypto_native_commit_notice:
-      "Wybierz walutę, aby zablokować kurs wymiany. Płatność wysyłasz następnie samodzielnie ze swojego portfela.",
+      "Wybór waluty tworzy zamówienie z obowiązkiem zapłaty i blokuje kurs wymiany. Płacisz, wysyłając środki samodzielnie ze swojego portfela.",
     feature_1000_emails: "1000 wiadomości",
     fam_kids_tab: "Dzieci",
     fam_kids_title: "Zarezerwowane adresy dla dzieci",
@@ -8606,7 +8543,6 @@ export const pl = {
     too_many_2fa_attempts:
       "Zbyt wiele prób 2FA. Odczekaj kilka minut przed ponowną próbą.",
     sign_in_session_expired:
-    back_to_link_device: "Powrót do Połącz urządzenie",
       "Sesja logowania wygasła. Wróć i zaloguj się ponownie.",
     backup_codes_remaining_after_login: "Pozostało {{count}} kodów zapasowych",
     backup_code_description:
@@ -8952,7 +8888,6 @@ export const pl = {
     link_device_confirming: "Łączenie urządzenia...",
     link_device_cancel: "Anuluj",
     link_device_desktop: "Aplikacja desktopowa",
-    link_device_signed_in_as: "Zalogowano jako",
     link_device_success: "Urządzenie połączone",
     link_device_success_description:
       "Twoja aplikacja desktopowa jest teraz połączona. Możesz zamknąć tę kartę.",
@@ -8969,15 +8904,6 @@ export const pl = {
     tap_security_key:
       "Dotknij klucza bezpieczeństwa lub użyj klucza dostępu, aby się zalogować",
     use_another_method: "Użyj innej metody weryfikacji",
-    link_device_change_account: "Zmień konto",
-    link_device_choose_account: "Wybierz konto",
-    link_device_choose_account_description:
-      "Aby połączyć aplikację na komputer",
-    link_device_choose_account_note:
-      "Twoje klucze szyfrowania nigdy nie opuszczają Twoich urządzeń.",
-    link_device_use_another_account: "Użyj innego konta",
-    link_device_use_this_account: "Użyj tego konta",
-    link_device_other_accounts: "Przełącz na inne konto",
     webauthn_not_supported:
       "Ta przeglądarka nie obsługuje kluczy bezpieczeństwa. Spróbuj z inną przeglądarką lub zaloguj się hasłem.",
     account_flagged_notice:

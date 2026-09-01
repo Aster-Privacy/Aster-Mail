@@ -35,8 +35,6 @@ import { is_webauthn_supported } from "@/services/api/webauthn";
 import { emit_auth_ready } from "@/hooks/mail_events";
 import { get_current_account_id } from "@/services/account_manager";
 import { ignore_error } from "@/lib/ignore_error";
-import { set_post_switch_path } from "@/lib/post_switch_path";
-import { get_safe_next_path } from "@/pages/sign_in_helpers";
 import { user_facing_error } from "@/utils/user_facing_error";
 
 type MobileSignInHandlerParams = Pick<
@@ -103,14 +101,11 @@ export function build_mobile_sign_in_handlers(
     set_active_2fa_method,
   } = params;
 
-  const cancel_return_path = get_safe_next_path();
-
   const handle_cancel_add_account = async () => {
     set_is_adding_account(false);
 
     if (!is_authenticated && previous_account_id) {
       try {
-        set_post_switch_path(cancel_return_path);
         await switch_to_account(previous_account_id);
 
         return;
@@ -119,7 +114,7 @@ export function build_mobile_sign_in_handlers(
       }
     }
 
-    navigate(cancel_return_path);
+    navigate("/");
   };
 
   const handle_totp_cancel = () => {

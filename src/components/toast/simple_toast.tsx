@@ -56,8 +56,6 @@ const OFFLINE_FAILURE_TOAST_MS = 8000;
 
 export const TOAST_DURATION_DEFAULT_MS = 2000;
 
-export const TOAST_DURATION_BILLING_MS = 8000;
-
 let toast_min_duration_ms = TOAST_DURATION_DEFAULT_MS;
 
 export function set_toast_min_duration(duration_ms: number) {

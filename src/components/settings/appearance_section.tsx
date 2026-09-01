@@ -29,7 +29,7 @@ import {
   PencilSquareIcon,
   ViewColumnsIcon,
 } from "@heroicons/react/24/outline";
-import { Switch } from "@aster/ui";
+import { Switch, UpgradeBtn } from "@aster/ui";
 
 import { SettingsSaveIndicatorInline } from "./settings_save_indicator";
 
@@ -406,41 +406,23 @@ export function AppearanceSection() {
             </>
           )}
         </div>
-        <div className="mt-3 flex items-center gap-4">
-          <button
-            className="flex items-center gap-1 text-sm font-medium text-txt-secondary hover:text-txt-primary transition-colors cursor-pointer"
-            type="button"
-            onClick={() => set_show_more_themes((prev) => !prev)}
-          >
-            {show_more_themes ? (
-              <>
-                {t("common.show_less")}
-                <ChevronUpIcon className="w-4 h-4" />
-              </>
-            ) : (
-              <>
-                {t("common.show_more")}
-                <ChevronDownIcon className="w-4 h-4" />
-              </>
-            )}
-          </button>
-          {show_more_themes && !is_paid_plan && (
-            <button
-              className="flex items-center gap-1 text-sm font-medium text-txt-secondary hover:text-txt-primary transition-colors cursor-pointer"
-              type="button"
-              onClick={() =>
-                prompt_upgrade(
-                  t("settings.feature_requires_upgrade"),
-                  undefined,
-                  "star",
-                )
-              }
-            >
+        <button
+          className="mt-3 flex items-center gap-1 text-sm font-medium text-txt-secondary hover:text-txt-primary transition-colors cursor-pointer"
+          type="button"
+          onClick={() => set_show_more_themes((prev) => !prev)}
+        >
+          {show_more_themes ? (
+            <>
+              {t("common.show_less")}
+              <ChevronUpIcon className="w-4 h-4" />
+            </>
+          ) : (
+            <>
               {t("common.show_more")}
               <ChevronDownIcon className="w-4 h-4" />
-            </button>
+            </>
           )}
-        </div>
+        </button>
         <SettingRow
           description={t("settings.theme_sync_across_devices_description")}
           label={t("settings.theme_sync_across_devices")}
@@ -517,8 +499,9 @@ export function AppearanceSection() {
           </Select>
         </SettingRow>
 
-        {is_paid_plan && (
-          <div className="mt-6">
+        <div className="mt-6">
+          {is_paid_plan ? (
+            <>
               <p className="text-sm font-semibold text-txt-primary mb-4">
                 {t("settings.custom_theme_colors_title")}
               </p>
@@ -596,8 +579,54 @@ export function AppearanceSection() {
                   );
                 })}
               </div>
-          </div>
-        )}
+            </>
+          ) : (
+            <div className="space-y-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="min-w-0 space-y-1">
+                  <p className="text-[15px] font-semibold text-txt-primary">
+                    {t("settings.custom_theme_colors_title")}
+                  </p>
+                  <p className="text-sm text-txt-secondary">
+                    {t("settings.custom_theme_description")}
+                  </p>
+                </div>
+
+                <UpgradeBtn
+                  className="w-full flex-shrink-0 sm:w-auto"
+                  onClick={() =>
+                    prompt_upgrade(
+                      t("settings.feature_requires_upgrade"),
+                      undefined,
+                      "star",
+                    )
+                  }
+                >
+                  {t("settings.upgrade_to_unlock")}
+                </UpgradeBtn>
+              </div>
+
+              <div
+                aria-hidden="true"
+                className="pointer-events-none select-none opacity-50"
+              >
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {CUSTOM_THEME_ROLE_KEYS.map((key) => (
+                    <div key={key} className="flex items-center gap-2">
+                      <span
+                        className="h-7 w-7 flex-shrink-0 rounded-full border border-edge-secondary"
+                        style={{ background: custom_theme_base[key] }}
+                      />
+                      <span className="text-xs text-txt-secondary flex-1 truncate">
+                        {t(`settings.${CUSTOM_THEME_ROLE_LABEL_KEYS[key]}`)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="pt-3">

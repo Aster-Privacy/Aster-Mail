@@ -22,32 +22,19 @@ import { XCircleIcon } from "@heroicons/react/24/outline";
 import { CheckCircleIcon } from "@heroicons/react/24/solid";
 import { Button } from "@aster/ui";
 
-import {
-  PLAN_FEATURE_ICONS,
-  type PlanFeatureIcon,
-} from "@/components/settings/billing/plan_feature_icons";
-
 export interface PlanFeature {
   label: string;
   on: boolean;
-  icon?: PlanFeatureIcon;
-  description?: string;
 }
 
-function render_feature_label(label: string, galaxy = false) {
+function render_feature_label(label: string) {
   const match = label.match(/^(Unlimited|\d[\d.,]*(?:\s?[GMT]B)?)\s+(.*)$/i);
 
   if (!match) return label;
 
   return (
     <>
-      <strong
-        className={`font-semibold ${
-          galaxy ? "plan_galaxy_text_primary" : "text-txt-primary"
-        }`}
-      >
-        {match[1]}
-      </strong>{" "}
+      <strong className="font-semibold text-txt-primary">{match[1]}</strong>{" "}
       {match[2]}
     </>
   );
@@ -90,41 +77,36 @@ export function PlanCard({
   lead_in,
   compact = false,
 }: PlanCardProps) {
-  const galaxy = featured && !is_current;
-  const heading_cls = galaxy ? "plan_galaxy_text_primary" : "text-txt-primary";
-  const muted_cls = galaxy ? "plan_galaxy_text_muted" : "text-txt-muted";
-  const body_cls = galaxy ? "plan_galaxy_text_body" : "text-txt-secondary";
-  const icon_cls = galaxy ? "plan_galaxy_text_muted" : "text-txt-muted";
+  const highlighted = featured || is_current;
 
   return (
     <div
       className={`relative flex flex-col rounded-2xl border transition-colors ${
         compact ? "p-4" : "p-6"
       } ${
-        galaxy
-          ? `plan_galaxy z-10 ${compact ? "" : "sm:-my-2 sm:py-8"}`
-          : is_current
-            ? "border-edge-primary bg-surf-tertiary"
+        featured
+          ? `border-brand bg-surf-selected z-10 ${compact ? "" : "sm:-my-2 sm:py-8"}`
+          : highlighted
+            ? "border-brand bg-surf-selected"
             : "border-edge-secondary bg-surf-tertiary"
       }`}
     >
       {badge && (
         <span
-          className={`absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider whitespace-nowrap ${
-            is_current ? "plan_current_badge" : "plan_galaxy_badge"
-          }`}
+          className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-[var(--accent-fg,#ffffff)] whitespace-nowrap shadow-sm"
+          style={{ backgroundColor: "var(--accent-blue)" }}
         >
           {badge}
         </span>
       )}
 
       <div className="text-center">
-        <h4 className={`text-base font-semibold ${heading_cls}`}>{name}</h4>
+        <h4 className="text-base font-semibold text-txt-primary">{name}</h4>
 
         <div className="mt-2 flex items-baseline justify-center gap-1.5 flex-wrap">
           {anchor_label && (
             <span
-              className={`font-semibold line-through ${muted_cls} ${
+              className={`font-semibold text-txt-muted line-through ${
                 compact ? "text-base" : "text-lg"
               }`}
             >
@@ -132,100 +114,74 @@ export function PlanCard({
             </span>
           )}
           <span
-            className={`font-bold tracking-tight ${heading_cls} ${
+            className={`font-bold text-txt-primary tracking-tight ${
               compact ? "text-2xl" : "text-3xl"
             }`}
           >
             {price_label}
           </span>
-          <span className={`text-sm ${muted_cls}`}>{period_label}</span>
+          <span className="text-sm text-txt-muted">{period_label}</span>
           {save_label && (
             <span
-              className={`ms-1 inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
-                galaxy ? "plan_galaxy_badge" : ""
-              }`}
-              style={
-                galaxy
-                  ? undefined
-                  : {
-                      backgroundColor: "var(--accent-blue)",
-                      color: "var(--accent-fg, #ffffff)",
-                    }
-              }
+              className="ms-1 inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[var(--accent-fg,#ffffff)]"
+              style={{ backgroundColor: "var(--accent-blue)" }}
             >
               {save_label}
             </span>
           )}
         </div>
 
-        <p className={`mt-1 h-4 text-xs ${muted_cls}`}>{billed_note || ""}</p>
+        <p className="mt-1 h-4 text-xs text-txt-muted">{billed_note || ""}</p>
 
         {description && (
-          <p className={`mt-1.5 text-sm leading-snug ${muted_cls}`}>
+          <p className="mt-1.5 text-sm text-txt-muted leading-snug">
             {description}
           </p>
         )}
       </div>
 
       <Button
-        className={`w-full ${compact ? "mt-4" : "mt-5"} ${
-          galaxy ? "plan_galaxy_cta" : ""
-        }`}
+        className={`w-full ${compact ? "mt-4" : "mt-5"}`}
         disabled={cta_disabled}
-        variant={galaxy ? "primary" : "outline"}
+        variant={featured && !is_current ? "primary" : "outline"}
         onClick={on_cta}
       >
         {cta_label}
       </Button>
 
       <div
-        className={`border-t ${compact ? "mt-4 pt-4" : "mt-5 pt-5"} ${
-          galaxy ? "plan_galaxy_divider" : ""
-        }`}
-        style={
-          galaxy ? undefined : { borderTopColor: "var(--border-secondary)" }
-        }
+        className={`border-t ${compact ? "mt-4 pt-4" : "mt-5 pt-5"}`}
+        style={{
+          borderTopColor: featured
+            ? "color-mix(in srgb, var(--accent-color) 40%, transparent)"
+            : "var(--border-secondary)",
+        }}
       >
         {lead_in && (
-          <p
-            className={`mb-3 text-[11px] font-semibold uppercase tracking-wide ${muted_cls}`}
-          >
+          <p className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-txt-muted">
             {lead_in}
           </p>
         )}
-        <ul className="space-y-3 list-none">
-          {features.map((feature, i) => {
-            const Icon = feature.on
-              ? feature.icon
-                ? PLAN_FEATURE_ICONS[feature.icon]
-                : CheckCircleIcon
-              : XCircleIcon;
-
-            return (
-              <li key={i} className="flex items-start gap-3 text-sm">
-                <Icon
-                  className={`w-[17px] h-[17px] flex-shrink-0 mt-[3px] ${
-                    feature.on ? icon_cls : ""
-                  }`}
-                  style={
-                    feature.on ? undefined : { color: "var(--color-danger)" }
-                  }
+        <ul className="space-y-2.5 list-none">
+          {features.map((feature, i) => (
+            <li
+              key={i}
+              className="flex items-start gap-2.5 text-sm text-txt-secondary"
+            >
+              {feature.on ? (
+                <CheckCircleIcon
+                  className="w-[18px] h-[18px] flex-shrink-0 mt-0.5"
+                  style={{ color: "var(--accent-blue)" }}
                 />
-                <span className="min-w-0 flex-1">
-                  <span className={`block leading-snug ${body_cls}`}>
-                    {render_feature_label(feature.label, galaxy)}
-                  </span>
-                  {feature.description && (
-                    <span
-                      className={`mt-1 block text-xs leading-snug ${muted_cls}`}
-                    >
-                      {feature.description}
-                    </span>
-                  )}
-                </span>
-              </li>
-            );
-          })}
+              ) : (
+                <XCircleIcon
+                  className="w-[18px] h-[18px] flex-shrink-0 mt-0.5"
+                  style={{ color: "var(--color-danger)" }}
+                />
+              )}
+              <span>{render_feature_label(feature.label)}</span>
+            </li>
+          ))}
         </ul>
       </div>
     </div>
@@ -244,19 +200,14 @@ export function Segmented<T extends string>({
   on_change,
 }: SegmentedProps<T>) {
   return (
-    <div
-      className="grid w-full max-w-xs rounded-full p-1 gap-1 bg-surf-tertiary border border-edge-secondary"
-      style={{
-        gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))`,
-      }}
-    >
+    <div className="inline-flex rounded-full p-1 gap-1 bg-surf-tertiary border border-edge-secondary">
       {options.map((opt) => {
         const active = value === opt.id;
 
         return (
           <button
             key={opt.id}
-            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors focus:outline-none whitespace-nowrap ${
+            className={`px-5 py-1.5 rounded-full text-sm font-medium transition-colors focus:outline-none ${
               active
                 ? "text-[var(--accent-fg,#ffffff)]"
                 : "text-txt-muted hover:text-txt-secondary"

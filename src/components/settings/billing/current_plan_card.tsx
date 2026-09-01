@@ -20,8 +20,11 @@
 //
 import {
   ExclamationTriangleIcon,
+  SparklesIcon,
   CreditCardIcon,
   ArrowRightIcon,
+  CircleStackIcon,
+  ShieldCheckIcon,
   Cog6ToothIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
@@ -86,6 +89,55 @@ export function CurrentPlanCard({
 
   return (
     <>
+      <div
+        className="relative overflow-hidden rounded-2xl p-6"
+        style={{
+          backgroundColor: "var(--accent-mix-b85, #326fd1)",
+        }}
+      >
+        <div className="absolute end-5 top-1/2 -translate-y-1/2 flex items-end gap-2 pointer-events-none">
+          <ShieldCheckIcon
+            className="w-9 h-9 text-white/15"
+            style={{ transform: "translateY(-18px) rotate(-12deg)" }}
+          />
+          <CreditCardIcon className="w-20 h-20 text-white/20" />
+          <SparklesIcon
+            className="w-11 h-11 text-white/12"
+            style={{ transform: "translateY(-28px) rotate(15deg)" }}
+          />
+          <CircleStackIcon
+            className="w-7 h-7 text-white/10"
+            style={{ transform: "translateY(-6px) rotate(-8deg)" }}
+          />
+        </div>
+
+        <div className="relative z-10">
+          <h3
+            className="text-lg font-bold text-white mb-1 tracking-tight"
+            style={{ textShadow: "0 1px 3px rgba(0, 0, 0, 0.15)" }}
+          >
+            {t("settings.billing_banner_title")}
+          </h3>
+          <p
+            className="text-sm text-white/75 mb-5 max-w-[320px]"
+            style={{ textShadow: "0 1px 2px rgba(0, 0, 0, 0.1)" }}
+          >
+            {t("settings.billing_banner_subtitle")}
+          </p>
+          <button
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-[14px] text-sm font-semibold bg-white text-blue-900"
+            style={{
+              boxShadow:
+                "0 2px 8px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.9) inset",
+            }}
+            onClick={on_scroll_to_plans}
+          >
+            {t("settings.billing_banner_cta")}
+            <ArrowRightIcon className="w-4 h-4 rtl:-scale-x-100" />
+          </button>
+        </div>
+      </div>
+
       {has_payment_failed && (
         <div className="p-4 rounded-lg flex items-start gap-3 bg-red-600">
           <ExclamationTriangleIcon className="w-5 h-5 flex-shrink-0 mt-0.5 text-red-50" />

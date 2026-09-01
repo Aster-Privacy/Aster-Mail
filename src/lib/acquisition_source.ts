@@ -18,14 +18,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-const FIELDS = ["utm_source", "utm_medium", "utm_campaign"] as const;
+const FIELDS = [
+  "utm_source",
+  "utm_medium",
+  "utm_campaign",
+  "utm_content",
+  "utm_term",
+] as const;
 const MAX_LENGTH = 64;
 const VALID_SHAPE = /^[A-Za-z0-9._-]+$/;
+const CLICK_ID_FIELD = "rdt_cid";
+const MAX_CLICK_ID_LENGTH = 512;
+const CLICK_ID_SHAPE = /^[A-Za-z0-9._~-]+$/;
 
 export interface AcquisitionSource {
   acquisition_source?: string;
   acquisition_medium?: string;
   acquisition_campaign?: string;
+  acquisition_content?: string;
+  acquisition_term?: string;
+  reddit_click_id?: string;
 }
 
 let memory_source: AcquisitionSource = {};
@@ -36,6 +48,14 @@ export function normalize_label(raw: string | null | undefined): string | null {
   if (!collapsed || collapsed.length > MAX_LENGTH) return null;
   if (!VALID_SHAPE.test(collapsed)) return null;
   return collapsed;
+}
+
+export function normalize_click_id(raw: string | null | undefined): string | null {
+  if (!raw) return null;
+  const trimmed = raw.trim();
+  if (!trimmed || trimmed.length > MAX_CLICK_ID_LENGTH) return null;
+  if (!CLICK_ID_SHAPE.test(trimmed)) return null;
+  return trimmed;
 }
 
 export function privacy_signal_opt_out(): boolean {
@@ -68,6 +88,8 @@ export function capture_source(search: string): AcquisitionSource {
       captured[key] = value;
     }
   }
+  const click_id = normalize_click_id(params.get(CLICK_ID_FIELD));
+  if (click_id) captured.reddit_click_id = click_id;
   if (Object.keys(captured).length > 0) memory_source = captured;
   return memory_source;
 }

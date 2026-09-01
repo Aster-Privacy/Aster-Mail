@@ -21,19 +21,16 @@
 import { useCallback, useEffect, useState } from "react";
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
 
-import { FAMILY_PLAN_TIERS, PLAN_TIERS } from "./billing_constants";
-
-import { checkout_error_text } from "./checkout_error_text";
-
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
 import {
   change_plan,
   clear_checkout_target,
   read_checkout_target,
-  start_hosted_checkout,
   type CheckoutTarget,
 } from "@/services/api/billing";
+
+import { FAMILY_PLAN_TIERS, PLAN_TIERS } from "./billing_constants";
 
 interface ResumeCheckoutCardProps {
   current_plan_code: string | null;
@@ -89,36 +86,18 @@ export function ResumeCheckoutCard({
     set_is_resuming(true);
 
     void (async () => {
-      const has_paid_plan = !!current_plan_code && current_plan_code !== "free";
-
-      const result = has_paid_plan
-        ? await change_plan(target.plan_code, target.billing_interval).catch(
-            () => null,
-          )
-        : null;
-
-      if (result?.ok) {
-        set_is_resuming(false);
-
-        return;
-      }
-
-      const checkout = await start_hosted_checkout(
+      const result = await change_plan(
         target.plan_code,
         target.billing_interval,
       ).catch(() => null);
 
       set_is_resuming(false);
 
-      if (checkout?.ok) return;
+      if (result?.ok) return;
 
-      show_toast(
-        checkout_error_text(t, checkout?.server_code ?? result?.server_code),
-        "error",
-        8_000,
-      );
+      show_toast(t("settings.failed_checkout"), "error");
     })();
-  }, [current_plan_code, is_resuming, t, target]);
+  }, [is_resuming, t, target]);
 
   if (!target) return null;
   if (current_plan_code && current_plan_code === target.plan_code) return null;

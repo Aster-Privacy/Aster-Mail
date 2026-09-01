@@ -20,6 +20,7 @@
 //
 import type { ApiErrorCode } from "@/services/api/client";
 
+import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 import {
   CheckCircleIcon as CheckCircleSolid,
   XCircleIcon as XCircleSolid,
@@ -90,6 +91,25 @@ export function use_terms_labels() {
     registrar: t("settings.domain_purchase_terms_registrar"),
     icann: t("settings.domain_purchase_terms_icann"),
   };
+}
+
+export function BenefitList() {
+  const { t } = use_i18n();
+
+  return (
+    <div className="flex flex-col items-center px-6 py-14 mt-6 text-center">
+      <MagnifyingGlassIcon className="w-8 h-8 text-txt-muted opacity-50" />
+      <p className="text-base font-semibold text-txt-primary mt-4">
+        {t("settings.domain_purchase_empty_title")}
+      </p>
+      <p className="text-[13px] leading-relaxed text-txt-secondary mt-1.5 max-w-[46ch]">
+        {t("settings.domain_purchase_empty_subtitle")}
+      </p>
+      <p className="text-xs leading-relaxed text-txt-muted mt-5 max-w-[52ch]">
+        {t("settings.domain_purchase_empty_included")}
+      </p>
+    </div>
+  );
 }
 
 export function TermsSentence({
@@ -240,7 +260,9 @@ export function ResultRow({
   );
 }
 
+export const INTRO_SEEN_KEY = "aster_domain_purchase_intro_seen";
 export const CHECKOUT_KEY = "alias_domains_purchase_checkout";
+export const INTRO_TLDS = ["com", "net", "org", "io", "me"];
 
 export type checkout_draft = {
   selected: DomainSearchResult;
@@ -274,6 +296,25 @@ export function write_checkout_draft(draft: checkout_draft | null) {
   } catch (caught) {
     ignore_error(
       "components/settings/aliases/domain_purchase_flow/shared:write_checkout_draft",
+      caught,
+    );
+  }
+}
+
+export function read_intro_seen() {
+  try {
+    return localStorage.getItem(INTRO_SEEN_KEY) === "1";
+  } catch {
+    return true;
+  }
+}
+
+export function mark_intro_seen() {
+  try {
+    localStorage.setItem(INTRO_SEEN_KEY, "1");
+  } catch (caught) {
+    ignore_error(
+      "components/settings/aliases/domain_purchase_flow/shared:mark_intro_seen",
       caught,
     );
   }

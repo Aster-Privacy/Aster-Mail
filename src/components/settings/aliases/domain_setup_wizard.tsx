@@ -440,7 +440,7 @@ export function DomainSetupWizard({
                 {t("settings.domain_without_www_note")}
               </p>
               <button
-                className="text-xs mt-1.5 font-medium text-[var(--accent-color)] hover:underline transition-colors"
+                className="text-xs mt-1.5 text-txt-muted hover:text-[var(--accent-color)] hover:underline transition-colors"
                 type="button"
                 onClick={() => {
                   on_close();

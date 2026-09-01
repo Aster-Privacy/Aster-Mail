@@ -19,7 +19,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { TranslationKey } from "@/lib/i18n";
+import { safe_local_set } from "@/lib/safe_storage";
 import type { AvailablePlan } from "@/services/api/billing";
+import { server_error_text } from "@/components/settings/billing/server_error_text";
 
 import { useState, useEffect, useCallback } from "react";
 import {
@@ -28,7 +30,6 @@ import {
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
-import { safe_local_set } from "@/lib/safe_storage";
 import { use_i18n } from "@/lib/i18n/context";
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { Spinner } from "@/components/ui/spinner";
@@ -42,10 +43,7 @@ import {
   start_hosted_checkout,
 } from "@/services/api/billing";
 import { create_family_group } from "@/services/api/family";
-import {
-  show_toast,
-  TOAST_DURATION_BILLING_MS,
-} from "@/components/toast/simple_toast";
+import { show_toast } from "@/components/toast/simple_toast";
 import {
   PLAN_TIERS,
   FAMILY_PLAN_TIERS,
@@ -60,7 +58,6 @@ import {
   CURRENCY_STORAGE_KEY,
 } from "@/components/settings/billing/billing_constants";
 import { use_currency_rates } from "@/components/settings/billing/use_currency_rates";
-import { checkout_error_text } from "./checkout_error_text";
 
 type TFunc = (
   key: TranslationKey,
@@ -305,55 +302,38 @@ export function PlanUpgradeSelection({
     [plans],
   );
 
-  const handle_pay_with_card = useCallback(
-    async (term_id?: string) => {
-      if (!pending_tier) return;
+  const handle_pay_with_card = useCallback(async () => {
+    if (!pending_tier) return;
 
-      const tier = pending_tier;
+    const tier = pending_tier;
 
-      set_pending_tier(null);
-      set_is_finalizing(true);
+    set_pending_tier(null);
+    set_is_finalizing(true);
 
-      const interval =
-        term_id === "biennial"
-          ? "biennial"
-          : term_id === "monthly"
-            ? "month"
-            : term_id === "yearly"
-              ? "year"
-              : billing_interval;
+    const result = await start_hosted_checkout(
+      tier.plan.code,
+      billing_interval,
+      currency,
+    ).catch(() => ({ ok: false, error: undefined }));
 
-      const result = await start_hosted_checkout(
-        tier.plan.code,
-        interval,
-        currency,
-      ).catch(() => ({
-        ok: false,
-        error: undefined,
-        server_code: undefined,
-      }));
+    if (!result.ok) {
+      set_is_finalizing(false);
+      show_toast(
+        server_error_text(result.error, t("settings.failed_checkout")),
+        "error",
+      );
 
-      if (!result.ok) {
-        set_is_finalizing(false);
-        show_toast(
-          checkout_error_text(t, result.server_code),
-          "error",
-          TOAST_DURATION_BILLING_MS,
-        );
+      return;
+    }
 
-        return;
-      }
-
-      // On web, start_hosted_checkout navigates this tab to Stripe and the
-      // overlay is torn down with the page. On desktop, checkout opens in an
-      // external browser and this window stays put, so clear the overlay here
-      // instead of leaving it spinning forever.
-      if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
-        set_is_finalizing(false);
-      }
-    },
-    [pending_tier, billing_interval, currency, t],
-  );
+    // On web, start_hosted_checkout navigates this tab to Stripe and the
+    // overlay is torn down with the page. On desktop, checkout opens in an
+    // external browser and this window stays put, so clear the overlay here
+    // instead of leaving it spinning forever.
+    if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
+      set_is_finalizing(false);
+    }
+  }, [pending_tier, billing_interval, currency, t]);
 
   const handle_pay_with_crypto = useCallback(() => {
     if (!pending_tier) return;
@@ -361,56 +341,36 @@ export function PlanUpgradeSelection({
     set_pending_tier(null);
   }, [pending_tier]);
 
-  const handle_family_card = useCallback(
-    async (term_id?: string) => {
-      if (!pending_family_tier) return;
-      const tier = pending_family_tier;
+  const handle_family_card = useCallback(async () => {
+    if (!pending_family_tier) return;
+    const tier = pending_family_tier;
 
-      set_pending_family_tier(null);
-      set_is_finalizing(true);
+    set_pending_family_tier(null);
+    set_is_finalizing(true);
 
-      const interval: "month" | "year" =
-        term_id === "monthly"
-          ? "month"
-          : term_id === "yearly"
-            ? "year"
-            : billing_interval;
+    const res = await create_family_group(tier.id, billing_interval).catch(
+      () => ({ data: undefined, error: undefined }),
+    );
 
-      const res = await create_family_group(tier.id, interval).catch(() => ({
-        data: undefined,
-        error: undefined,
-        server_code: undefined,
-      }));
+    if (res.data?.checkout_url) {
+      try {
+        await open_payment_url(res.data.checkout_url);
 
-      if (res.data?.checkout_url) {
-        try {
-          await open_payment_url(res.data.checkout_url);
-
-          if (
-            typeof window !== "undefined" &&
-            "__TAURI_INTERNALS__" in window
-          ) {
-            set_is_finalizing(false);
-          }
-        } catch {
+        if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
           set_is_finalizing(false);
-          show_toast(
-            t("settings.failed_checkout"),
-            "error",
-            TOAST_DURATION_BILLING_MS,
-          );
         }
-      } else {
+      } catch {
         set_is_finalizing(false);
-        show_toast(
-          checkout_error_text(t, res.server_code),
-          "error",
-          TOAST_DURATION_BILLING_MS,
-        );
+        show_toast(t("settings.failed_checkout"), "error");
       }
-    },
-    [pending_family_tier, billing_interval, t],
-  );
+    } else {
+      set_is_finalizing(false);
+      show_toast(
+        server_error_text(res.error, t("settings.failed_checkout")),
+        "error",
+      );
+    }
+  }, [pending_family_tier, billing_interval, t]);
 
   const handle_family_crypto = useCallback(() => {
     if (!pending_family_tier) return;
@@ -536,7 +496,6 @@ export function PlanUpgradeSelection({
               ).map((feature) => ({
                 label: t(feature.label_key),
                 on: feature.on,
-                icon: feature.icon,
               }));
 
               return (
@@ -774,39 +733,6 @@ export function PlanUpgradeSelection({
             on_close={() => set_pending_tier(null)}
             open={!!pending_tier}
             plan_name={pending_tier.tier.name}
-            selected_term={billing_period}
-            term_options={[
-              {
-                id: "monthly",
-                label: t("settings.billing_monthly"),
-                per_month_cents: pending_tier.tier.monthly_cents,
-                total_cents: pending_tier.tier.monthly_cents,
-                save_cents: 0,
-              },
-              {
-                id: "yearly",
-                label: t("settings.billing_yearly"),
-                per_month_cents: Math.round(
-                  pending_tier.tier.yearly_cents / 12,
-                ),
-                total_cents: pending_tier.tier.yearly_cents,
-                save_cents:
-                  pending_tier.tier.monthly_cents * 12 -
-                  pending_tier.tier.yearly_cents,
-              },
-              {
-                id: "biennial",
-                label: t("settings.biennial"),
-                per_month_cents: Math.round(
-                  pending_tier.tier.biennial_cents / 24,
-                ),
-                total_cents: pending_tier.tier.biennial_cents,
-                save_cents:
-                  pending_tier.tier.monthly_cents * 24 -
-                  pending_tier.tier.biennial_cents,
-                crypto_only: true,
-              },
-            ]}
           />
         )}
 
@@ -830,39 +756,6 @@ export function PlanUpgradeSelection({
             on_close={() => set_pending_family_tier(null)}
             open={!!pending_family_tier}
             plan_name={pending_family_tier.name}
-            selected_term={billing_period}
-            term_options={[
-              {
-                id: "monthly",
-                label: t("settings.billing_monthly"),
-                per_month_cents: pending_family_tier.monthly_cents,
-                total_cents: pending_family_tier.monthly_cents,
-                save_cents: 0,
-              },
-              {
-                id: "yearly",
-                label: t("settings.billing_yearly"),
-                per_month_cents: Math.round(
-                  pending_family_tier.yearly_cents / 12,
-                ),
-                total_cents: pending_family_tier.yearly_cents,
-                save_cents:
-                  pending_family_tier.monthly_cents * 12 -
-                  pending_family_tier.yearly_cents,
-              },
-              {
-                id: "biennial",
-                label: t("settings.biennial"),
-                per_month_cents: Math.round(
-                  pending_family_tier.biennial_cents / 24,
-                ),
-                total_cents: pending_family_tier.biennial_cents,
-                save_cents:
-                  pending_family_tier.monthly_cents * 24 -
-                  pending_family_tier.biennial_cents,
-                crypto_only: true,
-              },
-            ]}
           />
         )}
 

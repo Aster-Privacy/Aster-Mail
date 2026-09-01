@@ -315,15 +315,10 @@ export function EmailList({
   );
 
   const handle_row_click_capture = useCallback((e: React.MouseEvent) => {
-    if (Date.now() - close_time_ref.current >= 300) {
-      return;
+    if (Date.now() - close_time_ref.current < 300) {
+      e.preventDefault();
+      e.stopPropagation();
     }
-    const target = e.target as HTMLElement | null;
-    if (target?.closest("[data-select-toggle]")) {
-      return;
-    }
-    e.preventDefault();
-    e.stopPropagation();
   }, []);
 
   const handle_trigger_context_menu = useCallback((e: React.MouseEvent) => {

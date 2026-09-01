@@ -34,8 +34,6 @@ interface OnboardingChecklistProps {
   on_compose: () => void;
   on_open_settings: (section: SettingsSection) => void;
   on_all_tasks_done?: () => void;
-  on_visibility_change?: (visible: boolean) => void;
-  hidden?: boolean;
 }
 
 interface ChecklistRow {
@@ -54,8 +52,6 @@ export function OnboardingChecklist({
   on_compose,
   on_open_settings,
   on_all_tasks_done,
-  on_visibility_change,
-  hidden = false,
 }: OnboardingChecklistProps): JSX.Element | null {
   const { t } = use_i18n();
   const reduce_motion = use_should_reduce_motion();
@@ -113,15 +109,6 @@ export function OnboardingChecklist({
     on_all_tasks_done?.();
   }, [all_tasks_done, on_all_tasks_done]);
 
-  const visible =
-    !is_loading && !!state && !state.dismissed_at && !all_tasks_done;
-
-  useEffect(() => {
-    if (is_loading) return;
-    on_visibility_change?.(visible);
-  }, [is_loading, visible, on_visibility_change]);
-
-  if (hidden) return null;
   if (is_loading || !state) return null;
   if (state.dismissed_at) return null;
   if (all_tasks_done) return null;

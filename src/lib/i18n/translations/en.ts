@@ -3202,8 +3202,7 @@ export const en: Translations = {
       "You will be redirected to our secure payment provider to complete your purchase.",
     billing_unavailable:
       "Payments are temporarily unavailable. Try again in a few minutes.",
-    checkout_rate_limited:
-      "Too many attempts. Wait a minute, then try again.",
+    checkout_rate_limited: "Too many attempts. Wait a minute, then try again.",
     checkout_already_active:
       "You already have an active subscription. Refresh the page to see it.",
     plan_not_available:
@@ -3212,6 +3211,9 @@ export const en: Translations = {
       "We could not open checkout just now. Another attempt should do it. Your billing is unchanged.",
     checkout_welcome: "Welcome to Aster! Your subscription is active.",
     crypto_pay_button: "Pay with crypto",
+    crypto_summary_plan: "Plan",
+    crypto_summary_addon: "Add-on",
+    crypto_summary_length: "Length",
     crypto_modal_title: "Pay with crypto",
     crypto_term_1mo: "1 month",
     crypto_term_3mo: "3 months",
@@ -3224,7 +3226,7 @@ export const en: Translations = {
       "Crypto pricing is not available for this plan. Please contact support.",
     crypto_charged_in_usd: "Charged in USD.",
     crypto_rate_notice:
-      "When you pick a coin we lock an exchange rate and show you the exact amount to send. The rate holds for 60 minutes on Bitcoin and Monero and 30 minutes on Ethereum networks. Nothing is taken from you until you send the payment yourself.",
+      "When you pick a coin we lock an exchange rate and show you the exact amount to send. The rate holds for 60 minutes on Bitcoin and 30 minutes on Ethereum networks. Nothing is taken from you until you send the payment yourself.",
     crypto_exchange_warning:
       "Pay from a wallet you control. If you send funds from an exchange or a swap service, the payment arrives from an address that is not yours and the processor cannot match it to your order. Complete the payment within the time the checkout page shows.",
     crypto_energy_toggle: "Energy use of these networks",
@@ -3292,13 +3294,15 @@ export const en: Translations = {
       "Your payment needs a quick manual check. We will credit your account shortly.",
     crypto_native_transaction: "Transaction",
     crypto_native_refund_notice:
-      "Overpayments and refunds are credited to your Aster account balance.",
+      "If you send more than the amount due, the extra goes to your Aster account balance in US dollars. You can ask us to refund it instead.",
     crypto_native_cancel_invoice: "Cancel this invoice",
     crypto_native_cancel_failed: "Could not cancel this invoice.",
     crypto_native_cancel_has_payment:
       "This invoice has already received a payment, so it can no longer be cancelled.",
     crypto_native_paid_title: "You're all set",
     crypto_native_paid_body: "Your plan is now active. Thank you!",
+    crypto_native_paid_body_addon:
+      "Your storage add-on is now active. Thank you!",
     crypto_native_go_to_inbox: "Go to inbox",
     crypto_native_view_billing: "Back to billing",
     crypto_native_invoice_cancelled: "Invoice cancelled",
@@ -3352,7 +3356,11 @@ export const en: Translations = {
       "Your transaction has reached the network and is waiting to be included in a block.",
     crypto_native_hint_confirming:
       "Waiting for network confirmations. Your plan activates when they complete.",
+    crypto_native_hint_confirming_addon:
+      "Waiting for network confirmations. Your storage add-on activates when they complete.",
     crypto_native_hint_credited: "Confirmed. Your plan is active.",
+    crypto_native_hint_credited_addon:
+      "Confirmed. Your storage add-on is active.",
     crypto_native_time_remaining: "Time remaining",
     crypto_native_expiring_soon:
       "Under 5 minutes left. If this window closes before your payment arrives, you can start a new one at the current rate.",
@@ -4288,6 +4296,8 @@ export const en: Translations = {
     subscribe: "Subscribe",
     free_plan_includes: "3 aliases \u00b7 1 custom domain",
     upgrade_for_more: "Upgrade to unlock more storage, aliases, and features",
+    free_upgrade_title: "Get more with {{plan}}",
+    free_upgrade_price_note: "Plans start at {{price}} a month.",
     upgrade_for_more_short: "Unlock for more",
     plans_coming_soon: "Plan subscriptions are coming soon. Stay tuned!",
     free_plan_description:
@@ -4545,6 +4555,10 @@ export const en: Translations = {
     checkout_card_term_unavailable:
       "The 2-year term is available when you pay with crypto.",
     checkout_term_total: "{{amount}} total",
+    checkout_method_description: "Choose how you want to pay.",
+    checkout_method_card_note: "Renews automatically until you cancel.",
+    checkout_method_crypto_note:
+      "Pay once for the length you choose. Nothing renews automatically.",
     checkout_method_title: "Payment method",
     checkout_description: "Enter your payment details to subscribe.",
     autorenew_notice:
@@ -8257,6 +8271,14 @@ export const en: Translations = {
     link_device_cancel: "Cancel",
     link_device_desktop: "Desktop app",
     link_device_signed_in_as: "Signed in as",
+    link_device_change_account: "Change account",
+    link_device_choose_account: "Choose an account",
+    link_device_choose_account_description: "To link your desktop app",
+    link_device_choose_account_note:
+      "Your encryption keys never leave your devices.",
+    link_device_use_another_account: "Use another account",
+    link_device_use_this_account: "Use this account",
+    link_device_other_accounts: "Switch to another account",
     link_device_success: "Device linked",
     link_device_success_description:
       "Your desktop app is now linked. You can close this tab.",
@@ -8271,14 +8293,6 @@ export const en: Translations = {
       "Linking a Bridge device needs a Star plan or higher. Upgrade to continue.",
     link_device_upgrade_title: "Upgrade to link this device",
     link_device_upgrade_description:
-    link_device_change_account: "Change account",
-    link_device_choose_account: "Choose an account",
-    link_device_choose_account_description: "To link your desktop app",
-    link_device_choose_account_note:
-      "Your encryption keys never leave your devices.",
-    link_device_use_another_account: "Use another account",
-    link_device_use_this_account: "Use this account",
-    link_device_other_accounts: "Switch to another account",
       "Connecting a desktop Bridge to your account needs a Star plan or higher. Pick a plan below and your device links right after checkout.",
     link_device_upgrade_cta: "Upgrade to Star",
     link_device_upgrade_failed:
@@ -8292,6 +8306,7 @@ export const en: Translations = {
     keep_signed_in: "Keep me signed in",
     secure_devices_only: "only on secure devices",
     back_to_inbox: "Back to inbox",
+    back_to_link_device: "Back to link device",
     enter_password_placeholder: "Enter your password",
     authenticating: "Authenticating...",
     fetching_auth_data: "Fetching authentication data...",
@@ -8306,7 +8321,6 @@ export const en: Translations = {
     two_fa_code_already_used:
       "That code was just used. Wait for your authenticator app to show a new code, then try again.",
     too_many_2fa_attempts:
-    back_to_link_device: "Back to link device",
       "Too many 2FA attempts. Please wait a few minutes before trying again.",
     sign_in_session_expired:
       "Your sign-in session expired. Go back and sign in again.",

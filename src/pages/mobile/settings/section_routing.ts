@@ -48,7 +48,6 @@ const MOBILE_SETTINGS_SECTIONS: SettingsSection[] = [
 ];
 
 const SECTION_ALIASES: Record<string, SettingsSection> = {
-  domains: "aliases",
   signature: "signatures",
   bridge: "connection",
   smtp_tokens: "connection",

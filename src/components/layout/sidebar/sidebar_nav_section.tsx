@@ -18,10 +18,9 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { ReactNode, RefObject, DragEvent } from "react";
-import type { DropViewTarget } from "@/components/email/inbox/category_drag";
+import type { ReactNode, RefObject } from "react";
 
-import { memo, useState, useCallback } from "react";
+import { memo } from "react";
 import {
   InboxIcon,
   StarIcon,
@@ -38,7 +37,6 @@ import {
   ChevronRightIcon,
 } from "@heroicons/react/24/outline";
 
-import { EMAIL_DRAG_MIME } from "@/components/email/inbox/category_drag";
 import { AllMailIcon } from "@/components/common/icons";
 import { CountBadge } from "@/components/common/count_badge";
 import { RailUnreadDot } from "@/components/common/rail_unread_dot";
@@ -78,7 +76,6 @@ interface SidebarNavSectionProps {
   contacts_ref: RefObject<HTMLButtonElement>;
   subscriptions_ref: RefObject<HTMLButtonElement>;
   inbox_children_slot?: ReactNode;
-  on_drop_to_view?: (email_ids: string[], view: DropViewTarget) => void;
 }
 
 export const SidebarNavSection = memo(function SidebarNavSection({
@@ -104,47 +101,8 @@ export const SidebarNavSection = memo(function SidebarNavSection({
   contacts_ref,
   subscriptions_ref,
   inbox_children_slot,
-  on_drop_to_view,
 }: SidebarNavSectionProps) {
   const { t } = use_i18n();
-  const [drag_over_view, set_drag_over_view] = useState<DropViewTarget | null>(
-    null,
-  );
-
-  const view_drop_props = useCallback(
-    (view: DropViewTarget) => {
-      if (!on_drop_to_view) return {};
-
-      return {
-        onDragEnter: () => set_drag_over_view(view),
-        onDragLeave: (e: DragEvent<HTMLButtonElement>) => {
-          if (e.currentTarget.contains(e.relatedTarget as Node)) return;
-          set_drag_over_view(null);
-        },
-        onDragOver: (e: DragEvent<HTMLButtonElement>) => {
-          e.preventDefault();
-          e.dataTransfer.dropEffect = "move";
-        },
-        onDrop: (e: DragEvent<HTMLButtonElement>) => {
-          e.preventDefault();
-          e.stopPropagation();
-          set_drag_over_view(null);
-          const raw = e.dataTransfer.getData(EMAIL_DRAG_MIME);
-
-          if (!raw) return;
-          try {
-            const ids = JSON.parse(raw) as string[];
-
-            if (!Array.isArray(ids) || ids.length === 0) return;
-            on_drop_to_view(ids, view);
-          } catch {
-            return;
-          }
-        },
-      };
-    },
-    [on_drop_to_view],
-  );
 
   return (
     <>
@@ -372,7 +330,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
         <>
           <button
             ref={starred_ref}
-            className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-[12px] ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px]  ${effective_selected === "starred" ? "sidebar-active" : ""} ${is_collapsed && effective_selected === "starred" ? "sidebar-selected" : ""} ${drag_over_view === "starred" ? "ring-2 ring-brand/60 bg-brand/10" : ""}`}
+            className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-[12px] ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px]  ${effective_selected === "starred" ? "sidebar-active" : ""} ${is_collapsed && effective_selected === "starred" ? "sidebar-selected" : ""}`}
             data-rail-tip={is_collapsed ? t("mail.starred") : undefined}
             style={{
               zIndex: 1,
@@ -391,7 +349,6 @@ export const SidebarNavSection = memo(function SidebarNavSection({
                 navigate("/starred");
               })
             }
-            {...view_drop_props("starred")}
           >
             <StarIcon
               className={`${is_collapsed ? "w-5 h-5" : "w-4 h-4"} `}
@@ -445,7 +402,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
 
           <button
             ref={archive_ref}
-            className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-[12px] ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px]  ${effective_selected === "archive" ? "sidebar-active" : ""} ${is_collapsed && effective_selected === "archive" ? "sidebar-selected" : ""} ${drag_over_view === "archive" ? "ring-2 ring-brand/60 bg-brand/10" : ""}`}
+            className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-[12px] ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px]  ${effective_selected === "archive" ? "sidebar-active" : ""} ${is_collapsed && effective_selected === "archive" ? "sidebar-selected" : ""}`}
             data-rail-tip={is_collapsed ? t("mail.archive") : undefined}
             style={{
               zIndex: 1,
@@ -464,7 +421,6 @@ export const SidebarNavSection = memo(function SidebarNavSection({
                 navigate("/archive");
               })
             }
-            {...view_drop_props("archive")}
           >
             <ArchiveBoxIcon
               className={`${is_collapsed ? "w-5 h-5" : "w-4 h-4"} `}
@@ -482,7 +438,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
 
           <button
             ref={spam_ref}
-            className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-[12px] ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px]  ${effective_selected === "spam" ? "sidebar-active" : ""} ${is_collapsed && effective_selected === "spam" ? "sidebar-selected" : ""} ${drag_over_view === "spam" ? "ring-2 ring-brand/60 bg-brand/10" : ""}`}
+            className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-[12px] ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px]  ${effective_selected === "spam" ? "sidebar-active" : ""} ${is_collapsed && effective_selected === "spam" ? "sidebar-selected" : ""}`}
             data-rail-tip={is_collapsed ? t("mail.spam") : undefined}
             style={{
               zIndex: 1,
@@ -501,7 +457,6 @@ export const SidebarNavSection = memo(function SidebarNavSection({
                 navigate("/spam");
               })
             }
-            {...view_drop_props("spam")}
           >
             <ExclamationTriangleIcon
               className={`${is_collapsed ? "w-5 h-5" : "w-4 h-4"} `}
@@ -519,7 +474,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
 
           <button
             ref={trash_ref}
-            className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-[12px] ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px]  ${effective_selected === "trash" ? "sidebar-active" : ""} ${is_collapsed && effective_selected === "trash" ? "sidebar-selected" : ""} ${drag_over_view === "trash" ? "ring-2 ring-brand/60 bg-brand/10" : ""}`}
+            className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-[12px] ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px]  ${effective_selected === "trash" ? "sidebar-active" : ""} ${is_collapsed && effective_selected === "trash" ? "sidebar-selected" : ""}`}
             data-rail-tip={is_collapsed ? t("mail.trash") : undefined}
             style={{
               zIndex: 1,
@@ -538,7 +493,6 @@ export const SidebarNavSection = memo(function SidebarNavSection({
                 navigate("/trash");
               })
             }
-            {...view_drop_props("trash")}
           >
             <TrashIcon
               className={`${is_collapsed ? "w-5 h-5" : "w-4 h-4"} `}

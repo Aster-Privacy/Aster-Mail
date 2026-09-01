@@ -2261,26 +2261,6 @@ export const de = {
       "Etwas ist schiefgelaufen. Bitte versuche es erneut.",
     fam_org_invite_exists:
       "Für diese E-Mail-Adresse liegt bereits eine ausstehende Einladung vor.",
-    plan_desc_ghost_aliases:
-      "Senden Sie von einer zufälligen Adresse, die Ihre Identität verbirgt",
-    plan_desc_advanced_aliases:
-      "Avatare, Absender-Pinning und Regeln pro Alias",
-    plan_desc_catch_all: "Empfangen Sie Mails an jede Adresse Ihrer Domain",
-    plan_desc_apps: "Verbinden Sie jede Mail-App über Aster Bridge",
-    plan_desc_vanguard: "Zusätzlicher Schutz vor Phishing und Trackern",
-    plan_desc_smart_folders: "Ordner, die sich nach Ihren Regeln selbst füllen",
-    plan_desc_folder_lock:
-      "Sperren Sie private Ordner mit einem zweiten Passwort",
-    plan_desc_external_accounts: "Lesen Sie Ihre anderen Postfächer in Aster",
-    plan_desc_alias_directory: "Neue Aliase entstehen, sobald Mail eintrifft",
-    plan_desc_multi_accounts:
-      "Bleiben Sie in mehreren Konten gleichzeitig angemeldet",
-    plan_desc_instant_alias_delete: "Aliase ohne 30-tägige Wartezeit entfernen",
-    plan_desc_encrypted_exports:
-      "Laden Sie Ihre Mails als verschlüsseltes Archiv herunter",
-    plan_desc_support_dedicated:
-      "Live-Chat mit einer Ansprechperson, die Ihr Konto kennt",
-    plan_desc_early_access: "Neue Funktionen vor allen anderen ausprobieren",
     plan_feat_storage_50: "50 GB verschlüsselter Speicher",
     plan_feat_storage_500: "500 GB verschlüsselter Speicher",
     plan_feat_storage_5tb: "5 TB verschlüsselter Speicher",
@@ -3515,8 +3495,6 @@ export const de = {
     fam_org_time_one_day_ago: "vor 1 Tag",
     fam_org_grace_banner:
       "Ihr Familientarif läuft am {{date}} ab - verlängern Sie, um den Zugriff zu behalten",
-    fam_org_grace_banner_expired:
-      "Ihr Familientarif ist am {{date}} abgelaufen - verlängern Sie, um den Zugriff wiederherzustellen",
     fam_org_grace_banner_soon:
       "Ihr Familientarif läuft bald ab - verlängern Sie, um den Zugriff zu behalten",
     fam_org_cancelled_banner:
@@ -3525,7 +3503,6 @@ export const de = {
     fam_org_heading: "Familie",
     fam_org_status_active: "Aktiv",
     fam_org_status_expiring: "Läuft ab",
-    fam_org_status_expired: "Abgelaufen",
     fam_org_status_cancelled: "Gekündigt",
     fam_org_members_count:
       "{{used}} von {{max}} Plätzen belegt · {{count}} Plätze verfügbar",
@@ -4176,12 +4153,6 @@ export const de = {
     continue_to_checkout: "Weiter zur Kasse",
     redirect_payment_description:
       "Sie werden zu unserem sicheren Zahlungsanbieter weitergeleitet, um Ihren Kauf abzuschließen.",
-    billing_unavailable:
-      "Zahlungen sind vorübergehend nicht verfügbar. Versuchen Sie es in einigen Minuten erneut.",
-    checkout_rate_limited:
-      "Zu viele Versuche. Warten Sie eine Minute und versuchen Sie es erneut.",
-    checkout_already_active:
-      "Sie haben bereits ein aktives Abonnement. Aktualisieren Sie die Seite, um es zu sehen.",
     plan_not_available:
       "Dieser Tarif ist derzeit nicht zum Kauf verfügbar. Ein anderer Tarif oder ein Blick zu späterer Zeit funktioniert.",
     failed_checkout:
@@ -4861,13 +4832,6 @@ export const de = {
       "Fügen Sie diese DNS-Einträge bei Ihrem Domain-Registrar hinzu, um den Besitz zu verifizieren und E-Mail zu aktivieren:",
     domains_description:
       "Fügen Sie Ihre eigene Domain hinzu, um Adressen zu erstellen und E-Mails von Ihrer Domain zu senden. Verifizierte Domains erscheinen in der Alias-Domainauswahl.",
-    domains_page_description:
-      "Verwenden Sie Ihre eigene Domain mit Aster Mail. Fügen Sie eine Domain hinzu, die Sie bereits besitzen, oder kaufen Sie eine neue und Aster Mail richtet das DNS für Sie ein. Verifizierte Domains erscheinen in der Alias-Domainauswahl.",
-    add_or_buy_domain: "Domain hinzufügen oder kaufen",
-    add_domain_you_own: "Eigene Domain hinzufügen",
-    buy_new_domain: "Neue Domain kaufen",
-    search_domains_placeholder: "Ihre Domains durchsuchen",
-    no_matching_domains: "Keine Domains entsprechen Ihrer Suche.",
     domains_send_receive_description:
       "Fügen Sie Ihre eigene Domain hinzu, um E-Mails zu senden und zu empfangen. Sie benötigen Zugriff auf die DNS-Einstellungen Ihrer Domain, um die Verifizierung abzuschließen.",
     dns_propagation_close_note:
@@ -5562,8 +5526,6 @@ export const de = {
     storage_breakdown_empty: "Dein Speicher ist noch leer.",
     storage_col_category: "Kategorie",
     storage_col_items: "Elemente",
-    storage_items_count: "{{count}} Elemente",
-    storage_items_count_one: "{{count}} Element",
     storage_col_size: "Größe",
     storage_col_share: "Anteil",
     storage_capacity_title: "Kapazität",
@@ -5619,14 +5581,6 @@ export const de = {
     promo_applying: "Wird eingelöst...",
     promo_apply: "Einlösen",
     checkout_title: "Kauf abschließen",
-    checkout_term_title: "Laufzeit des Abonnements",
-    checkout_term_save: "Spare {{amount}}",
-    checkout_term_per_month: "{{amount}}/Monat",
-    checkout_term_crypto_only: "Nur Krypto",
-    checkout_card_term_unavailable:
-      "Die 2-Jahres-Laufzeit ist bei Zahlung mit Krypto verfügbar.",
-    checkout_term_total: "{{amount}} insgesamt",
-    checkout_method_title: "Zahlungsmethode",
     checkout_description: "Geben Sie Ihre Zahlungsdaten ein, um zu abonnieren.",
     autorenew_notice:
       "Ihr Abonnement verlängert sich automatisch zu {amount}, bis Sie es kündigen. Um die nächste Abbuchung zu vermeiden, kündigen Sie es vor dem Verlängerungsdatum in den Einstellungen.",
@@ -6124,7 +6078,7 @@ export const de = {
     domain_purchase_discount_tooltip:
       "Aktionspreis für das erste Jahr von unserem Registrar. Danach Verlängerung für {{price}} pro Jahr.",
     domain_purchase_purchased_info:
-      "Hier finden Sie Domains, die Sie über Aster gekauft haben. Wir registrieren sie für Sie mit WHOIS Datenschutz, richten alle Mail DNS Einträge automatisch ein, und Sie können sofort Adressen darauf erstellen. Jede Domain wird nur mit Ihrer Zustimmung verlängert. Wenn Sie eine Domain später zu einem anderen Registrar umziehen möchten, übernimmt unser Support den Transfer. ICANN sperrt neue Registrierungen für die ersten 60 Tage.",
+      "Hier finden Sie Domains, die Sie über Aster gekauft haben. Wir registrieren sie für Sie mit WHOIS Datenschutz, richten alle Mail DNS Einträge automatisch ein, und Sie können sofort Adressen darauf erstellen. Jede Domain wird nur mit Ihrer Zustimmung verlängert. ICANN sperrt neue Registrierungen für die ersten 60 Tage, danach übernimmt unser Support den Umzug zu einem anderen Registrar.",
     domain_purchase_dont_have:
       "Keine eigene Domain? Hier klicken und eine kaufen.",
     domain_purchase_sort_price: "Niedrigster Preis",
@@ -6136,8 +6090,6 @@ export const de = {
     domain_purchase_purchased_expires: "Läuft ab am {{date}}",
     domain_purchase_purchased_in_progress: "Wird eingerichtet...",
     domain_purchase_purchased_awaiting: "Zahlung ausstehend",
-    domain_purchase_awaiting_note:
-      "Wir haben Ihre Zahlung noch nicht erhalten. Schließen Sie den Bezahlvorgang ab, um Ihre Bestellung abzuschließen, oder schließen Sie dieses Fenster und zahlen Sie später unter Gekaufte Domains.",
     domain_purchase_done_warmup:
       "Hinweis: Es kann bis zu einer Stunde dauern, bis sich das DNS deiner Domain im Internet verbreitet, und Anbieter wie Gmail behandeln brandneue Domains anfangs vorsichtig. Die Zustellbarkeit verbessert sich, je mehr Verlauf deine Domain aufbaut.",
     domain_purchase_create_first_address: "Erste Adresse erstellen",
@@ -6471,7 +6423,7 @@ export const de = {
       "Diese Zahlung wird verarbeitet. Die Seite aktualisiert sich von selbst, du musst nichts tun.",
     crypto_native_copy_invoice_ref: "Rechnungsreferenz kopieren",
     crypto_native_no_wallet_handler:
-      "Keine Wallet-App geöffnet. Kopiere die Adresse und füge sie in deine Wallet ein.",
+      "Es wurde keine Wallet-App geöffnet. Kopiere stattdessen die Adresse oben und füge sie in deine Wallet ein.",
     crypto_native_copied: "In die Zwischenablage kopiert",
     crypto_native_network_warning:
       "Senden Sie ausschließlich {{coin}} über das {{chain}}-Netzwerk. Das Senden eines anderen Assets oder die Nutzung eines anderen Netzwerks führt zum Verlust der Gelder.",
@@ -6511,19 +6463,6 @@ export const de = {
       "Diese Zahlung wurde abgebrochen. Es wurde nichts berechnet. Du kannst jederzeit eine neue Zahlung starten.",
     crypto_native_start_new_payment: "Neue Zahlung starten",
     crypto_native_check_now: "Jetzt prüfen",
-    crypto_native_checking: "Wird geprüft",
-    crypto_native_check_no_change:
-      "Wir haben deine Zahlung noch nicht gesehen, beobachten aber weiter.",
-    crypto_native_check_updated: "Zahlungsstatus aktualisiert: {{status}}",
-    crypto_native_check_failed:
-      "Das Netzwerk war nicht erreichbar. Deine Zahlung ist davon nicht betroffen. Versuche es gleich noch einmal.",
-    crypto_native_last_checked: "Zuletzt geprüft um {{time}}",
-    crypto_native_copy_amount: "Betrag kopieren",
-    crypto_native_copy_address: "Adresse kopieren",
-    crypto_native_verify_address:
-      "Vergleiche die Adresse auf dem Bildschirm deiner Wallet vor dem Senden mit der hier angezeigten. Nur diese Adresse wird für deine Bestellung überwacht.",
-    crypto_native_fee_headroom:
-      "Wenn deine Wallet die Netzwerkgebühr vom eingegebenen Betrag abzieht, gib etwas mehr an, damit der volle Betrag ankommt.",
     crypto_native_expired_do_not_send:
       "Senden Sie nichts an die Adresse dieser Rechnung. Jetzt gesendete Gelder müssen manuell geprüft werden, bevor sie gutgeschrieben werden können.",
     crypto_native_not_found: "Wir konnten diese Rechnung nicht finden",
@@ -6549,12 +6488,12 @@ export const de = {
     crypto_native_cancel_confirm_body:
       "Die Zahlungsadresse wird nicht mehr überwacht. Senden Sie nach dem Stornieren keine Gelder mehr an sie. Sie können jederzeit eine neue Zahlung starten.",
     crypto_native_hint_awaiting:
-      "Wir prüfen das Netzwerk automatisch auf deine Transaktion.",
+      "Senden Sie den exakten Betrag an die Adresse oben. Wir überwachen das Netzwerk automatisch für Sie.",
     crypto_native_hint_detected:
-      "Deine Transaktion hat das Netzwerk erreicht und wartet auf die Aufnahme in einen Block.",
+      "Ihre Transaktion ist im Netzwerk. Wir warten darauf, dass sie in einen Block aufgenommen wird.",
     crypto_native_hint_confirming:
-      "Warten auf Netzwerkbestätigungen. Dein Tarif wird aktiv, sobald sie abgeschlossen sind.",
-    crypto_native_hint_credited: "Bestätigt. Dein Tarif ist aktiv.",
+      "Wird im Netzwerk bestätigt. Ihr Tarif wird aktiviert, sobald das abgeschlossen ist.",
+    crypto_native_hint_credited: "Zahlung bestätigt. Ihr Tarif ist aktiv.",
     crypto_native_time_remaining: "Verbleibende Zeit",
     crypto_native_expiring_soon:
       "Weniger als 5 Minuten übrig. Läuft dieses Fenster ab, bevor Ihre Zahlung eintrifft, können Sie eine neue Zahlung zum aktuellen Kurs starten.",
@@ -7272,9 +7211,6 @@ export const de = {
     save_annually_hint: "Sparen Sie 20 % im Jahresabo",
     billing_checkout_cancelled:
       "Bezahlvorgang abgebrochen. Ihr Konto ist unverändert und es wurde nichts abgebucht. Sie können es jederzeit in den Einstellungen erneut versuchen.",
-    upgrade_resume_title: "Schließen Sie Ihr Upgrade ab",
-    upgrade_resume_description:
-      "Sie haben den Bezahlvorgang vor der Zahlung verlassen. Machen Sie dort weiter, wo Sie aufgehört haben.",
     referral_your_discount: "Ihr Rabatt",
     referral_discount_active: "Aktiv",
     referral_discount_redeemed: "Eingelöst",
@@ -7394,18 +7330,18 @@ export const de = {
       "Zahle aus einer Wallet, die dir gehört. Wenn du Geld von einer Börse oder einem Tauschdienst sendest, kommt die Zahlung von einer Adresse, die nicht deine ist, und der Zahlungsdienstleister kann sie deiner Bestellung nicht zuordnen. Schließe die Zahlung innerhalb der auf der Checkout-Seite angezeigten Zeit ab.",
     crypto_energy_toggle: "Energieverbrauch dieser Netzwerke",
     crypto_energy_btc:
-      "Bitcoin: geschätzt 700 bis 1.400 kWh pro Transaktion. Quelle: Cambridge Bitcoin Electricity Consumption Index, 2026.",
+      "Bitcoin: geschätzt 700 bis 1.400 kWh und 300 bis 700 kg CO2e pro Transaktion. Quelle: Cambridge Centre for Alternative Finance, Cambridge Bitcoin Electricity Consumption Index, 2026.",
     crypto_energy_eth:
-      "Ethereum: geschätzt 0,01 bis 0,05 kWh pro Transaktion; Netzwerke, die darauf abrechnen, etwa Base, brauchen noch weniger. Quelle: Ethereum Foundation, unter Berufung auf CCRI, 2026.",
+      "Ethereum: geschätzt 0,01 bis 0,05 kWh und wenige Gramm CO2e pro Transaktion, rund 99,9 % weniger als der Proof-of-Work-Wert vor 2022. Quelle: Seite zum Energieverbrauch der Ethereum Foundation, die CCRI zitiert, 2026.",
     crypto_energy_l2:
       "Netzwerke, die Transaktionen bündeln und gemeinsam auf Ethereum abrechnen, etwa Base, verbrauchen deutlich weniger als eine Transaktion im Ethereum-Mainnet. Uns liegt keine Primärquelle vor, für die wir mit einer einzelnen Zahl einstehen würden, daher veröffentlichen wir keine.",
     crypto_energy_xmr:
       "Monero: Proof of Work, geschürft auf Allzweckprozessoren. Wir haben keine aktuelle Zahl gefunden, für die wir einstehen würden, daher veröffentlichen wir keine.",
     crypto_energy_caveat:
-      "Das sind Schätzungen Dritter und keine eigenen Messungen, und Zahlen pro Transaktion sind umstritten. Wir machen keine Umweltaussage zu einer Zahlungsmethode.",
+      "Das sind Schätzungen Dritter, keine von uns durchgeführten Messungen. Den Gesamtenergieverbrauch eines Netzwerks durch die Zahl der Transaktionen zu teilen, ist eine umstrittene Zurechnung: Der Verbrauch von Bitcoin hängt vom Mining ab, nicht davon, wie viele Transaktionen Menschen tätigen, eine zusätzliche Transaktion erhöht ihn also nicht proportional. Wir veröffentlichen die Zahlen, damit Sie sie selbst einordnen können. Wir treffen keine Umweltaussage zu einer Zahlungsmethode und gleichen nichts für Sie aus.",
     crypto_native_rate_value: "Verwendeter Kurs: 1 {{coin}} = {{rate}}",
     crypto_native_commit_notice:
-      "Wähle eine Münze, um deinen Wechselkurs festzuhalten. Die Zahlung sendest du danach selbst aus deiner eigenen Wallet.",
+      "Mit der Wahl einer Währung entsteht Ihre Bestellung samt Zahlungspflicht und Ihr Wechselkurs wird gesichert. Sie zahlen, indem Sie das Guthaben selbst aus Ihrer Wallet senden.",
     feature_1000_emails: "1.000 E-Mails",
     fam_kids_tab: "Kinder",
     fam_kids_title: "Reservierte Adressen für Kinder",
@@ -8517,7 +8453,6 @@ export const de = {
       "Dieser Code wurde gerade verwendet. Warte, bis deine Authenticator-App einen neuen Code anzeigt, und versuche es erneut.",
     too_many_2fa_attempts:
       "Zu viele 2FA-Versuche. Bitte warten Sie einige Minuten und versuchen Sie es erneut.",
-    back_to_link_device: "Zurück zu „Gerät verknüpfen“",
     sign_in_session_expired:
       "Ihre Anmeldesitzung ist abgelaufen. Gehen Sie zurück und melden Sie sich erneut an.",
     backup_codes_remaining_after_login: "{{count}} Backup-Codes übrig",
@@ -8875,7 +8810,6 @@ export const de = {
       "Möchten Sie dieses Gerät mit Ihrem Konto verknüpfen?",
     link_device_confirming: "Gerät wird verknüpft...",
     link_device_desktop: "Desktop-App",
-    link_device_signed_in_as: "Angemeldet als",
     link_device_enter_code:
       "Geben Sie den in Ihrer Desktop-App angezeigten Code ein.",
     link_device_expired_code:
@@ -8891,15 +8825,6 @@ export const de = {
     link_device_try_again:
       "Hat nicht geklappt. Ein erneuter Versuch löst das Problem in der Regel.",
     link_device_verify_button: "Weiter",
-    link_device_change_account: "Konto wechseln",
-    link_device_choose_account: "Konto auswählen",
-    link_device_choose_account_description:
-      "Um deine Desktop-App zu verknüpfen",
-    link_device_choose_account_note:
-      "Deine Schlüssel verlassen niemals deine Geräte.",
-    link_device_use_another_account: "Anderes Konto verwenden",
-    link_device_use_this_account: "Dieses Konto verwenden",
-    link_device_other_accounts: "Zu einem anderen Konto wechseln",
     link_device_verifying: "Wird geprüft...",
     pair_device_cancel: "Abbrechen",
     pair_device_confirm:

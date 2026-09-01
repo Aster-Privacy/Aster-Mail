@@ -19,13 +19,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { ReactNode } from "react";
-import type { DowngradeOffer } from "@/components/settings/billing/cancel_offer";
 
 import { button_variants } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { format_price } from "@/services/api/billing";
 import { convert_cents } from "@/components/settings/billing/billing_constants";
+import type { DowngradeOffer } from "@/components/settings/billing/cancel_offer";
 
 interface CancelOfferStepProps {
   offer: DowngradeOffer;

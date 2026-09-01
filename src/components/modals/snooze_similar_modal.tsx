@@ -607,15 +607,12 @@ export function SnoozeSimilarModal({
 
                     <div className="flex items-center justify-between px-4 py-3 border-t border-edge-secondary">
                       <button
-                        aria-pressed={all_selected}
-                        className="flex items-center gap-3 text-[12px] font-medium text-txt-muted -mx-2 px-2 py-1.5 rounded-[10px] cursor-pointer transition-colors hover:bg-black/[0.04] dark:hover:bg-white/[0.06]"
+                        className="flex items-center gap-3 text-[12px] font-medium text-txt-muted"
                         onClick={handle_select_all}
-                        type="button"
                       >
                         <Checkbox
                           checked={all_selected}
-                          className="pointer-events-none"
-                          tabIndex={-1}
+                          onCheckedChange={handle_select_all}
                         />
                         {selected_senders.size > 0
                           ? t("common.senders_emails_count", {

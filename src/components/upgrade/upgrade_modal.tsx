@@ -38,16 +38,14 @@ import { Spinner } from "@/components/ui/spinner";
 import { use_auth } from "@/contexts/auth_context";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
-import {
-  show_toast,
-  TOAST_DURATION_BILLING_MS,
-} from "@/components/toast/simple_toast";
+import { show_toast } from "@/components/toast/simple_toast";
 import { request_cache } from "@/services/api/request_cache";
 import {
   change_plan,
   format_price,
   start_hosted_checkout,
 } from "@/services/api/billing";
+import { server_error_text } from "@/components/settings/billing/server_error_text";
 import {
   PLAN_TIERS,
   convert_cents,
@@ -66,7 +64,6 @@ import {
   use_upgrade_state,
   type UpgradeLimitKey,
 } from "@/stores/upgrade_store";
-import { checkout_error_text } from "@/components/settings/billing/checkout_error_text";
 
 const LIMIT_LABEL_KEY: Record<UpgradeLimitKey, string> = {
   max_email_aliases: "settings.usage_aliases",
@@ -230,7 +227,6 @@ export function UpgradeModal() {
   }, [refresh]);
 
   const is_storage = state.reason === "storage_full";
-  const is_resume = state.reason === "checkout_cancelled";
 
   const limit_info = useMemo(() => {
     if (!limits || state.limit_key === "generic") return null;
@@ -251,30 +247,16 @@ export function UpgradeModal() {
   const default_tier = useMemo(() => {
     if (tiers.length === 0) return null;
 
-    const preselected = state.preselect_plan_code
-      ? tiers.find((tier) => tier.id === state.preselect_plan_code)
-      : null;
     const required = required_tier
       ? tiers.find((tier) => tier.id === required_tier.id)
       : null;
 
-    return (
-      preselected ??
-      required ??
-      tiers.find((tier) => tier.is_recommended) ??
-      tiers[0]
-    );
-  }, [tiers, required_tier, state.preselect_plan_code]);
+    return required ?? tiers.find((tier) => tier.is_recommended) ?? tiers[0];
+  }, [tiers, required_tier]);
 
   useEffect(() => {
     set_selected_id(default_tier?.id ?? null);
   }, [default_tier, state.is_open]);
-
-  useEffect(() => {
-    if (state.is_open && state.preselect_interval) {
-      set_interval(state.preselect_interval);
-    }
-  }, [state.is_open, state.preselect_interval]);
 
   const selected_tier = useMemo(
     () => tiers.find((tier) => tier.id === selected_id) ?? default_tier,
@@ -299,22 +281,18 @@ export function UpgradeModal() {
 
   const title = is_storage
     ? t("settings.storage_locked_title")
-    : is_resume
-      ? t("settings.upgrade_resume_title")
-      : t("settings.upgrade_modal_title");
+    : t("settings.upgrade_modal_title");
 
   const description = is_storage
     ? t("settings.storage_locked_description")
-    : is_resume
-      ? t("settings.upgrade_resume_description")
-      : state.server_message && state.server_message.trim().length > 0
-        ? state.server_message
-        : limit_info && resource_label
-          ? t("settings.upgrade_modal_description_specific", {
-              resource: String(resource_label).toLowerCase(),
-              plan: plan_name ?? "",
-            })
-          : t("settings.upgrade_modal_description_generic");
+    : state.server_message && state.server_message.trim().length > 0
+      ? state.server_message
+      : limit_info && resource_label
+        ? t("settings.upgrade_modal_description_specific", {
+            resource: String(resource_label).toLowerCase(),
+            plan: plan_name ?? "",
+          })
+        : t("settings.upgrade_modal_description_generic");
 
   const monthly_equivalent = (tier: PlanTier) =>
     interval === "year"
@@ -346,9 +324,8 @@ export function UpgradeModal() {
 
         if (!result.ok) {
           show_toast(
-            checkout_error_text(t, result.server_code),
+            server_error_text(result.error, t("settings.payment_failed")),
             "error",
-            TOAST_DURATION_BILLING_MS,
           );
           set_is_starting(false);
 
@@ -377,9 +354,8 @@ export function UpgradeModal() {
 
       if (!result.ok) {
         show_toast(
-          checkout_error_text(t, result.server_code),
+          server_error_text(result.error, t("settings.failed_checkout")),
           "error",
-          TOAST_DURATION_BILLING_MS,
         );
         set_is_starting(false);
       } else if (is_desktop()) {
@@ -389,11 +365,7 @@ export function UpgradeModal() {
 
       set_is_starting(false);
     } catch {
-      show_toast(
-        t("settings.failed_checkout"),
-        "error",
-        TOAST_DURATION_BILLING_MS,
-      );
+      show_toast(t("settings.failed_checkout"), "error");
       set_is_starting(false);
     }
   };

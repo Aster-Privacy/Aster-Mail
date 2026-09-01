@@ -36,8 +36,6 @@ import { NewCodesStep } from "./forgot_password/new_codes_step";
 import { SuccessStep } from "./forgot_password/success_step";
 import { EmailSentStep } from "./forgot_password/email_sent_step";
 
-import { recovery_error_message } from "@/pages/forgot_password/recovery_error";
-
 import { COPY_FEEDBACK_MS } from "@/constants/timings";
 import { useTheme } from "@/contexts/theme_context";
 import { use_platform } from "@/hooks/use_platform";
@@ -439,7 +437,11 @@ export default function MobileForgotPasswordPage() {
 
       if (response.error || !response.data) {
         await timing_safe_delay();
-        set_error(recovery_error_message(response, t));
+        set_error(
+          response.server_code === "INVALID_RECOVERY_CODE"
+            ? t("auth.invalid_recovery_code")
+            : response.error || t("auth.invalid_recovery_code"),
+        );
         set_step("code");
 
         return;

@@ -70,6 +70,9 @@ interface RegisterRequest {
   acquisition_source?: string;
   acquisition_medium?: string;
   acquisition_campaign?: string;
+  acquisition_content?: string;
+  acquisition_term?: string;
+  reddit_click_id?: string;
   client_platform?: string;
   recovery_email?: string;
   reservation_claim_token?: string;

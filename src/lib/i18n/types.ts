@@ -33,7 +33,8 @@ export type LanguageCode =
   | "ru"
   | "nl"
   | "pl"
-  | "tr";
+  | "tr"
+  | "hi";
 
 export interface Language {
   code: LanguageCode;
@@ -3303,6 +3304,9 @@ export interface SettingsTranslations {
   failed_checkout: string;
   checkout_welcome: string;
   crypto_pay_button: string;
+  crypto_summary_plan: string;
+  crypto_summary_addon: string;
+  crypto_summary_length: string;
   crypto_modal_title: string;
   crypto_term_1mo: string;
   crypto_term_3mo: string;
@@ -3368,6 +3372,7 @@ export interface SettingsTranslations {
   crypto_native_cancel_has_payment: string;
   crypto_native_paid_title: string;
   crypto_native_paid_body: string;
+  crypto_native_paid_body_addon: string;
   crypto_native_go_to_inbox: string;
   crypto_native_view_billing: string;
   crypto_native_invoice_cancelled: string;
@@ -3406,7 +3411,9 @@ export interface SettingsTranslations {
   crypto_native_hint_awaiting: string;
   crypto_native_hint_detected: string;
   crypto_native_hint_confirming: string;
+  crypto_native_hint_confirming_addon: string;
   crypto_native_hint_credited: string;
+  crypto_native_hint_credited_addon: string;
   crypto_native_time_remaining: string;
   crypto_native_expiring_soon: string;
   crypto_native_hint_underpaid: string;
@@ -4189,6 +4196,8 @@ export interface SettingsTranslations {
   subscribe: string;
   free_plan_includes: string;
   upgrade_for_more: string;
+  free_upgrade_title: string;
+  free_upgrade_price_note: string;
   upgrade_for_more_short: string;
   plans_coming_soon: string;
   free_plan_description: string;
@@ -5602,6 +5611,9 @@ export interface SettingsTranslations {
   checkout_card_term_unavailable: string;
   checkout_term_total: string;
   checkout_method_title: string;
+  checkout_method_description: string;
+  checkout_method_card_note: string;
+  checkout_method_crypto_note: string;
   checkout_description: string;
   autorenew_notice: string;
   autorenew_notice_short: string;
@@ -7481,6 +7493,13 @@ export interface AuthTranslations {
   link_device_signed_in_as: string;
   link_device_cancel: string;
   link_device_desktop: string;
+  link_device_change_account: string;
+  link_device_choose_account: string;
+  link_device_choose_account_description: string;
+  link_device_choose_account_note: string;
+  link_device_use_another_account: string;
+  link_device_use_this_account: string;
+  link_device_other_accounts: string;
   link_device_success: string;
   link_device_success_description: string;
   link_device_invalid_code: string;
@@ -7492,19 +7511,13 @@ export interface AuthTranslations {
   link_device_upgrade_description: string;
   link_device_upgrade_cta: string;
   link_device_upgrade_failed: string;
-  link_device_change_account: string;
-  link_device_choose_account: string;
-  link_device_choose_account_description: string;
-  link_device_choose_account_note: string;
-  link_device_use_another_account: string;
-  link_device_use_this_account: string;
-  link_device_other_accounts: string;
   link_device_already_linked: string;
   link_device_rate_limited: string;
   link_device_account_suspended: string;
   keep_signed_in: string;
   secure_devices_only: string;
   back_to_inbox: string;
+  back_to_link_device: string;
   enter_password_placeholder: string;
   authenticating: string;
   fetching_auth_data: string;
@@ -7516,7 +7529,6 @@ export interface AuthTranslations {
   two_fa_temporarily_locked: string;
   two_fa_code_already_used: string;
   too_many_2fa_attempts: string;
-  back_to_link_device: string;
   sign_in_session_expired: string;
   backup_codes_remaining_after_login: string;
   backup_code_description: string;

@@ -64,7 +64,6 @@ import { ComposeSection } from "@/components/settings/compose_section";
 import { SignatureSection } from "@/components/settings/signature_section";
 import { BehaviorSection } from "@/components/settings/behavior_section";
 import { AliasesSection } from "@/components/settings/aliases_section";
-import { DomainsSection } from "@/components/settings/domains_section";
 import { EncryptionSection } from "@/components/settings/encryption_section";
 import { DeveloperSection } from "@/components/settings/developer_section";
 import { UpdatesSection } from "@/components/settings/updates_section";
@@ -149,8 +148,6 @@ function SettingsContentInner(props: SettingsContentProps) {
         return <TrustedDevicesPanel />;
       case "aliases":
         return <AliasesSection />;
-      case "domains":
-        return <DomainsSection />;
       case "billing":
         if (is_onion_host()) {
           return null;

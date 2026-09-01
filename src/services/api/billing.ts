@@ -83,12 +83,17 @@ export interface AvailablePlan {
   price_cents: number;
   billing_period: string | null;
   stripe_price_id: string | null;
-  is_current: boolean;
 }
 
 export interface AvailablePlansResponse {
   plans: AvailablePlan[];
-  current_plan_id: string | null;
+}
+
+export interface CurrentPlanResponse {
+  plan: AvailablePlan;
+  subscription_state: string;
+  started_at: string;
+  expires_at: string | null;
 }
 
 export interface CheckoutSessionResponse {
@@ -190,6 +195,10 @@ export async function get_subscription() {
 
 export async function get_available_plans() {
   return api_client.get<AvailablePlansResponse>("/payments/v1/plans");
+}
+
+export async function get_current_plan() {
+  return api_client.get<CurrentPlanResponse>("/payments/v1/plans/current");
 }
 
 export interface CurrencyRatesResponse {
@@ -480,6 +489,7 @@ export interface CryptoNativeInvoiceResponse {
 
 export interface CryptoNativeInvoiceStatus {
   id: string;
+  kind?: string;
   currency: string;
   chain: string;
   display_name: string;
@@ -542,6 +552,18 @@ export async function create_crypto_native_invoice(
   return api_client.post<CryptoNativeInvoiceResponse>(
     "/payments/v1/crypto-native/invoice",
     { plan_code, term_months, currency, chain },
+  );
+}
+
+export async function create_crypto_native_addon_invoice(
+  addon_id: string,
+  term_months: number,
+  currency: string,
+  chain: string,
+) {
+  return api_client.post<CryptoNativeInvoiceResponse>(
+    "/payments/v1/crypto-native/invoice",
+    { addon_id, term_months, currency, chain },
   );
 }
 

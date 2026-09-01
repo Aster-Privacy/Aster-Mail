@@ -32,7 +32,6 @@ import {
   PencilSquareIcon,
   AdjustmentsHorizontalIcon,
   AtSymbolIcon,
-  GlobeAltIcon,
   CreditCardIcon,
   KeyIcon,
   DocumentTextIcon,
@@ -61,7 +60,6 @@ export type SettingsSection =
   | "encryption"
   | "trusted_devices"
   | "aliases"
-  | "domains"
   | "billing"
   | "storage"
   | "family"
@@ -91,7 +89,6 @@ export const SETTINGS_SECTION_IDS: SettingsSection[] = [
   "encryption",
   "trusted_devices",
   "aliases",
-  "domains",
   "billing",
   "storage",
   "family",
@@ -335,41 +332,25 @@ export function get_nav_items(
       },
       {
         id: "aliases",
-        label: t("settings.alias_tab_aliases"),
+        label: t("settings.aliases_and_domains"),
         icon: AtSymbolIcon,
         description:
-          "Custom email addresses that route mail to your inbox",
+          "Custom email addresses and domains that route mail to your inbox",
         keywords: [
           "alias",
           "email alias",
-          "custom email",
-          "email address",
-          "forwarding address",
-          "create alias",
-          "ghost alias",
-          "directories",
-        ],
-      },
-      {
-        id: "domains",
-        label: t("settings.alias_tab_domains"),
-        icon: GlobeAltIcon,
-        description:
-          "Domains you own or buy for sending and receiving mail",
-        keywords: [
-          "domain",
           "custom domain",
           "add domain",
-          "buy domain",
-          "purchase domain",
-          "register domain",
-          "domain search",
           "domain verification",
           "dns record",
           "mx record",
           "dkim",
           "spf",
           "dmarc",
+          "custom email",
+          "email address",
+          "forwarding address",
+          "create alias",
         ],
       },
       ...(!on_onion

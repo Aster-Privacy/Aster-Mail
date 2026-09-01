@@ -23,6 +23,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   capture_source,
   clear_source,
+  normalize_click_id,
   normalize_label,
   read_source,
 } from "./acquisition_source";
@@ -100,6 +101,19 @@ describe("acquisition_source", () => {
     });
   });
 
+  it("keeps the click id across in-app navigation that drops the query", () => {
+    capture_source("?utm_source=reddit&rdt_cid=3184742045291813272");
+    expect(capture_source("").reddit_click_id).toBe("3184742045291813272");
+  });
+
+  it("does not let the click id survive a full page load", async () => {
+    capture_source("?rdt_cid=3184742045291813272");
+    expect(read_source().reddit_click_id).toBe("3184742045291813272");
+    vi.resetModules();
+    const fresh = await import("./acquisition_source");
+    expect(fresh.read_source().reddit_click_id).toBeUndefined();
+  });
+
   it("honors global privacy control", () => {
     set_privacy_signal(true);
     expect(capture_source("?utm_source=reddit")).toEqual({});
@@ -112,16 +126,42 @@ describe("acquisition_source", () => {
     expect(read_source()).toEqual({});
   });
 
-  it("carries no user identifier of any kind", () => {
+  it("carries the reddit click id and nothing else that identifies a person", () => {
     const captured = capture_source(
-      "?utm_source=reddit&utm_campaign=launch&rdt_cid=3184742045291813272&email=a@b.c",
+      "?utm_source=reddit&utm_campaign=launch&rdt_cid=3184742045291813272&email=a@b.c&fbclid=xyz",
     );
-    expect(JSON.stringify(captured)).not.toContain("3184742045291813272");
+    expect(captured.reddit_click_id).toBe("3184742045291813272");
     expect(JSON.stringify(captured)).not.toContain("a@b.c");
+    expect(JSON.stringify(captured)).not.toContain("xyz");
     expect(Object.keys(captured).sort()).toEqual([
       "acquisition_campaign",
       "acquisition_source",
+      "reddit_click_id",
     ]);
+  });
+
+  it("keeps the click id verbatim instead of normalizing it", () => {
+    const captured = capture_source("?rdt_cid=Abc-123_XY~z");
+    expect(captured.reddit_click_id).toBe("Abc-123_XY~z");
+  });
+
+  it("drops click ids that are absent, hostile, or over length", () => {
+    expect(normalize_click_id(null)).toBeNull();
+    expect(normalize_click_id("")).toBeNull();
+    expect(normalize_click_id("   ")).toBeNull();
+    expect(normalize_click_id("<script>")).toBeNull();
+    expect(normalize_click_id("a b")).toBeNull();
+    expect(normalize_click_id("a/b")).toBeNull();
+    expect(normalize_click_id("a?b=1")).toBeNull();
+    expect(normalize_click_id("user@example.com")).toBeNull();
+    expect(normalize_click_id("https://evil.example/x")).toBeNull();
+    expect(normalize_click_id("a".repeat(513))).toBeNull();
+    expect(normalize_click_id("a".repeat(512))).toBe("a".repeat(512));
+  });
+
+  it("drops the click id when a privacy signal is set", () => {
+    vi.stubGlobal("navigator", { globalPrivacyControl: true, doNotTrack: null });
+    expect(capture_source("?rdt_cid=3184742045291813272")).toEqual({});
   });
 
   it("normalizes reddit dynamic macro output the same way the backend does", () => {
@@ -145,6 +185,27 @@ describe("acquisition_source", () => {
       acquisition_source: "reddit",
       acquisition_medium: "cpc",
       acquisition_campaign: "privacy_launch",
+    });
+  });
+  it("captures the ad and keyword labels so creatives can be compared", () => {
+    const captured = capture_source(
+      "?utm_source=reddit&utm_campaign=privacy_launch&utm_content=Hero%20V3&utm_term=private%20email",
+    );
+    expect(captured).toEqual({
+      acquisition_source: "reddit",
+      acquisition_campaign: "privacy_launch",
+      acquisition_content: "hero_v3",
+      acquisition_term: "private_email",
+    });
+  });
+
+  it("drops a hostile creative label without dropping the campaign", () => {
+    const captured = capture_source(
+      "?utm_source=reddit&utm_content=%3Cscript%3E&utm_term=ok",
+    );
+    expect(captured).toEqual({
+      acquisition_source: "reddit",
+      acquisition_term: "ok",
     });
   });
 });
