@@ -8380,6 +8380,8 @@ export const ja = {
     please_enter_recovery_code: "ここにはリカバリーコードが必要です。",
     invalid_recovery_code:
       "そのリカバリーコードは一致しませんでした。保存している一覧の中の別のコードでしたら通ります。",
+    recovery_locked_out:
+      "このアカウントでは復元の試行が多すぎました。{{time}}後に再度お試しください。コードはどれも使用されていないため、すべて残っています。",
     invalid_backup_code:
       "このバックアップコードは一致しません。各コードは1回だけ使えるため、リストの次の未使用コードをお試しください。",
     new_password_placeholder: "新しいパスワード",

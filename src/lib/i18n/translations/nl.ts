@@ -8482,6 +8482,8 @@ export const nl = {
     please_enter_recovery_code: "Een van uw herstelcodes is hier nodig.",
     invalid_recovery_code:
       "Die herstelcode kwam niet overeen. Een andere uit uw opgeslagen lijst zou moeten werken.",
+    recovery_locked_out:
+      "Deze account heeft te veel herstelpogingen gehad. Je kunt het over {{time}} opnieuw proberen. Geen van je codes is gebruikt, dus je hebt ze nog allemaal.",
     invalid_backup_code:
       "Deze back-upcode klopt niet. Elke code werkt maar één keer, dus probeer de volgende ongebruikte code uit je lijst.",
     new_password_placeholder: "Nieuw wachtwoord",

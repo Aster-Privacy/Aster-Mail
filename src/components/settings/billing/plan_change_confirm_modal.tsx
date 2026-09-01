@@ -66,6 +66,9 @@ export function PlanChangeConfirmModal({
   const [applied_promo_code, set_applied_promo_code] = useState("");
   const [promo_error, set_promo_error] = useState("");
   const fetch_gen = useRef(0);
+  const t_ref = useRef(t);
+
+  t_ref.current = t;
 
   useEffect(() => {
     if (open) {
@@ -80,11 +83,11 @@ export function PlanChangeConfirmModal({
           if (res.data) {
             set_preview(res.data);
             if (applied_promo_code && !res.data.promo_code_applied) {
-              set_promo_error(t("settings.promo_invalid"));
+              set_promo_error(t_ref.current("settings.promo_invalid"));
               set_applied_promo_code("");
             }
           } else if (applied_promo_code) {
-            set_promo_error(res.error || t("settings.promo_invalid"));
+            set_promo_error(res.error || t_ref.current("settings.promo_invalid"));
             set_applied_promo_code("");
           } else {
             set_preview_failed(true);
@@ -101,7 +104,7 @@ export function PlanChangeConfirmModal({
       set_applied_promo_code("");
       set_promo_error("");
     }
-  }, [open, plan_code, billing_interval, retry_tick, applied_promo_code, t]);
+  }, [open, plan_code, billing_interval, retry_tick, applied_promo_code]);
 
   const apply_promo = () => {
     const code = promo_input.trim();

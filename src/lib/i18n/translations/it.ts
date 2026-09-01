@@ -8610,6 +8610,8 @@ export const it = {
       "Uno dei suoi codici di recupero è necessario qui.",
     invalid_recovery_code:
       "Quel codice di recupero non corrispondeva. Un altro dalla sua lista salvata dovrebbe funzionare.",
+    recovery_locked_out:
+      "Questo account ha registrato troppi tentativi di recupero. Puoi riprovare tra {{time}}. Nessuno dei tuoi codici è stato usato, quindi li hai ancora tutti.",
     invalid_backup_code:
       "Questo codice di backup non corrisponde. Ogni codice funziona una sola volta, quindi prova il successivo non utilizzato del tuo elenco.",
     new_password_placeholder: "Nuova password",

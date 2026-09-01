@@ -8605,6 +8605,8 @@ export const de = {
     please_enter_email_address: "Ihre E-Mail-Adresse wird hier benötigt.",
     invalid_recovery_code:
       "Dieser Wiederherstellungscode stimmt nicht überein. Ein anderer aus Ihrer gespeicherten Liste funktioniert.",
+    recovery_locked_out:
+      "Für dieses Konto gab es zu viele Wiederherstellungsversuche. Du kannst es in {{time}} erneut versuchen. Keiner deiner Codes wurde verwendet, du hast also weiterhin alle.",
     invalid_backup_code:
       "Dieser Backup-Code stimmt nicht. Jeder Code funktioniert nur einmal, probiere daher den nächsten unbenutzten Code aus deiner Liste.",
     new_password_placeholder: "Neues Passwort",

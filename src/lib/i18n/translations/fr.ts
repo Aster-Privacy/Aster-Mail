@@ -8603,6 +8603,8 @@ export const fr = {
       "L'un de vos codes de récupération est nécessaire ici.",
     invalid_recovery_code:
       "Ce code de récupération ne correspondait pas. Un autre de votre liste enregistrée devrait fonctionner.",
+    recovery_locked_out:
+      "Ce compte a fait l'objet de trop de tentatives de récupération. Vous pouvez réessayer dans {{time}}. Aucun de vos codes n'a été utilisé, vous les avez donc tous encore.",
     invalid_backup_code:
       "Ce code de secours ne correspond pas. Chaque code ne sert qu'une fois, essayez donc le suivant non utilisé de votre liste.",
     new_password_placeholder: "Nouveau mot de passe",

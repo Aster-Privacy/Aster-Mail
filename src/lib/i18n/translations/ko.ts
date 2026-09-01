@@ -8150,6 +8150,8 @@ export const ko = {
     please_enter_recovery_code: "여기에는 복구 코드 중 하나가 필요합니다.",
     invalid_recovery_code:
       "이 복구 코드는 일치하지 않습니다. 저장해둔 목록의 다른 코드면 됩니다.",
+    recovery_locked_out:
+      "이 계정에서 복구 시도가 너무 많았습니다. {{time}} 후에 다시 시도할 수 있습니다. 코드는 하나도 사용되지 않았으므로 모두 그대로 남아 있습니다.",
     invalid_backup_code:
       "이 백업 코드가 일치하지 않습니다. 코드는 한 번만 사용할 수 있으니 목록에서 사용하지 않은 다음 코드를 사용해 보세요.",
     new_password_placeholder: "새 비밀번호",

@@ -8493,6 +8493,8 @@ export const tr = {
       "Burada kurtarma kodlarınızdan birine ihtiyaç var.",
     invalid_recovery_code:
       "Bu kurtarma kodu örtüşmedi. Kayıtlı listenizdeki başka biri işe yarar.",
+    recovery_locked_out:
+      "Bu hesapta çok fazla kurtarma denemesi yapıldı. {{time}} sonra yeniden deneyebilirsiniz. Kodlarınızdan hiçbiri kullanılmadı, bu yüzden hepsi hâlâ sizde.",
     invalid_backup_code:
       "Bu yedek kod eşleşmiyor. Her kod yalnızca bir kez çalışır, bu yüzden listenizdeki kullanılmamış bir sonraki kodu deneyin.",
     new_password_placeholder: "Yeni parola",

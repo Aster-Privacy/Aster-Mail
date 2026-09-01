@@ -8758,6 +8758,8 @@ export const pl = {
       "Jeden z kodów odzyskiwania jest potrzebny tutaj.",
     invalid_recovery_code:
       "Ten kod odzyskiwania nie pasuje. Inny z zapisanej listy powinien zadziałać.",
+    recovery_locked_out:
+      "To konto miało zbyt wiele prób odzyskiwania. Możesz spróbować ponownie za {{time}}. Żaden z Twoich kodów nie został użyty, więc nadal masz je wszystkie.",
     invalid_backup_code:
       "Ten kod zapasowy nie pasuje. Każdy kod działa tylko raz, więc wypróbuj następny nieużyty kod z listy.",
     new_password_placeholder: "Nowe hasło",

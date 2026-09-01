@@ -8496,6 +8496,8 @@ export const es = {
     please_enter_recovery_code: "Introduce uno de tus códigos de recuperación.",
     invalid_recovery_code:
       "Ese código de recuperación no coincide. Otro de tu lista guardada funcionará.",
+    recovery_locked_out:
+      "Esta cuenta ha tenido demasiados intentos de recuperación. Puedes volver a intentarlo en {{time}}. No se usó ninguno de tus códigos, así que los conservas todos.",
     invalid_backup_code:
       "Ese código de respaldo no coincide. Cada código sirve una sola vez, así que prueba con el siguiente sin usar de tu lista.",
     new_password_placeholder: "Nueva contraseña",

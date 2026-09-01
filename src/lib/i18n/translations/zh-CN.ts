@@ -7575,6 +7575,8 @@ export const zh_CN = {
     please_enter_email_address: "这里需要您的邮箱地址。",
     please_enter_recovery_code: "这里需要您的一个恢复码。",
     invalid_recovery_code: "这个恢复码不匹配，从您保存的列表中换一个应该可以。",
+    recovery_locked_out:
+      "这个账户的恢复尝试次数过多。请在 {{time}} 后重试。你的验证码一个都没有被使用，因此它们都还在。",
     invalid_backup_code:
       "这个备用码不匹配。每个备用码只能使用一次，请试试列表中下一个未使用的备用码。",
     new_password_placeholder: "新密码",
