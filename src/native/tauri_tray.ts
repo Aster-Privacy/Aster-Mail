@@ -24,31 +24,61 @@ function is_tauri(): boolean {
   return "__TAURI_INTERNALS__" in window;
 }
 
-export async function update_tray_badge(unread_count: number): Promise<void> {
-  if (!is_tauri()) return;
+let pending_badge_count: number | null = null;
+let badge_flush_active = false;
+
+async function flush_tray_badge(): Promise<void> {
+  if (badge_flush_active) return;
+
+  badge_flush_active = true;
 
   try {
     const { invoke } = await import("@tauri-apps/api/core");
-    const tooltip =
-      unread_count > 0
-        ? `Aster Mail - ${get_active_translations().mail.tab_unread_count.replace(
-            "{{count}}",
-            String(unread_count),
-          )}`
-        : "Aster Mail";
 
-    await invoke("set_tray_tooltip", { tooltip });
-    const count = Math.max(0, Math.floor(unread_count));
+    while (pending_badge_count !== null) {
+      const count = pending_badge_count;
 
-    try {
-      localStorage.setItem("aster_last_unread_badge", String(count));
-    } catch {
-      void 0;
+      pending_badge_count = null;
+
+      const tooltip =
+        count > 0
+          ? `Aster Mail - ${get_active_translations().mail.tab_unread_count.replace(
+              "{{count}}",
+              String(count),
+            )}`
+          : "Aster Mail";
+
+      try {
+        await invoke("set_unread_badge", { count });
+
+        try {
+          localStorage.setItem("aster_last_unread_badge", String(count));
+        } catch {
+          void 0;
+        }
+      } catch {
+        void 0;
+      }
+
+      try {
+        await invoke("set_tray_tooltip", { tooltip });
+      } catch {
+        void 0;
+      }
     }
-    await invoke("set_unread_badge", { count });
   } catch {
-    return;
+    pending_badge_count = null;
+  } finally {
+    badge_flush_active = false;
   }
+}
+
+export async function update_tray_badge(unread_count: number): Promise<void> {
+  if (!is_tauri()) return;
+
+  pending_badge_count = Math.max(0, Math.floor(unread_count));
+
+  await flush_tray_badge();
 }
 
 const CLOSE_TO_TRAY_KEY = "aster_close_to_tray";
