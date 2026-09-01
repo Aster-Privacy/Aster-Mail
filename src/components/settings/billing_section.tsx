@@ -18,6 +18,9 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { PlanFeature } from "@/components/settings/billing/plan_card";
+import { read_billing_interval } from "@/components/settings/billing/cancel_offer";
+
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 
@@ -53,7 +56,10 @@ import {
 } from "@/services/api/billing";
 import { request_cache } from "@/services/api/request_cache";
 import { use_mail_stats, invalidate_mail_stats } from "@/hooks/use_mail_stats";
-import { show_toast } from "@/components/toast/simple_toast";
+import {
+  show_toast,
+  TOAST_DURATION_BILLING_MS,
+} from "@/components/toast/simple_toast";
 import { addon_return_url } from "@/lib/addon_return_url";
 import { use_i18n } from "@/lib/i18n/context";
 import {
@@ -63,9 +69,11 @@ import {
   detect_currency_from_locale,
   convert_cents,
   is_crypto_provider,
+  crypto_term_months,
   take_crypto_resume,
   type CryptoResumeSelection,
 } from "@/components/settings/billing/billing_constants";
+import { DEFAULT_RECOMMENDED_PLAN } from "@/components/settings/billing/plan_recommendation";
 import { server_error_text } from "@/components/settings/billing/server_error_text";
 import { CurrentPlanCard } from "@/components/settings/billing/current_plan_card";
 import { CryptoResumeBanner } from "@/components/settings/billing/crypto_resume_banner";
@@ -89,6 +97,7 @@ import {
   clear_cancel_password_cache,
   get_cancel_password_hash,
 } from "@/components/settings/billing/cancel_password";
+import { checkout_error_text } from "./billing/checkout_error_text";
 
 export function BillingSection() {
   const { t } = use_i18n();
@@ -148,6 +157,7 @@ export function BillingSection() {
     useState<AcademicDiscountStatusResponse | null>(null);
   const [is_initial_load, set_is_initial_load] = useState(true);
   const [plans_load_failed, set_plans_load_failed] = useState(false);
+  const [stripe_load_failed, set_stripe_load_failed] = useState(false);
   const [subscription_load_failed, set_subscription_load_failed] =
     useState(false);
   const [show_crypto_modal, set_show_crypto_modal] = useState(false);
@@ -197,6 +207,9 @@ export function BillingSection() {
   const [show_method_modal, set_show_method_modal] = useState(false);
   const [method_modal_plan, set_method_modal_plan] =
     useState<AvailablePlan | null>(null);
+  const [crypto_initial_term, set_crypto_initial_term] = useState<
+    number | undefined
+  >(undefined);
   const [show_addon_method_modal, set_show_addon_method_modal] =
     useState(false);
   const [addon_method_target, set_addon_method_target] =
@@ -233,56 +246,216 @@ export function BillingSection() {
     refresh_academic_status();
   }, [refresh_academic_status]);
 
-  const plan_features: Record<string, { label: string; on: boolean }[]> =
-    useMemo(
-      () => ({
-        star: [
-          { label: t("settings.plan_feat_storage_50"), on: true },
-          { label: t("settings.plan_feat_aliases_15"), on: true },
-          {
-            label: t("settings.plan_f_ghost_aliases", { value: "25" }),
-            on: true,
-          },
-          { label: t("settings.plan_feat_domains_5"), on: true },
-          { label: t("settings.plan_feat_attachments_50"), on: true },
-          { label: t("settings.plan_f_unlimited_filters"), on: true },
-          { label: t("settings.plan_f_unlimited_scheduled"), on: true },
-          { label: t("settings.plan_feat_advanced_aliases"), on: true },
-          { label: t("settings.plan_feat_catch_all"), on: true },
-          { label: t("settings.plan_feat_auto_forward"), on: true },
-          { label: t("settings.plan_feat_imap_smtp"), on: true },
-          { label: t("settings.plan_feat_priority_support"), on: true },
-        ],
-        nova: [
-          { label: t("settings.plan_feat_storage_500"), on: true },
-          { label: t("settings.plan_feat_aliases_unlimited"), on: true },
-          { label: t("settings.plan_feat_domains_30"), on: true },
-          { label: t("settings.plan_feat_attachments_100"), on: true },
-          { label: t("settings.plan_feat_vanguard"), on: true },
-          { label: t("settings.plan_feat_smart_folders"), on: true },
-          { label: t("settings.plan_feat_folder_lock"), on: true },
-          { label: t("settings.plan_f_external_accounts"), on: true },
-          { label: t("settings.feature_alias_directory"), on: true },
-          { label: t("settings.plan_f_carddav_import"), on: true },
-          { label: t("settings.plan_f_contact_merge"), on: true },
-          { label: t("settings.plan_f_custom_themes"), on: true },
-        ],
-        supernova: [
-          { label: t("settings.plan_feat_storage_5tb"), on: true },
-          { label: t("settings.plan_feat_domains_unlimited"), on: true },
-          { label: t("settings.plan_feat_attachments_250"), on: true },
-          {
-            label: t("settings.plan_f_multi_accounts", { value: "20" }),
-            on: true,
-          },
-          { label: t("settings.feature_instant_alias_delete"), on: true },
-          { label: t("settings.plan_f_encrypted_exports"), on: true },
-          { label: t("settings.plan_f_support_dedicated"), on: true },
-          { label: t("settings.plan_f_early_access"), on: true },
-        ],
-      }),
-      [t],
-    );
+  const plan_features: Record<string, PlanFeature[]> = useMemo(
+    () => ({
+      star: [
+        {
+          label: t("settings.plan_feat_storage_50"),
+          on: true,
+          icon: "storage",
+        },
+        { label: t("settings.plan_feat_aliases_15"), on: true, icon: "alias" },
+        {
+          label: t("settings.plan_f_ghost_aliases", { value: "25" }),
+          on: true,
+          icon: "ghost_alias",
+          description: t("settings.plan_desc_ghost_aliases"),
+        },
+        { label: t("settings.plan_feat_domains_5"), on: true, icon: "domain" },
+        {
+          label: t("settings.plan_feat_attachments_50"),
+          on: true,
+          icon: "attachment",
+        },
+        {
+          label: t("settings.plan_feat_catch_all"),
+          on: true,
+          icon: "catch_all",
+          description: t("settings.plan_desc_catch_all"),
+        },
+        {
+          label: t("settings.plan_feat_advanced_aliases"),
+          on: true,
+          icon: "advanced_alias",
+          description: t("settings.plan_desc_advanced_aliases"),
+        },
+        {
+          label: t("settings.plan_feat_imap_smtp"),
+          on: true,
+          icon: "apps",
+          description: t("settings.plan_desc_apps"),
+        },
+        {
+          label: t("settings.plan_f_external_accounts"),
+          on: true,
+          icon: "sync",
+          description: t("settings.plan_desc_external_accounts"),
+        },
+        {
+          label: t("settings.plan_feat_priority_support"),
+          on: true,
+          icon: "support",
+        },
+      ],
+      nova: [
+        {
+          label: t("settings.plan_feat_storage_500"),
+          on: true,
+          icon: "storage",
+        },
+        {
+          label: t("settings.plan_feat_aliases_unlimited"),
+          on: true,
+          icon: "alias",
+        },
+        {
+          label: t("settings.plan_f_ghost_aliases", {
+            value: t("settings.unlimited"),
+          }),
+          on: true,
+          icon: "ghost_alias",
+          description: t("settings.plan_desc_ghost_aliases"),
+        },
+        { label: t("settings.plan_feat_domains_30"), on: true, icon: "domain" },
+        {
+          label: t("settings.plan_feat_attachments_100"),
+          on: true,
+          icon: "attachment",
+        },
+        {
+          label: t("settings.plan_f_multi_accounts", { value: "5" }),
+          on: true,
+          icon: "accounts",
+          description: t("settings.plan_desc_multi_accounts"),
+        },
+        {
+          label: t("settings.plan_feat_vanguard"),
+          on: true,
+          icon: "shield",
+          description: t("settings.plan_desc_vanguard"),
+        },
+        {
+          label: t("settings.plan_feat_folder_lock"),
+          on: true,
+          icon: "lock",
+          description: t("settings.plan_desc_folder_lock"),
+        },
+        {
+          label: t("settings.plan_feat_smart_folders"),
+          on: true,
+          icon: "folder",
+          description: t("settings.plan_desc_smart_folders"),
+        },
+        {
+          label: t("settings.plan_f_encrypted_exports"),
+          on: true,
+          icon: "export",
+          description: t("settings.plan_desc_encrypted_exports"),
+        },
+        {
+          label: t("settings.feature_alias_directory"),
+          on: true,
+          icon: "directory",
+          description: t("settings.plan_desc_alias_directory"),
+        },
+        {
+          label: t("settings.plan_f_carddav_import"),
+          on: true,
+          icon: "import",
+        },
+        {
+          label: t("settings.plan_f_contact_merge"),
+          on: true,
+          icon: "contacts",
+        },
+      ],
+      supernova: [
+        {
+          label: t("settings.plan_feat_storage_5tb"),
+          on: true,
+          icon: "storage",
+        },
+        {
+          label: t("settings.plan_feat_aliases_unlimited"),
+          on: true,
+          icon: "alias",
+        },
+        {
+          label: t("settings.plan_f_ghost_aliases", {
+            value: t("settings.unlimited"),
+          }),
+          on: true,
+          icon: "ghost_alias",
+          description: t("settings.plan_desc_ghost_aliases"),
+        },
+        {
+          label: t("settings.plan_feat_domains_unlimited"),
+          on: true,
+          icon: "domain",
+        },
+        {
+          label: t("settings.plan_feat_attachments_250"),
+          on: true,
+          icon: "attachment",
+        },
+        {
+          label: t("settings.plan_f_multi_accounts", { value: "20" }),
+          on: true,
+          icon: "accounts",
+          description: t("settings.plan_desc_multi_accounts"),
+        },
+        {
+          label: t("settings.feature_instant_alias_delete"),
+          on: true,
+          icon: "delete",
+          description: t("settings.plan_desc_instant_alias_delete"),
+        },
+        {
+          label: t("settings.plan_f_support_dedicated"),
+          on: true,
+          icon: "support",
+          description: t("settings.plan_desc_support_dedicated"),
+        },
+        {
+          label: t("settings.plan_f_early_access"),
+          on: true,
+          icon: "early_access",
+          description: t("settings.plan_desc_early_access"),
+        },
+        {
+          label: t("settings.plan_feat_vanguard"),
+          on: true,
+          icon: "shield",
+          description: t("settings.plan_desc_vanguard"),
+        },
+        {
+          label: t("settings.plan_feat_folder_lock"),
+          on: true,
+          icon: "lock",
+          description: t("settings.plan_desc_folder_lock"),
+        },
+        {
+          label: t("settings.plan_feat_smart_folders"),
+          on: true,
+          icon: "folder",
+          description: t("settings.plan_desc_smart_folders"),
+        },
+        {
+          label: t("settings.plan_f_encrypted_exports"),
+          on: true,
+          icon: "export",
+          description: t("settings.plan_desc_encrypted_exports"),
+        },
+        {
+          label: t("settings.feature_alias_directory"),
+          on: true,
+          icon: "directory",
+          description: t("settings.plan_desc_alias_directory"),
+        },
+      ],
+    }),
+    [t],
+  );
 
   const storage_limit_bytes =
     stats.storage_total_bytes ||
@@ -297,11 +470,16 @@ export function BillingSection() {
 
   const load_data = useCallback(async () => {
     try {
-      get_stripe_config().then((r) => {
-        if (r.data?.publishable_key && r.data.is_enabled) {
-          loadStripe(r.data.publishable_key);
-        }
-      });
+      set_stripe_load_failed(false);
+      get_stripe_config()
+        .then((r) => {
+          if (r.data?.publishable_key && r.data.is_enabled) {
+            return loadStripe(r.data.publishable_key);
+          }
+
+          return null;
+        })
+        .catch(() => set_stripe_load_failed(true));
 
       const [
         sub_response,
@@ -435,7 +613,11 @@ export function BillingSection() {
       window.history.replaceState({}, "", url.toString());
     }
     if (params.get("crypto") === "cancelled") {
-      show_toast(t("settings.crypto_cancelled_toast"), "info");
+      show_toast(
+        t("settings.crypto_cancelled_toast"),
+        "info",
+        TOAST_DURATION_BILLING_MS,
+      );
       const url = new URL(window.location.href);
 
       url.searchParams.delete("crypto");
@@ -482,7 +664,6 @@ export function BillingSection() {
         price_cents: subscription.plan.price_cents,
         billing_period: subscription.plan.billing_period,
         stripe_price_id: null,
-        is_current: true,
       },
     );
     set_show_crypto_modal(true);
@@ -495,7 +676,7 @@ export function BillingSection() {
 
   const handle_family_plan_change = async (
     plan_code: string,
-    interval: "month" | "year",
+    interval: "month" | "year" | "biennial",
   ) => {
     const is_tauri =
       typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
@@ -512,15 +693,20 @@ export function BillingSection() {
 
         if (!result.ok) {
           show_toast(
-            server_error_text(result.error, t("settings.failed_checkout")),
+            checkout_error_text(t, result.server_code),
             "error",
+            TOAST_DURATION_BILLING_MS,
           );
         } else {
           plan_before_checkout_ref.current = subscription?.plan.code ?? null;
           pending_tauri_checkout_ref.current = true;
         }
       } catch {
-        show_toast(t("settings.failed_checkout"), "error");
+        show_toast(
+          t("settings.failed_checkout"),
+          "error",
+          TOAST_DURATION_BILLING_MS,
+        );
       }
       set_is_action_loading(false);
 
@@ -541,22 +727,21 @@ export function BillingSection() {
         price_cents: 0,
         billing_period: interval,
         stripe_price_id: null,
-        is_current: false,
       } as AvailablePlan);
 
     set_plan_change_confirm_target({ plan, interval });
     set_show_plan_change_confirm(true);
   };
 
-  const handle_pay_with_card = async (plan: AvailablePlan) => {
+  const handle_pay_with_card = async (
+    plan: AvailablePlan,
+    term_id?: string,
+  ) => {
     if (is_action_loading) return;
 
+    const term = term_id ?? billing_period;
     const checkout_interval =
-      billing_period === "yearly"
-        ? "year"
-        : billing_period === "biennial"
-          ? "biennial"
-          : "month";
+      term === "yearly" ? "year" : term === "biennial" ? "biennial" : "month";
 
     const is_tauri =
       typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
@@ -585,8 +770,9 @@ export function BillingSection() {
 
       if (!result.ok) {
         show_toast(
-          server_error_text(result.error, t("settings.failed_checkout")),
+          checkout_error_text(t, result.server_code),
           "error",
+          TOAST_DURATION_BILLING_MS,
         );
         set_is_action_loading(false);
       } else if (is_tauri) {
@@ -595,7 +781,11 @@ export function BillingSection() {
         set_is_action_loading(false);
       }
     } catch {
-      show_toast(t("settings.failed_checkout"), "error");
+      show_toast(
+        t("settings.failed_checkout"),
+        "error",
+        TOAST_DURATION_BILLING_MS,
+      );
       set_is_action_loading(false);
     }
   };
@@ -620,8 +810,9 @@ export function BillingSection() {
 
       if (!result.ok) {
         show_toast(
-          server_error_text(result.error, t("settings.payment_failed")),
+          checkout_error_text(t, result.server_code),
           "error",
+          TOAST_DURATION_BILLING_MS,
         );
         set_show_payment_methods(true);
 
@@ -633,6 +824,7 @@ export function BillingSection() {
           plan_before_checkout_ref.current = subscription?.plan.code ?? null;
           pending_tauri_checkout_ref.current = true;
         }
+
         return;
       }
 
@@ -645,7 +837,11 @@ export function BillingSection() {
       await load_data();
       show_toast(t("settings.payment_success"), "success");
     } catch {
-      show_toast(t("settings.payment_failed"), "error");
+      show_toast(
+        t("settings.payment_failed"),
+        "error",
+        TOAST_DURATION_BILLING_MS,
+      );
     } finally {
       set_show_plan_change_confirm(false);
       set_plan_change_confirm_target(null);
@@ -653,13 +849,14 @@ export function BillingSection() {
     }
   };
 
-  const handle_pay_with_crypto = (plan: AvailablePlan) => {
+  const handle_pay_with_crypto = (plan: AvailablePlan, term_id?: string) => {
     if (!crypto_term_prices_for(plan.code)) {
       show_toast(t("settings.crypto_price_unavailable"), "error");
 
       return;
     }
     set_crypto_resume(null);
+    set_crypto_initial_term(crypto_term_months(term_id ?? billing_period));
     set_crypto_plan(plan);
     set_show_crypto_modal(true);
   };
@@ -802,8 +999,9 @@ export function BillingSection() {
     }
   };
 
-  const current_billing_interval =
-    subscription?.plan.billing_period?.startsWith("year") ? "year" : "month";
+  const current_billing_interval = read_billing_interval(
+    subscription?.plan.billing_period,
+  );
   const target_billing_interval =
     current_billing_interval === "year" ? "month" : "year";
 
@@ -902,8 +1100,19 @@ export function BillingSection() {
         storage_limit_bytes={storage_limit_bytes}
         storage_percentage={storage_percentage}
         storage_used_bytes={storage_used_bytes}
+        upgrade_features={plan_features[DEFAULT_RECOMMENDED_PLAN]}
         subscription={subscription}
       />
+
+      {stripe_load_failed && (
+        <p
+          className="text-sm"
+          role="alert"
+          style={{ color: "var(--color-danger)" }}
+        >
+          {t("settings.failed_checkout")}
+        </p>
+      )}
 
       <AvailablePlansSection
         billing_period={billing_period}
@@ -977,7 +1186,9 @@ export function BillingSection() {
                   : undefined
               }
               initial_invoice_id={crypto_resume?.invoice_id}
-              initial_term_months={crypto_resume?.term_months}
+              initial_term_months={
+                crypto_resume?.term_months ?? crypto_initial_term
+              }
               is_open={show_crypto_modal}
               monthly_price_cents={tier.monthly_cents}
               on_checkout_opened={() => {
@@ -1023,19 +1234,19 @@ export function BillingSection() {
               )
             )
           }
-          on_choose_card={() => {
+          on_choose_card={(term) => {
             const plan = method_modal_plan;
 
             set_show_method_modal(false);
             set_method_modal_plan(null);
-            if (plan) handle_pay_with_card(plan);
+            if (plan) handle_pay_with_card(plan, term);
           }}
-          on_choose_crypto={() => {
+          on_choose_crypto={(term) => {
             const plan = method_modal_plan;
 
             set_show_method_modal(false);
             set_method_modal_plan(null);
-            if (plan) handle_pay_with_crypto(plan);
+            if (plan) handle_pay_with_crypto(plan, term);
           }}
           on_close={() => {
             set_show_method_modal(false);
@@ -1043,6 +1254,39 @@ export function BillingSection() {
           }}
           open={show_method_modal}
           plan_name={method_modal_plan.name}
+          selected_term={billing_period}
+          term_options={(() => {
+            const tier = PLAN_TIERS.find(
+              (p) => p.id === method_modal_plan.code,
+            );
+
+            if (!tier) return undefined;
+
+            return [
+              {
+                id: "monthly",
+                label: t("settings.billing_monthly"),
+                per_month_cents: tier.monthly_cents,
+                total_cents: tier.monthly_cents,
+                save_cents: 0,
+              },
+              {
+                id: "yearly",
+                label: t("settings.billing_yearly"),
+                per_month_cents: Math.round(tier.yearly_cents / 12),
+                total_cents: tier.yearly_cents,
+                save_cents: tier.monthly_cents * 12 - tier.yearly_cents,
+              },
+              {
+                id: "biennial",
+                label: t("settings.biennial"),
+                per_month_cents: Math.round(tier.biennial_cents / 24),
+                total_cents: tier.biennial_cents,
+                save_cents: tier.monthly_cents * 24 - tier.biennial_cents,
+                crypto_only: true,
+              },
+            ];
+          })()}
         />
       )}
 
@@ -1144,7 +1388,11 @@ export function BillingSection() {
           if (api_plan) {
             handle_select_plan(api_plan);
           } else {
-            show_toast(t("settings.plans_coming_soon"), "info");
+            show_toast(
+              t("settings.plans_coming_soon"),
+              "info",
+              TOAST_DURATION_BILLING_MS,
+            );
           }
         }}
         preferred_currency={preferred_currency}
