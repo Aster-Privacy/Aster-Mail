@@ -3205,6 +3205,30 @@ export const en: Translations = {
     checkout_rate_limited: "Too many attempts. Wait a minute, then try again.",
     checkout_already_active:
       "You already have an active subscription. Refresh the page to see it.",
+    checkout_session_mismatch:
+      "Your session started on a different network or browser. Sign out, sign back in, and try again.",
+    checkout_family_group_member:
+      "You already belong to a family group. Leave it before you create a new one.",
+    checkout_family_plan_active:
+      "Your family plan is already active. Refresh the page to see it.",
+    checkout_crypto_open_invoice_limit:
+      "You have too many open crypto invoices. Finish or cancel one, then try again.",
+    checkout_crypto_active_card:
+      "Cancel your card subscription before you pay with crypto.",
+    checkout_unpaid_subscription:
+      "Your last invoice is unpaid. Settle it in Settings, Billing, then try again.",
+    checkout_pending_cancellation:
+      "Your subscription is set to cancel. Turn renewal back on before you change plans.",
+    checkout_duplicate_subscription:
+      "You already have this subscription. Refresh the page to see it.",
+    checkout_provider_unreachable:
+      "Our payment provider is not responding. Wait a minute, then try again. Nothing was charged.",
+    checkout_sca_required:
+      "Your bank needs to confirm this payment. Follow the prompt from your bank, then try again.",
+    checkout_card_declined:
+      "Your bank declined the card. Use another card, or contact your bank.",
+    checkout_collection_failed:
+      "We could not collect the payment. Update your payment method in Settings, Billing, then try again.",
     plan_not_available:
       "This plan is not available for purchase right now. Another plan, or checking back later, will work.",
     failed_checkout:
