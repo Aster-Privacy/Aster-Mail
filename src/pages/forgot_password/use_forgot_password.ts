@@ -38,6 +38,7 @@ import {
 } from "@/services/crypto/key_manager";
 import {
   hash_recovery_code,
+  is_valid_recovery_code,
   decrypt_recovery_key_with_code,
   decrypt_vault_backup,
   generate_recovery_key,
@@ -317,7 +318,7 @@ export function use_forgot_password() {
       return;
     }
 
-    if (!trimmed_code.startsWith("ASTER-")) {
+    if (!is_valid_recovery_code(trimmed_code)) {
       set_error(t("auth.recovery_codes_start_with_aster"));
 
       return;
