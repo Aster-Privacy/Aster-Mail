@@ -9526,6 +9526,13 @@ export const ja = {
     delete_confirm_title: "共有メールボックスの削除",
     access_unavailable: "この共有メールボックスは利用できなくなりました",
   },
+  review_prompt: {
+    banner_message:
+      "Trustpilot で Aster Mail をレビューできます。レビューは公開され、このお知らせは一度だけ表示されます。",
+    banner_open: "Trustpilot を開く",
+    banner_dismiss: "今はしない",
+    opens_in_new_tab: "Trustpilot を新しいタブで開きます",
+  },
   survey: {
     banner_title: "Aster Mail の改善にご協力ください",
     banner_message:

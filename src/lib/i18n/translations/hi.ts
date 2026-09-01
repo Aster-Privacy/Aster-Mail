@@ -9530,6 +9530,13 @@ export const hi = {
     delete_confirm_title: "साझा मेलबॉक्स हटाएं",
     access_unavailable: "यह साझा मेलबॉक्स अब उपलब्ध नहीं है",
   },
+  review_prompt: {
+    banner_message:
+      "आप Trustpilot पर Aster Mail की समीक्षा कर सकते हैं। समीक्षाएँ सार्वजनिक होती हैं, और यह संदेश आपको केवल एक बार दिखता है।",
+    banner_open: "Trustpilot खोलें",
+    banner_dismiss: "अभी नहीं",
+    opens_in_new_tab: "Trustpilot को नए टैब में खोलता है",
+  },
   survey: {
     banner_title: "Aster Mail को बेहतर बनाने में मदद करें",
     banner_message:

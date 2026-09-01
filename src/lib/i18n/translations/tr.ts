@@ -9628,6 +9628,13 @@ export const tr = {
     delete_confirm_title: "Ortak posta kutusunu sil",
     access_unavailable: "Bu ortak posta kutusu artık kullanılamıyor",
   },
+  review_prompt: {
+    banner_message:
+      "Aster Mail'i Trustpilot'ta değerlendirebilirsiniz. Değerlendirmeler herkese açıktır ve bu bildirimi yalnızca bir kez görürsünüz.",
+    banner_open: "Trustpilot'u aç",
+    banner_dismiss: "Hayır, teşekkürler",
+    opens_in_new_tab: "Trustpilot'u yeni sekmede açar",
+  },
   survey: {
     banner_title: "Aster Mail'i geliştirmemize yardım edin",
     banner_message:

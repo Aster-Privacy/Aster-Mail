@@ -9904,6 +9904,13 @@ export const pl = {
     delete_confirm_title: "Usuń wspólną skrzynkę",
     access_unavailable: "Ta wspólna skrzynka nie jest już dostępna",
   },
+  review_prompt: {
+    banner_message:
+      "Możesz ocenić Aster Mail w serwisie Trustpilot. Opinie są publiczne, a ten komunikat zobaczysz tylko raz.",
+    banner_open: "Otwórz Trustpilot",
+    banner_dismiss: "Nie, dziękuję",
+    opens_in_new_tab: "Otwiera Trustpilot w nowej karcie",
+  },
   survey: {
     banner_title: "Pomóż ulepszyć Aster Mail",
     banner_message:

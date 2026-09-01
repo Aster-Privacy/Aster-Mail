@@ -9579,6 +9579,13 @@ export const es = {
     delete_confirm_title: "Eliminar buzón compartido",
     access_unavailable: "Este buzón compartido ya no está disponible",
   },
+  review_prompt: {
+    banner_message:
+      "Puedes valorar Aster Mail en Trustpilot. Las opiniones son públicas y solo verás este aviso una vez.",
+    banner_open: "Abrir Trustpilot",
+    banner_dismiss: "No, gracias",
+    opens_in_new_tab: "Abre Trustpilot en una pestaña nueva",
+  },
   survey: {
     banner_title: "Ayúdanos a mejorar Aster Mail",
     banner_message:

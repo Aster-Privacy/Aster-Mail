@@ -9872,6 +9872,13 @@ export const de = {
     delete_confirm_title: "Geteiltes Postfach löschen",
     access_unavailable: "Dieses geteilte Postfach ist nicht mehr verfügbar",
   },
+  review_prompt: {
+    banner_message:
+      "Sie können Aster Mail auf Trustpilot bewerten. Bewertungen sind öffentlich, und Sie sehen diesen Hinweis nur einmal.",
+    banner_open: "Trustpilot öffnen",
+    banner_dismiss: "Nein, danke",
+    opens_in_new_tab: "Öffnet Trustpilot in einem neuen Tab",
+  },
   survey: {
     banner_title: "Hilf uns, Aster Mail zu verbessern",
     banner_message:

@@ -105,6 +105,7 @@ import { NotificationBanner } from "@/components/common/notification_banner";
 import { PaymentPastDueBanner } from "@/components/common/payment_past_due_banner";
 import { use_payment_past_due } from "@/hooks/use_payment_past_due";
 import { SurveyBanner } from "@/components/survey/survey_banner";
+import { ReviewPromptBanner } from "@/components/review/review_prompt_banner";
 import { OnboardingChecklist } from "@/components/onboarding/onboarding_checklist";
 import { FirstRunSetup } from "@/components/onboarding/first_run_setup";
 import { RecoveryReminder } from "@/components/onboarding/recovery_reminder";
@@ -362,6 +363,7 @@ export default function IndexPage() {
           <NotificationBanner />
         )}
         <SurveyBanner />
+        <ReviewPromptBanner />
         <TopBar
           is_settings_view={state.is_settings_route && !settings_popup_mode}
           on_mobile_menu_toggle={handle_mobile_menu_toggle}

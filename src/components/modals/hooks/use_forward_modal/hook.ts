@@ -125,6 +125,7 @@ import {
 } from "@/utils/date_format";
 import { use_escape_layer } from "@/lib/overlay_layer_stack";
 import { user_facing_error } from "@/utils/user_facing_error";
+import { record_review_prompt_action } from "@/lib/review_prompt";
 
 export function use_forward_modal({
   is_open,
@@ -715,6 +716,7 @@ export function use_forward_modal({
       is_sending_ref.current = false;
       send_lock_started_at_ref.current = 0;
       show_toast(t("common.email_sent"), "success");
+      record_review_prompt_action();
       on_close();
 
       return;
@@ -787,6 +789,7 @@ export function use_forward_modal({
           setTimeout(() => {
             emit_email_sent();
           }, 100);
+          record_review_prompt_action();
           show_action_toast({
             message: t("common.email_sent"),
             action_type: "read",

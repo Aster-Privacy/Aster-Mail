@@ -8590,6 +8590,13 @@ export const zh_CN = {
     delete_confirm_title: "删除共享邮箱",
     access_unavailable: "此共享邮箱已不可用",
   },
+  review_prompt: {
+    banner_message:
+      "你可以在 Trustpilot 上评价 Aster Mail。评价是公开的，此提示只显示一次。",
+    banner_open: "打开 Trustpilot",
+    banner_dismiss: "暂不需要",
+    opens_in_new_tab: "在新标签页中打开 Trustpilot",
+  },
   survey: {
     banner_title: "帮助我们改进 Aster Mail",
     banner_message:

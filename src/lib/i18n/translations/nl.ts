@@ -9645,6 +9645,13 @@ export const nl = {
     delete_confirm_title: "Gedeelde mailbox verwijderen",
     access_unavailable: "Deze gedeelde mailbox is niet meer beschikbaar",
   },
+  review_prompt: {
+    banner_message:
+      "Je kunt Aster Mail beoordelen op Trustpilot. Beoordelingen zijn openbaar en je ziet dit bericht maar één keer.",
+    banner_open: "Trustpilot openen",
+    banner_dismiss: "Nee, bedankt",
+    opens_in_new_tab: "Opent Trustpilot in een nieuw tabblad",
+  },
   survey: {
     banner_title: "Help Aster Mail te verbeteren",
     banner_message:

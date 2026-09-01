@@ -3202,8 +3202,7 @@ export const en: Translations = {
       "You will be redirected to our secure payment provider to complete your purchase.",
     billing_unavailable:
       "Payments are temporarily unavailable. Try again in a few minutes.",
-    checkout_rate_limited:
-      "Too many attempts. Wait a minute, then try again.",
+    checkout_rate_limited: "Too many attempts. Wait a minute, then try again.",
     checkout_already_active:
       "You already have an active subscription. Refresh the page to see it.",
     plan_not_available:
@@ -9500,6 +9499,13 @@ export const en: Translations = {
       "Delete {{address}}? The address stops receiving mail and cannot be registered again.",
     delete_confirm_title: "Delete shared mailbox",
     access_unavailable: "This shared mailbox is no longer available",
+  },
+  review_prompt: {
+    banner_message:
+      "You can review Aster Mail on Trustpilot. Reviews are public, and you only see this once.",
+    banner_open: "Open Trustpilot",
+    banner_dismiss: "No thanks",
+    opens_in_new_tab: "Opens Trustpilot in a new tab",
   },
   survey: {
     banner_title: "Help shape Aster Mail",

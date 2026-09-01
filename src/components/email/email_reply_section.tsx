@@ -46,6 +46,7 @@ import { is_system_email } from "@/lib/utils";
 import { use_should_reduce_motion } from "@/provider";
 import { get_aster_footer } from "@/components/compose/compose_shared";
 import { Spinner } from "@/components/ui/spinner";
+import { record_review_prompt_action } from "@/lib/review_prompt";
 
 type SendState = "idle" | "queued" | "sending" | "sent" | "error";
 
@@ -179,6 +180,7 @@ export function EmailReplySection({
           set_send_state("sent");
           if (!undo_enabled) {
             show_toast(t("common.email_sent"), "success");
+            record_review_prompt_action();
           }
           setTimeout(() => {
             set_reply_text("");
@@ -265,9 +267,7 @@ export function EmailReplySection({
           disabled={is_system_email(email)}
           style={{
             opacity: is_system_email(email) ? 0.6 : 1,
-            cursor: is_system_email(email)
-              ? "not-allowed"
-              : "pointer",
+            cursor: is_system_email(email) ? "not-allowed" : "pointer",
           }}
           whileHover={
             is_system_email(email)
@@ -279,9 +279,7 @@ export function EmailReplySection({
                 }
           }
           onClick={
-            is_system_email(email)
-              ? undefined
-              : () => set_show_reply_menu(true)
+            is_system_email(email) ? undefined : () => set_show_reply_menu(true)
           }
         >
           {t("mail.reply")}

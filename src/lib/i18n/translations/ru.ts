@@ -9882,6 +9882,13 @@ export const ru = {
     delete_confirm_title: "Удалить общий ящик",
     access_unavailable: "Этот общий ящик больше недоступен",
   },
+  review_prompt: {
+    banner_message:
+      "Вы можете оставить отзыв об Aster Mail на Trustpilot. Отзывы публичные, и это сообщение показывается только один раз.",
+    banner_open: "Открыть Trustpilot",
+    banner_dismiss: "Не сейчас",
+    opens_in_new_tab: "Открывает Trustpilot в новой вкладке",
+  },
   survey: {
     banner_title: "Помогите улучшить Aster Mail",
     banner_message:
