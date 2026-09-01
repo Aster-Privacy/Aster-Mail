@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { ignore_error } from "@/lib/ignore_error";
+import { get_current_account_id } from "@/services/account_manager";
 
 export const REVIEW_PROMPT_URL =
   "https://www.trustpilot.com/evaluate/astermail.org";
@@ -30,6 +31,14 @@ const FORCE_KEY = "aster_review_prompt_force";
 
 const REQUIRED_SENDS = 5;
 const DELAY_MS = 3 * 24 * 60 * 60 * 1000;
+
+async function account_scope(): Promise<string> {
+  try {
+    return (await get_current_account_id()) ?? "default";
+  } catch {
+    return "default";
+  }
+}
 
 function read(key: string): string | null {
   try {
@@ -47,25 +56,32 @@ function write(key: string, value: string) {
   }
 }
 
-export function mark_review_prompt_done() {
-  write(DONE_KEY, "true");
+export async function mark_review_prompt_done() {
+  write(`${DONE_KEY}:${await account_scope()}`, "true");
 }
 
-export function record_review_prompt_action() {
-  if (read(DONE_KEY) === "true" || read(ELIGIBLE_KEY)) return;
+export async function record_review_prompt_action() {
+  const scope = await account_scope();
 
-  const next = Number(read(SENDS_KEY) ?? "0") + 1;
+  if (read(`${DONE_KEY}:${scope}`) === "true") return;
+  if (read(`${ELIGIBLE_KEY}:${scope}`)) return;
 
-  write(SENDS_KEY, String(next));
+  const next = Number(read(`${SENDS_KEY}:${scope}`) ?? "0") + 1;
 
-  if (next >= REQUIRED_SENDS) write(ELIGIBLE_KEY, String(Date.now()));
+  write(`${SENDS_KEY}:${scope}`, String(next));
+
+  if (next >= REQUIRED_SENDS) {
+    write(`${ELIGIBLE_KEY}:${scope}`, String(Date.now()));
+  }
 }
 
-export function should_show_review_prompt(): boolean {
-  if (read(DONE_KEY) === "true") return false;
+export async function is_review_prompt_due(): Promise<boolean> {
+  const scope = await account_scope();
+
+  if (read(`${DONE_KEY}:${scope}`) === "true") return false;
   if (read(FORCE_KEY) === "true") return true;
 
-  const eligible_at = Number(read(ELIGIBLE_KEY) ?? "0");
+  const eligible_at = Number(read(`${ELIGIBLE_KEY}:${scope}`) ?? "0");
 
   return eligible_at > 0 && Date.now() - eligible_at >= DELAY_MS;
 }

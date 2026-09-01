@@ -78,6 +78,8 @@ export interface UserPreferences {
   quiet_hours_end: string;
   two_factor_auth: boolean;
   show_read_receipts: boolean;
+  review_prompt_web_done: boolean;
+  review_prompt_android_done: boolean;
   send_read_receipts: boolean;
   block_external_images: boolean;
   encrypt_emails: boolean;
@@ -503,6 +505,8 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   quiet_hours_end: "07:00",
   two_factor_auth: true,
   show_read_receipts: false,
+  review_prompt_web_done: false,
+  review_prompt_android_done: false,
   send_read_receipts: false,
   block_external_images: false,
   encrypt_emails: false,
