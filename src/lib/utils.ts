@@ -45,9 +45,27 @@ export function format_bytes(bytes: number): string {
   return `${format_decimal(value, digits)} ${units[i]}`;
 }
 
+const number_formatter_cache = new Map<string, Intl.NumberFormat>();
+
+function number_formatter(
+  locale: string | undefined,
+  options?: Intl.NumberFormatOptions,
+): Intl.NumberFormat {
+  const key = `${locale ?? ""}|${options ? JSON.stringify(options) : ""}`;
+  const cached = number_formatter_cache.get(key);
+
+  if (cached) return cached;
+
+  const created = new Intl.NumberFormat(locale, options);
+
+  number_formatter_cache.set(key, created);
+
+  return created;
+}
+
 export function format_decimal(value: number, digits: number): string {
   try {
-    return new Intl.NumberFormat(app_locale(), {
+    return number_formatter(app_locale(), {
       minimumFractionDigits: digits,
       maximumFractionDigits: digits,
     }).format(value);
@@ -60,7 +78,7 @@ export function format_number(value: number): string {
   if (!Number.isFinite(value)) return String(value);
 
   try {
-    return new Intl.NumberFormat(app_locale()).format(value);
+    return number_formatter(app_locale()).format(value);
   } catch {
     return String(value);
   }
