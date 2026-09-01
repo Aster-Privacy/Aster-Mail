@@ -19,7 +19,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { ignore_error } from "@/lib/ignore_error";
-import { get_current_account_id } from "@/services/account_manager";
 
 export const REVIEW_PROMPT_URL =
   "https://www.trustpilot.com/evaluate/astermail.org";
@@ -34,6 +33,10 @@ const DELAY_MS = 3 * 24 * 60 * 60 * 1000;
 
 async function account_scope(): Promise<string> {
   try {
+    const { get_current_account_id } = await import(
+      "@/services/account_manager"
+    );
+
     return (await get_current_account_id()) ?? "default";
   } catch {
     return "default";
