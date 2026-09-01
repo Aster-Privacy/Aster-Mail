@@ -69,6 +69,7 @@ import {
 } from "@/lib/stripe_appearance";
 import { stripe_locale } from "@/lib/stripe_locale";
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
+import { checkout_error_text } from "@/components/settings/billing/checkout_error_text";
 
 function get_pm_icon(pm_type: string) {
   switch (pm_type) {
@@ -386,6 +387,11 @@ export function PaymentMethodsModal({
       try {
         const response = await set_default_payment_method(id);
 
+        if (response.error || !response.data) {
+          show_toast(checkout_error_text(t, response.server_code), "error");
+
+          return;
+        }
         report_default_outcome(response.data);
         await fetch_methods();
       } catch {
@@ -404,7 +410,7 @@ export function PaymentMethodsModal({
         const result = await detach_payment_method(id);
 
         if (result.error) {
-          show_toast(t("settings.payment_failed"), "error");
+          show_toast(checkout_error_text(t, result.server_code), "error");
 
           return;
         }
@@ -461,8 +467,10 @@ export function PaymentMethodsModal({
       }
 
       if (!setup_response.data?.client_secret) {
-        set_add_error(t("settings.payment_failed"));
-        show_toast(t("settings.payment_failed"), "error");
+        const message = checkout_error_text(t, setup_response.server_code);
+
+        set_add_error(message);
+        show_toast(message, "error");
 
         return;
       }
@@ -518,7 +526,8 @@ export function PaymentMethodsModal({
       const result = await set_default_payment_method(target_id);
 
       if (result.error) {
-        show_toast(t("settings.payment_failed"), "error");
+        show_toast(checkout_error_text(t, result.server_code), "error");
+        notify_billing_updated();
 
         return;
       }

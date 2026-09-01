@@ -4192,6 +4192,30 @@ export const pt = {
       "Demasiadas tentativas. Aguarde um minuto e tente novamente.",
     checkout_already_active:
       "Já tem uma subscrição ativa. Atualize a página para a ver.",
+    checkout_session_mismatch:
+      "A sua sessão começou noutra rede ou noutro navegador. Termine sessão, volte a iniciar sessão e tente novamente.",
+    checkout_family_group_member:
+      "Já pertence a um grupo familiar. Saia desse grupo antes de criar um novo.",
+    checkout_family_plan_active:
+      "O seu plano familiar já está ativo. Atualize a página para o ver.",
+    checkout_crypto_open_invoice_limit:
+      "Tem demasiadas faturas de criptomoedas em aberto. Conclua ou cancele uma e tente novamente.",
+    checkout_crypto_active_card:
+      "Cancele a subscrição paga com cartão antes de pagar com criptomoedas.",
+    checkout_unpaid_subscription:
+      "A sua última fatura não foi paga. Liquide-a em Definições, Faturação, e tente novamente.",
+    checkout_pending_cancellation:
+      "A sua subscrição está marcada para cancelamento. Reative a renovação antes de mudar de plano.",
+    checkout_duplicate_subscription:
+      "Já tem esta subscrição. Atualize a página para a ver.",
+    checkout_provider_unreachable:
+      "O nosso fornecedor de pagamentos não está a responder. Aguarde um minuto e tente novamente. Não foi cobrado nada.",
+    checkout_sca_required:
+      "O seu banco tem de confirmar este pagamento. Siga as indicações do banco e tente novamente.",
+    checkout_card_declined:
+      "O seu banco recusou o cartão. Utilize outro cartão ou contacte o banco.",
+    checkout_collection_failed:
+      "Não foi possível cobrar o pagamento. Atualize o método de pagamento em Definições, Faturação, e tente novamente.",
     plan_not_available:
       "Este plano não está disponível para compra no momento. Outro plano, ou verificar mais tarde, vai funcionar.",
     failed_checkout:

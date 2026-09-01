@@ -4218,6 +4218,30 @@ export const fr = {
       "Trop de tentatives. Patientez une minute, puis réessayez.",
     checkout_already_active:
       "Vous avez déjà un abonnement actif. Actualisez la page pour le voir.",
+    checkout_session_mismatch:
+      "Votre session a démarré sur un autre réseau ou navigateur. Déconnectez-vous, reconnectez-vous, puis réessayez.",
+    checkout_family_group_member:
+      "Vous appartenez déjà à un groupe familial. Quittez-le avant d'en créer un nouveau.",
+    checkout_family_plan_active:
+      "Votre forfait famille est déjà actif. Actualisez la page pour le voir.",
+    checkout_crypto_open_invoice_limit:
+      "Vous avez trop de factures crypto ouvertes. Terminez-en une ou annulez-la, puis réessayez.",
+    checkout_crypto_active_card:
+      "Annulez votre abonnement par carte avant de payer en crypto.",
+    checkout_unpaid_subscription:
+      "Votre dernière facture est impayée. Réglez-la dans Réglages, Facturation, puis réessayez.",
+    checkout_pending_cancellation:
+      "Votre abonnement doit être résilié. Réactivez le renouvellement avant de changer de forfait.",
+    checkout_duplicate_subscription:
+      "Vous avez déjà cet abonnement. Actualisez la page pour le voir.",
+    checkout_provider_unreachable:
+      "Notre prestataire de paiement ne répond pas. Patientez une minute, puis réessayez. Rien n'a été débité.",
+    checkout_sca_required:
+      "Votre banque doit confirmer ce paiement. Suivez les instructions de votre banque, puis réessayez.",
+    checkout_card_declined:
+      "Votre banque a refusé la carte. Utilisez une autre carte ou contactez votre banque.",
+    checkout_collection_failed:
+      "Nous n'avons pas pu encaisser le paiement. Mettez à jour votre moyen de paiement dans Réglages, Facturation, puis réessayez.",
     plan_not_available:
       "Ce plan n'est pas disponible à l'achat pour l'instant. Un autre plan, ou un nouvel essai plus tard, fonctionnera.",
     failed_checkout:

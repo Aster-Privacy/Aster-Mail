@@ -4333,6 +4333,30 @@ export const pl = {
       "Zbyt wiele prób. Odczekaj minutę i spróbuj ponownie.",
     checkout_already_active:
       "Masz już aktywną subskrypcję. Odśwież stronę, aby ją zobaczyć.",
+    checkout_session_mismatch:
+      "Twoja sesja rozpoczęła się w innej sieci lub przeglądarce. Wyloguj się, zaloguj ponownie i spróbuj jeszcze raz.",
+    checkout_family_group_member:
+      "Należysz już do grupy rodzinnej. Opuść ją, zanim utworzysz nową.",
+    checkout_family_plan_active:
+      "Twój plan rodzinny jest już aktywny. Odśwież stronę, aby go zobaczyć.",
+    checkout_crypto_open_invoice_limit:
+      "Masz zbyt wiele otwartych faktur kryptowalutowych. Zakończ lub anuluj jedną z nich i spróbuj ponownie.",
+    checkout_crypto_active_card:
+      "Anuluj subskrypcję opłacaną kartą, zanim zapłacisz kryptowalutą.",
+    checkout_unpaid_subscription:
+      "Twoja ostatnia faktura jest nieopłacona. Ureguluj ją w Ustawieniach, Rozliczenia, i spróbuj ponownie.",
+    checkout_pending_cancellation:
+      "Twoja subskrypcja ma zostać anulowana. Włącz odnawianie z powrotem, zanim zmienisz plan.",
+    checkout_duplicate_subscription:
+      "Masz już tę subskrypcję. Odśwież stronę, aby ją zobaczyć.",
+    checkout_provider_unreachable:
+      "Nasz dostawca płatności nie odpowiada. Odczekaj minutę i spróbuj ponownie. Nic nie zostało pobrane.",
+    checkout_sca_required:
+      "Twój bank musi potwierdzić tę płatność. Postępuj zgodnie ze wskazówkami banku i spróbuj ponownie.",
+    checkout_card_declined:
+      "Twój bank odrzucił kartę. Użyj innej karty lub skontaktuj się z bankiem.",
+    checkout_collection_failed:
+      "Nie udało się pobrać płatności. Zaktualizuj metodę płatności w Ustawieniach, Rozliczenia, i spróbuj ponownie.",
     plan_not_available:
       "Ten plan nie jest obecnie dostępny do zakupu. Inny plan lub powrót później zadziała.",
     failed_checkout:

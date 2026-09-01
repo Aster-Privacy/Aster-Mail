@@ -4088,6 +4088,24 @@ export const ja = {
       "試行回数が多すぎます。1分ほど待ってからもう一度お試しください。",
     checkout_already_active:
       "有効なサブスクリプションがすでにあります。ページを更新すると表示されます。",
+    checkout_session_mismatch:
+      "このセッションは別のネットワークまたはブラウザで開始されました。サインアウトしてから、もう一度サインインしてお試しください。",
+    checkout_family_group_member:
+      "すでにファミリーグループに参加しています。新しいグループを作成する前に、現在のグループから退出してください。",
+    checkout_family_plan_active: "ファミリープランはすでに有効です。ページを更新すると表示されます。",
+    checkout_crypto_open_invoice_limit:
+      "未処理の暗号資産の請求が多すぎます。いずれかを完了するかキャンセルしてから、もう一度お試しください。",
+    checkout_crypto_active_card: "暗号資産で支払う前に、カードのサブスクリプションをキャンセルしてください。",
+    checkout_unpaid_subscription: "前回の請求が未払いです。設定の請求で支払ってから、もう一度お試しください。",
+    checkout_pending_cancellation:
+      "サブスクリプションはキャンセル予定です。プランを変更する前に、自動更新をオンに戻してください。",
+    checkout_duplicate_subscription: "このサブスクリプションはすでにご利用中です。ページを更新すると表示されます。",
+    checkout_provider_unreachable:
+      "決済プロバイダが応答していません。1分ほど待ってからもう一度お試しください。請求は発生していません。",
+    checkout_sca_required: "この支払いには銀行の確認が必要です。銀行の案内に従ってから、もう一度お試しください。",
+    checkout_card_declined: "銀行がカードを拒否しました。別のカードを使うか、銀行にお問い合わせください。",
+    checkout_collection_failed:
+      "支払いを受け取れませんでした。設定の請求でお支払い方法を更新してから、もう一度お試しください。",
     plan_not_available:
       "このプランは現在ご購入いただけません。別のプランか、後ほどの再確認でしたらご利用いただけます。",
     failed_checkout:

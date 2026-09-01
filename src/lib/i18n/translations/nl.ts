@@ -4129,6 +4129,30 @@ export const nl = {
       "Te veel pogingen. Wacht een minuut en probeer het opnieuw.",
     checkout_already_active:
       "Je hebt al een actief abonnement. Vernieuw de pagina om het te zien.",
+    checkout_session_mismatch:
+      "Je sessie is op een ander netwerk of in een andere browser gestart. Log uit, log weer in en probeer het opnieuw.",
+    checkout_family_group_member:
+      "Je hoort al bij een gezinsgroep. Verlaat die groep voordat je een nieuwe maakt.",
+    checkout_family_plan_active:
+      "Je gezinsabonnement is al actief. Vernieuw de pagina om het te zien.",
+    checkout_crypto_open_invoice_limit:
+      "Je hebt te veel openstaande cryptofacturen. Rond er een af of annuleer er een en probeer het opnieuw.",
+    checkout_crypto_active_card:
+      "Zeg je kaartabonnement op voordat je met crypto betaalt.",
+    checkout_unpaid_subscription:
+      "Je laatste factuur is niet betaald. Betaal die in Instellingen, Facturering, en probeer het opnieuw.",
+    checkout_pending_cancellation:
+      "Je abonnement staat ingesteld om op te zeggen. Zet verlenging weer aan voordat je van abonnement wisselt.",
+    checkout_duplicate_subscription:
+      "Je hebt dit abonnement al. Vernieuw de pagina om het te zien.",
+    checkout_provider_unreachable:
+      "Onze betalingsprovider reageert niet. Wacht een minuut en probeer het opnieuw. Er is niets afgeschreven.",
+    checkout_sca_required:
+      "Je bank moet deze betaling bevestigen. Volg de instructies van je bank en probeer het opnieuw.",
+    checkout_card_declined:
+      "Je bank heeft de kaart geweigerd. Gebruik een andere kaart of neem contact op met je bank.",
+    checkout_collection_failed:
+      "We konden de betaling niet innen. Werk je betaalmethode bij in Instellingen, Facturering, en probeer het opnieuw.",
     plan_not_available:
       "Dit abonnement is op dit moment niet te koop. Een ander abonnement of later terugkomen werkt.",
     failed_checkout:

@@ -4139,6 +4139,30 @@ export const tr = {
       "Çok fazla deneme yapıldı. Bir dakika bekleyip yeniden deneyin.",
     checkout_already_active:
       "Zaten etkin bir aboneliğiniz var. Görmek için sayfayı yenileyin.",
+    checkout_session_mismatch:
+      "Oturumunuz farklı bir ağda veya tarayıcıda başladı. Çıkış yapın, yeniden giriş yapın ve tekrar deneyin.",
+    checkout_family_group_member:
+      "Zaten bir aile grubundasınız. Yeni bir grup oluşturmadan önce bu gruptan ayrılın.",
+    checkout_family_plan_active:
+      "Aile planınız zaten etkin. Görmek için sayfayı yenileyin.",
+    checkout_crypto_open_invoice_limit:
+      "Çok fazla açık kripto faturanız var. Birini tamamlayın veya iptal edin, sonra yeniden deneyin.",
+    checkout_crypto_active_card:
+      "Kripto ile ödeme yapmadan önce kartlı aboneliğinizi iptal edin.",
+    checkout_unpaid_subscription:
+      "Son faturanız ödenmedi. Ayarlar, Faturalandırma bölümünden ödeyin ve yeniden deneyin.",
+    checkout_pending_cancellation:
+      "Aboneliğiniz iptal edilmek üzere ayarlandı. Plan değiştirmeden önce yenilemeyi tekrar açın.",
+    checkout_duplicate_subscription:
+      "Bu abonelik zaten sizde var. Görmek için sayfayı yenileyin.",
+    checkout_provider_unreachable:
+      "Ödeme sağlayıcımız yanıt vermiyor. Bir dakika bekleyip yeniden deneyin. Hiçbir tutar tahsil edilmedi.",
+    checkout_sca_required:
+      "Bankanızın bu ödemeyi onaylaması gerekiyor. Bankanızın yönlendirmesini izleyin ve yeniden deneyin.",
+    checkout_card_declined:
+      "Bankanız kartı reddetti. Başka bir kart kullanın veya bankanızla iletişime geçin.",
+    checkout_collection_failed:
+      "Ödeme tahsil edilemedi. Ayarlar, Faturalandırma bölümünden ödeme yönteminizi güncelleyin ve yeniden deneyin.",
     plan_not_available:
       "Bu plan şu anda satın alınamıyor. Başka bir plan ya da daha sonra tekrar bakmak işe yarar.",
     failed_checkout:

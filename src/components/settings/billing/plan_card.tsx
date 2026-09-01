@@ -98,11 +98,11 @@ export function PlanCard({
 
   return (
     <div
-      className={`relative flex flex-col rounded-2xl border transition-colors ${
+      className={`relative flex h-full flex-col rounded-2xl border transition-colors ${
         compact ? "p-4" : "p-6"
       } ${
         galaxy
-          ? `plan_galaxy z-10 ${compact ? "" : "sm:-my-2 sm:py-8"}`
+          ? "plan_galaxy z-10"
           : is_current
             ? "border-edge-primary bg-surf-tertiary"
             : "border-edge-secondary bg-surf-tertiary"
@@ -179,7 +179,7 @@ export function PlanCard({
       </Button>
 
       <div
-        className={`border-t ${compact ? "mt-4 pt-4" : "mt-5 pt-5"} ${
+        className={`flex-1 border-t ${compact ? "mt-4 pt-4" : "mt-5 pt-5"} ${
           galaxy ? "plan_galaxy_divider" : ""
         }`}
         style={

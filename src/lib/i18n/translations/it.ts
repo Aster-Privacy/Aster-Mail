@@ -4812,6 +4812,30 @@ export const it = {
     checkout_rate_limited: "Troppi tentativi. Attendi un minuto, poi riprova.",
     checkout_already_active:
       "Hai già un abbonamento attivo. Aggiorna la pagina per vederlo.",
+    checkout_session_mismatch:
+      "La tua sessione è iniziata su una rete o un browser diverso. Esci, accedi di nuovo e riprova.",
+    checkout_family_group_member:
+      "Fai già parte di un gruppo famiglia. Esci dal gruppo prima di crearne uno nuovo.",
+    checkout_family_plan_active:
+      "Il tuo piano famiglia è già attivo. Aggiorna la pagina per vederlo.",
+    checkout_crypto_open_invoice_limit:
+      "Hai troppe fatture crypto aperte. Completane o annullane una, poi riprova.",
+    checkout_crypto_active_card:
+      "Annulla l'abbonamento con carta prima di pagare in crypto.",
+    checkout_unpaid_subscription:
+      "La tua ultima fattura non è stata pagata. Saldala in Impostazioni, Fatturazione, poi riprova.",
+    checkout_pending_cancellation:
+      "Il tuo abbonamento è impostato per essere annullato. Riattiva il rinnovo prima di cambiare piano.",
+    checkout_duplicate_subscription:
+      "Hai già questo abbonamento. Aggiorna la pagina per vederlo.",
+    checkout_provider_unreachable:
+      "Il nostro fornitore di pagamenti non risponde. Attendi un minuto, poi riprova. Non è stato addebitato nulla.",
+    checkout_sca_required:
+      "La tua banca deve confermare questo pagamento. Segui le indicazioni della banca, poi riprova.",
+    checkout_card_declined:
+      "La tua banca ha rifiutato la carta. Usa un'altra carta oppure contatta la banca.",
+    checkout_collection_failed:
+      "Non siamo riusciti a incassare il pagamento. Aggiorna il metodo di pagamento in Impostazioni, Fatturazione, poi riprova.",
     plan_not_available:
       "Questo piano non è disponibile per l'acquisto in questo momento. Un altro piano, o riprovare più tardi, funzionerà.",
     failed_checkout:

@@ -138,7 +138,7 @@ interface AvailablePlansSectionProps {
     interval: "month" | "year",
   ) => void;
   on_tauri_checkout_opened?: () => void;
-  current_billing_interval: "month" | "year";
+  current_billing_interval: "month" | "year" | "biennial";
 }
 
 export function AvailablePlansSection({
@@ -264,14 +264,6 @@ export function AvailablePlansSection({
   const family_current_index = FAMILY_PLAN_TIERS.findIndex(
     (tier) => tier.id === subscription?.plan.code,
   );
-  const individual_top_tier =
-    recommendation.ladder === "individual" &&
-    recommendation.is_top_tier &&
-    individual_current_index === PLAN_TIERS.length - 1;
-  const family_top_tier =
-    recommendation.ladder === "family" &&
-    recommendation.is_top_tier &&
-    family_current_index === FAMILY_PLAN_TIERS.length - 1;
   const individual_recommended_code =
     recommendation.recommended_plan_code ??
     (individual_current_index > -1
@@ -282,12 +274,6 @@ export function AvailablePlansSection({
     (family_current_index > -1
       ? (FAMILY_PLAN_TIERS[family_current_index + 1]?.id ?? null)
       : DEFAULT_RECOMMENDED_FAMILY_PLAN);
-  const visible_individual_tiers = individual_top_tier
-    ? PLAN_TIERS.filter((tier) => tier.id === subscription?.plan.code)
-    : PLAN_TIERS;
-  const visible_family_tiers = family_top_tier
-    ? FAMILY_PLAN_TIERS.filter((tier) => tier.id === subscription?.plan.code)
-    : FAMILY_PLAN_TIERS;
   const current_plan_name =
     [...PLAN_TIERS, ...FAMILY_PLAN_TIERS].find(
       (tier) => tier.id === subscription?.plan.code,
@@ -390,14 +376,8 @@ export function AvailablePlansSection({
       )}
 
       {plan_type === "family" && (
-        <div
-          className={`grid gap-4 pt-3 ${
-            family_top_tier
-              ? "grid-cols-1 max-w-sm mx-auto"
-              : "grid-cols-1 sm:grid-cols-2"
-          }`}
-        >
-          {visible_family_tiers.map((tier) => {
+        <div className="grid gap-4 pt-3 grid-cols-1 sm:grid-cols-2 items-stretch">
+          {FAMILY_PLAN_TIERS.map((tier) => {
             const is_same_plan = subscription?.plan.code === tier.id;
             const is_current =
               is_same_plan && current_billing_interval === card_interval;
@@ -553,14 +533,8 @@ export function AvailablePlansSection({
       )}
 
       {plan_type === "individual" && (
-        <div
-          className={`grid gap-4 pt-3 ${
-            individual_top_tier
-              ? "grid-cols-1 max-w-sm mx-auto"
-              : "grid-cols-1 sm:grid-cols-3"
-          }`}
-        >
-          {visible_individual_tiers.map((tier) => {
+        <div className="grid gap-4 pt-3 grid-cols-1 sm:grid-cols-3 items-stretch">
+          {PLAN_TIERS.map((tier) => {
             const tier_index = PLAN_TIERS.findIndex((p) => p.id === tier.id);
             const current_plan_code = subscription?.plan.code;
             const current_tier_index = PLAN_TIERS.findIndex(

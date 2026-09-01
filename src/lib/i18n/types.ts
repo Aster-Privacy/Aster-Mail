@@ -3302,6 +3302,18 @@ export interface SettingsTranslations {
   billing_unavailable: string;
   checkout_rate_limited: string;
   checkout_already_active: string;
+  checkout_session_mismatch: string;
+  checkout_family_group_member: string;
+  checkout_family_plan_active: string;
+  checkout_crypto_open_invoice_limit: string;
+  checkout_crypto_active_card: string;
+  checkout_unpaid_subscription: string;
+  checkout_pending_cancellation: string;
+  checkout_duplicate_subscription: string;
+  checkout_provider_unreachable: string;
+  checkout_sca_required: string;
+  checkout_card_declined: string;
+  checkout_collection_failed: string;
   failed_checkout: string;
   checkout_welcome: string;
   crypto_pay_button: string;
