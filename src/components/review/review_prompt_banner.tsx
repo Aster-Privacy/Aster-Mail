@@ -18,26 +18,49 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { StarIcon } from "@heroicons/react/24/outline";
 
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
+import { use_preferences } from "@/contexts/preferences_context";
 import {
   REVIEW_PROMPT_URL,
+  is_review_prompt_due,
   mark_review_prompt_done,
-  should_show_review_prompt,
 } from "@/lib/review_prompt";
 
 export function ReviewPromptBanner() {
   const reduce_motion = use_should_reduce_motion();
   const { t } = use_i18n();
-  const [is_visible, set_is_visible] = useState(should_show_review_prompt);
+  const { preferences, update_preference, has_loaded_from_server } =
+    use_preferences();
+  const [is_visible, set_is_visible] = useState(false);
+  const is_done = preferences.review_prompt_web_done;
+
+  useEffect(() => {
+    if (!has_loaded_from_server || is_done) {
+      set_is_visible(false);
+
+      return;
+    }
+
+    let cancelled = false;
+
+    is_review_prompt_due().then((due) => {
+      if (!cancelled && due) set_is_visible(true);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [has_loaded_from_server, is_done]);
 
   const close = () => {
     set_is_visible(false);
     mark_review_prompt_done();
+    update_preference("review_prompt_web_done", true);
   };
 
   const pill_button = (
