@@ -532,6 +532,9 @@ export function use_email_viewer({
             const delay_ms =
               preferences.mark_as_read_delay === "1_second" ? 1000 : 3000;
 
+            if (mark_as_read_timeout.current !== null) {
+              window.clearTimeout(mark_as_read_timeout.current);
+            }
             mark_as_read_timeout.current = window.setTimeout(
               () => mark_read(),
               delay_ms,
@@ -749,6 +752,9 @@ export function use_email_viewer({
           const delay_ms =
             preferences.mark_as_read_delay === "1_second" ? 1000 : 3000;
 
+          if (mark_as_read_timeout.current !== null) {
+            window.clearTimeout(mark_as_read_timeout.current);
+          }
           mark_as_read_timeout.current = window.setTimeout(
             () => mark_read(),
             delay_ms,
@@ -838,6 +844,10 @@ export function use_email_viewer({
 
     return () => {
       cancelled = true;
+      if (mark_as_read_timeout.current !== null) {
+        window.clearTimeout(mark_as_read_timeout.current);
+        mark_as_read_timeout.current = null;
+      }
     };
   }, [email_id, preferences.mark_as_read_delay, refresh_key]);
 
@@ -1256,10 +1266,37 @@ export function use_email_viewer({
       });
     };
 
-    update_state();
-    const interval = setInterval(update_state, 100);
+    let interval: number | null = null;
 
-    return () => clearInterval(interval);
+    const stop_polling = () => {
+      if (interval === null) return;
+      window.clearInterval(interval);
+      interval = null;
+    };
+
+    const start_polling = () => {
+      if (interval !== null) return;
+      interval = window.setInterval(update_state, 100);
+    };
+
+    const handle_visibility = () => {
+      if (document.hidden) {
+        stop_polling();
+
+        return;
+      }
+      update_state();
+      start_polling();
+    };
+
+    update_state();
+    if (!document.hidden) start_polling();
+    document.addEventListener("visibilitychange", handle_visibility);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handle_visibility);
+      stop_polling();
+    };
   }, [thread_messages]);
 
   const handle_draft_saved = useCallback(
