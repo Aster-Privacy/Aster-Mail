@@ -136,6 +136,7 @@ export default function IndexPage() {
   const navigate = useNavigate();
   const { section } = useParams<{ section?: string }>();
   const [is_quick_settings_open, set_is_quick_settings_open] = useState(false);
+  const [is_survey_visible, set_is_survey_visible] = useState(false);
   const [first_run_setup_done, set_first_run_setup_done] = useState(
     () => !is_first_run_setup_pending(),
   );
@@ -362,8 +363,10 @@ export default function IndexPage() {
         ) : (
           <NotificationBanner />
         )}
-        <SurveyBanner />
-        <ReviewPromptBanner />
+        <SurveyBanner on_visibility_change={set_is_survey_visible} />
+        {!is_survey_visible && !payment_past_due.is_past_due && (
+          <ReviewPromptBanner />
+        )}
         <TopBar
           is_settings_view={state.is_settings_route && !settings_popup_mode}
           on_mobile_menu_toggle={handle_mobile_menu_toggle}
