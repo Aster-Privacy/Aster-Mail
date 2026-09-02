@@ -61,6 +61,11 @@ import {
   type CategoryPreview,
 } from "@/lib/category_preview_text";
 import { yield_to_browser } from "@/lib/scheduling";
+import {
+  clear_all_read_intents,
+  get_read_intent,
+  note_read_intent,
+} from "@/services/read_intent";
 
 import { is_recently_removed } from "@/services/removed_items";
 
@@ -748,6 +753,12 @@ function apply_upsert(
       }
     }
 
+    const intended = get_read_intent(raw.id);
+
+    if (intended !== undefined && entry.is_read !== intended) {
+      entry = { ...entry, is_read: intended };
+    }
+
     const pinned_category = pinned_category_for(raw.id);
 
     if (pinned_category && entry.category !== pinned_category) {
@@ -910,6 +921,8 @@ export function get_index_entries(ids: string[]): CategoryIndexEntry[] {
 }
 
 export function set_ids_read(ids: string[], is_read: boolean): void {
+  note_read_intent(ids, is_read);
+
   let changed = false;
 
   for (const id of ids) {
@@ -934,19 +947,36 @@ export function mark_thread_read_entries(thread_token: string): void {
 
   let changed = false;
 
+  const read_ids: string[] = [];
+
   for (const [id, entry] of entries_map) {
     if (entry.thread_token === thread_token && !entry.is_read) {
       entries_map.set(id, { ...entry, is_read: true });
       mark_dirty(id);
       note_recently_read(id);
+      read_ids.push(id);
       changed = true;
     }
   }
+
+  if (read_ids.length > 0) note_read_intent(read_ids, true);
 
   if (changed) {
     schedule_persist();
     notify();
   }
+}
+
+export function get_thread_entry_ids(thread_token: string): string[] {
+  if (!thread_token) return [];
+
+  const ids: string[] = [];
+
+  for (const [id, entry] of entries_map) {
+    if (entry.thread_token === thread_token) ids.push(id);
+  }
+
+  return ids;
 }
 
 export function remove_thread_entries(thread_token: string): string[] {
@@ -1422,6 +1452,7 @@ export function reconcile_server_read(
 
   for (const row of rows) {
     if (row.is_read !== true) continue;
+    if (get_read_intent(row.id) === false) continue;
     const entry = entries_map.get(row.id);
 
     if (entry && !entry.is_read) {
@@ -2292,6 +2323,7 @@ export function clear_category_index_memory(): void {
   resync_failures = 0;
   entries_map = new Map();
   recently_read.clear();
+  clear_all_read_intents();
   recent_pins.clear();
   sibling_verify_at.clear();
   dirty_chunks.clear();
@@ -2552,6 +2584,7 @@ export async function clear_category_index(): Promise<void> {
   clear_entry_previews();
   entries_map = new Map();
   recently_read.clear();
+  clear_all_read_intents();
   recent_pins.clear();
   sibling_verify_at.clear();
   dirty_chunks.clear();

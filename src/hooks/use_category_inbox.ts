@@ -82,6 +82,7 @@ import {
 } from "@/services/category_index";
 
 import { drop_removed_after } from "@/services/removed_items";
+import { resolve_read_intent } from "@/services/read_intent";
 import { get_thread_messages, trash_thread } from "@/services/api/mail";
 import { batch_archive as api_batch_archive } from "@/services/api/archive";
 import { bulk_update_metadata_by_ids } from "@/services/crypto/mail_metadata";
@@ -612,6 +613,14 @@ export function use_category_inbox(
         }
 
         const received_only = fetched.filter(belongs_in_inbox).map((email) => {
+          const intended = resolve_read_intent(email);
+
+          if (intended !== undefined) {
+            return email.is_read === intended
+              ? email
+              : { ...email, is_read: intended };
+          }
+
           if (is_recently_read(email.id)) {
             return email.is_read ? email : { ...email, is_read: true };
           }
