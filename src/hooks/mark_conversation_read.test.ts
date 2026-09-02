@@ -39,6 +39,7 @@ vi.mock("@/hooks/use_mail_stats", () => ({
 }));
 
 vi.mock("@/services/category_index", () => ({
+  get_thread_entry_ids: () => [],
   mark_thread_read_entries: (...args: unknown[]) =>
     mock_mark_thread_read_entries(...args),
   thread_has_unread_entries: (...args: unknown[]) =>

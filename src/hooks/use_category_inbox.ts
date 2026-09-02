@@ -157,6 +157,24 @@ function is_awake(email: InboxEmail): boolean {
   return Number.isNaN(wake_ms) || wake_ms <= Date.now();
 }
 
+function correct_received_rows(rows: InboxEmail[]): InboxEmail[] {
+  return rows.map((email) => {
+    const intended = resolve_read_intent(email);
+
+    if (intended !== undefined) {
+      return email.is_read === intended ? email : { ...email, is_read: intended };
+    }
+
+    if (is_recently_read(email.id)) {
+      return email.is_read ? email : { ...email, is_read: true };
+    }
+
+    return email.is_read && is_representative_unread(email.id)
+      ? { ...email, is_read: false }
+      : email;
+  });
+}
+
 function belongs_in_inbox(email: InboxEmail): boolean {
   return (
     email.item_type === "received" &&
@@ -612,23 +630,9 @@ export function use_category_inbox(
           remove_ids(stale_fetched);
         }
 
-        const received_only = fetched.filter(belongs_in_inbox).map((email) => {
-          const intended = resolve_read_intent(email);
-
-          if (intended !== undefined) {
-            return email.is_read === intended
-              ? email
-              : { ...email, is_read: intended };
-          }
-
-          if (is_recently_read(email.id)) {
-            return email.is_read ? email : { ...email, is_read: true };
-          }
-
-          return email.is_read && is_representative_unread(email.id)
-            ? { ...email, is_read: false }
-            : email;
-        });
+        const received_only = correct_received_rows(
+          fetched.filter(belongs_in_inbox),
+        );
 
         const grouped = drop_removed_after(
           preferences.conversation_grouping !== false
@@ -715,7 +719,9 @@ export function use_category_inbox(
 
             if (cancelled || !request_ok) return;
 
-            const received_only = fetched.filter(belongs_in_inbox);
+            const received_only = correct_received_rows(
+              fetched.filter(belongs_in_inbox),
+            );
             const grouped =
               preferences.conversation_grouping !== false
                 ? group_emails_by_thread(received_only)
