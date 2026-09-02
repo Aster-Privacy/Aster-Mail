@@ -173,7 +173,7 @@ describe("AvailablePlansSection plan recommendation", () => {
     expect(container.textContent).not.toContain("settings.plan_top_tier_title");
   });
 
-  it("names the current plan and suggests nothing when there is room to spare", async () => {
+  it("names the current plan and still points at the next tier up", async () => {
     await render_section(subscription_for("star", gb(1), gb(100)));
 
     expect(container.textContent).toContain("settings.plan_current_title");
@@ -183,7 +183,19 @@ describe("AvailablePlansSection plan recommendation", () => {
     expect(container.textContent).not.toContain(
       "settings.plan_storage_tight_note",
     );
-    expect(container.querySelectorAll('[data-featured="true"]').length).toBe(0);
+    expect(container.querySelectorAll('[data-featured="true"]').length).toBe(1);
+  });
+
+  it("keeps every individual plan visible for a top-tier subscriber", async () => {
+    await render_section(subscription_for("supernova", gb(10), gb(5000)));
+
+    expect(container.textContent).toContain("settings.plan_top_tier_title");
+
+    const plan_names = Array.from(
+      container.querySelectorAll("[data-plan]"),
+    ).map((node) => node.getAttribute("data-plan"));
+
+    expect(plan_names).toEqual(["Star", "Nova", "Supernova"]);
   });
 
   it("still guides an unpaid visitor toward a plan", async () => {
