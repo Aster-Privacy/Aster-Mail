@@ -165,7 +165,7 @@ export const fr = {
     image_size_error:
       "Cette image dépasse la limite de 5 Mo. Une plus petite, ou une version compressée, passera.",
     recovery_conflict:
-      "Ce courriel est déjà une adresse de récupération sur un autre compte. Un autre devrait fonctionner.",
+      "Cette adresse protège déjà le maximum de 20 comptes Aster. Utilisez une autre adresse.",
     copied_to_clipboard: "Copié dans le presse-papiers",
     address_copied_to_clipboard: "Adresse copiée dans le presse-papiers",
     offline: "Hors ligne",
@@ -8566,7 +8566,7 @@ export const fr = {
     please_enter_valid_email:
       "Cela ne ressemble pas à un courriel valide. Quelque chose comme nom@example.com fonctionnera.",
     recovery_email_conflict:
-      "Ce courriel est déjà une adresse de récupération sur un autre compte. Un autre devrait fonctionner.",
+      "Cette adresse protège déjà le maximum de 20 comptes Aster. Utilisez une autre adresse.",
     failed_save_recovery_email:
       "Votre courriel de récupération ne s'est pas enregistré. Un autre essai devrait suffire. Votre configuration de récupération actuelle est inchangée.",
     recovery_phrase_title: "Sauvegardez votre phrase de récupération",

@@ -150,7 +150,7 @@ export const zh_CN = {
       "这个文件不是受支持的图片格式，JPEG、PNG 或 WebP 可以使用。",
     image_size_error:
       "这张图片超出了 5 MB 的限制，换一张较小的或压缩过的就可以了。",
-    recovery_conflict: "这个邮箱已经是另一个账户的恢复地址，换一个应该可以。",
+    recovery_conflict: "此地址已用于最多 20 个 Aster 账户。请使用其他地址。",
     copied_to_clipboard: "已复制到剪贴板",
     address_copied_to_clipboard: "地址已复制到剪贴板",
     offline: "离线",
@@ -7539,7 +7539,7 @@ export const zh_CN = {
     please_enter_valid_email:
       "这看起来不像有效的邮箱，类似 name@example.com 这样的格式可以使用。",
     recovery_email_conflict:
-      "这个邮箱已经是另一个账户的恢复地址，换一个应该可以。",
+      "此地址已用于最多 20 个 Aster 账户。请使用其他地址。",
     failed_save_recovery_email:
       "您的恢复邮箱未能保存，再试一次应该可以。当前的恢复设置没有变化。",
     recovery_phrase_title: "保存您的恢复短语",

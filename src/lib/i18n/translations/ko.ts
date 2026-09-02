@@ -157,7 +157,7 @@ export const ko = {
     image_size_error:
       "이 이미지는 5 MB 제한을 넘습니다. 더 작은 이미지나 압축된 버전이면 됩니다.",
     recovery_conflict:
-      "이 이메일은 이미 다른 계정의 복구 주소로 사용 중입니다. 다른 이메일이면 됩니다.",
+      "이 주소는 이미 최대 20개의 Aster 계정에 사용되고 있습니다. 다른 주소를 사용하세요.",
     copied_to_clipboard: "클립보드에 복사됨",
     address_copied_to_clipboard: "주소가 클립보드에 복사됨",
     offline: "오프라인",
@@ -8114,7 +8114,7 @@ export const ko = {
     please_enter_valid_email:
       "이 주소는 유효한 이메일이 아닌 것 같습니다. name@example.com 같은 형식이면 됩니다.",
     recovery_email_conflict:
-      "이 이메일은 이미 다른 계정의 복구 주소로 사용 중입니다. 다른 이메일이면 됩니다.",
+      "이 주소는 이미 최대 20개의 Aster 계정에 사용되고 있습니다. 다른 주소를 사용하세요.",
     failed_save_recovery_email:
       "복구 이메일이 저장되지 않았습니다. 다시 시도하면 됩니다. 현재 복구 설정은 그대로입니다.",
     recovery_phrase_title: "복구 문구를 저장하세요",

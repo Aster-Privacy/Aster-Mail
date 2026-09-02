@@ -170,7 +170,7 @@ export const it = {
     image_size_error:
       "Questa immagine supera il limite di 5 MB. Una più piccola, o una versione compressa, andrà bene.",
     recovery_conflict:
-      "Questa email è già un indirizzo di recupero su un altro account. Un'altra dovrebbe funzionare.",
+      "Questo indirizzo protegge già il massimo di 20 account Aster. Usa un altro indirizzo.",
     copied_to_clipboard: "Copiato negli appunti",
     address_copied_to_clipboard: "Indirizzo copiato negli appunti",
     offline: "Offline",
@@ -8574,7 +8574,7 @@ export const it = {
     please_enter_valid_email:
       "Questa non sembra un'email valida. Qualcosa come nome@example.com andrà bene.",
     recovery_email_conflict:
-      "Questa email è già un indirizzo di recupero su un altro account. Un'altra dovrebbe funzionare.",
+      "Questo indirizzo protegge già il massimo di 20 account Aster. Usa un altro indirizzo.",
     failed_save_recovery_email:
       "La sua email di recupero non è stata salvata. Un altro tentativo dovrebbe bastare. La sua configurazione di recupero attuale è invariata.",
     recovery_phrase_title: "Salvi la sua frase di recupero",

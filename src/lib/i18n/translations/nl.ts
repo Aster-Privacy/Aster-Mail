@@ -161,7 +161,7 @@ export const nl = {
     image_size_error:
       "Deze afbeelding overschrijdt de limiet van 5 MB. Een kleinere of een gecomprimeerde versie past wel.",
     recovery_conflict:
-      "Dit e-mailadres is al een herstelpadres bij een ander account. Een ander zou moeten werken.",
+      "Dit adres beschermt al het maximum van 20 Aster-accounts. Gebruik een ander adres.",
     copied_to_clipboard: "Naar klembord gekopieerd",
     address_copied_to_clipboard: "Adres naar klembord gekopieerd",
     offline: "Offline",
@@ -8449,7 +8449,7 @@ export const nl = {
     please_enter_valid_email:
       "Dit lijkt geen geldig e-mailadres. Iets als naam@example.com werkt.",
     recovery_email_conflict:
-      "Dit e-mailadres is al een herstelpadres bij een ander account. Een ander zou moeten werken.",
+      "Dit adres beschermt al het maximum van 20 Aster-accounts. Gebruik een ander adres.",
     failed_save_recovery_email:
       "Uw herstelpadres is niet opgeslagen. Een nieuwe poging zou werken. Uw huidige herstelopzet is ongewijzigd.",
     recovery_phrase_title: "Sla uw herstelzin op",

@@ -161,7 +161,7 @@ export const ja = {
     image_size_error:
       "この画像は 5 MB の上限を超えています。より小さなもの、または圧縮した版でしたら添付できます。",
     recovery_conflict:
-      "このメールはすでに別のアカウントのリカバリーアドレスとして使われています。別のアドレスでしたら使えます。",
+      "このアドレスはすでに上限の20件のAsterアカウントで使われています。別のアドレスを使ってください。",
     copied_to_clipboard: "クリップボードにコピーしました",
     address_copied_to_clipboard: "アドレスをクリップボードにコピーしました",
     offline: "オフライン",
@@ -8339,7 +8339,7 @@ export const ja = {
     please_enter_valid_email:
       "有効なメールアドレスのようには見えません。name@example.com のような形式でしたら使えます。",
     recovery_email_conflict:
-      "このメールはすでに別のアカウントのリカバリーアドレスとして使われています。別のアドレスでしたら使えます。",
+      "このアドレスはすでに上限の20件のAsterアカウントで使われています。別のアドレスを使ってください。",
     failed_save_recovery_email:
       "リカバリーメールが保存されませんでした。もう一度試すと通ることが多いです。現在のリカバリー設定には変更ありません。",
     recovery_phrase_title: "リカバリーフレーズを保存してください",

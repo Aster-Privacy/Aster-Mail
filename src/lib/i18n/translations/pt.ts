@@ -162,7 +162,7 @@ export const pt = {
     image_size_error:
       "Esta imagem ultrapassa o limite de 5 MB. Uma menor, ou uma versão comprimida, vai caber.",
     recovery_conflict:
-      "Este e-mail já é um endereço de recuperação em outra conta. Outro deve funcionar.",
+      "Este endereço já protege o máximo de 20 contas Aster. Use outro endereço.",
     copied_to_clipboard: "Copiado para a área de transferência",
     address_copied_to_clipboard:
       "Endereço copiado para a área de transferência",
@@ -8532,7 +8532,7 @@ export const pt = {
     please_enter_valid_email:
       "Isto não parece um e-mail válido. Algo como nome@example.com vai funcionar.",
     recovery_email_conflict:
-      "Este e-mail já é um endereço de recuperação em outra conta. Outro deve funcionar.",
+      "Este endereço já protege o máximo de 20 contas Aster. Use outro endereço.",
     failed_save_recovery_email:
       "Seu e-mail de recuperação não foi salvo. Outra tentativa deve funcionar. Sua configuração de recuperação atual permanece inalterada.",
     recovery_phrase_title: "Salve sua frase de recuperação",

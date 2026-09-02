@@ -161,7 +161,7 @@ export const tr = {
     image_size_error:
       "Bu görsel 5 MB sınırının üzerinde. Daha küçük ya da sıkıştırılmış bir sürüm sığar.",
     recovery_conflict:
-      "Bu e-posta zaten başka bir hesapta kurtarma adresi olarak tanımlı. Farklı bir adres işe yarar.",
+      "Bu adres zaten en fazla 20 Aster hesabını koruyor. Farklı bir adres kullanın.",
     copied_to_clipboard: "Panoya kopyalandı",
     address_copied_to_clipboard: "Adres panoya kopyalandı",
     offline: "Çevrimdışı",
@@ -8460,7 +8460,7 @@ export const tr = {
     please_enter_valid_email:
       "Bu geçerli bir e-posta gibi görünmüyor. name@example.com gibi bir adres işe yarar.",
     recovery_email_conflict:
-      "Bu e-posta zaten başka bir hesapta kurtarma adresi olarak tanımlı. Farklı bir adres işe yarar.",
+      "Bu adres zaten en fazla 20 Aster hesabını koruyor. Farklı bir adres kullanın.",
     failed_save_recovery_email:
       "Kurtarma e-postanız kaydedilmedi. Bir kez daha denemek genellikle yeterli olur. Mevcut kurtarma kurulumunuz olduğu gibi.",
     recovery_phrase_title: "Kurtarma ifadenizi kaydedin",

@@ -164,7 +164,7 @@ export const es = {
     image_size_error:
       "Esta imagen supera el límite de 5 MB. Una más pequeña, o una versión comprimida, funcionará.",
     recovery_conflict:
-      "Este correo ya es una dirección de recuperación en otra cuenta. Otro debería funcionar.",
+      "Esta dirección ya protege el máximo de 20 cuentas de Aster. Usa otra dirección.",
     copied_to_clipboard: "Copiado al portapapeles",
     address_copied_to_clipboard: "Dirección copiada al portapapeles",
     offline: "Sin conexión",
@@ -8461,7 +8461,7 @@ export const es = {
     please_enter_valid_email:
       "Por favor ingresa una dirección de correo válida",
     recovery_email_conflict:
-      "Este correo ya es una dirección de recuperación en otra cuenta. Otro debería funcionar.",
+      "Esta dirección ya protege el máximo de 20 cuentas de Aster. Usa otra dirección.",
     failed_save_recovery_email:
       "Tu correo de recuperación no se guardó. Otro intento debería resolverlo. Tu configuración de recuperación actual no ha cambiado.",
     recovery_phrase_title: "Guarda tu frase de recuperación",

@@ -230,7 +230,7 @@ export const en: Translations = {
       "Custom avatars are part of paid plans. An upgrade will turn them on.",
     alias_avatars_feature: "Custom alias & domain avatars",
     recovery_conflict:
-      "This email is already a recovery address on another account. A different one should work.",
+      "That address already protects the maximum of 20 Aster accounts. Use a different address.",
     copied_to_clipboard: "Copied to clipboard",
     address_copied_to_clipboard: "Address copied to clipboard",
     offline: "Offline",
@@ -8445,7 +8445,7 @@ export const en: Translations = {
     please_enter_valid_email:
       "This does not look like a valid email. Something like name@example.com will work.",
     recovery_email_conflict:
-      "This email is already a recovery address on another account. A different one should work.",
+      "That address already protects the maximum of 20 Aster accounts. Use a different address.",
     failed_save_recovery_email:
       "Your recovery email did not save. Another attempt should do it. Your current recovery setup is unchanged.",
     recovery_phrase_title: "Save your recovery phrase",

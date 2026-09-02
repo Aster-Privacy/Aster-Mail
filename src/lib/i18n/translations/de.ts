@@ -160,7 +160,7 @@ export const de = {
     image_size_error:
       "Dieses Bild überschreitet die Grenze von 5 MB. Ein kleineres oder eine komprimierte Version passt.",
     recovery_conflict:
-      "Diese E-Mail ist bereits eine Wiederherstellungsadresse für ein anderes Konto. Eine andere funktioniert.",
+      "Diese Adresse schützt bereits die maximal möglichen 20 Aster-Konten. Verwenden Sie eine andere Adresse.",
     copied_to_clipboard: "In die Zwischenablage kopiert",
     address_copied_to_clipboard: "Adresse in die Zwischenablage kopiert",
     offline: "Offline",
@@ -8626,7 +8626,7 @@ export const de = {
     please_enter_valid_email:
       "Dies sieht nicht nach einer gültigen E-Mail-Adresse aus. Etwas wie name@example.com funktioniert.",
     recovery_email_conflict:
-      "Diese E-Mail ist bereits eine Wiederherstellungsadresse für ein anderes Konto. Eine andere funktioniert.",
+      "Diese Adresse schützt bereits die maximal möglichen 20 Aster-Konten. Verwenden Sie eine andere Adresse.",
     plan_starter_badge: "Starter",
     plan_personal_badge: "Persönlich",
     plan_pro_badge: "Pro",

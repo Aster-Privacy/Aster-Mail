@@ -162,7 +162,7 @@ export const pl = {
     image_size_error:
       "Ten obraz przekracza limit 5 MB. Mniejszy lub skompresowany się zmieści.",
     recovery_conflict:
-      "Ten adres jest już adresem odzyskiwania na innym koncie. Inny powinien zadziałać.",
+      "Ten adres chroni już maksymalną liczbę 20 kont Aster. Użyj innego adresu.",
     copied_to_clipboard: "Skopiowano do schowka",
     address_copied_to_clipboard: "Skopiowano adres do schowka",
     offline: "Brak połączenia",
@@ -8726,7 +8726,7 @@ export const pl = {
     please_enter_valid_email:
       "To nie wygląda na prawidłowy adres e-mail. Coś w stylu nazwa@example.com zadziała.",
     recovery_email_conflict:
-      "Ten adres jest już adresem odzyskiwania na innym koncie. Inny powinien zadziałać.",
+      "Ten adres chroni już maksymalną liczbę 20 kont Aster. Użyj innego adresu.",
     failed_save_recovery_email:
       "Adres odzyskiwania nie został zapisany. Kolejna próba powinna to załatwić. Obecne ustawienia odzyskiwania pozostają bez zmian.",
     recovery_phrase_title: "Zapisz swoją frazę odzyskiwania",
