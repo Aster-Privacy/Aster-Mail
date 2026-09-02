@@ -52,6 +52,7 @@ import {
 } from "@/services/locked_folders";
 import { resolve_sender_profiles } from "@/services/api/sender_profiles";
 import { map_sync_in_chunks } from "@/lib/scheduling";
+import { apply_read_intents } from "@/services/read_intent";
 
 const MAP_CHUNK_SIZE = 25;
 
@@ -255,7 +256,7 @@ export async function fetch_mail_from_api(
       ),
     );
 
-    return emails;
+    return apply_read_intents(emails);
   };
 
   const first_batch = await process_items(items);

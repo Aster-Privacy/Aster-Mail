@@ -31,6 +31,7 @@ import { list_mail_items } from "@/services/api/mail";
 import { decrypt_mail_metadata } from "@/services/crypto/mail_metadata";
 import { type FormatOptions } from "@/utils/date_format";
 import { decrypt_body_text_with_bundle } from "@/utils/email_crypto";
+import { apply_read_intents } from "@/services/read_intent";
 
 export interface FetchByIdsResult {
   emails: InboxEmail[];
@@ -141,5 +142,10 @@ export async function fetch_mail_by_ids_reconciled(
     (id) => server_ids.has(id) && !by_id.has(id),
   );
 
-  return { emails, missing_ids, unrenderable_ids, request_ok: true };
+  return {
+    emails: apply_read_intents(emails),
+    missing_ids,
+    unrenderable_ids,
+    request_ok: true,
+  };
 }

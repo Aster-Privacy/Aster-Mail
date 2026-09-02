@@ -24,6 +24,7 @@ import { api_client, type ApiResponse } from "./client";
 import { with_folder_unlock } from "./folder_unlock_retry";
 
 import { get_unlock_token } from "@/services/folder_unlock_store";
+import { clear_read_intent, note_read_intent } from "@/services/read_intent";
 import {
   remember_items_folder_context,
   remember_item_folder_context,
@@ -684,19 +685,65 @@ export async function patch_mail_item_metadata(
   item_id: string,
   data: PatchMetadataRequest,
 ): Promise<ApiResponse<{ success: boolean; updated_count: number }>> {
-  return api_client.put<{ success: boolean; updated_count: number }>(
-    `/mail/v1/messages/${item_id}/metadata`,
-    data,
-  );
+  if (data.is_read !== undefined) {
+    note_read_intent([item_id], data.is_read);
+  }
+
+  const result = await api_client.put<{
+    success: boolean;
+    updated_count: number;
+  }>(`/mail/v1/messages/${item_id}/metadata`, data);
+
+  if (result.error && data.is_read !== undefined) {
+    clear_read_intent([item_id], data.is_read);
+  }
+
+  return result;
+}
+
+function note_bulk_read_intents(items: BulkPatchMetadataItem[]): void {
+  const read_ids: string[] = [];
+  const unread_ids: string[] = [];
+
+  for (const item of items) {
+    if (item.is_read === true) read_ids.push(item.id);
+    else if (item.is_read === false) unread_ids.push(item.id);
+  }
+
+  if (read_ids.length > 0) note_read_intent(read_ids, true);
+  if (unread_ids.length > 0) note_read_intent(unread_ids, false);
+}
+
+function clear_bulk_read_intents(
+  items: BulkPatchMetadataItem[],
+  failed_ids: Iterable<string>,
+): void {
+  const failed = new Set(failed_ids);
+
+  for (const item of items) {
+    if (item.is_read === undefined || !failed.has(item.id)) continue;
+    clear_read_intent([item.id], item.is_read);
+  }
 }
 
 export async function bulk_patch_metadata(
   data: BulkPatchMetadataRequest,
 ): Promise<ApiResponse<{ success: boolean; updated_count: number }>> {
-  return api_client.put<{ success: boolean; updated_count: number }>(
-    "/mail/v1/messages/bulk/metadata",
-    data,
-  );
+  note_bulk_read_intents(data.items);
+
+  const result = await api_client.put<{
+    success: boolean;
+    updated_count: number;
+  }>("/mail/v1/messages/bulk/metadata", data);
+
+  if (result.error) {
+    clear_bulk_read_intents(
+      data.items,
+      data.items.map((item) => item.id),
+    );
+  }
+
+  return result;
 }
 
 export interface BatchedMetadataResult {
@@ -714,6 +761,8 @@ export async function batched_bulk_patch_metadata(
     "@/services/batch_processor"
   );
   const items_by_id = new Map(items.map((item) => [item.id, item]));
+
+  note_bulk_read_intents(items);
 
   const result = await process_batches({
     ids: [...items_by_id.keys()],
@@ -738,6 +787,8 @@ export async function batched_bulk_patch_metadata(
   });
 
   const failed = new Set(result.failed_ids);
+
+  clear_bulk_read_intents(items, failed);
 
   return {
     succeeded_ids: [...items_by_id.keys()].filter((id) => !failed.has(id)),

@@ -30,6 +30,8 @@ import {
   type MetadataWriteResult,
 } from "./mail_metadata_core";
 
+import { clear_read_intent, note_read_intent } from "@/services/read_intent";
+
 type UpdateResult = MetadataWriteResult;
 
 const in_flight_requests = new Map<string, Promise<UpdateResult>>();
@@ -97,6 +99,10 @@ export async function update_item_metadata(
   updates: Partial<MailItemMetadata>,
 ): Promise<UpdateResult> {
   const dedup_key = create_dedup_key(item_id, updates);
+
+  if (updates.is_read !== undefined) {
+    note_read_intent([item_id], updates.is_read);
+  }
 
   cleanup_completed_cache();
 
@@ -253,6 +259,10 @@ export async function update_item_metadata(
   try {
     const result = await promise;
 
+    if (!result.success && updates.is_read !== undefined) {
+      clear_read_intent([item_id], updates.is_read);
+    }
+
     if (result.success) {
       const item_prefix = `${item_id}|`;
 
@@ -273,6 +283,11 @@ export async function update_item_metadata(
     }
 
     return result;
+  } catch (caught) {
+    if (updates.is_read !== undefined) {
+      clear_read_intent([item_id], updates.is_read);
+    }
+    throw caught;
   } finally {
     in_flight_requests.delete(dedup_key);
     if (item_chains.get(item_id) === chained) {
@@ -303,6 +318,13 @@ export async function bulk_update_items_metadata(
     { encrypted_metadata: string; metadata_nonce: string }
   >;
 }> {
+  if (updates.is_read !== undefined) {
+    note_read_intent(
+      items.map((item) => item.id),
+      updates.is_read,
+    );
+  }
+
   const { batched_bulk_patch_metadata } = await import("@/services/api/mail");
 
   const bulk_items: Array<{
@@ -439,6 +461,10 @@ export async function bulk_update_items_metadata(
   }
 
   if (bulk_items.length === 0 && flag_only_items.length === 0) {
+    if (updates.is_read !== undefined) {
+      clear_read_intent([...failed_ids, ...undecryptable_ids], updates.is_read);
+    }
+
     return {
       success: false,
       updated_count: 0,
@@ -456,6 +482,9 @@ export async function bulk_update_items_metadata(
   failed_ids.push(...result.failed_ids);
   for (const failed_id of result.failed_ids) {
     encrypted_by_id.delete(failed_id);
+  }
+  if (updates.is_read !== undefined) {
+    clear_read_intent([...failed_ids, ...undecryptable_ids], updates.is_read);
   }
 
   return {
@@ -483,6 +512,10 @@ export async function bulk_update_metadata_by_ids(
       failed_ids: [],
       undecryptable_ids: [],
     };
+  }
+
+  if (updates.is_read !== undefined) {
+    note_read_intent(ids, updates.is_read);
   }
 
   const { list_mail_items } = await import("@/services/api/mail");
@@ -522,6 +555,10 @@ export async function bulk_update_metadata_by_ids(
   }
 
   if (fetched.length === 0) {
+    if (updates.is_read !== undefined) {
+      clear_read_intent(failed_fetch, updates.is_read);
+    }
+
     return {
       success: false,
       updated_count: 0,
@@ -531,6 +568,10 @@ export async function bulk_update_metadata_by_ids(
   }
 
   const result = await bulk_update_items_metadata(fetched, updates);
+
+  if (updates.is_read !== undefined) {
+    clear_read_intent(failed_fetch, updates.is_read);
+  }
 
   return {
     success: result.success && failed_fetch.length === 0,

@@ -124,6 +124,10 @@ vi.mock("@/services/category_index", () => ({
 }));
 
 import { use_category_inbox } from "@/hooks/use_category_inbox";
+import {
+  clear_all_read_intents,
+  note_read_intent,
+} from "@/services/read_intent";
 
 interface SeenState {
   emails: { id: string; is_read: boolean }[];
@@ -185,6 +189,7 @@ describe("use_category_inbox read-state cache invalidation", () => {
     mocks.read_state.clear();
     mocks.recently_read.clear();
     mocks.fetch_mail_by_ids_reconciled.mockClear();
+    clear_all_read_intents();
   });
 
   afterEach(() => {
@@ -246,6 +251,36 @@ describe("use_category_inbox read-state cache invalidation", () => {
     await flush();
 
     expect(states.at(-1)!.emails).toEqual([{ id: "p1", is_read: true }]);
+
+    act(() => root.unmount());
+  });
+
+  it("keeps a just-unread row unread when a refetch still reports the old read state", async () => {
+    mocks.read_state.set("p1", true);
+    mocks.recently_read.add("p1");
+    const { states, root, set_category } = make_harness();
+
+    await flush();
+
+    expect(states.at(-1)!.emails).toEqual([{ id: "p1", is_read: true }]);
+
+    note_read_intent(["p1"], false);
+    act(() => {
+      window.dispatchEvent(
+        new CustomEvent("MAIL_ITEM_UPDATED", {
+          detail: { id: "p1", is_read: false },
+        }),
+      );
+    });
+
+    expect(states.at(-1)!.emails).toEqual([{ id: "p1", is_read: false }]);
+
+    set_category("updates");
+    await flush();
+    set_category("primary");
+    await flush();
+
+    expect(states.at(-1)!.emails).toEqual([{ id: "p1", is_read: false }]);
 
     act(() => root.unmount());
   });

@@ -25,9 +25,11 @@ import { bulk_action_result } from "./bulk_action_result";
 
 import { mark_thread_read } from "@/services/api/mail";
 import {
+  get_thread_entry_ids,
   mark_thread_read_entries,
   thread_has_unread_entries,
 } from "@/services/category_index";
+import { clear_read_intent, note_read_intent } from "@/services/read_intent";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 import { ignore_error } from "@/lib/ignore_error";
 
@@ -135,16 +137,21 @@ export async function mark_conversation_threads_read(
 
     await Promise.all(
       chunk.map(async (token) => {
+        const thread_ids = get_thread_entry_ids(token);
+
+        note_read_intent(thread_ids, true);
         try {
           const result = await mark_thread_read(token);
 
           if (result.error) {
+            clear_read_intent(thread_ids, true);
             failed_tokens.push(token);
 
             return;
           }
           mark_thread_read_entries(token);
         } catch {
+          clear_read_intent(thread_ids, true);
           failed_tokens.push(token);
         }
       }),
@@ -165,18 +172,24 @@ export function mark_conversation_read(
   if (!thread_token) return;
   if (!conversation_needs_thread_read(options)) return;
 
+  const thread_ids = get_thread_entry_ids(thread_token);
+
+  note_read_intent(thread_ids, true);
   void mark_thread_read(thread_token)
     .then((result) => {
       if (!result.error) {
         mark_thread_read_entries(thread_token);
         emit_mail_soft_refresh();
         invalidate_mail_stats();
+      } else {
+        clear_read_intent(thread_ids, true);
       }
     })
-    .catch((caught) =>
+    .catch((caught) => {
+      clear_read_intent(thread_ids, true);
       ignore_error(
         "hooks/mark_conversation_read:mark_conversation_read",
         caught,
-      ),
-    );
+      );
+    });
 }
