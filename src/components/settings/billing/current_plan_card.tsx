@@ -20,13 +20,11 @@
 //
 import {
   ExclamationTriangleIcon,
-  SparklesIcon,
   CreditCardIcon,
   ArrowRightIcon,
-  CircleStackIcon,
-  ShieldCheckIcon,
   Cog6ToothIcon,
 } from "@heroicons/react/24/outline";
+import { CheckCircleIcon } from "@heroicons/react/24/solid";
 import { Button } from "@aster/ui";
 
 import { Progress } from "@/components/ui/progress";
@@ -40,7 +38,11 @@ import { use_i18n } from "@/lib/i18n/context";
 import {
   convert_cents,
   is_crypto_provider,
+  PLAN_TIERS,
 } from "@/components/settings/billing/billing_constants";
+import { DEFAULT_RECOMMENDED_PLAN } from "@/components/settings/billing/plan_recommendation";
+import type { PlanFeature } from "@/components/settings/billing/plan_card";
+import { CrownIcon } from "@/components/ui/crown_icon";
 import { describe_plan } from "@/utils/billing_description";
 
 interface CurrentPlanCardProps {
@@ -52,13 +54,14 @@ interface CurrentPlanCardProps {
   is_action_loading: boolean;
   has_payment_failed: boolean;
   grace_days_remaining: number;
-  current_billing_interval: "month" | "year";
+  current_billing_interval: "month" | "year" | "biennial";
   on_scroll_to_plans: () => void;
   on_manage_billing: () => void;
   on_reactivate: () => void;
   on_manage_plan: () => void;
   on_renew_with_crypto?: () => void;
   preferred_currency: string;
+  upgrade_features?: PlanFeature[];
 }
 
 export function CurrentPlanCard({
@@ -77,10 +80,22 @@ export function CurrentPlanCard({
   on_manage_plan,
   on_renew_with_crypto,
   preferred_currency,
+  upgrade_features,
 }: CurrentPlanCardProps) {
   const { t } = use_i18n();
   const is_paid_plan = subscription && subscription.plan.code !== "free";
   const is_crypto = is_crypto_provider(subscription?.payment_provider);
+  const upgrade_tier =
+    PLAN_TIERS.find((tier) => tier.id === DEFAULT_RECOMMENDED_PLAN) ??
+    PLAN_TIERS[0];
+  const entry_price_label = format_price(
+    convert_cents(
+      Math.min(...PLAN_TIERS.map((tier) => tier.monthly_cents)),
+      preferred_currency,
+    ),
+    preferred_currency,
+  );
+  const teaser_features = (upgrade_features ?? []).slice(0, 3);
   const plan_description = describe_plan(
     subscription?.plan.code,
     subscription?.plan.description,
@@ -89,55 +104,6 @@ export function CurrentPlanCard({
 
   return (
     <>
-      <div
-        className="relative overflow-hidden rounded-2xl p-6"
-        style={{
-          backgroundColor: "var(--accent-mix-b85, #326fd1)",
-        }}
-      >
-        <div className="absolute end-5 top-1/2 -translate-y-1/2 flex items-end gap-2 pointer-events-none">
-          <ShieldCheckIcon
-            className="w-9 h-9 text-white/15"
-            style={{ transform: "translateY(-18px) rotate(-12deg)" }}
-          />
-          <CreditCardIcon className="w-20 h-20 text-white/20" />
-          <SparklesIcon
-            className="w-11 h-11 text-white/12"
-            style={{ transform: "translateY(-28px) rotate(15deg)" }}
-          />
-          <CircleStackIcon
-            className="w-7 h-7 text-white/10"
-            style={{ transform: "translateY(-6px) rotate(-8deg)" }}
-          />
-        </div>
-
-        <div className="relative z-10">
-          <h3
-            className="text-lg font-bold text-white mb-1 tracking-tight"
-            style={{ textShadow: "0 1px 3px rgba(0, 0, 0, 0.15)" }}
-          >
-            {t("settings.billing_banner_title")}
-          </h3>
-          <p
-            className="text-sm text-white/75 mb-5 max-w-[320px]"
-            style={{ textShadow: "0 1px 2px rgba(0, 0, 0, 0.1)" }}
-          >
-            {t("settings.billing_banner_subtitle")}
-          </p>
-          <button
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-[14px] text-sm font-semibold bg-white text-blue-900"
-            style={{
-              boxShadow:
-                "0 2px 8px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.9) inset",
-            }}
-            onClick={on_scroll_to_plans}
-          >
-            {t("settings.billing_banner_cta")}
-            <ArrowRightIcon className="w-4 h-4 rtl:-scale-x-100" />
-          </button>
-        </div>
-      </div>
-
       {has_payment_failed && (
         <div className="p-4 rounded-lg flex items-start gap-3 bg-red-600">
           <ExclamationTriangleIcon className="w-5 h-5 flex-shrink-0 mt-0.5 text-red-50" />
@@ -231,17 +197,21 @@ export function CurrentPlanCard({
                     preferred_currency,
                   )}
                   <span className="text-xs font-normal text-txt-muted">
-                    {subscription.plan.billing_period?.startsWith("year")
-                      ? t("settings.per_year_short")
-                      : t("settings.per_month_short")}
+                    {current_billing_interval === "biennial"
+                      ? t("settings.per_two_years")
+                      : current_billing_interval === "year"
+                        ? t("settings.per_year_short")
+                        : t("settings.per_month_short")}
                   </span>
                 </span>
                 <p className="text-xs mt-0.5 text-txt-muted">
                   {t("settings.current_billing_interval", {
                     interval:
-                      current_billing_interval === "year"
-                        ? t("settings.billing_yearly").toLowerCase()
-                        : t("settings.billing_monthly").toLowerCase(),
+                      current_billing_interval === "biennial"
+                        ? t("settings.biennial").toLowerCase()
+                        : current_billing_interval === "year"
+                          ? t("settings.billing_yearly").toLowerCase()
+                          : t("settings.billing_monthly").toLowerCase(),
                   })}
                 </p>
                 {is_crypto ? (
@@ -327,15 +297,57 @@ export function CurrentPlanCard({
               )}
             </div>
           ) : (
-            <Button
-              className="w-full mt-4"
-              size="xl"
-              variant="depth"
-              onClick={on_scroll_to_plans}
-            >
-              {t("settings.upgrade_for_more")}
-              <ArrowRightIcon className="w-4 h-4 ms-1 rtl:-scale-x-100" />
-            </Button>
+            <div className="mt-4 pt-3 border-t border-edge-secondary">
+              {teaser_features.length > 0 && (
+                <>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <CrownIcon className="w-4 h-4 flex-shrink-0 text-txt-primary" />
+                    <p className="text-sm font-semibold text-txt-primary">
+                      {t("settings.free_upgrade_title", {
+                        plan: upgrade_tier.name,
+                      })}
+                    </p>
+                    <span
+                      className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold"
+                      style={{
+                        backgroundColor: "var(--accent-color)",
+                        color: "var(--accent-fg, #ffffff)",
+                      }}
+                    >
+                      {t("settings.plan_recommended")}
+                    </span>
+                  </div>
+                  <ul className="mt-2.5 space-y-1.5">
+                    {teaser_features.map((feature) => (
+                      <li
+                        key={feature.label}
+                        className="flex items-start gap-2 text-xs text-txt-secondary"
+                      >
+                        <CheckCircleIcon
+                          className="w-4 h-4 flex-shrink-0 mt-px"
+                          style={{ color: "var(--accent-color)" }}
+                        />
+                        <span>{feature.label}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="mt-2.5 text-xs text-txt-muted">
+                    {t("settings.free_upgrade_price_note", {
+                      price: entry_price_label,
+                    })}
+                  </p>
+                </>
+              )}
+              <Button
+                className="w-full mt-3"
+                size="xl"
+                variant="depth"
+                onClick={on_scroll_to_plans}
+              >
+                {t("settings.upgrade_for_more")}
+                <ArrowRightIcon className="w-4 h-4 ms-1 rtl:-scale-x-100" />
+              </Button>
+            </div>
           )}
         </div>
       </div>
