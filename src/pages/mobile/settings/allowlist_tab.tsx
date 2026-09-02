@@ -33,6 +33,7 @@ import {
   remove_allowed_sender_by_token,
   allow_sender,
 } from "@/services/api/allowed_senders";
+import { MobileButton } from "@/components/mobile";
 
 export function AllowlistTab() {
   const { t } = use_i18n();
@@ -170,21 +171,25 @@ export function AllowlistTab() {
               }}
             />
             <div className="flex gap-2">
-              <button
-                className="flex-1 rounded-[14px] bg-[var(--bg-tertiary)] py-2.5 text-[14px] font-medium text-[var(--mobile-text-secondary)]"
-                type="button"
+              <MobileButton
+                className="flex-1"
+                full_width={false}
+                size="md"
+                variant="secondary"
                 onClick={close_add_form}
               >
                 {t("common.cancel")}
-              </button>
-              <button
-                className="flex flex-1 items-center justify-center rounded-[14px] bg-[var(--mobile-accent)] py-2.5 text-[14px] font-medium text-white disabled:opacity-50"
+              </MobileButton>
+              <MobileButton
+                className="flex-1"
                 disabled={is_adding || !new_email.trim()}
-                type="button"
+                full_width={false}
+                is_loading={is_adding}
+                size="md"
                 onClick={handle_add}
               >
-                {is_adding ? <Spinner size="xs" /> : t("common.add")}
-              </button>
+                {t("common.add")}
+              </MobileButton>
             </div>
           </div>
         ) : (

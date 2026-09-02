@@ -875,11 +875,11 @@ export function ExternalAccountsSection({
                         </span>
                       </div>
                       <div className="flex items-center gap-1.5 pt-0.5">
-                        <span className="rounded bg-[var(--bg-tertiary)] px-1.5 py-0.5 text-[10px] font-medium uppercase text-[var(--text-muted)]">
+                        <span className="rounded-md bg-[var(--bg-tertiary)] px-1.5 py-0.5 text-[10px] font-medium uppercase text-[var(--text-muted)]">
                           {account.protocol}
                         </span>
                         <span
-                          className="rounded px-1.5 py-0.5 text-[10px]"
+                          className="rounded-md px-1.5 py-0.5 text-[10px]"
                           style={{
                             backgroundColor: account.is_enabled
                               ? "rgba(34,197,94,0.1)"

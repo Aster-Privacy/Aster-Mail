@@ -117,6 +117,7 @@ import {
 } from "@/lib/dev_mode_cache";
 import { refresh_family_plan_flag } from "@/services/api/family";
 import { ignore_error } from "@/lib/ignore_error";
+import { MobileButton } from "@/components/mobile";
 
 function MobileSettingsPage() {
   const navigate = useNavigate();
@@ -474,19 +475,13 @@ function MobileSettingsPage() {
                       }}
                     />
                   </div>
-                  <button
-                    className="mt-2.5 w-full rounded-[14px] py-2 text-[13px] font-semibold text-white"
-                    style={{
-                      background:
-                        "linear-gradient(180deg, var(--accent-mix-w80, #629bf8) 0%, var(--accent-color) 50%, var(--accent-mix-b80, #2f68c5) 100%)",
-                      boxShadow:
-                        "0 2px 4px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15)",
-                    }}
-                    type="button"
+                  <MobileButton
+                    className="mt-2.5"
+                    size="sm"
                     onClick={() => open_section("billing")}
                   >
                     {t("common.upgrade")}
-                  </button>
+                  </MobileButton>
                 </div>
               </div>
 
@@ -764,22 +759,10 @@ function MobileSettingsPage() {
               </SettingsGroup>
 
               <div className="px-4 pt-4 pb-2">
-                <motion.button
-                  className="flex w-full items-center justify-center gap-2.5 rounded-2xl px-4 py-3.5 text-white active:opacity-90"
-                  style={{
-                    background:
-                      "linear-gradient(180deg, #ef4444 0%, #dc2626 100%)",
-                    boxShadow:
-                      "0 2px 4px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.15)",
-                  }}
-                  type="button"
-                  onClick={handle_logout}
-                >
+                <MobileButton variant="destructive" onClick={handle_logout}>
                   <ArrowRightStartOnRectangleIcon className="h-5 w-5 shrink-0" />
-                  <span className="text-[16px] font-semibold">
-                    {t("auth.sign_out")}
-                  </span>
-                </motion.button>
+                  <span>{t("auth.sign_out")}</span>
+                </MobileButton>
               </div>
             </div>
           </motion.div>

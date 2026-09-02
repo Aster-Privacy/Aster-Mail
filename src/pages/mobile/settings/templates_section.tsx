@@ -42,6 +42,7 @@ import {
   update_template,
   delete_template,
 } from "@/services/api/templates";
+import { MobileButton } from "@/components/mobile";
 
 export function TemplatesSection({
   on_back,
@@ -300,26 +301,23 @@ export function TemplatesSection({
                 )}
               </div>
               <div className="flex gap-3">
-                <button
-                  className="flex-1 rounded-[16px] bg-[var(--mobile-bg-card)] py-3 text-[15px] font-medium text-[var(--mobile-text-primary)]"
-                  type="button"
+                <MobileButton
+                  className="flex-1 bg-[var(--mobile-bg-card)]"
+                  full_width={false}
+                  size="md"
+                  variant="secondary"
                   onClick={() => {
                     set_show_form(false);
                     set_editing_id(null);
                   }}
                 >
                   {t("common.cancel")}
-                </button>
-                <motion.button
-                  className="flex-1 flex items-center justify-center rounded-xl py-3 text-[15px] font-semibold text-white disabled:opacity-50"
+                </MobileButton>
+                <MobileButton
+                  className="flex-1"
                   disabled={is_saving}
-                  style={{
-                    background:
-                      "linear-gradient(180deg, var(--accent-mix-w80, #629bf8) 0%, var(--accent-color) 50%, var(--accent-mix-b80, #2f68c5) 100%)",
-                    boxShadow:
-                      "0 2px 4px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15)",
-                  }}
-                  type="button"
+                  full_width={false}
+                  size="md"
                   onClick={handle_save}
                 >
                   {is_saving ? (
@@ -329,7 +327,7 @@ export function TemplatesSection({
                   ) : (
                     t("settings.create_template")
                   )}
-                </motion.button>
+                </MobileButton>
               </div>
             </motion.div>
           ) : (
@@ -341,20 +339,10 @@ export function TemplatesSection({
               transition={{ duration: 0.15 }}
             >
               <div className="px-4 pt-3">
-                <motion.button
-                  className="flex w-full items-center justify-center gap-2 rounded-xl py-3 text-[15px] font-semibold text-white"
-                  style={{
-                    background:
-                      "linear-gradient(180deg, var(--accent-mix-w80, #629bf8) 0%, var(--accent-color) 50%, var(--accent-mix-b80, #2f68c5) 100%)",
-                    boxShadow:
-                      "0 2px 4px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15)",
-                  }}
-                  type="button"
-                  onClick={open_create_form}
-                >
+                <MobileButton size="md" onClick={open_create_form}>
                   <PlusIcon className="h-5 w-5" />
                   {t("settings.add_template")}
-                </motion.button>
+                </MobileButton>
               </div>
               {templates.length === 0 && load_failed ? (
                 <div className="px-4 pt-6">

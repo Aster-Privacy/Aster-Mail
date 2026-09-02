@@ -19,7 +19,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useState, useCallback } from "react";
-import { motion } from "framer-motion";
 import { CheckIcon } from "@heroicons/react/24/outline";
 
 import { SettingsHeader } from "./shared";
@@ -31,6 +30,7 @@ import { API_ENDPOINTS } from "@/services/api/endpoints";
 import { ignore_error } from "@/lib/ignore_error";
 import { show_toast } from "@/components/toast/simple_toast";
 import { is_desktop } from "@/native/invoke_bridge";
+import { MobileButton } from "@/components/mobile";
 
 const FEEDBACK_CATEGORIES = [
   { value: "general", label_key: "settings.feedback_category_general" },
@@ -145,16 +145,9 @@ export function FeedbackSection({
             <p className="mt-1.5 text-[12px] text-[var(--mobile-text-muted)]">
               {t("settings.feedback_not_encrypted")}
             </p>
-            <motion.button
-              className="mt-4 flex w-full items-center justify-center rounded-xl px-4 py-3.5 text-[16px] font-semibold text-white disabled:opacity-50"
+            <MobileButton
+              className="mt-4"
               disabled={!message.trim() || is_sending}
-              style={{
-                background:
-                  "linear-gradient(180deg, var(--accent-mix-w80, #629bf8) 0%, var(--accent-color) 50%, var(--accent-mix-b80, #2f68c5) 100%)",
-                boxShadow:
-                  "0 2px 4px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15)",
-              }}
-              type="button"
               onClick={handle_submit}
             >
               {is_sending ? (
@@ -162,7 +155,7 @@ export function FeedbackSection({
               ) : (
                 t("settings.send_feedback_button")
               )}
-            </motion.button>
+            </MobileButton>
             <div className="mt-6 rounded-xl bg-[var(--mobile-bg-card)] px-4 py-3.5">
               <p className="text-[13px] font-medium text-[var(--mobile-text-muted)]">
                 {t("settings.other_ways_to_reach")}

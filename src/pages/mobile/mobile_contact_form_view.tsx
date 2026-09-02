@@ -40,6 +40,7 @@ import {
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
+import { MobileButton } from "@/components/mobile";
 
 export type CreateTab = "basic" | "details" | "address" | "social";
 
@@ -144,23 +145,20 @@ export function ContactFormView({
         <span className="flex-1 text-[16px] font-semibold text-[var(--text-primary)]">
           {contact ? t("common.edit") : t("common.add_contact")}
         </span>
-        <button
-          className="rounded-[12px] px-4 py-1.5 text-[14px] font-semibold text-white disabled:opacity-40"
+        <MobileButton
+          className="disabled:opacity-40"
           disabled={
             form_data.emails.filter((e) => e.trim()).length === 0 || is_saving
           }
-          style={{
-            background:
-              "linear-gradient(to bottom, var(--accent-mix-w80, #629bf8) 0%, var(--accent-color) 50%, var(--accent-mix-b80, #2f68c5) 100%)",
-          }}
-          type="button"
+          full_width={false}
+          size="sm"
           onClick={on_save}
         >
           <span className="inline-flex items-center">
             {t("common.save")}
             {is_saving && <Spinner className="ms-2" size="xs" />}
           </span>
-        </button>
+        </MobileButton>
       </div>
 
       <div className="flex items-center gap-4 px-6 py-5">

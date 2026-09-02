@@ -80,14 +80,14 @@ export function NewCodesStep({
             </span>
             <div className="flex items-center gap-1">
               <button
-                className="p-1.5 rounded text-[var(--text-muted)]"
+                className="p-1.5 rounded-lg text-[var(--text-muted)]"
                 type="button"
                 onClick={() => set_is_key_visible(!is_key_visible)}
               >
                 {is_key_visible ? <EyeSlashIcon /> : <EyeIcon />}
               </button>
               <button
-                className="p-1.5 rounded"
+                className="p-1.5 rounded-lg"
                 style={{
                   color: copy_success
                     ? "var(--color-success)"

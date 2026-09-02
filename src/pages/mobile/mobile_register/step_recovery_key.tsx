@@ -101,14 +101,14 @@ export function StepRecoveryKey({
               </span>
               <div className="flex items-center gap-1">
                 <button
-                  className="p-1.5 rounded text-[var(--text-muted)]"
+                  className="p-1.5 rounded-lg text-[var(--text-muted)]"
                   type="button"
                   onClick={() => reg.set_is_key_visible(!reg.is_key_visible)}
                 >
                   {reg.is_key_visible ? <EyeSlashIcon /> : <EyeIcon />}
                 </button>
                 <button
-                  className="p-1.5 rounded text-[var(--text-muted)]"
+                  className="p-1.5 rounded-lg text-[var(--text-muted)]"
                   type="button"
                   onClick={() => {
                     if (reg.is_key_visible) {

@@ -70,6 +70,7 @@ import { use_auth } from "@/contexts/auth_context";
 import { copy_text } from "@/utils/copy_text";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
 import { use_sticky_value } from "@/hooks/use_sticky_value";
+import { MobileButton } from "@/components/mobile";
 
 const GB = 1_073_741_824;
 const DEFAULT_STORAGE_GB = 500;
@@ -593,25 +594,20 @@ export function FamilySection({
                     />
                   </div>
                 )}
-                <button
-                  className="flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-[14px] font-semibold text-white disabled:opacity-50"
+                <MobileButton
                   disabled={
                     invite_loading ||
                     !invite_email.trim() ||
                     (turnstile_required && !invite_captcha)
                   }
-                  style={{
-                    background:
-                      "linear-gradient(180deg, var(--accent-mix-w80, #629bf8) 0%, var(--accent-color) 50%, var(--accent-mix-b80, #2f68c5) 100%)",
-                  }}
-                  type="button"
+                  size="md"
                   onClick={handle_invite_email}
                 >
                   {invite_loading ? (
                     <ArrowPathIcon className="h-4 w-4 animate-spin" />
                   ) : null}
                   {t("settings.family_invite_send")}
-                </button>
+                </MobileButton>
               </div>
             )}
 
@@ -663,18 +659,12 @@ export function FamilySection({
 
         {!is_owner && (
           <div className="px-4 pt-2">
-            <button
-              className="flex w-full items-center justify-center gap-2 rounded-2xl py-3.5 text-[15px] font-semibold text-white active:opacity-90"
-              style={{
-                background: "linear-gradient(180deg, #ef4444 0%, #dc2626 100%)",
-                boxShadow:
-                  "0 2px 4px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.15)",
-              }}
-              type="button"
+            <MobileButton
+              variant="destructive"
               onClick={() => set_show_leave_dialog(true)}
             >
               {t("settings.family_leave")}
-            </button>
+            </MobileButton>
           </div>
         )}
       </div>

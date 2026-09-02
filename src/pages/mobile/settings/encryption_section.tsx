@@ -53,6 +53,7 @@ import { derive_password_hash } from "@/services/crypto/key_manager";
 import { use_encryption } from "@/components/settings/hooks/use_encryption";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { show_toast } from "@/components/toast/simple_toast";
+import { MobileButton } from "@/components/mobile";
 
 function base64_to_array(base64: string): Uint8Array {
   const binary = atob(base64);
@@ -203,24 +204,16 @@ export function EncryptionSection({
                 {auth_error}
               </p>
             )}
-            <motion.button
-              className="flex w-full items-center justify-center rounded-xl py-3.5 text-[16px] font-semibold text-white disabled:opacity-50"
+            <MobileButton
               disabled={
                 !password.trim() ||
                 (totp_required && !totp_code.trim()) ||
                 is_loading
               }
-              style={{
-                background:
-                  "linear-gradient(180deg, var(--accent-mix-w80, #629bf8) 0%, var(--accent-color) 50%, var(--accent-mix-b80, #2f68c5) 100%)",
-                boxShadow:
-                  "0 2px 4px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15)",
-              }}
-              type="button"
               onClick={handle_authenticate}
             >
               {is_loading ? <Spinner size="md" /> : t("common.verify")}
-            </motion.button>
+            </MobileButton>
           </div>
         </div>
       </div>
@@ -331,34 +324,17 @@ export function EncryptionSection({
                   </div>
                 </div>
                 <div className="px-4 py-3 border-t border-[var(--mobile-border)] flex flex-col gap-2">
-                  <motion.button
-                    className="flex w-full items-center justify-center gap-2 rounded-xl py-3 text-[14px] font-semibold text-white"
-                    style={{
-                      background:
-                        "linear-gradient(180deg, var(--accent-mix-w80, #629bf8) 0%, var(--accent-color) 50%, var(--accent-mix-b80, #2f68c5) 100%)",
-                      boxShadow:
-                        "0 2px 4px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15)",
-                    }}
-                    type="button"
+                  <MobileButton
+                    size="md"
                     onClick={enc.handle_export_public_key}
                   >
                     <ArrowDownTrayIcon className="w-4 h-4" />
                     {t("settings.export_public_key_label")}
-                  </motion.button>
-                  <motion.button
-                    className="flex w-full items-center justify-center gap-2 rounded-xl py-3 text-[14px] font-semibold text-white"
-                    style={{
-                      background:
-                        "linear-gradient(180deg, var(--accent-mix-w80, #629bf8) 0%, var(--accent-color) 50%, var(--accent-mix-b80, #2f68c5) 100%)",
-                      boxShadow:
-                        "0 2px 4px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15)",
-                    }}
-                    type="button"
-                    onClick={enc.open_export_prompt}
-                  >
+                  </MobileButton>
+                  <MobileButton size="md" onClick={enc.open_export_prompt}>
                     <ArrowDownTrayIcon className="w-4 h-4" />
                     {t("settings.export_private_key_label")}
-                  </motion.button>
+                  </MobileButton>
                   <button
                     className="flex w-full items-center justify-center gap-2 rounded-[16px] py-3 text-[14px] font-medium text-[var(--mobile-text-secondary)] bg-[var(--mobile-bg-card-hover)]"
                     type="button"
@@ -476,20 +452,15 @@ export function EncryptionSection({
                     ))}
                   </div>
                   <div className="flex gap-2">
-                    <motion.button
-                      className="flex flex-1 items-center justify-center gap-2 rounded-xl py-3 text-[14px] font-semibold text-white"
-                      style={{
-                        background:
-                          "linear-gradient(180deg, var(--accent-mix-w80, #629bf8) 0%, var(--accent-color) 50%, var(--accent-mix-b80, #2f68c5) 100%)",
-                        boxShadow:
-                          "0 2px 4px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15)",
-                      }}
-                      type="button"
+                    <MobileButton
+                      className="flex-1"
+                      full_width={false}
+                      size="md"
                       onClick={enc.handle_download_codes}
                     >
                       <ArrowDownTrayIcon className="w-4 h-4" />
                       {t("settings.download_pdf")}
-                    </motion.button>
+                    </MobileButton>
                     <button
                       className="p-3 rounded-[14px] bg-[var(--mobile-bg-card-hover)]"
                       type="button"
@@ -502,20 +473,10 @@ export function EncryptionSection({
               )}
 
               <div className="px-4 py-3 border-t border-[var(--mobile-border)]">
-                <motion.button
-                  className="flex w-full items-center justify-center gap-2 rounded-xl py-3 text-[14px] font-semibold text-white"
-                  style={{
-                    background:
-                      "linear-gradient(180deg, var(--accent-mix-w80, #629bf8) 0%, var(--accent-color) 50%, var(--accent-mix-b80, #2f68c5) 100%)",
-                    boxShadow:
-                      "0 2px 4px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15)",
-                  }}
-                  type="button"
-                  onClick={enc.open_regenerate_confirm}
-                >
+                <MobileButton size="md" onClick={enc.open_regenerate_confirm}>
                   <ArrowPathIcon className="w-4 h-4" />
                   {t("settings.regenerate_codes_label")}
-                </motion.button>
+                </MobileButton>
               </div>
             </div>
           </div>
@@ -753,7 +714,7 @@ export function EncryptionSection({
         >
           <motion.div
             animate={{ y: 0 }}
-            className="w-full max-w-lg rounded-t-3xl bg-[var(--mobile-bg-card)] px-6 pt-6 pb-8"
+            className="w-full max-w-lg rounded-t-2xl bg-[var(--mobile-bg-card)] px-6 pt-6 pb-8"
             exit={{ y: "100%" }}
             initial={{ y: "100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
@@ -807,28 +768,23 @@ export function EncryptionSection({
                 </p>
               )}
               <div className="flex gap-3 mt-2">
-                <button
-                  className="flex-1 rounded-[16px] py-3.5 text-[15px] font-medium text-[var(--mobile-text-secondary)] bg-[var(--mobile-bg-card-hover)]"
-                  type="button"
+                <MobileButton
+                  className="flex-1 bg-[var(--mobile-bg-card-hover)]"
+                  full_width={false}
+                  variant="secondary"
                   onClick={enc.close_export_prompt}
                 >
                   {t("common.cancel")}
-                </button>
-                <motion.button
-                  className="flex flex-1 items-center justify-center rounded-xl py-3.5 text-[15px] font-semibold text-white disabled:opacity-50"
+                </MobileButton>
+                <MobileButton
+                  className="flex-1"
                   disabled={
                     enc.is_exporting_private_key ||
                     !enc.export_password.trim() ||
                     (enc.export_totp_required &&
                       enc.export_totp_code.length !== 6)
                   }
-                  style={{
-                    background:
-                      "linear-gradient(180deg, var(--accent-mix-w80, #629bf8) 0%, var(--accent-color) 50%, var(--accent-mix-b80, #2f68c5) 100%)",
-                    boxShadow:
-                      "0 2px 4px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15)",
-                  }}
-                  type="button"
+                  full_width={false}
                   onClick={enc.handle_export_secret_key}
                 >
                   {enc.is_exporting_private_key ? (
@@ -836,7 +792,7 @@ export function EncryptionSection({
                   ) : (
                     t("common.export")
                   )}
-                </motion.button>
+                </MobileButton>
               </div>
             </div>
           </motion.div>
@@ -850,7 +806,7 @@ export function EncryptionSection({
         >
           <motion.div
             animate={{ y: 0 }}
-            className="w-full max-w-lg rounded-t-3xl bg-[var(--mobile-bg-card)] px-6 pt-6 pb-8"
+            className="w-full max-w-lg rounded-t-2xl bg-[var(--mobile-bg-card)] px-6 pt-6 pb-8"
             exit={{ y: "100%" }}
             initial={{ y: "100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
@@ -862,7 +818,7 @@ export function EncryptionSection({
             </h3>
             <p className="text-[13px] text-[var(--mobile-text-muted)] mb-4">
               {t("settings.regenerate_codes_warning")}{" "}
-              <code className="px-1 py-0.5 rounded text-[11px] bg-[var(--mobile-bg-page)]">
+              <code className="px-1 py-0.5 rounded-md text-[11px] bg-[var(--mobile-bg-page)]">
                 regenerate
               </code>{" "}
               {t("common.confirm").toLowerCase()}.
@@ -925,15 +881,16 @@ export function EncryptionSection({
                 </p>
               )}
               <div className="flex gap-3 mt-2">
-                <button
-                  className="flex-1 rounded-[16px] py-3.5 text-[15px] font-medium text-[var(--mobile-text-secondary)] bg-[var(--mobile-bg-card-hover)]"
-                  type="button"
+                <MobileButton
+                  className="flex-1 bg-[var(--mobile-bg-card-hover)]"
+                  full_width={false}
+                  variant="secondary"
                   onClick={enc.close_regenerate_confirm}
                 >
                   {t("common.cancel")}
-                </button>
-                <motion.button
-                  className="flex flex-1 items-center justify-center rounded-xl py-3.5 text-[15px] font-semibold text-white disabled:opacity-50"
+                </MobileButton>
+                <MobileButton
+                  className="flex-1"
                   disabled={
                     enc.regenerate_confirm_text.toLowerCase() !==
                       "regenerate" ||
@@ -942,13 +899,9 @@ export function EncryptionSection({
                       enc.regenerate_totp_code.length !== 6) ||
                     enc.is_regenerating
                   }
-                  style={{
-                    background:
-                      "linear-gradient(180deg, #ef4444 0%, #dc2626 100%)",
-                    boxShadow:
-                      "0 2px 4px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15)",
-                  }}
+                  full_width={false}
                   type="button"
+                  variant="destructive"
                   onClick={enc.handle_regenerate_codes}
                 >
                   {enc.is_regenerating ? (
@@ -956,7 +909,7 @@ export function EncryptionSection({
                   ) : (
                     t("common.regenerate")
                   )}
-                </motion.button>
+                </MobileButton>
               </div>
             </div>
           </motion.div>

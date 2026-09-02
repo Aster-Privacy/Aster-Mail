@@ -19,7 +19,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useState, useCallback, useEffect } from "react";
-import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { motion } from "framer-motion";
 import {
   PlusIcon,
@@ -27,6 +26,7 @@ import {
   ArrowTopRightOnSquareIcon,
 } from "@heroicons/react/24/outline";
 
+import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { use_i18n } from "@/lib/i18n/context";
 import { Spinner } from "@/components/ui/spinner";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -44,6 +44,7 @@ import {
 import { ForwardingRuleBuilder } from "@/components/settings/forwarding_rule_builder";
 import { ignore_error } from "@/lib/ignore_error";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
+import { MobileButton } from "@/components/mobile";
 
 export function AutoForwardTab() {
   const { t } = use_i18n();
@@ -322,15 +323,8 @@ export function AutoForwardTab() {
   return (
     <>
       <div className="px-4 pt-3">
-        <button
-          className="flex w-full items-center justify-center gap-2 rounded-[16px] py-3 text-[14px] font-semibold text-white"
-          style={{
-            background:
-              "linear-gradient(180deg, var(--accent-mix-w80, #629bf8) 0%, var(--accent-color) 50%, var(--accent-mix-b80, #2f68c5) 100%)",
-            boxShadow:
-              "0 2px 4px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15)",
-          }}
-          type="button"
+        <MobileButton
+          size="md"
           onClick={() => {
             set_editing_rule(null);
             set_show_rule_builder(true);
@@ -338,7 +332,7 @@ export function AutoForwardTab() {
         >
           <PlusIcon className="h-4 w-4" />
           {t("settings.add_rule")}
-        </button>
+        </MobileButton>
       </div>
 
       {rules_loading ? (
@@ -522,7 +516,7 @@ export function AutoForwardTab() {
         >
           <motion.div
             animate={{ y: 0 }}
-            className="w-full max-w-lg rounded-t-3xl bg-[var(--mobile-bg-card)] px-5 pt-5 pb-8 max-h-[90vh] overflow-y-auto"
+            className="w-full max-w-lg rounded-t-2xl bg-[var(--mobile-bg-card)] px-5 pt-5 pb-8 max-h-[90vh] overflow-y-auto"
             exit={{ y: "100%" }}
             initial={{ y: "100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}

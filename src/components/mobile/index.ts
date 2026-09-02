@@ -29,3 +29,9 @@ export { MobileContextMenu } from "./mobile_context_menu";
 export { MobileAttachmentRow } from "./mobile_attachment_row";
 export { MobileBottomSheet } from "./mobile_bottom_sheet";
 export { MobileActionSheet } from "./mobile_action_sheet";
+export { MobileButton } from "./mobile_button";
+export type {
+  MobileButtonProps,
+  MobileButtonSize,
+  MobileButtonVariant,
+} from "./mobile_button";

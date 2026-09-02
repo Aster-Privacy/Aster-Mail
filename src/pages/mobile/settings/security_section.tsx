@@ -93,6 +93,7 @@ import { check_password_breach } from "@/services/breach_check";
 import { UpgradeGate } from "@/components/common/upgrade_gate";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { ignore_error } from "@/lib/ignore_error";
+import { MobileButton } from "@/components/mobile";
 
 function base64_to_array(base64: string): Uint8Array {
   const binary = atob(base64);
@@ -549,10 +550,7 @@ export function SecuritySection({
         api_client.set_csrf(res.data.csrf_token);
       }
       if (res.data?.access_token) {
-        api_client.set_dev_token(
-          res.data.access_token,
-          res.data.refresh_token,
-        );
+        api_client.set_dev_token(res.data.access_token, res.data.refresh_token);
       }
 
       if (master_key_mode) {
@@ -1014,10 +1012,12 @@ export function SecuritySection({
                 </p>
               )}
               <div className="flex gap-2">
-                <button
-                  className="flex-1 rounded-[16px] bg-[var(--bg-tertiary)] py-3 text-[15px] font-medium text-[var(--text-primary)] disabled:opacity-50"
+                <MobileButton
+                  className="flex-1"
                   disabled={pw_loading}
-                  type="button"
+                  full_width={false}
+                  size="md"
+                  variant="secondary"
                   onClick={() => {
                     set_show_password_change(false);
                     set_current_password("");
@@ -1028,20 +1028,17 @@ export function SecuritySection({
                   }}
                 >
                   {t("common.cancel")}
-                </button>
-                <motion.button
-                  className="flex flex-1 items-center justify-center rounded-xl py-3 text-[15px] font-semibold text-white disabled:opacity-50"
+                </MobileButton>
+                <MobileButton
+                  className="flex-1"
                   disabled={
                     !current_password ||
                     !new_password ||
                     !confirm_password ||
                     pw_loading
                   }
-                  style={{
-                    background:
-                      "linear-gradient(180deg, var(--accent-mix-w80, #629bf8) 0%, var(--accent-color) 50%, var(--accent-mix-b80, #2f68c5) 100%)",
-                  }}
-                  type="button"
+                  full_width={false}
+                  size="md"
                   onClick={handle_change_password}
                 >
                   {pw_loading ? (
@@ -1049,7 +1046,7 @@ export function SecuritySection({
                   ) : (
                     t("settings.change_password")
                   )}
-                </motion.button>
+                </MobileButton>
               </div>
             </div>
           )}

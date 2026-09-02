@@ -35,6 +35,7 @@ import {
   type VacationReplyResponse,
 } from "@/services/api/vacation_reply";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
+import { MobileButton } from "@/components/mobile";
 
 export function VacationReplyTab() {
   const { t } = use_i18n();
@@ -312,20 +313,15 @@ export function VacationReplyTab() {
           )}
 
           <div className="flex gap-2">
-            <button
-              className="flex-1 rounded-[16px] py-3 text-[14px] font-semibold text-white disabled:opacity-50"
+            <MobileButton
+              className="flex-1"
               disabled={
                 is_saving_vacation ||
                 !vacation_subject.trim() ||
                 !vacation_body.trim()
               }
-              style={{
-                background:
-                  "linear-gradient(180deg, var(--accent-mix-w80, #629bf8) 0%, var(--accent-color) 50%, var(--accent-mix-b80, #2f68c5) 100%)",
-                boxShadow:
-                  "0 2px 4px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15)",
-              }}
-              type="button"
+              full_width={false}
+              size="md"
               onClick={handle_save_vacation}
             >
               {is_saving_vacation ? (
@@ -333,7 +329,7 @@ export function VacationReplyTab() {
               ) : (
                 t("settings.vacation_reply_save")
               )}
-            </button>
+            </MobileButton>
             {vacation && (
               <button
                 className="rounded-[16px] px-4 py-3 text-[14px] font-medium text-[var(--mobile-danger)] bg-[var(--mobile-bg-card)]"

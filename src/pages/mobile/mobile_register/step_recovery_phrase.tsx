@@ -79,7 +79,7 @@ export function StepRecoveryPhrase({
             <div className="mb-3 flex items-center justify-end">
               <div className="flex items-center gap-1">
                 <button
-                  className="p-1.5 rounded text-[var(--text-muted)]"
+                  className="p-1.5 rounded-lg text-[var(--text-muted)]"
                   type="button"
                   onClick={() =>
                     reg.set_is_phrase_visible(!reg.is_phrase_visible)
@@ -88,7 +88,7 @@ export function StepRecoveryPhrase({
                   {reg.is_phrase_visible ? <EyeSlashIcon /> : <EyeIcon />}
                 </button>
                 <button
-                  className="p-1.5 rounded text-[var(--text-muted)]"
+                  className="p-1.5 rounded-lg text-[var(--text-muted)]"
                   type="button"
                   onClick={() => {
                     if (reg.is_phrase_visible) {

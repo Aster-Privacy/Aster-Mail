@@ -45,6 +45,7 @@ import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { use_external_link } from "@/contexts/external_link_context";
 import { build_contact_social_url } from "@/utils/contact_links";
 import { build_contact_mail_query } from "@/utils/contact_mail_search";
+import { MobileButton } from "@/components/mobile";
 
 function DetailCard({ children }: { children: React.ReactNode }) {
   return (
@@ -443,19 +444,13 @@ export function ContactDetailView({
             </DetailCard>
           )}
 
-          <button
-            className="flex w-full items-center justify-center gap-2 rounded-[16px] py-3.5 text-[14px] font-medium text-white active:opacity-70"
-            style={{
-              background: "linear-gradient(180deg, #ef4444 0%, #dc2626 100%)",
-              boxShadow:
-                "0 2px 4px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15)",
-            }}
-            type="button"
+          <MobileButton
+            variant="destructive"
             onClick={() => on_delete(contact)}
           >
             <TrashIcon className="h-4 w-4" />
             {t("common.delete")}
-          </button>
+          </MobileButton>
         </div>
       </div>
     </motion.div>

@@ -47,7 +47,7 @@ export const page_slide_transition: Transition = {
 };
 
 export const button_tap = {
-  scale: 0.98,
+  scale: 0.97,
   transition: { duration: 0.1 },
 };
 
@@ -58,7 +58,7 @@ export const DEPTH_INPUT_WRAPPER_CLASS =
   "flex items-center rounded-xl border border-[var(--border-secondary)] bg-[var(--bg-tertiary)] shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)] dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.2)] transition-all duration-150 focus-within:border-[var(--accent-color)] focus-within:shadow-[0_0_0_2px_var(--accent-color)]";
 
 export const DEPTH_CTA_CLASS =
-  "h-[52px] w-full rounded-xl font-semibold text-base text-white disabled:opacity-50 transition-colors duration-150";
+  "h-[54px] w-full rounded-[20px] border border-white/10 font-semibold text-base text-white disabled:opacity-50 transition-colors duration-150";
 
 export const DEPTH_CTA_STYLE: React.CSSProperties = {
   background:
@@ -67,7 +67,7 @@ export const DEPTH_CTA_STYLE: React.CSSProperties = {
 };
 
 export const DEPTH_SECONDARY_CLASS =
-  "h-[52px] w-full rounded-xl font-semibold text-base text-[var(--text-primary)] bg-[var(--bg-tertiary)] border border-[var(--border-secondary)] shadow-[0_1px_2px_rgba(0,0,0,0.05)] disabled:opacity-50 transition-colors duration-150";
+  "h-[54px] w-full rounded-[20px] font-semibold text-base text-[var(--text-primary)] bg-[var(--bg-tertiary)] border border-[var(--border-secondary)] shadow-[0_1px_2px_rgba(0,0,0,0.05)] disabled:opacity-50 transition-colors duration-150";
 
 export const LABEL_CLASS =
   "mb-2 block text-sm font-medium text-[var(--text-primary)]";

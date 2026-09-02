@@ -85,6 +85,7 @@ function escape_html(str: string): string {
 }
 
 import { MAX_HORIZONTAL_RULES } from "@/hooks/use_editor_format";
+import { MobileButton } from "@/components/mobile";
 
 const MAX_SIGNATURE_IMAGE_SIZE = 2 * 1024 * 1024;
 
@@ -102,7 +103,7 @@ function MobileFmtButton({
   return (
     <button
       aria-label={title}
-      className={`rounded p-1.5 transition-colors ${active ? "bg-[var(--mobile-bg-card-hover)] text-[var(--text-primary)]" : "text-[var(--text-secondary)]"}`}
+      className={`rounded-lg p-1.5 transition-colors ${active ? "bg-[var(--mobile-bg-card-hover)] text-[var(--text-primary)]" : "text-[var(--text-secondary)]"}`}
       title={title}
       type="button"
       onMouseDown={(e) => {
@@ -816,20 +817,10 @@ export function SignaturesSection({
       />
       <div className="flex-1 overflow-y-auto pb-8">
         <div className="px-4 py-3">
-          <button
-            className="flex w-full items-center justify-center gap-2 rounded-[16px] px-4 py-3 text-[15px] font-semibold text-white active:opacity-80"
-            style={{
-              background:
-                "linear-gradient(180deg, var(--accent-mix-w80, #629bf8) 0%, var(--accent-color) 50%, var(--accent-mix-b80, #2f68c5) 100%)",
-              boxShadow:
-                "0 2px 4px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15)",
-            }}
-            type="button"
-            onClick={open_create}
-          >
+          <MobileButton size="md" onClick={open_create}>
             <PlusIcon className="h-5 w-5" />
             {t("settings.add_signature")}
-          </button>
+          </MobileButton>
         </div>
         {is_loading ? (
           <div className="flex items-center justify-center py-12">

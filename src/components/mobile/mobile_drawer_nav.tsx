@@ -354,7 +354,7 @@ export const DrawerNavContent = memo(function DrawerNavContent({
             {t("common.folders")}
           </span>
           <button
-            className="rounded p-0.5 text-[var(--text-muted)] transition-all duration-150 active:bg-[var(--bg-tertiary)]"
+            className="rounded-lg p-0.5 text-[var(--text-muted)] transition-all duration-150 active:bg-[var(--bg-tertiary)]"
             type="button"
             onClick={on_open_create_folder}
           >
@@ -501,7 +501,7 @@ export const DrawerNavContent = memo(function DrawerNavContent({
             {t("common.labels")}
           </span>
           <button
-            className="rounded p-0.5 text-[var(--text-muted)] transition-all duration-150 active:bg-[var(--bg-tertiary)]"
+            className="rounded-lg p-0.5 text-[var(--text-muted)] transition-all duration-150 active:bg-[var(--bg-tertiary)]"
             type="button"
             onClick={on_open_create_label}
           >
@@ -558,7 +558,7 @@ export const DrawerNavContent = memo(function DrawerNavContent({
             {t("common.aliases")}
           </span>
           <button
-            className="rounded p-0.5 text-[var(--text-muted)] transition-all duration-150 active:bg-[var(--bg-tertiary)]"
+            className="rounded-lg p-0.5 text-[var(--text-muted)] transition-all duration-150 active:bg-[var(--bg-tertiary)]"
             type="button"
             onClick={on_open_create_alias}
           >

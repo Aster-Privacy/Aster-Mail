@@ -63,6 +63,7 @@ import {
 } from "@/services/api/billing";
 import { copy_text } from "@/utils/copy_text";
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
+import { MobileButton } from "@/components/mobile";
 
 export function BillingSection({
   on_back,
@@ -361,29 +362,26 @@ export function BillingSection({
 
                   {is_paid_plan ? (
                     <div className="flex gap-2 pt-2 border-t border-[var(--border-primary)]">
-                      <button
-                        className="flex-1 rounded-[14px] bg-[var(--mobile-bg-card-hover)] py-2.5 text-[14px] font-medium text-[var(--text-primary)] disabled:opacity-50"
+                      <MobileButton
+                        className="flex-1 bg-[var(--mobile-bg-card-hover)]"
                         disabled={is_action_loading}
-                        type="button"
+                        full_width={false}
+                        size="md"
+                        variant="secondary"
                         onClick={handle_manage_billing}
                       >
                         {t("settings.manage_payment")}
-                      </button>
+                      </MobileButton>
                       {subscription.cancel_at_period_end ? (
-                        <motion.button
-                          className="flex-1 rounded-xl py-2.5 text-[14px] font-semibold text-white disabled:opacity-50"
+                        <MobileButton
+                          className="flex-1"
                           disabled={is_action_loading}
-                          style={{
-                            background:
-                              "linear-gradient(180deg, var(--accent-mix-w80, #629bf8) 0%, var(--accent-color) 50%, var(--accent-mix-b80, #2f68c5) 100%)",
-                            boxShadow:
-                              "0 2px 4px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15)",
-                          }}
-                          type="button"
+                          full_width={false}
+                          size="md"
                           onClick={handle_reactivate}
                         >
                           {t("settings.reactivate")}
-                        </motion.button>
+                        </MobileButton>
                       ) : (
                         <button
                           className="flex-1 rounded-[14px] py-2.5 text-[14px] font-medium text-[var(--color-danger,#ef4444)] disabled:opacity-50"
@@ -396,20 +394,10 @@ export function BillingSection({
                       )}
                     </div>
                   ) : (
-                    <motion.button
-                      className="flex w-full items-center justify-center gap-2 rounded-xl py-3 text-[15px] font-semibold text-white"
-                      style={{
-                        background:
-                          "linear-gradient(180deg, var(--accent-mix-w80, #629bf8) 0%, var(--accent-color) 50%, var(--accent-mix-b80, #2f68c5) 100%)",
-                        boxShadow:
-                          "0 2px 4px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15)",
-                      }}
-                      type="button"
-                      onClick={scroll_to_plans}
-                    >
+                    <MobileButton size="md" onClick={scroll_to_plans}>
                       {t("settings.upgrade_for_more_short")}
                       <ChevronRightIcon className="w-4 h-4 rtl:-scale-x-100" />
-                    </motion.button>
+                    </MobileButton>
                   )}
                 </div>
               </SettingsGroup>
@@ -505,16 +493,10 @@ export function BillingSection({
                     </button>
                   ))}
                 </div>
-                <motion.button
-                  className="flex w-full items-center justify-center rounded-xl py-3 mt-3 text-[15px] font-semibold text-white disabled:opacity-50"
+                <MobileButton
+                  className="mt-3"
                   disabled={is_action_loading}
-                  style={{
-                    background:
-                      "linear-gradient(180deg, var(--accent-mix-w80, #629bf8) 0%, var(--accent-color) 50%, var(--accent-mix-b80, #2f68c5) 100%)",
-                    boxShadow:
-                      "0 2px 4px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15)",
-                  }}
-                  type="button"
+                  size="md"
                   onClick={() => {
                     const addon = available_addons.find(
                       (a) => a.id === selected_storage,
@@ -534,7 +516,7 @@ export function BillingSection({
                   }}
                 >
                   {t("common.buy_more_storage")}
-                </motion.button>
+                </MobileButton>
               </div>
             </SettingsGroup>
 
@@ -1147,7 +1129,7 @@ export function BillingSection({
                               </div>
                               <div className="flex items-center gap-2">
                                 <span
-                                  className={`text-xs font-medium px-2 py-0.5 rounded ${
+                                  className={`text-xs font-medium px-2 py-0.5 rounded-md ${
                                     ref_item.status === "completed"
                                       ? "bg-green-500/20 text-green-500"
                                       : "bg-yellow-500/20 text-yellow-500"

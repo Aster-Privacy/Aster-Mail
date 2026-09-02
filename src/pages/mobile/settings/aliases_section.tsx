@@ -19,7 +19,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useState, useCallback, useMemo, useEffect, useRef } from "react";
-import { motion } from "framer-motion";
 import {
   ChevronRightIcon,
   ChevronDownIcon,
@@ -69,6 +68,7 @@ import { AliasWebsitesEditor } from "@/components/settings/aliases/alias_website
 import { ignore_error } from "@/lib/ignore_error";
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
+import { MobileButton } from "@/components/mobile";
 
 const ALIASES_PER_PAGE = 50;
 
@@ -408,15 +408,8 @@ export function AliasesSection({
             limit_key="max_email_aliases"
             resource_label="aliases"
           />
-          <motion.button
-            className="flex w-full items-center justify-center gap-2 rounded-xl py-3 text-[15px] font-semibold text-white disabled:opacity-50"
-            style={{
-              background:
-                "linear-gradient(180deg, var(--accent-mix-w80, #629bf8) 0%, var(--accent-color) 50%, var(--accent-mix-b80, #2f68c5) 100%)",
-              boxShadow:
-                "0 2px 4px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15)",
-            }}
-            type="button"
+          <MobileButton
+            size="md"
             onClick={() => {
               const has_custom_domains = hook.domains.some(
                 (d) => d.status === "active",
@@ -435,7 +428,7 @@ export function AliasesSection({
           >
             <PlusIcon className="h-5 w-5" />
             {t("settings.create_alias")}
-          </motion.button>
+          </MobileButton>
         </div>
 
         {!hook.aliases_loading &&
@@ -604,7 +597,7 @@ export function AliasesSection({
                   </button>
                 </div>
                 <div className="mt-2 flex items-center gap-3">
-                  <span className="rounded bg-[var(--mobile-bg-card-hover)] px-1.5 py-0.5 text-[10px] font-medium text-[var(--text-muted)]">
+                  <span className="rounded-md bg-[var(--mobile-bg-card-hover)] px-1.5 py-0.5 text-[10px] font-medium text-[var(--text-muted)]">
                     {addr.domain_name}
                   </span>
                   <button
@@ -659,15 +652,9 @@ export function AliasesSection({
               <p className="text-[13px] text-[var(--text-muted)] mb-3">
                 {t("settings.upgrade_plan_more_domains")}
               </p>
-              <motion.button
-                className="rounded-xl px-5 py-2.5 text-[14px] font-semibold text-white"
-                style={{
-                  background:
-                    "linear-gradient(180deg, var(--accent-mix-w80, #629bf8) 0%, var(--accent-color) 50%, var(--accent-mix-b80, #2f68c5) 100%)",
-                  boxShadow:
-                    "0 2px 4px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15)",
-                }}
-                type="button"
+              <MobileButton
+                full_width={false}
+                size="md"
                 onClick={() =>
                   window.dispatchEvent(
                     new CustomEvent("navigate-settings", { detail: "billing" }),
@@ -675,27 +662,21 @@ export function AliasesSection({
                 }
               >
                 {t("common.upgrade_plan")}
-              </motion.button>
+              </MobileButton>
             </div>
           ) : (
             <>
               <p className="text-[13px] text-[var(--text-muted)] mb-3">
                 {t("settings.domains_description")}
               </p>
-              <motion.button
-                className="flex w-full items-center justify-center gap-2 rounded-xl py-3 mb-3 text-[15px] font-semibold text-white"
-                style={{
-                  background:
-                    "linear-gradient(180deg, var(--accent-mix-w80, #629bf8) 0%, var(--accent-color) 50%, var(--accent-mix-b80, #2f68c5) 100%)",
-                  boxShadow:
-                    "0 2px 4px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15)",
-                }}
-                type="button"
+              <MobileButton
+                className="mb-3"
+                size="md"
                 onClick={hook.handle_open_add_domain}
               >
                 <PlusIcon className="h-5 w-5" />
                 {t("common.add_domain")}
-              </motion.button>
+              </MobileButton>
 
               {hook.domains_loading ? null : hook.domains_load_failed ? (
                 <div className="py-4">
@@ -758,17 +739,13 @@ export function AliasesSection({
                           </div>
                           <div className="flex items-center gap-2">
                             {domain.status !== "active" && (
-                              <button
-                                className="rounded-[12px] px-3 py-1.5 text-[12px] font-medium text-white"
-                                style={{
-                                  background:
-                                    "linear-gradient(180deg, var(--accent-mix-w80, #629bf8) 0%, var(--accent-color) 50%, var(--accent-mix-b80, #2f68c5) 100%)",
-                                }}
-                                type="button"
+                              <MobileButton
+                                full_width={false}
+                                size="sm"
                                 onClick={() => hook.handle_open_setup(domain)}
                               >
                                 {t("settings.continue_setup")}
-                              </button>
+                              </MobileButton>
                             )}
                             <button
                               className="text-[var(--color-danger,#ef4444)] disabled:opacity-50"
@@ -823,7 +800,7 @@ export function AliasesSection({
                                     className="rounded-lg bg-[var(--mobile-bg-card-hover)] p-3 mb-2"
                                   >
                                     <div className="flex items-center gap-2 mb-1.5">
-                                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[var(--bg-tertiary)] text-[var(--text-muted)]">
+                                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-md bg-[var(--bg-tertiary)] text-[var(--text-muted)]">
                                         {record.record_type}
                                       </span>
                                       <span className="text-[10px] capitalize text-[var(--text-muted)]">
@@ -904,15 +881,9 @@ export function AliasesSection({
           <p className="text-[13px] text-[var(--text-muted)] mt-1 mb-3">
             {t("settings.domain_purchase_purchased_desc")}
           </p>
-          <motion.button
-            className="flex w-full items-center justify-center gap-2 rounded-xl py-3 mb-3 text-[15px] font-semibold text-white"
-            style={{
-              background:
-                "linear-gradient(180deg, var(--accent-mix-w80, #629bf8) 0%, var(--accent-color) 50%, var(--accent-mix-b80, #2f68c5) 100%)",
-              boxShadow:
-                "0 2px 4px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15)",
-            }}
-            type="button"
+          <MobileButton
+            className="mb-3"
+            size="md"
             onClick={() => {
               set_purchase_order_id(null);
               set_purchase_open(true);
@@ -920,7 +891,7 @@ export function AliasesSection({
           >
             <ShoppingBagIcon className="h-5 w-5" />
             {t("settings.domain_purchase_banner_cta")}
-          </motion.button>
+          </MobileButton>
 
           {purchased_loading && purchased_orders.length === 0 ? (
             <div className="flex items-center justify-center py-8">
