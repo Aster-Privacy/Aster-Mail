@@ -31,6 +31,7 @@ import {
   delete_alias,
   decrypt_aliases,
   get_alias_counts,
+  set_short_aliases_allowed,
   toggle_alias_pin,
   type DecryptedEmailAlias,
   type AliasCountsResponse,
@@ -96,6 +97,7 @@ export function clear_aliases_cache(): void {
   aliases_cache.max_aliases = 3;
   aliases_cache.max_domains = 0;
   aliases_cache.loaded = false;
+  set_short_aliases_allowed(false);
 }
 
 export function get_cached_aliases(): DecryptedEmailAlias[] {

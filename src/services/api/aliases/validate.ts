@@ -20,6 +20,8 @@
 //
 import type { TranslationKey } from "@/lib/i18n/types";
 
+import { get_alias_min_length } from "./short_alias_grant";
+
 import { get_active_translations } from "@/lib/i18n/translations";
 
 export const RESERVED_ALIAS_NAMES = new Set([
@@ -55,7 +57,7 @@ export function validate_local_part(local_part: string): {
     };
   }
 
-  if (local_part.length < 3) {
+  if (local_part.length < get_alias_min_length()) {
     return {
       valid: false,
       error: get_active_translations().errors.alias_too_short,

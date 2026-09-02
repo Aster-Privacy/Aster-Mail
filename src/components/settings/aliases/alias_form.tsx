@@ -60,6 +60,7 @@ import {
 import {
   create_alias,
   check_alias_availability,
+  get_alias_min_length,
   validate_local_part,
 } from "@/services/api/aliases";
 import {
@@ -168,7 +169,7 @@ export function CreateAliasModal({
   const check_availability = useCallback(async (lp: string, d: string) => {
     const request_id = ++availability_request_ref.current;
 
-    if (!lp || lp.length < 3) {
+    if (!lp || lp.length < get_alias_min_length()) {
       set_is_available(null);
 
       return;

@@ -94,6 +94,10 @@ export type {
 } from "./types";
 export { validate_local_part } from "./validate";
 export {
+  get_alias_min_length,
+  set_short_aliases_allowed,
+} from "./short_alias_grant";
+export {
   MAX_ALIAS_WEBSITES,
   MAX_WEBSITE_URL_LENGTH,
   is_plausible_website_host,
