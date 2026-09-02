@@ -191,38 +191,37 @@ class DraftManager {
       return { success: false, error: "Draft was deleted" };
     }
 
-    if (context.pending_save) {
-      try {
-        await context.pending_save;
-      } catch {
-        /* proceed with new save */
-      }
-    }
-
-    const content_hash = await compute_content_hash(data);
-
-    if (context.last_content_hash === content_hash) {
-      return {
-        success: true,
-        id: context.id ?? undefined,
-        version: context.version,
-      };
-    }
-
-    const content: DraftContent = {
-      to_recipients: data.to_recipients,
-      cc_recipients: data.cc_recipients,
-      bcc_recipients: data.bcc_recipients,
-      subject: data.subject,
-      message: data.message,
-      from_email: data.from_email || undefined,
-      attachments:
-        data.attachments && data.attachments.length > 0
-          ? data.attachments
-          : undefined,
-    };
+    const previous_save = context.pending_save;
+    const save_seq = ++context.save_seq;
 
     const save_promise = (async (): Promise<void> => {
+      if (previous_save) {
+        await previous_save.catch(() => undefined);
+      }
+
+      if (context.is_deleted) {
+        return;
+      }
+
+      const content_hash = await compute_content_hash(data);
+
+      if (context.last_content_hash === content_hash) {
+        return;
+      }
+
+      const content: DraftContent = {
+        to_recipients: data.to_recipients,
+        cc_recipients: data.cc_recipients,
+        bcc_recipients: data.bcc_recipients,
+        subject: data.subject,
+        message: data.message,
+        from_email: data.from_email || undefined,
+        attachments:
+          data.attachments && data.attachments.length > 0
+            ? data.attachments
+            : undefined,
+      };
+
       if (context.is_deleted) {
         return;
       }
@@ -355,8 +354,6 @@ class DraftManager {
         }
       }
     })();
-
-    const save_seq = ++context.save_seq;
 
     context.pending_save = save_promise;
 

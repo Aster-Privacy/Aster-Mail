@@ -63,10 +63,12 @@ export interface UseFoldersReturn {
   add_folder_to_email: (
     email_id: string,
     folder_token: string,
+    is_unread?: boolean,
   ) => Promise<boolean>;
   remove_folder_from_email: (
     email_id: string,
     folder_token: string,
+    is_unread?: boolean,
   ) => Promise<boolean>;
   get_folder_by_token: (folder_token: string) => DecryptedFolder | undefined;
   get_folder_by_id: (folder_id: string) => DecryptedFolder | undefined;

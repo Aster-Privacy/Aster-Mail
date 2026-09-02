@@ -88,6 +88,28 @@ function arm_progress_stall_timeout() {
   }, PROGRESS_STALL_MS);
 }
 
+export function settle_undo_toast(
+  toast: ActionToastState,
+  message: string,
+  dismiss_after_ms: number,
+): boolean {
+  if (!current_toast || current_toast.id !== toast.id) return false;
+
+  if (toast_timeout) {
+    clearTimeout(toast_timeout);
+    toast_timeout = null;
+  }
+
+  current_toast = { ...current_toast, message, on_undo: undefined };
+  toast_listeners.forEach((listener) => listener(current_toast));
+  toast_timeout = setTimeout(() => {
+    current_toast = null;
+    toast_listeners.forEach((listener) => listener(null));
+  }, dismiss_after_ms);
+
+  return true;
+}
+
 export type ActionToastConfig = Omit<ActionToastState, "id"> & {
   duration_ms?: number;
 };
@@ -227,46 +249,10 @@ export function ActionToast({ position }: ActionToastProps) {
     set_is_undoing(true);
     try {
       await toast.on_undo();
-      if (toast_timeout) {
-        clearTimeout(toast_timeout);
-        toast_timeout = null;
-      }
-      set_toast((prev) =>
-        prev
-          ? {
-              ...prev,
-              message: t("common.action_undone"),
-              on_undo: undefined,
-            }
-          : null,
-      );
-      toast_timeout = setTimeout(() => {
-        current_toast = null;
-        toast_listeners.forEach((listener) => listener(null));
-      }, 2000);
+      settle_undo_toast(toast, t("common.action_undone"), 2000);
     } catch (error) {
       if (import.meta.env.DEV) console.error(error);
-      const is_current = current_toast?.id === toast.id;
-
-      if (is_current && toast_timeout) {
-        clearTimeout(toast_timeout);
-        toast_timeout = null;
-      }
-      set_toast((prev) =>
-        prev
-          ? {
-              ...prev,
-              message: t("common.undo_failed"),
-              on_undo: undefined,
-            }
-          : null,
-      );
-      if (is_current) {
-        toast_timeout = setTimeout(() => {
-          current_toast = null;
-          toast_listeners.forEach((listener) => listener(null));
-        }, 5000);
-      }
+      settle_undo_toast(toast, t("common.undo_failed"), 5000);
     } finally {
       set_is_undoing(false);
     }
