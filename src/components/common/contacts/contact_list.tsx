@@ -27,6 +27,7 @@ import type {
   ViewMode,
 } from "@/components/common/hooks/use_contacts_state";
 
+import { useMemo } from "react";
 import {
   MagnifyingGlassIcon,
   PlusIcon,
@@ -48,6 +49,7 @@ import { use_preferences } from "@/contexts/preferences_context";
 import { EncryptionInfoDropdown } from "@/components/common/encryption_info_dropdown";
 import { ContactAvatar } from "@/components/common/contacts/contact_avatar";
 import { ContactGroupChips } from "@/components/contacts/contact_group_chips";
+import { use_contact_groups } from "@/hooks/use_contact_groups";
 import { ManageGroupsMenu } from "@/components/contacts/manage_groups_menu";
 import { cn, format_number } from "@/lib/utils";
 
@@ -101,6 +103,41 @@ interface ContactListProps {
   on_scroll_to_letter: (letter: string) => void;
 }
 
+interface GroupDotsProps {
+  groups: { id: string; name: string; color?: string | null }[];
+  label: string;
+}
+
+const group_dot_fallback = "#94a3b8";
+
+function GroupDots({ groups, label }: GroupDotsProps) {
+  if (groups.length === 0) return null;
+
+  const shown = groups.slice(0, 3);
+  const names = groups.map((group) => group.name).join(", ");
+
+  return (
+    <span
+      aria-label={`${label}: ${names}`}
+      className="flex items-center gap-0.5 flex-shrink-0"
+      title={`${label}: ${names}`}
+    >
+      {shown.map((group) => (
+        <span
+          key={group.id}
+          className="w-1.5 h-1.5 rounded-full"
+          style={{ backgroundColor: group.color || group_dot_fallback }}
+        />
+      ))}
+      {groups.length > shown.length && (
+        <span className="text-[10px] leading-none text-txt-muted">
+          +{groups.length - shown.length}
+        </span>
+      )}
+    </span>
+  );
+}
+
 export function ContactList({
   t,
   contacts,
@@ -134,6 +171,11 @@ export function ContactList({
 }: ContactListProps) {
   const { preferences, update_preference } = use_preferences();
   const auto_save = !!preferences.auto_save_recent_recipients;
+  const { groups: all_groups } = use_contact_groups();
+  const group_by_id = useMemo(
+    () => new Map(all_groups.map((group) => [group.id, group])),
+    [all_groups],
+  );
 
   return (
     <div className="w-full md:w-1/2 md:flex-shrink-0 md:min-w-0 md:border-e md:border-edge-primary min-h-0 flex flex-col">
@@ -321,6 +363,9 @@ export function ContactList({
             const primary_email = contact.emails[0];
             const is_active = selected_contact?.id === contact.id;
             const is_selected = selected_ids.has(contact.id);
+            const member_groups = (contact.groups || [])
+              .map((group_id) => group_by_id.get(group_id))
+              .filter((group): group is NonNullable<typeof group> => !!group);
 
             return (
               <button
@@ -398,6 +443,7 @@ export function ContactList({
                             className="w-3.5 h-3.5 text-amber-400 flex-shrink-0"
                           />
                         )}
+                        <GroupDots groups={member_groups} label={t("common.contact_groups")} />
                       </div>
                       {primary_email && (
                         <p className="text-[12px] truncate text-txt-muted">
@@ -416,6 +462,7 @@ export function ContactList({
                           className="w-3.5 h-3.5 text-amber-400 flex-shrink-0"
                         />
                       )}
+                      <GroupDots groups={member_groups} label={t("common.contact_groups")} />
                     </div>
                   )}
                 </div>

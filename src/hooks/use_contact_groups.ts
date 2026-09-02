@@ -41,9 +41,12 @@ const cached_groups: { data: ContactGroup[]; loaded: boolean } = {
   loaded: false,
 };
 
+let inflight_fetch: Promise<string | null> | null = null;
+
 export function clear_contact_groups_cache(): void {
   cached_groups.data = [];
   cached_groups.loaded = false;
+  inflight_fetch = null;
 }
 
 export function emit_contact_groups_changed(): void {
@@ -79,23 +82,41 @@ export function use_contact_groups() {
 
     set_state((prev) => ({ ...prev, is_loading: prev.groups.length === 0 }));
 
-    const response = await list_contact_groups();
+    if (!inflight_fetch) {
+      const pending = (async (): Promise<string | null> => {
+        const response = await list_contact_groups();
 
-    if (response.error || !response.data) {
+        if (response.error || !response.data) return response.error || "";
+
+        const sorted = sort_groups(response.data.groups);
+
+        cached_groups.data = sorted;
+        cached_groups.loaded = true;
+
+        return null;
+      })();
+
+      inflight_fetch = pending;
+      pending
+        .catch(() => null)
+        .finally(() => {
+          if (inflight_fetch === pending) inflight_fetch = null;
+        });
+    }
+
+    const failure = await inflight_fetch;
+
+    if (failure !== null) {
       set_state((prev) => ({
         ...prev,
         is_loading: false,
-        error: response.error || t("common.failed_to_fetch_contact_groups"),
+        error: failure || t("common.failed_to_fetch_contact_groups"),
       }));
 
       return;
     }
 
-    const sorted = sort_groups(response.data.groups);
-
-    cached_groups.data = sorted;
-    cached_groups.loaded = true;
-    set_state({ groups: sorted, is_loading: false, error: null });
+    set_state({ groups: cached_groups.data, is_loading: false, error: null });
   }, [has_keys, t]);
 
   useEffect(() => {

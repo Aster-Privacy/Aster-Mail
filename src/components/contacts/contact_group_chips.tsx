@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { FilterOption } from "@/components/common/hooks/use_contacts_state";
+import type { TranslationKey } from "@/lib/i18n/types";
 
 import { useState } from "react";
 import { PlusIcon } from "@heroicons/react/24/outline";
@@ -34,6 +35,12 @@ interface ContactGroupChipsProps {
   group_filter: string | null;
   on_set_group_filter: (group_id: string | null) => void;
 }
+
+const attribute_filters: { option: FilterOption; label_key: TranslationKey }[] = [
+  { option: "has_email", label_key: "common.has_email" },
+  { option: "has_phone", label_key: "common.has_phone" },
+  { option: "has_company", label_key: "common.has_company" },
+];
 
 const chip_base =
   "inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full text-[12px] whitespace-nowrap border transition-colors";
@@ -86,6 +93,30 @@ export function ContactGroupChips({
         >
           {t("common.favorites")}
         </button>
+
+        {attribute_filters.map(({ option, label_key }) => {
+          const is_active = filter_by === option && !group_filter;
+
+          return (
+            <button
+              key={option}
+              aria-pressed={is_active}
+              className={cn(
+                chip_base,
+                is_active
+                  ? "bg-brand/10 border-brand/40 text-txt-primary"
+                  : "border-edge-primary text-txt-secondary hover:bg-black/[0.04] dark:hover:bg-white/[0.06]",
+              )}
+              type="button"
+              onClick={() => {
+                on_set_group_filter(null);
+                set_filter_by(is_active ? "all" : option);
+              }}
+            >
+              {t(label_key)}
+            </button>
+          );
+        })}
 
         {groups.map((group) => {
           const is_active = group_filter === group.id;
