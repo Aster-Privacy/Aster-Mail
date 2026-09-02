@@ -64,6 +64,7 @@ import {
 import {
   remove_ids as remove_index_ids,
   reindex_ids,
+  set_ids_read,
 } from "@/services/category_index";
 import { mark_conversation_read } from "@/hooks/mark_conversation_read";
 import { ignore_error } from "@/lib/ignore_error";
@@ -231,6 +232,7 @@ export function use_email_list_actions({
           return;
         }
 
+        set_ids_read([id], new_read_state);
         if (new_read_state && email.item_type === "received") {
           mark_conversation_read(conversation_options);
         }

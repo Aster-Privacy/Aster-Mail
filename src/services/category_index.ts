@@ -937,6 +937,18 @@ export function set_ids_read(ids: string[], is_read: boolean): void {
   }
 }
 
+export function set_all_indexed_read(is_read: boolean): string[] {
+  const changed: string[] = [];
+
+  for (const [id, entry] of entries_map) {
+    if (entry.is_read !== is_read) changed.push(id);
+  }
+
+  if (changed.length > 0) set_ids_read(changed, is_read);
+
+  return changed;
+}
+
 export function mark_thread_read_entries(thread_token: string): void {
   if (!thread_token) return;
 

@@ -56,6 +56,7 @@ import {
   remove_ids as remove_index_ids,
   remove_thread_entries,
   reindex_ids,
+  set_ids_read,
 } from "@/services/category_index";
 import {
   permanent_delete_mail_item,
@@ -443,6 +444,7 @@ export function build_core_context_menu_actions(
         encrypted_metadata: result.encrypted?.encrypted_metadata,
         metadata_nonce: result.encrypted?.metadata_nonce,
       });
+      set_ids_read([email.id], new_state);
       if (new_state && is_received) {
         mark_conversation_read(conversation_options);
       }
@@ -472,6 +474,7 @@ export function build_core_context_menu_actions(
             throw new Error("undo mark read failed");
           }
 
+          set_ids_read([email.id], !new_state);
           emit_mail_item_updated({
             id: email.id,
             is_read: !new_state,

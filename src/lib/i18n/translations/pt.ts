@@ -7772,6 +7772,20 @@ export const pt = {
     delete_messages_title: "Excluir Mensagens",
     delete_messages_confirmation:
       "As mensagens selecionadas serão removidas definitivamente e você não pode desfazer.",
+    confirm_bulk_action_scope_description:
+      "Isto afeta todas as {{count}} conversas em {{scope}}.",
+    confirm_bulk_action_scope_description_one:
+      "Isto afeta {{count}} conversa em {{scope}}.",
+    confirm_bulk_action_scope_description_other:
+      "Isto afeta todas as {{count}} conversas em {{scope}}.",
+    confirm_bulk_action_count_description:
+      "Isto afeta todas as {{count}} conversas nesta vista.",
+    confirm_bulk_action_count_description_one:
+      "Isto afeta {{count}} conversa nesta vista.",
+    confirm_bulk_action_count_description_other:
+      "Isto afeta todas as {{count}} conversas nesta vista.",
+    remove_from_folder: "Remover da pasta",
+    remove_label: "Remover etiqueta",
     confirm_bulk_action_title: "Confirmar ação em massa",
     confirm_bulk_action_description:
       "Esta ação afetará todas as conversas nesta visualização.",

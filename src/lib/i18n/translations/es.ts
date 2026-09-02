@@ -7701,6 +7701,20 @@ export const es = {
     delete_messages_title: "Eliminar mensajes",
     delete_messages_confirmation:
       "Los mensajes seleccionados se eliminarán para siempre y no podrás deshacerlo.",
+    confirm_bulk_action_scope_description:
+      "Esto afecta a las {{count}} conversaciones de {{scope}}.",
+    confirm_bulk_action_scope_description_one:
+      "Esto afecta a {{count}} conversación de {{scope}}.",
+    confirm_bulk_action_scope_description_other:
+      "Esto afecta a las {{count}} conversaciones de {{scope}}.",
+    confirm_bulk_action_count_description:
+      "Esto afecta a las {{count}} conversaciones de esta vista.",
+    confirm_bulk_action_count_description_one:
+      "Esto afecta a {{count}} conversación de esta vista.",
+    confirm_bulk_action_count_description_other:
+      "Esto afecta a las {{count}} conversaciones de esta vista.",
+    remove_from_folder: "Quitar de la carpeta",
+    remove_label: "Quitar etiqueta",
     confirm_bulk_action_title: "Confirmar acción masiva",
     confirm_bulk_action_description:
       "Esta acción afectará a todas las conversaciones de esta vista.",

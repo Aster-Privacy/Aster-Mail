@@ -6858,6 +6858,14 @@ export interface MailTranslations {
   trash_messages_confirmation: string;
   confirm_bulk_action_title: string;
   confirm_bulk_action_description: string;
+  confirm_bulk_action_scope_description: string;
+  confirm_bulk_action_scope_description_one: string;
+  confirm_bulk_action_scope_description_other: string;
+  confirm_bulk_action_count_description: string;
+  confirm_bulk_action_count_description_one: string;
+  confirm_bulk_action_count_description_other: string;
+  remove_from_folder: string;
+  remove_label: string;
   bulk_action_index_not_ready: string;
   bulk_action_index_building: string;
   bulk_action_index_capped: string;

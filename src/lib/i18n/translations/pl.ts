@@ -7969,6 +7969,20 @@ export const pl = {
     delete_messages_title: "Usuń wiadomości",
     delete_messages_confirmation:
       "Wybrane wiadomości zostaną trwale usunięte i tej operacji nie można cofnąć.",
+    confirm_bulk_action_scope_description:
+      "Ta czynność obejmie wszystkie rozmowy ({{count}}) w {{scope}}.",
+    confirm_bulk_action_scope_description_one:
+      "Ta czynność obejmie {{count}} rozmowę w {{scope}}.",
+    confirm_bulk_action_scope_description_other:
+      "Ta czynność obejmie wszystkie rozmowy ({{count}}) w {{scope}}.",
+    confirm_bulk_action_count_description:
+      "Ta czynność obejmie wszystkie rozmowy ({{count}}) w tym widoku.",
+    confirm_bulk_action_count_description_one:
+      "Ta czynność obejmie {{count}} rozmowę w tym widoku.",
+    confirm_bulk_action_count_description_other:
+      "Ta czynność obejmie wszystkie rozmowy ({{count}}) w tym widoku.",
+    remove_from_folder: "Usuń z folderu",
+    remove_label: "Usuń etykietę",
     confirm_bulk_action_title: "Potwierdź akcję zbiorczą",
     confirm_bulk_action_description:
       "Ta akcja wpłynie na każdą konwersację w tym widoku.",

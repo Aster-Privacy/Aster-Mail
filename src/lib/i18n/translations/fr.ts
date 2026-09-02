@@ -7796,6 +7796,20 @@ export const fr = {
     delete_messages_title: "Supprimer les messages",
     delete_messages_confirmation:
       "Les messages sélectionnés seront retirés pour de bon et vous ne pouvez pas annuler cette action.",
+    confirm_bulk_action_scope_description:
+      "Cette action concerne les {{count}} conversations dans {{scope}}.",
+    confirm_bulk_action_scope_description_one:
+      "Cette action concerne {{count}} conversation dans {{scope}}.",
+    confirm_bulk_action_scope_description_other:
+      "Cette action concerne les {{count}} conversations dans {{scope}}.",
+    confirm_bulk_action_count_description:
+      "Cette action concerne les {{count}} conversations de cette vue.",
+    confirm_bulk_action_count_description_one:
+      "Cette action concerne {{count}} conversation de cette vue.",
+    confirm_bulk_action_count_description_other:
+      "Cette action concerne les {{count}} conversations de cette vue.",
+    remove_from_folder: "Retirer du dossier",
+    remove_label: "Retirer l'étiquette",
     confirm_bulk_action_title: "Confirmer l'action groupée",
     confirm_bulk_action_description:
       "Cette action affectera toutes les conversations de cette vue.",

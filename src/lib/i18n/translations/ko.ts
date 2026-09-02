@@ -7379,6 +7379,20 @@ export const ko = {
     delete_messages_title: "메시지 삭제",
     delete_messages_confirmation:
       "선택한 메시지는 영구히 제거되며 되돌릴 수 없습니다.",
+    confirm_bulk_action_scope_description:
+      "{{scope}}의 대화 {{count}}개 모두에 적용됩니다.",
+    confirm_bulk_action_scope_description_one:
+      "{{scope}}의 대화 {{count}}개 모두에 적용됩니다.",
+    confirm_bulk_action_scope_description_other:
+      "{{scope}}의 대화 {{count}}개 모두에 적용됩니다.",
+    confirm_bulk_action_count_description:
+      "이 보기의 대화 {{count}}개 모두에 적용됩니다.",
+    confirm_bulk_action_count_description_one:
+      "이 보기의 대화 {{count}}개 모두에 적용됩니다.",
+    confirm_bulk_action_count_description_other:
+      "이 보기의 대화 {{count}}개 모두에 적용됩니다.",
+    remove_from_folder: "폴더에서 제거",
+    remove_label: "라벨 제거",
     confirm_bulk_action_title: "일괄 작업 확인",
     confirm_bulk_action_description:
       "이 작업은 이 보기의 모든 대화에 영향을 줍니다.",

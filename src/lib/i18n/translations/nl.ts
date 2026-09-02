@@ -7707,6 +7707,20 @@ export const nl = {
     delete_messages_title: "Berichten verwijderen",
     delete_messages_confirmation:
       "De geselecteerde berichten worden definitief verwijderd en u kunt dit niet ongedaan maken.",
+    confirm_bulk_action_scope_description:
+      "Dit heeft gevolgen voor alle {{count}} gesprekken in {{scope}}.",
+    confirm_bulk_action_scope_description_one:
+      "Dit heeft gevolgen voor {{count}} gesprek in {{scope}}.",
+    confirm_bulk_action_scope_description_other:
+      "Dit heeft gevolgen voor alle {{count}} gesprekken in {{scope}}.",
+    confirm_bulk_action_count_description:
+      "Dit heeft gevolgen voor alle {{count}} gesprekken in deze weergave.",
+    confirm_bulk_action_count_description_one:
+      "Dit heeft gevolgen voor {{count}} gesprek in deze weergave.",
+    confirm_bulk_action_count_description_other:
+      "Dit heeft gevolgen voor alle {{count}} gesprekken in deze weergave.",
+    remove_from_folder: "Uit map verwijderen",
+    remove_label: "Label verwijderen",
     confirm_bulk_action_title: "Bulkactie bevestigen",
     confirm_bulk_action_description:
       "Deze actie heeft invloed op elk gesprek in deze weergave.",

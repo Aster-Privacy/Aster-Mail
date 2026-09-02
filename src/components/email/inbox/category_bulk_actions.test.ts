@@ -30,10 +30,12 @@ vi.mock("@/services/crypto/mail_metadata", () => ({
 
 vi.mock("@/services/category_index", () => ({
   get_category_action_ids: vi.fn(),
+  get_index_entries: vi.fn(),
   is_fully_built: vi.fn(),
   is_index_capped: vi.fn(),
   remove_ids: vi.fn(),
   reindex_ids: vi.fn(),
+  set_ids_read: vi.fn(),
 }));
 
 vi.mock("@/hooks/email_list_cache", () => ({
@@ -53,10 +55,12 @@ import { batch_archive } from "@/services/api/archive";
 import { bulk_update_metadata_by_ids } from "@/services/crypto/mail_metadata";
 import {
   get_category_action_ids,
+  get_index_entries,
   is_fully_built,
   is_index_capped,
   remove_ids,
   reindex_ids,
+  set_ids_read,
 } from "@/services/category_index";
 import { stale_all_view_caches } from "@/hooks/email_list_cache";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
@@ -68,9 +72,20 @@ const mock_fully_built = vi.mocked(is_fully_built);
 const mock_capped = vi.mocked(is_index_capped);
 const mock_remove_ids = vi.mocked(remove_ids);
 const mock_reindex_ids = vi.mocked(reindex_ids);
+const mock_index_entries = vi.mocked(get_index_entries);
+const mock_set_ids_read = vi.mocked(set_ids_read);
 
 function make_ids(count: number): string[] {
   return Array.from({ length: count }, (_, i) => `id_${i}`);
+}
+
+function set_read_states(states: Record<string, boolean>) {
+  mock_index_entries.mockImplementation(
+    (ids: string[]) =>
+      ids.map((id) => ({ id, is_read: states[id] ?? false })) as ReturnType<
+        typeof get_index_entries
+      >,
+  );
 }
 
 function set_index(ids: string[]) {
@@ -82,6 +97,7 @@ function set_index(ids: string[]) {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  set_read_states({});
   mock_fully_built.mockReturnValue(true);
   mock_capped.mockReturnValue(false);
   mock_batch_archive.mockResolvedValue({
@@ -268,35 +284,79 @@ describe("run_category_scope_action", () => {
     expect(mock_remove_ids.mock.calls.flatMap((c) => c[0])).toEqual(all_ids);
   });
 
-  it("reindexes after read and star updates instead of removing", async () => {
+  it("updates the index in place after a read change instead of reindexing", async () => {
     const all_ids = make_ids(120);
 
     set_index(all_ids);
+
+    const outcome = await run_category_scope_action("mark_read", "primary");
+
+    expect(outcome).toBe("done");
+    expect(mock_bulk_update).toHaveBeenCalledWith(all_ids.slice(0, 100), {
+      is_read: true,
+    });
+    expect(mock_set_ids_read.mock.calls.flatMap((c) => c[0])).toEqual(all_ids);
+    for (const call of mock_set_ids_read.mock.calls) {
+      expect(call[1]).toBe(true);
+    }
+    expect(mock_remove_ids).not.toHaveBeenCalled();
+    expect(mock_reindex_ids).not.toHaveBeenCalled();
+  });
+
+  it("only sends the messages whose read state actually changes", async () => {
+    const all_ids = make_ids(4);
+
+    set_index(all_ids);
+    set_read_states({ id_0: true, id_2: true });
+
+    const outcome = await run_category_scope_action("mark_read", "primary");
+
+    expect(outcome).toBe("done");
+    expect(mock_bulk_update).toHaveBeenCalledWith(["id_1", "id_3"], {
+      is_read: true,
+    });
+    expect(mock_set_ids_read).toHaveBeenCalledWith(["id_1", "id_3"], true);
+  });
+
+  it("returns noop when every message already has the target read state", async () => {
+    const all_ids = make_ids(3);
+
+    set_index(all_ids);
+    set_read_states({ id_0: true, id_1: true, id_2: true });
+
+    const outcome = await run_category_scope_action("mark_read", "primary");
+
+    expect(outcome).toBe("noop");
+    expect(mock_bulk_update).not.toHaveBeenCalled();
+    expect(mock_set_ids_read).not.toHaveBeenCalled();
+  });
+
+  it("marks unread messages that are currently read", async () => {
+    const all_ids = make_ids(120);
+
+    set_index(all_ids);
+    set_read_states(Object.fromEntries(all_ids.map((id) => [id, true])));
 
     await run_category_scope_action("mark_unread", "primary");
 
     expect(mock_bulk_update).toHaveBeenCalledWith(all_ids.slice(0, 100), {
       is_read: false,
     });
-    expect(mock_remove_ids).not.toHaveBeenCalled();
-    expect(mock_reindex_ids).toHaveBeenCalledWith(all_ids);
+    expect(mock_set_ids_read.mock.calls.flatMap((c) => c[0])).toEqual(all_ids);
+    expect(mock_reindex_ids).not.toHaveBeenCalled();
+  });
 
-    vi.clearAllMocks();
-    mock_fully_built.mockReturnValue(true);
-    mock_capped.mockReturnValue(false);
+  it("reindexes after star updates instead of removing", async () => {
+    const all_ids = make_ids(120);
+
     set_index(all_ids);
-    mock_bulk_update.mockResolvedValue({
-      success: true,
-      updated_count: 0,
-      failed_ids: [],
-      undecryptable_ids: [],
-    });
 
     await run_category_scope_action("star", "primary");
 
     expect(mock_bulk_update).toHaveBeenCalledWith(all_ids.slice(0, 100), {
       is_starred: true,
     });
+    expect(mock_remove_ids).not.toHaveBeenCalled();
     expect(mock_reindex_ids).toHaveBeenCalledWith(all_ids);
   });
 

@@ -7818,6 +7818,20 @@ export const it = {
     delete_messages_title: "Elimina messaggi",
     delete_messages_confirmation:
       "I messaggi selezionati verranno rimossi definitivamente e non è possibile annullare l'operazione.",
+    confirm_bulk_action_scope_description:
+      "Questa azione riguarda tutte le {{count}} conversazioni in {{scope}}.",
+    confirm_bulk_action_scope_description_one:
+      "Questa azione riguarda {{count}} conversazione in {{scope}}.",
+    confirm_bulk_action_scope_description_other:
+      "Questa azione riguarda tutte le {{count}} conversazioni in {{scope}}.",
+    confirm_bulk_action_count_description:
+      "Questa azione riguarda tutte le {{count}} conversazioni in questa vista.",
+    confirm_bulk_action_count_description_one:
+      "Questa azione riguarda {{count}} conversazione in questa vista.",
+    confirm_bulk_action_count_description_other:
+      "Questa azione riguarda tutte le {{count}} conversazioni in questa vista.",
+    remove_from_folder: "Rimuovi dalla cartella",
+    remove_label: "Rimuovi etichetta",
     confirm_bulk_action_title: "Conferma azione in blocco",
     confirm_bulk_action_description:
       "Questa azione interesserà ogni conversazione in questa visualizzazione.",

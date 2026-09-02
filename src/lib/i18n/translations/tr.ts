@@ -7703,6 +7703,20 @@ export const tr = {
     delete_messages_title: "Mesajları Sil",
     delete_messages_confirmation:
       "Seçilen mesajlar kalıcı olarak kaldırılır ve geri alamazsınız.",
+    confirm_bulk_action_scope_description:
+      "Bu işlem {{scope}} içindeki {{count}} sohbetin tümünü etkiler.",
+    confirm_bulk_action_scope_description_one:
+      "Bu işlem {{scope}} içindeki {{count}} sohbeti etkiler.",
+    confirm_bulk_action_scope_description_other:
+      "Bu işlem {{scope}} içindeki {{count}} sohbetin tümünü etkiler.",
+    confirm_bulk_action_count_description:
+      "Bu işlem bu görünümdeki {{count}} sohbetin tümünü etkiler.",
+    confirm_bulk_action_count_description_one:
+      "Bu işlem bu görünümdeki {{count}} sohbeti etkiler.",
+    confirm_bulk_action_count_description_other:
+      "Bu işlem bu görünümdeki {{count}} sohbetin tümünü etkiler.",
+    remove_from_folder: "Klasörden kaldır",
+    remove_label: "Etiketi kaldır",
     confirm_bulk_action_title: "Toplu işlemi onayla",
     confirm_bulk_action_description:
       "Bu işlem bu görünümdeki her sohbeti etkileyecektir.",

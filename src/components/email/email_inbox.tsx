@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { EmailInboxProps } from "@/components/email/inbox/inbox_types";
+import type { TranslationKey } from "@/lib/i18n/types";
 
 import { EmailListHeader } from "@/components/email/email_list_header";
 import { CategoryTabs } from "@/components/email/inbox/category_tabs";
@@ -54,6 +55,12 @@ export type {
   ScheduledClickData,
 } from "@/components/email/inbox/inbox_types";
 import { use_email_inbox_state } from "./use_email_inbox_state";
+
+const DESTRUCTIVE_BULK_ACTION_LABELS = new Set<TranslationKey>([
+  "mail.move_to_trash",
+  "mail.delete_permanently",
+  "mail.mark_as_spam",
+]);
 
 export function EmailInbox(props: EmailInboxProps): React.ReactElement {
   const {
@@ -151,6 +158,11 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
     handle_page_change,
     handle_filter_change,
   } = use_email_inbox_state(props);
+
+  const pending_bulk_action_count = Math.max(
+    effective_total_for_pages - selection.excluded_ids.length,
+    0,
+  );
 
   const handle_viewer_snooze = () => {
     const target = email_state.emails.find(
@@ -611,20 +623,44 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
         />
         <ConfirmModal
           hide_dont_ask
-          confirm_text={t("common.ok")}
-          confirm_variant="default"
-          description={t("mail.confirm_bulk_action_description")}
+          confirm_variant={
+            pending_select_all_action &&
+            DESTRUCTIVE_BULK_ACTION_LABELS.has(
+              pending_select_all_action.label_key,
+            )
+              ? "destructive"
+              : "default"
+          }
+          confirm_text={
+            pending_select_all_action
+              ? t(pending_select_all_action.label_key)
+              : t("common.ok")
+          }
+          description={
+            active_category_title
+              ? t("mail.confirm_bulk_action_scope_description", {
+                  count: pending_bulk_action_count,
+                  scope: active_category_title,
+                })
+              : t("mail.confirm_bulk_action_count_description", {
+                  count: pending_bulk_action_count,
+                })
+          }
           dont_ask={false}
           on_cancel={() => set_pending_select_all_action(null)}
           on_confirm={() => {
-            const action = pending_select_all_action;
+            const pending = pending_select_all_action;
 
             set_pending_select_all_action(null);
-            action?.();
+            pending?.run();
           }}
           on_dont_ask_change={() => {}}
           show={pending_select_all_action !== null}
-          title={t("mail.confirm_bulk_action_title")}
+          title={
+            pending_select_all_action
+              ? t(pending_select_all_action.label_key)
+              : t("mail.confirm_bulk_action_title")
+          }
         />
       </div>
     </ErrorBoundary>

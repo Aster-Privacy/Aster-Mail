@@ -7595,6 +7595,20 @@ export const ja = {
     delete_messages_title: "メッセージを削除",
     delete_messages_confirmation:
       "選択したメッセージは完全に削除され、元に戻せません。",
+    confirm_bulk_action_scope_description:
+      "{{scope}}内のすべての会話（{{count}}件）に適用されます。",
+    confirm_bulk_action_scope_description_one:
+      "{{scope}}内のすべての会話（{{count}}件）に適用されます。",
+    confirm_bulk_action_scope_description_other:
+      "{{scope}}内のすべての会話（{{count}}件）に適用されます。",
+    confirm_bulk_action_count_description:
+      "この表示内のすべての会話（{{count}}件）に適用されます。",
+    confirm_bulk_action_count_description_one:
+      "この表示内のすべての会話（{{count}}件）に適用されます。",
+    confirm_bulk_action_count_description_other:
+      "この表示内のすべての会話（{{count}}件）に適用されます。",
+    remove_from_folder: "フォルダから削除",
+    remove_label: "ラベルを削除",
     confirm_bulk_action_title: "一括操作の確認",
     confirm_bulk_action_description:
       "この操作はこのビューのすべての会話に影響します。",

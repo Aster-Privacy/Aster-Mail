@@ -82,6 +82,7 @@ import {
   remove_ids as remove_index_ids,
   remove_thread_entries,
   reindex_ids,
+  set_ids_read,
 } from "@/services/category_index";
 
 const EMIT_UPDATED_MAX = 200;
@@ -551,6 +552,18 @@ export function use_inbox_toolbar_actions({
       }
     }
 
+    const succeeded_message_ids = Array.from(
+      new Set(
+        selected
+          .filter((email) => !failed_id_set.has(email.id))
+          .flatMap(expand_email_ids),
+      ),
+    );
+
+    if (succeeded_message_ids.length > 0) {
+      set_ids_read(succeeded_message_ids, new_state);
+    }
+
     const result = bulk_action_result(
       selected.map((email) => email.id),
       failed.map((email) => email.id),
@@ -630,6 +643,18 @@ export function use_inbox_toolbar_actions({
       if (failed_delta !== 0) {
         adjust_stats_unread(-failed_delta);
       }
+    }
+
+    const succeeded_unread_ids = Array.from(
+      new Set(
+        selected
+          .filter((email) => !failed_id_set.has(email.id))
+          .flatMap(expand_email_ids),
+      ),
+    );
+
+    if (succeeded_unread_ids.length > 0) {
+      set_ids_read(succeeded_unread_ids, false);
     }
 
     show_bulk_result_toast({

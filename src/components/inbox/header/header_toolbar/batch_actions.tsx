@@ -286,6 +286,8 @@ export function use_batch_actions(t: ReturnType<typeof use_i18n>["t"]) {
                 );
               },
             });
+          } else {
+            show_toast(t("common.no_read_emails_to_archive"), "info");
           }
 
           notify_scan_truncated(reached_cap, t);
@@ -463,6 +465,8 @@ export function use_batch_actions(t: ReturnType<typeof use_i18n>["t"]) {
                 );
               },
             });
+          } else {
+            show_toast(t("common.no_unread_emails"), "info");
           }
 
           notify_scan_truncated(reached_cap, t);

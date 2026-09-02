@@ -7883,6 +7883,20 @@ export const de = {
     delete_messages_title: "Nachrichten löschen",
     delete_messages_confirmation:
       "Die ausgewählten Nachrichten werden endgültig entfernt, und dies lässt sich nicht rückgängig machen.",
+    confirm_bulk_action_scope_description:
+      "Das betrifft alle {{count}} Unterhaltungen in {{scope}}.",
+    confirm_bulk_action_scope_description_one:
+      "Das betrifft {{count}} Unterhaltung in {{scope}}.",
+    confirm_bulk_action_scope_description_other:
+      "Das betrifft alle {{count}} Unterhaltungen in {{scope}}.",
+    confirm_bulk_action_count_description:
+      "Das betrifft alle {{count}} Unterhaltungen in dieser Ansicht.",
+    confirm_bulk_action_count_description_one:
+      "Das betrifft {{count}} Unterhaltung in dieser Ansicht.",
+    confirm_bulk_action_count_description_other:
+      "Das betrifft alle {{count}} Unterhaltungen in dieser Ansicht.",
+    remove_from_folder: "Aus Ordner entfernen",
+    remove_label: "Label entfernen",
     confirm_bulk_action_title: "Massenaktion bestätigen",
     confirm_bulk_action_description:
       "Diese Aktion betrifft jede Konversation in dieser Ansicht.",

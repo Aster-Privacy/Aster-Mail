@@ -7932,6 +7932,20 @@ export const ru = {
     delete_messages_title: "Удалить сообщения",
     delete_messages_confirmation:
       "Выбранные сообщения будут удалены окончательно, и отменить это нельзя.",
+    confirm_bulk_action_scope_description:
+      "Это затронет все беседы ({{count}}) в разделе {{scope}}.",
+    confirm_bulk_action_scope_description_one:
+      "Это затронет {{count}} беседу в разделе {{scope}}.",
+    confirm_bulk_action_scope_description_other:
+      "Это затронет все беседы ({{count}}) в разделе {{scope}}.",
+    confirm_bulk_action_count_description:
+      "Это затронет все беседы ({{count}}) в этом представлении.",
+    confirm_bulk_action_count_description_one:
+      "Это затронет {{count}} беседу в этом представлении.",
+    confirm_bulk_action_count_description_other:
+      "Это затронет все беседы ({{count}}) в этом представлении.",
+    remove_from_folder: "Убрать из папки",
+    remove_label: "Удалить метку",
     confirm_bulk_action_title: "Подтвердите массовое действие",
     confirm_bulk_action_description:
       "Это действие затронет все беседы в этом представлении.",

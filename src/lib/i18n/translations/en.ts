@@ -7624,6 +7624,20 @@ export const en: Translations = {
     delete_messages_title: "Delete Messages",
     delete_messages_confirmation:
       "The selected messages will be removed for good and you cannot undo it.",
+    confirm_bulk_action_scope_description:
+      "This affects all {{count}} conversations in {{scope}}.",
+    confirm_bulk_action_scope_description_one:
+      "This affects {{count}} conversation in {{scope}}.",
+    confirm_bulk_action_scope_description_other:
+      "This affects all {{count}} conversations in {{scope}}.",
+    confirm_bulk_action_count_description:
+      "This affects all {{count}} conversations in this view.",
+    confirm_bulk_action_count_description_one:
+      "This affects {{count}} conversation in this view.",
+    confirm_bulk_action_count_description_other:
+      "This affects all {{count}} conversations in this view.",
+    remove_from_folder: "Remove from folder",
+    remove_label: "Remove label",
     confirm_bulk_action_title: "Confirm bulk action",
     confirm_bulk_action_description:
       "This action will affect every conversation in this view.",

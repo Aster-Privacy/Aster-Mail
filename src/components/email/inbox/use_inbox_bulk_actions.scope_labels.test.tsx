@@ -157,7 +157,7 @@ function render_hook(params: unknown): void {
 
 async function run_pending_select_all(): Promise<void> {
   await act(async () => {
-    hook.pending_select_all_action?.();
+    hook.pending_select_all_action?.run();
   });
 }
 

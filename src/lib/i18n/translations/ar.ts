@@ -7683,6 +7683,20 @@ export const ar = {
     delete_messages_title: "حذف الرسائل",
     delete_messages_confirmation:
       "الرسائل المحددة ستُزال نهائيًا ولا يمكن التراجع.",
+    confirm_bulk_action_scope_description:
+      "يؤثر هذا في جميع المحادثات في {{scope}} وعددها {{count}}.",
+    confirm_bulk_action_scope_description_one:
+      "يؤثر هذا في {{count}} محادثة في {{scope}}.",
+    confirm_bulk_action_scope_description_other:
+      "يؤثر هذا في جميع المحادثات في {{scope}} وعددها {{count}}.",
+    confirm_bulk_action_count_description:
+      "يؤثر هذا في جميع المحادثات في هذا العرض وعددها {{count}}.",
+    confirm_bulk_action_count_description_one:
+      "يؤثر هذا في {{count}} محادثة في هذا العرض.",
+    confirm_bulk_action_count_description_other:
+      "يؤثر هذا في جميع المحادثات في هذا العرض وعددها {{count}}.",
+    remove_from_folder: "إزالة من المجلد",
+    remove_label: "إزالة التصنيف",
     confirm_bulk_action_title: "تأكيد الإجراء الجماعي",
     confirm_bulk_action_description:
       "سيؤثر هذا الإجراء على كل محادثة في هذا العرض.",

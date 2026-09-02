@@ -114,6 +114,11 @@ const BULK_SCOPE_TOAST: Record<
   },
 };
 
+export type PendingSelectAllAction = {
+  label_key: TranslationKey;
+  run: () => void;
+};
+
 export type InboxBulkActionsParams = {
   categories: ReturnType<typeof use_inbox_categories>;
   selection: ReturnType<typeof use_inbox_selection>;
@@ -145,13 +150,15 @@ export function use_inbox_bulk_actions({
   set_current_page,
   t,
 }: InboxBulkActionsParams) {
-  const [pending_select_all_action, set_pending_select_all_action] = useState<
-    (() => void) | null
-  >(null);
+  const [pending_select_all_action, set_pending_select_all_action] =
+    useState<PendingSelectAllAction | null>(null);
 
-  const queue_select_all_action = useCallback((action: () => void) => {
-    set_pending_select_all_action(() => action);
-  }, []);
+  const queue_select_all_action = useCallback(
+    (label_key: TranslationKey, run: () => void) => {
+      set_pending_select_all_action({ label_key, run });
+    },
+    [],
+  );
 
   const run_category_bulk_action = useCallback(
     async (
@@ -260,6 +267,17 @@ export function use_inbox_bulk_actions({
 
               return;
             }
+          }
+          if (outcome === "noop") {
+            settle_view(false);
+            show_toast(
+              action === "mark_read"
+                ? t("common.no_unread_emails")
+                : t("common.no_emails_to_process"),
+              "info",
+            );
+
+            return;
           }
           if (outcome !== "unsupported") {
             handled_by_category = true;
@@ -605,7 +623,7 @@ export function use_inbox_bulk_actions({
   const handle_snooze_wrapped = useCallback(
     async (snooze_until: Date): Promise<boolean> => {
       if (selection.select_all_mode) {
-        queue_select_all_action(() => {
+        queue_select_all_action("mail.snooze", () => {
           void run_scope_snooze(snooze_until);
         });
 
@@ -620,9 +638,12 @@ export function use_inbox_bulk_actions({
   const handle_folder_toggle_wrapped = useCallback(
     (folder_token: string, should_remove: boolean) => {
       if (selection.select_all_mode) {
-        queue_select_all_action(() => {
-          void run_scope_label_action("folder", folder_token, should_remove);
-        });
+        queue_select_all_action(
+          should_remove ? "mail.remove_from_folder" : "mail.move_to_folder",
+          () => {
+            void run_scope_label_action("folder", folder_token, should_remove);
+          },
+        );
 
         return;
       }
@@ -634,9 +655,12 @@ export function use_inbox_bulk_actions({
   const handle_tag_toggle_wrapped = useCallback(
     (tag_token: string, should_remove: boolean) => {
       if (selection.select_all_mode) {
-        queue_select_all_action(() => {
-          void run_scope_label_action("tag", tag_token, should_remove);
-        });
+        queue_select_all_action(
+          should_remove ? "mail.remove_label" : "mail.apply_label",
+          () => {
+            void run_scope_label_action("tag", tag_token, should_remove);
+          },
+        );
 
         return;
       }
@@ -694,21 +718,26 @@ export function use_inbox_bulk_actions({
 
   const handle_delete_wrapped = useCallback(() => {
     if (selection.select_all_mode) {
-      queue_select_all_action(() => {
-        if (current_view === "trash") {
-          if (selection.excluded_ids.length > 0) {
-            void run_trash_scope_permanent_delete();
+      queue_select_all_action(
+        current_view === "trash"
+          ? "mail.delete_permanently"
+          : "mail.move_to_trash",
+        () => {
+          if (current_view === "trash") {
+            if (selection.excluded_ids.length > 0) {
+              void run_trash_scope_permanent_delete();
+
+              return;
+            }
+            toolbar.handle_empty_trash();
+            selection.exit_select_all_mode();
+            selection.handle_clear_selection();
 
             return;
           }
-          toolbar.handle_empty_trash();
-          selection.exit_select_all_mode();
-          selection.handle_clear_selection();
-
-          return;
-        }
-        void run_scope_action("trash");
-      });
+          void run_scope_action("trash");
+        },
+      );
 
       return;
     }
@@ -724,7 +753,7 @@ export function use_inbox_bulk_actions({
 
   const handle_archive_wrapped = useCallback(() => {
     if (selection.select_all_mode) {
-      queue_select_all_action(() => {
+      queue_select_all_action("mail.archive", () => {
         void run_scope_action("archive");
       });
 
@@ -735,7 +764,7 @@ export function use_inbox_bulk_actions({
 
   const handle_unarchive_wrapped = useCallback(() => {
     if (selection.select_all_mode) {
-      queue_select_all_action(() => {
+      queue_select_all_action("mail.move_to_inbox", () => {
         void run_scope_action("unarchive");
       });
 
@@ -746,13 +775,16 @@ export function use_inbox_bulk_actions({
 
   const handle_spam_wrapped = useCallback(() => {
     if (selection.select_all_mode) {
-      queue_select_all_action(() => {
-        if (current_view === "spam") {
-          void run_scope_action("unmark_spam");
-        } else {
-          void run_scope_action("mark_spam");
-        }
-      });
+      queue_select_all_action(
+        current_view === "spam" ? "mail.not_spam" : "mail.mark_as_spam",
+        () => {
+          if (current_view === "spam") {
+            void run_scope_action("unmark_spam");
+          } else {
+            void run_scope_action("mark_spam");
+          }
+        },
+      );
 
       return;
     }
@@ -767,7 +799,7 @@ export function use_inbox_bulk_actions({
 
   const handle_mark_read_wrapped = useCallback(() => {
     if (selection.select_all_mode) {
-      queue_select_all_action(() => {
+      queue_select_all_action("mail.mark_as_read", () => {
         void run_scope_action("mark_read");
       });
 
@@ -778,7 +810,7 @@ export function use_inbox_bulk_actions({
 
   const handle_mark_unread_wrapped = useCallback(() => {
     if (selection.select_all_mode) {
-      queue_select_all_action(() => {
+      queue_select_all_action("mail.mark_as_unread", () => {
         void run_scope_action("mark_unread");
       });
 
@@ -789,9 +821,12 @@ export function use_inbox_bulk_actions({
 
   const handle_toggle_star_wrapped = useCallback(() => {
     if (selection.select_all_mode) {
-      queue_select_all_action(() => {
-        void run_scope_action(current_view === "starred" ? "unstar" : "star");
-      });
+      queue_select_all_action(
+        current_view === "starred" ? "mail.unstar" : "mail.star",
+        () => {
+          void run_scope_action(current_view === "starred" ? "unstar" : "star");
+        },
+      );
 
       return;
     }
@@ -806,7 +841,7 @@ export function use_inbox_bulk_actions({
 
   const handle_restore_wrapped = useCallback(() => {
     if (selection.select_all_mode) {
-      queue_select_all_action(() => {
+      queue_select_all_action("mail.restore", () => {
         void run_scope_action("restore_trash");
       });
 
@@ -817,7 +852,7 @@ export function use_inbox_bulk_actions({
 
   const handle_not_spam_wrapped = useCallback(() => {
     if (selection.select_all_mode) {
-      queue_select_all_action(() => {
+      queue_select_all_action("mail.not_spam", () => {
         void run_scope_action("unmark_spam");
       });
 

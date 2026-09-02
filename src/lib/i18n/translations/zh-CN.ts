@@ -6829,6 +6829,20 @@ export const zh_CN = {
     trash_messages_confirmation: "所选邮件会移至回收站，你可以从那里恢复。",
     delete_messages_title: "删除消息",
     delete_messages_confirmation: "所选邮件将被彻底移除，且此操作无法撤销。",
+    confirm_bulk_action_scope_description:
+      "此操作将影响 {{scope}} 中的全部 {{count}} 个会话。",
+    confirm_bulk_action_scope_description_one:
+      "此操作将影响 {{scope}} 中的全部 {{count}} 个会话。",
+    confirm_bulk_action_scope_description_other:
+      "此操作将影响 {{scope}} 中的全部 {{count}} 个会话。",
+    confirm_bulk_action_count_description:
+      "此操作将影响当前视图中的全部 {{count}} 个会话。",
+    confirm_bulk_action_count_description_one:
+      "此操作将影响当前视图中的全部 {{count}} 个会话。",
+    confirm_bulk_action_count_description_other:
+      "此操作将影响当前视图中的全部 {{count}} 个会话。",
+    remove_from_folder: "从文件夹中移除",
+    remove_label: "移除标签",
     confirm_bulk_action_title: "确认批量操作",
     confirm_bulk_action_description: "此操作将影响此视图中的所有会话。",
     bulk_action_index_not_ready: "此标签页仍在建立索引。请稍后重试。",
