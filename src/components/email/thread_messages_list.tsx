@@ -48,9 +48,43 @@ import {
 import { get_cached_folders } from "@/hooks/use_folders";
 import { bulk_add_folder, bulk_remove_folder } from "@/services/api/mail";
 import { show_action_toast } from "@/components/toast/action_toast";
-import { adjust_stats_starred } from "@/hooks/use_mail_stats";
+import {
+  adjust_stats_starred,
+  adjust_stats_unread,
+} from "@/hooks/use_mail_stats";
+import { read_clears_conversation } from "@/hooks/unread_read_delta";
+import { mark_conversation_read } from "@/hooks/mark_conversation_read";
 import { ThreadMessageBlock } from "@/components/email/thread_message_block";
 import { same_address_ignoring_dots } from "@/utils/address_dots";
+
+const LOCAL_FLAG_OVERRIDE_TTL_MS = 30_000;
+
+type LocalFlagOverrides = Map<string, { value: boolean; at: number }>;
+
+function note_local_flag(
+  overrides: LocalFlagOverrides,
+  id: string,
+  value: boolean,
+): void {
+  overrides.set(id, { value, at: Date.now() });
+}
+
+function resolve_local_flag(
+  overrides: LocalFlagOverrides,
+  id: string,
+): boolean | undefined {
+  const entry = overrides.get(id);
+
+  if (!entry) return undefined;
+
+  if (Date.now() - entry.at > LOCAL_FLAG_OVERRIDE_TTL_MS) {
+    overrides.delete(id);
+
+    return undefined;
+  }
+
+  return entry.value;
+}
 
 interface ThreadMessagesListProps {
   messages: DecryptedThreadMessage[];
@@ -59,6 +93,8 @@ interface ThreadMessagesListProps {
   subject: string;
   on_toggle_message_read?: (message_id: string, next_read: boolean) => void;
   on_mark_all_read?: () => void;
+  main_email_id?: string;
+  thread_token?: string | null;
   on_reply?: (message: DecryptedThreadMessage) => void;
   on_reply_all?: (message: DecryptedThreadMessage) => void;
   on_forward?: (message: DecryptedThreadMessage) => void;
@@ -123,6 +159,8 @@ export const ThreadMessagesList = forwardRef<
     subject: _subject,
     on_toggle_message_read,
     on_mark_all_read,
+    main_email_id,
+    thread_token,
     on_reply,
     on_reply_all,
     on_forward,
@@ -332,6 +370,8 @@ export const ThreadMessagesList = forwardRef<
   });
 
   const read_ids_ref = useRef<Set<string>>(read_ids);
+  const local_read_overrides = useRef<LocalFlagOverrides>(new Map());
+  const local_star_overrides = useRef<LocalFlagOverrides>(new Map());
   const auto_read_ids = useRef<Set<string>>(new Set());
   const pending_read_updates = useRef<
     Map<string, ReturnType<typeof setTimeout>>
@@ -352,7 +392,11 @@ export const ThreadMessagesList = forwardRef<
     const new_starred = new Set<string>();
 
     messages.forEach((msg) => {
-      if (msg.is_starred) {
+      const starred =
+        resolve_local_flag(local_star_overrides.current, msg.id) ??
+        msg.is_starred;
+
+      if (starred) {
         new_starred.add(msg.id);
       }
     });
@@ -363,7 +407,10 @@ export const ThreadMessagesList = forwardRef<
     const new_read = new Set<string>();
 
     messages.forEach((msg) => {
-      if (msg.is_read) {
+      const read =
+        resolve_local_flag(local_read_overrides.current, msg.id) ?? msg.is_read;
+
+      if (read) {
         new_read.add(msg.id);
       }
     });
@@ -414,9 +461,10 @@ export const ThreadMessagesList = forwardRef<
   }, [message_ids_key, regular_messages]);
 
   const mark_as_read = useCallback(
-    (msg: DecryptedThreadMessage) => {
+    (msg: DecryptedThreadMessage, pending_ids?: Set<string>) => {
       if (read_ids.has(msg.id)) return;
 
+      note_local_flag(local_read_overrides.current, msg.id, true);
       set_read_ids((prev) => {
         const next = new Set(prev);
 
@@ -424,6 +472,29 @@ export const ThreadMessagesList = forwardRef<
 
         return next;
       });
+
+      const is_received = msg.item_type === "received";
+      const sibling_unread = regular_messages.some(
+        (m) =>
+          m.id !== msg.id &&
+          m.item_type === "received" &&
+          !m.is_read &&
+          !read_ids.has(m.id) &&
+          !pending_ids?.has(m.id),
+      );
+      const conversation_options = {
+        thread_token,
+        thread_message_count,
+        conversation_grouping: preferences.conversation_grouping,
+        acted_id: msg.id,
+        sibling_unread,
+      };
+      const clears_conversation =
+        is_received && read_clears_conversation(conversation_options);
+
+      if (clears_conversation) {
+        adjust_stats_unread(-1);
+      }
 
       update_item_metadata(
         msg.id,
@@ -434,6 +505,7 @@ export const ThreadMessagesList = forwardRef<
         { is_read: true },
       ).then((result) => {
         if (!result.success) {
+          local_read_overrides.current.delete(msg.id);
           set_read_ids((prev) => {
             const next = new Set(prev);
 
@@ -441,6 +513,9 @@ export const ThreadMessagesList = forwardRef<
 
             return next;
           });
+          if (clears_conversation) {
+            adjust_stats_unread(1);
+          }
         } else {
           emit_mail_item_updated({
             id: msg.id,
@@ -448,17 +523,30 @@ export const ThreadMessagesList = forwardRef<
             encrypted_metadata: result.encrypted?.encrypted_metadata,
             metadata_nonce: result.encrypted?.metadata_nonce,
           });
+          if (is_received) {
+            mark_conversation_read(conversation_options);
+          }
         }
       });
     },
-    [read_ids, starred_ids],
+    [
+      read_ids,
+      starred_ids,
+      regular_messages,
+      thread_token,
+      thread_message_count,
+      preferences.conversation_grouping,
+    ],
   );
 
   useEffect(() => {
+    if (preferences.mark_as_read_delay === "never") return;
+
     regular_messages.forEach((msg) => {
       const is_unread = !msg.is_read && !read_ids.has(msg.id);
 
       if (
+        msg.id !== main_email_id &&
         expanded_ids.has(msg.id) &&
         is_unread &&
         !auto_read_ids.current.has(msg.id)
@@ -527,6 +615,7 @@ export const ThreadMessagesList = forwardRef<
     (msg: DecryptedThreadMessage) => {
       const new_starred = !starred_ids.has(msg.id);
 
+      note_local_flag(local_star_overrides.current, msg.id, new_starred);
       set_starred_ids((prev) => {
         const next = new Set(prev);
 
@@ -550,6 +639,7 @@ export const ThreadMessagesList = forwardRef<
         { is_starred: new_starred },
       ).then((result) => {
         if (!result.success) {
+          local_star_overrides.current.delete(msg.id);
           set_starred_ids((prev) => {
             const next = new Set(prev);
 
@@ -586,6 +676,7 @@ export const ThreadMessagesList = forwardRef<
         auto_read_ids.current.delete(msg.id);
       }
 
+      note_local_flag(local_read_overrides.current, msg.id, new_read);
       set_read_ids((prev) => {
         const next = new Set(prev);
 
@@ -610,10 +701,9 @@ export const ThreadMessagesList = forwardRef<
         clearTimeout(existing_timeout);
       }
 
+      const final_read_state = new_read;
       const timeout = setTimeout(() => {
         pending_read_updates.current.delete(msg.id);
-
-        const final_read_state = read_ids_ref.current.has(msg.id);
 
         update_item_metadata(
           msg.id,
@@ -624,6 +714,7 @@ export const ThreadMessagesList = forwardRef<
           { is_read: final_read_state },
         ).then((result) => {
           if (!result.success) {
+            local_read_overrides.current.delete(msg.id);
             set_read_ids((prev) => {
               const next = new Set(prev);
 
@@ -760,8 +851,10 @@ export const ThreadMessagesList = forwardRef<
 
     if (unread_messages.length === 0) return;
 
+    const pending_ids = new Set(unread_messages.map((m) => m.id));
+
     unread_messages.forEach((msg) => {
-      mark_as_read(msg);
+      mark_as_read(msg, pending_ids);
     });
 
     on_mark_all_read?.();

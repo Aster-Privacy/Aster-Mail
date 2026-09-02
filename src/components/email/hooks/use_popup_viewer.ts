@@ -154,10 +154,18 @@ export function use_popup_viewer({
   const mark_as_read_timeout = useRef<number | null>(null);
   const open_email_id_ref = useRef<string | null>(email_id);
   const open_thread_token_ref = useRef<string | null>(null);
+  const requested_email_id_ref = useRef<string | null>(null);
+  const grouped_email_ids_ref = useRef(grouped_email_ids);
+  const grouped_email_ids_key = grouped_email_ids?.join(",");
 
   useEffect(() => {
     open_email_id_ref.current = email_id;
+    if (!email_id) requested_email_id_ref.current = null;
   }, [email_id]);
+
+  useEffect(() => {
+    grouped_email_ids_ref.current = grouped_email_ids;
+  }, [grouped_email_ids]);
 
   useEffect(() => {
     open_thread_token_ref.current = current_thread_token ?? null;
@@ -310,6 +318,9 @@ export function use_popup_viewer({
     }
 
     const fetch_seq = ++fetch_seq_ref.current;
+    const is_same_email = requested_email_id_ref.current === email_id;
+
+    requested_email_id_ref.current = email_id;
 
     const schedule_mark_as_read = (
       mail_data: MailItem,
@@ -320,12 +331,10 @@ export function use_popup_viewer({
       const current_email_id = email_id;
       const is_received = mail_data.item_type === "received";
       const mark_read = async () => {
-        if (current_email_id !== email_id) return;
-
         const conversation_options = {
           thread_token: mail_data.thread_token,
           thread_message_count: mail_data.thread_message_count,
-          grouped_count: grouped_email_ids?.length,
+          grouped_count: grouped_email_ids_ref.current?.length,
           conversation_grouping: preferences.conversation_grouping,
           acted_id: mail_data.id,
         };
@@ -345,7 +354,7 @@ export function use_popup_viewer({
           { is_read: true },
         );
 
-        if (result.success && current_email_id === email_id) {
+        if (result.success) {
           set_is_read(true);
           if (result.encrypted) {
             set_mail_item((prev) =>
@@ -385,17 +394,23 @@ export function use_popup_viewer({
       }
     };
 
-    set_email(null);
-    set_mail_item(null);
     set_error(null);
-    set_thread_messages([]);
-    set_current_thread_token(null);
-    set_thread_draft(null);
+
+    if (!is_same_email) {
+      set_email(null);
+      set_mail_item(null);
+      set_thread_messages([]);
+      set_current_thread_token(null);
+      set_thread_draft(null);
+    }
 
     const preloaded = await await_preloaded_email(
       email_id,
       preferences.conversation_grouping !== false,
+      { fresh_only: true },
     );
+
+    if (fetch_seq !== fetch_seq_ref.current) return;
 
     if (preloaded) {
       const pe = preloaded.email;
@@ -447,13 +462,17 @@ export function use_popup_viewer({
         const { get_vault_from_memory, wait_for_keys_ready, are_keys_ready } =
           await import("@/services/crypto/memory_key_store");
 
+        if (fetch_seq !== fetch_seq_ref.current) return;
+
         if (!are_keys_ready()) {
           await wait_for_keys_ready();
         }
 
+        if (fetch_seq !== fetch_seq_ref.current) return;
+
         const current_vault = get_vault_from_memory();
 
-        if (current_vault && fetch_seq === fetch_seq_ref.current) {
+        if (current_vault) {
           const draft_result = await get_draft_by_thread(
             preloaded.mail_item.thread_token,
             current_vault,
@@ -470,7 +489,10 @@ export function use_popup_viewer({
 
     const response = await get_mail_item(email_id);
 
+    if (fetch_seq !== fetch_seq_ref.current) return;
+
     if (response.error) {
+      requested_email_id_ref.current = null;
       set_error(response.error);
 
       return;
@@ -489,6 +511,7 @@ export function use_popup_viewer({
           response.data.metadata_nonce,
           response.data.metadata_version,
         );
+        if (fetch_seq !== fetch_seq_ref.current) return;
       }
 
       const item_with_metadata = {
@@ -506,6 +529,8 @@ export function use_popup_viewer({
         response.data.id,
       );
 
+      if (fetch_seq !== fetch_seq_ref.current) return;
+
       if (envelope) {
         timestamp_date.current = new Date(
           envelope.sent_at || response.data.created_at,
@@ -520,6 +545,8 @@ export function use_popup_viewer({
           user?.email,
           response.data.id,
         );
+
+        if (fetch_seq !== fetch_seq_ref.current) return;
 
         const decrypted: DecryptedEmail = {
           id: response.data.id,
@@ -579,6 +606,8 @@ export function use_popup_viewer({
             },
           );
 
+          if (fetch_seq !== fetch_seq_ref.current) return;
+
           if (thread_result.messages.length > 0) {
             set_thread_messages(thread_result.messages);
           } else {
@@ -586,14 +615,16 @@ export function use_popup_viewer({
           }
         } else if (
           preferences.conversation_grouping !== false &&
-          grouped_email_ids &&
-          grouped_email_ids.length > 1 &&
-          grouped_email_ids.includes(email_id)
+          grouped_email_ids_ref.current &&
+          grouped_email_ids_ref.current.length > 1 &&
+          grouped_email_ids_ref.current.includes(email_id)
         ) {
           const group_messages = await fetch_and_decrypt_virtual_group(
-            grouped_email_ids,
+            grouped_email_ids_ref.current,
             user?.email,
           );
+
+          if (fetch_seq !== fetch_seq_ref.current) return;
 
           if (group_messages.length > 0) {
             set_thread_messages(group_messages);
@@ -608,19 +639,25 @@ export function use_popup_viewer({
           const { get_vault_from_memory, wait_for_keys_ready, are_keys_ready } =
             await import("@/services/crypto/memory_key_store");
 
+          if (fetch_seq !== fetch_seq_ref.current) return;
+
           if (!are_keys_ready()) {
             await wait_for_keys_ready();
           }
 
+          if (fetch_seq !== fetch_seq_ref.current) return;
+
           const current_vault = get_vault_from_memory();
 
-          if (current_vault && fetch_seq === fetch_seq_ref.current) {
+          if (current_vault) {
             const draft_result = await get_draft_by_thread(
               response.data.thread_token,
               current_vault,
             );
 
-            if (draft_result.data && fetch_seq === fetch_seq_ref.current) {
+            if (fetch_seq !== fetch_seq_ref.current) return;
+
+            if (draft_result.data) {
               set_thread_draft(draft_result.data);
             }
           }
@@ -637,7 +674,7 @@ export function use_popup_viewer({
     format_email_detail,
     preferences.mark_as_read_delay,
     preferences.conversation_grouping,
-    grouped_email_ids,
+    grouped_email_ids_key,
     user?.email,
     t,
   ]);
@@ -701,10 +738,9 @@ export function use_popup_viewer({
 
   useEffect(() => {
     if (local_email) return;
+    if (!email_id || requested_email_id_ref.current === email_id) return;
 
-    if (email_id) {
-      fetch_email();
-    }
+    fetch_email();
   }, [email_id, fetch_email, local_email]);
 
   useEffect(() => {

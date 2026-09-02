@@ -278,10 +278,12 @@ export function EmailDetailBody({
 
           <div className="mt-4">
             <ThreadMessagesList
+              key={email.id}
               hide_counter
               current_user_email={current_user_email}
               default_expanded_id={email.id}
               force_all_dark_mode={preferences.force_dark_mode_emails}
+              main_email_id={email.id}
               messages={
                 thread_messages.length > 0
                   ? thread_messages
@@ -337,6 +339,7 @@ export function EmailDetailBody({
               on_view_source={handle_per_message_view_source}
               size_bytes={mail_item?.metadata?.size_bytes}
               subject={email.subject}
+              thread_token={mail_item?.thread_token}
             />
 
             {thread_draft && (

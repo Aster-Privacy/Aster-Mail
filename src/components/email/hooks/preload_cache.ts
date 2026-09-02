@@ -179,9 +179,19 @@ export function get_preloaded_email(email_id: string): PreloadedEmail | null {
 
 export const consume_preloaded_email = get_preloaded_email;
 
+export const PRELOAD_FRESH_MS = 30_000;
+
+export function is_preloaded_email_fresh(
+  cached: PreloadedEmail,
+  max_age_ms: number = PRELOAD_FRESH_MS,
+): boolean {
+  return !cached.is_stale && Date.now() - cached.time <= max_age_ms;
+}
+
 export async function await_preloaded_email(
   email_id: string,
   conversation_grouping?: boolean,
+  options?: { fresh_only?: boolean; max_age_ms?: number },
 ): Promise<PreloadedEmail | null> {
   const in_flight = preload_in_flight.get(email_id);
 
@@ -206,6 +216,14 @@ export async function await_preloaded_email(
     cached &&
     conversation_grouping !== undefined &&
     cached.conversation_grouping !== conversation_grouping
+  ) {
+    return null;
+  }
+
+  if (
+    cached &&
+    options?.fresh_only &&
+    !is_preloaded_email_fresh(cached, options.max_age_ms)
   ) {
     return null;
   }
@@ -425,26 +443,65 @@ if (typeof window !== "undefined") {
     if (!cached) return;
 
     const has_read_change = detail.is_read !== undefined;
+    const has_star_change = detail.is_starred !== undefined;
+    const has_pin_change = detail.is_pinned !== undefined;
     const has_metadata_change =
       detail.encrypted_metadata !== undefined &&
       detail.metadata_nonce !== undefined;
+    const has_unrepresentable_change =
+      detail.is_archived !== undefined ||
+      detail.is_trashed !== undefined ||
+      detail.is_spam !== undefined ||
+      detail.snoozed_until !== undefined;
 
-    if (!has_read_change && !has_metadata_change) return;
+    if (has_unrepresentable_change) {
+      preload_cache.set(detail.id, { ...cached, is_stale: true });
+
+      return;
+    }
+
+    if (
+      !has_read_change &&
+      !has_star_change &&
+      !has_pin_change &&
+      !has_metadata_change
+    ) {
+      return;
+    }
 
     preload_cache.set(detail.id, {
       ...cached,
       email: {
         ...cached.email,
         ...(has_read_change && { is_read: detail.is_read! }),
+        ...(has_star_change && { is_starred: detail.is_starred! }),
       },
       mail_item: {
         ...cached.mail_item,
         ...(has_read_change && { is_read: detail.is_read }),
+        ...(has_star_change && { is_starred: detail.is_starred }),
+        ...(has_pin_change && { is_pinned: detail.is_pinned }),
+        ...(has_pin_change &&
+          cached.mail_item.metadata && {
+            metadata: {
+              ...cached.mail_item.metadata,
+              is_pinned: detail.is_pinned!,
+            },
+          }),
         ...(has_metadata_change && {
           encrypted_metadata: detail.encrypted_metadata,
           metadata_nonce: detail.metadata_nonce,
         }),
       },
+      thread_messages: cached.thread_messages.map((message) =>
+        message.id === detail.id
+          ? {
+              ...message,
+              ...(has_read_change && { is_read: detail.is_read! }),
+              ...(has_star_change && { is_starred: detail.is_starred! }),
+            }
+          : message,
+      ),
     });
   }) as EventListener);
 }

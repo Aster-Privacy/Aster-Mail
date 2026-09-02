@@ -56,12 +56,20 @@ export function use_split_email_view({
     return email_state.emails.find((e) => e.id === split_email_id)
       ?.snoozed_until;
   }, [split_email_id, email_state.emails]);
-  const split_email_grouped_ids = useMemo(() => {
+  const split_email_grouped_ids_key = useMemo(() => {
     if (!split_email_id) return undefined;
 
-    return email_state.emails.find((e) => e.id === split_email_id)
-      ?.grouped_email_ids;
+    return email_state.emails
+      .find((e) => e.id === split_email_id)
+      ?.grouped_email_ids?.join(",");
   }, [split_email_id, email_state.emails]);
+  const split_email_grouped_ids = useMemo(
+    () =>
+      split_email_grouped_ids_key === undefined
+        ? undefined
+        : split_email_grouped_ids_key.split(",").filter(Boolean),
+    [split_email_grouped_ids_key],
+  );
   const split_email_label_hints = useMemo(() => {
     if (!split_email_id) return undefined;
     const found =
