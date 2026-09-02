@@ -101,6 +101,22 @@ export function use_draggable_modal(
   useEffect(() => {
     if (!state.is_dragging) return;
 
+    let frame = 0;
+    let pending: { x: number; y: number } | null = null;
+
+    const flush = () => {
+      frame = 0;
+      if (!pending) return;
+      const next = pending;
+
+      pending = null;
+      set_state((prev) => ({
+        ...prev,
+        position: next,
+        has_been_moved: true,
+      }));
+    };
+
     const handle_move = (e: MouseEvent) => {
       const dx = Math.abs(e.clientX - initial_mouse_pos.x);
       const dy = Math.abs(e.clientY - initial_mouse_pos.y);
@@ -127,14 +143,13 @@ export function use_draggable_modal(
         ),
       );
 
-      set_state((prev) => ({
-        ...prev,
-        position: { x: new_x, y: new_y },
-        has_been_moved: true,
-      }));
+      pending = { x: new_x, y: new_y };
+
+      if (frame === 0) frame = window.requestAnimationFrame(flush);
     };
 
     const handle_up = () => {
+      flush();
       set_state((prev) => ({ ...prev, is_dragging: false }));
     };
 
@@ -142,6 +157,7 @@ export function use_draggable_modal(
     window.addEventListener("mouseup", handle_up);
 
     return () => {
+      if (frame !== 0) window.cancelAnimationFrame(frame);
       window.removeEventListener("mousemove", handle_move);
       window.removeEventListener("mouseup", handle_up);
     };

@@ -24,7 +24,7 @@ import type { DraftListItem } from "@/hooks/use_drafts_list";
 import type { DraftClickData, ScheduledClickData } from "./inbox_types";
 
 import { useNavigate } from "react-router-dom";
-import { useMemo, useCallback, useEffect } from "react";
+import { useMemo, useCallback, useEffect, useRef } from "react";
 
 import { set_recipient_hint } from "@/stores/recipient_hint_store";
 import { set_label_hints } from "@/stores/label_hints_store";
@@ -209,9 +209,24 @@ export function use_inbox_navigation({
     on_email_click,
   ]);
 
+  const click_data_ref = useRef({
+    emails,
+    scheduled_emails,
+    visible_ids,
+    current_view,
+  });
+
+  click_data_ref.current = {
+    emails,
+    scheduled_emails,
+    visible_ids,
+    current_view,
+  };
+
   const handle_email_click = useCallback(
     (id: string): void => {
-      const email = emails.find((e) => e.id === id);
+      const { emails: click_emails } = click_data_ref.current;
+      const email = click_emails.find((e) => e.id === id);
 
       if (email?.item_type === "draft" && on_draft_click) {
         const draft = email as DraftListItem;
@@ -236,7 +251,9 @@ export function use_inbox_navigation({
       }
       if (email?.item_type === "scheduled") {
         if (on_scheduled_click) {
-          const scheduled = scheduled_emails.find((e) => e.id === id);
+          const scheduled = click_data_ref.current.scheduled_emails.find(
+            (e) => e.id === id,
+          );
 
           if (scheduled) {
             on_scheduled_click({
@@ -255,36 +272,29 @@ export function use_inbox_navigation({
         return;
       }
       if (on_email_click) {
-        const hinted = emails.find((e) => e.id === id);
+        const hinted = click_emails.find((e) => e.id === id);
 
         set_recipient_hint(id, hinted?.recipient_addresses || []);
         on_email_click(id);
       } else {
-        const clicked = emails.find((e) => e.id === id);
+        const clicked = click_emails.find((e) => e.id === id);
 
         set_recipient_hint(id, clicked?.recipient_addresses || []);
 
         sessionStorage.setItem(
           "astermail_email_nav",
           JSON.stringify({
-            view: current_view,
-            email_ids: visible_ids,
+            view: click_data_ref.current.current_view,
+            email_ids: click_data_ref.current.visible_ids,
             grouped_email_ids: clicked?.grouped_email_ids,
           }),
         );
-        navigate(`/email/${id}`, { state: { from_view: current_view } });
+        navigate(`/email/${id}`, {
+          state: { from_view: click_data_ref.current.current_view },
+        });
       }
     },
-    [
-      navigate,
-      current_view,
-      emails,
-      scheduled_emails,
-      on_draft_click,
-      on_scheduled_click,
-      on_email_click,
-      visible_ids,
-    ],
+    [navigate, on_draft_click, on_scheduled_click, on_email_click],
   );
 
   return {

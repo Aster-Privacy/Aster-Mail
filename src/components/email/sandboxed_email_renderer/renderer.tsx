@@ -643,6 +643,7 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
     const {
       measure_and_apply,
       update_height,
+      update_height_if_deferred,
       reveal_content,
       attach_observer,
       notify_document_ready,
@@ -708,7 +709,7 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
       iframe,
       iframe.contentDocument,
       iframe.contentDocument.body,
-      update_height,
+      update_height_if_deferred,
       zoom_fn_ref,
     );
   }, [

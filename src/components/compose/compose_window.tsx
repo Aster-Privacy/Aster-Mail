@@ -134,6 +134,16 @@ export function ComposeWindow({
 
       set_is_resizing(true);
 
+      let frame = 0;
+      let pending: { width: number; height: number } | null = null;
+
+      const flush = () => {
+        frame = 0;
+        if (!pending) return;
+        set_resize_state(pending);
+        pending = null;
+      };
+
       const handle_move = (ev: MouseEvent) => {
         const dx = ev.clientX - start_x;
         const dy = ev.clientY - start_y;
@@ -149,16 +159,21 @@ export function ComposeWindow({
           Math.max(RESIZE_MIN_HEIGHT, start_height + dy),
         );
 
-        set_resize_state({ width: new_width, height: new_height });
+        pending = { width: new_width, height: new_height };
+
+        if (frame === 0) frame = window.requestAnimationFrame(flush);
       };
 
       const detach = () => {
+        if (frame !== 0) window.cancelAnimationFrame(frame);
+        frame = 0;
         window.removeEventListener("mousemove", handle_move);
         window.removeEventListener("mouseup", handle_up);
         resize_cleanup_ref.current = null;
       };
 
       function handle_up() {
+        flush();
         set_is_resizing(false);
         detach();
       }
@@ -277,7 +292,7 @@ export function ComposeWindow({
           <motion.div
             key="compose-backdrop"
             animate={{ opacity: 1 }}
-            className="fixed inset-0 z-40 bg-black/40 backdrop-blur-md"
+            className="fixed inset-0 z-40 bg-black/55"
             exit={{ opacity: 0 }}
             initial={reduce_motion ? false : { opacity: 0 }}
             transition={{ duration: reduce_motion ? 0 : 0.2 }}

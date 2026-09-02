@@ -118,7 +118,7 @@ export function ComposeModal({
               <motion.div
                 key="compose-backdrop"
                 animate={{ opacity: 1 }}
-                className="fixed inset-0 z-40 bg-black/40 backdrop-blur-md hidden sm:block"
+                className="fixed inset-0 z-40 bg-black/55 hidden sm:block"
                 exit={{ opacity: 0 }}
                 initial={reduce_motion ? false : { opacity: 0 }}
                 transition={{ duration: reduce_motion ? 0 : 0.2 }}

@@ -65,9 +65,17 @@ export async function tauri_proxy_fetch(
   let bytes: Uint8Array;
 
   try {
-    bytes = result.body
-      ? Uint8Array.from(atob(result.body), (c) => c.charCodeAt(0))
-      : new Uint8Array(0);
+    if (result.body) {
+      const binary = atob(result.body);
+      const decoded = new Uint8Array(binary.length);
+
+      for (let index = 0; index < binary.length; index += 1) {
+        decoded[index] = binary.charCodeAt(index);
+      }
+      bytes = decoded;
+    } else {
+      bytes = new Uint8Array(0);
+    }
   } catch {
     return new Response(null, { status: 500 });
   }

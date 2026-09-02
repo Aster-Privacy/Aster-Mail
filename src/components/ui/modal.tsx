@@ -108,7 +108,7 @@ export function Modal({
           style={{ zIndex: z_index ?? 60 }}
         >
           <div
-            className="absolute inset-0 backdrop-blur-sm sm:backdrop-blur-md"
+            className="absolute inset-0"
             style={{
               backgroundColor: "var(--modal-overlay)",
               transform: "translateZ(0)",

@@ -302,7 +302,7 @@ export function SenderProfileModal({
         >
           <motion.div
             animate={{ opacity: 1 }}
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/60"
             exit={{ opacity: 0 }}
             initial={reduce_motion ? false : { opacity: 0 }}
           />

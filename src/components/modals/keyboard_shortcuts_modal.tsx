@@ -247,7 +247,7 @@ export function KeyboardShortcutsModal({
         >
           <motion.div
             aria-hidden="true"
-            className="absolute inset-0 backdrop-blur-md"
+            className="absolute inset-0"
             style={{ backgroundColor: "var(--modal-overlay)" }}
             onClick={on_close}
           />

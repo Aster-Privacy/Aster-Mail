@@ -319,8 +319,8 @@ export default function IndexPage() {
         typeof detail === "string" ? detail : detail?.section,
       );
 
-      if (!state.is_settings_route) {
-        state.open_settings(nav_section);
+      if (!state_ref.current.is_settings_route) {
+        state_ref.current.open_settings(nav_section);
       }
     };
 
@@ -328,7 +328,7 @@ export default function IndexPage() {
 
     try {
       if (sessionStorage.getItem("aster_pending_domain_order")) {
-        state.open_settings("domains" as SettingsSection);
+        state_ref.current.open_settings("domains" as SettingsSection);
       }
     } catch (caught) {
       ignore_error("pages/index:toggle_quick_settings", caught);
@@ -344,7 +344,7 @@ export default function IndexPage() {
         handle_navigate_sent,
       );
     };
-  }, [state, navigate]);
+  }, [navigate]);
 
   return (
     <>

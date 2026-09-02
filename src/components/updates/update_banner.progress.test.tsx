@@ -22,7 +22,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
-import { UpdateBanner } from "./update_banner";
+import { FIRST_CHECK_DELAY_MS, UpdateBanner } from "./update_banner";
 
 import { update_progress_percent } from "@/services/updates/updater";
 
@@ -102,10 +102,14 @@ describe("UpdateBanner download progress", () => {
     await act(async () => {
       root.render(<UpdateBanner />);
     });
+    await act(async () => {
+      vi.advanceTimersByTime(FIRST_CHECK_DELAY_MS);
+    });
     await act(async () => {});
   };
 
   beforeEach(() => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
     emit = null;
     finish_download = null;
     content_length = 1000;
@@ -125,6 +129,7 @@ describe("UpdateBanner download progress", () => {
     container.remove();
     delete (window as unknown as { __TAURI_INTERNALS__?: unknown })
       .__TAURI_INTERNALS__;
+    vi.useRealTimers();
   });
 
   it("shows a live percentage and a progress bar while downloading", async () => {

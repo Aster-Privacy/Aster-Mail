@@ -563,7 +563,7 @@ export function SecurityContent({
           className="fixed inset-0 z-[70] flex items-center justify-center"
           onClick={() => set_confirm_open(false)}
         >
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+          <div className="absolute inset-0 bg-black/70" />
           <div
             className="relative w-full max-w-sm rounded-xl border border-edge-primary bg-modal-bg p-6 shadow-2xl"
             onClick={(e) => e.stopPropagation()}

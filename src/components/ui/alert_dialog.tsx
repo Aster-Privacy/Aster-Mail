@@ -23,7 +23,7 @@ const AlertDialogContent = React.forwardRef<
 >(({ className, on_overlay_click, ...props }, ref) => (
   <AlertDialogPortal>
     <AlertDialogPrimitive.Overlay
-      className="fixed inset-0 z-[60] backdrop-blur-sm sm:backdrop-blur-md"
+      className="fixed inset-0 z-[60]"
       style={{
         backgroundColor: "var(--modal-overlay)",
         transform: "translateZ(0)",

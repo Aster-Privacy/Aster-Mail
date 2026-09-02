@@ -952,7 +952,7 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
           <motion.div
             animate={{ opacity: 1 }}
             aria-hidden="true"
-            className="absolute inset-0 backdrop-blur-md"
+            className="absolute inset-0"
             exit={{ opacity: 0 }}
             initial={reduce_motion ? false : { opacity: 0 }}
             style={{ backgroundColor: "var(--modal-overlay)" }}

@@ -308,7 +308,7 @@ export function EmailPopupViewer({
           transition={{ duration: reduce_motion ? 0 : 0.2 }}
         >
           <div
-            className="absolute inset-0 bg-black/40 backdrop-blur-md"
+            className="absolute inset-0 bg-black/55"
             role="button"
             tabIndex={0}
             onClick={on_close}

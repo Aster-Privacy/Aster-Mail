@@ -161,11 +161,16 @@ export function ComposeManager({
 
     const observer = new MutationObserver(check_overflow);
 
-    observer.observe(container, { childList: true, subtree: true });
+    observer.observe(container, { childList: true });
+
+    const size_observer = new ResizeObserver(check_overflow);
+
+    size_observer.observe(container);
 
     return () => {
       window.removeEventListener("resize", check_overflow);
       observer.disconnect();
+      size_observer.disconnect();
     };
   }, [instances.length]);
 
