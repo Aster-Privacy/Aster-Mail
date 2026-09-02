@@ -61,8 +61,10 @@ export function AliasDisplayNameEditor({
   const commit_lock = useRef(false);
 
   useEffect(() => {
-    set_value(display_name ?? "");
-  }, [display_name]);
+    if (!is_editing) {
+      set_value(display_name ?? "");
+    }
+  }, [display_name, is_editing]);
 
   useEffect(() => {
     if (is_editing) {

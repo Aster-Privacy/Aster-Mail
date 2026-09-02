@@ -144,9 +144,9 @@ export function use_compose_drafts({
     const autosave_delay = preferences.low_network_mode ? 5000 : 1000;
 
     save_timer_ref.current = setTimeout(async () => {
-      if (is_sending_ref.current || !context_id) {
-        save_timer_ref.current = null;
+      save_timer_ref.current = null;
 
+      if (is_sending_ref.current || !context_id) {
         return;
       }
 
@@ -185,7 +185,6 @@ export function use_compose_drafts({
       } catch {
         set_draft_status("error");
       }
-      save_timer_ref.current = null;
     }, autosave_delay);
 
     return () => {

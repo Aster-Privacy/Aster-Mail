@@ -43,6 +43,7 @@ import {
   DEFAULT_PREFERENCES,
 } from "@/services/api/preferences";
 import { get_csrf_token_from_cookie } from "@/services/api/csrf";
+import { request_cache } from "@/services/api/request_cache";
 import { get_effective_base_url } from "@/services/routing/routing_provider";
 import { connection_store } from "@/services/routing/connection_store";
 import { sync_haptic_state } from "@/native/haptic_feedback";
@@ -711,6 +712,7 @@ export function use_preferences_provider() {
         headers["X-CSRF-Token"] = csrf;
       }
 
+      request_cache.invalidate("/settings/v1/preferences");
       fetch(url, {
         method: "PUT",
         headers,

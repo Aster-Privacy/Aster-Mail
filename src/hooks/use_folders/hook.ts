@@ -66,6 +66,9 @@ import {
 import { use_auth_safe } from "@/contexts/auth_context";
 import { use_i18n } from "@/lib/i18n/context";
 
+const COUNTS_DEBOUNCE_MS = 500;
+const COUNTS_CONFIRM_MS = 4_000;
+
 export function use_folders(): UseFoldersReturn {
   const { t } = use_i18n();
   const auth = use_auth_safe();
@@ -546,23 +549,39 @@ export function use_folders(): UseFoldersReturn {
     [],
   );
 
-  const add_folder_to_email = useCallback(
-    async (email_id: string, folder_token: string): Promise<boolean> => {
+  const adjust_folder_counts = useCallback(
+    (folder_token: string, delta: number, unread_delta: number) => {
       counts_adjusted_at_ref.current = Date.now();
       set_counts((prev) => ({
         ...prev,
-        [folder_token]: (prev[folder_token] || 0) + 1,
+        [folder_token]: Math.max(0, (prev[folder_token] || 0) + delta),
       }));
+
+      if (unread_delta === 0) return;
+
+      set_unread_counts((prev) => ({
+        ...prev,
+        [folder_token]: Math.max(0, (prev[folder_token] || 0) + unread_delta),
+      }));
+    },
+    [],
+  );
+
+  const add_folder_to_email = useCallback(
+    async (
+      email_id: string,
+      folder_token: string,
+      is_unread = false,
+    ): Promise<boolean> => {
+      const unread_delta = is_unread ? 1 : 0;
+
+      adjust_folder_counts(folder_token, 1, unread_delta);
 
       try {
         const response = await add_mail_item_folder(email_id, { folder_token });
 
         if (response.error) {
-          counts_adjusted_at_ref.current = Date.now();
-          set_counts((prev) => ({
-            ...prev,
-            [folder_token]: Math.max(0, (prev[folder_token] || 1) - 1),
-          }));
+          adjust_folder_counts(folder_token, -1, -unread_delta);
 
           return false;
         }
@@ -582,35 +601,29 @@ export function use_folders(): UseFoldersReturn {
 
         return true;
       } catch {
-        counts_adjusted_at_ref.current = Date.now();
-        set_counts((prev) => ({
-          ...prev,
-          [folder_token]: Math.max(0, (prev[folder_token] || 1) - 1),
-        }));
+        adjust_folder_counts(folder_token, -1, -unread_delta);
 
         return false;
       }
     },
-    [],
+    [adjust_folder_counts],
   );
 
   const remove_folder_from_email = useCallback(
-    async (email_id: string, folder_token: string): Promise<boolean> => {
-      counts_adjusted_at_ref.current = Date.now();
-      set_counts((prev) => ({
-        ...prev,
-        [folder_token]: Math.max(0, (prev[folder_token] || 0) - 1),
-      }));
+    async (
+      email_id: string,
+      folder_token: string,
+      is_unread = false,
+    ): Promise<boolean> => {
+      const unread_delta = is_unread ? 1 : 0;
+
+      adjust_folder_counts(folder_token, -1, -unread_delta);
 
       try {
         const response = await remove_mail_item_folder(email_id, folder_token);
 
         if (response.error) {
-          counts_adjusted_at_ref.current = Date.now();
-          set_counts((prev) => ({
-            ...prev,
-            [folder_token]: (prev[folder_token] || 0) + 1,
-          }));
+          adjust_folder_counts(folder_token, 1, unread_delta);
 
           return false;
         }
@@ -619,16 +632,12 @@ export function use_folders(): UseFoldersReturn {
 
         return true;
       } catch {
-        counts_adjusted_at_ref.current = Date.now();
-        set_counts((prev) => ({
-          ...prev,
-          [folder_token]: (prev[folder_token] || 0) + 1,
-        }));
+        adjust_folder_counts(folder_token, 1, unread_delta);
 
         return false;
       }
     },
-    [],
+    [adjust_folder_counts],
   );
 
   const get_folder_by_token = useCallback(
@@ -728,6 +737,7 @@ export function use_folders(): UseFoldersReturn {
 
   useEffect(() => {
     let counts_debounce: ReturnType<typeof setTimeout> | null = null;
+    let counts_confirm: ReturnType<typeof setTimeout> | null = null;
 
     const counts_handler = () => {
       if (counts_debounce) clearTimeout(counts_debounce);
@@ -735,7 +745,17 @@ export function use_folders(): UseFoldersReturn {
         if (has_passphrase_in_memory()) {
           fetch_counts();
         }
-      }, 500);
+      }, COUNTS_DEBOUNCE_MS);
+    };
+
+    const schedule_counts_confirm = () => {
+      if (counts_confirm) clearTimeout(counts_confirm);
+      counts_confirm = setTimeout(() => {
+        counts_confirm = null;
+        if (has_passphrase_in_memory()) {
+          fetch_counts();
+        }
+      }, COUNTS_CONFIRM_MS);
     };
 
     const item_update_handler = (event: Event) => {
@@ -745,9 +765,13 @@ export function use_folders(): UseFoldersReturn {
         detail?.is_read !== undefined ||
         detail?.is_trashed !== undefined ||
         detail?.is_archived !== undefined ||
-        detail?.is_spam !== undefined
+        detail?.is_spam !== undefined ||
+        detail?.snoozed_until !== undefined ||
+        detail?.folders !== undefined ||
+        detail?.tags !== undefined
       ) {
         counts_handler();
+        schedule_counts_confirm();
       }
     };
 
@@ -798,6 +822,7 @@ export function use_folders(): UseFoldersReturn {
 
     return () => {
       if (counts_debounce) clearTimeout(counts_debounce);
+      if (counts_confirm) clearTimeout(counts_confirm);
       window.removeEventListener(MAIL_EVENTS.MAIL_CHANGED, counts_handler);
       window.removeEventListener(MAIL_EVENTS.EMAIL_RECEIVED, counts_handler);
       window.removeEventListener(MAIL_EVENTS.EMAIL_SENT, counts_handler);
