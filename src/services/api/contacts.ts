@@ -36,6 +36,7 @@ import type {
   ContactGroup,
   ContactGroupEncrypted,
   ContactGroupFormData,
+  GroupMembershipChange,
 } from "@/types/contacts";
 
 import { api_client, type ApiResponse } from "./client";
@@ -360,9 +361,11 @@ export async function decrypt_contact_group(
   return {
     id: group.id,
     name,
-    color: group.color,
+    color: group.color || DEFAULT_GROUP_COLOR,
+    sort_order: group.sort_order ?? 0,
     contact_count: group.contact_count,
     created_at: group.created_at,
+    updated_at: group.updated_at ?? group.created_at,
   };
 }
 
@@ -519,9 +522,13 @@ export async function list_contact_groups(): Promise<
   }
 }
 
+export const DEFAULT_GROUP_COLOR = "#4f46e5";
+
 interface CreateGroupResponse {
   id: string;
   created_at: string;
+  updated_at: string;
+  sort_order: number;
 }
 
 export async function create_contact_group(
@@ -575,8 +582,60 @@ export async function create_contact_group(
       id: response.data.id,
       name: data.name,
       color: data.color,
+      sort_order: response.data.sort_order ?? 0,
       contact_count: 0,
       created_at: response.data.created_at,
+      updated_at: response.data.updated_at ?? response.data.created_at,
+    },
+  };
+}
+
+export async function update_contact_group(
+  group_id: string,
+  data: ContactGroupFormData,
+): Promise<ApiResponse<ContactGroup>> {
+  const key = await get_or_create_derived_encryption_crypto_key();
+
+  if (!key) {
+    return {
+      error: get_active_translations().errors.encryption_keys_not_loaded,
+    };
+  }
+
+  const encoder = new TextEncoder();
+  const plaintext = encoder.encode(data.name);
+  const nonce = crypto.getRandomValues(new Uint8Array(12));
+  const ciphertext = await crypto.subtle.encrypt(
+    { name: "AES-GCM", iv: nonce },
+    key,
+    plaintext,
+  );
+
+  const group_token = await generate_search_token(data.name);
+
+  const response = await api_client.put<ContactGroupEncrypted>(
+    `/contacts/v1/groups/${group_id}`,
+    {
+      group_token,
+      encrypted_name: array_to_base64(new Uint8Array(ciphertext)),
+      name_nonce: array_to_base64(nonce),
+      color: data.color,
+    },
+  );
+
+  if (response.error || !response.data) {
+    return { error: response.error || "Failed to update contact group" };
+  }
+
+  return {
+    data: {
+      id: response.data.id,
+      name: data.name,
+      color: data.color,
+      sort_order: response.data.sort_order ?? 0,
+      contact_count: response.data.contact_count ?? 0,
+      created_at: response.data.created_at,
+      updated_at: response.data.updated_at ?? response.data.created_at,
     },
   };
 }
@@ -606,6 +665,46 @@ export async function remove_contact_from_group(
   return api_client.delete<{ success: boolean }>(
     `/contacts/v1/${contact_id}/groups/${group_id}`,
   );
+}
+
+export async function add_contacts_to_group(
+  group_id: string,
+  contact_ids: string[],
+): Promise<ApiResponse<GroupMembershipChange>> {
+  return api_client.post<GroupMembershipChange>(
+    `/contacts/v1/groups/${group_id}/members`,
+    { contact_ids },
+  );
+}
+
+export async function remove_contacts_from_group(
+  group_id: string,
+  contact_ids: string[],
+): Promise<ApiResponse<GroupMembershipChange>> {
+  return api_client.delete<GroupMembershipChange>(
+    `/contacts/v1/groups/${group_id}/members`,
+    { body: JSON.stringify({ contact_ids }) },
+  );
+}
+
+export async function list_groups_for_contact(
+  contact_id: string,
+): Promise<ApiResponse<{ groups: ContactGroup[] }>> {
+  const response = await api_client.get<{ groups: ContactGroupEncrypted[] }>(
+    `/contacts/v1/${contact_id}/groups`,
+  );
+
+  if (response.error || !response.data) {
+    return { error: response.error || "Failed to fetch contact groups" };
+  }
+
+  try {
+    return { data: { groups: await decrypt_contact_groups(response.data.groups) } };
+  } catch (err) {
+    return {
+      error: user_facing_error(err, "Failed to decrypt contact groups"),
+    };
+  }
 }
 
 export async function reencrypt_all_contacts(): Promise<void> {

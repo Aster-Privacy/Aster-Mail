@@ -47,6 +47,8 @@ import { MobileMenuButton } from "@/components/layout/sidebar";
 import { use_preferences } from "@/contexts/preferences_context";
 import { EncryptionInfoDropdown } from "@/components/common/encryption_info_dropdown";
 import { ContactAvatar } from "@/components/common/contacts/contact_avatar";
+import { ContactGroupChips } from "@/components/contacts/contact_group_chips";
+import { ManageGroupsMenu } from "@/components/contacts/manage_groups_menu";
 import { cn, format_number } from "@/lib/utils";
 
 interface ContactListProps {
@@ -76,6 +78,10 @@ interface ContactListProps {
     some_selected: boolean;
   };
   has_selection: boolean;
+  selected_contacts: DecryptedContact[];
+  group_filter: string | null;
+  on_set_group_filter: (group_id: string | null) => void;
+  on_set_group_membership: (group_id: string, should_add: boolean) => void;
   selected_all_favorited: boolean;
   alphabetical_index: Map<string, number>;
   upcoming_birthdays_count: number;
@@ -104,6 +110,12 @@ export function ContactList({
   selected_ids,
   selection_state,
   has_selection,
+  selected_contacts,
+  filter_by,
+  set_filter_by,
+  group_filter,
+  on_set_group_filter,
+  on_set_group_membership,
   selected_all_favorited,
   is_loading,
   is_importing,
@@ -188,6 +200,10 @@ export function ContactList({
               <StarIcon className="w-4 h-4" />
             )}
           </button>
+          <ManageGroupsMenu
+            on_set_membership={on_set_group_membership}
+            selected_contacts={selected_contacts}
+          />
           <button
             aria-label={t("common.copy")}
             className="h-8 w-8 inline-flex items-center justify-center rounded-[8px] text-txt-secondary hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
@@ -227,6 +243,13 @@ export function ContactList({
           />
         </div>
       )}
+
+      <ContactGroupChips
+        filter_by={filter_by}
+        group_filter={group_filter}
+        on_set_group_filter={on_set_group_filter}
+        set_filter_by={set_filter_by}
+      />
 
       {import_progress && (
         <div className="px-4 py-2 border-b border-edge-primary">

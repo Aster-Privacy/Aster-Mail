@@ -70,6 +70,11 @@ export interface ContactDetailPanelProps {
   on_cancel_create?: () => void;
   on_dismiss?: () => void;
   on_toggle_favorite?: (contact: DecryptedContact) => Promise<void> | void;
+  on_toggle_group?: (
+    contact: DecryptedContact,
+    group_id: string,
+    should_add: boolean,
+  ) => Promise<void> | void;
   is_creating_new?: boolean;
   is_submitting?: boolean;
 }

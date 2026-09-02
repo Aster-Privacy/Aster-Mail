@@ -188,6 +188,7 @@ export interface UserPreferences {
   sidebar_folders_collapsed: boolean;
   sidebar_labels_collapsed: boolean;
   sidebar_aliases_collapsed: boolean;
+  sidebar_contact_groups_collapsed: boolean;
   sidebar_minimized: boolean;
   sidebar_width: number;
   notification_banner_snooze_until: string;
@@ -583,6 +584,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   sidebar_folders_collapsed: false,
   sidebar_labels_collapsed: false,
   sidebar_aliases_collapsed: false,
+  sidebar_contact_groups_collapsed: false,
   sidebar_minimized: false,
   sidebar_width: 256,
   notification_banner_snooze_until: "",

@@ -359,6 +359,10 @@ export function use_preferences_provider() {
             "sidebar_aliases_collapsed",
             applied.sidebar_aliases_collapsed,
           );
+          cache_sidebar_state(
+            "sidebar_contact_groups_collapsed",
+            applied.sidebar_contact_groups_collapsed,
+          );
           apply_visual_preferences(applied);
 
           await load_notification_preferences(v);

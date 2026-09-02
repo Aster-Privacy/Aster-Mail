@@ -91,6 +91,7 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
   const [is_loading, set_is_loading] = useState(true);
   const [search_query, set_search_query] = useState("");
   const [filter, set_filter] = useState<"all" | "favorites">("all");
+  const [group_filter, set_group_filter] = useState<string | null>(null);
   const [selected_contact, set_selected_contact] =
     useState<DecryptedContact | null>(null);
   const [show_create, set_show_create] = useState(false);
@@ -321,6 +322,10 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
       result = result.filter((c) => c.is_favorite);
     }
 
+    if (group_filter) {
+      result = result.filter((c) => (c.groups || []).includes(group_filter));
+    }
+
     if (!search_query.trim()) return result;
     const q = search_query.toLowerCase();
 
@@ -332,7 +337,7 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
         (c.company && c.company.toLowerCase().includes(q)) ||
         (c.phone && c.phone.includes(q)),
     );
-  }, [contacts, search_query, filter]);
+  }, [contacts, search_query, filter, group_filter]);
 
   const grouped = useMemo(() => {
     const groups: Record<string, DecryptedContact[]> = {};
@@ -861,6 +866,8 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
     set_search_query,
     filter,
     set_filter,
+    group_filter,
+    set_group_filter,
     selected_contact,
     set_selected_contact,
     show_create,
