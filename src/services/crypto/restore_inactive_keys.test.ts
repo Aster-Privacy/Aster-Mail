@@ -60,6 +60,7 @@ vi.mock("./vault_write_lock", () => ({
 
 import {
   count_inactive_key_sets,
+  discard_inactive_key_sets,
   restore_inactive_key_sets,
 } from "./restore_inactive_keys";
 
@@ -80,7 +81,9 @@ function current_vault() {
     recovery_codes: [],
     vault_format: 2,
     data_kek: "Y3VycmVudC1kYXRhLWtlaw==",
-    legacy_keks: [{ k: "b2xkZXItYWxyZWFkeS1oZWxk", added_at: "2026-01-01T00:00:00.000Z" }],
+    legacy_keks: [
+      { k: "b2xkZXItYWxyZWFkeS1oZWxk", added_at: "2026-01-01T00:00:00.000Z" },
+    ],
     ...key_set("current-public"),
     ratchet_previous_keys: [key_set("recent-public")],
   };
@@ -256,7 +259,9 @@ describe("restore_inactive_key_sets", () => {
       ...key_set("archived-public"),
       vault_format: 2,
       data_kek: ARCHIVED_DATA_KEK,
-      legacy_keks: [{ k: "ZXZlbi1vbGRlci1rZXk=", added_at: "2025-06-01T00:00:00.000Z" }],
+      legacy_keks: [
+        { k: "ZXZlbi1vbGRlci1rZXk=", added_at: "2025-06-01T00:00:00.000Z" },
+      ],
     });
 
     await restore_inactive_key_sets("old-password");
@@ -295,5 +300,50 @@ describe("restore_inactive_key_sets", () => {
 
   it("reports how many archives are waiting", async () => {
     expect(await count_inactive_key_sets()).toBe(1);
+  });
+});
+
+describe("discard_inactive_key_sets", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("consumes every archive without touching the vault", async () => {
+    list_inactive_key_sets.mockResolvedValue({
+      data: {
+        inactive_key_sets: [{ id: "archived-1" }, { id: "archived-2" }],
+      },
+    });
+    consume_inactive_key_set.mockResolvedValue({ data: { success: true } });
+
+    await expect(discard_inactive_key_sets()).resolves.toBe(2);
+
+    expect(consume_inactive_key_set).toHaveBeenCalledWith("archived-1");
+    expect(consume_inactive_key_set).toHaveBeenCalledWith("archived-2");
+    expect(fetch_inactive_key_set).not.toHaveBeenCalled();
+    expect(push_vault_to_server).not.toHaveBeenCalled();
+    expect(store_vault_in_memory).not.toHaveBeenCalled();
+  });
+
+  it("counts only the archives the server confirmed", async () => {
+    list_inactive_key_sets.mockResolvedValue({
+      data: {
+        inactive_key_sets: [{ id: "archived-1" }, { id: "archived-2" }],
+      },
+    });
+    consume_inactive_key_set
+      .mockResolvedValueOnce({ data: { success: true } })
+      .mockResolvedValueOnce({ error: "not found" });
+
+    await expect(discard_inactive_key_sets()).resolves.toBe(1);
+  });
+
+  it("returns zero when nothing is archived", async () => {
+    list_inactive_key_sets.mockResolvedValue({
+      data: { inactive_key_sets: [] },
+    });
+
+    await expect(discard_inactive_key_sets()).resolves.toBe(0);
+    expect(consume_inactive_key_set).not.toHaveBeenCalled();
   });
 });

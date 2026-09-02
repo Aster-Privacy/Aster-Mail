@@ -2141,6 +2141,11 @@ export const es = {
       "Tus datos anteriores están desbloqueados. Los mensajes y alias antiguos vuelven a abrirse con normalidad.",
     resurrection_failed:
       "Eso no desbloqueó los datos anteriores. Verifica la contraseña o la frase e inténtalo de nuevo.",
+    discard_older_data_button: "Descartar datos anteriores",
+    discard_older_data_title: "¿Descartar los datos anteriores?",
+    discard_older_data_desc: "Esto elimina de forma permanente la opción de desbloquear el correo y los alias anteriores al restablecimiento. No se puede deshacer.",
+    discard_older_data_success: "Datos anteriores descartados.",
+    discard_older_data_failed: "No se pudieron descartar los datos anteriores. Inténtalo de nuevo.",
     phrase_wrap_save_failed:
       "Tu frase de recuperación no se pudo guardar en el servidor. Inténtalo de nuevo.",
     smtp_tokens: "Tokens SMTP",

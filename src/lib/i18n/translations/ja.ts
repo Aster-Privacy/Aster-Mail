@@ -2080,6 +2080,11 @@ export const ja = {
       "以前のデータのロックを解除しました。過去のメールとエイリアスを再び通常どおり開けます。",
     resurrection_failed:
       "以前のデータのロックを解除できませんでした。パスワードまたはフレーズを確認して、もう一度お試しください。",
+    discard_older_data_button: "以前のデータを破棄",
+    discard_older_data_title: "以前のデータを破棄しますか？",
+    discard_older_data_desc: "リセット前のメールとエイリアスのロックを解除するオプションが完全に削除されます。この操作は取り消せません。",
+    discard_older_data_success: "以前のデータを破棄しました。",
+    discard_older_data_failed: "以前のデータを破棄できませんでした。もう一度お試しください。",
     phrase_wrap_save_failed:
       "リカバリーフレーズをサーバーに保存できませんでした。もう一度お試しください。",
     smtp_tokens: "SMTP トークン",

@@ -2149,6 +2149,11 @@ export const tr = {
       "Eski verilerinizin kilidi açıldı. Önceki postalarınız ve takma adlarınız yeniden normal şekilde açılıyor.",
     resurrection_failed:
       "Bu, eski verilerin kilidini açmadı. Parolayı veya ifadeyi kontrol edip tekrar deneyin.",
+    discard_older_data_button: "Eski verileri sil",
+    discard_older_data_title: "Eski veriler silinsin mi?",
+    discard_older_data_desc: "Bu işlem, sıfırlamadan önceki postaların ve takma adların kilidini açma seçeneğini kalıcı olarak kaldırır. Geri alınamaz.",
+    discard_older_data_success: "Eski veriler silindi.",
+    discard_older_data_failed: "Eski veriler silinemedi. Yeniden deneyin.",
     phrase_wrap_save_failed:
       "Kurtarma ifadeniz sunucuya kaydedilemedi. Tekrar deneyin.",
     smtp_tokens: "SMTP jetonları",

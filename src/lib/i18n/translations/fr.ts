@@ -2151,6 +2151,11 @@ export const fr = {
       "Vos données antérieures sont déverrouillées. Les anciens messages et alias s'ouvrent de nouveau normalement.",
     resurrection_failed:
       "Cela n'a pas déverrouillé les données antérieures. Vérifiez le mot de passe ou la phrase et réessayez.",
+    discard_older_data_button: "Abandonner les données antérieures",
+    discard_older_data_title: "Abandonner les données antérieures ?",
+    discard_older_data_desc: "Cette action supprime définitivement la possibilité de déverrouiller les e-mails et les alias antérieurs à la réinitialisation. Elle est irréversible.",
+    discard_older_data_success: "Données antérieures abandonnées.",
+    discard_older_data_failed: "Impossible d'abandonner les données antérieures. Réessayez.",
     phrase_wrap_save_failed:
       "Votre phrase de récupération n'a pas pu être enregistrée sur le serveur. Réessayez.",
     smtp_tokens: "Jetons SMTP",

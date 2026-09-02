@@ -2174,6 +2174,11 @@ export const it = {
       "I suoi dati precedenti sono sbloccati. I messaggi e gli alias meno recenti si aprono di nuovo normalmente.",
     resurrection_failed:
       "Non è stato possibile sbloccare i dati precedenti. Verifichi la password o la frase e riprovi.",
+    discard_older_data_button: "Elimina i dati precedenti",
+    discard_older_data_title: "Eliminare i dati precedenti?",
+    discard_older_data_desc: "Questa operazione rimuove in modo permanente la possibilità di sbloccare la posta e gli alias precedenti al ripristino. Non può essere annullata.",
+    discard_older_data_success: "Dati precedenti eliminati.",
+    discard_older_data_failed: "Impossibile eliminare i dati precedenti. Riprova.",
     phrase_wrap_save_failed:
       "Non è stato possibile salvare la sua frase di recupero sul server. Riprovi.",
     smtp_tokens: "Token SMTP",

@@ -2122,6 +2122,11 @@ export const en: Translations = {
       "Your older data is unlocked. Earlier mail and aliases open normally again.",
     resurrection_failed:
       "That did not unlock the older data. Check the password or phrase and try again.",
+    discard_older_data_button: "Discard older data",
+    discard_older_data_title: "Discard older data?",
+    discard_older_data_desc: "This permanently removes the option to unlock mail and aliases from before the reset. You cannot undo this.",
+    discard_older_data_success: "Older data discarded.",
+    discard_older_data_failed: "Could not discard the older data. Try again.",
     phrase_wrap_save_failed:
       "Your recovery phrase could not be saved to the server. Try again.",
     general: "General",

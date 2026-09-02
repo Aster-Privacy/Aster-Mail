@@ -2303,6 +2303,11 @@ export const pl = {
       "Starsze dane zostały odblokowane. Wcześniejsze wiadomości i aliasy znów otwierają się normalnie.",
     resurrection_failed:
       "To nie odblokowało starszych danych. Sprawdź hasło lub frazę i spróbuj ponownie.",
+    discard_older_data_button: "Odrzuć starsze dane",
+    discard_older_data_title: "Odrzucić starsze dane?",
+    discard_older_data_desc: "Spowoduje to trwałe usunięcie możliwości odblokowania poczty i aliasów sprzed resetu. Tej operacji nie można cofnąć.",
+    discard_older_data_success: "Starsze dane odrzucone.",
+    discard_older_data_failed: "Nie udało się odrzucić starszych danych. Spróbuj ponownie.",
     phrase_wrap_save_failed:
       "Nie udało się zapisać frazy odzyskiwania na serwerze. Spróbuj ponownie.",
     smtp_tokens: "Tokeny SMTP",

@@ -3567,6 +3567,11 @@ export const nl = {
       "Uw oudere gegevens zijn ontgrendeld. Oudere e-mails en aliassen openen weer normaal.",
     resurrection_failed:
       "Hiermee zijn de oudere gegevens niet ontgrendeld. Controleer het wachtwoord of de zin en probeer het opnieuw.",
+    discard_older_data_button: "Oudere gegevens verwijderen",
+    discard_older_data_title: "Oudere gegevens verwijderen?",
+    discard_older_data_desc: "Hiermee verwijder je definitief de optie om e-mail en aliassen van vóór de reset te ontgrendelen. Dit kun je niet ongedaan maken.",
+    discard_older_data_success: "Oudere gegevens verwijderd.",
+    discard_older_data_failed: "De oudere gegevens konden niet worden verwijderd. Probeer het opnieuw.",
     phrase_wrap_save_failed:
       "Uw herstelzin kon niet op de server worden opgeslagen. Probeer het opnieuw.",
     general: "Algemeen",

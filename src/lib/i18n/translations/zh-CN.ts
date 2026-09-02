@@ -1885,6 +1885,11 @@ export const zh_CN = {
     resurrection_success:
       "较早的数据已解锁。您之前的邮件和别名可以再次正常打开。",
     resurrection_failed: "未能解锁较早的数据。请检查密码或短语后再试一次。",
+    discard_older_data_button: "放弃较早的数据",
+    discard_older_data_title: "要放弃较早的数据吗？",
+    discard_older_data_desc: "这将永久移除解锁重置前邮件和别名的选项。此操作无法撤销。",
+    discard_older_data_success: "已放弃较早的数据。",
+    discard_older_data_failed: "无法放弃较早的数据。请重试。",
     phrase_wrap_save_failed: "您的恢复短语未能保存到服务器，再试一次应该可以。",
     smtp_tokens: "SMTP 令牌",
     smtp_tokens_description:

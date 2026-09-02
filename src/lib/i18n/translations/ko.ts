@@ -3424,6 +3424,11 @@ export const ko = {
       "이전 데이터의 잠금이 해제되었습니다. 예전 메일과 별칭을 다시 정상적으로 열 수 있습니다.",
     resurrection_failed:
       "이전 데이터를 잠금 해제하지 못했습니다. 비밀번호나 문구를 확인하고 다시 시도하세요.",
+    discard_older_data_button: "이전 데이터 삭제",
+    discard_older_data_title: "이전 데이터를 삭제할까요?",
+    discard_older_data_desc: "재설정 이전의 메일과 별칭을 잠금 해제할 수 있는 옵션이 영구적으로 제거됩니다. 이 작업은 취소할 수 없습니다.",
+    discard_older_data_success: "이전 데이터를 삭제했습니다.",
+    discard_older_data_failed: "이전 데이터를 삭제하지 못했습니다. 다시 시도하세요.",
     phrase_wrap_save_failed:
       "복구 문구를 서버에 저장하지 못했습니다. 다시 시도하세요.",
     general: "일반",

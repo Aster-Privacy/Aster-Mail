@@ -2180,6 +2180,11 @@ export const de = {
       "Ihre älteren Daten sind entsperrt. Frühere E-Mails und Aliasse lassen sich wieder normal öffnen.",
     resurrection_failed:
       "Damit ließen sich die älteren Daten nicht entsperren. Prüfen Sie das Passwort oder die Phrase und versuchen Sie es erneut.",
+    discard_older_data_button: "Ältere Daten verwerfen",
+    discard_older_data_title: "Ältere Daten verwerfen?",
+    discard_older_data_desc: "Damit wird die Option, E-Mails und Aliasse aus der Zeit vor dem Zurücksetzen zu entsperren, dauerhaft entfernt. Das lässt sich nicht rückgängig machen.",
+    discard_older_data_success: "Ältere Daten verworfen.",
+    discard_older_data_failed: "Die älteren Daten konnten nicht verworfen werden. Versuchen Sie es erneut.",
     phrase_wrap_save_failed:
       "Ihre Wiederherstellungsphrase konnte nicht auf dem Server gespeichert werden. Versuchen Sie es erneut.",
     smtp_tokens: "SMTP-Token",

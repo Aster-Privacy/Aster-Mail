@@ -2409,6 +2409,11 @@ export interface SettingsTranslations {
   resurrection_old_password_prompt: string;
   resurrection_success: string;
   resurrection_failed: string;
+  discard_older_data_button: string;
+  discard_older_data_title: string;
+  discard_older_data_desc: string;
+  discard_older_data_success: string;
+  discard_older_data_failed: string;
   phrase_wrap_save_failed: string;
   general: string;
   account: string;
