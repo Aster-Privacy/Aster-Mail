@@ -302,21 +302,24 @@ export function EmailViewerContent({
   const [cid_retry, set_cid_retry] = useState(0);
   const attachment_keys_version = use_attachment_keys_version(email.id);
 
-  const [cid_resolved_html, set_cid_resolved_html] = useState<string | null>(
-    () => {
-      if (effective_content_mode === "always") return null;
-      const preloaded = pop_preloaded_cid(email.id);
+  const [cid_resolved, set_cid_resolved] = useState<{
+    email_id: string;
+    html: string;
+  } | null>(() => {
+    if (effective_content_mode === "always") return null;
+    const preloaded = pop_preloaded_cid(email.id);
 
-      if (preloaded) {
-        cid_blob_urls_ref.current = preloaded.blob_urls;
-        cid_preload_consumed_ref.current = true;
+    if (preloaded) {
+      cid_blob_urls_ref.current = preloaded.blob_urls;
+      cid_preload_consumed_ref.current = true;
 
-        return preloaded.html;
-      }
+      return { email_id: email.id, html: preloaded.html };
+    }
 
-      return null;
-    },
-  );
+    return null;
+  });
+  const cid_resolved_html =
+    cid_resolved?.email_id === email.id ? cid_resolved.html : null;
 
   useEffect(() => {
     cid_retry_attempt_ref.current = 0;
@@ -331,13 +334,14 @@ export function EmailViewerContent({
     }
 
     let cancelled = false;
+    const resolving_email_id = email.id;
 
     const has_cid = extract_cid_references(sanitize_result.html).length > 0;
 
     if (!has_cid || preferences.low_network_mode) {
       revoke_cid_blob_urls(cid_blob_urls_ref.current);
       cid_blob_urls_ref.current = [];
-      set_cid_resolved_html(null);
+      set_cid_resolved(null);
 
       return;
     }
@@ -348,7 +352,7 @@ export function EmailViewerContent({
     if (preloaded) {
       revoke_cid_blob_urls(cid_blob_urls_ref.current);
       cid_blob_urls_ref.current = preloaded.blob_urls;
-      set_cid_resolved_html(preloaded.html);
+      set_cid_resolved({ email_id: resolving_email_id, html: preloaded.html });
 
       return;
     }
@@ -362,7 +366,7 @@ export function EmailViewerContent({
         }
         revoke_cid_blob_urls(cid_blob_urls_ref.current);
         cid_blob_urls_ref.current = result.blob_urls;
-        set_cid_resolved_html(result.html);
+        set_cid_resolved({ email_id: resolving_email_id, html: result.html });
 
         if (
           result.records_unavailable &&

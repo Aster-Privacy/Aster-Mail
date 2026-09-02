@@ -387,8 +387,11 @@ export function use_email_detail_load() {
 
     if (tracked_email_id.current !== email_id) {
       tracked_email_id.current = email_id;
+      set_email(null);
+      set_thread_messages([]);
       set_tracking_report(null);
       set_thread_truncated(false);
+      set_is_loading(true);
     }
 
     const preload_in_flight = get_preload_in_flight();
@@ -478,6 +481,9 @@ export function use_email_detail_load() {
           const delay_ms =
             mark_as_read_delay_ref.current === "1_second" ? 1000 : 3000;
 
+          if (mark_as_read_timeout.current !== null) {
+            window.clearTimeout(mark_as_read_timeout.current);
+          }
           mark_as_read_timeout.current = window.setTimeout(mark_read, delay_ms);
         }
       }
@@ -717,6 +723,9 @@ export function use_email_detail_load() {
           const delay_ms =
             mark_as_read_delay_ref.current === "1_second" ? 1000 : 3000;
 
+          if (mark_as_read_timeout.current !== null) {
+            window.clearTimeout(mark_as_read_timeout.current);
+          }
           mark_as_read_timeout.current = window.setTimeout(mark_read, delay_ms);
         }
       }
