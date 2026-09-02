@@ -47,6 +47,10 @@ import { get_thread_messages } from "@/services/api/mail";
 import { bulk_update_metadata_by_ids } from "@/services/crypto/mail_metadata";
 import { ignore_error } from "@/lib/ignore_error";
 import {
+  clear_flag_intents,
+  note_flag_intents,
+} from "@/services/read_intent";
+import {
   remove_ids as remove_index_ids,
   remove_thread_entries,
   reindex_ids,
@@ -201,6 +205,7 @@ export function use_archive_snooze_actions({
 
     remove_email(email.id);
     remove_index_ids(all_ids);
+    note_flag_intents(all_ids, { is_archived: true });
 
     const removed_thread_ids = email.thread_token
       ? remove_thread_entries(email.thread_token)
@@ -227,6 +232,7 @@ export function use_archive_snooze_actions({
       }
     }
 
+    note_flag_intents(archive_ids, { is_archived: true });
     apply_stat_deltas(deltas);
     const result = await batch_archive({ ids: archive_ids, tier: "hot" });
 
@@ -249,9 +255,11 @@ export function use_archive_snooze_actions({
         email_ids: all_ids,
         on_undo: async () => {
           revert_stat_deltas(deltas);
+          note_flag_intents(archive_ids, { is_archived: false });
           const undo_result = await batch_unarchive({ ids: archive_ids });
 
           if (undo_result.error || !undo_result.data?.success) {
+            clear_flag_intents(archive_ids, { is_archived: false });
             reindex_ids(
               Array.from(new Set([...archive_ids, ...removed_thread_ids])),
             );
@@ -275,6 +283,7 @@ export function use_archive_snooze_actions({
       });
     } else {
       revert_stat_deltas(deltas);
+      clear_flag_intents(archive_ids, { is_archived: true });
       reindex_ids(Array.from(new Set([...archive_ids, ...removed_thread_ids])));
       window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
       show_toast(t("common.failed_to_archive_emails"), "error");
@@ -312,11 +321,17 @@ export function use_archive_snooze_actions({
       const snooze_iso = snooze_until.toISOString();
       const ids = selected.map((e) => e.id);
 
+      note_flag_intents(ids, { snoozed_until: snooze_iso });
       for (const email of selected) {
         update_email(email.id, {
           snoozed_until: snooze_iso,
           is_selected: false,
         });
+      }
+      if (current_view !== "snoozed") {
+        for (const id of ids) {
+          remove_email(id);
+        }
       }
       try {
         const result = await bulk_snooze_action(ids, snooze_until);
@@ -332,15 +347,11 @@ export function use_archive_snooze_actions({
             }),
             "warning",
           );
+          clear_flag_intents(ids, { snoozed_until: snooze_iso });
           remove_index_ids(ids);
           emit_mail_changed();
 
           return true;
-        }
-        if (current_view !== "snoozed") {
-          for (const id of ids) {
-            remove_email(id);
-          }
         }
         for (const id of ids) {
           emit_mail_item_updated({ id, snoozed_until: snooze_iso });
@@ -355,6 +366,7 @@ export function use_archive_snooze_actions({
         });
       } catch (error) {
         if (import.meta.env.DEV) console.error(error);
+        clear_flag_intents(ids, { snoozed_until: snooze_iso });
         for (const email of selected) {
           update_email(email.id, {
             snoozed_until: email.snoozed_until,

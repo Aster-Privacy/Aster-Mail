@@ -52,7 +52,10 @@ import {
 } from "@/services/locked_folders";
 import { resolve_sender_profiles } from "@/services/api/sender_profiles";
 import { map_sync_in_chunks } from "@/lib/scheduling";
-import { apply_read_intents } from "@/services/read_intent";
+import {
+  apply_flag_intents,
+  is_removal_intended,
+} from "@/services/read_intent";
 
 const MAP_CHUNK_SIZE = 25;
 
@@ -199,7 +202,9 @@ export async function fetch_mail_from_api(
 
     if (signal.aborted) return null;
 
-    let emails = mapped.filter((email): email is InboxEmail => email !== null);
+    let emails = apply_flag_intents(
+      mapped.filter((email): email is InboxEmail => email !== null),
+    );
 
     if (view === "inbox" && category_index_module) {
       const index_entries = successful
@@ -209,7 +214,8 @@ export async function fetch_mail_from_api(
             !category_index_module.is_item_outside_inbox(item) &&
             !metadata?.is_trashed &&
             !metadata?.is_archived &&
-            !metadata?.is_spam,
+            !metadata?.is_spam &&
+            !is_removal_intended(item.id),
         )
         .flatMap(({ item, envelope, metadata }) => {
           try {
@@ -256,7 +262,7 @@ export async function fetch_mail_from_api(
       ),
     );
 
-    return apply_read_intents(emails);
+    return emails;
   };
 
   const first_batch = await process_items(items);

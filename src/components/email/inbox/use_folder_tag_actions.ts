@@ -166,6 +166,12 @@ export function use_folder_tag_actions({
             await batched_bulk_remove_folder(succeeded_ids, folder_token);
             reindex_ids(succeeded_ids);
           }
+          for (const email of succeeded_emails) {
+            emit_mail_item_updated({
+              id: email.id,
+              folders: previous_states.get(email.id) ?? [],
+            });
+          }
           window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
         },
       });
@@ -202,7 +208,7 @@ export function use_folder_tag_actions({
         } else {
           update_email(email.id, {
             tags: [
-              ...(email.tags || []),
+              ...(email.tags || []).filter((tag) => tag.id !== tag_token),
               {
                 id: tag_token,
                 name: tag_name,
@@ -240,7 +246,9 @@ export function use_folder_tag_actions({
                 (tag) => tag.id !== tag_token,
               )
             : [
-                ...(previous_states.get(email.id) ?? []),
+                ...(previous_states.get(email.id) ?? []).filter(
+                  (tag) => tag.id !== tag_token,
+                ),
                 {
                   id: tag_token,
                   name: tag_name,
@@ -275,6 +283,12 @@ export function use_folder_tag_actions({
             await batched_bulk_add_tag(succeeded_ids, tag_token);
           } else {
             await batched_bulk_remove_tag(succeeded_ids, tag_token);
+          }
+          for (const email of succeeded_emails) {
+            emit_mail_item_updated({
+              id: email.id,
+              tags: previous_states.get(email.id) ?? [],
+            });
           }
           window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
         },

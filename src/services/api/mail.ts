@@ -24,7 +24,11 @@ import { api_client, type ApiResponse } from "./client";
 import { with_folder_unlock } from "./folder_unlock_retry";
 
 import { get_unlock_token } from "@/services/folder_unlock_store";
-import { clear_read_intent, note_read_intent } from "@/services/read_intent";
+import {
+  clear_flag_intents,
+  note_flag_intents,
+  pick_flag_intents,
+} from "@/services/read_intent";
 import {
   remember_items_folder_context,
   remember_item_folder_context,
@@ -685,33 +689,24 @@ export async function patch_mail_item_metadata(
   item_id: string,
   data: PatchMetadataRequest,
 ): Promise<ApiResponse<{ success: boolean; updated_count: number }>> {
-  if (data.is_read !== undefined) {
-    note_read_intent([item_id], data.is_read);
-  }
+  const intent = pick_flag_intents(data);
+
+  note_flag_intents([item_id], intent);
 
   const result = await api_client.put<{
     success: boolean;
     updated_count: number;
   }>(`/mail/v1/messages/${item_id}/metadata`, data);
 
-  if (result.error && data.is_read !== undefined) {
-    clear_read_intent([item_id], data.is_read);
-  }
+  if (result.error) clear_flag_intents([item_id], intent);
 
   return result;
 }
 
 function note_bulk_read_intents(items: BulkPatchMetadataItem[]): void {
-  const read_ids: string[] = [];
-  const unread_ids: string[] = [];
-
   for (const item of items) {
-    if (item.is_read === true) read_ids.push(item.id);
-    else if (item.is_read === false) unread_ids.push(item.id);
+    note_flag_intents([item.id], pick_flag_intents(item));
   }
-
-  if (read_ids.length > 0) note_read_intent(read_ids, true);
-  if (unread_ids.length > 0) note_read_intent(unread_ids, false);
 }
 
 function clear_bulk_read_intents(
@@ -721,8 +716,8 @@ function clear_bulk_read_intents(
   const failed = new Set(failed_ids);
 
   for (const item of items) {
-    if (item.is_read === undefined || !failed.has(item.id)) continue;
-    clear_read_intent([item.id], item.is_read);
+    if (!failed.has(item.id)) continue;
+    clear_flag_intents([item.id], pick_flag_intents(item));
   }
 }
 

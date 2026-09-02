@@ -46,6 +46,10 @@ import {
 import { mark_conversation_read } from "@/hooks/mark_conversation_read";
 import { remove_email_from_view_cache } from "@/hooks/email_list_cache";
 import {
+  clear_flag_intents,
+  note_flag_intents,
+} from "@/services/read_intent";
+import {
   compute_trash_deltas,
   compute_archive_deltas,
   compute_unarchive_deltas,
@@ -75,6 +79,8 @@ export function use_single_actions_flags(params: SingleActionsFlagsParams) {
     async (email: InboxEmail): Promise<boolean> => {
       const new_starred = !email.is_starred;
 
+      note_flag_intents([email.id], { is_starred: new_starred });
+
       const offline_result = await try_enqueue_offline_action(
         "star",
         [email.id],
@@ -100,6 +106,7 @@ export function use_single_actions_flags(params: SingleActionsFlagsParams) {
 
       if (!success) {
         adjust_stats_starred(new_starred ? -1 : 1);
+        clear_flag_intents([email.id], { is_starred: new_starred });
       }
 
       return success;
@@ -116,12 +123,20 @@ export function use_single_actions_flags(params: SingleActionsFlagsParams) {
     async (email: InboxEmail): Promise<boolean> => {
       const new_pinned = !email.is_pinned;
 
-      return execute_single_action(
+      note_flag_intents([email.id], { is_pinned: new_pinned });
+
+      const success = await execute_single_action(
         email,
         "pin",
         { is_pinned: new_pinned },
         () => update_with_metadata(email, { is_pinned: new_pinned }),
       );
+
+      if (!success) {
+        clear_flag_intents([email.id], { is_pinned: new_pinned });
+      }
+
+      return success;
     },
     [execute_single_action, update_with_metadata],
   );
@@ -325,6 +340,8 @@ export function use_single_actions_flags(params: SingleActionsFlagsParams) {
         is_spam: email.is_spam,
       };
 
+      note_flag_intents(grouped_ids, archive_update);
+
       if (offline_result.queued) {
         config.on_optimistic_update?.(email.id, archive_update);
         config.on_remove_from_list?.(email.id);
@@ -378,11 +395,13 @@ export function use_single_actions_flags(params: SingleActionsFlagsParams) {
           action_type: "archive",
           email_ids: grouped_ids,
           on_undo: async () => {
+            note_flag_intents(grouped_ids, original_state);
             const undo_result = await api_batch_unarchive({
               ids: grouped_ids,
             });
 
             if (undo_result.error || !undo_result.data?.success) {
+              clear_flag_intents(grouped_ids, original_state);
               throw new Error(
                 undo_result.error || t("common.failed_to_move_email"),
               );
@@ -403,6 +422,7 @@ export function use_single_actions_flags(params: SingleActionsFlagsParams) {
 
       if (!success) {
         revert_stat_deltas(deltas);
+        clear_flag_intents(grouped_ids, archive_update);
       }
 
       return success;
@@ -486,6 +506,8 @@ export function use_single_actions_flags(params: SingleActionsFlagsParams) {
           ? email.thread_token
           : null;
 
+      note_flag_intents(grouped_ids, { is_trashed: true });
+
       const offline_result = await try_enqueue_offline_action(
         "delete",
         grouped_ids,
@@ -550,10 +572,14 @@ export function use_single_actions_flags(params: SingleActionsFlagsParams) {
           email_ids: grouped_ids,
           on_undo: async () => {
             revert_stat_deltas(deltas);
+            note_flag_intents(grouped_ids, { is_trashed: false });
             if (thread_scope_token) {
               const undo_result = await trash_thread(thread_scope_token, false);
 
-              if (undo_result.error) throw new Error("undo trash failed");
+              if (undo_result.error) {
+                clear_flag_intents(grouped_ids, { is_trashed: false });
+                throw new Error("undo trash failed");
+              }
               for (const id of grouped_ids) {
                 emit_mail_item_updated({ id, is_trashed: false });
               }
@@ -563,7 +589,10 @@ export function use_single_actions_flags(params: SingleActionsFlagsParams) {
                 { is_trashed: false },
               );
 
-              if (!undo_result.success) throw new Error("undo trash failed");
+              if (!undo_result.success) {
+                clear_flag_intents(grouped_ids, { is_trashed: false });
+                throw new Error("undo trash failed");
+              }
               for (const id of grouped_ids) {
                 emit_mail_item_updated({ id, is_trashed: false });
               }
@@ -581,6 +610,7 @@ export function use_single_actions_flags(params: SingleActionsFlagsParams) {
 
       if (!success) {
         revert_stat_deltas(deltas);
+        clear_flag_intents(grouped_ids, { is_trashed: true });
       }
 
       return success;
