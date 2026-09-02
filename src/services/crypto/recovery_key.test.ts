@@ -255,6 +255,20 @@ describe("hash_recovery_code", () => {
     expect(hash1).toBe(hash2);
   });
 
+  it("should match a three-segment code typed without dashes", async () => {
+    const hash1 = await hash_recovery_code("ASTERABCDEFGHIJKL");
+    const hash2 = await hash_recovery_code("ASTER-ABCD-EFGH-IJKL");
+
+    expect(hash1).toBe(hash2);
+  });
+
+  it("should match a four-segment code typed without dashes", async () => {
+    const hash1 = await hash_recovery_code("asterabcdefghijklmnop");
+    const hash2 = await hash_recovery_code("ASTER-ABCD-EFGH-IJKL-MNOP");
+
+    expect(hash1).toBe(hash2);
+  });
+
   it("should return base64 encoded string", async () => {
     const hash = await hash_recovery_code("ASTER-TEST-CODE-1234");
 
