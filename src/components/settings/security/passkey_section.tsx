@@ -31,6 +31,7 @@ import {
   RecommendationBox,
   ActionRecommendedBadge,
 } from "@/components/settings/security/recommendation_box";
+import { StepUpModal } from "@/components/settings/step_up_modal";
 import { ConfirmModal } from "@/components/email/inbox/inbox_confirmation_dialog";
 import { InfoPopover } from "@/components/ui/info_popover";
 import { use_i18n } from "@/lib/i18n/context";
@@ -215,6 +216,7 @@ export function PasskeySection() {
   const [pending_delete, set_pending_delete] = useState<HardwareKeyInfo | null>(
     null,
   );
+  const [step_up_key_id, set_step_up_key_id] = useState<string | null>(null);
   const [registering, set_registering] = useState<
     "passkey" | "security_key" | null
   >(null);
@@ -244,18 +246,31 @@ export function PasskeySection() {
   }, [load_keys]);
 
   const handle_remove = useCallback(
-    async (key_id: string) => {
+    async (
+      key_id: string,
+      credentials?: { password_hash: string; totp_code?: string },
+    ) => {
       set_pending_delete(null);
       set_removing_id(key_id);
       try {
-        const resp = await remove_hardware_key(key_id);
+        const resp = await remove_hardware_key(key_id, credentials);
 
         if (resp.data?.success) {
           set_keys((prev) => prev.filter((k) => k.id !== key_id));
+          set_step_up_key_id(null);
           show_toast(t("passkeys.removed"), "success");
-        } else {
-          show_toast(resp.error || t("errors.generic"), "error");
+
+          return;
         }
+
+        if (resp.server_code === "STEP_UP_REQUIRED") {
+          set_step_up_key_id(key_id);
+
+          return;
+        }
+
+        if (credentials) throw new Error(resp.error || t("errors.generic"));
+        show_toast(resp.error || t("errors.generic"), "error");
       } finally {
         set_removing_id(null);
       }
@@ -289,6 +304,9 @@ export function PasskeySection() {
         } else {
           show_toast(t("passkeys.register_success"), "success");
         }
+        if (resp.data.other_sessions_revoked) {
+          show_toast(t("passkeys.other_devices_signed_out"), "info");
+        }
         await load_keys();
       } else if (resp.error === "no_platform_authenticator") {
         show_toast(t("passkeys.no_platform_authenticator"), "error");
@@ -312,6 +330,9 @@ export function PasskeySection() {
 
       if (resp.data?.success) {
         show_toast(t("passkeys.register_success"), "success");
+        if (resp.data.other_sessions_revoked) {
+          show_toast(t("passkeys.other_devices_signed_out"), "info");
+        }
         await load_keys();
       } else if (resp.error === "no_platform_authenticator") {
         show_toast(t("passkeys.no_platform_authenticator"), "error");
@@ -338,11 +359,14 @@ export function PasskeySection() {
             description={`${t("passkeys.passkey_hint")} ${t("passkeys.security_key_hint")}`}
             title={t("passkeys.section_title")}
           />
-          {webauthn_supported && !loading && !load_error && keys.length === 0 && (
-            <ActionRecommendedBadge
-              tip={t("settings.no_passkeys_recommendation")}
-            />
-          )}
+          {webauthn_supported &&
+            !loading &&
+            !load_error &&
+            keys.length === 0 && (
+              <ActionRecommendedBadge
+                tip={t("settings.no_passkeys_recommendation")}
+              />
+            )}
         </h3>
         <div className="mt-2 h-px bg-edge-secondary" />
       </div>
@@ -486,6 +510,24 @@ export function PasskeySection() {
             ? "passkeys.delete_security_key_title"
             : "passkeys.delete_passkey_title",
         )}
+      />
+
+      <StepUpModal
+        destructive
+        confirm_label={t("common.remove")}
+        description={t("passkeys.remove_last_key_step_up_description")}
+        is_open={!!step_up_key_id}
+        on_close={() => set_step_up_key_id(null)}
+        on_confirm={async (credentials) => {
+          if (!step_up_key_id) return;
+          await handle_remove(step_up_key_id, {
+            password_hash: credentials.password_hash,
+            ...(credentials.totp_code
+              ? { totp_code: credentials.totp_code }
+              : {}),
+          });
+        }}
+        title={t("passkeys.remove_last_key_step_up_title")}
       />
     </div>
   );

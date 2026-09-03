@@ -6008,6 +6008,8 @@ export const ko = {
       "스캔할 수 없나요? 이 코드를 수동으로 입력하세요:",
     save_backup_codes_description:
       "이 백업 코드를 안전한 곳에 저장하세요. 인증 기기를 분실한 경우 계정에 접근하는 데 사용할 수 있습니다.",
+    two_factor_other_devices_signed_out:
+      "Aster가 다른 기기에서 로그아웃했습니다. 다시 사용하려면 로그인한 다음 인증 앱의 코드를 입력하십시오.",
     copy_all_codes: "모든 코드 복사",
     backup_codes: "백업 코드",
     regenerate_backup_codes: "백업 코드 재생성",
@@ -8546,6 +8548,11 @@ export const ko = {
     delete_passkey_description:
       '"{{name}}"이(가) 계정에서 제거됩니다. 더 이상 이 패스키로 로그인할 수 없습니다.',
     delete_security_key_title: "보안 키를 삭제할까요?",
+    other_devices_signed_out:
+      "Aster가 다른 기기에서 로그아웃했습니다. 다시 사용하려면 로그인한 다음 보안 키로 확인하십시오.",
+    remove_last_key_step_up_title: "마지막 보안 키를 제거할까요?",
+    remove_last_key_step_up_description:
+      "계정에 남은 마지막 2단계 인증 수단입니다. 제거하려면 비밀번호를 입력하십시오.",
     delete_security_key_description:
       '"{{name}}"이(가) 계정에서 제거됩니다. 더 이상 2차 인증 수단으로 사용할 수 없습니다.',
     removed: "패스키를 제거했습니다",

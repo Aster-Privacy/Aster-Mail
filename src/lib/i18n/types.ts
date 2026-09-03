@@ -334,6 +334,9 @@ export interface PasskeysTranslations {
   delete_passkey_title: string;
   delete_passkey_description: string;
   delete_security_key_title: string;
+  other_devices_signed_out: string;
+  remove_last_key_step_up_title: string;
+  remove_last_key_step_up_description: string;
   delete_security_key_description: string;
   removed: string;
   rename: string;
@@ -5991,6 +5994,7 @@ export interface SettingsTranslations {
   scan_qr_code_description: string;
   cant_scan_enter_manually: string;
   save_backup_codes_description: string;
+  two_factor_other_devices_signed_out: string;
   copy_all_codes: string;
   backup_codes: string;
   regenerate_backup_codes: string;

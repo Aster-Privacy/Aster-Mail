@@ -6016,6 +6016,8 @@ export const fr = {
       "Impossible de scanner ? Saisissez ce code manuellement :",
     save_backup_codes_description:
       "Conservez ces codes de secours dans un endroit sûr. Vous pouvez les utiliser pour accéder à votre compte si vous perdez votre appareil d'authentification.",
+    two_factor_other_devices_signed_out:
+      "Aster vous a déconnecté sur vos autres appareils. Pour les utiliser à nouveau, connectez-vous et saisissez un code de votre app d'authentification.",
     copy_all_codes: "Copier tous les codes",
     backup_codes: "Codes de secours",
     regenerate_backup_codes: "Régénérer les codes de secours",
@@ -9020,6 +9022,11 @@ export const fr = {
     delete_passkey_description:
       "« {{name}} » sera supprimé de votre compte. Vous ne pourrez plus l'utiliser pour vous connecter.",
     delete_security_key_title: "Supprimer la clé de sécurité ?",
+    other_devices_signed_out:
+      "Aster vous a déconnecté sur vos autres appareils. Pour les utiliser à nouveau, connectez-vous et confirmez avec votre clé de sécurité.",
+    remove_last_key_step_up_title: "Supprimer votre dernière clé de sécurité ?",
+    remove_last_key_step_up_description:
+      "Il s'agit du dernier deuxième facteur de votre compte. Pour le supprimer, saisissez votre mot de passe.",
     delete_security_key_description:
       "« {{name}} » sera supprimée de votre compte. Elle ne pourra plus servir de second facteur.",
     removed: "Clé d’accès supprimée",

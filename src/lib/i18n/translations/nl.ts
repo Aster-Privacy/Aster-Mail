@@ -6200,6 +6200,8 @@ export const nl = {
       "Kun je niet scannen? Voer deze code handmatig in:",
     save_backup_codes_description:
       "Bewaar deze back-upcodes op een veilige plek. Je kunt ze gebruiken om toegang te krijgen tot je account als je je authenticator-apparaat verliest.",
+    two_factor_other_devices_signed_out:
+      "Aster heeft je op je andere apparaten afgemeld. Meld je opnieuw aan en voer een code uit je authenticator-app in om ze weer te gebruiken.",
     copy_all_codes: "Alle codes kopiëren",
     backup_codes: "Back-upcodes",
     regenerate_backup_codes: "Back-upcodes opnieuw genereren",
@@ -8918,6 +8920,11 @@ export const nl = {
     delete_passkey_description:
       '"{{name}}" wordt uit je account verwijderd. Je kunt er niet meer mee inloggen.',
     delete_security_key_title: "Beveiligingssleutel verwijderen?",
+    other_devices_signed_out:
+      "Aster heeft je op je andere apparaten afgemeld. Meld je opnieuw aan en bevestig met je beveiligingssleutel om ze weer te gebruiken.",
+    remove_last_key_step_up_title: "Je laatste beveiligingssleutel verwijderen?",
+    remove_last_key_step_up_description:
+      "Dit is de laatste tweede factor op je account. Voer je wachtwoord in om hem te verwijderen.",
     delete_security_key_description:
       '"{{name}}" wordt uit je account verwijderd. Hij werkt niet meer als tweede factor.',
     removed: "Toegangssleutel verwijderd",

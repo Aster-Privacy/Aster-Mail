@@ -6087,6 +6087,8 @@ export const ja = {
       "スキャンできない場合はこのコードを手動で入力してください：",
     save_backup_codes_description:
       "これらのバックアップコードを安全な場所に保存してください。認証デバイスを紛失した場合にアカウントにアクセスするために使用できます。",
+    two_factor_other_devices_signed_out:
+      "Aster はほかのデバイスからサインアウトしました。再び使うには、サインインして認証 App のコードを入力してください。",
     copy_all_codes: "すべてのコードをコピー",
     backup_codes: "バックアップコード",
     regenerate_backup_codes: "バックアップコードを再生成",
@@ -8795,6 +8797,11 @@ export const ja = {
     delete_passkey_description:
       "「{{name}}」はアカウントから削除されます。今後このパスキーでサインインできなくなります。",
     delete_security_key_title: "セキュリティキーを削除しますか？",
+    other_devices_signed_out:
+      "Aster はほかのデバイスからサインアウトしました。再び使うには、サインインしてセキュリティキーで確認してください。",
+    remove_last_key_step_up_title: "最後のセキュリティキーを削除しますか？",
+    remove_last_key_step_up_description:
+      "これはアカウントに残る最後の 2 要素です。削除するには、パスワードを入力してください。",
     delete_security_key_description:
       "「{{name}}」はアカウントから削除されます。今後は第二要素として使用できなくなります。",
     removed: "パスキーを削除しました",

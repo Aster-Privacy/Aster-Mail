@@ -5498,6 +5498,8 @@ export const zh_CN = {
     cant_scan_enter_manually: "无法扫描？手动输入此代码：",
     save_backup_codes_description:
       "请将这些备份代码保存在安全的地方。如果您丢失了验证器设备，可以使用它们访问账户。",
+    two_factor_other_devices_signed_out:
+      "Aster 已在你的其他设备上退出登录。若要继续使用这些设备，请重新登录并输入身份验证器 App 中的验证码。",
     copy_all_codes: "复制所有代码",
     backup_codes: "备份码",
     regenerate_backup_codes: "重新生成备份码",
@@ -7942,6 +7944,11 @@ export const zh_CN = {
     delete_passkey_description:
       "“{{name}}”将从您的账户中移除。您将无法再使用它登录。",
     delete_security_key_title: "删除安全密钥？",
+    other_devices_signed_out:
+      "Aster 已在你的其他设备上退出登录。若要继续使用这些设备，请重新登录并用安全密钥确认。",
+    remove_last_key_step_up_title: "移除最后一个安全密钥？",
+    remove_last_key_step_up_description:
+      "这是账户上最后一个双重验证方式。若要移除，请输入密码。",
     delete_security_key_description:
       "“{{name}}”将从您的账户中移除。它将无法再作为第二因素使用。",
     removed: "已移除通行密钥",

@@ -54,6 +54,7 @@ export interface HardwareKeyRegistrationOptions {
 export interface HardwareKeyRegistrationCompleteResponse {
   key_id: string;
   success: boolean;
+  other_sessions_revoked?: boolean;
 }
 
 export interface AllowedCredential {
@@ -149,9 +150,11 @@ export async function complete_hardware_key_registration(request: {
 
 export async function remove_hardware_key(
   key_id: string,
+  credentials?: { password_hash: string; totp_code?: string },
 ): Promise<ApiResponse<{ success: boolean }>> {
   return api_client.delete<{ success: boolean }>(
     `/core/v1/auth/hardware-keys/${key_id}`,
+    credentials ? { data: credentials } : undefined,
   );
 }
 

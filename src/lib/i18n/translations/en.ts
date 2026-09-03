@@ -6560,6 +6560,8 @@ export const en: Translations = {
     cant_scan_enter_manually: "Can't scan? Enter this code manually:",
     save_backup_codes_description:
       "Save these backup codes in a secure place. You can use them to access your account if you lose your authenticator device.",
+    two_factor_other_devices_signed_out:
+      "Aster signed you out on your other devices. To use them again, sign in and enter a code from your authenticator app.",
     copy_all_codes: "Copy All Codes",
     backup_codes: "Backup Codes",
     regenerate_backup_codes: "Regenerate backup codes",
@@ -8780,6 +8782,11 @@ export const en: Translations = {
     delete_passkey_description:
       '"{{name}}" will be removed from your account. You will no longer be able to sign in with it.',
     delete_security_key_title: "Delete security key?",
+    other_devices_signed_out:
+      "Aster signed you out on your other devices. To use them again, sign in and confirm with your security key.",
+    remove_last_key_step_up_title: "Remove your last security key?",
+    remove_last_key_step_up_description:
+      "This is the last second factor on your account. To remove it, enter your password.",
     delete_security_key_description:
       '"{{name}}" will be removed from your account. It will no longer work as a second factor.',
     removed: "Passkey removed",

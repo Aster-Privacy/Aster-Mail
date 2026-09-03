@@ -6572,6 +6572,8 @@ export const hi = {
     cant_scan_enter_manually: "स्कैन नहीं हो रहा? यह कोड खुद डालें:",
     save_backup_codes_description:
       "इन बैकअप कोड को सुरक्षित जगह सहेजें। अगर आपका प्रमाणक डिवाइस खो जाए, तो आप इनसे अपना खाता खोल सकते हैं।",
+    two_factor_other_devices_signed_out:
+      "Aster ने आपके दूसरे डिवाइस से आपको साइन आउट कर दिया है। उन्हें फिर से इस्तेमाल करने के लिए साइन इन करें और अपने ऑथेंटिकेटर ऐप का कोड डालें।",
     copy_all_codes: "सभी कोड कॉपी करें",
     backup_codes: "बैकअप कोड",
     regenerate_backup_codes: "बैकअप कोड दोबारा बनाएं",
@@ -8807,6 +8809,11 @@ export const hi = {
     delete_passkey_description:
       '"{{name}}" आपके खाते से हटा दी जाएगी। इसके बाद आप उससे साइन इन नहीं कर पाएंगे।',
     delete_security_key_title: "सुरक्षा कुंजी हटाएं?",
+    other_devices_signed_out:
+      "Aster ने आपके दूसरे डिवाइस से आपको साइन आउट कर दिया है। उन्हें फिर से इस्तेमाल करने के लिए साइन इन करें और अपनी सुरक्षा कुंजी से पुष्टि करें।",
+    remove_last_key_step_up_title: "अपनी आखिरी सुरक्षा कुंजी हटाएं?",
+    remove_last_key_step_up_description:
+      "यह आपके खाते का आखिरी दूसरा फ़ैक्टर है। इसे हटाने के लिए अपना पासवर्ड डालें।",
     delete_security_key_description:
       '"{{name}}" आपके खाते से हटा दी जाएगी। यह अब दूसरे चरण के तौर पर काम नहीं करेगी।',
     removed: "पासकी हटा दी गई",

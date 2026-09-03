@@ -85,6 +85,9 @@ export function TotpBackupCodesModal({
         <ModalDescription>
           {t("settings.save_backup_codes_description")}
         </ModalDescription>
+        <ModalDescription>
+          {t("settings.two_factor_other_devices_signed_out")}
+        </ModalDescription>
       </ModalHeader>
       <ModalBody>
         <div className="space-y-4">
