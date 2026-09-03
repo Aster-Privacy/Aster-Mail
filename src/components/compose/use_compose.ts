@@ -46,8 +46,9 @@ import {
   get_preferred_sender_id,
   set_preferred_sender_id,
   subscribe_preferred_sender,
-  sender_id_matches,
 } from "@/lib/preferred_sender";
+import { use_preferred_sender_ready } from "@/hooks/use_preferred_sender_ready";
+import { resolve_from_sender } from "@/components/compose/resolve_from_sender";
 import {
   use_ghost_mode,
   type UseGhostModeReturn,
@@ -278,9 +279,15 @@ export function use_compose({
   >([]);
 
   const { sender_options, loading: aliases_loading } = use_sender_aliases();
-  const [selected_sender, set_selected_sender] = useState<SenderOption | null>(
-    null,
-  );
+  const [selected_sender, set_selected_sender_state] =
+    useState<SenderOption | null>(null);
+  const sender_manually_selected_ref = useRef(false);
+  const preferred_sender_ready = use_preferred_sender_ready();
+
+  const set_selected_sender = useCallback((value: SenderOption | null) => {
+    sender_manually_selected_ref.current = value !== null;
+    set_selected_sender_state(value);
+  }, []);
   const [preferred_sender_id, set_preferred_sender_id_state] = useState<
     string | null
   >(() => get_preferred_sender_id());
@@ -414,20 +421,29 @@ export function use_compose({
   });
 
   useEffect(() => {
-    if (sender_options.length > 0 && !selected_sender) {
-      const draft_from = edit_draft?.from_email?.toLowerCase();
-      const draft_sender = draft_from
-        ? sender_options.find((o) => o.email.toLowerCase() === draft_from)
-        : null;
-      const preferred = preferred_sender_id
-        ? sender_options.find((o) =>
-            sender_id_matches(o.id, preferred_sender_id),
-          )
-        : null;
+    if (sender_options.length === 0) return;
+    if (sender_manually_selected_ref.current) return;
+    if (ghost_mode.is_ghost_enabled) return;
+    if (!preferred_sender_ready && !preferred_sender_id) return;
 
-      set_selected_sender(draft_sender ?? preferred ?? sender_options[0]);
-    }
-  }, [sender_options, selected_sender, preferred_sender_id, edit_draft]);
+    const resolved = resolve_from_sender({
+      options: sender_options,
+      draft_from: edit_draft?.from_email,
+      preferred_sender_id,
+    });
+
+    if (!resolved) return;
+    if (resolved.option.id === selected_sender?.id) return;
+
+    set_selected_sender_state(resolved.option);
+  }, [
+    sender_options,
+    selected_sender,
+    preferred_sender_id,
+    preferred_sender_ready,
+    edit_draft,
+    ghost_mode.is_ghost_enabled,
+  ]);
 
   const select_sender = use_ghost_sender_binding(
     ghost_mode,

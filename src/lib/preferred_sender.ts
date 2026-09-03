@@ -105,6 +105,39 @@ export function subscribe_preferred_sender(listener: Listener): () => void {
   return () => listeners.delete(listener);
 }
 
+let server_load_settled = false;
+const ready_listeners: Set<() => void> = new Set();
+
+function mark_preferred_sender_ready(): void {
+  if (server_load_settled) return;
+  server_load_settled = true;
+  ready_listeners.forEach((l) => {
+    try {
+      l();
+    } catch {
+      /* ignore */
+    }
+  });
+  ready_listeners.clear();
+}
+
+export function is_preferred_sender_ready(): boolean {
+  return server_load_settled;
+}
+
+export function subscribe_preferred_sender_ready(
+  listener: () => void,
+): () => void {
+  if (server_load_settled) {
+    listener();
+
+    return () => {};
+  }
+  ready_listeners.add(listener);
+
+  return () => ready_listeners.delete(listener);
+}
+
 async function sync_preferred_sender_to_server(
   id: string | null,
 ): Promise<boolean> {
@@ -156,5 +189,7 @@ export async function load_preferred_sender_from_server(): Promise<void> {
     }
   } catch {
     /* ignore */
+  } finally {
+    mark_preferred_sender_ready();
   }
 }
