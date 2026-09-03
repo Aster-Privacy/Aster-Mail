@@ -53,8 +53,6 @@ import { StarIcon as StarSolidIcon } from "@heroicons/react/24/solid";
 import { Button } from "@aster/ui";
 import { useNavigate } from "react-router-dom";
 
-import { build_contact_mail_query } from "@/utils/contact_mail_search";
-
 import {
   AddressList,
   ContactPgpKeyRow,
@@ -79,6 +77,7 @@ import {
   to_edit_state,
 } from "./helpers";
 
+import { build_contact_mail_query } from "@/utils/contact_mail_search";
 import { app_date_format, format_iso_date } from "@/utils/date_format";
 import { ContactAvatar } from "@/components/common/contacts/contact_avatar";
 import { ContactHistoryPanel } from "@/components/contacts/contact_history_panel";
@@ -400,9 +399,7 @@ export function ContactDetailPanel({
         )}
 
         {show_history && selected_contact ? (
-          <ContactHistoryPanel
-            contact_emails={selected_contact.emails}
-          />
+          <ContactHistoryPanel contact_emails={selected_contact.emails} />
         ) : (
           <div className="space-y-10">
             <Section title={t("common.identity")}>
@@ -711,6 +708,7 @@ export function ContactDetailPanel({
               <div>
                 <FieldLabel icon={CakeIcon}>{t("common.birthday")}</FieldLabel>
                 <input
+                  aria-label={t("common.birthday")}
                   className={FIELD_CLASS}
                   placeholder={app_date_format()}
                   readOnly={!is_editing}

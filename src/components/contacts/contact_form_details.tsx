@@ -118,6 +118,7 @@ export function ContactFormDetails({
             label={t("common.birthday")}
           />
           <Input
+            aria-label={t("common.birthday")}
             size="md"
             type="date"
             value={form_data.birthday}

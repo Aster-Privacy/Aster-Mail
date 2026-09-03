@@ -34,13 +34,15 @@ interface ContactGroupChipsProps {
   set_filter_by: (filter: FilterOption) => void;
   group_filter: string | null;
   on_set_group_filter: (group_id: string | null) => void;
+  upcoming_birthdays_count: number;
 }
 
-const attribute_filters: { option: FilterOption; label_key: TranslationKey }[] = [
-  { option: "has_email", label_key: "common.has_email" },
-  { option: "has_phone", label_key: "common.has_phone" },
-  { option: "has_company", label_key: "common.has_company" },
-];
+const attribute_filters: { option: FilterOption; label_key: TranslationKey }[] =
+  [
+    { option: "has_email", label_key: "common.has_email" },
+    { option: "has_phone", label_key: "common.has_phone" },
+    { option: "has_company", label_key: "common.has_company" },
+  ];
 
 const chip_base =
   "inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full text-[12px] whitespace-nowrap border transition-colors";
@@ -50,6 +52,7 @@ export function ContactGroupChips({
   set_filter_by,
   group_filter,
   on_set_group_filter,
+  upcoming_birthdays_count,
 }: ContactGroupChipsProps) {
   const { t } = use_i18n();
   const { groups } = use_contact_groups();
@@ -94,6 +97,32 @@ export function ContactGroupChips({
           {t("common.favorites")}
         </button>
 
+        {upcoming_birthdays_count > 0 && (
+          <button
+            aria-pressed={filter_by === "upcoming_birthdays" && !group_filter}
+            className={cn(
+              chip_base,
+              filter_by === "upcoming_birthdays" && !group_filter
+                ? "bg-brand/10 border-brand/40 text-txt-primary"
+                : "border-edge-primary text-txt-secondary hover:bg-black/[0.04] dark:hover:bg-white/[0.06]",
+            )}
+            type="button"
+            onClick={() => {
+              on_set_group_filter(null);
+              set_filter_by(
+                filter_by === "upcoming_birthdays"
+                  ? "all"
+                  : "upcoming_birthdays",
+              );
+            }}
+          >
+            {t("common.birthday")}
+            <span className="text-txt-muted">
+              {format_number(upcoming_birthdays_count)}
+            </span>
+          </button>
+        )}
+
         {attribute_filters.map(({ option, label_key }) => {
           const is_active = filter_by === option && !group_filter;
 
@@ -133,7 +162,10 @@ export function ContactGroupChips({
               )}
               style={
                 is_active
-                  ? { backgroundColor: `${group.color}26`, borderColor: group.color }
+                  ? {
+                      backgroundColor: `${group.color}26`,
+                      borderColor: group.color,
+                    }
                   : undefined
               }
               type="button"
