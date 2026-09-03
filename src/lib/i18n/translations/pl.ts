@@ -6348,6 +6348,8 @@ export const pl = {
       "Nie możesz zeskanować? Wprowadź ten kod ręcznie:",
     save_backup_codes_description:
       "Zapisz te kody zapasowe w bezpiecznym miejscu. Możesz ich użyć, aby uzyskać dostęp do konta w przypadku utraty urządzenia uwierzytelniającego.",
+    two_factor_other_devices_signed_out:
+      "Aster wylogował Cię na innych urządzeniach. Aby ich znowu użyć, zaloguj się i wprowadź kod z aplikacji uwierzytelniającej.",
     copy_all_codes: "Kopiuj wszystkie kody",
     backup_codes: "Kody zapasowe",
     regenerate_backup_codes: "Wygeneruj nowe kody zapasowe",
@@ -9171,6 +9173,11 @@ export const pl = {
     delete_passkey_description:
       '"{{name}}" zostanie usunięty z Twojego konta. Nie będzie już można logować się za jego pomocą.',
     delete_security_key_title: "Usunąć klucz bezpieczeństwa?",
+    other_devices_signed_out:
+      "Aster wylogował Cię na innych urządzeniach. Aby ich znowu użyć, zaloguj się i potwierdź kluczem bezpieczeństwa.",
+    remove_last_key_step_up_title: "Usunąć ostatni klucz bezpieczeństwa?",
+    remove_last_key_step_up_description:
+      "To ostatni drugi składnik logowania na Twoim koncie. Aby go usunąć, wprowadź hasło.",
     delete_security_key_description:
       '"{{name}}" zostanie usunięty z Twojego konta. Nie będzie już działać jako drugi składnik.',
     removed: "Usunięto klucz dostępu",

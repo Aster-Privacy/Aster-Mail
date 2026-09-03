@@ -6302,6 +6302,8 @@ export const de = {
       "Können Sie nicht scannen? Geben Sie diesen Code manuell ein:",
     save_backup_codes_description:
       "Speichern Sie diese Backup-Codes an einem sicheren Ort. Sie können sie verwenden, um auf Ihr Konto zuzugreifen, wenn Sie Ihr Authenticator-Gerät verlieren.",
+    two_factor_other_devices_signed_out:
+      "Aster hat dich auf deinen anderen Geräten abgemeldet. Um sie wieder zu nutzen, melde dich an und gib einen Code aus deiner Authenticator-App ein.",
     copy_all_codes: "Alle Codes kopieren",
     backup_codes: "Backup-Codes",
     regenerate_backup_codes: "Backup-Codes neu erstellen",
@@ -9113,6 +9115,11 @@ export const de = {
     delete_passkey_description:
       '"{{name}}" wird aus Ihrem Konto entfernt. Sie können sich damit nicht mehr anmelden.',
     delete_security_key_title: "Sicherheitsschlüssel löschen?",
+    other_devices_signed_out:
+      "Aster hat dich auf deinen anderen Geräten abgemeldet. Um sie wieder zu nutzen, melde dich an und bestätige mit deinem Sicherheitsschlüssel.",
+    remove_last_key_step_up_title: "Letzten Sicherheitsschlüssel entfernen?",
+    remove_last_key_step_up_description:
+      "Das ist der letzte zweite Faktor deines Kontos. Gib dein Passwort ein, um ihn zu entfernen.",
     delete_security_key_description:
       '"{{name}}" wird aus Ihrem Konto entfernt. Er kann nicht mehr als zweiter Faktor verwendet werden.',
     removed: "Passkey entfernt",

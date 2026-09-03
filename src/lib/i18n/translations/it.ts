@@ -5187,6 +5187,8 @@ export const it = {
       "Non riesci a scansionare? Inserisci questo codice manualmente:",
     save_backup_codes_description:
       "Salva questi codici di backup in un luogo sicuro. Puoi usarli per accedere al tuo account se perdi il tuo dispositivo di autenticazione.",
+    two_factor_other_devices_signed_out:
+      "Aster ti ha disconnesso dagli altri dispositivi. Per usarli di nuovo, accedi e inserisci un codice della tua app di autenticazione.",
     copy_all_codes: "Copia tutti i codici",
     backup_codes: "Codici di backup",
     regenerate_backup_codes: "Rigenera i codici di backup",
@@ -9030,6 +9032,11 @@ export const it = {
     delete_passkey_description:
       '"{{name}}" verrà rimosso dal tuo account. Non potrai più usarlo per accedere.',
     delete_security_key_title: "Eliminare la chiave di sicurezza?",
+    other_devices_signed_out:
+      "Aster ti ha disconnesso dagli altri dispositivi. Per usarli di nuovo, accedi e conferma con la tua chiave di sicurezza.",
+    remove_last_key_step_up_title: "Rimuovere l'ultima chiave di sicurezza?",
+    remove_last_key_step_up_description:
+      "Questo è l'ultimo secondo fattore del tuo account. Per rimuoverlo, inserisci la tua password.",
     delete_security_key_description:
       '"{{name}}" verrà rimossa dal tuo account. Non funzionerà più come secondo fattore.',
     removed: "Passkey rimossa",

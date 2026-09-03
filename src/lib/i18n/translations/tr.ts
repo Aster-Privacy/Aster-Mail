@@ -5902,6 +5902,8 @@ export const tr = {
       "Tarayamıyor musunuz? Bu kodu manuel olarak girin:",
     save_backup_codes_description:
       "Bu yedek kodları güvenli bir yerde saklayın. Kimlik doğrulama cihazınızı kaybederseniz hesabınıza erişmek için kullanabilirsiniz.",
+    two_factor_other_devices_signed_out:
+      "Aster diğer cihazlarındaki oturumunu kapattı. Bunları yeniden kullanmak için oturum aç ve kimlik doğrulama uygulamandaki kodu gir.",
     copy_all_codes: "Tüm Kodları Kopyala",
     backup_codes: "Yedek kodlar",
     regenerate_backup_codes: "Yedek kodları yeniden oluştur",
@@ -8907,6 +8909,11 @@ export const tr = {
     delete_passkey_description:
       '"{{name}}" hesabınızdan kaldırılacak. Artık onunla oturum açamazsınız.',
     delete_security_key_title: "Güvenlik anahtarı silinsin mi?",
+    other_devices_signed_out:
+      "Aster diğer cihazlarındaki oturumunu kapattı. Bunları yeniden kullanmak için oturum aç ve güvenlik anahtarınla onayla.",
+    remove_last_key_step_up_title: "Son güvenlik anahtarın kaldırılsın mı?",
+    remove_last_key_step_up_description:
+      "Bu, hesabındaki son ikinci doğrulama adımı. Kaldırmak için parolanı gir.",
     delete_security_key_description:
       '"{{name}}" hesabınızdan kaldırılacak. Artık ikinci faktör olarak çalışmayacak.',
     removed: "Geçiş anahtarı kaldırıldı",

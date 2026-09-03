@@ -6173,6 +6173,8 @@ export const ar = {
     cant_scan_enter_manually: "لا تستطيع المسح؟ أدخل هذا الرمز يدويًا:",
     save_backup_codes_description:
       "احفظ رموز النسخ الاحتياطي هذه في مكان آمن. يمكنك استخدامها للوصول إلى حسابك إذا فقدت جهاز المصادقة.",
+    two_factor_other_devices_signed_out:
+      "قام Aster بتسجيل خروجك من أجهزتك الأخرى. لاستخدامها مرة أخرى، سجّل الدخول وأدخل رمزًا من تطبيق المصادقة.",
     copy_all_codes: "نسخ جميع الرموز",
     backup_codes: "رموز النسخ الاحتياطي",
     regenerate_backup_codes: "إعادة إنشاء رموز النسخ الاحتياطي",
@@ -8867,6 +8869,11 @@ export const ar = {
     delete_passkey_description:
       'سيتم إزالة "{{name}}" من حسابك. لن تتمكن من تسجيل الدخول به بعد الآن.',
     delete_security_key_title: "هل تريد حذف مفتاح الأمان؟",
+    other_devices_signed_out:
+      "قام Aster بتسجيل خروجك من أجهزتك الأخرى. لاستخدامها مرة أخرى، سجّل الدخول وأكّد باستخدام مفتاح الأمان.",
+    remove_last_key_step_up_title: "هل تريد إزالة آخر مفتاح أمان لديك؟",
+    remove_last_key_step_up_description:
+      "هذا هو آخر عامل تحقق ثانٍ في حسابك. لإزالته، أدخل كلمة السر.",
     delete_security_key_description:
       'سيتم إزالة "{{name}}" من حسابك. لن يعمل بعد الآن كعامل ثانٍ.',
     removed: "تمت إزالة مفتاح المرور",

@@ -27,6 +27,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
+import { StepUpModal } from "@/components/settings/step_up_modal";
 import { ConfirmModal } from "@/components/email/inbox/inbox_confirmation_dialog";
 import { show_toast } from "@/components/toast/simple_toast";
 import { Input } from "@/components/ui/input";
@@ -67,6 +68,7 @@ export function HardwareKeysSection() {
   const [pending_delete, set_pending_delete] = useState<HardwareKeyInfo | null>(
     null,
   );
+  const [step_up_key_id, set_step_up_key_id] = useState<string | null>(null);
 
   const fetch_keys = useCallback(async () => {
     set_is_loading(true);
@@ -128,24 +130,43 @@ export function HardwareKeysSection() {
     }
 
     show_toast(t("settings.security_key_registered"), "success");
+
+    if (result.data?.other_sessions_revoked) {
+      show_toast(t("passkeys.other_devices_signed_out"), "info");
+    }
+
     set_is_registering(false);
     set_show_add_modal(false);
     set_key_name("");
     fetch_keys();
   };
 
-  const handle_remove = async (key_id: string) => {
+  const handle_remove = async (
+    key_id: string,
+    credentials?: { password_hash: string; totp_code?: string },
+  ) => {
     set_removing_key_id(key_id);
-    const response = await remove_hardware_key(key_id);
+    const response = await remove_hardware_key(key_id, credentials);
 
-    if (response.error) {
-      show_toast(response.error, "error");
-    } else {
-      show_toast(t("settings.security_key_removed"), "success");
-      set_keys((prev) => prev.filter((k) => k.id !== key_id));
-    }
     set_removing_key_id(null);
     set_pending_delete(null);
+
+    if (response.server_code === "STEP_UP_REQUIRED") {
+      set_step_up_key_id(key_id);
+
+      return;
+    }
+
+    if (response.error) {
+      if (credentials) throw new Error(response.error);
+      show_toast(response.error, "error");
+
+      return;
+    }
+
+    show_toast(t("settings.security_key_removed"), "success");
+    set_keys((prev) => prev.filter((k) => k.id !== key_id));
+    set_step_up_key_id(null);
   };
 
   const start_rename = (key: HardwareKeyInfo) => {
@@ -405,6 +426,24 @@ export function HardwareKeysSection() {
         }}
         on_dont_ask_change={() => {}}
         show={!!pending_delete}
+        title={t("passkeys.delete_security_key_title")}
+      />
+
+      <StepUpModal
+        destructive
+        confirm_label={t("common.remove")}
+        description={t("passkeys.remove_last_key_step_up_description")}
+        is_open={!!step_up_key_id}
+        on_close={() => set_step_up_key_id(null)}
+        on_confirm={async (credentials) => {
+          if (!step_up_key_id) return;
+          await handle_remove(step_up_key_id, {
+            password_hash: credentials.password_hash,
+            ...(credentials.totp_code
+              ? { totp_code: credentials.totp_code }
+              : {}),
+          });
+        }}
         title={t("passkeys.delete_security_key_title")}
       />
     </>
