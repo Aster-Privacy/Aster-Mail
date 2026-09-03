@@ -6785,6 +6785,7 @@ export const ru = {
     export_error_no_messages_match: "Нет сообщений, соответствующих выбору.",
     export_error_no_vault:
       "Ваше хранилище заблокировано. Войдите снова для экспорта.",
+    export_error_write_partial: "Экспорт остановился раньше времени. Ваш файл содержит сообщения, экспортированные к этому моменту.",
     export_error_write_fatal:
       "Не удалось записать в выбранное место. Экспорт остановлен.",
     export_format_eml_hint:
@@ -6843,6 +6844,10 @@ export const ru = {
     export_step_incomplete_title: "Экспорт не завершён",
     export_incomplete_summary:
       "Экспортировано {{ count }} из {{ total }} сообщений до остановки экспорта.",
+    export_progress_messages_unknown_total: "Экспортировано сообщений: {{ processed }}",
+    export_complete_summary_unknown_total: "Экспортировано {{ count }} сообщений.",
+    export_incomplete_summary_unknown_total: "Экспортировано {{ count }} сообщений до остановки экспорта.",
+    export_incomplete_partial_saved: "Ваш файл содержит сообщения, экспортированные к этому моменту.",
     export_complete_data_only: "Ваш экспорт готов.",
     export_step_destination_title: "Выбрать место",
     export_step_format_title: "Выбрать формат",

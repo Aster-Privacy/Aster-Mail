@@ -7106,6 +7106,10 @@ export const tr = {
     export_step_incomplete_title: "Dışa aktarma tamamlanmadı",
     export_incomplete_summary:
       "Dışa aktarma durmadan önce {{ total }} iletiden {{ count }} tanesi dışa aktarıldı.",
+    export_progress_messages_unknown_total: "{{ processed }} ileti dışa aktarıldı",
+    export_complete_summary_unknown_total: "{{ count }} ileti dışa aktarıldı.",
+    export_incomplete_summary_unknown_total: "Dışa aktarma durmadan önce {{ count }} ileti dışa aktarıldı.",
+    export_incomplete_partial_saved: "Dosyan şu ana kadar dışa aktarılan iletileri içeriyor.",
     export_complete_data_only: "Dışa aktarman hazır.",
     export_complete_summary:
       "{{ total }} mesajdan {{ count }} tanesi dışa aktarıldı.",
@@ -7118,6 +7122,7 @@ export const tr = {
       "{{ count }} ek şifresi çözülemediği için bu arşive eklenmedi.",
     export_complete_errors_in_mbox_hint:
       "Posta kutusu dosyasının sonuna bir hata günlüğü eklendi.",
+    export_error_write_partial: "Dışa aktarma erken durdu. Dosyan şu ana kadar dışa aktarılan iletileri içeriyor.",
     export_error_write_fatal:
       "Seçilen hedefe yazılamadı. Dışa aktarma durduruldu.",
     export_error_no_vault:

@@ -7023,6 +7023,10 @@ export const ja = {
     export_step_incomplete_title: "エクスポートが完了しませんでした",
     export_incomplete_summary:
       "エクスポートが停止するまでに {{ total }} 件中 {{ count }} 件のメッセージをエクスポートしました。",
+    export_progress_messages_unknown_total: "{{ processed }}件のメッセージをエクスポート済み",
+    export_complete_summary_unknown_total: "{{ count }}件のメッセージをエクスポートしました。",
+    export_incomplete_summary_unknown_total: "エクスポートが停止するまでに{{ count }}件のメッセージをエクスポートしました。",
+    export_incomplete_partial_saved: "ファイルには、ここまでにエクスポートしたメッセージが含まれています。",
     export_complete_data_only: "エクスポートの準備ができました。",
     export_complete_summary:
       "{{ total }}件中{{ count }}件のメッセージをエクスポートしました。",
@@ -7036,6 +7040,7 @@ export const ja = {
       "{{ count }} 件の添付ファイルを復号できなかったため、このアーカイブには含まれていません。",
     export_complete_errors_in_mbox_hint:
       "エラーログがメールボックスファイルの末尾に追記されています。",
+    export_error_write_partial: "エクスポートが途中で停止しました。ファイルには、ここまでにエクスポートしたメッセージが含まれています。",
     export_error_write_fatal:
       "選択した保存先に書き込めませんでした。エクスポートを停止しました。",
     export_error_no_vault:

@@ -69,6 +69,7 @@ import {
   sink_write_data_file,
   sink_complete,
   sink_abort,
+  sink_salvage,
   type ExportSink,
 } from "@/services/export/destination";
 import {
@@ -131,6 +132,7 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
   const [progress, set_progress] = useState<ExportProgress | null>(null);
   const [summary, set_summary] = useState<ExportSummary | null>(null);
   const [export_aborted, set_export_aborted] = useState(false);
+  const [partial_saved, set_partial_saved] = useState(false);
   const undecryptable_count =
     summary?.errors.filter((e) => e.code === "envelope_undecryptable").length ??
     0;
@@ -168,6 +170,7 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
     set_progress(null);
     set_summary(null);
     set_export_aborted(false);
+    set_partial_saved(false);
     set_destination_label(null);
   }, []);
 
@@ -300,6 +303,7 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
 
       let result: ExportSummary | null = null;
       let fatal = false;
+      let salvaged = false;
 
       try {
         if (include_mail) {
@@ -341,13 +345,21 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
       } catch (err) {
         fatal = true;
         if (import.meta.env.DEV) console.error(err);
-        await sink_abort(sink);
-        show_toast(t("settings.export_error_write_fatal"), "error");
+        salvaged = await sink_salvage(sink);
+        show_toast(
+          t(
+            salvaged
+              ? "settings.export_error_write_partial"
+              : "settings.export_error_write_fatal",
+          ),
+          "error",
+        );
       }
       const aborted =
         fatal || result?.cancelled === true || controller.signal.aborted;
 
       set_export_aborted(aborted);
+      set_partial_saved(salvaged);
       set_summary(result);
       set_step("complete");
     },
@@ -769,8 +781,10 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
   } else if (step === "progress") {
     const total = progress?.total ?? 0;
     const processed = progress?.processed ?? 0;
-    const percent =
-      total > 0 ? Math.min(100, Math.round((processed / total) * 100)) : 0;
+    const total_known = total > 0;
+    const percent = total_known
+      ? Math.min(100, Math.round((processed / total) * 100))
+      : 0;
 
     title = t("settings.export_step_progress_title");
     body = (
@@ -778,15 +792,19 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
         <div className="flex items-center gap-2 text-sm text-txt-secondary">
           <Spinner className="text-brand" size="sm" />
           <span>
-            {include_mail
-              ? t("settings.export_progress_messages", {
-                  processed: processed,
-                  total: total,
-                })
-              : t("settings.export_progress_working")}
+            {!include_mail
+              ? t("settings.export_progress_working")
+              : total_known
+                ? t("settings.export_progress_messages", {
+                    processed: processed,
+                    total: total,
+                  })
+                : t("settings.export_progress_messages_unknown_total", {
+                    processed: processed,
+                  })}
           </span>
         </div>
-        {include_mail && (
+        {include_mail && total_known && (
           <div className="h-1.5 w-full rounded-full bg-surf-tertiary overflow-hidden">
             <div
               className="h-full rounded-full"
@@ -811,6 +829,16 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
       </Button>
     );
   } else {
+    const summary_total = summary?.total ?? 0;
+    const summary_total_known = summary_total > 0;
+    const summary_key = summary_total_known
+      ? export_aborted
+        ? "settings.export_incomplete_summary"
+        : "settings.export_complete_summary"
+      : export_aborted
+        ? "settings.export_incomplete_summary_unknown_total"
+        : "settings.export_complete_summary_unknown_total";
+
     title = export_aborted
       ? t("settings.export_step_incomplete_title")
       : t("settings.export_step_complete_title");
@@ -830,15 +858,10 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
         <h3 className="text-lg font-semibold mb-2 text-txt-primary">
           {!include_mail && !export_aborted
             ? t("settings.export_complete_data_only")
-            : t(
-                export_aborted
-                  ? "settings.export_incomplete_summary"
-                  : "settings.export_complete_summary",
-                {
-                  count: summary?.processed ?? 0,
-                  total: summary?.total ?? 0,
-                },
-              )}
+            : t(summary_key, {
+                count: summary?.processed ?? 0,
+                total: summary_total,
+              })}
         </h3>
         <div className="space-y-1">
           <p className="text-sm text-txt-secondary">
@@ -846,6 +869,11 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
               bytes: format_bytes(summary?.bytes_written ?? 0),
             })}
           </p>
+          {export_aborted && partial_saved && (
+            <p className="text-xs text-txt-secondary">
+              {t("settings.export_incomplete_partial_saved")}
+            </p>
+          )}
           {destination_label && (
             <p className="text-xs text-txt-muted">
               {t("settings.export_complete_location", {

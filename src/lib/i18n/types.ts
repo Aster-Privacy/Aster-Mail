@@ -6654,6 +6654,10 @@ export interface SettingsTranslations {
   export_step_incomplete_title: string;
   export_complete_summary: string;
   export_incomplete_summary: string;
+  export_progress_messages_unknown_total: string;
+  export_complete_summary_unknown_total: string;
+  export_incomplete_summary_unknown_total: string;
+  export_incomplete_partial_saved: string;
   export_complete_data_only: string;
   export_complete_errors: string;
   export_complete_errors_other: string;
@@ -6667,6 +6671,7 @@ export interface SettingsTranslations {
   export_complete_skipped_attachments_other: string;
   export_complete_skipped_attachments_one: string;
   export_complete_errors_in_mbox_hint: string;
+  export_error_write_partial: string;
   export_error_write_fatal: string;
   export_error_no_vault: string;
   export_error_no_messages_match: string;

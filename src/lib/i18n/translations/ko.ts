@@ -6822,6 +6822,10 @@ export const ko = {
     export_step_incomplete_title: "내보내기가 완료되지 않았습니다",
     export_incomplete_summary:
       "내보내기가 중단되기 전까지 메시지 {{ total }}개 중 {{ count }}개를 내보냈습니다.",
+    export_progress_messages_unknown_total: "메시지 {{ processed }}개 내보냄",
+    export_complete_summary_unknown_total: "메시지 {{ count }}개를 내보냈습니다.",
+    export_incomplete_summary_unknown_total: "내보내기가 중단되기 전까지 메시지 {{ count }}개를 내보냈습니다.",
+    export_incomplete_partial_saved: "파일에는 지금까지 내보낸 메시지가 들어 있습니다.",
     export_complete_data_only: "내보내기가 준비되었습니다.",
     export_complete_summary:
       "{{total}}개 중 {{count}}개 메시지를 내보냈습니다.",
@@ -6834,6 +6838,7 @@ export const ko = {
       "첨부 파일 {{ count }}개를 복호화하지 못해 이 아카이브에서 제외되었습니다.",
     export_complete_errors_in_mbox_hint:
       "일부 메시지를 내보내지 못했습니다. 다시 시도하면 됩니다.",
+    export_error_write_partial: "내보내기가 도중에 중단되었습니다. 파일에는 지금까지 내보낸 메시지가 들어 있습니다.",
     export_error_write_fatal:
       "디스크에 쓰는 중 치명적인 오류가 발생했습니다. 공간이 충분한지 확인하고 다시 시도하세요.",
     export_error_no_vault:

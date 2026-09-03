@@ -6735,6 +6735,7 @@ export const fr = {
     export_destination_pick_folder: "Choisir un dossier",
     export_error_no_messages_match: "Aucun message ne correspond aux critères.",
     export_error_no_vault: "Coffre-fort non disponible",
+    export_error_write_partial: "L'exportation s'est arrêtée avant la fin. Votre fichier contient les messages exportés jusqu'ici.",
     export_error_write_fatal: "Erreur d'écriture fatale",
     export_format_eml_hint: "Un fichier par e-mail",
     export_format_eml_name: "Fichiers EML",
@@ -6787,6 +6788,10 @@ export const fr = {
     export_step_incomplete_title: "L'exportation ne s'est pas terminée",
     export_incomplete_summary:
       "{{ count }} messages sur {{ total }} ont été exportés avant l'arrêt de l'exportation.",
+    export_progress_messages_unknown_total: "{{processed}} messages exportés",
+    export_complete_summary_unknown_total: "{{ count }} messages ont été exportés.",
+    export_incomplete_summary_unknown_total: "{{ count }} messages ont été exportés avant l'arrêt de l'exportation.",
+    export_incomplete_partial_saved: "Votre fichier contient les messages exportés jusqu'ici.",
     export_complete_data_only: "Votre exportation est prête.",
     export_step_destination_title: "Destination",
     export_step_format_title: "Format d'exportation",
