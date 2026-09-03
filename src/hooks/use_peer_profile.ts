@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 
 import {
   fetch_peer_profile,
@@ -28,6 +28,21 @@ import {
   type PublicProfile,
 } from "@/services/api/profiles";
 import { use_preferences } from "@/contexts/preferences_context";
+import {
+  get_local_address_avatar,
+  subscribe_local_address_avatars,
+  type local_address_avatar,
+} from "@/services/local_address_avatars";
+
+function use_local_address_avatar(
+  normalized: string,
+): local_address_avatar | null {
+  return useSyncExternalStore(
+    subscribe_local_address_avatars,
+    () => (normalized ? get_local_address_avatar(normalized) : null),
+    () => null,
+  );
+}
 
 export function use_peer_profile(
   email: string | undefined | null,
@@ -38,6 +53,7 @@ export function use_peer_profile(
   const enabled = !low_network && !!normalized && is_aster_email(normalized);
   const read_cache = () =>
     enabled ? get_cached_peer_profile(normalized) : null;
+  const local = use_local_address_avatar(normalized);
   const [entry, set_entry] = useState<{
     email: string;
     profile: PublicProfile | null | undefined;
@@ -74,5 +90,13 @@ export function use_peer_profile(
     };
   }, [normalized, enabled]);
 
-  return entry.email === normalized ? entry.profile : read_cache();
+  const remote = entry.email === normalized ? entry.profile : read_cache();
+
+  if (!local) return remote;
+
+  return {
+    ...(remote ?? {}),
+    display_name: remote?.display_name ?? local.display_name ?? null,
+    profile_picture: local.profile_picture ?? remote?.profile_picture ?? null,
+  };
 }
