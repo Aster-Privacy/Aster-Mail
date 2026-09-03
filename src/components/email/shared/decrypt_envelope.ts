@@ -49,6 +49,7 @@ import {
   base64_to_array,
   normalize_parsed_envelope,
 } from "@/services/crypto/envelope";
+import { decrypt_legacy_ios_envelope } from "@/services/crypto/legacy_ios_envelope";
 import { resolve_sender_verification_keys } from "@/services/crypto/sender_verification";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import { ignore_error } from "@/lib/ignore_error";
@@ -566,6 +567,17 @@ export async function decrypt_mail_envelope<T = DecryptedEnvelope>(
           return healed;
         }
       }
+    }
+
+    const legacy_plaintext = await decrypt_legacy_ios_envelope(
+      enc_bytes,
+      nonce_bytes,
+    );
+
+    if (legacy_plaintext) {
+      await adopt_recovered_vault_source();
+
+      return finalize_envelope(legacy_plaintext);
     }
 
     return null;

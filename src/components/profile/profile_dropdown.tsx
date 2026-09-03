@@ -80,8 +80,13 @@ export function ProfileDropdown({
   >(() => get_cached_contact_id(email) ?? null);
   const [is_blocking, set_is_blocking] = useState(false);
 
+  const [address_expanded, set_address_expanded] = useState(false);
   const display_name = name || get_email_username(email);
   const domain = get_email_domain(email);
+
+  useEffect(() => {
+    set_address_expanded(false);
+  }, [email, is_open]);
 
   const prewarm_contact_state = useCallback(() => {
     if (!has_keys) return;
@@ -248,13 +253,27 @@ export function ProfileDropdown({
               )}
             </div>
           </div>
-          <button
-            className="mt-2 w-full flex items-center justify-center gap-1.5 py-1.5 rounded-[12px] text-[12px] transition-colors border text-txt-secondary border-edge-secondary bg-surf-secondary"
-            onClick={handle_copy_email}
-          >
-            <span className="truncate">{email}</span>
-            <ClipboardDocumentIcon className="w-3 h-3 flex-shrink-0 opacity-60" />
-          </button>
+          <div className="mt-2 w-full flex items-center gap-1.5 px-2 py-1.5 rounded-[12px] text-[12px] border text-txt-secondary border-edge-secondary bg-surf-secondary">
+            <button
+              className={`flex-1 min-w-0 text-start ${
+                address_expanded ? "whitespace-normal break-all" : "truncate"
+              }`}
+              title={email}
+              type="button"
+              onClick={() => set_address_expanded((current) => !current)}
+            >
+              {email}
+            </button>
+            <button
+              aria-label={t("common.copy")}
+              className="flex-shrink-0 opacity-60 transition-opacity hover:opacity-100"
+              title={t("common.copy")}
+              type="button"
+              onClick={handle_copy_email}
+            >
+              <ClipboardDocumentIcon className="w-3 h-3" />
+            </button>
+          </div>
         </div>
 
         <DropdownMenuSeparator />

@@ -875,7 +875,7 @@ export function CommandPalette({
             transition={{ duration: reduce_motion ? 0 : 0.15 }}
           >
             <motion.div
-              className="absolute inset-0 bg-black/50 backdrop-blur-md"
+              className="absolute inset-0 bg-black/60"
               onClick={on_close}
             />
             <motion.div

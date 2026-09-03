@@ -308,7 +308,6 @@ describe("undecryptable-message failure modes", () => {
 
     const fourth = await send("four", sender_vault);
 
-    sender_store = snapshot_state();
     restore_state(receiver_store);
 
     expect(

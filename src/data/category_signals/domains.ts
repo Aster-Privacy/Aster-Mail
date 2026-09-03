@@ -27,6 +27,8 @@
 export const ASTER_DOMAIN_SUFFIXES: readonly string[] = [
   "astermail.org",
   "aster.cx",
+  "astermail.me",
+  "astermail.net",
 ];
 
 export const SOCIAL_DOMAIN_SUFFIXES: readonly string[] = [

@@ -741,7 +741,7 @@ export function use_inbox_toolbar_actions({
       );
     const all_spam_ids = Array.from(new Set(selected.flatMap(message_ids_of)));
 
-    let failed_message_ids = all_spam_ids;
+    let failed_message_ids: string[];
 
     try {
       const update_result = await bulk_update_metadata_by_ids(all_spam_ids, {

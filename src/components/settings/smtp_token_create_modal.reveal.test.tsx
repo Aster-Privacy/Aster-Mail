@@ -101,7 +101,7 @@ async function render_reveal_step(on_close: () => void) {
     );
   });
 
-  const name_input = container.querySelector("input");
+  const name_input = document.body.querySelector("input");
 
   await act(async () => {
     const setter = Object.getOwnPropertyDescriptor(
@@ -113,7 +113,7 @@ async function render_reveal_step(on_close: () => void) {
     name_input?.dispatchEvent(new Event("input", { bubbles: true }));
   });
 
-  const submit = Array.from(container.querySelectorAll("button")).find((b) =>
+  const submit = Array.from(document.body.querySelectorAll("button")).find((b) =>
     b.textContent?.includes("settings.smtp_token_generate"),
   );
 
@@ -152,7 +152,7 @@ describe("smtp token create modal reveal step", () => {
 
     await render_reveal_step(on_close);
 
-    expect(container.textContent).toContain("sample-app-pass");
+    expect(document.body.textContent).toContain("sample-app-pass");
 
     await act(async () => {
       document.dispatchEvent(
@@ -164,13 +164,13 @@ describe("smtp token create modal reveal step", () => {
     });
 
     expect(on_close).not.toHaveBeenCalled();
-    expect(container.textContent).toContain("sample-app-pass");
+    expect(document.body.textContent).toContain("sample-app-pass");
   });
 
   it("copies a single credential when its row is clicked", async () => {
     await render_reveal_step(() => {});
 
-    const row = Array.from(container.querySelectorAll("button")).find((b) =>
+    const row = Array.from(document.body.querySelectorAll("button")).find((b) =>
       b.textContent?.includes("sample-app-pass"),
     );
 

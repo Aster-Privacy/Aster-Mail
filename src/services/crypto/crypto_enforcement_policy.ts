@@ -28,10 +28,20 @@ export function is_authenticated_ratchet_enforced(): boolean {
   return ENFORCE_AUTHENTICATED_RATCHET;
 }
 
+function opted_in(raw: unknown, compiled_default: boolean): boolean {
+  return compiled_default || raw === "1" || raw === "true";
+}
+
 export function is_strict_recipient_bundle_enforced(): boolean {
-  return ENFORCE_STRICT_RECIPIENT_BUNDLE;
+  return opted_in(
+    import.meta.env.VITE_ENFORCE_STRICT_RECIPIENT_BUNDLE,
+    ENFORCE_STRICT_RECIPIENT_BUNDLE,
+  );
 }
 
 export function is_pqxdh_transcript_binding_enabled(): boolean {
-  return ENABLE_PQXDH_TRANSCRIPT_BINDING;
+  return opted_in(
+    import.meta.env.VITE_ENABLE_PQXDH_TRANSCRIPT_BINDING,
+    ENABLE_PQXDH_TRANSCRIPT_BINDING,
+  );
 }

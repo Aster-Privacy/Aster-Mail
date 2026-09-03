@@ -187,7 +187,7 @@ function pair_key(from: string, to: string): string {
 }
 
 function pack_id(hop: string): string {
-  return hop.replace(">", "");
+  return hop.split(">").join("");
 }
 
 async function matches_checksum(

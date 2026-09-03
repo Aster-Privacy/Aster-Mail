@@ -208,7 +208,7 @@ export function use_email_list_bulk({
       }
 
       if (non_threaded_ids.length > 0) {
-        let failed_message_ids = non_threaded_ids;
+        let failed_message_ids: string[];
 
         try {
           const result = await bulk_update_metadata_by_ids(non_threaded_ids, {
@@ -302,7 +302,7 @@ export function use_email_list_bulk({
       adjust_stats_archived(expanded_ids.length);
       stale_all_view_caches();
 
-      let failed_message_ids = expanded_ids;
+      let failed_message_ids: string[];
 
       try {
         const result = await batched_archive(expanded_ids, "hot");
@@ -389,7 +389,7 @@ export function use_email_list_bulk({
       adjust_stats_archived(-expanded_ids.length);
       stale_all_view_caches();
 
-      let failed_message_ids = expanded_ids;
+      let failed_message_ids: string[];
 
       try {
         const result = await batched_unarchive(expanded_ids);

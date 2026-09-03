@@ -75,6 +75,7 @@ export interface AliasListResponse {
   total: number;
   has_more: boolean;
   max_aliases: number;
+  short_aliases_allowed?: boolean;
 }
 
 export interface CreateAliasRequest {

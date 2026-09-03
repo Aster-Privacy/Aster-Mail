@@ -924,7 +924,7 @@ export function SignaturesSection({
               { value: "below", label: t("settings.below_quoted_text") },
               { value: "above", label: t("settings.above_quoted_text") },
             ]}
-            value={preferences.signature_placement || "below"}
+            value={preferences.signature_placement || "above"}
           />
         </SettingsGroup>
 

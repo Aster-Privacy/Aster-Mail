@@ -103,6 +103,13 @@ export function AliasesSection() {
   const alias_csv_locked = is_feature_locked("has_advanced_aliases");
   const hook = use_aliases();
 
+  const alias_pending_delete = hook.aliases.find(
+    (a) => a.id === hook.alias_delete_confirm.id,
+  );
+  const domain_addr_pending_delete = hook.domain_addresses.find(
+    (a) => a.id === hook.domain_addr_delete_confirm.id,
+  );
+
   const [active_tab, set_active_tab] = useState<AliasTab>(read_initial_tab);
   const [purchase_open, set_purchase_open_state] = useState(() => {
     try {
@@ -1021,7 +1028,13 @@ export function AliasesSection() {
       <ConfirmationModal
         confirm_text={t("common.delete")}
         is_open={hook.alias_delete_confirm.is_open}
-        message={t("settings.delete_alias_confirmation")}
+        message={
+          alias_pending_delete
+            ? t("settings.delete_alias_confirmation_named", {
+                address: alias_pending_delete.full_address,
+              })
+            : t("settings.delete_alias_confirmation")
+        }
         on_cancel={() =>
           hook.set_alias_delete_confirm({ is_open: false, id: null })
         }
@@ -1045,7 +1058,13 @@ export function AliasesSection() {
       <ConfirmationModal
         confirm_text={t("common.delete")}
         is_open={hook.domain_addr_delete_confirm.is_open}
-        message={t("settings.delete_address_confirmation")}
+        message={
+          domain_addr_pending_delete
+            ? t("settings.delete_address_confirmation_named", {
+                address: `${domain_addr_pending_delete.local_part}@${domain_addr_pending_delete.domain_name}`,
+              })
+            : t("settings.delete_address_confirmation")
+        }
         on_cancel={() =>
           hook.set_domain_addr_delete_confirm({
             is_open: false,

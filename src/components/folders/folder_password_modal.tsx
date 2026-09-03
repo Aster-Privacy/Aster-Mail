@@ -588,7 +588,7 @@ export function FolderPasswordModal({
           transition={{ duration: reduce_motion ? 0 : 0.15 }}
         >
           <div
-            className="absolute inset-0 backdrop-blur-md"
+            className="absolute inset-0"
             style={{ backgroundColor: "var(--modal-overlay)" }}
             onPointerDown={handle_backdrop_pointer_down}
           />

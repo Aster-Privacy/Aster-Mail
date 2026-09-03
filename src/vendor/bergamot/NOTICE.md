@@ -17,7 +17,7 @@ release. Record both when re-pinning. Don't reconcile them by editing either one
 - `translator.js` - ES module runtime (`BatchTranslator`, `TranslatorBacking`).
   Locally modified, see below.
 - `public/bergamot/translator-worker.js` - worker glue. Locally modified, see below.
-- `public/bergamot/bergamot-translator-worker.js` - unmodified emscripten JS.
+- `public/bergamot/bergamot-translator-worker.js` - emscripten JS, minified, see below.
 - `public/bergamot/bergamot-translator-worker.wasm` - unmodified marian NMT wasm.
 
 ## Why vendored
@@ -29,7 +29,7 @@ Cloud Storage; we never use it. See `engine_bergamot.ts`, which supplies a custo
 
 ## Local modifications
 
-Two files diverge from upstream. Re-apply both when re-pinning.
+Three files diverge from upstream. Re-apply all three when re-pinning.
 
 ### `translator.js`: injectable worker URL
 
@@ -52,6 +52,20 @@ our own origin, before destructuring the payload:
 Added in `69a5b190` to close a code scanning finding. Upstream accepts messages from
 any origin.
 
+### `public/bergamot/bergamot-translator-worker.js`: minified
+
+The emscripten glue ships minified rather than pretty-printed. The transform removes
+whitespace and comments only, with no compression and no identifier mangling, so the
+abstract syntax tree is unchanged. Regenerate it with terser:
+
+    npx terser public/bergamot/bergamot-translator-worker.js       --output public/bergamot/bergamot-translator-worker.js
+
+Run it with compression and mangling off, which is terser's default. Code scanning
+skips minified files, which keeps 17 code quality findings in generated third-party
+code out of the repository's results. GitHub's code quality analysis runs as a default
+setup, so it does not read `.github/codeql/codeql-config.yml` and cannot be told to
+ignore this path.
+
 ## Updating
 
 Re-pin deliberately. Do not track upstream `main`.
@@ -59,5 +73,5 @@ Re-pin deliberately. Do not track upstream `main`.
     npm pack @browsermt/bergamot-translator@<version>
 
 Extract and copy `translator.js` here and the three `worker/` files to
-`public/bergamot/`. Re-apply both local modifications above. Re-run the translation
-test suite. Update the version, the build stamp, and this section.
+`public/bergamot/`. Re-apply all three local modifications above. Re-run the
+translation test suite. Update the version, the build stamp, and this section.

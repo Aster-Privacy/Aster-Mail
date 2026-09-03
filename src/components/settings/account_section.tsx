@@ -442,7 +442,7 @@ export function AccountSection() {
       return;
     }
     if (r.code === "CONFLICT") {
-      throw new Error(r.error || t("common.recovery_conflict"));
+      throw new Error(t("common.recovery_conflict"));
     }
     if (!r.data.success) {
       throw new Error(r.error || t("common.failed_to_save"));
@@ -491,7 +491,7 @@ export function AccountSection() {
       );
 
       if (r.code === "CONFLICT") {
-        throw new Error(r.error || t("common.recovery_conflict"));
+        throw new Error(t("common.recovery_conflict"));
       }
       if (!r.data.success) {
         throw new Error(r.error || t("common.step_up_error"));

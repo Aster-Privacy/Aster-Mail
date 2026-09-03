@@ -48,6 +48,7 @@ vi.mock("@/services/mail_categorizer", () => ({
 
 vi.mock("@/services/category_index", () => ({
   get_counts: () => ({}),
+  are_counts_partial: () => false,
   mark_category_seen: vi.fn(),
   subscribe: () => () => {},
   get_version: () => 0,

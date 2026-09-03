@@ -101,6 +101,10 @@ export function is_local_hostname(): boolean {
   );
 }
 
+export function dev_token_storage_allowed(): boolean {
+  return import.meta.env.DEV && is_local_hostname();
+}
+
 export function read_last_auth_ms(): number {
   try {
     const raw = localStorage.getItem(LAST_AUTH_MS_KEY);

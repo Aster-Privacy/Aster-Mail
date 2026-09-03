@@ -85,17 +85,32 @@ export function use_popup_drag_resize() {
   useEffect(() => {
     if (!is_dragging) return;
 
+    let frame = 0;
+    let pending: { x: number; y: number } | null = null;
+
+    const flush = () => {
+      frame = 0;
+      if (!pending) return;
+      const next = pending;
+
+      pending = null;
+      set_position(next);
+    };
+
     const handle_mouse_move = (e: MouseEvent) => {
       const dx = e.clientX - drag_start_ref.current.x;
       const dy = e.clientY - drag_start_ref.current.y;
 
-      set_position({
+      pending = {
         x: drag_start_ref.current.pos_x + dx,
         y: drag_start_ref.current.pos_y + dy,
-      });
+      };
+
+      if (frame === 0) frame = window.requestAnimationFrame(flush);
     };
 
     const handle_mouse_up = () => {
+      flush();
       set_is_dragging(false);
     };
 
@@ -103,6 +118,7 @@ export function use_popup_drag_resize() {
     document.addEventListener("mouseup", handle_mouse_up);
 
     return () => {
+      if (frame !== 0) window.cancelAnimationFrame(frame);
       document.removeEventListener("mousemove", handle_mouse_move);
       document.removeEventListener("mouseup", handle_mouse_up);
     };

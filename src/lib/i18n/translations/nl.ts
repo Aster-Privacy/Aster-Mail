@@ -161,7 +161,7 @@ export const nl = {
     image_size_error:
       "Deze afbeelding overschrijdt de limiet van 5 MB. Een kleinere of een gecomprimeerde versie past wel.",
     recovery_conflict:
-      "Dit e-mailadres is al een herstelpadres bij een ander account. Een ander zou moeten werken.",
+      "Dit adres beschermt al het maximum van 20 Aster-accounts. Gebruik een ander adres.",
     copied_to_clipboard: "Naar klembord gekopieerd",
     address_copied_to_clipboard: "Adres naar klembord gekopieerd",
     offline: "Offline",
@@ -925,7 +925,7 @@ export const nl = {
     email_copied: "E-mail gekopieerd",
     message_id_copied: "Bericht-ID gekopieerd",
     draft_deleted: "Concept permanent verwijderd",
-    no_recipients: "Minstens één ontvanger is nodig voor verzending.",
+    no_recipients: "Geen ontvangers",
     sync_complete: "Synchronisatie voltooid",
     sync_timeout:
       "De synchronisatie duurt langer dan verwacht en is mogelijk nog bezig.",
@@ -3568,6 +3568,11 @@ export const nl = {
       "Uw oudere gegevens zijn ontgrendeld. Oudere e-mails en aliassen openen weer normaal.",
     resurrection_failed:
       "Hiermee zijn de oudere gegevens niet ontgrendeld. Controleer het wachtwoord of de zin en probeer het opnieuw.",
+    discard_older_data_button: "Oudere gegevens verwijderen",
+    discard_older_data_title: "Oudere gegevens verwijderen?",
+    discard_older_data_desc: "Hiermee verwijder je definitief de optie om e-mail en aliassen van vóór de reset te ontgrendelen. Dit kun je niet ongedaan maken.",
+    discard_older_data_success: "Oudere gegevens verwijderd.",
+    discard_older_data_failed: "De oudere gegevens konden niet worden verwijderd. Probeer het opnieuw.",
     phrase_wrap_save_failed:
       "Uw herstelzin kon niet op de server worden opgeslagen. Probeer het opnieuw.",
     general: "Algemeen",
@@ -6849,7 +6854,18 @@ export const nl = {
     feature_tracker_protection: "Trackerbeveiliging",
     ghost_alias_active: "Actief",
     ghost_alias_expire_now: "Nu laten verlopen",
-    ghost_alias_expire_confirm_title: "Dit alias laten verlopen?",
+    ghost_alias_expire_confirm_title: "Deze ghost-alias laten verlopen?",
+    ghost_alias_expire_confirm_message_named:
+      "Weet je zeker dat je {{address}} wilt laten verlopen? Je kunt het alias niet herstellen. De respijtperiode loopt tot {{date}}.",
+    delete_aliases_confirmation_count:
+      "Weet je zeker dat je {{count}} aliassen wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.",
+    delete_alias_confirmation_named:
+      "Weet je zeker dat je {{address}} wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.",
+    delete_address_confirmation_named:
+      "Weet je zeker dat je {{address}} wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.",
+    alias_directory_delete_title: "Directory verwijderen",
+    alias_directory_delete_message:
+      "Weet je zeker dat je de directory {{address}} wilt verwijderen? E-mail aan nieuwe adressen met dit patroon komt niet meer aan. Aliassen die al zijn aangemaakt blijven werken.",
     ghost_alias_expire_confirm_message:
       "Weet je zeker dat je dit alias wilt laten verlopen? Je kunt het niet herstellen. De respijtperiode loopt tot {{date}}.",
     ghost_alias_max_extension_toast:
@@ -8563,7 +8579,7 @@ export const nl = {
     please_enter_valid_email:
       "Dit lijkt geen geldig e-mailadres. Iets als naam@example.com werkt.",
     recovery_email_conflict:
-      "Dit e-mailadres is al een herstelpadres bij een ander account. Een ander zou moeten werken.",
+      "Dit adres beschermt al het maximum van 20 Aster-accounts. Gebruik een ander adres.",
     failed_save_recovery_email:
       "Uw herstelpadres is niet opgeslagen. Een nieuwe poging zou werken. Uw huidige herstelopzet is ongewijzigd.",
     recovery_phrase_title: "Sla uw herstelzin op",
@@ -8640,7 +8656,7 @@ export const nl = {
     invalid_recovery_code:
       "Die herstelcode kwam niet overeen. Een andere uit uw opgeslagen lijst zou moeten werken.",
     recovery_locked_out:
-      "Dit account heeft te veel herstelpogingen gehad. Je kunt het over {{time}} opnieuw proberen. Geen van je codes is gebruikt, dus je hebt ze nog allemaal.",
+      "Deze account heeft te veel herstelpogingen gehad. Je kunt het over {{time}} opnieuw proberen. Geen van je codes is gebruikt, dus je hebt ze nog allemaal.",
     invalid_backup_code:
       "Deze back-upcode klopt niet. Elke code werkt maar één keer, dus probeer de volgende ongebruikte code uit je lijst.",
     new_password_placeholder: "Nieuw wachtwoord",

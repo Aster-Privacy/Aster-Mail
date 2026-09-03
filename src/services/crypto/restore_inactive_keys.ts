@@ -37,10 +37,7 @@ import {
   type LegacyDerivedKek,
   type RatchetKeySet,
 } from "./key_manager_core";
-import {
-  prepend_kek_to_list,
-  serialize_kek_for_vault,
-} from "./legacy_keks";
+import { prepend_kek_to_list, serialize_kek_for_vault } from "./legacy_keks";
 import { base64_to_array } from "./base64";
 import { zero_uint8_array } from "./secure_memory";
 import {
@@ -102,6 +99,20 @@ export async function count_inactive_key_sets(): Promise<number> {
   const listed = await list_inactive_key_sets();
 
   return listed.data?.inactive_key_sets.length ?? 0;
+}
+
+export async function discard_inactive_key_sets(): Promise<number> {
+  const listed = await list_inactive_key_sets();
+  const inactive = listed.data?.inactive_key_sets ?? [];
+  let discarded = 0;
+
+  for (const key_set of inactive) {
+    const consumed = await consume_inactive_key_set(key_set.id);
+
+    if (consumed.data?.success) discarded += 1;
+  }
+
+  return discarded;
 }
 
 export async function restore_inactive_key_sets(

@@ -25,6 +25,9 @@ import type { UseEmailListReturn, FetchPageOptions } from "./email_list_types";
 import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { Capacitor } from "@capacitor/core";
 
+import { drop_removed_after } from "@/services/removed_items";
+import { merge_silent_refresh_emails } from "./email_list_helpers/silent_refresh";
+
 import {
   fetch_mail_from_api,
   insert_emails_at,
@@ -262,12 +265,16 @@ export function use_email_list(current_view: string): UseEmailListReturn {
           const selected_ids = new Set(
             prev.emails.filter((e) => e.is_selected).map((e) => e.id),
           );
+          const surviving = drop_removed_after(
+            cached_page.state.emails,
+            cached_page.time,
+          );
           const emails =
             selected_ids.size > 0
-              ? cached_page.state.emails.map((e) =>
+              ? surviving.map((e) =>
                   selected_ids.has(e.id) ? { ...e, is_selected: true } : e,
                 )
-              : cached_page.state.emails;
+              : surviving;
 
           return { ...cached_page.state, emails };
         });
@@ -341,12 +348,13 @@ export function use_email_list(current_view: string): UseEmailListReturn {
           const selected_ids = new Set(
             prev.emails.filter((e) => e.is_selected).map((e) => e.id),
           );
+          const surviving = drop_removed_after(result.emails, start);
           const emails =
             selected_ids.size > 0
-              ? result.emails.map((e) =>
+              ? surviving.map((e) =>
                   selected_ids.has(e.id) ? { ...e, is_selected: true } : e,
                 )
-              : result.emails;
+              : surviving;
 
           const next_state: EmailListState = {
             emails,
@@ -417,6 +425,7 @@ export function use_email_list(current_view: string): UseEmailListReturn {
 
     page_cache_ref.current.clear();
 
+    const start = Date.now();
     const controller = new AbortController();
     const { signal } = controller;
     const active_page = page_ref.current;
@@ -462,15 +471,11 @@ export function use_email_list(current_view: string): UseEmailListReturn {
       state_view_ref.current = current_view;
 
       set_state((prev) => {
-        const selected_ids = new Set(
-          prev.emails.filter((e) => e.is_selected).map((e) => e.id),
+        const emails = merge_silent_refresh_emails(
+          prev.emails,
+          result.emails,
+          start,
         );
-        const emails =
-          selected_ids.size > 0
-            ? result.emails.map((e) =>
-                selected_ids.has(e.id) ? { ...e, is_selected: true } : e,
-              )
-            : result.emails;
 
         return {
           emails,
@@ -510,6 +515,8 @@ export function use_email_list(current_view: string): UseEmailListReturn {
 
     set_state((prev) => ({ ...prev, is_loading_more: true }));
 
+    const load_more_start = Date.now();
+
     load_more_abort_ref.current?.abort();
     const controller = new AbortController();
 
@@ -544,7 +551,10 @@ export function use_email_list(current_view: string): UseEmailListReturn {
 
       set_state((prev) => {
         const existing_ids = new Set(prev.emails.map((e) => e.id));
-        const appended = result.emails.filter((e) => !existing_ids.has(e.id));
+        const appended = drop_removed_after(
+          result.emails,
+          load_more_start,
+        ).filter((e) => !existing_ids.has(e.id));
 
         return {
           emails: [...prev.emails, ...appended],

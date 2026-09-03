@@ -48,6 +48,10 @@ import { ignore_error } from "@/lib/ignore_error";
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
+import {
+  PREMIUM_ALIAS_DOMAINS,
+  plan_allows_premium_alias_domains,
+} from "@/components/settings/billing/billing_constants";
 import { LockedFeature } from "@/components/settings/aliases/feature_lock";
 import { InfoHint } from "@/components/settings/aliases/info_hint";
 import {
@@ -63,7 +67,14 @@ const INPUT_CLASS =
 
 export function AliasDirectoriesSection() {
   const { t } = use_i18n();
-  const { is_feature_locked, is_loading: limits_loading } = use_plan_limits();
+  const {
+    is_feature_locked,
+    is_loading: limits_loading,
+    limits,
+  } = use_plan_limits();
+  const premium_domains_allowed = plan_allows_premium_alias_domains(
+    limits?.plan_code,
+  );
   const locked = is_feature_locked("max_alias_directories");
   const [directories, set_directories] = useState<DecryptedAliasDirectory[]>(
     [],
@@ -83,6 +94,10 @@ export function AliasDirectoriesSection() {
   const [trash_refresh, set_trash_refresh] = useState(0);
   const [confirm_delete_id, set_confirm_delete_id] = useState<string | null>(
     null,
+  );
+
+  const directory_pending_delete = directories.find(
+    (d) => d.id === confirm_delete_id,
   );
   const turnstile_ref = useRef<TurnstileWidgetRef>(null);
   const turnstile_required = !!TURNSTILE_SITE_KEY;
@@ -310,7 +325,11 @@ export function AliasDirectoriesSection() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {[...DIRECTORY_DOMAINS, ...custom_domains].map((d) => (
+                  {[
+                    ...DIRECTORY_DOMAINS,
+                    ...(premium_domains_allowed ? PREMIUM_ALIAS_DOMAINS : []),
+                    ...custom_domains,
+                  ].map((d) => (
                     <SelectItem key={d} value={d}>
                       @{d}
                     </SelectItem>
@@ -433,7 +452,13 @@ export function AliasDirectoriesSection() {
           <ConfirmationModal
             confirm_text={t("common.delete")}
             is_open={confirm_delete_id !== null}
-            message={t("common.action_cannot_be_undone")}
+            message={
+              directory_pending_delete
+                ? t("settings.alias_directory_delete_message", {
+                    address: `anything.${directory_pending_delete.label}@${directory_pending_delete.domain}`,
+                  })
+                : t("common.action_cannot_be_undone")
+            }
             on_cancel={() => set_confirm_delete_id(null)}
             on_confirm={() => {
               const target = confirm_delete_id;
@@ -442,7 +467,7 @@ export function AliasDirectoriesSection() {
 
               if (target) void handle_delete(target);
             }}
-            title={t("common.are_you_sure")}
+            title={t("settings.alias_directory_delete_title")}
             variant="danger"
           />
         </div>

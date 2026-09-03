@@ -100,6 +100,7 @@ import {
   type SenderOption,
 } from "@/hooks/use_sender_aliases";
 import { use_ghost_mode } from "@/hooks/use_ghost_mode";
+import { use_ghost_sender_binding } from "@/hooks/use_ghost_sender_binding";
 import { send_via_external_account } from "@/services/api/external_accounts";
 import { list_attachments } from "@/services/api/attachments";
 import {
@@ -125,6 +126,7 @@ import {
 } from "@/utils/date_format";
 import { use_escape_layer } from "@/lib/overlay_layer_stack";
 import { user_facing_error } from "@/utils/user_facing_error";
+import { record_review_prompt_action } from "@/lib/review_prompt";
 
 export function use_forward_modal({
   is_open,
@@ -573,11 +575,11 @@ export function use_forward_modal({
     set_preferred_sender_state(id);
   }, []);
 
-  useEffect(() => {
-    if (ghost_mode.is_ghost_enabled && ghost_mode.ghost_sender) {
-      set_selected_sender(ghost_mode.ghost_sender);
-    }
-  }, [ghost_mode.is_ghost_enabled, ghost_mode.ghost_sender]);
+  const select_sender = use_ghost_sender_binding(
+    ghost_mode,
+    selected_sender,
+    set_selected_sender,
+  );
 
   useEffect(() => {
     if (!is_open) return;
@@ -715,6 +717,7 @@ export function use_forward_modal({
       is_sending_ref.current = false;
       send_lock_started_at_ref.current = 0;
       show_toast(t("common.email_sent"), "success");
+      record_review_prompt_action();
       on_close();
 
       return;
@@ -787,6 +790,7 @@ export function use_forward_modal({
           setTimeout(() => {
             emit_email_sent();
           }, 100);
+          record_review_prompt_action();
           show_action_toast({
             message: t("common.email_sent"),
             action_type: "read",
@@ -972,12 +976,15 @@ export function use_forward_modal({
         }
 
         if (file.size > get_max_attachment_size()) {
-          const rejection = describe_oversized_file(t, file.name);
+          const rejection = describe_oversized_file(t, file.name, file.size);
 
           set_attachment_error(rejection.message);
 
           if (rejection.can_upgrade)
-            prompt_attachment_upgrade(rejection.message);
+            prompt_attachment_upgrade(
+              rejection.message,
+              rejection.upgrade_plan_code,
+            );
           continue;
         }
 
@@ -1047,12 +1054,15 @@ export function use_forward_modal({
         }
 
         if (file.size > get_max_attachment_size()) {
-          const rejection = describe_oversized_file(t, file.name);
+          const rejection = describe_oversized_file(t, file.name, file.size);
 
           set_attachment_error(rejection.message);
 
           if (rejection.can_upgrade)
-            prompt_attachment_upgrade(rejection.message);
+            prompt_attachment_upgrade(
+              rejection.message,
+              rejection.upgrade_plan_code,
+            );
           continue;
         }
 
@@ -1123,7 +1133,7 @@ export function use_forward_modal({
     user,
     sender_options,
     selected_sender,
-    set_selected_sender,
+    set_selected_sender: select_sender,
     preferred_sender_id,
     handle_set_preferred,
     ghost_mode,

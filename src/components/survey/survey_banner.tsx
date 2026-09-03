@@ -52,7 +52,11 @@ function cache_done() {
   }
 }
 
-export function SurveyBanner() {
+export function SurveyBanner({
+  on_visibility_change,
+}: {
+  on_visibility_change?: (is_visible: boolean) => void;
+} = {}) {
   const reduce_motion = use_should_reduce_motion();
   const { t } = use_i18n();
   const [status, set_status] = useState<SurveyStatusResponse | null>(null);
@@ -77,6 +81,10 @@ export function SurveyBanner() {
   }, []);
 
   const should_hide = is_hidden || !status?.eligible;
+
+  useEffect(() => {
+    on_visibility_change?.(!should_hide);
+  }, [should_hide, on_visibility_change]);
 
   const handle_remind_tomorrow = () => {
     set_is_hidden(true);

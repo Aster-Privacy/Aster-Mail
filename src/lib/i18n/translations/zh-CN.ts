@@ -150,7 +150,7 @@ export const zh_CN = {
       "这个文件不是受支持的图片格式，JPEG、PNG 或 WebP 可以使用。",
     image_size_error:
       "这张图片超出了 5 MB 的限制，换一张较小的或压缩过的就可以了。",
-    recovery_conflict: "这个邮箱已经是另一个账户的恢复地址，换一个应该可以。",
+    recovery_conflict: "此地址已用于最多 20 个 Aster 账户。请使用其他地址。",
     copied_to_clipboard: "已复制到剪贴板",
     address_copied_to_clipboard: "地址已复制到剪贴板",
     offline: "离线",
@@ -766,7 +766,7 @@ export const zh_CN = {
     email_copied: "邮箱已复制",
     message_id_copied: "消息 ID 已复制",
     draft_deleted: "草稿已永久删除",
-    no_recipients: "发送前至少需要一位收件人。",
+    no_recipients: "无收件人",
     sync_complete: "同步完成",
     sync_timeout: "同步时间比预期更长，可能仍在运行中。",
     session_expired_login:
@@ -1885,6 +1885,11 @@ export const zh_CN = {
     resurrection_success:
       "较早的数据已解锁。您之前的邮件和别名可以再次正常打开。",
     resurrection_failed: "未能解锁较早的数据。请检查密码或短语后再试一次。",
+    discard_older_data_button: "放弃较早的数据",
+    discard_older_data_title: "要放弃较早的数据吗？",
+    discard_older_data_desc: "这将永久移除解锁重置前邮件和别名的选项。此操作无法撤销。",
+    discard_older_data_success: "已放弃较早的数据。",
+    discard_older_data_failed: "无法放弃较早的数据。请重试。",
     phrase_wrap_save_failed: "您的恢复短语未能保存到服务器，再试一次应该可以。",
     smtp_tokens: "SMTP 令牌",
     smtp_tokens_description:
@@ -5809,7 +5814,18 @@ export const zh_CN = {
     ghost_alias_grace_until: "宽限期至 {{date}}",
     ghost_alias_extend: "延长",
     ghost_alias_expire_now: "立即停用",
-    ghost_alias_expire_confirm_title: "要使此别名失效吗？",
+    ghost_alias_expire_confirm_title: "要使此幽灵别名失效吗？",
+    ghost_alias_expire_confirm_message_named:
+      "确定要使 {{address}} 失效吗？该操作无法恢复。宽限期将持续到 {{date}}。",
+    delete_aliases_confirmation_count:
+      "确定要删除 {{count}} 个别名吗？该操作无法撤销。",
+    delete_alias_confirmation_named:
+      "确定要删除 {{address}} 吗？该操作无法撤销。",
+    delete_address_confirmation_named:
+      "确定要删除 {{address}} 吗？该操作无法撤销。",
+    alias_directory_delete_title: "删除目录",
+    alias_directory_delete_message:
+      "确定要删除目录 {{address}} 吗？发往该模式下新地址的邮件将不再送达。已创建的别名仍可继续使用。",
     ghost_alias_expire_confirm_message:
       "确定要使此别名失效吗？该操作无法恢复。宽限期将持续到 {{date}}。",
     ghost_alias_max_extension_toast:
@@ -7642,7 +7658,7 @@ export const zh_CN = {
     please_enter_valid_email:
       "这看起来不像有效的邮箱，类似 name@example.com 这样的格式可以使用。",
     recovery_email_conflict:
-      "这个邮箱已经是另一个账户的恢复地址，换一个应该可以。",
+      "此地址已用于最多 20 个 Aster 账户。请使用其他地址。",
     failed_save_recovery_email:
       "您的恢复邮箱未能保存，再试一次应该可以。当前的恢复设置没有变化。",
     recovery_phrase_title: "保存您的恢复短语",
@@ -7710,7 +7726,7 @@ export const zh_CN = {
     please_enter_recovery_code: "这里需要您的一个恢复码。",
     invalid_recovery_code: "这个恢复码不匹配，从您保存的列表中换一个应该可以。",
     recovery_locked_out:
-      "此账户的恢复尝试次数过多。你可以在 {{time}} 后重试。你的恢复码均未被使用，所以仍然全部有效。",
+      "这个账户的恢复尝试次数过多。请在 {{time}} 后重试。你的验证码一个都没有被使用，因此它们都还在。",
     invalid_backup_code:
       "这个备用码不匹配。每个备用码只能使用一次，请试试列表中下一个未使用的备用码。",
     new_password_placeholder: "新密码",

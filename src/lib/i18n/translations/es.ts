@@ -164,7 +164,7 @@ export const es = {
     image_size_error:
       "Esta imagen supera el límite de 5 MB. Una más pequeña, o una versión comprimida, funcionará.",
     recovery_conflict:
-      "Este correo ya es una dirección de recuperación en otra cuenta. Otro debería funcionar.",
+      "Esta dirección ya protege el máximo de 20 cuentas de Aster. Usa otra dirección.",
     copied_to_clipboard: "Copiado al portapapeles",
     address_copied_to_clipboard: "Dirección copiada al portapapeles",
     offline: "Sin conexión",
@@ -946,7 +946,7 @@ export const es = {
     email_copied: "Correo copiado",
     message_id_copied: "ID de mensaje copiado",
     draft_deleted: "Borrador eliminado permanentemente",
-    no_recipients: "Añade al menos un destinatario antes de enviar.",
+    no_recipients: "Sin destinatarios",
     sync_complete: "Sincronización completada",
     sync_timeout:
       "La sincronización tarda más de lo esperado y puede estar todavía en marcha.",
@@ -2141,6 +2141,11 @@ export const es = {
       "Tus datos anteriores están desbloqueados. Los mensajes y alias antiguos vuelven a abrirse con normalidad.",
     resurrection_failed:
       "Eso no desbloqueó los datos anteriores. Verifica la contraseña o la frase e inténtalo de nuevo.",
+    discard_older_data_button: "Descartar datos anteriores",
+    discard_older_data_title: "¿Descartar los datos anteriores?",
+    discard_older_data_desc: "Esto elimina de forma permanente la opción de desbloquear el correo y los alias anteriores al restablecimiento. No se puede deshacer.",
+    discard_older_data_success: "Datos anteriores descartados.",
+    discard_older_data_failed: "No se pudieron descartar los datos anteriores. Inténtalo de nuevo.",
     phrase_wrap_save_failed:
       "Tu frase de recuperación no se pudo guardar en el servidor. Inténtalo de nuevo.",
     smtp_tokens: "Tokens SMTP",
@@ -6860,7 +6865,18 @@ export const es = {
     ghost_alias_expire_now: "Expirar ahora",
     ghost_alias_max_extension_toast:
       "Este alias fantasma ya alcanzó su vida útil máxima de 90 días y no se puede extender más.",
-    ghost_alias_expire_confirm_title: "¿Expirar este alias?",
+    ghost_alias_expire_confirm_title: "¿Caducar este alias fantasma?",
+    ghost_alias_expire_confirm_message_named:
+      "¿Seguro que quieres caducar {{address}}? No podrás recuperarlo. Su periodo de gracia durará hasta el {{date}}.",
+    delete_aliases_confirmation_count:
+      "¿Seguro que quieres eliminar {{count}} alias? Esta acción no se puede deshacer.",
+    delete_alias_confirmation_named:
+      "¿Seguro que quieres eliminar {{address}}? Esta acción no se puede deshacer.",
+    delete_address_confirmation_named:
+      "¿Seguro que quieres eliminar {{address}}? Esta acción no se puede deshacer.",
+    alias_directory_delete_title: "Eliminar directorio",
+    alias_directory_delete_message:
+      "¿Seguro que quieres eliminar el directorio {{address}}? El correo dirigido a direcciones nuevas de este patrón dejará de llegar. Los alias que ya creó seguirán funcionando.",
     ghost_alias_expire_confirm_message:
       "¿Seguro que quieres expirar este alias? No podrás recuperarlo. Su período de gracia durará hasta el {{date}}.",
     ghost_alias_expired_grace: "Expirado - período de gracia",
@@ -8574,7 +8590,7 @@ export const es = {
     please_enter_valid_email:
       "Por favor ingresa una dirección de correo válida",
     recovery_email_conflict:
-      "Este correo ya es una dirección de recuperación en otra cuenta. Otro debería funcionar.",
+      "Esta dirección ya protege el máximo de 20 cuentas de Aster. Usa otra dirección.",
     failed_save_recovery_email:
       "Tu correo de recuperación no se guardó. Otro intento debería resolverlo. Tu configuración de recuperación actual no ha cambiado.",
     recovery_phrase_title: "Guarda tu frase de recuperación",
@@ -8653,7 +8669,7 @@ export const es = {
     invalid_recovery_code:
       "Ese código de recuperación no coincide. Otro de tu lista guardada funcionará.",
     recovery_locked_out:
-      "Esta cuenta ha tenido demasiados intentos de recuperación. Puedes volver a intentarlo en {{time}}. No se usó ninguno de tus códigos, así que aún los tienes todos.",
+      "Esta cuenta ha tenido demasiados intentos de recuperación. Puedes volver a intentarlo en {{time}}. No se usó ninguno de tus códigos, así que los conservas todos.",
     invalid_backup_code:
       "Ese código de respaldo no coincide. Cada código sirve una sola vez, así que prueba con el siguiente sin usar de tu lista.",
     new_password_placeholder: "Nueva contraseña",
@@ -9253,7 +9269,7 @@ export const es = {
     no_emails_in_pst: "No se encontraron correos en el archivo PST",
     no_keys_available: "No hay claves disponibles",
     no_permission: "Permiso denegado",
-    no_recipients: "Sin destinatarios",
+    no_recipients: "Añade al menos un destinatario antes de enviar.",
     no_valid_emails_csv: "No hay correos válidos en el CSV",
     pst_conversion_required: "Se requiere conversión PST",
     rate_limited:

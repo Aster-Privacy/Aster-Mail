@@ -962,7 +962,7 @@ const sidebar_base = ({
             <>
               <motion.div
                 animate={{ opacity: 1 }}
-                className="fixed inset-0 bg-black/50 backdrop-blur-md z-40"
+                className="fixed inset-0 bg-black/60 z-40"
                 exit={{ opacity: 0 }}
                 initial={reduce_motion ? false : { opacity: 0 }}
                 transition={{ duration: reduce_motion ? 0 : 0.2 }}

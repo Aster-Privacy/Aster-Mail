@@ -157,7 +157,7 @@ export const ko = {
     image_size_error:
       "이 이미지는 5 MB 제한을 넘습니다. 더 작은 이미지나 압축된 버전이면 됩니다.",
     recovery_conflict:
-      "이 이메일은 이미 다른 계정의 복구 주소로 사용 중입니다. 다른 이메일이면 됩니다.",
+      "이 주소는 이미 최대 20개의 Aster 계정에 사용되고 있습니다. 다른 주소를 사용하세요.",
     copied_to_clipboard: "클립보드에 복사됨",
     address_copied_to_clipboard: "주소가 클립보드에 복사됨",
     offline: "오프라인",
@@ -921,7 +921,7 @@ export const ko = {
     email_copied: "이메일 복사됨",
     message_id_copied: "메시지 ID 복사됨",
     draft_deleted: "임시 저장이 영구 삭제됨",
-    no_recipients: "발송하려면 받는 사람이 최소 한 명 필요합니다.",
+    no_recipients: "받는 사람 없음",
     sync_complete: "동기화 완료",
     sync_timeout: "동기화가 예상보다 오래 걸리며 아직 실행 중일 수 있습니다.",
     session_expired_login:
@@ -3425,6 +3425,11 @@ export const ko = {
       "이전 데이터의 잠금이 해제되었습니다. 예전 메일과 별칭을 다시 정상적으로 열 수 있습니다.",
     resurrection_failed:
       "이전 데이터를 잠금 해제하지 못했습니다. 비밀번호나 문구를 확인하고 다시 시도하세요.",
+    discard_older_data_button: "이전 데이터 삭제",
+    discard_older_data_title: "이전 데이터를 삭제할까요?",
+    discard_older_data_desc: "재설정 이전의 메일과 별칭을 잠금 해제할 수 있는 옵션이 영구적으로 제거됩니다. 이 작업은 취소할 수 없습니다.",
+    discard_older_data_success: "이전 데이터를 삭제했습니다.",
+    discard_older_data_failed: "이전 데이터를 삭제하지 못했습니다. 다시 시도하세요.",
     phrase_wrap_save_failed:
       "복구 문구를 서버에 저장하지 못했습니다. 다시 시도하세요.",
     general: "일반",
@@ -6795,7 +6800,18 @@ export const ko = {
     ghost_alias_expires_in: "{{ days }}일 후 만료",
     ghost_alias_extend: "연장",
     ghost_alias_expire_now: "지금 만료",
-    ghost_alias_expire_confirm_title: "이 별칭을 만료시키시겠습니까?",
+    ghost_alias_expire_confirm_title: "이 고스트 별칭을 만료할까요?",
+    ghost_alias_expire_confirm_message_named:
+      "{{address}}을(를) 만료하시겠습니까? 복구할 수 없습니다. 유예 기간은 {{date}}까지입니다.",
+    delete_aliases_confirmation_count:
+      "별칭 {{count}}개를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
+    delete_alias_confirmation_named:
+      "{{address}}을(를) 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
+    delete_address_confirmation_named:
+      "{{address}}을(를) 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
+    alias_directory_delete_title: "디렉터리 삭제",
+    alias_directory_delete_message:
+      "{{address}} 디렉터리를 삭제하시겠습니까? 이 패턴의 새 주소로 오는 메일은 더 이상 도착하지 않습니다. 이미 만들어진 별칭은 계속 작동합니다.",
     ghost_alias_expire_confirm_message:
       "이 별칭을 만료시키시겠습니까? 복구할 수 없습니다. 유예 기간은 {{date}}까지 계속됩니다.",
     ghost_alias_max_extension_toast:
@@ -8228,7 +8244,7 @@ export const ko = {
     please_enter_valid_email:
       "이 주소는 유효한 이메일이 아닌 것 같습니다. name@example.com 같은 형식이면 됩니다.",
     recovery_email_conflict:
-      "이 이메일은 이미 다른 계정의 복구 주소로 사용 중입니다. 다른 이메일이면 됩니다.",
+      "이 주소는 이미 최대 20개의 Aster 계정에 사용되고 있습니다. 다른 주소를 사용하세요.",
     failed_save_recovery_email:
       "복구 이메일이 저장되지 않았습니다. 다시 시도하면 됩니다. 현재 복구 설정은 그대로입니다.",
     recovery_phrase_title: "복구 문구를 저장하세요",
@@ -8302,7 +8318,7 @@ export const ko = {
     invalid_recovery_code:
       "이 복구 코드는 일치하지 않습니다. 저장해둔 목록의 다른 코드면 됩니다.",
     recovery_locked_out:
-      "이 계정에서 복구 시도가 너무 많았습니다. {{time}} 후에 다시 시도할 수 있습니다. 복구 코드는 하나도 사용되지 않았으므로 모두 그대로 남아 있습니다.",
+      "이 계정에서 복구 시도가 너무 많았습니다. {{time}} 후에 다시 시도할 수 있습니다. 코드는 하나도 사용되지 않았으므로 모두 그대로 남아 있습니다.",
     invalid_backup_code:
       "이 백업 코드가 일치하지 않습니다. 코드는 한 번만 사용할 수 있으니 목록에서 사용하지 않은 다음 코드를 사용해 보세요.",
     new_password_placeholder: "새 비밀번호",

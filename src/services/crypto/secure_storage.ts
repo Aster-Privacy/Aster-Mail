@@ -696,17 +696,31 @@ function parse_device_payload(encrypted_data: string): {
 }
 
 export async function device_decrypt(encrypted_data: string): Promise<string> {
-  const { version, nonce, ciphertext } = parse_device_payload(encrypted_data);
+  let parsed: ReturnType<typeof parse_device_payload>;
+
+  try {
+    parsed = parse_device_payload(encrypted_data);
+  } catch {
+    throw new SecureStorageError("tampered");
+  }
+
+  const { version, nonce, ciphertext } = parsed;
   const key = await get_device_read_key(version);
 
-  const plaintext_buffer =
-    version >= DEVICE_WRAPPED_VERSION
-      ? await crypto.subtle.decrypt(
-          { name: "AES-GCM", iv: nonce },
-          key,
-          ciphertext,
-        )
-      : await decrypt_aes_gcm_with_fallback(key, ciphertext, nonce);
+  let plaintext_buffer: ArrayBuffer;
+
+  try {
+    plaintext_buffer =
+      version >= DEVICE_WRAPPED_VERSION
+        ? await crypto.subtle.decrypt(
+            { name: "AES-GCM", iv: nonce },
+            key,
+            ciphertext,
+          )
+        : await decrypt_aes_gcm_with_fallback(key, ciphertext, nonce);
+  } catch {
+    throw new SecureStorageError("wrong_password");
+  }
 
   const decoder = new TextDecoder();
 
@@ -769,7 +783,14 @@ export async function device_retrieve_strict<T>(
   }
 
   const decrypted = await device_decrypt(encrypted);
-  const parsed = JSON.parse(decrypted) as T;
+
+  let parsed: T;
+
+  try {
+    parsed = JSON.parse(decrypted) as T;
+  } catch {
+    throw new SecureStorageError("tampered");
+  }
 
   if (is_legacy_device_payload(encrypted)) {
     await rewrap_legacy_device_entry(key, encrypted, decrypted);

@@ -30,6 +30,7 @@ const profiles = vi.hoisted(() => ({
 vi.mock("@/services/api/profiles", () => ({
   is_aster_email: () => true,
   get_cached_peer_profile: (email: string) => profiles.cache.get(email),
+  get_peer_profile_hint: () => null,
   fetch_peer_profile: () =>
     new Promise((resolve) => {
       profiles.pending.push(resolve);

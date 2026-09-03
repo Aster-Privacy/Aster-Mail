@@ -148,6 +148,7 @@ export const InlineReplySection = forwardRef<
     async () => {},
   );
   const prev_visible_ref = useRef(false);
+  const has_sent_ref = useRef(false);
   const thread_token_ref = useRef(thread_token);
   const [badges, set_badges] = useState<Badge[]>([]);
   const my_badge_prefs = use_my_badge_prefs();
@@ -210,6 +211,7 @@ export const InlineReplySection = forwardRef<
   const save_thread_draft = useCallback(
     async (text: string) => {
       if (!thread_token || !text.trim()) return;
+      if (has_sent_ref.current) return;
 
       const vault = get_vault_from_memory();
 
@@ -255,6 +257,14 @@ export const InlineReplySection = forwardRef<
         );
 
         if (result.data) {
+          if (has_sent_ref.current) {
+            delete_draft(result.data.id).catch((caught) =>
+              ignore_error("components/email/inline_reply_section", caught),
+            );
+
+            return;
+          }
+
           set_draft_id(result.data.id);
           set_draft_version(result.data.version);
           last_saved_text.current = text;
@@ -288,7 +298,7 @@ export const InlineReplySection = forwardRef<
         clearTimeout(save_draft_timeout.current);
         save_draft_timeout.current = null;
       }
-      if (!is_sending_ref.current) {
+      if (!is_sending_ref.current && !has_sent_ref.current) {
         const current_text = reply_text_ref.current;
 
         if (
@@ -299,6 +309,7 @@ export const InlineReplySection = forwardRef<
           save_draft_fn_ref.current(current_text);
         }
       }
+      has_sent_ref.current = false;
     }
     prev_visible_ref.current = is_visible;
   }, [is_visible, thread_token]);
@@ -396,6 +407,12 @@ export const InlineReplySection = forwardRef<
     }
 
     is_sending_ref.current = true;
+    has_sent_ref.current = true;
+
+    if (save_draft_timeout.current) {
+      clearTimeout(save_draft_timeout.current);
+      save_draft_timeout.current = null;
+    }
     last_send_time_ref.current = now;
     record_send(send_fingerprint, now);
     set_error_message(null);
@@ -493,6 +510,7 @@ export const InlineReplySection = forwardRef<
         },
         on_cancel: () => {
           is_sending_ref.current = false;
+          has_sent_ref.current = false;
           set_send_state("idle");
           forget_send(send_fingerprint);
           set_queued_id(null);
@@ -500,6 +518,7 @@ export const InlineReplySection = forwardRef<
         },
         on_error: (error) => {
           is_sending_ref.current = false;
+          has_sent_ref.current = false;
           set_send_state("error");
           forget_send(send_fingerprint);
           set_error_message(error);
@@ -524,6 +543,7 @@ export const InlineReplySection = forwardRef<
       }
     } else if (!result.success) {
       is_sending_ref.current = false;
+      has_sent_ref.current = false;
       set_send_state("error");
       forget_send(send_fingerprint);
       set_error_message(result.error || t("common.failed_to_send_reply"));

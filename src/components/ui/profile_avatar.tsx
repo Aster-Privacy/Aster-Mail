@@ -84,7 +84,12 @@ const ASTER_SYSTEM_EMAILS = new Set([
 
 const SYSTEM_LOCAL_PARTS = new Set(["mailer-daemon", "postmaster"]);
 
-const ASTER_DOMAINS = new Set(["astermail.org", "aster.cx"]);
+const ASTER_DOMAINS = new Set([
+  "astermail.org",
+  "aster.cx",
+  "astermail.me",
+  "astermail.net",
+]);
 
 const LOADED_SOURCE_LIMIT = 600;
 const loaded_sources = new Set<string>();

@@ -161,7 +161,7 @@ export const ja = {
     image_size_error:
       "この画像は 5 MB の上限を超えています。より小さなもの、または圧縮した版でしたら添付できます。",
     recovery_conflict:
-      "このメールはすでに別のアカウントのリカバリーアドレスとして使われています。別のアドレスでしたら使えます。",
+      "このアドレスはすでに上限の20件のAsterアカウントで使われています。別のアドレスを使ってください。",
     copied_to_clipboard: "クリップボードにコピーしました",
     address_copied_to_clipboard: "アドレスをクリップボードにコピーしました",
     offline: "オフライン",
@@ -937,7 +937,7 @@ export const ja = {
     email_copied: "メールをコピーしました",
     message_id_copied: "メッセージIDをコピーしました",
     draft_deleted: "下書きを完全に削除しました",
-    no_recipients: "送信する前に、少なくとも 1 件の宛先が必要です。",
+    no_recipients: "宛先なし",
     sync_complete: "同期完了",
     sync_timeout:
       "同期が予想より時間がかかっており、まだ実行中の可能性があります。",
@@ -2080,6 +2080,11 @@ export const ja = {
       "以前のデータのロックを解除しました。過去のメールとエイリアスを再び通常どおり開けます。",
     resurrection_failed:
       "以前のデータのロックを解除できませんでした。パスワードまたはフレーズを確認して、もう一度お試しください。",
+    discard_older_data_button: "以前のデータを破棄",
+    discard_older_data_title: "以前のデータを破棄しますか？",
+    discard_older_data_desc: "リセット前のメールとエイリアスのロックを解除するオプションが完全に削除されます。この操作は取り消せません。",
+    discard_older_data_success: "以前のデータを破棄しました。",
+    discard_older_data_failed: "以前のデータを破棄できませんでした。もう一度お試しください。",
     phrase_wrap_save_failed:
       "リカバリーフレーズをサーバーに保存できませんでした。もう一度お試しください。",
     smtp_tokens: "SMTP トークン",
@@ -6650,7 +6655,18 @@ export const ja = {
     feature_tracker_protection: "トラッカー保護",
     ghost_alias_active: "アクティブ",
     ghost_alias_expire_now: "期限切れにする",
-    ghost_alias_expire_confirm_title: "このエイリアスを失効させますか？",
+    ghost_alias_expire_confirm_title: "このゴーストエイリアスを失効させますか？",
+    ghost_alias_expire_confirm_message_named:
+      "{{address}} を失効させてもよろしいですか？元に戻すことはできません。猶予期間は{{date}}まで続きます。",
+    delete_aliases_confirmation_count:
+      "{{count}} 件のエイリアスを削除してもよろしいですか？この操作は元に戻せません。",
+    delete_alias_confirmation_named:
+      "{{address}} を削除してもよろしいですか？この操作は元に戻せません。",
+    delete_address_confirmation_named:
+      "{{address}} を削除してもよろしいですか？この操作は元に戻せません。",
+    alias_directory_delete_title: "ディレクトリを削除",
+    alias_directory_delete_message:
+      "ディレクトリ {{address}} を削除してもよろしいですか？このパターンの新しいアドレス宛のメールは届かなくなります。すでに作成されたエイリアスは引き続き使えます。",
     ghost_alias_expire_confirm_message:
       "本当にこのエイリアスを失効させますか？元に戻すことはできません。猶予期間は{{date}}まで続きます。",
     ghost_alias_max_extension_toast:
@@ -8455,7 +8471,7 @@ export const ja = {
     please_enter_valid_email:
       "有効なメールアドレスのようには見えません。name@example.com のような形式でしたら使えます。",
     recovery_email_conflict:
-      "このメールはすでに別のアカウントのリカバリーアドレスとして使われています。別のアドレスでしたら使えます。",
+      "このアドレスはすでに上限の20件のAsterアカウントで使われています。別のアドレスを使ってください。",
     failed_save_recovery_email:
       "リカバリーメールが保存されませんでした。もう一度試すと通ることが多いです。現在のリカバリー設定には変更ありません。",
     recovery_phrase_title: "リカバリーフレーズを保存してください",
@@ -8534,7 +8550,7 @@ export const ja = {
     invalid_recovery_code:
       "そのリカバリーコードは一致しませんでした。保存している一覧の中の別のコードでしたら通ります。",
     recovery_locked_out:
-      "このアカウントで復旧の試行が多すぎました。{{time}}後に再試行できます。コードはどれも使用されていないため、すべてそのまま使えます。",
+      "このアカウントでは復元の試行が多すぎました。{{time}}後に再度お試しください。コードはどれも使用されていないため、すべて残っています。",
     invalid_backup_code:
       "このバックアップコードは一致しません。各コードは1回だけ使えるため、リストの次の未使用コードをお試しください。",
     new_password_placeholder: "新しいパスワード",

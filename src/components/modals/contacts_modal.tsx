@@ -60,7 +60,7 @@ export function ContactsModal({
     >
       <div
         aria-hidden="true"
-        className="absolute inset-0 bg-black/60 backdrop-blur-md"
+        className="absolute inset-0 bg-black/70"
       />
       {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions, jsx-a11y/click-events-have-key-events */}
       <div

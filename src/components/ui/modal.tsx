@@ -106,13 +106,12 @@ export function Modal({
           className="fixed inset-0 flex items-center justify-center"
           style={{ zIndex: z_index ?? 60 }}
         >
-          <motion.div
-            animate={{ opacity: 1 }}
-            className="absolute inset-0 backdrop-blur-md"
-            exit={{ opacity: 0 }}
-            initial={reduce_motion ? false : { opacity: 0 }}
-            style={{ backgroundColor: "var(--modal-overlay)" }}
-            transition={{ duration: reduce_motion ? 0 : 0.2 }}
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundColor: "var(--modal-overlay)",
+              transform: "translateZ(0)",
+            }}
             onPointerDown={
               close_on_overlay ? handle_backdrop_pointer_down : undefined
             }

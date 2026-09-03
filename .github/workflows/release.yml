@@ -31,7 +31,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Setup Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
@@ -141,7 +141,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         shell: bash
         run: |
           set -euo pipefail
@@ -152,7 +151,7 @@ jobs:
           for img in src-tauri/target/release/bundle/appimage/*.AppImage; do
             bash scripts/fix_appimage_libs.sh "$img"
             rm -f "$img.sig"
-            npm run tauri -- signer sign "$img"
+            npm run tauri -- signer sign --password "" "$img"
             gh release upload "$TAG" "$img" "$img.sig" --clobber
           done
 
@@ -203,7 +202,7 @@ jobs:
     needs: build
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Rewrite latest.json with canonical asset URLs
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -274,7 +273,7 @@ jobs:
     if: always()
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Carry forward any missing canonical installers
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -316,7 +315,7 @@ jobs:
       id-token: write
       attestations: write
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Download the canonical installers
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -343,7 +342,52 @@ jobs:
     if: always()
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Ensure the release body carries the wordmark and install alert
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Every release body opens with the Aster Mail wordmark and the
+          # standard install alert. Existing notes are preserved, so this step
+          # only prepends what is missing and re-running it is a no-op.
+          V=$(node -p "require('./package.json').version")
+          TAG="v${V}"
+          RAW="https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/01a79449e4706b43cd790419736ed24bfbea95c0/public"
+          body=$(gh release view "$TAG" --json body --jq .body 2>/dev/null || true)
+          : > head.md
+          case "$body" in
+            *aster_mail_logo*) ;;
+            *)
+              {
+                echo '<p align="left">'
+                echo '  <picture>'
+                echo "    <source media=\"(prefers-color-scheme: dark)\" srcset=\"${RAW}/aster_mail_logo_dark.png\">"
+                echo "    <img alt=\"Aster Mail\" src=\"${RAW}/aster_mail_logo_light.png\" width=\"320\">"
+                echo '  </picture>'
+                echo '</p>'
+                echo
+              } >> head.md
+              ;;
+          esac
+          case "$body" in
+            *"These files are for new installations"*) ;;
+            *)
+              {
+                echo '> [!NOTE]'
+                echo '> These files are for new installations. If Aster Mail is already installed, it updates automatically.'
+                echo
+              } >> head.md
+              ;;
+          esac
+          if [ ! -s head.md ]; then
+            echo "Release body already carries the wordmark and install alert."
+            exit 0
+          fi
+          cat head.md > release_body.md
+          printf '%s' "$body" >> release_body.md
+          gh release edit "$TAG" --notes-file release_body.md
+          echo "Release body updated for $TAG."
+
       - name: Promote to Latest only when every download asset is present
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

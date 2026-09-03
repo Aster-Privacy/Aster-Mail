@@ -27,6 +27,20 @@ import {
   base64_to_array_buffer,
 } from "@/components/compose/compose_base64";
 
+const base64_by_buffer = new WeakMap<ArrayBuffer, string>();
+
+function cached_base64(buffer: ArrayBuffer): string {
+  const cached = base64_by_buffer.get(buffer);
+
+  if (cached !== undefined) return cached;
+
+  const encoded = array_buffer_to_base64(buffer);
+
+  base64_by_buffer.set(buffer, encoded);
+
+  return encoded;
+}
+
 export function attachments_to_draft_data(
   attachments: Attachment[],
 ): DraftAttachmentData[] {
@@ -36,7 +50,7 @@ export function attachments_to_draft_data(
     size: att.size,
     size_bytes: att.size_bytes,
     mime_type: att.mime_type,
-    data_base64: array_buffer_to_base64(att.data),
+    data_base64: cached_base64(att.data),
     content_id: att.content_id,
   }));
 }

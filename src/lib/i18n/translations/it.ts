@@ -170,7 +170,7 @@ export const it = {
     image_size_error:
       "Questa immagine supera il limite di 5 MB. Una più piccola, o una versione compressa, andrà bene.",
     recovery_conflict:
-      "Questa email è già un indirizzo di recupero su un altro account. Un'altra dovrebbe funzionare.",
+      "Questo indirizzo protegge già il massimo di 20 account Aster. Usa un altro indirizzo.",
     copied_to_clipboard: "Copiato negli appunti",
     address_copied_to_clipboard: "Indirizzo copiato negli appunti",
     offline: "Offline",
@@ -951,7 +951,7 @@ export const it = {
     email_copied: "Email copiata",
     message_id_copied: "ID messaggio copiato",
     draft_deleted: "Bozza eliminata definitivamente",
-    no_recipients: "Almeno un destinatario è necessario prima di inviare.",
+    no_recipients: "Nessun destinatario",
     sync_complete: "Sincronizzazione completata",
     sync_timeout:
       "La sincronizzazione impiega più tempo del previsto e potrebbe essere ancora in corso.",
@@ -2174,6 +2174,11 @@ export const it = {
       "I suoi dati precedenti sono sbloccati. I messaggi e gli alias meno recenti si aprono di nuovo normalmente.",
     resurrection_failed:
       "Non è stato possibile sbloccare i dati precedenti. Verifichi la password o la frase e riprovi.",
+    discard_older_data_button: "Elimina i dati precedenti",
+    discard_older_data_title: "Eliminare i dati precedenti?",
+    discard_older_data_desc: "Questa operazione rimuove in modo permanente la possibilità di sbloccare la posta e gli alias precedenti al ripristino. Non può essere annullata.",
+    discard_older_data_success: "Dati precedenti eliminati.",
+    discard_older_data_failed: "Impossibile eliminare i dati precedenti. Riprova.",
     phrase_wrap_save_failed:
       "Non è stato possibile salvare la sua frase di recupero sul server. Riprovi.",
     smtp_tokens: "Token SMTP",
@@ -7165,7 +7170,18 @@ export const it = {
     ghost_alias_expires_in: "Scade tra {{ days }} giorni",
     ghost_alias_extend: "Estendi",
     ghost_alias_expire_now: "Scadi",
-    ghost_alias_expire_confirm_title: "Far scadere questo alias?",
+    ghost_alias_expire_confirm_title: "Far scadere questo alias fantasma?",
+    ghost_alias_expire_confirm_message_named:
+      "Vuoi davvero far scadere {{address}}? Non potrai recuperarlo. Il periodo di tolleranza durerà fino al {{date}}.",
+    delete_aliases_confirmation_count:
+      "Vuoi davvero eliminare {{count}} alias? Questa azione non può essere annullata.",
+    delete_alias_confirmation_named:
+      "Vuoi davvero eliminare {{address}}? Questa azione non può essere annullata.",
+    delete_address_confirmation_named:
+      "Vuoi davvero eliminare {{address}}? Questa azione non può essere annullata.",
+    alias_directory_delete_title: "Elimina directory",
+    alias_directory_delete_message:
+      "Vuoi davvero eliminare la directory {{address}}? La posta inviata a nuovi indirizzi di questo schema non arriverà più. Gli alias già creati continuano a funzionare.",
     ghost_alias_expire_confirm_message:
       "Sei sicuro di voler far scadere questo alias? Non potrai recuperarlo. Il periodo di grazia durerà fino al {{date}}.",
     ghost_alias_max_extension_toast:
@@ -8684,7 +8700,7 @@ export const it = {
     please_enter_valid_email:
       "Questa non sembra un'email valida. Qualcosa come nome@example.com andrà bene.",
     recovery_email_conflict:
-      "Questa email è già un indirizzo di recupero su un altro account. Un'altra dovrebbe funzionare.",
+      "Questo indirizzo protegge già il massimo di 20 account Aster. Usa un altro indirizzo.",
     failed_save_recovery_email:
       "La sua email di recupero non è stata salvata. Un altro tentativo dovrebbe bastare. La sua configurazione di recupero attuale è invariata.",
     recovery_phrase_title: "Salvi la sua frase di recupero",

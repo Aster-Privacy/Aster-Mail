@@ -40,6 +40,7 @@ const LOCALES: LanguageCode[] = [
   "nl",
   "pl",
   "tr",
+  "hi",
 ];
 
 function flat_keys(source: Translations): Map<string, string> {

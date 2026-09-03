@@ -58,7 +58,12 @@ import {
 } from "@/services/api/allowed_senders";
 import { emit_mail_changed, emit_contacts_changed } from "@/hooks/mail_events";
 
-const ASTER_DOMAINS = new Set(["astermail.org", "aster.cx"]);
+const ASTER_DOMAINS = new Set([
+  "astermail.org",
+  "aster.cx",
+  "astermail.me",
+  "astermail.net",
+]);
 
 function extract_root_domain(email: string): string {
   const match = email.match(/@([^@]+)$/);
@@ -297,7 +302,7 @@ export function SenderProfileModal({
         >
           <motion.div
             animate={{ opacity: 1 }}
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/60"
             exit={{ opacity: 0 }}
             initial={reduce_motion ? false : { opacity: 0 }}
           />

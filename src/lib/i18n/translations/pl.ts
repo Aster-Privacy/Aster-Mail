@@ -162,7 +162,7 @@ export const pl = {
     image_size_error:
       "Ten obraz przekracza limit 5 MB. Mniejszy lub skompresowany się zmieści.",
     recovery_conflict:
-      "Ten adres jest już adresem odzyskiwania na innym koncie. Inny powinien zadziałać.",
+      "Ten adres chroni już maksymalną liczbę 20 kont Aster. Użyj innego adresu.",
     copied_to_clipboard: "Skopiowano do schowka",
     address_copied_to_clipboard: "Skopiowano adres do schowka",
     offline: "Brak połączenia",
@@ -941,7 +941,7 @@ export const pl = {
     email_copied: "E-mail skopiowany",
     message_id_copied: "ID wiadomości skopiowany",
     draft_deleted: "Szkic trwale usunięty",
-    no_recipients: "Co najmniej jeden odbiorca jest potrzebny przed wysłaniem.",
+    no_recipients: "Brak odbiorców",
     sync_complete: "Synchronizacja zakończona",
     sync_timeout:
       "Synchronizacja trwa dłużej niż oczekiwano i może jeszcze trwać.",
@@ -2303,6 +2303,11 @@ export const pl = {
       "Starsze dane zostały odblokowane. Wcześniejsze wiadomości i aliasy znów otwierają się normalnie.",
     resurrection_failed:
       "To nie odblokowało starszych danych. Sprawdź hasło lub frazę i spróbuj ponownie.",
+    discard_older_data_button: "Odrzuć starsze dane",
+    discard_older_data_title: "Odrzucić starsze dane?",
+    discard_older_data_desc: "Spowoduje to trwałe usunięcie możliwości odblokowania poczty i aliasów sprzed resetu. Tej operacji nie można cofnąć.",
+    discard_older_data_success: "Starsze dane odrzucone.",
+    discard_older_data_failed: "Nie udało się odrzucić starszych danych. Spróbuj ponownie.",
     phrase_wrap_save_failed:
       "Nie udało się zapisać frazy odzyskiwania na serwerze. Spróbuj ponownie.",
     smtp_tokens: "Tokeny SMTP",
@@ -7254,7 +7259,18 @@ export const pl = {
     ghost_alias_expires_in: "Wygasa za {{ days }} dni",
     ghost_alias_extend: "Przedłuż",
     ghost_alias_expire_now: "Wygaś teraz",
-    ghost_alias_expire_confirm_title: "Wygasić ten alias?",
+    ghost_alias_expire_confirm_title: "Wygasić ten alias widmo?",
+    ghost_alias_expire_confirm_message_named:
+      "Czy na pewno chcesz wygasić {{address}}? Nie będzie można go odzyskać. Okres karencji potrwa do {{date}}.",
+    delete_aliases_confirmation_count:
+      "Czy na pewno chcesz usunąć aliasy w liczbie {{count}}? Tej operacji nie można cofnąć.",
+    delete_alias_confirmation_named:
+      "Czy na pewno chcesz usunąć {{address}}? Tej operacji nie można cofnąć.",
+    delete_address_confirmation_named:
+      "Czy na pewno chcesz usunąć {{address}}? Tej operacji nie można cofnąć.",
+    alias_directory_delete_title: "Usuń katalog",
+    alias_directory_delete_message:
+      "Czy na pewno chcesz usunąć katalog {{address}}? Poczta na nowe adresy w tym wzorcu przestanie przychodzić. Utworzone już aliasy działają dalej.",
     ghost_alias_expire_confirm_message:
       "Czy na pewno chcesz wygasić ten alias? Nie będzie można go odzyskać. Okres karencji potrwa do {{date}}.",
     ghost_alias_max_extension_toast:
@@ -8838,7 +8854,7 @@ export const pl = {
     please_enter_valid_email:
       "To nie wygląda na prawidłowy adres e-mail. Coś w stylu nazwa@example.com zadziała.",
     recovery_email_conflict:
-      "Ten adres jest już adresem odzyskiwania na innym koncie. Inny powinien zadziałać.",
+      "Ten adres chroni już maksymalną liczbę 20 kont Aster. Użyj innego adresu.",
     failed_save_recovery_email:
       "Adres odzyskiwania nie został zapisany. Kolejna próba powinna to załatwić. Obecne ustawienia odzyskiwania pozostają bez zmian.",
     recovery_phrase_title: "Zapisz swoją frazę odzyskiwania",

@@ -62,10 +62,10 @@ import {
   TAURI_CSRF_KEY,
   TAURI_TOKEN_KEY,
   clear_last_auth_ms,
+  dev_token_storage_allowed,
   get_error_code_from_status,
   is_auth_endpoint,
   is_identity_establishing_endpoint,
-  is_local_hostname,
   is_offline_tombstoned,
   is_pending_deletion_error,
   is_tauri_env,
@@ -202,8 +202,7 @@ export class ApiClient {
 
   private load_stored_tokens(): void {
     if (is_tauri_env()) return;
-    if (!import.meta.env.DEV) return;
-    if (!is_local_hostname()) return;
+    if (!dev_token_storage_allowed()) return;
     const stored_token = sessionStorage.getItem(DEV_TOKEN_KEY);
 
     if (stored_token) {
@@ -515,7 +514,7 @@ export class ApiClient {
     if (refresh_token) {
       this.active_refresh_token = refresh_token;
     }
-    if (import.meta.env.DEV) {
+    if (dev_token_storage_allowed()) {
       sessionStorage.setItem(DEV_TOKEN_KEY, token);
     }
     if (Capacitor.isNativePlatform()) {
@@ -664,7 +663,7 @@ export class ApiClient {
             tokens.access_token,
           );
         }
-        if (import.meta.env.DEV) {
+        if (dev_token_storage_allowed()) {
           sessionStorage.setItem(DEV_TOKEN_KEY, tokens.access_token);
         }
 
@@ -1042,7 +1041,7 @@ export class ApiClient {
     return (
       is_tauri_env() ||
       Capacitor.isNativePlatform() ||
-      (import.meta.env.DEV && is_local_hostname())
+      dev_token_storage_allowed()
     );
   }
 
@@ -1288,6 +1287,13 @@ export class ApiClient {
 
   get_cached_user_info(): CachedUserInfo | null {
     return this._cached_user_info;
+  }
+
+  adopt_user_info(info: CachedUserInfo | null): void {
+    if (!info?.user_id) return;
+    if (this.is_identity_mismatch(info.user_id)) return;
+
+    this._cached_user_info = { ...this._cached_user_info, ...info };
   }
 
   async check_auth_status(): Promise<boolean> {

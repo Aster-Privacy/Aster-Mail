@@ -211,7 +211,6 @@ function MobileMailDetail() {
       <div
         ref={scroll_ref}
         className="flex-1 overflow-y-auto"
-        style={{ willChange: "transform" }}
         onTouchEnd={handle_touch_end}
         onTouchMove={handle_touch_move}
         onTouchStart={handle_touch_start}

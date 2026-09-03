@@ -68,7 +68,7 @@ export function FirstRunSetup({
         <div className="fixed inset-0 z-[70] flex items-center justify-center p-5">
           <motion.div
             animate={{ opacity: 1 }}
-            className="absolute inset-0 backdrop-blur-md"
+            className="absolute inset-0"
             exit={{ opacity: 0, transition: exit_transition }}
             initial={{ opacity: 0 }}
             style={{

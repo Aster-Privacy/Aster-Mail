@@ -192,7 +192,7 @@ function shell(): HTMLElement {
 }
 
 function backdrop(): HTMLElement | null {
-  return document.querySelector<HTMLElement>("div.backdrop-blur-md");
+  return document.querySelector<HTMLElement>("div.fixed.inset-0.z-40");
 }
 
 function minimize_button(): HTMLElement {

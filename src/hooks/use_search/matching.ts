@@ -167,16 +167,16 @@ export function matches_operator(
           );
         case "archive":
         case "archived":
-          return Boolean(item.is_archived) && !item.is_trashed;
+          return !!item.is_archived && !item.is_trashed;
         case "sent":
           return item.item_type === "sent";
         case "drafts":
         case "draft":
           return item.item_type === "draft";
         case "trash":
-          return Boolean(item.is_trashed);
+          return !!item.is_trashed;
         case "spam":
-          return Boolean(item.is_spam);
+          return !!item.is_spam;
         case "starred":
           return metadata?.is_starred ?? false;
         default:

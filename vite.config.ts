@@ -112,6 +112,78 @@ const css_targets = browserslistToTargets(
   browserslist("chrome >= 100, edge >= 100, firefox >= 100, safari >= 15"),
 );
 
+const pwa_manifest = {
+  name: "AsterMail",
+  short_name: "AsterMail",
+  description: "Secure, private email for everyone.",
+  theme_color: "#ffffff",
+  background_color: "#ffffff",
+  display: "standalone",
+  scope: "/",
+  start_url: "/",
+  orientation: "portrait-primary",
+  categories: ["email", "productivity", "security"],
+  icons: [
+    {
+      src: "/pwa-192x192.png",
+      sizes: "192x192",
+      type: "image/png",
+      purpose: "any",
+    },
+    {
+      src: "/pwa-512x512.png",
+      sizes: "512x512",
+      type: "image/png",
+      purpose: "any",
+    },
+    {
+      src: "/pwa-512x512.png",
+      sizes: "512x512",
+      type: "image/png",
+      purpose: "maskable",
+    },
+    {
+      src: "/apple-touch-icon.png",
+      sizes: "180x180",
+      type: "image/png",
+      purpose: "any",
+    },
+  ],
+  shortcuts: [
+    {
+      name: "Compose Email",
+      short_name: "Compose",
+      url: "/?compose=true",
+      icons: [{ src: "/pwa-192x192.png", sizes: "192x192" }],
+    },
+    {
+      name: "Inbox",
+      short_name: "Inbox",
+      url: "/",
+      icons: [{ src: "/pwa-192x192.png", sizes: "192x192" }],
+    },
+  ],
+};
+
+const pwa_manifest_path = "/manifest.webmanifest";
+
+function dev_manifest_plugin(): Plugin {
+  return {
+    name: "dev-manifest",
+    apply: "serve",
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        if (!req.url || req.url.split("?")[0] !== pwa_manifest_path)
+          return next();
+
+        res.setHeader("Content-Type", "application/manifest+json");
+        res.setHeader("Cache-Control", "no-cache");
+        res.end(JSON.stringify(pwa_manifest));
+      });
+    },
+  };
+}
+
 export default defineConfig({
   base: "/",
   resolve: {
@@ -195,6 +267,7 @@ export default defineConfig({
   },
   plugins: [
     version_manifest_plugin(pkg.version, build_hash),
+    dev_manifest_plugin(),
     source_map_fix_plugin(),
     react(),
     tsconfigPaths(),
@@ -212,58 +285,7 @@ export default defineConfig({
         "mail_logo.png",
         "text_logo.png",
       ],
-      manifest: {
-        name: "AsterMail",
-        short_name: "AsterMail",
-        description: "Secure, private email for everyone.",
-        theme_color: "#ffffff",
-        background_color: "#ffffff",
-        display: "standalone",
-        scope: "/",
-        start_url: "/",
-        orientation: "portrait-primary",
-        categories: ["email", "productivity", "security"],
-        icons: [
-          {
-            src: "/pwa-192x192.png",
-            sizes: "192x192",
-            type: "image/png",
-            purpose: "any",
-          },
-          {
-            src: "/pwa-512x512.png",
-            sizes: "512x512",
-            type: "image/png",
-            purpose: "any",
-          },
-          {
-            src: "/pwa-512x512.png",
-            sizes: "512x512",
-            type: "image/png",
-            purpose: "maskable",
-          },
-          {
-            src: "/apple-touch-icon.png",
-            sizes: "180x180",
-            type: "image/png",
-            purpose: "any",
-          },
-        ],
-        shortcuts: [
-          {
-            name: "Compose Email",
-            short_name: "Compose",
-            url: "/?compose=true",
-            icons: [{ src: "/pwa-192x192.png", sizes: "192x192" }],
-          },
-          {
-            name: "Inbox",
-            short_name: "Inbox",
-            url: "/",
-            icons: [{ src: "/pwa-192x192.png", sizes: "192x192" }],
-          },
-        ],
-      },
+      manifest: pwa_manifest,
       injectManifest: {
         injectionPoint: undefined,
         globPatterns: [],

@@ -263,6 +263,11 @@ export function AliasList({
   const [filter_mode, set_filter_mode] = useState<FilterMode>("all");
   const [bulk_mode, set_bulk_mode] = useState(false);
   const [selected_ids, set_selected_ids] = useState<Set<string>>(new Set());
+
+  const bulk_delete_single =
+    selected_ids.size === 1
+      ? aliases.find((a) => selected_ids.has(a.id))
+      : undefined;
   const [show_bulk_delete_confirm, set_show_bulk_delete_confirm] =
     useState(false);
 
@@ -722,7 +727,15 @@ export function AliasList({
       <ConfirmationModal
         confirm_text={t("common.delete")}
         is_open={show_bulk_delete_confirm}
-        message={t("settings.delete_alias_confirmation")}
+        message={
+          bulk_delete_single
+            ? t("settings.delete_alias_confirmation_named", {
+                address: bulk_delete_single.full_address,
+              })
+            : t("settings.delete_aliases_confirmation_count", {
+                count: selected_ids.size,
+              })
+        }
         on_cancel={() => set_show_bulk_delete_confirm(false)}
         on_confirm={handle_bulk_delete_confirm}
         title={t("common.delete_alias")}

@@ -74,7 +74,7 @@ export function PurchaseSuccessModal({
           onClick={on_close}
         >
           <div
-            className="absolute inset-0 backdrop-blur-md"
+            className="absolute inset-0"
             style={{ backgroundColor: "var(--modal-overlay)" }}
           />
           <motion.div

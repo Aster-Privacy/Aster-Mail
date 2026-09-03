@@ -78,6 +78,8 @@ export interface UserPreferences {
   quiet_hours_end: string;
   two_factor_auth: boolean;
   show_read_receipts: boolean;
+  review_prompt_web_done: boolean;
+  review_prompt_android_done: boolean;
   send_read_receipts: boolean;
   block_external_images: boolean;
   encrypt_emails: boolean;
@@ -210,6 +212,7 @@ export interface UserPreferences {
   migration_tracker_blocking_v2_done: boolean;
   migration_toast_position_v1_done: boolean;
   migration_viewer_toolbar_v1_done: boolean;
+  migration_signature_placement_v1_done: boolean;
   html_rendering_mode: "html" | "plain_text";
   low_network_mode: boolean;
   low_network_mode_user_set: boolean;
@@ -372,7 +375,8 @@ type MigrationFlag =
   | "migration_haptic_v1_done"
   | "migration_tracker_blocking_v2_done"
   | "migration_toast_position_v1_done"
-  | "migration_viewer_toolbar_v1_done";
+  | "migration_viewer_toolbar_v1_done"
+  | "migration_signature_placement_v1_done";
 
 function read_local_migration_flag(flag: MigrationFlag): boolean {
   try {
@@ -503,6 +507,8 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   quiet_hours_end: "07:00",
   two_factor_auth: true,
   show_read_receipts: false,
+  review_prompt_web_done: false,
+  review_prompt_android_done: false,
   send_read_receipts: false,
   block_external_images: false,
   encrypt_emails: false,
@@ -514,7 +520,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   publish_to_wkd: false,
   publish_to_keyservers: false,
   signature_mode: "auto",
-  signature_placement: "below",
+  signature_placement: "above",
   default_signature_id: null,
   profile_color: "#3b82f6",
   email_view_mode: "split",
@@ -605,6 +611,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   migration_tracker_blocking_v2_done: false,
   migration_toast_position_v1_done: false,
   migration_viewer_toolbar_v1_done: false,
+  migration_signature_placement_v1_done: false,
   html_rendering_mode: "html",
   low_network_mode: false,
   low_network_mode_user_set: false,
@@ -867,12 +874,14 @@ export async function get_preferences(
         migration_tracker_blocking_v2_done: true,
         migration_toast_position_v1_done: true,
         migration_viewer_toolbar_v1_done: true,
+        migration_signature_placement_v1_done: true,
       };
 
       write_local_migration_flag("migration_haptic_v1_done");
       write_local_migration_flag("migration_tracker_blocking_v2_done");
       write_local_migration_flag("migration_toast_position_v1_done");
       write_local_migration_flag("migration_viewer_toolbar_v1_done");
+      write_local_migration_flag("migration_signature_placement_v1_done");
 
       return {
         data: initial,
@@ -892,6 +901,7 @@ export async function get_preferences(
           migration_tracker_blocking_v2_done: true,
           migration_toast_position_v1_done: true,
           migration_viewer_toolbar_v1_done: true,
+          migration_signature_placement_v1_done: true,
         };
 
         return {
@@ -974,6 +984,21 @@ export async function get_preferences(
       needs_migration_save = true;
     } else if (!merged.migration_viewer_toolbar_v1_done) {
       merged.migration_viewer_toolbar_v1_done = true;
+      needs_migration_save = true;
+    }
+
+    if (
+      !merged.migration_signature_placement_v1_done &&
+      !read_local_migration_flag("migration_signature_placement_v1_done")
+    ) {
+      if (merged.signature_placement === "below") {
+        merged.signature_placement = "above";
+      }
+      merged.migration_signature_placement_v1_done = true;
+      write_local_migration_flag("migration_signature_placement_v1_done");
+      needs_migration_save = true;
+    } else if (!merged.migration_signature_placement_v1_done) {
+      merged.migration_signature_placement_v1_done = true;
       needs_migration_save = true;
     }
 

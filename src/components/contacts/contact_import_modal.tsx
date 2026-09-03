@@ -302,7 +302,7 @@ export function ContactImportModal({
     >
       <div
         aria-hidden="true"
-        className="absolute inset-0 backdrop-blur-md"
+        className="absolute inset-0"
         style={{ backgroundColor: "var(--modal-overlay)" }}
         onClick={request_close}
       />

@@ -134,7 +134,7 @@ export function use_compose_drafts({
     }
 
     user_modified_ref.current = true;
-    set_draft_status("saving");
+    set_draft_status((current) => (current === "saving" ? current : "saving"));
 
     if (save_timer_ref.current) {
       clearTimeout(save_timer_ref.current);

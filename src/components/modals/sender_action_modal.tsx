@@ -578,7 +578,7 @@ export function SenderActionModal({
             transition={{ duration: reduce_motion ? 0 : 0.15 }}
           >
             <motion.div
-              className="absolute inset-0 backdrop-blur-md"
+              className="absolute inset-0"
               style={{ backgroundColor: "var(--modal-overlay)" }}
               onClick={on_close}
             />

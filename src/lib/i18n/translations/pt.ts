@@ -162,7 +162,7 @@ export const pt = {
     image_size_error:
       "Esta imagem ultrapassa o limite de 5 MB. Uma menor, ou uma versão comprimida, vai caber.",
     recovery_conflict:
-      "Este e-mail já é um endereço de recuperação em outra conta. Outro deve funcionar.",
+      "Este endereço já protege o máximo de 20 contas Aster. Use outro endereço.",
     copied_to_clipboard: "Copiado para a área de transferência",
     address_copied_to_clipboard:
       "Endereço copiado para a área de transferência",
@@ -840,7 +840,7 @@ export const pt = {
     email_copied: "E-mail copiado",
     message_id_copied: "ID da mensagem copiado",
     draft_deleted: "Rascunho excluído permanentemente",
-    no_recipients: "Pelo menos um destinatário é necessário antes de enviar.",
+    no_recipients: "Sem destinatários",
     sync_complete: "Sincronização concluída",
     sync_timeout:
       "A sincronização está a demorar mais do que o esperado e pode ainda estar a correr.",
@@ -2161,6 +2161,11 @@ export const pt = {
       "Seus dados antigos estão desbloqueados. As mensagens e os aliases antigos voltam a abrir normalmente.",
     resurrection_failed:
       "Isso não desbloqueou os dados antigos. Verifique a senha ou a frase e tente novamente.",
+    discard_older_data_button: "Descartar dados antigos",
+    discard_older_data_title: "Descartar os dados antigos?",
+    discard_older_data_desc: "Isso remove permanentemente a opção de desbloquear e-mails e aliases anteriores à redefinição. Não é possível desfazer.",
+    discard_older_data_success: "Dados antigos descartados.",
+    discard_older_data_failed: "Não foi possível descartar os dados antigos. Tente novamente.",
     phrase_wrap_save_failed:
       "Sua frase de recuperação não pôde ser salva no servidor. Tente novamente.",
     smtp_tokens: "Tokens SMTP",
@@ -7120,7 +7125,18 @@ export const pt = {
     domain_placeholder: "exemplo.com",
     ghost_alias_active: "Ativo",
     ghost_alias_expire_now: "Expirar agora",
-    ghost_alias_expire_confirm_title: "Expirar este alias?",
+    ghost_alias_expire_confirm_title: "Expirar este alias fantasma?",
+    ghost_alias_expire_confirm_message_named:
+      "Tem certeza de que deseja expirar {{address}}? Você não poderá recuperá-lo. O período de carência vai até {{date}}.",
+    delete_aliases_confirmation_count:
+      "Tem certeza de que deseja excluir {{count}} aliases? Esta ação não pode ser desfeita.",
+    delete_alias_confirmation_named:
+      "Tem certeza de que deseja excluir {{address}}? Esta ação não pode ser desfeita.",
+    delete_address_confirmation_named:
+      "Tem certeza de que deseja excluir {{address}}? Esta ação não pode ser desfeita.",
+    alias_directory_delete_title: "Excluir diretório",
+    alias_directory_delete_message:
+      "Tem certeza de que deseja excluir o diretório {{address}}? As mensagens para novos endereços com esse padrão deixarão de chegar. Os aliases já criados continuam funcionando.",
     ghost_alias_expire_confirm_message:
       "Tem certeza de que deseja expirar este alias? Você não poderá recuperá-lo. O período de carência durará até {{date}}.",
     ghost_alias_max_extension_toast:
@@ -8644,7 +8660,7 @@ export const pt = {
     please_enter_valid_email:
       "Isto não parece um e-mail válido. Algo como nome@example.com vai funcionar.",
     recovery_email_conflict:
-      "Este e-mail já é um endereço de recuperação em outra conta. Outro deve funcionar.",
+      "Este endereço já protege o máximo de 20 contas Aster. Use outro endereço.",
     failed_save_recovery_email:
       "Seu e-mail de recuperação não foi salvo. Outra tentativa deve funcionar. Sua configuração de recuperação atual permanece inalterada.",
     recovery_phrase_title: "Salve sua frase de recuperação",
@@ -8724,7 +8740,7 @@ export const pt = {
     invalid_recovery_code:
       "Esse código de recuperação não correspondeu. Outro da sua lista salva deve funcionar.",
     recovery_locked_out:
-      "Esta conta teve tentativas de recuperação em excesso. Pode tentar novamente dentro de {{time}}. Nenhum dos seus códigos foi usado, por isso continua a tê-los todos.",
+      "Esta conta teve tentativas de recuperação demais. Você pode tentar de novo em {{time}}. Nenhum dos seus códigos foi usado, então você ainda tem todos eles.",
     invalid_backup_code:
       "Esse código de backup não corresponde. Cada código funciona uma única vez, então tente o próximo não usado da sua lista.",
     new_password_placeholder: "Nova senha",

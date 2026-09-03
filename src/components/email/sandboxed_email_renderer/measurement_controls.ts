@@ -88,6 +88,7 @@ export function build_measurement_controls(ctx: measurement_context) {
   };
 
   let last_height = 0;
+  let measure_deferred = false;
 
   const capture_ancestor_scroll = (): { node: Element; top: number }[] => {
     const captured: { node: Element; top: number }[] = [];
@@ -227,7 +228,12 @@ export function build_measurement_controls(ctx: measurement_context) {
 
     const active_selection = doc.getSelection();
 
-    if (!force && active_selection && !active_selection.isCollapsed) return;
+    if (!force && active_selection && !active_selection.isCollapsed) {
+      measure_deferred = true;
+
+      return;
+    }
+    measure_deferred = false;
 
     const measured = measure_decoupled_height();
 
@@ -336,7 +342,11 @@ export function build_measurement_controls(ctx: measurement_context) {
       const doc = iframe.contentDocument;
       const active_selection = doc?.getSelection();
 
-      if (active_selection && !active_selection.isCollapsed) return;
+      if (active_selection && !active_selection.isCollapsed) {
+        measure_deferred = true;
+
+        return;
+      }
       if (entry) apply_fast_height(entry);
 
       update_height();
@@ -390,9 +400,16 @@ export function build_measurement_controls(ctx: measurement_context) {
     }
   };
 
+  const update_height_if_deferred = () => {
+    if (!measure_deferred) return;
+    measure_deferred = false;
+    update_height();
+  };
+
   return {
     measure_and_apply,
     update_height,
+    update_height_if_deferred,
     reveal_content,
     attach_observer,
     notify_document_ready,

@@ -130,7 +130,7 @@ describe("PlanChangeConfirmModal", () => {
 
     await render_modal();
 
-    expect(mocked_preview).toHaveBeenCalledWith("family", "year");
+    expect(mocked_preview).toHaveBeenCalledWith("family", "year", "");
     expect(confirm_button().disabled).toBe(true);
     expect(container.textContent).not.toContain("plan_change_due_today");
   });

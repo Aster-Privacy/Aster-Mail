@@ -20,6 +20,11 @@
 //
 import type { DraftWithContent } from "@/services/api/multi_drafts";
 
+import {
+  forget_removed_ids,
+  note_removed_ids,
+} from "@/services/removed_items";
+
 export const MAIL_EVENTS = {
   MAIL_CHANGED: "astermail:mail-changed",
   MAIL_ITEM_UPDATED: "astermail:mail-item-updated",
@@ -298,6 +303,10 @@ export function emit_folders_changed(): void {
 }
 
 export function emit_mail_action(detail: MailActionEventDetail): void {
+  if (detail.action === "restore") {
+    forget_removed_ids(detail.ids);
+  }
+
   mail_event_bus.emit(MAIL_EVENTS.MAIL_ACTION, detail);
 }
 
@@ -348,6 +357,7 @@ export function emit_thread_reply_sent(
 export function emit_mail_items_removed(
   detail: MailItemsRemovedEventDetail,
 ): void {
+  note_removed_ids(detail.ids);
   mail_event_bus.emit(MAIL_EVENTS.MAIL_ITEMS_REMOVED, detail);
 }
 

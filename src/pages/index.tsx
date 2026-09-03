@@ -105,6 +105,7 @@ import { NotificationBanner } from "@/components/common/notification_banner";
 import { PaymentPastDueBanner } from "@/components/common/payment_past_due_banner";
 import { use_payment_past_due } from "@/hooks/use_payment_past_due";
 import { SurveyBanner } from "@/components/survey/survey_banner";
+import { ReviewPromptBanner } from "@/components/review/review_prompt_banner";
 import { OnboardingChecklist } from "@/components/onboarding/onboarding_checklist";
 import { FirstRunSetup } from "@/components/onboarding/first_run_setup";
 import { RecoveryReminder } from "@/components/onboarding/recovery_reminder";
@@ -135,6 +136,7 @@ export default function IndexPage() {
   const navigate = useNavigate();
   const { section } = useParams<{ section?: string }>();
   const [is_quick_settings_open, set_is_quick_settings_open] = useState(false);
+  const [is_survey_visible, set_is_survey_visible] = useState(false);
   const [first_run_setup_done, set_first_run_setup_done] = useState(
     () => !is_first_run_setup_pending(),
   );
@@ -308,8 +310,8 @@ export default function IndexPage() {
         typeof detail === "string" ? detail : detail?.section,
       );
 
-      if (!state.is_settings_route) {
-        state.open_settings(nav_section);
+      if (!state_ref.current.is_settings_route) {
+        state_ref.current.open_settings(nav_section);
       }
     };
 
@@ -317,7 +319,7 @@ export default function IndexPage() {
 
     try {
       if (sessionStorage.getItem("aster_pending_domain_order")) {
-        state.open_settings("aliases" as SettingsSection);
+        state_ref.current.open_settings("domains" as SettingsSection);
       }
     } catch (caught) {
       ignore_error("pages/index:toggle_quick_settings", caught);
@@ -333,7 +335,7 @@ export default function IndexPage() {
         handle_navigate_sent,
       );
     };
-  }, [state, navigate]);
+  }, [navigate]);
 
   return (
     <>
@@ -352,7 +354,10 @@ export default function IndexPage() {
         ) : (
           <NotificationBanner />
         )}
-        <SurveyBanner />
+        <SurveyBanner on_visibility_change={set_is_survey_visible} />
+        {!is_survey_visible && !payment_past_due.is_past_due && (
+          <ReviewPromptBanner />
+        )}
         <TopBar
           is_settings_view={state.is_settings_route && !settings_popup_mode}
           on_mobile_menu_toggle={handle_mobile_menu_toggle}

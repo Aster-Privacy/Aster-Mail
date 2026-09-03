@@ -37,6 +37,7 @@ import {
 } from "@/services/updates/updater";
 
 const CHECK_INTERVAL_MS = 6 * 60 * 60 * 1000;
+export const FIRST_CHECK_DELAY_MS = 8000;
 
 export function UpdateBanner() {
   const { t } = use_i18n();
@@ -64,11 +65,12 @@ export function UpdateBanner() {
       }
     };
 
-    run();
+    const first_id = window.setTimeout(run, FIRST_CHECK_DELAY_MS);
     const id = window.setInterval(run, CHECK_INTERVAL_MS);
 
     return () => {
       cancelled = true;
+      window.clearTimeout(first_id);
       window.clearInterval(id);
     };
   }, []);

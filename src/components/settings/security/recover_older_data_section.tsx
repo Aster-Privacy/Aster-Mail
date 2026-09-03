@@ -34,6 +34,7 @@ import { clamp_password } from "@/services/sanitize";
 import { ignore_error } from "@/lib/ignore_error";
 import {
   count_inactive_key_sets,
+  discard_inactive_key_sets,
   restore_inactive_key_sets,
 } from "@/services/crypto/restore_inactive_keys";
 import { is_composing } from "@/utils/ime";
@@ -45,6 +46,8 @@ export function RecoverOlderDataSection() {
   const [old_password, set_old_password] = useState("");
   const [show_password, set_show_password] = useState(false);
   const [restoring, set_restoring] = useState(false);
+  const [discard_open, set_discard_open] = useState(false);
+  const [discarding, set_discarding] = useState(false);
   const password_ref = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -98,6 +101,28 @@ export function RecoverOlderDataSection() {
     set_restoring(false);
   }, [restoring, old_password, t, close]);
 
+  const handle_discard = useCallback(async () => {
+    if (discarding) return;
+
+    set_discarding(true);
+
+    try {
+      const discarded = await discard_inactive_key_sets();
+
+      if (discarded > 0) {
+        set_pending(await count_inactive_key_sets());
+        show_toast(t("settings.discard_older_data_success"), "success");
+        set_discard_open(false);
+      } else {
+        show_toast(t("settings.discard_older_data_failed"), "error");
+      }
+    } catch {
+      show_toast(t("settings.discard_older_data_failed"), "error");
+    }
+
+    set_discarding(false);
+  }, [discarding, t]);
+
   if (pending === 0) return null;
 
   return (
@@ -112,11 +137,51 @@ export function RecoverOlderDataSection() {
               {t("settings.recover_older_data_desc")}
             </p>
           </div>
-          <Button variant="depth" onClick={() => set_is_open(true)}>
-            {t("settings.recover_older_data_button")}
-          </Button>
+          <div className="flex shrink-0 items-center gap-2">
+            <Button variant="outline" onClick={() => set_discard_open(true)}>
+              {t("settings.discard_older_data_button")}
+            </Button>
+            <Button variant="depth" onClick={() => set_is_open(true)}>
+              {t("settings.recover_older_data_button")}
+            </Button>
+          </div>
         </div>
       </div>
+
+      <Modal
+        is_open={discard_open}
+        on_close={() => {
+          if (!discarding) set_discard_open(false);
+        }}
+        size="sm"
+      >
+        <ModalHeader>
+          <ModalTitle>{t("settings.discard_older_data_title")}</ModalTitle>
+          <ModalDescription>
+            {t("settings.discard_older_data_desc")}
+          </ModalDescription>
+        </ModalHeader>
+        <ModalFooter>
+          <Button
+            disabled={discarding}
+            variant="outline"
+            onClick={() => set_discard_open(false)}
+          >
+            {t("common.cancel")}
+          </Button>
+          <Button
+            disabled={discarding}
+            variant="destructive"
+            onClick={handle_discard}
+          >
+            {discarding ? (
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent mx-auto" />
+            ) : (
+              t("settings.discard_older_data_button")
+            )}
+          </Button>
+        </ModalFooter>
+      </Modal>
 
       <Modal is_open={is_open} on_close={close} size="sm">
         <ModalHeader>

@@ -67,6 +67,8 @@ import {
   note_read_intent,
 } from "@/services/read_intent";
 
+import { is_recently_removed } from "@/services/removed_items";
+
 const DB_NAME = "astermail_category_index";
 const STORE_NAME = "indexes";
 const BUILD_FETCH_SIZE = 150;
@@ -738,6 +740,9 @@ function apply_upsert(
   for (const raw of incoming) {
     if (!raw.id) continue;
     const existing = entries_map.get(raw.id);
+
+    if (!existing && is_recently_removed(raw.id)) continue;
+
     let entry = raw;
 
     if (guard_recent_read && existing?.is_read && !raw.is_read) {
@@ -1521,6 +1526,10 @@ export function is_build_in_progress(): boolean {
 
 export function get_index_entry_count(): number {
   return entries_map.size;
+}
+
+export function are_counts_partial(): boolean {
+  return build_in_progress && last_build_ms === 0;
 }
 
 export function is_index_settled(): boolean {

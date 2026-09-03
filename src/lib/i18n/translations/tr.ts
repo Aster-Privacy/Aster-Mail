@@ -161,7 +161,7 @@ export const tr = {
     image_size_error:
       "Bu görsel 5 MB sınırının üzerinde. Daha küçük ya da sıkıştırılmış bir sürüm sığar.",
     recovery_conflict:
-      "Bu e-posta zaten başka bir hesapta kurtarma adresi olarak tanımlı. Farklı bir adres işe yarar.",
+      "Bu adres zaten en fazla 20 Aster hesabını koruyor. Farklı bir adres kullanın.",
     copied_to_clipboard: "Panoya kopyalandı",
     address_copied_to_clipboard: "Adres panoya kopyalandı",
     offline: "Çevrimdışı",
@@ -939,7 +939,7 @@ export const tr = {
     email_copied: "E-posta kopyalandı",
     message_id_copied: "Mesaj kimliği kopyalandı",
     draft_deleted: "Taslak kalıcı olarak silindi",
-    no_recipients: "Gönderilebilmesi için en az bir alıcıya ihtiyaç var.",
+    no_recipients: "Alıcı yok",
     sync_complete: "Senkronizasyon tamamlandı",
     sync_timeout:
       "Senkronizasyon beklenenden uzun sürüyor ve hâlâ devam ediyor olabilir.",
@@ -2149,6 +2149,11 @@ export const tr = {
       "Eski verilerinizin kilidi açıldı. Önceki postalarınız ve takma adlarınız yeniden normal şekilde açılıyor.",
     resurrection_failed:
       "Bu, eski verilerin kilidini açmadı. Parolayı veya ifadeyi kontrol edip tekrar deneyin.",
+    discard_older_data_button: "Eski verileri sil",
+    discard_older_data_title: "Eski veriler silinsin mi?",
+    discard_older_data_desc: "Bu işlem, sıfırlamadan önceki postaların ve takma adların kilidini açma seçeneğini kalıcı olarak kaldırır. Geri alınamaz.",
+    discard_older_data_success: "Eski veriler silindi.",
+    discard_older_data_failed: "Eski veriler silinemedi. Yeniden deneyin.",
     phrase_wrap_save_failed:
       "Kurtarma ifadeniz sunucuya kaydedilemedi. Tekrar deneyin.",
     smtp_tokens: "SMTP jetonları",
@@ -7070,7 +7075,18 @@ export const tr = {
     ghost_alias_expires_in: "{{ days }} gün içinde süresi doluyor",
     ghost_alias_extend: "Uzat",
     ghost_alias_expire_now: "Süresini bitir",
-    ghost_alias_expire_confirm_title: "Bu takma ad sona ersin mi?",
+    ghost_alias_expire_confirm_title: "Bu hayalet takma ad sona ersin mi?",
+    ghost_alias_expire_confirm_message_named:
+      "{{address}} adresinin süresini doldurmak istediğinizden emin misiniz? Geri alamazsınız. Ek süre {{date}} tarihine kadar devam eder.",
+    delete_aliases_confirmation_count:
+      "{{count}} takma adı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
+    delete_alias_confirmation_named:
+      "{{address}} adresini silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
+    delete_address_confirmation_named:
+      "{{address}} adresini silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
+    alias_directory_delete_title: "Dizini sil",
+    alias_directory_delete_message:
+      "{{address}} dizinini silmek istediğinizden emin misiniz? Bu kalıptaki yeni adreslere gelen postalar artık ulaşmaz. Daha önce oluşturulan takma adlar çalışmaya devam eder.",
     ghost_alias_expire_confirm_message:
       "Bu takma adı sona erdirmek istediğinizden emin misiniz? Geri alamazsınız. Ek süre {{date}} tarihine kadar devam edecek.",
     ghost_alias_max_extension_toast:
@@ -8572,7 +8588,7 @@ export const tr = {
     please_enter_valid_email:
       "Bu geçerli bir e-posta gibi görünmüyor. name@example.com gibi bir adres işe yarar.",
     recovery_email_conflict:
-      "Bu e-posta zaten başka bir hesapta kurtarma adresi olarak tanımlı. Farklı bir adres işe yarar.",
+      "Bu adres zaten en fazla 20 Aster hesabını koruyor. Farklı bir adres kullanın.",
     failed_save_recovery_email:
       "Kurtarma e-postanız kaydedilmedi. Bir kez daha denemek genellikle yeterli olur. Mevcut kurtarma kurulumunuz olduğu gibi.",
     recovery_phrase_title: "Kurtarma ifadenizi kaydedin",
@@ -8649,7 +8665,7 @@ export const tr = {
     invalid_recovery_code:
       "Bu kurtarma kodu örtüşmedi. Kayıtlı listenizdeki başka biri işe yarar.",
     recovery_locked_out:
-      "Bu hesapta çok fazla kurtarma denemesi yapıldı. {{time}} sonra yeniden deneyebilirsin. Kodlarının hiçbiri kullanılmadı, dolayısıyla hepsi hâlâ elinde.",
+      "Bu hesapta çok fazla kurtarma denemesi yapıldı. {{time}} sonra yeniden deneyebilirsiniz. Kodlarınızdan hiçbiri kullanılmadı, bu yüzden hepsi hâlâ sizde.",
     invalid_backup_code:
       "Bu yedek kod eşleşmiyor. Her kod yalnızca bir kez çalışır, bu yüzden listenizdeki kullanılmamış bir sonraki kodu deneyin.",
     new_password_placeholder: "Yeni parola",

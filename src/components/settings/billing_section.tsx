@@ -885,7 +885,7 @@ export function BillingSection() {
     return options;
   };
 
-  const handle_confirm_plan_change = async () => {
+  const handle_confirm_plan_change = async (promo_code?: string) => {
     if (!plan_change_confirm_target) return;
     const { plan, interval } = plan_change_confirm_target;
 
@@ -900,8 +900,15 @@ export function BillingSection() {
             interval,
             "https://app.astermail.org/?plan_change=success",
             "https://app.astermail.org/?plan_change=cancelled",
+            promo_code,
           )
-        : await change_plan(plan.code, interval);
+        : await change_plan(
+            plan.code,
+            interval,
+            undefined,
+            undefined,
+            promo_code,
+          );
 
       if (!result.ok) {
         show_toast(

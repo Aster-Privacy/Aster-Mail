@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { readdir, readFile, stat } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
 import { dirname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -26,13 +26,15 @@ async function walk(dir) {
 
 const registry_path = join(model_root, "registry.json");
 
+let registry_source = "";
+
 try {
-  await stat(registry_path);
+  registry_source = await readFile(registry_path, "utf8");
 } catch {
   fail("models are missing, run scripts/fetch_translation_models.mjs first");
 }
 
-const registry = JSON.parse(await readFile(registry_path, "utf8"));
+const registry = JSON.parse(registry_source);
 
 const listed = new Set();
 const missing = [];

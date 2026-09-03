@@ -57,6 +57,10 @@ vi.mock("@/services/account_manager", () => ({
   get_current_account: vi.fn(async () => h.account),
 }));
 
+vi.mock("@/services/current_identity", () => ({
+  resolve_current_user: vi.fn(async () => h.account?.user ?? null),
+}));
+
 vi.mock("@/stores/ghost_alias_store", () => ({
   is_ghost_email: (email: string) => h.ghost_addresses.has(email),
   looks_like_unregistered_ghost_email: (email: string) =>

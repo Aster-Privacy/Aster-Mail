@@ -80,6 +80,8 @@ import {
   set_thread_grouping,
   set_ids_read,
 } from "@/services/category_index";
+
+import { drop_removed_after } from "@/services/removed_items";
 import { resolve_read_intent } from "@/services/read_intent";
 import { get_thread_messages, trash_thread } from "@/services/api/mail";
 import { batch_archive as api_batch_archive } from "@/services/api/archive";
@@ -573,6 +575,8 @@ export function use_category_inbox(
       }
       fetch_in_flight_ref.current = true;
 
+      const fetch_started_at = Date.now();
+
       try {
         const {
           emails: fetched,
@@ -630,10 +634,12 @@ export function use_category_inbox(
           fetched.filter(belongs_in_inbox),
         );
 
-        const grouped =
+        const grouped = drop_removed_after(
           preferences.conversation_grouping !== false
             ? group_emails_by_thread(received_only)
-            : received_only;
+            : received_only,
+          fetch_started_at,
+        );
 
         touch_cache_entry(page_cache.current, cache_key, grouped);
 

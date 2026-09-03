@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import DOMPurify from "dompurify";
+
 import { list_encrypted_mail_items, update_mail_item } from "./api/mail";
 import {
   array_to_base64,
@@ -46,6 +48,16 @@ import { get_active_translations } from "@/lib/i18n/translations";
 import { repair_comment_markup } from "@/lib/html_sanitizer_utils";
 
 const HTML_TAG_PROBE = /<[a-z][\s\S]*>/i;
+
+const PLAIN_TEXT_FORBIDDEN_TAGS = [
+  "embed",
+  "iframe",
+  "noscript",
+  "object",
+  "script",
+  "style",
+  "template",
+];
 
 export async function create_sent_envelope(
   email: QueuedEmailInternal,
@@ -79,7 +91,9 @@ export async function create_sent_envelope(
 
         try {
           doc = new DOMParser().parseFromString(
-            repair_comment_markup(email.body),
+            DOMPurify.sanitize(repair_comment_markup(email.body), {
+              FORBID_TAGS: PLAIN_TEXT_FORBIDDEN_TAGS,
+            }),
             "text/html",
           );
         } catch {

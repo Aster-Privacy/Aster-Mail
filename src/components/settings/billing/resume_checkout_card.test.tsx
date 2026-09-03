@@ -195,7 +195,7 @@ describe("ResumeCheckoutCard", () => {
     expect(toast_mock).toHaveBeenCalledWith(
       "settings.failed_checkout",
       "error",
-      8000,
+      8_000,
     );
   });
 

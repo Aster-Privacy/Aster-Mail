@@ -43,6 +43,7 @@ import {
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import { register_envelope_attachment_keys } from "@/services/crypto/inbound_attachment_keys";
 import { normalize_envelope_from } from "@/services/crypto/envelope_normalize";
+import { decrypt_legacy_ios_envelope } from "@/services/crypto/legacy_ios_envelope";
 
 export async function try_decrypt_with_identity_key(
   encrypted: string | Uint8Array,
@@ -322,6 +323,20 @@ async function open_search_envelope(
           return healed;
         }
       }
+    }
+
+    const legacy_plaintext = await decrypt_legacy_ios_envelope(
+      encrypted_bytes,
+      nonce_bytes,
+    );
+
+    if (legacy_plaintext) {
+      const parsed = JSON.parse(new TextDecoder().decode(legacy_plaintext));
+      const legacy_from = normalize_envelope_from(parsed.from);
+
+      if (legacy_from) parsed.from = legacy_from;
+
+      return parsed as DecryptedEnvelope;
     }
 
     return null;

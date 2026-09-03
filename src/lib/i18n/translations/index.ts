@@ -41,6 +41,7 @@ const SUPPORTED_LOCALE_CODES = new Set<LanguageCode>([
   "nl",
   "pl",
   "tr",
+  "hi",
 ]);
 
 function deep_merge(
@@ -90,6 +91,8 @@ async function load_partial(
       return (await import("./pl")).pl;
     case "tr":
       return (await import("./tr")).tr;
+    case "hi":
+      return (await import("./hi")).hi;
     default:
       return null;
   }

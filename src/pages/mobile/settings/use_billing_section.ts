@@ -874,13 +874,19 @@ export function use_billing_section() {
     }
   };
 
-  const handle_confirm_plan_change = async () => {
+  const handle_confirm_plan_change = async (promo_code?: string) => {
     if (!plan_change_confirm_target) return;
     const { plan, interval } = plan_change_confirm_target;
 
     set_is_action_loading(true);
     try {
-      const result = await change_plan(plan.code, interval);
+      const result = await change_plan(
+        plan.code,
+        interval,
+        undefined,
+        undefined,
+        promo_code,
+      );
 
       if (!result.ok) {
         show_toast(

@@ -65,6 +65,7 @@ function complete_server_blob(
     migration_tracker_blocking_v2_done: true,
     migration_toast_position_v1_done: true,
     migration_viewer_toolbar_v1_done: true,
+    migration_signature_placement_v1_done: true,
     ...overrides,
   };
 }
@@ -198,6 +199,35 @@ describe("get_preferences end-to-end with a stale-stripped server blob", () => {
 
     expect(second.data.viewer_toolbar_mode).toBe("simple");
     expect(second.data.migration_viewer_toolbar_v1_done).toBe(true);
+  });
+
+  it("moves an existing account to a signature above the quote exactly once", async () => {
+    const blob = complete_server_blob({
+      signature_placement: "below",
+      migration_signature_placement_v1_done: false,
+    });
+
+    server_returns(blob);
+
+    const first = await get_preferences(vault);
+
+    expect(first.data.signature_placement).toBe("above");
+    expect(first.data.migration_signature_placement_v1_done).toBe(true);
+    expect(api_client.put).toHaveBeenCalled();
+
+    vi.clearAllMocks();
+    clear_preferences_cache();
+    server_returns(
+      complete_server_blob({
+        signature_placement: "below",
+        migration_signature_placement_v1_done: false,
+      }),
+    );
+
+    const second = await get_preferences(vault);
+
+    expect(second.data.signature_placement).toBe("below");
+    expect(second.data.migration_signature_placement_v1_done).toBe(true);
   });
 });
 

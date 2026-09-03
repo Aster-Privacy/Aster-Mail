@@ -165,7 +165,7 @@ export const fr = {
     image_size_error:
       "Cette image dépasse la limite de 5 Mo. Une plus petite, ou une version compressée, passera.",
     recovery_conflict:
-      "Ce courriel est déjà une adresse de récupération sur un autre compte. Un autre devrait fonctionner.",
+      "Cette adresse protège déjà le maximum de 20 comptes Aster. Utilisez une autre adresse.",
     copied_to_clipboard: "Copié dans le presse-papiers",
     address_copied_to_clipboard: "Adresse copiée dans le presse-papiers",
     offline: "Hors ligne",
@@ -951,7 +951,7 @@ export const fr = {
     email_copied: "E-mail copié",
     message_id_copied: "ID du message copié",
     draft_deleted: "Brouillon supprimé définitivement",
-    no_recipients: "Au moins un destinataire est nécessaire avant l'envoi.",
+    no_recipients: "Aucun destinataire",
     sync_complete: "Synchronisation terminée",
     sync_timeout:
       "La synchronisation prend plus de temps que prévu et est peut-être encore en cours.",
@@ -2151,6 +2151,11 @@ export const fr = {
       "Vos données antérieures sont déverrouillées. Les anciens messages et alias s'ouvrent de nouveau normalement.",
     resurrection_failed:
       "Cela n'a pas déverrouillé les données antérieures. Vérifiez le mot de passe ou la phrase et réessayez.",
+    discard_older_data_button: "Abandonner les données antérieures",
+    discard_older_data_title: "Abandonner les données antérieures ?",
+    discard_older_data_desc: "Cette action supprime définitivement la possibilité de déverrouiller les e-mails et les alias antérieurs à la réinitialisation. Elle est irréversible.",
+    discard_older_data_success: "Données antérieures abandonnées.",
+    discard_older_data_failed: "Impossible d'abandonner les données antérieures. Réessayez.",
     phrase_wrap_save_failed:
       "Votre phrase de récupération n'a pas pu être enregistrée sur le serveur. Réessayez.",
     smtp_tokens: "Jetons SMTP",
@@ -6932,7 +6937,18 @@ export const fr = {
     ghost_alias_expire_now: "Faire expirer maintenant",
     ghost_alias_max_extension_toast:
       "Cet alias fantôme a atteint sa durée de vie maximale de 90 jours et ne peut plus être prolongé.",
-    ghost_alias_expire_confirm_title: "Faire expirer cet alias ?",
+    ghost_alias_expire_confirm_title: "Faire expirer cet alias fantôme ?",
+    ghost_alias_expire_confirm_message_named:
+      "Voulez-vous vraiment faire expirer {{address}} ? Vous ne pourrez pas le récupérer. Son délai de grâce court jusqu'au {{date}}.",
+    delete_aliases_confirmation_count:
+      "Voulez-vous vraiment supprimer {{count}} alias ? Cette action est irréversible.",
+    delete_alias_confirmation_named:
+      "Voulez-vous vraiment supprimer {{address}} ? Cette action est irréversible.",
+    delete_address_confirmation_named:
+      "Voulez-vous vraiment supprimer {{address}} ? Cette action est irréversible.",
+    alias_directory_delete_title: "Supprimer le répertoire",
+    alias_directory_delete_message:
+      "Voulez-vous vraiment supprimer le répertoire {{address}} ? Les messages envoyés aux nouvelles adresses de ce modèle n'arriveront plus. Les alias déjà créés continuent de fonctionner.",
     ghost_alias_expire_confirm_message:
       "Voulez-vous vraiment faire expirer cet alias ? Vous ne pourrez pas le récupérer. Son délai de grâce durera jusqu'au {{date}}.",
     ghost_alias_expired_grace: "Expiré - période de grâce",
@@ -8680,7 +8696,7 @@ export const fr = {
     please_enter_valid_email:
       "Cela ne ressemble pas à un courriel valide. Quelque chose comme nom@example.com fonctionnera.",
     recovery_email_conflict:
-      "Ce courriel est déjà une adresse de récupération sur un autre compte. Un autre devrait fonctionner.",
+      "Cette adresse protège déjà le maximum de 20 comptes Aster. Utilisez une autre adresse.",
     failed_save_recovery_email:
       "Votre courriel de récupération ne s'est pas enregistré. Un autre essai devrait suffire. Votre configuration de récupération actuelle est inchangée.",
     recovery_phrase_title: "Sauvegardez votre phrase de récupération",
@@ -8761,7 +8777,7 @@ export const fr = {
     invalid_recovery_code:
       "Ce code de récupération ne correspondait pas. Un autre de votre liste enregistrée devrait fonctionner.",
     recovery_locked_out:
-      "Ce compte a fait l’objet de trop de tentatives de récupération. Vous pouvez réessayer dans {{time}}. Aucun de vos codes n’a été utilisé, vous les avez donc tous encore.",
+      "Ce compte a fait l'objet de trop de tentatives de récupération. Vous pouvez réessayer dans {{time}}. Aucun de vos codes n'a été utilisé, vous les avez donc tous encore.",
     invalid_backup_code:
       "Ce code de secours ne correspond pas. Chaque code ne sert qu'une fois, essayez donc le suivant non utilisé de votre liste.",
     new_password_placeholder: "Nouveau mot de passe",
@@ -9379,7 +9395,7 @@ export const fr = {
     no_emails_in_pst: "Aucun e-mail trouvé dans le fichier PST",
     no_keys_available: "Aucune clé disponible",
     no_permission: "Permission refusée",
-    no_recipients: "Aucun destinataire",
+    no_recipients: "Au moins un destinataire est nécessaire avant l'envoi.",
     no_valid_emails_csv: "Aucune adresse e-mail valide dans le CSV",
     pst_conversion_required: "Conversion PST requise",
     rate_limited:

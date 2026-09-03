@@ -23,6 +23,7 @@ import { useEffect, useState } from "react";
 import {
   fetch_peer_profile,
   get_cached_peer_profile,
+  get_peer_profile_hint,
   is_aster_email,
   subscribe_profile_updates,
   type PublicProfile,
@@ -36,8 +37,15 @@ export function use_peer_profile(
   const low_network = preferences.low_network_mode;
   const normalized = email ? email.trim().toLowerCase() : "";
   const enabled = !low_network && !!normalized && is_aster_email(normalized);
-  const read_cache = () =>
-    enabled ? get_cached_peer_profile(normalized) : null;
+  const read_cache = () => {
+    if (!enabled) return null;
+
+    const cached = get_cached_peer_profile(normalized);
+
+    if (cached !== undefined) return cached;
+
+    return get_peer_profile_hint(normalized) ?? undefined;
+  };
   const [entry, set_entry] = useState<{
     email: string;
     profile: PublicProfile | null | undefined;

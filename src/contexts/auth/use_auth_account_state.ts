@@ -96,6 +96,7 @@ import {
 import { delete_category_index_for_account } from "@/services/category_index";
 import { use_i18n } from "@/lib/i18n/context";
 import { ignore_error } from "@/lib/ignore_error";
+import { remember_current_user } from "@/services/current_identity";
 
 export function use_auth_account_state() {
   const { t } = use_i18n();
@@ -560,6 +561,16 @@ export function use_auth_account_state() {
 
       if (!info) return;
 
+      api_client.adopt_user_info({
+        user_id: info.user_id,
+        username: info.username,
+        email: info.email,
+        display_name: info.display_name,
+        profile_color: info.profile_color,
+        profile_picture: info.profile_picture,
+        lockdown_mode_enabled: info.lockdown_mode_enabled,
+      });
+
       if (info.lockdown_mode_enabled !== undefined) {
         set_lockdown_enabled(logged_in_user.id, info.lockdown_mode_enabled);
       }
@@ -643,6 +654,7 @@ export function use_auth_account_state() {
       }
 
       api_client.set_authenticated(true);
+      remember_current_user(user);
 
       const add_result = await with_timeout(storage_add_account(user), 5000);
       const persisted = add_result?.success === true;

@@ -145,6 +145,7 @@ export function show_plan_limit_upgrade(opts: {
   resource?: string | null;
   message?: string | null;
   feature?: string | null;
+  preselect_plan?: string | null;
 }) {
   if (is_on_auth_route()) return;
   current = {
@@ -154,7 +155,7 @@ export function show_plan_limit_upgrade(opts: {
     feature_key: opts.feature ?? null,
     resource_label: opts.resource ?? null,
     server_message: opts.message ?? null,
-    preselect_plan_code: null,
+    preselect_plan_code: opts.preselect_plan ?? null,
     preselect_interval: null,
     open_seq: next_open_seq(),
   };

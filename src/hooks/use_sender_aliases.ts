@@ -32,8 +32,8 @@ import {
   decrypt_domain_addresses,
   compute_address_hash,
 } from "@/services/api/domains";
-import { get_current_account, type User } from "@/services/account_manager";
-import { api_client } from "@/services/api/client";
+import { type User } from "@/services/account_manager";
+import { resolve_current_user } from "@/services/current_identity";
 import {
   has_passphrase_in_memory,
   get_derived_encryption_key,
@@ -102,23 +102,7 @@ export async function build_alias_hash_map(
 }
 
 async function resolve_primary_user(): Promise<User | null> {
-  const account = await get_current_account();
-
-  if (account?.user?.email) return account.user;
-
-  const cached = api_client.get_cached_user_info();
-
-  if (!cached?.email) return account?.user ?? null;
-
-  return {
-    id: cached.user_id,
-    username: cached.username ?? cached.email.split("@")[0] ?? "",
-    email: cached.email,
-    display_name:
-      cached.display_name || account?.user?.display_name || undefined,
-    profile_color: cached.profile_color || undefined,
-    profile_picture: cached.profile_picture || undefined,
-  };
+  return resolve_current_user();
 }
 
 let cached_aliases: DecryptedEmailAlias[] = [];

@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { mkdir, readdir, readFile, stat, writeFile } from "node:fs/promises";
-import { dirname, join, resolve } from "node:path";
+import { dirname, join, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const RECORDS_URL =
@@ -31,6 +31,8 @@ const MODEL_PAIRS = [
 ];
 
 const REGISTRY_FILE_TYPES = ["model", "lex", "vocab", "srcvocab", "trgvocab"];
+
+const SAFE_MODEL_NAME = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/;
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const model_root = join(root, "public", "bergamot", "models", "v1");
@@ -121,8 +123,25 @@ async function already_valid(path, expected_hash) {
   }
 }
 
+function safe_target(pair, name) {
+  if (typeof name !== "string" || !SAFE_MODEL_NAME.test(name)) {
+    fail(`remote settings advertised an unusable file name: ${String(name)}`);
+  }
+
+  const pair_dir = join(model_root, pair);
+  const target = join(pair_dir, name);
+
+  if (target !== resolve(target) || !target.startsWith(`${pair_dir}${sep}`)) {
+    fail(
+      `remote settings advertised a file name outside the model tree: ${name}`,
+    );
+  }
+
+  return target;
+}
+
 async function download_record(base, pair, record) {
-  const target = join(model_root, pair, record.name);
+  const target = safe_target(pair, record.name);
   const expected_hash = record.attachment.hash;
 
   if (await already_valid(target, expected_hash)) {

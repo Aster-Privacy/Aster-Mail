@@ -207,15 +207,37 @@ function collect_leading_hidden_text(
   return false;
 }
 
+const COMMENT_PATTERN = /<!--[\s\S]*?-->/g;
+
+const HIDDEN_ELEMENT_PATTERN =
+  /<(style|script|head|title)\b[^>]*>[\s\S]*?<\/\1>/gi;
+
+const STRIP_PASS_CAP = 32;
+
+function strip_until_stable(html: string, pattern: RegExp): string {
+  let current = html;
+
+  for (let pass = 0; pass < STRIP_PASS_CAP; pass += 1) {
+    const next = current.replace(pattern, "");
+
+    if (next === current) return current;
+
+    current = next;
+  }
+
+  return current;
+}
+
 export function extract_preheader_text(html: string): string {
   if (!html || typeof html !== "string") return "";
   if (typeof DOMParser === "undefined") return "";
 
   const scanned = html.slice(0, PREHEADER_HTML_SCAN_CAP);
   const selectors = collect_hidden_selectors(scanned);
-  const cleaned = scanned
-    .replace(/<!--[\s\S]*?-->/g, "")
-    .replace(/<(style|script|head|title)\b[^>]*>[\s\S]*?<\/\1>/gi, "");
+  const cleaned = strip_until_stable(
+    strip_until_stable(scanned, COMMENT_PATTERN),
+    HIDDEN_ELEMENT_PATTERN,
+  );
 
   let doc: Document;
 

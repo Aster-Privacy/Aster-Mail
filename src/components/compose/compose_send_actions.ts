@@ -40,6 +40,7 @@ import { show_toast } from "@/components/toast/simple_toast";
 import { show_action_toast } from "@/components/toast/action_toast";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 import { emit_email_sent } from "@/hooks/mail_events";
+import { record_review_prompt_action } from "@/lib/review_prompt";
 
 export interface SendActionContext {
   undo_send_enabled: boolean;
@@ -170,6 +171,7 @@ export async function execute_internal_send(
           dispatch_email_sent();
           log_activities_for_sent(ctx, email_data);
           ctx.on_close();
+          record_review_prompt_action();
           show_action_toast({
             message: ctx.t("common.email_sent"),
             action_type: "read",
@@ -222,6 +224,7 @@ export async function execute_internal_send(
           clear_stash(ctx);
           dispatch_email_sent();
           log_activities_for_sent(ctx, email_data);
+          record_review_prompt_action();
           show_action_toast({
             message: ctx.t("common.email_sent"),
             action_type: "read",
@@ -353,6 +356,7 @@ export async function execute_external_email_send(
         dispatch_email_sent();
         log_activities_for_sent(ctx, email_data);
         ctx.on_close();
+        record_review_prompt_action();
         show_action_toast({
           message: ctx.t("common.email_sent"),
           action_type: "read",
@@ -419,6 +423,7 @@ export async function execute_external_email_send(
       if (ctx.edit_draft && ctx.on_draft_cleared) {
         ctx.on_draft_cleared();
       }
+      record_review_prompt_action();
       show_action_toast({
         message: ctx.t("common.email_sent"),
         action_type: "read",
@@ -498,6 +503,7 @@ export async function execute_external_account_email_send(
           log_activities_for_sent(ctx, email_data);
           ctx.on_close();
           show_toast(ctx.t("common.email_sent"), "success");
+          record_review_prompt_action();
         } else {
           show_toast(
             result.error || ctx.t("common.failed_to_send_email"),
@@ -548,6 +554,7 @@ export async function execute_external_account_email_send(
             log_activities_for_sent(ctx, email_data);
             ctx.on_close();
             show_toast(ctx.t("common.email_sent"), "success");
+            record_review_prompt_action();
           } else {
             show_toast(
               result.error || ctx.t("common.failed_to_send_email"),
@@ -588,6 +595,7 @@ export async function execute_external_account_email_send(
     }
 
     show_toast(ctx.t("common.email_sent"), "success");
+    record_review_prompt_action();
     dispatch_email_sent();
     log_activities_for_sent(ctx, email_data);
 

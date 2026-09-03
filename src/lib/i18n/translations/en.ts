@@ -230,7 +230,7 @@ export const en: Translations = {
       "Custom avatars are part of paid plans. An upgrade will turn them on.",
     alias_avatars_feature: "Custom alias & domain avatars",
     recovery_conflict:
-      "This email is already a recovery address on another account. A different one should work.",
+      "That address already protects the maximum of 20 Aster accounts. Use a different address.",
     copied_to_clipboard: "Copied to clipboard",
     address_copied_to_clipboard: "Address copied to clipboard",
     offline: "Offline",
@@ -1037,7 +1037,7 @@ export const en: Translations = {
     email_copied: "Email copied",
     message_id_copied: "Message ID copied",
     draft_deleted: "Draft permanently deleted",
-    no_recipients: "At least one recipient is needed before sending.",
+    no_recipients: "No recipients",
     sync_complete: "Sync complete",
     sync_timeout:
       "Sync is taking longer than expected and may still be running.",
@@ -2197,6 +2197,11 @@ export const en: Translations = {
       "Your older data is unlocked. Earlier mail and aliases open normally again.",
     resurrection_failed:
       "That did not unlock the older data. Check the password or phrase and try again.",
+    discard_older_data_button: "Discard older data",
+    discard_older_data_title: "Discard older data?",
+    discard_older_data_desc: "This permanently removes the option to unlock mail and aliases from before the reset. You cannot undo this.",
+    discard_older_data_success: "Older data discarded.",
+    discard_older_data_failed: "Could not discard the older data. Try again.",
     phrase_wrap_save_failed:
       "Your recovery phrase could not be saved to the server. Try again.",
     general: "General",
@@ -4526,6 +4531,7 @@ export const en: Translations = {
     plan_f_quiet_hours: "Quiet hours",
     plan_f_alias_avatars: "Custom alias & domain avatars",
     category_advanced_aliases: "Advanced Aliases",
+    feature_extra_alias_domains: "Extra alias domains",
     feature_alias_sender_pinning: "Sender pinning",
     feature_per_alias_rules: "Per-alias rules (block & filter)",
     feature_alias_stats_restore: "Alias stats & restore",
@@ -6771,7 +6777,18 @@ export const en: Translations = {
     ghost_alias_expire_now: "Expire",
     ghost_alias_max_extension_toast:
       "This ghost alias is already at its maximum lifetime of 90 days and can't be extended further.",
-    ghost_alias_expire_confirm_title: "Expire this alias?",
+    ghost_alias_expire_confirm_title: "Expire this ghost alias?",
+    ghost_alias_expire_confirm_message_named:
+      "Are you sure you want to expire {{address}}? You won't be able to recover it. Its grace period will run until {{date}}.",
+    delete_aliases_confirmation_count:
+      "Are you sure you want to delete {{count}} aliases? This action cannot be undone.",
+    delete_alias_confirmation_named:
+      "Are you sure you want to delete {{address}}? This action cannot be undone.",
+    delete_address_confirmation_named:
+      "Are you sure you want to delete {{address}}? This action cannot be undone.",
+    alias_directory_delete_title: "Delete Directory",
+    alias_directory_delete_message:
+      "Are you sure you want to delete the {{address}} directory? Mail to new addresses on this pattern stops arriving. Aliases this directory already created keep working.",
     ghost_alias_expire_confirm_message:
       "Are you sure you want to expire this alias? You won't be able to recover it. Its grace period will run until {{date}}.",
     ghost_alias_expired_grace: "Expired (grace period)",
@@ -7042,6 +7059,8 @@ export const en: Translations = {
       "Upgrade your plan to see what was blocked.",
     alias_paid_badge: "Paid",
     requires_plan: "Requires {{plan}}",
+    alias_domain_group_extra: "Extra domains",
+    alias_domain_requires_plan: "This domain is available on the {{plan}} plan and up.",
     alias_feature_locked_view_plans: "View plans",
     alias_feature_locked_upgrade_plan: "Upgrade plan",
     alias_feature_locked_upgrade_cta: "Upgrade",
@@ -7430,8 +7449,6 @@ export const en: Translations = {
     account_pause_tooltip: "Pause syncing",
     account_paused_tooltip: "Syncing is paused for this account.",
     account_resume_tooltip: "Resume syncing",
-    alias_domain_group_extra: "Extra domains",
-    alias_domain_requires_plan: "Extra alias domains are available on {{plan}} and above.",
     app_password_create_link: "Create an app password",
     app_password_required: "App password required",
     category_info_newsletters: "Digests and mailing lists you subscribed to.",
@@ -7453,7 +7470,6 @@ export const en: Translations = {
     credits_method_card_note: "Credits are added as soon as the payment clears.",
     credits_method_crypto_note: "Pay once in crypto. Credits are added after the payment confirms on chain.",
     edit_account_tooltip: "Edit account",
-    feature_extra_alias_domains: "Extra alias domains",
     gmail_app_password_notice: "This provider requires an app password. Your normal account password won’t work.",
     gmail_sync_continue: "Continue",
     gmail_sync_intro: "Create an app password in your account settings, then paste it here.",
@@ -8677,7 +8693,7 @@ export const en: Translations = {
     please_enter_valid_email:
       "This does not look like a valid email. Something like name@example.com will work.",
     recovery_email_conflict:
-      "This email is already a recovery address on another account. A different one should work.",
+      "That address already protects the maximum of 20 Aster accounts. Use a different address.",
     failed_save_recovery_email:
       "Your recovery email did not save. Another attempt should do it. Your current recovery setup is unchanged.",
     recovery_phrase_title: "Save your recovery phrase",
@@ -9784,10 +9800,11 @@ export const en: Translations = {
     access_unavailable: "This shared mailbox is no longer available",
   },
   review_prompt: {
-    banner_message: "Enjoying Aster Mail? Tell others what you think.",
-    banner_open: "Write a review",
-    banner_dismiss: "Not now",
-    opens_in_new_tab: "Opens in a new tab",
+    banner_message:
+      "You can review Aster Mail on Trustpilot. Reviews are public, and you only see this once.",
+    banner_open: "Open Trustpilot",
+    banner_dismiss: "No thanks",
+    opens_in_new_tab: "Opens Trustpilot in a new tab",
   },
   survey: {
     banner_title: "Help shape Aster Mail",

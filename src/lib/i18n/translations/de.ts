@@ -160,7 +160,7 @@ export const de = {
     image_size_error:
       "Dieses Bild überschreitet die Grenze von 5 MB. Ein kleineres oder eine komprimierte Version passt.",
     recovery_conflict:
-      "Diese E-Mail ist bereits eine Wiederherstellungsadresse für ein anderes Konto. Eine andere funktioniert.",
+      "Diese Adresse schützt bereits die maximal möglichen 20 Aster-Konten. Verwenden Sie eine andere Adresse.",
     copied_to_clipboard: "In die Zwischenablage kopiert",
     address_copied_to_clipboard: "Adresse in die Zwischenablage kopiert",
     offline: "Offline",
@@ -906,7 +906,7 @@ export const de = {
     email_copied: "E-Mail kopiert",
     message_id_copied: "Nachrichten-ID kopiert",
     draft_deleted: "Entwurf endgültig gelöscht",
-    no_recipients: "Mindestens ein Empfänger wird vor dem Senden benötigt.",
+    no_recipients: "Keine Empfänger",
     sync_complete: "Synchronisierung abgeschlossen",
     sync_timeout:
       "Die Synchronisierung dauert länger als erwartet und läuft möglicherweise noch.",
@@ -2270,6 +2270,11 @@ export const de = {
       "Ihre älteren Daten sind entsperrt. Frühere E-Mails und Aliasse lassen sich wieder normal öffnen.",
     resurrection_failed:
       "Damit ließen sich die älteren Daten nicht entsperren. Prüfen Sie das Passwort oder die Phrase und versuchen Sie es erneut.",
+    discard_older_data_button: "Ältere Daten verwerfen",
+    discard_older_data_title: "Ältere Daten verwerfen?",
+    discard_older_data_desc: "Damit wird die Option, E-Mails und Aliasse aus der Zeit vor dem Zurücksetzen zu entsperren, dauerhaft entfernt. Das lässt sich nicht rückgängig machen.",
+    discard_older_data_success: "Ältere Daten verworfen.",
+    discard_older_data_failed: "Die älteren Daten konnten nicht verworfen werden. Versuchen Sie es erneut.",
     phrase_wrap_save_failed:
       "Ihre Wiederherstellungsphrase konnte nicht auf dem Server gespeichert werden. Versuchen Sie es erneut.",
     smtp_tokens: "SMTP-Token",
@@ -6954,7 +6959,18 @@ export const de = {
     ghost_alias_expire_now: "Ablaufen lassen",
     ghost_alias_max_extension_toast:
       "Dieser Ghost-Alias hat bereits seine maximale Lebensdauer von 90 Tagen erreicht und kann nicht weiter verlängert werden.",
-    ghost_alias_expire_confirm_title: "Diesen Alias ablaufen lassen?",
+    ghost_alias_expire_confirm_title: "Diesen Ghost-Alias ablaufen lassen?",
+    ghost_alias_expire_confirm_message_named:
+      "Möchten Sie {{address}} wirklich ablaufen lassen? Der Alias kann danach nicht wiederhergestellt werden. Die Karenzzeit läuft bis zum {{date}}.",
+    delete_aliases_confirmation_count:
+      "Möchten Sie {{count}} Aliasse wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
+    delete_alias_confirmation_named:
+      "Möchten Sie {{address}} wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
+    delete_address_confirmation_named:
+      "Möchten Sie {{address}} wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
+    alias_directory_delete_title: "Verzeichnis löschen",
+    alias_directory_delete_message:
+      "Möchten Sie das Verzeichnis {{address}} wirklich löschen? E-Mails an neue Adressen dieses Musters kommen nicht mehr an. Bereits erstellte Aliasse funktionieren weiterhin.",
     ghost_alias_expire_confirm_message:
       "Möchten Sie diesen Alias wirklich ablaufen lassen? Er kann danach nicht wiederhergestellt werden. Die Karenzzeit läuft bis zum {{date}}.",
     ghost_alias_expired_grace: "Abgelaufen (Kulanzzeit)",
@@ -8870,7 +8886,7 @@ export const de = {
     please_enter_valid_email:
       "Dies sieht nicht nach einer gültigen E-Mail-Adresse aus. Etwas wie name@example.com funktioniert.",
     recovery_email_conflict:
-      "Diese E-Mail ist bereits eine Wiederherstellungsadresse für ein anderes Konto. Eine andere funktioniert.",
+      "Diese Adresse schützt bereits die maximal möglichen 20 Aster-Konten. Verwenden Sie eine andere Adresse.",
     plan_starter_badge: "Starter",
     plan_personal_badge: "Persönlich",
     plan_pro_badge: "Pro",
@@ -8893,7 +8909,7 @@ export const de = {
     invalid_recovery_code:
       "Dieser Wiederherstellungscode stimmt nicht überein. Ein anderer aus Ihrer gespeicherten Liste funktioniert.",
     recovery_locked_out:
-      "Für dieses Konto gab es zu viele Wiederherstellungsversuche. Du kannst es in {{time}} erneut versuchen. Keiner deiner Codes wurde verwendet, du hast also noch alle.",
+      "Für dieses Konto gab es zu viele Wiederherstellungsversuche. Du kannst es in {{time}} erneut versuchen. Keiner deiner Codes wurde verwendet, du hast also weiterhin alle.",
     invalid_backup_code:
       "Dieser Backup-Code stimmt nicht. Jeder Code funktioniert nur einmal, probiere daher den nächsten unbenutzten Code aus deiner Liste.",
     new_password_placeholder: "Neues Passwort",
