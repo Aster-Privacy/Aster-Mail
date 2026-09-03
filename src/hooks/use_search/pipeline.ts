@@ -32,7 +32,7 @@ import {
   reset_legacy_migration_state,
 } from "./envelope";
 import { build_generation } from "./index_cache";
-import { searchable_body_source } from "./matching";
+import { build_search_haystack, searchable_body_source } from "./matching";
 import { emit_indexing } from "./progress";
 import { CachedIndex, DecryptedIndexEntry } from "./types";
 
@@ -76,6 +76,7 @@ export interface PipelineOptions {
   pausable?: boolean;
   checkpoint?: boolean;
   progress_base?: number;
+  on_page?: () => void;
 }
 
 export interface PipelineResult {
@@ -288,6 +289,7 @@ export async function run_index_pipeline(
         search_body_text: bounded_body.search_text,
         meta_fp,
         has_body: include_body,
+        haystack: envelope ? build_search_haystack(envelope) : undefined,
       },
       fresh: envelope !== null,
     };
@@ -435,6 +437,7 @@ export async function run_index_pipeline(
     }
 
     page_entries.clear();
+    options.on_page?.();
 
     if (!hot && writer?.storage_exhausted()) break;
   } while (cursor && !reached_boundary && processed < options.max_items);

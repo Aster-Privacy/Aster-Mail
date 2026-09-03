@@ -55,19 +55,20 @@ export function parse_search_query(query: string): ParsedSearchQuery {
   }
 
   const not_keyword_regex = /(?:^|\s)NOT\s+(\S+)/gi;
-  let not_match;
 
-  while ((not_match = not_keyword_regex.exec(remaining_query)) !== null) {
-    const term = not_match[1].trim();
+  const not_matches = Array.from(remaining_query.matchAll(not_keyword_regex));
+
+  for (const candidate of not_matches) {
+    const term = candidate[1].trim();
 
     if (!term.includes(":")) {
       operators.push({
         type: "subject" as SearchOperatorType,
         value: term,
-        raw: not_match[0].trim(),
+        raw: candidate[0].trim(),
         negated: true,
       });
-      remaining_query = remaining_query.replace(not_match[0], " ");
+      remaining_query = remaining_query.replace(candidate[0], " ");
     }
   }
 
@@ -116,8 +117,11 @@ export function validate_operator(operator: ParsedOperator): boolean {
         "sent",
         "trash",
         "drafts",
+        "draft",
         "spam",
         "archive",
+        "archived",
+        "starred",
         "all",
         "anywhere",
       ].includes(operator.value.toLowerCase());

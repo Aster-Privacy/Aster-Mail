@@ -26,6 +26,7 @@ import {
   MAX_INDEX_ITEMS,
   MAX_RAM_INDEX_ITEMS,
 } from "./constants";
+import { build_search_haystack } from "./matching";
 import { run_index_pipeline } from "./pipeline";
 import {
   emit_index_refreshed,
@@ -53,6 +54,29 @@ import {
   record_index_download_checkpoint,
   reset_index_download_state,
 } from "@/services/search/index_download_control";
+const PARTIAL_PUBLISH_MS = 750;
+
+let partial_ready_resolve: (() => void) | null = null;
+let partial_ready_promise: Promise<void> | null = null;
+
+function partial_ready(): Promise<void> {
+  if (!partial_ready_promise) {
+    partial_ready_promise = new Promise<void>((resolve) => {
+      partial_ready_resolve = resolve;
+    });
+  }
+
+  return partial_ready_promise;
+}
+
+function signal_partial_ready(): void {
+  const resolve = partial_ready_resolve;
+
+  partial_ready_resolve = null;
+  partial_ready_promise = null;
+  resolve?.();
+}
+
 export let cached_index: CachedIndex | null = null;
 export let index_build_promise: Promise<CachedIndex> | null = null;
 export let build_generation = 0;
@@ -114,6 +138,32 @@ export async function build_index_full(
 
   const writer = await open_snapshot_writer(user_email);
 
+  let last_publish_ms = 0;
+
+  const publish_partial = () => {
+    if (my_gen !== build_generation) return;
+    if (index.items.length === 0) return;
+
+    const now = Date.now();
+
+    if (now - last_publish_ms < PARTIAL_PUBLISH_MS) return;
+
+    last_publish_ms = now;
+    if (cached_index && cached_index !== index) {
+      const better =
+        cached_index.user_email === user_email &&
+        (cached_index.include_body || !include_body) &&
+        cached_index.items.length >= index.items.length;
+
+      if (better) return;
+    }
+
+    index.total_indexed = index.items.length;
+    cached_index = index;
+    signal_partial_ready();
+    emit_index_refreshed();
+  };
+
   try {
     const result = await run_index_pipeline({
       user_email,
@@ -126,6 +176,7 @@ export async function build_index_full(
       report_progress: true,
       pausable: true,
       checkpoint: true,
+      on_page: publish_partial,
     });
 
     index.built_at = Date.now();
@@ -156,6 +207,7 @@ export async function build_index_full(
 
     return index;
   } catch (error) {
+    if (cached_index === index) cached_index = null;
     index.items.length = 0;
     index.decrypted.clear();
     emit_indexing({ building: false });
@@ -431,6 +483,8 @@ export function start_background_rebuild(
       if (index_build_promise === promise) {
         index_build_promise = null;
       }
+
+      signal_partial_ready();
     });
 
   index_build_promise = promise;
@@ -444,60 +498,34 @@ export function start_background_rebuild(
   return promise;
 }
 
-export async function build_search_index(
+function index_is_body_compatible(
+  index: CachedIndex | null,
   user_email: string,
   include_body: boolean,
-  ttl_ms: number = INDEX_TTL_MS,
-): Promise<CachedIndex> {
+): index is CachedIndex {
+  return (
+    !!index &&
+    index.user_email === user_email &&
+    (index.include_body || !include_body)
+  );
+}
+
+function drop_index_for_other_user(user_email: string): void {
   if (cached_index && cached_index.user_email !== user_email) {
     cached_index = null;
     build_generation++;
     index_build_promise = null;
   }
+}
 
-  const body_compatible = (index: CachedIndex | null): index is CachedIndex =>
-    !!index &&
-    index.user_email === user_email &&
-    (index.include_body || !include_body);
-
-  if (
-    body_compatible(cached_index) &&
-    Date.now() - cached_index.built_at < ttl_ms
-  ) {
-    return cached_index;
-  }
-
-  if (body_compatible(cached_index)) {
-    const stale = cached_index;
-
-    void start_background_rebuild(user_email, include_body, stale);
-
-    return stale;
-  }
-
-  if (index_build_promise) {
-    return index_build_promise;
-  }
-
+export async function hydrate_snapshot_index(
+  user_email: string,
+): Promise<CachedIndex | null> {
   const reader = await open_snapshot_reader(user_email);
 
-  if (index_build_promise) {
-    return index_build_promise;
-  }
-  if (body_compatible(cached_index)) {
-    return cached_index;
-  }
-
-  if (!reader || reader.meta.chunk_ids.length === 0) {
-    return start_background_rebuild(user_email, include_body);
-  }
+  if (!reader || reader.meta.chunk_ids.length === 0) return null;
 
   const meta = reader.meta;
-
-  if (include_body && !meta.include_body) {
-    return start_background_rebuild(user_email, include_body);
-  }
-
   const index = empty_index(user_email, meta.include_body);
   let consumed = 0;
 
@@ -530,10 +558,106 @@ export async function build_search_index(
         search_body_text: entry.search_body_text,
         meta_fp: entry.meta_fp,
         has_body: entry.has_body,
+        haystack: entry.envelope
+          ? build_search_haystack(entry.envelope)
+          : undefined,
       });
       add_vocabulary_entry(entry.envelope, entry.search_body_text);
     }
   }
+
+  if (index.items.length === 0) return null;
+
+  index.meta = meta;
+  index.built_at = meta.saved_at;
+  index.total_indexed = meta.total;
+  index.complete = meta.complete;
+  index.disk_chunk_ids = meta.chunk_ids.slice(consumed);
+
+  return index;
+}
+
+export async function acquire_search_index(
+  user_email: string,
+  include_body: boolean,
+  ttl_ms: number = INDEX_TTL_MS,
+): Promise<CachedIndex> {
+  drop_index_for_other_user(user_email);
+
+  const usable = cached_index;
+
+  if (usable && usable.user_email === user_email) {
+    const fresh =
+      index_is_body_compatible(usable, user_email, include_body) &&
+      usable.complete &&
+      Date.now() - usable.built_at < ttl_ms;
+
+    if (!fresh) void start_background_rebuild(user_email, include_body, usable);
+
+    return usable;
+  }
+
+  const hydrated = await hydrate_snapshot_index(user_email);
+
+  if (cached_index && cached_index.user_email === user_email) {
+    return cached_index;
+  }
+
+  if (!hydrated) {
+    const ready = partial_ready();
+    const build = start_background_rebuild(user_email, include_body);
+
+    await Promise.race([ready, build.catch(() => undefined)]);
+
+    if (cached_index && cached_index.user_email === user_email) {
+      return cached_index;
+    }
+
+    return empty_index(user_email, include_body);
+  }
+
+  cached_index = hydrated;
+
+  const stale =
+    !hydrated.complete ||
+    (include_body && !hydrated.include_body) ||
+    Date.now() - hydrated.built_at >= ttl_ms;
+
+  if (stale) void start_background_rebuild(user_email, include_body, hydrated);
+
+  return hydrated;
+}
+
+export async function build_search_index(
+  user_email: string,
+  include_body: boolean,
+  ttl_ms: number = INDEX_TTL_MS,
+): Promise<CachedIndex> {
+  drop_index_for_other_user(user_email);
+
+  const body_compatible = (index: CachedIndex | null): index is CachedIndex =>
+    index_is_body_compatible(index, user_email, include_body);
+
+  if (
+    body_compatible(cached_index) &&
+    Date.now() - cached_index.built_at < ttl_ms
+  ) {
+    return cached_index;
+  }
+
+  if (body_compatible(cached_index)) {
+    const stale = cached_index;
+
+    void start_background_rebuild(user_email, include_body, stale);
+
+    return stale;
+  }
+
+  if (index_build_promise) {
+    return index_build_promise;
+  }
+
+  const hydrated = await hydrate_snapshot_index(user_email);
 
   if (index_build_promise) {
     return index_build_promise;
@@ -542,20 +666,15 @@ export async function build_search_index(
     return cached_index;
   }
 
-  if (index.items.length === 0) {
-    return start_background_rebuild(user_email, include_body);
+  if (!hydrated || (include_body && !hydrated.include_body)) {
+    return start_background_rebuild(user_email, include_body, hydrated);
   }
 
-  index.meta = meta;
-  index.built_at = meta.saved_at;
-  index.total_indexed = meta.total;
-  index.complete = meta.complete;
-  index.disk_chunk_ids = meta.chunk_ids.slice(consumed);
-  cached_index = index;
+  cached_index = hydrated;
 
-  if (!meta.complete || Date.now() - meta.saved_at >= ttl_ms) {
-    void start_background_rebuild(user_email, include_body, index);
+  if (!hydrated.complete || Date.now() - hydrated.built_at >= ttl_ms) {
+    void start_background_rebuild(user_email, include_body, hydrated);
   }
 
-  return index;
+  return hydrated;
 }

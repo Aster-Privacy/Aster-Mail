@@ -452,6 +452,14 @@ describe("structural chunk skipping", () => {
     expect(skip_query("in:all", received)).toBe(false);
   });
 
+  it("never skips a chunk for a scope the summary cannot decide", () => {
+    const received = summarize([{ item: { item_type: "received" } }]);
+
+    expect(skip_query("in:archive", received)).toBe(false);
+    expect(skip_query("in:archived", received)).toBe(false);
+    expect(skip_query("in:anywhere", received)).toBe(false);
+  });
+
   it("never skips in: when a folder name could match", () => {
     const summary = summarize([
       {
