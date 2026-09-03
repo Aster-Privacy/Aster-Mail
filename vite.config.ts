@@ -132,6 +132,10 @@ export default defineConfig({
     chunkSizeWarningLimit: 2600,
     sourcemap: "hidden",
     rollupOptions: {
+      input: {
+        main: "index.html",
+        bridge: "bridge.html",
+      },
       onwarn(warning, defaultHandler) {
         if (
           warning.message?.includes(
