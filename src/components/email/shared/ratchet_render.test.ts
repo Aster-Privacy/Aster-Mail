@@ -131,8 +131,6 @@ async function build_real_internal_envelope(
     },
   );
 
-  // This mirrors how the backend stores internal ratchet mail: the same
-  // double_ratchet_v2 envelope is placed in BOTH body_text and body_html.
   expect(envelope_json).toContain("double_ratchet_v2");
 
   return { envelope_json, receiver_vault };
@@ -263,5 +261,41 @@ describe("internal ratchet mail rendering", () => {
       (api_client.post as ReturnType<typeof vi.fn>).mock.calls.length;
 
     expect(send_writes).toBeGreaterThan(0);
+  });
+});
+
+function server_built_envelope(body: string): DecryptedEnvelope {
+  return {
+    from: { name: "Support", email: SENDER },
+    to: [{ name: "", email: RECIPIENT }],
+    cc: [],
+    bcc: [],
+    subject: "",
+    body_text: body,
+    body_html: "",
+  } as unknown as DecryptedEnvelope;
+}
+
+describe("server built recipient envelope", () => {
+  beforeEach(() => {
+    h.vault = null;
+    h.bundle = null;
+  });
+
+  it("renders html when the server sets body_html to an empty string", async () => {
+    const html = "<p>Hello there</p>";
+    const { envelope_json, receiver_vault } =
+      await build_real_internal_envelope(html);
+
+    h.vault = receiver_vault;
+
+    const result = await process_envelope_body(
+      server_built_envelope(envelope_json),
+      RECIPIENT,
+      "msg-server-1",
+    );
+
+    expect(result.body_text).toBe(html);
+    expect(result.safe_html).toBe(html);
   });
 });
