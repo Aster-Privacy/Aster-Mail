@@ -3083,7 +3083,8 @@ export const ru = {
       "Перейдите на другой план, чтобы использовать закрепление отправителей.",
     requires_plan: "Требуется {{plan}}",
     alias_domain_group_extra: "Дополнительные домены",
-    alias_domain_requires_plan: "Этот домен доступен на тарифе {{plan}} и выше.",
+    alias_domain_requires_plan:
+      "Этот домен доступен на тарифе {{plan}} и выше.",
     alias_feature_locked_view_plans: "Посмотреть планы",
     alias_feature_locked_upgrade_plan: "Улучшить план",
     alias_feature_locked_upgrade_cta: "Улучшить",
@@ -5857,6 +5858,113 @@ export const ru = {
     credit_type_reversal: "Возврат",
     credit_type_purchase: "Покупка",
     top_up_credits: "Пополнить",
+    checkout_abandon_confirm: "Отменить платёж",
+    checkout_abandon_keep: "Продолжить оплату",
+    checkout_abandon_message:
+      "Счёт отменяется, деньги не списываются. Вы можете начать заново в любой момент.",
+    checkout_abandon_title: "Отменить этот платёж?",
+    checkout_add_promo: "Добавить промокод",
+    checkout_amount_due: "К оплате",
+    checkout_card_details: "Данные карты",
+    checkout_full_features_title: "Возможности тарифа {{plan}}",
+    checkout_leave_warning:
+      "У вас есть незавершённый платёж. Если выйти сейчас, он не будет завершён.",
+    checkout_pay_amount: "Оплатить {{amount}}",
+    checkout_review_title: "Проверьте и оплатите",
+    checkout_what_you_get: "Что входит",
+    credits_method_card_note:
+      "Средства зачисляются сразу после подтверждения платежа.",
+    credits_method_crypto_note:
+      "Оплатите один раз криптовалютой. Средства зачисляются после подтверждения платежа в блокчейне.",
+    offer_modal_action: "Воспользоваться предложением",
+    offer_modal_badge: "Скидка {{percent}} %",
+    offer_modal_dismiss: "Не сейчас",
+    offer_modal_fine_print:
+      "Код {{code}} применяется при оплате. Одно использование на аккаунт.",
+    offer_modal_price_note: "Скидка применяется при оплате.",
+    offer_modal_subtitle: "Перейдите на тариф {{plan}} по сниженной цене.",
+    offer_modal_title: "Сэкономьте {{percent}} % на тарифе",
+    offer_upgrade_description: "Выберите тариф, чтобы использовать скидку.",
+    offer_upgrade_title: "Вас ждёт предложение",
+    plan_cat_advanced_aliases: "Расширенные псевдонимы",
+    plan_cat_contacts: "Контакты",
+    plan_cat_general: "Общие",
+    plan_cat_mail: "Почта",
+    plan_cat_security: "Безопасность",
+    plan_cat_subscriptions: "Подписки",
+    plan_cat_support: "Поддержка",
+    plan_cat_vanguard: "Vanguard",
+    plan_f_alias_bulk: "Массовые действия с псевдонимами",
+    plan_f_alias_csv: "Экспорт псевдонимов в CSV",
+    plan_f_alias_import: "Импорт псевдонимов",
+    plan_f_alias_no_cooldown: "Без паузы между псевдонимами",
+    plan_f_alias_pin: "Закреплённые псевдонимы",
+    plan_f_alias_transfer: "Перенос псевдонимов",
+    plan_f_allowlist: "Список разрешённых отправителей",
+    plan_f_biometric: "Разблокировка по биометрии",
+    plan_f_blocked_senders: "Заблокированные отправители",
+    plan_f_contact_import: "Импорт контактов",
+    plan_f_contact_sync: "Синхронизация контактов (CardDAV)",
+    plan_f_contacts: "Зашифрованные контакты",
+    plan_f_cross_platform: "Приложения для веба, компьютера, Android и iOS",
+    plan_f_custom_categories: "Свои категории входящих",
+    plan_f_email_export: "Экспорт почты",
+    plan_f_email_import: "Импорт почты",
+    plan_f_expiration: "Письма с истечением срока",
+    plan_f_folder_auto_clean: "Автоматическая очистка папок",
+    plan_f_folders: "Папки и ярлыки",
+    plan_f_key_management: "Управление ключами",
+    plan_f_link_warnings: "Предупреждения о подозрительных ссылках",
+    plan_f_one_click_unsub: "Отписка в один клик",
+    plan_f_password_emails: "Письма под паролем",
+    plan_f_pgp: "Шифрование PGP",
+    plan_f_phishing: "Защита от фишинга",
+    plan_f_quick_alias_reply: "Быстрый ответ с псевдонима",
+    plan_f_scheduled_send: "Отправка по расписанию",
+    plan_f_snooze: "Откладывание писем",
+    plan_f_sub_categories: "Категории подписок",
+    plan_f_sub_scanner: "Сканер подписок",
+    plan_f_vanguard_app_lock: "Блокировка приложения",
+    plan_f_vanguard_lockdown_mode: "Режим изоляции",
+    plan_f_wkd: "Веб-каталог ключей",
+    plan_tip_alias_bulk:
+      "Включайте, отключайте или удаляйте сразу много псевдонимов.",
+    plan_tip_alias_csv:
+      "Экспортируйте все псевдонимы вместе с их правилами и статусом в файл CSV.",
+    plan_tip_alias_import:
+      "Перенесите псевдонимы от другого провайдера за один шаг.",
+    plan_tip_alias_no_cooldown:
+      "Создавайте псевдонимы подряд, не выжидая между ними.",
+    plan_tip_alias_pin: "Держите самые нужные псевдонимы в начале списка.",
+    plan_tip_alias_transfer: "Перенесите псевдоним в другой ваш аккаунт Aster.",
+    plan_tip_allowlist:
+      "Пропускайте выбранных отправителей, даже если фильтр их остановил бы.",
+    plan_tip_contact_sync:
+      "Синхронизируйте контакты с приложением «Контакты» в macOS и iOS, с DAVx5 в Android или с любым клиентом CardDAV. Работает через приложение Aster Bridge на вашем устройстве.",
+    plan_tip_custom_categories:
+      "Создавайте свои вкладки во входящих и решайте, что попадает в каждую.",
+    plan_tip_email_export:
+      "Скачайте почту в стандартном архиве, который можно открыть где угодно.",
+    plan_tip_email_import:
+      "Перенесите почту от другого провайдера по IMAP вместе с папками.",
+    plan_tip_expiration:
+      "Задайте дату, после которой письмо удаляется из почты получателя.",
+    plan_tip_extra_alias_domains:
+      "Создавайте псевдонимы на других доменах Aster, а не только на astermail.org.",
+    plan_tip_folder_auto_clean:
+      "Удаляйте всё старше заданного срока, папка за папкой.",
+    plan_tip_sub_scanner:
+      "Найдите все рассылки и сервисы, на которые вы подписаны, и отпишитесь в одном месте.",
+    plan_tip_vanguard_app_lock:
+      "Запрашивайте код устройства или биометрию при каждом открытии Aster.",
+    plan_tip_vanguard_lockdown_mode:
+      "Блокируйте внешнее содержимое, внешние ссылки и новых отправителей, пока не выключите режим.",
+    plan_tip_wkd:
+      "Опубликуйте открытый ключ на своём домене, чтобы каждый мог найти его и написать вам с шифрованием.",
+    stripe_secure_short: "Защищено Stripe",
+    upgrade_external_accounts_note:
+      "Смените тариф, чтобы подключить больше внешних аккаунтов.",
+    usage_external_accounts: "Внешние аккаунты",
     top_up_credits_description:
       "Пополните счёт. Средства автоматически идут на продление тарифа.",
     credit_packages_loading: "Загрузка пакетов...",
@@ -6785,7 +6893,8 @@ export const ru = {
     export_error_no_messages_match: "Нет сообщений, соответствующих выбору.",
     export_error_no_vault:
       "Ваше хранилище заблокировано. Войдите снова для экспорта.",
-    export_error_write_partial: "Экспорт остановился раньше времени. Ваш файл содержит сообщения, экспортированные к этому моменту.",
+    export_error_write_partial:
+      "Экспорт остановился раньше времени. Ваш файл содержит сообщения, экспортированные к этому моменту.",
     export_error_write_fatal:
       "Не удалось записать в выбранное место. Экспорт остановлен.",
     export_format_eml_hint:
@@ -6844,10 +6953,14 @@ export const ru = {
     export_step_incomplete_title: "Экспорт не завершён",
     export_incomplete_summary:
       "Экспортировано {{ count }} из {{ total }} сообщений до остановки экспорта.",
-    export_progress_messages_unknown_total: "Экспортировано сообщений: {{ processed }}",
-    export_complete_summary_unknown_total: "Экспортировано {{ count }} сообщений.",
-    export_incomplete_summary_unknown_total: "Экспортировано {{ count }} сообщений до остановки экспорта.",
-    export_incomplete_partial_saved: "Ваш файл содержит сообщения, экспортированные к этому моменту.",
+    export_progress_messages_unknown_total:
+      "Экспортировано сообщений: {{ processed }}",
+    export_complete_summary_unknown_total:
+      "Экспортировано {{ count }} сообщений.",
+    export_incomplete_summary_unknown_total:
+      "Экспортировано {{ count }} сообщений до остановки экспорта.",
+    export_incomplete_partial_saved:
+      "Ваш файл содержит сообщения, экспортированные к этому моменту.",
     export_complete_data_only: "Ваш экспорт готов.",
     export_step_destination_title: "Выбрать место",
     export_step_format_title: "Выбрать формат",

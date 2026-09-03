@@ -18,11 +18,12 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { CheckIcon } from "@heroicons/react/20/solid";
 import {
   CreditCardIcon,
   CurrencyDollarIcon,
+  LockClosedIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
@@ -35,10 +36,10 @@ import {
   Modal,
   ModalHeader,
   ModalTitle,
-  ModalDescription,
   ModalBody,
   ModalFooter,
 } from "@/components/ui/modal";
+import { Spinner } from "@/components/ui/spinner";
 import {
   format_price,
   format_date,
@@ -59,6 +60,46 @@ import {
 import { use_i18n } from "@/lib/i18n/context";
 import { convert_cents } from "@/components/settings/billing/billing_constants";
 import { describe_credit_entry } from "@/utils/billing_description";
+import text_logo_url from "@/assets/text_logo.webp";
+
+const tile_base =
+  "relative rounded-xl border text-start transition-colors focus:outline-none disabled:pointer-events-none disabled:opacity-50";
+
+function tile_style(active: boolean) {
+  return active
+    ? {
+        borderColor: "var(--accent-color)",
+        backgroundColor:
+          "color-mix(in srgb, var(--accent-color) 14%, transparent)",
+        boxShadow: "0 0 0 1px var(--accent-color)",
+      }
+    : undefined;
+}
+
+function tile_check(active: boolean) {
+  if (!active) return null;
+
+  return (
+    <span
+      aria-hidden="true"
+      className="absolute end-2 top-2 flex h-4 w-4 items-center justify-center rounded-full"
+      style={{ backgroundColor: "var(--accent-color)" }}
+    >
+      <CheckIcon
+        className="h-2.5 w-2.5"
+        style={{ color: "var(--accent-fg, #ffffff)" }}
+      />
+    </span>
+  );
+}
+
+function section_heading(text: string) {
+  return (
+    <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-txt-muted">
+      {text}
+    </p>
+  );
+}
 
 function capitalize_words(value: string): string {
   return value
@@ -99,9 +140,19 @@ export function CreditsSection({
   );
   const [packages_failed, set_packages_failed] = useState(false);
   const [packages_tick, set_packages_tick] = useState(0);
+  const [confirm_abandon, set_confirm_abandon] = useState(false);
+  const opened_package_ref = useRef<string | null>(null);
 
   useEffect(() => {
-    if (show_picker) set_credit_method("card");
+    if (!show_picker) {
+      set_confirm_abandon(false);
+
+      return;
+    }
+    set_credit_method("card");
+    set_confirm_abandon(false);
+    opened_package_ref.current = selected_package?.id ?? null;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [show_picker]);
 
   useEffect(() => {
@@ -190,6 +241,34 @@ export function CreditsSection({
     },
   ];
 
+  const summary = useMemo(() => {
+    if (!selected_package) return null;
+
+    return {
+      price: convert_cents(selected_package.price_cents, preferred_currency),
+      bonus: convert_cents(selected_package.bonus_cents, preferred_currency),
+      total: convert_cents(
+        selected_package.amount_cents + selected_package.bonus_cents,
+        preferred_currency,
+      ),
+    };
+  }, [selected_package, preferred_currency]);
+
+  const request_close = () => {
+    if (buying) return;
+
+    const changed =
+      credit_method !== "card" ||
+      (selected_package?.id ?? null) !== opened_package_ref.current;
+
+    if (changed) {
+      set_confirm_abandon(true);
+
+      return;
+    }
+    set_show_picker(false);
+  };
+
   const has_transactions =
     !!credit_balance && (credit_balance.recent_transactions?.length ?? 0) > 0;
 
@@ -226,178 +305,276 @@ export function CreditsSection({
 
       <Modal
         show_close_button
+        close_on_escape={false}
+        close_on_overlay={false}
         is_open={show_picker}
-        on_close={() => set_show_picker(false)}
-        size="md"
+        on_close={request_close}
+        size="2xl"
       >
-        <ModalHeader>
-          <ModalTitle>{t("settings.top_up_credits")}</ModalTitle>
-          <ModalDescription>
-            {t("settings.top_up_credits_description")}
-          </ModalDescription>
+        <ModalHeader className="pb-4">
+          <ModalTitle className="text-lg">
+            {t("settings.checkout_review_title")}
+          </ModalTitle>
         </ModalHeader>
-        <ModalBody>
-          {packages.length === 0 ? (
-            <div className="flex items-center justify-between gap-3 py-4">
-              <p className="text-xs text-txt-muted">
-                {packages_failed
-                  ? t("settings.credit_packages_failed")
-                  : t("settings.credit_packages_loading")}
-              </p>
-              {packages_failed && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => set_packages_tick((n) => n + 1)}
-                >
-                  {t("common.retry")}
-                </Button>
+        <ModalBody className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_312px]">
+          <div className="min-w-0 space-y-5">
+            <div>
+              {section_heading(t("settings.top_up_credits"))}
+              {packages.length === 0 ? (
+                <div className="flex items-center justify-between gap-3 rounded-xl border border-edge-secondary px-3 py-4">
+                  <p className="text-xs text-txt-muted">
+                    {packages_failed
+                      ? t("settings.credit_packages_failed")
+                      : t("settings.credit_packages_loading")}
+                  </p>
+                  {packages_failed && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => set_packages_tick((n) => n + 1)}
+                    >
+                      {t("common.retry")}
+                    </Button>
+                  )}
+                </div>
+              ) : (
+                <div className="grid gap-2 sm:grid-cols-3" role="radiogroup">
+                  {packages.map((pkg) => {
+                    const price = convert_cents(
+                      pkg.price_cents,
+                      preferred_currency,
+                    );
+                    const total = convert_cents(
+                      pkg.amount_cents + pkg.bonus_cents,
+                      preferred_currency,
+                    );
+                    const bonus = convert_cents(
+                      pkg.bonus_cents,
+                      preferred_currency,
+                    );
+                    const active = selected_package?.id === pkg.id;
+
+                    return (
+                      <button
+                        key={pkg.id}
+                        aria-checked={active}
+                        className={`${tile_base} flex h-full flex-col px-3 pb-3 pt-3 ${
+                          active
+                            ? ""
+                            : "border-edge-secondary hover:bg-surf-tertiary"
+                        }`}
+                        disabled={buying}
+                        role="radio"
+                        style={tile_style(active)}
+                        type="button"
+                        onClick={() => set_selected_package(pkg)}
+                      >
+                        {tile_check(active)}
+                        <span className="block pe-5 text-[15px] font-bold text-txt-primary">
+                          {format_price(price, preferred_currency)}
+                        </span>
+                        {bonus > 0 && (
+                          <span
+                            className="mt-1 block text-[11px] font-medium leading-snug"
+                            style={{ color: "var(--accent-color)" }}
+                          >
+                            {t("settings.credit_package_bonus", {
+                              bonus: format_price(bonus, preferred_currency),
+                            })}
+                          </span>
+                        )}
+                        <span className="mt-auto block pt-1 text-[11px] text-txt-muted">
+                          {t("settings.credit_package_total", {
+                            total: format_price(total, preferred_currency),
+                          })}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
               )}
             </div>
-          ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-              {packages.map((pkg) => {
-                const price = convert_cents(
-                  pkg.price_cents,
-                  preferred_currency,
-                );
-                const total = convert_cents(
-                  pkg.amount_cents + pkg.bonus_cents,
-                  preferred_currency,
-                );
-                const bonus = convert_cents(
-                  pkg.bonus_cents,
-                  preferred_currency,
-                );
-                const is_selected = selected_package?.id === pkg.id;
 
-                return (
-                  <button
-                    key={pkg.id}
-                    aria-pressed={is_selected}
-                    className="flex h-full flex-col rounded-[14px] border p-3 text-start transition-colors"
-                    style={{
-                      backgroundColor: is_selected
-                        ? "color-mix(in srgb, var(--accent-color) 8%, var(--bg-tertiary))"
-                        : "var(--bg-tertiary)",
-                      borderColor: is_selected
-                        ? "var(--accent-color)"
-                        : "var(--border-secondary)",
-                    }}
-                    type="button"
-                    onClick={() => set_selected_package(pkg)}
-                  >
-                    <p className="text-base font-bold text-txt-primary">
-                      {format_price(price, preferred_currency)}
-                    </p>
-                    {bonus > 0 && (
-                      <p
-                        className="text-xs mt-0.5 font-medium"
-                        style={{ color: "var(--accent-color)" }}
+            {packages.length > 0 && (
+              <div>
+                {section_heading(t("settings.payment_details"))}
+                <div className="grid gap-2 sm:grid-cols-2" role="radiogroup">
+                  {credit_methods.map((entry) => {
+                    const active = entry.id === credit_method;
+                    const MethodIcon = entry.icon;
+
+                    return (
+                      <button
+                        key={entry.id}
+                        aria-checked={active}
+                        className={`${tile_base} flex h-full flex-col px-3 pb-3 pt-3 ${
+                          active
+                            ? ""
+                            : "border-edge-secondary hover:bg-surf-tertiary"
+                        }`}
+                        disabled={buying}
+                        role="radio"
+                        style={tile_style(active)}
+                        type="button"
+                        onClick={() => set_credit_method(entry.id)}
                       >
-                        {t("settings.credit_package_bonus", {
-                          bonus: format_price(bonus, preferred_currency),
-                        })}
-                      </p>
-                    )}
-                    <p className="mt-auto pt-1 text-xs text-txt-muted">
-                      {t("settings.credit_package_total", {
-                        total: format_price(total, preferred_currency),
-                      })}
-                    </p>
-                  </button>
-                );
-              })}
-            </div>
-          )}
-
-          {packages.length > 0 && (
-            <div className="mt-4">
-              <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-txt-muted">
-                {t("settings.checkout_method_title")}
-              </p>
-              <div className="grid gap-2 sm:grid-cols-2" role="radiogroup">
-                {credit_methods.map((entry) => {
-                  const active = entry.id === credit_method;
-                  const MethodIcon = entry.icon;
-
-                  return (
-                    <button
-                      key={entry.id}
-                      aria-checked={active}
-                      className={`relative flex h-full flex-col rounded-xl border p-3 text-start transition-colors focus:outline-none disabled:pointer-events-none disabled:opacity-50 ${
-                        active
-                          ? ""
-                          : "border-edge-secondary hover:bg-surf-tertiary"
-                      }`}
-                      disabled={buying}
-                      role="radio"
-                      style={
-                        active
-                          ? {
-                              borderColor: "var(--accent-color)",
-                              backgroundColor:
-                                "color-mix(in srgb, var(--accent-color) 14%, transparent)",
-                              boxShadow: "0 0 0 1px var(--accent-color)",
-                            }
-                          : undefined
-                      }
-                      type="button"
-                      onClick={() => set_credit_method(entry.id)}
-                    >
-                      {active && (
-                        <span
-                          aria-hidden="true"
-                          className="absolute end-2 top-2 flex h-4 w-4 items-center justify-center rounded-full"
-                          style={{ backgroundColor: "var(--accent-color)" }}
-                        >
-                          <CheckIcon
-                            className="h-2.5 w-2.5"
-                            style={{ color: "var(--accent-fg, #ffffff)" }}
-                          />
+                        {tile_check(active)}
+                        <span className="flex items-center gap-2">
+                          <MethodIcon className="h-5 w-5 flex-shrink-0 text-txt-primary" />
+                          <span className="text-[13px] font-semibold text-txt-primary">
+                            {entry.label}
+                          </span>
                         </span>
-                      )}
-                      <span className="flex items-center gap-2">
-                        <MethodIcon className="h-5 w-5 flex-shrink-0 text-txt-primary" />
-                        <span className="text-[13px] font-semibold text-txt-primary">
-                          {entry.label}
+                        <span className="mt-1 block text-[11px] leading-snug text-txt-muted">
+                          {entry.note}
                         </span>
-                      </span>
-                      <span className="mt-1 block text-[11px] leading-snug text-txt-muted">
-                        {entry.note}
-                      </span>
-                      {entry.id === "card" ? (
-                        <CardBrandMarks class_name="mt-auto pt-2.5" />
-                      ) : (
-                        <CoinStack class_name="mt-auto pt-2.5" />
-                      )}
-                    </button>
-                  );
-                })}
+                        {entry.id === "card" ? (
+                          <CardBrandMarks class_name="mt-auto pt-2.5" />
+                        ) : (
+                          <CoinStack class_name="mt-auto pt-2.5" />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+                <SecurityMarks
+                  class_name="mt-2.5 px-1"
+                  label={t("settings.stripe_secure_short")}
+                />
               </div>
-              <SecurityMarks
-                class_name="mt-2.5 px-1"
-                label={t("settings.stripe_secure_short")}
-              />
+            )}
+          </div>
+
+          <aside className="min-w-0">
+            <div className="plan_galaxy rounded-2xl border border-edge-secondary p-4">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-[11px] font-semibold uppercase tracking-wider plan_galaxy_text_muted">
+                  {t("settings.domain_purchase_order_summary")}
+                </p>
+                <img
+                  alt="Aster"
+                  className="h-4 w-auto flex-shrink-0 opacity-80"
+                  decoding="async"
+                  draggable={false}
+                  {...{ fetchpriority: "high" }}
+                  height={16}
+                  src={text_logo_url}
+                />
+              </div>
+
+              <p className="mt-3 text-[15px] font-bold plan_galaxy_text_primary">
+                {t("settings.top_up_credits")}
+              </p>
+
+              {summary && (
+                <>
+                  <div className="mt-3 space-y-1.5 text-[12px] plan_galaxy_text_body">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="plan_galaxy_text_muted">
+                        {t("common.subtotal")}
+                      </span>
+                      <span>
+                        {format_price(summary.price, preferred_currency)}
+                      </span>
+                    </div>
+                    {summary.bonus > 0 && (
+                      <div style={{ color: "var(--accent-color)" }}>
+                        {t("settings.credit_package_bonus", {
+                          bonus: format_price(
+                            summary.bonus,
+                            preferred_currency,
+                          ),
+                        })}
+                      </div>
+                    )}
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="plan_galaxy_text_muted">
+                        {t("settings.credits")}
+                      </span>
+                      <span>
+                        {format_price(summary.total, preferred_currency)}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="plan_galaxy_divider mt-3 border-t pt-3">
+                    <div className="flex items-end justify-between gap-2">
+                      <span className="text-[12px] font-semibold plan_galaxy_text_muted">
+                        {t("settings.checkout_amount_due")}
+                      </span>
+                      <span className="text-[22px] font-bold leading-none plan_galaxy_text_primary">
+                        {format_price(summary.price, preferred_currency)}
+                      </span>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              <Button
+                className="mt-4 w-full"
+                disabled={buying || !selected_package}
+                variant="primary"
+                onClick={handle_buy}
+              >
+                {buying ? (
+                  <span className="inline-flex items-center gap-2">
+                    <Spinner size="xs" />
+                    {t("settings.buying_credits")}
+                  </span>
+                ) : (
+                  t("settings.buy_credits")
+                )}
+              </Button>
+
+              <div className="mt-3 flex items-center justify-center gap-1.5 text-[11px] plan_galaxy_text_muted">
+                <LockClosedIcon className="h-3.5 w-3.5 flex-shrink-0" />
+                <span>{t("settings.stripe_secure_short")}</span>
+              </div>
+
+              <p className="mt-2 text-[11px] leading-relaxed plan_galaxy_text_muted">
+                {t("settings.top_up_credits_description")}
+              </p>
             </div>
-          )}
+          </aside>
         </ModalBody>
-        <ModalFooter>
-          <Button
-            disabled={buying}
-            variant="outline"
-            onClick={() => set_show_picker(false)}
-          >
-            {t("common.cancel")}
-          </Button>
-          <Button
-            disabled={buying || !selected_package}
-            variant="primary"
-            onClick={handle_buy}
-          >
-            {buying ? t("settings.buying_credits") : t("settings.buy_credits")}
-          </Button>
-        </ModalFooter>
+
+        <Modal
+          close_on_escape
+          close_on_overlay={false}
+          is_open={confirm_abandon}
+          on_close={() => set_confirm_abandon(false)}
+          show_close_button={false}
+          size="sm"
+          z_index={90}
+        >
+          <ModalHeader className="pb-2">
+            <ModalTitle className="text-base">
+              {t("settings.checkout_abandon_title")}
+            </ModalTitle>
+          </ModalHeader>
+          <ModalBody>
+            <p className="text-[13px] leading-relaxed text-txt-secondary">
+              {t("settings.checkout_abandon_message")}
+            </p>
+          </ModalBody>
+          <ModalFooter>
+            <Button
+              variant="secondary"
+              onClick={() => set_confirm_abandon(false)}
+            >
+              {t("settings.checkout_abandon_keep")}
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                set_confirm_abandon(false);
+                set_show_picker(false);
+              }}
+            >
+              {t("settings.checkout_abandon_confirm")}
+            </Button>
+          </ModalFooter>
+        </Modal>
       </Modal>
 
       {credit_balance &&
@@ -567,7 +744,11 @@ export function CreditsSection({
                         </div>
                         <div className="flex items-center gap-2">
                           <span
-                            className={`text-xs font-medium px-2 py-0.5 rounded ${is_positive ? "bg-green-500/20 text-green-500" : "bg-red-500/20 text-red-500"}`}
+                            className={
+                              is_positive
+                                ? "aster_badge aster_badge_green"
+                                : "aster_badge aster_badge_red"
+                            }
                           >
                             {type_label}
                           </span>

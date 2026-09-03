@@ -2878,7 +2878,8 @@ export const ja = {
       "送信者の固定を使用するにはプランをアップグレードしてください。",
     requires_plan: "{{plan}} が必要です",
     alias_domain_group_extra: "追加ドメイン",
-    alias_domain_requires_plan: "このドメインは {{plan}} プラン以上でご利用いただけます。",
+    alias_domain_requires_plan:
+      "このドメインは {{plan}} プラン以上でご利用いただけます。",
     alias_feature_locked_view_plans: "プランを表示",
     alias_feature_locked_upgrade_plan: "プランをアップグレード",
     alias_feature_locked_upgrade_cta: "アップグレード",
@@ -4092,18 +4093,24 @@ export const ja = {
       "このセッションは別のネットワークまたはブラウザで開始されました。サインアウトしてから、もう一度サインインしてお試しください。",
     checkout_family_group_member:
       "すでにファミリーグループに参加しています。新しいグループを作成する前に、現在のグループから退出してください。",
-    checkout_family_plan_active: "ファミリープランはすでに有効です。ページを更新すると表示されます。",
+    checkout_family_plan_active:
+      "ファミリープランはすでに有効です。ページを更新すると表示されます。",
     checkout_crypto_open_invoice_limit:
       "未処理の暗号資産の請求が多すぎます。いずれかを完了するかキャンセルしてから、もう一度お試しください。",
-    checkout_crypto_active_card: "暗号資産で支払う前に、カードのサブスクリプションをキャンセルしてください。",
-    checkout_unpaid_subscription: "前回の請求が未払いです。設定の請求で支払ってから、もう一度お試しください。",
+    checkout_crypto_active_card:
+      "暗号資産で支払う前に、カードのサブスクリプションをキャンセルしてください。",
+    checkout_unpaid_subscription:
+      "前回の請求が未払いです。設定の請求で支払ってから、もう一度お試しください。",
     checkout_pending_cancellation:
       "サブスクリプションはキャンセル予定です。プランを変更する前に、自動更新をオンに戻してください。",
-    checkout_duplicate_subscription: "このサブスクリプションはすでにご利用中です。ページを更新すると表示されます。",
+    checkout_duplicate_subscription:
+      "このサブスクリプションはすでにご利用中です。ページを更新すると表示されます。",
     checkout_provider_unreachable:
       "決済プロバイダが応答していません。1分ほど待ってからもう一度お試しください。請求は発生していません。",
-    checkout_sca_required: "この支払いには銀行の確認が必要です。銀行の案内に従ってから、もう一度お試しください。",
-    checkout_card_declined: "銀行がカードを拒否しました。別のカードを使うか、銀行にお問い合わせください。",
+    checkout_sca_required:
+      "この支払いには銀行の確認が必要です。銀行の案内に従ってから、もう一度お試しください。",
+    checkout_card_declined:
+      "銀行がカードを拒否しました。別のカードを使うか、銀行にお問い合わせください。",
     checkout_collection_failed:
       "支払いを受け取れませんでした。設定の請求でお支払い方法を更新してから、もう一度お試しください。",
     plan_not_available:
@@ -5698,6 +5705,112 @@ export const ja = {
     credit_type_reversal: "取消",
     credit_type_purchase: "購入",
     top_up_credits: "チャージ",
+    checkout_abandon_confirm: "支払いをキャンセル",
+    checkout_abandon_keep: "支払いを続ける",
+    checkout_abandon_message:
+      "請求はキャンセルされ、料金は発生しません。いつでもやり直せます。",
+    checkout_abandon_title: "この支払いをキャンセルしますか？",
+    checkout_add_promo: "プロモーションコードを追加",
+    checkout_amount_due: "お支払い金額",
+    checkout_card_details: "カード情報",
+    checkout_full_features_title: "{{plan}} の機能",
+    checkout_leave_warning:
+      "支払いの手続き中です。ここで離れると完了しません。",
+    checkout_pay_amount: "{{amount}} を支払う",
+    checkout_review_title: "確認して支払う",
+    checkout_what_you_get: "含まれるもの",
+    credits_method_card_note:
+      "支払いが完了するとすぐにクレジットが追加されます。",
+    credits_method_crypto_note:
+      "暗号資産で一度だけ支払います。チェーン上で支払いが確認されるとクレジットが追加されます。",
+    offer_modal_action: "この特典を受け取る",
+    offer_modal_badge: "{{percent}}% オフ",
+    offer_modal_dismiss: "後で",
+    offer_modal_fine_print:
+      "コード {{code}} は支払い時に適用されます。1 アカウントにつき 1 回まで。",
+    offer_modal_price_note: "割引は支払い時に適用されます。",
+    offer_modal_subtitle: "{{plan}} をより安く利用できます。",
+    offer_modal_title: "プランが {{percent}}% お得",
+    offer_upgrade_description: "割引を使うプランを選んでください。",
+    offer_upgrade_title: "特典が届いています",
+    plan_cat_advanced_aliases: "高度なエイリアス",
+    plan_cat_contacts: "連絡先",
+    plan_cat_general: "一般",
+    plan_cat_mail: "メール",
+    plan_cat_security: "セキュリティ",
+    plan_cat_subscriptions: "定期購読",
+    plan_cat_support: "サポート",
+    plan_cat_vanguard: "Vanguard",
+    plan_f_alias_bulk: "エイリアスの一括操作",
+    plan_f_alias_csv: "エイリアスの CSV 書き出し",
+    plan_f_alias_import: "エイリアスの取り込み",
+    plan_f_alias_no_cooldown: "エイリアス作成の待ち時間なし",
+    plan_f_alias_pin: "エイリアスのピン留め",
+    plan_f_alias_transfer: "エイリアスの移動",
+    plan_f_allowlist: "許可する差出人",
+    plan_f_biometric: "生体認証でロック解除",
+    plan_f_blocked_senders: "ブロックした差出人",
+    plan_f_contact_import: "連絡先の取り込み",
+    plan_f_contact_sync: "連絡先の同期（CardDAV）",
+    plan_f_contacts: "暗号化された連絡先",
+    plan_f_cross_platform: "Web、デスクトップ、Android、iOS のアプリ",
+    plan_f_custom_categories: "カスタム受信トレイカテゴリ",
+    plan_f_email_export: "メールの書き出し",
+    plan_f_email_import: "メールの取り込み",
+    plan_f_expiration: "有効期限付きメール",
+    plan_f_folder_auto_clean: "フォルダの自動整理",
+    plan_f_folders: "フォルダとラベル",
+    plan_f_key_management: "鍵の管理",
+    plan_f_link_warnings: "不審なリンクの警告",
+    plan_f_one_click_unsub: "ワンクリックで配信停止",
+    plan_f_password_emails: "パスワード保護されたメール",
+    plan_f_pgp: "PGP 暗号化",
+    plan_f_phishing: "フィッシング対策",
+    plan_f_quick_alias_reply: "エイリアスからのクイック返信",
+    plan_f_scheduled_send: "予約送信",
+    plan_f_snooze: "メールのスヌーズ",
+    plan_f_sub_categories: "定期購読のカテゴリ",
+    plan_f_sub_scanner: "定期購読スキャナ",
+    plan_f_vanguard_app_lock: "アプリロック",
+    plan_f_vanguard_lockdown_mode: "ロックダウンモード",
+    plan_f_wkd: "Web Key Directory",
+    plan_tip_alias_bulk:
+      "多数のエイリアスをまとめて有効化、無効化、削除できます。",
+    plan_tip_alias_csv:
+      "すべてのエイリアスを、ルールと状態を含めて CSV ファイルに書き出せます。",
+    plan_tip_alias_import: "他社のエイリアスを 1 ステップで移行できます。",
+    plan_tip_alias_no_cooldown:
+      "待ち時間なしでエイリアスを続けて作成できます。",
+    plan_tip_alias_pin: "よく使うエイリアスをリストの先頭に固定できます。",
+    plan_tip_alias_transfer:
+      "エイリアスを自分の別の Aster アカウントに移動できます。",
+    plan_tip_allowlist: "フィルタで止まる差出人でも、指定すれば受信できます。",
+    plan_tip_contact_sync:
+      "macOS と iOS の連絡先、Android の DAVx5、その他の CardDAV クライアントと連絡先を同期できます。デバイス上で動作する Aster Bridge アプリを利用します。",
+    plan_tip_custom_categories:
+      "独自の受信トレイタブを作り、どのメールを振り分けるか決められます。",
+    plan_tip_email_export:
+      "どこでも開ける標準形式のアーカイブとしてメールをダウンロードできます。",
+    plan_tip_email_import:
+      "他社のメールを IMAP 経由でフォルダ構成のまま移行できます。",
+    plan_tip_expiration:
+      "指定した日付を過ぎると、受信者側の表示からメールが削除されます。",
+    plan_tip_extra_alias_domains:
+      "astermail.org 以外の Aster ドメインでもエイリアスを作成できます。",
+    plan_tip_folder_auto_clean:
+      "設定した期間より古いメールを、フォルダごとに削除します。",
+    plan_tip_sub_scanner:
+      "登録済みのニュースレターやサービスを洗い出し、1 か所でまとめて解除できます。",
+    plan_tip_vanguard_app_lock:
+      "Aster を開くたびに、デバイスのパスコードまたは生体認証を求めます。",
+    plan_tip_vanguard_lockdown_mode:
+      "オフにするまで、リモートコンテンツ、外部リンク、新しい差出人をブロックします。",
+    plan_tip_wkd:
+      "自分のドメインで公開鍵を公開すると、誰でもそれを見つけて暗号化したメールを送れます。",
+    stripe_secure_short: "Stripe による保護",
+    upgrade_external_accounts_note:
+      "プランをアップグレードすると、外部アカウントをさらに接続できます。",
+    usage_external_accounts: "外部アカウント",
     top_up_credits_description:
       "アカウントにクレジットを追加します。クレジットはプランの更新時に自動で使われます。",
     credit_packages_loading: "パッケージを読み込んでいます...",
@@ -7023,10 +7136,14 @@ export const ja = {
     export_step_incomplete_title: "エクスポートが完了しませんでした",
     export_incomplete_summary:
       "エクスポートが停止するまでに {{ total }} 件中 {{ count }} 件のメッセージをエクスポートしました。",
-    export_progress_messages_unknown_total: "{{ processed }}件のメッセージをエクスポート済み",
-    export_complete_summary_unknown_total: "{{ count }}件のメッセージをエクスポートしました。",
-    export_incomplete_summary_unknown_total: "エクスポートが停止するまでに{{ count }}件のメッセージをエクスポートしました。",
-    export_incomplete_partial_saved: "ファイルには、ここまでにエクスポートしたメッセージが含まれています。",
+    export_progress_messages_unknown_total:
+      "{{ processed }}件のメッセージをエクスポート済み",
+    export_complete_summary_unknown_total:
+      "{{ count }}件のメッセージをエクスポートしました。",
+    export_incomplete_summary_unknown_total:
+      "エクスポートが停止するまでに{{ count }}件のメッセージをエクスポートしました。",
+    export_incomplete_partial_saved:
+      "ファイルには、ここまでにエクスポートしたメッセージが含まれています。",
     export_complete_data_only: "エクスポートの準備ができました。",
     export_complete_summary:
       "{{ total }}件中{{ count }}件のメッセージをエクスポートしました。",
@@ -7040,7 +7157,8 @@ export const ja = {
       "{{ count }} 件の添付ファイルを復号できなかったため、このアーカイブには含まれていません。",
     export_complete_errors_in_mbox_hint:
       "エラーログがメールボックスファイルの末尾に追記されています。",
-    export_error_write_partial: "エクスポートが途中で停止しました。ファイルには、ここまでにエクスポートしたメッセージが含まれています。",
+    export_error_write_partial:
+      "エクスポートが途中で停止しました。ファイルには、ここまでにエクスポートしたメッセージが含まれています。",
     export_error_write_fatal:
       "選択した保存先に書き込めませんでした。エクスポートを停止しました。",
     export_error_no_vault:

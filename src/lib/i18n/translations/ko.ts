@@ -2774,7 +2774,8 @@ export const ko = {
       "발신자 고정을 사용하려면 요금제를 업그레이드하세요.",
     requires_plan: "{{plan}} 필요",
     alias_domain_group_extra: "추가 도메인",
-    alias_domain_requires_plan: "이 도메인은 {{plan}} 플랜 이상에서 사용할 수 있습니다.",
+    alias_domain_requires_plan:
+      "이 도메인은 {{plan}} 플랜 이상에서 사용할 수 있습니다.",
     alias_feature_locked_view_plans: "요금제 보기",
     alias_feature_locked_upgrade_plan: "요금제 업그레이드",
     alias_feature_locked_upgrade_cta: "업그레이드",
@@ -4062,18 +4063,24 @@ export const ko = {
       "이 세션은 다른 네트워크나 브라우저에서 시작되었습니다. 로그아웃한 후 다시 로그인하고 시도하세요.",
     checkout_family_group_member:
       "이미 가족 그룹에 속해 있습니다. 새 그룹을 만들기 전에 현재 그룹에서 나가세요.",
-    checkout_family_plan_active: "가족 요금제가 이미 사용 중입니다. 페이지를 새로 고치면 표시됩니다.",
+    checkout_family_plan_active:
+      "가족 요금제가 이미 사용 중입니다. 페이지를 새로 고치면 표시됩니다.",
     checkout_crypto_open_invoice_limit:
       "처리 중인 암호화폐 청구서가 너무 많습니다. 하나를 완료하거나 취소한 후 다시 시도하세요.",
-    checkout_crypto_active_card: "암호화폐로 결제하기 전에 카드 구독을 취소하세요.",
+    checkout_crypto_active_card:
+      "암호화폐로 결제하기 전에 카드 구독을 취소하세요.",
     checkout_unpaid_subscription:
       "마지막 청구서가 결제되지 않았습니다. 설정의 결제에서 납부한 후 다시 시도하세요.",
-    checkout_pending_cancellation: "구독이 취소 예정입니다. 요금제를 변경하기 전에 자동 갱신을 다시 켜세요.",
-    checkout_duplicate_subscription: "이 구독을 이미 사용 중입니다. 페이지를 새로 고치면 표시됩니다.",
+    checkout_pending_cancellation:
+      "구독이 취소 예정입니다. 요금제를 변경하기 전에 자동 갱신을 다시 켜세요.",
+    checkout_duplicate_subscription:
+      "이 구독을 이미 사용 중입니다. 페이지를 새로 고치면 표시됩니다.",
     checkout_provider_unreachable:
       "결제 서비스가 응답하지 않습니다. 잠시 기다린 후 다시 시도하세요. 청구된 금액은 없습니다.",
-    checkout_sca_required: "이 결제는 은행 확인이 필요합니다. 은행 안내에 따른 후 다시 시도하세요.",
-    checkout_card_declined: "은행에서 카드를 거절했습니다. 다른 카드를 사용하거나 은행에 문의하세요.",
+    checkout_sca_required:
+      "이 결제는 은행 확인이 필요합니다. 은행 안내에 따른 후 다시 시도하세요.",
+    checkout_card_declined:
+      "은행에서 카드를 거절했습니다. 다른 카드를 사용하거나 은행에 문의하세요.",
     checkout_collection_failed:
       "결제를 처리하지 못했습니다. 설정의 결제에서 결제 수단을 업데이트한 후 다시 시도하세요.",
     plan_not_available:
@@ -5619,6 +5626,111 @@ export const ko = {
     credit_type_reversal: "취소",
     credit_type_purchase: "구매",
     top_up_credits: "충전",
+    checkout_abandon_confirm: "결제 취소",
+    checkout_abandon_keep: "계속 결제하기",
+    checkout_abandon_message:
+      "청구서가 취소되고 아무 금액도 청구되지 않습니다. 언제든지 다시 시작할 수 있습니다.",
+    checkout_abandon_title: "이 결제를 취소할까요?",
+    checkout_add_promo: "프로모션 코드 추가",
+    checkout_amount_due: "결제 금액",
+    checkout_card_details: "카드 정보",
+    checkout_full_features_title: "{{plan}} 기능",
+    checkout_leave_warning:
+      "진행 중인 결제가 있습니다. 지금 나가면 결제가 완료되지 않습니다.",
+    checkout_pay_amount: "{{amount}} 결제",
+    checkout_review_title: "확인 후 결제",
+    checkout_what_you_get: "제공 내용",
+    credits_method_card_note: "결제가 승인되는 즉시 크레딧이 추가됩니다.",
+    credits_method_crypto_note:
+      "암호화폐로 한 번만 결제합니다. 체인에서 결제가 확인되면 크레딧이 추가됩니다.",
+    offer_modal_action: "혜택 받기",
+    offer_modal_badge: "{{percent}}% 할인",
+    offer_modal_dismiss: "나중에",
+    offer_modal_fine_print:
+      "코드 {{code}}는 결제 시 적용됩니다. 계정당 한 번 사용할 수 있습니다.",
+    offer_modal_price_note: "할인은 결제 시 적용됩니다.",
+    offer_modal_subtitle: "더 낮은 가격으로 {{plan}}(으)로 옮겨 보세요.",
+    offer_modal_title: "요금제를 {{percent}}% 절약하세요",
+    offer_upgrade_description: "할인을 사용할 요금제를 선택하세요.",
+    offer_upgrade_title: "혜택이 기다리고 있습니다",
+    plan_cat_advanced_aliases: "고급 별칭",
+    plan_cat_contacts: "연락처",
+    plan_cat_general: "일반",
+    plan_cat_mail: "메일",
+    plan_cat_security: "보안",
+    plan_cat_subscriptions: "구독",
+    plan_cat_support: "지원",
+    plan_cat_vanguard: "Vanguard",
+    plan_f_alias_bulk: "별칭 일괄 작업",
+    plan_f_alias_csv: "별칭 CSV 내보내기",
+    plan_f_alias_import: "별칭 가져오기",
+    plan_f_alias_no_cooldown: "별칭 생성 대기 시간 없음",
+    plan_f_alias_pin: "별칭 고정",
+    plan_f_alias_transfer: "별칭 이전",
+    plan_f_allowlist: "허용 발신자 목록",
+    plan_f_biometric: "생체 인식 잠금 해제",
+    plan_f_blocked_senders: "차단된 발신자",
+    plan_f_contact_import: "연락처 가져오기",
+    plan_f_contact_sync: "연락처 동기화(CardDAV)",
+    plan_f_contacts: "암호화된 연락처",
+    plan_f_cross_platform: "웹, 데스크탑, Android, iOS 앱",
+    plan_f_custom_categories: "맞춤 받은편지함 카테고리",
+    plan_f_email_export: "메일 내보내기",
+    plan_f_email_import: "메일 가져오기",
+    plan_f_expiration: "만료되는 메일",
+    plan_f_folder_auto_clean: "폴더 자동 정리",
+    plan_f_folders: "폴더 및 라벨",
+    plan_f_key_management: "키 관리",
+    plan_f_link_warnings: "의심스러운 링크 경고",
+    plan_f_one_click_unsub: "원클릭 수신 거부",
+    plan_f_password_emails: "비밀번호로 보호된 메일",
+    plan_f_pgp: "PGP 암호화",
+    plan_f_phishing: "피싱 보호",
+    plan_f_quick_alias_reply: "별칭으로 빠른 답장",
+    plan_f_scheduled_send: "예약 발송",
+    plan_f_snooze: "메일 다시 알림",
+    plan_f_sub_categories: "구독 카테고리",
+    plan_f_sub_scanner: "구독 스캐너",
+    plan_f_vanguard_app_lock: "앱 잠금",
+    plan_f_vanguard_lockdown_mode: "잠금 모드",
+    plan_f_wkd: "웹 키 디렉터리",
+    plan_tip_alias_bulk:
+      "여러 별칭을 한 번에 켜거나 끄거나 삭제할 수 있습니다.",
+    plan_tip_alias_csv:
+      "모든 별칭을 규칙과 상태까지 포함해 CSV 파일로 내보낼 수 있습니다.",
+    plan_tip_alias_import: "다른 제공업체의 별칭을 한 번에 옮겨올 수 있습니다.",
+    plan_tip_alias_no_cooldown: "기다리지 않고 별칭을 연달아 만들 수 있습니다.",
+    plan_tip_alias_pin:
+      "가장 자주 쓰는 별칭을 목록 맨 위에 고정할 수 있습니다.",
+    plan_tip_alias_transfer:
+      "별칭을 본인의 다른 Aster 계정으로 옮길 수 있습니다.",
+    plan_tip_allowlist: "필터가 막을 발신자라도 지정하면 메일이 도착합니다.",
+    plan_tip_contact_sync:
+      "macOS와 iOS의 연락처, Android의 DAVx5, 그 밖의 CardDAV 클라이언트와 연락처를 동기화합니다. 기기에서 실행되는 Aster Bridge 앱을 통해 작동합니다.",
+    plan_tip_custom_categories:
+      "받은편지함 탭을 직접 만들고 각 탭에 어떤 메일이 들어올지 정할 수 있습니다.",
+    plan_tip_email_export:
+      "어디서나 열 수 있는 표준 아카이브로 메일을 내려받을 수 있습니다.",
+    plan_tip_email_import:
+      "IMAP으로 다른 제공업체의 메일을 폴더 구조 그대로 가져올 수 있습니다.",
+    plan_tip_expiration:
+      "지정한 날짜가 지나면 받는 사람 화면에서 메일이 삭제됩니다.",
+    plan_tip_extra_alias_domains:
+      "astermail.org 외의 Aster 도메인에서도 별칭을 만들 수 있습니다.",
+    plan_tip_folder_auto_clean:
+      "설정한 기간보다 오래된 메일을 폴더별로 삭제합니다.",
+    plan_tip_sub_scanner:
+      "구독한 뉴스레터와 서비스를 모두 찾아 한곳에서 해지할 수 있습니다.",
+    plan_tip_vanguard_app_lock:
+      "Aster를 열 때마다 기기 암호나 생체 인식을 요구합니다.",
+    plan_tip_vanguard_lockdown_mode:
+      "직접 끌 때까지 원격 콘텐츠, 외부 링크, 새 발신자를 차단합니다.",
+    plan_tip_wkd:
+      "내 도메인에 공개 키를 게시하면 누구나 키를 찾아 암호화된 메일을 보낼 수 있습니다.",
+    stripe_secure_short: "Stripe 보안 결제",
+    upgrade_external_accounts_note:
+      "요금제를 업그레이드하면 외부 계정을 더 연결할 수 있습니다.",
+    usage_external_accounts: "외부 계정",
     top_up_credits_description:
       "계정에 크레딧을 추가하세요. 크레딧은 요금제 갱신에 자동으로 사용됩니다.",
     credit_packages_loading: "패키지를 불러오는 중...",
@@ -6823,9 +6935,12 @@ export const ko = {
     export_incomplete_summary:
       "내보내기가 중단되기 전까지 메시지 {{ total }}개 중 {{ count }}개를 내보냈습니다.",
     export_progress_messages_unknown_total: "메시지 {{ processed }}개 내보냄",
-    export_complete_summary_unknown_total: "메시지 {{ count }}개를 내보냈습니다.",
-    export_incomplete_summary_unknown_total: "내보내기가 중단되기 전까지 메시지 {{ count }}개를 내보냈습니다.",
-    export_incomplete_partial_saved: "파일에는 지금까지 내보낸 메시지가 들어 있습니다.",
+    export_complete_summary_unknown_total:
+      "메시지 {{ count }}개를 내보냈습니다.",
+    export_incomplete_summary_unknown_total:
+      "내보내기가 중단되기 전까지 메시지 {{ count }}개를 내보냈습니다.",
+    export_incomplete_partial_saved:
+      "파일에는 지금까지 내보낸 메시지가 들어 있습니다.",
     export_complete_data_only: "내보내기가 준비되었습니다.",
     export_complete_summary:
       "{{total}}개 중 {{count}}개 메시지를 내보냈습니다.",
@@ -6838,7 +6953,8 @@ export const ko = {
       "첨부 파일 {{ count }}개를 복호화하지 못해 이 아카이브에서 제외되었습니다.",
     export_complete_errors_in_mbox_hint:
       "일부 메시지를 내보내지 못했습니다. 다시 시도하면 됩니다.",
-    export_error_write_partial: "내보내기가 도중에 중단되었습니다. 파일에는 지금까지 내보낸 메시지가 들어 있습니다.",
+    export_error_write_partial:
+      "내보내기가 도중에 중단되었습니다. 파일에는 지금까지 내보낸 메시지가 들어 있습니다.",
     export_error_write_fatal:
       "디스크에 쓰는 중 치명적인 오류가 발생했습니다. 공간이 충분한지 확인하고 다시 시도하세요.",
     export_error_no_vault:

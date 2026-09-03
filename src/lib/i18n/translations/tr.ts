@@ -2933,7 +2933,8 @@ export const tr = {
       "Gönderen sabitlemeyi kullanmak için planınızı yükseltin.",
     requires_plan: "{{plan}} gerekir",
     alias_domain_group_extra: "Ek alan adları",
-    alias_domain_requires_plan: "Bu alan adı {{plan}} planı ve üzerinde kullanılabilir.",
+    alias_domain_requires_plan:
+      "Bu alan adı {{plan}} planı ve üzerinde kullanılabilir.",
     alias_feature_locked_view_plans: "Planları görüntüle",
     alias_feature_locked_upgrade_plan: "Planı yükselt",
     alias_feature_locked_upgrade_cta: "Yükselt",
@@ -5702,6 +5703,115 @@ export const tr = {
     credit_type_reversal: "İptal",
     credit_type_purchase: "Satın Alma",
     top_up_credits: "Yükle",
+    checkout_abandon_confirm: "Ödemeyi iptal et",
+    checkout_abandon_keep: "Ödemeye devam et",
+    checkout_abandon_message:
+      "Faturanız iptal edilir ve hiçbir tutar tahsil edilmez. İstediğiniz zaman yeniden başlayabilirsiniz.",
+    checkout_abandon_title: "Bu ödeme iptal edilsin mi?",
+    checkout_add_promo: "Promosyon kodu ekle",
+    checkout_amount_due: "Ödenecek tutar",
+    checkout_card_details: "Kart bilgileri",
+    checkout_full_features_title: "{{plan}} özellikleri",
+    checkout_leave_warning:
+      "Devam eden bir ödemeniz var. Şimdi çıkarsanız ödeme tamamlanmaz.",
+    checkout_pay_amount: "{{amount}} öde",
+    checkout_review_title: "Gözden geçir ve öde",
+    checkout_what_you_get: "Neler kazanıyorsunuz",
+    credits_method_card_note:
+      "Ödeme onaylanır onaylanmaz krediler hesabınıza eklenir.",
+    credits_method_crypto_note:
+      "Kripto ile tek seferde ödeyin. Ödeme zincir üzerinde doğrulandıktan sonra krediler eklenir.",
+    offer_modal_action: "Bu fırsatı kullan",
+    offer_modal_badge: "%{{percent}} indirim",
+    offer_modal_dismiss: "Şimdi değil",
+    offer_modal_fine_print:
+      "{{code}} kodu ödeme sırasında uygulanır. Hesap başına bir kullanım.",
+    offer_modal_price_note: "İndirim ödeme sırasında uygulanır.",
+    offer_modal_subtitle: "{{plan}} planına daha uygun fiyata geçin.",
+    offer_modal_title: "Planınızda %{{percent}} tasarruf edin",
+    offer_upgrade_description: "İndiriminizi kullanmak için bir plan seçin.",
+    offer_upgrade_title: "Fırsatınız sizi bekliyor",
+    plan_cat_advanced_aliases: "Gelişmiş takma adresler",
+    plan_cat_contacts: "Kişiler",
+    plan_cat_general: "Genel",
+    plan_cat_mail: "Posta",
+    plan_cat_security: "Güvenlik",
+    plan_cat_subscriptions: "Abonelikler",
+    plan_cat_support: "Destek",
+    plan_cat_vanguard: "Vanguard",
+    plan_f_alias_bulk: "Takma adreslerde toplu işlemler",
+    plan_f_alias_csv: "Takma adresleri CSV olarak dışa aktarma",
+    plan_f_alias_import: "Takma adres içe aktarma",
+    plan_f_alias_no_cooldown: "Takma adresler arasında bekleme yok",
+    plan_f_alias_pin: "Sabitlenmiş takma adresler",
+    plan_f_alias_transfer: "Takma adres aktarımı",
+    plan_f_allowlist: "İzin verilen gönderenler",
+    plan_f_biometric: "Biyometrik kilit açma",
+    plan_f_blocked_senders: "Engellenen gönderenler",
+    plan_f_contact_import: "Kişi içe aktarma",
+    plan_f_contact_sync: "Kişi eşitleme (CardDAV)",
+    plan_f_contacts: "Şifreli kişiler",
+    plan_f_cross_platform: "Web, masaüstü, Android ve iOS uygulamaları",
+    plan_f_custom_categories: "Özel gelen kutusu kategorileri",
+    plan_f_email_export: "E-posta dışa aktarma",
+    plan_f_email_import: "E-posta içe aktarma",
+    plan_f_expiration: "Süresi dolan e-postalar",
+    plan_f_folder_auto_clean: "Otomatik klasör temizliği",
+    plan_f_folders: "Klasörler ve etiketler",
+    plan_f_key_management: "Anahtar yönetimi",
+    plan_f_link_warnings: "Şüpheli bağlantı uyarıları",
+    plan_f_one_click_unsub: "Tek tıkla abonelikten çıkma",
+    plan_f_password_emails: "Parola korumalı e-postalar",
+    plan_f_pgp: "PGP şifrelemesi",
+    plan_f_phishing: "Kimlik avı koruması",
+    plan_f_quick_alias_reply: "Takma adresten hızlı yanıt",
+    plan_f_scheduled_send: "Zamanlanmış gönderim",
+    plan_f_snooze: "E-postaları erteleme",
+    plan_f_sub_categories: "Abonelik kategorileri",
+    plan_f_sub_scanner: "Abonelik tarayıcısı",
+    plan_f_vanguard_app_lock: "Uygulama kilidi",
+    plan_f_vanguard_lockdown_mode: "Kapalı devre modu",
+    plan_f_wkd: "Web Anahtar Dizini",
+    plan_tip_alias_bulk:
+      "Çok sayıda takma adresi tek seferde açın, kapatın veya silin.",
+    plan_tip_alias_csv:
+      "Tüm takma adresleri, kuralları ve durumlarıyla birlikte CSV dosyası olarak dışa aktarın.",
+    plan_tip_alias_import:
+      "Takma adreslerinizi başka bir sağlayıcıdan tek adımda taşıyın.",
+    plan_tip_alias_no_cooldown:
+      "Aralarında beklemeden art arda takma adres oluşturun.",
+    plan_tip_alias_pin:
+      "En çok kullandığınız takma adresleri listenin en üstünde tutun.",
+    plan_tip_alias_transfer:
+      "Bir takma adresi sahibi olduğunuz başka bir Aster hesabına taşıyın.",
+    plan_tip_allowlist:
+      "Bir filtre engelleyecek olsa bile belirlediğiniz gönderenlerin geçmesine izin verin.",
+    plan_tip_contact_sync:
+      "Kişilerinizi macOS ve iOS'taki Kişiler uygulamasıyla, Android'deki DAVx5 ile veya herhangi bir CardDAV istemcisiyle eşitleyin. Cihazınızdaki Aster Bridge yardımcı uygulamasıyla çalışır.",
+    plan_tip_custom_categories:
+      "Kendi gelen kutusu sekmelerinizi oluşturun ve her birine neyin geleceğine karar verin.",
+    plan_tip_email_export:
+      "Postanızı her yerde açabileceğiniz standart bir arşiv olarak indirin.",
+    plan_tip_email_import:
+      "Postanızı başka bir sağlayıcıdan IMAP ile, klasörleri bozulmadan getirin.",
+    plan_tip_expiration:
+      "Bir e-postanın alıcının görünümünden silineceği tarihi belirleyin.",
+    plan_tip_extra_alias_domains:
+      "Yalnızca astermail.org'da değil, diğer Aster alan adlarında da takma adres oluşturun.",
+    plan_tip_folder_auto_clean:
+      "Belirlediğiniz süreden eski olan her şeyi klasör klasör silin.",
+    plan_tip_sub_scanner:
+      "Abone olduğunuz her bülteni ve hizmeti bulun, sonra tek bir yerden abonelikten çıkın.",
+    plan_tip_vanguard_app_lock:
+      "Aster'ı her açtığınızda cihaz parolanızı veya biyometriyi isteyin.",
+    plan_tip_vanguard_lockdown_mode:
+      "Siz kapatana kadar uzak içeriği, dış bağlantıları ve yeni gönderenleri engelleyin.",
+    plan_tip_wkd:
+      "Açık anahtarınızı kendi alan adınızda yayımlayın, böylece herkes onu bulup size şifreli yazabilir.",
+    stripe_secure_short: "Stripe ile güvende",
+    upgrade_external_accounts_note:
+      "Daha fazla dış hesap bağlamak için planınızı yükseltin.",
+    usage_external_accounts: "Dış hesaplar",
     top_up_credits_description:
       "Hesabınıza kredi ekleyin. Krediler plan yenilemelerinde otomatik olarak kullanılır.",
     credit_packages_loading: "Paketler yükleniyor...",
@@ -7106,10 +7216,13 @@ export const tr = {
     export_step_incomplete_title: "Dışa aktarma tamamlanmadı",
     export_incomplete_summary:
       "Dışa aktarma durmadan önce {{ total }} iletiden {{ count }} tanesi dışa aktarıldı.",
-    export_progress_messages_unknown_total: "{{ processed }} ileti dışa aktarıldı",
+    export_progress_messages_unknown_total:
+      "{{ processed }} ileti dışa aktarıldı",
     export_complete_summary_unknown_total: "{{ count }} ileti dışa aktarıldı.",
-    export_incomplete_summary_unknown_total: "Dışa aktarma durmadan önce {{ count }} ileti dışa aktarıldı.",
-    export_incomplete_partial_saved: "Dosyan şu ana kadar dışa aktarılan iletileri içeriyor.",
+    export_incomplete_summary_unknown_total:
+      "Dışa aktarma durmadan önce {{ count }} ileti dışa aktarıldı.",
+    export_incomplete_partial_saved:
+      "Dosyan şu ana kadar dışa aktarılan iletileri içeriyor.",
     export_complete_data_only: "Dışa aktarman hazır.",
     export_complete_summary:
       "{{ total }} mesajdan {{ count }} tanesi dışa aktarıldı.",
@@ -7122,7 +7235,8 @@ export const tr = {
       "{{ count }} ek şifresi çözülemediği için bu arşive eklenmedi.",
     export_complete_errors_in_mbox_hint:
       "Posta kutusu dosyasının sonuna bir hata günlüğü eklendi.",
-    export_error_write_partial: "Dışa aktarma erken durdu. Dosyan şu ana kadar dışa aktarılan iletileri içeriyor.",
+    export_error_write_partial:
+      "Dışa aktarma erken durdu. Dosyan şu ana kadar dışa aktarılan iletileri içeriyor.",
     export_error_write_fatal:
       "Seçilen hedefe yazılamadı. Dışa aktarma durduruldu.",
     export_error_no_vault:

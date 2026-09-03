@@ -3116,7 +3116,8 @@ export const pl = {
       "Przejdź na wyższy plan, aby korzystać z przypinania nadawców.",
     requires_plan: "Wymaga {{plan}}",
     alias_domain_group_extra: "Dodatkowe domeny",
-    alias_domain_requires_plan: "Ta domena jest dostępna w planie {{plan}} i wyższych.",
+    alias_domain_requires_plan:
+      "Ta domena jest dostępna w planie {{plan}} i wyższych.",
     alias_feature_locked_view_plans: "Zobacz plany",
     alias_feature_locked_upgrade_plan: "Zmień plan na wyższy",
     alias_feature_locked_upgrade_cta: "Ulepsz",
@@ -5948,6 +5949,113 @@ export const pl = {
     credit_type_reversal: "Cofnięcie",
     credit_type_purchase: "Zakup",
     top_up_credits: "Doładuj",
+    checkout_abandon_confirm: "Anuluj płatność",
+    checkout_abandon_keep: "Kontynuuj płatność",
+    checkout_abandon_message:
+      "Faktura zostaje anulowana i nic nie zostaje pobrane. Możesz zacząć od nowa w dowolnej chwili.",
+    checkout_abandon_title: "Anulować tę płatność?",
+    checkout_add_promo: "Dodaj kod promocyjny",
+    checkout_amount_due: "Kwota do zapłaty",
+    checkout_card_details: "Dane karty",
+    checkout_full_features_title: "Funkcje planu {{plan}}",
+    checkout_leave_warning:
+      "Masz płatność w toku. Jeśli teraz wyjdziesz, nie zostanie ona dokończona.",
+    checkout_pay_amount: "Zapłać {{amount}}",
+    checkout_review_title: "Sprawdź i zapłać",
+    checkout_what_you_get: "Co otrzymujesz",
+    credits_method_card_note:
+      "Środki są dodawane, gdy tylko płatność zostanie zatwierdzona.",
+    credits_method_crypto_note:
+      "Zapłać jednorazowo kryptowalutą. Środki są dodawane po potwierdzeniu płatności w łańcuchu bloków.",
+    offer_modal_action: "Skorzystaj z oferty",
+    offer_modal_badge: "{{percent}}% taniej",
+    offer_modal_dismiss: "Nie teraz",
+    offer_modal_fine_print:
+      "Kod {{code}} jest naliczany przy płatności. Jedno użycie na konto.",
+    offer_modal_price_note: "Rabat jest naliczany przy płatności.",
+    offer_modal_subtitle: "Przejdź na plan {{plan}} w niższej cenie.",
+    offer_modal_title: "Zaoszczędź {{percent}}% na swoim planie",
+    offer_upgrade_description: "Wybierz plan, aby wykorzystać rabat.",
+    offer_upgrade_title: "Twoja oferta czeka",
+    plan_cat_advanced_aliases: "Zaawansowane aliasy",
+    plan_cat_contacts: "Kontakty",
+    plan_cat_general: "Ogólne",
+    plan_cat_mail: "Poczta",
+    plan_cat_security: "Bezpieczeństwo",
+    plan_cat_subscriptions: "Subskrypcje",
+    plan_cat_support: "Pomoc",
+    plan_cat_vanguard: "Vanguard",
+    plan_f_alias_bulk: "Działania zbiorcze na aliasach",
+    plan_f_alias_csv: "Eksport aliasów do CSV",
+    plan_f_alias_import: "Import aliasów",
+    plan_f_alias_no_cooldown: "Brak przerwy między aliasami",
+    plan_f_alias_pin: "Przypięte aliasy",
+    plan_f_alias_transfer: "Przenoszenie aliasów",
+    plan_f_allowlist: "Lista dozwolonych nadawców",
+    plan_f_biometric: "Odblokowanie biometryczne",
+    plan_f_blocked_senders: "Zablokowani nadawcy",
+    plan_f_contact_import: "Import kontaktów",
+    plan_f_contact_sync: "Synchronizacja kontaktów (CardDAV)",
+    plan_f_contacts: "Zaszyfrowane kontakty",
+    plan_f_cross_platform:
+      "Aplikacje na przeglądarkę, komputer, Androida i iOS",
+    plan_f_custom_categories: "Własne kategorie skrzynki odbiorczej",
+    plan_f_email_export: "Eksport poczty",
+    plan_f_email_import: "Import poczty",
+    plan_f_expiration: "Wiadomości z terminem ważności",
+    plan_f_folder_auto_clean: "Automatyczne czyszczenie folderów",
+    plan_f_folders: "Foldery i etykiety",
+    plan_f_key_management: "Zarządzanie kluczami",
+    plan_f_link_warnings: "Ostrzeżenia o podejrzanych linkach",
+    plan_f_one_click_unsub: "Rezygnacja z subskrypcji jednym kliknięciem",
+    plan_f_password_emails: "Wiadomości chronione hasłem",
+    plan_f_pgp: "Szyfrowanie PGP",
+    plan_f_phishing: "Ochrona przed phishingiem",
+    plan_f_quick_alias_reply: "Szybka odpowiedź z aliasu",
+    plan_f_scheduled_send: "Wysyłka zaplanowana",
+    plan_f_snooze: "Odkładanie wiadomości",
+    plan_f_sub_categories: "Kategorie subskrypcji",
+    plan_f_sub_scanner: "Skaner subskrypcji",
+    plan_f_vanguard_app_lock: "Blokada aplikacji",
+    plan_f_vanguard_lockdown_mode: "Tryb izolacji",
+    plan_f_wkd: "Web Key Directory",
+    plan_tip_alias_bulk: "Włącz, wyłącz lub usuń wiele aliasów naraz.",
+    plan_tip_alias_csv:
+      "Wyeksportuj wszystkie aliasy wraz z ich regułami i stanem do pliku CSV.",
+    plan_tip_alias_import: "Przenieś aliasy od innego dostawcy w jednym kroku.",
+    plan_tip_alias_no_cooldown:
+      "Twórz aliasy jeden po drugim, bez czekania między nimi.",
+    plan_tip_alias_pin: "Trzymaj najczęściej używane aliasy na górze listy.",
+    plan_tip_alias_transfer:
+      "Przenieś alias na inne konto Aster, które należy do ciebie.",
+    plan_tip_allowlist:
+      "Przepuszczaj wskazanych nadawców, nawet gdy filtr by ich zatrzymał.",
+    plan_tip_contact_sync:
+      "Synchronizuj kontakty z aplikacją Kontakty w macOS i iOS, z DAVx5 w Androidzie lub z dowolnym klientem CardDAV. Działa dzięki aplikacji towarzyszącej Aster Bridge na twoim urządzeniu.",
+    plan_tip_custom_categories:
+      "Twórz własne karty skrzynki odbiorczej i decyduj, co trafia do każdej z nich.",
+    plan_tip_email_export:
+      "Pobierz swoją pocztę jako standardowe archiwum, które otworzysz wszędzie.",
+    plan_tip_email_import:
+      "Przenieś pocztę od innego dostawcy przez IMAP, z zachowaniem folderów.",
+    plan_tip_expiration:
+      "Ustaw datę, po której wiadomość znika z widoku odbiorcy.",
+    plan_tip_extra_alias_domains:
+      "Twórz aliasy w kolejnych domenach Aster, nie tylko w astermail.org.",
+    plan_tip_folder_auto_clean:
+      "Usuwaj wszystko starsze niż ustawiony okres, folder po folderze.",
+    plan_tip_sub_scanner:
+      "Znajdź każdy newsletter i usługę, które subskrybujesz, i zrezygnuj z nich w jednym miejscu.",
+    plan_tip_vanguard_app_lock:
+      "Wymagaj kodu urządzenia lub biometrii przy każdym otwarciu Astera.",
+    plan_tip_vanguard_lockdown_mode:
+      "Blokuj zdalną treść, linki zewnętrzne i nowych nadawców, dopóki tego nie wyłączysz.",
+    plan_tip_wkd:
+      "Opublikuj klucz publiczny we własnej domenie, aby każdy mógł go znaleźć i napisać do ciebie z szyfrowaniem.",
+    stripe_secure_short: "Zabezpieczone przez Stripe",
+    upgrade_external_accounts_note:
+      "Zmień plan, aby podłączyć więcej kont zewnętrznych.",
+    usage_external_accounts: "Konta zewnętrzne",
     top_up_credits_description:
       "Doładuj konto. Środki są automatycznie zaliczane na poczet odnowień planu.",
     credit_packages_loading: "Wczytywanie pakietów...",
@@ -7293,10 +7401,14 @@ export const pl = {
     export_step_incomplete_title: "Eksport nie został ukończony",
     export_incomplete_summary:
       "Wyeksportowano {{ count }} z {{ total }} wiadomości, zanim eksport się zatrzymał.",
-    export_progress_messages_unknown_total: "Wyeksportowano {{ processed }} wiadomości",
-    export_complete_summary_unknown_total: "Wyeksportowano {{ count }} wiadomości.",
-    export_incomplete_summary_unknown_total: "Wyeksportowano {{ count }} wiadomości, zanim eksport się zatrzymał.",
-    export_incomplete_partial_saved: "Twój plik zawiera wiadomości wyeksportowane do tej pory.",
+    export_progress_messages_unknown_total:
+      "Wyeksportowano {{ processed }} wiadomości",
+    export_complete_summary_unknown_total:
+      "Wyeksportowano {{ count }} wiadomości.",
+    export_incomplete_summary_unknown_total:
+      "Wyeksportowano {{ count }} wiadomości, zanim eksport się zatrzymał.",
+    export_incomplete_partial_saved:
+      "Twój plik zawiera wiadomości wyeksportowane do tej pory.",
     export_complete_data_only: "Twój eksport jest gotowy.",
     export_complete_summary:
       "Wyeksportowano {{ count }} z {{ total }} wiadomości.",
@@ -7310,7 +7422,8 @@ export const pl = {
       "Nie udało się odszyfrować {{ count }} załączników, więc nie ma ich w tym archiwum.",
     export_complete_errors_in_mbox_hint:
       "Dziennik błędów został dołączony na końcu pliku skrzynki pocztowej.",
-    export_error_write_partial: "Eksport zatrzymał się przed końcem. Twój plik zawiera wiadomości wyeksportowane do tej pory.",
+    export_error_write_partial:
+      "Eksport zatrzymał się przed końcem. Twój plik zawiera wiadomości wyeksportowane do tej pory.",
     export_error_write_fatal:
       "Nie można zapisać do wybranego miejsca docelowego. Eksport został zatrzymany.",
     export_error_no_vault:

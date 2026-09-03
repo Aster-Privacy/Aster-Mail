@@ -5790,6 +5790,108 @@ export const ar = {
     credit_type_reversal: "عكس",
     credit_type_purchase: "شراء",
     top_up_credits: "شحن الرصيد",
+    checkout_abandon_confirm: "إلغاء الدفع",
+    checkout_abandon_keep: "متابعة الدفع",
+    checkout_abandon_message:
+      "تُلغى فاتورتك ولا يُخصم أي مبلغ. يمكنك البدء من جديد في أي وقت.",
+    checkout_abandon_title: "هل تريد إلغاء هذه العملية؟",
+    checkout_add_promo: "إضافة رمز ترويجي",
+    checkout_amount_due: "المبلغ المستحق",
+    checkout_card_details: "بيانات البطاقة",
+    checkout_full_features_title: "مزايا {{plan}}",
+    checkout_leave_warning: "لديك عملية دفع جارية. إذا خرجت الآن، فلن تكتمل.",
+    checkout_pay_amount: "ادفع {{amount}}",
+    checkout_review_title: "المراجعة والدفع",
+    checkout_what_you_get: "ما تحصل عليه",
+    credits_method_card_note: "يُضاف الرصيد فور اعتماد عملية الدفع.",
+    credits_method_crypto_note:
+      "ادفع مرة واحدة بالعملات المشفرة. يُضاف الرصيد بعد تأكيد الدفع على السلسلة.",
+    offer_modal_action: "الحصول على العرض",
+    offer_modal_badge: "خصم {{percent}}٪",
+    offer_modal_dismiss: "ليس الآن",
+    offer_modal_fine_print:
+      "يُطبَّق الرمز {{code}} عند الدفع. استخدام واحد لكل حساب.",
+    offer_modal_price_note: "يُطبَّق الخصم عند الدفع.",
+    offer_modal_subtitle: "انتقل إلى {{plan}} بسعر أقل.",
+    offer_modal_title: "وفّر {{percent}}٪ على خطتك",
+    offer_upgrade_description: "اختر خطة لاستخدام الخصم.",
+    offer_upgrade_title: "عرضك في انتظارك",
+    plan_cat_advanced_aliases: "الأسماء المستعارة المتقدمة",
+    plan_cat_contacts: "جهات الاتصال",
+    plan_cat_general: "عام",
+    plan_cat_mail: "البريد",
+    plan_cat_security: "الأمان",
+    plan_cat_subscriptions: "الاشتراكات",
+    plan_cat_support: "الدعم",
+    plan_cat_vanguard: "Vanguard",
+    plan_f_alias_bulk: "إجراءات جماعية على الأسماء المستعارة",
+    plan_f_alias_csv: "تصدير الأسماء المستعارة بصيغة CSV",
+    plan_f_alias_import: "استيراد الأسماء المستعارة",
+    plan_f_alias_no_cooldown: "بلا فترة انتظار بين الأسماء المستعارة",
+    plan_f_alias_pin: "الأسماء المستعارة المثبتة",
+    plan_f_alias_transfer: "نقل الأسماء المستعارة",
+    plan_f_allowlist: "قائمة المرسلين المسموح لهم",
+    plan_f_biometric: "إلغاء القفل بالسمات الحيوية",
+    plan_f_blocked_senders: "المرسلون المحظورون",
+    plan_f_contact_import: "استيراد جهات الاتصال",
+    plan_f_contact_sync: "مزامنة جهات الاتصال (CardDAV)",
+    plan_f_contacts: "جهات اتصال مشفّرة",
+    plan_f_cross_platform: "تطبيقات للويب والكمبيوتر وAndroid وiOS",
+    plan_f_custom_categories: "فئات مخصصة لصندوق الوارد",
+    plan_f_email_export: "تصدير البريد",
+    plan_f_email_import: "استيراد البريد",
+    plan_f_expiration: "رسائل تنتهي صلاحيتها",
+    plan_f_folder_auto_clean: "تنظيف تلقائي للمجلدات",
+    plan_f_folders: "المجلدات والتسميات",
+    plan_f_key_management: "إدارة المفاتيح",
+    plan_f_link_warnings: "تحذيرات الروابط المشبوهة",
+    plan_f_one_click_unsub: "إلغاء الاشتراك بنقرة واحدة",
+    plan_f_password_emails: "رسائل محمية بكلمة سر",
+    plan_f_pgp: "تشفير PGP",
+    plan_f_phishing: "الحماية من التصيد",
+    plan_f_quick_alias_reply: "رد سريع من اسم مستعار",
+    plan_f_scheduled_send: "إرسال مجدول",
+    plan_f_snooze: "تأجيل الرسائل",
+    plan_f_sub_categories: "فئات الاشتراكات",
+    plan_f_sub_scanner: "فاحص الاشتراكات",
+    plan_f_vanguard_app_lock: "قفل التطبيق",
+    plan_f_vanguard_lockdown_mode: "وضع العزل",
+    plan_f_wkd: "دليل المفاتيح على الويب",
+    plan_tip_alias_bulk:
+      "فعّل أسماء مستعارة كثيرة أو عطّلها أو احذفها دفعة واحدة.",
+    plan_tip_alias_csv: "صدّر كل اسم مستعار، مع قواعده وحالته، في ملف CSV.",
+    plan_tip_alias_import: "انقل أسماءك المستعارة من مزوّد آخر في خطوة واحدة.",
+    plan_tip_alias_no_cooldown:
+      "أنشئ الأسماء المستعارة تباعًا من دون انتظار بينها.",
+    plan_tip_alias_pin:
+      "أبقِ الأسماء المستعارة التي تستخدمها أكثر في أعلى القائمة.",
+    plan_tip_alias_transfer: "انقل اسمًا مستعارًا إلى حساب Aster آخر تملكه.",
+    plan_tip_allowlist:
+      "اسمح لمرسلين محددين بالمرور حتى عندما يوقفهم أحد عوامل التصفية.",
+    plan_tip_contact_sync:
+      "زامن جهات اتصالك مع تطبيق جهات الاتصال في macOS وiOS، أو DAVx5 في Android، أو أي عميل CardDAV. يعمل عبر تطبيق Aster Bridge المرافق على جهازك.",
+    plan_tip_custom_categories:
+      "أنشئ علامات تبويب خاصة بك في صندوق الوارد وحدّد ما يصل إلى كل منها.",
+    plan_tip_email_export:
+      "نزّل بريدك في أرشيف بصيغة قياسية يمكنك فتحه في أي مكان.",
+    plan_tip_email_import:
+      "انقل بريدك من مزوّد آخر عبر IMAP مع الحفاظ على المجلدات.",
+    plan_tip_expiration: "حدّد تاريخًا تُحذف بعده الرسالة من عرض المستلم.",
+    plan_tip_extra_alias_domains:
+      "أنشئ أسماء مستعارة على نطاقات Aster إضافية، لا على astermail.org وحده.",
+    plan_tip_folder_auto_clean:
+      "احذف كل ما هو أقدم من المدة التي تحددها، مجلدًا تلو الآخر.",
+    plan_tip_sub_scanner:
+      "اعثر على كل نشرة وخدمة اشتركت فيها، ثم ألغِ الاشتراك من مكان واحد.",
+    plan_tip_vanguard_app_lock:
+      "اطلب رمز جهازك أو سماتك الحيوية في كل مرة تفتح فيها Aster.",
+    plan_tip_vanguard_lockdown_mode:
+      "احجب المحتوى البعيد والروابط الخارجية والمرسلين الجدد إلى أن توقف الوضع.",
+    plan_tip_wkd:
+      "انشر مفتاحك العام على نطاقك الخاص ليجده أي شخص ويراسلك بشكل مشفّر.",
+    stripe_secure_short: "محمي عبر Stripe",
+    upgrade_external_accounts_note: "ارتقِ بخطتك لربط حسابات خارجية أكثر.",
+    usage_external_accounts: "الحسابات الخارجية",
     top_up_credits_description:
       "أضف رصيدًا إلى حسابك. يُستخدم الرصيد تلقائيًا في تجديد الخطة.",
     credit_packages_loading: "جارٍ تحميل الباقات...",
@@ -7023,8 +7125,10 @@ export const ar = {
       "تم تصدير {{ count }} من {{ total }} رسالة قبل توقف التصدير.",
     export_progress_messages_unknown_total: "تم تصدير {{ processed }} رسالة",
     export_complete_summary_unknown_total: "تم تصدير {{ count }} رسالة.",
-    export_incomplete_summary_unknown_total: "تم تصدير {{ count }} رسالة قبل توقف التصدير.",
-    export_incomplete_partial_saved: "يحتوي ملفك على الرسائل التي تم تصديرها حتى الآن.",
+    export_incomplete_summary_unknown_total:
+      "تم تصدير {{ count }} رسالة قبل توقف التصدير.",
+    export_incomplete_partial_saved:
+      "يحتوي ملفك على الرسائل التي تم تصديرها حتى الآن.",
     export_complete_data_only: "التصدير جاهز.",
     export_complete_summary: "تم تصدير {{ count }} من {{ total }} رسالة.",
     export_complete_errors: "تعذّر تصدير {{ count }} رسالة.",
@@ -7036,7 +7140,8 @@ export const ar = {
       "تعذّر فك تشفير {{ count }} مرفق، ولم تُدرج في هذا الأرشيف.",
     export_complete_errors_in_mbox_hint:
       "تم إلحاق سجل الأخطاء بنهاية ملف صندوق البريد.",
-    export_error_write_partial: "توقّف التصدير قبل اكتماله. يحتوي ملفك على الرسائل التي تم تصديرها حتى الآن.",
+    export_error_write_partial:
+      "توقّف التصدير قبل اكتماله. يحتوي ملفك على الرسائل التي تم تصديرها حتى الآن.",
     export_error_write_fatal:
       "تعذّرت الكتابة إلى الوجهة المختارة. توقّف التصدير.",
     export_error_no_vault: "خزنة التشفير مقفلة. سجّل الدخول مجددًا للتصدير.",

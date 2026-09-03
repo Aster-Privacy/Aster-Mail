@@ -2980,7 +2980,8 @@ export const it = {
       "Aggiorna il tuo piano per usare il blocco del mittente.",
     requires_plan: "Richiede {{plan}}",
     alias_domain_group_extra: "Domini aggiuntivi",
-    alias_domain_requires_plan: "Questo dominio è disponibile dal piano {{plan}} in su.",
+    alias_domain_requires_plan:
+      "Questo dominio è disponibile dal piano {{plan}} in su.",
     alias_feature_locked_view_plans: "Visualizza i piani",
     alias_feature_locked_upgrade_plan: "Aggiorna piano",
     alias_feature_locked_upgrade_cta: "Aggiorna",
@@ -4612,6 +4613,113 @@ export const it = {
     credit_type_reversal: "Storno",
     credit_type_purchase: "Acquisto",
     top_up_credits: "Ricarica",
+    checkout_abandon_confirm: "Annulla il pagamento",
+    checkout_abandon_keep: "Continua a pagare",
+    checkout_abandon_message:
+      "La tua fattura viene annullata e non ti viene addebitato nulla. Puoi ricominciare quando vuoi.",
+    checkout_abandon_title: "Vuoi annullare questo pagamento?",
+    checkout_add_promo: "Aggiungi un codice promozionale",
+    checkout_amount_due: "Importo da pagare",
+    checkout_card_details: "Dati della carta",
+    checkout_full_features_title: "Funzioni di {{plan}}",
+    checkout_leave_warning:
+      "Hai un pagamento in corso. Se esci ora, non viene completato.",
+    checkout_pay_amount: "Paga {{amount}}",
+    checkout_review_title: "Controlla e paga",
+    checkout_what_you_get: "Cosa ottieni",
+    credits_method_card_note:
+      "I crediti vengono aggiunti appena il pagamento va a buon fine.",
+    credits_method_crypto_note:
+      "Paga una volta in criptovaluta. I crediti vengono aggiunti quando il pagamento viene confermato sulla blockchain.",
+    offer_modal_action: "Approfitta dell'offerta",
+    offer_modal_badge: "{{percent}}% di sconto",
+    offer_modal_dismiss: "Non ora",
+    offer_modal_fine_print:
+      "Il codice {{code}} si applica al pagamento. Un utilizzo per account.",
+    offer_modal_price_note: "Lo sconto si applica al pagamento.",
+    offer_modal_subtitle: "Passa a {{plan}} a un prezzo più basso.",
+    offer_modal_title: "Risparmia il {{percent}}% sul tuo piano",
+    offer_upgrade_description: "Scegli un piano per usare il tuo sconto.",
+    offer_upgrade_title: "La tua offerta ti aspetta",
+    plan_cat_advanced_aliases: "Alias avanzati",
+    plan_cat_contacts: "Contatti",
+    plan_cat_general: "Generali",
+    plan_cat_mail: "Posta",
+    plan_cat_security: "Sicurezza",
+    plan_cat_subscriptions: "Abbonamenti",
+    plan_cat_support: "Assistenza",
+    plan_cat_vanguard: "Vanguard",
+    plan_f_alias_bulk: "Azioni multiple sugli alias",
+    plan_f_alias_csv: "Esportazione degli alias in CSV",
+    plan_f_alias_import: "Importazione degli alias",
+    plan_f_alias_no_cooldown: "Nessuna attesa tra un alias e l'altro",
+    plan_f_alias_pin: "Alias in evidenza",
+    plan_f_alias_transfer: "Trasferimento degli alias",
+    plan_f_allowlist: "Mittenti consentiti",
+    plan_f_biometric: "Sblocco biometrico",
+    plan_f_blocked_senders: "Mittenti bloccati",
+    plan_f_contact_import: "Importazione dei contatti",
+    plan_f_contact_sync: "Sincronizzazione dei contatti (CardDAV)",
+    plan_f_contacts: "Contatti cifrati",
+    plan_f_cross_platform: "App per web, computer, Android e iOS",
+    plan_f_custom_categories: "Categorie della posta in arrivo personalizzate",
+    plan_f_email_export: "Esportazione delle email",
+    plan_f_email_import: "Importazione delle email",
+    plan_f_expiration: "Email con scadenza",
+    plan_f_folder_auto_clean: "Pulizia automatica delle cartelle",
+    plan_f_folders: "Cartelle ed etichette",
+    plan_f_key_management: "Gestione delle chiavi",
+    plan_f_link_warnings: "Avvisi sui link sospetti",
+    plan_f_one_click_unsub: "Annullamento dell'iscrizione con un clic",
+    plan_f_password_emails: "Email protette da password",
+    plan_f_pgp: "Cifratura PGP",
+    plan_f_phishing: "Protezione dal phishing",
+    plan_f_quick_alias_reply: "Risposta rapida da un alias",
+    plan_f_scheduled_send: "Invio programmato",
+    plan_f_snooze: "Posticipo delle email",
+    plan_f_sub_categories: "Categorie di abbonamento",
+    plan_f_sub_scanner: "Scanner degli abbonamenti",
+    plan_f_vanguard_app_lock: "Blocco dell'app",
+    plan_f_vanguard_lockdown_mode: "Modalità di isolamento",
+    plan_f_wkd: "Web Key Directory",
+    plan_tip_alias_bulk:
+      "Attiva, disattiva o elimina molti alias in una volta sola.",
+    plan_tip_alias_csv:
+      "Esporta tutti gli alias, con le loro regole e il loro stato, in un file CSV.",
+    plan_tip_alias_import:
+      "Porta i tuoi alias da un altro provider in un solo passaggio.",
+    plan_tip_alias_no_cooldown: "Crea alias uno dopo l'altro senza attese.",
+    plan_tip_alias_pin: "Tieni in cima all'elenco gli alias che usi di più.",
+    plan_tip_alias_transfer:
+      "Sposta un alias in un altro account Aster di tua proprietà.",
+    plan_tip_allowlist:
+      "Fai passare mittenti specifici anche quando un filtro li bloccherebbe.",
+    plan_tip_contact_sync:
+      "Sincronizza i contatti con Contatti su macOS e iOS, DAVx5 su Android o qualsiasi client CardDAV. Funziona con l'app complementare Aster Bridge sul tuo dispositivo.",
+    plan_tip_custom_categories:
+      "Crea le tue schede della posta in arrivo e decidi cosa arriva in ognuna.",
+    plan_tip_email_export:
+      "Scarica la tua posta in un archivio standard che puoi aprire ovunque.",
+    plan_tip_email_import:
+      "Porta la posta da un altro provider tramite IMAP, mantenendo le cartelle.",
+    plan_tip_expiration:
+      "Imposta una data dopo la quale l'email si elimina dalla vista del destinatario.",
+    plan_tip_extra_alias_domains:
+      "Crea alias su altri domini Aster, non solo su astermail.org.",
+    plan_tip_folder_auto_clean:
+      "Elimina tutto ciò che supera il tempo che imposti, cartella per cartella.",
+    plan_tip_sub_scanner:
+      "Trova ogni newsletter e servizio a cui ti sei iscritto, poi annulla l'iscrizione da un unico posto.",
+    plan_tip_vanguard_app_lock:
+      "Richiedi il codice del dispositivo o i dati biometrici ogni volta che apri Aster.",
+    plan_tip_vanguard_lockdown_mode:
+      "Blocca i contenuti remoti, i link esterni e i nuovi mittenti finché non la disattivi.",
+    plan_tip_wkd:
+      "Pubblica la tua chiave pubblica sul tuo dominio, così chiunque può trovarla e scriverti in modo cifrato.",
+    stripe_secure_short: "Protetto da Stripe",
+    upgrade_external_accounts_note:
+      "Passa a un piano superiore per collegare più account esterni.",
+    usage_external_accounts: "Account esterni",
     top_up_credits_description:
       "Aggiungi credito al tuo account. Il credito si applica automaticamente ai rinnovi del piano.",
     credit_packages_loading: "Caricamento dei pacchetti...",
@@ -7205,10 +7313,13 @@ export const it = {
     export_step_incomplete_title: "Esportazione non completata",
     export_incomplete_summary:
       "{{ count }} messaggi su {{ total }} esportati prima dell'interruzione dell'esportazione.",
-    export_progress_messages_unknown_total: "{{ processed }} messaggi esportati",
+    export_progress_messages_unknown_total:
+      "{{ processed }} messaggi esportati",
     export_complete_summary_unknown_total: "{{ count }} messaggi esportati.",
-    export_incomplete_summary_unknown_total: "{{ count }} messaggi esportati prima dell'interruzione dell'esportazione.",
-    export_incomplete_partial_saved: "Il tuo file contiene i messaggi esportati finora.",
+    export_incomplete_summary_unknown_total:
+      "{{ count }} messaggi esportati prima dell'interruzione dell'esportazione.",
+    export_incomplete_partial_saved:
+      "Il tuo file contiene i messaggi esportati finora.",
     export_complete_data_only: "La tua esportazione è pronta.",
     export_complete_summary: "Esportati {{ count }} di {{ total }} messaggi.",
     export_complete_errors: "{{ count }} messaggio/i non sono stati esportati.",
@@ -7220,7 +7331,8 @@ export const it = {
       "Non è stato possibile decrittare {{ count }} allegato/i, che non sono inclusi in questo archivio.",
     export_complete_errors_in_mbox_hint:
       "Un registro degli errori è stato aggiunto alla fine del file mailbox.",
-    export_error_write_partial: "L'esportazione si è interrotta prima della fine. Il tuo file contiene i messaggi esportati finora.",
+    export_error_write_partial:
+      "L'esportazione si è interrotta prima della fine. Il tuo file contiene i messaggi esportati finora.",
     export_error_write_fatal:
       "Non è stato possibile scrivere nella destinazione scelta. L'esportazione è stata interrotta.",
     export_error_no_vault:

@@ -2970,7 +2970,8 @@ export const fr = {
       "Améliorez votre forfait pour utiliser l'épinglage d'expéditeur.",
     requires_plan: "Nécessite {{plan}}",
     alias_domain_group_extra: "Domaines supplémentaires",
-    alias_domain_requires_plan: "Ce domaine est disponible à partir du forfait {{plan}}.",
+    alias_domain_requires_plan:
+      "Ce domaine est disponible à partir du forfait {{plan}}.",
     alias_feature_locked_view_plans: "Voir les forfaits",
     alias_feature_locked_upgrade_plan: "Améliorer le forfait",
     alias_feature_locked_upgrade_cta: "Améliorer",
@@ -5813,6 +5814,116 @@ export const fr = {
     credit_type_reversal: "Annulation",
     credit_type_purchase: "Achat",
     top_up_credits: "Recharger",
+    checkout_abandon_confirm: "Annuler le paiement",
+    checkout_abandon_keep: "Continuer le paiement",
+    checkout_abandon_message:
+      "Votre facture est annulée et rien n'est débité. Vous pouvez recommencer quand vous voulez.",
+    checkout_abandon_title: "Annuler ce paiement ?",
+    checkout_add_promo: "Ajouter un code promo",
+    checkout_amount_due: "Montant à payer",
+    checkout_card_details: "Informations de carte",
+    checkout_full_features_title: "Fonctionnalités de {{plan}}",
+    checkout_leave_warning:
+      "Un paiement est en cours. Si vous quittez maintenant, il n'aboutit pas.",
+    checkout_pay_amount: "Payer {{amount}}",
+    checkout_review_title: "Vérifier et payer",
+    checkout_what_you_get: "Ce que vous obtenez",
+    credits_method_card_note:
+      "Les crédits sont ajoutés dès que le paiement est validé.",
+    credits_method_crypto_note:
+      "Payez une fois en cryptomonnaie. Les crédits sont ajoutés après la confirmation du paiement sur la chaîne.",
+    offer_modal_action: "Profiter de cette offre",
+    offer_modal_badge: "{{percent}} % de remise",
+    offer_modal_dismiss: "Pas maintenant",
+    offer_modal_fine_print:
+      "Le code {{code}} s'applique au paiement. Une utilisation par compte.",
+    offer_modal_price_note: "La remise s'applique au paiement.",
+    offer_modal_subtitle: "Passez à {{plan}} à un tarif réduit.",
+    offer_modal_title: "Économisez {{percent}} % sur votre offre",
+    offer_upgrade_description:
+      "Choisissez une offre pour utiliser votre remise.",
+    offer_upgrade_title: "Votre offre vous attend",
+    plan_cat_advanced_aliases: "Alias avancés",
+    plan_cat_contacts: "Contacts",
+    plan_cat_general: "Général",
+    plan_cat_mail: "Courrier",
+    plan_cat_security: "Sécurité",
+    plan_cat_subscriptions: "Abonnements",
+    plan_cat_support: "Assistance",
+    plan_cat_vanguard: "Vanguard",
+    plan_f_alias_bulk: "Actions groupées sur les alias",
+    plan_f_alias_csv: "Export CSV des alias",
+    plan_f_alias_import: "Import d'alias",
+    plan_f_alias_no_cooldown: "Aucun délai entre les alias",
+    plan_f_alias_pin: "Alias épinglés",
+    plan_f_alias_transfer: "Transfert d'alias",
+    plan_f_allowlist: "Liste d'expéditeurs autorisés",
+    plan_f_biometric: "Déverrouillage biométrique",
+    plan_f_blocked_senders: "Expéditeurs bloqués",
+    plan_f_contact_import: "Import de contacts",
+    plan_f_contact_sync: "Synchronisation des contacts (CardDAV)",
+    plan_f_contacts: "Contacts chiffrés",
+    plan_f_cross_platform: "Apps web, ordinateur, Android et iOS",
+    plan_f_custom_categories: "Catégories de boîte de réception personnalisées",
+    plan_f_email_export: "Export des messages",
+    plan_f_email_import: "Import des messages",
+    plan_f_expiration: "Messages à expiration",
+    plan_f_folder_auto_clean: "Nettoyage automatique des dossiers",
+    plan_f_folders: "Dossiers et libellés",
+    plan_f_key_management: "Gestion des clés",
+    plan_f_link_warnings: "Alertes sur les liens suspects",
+    plan_f_one_click_unsub: "Désabonnement en un clic",
+    plan_f_password_emails: "Messages protégés par mot de passe",
+    plan_f_pgp: "Chiffrement PGP",
+    plan_f_phishing: "Protection contre l'hameçonnage",
+    plan_f_quick_alias_reply: "Réponse rapide depuis un alias",
+    plan_f_scheduled_send: "Envoi programmé",
+    plan_f_snooze: "Report des messages",
+    plan_f_sub_categories: "Catégories d'abonnements",
+    plan_f_sub_scanner: "Analyse des abonnements",
+    plan_f_vanguard_app_lock: "Verrouillage de l'app",
+    plan_f_vanguard_lockdown_mode: "Mode confinement",
+    plan_f_wkd: "Annuaire de clés web",
+    plan_tip_alias_bulk:
+      "Activez, désactivez ou supprimez plusieurs alias à la fois.",
+    plan_tip_alias_csv:
+      "Exportez tous vos alias, avec leurs règles et leur état, dans un fichier CSV.",
+    plan_tip_alias_import:
+      "Reprenez vos alias d'un autre fournisseur en une seule étape.",
+    plan_tip_alias_no_cooldown:
+      "Créez des alias les uns après les autres sans attendre entre chacun.",
+    plan_tip_alias_pin:
+      "Gardez les alias que vous utilisez le plus en haut de la liste.",
+    plan_tip_alias_transfer:
+      "Déplacez un alias vers un autre compte Aster qui vous appartient.",
+    plan_tip_allowlist:
+      "Laissez passer des expéditeurs précis, même quand un filtre les arrêterait.",
+    plan_tip_contact_sync:
+      "Synchronisez vos contacts avec Contacts sur macOS et iOS, DAVx5 sur Android ou n'importe quel client CardDAV. Fonctionne avec l'app compagnon Aster Bridge installée sur votre appareil.",
+    plan_tip_custom_categories:
+      "Créez vos propres onglets de boîte de réception et choisissez ce qui arrive dans chacun.",
+    plan_tip_email_export:
+      "Téléchargez votre courrier dans une archive standard que vous pouvez ouvrir partout.",
+    plan_tip_email_import:
+      "Récupérez votre courrier d'un autre fournisseur en IMAP, avec les dossiers intacts.",
+    plan_tip_expiration:
+      "Définissez une date après laquelle un message disparaît de la vue du destinataire.",
+    plan_tip_extra_alias_domains:
+      "Créez des alias sur d'autres domaines Aster, pas seulement astermail.org.",
+    plan_tip_folder_auto_clean:
+      "Supprimez tout ce qui dépasse l'ancienneté que vous définissez, dossier par dossier.",
+    plan_tip_sub_scanner:
+      "Retrouvez chaque newsletter et service auquel vous vous êtes abonné, puis désabonnez-vous depuis un seul endroit.",
+    plan_tip_vanguard_app_lock:
+      "Exigez le code de votre appareil ou la biométrie chaque fois que vous ouvrez Aster.",
+    plan_tip_vanguard_lockdown_mode:
+      "Bloquez le contenu distant, les liens externes et les nouveaux expéditeurs jusqu'à ce que vous le désactiviez.",
+    plan_tip_wkd:
+      "Publiez votre clé publique sur votre propre domaine pour que chacun la trouve et vous écrive de façon chiffrée.",
+    stripe_secure_short: "Sécurisé par Stripe",
+    upgrade_external_accounts_note:
+      "Changez d'offre pour connecter plus de comptes externes.",
+    usage_external_accounts: "Comptes externes",
     top_up_credits_description:
       "Ajoutez du crédit à votre compte. Le crédit s’applique automatiquement aux renouvellements de votre offre.",
     credit_packages_loading: "Chargement des offres...",
@@ -6735,7 +6846,8 @@ export const fr = {
     export_destination_pick_folder: "Choisir un dossier",
     export_error_no_messages_match: "Aucun message ne correspond aux critères.",
     export_error_no_vault: "Coffre-fort non disponible",
-    export_error_write_partial: "L'exportation s'est arrêtée avant la fin. Votre fichier contient les messages exportés jusqu'ici.",
+    export_error_write_partial:
+      "L'exportation s'est arrêtée avant la fin. Votre fichier contient les messages exportés jusqu'ici.",
     export_error_write_fatal: "Erreur d'écriture fatale",
     export_format_eml_hint: "Un fichier par e-mail",
     export_format_eml_name: "Fichiers EML",
@@ -6789,9 +6901,12 @@ export const fr = {
     export_incomplete_summary:
       "{{ count }} messages sur {{ total }} ont été exportés avant l'arrêt de l'exportation.",
     export_progress_messages_unknown_total: "{{processed}} messages exportés",
-    export_complete_summary_unknown_total: "{{ count }} messages ont été exportés.",
-    export_incomplete_summary_unknown_total: "{{ count }} messages ont été exportés avant l'arrêt de l'exportation.",
-    export_incomplete_partial_saved: "Votre fichier contient les messages exportés jusqu'ici.",
+    export_complete_summary_unknown_total:
+      "{{ count }} messages ont été exportés.",
+    export_incomplete_summary_unknown_total:
+      "{{ count }} messages ont été exportés avant l'arrêt de l'exportation.",
+    export_incomplete_partial_saved:
+      "Votre fichier contient les messages exportés jusqu'ici.",
     export_complete_data_only: "Votre exportation est prête.",
     export_step_destination_title: "Destination",
     export_step_format_title: "Format d'exportation",

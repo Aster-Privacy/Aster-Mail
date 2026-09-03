@@ -2905,7 +2905,8 @@ export const nl = {
       "Upgrade je abonnement om afzender vastzetten te gebruiken.",
     requires_plan: "Vereist {{plan}}",
     alias_domain_group_extra: "Extra domeinen",
-    alias_domain_requires_plan: "Dit domein is beschikbaar vanaf het {{plan}}-abonnement.",
+    alias_domain_requires_plan:
+      "Dit domein is beschikbaar vanaf het {{plan}}-abonnement.",
     alias_feature_locked_view_plans: "Abonnementen bekijken",
     alias_feature_locked_upgrade_plan: "Abonnement upgraden",
     alias_feature_locked_upgrade_cta: "Upgraden",
@@ -5744,6 +5745,116 @@ export const nl = {
     credit_type_reversal: "Terugboeking",
     credit_type_purchase: "Aankoop",
     top_up_credits: "Opwaarderen",
+    checkout_abandon_confirm: "Betaling annuleren",
+    checkout_abandon_keep: "Doorgaan met betalen",
+    checkout_abandon_message:
+      "Je factuur wordt geannuleerd en er wordt niets afgeschreven. Je kunt op elk moment opnieuw beginnen.",
+    checkout_abandon_title: "Deze betaling annuleren?",
+    checkout_add_promo: "Een kortingscode toevoegen",
+    checkout_amount_due: "Te betalen bedrag",
+    checkout_card_details: "Kaartgegevens",
+    checkout_full_features_title: "Functies van {{plan}}",
+    checkout_leave_warning:
+      "Er loopt een betaling. Als je nu weggaat, wordt die niet voltooid.",
+    checkout_pay_amount: "{{amount}} betalen",
+    checkout_review_title: "Controleren en betalen",
+    checkout_what_you_get: "Wat je krijgt",
+    credits_method_card_note:
+      "Het tegoed wordt toegevoegd zodra de betaling is goedgekeurd.",
+    credits_method_crypto_note:
+      "Betaal eenmalig met crypto. Het tegoed wordt toegevoegd zodra de betaling op de blockchain is bevestigd.",
+    offer_modal_action: "Deze aanbieding gebruiken",
+    offer_modal_badge: "{{percent}}% korting",
+    offer_modal_dismiss: "Niet nu",
+    offer_modal_fine_print:
+      "Code {{code}} wordt bij het afrekenen toegepast. Eén keer per account.",
+    offer_modal_price_note: "De korting wordt bij het afrekenen toegepast.",
+    offer_modal_subtitle: "Stap over naar {{plan}} voor een lagere prijs.",
+    offer_modal_title: "Bespaar {{percent}}% op je abonnement",
+    offer_upgrade_description:
+      "Kies een abonnement om je korting te gebruiken.",
+    offer_upgrade_title: "Je aanbieding staat klaar",
+    plan_cat_advanced_aliases: "Geavanceerde aliassen",
+    plan_cat_contacts: "Contacten",
+    plan_cat_general: "Algemeen",
+    plan_cat_mail: "E-mail",
+    plan_cat_security: "Beveiliging",
+    plan_cat_subscriptions: "Abonnementen",
+    plan_cat_support: "Ondersteuning",
+    plan_cat_vanguard: "Vanguard",
+    plan_f_alias_bulk: "Bulkacties voor aliassen",
+    plan_f_alias_csv: "Aliassen exporteren naar CSV",
+    plan_f_alias_import: "Aliassen importeren",
+    plan_f_alias_no_cooldown: "Geen wachttijd tussen aliassen",
+    plan_f_alias_pin: "Vastgezette aliassen",
+    plan_f_alias_transfer: "Aliassen overzetten",
+    plan_f_allowlist: "Toegestane afzenders",
+    plan_f_biometric: "Ontgrendelen met biometrie",
+    plan_f_blocked_senders: "Geblokkeerde afzenders",
+    plan_f_contact_import: "Contacten importeren",
+    plan_f_contact_sync: "Contacten synchroniseren (CardDAV)",
+    plan_f_contacts: "Versleutelde contacten",
+    plan_f_cross_platform: "Apps voor web, desktop, Android en iOS",
+    plan_f_custom_categories: "Eigen inboxcategorieën",
+    plan_f_email_export: "E-mail exporteren",
+    plan_f_email_import: "E-mail importeren",
+    plan_f_expiration: "Verlopende e-mails",
+    plan_f_folder_auto_clean: "Mappen automatisch opschonen",
+    plan_f_folders: "Mappen en labels",
+    plan_f_key_management: "Sleutelbeheer",
+    plan_f_link_warnings: "Waarschuwingen bij verdachte links",
+    plan_f_one_click_unsub: "Afmelden met één klik",
+    plan_f_password_emails: "E-mails met wachtwoordbeveiliging",
+    plan_f_pgp: "PGP-versleuteling",
+    plan_f_phishing: "Bescherming tegen phishing",
+    plan_f_quick_alias_reply: "Snel antwoorden vanaf een alias",
+    plan_f_scheduled_send: "Verzenden op een gepland moment",
+    plan_f_snooze: "E-mails uitstellen",
+    plan_f_sub_categories: "Abonnementscategorieën",
+    plan_f_sub_scanner: "Abonnementenscanner",
+    plan_f_vanguard_app_lock: "Appvergrendeling",
+    plan_f_vanguard_lockdown_mode: "Lockdownmodus",
+    plan_f_wkd: "Web Key Directory",
+    plan_tip_alias_bulk:
+      "Zet veel aliassen tegelijk aan of uit, of verwijder ze.",
+    plan_tip_alias_csv:
+      "Exporteer elke alias, met de regels en de status ervan, als CSV-bestand.",
+    plan_tip_alias_import:
+      "Neem je aliassen in één stap over van een andere provider.",
+    plan_tip_alias_no_cooldown:
+      "Maak aliassen achter elkaar aan, zonder wachttijd ertussen.",
+    plan_tip_alias_pin:
+      "Houd de aliassen die je het meest gebruikt boven aan de lijst.",
+    plan_tip_alias_transfer:
+      "Verplaats een alias naar een ander Aster-account van jou.",
+    plan_tip_allowlist:
+      "Laat bepaalde afzenders door, ook als een filter ze zou tegenhouden.",
+    plan_tip_contact_sync:
+      "Synchroniseer je contacten met Contacten op macOS en iOS, DAVx5 op Android of een andere CardDAV-client. Dit werkt met de Aster Bridge-app op je apparaat.",
+    plan_tip_custom_categories:
+      "Maak je eigen inboxtabbladen en bepaal wat er in elk tabblad terechtkomt.",
+    plan_tip_email_export:
+      "Download je e-mail als een standaardarchief dat je overal kunt openen.",
+    plan_tip_email_import:
+      "Haal je e-mail via IMAP op bij een andere provider, met de mappen intact.",
+    plan_tip_expiration:
+      "Stel een datum in waarna een e-mail zichzelf verwijdert uit het beeld van de ontvanger.",
+    plan_tip_extra_alias_domains:
+      "Maak aliassen op meer Aster-domeinen, niet alleen op astermail.org.",
+    plan_tip_folder_auto_clean:
+      "Verwijder per map alles wat ouder is dan de termijn die je instelt.",
+    plan_tip_sub_scanner:
+      "Vind elke nieuwsbrief en dienst waarop je je hebt geabonneerd en meld je op één plek af.",
+    plan_tip_vanguard_app_lock:
+      "Vraag om je toegangscode of biometrie telkens als je Aster opent.",
+    plan_tip_vanguard_lockdown_mode:
+      "Blokkeer externe inhoud, externe links en nieuwe afzenders totdat je de modus uitzet.",
+    plan_tip_wkd:
+      "Publiceer je publieke sleutel op je eigen domein, zodat iedereen die kan vinden en je versleuteld kan schrijven.",
+    stripe_secure_short: "Beveiligd door Stripe",
+    upgrade_external_accounts_note:
+      "Upgrade om meer externe accounts te koppelen.",
+    usage_external_accounts: "Externe accounts",
     top_up_credits_description:
       "Voeg tegoed toe aan je account. Tegoed wordt automatisch gebruikt voor verlengingen.",
     credit_packages_loading: "Pakketten laden...",
@@ -6650,7 +6761,8 @@ export const nl = {
     export_error_no_messages_match:
       "Geen berichten komen overeen met uw exportcriteria",
     export_error_no_vault: "Geen versleutelde opslag gevonden",
-    export_error_write_partial: "De export is vroegtijdig gestopt. Je bestand bevat de berichten die tot nu toe zijn geëxporteerd.",
+    export_error_write_partial:
+      "De export is vroegtijdig gestopt. Je bestand bevat de berichten die tot nu toe zijn geëxporteerd.",
     export_error_write_fatal: "Schrijffout - export mislukt",
     export_format_eml_hint:
       "Afzonderlijke .eml-bestanden, compatibel met de meeste e-mailclients",
@@ -6706,10 +6818,14 @@ export const nl = {
     export_step_incomplete_title: "Export niet voltooid",
     export_incomplete_summary:
       "{{ count }} van {{ total }} berichten geëxporteerd voordat de export stopte.",
-    export_progress_messages_unknown_total: "{{processed}} berichten geëxporteerd",
-    export_complete_summary_unknown_total: "{{ count }} berichten geëxporteerd.",
-    export_incomplete_summary_unknown_total: "{{ count }} berichten geëxporteerd voordat de export stopte.",
-    export_incomplete_partial_saved: "Je bestand bevat de berichten die tot nu toe zijn geëxporteerd.",
+    export_progress_messages_unknown_total:
+      "{{processed}} berichten geëxporteerd",
+    export_complete_summary_unknown_total:
+      "{{ count }} berichten geëxporteerd.",
+    export_incomplete_summary_unknown_total:
+      "{{ count }} berichten geëxporteerd voordat de export stopte.",
+    export_incomplete_partial_saved:
+      "Je bestand bevat de berichten die tot nu toe zijn geëxporteerd.",
     export_complete_data_only: "Je export is klaar.",
     export_step_destination_title: "Bestemming",
     export_step_format_title: "Formaat",
@@ -8918,7 +9034,8 @@ export const nl = {
     delete_security_key_title: "Beveiligingssleutel verwijderen?",
     other_devices_signed_out:
       "Aster heeft je op je andere apparaten afgemeld. Meld je opnieuw aan en bevestig met je beveiligingssleutel om ze weer te gebruiken.",
-    remove_last_key_step_up_title: "Je laatste beveiligingssleutel verwijderen?",
+    remove_last_key_step_up_title:
+      "Je laatste beveiligingssleutel verwijderen?",
     remove_last_key_step_up_description:
       "Dit is de laatste tweede factor op je account. Voer je wachtwoord in om hem te verwijderen.",
     delete_security_key_description:

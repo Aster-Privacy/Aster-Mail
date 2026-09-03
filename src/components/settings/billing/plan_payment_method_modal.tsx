@@ -96,7 +96,6 @@ interface plan_payment_method_modal_props {
 const selected_tint =
   "color-mix(in srgb, var(--accent-color) 14%, transparent)";
 
-
 function section_heading(text: string) {
   return (
     <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-txt-muted">
@@ -484,7 +483,7 @@ export function PlanPaymentMethodModal({
                 className="h-4 w-auto flex-shrink-0 opacity-80"
                 decoding="async"
                 draggable={false}
-                fetchPriority="high"
+                {...{ fetchpriority: "high" }}
                 height={16}
                 src={text_logo_url}
               />
