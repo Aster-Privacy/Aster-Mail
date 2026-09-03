@@ -7151,6 +7151,12 @@ export const hi = {
       "{{ total }} में से {{ count }} संदेश एक्सपोर्ट हुए।",
     export_incomplete_summary:
       "एक्सपोर्ट रुकने से पहले {{ total }} में से {{ count }} संदेश एक्सपोर्ट हुए।",
+    export_progress_messages_unknown_total: "{{ processed }} संदेश एक्सपोर्ट हुए",
+    export_complete_summary_unknown_total: "{{ count }} संदेश एक्सपोर्ट हुए।",
+    export_incomplete_summary_unknown_total:
+      "एक्सपोर्ट रुकने से पहले {{ count }} संदेश एक्सपोर्ट हुए।",
+    export_incomplete_partial_saved:
+      "आपकी फ़ाइल में अब तक एक्सपोर्ट किए गए संदेश हैं।",
     export_complete_data_only: "आपका एक्सपोर्ट तैयार है।",
     export_complete_errors: "{{ count }} संदेश एक्सपोर्ट नहीं हो सके।",
     export_complete_bytes: "कुल आकार: {{ bytes }}",
@@ -7161,6 +7167,8 @@ export const hi = {
       "{{ count }} अटैचमेंट डिक्रिप्ट नहीं हो सके और इस आर्काइव में शामिल नहीं हैं।",
     export_complete_errors_in_mbox_hint:
       "मेलबॉक्स फ़ाइल के अंत में एक त्रुटि लॉग जोड़ दिया गया।",
+    export_error_write_partial:
+      "एक्सपोर्ट समय से पहले रुक गया। आपकी फ़ाइल में अब तक एक्सपोर्ट किए गए संदेश हैं।",
     export_error_write_fatal:
       "चुने गए गंतव्य पर नहीं लिखा जा सका। एक्सपोर्ट रोक दिया गया।",
     export_error_no_vault:

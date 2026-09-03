@@ -5795,6 +5795,10 @@ export const zh_CN = {
     export_step_incomplete_title: "导出未完成",
     export_incomplete_summary:
       "导出停止前已导出 {{ total }} 条消息中的 {{ count }} 条。",
+    export_progress_messages_unknown_total: "已导出 {{processed}} 封邮件",
+    export_complete_summary_unknown_total: "已导出 {{ count }} 封邮件。",
+    export_incomplete_summary_unknown_total: "导出停止前已导出 {{ count }} 封邮件。",
+    export_incomplete_partial_saved: "文件中包含目前已导出的邮件。",
     export_complete_data_only: "导出已完成。",
     export_scope_mail_title: "邮件",
     export_scope_mail_body: "导出您的邮件和对话",
@@ -5856,6 +5860,7 @@ export const zh_CN = {
     export_complete_errors_in_mbox_hint: "跳过的邮件记录在导出旁边的日志文件中",
     export_cancelled_partial_saved: "导出已取消。进度已保存到 {{location}}。",
     export_error_no_vault: "您的私钥未加载，登录后再试一次就可以。",
+    export_error_write_partial: "导出提前停止。文件中包含目前已导出的邮件。",
     export_error_write_fatal: "我们无法写入导出文件，检查一下磁盘空间就可以。",
     export_error_no_messages_match: "没有邮件符合您选择的范围和日期筛选条件。",
     export_warning_title: "关于您的导出",

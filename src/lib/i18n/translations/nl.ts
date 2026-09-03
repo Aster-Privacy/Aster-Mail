@@ -6649,6 +6649,7 @@ export const nl = {
     export_error_no_messages_match:
       "Geen berichten komen overeen met uw exportcriteria",
     export_error_no_vault: "Geen versleutelde opslag gevonden",
+    export_error_write_partial: "De export is vroegtijdig gestopt. Je bestand bevat de berichten die tot nu toe zijn geëxporteerd.",
     export_error_write_fatal: "Schrijffout - export mislukt",
     export_format_eml_hint:
       "Afzonderlijke .eml-bestanden, compatibel met de meeste e-mailclients",
@@ -6704,6 +6705,10 @@ export const nl = {
     export_step_incomplete_title: "Export niet voltooid",
     export_incomplete_summary:
       "{{ count }} van {{ total }} berichten geëxporteerd voordat de export stopte.",
+    export_progress_messages_unknown_total: "{{processed}} berichten geëxporteerd",
+    export_complete_summary_unknown_total: "{{ count }} berichten geëxporteerd.",
+    export_incomplete_summary_unknown_total: "{{ count }} berichten geëxporteerd voordat de export stopte.",
+    export_incomplete_partial_saved: "Je bestand bevat de berichten die tot nu toe zijn geëxporteerd.",
     export_complete_data_only: "Je export is klaar.",
     export_step_destination_title: "Bestemming",
     export_step_format_title: "Formaat",

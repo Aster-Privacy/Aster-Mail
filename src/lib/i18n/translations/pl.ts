@@ -7302,6 +7302,10 @@ export const pl = {
     export_step_incomplete_title: "Eksport nie został ukończony",
     export_incomplete_summary:
       "Wyeksportowano {{ count }} z {{ total }} wiadomości, zanim eksport się zatrzymał.",
+    export_progress_messages_unknown_total: "Wyeksportowano {{ processed }} wiadomości",
+    export_complete_summary_unknown_total: "Wyeksportowano {{ count }} wiadomości.",
+    export_incomplete_summary_unknown_total: "Wyeksportowano {{ count }} wiadomości, zanim eksport się zatrzymał.",
+    export_incomplete_partial_saved: "Twój plik zawiera wiadomości wyeksportowane do tej pory.",
     export_complete_data_only: "Twój eksport jest gotowy.",
     export_complete_summary:
       "Wyeksportowano {{ count }} z {{ total }} wiadomości.",
@@ -7315,6 +7319,7 @@ export const pl = {
       "Nie udało się odszyfrować {{ count }} załączników, więc nie ma ich w tym archiwum.",
     export_complete_errors_in_mbox_hint:
       "Dziennik błędów został dołączony na końcu pliku skrzynki pocztowej.",
+    export_error_write_partial: "Eksport zatrzymał się przed końcem. Twój plik zawiera wiadomości wyeksportowane do tej pory.",
     export_error_write_fatal:
       "Nie można zapisać do wybranego miejsca docelowego. Eksport został zatrzymany.",
     export_error_no_vault:
