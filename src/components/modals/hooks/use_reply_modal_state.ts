@@ -73,8 +73,9 @@ import {
   get_preferred_sender_id,
   set_preferred_sender_id,
   subscribe_preferred_sender,
-  sender_id_matches,
 } from "@/lib/preferred_sender";
+import { use_preferred_sender_ready } from "@/hooks/use_preferred_sender_ready";
+import { resolve_from_sender } from "@/components/compose/resolve_from_sender";
 import { list_contacts, decrypt_contacts } from "@/services/api/contacts";
 import {
   sanitize_html,
@@ -154,9 +155,15 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
     });
   }, []);
   const { sender_options, loading: sender_loading } = use_sender_aliases();
-  const [selected_sender, set_selected_sender] = useState<SenderOption | null>(
-    null,
-  );
+  const [selected_sender, set_selected_sender_state] =
+    useState<SenderOption | null>(null);
+  const sender_manually_selected_ref = useRef(false);
+  const preferred_sender_ready = use_preferred_sender_ready();
+
+  const set_selected_sender = useCallback((value: SenderOption | null) => {
+    sender_manually_selected_ref.current = value !== null;
+    set_selected_sender_state(value);
+  }, []);
   const ghost_mode = use_ghost_mode(thread_token, thread_ghost_email);
   const [preferred_sender_id, set_preferred_sender_state] = useState<
     string | null
@@ -255,63 +262,37 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
   const is_mac = editor.is_mac;
 
   useEffect(() => {
-    if (sender_loading || selected_sender) return;
+    if (sender_loading) return;
+    if (sender_manually_selected_ref.current) return;
+    if (ghost_mode.is_ghost_enabled) return;
+    if (!preferred_sender_ready && !preferred_sender_id) return;
 
-    if (reply_from_address) {
-      const normalized = reply_from_address.toLowerCase();
-      const match = sender_options.find(
-        (s) => s.is_enabled && s.email.toLowerCase() === normalized,
-      );
+    const resolved = resolve_from_sender({
+      options: sender_options,
+      thread_addresses: [
+        reply_from_address,
+        ...(original_to ?? []),
+        ...(original_cc ?? []),
+      ],
+      prefer_external: is_external,
+      preferred_sender_id,
+    });
 
-      if (match) {
-        set_selected_sender(match);
+    if (!resolved) return;
+    if (resolved.option.id === selected_sender?.id) return;
 
-        return;
-      }
-    }
-
-    for (const addr of (original_to ?? []).filter(Boolean)) {
-      const normalized = addr.toLowerCase().trim();
-      const match = sender_options.find(
-        (s) => s.is_enabled && s.email?.toLowerCase() === normalized,
-      );
-
-      if (match) {
-        set_selected_sender(match);
-
-        return;
-      }
-    }
-
-    if (is_external) {
-      const ext = sender_options.find(
-        (s) => s.type === "external" && s.is_enabled,
-      );
-
-      if (ext) {
-        set_selected_sender(ext);
-
-        return;
-      }
-    }
-
-    if (preferred_sender_id) {
-      const match = sender_options.find(
-        (s) => s.is_enabled && sender_id_matches(s.id, preferred_sender_id),
-      );
-
-      if (match) {
-        set_selected_sender(match);
-      }
-    }
+    set_selected_sender_state(resolved.option);
   }, [
     sender_options,
     sender_loading,
     selected_sender,
     reply_from_address,
     original_to,
+    original_cc,
     is_external,
     preferred_sender_id,
+    preferred_sender_ready,
+    ghost_mode.is_ghost_enabled,
   ]);
 
   useEffect(() => {
@@ -471,7 +452,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
 
   useEffect(() => {
     if (ghost_mode.is_ghost_enabled && ghost_mode.ghost_sender) {
-      set_selected_sender(ghost_mode.ghost_sender);
+      set_selected_sender_state(ghost_mode.ghost_sender);
     }
   }, [ghost_mode.is_ghost_enabled, ghost_mode.ghost_sender]);
 

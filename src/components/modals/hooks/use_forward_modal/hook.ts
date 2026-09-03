@@ -69,8 +69,9 @@ import {
   get_preferred_sender_id,
   set_preferred_sender_id,
   subscribe_preferred_sender,
-  sender_id_matches,
 } from "@/lib/preferred_sender";
+import { use_preferred_sender_ready } from "@/hooks/use_preferred_sender_ready";
+import { resolve_from_sender } from "@/components/compose/resolve_from_sender";
 import {
   type Attachment,
   type DraftStatus,
@@ -168,9 +169,15 @@ export function use_forward_modal({
     });
   }, []);
   const { sender_options, loading: sender_loading } = use_sender_aliases();
-  const [selected_sender, set_selected_sender] = useState<SenderOption | null>(
-    null,
-  );
+  const [selected_sender, set_selected_sender_state] =
+    useState<SenderOption | null>(null);
+  const sender_manually_selected_ref = useRef(false);
+  const preferred_sender_ready = use_preferred_sender_ready();
+
+  const set_selected_sender = useCallback((value: SenderOption | null) => {
+    sender_manually_selected_ref.current = value !== null;
+    set_selected_sender_state(value);
+  }, []);
   const [preferred_sender_id, set_preferred_sender_state] = useState<
     string | null
   >(() => get_preferred_sender_id());
@@ -383,7 +390,8 @@ export function use_forward_modal({
       set_is_scheduling(false);
       set_expires_at(null);
       set_expiry_password(null);
-      set_selected_sender(null);
+      sender_manually_selected_ref.current = false;
+      set_selected_sender_state(null);
       set_is_forward_visible(false);
       set_is_plain_text_mode(false);
       is_sending_ref.current = false;
@@ -540,28 +548,29 @@ export function use_forward_modal({
   }, [is_open, original_mail_id, effective_mail_id]);
 
   useEffect(() => {
-    if (!is_external || sender_loading || selected_sender) return;
-    const ext = sender_options.find(
-      (s) => s.type === "external" && s.is_enabled,
-    );
+    if (sender_loading) return;
+    if (sender_manually_selected_ref.current) return;
+    if (ghost_mode.is_ghost_enabled) return;
+    if (!preferred_sender_ready && !preferred_sender_id) return;
 
-    if (ext) set_selected_sender(ext);
-  }, [is_external, sender_options, sender_loading, selected_sender]);
+    const resolved = resolve_from_sender({
+      options: sender_options,
+      prefer_external: is_external,
+      preferred_sender_id,
+    });
 
-  useEffect(() => {
-    if (is_external || sender_loading || selected_sender) return;
-    if (!preferred_sender_id) return;
-    const match = sender_options.find(
-      (s) => s.is_enabled && sender_id_matches(s.id, preferred_sender_id),
-    );
+    if (!resolved) return;
+    if (resolved.option.id === selected_sender?.id) return;
 
-    if (match) set_selected_sender(match);
+    set_selected_sender_state(resolved.option);
   }, [
     is_external,
     sender_options,
     sender_loading,
     selected_sender,
     preferred_sender_id,
+    preferred_sender_ready,
+    ghost_mode.is_ghost_enabled,
   ]);
 
   useEffect(() => {
@@ -575,7 +584,7 @@ export function use_forward_modal({
 
   useEffect(() => {
     if (ghost_mode.is_ghost_enabled && ghost_mode.ghost_sender) {
-      set_selected_sender(ghost_mode.ghost_sender);
+      set_selected_sender_state(ghost_mode.ghost_sender);
     }
   }, [ghost_mode.is_ghost_enabled, ghost_mode.ghost_sender]);
 
