@@ -7698,7 +7698,7 @@ export const ru = {
     moved_to_category: "Перемещено в категорию",
     drop_to_move_here: "Перетащите сюда, чтобы переместить",
     tab_new_count: "новых",
-    tab_unread_count: "{{count}} непрочитанных",
+    tab_unread_count: "{{count}} непрочитанных", tab_counting_unread: "Подсчет непрочитанных сообщений",
     category_empty_primary_title: "В «Основных» пусто",
     category_empty_primary_desc:
       "Здесь будут отображаться ваши личные сообщения и переписки.",

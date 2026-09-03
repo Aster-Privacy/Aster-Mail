@@ -7555,7 +7555,7 @@ export const fr = {
     moved_to_category: "Déplacé vers la catégorie",
     drop_to_move_here: "Déposez ici pour déplacer",
     tab_new_count: "nouveau(x)",
-    tab_unread_count: "{{count}} non lus",
+    tab_unread_count: "{{count}} non lus", tab_counting_unread: "Comptage des messages non lus",
     category_empty_primary_title: "Rien dans Principal",
     category_empty_primary_desc:
       "Vos messages personnels et vos conversations apparaîtront ici.",

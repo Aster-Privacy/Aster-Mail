@@ -7150,7 +7150,7 @@ export const ko = {
     moved_to_category: "카테고리로 이동됨",
     drop_to_move_here: "여기에 놓아 이동",
     tab_new_count: "신규",
-    tab_unread_count: "읽지 않음 {{count}}개",
+    tab_unread_count: "읽지 않음 {{count}}개", tab_counting_unread: "읽지 않은 메일 계산 중",
     category_empty_primary_title: "기본에 아무것도 없습니다",
     category_empty_primary_desc: "개인 메시지와 대화가 여기에 표시됩니다.",
     category_empty_promotions_title: "할인 없음",

@@ -6980,6 +6980,7 @@ export interface MailTranslations {
   drop_to_move_here: string;
   tab_new_count: string;
   tab_unread_count: string;
+  tab_counting_unread: string;
   category_empty_primary_title: string;
   category_empty_primary_desc: string;
   category_empty_promotions_title: string;

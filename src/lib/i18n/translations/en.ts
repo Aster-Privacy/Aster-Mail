@@ -7763,7 +7763,7 @@ export const en: Translations = {
     moved_to_category: "Moved to category",
     drop_to_move_here: "Drop to move here",
     tab_new_count: "new",
-    tab_unread_count: "{{count}} unread",
+    tab_unread_count: "{{count}} unread", tab_counting_unread: "Counting unread messages",
     category_empty_primary_title: "Nothing in Primary",
     category_empty_primary_desc:
       "Your personal messages and conversations will show up here.",

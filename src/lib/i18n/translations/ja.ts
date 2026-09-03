@@ -7359,7 +7359,7 @@ export const ja = {
     moved_to_category: "カテゴリに移動しました",
     drop_to_move_here: "ここにドロップして移動",
     tab_new_count: "新着",
-    tab_unread_count: "未読 {{count}} 件",
+    tab_unread_count: "未読 {{count}} 件", tab_counting_unread: "未読メールを集計中",
     category_empty_primary_title: "メインには何もありません",
     category_empty_primary_desc:
       "個人的なメッセージや会話がここに表示されます。",

@@ -1406,6 +1406,26 @@
   --cat-slate-fg: #475569;
   --cat-slate-soft: #f1f5f9;
   --cat-slate-border: #e2e8f0;
+  --cat-accent-solid: color-mix(in srgb, var(--accent-color) 16%, #ffffff);
+  --cat-accent-on-solid: color-mix(in srgb, var(--accent-color) 75%, #000000);
+  --cat-blue-solid: #dbeafe;
+  --cat-blue-on-solid: #1d4ed8;
+  --cat-green-solid: #dcfce7;
+  --cat-green-on-solid: #15803d;
+  --cat-amber-solid: #fef3c7;
+  --cat-amber-on-solid: #b45309;
+  --cat-violet-solid: #ede9fe;
+  --cat-violet-on-solid: #6d28d9;
+  --cat-teal-solid: #ccfbf1;
+  --cat-teal-on-solid: #0f766e;
+  --cat-cyan-solid: #cffafe;
+  --cat-cyan-on-solid: #0e7490;
+  --cat-rose-solid: #ffe4e6;
+  --cat-rose-on-solid: #be123c;
+  --cat-pink-solid: #fae8ff;
+  --cat-pink-on-solid: #a21caf;
+  --cat-slate-solid: #f1f5f9;
+  --cat-slate-on-solid: #475569;
 }
 
 .dark {
@@ -1438,6 +1458,26 @@
   --cat-slate-fg: #cbd5e1;
   --cat-slate-soft: rgba(148, 163, 184, 0.16);
   --cat-slate-border: rgba(148, 163, 184, 0.32);
+  --cat-accent-solid: color-mix(in srgb, var(--accent-color) 30%, #0d1117);
+  --cat-accent-on-solid: color-mix(in srgb, var(--accent-color) 45%, #ffffff);
+  --cat-blue-solid: #1e3a8a;
+  --cat-blue-on-solid: #bfdbfe;
+  --cat-green-solid: #14532d;
+  --cat-green-on-solid: #bbf7d0;
+  --cat-amber-solid: #78350f;
+  --cat-amber-on-solid: #fde68a;
+  --cat-violet-solid: #4c1d95;
+  --cat-violet-on-solid: #ddd6fe;
+  --cat-teal-solid: #134e4a;
+  --cat-teal-on-solid: #99f6e4;
+  --cat-cyan-solid: #164e63;
+  --cat-cyan-on-solid: #a5f3fc;
+  --cat-rose-solid: #881337;
+  --cat-rose-on-solid: #fecdd3;
+  --cat-pink-solid: #701a75;
+  --cat-pink-on-solid: #f5d0fe;
+  --cat-slate-solid: #334155;
+  --cat-slate-on-solid: #e2e8f0;
 }
 
 .high-contrast {
@@ -1450,6 +1490,15 @@
   --cat-rose-fg: #881337;
   --cat-pink-fg: #701a75;
   --cat-slate-fg: #1e293b;
+  --cat-blue-on-solid: #1e3a8a;
+  --cat-green-on-solid: #14532d;
+  --cat-amber-on-solid: #78350f;
+  --cat-violet-on-solid: #4c1d95;
+  --cat-teal-on-solid: #134e4a;
+  --cat-cyan-on-solid: #164e63;
+  --cat-rose-on-solid: #881337;
+  --cat-pink-on-solid: #701a75;
+  --cat-slate-on-solid: #1e293b;
 }
 
 .dark.high-contrast {
@@ -1462,6 +1511,24 @@
   --cat-rose-fg: #fecdd3;
   --cat-pink-fg: #f5d0fe;
   --cat-slate-fg: #e2e8f0;
+  --cat-blue-solid: #1e3a8a;
+  --cat-blue-on-solid: #dbeafe;
+  --cat-green-solid: #14532d;
+  --cat-green-on-solid: #dcfce7;
+  --cat-amber-solid: #78350f;
+  --cat-amber-on-solid: #fef3c7;
+  --cat-violet-solid: #4c1d95;
+  --cat-violet-on-solid: #ede9fe;
+  --cat-teal-solid: #134e4a;
+  --cat-teal-on-solid: #ccfbf1;
+  --cat-cyan-solid: #164e63;
+  --cat-cyan-on-solid: #cffafe;
+  --cat-rose-solid: #881337;
+  --cat-rose-on-solid: #ffe4e6;
+  --cat-pink-solid: #701a75;
+  --cat-pink-on-solid: #fae8ff;
+  --cat-slate-solid: #334155;
+  --cat-slate-on-solid: #f1f5f9;
 }
 
 :root {
@@ -1519,21 +1586,57 @@
 .aster_cat_badge {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   height: 18px;
-  padding: 0 6px;
-  border-radius: 6px;
+  padding: 0 7px;
+  border-radius: 9999px;
   font-size: calc(11px * var(--font-scale, 1));
-  font-weight: 600;
+  font-weight: 500;
   line-height: 1;
   white-space: nowrap;
-  color: var(--cat-fg);
-  background: var(--cat-soft);
+  color: var(--cat-on-solid);
+  background: var(--cat-solid);
 }
 
 .aster_cat_badge_muted {
-  color: var(--text-secondary);
-  background: var(--bg-tertiary);
+  min-width: 18px;
+  padding: 0 5px;
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
+}
+
+.aster_cat_badge_counting {
+  width: 18px;
+  min-width: 18px;
+  padding: 0;
+  background: none;
+}
+
+.aster_cat_badge_counting::before {
+  content: "";
+  display: block;
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background: var(--cat-solid);
+  animation: aster_cat_counting_pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes aster_cat_counting_pulse {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aster_cat_badge_counting::before {
+    animation: none;
+    opacity: 0.75;
+  }
 }
 
 .aster_cat_swatch {

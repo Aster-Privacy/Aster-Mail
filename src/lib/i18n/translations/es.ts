@@ -7465,7 +7465,7 @@ export const es = {
     moved_to_category: "Movido a la categoría",
     drop_to_move_here: "Suelta aquí para mover",
     tab_new_count: "nuevos",
-    tab_unread_count: "{{count}} sin leer",
+    tab_unread_count: "{{count}} sin leer", tab_counting_unread: "Contando mensajes sin leer",
     category_empty_primary_title: "No hay nada en Principal",
     category_empty_primary_desc:
       "Tus mensajes personales y conversaciones aparecerán aquí.",

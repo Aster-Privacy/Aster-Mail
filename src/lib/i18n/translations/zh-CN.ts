@@ -6616,7 +6616,7 @@ export const zh_CN = {
     moved_to_category: "已移至分类",
     drop_to_move_here: "拖放到此处以移动",
     tab_new_count: "新",
-    tab_unread_count: "{{count}} 封未读",
+    tab_unread_count: "{{count}} 封未读", tab_counting_unread: "正在统计未读邮件",
     category_empty_primary_title: "“主要”中没有内容",
     category_empty_primary_desc: "你的个人消息和对话将显示在这里。",
     category_empty_promotions_title: "没有促销",

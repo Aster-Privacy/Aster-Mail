@@ -7471,7 +7471,7 @@ export const tr = {
     moved_to_category: "Kategoriye taşındı",
     drop_to_move_here: "Taşımak için buraya bırakın",
     tab_new_count: "yeni",
-    tab_unread_count: "{{count}} okunmamış",
+    tab_unread_count: "{{count}} okunmamış", tab_counting_unread: "Okunmayan iletiler sayılıyor",
     category_empty_primary_title: "Birincil'de hiçbir şey yok",
     category_empty_primary_desc:
       "Kişisel mesajlarınız ve sohbetleriniz burada görünecek.",

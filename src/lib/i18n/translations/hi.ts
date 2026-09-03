@@ -7781,7 +7781,7 @@ export const hi = {
     moved_to_category: "श्रेणी में ले जाया गया",
     drop_to_move_here: "यहां ले जाने के लिए छोड़ें",
     tab_new_count: "नया",
-    tab_unread_count: "{{count}} बिना पढ़े",
+    tab_unread_count: "{{count}} बिना पढ़े", tab_counting_unread: "बिना पढ़े संदेश गिने जा रहे हैं",
     category_empty_primary_title: "प्राथमिक में कुछ नहीं है",
     category_empty_primary_desc: "आपके निजी संदेश और बातचीत यहां दिखेंगे।",
     category_empty_promotions_title: "कोई ऑफ़र नहीं",

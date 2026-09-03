@@ -374,6 +374,7 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
             <CategoryTabs
               active_category={categories.active_category}
               counts={categories.counts}
+              counts_pending={categories.counts_pending}
               on_category_drop={handle_category_drop}
               on_change={categories.set_active_category}
             />

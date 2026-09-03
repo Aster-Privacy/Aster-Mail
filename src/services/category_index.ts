@@ -1528,6 +1528,10 @@ export function get_index_entry_count(): number {
   return entries_map.size;
 }
 
+export function are_counts_partial(): boolean {
+  return build_in_progress && last_build_ms === 0;
+}
+
 export function is_index_settled(): boolean {
   if (!fully_built || build_in_progress) return false;
 
