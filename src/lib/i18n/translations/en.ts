@@ -8824,6 +8824,8 @@ export const en: Translations = {
     creating_recovery_backup: "Creating recovery backup...",
     preparing_pgp_key: "Preparing PGP key...",
     creating_your_account: "Creating your account...",
+    setup_taking_longer:
+      "This is taking longer than usual. Keep this page open while your account finishes setting up.",
     username_in_use: "This username is already taken. Another one should work.",
     password_breach_warning:
       "This password has appeared in a data breach. Consider using a different one.",

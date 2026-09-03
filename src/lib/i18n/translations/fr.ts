@@ -8831,6 +8831,8 @@ export const fr = {
     creating_recovery_backup: "Création de la sauvegarde de récupération...",
     preparing_pgp_key: "Préparation de la clé PGP...",
     creating_your_account: "Création de votre compte...",
+    setup_taking_longer:
+      "Cela prend plus de temps que d'habitude. Gardez cette page ouverte pendant la configuration de votre compte.",
     by_continuing: "En continuant, vous acceptez nos",
     copyright: "© {{year}} Aster Communications Inc.",
     display_name_optional: "Nom d'affichage (optionnel)",

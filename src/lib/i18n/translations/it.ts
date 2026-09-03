@@ -8830,6 +8830,8 @@ export const it = {
     creating_recovery_backup: "Creazione backup di recupero...",
     preparing_pgp_key: "Preparazione chiave PGP...",
     creating_your_account: "Creazione del tuo account...",
+    setup_taking_longer:
+      "Sta richiedendo più tempo del solito. Tieni aperta questa pagina mentre il tuo account viene configurato.",
     by_continuing: "Continuando, accetti i nostri",
     copyright: "© {{year}} Aster Communications Inc.",
     display_name_optional: "Nome visualizzato (opzionale)",

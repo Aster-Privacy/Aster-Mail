@@ -8703,6 +8703,8 @@ export const nl = {
     creating_recovery_backup: "Herstelback-up aanmaken...",
     preparing_pgp_key: "PGP-sleutel voorbereiden...",
     creating_your_account: "Je account aanmaken...",
+    setup_taking_longer:
+      "Dit duurt langer dan gebruikelijk. Houd deze pagina open terwijl je account wordt ingesteld.",
     by_continuing: "Door verder te gaan ga je akkoord met onze",
     copyright: "© {{year}} Aster Communications Inc.",
     display_name_optional: "Weergavenaam (optioneel)",

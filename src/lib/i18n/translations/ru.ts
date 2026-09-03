@@ -8961,6 +8961,8 @@ export const ru = {
     creating_recovery_backup: "Создание резервной копии для восстановления...",
     preparing_pgp_key: "Подготовка ключа PGP...",
     creating_your_account: "Создание вашего аккаунта...",
+    setup_taking_longer:
+      "Это занимает больше времени, чем обычно. Не закрывайте эту страницу, пока настройка аккаунта не завершится.",
     by_continuing: "Продолжая, вы соглашаетесь с нашими",
     copyright: "© {{year}} Aster Communications Inc.",
     display_name_optional: "Отображаемое имя (необязательно)",

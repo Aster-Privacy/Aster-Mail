@@ -8599,6 +8599,8 @@ export const ja = {
     creating_recovery_backup: "復旧バックアップを作成中...",
     preparing_pgp_key: "PGPキーを準備中...",
     creating_your_account: "アカウントを作成中...",
+    setup_taking_longer:
+      "通常より時間がかかっています。アカウントの設定が完了するまで、このページを開いたままにしてください。",
     by_continuing: "続行すると、以下に同意したことになります",
     copyright: "© {{year}} Aster Communications Inc.",
     display_name_optional: "表示名（任意）",
