@@ -28,6 +28,7 @@ import {
   MAX_SEARCH_RESULTS,
 } from "./constants";
 import {
+  acquire_search_index,
   build_search_index,
   mark_search_index_stale,
   reset_index_cache,
@@ -37,7 +38,12 @@ import {
   query_requires_body,
   to_search_result,
 } from "./matching";
-import { emit_indexing, subscribe_index_refresh } from "./progress";
+import {
+  emit_indexing,
+  indexing_progress,
+  subscribe_index_refresh,
+} from "./progress";
+import { entry_haystack } from "./haystack";
 import { scan_search_index } from "./scan";
 import {
   PROGRESS_FLUSH_MS,
@@ -100,6 +106,8 @@ export function use_search() {
     index_building: false,
     hidden_spam_trash: 0,
     index_incomplete: false,
+    index_pending: false,
+    indexed_count: 0,
   });
 
   const abort_ref = useRef<AbortController | null>(null);
@@ -240,18 +248,26 @@ export function use_search() {
           return;
         }
 
-        set_state((prev) => ({ ...prev, index_building: true }));
-
         const search_body =
           options?.search_body !== false &&
           query_requires_body(terms, operators);
-        const index = await build_search_index(
+        const index = await acquire_search_index(
           user?.email || "",
           search_body,
           ttl,
         );
 
-        set_state((prev) => ({ ...prev, index_building: false }));
+        const index_pending =
+          !index.complete ||
+          indexing_progress.building ||
+          (search_body && !index.include_body);
+
+        set_state((prev) => ({
+          ...prev,
+          index_building: false,
+          index_pending,
+          indexed_count: index.total_indexed,
+        }));
 
         if (controller.signal.aborted) return;
 
@@ -273,6 +289,7 @@ export function use_search() {
 
         const visit = (item: MailItem, data: DecryptedIndexEntry): boolean => {
           const { envelope, metadata, search_body_text } = data;
+          const hay = entry_haystack(data);
 
           if (
             !matches_query(
@@ -285,6 +302,7 @@ export function use_search() {
               options?.fields,
               options?.search_body !== false,
               search_body_text,
+              hay,
             )
           ) {
             return true;
@@ -338,6 +356,8 @@ export function use_search() {
               search_time_ms: now - start,
               hidden_spam_trash: counts.hidden,
               index_incomplete: index_incomplete_ref.current,
+              index_pending,
+              indexed_count: index.total_indexed,
             };
           });
         };
@@ -444,6 +464,8 @@ export function use_search() {
               has_more: false,
               hidden_spam_trash: 0,
               index_incomplete: false,
+              index_pending,
+              indexed_count: index.total_indexed,
             };
           }
 
@@ -458,6 +480,8 @@ export function use_search() {
             has_more: stopped && total_results >= result_limit_ref.current,
             hidden_spam_trash: counts.hidden,
             index_incomplete: index_incomplete_ref.current,
+            index_pending,
+            indexed_count: index.total_indexed,
           };
         });
       } catch (err) {
@@ -536,6 +560,8 @@ export function use_search() {
       index_building: false,
       hidden_spam_trash: 0,
       index_incomplete: false,
+      index_pending: false,
+      indexed_count: 0,
     });
   }, []);
 

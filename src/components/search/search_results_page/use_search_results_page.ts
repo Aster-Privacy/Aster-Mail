@@ -136,6 +136,7 @@ export function use_search_results_page(props: SearchResultsPageProps) {
 
       search(search_query, {
         fields: ["all"],
+        search_body: content_search_enabled,
         filters:
           Object.keys(search_filters).length > 0
             ? (search_filters as {
@@ -145,14 +146,18 @@ export function use_search_results_page(props: SearchResultsPageProps) {
             : undefined,
       });
     },
-    [search, filters],
+    [search, filters, content_search_enabled],
   );
 
   useEffect(() => {
     if (query) {
       perform_search(query);
     }
-  }, [filters.date_range, filters.has_attachment]);
+  }, [filters.date_range, filters.has_attachment, content_search_enabled]);
+
+  const handle_enable_content_search = useCallback(() => {
+    update_preference("search_encrypted_content", true, true);
+  }, [update_preference]);
 
   const handle_disable_content_search = useCallback(() => {
     update_preference("search_encrypted_content", false, true);
@@ -728,6 +733,7 @@ export function use_search_results_page(props: SearchResultsPageProps) {
     set_search_page,
     perform_search,
     handle_disable_content_search,
+    handle_enable_content_search,
     search_terms,
     filtered_results,
     paged_results,

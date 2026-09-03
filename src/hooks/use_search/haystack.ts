@@ -19,17 +19,22 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
-import { SNAPSHOT_CHUNK_SIZE } from "@/services/search_index_store";
+import { build_search_haystack } from "./matching";
+import type { DecryptedIndexEntry, SearchHaystack } from "./types";
 
-export const ENVELOPE_FETCH_CHUNK = 100;
-export const INDEX_PAGE_LIMIT = 500;
-export const ENVELOPE_PAGE_LIMIT = 200;
-export const HOT_CHUNK_COUNT = 6;
-export const MAX_RAM_INDEX_ITEMS = HOT_CHUNK_COUNT * SNAPSHOT_CHUNK_SIZE;
-export const MAX_INDEX_ITEMS = 1_000_000;
-export const DEEP_SEGMENT_ITEMS = 10000;
-export const DEEP_SEGMENT_PAUSE_MS = 1500;
-export const MAX_SEARCH_RESULTS = 500;
-export const SCAN_YIELD_MS = 8;
-export const INDEX_TTL_MS = 5 * 60 * 1000;
-export const INDEX_TTL_MS_LOW_NETWORK = 20 * 60 * 1000;
+const empty_haystack: SearchHaystack = {
+  subject: "",
+  sender_name: "",
+  sender_email: "",
+  contact: "",
+  recipients: "",
+};
+
+export function entry_haystack(entry: DecryptedIndexEntry): SearchHaystack {
+  if (entry.haystack) return entry.haystack;
+  if (!entry.envelope) return empty_haystack;
+
+  entry.haystack = build_search_haystack(entry.envelope);
+
+  return entry.haystack;
+}

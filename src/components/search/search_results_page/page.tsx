@@ -42,6 +42,8 @@ import {
   extract_snippet,
 } from "./helpers";
 import { use_search_results_page } from "./use_search_results_page";
+
+import { use_indexing_progress } from "@/hooks/use_search/progress";
 import { search_row_key } from "./thread_grouping";
 
 import { emit_mail_items_removed } from "@/hooks/mail_events";
@@ -105,6 +107,7 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
     set_search_page,
     perform_search,
     handle_disable_content_search,
+    handle_enable_content_search,
     search_terms,
     filtered_results,
     paged_results,
@@ -139,6 +142,7 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
     handle_search_navigate_next,
     show_full_email_viewer,
   } = use_search_results_page(props);
+  const indexing = use_indexing_progress();
   const is_split_view = !!split_email_id;
 
   const sort_dropdown = (
@@ -339,6 +343,28 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
             {t("common.retry")}
           </button>
         </div>
+      ) : filtered_results.length === 0 && state.index_pending ? (
+        <div className="flex flex-col items-center justify-center py-16 px-4">
+          <ArrowPathIcon
+            className="w-10 h-10 mb-4 animate-spin"
+            style={{ color: "var(--text-muted)" }}
+          />
+          <p
+            className="text-sm font-medium mb-1"
+            style={{ color: "var(--text-primary)" }}
+          >
+            {t("mail.indexing_messages")}
+          </p>
+          <p
+            className="text-xs text-center max-w-[280px]"
+            style={{ color: "var(--text-muted)" }}
+          >
+            {t("mail.message_download_status", {
+              done: state.indexed_count,
+              total: Math.max(indexing.total, state.indexed_count),
+            })}
+          </p>
+        </div>
       ) : filtered_results.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 px-4">
           <MagnifyingGlassIcon
@@ -359,6 +385,15 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
               ? t("mail.try_adjusting_filters")
               : t("mail.no_emails_match_query", { query })}
           </p>
+          {!content_search_enabled && (
+            <button
+              className="mt-3 text-xs font-medium text-blue-500 rounded px-1.5 py-0.5 hover:bg-blue-500/10 transition-colors"
+              type="button"
+              onClick={handle_enable_content_search}
+            >
+              {t("mail.search_message_content")}
+            </button>
+          )}
         </div>
       ) : (
         <>

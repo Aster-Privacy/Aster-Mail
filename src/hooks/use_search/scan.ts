@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
+import { SCAN_YIELD_MS } from "./constants";
 import { cached_index } from "./index_cache";
 import {
   CachedIndex,
@@ -36,11 +37,21 @@ export async function scan_search_index(
   is_aborted: () => boolean,
   options?: ScanOptions,
 ): Promise<boolean> {
+  let yielded_at = Date.now();
+
   for (const item of index.items) {
     const entry = index.decrypted.get(item.id);
 
     if (!entry) continue;
     if (!visit(item, entry)) return true;
+
+    if (Date.now() - yielded_at >= SCAN_YIELD_MS) {
+      await new Promise<void>((r) => setTimeout(r, 0));
+
+      if (is_aborted()) return true;
+
+      yielded_at = Date.now();
+    }
   }
 
   options?.on_chunk?.();

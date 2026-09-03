@@ -104,6 +104,8 @@ export interface SearchState {
   index_building: boolean;
   hidden_spam_trash: number;
   index_incomplete: boolean;
+  index_pending: boolean;
+  indexed_count: number;
 }
 
 export interface AutocompleteState {
@@ -145,12 +147,21 @@ export interface SearchOptions {
   search_body?: boolean;
 }
 
+export interface SearchHaystack {
+  subject: string;
+  sender_name: string;
+  sender_email: string;
+  contact: string;
+  recipients: string;
+}
+
 export interface DecryptedIndexEntry {
   envelope: DecryptedEnvelope | null;
   metadata: MailItemMetadata | null;
   search_body_text: string;
   meta_fp: string;
   has_body: boolean;
+  haystack?: SearchHaystack;
 }
 
 export interface CachedIndex {

@@ -22,7 +22,7 @@
 import type { DecryptedEnvelope, MailItemMetadata } from "@/types/email";
 import type { TranslationKey } from "@/lib/i18n/types";
 
-import { SearchResultItem } from "./types";
+import { SearchHaystack, SearchResultItem } from "./types";
 
 import { type MailItem } from "@/services/api/mail";
 import { strip_html_tags } from "@/lib/html_sanitizer";
@@ -77,6 +77,27 @@ export function envelope_sender(envelope: DecryptedEnvelope): {
   return normalize_envelope_from(envelope.from) ?? { name: "", email: "" };
 }
 
+export function build_search_haystack(
+  envelope: DecryptedEnvelope,
+): SearchHaystack {
+  const forwarding = resolve_forwarding_display(
+    envelope.from,
+    envelope.raw_headers,
+  );
+  const from = envelope_sender(envelope);
+  const forwarded_name = forwarding?.display_sender_name || "";
+  const forwarded_email = forwarding?.display_sender_email || "";
+
+  return {
+    subject: (envelope.subject || "").toLowerCase(),
+    sender_name: `${from.name} ${forwarded_name}`.toLowerCase(),
+    sender_email: `${from.email} ${forwarded_email}`.toLowerCase(),
+    contact:
+      `${from.email} ${from.name} ${forwarded_email} ${forwarded_name}`.toLowerCase(),
+    recipients: collect_recipient_text(envelope),
+  };
+}
+
 export function matches_operator(
   op: ParsedOperator,
   envelope: DecryptedEnvelope,
@@ -84,43 +105,20 @@ export function matches_operator(
   item: MailItem,
   label_name_to_tokens?: Map<string, string[]>,
   search_body_text?: string,
+  haystack?: SearchHaystack,
 ): boolean {
   const val = op.value.toLowerCase();
+  const hay = haystack ?? build_search_haystack(envelope);
 
   switch (op.type) {
-    case "from": {
-      const forwarding = resolve_forwarding_display(
-        envelope.from,
-        envelope.raw_headers,
-      );
-      const from = envelope_sender(envelope);
-      const sender = `${from.email} ${
-        forwarding?.display_sender_email || ""
-      }`.toLowerCase();
-      const sender_name = `${from.name} ${
-        forwarding?.display_sender_name || ""
-      }`.toLowerCase();
-
-      return sender.includes(val) || sender_name.includes(val);
-    }
+    case "from":
+      return hay.sender_email.includes(val) || hay.sender_name.includes(val);
     case "to":
-      return collect_recipient_text(envelope).includes(val);
-    case "contact": {
-      const forwarding = resolve_forwarding_display(
-        envelope.from,
-        envelope.raw_headers,
-      );
-      const from = envelope_sender(envelope);
-      const sender = `${from.email} ${from.name} ${
-        forwarding?.display_sender_email || ""
-      } ${forwarding?.display_sender_name || ""}`.toLowerCase();
-
-      return (
-        sender.includes(val) || collect_recipient_text(envelope).includes(val)
-      );
-    }
+      return hay.recipients.includes(val);
+    case "contact":
+      return hay.contact.includes(val) || hay.recipients.includes(val);
     case "subject":
-      return (envelope.subject || "").toLowerCase().includes(val);
+      return hay.subject.includes(val);
     case "has": {
       if (val === "attachment" || val === "attachments")
         return metadata?.has_attachments ?? false;
@@ -155,24 +153,40 @@ export function matches_operator(
 
       return true;
     case "in": {
+      switch (val) {
+        case "anywhere":
+          return true;
+        case "all":
+          return !item.is_trashed && !item.is_spam;
+        case "inbox":
+          return (
+            item.item_type === "received" &&
+            !item.is_trashed &&
+            !item.is_spam &&
+            !item.is_archived
+          );
+        case "archive":
+        case "archived":
+          return Boolean(item.is_archived) && !item.is_trashed;
+        case "sent":
+          return item.item_type === "sent";
+        case "drafts":
+        case "draft":
+          return item.item_type === "draft";
+        case "trash":
+          return Boolean(item.is_trashed);
+        case "spam":
+          return Boolean(item.is_spam);
+        case "starred":
+          return metadata?.is_starred ?? false;
+        default:
+          break;
+      }
+
       const all_names = [
         ...(item.labels || []).map((l) => l.name.toLowerCase()),
         ...(item.folders || []).map((f) => f.name.toLowerCase()),
       ];
-
-      if (val === "anywhere") return true;
-      if (val === "all") return !item.is_trashed && !item.is_spam;
-      if (
-        val === "inbox" &&
-        item.item_type === "received" &&
-        !item.is_trashed &&
-        !item.is_spam
-      )
-        return true;
-      if (val === "sent" && item.item_type === "sent") return true;
-      if (val === "trash" && item.is_trashed) return true;
-      if (val === "spam" && item.is_spam) return true;
-      if (val === "drafts" && item.item_type === "draft") return true;
 
       return all_names.some((f) => f.includes(val));
     }
@@ -303,70 +317,68 @@ export function matches_query(
   fields?: string[],
   search_body: boolean = true,
   search_body_text?: string,
+  haystack?: SearchHaystack,
 ): boolean {
   if (!envelope) return false;
 
-  const or_groups = new Map<string, ParsedOperator[]>();
+  const hay = haystack ?? build_search_haystack(envelope);
 
-  for (const op of operators) {
-    if (op.negated || !ANY_OF_OPERATOR_TYPES.has(op.type)) continue;
-    const group = or_groups.get(op.type);
+  if (operators.length > 0) {
+    const or_groups = new Map<string, ParsedOperator[]>();
 
-    if (group) group.push(op);
-    else or_groups.set(op.type, [op]);
-  }
+    for (const op of operators) {
+      if (op.negated || !ANY_OF_OPERATOR_TYPES.has(op.type)) continue;
+      const group = or_groups.get(op.type);
 
-  const grouped = new Set<ParsedOperator>();
+      if (group) group.push(op);
+      else or_groups.set(op.type, [op]);
+    }
 
-  for (const group of or_groups.values()) {
-    if (group.length < 2 && group[0].type !== "contact") continue;
-    group.forEach((op) => grouped.add(op));
+    const grouped = new Set<ParsedOperator>();
 
-    const any_match = group.some((op) =>
-      matches_operator(
+    for (const group of or_groups.values()) {
+      if (group.length < 2 && group[0].type !== "contact") continue;
+      group.forEach((op) => grouped.add(op));
+
+      const any_match = group.some((op) =>
+        matches_operator(
+          op,
+          envelope,
+          metadata,
+          item,
+          label_name_to_tokens,
+          search_body_text,
+          hay,
+        ),
+      );
+
+      if (!any_match) return false;
+    }
+
+    for (const op of operators) {
+      if (grouped.has(op)) continue;
+
+      const result = matches_operator(
         op,
         envelope,
         metadata,
         item,
         label_name_to_tokens,
         search_body_text,
-      ),
-    );
+        hay,
+      );
 
-    if (!any_match) return false;
-  }
-
-  for (const op of operators) {
-    if (grouped.has(op)) continue;
-
-    const result = matches_operator(
-      op,
-      envelope,
-      metadata,
-      item,
-      label_name_to_tokens,
-      search_body_text,
-    );
-
-    if (op.negated ? result : !result) return false;
+      if (op.negated ? result : !result) return false;
+    }
   }
 
   if (terms.length === 0) return true;
 
   const search_all = !fields || fields.length === 0 || fields.includes("all");
-  const subject = (envelope.subject || "").toLowerCase();
-  const forwarding = resolve_forwarding_display(
-    envelope.from,
-    envelope.raw_headers,
-  );
-  const from = envelope_sender(envelope);
-  const sender_name = `${from.name} ${
-    forwarding?.display_sender_name || ""
-  }`.toLowerCase();
-  const sender_email = `${from.email} ${
-    forwarding?.display_sender_email || ""
-  }`.toLowerCase();
-  const recipients = collect_recipient_text(envelope);
+  const subject = hay.subject;
+  const sender_name = hay.sender_name;
+  const sender_email = hay.sender_email;
+  const recipients = hay.recipients;
   const body = search_body
     ? (search_body_text ??
       strip_html_tags(searchable_body_source(envelope)).toLowerCase())

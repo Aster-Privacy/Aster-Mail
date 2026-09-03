@@ -415,16 +415,26 @@ export function normalize_chunk_summary(raw: unknown): ChunkSummary | null {
   };
 }
 
+const IN_UNPRUNABLE_VALUES = new Set([
+  "all",
+  "anywhere",
+  "archive",
+  "archived",
+]);
+
 function in_operator_test(val: string): SummaryTest {
   return (summary) => {
-    if (val === "all") return false;
+    if (IN_UNPRUNABLE_VALUES.has(val)) return false;
     if (!summary.names_complete) return false;
     if (summary.names.some((name) => name.includes(val))) return false;
 
     if (val === "sent") return !summary.item_types.includes("sent");
-    if (val === "drafts") return !summary.item_types.includes("draft");
+    if (val === "drafts" || val === "draft") {
+      return !summary.item_types.includes("draft");
+    }
     if (val === "trash") return !has_flag(summary.flags, FLAG_TRASHED);
     if (val === "spam") return !has_flag(summary.flags, FLAG_SPAM);
+    if (val === "starred") return !has_flag(summary.flags, FLAG_STARRED);
     if (val === "inbox") {
       return !(
         summary.item_types.includes("received") &&

@@ -267,3 +267,65 @@ describe("matches_query - html only bodies", () => {
     expect(run("reference", env, false)).toBe(false);
   });
 });
+
+describe("matches_query - in operator mailbox scopes", () => {
+  function run_in(
+    query: string,
+    item_overrides: Partial<MailItem>,
+    metadata_overrides: Partial<MailItemMetadata> = {},
+  ): boolean {
+    const parsed = parse_search_query(query);
+    const terms = parsed.text_query
+      .split(/\s+/)
+      .filter((t) => t.length >= 2)
+      .map((t) => t.toLowerCase());
+
+    return matches_query(
+      terms,
+      parsed.operators,
+      make_envelope(),
+      { ...make_metadata(), ...metadata_overrides },
+      { ...make_item(), ...item_overrides } as MailItem,
+      undefined,
+      undefined,
+      true,
+    );
+  }
+
+  it("finds archived mail with in:archive", () => {
+    expect(run_in("in:archive project", { is_archived: true })).toBe(true);
+  });
+
+  it("accepts in:archived as an alias", () => {
+    expect(run_in("in:archived project", { is_archived: true })).toBe(true);
+  });
+
+  it("excludes unarchived mail from in:archive", () => {
+    expect(run_in("in:archive project", { is_archived: false })).toBe(false);
+  });
+
+  it("excludes trashed mail from in:archive", () => {
+    expect(
+      run_in("in:archive project", { is_archived: true, is_trashed: true }),
+    ).toBe(false);
+  });
+
+  it("excludes archived mail from in:inbox", () => {
+    expect(run_in("in:inbox project", { is_archived: true })).toBe(false);
+  });
+
+  it("keeps unarchived received mail in in:inbox", () => {
+    expect(run_in("in:inbox project", { is_archived: false })).toBe(true);
+  });
+
+  it("matches every mailbox with in:anywhere", () => {
+    expect(
+      run_in("in:anywhere project", { is_archived: true, is_spam: true }),
+    ).toBe(true);
+  });
+
+  it("finds starred mail with in:starred", () => {
+    expect(run_in("in:starred project", {}, { is_starred: true })).toBe(true);
+    expect(run_in("in:starred project", {}, { is_starred: false })).toBe(false);
+  });
+});
