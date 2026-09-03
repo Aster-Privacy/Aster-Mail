@@ -45,6 +45,10 @@ import {
   decrypt_ghost_aliases,
 } from "@/services/api/ghost_aliases";
 import { register_ghost_email } from "@/stores/ghost_alias_store";
+import {
+  clear_local_address_avatars,
+  set_local_address_avatars,
+} from "@/services/local_address_avatars";
 import { is_sendable_address } from "@/utils/sender_address";
 
 export type SenderOptionType =
@@ -113,6 +117,32 @@ let cached_ghost_options: SenderOption[] = [];
 let cached_user: User | null = null;
 let cache_populated = false;
 
+function publish_local_address_avatars(): void {
+  const values = [
+    ...(cached_user?.email && cached_user.profile_picture
+      ? [
+          {
+            email: cached_user.email,
+            profile_picture: cached_user.profile_picture,
+            display_name: cached_user.display_name,
+          },
+        ]
+      : []),
+    ...cached_aliases.map((alias) => ({
+      email: alias.full_address,
+      profile_picture: alias.profile_picture,
+      display_name: alias.display_name,
+    })),
+    ...[...cached_domain_options, ...cached_ghost_options].map((option) => ({
+      email: option.email,
+      profile_picture: option.profile_picture,
+      display_name: option.display_name,
+    })),
+  ];
+
+  set_local_address_avatars(values);
+}
+
 export function clear_sender_aliases_cache(): void {
   cached_aliases = [];
   cached_alias_hashes = new Map();
@@ -121,6 +151,7 @@ export function clear_sender_aliases_cache(): void {
   cached_ghost_options = [];
   cached_user = null;
   cache_populated = false;
+  clear_local_address_avatars();
 }
 
 export function use_sender_aliases() {
@@ -288,6 +319,7 @@ export function use_sender_aliases() {
       }
 
       cache_populated = true;
+      publish_local_address_avatars();
     } catch {
       set_aliases(cached_aliases);
       set_alias_hashes(cached_alias_hashes);
