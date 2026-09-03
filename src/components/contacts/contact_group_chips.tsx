@@ -26,6 +26,7 @@ import { PlusIcon } from "@heroicons/react/24/outline";
 
 import { ContactGroupModal } from "@/components/contacts/contact_group_modal";
 import { use_contact_groups } from "@/hooks/use_contact_groups";
+import { get_contrast_text } from "@/lib/avatar_color";
 import { use_i18n } from "@/lib/i18n/context";
 import { cn, format_number } from "@/lib/utils";
 
@@ -47,6 +48,11 @@ const attribute_filters: { option: FilterOption; label_key: TranslationKey }[] =
 const chip_base =
   "inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full text-[12px] whitespace-nowrap border transition-colors";
 
+const chip_active = "bg-brand border-brand text-[var(--accent-fg,#ffffff)]";
+
+const chip_inactive =
+  "bg-surf-secondary border-edge-primary text-txt-secondary hover:bg-surf-hover";
+
 export function ContactGroupChips({
   filter_by,
   set_filter_by,
@@ -65,12 +71,7 @@ export function ContactGroupChips({
       <div className="flex items-center gap-1.5 px-4 py-2 overflow-x-auto border-b border-edge-primary">
         <button
           aria-pressed={is_all}
-          className={cn(
-            chip_base,
-            is_all
-              ? "bg-brand/10 border-brand/40 text-txt-primary"
-              : "border-edge-primary text-txt-secondary hover:bg-black/[0.04] dark:hover:bg-white/[0.06]",
-          )}
+          className={cn(chip_base, is_all ? chip_active : chip_inactive)}
           type="button"
           onClick={() => {
             set_filter_by("all");
@@ -85,8 +86,8 @@ export function ContactGroupChips({
           className={cn(
             chip_base,
             filter_by === "favorites" && !group_filter
-              ? "bg-brand/10 border-brand/40 text-txt-primary"
-              : "border-edge-primary text-txt-secondary hover:bg-black/[0.04] dark:hover:bg-white/[0.06]",
+              ? chip_active
+              : chip_inactive,
           )}
           type="button"
           onClick={() => {
@@ -103,8 +104,8 @@ export function ContactGroupChips({
             className={cn(
               chip_base,
               filter_by === "upcoming_birthdays" && !group_filter
-                ? "bg-brand/10 border-brand/40 text-txt-primary"
-                : "border-edge-primary text-txt-secondary hover:bg-black/[0.04] dark:hover:bg-white/[0.06]",
+                ? chip_active
+                : chip_inactive,
             )}
             type="button"
             onClick={() => {
@@ -117,7 +118,13 @@ export function ContactGroupChips({
             }}
           >
             {t("common.birthday")}
-            <span className="text-txt-muted">
+            <span
+              className={
+                filter_by === "upcoming_birthdays" && !group_filter
+                  ? "opacity-80"
+                  : "text-txt-muted"
+              }
+            >
               {format_number(upcoming_birthdays_count)}
             </span>
           </button>
@@ -130,12 +137,7 @@ export function ContactGroupChips({
             <button
               key={option}
               aria-pressed={is_active}
-              className={cn(
-                chip_base,
-                is_active
-                  ? "bg-brand/10 border-brand/40 text-txt-primary"
-                  : "border-edge-primary text-txt-secondary hover:bg-black/[0.04] dark:hover:bg-white/[0.06]",
-              )}
+              className={cn(chip_base, is_active ? chip_active : chip_inactive)}
               type="button"
               onClick={() => {
                 on_set_group_filter(null);
@@ -156,15 +158,14 @@ export function ContactGroupChips({
               aria-pressed={is_active}
               className={cn(
                 chip_base,
-                is_active
-                  ? "border-transparent text-txt-primary"
-                  : "border-edge-primary text-txt-secondary hover:bg-black/[0.04] dark:hover:bg-white/[0.06]",
+                is_active ? "border-transparent" : chip_inactive,
               )}
               style={
                 is_active
                   ? {
-                      backgroundColor: `${group.color}26`,
+                      backgroundColor: group.color,
                       borderColor: group.color,
+                      color: get_contrast_text(group.color),
                     }
                   : undefined
               }
@@ -176,12 +177,24 @@ export function ContactGroupChips({
             >
               <span
                 aria-hidden="true"
-                className="w-2 h-2 rounded-full flex-shrink-0"
-                style={{ backgroundColor: group.color }}
+                className={cn(
+                  "w-2 h-2 rounded-full flex-shrink-0",
+                  is_active && "opacity-70",
+                )}
+                style={{
+                  backgroundColor: is_active
+                    ? get_contrast_text(group.color)
+                    : group.color,
+                }}
               />
               <span className="truncate max-w-[10rem]">{group.name}</span>
               {group.contact_count > 0 && (
-                <span className="tabular-nums text-txt-muted">
+                <span
+                  className={cn(
+                    "tabular-nums",
+                    is_active ? "opacity-70" : "text-txt-muted",
+                  )}
+                >
                   {format_number(group.contact_count)}
                 </span>
               )}
@@ -192,7 +205,7 @@ export function ContactGroupChips({
         <button
           className={cn(
             chip_base,
-            "border-dashed border-edge-primary text-txt-muted hover:bg-black/[0.04] dark:hover:bg-white/[0.06]",
+            "bg-surf-secondary border-dashed border-edge-primary text-txt-muted hover:bg-surf-hover",
           )}
           type="button"
           onClick={() => set_is_create_open(true)}

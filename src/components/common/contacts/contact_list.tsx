@@ -322,7 +322,7 @@ export function ContactList({
                 ? t("common.removed_from_favorites")
                 : t("common.added_to_favorites")
             }
-            className="h-8 w-8 inline-flex items-center justify-center rounded-[8px] text-txt-secondary hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+            className="h-8 w-8 inline-flex items-center justify-center rounded-[8px] text-txt-secondary hover:bg-surf-hover transition-colors"
             type="button"
             onClick={on_toggle_favorite_selected}
           >
@@ -338,7 +338,7 @@ export function ContactList({
           />
           <button
             aria-label={t("common.copy")}
-            className="h-8 w-8 inline-flex items-center justify-center rounded-[8px] text-txt-secondary hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+            className="h-8 w-8 inline-flex items-center justify-center rounded-[8px] text-txt-secondary hover:bg-surf-hover transition-colors"
             type="button"
             onClick={on_copy_emails}
           >
@@ -346,7 +346,7 @@ export function ContactList({
           </button>
           <button
             aria-label={t("common.export_all")}
-            className="h-8 w-8 inline-flex items-center justify-center rounded-[8px] text-txt-secondary hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+            className="h-8 w-8 inline-flex items-center justify-center rounded-[8px] text-txt-secondary hover:bg-surf-hover transition-colors"
             type="button"
             onClick={() => on_export_contacts(true)}
           >
@@ -478,8 +478,8 @@ export function ContactList({
                     is_selected
                       ? "bg-[var(--accent-blue,#3b82f6)]/10"
                       : is_active
-                        ? "bg-black/10 dark:bg-white/10"
-                        : "hover:bg-black/5 dark:hover:bg-white/5",
+                        ? "bg-surf-selected"
+                        : "hover:bg-surf-hover",
                   )}
                   onClick={() =>
                     set_selected_contact(is_active ? null : contact)
@@ -587,7 +587,7 @@ export function ContactList({
             {letters.map((letter) => (
               <button
                 key={letter}
-                className="w-4 h-4 text-[10px] leading-none rounded text-txt-muted hover:text-txt-primary hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+                className="w-4 h-4 text-[10px] leading-none rounded text-txt-muted hover:text-txt-primary hover:bg-surf-hover transition-colors"
                 type="button"
                 onClick={() => on_scroll_to_letter(letter)}
               >
