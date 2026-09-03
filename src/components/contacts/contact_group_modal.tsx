@@ -184,6 +184,12 @@ export function ContactGroupModal({
                   </label>
                   <Input
                     autoFocus
+                    aria-describedby={
+                      validation_error || error
+                        ? "contact-group-name-error"
+                        : undefined
+                    }
+                    aria-invalid={Boolean(validation_error || error)}
                     className="w-full"
                     id="contact-group-name"
                     placeholder={t("common.enter_contact_group_name")}
@@ -230,7 +236,11 @@ export function ContactGroupModal({
                 </div>
 
                 {(validation_error || error) && (
-                  <p className="text-[13px] text-red-500 mt-2">
+                  <p
+                    className="text-[13px] text-red-500 mt-2"
+                    id="contact-group-name-error"
+                    role="alert"
+                  >
                     {validation_error || error}
                   </p>
                 )}

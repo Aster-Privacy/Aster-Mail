@@ -106,6 +106,10 @@ export function ManageGroupsMenu({
               return (
                 <DropdownMenuItem
                   key={group.id}
+                  aria-checked={
+                    state === "all" ? true : state === "some" ? "mixed" : false
+                  }
+                  role="menuitemcheckbox"
                   onSelect={(event) => {
                     event.preventDefault();
                     on_set_membership(group.id, state !== "all");

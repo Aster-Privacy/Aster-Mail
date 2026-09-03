@@ -32,6 +32,16 @@ import {
 } from "@heroicons/react/24/outline";
 
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert_dialog";
+import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
@@ -71,6 +81,9 @@ export const SidebarContactGroups = memo(function SidebarContactGroups({
     null,
   );
   const [is_modal_open, set_is_modal_open] = useState(false);
+  const [pending_delete, set_pending_delete] = useState<ContactGroup | null>(
+    null,
+  );
 
   const max_visible = is_collapsed ? 3 : 5;
   const has_more = groups.length > max_visible;
@@ -178,7 +191,7 @@ export const SidebarContactGroups = memo(function SidebarContactGroups({
                   <ContextMenuSeparator />
                   <ContextMenuItem
                     className="text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400"
-                    onClick={() => remove_group(group.id)}
+                    onClick={() => set_pending_delete(group)}
                   >
                     <TrashIcon className="me-2 h-4 w-4" />
                     {t("common.delete")}
@@ -229,6 +242,35 @@ export const SidebarContactGroups = memo(function SidebarContactGroups({
         is_open={is_modal_open}
         on_close={() => set_is_modal_open(false)}
       />
+
+      <AlertDialog
+        open={pending_delete !== null}
+        onOpenChange={(open) => {
+          if (!open) set_pending_delete(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {t("common.delete_contact_group")}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("common.delete_contact_group_confirm")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (pending_delete) remove_group(pending_delete.id);
+                set_pending_delete(null);
+              }}
+            >
+              {t("common.delete")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 });

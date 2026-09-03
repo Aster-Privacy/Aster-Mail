@@ -158,7 +158,6 @@ export function ContactGroupChips({
         })}
 
         <button
-          aria-label={t("common.create_contact_group")}
           className={cn(
             chip_base,
             "border-dashed border-edge-primary text-txt-muted hover:bg-black/[0.04] dark:hover:bg-white/[0.06]",
