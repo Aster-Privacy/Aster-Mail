@@ -7718,6 +7718,7 @@ export const pl = {
     drop_to_move_here: "Upuść tutaj, aby przenieść",
     tab_new_count: "nowe",
     tab_unread_count: "{{count}} nieprzeczytanych",
+    tab_counting_unread: "Liczenie nieprzeczytanych wiadomości",
     category_empty_primary_title: "Nic w Głównych",
     category_empty_primary_desc:
       "Twoje osobiste wiadomości i rozmowy pojawią się tutaj.",

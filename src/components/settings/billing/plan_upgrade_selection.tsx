@@ -19,9 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { TranslationKey } from "@/lib/i18n";
-import { safe_local_set } from "@/lib/safe_storage";
 import type { AvailablePlan } from "@/services/api/billing";
-import { server_error_text } from "@/components/settings/billing/server_error_text";
 
 import { useState, useEffect, useCallback } from "react";
 import {
@@ -30,6 +28,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
+import { safe_local_set } from "@/lib/safe_storage";
 import { use_i18n } from "@/lib/i18n/context";
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { Spinner } from "@/components/ui/spinner";
@@ -43,7 +42,10 @@ import {
   start_hosted_checkout,
 } from "@/services/api/billing";
 import { create_family_group } from "@/services/api/family";
-import { show_toast } from "@/components/toast/simple_toast";
+import {
+  show_toast,
+  TOAST_DURATION_BILLING_MS,
+} from "@/components/toast/simple_toast";
 import {
   PLAN_TIERS,
   FAMILY_PLAN_TIERS,
@@ -58,6 +60,7 @@ import {
   CURRENCY_STORAGE_KEY,
 } from "@/components/settings/billing/billing_constants";
 import { use_currency_rates } from "@/components/settings/billing/use_currency_rates";
+import { checkout_error_text } from "./checkout_error_text";
 
 type TFunc = (
   key: TranslationKey,
@@ -236,6 +239,7 @@ export function PlanUpgradeSelection({
     tier: PlanTier;
     plan: AvailablePlan;
   } | null>(null);
+  const [crypto_term_months, set_crypto_term_months] = useState(12);
   const [pending_family_tier, set_pending_family_tier] =
     useState<FamilyPlanTier | null>(null);
   const [crypto_family_tier, set_crypto_family_tier] =
@@ -302,81 +306,130 @@ export function PlanUpgradeSelection({
     [plans],
   );
 
-  const handle_pay_with_card = useCallback(async () => {
-    if (!pending_tier) return;
+  const handle_pay_with_card = useCallback(
+    async (term_id?: string) => {
+      if (!pending_tier) return;
 
-    const tier = pending_tier;
+      const tier = pending_tier;
 
-    set_pending_tier(null);
-    set_is_finalizing(true);
+      set_pending_tier(null);
+      set_is_finalizing(true);
 
-    const result = await start_hosted_checkout(
-      tier.plan.code,
-      billing_interval,
-      currency,
-    ).catch(() => ({ ok: false, error: undefined }));
+      const interval =
+        term_id === "biennial"
+          ? "biennial"
+          : term_id === "monthly"
+            ? "month"
+            : term_id === "yearly"
+              ? "year"
+              : billing_interval;
 
-    if (!result.ok) {
-      set_is_finalizing(false);
-      show_toast(
-        server_error_text(result.error, t("settings.failed_checkout")),
-        "error",
-      );
+      const result = await start_hosted_checkout(
+        tier.plan.code,
+        interval,
+        currency,
+      ).catch(() => ({
+        ok: false,
+        error: undefined,
+        server_code: undefined,
+      }));
 
-      return;
-    }
-
-    // On web, start_hosted_checkout navigates this tab to Stripe and the
-    // overlay is torn down with the page. On desktop, checkout opens in an
-    // external browser and this window stays put, so clear the overlay here
-    // instead of leaving it spinning forever.
-    if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
-      set_is_finalizing(false);
-    }
-  }, [pending_tier, billing_interval, currency, t]);
-
-  const handle_pay_with_crypto = useCallback(() => {
-    if (!pending_tier) return;
-    set_crypto_tier(pending_tier);
-    set_pending_tier(null);
-  }, [pending_tier]);
-
-  const handle_family_card = useCallback(async () => {
-    if (!pending_family_tier) return;
-    const tier = pending_family_tier;
-
-    set_pending_family_tier(null);
-    set_is_finalizing(true);
-
-    const res = await create_family_group(tier.id, billing_interval).catch(
-      () => ({ data: undefined, error: undefined }),
-    );
-
-    if (res.data?.checkout_url) {
-      try {
-        await open_payment_url(res.data.checkout_url);
-
-        if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
-          set_is_finalizing(false);
-        }
-      } catch {
+      if (!result.ok) {
         set_is_finalizing(false);
-        show_toast(t("settings.failed_checkout"), "error");
-      }
-    } else {
-      set_is_finalizing(false);
-      show_toast(
-        server_error_text(res.error, t("settings.failed_checkout")),
-        "error",
-      );
-    }
-  }, [pending_family_tier, billing_interval, t]);
+        show_toast(
+          checkout_error_text(t, result.server_code),
+          "error",
+          TOAST_DURATION_BILLING_MS,
+        );
 
-  const handle_family_crypto = useCallback(() => {
-    if (!pending_family_tier) return;
-    set_crypto_family_tier(pending_family_tier);
-    set_pending_family_tier(null);
-  }, [pending_family_tier]);
+        return;
+      }
+
+      // On web, start_hosted_checkout navigates this tab to Stripe and the
+      // overlay is torn down with the page. On desktop, checkout opens in an
+      // external browser and this window stays put, so clear the overlay here
+      // instead of leaving it spinning forever.
+      if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
+        set_is_finalizing(false);
+      }
+    },
+    [pending_tier, billing_interval, currency, t],
+  );
+
+  const handle_pay_with_crypto = useCallback(
+    (term_id?: string) => {
+      if (!pending_tier) return;
+      set_crypto_term_months(
+        term_id === "monthly" ? 1 : term_id === "biennial" ? 24 : 12,
+      );
+      set_crypto_tier(pending_tier);
+      set_pending_tier(null);
+    },
+    [pending_tier],
+  );
+
+  const handle_family_card = useCallback(
+    async (term_id?: string) => {
+      if (!pending_family_tier) return;
+      const tier = pending_family_tier;
+
+      set_pending_family_tier(null);
+      set_is_finalizing(true);
+
+      const interval: "month" | "year" =
+        term_id === "monthly"
+          ? "month"
+          : term_id === "yearly"
+            ? "year"
+            : billing_interval;
+
+      const res = await create_family_group(tier.id, interval).catch(() => ({
+        data: undefined,
+        error: undefined,
+        server_code: undefined,
+      }));
+
+      if (res.data?.checkout_url) {
+        try {
+          await open_payment_url(res.data.checkout_url);
+
+          if (
+            typeof window !== "undefined" &&
+            "__TAURI_INTERNALS__" in window
+          ) {
+            set_is_finalizing(false);
+          }
+        } catch {
+          set_is_finalizing(false);
+          show_toast(
+            t("settings.failed_checkout"),
+            "error",
+            TOAST_DURATION_BILLING_MS,
+          );
+        }
+      } else {
+        set_is_finalizing(false);
+        show_toast(
+          checkout_error_text(t, res.server_code),
+          "error",
+          TOAST_DURATION_BILLING_MS,
+        );
+      }
+    },
+    [pending_family_tier, billing_interval, t],
+  );
+
+  const handle_family_crypto = useCallback(
+    (term_id?: string) => {
+      if (!pending_family_tier) return;
+      set_crypto_term_months(
+        term_id === "monthly" ? 1 : term_id === "biennial" ? 24 : 12,
+      );
+      set_crypto_family_tier(pending_family_tier);
+      set_pending_family_tier(null);
+    },
+    [pending_family_tier],
+  );
 
   return (
     <div className="fixed inset-0 overflow-y-auto bg-surf-primary">
@@ -496,6 +549,7 @@ export function PlanUpgradeSelection({
               ).map((feature) => ({
                 label: t(feature.label_key),
                 on: feature.on,
+                icon: feature.icon,
               }));
 
               return (
@@ -733,14 +787,53 @@ export function PlanUpgradeSelection({
             on_close={() => set_pending_tier(null)}
             open={!!pending_tier}
             plan_name={pending_tier.tier.name}
+            selected_term={billing_period}
+            term_options={[
+              {
+                id: "monthly",
+                label: t("settings.billing_monthly"),
+                per_month_cents: pending_tier.tier.monthly_cents,
+                total_cents: pending_tier.tier.monthly_cents,
+                save_cents: 0,
+              },
+              {
+                id: "yearly",
+                label: t("settings.billing_yearly"),
+                per_month_cents: Math.round(
+                  pending_tier.tier.yearly_cents / 12,
+                ),
+                total_cents: pending_tier.tier.yearly_cents,
+                save_cents:
+                  pending_tier.tier.monthly_cents * 12 -
+                  pending_tier.tier.yearly_cents,
+              },
+              {
+                id: "biennial",
+                label: t("settings.biennial"),
+                per_month_cents: Math.round(
+                  pending_tier.tier.biennial_cents / 24,
+                ),
+                total_cents: pending_tier.tier.biennial_cents,
+                save_cents:
+                  pending_tier.tier.monthly_cents * 24 -
+                  pending_tier.tier.biennial_cents,
+                crypto_only: true,
+              },
+            ]}
           />
         )}
 
         {crypto_tier && (
           <CryptoTermModal
+            initial_term_months={crypto_term_months}
             is_open={!!crypto_tier}
             monthly_price_cents={crypto_tier.tier.monthly_cents}
-            on_close={() => set_crypto_tier(null)}
+            on_close={() => {
+              const tier = crypto_tier;
+
+              set_crypto_tier(null);
+              set_pending_tier(tier);
+            }}
             plan_code={crypto_tier.plan.code}
             plan_name={crypto_tier.tier.name}
             preferred_currency={currency}
@@ -756,14 +849,53 @@ export function PlanUpgradeSelection({
             on_close={() => set_pending_family_tier(null)}
             open={!!pending_family_tier}
             plan_name={pending_family_tier.name}
+            selected_term={billing_period}
+            term_options={[
+              {
+                id: "monthly",
+                label: t("settings.billing_monthly"),
+                per_month_cents: pending_family_tier.monthly_cents,
+                total_cents: pending_family_tier.monthly_cents,
+                save_cents: 0,
+              },
+              {
+                id: "yearly",
+                label: t("settings.billing_yearly"),
+                per_month_cents: Math.round(
+                  pending_family_tier.yearly_cents / 12,
+                ),
+                total_cents: pending_family_tier.yearly_cents,
+                save_cents:
+                  pending_family_tier.monthly_cents * 12 -
+                  pending_family_tier.yearly_cents,
+              },
+              {
+                id: "biennial",
+                label: t("settings.biennial"),
+                per_month_cents: Math.round(
+                  pending_family_tier.biennial_cents / 24,
+                ),
+                total_cents: pending_family_tier.biennial_cents,
+                save_cents:
+                  pending_family_tier.monthly_cents * 24 -
+                  pending_family_tier.biennial_cents,
+                crypto_only: true,
+              },
+            ]}
           />
         )}
 
         {crypto_family_tier && (
           <CryptoTermModal
+            initial_term_months={crypto_term_months}
             is_open={!!crypto_family_tier}
             monthly_price_cents={crypto_family_tier.monthly_cents}
-            on_close={() => set_crypto_family_tier(null)}
+            on_close={() => {
+              const tier = crypto_family_tier;
+
+              set_crypto_family_tier(null);
+              set_pending_family_tier(tier);
+            }}
             plan_code={crypto_family_tier.id}
             plan_name={crypto_family_tier.name}
             preferred_currency={currency}

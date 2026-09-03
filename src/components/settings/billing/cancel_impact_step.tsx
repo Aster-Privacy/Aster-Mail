@@ -28,12 +28,7 @@ import {
   type CancelImpactResponse,
 } from "@/services/api/billing";
 
-export type CancelStep =
-  | "reason"
-  | "offer"
-  | "impact"
-  | "password"
-  | "confirm";
+export type CancelStep = "reason" | "offer" | "impact" | "password" | "confirm";
 
 interface ImpactLine {
   key: string;

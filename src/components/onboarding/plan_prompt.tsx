@@ -44,11 +44,13 @@ const TOUR_DWELL_MS = 45 * 1000;
 interface PlanPromptProps {
   on_open_plans: () => void;
   checklist_complete?: boolean;
+  checklist_visible?: boolean | null;
 }
 
 export function PlanPrompt({
   on_open_plans,
   checklist_complete = false,
+  checklist_visible = false,
 }: PlanPromptProps): JSX.Element | null {
   const { t } = use_i18n();
   const reduce_motion = use_should_reduce_motion();
@@ -58,7 +60,17 @@ export function PlanPrompt({
     let cancelled = false;
     let timer: number | undefined;
 
+    if (checklist_visible !== false) {
+      set_is_open(false);
+
+      return;
+    }
+
     if (!is_first_run_plan_pending() || is_first_run_setup_pending()) return;
+
+    const age = first_run_age_ms();
+
+    if (age === null || age < ELIGIBLE_AFTER_MS) return;
 
     const reveal = (delay: number) => {
       const remaining = schedule_first_run_plan(delay);
@@ -75,8 +87,23 @@ export function PlanPrompt({
       }, remaining);
     };
 
+    const reveal_when_recovery_done = async (delay: number) => {
+      const response = await get_recovery_methods();
+
+      if (cancelled) return;
+
+      const recovery_pending =
+        !!response.data &&
+        !response.data.recovery_email_set &&
+        !is_recovery_snoozed();
+
+      if (recovery_pending) return;
+
+      reveal(delay);
+    };
+
     if (checklist_complete) {
-      reveal(REVEAL_DELAY_MS);
+      void reveal_when_recovery_done(REVEAL_DELAY_MS);
 
       return () => {
         cancelled = true;
@@ -85,35 +112,13 @@ export function PlanPrompt({
     }
 
     const handle_tour_done = () => {
-      if (!cancelled) reveal(TOUR_DWELL_MS);
+      if (!cancelled) void reveal_when_recovery_done(TOUR_DWELL_MS);
     };
 
     window.addEventListener(FIRST_RUN_TOUR_DONE_EVENT, handle_tour_done);
 
     if (!is_first_run_tour_pending()) {
-      reveal(TOUR_DWELL_MS);
-    }
-
-    const age = first_run_age_ms();
-    const aged_in = age !== null && age >= ELIGIBLE_AFTER_MS;
-
-    if (aged_in) {
-      const check = async () => {
-        const response = await get_recovery_methods();
-
-        if (cancelled) return;
-
-        const recovery_pending =
-          !!response.data &&
-          !response.data.recovery_email_set &&
-          !is_recovery_snoozed();
-
-        if (recovery_pending) return;
-
-        reveal(REVEAL_DELAY_MS);
-      };
-
-      void check();
+      void reveal_when_recovery_done(TOUR_DWELL_MS);
     }
 
     return () => {
@@ -121,7 +126,7 @@ export function PlanPrompt({
       window.removeEventListener(FIRST_RUN_TOUR_DONE_EVENT, handle_tour_done);
       if (timer) window.clearTimeout(timer);
     };
-  }, [checklist_complete]);
+  }, [checklist_complete, checklist_visible]);
 
   const close = () => {
     clear_first_run_plan();

@@ -28,6 +28,7 @@ import {
   referral_count,
 } from "@/lib/referral_bonus";
 import { payment_url_or_throw } from "@/lib/payment_url";
+import { mark_payment_navigation } from "@/lib/payment_navigation";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
 
 export interface PlanInfo {
@@ -322,6 +323,8 @@ export async function open_payment_url(url: string): Promise<void> {
 
     return;
   }
+
+  mark_payment_navigation();
   window.location.assign(safe);
 }
 

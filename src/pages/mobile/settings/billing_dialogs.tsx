@@ -98,6 +98,10 @@ export function render_billing_dialogs(
     set_show_crypto_modal,
     crypto_plan,
     set_crypto_plan,
+    crypto_back_plan,
+    set_crypto_back_plan,
+    crypto_back_addon,
+    set_crypto_back_addon,
     crypto_resume,
     set_crypto_resume,
     show_addon_method_modal,
@@ -166,9 +170,9 @@ export function render_billing_dialogs(
                   ? t("settings.cancel_offer_title")
                   : cancel_step === "impact"
                     ? t("settings.cancel_impact_title")
-                  : cancel_step === "confirm"
-                    ? t("settings.cancel_final_title")
-                    : t("settings.cancel_confirm_title")}
+                    : cancel_step === "confirm"
+                      ? t("settings.cancel_final_title")
+                      : t("settings.cancel_confirm_title")}
             </AlertDialogTitle>
             <AlertDialogDescription>
               {cancel_step === "reason"
@@ -177,26 +181,26 @@ export function render_billing_dialogs(
                   ? t("settings.cancel_offer_description")
                   : cancel_step === "impact"
                     ? cancel_effective_date
-                    ? t("settings.cancel_impact_description", {
-                        date: cancel_effective_date,
-                      })
-                    : t("settings.cancel_impact_description_nodate")
-                  : cancel_step === "confirm"
-                    ? cancel_effective_date
-                      ? t("settings.cancel_final_description", {
+                      ? t("settings.cancel_impact_description", {
                           date: cancel_effective_date,
-                          plan:
-                            cancel_impact?.plan_name ??
-                            subscription?.plan.name ??
-                            "",
                         })
-                      : t("settings.cancel_final_description_nodate", {
-                          plan:
-                            cancel_impact?.plan_name ??
-                            subscription?.plan.name ??
-                            "",
-                        })
-                    : t("settings.cancel_confirm_description")}
+                      : t("settings.cancel_impact_description_nodate")
+                    : cancel_step === "confirm"
+                      ? cancel_effective_date
+                        ? t("settings.cancel_final_description", {
+                            date: cancel_effective_date,
+                            plan:
+                              cancel_impact?.plan_name ??
+                              subscription?.plan.name ??
+                              "",
+                          })
+                        : t("settings.cancel_final_description_nodate", {
+                            plan:
+                              cancel_impact?.plan_name ??
+                              subscription?.plan.name ??
+                              "",
+                          })
+                      : t("settings.cancel_confirm_description")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           {cancel_step === "reason" ? (
@@ -416,6 +420,7 @@ export function render_billing_dialogs(
 
             set_show_method_modal(false);
             set_method_modal_plan(null);
+            set_crypto_back_plan(plan);
             if (plan) handle_pay_with_crypto(plan);
           }}
           on_close={() => {
@@ -448,6 +453,11 @@ export function render_billing_dialogs(
                 set_show_crypto_modal(false);
                 set_crypto_plan(null);
                 set_crypto_resume(null);
+                if (crypto_back_plan) {
+                  set_method_modal_plan(crypto_back_plan);
+                  set_show_method_modal(true);
+                  set_crypto_back_plan(null);
+                }
               }}
               plan_code={crypto_plan.code}
               plan_name={crypto_plan.name}
@@ -476,6 +486,7 @@ export function render_billing_dialogs(
 
             set_show_addon_method_modal(false);
             set_addon_method_target(null);
+            set_crypto_back_addon(addon);
             if (addon) handle_addon_pay_crypto(addon);
           }}
           on_close={() => {
@@ -495,6 +506,45 @@ export function render_billing_dialogs(
           on_close={() => set_pending_family_tier(null)}
           open={!!pending_family_tier}
           plan_name={pending_family_tier.name}
+          selected_term={
+            billing_period === "monthly"
+              ? "monthly"
+              : billing_period === "yearly"
+                ? "yearly"
+                : "biennial"
+          }
+          term_options={[
+            {
+              id: "monthly",
+              label: t("settings.billing_monthly"),
+              per_month_cents: pending_family_tier.monthly_cents,
+              total_cents: pending_family_tier.monthly_cents,
+              save_cents: 0,
+            },
+            {
+              id: "yearly",
+              label: t("settings.billing_yearly"),
+              per_month_cents: Math.round(
+                pending_family_tier.yearly_cents / 12,
+              ),
+              total_cents: pending_family_tier.yearly_cents,
+              save_cents:
+                pending_family_tier.monthly_cents * 12 -
+                pending_family_tier.yearly_cents,
+            },
+            {
+              id: "biennial",
+              label: t("settings.biennial"),
+              per_month_cents: Math.round(
+                pending_family_tier.biennial_cents / 24,
+              ),
+              total_cents: pending_family_tier.biennial_cents,
+              save_cents:
+                pending_family_tier.monthly_cents * 24 -
+                pending_family_tier.biennial_cents,
+              crypto_only: true,
+            },
+          ]}
         />
       )}
 
@@ -502,7 +552,12 @@ export function render_billing_dialogs(
         <CryptoTermModal
           is_open={!!crypto_family_tier}
           monthly_price_cents={crypto_family_tier.monthly_cents}
-          on_close={() => set_crypto_family_tier(null)}
+          on_close={() => {
+            const tier = crypto_family_tier;
+
+            set_crypto_family_tier(null);
+            set_pending_family_tier(tier);
+          }}
           plan_code={crypto_family_tier.id}
           plan_name={crypto_family_tier.name}
           preferred_currency={preferred_currency}
@@ -518,6 +573,11 @@ export function render_billing_dialogs(
           on_close={() => {
             set_show_crypto_addon_modal(false);
             set_crypto_addon(null);
+            if (crypto_back_addon) {
+              set_addon_method_target(crypto_back_addon);
+              set_show_addon_method_modal(true);
+              set_crypto_back_addon(null);
+            }
           }}
           preferred_currency={preferred_currency}
           price_cents={crypto_addon.price_cents}

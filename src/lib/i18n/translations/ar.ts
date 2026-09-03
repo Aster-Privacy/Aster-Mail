@@ -7450,6 +7450,7 @@ export const ar = {
     drop_to_move_here: "أفلِت هنا للنقل",
     tab_new_count: "جديد",
     tab_unread_count: "{{count}} غير مقروءة",
+    tab_counting_unread: "جارٍ حساب الرسائل غير المقروءة",
     category_empty_primary_title: "لا شيء في الأساسي",
     category_empty_primary_desc: "ستظهر هنا رسائلك ومحادثاتك الشخصية.",
     category_empty_promotions_title: "لا توجد صفقات",

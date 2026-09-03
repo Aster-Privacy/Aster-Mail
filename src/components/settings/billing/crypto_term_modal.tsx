@@ -40,6 +40,7 @@ import {
   type CryptoNativeCoin,
 } from "@/services/api/billing";
 import { payment_url_or_throw } from "@/lib/payment_url";
+import { mark_payment_navigation } from "@/lib/payment_navigation";
 import { Spinner } from "@/components/ui/spinner";
 import { CoinIcon } from "@/components/ui/coin_icon";
 import {
@@ -137,7 +138,11 @@ export function crypto_term_modal({
       (term) => term === initial_term_months,
     );
 
-    set_step(initial_coin_key && native_supported ? "method" : "term");
+    set_step(
+      (initial_coin_key || restored_term) && native_supported
+        ? "method"
+        : "term",
+    );
     set_creating_key(null);
 
     if (restored_term) set_selected_term(restored_term);
@@ -286,6 +291,7 @@ export function crypto_term_modal({
           on_checkout_opened?.();
           on_close();
         } else {
+          mark_payment_navigation();
           window.location.href = payment_url_or_throw(response.data.url);
         }
 
@@ -391,7 +397,14 @@ export function crypto_term_modal({
 
   return (
     <>
-      <Modal show_close_button is_open={is_open} on_close={on_close} size="md">
+      <Modal
+        show_close_button
+        close_on_escape={false}
+        close_on_overlay={false}
+        is_open={is_open}
+        on_close={on_close}
+        size="md"
+      >
         {step === "term" ? (
           <>
             <ModalHeader>
@@ -473,7 +486,7 @@ export function crypto_term_modal({
                 variant="outline"
                 onClick={on_close}
               >
-                {t("common.cancel")}
+                {t("common.back")}
               </Button>
               <Button
                 disabled={is_loading}

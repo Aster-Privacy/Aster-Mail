@@ -7629,6 +7629,7 @@ export const de = {
     drop_to_move_here: "Zum Verschieben hier ablegen",
     tab_new_count: "neu",
     tab_unread_count: "{{count}} ungelesen",
+    tab_counting_unread: "Ungelesene Nachrichten werden gezählt",
     category_empty_primary_title: "Nichts in Primär",
     category_empty_primary_desc:
       "Deine persönlichen Nachrichten und Unterhaltungen werden hier angezeigt.",

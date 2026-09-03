@@ -69,7 +69,6 @@ import {
   detect_currency_from_locale,
   convert_cents,
   is_crypto_provider,
-  crypto_term_months,
   take_crypto_resume,
   type CryptoResumeSelection,
 } from "@/components/settings/billing/billing_constants";
@@ -87,7 +86,11 @@ import { AcademicDiscountSection } from "@/components/settings/billing/academic_
 import { BillingHistorySection } from "@/components/settings/billing/billing_history_section";
 import { BillingDialogs } from "@/components/settings/billing/billing_dialogs";
 import { type CancelReason } from "@/components/settings/billing/cancel_reason_step";
-import { PlanPaymentMethodModal } from "@/components/settings/billing/plan_payment_method_modal";
+import {
+  PlanPaymentMethodModal,
+  type plan_choice_option,
+  type plan_term_option,
+} from "@/components/settings/billing/plan_payment_method_modal";
 import { PlanChangeConfirmModal } from "@/components/settings/billing/plan_change_confirm_modal";
 import { CryptoAddonTermModal } from "@/components/settings/billing/crypto_addon_term_modal";
 import { CryptoTermModal } from "@/components/settings/billing/crypto_term_modal";
@@ -164,6 +167,12 @@ export function BillingSection() {
   const [crypto_plan, set_crypto_plan] = useState<AvailablePlan | null>(null);
   const [crypto_resume, set_crypto_resume] =
     useState<CryptoResumeSelection | null>(null);
+  const [plan_method_target, set_plan_method_target] =
+    useState<AvailablePlan | null>(null);
+  const [crypto_back_plan, set_crypto_back_plan] =
+    useState<AvailablePlan | null>(null);
+  const [crypto_back_addon, set_crypto_back_addon] =
+    useState<StorageAddonItem | null>(null);
 
   useEffect(() => {
     const open_payment_methods = () => {
@@ -190,6 +199,28 @@ export function BillingSection() {
   }, [show_payment_methods]);
 
   useEffect(() => {
+    if (!window.location.pathname.endsWith("/settings/credits")) return;
+
+    let frame = 0;
+
+    const attempt = (tries: number) => {
+      const target = document.getElementById("credits_section");
+
+      if (target) {
+        target.scrollIntoView({ behavior: "smooth", block: "start" });
+
+        return;
+      }
+
+      if (tries > 0) frame = requestAnimationFrame(() => attempt(tries - 1));
+    };
+
+    frame = requestAnimationFrame(() => attempt(30));
+
+    return () => cancelAnimationFrame(frame);
+  }, []);
+
+  useEffect(() => {
     if (plans.length === 0) return;
 
     const resume = take_crypto_resume();
@@ -204,9 +235,6 @@ export function BillingSection() {
     set_crypto_plan(matching);
     set_show_crypto_modal(true);
   }, [plans]);
-  const [show_method_modal, set_show_method_modal] = useState(false);
-  const [method_modal_plan, set_method_modal_plan] =
-    useState<AvailablePlan | null>(null);
   const [crypto_initial_term, set_crypto_initial_term] = useState<
     number | undefined
   >(undefined);
@@ -669,11 +697,6 @@ export function BillingSection() {
     set_show_crypto_modal(true);
   };
 
-  const handle_select_plan = (plan: AvailablePlan) => {
-    set_method_modal_plan(plan);
-    set_show_method_modal(true);
-  };
-
   const handle_family_plan_change = async (
     plan_code: string,
     interval: "month" | "year" | "biennial",
@@ -790,6 +813,78 @@ export function BillingSection() {
     }
   };
 
+  const handle_select_plan = (plan: AvailablePlan) => {
+    if (is_action_loading) return;
+
+    set_plan_method_target(plan);
+  };
+
+  const plan_choices_for_modal = (plan_code: string): plan_choice_option[] => {
+    const is_family = FAMILY_PLAN_TIERS.some((tier) => tier.id === plan_code);
+    const family = is_family
+      ? FAMILY_PLAN_TIERS.map((tier) => tier.id)
+      : PLAN_TIERS.map((tier) => tier.id);
+
+    return plans
+      .filter((plan) => family.includes(plan.code))
+      .map((plan) => {
+        const tier = crypto_term_prices_for(plan.code);
+        const cents =
+          billing_period === "monthly"
+            ? (tier?.monthly_cents ?? 0)
+            : Math.round((tier?.yearly_cents ?? 0) / 12);
+
+        return {
+          id: plan.code,
+          name: plan.name,
+          is_recommended: !is_family && plan.code === DEFAULT_RECOMMENDED_PLAN,
+          price_label: `${format_price(
+            convert_cents(cents, preferred_currency),
+            preferred_currency,
+          )}${t("settings.per_month_short")}`,
+        };
+      });
+  };
+
+  const plan_term_options_for = (plan_code: string): plan_term_option[] => {
+    const tier = crypto_term_prices_for(plan_code);
+
+    if (!tier) return [];
+
+    const biennial_cents =
+      "biennial_cents" in tier ? tier.biennial_cents : undefined;
+
+    const options: plan_term_option[] = [
+      {
+        id: "monthly",
+        label: t("settings.billing_monthly"),
+        per_month_cents: tier.monthly_cents,
+        total_cents: tier.monthly_cents,
+        save_cents: 0,
+      },
+      {
+        id: "yearly",
+        label: t("settings.billing_yearly"),
+        per_month_cents: Math.round(tier.yearly_cents / 12),
+        total_cents: tier.yearly_cents,
+        save_cents: tier.monthly_cents * 12 - tier.yearly_cents,
+      },
+    ];
+
+    if (biennial_cents) {
+      options.push({
+        id: "biennial",
+        label: t("settings.biennial"),
+        per_month_cents: Math.round(biennial_cents / 24),
+        total_cents: biennial_cents,
+        save_cents: tier.monthly_cents * 24 - biennial_cents,
+        crypto_only: true,
+      });
+    }
+
+    return options;
+  };
+
   const handle_confirm_plan_change = async () => {
     if (!plan_change_confirm_target) return;
     const { plan, interval } = plan_change_confirm_target;
@@ -849,14 +944,14 @@ export function BillingSection() {
     }
   };
 
-  const handle_pay_with_crypto = (plan: AvailablePlan, term_id?: string) => {
+  const handle_pay_with_crypto = (plan: AvailablePlan, term_months: number) => {
     if (!crypto_term_prices_for(plan.code)) {
       show_toast(t("settings.crypto_price_unavailable"), "error");
 
       return;
     }
     set_crypto_resume(null);
-    set_crypto_initial_term(crypto_term_months(term_id ?? billing_period));
+    set_crypto_initial_term(term_months);
     set_crypto_plan(plan);
     set_show_crypto_modal(true);
   };
@@ -1195,11 +1290,16 @@ export function BillingSection() {
                 plan_before_checkout_ref.current =
                   subscription?.plan.code ?? null;
                 pending_tauri_checkout_ref.current = true;
+                set_crypto_back_plan(null);
               }}
               on_close={() => {
                 set_show_crypto_modal(false);
                 set_crypto_plan(null);
                 set_crypto_resume(null);
+                if (crypto_back_plan) {
+                  set_plan_method_target(crypto_back_plan);
+                  set_crypto_back_plan(null);
+                }
               }}
               plan_code={crypto_plan.code}
               plan_name={crypto_plan.name}
@@ -1209,84 +1309,55 @@ export function BillingSection() {
           );
         })()}
 
-      {method_modal_plan && (
+      {plan_method_target && (
         <PlanPaymentMethodModal
           busy={is_action_loading}
-          credit_balance_cents={Math.min(
-            credit_balance?.balance_cents ?? 0,
-            (billing_period === "yearly"
-              ? PLAN_TIERS.find((p) => p.id === method_modal_plan.code)
-                  ?.yearly_cents
-              : billing_period === "biennial"
-                ? PLAN_TIERS.find((p) => p.id === method_modal_plan.code)
-                    ?.biennial_cents
-                : PLAN_TIERS.find((p) => p.id === method_modal_plan.code)
-                    ?.monthly_cents) ?? method_modal_plan.price_cents,
-          )}
-          credits_apply_to_card={
-            !(
-              !!subscription &&
-              subscription.plan.code !== "free" &&
-              !is_crypto_provider(subscription.payment_provider) &&
-              subscription.has_stripe_subscription !== false &&
-              !(
-                typeof window !== "undefined" && "__TAURI_INTERNALS__" in window
-              )
-            )
-          }
-          on_choose_card={(term) => {
-            const plan = method_modal_plan;
+          credit_balance_cents={credit_balance?.balance_cents}
+          features={(plan_features[plan_method_target.code] ?? [])
+            .filter((entry) => entry.on)
+            .map((entry) => ({ label: entry.label }))}
+          on_choose_card={(term_id) => {
+            const plan = plan_method_target;
 
-            set_show_method_modal(false);
-            set_method_modal_plan(null);
-            if (plan) handle_pay_with_card(plan, term);
+            set_plan_method_target(null);
+            if (plan) void handle_pay_with_card(plan, term_id);
           }}
-          on_choose_crypto={(term) => {
-            const plan = method_modal_plan;
+          on_choose_crypto={(term_id) => {
+            const plan = plan_method_target;
 
-            set_show_method_modal(false);
-            set_method_modal_plan(null);
-            if (plan) handle_pay_with_crypto(plan, term);
+            set_plan_method_target(null);
+            set_crypto_back_plan(plan);
+            if (plan) {
+              handle_pay_with_crypto(
+                plan,
+                term_id === "yearly" ? 12 : term_id === "biennial" ? 24 : 1,
+              );
+            }
           }}
           on_close={() => {
-            set_show_method_modal(false);
-            set_method_modal_plan(null);
+            if (is_action_loading) return;
+            set_plan_method_target(null);
           }}
-          open={show_method_modal}
-          plan_name={method_modal_plan.name}
+          on_select_plan={(id) => {
+            const next = plans.find((plan) => plan.code === id);
+
+            if (next) set_plan_method_target(next);
+          }}
+          on_select_term={(id) =>
+            set_billing_period(
+              id === "monthly"
+                ? "monthly"
+                : id === "biennial"
+                  ? "biennial"
+                  : "yearly",
+            )
+          }
+          open={!!plan_method_target}
+          plan_choices={plan_choices_for_modal(plan_method_target.code)}
+          plan_name={plan_method_target.name}
+          selected_plan_id={plan_method_target.code}
           selected_term={billing_period}
-          term_options={(() => {
-            const tier = PLAN_TIERS.find(
-              (p) => p.id === method_modal_plan.code,
-            );
-
-            if (!tier) return undefined;
-
-            return [
-              {
-                id: "monthly",
-                label: t("settings.billing_monthly"),
-                per_month_cents: tier.monthly_cents,
-                total_cents: tier.monthly_cents,
-                save_cents: 0,
-              },
-              {
-                id: "yearly",
-                label: t("settings.billing_yearly"),
-                per_month_cents: Math.round(tier.yearly_cents / 12),
-                total_cents: tier.yearly_cents,
-                save_cents: tier.monthly_cents * 12 - tier.yearly_cents,
-              },
-              {
-                id: "biennial",
-                label: t("settings.biennial"),
-                per_month_cents: Math.round(tier.biennial_cents / 24),
-                total_cents: tier.biennial_cents,
-                save_cents: tier.monthly_cents * 24 - tier.biennial_cents,
-                crypto_only: true,
-              },
-            ];
-          })()}
+          term_options={plan_term_options_for(plan_method_target.code)}
         />
       )}
 
@@ -1315,6 +1386,7 @@ export function BillingSection() {
 
             set_show_addon_method_modal(false);
             set_addon_method_target(null);
+            set_crypto_back_addon(addon);
             if (addon) handle_addon_pay_crypto(addon);
           }}
           on_close={() => {
@@ -1334,10 +1406,16 @@ export function BillingSection() {
           on_checkout_opened={() => {
             plan_before_checkout_ref.current = subscription?.plan.code ?? null;
             pending_tauri_checkout_ref.current = true;
+            set_crypto_back_addon(null);
           }}
           on_close={() => {
             set_show_crypto_addon_modal(false);
             set_crypto_addon(null);
+            if (crypto_back_addon) {
+              set_addon_method_target(crypto_back_addon);
+              set_show_addon_method_modal(true);
+              set_crypto_back_addon(null);
+            }
           }}
           preferred_currency={preferred_currency}
           price_cents={crypto_addon.price_cents}
@@ -1373,6 +1451,7 @@ export function BillingSection() {
         handle_switch_billing={handle_switch_billing}
         is_action_loading={is_action_loading}
         load_data={load_data}
+        on_plan_choose_crypto={handle_pay_with_crypto}
         on_switch_plan={(offer) => {
           if (offer.is_family) {
             handle_family_plan_change(

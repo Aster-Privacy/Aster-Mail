@@ -21,20 +21,33 @@
 import { useCallback, useEffect, useState } from "react";
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
 
+import { FAMILY_PLAN_TIERS, PLAN_TIERS } from "./billing_constants";
+
 import { use_i18n } from "@/lib/i18n/context";
-import { show_toast } from "@/components/toast/simple_toast";
 import {
-  change_plan,
+  show_toast,
+  TOAST_DURATION_BILLING_MS,
+} from "@/components/toast/simple_toast";
+import {
   clear_checkout_target,
   read_checkout_target,
   type CheckoutTarget,
 } from "@/services/api/billing";
-
-import { FAMILY_PLAN_TIERS, PLAN_TIERS } from "./billing_constants";
+import {
+  show_checkout_cancelled_upgrade,
+  type UpgradeInterval,
+} from "@/stores/upgrade_store";
 
 interface ResumeCheckoutCardProps {
   current_plan_code: string | null;
   class_name?: string;
+}
+
+function upgrade_interval_for(billing_interval: string): UpgradeInterval {
+  if (billing_interval === "month") return "month";
+  if (billing_interval === "biennial") return "biennial";
+
+  return "year";
 }
 
 function plan_label(plan_code: string): string {
@@ -85,18 +98,20 @@ export function ResumeCheckoutCard({
 
     set_is_resuming(true);
 
-    void (async () => {
-      const result = await change_plan(
-        target.plan_code,
-        target.billing_interval,
-      ).catch(() => null);
+    const opened = show_checkout_cancelled_upgrade({
+      plan_code: target.plan_code,
+      interval: upgrade_interval_for(target.billing_interval),
+    });
 
-      set_is_resuming(false);
+    set_is_resuming(false);
 
-      if (result?.ok) return;
+    if (opened) return;
 
-      show_toast(t("settings.failed_checkout"), "error");
-    })();
+    show_toast(
+      t("settings.failed_checkout"),
+      "error",
+      TOAST_DURATION_BILLING_MS,
+    );
   }, [is_resuming, t, target]);
 
   if (!target) return null;

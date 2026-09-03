@@ -201,6 +201,10 @@ export function use_billing_section() {
     useState<AvailablePlan | null>(null);
   const [show_crypto_modal, set_show_crypto_modal] = useState(false);
   const [crypto_plan, set_crypto_plan] = useState<AvailablePlan | null>(null);
+  const [crypto_back_plan, set_crypto_back_plan] =
+    useState<AvailablePlan | null>(null);
+  const [crypto_back_addon, set_crypto_back_addon] =
+    useState<StorageAddonItem | null>(null);
   const [crypto_resume, set_crypto_resume] =
     useState<CryptoResumeSelection | null>(null);
 
@@ -1173,6 +1177,10 @@ export function use_billing_section() {
     set_show_crypto_modal,
     crypto_plan,
     set_crypto_plan,
+    crypto_back_plan,
+    set_crypto_back_plan,
+    crypto_back_addon,
+    set_crypto_back_addon,
     crypto_resume,
     set_crypto_resume,
     show_addon_method_modal,

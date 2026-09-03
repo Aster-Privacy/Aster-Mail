@@ -40,6 +40,32 @@ const CACHE_TTL = 60_000;
 
 let limits_request_in_flight: Promise<PlanLimitsResponse | null> | null = null;
 
+const PLAN_HINT_KEY = "astermail_plan_hint_v1";
+
+function read_plan_hint(): string | null {
+  try {
+    return localStorage.getItem(PLAN_HINT_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function write_plan_hint(plan_code: string): void {
+  try {
+    localStorage.setItem(PLAN_HINT_KEY, plan_code);
+  } catch {
+    return;
+  }
+}
+
+function forget_plan_hint(): void {
+  try {
+    localStorage.removeItem(PLAN_HINT_KEY);
+  } catch {
+    return;
+  }
+}
+
 async function request_plan_limits(): Promise<PlanLimitsResponse | null> {
   if (limits_request_in_flight) return limits_request_in_flight;
 
@@ -68,11 +94,15 @@ export function clear_plan_limits_cache(): void {
   cached_limits = null;
   cached_account_id = null;
   cache_timestamp = 0;
+  forget_plan_hint();
 }
 
 export function use_plan_limits() {
   const [limits, set_limits] = useState<PlanLimitsResponse | null>(
     cached_limits,
+  );
+  const [plan_hint, set_plan_hint] = useState<string | null>(
+    cached_limits?.plan_code ?? read_plan_hint(),
   );
   const [is_loading, set_is_loading] = useState(!cached_limits);
   const [load_failed, set_load_failed] = useState(false);
@@ -108,6 +138,8 @@ export function use_plan_limits() {
       set_limits(null);
     }
 
+    set_is_loading(true);
+
     try {
       const data = await request_plan_limits();
 
@@ -125,6 +157,8 @@ export function use_plan_limits() {
       cached_account_id = account_id;
       cache_timestamp = Date.now();
       set_limits(data);
+      set_plan_hint(data.plan_code);
+      write_plan_hint(data.plan_code);
 
       refresh_attachment_limits(force).catch((caught) =>
         ignore_error("hooks/use_plan_limits:refresh_attachment_limits", caught),
@@ -171,6 +205,7 @@ export function use_plan_limits() {
 
   return {
     limits,
+    plan_code: limits?.plan_code ?? plan_hint,
     is_loading,
     load_failed,
     is_feature_locked,

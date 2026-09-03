@@ -22,10 +22,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
-const change_plan_mock = vi.fn();
 const clear_target_mock = vi.fn();
 const read_target_mock = vi.fn();
 const toast_mock = vi.fn();
+const show_resume_mock = vi.fn();
 
 vi.mock("@/lib/i18n/context", () => ({
   use_i18n: () => ({ t: (key: string) => key, language: "en" }),
@@ -33,12 +33,16 @@ vi.mock("@/lib/i18n/context", () => ({
 
 vi.mock("@/components/toast/simple_toast", () => ({
   show_toast: toast_mock,
+  TOAST_DURATION_BILLING_MS: 8000,
 }));
 
 vi.mock("@/services/api/billing", () => ({
-  change_plan: change_plan_mock,
   clear_checkout_target: clear_target_mock,
   read_checkout_target: read_target_mock,
+}));
+
+vi.mock("@/stores/upgrade_store", () => ({
+  show_checkout_cancelled_upgrade: show_resume_mock,
 }));
 
 const { ResumeCheckoutCard } = await import("./resume_checkout_card");
@@ -63,9 +67,9 @@ async function render_card(current_plan_code: string | null) {
 }
 
 function button_by_text(text: string): HTMLButtonElement {
-  const match = Array.from(
-    container!.querySelectorAll("button"),
-  ).find((node) => node.textContent === text);
+  const match = Array.from(container!.querySelectorAll("button")).find(
+    (node) => node.textContent === text,
+  );
 
   if (!match) throw new Error("button not found: " + text);
 
@@ -74,11 +78,11 @@ function button_by_text(text: string): HTMLButtonElement {
 
 describe("ResumeCheckoutCard", () => {
   beforeEach(async () => {
-    change_plan_mock.mockReset();
     clear_target_mock.mockReset();
     read_target_mock.mockReset();
     toast_mock.mockReset();
-    change_plan_mock.mockResolvedValue({ ok: true, requires_checkout: true });
+    show_resume_mock.mockReset();
+    show_resume_mock.mockReturnValue(true);
 
     if (root) await act(async () => root!.unmount());
 
@@ -119,7 +123,7 @@ describe("ResumeCheckoutCard", () => {
     expect(clear_target_mock).toHaveBeenCalled();
   });
 
-  it("reopens checkout for the stored plan and interval", async () => {
+  it("reopens the review step for the stored plan and interval", async () => {
     read_target_mock.mockReturnValue({
       plan_code: "star",
       billing_interval: "year",
@@ -131,7 +135,47 @@ describe("ResumeCheckoutCard", () => {
       button_by_text("settings.finish_plan_setup_action").click();
     });
 
-    expect(change_plan_mock).toHaveBeenCalledWith("star", "year");
+    expect(show_resume_mock).toHaveBeenCalledWith({
+      plan_code: "star",
+      interval: "year",
+    });
+    expect(toast_mock).not.toHaveBeenCalled();
+  });
+
+  it("keeps a two-year term when reopening the review step", async () => {
+    read_target_mock.mockReturnValue({
+      plan_code: "star",
+      billing_interval: "biennial",
+    });
+
+    await render_card("free");
+
+    await act(async () => {
+      button_by_text("settings.finish_plan_setup_action").click();
+    });
+
+    expect(show_resume_mock).toHaveBeenCalledWith({
+      plan_code: "star",
+      interval: "biennial",
+    });
+  });
+
+  it("reopens the review step for a paying subscriber", async () => {
+    read_target_mock.mockReturnValue({
+      plan_code: "star",
+      billing_interval: "month",
+    });
+
+    await render_card("nova");
+
+    await act(async () => {
+      button_by_text("settings.finish_plan_setup_action").click();
+    });
+
+    expect(show_resume_mock).toHaveBeenCalledWith({
+      plan_code: "star",
+      interval: "month",
+    });
     expect(toast_mock).not.toHaveBeenCalled();
   });
 
@@ -140,7 +184,7 @@ describe("ResumeCheckoutCard", () => {
       plan_code: "star",
       billing_interval: "month",
     });
-    change_plan_mock.mockResolvedValue({ ok: false, requires_checkout: false });
+    show_resume_mock.mockReturnValue(false);
 
     await render_card("free");
 
@@ -148,7 +192,11 @@ describe("ResumeCheckoutCard", () => {
       button_by_text("settings.finish_plan_setup_action").click();
     });
 
-    expect(toast_mock).toHaveBeenCalledWith("settings.failed_checkout", "error");
+    expect(toast_mock).toHaveBeenCalledWith(
+      "settings.failed_checkout",
+      "error",
+      8000,
+    );
   });
 
   it("dismisses without reopening checkout", async () => {
@@ -164,7 +212,7 @@ describe("ResumeCheckoutCard", () => {
     });
 
     expect(clear_target_mock).toHaveBeenCalled();
-    expect(change_plan_mock).not.toHaveBeenCalled();
+    expect(show_resume_mock).not.toHaveBeenCalled();
     expect(node.textContent).toBe("");
   });
 });

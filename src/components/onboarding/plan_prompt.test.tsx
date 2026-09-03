@@ -57,7 +57,13 @@ const {
   FIRST_RUN_TOUR_KEY,
 } = await import("@/lib/first_run");
 
-function mount(checklist_complete: boolean) {
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+function age_account(ms: number) {
+  localStorage.setItem(FIRST_RUN_AT_KEY, String(Date.now() - ms));
+}
+
+function mount(checklist_complete: boolean, checklist_visible = false) {
   const container = document.createElement("div");
   let root: Root | null = null;
 
@@ -66,6 +72,7 @@ function mount(checklist_complete: boolean) {
     root.render(
       <PlanPrompt
         checklist_complete={checklist_complete}
+        checklist_visible={checklist_visible}
         on_open_plans={() => {}}
       />,
     );
@@ -96,7 +103,46 @@ describe("PlanPrompt", () => {
     view.unmount();
   });
 
-  it("appears a moment after the tour finishes", async () => {
+  it("stays hidden while the checklist is on screen, even after the tour", async () => {
+    age_account(DAY_MS + 1000);
+
+    const view = mount(false, true);
+
+    await act(async () => {
+      clear_first_run_tour();
+      await vi.advanceTimersByTimeAsync(120000);
+    });
+
+    expect(view.container.textContent).toBe("");
+    view.unmount();
+  });
+
+  it("stays hidden on signup day even after the tour finishes", async () => {
+    const view = mount(false);
+
+    await act(async () => {
+      clear_first_run_tour();
+      await vi.advanceTimersByTimeAsync(120000);
+    });
+
+    expect(view.container.textContent).toBe("");
+    view.unmount();
+  });
+
+  it("stays hidden on signup day even once the checklist is finished", async () => {
+    const view = mount(true);
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(120000);
+    });
+
+    expect(view.container.textContent).toBe("");
+    view.unmount();
+  });
+
+  it("appears a moment after the tour finishes once the account is a day old", async () => {
+    age_account(DAY_MS + 1000);
+
     const view = mount(false);
 
     await act(async () => {
@@ -114,7 +160,9 @@ describe("PlanPrompt", () => {
     view.unmount();
   });
 
-  it("appears once the checklist is finished, without waiting a day", async () => {
+  it("appears once the checklist is finished on a day-old account", async () => {
+    age_account(DAY_MS + 1000);
+
     const view = mount(true);
 
     await act(async () => {
@@ -126,6 +174,7 @@ describe("PlanPrompt", () => {
   });
 
   it("stays hidden after the user dismissed it once", async () => {
+    age_account(DAY_MS + 1000);
     localStorage.removeItem(FIRST_RUN_PLAN_KEY);
 
     const view = mount(true);

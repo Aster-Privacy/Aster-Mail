@@ -7563,6 +7563,7 @@ export const it = {
     drop_to_move_here: "Rilascia qui per spostare",
     tab_new_count: "nuovi",
     tab_unread_count: "{{count}} non letti",
+    tab_counting_unread: "Conteggio dei messaggi non letti",
     category_empty_primary_title: "Niente in Principale",
     category_empty_primary_desc:
       "I tuoi messaggi personali e le conversazioni appariranno qui.",

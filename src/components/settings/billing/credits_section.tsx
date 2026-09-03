@@ -19,9 +19,26 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useState, useEffect } from "react";
-import { CurrencyDollarIcon } from "@heroicons/react/24/outline";
+import { CheckIcon } from "@heroicons/react/20/solid";
+import {
+  CreditCardIcon,
+  CurrencyDollarIcon,
+} from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
+import {
+  CardBrandMarks,
+  CoinStack,
+  SecurityMarks,
+} from "@/components/settings/billing/payment_brand_marks";
+import {
+  Modal,
+  ModalHeader,
+  ModalTitle,
+  ModalDescription,
+  ModalBody,
+  ModalFooter,
+} from "@/components/ui/modal";
 import {
   format_price,
   format_date,
@@ -29,12 +46,16 @@ import {
   get_credit_transactions,
   get_credit_packages,
   purchase_credits,
+  purchase_credits_crypto,
   type CreditBalanceResponse,
   type CreditTransactionItem,
   type CreditPackageItem,
 } from "@/services/api/billing";
 import { payment_url_or_throw } from "@/lib/payment_url";
-import { show_toast } from "@/components/toast/simple_toast";
+import {
+  show_toast,
+  TOAST_DURATION_BILLING_MS,
+} from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 import { convert_cents } from "@/components/settings/billing/billing_constants";
 import { describe_credit_entry } from "@/utils/billing_description";
@@ -73,8 +94,15 @@ export function CreditsSection({
     useState<CreditPackageItem | null>(null);
   const [show_picker, set_show_picker] = useState(false);
   const [buying, set_buying] = useState(false);
+  const [credit_method, set_credit_method] = useState<"card" | "crypto">(
+    "card",
+  );
   const [packages_failed, set_packages_failed] = useState(false);
   const [packages_tick, set_packages_tick] = useState(0);
+
+  useEffect(() => {
+    if (show_picker) set_credit_method("card");
+  }, [show_picker]);
 
   useEffect(() => {
     if (!show_picker || packages.length > 0) return;
@@ -106,28 +134,67 @@ export function CreditsSection({
     if (!selected_package || buying) return;
     set_buying(true);
     try {
-      const res = await purchase_credits(
-        selected_package.id,
-        preferred_currency,
-      );
+      const res =
+        credit_method === "crypto"
+          ? await purchase_credits_crypto(selected_package.id)
+          : await purchase_credits(selected_package.id, preferred_currency);
 
       if (res.data?.url) {
-        window.location.assign(payment_url_or_throw(res.data.url));
+        const url = payment_url_or_throw(res.data.url);
+        const is_tauri =
+          typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+
+        if (is_tauri) {
+          const core = await import("@tauri-apps/api/core");
+
+          await core.invoke("open_external_url", { url });
+          set_buying(false);
+        } else {
+          window.location.assign(url);
+        }
       } else {
-        show_toast(t("settings.credit_purchase_error"), "error");
+        show_toast(
+          t("settings.credit_purchase_error"),
+          "error",
+          TOAST_DURATION_BILLING_MS,
+        );
         set_buying(false);
       }
     } catch {
-      show_toast(t("settings.credit_purchase_error"), "error");
+      show_toast(
+        t("settings.credit_purchase_error"),
+        "error",
+        TOAST_DURATION_BILLING_MS,
+      );
       set_buying(false);
     }
   };
+
+  const credit_methods: {
+    id: "card" | "crypto";
+    label: string;
+    note: string;
+    icon: typeof CreditCardIcon;
+  }[] = [
+    {
+      id: "card",
+      label: t("settings.checkout_method_card"),
+      note: t("settings.credits_method_card_note"),
+      icon: CreditCardIcon,
+    },
+    {
+      id: "crypto",
+      label: t("settings.checkout_method_crypto"),
+      note: t("settings.credits_method_crypto_note"),
+      icon: CurrencyDollarIcon,
+    },
+  ];
 
   const has_transactions =
     !!credit_balance && (credit_balance.recent_transactions?.length ?? 0) > 0;
 
   return (
-    <div className="border-t border-edge-secondary pt-8">
+    <div className="border-t border-edge-secondary pt-8" id="credits_section">
       <div className="mb-2">
         <h3 className="flex items-center gap-2 text-base font-semibold text-txt-primary">
           <CurrencyDollarIcon className="w-4 h-4 text-txt-primary flex-shrink-0" />
@@ -139,7 +206,7 @@ export function CreditsSection({
         <div className="mt-2 h-px bg-edge-secondary" />
       </div>
 
-      <div className="flex items-center justify-between px-4 py-4 rounded-lg border border-edge-secondary mb-3">
+      <div className="flex items-center justify-between px-4 py-3 rounded-lg border border-edge-secondary mb-3">
         <div>
           <p className="text-xs text-txt-muted">
             {t("settings.credit_balance")}
@@ -151,21 +218,27 @@ export function CreditsSection({
         <button
           className="aster_btn aster_btn_primary aster_btn_md"
           type="button"
-          onClick={() => set_show_picker((v) => !v)}
+          onClick={() => set_show_picker(true)}
         >
           {t("settings.top_up_credits")}
         </button>
       </div>
 
-      {show_picker && (
-        <div className="rounded-lg border border-edge-secondary mb-3 overflow-hidden">
-          <div className="px-4 py-3 border-b border-edge-secondary">
-            <p className="text-sm font-semibold text-txt-primary">
-              {t("settings.top_up_credits")}
-            </p>
-          </div>
+      <Modal
+        show_close_button
+        is_open={show_picker}
+        on_close={() => set_show_picker(false)}
+        size="md"
+      >
+        <ModalHeader>
+          <ModalTitle>{t("settings.top_up_credits")}</ModalTitle>
+          <ModalDescription>
+            {t("settings.top_up_credits_description")}
+          </ModalDescription>
+        </ModalHeader>
+        <ModalBody>
           {packages.length === 0 ? (
-            <div className="flex items-center justify-between gap-3 px-4 py-4">
+            <div className="flex items-center justify-between gap-3 py-4">
               <p className="text-xs text-txt-muted">
                 {packages_failed
                   ? t("settings.credit_packages_failed")
@@ -182,67 +255,150 @@ export function CreditsSection({
               )}
             </div>
           ) : (
-            <div className="p-4">
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-4">
-                {packages.map((pkg) => {
-                  const price = convert_cents(
-                    pkg.price_cents,
-                    preferred_currency,
-                  );
-                  const total = convert_cents(
-                    pkg.amount_cents + pkg.bonus_cents,
-                    preferred_currency,
-                  );
-                  const bonus = convert_cents(
-                    pkg.bonus_cents,
-                    preferred_currency,
-                  );
-                  const is_selected = selected_package?.id === pkg.id;
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {packages.map((pkg) => {
+                const price = convert_cents(
+                  pkg.price_cents,
+                  preferred_currency,
+                );
+                const total = convert_cents(
+                  pkg.amount_cents + pkg.bonus_cents,
+                  preferred_currency,
+                );
+                const bonus = convert_cents(
+                  pkg.bonus_cents,
+                  preferred_currency,
+                );
+                const is_selected = selected_package?.id === pkg.id;
+
+                return (
+                  <button
+                    key={pkg.id}
+                    aria-pressed={is_selected}
+                    className="flex h-full flex-col rounded-[14px] border p-3 text-start transition-colors"
+                    style={{
+                      backgroundColor: is_selected
+                        ? "color-mix(in srgb, var(--accent-color) 8%, var(--bg-tertiary))"
+                        : "var(--bg-tertiary)",
+                      borderColor: is_selected
+                        ? "var(--accent-color)"
+                        : "var(--border-secondary)",
+                    }}
+                    type="button"
+                    onClick={() => set_selected_package(pkg)}
+                  >
+                    <p className="text-base font-bold text-txt-primary">
+                      {format_price(price, preferred_currency)}
+                    </p>
+                    {bonus > 0 && (
+                      <p
+                        className="text-xs mt-0.5 font-medium"
+                        style={{ color: "var(--accent-color)" }}
+                      >
+                        {t("settings.credit_package_bonus", {
+                          bonus: format_price(bonus, preferred_currency),
+                        })}
+                      </p>
+                    )}
+                    <p className="mt-auto pt-1 text-xs text-txt-muted">
+                      {t("settings.credit_package_total", {
+                        total: format_price(total, preferred_currency),
+                      })}
+                    </p>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {packages.length > 0 && (
+            <div className="mt-4">
+              <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-txt-muted">
+                {t("settings.checkout_method_title")}
+              </p>
+              <div className="grid gap-2 sm:grid-cols-2" role="radiogroup">
+                {credit_methods.map((entry) => {
+                  const active = entry.id === credit_method;
+                  const MethodIcon = entry.icon;
 
                   return (
                     <button
-                      key={pkg.id}
-                      className={`rounded-lg border p-3 text-start transition-colors ${
-                        is_selected
-                          ? "border-blue-500 bg-blue-500/10"
-                          : "border-edge-secondary hover:border-edge-primary"
+                      key={entry.id}
+                      aria-checked={active}
+                      className={`relative flex h-full flex-col rounded-xl border p-3 text-start transition-colors focus:outline-none disabled:pointer-events-none disabled:opacity-50 ${
+                        active
+                          ? ""
+                          : "border-edge-secondary hover:bg-surf-tertiary"
                       }`}
+                      disabled={buying}
+                      role="radio"
+                      style={
+                        active
+                          ? {
+                              borderColor: "var(--accent-color)",
+                              backgroundColor:
+                                "color-mix(in srgb, var(--accent-color) 14%, transparent)",
+                              boxShadow: "0 0 0 1px var(--accent-color)",
+                            }
+                          : undefined
+                      }
                       type="button"
-                      onClick={() => set_selected_package(pkg)}
+                      onClick={() => set_credit_method(entry.id)}
                     >
-                      <p className="text-base font-bold text-txt-primary">
-                        {format_price(price, preferred_currency)}
-                      </p>
-                      {bonus > 0 && (
-                        <p className="text-xs text-green-500 mt-0.5">
-                          {t("settings.credit_package_bonus", {
-                            bonus: format_price(bonus, preferred_currency),
-                          })}
-                        </p>
+                      {active && (
+                        <span
+                          aria-hidden="true"
+                          className="absolute end-2 top-2 flex h-4 w-4 items-center justify-center rounded-full"
+                          style={{ backgroundColor: "var(--accent-color)" }}
+                        >
+                          <CheckIcon
+                            className="h-2.5 w-2.5"
+                            style={{ color: "var(--accent-fg, #ffffff)" }}
+                          />
+                        </span>
                       )}
-                      <p className="text-xs text-txt-muted mt-0.5">
-                        {t("settings.credit_package_total", {
-                          total: format_price(total, preferred_currency),
-                        })}
-                      </p>
+                      <span className="flex items-center gap-2">
+                        <MethodIcon className="h-5 w-5 flex-shrink-0 text-txt-primary" />
+                        <span className="text-[13px] font-semibold text-txt-primary">
+                          {entry.label}
+                        </span>
+                      </span>
+                      <span className="mt-1 block text-[11px] leading-snug text-txt-muted">
+                        {entry.note}
+                      </span>
+                      {entry.id === "card" ? (
+                        <CardBrandMarks class_name="mt-auto pt-2.5" />
+                      ) : (
+                        <CoinStack class_name="mt-auto pt-2.5" />
+                      )}
                     </button>
                   );
                 })}
               </div>
-              <button
-                className="aster_btn aster_btn_primary aster_btn_lg w-full disabled:opacity-50"
-                disabled={buying || !selected_package}
-                type="button"
-                onClick={handle_buy}
-              >
-                {buying
-                  ? t("settings.buying_credits")
-                  : t("settings.buy_credits")}
-              </button>
+              <SecurityMarks
+                class_name="mt-2.5 px-1"
+                label={t("settings.stripe_secure_short")}
+              />
             </div>
           )}
-        </div>
-      )}
+        </ModalBody>
+        <ModalFooter>
+          <Button
+            disabled={buying}
+            variant="outline"
+            onClick={() => set_show_picker(false)}
+          >
+            {t("common.cancel")}
+          </Button>
+          <Button
+            disabled={buying || !selected_package}
+            variant="primary"
+            onClick={handle_buy}
+          >
+            {buying ? t("settings.buying_credits") : t("settings.buy_credits")}
+          </Button>
+        </ModalFooter>
+      </Modal>
 
       {credit_balance &&
         (Number(credit_balance.balance_cents) > 0 || has_transactions) && (

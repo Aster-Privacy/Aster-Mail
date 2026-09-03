@@ -23,11 +23,13 @@ import type { TranslationKey } from "@/lib/i18n/types";
 import { useState } from "react";
 import { ShieldCheckIcon } from "@heroicons/react/24/outline";
 
+import { checkout_error_text } from "./checkout_error_text";
+
 import { CrownIcon } from "@/components/ui/crown_icon";
 import {
   PlanCard,
   Segmented,
-  type SegmentedProps,
+  Tabs,
 } from "@/components/settings/billing/plan_card";
 import {
   format_price,
@@ -59,7 +61,6 @@ import {
   TOAST_DURATION_BILLING_MS,
 } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
-import { checkout_error_text } from "./checkout_error_text";
 
 const TIER_DESCRIPTION_KEYS: Record<string, TranslationKey> = {
   star: "auth.plan_star_description",
@@ -76,49 +77,6 @@ function tier_description(
   const key = TIER_DESCRIPTION_KEYS[tier.id];
 
   return key ? t(key) : tier.description;
-}
-
-function Tabs<T extends string>({
-  value,
-  options,
-  on_change,
-}: SegmentedProps<T>) {
-  return (
-    <div className="w-full max-w-xs">
-      <div
-        className="grid w-full border-b border-edge-secondary"
-        style={{
-          gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))`,
-        }}
-      >
-        {options.map((opt) => {
-          const active = value === opt.id;
-
-          return (
-            <button
-              key={opt.id}
-              className={`relative px-4 pt-1 pb-2.5 text-sm font-semibold transition-colors focus:outline-none whitespace-nowrap ${
-                active
-                  ? "text-txt-primary"
-                  : "text-txt-muted hover:text-txt-secondary"
-              }`}
-              type="button"
-              onClick={() => on_change(opt.id)}
-            >
-              {opt.label}
-              <span
-                className="absolute start-0 end-0 -bottom-px h-0.5 rounded-full transition-opacity"
-                style={{
-                  backgroundColor: "var(--accent-blue)",
-                  opacity: active ? 1 : 0,
-                }}
-              />
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
 }
 
 interface AvailablePlansSectionProps {
@@ -169,6 +127,7 @@ export function AvailablePlansSection({
     useState<FamilyPlanTier | null>(null);
   const [crypto_family_tier, set_crypto_family_tier] =
     useState<FamilyPlanTier | null>(null);
+  const [crypto_family_term, set_crypto_family_term] = useState(12);
 
   const handle_family_select = (tier: FamilyPlanTier) => {
     set_pending_family_tier(tier);
@@ -244,8 +203,11 @@ export function AvailablePlansSection({
     }
   };
 
-  const handle_family_crypto = () => {
+  const handle_family_crypto = (term_id?: string) => {
     if (!pending_family_tier || family_loading) return;
+    set_crypto_family_term(
+      term_id === "monthly" ? 1 : term_id === "biennial" ? 24 : 12,
+    );
     set_crypto_family_tier(pending_family_tier);
     set_pending_family_tier(null);
   };
@@ -521,10 +483,16 @@ export function AvailablePlansSection({
 
       {crypto_family_tier && (
         <CryptoTermModal
+          initial_term_months={crypto_family_term}
           is_open={!!crypto_family_tier}
           monthly_price_cents={crypto_family_tier.monthly_cents}
           on_checkout_opened={on_tauri_checkout_opened}
-          on_close={() => set_crypto_family_tier(null)}
+          on_close={() => {
+            const tier = crypto_family_tier;
+
+            set_crypto_family_tier(null);
+            set_pending_family_tier(tier);
+          }}
           plan_code={crypto_family_tier.id}
           plan_name={crypto_family_tier.name}
           preferred_currency={preferred_currency}

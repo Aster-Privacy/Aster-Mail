@@ -29,13 +29,28 @@ import {
 } from "@/services/api/billing";
 import { request_cache } from "@/services/api/request_cache";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
-import { show_toast } from "@/components/toast/simple_toast";
+import {
+  show_toast,
+  TOAST_DURATION_BILLING_MS,
+} from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_auth } from "@/contexts/auth_context";
 import { ignore_error } from "@/lib/ignore_error";
+import { PLAN_TIERS } from "@/components/settings/billing/billing_constants";
+import {
+  show_checkout_cancelled_upgrade,
+  type UpgradeInterval,
+} from "@/stores/upgrade_store";
 
 const BILLING_RETURN_KEY = "aster_billing_return";
 const MAX_ATTEMPTS = 8;
+
+function upgrade_interval_for(billing_interval: string): UpgradeInterval {
+  if (billing_interval === "month") return "month";
+  if (billing_interval === "biennial") return "biennial";
+
+  return "year";
+}
 
 function read_key(key: string): string | null {
   try {
@@ -51,7 +66,10 @@ function clear_key(key: string) {
   try {
     sessionStorage.removeItem(key);
   } catch (caught) {
-    ignore_error("pages/mobile/mobile_billing_return_handler:clear_key", caught);
+    ignore_error(
+      "pages/mobile/mobile_billing_return_handler:clear_key",
+      caught,
+    );
   }
 }
 
@@ -93,8 +111,27 @@ export function MobileBillingReturnHandler() {
     clear_key(BILLING_RETURN_KEY);
 
     if (billing === "cancelled") {
-      clear_checkout_target();
-      show_toast(t("settings.billing_checkout_cancelled"), "info");
+      const target = read_checkout_target();
+      const target_tier = target
+        ? PLAN_TIERS.find((tier) => tier.id === target.plan_code)
+        : null;
+
+      const resumed =
+        target && target_tier
+          ? show_checkout_cancelled_upgrade({
+              plan_code: target.plan_code,
+              interval: upgrade_interval_for(target.billing_interval),
+            })
+          : false;
+
+      if (!resumed) {
+        clear_checkout_target();
+        show_toast(
+          t("settings.billing_checkout_cancelled"),
+          "info",
+          TOAST_DURATION_BILLING_MS,
+        );
+      }
 
       return;
     }
@@ -141,7 +178,11 @@ export function MobileBillingReturnHandler() {
       request_cache.invalidate("/sync/v1");
       invalidate_mail_stats();
       window.dispatchEvent(new CustomEvent("aster:plan-changed"));
-      show_toast(t("settings.payment_processing_delayed"), "info");
+      show_toast(
+        t("settings.payment_processing_delayed"),
+        "info",
+        TOAST_DURATION_BILLING_MS,
+      );
     })();
   }, [is_authenticated, navigate, t]);
 

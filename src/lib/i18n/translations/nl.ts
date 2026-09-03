@@ -7453,6 +7453,7 @@ export const nl = {
     drop_to_move_here: "Sleep hierheen om te verplaatsen",
     tab_new_count: "nieuw",
     tab_unread_count: "{{count}} ongelezen",
+    tab_counting_unread: "Ongelezen berichten worden geteld",
     category_empty_primary_title: "Niets in Primair",
     category_empty_primary_desc:
       "Je persoonlijke berichten en gesprekken verschijnen hier.",

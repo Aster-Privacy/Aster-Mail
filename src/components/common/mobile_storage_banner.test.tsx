@@ -22,7 +22,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
-const navigate_mock = vi.fn();
+const show_storage_full_upgrade_mock = vi.fn();
 const stats_state = {
   stats: { storage_used_bytes: 0, storage_total_bytes: 1073741824 },
   has_initialized: true,
@@ -32,8 +32,9 @@ vi.mock("@/lib/i18n/context", () => ({
   use_i18n: () => ({ t: (key: string) => key, language: "en" }),
 }));
 
-vi.mock("react-router-dom", () => ({
-  useNavigate: () => navigate_mock,
+vi.mock("@/stores/upgrade_store", () => ({
+  show_storage_full_upgrade: (...args: unknown[]) =>
+    show_storage_full_upgrade_mock(...args),
 }));
 
 vi.mock("@/provider", () => ({
@@ -72,7 +73,7 @@ async function render_with(used: number, total: number, initialized = true) {
 
 describe("MobileStorageBanner", () => {
   beforeEach(async () => {
-    navigate_mock.mockClear();
+    show_storage_full_upgrade_mock.mockClear();
     if (root) await act(async () => root!.unmount());
     container?.remove();
     root = null;
@@ -103,7 +104,7 @@ describe("MobileStorageBanner", () => {
     expect(view.textContent).toBe("");
   });
 
-  it("sends the upgrade button to billing", async () => {
+  it("opens the upgrade pop-up without leaving the page", async () => {
     const view = await render_with(1073741824, 1073741824);
     const button = view.querySelector("button");
 
@@ -111,6 +112,6 @@ describe("MobileStorageBanner", () => {
       button?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     });
 
-    expect(navigate_mock).toHaveBeenCalledWith("/settings/billing");
+    expect(show_storage_full_upgrade_mock).toHaveBeenCalledTimes(1);
   });
 });

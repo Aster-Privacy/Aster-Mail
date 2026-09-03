@@ -7527,6 +7527,7 @@ export const pt = {
     drop_to_move_here: "Solte aqui para mover",
     tab_new_count: "novo(s)",
     tab_unread_count: "{{count}} não lidas",
+    tab_counting_unread: "Contando mensagens não lidas",
     category_empty_primary_title: "Nada em Principal",
     category_empty_primary_desc:
       "Suas mensagens pessoais e conversas aparecerão aqui.",

@@ -20,6 +20,7 @@
 //
 import { Suspense, useEffect, useRef, useState } from "react";
 import { Route, Routes } from "react-router-dom";
+
 import {
   activate_subscription,
   clear_checkout_target,
@@ -30,7 +31,10 @@ import { FamilyWelcomeModal } from "@/components/settings/billing/family_welcome
 import { CheckoutReturnHandler } from "@/components/common/checkout_return_handler";
 import { request_cache } from "@/services/api/request_cache";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
-import { show_toast } from "@/components/toast/simple_toast";
+import {
+  show_toast,
+  TOAST_DURATION_BILLING_MS,
+} from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_auth } from "@/contexts/auth_context";
 import { ProtectedRoute } from "@/components/common/protected_route";
@@ -76,6 +80,11 @@ import { PostQuantumSendPrompt } from "@/components/compose/post_quantum_send_pr
 import { UnsubscribeConfirmationModal } from "@/components/modals/unsubscribe_confirmation_modal";
 import { PurchaseSuccessModal } from "@/components/modals/purchase_success_modal";
 import { UpgradeModal } from "@/components/upgrade/upgrade_modal";
+import {
+  show_checkout_cancelled_upgrade,
+  type UpgradeInterval,
+} from "@/stores/upgrade_store";
+import { PLAN_TIERS } from "@/components/settings/billing/billing_constants";
 import { UndoSendContainer } from "@/components/toast/undo_send_container";
 import { UndoSendPreviewModal } from "@/components/toast/undo_send_preview_modal";
 import { EmailNotificationManager } from "@/components/email/email_notification_manager";
@@ -85,6 +94,7 @@ import { FullPageLoader } from "@/components/common/full_page_loader";
 import { ErrorBoundary } from "@/components/ui/error_boundary";
 import { lazy_with_retry } from "@/utils/lazy_with_retry";
 import { AppLock } from "@/components/mobile";
+import { install_global_autoscroll } from "@/lib/global_autoscroll";
 import { ignore_error } from "@/lib/ignore_error";
 
 interface FamilyWelcomeState {
@@ -115,6 +125,13 @@ function mark_family_welcome_seen(account_id: string): void {
 }
 
 const BILLING_RETURN_KEY = "aster_billing_return";
+
+function upgrade_interval_for(billing_interval: string): UpgradeInterval {
+  if (billing_interval === "month") return "month";
+  if (billing_interval === "biennial") return "biennial";
+
+  return "year";
+}
 
 function BillingSuccessHandler() {
   const { t } = use_i18n();
@@ -173,8 +190,27 @@ function BillingSuccessHandler() {
     }
 
     if (billing === "cancelled") {
-      clear_checkout_target();
-      show_toast(t("settings.billing_checkout_cancelled"), "info");
+      const target = read_checkout_target();
+      const target_tier = target
+        ? PLAN_TIERS.find((tier) => tier.id === target.plan_code)
+        : null;
+
+      const resumed =
+        target && target_tier
+          ? show_checkout_cancelled_upgrade({
+              plan_code: target.plan_code,
+              interval: upgrade_interval_for(target.billing_interval),
+            })
+          : false;
+
+      if (!resumed) {
+        clear_checkout_target();
+        show_toast(
+          t("settings.billing_checkout_cancelled"),
+          "info",
+          TOAST_DURATION_BILLING_MS,
+        );
+      }
 
       return;
     }
@@ -236,7 +272,11 @@ function BillingSuccessHandler() {
       request_cache.invalidate("/payments/v1");
       invalidate_mail_stats();
       window.dispatchEvent(new CustomEvent("aster:plan-changed"));
-      show_toast(t("settings.payment_processing_delayed"), "info");
+      show_toast(
+        t("settings.payment_processing_delayed"),
+        "info",
+        TOAST_DURATION_BILLING_MS,
+      );
     })();
   }, [is_authenticated, current_account_id, t]);
 
@@ -278,6 +318,8 @@ function BillingSuccessHandler() {
 }
 
 function App() {
+  useEffect(() => install_global_autoscroll(), []);
+
   useEffect(() => {
     try {
       const params = new URLSearchParams(window.location.search);

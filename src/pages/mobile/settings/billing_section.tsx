@@ -180,42 +180,6 @@ export function BillingSection({
                   </div>
                 </div>
               )}
-              <div
-                className="relative overflow-hidden rounded-2xl p-5"
-                style={{
-                  background:
-                    "linear-gradient(135deg, var(--accent-mix-b70, #295bac) 0%, var(--accent-mix-b85, #326fd1) 40%, var(--accent-color-hover) 70%, var(--accent-color) 100%)",
-                  boxShadow:
-                    "0 1px 3px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.1)",
-                }}
-              >
-                <div className="relative z-10">
-                  <h3
-                    className="text-[17px] font-bold text-white mb-1 tracking-tight"
-                    style={{ textShadow: "0 1px 3px rgba(0, 0, 0, 0.15)" }}
-                  >
-                    {t("settings.billing_banner_title")}
-                  </h3>
-                  <p
-                    className="text-[13px] text-white/75 mb-4"
-                    style={{ textShadow: "0 1px 2px rgba(0, 0, 0, 0.1)" }}
-                  >
-                    {t("settings.billing_banner_subtitle")}
-                  </p>
-                  <button
-                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-[14px] text-[14px] font-semibold bg-white text-blue-900"
-                    style={{
-                      boxShadow: "0 2px 8px rgba(0, 0, 0, 0.15)",
-                      WebkitTapHighlightColor: "transparent",
-                    }}
-                    type="button"
-                    onClick={scroll_to_plans}
-                  >
-                    {t("settings.billing_banner_cta")}
-                    <ChevronRightIcon className="w-4 h-4 rtl:-scale-x-100" />
-                  </button>
-                </div>
-              </div>
             </div>
 
             {is_storage_over_limit && (
@@ -614,7 +578,11 @@ export function BillingSection({
                     <div className="space-y-3">
                       {FAMILY_PLAN_TIERS.map((tier) => {
                         const card_interval =
-                          billing_period === "yearly" ? "year" : "month";
+                          billing_period === "yearly"
+                            ? "year"
+                            : billing_period === "biennial"
+                              ? "biennial"
+                              : "month";
                         const is_same_plan =
                           subscription?.plan.code === tier.id;
                         const is_current =
@@ -630,6 +598,7 @@ export function BillingSection({
                         ).map((feature) => ({
                           label: t(feature.label_key),
                           on: feature.on,
+                          icon: feature.icon,
                         }));
 
                         return (
@@ -735,7 +704,11 @@ export function BillingSection({
                       {PLAN_TIERS.map((tier, tier_index) => {
                         const current_plan_code = subscription?.plan.code;
                         const card_interval =
-                          billing_period === "yearly" ? "year" : "month";
+                          billing_period === "yearly"
+                            ? "year"
+                            : billing_period === "biennial"
+                              ? "biennial"
+                              : "month";
                         const is_same_plan = current_plan_code === tier.id;
                         const is_current =
                           is_same_plan &&

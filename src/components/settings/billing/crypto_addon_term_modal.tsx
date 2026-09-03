@@ -43,6 +43,7 @@ import {
 } from "@/services/api/billing";
 import { addon_return_url } from "@/lib/addon_return_url";
 import { payment_url_or_throw } from "@/lib/payment_url";
+import { mark_payment_navigation } from "@/lib/payment_navigation";
 import { Spinner } from "@/components/ui/spinner";
 import { CoinIcon } from "@/components/ui/coin_icon";
 import {
@@ -256,6 +257,7 @@ export function crypto_addon_term_modal({
           on_checkout_opened?.();
           on_close();
         } else {
+          mark_payment_navigation();
           window.location.href = payment_url_or_throw(response.data.url);
         }
 
@@ -344,7 +346,14 @@ export function crypto_addon_term_modal({
 
   return (
     <>
-      <Modal show_close_button is_open={is_open} on_close={on_close} size="md">
+      <Modal
+        show_close_button
+        close_on_escape={false}
+        close_on_overlay={false}
+        is_open={is_open}
+        on_close={on_close}
+        size="md"
+      >
         {step === "term" ? (
           <>
             <ModalHeader>
@@ -426,7 +435,7 @@ export function crypto_addon_term_modal({
                 variant="outline"
                 onClick={on_close}
               >
-                {t("common.cancel")}
+                {t("common.back")}
               </Button>
               <Button
                 disabled={is_loading}

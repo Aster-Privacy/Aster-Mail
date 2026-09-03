@@ -20,7 +20,14 @@
 //
 import { useSyncExternalStore } from "react";
 
-export type UpgradeReason = "plan_limit" | "storage_full";
+export type UpgradeReason =
+  | "plan_limit"
+  | "storage_full"
+  | "checkout_cancelled"
+  | "offer"
+  | "manual";
+
+export type UpgradeInterval = "month" | "year" | "biennial";
 
 export type UpgradeLimitKey =
   | "max_email_aliases"
@@ -31,6 +38,7 @@ export type UpgradeLimitKey =
   | "max_custom_filters"
   | "max_custom_categories"
   | "max_linked_accounts"
+  | "max_external_accounts"
   | "generic";
 
 export interface UpgradeState {
@@ -40,6 +48,9 @@ export interface UpgradeState {
   feature_key: string | null;
   resource_label: string | null;
   server_message: string | null;
+  preselect_plan_code: string | null;
+  preselect_interval: UpgradeInterval | null;
+  open_seq: number;
 }
 
 const initial_state: UpgradeState = {
@@ -49,10 +60,20 @@ const initial_state: UpgradeState = {
   feature_key: null,
   resource_label: null,
   server_message: null,
+  preselect_plan_code: null,
+  preselect_interval: null,
+  open_seq: 0,
 };
 
 let current: UpgradeState = initial_state;
+let open_seq = 0;
 const listeners = new Set<() => void>();
+
+function next_open_seq(): number {
+  open_seq += 1;
+
+  return open_seq;
+}
 
 function notify() {
   for (const l of listeners) l();
@@ -88,6 +109,9 @@ const RESOURCE_TO_LIMIT_KEY: Record<string, UpgradeLimitKey> = {
   accounts: "max_linked_accounts",
   "linked accounts": "max_linked_accounts",
   "signed-in accounts": "max_linked_accounts",
+  "external accounts": "max_external_accounts",
+  "external account": "max_external_accounts",
+  "connected accounts": "max_external_accounts",
 };
 
 function resolve_limit_key(resource: string | null): UpgradeLimitKey {
@@ -130,6 +154,9 @@ export function show_plan_limit_upgrade(opts: {
     feature_key: opts.feature ?? null,
     resource_label: opts.resource ?? null,
     server_message: opts.message ?? null,
+    preselect_plan_code: null,
+    preselect_interval: null,
+    open_seq: next_open_seq(),
   };
   notify();
 }
@@ -143,6 +170,68 @@ export function show_storage_full_upgrade(opts?: { message?: string | null }) {
     feature_key: null,
     resource_label: null,
     server_message: opts?.message ?? null,
+    preselect_plan_code: null,
+    preselect_interval: null,
+    open_seq: next_open_seq(),
+  };
+  notify();
+}
+
+export function show_checkout_cancelled_upgrade(opts: {
+  plan_code: string;
+  interval: UpgradeInterval;
+}): boolean {
+  if (is_on_auth_route()) return false;
+  current = {
+    is_open: true,
+    reason: "checkout_cancelled",
+    limit_key: "generic",
+    feature_key: null,
+    resource_label: null,
+    server_message: null,
+    preselect_plan_code: opts.plan_code,
+    preselect_interval: opts.interval,
+    open_seq: next_open_seq(),
+  };
+  notify();
+
+  return true;
+}
+
+export function show_offer_upgrade(opts: {
+  plan_code?: string | null;
+  interval?: UpgradeInterval | null;
+}) {
+  if (is_on_auth_route()) return;
+  current = {
+    is_open: true,
+    reason: "offer",
+    limit_key: "generic",
+    feature_key: null,
+    resource_label: null,
+    server_message: null,
+    preselect_plan_code: opts.plan_code ?? null,
+    preselect_interval: opts.interval ?? "year",
+    open_seq: next_open_seq(),
+  };
+  notify();
+}
+
+export function show_upgrade_plans(opts?: {
+  plan_code?: string | null;
+  interval?: UpgradeInterval | null;
+}) {
+  if (is_on_auth_route()) return;
+  current = {
+    is_open: true,
+    reason: "manual",
+    limit_key: "generic",
+    feature_key: null,
+    resource_label: null,
+    server_message: null,
+    preselect_plan_code: opts?.plan_code ?? null,
+    preselect_interval: opts?.interval ?? null,
+    open_seq: next_open_seq(),
   };
   notify();
 }

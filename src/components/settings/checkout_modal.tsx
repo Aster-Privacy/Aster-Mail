@@ -41,6 +41,7 @@ import {
   type PromoValidateResponse,
 } from "@/services/api/billing";
 import { connection_store } from "@/services/routing/connection_store";
+import { checkout_highlights } from "@/components/settings/billing/checkout_highlights";
 import { server_error_text } from "@/components/settings/billing/server_error_text";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
@@ -136,8 +137,10 @@ interface CheckoutModalProps {
   addon_id?: string;
   price_cents?: number;
   initial_promo_code?: string;
+  highlights?: string[];
   on_close: () => void;
   on_success: () => void;
+  on_choose_crypto?: (term_months: number) => void;
 }
 
 export function CheckoutModal({
@@ -150,8 +153,10 @@ export function CheckoutModal({
   addon_id,
   price_cents,
   initial_promo_code,
+  highlights,
   on_close,
   on_success,
+  on_choose_crypto,
 }: CheckoutModalProps) {
   const { t } = use_i18n();
   const { theme } = useTheme();
@@ -422,7 +427,9 @@ export function CheckoutModal({
           credit_balance_cents={credit_balance_cents}
           currency={currency}
           error_message={error_message}
+          highlights={highlights ?? checkout_highlights(plan_code, t)}
           is_validating_promo={is_validating_promo}
+          on_choose_crypto={on_choose_crypto}
           on_close={handle_close}
           on_success={on_success}
           phase={phase}
@@ -448,13 +455,13 @@ export function CheckoutModal({
       is_open={open}
       on_close={handle_close}
       show_close_button={phase !== "processing"}
-      size="md"
+      size="2xl"
     >
       <ModalHeader>
         <ModalTitle>
           {phase === "success"
             ? t("settings.payment_complete")
-            : t("settings.checkout_title")}
+            : t("settings.checkout_review_title")}
         </ModalTitle>
         {phase !== "success" && (
           <ModalDescription>

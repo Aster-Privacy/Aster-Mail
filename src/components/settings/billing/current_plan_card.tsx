@@ -307,13 +307,7 @@ export function CurrentPlanCard({
                         plan: upgrade_tier.name,
                       })}
                     </p>
-                    <span
-                      className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold"
-                      style={{
-                        backgroundColor: "var(--accent-color)",
-                        color: "var(--accent-fg, #ffffff)",
-                      }}
-                    >
+                    <span className="plan_galaxy_badge inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider">
                       {t("settings.plan_recommended")}
                     </span>
                   </div>

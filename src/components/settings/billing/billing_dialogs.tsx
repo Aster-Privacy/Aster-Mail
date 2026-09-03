@@ -64,7 +64,10 @@ import {
 } from "@/services/api/billing";
 import { request_cache } from "@/services/api/request_cache";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
-import { show_toast } from "@/components/toast/simple_toast";
+import {
+  show_toast,
+  TOAST_DURATION_BILLING_MS,
+} from "@/components/toast/simple_toast";
 import {
   PLAN_TIERS,
   convert_cents,
@@ -141,6 +144,7 @@ interface BillingDialogsProps {
   >;
   load_data: () => Promise<void>;
   on_switch_plan?: (offer: DowngradeOffer) => void;
+  on_plan_choose_crypto?: (plan: AvailablePlan, term_months: number) => void;
 }
 
 export function BillingDialogs({
@@ -188,6 +192,7 @@ export function BillingDialogs({
   set_addon_to_cancel,
   load_data,
   on_switch_plan,
+  on_plan_choose_crypto,
 }: BillingDialogsProps) {
   const { t } = use_i18n();
   const redirect_handled = useRef(false);
@@ -327,7 +332,11 @@ export function BillingDialogs({
 
             return;
           }
-          show_toast(t("settings.payment_processing_delayed"), "info");
+          show_toast(
+            t("settings.payment_processing_delayed"),
+            "info",
+            TOAST_DURATION_BILLING_MS,
+          );
         })();
       }
 
@@ -367,17 +376,29 @@ export function BillingDialogs({
                 return;
               }
             }
-            show_toast(t("settings.payment_processing_delayed"), "info");
+            show_toast(
+              t("settings.payment_processing_delayed"),
+              "info",
+              TOAST_DURATION_BILLING_MS,
+            );
             request_cache.invalidate("/payments/v1");
             await load_data();
           }
         } catch {
-          show_toast(t("settings.payment_processing_delayed"), "info");
+          show_toast(
+            t("settings.payment_processing_delayed"),
+            "info",
+            TOAST_DURATION_BILLING_MS,
+          );
           request_cache.invalidate("/payments/v1");
         }
       })();
     } else {
-      show_toast(t("settings.payment_failed"), "error");
+      show_toast(
+        t("settings.payment_failed"),
+        "error",
+        TOAST_DURATION_BILLING_MS,
+      );
     }
   }, [t, load_data]);
 
@@ -630,6 +651,17 @@ export function BillingDialogs({
           }
           currency={preferred_currency}
           initial_promo_code={academic_promo_code ?? undefined}
+          on_choose_crypto={
+            on_plan_choose_crypto
+              ? (term_months) => {
+                  const plan = selected_plan;
+
+                  set_show_checkout_modal(false);
+                  set_selected_plan(null);
+                  if (plan) on_plan_choose_crypto(plan, term_months);
+                }
+              : undefined
+          }
           on_close={() => {
             set_show_checkout_modal(false);
             set_selected_plan(null);
@@ -903,7 +935,10 @@ export function BillingDialogs({
             </AlertDialogCancel>
             <AlertDialogAction
               className="max-sm:flex-1"
-              onClick={handle_switch_billing}
+              onClick={(e) => {
+                e.preventDefault();
+                void handle_switch_billing();
+              }}
             >
               {is_action_loading
                 ? t("settings.switching_billing")
@@ -962,11 +997,19 @@ export function BillingDialogs({
                     invalidate_mail_stats();
                     await load_data();
                   } else {
-                    show_toast(t("settings.addon_cancel_failed"), "error");
+                    show_toast(
+                      t("settings.addon_cancel_failed"),
+                      "error",
+                      TOAST_DURATION_BILLING_MS,
+                    );
                   }
                 } catch (error) {
                   if (import.meta.env.DEV) console.error(error);
-                  show_toast(t("settings.addon_cancel_failed"), "error");
+                  show_toast(
+                    t("settings.addon_cancel_failed"),
+                    "error",
+                    TOAST_DURATION_BILLING_MS,
+                  );
                 } finally {
                   set_is_action_loading(false);
                   set_show_cancel_addon_dialog(false);

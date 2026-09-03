@@ -18,11 +18,11 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 
 import { use_should_reduce_motion } from "@/provider";
+import { show_storage_full_upgrade } from "@/stores/upgrade_store";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_mail_stats } from "@/hooks/use_mail_stats";
 
@@ -31,7 +31,6 @@ const WARNING_PERCENT = 90;
 
 export function MobileStorageBanner() {
   const reduce_motion = use_should_reduce_motion();
-  const navigate = useNavigate();
   const { t } = use_i18n();
   const { stats, has_initialized } = use_mail_stats();
 
@@ -69,7 +68,7 @@ export function MobileStorageBanner() {
               className="flex-shrink-0 rounded-[12px] px-2.5 py-0.5 text-xs font-medium transition-colors"
               style={{ backgroundColor: "rgba(255, 255, 255, 0.2)" }}
               type="button"
-              onClick={() => navigate("/settings/billing")}
+              onClick={() => show_storage_full_upgrade({})}
             >
               {t("common.upgrade")}
             </button>

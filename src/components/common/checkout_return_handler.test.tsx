@@ -36,6 +36,7 @@ vi.mock("@/contexts/auth/use_auth_hook", () => ({
 
 vi.mock("@/components/toast/simple_toast", () => ({
   show_toast: (...args: unknown[]) => toast_mock(...args),
+  TOAST_DURATION_BILLING_MS: 8000,
 }));
 
 vi.mock("@/services/api/request_cache", () => ({
@@ -118,6 +119,7 @@ describe("CheckoutReturnHandler", () => {
     expect(toast_mock).toHaveBeenCalledWith(
       "settings.crypto_cancelled_toast",
       "info",
+      8000,
     );
     expect(invalidate_mock).not.toHaveBeenCalled();
   });

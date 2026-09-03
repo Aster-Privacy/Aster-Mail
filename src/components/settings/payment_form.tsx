@@ -36,7 +36,13 @@ import {
   type checkout_phase,
   compute_discount,
 } from "./checkout_modal";
-import { PricingDisplay } from "./pricing_display";
+import {
+  CheckoutMethodList,
+  CheckoutTermSelector,
+  type checkout_method,
+  type checkout_term_option,
+} from "./checkout_options";
+import { CheckoutSummary } from "./checkout_summary";
 import { StripeCardFields } from "./stripe_card_fields";
 
 import { Spinner } from "@/components/ui/spinner";
@@ -52,6 +58,18 @@ import {
   PLAN_TIERS,
   convert_cents,
 } from "@/components/settings/billing/billing_constants";
+import {
+  CARD_TERMS,
+  CRYPTO_TERMS,
+  interval_for_term,
+  nearest_card_term,
+  term_for_interval,
+  term_monthly_cents,
+  term_price_cents,
+  term_savings_cents,
+  term_savings_percent,
+  type checkout_term,
+} from "@/components/settings/billing/checkout_terms";
 import { server_error_text } from "@/components/settings/billing/server_error_text";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
@@ -71,6 +89,7 @@ interface payment_form_props {
   addon_id?: string;
   addon_client_secret: string | null;
   credit_balance_cents?: number;
+  highlights?: string[];
   colors: theme_colors;
   phase: checkout_phase;
   set_phase: (phase: checkout_phase) => void;
@@ -84,6 +103,7 @@ interface payment_form_props {
   set_is_validating_promo: (v: boolean) => void;
   on_success: () => void;
   on_close: () => void;
+  on_choose_crypto?: (term: checkout_term) => void;
 }
 
 export function PaymentForm({
@@ -91,11 +111,11 @@ export function PaymentForm({
   plan_code,
   price_cents,
   currency,
-  price_display,
   billing_interval,
   addon_id,
   addon_client_secret,
   credit_balance_cents,
+  highlights,
   colors,
   phase,
   set_phase,
@@ -109,16 +129,32 @@ export function PaymentForm({
   set_is_validating_promo,
   on_success,
   on_close,
+  on_choose_crypto,
 }: payment_form_props) {
   const { t } = use_i18n();
   const stripe = useStripe();
   const elements = useElements();
   const [cardholder_name, set_cardholder_name] = useState("");
   const [billing_postal, set_billing_postal] = useState("");
-  const [selected_method, set_selected_method] = useState<
-    "card" | "wallet" | "cashapp" | "crypto"
-  >("card");
-  const [crypto_term, set_crypto_term] = useState<1 | 3 | 6 | 12 | 24>(12);
+  const [selected_method, set_selected_method] =
+    useState<checkout_method>("card");
+  const plan_tier = useMemo(
+    () =>
+      addon_id ? undefined : PLAN_TIERS.find((tier) => tier.id === plan_code),
+    [addon_id, plan_code],
+  );
+  const [selected_term, set_selected_term] = useState<checkout_term>(() =>
+    nearest_card_term(term_for_interval(billing_interval)),
+  );
+  const active_term = plan_tier
+    ? selected_term
+    : term_for_interval(billing_interval);
+  const active_interval = plan_tier
+    ? interval_for_term(nearest_card_term(active_term))
+    : billing_interval;
+  const active_price_cents = plan_tier
+    ? term_price_cents(plan_tier, active_term)
+    : price_cents;
   const cardholder_input_ref = useRef<HTMLInputElement | null>(null);
   const [focused_field, set_focused_field] = useState<string | null>(null);
   const [hovered_field, set_hovered_field] = useState<string | null>(null);
@@ -130,6 +166,7 @@ export function PaymentForm({
     cvc: { complete: false, error: null },
   });
   const [ready_count, set_ready_count] = useState(0);
+  const [show_promo_field, set_show_promo_field] = useState(false);
   const [payment_request, set_payment_request] =
     useState<PaymentRequest | null>(null);
   const [can_make_wallet_payment, set_can_make_wallet_payment] =
@@ -145,8 +182,8 @@ export function PaymentForm({
   const applied_promo_result = addon_id ? null : promo_result;
 
   const { discounted_cents, is_free } = useMemo(
-    () => compute_discount(price_cents, applied_promo_result),
-    [price_cents, applied_promo_result],
+    () => compute_discount(active_price_cents, applied_promo_result),
+    [active_price_cents, applied_promo_result],
   );
 
   const [force_payment_fields, set_force_payment_fields] = useState(false);
@@ -168,7 +205,7 @@ export function PaymentForm({
     currency,
   );
   const show_strikethrough =
-    applied_promo_result?.valid && discounted_cents !== price_cents;
+    applied_promo_result?.valid && discounted_cents !== active_price_cents;
 
   const requires_payment = !is_free || force_payment_fields;
 
@@ -181,7 +218,7 @@ export function PaymentForm({
     try {
       const sub_response = await create_subscription_intent(
         plan_code,
-        billing_interval,
+        active_interval,
         currency,
         promo_code.trim() || undefined,
         credits_applied_cents > 0 ? credits_applied_cents : undefined,
@@ -215,7 +252,7 @@ export function PaymentForm({
     addon_id,
     addon_client_secret,
     plan_code,
-    billing_interval,
+    active_interval,
     currency,
     promo_code,
     credits_applied_cents,
@@ -257,9 +294,12 @@ export function PaymentForm({
   }, []);
 
   const change_payment_method = useCallback(
-    (next: "card" | "wallet" | "cashapp" | "crypto") => {
+    (next: checkout_method) => {
       if (next === selected_method) return;
 
+      if (next !== "crypto") {
+        set_selected_term((current) => nearest_card_term(current));
+      }
       set_error_message("");
       set_field_state({
         number: { complete: false, error: null },
@@ -476,14 +516,20 @@ export function PaymentForm({
   ]);
 
   const handle_submit = useCallback(async () => {
+    if (selected_method === "wallet") return;
     if (selected_method === "crypto") {
+      if (on_choose_crypto) {
+        on_choose_crypto(active_term);
+
+        return;
+      }
       set_phase("processing");
       set_error_message("");
       try {
         const origin = window.location.origin;
         const response = await create_crypto_checkout_session(
           plan_code,
-          crypto_term,
+          active_term,
           `${origin}/?crypto=success`,
           `${origin}/?crypto=cancelled`,
         );
@@ -631,8 +677,9 @@ export function PaymentForm({
     create_intent_for_plan,
     cardholder_name,
     billing_postal,
-    crypto_term,
+    active_term,
     plan_code,
+    on_choose_crypto,
     set_phase,
     set_error_message,
     finish_success,
@@ -642,9 +689,9 @@ export function PaymentForm({
   ]);
 
   const interval_label =
-    billing_interval === "biennial"
+    active_interval === "biennial"
       ? t("settings.per_two_years")
-      : billing_interval === "year"
+      : active_interval === "year"
         ? t("settings.per_year_short")
         : t("settings.per_month_short");
 
@@ -750,267 +797,171 @@ export function PaymentForm({
     transition: "border-color 0.15s ease",
   });
 
-  return (
-    <div className="space-y-5">
-      <PricingDisplay
-        billing_interval={billing_interval}
-        colors={colors}
-        currency={currency}
-        discounted_display={discounted_display}
-        interval_label={interval_label}
-        is_free={is_free}
-        plan_name={plan_name}
-        price_cents={price_cents}
-        price_display={price_display}
-        promo_result={applied_promo_result}
-        show_strikethrough={!!show_strikethrough}
-      />
+  const money = (cents: number) =>
+    format_price(convert_cents(cents, currency), currency);
 
-      {credits_applied_cents > 0 && selected_method !== "crypto" && (
-        <div className="flex items-center gap-2.5 rounded-[14px] border px-3.5 py-2.5 text-sm bg-emerald-500 border-emerald-600 text-white">
-          <span>
-            {t("settings.credits_will_be_applied", {
-              amount: format_price(credits_applied_cents, "usd"),
-            })}
-          </span>
-        </div>
-      )}
+  const term_label = (term: checkout_term) =>
+    term === 24
+      ? t("settings.crypto_term_24mo")
+      : term === 12
+        ? t("settings.crypto_term_12mo")
+        : term === 6
+          ? t("settings.crypto_term_6mo")
+          : term === 3
+            ? t("settings.crypto_term_3mo")
+            : t("settings.crypto_term_1mo");
 
-      {!addon_id && (
-        <div>
-          <label
-            className="block text-xs font-medium mb-2"
-            style={{ color: colors.text_secondary }}
-          >
-            {t("settings.promo_code")}
-          </label>
-          <div className="flex gap-2 items-center">
-            <input
-              className="flex-1"
-              disabled={phase === "processing"}
-              placeholder={t("settings.promo_code_placeholder")}
-              style={native_input_style("promo")}
-              type="text"
-              value={promo_code}
-              onBlur={() => set_focused_field(null)}
-              onChange={(e) => {
-                set_promo_code(e.target.value);
-                set_promo_result(null);
-              }}
-              onFocus={() => set_focused_field("promo")}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !is_composing(e)) {
-                  e.preventDefault();
-                  handle_validate_promo();
-                }
-              }}
-              onMouseEnter={() => set_hovered_field("promo")}
-              onMouseLeave={() => set_hovered_field(null)}
-            />
-            <Button
-              disabled={
-                !promo_code.trim() ||
-                is_validating_promo ||
-                phase === "processing"
-              }
-              size="lg"
-              style={{ height: "44px" }}
-              variant="outline"
-              onClick={handle_validate_promo}
-            >
-              {is_validating_promo ? (
-                <Spinner size="xs" />
-              ) : (
-                t("settings.promo_apply")
-              )}
-            </Button>
-          </div>
-          {promo_result && !promo_result.valid && (
-            <p className="text-xs mt-1.5" style={{ color: colors.danger }}>
-              {t("settings.promo_invalid")}
-            </p>
-          )}
-        </div>
-      )}
+  const method_options: checkout_method[] = [
+    "card",
+    ...(can_make_wallet_payment ? (["wallet"] as const) : []),
+    "cashapp",
+    ...(addon_id ? ([] as const) : (["crypto"] as const)),
+  ];
 
-      {requires_payment && (
-        <div className="flex gap-2 flex-wrap">
-          {(
-            [
-              "card",
-              ...(can_make_wallet_payment ? (["wallet"] as const) : []),
-              "cashapp",
-              ...(addon_id ? ([] as const) : (["crypto"] as const)),
-            ] as const
-          ).map((m) => (
-            <button
-              key={m}
-              className="flex-1 text-xs font-medium rounded-[10px] py-2 transition-colors"
-              disabled={phase === "processing"}
-              style={{
-                border: `1px solid ${
-                  selected_method === m ? colors.accent : colors.border_rest
-                }`,
-                background:
-                  selected_method === m ? colors.accent : colors.bg_input,
-                color: selected_method === m ? "#ffffff" : colors.text_primary,
-              }}
-              type="button"
-              onClick={() => change_payment_method(m)}
-            >
-              {m === "card"
-                ? t("settings.checkout_method_card")
-                : m === "wallet"
-                  ? t("settings.checkout_method_wallet")
-                  : m === "cashapp"
-                    ? t("settings.checkout_method_cashapp")
-                    : t("settings.checkout_method_crypto")}
-            </button>
-          ))}
-        </div>
-      )}
+  const term_options: checkout_term_option[] = plan_tier
+    ? (selected_method === "crypto" ? CRYPTO_TERMS : CARD_TERMS).map((term) => {
+        const savings_cents = term_savings_cents(plan_tier, term);
 
-      {requires_payment &&
-        selected_method === "wallet" &&
-        can_make_wallet_payment &&
-        payment_request && (
-          <PaymentRequestButtonElement
-            options={{
-              paymentRequest: payment_request,
-              style: {
-                paymentRequestButton: {
-                  type: "default",
-                  theme: "dark",
-                  height: "44px",
-                },
-              },
+        return {
+          term,
+          label: term_label(term),
+          monthly_display: t("settings.checkout_term_per_month", {
+            amount: money(term_monthly_cents(plan_tier, term)),
+          }),
+          total_display: money(term_price_cents(plan_tier, term)),
+          savings_display:
+            savings_cents > 0
+              ? t("settings.checkout_term_save", {
+                  amount: money(savings_cents),
+                })
+              : null,
+        };
+      })
+    : [];
+
+  const fallback_term_label =
+    billing_interval === "year"
+      ? t("settings.billing_yearly")
+      : billing_interval === "biennial"
+        ? t("settings.biennial")
+        : t("settings.billing_monthly");
+
+  const shows_autorenew = !addon_id && selected_method !== "crypto";
+
+  const summary_model = {
+    plan_name,
+    term: active_term,
+    term_label: plan_tier ? term_label(active_term) : fallback_term_label,
+    savings_percent: plan_tier
+      ? term_savings_percent(plan_tier, active_term)
+      : 0,
+    monthly_display: plan_tier
+      ? t("settings.checkout_term_per_month", {
+          amount: money(term_monthly_cents(plan_tier, active_term)),
+        })
+      : null,
+    total_display: discounted_display,
+    amount_due_display: money(total_after_credits_cents),
+    strikethrough_display: show_strikethrough
+      ? money(active_price_cents)
+      : null,
+    credits_display:
+      credits_applied_cents > 0 && selected_method !== "crypto"
+        ? `-${format_price(credits_applied_cents, "usd")}`
+        : null,
+    security_text:
+      selected_method === "crypto" ? null : t("settings.stripe_secure_notice"),
+    autorenew_text: shows_autorenew
+      ? t("settings.autorenew_notice", {
+          amount: `${money(active_price_cents)}${interval_label}`,
+        })
+      : null,
+    discount_note:
+      applied_promo_result?.valid && applied_promo_result.description
+        ? applied_promo_result.description
+        : null,
+  };
+
+  const promo_visible = show_promo_field || !!promo_code.trim();
+
+  const promo_slot = addon_id ? null : (
+    <div>
+      {promo_visible ? (
+        <div className="flex gap-2 items-center">
+          <input
+            className="flex-1 min-w-0"
+            disabled={phase === "processing"}
+            placeholder={t("settings.promo_code_placeholder")}
+            style={{ ...native_input_style("promo"), height: "38px" }}
+            type="text"
+            value={promo_code}
+            onBlur={() => set_focused_field(null)}
+            onChange={(e) => {
+              set_promo_code(e.target.value);
+              set_promo_result(null);
             }}
+            onFocus={() => set_focused_field("promo")}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !is_composing(e)) {
+                e.preventDefault();
+                handle_validate_promo();
+              }
+            }}
+            onMouseEnter={() => set_hovered_field("promo")}
+            onMouseLeave={() => set_hovered_field(null)}
           />
-        )}
-
-      {requires_payment && selected_method === "cashapp" && (
-        <div
-          className="rounded-xl p-4 text-sm"
-          style={{
-            backgroundColor: colors.bg_input,
-            border: `1px solid ${colors.border_rest}`,
-            color: colors.text_secondary,
-          }}
-        >
-          {t("settings.cashapp_redirect_notice")}
+          <Button
+            disabled={
+              !promo_code.trim() ||
+              is_validating_promo ||
+              phase === "processing"
+            }
+            size="sm"
+            style={{ height: "38px" }}
+            variant="outline"
+            onClick={handle_validate_promo}
+          >
+            {is_validating_promo ? (
+              <Spinner size="xs" />
+            ) : (
+              t("settings.promo_apply")
+            )}
+          </Button>
         </div>
-      )}
-
-      {requires_payment &&
-        selected_method === "crypto" &&
-        (() => {
-          const tier = PLAN_TIERS.find((p) => p.id === plan_code);
-          const monthly_cents = tier?.monthly_cents ?? price_cents;
-          const yearly_cents = tier?.yearly_cents ?? price_cents * 12;
-          const term_options: Array<1 | 3 | 6 | 12 | 24> = [1, 3, 6, 12, 24];
-          const term_label_map: Record<1 | 3 | 6 | 12 | 24, string> = {
-            1: t("settings.crypto_term_1mo"),
-            3: t("settings.crypto_term_3mo"),
-            6: t("settings.crypto_term_6mo"),
-            12: t("settings.crypto_term_12mo"),
-            24: t("settings.crypto_term_24mo"),
-          };
-          const compute = (term: 1 | 3 | 6 | 12 | 24) => {
-            if (term === 12) return yearly_cents;
-            if (term === 24) return yearly_cents * 2;
-
-            return monthly_cents * term;
-          };
-
-          return (
-            <div className="space-y-2">
-              <p className="text-xs" style={{ color: colors.text_tertiary }}>
-                {t("settings.crypto_select_term")}
-              </p>
-              {term_options.map((term) => {
-                const is_selected = crypto_term === term;
-                const cents = compute(term);
-
-                return (
-                  <button
-                    key={term}
-                    className="w-full flex items-center justify-between rounded-[14px] border p-3.5 text-start transition-colors"
-                    disabled={phase === "processing"}
-                    style={{
-                      backgroundColor: is_selected
-                        ? colors.accent
-                        : colors.bg_input,
-                      borderColor: is_selected
-                        ? colors.accent
-                        : colors.border_rest,
-                    }}
-                    type="button"
-                    onClick={() => set_crypto_term(term)}
-                  >
-                    <span
-                      className="text-sm font-medium"
-                      style={{
-                        color: is_selected ? "#ffffff" : colors.text_primary,
-                      }}
-                    >
-                      {term_label_map[term]}
-                    </span>
-                    <span
-                      className="text-sm font-semibold"
-                      style={{
-                        color: is_selected ? "#ffffff" : colors.text_primary,
-                      }}
-                    >
-                      {format_price(convert_cents(cents, currency), currency)}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          );
-        })()}
-
-      {requires_payment && selected_method === "card" && (
-        <StripeCardFields
-          billing_postal={billing_postal}
-          cardholder_input_ref={cardholder_input_ref}
-          cardholder_name={cardholder_name}
-          colors={colors}
-          element_style={element_style}
-          field_wrapper={field_wrapper}
-          handle_field_change={handle_field_change}
-          native_input_style={native_input_style}
-          set_billing_postal={set_billing_postal}
-          set_cardholder_name={set_cardholder_name}
-          set_focused_field={set_focused_field}
-          set_hovered_field={set_hovered_field}
-          set_ready_count={set_ready_count}
-        />
-      )}
-
-      {error_message && (
-        <div
-          className="rounded-xl p-3 text-sm"
-          style={{
-            backgroundColor: colors.danger,
-            color: "#fff",
-          }}
+      ) : (
+        <button
+          className="text-xs font-medium underline underline-offset-2"
+          disabled={phase === "processing"}
+          style={{ color: colors.text_secondary }}
+          type="button"
+          onClick={() => set_show_promo_field(true)}
         >
-          {error_message}
-        </div>
+          {t("settings.checkout_add_promo")}
+        </button>
       )}
-
-      {!addon_id && selected_method !== "crypto" && (
-        <p
-          className="text-[11px] leading-relaxed"
-          style={{ color: colors.text_tertiary }}
-        >
-          {t("settings.autorenew_notice", {
-            amount: `${price_display}${interval_label}`,
-          })}
+      {promo_result && !promo_result.valid && (
+        <p className="text-xs mt-1.5" style={{ color: colors.danger }}>
+          {t("settings.promo_invalid")}
         </p>
       )}
+    </div>
+  );
 
+  const pay_action =
+    requires_payment && selected_method === "wallet" && payment_request ? (
+      <PaymentRequestButtonElement
+        options={{
+          paymentRequest: payment_request,
+          style: {
+            paymentRequestButton: {
+              type: "default",
+              theme: "dark",
+              height: "44px",
+            },
+          },
+        }}
+      />
+    ) : (
       <Button
         className="w-full"
         disabled={
@@ -1030,21 +981,109 @@ export function PaymentForm({
             {t("settings.processing_payment")}
             <Spinner size="sm" />
           </span>
-        ) : selected_method === "crypto" ? (
-          t("settings.crypto_pay_now")
-        ) : (
+        ) : !requires_payment ? (
           t("settings.subscribe_now")
+        ) : (
+          t("settings.checkout_pay_amount", {
+            amount: money(total_after_credits_cents),
+          })
         )}
       </Button>
+    );
 
-      {requires_payment && (
-        <p
-          className="text-center text-[11px]"
-          style={{ color: colors.text_tertiary }}
-        >
-          {t("settings.stripe_secure_notice")}
-        </p>
-      )}
+  return (
+    <div className="flex flex-col lg:flex-row items-start gap-5">
+      <div className="w-full min-w-0 flex-1 space-y-6">
+        {plan_tier && (
+          <CheckoutTermSelector
+            colors={colors}
+            disabled={phase === "processing"}
+            on_select={set_selected_term}
+            options={term_options}
+            selected={active_term}
+          />
+        )}
+
+        {requires_payment && (
+          <CheckoutMethodList
+            colors={colors}
+            disabled={phase === "processing"}
+            methods={method_options}
+            on_select={change_payment_method}
+            selected={selected_method}
+          />
+        )}
+
+        {requires_payment && selected_method === "cashapp" && (
+          <div
+            className="rounded-xl p-4 text-sm"
+            style={{
+              backgroundColor: colors.bg_input,
+              border: `1px solid ${colors.border_rest}`,
+              color: colors.text_secondary,
+            }}
+          >
+            {t("settings.cashapp_redirect_notice")}
+          </div>
+        )}
+
+        {requires_payment && selected_method === "crypto" && (
+          <div
+            className="rounded-xl p-4 text-sm"
+            style={{
+              backgroundColor: colors.bg_input,
+              border: `1px solid ${colors.border_rest}`,
+              color: colors.text_secondary,
+            }}
+          >
+            {t("settings.checkout_method_crypto_note")}
+          </div>
+        )}
+
+        {requires_payment && selected_method === "card" && (
+          <section>
+            <h4
+              className="text-sm font-semibold mb-2.5"
+              style={{ color: colors.text_primary }}
+            >
+              {t("settings.checkout_card_details")}
+            </h4>
+            <StripeCardFields
+              billing_postal={billing_postal}
+              cardholder_input_ref={cardholder_input_ref}
+              cardholder_name={cardholder_name}
+              colors={colors}
+              element_style={element_style}
+              field_wrapper={field_wrapper}
+              handle_field_change={handle_field_change}
+              native_input_style={native_input_style}
+              set_billing_postal={set_billing_postal}
+              set_cardholder_name={set_cardholder_name}
+              set_focused_field={set_focused_field}
+              set_hovered_field={set_hovered_field}
+              set_ready_count={set_ready_count}
+            />
+          </section>
+        )}
+
+        {error_message && (
+          <div
+            className="rounded-xl p-3 text-sm"
+            style={{ backgroundColor: colors.danger, color: "#fff" }}
+          >
+            {error_message}
+          </div>
+        )}
+      </div>
+
+      <CheckoutSummary
+        colors={colors}
+        highlights={highlights}
+        model={summary_model}
+        promo_slot={promo_slot}
+      >
+        {pay_action}
+      </CheckoutSummary>
     </div>
   );
 }

@@ -22,7 +22,10 @@ import { useEffect, useRef } from "react";
 
 import { request_cache } from "@/services/api/request_cache";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
-import { show_toast } from "@/components/toast/simple_toast";
+import {
+  show_toast,
+  TOAST_DURATION_BILLING_MS,
+} from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 import type { TranslationKey } from "@/lib/i18n/types";
 import { use_auth } from "@/contexts/auth_context";
@@ -111,7 +114,8 @@ export function CheckoutReturnHandler() {
     if (!flow) return;
 
     if (outcome !== "success") {
-      if (flow.cancelled_key) show_toast(t(flow.cancelled_key), "info");
+      if (flow.cancelled_key)
+        show_toast(t(flow.cancelled_key), "info", TOAST_DURATION_BILLING_MS);
 
       return;
     }

@@ -83,7 +83,7 @@ describe("CreditsSection top-up bfcache restore", () => {
   };
 
   const find_button = (text: string) =>
-    Array.from(container.querySelectorAll("button")).find((b) =>
+    Array.from(document.body.querySelectorAll("button")).find((b) =>
       b.textContent?.includes(text),
     ) as HTMLButtonElement | undefined;
 

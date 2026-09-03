@@ -20,7 +20,6 @@
 //
 import type { UseRegistrationReturn } from "@/components/register/hooks/use_registration";
 import type { AvailablePlan } from "@/services/api/billing";
-import { server_error_text } from "@/components/settings/billing/server_error_text";
 
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { motion } from "framer-motion";
@@ -50,7 +49,10 @@ import {
 } from "@/services/api/billing";
 import { create_family_group } from "@/services/api/family";
 import { request_cache } from "@/services/api/request_cache";
-import { show_toast } from "@/components/toast/simple_toast";
+import {
+  show_toast,
+  TOAST_DURATION_BILLING_MS,
+} from "@/components/toast/simple_toast";
 import {
   PLAN_TIERS,
   FAMILY_PLAN_TIERS,
@@ -65,12 +67,14 @@ import {
   CURRENCY_STORAGE_KEY,
 } from "@/components/settings/billing/billing_constants";
 import { use_currency_rates } from "@/components/settings/billing/use_currency_rates";
+import { Segmented, Tabs } from "@/components/settings/billing/plan_card";
 import {
   page_variants,
   page_transition,
 } from "@/components/register/register_types";
 import { read_offer_prefill } from "@/components/register/academic_offer_prefill";
 import { clear_first_run_plan, restore_first_run_plan } from "@/lib/first_run";
+import { checkout_error_text } from "@/components/settings/billing/checkout_error_text";
 
 interface RegisterStepPlanSelectionProps {
   reg: UseRegistrationReturn;
@@ -403,8 +407,9 @@ export const RegisterStepPlanSelection = ({
       restore_first_run_plan();
       set_is_finalizing(false);
       show_toast(
-        server_error_text(result.error, t("settings.failed_checkout")),
+        checkout_error_text(t, result.server_code),
         "error",
+        TOAST_DURATION_BILLING_MS,
       );
 
       return;
@@ -445,14 +450,19 @@ export const RegisterStepPlanSelection = ({
       } catch {
         restore_first_run_plan();
         set_is_finalizing(false);
-        show_toast(t("settings.failed_checkout"), "error");
+        show_toast(
+          t("settings.failed_checkout"),
+          "error",
+          TOAST_DURATION_BILLING_MS,
+        );
       }
     } else {
       restore_first_run_plan();
       set_is_finalizing(false);
       show_toast(
-        server_error_text(res.error, t("settings.failed_checkout")),
+        checkout_error_text(t, res.server_code),
         "error",
+        TOAST_DURATION_BILLING_MS,
       );
     }
   }, [pending_family_tier, billing_interval, t]);
@@ -510,6 +520,31 @@ export const RegisterStepPlanSelection = ({
     return () => window.removeEventListener("focus", handle_focus);
   }, [handle_checkout_success]);
 
+  const yearly_savings_percent = useMemo(() => {
+    const tiers =
+      plan_type === "family"
+        ? FAMILY_PLAN_TIERS.map((tier) => ({
+            monthly_cents: tier.monthly_cents,
+            yearly_cents: tier.yearly_cents,
+          }))
+        : PLAN_TIERS.map((tier) => ({
+            monthly_cents: tier.monthly_cents,
+            yearly_cents: tier.yearly_cents,
+          }));
+
+    const percents = tiers
+      .filter((tier) => tier.monthly_cents > 0)
+      .map((tier) =>
+        Math.round(
+          ((tier.monthly_cents * 12 - tier.yearly_cents) /
+            (tier.monthly_cents * 12)) *
+            100,
+        ),
+      );
+
+    return percents.length > 0 ? Math.max(...percents) : 0;
+  }, [plan_type]);
+
   const price_display_for_checkout = useMemo(() => {
     if (!checkout) return "";
     const cents =
@@ -524,7 +559,7 @@ export const RegisterStepPlanSelection = ({
     <motion.div
       key="plan_selection"
       animate="animate"
-      className="flex flex-col items-center w-full max-w-md md:max-w-6xl px-4"
+      className="flex flex-col items-center w-full max-w-md md:max-w-6xl px-4 pt-6 pb-10 md:pt-10"
       exit="exit"
       initial="initial"
       transition={page_transition}
@@ -569,85 +604,54 @@ export const RegisterStepPlanSelection = ({
         </div>
       )}
 
-      <div className="flex flex-col items-center gap-3 mt-6">
-        <div className="inline-flex rounded-full p-[5px] gap-1 bg-surf-secondary border border-edge-secondary">
-          {(["individual", "family"] as const).map((type) => {
-            const active = plan_type === type;
+      <div className="flex flex-col items-center gap-3 mt-6 w-full">
+        <Tabs
+          on_change={set_plan_type}
+          options={[
+            { id: "individual", label: t("settings.plan_type_individual") },
+            { id: "family", label: t("settings.plan_type_family") },
+          ]}
+          value={plan_type}
+        />
 
-            return (
-              <button
-                key={type}
-                className="flex items-center gap-1.5 px-[18px] py-[8px] rounded-full text-[13px] font-medium transition-colors"
-                style={{
-                  backgroundColor: active
-                    ? "var(--accent-blue)"
-                    : "transparent",
-                  color: active ? "#fff" : "var(--text-tertiary)",
-                }}
-                type="button"
-                onClick={() => set_plan_type(type)}
-              >
-                {type === "family" && <UserGroupIcon className="w-4 h-4" />}
-                {type === "individual"
-                  ? t("settings.plan_type_individual")
-                  : t("settings.plan_type_family")}
-              </button>
-            );
-          })}
-        </div>
-
-        <div
-          className="inline-flex items-center rounded-full p-[5px] gap-1 bg-surf-secondary border border-edge-secondary"
-          role="tablist"
-        >
-          {(["yearly", "monthly"] as const).map((p) => {
-            const active = billing_period === p;
-
-            return (
-              <button
-                key={p}
-                className="px-[18px] py-[8px] rounded-full text-[13px] font-medium transition-colors"
-                role="tab"
-                style={{
-                  backgroundColor: active
-                    ? "var(--accent-blue)"
-                    : "transparent",
-                  color: active ? "#ffffff" : "var(--text-tertiary)",
-                }}
-                type="button"
-                onClick={() =>
-                  set_billing_period((prev) =>
-                    prev === "yearly" ? "monthly" : "yearly",
-                  )
-                }
-              >
-                {p === "yearly"
-                  ? t("settings.billing_yearly")
-                  : t("settings.billing_monthly")}
-              </button>
-            );
-          })}
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          <Segmented
+            on_change={set_billing_period}
+            options={[
+              { id: "monthly", label: t("settings.billing_monthly") },
+              {
+                id: "yearly",
+                label: t("settings.billing_yearly"),
+                badge:
+                  yearly_savings_percent > 0
+                    ? t("settings.save_percent", {
+                        percent: yearly_savings_percent,
+                      })
+                    : undefined,
+              },
+            ]}
+            value={billing_period}
+          />
+          <select
+            aria-label={t("settings.select_currency")}
+            className="cursor-pointer rounded-full border border-edge-secondary bg-transparent px-3 py-1.5 text-xs text-txt-secondary outline-none transition-colors hover:text-txt-primary focus:border-blue-500"
+            value={currency}
+            onChange={handle_currency_change}
+          >
+            {SUPPORTED_CURRENCIES.map((c) => (
+              <option key={c.code} value={c.code}>
+                {c.label}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center justify-center gap-2 mt-3">
-        <p className="text-xs text-txt-muted text-center max-w-md">
-          {currency === "usd"
-            ? t("settings.prices_in_usd_note")
-            : t("settings.prices_converted_note")}
-        </p>
-        <select
-          className="text-xs bg-surf-tertiary border border-edge-secondary rounded-lg px-2 py-1 text-txt-secondary cursor-pointer outline-none focus:border-blue-500 transition-colors"
-          value={currency}
-          onChange={handle_currency_change}
-        >
-          {SUPPORTED_CURRENCIES.map((c) => (
-            <option key={c.code} value={c.code}>
-              {c.label}
-            </option>
-          ))}
-        </select>
-      </div>
+      <p className="mt-3 max-w-md text-center text-xs text-txt-muted">
+        {currency === "usd"
+          ? t("settings.prices_in_usd_note")
+          : t("settings.prices_converted_note")}
+      </p>
 
       {is_loading ? (
         <div className="flex items-center gap-2 mt-10 text-txt-tertiary">
@@ -669,25 +673,31 @@ export const RegisterStepPlanSelection = ({
             ).map((feature) => ({
               label: t(feature.label_key),
               on: feature.on,
+              icon: feature.icon,
             }));
 
             return (
               <div
                 key={tier.id}
-                className="relative rounded-3xl border flex flex-col gap-6 p-7 transition-colors duration-300 hover:border-edge-primary"
-                style={{
-                  borderColor: tier.is_recommended
-                    ? "var(--accent-blue)"
-                    : "var(--border-primary)",
-                  backgroundColor: tier.is_recommended
-                    ? "var(--accent-blue-subtle, var(--bg-hover))"
-                    : "var(--bg-hover)",
-                }}
+                className={`relative rounded-3xl border flex flex-col gap-6 p-7 transition-colors duration-300 ${
+                  tier.is_recommended
+                    ? "plan_galaxy z-10"
+                    : "border-edge-secondary bg-surf-tertiary hover:border-edge-primary"
+                }`}
               >
+                {tier.is_recommended && (
+                  <span className="plan_galaxy_badge absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center whitespace-nowrap rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider">
+                    {t("settings.plan_recommended")}
+                  </span>
+                )}
                 <div className="flex flex-col gap-3">
                   <div className="flex items-center gap-2">
-                    <UserGroupIcon className="w-5 h-5 text-txt-primary" />
-                    <h3 className="text-lg font-bold text-txt-primary">
+                    <UserGroupIcon
+                      className={`w-5 h-5 ${tier.is_recommended ? "plan_galaxy_text_primary" : "text-txt-primary"}`}
+                    />
+                    <h3
+                      className={`text-lg font-bold ${tier.is_recommended ? "plan_galaxy_text_primary" : "text-txt-primary"}`}
+                    >
                       {tier.name}
                     </h3>
                   </div>
@@ -758,13 +768,13 @@ export const RegisterStepPlanSelection = ({
                   ))}
                 </ul>
                 <Button
-                  className="w-full"
+                  className={`w-full ${tier.is_recommended ? "plan_galaxy_cta" : ""}`}
                   disabled={is_finalizing}
                   size="xl"
-                  variant={tier.is_recommended ? "depth" : "outline"}
+                  variant={tier.is_recommended ? "primary" : "outline"}
                   onClick={() => set_pending_family_tier(tier)}
                 >
-                  {t("auth.plan_select")}
+                  {t("settings.get_plan", { name: tier.name })}
                 </Button>
               </div>
             );
@@ -792,18 +802,21 @@ export const RegisterStepPlanSelection = ({
             return (
               <div
                 key={tier.id}
-                className="relative rounded-3xl border flex flex-col gap-6 p-7 transition-colors duration-300 hover:border-edge-primary"
-                style={{
-                  borderColor: tier.is_recommended
-                    ? "var(--accent-blue)"
-                    : "var(--border-primary)",
-                  backgroundColor: tier.is_recommended
-                    ? "var(--accent-blue-subtle, var(--bg-hover))"
-                    : "var(--bg-hover)",
-                }}
+                className={`relative rounded-3xl border flex flex-col gap-6 p-7 transition-colors duration-300 ${
+                  tier.is_recommended
+                    ? "plan_galaxy z-10"
+                    : "border-edge-secondary bg-surf-tertiary hover:border-edge-primary"
+                }`}
               >
+                {tier.is_recommended && (
+                  <span className="plan_galaxy_badge absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center whitespace-nowrap rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider">
+                    {t("settings.plan_recommended")}
+                  </span>
+                )}
                 <div className="flex flex-col gap-3">
-                  <h3 className="text-lg font-bold leading-tight text-txt-primary">
+                  <h3
+                    className={`text-lg font-bold leading-tight ${tier.is_recommended ? "plan_galaxy_text_primary" : "text-txt-primary"}`}
+                  >
                     {tier.name}
                   </h3>
                   <div className="flex items-baseline gap-1.5 flex-wrap">
@@ -867,13 +880,13 @@ export const RegisterStepPlanSelection = ({
                 </ul>
 
                 <Button
-                  className="w-full"
+                  className={`w-full ${tier.is_recommended ? "plan_galaxy_cta" : ""}`}
                   disabled={!has_api_plan || is_finalizing}
                   size="xl"
-                  variant={tier.is_recommended ? "depth" : "outline"}
+                  variant={tier.is_recommended ? "primary" : "outline"}
                   onClick={() => handle_select_tier(tier)}
                 >
-                  {t("auth.plan_select")}
+                  {t("settings.get_plan", { name: tier.name })}
                 </Button>
               </div>
             );
@@ -884,11 +897,61 @@ export const RegisterStepPlanSelection = ({
       {pending_family_tier && (
         <PlanPaymentMethodModal
           busy={is_finalizing}
+          features={(pending_family_tier.max_members === 2
+            ? FAMILY_PLAN_DUO_FEATURES
+            : FAMILY_PLAN_FAMILY_FEATURES
+          )
+            .filter((feature) => feature.on)
+            .map((feature) => ({ label: t(feature.label_key) }))}
           on_choose_card={handle_family_card}
           on_choose_crypto={handle_family_crypto}
           on_close={() => set_pending_family_tier(null)}
+          on_select_plan={(id) => {
+            const next = FAMILY_PLAN_TIERS.find((entry) => entry.id === id);
+
+            if (next) set_pending_family_tier(next);
+          }}
+          on_select_term={(id) =>
+            set_billing_period(id === "yearly" ? "yearly" : "monthly")
+          }
           open={!!pending_family_tier}
+          plan_choices={FAMILY_PLAN_TIERS.map((entry) => ({
+            id: entry.id,
+            name: entry.name,
+            is_recommended: entry.is_recommended,
+            price_label: `${format_price(
+              convert_cents(
+                apply_referral_discount(
+                  billing_period === "yearly"
+                    ? Math.round(entry.yearly_cents / 12)
+                    : entry.monthly_cents,
+                ),
+                currency,
+              ),
+              currency,
+            )}${t("settings.per_month_short")}`,
+          }))}
           plan_name={pending_family_tier.name}
+          selected_plan_id={pending_family_tier.id}
+          selected_term={billing_period}
+          term_options={[
+            {
+              id: "monthly",
+              label: t("settings.billing_monthly"),
+              per_month_cents: pending_family_tier.monthly_cents,
+              total_cents: pending_family_tier.monthly_cents,
+              save_cents: 0,
+            },
+            {
+              id: "yearly",
+              label: t("settings.billing_yearly"),
+              per_month_cents: Math.round(
+                pending_family_tier.yearly_cents / 12,
+              ),
+              total_cents: pending_family_tier.yearly_cents,
+              save_cents: family_yearly_savings_cents(pending_family_tier),
+            },
+          ]}
         />
       )}
 
@@ -898,7 +961,12 @@ export const RegisterStepPlanSelection = ({
           is_open={!!crypto_family_tier}
           monthly_price_cents={crypto_family_tier.monthly_cents}
           on_checkout_opened={clear_first_run_plan}
-          on_close={() => set_crypto_family_tier(null)}
+          on_close={() => {
+            const tier = crypto_family_tier;
+
+            set_crypto_family_tier(null);
+            set_pending_family_tier(tier);
+          }}
           plan_code={crypto_family_tier.id}
           plan_name={crypto_family_tier.name}
           preferred_currency={currency}
@@ -963,11 +1031,60 @@ export const RegisterStepPlanSelection = ({
       {pending_tier && (
         <PlanPaymentMethodModal
           busy={is_finalizing}
+          features={feature_list_for_tier(pending_tier.tier.id, t)
+            .filter((feature) => feature.on)
+            .map((feature) => ({ label: feature.text }))}
           on_choose_card={handle_pay_with_card}
           on_choose_crypto={handle_pay_with_crypto}
           on_close={() => set_pending_tier(null)}
+          on_select_plan={(id) => {
+            const next = PLAN_TIERS.find((entry) => entry.id === id);
+            const api_plan = plans.find((entry) => entry.code === id);
+
+            if (next && api_plan)
+              set_pending_tier({ tier: next, plan: api_plan });
+          }}
+          on_select_term={(id) =>
+            set_billing_period(id === "yearly" ? "yearly" : "monthly")
+          }
           open={!!pending_tier}
+          plan_choices={PLAN_TIERS.filter((entry) =>
+            plans.some((api_plan) => api_plan.code === entry.id),
+          ).map((entry) => ({
+            id: entry.id,
+            name: entry.name,
+            is_recommended: entry.is_recommended,
+            price_label: `${format_price(
+              convert_cents(
+                apply_referral_discount(
+                  billing_period === "yearly"
+                    ? Math.round(entry.yearly_cents / 12)
+                    : entry.monthly_cents,
+                ),
+                currency,
+              ),
+              currency,
+            )}${t("settings.per_month_short")}`,
+          }))}
           plan_name={pending_tier.tier.name}
+          selected_plan_id={pending_tier.tier.id}
+          selected_term={billing_period}
+          term_options={[
+            {
+              id: "monthly",
+              label: t("settings.billing_monthly"),
+              per_month_cents: pending_tier.tier.monthly_cents,
+              total_cents: pending_tier.tier.monthly_cents,
+              save_cents: 0,
+            },
+            {
+              id: "yearly",
+              label: t("settings.billing_yearly"),
+              per_month_cents: Math.round(pending_tier.tier.yearly_cents / 12),
+              total_cents: pending_tier.tier.yearly_cents,
+              save_cents: pending_tier.tier.savings_cents,
+            },
+          ]}
         />
       )}
 
@@ -977,7 +1094,12 @@ export const RegisterStepPlanSelection = ({
           is_open={!!crypto_tier}
           monthly_price_cents={crypto_tier.tier.monthly_cents}
           on_checkout_opened={clear_first_run_plan}
-          on_close={() => set_crypto_tier(null)}
+          on_close={() => {
+            const tier = crypto_tier;
+
+            set_crypto_tier(null);
+            set_pending_tier(tier);
+          }}
           plan_code={crypto_tier.plan.code}
           plan_name={crypto_tier.tier.name}
           preferred_currency={currency}

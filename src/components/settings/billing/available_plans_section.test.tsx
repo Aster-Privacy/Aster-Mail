@@ -52,6 +52,7 @@ vi.mock("@/components/settings/billing/plan_card", () => ({
     </div>
   ),
   Segmented: () => <div />,
+  Tabs: () => <div />,
 }));
 
 vi.mock("@/components/settings/billing/use_currency_rates", () => ({

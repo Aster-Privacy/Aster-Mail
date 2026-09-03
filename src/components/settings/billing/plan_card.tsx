@@ -26,12 +26,14 @@ import {
   PLAN_FEATURE_ICONS,
   type PlanFeatureIcon,
 } from "@/components/settings/billing/plan_feature_icons";
+import { InfoPopover } from "@/components/ui/info_popover";
 
 export interface PlanFeature {
   label: string;
   on: boolean;
   icon?: PlanFeatureIcon;
   description?: string;
+  info?: string;
 }
 
 function render_feature_label(label: string, galaxy = false) {
@@ -94,7 +96,6 @@ export function PlanCard({
   const heading_cls = galaxy ? "plan_galaxy_text_primary" : "text-txt-primary";
   const muted_cls = galaxy ? "plan_galaxy_text_muted" : "text-txt-muted";
   const body_cls = galaxy ? "plan_galaxy_text_body" : "text-txt-secondary";
-  const icon_cls = galaxy ? "plan_galaxy_text_muted" : "text-txt-muted";
 
   return (
     <div
@@ -204,16 +205,29 @@ export function PlanCard({
             return (
               <li key={i} className="flex items-start gap-3 text-sm">
                 <Icon
-                  className={`w-[17px] h-[17px] flex-shrink-0 mt-[3px] ${
-                    feature.on ? icon_cls : ""
-                  }`}
-                  style={
-                    feature.on ? undefined : { color: "var(--color-danger)" }
-                  }
+                  className="w-[17px] h-[17px] flex-shrink-0 mt-[3px]"
+                  style={{
+                    color: feature.on
+                      ? "var(--accent-blue)"
+                      : "var(--color-danger)",
+                  }}
                 />
                 <span className="min-w-0 flex-1">
-                  <span className={`block leading-snug ${body_cls}`}>
-                    {render_feature_label(feature.label, galaxy)}
+                  <span
+                    className={`flex items-start gap-1.5 leading-snug ${body_cls}`}
+                  >
+                    <span className="min-w-0">
+                      {render_feature_label(feature.label, galaxy)}
+                    </span>
+                    {feature.info && (
+                      <span className="mt-px inline-flex flex-shrink-0">
+                        <InfoPopover
+                          description={feature.info}
+                          icon_class="w-3.5 h-3.5"
+                          title={feature.label}
+                        />
+                      </span>
+                    )}
                   </span>
                   {feature.description && (
                     <span
@@ -245,7 +259,7 @@ export function Segmented<T extends string>({
 }: SegmentedProps<T>) {
   return (
     <div
-      className="grid w-full max-w-xs rounded-full p-1 gap-1 bg-surf-tertiary border border-edge-secondary"
+      className="grid w-full max-w-xs gap-1 rounded-full border border-edge-secondary bg-transparent p-1"
       style={{
         gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))`,
       }}
@@ -289,6 +303,49 @@ export function Segmented<T extends string>({
           </button>
         );
       })}
+    </div>
+  );
+}
+
+export function Tabs<T extends string>({
+  value,
+  options,
+  on_change,
+}: SegmentedProps<T>) {
+  return (
+    <div className="w-full max-w-xs">
+      <div
+        className="grid w-full border-b border-edge-secondary"
+        style={{
+          gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))`,
+        }}
+      >
+        {options.map((opt) => {
+          const active = value === opt.id;
+
+          return (
+            <button
+              key={opt.id}
+              className={`relative px-4 pt-1 pb-2.5 text-sm font-semibold transition-colors focus:outline-none whitespace-nowrap ${
+                active
+                  ? "text-txt-primary"
+                  : "text-txt-muted hover:text-txt-secondary"
+              }`}
+              type="button"
+              onClick={() => on_change(opt.id)}
+            >
+              {opt.label}
+              <span
+                className="absolute start-0 end-0 -bottom-px h-0.5 rounded-full transition-opacity"
+                style={{
+                  backgroundColor: "var(--accent-blue)",
+                  opacity: active ? 1 : 0,
+                }}
+              />
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
