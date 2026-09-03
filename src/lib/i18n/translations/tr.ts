@@ -8870,6 +8870,8 @@ export const tr = {
     creating_recovery_backup: "Kurtarma yedeği oluşturuluyor...",
     preparing_pgp_key: "PGP anahtarı hazırlanıyor...",
     creating_your_account: "Hesabınız oluşturuluyor...",
+    setup_taking_longer:
+      "Bu işlem her zamankinden uzun sürüyor. Hesabınız kurulurken bu sayfayı açık tutun.",
     by_continuing: "Devam ederek şunları kabul etmiş olursunuz:",
     copyright: "© {{year}} Aster Communications Inc.",
     display_name_optional: "Görünen ad (isteğe bağlı)",

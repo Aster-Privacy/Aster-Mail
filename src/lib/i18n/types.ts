@@ -7943,6 +7943,7 @@ export interface AuthTranslations {
   creating_recovery_backup: string;
   preparing_pgp_key: string;
   creating_your_account: string;
+  setup_taking_longer: string;
   username_in_use: string;
   password_breach_warning: string;
   by_continuing: string;

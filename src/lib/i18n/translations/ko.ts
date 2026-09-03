@@ -8516,6 +8516,8 @@ export const ko = {
     creating_recovery_backup: "복구 백업 생성 중...",
     preparing_pgp_key: "PGP 키 준비 중...",
     creating_your_account: "계정 생성 중...",
+    setup_taking_longer:
+      "평소보다 오래 걸리고 있습니다. 계정 설정이 끝날 때까지 이 페이지를 열어 두세요.",
     by_continuing: "계속하면 다음에 동의하게 됩니다",
     copyright: "© {{year}} Aster Communications Inc.",
     display_name_optional: "표시 이름 (선택사항)",

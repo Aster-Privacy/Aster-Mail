@@ -36,6 +36,7 @@ interface RegisterStepKeysProps {
 }
 
 const ADVANCE_MS = 1100;
+const STALL_NOTICE_MS = 25000;
 const START_SCALE = 0.08;
 
 const sweep_style = `
@@ -93,6 +94,8 @@ export const RegisterStepKeys = ({ reg }: RegisterStepKeysProps) => {
     to: target_scale,
   });
 
+  const [stalled, set_stalled] = useState(false);
+
   useEffect(() => {
     set_advance((previous) =>
       previous.to === target_scale
@@ -100,6 +103,17 @@ export const RegisterStepKeys = ({ reg }: RegisterStepKeysProps) => {
         : { from: previous.to, to: target_scale },
     );
   }, [target_scale]);
+
+  useEffect(() => {
+    set_stalled(false);
+
+    const timer = window.setTimeout(
+      () => set_stalled(true),
+      STALL_NOTICE_MS,
+    );
+
+    return () => window.clearTimeout(timer);
+  }, [reg.generation_status]);
 
   return (
     <motion.div
@@ -158,6 +172,12 @@ export const RegisterStepKeys = ({ reg }: RegisterStepKeysProps) => {
           )}
         </div>
       </div>
+
+      {stalled && (
+        <p className="mt-6 text-xs max-w-xs leading-relaxed text-txt-tertiary">
+          {reg.t("auth.setup_taking_longer")}
+        </p>
+      )}
 
       <p className="mt-8 text-xs max-w-xs leading-relaxed text-txt-muted">
         {reg.t("auth.encryption_keys_local")}

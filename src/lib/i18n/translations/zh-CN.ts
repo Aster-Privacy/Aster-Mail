@@ -7920,6 +7920,8 @@ export const zh_CN = {
     creating_recovery_backup: "创建恢复备份中...",
     preparing_pgp_key: "准备 PGP 密钥中...",
     creating_your_account: "创建账户中...",
+    setup_taking_longer:
+      "此过程比平时要久。请保持此页面打开，直至账户设置完成。",
     by_continuing: "继续即表示您同意我们的",
     copyright: "© {{year}} Aster Communications Inc.",
     display_name_optional: "显示名称（可选）",

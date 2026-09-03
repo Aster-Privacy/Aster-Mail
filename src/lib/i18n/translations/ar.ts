@@ -8835,6 +8835,8 @@ export const ar = {
     creating_recovery_backup: "جارٍ إنشاء نسخة استرداد احتياطية...",
     preparing_pgp_key: "جارٍ تجهيز مفتاح PGP...",
     creating_your_account: "جارٍ إنشاء حسابك...",
+    setup_taking_longer:
+      "يستغرق هذا وقتًا أطول من المعتاد. أبقِ هذه الصفحة مفتوحة حتى يكتمل إعداد حسابك.",
     by_continuing: "بالمتابعة، أنت توافق على",
     copyright: "© {{year}} Aster Communications Inc.",
     display_name_optional: "الاسم المعروض (اختياري)",
