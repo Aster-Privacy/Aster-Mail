@@ -62,25 +62,87 @@ export function get_type_label(content_type: string, filename: string): string {
 }
 
 export function get_type_color(content_type: string): string {
-  if (content_type === "application/pdf") return "#ea4335";
-  if (content_type.startsWith("image/")) return "#a855f7";
-  if (content_type.startsWith("video/")) return "#ec4899";
-  if (content_type.startsWith("audio/")) return "#0ea5e9";
+  if (content_type === "application/pdf") return "#e24942";
+  if (content_type.startsWith("image/")) return "#0eb09b";
+  if (content_type.startsWith("video/")) return "#d64992";
+  if (content_type.startsWith("audio/")) return "#0fb1cb";
   if (
     content_type.includes("spreadsheet") ||
     content_type.includes("excel") ||
     content_type === "text/csv"
   )
-    return "#34a853";
+    return "#0ca844";
   if (
     content_type.includes("presentation") ||
     content_type.includes("powerpoint")
   )
-    return "#f97316";
+    return "#e38f0c";
   if (content_type.includes("word") || content_type.includes("document"))
-    return "#4285f4";
+    return "#3981f6";
+  if (is_archive_type(content_type)) return "#9964e5";
+  if (is_code_type(content_type) || content_type.startsWith("text/"))
+    return "#6d89a7";
 
-  return "#6b7280";
+  return "#83868c";
+}
+
+export type AttachmentGlyph =
+  | "photo"
+  | "video"
+  | "music"
+  | "table"
+  | "presentation"
+  | "code"
+  | "archive"
+  | "document"
+  | "file";
+
+function is_code_type(content_type: string): boolean {
+  return (
+    content_type.includes("html") ||
+    content_type.includes("xml") ||
+    content_type.includes("json") ||
+    content_type.includes("javascript")
+  );
+}
+
+function is_archive_type(content_type: string): boolean {
+  return (
+    content_type.includes("zip") ||
+    content_type.includes("gzip") ||
+    content_type.includes("compressed") ||
+    content_type.includes("tar") ||
+    content_type.includes("rar") ||
+    content_type.includes("7z")
+  );
+}
+
+export function get_type_glyph(content_type: string): AttachmentGlyph {
+  if (content_type.startsWith("image/")) return "photo";
+  if (content_type.startsWith("video/")) return "video";
+  if (content_type.startsWith("audio/")) return "music";
+  if (is_archive_type(content_type)) return "archive";
+  if (
+    content_type.includes("spreadsheet") ||
+    content_type.includes("excel") ||
+    content_type === "text/csv"
+  )
+    return "table";
+  if (
+    content_type.includes("presentation") ||
+    content_type.includes("powerpoint")
+  )
+    return "presentation";
+  if (is_code_type(content_type)) return "code";
+  if (
+    content_type === "application/pdf" ||
+    content_type.startsWith("text/") ||
+    content_type.includes("word") ||
+    content_type.includes("document")
+  )
+    return "document";
+
+  return "file";
 }
 
 const PREVIEWABLE_IMAGE_TYPES = new Set([
