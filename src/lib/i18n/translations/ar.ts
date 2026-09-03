@@ -6981,6 +6981,10 @@ export const ar = {
     export_step_incomplete_title: "لم يكتمل التصدير",
     export_incomplete_summary:
       "تم تصدير {{ count }} من {{ total }} رسالة قبل توقف التصدير.",
+    export_progress_messages_unknown_total: "تم تصدير {{ processed }} رسالة",
+    export_complete_summary_unknown_total: "تم تصدير {{ count }} رسالة.",
+    export_incomplete_summary_unknown_total: "تم تصدير {{ count }} رسالة قبل توقف التصدير.",
+    export_incomplete_partial_saved: "يحتوي ملفك على الرسائل التي تم تصديرها حتى الآن.",
     export_complete_data_only: "التصدير جاهز.",
     export_complete_summary: "تم تصدير {{ count }} من {{ total }} رسالة.",
     export_complete_errors: "تعذّر تصدير {{ count }} رسالة.",
@@ -6992,6 +6996,7 @@ export const ar = {
       "تعذّر فك تشفير {{ count }} مرفق، ولم تُدرج في هذا الأرشيف.",
     export_complete_errors_in_mbox_hint:
       "تم إلحاق سجل الأخطاء بنهاية ملف صندوق البريد.",
+    export_error_write_partial: "توقّف التصدير قبل اكتماله. يحتوي ملفك على الرسائل التي تم تصديرها حتى الآن.",
     export_error_write_fatal:
       "تعذّرت الكتابة إلى الوجهة المختارة. توقّف التصدير.",
     export_error_no_vault: "خزنة التشفير مقفلة. سجّل الدخول مجددًا للتصدير.",

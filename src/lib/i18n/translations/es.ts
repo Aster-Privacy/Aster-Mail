@@ -6618,6 +6618,7 @@ export const es = {
     export_error_no_messages_match:
       "Ningún mensaje coincide con los criterios.",
     export_error_no_vault: "Vault no disponible",
+    export_error_write_partial: "La exportación se detuvo antes de tiempo. Tu archivo contiene los mensajes exportados hasta ahora.",
     export_error_write_fatal: "Error de escritura fatal",
     export_format_eml_hint: "Un archivo por correo",
     export_format_eml_name: "Archivos EML",
@@ -6671,6 +6672,10 @@ export const es = {
     export_step_incomplete_title: "La exportación no finalizó",
     export_incomplete_summary:
       "Se exportaron {{ count }} de {{ total }} mensajes antes de que se detuviera la exportación.",
+    export_progress_messages_unknown_total: "{{processed}} mensajes exportados",
+    export_complete_summary_unknown_total: "Se exportaron {{ count }} mensajes.",
+    export_incomplete_summary_unknown_total: "Se exportaron {{ count }} mensajes antes de que se detuviera la exportación.",
+    export_incomplete_partial_saved: "Tu archivo contiene los mensajes exportados hasta ahora.",
     export_complete_data_only: "Tu exportación está lista.",
     export_step_destination_title: "Destino",
     export_step_format_title: "Formato de exportación",

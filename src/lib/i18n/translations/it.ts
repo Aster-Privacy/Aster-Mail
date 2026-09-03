@@ -7162,6 +7162,10 @@ export const it = {
     export_step_incomplete_title: "Esportazione non completata",
     export_incomplete_summary:
       "{{ count }} messaggi su {{ total }} esportati prima dell'interruzione dell'esportazione.",
+    export_progress_messages_unknown_total: "{{ processed }} messaggi esportati",
+    export_complete_summary_unknown_total: "{{ count }} messaggi esportati.",
+    export_incomplete_summary_unknown_total: "{{ count }} messaggi esportati prima dell'interruzione dell'esportazione.",
+    export_incomplete_partial_saved: "Il tuo file contiene i messaggi esportati finora.",
     export_complete_data_only: "La tua esportazione è pronta.",
     export_complete_summary: "Esportati {{ count }} di {{ total }} messaggi.",
     export_complete_errors: "{{ count }} messaggio/i non sono stati esportati.",
@@ -7173,6 +7177,7 @@ export const it = {
       "Non è stato possibile decrittare {{ count }} allegato/i, che non sono inclusi in questo archivio.",
     export_complete_errors_in_mbox_hint:
       "Un registro degli errori è stato aggiunto alla fine del file mailbox.",
+    export_error_write_partial: "L'esportazione si è interrotta prima della fine. Il tuo file contiene i messaggi esportati finora.",
     export_error_write_fatal:
       "Non è stato possibile scrivere nella destinazione scelta. L'esportazione è stata interrotta.",
     export_error_no_vault:

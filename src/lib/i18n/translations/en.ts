@@ -7080,6 +7080,12 @@ export const en: Translations = {
     export_complete_summary: "Exported {{ count }} of {{ total }} messages.",
     export_incomplete_summary:
       "Exported {{ count }} of {{ total }} messages before the export stopped.",
+    export_progress_messages_unknown_total: "{{ processed }} messages exported",
+    export_complete_summary_unknown_total: "Exported {{ count }} messages.",
+    export_incomplete_summary_unknown_total:
+      "Exported {{ count }} messages before the export stopped.",
+    export_incomplete_partial_saved:
+      "Your file contains the messages exported so far.",
     export_complete_data_only: "Your export is ready.",
     export_complete_errors: "{{ count }} message(s) could not be exported.",
     export_complete_bytes: "Total size: {{ bytes }}",
@@ -7090,6 +7096,8 @@ export const en: Translations = {
       "{{ count }} attachment(s) couldn't be decrypted and were left out of this archive.",
     export_complete_errors_in_mbox_hint:
       "An error log was appended to the end of the mailbox file.",
+    export_error_write_partial:
+      "The export stopped early. Your file contains the messages exported so far.",
     export_error_write_fatal:
       "Could not write to the chosen destination. The export was stopped.",
     export_error_no_vault:

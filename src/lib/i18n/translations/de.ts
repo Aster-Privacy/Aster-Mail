@@ -6727,6 +6727,7 @@ export const de = {
       "Keine Nachrichten passen zu Ihrer Auswahl.",
     export_error_no_vault:
       "Ihr Verschlüsselungs-Tresor ist gesperrt. Melden Sie sich erneut an, um zu exportieren.",
+    export_error_write_partial: "Der Export wurde vorzeitig beendet. Deine Datei enthält die bisher exportierten Nachrichten.",
     export_error_write_fatal:
       "Konnte nicht in das gewählte Ziel schreiben. Der Export wurde gestoppt.",
     export_format_eml_hint:
@@ -6787,6 +6788,10 @@ export const de = {
     export_step_incomplete_title: "Export nicht abgeschlossen",
     export_incomplete_summary:
       "{{ count }} von {{ total }} Nachrichten wurden exportiert, bevor der Export gestoppt wurde.",
+    export_progress_messages_unknown_total: "{{ processed }} Nachrichten exportiert",
+    export_complete_summary_unknown_total: "{{ count }} Nachrichten wurden exportiert.",
+    export_incomplete_summary_unknown_total: "{{ count }} Nachrichten wurden exportiert, bevor der Export gestoppt wurde.",
+    export_incomplete_partial_saved: "Deine Datei enthält die bisher exportierten Nachrichten.",
     export_complete_data_only: "Dein Export ist fertig.",
     export_step_destination_title: "Ziel wählen",
     export_step_format_title: "Format wählen",

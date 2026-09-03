@@ -7122,6 +7122,10 @@ export const pt = {
     export_step_incomplete_title: "A exportação não foi concluída",
     export_incomplete_summary:
       "{{ count }} de {{ total }} mensagens foram exportadas antes de a exportação parar.",
+    export_progress_messages_unknown_total: "{{ processed }} mensagens exportadas",
+    export_complete_summary_unknown_total: "{{ count }} mensagens foram exportadas.",
+    export_incomplete_summary_unknown_total: "{{ count }} mensagens foram exportadas antes de a exportação parar.",
+    export_incomplete_partial_saved: "O seu ficheiro contém as mensagens exportadas até agora.",
     export_complete_data_only: "A sua exportação está pronta.",
     export_complete_summary: "{{ count }} de {{ total }} mensagens exportadas.",
     export_complete_errors: "{{ count }} mensagem(ns) não foram exportadas.",
@@ -7133,6 +7137,7 @@ export const pt = {
       "Não foi possível descriptografar {{ count }} anexo(s), que ficaram de fora deste arquivo.",
     export_complete_errors_in_mbox_hint:
       "Um log de erros foi anexado ao final do arquivo mailbox.",
+    export_error_write_partial: "A exportação parou antes do fim. O seu ficheiro contém as mensagens exportadas até agora.",
     export_error_write_fatal:
       "Não foi possível escrever no destino escolhido. A exportação foi interrompida.",
     export_error_no_vault:
