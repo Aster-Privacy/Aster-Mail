@@ -20,7 +20,7 @@
 //
 import type {} from "@/lib/i18n/types";
 
-import { DownloadIcon, FileDocIcon } from "./icons";
+import { DownloadIcon, FileTypeIcon } from "./icons";
 import { DecryptedAttachmentInfo } from "./types";
 
 import { use_i18n } from "@/lib/i18n/context";
@@ -28,6 +28,7 @@ import { format_bytes } from "@/lib/utils";
 import {
   get_type_label,
   get_type_color,
+  get_type_glyph,
   is_previewable_image,
   is_previewable_pdf,
 } from "@/lib/attachment_utils";
@@ -49,18 +50,20 @@ export function AttachmentCard({
     (is_previewable_image(att.content_type) || is_pdf) && att.preview_url;
   const color = get_type_color(att.content_type);
   const label = get_type_label(att.content_type, att.filename);
+  const glyph = get_type_glyph(att.content_type);
 
   return (
     <div
-      className="relative w-[200px] rounded-lg overflow-hidden cursor-pointer"
+      className="relative w-[200px] rounded-[14px] overflow-hidden cursor-pointer"
       style={{
         opacity: is_downloading ? 0.5 : 1,
+        backgroundColor: "var(--thread-content-bg)",
         border: "1px solid var(--thread-card-border)",
       }}
       onClick={on_click}
     >
       {has_preview ? (
-        <div className="relative w-full h-[140px] overflow-hidden">
+        <div className="relative w-full h-[128px] overflow-hidden">
           <img
             alt={att.filename}
             className="w-full h-full object-cover"
@@ -69,24 +72,27 @@ export function AttachmentCard({
           />
           {is_pdf && (
             <div
-              className="absolute bottom-1.5 start-1.5 px-1.5 py-0.5 rounded text-[9px] font-bold text-white"
-              style={{ backgroundColor: "#ea4335" }}
+              className="absolute bottom-2 start-2 px-1.5 py-0.5 rounded-md text-[9px] font-bold tracking-[0.05em] text-white"
+              style={{ backgroundColor: color }}
             >
-              PDF
+              {label}
             </div>
           )}
         </div>
       ) : (
         <div
-          className="w-full h-[140px] flex items-center justify-center"
-          style={{ backgroundColor: `${color}08` }}
+          className="w-full h-[128px] flex items-center justify-center"
+          style={{
+            backgroundColor:
+              "color-mix(in srgb, var(--thread-card-border) 22%, var(--thread-content-bg))",
+          }}
         >
-          <FileDocIcon color={color} label={label} />
+          <FileTypeIcon color={color} glyph={glyph} label={label} />
         </div>
       )}
 
       <div
-        className="px-3 py-2 flex items-center justify-between gap-1.5 border-t"
+        className="ps-3 pe-2 py-2.5 flex items-center justify-between gap-1.5 border-t"
         style={{
           backgroundColor: "var(--thread-content-bg)",
           borderColor: "var(--thread-card-border)",
@@ -96,12 +102,12 @@ export function AttachmentCard({
           <div className="text-xs font-medium text-txt-primary truncate">
             {att.filename}
           </div>
-          <div className="text-[10px] text-txt-muted leading-tight mt-0.5">
+          <div className="text-[10.5px] text-txt-muted leading-tight mt-0.5">
             {format_bytes(att.size_bytes)}
           </div>
         </div>
         <button
-          className="flex-shrink-0 p-1.5 rounded-[14px] text-txt-muted hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+          className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-[9px] text-txt-muted hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
           title={t("mail.download_file_named", { filename: att.filename })}
           onClick={on_download}
         >
