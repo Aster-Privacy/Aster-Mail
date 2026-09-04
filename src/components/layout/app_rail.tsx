@@ -29,6 +29,10 @@ import {
 import { QuickContactsPanel } from "@/components/layout/quick_contacts_panel";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
+import {
+  read_rail_contacts_open,
+  write_rail_contacts_open,
+} from "@/lib/rail_contacts_open";
 
 const RAIL_HIDDEN_KEY = "aster_app_rail_hidden";
 
@@ -59,10 +63,12 @@ function AppRailComponent({
   const [has_icon, set_has_icon] = useState(true);
 
   const close_contacts = useCallback(() => {
+    write_rail_contacts_open(false);
     on_contacts_open_change(false);
   }, [on_contacts_open_change]);
 
   const toggle_contacts = useCallback(() => {
+    write_rail_contacts_open(!is_contacts_open);
     on_contacts_open_change(!is_contacts_open);
   }, [is_contacts_open, on_contacts_open_change]);
 
@@ -85,6 +91,13 @@ function AppRailComponent({
   useEffect(() => {
     if (is_hidden) on_contacts_open_change(false);
   }, [is_hidden, on_contacts_open_change]);
+
+  useEffect(() => {
+    if (!preferences.show_side_panel) return;
+    if (read_hidden()) return;
+    if (!read_rail_contacts_open()) return;
+    on_contacts_open_change(true);
+  }, [on_contacts_open_change, preferences.show_side_panel]);
 
   if (!preferences.show_side_panel) return null;
 
