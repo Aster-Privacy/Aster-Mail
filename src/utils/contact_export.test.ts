@@ -20,9 +20,13 @@
 //
 import type { DecryptedContact } from "@/types/contacts";
 
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { contact_to_vcard, contacts_to_vcard } from "@/utils/contact_export";
+import {
+  contact_to_vcard,
+  contacts_to_vcard,
+  share_contact_vcard,
+} from "@/utils/contact_export";
 
 const make = (overrides: Partial<DecryptedContact> = {}): DecryptedContact =>
   ({
@@ -78,5 +82,74 @@ describe("contacts_to_vcard", () => {
 
     expect(output.match(/BEGIN:VCARD/g)).toHaveLength(2);
     expect(output.endsWith("\r\n")).toBe(true);
+  });
+});
+
+describe("share_contact_vcard", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
+  it("shares the card when the browser can share files", async () => {
+    const share = vi.fn().mockResolvedValue(undefined);
+    const can_share = vi.fn().mockReturnValue(true);
+
+    vi.stubGlobal("navigator", { canShare: can_share, share });
+
+    const click = vi.spyOn(HTMLAnchorElement.prototype, "click");
+
+    await share_contact_vcard(make());
+
+    expect(share).toHaveBeenCalledTimes(1);
+    expect(click).not.toHaveBeenCalled();
+
+    const payload = share.mock.calls[0][0] as { files: File[]; title: string };
+
+    expect(payload.title).toBe("Ada Lovelace");
+    expect(payload.files[0].name).toBe("Ada_Lovelace.vcf");
+  });
+
+  it("downloads the card when sharing is unavailable", async () => {
+    vi.stubGlobal("navigator", {});
+    vi.stubGlobal("URL", {
+      createObjectURL: vi.fn().mockReturnValue("blob:card"),
+      revokeObjectURL: vi.fn(),
+    });
+
+    const click = vi.spyOn(HTMLAnchorElement.prototype, "click");
+
+    await share_contact_vcard(make());
+
+    expect(click).toHaveBeenCalledTimes(1);
+  });
+
+  it("downloads the card when sharing fails for a reason other than cancel", async () => {
+    const share = vi.fn().mockRejectedValue(new Error("no target"));
+
+    vi.stubGlobal("navigator", { canShare: () => true, share });
+    vi.stubGlobal("URL", {
+      createObjectURL: vi.fn().mockReturnValue("blob:card"),
+      revokeObjectURL: vi.fn(),
+    });
+
+    const click = vi.spyOn(HTMLAnchorElement.prototype, "click");
+
+    await share_contact_vcard(make());
+
+    expect(click).toHaveBeenCalledTimes(1);
+  });
+
+  it("does nothing more when the person cancels the share sheet", async () => {
+    const abort = new DOMException("cancelled", "AbortError");
+    const share = vi.fn().mockRejectedValue(abort);
+
+    vi.stubGlobal("navigator", { canShare: () => true, share });
+
+    const click = vi.spyOn(HTMLAnchorElement.prototype, "click");
+
+    await share_contact_vcard(make());
+
+    expect(click).not.toHaveBeenCalled();
   });
 });

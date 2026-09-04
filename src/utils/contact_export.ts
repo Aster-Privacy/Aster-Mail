@@ -172,3 +172,29 @@ export const export_contact_vcard = (contact: DecryptedContact): void => {
     "text/vcard",
   );
 };
+
+export const share_contact_vcard = async (
+  contact: DecryptedContact,
+  group_names: Record<string, string> = {},
+): Promise<void> => {
+  const filename = contact_vcard_filename(contact);
+  const content = `${contact_to_vcard(contact, group_names)}\r\n`;
+
+  if (typeof navigator !== "undefined" && typeof File !== "undefined") {
+    const file = new File([content], filename, { type: "text/vcard" });
+    const payload = { files: [file], title: display_name_of(contact) };
+    const can_share = navigator.canShare?.(payload) ?? false;
+
+    if (can_share && navigator.share) {
+      try {
+        await navigator.share(payload);
+
+        return;
+      } catch (error) {
+        if ((error as DOMException)?.name === "AbortError") return;
+      }
+    }
+  }
+
+  download_text_file(filename, content, "text/vcard");
+};

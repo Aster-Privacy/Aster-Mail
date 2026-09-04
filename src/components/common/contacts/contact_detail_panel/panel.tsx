@@ -49,6 +49,7 @@ import {
   ChevronRightIcon,
   MagnifyingGlassIcon,
   PencilSquareIcon,
+  ArrowUpOnSquareIcon,
 } from "@heroicons/react/24/outline";
 import { StarIcon as StarSolidIcon } from "@heroicons/react/24/solid";
 import { Button } from "@aster/ui";
@@ -86,6 +87,7 @@ import { ContactAvatar } from "@/components/common/contacts/contact_avatar";
 import { EncryptionInfoDropdown } from "@/components/common/encryption_info_dropdown";
 import { ContactHistoryPanel } from "@/components/contacts/contact_history_panel";
 import { show_toast } from "@/components/toast/simple_toast";
+import { share_contact_vcard } from "@/utils/contact_export";
 import { strip_image_metadata_data_url } from "@/lib/strip_image_metadata";
 import { format_full_datetime } from "@/utils/date_format";
 
@@ -116,6 +118,11 @@ export function ContactDetailPanel({
   const contact_mail_query = build_contact_mail_query(
     selected_contact?.emails ?? [],
   );
+
+  const handle_share_contact = () => {
+    if (!selected_contact) return;
+    void share_contact_vcard(selected_contact, group_names);
+  };
 
   const handle_search_mail = () => {
     if (!contact_mail_query) return;
@@ -445,6 +452,16 @@ export function ContactDetailPanel({
                 ? t("common.favorited")
                 : t("common.favorite")}
             </button>
+            {!is_editing && (
+              <button
+                className="flex items-center gap-2 h-9 px-3.5 rounded-full bg-black/5 dark:bg-white/[0.06] hover:bg-black/10 dark:hover:bg-white/10 text-[13px] font-medium text-txt-primary transition-colors"
+                type="button"
+                onClick={handle_share_contact}
+              >
+                <ArrowUpOnSquareIcon className="w-4 h-4" />
+                {t("common.share_contact")}
+              </button>
+            )}
             {!is_editing && (
               <button
                 className="flex items-center gap-2 h-9 px-3.5 rounded-full bg-black/5 dark:bg-white/[0.06] hover:bg-black/10 dark:hover:bg-white/10 text-[13px] font-medium text-txt-primary transition-colors"

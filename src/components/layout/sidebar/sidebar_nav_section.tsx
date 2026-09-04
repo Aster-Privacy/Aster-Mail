@@ -306,6 +306,42 @@ export const SidebarNavSection = memo(function SidebarNavSection({
         )}
       </button>
 
+      <button
+        ref={contacts_ref}
+        className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-[12px] ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px]  ${effective_selected === "contacts" ? "sidebar-active" : ""} ${is_collapsed && effective_selected === "contacts" ? "sidebar-selected" : ""}`}
+        data-rail-tip={is_collapsed ? t("common.contacts") : undefined}
+        style={{
+          zIndex: 1,
+          color:
+            effective_selected === "contacts"
+              ? "var(--text-primary)"
+              : "var(--text-secondary)",
+          backgroundColor:
+            is_collapsed && effective_selected === "contacts"
+              ? "var(--indicator-bg)"
+              : undefined,
+        }}
+        onClick={() =>
+          handle_nav_click(() => {
+            set_selected_item("contacts");
+            navigate("/contacts");
+          })
+        }
+      >
+        <UsersIcon
+          className={`${is_collapsed ? "w-5 h-5" : "w-4 h-4"} `}
+          style={{
+            color:
+              effective_selected === "contacts"
+                ? "var(--icon-active)"
+                : "var(--icon-muted)",
+          }}
+        />
+        {!is_collapsed && (
+          <span className="flex-1 text-start">{t("common.contacts")}</span>
+        )}
+      </button>
+
       {!is_collapsed && (
         <div className="mt-5 mb-1 px-2.5">
           <button
@@ -505,42 +541,6 @@ export const SidebarNavSection = memo(function SidebarNavSection({
             />
             {!is_collapsed && (
               <span className="flex-1 text-start">{t("mail.trash")}</span>
-            )}
-          </button>
-
-          <button
-            ref={contacts_ref}
-            className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-[12px] ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px]  ${effective_selected === "contacts" ? "sidebar-active" : ""} ${is_collapsed && effective_selected === "contacts" ? "sidebar-selected" : ""}`}
-            data-rail-tip={is_collapsed ? t("common.contacts") : undefined}
-            style={{
-              zIndex: 1,
-              color:
-                effective_selected === "contacts"
-                  ? "var(--text-primary)"
-                  : "var(--text-secondary)",
-              backgroundColor:
-                is_collapsed && effective_selected === "contacts"
-                  ? "var(--indicator-bg)"
-                  : undefined,
-            }}
-            onClick={() =>
-              handle_nav_click(() => {
-                set_selected_item("contacts");
-                navigate("/contacts");
-              })
-            }
-          >
-            <UsersIcon
-              className={`${is_collapsed ? "w-5 h-5" : "w-4 h-4"} `}
-              style={{
-                color:
-                  effective_selected === "contacts"
-                    ? "var(--icon-active)"
-                    : "var(--icon-muted)",
-              }}
-            />
-            {!is_collapsed && (
-              <span className="flex-1 text-start">{t("common.contacts")}</span>
             )}
           </button>
 

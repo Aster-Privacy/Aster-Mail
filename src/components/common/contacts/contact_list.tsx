@@ -44,7 +44,8 @@ import {
   PrinterIcon,
   BarsArrowDownIcon,
   BarsArrowUpIcon,
-  WrenchScrewdriverIcon,
+  ChevronDownIcon,
+  EllipsisHorizontalIcon,
   CakeIcon,
   XMarkIcon,
   SparklesIcon,
@@ -205,6 +206,7 @@ export function ContactList({
   upcoming_birthdays_count,
   sort_by,
   set_sort_by,
+  sort_label,
 }: ContactListProps) {
   const { preferences, update_preference } = use_preferences();
   const auto_save = !!preferences.auto_save_recent_recipients;
@@ -277,6 +279,15 @@ export function ContactList({
     set_merge_targets(duplicate_clusters[0]?.contacts ?? []);
   }, [duplicate_clusters]);
 
+  const sort_options: { key: SortOption; label: string }[] = [
+    { key: "name_asc", label: `${t("common.name")} A-Z` },
+    { key: "name_desc", label: `${t("common.name")} Z-A` },
+    { key: "last_name_asc", label: `${t("common.last_name")} A-Z` },
+    { key: "last_name_desc", label: `${t("common.last_name")} Z-A` },
+    { key: "company", label: t("common.company") },
+    { key: "recent", label: t("common.recently_added") },
+  ];
+
   const tab_items: { key: ContactTab; label: string; count: number }[] = [
     {
       key: "contacts",
@@ -315,15 +326,15 @@ export function ContactList({
             size={20}
           />
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1.5">
           <DropdownMenu>
-            <Tooltip tip={t("common.sort")}>
+            <Tooltip tip={`${t("common.sort")}: ${sort_label}`}>
               <DropdownMenuTrigger asChild>
                 <Button
-                  aria-label={t("common.sort")}
-                  className="h-9 w-9 rounded-[10px] hover:bg-[var(--bg-hover)] text-[var(--icon-secondary)] hover:text-[var(--icon-active)]"
+                  aria-label={`${t("common.sort")}: ${sort_label}`}
+                  className="h-9 gap-1.5 rounded-[10px] px-2.5 text-[13px] font-medium text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
                   disabled={!is_list_tab}
-                  size="icon"
+                  size="sm"
                   variant="ghost"
                 >
                   {sort_by === "name_desc" || sort_by === "last_name_desc" ? (
@@ -331,46 +342,26 @@ export function ContactList({
                   ) : (
                     <BarsArrowDownIcon className="w-[18px] h-[18px]" />
                   )}
+                  <span className="hidden lg:inline">{sort_label}</span>
+                  <ChevronDownIcon className="hidden lg:inline-block w-3.5 h-3.5 opacity-60" />
                 </Button>
               </DropdownMenuTrigger>
             </Tooltip>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem
-                className={sort_by === "name_asc" ? "font-medium" : ""}
-                onClick={() => set_sort_by("name_asc")}
-              >
-                {t("common.name")} A-Z
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className={sort_by === "name_desc" ? "font-medium" : ""}
-                onClick={() => set_sort_by("name_desc")}
-              >
-                {t("common.name")} Z-A
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className={sort_by === "last_name_asc" ? "font-medium" : ""}
-                onClick={() => set_sort_by("last_name_asc")}
-              >
-                {t("common.last_name")} A-Z
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className={sort_by === "last_name_desc" ? "font-medium" : ""}
-                onClick={() => set_sort_by("last_name_desc")}
-              >
-                {t("common.last_name")} Z-A
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className={sort_by === "company" ? "font-medium" : ""}
-                onClick={() => set_sort_by("company")}
-              >
-                {t("common.company")}
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className={sort_by === "recent" ? "font-medium" : ""}
-                onClick={() => set_sort_by("recent")}
-              >
-                {t("common.recently_added")}
-              </DropdownMenuItem>
+            <DropdownMenuContent align="end" className="w-52">
+              {sort_options.map((option) => (
+                <DropdownMenuItem
+                  key={option.key}
+                  onClick={() => set_sort_by(option.key)}
+                >
+                  <CheckIcon
+                    className={cn(
+                      "w-4 h-4",
+                      sort_by === option.key ? "opacity-100" : "opacity-0",
+                    )}
+                  />
+                  {option.label}
+                </DropdownMenuItem>
+              ))}
             </DropdownMenuContent>
           </DropdownMenu>
 
@@ -383,7 +374,7 @@ export function ContactList({
                   size="icon"
                   variant="ghost"
                 >
-                  <WrenchScrewdriverIcon className="w-[18px] h-[18px]" />
+                  <EllipsisHorizontalIcon className="w-[18px] h-[18px]" />
                 </Button>
               </DropdownMenuTrigger>
             </Tooltip>
@@ -432,11 +423,15 @@ export function ContactList({
               <DropdownMenuTrigger asChild>
                 <Button
                   aria-label={t("common.create_contact")}
-                  className="h-9 w-9 rounded-[10px] hover:bg-[var(--bg-hover)] text-[var(--icon-secondary)] hover:text-[var(--icon-active)]"
-                  size="icon"
-                  variant="ghost"
+                  className="h-9 gap-1.5 rounded-[10px] px-3 text-[13px] font-medium"
+                  size="sm"
+                  variant="primary"
                 >
                   <PlusIcon className="w-[18px] h-[18px]" />
+                  <span className="hidden sm:inline">
+                    {t("common.create_contact")}
+                  </span>
+                  <ChevronDownIcon className="hidden sm:inline-block w-3.5 h-3.5 opacity-70" />
                 </Button>
               </DropdownMenuTrigger>
             </Tooltip>
@@ -577,58 +572,64 @@ export function ContactList({
                 count: selection_state.selected_count,
               })}
             </span>
-            <button
-              aria-label={
-                selected_all_favorited
-                  ? t("common.removed_from_favorites")
-                  : t("common.added_to_favorites")
-              }
-              className="h-8 w-8 inline-flex items-center justify-center rounded-[8px] text-txt-secondary hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
-              type="button"
-              onClick={on_toggle_favorite_selected}
-            >
-              {selected_all_favorited ? (
-                <StarIconSolid className="w-4 h-4 text-yellow-500" />
-              ) : (
-                <StarIcon className="w-4 h-4" />
-              )}
-            </button>
+            <Tooltip tip={t("common.favorite")}>
+              <button
+                aria-label={t("common.favorite")}
+                className="h-8 w-8 inline-flex items-center justify-center rounded-[8px] text-txt-secondary hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+                type="button"
+                onClick={on_toggle_favorite_selected}
+              >
+                {selected_all_favorited ? (
+                  <StarIconSolid className="w-4 h-4 text-yellow-500" />
+                ) : (
+                  <StarIcon className="w-4 h-4" />
+                )}
+              </button>
+            </Tooltip>
             <ContactGroupAssignMenu
               on_select={on_add_selected_to_group}
               t={t}
             />
-            <button
-              aria-label={t("common.send_email")}
-              className="h-8 w-8 inline-flex items-center justify-center rounded-[8px] text-txt-secondary hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
-              type="button"
-              onClick={on_compose_to_selected}
-            >
-              <EnvelopeIcon className="w-4 h-4" />
-            </button>
-            <button
-              aria-label={t("common.copy")}
-              className="h-8 w-8 inline-flex items-center justify-center rounded-[8px] text-txt-secondary hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
-              type="button"
-              onClick={on_copy_emails}
-            >
-              <ClipboardDocumentIcon className="w-4 h-4" />
-            </button>
-            <button
-              aria-label={t("common.export_all")}
-              className="h-8 w-8 inline-flex items-center justify-center rounded-[8px] text-txt-secondary hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
-              type="button"
-              onClick={() => on_export_contacts(true)}
-            >
-              <ArrowDownTrayIcon className="w-4 h-4" />
-            </button>
-            <button
-              aria-label={t("common.delete")}
-              className="h-8 w-8 inline-flex items-center justify-center rounded-[8px] text-red-500 hover:bg-red-500/10 transition-colors"
-              type="button"
-              onClick={on_delete_selected}
-            >
-              <TrashIcon className="w-4 h-4" />
-            </button>
+            <Tooltip tip={t("common.send_email")}>
+              <button
+                aria-label={t("common.send_email")}
+                className="h-8 w-8 inline-flex items-center justify-center rounded-[8px] text-txt-secondary hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+                type="button"
+                onClick={on_compose_to_selected}
+              >
+                <EnvelopeIcon className="w-4 h-4" />
+              </button>
+            </Tooltip>
+            <Tooltip tip={t("common.copy")}>
+              <button
+                aria-label={t("common.copy")}
+                className="h-8 w-8 inline-flex items-center justify-center rounded-[8px] text-txt-secondary hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+                type="button"
+                onClick={on_copy_emails}
+              >
+                <ClipboardDocumentIcon className="w-4 h-4" />
+              </button>
+            </Tooltip>
+            <Tooltip tip={t("common.export_all")}>
+              <button
+                aria-label={t("common.export_all")}
+                className="h-8 w-8 inline-flex items-center justify-center rounded-[8px] text-txt-secondary hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+                type="button"
+                onClick={() => on_export_contacts(true)}
+              >
+                <ArrowDownTrayIcon className="w-4 h-4" />
+              </button>
+            </Tooltip>
+            <Tooltip tip={t("common.delete")}>
+              <button
+                aria-label={t("common.delete")}
+                className="h-8 w-8 inline-flex items-center justify-center rounded-[8px] text-red-500 hover:bg-red-500/10 transition-colors"
+                type="button"
+                onClick={on_delete_selected}
+              >
+                <TrashIcon className="w-4 h-4" />
+              </button>
+            </Tooltip>
           </div>
         ) : (
           <div className="flex items-center justify-between px-4 py-2 border-b border-edge-primary">
