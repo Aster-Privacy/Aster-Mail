@@ -23,6 +23,7 @@ import { useLocation } from "react-router-dom";
 import {
   ChevronDoubleLeftIcon,
   ChevronRightIcon,
+  UsersIcon,
 } from "@heroicons/react/24/outline";
 
 import { QuickContactsPanel } from "@/components/layout/quick_contacts_panel";
@@ -55,6 +56,7 @@ function AppRailComponent({
   const location = useLocation();
   const is_settings_view = location.pathname.startsWith("/settings");
   const [is_hidden, set_is_hidden] = useState(read_hidden);
+  const [has_icon, set_has_icon] = useState(true);
 
   const close_contacts = useCallback(() => {
     on_contacts_open_change(false);
@@ -63,6 +65,10 @@ function AppRailComponent({
   const toggle_contacts = useCallback(() => {
     on_contacts_open_change(!is_contacts_open);
   }, [is_contacts_open, on_contacts_open_change]);
+
+  const handle_icon_error = useCallback(() => {
+    set_has_icon(false);
+  }, []);
 
   const toggle_hidden = useCallback(() => {
     set_is_hidden((hidden) => !hidden);
@@ -93,7 +99,7 @@ function AppRailComponent({
       {is_hidden && (
         <button
           aria-label={t("common.expand_sidebar")}
-          className="app_rail_popout absolute bottom-3 end-0 z-20 hidden h-9 w-6 items-center justify-center rounded-s-lg md:flex"
+          className="app_rail_popout absolute bottom-3 end-0 z-20 flex h-9 w-6 items-center justify-center rounded-s-lg"
           data-rail-tip={t("common.expand_sidebar")}
           data-rail-tip-side="left"
           type="button"
@@ -104,7 +110,7 @@ function AppRailComponent({
       )}
       <div
         aria-hidden={is_hidden}
-        className={`app_rail_column hidden shrink-0 flex-col items-center overflow-hidden pb-2 pt-2.5 md:flex ${
+        className={`app_rail_column flex shrink-0 flex-col items-center overflow-hidden pb-2 pt-2.5 ${
           is_hidden ? "pointer-events-none w-0 opacity-0" : "w-[52px] md:-ms-2"
         }`}
       >
@@ -119,17 +125,22 @@ function AppRailComponent({
           type="button"
           onClick={toggle_contacts}
         >
-          <img
-            alt=""
-            aria-hidden="true"
-            className="h-6 w-6 shrink-0"
-            decoding="sync"
-            height={24}
-            loading="eager"
-            src="/icons/contacts/contacts_24.png"
-            srcSet="/icons/contacts/contacts_24.png 1x, /icons/contacts/contacts_48.png 2x, /icons/contacts/contacts_72.png 3x"
-            width={24}
-          />
+          {has_icon ? (
+            <img
+              alt=""
+              aria-hidden="true"
+              className="h-6 w-6 shrink-0"
+              decoding="sync"
+              height={24}
+              loading="eager"
+              src="/icons/contacts/contacts_24.png"
+              srcSet="/icons/contacts/contacts_24.png 1x, /icons/contacts/contacts_48.png 2x, /icons/contacts/contacts_72.png 3x"
+              width={24}
+              onError={handle_icon_error}
+            />
+          ) : (
+            <UsersIcon className="h-5 w-5 shrink-0" />
+          )}
         </button>
         <button
           aria-label={t("common.collapse_sidebar")}
