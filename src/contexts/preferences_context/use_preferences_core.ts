@@ -57,6 +57,7 @@ import {
 import { get_font_stack, get_email_font_stack } from "@/lib/font_options";
 import { get_effective_theme_fields } from "@/lib/theme_sync";
 import { ignore_error } from "@/lib/ignore_error";
+import { sync_muted_folders } from "@/services/api/sync";
 import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
 
 const SAVE_RETRY_BASE_MS = 3000;
@@ -168,6 +169,23 @@ export function use_preferences_core() {
     identity: string;
   } | null>(null);
 
+  const synced_muted_folders_ref = useRef<string | null>(null);
+
+  const push_muted_folders = useCallback((prefs: UserPreferences) => {
+    const sorted = [...(prefs.muted_folder_tokens ?? [])]
+      .filter((token) => token.length > 0)
+      .sort();
+    const marker = JSON.stringify(sorted);
+
+    if (synced_muted_folders_ref.current === marker) return;
+
+    synced_muted_folders_ref.current = marker;
+
+    void sync_muted_folders(sorted).catch(() => {
+      synced_muted_folders_ref.current = null;
+    });
+  }, []);
+
   const do_save = useCallback(
     async (prefs: UserPreferences): Promise<UserPreferences | null> => {
       if (!has_loaded_ref.current) {
@@ -211,6 +229,7 @@ export function use_preferences_core() {
         }
 
         server_base_ref.current = to_save;
+        push_muted_folders(to_save);
 
         if (!latest_prefs_ref.current || latest_prefs_ref.current === prefs) {
           pending_keys_ref.current.clear();
@@ -228,7 +247,7 @@ export function use_preferences_core() {
         return null;
       }
     },
-    [],
+    [push_muted_folders],
   );
 
   const flush_save = useCallback(async () => {
@@ -651,6 +670,8 @@ export function use_preferences_core() {
     is_saving_ref,
     beacon_payload_ref,
     do_save,
+    push_muted_folders,
+    synced_muted_folders_ref,
     flush_save,
     schedule_save,
     update_preference,

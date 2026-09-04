@@ -98,6 +98,8 @@ export function use_preferences_provider() {
     is_saving_ref,
     beacon_payload_ref,
     do_save,
+    push_muted_folders,
+    synced_muted_folders_ref,
     flush_save,
     schedule_save,
     update_preference,
@@ -177,6 +179,7 @@ export function use_preferences_provider() {
 
         has_loaded_ref.current = true;
         server_base_ref.current = merged;
+        push_muted_folders(merged);
 
         const applied = apply_pending_preferences(
           merged,
@@ -210,7 +213,7 @@ export function use_preferences_provider() {
 
       set_has_loaded_from_server(response.loaded_from_server);
     },
-    [apply_visual_preferences],
+    [apply_visual_preferences, push_muted_folders],
   );
 
   const save_now = useCallback(async () => {
@@ -258,6 +261,7 @@ export function use_preferences_provider() {
     has_loaded_ref.current = false;
     fallback_base_ref.current = null;
     server_base_ref.current = null;
+    synced_muted_folders_ref.current = null;
 
     (async () => {
       try {
@@ -324,6 +328,7 @@ export function use_preferences_provider() {
           const merged = reconcile_low_network_mode(normalized);
 
           server_base_ref.current = merged;
+          push_muted_folders(merged);
 
           const applied = apply_pending_preferences(
             merged,

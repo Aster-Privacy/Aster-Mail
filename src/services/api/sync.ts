@@ -89,6 +89,27 @@ export async function get_sync_changes(
   );
 }
 
+export interface MutedFoldersResponse {
+  folder_tokens: string[];
+}
+
+export async function get_muted_folders(): Promise<
+  ApiResponse<MutedFoldersResponse>
+> {
+  return api_client.get<MutedFoldersResponse>(
+    "/sync/v1/notification-muted-folders",
+  );
+}
+
+export async function sync_muted_folders(
+  folder_tokens: string[],
+): Promise<ApiResponse<{ success: boolean }>> {
+  return api_client.put<{ success: boolean }>(
+    "/sync/v1/notification-muted-folders",
+    { folder_tokens },
+  );
+}
+
 export async function push_sync_change(
   data: PushSyncChangeRequest,
 ): Promise<ApiResponse<SyncChange>> {
