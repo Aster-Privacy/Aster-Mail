@@ -121,7 +121,7 @@ export function ContactsPanel({
   const handle_add = async () => {
     const value = email.trim();
 
-    if (!value) return;
+    if (!value || busy) return;
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
       show_toast(t("settings.alias_sender_invalid"), "error");

@@ -18,7 +18,9 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useEffect } from "react";
+import type { DecryptedContact } from "@/types/contacts";
+
+import { useEffect, useState } from "react";
 import { UserCircleIcon } from "@heroicons/react/24/outline";
 
 import { ContactForm } from "@/components/contacts";
@@ -49,6 +51,23 @@ export function ContactsContent({
   useEffect(() => {
     set_search_query(page_search);
   }, [page_search, set_search_query]);
+
+  const [pending_contact, set_pending_contact] =
+    useState<DecryptedContact | null>(null);
+
+  const handle_select_contact = (contact: DecryptedContact | null) => {
+    if (contact && state.is_creating_new) {
+      set_pending_contact(contact);
+
+      return;
+    }
+    state.set_selected_contact(contact);
+  };
+
+  const handle_compose_to_recipients = (recipients: string) => {
+    state.set_compose_recipients(recipients);
+    state.set_is_compose_open(true);
+  };
 
   useEffect(() => {
     if (user?.email) {
@@ -82,28 +101,38 @@ export function ContactsContent({
           is_loading={state.is_loading}
           list_container_ref={state.list_container_ref}
           on_add_click={state.handle_add_click}
+          on_add_selected_to_group={state.handle_add_selected_to_group}
+          on_bulk_create={state.handle_bulk_create}
           on_compose_email={state.handle_compose_email}
+          on_compose_to_recipients={handle_compose_to_recipients}
           on_compose_to_selected={state.handle_compose_to_selected}
+          on_contacts_refresh={state.fetch_contacts}
           on_copy={state.handle_copy}
           on_copy_emails={state.handle_copy_emails}
+          on_delete_forever={state.handle_delete_forever}
           on_delete_selected={state.handle_delete_selected}
+          on_empty_trash={state.handle_empty_trash}
           on_export_contacts={state.handle_export_contacts}
           on_import_modal_open={() => state.set_is_import_modal_open(true)}
           on_mobile_menu_toggle={on_mobile_menu_toggle}
+          on_print_contacts={state.handle_print_contacts}
+          on_restore_contact={state.handle_restore_contact}
           on_scroll_to_letter={state.scroll_to_letter}
           on_toggle_favorite_selected={state.handle_toggle_favorite_selected}
           on_toggle_select={state.handle_toggle_select}
+          search_query={state.search_query}
           selected_all_favorited={state.selected_all_favorited}
           selected_contact={state.selected_contact}
           selected_ids={state.selected_ids}
           selection_state={state.selection_state}
           set_filter_by={state.set_filter_by}
-          set_selected_contact={state.set_selected_contact}
+          set_selected_contact={handle_select_contact}
           set_sort_by={state.set_sort_by}
           set_view_mode={state.set_view_mode}
           sort_by={state.sort_by}
           sort_label={state.sort_label}
           t={state.t}
+          trashed_contacts={state.trashed_contacts}
           upcoming_birthdays_count={state.upcoming_birthdays_count}
           view_mode={state.view_mode}
         />
@@ -124,6 +153,7 @@ export function ContactsContent({
             on_inline_create={state.handle_inline_create}
             on_inline_save={state.handle_inline_save}
             on_toggle_favorite={state.handle_toggle_favorite_single}
+            on_undo_change={state.handle_undo_contact_change}
             selected_contact={state.selected_contact}
             set_show_history={state.set_show_history}
             show_history={state.show_history}
@@ -175,6 +205,21 @@ export function ContactsContent({
         on_cancel={() => state.set_is_bulk_deleting(false)}
         on_confirm={state.handle_confirm_bulk_delete}
         title={state.t("common.delete_selected_contacts")}
+        variant="danger"
+      />
+
+      <ConfirmationModal
+        cancel_text={state.t("common.cancel")}
+        confirm_text={state.t("common.discard")}
+        is_open={!!pending_contact}
+        message={state.t("common.discard_new_contact_message")}
+        on_cancel={() => set_pending_contact(null)}
+        on_confirm={() => {
+          state.handle_cancel_create();
+          state.set_selected_contact(pending_contact);
+          set_pending_contact(null);
+        }}
+        title={state.t("common.discard_changes_title")}
         variant="danger"
       />
 

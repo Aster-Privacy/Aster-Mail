@@ -37,6 +37,7 @@ import { use_index_page_state } from "./use_index_page_state";
 import { resolve_settings_section } from "@/components/settings/settings_content_helpers";
 import { show_toast } from "@/components/toast/simple_toast";
 import { Sidebar } from "@/components/layout/sidebar";
+import { AppRail } from "@/components/layout/app_rail";
 import { TopBar } from "@/components/layout/top_bar";
 import { ComposeManager } from "@/components/compose/compose_manager";
 import { EmailInbox } from "@/components/email/email_inbox";
@@ -137,6 +138,7 @@ export default function IndexPage() {
   const { section } = useParams<{ section?: string }>();
   const [is_quick_settings_open, set_is_quick_settings_open] = useState(false);
   const [is_survey_visible, set_is_survey_visible] = useState(false);
+  const [is_rail_contacts_open, set_is_rail_contacts_open] = useState(false);
   const [first_run_setup_done, set_first_run_setup_done] = useState(
     () => !is_first_run_setup_pending(),
   );
@@ -216,6 +218,10 @@ export default function IndexPage() {
       state_ref.current.handle_search_submit(...params),
     [],
   );
+
+  const handle_contacts_compose = useCallback((address: string) => {
+    state_ref.current.open_compose(address);
+  }, []);
 
   const handle_sidebar_compose = useCallback(
     (...params: Parameters<typeof state.open_compose>) =>
@@ -367,7 +373,7 @@ export default function IndexPage() {
           on_shortcuts_click={handle_shortcuts_click}
           search_context={state.active_search_query || undefined}
         />
-        <div className="flex-1 flex transition-colors duration-200 overflow-hidden">
+        <div className="relative flex-1 flex transition-colors duration-200 overflow-hidden">
           {state.is_settings_route && !settings_popup_mode ? (
             <Suspense fallback={<SettingsFallback />}>
               <SettingsContent
@@ -575,6 +581,11 @@ export default function IndexPage() {
               </div>
             </>
           )}
+          <AppRail
+            is_contacts_open={is_rail_contacts_open}
+            on_compose={handle_contacts_compose}
+            on_contacts_open_change={set_is_rail_contacts_open}
+          />
         </div>
       </div>
       {state.is_settings_route && settings_popup_mode && (

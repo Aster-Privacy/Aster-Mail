@@ -859,6 +859,19 @@ export function BehaviorSection() {
           }
           title={t("settings.minimize_sidebar")}
         />
+
+        <ToggleSetting
+          description={t("settings.show_side_panel_description")}
+          enabled={preferences.show_side_panel}
+          on_toggle={() =>
+            update_preference(
+              "show_side_panel",
+              !preferences.show_side_panel,
+              true,
+            )
+          }
+          title={t("settings.show_side_panel")}
+        />
       </div>
 
       <div>

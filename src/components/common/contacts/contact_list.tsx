@@ -18,7 +18,11 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { DecryptedContact } from "@/types/contacts";
+import type {
+  ContactFormData,
+  ContactGroup,
+  DecryptedContact,
+} from "@/types/contacts";
 import type { TranslationKey } from "@/lib/i18n";
 import type { RefObject } from "react";
 import type {
@@ -37,12 +41,37 @@ import {
   ClipboardDocumentIcon,
   ArrowDownTrayIcon,
   TrashIcon,
+  PrinterIcon,
+  BarsArrowDownIcon,
+  BarsArrowUpIcon,
+  WrenchScrewdriverIcon,
+  CakeIcon,
+  XMarkIcon,
+  SparklesIcon,
+  UserCircleIcon,
+  EnvelopeIcon,
 } from "@heroicons/react/24/outline";
 import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
-import { Button } from "@aster/ui";
-import { Switch } from "@aster/ui";
+import { Button, Switch, Tooltip } from "@aster/ui";
+import { useCallback, useMemo, useState } from "react";
 
 import { Skeleton } from "@/components/ui/skeleton";
+import { ContactGroupsPane } from "@/components/common/contacts/contact_groups_pane";
+import { ContactTrashPane } from "@/components/common/contacts/contact_trash_pane";
+import { ContactMergeModal } from "@/components/contacts/contact_merge_modal";
+import { ContactBulkCreateModal } from "@/components/contacts/contact_bulk_create_modal";
+import { ContactGroupAssignMenu } from "@/components/common/contacts/contact_group_assign_menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown_menu";
+import {
+  count_duplicate_contacts,
+  find_duplicate_clusters,
+} from "@/lib/contact_duplicates";
 import { MobileMenuButton } from "@/components/layout/sidebar";
 import { use_preferences } from "@/contexts/preferences_context";
 import { EncryptionInfoDropdown } from "@/components/common/encryption_info_dropdown";
@@ -93,6 +122,49 @@ interface ContactListProps {
   on_compose_email: (email: string) => void;
   on_copy: (text: string, field: string) => void;
   on_scroll_to_letter: (letter: string) => void;
+  search_query: string;
+  trashed_contacts: DecryptedContact[];
+  on_print_contacts: () => void;
+  on_restore_contact: (contact: DecryptedContact) => void;
+  on_delete_forever: (contact: DecryptedContact) => void;
+  on_empty_trash: () => void;
+  on_contacts_refresh: () => void;
+  on_add_selected_to_group: (group: ContactGroup) => void;
+  on_compose_to_recipients: (recipients: string) => void;
+  on_bulk_create: (entries: ContactFormData[]) => Promise<void>;
+}
+
+type ContactTab = "contacts" | "frequent" | "other" | "groups" | "trash";
+
+const BIRTHDAY_CARD_STORAGE_KEY = "aster_contacts_birthday_card_dismissed";
+
+function read_birthday_card_dismissed(): boolean {
+  try {
+    return localStorage.getItem(BIRTHDAY_CARD_STORAGE_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function write_birthday_card_dismissed(): void {
+  try {
+    localStorage.setItem(BIRTHDAY_CARD_STORAGE_KEY, "1");
+  } catch {
+    return;
+  }
+}
+
+function parse_timestamp(value?: string): number {
+  if (!value) return 0;
+  const parsed = Date.parse(value);
+
+  return Number.isNaN(parsed) ? 0 : parsed;
+}
+
+function has_display_name(contact: DecryptedContact): boolean {
+  return Boolean(
+    (contact.first_name || "").trim() || (contact.last_name || "").trim(),
+  );
 }
 
 export function ContactList({
@@ -119,9 +191,111 @@ export function ContactList({
   on_copy_emails,
   on_export_contacts,
   on_delete_selected,
+  search_query,
+  trashed_contacts,
+  on_print_contacts,
+  on_restore_contact,
+  on_delete_forever,
+  on_empty_trash,
+  on_contacts_refresh,
+  on_add_selected_to_group,
+  on_compose_to_recipients,
+  on_compose_to_selected,
+  on_bulk_create,
+  upcoming_birthdays_count,
+  sort_by,
+  set_sort_by,
 }: ContactListProps) {
   const { preferences, update_preference } = use_preferences();
   const auto_save = !!preferences.auto_save_recent_recipients;
+  const [tab, set_tab] = useState<ContactTab>("contacts");
+  const [is_bulk_create_open, set_is_bulk_create_open] = useState(false);
+  const [birthday_card_dismissed, set_birthday_card_dismissed] = useState(() =>
+    read_birthday_card_dismissed(),
+  );
+  const [group_count, set_group_count] = useState(0);
+  const [is_group_modal_open, set_is_group_modal_open] = useState(false);
+  const handle_group_count_change = useCallback((count: number) => {
+    set_group_count(count);
+  }, []);
+  const [merge_targets, set_merge_targets] = useState<DecryptedContact[]>([]);
+  const duplicate_clusters = useMemo(
+    () => find_duplicate_clusters(contacts),
+    [contacts],
+  );
+  const duplicate_count = useMemo(
+    () => count_duplicate_contacts(duplicate_clusters),
+    [duplicate_clusters],
+  );
+
+  const frequent_contacts = useMemo(
+    () =>
+      filtered_contacts
+        .filter((contact) => (contact.email_count ?? 0) > 0)
+        .sort(
+          (a, b) =>
+            (b.email_count ?? 0) - (a.email_count ?? 0) ||
+            parse_timestamp(b.last_contacted) -
+              parse_timestamp(a.last_contacted),
+        ),
+    [filtered_contacts],
+  );
+
+  const other_contacts = useMemo(
+    () => filtered_contacts.filter((contact) => !has_display_name(contact)),
+    [filtered_contacts],
+  );
+
+  const is_list_tab =
+    tab === "contacts" || tab === "frequent" || tab === "other";
+
+  const visible_contacts =
+    tab === "frequent"
+      ? frequent_contacts
+      : tab === "other"
+        ? other_contacts
+        : filtered_contacts;
+
+  const has_any_birthday = useMemo(
+    () => contacts.some((contact) => Boolean(contact.birthday)),
+    [contacts],
+  );
+
+  const show_birthday_card =
+    tab === "contacts" &&
+    !has_selection &&
+    !birthday_card_dismissed &&
+    contacts.length > 0 &&
+    (upcoming_birthdays_count > 0 || !has_any_birthday);
+
+  const dismiss_birthday_card = useCallback(() => {
+    set_birthday_card_dismissed(true);
+    write_birthday_card_dismissed();
+  }, []);
+
+  const open_merge_review = useCallback(() => {
+    set_merge_targets(duplicate_clusters[0]?.contacts ?? []);
+  }, [duplicate_clusters]);
+
+  const tab_items: { key: ContactTab; label: string; count: number }[] = [
+    {
+      key: "contacts",
+      label: t("common.contacts"),
+      count: filtered_contacts.length,
+    },
+    {
+      key: "frequent",
+      label: t("common.frequent_contacts"),
+      count: frequent_contacts.length,
+    },
+    {
+      key: "other",
+      label: t("common.other_contacts"),
+      count: other_contacts.length,
+    },
+    { key: "groups", label: t("common.groups"), count: group_count },
+    { key: "trash", label: t("mail.trash"), count: trashed_contacts.length },
+  ];
 
   return (
     <div className="w-full md:w-1/2 md:flex-shrink-0 md:min-w-0 md:border-e md:border-edge-primary min-h-0 flex flex-col">
@@ -129,14 +303,9 @@ export function ContactList({
         <div className="md:hidden">
           <MobileMenuButton on_click={on_mobile_menu_toggle} />
         </div>
-        <h1 className="text-[20px] font-semibold text-txt-primary">
+        <h1 className="text-[20px] font-semibold leading-none text-txt-primary">
           {t("common.contacts")}
         </h1>
-        {!is_loading && contacts.length > 0 && (
-          <span className="text-[20px] tabular-nums font-semibold text-blue-500 leading-none">
-            {format_number(contacts.length)}
-          </span>
-        )}
         <div className="flex-1" />
         <div className="h-8 w-8 flex items-center justify-center">
           <EncryptionInfoDropdown
@@ -146,228 +315,523 @@ export function ContactList({
             size={20}
           />
         </div>
-        <Button
-          className="h-8 w-8"
-          disabled={is_importing}
-          size="icon"
-          variant="outline"
-          onClick={on_import_modal_open}
-        >
-          <ArrowUpTrayIcon className="w-4 h-4 text-txt-secondary" />
-        </Button>
-        <Button
-          className="h-8 w-8"
-          size="icon"
-          variant="outline"
-          onClick={on_add_click}
-        >
-          <PlusIcon className="w-4 h-4 text-txt-secondary" />
-        </Button>
+        <div className="flex items-center gap-1">
+          <DropdownMenu>
+            <Tooltip tip={t("common.sort")}>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  aria-label={t("common.sort")}
+                  className="h-9 w-9 rounded-[10px] hover:bg-[var(--bg-hover)] text-[var(--icon-secondary)] hover:text-[var(--icon-active)]"
+                  disabled={!is_list_tab}
+                  size="icon"
+                  variant="ghost"
+                >
+                  {sort_by === "name_desc" || sort_by === "last_name_desc" ? (
+                    <BarsArrowUpIcon className="w-[18px] h-[18px]" />
+                  ) : (
+                    <BarsArrowDownIcon className="w-[18px] h-[18px]" />
+                  )}
+                </Button>
+              </DropdownMenuTrigger>
+            </Tooltip>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem
+                className={sort_by === "name_asc" ? "font-medium" : ""}
+                onClick={() => set_sort_by("name_asc")}
+              >
+                {t("common.name")} A-Z
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className={sort_by === "name_desc" ? "font-medium" : ""}
+                onClick={() => set_sort_by("name_desc")}
+              >
+                {t("common.name")} Z-A
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className={sort_by === "last_name_asc" ? "font-medium" : ""}
+                onClick={() => set_sort_by("last_name_asc")}
+              >
+                {t("common.last_name")} A-Z
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className={sort_by === "last_name_desc" ? "font-medium" : ""}
+                onClick={() => set_sort_by("last_name_desc")}
+              >
+                {t("common.last_name")} Z-A
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className={sort_by === "company" ? "font-medium" : ""}
+                onClick={() => set_sort_by("company")}
+              >
+                {t("common.company")}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className={sort_by === "recent" ? "font-medium" : ""}
+                onClick={() => set_sort_by("recent")}
+              >
+                {t("common.recently_added")}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <DropdownMenu>
+            <Tooltip tip={t("common.manage_contacts")}>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  aria-label={t("common.manage_contacts")}
+                  className="h-9 w-9 rounded-[10px] hover:bg-[var(--bg-hover)] text-[var(--icon-secondary)] hover:text-[var(--icon-active)]"
+                  size="icon"
+                  variant="ghost"
+                >
+                  <WrenchScrewdriverIcon className="w-[18px] h-[18px]" />
+                </Button>
+              </DropdownMenuTrigger>
+            </Tooltip>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuItem
+                disabled={duplicate_count === 0}
+                onClick={open_merge_review}
+              >
+                <SparklesIcon className="w-4 h-4" />
+                {duplicate_count === 0
+                  ? t("common.no_duplicates_found")
+                  : t("common.merge_and_fix")}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                disabled={is_importing}
+                onClick={on_import_modal_open}
+              >
+                <ArrowUpTrayIcon className="w-4 h-4" />
+                {t("common.import_contacts")}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                disabled={contacts.length === 0}
+                onClick={() => on_export_contacts(false)}
+              >
+                <ArrowDownTrayIcon className="w-4 h-4" />
+                {t("common.export_all")}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                disabled={contacts.length === 0}
+                onClick={on_print_contacts}
+              >
+                <PrinterIcon className="w-4 h-4" />
+                {t("common.print_contacts")}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => set_tab("trash")}>
+                <TrashIcon className="w-4 h-4" />
+                {t("mail.trash")}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <DropdownMenu>
+            <Tooltip tip={t("common.create_contact")}>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  aria-label={t("common.create_contact")}
+                  className="h-9 w-9 rounded-[10px] hover:bg-[var(--bg-hover)] text-[var(--icon-secondary)] hover:text-[var(--icon-active)]"
+                  size="icon"
+                  variant="ghost"
+                >
+                  <PlusIcon className="w-[18px] h-[18px]" />
+                </Button>
+              </DropdownMenuTrigger>
+            </Tooltip>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuItem
+                onClick={() => {
+                  set_tab("contacts");
+                  on_add_click();
+                }}
+              >
+                <UserPlusIcon className="w-4 h-4" />
+                {t("common.create_contact")}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => set_is_bulk_create_open(true)}>
+                <UserCircleIcon className="w-4 h-4" />
+                {t("common.create_multiple_contacts")}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => {
+                  set_tab("groups");
+                  set_is_group_modal_open(true);
+                }}
+              >
+                <PlusIcon className="w-4 h-4" />
+                {t("common.add_group")}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
 
-      {has_selection ? (
-        <div className="flex items-center gap-1 px-4 py-2 border-b border-edge-primary">
-          <span className="text-[12px] tabular-nums font-medium text-txt-primary pe-2">
-            {t("common.selected_count", {
-              count: selection_state.selected_count,
-            })}
-          </span>
+      <div className="contact_tab_strip px-4 pb-2" role="tablist">
+        {tab_items.map((item) => (
           <button
-            aria-label={
-              selected_all_favorited
-                ? t("common.removed_from_favorites")
-                : t("common.added_to_favorites")
-            }
-            className="h-8 w-8 inline-flex items-center justify-center rounded-[8px] text-txt-secondary hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+            key={item.key}
+            aria-selected={tab === item.key}
+            className="contact_tab_pill"
+            data-selected={tab === item.key}
+            role="tab"
             type="button"
-            onClick={on_toggle_favorite_selected}
+            onClick={() => set_tab(item.key)}
           >
-            {selected_all_favorited ? (
-              <StarIconSolid className="w-4 h-4 text-yellow-500" />
-            ) : (
-              <StarIcon className="w-4 h-4" />
+            {item.label}
+            {item.count > 0 && (
+              <span className="contact_tab_pill_count tabular-nums">
+                {format_number(item.count)}
+              </span>
             )}
           </button>
-          <button
-            aria-label={t("common.copy")}
-            className="h-8 w-8 inline-flex items-center justify-center rounded-[8px] text-txt-secondary hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
-            type="button"
-            onClick={on_copy_emails}
-          >
-            <ClipboardDocumentIcon className="w-4 h-4" />
-          </button>
-          <button
-            aria-label={t("common.export_all")}
-            className="h-8 w-8 inline-flex items-center justify-center rounded-[8px] text-txt-secondary hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
-            type="button"
-            onClick={() => on_export_contacts(true)}
-          >
-            <ArrowDownTrayIcon className="w-4 h-4" />
-          </button>
-          <button
-            aria-label={t("common.delete")}
-            className="h-8 w-8 inline-flex items-center justify-center rounded-[8px] text-red-500 hover:bg-red-500/10 transition-colors"
-            type="button"
-            onClick={on_delete_selected}
-          >
-            <TrashIcon className="w-4 h-4" />
-          </button>
-        </div>
-      ) : (
-        <div className="flex items-center justify-between px-4 py-2 border-b border-edge-primary">
-          <p className="text-[12px] text-txt-muted pe-3 flex-1">
-            {t("settings.auto_save_recipients_to_contacts")}
-          </p>
-          <Switch
-            aria-label={t("settings.auto_save_recipients_to_contacts")}
-            checked={auto_save}
-            onCheckedChange={() =>
-              update_preference("auto_save_recent_recipients", !auto_save, true)
-            }
-          />
-        </div>
-      )}
-
-      {import_progress && (
-        <div className="px-4 py-2 border-b border-edge-primary">
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-[12px] text-txt-secondary">
-              {t("common.importing_contacts")}
-            </span>
-            <span className="text-[12px] tabular-nums text-txt-muted">
-              {import_progress.current}/{import_progress.total}
-            </span>
-          </div>
-          <div className="h-1.5 rounded-full overflow-hidden bg-edge-secondary">
-            <div
-              className="h-full bg-blue-500 transition-all duration-300"
-              style={{
-                width: `${(import_progress.current / import_progress.total) * 100}%`,
-              }}
-            />
-          </div>
-        </div>
-      )}
-
-      {error && (
-        <div className="mx-3 mt-2 p-2 rounded-lg bg-red-500/10 border border-red-500/20">
-          <p className="text-[12px] text-red-500">{error}</p>
-        </div>
-      )}
+        ))}
+      </div>
 
       <div
-        ref={list_container_ref}
-        className="flex-1 overflow-y-auto px-2 py-2"
+        className={cn(
+          "flex min-h-0 flex-1 flex-col",
+          tab === "trash" ? "" : "hidden",
+        )}
       >
-        {is_loading ? (
-          <div>
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="flex items-center gap-3 px-3 py-2.5">
-                <Skeleton className="w-10 h-10 rounded-full" />
-                <div className="flex-1 min-w-0">
-                  <Skeleton className="h-4 w-32 mb-1.5" />
-                  <Skeleton className="h-3 w-44" />
-                </div>
-              </div>
-            ))}
+        <ContactTrashPane
+          contacts={trashed_contacts}
+          on_delete_forever={on_delete_forever}
+          on_empty_trash={on_empty_trash}
+          on_restore={on_restore_contact}
+          search_query={search_query}
+          t={t}
+        />
+      </div>
+
+      <div
+        className={cn(
+          "flex min-h-0 flex-1 flex-col",
+          tab === "groups" ? "" : "hidden",
+        )}
+      >
+        <ContactGroupsPane
+          contacts={contacts}
+          is_modal_open={is_group_modal_open}
+          on_compose_to={on_compose_to_recipients}
+          on_count_change={handle_group_count_change}
+          on_modal_close={() => set_is_group_modal_open(false)}
+          on_modal_open={() => set_is_group_modal_open(true)}
+          on_open_contact={set_selected_contact}
+          search_query={search_query}
+          t={t}
+        />
+      </div>
+
+      <div
+        className={cn(
+          "flex min-h-0 flex-1 flex-col",
+          is_list_tab ? "" : "hidden",
+        )}
+      >
+        {show_birthday_card && (
+          <div className="contact_suggestion_card mx-4 mt-1 mb-1 flex flex-shrink-0 items-start gap-2.5">
+            <CakeIcon className="mt-[1px] h-4 w-4 flex-shrink-0 text-[var(--accent-color)]" />
+            <div className="min-w-0 flex-1">
+              <p className="text-[12.5px] font-medium text-txt-primary">
+                {upcoming_birthdays_count > 0
+                  ? t("common.birthdays_upcoming", {
+                      count: upcoming_birthdays_count,
+                    })
+                  : t("common.add_birthdays")}
+              </p>
+              <p className="mt-0.5 text-[12px] leading-relaxed text-txt-muted">
+                {t("common.add_birthdays_hint")}
+              </p>
+            </div>
+            <button
+              aria-label={t("common.dismiss")}
+              className="quick_contacts_notice_link flex-shrink-0"
+              type="button"
+              onClick={dismiss_birthday_card}
+            >
+              <XMarkIcon className="h-4 w-4" />
+            </button>
           </div>
-        ) : contacts.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 px-6">
-            <UserPlusIcon className="w-8 h-8 mb-3 text-txt-muted" />
-            <p className="text-[14px] font-medium mb-1 text-txt-primary">
-              {t("common.no_contacts")}
-            </p>
-            <p className="text-[12px] text-center mb-4 text-txt-muted">
-              {t("common.add_contacts_hint")}
-            </p>
-            <Button size="md" onClick={on_add_click}>
-              <PlusIcon className="w-3.5 h-3.5" />
-              {t("common.add_contact")}
-            </Button>
+        )}
+        {tab === "contacts" && !has_selection && duplicate_count > 0 && (
+          <div className="quick_contacts_notice mx-4 mt-1 mb-1 flex flex-shrink-0 items-center gap-2 rounded-[10px] px-3 py-2 text-[12.5px]">
+            <span className="min-w-0 flex-1 truncate">
+              {t("common.duplicates_found", { count: duplicate_count })}
+            </span>
+            <button
+              className="quick_contacts_notice_link flex-shrink-0"
+              type="button"
+              onClick={open_merge_review}
+            >
+              {t("common.review_duplicates")}
+            </button>
           </div>
-        ) : filtered_contacts.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16">
-            <MagnifyingGlassIcon className="w-8 h-8 mb-3 text-txt-muted" />
-            <p className="text-[14px] font-medium text-txt-primary">
-              {t("common.no_results")}
-            </p>
+        )}
+        {has_selection ? (
+          <div className="flex items-center gap-1 px-4 py-2 border-b border-edge-primary">
+            <span className="text-[12px] tabular-nums font-medium text-txt-primary pe-2">
+              {t("common.selected_count", {
+                count: selection_state.selected_count,
+              })}
+            </span>
+            <button
+              aria-label={
+                selected_all_favorited
+                  ? t("common.removed_from_favorites")
+                  : t("common.added_to_favorites")
+              }
+              className="h-8 w-8 inline-flex items-center justify-center rounded-[8px] text-txt-secondary hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+              type="button"
+              onClick={on_toggle_favorite_selected}
+            >
+              {selected_all_favorited ? (
+                <StarIconSolid className="w-4 h-4 text-yellow-500" />
+              ) : (
+                <StarIcon className="w-4 h-4" />
+              )}
+            </button>
+            <ContactGroupAssignMenu
+              on_select={on_add_selected_to_group}
+              t={t}
+            />
+            <button
+              aria-label={t("common.send_email")}
+              className="h-8 w-8 inline-flex items-center justify-center rounded-[8px] text-txt-secondary hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+              type="button"
+              onClick={on_compose_to_selected}
+            >
+              <EnvelopeIcon className="w-4 h-4" />
+            </button>
+            <button
+              aria-label={t("common.copy")}
+              className="h-8 w-8 inline-flex items-center justify-center rounded-[8px] text-txt-secondary hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+              type="button"
+              onClick={on_copy_emails}
+            >
+              <ClipboardDocumentIcon className="w-4 h-4" />
+            </button>
+            <button
+              aria-label={t("common.export_all")}
+              className="h-8 w-8 inline-flex items-center justify-center rounded-[8px] text-txt-secondary hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+              type="button"
+              onClick={() => on_export_contacts(true)}
+            >
+              <ArrowDownTrayIcon className="w-4 h-4" />
+            </button>
+            <button
+              aria-label={t("common.delete")}
+              className="h-8 w-8 inline-flex items-center justify-center rounded-[8px] text-red-500 hover:bg-red-500/10 transition-colors"
+              type="button"
+              onClick={on_delete_selected}
+            >
+              <TrashIcon className="w-4 h-4" />
+            </button>
           </div>
         ) : (
-          filtered_contacts.map((contact) => {
-            const name = `${contact.first_name} ${contact.last_name}`.trim();
-            const primary_email = contact.emails[0];
-            const is_active = selected_contact?.id === contact.id;
-            const is_selected = selected_ids.has(contact.id);
+          <div className="flex items-center justify-between px-4 py-2 border-b border-edge-primary">
+            <p className="text-[12px] text-txt-muted pe-3 flex-1">
+              {t("settings.auto_save_recipients_to_contacts")}
+            </p>
+            <Switch
+              aria-label={t("settings.auto_save_recipients_to_contacts")}
+              checked={auto_save}
+              onCheckedChange={() =>
+                update_preference(
+                  "auto_save_recent_recipients",
+                  !auto_save,
+                  true,
+                )
+              }
+            />
+          </div>
+        )}
 
-            return (
-              <button
-                key={contact.id}
-                ref={(el) => {
-                  if (el)
-                    contact_refs.current?.set(
-                      contact.id,
-                      el as unknown as HTMLDivElement,
-                    );
-                  else contact_refs.current?.delete(contact.id);
+        {import_progress && (
+          <div className="px-4 py-2 border-b border-edge-primary">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-[12px] text-txt-secondary">
+                {t("common.importing_contacts")}
+              </span>
+              <span className="text-[12px] tabular-nums text-txt-muted">
+                {import_progress.current}/{import_progress.total}
+              </span>
+            </div>
+            <div className="h-1.5 rounded-full overflow-hidden bg-edge-secondary">
+              <div
+                className="h-full bg-blue-500 transition-all duration-300"
+                style={{
+                  width: `${import_progress.total > 0 ? (import_progress.current / import_progress.total) * 100 : 0}%`,
                 }}
-                className={cn(
-                  "group/contact w-full flex items-center gap-3 px-3 py-1 my-0.5 rounded-[12px] text-start transition-colors",
-                  is_selected
-                    ? "bg-[var(--accent-blue,#3b82f6)]/10"
-                    : is_active
-                      ? "bg-black/10 dark:bg-white/10"
-                      : "hover:bg-black/5 dark:hover:bg-white/5",
-                )}
-                onClick={() => set_selected_contact(is_active ? null : contact)}
-              >
+              />
+            </div>
+          </div>
+        )}
+
+        {error && (
+          <div className="mx-3 mt-2 p-2 rounded-lg bg-red-500/10 border border-red-500/20">
+            <p className="text-[12px] text-red-500">{error}</p>
+          </div>
+        )}
+
+        <div
+          ref={list_container_ref}
+          className="flex-1 overflow-y-auto px-2 py-2"
+        >
+          {is_loading ? (
+            <div>
+              {Array.from({ length: 8 }).map((_, i) => (
                 <div
-                  aria-label={t("mail.select")}
-                  aria-pressed={is_selected}
-                  className="group/avatar aster_select_focus relative flex-shrink-0 w-10 h-10 cursor-pointer"
-                  role="button"
-                  tabIndex={0}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    on_toggle_select(contact.id);
-                  }}
-                  onKeyDown={(e) => {
-                    if (e["key"] === "Enter" || e["key"] === " ") {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      on_toggle_select(contact.id);
-                    }
-                  }}
+                  key={i}
+                  className="flex items-center gap-3 px-3 py-1.5 my-0.5"
                 >
-                  <ContactAvatar
-                    avatar_url={contact.avatar_url}
-                    className={cn(
-                      "transition-opacity duration-150",
-                      is_selected
-                        ? "opacity-0"
-                        : "group-hover/avatar:opacity-0",
-                    )}
-                    email={primary_email}
-                    name={`${contact.first_name || ""} ${contact.last_name || ""}`.trim()}
-                    profile_color={contact.profile_color}
-                    size_px={40}
-                  />
-                  <div
-                    className={cn(
-                      "absolute inset-0 rounded-full flex items-center justify-center transition-opacity duration-150",
-                      is_selected
-                        ? "opacity-100 bg-[var(--accent-blue,#3b82f6)]"
-                        : "opacity-0 group-hover/avatar:opacity-100 bg-black/30 dark:bg-white/20",
-                    )}
-                  >
-                    <CheckIcon className="w-5 h-5 text-white" />
+                  <Skeleton className="w-10 h-10 flex-shrink-0 rounded-full" />
+                  <div className="flex-1 min-w-0">
+                    <Skeleton className="h-[14px] w-32 mb-1.5 rounded-[6px]" />
+                    <Skeleton className="h-3 w-44 rounded-[6px]" />
                   </div>
                 </div>
-                <div className="flex-1 min-w-0">
-                  {name ? (
-                    <>
+              ))}
+            </div>
+          ) : tab === "contacts" && contacts.length === 0 ? (
+            <div className="contact_empty_state">
+              <span className="contact_empty_state_glyph">
+                <UserPlusIcon className="w-8 h-8" strokeWidth={1.25} />
+              </span>
+              <p className="text-[14px] font-medium mb-1 text-txt-primary">
+                {t("common.no_contacts")}
+              </p>
+              <p className="text-[12.5px] max-w-[280px] mb-4 text-txt-muted">
+                {t("common.add_contacts_hint")}
+              </p>
+              <Button size="md" onClick={on_add_click}>
+                <PlusIcon className="w-3.5 h-3.5" />
+                {t("common.add_contact")}
+              </Button>
+            </div>
+          ) : visible_contacts.length === 0 ? (
+            <div className="contact_empty_state">
+              <span className="contact_empty_state_glyph">
+                {search_query.trim() ? (
+                  <MagnifyingGlassIcon className="w-8 h-8" strokeWidth={1.25} />
+                ) : tab === "frequent" ? (
+                  <SparklesIcon className="w-8 h-8" strokeWidth={1.25} />
+                ) : (
+                  <UserCircleIcon className="w-8 h-8" strokeWidth={1.25} />
+                )}
+              </span>
+              <p className="text-[14px] font-medium mb-1 text-txt-primary">
+                {search_query.trim()
+                  ? t("common.no_results")
+                  : tab === "frequent"
+                    ? t("common.no_frequent_contacts")
+                    : tab === "other"
+                      ? t("common.no_other_contacts")
+                      : t("common.no_results")}
+              </p>
+              <p className="text-[12.5px] max-w-[280px] text-txt-muted">
+                {search_query.trim()
+                  ? t("settings.try_different_search")
+                  : tab === "frequent"
+                    ? t("common.frequent_contacts_hint")
+                    : tab === "other"
+                      ? t("common.other_contacts_hint")
+                      : t("settings.try_different_search")}
+              </p>
+            </div>
+          ) : (
+            visible_contacts.map((contact) => {
+              const name = `${contact.first_name} ${contact.last_name}`.trim();
+              const primary_email = contact.emails[0];
+              const is_active = selected_contact?.id === contact.id;
+              const is_selected = selected_ids.has(contact.id);
+
+              return (
+                <button
+                  key={contact.id}
+                  ref={(el) => {
+                    if (el)
+                      contact_refs.current?.set(
+                        contact.id,
+                        el as unknown as HTMLDivElement,
+                      );
+                    else contact_refs.current?.delete(contact.id);
+                  }}
+                  className="contact_row group/contact w-full flex items-center gap-3 px-3 py-1.5 my-0.5 rounded-[12px] text-start"
+                  data-active={is_active}
+                  data-selected={is_selected}
+                  onClick={() =>
+                    set_selected_contact(is_active ? null : contact)
+                  }
+                >
+                  <div
+                    aria-label={t("mail.select")}
+                    aria-pressed={is_selected}
+                    className="group/avatar aster_select_focus relative flex-shrink-0 w-10 h-10 cursor-pointer"
+                    role="button"
+                    tabIndex={0}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      on_toggle_select(contact.id);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e["key"] === "Enter" || e["key"] === " ") {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        on_toggle_select(contact.id);
+                      }
+                    }}
+                  >
+                    <ContactAvatar
+                      avatar_url={contact.avatar_url}
+                      className={cn(
+                        "transition-opacity duration-150",
+                        is_selected
+                          ? "opacity-0"
+                          : "group-hover/avatar:opacity-0",
+                      )}
+                      email={primary_email}
+                      name={`${contact.first_name || ""} ${contact.last_name || ""}`.trim()}
+                      profile_color={contact.profile_color}
+                      size_px={40}
+                    />
+                    <div
+                      className={cn(
+                        "absolute inset-0 rounded-full flex items-center justify-center transition-opacity duration-150",
+                        is_selected
+                          ? "opacity-100 bg-[var(--accent-color)]"
+                          : "opacity-0 group-hover/avatar:opacity-100 bg-black/30 dark:bg-white/20",
+                      )}
+                    >
+                      <CheckIcon className="w-5 h-5 text-white" />
+                    </div>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    {name ? (
+                      <>
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <p className="contact_row_name text-[14px] font-medium truncate text-txt-primary">
+                            {name}
+                          </p>
+                          {contact.is_favorite && (
+                            <StarIconSolid
+                              aria-label={t("common.favorite")}
+                              className="w-3.5 h-3.5 text-amber-400 flex-shrink-0"
+                            />
+                          )}
+                        </div>
+                        {primary_email && (
+                          <p className="contact_row_sub text-[12px] truncate text-txt-muted">
+                            {primary_email}
+                          </p>
+                        )}
+                      </>
+                    ) : (
                       <div className="flex items-center gap-1.5 min-w-0">
-                        <p className="text-[14px] font-medium truncate text-txt-primary">
-                          {name}
+                        <p className="contact_row_name text-[14px] font-medium truncate text-txt-primary">
+                          {primary_email || t("common.unnamed")}
                         </p>
                         {contact.is_favorite && (
                           <StarIconSolid
@@ -376,31 +840,31 @@ export function ContactList({
                           />
                         )}
                       </div>
-                      {primary_email && (
-                        <p className="text-[12px] truncate text-txt-muted">
-                          {primary_email}
-                        </p>
-                      )}
-                    </>
-                  ) : (
-                    <div className="flex items-center gap-1.5 min-w-0">
-                      <p className="text-[14px] font-medium truncate text-txt-primary">
-                        {primary_email || t("common.unnamed")}
-                      </p>
-                      {contact.is_favorite && (
-                        <StarIconSolid
-                          aria-label={t("common.favorite")}
-                          className="w-3.5 h-3.5 text-amber-400 flex-shrink-0"
-                        />
-                      )}
-                    </div>
-                  )}
-                </div>
-              </button>
-            );
-          })
-        )}
+                    )}
+                  </div>
+                </button>
+              );
+            })
+          )}
+        </div>
       </div>
+
+      <ContactBulkCreateModal
+        is_open={is_bulk_create_open}
+        on_close={() => set_is_bulk_create_open(false)}
+        on_create={on_bulk_create}
+      />
+
+      {merge_targets.length > 1 && (
+        <ContactMergeModal
+          contacts={merge_targets}
+          on_close={() => set_merge_targets([])}
+          on_merged={() => {
+            set_merge_targets([]);
+            on_contacts_refresh();
+          }}
+        />
+      )}
     </div>
   );
 }

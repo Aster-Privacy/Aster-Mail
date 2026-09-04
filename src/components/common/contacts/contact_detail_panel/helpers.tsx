@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type {
+  ContactRevision,
   DecryptedContact,
   ContactFormData,
   EmailEntry,
@@ -65,11 +66,15 @@ export interface ContactDetailPanelProps {
   on_inline_save?: (
     contact: DecryptedContact,
     data: ContactFormData,
-  ) => Promise<void> | void;
+  ) => Promise<boolean | void> | boolean | void;
   on_inline_create?: (data: ContactFormData) => Promise<void> | void;
   on_cancel_create?: () => void;
   on_dismiss?: () => void;
   on_toggle_favorite?: (contact: DecryptedContact) => Promise<void> | void;
+  on_undo_change?: (
+    contact: DecryptedContact,
+    revision: ContactRevision,
+  ) => Promise<void> | void;
   is_creating_new?: boolean;
   is_submitting?: boolean;
 }
@@ -132,7 +137,7 @@ export function to_edit_state(contact: DecryptedContact): EditState {
     phonetic_middle_name: contact.phonetic_middle_name || "",
     phonetic_last_name: contact.phonetic_last_name || "",
     nickname: contact.nickname || "",
-    role: contact.role || "",
+    role: contact.role || contact.job_title || "",
     department: contact.department || "",
     company: contact.company || "",
     comment: contact.comment || "",
@@ -244,6 +249,17 @@ export const IM_TYPE_OPTIONS: InstantMessengerType[] = [
   "xmpp",
   "other",
 ];
+
+export function format_address_lines(entry: AddressEntry): string[] {
+  return [
+    entry.street,
+    [entry.city, entry.state].filter(Boolean).join(" "),
+    entry.postal_code,
+    entry.country,
+  ]
+    .map((part) => (part || "").trim())
+    .filter(Boolean);
+}
 
 export function type_label_key(type: string): TranslationKey {
   return `common.type_${type}` as TranslationKey;

@@ -21,6 +21,29 @@
 export const hi = {
   common: {
     add_group: "समूह जोड़ें",
+    create_contact: "संपर्क बनाएँ",
+    create_multiple_contacts: "कई संपर्क बनाएँ",
+    bulk_create_hint:
+      "हर पंक्ति में एक संपर्क जोड़ें। नाम के साथ ईमेल पता सहेजने के लिए, पते को कोण कोष्ठकों में रखें।",
+    bulk_create_placeholder: "Ada Lovelace <ada@example.com>",
+    bulk_create_ready: "{{count}} बनाने के लिए तैयार",
+    contacts_created: "{{count}} संपर्क बनाए गए",
+    some_contacts_not_created: "कुछ संपर्क नहीं बनाए जा सके।",
+    manage_contacts: "संपर्क प्रबंधित करें",
+    merge_and_fix: "मर्ज करें और ठीक करें",
+    no_duplicates_found: "ठीक करने के लिए कोई डुप्लिकेट नहीं",
+    frequent_contacts: "अक्सर",
+    other_contacts: "अन्य",
+    no_frequent_contacts: "अभी तक कोई अक्सर संपर्क नहीं",
+    frequent_contacts_hint:
+      "जिन संपर्कों को आप सबसे ज़्यादा लिखते हैं वे यहाँ दिखते हैं।",
+    no_other_contacts: "कोई अन्य संपर्क नहीं",
+    other_contacts_hint:
+      "आपके मेल से सहेजे गए ऐसे पते जिनका अभी नाम नहीं है, यहाँ दिखते हैं।",
+    add_birthdays: "जन्मदिन जोड़ें",
+    add_birthdays_hint:
+      "किसी संपर्क में जन्मदिन जोड़ें और Aster आपको उस दिन से पहले याद दिलाएगा।",
+    birthdays_upcoming: "{{count}} जन्मदिन आने वाले हैं",
     add_new_group: "नया समूह",
     add_to_group: "समूह में जोड़ें",
     added_to_group: "समूह में जोड़ा गया",
@@ -8021,7 +8044,8 @@ export const hi = {
     moved_to_category: "श्रेणी में ले जाया गया",
     drop_to_move_here: "यहां ले जाने के लिए छोड़ें",
     tab_new_count: "नया",
-    tab_unread_count: "{{count}} बिना पढ़े", tab_counting_unread: "बिना पढ़े संदेश गिने जा रहे हैं",
+    tab_unread_count: "{{count}} बिना पढ़े",
+    tab_counting_unread: "बिना पढ़े संदेश गिने जा रहे हैं",
     category_empty_primary_title: "प्राथमिक में कुछ नहीं है",
     category_empty_primary_desc: "आपके निजी संदेश और बातचीत यहां दिखेंगे।",
     category_empty_promotions_title: "कोई ऑफ़र नहीं",
@@ -8466,6 +8490,9 @@ export const hi = {
     param_removed_from_n_links_other: "{{count}} लिंक से {{param}} हटाया गया",
     remote_images_blocked_count_one: "{{count}} बाहरी छवि रोकी गई",
     remote_images_blocked_count_other: "{{count}} बाहरी छवियां रोकी गईं",
+    empty_all_title: "यहाँ अभी कोई मेल नहीं",
+    empty_all_subtitle:
+      "स्पैम और ट्रैश को छोड़कर आपके खाते की हर चीज़ यहाँ दिखती है",
   },
   auth: {
     captcha_load_failed:
@@ -8858,6 +8885,8 @@ export const hi = {
     creating_recovery_backup: "रिकवरी बैकअप बनाया जा रहा है...",
     preparing_pgp_key: "PGP कुंजी तैयार की जा रही है...",
     creating_your_account: "आपका खाता बनाया जा रहा है...",
+    setup_taking_longer:
+      "इसमें सामान्य से अधिक समय लग रहा है. जब तक आपका खाता सेट हो रहा है, यह पेज खुला रखें.",
     username_in_use:
       "यह उपयोगकर्ता नाम पहले से लिया जा चुका है। कोई दूसरा नाम काम करना चाहिए।",
     password_breach_warning:

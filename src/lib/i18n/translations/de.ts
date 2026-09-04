@@ -8219,6 +8219,9 @@ export const de = {
     folder: "Ordner",
     empty_inbox_title: "Ihr Posteingang ist leer",
     empty_inbox_subtitle: "Neue Nachrichten erscheinen hier",
+    empty_all_title: "Hier ist noch keine Mail",
+    empty_all_subtitle:
+      "Hier erscheint alles aus Ihrem Konto, außer Spam und Papierkorb",
     empty_sent_title: "Keine gesendeten Nachrichten",
     empty_sent_subtitle: "Nachrichten, die Sie senden, erscheinen hier",
     empty_drafts_title: "Keine Entwürfe",

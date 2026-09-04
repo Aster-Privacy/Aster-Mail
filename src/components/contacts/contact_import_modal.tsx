@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { ContactFormData } from "@/types/contacts";
+import type { ContactFormData, ContactGroup } from "@/types/contacts";
 import type { TranslationKey } from "@/lib/i18n/types";
 
 import {
@@ -36,18 +36,51 @@ import {
   ExclamationTriangleIcon,
   ArrowRightIcon,
   ArrowLeftIcon,
+  MagnifyingGlassIcon,
+  UserGroupIcon,
 } from "@heroicons/react/24/outline";
+import { CheckIcon } from "@heroicons/react/24/solid";
 import { Button } from "@aster/ui";
 
+import { ContactAvatar } from "@/components/common/contacts/contact_avatar";
+import { TAG_COLOR_PRESETS } from "@/components/ui/email_tag";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { use_i18n } from "@/lib/i18n/context";
+import { use_unsaved_changes_guard } from "@/hooks/use_unsaved_changes_guard";
 import { format_number } from "@/lib/utils";
 import {
   import_csv,
   parse_vcard,
   parse_csv,
 } from "@/services/api/contact_sync";
+import {
+  add_contact_to_group,
+  create_contact_group,
+  generate_contact_token,
+  list_contact_groups,
+  list_contacts,
+} from "@/services/api/contacts";
 import { parse_csv_records } from "@/utils/contact_utils";
 import { user_facing_error } from "@/utils/user_facing_error";
+
+const PREVIEW_PAGE_SIZE = 60;
+const IMPORT_BATCH_SIZE = 25;
+const NO_GROUP_VALUE = "__none__";
+const IMPORT_RETRY_LIMIT = 2;
+const GROUP_ASSIGN_PAGE_LIMIT = 100;
+const MAX_GROUP_ASSIGN_PAGES = 100;
+
+function preview_name_of(contact: ContactFormData): string {
+  const full = `${contact.first_name} ${contact.last_name}`.trim();
+
+  return full || contact.emails[0] || "";
+}
 
 interface ContactImportModalProps {
   on_close: () => void;
@@ -92,9 +125,15 @@ export function ContactImportModal({
   const [is_importing, set_is_importing] = useState(false);
   const [import_result, set_import_result] = useState<{
     imported: number;
+    updated: number;
     skipped: number;
     failed: number;
   } | null>(null);
+  const [preview_query, set_preview_query] = useState("");
+  const [excluded_rows, set_excluded_rows] = useState<Set<number>>(new Set());
+  const [preview_limit, set_preview_limit] = useState(PREVIEW_PAGE_SIZE);
+  const [groups, set_groups] = useState<ContactGroup[]>([]);
+  const [target_group, set_target_group] = useState<string>("");
   const [error, set_error] = useState<string | null>(null);
   const [is_drag_active, set_is_drag_active] = useState(false);
   const input_ref = useRef<HTMLInputElement>(null);
@@ -218,51 +257,254 @@ export function ContactImportModal({
     set_step("preview");
   }, [raw_content, csv_mapping]);
 
+  const selected_contacts = useMemo(
+    () => parsed_contacts.filter((_, index) => !excluded_rows.has(index)),
+    [parsed_contacts, excluded_rows],
+  );
+
+  const visible_rows = useMemo(() => {
+    const needle = preview_query.trim().toLowerCase();
+    const rows = parsed_contacts.map((contact, index) => ({ contact, index }));
+
+    if (!needle) return rows;
+
+    return rows.filter(({ contact }) =>
+      [
+        preview_name_of(contact),
+        contact.emails.join(" "),
+        contact.company ?? "",
+        contact.phone ?? "",
+      ]
+        .join(" ")
+        .toLowerCase()
+        .includes(needle),
+    );
+  }, [parsed_contacts, preview_query]);
+
+  const all_visible_included = useMemo(
+    () =>
+      visible_rows.length > 0 &&
+      visible_rows.every(({ index }) => !excluded_rows.has(index)),
+    [visible_rows, excluded_rows],
+  );
+
+  const toggle_row = useCallback((index: number) => {
+    set_excluded_rows((prev) => {
+      const next = new Set(prev);
+
+      if (next.has(index)) next.delete(index);
+      else next.add(index);
+
+      return next;
+    });
+  }, []);
+
+  const toggle_all_visible = useCallback(() => {
+    set_excluded_rows((prev) => {
+      const next = new Set(prev);
+      const should_exclude = visible_rows.every(
+        ({ index }) => !next.has(index),
+      );
+
+      for (const { index } of visible_rows) {
+        if (should_exclude) next.add(index);
+        else next.delete(index);
+      }
+
+      return next;
+    });
+  }, [visible_rows]);
+
+  const resolve_group_ids = useCallback(
+    async (names: string[]) => {
+      const by_name = new Map<string, string>();
+
+      for (const group of groups) {
+        by_name.set(group.name.trim().toLowerCase(), group.id);
+      }
+
+      const missing: string[] = [];
+
+      for (const name of names) {
+        const trimmed = name.trim();
+        const key = trimmed.toLowerCase();
+
+        if (!trimmed || by_name.has(key)) continue;
+        by_name.set(key, "");
+        missing.push(trimmed);
+      }
+
+      const created: ContactGroup[] = [];
+
+      for (let i = 0; i < missing.length; i += 1) {
+        const key = missing[i].toLowerCase();
+        const response = await create_contact_group({
+          name: missing[i],
+          color:
+            TAG_COLOR_PRESETS[(groups.length + i) % TAG_COLOR_PRESETS.length]
+              .hex,
+        });
+
+        if (!response.data) {
+          by_name.delete(key);
+          continue;
+        }
+        by_name.set(key, response.data.id);
+        created.push(response.data);
+      }
+
+      if (created.length > 0) set_groups((prev) => [...prev, ...created]);
+
+      return by_name;
+    },
+    [groups],
+  );
+
+  const assign_imported_groups = useCallback(
+    async (payload: ContactFormData[]) => {
+      const pending = new Map<string, string[]>();
+
+      for (const contact of payload) {
+        if (!contact.groups || contact.groups.length === 0) continue;
+        pending.set(await generate_contact_token(contact), contact.groups);
+      }
+
+      if (pending.size === 0) return;
+
+      let cursor: string | undefined;
+
+      for (let page = 0; page < MAX_GROUP_ASSIGN_PAGES; page += 1) {
+        const response = await list_contacts({
+          limit: GROUP_ASSIGN_PAGE_LIMIT,
+          cursor,
+        });
+
+        if (response.error || !response.data) return;
+
+        for (const item of response.data.items) {
+          const group_ids = pending.get(item.contact_token);
+
+          if (!group_ids) continue;
+          pending.delete(item.contact_token);
+          for (const group_id of group_ids) {
+            await add_contact_to_group(item.id, group_id);
+          }
+        }
+
+        if (pending.size === 0) return;
+        if (!response.data.has_more || !response.data.next_cursor) return;
+        cursor = response.data.next_cursor;
+      }
+    },
+    [],
+  );
+
   const handle_import = useCallback(async () => {
+    if (selected_contacts.length === 0) return;
+
     set_is_importing(true);
     set_error(null);
 
     try {
-      const batch_size = 50;
+      const batch_size = IMPORT_BATCH_SIZE;
+      const group_ids_by_name = await resolve_group_ids(
+        selected_contacts.flatMap((contact) => contact.groups ?? []),
+      );
+      const payload = selected_contacts.map((contact) => {
+        const ids = (contact.groups ?? [])
+          .map((name) => group_ids_by_name.get(name.trim().toLowerCase()))
+          .filter((id): id is string => Boolean(id));
+
+        if (target_group) ids.push(target_group);
+
+        const unique = Array.from(new Set(ids));
+
+        return { ...contact, groups: unique.length > 0 ? unique : undefined };
+      });
       let imported = 0;
+      let updated = 0;
       let skipped = 0;
       let failed = 0;
 
-      for (let i = 0; i < parsed_contacts.length; i += batch_size) {
-        const batch = parsed_contacts.slice(i, i + batch_size);
-        const response = await import_csv(batch);
+      for (let i = 0; i < payload.length; i += batch_size) {
+        const batch = payload.slice(i, i + batch_size);
+        let response = await import_csv(batch);
+        let attempt = 0;
+
+        while (
+          attempt < IMPORT_RETRY_LIMIT &&
+          (response.code === "TIMEOUT_ERROR" ||
+            response.code === "NETWORK_ERROR")
+        ) {
+          attempt += 1;
+          await new Promise((resolve) => setTimeout(resolve, 1500 * attempt));
+          response = await import_csv(batch);
+        }
 
         if (response.error || !response.data) {
           set_error(response.error || t("common.import_failed"));
-          failed += parsed_contacts.length - i;
-          set_import_result({ imported, skipped, failed });
+          failed += payload.length - i;
+          set_import_result({ imported, updated, skipped, failed });
           set_step("complete");
 
           return;
         }
 
-        imported += response.data.imported;
-        skipped += response.data.skipped;
-        failed += response.data.failed;
+        imported += response.data.imported ?? 0;
+        updated += response.data.updated ?? 0;
+        skipped += response.data.skipped ?? 0;
+        failed += response.data.failed ?? 0;
       }
 
-      set_import_result({ imported, skipped, failed });
+      await assign_imported_groups(payload);
+
+      set_import_result({ imported, updated, skipped, failed });
       set_step("complete");
     } catch (err) {
       set_error(user_facing_error(err, t("common.import_failed")));
     } finally {
       set_is_importing(false);
     }
-  }, [parsed_contacts, t]);
+  }, [
+    assign_imported_groups,
+    resolve_group_ids,
+    selected_contacts,
+    target_group,
+    t,
+  ]);
 
   const handle_done = useCallback(() => {
     on_import_complete(import_result?.imported || 0);
     on_close();
   }, [import_result, on_import_complete, on_close]);
 
-  const preview_contacts = useMemo(() => {
-    return parsed_contacts.slice(0, 5);
-  }, [parsed_contacts]);
+  const preview_rows = useMemo(
+    () => visible_rows.slice(0, preview_limit),
+    [visible_rows, preview_limit],
+  );
+
+  useEffect(() => {
+    set_preview_limit(PREVIEW_PAGE_SIZE);
+  }, [preview_query, parsed_contacts]);
+
+  useEffect(() => {
+    if (step !== "preview") return;
+
+    let cancelled = false;
+
+    void (async () => {
+      const response = await list_contact_groups();
+
+      if (cancelled || response.error || !response.data) return;
+      set_groups(response.data.groups);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [step]);
+
+  use_unsaved_changes_guard(is_importing);
 
   const request_close = useCallback(() => {
     if (is_importing) return;
@@ -312,7 +554,7 @@ export function ContactImportModal({
         ref={dialog_ref}
         aria-labelledby={title_id}
         aria-modal="true"
-        className="relative w-full max-w-md mx-4 rounded-xl border overflow-hidden bg-modal-bg border-edge-primary outline-none"
+        className="relative mx-4 flex max-h-[86vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border bg-modal-bg border-edge-primary outline-none"
         role="dialog"
         style={{
           boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.35)",
@@ -320,7 +562,7 @@ export function ContactImportModal({
         tabIndex={-1}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between px-6 pt-5 pb-4">
+        <div className="flex flex-shrink-0 items-center justify-between px-6 pt-5 pb-4">
           <h2
             className="text-[16px] font-semibold text-txt-primary"
             id={title_id}
@@ -338,11 +580,11 @@ export function ContactImportModal({
         </div>
 
         <div
-          className="h-px"
+          className="h-px flex-shrink-0"
           style={{ backgroundColor: "var(--border-secondary)" }}
         />
 
-        <div className="px-6 pb-6 pt-4">
+        <div className="flex min-h-0 flex-1 flex-col px-6 pb-6 pt-4">
           {step === "select" && (
             <div className="space-y-4">
               <p className="text-sm text-txt-muted">
@@ -384,9 +626,9 @@ export function ContactImportModal({
               </p>
 
               <div className="space-y-2 max-h-64 overflow-y-auto">
-                {csv_headers.map((header) => (
+                {csv_headers.map((header, header_index) => (
                   <div
-                    key={header}
+                    key={`${header}_${header_index}`}
                     className="flex items-center gap-3 p-2 rounded-lg bg-surf-secondary"
                   >
                     <span className="text-sm font-medium flex-1 truncate text-txt-primary">
@@ -416,7 +658,11 @@ export function ContactImportModal({
               </div>
 
               <div className="flex items-center justify-end gap-2 pt-2">
-                <Button variant="ghost" onClick={() => set_step("select")}>
+                <Button
+                  className="border border-edge-secondary"
+                  variant="ghost"
+                  onClick={() => set_step("select")}
+                >
                   <ArrowLeftIcon className="w-4 h-4 me-1 rtl:-scale-x-100" />
                   {t("common.back")}
                 </Button>
@@ -429,45 +675,169 @@ export function ContactImportModal({
           )}
 
           {step === "preview" && (
-            <div className="space-y-4">
-              <p className="text-sm text-txt-secondary">
-                {parsed_contacts.length === 1
-                  ? t("common.found_one_contact")
-                  : t("common.found_n_contacts", {
-                      count: parsed_contacts.length,
-                    })}
-              </p>
-
-              <div className="space-y-2 max-h-64 overflow-y-auto">
-                {preview_contacts.map((contact, idx) => (
-                  <div
-                    key={idx}
-                    className="p-3 rounded-lg bg-surf-secondary border border-edge-secondary"
+            <div className="flex min-h-0 flex-1 flex-col gap-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="quick_contacts_search flex h-9 min-w-[190px] flex-1 items-center gap-2 rounded-full px-3">
+                  <MagnifyingGlassIcon className="h-4 w-4 flex-shrink-0 text-txt-muted" />
+                  <input
+                    aria-label={t("common.import_search_placeholder")}
+                    className="min-w-0 flex-1 bg-transparent text-[13.5px] text-txt-primary outline-none placeholder:text-txt-muted"
+                    placeholder={t("common.import_search_placeholder")}
+                    type="text"
+                    value={preview_query}
+                    onChange={(e) => set_preview_query(e.target.value)}
+                  />
+                  {preview_query && (
+                    <button
+                      aria-label={t("common.clear")}
+                      className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full"
+                      type="button"
+                      onClick={() => set_preview_query("")}
+                    >
+                      <XMarkIcon className="h-3.5 w-3.5 text-txt-muted" />
+                    </button>
+                  )}
+                </div>
+                <Select
+                  value={target_group || NO_GROUP_VALUE}
+                  onValueChange={(value) =>
+                    set_target_group(value === NO_GROUP_VALUE ? "" : value)
+                  }
+                >
+                  <SelectTrigger
+                    aria-label={t("common.import_add_to_group")}
+                    className="h-9 w-auto min-w-[176px] rounded-full px-3 text-[13px]"
                   >
-                    <p className="text-sm font-medium text-txt-primary">
-                      {contact.first_name} {contact.last_name}
-                    </p>
-                    {contact.emails[0] && (
-                      <p className="text-xs text-txt-muted">
-                        {contact.emails[0]}
-                      </p>
+                    <span className="flex min-w-0 items-center gap-2">
+                      <UserGroupIcon className="h-4 w-4 flex-shrink-0 text-txt-muted" />
+                      <SelectValue />
+                    </span>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={NO_GROUP_VALUE}>
+                      {t("common.import_no_group")}
+                    </SelectItem>
+                    {groups.map((group) => (
+                      <SelectItem key={group.id} value={group.id}>
+                        {group.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  aria-checked={all_visible_included}
+                  className="quick_contacts_select_all flex items-center gap-2 rounded-full py-1 pe-3 ps-1.5 text-[12.5px] font-medium"
+                  role="checkbox"
+                  type="button"
+                  onClick={toggle_all_visible}
+                >
+                  <span
+                    aria-hidden
+                    className="quick_contacts_select_box flex h-[18px] w-[18px] items-center justify-center rounded-[5px]"
+                    data-checked={all_visible_included}
+                  >
+                    {all_visible_included && (
+                      <CheckIcon className="h-3 w-3" strokeWidth={3} />
                     )}
-                    {contact.phone && (
-                      <p className="text-xs text-txt-muted">{contact.phone}</p>
-                    )}
-                  </div>
-                ))}
-                {parsed_contacts.length > 5 && (
-                  <p className="text-xs text-txt-muted text-center py-2">
-                    {t("common.and_n_more", {
-                      count: parsed_contacts.length - 5,
+                  </span>
+                  {all_visible_included
+                    ? t("common.import_clear_all")
+                    : t("common.import_select_all")}
+                </button>
+                <span className="flex-1" />
+                <span className="text-[12.5px] text-txt-muted">
+                  {t("common.import_selected_count", {
+                    selected: selected_contacts.length,
+                    total: parsed_contacts.length,
+                  })}
+                </span>
+              </div>
+
+              <div className="contact_import_list flex min-h-[240px] flex-1 flex-col gap-1.5 overflow-y-auto pe-1">
+                {preview_rows.length === 0 ? (
+                  <p className="px-3 py-8 text-center text-[13px] text-txt-muted">
+                    {t("common.no_contacts_match", {
+                      query: preview_query.trim(),
                     })}
                   </p>
+                ) : (
+                  preview_rows.map(({ contact, index }) => {
+                    const name = preview_name_of(contact);
+                    const subtitle = [contact.job_title, contact.company]
+                      .filter(Boolean)
+                      .join(" \u00b7 ");
+                    const meta = [contact.emails[0], contact.phone]
+                      .filter(Boolean)
+                      .join(" \u00b7 ");
+                    const is_included = !excluded_rows.has(index);
+
+                    return (
+                      <button
+                        key={index}
+                        aria-pressed={is_included}
+                        className="contact_import_row flex w-full flex-shrink-0 items-center gap-3 px-3 py-2.5 text-start"
+                        data-selected={is_included}
+                        type="button"
+                        onClick={() => toggle_row(index)}
+                      >
+                        <span
+                          aria-hidden
+                          className="quick_contacts_select_box flex h-[18px] w-[18px] flex-shrink-0 items-center justify-center rounded-[5px]"
+                          data-checked={is_included}
+                        >
+                          {is_included && (
+                            <CheckIcon className="h-3 w-3" strokeWidth={3} />
+                          )}
+                        </span>
+                        <ContactAvatar
+                          avatar_url={contact.avatar_url}
+                          email={contact.emails[0]}
+                          name={name}
+                          size_px={34}
+                        />
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate text-[13px] font-medium">
+                            {name}
+                          </span>
+                          {subtitle && (
+                            <span className="contact_import_row_sub block truncate text-[12px] text-txt-secondary">
+                              {subtitle}
+                            </span>
+                          )}
+                          {meta && (
+                            <span className="contact_import_row_meta block truncate text-[11.5px] text-txt-muted">
+                              {meta}
+                            </span>
+                          )}
+                        </span>
+                      </button>
+                    );
+                  })
+                )}
+                {preview_limit < visible_rows.length && (
+                  <div className="pt-1">
+                    <Button
+                      className="w-full"
+                      size="sm"
+                      variant="ghost"
+                      onClick={() =>
+                        set_preview_limit((limit) => limit + PREVIEW_PAGE_SIZE)
+                      }
+                    >
+                      {t("common.and_n_more", {
+                        count: visible_rows.length - preview_limit,
+                      })}
+                    </Button>
+                  </div>
                 )}
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-2">
+              <div className="flex flex-shrink-0 items-center justify-between gap-2 pt-1">
                 <Button
+                  className="border border-edge-secondary"
                   variant="ghost"
                   onClick={() =>
                     set_step(file_type === "csv" ? "mapping" : "select")
@@ -477,16 +847,17 @@ export function ContactImportModal({
                   {t("common.back")}
                 </Button>
                 <Button
-                  disabled={is_importing || parsed_contacts.length === 0}
+                  disabled={is_importing || selected_contacts.length === 0}
                   is_loading={is_importing}
+                  loading_position="before"
                   variant="depth"
                   onClick={handle_import}
                 >
                   <>
-                    {parsed_contacts.length === 1
+                    {selected_contacts.length === 1
                       ? t("common.import_one_contact")
                       : t("common.import_n_contacts", {
-                          count: parsed_contacts.length,
+                          count: selected_contacts.length,
                         })}
                   </>
                 </Button>
@@ -520,55 +891,48 @@ export function ContactImportModal({
                 )}
               </div>
 
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-4 gap-2">
                 <div
-                  className="p-3 rounded-lg"
-                  style={{ backgroundColor: "#16a34a" }}
+                  className="contact_import_stat rounded-xl p-3"
+                  data-tone="success"
                 >
-                  <p
-                    className="text-2xl font-semibold"
-                    style={{ color: "#fff" }}
-                  >
+                  <p className="text-[20px] font-semibold">
                     {format_number(import_result.imported)}
                   </p>
-                  <p
-                    className="text-xs"
-                    style={{ color: "rgba(255, 255, 255, 0.8)" }}
-                  >
+                  <p className="contact_import_stat_label text-[11.5px]">
                     {t("common.imported")}
                   </p>
                 </div>
                 <div
-                  className="p-3 rounded-lg"
-                  style={{ backgroundColor: "#d97706" }}
+                  className="contact_import_stat rounded-xl p-3"
+                  data-tone="info"
                 >
-                  <p
-                    className="text-2xl font-semibold"
-                    style={{ color: "#fff" }}
-                  >
+                  <p className="text-[20px] font-semibold">
+                    {format_number(import_result.updated)}
+                  </p>
+                  <p className="contact_import_stat_label text-[11.5px]">
+                    {t("common.contacts_updated_stat")}
+                  </p>
+                </div>
+                <div
+                  className="contact_import_stat rounded-xl p-3"
+                  data-tone="warning"
+                >
+                  <p className="text-[20px] font-semibold">
                     {format_number(import_result.skipped)}
                   </p>
-                  <p
-                    className="text-xs"
-                    style={{ color: "rgba(255, 255, 255, 0.8)" }}
-                  >
+                  <p className="contact_import_stat_label text-[11.5px]">
                     {t("common.skipped")}
                   </p>
                 </div>
                 <div
-                  className="p-3 rounded-lg"
-                  style={{ backgroundColor: "#dc2626" }}
+                  className="contact_import_stat rounded-xl p-3"
+                  data-tone="danger"
                 >
-                  <p
-                    className="text-2xl font-semibold"
-                    style={{ color: "#fff" }}
-                  >
+                  <p className="text-[20px] font-semibold">
                     {format_number(import_result.failed)}
                   </p>
-                  <p
-                    className="text-xs"
-                    style={{ color: "rgba(255, 255, 255, 0.8)" }}
-                  >
+                  <p className="contact_import_stat_label text-[11.5px]">
                     {t("common.failed")}
                   </p>
                 </div>
@@ -586,13 +950,7 @@ export function ContactImportModal({
           )}
 
           {error && (
-            <div
-              className="mt-4 p-3 rounded-lg text-sm flex items-center gap-2"
-              style={{
-                backgroundColor: "rgba(239, 68, 68, 0.1)",
-                color: "var(--color-danger)",
-              }}
-            >
+            <div className="contact_import_alert mt-4 flex items-center gap-2 rounded-xl p-3 text-sm">
               <ExclamationTriangleIcon className="w-4 h-4 shrink-0" />
               {error}
             </div>

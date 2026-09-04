@@ -2042,15 +2042,37 @@ export const en: Translations = {
     credit_balance_changed:
       "Your credit balance changed while checkout was open. Close checkout and start again to apply the credits you have now.",
     add_group: "Add group",
+    create_contact: "Create contact",
+    create_multiple_contacts: "Create multiple contacts",
+    bulk_create_hint:
+      "Add one contact per line. To save an email address with a name, put the address in angle brackets.",
+    bulk_create_placeholder: "Ada Lovelace <ada@example.com>",
+    bulk_create_ready: "{{count}} ready to create",
+    contacts_created: "{{count}} contacts created",
+    some_contacts_not_created: "Some contacts couldn’t be created.",
+    manage_contacts: "Manage contacts",
+    merge_and_fix: "Merge and fix",
+    no_duplicates_found: "No duplicates to fix",
+    frequent_contacts: "Frequent",
+    other_contacts: "Other",
+    no_frequent_contacts: "No frequent contacts yet",
+    frequent_contacts_hint: "The contacts you write to most often appear here.",
+    no_other_contacts: "No other contacts",
+    other_contacts_hint:
+      "Addresses saved from your mail that have no name yet appear here.",
+    add_birthdays: "Add birthdays",
+    add_birthdays_hint:
+      "Add a birthday to a contact and Aster reminds you before the day.",
+    birthdays_upcoming: "{{count}} birthdays are coming up",
     add_new_group: "New group",
     add_to_group: "Add to group",
     added_to_group: "Added to group",
     delete_group_confirmation:
       "Deleting “{{name}}” removes the group. The contacts in it stay in your address book.",
     email_group: "Write to group",
-    no_contact_details: "This contact has no details yet. Choose Edit to add some.",
-    failed_to_remove_from_group:
-      "Couldn’t remove the contact from the group.",
+    no_contact_details:
+      "This contact has no details yet. Choose Edit to add some.",
+    failed_to_remove_from_group: "Couldn’t remove the contact from the group.",
     group_empty_hint:
       "To fill this group, select contacts on the Contacts tab and choose Add to group.",
     group_empty_title: "No contacts in this group",
@@ -2062,11 +2084,13 @@ export const en: Translations = {
     clear_selection: "Clear selection",
     compose_to_selection: "Write to selected",
     contact_change_undone: "Change undone",
-    contact_encryption_info: "When a contact publishes a public key, Aster encrypts your mail to them automatically.",
+    contact_encryption_info:
+      "When a contact publishes a public key, Aster encrypts your mail to them automatically.",
     contact_moved_to_trash: "Contact moved to Trash",
     contact_restored: "Contact restored",
     contacts_exported: "Contacts exported",
-    contacts_in_trash_notice: "Contacts in Trash are deleted permanently after 30 days.",
+    contacts_in_trash_notice:
+      "Contacts in Trash are deleted permanently after 30 days.",
     contacts_merged: "Contacts merged",
     contacts_moved_to_trash: "Contacts moved to Trash",
     contacts_updated_stat: "Updated",
@@ -2074,7 +2098,8 @@ export const en: Translations = {
     delete_group: "Delete group",
     deselect_contact: "Deselect contact",
     duplicates_found: "Duplicates found",
-    empty_trash_confirm: "Delete every contact in Trash permanently? You can’t undo this.",
+    empty_trash_confirm:
+      "Delete every contact in Trash permanently? You can’t undo this.",
     export_selection_vcf: "Export as vCard",
     failed_to_add_to_group: "Couldn’t add the contact to the group.",
     failed_to_create_group: "Couldn’t create the group.",
@@ -2084,7 +2109,8 @@ export const en: Translations = {
     group_contact_count: "{{count}} contacts",
     group_created: "Group created",
     group_deleted: "Group deleted",
-    group_modal_description: "Create groups to write to several contacts at once.",
+    group_modal_description:
+      "Create groups to write to several contacts at once.",
     group_name: "Group name",
     groups: "Groups",
     import_add_to_group: "Add imported contacts to a group",
@@ -2095,7 +2121,8 @@ export const en: Translations = {
     import_select_all: "Select all",
     import_selected_count: "{{selected}} of {{total}} selected",
     merge: "Merge",
-    merge_contacts_hint: "Choose the details to keep. The other contacts move to Trash.",
+    merge_contacts_hint:
+      "Choose the details to keep. The other contacts move to Trash.",
     merge_keeps_this: "Kept",
     merged_contact_preview: "Merged contact",
     no_contact_changes: "No changes yet",
@@ -7452,28 +7479,35 @@ export const en: Translations = {
     app_password_create_link: "Create an app password",
     app_password_required: "App password required",
     category_info_newsletters: "Digests and mailing lists you subscribed to.",
-    category_info_transactions: "Orders, payments, and receipts from stores and services.",
+    category_info_transactions:
+      "Orders, payments, and receipts from stores and services.",
     category_newsletters: "Newsletters",
     category_transactions: "Purchases",
     checkout_abandon_confirm: "Cancel payment",
     checkout_abandon_keep: "Keep paying",
-    checkout_abandon_message: "Your invoice is canceled and nothing is charged. You can start again at any time.",
+    checkout_abandon_message:
+      "Your invoice is canceled and nothing is charged. You can start again at any time.",
     checkout_abandon_title: "Cancel this payment?",
     checkout_add_promo: "Add a promo code",
     checkout_amount_due: "Amount due",
     checkout_card_details: "Card details",
     checkout_full_features_title: "{{plan}} features",
-    checkout_leave_warning: "You have a payment in progress. If you leave now, it isn’t completed.",
+    checkout_leave_warning:
+      "You have a payment in progress. If you leave now, it isn’t completed.",
     checkout_pay_amount: "Pay {{amount}}",
     checkout_review_title: "Review and pay",
     checkout_what_you_get: "What you get",
-    credits_method_card_note: "Credits are added as soon as the payment clears.",
-    credits_method_crypto_note: "Pay once in crypto. Credits are added after the payment confirms on chain.",
+    credits_method_card_note:
+      "Credits are added as soon as the payment clears.",
+    credits_method_crypto_note:
+      "Pay once in crypto. Credits are added after the payment confirms on chain.",
     edit_account_tooltip: "Edit account",
     gmail_app_password_notice: "This provider requires an app password. Your normal account password won’t work.",
     gmail_sync_continue: "Continue",
-    gmail_sync_intro: "Create an app password in your account settings, then paste it here.",
-    gmail_sync_note_unavailable: "If app passwords aren’t available, turn on two-step verification first, then check again.",
+    gmail_sync_intro:
+      "Create an app password in your account settings, then paste it here.",
+    gmail_sync_note_unavailable:
+      "If app passwords aren’t available, turn on two-step verification first, then check again.",
     gmail_sync_open_google: "Open account settings",
     gmail_sync_setup_button: "Show me how",
     gmail_sync_step_1: "Sign in to your account security settings.",
@@ -7486,13 +7520,17 @@ export const en: Translations = {
     gmail_wizard_progress: "Step {{current}} of {{total}}",
     gmail_wizard_reveal_password: "Show app password",
     gmail_wizard_step_1_action: "Open security settings",
-    gmail_wizard_step_1_body: "App passwords live in the security section of your provider account.",
+    gmail_wizard_step_1_body:
+      "App passwords live in the security section of your provider account.",
     gmail_wizard_step_1_title: "Open your account security settings",
-    gmail_wizard_step_2_body: "App passwords are only available once two-step verification is on.",
+    gmail_wizard_step_2_body:
+      "App passwords are only available once two-step verification is on.",
     gmail_wizard_step_2_title: "Turn on two-step verification",
-    gmail_wizard_step_3_body: "Choose Mail as the app, then create the password.",
+    gmail_wizard_step_3_body:
+      "Choose Mail as the app, then create the password.",
     gmail_wizard_step_3_title: "Create an app password",
-    gmail_wizard_step_4_body: "Paste the app password below. Aster stores it encrypted and uses it only to sync this mailbox.",
+    gmail_wizard_step_4_body:
+      "Paste the app password below. Aster stores it encrypted and uses it only to sync this mailbox.",
     gmail_wizard_step_4_title: "Paste the password",
     gmail_wizard_title: "Connect your mailbox",
     last_sync_tooltip: "When this account last synced",
@@ -7500,7 +7538,8 @@ export const en: Translations = {
     offer_modal_action: "Claim this offer",
     offer_modal_badge: "{{percent}}% off",
     offer_modal_dismiss: "Not now",
-    offer_modal_fine_print: "Code {{code}} applies at checkout. One use per account.",
+    offer_modal_fine_print:
+      "Code {{code}} applies at checkout. One use per account.",
     offer_modal_price_note: "The discount applies at checkout.",
     offer_modal_subtitle: "Move to {{plan}} at a lower price.",
     offer_modal_title: "Save {{percent}}% on your plan",
@@ -7548,34 +7587,53 @@ export const en: Translations = {
     plan_f_vanguard_lockdown_mode: "Lockdown mode",
     plan_f_wkd: "Web Key Directory",
     plan_tip_alias_bulk: "Enable, disable, or delete many aliases at once.",
-    plan_tip_alias_csv: "Export every alias, with its rules and status, as a CSV file.",
+    plan_tip_alias_csv:
+      "Export every alias, with its rules and status, as a CSV file.",
     plan_tip_alias_import: "Move aliases in from another provider in one step.",
-    plan_tip_alias_no_cooldown: "Create aliases back to back without waiting between them.",
+    plan_tip_alias_no_cooldown:
+      "Create aliases back to back without waiting between them.",
     plan_tip_alias_pin: "Keep the aliases you use most at the top of the list.",
     plan_tip_alias_transfer: "Move an alias to another Aster account you own.",
-    plan_tip_allowlist: "Let named senders through even when a filter would otherwise stop them.",
-    plan_tip_contact_sync: "Sync contacts to Contacts on macOS and iOS, DAVx5 on Android, or any CardDAV client. Powered by the Aster Bridge companion app running on your device.",
-    plan_tip_custom_categories: "Create your own inbox tabs and decide what lands in each one.",
-    plan_tip_email_export: "Download your mail as a standard archive you can open anywhere.",
-    plan_tip_email_import: "Bring mail over from another provider over IMAP, with folders intact.",
-    plan_tip_expiration: "Set a date after which an email deletes itself from the recipient’s view.",
-    plan_tip_extra_alias_domains: "Create aliases on extra Aster domains, not only astermail.org.",
-    plan_tip_folder_auto_clean: "Delete anything older than the age you set, folder by folder.",
-    plan_tip_sub_scanner: "Find every newsletter and service you subscribed to, then unsubscribe in one place.",
-    plan_tip_vanguard_app_lock: "Require your device passcode or biometrics every time you open Aster.",
-    plan_tip_vanguard_lockdown_mode: "Block remote content, external links, and new senders until you turn it off.",
-    plan_tip_wkd: "Publish your public key at your own domain so anyone can find it and write to you encrypted.",
+    plan_tip_allowlist:
+      "Let named senders through even when a filter would otherwise stop them.",
+    plan_tip_contact_sync:
+      "Sync contacts to Contacts on macOS and iOS, DAVx5 on Android, or any CardDAV client. Powered by the Aster Bridge companion app running on your device.",
+    plan_tip_custom_categories:
+      "Create your own inbox tabs and decide what lands in each one.",
+    plan_tip_email_export:
+      "Download your mail as a standard archive you can open anywhere.",
+    plan_tip_email_import:
+      "Bring mail over from another provider over IMAP, with folders intact.",
+    plan_tip_expiration:
+      "Set a date after which an email deletes itself from the recipient’s view.",
+    plan_tip_extra_alias_domains:
+      "Create aliases on extra Aster domains, not only astermail.org.",
+    plan_tip_folder_auto_clean:
+      "Delete anything older than the age you set, folder by folder.",
+    plan_tip_sub_scanner:
+      "Find every newsletter and service you subscribed to, then unsubscribe in one place.",
+    plan_tip_vanguard_app_lock:
+      "Require your device passcode or biometrics every time you open Aster.",
+    plan_tip_vanguard_lockdown_mode:
+      "Block remote content, external links, and new senders until you turn it off.",
+    plan_tip_wkd:
+      "Publish your public key at your own domain so anyone can find it and write to you encrypted.",
     protocol_desc_imap: "Syncs folders and stays in sync across devices.",
     protocol_desc_pop3: "Downloads mail once, then leaves nothing to sync.",
-    protocol_tooltip_imap: "IMAP keeps your mail on the server and syncs every change across your devices.",
-    protocol_tooltip_jmap: "JMAP is a modern sync protocol that only a few providers support.",
-    protocol_tooltip_pop3: "POP3 downloads mail to a single device and doesn’t sync changes back.",
+    protocol_tooltip_imap:
+      "IMAP keeps your mail on the server and syncs every change across your devices.",
+    protocol_tooltip_jmap:
+      "JMAP is a modern sync protocol that only a few providers support.",
+    protocol_tooltip_pop3:
+      "POP3 downloads mail to a single device and doesn’t sync changes back.",
     remove_account_tooltip: "Remove account",
     show_side_panel: "Show side panel",
-    show_side_panel_description: "Keep contacts and other quick tools in a panel beside your mail.",
+    show_side_panel_description:
+      "Keep contacts and other quick tools in a panel beside your mail.",
     stripe_secure_short: "Secured by Stripe",
     sync_now_tooltip: "Sync now",
-    upgrade_external_accounts_note: "Upgrade to connect more external accounts.",
+    upgrade_external_accounts_note:
+      "Upgrade to connect more external accounts.",
     usage_external_accounts: "External Accounts",
   },
   mail: {
@@ -7953,6 +8011,9 @@ export const en: Translations = {
     folder: "Folder",
     empty_inbox_title: "You're all caught up",
     empty_inbox_subtitle: "New messages will appear here",
+    empty_all_title: "No mail here yet",
+    empty_all_subtitle:
+      "Everything in your account except spam and trash appears here",
     empty_sent_title: "Nothing sent yet",
     empty_sent_subtitle: "Messages you send will appear here",
     empty_drafts_title: "No drafts",
@@ -8446,16 +8507,21 @@ export const en: Translations = {
     bulk_trash_title_other: "Move {{count}} emails to Trash?",
     confirm_bulk_action_count_description: "This affects all {{count}} emails.",
     confirm_bulk_action_count_description_one: "This affects 1 email.",
-    confirm_bulk_action_count_description_other: "This affects all {{count}} emails.",
-    confirm_bulk_action_scope_description: "This affects all {{count}} emails in {{scope}}.",
-    confirm_bulk_action_scope_description_one: "This affects the 1 email in {{scope}}.",
-    confirm_bulk_action_scope_description_other: "This affects all {{count}} emails in {{scope}}.",
+    confirm_bulk_action_count_description_other:
+      "This affects all {{count}} emails.",
+    confirm_bulk_action_scope_description:
+      "This affects all {{count}} emails in {{scope}}.",
+    confirm_bulk_action_scope_description_one:
+      "This affects the 1 email in {{scope}}.",
+    confirm_bulk_action_scope_description_other:
+      "This affects all {{count}} emails in {{scope}}.",
     remove_from_folder: "Remove from folder",
     remove_label: "Remove label",
     sender_rule_confirm: "Create rule",
     sender_rule_created: "New mail from this sender now goes to {{category}}.",
     sender_rule_name: "{{sender}} to {{category}}",
-    sender_rule_offer: "You keep moving mail from {{sender}} to {{category}}. Do it automatically?",
+    sender_rule_offer:
+      "You keep moving mail from {{sender}} to {{category}}. Do it automatically?",
   },
   auth: {
     captcha_load_failed:
