@@ -234,7 +234,9 @@ async function encrypt_for_ratchet_recipient_unlocked(
 
       const bundle_rejected =
         bundle_verification.verdict === "tampered" ||
-        (is_strict_recipient_bundle_enforced() && !bundle_verification.strict);
+        (is_strict_recipient_bundle_enforced() &&
+          (bundle_verification.verdict !== "verified" ||
+            !bundle_verification.strict));
 
       if (bundle_rejected) {
         if (import.meta.env.DEV) {

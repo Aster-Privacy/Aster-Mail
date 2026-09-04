@@ -116,24 +116,14 @@ async function remember_identity(
   peer: string,
   identity_key: string,
 ): Promise<void> {
-  await remember_identities(peer, [identity_key]);
-}
-
-async function remember_identities(
-  peer: string,
-  identity_keys: string[],
-): Promise<void> {
-  const candidates = identity_keys.filter(Boolean);
-
-  if (candidates.length === 0) return;
+  if (!identity_key) return;
 
   try {
     const history = await load_identity_history(peer);
-    const unseen = candidates.filter((key) => !history.includes(key));
 
-    if (unseen.length === 0) return;
+    if (history.includes(identity_key)) return;
 
-    const next = [...unseen, ...history].slice(0, MAX_REMEMBERED_IDENTITIES);
+    const next = [identity_key, ...history].slice(0, MAX_REMEMBERED_IDENTITIES);
 
     history_cache.set(peer, next);
 
@@ -224,27 +214,20 @@ export async function authenticate_sender_identity(
   }
 
   const published = await resolve_published_identity(peer);
-
-  if (published) {
-    await remember_identity(peer, published);
-
-    if (published === sender_identity_key) {
-      status_cache.set(peer, "verified");
-
-      return "verified";
-    }
-  }
-
   const published_history = await resolve_published_history(peer);
 
-  if (published_history) {
-    await remember_identities(peer, published_history.identity_keys);
+  const published_confirms =
+    Boolean(published) && published === sender_identity_key;
+  const history_confirms = Boolean(
+    published_history?.identity_keys.includes(sender_identity_key),
+  );
 
-    if (published_history.identity_keys.includes(sender_identity_key)) {
-      status_cache.set(peer, "verified");
+  if (published_confirms || history_confirms) {
+    await remember_identity(peer, sender_identity_key);
 
-      return "verified";
-    }
+    status_cache.set(peer, "verified");
+
+    return "verified";
   }
 
   const status: SenderIdentityStatus = published_history?.history_complete

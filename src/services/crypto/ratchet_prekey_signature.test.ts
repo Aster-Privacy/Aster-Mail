@@ -24,7 +24,9 @@ import * as openpgp from "openpgp";
 import {
   sign_ratchet_prekey_bundle,
   verify_ratchet_prekey_bundle,
+  verify_ratchet_prekey_bundle_detailed,
 } from "./key_manager_pgp";
+import { is_strict_recipient_bundle_enforced } from "./crypto_enforcement_policy";
 import { array_to_base64 } from "./key_manager_core";
 
 const PASSPHRASE = "correct horse battery staple";
@@ -238,6 +240,102 @@ describe("ratchet prekey bundle signature", () => {
     );
 
     expect(verdict).toBe("verified");
+  });
+
+  it("enforces strict recipient bundles", () => {
+    expect(is_strict_recipient_bundle_enforced()).toBe(true);
+  });
+
+  it("never marks a legacy hash bundle strict", async () => {
+    const input = new TextEncoder().encode(KEM_IDENTITY + SIGNED_PREKEY);
+    const hash = await crypto.subtle.digest("SHA-256", input);
+    const legacy_field = array_to_base64(new Uint8Array(hash));
+
+    const verification = await verify_ratchet_prekey_bundle_detailed(
+      legacy_field,
+      KEM_IDENTITY,
+      SIGNED_PREKEY,
+      owner_public,
+    );
+
+    expect(verification.verdict).toBe("legacy");
+    expect(verification.strict).toBe(false);
+  });
+
+  it("never marks an unverifiable bundle strict when the owner key is missing", async () => {
+    const field = await sign_ratchet_prekey_bundle(
+      owner_private,
+      PASSPHRASE,
+      KEM_IDENTITY,
+      SIGNED_PREKEY,
+    );
+
+    const verification = await verify_ratchet_prekey_bundle_detailed(
+      field,
+      KEM_IDENTITY,
+      SIGNED_PREKEY,
+      null,
+    );
+
+    expect(verification.verdict).toBe("unknown");
+    expect(verification.strict).toBe(false);
+  });
+
+  it("marks a verified v1 bundle strict when no pq identity key is published", async () => {
+    const field = await sign_ratchet_prekey_bundle(
+      owner_private,
+      PASSPHRASE,
+      KEM_IDENTITY,
+      SIGNED_PREKEY,
+    );
+
+    const verification = await verify_ratchet_prekey_bundle_detailed(
+      field,
+      KEM_IDENTITY,
+      SIGNED_PREKEY,
+      owner_public,
+      null,
+    );
+
+    expect(verification.verdict).toBe("verified");
+    expect(verification.format).toBe("v1");
+    expect(verification.strict).toBe(true);
+  });
+
+  it("refuses to mark a v1 bundle strict when an unsigned pq identity key is published", async () => {
+    const field = await sign_ratchet_prekey_bundle(
+      owner_private,
+      PASSPHRASE,
+      KEM_IDENTITY,
+      SIGNED_PREKEY,
+    );
+
+    const verification = await verify_ratchet_prekey_bundle_detailed(
+      field,
+      KEM_IDENTITY,
+      SIGNED_PREKEY,
+      owner_public,
+      PQ_IDENTITY,
+    );
+
+    expect(verification.verdict).toBe("verified");
+    expect(verification.strict).toBe(false);
+  });
+
+  it("marks a verified v2 bundle strict", async () => {
+    const v2_text = `aster-ratchet-prekey-v2:${KEM_IDENTITY}.${SIGNED_PREKEY}.${PQ_IDENTITY}`;
+    const field = await sign_canonical(v2_text);
+
+    const verification = await verify_ratchet_prekey_bundle_detailed(
+      field,
+      KEM_IDENTITY,
+      SIGNED_PREKEY,
+      owner_public,
+      PQ_IDENTITY,
+    );
+
+    expect(verification.verdict).toBe("verified");
+    expect(verification.strict).toBe(true);
   });
 
   it("never returns 'tampered' for a legacy bundle even with a wrong key", async () => {

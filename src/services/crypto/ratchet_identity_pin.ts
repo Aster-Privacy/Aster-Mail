@@ -132,7 +132,7 @@ export async function check_and_pin_identity(
     }
 
     if (existing.fingerprint !== fingerprint) {
-      if (existing.verified && !verified) {
+      if (!verified) {
         return "drift";
       }
 
