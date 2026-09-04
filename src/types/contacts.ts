@@ -249,9 +249,10 @@ export interface UpdateContactRequest {
   encrypted_data: string;
   data_nonce: string;
   integrity_hash: string;
-  name_search_token?: string;
-  email_search_token?: string;
-  company_search_token?: string;
+  data_version?: number;
+  name_search_token?: string | null;
+  email_search_token?: string | null;
+  company_search_token?: string | null;
 }
 
 export interface UpdateContactResponse {
