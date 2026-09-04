@@ -26,6 +26,7 @@ import { use_i18n } from "@/lib/i18n/context";
 import {
   get_twin_address,
   type TwinAddressResponse,
+  type TwinSibling,
 } from "@/services/api/aliases";
 
 interface TwinAddressCardProps {
@@ -66,36 +67,57 @@ export function TwinAddressCard({
 
   if (!twin) return null;
 
-  if (twin.state !== "reserved" && twin.state !== "available") return null;
+  const siblings: TwinSibling[] = (
+    twin.siblings && twin.siblings.length > 0
+      ? twin.siblings
+      : [
+          {
+            address: twin.address,
+            domain: twin.domain,
+            local_part: twin.local_part,
+            state: twin.state,
+          },
+        ]
+  ).filter(
+    (sibling) => sibling.state === "reserved" || sibling.state === "available",
+  );
 
-  const description =
-    twin.state === "reserved"
-      ? t("settings.twin_address_reserved_description", {
-          address: twin.address,
-        })
-      : t("settings.twin_address_available_description", {
-          address: twin.address,
-        });
+  if (siblings.length === 0) return null;
 
   return (
-    <div className="mb-3 rounded-xl border border-edge-secondary bg-surf-secondary p-3">
-      <div className="flex items-start gap-3">
-        <ShieldCheckIcon className="mt-0.5 h-5 w-5 shrink-0 text-txt-secondary" />
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold text-txt-primary">
-            {t("settings.twin_address_title")}
-          </p>
-          <p className="mt-1 break-all text-sm text-txt-muted">{description}</p>
-        </div>
-        <Button
-          className="shrink-0"
-          size="sm"
-          variant="secondary"
-          onClick={() => on_claim(twin.local_part, twin.domain)}
+    <>
+      {siblings.map((sibling) => (
+        <div
+          key={sibling.address}
+          className="mb-3 rounded-xl border border-edge-secondary bg-surf-secondary p-3"
         >
-          {t("settings.twin_address_create")}
-        </Button>
-      </div>
-    </div>
+          <div className="flex items-start gap-3">
+            <ShieldCheckIcon className="mt-0.5 h-5 w-5 shrink-0 text-txt-secondary" />
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-txt-primary">
+                {t("settings.twin_address_title")}
+              </p>
+              <p className="mt-1 break-words text-sm text-txt-muted">
+                {sibling.state === "reserved"
+                  ? t("settings.twin_address_reserved_description", {
+                      address: sibling.address,
+                    })
+                  : t("settings.twin_address_available_description", {
+                      address: sibling.address,
+                    })}
+              </p>
+            </div>
+            <Button
+              className="shrink-0 self-center"
+              size="sm"
+              variant="secondary"
+              onClick={() => on_claim(sibling.local_part, sibling.domain)}
+            >
+              {t("settings.twin_address_create")}
+            </Button>
+          </div>
+        </div>
+      ))}
+    </>
   );
 }

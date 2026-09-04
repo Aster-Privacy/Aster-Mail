@@ -131,11 +131,19 @@ export type TwinAddressState =
   | "taken"
   | "unsupported";
 
+export interface TwinSibling {
+  address: string;
+  domain: string;
+  local_part: string;
+  state: TwinAddressState;
+}
+
 export interface TwinAddressResponse {
   address: string;
   domain: string;
   local_part: string;
   state: TwinAddressState;
+  siblings?: TwinSibling[];
 }
 
 export interface AliasCountsResponse {
