@@ -65,11 +65,22 @@ describe("ratchet identity pin", () => {
     expect(await check_and_pin_identity("alice", KEY_A)).toBe("ok");
   });
 
-  it("accepts a rotation between unverified keys and re-pins", async () => {
+  it("reports drift for an unverified rotation of an unverified pin", async () => {
     await check_and_pin_identity("alice", KEY_A);
 
-    expect(await check_and_pin_identity("alice", KEY_B)).toBe("rotated");
-    expect(await check_and_pin_identity("alice", KEY_B)).toBe("ok");
+    expect(await check_and_pin_identity("alice", KEY_B)).toBe("drift");
+    expect(await check_and_pin_identity("alice", KEY_B)).toBe("drift");
+    expect(await check_and_pin_identity("alice", KEY_A)).toBe("ok");
+  });
+
+  it("never adopts an unverified rotation into the stored pin", async () => {
+    await check_and_pin_identity("alice", KEY_A);
+
+    const pinned = await get_pinned_identity_fingerprint("alice");
+
+    await check_and_pin_identity("alice", KEY_B);
+
+    expect(await get_pinned_identity_fingerprint("alice")).toBe(pinned);
   });
 
   it("accepts a verified rotation of a verified pin and re-pins", async () => {

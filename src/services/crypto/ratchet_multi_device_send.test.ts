@@ -22,6 +22,17 @@ import type { EncryptedVault } from "@/services/crypto/key_manager";
 
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
+vi.mock("@/services/crypto/key_manager_pgp", async (import_original) => ({
+  ...(await import_original<
+    typeof import("@/services/crypto/key_manager_pgp")
+  >()),
+  verify_ratchet_prekey_bundle_detailed: async () => ({
+    verdict: "verified" as const,
+    format: "v2" as const,
+    strict: true,
+  }),
+}));
+
 interface ServerStateRecord {
   encrypted_state: string;
   state_nonce: string;

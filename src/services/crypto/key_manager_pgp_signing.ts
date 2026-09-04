@@ -273,7 +273,16 @@ export async function verify_ratchet_prekey_bundle_detailed(
     return { verdict: "tampered", format, strict: false };
   }
 
-  return { verdict: "verified", format, strict: format === "v2" };
+  const advertises_pq_identity_key = Boolean(pq_identity_key);
+
+  const signature_covers_published_material =
+    format === "v2" || !advertises_pq_identity_key;
+
+  return {
+    verdict: "verified",
+    format,
+    strict: signature_covers_published_material,
+  };
 }
 
 export async function verify_ratchet_prekey_bundle(

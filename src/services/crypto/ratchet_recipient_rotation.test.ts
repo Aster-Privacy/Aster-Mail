@@ -26,6 +26,18 @@ const h = vi.hoisted(() => ({
   vault: null as unknown,
   bundle: null as unknown,
   store: new Map<string, unknown>(),
+  bundle_verification: {
+    verdict: "verified" as "verified" | "legacy",
+    format: "v2" as "v1" | "v2",
+    strict: true,
+  },
+}));
+
+vi.mock("@/services/crypto/key_manager_pgp", async (import_original) => ({
+  ...(await import_original<
+    typeof import("@/services/crypto/key_manager_pgp")
+  >()),
+  verify_ratchet_prekey_bundle_detailed: async () => h.bundle_verification,
 }));
 
 vi.mock("@/services/crypto/memory_key_store", () => ({
@@ -145,6 +157,11 @@ describe("recipient identity pinning (server cannot silently swap ratchet keys)"
     h.vault = null;
     h.bundle = null;
     h.store.clear();
+    h.bundle_verification = {
+      verdict: "verified",
+      format: "v2",
+      strict: true,
+    };
   });
 
   it("reuses the established session when the recipient bundle is unchanged", async () => {
@@ -200,7 +217,33 @@ describe("recipient identity pinning (server cannot silently swap ratchet keys)"
     );
   });
 
-  it("keeps mail flowing across an unverified identity change instead of blocking the pair forever", async () => {
+  it("refuses to ratchet onto an unverifiable rotated identity", async () => {
+    const sender_vault = make_vault((await generate_ratchet_keys())!);
+    const gen1 = make_vault((await generate_ratchet_keys())!);
+    const gen2 = make_vault((await generate_ratchet_keys())!);
+
+    h.bundle = bundle_for({
+      identity_jwk: gen1.ratchet_identity_key!,
+      identity_public: gen1.ratchet_identity_public!,
+      signed_prekey_jwk: gen1.ratchet_signed_prekey!,
+      signed_prekey_public: gen1.ratchet_signed_prekey_public!,
+    } as Keys);
+
+    expect(await try_send("before rotation", sender_vault)).not.toBeNull();
+
+    h.bundle = bundle_for({
+      identity_jwk: gen2.ratchet_identity_key!,
+      identity_public: gen2.ratchet_identity_public!,
+      signed_prekey_jwk: gen2.ratchet_signed_prekey!,
+      signed_prekey_public: gen2.ratchet_signed_prekey_public!,
+    } as Keys);
+
+    h.bundle_verification = { verdict: "legacy", format: "v1", strict: false };
+
+    expect(await try_send("after rotation", sender_vault)).toBeNull();
+  });
+
+  it("re-establishes the ratchet on a verified identity rotation", async () => {
     const sender_vault = make_vault((await generate_ratchet_keys())!);
     const gen1 = make_vault((await generate_ratchet_keys())!);
     const gen2 = make_vault((await generate_ratchet_keys())!);

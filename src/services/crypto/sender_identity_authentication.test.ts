@@ -109,7 +109,7 @@ describe("sender identity authentication", () => {
     ).toBe("mismatch");
   });
 
-  it("reports unverified for a never published key when history is incomplete", async () => {
+  it("reports unverified for a never published key when the history is incomplete", async () => {
     h.history = {
       identity_keys: [CURRENT_KEY],
       history_complete: false,
@@ -118,6 +118,59 @@ describe("sender identity authentication", () => {
     expect(
       await authenticate_sender_identity("someone@astermail.org", FORGED_KEY),
     ).toBe("unverified");
+  });
+
+  it("does not pin an unmatched key, so a repeat delivery stays unverified", async () => {
+    h.history = {
+      identity_keys: [CURRENT_KEY],
+      history_complete: true,
+    };
+
+    expect(
+      await authenticate_sender_identity("someone@astermail.org", FORGED_KEY),
+    ).toBe("mismatch");
+
+    h.current_identity = null;
+    h.history = null;
+    clear_sender_identity_authentication_cache();
+
+    expect(
+      await authenticate_sender_identity("someone@astermail.org", FORGED_KEY),
+    ).toBe("unverified");
+  });
+
+  it("does not pin the published key when the message key does not match it", async () => {
+    h.history = { identity_keys: [CURRENT_KEY], history_complete: true };
+
+    expect(
+      await authenticate_sender_identity("someone@astermail.org", FORGED_KEY),
+    ).toBe("mismatch");
+
+    h.current_identity = null;
+    h.history = null;
+    clear_sender_identity_authentication_cache();
+
+    expect(
+      await authenticate_sender_identity("someone@astermail.org", CURRENT_KEY),
+    ).toBe("unverified");
+  });
+
+  it("remembers only the matched key, leaving a later key unverified without server evidence", async () => {
+    expect(
+      await authenticate_sender_identity("someone@astermail.org", CURRENT_KEY),
+    ).toBe("verified");
+
+    h.current_identity = null;
+    h.history = null;
+    clear_sender_identity_authentication_cache();
+
+    expect(
+      await authenticate_sender_identity("someone@astermail.org", FORGED_KEY),
+    ).toBe("unverified");
+
+    expect(
+      await authenticate_sender_identity("someone@astermail.org", CURRENT_KEY),
+    ).toBe("verified");
   });
 
   it("reports unverified when the history cannot be fetched", async () => {

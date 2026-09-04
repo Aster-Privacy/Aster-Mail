@@ -23,6 +23,17 @@ import type { DecryptedEnvelope } from "@/types/email";
 
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
+vi.mock("@/services/crypto/key_manager_pgp", async (import_original) => ({
+  ...(await import_original<
+    typeof import("@/services/crypto/key_manager_pgp")
+  >()),
+  verify_ratchet_prekey_bundle_detailed: async () => ({
+    verdict: "verified" as const,
+    format: "v2" as const,
+    strict: true,
+  }),
+}));
+
 const h = vi.hoisted(() => ({
   vault: null as unknown,
   bundle: null as unknown,
