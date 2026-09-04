@@ -102,6 +102,9 @@ export function use_preferences_core() {
       sidebar_aliases_collapsed: get_cached_sidebar_state(
         "sidebar_aliases_collapsed",
       ),
+      sidebar_contact_groups_collapsed: get_cached_sidebar_state(
+        "sidebar_contact_groups_collapsed",
+      ),
     };
   });
   const [is_loading, set_is_loading] = useState(true);

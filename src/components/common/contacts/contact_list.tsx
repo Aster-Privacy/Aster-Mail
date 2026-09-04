@@ -44,6 +44,8 @@ import {
   PrinterIcon,
   BarsArrowDownIcon,
   BarsArrowUpIcon,
+  Bars2Icon,
+  Bars3Icon,
   ChevronDownIcon,
   EllipsisHorizontalIcon,
   CakeIcon,
@@ -61,7 +63,9 @@ import { ContactGroupsPane } from "@/components/common/contacts/contact_groups_p
 import { ContactTrashPane } from "@/components/common/contacts/contact_trash_pane";
 import { ContactMergeModal } from "@/components/contacts/contact_merge_modal";
 import { ContactBulkCreateModal } from "@/components/contacts/contact_bulk_create_modal";
-import { ContactGroupAssignMenu } from "@/components/common/contacts/contact_group_assign_menu";
+import { ContactGroupChips } from "@/components/contacts/contact_group_chips";
+import { ManageGroupsMenu } from "@/components/contacts/manage_groups_menu";
+import { use_contact_groups } from "@/hooks/use_contact_groups";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -131,11 +135,50 @@ interface ContactListProps {
   on_empty_trash: () => void;
   on_contacts_refresh: () => void;
   on_add_selected_to_group: (group: ContactGroup) => void;
+  group_filter: string | null;
+  on_set_group_filter: (group_id: string | null) => void;
+  on_set_group_membership: (group_id: string, should_add: boolean) => void;
+  selected_contacts: DecryptedContact[];
   on_compose_to_recipients: (recipients: string) => void;
   on_bulk_create: (entries: ContactFormData[]) => Promise<void>;
 }
 
 type ContactTab = "contacts" | "frequent" | "other" | "groups" | "trash";
+
+interface GroupDotsProps {
+  groups: { id: string; name: string; color?: string | null }[];
+  label: string;
+}
+
+const GROUP_DOT_FALLBACK = "#94a3b8";
+
+function GroupDots({ groups, label }: GroupDotsProps) {
+  if (groups.length === 0) return null;
+
+  const shown = groups.slice(0, 3);
+  const names = groups.map((group) => group.name).join(", ");
+
+  return (
+    <span
+      aria-label={`${label}: ${names}`}
+      className="flex items-center gap-0.5 flex-shrink-0"
+      title={`${label}: ${names}`}
+    >
+      {shown.map((group) => (
+        <span
+          key={group.id}
+          className="w-1.5 h-1.5 rounded-full"
+          style={{ backgroundColor: group.color || GROUP_DOT_FALLBACK }}
+        />
+      ))}
+      {groups.length > shown.length && (
+        <span className="text-[10px] leading-none text-txt-muted">
+          +{groups.length - shown.length}
+        </span>
+      )}
+    </span>
+  );
+}
 
 const BIRTHDAY_CARD_STORAGE_KEY = "aster_contacts_birthday_card_dismissed";
 
@@ -199,7 +242,6 @@ export function ContactList({
   on_delete_forever,
   on_empty_trash,
   on_contacts_refresh,
-  on_add_selected_to_group,
   on_compose_to_recipients,
   on_compose_to_selected,
   on_bulk_create,
@@ -207,9 +249,24 @@ export function ContactList({
   sort_by,
   set_sort_by,
   sort_label,
+  view_mode,
+  set_view_mode,
+  filter_by,
+  set_filter_by,
+  group_filter,
+  on_set_group_filter,
+  on_set_group_membership,
+  selected_contacts,
 }: ContactListProps) {
   const { preferences, update_preference } = use_preferences();
   const auto_save = !!preferences.auto_save_recent_recipients;
+  const { groups: all_groups } = use_contact_groups();
+  const group_by_id = useMemo(
+    () => new Map(all_groups.map((group) => [group.id, group])),
+    [all_groups],
+  );
+  const is_compact = view_mode === "compact";
+  const avatar_px = is_compact ? 32 : 40;
   const [tab, set_tab] = useState<ContactTab>("contacts");
   const [is_bulk_create_open, set_is_bulk_create_open] = useState(false);
   const [birthday_card_dismissed, set_birthday_card_dismissed] = useState(() =>
@@ -365,6 +422,27 @@ export function ContactList({
             </DropdownMenuContent>
           </DropdownMenu>
 
+          <Tooltip tip={t("settings.density")}>
+            <Button
+              aria-label={
+                is_compact
+                  ? t("settings.density_comfortable")
+                  : t("settings.density_compact")
+              }
+              aria-pressed={is_compact}
+              className="h-9 w-9 rounded-[10px] hover:bg-[var(--bg-hover)] text-[var(--icon-secondary)] hover:text-[var(--icon-active)]"
+              size="icon"
+              variant="ghost"
+              onClick={() => set_view_mode(is_compact ? "list" : "compact")}
+            >
+              {is_compact ? (
+                <Bars3Icon className="w-[18px] h-[18px]" />
+              ) : (
+                <Bars2Icon className="w-[18px] h-[18px]" />
+              )}
+            </Button>
+          </Tooltip>
+
           <DropdownMenu>
             <Tooltip tip={t("common.manage_contacts")}>
               <DropdownMenuTrigger asChild>
@@ -485,6 +563,16 @@ export function ContactList({
         ))}
       </div>
 
+      {tab === "contacts" && (
+        <ContactGroupChips
+          filter_by={filter_by}
+          group_filter={group_filter}
+          on_set_group_filter={on_set_group_filter}
+          set_filter_by={set_filter_by}
+          upcoming_birthdays_count={upcoming_birthdays_count}
+        />
+      )}
+
       <div
         className={cn(
           "flex min-h-0 flex-1 flex-col",
@@ -586,9 +674,9 @@ export function ContactList({
                 )}
               </button>
             </Tooltip>
-            <ContactGroupAssignMenu
-              on_select={on_add_selected_to_group}
-              t={t}
+            <ManageGroupsMenu
+              on_set_membership={on_set_group_membership}
+              selected_contacts={selected_contacts}
             />
             <Tooltip tip={t("common.send_email")}>
               <button
@@ -748,6 +836,9 @@ export function ContactList({
               const primary_email = contact.emails[0];
               const is_active = selected_contact?.id === contact.id;
               const is_selected = selected_ids.has(contact.id);
+              const member_groups = (contact.groups || [])
+                .map((group_id) => group_by_id.get(group_id))
+                .filter((group): group is NonNullable<typeof group> => !!group);
 
               return (
                 <button
@@ -760,7 +851,10 @@ export function ContactList({
                       );
                     else contact_refs.current?.delete(contact.id);
                   }}
-                  className="contact_row group/contact w-full flex items-center gap-3 px-3 py-1.5 my-0.5 rounded-[12px] text-start"
+                  className={cn(
+                    "contact_row group/contact w-full flex items-center gap-3 px-3 my-0.5 rounded-[12px] text-start",
+                    is_compact ? "py-1" : "py-1.5",
+                  )}
                   data-active={is_active}
                   data-selected={is_selected}
                   onClick={() =>
@@ -770,7 +864,10 @@ export function ContactList({
                   <div
                     aria-label={t("mail.select")}
                     aria-pressed={is_selected}
-                    className="group/avatar aster_select_focus relative flex-shrink-0 w-10 h-10 cursor-pointer"
+                    className={cn(
+                      "group/avatar aster_select_focus relative flex-shrink-0 cursor-pointer",
+                      is_compact ? "w-8 h-8" : "w-10 h-10",
+                    )}
                     role="button"
                     tabIndex={0}
                     onClick={(e) => {
@@ -796,7 +893,7 @@ export function ContactList({
                       email={primary_email}
                       name={`${contact.first_name || ""} ${contact.last_name || ""}`.trim()}
                       profile_color={contact.profile_color}
-                      size_px={40}
+                      size_px={avatar_px}
                     />
                     <div
                       className={cn(
@@ -806,7 +903,12 @@ export function ContactList({
                           : "opacity-0 group-hover/avatar:opacity-100 bg-black/30 dark:bg-white/20",
                       )}
                     >
-                      <CheckIcon className="w-5 h-5 text-white" />
+                      <CheckIcon
+                        className={cn(
+                          "text-white",
+                          is_compact ? "w-4 h-4" : "w-5 h-5",
+                        )}
+                      />
                     </div>
                   </div>
                   <div className="flex-1 min-w-0">
@@ -822,8 +924,12 @@ export function ContactList({
                               className="w-3.5 h-3.5 text-amber-400 flex-shrink-0"
                             />
                           )}
+                          <GroupDots
+                            groups={member_groups}
+                            label={t("common.contact_groups")}
+                          />
                         </div>
-                        {primary_email && (
+                        {primary_email && !is_compact && (
                           <p className="contact_row_sub text-[12px] truncate text-txt-muted">
                             {primary_email}
                           </p>
@@ -834,6 +940,10 @@ export function ContactList({
                         <p className="contact_row_name text-[14px] font-medium truncate text-txt-primary">
                           {primary_email || t("common.unnamed")}
                         </p>
+                        <GroupDots
+                          groups={member_groups}
+                          label={t("common.contact_groups")}
+                        />
                         {contact.is_favorite && (
                           <StarIconSolid
                             aria-label={t("common.favorite")}

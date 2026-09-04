@@ -34,8 +34,8 @@ describe("rail contacts open state", () => {
     vi.unstubAllGlobals();
   });
 
-  it("starts open when the device has no stored choice", () => {
-    expect(read_rail_contacts_open()).toBe(true);
+  it("starts closed when the device has no stored choice", () => {
+    expect(read_rail_contacts_open()).toBe(false);
   });
 
   it("remembers that the panel was closed", () => {
@@ -51,7 +51,7 @@ describe("rail contacts open state", () => {
     expect(read_rail_contacts_open()).toBe(true);
   });
 
-  it("stays open when storage is unavailable", () => {
+  it("stays closed when storage is unavailable", () => {
     vi.stubGlobal("localStorage", {
       getItem: () => {
         throw new Error("denied");
@@ -61,7 +61,7 @@ describe("rail contacts open state", () => {
       },
     });
 
-    expect(() => write_rail_contacts_open(false)).not.toThrow();
-    expect(read_rail_contacts_open()).toBe(true);
+    expect(() => write_rail_contacts_open(true)).not.toThrow();
+    expect(read_rail_contacts_open()).toBe(false);
   });
 });

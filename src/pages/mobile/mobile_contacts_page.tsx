@@ -48,6 +48,7 @@ function MobileContactsPage({
         favorites_count={s.favorites_count}
         filter={s.filter}
         filtered_contacts={s.filtered_contacts}
+        group_filter={s.group_filter}
         grouped={s.grouped}
         is_loading={s.is_loading}
         is_select_mode={s.is_select_mode}
@@ -69,6 +70,7 @@ function MobileContactsPage({
         select_all={s.select_all}
         selected_ids={s.selected_ids}
         set_filter={s.set_filter}
+        set_group_filter={s.set_group_filter}
         set_is_select_mode={s.set_is_select_mode}
         set_search_query={s.set_search_query}
         toggle_select={s.toggle_select}

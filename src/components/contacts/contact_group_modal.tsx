@@ -22,7 +22,7 @@ import type { CSSProperties } from "react";
 import type { ContactGroup } from "@/types/contacts";
 import type { TagIconName } from "@/components/ui/email_tag";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { UserGroupIcon } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
@@ -41,76 +41,158 @@ import {
   TAG_COLOR_PRESETS,
   tag_color_label_key,
 } from "@/components/ui/email_tag";
+import {
+  use_contact_groups,
+  MAX_CONTACT_GROUPS,
+  MAX_CONTACT_GROUP_NAME_LENGTH,
+} from "@/hooks/use_contact_groups";
 import { use_i18n } from "@/lib/i18n/context";
 import { is_composing } from "@/utils/ime";
-import { create_contact_group } from "@/services/api/contacts";
 
 interface ContactGroupModalProps {
   is_open: boolean;
+  group?: ContactGroup | null;
   on_close: () => void;
-  on_created: (group: ContactGroup) => void;
+  on_created?: (group: ContactGroup) => void;
+  on_saved?: (group_id: string) => void;
   existing_count?: number;
 }
 
 export function ContactGroupModal({
   is_open,
+  group = null,
   on_close,
   on_created,
-  existing_count = 0,
+  on_saved,
+  existing_count,
 }: ContactGroupModalProps) {
   const { t } = use_i18n();
+  const { groups, create_group, rename_group } = use_contact_groups();
+  const is_editing = Boolean(group);
+  const group_count = existing_count ?? groups.length;
+  const default_color =
+    TAG_COLOR_PRESETS[group_count % TAG_COLOR_PRESETS.length].hex;
+
   const [name, set_name] = useState("");
-  const [color, set_color] = useState(
-    TAG_COLOR_PRESETS[existing_count % TAG_COLOR_PRESETS.length].hex,
-  );
+  const [color, set_color] = useState<string>(default_color);
   const [icon, set_icon] = useState<TagIconName | undefined>(undefined);
   const [is_saving, set_is_saving] = useState(false);
   const [error, set_error] = useState("");
 
   useEffect(() => {
     if (!is_open) return;
-    set_name("");
+    set_name(group?.name ?? "");
+    set_color(group?.color || default_color);
+    set_icon(group?.icon);
     set_error("");
     set_is_saving(false);
-    set_icon(undefined);
-    set_color(TAG_COLOR_PRESETS[existing_count % TAG_COLOR_PRESETS.length].hex);
-  }, [existing_count, is_open]);
+  }, [default_color, group, is_open]);
+
+  const trimmed_name = name.trim();
+
+  const validation_error = useMemo(() => {
+    if (!trimmed_name) return null;
+
+    if (trimmed_name.length > MAX_CONTACT_GROUP_NAME_LENGTH) {
+      return t("common.contact_group_name_too_long", {
+        max: MAX_CONTACT_GROUP_NAME_LENGTH,
+      });
+    }
+
+    const duplicate = groups.some(
+      (existing) =>
+        existing.id !== group?.id &&
+        existing.name.toLowerCase() === trimmed_name.toLowerCase(),
+    );
+
+    if (duplicate) return t("common.contact_group_already_exists");
+
+    if (!is_editing && groups.length >= MAX_CONTACT_GROUPS) {
+      return t("common.contact_group_limit_reached", {
+        max: MAX_CONTACT_GROUPS,
+      });
+    }
+
+    return null;
+  }, [group?.id, groups, is_editing, t, trimmed_name]);
+
+  const handle_close = useCallback(() => {
+    if (is_saving) return;
+    set_error("");
+    on_close();
+  }, [is_saving, on_close]);
 
   const submit = useCallback(async () => {
-    const trimmed = name.trim();
-
-    if (!trimmed || is_saving) return;
+    if (!trimmed_name || is_saving || validation_error) return;
 
     set_is_saving(true);
     set_error("");
 
-    const response = await create_contact_group({
-      name: trimmed,
-      color,
-      icon,
-    });
+    if (is_editing && group) {
+      const saved = await rename_group(group.id, {
+        name: trimmed_name,
+        color,
+        icon,
+      });
 
-    set_is_saving(false);
+      set_is_saving(false);
 
-    if (response.error || !response.data) {
-      set_error(response.error || t("common.failed_to_create_group"));
+      if (!saved) {
+        set_error(t("common.failed_to_save_contact_group"));
+
+        return;
+      }
+
+      on_saved?.(group.id);
+      on_close();
 
       return;
     }
 
-    on_created(response.data);
+    const created = await create_group({ name: trimmed_name, color, icon });
+
+    set_is_saving(false);
+
+    if (!created) {
+      set_error(t("common.failed_to_create_contact_group"));
+
+      return;
+    }
+
+    on_created?.(created);
+    on_saved?.(created.id);
     on_close();
-  }, [color, icon, is_saving, name, on_close, on_created, t]);
+  }, [
+    color,
+    create_group,
+    group,
+    icon,
+    is_editing,
+    is_saving,
+    on_close,
+    on_created,
+    on_saved,
+    rename_group,
+    t,
+    trimmed_name,
+    validation_error,
+  ]);
 
   if (!is_open) return null;
 
+  const message = validation_error || error;
+
   return (
-    <Modal is_open={is_open} on_close={on_close} size="sm">
+    <Modal is_open={is_open} on_close={handle_close} size="sm">
       <ModalHeader>
         <div className="flex items-center gap-3">
           <UserGroupIcon className="h-5 w-5 flex-shrink-0 text-txt-muted" />
           <div className="min-w-0">
-            <ModalTitle>{t("common.add_new_group")}</ModalTitle>
+            <ModalTitle>
+              {is_editing
+                ? t("common.rename_contact_group")
+                : t("common.add_new_group")}
+            </ModalTitle>
             <ModalDescription>
               {t("common.group_modal_description")}
             </ModalDescription>
@@ -129,9 +211,15 @@ export function ContactGroupModal({
             </label>
             <Input
               autoFocus
+              aria-describedby={
+                message ? "contact_group_name_error" : undefined
+              }
+              aria-invalid={Boolean(message)}
               id="contact_group_name"
-              maxLength={64}
+              maxLength={MAX_CONTACT_GROUP_NAME_LENGTH}
+              placeholder={t("common.enter_contact_group_name")}
               size="md"
+              status={message ? "error" : "default"}
               value={name}
               onChange={(e) => set_name(e.target.value)}
               onKeyDown={(e) => {
@@ -188,34 +276,36 @@ export function ContactGroupModal({
             <span className="contact_group_preview min-w-0">
               <ContactGroupGlyph color={color} icon={icon} />
               <span className="truncate text-[13px] font-medium">
-                {name.trim() || t("common.group_name")}
+                {trimmed_name || t("common.group_name")}
               </span>
             </span>
           </div>
 
-          {error && (
+          {message && (
             <p
               className="text-[12.5px]"
+              id="contact_group_name_error"
+              role="alert"
               style={{ color: "var(--color-danger)" }}
             >
-              {error}
+              {message}
             </p>
           )}
         </div>
       </ModalBody>
 
       <ModalFooter>
-        <Button variant="ghost" onClick={on_close}>
+        <Button disabled={is_saving} variant="ghost" onClick={handle_close}>
           {t("common.cancel")}
         </Button>
         <Button
-          disabled={!name.trim()}
+          disabled={!trimmed_name || Boolean(validation_error)}
           is_loading={is_saving}
           loading_position="before"
           variant="depth"
           onClick={submit}
         >
-          {t("common.create")}
+          {is_editing ? t("common.save") : t("common.create")}
         </Button>
       </ModalFooter>
     </Modal>

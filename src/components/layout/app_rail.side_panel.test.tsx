@@ -114,17 +114,7 @@ describe("side panel setting", () => {
     expect(container.querySelector(".app_rail_popout")).not.toBeNull();
   });
 
-  it("opens the contacts panel on load when nothing is stored", async () => {
-    const on_change = vi.fn();
-
-    await render_rail("/", on_change);
-
-    expect(on_change).toHaveBeenCalledWith(true);
-  });
-
-  it("leaves the contacts panel closed when the device closed it", async () => {
-    localStorage.setItem("aster_rail_contacts_open", "0");
-
+  it("leaves the contacts panel closed on load when nothing is stored", async () => {
     const on_change = vi.fn();
 
     await render_rail("/", on_change);
@@ -132,7 +122,18 @@ describe("side panel setting", () => {
     expect(on_change).not.toHaveBeenCalledWith(true);
   });
 
+  it("reopens the contacts panel when the device left it open", async () => {
+    localStorage.setItem("aster_rail_contacts_open", "1");
+
+    const on_change = vi.fn();
+
+    await render_rail("/", on_change);
+
+    expect(on_change).toHaveBeenCalledWith(true);
+  });
+
   it("leaves the contacts panel closed while the rail is collapsed", async () => {
+    localStorage.setItem("aster_rail_contacts_open", "1");
     localStorage.setItem("aster_app_rail_hidden", "1");
 
     const on_change = vi.fn();

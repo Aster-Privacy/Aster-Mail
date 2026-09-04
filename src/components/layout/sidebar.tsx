@@ -58,6 +58,7 @@ import { SidebarNavSection } from "@/components/layout/sidebar/sidebar_nav_secti
 import { SidebarFolders } from "@/components/layout/sidebar/sidebar_folders";
 import { SidebarTags } from "@/components/layout/sidebar/sidebar_tags";
 import { SidebarAliases } from "@/components/layout/sidebar/sidebar_aliases";
+import { SidebarContactGroups } from "@/components/layout/sidebar/sidebar_contact_groups";
 import { SidebarAccountSwitcher } from "@/components/layout/sidebar/sidebar_account_switcher";
 import { RailTipLayer } from "@/components/layout/sidebar/rail_tip_layer";
 import { use_sidebar_aliases } from "@/hooks/use_sidebar_aliases";
@@ -160,6 +161,10 @@ const sidebar_base = ({
 }: SidebarProps) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const contacts_group_param =
+    location.pathname === "/contacts"
+      ? new URLSearchParams(location.search).get("group")
+      : null;
   const { user } = use_auth();
   const { t } = use_i18n();
   const reduce_motion = use_should_reduce_motion();
@@ -258,6 +263,12 @@ const sidebar_base = ({
       const alias_address = decodeURIComponent(path.replace("/alias/", ""));
 
       return `alias-${alias_address}`;
+    }
+
+    if (path === "/contacts") {
+      const group_id = new URLSearchParams(location.search).get("group");
+
+      if (group_id) return `contact-group-${group_id}`;
     }
 
     return path_to_item[path] || "inbox";
@@ -440,12 +451,14 @@ const sidebar_base = ({
       const alias_address = decodeURIComponent(path.replace("/alias/", ""));
 
       set_selected_item(`alias-${alias_address}`);
+    } else if (path === "/contacts" && contacts_group_param) {
+      set_selected_item(`contact-group-${contacts_group_param}`);
     } else {
       const item = path_to_item[path] || "inbox";
 
       set_selected_item(item);
     }
-  }, [location.pathname, location.state]);
+  }, [location.pathname, location.state, contacts_group_param]);
 
   useEffect(() => {
     const handle_navigate = (e: Event) => {
@@ -551,6 +564,7 @@ const sidebar_base = ({
     preferences.sidebar_folders_collapsed,
     preferences.sidebar_labels_collapsed,
     preferences.sidebar_aliases_collapsed,
+    preferences.sidebar_contact_groups_collapsed,
   ]);
 
   useEffect(() => {
@@ -607,6 +621,13 @@ const sidebar_base = ({
     cache_sidebar_state("sidebar_labels_collapsed", next);
     update_preference("sidebar_labels_collapsed", next, true);
   }, [preferences.sidebar_labels_collapsed, update_preference]);
+
+  const toggle_contact_groups_collapsed = useCallback(() => {
+    const next = !preferences.sidebar_contact_groups_collapsed;
+
+    cache_sidebar_state("sidebar_contact_groups_collapsed", next);
+    update_preference("sidebar_contact_groups_collapsed", next, true);
+  }, [preferences.sidebar_contact_groups_collapsed, update_preference]);
 
   const toggle_aliases_collapsed = useCallback(() => {
     const next = !preferences.sidebar_aliases_collapsed;
@@ -889,6 +910,16 @@ const sidebar_base = ({
             set_selected_item={set_selected_item}
             tag_refs={tag_refs}
             tags={tags_state.tags}
+          />
+
+          <SidebarContactGroups
+            effective_selected={effective_selected}
+            handle_nav_click={handle_nav_click}
+            is_collapsed={is_collapsed}
+            navigate={navigate}
+            on_toggle_section={toggle_contact_groups_collapsed}
+            section_collapsed={preferences.sidebar_contact_groups_collapsed}
+            set_selected_item={set_selected_item}
           />
 
           <SidebarAliases

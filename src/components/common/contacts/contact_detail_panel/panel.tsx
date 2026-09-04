@@ -86,6 +86,7 @@ import { app_date_format, format_iso_date } from "@/utils/date_format";
 import { ContactAvatar } from "@/components/common/contacts/contact_avatar";
 import { EncryptionInfoDropdown } from "@/components/common/encryption_info_dropdown";
 import { ContactHistoryPanel } from "@/components/contacts/contact_history_panel";
+import { ContactGroupsField } from "@/components/contacts/contact_groups_field";
 import { show_toast } from "@/components/toast/simple_toast";
 import { share_contact_vcard } from "@/utils/contact_export";
 import { strip_image_metadata_data_url } from "@/lib/strip_image_metadata";
@@ -106,6 +107,7 @@ export function ContactDetailPanel({
   on_dismiss,
   on_toggle_favorite,
   on_undo_change,
+  on_toggle_group,
   is_creating_new,
   is_submitting,
 }: ContactDetailPanelProps) {
@@ -808,10 +810,22 @@ export function ContactDetailPanel({
               </div>
             </Section>
 
+            {!is_creating_new && selected_contact && (
+              <Section title={t("common.contact_groups")}>
+                <ContactGroupsField
+                  contact={selected_contact}
+                  on_toggle_group={(group_id, should_add) =>
+                    on_toggle_group?.(selected_contact, group_id, should_add)
+                  }
+                />
+              </Section>
+            )}
+
             <Section title={t("common.personal")}>
               <div>
                 <FieldLabel icon={CakeIcon}>{t("common.birthday")}</FieldLabel>
                 <input
+                  aria-label={t("common.birthday")}
                   className={FIELD_CLASS}
                   placeholder={app_date_format()}
                   readOnly={!is_editing}

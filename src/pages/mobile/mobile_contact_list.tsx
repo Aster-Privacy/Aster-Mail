@@ -40,6 +40,7 @@ import {
 import { Capacitor } from "@capacitor/core";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { use_contact_groups } from "@/hooks/use_contact_groups";
 import { use_should_reduce_motion } from "@/provider";
 import { MobileHeader } from "@/components/mobile/mobile_header";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
@@ -55,6 +56,8 @@ interface MobileContactListProps {
   set_search_query: (v: string) => void;
   filter: "all" | "favorites";
   set_filter: (v: "all" | "favorites") => void;
+  group_filter: string | null;
+  set_group_filter: (v: string | null) => void;
   favorites_count: number;
   is_select_mode: boolean;
   set_is_select_mode: (v: boolean) => void;
@@ -88,6 +91,8 @@ export function MobileContactList({
   set_search_query,
   filter,
   set_filter,
+  group_filter,
+  set_group_filter,
   favorites_count,
   is_select_mode,
   set_is_select_mode,
@@ -112,6 +117,7 @@ export function MobileContactList({
   on_show_delete_confirm,
 }: MobileContactListProps) {
   const { t } = use_i18n();
+  const { groups: contact_groups } = use_contact_groups();
   const reduce_motion = use_should_reduce_motion();
 
   return (
@@ -218,7 +224,7 @@ export function MobileContactList({
         </div>
       </div>
 
-      <div className="flex gap-2 px-4 pb-2">
+      <div className="flex gap-2 px-4 pb-2 overflow-x-auto">
         <button
           className={`rounded-full px-3.5 py-1.5 text-[13px] font-medium transition-colors ${
             filter === "all"
@@ -237,7 +243,10 @@ export function MobileContactList({
               : undefined
           }
           type="button"
-          onClick={() => set_filter("all")}
+          onClick={() => {
+            set_filter("all");
+            set_group_filter(null);
+          }}
         >
           {t("common.contacts")} ({contacts.length})
         </button>
@@ -260,7 +269,10 @@ export function MobileContactList({
                 : undefined
             }
             type="button"
-            onClick={() => set_filter("favorites")}
+            onClick={() => {
+              set_group_filter(null);
+              set_filter("favorites");
+            }}
           >
             {filter === "favorites" ? (
               <StarSolid className="h-3.5 w-3.5" />
@@ -270,6 +282,36 @@ export function MobileContactList({
             {t("common.favorites")} ({favorites_count})
           </button>
         )}
+        {contact_groups.map((group) => (
+          <button
+            key={group.id}
+            className={`flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[13px] font-medium transition-colors ${
+              group_filter === group.id
+                ? "text-[var(--text-primary)]"
+                : "bg-[var(--bg-tertiary)] text-[var(--text-secondary)]"
+            }`}
+            style={
+              group_filter === group.id
+                ? {
+                    backgroundColor: `${group.color}33`,
+                    border: `1px solid ${group.color}`,
+                  }
+                : undefined
+            }
+            type="button"
+            onClick={() => {
+              set_filter("all");
+              set_group_filter(group_filter === group.id ? null : group.id);
+            }}
+          >
+            <span
+              aria-hidden="true"
+              className="h-2 w-2 shrink-0 rounded-full"
+              style={{ backgroundColor: group.color }}
+            />
+            {group.name}
+          </button>
+        ))}
       </div>
 
       <div className="flex-1 overflow-y-auto">

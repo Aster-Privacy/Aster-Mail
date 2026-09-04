@@ -75,6 +75,11 @@ export interface ContactDetailPanelProps {
     contact: DecryptedContact,
     revision: ContactRevision,
   ) => Promise<void> | void;
+  on_toggle_group?: (
+    contact: DecryptedContact,
+    group_id: string,
+    should_add: boolean,
+  ) => Promise<void> | void;
   is_creating_new?: boolean;
   is_submitting?: boolean;
 }

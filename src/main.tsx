@@ -205,6 +205,28 @@ window.addEventListener(
   true,
 );
 
+if ("serviceWorker" in navigator && import.meta.env.DEV && !is_tauri_runtime) {
+  void (async () => {
+    try {
+      const regs = await navigator.serviceWorker.getRegistrations();
+
+      if (regs.length === 0) return;
+
+      await Promise.all(regs.map((r) => r.unregister().catch(() => false)));
+
+      if (typeof caches !== "undefined") {
+        const keys = await caches.keys();
+
+        await Promise.all(keys.map((k) => caches.delete(k).catch(() => false)));
+      }
+
+      window.location.reload();
+    } catch (caught) {
+      ignore_error("main:dev_sw_reset", caught);
+    }
+  })();
+}
+
 if ("serviceWorker" in navigator && import.meta.env.PROD && !is_tauri_runtime) {
   const legacy_sw_reset = (async (): Promise<boolean> => {
     try {

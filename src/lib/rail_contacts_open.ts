@@ -22,9 +22,9 @@ const RAIL_CONTACTS_OPEN_KEY = "aster_rail_contacts_open";
 
 export const read_rail_contacts_open = (): boolean => {
   try {
-    return localStorage.getItem(RAIL_CONTACTS_OPEN_KEY) !== "0";
+    return localStorage.getItem(RAIL_CONTACTS_OPEN_KEY) === "1";
   } catch {
-    return true;
+    return false;
   }
 };
 

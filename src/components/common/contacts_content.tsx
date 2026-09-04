@@ -95,6 +95,7 @@ export function ContactsContent({
           filter_label={state.filter_label}
           filtered_contacts={state.filtered_contacts}
           focused_index={state.focused_index}
+          group_filter={state.group_filter}
           has_selection={state.has_selection}
           import_progress={state.import_progress}
           is_importing={state.is_importing}
@@ -118,11 +119,14 @@ export function ContactsContent({
           on_print_contacts={state.handle_print_contacts}
           on_restore_contact={state.handle_restore_contact}
           on_scroll_to_letter={state.scroll_to_letter}
+          on_set_group_filter={state.handle_set_group_filter}
+          on_set_group_membership={state.handle_set_group_membership}
           on_toggle_favorite_selected={state.handle_toggle_favorite_selected}
           on_toggle_select={state.handle_toggle_select}
           search_query={state.search_query}
           selected_all_favorited={state.selected_all_favorited}
           selected_contact={state.selected_contact}
+          selected_contacts={state.selected_contacts}
           selected_ids={state.selected_ids}
           selection_state={state.selection_state}
           set_filter_by={state.set_filter_by}
@@ -153,6 +157,7 @@ export function ContactsContent({
             on_inline_create={state.handle_inline_create}
             on_inline_save={state.handle_inline_save}
             on_toggle_favorite={state.handle_toggle_favorite_single}
+            on_toggle_group={state.handle_toggle_contact_group}
             on_undo_change={state.handle_undo_contact_change}
             selected_contact={state.selected_contact}
             set_show_history={state.set_show_history}

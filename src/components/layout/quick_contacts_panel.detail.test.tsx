@@ -50,6 +50,7 @@ vi.mock("@/lib/i18n/context", () => ({
 
 vi.mock("@/contexts/auth_context", () => ({
   use_auth: () => ({ has_keys: true }),
+  use_auth_safe: () => ({ has_keys: true }),
 }));
 
 vi.mock("@/contexts/preferences_context", () => ({
@@ -105,6 +106,9 @@ describe("quick contacts panel detail view", () => {
     vi.spyOn(contacts_api, "decrypt_contacts").mockResolvedValue([
       contact,
     ] as never);
+    vi.spyOn(contacts_api, "list_contact_groups").mockResolvedValue({
+      data: { groups: [] },
+    } as never);
     vi.spyOn(keys_api, "discover_external_keys_batch").mockResolvedValue({
       data: [],
     } as never);

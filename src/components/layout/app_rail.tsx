@@ -142,8 +142,9 @@ function AppRailComponent({
             <img
               alt=""
               aria-hidden="true"
-              className="h-6 w-6 shrink-0"
+              className="h-6 w-6 shrink-0 select-none"
               decoding="sync"
+              draggable={false}
               height={24}
               loading="eager"
               src="/icons/contacts/contacts_24.png"

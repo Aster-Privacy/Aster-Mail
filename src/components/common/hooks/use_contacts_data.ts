@@ -110,6 +110,7 @@ export function use_contacts_data() {
   const [is_bulk_deleting, set_is_bulk_deleting] = useState(false);
   const [sort_by, set_sort_by] = useState<SortOption>("name_asc");
   const [filter_by, set_filter_by] = useState<FilterOption>("all");
+  const [group_filter, set_group_filter] = useState<string | null>(null);
   const [copied_field, set_copied_field] = useState<string | null>(null);
   const [view_mode, set_view_mode] = useState<ViewMode>("list");
   const [focused_index, set_focused_index] = useState<number>(-1);
@@ -140,6 +141,12 @@ export function use_contacts_data() {
 
   const sorted_contacts = useMemo(() => {
     let result = [...contacts];
+
+    if (group_filter) {
+      result = result.filter((contact) =>
+        (contact.groups || []).includes(group_filter),
+      );
+    }
 
     if (filter_by !== "all") {
       result = result.filter((contact) => {
@@ -215,7 +222,7 @@ export function use_contacts_data() {
     });
 
     return result;
-  }, [contacts, sort_by, filter_by]);
+  }, [contacts, sort_by, filter_by, group_filter]);
 
   const deferred_search_query = useDeferredValue(search_query);
 
@@ -247,12 +254,16 @@ export function use_contacts_data() {
   const has_selection =
     selection_state.all_selected || selection_state.some_selected;
 
+  const selected_contacts = useMemo(
+    () => contacts.filter((contact) => selected_ids.has(contact.id)),
+    [contacts, selected_ids],
+  );
+
   const selected_all_favorited = useMemo(() => {
-    if (selected_ids.size === 0) return false;
-    const selected_contacts = contacts.filter((c) => selected_ids.has(c.id));
+    if (selected_contacts.length === 0) return false;
 
     return selected_contacts.every((c) => c.is_favorite);
-  }, [contacts, selected_ids]);
+  }, [selected_contacts]);
 
   const filter_label = useMemo(() => {
     switch (filter_by) {
@@ -377,6 +388,33 @@ export function use_contacts_data() {
   useEffect(() => {
     fetch_contacts();
   }, [fetch_contacts]);
+
+  useEffect(() => {
+    const group_param = search_params.get("group");
+
+    set_group_filter(group_param || null);
+  }, [search_params]);
+
+  const handle_set_group_filter = useCallback(
+    (group_id: string | null) => {
+      set_group_filter(group_id);
+      set_search_params(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+
+          if (group_id) {
+            next.set("group", group_id);
+          } else {
+            next.delete("group");
+          }
+
+          return next;
+        },
+        { replace: true },
+      );
+    },
+    [set_search_params],
+  );
 
   useEffect(() => {
     const contact_id = search_params.get("contact_id");
@@ -694,6 +732,9 @@ export function use_contacts_data() {
     set_sort_by,
     filter_by,
     set_filter_by,
+    group_filter,
+    set_group_filter,
+    handle_set_group_filter,
     copied_field,
     set_copied_field,
     view_mode,
@@ -717,6 +758,7 @@ export function use_contacts_data() {
     filtered_contacts,
     selection_state,
     has_selection,
+    selected_contacts,
     selected_all_favorited,
     filter_label,
     alphabetical_index,

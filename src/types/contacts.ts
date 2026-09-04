@@ -194,12 +194,15 @@ export interface ContactFormData extends ExtendedContactFields {
 
 export interface ContactGroupEncrypted {
   id: string;
+  group_token: string;
   encrypted_name: string;
   name_nonce: string;
   color: string;
   icon?: TagIconName;
+  sort_order: number;
   contact_count: number;
   created_at: string;
+  updated_at: string;
 }
 
 export interface ContactGroup {
@@ -207,8 +210,15 @@ export interface ContactGroup {
   name: string;
   color: string;
   icon?: TagIconName;
+  sort_order: number;
   contact_count: number;
   created_at: string;
+  updated_at: string;
+}
+
+export interface GroupMembershipChange {
+  success: boolean;
+  changed: number;
 }
 
 export interface ContactGroupFormData {
@@ -250,9 +260,10 @@ export interface UpdateContactRequest {
   encrypted_data: string;
   data_nonce: string;
   integrity_hash: string;
-  name_search_token?: string;
-  email_search_token?: string;
-  company_search_token?: string;
+  data_version?: number;
+  name_search_token?: string | null;
+  email_search_token?: string | null;
+  company_search_token?: string | null;
 }
 
 export interface UpdateContactResponse {

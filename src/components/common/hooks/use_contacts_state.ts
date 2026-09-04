@@ -37,7 +37,10 @@ import {
   update_contact_encrypted,
   delete_contact as api_delete_contact,
   add_contact_to_group,
+  add_contacts_to_group,
+  remove_contacts_from_group,
 } from "@/services/api/contacts";
+import { emit_contact_groups_changed } from "@/hooks/use_contact_groups";
 import { show_toast } from "@/components/toast/simple_toast";
 import { print_contacts } from "@/utils/contact_print";
 import { emit_contacts_changed } from "@/hooks/mail_events";
@@ -99,6 +102,8 @@ export function use_contacts_state() {
     set_sort_by,
     filter_by,
     set_filter_by,
+    group_filter,
+    handle_set_group_filter,
     copied_field,
     set_copied_field,
     view_mode,
@@ -122,6 +127,7 @@ export function use_contacts_state() {
     filtered_contacts,
     selection_state,
     has_selection,
+    selected_contacts,
     selected_all_favorited,
     filter_label,
     alphabetical_index,
@@ -956,6 +962,133 @@ export function use_contacts_state() {
     });
   }, [contacts, selected_ids, t]);
 
+  const handle_set_group_membership = useCallback(
+    async (group_id: string, should_add: boolean) => {
+      const target_contacts = contacts.filter(
+        (contact) =>
+          selected_ids.has(contact.id) &&
+          (contact.groups || []).includes(group_id) !== should_add,
+      );
+
+      if (target_contacts.length === 0) return;
+
+      const target_ids = target_contacts.map((contact) => contact.id);
+      const apply_locally = (add: boolean) => {
+        set_contacts((prev) =>
+          prev.map((contact) => {
+            if (!target_ids.includes(contact.id)) return contact;
+            const current = contact.groups || [];
+
+            return {
+              ...contact,
+              groups: add
+                ? [...current, group_id]
+                : current.filter((id) => id !== group_id),
+            };
+          }),
+        );
+      };
+
+      apply_locally(should_add);
+
+      try {
+        const membership = should_add
+          ? await add_contacts_to_group(group_id, target_ids)
+          : await remove_contacts_from_group(group_id, target_ids);
+
+        if (membership.error) {
+          throw new Error(membership.error);
+        }
+
+        for (let i = 0; i < target_contacts.length; i += BATCH_SIZE) {
+          const batch = target_contacts.slice(i, i + BATCH_SIZE);
+          const results = await Promise.allSettled(
+            batch.map((contact) => {
+              const current = contact.groups || [];
+              const next_groups = should_add
+                ? [...current, group_id]
+                : current.filter((id) => id !== group_id);
+
+              return update_contact_encrypted(contact.id, {
+                ...contact_to_form_data(contact),
+                groups: next_groups,
+              });
+            }),
+          );
+
+          if (
+            results.some(
+              (result) => result.status === "rejected" || result.value?.error,
+            )
+          ) {
+            throw new Error(t("common.failed_to_update_contact_groups"));
+          }
+        }
+
+        emit_contact_groups_changed();
+        show_toast(
+          t(
+            should_add
+              ? "common.contacts_added_to_group"
+              : "common.contacts_removed_from_group",
+            { count: target_ids.length },
+          ),
+          "success",
+        );
+      } catch {
+        apply_locally(!should_add);
+        show_toast(t("common.failed_to_update_contact_groups"), "error");
+      }
+    },
+    [contacts, selected_ids, t],
+  );
+
+  const handle_toggle_contact_group = useCallback(
+    async (contact: DecryptedContact, group_id: string, should_add: boolean) => {
+      const current = contact.groups || [];
+
+      if (current.includes(group_id) === should_add) return;
+
+      const next_groups = should_add
+        ? [...current, group_id]
+        : current.filter((id) => id !== group_id);
+      const apply_locally = (groups: string[]) => {
+        set_contacts((prev) =>
+          prev.map((c) => (c.id === contact.id ? { ...c, groups } : c)),
+        );
+        set_selected_contact((prev) =>
+          prev && prev.id === contact.id ? { ...prev, groups } : prev,
+        );
+      };
+
+      apply_locally(next_groups);
+
+      try {
+        const membership = should_add
+          ? await add_contacts_to_group(group_id, [contact.id])
+          : await remove_contacts_from_group(group_id, [contact.id]);
+
+        if (membership.error) {
+          throw new Error(membership.error);
+        }
+
+        const response = await update_contact_encrypted(contact.id, {
+          ...contact_to_form_data(contact),
+          groups: next_groups,
+        });
+
+        if (response.error) {
+          throw new Error(response.error);
+        }
+        emit_contact_groups_changed();
+      } catch {
+        apply_locally(current);
+        show_toast(t("common.failed_to_update_contact_groups"), "error");
+      }
+    },
+    [t],
+  );
+
   const handle_export_contacts = useCallback(
     (export_selected: boolean) => {
       const contacts_to_export = export_selected
@@ -1078,6 +1211,10 @@ export function use_contacts_state() {
     set_sort_by,
     filter_by,
     set_filter_by,
+    group_filter,
+    handle_set_group_filter,
+    handle_set_group_membership,
+    handle_toggle_contact_group,
     copied_field,
     view_mode,
     set_view_mode,
@@ -1099,6 +1236,7 @@ export function use_contacts_state() {
     filtered_contacts,
     selection_state,
     has_selection,
+    selected_contacts,
     selected_all_favorited,
     filter_label,
     alphabetical_index,
