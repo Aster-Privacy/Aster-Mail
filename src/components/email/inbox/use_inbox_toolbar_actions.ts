@@ -158,6 +158,8 @@ interface UseInboxToolbarActionsOptions {
   restore_emails: (entries: RestoredEmailEntry[]) => void;
   bulk_delete: (ids: string[]) => Promise<BulkActionResult>;
   schedule_delete_drafts: (ids: string[]) => () => void;
+  cancel_scheduled: (id: string) => Promise<boolean>;
+  bulk_cancel_scheduled: (ids: string[]) => Promise<boolean>;
   bulk_archive: (ids: string[]) => Promise<BulkActionResult>;
   bulk_unarchive: (ids: string[]) => Promise<BulkActionResult>;
   bulk_snooze_action: (
@@ -193,6 +195,8 @@ export function use_inbox_toolbar_actions({
   restore_emails,
   bulk_delete,
   schedule_delete_drafts,
+  cancel_scheduled,
+  bulk_cancel_scheduled,
   bulk_archive,
   bulk_unarchive,
   bulk_snooze_action,
@@ -244,10 +248,13 @@ export function use_inbox_toolbar_actions({
     restore_emails,
     bulk_delete,
     schedule_delete_drafts,
+    cancel_scheduled,
+    bulk_cancel_scheduled,
     preferences,
     update_preference,
     save_now,
     is_drafts_view,
+    is_scheduled_view,
     set_confirmations,
     dont_ask_delete,
     set_dont_ask_delete,

@@ -60,6 +60,7 @@ export function use_context_menu_actions({
   is_drafts_view,
   is_scheduled_view,
   schedule_delete_drafts,
+  cancel_scheduled,
 }: UseContextMenuActionsHookParams): ContextMenuActions {
   const { confirm_before_delete, confirm_before_spam, confirm_before_archive } =
     preferences;
@@ -99,6 +100,7 @@ export function use_context_menu_actions({
         is_drafts_view,
         is_scheduled_view,
         schedule_delete_drafts,
+        cancel_scheduled,
       }),
     [
       t,
@@ -123,6 +125,7 @@ export function use_context_menu_actions({
       is_drafts_view,
       is_scheduled_view,
       schedule_delete_drafts,
+      cancel_scheduled,
     ],
   );
 }

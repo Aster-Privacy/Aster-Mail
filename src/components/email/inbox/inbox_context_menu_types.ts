@@ -64,6 +64,7 @@ export interface UseContextMenuActionsParams {
   is_drafts_view: boolean;
   is_scheduled_view: boolean;
   schedule_delete_drafts: (ids: string[]) => () => void;
+  cancel_scheduled: (id: string) => Promise<boolean>;
 }
 
 export interface ContextMenuActions {

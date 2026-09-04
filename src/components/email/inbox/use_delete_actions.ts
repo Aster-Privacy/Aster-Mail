@@ -73,6 +73,8 @@ interface UseDeleteActionsOptions {
   restore_emails: (entries: RestoredEmailEntry[]) => void;
   bulk_delete: (ids: string[]) => Promise<BulkActionResult>;
   schedule_delete_drafts: (ids: string[]) => () => void;
+  cancel_scheduled: (id: string) => Promise<boolean>;
+  bulk_cancel_scheduled: (ids: string[]) => Promise<boolean>;
   preferences: {
     confirm_before_delete: boolean;
     conversation_grouping?: boolean;
@@ -84,6 +86,7 @@ interface UseDeleteActionsOptions {
   ) => void;
   save_now: () => Promise<void>;
   is_drafts_view: boolean;
+  is_scheduled_view: boolean;
   set_confirmations: React.Dispatch<
     React.SetStateAction<ConfirmationDialogState>
   >;
@@ -110,10 +113,13 @@ export function use_delete_actions({
   restore_emails,
   bulk_delete,
   schedule_delete_drafts,
+  cancel_scheduled,
+  bulk_cancel_scheduled,
   preferences,
   update_preference,
   save_now,
   is_drafts_view,
+  is_scheduled_view,
   set_confirmations,
   dont_ask_delete,
   set_dont_ask_delete,
@@ -200,16 +206,49 @@ export function use_delete_actions({
         action_type: "trash",
         email_ids: succeeded_ids,
         on_undo: async () => {
-          const undo_result = await bulk_update_metadata_by_ids(undo_ids, {
-            is_trashed: false,
-          });
+          const thread_results = await Promise.all(
+            undo_thread_tokens.map((token) => trash_thread(token, false)),
+          );
+          const undo_result =
+            undo_ids.length > 0
+              ? await bulk_update_metadata_by_ids(undo_ids, {
+                  is_trashed: false,
+                })
+              : { success: true };
 
-          if (!undo_result.success) throw new Error("undo trash failed");
+          if (
+            !undo_result.success ||
+            thread_results.some((result) => !result.data)
+          ) {
+            throw new Error("undo trash failed");
+          }
           window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
         },
       });
     },
-    [email_state.emails, bulk_delete, t],
+    [email_state.emails, bulk_delete, is_threaded_email, t],
+  );
+
+  const run_cancel_scheduled = useCallback(
+    async (ids: string[]): Promise<void> => {
+      if (ids.length === 0) return;
+
+      const success =
+        ids.length === 1
+          ? await cancel_scheduled(ids[0])
+          : await bulk_cancel_scheduled(ids);
+
+      if (success) {
+        show_action_toast({
+          message: t("common.scheduled_email_cancelled"),
+          action_type: "trash",
+          email_ids: ids,
+        });
+      } else {
+        show_toast(t("common.failed_to_delete_emails"), "error");
+      }
+    },
+    [cancel_scheduled, bulk_cancel_scheduled, t],
   );
 
   const run_delete_drafts = useCallback(
@@ -242,6 +281,12 @@ export function use_delete_actions({
       return;
     }
 
+    if (is_scheduled_view) {
+      await run_cancel_scheduled(ids);
+
+      return;
+    }
+
     await run_move_to_trash(ids);
   }, [
     preferences.confirm_before_delete,
@@ -249,7 +294,9 @@ export function use_delete_actions({
     email_state.emails,
     run_move_to_trash,
     run_delete_drafts,
+    run_cancel_scheduled,
     is_drafts_view,
+    is_scheduled_view,
     current_view,
     set_confirmations,
   ]);
@@ -265,6 +312,8 @@ export function use_delete_actions({
       await run_permanent_delete(ids);
     } else if (is_drafts_view) {
       run_delete_drafts(ids);
+    } else if (is_scheduled_view) {
+      await run_cancel_scheduled(ids);
     } else {
       await run_move_to_trash(ids);
     }
@@ -277,7 +326,9 @@ export function use_delete_actions({
     run_permanent_delete,
     run_move_to_trash,
     run_delete_drafts,
+    run_cancel_scheduled,
     is_drafts_view,
+    is_scheduled_view,
     current_view,
     update_preference,
     save_now,
@@ -328,6 +379,8 @@ export function use_delete_actions({
         action_type: "trash",
         email_ids: [email.id],
       });
+    } else if (is_scheduled_view) {
+      await run_cancel_scheduled([email.id]);
     } else {
       const deltas = compute_trash_deltas(email);
       const grouped_ids =
@@ -414,7 +467,9 @@ export function use_delete_actions({
     remove_emails,
     restore_emails,
     is_drafts_view,
+    is_scheduled_view,
     schedule_delete_drafts,
+    run_cancel_scheduled,
     update_preference,
     preferences.conversation_grouping,
     save_now,
