@@ -54,6 +54,7 @@ const SUPPORTED_LANGUAGES: Language[] = [
   { code: "ja", name: "Japanese", native_name: "日本語", direction: "ltr" },
   { code: "ko", name: "Korean", native_name: "한국어", direction: "ltr" },
   { code: "ar", name: "Arabic", native_name: "العربية", direction: "rtl" },
+  { code: "hi", name: "Hindi", native_name: "हिन्दी", direction: "ltr" },
 ];
 
 const LANGUAGE_MAP = new Map<LanguageCode, Language>(

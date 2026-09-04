@@ -2054,6 +2054,113 @@ export const nl = {
       "Eén bericht bereikt maximaal {{max}} adressen in Aan, Cc en Bcc samen. De lijst opsplitsen in kleinere berichten werkt wel.",
     credit_balance_changed:
       "Uw kredietsaldo is gewijzigd terwijl het afrekenen openstond. Sluit het afrekenen en begin opnieuw om het saldo van dit moment toe te passen.",
+    add_birthdays: "Verjaardagen toevoegen",
+    add_birthdays_hint:
+      "Voeg een verjaardag toe aan een contact en Aster herinnert je er vooraf aan.",
+    add_group: "Groep toevoegen",
+    add_new_group: "Nieuwe groep",
+    add_to_group: "Aan groep toevoegen",
+    added_to_group: "Toegevoegd aan groep",
+    birthdays_upcoming: "{{count}} verjaardagen komen eraan",
+    bulk_create_hint:
+      "Voeg één contact per regel toe. Als je een e-mailadres bij een naam wilt bewaren, zet je het adres tussen punthaken.",
+    bulk_create_placeholder: "Ada Lovelace <ada@example.com>",
+    bulk_create_ready: "{{count}} klaar om aan te maken",
+    change_history: "Wijzigingsgeschiedenis",
+    change_photo: "Foto wijzigen",
+    checking_for_keys: "Sleutels zoeken",
+    clear_selection: "Selectie wissen",
+    compose_to_selection: "Selectie mailen",
+    contact_change_undone: "Wijziging ongedaan gemaakt",
+    contact_encryption_info:
+      "Zodra een contact een openbare sleutel publiceert, versleutelt Aster automatisch de berichten die je verstuurt.",
+    contact_moved_to_trash: "Contact naar de prullenmand verplaatst",
+    contact_restored: "Contact hersteld",
+    contacts_created: "{{count}} contacten aangemaakt",
+    contacts_exported: "Contacten geëxporteerd",
+    contacts_in_trash_notice:
+      "Contacten in de prullenmand worden na 30 dagen definitief verwijderd.",
+    contacts_merged: "Contacten samengevoegd",
+    contacts_moved_to_trash: "Contacten naar de prullenmand verplaatst",
+    contacts_updated_stat: "Bijgewerkt",
+    create_contact: "Contact aanmaken",
+    create_multiple_contacts: "Meerdere contacten aanmaken",
+    delete_contacts: "Contacten verwijderen",
+    delete_group: "Groep verwijderen",
+    delete_group_confirmation:
+      "Als je “{{name}}” verwijdert, verdwijnt de groep. De contacten erin blijven in je adresboek staan.",
+    deselect_contact: "Contact deselecteren",
+    discard: "Weggooien",
+    discard_new_contact_message:
+      "Het contact waaraan je begon, is nog niet bewaard. Als je nu een ander contact opent, ben je het kwijt.",
+    duplicates_found: "Dubbele contacten gevonden",
+    email_group: "Groep mailen",
+    empty_trash_confirm:
+      "Wil je alle contacten in de prullenmand definitief verwijderen? Dit kun je niet ongedaan maken.",
+    export_selection_vcf: "Exporteren als vCard",
+    failed_to_add_to_group:
+      "Het contact kon niet aan de groep worden toegevoegd.",
+    failed_to_create_group: "De groep kon niet worden aangemaakt.",
+    failed_to_delete_group: "De groep kon niet worden verwijderd.",
+    failed_to_load_groups: "Je groepen konden niet worden geladen.",
+    failed_to_move_to_trash:
+      "Het contact kon niet naar de prullenmand worden verplaatst.",
+    failed_to_remove_from_group:
+      "Het contact kon niet uit de groep worden verwijderd.",
+    frequent_contacts: "Frequent",
+    frequent_contacts_hint:
+      "De contacten die je het vaakst mailt, verschijnen hier.",
+    group_contact_count: "{{count}} contacten",
+    group_created: "Groep aangemaakt",
+    group_deleted: "Groep verwijderd",
+    group_empty_hint:
+      "Als je deze groep wilt vullen, selecteer je contacten op het tabblad Contacten en kies je Aan groep toevoegen.",
+    group_empty_title: "Geen contacten in deze groep",
+    group_modal_description:
+      "Maak groepen om meerdere contacten tegelijk te mailen.",
+    group_name: "Groepsnaam",
+    groups: "Groepen",
+    import_add_to_group: "Geïmporteerde contacten aan een groep toevoegen",
+    import_clear_all: "Alles wissen",
+    import_no_group: "Geen groep",
+    import_nothing_selected: "Selecteer minstens één contact om te importeren.",
+    import_search_placeholder: "Contacten zoeken om te importeren",
+    import_select_all: "Alles selecteren",
+    import_selected_count: "{{selected}} van {{total}} geselecteerd",
+    manage_contacts: "Contacten beheren",
+    merge: "Samenvoegen",
+    merge_and_fix: "Samenvoegen en corrigeren",
+    merge_contacts_hint:
+      "Kies welke gegevens je bewaart. De andere contacten gaan naar de prullenmand.",
+    merge_keeps_this: "Bewaard",
+    merged_contact_preview: "Samengevoegd contact",
+    no_contact_changes: "Nog geen wijzigingen",
+    no_contact_details:
+      "Dit contact heeft nog geen gegevens. Kies Bewerken om ze toe te voegen.",
+    no_contacts_in_trash: "De prullenmand is leeg",
+    no_duplicates_found: "Geen dubbele contacten om te corrigeren",
+    no_email: "Geen e-mailadres",
+    no_frequent_contacts: "Nog geen frequente contacten",
+    no_groups_match: "Geen groepen komen overeen met je zoekopdracht",
+    no_groups_yet: "Nog geen groepen",
+    no_other_contacts: "Geen andere contacten",
+    no_published_key: "Geen gepubliceerde sleutel",
+    open_contacts: "Contacten openen",
+    other_contacts: "Overig",
+    other_contacts_hint:
+      "Adressen die uit je berichten zijn bewaard en nog geen naam hebben, verschijnen hier.",
+    preview_contact: "Contactvoorbeeld",
+    print_contacts: "Contacten afdrukken",
+    remove_from_group: "Uit groep verwijderen",
+    removed_from_group: "Uit groep verwijderd",
+    review_duplicates: "Dubbele contacten bekijken",
+    search_groups: "Groepen zoeken",
+    select_contact: "Contact selecteren",
+    share_contact: "Contact delen",
+    some_contacts_not_created:
+      "Sommige contacten konden niet worden aangemaakt.",
+    trash_days_left: "Nog {{count}} dagen",
+    undo_change: "Wijziging ongedaan maken",
   },
   settings: {
     purge_locked_folder_on_delete: "Inhoud van beveiligde mappen vernietigen",
@@ -7564,6 +7671,72 @@ export const nl = {
       "{{used}} van {{max}} plekken gebruikt · {{count}} plek beschikbaar",
     fam_org_members_count_other:
       "{{used}} van {{max}} plekken gebruikt · {{count}} plekken beschikbaar",
+    account_enabled_tooltip: "Dit account synchroniseert.",
+    account_pause_tooltip: "Synchronisatie onderbreken",
+    account_paused_tooltip: "De synchronisatie van dit account is onderbroken.",
+    account_resume_tooltip: "Synchronisatie hervatten",
+    app_password_create_link: "App-wachtwoord aanmaken",
+    app_password_required: "App-wachtwoord vereist",
+    category_info_newsletters:
+      "Updates en mailinglijsten waarop je bent geabonneerd.",
+    category_info_transactions:
+      "Bestellingen, betalingen en bonnen van winkels en diensten.",
+    category_newsletters: "Nieuwsbrieven",
+    category_transactions: "Aankopen",
+    edit_account_tooltip: "Account bewerken",
+    gmail_app_password_notice:
+      "Deze provider vraagt om een app-wachtwoord. Het gewone wachtwoord van je account werkt niet.",
+    gmail_sync_continue: "Doorgaan",
+    gmail_sync_intro:
+      "Maak een app-wachtwoord aan in de instellingen van je account en plak het hier.",
+    gmail_sync_note_unavailable:
+      "Als app-wachtwoorden er niet staan, schakel dan eerst verificatie in twee stappen in en kijk daarna opnieuw.",
+    gmail_sync_open_google: "Accountinstellingen openen",
+    gmail_sync_setup_button: "Toon de stappen",
+    gmail_sync_step_1:
+      "Meld je aan bij de beveiligingsinstellingen van je account.",
+    gmail_sync_step_2:
+      "Schakel verificatie in twee stappen in als je dat nog niet hebt gedaan.",
+    gmail_sync_step_3: "Maak een app-wachtwoord voor e-mail aan.",
+    gmail_sync_step_4: "Kopieer het wachtwoord en plak het in Aster.",
+    gmail_sync_title: "Een app-wachtwoord aanmaken",
+    gmail_wizard_connect: "Postvak koppelen",
+    gmail_wizard_password_label: "App-wachtwoord",
+    gmail_wizard_progress: "Stap {{current}} van {{total}}",
+    gmail_wizard_reveal_password: "App-wachtwoord tonen",
+    gmail_wizard_step_1_action: "Beveiligingsinstellingen openen",
+    gmail_wizard_step_1_body:
+      "App-wachtwoorden staan in het beveiligingsgedeelte van het account bij je provider.",
+    gmail_wizard_step_1_title:
+      "Open de beveiligingsinstellingen van je account",
+    gmail_wizard_step_2_body:
+      "App-wachtwoorden verschijnen alleen als verificatie in twee stappen aanstaat.",
+    gmail_wizard_step_2_title: "Schakel verificatie in twee stappen in",
+    gmail_wizard_step_3_body:
+      "Kies E-mail als app en maak daarna het wachtwoord aan.",
+    gmail_wizard_step_3_title: "Maak een app-wachtwoord aan",
+    gmail_wizard_step_4_body:
+      "Plak het app-wachtwoord hieronder. Aster bewaart het versleuteld en gebruikt het alleen om dit postvak te synchroniseren.",
+    gmail_wizard_step_4_title: "Plak het wachtwoord",
+    gmail_wizard_title: "Koppel je postvak",
+    last_sync_tooltip:
+      "Wanneer dit account voor het laatst is gesynchroniseerd",
+    not_synced_tooltip: "Dit account is nog niet gesynchroniseerd.",
+    protocol_desc_imap:
+      "Synchroniseert mappen en blijft op al je apparaten actueel.",
+    protocol_desc_pop3:
+      "Downloadt berichten één keer en synchroniseert daarna niets meer.",
+    protocol_tooltip_imap:
+      "IMAP houdt je berichten op de server en synchroniseert elke wijziging naar al je apparaten.",
+    protocol_tooltip_jmap:
+      "JMAP is een modern synchronisatieprotocol dat weinig providers ondersteunen.",
+    protocol_tooltip_pop3:
+      "POP3 downloadt berichten naar één apparaat en stuurt wijzigingen niet terug.",
+    remove_account_tooltip: "Account verwijderen",
+    show_side_panel: "Zijpaneel tonen",
+    show_side_panel_description:
+      "Houd je contacten en andere snelle hulpmiddelen in een paneel naast je berichten.",
+    sync_now_tooltip: "Nu synchroniseren",
   },
   mail: {
     load_all_thread_messages: "Alle berichten laden",
@@ -7921,6 +8094,9 @@ export const nl = {
     folder: "Map",
     empty_inbox_title: "Je inbox is leeg",
     empty_inbox_subtitle: "Nieuwe berichten verschijnen hier",
+    empty_all_title: "Hier staat nog geen e-mail",
+    empty_all_subtitle:
+      "Hier verschijnt alles uit je account, behalve spam en prullenbak",
     empty_sent_title: "Geen verzonden berichten",
     empty_sent_subtitle: "Berichten die je verzendt verschijnen hier",
     empty_drafts_title: "Geen concepten",
@@ -8431,6 +8607,37 @@ export const nl = {
     remote_images_blocked_count_one: "{{count}} externe afbeelding geblokkeerd",
     remote_images_blocked_count_other:
       "{{count}} externe afbeeldingen geblokkeerd",
+    bulk_archive_title: "{{count}} e-mails archiveren?",
+    bulk_archive_title_one: "1 e-mail archiveren?",
+    bulk_archive_title_other: "{{count}} e-mails archiveren?",
+    bulk_delete_title: "{{count}} e-mails definitief verwijderen?",
+    bulk_delete_title_one: "1 e-mail definitief verwijderen?",
+    bulk_delete_title_other: "{{count}} e-mails definitief verwijderen?",
+    bulk_spam_title: "{{count}} e-mails als spam melden?",
+    bulk_spam_title_one: "1 e-mail als spam melden?",
+    bulk_spam_title_other: "{{count}} e-mails als spam melden?",
+    bulk_trash_title: "{{count}} e-mails naar de prullenmand verplaatsen?",
+    bulk_trash_title_one: "1 e-mail naar de prullenmand verplaatsen?",
+    bulk_trash_title_other:
+      "{{count}} e-mails naar de prullenmand verplaatsen?",
+    confirm_bulk_action_count_description: "Dit raakt alle {{count}} e-mails.",
+    confirm_bulk_action_count_description_one: "Dit raakt 1 e-mail.",
+    confirm_bulk_action_count_description_other:
+      "Dit raakt alle {{count}} e-mails.",
+    confirm_bulk_action_scope_description:
+      "Dit raakt alle {{count}} e-mails in {{scope}}.",
+    confirm_bulk_action_scope_description_one:
+      "Dit raakt de e-mail in {{scope}}.",
+    confirm_bulk_action_scope_description_other:
+      "Dit raakt alle {{count}} e-mails in {{scope}}.",
+    remove_from_folder: "Uit map verwijderen",
+    remove_label: "Label verwijderen",
+    sender_rule_confirm: "Regel aanmaken",
+    sender_rule_created:
+      "Nieuwe berichten van deze afzender komen nu in {{category}}.",
+    sender_rule_name: "{{sender}} naar {{category}}",
+    sender_rule_offer:
+      "Je verplaatst berichten van {{sender}} vaak naar {{category}}. Wil je dat automatisch doen?",
   },
   auth: {
     passkey_verification: "Verifiëren met Passkey",

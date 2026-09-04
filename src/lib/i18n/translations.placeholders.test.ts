@@ -40,6 +40,7 @@ const LOCALES: LanguageCode[] = [
   "nl",
   "pl",
   "tr",
+  "hi",
 ];
 
 const PLACEHOLDER = /\{\{\s*([a-z_0-9]+)\s*\}\}/gi;

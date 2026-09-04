@@ -18,7 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { user_facing_error } from "@/utils/user_facing_error";
 import type {
   Contact,
   ContactFormData,
@@ -40,6 +39,7 @@ import type {
 
 import { api_client, type ApiResponse } from "./client";
 
+import { user_facing_error } from "@/utils/user_facing_error";
 import { HASH_ALG } from "@/services/crypto/constants";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import { CONTACT_DATA_VERSION } from "@/types/contacts";
@@ -48,7 +48,6 @@ import {
   get_derived_encryption_key,
 } from "@/services/crypto/memory_key_store";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
-
 import { get_active_translations } from "@/lib/i18n/translations";
 
 function array_to_base64(array: Uint8Array): string {
@@ -327,6 +326,8 @@ export async function decrypt_contact(
     social_networks: data.social_networks,
     websites: data.websites,
     instant_messengers: data.instant_messengers,
+    deleted_at: data.deleted_at,
+    revisions: data.revisions,
     created_at: contact.created_at,
     updated_at: contact.updated_at,
   };
@@ -334,6 +335,7 @@ export async function decrypt_contact(
 
 export async function decrypt_contacts(
   contacts: Contact[],
+  include_trashed = false,
 ): Promise<DecryptedContact[]> {
   const results = await Promise.allSettled(
     contacts.map((contact) => decrypt_contact(contact)),
@@ -344,7 +346,13 @@ export async function decrypt_contacts(
       (r): r is PromiseFulfilledResult<DecryptedContact> =>
         r.status === "fulfilled",
     )
-    .map((r) => r.value);
+    .map((r) => r.value)
+    .filter(
+      (contact) =>
+        include_trashed ||
+        typeof contact.deleted_at !== "string" ||
+        contact.deleted_at === "",
+    );
 }
 
 export async function decrypt_contact_group(
@@ -361,6 +369,7 @@ export async function decrypt_contact_group(
     id: group.id,
     name,
     color: group.color,
+    icon: group.icon,
     contact_count: group.contact_count,
     created_at: group.created_at,
   };
@@ -563,6 +572,7 @@ export async function create_contact_group(
       encrypted_name: array_to_base64(new Uint8Array(ciphertext)),
       name_nonce: array_to_base64(nonce),
       color: data.color,
+      icon: data.icon,
     },
   );
 
@@ -575,6 +585,7 @@ export async function create_contact_group(
       id: response.data.id,
       name: data.name,
       color: data.color,
+      icon: data.icon,
       contact_count: 0,
       created_at: response.data.created_at,
     },

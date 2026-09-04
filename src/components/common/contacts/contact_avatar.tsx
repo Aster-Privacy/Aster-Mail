@@ -36,7 +36,12 @@ import { get_root_domain } from "@/lib/utils";
 import { use_peer_profile } from "@/hooks/use_peer_profile";
 import { use_preferences } from "@/contexts/preferences_context";
 
-const ASTER_DOMAINS = new Set(["astermail.org", "aster.cx"]);
+const ASTER_DOMAINS = new Set([
+  "astermail.org",
+  "aster.cx",
+  "astermail.me",
+  "astermail.net",
+]);
 
 interface ContactAvatarProps {
   name?: string;
@@ -82,14 +87,24 @@ export function ContactAvatar({
       (is_aster ? (peer_profile?.profile_picture ?? undefined) : undefined);
 
   const [avatar_failed, set_avatar_failed] = useState(false);
+  const [avatar_loaded, set_avatar_loaded] = useState(false);
+  const [favicon_loaded, set_favicon_loaded] = useState(false);
   const [favicon_failed, set_favicon_failed] = useState<boolean>(
     domain ? is_icon_failed(domain) : false,
   );
   const [prev_domain, set_prev_domain] = useState(domain);
+  const [prev_avatar_url, set_prev_avatar_url] = useState(effective_avatar_url);
 
   if (domain !== prev_domain) {
     set_prev_domain(domain);
     set_favicon_failed(domain ? is_icon_failed(domain) : false);
+    set_favicon_loaded(false);
+  }
+
+  if (effective_avatar_url !== prev_avatar_url) {
+    set_prev_avatar_url(effective_avatar_url);
+    set_avatar_failed(false);
+    set_avatar_loaded(false);
   }
 
   const cached_favicon_src = use_favicon_src(domain);
@@ -104,15 +119,19 @@ export function ContactAvatar({
   if (!low_network && effective_avatar_url && !avatar_failed) {
     return (
       <div
-        className={`${rounded} overflow-hidden flex items-center justify-center ${className}`}
+        className={`${rounded} overflow-hidden flex items-center justify-center ${
+          avatar_loaded ? "" : "aster_skeleton"
+        } ${className}`}
         style={base_style}
       >
         <img
           alt=""
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover transition-opacity duration-200"
           draggable={false}
           src={effective_avatar_url}
+          style={{ opacity: avatar_loaded ? 1 : 0 }}
           onError={() => set_avatar_failed(true)}
+          onLoad={() => set_avatar_loaded(true)}
         />
       </div>
     );
@@ -123,12 +142,14 @@ export function ContactAvatar({
 
     return (
       <div
-        className={`${rounded} overflow-hidden flex items-center justify-center ${className}`}
+        className={`${rounded} overflow-hidden flex items-center justify-center ${
+          favicon_loaded ? "" : "aster_skeleton"
+        } ${className}`}
         style={base_style}
       >
         <img
           alt=""
-          className="object-contain"
+          className="object-contain transition-opacity duration-200"
           draggable={false}
           referrerPolicy="no-referrer"
           src={cached_favicon_src || get_favicon_url(domain)}
@@ -136,6 +157,7 @@ export function ContactAvatar({
             width: size_px - pad * 2,
             height: size_px - pad * 2,
             userSelect: "none",
+            opacity: favicon_loaded ? 1 : 0,
           }}
           onError={() => {
             mark_icon_failed(domain);
@@ -148,6 +170,7 @@ export function ContactAvatar({
               mark_icon_failed(domain);
               set_favicon_failed(true);
             } else {
+              set_favicon_loaded(true);
               mark_icon_ok(domain);
               if (!preferences.low_network_mode) {
                 store_favicon_if_api_url(domain, img.src);

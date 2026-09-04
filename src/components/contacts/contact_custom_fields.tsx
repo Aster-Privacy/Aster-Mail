@@ -40,6 +40,13 @@ import { use_i18n } from "@/lib/i18n/context";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   list_custom_field_definitions,
   list_contact_custom_field_values,
   create_custom_field_definition,
@@ -430,7 +437,10 @@ export function ContactCustomFields({
                       onKeyDown={(e) => {
                         if (e["key"] === "Enter" && !is_composing(e))
                           handle_save_value();
-                        if (e["key"] === "Escape") handle_cancel_edit();
+                        if (e["key"] === "Escape") {
+                          e.stopPropagation();
+                          handle_cancel_edit();
+                        }
                       }}
                     />
                     <Button
@@ -492,7 +502,7 @@ export function ContactCustomFields({
         </p>
         <div className="flex items-center gap-2">
           <Input
-            className="flex-1"
+            className="flex-1 h-10"
             placeholder={t("common.field_name_placeholder")}
             value={new_field_name}
             onChange={(e) => set_new_field_name(e.target.value)}
@@ -501,21 +511,25 @@ export function ContactCustomFields({
                 handle_create_definition();
             }}
           />
-          <select
-            className="h-9 px-2 rounded-lg border border-edge-secondary bg-background text-sm"
+          <Select
             value={new_field_type}
-            onChange={(e) =>
-              set_new_field_type(e.target.value as CustomFieldType)
+            onValueChange={(value) =>
+              set_new_field_type(value as CustomFieldType)
             }
           >
-            {Object.entries(FIELD_TYPE_LABEL_KEYS).map(([value, key]) => (
-              <option key={value} value={value}>
-                {key === "URL" ? "URL" : t(key as "common.text_type")}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger className="h-10 w-[116px] flex-shrink-0 rounded-xl border border-edge-secondary bg-transparent text-[13px] text-txt-primary">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.entries(FIELD_TYPE_LABEL_KEYS).map(([value, key]) => (
+                <SelectItem key={value} value={value}>
+                  {key === "URL" ? "URL" : t(key as "common.text_type")}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Button
-            className="gap-1.5"
+            className="h-10 flex-shrink-0 gap-1.5 rounded-xl px-3 text-[13px]"
             disabled={!new_field_name.trim() || is_adding}
             size="md"
             variant="ghost"

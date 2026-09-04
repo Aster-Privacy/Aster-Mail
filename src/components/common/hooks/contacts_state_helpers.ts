@@ -20,7 +20,13 @@
 //
 import type { DecryptedContact, ContactFormData } from "@/types/contacts";
 
-export type SortOption = "name_asc" | "name_desc" | "company" | "recent";
+export type SortOption =
+  | "name_asc"
+  | "name_desc"
+  | "last_name_asc"
+  | "last_name_desc"
+  | "company"
+  | "recent";
 export type FilterOption =
   | "all"
   | "favorites"

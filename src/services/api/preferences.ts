@@ -213,6 +213,7 @@ export interface UserPreferences {
   html_rendering_mode: "html" | "plain_text";
   low_network_mode: boolean;
   low_network_mode_user_set: boolean;
+  show_side_panel: boolean;
   strip_exif_on_compose: boolean;
   thread_count_position: "left" | "right";
   compose_window_mode: "default" | "fullscreen" | "minimized";
@@ -608,6 +609,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   html_rendering_mode: "html",
   low_network_mode: false,
   low_network_mode_user_set: false,
+  show_side_panel: true,
   strip_exif_on_compose: true,
   thread_count_position: "left",
   compose_window_mode: "default",

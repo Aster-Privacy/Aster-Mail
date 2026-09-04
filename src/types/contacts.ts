@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { TagIconName } from "@/components/ui/email_tag";
+
 export interface Contact {
   id: string;
   contact_token: string;
@@ -121,6 +123,10 @@ export interface InstantMessengerEntry {
   type: InstantMessengerType;
 }
 
+export interface ContactRevision {
+  changed_at: string;
+  data: ContactFormData;
+}
 export interface ExtendedContactFields {
   middle_name?: string;
   title?: string;
@@ -141,6 +147,8 @@ export interface ExtendedContactFields {
   social_networks?: SocialNetworkEntry[];
   websites?: WebsiteEntry[];
   instant_messengers?: InstantMessengerEntry[];
+  deleted_at?: string;
+  revisions?: ContactRevision[];
 }
 
 export interface DecryptedContact extends ExtendedContactFields {
@@ -189,6 +197,7 @@ export interface ContactGroupEncrypted {
   encrypted_name: string;
   name_nonce: string;
   color: string;
+  icon?: TagIconName;
   contact_count: number;
   created_at: string;
 }
@@ -197,6 +206,7 @@ export interface ContactGroup {
   id: string;
   name: string;
   color: string;
+  icon?: TagIconName;
   contact_count: number;
   created_at: string;
 }
@@ -204,6 +214,7 @@ export interface ContactGroup {
 export interface ContactGroupFormData {
   name: string;
   color: string;
+  icon?: TagIconName;
 }
 
 export interface ListContactsParams {

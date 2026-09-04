@@ -134,10 +134,10 @@ export function ContactFormDetails({
             value={form_data.relationship}
             onValueChange={(value) => on_change("relationship", value)}
           >
-            <SelectTrigger className="h-9 text-[13px] dark:bg-[#121212] dark:hover:bg-[#121212] dark:data-[state=open]:bg-[#121212]">
+            <SelectTrigger className="h-9 text-[13px]">
               <SelectValue placeholder={t("common.select_placeholder")} />
             </SelectTrigger>
-            <SelectContent className="dark:bg-[#121212]">
+            <SelectContent>
               {get_relationships(t).map((rel) => (
                 <SelectItem key={rel.value} value={rel.value}>
                   {rel.label}
@@ -154,7 +154,7 @@ export function ContactFormDetails({
         label={t("common.notes")}
       />
       <textarea
-        className="aster_input aster_input_md resize-none py-2.5"
+        className="aster_input min-h-[88px] resize-y text-[13px] leading-relaxed"
         placeholder={t("common.notes_placeholder")}
         rows={3}
         value={form_data.notes}

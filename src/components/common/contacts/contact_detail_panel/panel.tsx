@@ -48,12 +48,11 @@ import {
   ChevronDownIcon,
   ChevronRightIcon,
   MagnifyingGlassIcon,
+  PencilSquareIcon,
 } from "@heroicons/react/24/outline";
 import { StarIcon as StarSolidIcon } from "@heroicons/react/24/solid";
 import { Button } from "@aster/ui";
 import { useNavigate } from "react-router-dom";
-
-import { build_contact_mail_query } from "@/utils/contact_mail_search";
 
 import {
   AddressList,
@@ -78,12 +77,17 @@ import {
   empty_edit_state,
   to_edit_state,
 } from "./helpers";
+import { ContactView } from "./contact_view";
 
+import { build_contact_mail_query } from "@/utils/contact_mail_search";
+import { list_contact_groups } from "@/services/api/contacts";
 import { app_date_format, format_iso_date } from "@/utils/date_format";
 import { ContactAvatar } from "@/components/common/contacts/contact_avatar";
+import { EncryptionInfoDropdown } from "@/components/common/encryption_info_dropdown";
 import { ContactHistoryPanel } from "@/components/contacts/contact_history_panel";
 import { show_toast } from "@/components/toast/simple_toast";
 import { strip_image_metadata_data_url } from "@/lib/strip_image_metadata";
+import { format_full_datetime } from "@/utils/date_format";
 
 export function ContactDetailPanel({
   t,
@@ -99,12 +103,14 @@ export function ContactDetailPanel({
   on_cancel_create,
   on_dismiss,
   on_toggle_favorite,
+  on_undo_change,
   is_creating_new,
   is_submitting,
 }: ContactDetailPanelProps) {
-  const [is_editing, set_is_editing] = useState(true);
+  const [is_editing, set_is_editing] = useState(false);
   const [draft, set_draft] = useState<EditState | null>(null);
   const [show_more, set_show_more] = useState(false);
+  const [group_names, set_group_names] = useState<Record<string, string>>({});
   const file_input_ref = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const contact_mail_query = build_contact_mail_query(
@@ -129,10 +135,31 @@ export function ContactDetailPanel({
 
       return;
     }
-    set_is_editing(true);
+    set_is_editing(false);
     set_show_more(false);
     set_draft(selected_contact ? to_edit_state(selected_contact) : null);
-  }, [selected_contact?.id, is_creating_new]);
+  }, [selected_contact?.id, selected_contact?.updated_at, is_creating_new]);
+
+  const assigned_group_ids = (selected_contact?.groups ?? []).join(",");
+
+  useEffect(() => {
+    if (!assigned_group_ids) return;
+
+    let cancelled = false;
+
+    void list_contact_groups().then((response) => {
+      if (cancelled || !response.data) return;
+
+      const names: Record<string, string> = {};
+
+      for (const group of response.data.groups) names[group.id] = group.name;
+      set_group_names(names);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [assigned_group_ids]);
 
   if ((!selected_contact && !is_creating_new) || !draft) {
     return null;
@@ -170,7 +197,7 @@ export function ContactDetailPanel({
       avatar_url: draft.avatar_url,
       is_favorite: selected_contact?.is_favorite ?? false,
       company: draft.company.trim() || undefined,
-      job_title: selected_contact?.job_title,
+      job_title: draft.role.trim() || undefined,
       address: address_entries[0],
       social_links: selected_contact?.social_links,
       relationship: selected_contact?.relationship,
@@ -204,13 +231,21 @@ export function ContactDetailPanel({
     }
 
     if (!on_inline_save || !selected_contact) return;
-    await on_inline_save(selected_contact, base);
+    const saved = await on_inline_save(selected_contact, base);
+
+    if (saved === false) return;
     set_is_editing(false);
   };
 
   const handle_cancel = () => {
     if (is_creating_new) {
       on_cancel_create?.();
+
+      return;
+    }
+    if (is_editing) {
+      set_draft(selected_contact ? to_edit_state(selected_contact) : null);
+      set_is_editing(false);
 
       return;
     }
@@ -275,6 +310,7 @@ export function ContactDetailPanel({
   return (
     <div
       className="flex flex-1 min-h-0 flex-col min-w-0 relative"
+      role="presentation"
       onKeyDown={(e) => {
         if (e.key === "Escape" && is_editing) {
           e.preventDefault();
@@ -290,68 +326,83 @@ export function ContactDetailPanel({
       }}
     >
       <div className="flex-1 overflow-y-auto px-3 md:px-6 pt-6 pb-6 w-full">
-        <div className="relative mb-14">
-          <div
-            className="h-[100px] rounded-2xl transition-colors"
-            style={{ backgroundColor: banner }}
-          />
-          <div className="absolute -bottom-10 start-4">
-            <div className="relative group">
-              <ContactAvatar
-                avatar_url={draft.avatar_url}
-                className="ring-4 ring-surf-primary"
-                email={draft.email_entries?.[0]?.value}
-                name={`${draft.first_name || ""} ${draft.last_name || ""}`.trim()}
-                profile_color={banner}
-                size_px={92}
-              />
-              <button
-                aria-label={t("common.upload")}
-                className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 bg-black/40 flex items-center justify-center transition-opacity"
-                onClick={() => file_input_ref.current?.click()}
-              >
-                <CameraIcon className="w-7 h-7 text-white" />
-              </button>
-              {draft.avatar_url && (
+        {is_editing && (
+          <div className="relative mb-14">
+            <div
+              className="h-[100px] rounded-2xl transition-colors"
+              style={{ backgroundColor: banner }}
+            />
+            <div className="absolute -bottom-10 start-4">
+              <div className="relative group">
+                <ContactAvatar
+                  avatar_url={draft.avatar_url}
+                  className="ring-4 ring-surf-primary"
+                  email={draft.email_entries?.[0]?.value}
+                  name={`${draft.first_name || ""} ${draft.last_name || ""}`.trim()}
+                  profile_color={banner}
+                  size_px={92}
+                />
                 <button
-                  aria-label={t("common.delete")}
-                  className="absolute -bottom-1 -end-1 w-7 h-7 rounded-full bg-black/80 hover:bg-black flex items-center justify-center ring-2 ring-surf-primary"
-                  onClick={handle_avatar_clear}
+                  aria-label={t("common.upload")}
+                  className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 bg-black/40 flex items-center justify-center transition-opacity"
+                  onClick={() => file_input_ref.current?.click()}
                 >
-                  <TrashIcon className="w-3.5 h-3.5 text-white" />
+                  <CameraIcon className="w-7 h-7 text-white" />
                 </button>
-              )}
-              <input
-                ref={file_input_ref}
-                accept="image/*"
-                className="hidden"
-                type="file"
-                onChange={handle_avatar_file}
-              />
+                {draft.avatar_url && (
+                  <button
+                    aria-label={t("common.delete")}
+                    className="absolute -bottom-1 -end-1 w-7 h-7 rounded-full bg-black/80 hover:bg-black flex items-center justify-center ring-2 ring-surf-primary"
+                    onClick={handle_avatar_clear}
+                  >
+                    <TrashIcon className="w-3.5 h-3.5 text-white" />
+                  </button>
+                )}
+                <input
+                  ref={file_input_ref}
+                  accept="image/*"
+                  className="hidden"
+                  type="file"
+                  onChange={handle_avatar_file}
+                />
+              </div>
+            </div>
+            <div className="absolute end-4 -bottom-6 flex items-center gap-2 px-2.5 py-2 rounded-full bg-surf-primary border border-edge-primary shadow-lg">
+              {COLOR_SWATCHES.map((c) => {
+                const active = c.value === banner;
+
+                return (
+                  <button
+                    key={c.key}
+                    aria-label={`${t("common.color")} ${c.key}`}
+                    className="relative w-6 h-6 rounded-full transition-transform hover:scale-110"
+                    style={{
+                      backgroundColor: c.value,
+                      boxShadow: active ? "0 0 0 2px #ffffff" : "none",
+                    }}
+                    onClick={() => handle_color_pick(c.value)}
+                  />
+                );
+              })}
             </div>
           </div>
-          <div className="absolute end-4 -bottom-6 flex items-center gap-2 px-2.5 py-2 rounded-full bg-surf-primary border border-edge-primary shadow-lg">
-            {COLOR_SWATCHES.map((c) => {
-              const active = c.value === banner;
-
-              return (
-                <button
-                  key={c.key}
-                  aria-label={`${t("common.color")} ${c.key}`}
-                  className="relative w-6 h-6 rounded-full transition-transform hover:scale-110"
-                  style={{
-                    backgroundColor: c.value,
-                    boxShadow: active ? "0 0 0 2px #ffffff" : "none",
-                  }}
-                  onClick={() => handle_color_pick(c.value)}
-                />
-              );
-            })}
-          </div>
-        </div>
+        )}
 
         {!is_creating_new && selected_contact && (
-          <div className="flex items-center gap-2 mb-6">
+          <div className="flex flex-wrap items-center gap-2 mb-6">
+            {!is_editing && (
+              <button
+                className="flex items-center gap-2 h-9 px-3.5 rounded-full bg-black/5 dark:bg-white/[0.06] hover:bg-black/10 dark:hover:bg-white/10 text-[13px] font-medium text-txt-primary transition-colors"
+                type="button"
+                onClick={() => {
+                  set_show_history(false);
+                  set_is_editing(true);
+                }}
+              >
+                <PencilSquareIcon className="w-4 h-4" />
+                {t("common.edit")}
+              </button>
+            )}
             {selected_contact.emails[0] && (
               <button
                 className="flex items-center gap-2 h-9 px-3.5 rounded-full bg-black/5 dark:bg-white/[0.06] hover:bg-black/10 dark:hover:bg-white/10 text-[13px] font-medium text-txt-primary transition-colors"
@@ -394,12 +445,62 @@ export function ContactDetailPanel({
                 ? t("common.favorited")
                 : t("common.favorite")}
             </button>
+            {!is_editing && (
+              <button
+                className="flex items-center gap-2 h-9 px-3.5 rounded-full bg-black/5 dark:bg-white/[0.06] hover:bg-black/10 dark:hover:bg-white/10 text-[13px] font-medium text-txt-primary transition-colors"
+                type="button"
+                onClick={() => on_delete_request(selected_contact)}
+              >
+                <TrashIcon className="w-4 h-4" />
+                {t("common.delete")}
+              </button>
+            )}
           </div>
         )}
 
         {show_history && selected_contact ? (
-          <ContactHistoryPanel
-            contact_emails={selected_contact.emails}
+          <div className="space-y-6">
+            <div>
+              <h3 className="mb-2 text-[12px] font-semibold uppercase tracking-wide text-txt-muted">
+                {t("common.change_history")}
+              </h3>
+              {(selected_contact.revisions ?? []).length === 0 ? (
+                <p className="text-[13px] text-txt-muted">
+                  {t("common.no_contact_changes")}
+                </p>
+              ) : (
+                <ul className="space-y-1">
+                  {(selected_contact.revisions ?? []).map((revision) => (
+                    <li
+                      key={revision.changed_at}
+                      className="flex items-center justify-between gap-3 rounded-[10px] px-3 py-2 hover:bg-black/5 dark:hover:bg-white/5"
+                    >
+                      <span className="min-w-0 flex-1 truncate text-[13px] text-txt-secondary">
+                        {format_full_datetime(new Date(revision.changed_at))}
+                      </span>
+                      <button
+                        className="flex-shrink-0 text-[12.5px] font-medium text-[color:var(--accent-color)] hover:underline"
+                        type="button"
+                        onClick={() =>
+                          void on_undo_change?.(selected_contact, revision)
+                        }
+                      >
+                        {t("common.undo_change")}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            <ContactHistoryPanel contact_emails={selected_contact.emails} />
+          </div>
+        ) : !is_editing && !is_creating_new && selected_contact ? (
+          <ContactView
+            contact={selected_contact}
+            draft={draft}
+            group_names={group_names}
+            on_copy={on_copy}
+            t={t}
           />
         ) : (
           <div className="space-y-10">
@@ -413,7 +514,6 @@ export function ContactDetailPanel({
                   onChange={(e) =>
                     handle_field_change("first_name", e.target.value)
                   }
-                  onFocus={() => set_is_editing(true)}
                 />
                 <input
                   className={FIELD_CLASS}
@@ -423,7 +523,6 @@ export function ContactDetailPanel({
                   onChange={(e) =>
                     handle_field_change("last_name", e.target.value)
                   }
-                  onFocus={() => set_is_editing(true)}
                 />
                 <input
                   className={FIELD_CLASS}
@@ -433,7 +532,6 @@ export function ContactDetailPanel({
                   onChange={(e) =>
                     handle_field_change("middle_name", e.target.value)
                   }
-                  onFocus={() => set_is_editing(true)}
                 />
                 <input
                   className={FIELD_CLASS}
@@ -441,7 +539,6 @@ export function ContactDetailPanel({
                   readOnly={!is_editing}
                   value={draft.title}
                   onChange={(e) => handle_field_change("title", e.target.value)}
-                  onFocus={() => set_is_editing(true)}
                 />
                 <input
                   className={FIELD_CLASS}
@@ -451,7 +548,6 @@ export function ContactDetailPanel({
                   onChange={(e) =>
                     handle_field_change("name_suffix", e.target.value)
                   }
-                  onFocus={() => set_is_editing(true)}
                 />
                 <input
                   className={FIELD_CLASS}
@@ -461,7 +557,6 @@ export function ContactDetailPanel({
                   onChange={(e) =>
                     handle_field_change("nickname", e.target.value)
                   }
-                  onFocus={() => set_is_editing(true)}
                 />
                 <input
                   className={FIELD_CLASS}
@@ -471,7 +566,6 @@ export function ContactDetailPanel({
                   onChange={(e) =>
                     handle_field_change("pronouns", e.target.value)
                   }
-                  onFocus={() => set_is_editing(true)}
                 />
               </div>
               <button
@@ -484,7 +578,7 @@ export function ContactDetailPanel({
                 ) : (
                   <ChevronRightIcon className="w-4 h-4 rtl:-scale-x-100" />
                 )}
-                {t("common.phonetic_first_name")}
+                {show_more ? t("common.show_less") : t("common.show_more")}
               </button>
               {show_more && (
                 <div className="grid grid-cols-2 gap-3">
@@ -496,7 +590,6 @@ export function ContactDetailPanel({
                     onChange={(e) =>
                       handle_field_change("phonetic_first_name", e.target.value)
                     }
-                    onFocus={() => set_is_editing(true)}
                   />
                   <input
                     className={FIELD_CLASS}
@@ -509,7 +602,6 @@ export function ContactDetailPanel({
                         e.target.value,
                       )
                     }
-                    onFocus={() => set_is_editing(true)}
                   />
                   <input
                     className={FIELD_CLASS}
@@ -519,7 +611,6 @@ export function ContactDetailPanel({
                     onChange={(e) =>
                       handle_field_change("phonetic_last_name", e.target.value)
                     }
-                    onFocus={() => set_is_editing(true)}
                   />
                 </div>
               )}
@@ -637,7 +728,17 @@ export function ContactDetailPanel({
             {!is_creating_new &&
               selected_contact &&
               selected_contact.emails.length > 0 && (
-                <Section title={t("settings.encryption")}>
+                <Section
+                  info={
+                    <EncryptionInfoDropdown
+                      description_key="common.contact_encryption_info"
+                      has_pq_protection={true}
+                      is_external={false}
+                      size={15}
+                    />
+                  }
+                  title={t("settings.encryption")}
+                >
                   <div className="space-y-2">
                     {selected_contact.emails.map((email) => (
                       <ContactPgpKeyRow
@@ -659,7 +760,6 @@ export function ContactDetailPanel({
                   readOnly={!is_editing}
                   value={draft.role}
                   onChange={(e) => handle_field_change("role", e.target.value)}
-                  onFocus={() => set_is_editing(true)}
                 />
                 <input
                   className={FIELD_CLASS}
@@ -669,7 +769,6 @@ export function ContactDetailPanel({
                   onChange={(e) =>
                     handle_field_change("department", e.target.value)
                   }
-                  onFocus={() => set_is_editing(true)}
                 />
                 <input
                   className={FIELD_CLASS}
@@ -679,7 +778,6 @@ export function ContactDetailPanel({
                   onChange={(e) =>
                     handle_field_change("company", e.target.value)
                   }
-                  onFocus={() => set_is_editing(true)}
                 />
                 <input
                   className={FIELD_CLASS}
@@ -689,7 +787,6 @@ export function ContactDetailPanel({
                   onChange={(e) =>
                     handle_field_change("comment", e.target.value)
                   }
-                  onFocus={() => set_is_editing(true)}
                 />
               </div>
             </Section>
@@ -710,7 +807,6 @@ export function ContactDetailPanel({
                   onChange={(e) =>
                     handle_field_change("birthday", e.target.value)
                   }
-                  onFocus={() => set_is_editing(true)}
                 />
               </div>
               <div>
@@ -896,43 +992,44 @@ export function ContactDetailPanel({
                 readOnly={!is_editing}
                 value={draft.notes}
                 onChange={(e) => handle_field_change("notes", e.target.value)}
-                onFocus={() => set_is_editing(true)}
               />
             </Section>
           </div>
         )}
       </div>
 
-      <div className="border-t border-edge-primary bg-surf-primary">
-        <div className="px-3 md:px-6 py-3 flex items-center justify-between">
-          {is_creating_new || !selected_contact ? (
-            <span />
-          ) : (
-            <Button
-              className="h-9 px-4 text-[13px] !bg-red-500 hover:!bg-red-600 !text-white !border-transparent"
-              onClick={() => on_delete_request(selected_contact)}
-            >
-              {t("common.delete_contact")}
-            </Button>
-          )}
-          <div className="flex items-center gap-2">
-            <Button
-              className="h-9 px-4 text-[13px]"
-              variant="outline"
-              onClick={handle_cancel}
-            >
-              {t("common.cancel")}
-            </Button>
-            <Button
-              className="h-9 px-4 text-[13px]"
-              disabled={is_submitting}
-              onClick={handle_save}
-            >
-              {t("common.save")}
-            </Button>
+      {(is_editing || is_creating_new) && (
+        <div className="border-t border-edge-primary bg-surf-primary">
+          <div className="px-3 md:px-6 py-3 flex items-center justify-between">
+            {is_creating_new || !selected_contact ? (
+              <span />
+            ) : (
+              <Button
+                className="h-9 px-4 text-[13px] !bg-red-500 hover:!bg-red-600 !text-white !border-transparent"
+                onClick={() => on_delete_request(selected_contact)}
+              >
+                {t("common.delete_contact")}
+              </Button>
+            )}
+            <div className="flex items-center gap-2">
+              <Button
+                className="h-9 px-4 text-[13px]"
+                variant="outline"
+                onClick={handle_cancel}
+              >
+                {t("common.cancel")}
+              </Button>
+              <Button
+                className="h-9 px-4 text-[13px]"
+                disabled={is_submitting}
+                onClick={handle_save}
+              >
+                {t("common.save")}
+              </Button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

@@ -2073,6 +2073,109 @@ export const pt = {
       "Uma mensagem alcança no máximo {{max}} endereços entre Para, Cc e Cco. Dividir a lista em mensagens menores vai funcionar.",
     credit_balance_changed:
       "Seu saldo de créditos mudou enquanto o checkout estava aberto. Feche o checkout e comece de novo para aplicar os créditos que você tem agora.",
+    add_birthdays: "Adicionar aniversários",
+    add_birthdays_hint:
+      "Adicione um aniversário a um contato e o Aster avisa você antes da data.",
+    add_group: "Adicionar grupo",
+    add_new_group: "Novo grupo",
+    add_to_group: "Adicionar ao grupo",
+    added_to_group: "Adicionado ao grupo",
+    birthdays_upcoming: "{{count}} aniversários chegando",
+    bulk_create_hint:
+      "Adicione um contato por linha. Para salvar um endereço de e-mail junto com um nome, escreva o endereço entre sinais de menor e maior.",
+    bulk_create_placeholder: "Ada Lovelace <ada@example.com>",
+    bulk_create_ready: "{{count}} prontos para criar",
+    change_history: "Histórico de alterações",
+    change_photo: "Alterar foto",
+    checking_for_keys: "Procurando chaves",
+    clear_selection: "Limpar seleção",
+    compose_to_selection: "Escrever para a seleção",
+    contact_change_undone: "Alteração desfeita",
+    contact_encryption_info:
+      "Quando um contato publica uma chave pública, o Aster criptografa automaticamente as mensagens que você envia para ele.",
+    contact_moved_to_trash: "Contato movido para a lixeira",
+    contact_restored: "Contato restaurado",
+    contacts_created: "{{count}} contatos criados",
+    contacts_exported: "Contatos exportados",
+    contacts_in_trash_notice:
+      "Os contatos na lixeira são excluídos definitivamente depois de 30 dias.",
+    contacts_merged: "Contatos combinados",
+    contacts_moved_to_trash: "Contatos movidos para a lixeira",
+    contacts_updated_stat: "Atualizados",
+    create_contact: "Criar contato",
+    create_multiple_contacts: "Criar vários contatos",
+    delete_contacts: "Excluir contatos",
+    delete_group: "Excluir grupo",
+    delete_group_confirmation:
+      "Excluir “{{name}}” remove o grupo. Os contatos que estão nele continuam no seu catálogo de endereços.",
+    deselect_contact: "Desmarcar contato",
+    discard: "Descartar",
+    discard_new_contact_message:
+      "O contato que você começou ainda não foi salvo. Se abrir outro contato agora, você o perde.",
+    duplicates_found: "Duplicatas encontradas",
+    email_group: "Escrever para o grupo",
+    empty_trash_confirm:
+      "Quer excluir definitivamente todos os contatos da lixeira? Não é possível desfazer.",
+    export_selection_vcf: "Exportar como vCard",
+    failed_to_add_to_group: "Não foi possível adicionar o contato ao grupo.",
+    failed_to_create_group: "Não foi possível criar o grupo.",
+    failed_to_delete_group: "Não foi possível excluir o grupo.",
+    failed_to_load_groups: "Não foi possível carregar seus grupos.",
+    failed_to_move_to_trash: "Não foi possível mover o contato para a lixeira.",
+    failed_to_remove_from_group: "Não foi possível remover o contato do grupo.",
+    frequent_contacts: "Frequentes",
+    frequent_contacts_hint:
+      "Os contatos para quem você mais escreve aparecem aqui.",
+    group_contact_count: "{{count}} contatos",
+    group_created: "Grupo criado",
+    group_deleted: "Grupo excluído",
+    group_empty_hint:
+      "Para preencher este grupo, selecione contatos na aba Contatos e escolha Adicionar ao grupo.",
+    group_empty_title: "Nenhum contato neste grupo",
+    group_modal_description:
+      "Crie grupos para escrever para vários contatos de uma vez.",
+    group_name: "Nome do grupo",
+    groups: "Grupos",
+    import_add_to_group: "Adicionar os contatos importados a um grupo",
+    import_clear_all: "Limpar tudo",
+    import_no_group: "Nenhum grupo",
+    import_nothing_selected: "Selecione pelo menos um contato para importar.",
+    import_search_placeholder: "Pesquisar contatos para importar",
+    import_select_all: "Selecionar tudo",
+    import_selected_count: "{{selected}} de {{total}} selecionados",
+    manage_contacts: "Gerenciar contatos",
+    merge: "Combinar",
+    merge_and_fix: "Combinar e corrigir",
+    merge_contacts_hint:
+      "Escolha quais dados manter. Os outros contatos vão para a lixeira.",
+    merge_keeps_this: "Mantido",
+    merged_contact_preview: "Contato combinado",
+    no_contact_changes: "Nenhuma alteração ainda",
+    no_contact_details:
+      "Este contato ainda não tem dados. Escolha Editar para adicioná-los.",
+    no_contacts_in_trash: "A lixeira está vazia",
+    no_duplicates_found: "Nenhuma duplicata para corrigir",
+    no_email: "Nenhum endereço de e-mail",
+    no_frequent_contacts: "Nenhum contato frequente ainda",
+    no_groups_match: "Nenhum grupo corresponde à sua pesquisa",
+    no_groups_yet: "Nenhum grupo ainda",
+    no_other_contacts: "Nenhum outro contato",
+    no_published_key: "Nenhuma chave publicada",
+    open_contacts: "Abrir Contatos",
+    other_contacts: "Outros",
+    other_contacts_hint:
+      "Os endereços salvos das suas mensagens que ainda não têm nome aparecem aqui.",
+    preview_contact: "Pré-visualização do contato",
+    print_contacts: "Imprimir contatos",
+    remove_from_group: "Remover do grupo",
+    removed_from_group: "Removido do grupo",
+    review_duplicates: "Revisar duplicatas",
+    search_groups: "Pesquisar grupos",
+    select_contact: "Selecionar contato",
+    share_contact: "Compartilhar contato",
+    some_contacts_not_created: "Não foi possível criar alguns contatos.",
+    trash_days_left: "{{count}} dias restantes",
+    undo_change: "Desfazer alteração",
   },
   settings: {
     purge_locked_folder_on_delete: "Destruir conteúdo de pastas protegidas",
@@ -7636,6 +7739,68 @@ export const pt = {
       "{{used}} de {{max}} vagas usadas · {{count}} vaga disponível",
     fam_org_members_count_other:
       "{{used}} de {{max}} vagas usadas · {{count}} vagas disponíveis",
+    account_enabled_tooltip: "Esta conta está sincronizando.",
+    account_pause_tooltip: "Pausar a sincronização",
+    account_paused_tooltip: "A sincronização desta conta está pausada.",
+    account_resume_tooltip: "Retomar a sincronização",
+    app_password_create_link: "Criar uma senha de app",
+    app_password_required: "Senha de app necessária",
+    category_info_newsletters: "Novidades e listas de e-mail que você assina.",
+    category_info_transactions:
+      "Pedidos, pagamentos e recibos de lojas e serviços.",
+    category_newsletters: "Newsletters",
+    category_transactions: "Compras",
+    edit_account_tooltip: "Editar conta",
+    gmail_app_password_notice:
+      "Este provedor exige uma senha de app. A senha normal da sua conta não funciona.",
+    gmail_sync_continue: "Continuar",
+    gmail_sync_intro:
+      "Crie uma senha de app nas configurações da sua conta e cole-a aqui.",
+    gmail_sync_note_unavailable:
+      "Se as senhas de app não aparecerem, ative primeiro a verificação em duas etapas e confira de novo.",
+    gmail_sync_open_google: "Abrir as configurações da conta",
+    gmail_sync_setup_button: "Mostrar as etapas",
+    gmail_sync_step_1: "Entre nas configurações de segurança da sua conta.",
+    gmail_sync_step_2:
+      "Ative a verificação em duas etapas, se ainda não estiver ativa.",
+    gmail_sync_step_3: "Crie uma senha de app para e-mail.",
+    gmail_sync_step_4: "Copie a senha e cole-a no Aster.",
+    gmail_sync_title: "Criar uma senha de app",
+    gmail_wizard_connect: "Conectar a caixa de correio",
+    gmail_wizard_password_label: "Senha de app",
+    gmail_wizard_progress: "Etapa {{current}} de {{total}}",
+    gmail_wizard_reveal_password: "Mostrar a senha de app",
+    gmail_wizard_step_1_action: "Abrir as configurações de segurança",
+    gmail_wizard_step_1_body:
+      "As senhas de app ficam na seção de segurança da conta no seu provedor.",
+    gmail_wizard_step_1_title:
+      "Abra as configurações de segurança da sua conta",
+    gmail_wizard_step_2_body:
+      "As senhas de app só aparecem com a verificação em duas etapas ativa.",
+    gmail_wizard_step_2_title: "Ative a verificação em duas etapas",
+    gmail_wizard_step_3_body: "Escolha E-mail como app e crie a senha.",
+    gmail_wizard_step_3_title: "Crie uma senha de app",
+    gmail_wizard_step_4_body:
+      "Cole a senha de app abaixo. O Aster a guarda criptografada e a usa apenas para sincronizar esta caixa de correio.",
+    gmail_wizard_step_4_title: "Cole a senha",
+    gmail_wizard_title: "Conecte sua caixa de correio",
+    last_sync_tooltip: "Quando esta conta sincronizou pela última vez",
+    not_synced_tooltip: "Esta conta ainda não sincronizou.",
+    protocol_desc_imap:
+      "Sincroniza as pastas e mantém tudo em dia em todos os seus dispositivos.",
+    protocol_desc_pop3:
+      "Baixa as mensagens uma vez e depois não sincroniza mais nada.",
+    protocol_tooltip_imap:
+      "O IMAP mantém suas mensagens no servidor e sincroniza cada alteração em todos os seus dispositivos.",
+    protocol_tooltip_jmap:
+      "O JMAP é um protocolo de sincronização moderno que poucos provedores oferecem.",
+    protocol_tooltip_pop3:
+      "O POP3 baixa as mensagens para um único dispositivo e não devolve as alterações.",
+    remove_account_tooltip: "Remover conta",
+    show_side_panel: "Mostrar o painel lateral",
+    show_side_panel_description:
+      "Deixe seus contatos e outras ferramentas rápidas em um painel ao lado das mensagens.",
+    sync_now_tooltip: "Sincronizar agora",
   },
   mail: {
     load_all_thread_messages: "Carregar todas as mensagens",
@@ -7981,6 +8146,9 @@ export const pt = {
     folder: "Pasta",
     empty_inbox_title: "Sua caixa de entrada está vazia",
     empty_inbox_subtitle: "Novas mensagens aparecerão aqui",
+    empty_all_title: "Ainda não há mensagens aqui",
+    empty_all_subtitle:
+      "Aqui aparece tudo o que está na sua conta, exceto spam e lixeira",
     empty_sent_title: "Nenhuma mensagem enviada",
     empty_sent_subtitle: "Mensagens que você enviar aparecerão aqui",
     empty_drafts_title: "Nenhum rascunho",
@@ -8503,6 +8671,37 @@ export const pt = {
     param_removed_from_n_links_other: "{{param}} removido de {{count}} links",
     remote_images_blocked_count_one: "{{count}} imagem remota bloqueada",
     remote_images_blocked_count_other: "{{count}} imagens remotas bloqueadas",
+    bulk_archive_title: "Arquivar {{count}} e-mails?",
+    bulk_archive_title_one: "Arquivar 1 e-mail?",
+    bulk_archive_title_other: "Arquivar {{count}} e-mails?",
+    bulk_delete_title: "Excluir definitivamente {{count}} e-mails?",
+    bulk_delete_title_one: "Excluir definitivamente 1 e-mail?",
+    bulk_delete_title_other: "Excluir definitivamente {{count}} e-mails?",
+    bulk_spam_title: "Denunciar {{count}} e-mails como spam?",
+    bulk_spam_title_one: "Denunciar 1 e-mail como spam?",
+    bulk_spam_title_other: "Denunciar {{count}} e-mails como spam?",
+    bulk_trash_title: "Mover {{count}} e-mails para a lixeira?",
+    bulk_trash_title_one: "Mover 1 e-mail para a lixeira?",
+    bulk_trash_title_other: "Mover {{count}} e-mails para a lixeira?",
+    confirm_bulk_action_count_description:
+      "Isso afeta todos os {{count}} e-mails.",
+    confirm_bulk_action_count_description_one: "Isso afeta 1 e-mail.",
+    confirm_bulk_action_count_description_other:
+      "Isso afeta todos os {{count}} e-mails.",
+    confirm_bulk_action_scope_description:
+      "Isso afeta todos os {{count}} e-mails em {{scope}}.",
+    confirm_bulk_action_scope_description_one:
+      "Isso afeta o e-mail em {{scope}}.",
+    confirm_bulk_action_scope_description_other:
+      "Isso afeta todos os {{count}} e-mails em {{scope}}.",
+    remove_from_folder: "Remover da pasta",
+    remove_label: "Remover marcador",
+    sender_rule_confirm: "Criar a regra",
+    sender_rule_created:
+      "As novas mensagens deste remetente passam a chegar em {{category}}.",
+    sender_rule_name: "{{sender}} para {{category}}",
+    sender_rule_offer:
+      "Você move mensagens de {{sender}} para {{category}} com frequência. Quer fazer isso automaticamente?",
   },
   auth: {
     passkey_verification: "Verificar com Passkey",

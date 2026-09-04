@@ -1998,6 +1998,178 @@ export const ja = {
       "1 通のメールが届くのは、宛先、Cc、Bcc を合わせて最大 {{max}} 件です。宛先を分けて複数のメールにすると送信できます。",
     credit_balance_changed:
       "お支払い画面を開いている間にクレジット残高が変わりました。お支払いを閉じてやり直すと、現在の残高を適用できます。",
+    add_birthdays: "誕生日を追加",
+    add_birthdays_hint:
+      "連絡先に誕生日を追加すると、Aster が前もってお知らせします。",
+    add_group: "グループを追加",
+    add_new_group: "新しいグループ",
+    add_to_group: "グループに追加",
+    added_to_group: "グループに追加しました",
+    app_lock_attempts_remaining_one: "残り {{count}} 回",
+    birthdays_upcoming: "誕生日が {{count}} 件あります",
+    bulk_create_hint:
+      "1 行に 1 件の連絡先を入力します。名前とメールアドレスをまとめて保存するには、アドレスを山かっこで囲みます。",
+    bulk_create_placeholder: "Ada Lovelace <ada@example.com>",
+    bulk_create_ready: "{{count}} 件の連絡先を作成できます",
+    change_history: "変更履歴",
+    change_photo: "写真を変更",
+    checking_for_keys: "鍵を確認しています",
+    clear_selection: "選択を解除",
+    compose_to_selection: "選択した連絡先に作成",
+    contact_change_undone: "変更を元に戻しました",
+    contact_encryption_info:
+      "連絡先が公開鍵を公開すると、Aster はその相手へのメールを自動的に暗号化します。",
+    contact_moved_to_trash: "連絡先をゴミ箱に移動しました",
+    contact_restored: "連絡先を復元しました",
+    contacts_created: "{{count}} 件の連絡先を作成しました",
+    contacts_deleted_one: "{{count}} 件の連絡先を削除しました",
+    contacts_exported: "連絡先を書き出しました",
+    contacts_in_trash_notice: "ゴミ箱の連絡先は 30 日後に完全に削除されます。",
+    contacts_merged: "連絡先を統合しました",
+    contacts_moved_to_trash: "連絡先をゴミ箱に移動しました",
+    contacts_starred_one: "{{count}} 件の連絡先にスターを付けました",
+    contacts_unstarred_one: "{{count}} 件の連絡先のスターを外しました",
+    contacts_updated_stat: "更新済み",
+    conversations_added_label_one:
+      "{{count}}件の会話にラベル {{label}} を追加しました",
+    conversations_marked_as_not_spam_bulk_one:
+      "{{count}}件の会話を迷惑メールではないとして報告しました",
+    conversations_marked_as_read_bulk_one: "{{count}}件の会話を既読にしました",
+    conversations_marked_as_spam_bulk_one:
+      "{{count}}件の会話を迷惑メールとして報告しました",
+    conversations_marked_as_unread_bulk_one:
+      "{{count}}件の会話を未読にしました",
+    conversations_moved_to_folder_one:
+      "{{count}}件の会話を {{folder}} に移動しました",
+    conversations_moved_to_inbox_bulk_one:
+      "{{count}}件の会話を受信トレイに移動しました",
+    conversations_removed_from_folder_one:
+      "{{count}}件の会話を {{folder}} から削除しました",
+    conversations_removed_label_one:
+      "{{count}}件の会話からラベル {{label}} を削除しました",
+    conversations_restored_bulk_one: "{{count}}件の会話を復元しました",
+    conversations_snoozed_bulk_one: "{{count}}件の会話をスヌーズしました",
+    conversations_starred_bulk_one: "{{count}}件の会話にスターを付けました",
+    conversations_unstarred_bulk_one: "{{count}}件の会話のスターを外しました",
+    create_contact: "連絡先を作成",
+    create_multiple_contacts: "複数の連絡先を作成",
+    days_ago_long_one: "{{count}}日前",
+    days_remaining_one: "残り {{count}}日",
+    delete_contacts: "連絡先を削除",
+    delete_contacts_confirmation_one:
+      "{{count}} 件の連絡先を削除しますか。この操作は取り消せません。",
+    delete_group: "グループを削除",
+    delete_group_confirmation:
+      "「{{name}}」を削除すると、グループだけが削除されます。連絡先はアドレス帳に残ります。",
+    deselect_contact: "連絡先の選択を解除",
+    discard: "破棄",
+    discard_new_contact_message:
+      "作成中の連絡先はまだ保存されていません。ここで別の連絡先を開くと失われます。",
+    drafts_deleted_one: "{{count}}件の下書きを完全に削除しました",
+    duplicates_found: "重複した連絡先が見つかりました",
+    email_count_one: "{{count}} 件のメール",
+    email_group: "グループにメールを送信",
+    emails_added_to_folder_one: "{{count}}件のメールを{{folder}}に追加しました",
+    emails_archived_one: "{{count}}件のメールをアーカイブしました",
+    emails_from_senders_archived_one:
+      "{{senders}} からの {{count}} 件のメールをアーカイブしました",
+    emails_from_senders_deleted_one:
+      "{{senders}} からの {{count}} 件のメールを削除しました",
+    emails_marked_as_read_one: "{{count}}件のメールを既読にしました",
+    emails_moved_to_trash_one: "{{count}}件のメールをゴミ箱に移動しました",
+    emails_permanently_deleted_one: "{{count}}件のメールを完全に削除しました",
+    emails_snoozed_until_one:
+      "{{count}}件のメールを{{time}}までスヌーズしました",
+    emails_starred_one: "{{count}}件のメールにスターを付けました",
+    emails_unstarred_one: "{{count}}件のメールのスターを外しました",
+    emails_will_reappear_one:
+      "{{count}} 件のメールは {{time}} に再表示されます",
+    empty_trash_confirm:
+      "ゴミ箱内のすべての連絡先を完全に削除しますか。この操作は元に戻せません。",
+    entry_count_one: "{{count}} 件のエントリ",
+    export_selection_vcf: "vCard として書き出す",
+    failed_to_add_to_group: "連絡先をグループに追加できませんでした。",
+    failed_to_create_group: "グループを作成できませんでした。",
+    failed_to_delete_group: "グループを削除できませんでした。",
+    failed_to_load_groups: "グループを読み込めませんでした。",
+    failed_to_move_to_trash: "連絡先をゴミ箱に移動できませんでした。",
+    failed_to_remove_from_group: "連絡先をグループから削除できませんでした。",
+    file_count_one: "{{count}} 個のファイル",
+    frequent_contacts: "よく使う連絡先",
+    frequent_contacts_hint:
+      "最もよくメールをやり取りする相手がここに表示されます。",
+    group_contact_count: "{{count}} 件の連絡先",
+    group_created: "グループを作成しました",
+    group_deleted: "グループを削除しました",
+    group_empty_hint:
+      "このグループに追加するには、「連絡先」タブで連絡先を選び、「グループに追加」を使います。",
+    group_empty_title: "このグループに連絡先はありません",
+    group_modal_description:
+      "複数の連絡先にまとめてメールを送るためのグループを作成します。",
+    group_name: "グループ名",
+    groups: "グループ",
+    hours_ago_long_one: "{{count}}時間前",
+    hours_remaining_one: "残り {{count}}時間",
+    images_count_one: "{{count}} 件の画像",
+    import_add_to_group: "読み込んだ連絡先をグループに追加",
+    import_clear_all: "すべて解除",
+    import_no_group: "グループなし",
+    import_nothing_selected: "読み込む連絡先を 1 件以上選択してください。",
+    import_search_placeholder: "読み込む連絡先を検索",
+    import_select_all: "すべて選択",
+    import_selected_count: "{{total}} 件中 {{selected}} 件を選択中",
+    in_x_minutes_one: "{{count}}分後",
+    manage_contacts: "連絡先を管理",
+    merge: "統合",
+    merge_and_fix: "統合して修正",
+    merge_contacts_hint:
+      "残す情報を選びます。ほかの連絡先はゴミ箱に移動します。",
+    merge_keeps_this: "この情報を保持",
+    merged_contact_preview: "統合後の連絡先",
+    minutes_ago_long_one: "{{count}}分前",
+    minutes_remaining_one: "残り {{count}}分",
+    months_ago_long_one: "{{count}}か月前",
+    more_aliases_one: "他 {{count}} 件のエイリアス",
+    more_folders_one: "他 {{count}} 件のフォルダ",
+    more_labels_one: "他 {{count}} 件のラベル",
+    n_conversations_archived_one: "{{count}}件の会話をアーカイブしました",
+    n_conversations_moved_to_trash_one:
+      "{{ count }}件の会話をゴミ箱に移動しました",
+    newsletters_archived_one: "{{count}}件のニュースレターをアーカイブしました",
+    no_contact_changes: "変更はまだありません",
+    no_contact_details:
+      "この連絡先にはまだ情報がありません。「編集」で追加できます。",
+    no_contacts_in_trash: "ゴミ箱は空です",
+    no_duplicates_found: "修正が必要な重複はありません",
+    no_email: "メールアドレスなし",
+    no_frequent_contacts: "よく使う連絡先はまだありません",
+    no_groups_match: "検索に一致するグループはありません",
+    no_groups_yet: "グループはまだありません",
+    no_other_contacts: "ほかの連絡先はありません",
+    no_published_key: "公開されている鍵はありません",
+    open_contacts: "連絡先を開く",
+    other_contacts: "その他",
+    other_contacts_hint:
+      "メールから保存され、まだ名前のないアドレスがここに表示されます。",
+    preview_contact: "連絡先をプレビュー",
+    print_contacts: "連絡先を印刷",
+    remove_from_group: "グループから削除",
+    removed_from_group: "グループから削除しました",
+    review_duplicates: "重複した連絡先を確認",
+    search_groups: "グループを検索",
+    select_contact: "連絡先を選択",
+    sender_count_one: "{{count}} 人の送信者",
+    share_contact: "連絡先を共有",
+    some_contacts_not_created: "一部の連絡先を作成できませんでした。",
+    spam_emails_moved_to_trash_one:
+      "{{count}}件の迷惑メールをゴミ箱に移動しました",
+    spam_emails_permanently_deleted_one:
+      "{{count}}件の迷惑メールを完全に削除しました",
+    taps_to_developer_mode_one: "開発者モードまであと {{count}} 回タップ",
+    trash_days_left: "残り {{count}} 日",
+    undo_change: "変更を元に戻す",
+    weeks_ago_long_one: "{{count}}週間前",
+    weeks_remaining_one: "残り {{count}}週間",
   },
   settings: {
     purge_locked_folder_on_delete: "保護フォルダの中身を完全に削除",
@@ -7463,6 +7635,99 @@ export const ja = {
     fam_org_stat_seats_available_other: "{{count}} 席の空き",
     fam_org_members_count_other:
       "{{max}} 席中 {{used}} 席を使用中 · 空き {{count}} 席",
+    account_enabled_tooltip: "このアカウントは同期しています。",
+    account_pause_tooltip: "同期を一時停止",
+    account_paused_tooltip: "このアカウントの同期は一時停止しています。",
+    account_resume_tooltip: "同期を再開",
+    alias_export_summary_one: "{{files}} に {{count}} 件のエントリ。",
+    allowed_senders_count_one: "{{count}} 件の許可済み送信者",
+    app_lock_attempts_remaining_one: "残り {{count}} 回",
+    app_password_create_link: "アプリパスワードを作成",
+    app_password_required: "アプリパスワードが必要です",
+    blocked_senders_count_one: "{{count}} 件のブロック済み送信者",
+    category_info_newsletters: "登録している更新情報とメーリングリストです。",
+    category_info_transactions:
+      "ストアやサービスからの注文、支払い、領収書です。",
+    category_newsletters: "ニュースレター",
+    category_transactions: "購入",
+    deleted_emails_count_one: "{{count}} 件のメールを削除しました",
+    edit_account_tooltip: "アカウントを編集",
+    email_count_one: "{{count}} 件のメール",
+    export_complete_errors_one:
+      "{{count}} 件のメッセージをエクスポートできませんでした。",
+    export_complete_skipped_attachments_one:
+      "{{count}} 件の添付ファイルを復号できなかったため、このアーカイブには含まれていません。",
+    export_complete_skipped_undecryptable_one:
+      "{{count}} 件のメッセージを復号できなかったため、このアーカイブには含まれていません。",
+    external_account_count_one: "{{count}} 件の外部アカウント",
+    fam_consent_body_one:
+      "この変更はすべての家族メンバーのデータに影響します。{{count}} 人のメンバーに同意リクエストが送信されます。全員が同意すると変更が適用されます。",
+    fam_org_2fa_banner_one:
+      "{{count}} 人のメンバーが二要素認証を有効にしていません",
+    fam_org_activity_events_one: "{{count}} 件のイベント",
+    fam_org_members_count_one:
+      "{{max}} 席中 {{used}} 席を使用中 · 空き {{count}} 席",
+    fam_org_sec_session_count_one: "{{count}} 件のアクティブなセッション",
+    fam_org_stat_seats_available_one: "{{count}} 席の空き",
+    family_activity_events_one: "{{count}} 件のイベント",
+    family_security_warning_2fa_one:
+      "{{count}} 人のメンバーが二要素認証を有効にしていません",
+    forwarding_rules_count_one: "{{count}} 件の転送ルール",
+    gmail_app_password_notice:
+      "このプロバイダはアプリパスワードを必要とします。通常のアカウントのパスワードは使えません。",
+    gmail_sync_continue: "続ける",
+    gmail_sync_intro:
+      "アカウント設定でアプリパスワードを作成し、ここに貼り付けます。",
+    gmail_sync_note_unavailable:
+      "アプリパスワードが表示されない場合は、2 段階認証を有効にしてからもう一度確認してください。",
+    gmail_sync_open_google: "アカウント設定を開く",
+    gmail_sync_setup_button: "手順を表示",
+    gmail_sync_step_1: "アカウントのセキュリティ設定にサインインします。",
+    gmail_sync_step_2: "2 段階認証が無効な場合は有効にします。",
+    gmail_sync_step_3: "メール用のアプリパスワードを作成します。",
+    gmail_sync_step_4: "パスワードをコピーして Aster に貼り付けます。",
+    gmail_sync_title: "アプリパスワードを作成する",
+    gmail_wizard_connect: "メールボックスを接続",
+    gmail_wizard_password_label: "アプリパスワード",
+    gmail_wizard_progress: "ステップ {{current}}/{{total}}",
+    gmail_wizard_reveal_password: "アプリパスワードを表示",
+    gmail_wizard_step_1_action: "セキュリティ設定を開く",
+    gmail_wizard_step_1_body:
+      "アプリパスワードは、プロバイダのアカウントのセキュリティ設定にあります。",
+    gmail_wizard_step_1_title: "アカウントのセキュリティ設定を開く",
+    gmail_wizard_step_2_body:
+      "アプリパスワードは 2 段階認証が有効な場合にのみ表示されます。",
+    gmail_wizard_step_2_title: "2 段階認証を有効にする",
+    gmail_wizard_step_3_body:
+      "アプリとして「メール」を選び、パスワードを作成します。",
+    gmail_wizard_step_3_title: "アプリパスワードを作成する",
+    gmail_wizard_step_4_body:
+      "アプリパスワードを下に貼り付けます。Aster はパスワードを暗号化して保存し、このメールボックスの同期にのみ使用します。",
+    gmail_wizard_step_4_title: "パスワードを貼り付ける",
+    gmail_wizard_title: "メールボックスを接続する",
+    last_sync_tooltip: "このアカウントを最後に同期した時刻",
+    not_synced_tooltip: "このアカウントはまだ同期していません。",
+    plan_domains_count_one: "{{count}} 件のドメイン",
+    protocol_desc_imap:
+      "フォルダを同期し、すべてのデバイスを最新の状態に保ちます。",
+    protocol_desc_pop3:
+      "メールを 1 回だけダウンロードし、その後は何も同期しません。",
+    protocol_tooltip_imap:
+      "IMAP はメールをサーバー上に保持し、すべての変更をすべてのデバイスに同期します。",
+    protocol_tooltip_jmap:
+      "JMAP は対応するプロバイダがまだ少ない、新しい同期プロトコルです。",
+    protocol_tooltip_pop3:
+      "POP3 はメールを 1 台のデバイスにダウンロードし、変更を送り返しません。",
+    purge_confirm_message_one:
+      "{{email}} からインポートした {{count}} 件のメールを完全に削除します。この操作は取り消せません。",
+    remove_account_tooltip: "アカウントを削除",
+    show_side_panel: "サイドパネルを表示",
+    show_side_panel_description:
+      "連絡先やそのほかのツールを、メールの横のパネルに表示します。",
+    sign_out_everywhere_success_one:
+      "他の {{count}} 件のセッションからサインアウトしました",
+    sync_now_tooltip: "今すぐ同期",
+    vacation_n_replies_sent_one: "{{count}} 件の返信を送信しました",
   },
   mail: {
     load_all_thread_messages: "すべてのメッセージを読み込む",
@@ -7808,6 +8073,9 @@ export const ja = {
     folder: "フォルダ",
     empty_inbox_title: "受信トレイは空です",
     empty_inbox_subtitle: "新着メッセージはここに表示されます",
+    empty_all_title: "ここにはまだメールがありません",
+    empty_all_subtitle:
+      "迷惑メールとゴミ箱を除く、アカウント内のすべてのメールがここに表示されます",
     empty_sent_title: "送信済みメッセージはありません",
     empty_sent_subtitle: "送信したメッセージはここに表示されます",
     empty_drafts_title: "下書きはありません",
@@ -8312,6 +8580,48 @@ export const ja = {
       "{{count}} 件のリンクから {{param}} を削除しました",
     remote_images_blocked_count_other:
       "{{count}} 件の外部画像をブロックしました",
+    bulk_archive_title: "{{count}} 件のメールをアーカイブしますか。",
+    bulk_archive_title_one: "1 件のメールをアーカイブしますか。",
+    bulk_archive_title_other: "{{count}} 件のメールをアーカイブしますか。",
+    bulk_delete_title: "{{count}} 件のメールを完全に削除しますか。",
+    bulk_delete_title_one: "1 件のメールを完全に削除しますか。",
+    bulk_delete_title_other: "{{count}} 件のメールを完全に削除しますか。",
+    bulk_spam_title: "{{count}} 件のメールを迷惑メールとして報告しますか。",
+    bulk_spam_title_one: "1 件のメールを迷惑メールとして報告しますか。",
+    bulk_spam_title_other:
+      "{{count}} 件のメールを迷惑メールとして報告しますか。",
+    bulk_trash_title: "{{count}} 件のメールをゴミ箱に移動しますか。",
+    bulk_trash_title_one: "1 件のメールをゴミ箱に移動しますか。",
+    bulk_trash_title_other: "{{count}} 件のメールをゴミ箱に移動しますか。",
+    confirm_bulk_action_count_description:
+      "{{count}} 件のメールすべてが対象になります。",
+    confirm_bulk_action_count_description_one: "1 件のメールが対象になります。",
+    confirm_bulk_action_count_description_other:
+      "{{count}} 件のメールすべてが対象になります。",
+    confirm_bulk_action_scope_description:
+      "{{scope}} 内の {{count}} 件のメールすべてが対象になります。",
+    confirm_bulk_action_scope_description_one:
+      "{{scope}} 内の 1 件のメールが対象になります。",
+    confirm_bulk_action_scope_description_other:
+      "{{scope}} 内の {{count}} 件のメールすべてが対象になります。",
+    links_cleaned_count_one: "{{count}} 件のリンクをクリーンアップしました",
+    more_folders_count_one: "他 {{count}} 件のフォルダ",
+    move_n_conversations_one: "{{count}}件の会話を移動",
+    param_removed_from_n_links_one:
+      "{{count}} 件のリンクから {{param}} を削除しました",
+    remote_images_blocked_count_one:
+      "{{count}} 件のリモート画像をブロックしました",
+    remove_from_folder: "フォルダから削除",
+    remove_label: "ラベルを削除",
+    sender_rule_confirm: "ルールを作成",
+    sender_rule_created:
+      "この送信者からの新しいメールは、今後 {{category}} に届きます。",
+    sender_rule_name: "{{sender}} を {{category}} に",
+    sender_rule_offer:
+      "{{sender}} からのメールを {{category}} によく移動しています。今後は自動的に振り分けますか。",
+    spy_pixels_blocked_count_one:
+      "{{count}} 件のスパイピクセルをブロックしました",
+    trackers_found_one: "{{count}} 件のトラッカーを検出してブロックしました",
   },
   auth: {
     passkey_verification: "パスキーで認証",

@@ -2085,6 +2085,108 @@ export const it = {
       "Un messaggio raggiunge al massimo {{max}} indirizzi tra A, Cc e Ccn. Suddividere l'elenco in messaggi più piccoli consentirà l'invio.",
     credit_balance_changed:
       "Il suo saldo crediti è cambiato mentre il pagamento era aperto. Chiuda il pagamento e ricominci per applicare i crediti di cui dispone ora.",
+    add_birthdays: "Aggiungi compleanni",
+    add_birthdays_hint:
+      "Aggiungi un compleanno a un contatto e Aster te lo ricorda prima della data.",
+    add_group: "Aggiungi gruppo",
+    add_new_group: "Nuovo gruppo",
+    add_to_group: "Aggiungi al gruppo",
+    added_to_group: "Aggiunto al gruppo",
+    birthdays_upcoming: "{{count}} compleanni in arrivo",
+    bulk_create_hint:
+      "Aggiungi un contatto per riga. Per salvare un indirizzo email insieme a un nome, scrivi l’indirizzo tra parentesi angolari.",
+    bulk_create_placeholder: "Ada Lovelace <ada@example.com>",
+    bulk_create_ready: "{{count}} pronti da creare",
+    change_history: "Cronologia delle modifiche",
+    change_photo: "Cambia foto",
+    checking_for_keys: "Ricerca delle chiavi in corso",
+    clear_selection: "Annulla la selezione",
+    compose_to_selection: "Scrivi alla selezione",
+    contact_change_undone: "Modifica annullata",
+    contact_encryption_info:
+      "Quando un contatto pubblica una chiave pubblica, Aster cifra automaticamente i messaggi che gli invii.",
+    contact_moved_to_trash: "Contatto spostato nel cestino",
+    contact_restored: "Contatto ripristinato",
+    contacts_created: "{{count}} contatti creati",
+    contacts_exported: "Contatti esportati",
+    contacts_in_trash_notice:
+      "I contatti nel cestino vengono eliminati definitivamente dopo 30 giorni.",
+    contacts_merged: "Contatti uniti",
+    contacts_moved_to_trash: "Contatti spostati nel cestino",
+    contacts_updated_stat: "Aggiornati",
+    create_contact: "Crea contatto",
+    create_multiple_contacts: "Crea più contatti",
+    delete_contacts: "Elimina contatti",
+    delete_group: "Elimina gruppo",
+    delete_group_confirmation:
+      "Se elimini «{{name}}», il gruppo scompare. I contatti al suo interno restano nella rubrica.",
+    deselect_contact: "Deseleziona contatto",
+    discard: "Elimina",
+    discard_new_contact_message:
+      "Il contatto che hai iniziato non è ancora salvato. Se apri un altro contatto adesso, lo perdi.",
+    duplicates_found: "Duplicati trovati",
+    email_group: "Scrivi al gruppo",
+    empty_trash_confirm:
+      "Vuoi eliminare definitivamente tutti i contatti nel cestino? L’operazione è irreversibile.",
+    export_selection_vcf: "Esporta come vCard",
+    failed_to_add_to_group: "Impossibile aggiungere il contatto al gruppo.",
+    failed_to_create_group: "Impossibile creare il gruppo.",
+    failed_to_delete_group: "Impossibile eliminare il gruppo.",
+    failed_to_load_groups: "Impossibile caricare i tuoi gruppi.",
+    failed_to_move_to_trash: "Impossibile spostare il contatto nel cestino.",
+    failed_to_remove_from_group:
+      "Impossibile rimuovere il contatto dal gruppo.",
+    frequent_contacts: "Frequenti",
+    frequent_contacts_hint: "I contatti a cui scrivi più spesso compaiono qui.",
+    group_contact_count: "{{count}} contatti",
+    group_created: "Gruppo creato",
+    group_deleted: "Gruppo eliminato",
+    group_empty_hint:
+      "Per riempire questo gruppo, seleziona dei contatti nella scheda Contatti e scegli Aggiungi al gruppo.",
+    group_empty_title: "Nessun contatto in questo gruppo",
+    group_modal_description: "Crea gruppi per scrivere a più contatti insieme.",
+    group_name: "Nome del gruppo",
+    groups: "Gruppi",
+    import_add_to_group: "Aggiungi i contatti importati a un gruppo",
+    import_clear_all: "Cancella tutto",
+    import_no_group: "Nessun gruppo",
+    import_nothing_selected: "Seleziona almeno un contatto da importare.",
+    import_search_placeholder: "Cerca contatti da importare",
+    import_select_all: "Seleziona tutto",
+    import_selected_count: "{{selected}} di {{total}} selezionati",
+    manage_contacts: "Gestisci contatti",
+    merge: "Unisci",
+    merge_and_fix: "Unisci e correggi",
+    merge_contacts_hint:
+      "Scegli quali dati conservare. Gli altri contatti finiscono nel cestino.",
+    merge_keeps_this: "Conservato",
+    merged_contact_preview: "Contatto unito",
+    no_contact_changes: "Ancora nessuna modifica",
+    no_contact_details:
+      "Questo contatto non ha ancora dati. Scegli Modifica per aggiungerli.",
+    no_contacts_in_trash: "Il cestino è vuoto",
+    no_duplicates_found: "Nessun duplicato da correggere",
+    no_email: "Nessun indirizzo email",
+    no_frequent_contacts: "Ancora nessun contatto frequente",
+    no_groups_match: "Nessun gruppo corrisponde alla ricerca",
+    no_groups_yet: "Ancora nessun gruppo",
+    no_other_contacts: "Nessun altro contatto",
+    no_published_key: "Nessuna chiave pubblicata",
+    open_contacts: "Apri Contatti",
+    other_contacts: "Altri",
+    other_contacts_hint:
+      "Gli indirizzi salvati dai tuoi messaggi che non hanno ancora un nome compaiono qui.",
+    preview_contact: "Anteprima contatto",
+    print_contacts: "Stampa contatti",
+    remove_from_group: "Rimuovi dal gruppo",
+    removed_from_group: "Rimosso dal gruppo",
+    review_duplicates: "Controlla i duplicati",
+    search_groups: "Cerca gruppi",
+    select_contact: "Seleziona contatto",
+    share_contact: "Condividi contatto",
+    some_contacts_not_created: "Alcuni contatti non sono stati creati.",
+    trash_days_left: "{{count}} giorni rimasti",
+    undo_change: "Annulla la modifica",
   },
   settings: {
     purge_locked_folder_on_delete:
@@ -7670,6 +7772,70 @@ export const it = {
       "{{used}} di {{max}} posti usati · {{count}} posto disponibile",
     fam_org_members_count_other:
       "{{used}} di {{max}} posti usati · {{count}} posti disponibili",
+    account_enabled_tooltip: "Questo account è in sincronizzazione.",
+    account_pause_tooltip: "Sospendi la sincronizzazione",
+    account_paused_tooltip: "La sincronizzazione di questo account è sospesa.",
+    account_resume_tooltip: "Riprendi la sincronizzazione",
+    app_password_create_link: "Crea una password per l’app",
+    app_password_required: "Serve una password per l’app",
+    category_info_newsletters:
+      "Aggiornamenti e mailing list a cui sei iscritto.",
+    category_info_transactions:
+      "Ordini, pagamenti e ricevute da negozi e servizi.",
+    category_newsletters: "Newsletter",
+    category_transactions: "Acquisti",
+    edit_account_tooltip: "Modifica account",
+    gmail_app_password_notice:
+      "Questo provider richiede una password per l’app. La password normale del tuo account non funziona.",
+    gmail_sync_continue: "Continua",
+    gmail_sync_intro:
+      "Crea una password per l’app nelle impostazioni del tuo account, poi incollala qui.",
+    gmail_sync_note_unavailable:
+      "Se le password per le app non compaiono, attiva prima la verifica in due passaggi e controlla di nuovo.",
+    gmail_sync_open_google: "Apri le impostazioni dell’account",
+    gmail_sync_setup_button: "Mostra i passaggi",
+    gmail_sync_step_1: "Accedi alle impostazioni di sicurezza del tuo account.",
+    gmail_sync_step_2:
+      "Attiva la verifica in due passaggi, se non l’hai già fatto.",
+    gmail_sync_step_3: "Crea una password per l’app per la posta.",
+    gmail_sync_step_4: "Copia la password e incollala in Aster.",
+    gmail_sync_title: "Crea una password per l’app",
+    gmail_wizard_connect: "Collega la casella",
+    gmail_wizard_password_label: "Password per l’app",
+    gmail_wizard_progress: "Passaggio {{current}} di {{total}}",
+    gmail_wizard_reveal_password: "Mostra la password per l’app",
+    gmail_wizard_step_1_action: "Apri le impostazioni di sicurezza",
+    gmail_wizard_step_1_body:
+      "Le password per le app si trovano nella sezione sicurezza dell’account del tuo provider.",
+    gmail_wizard_step_1_title:
+      "Apri le impostazioni di sicurezza del tuo account",
+    gmail_wizard_step_2_body:
+      "Le password per le app compaiono solo con la verifica in due passaggi attiva.",
+    gmail_wizard_step_2_title: "Attiva la verifica in due passaggi",
+    gmail_wizard_step_3_body: "Scegli Posta come app, poi crea la password.",
+    gmail_wizard_step_3_title: "Crea una password per l’app",
+    gmail_wizard_step_4_body:
+      "Incolla qui sotto la password per l’app. Aster la conserva cifrata e la usa solo per sincronizzare questa casella.",
+    gmail_wizard_step_4_title: "Incolla la password",
+    gmail_wizard_title: "Collega la tua casella",
+    last_sync_tooltip:
+      "Quando questo account si è sincronizzato l’ultima volta",
+    not_synced_tooltip: "Questo account non si è ancora sincronizzato.",
+    protocol_desc_imap:
+      "Sincronizza le cartelle e resta aggiornato su tutti i tuoi dispositivi.",
+    protocol_desc_pop3:
+      "Scarica i messaggi una volta e poi non sincronizza più nulla.",
+    protocol_tooltip_imap:
+      "IMAP tiene i messaggi sul server e sincronizza ogni modifica su tutti i tuoi dispositivi.",
+    protocol_tooltip_jmap:
+      "JMAP è un protocollo di sincronizzazione moderno che pochi provider supportano.",
+    protocol_tooltip_pop3:
+      "POP3 scarica i messaggi su un solo dispositivo e non rimanda indietro le modifiche.",
+    remove_account_tooltip: "Rimuovi account",
+    show_side_panel: "Mostra il pannello laterale",
+    show_side_panel_description:
+      "Tieni i contatti e altri strumenti rapidi in un pannello accanto ai tuoi messaggi.",
+    sync_now_tooltip: "Sincronizza ora",
   },
   mail: {
     load_all_thread_messages: "Carica tutti i messaggi",
@@ -8028,6 +8194,9 @@ export const it = {
     folder: "Cartella",
     empty_inbox_title: "La tua posta in arrivo è vuota",
     empty_inbox_subtitle: "I nuovi messaggi appariranno qui",
+    empty_all_title: "Ancora nessun messaggio qui",
+    empty_all_subtitle:
+      "Qui appare tutto ciò che si trova nel tuo account, tranne spam e cestino",
     empty_sent_title: "Nessun messaggio inviato",
     empty_sent_subtitle: "I messaggi che invii appariranno qui",
     empty_drafts_title: "Nessuna bozza",
@@ -8540,6 +8709,37 @@ export const it = {
     param_removed_from_n_links_other: "{{param}} rimosso da {{count}} link",
     remote_images_blocked_count_one: "{{count}} immagine remota bloccata",
     remote_images_blocked_count_other: "{{count}} immagini remote bloccate",
+    bulk_archive_title: "Vuoi archiviare {{count}} email?",
+    bulk_archive_title_one: "Vuoi archiviare 1 email?",
+    bulk_archive_title_other: "Vuoi archiviare {{count}} email?",
+    bulk_delete_title: "Vuoi eliminare definitivamente {{count}} email?",
+    bulk_delete_title_one: "Vuoi eliminare definitivamente 1 email?",
+    bulk_delete_title_other: "Vuoi eliminare definitivamente {{count}} email?",
+    bulk_spam_title: "Vuoi segnalare {{count}} email come spam?",
+    bulk_spam_title_one: "Vuoi segnalare 1 email come spam?",
+    bulk_spam_title_other: "Vuoi segnalare {{count}} email come spam?",
+    bulk_trash_title: "Vuoi spostare {{count}} email nel cestino?",
+    bulk_trash_title_one: "Vuoi spostare 1 email nel cestino?",
+    bulk_trash_title_other: "Vuoi spostare {{count}} email nel cestino?",
+    confirm_bulk_action_count_description:
+      "L’operazione riguarda tutte le {{count}} email.",
+    confirm_bulk_action_count_description_one: "L’operazione riguarda 1 email.",
+    confirm_bulk_action_count_description_other:
+      "L’operazione riguarda tutte le {{count}} email.",
+    confirm_bulk_action_scope_description:
+      "L’operazione riguarda tutte le {{count}} email in {{scope}}.",
+    confirm_bulk_action_scope_description_one:
+      "L’operazione riguarda l’email in {{scope}}.",
+    confirm_bulk_action_scope_description_other:
+      "L’operazione riguarda tutte le {{count}} email in {{scope}}.",
+    remove_from_folder: "Rimuovi dalla cartella",
+    remove_label: "Rimuovi etichetta",
+    sender_rule_confirm: "Crea la regola",
+    sender_rule_created:
+      "I nuovi messaggi di questo mittente arrivano in {{category}}.",
+    sender_rule_name: "{{sender}} in {{category}}",
+    sender_rule_offer:
+      "Sposti spesso i messaggi di {{sender}} in {{category}}. Vuoi farlo automaticamente?",
   },
   auth: {
     passkey_verification: "Verifica con passkey",

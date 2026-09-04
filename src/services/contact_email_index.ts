@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { list_contacts, decrypt_contact } from "@/services/api/contacts";
+import { is_contact_trashed } from "@/lib/contact_trash";
 import { on_mail_event, MAIL_EVENTS } from "@/hooks/mail_events";
 
 const PAGE_SIZE = 200;
@@ -45,6 +46,8 @@ async function build_index(): Promise<Map<string, string>> {
     for (const contact of items) {
       try {
         const decrypted = await decrypt_contact(contact);
+
+        if (is_contact_trashed(decrypted)) continue;
 
         for (const address of decrypted.emails) {
           if (address) next.set(normalize(address), contact.id);

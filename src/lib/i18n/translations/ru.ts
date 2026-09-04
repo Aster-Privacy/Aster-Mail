@@ -2190,6 +2190,109 @@ export const ru = {
       "Одно письмо доходит максимум до {{max}} адресов в полях Кому, Копия и Скрытая копия. Разделите список на несколько писем, и отправка пройдет.",
     credit_balance_changed:
       "Баланс кредитов изменился, пока была открыта страница оплаты. Закройте оплату и начните заново, чтобы применить текущий баланс.",
+    add_birthdays: "Добавить дни рождения",
+    add_birthdays_hint:
+      "Добавьте день рождения к контакту, и Aster напомнит вам о нем заранее.",
+    add_group: "Добавить группу",
+    add_new_group: "Новая группа",
+    add_to_group: "Добавить в группу",
+    added_to_group: "Добавлено в группу",
+    birthdays_upcoming: "Скоро дней рождения: {{count}}",
+    bulk_create_hint:
+      "Добавляйте по одному контакту в строке. Чтобы сохранить адрес электронной почты вместе с именем, напишите адрес в угловых скобках.",
+    bulk_create_placeholder: "Ada Lovelace <ada@example.com>",
+    bulk_create_ready: "Готово к созданию: {{count}}",
+    change_history: "История изменений",
+    change_photo: "Изменить фото",
+    checking_for_keys: "Поиск ключей",
+    clear_selection: "Снять выделение",
+    compose_to_selection: "Написать выбранным",
+    contact_change_undone: "Изменение отменено",
+    contact_encryption_info:
+      "Когда контакт публикует открытый ключ, Aster автоматически шифрует отправляемые ему сообщения.",
+    contact_moved_to_trash: "Контакт перемещен в корзину",
+    contact_restored: "Контакт восстановлен",
+    contacts_created: "Создано контактов: {{count}}",
+    contacts_exported: "Контакты экспортированы",
+    contacts_in_trash_notice:
+      "Контакты в корзине удаляются безвозвратно через 30 дней.",
+    contacts_merged: "Контакты объединены",
+    contacts_moved_to_trash: "Контакты перемещены в корзину",
+    contacts_updated_stat: "Обновлено",
+    create_contact: "Создать контакт",
+    create_multiple_contacts: "Создать несколько контактов",
+    delete_contacts: "Удалить контакты",
+    delete_group: "Удалить группу",
+    delete_group_confirmation:
+      "При удалении группы «{{name}}» исчезает сама группа. Контакты из нее остаются в адресной книге.",
+    deselect_contact: "Снять выбор с контакта",
+    discard: "Отменить",
+    discard_new_contact_message:
+      "Начатый контакт еще не сохранен. Если сейчас открыть другой контакт, он будет потерян.",
+    duplicates_found: "Найдены дубликаты",
+    email_group: "Написать группе",
+    empty_trash_confirm:
+      "Удалить все контакты из корзины безвозвратно? Отменить это действие нельзя.",
+    export_selection_vcf: "Экспортировать в vCard",
+    failed_to_add_to_group: "Не удалось добавить контакт в группу.",
+    failed_to_create_group: "Не удалось создать группу.",
+    failed_to_delete_group: "Не удалось удалить группу.",
+    failed_to_load_groups: "Не удалось загрузить ваши группы.",
+    failed_to_move_to_trash: "Не удалось переместить контакт в корзину.",
+    failed_to_remove_from_group: "Не удалось удалить контакт из группы.",
+    frequent_contacts: "Частые",
+    frequent_contacts_hint:
+      "Контакты, которым вы пишете чаще всего, появляются здесь.",
+    group_contact_count: "Контактов: {{count}}",
+    group_created: "Группа создана",
+    group_deleted: "Группа удалена",
+    group_empty_hint:
+      "Чтобы наполнить эту группу, выберите контакты на вкладке «Контакты» и нажмите «Добавить в группу».",
+    group_empty_title: "В этой группе нет контактов",
+    group_modal_description:
+      "Создавайте группы, чтобы писать нескольким контактам сразу.",
+    group_name: "Название группы",
+    groups: "Группы",
+    import_add_to_group: "Добавить импортированные контакты в группу",
+    import_clear_all: "Очистить все",
+    import_no_group: "Без группы",
+    import_nothing_selected: "Выберите хотя бы один контакт для импорта.",
+    import_search_placeholder: "Поиск контактов для импорта",
+    import_select_all: "Выбрать все",
+    import_selected_count: "Выбрано {{selected}} из {{total}}",
+    manage_contacts: "Управление контактами",
+    merge: "Объединить",
+    merge_and_fix: "Объединить и исправить",
+    merge_contacts_hint:
+      "Выберите, какие данные оставить. Остальные контакты попадут в корзину.",
+    merge_keeps_this: "Оставлено",
+    merged_contact_preview: "Объединенный контакт",
+    no_contact_changes: "Изменений пока нет",
+    no_contact_details:
+      "У этого контакта пока нет данных. Нажмите «Изменить», чтобы добавить их.",
+    no_contacts_in_trash: "Корзина пуста",
+    no_duplicates_found: "Дубликатов для исправления нет",
+    no_email: "Нет адреса электронной почты",
+    no_frequent_contacts: "Частых контактов пока нет",
+    no_groups_match: "Ни одна группа не подходит под запрос",
+    no_groups_yet: "Групп пока нет",
+    no_other_contacts: "Других контактов нет",
+    no_published_key: "Опубликованного ключа нет",
+    open_contacts: "Открыть контакты",
+    other_contacts: "Другие",
+    other_contacts_hint:
+      "Адреса, сохраненные из ваших сообщений и пока без имени, появляются здесь.",
+    preview_contact: "Предпросмотр контакта",
+    print_contacts: "Печать контактов",
+    remove_from_group: "Удалить из группы",
+    removed_from_group: "Удалено из группы",
+    review_duplicates: "Просмотреть дубликаты",
+    search_groups: "Поиск групп",
+    select_contact: "Выбрать контакт",
+    share_contact: "Поделиться контактом",
+    some_contacts_not_created: "Некоторые контакты создать не удалось.",
+    trash_days_left: "Осталось дней: {{count}}",
+    undo_change: "Отменить изменение",
   },
   settings: {
     purge_locked_folder_on_delete: "Уничтожать содержимое защищённых папок",
@@ -7798,6 +7901,69 @@ export const ru = {
       "Занято {{used}} из {{max}} мест · доступно {{count}} мест",
     fam_org_members_count_other:
       "Занято {{used}} из {{max}} мест · доступно {{count}} места",
+    account_enabled_tooltip: "Этот аккаунт синхронизируется.",
+    account_pause_tooltip: "Приостановить синхронизацию",
+    account_paused_tooltip: "Синхронизация этого аккаунта приостановлена.",
+    account_resume_tooltip: "Возобновить синхронизацию",
+    app_password_create_link: "Создать пароль приложения",
+    app_password_required: "Нужен пароль приложения",
+    category_info_newsletters:
+      "Новости и списки рассылки, на которые вы подписаны.",
+    category_info_transactions:
+      "Заказы, платежи и чеки из магазинов и сервисов.",
+    category_newsletters: "Рассылки",
+    category_transactions: "Покупки",
+    edit_account_tooltip: "Изменить аккаунт",
+    gmail_app_password_notice:
+      "Этот провайдер требует пароль приложения. Обычный пароль аккаунта не подойдет.",
+    gmail_sync_continue: "Продолжить",
+    gmail_sync_intro:
+      "Создайте пароль приложения в настройках аккаунта и вставьте его сюда.",
+    gmail_sync_note_unavailable:
+      "Если паролей приложений нет, сначала включите двухэтапную аутентификацию и проверьте снова.",
+    gmail_sync_open_google: "Открыть настройки аккаунта",
+    gmail_sync_setup_button: "Показать шаги",
+    gmail_sync_step_1: "Войдите в настройки безопасности своего аккаунта.",
+    gmail_sync_step_2:
+      "Включите двухэтапную аутентификацию, если она еще не включена.",
+    gmail_sync_step_3: "Создайте пароль приложения для почты.",
+    gmail_sync_step_4: "Скопируйте пароль и вставьте его в Aster.",
+    gmail_sync_title: "Создание пароля приложения",
+    gmail_wizard_connect: "Подключить почтовый ящик",
+    gmail_wizard_password_label: "Пароль приложения",
+    gmail_wizard_progress: "Шаг {{current}} из {{total}}",
+    gmail_wizard_reveal_password: "Показать пароль приложения",
+    gmail_wizard_step_1_action: "Открыть настройки безопасности",
+    gmail_wizard_step_1_body:
+      "Пароли приложений находятся в разделе безопасности аккаунта у вашего провайдера.",
+    gmail_wizard_step_1_title: "Откройте настройки безопасности аккаунта",
+    gmail_wizard_step_2_body:
+      "Пароли приложений появляются только при включенной двухэтапной аутентификации.",
+    gmail_wizard_step_2_title: "Включите двухэтапную аутентификацию",
+    gmail_wizard_step_3_body:
+      "Выберите «Почта» в качестве приложения и создайте пароль.",
+    gmail_wizard_step_3_title: "Создайте пароль приложения",
+    gmail_wizard_step_4_body:
+      "Вставьте пароль приложения ниже. Aster хранит его в зашифрованном виде и использует только для синхронизации этого ящика.",
+    gmail_wizard_step_4_title: "Вставьте пароль",
+    gmail_wizard_title: "Подключите свой почтовый ящик",
+    last_sync_tooltip: "Когда этот аккаунт синхронизировался в последний раз",
+    not_synced_tooltip: "Этот аккаунт еще не синхронизировался.",
+    protocol_desc_imap:
+      "Синхронизирует папки и поддерживает актуальность на всех ваших устройствах.",
+    protocol_desc_pop3:
+      "Скачивает сообщения один раз и больше ничего не синхронизирует.",
+    protocol_tooltip_imap:
+      "IMAP хранит сообщения на сервере и синхронизирует каждое изменение на всех ваших устройствах.",
+    protocol_tooltip_jmap:
+      "JMAP — современный протокол синхронизации, который поддерживают немногие провайдеры.",
+    protocol_tooltip_pop3:
+      "POP3 скачивает сообщения на одно устройство и не отправляет изменения обратно.",
+    remove_account_tooltip: "Удалить аккаунт",
+    show_side_panel: "Показывать боковую панель",
+    show_side_panel_description:
+      "Держите контакты и другие быстрые инструменты на панели рядом с сообщениями.",
+    sync_now_tooltip: "Синхронизировать сейчас",
   },
   mail: {
     load_all_thread_messages: "Загрузить все сообщения",
@@ -8140,6 +8306,9 @@ export const ru = {
     folder: "Папка",
     empty_inbox_title: "Ваши входящие пусты",
     empty_inbox_subtitle: "Новые сообщения появятся здесь",
+    empty_all_title: "Здесь пока нет писем",
+    empty_all_subtitle:
+      "Здесь отображается всё из вашего аккаунта, кроме спама и корзины",
     empty_sent_title: "Нет отправленных сообщений",
     empty_sent_subtitle: "Отправленные вами сообщения появятся здесь",
     empty_drafts_title: "Нет черновиков",
@@ -8675,6 +8844,37 @@ export const ru = {
       "Заблокировано {{count}} внешних изображений",
     remote_images_blocked_count_other:
       "Заблокировано {{count}} внешних изображения",
+    bulk_archive_title: "Архивировать писем: {{count}}?",
+    bulk_archive_title_one: "Архивировать 1 письмо?",
+    bulk_archive_title_other: "Архивировать писем: {{count}}?",
+    bulk_delete_title: "Удалить безвозвратно писем: {{count}}?",
+    bulk_delete_title_one: "Удалить 1 письмо безвозвратно?",
+    bulk_delete_title_other: "Удалить безвозвратно писем: {{count}}?",
+    bulk_spam_title: "Пожаловаться на спам, писем: {{count}}?",
+    bulk_spam_title_one: "Пожаловаться на спам в 1 письме?",
+    bulk_spam_title_other: "Пожаловаться на спам, писем: {{count}}?",
+    bulk_trash_title: "Переместить в корзину писем: {{count}}?",
+    bulk_trash_title_one: "Переместить 1 письмо в корзину?",
+    bulk_trash_title_other: "Переместить в корзину писем: {{count}}?",
+    confirm_bulk_action_count_description:
+      "Это затронет все письма: {{count}}.",
+    confirm_bulk_action_count_description_one: "Это затронет 1 письмо.",
+    confirm_bulk_action_count_description_other:
+      "Это затронет все письма: {{count}}.",
+    confirm_bulk_action_scope_description:
+      "Это затронет все письма в {{scope}}: {{count}}.",
+    confirm_bulk_action_scope_description_one:
+      "Это затронет письмо в {{scope}}.",
+    confirm_bulk_action_scope_description_other:
+      "Это затронет все письма в {{scope}}: {{count}}.",
+    remove_from_folder: "Убрать из папки",
+    remove_label: "Убрать ярлык",
+    sender_rule_confirm: "Создать правило",
+    sender_rule_created:
+      "Новые сообщения от этого отправителя теперь попадают в {{category}}.",
+    sender_rule_name: "{{sender}} в {{category}}",
+    sender_rule_offer:
+      "Вы часто переносите сообщения от {{sender}} в {{category}}. Делать это автоматически?",
   },
   auth: {
     passkey_verification: "Подтверждение с помощью passkey",

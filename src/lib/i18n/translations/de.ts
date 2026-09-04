@@ -2093,13 +2093,15 @@ export const de = {
     credit_balance_changed:
       "Ihr Guthaben hat sich geändert, während die Kasse geöffnet war. Schließen Sie die Kasse und beginnen Sie erneut, um Ihr aktuelles Guthaben anzuwenden.",
     add_birthdays: "Geburtstage hinzufügen",
-    add_birthdays_hint: "Trage bei einem Kontakt einen Geburtstag ein, und Aster erinnert dich rechtzeitig daran.",
+    add_birthdays_hint:
+      "Trage bei einem Kontakt einen Geburtstag ein, und Aster erinnert dich rechtzeitig daran.",
     add_group: "Gruppe hinzufügen",
     add_new_group: "Neue Gruppe",
     add_to_group: "Zur Gruppe hinzufügen",
     added_to_group: "Zur Gruppe hinzugefügt",
     birthdays_upcoming: "{{count}} Geburtstage stehen an",
-    bulk_create_hint: "Trage pro Zeile einen Kontakt ein. Um eine E-Mail-Adresse mit einem Namen zu speichern, setze die Adresse in spitze Klammern.",
+    bulk_create_hint:
+      "Trage pro Zeile einen Kontakt ein. Um eine E-Mail-Adresse mit einem Namen zu speichern, setze die Adresse in spitze Klammern.",
     bulk_create_placeholder: "Ada Lovelace <ada@example.com>",
     bulk_create_ready: "{{count}} bereit zum Erstellen",
     change_history: "Änderungsverlauf",
@@ -2108,12 +2110,14 @@ export const de = {
     clear_selection: "Auswahl aufheben",
     compose_to_selection: "An Auswahl schreiben",
     contact_change_undone: "Änderung rückgängig gemacht",
-    contact_encryption_info: "Wenn ein Kontakt einen öffentlichen Schlüssel veröffentlicht, verschlüsselt Aster deine Mail an ihn automatisch.",
+    contact_encryption_info:
+      "Wenn ein Kontakt einen öffentlichen Schlüssel veröffentlicht, verschlüsselt Aster deine Mail an ihn automatisch.",
     contact_moved_to_trash: "Kontakt in den Papierkorb verschoben",
     contact_restored: "Kontakt wiederhergestellt",
     contacts_created: "{{count}} Kontakte erstellt",
     contacts_exported: "Kontakte exportiert",
-    contacts_in_trash_notice: "Kontakte im Papierkorb werden nach 30 Tagen endgültig gelöscht.",
+    contacts_in_trash_notice:
+      "Kontakte im Papierkorb werden nach 30 Tagen endgültig gelöscht.",
     contacts_merged: "Kontakte zusammengeführt",
     contacts_moved_to_trash: "Kontakte in den Papierkorb verschoben",
     contacts_updated_stat: "Aktualisiert",
@@ -2121,45 +2125,57 @@ export const de = {
     create_multiple_contacts: "Mehrere Kontakte erstellen",
     delete_contacts: "Kontakte löschen",
     delete_group: "Gruppe löschen",
-    delete_group_confirmation: "Wenn du „{{name}}“ löschst, wird die Gruppe entfernt. Die enthaltenen Kontakte bleiben in deinem Adressbuch.",
+    delete_group_confirmation:
+      "Wenn du „{{name}}“ löschst, wird die Gruppe entfernt. Die enthaltenen Kontakte bleiben in deinem Adressbuch.",
     deselect_contact: "Kontakt abwählen",
     discard: "Verwerfen",
-    discard_new_contact_message: "Der begonnene Kontakt ist noch nicht gespeichert. Wenn du jetzt einen anderen Kontakt öffnest, geht er verloren.",
+    discard_new_contact_message:
+      "Der begonnene Kontakt ist noch nicht gespeichert. Wenn du jetzt einen anderen Kontakt öffnest, geht er verloren.",
     duplicates_found: "Duplikate gefunden",
     email_group: "An Gruppe schreiben",
-    empty_trash_confirm: "Alle Kontakte im Papierkorb endgültig löschen? Das lässt sich nicht rückgängig machen.",
+    empty_trash_confirm:
+      "Alle Kontakte im Papierkorb endgültig löschen? Das lässt sich nicht rückgängig machen.",
     export_selection_vcf: "Als vCard exportieren",
-    failed_to_add_to_group: "Der Kontakt konnte nicht zur Gruppe hinzugefügt werden.",
+    failed_to_add_to_group:
+      "Der Kontakt konnte nicht zur Gruppe hinzugefügt werden.",
     failed_to_create_group: "Die Gruppe konnte nicht erstellt werden.",
     failed_to_delete_group: "Die Gruppe konnte nicht gelöscht werden.",
     failed_to_load_groups: "Deine Gruppen konnten nicht geladen werden.",
-    failed_to_move_to_trash: "Der Kontakt konnte nicht in den Papierkorb verschoben werden.",
-    failed_to_remove_from_group: "Der Kontakt konnte nicht aus der Gruppe entfernt werden.",
+    failed_to_move_to_trash:
+      "Der Kontakt konnte nicht in den Papierkorb verschoben werden.",
+    failed_to_remove_from_group:
+      "Der Kontakt konnte nicht aus der Gruppe entfernt werden.",
     frequent_contacts: "Häufig",
-    frequent_contacts_hint: "Hier erscheinen die Kontakte, denen du am häufigsten schreibst.",
+    frequent_contacts_hint:
+      "Hier erscheinen die Kontakte, denen du am häufigsten schreibst.",
     group_contact_count: "{{count}} Kontakte",
     group_created: "Gruppe erstellt",
     group_deleted: "Gruppe gelöscht",
-    group_empty_hint: "Um diese Gruppe zu füllen, wähle im Tab „Kontakte“ Kontakte aus und tippe auf „Zur Gruppe hinzufügen“.",
+    group_empty_hint:
+      "Um diese Gruppe zu füllen, wähle im Tab „Kontakte“ Kontakte aus und tippe auf „Zur Gruppe hinzufügen“.",
     group_empty_title: "Keine Kontakte in dieser Gruppe",
-    group_modal_description: "Erstelle Gruppen, um mehreren Kontakten gleichzeitig zu schreiben.",
+    group_modal_description:
+      "Erstelle Gruppen, um mehreren Kontakten gleichzeitig zu schreiben.",
     group_name: "Gruppenname",
     groups: "Gruppen",
     import_add_to_group: "Importierte Kontakte zu einer Gruppe hinzufügen",
     import_clear_all: "Alle entfernen",
     import_no_group: "Keine Gruppe",
-    import_nothing_selected: "Wähle mindestens einen Kontakt zum Importieren aus.",
+    import_nothing_selected:
+      "Wähle mindestens einen Kontakt zum Importieren aus.",
     import_search_placeholder: "Kontakte zum Importieren suchen",
     import_select_all: "Alle auswählen",
     import_selected_count: "{{selected}} von {{total}} ausgewählt",
     manage_contacts: "Kontakte verwalten",
     merge: "Zusammenführen",
     merge_and_fix: "Zusammenführen und korrigieren",
-    merge_contacts_hint: "Wähle die Angaben aus, die erhalten bleiben. Die anderen Kontakte wandern in den Papierkorb.",
+    merge_contacts_hint:
+      "Wähle die Angaben aus, die erhalten bleiben. Die anderen Kontakte wandern in den Papierkorb.",
     merge_keeps_this: "Behalten",
     merged_contact_preview: "Zusammengeführter Kontakt",
     no_contact_changes: "Noch keine Änderungen",
-    no_contact_details: "Dieser Kontakt hat noch keine Angaben. Wähle „Bearbeiten“, um welche hinzuzufügen.",
+    no_contact_details:
+      "Dieser Kontakt hat noch keine Angaben. Wähle „Bearbeiten“, um welche hinzuzufügen.",
     no_contacts_in_trash: "Der Papierkorb ist leer",
     no_duplicates_found: "Keine Duplikate zu korrigieren",
     no_email: "Keine E-Mail-Adresse",
@@ -2170,7 +2186,8 @@ export const de = {
     no_published_key: "Kein veröffentlichter Schlüssel",
     open_contacts: "Kontakte öffnen",
     other_contacts: "Weitere",
-    other_contacts_hint: "Hier erscheinen Adressen aus deiner Mail, die noch keinen Namen haben.",
+    other_contacts_hint:
+      "Hier erscheinen Adressen aus deiner Mail, die noch keinen Namen haben.",
     preview_contact: "Kontakt ansehen",
     print_contacts: "Kontakte drucken",
     remove_from_group: "Aus Gruppe entfernen",
@@ -3099,7 +3116,8 @@ export const de = {
       "Wechsle deinen Tarif, um die Absender-Bindung zu nutzen.",
     requires_plan: "Erfordert {{plan}}",
     alias_domain_group_extra: "Zusätzliche Domains",
-    alias_domain_requires_plan: "Diese Domain ist ab dem {{plan}}-Tarif verfügbar.",
+    alias_domain_requires_plan:
+      "Diese Domain ist ab dem {{plan}}-Tarif verfügbar.",
     alias_feature_locked_view_plans: "Tarife ansehen",
     alias_feature_locked_upgrade_plan: "Tarif upgraden",
     alias_feature_locked_upgrade_cta: "Upgraden",
@@ -6861,7 +6879,8 @@ export const de = {
       "Keine Nachrichten passen zu Ihrer Auswahl.",
     export_error_no_vault:
       "Ihr Verschlüsselungs-Tresor ist gesperrt. Melden Sie sich erneut an, um zu exportieren.",
-    export_error_write_partial: "Der Export wurde vorzeitig beendet. Deine Datei enthält die bisher exportierten Nachrichten.",
+    export_error_write_partial:
+      "Der Export wurde vorzeitig beendet. Deine Datei enthält die bisher exportierten Nachrichten.",
     export_error_write_fatal:
       "Konnte nicht in das gewählte Ziel schreiben. Der Export wurde gestoppt.",
     export_format_eml_hint:
@@ -6922,10 +6941,14 @@ export const de = {
     export_step_incomplete_title: "Export nicht abgeschlossen",
     export_incomplete_summary:
       "{{ count }} von {{ total }} Nachrichten wurden exportiert, bevor der Export gestoppt wurde.",
-    export_progress_messages_unknown_total: "{{ processed }} Nachrichten exportiert",
-    export_complete_summary_unknown_total: "{{ count }} Nachrichten wurden exportiert.",
-    export_incomplete_summary_unknown_total: "{{ count }} Nachrichten wurden exportiert, bevor der Export gestoppt wurde.",
-    export_incomplete_partial_saved: "Deine Datei enthält die bisher exportierten Nachrichten.",
+    export_progress_messages_unknown_total:
+      "{{ processed }} Nachrichten exportiert",
+    export_complete_summary_unknown_total:
+      "{{ count }} Nachrichten wurden exportiert.",
+    export_incomplete_summary_unknown_total:
+      "{{ count }} Nachrichten wurden exportiert, bevor der Export gestoppt wurde.",
+    export_incomplete_partial_saved:
+      "Deine Datei enthält die bisher exportierten Nachrichten.",
     export_complete_data_only: "Dein Export ist fertig.",
     export_step_destination_title: "Ziel wählen",
     export_step_format_title: "Format wählen",
@@ -7716,37 +7739,49 @@ export const de = {
       "{{used}} von {{max}} Plätzen belegt · {{count}} Plätze verfügbar",
     account_enabled_tooltip: "Dieses Konto wird synchronisiert.",
     account_pause_tooltip: "Synchronisierung pausieren",
-    account_paused_tooltip: "Die Synchronisierung für dieses Konto ist pausiert.",
+    account_paused_tooltip:
+      "Die Synchronisierung für dieses Konto ist pausiert.",
     account_resume_tooltip: "Synchronisierung fortsetzen",
     app_password_create_link: "App-Passwort erstellen",
     app_password_required: "App-Passwort erforderlich",
-    category_info_newsletters: "Übersichten und Verteiler, die du abonniert hast.",
-    category_info_transactions: "Bestellungen, Zahlungen und Belege von Shops und Diensten.",
+    category_info_newsletters:
+      "Übersichten und Verteiler, die du abonniert hast.",
+    category_info_transactions:
+      "Bestellungen, Zahlungen und Belege von Shops und Diensten.",
     category_newsletters: "Newsletter",
     category_transactions: "Einkäufe",
     checkout_abandon_confirm: "Zahlung abbrechen",
     checkout_abandon_keep: "Weiter bezahlen",
-    checkout_abandon_message: "Deine Rechnung wird storniert und nichts wird abgebucht. Du kannst jederzeit neu beginnen.",
+    checkout_abandon_message:
+      "Deine Rechnung wird storniert und nichts wird abgebucht. Du kannst jederzeit neu beginnen.",
     checkout_abandon_title: "Diese Zahlung abbrechen?",
     checkout_add_promo: "Gutscheincode hinzufügen",
     checkout_amount_due: "Fälliger Betrag",
     checkout_card_details: "Kartendaten",
     checkout_full_features_title: "Funktionen von {{plan}}",
-    checkout_leave_warning: "Eine Zahlung läuft gerade. Wenn du die Seite jetzt verlässt, wird sie nicht abgeschlossen.",
+    checkout_leave_warning:
+      "Eine Zahlung läuft gerade. Wenn du die Seite jetzt verlässt, wird sie nicht abgeschlossen.",
     checkout_pay_amount: "{{amount}} bezahlen",
     checkout_review_title: "Prüfen und bezahlen",
     checkout_what_you_get: "Das bekommst du",
-    credits_method_card_note: "Das Guthaben wird gutgeschrieben, sobald die Zahlung durch ist.",
-    credits_method_crypto_note: "Einmalig in Krypto bezahlen. Das Guthaben wird gutgeschrieben, sobald die Zahlung on chain bestätigt ist.",
+    credits_method_card_note:
+      "Das Guthaben wird gutgeschrieben, sobald die Zahlung durch ist.",
+    credits_method_crypto_note:
+      "Einmalig in Krypto bezahlen. Das Guthaben wird gutgeschrieben, sobald die Zahlung on chain bestätigt ist.",
     edit_account_tooltip: "Konto bearbeiten",
-    gmail_app_password_notice: "Dieser Anbieter verlangt ein App-Passwort. Dein normales Kontopasswort funktioniert nicht.",
+    gmail_app_password_notice:
+      "Dieser Anbieter verlangt ein App-Passwort. Dein normales Kontopasswort funktioniert nicht.",
     gmail_sync_continue: "Weiter",
-    gmail_sync_intro: "Erstelle in deinen Kontoeinstellungen ein App-Passwort und füge es hier ein.",
-    gmail_sync_note_unavailable: "Wenn keine App-Passwörter verfügbar sind, aktiviere zuerst die Bestätigung in zwei Schritten und sieh dann noch einmal nach.",
+    gmail_sync_intro:
+      "Erstelle in deinen Kontoeinstellungen ein App-Passwort und füge es hier ein.",
+    gmail_sync_note_unavailable:
+      "Wenn keine App-Passwörter verfügbar sind, aktiviere zuerst die Bestätigung in zwei Schritten und sieh dann noch einmal nach.",
     gmail_sync_open_google: "Kontoeinstellungen öffnen",
     gmail_sync_setup_button: "Anleitung anzeigen",
-    gmail_sync_step_1: "Melde dich in den Sicherheitseinstellungen deines Kontos an.",
-    gmail_sync_step_2: "Aktiviere die Bestätigung in zwei Schritten, falls sie noch aus ist.",
+    gmail_sync_step_1:
+      "Melde dich in den Sicherheitseinstellungen deines Kontos an.",
+    gmail_sync_step_2:
+      "Aktiviere die Bestätigung in zwei Schritten, falls sie noch aus ist.",
     gmail_sync_step_3: "Erstelle ein App-Passwort für Mail.",
     gmail_sync_step_4: "Kopiere das Passwort und füge es in Aster ein.",
     gmail_sync_title: "App-Passwort erstellen",
@@ -7755,13 +7790,18 @@ export const de = {
     gmail_wizard_progress: "Schritt {{current}} von {{total}}",
     gmail_wizard_reveal_password: "App-Passwort anzeigen",
     gmail_wizard_step_1_action: "Sicherheitseinstellungen öffnen",
-    gmail_wizard_step_1_body: "App-Passwörter findest du im Sicherheitsbereich deines Anbieterkontos.",
-    gmail_wizard_step_1_title: "Öffne die Sicherheitseinstellungen deines Kontos",
-    gmail_wizard_step_2_body: "App-Passwörter sind erst verfügbar, wenn die Bestätigung in zwei Schritten aktiv ist.",
+    gmail_wizard_step_1_body:
+      "App-Passwörter findest du im Sicherheitsbereich deines Anbieterkontos.",
+    gmail_wizard_step_1_title:
+      "Öffne die Sicherheitseinstellungen deines Kontos",
+    gmail_wizard_step_2_body:
+      "App-Passwörter sind erst verfügbar, wenn die Bestätigung in zwei Schritten aktiv ist.",
     gmail_wizard_step_2_title: "Bestätigung in zwei Schritten aktivieren",
-    gmail_wizard_step_3_body: "Wähle Mail als App aus und erstelle dann das Passwort.",
+    gmail_wizard_step_3_body:
+      "Wähle Mail als App aus und erstelle dann das Passwort.",
     gmail_wizard_step_3_title: "App-Passwort erstellen",
-    gmail_wizard_step_4_body: "Füge das App-Passwort unten ein. Aster speichert es verschlüsselt und nutzt es nur, um dieses Postfach zu synchronisieren.",
+    gmail_wizard_step_4_body:
+      "Füge das App-Passwort unten ein. Aster speichert es verschlüsselt und nutzt es nur, um dieses Postfach zu synchronisieren.",
     gmail_wizard_step_4_title: "Passwort einfügen",
     gmail_wizard_title: "Postfach verbinden",
     last_sync_tooltip: "Wann dieses Konto zuletzt synchronisiert wurde",
@@ -7769,11 +7809,13 @@ export const de = {
     offer_modal_action: "Angebot sichern",
     offer_modal_badge: "{{percent}} % Rabatt",
     offer_modal_dismiss: "Nicht jetzt",
-    offer_modal_fine_print: "Der Code {{code}} gilt an der Kasse. Eine Verwendung pro Konto.",
+    offer_modal_fine_print:
+      "Der Code {{code}} gilt an der Kasse. Eine Verwendung pro Konto.",
     offer_modal_price_note: "Der Rabatt gilt an der Kasse.",
     offer_modal_subtitle: "Wechsle günstiger zu {{plan}}.",
     offer_modal_title: "Spare {{percent}} % bei deinem Tarif",
-    offer_upgrade_description: "Wähle einen Tarif, um deinen Rabatt einzulösen.",
+    offer_upgrade_description:
+      "Wähle einen Tarif, um deinen Rabatt einzulösen.",
     offer_upgrade_title: "Dein Angebot wartet",
     plan_cat_advanced_aliases: "Erweiterte Aliasse",
     plan_cat_contacts: "Kontakte",
@@ -7816,35 +7858,60 @@ export const de = {
     plan_f_vanguard_app_lock: "App-Sperre",
     plan_f_vanguard_lockdown_mode: "Lockdown-Modus",
     plan_f_wkd: "Web Key Directory",
-    plan_tip_alias_bulk: "Aktiviere, deaktiviere oder lösche viele Aliasse auf einmal.",
-    plan_tip_alias_csv: "Exportiere jeden Alias mit Regeln und Status als CSV-Datei.",
-    plan_tip_alias_import: "Übernimm Aliasse in einem Schritt von einem anderen Anbieter.",
-    plan_tip_alias_no_cooldown: "Erstelle Aliasse nacheinander, ohne dazwischen zu warten.",
-    plan_tip_alias_pin: "Halte die Aliasse, die du am häufigsten nutzt, oben in der Liste.",
-    plan_tip_alias_transfer: "Verschiebe einen Alias in ein anderes Aster-Konto, das dir gehört.",
-    plan_tip_allowlist: "Lass bestimmte Absender durch, auch wenn ein Filter sie sonst stoppen würde.",
-    plan_tip_contact_sync: "Synchronisiere Kontakte mit Kontakte unter macOS und iOS, mit DAVx5 unter Android oder mit jedem CardDAV-Client. Möglich macht das die Begleit-App Aster Bridge auf deinem Gerät.",
-    plan_tip_custom_categories: "Erstelle eigene Posteingangs-Tabs und lege fest, was in welchem landet.",
-    plan_tip_email_export: "Lade deine Mail als Standardarchiv herunter, das du überall öffnen kannst.",
-    plan_tip_email_import: "Hole Mail per IMAP von einem anderen Anbieter, samt Ordnerstruktur.",
-    plan_tip_expiration: "Lege ein Datum fest, ab dem sich eine E-Mail aus der Ansicht der Empfänger löscht.",
-    plan_tip_extra_alias_domains: "Erstelle Aliasse auf weiteren Aster-Domains, nicht nur auf astermail.org.",
-    plan_tip_folder_auto_clean: "Lösche pro Ordner alles, was älter ist als der von dir gesetzte Zeitraum.",
-    plan_tip_sub_scanner: "Finde jeden Newsletter und Dienst, den du abonniert hast, und melde dich an einer Stelle ab.",
-    plan_tip_vanguard_app_lock: "Verlange bei jedem Öffnen von Aster den Gerätecode oder Biometrie.",
-    plan_tip_vanguard_lockdown_mode: "Blockiere externe Inhalte, externe Links und neue Absender, bis du das wieder aufhebst.",
-    plan_tip_wkd: "Veröffentliche deinen öffentlichen Schlüssel auf deiner eigenen Domain, damit dir jeder verschlüsselt schreiben kann.",
-    protocol_desc_imap: "Synchronisiert Ordner und bleibt geräteübergreifend aktuell.",
-    protocol_desc_pop3: "Lädt Mail einmal herunter und synchronisiert danach nichts mehr.",
-    protocol_tooltip_imap: "IMAP belässt deine Mail auf dem Server und synchronisiert jede Änderung auf alle Geräte.",
-    protocol_tooltip_jmap: "JMAP ist ein modernes Sync-Protokoll, das nur wenige Anbieter unterstützen.",
-    protocol_tooltip_pop3: "POP3 lädt Mail auf ein einzelnes Gerät und synchronisiert Änderungen nicht zurück.",
+    plan_tip_alias_bulk:
+      "Aktiviere, deaktiviere oder lösche viele Aliasse auf einmal.",
+    plan_tip_alias_csv:
+      "Exportiere jeden Alias mit Regeln und Status als CSV-Datei.",
+    plan_tip_alias_import:
+      "Übernimm Aliasse in einem Schritt von einem anderen Anbieter.",
+    plan_tip_alias_no_cooldown:
+      "Erstelle Aliasse nacheinander, ohne dazwischen zu warten.",
+    plan_tip_alias_pin:
+      "Halte die Aliasse, die du am häufigsten nutzt, oben in der Liste.",
+    plan_tip_alias_transfer:
+      "Verschiebe einen Alias in ein anderes Aster-Konto, das dir gehört.",
+    plan_tip_allowlist:
+      "Lass bestimmte Absender durch, auch wenn ein Filter sie sonst stoppen würde.",
+    plan_tip_contact_sync:
+      "Synchronisiere Kontakte mit Kontakte unter macOS und iOS, mit DAVx5 unter Android oder mit jedem CardDAV-Client. Möglich macht das die Begleit-App Aster Bridge auf deinem Gerät.",
+    plan_tip_custom_categories:
+      "Erstelle eigene Posteingangs-Tabs und lege fest, was in welchem landet.",
+    plan_tip_email_export:
+      "Lade deine Mail als Standardarchiv herunter, das du überall öffnen kannst.",
+    plan_tip_email_import:
+      "Hole Mail per IMAP von einem anderen Anbieter, samt Ordnerstruktur.",
+    plan_tip_expiration:
+      "Lege ein Datum fest, ab dem sich eine E-Mail aus der Ansicht der Empfänger löscht.",
+    plan_tip_extra_alias_domains:
+      "Erstelle Aliasse auf weiteren Aster-Domains, nicht nur auf astermail.org.",
+    plan_tip_folder_auto_clean:
+      "Lösche pro Ordner alles, was älter ist als der von dir gesetzte Zeitraum.",
+    plan_tip_sub_scanner:
+      "Finde jeden Newsletter und Dienst, den du abonniert hast, und melde dich an einer Stelle ab.",
+    plan_tip_vanguard_app_lock:
+      "Verlange bei jedem Öffnen von Aster den Gerätecode oder Biometrie.",
+    plan_tip_vanguard_lockdown_mode:
+      "Blockiere externe Inhalte, externe Links und neue Absender, bis du das wieder aufhebst.",
+    plan_tip_wkd:
+      "Veröffentliche deinen öffentlichen Schlüssel auf deiner eigenen Domain, damit dir jeder verschlüsselt schreiben kann.",
+    protocol_desc_imap:
+      "Synchronisiert Ordner und bleibt geräteübergreifend aktuell.",
+    protocol_desc_pop3:
+      "Lädt Mail einmal herunter und synchronisiert danach nichts mehr.",
+    protocol_tooltip_imap:
+      "IMAP belässt deine Mail auf dem Server und synchronisiert jede Änderung auf alle Geräte.",
+    protocol_tooltip_jmap:
+      "JMAP ist ein modernes Sync-Protokoll, das nur wenige Anbieter unterstützen.",
+    protocol_tooltip_pop3:
+      "POP3 lädt Mail auf ein einzelnes Gerät und synchronisiert Änderungen nicht zurück.",
     remove_account_tooltip: "Konto entfernen",
     show_side_panel: "Seitenleiste anzeigen",
-    show_side_panel_description: "Behalte Kontakte und andere schnelle Werkzeuge in einer Leiste neben deiner Mail.",
+    show_side_panel_description:
+      "Behalte Kontakte und andere schnelle Werkzeuge in einer Leiste neben deiner Mail.",
     stripe_secure_short: "Abgesichert durch Stripe",
     sync_now_tooltip: "Jetzt synchronisieren",
-    upgrade_external_accounts_note: "Führe ein Upgrade durch, um mehr externe Konten zu verbinden.",
+    upgrade_external_accounts_note:
+      "Führe ein Upgrade durch, um mehr externe Konten zu verbinden.",
     usage_external_accounts: "Externe Konten",
   },
   mail: {
@@ -8203,6 +8270,9 @@ export const de = {
     folder: "Ordner",
     empty_inbox_title: "Ihr Posteingang ist leer",
     empty_inbox_subtitle: "Neue Nachrichten erscheinen hier",
+    empty_all_title: "Hier ist noch keine Mail",
+    empty_all_subtitle:
+      "Hier erscheint alles aus Ihrem Konto, außer Spam und Papierkorb",
     empty_sent_title: "Keine gesendeten Nachrichten",
     empty_sent_subtitle: "Nachrichten, die Sie senden, erscheinen hier",
     empty_drafts_title: "Keine Entwürfe",
@@ -8733,18 +8803,25 @@ export const de = {
     bulk_trash_title: "{{count}} E-Mails in den Papierkorb verschieben?",
     bulk_trash_title_one: "1 E-Mail in den Papierkorb verschieben?",
     bulk_trash_title_other: "{{count}} E-Mails in den Papierkorb verschieben?",
-    confirm_bulk_action_count_description: "Das betrifft alle {{count}} E-Mails.",
+    confirm_bulk_action_count_description:
+      "Das betrifft alle {{count}} E-Mails.",
     confirm_bulk_action_count_description_one: "Das betrifft 1 E-Mail.",
-    confirm_bulk_action_count_description_other: "Das betrifft alle {{count}} E-Mails.",
-    confirm_bulk_action_scope_description: "Das betrifft alle {{count}} E-Mails in {{scope}}.",
-    confirm_bulk_action_scope_description_one: "Das betrifft die 1 E-Mail in {{scope}}.",
-    confirm_bulk_action_scope_description_other: "Das betrifft alle {{count}} E-Mails in {{scope}}.",
+    confirm_bulk_action_count_description_other:
+      "Das betrifft alle {{count}} E-Mails.",
+    confirm_bulk_action_scope_description:
+      "Das betrifft alle {{count}} E-Mails in {{scope}}.",
+    confirm_bulk_action_scope_description_one:
+      "Das betrifft die 1 E-Mail in {{scope}}.",
+    confirm_bulk_action_scope_description_other:
+      "Das betrifft alle {{count}} E-Mails in {{scope}}.",
     remove_from_folder: "Aus Ordner entfernen",
     remove_label: "Label entfernen",
     sender_rule_confirm: "Regel erstellen",
-    sender_rule_created: "Neue Mail von diesem Absender landet jetzt in {{category}}.",
+    sender_rule_created:
+      "Neue Mail von diesem Absender landet jetzt in {{category}}.",
     sender_rule_name: "{{sender}} nach {{category}}",
-    sender_rule_offer: "Du verschiebst Mail von {{sender}} immer wieder nach {{category}}. Soll das automatisch passieren?",
+    sender_rule_offer:
+      "Du verschiebst Mail von {{sender}} immer wieder nach {{category}}. Soll das automatisch passieren?",
   },
   auth: {
     passkey_verification: "Mit Passkey verifizieren",

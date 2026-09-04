@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { DecryptedContact } from "@/types/contacts";
+import type { Contact, DecryptedContact } from "@/types/contacts";
 import type {
   FilterOption,
   SortOption,
@@ -35,7 +35,15 @@ import {
 } from "react";
 import { useSearchParams } from "react-router-dom";
 
-import { list_contacts, decrypt_contacts } from "@/services/api/contacts";
+import {
+  list_contacts,
+  decrypt_contacts,
+  delete_contact as api_delete_contact,
+} from "@/services/api/contacts";
+import {
+  is_contact_trash_expired,
+  is_contact_trashed,
+} from "@/lib/contact_trash";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_shift_key_ref } from "@/lib/use_shift_range_select";
 import { use_auth } from "@/contexts/auth_context";
@@ -44,6 +52,9 @@ import {
   parse_csv_contacts,
   import_contacts_batched,
 } from "@/components/common/contacts/contact_import_handler";
+
+const CONTACT_PAGE_LIMIT = 100;
+const MAX_CONTACT_PAGES = 100;
 
 function build_contact_haystack(contact: DecryptedContact): string {
   const parts: string[] = [
@@ -81,6 +92,9 @@ export function use_contacts_data() {
   const { has_keys } = use_auth();
   const [search_params, set_search_params] = useSearchParams();
   const [contacts, set_contacts] = useState<DecryptedContact[]>([]);
+  const [trashed_contacts, set_trashed_contacts] = useState<DecryptedContact[]>(
+    [],
+  );
   const [search_query, set_search_query] = useState("");
   const [is_form_open, set_is_form_open] = useState(false);
   const [editing_contact, set_editing_contact] =
@@ -138,11 +152,12 @@ export function use_contacts_data() {
             return !!contact.phone;
           case "has_company":
             return !!contact.company;
-          case "upcoming_birthdays":
+          case "upcoming_birthdays": {
             if (!contact.birthday) return false;
             const days = get_days_until_birthday(contact.birthday);
 
             return days <= 30;
+          }
           default:
             return true;
         }
@@ -164,6 +179,18 @@ export function use_contacts_data() {
         case "name_desc": {
           const name_a = `${a.first_name} ${a.last_name}`.toLowerCase();
           const name_b = `${b.first_name} ${b.last_name}`.toLowerCase();
+
+          return name_b.localeCompare(name_a);
+        }
+        case "last_name_asc": {
+          const name_a = `${a.last_name} ${a.first_name}`.trim().toLowerCase();
+          const name_b = `${b.last_name} ${b.first_name}`.trim().toLowerCase();
+
+          return name_a.localeCompare(name_b);
+        }
+        case "last_name_desc": {
+          const name_a = `${a.last_name} ${a.first_name}`.trim().toLowerCase();
+          const name_b = `${b.last_name} ${b.first_name}`.trim().toLowerCase();
 
           return name_b.localeCompare(name_a);
         }
@@ -275,6 +302,10 @@ export function use_contacts_data() {
         return t("common.name") + " A-Z";
       case "name_desc":
         return t("common.name") + " Z-A";
+      case "last_name_asc":
+        return t("common.last_name") + " A-Z";
+      case "last_name_desc":
+        return t("common.last_name") + " Z-A";
       case "company":
         return t("common.company");
       case "recent":
@@ -293,17 +324,45 @@ export function use_contacts_data() {
 
     try {
       set_error(null);
-      const response = await list_contacts({ limit: 100 });
+      const items: Contact[] = [];
+      let cursor: string | undefined;
 
-      if (response.error || !response.data) {
-        set_error(response.error || t("common.failed_to_fetch_contacts"));
-        set_is_loading(false);
+      for (let page = 0; page < MAX_CONTACT_PAGES; page += 1) {
+        const response = await list_contacts({
+          limit: CONTACT_PAGE_LIMIT,
+          cursor,
+        });
 
-        return;
+        if (response.error || !response.data) {
+          set_error(response.error || t("common.failed_to_fetch_contacts"));
+          set_is_loading(false);
+
+          return;
+        }
+        items.push(...response.data.items);
+        if (!response.data.has_more || !response.data.next_cursor) break;
+        cursor = response.data.next_cursor;
       }
-      const decrypted = await decrypt_contacts(response.data.items);
+      const decrypted = await decrypt_contacts(items, true);
+      const active: DecryptedContact[] = [];
+      const trashed: DecryptedContact[] = [];
 
-      set_contacts(decrypted);
+      for (const contact of decrypted) {
+        if (!is_contact_trashed(contact)) {
+          active.push(contact);
+
+          continue;
+        }
+        if (is_contact_trash_expired(contact.deleted_at as string)) {
+          api_delete_contact(contact.id).catch(() => undefined);
+
+          continue;
+        }
+        trashed.push(contact);
+      }
+
+      set_contacts(active);
+      set_trashed_contacts(trashed);
     } catch (err) {
       set_error(
         err instanceof Error
@@ -610,6 +669,8 @@ export function use_contacts_data() {
     t,
     contacts,
     set_contacts,
+    trashed_contacts,
+    set_trashed_contacts,
     search_query,
     set_search_query,
     is_form_open,

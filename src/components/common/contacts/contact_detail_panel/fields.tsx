@@ -61,15 +61,18 @@ import {
 
 export function Section({
   title,
+  info,
   children,
 }: {
   title: string;
+  info?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
     <section className="space-y-5">
-      <h2 className="text-[15px] font-semibold text-txt-primary pb-2 border-b border-edge-primary">
+      <h2 className="flex items-center gap-1.5 text-[15px] font-semibold text-txt-primary pb-2 border-b border-edge-primary">
         {title}
+        {info}
       </h2>
       <div className="space-y-5">{children}</div>
     </section>
