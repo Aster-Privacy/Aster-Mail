@@ -143,16 +143,26 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
         shell: bash
         run: |
-          set -euo pipefail
+          set -uo pipefail
           sudo apt-get install -y squashfs-tools
           V=$(node -p "require('./package.json').version")
           TAG="v${V}"
           shopt -s nullglob
           for img in src-tauri/target/release/bundle/appimage/*.AppImage; do
-            bash scripts/fix_appimage_libs.sh "$img"
+            cp "$img" "$img.orig"
+            if ! bash scripts/fix_appimage_libs.sh "$img"; then
+              echo "::warning::could not unbundle $img, keeping the original build"
+              mv "$img.orig" "$img"
+              continue
+            fi
             rm -f "$img.sig"
-            npm run tauri -- signer sign --password "" "$img"
-            gh release upload "$TAG" "$img" "$img.sig" --clobber
+            if npm run tauri -- signer sign --password "" "$img"; then
+              rm -f "$img.orig"
+              gh release upload "$TAG" "$img" "$img.sig" --clobber
+            else
+              echo "::warning::could not re-sign $img, keeping the originally signed build"
+              mv "$img.orig" "$img"
+            fi
           done
 
       - name: Rename assets to canonical names
