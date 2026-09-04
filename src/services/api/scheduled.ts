@@ -446,7 +446,7 @@ export async function cancel_scheduled_email(
     `/mail/v1/scheduled/${email_id}`,
   );
 
-  if (response.error || !response.data) {
+  if (response.error && response.code !== "NOT_FOUND") {
     return create_error_response(response.error, response.code);
   }
 

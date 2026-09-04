@@ -85,12 +85,29 @@ export function build_core_context_menu_actions(
     is_drafts_view,
     is_scheduled_view,
     schedule_delete_drafts,
+    cancel_scheduled,
   } = params;
 
   const is_trash_view = current_view === "trash";
   const is_outgoing = is_outgoing_view(current_view);
 
   const perform_delete = async (email: InboxEmail) => {
+    if (is_scheduled_view) {
+      const cancelled = await cancel_scheduled(email.id);
+
+      if (cancelled) {
+        show_action_toast({
+          message: t("common.scheduled_email_cancelled"),
+          action_type: "trash",
+          email_ids: [email.id],
+        });
+      } else {
+        show_toast(t("common.failed_to_delete_emails"), "error");
+      }
+
+      return;
+    }
+
     if (is_drafts_view) {
       schedule_delete_drafts([email.id]);
 

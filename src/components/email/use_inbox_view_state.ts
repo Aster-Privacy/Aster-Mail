@@ -330,6 +330,8 @@ export function use_inbox_view_state(props: EmailInboxProps) {
     state: scheduled_state,
     update_scheduled,
     refresh: refresh_scheduled,
+    cancel_email: cancel_scheduled,
+    bulk_cancel: bulk_cancel_scheduled,
   } = use_scheduled_emails(is_scheduled_view);
   const {
     state: snoozed_state,
@@ -754,6 +756,8 @@ export function use_inbox_view_state(props: EmailInboxProps) {
     save_now,
     is_drafts_view,
     is_scheduled_view,
+    cancel_scheduled,
+    bulk_cancel_scheduled,
   });
 
   const context_menu_actions = use_context_menu_actions({
@@ -785,6 +789,7 @@ export function use_inbox_view_state(props: EmailInboxProps) {
     is_drafts_view,
     is_scheduled_view,
     schedule_delete_drafts,
+    cancel_scheduled,
   });
 
   return {
