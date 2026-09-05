@@ -670,7 +670,7 @@ export function UpgradeModal() {
               </p>
               <a
                 className="mt-1 inline-block text-[13px] font-medium underline"
-                href="https://astermail.org/multiple-accounts"
+                href="https://astermail.org/terms#section-2"
                 rel="noopener noreferrer"
                 style={{ color: "var(--accent-color)" }}
                 target="_blank"
