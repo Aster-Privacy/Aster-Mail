@@ -74,6 +74,7 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
     on_search_submit,
     focused_email_id,
     active_email_id,
+    on_auto_advance,
     on_view_change,
   } = props;
   const {
@@ -447,6 +448,7 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
               grouped_email_ids={split_email_grouped_ids}
               label_hints={split_email_label_hints}
               local_email={split_local_email ?? undefined}
+              on_advance={on_auto_advance}
               on_back={on_split_close || (() => {})}
               on_edit_draft={handle_edit_thread_draft}
               on_folder_toggle={handle_viewer_folder_toggle}
@@ -525,6 +527,7 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
                   grouped_email_ids={split_email_grouped_ids}
                   label_hints={split_email_label_hints}
                   local_email={split_local_email ?? undefined}
+                  on_advance={on_auto_advance}
                   on_close={on_split_close || (() => {})}
                   on_folder_toggle={handle_viewer_folder_toggle}
                   on_forward={on_forward}

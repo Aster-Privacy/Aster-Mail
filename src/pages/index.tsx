@@ -526,6 +526,7 @@ export default function IndexPage() {
                         current_email_index={state.current_email_index}
                         current_view={state.current_view}
                         focused_email_id={state.focused_email_id}
+                        on_auto_advance={state.handle_auto_advance}
                         on_compose={state.open_compose}
                         on_draft_click={state.handle_draft_click}
                         on_email_click={state.handle_email_click}
@@ -673,6 +674,7 @@ export default function IndexPage() {
                 : undefined
             }
             local_email={state.preview_local_email ?? undefined}
+            on_advance={state.handle_auto_advance}
             on_close={state.handle_popup_close}
             on_forward={state.handle_forward}
             on_reply={state.handle_reply}

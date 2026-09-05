@@ -91,6 +91,7 @@ export interface PopupActionsDeps {
     React.SetStateAction<DecryptedThreadMessage[]>
   >;
   on_close: () => void;
+  on_advance?: () => boolean;
   on_reply?: EmailPopupViewerProps["on_reply"];
   on_forward?: EmailPopupViewerProps["on_forward"];
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
@@ -98,6 +99,12 @@ export interface PopupActionsDeps {
 }
 
 export function use_popup_viewer_actions(deps: PopupActionsDeps) {
+  const close_or_advance = useCallback(() => {
+    if (deps.on_advance?.()) return;
+
+    deps.on_close();
+  }, [deps.on_advance, deps.on_close]);
+
   const handle_read_toggle = useCallback(async () => {
     if (!deps.email_id || !deps.mail_item) return;
 
@@ -200,11 +207,11 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
           window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
         },
       });
-      deps.on_close();
+      close_or_advance();
     } else {
       show_toast(deps.t("common.failed_to_archive_emails"), "error");
     }
-  }, [deps.email_id, deps.is_archive_loading, deps.on_close, deps.t]);
+  }, [deps.email_id, deps.is_archive_loading, close_or_advance, deps.t]);
 
   const handle_unarchive = useCallback(async () => {
     if (!deps.email_id || deps.is_archive_loading) return;
@@ -227,11 +234,11 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
       emit_mail_item_updated({ id: deps.email_id, is_archived: false });
       reindex_ids([deps.email_id]);
       show_toast(deps.t("common.moved_to_inbox_toast"), "success");
-      deps.on_close();
+      close_or_advance();
     } else {
       show_toast(deps.t("common.failed_to_unarchive_emails"), "error");
     }
-  }, [deps.email_id, deps.is_archive_loading, deps.on_close, deps.t]);
+  }, [deps.email_id, deps.is_archive_loading, close_or_advance, deps.t]);
 
   const handle_not_spam = useCallback(async () => {
     if (!deps.email_id || deps.is_spam_loading || !deps.mail_item) return;
@@ -264,7 +271,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
       reindex_ids([deps.email_id]);
       emit_mail_items_removed({ ids: [deps.email_id] });
       show_toast(deps.t("common.marked_as_not_spam"), "success");
-      deps.on_close();
+      close_or_advance();
     } else {
       show_toast(deps.t("common.failed_to_update_emails"), "error");
     }
@@ -273,7 +280,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
     deps.email?.sender_email,
     deps.is_spam_loading,
     deps.mail_item,
-    deps.on_close,
+    close_or_advance,
     deps.t,
   ]);
 
@@ -331,7 +338,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
           window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
         },
       });
-      deps.on_close();
+      close_or_advance();
     } else {
       show_toast(deps.t("common.failed_to_mark_as_spam"), "error");
     }
@@ -339,7 +346,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
     deps.email_id,
     deps.email?.sender_email,
     deps.is_spam_loading,
-    deps.on_close,
+    close_or_advance,
     deps.mail_item,
     deps.t,
   ]);
@@ -358,7 +365,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
         adjust_stats_trash(-1);
         emit_mail_items_removed({ ids: [deps.email_id] });
         show_toast(deps.t("common.email_permanently_deleted"), "success");
-        deps.on_close();
+        close_or_advance();
       } else {
         show_toast(deps.t("common.failed_to_permanently_delete"), "error");
       }
@@ -398,14 +405,14 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
           window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
         },
       });
-      deps.on_close();
+      close_or_advance();
     } else {
       show_toast(deps.t("common.failed_to_delete_emails"), "error");
     }
   }, [
     deps.email_id,
     deps.is_trash_loading,
-    deps.on_close,
+    close_or_advance,
     deps.mail_item,
     deps.t,
   ]);
@@ -859,12 +866,12 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
           );
         }
         show_toast(deps.t("common.reported_as_phishing"), "success");
-        deps.on_close();
+        close_or_advance();
       } else {
         show_toast(deps.t("common.failed_to_mark_as_spam"), "error");
       }
     },
-    [deps.on_close, deps.t],
+    [close_or_advance, deps.t],
   );
 
   const handle_per_message_not_spam = useCallback(
@@ -889,12 +896,12 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
           );
         }
         show_toast(deps.t("common.marked_as_not_spam"), "success");
-        deps.on_close();
+        close_or_advance();
       } else {
         show_toast(deps.t("common.failed_to_update"), "error");
       }
     },
-    [deps.on_close, deps.t],
+    [close_or_advance, deps.t],
   );
 
   const handle_toggle_message_read = useCallback(

@@ -125,6 +125,7 @@ export interface EmailViewerActionsDeps {
   set_thread_draft: (v: DraftWithContent | null) => void;
   set_view_source_message: (v: DecryptedThreadMessage | null) => void;
   on_dismiss: () => void;
+  on_advance?: () => boolean;
   on_reply?: (data: ReplyData) => void;
   on_forward?: (data: ForwardData) => void;
   on_edit_draft?: (draft: DraftWithContent) => void;
@@ -136,6 +137,12 @@ export interface EmailViewerActionsDeps {
 }
 
 export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
+  const dismiss_or_advance = useCallback(() => {
+    if (deps.on_advance?.()) return;
+
+    deps.on_dismiss();
+  }, [deps.on_advance, deps.on_dismiss]);
+
   const copy_to_clipboard = useCallback(
     async (text: string, label: string) => {
       const clear_clipboard_after_timeout = () => {
@@ -488,7 +495,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
           emit_mail_soft_refresh();
         },
       });
-      deps.on_dismiss();
+      dismiss_or_advance();
     } else {
       if (deltas) revert_stat_deltas(deltas);
       show_toast(deps.t("common.failed_to_archive_emails"), "error");
@@ -497,7 +504,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
     deps.email_id,
     deps.thread_messages,
     deps.is_archive_loading,
-    deps.on_dismiss,
+    dismiss_or_advance,
     deps.t,
     deps.mail_item,
     deps.is_read,
@@ -550,7 +557,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
           emit_mail_soft_refresh();
         },
       });
-      deps.on_dismiss();
+      dismiss_or_advance();
     } else {
       if (deltas) revert_stat_deltas(deltas);
       show_toast(deps.t("common.failed_to_unarchive_emails"), "error");
@@ -558,7 +565,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
   }, [
     deps.email_id,
     deps.is_archive_loading,
-    deps.on_dismiss,
+    dismiss_or_advance,
     deps.t,
     deps.mail_item,
     deps.is_read,
@@ -637,7 +644,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
           emit_mail_soft_refresh();
         },
       });
-      deps.on_dismiss();
+      dismiss_or_advance();
     } else {
       if (is_received) {
         adjust_stats_spam(-1);
@@ -649,7 +656,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
     deps.email_id,
     deps.email?.sender_email,
     deps.is_spam_loading,
-    deps.on_dismiss,
+    dismiss_or_advance,
     deps.mail_item,
     deps.is_read,
     deps.t,
@@ -683,7 +690,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
       reindex_ids([deps.email_id]);
       emit_mail_changed();
       show_toast(deps.t("common.marked_as_not_spam"), "success");
-      deps.on_dismiss();
+      dismiss_or_advance();
     } else {
       show_toast(deps.t("common.failed_to_update_emails"), "error");
     }
@@ -691,7 +698,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
     deps.email_id,
     deps.email?.sender_email,
     deps.is_spam_loading,
-    deps.on_dismiss,
+    dismiss_or_advance,
     deps.mail_item,
     deps.t,
   ]);
@@ -710,7 +717,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
         emit_mail_items_removed({ ids: [deps.email_id] });
         emit_mail_changed();
         show_toast(deps.t("common.email_permanently_deleted"), "success");
-        deps.on_dismiss();
+        dismiss_or_advance();
       } else {
         show_toast(deps.t("common.failed_to_permanently_delete"), "error");
       }
@@ -790,7 +797,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
           emit_mail_soft_refresh();
         },
       });
-      deps.on_dismiss();
+      dismiss_or_advance();
     } else {
       revert_stat_deltas(deltas);
       show_toast(deps.t("common.failed_to_delete_emails"), "error");
@@ -799,7 +806,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
     deps.email_id,
     deps.thread_messages,
     deps.is_trash_loading,
-    deps.on_dismiss,
+    dismiss_or_advance,
     deps.mail_item,
     deps.is_read,
     deps.t,

@@ -65,6 +65,7 @@ export interface EmailPopupViewerProps {
   email_id: string | null;
   local_email?: LocalEmailData;
   on_close: () => void;
+  on_advance?: () => boolean;
   on_reply?: (data: {
     recipient_name: string;
     recipient_email: string;

@@ -38,6 +38,7 @@ import { use_compose_manager } from "@/components/compose/compose_manager";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
+import { use_auto_advance } from "@/components/email/hooks/use_auto_advance";
 import { use_metadata_migration } from "@/hooks/use_metadata_migration";
 import { bulk_update_metadata_by_ids } from "@/services/crypto/mail_metadata";
 import { use_background_subscription_scan } from "@/hooks/use_background_subscription_scan";
@@ -530,6 +531,29 @@ export function use_index_page_state() {
     location,
     navigate,
   ]);
+
+  const advance_navigate_to = useCallback(
+    (id: string) => {
+      set_preview_local_email(null);
+      if (popup_email_id) {
+        set_popup_email_id(id);
+      } else {
+        set_split_email_id(id);
+      }
+      if (!is_mobile) {
+        navigate(`${location.pathname}${location.search}#${id}`, {
+          replace: true,
+        });
+      }
+    },
+    [popup_email_id, is_mobile, location, navigate],
+  );
+
+  const handle_auto_advance = use_auto_advance({
+    email_ids: visible_email_ids,
+    current_index: current_email_index,
+    navigate_to: advance_navigate_to,
+  });
 
   const use_popup_mode =
     preferences.email_view_mode === "popup" ||
@@ -1573,6 +1597,7 @@ export function use_index_page_state() {
     handle_navigate_next,
     use_popup_mode,
     handle_navigate_to,
+    handle_auto_advance,
     handle_email_click,
     handle_split_close,
     handle_popup_close,
