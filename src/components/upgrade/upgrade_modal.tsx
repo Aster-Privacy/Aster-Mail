@@ -368,12 +368,7 @@ export function UpgradeModal() {
     if (family) return { tier: family, audience: "family" as PlanAudience };
 
     return null;
-  }, [
-    state.reason,
-    state.preselect_plan_code,
-    individual_tiers,
-    family_tiers,
-  ]);
+  }, [state.reason, state.preselect_plan_code, individual_tiers, family_tiers]);
 
   useEffect(() => {
     if (!state.is_open || is_blocked) return;
@@ -650,9 +645,7 @@ export function UpgradeModal() {
       <Modal
         close_on_escape={false}
         close_on_overlay={false}
-        is_open={
-          state.is_open && !is_blocked && !pending_tier && !crypto_tier
-        }
+        is_open={state.is_open && !is_blocked && !pending_tier && !crypto_tier}
         on_close={close_upgrade_modal}
         size="2xl"
       >
@@ -913,24 +906,21 @@ export function UpgradeModal() {
             </ul>
           )}
 
-          <div className="flex items-center justify-center gap-1.5 text-xs text-txt-muted">
-            <ShieldCheckIcon className="w-3.5 h-3.5 text-txt-muted" />
-            <span>
-              {t("settings.money_back_guarantee")} &middot;{" "}
-              {t("settings.cancel_anytime")}
-            </span>
+          <div className="flex flex-col items-center gap-1.5 pt-1">
+            <div className="flex items-center justify-center gap-1.5 text-[13px] text-txt-secondary">
+              <ShieldCheckIcon
+                className="w-4 h-4 flex-shrink-0"
+                style={{ color: "var(--accent-blue)" }}
+              />
+              <span>{t("settings.cancel_anytime")}</span>
+            </div>
+            <p className="text-xs text-txt-muted text-center">
+              {t("auth.no_ads_no_tracking")}
+            </p>
           </div>
         </ModalBody>
 
-        <ModalFooter className="gap-2">
-          <Button
-            className="flex-1"
-            disabled={is_starting}
-            variant="ghost"
-            onClick={close_upgrade_modal}
-          >
-            {t("common.not_now")}
-          </Button>
+        <ModalFooter className="gap-3">
           {is_storage ? (
             <Button
               className="flex-1"
@@ -950,6 +940,15 @@ export function UpgradeModal() {
               {t("auth.plan_view_full_features")}
             </Button>
           )}
+          <Button
+            className="text-txt-muted"
+            disabled={is_starting}
+            size="sm"
+            variant="ghost"
+            onClick={close_upgrade_modal}
+          >
+            {t("common.not_now")}
+          </Button>
           {is_starting && (
             <span className="flex items-center px-2">
               <Spinner size="xs" />
