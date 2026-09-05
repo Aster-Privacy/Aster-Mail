@@ -528,7 +528,21 @@ async function decrypt_ratchet_for_recipient(
   const key_sets = receiver_key_sets(vault);
 
   if (key_sets.length === 0) {
-    return null;
+    const refreshed = await fetch_refreshed_vault();
+
+    if (!refreshed || receiver_key_sets(refreshed.vault).length === 0) {
+      return null;
+    }
+
+    await adopt_refreshed_vault(refreshed);
+
+    return decrypt_ratchet_for_recipient(
+      our_email,
+      sender_email,
+      data,
+      sender_identity_key,
+      refreshed.vault,
+    );
   }
 
   const conversation_id = await derive_conversation_id(our_email, sender_email);
