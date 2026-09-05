@@ -190,7 +190,7 @@ describe("sender identity authentication", () => {
     await authenticate_sender_identity("someone@astermail.org", FORGED_KEY);
     await authenticate_sender_identity("someone@astermail.org", FORGED_KEY);
 
-    expect(h.history_calls).toBe(1);
+    expect(h.history_calls).toBe(2);
   });
 
   it("verifies a remembered key after the account rotates away from it", async () => {

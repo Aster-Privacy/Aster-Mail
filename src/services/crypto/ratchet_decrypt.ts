@@ -566,9 +566,8 @@ async function decrypt_ratchet_for_recipient(
       sender_identity_key,
     );
 
-    if (is_authenticated_ratchet_enforced() && identity_status === "mismatch") {
-      throw new SenderIdentityUnverifiedError(sender_email, identity_status);
-    }
+    const identity_unverified =
+      is_authenticated_ratchet_enforced() && identity_status === "mismatch";
 
     for (const archived of await load_archived_ratchet_states(
       conversation_id,
@@ -729,6 +728,10 @@ async function decrypt_ratchet_for_recipient(
             return recovered_refreshed;
           }
         }
+      }
+
+      if (identity_unverified) {
+        throw new SenderIdentityUnverifiedError(sender_email, identity_status);
       }
 
       if (last_error) {
