@@ -56,6 +56,11 @@ export interface ForwardingRuleResponse {
   updated_at: string;
   destinations?: ForwardingDestinationStatus[];
   pending_confirmation?: boolean;
+  last_error_code?: string | null;
+  last_error?: string | null;
+  last_error_address?: string | null;
+  last_failed_at?: string | null;
+  failed_count?: number;
 }
 
 export interface ForwardingRulesListResponse {

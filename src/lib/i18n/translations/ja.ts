@@ -5163,6 +5163,12 @@ export const ja = {
     this_account: "このアカウント",
     storage_limit_reached: "ストレージの上限に達しました",
     auto_forward_title: "自動転送",
+    forwarding_failed_badge: "配信されていません",
+    forwarding_failed_encryption:
+      "暗号化を必須にするがオンになっていますが、{{ address }} には PGP 鍵がないため、メッセージは転送されません。暗号化設定で暗号化を必須にするをオフにするか、受信者の公開鍵を追加してください。",
+    forwarding_failed_generic:
+      "{{ address }} への前回の転送に失敗しました: {{ error }}",
+    forwarding_failed_count: "転送されなかったメッセージ: {{ count }}",
     forwarding_pending_verification: "確認待ち",
     resend_verification_email: "確認メールを再送信",
     forwarding_awaiting_verification:

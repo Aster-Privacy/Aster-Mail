@@ -6244,6 +6244,12 @@ export const en: Translations = {
     this_account: "this account",
     storage_limit_reached: "Storage limit reached",
     auto_forward_title: "Auto-Forward",
+    forwarding_failed_badge: "Not delivering",
+    forwarding_failed_encryption:
+      "Require encryption is turned on, but {{ address }} has no PGP key, so messages are not forwarded. Turn off Require encryption in the encryption settings, or add the recipient's public key.",
+    forwarding_failed_generic:
+      "The last forward to {{ address }} failed: {{ error }}",
+    forwarding_failed_count: "Messages not forwarded: {{ count }}",
     forwarding_pending_verification: "Pending verification",
     resend_verification_email: "Resend verification email",
     forwarding_awaiting_verification:

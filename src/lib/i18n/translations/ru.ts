@@ -5309,6 +5309,12 @@ export const ru = {
     this_account: "этого аккаунта",
     storage_limit_reached: "Достигнут лимит хранилища",
     auto_forward_title: "Автопереадресация",
+    forwarding_failed_badge: "Не доставляется",
+    forwarding_failed_encryption:
+      "Включена настройка Требовать шифрование, но у {{ address }} нет PGP-ключа, поэтому письма не пересылаются. Отключите Требовать шифрование в настройках шифрования или добавьте открытый ключ получателя.",
+    forwarding_failed_generic:
+      "Последняя пересылка на {{ address }} не удалась: {{ error }}",
+    forwarding_failed_count: "Непересланных писем: {{ count }}",
     forwarding_pending_verification: "Ожидает подтверждения",
     resend_verification_email: "Отправить письмо подтверждения ещё раз",
     forwarding_awaiting_verification:

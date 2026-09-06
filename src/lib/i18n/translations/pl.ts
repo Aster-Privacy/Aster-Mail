@@ -5340,6 +5340,12 @@ export const pl = {
     this_account: "tego konta",
     storage_limit_reached: "Osiągnięto limit miejsca",
     auto_forward_title: "Automatyczne przekierowanie",
+    forwarding_failed_badge: "Nie dostarcza",
+    forwarding_failed_encryption:
+      "Opcja Wymagaj szyfrowania jest włączona, ale {{ address }} nie ma klucza PGP, więc wiadomości nie są przekazywane. Wyłącz Wymagaj szyfrowania w ustawieniach szyfrowania lub dodaj klucz publiczny odbiorcy.",
+    forwarding_failed_generic:
+      "Ostatnie przekazanie na {{ address }} nie powiodło się: {{ error }}",
+    forwarding_failed_count: "Nieprzekazane wiadomości: {{ count }}",
     forwarding_pending_verification: "Oczekuje na weryfikację",
     resend_verification_email: "Wyślij ponownie e-mail weryfikacyjny",
     forwarding_awaiting_verification:
