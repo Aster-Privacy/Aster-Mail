@@ -316,6 +316,19 @@ export function AutoForwardSection() {
     }
   };
 
+  const save_error_message = (result: {
+    error?: string;
+    server_code?: string;
+    details?: Record<string, unknown>;
+  }) => {
+    if (result.server_code === "FORWARDING_ENCRYPTION_KEY_MISSING") {
+      return t("settings.forwarding_failed_encryption", {
+        address: String(result.details?.address ?? ""),
+      });
+    }
+    return result.error || t("common.something_went_wrong_try_again");
+  };
+
   const notify_saved = (rule: ForwardingRuleResponse, created: boolean) => {
     const pending = pending_destinations(rule);
 
@@ -370,10 +383,7 @@ export function AutoForwardSection() {
           notify_saved(result.data, false);
           close_builder();
         } else {
-          show_toast(
-            result.error || t("common.something_went_wrong_try_again"),
-            "error",
-          );
+          show_toast(save_error_message(result), "error");
         }
       } else {
         const result = await create_forwarding_rule(
@@ -388,10 +398,7 @@ export function AutoForwardSection() {
           notify_saved(result.data, true);
           close_builder();
         } else {
-          show_toast(
-            result.error || t("common.something_went_wrong_try_again"),
-            "error",
-          );
+          show_toast(save_error_message(result), "error");
         }
       }
     } finally {
