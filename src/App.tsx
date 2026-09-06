@@ -247,7 +247,7 @@ function BillingSuccessHandler() {
             !has_seen_family_welcome(current_account_id)
           ) {
             const max_members = code === "duo" ? 2 : 6;
-            const storage_gb = code === "duo" ? 500 : 3000;
+            const storage_gb = code === "duo" ? 1024 : 3072;
 
             mark_family_welcome_seen(current_account_id);
             set_family_welcome({
