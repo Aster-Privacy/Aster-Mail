@@ -116,6 +116,17 @@ export const contact_to_vcard = (
   if (contact.profile_color) {
     push(`X-ASTER-COLOR:${escape_value(contact.profile_color)}`);
   }
+  if (contact.avatar_url) {
+    const inline = /^data:image\/([A-Za-z0-9.+-]+);base64,(.+)$/.exec(
+      contact.avatar_url,
+    );
+
+    if (inline) {
+      push(`PHOTO;ENCODING=b;TYPE=${inline[1].toUpperCase()}:${inline[2]}`);
+    } else {
+      push(`PHOTO;VALUE=URI:${escape_value(contact.avatar_url)}`);
+    }
+  }
   if (contact.notes) push(`NOTE:${escape_value(contact.notes)}`);
 
   lines.push("END:VCARD");

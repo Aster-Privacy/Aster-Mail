@@ -56,6 +56,22 @@ describe("contact_to_vcard", () => {
     expect(card).toContain("NOTE:Met at a talk\\; loved it\\, a lot");
   });
 
+  it("writes an inline photo as a base64 property", () => {
+    const card = contact_to_vcard(
+      make({ avatar_url: "data:image/png;base64,AAAB" }),
+    );
+
+    expect(card).toContain("PHOTO;ENCODING=b;TYPE=PNG:AAAB");
+  });
+
+  it("writes a hosted photo as a uri property", () => {
+    const card = contact_to_vcard(
+      make({ avatar_url: "https://example.com/ada.png" }),
+    );
+
+    expect(card).toContain("PHOTO;VALUE=URI:https://example.com/ada.png");
+  });
+
   it("writes groups as categories", () => {
     const card = contact_to_vcard(make({ groups: ["Work", "Team"] }));
 
