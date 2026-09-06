@@ -54,6 +54,7 @@ import {
   AlertDialogFooter,
 } from "@/components/ui/alert_dialog";
 import { use_i18n } from "@/lib/i18n/context";
+import { use_plan_limits } from "@/hooks/use_plan_limits";
 import {
   format_hour_choice,
   format_time,
@@ -105,6 +106,9 @@ export function ExpirationPicker({
   disabled = false,
 }: ExpirationPickerProps) {
   const { t } = use_i18n();
+  const { is_feature_locked } = use_plan_limits();
+  const expiration_locked = is_feature_locked("has_email_expiration");
+  const password_locked = is_feature_locked("has_password_protected_messages");
   const [is_open, set_is_open] = useState(false);
   const [show_custom, set_show_custom] = useState(false);
   const [show_password_dialog, set_show_password_dialog] = useState(false);
@@ -267,17 +271,24 @@ export function ExpirationPicker({
   };
 
   const has_protection = !!expires_at || !!password;
+  const is_disabled = disabled || expiration_locked;
 
   return (
     <>
       <Popover open={is_open} onOpenChange={set_is_open}>
         <div className="flex items-center gap-1">
-          <Tooltip tip={t("mail.self_destruct")}>
+          <Tooltip
+            tip={
+              expiration_locked
+                ? t("settings.feature_requires_upgrade")
+                : t("mail.self_destruct")
+            }
+          >
             <PopoverTrigger asChild>
               {has_protection ? (
                 <button
                   className="flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium disabled:opacity-50"
-                  disabled={disabled}
+                  disabled={is_disabled}
                   style={{
                     backgroundColor: "rgba(239, 68, 68, 0.1)",
                     color: "var(--color-danger)",
@@ -300,7 +311,7 @@ export function ExpirationPicker({
               ) : (
                 <button
                   className="press_scale w-9 h-9 p-0 inline-flex items-center justify-center flex-shrink-0 rounded-full transition-transform duration-150 hover:bg-black/5 dark:hover:bg-white/10 text-txt-tertiary hover:text-txt-primary disabled:opacity-50"
-                  disabled={disabled}
+                  disabled={is_disabled}
                   type="button"
                 >
                   <FireIcon className="w-4 h-4" />
@@ -368,7 +379,7 @@ export function ExpirationPicker({
                   </div>
                 </div>
               </button>
-              {show_password_option && (
+              {show_password_option && !password_locked && (
                 <>
                   <div className="my-2 h-px bg-edge-secondary" />
                   <button
