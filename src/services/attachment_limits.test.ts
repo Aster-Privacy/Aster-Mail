@@ -34,6 +34,7 @@ import {
   ensure_attachment_limits,
   get_max_attachment_size,
   FREE_MAX_ATTACHMENT_SIZE,
+  MAX_REQUEST_ATTACHMENT_BYTES,
 } from "./attachment_limits";
 
 import { get_available_plans, get_current_plan } from "@/services/api/billing";
@@ -62,7 +63,7 @@ describe("ensure_attachment_limits", () => {
 
     await ensure_attachment_limits();
 
-    expect(get_max_attachment_size()).toBe(PAID_LIMIT);
+    expect(get_max_attachment_size()).toBe(MAX_REQUEST_ATTACHMENT_BYTES);
   });
 
   it("does not refetch once the limit is known", async () => {
@@ -75,6 +76,6 @@ describe("ensure_attachment_limits", () => {
   it("ignores the is_current flag the server never sends", async () => {
     await ensure_attachment_limits();
 
-    expect(get_max_attachment_size()).toBe(PAID_LIMIT);
+    expect(get_max_attachment_size()).toBe(MAX_REQUEST_ATTACHMENT_BYTES);
   });
 });

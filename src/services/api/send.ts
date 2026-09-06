@@ -131,7 +131,7 @@ interface ExternalSendRequest {
   signed_mime_micalg?: string;
 }
 
-const SEND_TIMEOUT_MS = 120000;
+const SEND_TIMEOUT_MS = 15 * 60_000;
 
 export async function send_simple_email(
   request: SimpleSendRequest,
@@ -147,6 +147,7 @@ export async function queue_send_email(
   return api_client.post<QueuedSendResponse>(
     "/mail/v1/undo_send/queue",
     request,
+    { timeout: SEND_TIMEOUT_MS },
   );
 }
 

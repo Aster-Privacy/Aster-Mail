@@ -909,7 +909,9 @@ pub async fn device_http_request(
 ) -> Result<ProxyResponse, String> {
     const ALLOWED_HTTPS_SUFFIXES: &[&str] = &[".astermail.org", ".astermail.com"];
     const ALLOWED_HTTPS_EXACT: &[&str] = &["astermail.org", "astermail.com"];
-    const MAX_REQUEST_BODY_SIZE: usize = 10 * 1024 * 1024;
+    const MAX_REQUEST_BODY_SIZE: usize = 100 * 1024 * 1024;
+    const LARGE_BODY_THRESHOLD: usize = 1024 * 1024;
+    const LARGE_BODY_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(900);
 
     let parsed_url = reqwest::Url::parse(&url).map_err(|e| format!("invalid url: {e}"))?;
     let scheme = parsed_url.scheme().to_ascii_lowercase();
@@ -939,7 +941,7 @@ pub async fn device_http_request(
     if let Some(b) = &body {
         if b.len() > MAX_REQUEST_BODY_SIZE {
             return Err(format!(
-                "request body too large: {} bytes exceeds 10MB limit",
+                "request body too large: {} bytes exceeds 100MB limit",
                 b.len()
             ));
         }
@@ -982,6 +984,9 @@ pub async fn device_http_request(
     }
 
     if let Some(b) = body {
+        if b.len() > LARGE_BODY_THRESHOLD {
+            req = req.timeout(LARGE_BODY_TIMEOUT);
+        }
         req = req.body(b);
     }
 

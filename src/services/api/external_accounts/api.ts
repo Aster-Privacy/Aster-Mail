@@ -492,6 +492,8 @@ export async function cancel_sync(
   }
 }
 
+const EXTERNAL_SEND_TIMEOUT_MS = 15 * 60_000;
+
 export async function send_via_external_account(
   account_token: string,
   to: string[],
@@ -533,7 +535,9 @@ export async function send_via_external_account(
     const response = await api_client.post<{
       success: boolean;
       message: string;
-    }>("/mail/v1/external_accounts/send", payload);
+    }>("/mail/v1/external_accounts/send", payload, {
+      timeout: EXTERNAL_SEND_TIMEOUT_MS,
+    });
 
     if (response.error || !response.data) {
       return {

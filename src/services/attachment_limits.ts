@@ -25,6 +25,7 @@ import { ignore_error } from "@/lib/ignore_error";
 export const FREE_MAX_ATTACHMENT_SIZE = 25 * 1024 * 1024;
 export const MAX_PAID_ATTACHMENT_SIZE = 250 * 1024 * 1024;
 export const MAX_ATTACHMENTS_PER_SEND = 50;
+export const MAX_REQUEST_ATTACHMENT_BYTES = 64 * 1024 * 1024;
 
 const CACHE_TTL_MS = 300_000;
 
@@ -35,8 +36,12 @@ export interface PlanAttachmentLimit {
   max_bytes: number;
 }
 
+function clamp_to_request_budget(bytes: number): number {
+  return Math.min(bytes, MAX_REQUEST_ATTACHMENT_BYTES);
+}
+
 let cached_max_bytes = FREE_MAX_ATTACHMENT_SIZE;
-let cached_upgrade_max_bytes = MAX_PAID_ATTACHMENT_SIZE;
+let cached_upgrade_max_bytes = clamp_to_request_budget(MAX_PAID_ATTACHMENT_SIZE);
 let cached_plan_limits: PlanAttachmentLimit[] = [];
 let cache_timestamp = 0;
 let in_flight: Promise<number> | null = null;
@@ -85,7 +90,7 @@ export function is_above_free_attachment_limit(size_bytes: number): boolean {
 
 export function clear_attachment_limits_cache(): void {
   cached_max_bytes = FREE_MAX_ATTACHMENT_SIZE;
-  cached_upgrade_max_bytes = MAX_PAID_ATTACHMENT_SIZE;
+  cached_upgrade_max_bytes = clamp_to_request_budget(MAX_PAID_ATTACHMENT_SIZE);
   cached_plan_limits = [];
   cache_timestamp = 0;
   in_flight = null;
@@ -118,7 +123,7 @@ export async function refresh_attachment_limits(
       const limit = current_response.data?.plan.max_attachment_size_bytes;
 
       if (typeof limit === "number" && limit > 0) {
-        cached_max_bytes = limit;
+        cached_max_bytes = clamp_to_request_budget(limit);
       }
 
       const upgrade_ceiling = plans.reduce(
@@ -130,14 +135,14 @@ export async function refresh_attachment_limits(
       );
 
       if (upgrade_ceiling > 0) {
-        cached_upgrade_max_bytes = upgrade_ceiling;
+        cached_upgrade_max_bytes = clamp_to_request_budget(upgrade_ceiling);
       }
 
       cached_plan_limits = plans
         .filter((plan) => plan.max_attachment_size_bytes > 0)
         .map((plan) => ({
           code: plan.code,
-          max_bytes: plan.max_attachment_size_bytes,
+          max_bytes: clamp_to_request_budget(plan.max_attachment_size_bytes),
         }));
 
       if (response.data) {
