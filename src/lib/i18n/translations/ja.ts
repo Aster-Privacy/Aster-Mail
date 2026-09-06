@@ -7736,13 +7736,6 @@ export const ja = {
     bulk_trash_title: "{{count}} 件のメールをゴミ箱に移動しますか？",
     bulk_trash_title_one: "1 件のメールをゴミ箱に移動しますか。",
     bulk_trash_title_other: "{{count}} 件のメールをゴミ箱に移動しますか？",
-    confirm_bulk_action_count_description: "{{count}} 件のメールすべてが対象です。",
-    confirm_bulk_action_count_description_one: "1 件のメールが対象になります。",
-    confirm_bulk_action_count_description_other: "{{count}} 件のメールすべてが対象です。",
-    confirm_bulk_action_scope_description: "{{scope}} 内の {{count}} 件のメールすべてが対象です。",
-    confirm_bulk_action_scope_description_one:
-      "{{scope}} 内の 1 件のメールが対象になります。",
-    confirm_bulk_action_scope_description_other: "{{scope}} 内の {{count}} 件のメールすべてが対象です。",
     links_cleaned_count_one: "{{count}} 件のリンクをクリーンアップしました",
     more_folders_count_one: "他 {{count}} 件のフォルダ",
     move_n_conversations_one: "{{count}}件の会話を移動",
@@ -7750,8 +7743,6 @@ export const ja = {
       "{{count}} 件のリンクから {{param}} を削除しました",
     remote_images_blocked_count_one:
       "{{count}} 件のリモート画像をブロックしました",
-    remove_from_folder: "フォルダから外す",
-    remove_label: "ラベルを外す",
     sender_rule_confirm: "ルールを作成",
     sender_rule_created: "この差出人からの新しいメールは、今後「{{category}}」に届きます。",
     sender_rule_name: "{{sender}} を {{category}} へ",

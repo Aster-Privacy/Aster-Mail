@@ -155,6 +155,7 @@ describe("report_envelope_capability_if_due", () => {
         min_supported_marker: null,
         pq_hybrid_enabled: false,
         identity_verified: false,
+        pq_identity_attested: false,
       }),
     });
 
