@@ -96,6 +96,7 @@ export const nl = {
     no_groups_yet: "Nog geen groepen",
     no_other_contacts: "Geen andere contacten",
     no_published_key: "Geen gepubliceerde sleutel",
+    security_center: "Beveiligingscentrum",
     open_contacts: "Contacten openen",
     other_contacts: "Overig",
     other_contacts_hint:
@@ -6534,6 +6535,9 @@ export const nl = {
     account_security_review_cta: "Beveiliging bekijken",
     account_security_dont_show_again: "Niet meer tonen",
     protection_breakdown_title: "Beveiligingsdetails",
+    security_center_recommended: "Aanbevolen acties",
+    security_center_protected: "Beveiligd",
+    security_center_all_clear: "Alle beveiligingen zijn ingeschakeld.",
     criterion_two_factor: "Tweefactorauthenticatie",
     criterion_recovery_email: "Geverifieerd herstel-e-mailadres",
     criterion_auto_lock: "Automatisch vergrendelen",

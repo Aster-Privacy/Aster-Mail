@@ -158,6 +158,7 @@ export const ja = {
     no_groups_yet: "まだグループがありません",
     no_other_contacts: "ほかの連絡先はありません",
     no_published_key: "公開された鍵はありません",
+    security_center: "セキュリティセンター",
     open_contacts: "「連絡先」を開く",
     other_contacts: "その他",
     other_contacts_hint:
@@ -6525,6 +6526,9 @@ export const ja = {
     account_security_review_cta: "セキュリティを確認",
     account_security_dont_show_again: "今後表示しない",
     protection_breakdown_title: "保護の詳細",
+    security_center_recommended: "推奨される操作",
+    security_center_protected: "保護済み",
+    security_center_all_clear: "すべての保護が有効です。",
     criterion_two_factor: "二段階認証",
     criterion_recovery_email: "確認済みの回復メール",
     criterion_auto_lock: "自動ロック",

@@ -143,6 +143,7 @@ export default function IndexPage() {
   const [is_quick_settings_open, set_is_quick_settings_open] = useState(false);
   const [is_survey_visible, set_is_survey_visible] = useState(false);
   const [is_rail_contacts_open, set_is_rail_contacts_open] = useState(false);
+  const [is_rail_security_open, set_is_rail_security_open] = useState(false);
   const [first_run_setup_done, set_first_run_setup_done] = useState(
     () => !is_first_run_setup_pending(),
   );
@@ -603,8 +604,10 @@ export default function IndexPage() {
           )}
           <AppRail
             is_contacts_open={is_rail_contacts_open}
+            is_security_open={is_rail_security_open}
             on_compose={handle_contacts_compose}
             on_contacts_open_change={set_is_rail_contacts_open}
+            on_security_open_change={set_is_rail_security_open}
           />
         </div>
       </div>

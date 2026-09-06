@@ -95,6 +95,7 @@ export const tr = {
     no_groups_yet: "Henüz grup yok",
     no_other_contacts: "Başka kişi yok",
     no_published_key: "Yayımlanmış anahtar yok",
+    security_center: "Güvenlik Merkezi",
     open_contacts: "Kişiler’i aç",
     other_contacts: "Diğer",
     other_contacts_hint:
@@ -6697,6 +6698,9 @@ export const tr = {
     account_security_review_cta: "Güvenliği incele",
     account_security_dont_show_again: "Bir daha gösterme",
     protection_breakdown_title: "Koruma detayları",
+    security_center_recommended: "Önerilen işlemler",
+    security_center_protected: "Korunuyor",
+    security_center_all_clear: "Tüm korumalar açık.",
     criterion_two_factor: "İki faktörlü kimlik doğrulama",
     criterion_recovery_email: "Doğrulanmış kurtarma e-postası",
     criterion_auto_lock: "Otomatik kilitleme",

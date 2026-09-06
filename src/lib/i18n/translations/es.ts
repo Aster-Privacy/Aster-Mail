@@ -96,6 +96,7 @@ export const es = {
     no_groups_yet: "Todavía no hay grupos",
     no_other_contacts: "No hay otros contactos",
     no_published_key: "Sin clave publicada",
+    security_center: "Centro de seguridad",
     open_contacts: "Abrir Contactos",
     other_contacts: "Otros",
     other_contacts_hint:
@@ -6554,6 +6555,9 @@ export const es = {
     account_security_review_cta: "Revisar seguridad",
     account_security_dont_show_again: "No volver a mostrar",
     protection_breakdown_title: "Desglose de protección",
+    security_center_recommended: "Acciones recomendadas",
+    security_center_protected: "Protegido",
+    security_center_all_clear: "Todas las protecciones están activadas.",
     criterion_two_factor: "Autenticación de dos factores",
     criterion_recovery_email: "Correo de recuperación verificado",
     criterion_auto_lock: "Bloqueo automático",

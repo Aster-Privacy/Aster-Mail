@@ -95,6 +95,7 @@ export const ar = {
     no_groups_yet: "لا توجد مجموعات بعد",
     no_other_contacts: "لا توجد جهات اتصال أخرى",
     no_published_key: "لا يوجد مفتاح منشور",
+    security_center: "مركز الأمان",
     open_contacts: "فتح «جهات الاتصال»",
     other_contacts: "أخرى",
     other_contacts_hint:
@@ -6618,6 +6619,9 @@ export const ar = {
     account_security_review_cta: "مراجعة الأمان",
     account_security_dont_show_again: "عدم الإظهار مرة أخرى",
     protection_breakdown_title: "تفاصيل الحماية",
+    security_center_recommended: "الإجراءات الموصى بها",
+    security_center_protected: "محمي",
+    security_center_all_clear: "جميع وسائل الحماية مفعّلة.",
     criterion_two_factor: "المصادقة الثنائية",
     criterion_recovery_email: "بريد الاسترداد المُحقَّق",
     criterion_auto_lock: "القفل التلقائي",

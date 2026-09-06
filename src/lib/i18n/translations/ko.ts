@@ -161,6 +161,7 @@ export const ko = {
     no_groups_yet: "아직 그룹이 없습니다",
     no_other_contacts: "다른 연락처가 없습니다",
     no_published_key: "게시된 키 없음",
+    security_center: "보안 센터",
     open_contacts: "연락처 열기",
     other_contacts: "기타",
     other_contacts_hint:
@@ -6569,6 +6570,9 @@ export const ko = {
     account_security_review_cta: "보안 검토",
     account_security_dont_show_again: "다시 보지 않기",
     protection_breakdown_title: "보호 세부 정보",
+    security_center_recommended: "권장 작업",
+    security_center_protected: "보호됨",
+    security_center_all_clear: "모든 보호 기능이 켜져 있습니다.",
     criterion_two_factor: "이중 인증",
     criterion_recovery_email: "인증된 복구 이메일",
     criterion_auto_lock: "자동 잠금",
