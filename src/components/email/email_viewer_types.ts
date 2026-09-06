@@ -104,6 +104,7 @@ export interface UseEmailViewerOptions {
   email_id: string;
   local_email?: LocalEmailData;
   on_dismiss: () => void;
+  on_advance?: () => boolean;
   on_reply?: (data: ReplyData) => void;
   on_forward?: (data: ForwardData) => void;
   on_edit_draft?: (draft: DraftWithContent) => void;

@@ -35,6 +35,7 @@ import { list_mail_items } from "@/services/api/mail";
 import { decrypt_mail_metadata } from "@/services/crypto/mail_metadata";
 import { use_email_actions } from "@/hooks/use_email_actions";
 import { emit_mail_items_removed } from "@/hooks/mail_events";
+import { use_auto_advance } from "@/components/email/hooks/use_auto_advance";
 import { use_search, extract_query_terms } from "@/hooks/use_search";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_date_format } from "@/hooks/use_date_format";
@@ -710,6 +711,17 @@ export function use_search_results_page(props: SearchResultsPageProps) {
     }
   }, [search_nav_index, filtered_results, on_result_click]);
 
+  const search_result_ids = useMemo(
+    () => filtered_results.map((r) => r.id),
+    [filtered_results],
+  );
+
+  const handle_search_auto_advance = use_auto_advance({
+    email_ids: search_result_ids,
+    current_index: search_nav_index,
+    navigate_to: on_result_click,
+  });
+
   const show_full_email_viewer = is_fullpage_mode && !!split_email_id;
 
   return {
@@ -766,6 +778,7 @@ export function use_search_results_page(props: SearchResultsPageProps) {
     search_can_go_next,
     handle_search_navigate_prev,
     handle_search_navigate_next,
+    handle_search_auto_advance,
     show_full_email_viewer,
   };
 }

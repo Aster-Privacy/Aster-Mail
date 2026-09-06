@@ -272,6 +272,20 @@ export function AutoForwardSection() {
     }
   };
 
+  const is_failing = (rule: ForwardingRuleResponse) =>
+    rule.is_enabled && Boolean(rule.last_error_code);
+
+  const failure_message = (rule: ForwardingRuleResponse) => {
+    const address = rule.last_error_address ?? rule.forward_to.join(", ");
+    if (rule.last_error_code === "encryption_required_no_key") {
+      return t("settings.forwarding_failed_encryption", { address });
+    }
+    return t("settings.forwarding_failed_generic", {
+      address,
+      error: rule.last_error ?? "",
+    });
+  };
+
   const pending_destinations = (
     rule: ForwardingRuleResponse,
   ): ForwardingDestinationStatus[] =>
@@ -300,6 +314,19 @@ export function AutoForwardSection() {
     } finally {
       set_resending_address(null);
     }
+  };
+
+  const save_error_message = (result: {
+    error?: string;
+    server_code?: string;
+    details?: Record<string, unknown>;
+  }) => {
+    if (result.server_code === "FORWARDING_ENCRYPTION_KEY_MISSING") {
+      return t("settings.forwarding_failed_encryption", {
+        address: String(result.details?.address ?? ""),
+      });
+    }
+    return result.error || t("common.something_went_wrong_try_again");
   };
 
   const notify_saved = (rule: ForwardingRuleResponse, created: boolean) => {
@@ -356,10 +383,7 @@ export function AutoForwardSection() {
           notify_saved(result.data, false);
           close_builder();
         } else {
-          show_toast(
-            result.error || t("common.something_went_wrong_try_again"),
-            "error",
-          );
+          show_toast(save_error_message(result), "error");
         }
       } else {
         const result = await create_forwarding_rule(
@@ -374,10 +398,7 @@ export function AutoForwardSection() {
           notify_saved(result.data, true);
           close_builder();
         } else {
-          show_toast(
-            result.error || t("common.something_went_wrong_try_again"),
-            "error",
-          );
+          show_toast(save_error_message(result), "error");
         }
       }
     } finally {
@@ -653,6 +674,17 @@ export function AutoForwardSection() {
                         {t("settings.forwarding_pending_verification")}
                       </span>
                     )}
+                    {is_failing(rule) && (
+                      <span
+                        className="text-[10px] px-1.5 py-0.5 rounded flex-shrink-0 font-medium"
+                        style={{
+                          backgroundColor: "#dc2626",
+                          color: "#fff",
+                        }}
+                      >
+                        {t("settings.forwarding_failed_badge")}
+                      </span>
+                    )}
                   </div>
                   <p className="text-[12px] truncate text-txt-muted">
                     {get_condition_summary(rule.conditions)}
@@ -685,6 +717,20 @@ export function AutoForwardSection() {
                           )}
                         </Button>
                       ))}
+                    </div>
+                  )}
+                  {is_failing(rule) && (
+                    <div className="mt-1">
+                      <p className="text-[11px] text-red-600 dark:text-red-500">
+                        {failure_message(rule)}
+                      </p>
+                      {(rule.failed_count ?? 0) > 0 && (
+                        <p className="text-[11px] text-txt-muted">
+                          {t("settings.forwarding_failed_count", {
+                            count: rule.failed_count ?? 0,
+                          })}
+                        </p>
+                      )}
                     </div>
                   )}
                   {(rule.forwarded_count > 0 || rule.last_forwarded_at) && (

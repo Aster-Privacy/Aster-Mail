@@ -184,14 +184,13 @@ function ToggleSetting({
           <p className="text-sm font-medium text-txt-primary">{title}</p>
           {info && (
             <Tooltip tip={info}>
-              <span
+              <button
                 aria-label={info}
                 className="text-txt-muted"
-                role="img"
-                tabIndex={0}
+                type="button"
               >
                 <InformationCircleIcon className="h-4 w-4" />
-              </span>
+              </button>
             </Tooltip>
           )}
         </div>

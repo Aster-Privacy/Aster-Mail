@@ -148,6 +148,7 @@ export const zh_CN = {
     no_groups_yet: "暂无群组",
     no_other_contacts: "没有其他联系人",
     no_published_key: "没有已发布的密钥",
+    security_center: "安全中心",
     open_contacts: "打开“联系人”",
     other_contacts: "其他",
     other_contacts_hint: "从邮件中保存、但还没有姓名的地址会显示在这里。",
@@ -4714,6 +4715,12 @@ export const zh_CN = {
     this_account: "此账户",
     storage_limit_reached: "已达存储上限",
     auto_forward_title: "自动转发",
+    forwarding_failed_badge: "未送达",
+    forwarding_failed_encryption:
+      "已开启要求加密，但 {{ address }} 没有 PGP 密钥，因此邮件不会被转发。请在加密设置中关闭要求加密，或添加收件人的公钥。",
+    forwarding_failed_generic:
+      "最近一次转发至 {{ address }} 失败：{{ error }}",
+    forwarding_failed_count: "未转发的邮件：{{ count }}",
     forwarding_pending_verification: "等待验证",
     resend_verification_email: "重新发送验证邮件",
     forwarding_awaiting_verification:
@@ -6083,6 +6090,9 @@ export const zh_CN = {
     account_security_review_cta: "查看安全设置",
     account_security_dont_show_again: "不再显示",
     protection_breakdown_title: "保护详情",
+    security_center_recommended: "建议的操作",
+    security_center_protected: "已保护",
+    security_center_all_clear: "所有保护均已开启。",
     criterion_two_factor: "双重验证",
     criterion_recovery_email: "已验证的恢复邮箱",
     criterion_auto_lock: "自动锁定",

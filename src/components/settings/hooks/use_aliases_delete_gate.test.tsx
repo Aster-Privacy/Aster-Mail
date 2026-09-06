@@ -95,6 +95,8 @@ vi.mock("@/services/api/aliases", () => ({
   update_alias: vi.fn(),
   delete_alias: vi.fn(),
   get_alias_counts: vi.fn(async () => ({ data: null })),
+  set_short_aliases_allowed: vi.fn(),
+  toggle_alias_pin: vi.fn(),
 }));
 
 vi.mock("@/services/api/domains", () => ({

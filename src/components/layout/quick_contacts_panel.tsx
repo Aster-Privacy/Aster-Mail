@@ -66,6 +66,7 @@ import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 import { app_locale } from "@/utils/date_format";
 import { use_escape_layer } from "@/lib/overlay_layer_stack";
+import { use_panel_inset } from "@/hooks/use_panel_inset";
 import { use_auth } from "@/contexts/auth_context";
 import {
   count_duplicate_contacts,
@@ -307,38 +308,7 @@ export function QuickContactsPanel({
 
   use_escape_layer(is_open, on_close, "quick_contacts_panel", false);
 
-  useEffect(() => {
-    const panel = panel_ref.current;
-    const root = document.documentElement;
-
-    if (!is_open || !panel) {
-      root.style.setProperty("--quick_contacts_inset", "0px");
-
-      return;
-    }
-
-    const sync_inset = () => {
-      const width = panel.getBoundingClientRect().width;
-
-      root.style.setProperty(
-        "--quick_contacts_inset",
-        `${Math.round(width)}px`,
-      );
-    };
-
-    sync_inset();
-
-    const observer = new ResizeObserver(sync_inset);
-
-    observer.observe(panel);
-    window.addEventListener("resize", sync_inset);
-
-    return () => {
-      observer.disconnect();
-      window.removeEventListener("resize", sync_inset);
-      root.style.setProperty("--quick_contacts_inset", "0px");
-    };
-  }, [is_open]);
+  use_panel_inset(is_open, panel_ref);
 
   const visible = useMemo(() => {
     const needle = query.trim().toLowerCase();

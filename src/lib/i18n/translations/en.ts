@@ -2131,6 +2131,7 @@ export const en: Translations = {
     no_groups_match: "No groups match your search",
     no_groups_yet: "No groups yet",
     no_published_key: "No published key",
+    security_center: "Security Center",
     open_contacts: "Open Contacts",
     preview_contact: "Preview contact",
     print_contacts: "Print contacts",
@@ -3094,6 +3095,9 @@ export const en: Translations = {
     account_security_review_cta: "Review security",
     account_security_dont_show_again: "Don't show again",
     protection_breakdown_title: "Protection breakdown",
+    security_center_recommended: "Recommended actions",
+    security_center_protected: "Protected",
+    security_center_all_clear: "Every protection is turned on.",
     criterion_two_factor: "Two-factor authentication",
     criterion_passkey: "Passkey registered",
     criterion_recovery_email: "Verified recovery email",
@@ -6218,6 +6222,12 @@ export const en: Translations = {
     this_account: "this account",
     storage_limit_reached: "Storage limit reached",
     auto_forward_title: "Auto-Forward",
+    forwarding_failed_badge: "Not delivering",
+    forwarding_failed_encryption:
+      "Require encryption is turned on, but {{ address }} has no PGP key, so messages are not forwarded. Turn off Require encryption in the encryption settings, or add the recipient's public key.",
+    forwarding_failed_generic:
+      "The last forward to {{ address }} failed: {{ error }}",
+    forwarding_failed_count: "Messages not forwarded: {{ count }}",
     forwarding_pending_verification: "Pending verification",
     resend_verification_email: "Resend verification email",
     forwarding_awaiting_verification:

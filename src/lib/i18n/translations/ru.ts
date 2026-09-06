@@ -96,6 +96,7 @@ export const ru = {
     no_groups_yet: "Групп пока нет",
     no_other_contacts: "Других контактов нет",
     no_published_key: "Опубликованного ключа нет",
+    security_center: "Центр безопасности",
     open_contacts: "Открыть «Контакты»",
     other_contacts: "Другие",
     other_contacts_hint:
@@ -5324,6 +5325,12 @@ export const ru = {
     this_account: "этого аккаунта",
     storage_limit_reached: "Достигнут лимит хранилища",
     auto_forward_title: "Автопереадресация",
+    forwarding_failed_badge: "Не доставляется",
+    forwarding_failed_encryption:
+      "Включена настройка Требовать шифрование, но у {{ address }} нет PGP-ключа, поэтому письма не пересылаются. Отключите Требовать шифрование в настройках шифрования или добавьте открытый ключ получателя.",
+    forwarding_failed_generic:
+      "Последняя пересылка на {{ address }} не удалась: {{ error }}",
+    forwarding_failed_count: "Непересланных писем: {{ count }}",
     forwarding_pending_verification: "Ожидает подтверждения",
     resend_verification_email: "Отправить письмо подтверждения ещё раз",
     forwarding_awaiting_verification:
@@ -6647,6 +6654,9 @@ export const ru = {
     account_security_review_cta: "Проверить безопасность",
     account_security_dont_show_again: "Больше не показывать",
     protection_breakdown_title: "Детали защиты",
+    security_center_recommended: "Рекомендуемые действия",
+    security_center_protected: "Защищено",
+    security_center_all_clear: "Все средства защиты включены.",
     criterion_two_factor: "Двухфакторная аутентификация",
     criterion_recovery_email: "Подтверждённый резервный email",
     criterion_auto_lock: "Автоблокировка",

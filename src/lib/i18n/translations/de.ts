@@ -2168,6 +2168,7 @@ export const de = {
     no_groups_yet: "Noch keine Gruppen",
     no_other_contacts: "Keine weiteren Kontakte",
     no_published_key: "Kein veröffentlichter Schlüssel",
+    security_center: "Sicherheitscenter",
     open_contacts: "Kontakte öffnen",
     other_contacts: "Weitere",
     other_contacts_hint: "Hier erscheinen Adressen aus deiner Mail, die noch keinen Namen haben.",
@@ -5105,6 +5106,12 @@ export const de = {
     this_account: "dieses Konto",
     storage_limit_reached: "Speicherlimit erreicht",
     auto_forward_title: "Automatische Weiterleitung",
+    forwarding_failed_badge: "Wird nicht zugestellt",
+    forwarding_failed_encryption:
+      "Verschlüsselung erforderlich ist aktiviert, aber für {{ address }} gibt es keinen PGP-Schlüssel. Nachrichten werden deshalb nicht weitergeleitet. Deaktiviere Verschlüsselung erforderlich in den Verschlüsselungseinstellungen oder füge den öffentlichen Schlüssel des Empfängers hinzu.",
+    forwarding_failed_generic:
+      "Die letzte Weiterleitung an {{ address }} ist fehlgeschlagen: {{ error }}",
+    forwarding_failed_count: "Nicht weitergeleitete Nachrichten: {{ count }}",
     forwarding_pending_verification: "Bestätigung ausstehend",
     resend_verification_email: "Bestätigungs-E-Mail erneut senden",
     forwarding_awaiting_verification:
@@ -6468,6 +6475,9 @@ export const de = {
     account_security_review_cta: "Sicherheit prüfen",
     account_security_dont_show_again: "Nicht mehr anzeigen",
     protection_breakdown_title: "Schutzübersicht",
+    security_center_recommended: "Empfohlene Aktionen",
+    security_center_protected: "Geschützt",
+    security_center_all_clear: "Alle Schutzfunktionen sind aktiviert.",
     criterion_two_factor: "Zwei-Faktor-Authentifizierung",
     criterion_recovery_email: "Verifizierte Wiederherstellungs-E-Mail",
     criterion_auto_lock: "Automatische Sperre",

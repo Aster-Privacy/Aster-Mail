@@ -528,7 +528,21 @@ async function decrypt_ratchet_for_recipient(
   const key_sets = receiver_key_sets(vault);
 
   if (key_sets.length === 0) {
-    return null;
+    const refreshed = await fetch_refreshed_vault();
+
+    if (!refreshed || receiver_key_sets(refreshed.vault).length === 0) {
+      return null;
+    }
+
+    await adopt_refreshed_vault(refreshed);
+
+    return decrypt_ratchet_for_recipient(
+      our_email,
+      sender_email,
+      data,
+      sender_identity_key,
+      refreshed.vault,
+    );
   }
 
   const conversation_id = await derive_conversation_id(our_email, sender_email);
@@ -566,9 +580,8 @@ async function decrypt_ratchet_for_recipient(
       sender_identity_key,
     );
 
-    if (is_authenticated_ratchet_enforced() && identity_status === "mismatch") {
-      throw new SenderIdentityUnverifiedError(sender_email, identity_status);
-    }
+    const identity_unverified =
+      is_authenticated_ratchet_enforced() && identity_status === "mismatch";
 
     for (const archived of await load_archived_ratchet_states(
       conversation_id,
@@ -729,6 +742,10 @@ async function decrypt_ratchet_for_recipient(
             return recovered_refreshed;
           }
         }
+      }
+
+      if (identity_unverified) {
+        throw new SenderIdentityUnverifiedError(sender_email, identity_status);
       }
 
       if (last_error) {

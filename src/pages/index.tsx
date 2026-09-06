@@ -44,6 +44,10 @@ import { EmailInbox } from "@/components/email/email_inbox";
 import { SenderDetailHeader } from "@/components/subscriptions/sender_detail_header";
 import { UpgradeGate } from "@/components/common/upgrade_gate";
 import { use_i18n } from "@/lib/i18n/context";
+import {
+  scroll_to_settings_anchor,
+  set_pending_settings_anchor,
+} from "@/lib/settings_anchor";
 import { FullPageLoader } from "@/components/common/full_page_loader";
 import { QuickSettingsPanel } from "@/components/settings/quick_settings_panel";
 import { Spinner } from "@/components/ui/spinner";
@@ -139,6 +143,7 @@ export default function IndexPage() {
   const [is_quick_settings_open, set_is_quick_settings_open] = useState(false);
   const [is_survey_visible, set_is_survey_visible] = useState(false);
   const [is_rail_contacts_open, set_is_rail_contacts_open] = useState(false);
+  const [is_rail_security_open, set_is_rail_security_open] = useState(false);
   const [first_run_setup_done, set_first_run_setup_done] = useState(
     () => !is_first_run_setup_pending(),
   );
@@ -316,9 +321,24 @@ export default function IndexPage() {
         typeof detail === "string" ? detail : detail?.section,
       );
 
+      const anchor = typeof detail === "string" ? undefined : detail?.anchor;
+
       if (!state_ref.current.is_settings_route) {
+        if (anchor) set_pending_settings_anchor(anchor);
         state_ref.current.open_settings(nav_section);
+
+        return;
       }
+
+      if (nav_section) {
+        window.dispatchEvent(
+          new CustomEvent("astermail:navigate-settings-section", {
+            detail: nav_section,
+          }),
+        );
+      }
+
+      if (anchor) scroll_to_settings_anchor(anchor, true);
     };
 
     const handle_navigate_sent = () => navigate("/sent");
@@ -526,6 +546,7 @@ export default function IndexPage() {
                         current_email_index={state.current_email_index}
                         current_view={state.current_view}
                         focused_email_id={state.focused_email_id}
+                        on_auto_advance={state.handle_auto_advance}
                         on_compose={state.open_compose}
                         on_draft_click={state.handle_draft_click}
                         on_email_click={state.handle_email_click}
@@ -583,8 +604,10 @@ export default function IndexPage() {
           )}
           <AppRail
             is_contacts_open={is_rail_contacts_open}
+            is_security_open={is_rail_security_open}
             on_compose={handle_contacts_compose}
             on_contacts_open_change={set_is_rail_contacts_open}
+            on_security_open_change={set_is_rail_security_open}
           />
         </div>
       </div>
@@ -673,6 +696,7 @@ export default function IndexPage() {
                 : undefined
             }
             local_email={state.preview_local_email ?? undefined}
+            on_advance={state.handle_auto_advance}
             on_close={state.handle_popup_close}
             on_forward={state.handle_forward}
             on_reply={state.handle_reply}

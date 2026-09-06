@@ -189,7 +189,10 @@ export function ComposeManager({
   }
 
   return (
-    <div className="fixed bottom-0 start-0 end-0 z-50 pointer-events-none">
+    <div
+      className="fixed bottom-0 start-0 end-0 z-50 pointer-events-none"
+      style={{ paddingInlineEnd: "var(--quick_panel_inset, 0px)" }}
+    >
       <div
         ref={container_ref}
         className="flex flex-row-reverse items-end gap-2 px-4 pb-0 overflow-x-auto scrollbar-compose"

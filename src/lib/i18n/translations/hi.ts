@@ -103,6 +103,7 @@ export const hi = {
     no_groups_match: "आपकी खोज से मेल खाने वाला कोई समूह नहीं",
     no_groups_yet: "अभी तक कोई समूह नहीं",
     no_published_key: "कोई प्रकाशित कुंजी नहीं",
+    security_center: "सुरक्षा केंद्र",
     open_contacts: "संपर्क खोलें",
     preview_contact: "संपर्क का पूर्वावलोकन करें",
     print_contacts: "संपर्क प्रिंट करें",
@@ -3227,6 +3228,9 @@ export const hi = {
     account_security_review_cta: "सुरक्षा की समीक्षा करें",
     account_security_dont_show_again: "दोबारा न दिखाएं",
     protection_breakdown_title: "सुरक्षा का ब्योरा",
+    security_center_recommended: "अनुशंसित कार्रवाई",
+    security_center_protected: "सुरक्षित",
+    security_center_all_clear: "सभी सुरक्षाएँ चालू हैं।",
     criterion_two_factor: "दो-चरणीय प्रमाणीकरण",
     criterion_passkey: "पासकी दर्ज हो गई",
     criterion_recovery_email: "पुष्ट रिकवरी ईमेल",
@@ -6351,6 +6355,12 @@ export const hi = {
     this_account: "यह खाता",
     storage_limit_reached: "स्टोरेज की सीमा पूरी हुई",
     auto_forward_title: "अपने आप फ़ॉरवर्ड करें",
+    forwarding_failed_badge: "डिलीवर नहीं हो रहा",
+    forwarding_failed_encryption:
+      "एन्क्रिप्शन ज़रूरी करें चालू है, लेकिन {{ address }} के पास PGP कुंजी नहीं है, इसलिए संदेश फ़ॉरवर्ड नहीं होते। एन्क्रिप्शन सेटिंग में एन्क्रिप्शन ज़रूरी करें बंद करें, या प्राप्तकर्ता की सार्वजनिक कुंजी जोड़ें।",
+    forwarding_failed_generic:
+      "{{ address }} पर आख़िरी फ़ॉरवर्ड विफल रहा: {{ error }}",
+    forwarding_failed_count: "फ़ॉरवर्ड न हुए संदेश: {{ count }}",
     forwarding_pending_verification: "पुष्टि बाकी है",
     resend_verification_email: "पुष्टि ईमेल फिर से भेजें",
     forwarding_awaiting_verification:

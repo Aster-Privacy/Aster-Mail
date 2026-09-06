@@ -95,6 +95,7 @@ export const tr = {
     no_groups_yet: "Henüz grup yok",
     no_other_contacts: "Başka kişi yok",
     no_published_key: "Yayımlanmış anahtar yok",
+    security_center: "Güvenlik Merkezi",
     open_contacts: "Kişiler’i aç",
     other_contacts: "Diğer",
     other_contacts_hint:
@@ -5166,6 +5167,12 @@ export const tr = {
     this_account: "bu hesap",
     storage_limit_reached: "Depolama sınırına ulaşıldı",
     auto_forward_title: "Otomatik Yönlendirme",
+    forwarding_failed_badge: "Teslim edilmiyor",
+    forwarding_failed_encryption:
+      "Şifreleme zorunlu kıl açık, ancak {{ address }} için PGP anahtarı yok, bu yüzden iletiler iletilmiyor. Şifreleme ayarlarından Şifreleme zorunlu kıl seçeneğini kapatın veya alıcının açık anahtarını ekleyin.",
+    forwarding_failed_generic:
+      "{{ address }} adresine son iletim başarısız oldu: {{ error }}",
+    forwarding_failed_count: "İletilmeyen iletiler: {{ count }}",
     forwarding_pending_verification: "Doğrulama bekleniyor",
     resend_verification_email: "Doğrulama e-postasını yeniden gönder",
     forwarding_awaiting_verification:
@@ -6691,6 +6698,9 @@ export const tr = {
     account_security_review_cta: "Güvenliği incele",
     account_security_dont_show_again: "Bir daha gösterme",
     protection_breakdown_title: "Koruma detayları",
+    security_center_recommended: "Önerilen işlemler",
+    security_center_protected: "Korunuyor",
+    security_center_all_clear: "Tüm korumalar açık.",
     criterion_two_factor: "İki faktörlü kimlik doğrulama",
     criterion_recovery_email: "Doğrulanmış kurtarma e-postası",
     criterion_auto_lock: "Otomatik kilitleme",

@@ -96,6 +96,7 @@ export const pl = {
     no_groups_yet: "Nie ma jeszcze grup",
     no_other_contacts: "Brak innych kontaktów",
     no_published_key: "Brak opublikowanego klucza",
+    security_center: "Centrum bezpieczeństwa",
     open_contacts: "Otwórz Kontakty",
     other_contacts: "Inne",
     other_contacts_hint:
@@ -5355,6 +5356,12 @@ export const pl = {
     this_account: "tego konta",
     storage_limit_reached: "Osiągnięto limit miejsca",
     auto_forward_title: "Automatyczne przekierowanie",
+    forwarding_failed_badge: "Nie dostarcza",
+    forwarding_failed_encryption:
+      "Opcja Wymagaj szyfrowania jest włączona, ale {{ address }} nie ma klucza PGP, więc wiadomości nie są przekazywane. Wyłącz Wymagaj szyfrowania w ustawieniach szyfrowania lub dodaj klucz publiczny odbiorcy.",
+    forwarding_failed_generic:
+      "Ostatnie przekazanie na {{ address }} nie powiodło się: {{ error }}",
+    forwarding_failed_count: "Nieprzekazane wiadomości: {{ count }}",
     forwarding_pending_verification: "Oczekuje na weryfikację",
     resend_verification_email: "Wyślij ponownie e-mail weryfikacyjny",
     forwarding_awaiting_verification:
@@ -6870,6 +6877,9 @@ export const pl = {
     account_security_review_cta: "Sprawdź zabezpieczenia",
     account_security_dont_show_again: "Nie pokazuj ponownie",
     protection_breakdown_title: "Szczegóły ochrony",
+    security_center_recommended: "Zalecane działania",
+    security_center_protected: "Chronione",
+    security_center_all_clear: "Wszystkie zabezpieczenia są włączone.",
     criterion_two_factor: "Uwierzytelnianie dwuskładnikowe",
     criterion_recovery_email: "Zweryfikowany e-mail odzyskiwania",
     criterion_auto_lock: "Automatyczne blokowanie",

@@ -51,6 +51,7 @@ interface PublishedHistoryCacheEntry {
 const published_cache = new Map<string, PublishedCacheEntry>();
 const published_history_cache = new Map<string, PublishedHistoryCacheEntry>();
 const status_cache = new Map<string, SenderIdentityStatus>();
+const refresh_cache = new Map<string, number>();
 const history_cache = new Map<string, string[]>();
 
 export class SenderIdentityUnverifiedError extends Error {
@@ -197,6 +198,46 @@ async function resolve_published_history(
   return history;
 }
 
+function claim_directory_refresh(peer: string): boolean {
+  const last = refresh_cache.get(peer);
+
+  if (last !== undefined && Date.now() - last < PUBLISHED_CACHE_TTL_MS) {
+    return false;
+  }
+
+  refresh_cache.set(peer, Date.now());
+
+  return true;
+}
+
+async function resolve_directory_status(
+  peer: string,
+  sender_identity_key: string,
+  refresh: boolean,
+): Promise<SenderIdentityStatus> {
+  if (refresh) {
+    published_cache.delete(peer);
+    published_history_cache.delete(peer);
+  }
+
+  const published = await resolve_published_identity(peer);
+  const published_history = await resolve_published_history(peer);
+
+  const published_confirms =
+    Boolean(published) && published === sender_identity_key;
+  const history_confirms = Boolean(
+    published_history?.identity_keys.includes(sender_identity_key),
+  );
+
+  if (published_confirms || history_confirms) {
+    await remember_identity(peer, sender_identity_key);
+
+    return "verified";
+  }
+
+  return published_history?.history_complete ? "mismatch" : "unverified";
+}
+
 export async function authenticate_sender_identity(
   sender_email: string,
   sender_identity_key: string,
@@ -213,26 +254,11 @@ export async function authenticate_sender_identity(
     return "verified";
   }
 
-  const published = await resolve_published_identity(peer);
-  const published_history = await resolve_published_history(peer);
+  let status = await resolve_directory_status(peer, sender_identity_key, false);
 
-  const published_confirms =
-    Boolean(published) && published === sender_identity_key;
-  const history_confirms = Boolean(
-    published_history?.identity_keys.includes(sender_identity_key),
-  );
-
-  if (published_confirms || history_confirms) {
-    await remember_identity(peer, sender_identity_key);
-
-    status_cache.set(peer, "verified");
-
-    return "verified";
+  if (status !== "verified" && claim_directory_refresh(peer)) {
+    status = await resolve_directory_status(peer, sender_identity_key, true);
   }
-
-  const status: SenderIdentityStatus = published_history?.history_complete
-    ? "mismatch"
-    : "unverified";
 
   status_cache.set(peer, status);
 
@@ -264,4 +290,5 @@ export function clear_sender_identity_authentication_cache(): void {
   published_history_cache.clear();
   status_cache.clear();
   history_cache.clear();
+  refresh_cache.clear();
 }

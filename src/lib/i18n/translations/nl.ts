@@ -96,6 +96,7 @@ export const nl = {
     no_groups_yet: "Nog geen groepen",
     no_other_contacts: "Geen andere contacten",
     no_published_key: "Geen gepubliceerde sleutel",
+    security_center: "Beveiligingscentrum",
     open_contacts: "Contacten openen",
     other_contacts: "Overig",
     other_contacts_hint:
@@ -5126,6 +5127,12 @@ export const nl = {
     this_account: "dit account",
     storage_limit_reached: "Opslaglimiet bereikt",
     auto_forward_title: "Automatisch doorsturen",
+    forwarding_failed_badge: "Wordt niet bezorgd",
+    forwarding_failed_encryption:
+      "Versleuteling vereisen staat aan, maar {{ address }} heeft geen PGP-sleutel, dus berichten worden niet doorgestuurd. Zet Versleuteling vereisen uit in de versleutelingsinstellingen of voeg de openbare sleutel van de ontvanger toe.",
+    forwarding_failed_generic:
+      "De laatste doorstuuractie naar {{ address }} is mislukt: {{ error }}",
+    forwarding_failed_count: "Niet doorgestuurde berichten: {{ count }}",
     forwarding_pending_verification: "Verificatie in behandeling",
     resend_verification_email: "Verificatiemail opnieuw verzenden",
     forwarding_awaiting_verification:
@@ -6528,6 +6535,9 @@ export const nl = {
     account_security_review_cta: "Beveiliging bekijken",
     account_security_dont_show_again: "Niet meer tonen",
     protection_breakdown_title: "Beveiligingsdetails",
+    security_center_recommended: "Aanbevolen acties",
+    security_center_protected: "Beveiligd",
+    security_center_all_clear: "Alle beveiligingen zijn ingeschakeld.",
     criterion_two_factor: "Tweefactorauthenticatie",
     criterion_recovery_email: "Geverifieerd herstel-e-mailadres",
     criterion_auto_lock: "Automatisch vergrendelen",

@@ -23,9 +23,12 @@ import { useLocation } from "react-router-dom";
 import {
   ChevronDoubleLeftIcon,
   ChevronRightIcon,
+  ShieldCheckIcon,
+  UsersIcon,
 } from "@heroicons/react/24/outline";
 
 import { QuickContactsPanel } from "@/components/layout/quick_contacts_panel";
+import { QuickSecurityPanel } from "@/components/layout/quick_security_panel";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
 
@@ -41,13 +44,17 @@ function read_hidden() {
 
 interface AppRailProps {
   is_contacts_open: boolean;
+  is_security_open: boolean;
   on_contacts_open_change: (is_open: boolean) => void;
+  on_security_open_change: (is_open: boolean) => void;
   on_compose: (address: string) => void;
 }
 
 function AppRailComponent({
   is_contacts_open,
+  is_security_open,
   on_contacts_open_change,
+  on_security_open_change,
   on_compose,
 }: AppRailProps) {
   const { t } = use_i18n();
@@ -55,14 +62,38 @@ function AppRailComponent({
   const location = useLocation();
   const is_settings_view = location.pathname.startsWith("/settings");
   const [is_hidden, set_is_hidden] = useState(read_hidden);
+  const [has_icon, set_has_icon] = useState(true);
+  const [has_security_icon, set_has_security_icon] = useState(true);
+
+  const handle_icon_error = useCallback(() => {
+    set_has_icon(false);
+  }, []);
+
+  const handle_security_icon_error = useCallback(() => {
+    set_has_security_icon(false);
+  }, []);
 
   const close_contacts = useCallback(() => {
     on_contacts_open_change(false);
   }, [on_contacts_open_change]);
 
+  const close_security = useCallback(() => {
+    on_security_open_change(false);
+  }, [on_security_open_change]);
+
   const toggle_contacts = useCallback(() => {
-    on_contacts_open_change(!is_contacts_open);
-  }, [is_contacts_open, on_contacts_open_change]);
+    const next = !is_contacts_open;
+
+    on_contacts_open_change(next);
+    if (next) on_security_open_change(false);
+  }, [is_contacts_open, on_contacts_open_change, on_security_open_change]);
+
+  const toggle_security = useCallback(() => {
+    const next = !is_security_open;
+
+    on_security_open_change(next);
+    if (next) on_contacts_open_change(false);
+  }, [is_security_open, on_contacts_open_change, on_security_open_change]);
 
   const toggle_hidden = useCallback(() => {
     set_is_hidden((hidden) => !hidden);
@@ -77,8 +108,10 @@ function AppRailComponent({
   }, [is_hidden]);
 
   useEffect(() => {
-    if (is_hidden) on_contacts_open_change(false);
-  }, [is_hidden, on_contacts_open_change]);
+    if (!is_hidden) return;
+    on_contacts_open_change(false);
+    on_security_open_change(false);
+  }, [is_hidden, on_contacts_open_change, on_security_open_change]);
 
   if (!preferences.show_side_panel) return null;
 
@@ -89,6 +122,11 @@ function AppRailComponent({
         is_top_inset={is_settings_view}
         on_close={close_contacts}
         on_compose={on_compose}
+      />
+      <QuickSecurityPanel
+        is_open={is_security_open}
+        is_top_inset={is_settings_view}
+        on_close={close_security}
       />
       {is_hidden && (
         <button
@@ -119,17 +157,54 @@ function AppRailComponent({
           type="button"
           onClick={toggle_contacts}
         >
-          <img
-            alt=""
-            aria-hidden="true"
-            className="h-6 w-6 shrink-0"
-            decoding="sync"
-            height={24}
-            loading="eager"
-            src="/icons/contacts/contacts_24.png"
-            srcSet="/icons/contacts/contacts_24.png 1x, /icons/contacts/contacts_48.png 2x, /icons/contacts/contacts_72.png 3x"
-            width={24}
-          />
+          {has_icon ? (
+            <img
+              alt=""
+              aria-hidden="true"
+              className="h-6 w-6 shrink-0 select-none"
+              decoding="sync"
+              draggable={false}
+              height={24}
+              loading="eager"
+              src="/icons/contacts/contacts_24.png"
+              srcSet="/icons/contacts/contacts_24.png 1x, /icons/contacts/contacts_48.png 2x, /icons/contacts/contacts_72.png 3x"
+              width={24}
+              onError={handle_icon_error}
+            />
+          ) : (
+            <UsersIcon className="h-5 w-5 shrink-0" />
+          )}
+        </button>
+        <button
+          aria-expanded={is_security_open}
+          aria-label={t("common.security_center")}
+          className="app_rail_btn mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px]"
+          data-rail-tip={
+            is_security_open ? undefined : t("common.security_center")
+          }
+          data-rail-tip-side="left"
+          data-selected={is_security_open ? "true" : undefined}
+          tabIndex={is_hidden ? -1 : undefined}
+          type="button"
+          onClick={toggle_security}
+        >
+          {has_security_icon ? (
+            <img
+              alt=""
+              aria-hidden="true"
+              className="h-6 w-6 shrink-0 select-none"
+              decoding="sync"
+              draggable={false}
+              height={24}
+              loading="eager"
+              src="/icons/security/security_24.png"
+              srcSet="/icons/security/security_24.png 1x, /icons/security/security_48.png 2x, /icons/security/security_72.png 3x"
+              width={24}
+              onError={handle_security_icon_error}
+            />
+          ) : (
+            <ShieldCheckIcon className="h-5 w-5 shrink-0" />
+          )}
         </button>
         <button
           aria-label={t("common.collapse_sidebar")}

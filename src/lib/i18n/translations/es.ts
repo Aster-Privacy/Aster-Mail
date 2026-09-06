@@ -96,6 +96,7 @@ export const es = {
     no_groups_yet: "Todavía no hay grupos",
     no_other_contacts: "No hay otros contactos",
     no_published_key: "Sin clave publicada",
+    security_center: "Centro de seguridad",
     open_contacts: "Abrir Contactos",
     other_contacts: "Otros",
     other_contacts_hint:
@@ -5214,6 +5215,12 @@ export const es = {
     this_account: "esta cuenta",
     storage_limit_reached: "Límite de almacenamiento alcanzado",
     auto_forward_title: "Reenvío automático",
+    forwarding_failed_badge: "Sin entregar",
+    forwarding_failed_encryption:
+      "Requerir cifrado está activado, pero {{ address }} no tiene clave PGP, así que los mensajes no se reenvían. Desactiva Requerir cifrado en los ajustes de cifrado o añade la clave pública del destinatario.",
+    forwarding_failed_generic:
+      "El último reenvío a {{ address }} falló: {{ error }}",
+    forwarding_failed_count: "Mensajes no reenviados: {{ count }}",
     forwarding_pending_verification: "Verificación pendiente",
     resend_verification_email: "Reenviar correo de verificación",
     forwarding_awaiting_verification:
@@ -6548,6 +6555,9 @@ export const es = {
     account_security_review_cta: "Revisar seguridad",
     account_security_dont_show_again: "No volver a mostrar",
     protection_breakdown_title: "Desglose de protección",
+    security_center_recommended: "Acciones recomendadas",
+    security_center_protected: "Protegido",
+    security_center_all_clear: "Todas las protecciones están activadas.",
     criterion_two_factor: "Autenticación de dos factores",
     criterion_recovery_email: "Correo de recuperación verificado",
     criterion_auto_lock: "Bloqueo automático",

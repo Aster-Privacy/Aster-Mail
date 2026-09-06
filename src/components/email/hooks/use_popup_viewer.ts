@@ -102,6 +102,7 @@ export function use_popup_viewer({
   email_id,
   local_email: incoming_local_email,
   on_close,
+  on_advance,
   on_reply,
   on_forward,
   snoozed_until,
@@ -111,6 +112,7 @@ export function use_popup_viewer({
   | "email_id"
   | "local_email"
   | "on_close"
+  | "on_advance"
   | "on_reply"
   | "on_forward"
   | "snoozed_until"
@@ -306,6 +308,7 @@ export function use_popup_viewer({
     set_mail_item,
     set_thread_messages,
     on_close,
+    on_advance,
     on_reply,
     on_forward,
     t,

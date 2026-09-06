@@ -96,6 +96,7 @@ export const fr = {
     no_groups_yet: "Aucun groupe pour l’instant",
     no_other_contacts: "Aucun autre contact",
     no_published_key: "Aucune clé publiée",
+    security_center: "Centre de sécurité",
     open_contacts: "Ouvrir Contacts",
     other_contacts: "Autres",
     other_contacts_hint:
@@ -5264,6 +5265,12 @@ export const fr = {
     this_account: "ce compte",
     storage_limit_reached: "Limite de stockage atteinte",
     auto_forward_title: "Transfert automatique",
+    forwarding_failed_badge: "Non distribué",
+    forwarding_failed_encryption:
+      "Exiger le chiffrement est activé, mais {{ address }} n'a pas de clé PGP. Les messages ne sont donc pas transférés. Désactivez Exiger le chiffrement dans les réglages de chiffrement, ou ajoutez la clé publique du destinataire.",
+    forwarding_failed_generic:
+      "Le dernier transfert vers {{ address }} a échoué : {{ error }}",
+    forwarding_failed_count: "Messages non transférés : {{ count }}",
     forwarding_pending_verification: "Vérification en attente",
     resend_verification_email: "Renvoyer l'e-mail de vérification",
     forwarding_awaiting_verification:
@@ -6616,6 +6623,9 @@ export const fr = {
     account_security_review_cta: "Vérifier la sécurité",
     account_security_dont_show_again: "Ne plus afficher",
     protection_breakdown_title: "Détail de la protection",
+    security_center_recommended: "Actions recommandées",
+    security_center_protected: "Protégé",
+    security_center_all_clear: "Toutes les protections sont activées.",
     criterion_two_factor: "Authentification à deux facteurs",
     criterion_recovery_email: "E-mail de récupération vérifié",
     criterion_auto_lock: "Verrouillage automatique",

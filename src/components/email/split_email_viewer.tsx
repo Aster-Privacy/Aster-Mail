@@ -77,6 +77,7 @@ interface SplitEmailViewerProps {
   email_id: string;
   local_email?: LocalEmailData;
   on_close: () => void;
+  on_advance?: () => boolean;
   snoozed_until?: string;
   on_reply?: (data: SplitReplyData) => void;
   on_forward?: (data: SplitForwardData) => void;
@@ -103,6 +104,7 @@ export function SplitEmailViewer({
   email_id,
   local_email,
   on_close,
+  on_advance,
   snoozed_until: _snoozed_until,
   on_reply,
   on_forward,
@@ -127,6 +129,7 @@ export function SplitEmailViewer({
     email_id,
     local_email,
     on_dismiss: on_close,
+    on_advance,
     on_reply,
     on_forward,
     use_refresh_listener: !local_email,

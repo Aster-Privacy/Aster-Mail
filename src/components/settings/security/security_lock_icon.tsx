@@ -29,6 +29,14 @@ export const SECURITY_LOCK_COLOR: Record<SecurityStatus, string> = {
   strong: "#22c55e",
 };
 
+export function security_status_from_percent(percent: number): SecurityStatus {
+  if (percent < 35) return "weak";
+  if (percent < 60) return "fair";
+  if (percent < 90) return "partial";
+
+  return "strong";
+}
+
 interface SecurityLockIconProps {
   status: SecurityStatus;
   className?: string;

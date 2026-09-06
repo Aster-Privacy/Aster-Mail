@@ -140,6 +140,7 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
     search_can_go_next,
     handle_search_navigate_prev,
     handle_search_navigate_next,
+    handle_search_auto_advance,
     show_full_email_viewer,
   } = use_search_results_page(props);
   const indexing = use_indexing_progress();
@@ -645,6 +646,7 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
             can_go_prev={search_can_go_prev}
             current_index={search_nav_index >= 0 ? search_nav_index : undefined}
             email_id={split_email_id}
+            on_advance={handle_search_auto_advance}
             on_back={on_split_close || (() => {})}
             on_navigate_next={handle_search_navigate_next}
             on_navigate_prev={handle_search_navigate_prev}
@@ -700,6 +702,7 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
                 search_nav_index >= 0 ? search_nav_index : undefined
               }
               email_id={split_email_id}
+              on_advance={handle_search_auto_advance}
               on_close={on_split_close || (() => {})}
               on_navigate_next={handle_search_navigate_next}
               on_navigate_prev={handle_search_navigate_prev}

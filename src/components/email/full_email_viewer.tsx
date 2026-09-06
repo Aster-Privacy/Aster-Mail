@@ -75,6 +75,7 @@ interface FullEmailViewerProps {
   email_id: string;
   local_email?: LocalEmailData;
   on_back: () => void;
+  on_advance?: () => boolean;
   snoozed_until?: string;
   on_reply?: (data: FullReplyData) => void;
   on_forward?: (data: FullForwardData) => void;
@@ -102,6 +103,7 @@ export function FullEmailViewer({
   email_id,
   local_email,
   on_back,
+  on_advance,
   snoozed_until: _snoozed_until,
   on_reply,
   on_forward,
@@ -126,6 +128,7 @@ export function FullEmailViewer({
     email_id,
     local_email,
     on_dismiss: on_back,
+    on_advance,
     on_reply,
     on_forward,
     on_edit_draft,

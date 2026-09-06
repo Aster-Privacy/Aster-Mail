@@ -96,6 +96,7 @@ export const pt = {
     no_groups_yet: "Ainda não há grupos",
     no_other_contacts: "Nenhum outro contato",
     no_published_key: "Nenhuma chave publicada",
+    security_center: "Central de segurança",
     open_contacts: "Abrir Contatos",
     other_contacts: "Outros",
     other_contacts_hint:
@@ -5222,6 +5223,12 @@ export const pt = {
     this_account: "esta conta",
     storage_limit_reached: "Limite de armazenamento atingido",
     auto_forward_title: "Encaminhamento Automático",
+    forwarding_failed_badge: "Não entregue",
+    forwarding_failed_encryption:
+      "Exigir criptografia está ativado, mas {{ address }} não tem chave PGP, então as mensagens não são encaminhadas. Desative Exigir criptografia nas configurações de criptografia ou adicione a chave pública do destinatário.",
+    forwarding_failed_generic:
+      "O último encaminhamento para {{ address }} falhou: {{ error }}",
+    forwarding_failed_count: "Mensagens não encaminhadas: {{ count }}",
     forwarding_pending_verification: "Verificação pendente",
     resend_verification_email: "Reenviar e-mail de verificação",
     forwarding_awaiting_verification:
@@ -6754,6 +6761,9 @@ export const pt = {
     account_security_review_cta: "Rever segurança",
     account_security_dont_show_again: "Não mostrar novamente",
     protection_breakdown_title: "Detalhes da proteção",
+    security_center_recommended: "Ações recomendadas",
+    security_center_protected: "Protegido",
+    security_center_all_clear: "Todas as proteções estão ativadas.",
     criterion_two_factor: "Autenticação de dois fatores",
     criterion_recovery_email: "E-mail de recuperação verificado",
     criterion_auto_lock: "Bloqueio automático",

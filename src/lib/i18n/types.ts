@@ -738,6 +738,7 @@ export interface CommonTranslations {
   show_more: string;
   show_less: string;
   contacts: string;
+  security_center: string;
   open_contacts: string;
   send_feedback: string;
   send_feedback_to_aster: string;
@@ -3223,6 +3224,9 @@ export interface SettingsTranslations {
   account_security_review_cta: string;
   account_security_dont_show_again: string;
   protection_breakdown_title: string;
+  security_center_recommended: string;
+  security_center_protected: string;
+  security_center_all_clear: string;
   criterion_two_factor: string;
   criterion_passkey: string;
   criterion_recovery_email: string;
@@ -5343,6 +5347,10 @@ export interface SettingsTranslations {
   storage_limit_reached: string;
   auto_forward_title: string;
   auto_forward_description: string;
+  forwarding_failed_badge: string;
+  forwarding_failed_encryption: string;
+  forwarding_failed_generic: string;
+  forwarding_failed_count: string;
   forwarding_pending_verification: string;
   resend_verification_email: string;
   forwarding_awaiting_verification: string;

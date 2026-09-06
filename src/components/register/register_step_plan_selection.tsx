@@ -975,6 +975,9 @@ export const RegisterStepPlanSelection = ({
       )}
 
       <div className="w-full flex flex-col items-center mt-5 mb-4 gap-3">
+        <p className="text-xs text-txt-muted text-center max-w-md">
+          {t("auth.no_ads_no_tracking")}
+        </p>
         <button
           className="text-sm font-medium hover:underline disabled:opacity-60"
           disabled={is_finalizing}
