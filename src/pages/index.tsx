@@ -44,6 +44,10 @@ import { EmailInbox } from "@/components/email/email_inbox";
 import { SenderDetailHeader } from "@/components/subscriptions/sender_detail_header";
 import { UpgradeGate } from "@/components/common/upgrade_gate";
 import { use_i18n } from "@/lib/i18n/context";
+import {
+  scroll_to_settings_anchor,
+  set_pending_settings_anchor,
+} from "@/lib/settings_anchor";
 import { FullPageLoader } from "@/components/common/full_page_loader";
 import { QuickSettingsPanel } from "@/components/settings/quick_settings_panel";
 import { Spinner } from "@/components/ui/spinner";
@@ -316,9 +320,24 @@ export default function IndexPage() {
         typeof detail === "string" ? detail : detail?.section,
       );
 
+      const anchor = typeof detail === "string" ? undefined : detail?.anchor;
+
       if (!state_ref.current.is_settings_route) {
+        if (anchor) set_pending_settings_anchor(anchor);
         state_ref.current.open_settings(nav_section);
+
+        return;
       }
+
+      if (nav_section) {
+        window.dispatchEvent(
+          new CustomEvent("astermail:navigate-settings-section", {
+            detail: nav_section,
+          }),
+        );
+      }
+
+      if (anchor) scroll_to_settings_anchor(anchor, true);
     };
 
     const handle_navigate_sent = () => navigate("/sent");
