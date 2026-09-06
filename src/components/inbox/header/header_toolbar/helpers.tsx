@@ -21,6 +21,7 @@
 
 import { bulk_action_by_scope, bulk_undo } from "@/services/api/mail";
 import { stale_all_view_caches } from "@/hooks/email_list_cache";
+import { set_all_indexed_read, set_ids_read } from "@/services/category_index";
 import { show_action_toast } from "@/components/toast/action_toast";
 import {
   adjust_stats_unread,
@@ -80,12 +81,20 @@ export async function mark_all_read_by_scope(t: Translate): Promise<void> {
   const { batch_id, affected_count, undoable, completed } = res.data;
   const finished = completed !== false;
 
-  if (affected_count > 0) {
-    stale_all_view_caches();
-    adjust_stats_unread(-affected_count);
-    invalidate_mail_stats();
-    emit_mail_soft_refresh();
+  const locally_read_ids = set_all_indexed_read(true);
+
+  if (affected_count === 0 && locally_read_ids.length === 0) {
+    show_toast(t("common.no_unread_emails"), "info");
+
+    return;
   }
+
+  if (affected_count > 0) {
+    adjust_stats_unread(-affected_count);
+  }
+  stale_all_view_caches();
+  invalidate_mail_stats();
+  emit_mail_soft_refresh();
 
   show_action_toast({
     message: t("common.emails_marked_as_read", {
@@ -101,6 +110,7 @@ export async function mark_all_read_by_scope(t: Translate): Promise<void> {
             if (!undo_result.data?.success) {
               throw new Error("undo mark read failed");
             }
+            set_ids_read(locally_read_ids, false);
             adjust_stats_unread(
               undo_result.data.restored_count || affected_count,
             );

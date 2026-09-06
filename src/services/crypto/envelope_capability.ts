@@ -22,10 +22,15 @@ import { api_client } from "../api/client";
 
 import { array_to_base64, base64_to_array } from "./base64";
 import { get_vault_from_memory } from "./memory_key_store";
+import {
+  derive_pq_identity_from_seed,
+  resolve_pq_identity_secret,
+} from "./ratchet_keys";
 
 export const ENVELOPE_CAPABILITY_MAX_MARKER = 4;
 export const ENVELOPE_CAPABILITY_X3DH_MAX_VERSION = 2;
 export const ENVELOPE_CAPABILITY_REPORT_INTERVAL_MS = 7 * 24 * 60 * 60 * 1000;
+const ML_KEM_768_PUBLIC_KEY_LENGTH = 1184;
 
 const CLIENT_ID_KEY = "astermail_envelope_client_id";
 const LAST_REPORTED_PREFIX = "astermail_envelope_capability_reported_";
@@ -35,6 +40,7 @@ export interface EnvelopeCapabilityResult {
   min_supported_marker: number | null;
   pq_hybrid_enabled: boolean;
   identity_verified: boolean;
+  pq_identity_attested: boolean;
 }
 
 export interface EnvelopeCapabilityDeps {
@@ -47,10 +53,12 @@ export interface EnvelopeCapabilityDeps {
     max_envelope_marker: number,
     platform: string,
     identity_fingerprint: string | null,
+    pq_identity_fingerprint: string | null,
     x3dh_max_version: number,
   ) => Promise<EnvelopeCapabilityResult | null>;
   platform: () => string;
   identity_fingerprint: () => Promise<string | null>;
+  pq_identity_fingerprint: () => Promise<string | null>;
 }
 
 function browser_read(key: string): string | null {
@@ -94,6 +102,7 @@ async function post_capability(
   max_envelope_marker: number,
   platform: string,
   identity_fingerprint: string | null,
+  pq_identity_fingerprint: string | null,
   x3dh_max_version: number,
 ): Promise<EnvelopeCapabilityResult | null> {
   const response = await api_client.post<EnvelopeCapabilityResult>(
@@ -103,6 +112,7 @@ async function post_capability(
       max_envelope_marker,
       platform,
       identity_fingerprint,
+      pq_identity_fingerprint,
       x3dh_max_version,
     },
   );
@@ -130,6 +140,36 @@ async function current_identity_fingerprint(): Promise<string | null> {
   }
 }
 
+async function current_pq_identity_fingerprint(): Promise<string | null> {
+  try {
+    const vault = get_vault_from_memory();
+
+    if (!vault) return null;
+
+    const seed = vault.ratchet_pq_identity_seed;
+
+    if (!resolve_pq_identity_secret(vault.ratchet_pq_identity_key, seed)) {
+      return null;
+    }
+
+    const derived = seed ? derive_pq_identity_from_seed(seed) : null;
+    const identity_public =
+      derived?.pq_identity_public ?? vault.ratchet_pq_identity_public;
+
+    if (!identity_public) return null;
+
+    const key = base64_to_array(identity_public);
+
+    if (key.length !== ML_KEM_768_PUBLIC_KEY_LENGTH) return null;
+
+    const digest = await crypto.subtle.digest("SHA-256", key);
+
+    return array_to_base64(new Uint8Array(digest));
+  } catch {
+    return null;
+  }
+}
+
 const default_deps: EnvelopeCapabilityDeps = {
   now: () => Date.now(),
   new_client_id: random_client_id,
@@ -138,6 +178,7 @@ const default_deps: EnvelopeCapabilityDeps = {
   post: post_capability,
   platform: current_platform,
   identity_fingerprint: current_identity_fingerprint,
+  pq_identity_fingerprint: current_pq_identity_fingerprint,
 };
 
 export async function report_envelope_capability_if_due(
@@ -158,7 +199,9 @@ export async function report_envelope_capability_if_due(
   const now = deps.now();
   const fingerprint =
     (await deps.identity_fingerprint().catch(() => null)) ?? "";
-  const [last_at, last_fingerprint = ""] = (
+  const pq_fingerprint =
+    (await deps.pq_identity_fingerprint().catch(() => null)) ?? "";
+  const [last_at, last_fingerprint = "", last_pq_fingerprint = ""] = (
     deps.read(LAST_REPORTED_PREFIX + user_id) ?? ""
   ).split("|");
   const last = Number(last_at);
@@ -167,6 +210,7 @@ export async function report_envelope_capability_if_due(
   if (
     !force &&
     fingerprint === last_fingerprint &&
+    pq_fingerprint === last_pq_fingerprint &&
     Number.isFinite(last) &&
     last > 0 &&
     elapsed >= 0 &&
@@ -188,12 +232,16 @@ export async function report_envelope_capability_if_due(
       ENVELOPE_CAPABILITY_MAX_MARKER,
       deps.platform(),
       fingerprint || null,
+      pq_fingerprint || null,
       ENVELOPE_CAPABILITY_X3DH_MAX_VERSION,
     )
     .catch(() => null);
 
   if (result?.success) {
-    write(LAST_REPORTED_PREFIX + user_id, `${now}|${fingerprint}`);
+    write(
+      LAST_REPORTED_PREFIX + user_id,
+      `${now}|${fingerprint}|${pq_fingerprint}`,
+    );
   }
 
   return result;
