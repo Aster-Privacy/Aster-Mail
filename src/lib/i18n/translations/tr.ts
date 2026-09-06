@@ -5166,6 +5166,12 @@ export const tr = {
     this_account: "bu hesap",
     storage_limit_reached: "Depolama sınırına ulaşıldı",
     auto_forward_title: "Otomatik Yönlendirme",
+    forwarding_failed_badge: "Teslim edilmiyor",
+    forwarding_failed_encryption:
+      "Şifreleme zorunlu kıl açık, ancak {{ address }} için PGP anahtarı yok, bu yüzden iletiler iletilmiyor. Şifreleme ayarlarından Şifreleme zorunlu kıl seçeneğini kapatın veya alıcının açık anahtarını ekleyin.",
+    forwarding_failed_generic:
+      "{{ address }} adresine son iletim başarısız oldu: {{ error }}",
+    forwarding_failed_count: "İletilmeyen iletiler: {{ count }}",
     forwarding_pending_verification: "Doğrulama bekleniyor",
     resend_verification_email: "Doğrulama e-postasını yeniden gönder",
     forwarding_awaiting_verification:

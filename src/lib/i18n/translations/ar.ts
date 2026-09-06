@@ -5233,6 +5233,12 @@ export const ar = {
     this_account: "هذا الحساب",
     storage_limit_reached: "تم الوصول إلى حد التخزين",
     auto_forward_title: "التحويل التلقائي",
+    forwarding_failed_badge: "لا يتم التسليم",
+    forwarding_failed_encryption:
+      "خيار طلب التشفير مفعّل، لكن {{ address }} لا يملك مفتاح PGP، لذلك لا تتم إعادة توجيه الرسائل. أوقف طلب التشفير في إعدادات التشفير، أو أضف المفتاح العام للمستلم.",
+    forwarding_failed_generic:
+      "فشلت آخر إعادة توجيه إلى {{ address }}: {{ error }}",
+    forwarding_failed_count: "الرسائل التي لم تتم إعادة توجيهها: {{ count }}",
     forwarding_pending_verification: "في انتظار التحقق",
     resend_verification_email: "إعادة إرسال بريد التحقق",
     forwarding_awaiting_verification:

@@ -5214,6 +5214,12 @@ export const es = {
     this_account: "esta cuenta",
     storage_limit_reached: "Límite de almacenamiento alcanzado",
     auto_forward_title: "Reenvío automático",
+    forwarding_failed_badge: "Sin entregar",
+    forwarding_failed_encryption:
+      "Requerir cifrado está activado, pero {{ address }} no tiene clave PGP, así que los mensajes no se reenvían. Desactiva Requerir cifrado en los ajustes de cifrado o añade la clave pública del destinatario.",
+    forwarding_failed_generic:
+      "El último reenvío a {{ address }} falló: {{ error }}",
+    forwarding_failed_count: "Mensajes no reenviados: {{ count }}",
     forwarding_pending_verification: "Verificación pendiente",
     resend_verification_email: "Reenviar correo de verificación",
     forwarding_awaiting_verification:

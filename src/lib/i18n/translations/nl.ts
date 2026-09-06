@@ -5126,6 +5126,12 @@ export const nl = {
     this_account: "dit account",
     storage_limit_reached: "Opslaglimiet bereikt",
     auto_forward_title: "Automatisch doorsturen",
+    forwarding_failed_badge: "Wordt niet bezorgd",
+    forwarding_failed_encryption:
+      "Versleuteling vereisen staat aan, maar {{ address }} heeft geen PGP-sleutel, dus berichten worden niet doorgestuurd. Zet Versleuteling vereisen uit in de versleutelingsinstellingen of voeg de openbare sleutel van de ontvanger toe.",
+    forwarding_failed_generic:
+      "De laatste doorstuuractie naar {{ address }} is mislukt: {{ error }}",
+    forwarding_failed_count: "Niet doorgestuurde berichten: {{ count }}",
     forwarding_pending_verification: "Verificatie in behandeling",
     resend_verification_email: "Verificatiemail opnieuw verzenden",
     forwarding_awaiting_verification:

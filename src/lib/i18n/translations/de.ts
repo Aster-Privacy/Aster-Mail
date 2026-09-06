@@ -5105,6 +5105,12 @@ export const de = {
     this_account: "dieses Konto",
     storage_limit_reached: "Speicherlimit erreicht",
     auto_forward_title: "Automatische Weiterleitung",
+    forwarding_failed_badge: "Wird nicht zugestellt",
+    forwarding_failed_encryption:
+      "Verschlüsselung erforderlich ist aktiviert, aber für {{ address }} gibt es keinen PGP-Schlüssel. Nachrichten werden deshalb nicht weitergeleitet. Deaktiviere Verschlüsselung erforderlich in den Verschlüsselungseinstellungen oder füge den öffentlichen Schlüssel des Empfängers hinzu.",
+    forwarding_failed_generic:
+      "Die letzte Weiterleitung an {{ address }} ist fehlgeschlagen: {{ error }}",
+    forwarding_failed_count: "Nicht weitergeleitete Nachrichten: {{ count }}",
     forwarding_pending_verification: "Bestätigung ausstehend",
     resend_verification_email: "Bestätigungs-E-Mail erneut senden",
     forwarding_awaiting_verification:

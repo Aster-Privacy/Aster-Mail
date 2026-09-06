@@ -5222,6 +5222,12 @@ export const pt = {
     this_account: "esta conta",
     storage_limit_reached: "Limite de armazenamento atingido",
     auto_forward_title: "Encaminhamento Automático",
+    forwarding_failed_badge: "Não entregue",
+    forwarding_failed_encryption:
+      "Exigir criptografia está ativado, mas {{ address }} não tem chave PGP, então as mensagens não são encaminhadas. Desative Exigir criptografia nas configurações de criptografia ou adicione a chave pública do destinatário.",
+    forwarding_failed_generic:
+      "O último encaminhamento para {{ address }} falhou: {{ error }}",
+    forwarding_failed_count: "Mensagens não encaminhadas: {{ count }}",
     forwarding_pending_verification: "Verificação pendente",
     resend_verification_email: "Reenviar e-mail de verificação",
     forwarding_awaiting_verification:

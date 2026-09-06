@@ -4714,6 +4714,12 @@ export const zh_CN = {
     this_account: "此账户",
     storage_limit_reached: "已达存储上限",
     auto_forward_title: "自动转发",
+    forwarding_failed_badge: "未送达",
+    forwarding_failed_encryption:
+      "已开启要求加密，但 {{ address }} 没有 PGP 密钥，因此邮件不会被转发。请在加密设置中关闭要求加密，或添加收件人的公钥。",
+    forwarding_failed_generic:
+      "最近一次转发至 {{ address }} 失败：{{ error }}",
+    forwarding_failed_count: "未转发的邮件：{{ count }}",
     forwarding_pending_verification: "等待验证",
     resend_verification_email: "重新发送验证邮件",
     forwarding_awaiting_verification:

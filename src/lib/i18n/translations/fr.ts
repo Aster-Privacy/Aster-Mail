@@ -5264,6 +5264,12 @@ export const fr = {
     this_account: "ce compte",
     storage_limit_reached: "Limite de stockage atteinte",
     auto_forward_title: "Transfert automatique",
+    forwarding_failed_badge: "Non distribué",
+    forwarding_failed_encryption:
+      "Exiger le chiffrement est activé, mais {{ address }} n'a pas de clé PGP. Les messages ne sont donc pas transférés. Désactivez Exiger le chiffrement dans les réglages de chiffrement, ou ajoutez la clé publique du destinataire.",
+    forwarding_failed_generic:
+      "Le dernier transfert vers {{ address }} a échoué : {{ error }}",
+    forwarding_failed_count: "Messages non transférés : {{ count }}",
     forwarding_pending_verification: "Vérification en attente",
     resend_verification_email: "Renvoyer l'e-mail de vérification",
     forwarding_awaiting_verification:

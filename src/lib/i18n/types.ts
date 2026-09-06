@@ -5343,6 +5343,10 @@ export interface SettingsTranslations {
   storage_limit_reached: string;
   auto_forward_title: string;
   auto_forward_description: string;
+  forwarding_failed_badge: string;
+  forwarding_failed_encryption: string;
+  forwarding_failed_generic: string;
+  forwarding_failed_count: string;
   forwarding_pending_verification: string;
   resend_verification_email: string;
   forwarding_awaiting_verification: string;

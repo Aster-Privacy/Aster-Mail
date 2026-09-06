@@ -6250,6 +6250,12 @@ export const it = {
     this_account: "questo account",
     storage_limit_reached: "Limite di archiviazione raggiunto",
     auto_forward_title: "Inoltro automatico",
+    forwarding_failed_badge: "Non recapitato",
+    forwarding_failed_encryption:
+      "Richiedi crittografia è attivo, ma {{ address }} non ha una chiave PGP, quindi i messaggi non vengono inoltrati. Disattiva Richiedi crittografia nelle impostazioni di crittografia o aggiungi la chiave pubblica del destinatario.",
+    forwarding_failed_generic:
+      "L'ultimo inoltro a {{ address }} non è riuscito: {{ error }}",
+    forwarding_failed_count: "Messaggi non inoltrati: {{ count }}",
     forwarding_pending_verification: "Verifica in sospeso",
     resend_verification_email: "Invia di nuovo l'email di verifica",
     forwarding_awaiting_verification:

@@ -5153,6 +5153,12 @@ export const ko = {
     this_account: "이 계정",
     storage_limit_reached: "저장 공간 제한에 도달했습니다",
     auto_forward_title: "자동 전달",
+    forwarding_failed_badge: "전달되지 않음",
+    forwarding_failed_encryption:
+      "암호화 필수가 켜져 있지만 {{ address }}에 PGP 키가 없어 메시지가 전달되지 않습니다. 암호화 설정에서 암호화 필수를 끄거나 수신자의 공개 키를 추가하세요.",
+    forwarding_failed_generic:
+      "{{ address }}(으)로의 마지막 전달에 실패했습니다: {{ error }}",
+    forwarding_failed_count: "전달되지 않은 메시지: {{ count }}",
     forwarding_pending_verification: "확인 대기 중",
     resend_verification_email: "확인 이메일 다시 보내기",
     forwarding_awaiting_verification:
