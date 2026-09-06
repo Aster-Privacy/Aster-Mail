@@ -23,6 +23,7 @@ import { useLocation } from "react-router-dom";
 import {
   ChevronDoubleLeftIcon,
   ChevronRightIcon,
+  UsersIcon,
 } from "@heroicons/react/24/outline";
 
 import { QuickContactsPanel } from "@/components/layout/quick_contacts_panel";
@@ -55,6 +56,11 @@ function AppRailComponent({
   const location = useLocation();
   const is_settings_view = location.pathname.startsWith("/settings");
   const [is_hidden, set_is_hidden] = useState(read_hidden);
+  const [has_icon, set_has_icon] = useState(true);
+
+  const handle_icon_error = useCallback(() => {
+    set_has_icon(false);
+  }, []);
 
   const close_contacts = useCallback(() => {
     on_contacts_open_change(false);
@@ -119,17 +125,23 @@ function AppRailComponent({
           type="button"
           onClick={toggle_contacts}
         >
-          <img
-            alt=""
-            aria-hidden="true"
-            className="h-6 w-6 shrink-0"
-            decoding="sync"
-            height={24}
-            loading="eager"
-            src="/icons/contacts/contacts_24.png"
-            srcSet="/icons/contacts/contacts_24.png 1x, /icons/contacts/contacts_48.png 2x, /icons/contacts/contacts_72.png 3x"
-            width={24}
-          />
+          {has_icon ? (
+            <img
+              alt=""
+              aria-hidden="true"
+              className="h-6 w-6 shrink-0 select-none"
+              decoding="sync"
+              draggable={false}
+              height={24}
+              loading="eager"
+              src="/icons/contacts/contacts_24.png"
+              srcSet="/icons/contacts/contacts_24.png 1x, /icons/contacts/contacts_48.png 2x, /icons/contacts/contacts_72.png 3x"
+              width={24}
+              onError={handle_icon_error}
+            />
+          ) : (
+            <UsersIcon className="h-5 w-5 shrink-0" />
+          )}
         </button>
         <button
           aria-label={t("common.collapse_sidebar")}
