@@ -36,6 +36,7 @@ import {
   MagnifyingGlassIcon,
   EllipsisHorizontalIcon,
   EnvelopeIcon,
+  ExclamationTriangleIcon,
   LockClosedIcon,
   LockOpenIcon,
   PencilIcon,
@@ -59,18 +60,22 @@ import { ContactForm } from "@/components/contacts";
 import { ContactImportModal } from "@/components/contacts/contact_import_modal";
 import { ContactMergeModal } from "@/components/contacts/contact_merge_modal";
 import { ContactGroupModal } from "@/components/contacts/contact_group_modal";
+import { ContactGroupsPane } from "@/components/contacts/contact_groups_pane";
 import { EncryptionInfoDropdown } from "@/components/common/encryption_info_dropdown";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { OpenFullIcon } from "@/components/common/open_full_icon";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
+import { use_contact_groups } from "@/hooks/use_contact_groups";
 import { app_locale } from "@/utils/date_format";
+import { format_contact_date } from "@/utils/date_utils";
 import { use_escape_layer } from "@/lib/overlay_layer_stack";
 import { use_auth } from "@/contexts/auth_context";
 import {
   count_duplicate_contacts,
   find_duplicate_clusters,
 } from "@/lib/contact_duplicates";
+import { apply_server_group_membership } from "@/utils/contact_group_membership";
 import { export_contacts_vcard } from "@/utils/contact_export";
 import { print_contacts } from "@/utils/contact_print";
 import {
@@ -84,16 +89,18 @@ import {
   bulk_delete_contacts,
   create_contact_encrypted,
   decrypt_contacts,
-  list_contact_groups,
   list_contacts,
   update_contact_encrypted,
 } from "@/services/api/contacts";
+import { is_contact_trashed } from "@/lib/contact_trash";
 
 const RELOAD_INTERVAL_MS = 30000;
 const CONTACT_PAGE_LIMIT = 200;
 const MAX_CONTACT_PAGES = 25;
 const RENDER_PAGE_SIZE = 40;
 const RENDER_AHEAD_PX = 600;
+
+type PanelTab = "contacts" | "groups";
 
 interface QuickContactsPanelProps {
   is_open: boolean;
@@ -217,8 +224,22 @@ export function QuickContactsPanel({
     Record<string, ExternalKeyInfo>
   >({});
   const [is_keys_loading, set_is_keys_loading] = useState(false);
-  const [groups, set_groups] = useState<ContactGroup[]>([]);
+  const {
+    groups,
+    is_loading: is_groups_loading,
+    fetch_groups,
+    remove_group,
+  } = use_contact_groups();
   const [is_group_modal_open, set_is_group_modal_open] = useState(false);
+  const [group_to_edit, set_group_to_edit] = useState<ContactGroup | null>(
+    null,
+  );
+  const [group_to_delete, set_group_to_delete] = useState<ContactGroup | null>(
+    null,
+  );
+  const [is_group_busy, set_is_group_busy] = useState(false);
+  const [active_tab, set_active_tab] = useState<PanelTab>("contacts");
+  const [group_filter, set_group_filter] = useState<string | null>(null);
   const [selected_ids, set_selected_ids] = useState<Set<string>>(new Set());
   const [is_bulk_menu_open, set_is_bulk_menu_open] = useState(false);
   const [is_group_picker_open, set_is_group_picker_open] = useState(false);
@@ -263,7 +284,11 @@ export function QuickContactsPanel({
           break;
         }
 
-        collected.push(...(await decrypt_contacts(response.data.items)));
+        collected.push(
+          ...(await decrypt_contacts(response.data.items)).filter(
+            (contact) => !is_contact_trashed(contact),
+          ),
+        );
         cursor = response.data.next_cursor ?? undefined;
         if (!response.data.has_more || !cursor) break;
       }
@@ -271,6 +296,9 @@ export function QuickContactsPanel({
       set_contacts(collected);
       has_loaded_once.current = true;
       loaded_at_ref.current = Date.now();
+      void apply_server_group_membership(collected).then((hydrated) => {
+        if (hydrated !== collected) set_contacts(hydrated);
+      });
     } catch {
       set_error(t("common.failed_to_load_contacts"));
     } finally {
@@ -299,6 +327,10 @@ export function QuickContactsPanel({
     set_query("");
     set_detail_id(null);
     set_is_group_modal_open(false);
+    set_group_to_edit(null);
+    set_group_to_delete(null);
+    set_active_tab("contacts");
+    set_group_filter(null);
     set_selected_ids(new Set());
     set_is_bulk_menu_open(false);
     set_is_group_picker_open(false);
@@ -342,21 +374,44 @@ export function QuickContactsPanel({
 
   const visible = useMemo(() => {
     const needle = query.trim().toLowerCase();
-    const matched = needle
-      ? contacts.filter((c) => haystack(c).includes(needle))
+    const in_group = group_filter
+      ? contacts.filter((c) => (c.groups ?? []).includes(group_filter))
       : contacts;
+    const matched = needle
+      ? in_group.filter((c) => haystack(c).includes(needle))
+      : in_group;
 
     return [...matched].sort((a, b) =>
       display_name(a).localeCompare(display_name(b)),
     );
-  }, [contacts, query]);
+  }, [contacts, group_filter, query]);
+
+  const local_group_counts = useMemo(() => {
+    const map = new Map<string, number>();
+
+    for (const contact of contacts) {
+      for (const group_id of contact.groups ?? []) {
+        map.set(group_id, (map.get(group_id) ?? 0) + 1);
+      }
+    }
+
+    return map;
+  }, [contacts]);
+
+  const group_count_of = useCallback(
+    (group: ContactGroup) =>
+      contacts.length > 0
+        ? (local_group_counts.get(group.id) ?? 0)
+        : group.contact_count,
+    [contacts.length, local_group_counts],
+  );
 
   const [render_limit, set_render_limit] = useState(RENDER_PAGE_SIZE);
 
   useEffect(() => {
     set_render_limit(RENDER_PAGE_SIZE);
     if (scroll_ref.current) scroll_ref.current.scrollTop = 0;
-  }, [query, is_open, detail_id]);
+  }, [active_tab, group_filter, query, is_open, detail_id]);
 
   const rendered = useMemo(
     () => visible.slice(0, render_limit),
@@ -502,17 +557,10 @@ export function QuickContactsPanel({
     on_close();
   }, [navigate, on_close]);
 
-  const load_groups = useCallback(async () => {
-    const response = await list_contact_groups();
-
-    if (response.error || !response.data) return;
-    set_groups(response.data.groups);
-  }, []);
-
   useEffect(() => {
     if (!is_open) return;
-    void load_groups();
-  }, [is_open, load_groups]);
+    void fetch_groups();
+  }, [is_open, fetch_groups]);
 
   const duplicate_clusters = useMemo(
     () => find_duplicate_clusters(contacts),
@@ -651,23 +699,67 @@ export function QuickContactsPanel({
           "success",
         );
         clear_selection();
-        void load_groups();
+        void fetch_groups();
       } catch {
         show_toast(t("common.failed_to_add_to_group"), "error");
       } finally {
         set_is_bulk_busy(false);
       }
     },
-    [clear_selection, is_bulk_busy, load_groups, selected_contacts, t],
+    [clear_selection, fetch_groups, is_bulk_busy, selected_contacts, t],
   );
 
   const handle_group_created = useCallback(() => {
     show_toast(t("common.group_created"), "success");
-    void load_groups();
-  }, [load_groups, t]);
+    void fetch_groups();
+  }, [fetch_groups, t]);
 
+  const active_group = useMemo(
+    () => groups.find((group) => group.id === group_filter) ?? null,
+    [group_filter, groups],
+  );
+
+  const open_group = useCallback((group: ContactGroup) => {
+    set_group_filter(group.id);
+    set_active_tab("contacts");
+    set_query("");
+  }, []);
+
+  const select_tab = useCallback(
+    (tab: PanelTab) => {
+      set_active_tab(tab);
+      set_query("");
+      clear_selection();
+      if (tab === "groups") set_group_filter(null);
+    },
+    [clear_selection],
+  );
+
+  const confirm_delete_group = useCallback(async () => {
+    if (!group_to_delete || is_group_busy) return;
+
+    set_is_group_busy(true);
+
+    const removed = await remove_group(group_to_delete.id);
+
+    set_is_group_busy(false);
+
+    if (!removed) {
+      show_toast(t("common.failed_to_delete_group"), "error");
+
+      return;
+    }
+
+    if (group_filter === group_to_delete.id) set_group_filter(null);
+    set_group_to_delete(null);
+    show_toast(t("common.group_deleted"), "success");
+  }, [group_filter, group_to_delete, is_group_busy, remove_group, t]);
+
+  const is_groups_tab = active_tab === "groups";
   const has_contacts = contacts.length > 0;
-  const search_placeholder = t("common.search_contacts");
+  const search_placeholder = is_groups_tab
+    ? t("common.search_groups")
+    : t("common.search_contacts");
   const selection_count = selected_ids.size;
   const all_visible_selected =
     visible.length > 0 &&
@@ -896,13 +988,30 @@ export function QuickContactsPanel({
                 size={15}
               />
             </span>
-            <Tooltip position="bottom" tip={t("common.add_contact")}>
+            <Tooltip
+              position="bottom"
+              tip={
+                is_groups_tab ? t("common.new_group") : t("common.add_contact")
+              }
+            >
               <Button
-                aria-label={t("common.add_contact")}
+                aria-label={
+                  is_groups_tab
+                    ? t("common.new_group")
+                    : t("common.add_contact")
+                }
                 className="h-8 w-8 flex-shrink-0 text-[var(--icon-muted)]"
                 size="icon"
                 variant="ghost"
-                onClick={open_new}
+                onClick={() => {
+                  if (!is_groups_tab) {
+                    open_new();
+
+                    return;
+                  }
+                  set_group_to_edit(null);
+                  set_is_group_modal_open(true);
+                }}
               >
                 <PlusIcon className="h-4 w-4" />
               </Button>
@@ -922,10 +1031,13 @@ export function QuickContactsPanel({
         )}
 
         {!detail_contact && (
-          <div className="quick_contacts_tabs flex h-10 flex-shrink-0 items-stretch gap-1 px-3">
-            <span
+          <div className="quick_contacts_tabs flex h-10 flex-shrink-0 items-stretch gap-2 px-3">
+            <button
+              aria-selected={!is_groups_tab}
               className="quick_contacts_tab flex items-center gap-1.5 px-1.5 text-[13px] font-medium"
-              data-static="true"
+              role="tab"
+              type="button"
+              onClick={() => select_tab("contacts")}
             >
               {t("common.contacts")}
               {has_contacts && (
@@ -933,9 +1045,23 @@ export function QuickContactsPanel({
                   {contacts.length.toLocaleString(app_locale())}
                 </span>
               )}
-            </span>
+            </button>
+            <button
+              aria-selected={is_groups_tab}
+              className="quick_contacts_tab flex items-center gap-1.5 px-1.5 text-[13px] font-medium"
+              role="tab"
+              type="button"
+              onClick={() => select_tab("groups")}
+            >
+              {t("common.groups")}
+              {groups.length > 0 && (
+                <span className="quick_contacts_tab_count text-[13px] font-extrabold">
+                  {groups.length.toLocaleString(app_locale())}
+                </span>
+              )}
+            </button>
             <span className="flex-1" />
-            {has_contacts && (
+            {!is_groups_tab && has_contacts && (
               <span className="flex items-center">
                 <Tooltip
                   position="bottom"
@@ -977,28 +1103,65 @@ export function QuickContactsPanel({
           </div>
         )}
 
-        {!detail_contact && !is_selecting && duplicate_count > 0 && (
+        {!detail_contact && active_group && (
           <div className="quick_contacts_notice mx-2 mt-2 flex flex-shrink-0 items-center gap-2 rounded-lg px-2.5 py-1.5 text-[12.5px]">
-            <span className="min-w-0 flex-1 truncate">
-              {t("common.duplicates_found", { count: duplicate_count })}
-            </span>
+            <ContactGroupGlyph
+              color={active_group.color}
+              icon={active_group.icon}
+            />
+            <span className="min-w-0 flex-1 truncate">{active_group.name}</span>
             <button
               className="quick_contacts_notice_link flex-shrink-0"
               type="button"
-              onClick={() =>
-                set_merge_targets(duplicate_clusters[0]?.contacts ?? [])
-              }
+              onClick={() => set_group_filter(null)}
             >
-              {t("common.review_duplicates")}
+              {t("common.clear")}
             </button>
           </div>
         )}
+
+        {!detail_contact &&
+          !is_groups_tab &&
+          !is_selecting &&
+          duplicate_count > 0 && (
+            <div className="quick_contacts_notice mx-2 mt-2 flex flex-shrink-0 items-center gap-2 rounded-lg px-2.5 py-1.5 text-[12.5px]">
+              <span className="min-w-0 flex-1 truncate">
+                {t("common.duplicates_found", { count: duplicate_count })}
+              </span>
+              <button
+                className="quick_contacts_notice_link flex-shrink-0"
+                type="button"
+                onClick={() =>
+                  set_merge_targets(duplicate_clusters[0]?.contacts ?? [])
+                }
+              >
+                {t("common.review_duplicates")}
+              </button>
+            </div>
+          )}
 
         <div
           ref={scroll_ref}
           className="flex min-h-0 flex-1 flex-col overflow-y-auto px-2"
         >
-          {detail_contact ? (
+          {is_groups_tab && !detail_contact ? (
+            <ContactGroupsPane
+              count_of={group_count_of}
+              groups={groups}
+              is_loading={is_groups_loading}
+              on_create={() => {
+                set_group_to_edit(null);
+                set_is_group_modal_open(true);
+              }}
+              on_delete={set_group_to_delete}
+              on_edit={(group) => {
+                set_group_to_edit(group);
+                set_is_group_modal_open(true);
+              }}
+              on_open={open_group}
+              query={query}
+            />
+          ) : detail_contact ? (
             <div className="pb-2">
               <div className="flex flex-col items-center px-3 pt-4 text-center">
                 <ContactAvatar
@@ -1101,7 +1264,7 @@ export function QuickContactsPanel({
                 {detail_contact.birthday && (
                   <DetailField
                     label={t("common.birthday")}
-                    value={detail_contact.birthday}
+                    value={format_contact_date(detail_contact.birthday)}
                   />
                 )}
                 {format_address(detail_contact) && (
@@ -1123,10 +1286,13 @@ export function QuickContactsPanel({
               <Spinner />
             </div>
           ) : error ? (
-            <div className="flex flex-1 flex-col items-center justify-center px-6 text-center">
-              <p className="text-[13px] text-txt-muted">{error}</p>
+            <div className="contact_empty_state">
+              <span className="contact_empty_state_glyph">
+                <ExclamationTriangleIcon strokeWidth={1.25} />
+              </span>
+              <p className="contact_empty_state_title">{error}</p>
               <button
-                className="quick_contacts_cta mt-4 rounded-full px-4 py-1.5 text-[13px] font-medium"
+                className="quick_contacts_cta contact_empty_state_action rounded-full px-4 py-1.5 text-[13px] font-medium"
                 type="button"
                 onClick={load}
               >
@@ -1134,19 +1300,18 @@ export function QuickContactsPanel({
               </button>
             </div>
           ) : !has_contacts ? (
-            <div className="flex flex-1 flex-col items-center justify-center px-6 pb-4 text-center">
-              <UsersIcon
-                className="h-12 w-12 text-txt-muted"
-                strokeWidth={1.25}
-              />
-              <p className="mt-4 text-[14px] font-medium text-txt-primary">
+            <div className="contact_empty_state">
+              <span className="contact_empty_state_glyph">
+                <UsersIcon strokeWidth={1.25} />
+              </span>
+              <p className="contact_empty_state_title">
                 {t("common.no_contacts_yet")}
               </p>
-              <p className="mt-1.5 text-[12.5px] leading-relaxed text-txt-muted">
+              <p className="contact_empty_state_text">
                 {t("common.add_contacts_hint")}
               </p>
               <button
-                className="quick_contacts_cta mt-5 flex items-center gap-1.5 rounded-full py-2 ps-3 pe-4 text-[13.5px] font-medium"
+                className="quick_contacts_cta contact_empty_state_action flex items-center gap-1.5 rounded-full py-2 ps-3 pe-4 text-[13.5px] font-medium"
                 type="button"
                 onClick={open_new}
               >
@@ -1155,9 +1320,17 @@ export function QuickContactsPanel({
               </button>
             </div>
           ) : visible.length === 0 ? (
-            <p className="flex flex-1 items-center justify-center px-3 text-center text-[13px] text-txt-muted">
-              {t("common.no_contacts_match", { query: query.trim() })}
-            </p>
+            <div className="contact_empty_state">
+              <span className="contact_empty_state_glyph">
+                <MagnifyingGlassIcon strokeWidth={1.25} />
+              </span>
+              <p className="contact_empty_state_title">
+                {t("common.no_results")}
+              </p>
+              <p className="contact_empty_state_text">
+                {t("common.no_contacts_match", { query: query.trim() })}
+              </p>
+            </div>
           ) : (
             <div className="flex flex-col gap-1 pt-1">
               {rendered.map((contact, index) => {
@@ -1351,9 +1524,32 @@ export function QuickContactsPanel({
 
       <ContactGroupModal
         existing_count={groups.length}
+        group={group_to_edit}
         is_open={is_group_modal_open}
-        on_close={() => set_is_group_modal_open(false)}
+        on_close={() => {
+          set_is_group_modal_open(false);
+          set_group_to_edit(null);
+        }}
         on_created={handle_group_created}
+        on_saved={() => {
+          set_is_group_modal_open(false);
+          set_group_to_edit(null);
+          void fetch_groups();
+        }}
+      />
+
+      <ConfirmationModal
+        cancel_text={t("common.cancel")}
+        confirm_text={t("common.delete_group")}
+        is_loading={is_group_busy}
+        is_open={group_to_delete !== null}
+        message={t("common.delete_group_confirmation", {
+          name: group_to_delete?.name ?? "",
+        })}
+        on_cancel={() => set_group_to_delete(null)}
+        on_confirm={confirm_delete_group}
+        title={t("common.delete_group")}
+        variant="danger"
       />
 
       <ContactForm

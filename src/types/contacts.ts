@@ -192,13 +192,17 @@ export interface ContactFormData extends ExtendedContactFields {
   groups?: string[];
 }
 
+export interface ContactGroupPayload {
+  name: string;
+  color?: string;
+  icon?: TagIconName;
+}
+
 export interface ContactGroupEncrypted {
   id: string;
   group_token: string;
   encrypted_name: string;
   name_nonce: string;
-  color: string;
-  icon?: TagIconName;
   sort_order: number;
   contact_count: number;
   created_at: string;
@@ -219,6 +223,11 @@ export interface ContactGroup {
 export interface GroupMembershipChange {
   success: boolean;
   changed: number;
+}
+
+export interface GroupMembership {
+  group_id: string;
+  contact_id: string;
 }
 
 export interface ContactGroupFormData {

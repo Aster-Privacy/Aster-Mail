@@ -55,7 +55,7 @@ import {
   EnvelopeIcon,
 } from "@heroicons/react/24/outline";
 import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
-import { Button, Switch, Tooltip } from "@aster/ui";
+import { Button, Checkbox, Switch, Tooltip } from "@aster/ui";
 import { useCallback, useMemo, useState } from "react";
 
 import { Skeleton } from "@/components/ui/skeleton";
@@ -71,6 +71,9 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown_menu";
 import {
@@ -91,8 +94,6 @@ interface ContactListProps {
   set_selected_contact: (contact: DecryptedContact | null) => void;
   selected_ids: Set<string>;
   is_loading: boolean;
-  is_importing: boolean;
-  import_progress: { current: number; total: number } | null;
   error: string | null;
   view_mode: ViewMode;
   set_view_mode: (mode: ViewMode) => void;
@@ -119,10 +120,14 @@ interface ContactListProps {
   on_add_click: () => void;
   on_import_modal_open: () => void;
   on_toggle_select: (id: string) => void;
+  on_toggle_select_all: () => void;
   on_compose_to_selected: () => void;
   on_toggle_favorite_selected: () => void;
   on_copy_emails: () => void;
-  on_export_contacts: (export_selected: boolean) => void;
+  on_export_contacts: (
+    export_selected: boolean,
+    format: "csv" | "vcard",
+  ) => void;
   on_delete_selected: () => void;
   on_compose_email: (email: string) => void;
   on_copy: (text: string, field: string) => void;
@@ -222,8 +227,6 @@ export function ContactList({
   has_selection,
   selected_all_favorited,
   is_loading,
-  is_importing,
-  import_progress,
   error,
   list_container_ref,
   contact_refs,
@@ -231,6 +234,7 @@ export function ContactList({
   on_add_click,
   on_import_modal_open,
   on_toggle_select,
+  on_toggle_select_all,
   on_toggle_favorite_selected,
   on_copy_emails,
   on_export_contacts,
@@ -467,20 +471,28 @@ export function ContactList({
                   : t("common.merge_and_fix")}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem
-                disabled={is_importing}
-                onClick={on_import_modal_open}
-              >
+              <DropdownMenuItem onClick={on_import_modal_open}>
                 <ArrowUpTrayIcon className="w-4 h-4" />
                 {t("common.import_contacts")}
               </DropdownMenuItem>
-              <DropdownMenuItem
-                disabled={contacts.length === 0}
-                onClick={() => on_export_contacts(false)}
-              >
-                <ArrowDownTrayIcon className="w-4 h-4" />
-                {t("common.export_all")}
-              </DropdownMenuItem>
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger disabled={contacts.length === 0}>
+                  <ArrowDownTrayIcon className="w-4 h-4" />
+                  {t("common.export_all")}
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent>
+                  <DropdownMenuItem
+                    onClick={() => on_export_contacts(false, "vcard")}
+                  >
+                    {t("common.export_selection_vcf")}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => on_export_contacts(false, "csv")}
+                  >
+                    {t("common.export_selection_csv")}
+                  </DropdownMenuItem>
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
               <DropdownMenuItem
                 disabled={contacts.length === 0}
                 onClick={on_print_contacts}
@@ -542,7 +554,7 @@ export function ContactList({
         </div>
       </div>
 
-      <div className="contact_tab_strip px-4 pb-2" role="tablist">
+      <div className="contact_tab_strip px-4" role="tablist">
         {tab_items.map((item) => (
           <button
             key={item.key}
@@ -655,6 +667,26 @@ export function ContactList({
         )}
         {has_selection ? (
           <div className="flex items-center gap-1 px-4 py-2 border-b border-edge-primary">
+            <Tooltip
+              tip={
+                selection_state.all_selected
+                  ? t("common.deselect_all")
+                  : t("common.select_all")
+              }
+            >
+              <span className="flex items-center pe-2">
+                <Checkbox
+                  aria-label={
+                    selection_state.all_selected
+                      ? t("common.deselect_all")
+                      : t("common.select_all")
+                  }
+                  checked={selection_state.all_selected}
+                  indeterminate={selection_state.some_selected}
+                  onCheckedChange={on_toggle_select_all}
+                />
+              </span>
+            </Tooltip>
             <span className="text-[12px] tabular-nums font-medium text-txt-primary pe-2">
               {t("common.selected_count", {
                 count: selection_state.selected_count,
@@ -698,16 +730,31 @@ export function ContactList({
                 <ClipboardDocumentIcon className="w-4 h-4" />
               </button>
             </Tooltip>
-            <Tooltip tip={t("common.export_all")}>
-              <button
-                aria-label={t("common.export_all")}
-                className="h-8 w-8 inline-flex items-center justify-center rounded-[8px] text-txt-secondary hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
-                type="button"
-                onClick={() => on_export_contacts(true)}
-              >
-                <ArrowDownTrayIcon className="w-4 h-4" />
-              </button>
-            </Tooltip>
+            <DropdownMenu>
+              <Tooltip tip={t("common.export_selection")}>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    aria-label={t("common.export_selection")}
+                    className="h-8 w-8 inline-flex items-center justify-center rounded-[8px] text-txt-secondary hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+                    type="button"
+                  >
+                    <ArrowDownTrayIcon className="w-4 h-4" />
+                  </button>
+                </DropdownMenuTrigger>
+              </Tooltip>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem
+                  onClick={() => on_export_contacts(true, "vcard")}
+                >
+                  {t("common.export_selection_vcf")}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => on_export_contacts(true, "csv")}
+                >
+                  {t("common.export_selection_csv")}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <Tooltip tip={t("common.delete")}>
               <button
                 aria-label={t("common.delete")}
@@ -721,6 +768,17 @@ export function ContactList({
           </div>
         ) : (
           <div className="flex items-center justify-between px-4 py-2 border-b border-edge-primary">
+            {filtered_contacts.length > 0 && (
+              <Tooltip tip={t("common.select_all")}>
+                <span className="flex items-center pe-3">
+                  <Checkbox
+                    aria-label={t("common.select_all")}
+                    checked={false}
+                    onCheckedChange={on_toggle_select_all}
+                  />
+                </span>
+              </Tooltip>
+            )}
             <p className="text-[12px] text-txt-muted pe-3 flex-1">
               {t("settings.auto_save_recipients_to_contacts")}
             </p>
@@ -735,27 +793,6 @@ export function ContactList({
                 )
               }
             />
-          </div>
-        )}
-
-        {import_progress && (
-          <div className="px-4 py-2 border-b border-edge-primary">
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-[12px] text-txt-secondary">
-                {t("common.importing_contacts")}
-              </span>
-              <span className="text-[12px] tabular-nums text-txt-muted">
-                {import_progress.current}/{import_progress.total}
-              </span>
-            </div>
-            <div className="h-1.5 rounded-full overflow-hidden bg-edge-secondary">
-              <div
-                className="h-full bg-blue-500 transition-all duration-300"
-                style={{
-                  width: `${import_progress.total > 0 ? (import_progress.current / import_progress.total) * 100 : 0}%`,
-                }}
-              />
-            </div>
           </div>
         )}
 
@@ -787,15 +824,19 @@ export function ContactList({
           ) : tab === "contacts" && contacts.length === 0 ? (
             <div className="contact_empty_state">
               <span className="contact_empty_state_glyph">
-                <UserPlusIcon className="w-8 h-8" strokeWidth={1.25} />
+                <UserPlusIcon strokeWidth={1.25} />
               </span>
-              <p className="text-[14px] font-medium mb-1 text-txt-primary">
+              <p className="contact_empty_state_title">
                 {t("common.no_contacts")}
               </p>
-              <p className="text-[12.5px] max-w-[280px] mb-4 text-txt-muted">
+              <p className="contact_empty_state_text">
                 {t("common.add_contacts_hint")}
               </p>
-              <Button size="md" onClick={on_add_click}>
+              <Button
+                className="contact_empty_state_action"
+                size="md"
+                onClick={on_add_click}
+              >
                 <PlusIcon className="w-3.5 h-3.5" />
                 {t("common.add_contact")}
               </Button>
@@ -804,14 +845,14 @@ export function ContactList({
             <div className="contact_empty_state">
               <span className="contact_empty_state_glyph">
                 {search_query.trim() ? (
-                  <MagnifyingGlassIcon className="w-8 h-8" strokeWidth={1.25} />
+                  <MagnifyingGlassIcon strokeWidth={1.25} />
                 ) : tab === "frequent" ? (
-                  <SparklesIcon className="w-8 h-8" strokeWidth={1.25} />
+                  <SparklesIcon strokeWidth={1.25} />
                 ) : (
-                  <UserCircleIcon className="w-8 h-8" strokeWidth={1.25} />
+                  <UserCircleIcon strokeWidth={1.25} />
                 )}
               </span>
-              <p className="text-[14px] font-medium mb-1 text-txt-primary">
+              <p className="contact_empty_state_title">
                 {search_query.trim()
                   ? t("common.no_results")
                   : tab === "frequent"
@@ -820,7 +861,7 @@ export function ContactList({
                       ? t("common.no_other_contacts")
                       : t("common.no_results")}
               </p>
-              <p className="text-[12.5px] max-w-[280px] text-txt-muted">
+              <p className="contact_empty_state_text">
                 {search_query.trim()
                   ? t("settings.try_different_search")
                   : tab === "frequent"

@@ -19,8 +19,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { show_toast } from "@/components/toast/simple_toast";
-import { trigger_download } from "@/utils/download_blob";
 import { copy_text_or_throw } from "@/utils/copy_text";
+import {
+  export_contacts_file,
+  type ContactExportFormat,
+} from "@/utils/contact_export";
 import type { DecryptedContact, ContactFormData } from "@/types/contacts";
 
 import { useState, useCallback, useEffect, useRef, useMemo } from "react";
@@ -38,6 +41,7 @@ import { is_typing } from "@/hooks/use_keyboard_shortcuts";
 import { use_auth } from "@/contexts/auth_context";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_shift_key_ref } from "@/lib/use_shift_range_select";
+import { is_contact_trashed } from "@/lib/contact_trash";
 
 const BATCH_SIZE = 10;
 
@@ -192,7 +196,7 @@ export function use_contacts_modal({
       }
       const decrypted = await decrypt_contacts(response.data.items);
 
-      set_contacts(decrypted);
+      set_contacts(decrypted.filter((contact) => !is_contact_trashed(contact)));
     } catch {
       set_error(t("common.failed_to_fetch_contacts"));
     } finally {
@@ -592,59 +596,21 @@ export function use_contacts_modal({
   }, [contacts, selected_ids, t]);
 
   const handle_export_contacts = useCallback(
-    (export_selected: boolean) => {
+    (
+      export_selected: boolean,
+      format: ContactExportFormat = "csv",
+      ids?: Set<string>,
+    ) => {
+      const scope = ids ?? selected_ids;
       const contacts_to_export = export_selected
-        ? contacts.filter((c) => selected_ids.has(c.id))
+        ? contacts.filter((c) => scope.has(c.id))
         : contacts;
 
       if (contacts_to_export.length === 0) return;
 
-      const csv_headers = [
-        t("common.first_name"),
-        t("common.last_name"),
-        t("common.email"),
-        t("common.phone"),
-        t("common.company"),
-        t("common.job_title"),
-        t("common.street"),
-        t("common.city"),
-        t("common.state"),
-        t("common.postal_code"),
-        t("common.country"),
-        t("common.birthday"),
-        t("common.notes"),
-        t("common.favorite"),
-      ];
-
-      const csv_rows = contacts_to_export.map((contact) => [
-        contact.first_name,
-        contact.last_name,
-        contact.emails.join("; "),
-        contact.phone || "",
-        contact.company || "",
-        contact.job_title || "",
-        contact.address?.street || "",
-        contact.address?.city || "",
-        contact.address?.state || "",
-        contact.address?.postal_code || "",
-        contact.address?.country || "",
-        contact.birthday || "",
-        contact.notes || "",
-        contact.is_favorite ? t("common.yes") : t("common.no"),
-      ]);
-
-      const csv_cell = (value: string) => `"${value.replace(/"/g, '""')}"`;
-      const csv_content = [
-        csv_headers.map(csv_cell).join(","),
-        ...csv_rows.map((row) => row.map(csv_cell).join(",")),
-      ].join("\n");
-
-      trigger_download(
-        new Blob([csv_content], { type: "text/csv;charset=utf-8;" }),
-        `contacts_${new Date().toISOString().split("T")[0]}.csv`,
-      );
+      export_contacts_file(contacts_to_export, format);
     },
-    [contacts, selected_ids, t],
+    [contacts, selected_ids],
   );
 
   const handle_copy_emails = useCallback(() => {

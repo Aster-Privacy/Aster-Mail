@@ -34,8 +34,10 @@ import type {
   DecryptedContact,
   ContactGroup,
   ContactGroupEncrypted,
+  ContactGroupPayload,
   ContactGroupFormData,
   GroupMembershipChange,
+  GroupMembership,
 } from "@/types/contacts";
 
 import { api_client, type ApiResponse } from "./client";
@@ -356,6 +358,32 @@ export async function decrypt_contacts(
     );
 }
 
+export function parse_group_payload(value: string): ContactGroupPayload {
+  if (!value.startsWith("{")) return { name: value };
+
+  try {
+    const parsed = JSON.parse(value) as Partial<ContactGroupPayload>;
+
+    if (typeof parsed.name !== "string") return { name: value };
+
+    return {
+      name: parsed.name,
+      color: typeof parsed.color === "string" ? parsed.color : undefined,
+      icon: typeof parsed.icon === "string" ? parsed.icon : undefined,
+    };
+  } catch {
+    return { name: value };
+  }
+}
+
+export function build_group_payload(data: ContactGroupPayload): string {
+  return JSON.stringify({
+    name: data.name,
+    color: data.color ?? DEFAULT_GROUP_COLOR,
+    ...(data.icon ? { icon: data.icon } : {}),
+  });
+}
+
 export async function decrypt_contact_group(
   group: ContactGroupEncrypted,
 ): Promise<ContactGroup> {
@@ -364,13 +392,14 @@ export async function decrypt_contact_group(
   const nonce = base64_to_array(group.name_nonce);
   const decrypted = await decrypt_aes_gcm_with_fallback(key, ciphertext, nonce);
   const decoder = new TextDecoder();
-  const name = decoder.decode(decrypted);
+  const payload = parse_group_payload(decoder.decode(decrypted));
+  const name = payload.name;
 
   return {
     id: group.id,
     name,
-    color: group.color || DEFAULT_GROUP_COLOR,
-    icon: group.icon,
+    color: payload.color || DEFAULT_GROUP_COLOR,
+    icon: payload.icon,
     sort_order: group.sort_order ?? 0,
     contact_count: group.contact_count,
     created_at: group.created_at,
@@ -402,6 +431,28 @@ export async function list_contacts(
   const endpoint = `/contacts/v1${query_string ? `?${query_string}` : ""}`;
 
   return api_client.get<ContactsListResponse>(endpoint);
+}
+
+const MAX_CONTACT_LIST_PAGES = 100;
+
+export async function list_all_contacts(
+  page_limit = 100,
+): Promise<ApiResponse<Contact[]>> {
+  const items: Contact[] = [];
+  let cursor: string | undefined;
+
+  for (let page = 0; page < MAX_CONTACT_LIST_PAGES; page += 1) {
+    const response = await list_contacts({ limit: page_limit, cursor });
+
+    if (response.error || !response.data) {
+      return { error: response.error || "Failed to fetch contacts" };
+    }
+    items.push(...response.data.items);
+    if (!response.data.has_more || !response.data.next_cursor) break;
+    cursor = response.data.next_cursor;
+  }
+
+  return { data: items };
 }
 
 export async function get_contact(
@@ -563,7 +614,7 @@ export async function create_contact_group(
   }
 
   const encoder = new TextEncoder();
-  const plaintext = encoder.encode(data.name);
+  const plaintext = encoder.encode(build_group_payload(data));
   const nonce = crypto.getRandomValues(new Uint8Array(12));
   const ciphertext = await crypto.subtle.encrypt(
     { name: "AES-GCM", iv: nonce },
@@ -579,8 +630,6 @@ export async function create_contact_group(
       group_token,
       encrypted_name: array_to_base64(new Uint8Array(ciphertext)),
       name_nonce: array_to_base64(nonce),
-      color: data.color,
-      icon: data.icon,
     },
   );
 
@@ -615,7 +664,7 @@ export async function update_contact_group(
   }
 
   const encoder = new TextEncoder();
-  const plaintext = encoder.encode(data.name);
+  const plaintext = encoder.encode(build_group_payload(data));
   const nonce = crypto.getRandomValues(new Uint8Array(12));
   const ciphertext = await crypto.subtle.encrypt(
     { name: "AES-GCM", iv: nonce },
@@ -631,7 +680,6 @@ export async function update_contact_group(
       group_token,
       encrypted_name: array_to_base64(new Uint8Array(ciphertext)),
       name_nonce: array_to_base64(nonce),
-      color: data.color,
     },
   );
 
@@ -644,6 +692,7 @@ export async function update_contact_group(
       id: response.data.id,
       name: data.name,
       color: data.color,
+      icon: data.icon,
       sort_order: response.data.sort_order ?? 0,
       contact_count: response.data.contact_count ?? 0,
       created_at: response.data.created_at,
@@ -695,7 +744,15 @@ export async function remove_contacts_from_group(
 ): Promise<ApiResponse<GroupMembershipChange>> {
   return api_client.delete<GroupMembershipChange>(
     `/contacts/v1/groups/${group_id}/members`,
-    { body: JSON.stringify({ contact_ids }) },
+    { data: { contact_ids } },
+  );
+}
+
+export async function list_group_memberships(): Promise<
+  ApiResponse<{ memberships: GroupMembership[] }>
+> {
+  return api_client.get<{ memberships: GroupMembership[] }>(
+    "/contacts/v1/groups/memberships",
   );
 }
 

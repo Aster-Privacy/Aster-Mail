@@ -30,8 +30,11 @@ import { useCallback, useEffect, useRef } from "react";
 import { BATCH_SIZE, contact_to_form_data } from "./contacts_state_helpers";
 import { use_contacts_data } from "./use_contacts_data";
 
-import { trigger_download } from "@/utils/download_blob";
 import { copy_text_or_throw } from "@/utils/copy_text";
+import {
+  export_contacts_file,
+  type ContactExportFormat,
+} from "@/utils/contact_export";
 import {
   create_contact_encrypted,
   update_contact_encrypted,
@@ -109,8 +112,6 @@ export function use_contacts_state() {
     view_mode,
     set_view_mode,
     focused_index,
-    is_importing,
-    import_progress,
     is_compose_open,
     set_is_compose_open,
     compose_recipients,
@@ -121,7 +122,6 @@ export function use_contacts_state() {
     set_show_history,
     copy_timeout_ref,
     search_input_ref,
-    file_input_ref,
     list_container_ref,
     contact_refs,
     filtered_contacts,
@@ -136,7 +136,6 @@ export function use_contacts_state() {
     fetch_contacts,
     handle_toggle_select,
     scroll_to_letter,
-    handle_import_csv,
     is_creating_new,
     set_is_creating_new,
   } = use_contacts_data();
@@ -1090,65 +1089,21 @@ export function use_contacts_state() {
   );
 
   const handle_export_contacts = useCallback(
-    (export_selected: boolean) => {
+    (
+      export_selected: boolean,
+      format: ContactExportFormat = "csv",
+      ids?: Set<string>,
+    ) => {
+      const scope = ids ?? selected_ids;
       const contacts_to_export = export_selected
-        ? contacts.filter((c) => selected_ids.has(c.id))
+        ? contacts.filter((c) => scope.has(c.id))
         : contacts;
 
       if (contacts_to_export.length === 0) return;
 
-      const csv_headers = [
-        t("common.first_name"),
-        t("common.last_name"),
-        t("common.email"),
-        t("common.phone"),
-        t("common.company"),
-        t("common.job_title"),
-        t("common.street"),
-        t("common.city"),
-        t("common.state"),
-        t("common.postal_code"),
-        t("common.country"),
-        t("common.birthday"),
-        t("common.notes"),
-        t("common.favorite"),
-      ];
-
-      const escape_csv_cell = (value: string): string => {
-        const safe =
-          value.length > 0 && /^[=+\-@\t\r]/.test(value) ? `'${value}` : value;
-
-        return `"${safe.replace(/"/g, '""')}"`;
-      };
-
-      const csv_rows = contacts_to_export.map((contact) => [
-        contact.first_name,
-        contact.last_name,
-        contact.emails.join("; "),
-        contact.phone || "",
-        contact.company || "",
-        contact.job_title || "",
-        contact.address?.street || "",
-        contact.address?.city || "",
-        contact.address?.state || "",
-        contact.address?.postal_code || "",
-        contact.address?.country || "",
-        contact.birthday || "",
-        contact.notes || "",
-        contact.is_favorite ? t("common.yes") : t("common.no"),
-      ]);
-
-      const csv_content = [
-        csv_headers.map(escape_csv_cell).join(","),
-        ...csv_rows.map((row) => row.map(escape_csv_cell).join(",")),
-      ].join("\r\n");
-
-      trigger_download(
-        new Blob([csv_content], { type: "text/csv;charset=utf-8;" }),
-        `contacts_${new Date().toISOString().split("T")[0]}.csv`,
-      );
+      export_contacts_file(contacts_to_export, format);
     },
-    [contacts, selected_ids, t],
+    [contacts, selected_ids],
   );
 
   const handle_copy_emails = useCallback(() => {
@@ -1219,8 +1174,6 @@ export function use_contacts_state() {
     view_mode,
     set_view_mode,
     focused_index,
-    is_importing,
-    import_progress,
     is_compose_open,
     set_is_compose_open,
     compose_recipients,
@@ -1230,7 +1183,6 @@ export function use_contacts_state() {
     show_history,
     set_show_history,
     search_input_ref,
-    file_input_ref,
     list_container_ref,
     contact_refs,
     filtered_contacts,
@@ -1244,7 +1196,6 @@ export function use_contacts_state() {
     sort_label,
     fetch_contacts,
     scroll_to_letter,
-    handle_import_csv,
     handle_add_click,
     handle_edit,
     handle_delete_request,

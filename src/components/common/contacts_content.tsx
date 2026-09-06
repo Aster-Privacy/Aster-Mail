@@ -54,6 +54,7 @@ export function ContactsContent({
 
   const [pending_contact, set_pending_contact] =
     useState<DecryptedContact | null>(null);
+  const [compose_attachments, set_compose_attachments] = useState<File[]>([]);
 
   const handle_select_contact = (contact: DecryptedContact | null) => {
     if (contact && state.is_creating_new) {
@@ -65,7 +66,14 @@ export function ContactsContent({
   };
 
   const handle_compose_to_recipients = (recipients: string) => {
+    set_compose_attachments([]);
     state.set_compose_recipients(recipients);
+    state.set_is_compose_open(true);
+  };
+
+  const handle_share_via_email = (file: File) => {
+    set_compose_attachments([file]);
+    state.set_compose_recipients("");
     state.set_is_compose_open(true);
   };
 
@@ -77,13 +85,6 @@ export function ContactsContent({
 
   return (
     <>
-      <input
-        ref={state.file_input_ref}
-        accept=".csv"
-        className="hidden"
-        type="file"
-        onChange={state.handle_import_csv}
-      />
       <div className="flex h-full min-h-0 w-full">
         <ContactList
           alphabetical_index={state.alphabetical_index}
@@ -97,8 +98,6 @@ export function ContactsContent({
           focused_index={state.focused_index}
           group_filter={state.group_filter}
           has_selection={state.has_selection}
-          import_progress={state.import_progress}
-          is_importing={state.is_importing}
           is_loading={state.is_loading}
           list_container_ref={state.list_container_ref}
           on_add_click={state.handle_add_click}
@@ -123,6 +122,7 @@ export function ContactsContent({
           on_set_group_membership={state.handle_set_group_membership}
           on_toggle_favorite_selected={state.handle_toggle_favorite_selected}
           on_toggle_select={state.handle_toggle_select}
+          on_toggle_select_all={state.handle_toggle_select_all}
           search_query={state.search_query}
           selected_all_favorited={state.selected_all_favorited}
           selected_contact={state.selected_contact}
@@ -156,6 +156,7 @@ export function ContactsContent({
             on_edit={state.handle_edit}
             on_inline_create={state.handle_inline_create}
             on_inline_save={state.handle_inline_save}
+            on_share_via_email={handle_share_via_email}
             on_toggle_favorite={state.handle_toggle_favorite_single}
             on_toggle_group={state.handle_toggle_contact_group}
             on_undo_change={state.handle_undo_contact_change}
@@ -229,11 +230,13 @@ export function ContactsContent({
       />
 
       <ComposeModal
+        initial_attachments={compose_attachments}
         initial_to={state.compose_recipients}
         is_open={state.is_compose_open}
         on_close={() => {
           state.set_is_compose_open(false);
           state.set_compose_recipients("");
+          set_compose_attachments([]);
         }}
       />
 

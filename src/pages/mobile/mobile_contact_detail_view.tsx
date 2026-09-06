@@ -44,6 +44,7 @@ import { use_i18n } from "@/lib/i18n/context";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { use_external_link } from "@/contexts/external_link_context";
 import { build_contact_social_url } from "@/utils/contact_links";
+import { format_contact_date } from "@/utils/date_utils";
 import { build_contact_mail_query } from "@/utils/contact_mail_search";
 
 function DetailCard({ children }: { children: React.ReactNode }) {
@@ -365,7 +366,7 @@ export function ContactDetailView({
               />
               <DetailRow
                 is_last
-                label={contact.birthday}
+                label={format_contact_date(contact.birthday)}
                 on_copy={() => on_copy(contact.birthday!)}
               />
             </DetailCard>

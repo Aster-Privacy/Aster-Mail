@@ -40,6 +40,7 @@ import {
   decrypt_contacts,
   delete_contact as api_delete_contact,
 } from "@/services/api/contacts";
+import { apply_server_group_membership } from "@/utils/contact_group_membership";
 import {
   is_contact_trash_expired,
   is_contact_trashed,
@@ -48,10 +49,6 @@ import { use_i18n } from "@/lib/i18n/context";
 import { use_shift_key_ref } from "@/lib/use_shift_range_select";
 import { use_auth } from "@/contexts/auth_context";
 import { get_days_until_birthday } from "@/utils/contact_utils";
-import {
-  parse_csv_contacts,
-  import_contacts_batched,
-} from "@/components/common/contacts/contact_import_handler";
 
 const CONTACT_PAGE_LIMIT = 100;
 const MAX_CONTACT_PAGES = 100;
@@ -114,18 +111,12 @@ export function use_contacts_data() {
   const [copied_field, set_copied_field] = useState<string | null>(null);
   const [view_mode, set_view_mode] = useState<ViewMode>("list");
   const [focused_index, set_focused_index] = useState<number>(-1);
-  const [is_importing, set_is_importing] = useState(false);
-  const [import_progress, set_import_progress] = useState<{
-    current: number;
-    total: number;
-  } | null>(null);
   const [is_compose_open, set_is_compose_open] = useState(false);
   const [compose_recipients, set_compose_recipients] = useState<string>("");
   const [is_import_modal_open, set_is_import_modal_open] = useState(false);
   const [show_history, set_show_history] = useState(false);
   const copy_timeout_ref = useRef<NodeJS.Timeout | null>(null);
   const search_input_ref = useRef<HTMLInputElement>(null);
-  const file_input_ref = useRef<HTMLInputElement>(null);
   const list_container_ref = useRef<HTMLDivElement>(null);
   const contact_refs = useRef<Map<string, HTMLDivElement>>(new Map());
 
@@ -354,7 +345,9 @@ export function use_contacts_data() {
         if (!response.data.has_more || !response.data.next_cursor) break;
         cursor = response.data.next_cursor;
       }
-      const decrypted = await decrypt_contacts(items, true);
+      const decrypted = await apply_server_group_membership(
+        await decrypt_contacts(items, true),
+      );
       const active: DecryptedContact[] = [];
       const trashed: DecryptedContact[] = [];
 
@@ -631,76 +624,6 @@ export function use_contacts_data() {
     [alphabetical_index, filtered_contacts],
   );
 
-  const handle_import_csv = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-
-    if (!file) return;
-
-    set_is_importing(true);
-    set_error(null);
-
-    try {
-      const text = await file.text();
-      const { contacts: contacts_to_import, error: parse_error } =
-        parse_csv_contacts(text);
-
-      if (parse_error === "csv_empty") {
-        set_error(t("common.csv_file_empty"));
-        set_is_importing(false);
-
-        return;
-      }
-
-      if (parse_error === "csv_too_large") {
-        set_error(t("common.csv_too_large"));
-        set_is_importing(false);
-
-        return;
-      }
-
-      if (parse_error === "no_valid_contacts") {
-        set_error(t("common.no_valid_contacts_csv"));
-        set_is_importing(false);
-
-        return;
-      }
-
-      set_import_progress({ current: 0, total: contacts_to_import.length });
-
-      const imported_contacts = await import_contacts_batched(
-        contacts_to_import,
-        (current, total) => {
-          set_import_progress({ current, total });
-        },
-      );
-
-      set_contacts((prev) => [...prev, ...imported_contacts]);
-
-      if (imported_contacts.length === 0 && contacts_to_import.length > 0) {
-        set_error(t("common.failed_to_import_contacts"));
-      } else if (imported_contacts.length < contacts_to_import.length) {
-        set_error(
-          t("common.contacts_import_partial", {
-            imported: imported_contacts.length,
-            total: contacts_to_import.length,
-          }),
-        );
-      }
-    } catch (err) {
-      set_error(
-        err instanceof Error
-          ? err.message
-          : t("common.failed_to_import_contacts"),
-      );
-    } finally {
-      set_import_progress(null);
-      set_is_importing(false);
-      if (file_input_ref.current) {
-        file_input_ref.current.value = "";
-      }
-    }
-  };
-
   const [is_creating_new, set_is_creating_new] = useState(false);
 
   return {
@@ -740,8 +663,6 @@ export function use_contacts_data() {
     view_mode,
     set_view_mode,
     focused_index,
-    is_importing,
-    import_progress,
     is_compose_open,
     set_is_compose_open,
     compose_recipients,
@@ -752,7 +673,6 @@ export function use_contacts_data() {
     set_show_history,
     copy_timeout_ref,
     search_input_ref,
-    file_input_ref,
     list_container_ref,
     contact_refs,
     filtered_contacts,
@@ -767,7 +687,6 @@ export function use_contacts_data() {
     fetch_contacts,
     handle_toggle_select,
     scroll_to_letter,
-    handle_import_csv,
     is_creating_new,
     set_is_creating_new,
   };

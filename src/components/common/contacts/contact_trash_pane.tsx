@@ -76,14 +76,14 @@ export function ContactTrashPane({
     return (
       <div className="contact_empty_state">
         <span className="contact_empty_state_glyph">
-          <TrashIcon className="h-8 w-8" strokeWidth={1.5} />
+          <TrashIcon strokeWidth={1.25} />
         </span>
-        <p className="mb-1 text-[14px] font-medium text-txt-primary">
+        <p className="contact_empty_state_title">
           {has_query && contacts.length > 0
             ? t("common.no_contacts_match", { query: search_query.trim() })
             : t("common.no_contacts_in_trash")}
         </p>
-        <p className="max-w-[280px] text-[12.5px] leading-relaxed text-txt-muted">
+        <p className="contact_empty_state_text">
           {t("common.contacts_in_trash_notice")}
         </p>
       </div>

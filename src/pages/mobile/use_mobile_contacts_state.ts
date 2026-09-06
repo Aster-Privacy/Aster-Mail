@@ -26,21 +26,22 @@ import { Capacitor } from "@capacitor/core";
 
 import { copy_text_or_throw } from "@/utils/copy_text";
 import {
-  list_contacts,
+  list_all_contacts,
   decrypt_contacts,
   create_contact_encrypted,
   update_contact_encrypted,
-  delete_contact,
 } from "@/services/api/contacts";
 import { request_cache } from "@/services/api/request_cache";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_should_reduce_motion } from "@/provider";
+import { apply_server_group_membership } from "@/utils/contact_group_membership";
 import { show_toast } from "@/components/toast/simple_toast";
 import {
   contact_to_form_data,
   reconcile_entry_fields,
 } from "@/components/common/hooks/contacts_state_helpers";
 import { ignore_error } from "@/lib/ignore_error";
+import { is_contact_trashed } from "@/lib/contact_trash";
 
 const MASS_EMAIL_LIMIT = 10;
 
@@ -124,17 +125,21 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
 
     async function load() {
       try {
-        const response = await list_contacts({ limit: 500 });
+        const response = await list_all_contacts();
 
         if (cancelled) return;
 
-        if (response.error || !response.data?.items) {
+        if (response.error || !response.data) {
           set_load_failed(true);
 
           return;
         }
 
-        const decrypted = await decrypt_contacts(response.data.items);
+        const decrypted = (
+          await apply_server_group_membership(
+            await decrypt_contacts(response.data),
+          )
+        ).filter((contact) => !is_contact_trashed(contact));
 
         if (!cancelled) {
           set_load_failed(false);
@@ -163,11 +168,15 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
   const reload_contacts = useCallback(async (): Promise<boolean> => {
     try {
       request_cache.invalidate("contacts");
-      const response = await list_contacts({ limit: 500 });
+      const response = await list_all_contacts();
 
-      if (!response.data?.items) return false;
+      if (!response.data) return false;
 
-      const decrypted = await decrypt_contacts(response.data.items);
+      const decrypted = (
+        await apply_server_group_membership(
+          await decrypt_contacts(response.data),
+        )
+      ).filter((contact) => !is_contact_trashed(contact));
 
       set_contacts(decrypted);
 
@@ -418,22 +427,25 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
   const handle_delete_contact = useCallback(
     async (contact: DecryptedContact) => {
       try {
-        const response = await delete_contact(contact.id);
+        const response = await update_contact_encrypted(contact.id, {
+          ...contact_to_form_data(contact),
+          deleted_at: new Date().toISOString(),
+        });
 
         if (response.error) {
-          show_toast(t("common.failed_to_delete_contact"), "error");
+          show_toast(t("common.failed_to_move_to_trash"), "error");
 
           return;
         }
         set_contacts((prev) => prev.filter((c) => c.id !== contact.id));
         set_selected_contact(null);
-        show_toast(t("common.contact_deleted"), "success");
+        show_toast(t("common.contact_moved_to_trash"), "success");
       } catch (caught) {
         ignore_error(
           "pages/mobile/use_mobile_contacts_state:handle_delete_contact",
           caught,
         );
-        show_toast(t("common.failed_to_delete_contact"), "error");
+        show_toast(t("common.failed_to_move_to_trash"), "error");
       }
     },
     [t],
@@ -511,9 +523,18 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
     set_is_mass_deleting(true);
     const deleted_ids = new Set<string>();
 
+    const deleted_at = new Date().toISOString();
+
     for (const id of ids) {
+      const contact = contacts.find((item) => item.id === id);
+
+      if (!contact) continue;
+
       try {
-        const response = await delete_contact(id);
+        const response = await update_contact_encrypted(id, {
+          ...contact_to_form_data(contact),
+          deleted_at,
+        });
 
         if (!response.error) {
           deleted_ids.add(id);
@@ -528,15 +549,12 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
     exit_select_mode();
     set_show_delete_confirm(false);
     if (deleted_ids.size < ids.length) {
-      show_toast(t("common.failed_to_delete_contacts"), "error");
+      show_toast(t("common.failed_to_move_to_trash"), "error");
 
       return;
     }
-    show_toast(
-      t("common.contacts_deleted", { count: deleted_ids.size }),
-      "success",
-    );
-  }, [selected_ids, exit_select_mode, t]);
+    show_toast(t("common.contacts_moved_to_trash"), "success");
+  }, [contacts, selected_ids, exit_select_mode, t]);
 
   const confirm_delete = useCallback(async () => {
     if (mass_delete_ref.current) return;

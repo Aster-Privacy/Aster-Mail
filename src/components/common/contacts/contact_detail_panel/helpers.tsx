@@ -70,6 +70,7 @@ export interface ContactDetailPanelProps {
   on_inline_create?: (data: ContactFormData) => Promise<void> | void;
   on_cancel_create?: () => void;
   on_dismiss?: () => void;
+  on_share_via_email?: (file: File) => void;
   on_toggle_favorite?: (contact: DecryptedContact) => Promise<void> | void;
   on_undo_change?: (
     contact: DecryptedContact,

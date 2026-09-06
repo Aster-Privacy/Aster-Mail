@@ -127,7 +127,6 @@ export function ContactsModal({
                 selection_state={modal.selection_state}
                 set_filter_by={modal.set_filter_by}
                 set_search_query={modal.set_search_query}
-                set_selected_ids={modal.set_selected_ids}
                 set_sort_by={modal.set_sort_by}
                 sort_by={modal.sort_by}
                 sort_label={modal.sort_label}

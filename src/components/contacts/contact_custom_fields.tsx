@@ -467,12 +467,14 @@ export function ContactCustomFields({
                     </Button>
                   </div>
                 ) : (
-                  <div
+                  <button
                     className={cn(
-                      "flex items-center gap-2 p-2 rounded-lg border border-edge-secondary cursor-pointer hover:bg-surf-hover transition-colors",
+                      "flex w-full items-center gap-2 p-2 rounded-lg border border-edge-secondary text-start cursor-pointer hover:bg-surf-hover transition-colors",
                       disabled && "cursor-not-allowed opacity-50",
                     )}
-                    onClick={() => !disabled && handle_start_edit(definition)}
+                    disabled={disabled}
+                    type="button"
+                    onClick={() => handle_start_edit(definition)}
                   >
                     {current_value ? (
                       <span className="text-sm flex-1">{current_value}</span>
@@ -482,7 +484,7 @@ export function ContactCustomFields({
                       </span>
                     )}
                     <PencilIcon className="w-4 h-4 text-txt-muted opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </div>
+                  </button>
                 )}
               </motion.div>
             );

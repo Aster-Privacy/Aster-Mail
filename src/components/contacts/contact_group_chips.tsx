@@ -68,7 +68,7 @@ export function ContactGroupChips({
 
   return (
     <>
-      <div className="flex items-center gap-1.5 px-4 py-2 overflow-x-auto border-b border-edge-primary">
+      <div className="flex items-center gap-1.5 px-4 py-2.5 overflow-x-auto border-b border-edge-primary">
         <button
           aria-pressed={is_all}
           className={cn(chip_base, is_all ? chip_active : chip_inactive)}
