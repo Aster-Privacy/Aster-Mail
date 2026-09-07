@@ -182,12 +182,12 @@ describe("use_mail_stats optimistic reconcile", () => {
     expect(get_mail_stats_snapshot().unread).toBe(0);
   });
 
-  it("requests an uncached recount while an adjustment is unconfirmed", async () => {
+  it("always requests an uncached recount", async () => {
     mock_get_mail_stats.mockResolvedValue(server_stats(1));
 
     prefetch_mail_stats();
     await flush();
-    expect(mock_get_mail_stats).toHaveBeenLastCalledWith(false);
+    expect(mock_get_mail_stats).toHaveBeenLastCalledWith(true);
 
     mock_get_mail_stats.mockResolvedValue(server_stats(0));
     adjust_stats_unread(-1);
@@ -202,7 +202,7 @@ describe("use_mail_stats optimistic reconcile", () => {
 
     invalidate_mail_stats();
     await flush();
-    expect(mock_get_mail_stats).toHaveBeenLastCalledWith(false);
+    expect(mock_get_mail_stats).toHaveBeenLastCalledWith(true);
   });
 
   it("coalesces the follow-up reconcile across a burst of adjustments", async () => {
