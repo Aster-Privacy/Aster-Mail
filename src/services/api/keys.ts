@@ -242,6 +242,8 @@ export function extract_username_from_email(email: string): string | null {
 const INTERNAL_DOMAINS = [
   "astermail.org",
   "aster.cx",
+  "astermail.me",
+  "astermail.net",
   "gs-cloud.space",
   GHOST_DOMAIN,
 ];

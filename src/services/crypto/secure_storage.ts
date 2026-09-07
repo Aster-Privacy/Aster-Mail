@@ -46,6 +46,16 @@ import { clear_notification_state } from "@/services/notification_service";
 import { clear_external_key_cache } from "@/services/api/keys";
 import { clear_csrf_cache } from "@/services/api/csrf";
 import { ignore_error } from "@/lib/ignore_error";
+import {
+  safe_local_get,
+  safe_local_keys,
+  safe_local_remove,
+  safe_local_set,
+  safe_session_get,
+  safe_session_keys,
+  safe_session_remove,
+  safe_session_set,
+} from "@/lib/safe_storage";
 
 const CURRENT_VERSION = 1;
 const DEVICE_LEGACY_VERSION = 1;
@@ -100,30 +110,36 @@ async function fingerprint_key(key_bytes: Uint8Array): Promise<string> {
   return array_to_base64(new Uint8Array(hash));
 }
 
+let fallback_device_id: string | null = null;
+
 function get_or_create_device_id(): string {
-  let device_id = localStorage.getItem(DEVICE_ID_KEY);
+  const device_id = safe_local_get(DEVICE_ID_KEY) ?? fallback_device_id;
 
-  if (!device_id) {
-    const random_bytes = generate_random_bytes(32);
+  if (device_id) return device_id;
 
-    device_id = array_to_base64(random_bytes);
-    localStorage.setItem(DEVICE_ID_KEY, device_id);
-  }
+  const random_bytes = generate_random_bytes(32);
+  const created = array_to_base64(random_bytes);
 
-  return device_id;
+  fallback_device_id = created;
+  safe_local_set(DEVICE_ID_KEY, created);
+
+  return created;
 }
 
+let fallback_storage_salt: string | null = null;
+
 function get_or_create_storage_salt(): Uint8Array {
-  let salt_base64 = localStorage.getItem(STORAGE_SALT_KEY);
+  const stored = safe_local_get(STORAGE_SALT_KEY) ?? fallback_storage_salt;
 
-  if (!salt_base64) {
-    const salt = generate_random_bytes(32);
+  if (stored) return base64_to_array(stored);
 
-    salt_base64 = array_to_base64(salt);
-    localStorage.setItem(STORAGE_SALT_KEY, salt_base64);
-  }
+  const salt = generate_random_bytes(32);
+  const created = array_to_base64(salt);
 
-  return base64_to_array(salt_base64);
+  fallback_storage_salt = created;
+  safe_local_set(STORAGE_SALT_KEY, created);
+
+  return base64_to_array(created);
 }
 
 async function derive_master_key_from_encryption_key(
@@ -407,7 +423,7 @@ export async function secure_store(key: string, value: unknown): Promise<void> {
 }
 
 export async function secure_retrieve<T>(key: string): Promise<T | null> {
-  const encrypted = localStorage.getItem(key);
+  const encrypted = safe_local_get(key);
 
   if (!encrypted) {
     return null;
@@ -423,7 +439,7 @@ export async function secure_retrieve<T>(key: string): Promise<T | null> {
 }
 
 export function secure_remove(key: string): void {
-  localStorage.removeItem(key);
+  safe_local_remove(key);
 }
 
 export function clear_secure_storage_cache(): void {
@@ -432,18 +448,8 @@ export function clear_secure_storage_cache(): void {
 }
 
 function secure_clear_session_storage(): void {
-  const keys_to_remove: string[] = [];
-
-  for (let i = 0; i < sessionStorage.length; i++) {
-    const key = sessionStorage.key(i);
-
-    if (key) {
-      keys_to_remove.push(key);
-    }
-  }
-
-  for (const key of keys_to_remove) {
-    const value = sessionStorage.getItem(key);
+  for (const key of safe_session_keys()) {
+    const value = safe_session_get(key);
 
     if (value) {
       const random_data = generate_random_bytes(value.length);
@@ -451,10 +457,10 @@ function secure_clear_session_storage(): void {
         .map((b) => String.fromCharCode(b % 256))
         .join("");
 
-      sessionStorage.setItem(key, random_string);
+      safe_session_set(key, random_string);
       zero_uint8_array(random_data);
     }
-    sessionStorage.removeItem(key);
+    safe_session_remove(key);
   }
 }
 
@@ -485,49 +491,34 @@ function should_preserve_local_key(key: string): boolean {
   return PRESERVED_LOCAL_KEY_PREFIXES.some((prefix) => key.startsWith(prefix));
 }
 
+function overwrite_and_remove_local_key(key: string): void {
+  const value = safe_local_get(key);
+
+  if (value) {
+    const random_data = generate_random_bytes(value.length);
+    const random_string = Array.from(random_data)
+      .map((b) => String.fromCharCode(b % 256))
+      .join("");
+
+    safe_local_set(key, random_string);
+    zero_uint8_array(random_data);
+  }
+  safe_local_remove(key);
+}
+
 function secure_clear_local_storage(): void {
   for (const key of SENSITIVE_STORAGE_KEYS) {
-    const value = localStorage.getItem(key);
-
-    if (value) {
-      const random_data = generate_random_bytes(value.length);
-      const random_string = Array.from(random_data)
-        .map((b) => String.fromCharCode(b % 256))
-        .join("");
-
-      localStorage.setItem(key, random_string);
-      zero_uint8_array(random_data);
-    }
-    localStorage.removeItem(key);
+    overwrite_and_remove_local_key(key);
   }
 
-  const astermail_keys: string[] = [];
-
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
-
-    if (
-      key &&
+  const astermail_keys = safe_local_keys().filter(
+    (key) =>
       (key.startsWith("astermail_") || key.startsWith("aster_")) &&
-      !should_preserve_local_key(key)
-    ) {
-      astermail_keys.push(key);
-    }
-  }
+      !should_preserve_local_key(key),
+  );
 
   for (const key of astermail_keys) {
-    const value = localStorage.getItem(key);
-
-    if (value) {
-      const random_data = generate_random_bytes(value.length);
-      const random_string = Array.from(random_data)
-        .map((b) => String.fromCharCode(b % 256))
-        .join("");
-
-      localStorage.setItem(key, random_string);
-      zero_uint8_array(random_data);
-    }
-    localStorage.removeItem(key);
+    overwrite_and_remove_local_key(key);
   }
 }
 
@@ -762,7 +753,7 @@ export async function device_retrieve<T>(key: string): Promise<T | null> {
 export async function device_retrieve_strict<T>(
   key: string,
 ): Promise<T | null> {
-  const encrypted = localStorage.getItem(key);
+  const encrypted = safe_local_get(key);
 
   if (!encrypted) {
     return null;
