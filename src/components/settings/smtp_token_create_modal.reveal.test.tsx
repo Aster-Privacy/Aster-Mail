@@ -113,8 +113,8 @@ async function render_reveal_step(on_close: () => void) {
     name_input?.dispatchEvent(new Event("input", { bubbles: true }));
   });
 
-  const submit = Array.from(document.body.querySelectorAll("button")).find((b) =>
-    b.textContent?.includes("settings.smtp_token_generate"),
+  const submit = Array.from(document.body.querySelectorAll("button")).find(
+    (b) => b.textContent?.includes("settings.smtp_token_generate"),
   );
 
   await act(async () => {

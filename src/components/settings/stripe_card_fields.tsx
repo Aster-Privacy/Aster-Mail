@@ -69,12 +69,6 @@ export function StripeCardFields({
 
   return (
     <div>
-      <label
-        className="block text-xs font-medium mb-2"
-        style={{ color: colors.text_secondary }}
-      >
-        {t("settings.payment_details")}
-      </label>
       <div className="space-y-3 relative">
         <div className="space-y-3">
           <div>

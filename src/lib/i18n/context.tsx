@@ -29,7 +29,6 @@ import type {
   AuthTranslations,
   ErrorTranslations,
 } from "./types";
-import { safe_local_set } from "@/lib/safe_storage";
 
 import {
   createContext,
@@ -54,6 +53,7 @@ import {
 
 import { app_locale } from "@/utils/date_format";
 import { publish_push_strings } from "@/lib/push_strings";
+import { safe_local_get, safe_local_set } from "@/lib/safe_storage";
 import { sync_tray_labels } from "@/native/tauri_tray";
 import { set_display_locale } from "@/utils/date_format";
 
@@ -158,7 +158,7 @@ function resolve_plural_key(
 function get_initial_language(): LanguageCode {
   if (typeof window === "undefined") return "en";
 
-  const stored = localStorage.getItem(STORAGE_KEY);
+  const stored = safe_local_get(STORAGE_KEY);
 
   if (stored && is_valid_language_code(stored)) {
     return stored as LanguageCode;

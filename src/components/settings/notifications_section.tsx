@@ -467,9 +467,8 @@ export function NotificationsSection() {
     if (new_value) {
       if (is_tauri) {
         try {
-          const { isPermissionGranted, requestPermission } = await import(
-            "@tauri-apps/plugin-notification"
-          );
+          const { isPermissionGranted, requestPermission } =
+            await import("@tauri-apps/plugin-notification");
 
           let permitted = await isPermissionGranted();
 

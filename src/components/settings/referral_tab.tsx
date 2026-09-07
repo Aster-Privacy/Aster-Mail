@@ -72,6 +72,7 @@ import { format_bytes } from "@/lib/utils";
 import { has_storage_bonus } from "@/lib/referral_bonus";
 import { share_invite, copy_invite_link } from "@/lib/referral_share";
 import { invalidate_referral_summary } from "@/hooks/use_referral_summary";
+import { is_contact_trashed } from "@/lib/contact_trash";
 
 const AFFILIATE_MIN_PAYOUT_CENTS = 500;
 
@@ -90,6 +91,7 @@ async function get_all_contact_emails(): Promise<string[]> {
     const decrypted = await decrypt_contacts(res.data.items);
 
     for (const contact of decrypted) {
+      if (is_contact_trashed(contact)) continue;
       if (contact.emails) {
         all_emails.push(...contact.emails);
       }

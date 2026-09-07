@@ -28,6 +28,7 @@ import {
 } from "@heroicons/react/24/outline";
 
 import { use_should_reduce_motion } from "@/provider";
+import { ignore_error } from "@/lib/ignore_error";
 import { use_translation } from "@/lib/i18n";
 import {
   use_toast_position,
@@ -197,9 +198,11 @@ export function SimpleToast({ position }: SimpleToastProps) {
       show_toast(message, "error", OFFLINE_FAILURE_TOAST_MS, {
         label: t("common.retry"),
         on_click: () => {
-          void import("@/native/offline_queue").then((queue) =>
-            queue.retry_failed_actions(),
-          );
+          void import("@/native/offline_queue")
+            .then((queue) => queue.retry_failed_actions())
+            .catch((caught) =>
+              ignore_error("components/toast/simple_toast:retry", caught),
+            );
         },
       });
     };

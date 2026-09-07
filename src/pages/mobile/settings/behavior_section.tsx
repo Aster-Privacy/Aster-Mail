@@ -105,7 +105,7 @@ export function BehaviorSection({
       try {
         navigator.registerProtocolHandler(
           "mailto",
-          `${window.location.origin}/compose?to=%s`,
+          `${window.location.origin}/?compose=true&to=%s`,
         );
         set_mailto_registered(true);
         localStorage.setItem("aster:mailto_handler", "true");

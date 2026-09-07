@@ -40,31 +40,24 @@ export function TagIconPicker({
   const { t } = use_i18n();
 
   return (
-    <div className="max-h-[172px] overflow-y-auto pr-1">
-      <div className="flex flex-col gap-2">
-        {TAG_ICON_GROUPS.map((group) => (
+    <div className="tag_icon_picker">
+      <div className="flex flex-col gap-2.5">
+        {TAG_ICON_GROUPS.map((group, group_index) => (
           <div key={group.key}>
-            <div className="text-[10px] font-semibold uppercase tracking-wide text-txt-muted mb-1">
+            <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-txt-muted">
               {t(group.label_key)}
             </div>
-            <div className="flex flex-wrap gap-1.5">
-              {group.key === TAG_ICON_GROUPS[0].key && (
+            <div className="grid grid-cols-9 gap-1">
+              {group_index === 0 && (
                 <button
-                  className="w-8 h-8 rounded-[8px] flex items-center justify-center text-[11px] transition-colors"
-                  style={{
-                    backgroundColor: !selected_icon
-                      ? "var(--indicator-bg)"
-                      : "transparent",
-                    border: !selected_icon
-                      ? "1px solid var(--border-primary)"
-                      : "1px solid transparent",
-                    color: "var(--text-muted)",
-                  }}
+                  aria-pressed={!selected_icon}
+                  className="tag_icon_picker_cell"
+                  data-selected={!selected_icon}
                   title={t("common.no_icon")}
                   type="button"
                   onClick={() => on_select(undefined)}
                 >
-                  &mdash;
+                  <span className="text-[13px] leading-none">&mdash;</span>
                 </button>
               )}
               {group.icons.map((icon_name) => {
@@ -74,23 +67,23 @@ export function TagIconPicker({
                 return (
                   <button
                     key={icon_name}
-                    className="w-8 h-8 rounded-[8px] flex items-center justify-center transition-colors"
-                    style={{
-                      backgroundColor: is_selected
-                        ? "var(--indicator-bg)"
-                        : "transparent",
-                      border: is_selected
-                        ? "1px solid var(--border-primary)"
-                        : "1px solid transparent",
-                      color: is_selected ? accent_color : "var(--text-muted)",
-                    }}
+                    aria-pressed={is_selected}
+                    className="tag_icon_picker_cell"
+                    data-selected={is_selected}
+                    style={
+                      is_selected
+                        ? ({
+                            "--tag-icon-accent": accent_color,
+                          } as React.CSSProperties)
+                        : undefined
+                    }
                     title={t(tag_icon_label_key(icon_name))}
                     type="button"
                     onClick={() =>
                       on_select(is_selected ? undefined : icon_name)
                     }
                   >
-                    {IconComponent && <IconComponent className="w-4 h-4" />}
+                    {IconComponent && <IconComponent className="h-[18px] w-[18px]" />}
                   </button>
                 );
               })}
