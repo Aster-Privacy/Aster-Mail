@@ -128,10 +128,6 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
       adjust_stats_unread(new_state ? -1 : 1);
     }
 
-    if (!new_state) {
-      deps.on_close();
-    }
-
     const result = await update_item_metadata(
       deps.email_id,
       {
@@ -147,6 +143,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
       if (should_adjust_unread) {
         adjust_stats_unread(new_state ? 1 : -1);
       }
+      show_toast(deps.t("common.failed_to_update_emails"), "error");
     } else {
       deps.set_mail_item((prev) =>
         prev
@@ -168,8 +165,11 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
         encrypted_metadata: result.encrypted?.encrypted_metadata,
         metadata_nonce: result.encrypted?.metadata_nonce,
       });
+      if (!new_state) {
+        deps.on_close();
+      }
     }
-  }, [deps.email_id, deps.is_read, deps.mail_item, deps.on_close]);
+  }, [deps.email_id, deps.is_read, deps.mail_item, deps.on_close, deps.t]);
 
   const handle_archive = useCallback(async () => {
     if (!deps.email_id || deps.is_archive_loading) return;
@@ -938,7 +938,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
         adjust_stats_unread(new_read ? -1 : 1);
       }
 
-      if (!new_read) {
+      if (!new_read && message_id === deps.email_id) {
         deps.on_close();
       }
 

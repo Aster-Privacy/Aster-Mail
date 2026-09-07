@@ -222,7 +222,7 @@ async function* emit_attachment_part(
   const disposition = att.is_inline ? "inline" : "attachment";
 
   yield bytes(
-    `Content-Type: ${att.mime_type || "application/octet-stream"}; name="${att.filename
+    `Content-Type: ${(att.mime_type || "application/octet-stream").replace(/[\r\n"]/g, "")}; name="${att.filename
       .replace(/[\r\n"\\]/g, "_")
       .slice(0, 200)}"\r\n` +
       cid_header +

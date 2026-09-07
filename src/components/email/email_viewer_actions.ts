@@ -323,10 +323,6 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
       adjust_stats_unread(new_state ? -1 : 1);
     }
 
-    if (!new_state) {
-      deps.on_dismiss();
-    }
-
     const result = await update_item_metadata(
       deps.email_id,
       {
@@ -373,6 +369,9 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
       });
       if (new_state && is_received) {
         mark_conversation_read(conversation_options);
+      }
+      if (!new_state) {
+        deps.on_dismiss();
       }
     }
   }, [

@@ -201,7 +201,8 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
     deps.set_is_archive_loading(true);
     deps.set_is_archive_confirm_open(false);
 
-    const is_read = deps.mail_item?.metadata?.is_read !== false;
+    const is_read =
+      deps.email?.is_read ?? deps.mail_item?.metadata?.is_read !== false;
     const deltas = deps.mail_item
       ? compute_archive_deltas({
           item_type: deps.mail_item.item_type,
@@ -294,7 +295,8 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
       set_pending_permanent_delete_id(deps.email_id);
     } else {
       deps.set_is_trash_loading(true);
-      const is_read = deps.mail_item.metadata?.is_read !== false;
+      const is_read =
+        deps.email?.is_read ?? deps.mail_item.metadata?.is_read !== false;
       const deltas = compute_trash_deltas({
         item_type: deps.mail_item.item_type,
         is_read,

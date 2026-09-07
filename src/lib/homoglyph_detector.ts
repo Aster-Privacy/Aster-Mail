@@ -149,6 +149,99 @@ const BRAND_DOMAINS: Record<string, string[]> = {
   signal: ["signal.org"],
 };
 
+const PUNYCODE_BASE = 36;
+const PUNYCODE_T_MIN = 1;
+const PUNYCODE_T_MAX = 26;
+const PUNYCODE_SKEW = 38;
+const PUNYCODE_DAMP = 700;
+const PUNYCODE_INITIAL_BIAS = 72;
+const PUNYCODE_INITIAL_N = 128;
+
+function punycode_adapt(delta: number, num_points: number, first: boolean): number {
+  let k = 0;
+
+  delta = first ? Math.floor(delta / PUNYCODE_DAMP) : delta >> 1;
+  delta += Math.floor(delta / num_points);
+
+  while (delta > ((PUNYCODE_BASE - PUNYCODE_T_MIN) * PUNYCODE_T_MAX) >> 1) {
+    delta = Math.floor(delta / (PUNYCODE_BASE - PUNYCODE_T_MIN));
+    k += PUNYCODE_BASE;
+  }
+
+  return k + Math.floor(((PUNYCODE_BASE - PUNYCODE_T_MIN + 1) * delta) / (delta + PUNYCODE_SKEW));
+}
+
+function punycode_digit(code: number): number {
+  if (code >= 0x30 && code <= 0x39) return code - 0x30 + 26;
+  if (code >= 0x41 && code <= 0x5a) return code - 0x41;
+  if (code >= 0x61 && code <= 0x7a) return code - 0x61;
+
+  return PUNYCODE_BASE;
+}
+
+function decode_punycode_label(label: string): string {
+  if (!/^xn--/i.test(label)) return label;
+
+  const input = label.slice(4);
+  const output: number[] = [];
+  const basic_end = input.lastIndexOf("-");
+
+  for (let i = 0; i < Math.max(basic_end, 0); i++) {
+    const code = input.charCodeAt(i);
+
+    if (code >= 0x80) return label;
+
+    output.push(code);
+  }
+
+  let n = PUNYCODE_INITIAL_N;
+  let bias = PUNYCODE_INITIAL_BIAS;
+  let i = 0;
+  let index = basic_end > 0 ? basic_end + 1 : 0;
+
+  while (index < input.length) {
+    const old_i = i;
+    let w = 1;
+
+    for (let k = PUNYCODE_BASE; ; k += PUNYCODE_BASE) {
+      if (index >= input.length) return label;
+
+      const digit = punycode_digit(input.charCodeAt(index++));
+
+      if (digit >= PUNYCODE_BASE) return label;
+
+      i += digit * w;
+
+      const t =
+        k <= bias
+          ? PUNYCODE_T_MIN
+          : k >= bias + PUNYCODE_T_MAX
+            ? PUNYCODE_T_MAX
+            : k - bias;
+
+      if (digit < t) break;
+
+      w *= PUNYCODE_BASE - t;
+    }
+
+    const length = output.length + 1;
+
+    bias = punycode_adapt(i - old_i, length, old_i === 0);
+    n += Math.floor(i / length);
+    i %= length;
+
+    if (n > 0x10ffff) return label;
+
+    output.splice(i++, 0, n);
+  }
+
+  return String.fromCodePoint(...output);
+}
+
+export function decode_punycode_domain(domain: string): string {
+  return domain.split(".").map(decode_punycode_label).join(".");
+}
+
 function normalize_domain(domain: string): string {
   let result = "";
 
@@ -157,6 +250,16 @@ function normalize_domain(domain: string): string {
   }
 
   return result.toLowerCase();
+}
+
+function is_plain_ascii(label: string): boolean {
+  for (const char of label) {
+    const code = char.codePointAt(0) ?? 0;
+
+    if (code > 0x7f) return false;
+  }
+
+  return true;
 }
 
 function has_mixed_scripts(domain: string): boolean {
@@ -196,12 +299,16 @@ export interface HomoglyphResult {
 }
 
 export function detect_homoglyph(domain: string): HomoglyphResult {
-  const normalized = normalize_domain(domain);
-  const mixed = has_mixed_scripts(domain);
+  const decoded = decode_punycode_domain(domain).toLowerCase();
+  const normalized = normalize_domain(decoded);
+  const mixed = has_mixed_scripts(decoded);
+  const raw_base = decoded.split(".")[0];
+  const domain_base = normalized.split(".")[0];
+  const base_is_confusable = raw_base !== domain_base || !is_plain_ascii(raw_base);
 
   for (const [brand, domains] of Object.entries(BRAND_DOMAINS)) {
     for (const legit_domain of domains) {
-      if (domain === legit_domain) {
+      if (decoded === legit_domain) {
         return {
           is_suspicious: false,
           original_domain: domain,
@@ -210,9 +317,8 @@ export function detect_homoglyph(domain: string): HomoglyphResult {
       }
 
       const legit_base = legit_domain.split(".")[0];
-      const domain_base = normalized.split(".")[0];
 
-      if (domain_base === legit_base && domain !== legit_domain) {
+      if (base_is_confusable && domain_base === legit_base) {
         return {
           is_suspicious: true,
           matched_brand: brand,
@@ -223,9 +329,9 @@ export function detect_homoglyph(domain: string): HomoglyphResult {
       }
 
       if (
-        mixed &&
-        levenshtein_distance(domain_base, legit_base) <= 1 &&
-        domain !== legit_domain
+        (mixed || base_is_confusable) &&
+        domain_base !== legit_base &&
+        levenshtein_distance(domain_base, legit_base) <= 1
       ) {
         return {
           is_suspicious: true,

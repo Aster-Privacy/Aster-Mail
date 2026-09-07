@@ -63,12 +63,13 @@ export function MobileUnsubscribeBanner({
   const [dismissed, set_dismissed] = useState(false);
   const pending_timeout_ref = useRef<NodeJS.Timeout | null>(null);
   const cancelled_ref = useRef(false);
+  const mounted_ref = useRef(true);
 
   useEffect(() => {
+    mounted_ref.current = true;
+
     return () => {
-      if (pending_timeout_ref.current) {
-        clearTimeout(pending_timeout_ref.current);
-      }
+      mounted_ref.current = false;
     };
   }, []);
 
@@ -108,7 +109,7 @@ export function MobileUnsubscribeBanner({
           clearTimeout(pending_timeout_ref.current);
           pending_timeout_ref.current = null;
         }
-        set_dismissed(false);
+        if (mounted_ref.current) set_dismissed(false);
       },
     });
 

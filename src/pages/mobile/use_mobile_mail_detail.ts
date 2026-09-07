@@ -29,6 +29,7 @@ import { swipe_nav_state } from "./mobile_mail_detail_swipe";
 
 import { use_spam_confirm } from "@/components/email/use_spam_confirm";
 import { use_email_detail } from "@/components/email/hooks/use_email_detail";
+import { use_sender_aliases } from "@/hooks/use_sender_aliases";
 import { build_reply_recipient_for_message } from "@/components/email/build_reply_recipient";
 import { use_email_actions } from "@/hooks/use_email_actions";
 import { remove_email_from_view_cache } from "@/hooks/use_email_list";
@@ -67,6 +68,14 @@ export function use_mobile_mail_detail() {
   const { t } = use_i18n();
   const { preferences, update_preference } = use_preferences();
   const { request_spam, spam_confirm_dialog } = use_spam_confirm();
+  const { sender_options } = use_sender_aliases();
+  const own_addresses = useMemo(
+    () =>
+      [detail.current_user_email, ...sender_options.map((s) => s.email)].filter(
+        (value): value is string => !!value,
+      ),
+    [detail.current_user_email, sender_options],
+  );
   const [is_starred, set_is_starred] = useState<boolean | null>(null);
   const [is_pinned, set_is_pinned] = useState<boolean | null>(null);
   const [expanded_ids, set_expanded_ids] = useState<Set<string>>(new Set());
@@ -165,6 +174,13 @@ export function use_mobile_mail_detail() {
   const auto_read_ids = useRef<Set<string>>(new Set());
   const first_unread_ref = useRef<HTMLDivElement>(null);
   const has_scrolled = useRef(false);
+
+  useEffect(() => {
+    set_is_starred(null);
+    set_is_pinned(null);
+    set_external_content_loaded(false);
+    has_scrolled.current = false;
+  }, [detail.email_id]);
   const touch_start_ref = useRef<{ x: number; y: number; time: number } | null>(
     null,
   );
@@ -350,9 +366,7 @@ export function use_mobile_mail_detail() {
       const current = is_starred ?? detail.email.is_starred;
 
       set_is_starred(!current);
-      const succeeded = await email_actions.toggle_star(
-        detail.email as never,
-      );
+      const succeeded = await email_actions.toggle_star(detail.email as never);
 
       if (!succeeded) {
         set_is_starred(current);
@@ -514,10 +528,20 @@ export function use_mobile_mail_detail() {
     (msg: DecryptedThreadMessage, mode: "reply" | "reply_all" | "forward") => {
       const subject = msg.subject || "";
       const body = msg.body || "";
-      const quoted = `\n\n${t("mail.reply_quote_header", { date: new Date(msg.timestamp).toLocaleString(app_locale()), name: msg.display_sender_name || msg.sender_name })}\n${body
+      const quote_header =
+        mode === "forward"
+          ? t("common.forwarded_message_header")
+          : t("mail.reply_quote_header", {
+              date: new Date(msg.timestamp).toLocaleString(app_locale()),
+              name: msg.display_sender_name || msg.sender_name,
+            });
+      const quoted = `\n\n${quote_header}\n${body
         .split("\n")
         .map((l) => "> " + l)
         .join("\n")}`;
+      const rfc_message_id = msg.raw_headers?.find(
+        (h) => h.name.toLowerCase() === "message-id",
+      )?.value;
       const message_with_footer =
         get_aster_footer(t, preferences.show_aster_branding) + quoted;
       const thread_token = detail.mail_item?.thread_token;
@@ -542,15 +566,14 @@ export function use_mobile_mail_detail() {
       } else {
         const { recipient_email } = build_reply_recipient_for_message(
           msg,
-          detail.current_user_email ? [detail.current_user_email] : undefined,
+          own_addresses.length > 0 ? own_addresses : undefined,
         );
         const to = [recipient_email];
         const cc: string[] = [];
 
         if (mode === "reply_all") {
-          const my_email = detail.current_user_email?.toLowerCase();
           const seen = new Set(
-            [recipient_email, msg.sender_email]
+            [recipient_email, msg.sender_email, ...own_addresses]
               .filter(Boolean)
               .map((value) => value.toLowerCase()),
           );
@@ -562,11 +585,7 @@ export function use_mobile_mail_detail() {
             entries?.forEach((r) => {
               const normalized = r.email?.toLowerCase();
 
-              if (
-                !normalized ||
-                normalized === my_email ||
-                seen.has(normalized)
-              ) {
+              if (!normalized || seen.has(normalized)) {
                 return;
               }
 
@@ -591,6 +610,7 @@ export function use_mobile_mail_detail() {
               message: message_with_footer,
               draft_type: "reply",
               reply_to_id: msg.id,
+              rfc_message_id,
               thread_token,
             },
           }),
@@ -599,7 +619,7 @@ export function use_mobile_mail_detail() {
     },
     [
       t,
-      detail.current_user_email,
+      own_addresses,
       detail.mail_item?.thread_token,
       preferences.show_aster_branding,
     ],

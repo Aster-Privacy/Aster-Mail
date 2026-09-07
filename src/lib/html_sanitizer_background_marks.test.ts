@@ -80,4 +80,31 @@ describe("background images declared in a stylesheet", () => {
 
     expect(result.html).toContain("hi");
   });
+
+  it("keeps a nested at-rule selector rather than the wrapper", () => {
+    expect(
+      selectors_with_background_image(
+        "@media screen { .hero { background-image: url(cid:a) } }",
+      ),
+    ).toEqual([".hero"]);
+  });
+
+  it("scans a large stylesheet in linear time", () => {
+    const rule = ".hero { background-image: url(cid:a) }";
+    const small = `${rule}${" ".repeat(20_000)}`;
+    const large = `${rule}${" ".repeat(80_000)}`;
+
+    const small_started = Date.now();
+
+    selectors_with_background_image(small);
+
+    const small_elapsed = Date.now() - small_started;
+    const large_started = Date.now();
+
+    expect(selectors_with_background_image(large)).toEqual([".hero"]);
+
+    const large_elapsed = Date.now() - large_started;
+
+    expect(large_elapsed).toBeLessThan(Math.max(small_elapsed * 8, 250));
+  });
 });

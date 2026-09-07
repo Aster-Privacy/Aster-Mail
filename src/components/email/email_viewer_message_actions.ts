@@ -288,7 +288,7 @@ export function use_message_actions(
         adjust_stats_unread(new_read ? -1 : 1);
       }
 
-      if (!new_read) {
+      if (!new_read && message_id === deps.email_id) {
         deps.on_dismiss();
       }
 

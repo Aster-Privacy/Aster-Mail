@@ -38,10 +38,16 @@ const POLL_INTERVAL_MS = 1500;
 const MAX_POLL_DURATION_MS = 4 * 60 * 60 * 1000;
 const MAX_CONSECUTIVE_ERRORS = 3;
 
-const polling_intervals = new Map<string, ReturnType<typeof setTimeout>>();
+interface PollingEntry {
+  timer: ReturnType<typeof setTimeout>;
+  generation: number;
+}
+
+const polling_intervals = new Map<string, PollingEntry>();
 const progress_state = new Map<string, SyncProgressState>();
 const account_token_map = new Map<string, string>();
 const max_seen_total = new Map<string, number>();
+let next_generation = 0;
 
 type Listener = () => void;
 const listeners = new Set<Listener>();
@@ -78,7 +84,10 @@ export function start_sync_polling(
 ): void {
   const existing = polling_intervals.get(account_id);
 
-  if (existing) clearTimeout(existing);
+  if (existing) clearTimeout(existing.timer);
+
+  next_generation += 1;
+  const generation = next_generation;
 
   account_token_map.set(account_id, account_token);
   max_seen_total.delete(account_id);
@@ -86,6 +95,16 @@ export function start_sync_polling(
 
   const started_at = Date.now();
   let consecutive_errors = 0;
+
+  const is_current = () =>
+    polling_intervals.get(account_id)?.generation === generation;
+
+  const abandon = () => {
+    polling_intervals.delete(account_id);
+    account_token_map.delete(account_id);
+    progress_state.delete(account_id);
+    notify_listeners();
+  };
 
   const finish = (
     status: "complete" | "error" | "timeout",
@@ -122,94 +141,91 @@ export function start_sync_polling(
     }, 2000);
   };
 
-  const schedule_tick = () => {
-    const timer = setTimeout(async () => {
-      if (Date.now() - started_at > MAX_POLL_DURATION_MS) {
-        finish("timeout");
+  const arm = (delay: number) => {
+    if (!is_current()) return;
 
-        return;
-      }
-
-      if (is_low_network()) {
-        const next = setTimeout(schedule_tick, POLL_INTERVAL_MS * 4);
-
-        polling_intervals.set(account_id, next);
-
-        return;
-      }
-
-      try {
-        const result = await get_sync_progress(account_token);
-
-        if (!result.data) {
-          if (result.error) {
-            consecutive_errors += 1;
-            if (consecutive_errors >= MAX_CONSECUTIVE_ERRORS) {
-              polling_intervals.delete(account_id);
-              account_token_map.delete(account_id);
-              progress_state.delete(account_id);
-              notify_listeners();
-
-              return;
-            }
-          }
-          const next = setTimeout(schedule_tick, POLL_INTERVAL_MS * 2);
-
-          polling_intervals.set(account_id, next);
-
-          return;
-        }
-
-        consecutive_errors = 0;
-        const prev_max = max_seen_total.get(account_id) ?? 0;
-        const stable_total = Math.max(result.data.total_messages, prev_max);
-
-        max_seen_total.set(account_id, stable_total);
-        progress_state.set(account_id, {
-          status: result.data.status,
-          processed: result.data.processed_messages,
-          total: stable_total,
-          current_folder: result.data.current_folder,
-        });
-        notify_listeners();
-
-        if (
-          result.data.status === "complete" ||
-          result.data.status === "error"
-        ) {
-          finish(result.data.status, result.data.error_message ?? undefined);
-        } else {
-          const next = setTimeout(schedule_tick, POLL_INTERVAL_MS);
-
-          polling_intervals.set(account_id, next);
-        }
-      } catch {
-        consecutive_errors += 1;
-        if (consecutive_errors >= MAX_CONSECUTIVE_ERRORS) {
-          polling_intervals.delete(account_id);
-          account_token_map.delete(account_id);
-          progress_state.delete(account_id);
-          notify_listeners();
-
-          return;
-        }
-        const next = setTimeout(schedule_tick, POLL_INTERVAL_MS * 2);
-
-        polling_intervals.set(account_id, next);
-      }
-    }, POLL_INTERVAL_MS);
-
-    polling_intervals.set(account_id, timer);
+    polling_intervals.set(account_id, {
+      timer: setTimeout(tick, delay),
+      generation,
+    });
   };
 
-  schedule_tick();
+  const tick = async () => {
+    if (!is_current()) return;
+
+    if (Date.now() - started_at > MAX_POLL_DURATION_MS) {
+      finish("timeout");
+
+      return;
+    }
+
+    if (is_low_network()) {
+      arm(POLL_INTERVAL_MS * 4);
+
+      return;
+    }
+
+    try {
+      const result = await get_sync_progress(account_token);
+
+      if (!is_current()) return;
+
+      if (!result.data) {
+        if (result.error) {
+          consecutive_errors += 1;
+          if (consecutive_errors >= MAX_CONSECUTIVE_ERRORS) {
+            abandon();
+
+            return;
+          }
+        }
+        arm(POLL_INTERVAL_MS * 2);
+
+        return;
+      }
+
+      consecutive_errors = 0;
+      const prev_max = max_seen_total.get(account_id) ?? 0;
+      const stable_total = Math.max(result.data.total_messages, prev_max);
+
+      max_seen_total.set(account_id, stable_total);
+      progress_state.set(account_id, {
+        status: result.data.status,
+        processed: result.data.processed_messages,
+        total: stable_total,
+        current_folder: result.data.current_folder,
+      });
+      notify_listeners();
+
+      if (result.data.status === "complete" || result.data.status === "error") {
+        finish(result.data.status, result.data.error_message ?? undefined);
+      } else {
+        arm(POLL_INTERVAL_MS);
+      }
+    } catch {
+      if (!is_current()) return;
+
+      consecutive_errors += 1;
+      if (consecutive_errors >= MAX_CONSECUTIVE_ERRORS) {
+        abandon();
+
+        return;
+      }
+      arm(POLL_INTERVAL_MS * 2);
+    }
+  };
+
+  polling_intervals.set(account_id, {
+    timer: setTimeout(tick, POLL_INTERVAL_MS),
+    generation,
+  });
 }
 
 export function stop_sync_polling(account_id: string): void {
-  const timer = polling_intervals.get(account_id);
+  const entry = polling_intervals.get(account_id);
 
-  if (timer) {
-    clearTimeout(timer);
+  if (entry) {
+    clearTimeout(entry.timer);
     polling_intervals.delete(account_id);
     account_token_map.delete(account_id);
     progress_state.delete(account_id);
@@ -219,7 +235,7 @@ export function stop_sync_polling(account_id: string): void {
 }
 
 export function stop_all_sync_polling(): void {
-  polling_intervals.forEach((timer) => clearTimeout(timer));
+  polling_intervals.forEach((entry) => clearTimeout(entry.timer));
   polling_intervals.clear();
   account_token_map.clear();
   progress_state.clear();
