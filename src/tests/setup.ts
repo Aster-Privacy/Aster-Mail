@@ -255,7 +255,9 @@ if (typeof globalThis.indexedDB === "undefined") {
   const mock_database = {
     name: "astermail_secure_db",
     version: 1,
-    objectStoreNames: ["encrypted_data"],
+    objectStoreNames: Object.assign(["encrypted_data"], {
+      contains: (name: string) => name === "encrypted_data",
+    }),
     onabort: null,
     onclose: null,
     onerror: null,
