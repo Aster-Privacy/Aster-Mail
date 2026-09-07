@@ -1427,6 +1427,43 @@ export const de = {
     n_files: "{{count}} Datei",
     n_files_plural: "{{count}} Dateien",
     n_of_n_contacts: "{{ filtered }} von {{ total }}",
+    contact_groups: "Gruppen",
+    new_group: "Neue Gruppe",
+    create_contact_group: "Gruppe erstellen",
+    rename_contact_group: "Gruppe umbenennen",
+    delete_contact_group: "Gruppe löschen",
+    contact_group_name: "Gruppenname",
+    enter_contact_group_name: "Geben Sie einen Gruppennamen ein",
+    manage_contact_groups: "Gruppen verwalten",
+    no_contact_groups_yet: "Noch keine Gruppen",
+    add_contacts_to_group_hint:
+      "Erstellen Sie eine Gruppe, um die Personen zu ordnen, denen Sie am häufigsten schreiben.",
+    contact_group_name_too_long:
+      "Gruppennamen dürfen bis zu {{ max }} Zeichen lang sein.",
+    contact_group_already_exists:
+      "Eine Gruppe mit diesem Namen gibt es bereits.",
+    contact_group_limit_reached:
+      "Sie können bis zu {{ max }} Gruppen erstellen.",
+    delete_contact_group_confirm:
+      "Diese Gruppe löschen? Ihre Kontakte bleiben in Ihrem Adressbuch.",
+    failed_to_fetch_contact_groups:
+      "Die Gruppen wurden nicht geladen. Versuchen Sie es erneut.",
+    failed_to_save_contact_group:
+      "Die Gruppe wurde nicht gespeichert. Versuchen Sie es erneut.",
+    failed_to_create_contact_group:
+      "Die Gruppe wurde nicht erstellt. Versuchen Sie es erneut.",
+    failed_to_delete_contact_group:
+      "Die Gruppe wurde nicht gelöscht. Versuchen Sie es erneut.",
+    failed_to_update_contact_groups:
+      "Die Gruppenzugehörigkeit wurde nicht aktualisiert.",
+    contacts_added_to_group: "{{count}} Kontakte zur Gruppe hinzugefügt",
+    contacts_added_to_group_one: "{{count}} Kontakt zur Gruppe hinzugefügt",
+    contacts_added_to_group_other: "{{count}} Kontakte zur Gruppe hinzugefügt",
+    contacts_removed_from_group: "{{count}} Kontakte aus der Gruppe entfernt",
+    contacts_removed_from_group_one:
+      "{{count}} Kontakt aus der Gruppe entfernt",
+    contacts_removed_from_group_other:
+      "{{count}} Kontakte aus der Gruppe entfernt",
     contact_count_other: "{{count}} Kontakte",
     contact_count_one: "{{count}} Kontakt",
     no_contacts_match: 'Keine Kontakte stimmen mit "{{ query }}" überein',
@@ -2130,6 +2167,8 @@ export const de = {
     empty_trash_confirm: "Alle Kontakte im Papierkorb endgültig löschen? Das lässt sich nicht rückgängig machen.",
     export_selection_vcf: "Als vCard exportieren",
     failed_to_add_to_group: "Der Kontakt konnte nicht zur Gruppe hinzugefügt werden.",
+    export_selection_csv: "Als CSV exportieren",
+    export_selection: "Auswahl exportieren",
     failed_to_create_group: "Die Gruppe konnte nicht erstellt werden.",
     failed_to_delete_group: "Die Gruppe konnte nicht gelöscht werden.",
     failed_to_load_groups: "Deine Gruppen konnten nicht geladen werden.",
@@ -2180,6 +2219,8 @@ export const de = {
     search_groups: "Gruppen durchsuchen",
     select_contact: "Kontakt auswählen",
     share_contact: "Kontakt teilen",
+    share_contact_via_email: "An eine neue E-Mail anhängen",
+    share_contact_device: "Mit einer anderen App teilen",
     some_contacts_not_created: "Einige Kontakte konnten nicht erstellt werden.",
     trash_days_left: "Noch {{count}} Tage",
     undo_change: "Änderung rückgängig machen",
@@ -6488,6 +6529,11 @@ export const de = {
     security_center_recommended: "Empfohlene Aktionen",
     security_center_protected: "Geschützt",
     security_center_all_clear: "Alle Schutzfunktionen sind aktiviert.",
+    security_center_protection_score: "Schutzbewertung",
+    security_center_encryption_title: "Ende-zu-Ende-Verschlüsselung",
+    security_center_encryption_detail:
+      "Ihre E-Mails, Kontakte und Dateien werden auf Ihrem Gerät verschlüsselt, bevor sie Aster erreichen.",
+    security_center_identity_key: "Identitätsschlüssel",
     criterion_two_factor: "Zwei-Faktor-Authentifizierung",
     criterion_recovery_email: "Verifizierte Wiederherstellungs-E-Mail",
     criterion_auto_lock: "Automatische Sperre",
@@ -7890,6 +7936,10 @@ export const de = {
     usage_external_accounts: "Externe Konten",
   },
   mail: {
+    sender_identity_rotated:
+      "Die Verschlüsselungsidentität dieses Absenders hat sich seit Ihrem letzten Nachrichtenaustausch geändert. Wenn Sie das nicht erwartet haben, bestätigen Sie es auf einem anderen Weg mit dieser Person.",
+    sender_identity_downgraded:
+      "Die Nachrichten dieses Absenders sind nicht mehr durch Post-Quanten-Verschlüsselung geschützt. Wenn Sie das nicht erwartet haben, bestätigen Sie es auf einem anderen Weg mit dieser Person.",
     load_all_thread_messages: "Alle Nachrichten laden",
     move_to_category: "In Kategorie verschieben",
     menu_applies_to_selection: "Gilt für {count} ausgewählte",
@@ -9441,6 +9491,8 @@ export const de = {
       "Der Schlüssel konnte nicht umbenannt werden. Versuchen Sie es erneut.",
   },
   errors: {
+    auth_salt_collision:
+      "Die Anmeldung wurde abgebrochen, weil der Server einen unsicheren Wert gesendet hat. Es wurde nichts entsperrt. Kontaktieren Sie den Support, bevor Sie es erneut versuchen.",
     upload_too_large:
       "Der Upload ist zu groß. Entfernen oder verkleinern Sie eine Datei, um fortzufahren.",
     failed_remove_reaction:
@@ -10296,6 +10348,52 @@ export const de = {
     invite_declined_toast: "Sie haben diese Einladung abgelehnt",
     invite_save_failed: "Speichern in Ihrem Kalender nicht möglich",
     invite_saved_locally: "In Ihrem verschlüsselten Kalender gespeichert",
+    calendar: "Kalender",
+    month: "Monat",
+    week: "Woche",
+    day: "Tag",
+    agenda: "Agenda",
+    today: "Heute",
+    previous_period: "Zurück",
+    next_period: "Weiter",
+    search_events: "Termine suchen",
+    only_you_can_read_calendar:
+      "Nur Sie können Ihren Kalender lesen. Termine werden auf Ihrem Gerät verschlüsselt, bevor sie es verlassen.",
+    all_day: "Ganztägig",
+    more_events: "+{{count}} weitere",
+    no_upcoming_events: "Keine Termine",
+    no_upcoming_events_hint: "Termine, die Sie erstellen, erscheinen hier.",
+    new_event: "Neuer Termin",
+    edit_event: "Termin bearbeiten",
+    delete_event: "Termin löschen",
+    delete_event_confirmation:
+      "„{{title}}“ löschen? Das lässt sich nicht rückgängig machen.",
+    event_title: "Titel",
+    event_title_placeholder: "Titel hinzufügen",
+    starts: "Beginn",
+    ends: "Ende",
+    location: "Ort",
+    location_placeholder: "Ort hinzufügen",
+    description: "Beschreibung",
+    description_placeholder: "Notizen hinzufügen",
+    reminder: "Erinnerung",
+    reminder_none: "Keine Erinnerung",
+    reminder_at_start: "Zur Startzeit",
+    reminder_minutes_before: "{{count}} Minuten vorher",
+    title_required: "Fügen Sie einen Titel für diesen Termin hinzu",
+    invalid_dates: "Geben Sie eine gültige Start- und Endzeit ein",
+    end_before_start: "Die Endzeit liegt vor der Startzeit",
+    weekday_sun: "So",
+    weekday_mon: "Mo",
+    weekday_tue: "Di",
+    weekday_wed: "Mi",
+    weekday_thu: "Do",
+    weekday_fri: "Fr",
+    weekday_sat: "Sa",
+    calendar_navigation: "Kalendernavigation",
+    aster_calendar: "Aster Kalender",
+    back_to_mail: "Zurück zu Mail",
+    my_calendars: "Meine Kalender",
   },
   settings_search: {
     two_factor: "2FA",

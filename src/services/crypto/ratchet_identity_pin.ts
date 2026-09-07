@@ -25,17 +25,24 @@ import {
 } from "./encrypted_storage";
 import { get_derived_encryption_key } from "./memory_key_store";
 import { base64_to_array, compute_hash } from "./key_manager_core";
+import { record_peer_identity_event } from "./ratchet_verification_status";
 
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 
 const PIN_STORAGE_KEY_PREFIX = "ratchet_identity_pin_";
 
-export type IdentityPinStatus = "first" | "ok" | "rotated" | "drift";
+export type IdentityPinStatus =
+  | "first"
+  | "ok"
+  | "rotated"
+  | "drift"
+  | "unknown";
 
 interface StoredIdentityPin {
   fingerprint: string;
   verified: boolean;
   pinned_at: number;
+  pq_seen?: boolean;
 }
 
 async function current_account_uid(): Promise<string | null> {
@@ -106,6 +113,7 @@ export async function check_and_pin_identity(
   pin_id: string,
   kem_identity_key: string,
   verified: boolean = false,
+  advertises_pq: boolean = false,
 ): Promise<IdentityPinStatus> {
   try {
     if (!pin_id || !kem_identity_key) {
@@ -116,6 +124,7 @@ export async function check_and_pin_identity(
     const storage_key = await get_pin_storage_key();
     const uid = await current_account_uid();
     const existing = await load_pin(storage_key, uid, pin_id);
+    const pq_seen = Boolean(existing?.pq_seen) || advertises_pq;
 
     if (!existing) {
       await encrypted_set(
@@ -124,6 +133,7 @@ export async function check_and_pin_identity(
           fingerprint,
           verified,
           pinned_at: Date.now(),
+          pq_seen,
         } satisfies StoredIdentityPin,
         storage_key,
       );
@@ -142,19 +152,26 @@ export async function check_and_pin_identity(
           fingerprint,
           verified,
           pinned_at: Date.now(),
+          pq_seen,
         } satisfies StoredIdentityPin,
         storage_key,
       );
 
+      record_peer_identity_event(pin_id, "rotated");
+
       return "rotated";
     }
 
-    if (verified && !existing.verified) {
+    if (
+      (verified && !existing.verified) ||
+      pq_seen !== Boolean(existing.pq_seen)
+    ) {
       await encrypted_set(
         storage_key_for(uid, pin_id),
         {
           ...existing,
-          verified: true,
+          verified: existing.verified || verified,
+          pq_seen,
         } satisfies StoredIdentityPin,
         storage_key,
       );
@@ -162,7 +179,21 @@ export async function check_and_pin_identity(
 
     return "ok";
   } catch {
-    return "ok";
+    return "unknown";
+  }
+}
+
+export async function has_peer_advertised_pq(pin_id: string): Promise<boolean> {
+  try {
+    if (!pin_id) return false;
+
+    const storage_key = await get_pin_storage_key();
+    const uid = await current_account_uid();
+    const existing = await load_pin(storage_key, uid, pin_id);
+
+    return existing?.pq_seen === true;
+  } catch {
+    return false;
   }
 }
 

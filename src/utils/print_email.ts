@@ -24,9 +24,11 @@ import {
   is_html_content,
   sanitize_html,
   plain_text_to_html,
+  type ImageLoadMode,
 } from "@/lib/html_sanitizer";
 import { get_image_proxy_url } from "@/lib/image_proxy";
 import { is_native_platform } from "@/native/capacitor_bridge";
+import { get_cached_preferences } from "@/services/api/preferences";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
 
 type Translator = (
@@ -62,7 +64,7 @@ function escape_html(text: string): string {
   return div.innerHTML;
 }
 
-function strip_style_blocks(html: string): string {
+export function strip_style_blocks(html: string): string {
   const doc = new DOMParser().parseFromString(html, "text/html");
 
   doc
@@ -166,11 +168,24 @@ function expand_collapsed_sections(root: HTMLElement): void {
   });
 }
 
-function format_body(body: string): string {
+export function resolve_print_external_content_mode(): ImageLoadMode {
+  const preferences = get_cached_preferences();
+
+  if (!preferences) return "never";
+  if (preferences.low_network_mode) return "never";
+  if (!preferences.block_external_content) return "always";
+
+  return preferences.load_remote_images;
+}
+
+export function format_body(
+  body: string,
+  external_content_mode: ImageLoadMode = resolve_print_external_content_mode(),
+): string {
   if (is_html_content(body)) {
     const lockdown = is_any_lockdown_active();
     const sanitized = sanitize_html(body, {
-      external_content_mode: lockdown ? "never" : "always",
+      external_content_mode: lockdown ? "never" : external_content_mode,
       image_proxy_url: lockdown ? undefined : get_image_proxy_url(),
       sandbox_mode: false,
       lockdown_mode: lockdown,
@@ -319,11 +334,15 @@ const PRINT_STYLES_NATIVE = `
   ${PRINT_CONTENT_STYLES}
 `;
 
-function build_print_body(email: PrintEmailData, t: Translator): string {
+function build_print_body(
+  email: PrintEmailData,
+  t: Translator,
+  external_content_mode: ImageLoadMode,
+): string {
   const to_formatted = format_recipients(email.to);
   const cc_formatted = email.cc ? format_recipients(email.cc) : "";
   const bcc_formatted = email.bcc ? format_recipients(email.bcc) : "";
-  const formatted_body = format_body(email.body);
+  const formatted_body = format_body(email.body, external_content_mode);
 
   let html = `<div class="ap-header">
     <div class="ap-subject">${escape_html(email.subject || t("common.print_no_subject"))}</div>
@@ -428,8 +447,9 @@ export interface PrintThreadData {
 function build_thread_message_html(
   msg: PrintThreadMessage,
   t: Translator,
+  external_content_mode: ImageLoadMode,
 ): string {
-  const formatted_body = format_body(msg.body);
+  const formatted_body = format_body(msg.body, external_content_mode);
   const to_formatted = msg.to_recipients
     ? format_recipients(msg.to_recipients)
     : "";
@@ -479,19 +499,27 @@ function build_thread_message_html(
   return html;
 }
 
-function build_print_thread_body(data: PrintThreadData, t: Translator): string {
+function build_print_thread_body(
+  data: PrintThreadData,
+  t: Translator,
+  external_content_mode: ImageLoadMode,
+): string {
   let html = `<div class="ap-header">
     <div class="ap-subject">${escape_html(data.subject || t("common.print_no_subject"))}</div>
   </div>`;
 
   html += data.messages
-    .map((msg) => build_thread_message_html(msg, t))
+    .map((msg) => build_thread_message_html(msg, t, external_content_mode))
     .join('<hr class="ap-divider">');
 
   return html;
 }
 
-export function print_thread(data: PrintThreadData, t: Translator): void {
+export function print_thread(
+  data: PrintThreadData,
+  t: Translator,
+  external_content_mode: ImageLoadMode = resolve_print_external_content_mode(),
+): void {
   document.getElementById("aster-print-root")?.remove();
   document.getElementById("aster-print-styles")?.remove();
 
@@ -505,7 +533,10 @@ export function print_thread(data: PrintThreadData, t: Translator): void {
   const container = document.createElement("div");
 
   container.id = "aster-print-root";
-  set_print_content(container, build_print_thread_body(data, t));
+  set_print_content(
+    container,
+    build_print_thread_body(data, t, external_content_mode),
+  );
   expand_collapsed_sections(container);
   document.body.appendChild(container);
 
@@ -534,6 +565,7 @@ export function print_thread(data: PrintThreadData, t: Translator): void {
 export function setup_thread_print_intercept(
   get_thread_data: () => PrintThreadData | null,
   t: Translator,
+  get_external_content_mode: () => ImageLoadMode = resolve_print_external_content_mode,
 ): () => void {
   let cleanup_fn: (() => void) | null = null;
 
@@ -554,7 +586,10 @@ export function setup_thread_print_intercept(
     const container = document.createElement("div");
 
     container.id = "aster-print-root";
-    set_print_content(container, build_print_thread_body(data, t));
+    set_print_content(
+      container,
+      build_print_thread_body(data, t, get_external_content_mode()),
+    );
     expand_collapsed_sections(container);
     document.body.appendChild(container);
 
@@ -586,7 +621,11 @@ export function setup_thread_print_intercept(
   };
 }
 
-export function print_email(email: PrintEmailData, t: Translator): void {
+export function print_email(
+  email: PrintEmailData,
+  t: Translator,
+  external_content_mode: ImageLoadMode = resolve_print_external_content_mode(),
+): void {
   document.getElementById("aster-print-root")?.remove();
   document.getElementById("aster-print-styles")?.remove();
 
@@ -600,7 +639,10 @@ export function print_email(email: PrintEmailData, t: Translator): void {
   const container = document.createElement("div");
 
   container.id = "aster-print-root";
-  set_print_content(container, build_print_body(email, t));
+  set_print_content(
+    container,
+    build_print_body(email, t, external_content_mode),
+  );
   expand_collapsed_sections(container);
   document.body.appendChild(container);
 

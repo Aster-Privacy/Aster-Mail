@@ -21,6 +21,8 @@
 import { user_facing_error } from "@/utils/user_facing_error";
 import * as openpgp from "openpgp";
 
+import "@/services/crypto/openpgp_limits";
+
 import { HASH_ALG } from "@/services/crypto/constants";
 import {
   type EncryptedVault,

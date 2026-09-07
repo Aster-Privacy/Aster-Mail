@@ -58,7 +58,9 @@ import {
 import { show_toast } from "@/components/toast/simple_toast";
 import { hard_redirect, get_app_query_param } from "@/lib/hard_redirect";
 import { ignore_error } from "@/lib/ignore_error";
+import { safe_session_set } from "@/lib/safe_storage";
 import { user_facing_error } from "@/utils/user_facing_error";
+import { is_auth_salt_collision } from "@/services/crypto/auth_salt_guard";
 
 export function use_sign_in_page() {
   const navigate = useNavigate();
@@ -411,7 +413,7 @@ export function use_sign_in_page() {
           check_and_replenish_prekeys();
         }
 
-        sessionStorage.setItem(
+        safe_session_set(
           "aster_checkout_success",
           JSON.stringify({ plan: checkout_plan, billing: checkout_billing }),
         );
@@ -423,7 +425,10 @@ export function use_sign_in_page() {
         scrub_checkout_params();
         set_is_checkout_login(false);
         set_username(checkout_username);
-        if (err instanceof Error && /decrypt/i.test(err.message)) {
+        if (is_auth_salt_collision(err)) {
+          void api_client.clear_session_cookies();
+          set_error(translate("errors.auth_salt_collision"));
+        } else if (err instanceof Error && /decrypt/i.test(err.message)) {
           set_error(translate("errors.wrong_vault_password"));
         } else {
           set_error(user_facing_error(err, translate("errors.login_failed")));
@@ -670,7 +675,10 @@ export function use_sign_in_page() {
         set_pending_login_token("");
         set_available_2fa_methods([]);
         set_active_2fa_method("totp");
-        if (err instanceof Error && /decrypt/i.test(err.message)) {
+        if (is_auth_salt_collision(err)) {
+          void api_client.clear_session_cookies();
+          set_error(t("errors.auth_salt_collision"));
+        } else if (err instanceof Error && /decrypt/i.test(err.message)) {
           set_error(t("errors.wrong_vault_password"));
         } else {
           set_error(user_facing_error(err, t("errors.login_failed")));

@@ -35,6 +35,10 @@ import {
 
 const CHANNEL = "aster_account_link";
 const DEV_LINK_ORIGINS = ["http://localhost:5175"];
+const MAX_LINK_ATTEMPTS_PER_LOAD = 3;
+
+let link_attempts = 0;
+let link_completed = false;
 
 interface bridge_request {
   channel: string;
@@ -88,6 +92,14 @@ async function handle_accounts() {
 }
 
 async function handle_link(code: string, account_id: string) {
+  if (link_completed || link_attempts >= MAX_LINK_ATTEMPTS_PER_LOAD) {
+    console.warn("account bridge: link budget for this load is used up");
+
+    return { ok: false, error: "rate_limited" };
+  }
+
+  link_attempts += 1;
+
   const linkable = await current_linkable_account();
 
   if (!linkable || linkable.account.id !== account_id) {
@@ -119,6 +131,9 @@ async function handle_link(code: string, account_id: string) {
   if (confirmed.error) {
     return { ok: false, error: confirmed.error };
   }
+
+  link_completed = true;
+  console.warn(`account bridge: linked account ${account_id} to a device`);
 
   return { ok: true };
 }

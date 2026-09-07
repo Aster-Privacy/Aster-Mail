@@ -25,13 +25,19 @@ import { DoubleRatchet, type BootstrapData } from "./double_ratchet";
 import { type EncryptedVault } from "./key_manager";
 import { verify_ratchet_prekey_bundle_detailed } from "./key_manager_pgp";
 import { is_strict_recipient_bundle_enforced } from "./crypto_enforcement_policy";
-import { record_bundle_verification } from "./ratchet_verification_status";
+import {
+  record_bundle_verification,
+  record_peer_identity_event,
+} from "./ratchet_verification_status";
 import {
   derive_conversation_id,
   get_sync_encryption_key,
   run_serialized_for_conversation,
 } from "./ratchet_conversation";
-import { check_and_pin_identity } from "./ratchet_identity_pin";
+import {
+  check_and_pin_identity,
+  has_peer_advertised_pq,
+} from "./ratchet_identity_pin";
 import {
   detect_identity_pin_drift,
   fetch_prekey_bundle,
@@ -232,14 +238,24 @@ async function encrypt_for_ratchet_recipient_unlocked(
 
       record_bundle_verification(bundle_peer, bundle_verification);
 
+      const advertises_pq = Boolean(bundle.pq_kem_public_key);
+      const pq_downgraded =
+        !advertises_pq && (await has_peer_advertised_pq(bundle_peer));
+
       const bundle_rejected =
         bundle_verification.verdict === "tampered" ||
+        pq_downgraded ||
         (is_strict_recipient_bundle_enforced() &&
           (bundle_verification.verdict !== "verified" ||
             !bundle_verification.strict));
 
       if (bundle_rejected) {
-        if (import.meta.env.DEV) {
+        if (pq_downgraded) {
+          record_peer_identity_event(bundle_peer, "downgraded");
+          console.warn(
+            "ratchet prekey bundle dropped its post-quantum key; routing via PGP",
+          );
+        } else if (import.meta.env.DEV) {
           console.warn(
             "ratchet prekey bundle failed verification; routing via PGP",
           );
@@ -252,6 +268,7 @@ async function encrypt_for_ratchet_recipient_unlocked(
         bundle_peer,
         bundle.kem_identity_key,
         bundle_verification.verdict === "verified",
+        advertises_pq,
       );
 
       if (identity_pin_status === "drift") {

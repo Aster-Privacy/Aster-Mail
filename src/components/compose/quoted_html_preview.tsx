@@ -25,22 +25,51 @@ import { strip_unresolved_cid_references } from "@/lib/cid_resolver";
 import { get_image_proxy_url } from "@/lib/image_proxy";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { use_external_link } from "@/contexts/external_link_context";
+import { use_preferences_optional } from "@/contexts/preferences_context";
+import { resolve_content_blocking } from "@/components/email/resolve_content_blocking";
+import { strip_style_blocks } from "@/utils/print_email";
 
 export function QuotedHtmlPreview({ html }: { html: string }) {
   const { handle_external_link } = use_external_link();
+  const preferences = use_preferences_optional()?.preferences;
   const container_ref = useRef<HTMLDivElement>(null);
+  const block_external_content = preferences?.block_external_content ?? false;
+  const block_remote_images = preferences?.block_remote_images ?? true;
+  const block_remote_fonts = preferences?.block_remote_fonts ?? true;
+  const block_remote_css = preferences?.block_remote_css ?? true;
+  const block_tracking_pixels = preferences?.block_tracking_pixels ?? true;
 
   const sanitized_html = useMemo(() => {
     const lockdown_mode = is_any_lockdown_active();
+    const content_blocking = block_external_content
+      ? resolve_content_blocking({
+          lockdown_active: lockdown_mode,
+          load_remote_content: false,
+          preferences: {
+            block_remote_images,
+            block_remote_fonts,
+            block_remote_css,
+            block_tracking_pixels,
+          },
+        })
+      : undefined;
 
     return strip_unresolved_cid_references(
-      sanitize_html(html, {
+      sanitize_html(strip_style_blocks(html), {
         external_content_mode: lockdown_mode ? "never" : "always",
         lockdown_mode,
         image_proxy_url: get_image_proxy_url(),
+        content_blocking,
       }).html,
     );
-  }, [html]);
+  }, [
+    html,
+    block_external_content,
+    block_remote_images,
+    block_remote_fonts,
+    block_remote_css,
+    block_tracking_pixels,
+  ]);
 
   useEffect(() => {
     const container = container_ref.current;

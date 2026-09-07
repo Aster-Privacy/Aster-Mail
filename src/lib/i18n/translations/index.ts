@@ -22,6 +22,8 @@ import type { LanguageCode, Translations } from "../types";
 
 import { en } from "./en";
 
+import { safe_local_get } from "@/lib/safe_storage";
+
 type PartialTranslations = {
   [K in keyof Translations]?: Partial<Translations[K]>;
 };
@@ -130,7 +132,7 @@ const LANGUAGE_STORAGE_KEY = "astermail_language";
 export function get_active_translations(): Translations {
   if (typeof window === "undefined") return en;
 
-  const stored = localStorage.getItem(LANGUAGE_STORAGE_KEY);
+  const stored = safe_local_get(LANGUAGE_STORAGE_KEY);
 
   if (stored && has_translations(stored as LanguageCode)) {
     return get_translations(stored as LanguageCode);

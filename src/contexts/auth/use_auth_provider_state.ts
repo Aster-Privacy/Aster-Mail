@@ -39,6 +39,7 @@ import {
 import { use_auth_account_state } from "./use_auth_account_state";
 
 import { user_facing_error } from "@/utils/user_facing_error";
+import { is_auth_salt_collision } from "@/services/crypto/auth_salt_guard";
 import {
   api_client,
   type SessionReestablishResult,
@@ -224,9 +225,11 @@ export function use_auth_provider_state() {
             const fallback = remaining.find((a) => a.kind !== "shared");
 
             show_toast(
-              access_gone
-                ? t("shared_mailboxes.access_unavailable")
-                : t("settings.switch_failed"),
+              is_auth_salt_collision(e)
+                ? t("errors.auth_salt_collision")
+                : access_gone
+                  ? t("shared_mailboxes.access_unavailable")
+                  : t("settings.switch_failed"),
               "error",
             );
             set_state((prev) => ({

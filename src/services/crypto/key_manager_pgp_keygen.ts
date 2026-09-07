@@ -20,6 +20,9 @@
 //
 import * as openpgp from "openpgp";
 
+import "@/services/crypto/openpgp_limits";
+import { require_usable_auth_salt } from "./auth_salt_guard";
+
 import {
   HASH_ALG,
   KEY_DERIVATION_ITERATIONS,
@@ -60,6 +63,8 @@ export async function derive_password_hash(
   password: string,
   salt: Uint8Array,
 ): Promise<{ hash: string; salt: string }> {
+  await require_usable_auth_salt(salt);
+
   const encoder = new TextEncoder();
   const password_data = encoder.encode(clamp_password(password));
 

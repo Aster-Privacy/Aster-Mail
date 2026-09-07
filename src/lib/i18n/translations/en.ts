@@ -1702,6 +1702,35 @@ export const en: Translations = {
     contact_count_one: "{{count}} contact",
     contact_count_other: "{{count}} contacts",
     n_of_n_contacts: "{{ filtered }} of {{ total }}",
+    contact_groups: "Groups",
+    new_group: "New group",
+    create_contact_group: "Create group",
+    rename_contact_group: "Rename group",
+    delete_contact_group: "Delete group",
+    contact_group_name: "Group name",
+    enter_contact_group_name: "Enter a group name",
+    manage_contact_groups: "Manage groups",
+    no_contact_groups_yet: "No groups yet",
+    add_contacts_to_group_hint:
+      "Create a group to organize the people you email most.",
+    contact_group_name_too_long:
+      "Group names can be up to {{ max }} characters.",
+    contact_group_already_exists: "A group with this name already exists.",
+    contact_group_limit_reached: "You can create up to {{ max }} groups.",
+    delete_contact_group_confirm:
+      "Delete this group? Your contacts stay in your address book.",
+    failed_to_fetch_contact_groups: "Groups did not load. Try again.",
+    failed_to_save_contact_group: "The group did not save. Try again.",
+    failed_to_create_contact_group: "The group was not created. Try again.",
+    failed_to_delete_contact_group: "The group was not deleted. Try again.",
+    failed_to_update_contact_groups: "Group membership did not update.",
+    contacts_added_to_group: "{{count}} contacts added to the group",
+    contacts_added_to_group_one: "{{count}} contact added to the group",
+    contacts_added_to_group_other: "{{count}} contacts added to the group",
+    contacts_removed_from_group: "{{count}} contacts removed from the group",
+    contacts_removed_from_group_one: "{{count}} contact removed from the group",
+    contacts_removed_from_group_other:
+      "{{count}} contacts removed from the group",
     send_email: "Send email",
     folder_preview: "Folder preview",
     rename_label: "Rename Label",
@@ -2101,6 +2130,8 @@ export const en: Translations = {
     empty_trash_confirm:
       "Delete every contact in Trash permanently? You can’t undo this.",
     export_selection_vcf: "Export as vCard",
+    export_selection_csv: "Export as CSV",
+    export_selection: "Export selection",
     failed_to_add_to_group: "Couldn’t add the contact to the group.",
     failed_to_create_group: "Couldn’t create the group.",
     failed_to_delete_group: "Couldn’t delete the group.",
@@ -2139,6 +2170,8 @@ export const en: Translations = {
     search_groups: "Search groups",
     select_contact: "Select contact",
     share_contact: "Share contact",
+    share_contact_via_email: "Attach to a new email",
+    share_contact_device: "Share with another app",
     trash_days_left: "{{count}} days left",
     undo_change: "Undo change",
   },
@@ -3108,6 +3141,11 @@ export const en: Translations = {
     security_center_recommended: "Recommended actions",
     security_center_protected: "Protected",
     security_center_all_clear: "Every protection is turned on.",
+    security_center_protection_score: "Protection score",
+    security_center_encryption_title: "End-to-end encryption",
+    security_center_encryption_detail:
+      "Your mail, contacts, and files are encrypted on your device before they reach Aster.",
+    security_center_identity_key: "Identity key",
     criterion_two_factor: "Two-factor authentication",
     criterion_passkey: "Passkey registered",
     criterion_recovery_email: "Verified recovery email",
@@ -7663,6 +7701,10 @@ export const en: Translations = {
     usage_external_accounts: "External Accounts",
   },
   mail: {
+    sender_identity_rotated:
+      "This sender's encryption identity changed since you last exchanged messages. If you did not expect that, confirm it with them another way.",
+    sender_identity_downgraded:
+      "This sender's messages no longer carry post-quantum protection. If you did not expect that, confirm it with them another way.",
     encrypted_message_unavailable:
       "This message could not be decrypted. The sender may have used an outdated key.",
     pgp_password_protected_title: "Password protected message",
@@ -9158,6 +9200,8 @@ export const en: Translations = {
       "Adds a second factor using Windows Hello, a YubiKey, or your password manager.",
   },
   errors: {
+    auth_salt_collision:
+      "Sign-in stopped because the server sent an unsafe value, so nothing was unlocked. Contact support before you try again.",
     upload_too_large:
       "The upload is too large. To continue, remove or shrink a file and try again.",
     generic: "That did not work. Another attempt should do it.",

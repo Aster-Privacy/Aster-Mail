@@ -23,7 +23,18 @@ import type { ExternalContentReport } from "@/lib/html_sanitizer";
 import type { PreloadedSanitizedContent } from "@/components/email/hooks/preload_cache";
 import type { PhishingLevel } from "@/lib/phishing_analyzer";
 
-import { useMemo, useState, useCallback, useEffect, useRef } from "react";
+import {
+  useMemo,
+  useState,
+  useCallback,
+  useEffect,
+  useRef,
+  useSyncExternalStore,
+} from "react";
+import {
+  get_peer_identity_event,
+  subscribe_peer_identity_events,
+} from "@/services/crypto/ratchet_verification_status";
 import { should_retry_cid, cid_retry_delay_ms } from "@/lib/cid_retry";
 import { resolve_content_blocking } from "@/components/email/resolve_content_blocking";
 
@@ -89,6 +100,11 @@ export function EmailViewerContent({
   preloaded_sanitized: preloaded_sanitized_prop,
 }: EmailViewerContentProps) {
   const { t } = use_i18n();
+  const peer_identity_event = useSyncExternalStore(
+    subscribe_peer_identity_events,
+    () => get_peer_identity_event(email.sender.email),
+    () => null,
+  );
   const { preferences } = use_preferences();
   const auth = use_auth_safe();
   const [force_load_content, set_force_load_content] = useState(false);
@@ -552,6 +568,19 @@ export function EmailViewerContent({
         <Separator className="my-6" />
 
         <div>
+          {peer_identity_event && !is_system && (
+            <p
+              className="mb-3 text-xs text-txt-tertiary"
+              data-testid="sender-identity-notice"
+              role="status"
+            >
+              {t(
+                peer_identity_event.event === "downgraded"
+                  ? "mail.sender_identity_downgraded"
+                  : "mail.sender_identity_rotated",
+              )}
+            </p>
+          )}
           {show_banner && (
             <ExternalContentBanner
               blocked_content={sanitize_result.external_content}

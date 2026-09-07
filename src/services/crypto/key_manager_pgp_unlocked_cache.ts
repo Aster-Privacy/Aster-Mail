@@ -20,6 +20,8 @@
 //
 import * as openpgp from "openpgp";
 
+import "@/services/crypto/openpgp_limits";
+
 import { compute_hash } from "./key_manager_core";
 
 const UNLOCKED_KEY_CACHE_MAX_ENTRIES = 8;

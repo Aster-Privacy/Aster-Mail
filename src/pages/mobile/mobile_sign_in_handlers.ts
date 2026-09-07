@@ -36,6 +36,8 @@ import { emit_auth_ready } from "@/hooks/mail_events";
 import { get_current_account_id } from "@/services/account_manager";
 import { ignore_error } from "@/lib/ignore_error";
 import { user_facing_error } from "@/utils/user_facing_error";
+import { is_auth_salt_collision } from "@/services/crypto/auth_salt_guard";
+import { api_client } from "@/services/api/client";
 
 type MobileSignInHandlerParams = Pick<
   ReturnType<typeof use_mobile_sign_in>,
@@ -364,6 +366,8 @@ export function build_mobile_sign_in_handlers(
         if (!add_result.success) {
           set_error(add_result.error || t("errors.login_failed"));
           set_is_loading(false);
+          set_captcha_token("");
+          turnstile_ref.current?.reset();
 
           return;
         }
@@ -398,7 +402,10 @@ export function build_mobile_sign_in_handlers(
       if (elapsed < min_time) {
         await new Promise((resolve) => setTimeout(resolve, min_time - elapsed));
       }
-      if (err instanceof Error && err.message.includes("decrypt")) {
+      if (is_auth_salt_collision(err)) {
+        void api_client.clear_session_cookies();
+        set_error(t("errors.auth_salt_collision"));
+      } else if (err instanceof Error && err.message.includes("decrypt")) {
         set_error(t("errors.wrong_vault_password"));
       } else {
         set_error(user_facing_error(err, t("errors.login_failed")));

@@ -60,6 +60,8 @@ import { is_tauri } from "@/native/desktop_device_auth";
 import { get_current_account_id } from "@/services/account_manager";
 import { ignore_error } from "@/lib/ignore_error";
 import { user_facing_error } from "@/utils/user_facing_error";
+import { is_auth_salt_collision } from "@/services/crypto/auth_salt_guard";
+import { api_client } from "@/services/api/client";
 
 export default function SignInPage() {
   const {
@@ -458,7 +460,10 @@ export default function SignInPage() {
       if (elapsed < min_time) {
         await new Promise((resolve) => setTimeout(resolve, min_time - elapsed));
       }
-      if (err instanceof Error && err.message.includes("decrypt")) {
+      if (is_auth_salt_collision(err)) {
+        void api_client.clear_session_cookies();
+        set_error(t("errors.auth_salt_collision"));
+      } else if (err instanceof Error && err.message.includes("decrypt")) {
         set_error(t("errors.wrong_vault_password"));
       } else {
         set_error(user_facing_error(err, t("errors.login_failed")));

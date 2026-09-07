@@ -66,6 +66,24 @@ export class SenderIdentityUnverifiedError extends Error {
   }
 }
 
+async function current_account_uid(): Promise<string | null> {
+  try {
+    const { get_current_account_id } = await import(
+      "@/services/account_manager"
+    );
+
+    return await get_current_account_id();
+  } catch {
+    return null;
+  }
+}
+
+function history_key_for(uid: string | null, peer: string): string {
+  if (!uid) return `${HISTORY_STORAGE_PREFIX}${peer}`;
+
+  return `${HISTORY_STORAGE_PREFIX}${uid}_${peer}`;
+}
+
 async function history_storage_key(): Promise<CryptoKey | null> {
   try {
     const key_bytes = get_derived_encryption_key();
@@ -89,7 +107,9 @@ async function history_storage_key(): Promise<CryptoKey | null> {
 }
 
 async function load_identity_history(peer: string): Promise<string[]> {
-  const cached = history_cache.get(peer);
+  const uid = await current_account_uid();
+  const cache_key = history_key_for(uid, peer);
+  const cached = history_cache.get(cache_key);
 
   if (cached) return cached;
 
@@ -98,14 +118,23 @@ async function load_identity_history(peer: string): Promise<string[]> {
 
     if (!storage_key) return [];
 
-    const stored = await encrypted_get<string[]>(
-      `${HISTORY_STORAGE_PREFIX}${peer}`,
-      storage_key,
-    );
+    let stored = await encrypted_get<string[]>(cache_key, storage_key);
+
+    if (!Array.isArray(stored) && uid) {
+      const legacy = await encrypted_get<string[]>(
+        history_key_for(null, peer),
+        storage_key,
+      );
+
+      if (Array.isArray(legacy)) {
+        stored = legacy;
+        await encrypted_set(cache_key, legacy, storage_key);
+      }
+    }
 
     const history = Array.isArray(stored) ? stored : [];
 
-    history_cache.set(peer, history);
+    history_cache.set(cache_key, history);
 
     return history;
   } catch {
@@ -125,14 +154,16 @@ async function remember_identity(
     if (history.includes(identity_key)) return;
 
     const next = [identity_key, ...history].slice(0, MAX_REMEMBERED_IDENTITIES);
+    const uid = await current_account_uid();
+    const cache_key = history_key_for(uid, peer);
 
-    history_cache.set(peer, next);
+    history_cache.set(cache_key, next);
 
     const storage_key = await history_storage_key();
 
     if (!storage_key) return;
 
-    await encrypted_set(`${HISTORY_STORAGE_PREFIX}${peer}`, next, storage_key);
+    await encrypted_set(cache_key, next, storage_key);
   } catch {
     return;
   }

@@ -20,6 +20,8 @@
 //
 import * as openpgp from "openpgp";
 
+import "@/services/crypto/openpgp_limits";
+
 import { array_to_base64, base64_to_array } from "./key_manager_core";
 
 export async function verify_prekey_signature(

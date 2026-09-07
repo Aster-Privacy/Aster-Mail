@@ -18,6 +18,17 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import {
+  safe_local_get,
+  safe_local_keys,
+  safe_local_remove,
+  safe_local_set,
+  safe_session_get,
+  safe_session_keys,
+  safe_session_remove,
+  safe_session_set,
+} from "@/lib/safe_storage";
+
 const MAX_ATTEMPTS = 5;
 const BASE_LOCKOUT_MS = 5 * 60 * 1000;
 const MAX_LOCKOUT_MS = 60 * 60 * 1000;
@@ -124,7 +135,7 @@ interface AttemptState {
 
 function get_attempt_state(account_id: string): AttemptState {
   try {
-    const raw = localStorage.getItem(attempts_key(account_id));
+    const raw = safe_local_get(attempts_key(account_id));
 
     if (!raw) return { count: 0, locked_until: null, lockout_count: 0 };
 
@@ -145,7 +156,7 @@ export function is_locked_out(account_id: string): {
   }
   if (state.locked_until !== null) {
     if (state.lockout_count > 0) {
-      localStorage.setItem(
+      safe_local_set(
         attempts_key(account_id),
         JSON.stringify({
           count: 0,
@@ -154,7 +165,7 @@ export function is_locked_out(account_id: string): {
         }),
       );
     } else {
-      localStorage.removeItem(attempts_key(account_id));
+      safe_local_remove(attempts_key(account_id));
     }
   }
 
@@ -183,7 +194,7 @@ function record_failed_attempt(account_id: string): {
     lockout_count: new_lockout_count,
   };
 
-  localStorage.setItem(attempts_key(account_id), JSON.stringify(new_state));
+  safe_local_set(attempts_key(account_id), JSON.stringify(new_state));
 
   return {
     locked: now_locked,
@@ -195,12 +206,12 @@ function reset_attempts(account_id: string): void {
   const state = get_attempt_state(account_id);
 
   if (state.lockout_count > 0) {
-    localStorage.setItem(
+    safe_local_set(
       attempts_key(account_id),
       JSON.stringify({ count: 0, locked_until: null, lockout_count: 0 }),
     );
   } else {
-    localStorage.removeItem(attempts_key(account_id));
+    safe_local_remove(attempts_key(account_id));
   }
 }
 
@@ -218,7 +229,7 @@ function constant_time_equal(a: string, b: string): boolean {
 
 export function get_app_lock_config(account_id: string): AppLockConfig | null {
   try {
-    const raw = localStorage.getItem(lock_key(account_id));
+    const raw = safe_local_get(lock_key(account_id));
 
     if (!raw) return null;
 
@@ -229,29 +240,52 @@ export function get_app_lock_config(account_id: string): AppLockConfig | null {
 }
 
 const hint_key = (id: string) => `aster:app_lock_hint:${id}`;
+const NATIVE_HINT_PREFIX = "aster:app_lock_native_hint:";
+const native_hint_key = (id: string) => `${NATIVE_HINT_PREFIX}${id}`;
+
+export function save_native_lock_hint(account_id: string): void {
+  if (!account_id) return;
+  safe_local_set(native_hint_key(account_id), "1");
+}
+
+export function clear_native_lock_hint(account_id: string): void {
+  if (!account_id) return;
+  safe_local_remove(native_hint_key(account_id));
+}
+
+export function has_pending_native_lock_hint(): boolean {
+  try {
+    return safe_local_keys().some(
+      (key) =>
+        key.startsWith(NATIVE_HINT_PREFIX) && safe_local_get(key) === "1",
+    );
+  } catch {
+    return false;
+  }
+}
 
 export function save_app_lock_config(
   account_id: string,
   config: AppLockConfig,
 ): void {
-  localStorage.setItem(lock_key(account_id), JSON.stringify(config));
-  if (config.enabled) localStorage.setItem(hint_key(account_id), "1");
+  safe_local_set(lock_key(account_id), JSON.stringify(config));
+  if (config.enabled) safe_local_set(hint_key(account_id), "1");
 }
 
 export function clear_app_lock_config(account_id: string): void {
-  localStorage.removeItem(lock_key(account_id));
-  localStorage.removeItem(hint_key(account_id));
-  localStorage.removeItem(attempts_key(account_id));
-  sessionStorage.removeItem(attempts_key(account_id));
+  safe_local_remove(lock_key(account_id));
+  safe_local_remove(hint_key(account_id));
+  safe_local_remove(attempts_key(account_id));
+  safe_session_remove(attempts_key(account_id));
 }
 
 export function has_pending_lock_hint(): boolean {
   try {
     const prefix = "aster:app_lock_hint:";
 
-    return Object.keys(localStorage).some((key) => {
+    return safe_local_keys().some((key) => {
       if (!key.startsWith(prefix)) return false;
-      if (localStorage.getItem(key) !== "1") return false;
+      if (safe_local_get(key) !== "1") return false;
 
       return !is_session_unlocked(key.slice(prefix.length));
     });
@@ -263,7 +297,7 @@ export function has_pending_lock_hint(): boolean {
 export function get_lock_hint(account_id: string): boolean {
   if (!account_id) return false;
 
-  return localStorage.getItem(hint_key(account_id)) === "1";
+  return safe_local_get(hint_key(account_id)) === "1";
 }
 
 export function generate_pin_salt(): Uint8Array {
@@ -344,15 +378,15 @@ export async function verify_pin(
 }
 
 export function is_session_unlocked(account_id: string): boolean {
-  return sessionStorage.getItem(session_key(account_id)) === "1";
+  return safe_session_get(session_key(account_id)) === "1";
 }
 
 export function mark_session_unlocked(account_id: string): void {
-  sessionStorage.setItem(session_key(account_id), "1");
+  safe_session_set(session_key(account_id), "1");
 }
 
 export function clear_session_unlock(account_id: string): void {
-  sessionStorage.removeItem(session_key(account_id));
+  safe_session_remove(session_key(account_id));
 }
 
 export function has_duress_pin(account_id: string): boolean {
@@ -504,18 +538,15 @@ export function clear_all_app_lock_data(): void {
     "aster:app_unlocked:",
     "aster:app_lock_attempts:",
     "aster:app_lock_hint:",
+    "aster:app_lock_native_hint:",
   ];
 
   for (const prefix of prefixes) {
-    const ls_keys = Object.keys(localStorage).filter((k) =>
-      k.startsWith(prefix),
-    );
-
-    ls_keys.forEach((k) => localStorage.removeItem(k));
-    const ss_keys = Object.keys(sessionStorage).filter((k) =>
-      k.startsWith(prefix),
-    );
-
-    ss_keys.forEach((k) => sessionStorage.removeItem(k));
+    safe_local_keys()
+      .filter((key) => key.startsWith(prefix))
+      .forEach((key) => safe_local_remove(key));
+    safe_session_keys()
+      .filter((key) => key.startsWith(prefix))
+      .forEach((key) => safe_session_remove(key));
   }
 }

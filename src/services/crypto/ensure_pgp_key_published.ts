@@ -20,6 +20,8 @@
 //
 import * as openpgp from "openpgp";
 
+import "@/services/crypto/openpgp_limits";
+
 import { api_client } from "@/services/api/client";
 import { republish_pgp_key } from "@/services/api/key_rotation";
 import { prepare_pgp_key_data } from "@/services/crypto/key_manager";

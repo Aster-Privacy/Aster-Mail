@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { user_facing_error } from "@/utils/user_facing_error";
+import "@/services/crypto/openpgp_limits";
 import { decrypt_message_with_any_key } from "@/services/crypto/key_manager_pgp";
 
 export interface pgp_decrypt_worker_request {

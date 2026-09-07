@@ -1595,6 +1595,8 @@ export interface CommonTranslations {
   trash_days_left: string;
   print_contacts: string;
   share_contact: string;
+  share_contact_via_email: string;
+  share_contact_device: string;
   empty_trash_confirm: string;
   failed_to_move_to_trash: string;
   change_photo: string;
@@ -2255,6 +2257,8 @@ export interface CommonTranslations {
   clear_selection: string;
   delete_contacts: string;
   export_selection_vcf: string;
+  export_selection_csv: string;
+  export_selection: string;
   contacts_exported: string;
   compose_to_selection: string;
   import_search_placeholder: string;
@@ -2268,6 +2272,31 @@ export interface CommonTranslations {
   contact_count_one: string;
   contact_count_other: string;
   n_of_n_contacts: string;
+  contact_groups: string;
+  new_group: string;
+  create_contact_group: string;
+  rename_contact_group: string;
+  delete_contact_group: string;
+  contact_group_name: string;
+  enter_contact_group_name: string;
+  manage_contact_groups: string;
+  no_contact_groups_yet: string;
+  add_contacts_to_group_hint: string;
+  contact_group_name_too_long: string;
+  contact_group_already_exists: string;
+  contact_group_limit_reached: string;
+  delete_contact_group_confirm: string;
+  failed_to_fetch_contact_groups: string;
+  failed_to_save_contact_group: string;
+  failed_to_create_contact_group: string;
+  failed_to_delete_contact_group: string;
+  failed_to_update_contact_groups: string;
+  contacts_added_to_group: string;
+  contacts_added_to_group_one: string;
+  contacts_added_to_group_other: string;
+  contacts_removed_from_group: string;
+  contacts_removed_from_group_one: string;
+  contacts_removed_from_group_other: string;
   send_email: string;
   folder_preview: string;
   rename_label: string;
@@ -3237,6 +3266,10 @@ export interface SettingsTranslations {
   security_center_recommended: string;
   security_center_protected: string;
   security_center_all_clear: string;
+  security_center_protection_score: string;
+  security_center_encryption_title: string;
+  security_center_encryption_detail: string;
+  security_center_identity_key: string;
   criterion_two_factor: string;
   criterion_passkey: string;
   criterion_recovery_email: string;
@@ -6877,6 +6910,8 @@ export interface SettingsTranslations {
 }
 
 export interface MailTranslations {
+  sender_identity_rotated: string;
+  sender_identity_downgraded: string;
   encrypted_message_unavailable: string;
   pgp_password_protected_title: string;
   pgp_password_protected_description: string;
@@ -8120,6 +8155,7 @@ export interface AuthTranslations {
 }
 
 export interface ErrorTranslations {
+  auth_salt_collision: string;
   upload_too_large: string;
   post_quantum_unavailable: string;
   generic: string;

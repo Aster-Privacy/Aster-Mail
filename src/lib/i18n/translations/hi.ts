@@ -2145,6 +2145,38 @@ export const hi = {
       "एक संदेश To, Cc और Bcc मिलाकर अधिकतम {{max}} पतों तक पहुंचता है। सूची को छोटे संदेशों में बांटने पर यह भेजा जाएगा।",
     credit_balance_changed:
       "चेकआउट खुला रहने के दौरान आपका क्रेडिट बैलेंस बदल गया। अभी उपलब्ध क्रेडिट लागू करने के लिए चेकआउट बंद करें और दोबारा शुरू करें।",
+    export_selection_csv: "CSV के रूप में निर्यात करें",
+    export_selection: "चयन निर्यात करें",
+    contact_groups: "समूह",
+    new_group: "नया समूह",
+    create_contact_group: "समूह बनाएं",
+    rename_contact_group: "समूह का नाम बदलें",
+    delete_contact_group: "समूह हटाएं",
+    contact_group_name: "समूह का नाम",
+    enter_contact_group_name: "समूह का नाम डालें",
+    manage_contact_groups: "समूह प्रबंधित करें",
+    no_contact_groups_yet: "अभी तक कोई समूह नहीं",
+    add_contacts_to_group_hint:
+      "जिन लोगों को आप सबसे ज़्यादा ईमेल करते हैं, उन्हें व्यवस्थित करने के लिए एक समूह बनाएं।",
+    contact_group_name_too_long:
+      "समूह के नाम अधिकतम {{ max }} वर्ण के हो सकते हैं।",
+    contact_group_already_exists: "इस नाम का समूह पहले से मौजूद है।",
+    contact_group_limit_reached: "आप अधिकतम {{ max }} समूह बना सकते हैं।",
+    delete_contact_group_confirm:
+      "यह समूह हटाएं? आपके संपर्क आपकी संपर्क सूची में बने रहेंगे।",
+    failed_to_fetch_contact_groups: "समूह लोड नहीं हुए। फिर से कोशिश करें।",
+    failed_to_save_contact_group: "समूह सहेजा नहीं गया। फिर से कोशिश करें।",
+    failed_to_create_contact_group: "समूह नहीं बना। फिर से कोशिश करें।",
+    failed_to_delete_contact_group: "समूह नहीं हटाया गया। फिर से कोशिश करें।",
+    failed_to_update_contact_groups: "समूह की सदस्यता अपडेट नहीं हुई।",
+    contacts_added_to_group: "{{count}} संपर्क समूह में जोड़े गए",
+    contacts_added_to_group_one: "{{count}} संपर्क समूह में जोड़ा गया",
+    contacts_added_to_group_other: "{{count}} संपर्क समूह में जोड़े गए",
+    contacts_removed_from_group: "{{count}} संपर्क समूह से हटाए गए",
+    contacts_removed_from_group_one: "{{count}} संपर्क समूह से हटाया गया",
+    contacts_removed_from_group_other: "{{count}} संपर्क समूह से हटाए गए",
+    share_contact_via_email: "नए ईमेल में अटैच करें",
+    share_contact_device: "दूसरे ऐप के साथ शेयर करें",
   },
   settings: {
     account_enabled_tooltip: "यह खाता सिंक हो रहा है।",
@@ -3241,6 +3273,11 @@ export const hi = {
     security_center_recommended: "अनुशंसित कार्रवाई",
     security_center_protected: "सुरक्षित",
     security_center_all_clear: "सभी सुरक्षाएँ चालू हैं।",
+    security_center_protection_score: "सुरक्षा स्कोर",
+    security_center_encryption_title: "एंड-टू-एंड एन्क्रिप्शन",
+    security_center_encryption_detail:
+      "आपका मेल, संपर्क और फ़ाइलें Aster तक पहुंचने से पहले आपके डिवाइस पर एन्क्रिप्ट हो जाते हैं।",
+    security_center_identity_key: "पहचान कुंजी",
     criterion_two_factor: "दो-चरणीय प्रमाणीकरण",
     criterion_passkey: "पासकी दर्ज हो गई",
     criterion_recovery_email: "पुष्ट रिकवरी ईमेल",
@@ -7671,6 +7708,10 @@ export const hi = {
     sender_rule_created: "इस प्रेषक के नए मेल अब {{category}} में जाते हैं।",
     sender_rule_name: "{{sender}} को {{category}} में",
     sender_rule_offer: "आप {{sender}} के मेल अक्सर {{category}} में ले जाते हैं। क्या यह अपने आप हो जाए?",
+    sender_identity_rotated:
+      "पिछली बार संदेशों के आदान-प्रदान के बाद से इस प्रेषक की एन्क्रिप्शन पहचान बदल गई है। अगर आपको इसकी उम्मीद नहीं थी, तो किसी दूसरे तरीके से उनसे पुष्टि करें।",
+    sender_identity_downgraded:
+      "इस प्रेषक के संदेशों में अब पोस्ट-क्वांटम सुरक्षा नहीं है। अगर आपको इसकी उम्मीद नहीं थी, तो किसी दूसरे तरीके से उनसे पुष्टि करें।",
     encrypted_message_unavailable:
       "यह संदेश डिक्रिप्ट नहीं हो सका। प्रेषक ने शायद पुरानी कुंजी इस्तेमाल की हो।",
     pgp_password_protected_title: "पासवर्ड से सुरक्षित संदेश",
@@ -9140,6 +9181,8 @@ export const hi = {
       "Windows Hello, YubiKey या आपके पासवर्ड मैनेजर से एक दूसरा चरण जोड़ता है।",
   },
   errors: {
+    auth_salt_collision:
+      "सर्वर ने एक असुरक्षित मान भेजा, इसलिए साइन इन रोक दिया गया और कुछ भी अनलॉक नहीं हुआ। दोबारा कोशिश करने से पहले सहायता से संपर्क करें।",
     upload_too_large:
       "अपलोड बहुत बड़ा है। जारी रखने के लिए, कोई फ़ाइल निकालें या छोटी करें और फिर से कोशिश करें।",
     generic: "वह काम नहीं आया। एक और कोशिश से काम बन जाना चाहिए।",

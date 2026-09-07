@@ -39,6 +39,7 @@ vi.mock("@/services/crypto/memory_key_store", () => ({
   get_vault_from_memory: () => null,
   get_passphrase_bytes: () => null,
   has_passphrase_in_memory: () => h.passphrase !== null,
+  on_keys_ready: () => () => undefined,
 }));
 
 vi.mock("@/services/api/keys", async (import_original) => {
@@ -282,9 +283,20 @@ describe("upload_prekey_bundle", () => {
     expect(api_client.put).not.toHaveBeenCalled();
   });
 
-  it("falls back to the legacy hash binding with no passphrase in memory", async () => {
+  it("defers the upload instead of hash binding when the vault has a signing key but no passphrase", async () => {
     const uploaded = await upload_prekey_bundle({
       identity_key: "armored",
+      ratchet_identity_public: "identity",
+      ratchet_signed_prekey_public: "prekey",
+      ratchet_pq_identity_public: "pq",
+    } as unknown as EncryptedVault);
+
+    expect(uploaded).toBe(false);
+    expect(api_client.put).not.toHaveBeenCalled();
+  });
+
+  it("keeps the legacy hash binding when the vault has no signing key", async () => {
+    const uploaded = await upload_prekey_bundle({
       ratchet_identity_public: "identity",
       ratchet_signed_prekey_public: "prekey",
       ratchet_pq_identity_public: "pq",
@@ -315,7 +327,6 @@ describe("upload_prekey_bundle", () => {
 
   it("sends a null post-quantum key when the vault has none", async () => {
     await upload_prekey_bundle({
-      identity_key: "armored",
       ratchet_identity_public: "identity",
       ratchet_signed_prekey_public: "prekey",
     } as unknown as EncryptedVault);
@@ -335,7 +346,6 @@ describe("upload_prekey_bundle", () => {
     });
 
     const uploaded = await upload_prekey_bundle({
-      identity_key: "armored",
       ratchet_identity_public: "identity",
       ratchet_signed_prekey_public: "prekey",
     } as unknown as EncryptedVault);

@@ -95,6 +95,7 @@ import { sync_vault_with_server } from "@/services/crypto/ensure_ratchet_keys";
 import { use_key_rotation } from "@/hooks/use_key_rotation";
 import { check_password_breach } from "@/services/breach_check";
 import { use_i18n } from "@/lib/i18n/context";
+import { is_auth_salt_collision } from "@/services/crypto/auth_salt_guard";
 import { show_toast } from "@/components/toast/simple_toast";
 import { ignore_error } from "@/lib/ignore_error";
 
@@ -373,7 +374,11 @@ export function use_security() {
         );
       } catch (error) {
         if (import.meta.env.DEV) console.error(error);
-        set_password_error(t("settings.current_password_incorrect"));
+        set_password_error(
+          is_auth_salt_collision(error)
+            ? t("errors.auth_salt_collision")
+            : t("settings.current_password_incorrect"),
+        );
         set_password_loading(false);
 
         return;

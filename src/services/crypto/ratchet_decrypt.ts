@@ -41,6 +41,8 @@ import {
   set_cached_ratchet_plaintext,
 } from "./ratchet_plaintext_cache";
 import { detect_identity_pin_drift } from "./ratchet_prekey_bundle";
+import { has_peer_advertised_pq } from "./ratchet_identity_pin";
+import { record_peer_identity_event } from "./ratchet_verification_status";
 import { open_recovery_lane } from "./ratchet_recovery_lane";
 import {
   archive_ratchet_state,
@@ -428,6 +430,7 @@ async function init_receiver_from_bootstrap(
   sender_identity_key: string,
   keys: RatchetKeySet,
   conversation_id: string,
+  sender_email: string,
 ): Promise<DoubleRatchet | null> {
   if (
     !keys.ratchet_identity_key ||
@@ -460,6 +463,10 @@ async function init_receiver_from_bootstrap(
     console.warn(
       "ratchet receiver: PQ-capable identity received a non-PQ bootstrap, proceeding classically",
     );
+
+    if (await has_peer_advertised_pq(sender_email.toLowerCase())) {
+      record_peer_identity_event(sender_email, "downgraded");
+    }
   }
 
   const shared_secret = await perform_x3dh_receiver(
@@ -630,6 +637,7 @@ async function decrypt_ratchet_for_recipient(
           sender_identity_key,
           keys,
           conversation_id,
+          sender_email,
         );
       } catch (err) {
         last_error = err;
@@ -692,6 +700,7 @@ async function decrypt_ratchet_for_recipient(
               sender_identity_key,
               keys,
               conversation_id,
+              sender_email,
             );
           } catch {
             continue;

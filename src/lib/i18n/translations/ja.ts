@@ -1734,6 +1734,40 @@ export const ja = {
     contact_count_one: "{{ count }} 件の連絡先",
     contact_count_other: "{{count}} 件の連絡先",
     n_of_n_contacts: "{{ total }} 件中 {{ filtered }} 件",
+    contact_groups: "グループ",
+    new_group: "新しいグループ",
+    create_contact_group: "グループを作成",
+    rename_contact_group: "グループ名を変更",
+    delete_contact_group: "グループを削除",
+    contact_group_name: "グループ名",
+    enter_contact_group_name: "グループ名を入力してください",
+    manage_contact_groups: "グループを管理",
+    no_contact_groups_yet: "グループはまだありません",
+    add_contacts_to_group_hint:
+      "よく連絡する相手を整理するグループを作成します。",
+    contact_group_name_too_long:
+      "グループ名は {{ max }} 文字以内で入力してください。",
+    contact_group_already_exists: "この名前のグループはすでにあります。",
+    contact_group_limit_reached: "グループは {{ max }} 件まで作成できます。",
+    delete_contact_group_confirm:
+      "このグループを削除しますか。連絡先はアドレス帳に残ります。",
+    failed_to_fetch_contact_groups:
+      "グループを読み込めませんでした。もう一度お試しください。",
+    failed_to_save_contact_group:
+      "グループを保存できませんでした。もう一度お試しください。",
+    failed_to_create_contact_group:
+      "グループを作成できませんでした。もう一度お試しください。",
+    failed_to_delete_contact_group:
+      "グループを削除できませんでした。もう一度お試しください。",
+    failed_to_update_contact_groups:
+      "グループのメンバーを更新できませんでした。",
+    contacts_added_to_group: "{{count}} 件の連絡先をグループに追加しました",
+    contacts_added_to_group_other:
+      "{{count}} 件の連絡先をグループに追加しました",
+    contacts_removed_from_group:
+      "{{count}} 件の連絡先をグループから削除しました",
+    contacts_removed_from_group_other:
+      "{{count}} 件の連絡先をグループから削除しました",
     send_email: "メールを送信",
     folder_preview: "フォルダのプレビュー",
     rename_label: "ラベルの名前を変更",
@@ -2163,6 +2197,10 @@ export const ja = {
     add_birthdays: "誕生日を追加",
     add_birthdays_hint:
       "連絡先に誕生日を追加すると、Aster が前もってお知らせします。",
+    export_selection_csv: "CSV として書き出す",
+    export_selection: "選択項目を書き出す",
+    share_contact_via_email: "新規メールに添付",
+    share_contact_device: "他のアプリで共有",
   },
   settings: {
     account_enabled_tooltip: "このアカウントは同期中です。",
@@ -6539,6 +6577,11 @@ export const ja = {
     security_center_recommended: "推奨される操作",
     security_center_protected: "保護済み",
     security_center_all_clear: "すべての保護が有効です。",
+    security_center_protection_score: "保護スコア",
+    security_center_encryption_title: "エンドツーエンド暗号化",
+    security_center_encryption_detail:
+      "メール、連絡先、ファイルは Aster に届く前にデバイス上で暗号化されます。",
+    security_center_identity_key: "ID キー",
     criterion_two_factor: "二段階認証",
     criterion_recovery_email: "確認済みの回復メール",
     criterion_auto_lock: "自動ロック",
@@ -7776,6 +7819,10 @@ export const ja = {
     spy_pixels_blocked_count_one:
       "{{count}} 件のスパイピクセルをブロックしました",
     trackers_found_one: "{{count}} 件のトラッカーを検出してブロックしました",
+    sender_identity_rotated:
+      "この送信者の暗号化 ID は、前回メッセージをやり取りしたときから変更されています。心当たりがない場合は、別の方法で本人に確認してください。",
+    sender_identity_downgraded:
+      "この送信者のメッセージは耐量子暗号で保護されなくなりました。心当たりがない場合は、別の方法で本人に確認してください。",
     load_all_thread_messages: "すべてのメッセージを読み込む",
     move_to_category: "カテゴリに移動",
     menu_applies_to_selection: "選択した {count} 件に適用",
@@ -9266,6 +9313,8 @@ export const ja = {
     rename_failed: "キーの名前を変更できませんでした。もう一度お試しください。",
   },
   errors: {
+    auth_salt_collision:
+      "サーバーが安全でない値を送信したため、サインインを中止しました。何もロック解除されていません。再試行する前にサポートに問い合わせてください。",
     upload_too_large:
       "アップロードするデータが大きすぎます。続けるには、ファイルを削除するか小さくしてからやり直してください。",
     failed_remove_reaction:
@@ -10094,6 +10143,50 @@ export const ja = {
     invite_declined_toast: "この招待を辞退しました",
     invite_save_failed: "カレンダーに保存できませんでした",
     invite_saved_locally: "暗号化されたカレンダーに保存しました",
+    calendar: "カレンダー",
+    month: "月",
+    week: "週",
+    day: "日",
+    agenda: "予定リスト",
+    today: "今日",
+    previous_period: "前へ",
+    next_period: "次へ",
+    search_events: "予定を検索",
+    only_you_can_read_calendar: "カレンダーを読めるのはあなただけです。予定はデバイスから送信される前に暗号化されます。",
+    all_day: "終日",
+    more_events: "他 {{count}} 件",
+    no_upcoming_events: "予定はありません",
+    no_upcoming_events_hint: "作成した予定がここに表示されます。",
+    new_event: "新規予定",
+    edit_event: "予定を編集",
+    delete_event: "予定を削除",
+    delete_event_confirmation: "「{{title}}」を削除しますか。元に戻すことはできません。",
+    event_title: "タイトル",
+    event_title_placeholder: "タイトルを追加",
+    starts: "開始",
+    ends: "終了",
+    location: "場所",
+    location_placeholder: "場所を追加",
+    description: "説明",
+    description_placeholder: "メモを追加",
+    reminder: "通知",
+    reminder_none: "通知なし",
+    reminder_at_start: "開始時刻",
+    reminder_minutes_before: "{{count}} 分前",
+    title_required: "この予定のタイトルを追加してください",
+    invalid_dates: "有効な開始時刻と終了時刻を入力してください",
+    end_before_start: "終了時刻が開始時刻より前です",
+    weekday_sun: "日",
+    weekday_mon: "月",
+    weekday_tue: "火",
+    weekday_wed: "水",
+    weekday_thu: "木",
+    weekday_fri: "金",
+    weekday_sat: "土",
+    calendar_navigation: "カレンダーナビゲーション",
+    aster_calendar: "Aster カレンダー",
+    back_to_mail: "Mail に戻る",
+    my_calendars: "マイカレンダー",
   },
   settings_search: {
     two_factor: "2要素認証",

@@ -1671,6 +1671,42 @@ export const nl = {
     contact_count_one: "{{count}} contact",
     contact_count_other: "{{count}} contacten",
     n_of_n_contacts: "{{ filtered }} van {{ total }}",
+    contact_groups: "Groepen",
+    new_group: "Nieuwe groep",
+    create_contact_group: "Groep maken",
+    rename_contact_group: "Groepsnaam wijzigen",
+    delete_contact_group: "Groep verwijderen",
+    contact_group_name: "Groepsnaam",
+    enter_contact_group_name: "Voer een groepsnaam in",
+    manage_contact_groups: "Groepen beheren",
+    no_contact_groups_yet: "Nog geen groepen",
+    add_contacts_to_group_hint:
+      "Maak een groep om de mensen te ordenen aan wie u het vaakst mailt.",
+    contact_group_name_too_long:
+      "Groepsnamen mogen maximaal {{ max }} tekens bevatten.",
+    contact_group_already_exists: "Er bestaat al een groep met deze naam.",
+    contact_group_limit_reached: "U kunt maximaal {{ max }} groepen maken.",
+    delete_contact_group_confirm:
+      "Deze groep verwijderen? Uw contacten blijven in uw adresboek staan.",
+    failed_to_fetch_contact_groups:
+      "De groepen zijn niet geladen. Probeer het opnieuw.",
+    failed_to_save_contact_group:
+      "De groep is niet opgeslagen. Probeer het opnieuw.",
+    failed_to_create_contact_group:
+      "De groep is niet gemaakt. Probeer het opnieuw.",
+    failed_to_delete_contact_group:
+      "De groep is niet verwijderd. Probeer het opnieuw.",
+    failed_to_update_contact_groups:
+      "Het groepslidmaatschap is niet bijgewerkt.",
+    contacts_added_to_group: "{{count}} contacten toegevoegd aan de groep",
+    contacts_added_to_group_one: "{{count}} contact toegevoegd aan de groep",
+    contacts_added_to_group_other:
+      "{{count}} contacten toegevoegd aan de groep",
+    contacts_removed_from_group: "{{count}} contacten verwijderd uit de groep",
+    contacts_removed_from_group_one:
+      "{{count}} contact verwijderd uit de groep",
+    contacts_removed_from_group_other:
+      "{{count}} contacten verwijderd uit de groep",
     send_email: "E-mail verzenden",
     folder_preview: "Mapvoorbeeld",
     rename_label: "Label hernoemen",
@@ -2150,6 +2186,10 @@ export const nl = {
     add_birthdays: "Verjaardagen toevoegen",
     add_birthdays_hint:
       "Voeg een verjaardag toe aan een contact en Aster herinnert je er vooraf aan.",
+    export_selection_csv: "Exporteren als CSV",
+    export_selection: "Selectie exporteren",
+    share_contact_via_email: "Aan een nieuwe e-mail toevoegen",
+    share_contact_device: "Delen met een andere app",
   },
   settings: {
     account_enabled_tooltip: "Dit account synchroniseert.",
@@ -6548,6 +6588,11 @@ export const nl = {
     security_center_recommended: "Aanbevolen acties",
     security_center_protected: "Beveiligd",
     security_center_all_clear: "Alle beveiligingen zijn ingeschakeld.",
+    security_center_protection_score: "Beschermingsscore",
+    security_center_encryption_title: "End-to-endversleuteling",
+    security_center_encryption_detail:
+      "Uw e-mail, contacten en bestanden worden op uw apparaat versleuteld voordat ze Aster bereiken.",
+    security_center_identity_key: "Identiteitssleutel",
     criterion_two_factor: "Tweefactorauthenticatie",
     criterion_recovery_email: "Geverifieerd herstel-e-mailadres",
     criterion_auto_lock: "Automatisch vergrendelen",
@@ -7766,6 +7811,10 @@ export const nl = {
     sender_rule_created: "Nieuwe e-mail van deze afzender gaat nu naar {{category}}.",
     sender_rule_name: "{{sender}} naar {{category}}",
     sender_rule_offer: "Je verplaatst e-mail van {{sender}} steeds naar {{category}}. Wil je dat dit automatisch gebeurt?",
+    sender_identity_rotated:
+      "De versleutelingsidentiteit van deze afzender is veranderd sinds je voor het laatst berichten hebt uitgewisseld. Als je dat niet verwachtte, bevestig het dan op een andere manier met deze persoon.",
+    sender_identity_downgraded:
+      "De berichten van deze afzender hebben geen post-quantumbescherming meer. Als je dat niet verwachtte, bevestig het dan op een andere manier met deze persoon.",
     load_all_thread_messages: "Alle berichten laden",
     move_to_category: "Naar categorie verplaatsen",
     menu_applies_to_selection: "Geldt voor {count} geselecteerde",
@@ -9277,6 +9326,8 @@ export const nl = {
     rename_failed: "De sleutel kon niet worden hernoemd. Probeer het opnieuw.",
   },
   errors: {
+    auth_salt_collision:
+      "Het aanmelden is gestopt omdat de server een onveilige waarde heeft gestuurd, dus er is niets ontgrendeld. Neem contact op met support voordat je het opnieuw probeert.",
     upload_too_large:
       "De upload is te groot. Verwijder of verklein een bestand om verder te gaan.",
     failed_remove_reaction:
@@ -10110,6 +10161,52 @@ export const nl = {
     invite_declined_toast: "Je hebt deze uitnodiging geweigerd",
     invite_save_failed: "Opslaan in je agenda is niet gelukt",
     invite_saved_locally: "Opgeslagen in je versleutelde agenda",
+    calendar: "Agenda",
+    month: "Maand",
+    week: "Week",
+    day: "Dag",
+    agenda: "Overzicht",
+    today: "Vandaag",
+    previous_period: "Vorige",
+    next_period: "Volgende",
+    search_events: "Afspraken zoeken",
+    only_you_can_read_calendar:
+      "Alleen u kunt uw agenda lezen. Afspraken worden op uw apparaat versleuteld voordat ze het verlaten.",
+    all_day: "Hele dag",
+    more_events: "+{{count}} meer",
+    no_upcoming_events: "Geen afspraken",
+    no_upcoming_events_hint: "Afspraken die u maakt, verschijnen hier.",
+    new_event: "Nieuwe afspraak",
+    edit_event: "Afspraak bewerken",
+    delete_event: "Afspraak verwijderen",
+    delete_event_confirmation:
+      "“{{title}}” verwijderen? Dit kan niet ongedaan worden gemaakt.",
+    event_title: "Titel",
+    event_title_placeholder: "Voeg een titel toe",
+    starts: "Begint",
+    ends: "Eindigt",
+    location: "Locatie",
+    location_placeholder: "Voeg een locatie toe",
+    description: "Beschrijving",
+    description_placeholder: "Voeg notities toe",
+    reminder: "Herinnering",
+    reminder_none: "Geen herinnering",
+    reminder_at_start: "Op de begintijd",
+    reminder_minutes_before: "{{count}} minuten vooraf",
+    title_required: "Voeg een titel toe voor deze afspraak",
+    invalid_dates: "Voer een geldige begin- en eindtijd in",
+    end_before_start: "De eindtijd ligt vóór de begintijd",
+    weekday_sun: "zo",
+    weekday_mon: "ma",
+    weekday_tue: "di",
+    weekday_wed: "wo",
+    weekday_thu: "do",
+    weekday_fri: "vr",
+    weekday_sat: "za",
+    calendar_navigation: "Agendanavigatie",
+    aster_calendar: "Aster Agenda",
+    back_to_mail: "Terug naar Mail",
+    my_calendars: "Mijn agenda’s",
   },
   settings_search: {
     two_factor: "2FA",
