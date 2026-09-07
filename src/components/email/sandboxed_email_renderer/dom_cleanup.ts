@@ -78,6 +78,20 @@ function has_content_outside(
   return false;
 }
 
+function quote_leads_body(quote: Element): boolean {
+  if (quote.parentElement?.tagName !== "BODY") return false;
+
+  let prev: Node | null = quote.previousSibling;
+
+  while (prev) {
+    if ((prev.textContent || "").trim().length > 0) return false;
+    if (contains_media(prev)) return false;
+    prev = prev.previousSibling;
+  }
+
+  return true;
+}
+
 function reveal_hidden_quote_blocks(el: Element): void {
   if (el.matches(HIDDEN_QUOTE_SELECTOR)) {
     (el as HTMLElement).style.display = "block";
@@ -171,7 +185,19 @@ export function collapse_forwarded_content(
     content_div.className = "aster-quoted-content";
     content_div.style.display = "none";
 
-    gmail_wrapper.parentNode!.insertBefore(wrapper, gmail_wrapper);
+    if (quote_leads_body(gmail_wrapper)) {
+      let blank: Node | null = gmail_wrapper.previousSibling;
+
+      while (blank) {
+        const previous: Node | null = blank.previousSibling;
+
+        blank.parentNode?.removeChild(blank);
+        blank = previous;
+      }
+      body.appendChild(wrapper);
+    } else {
+      gmail_wrapper.parentNode!.insertBefore(wrapper, gmail_wrapper);
+    }
     content_div.appendChild(gmail_wrapper);
 
     toggle_btn.addEventListener("click", () => {
@@ -385,6 +411,23 @@ export function collapse_quoted_replies(doc: Document, t: translate_fn): void {
   if (body.querySelector(".aster-quote-toggle")) return;
 
   const wrote_re = /^On\s.+wrote:\s*$/;
+  const max_attribution_length = 400;
+  const attribution_block_text = (text_node: Node): string => {
+    let n: Node | null = text_node.parentNode;
+
+    while (n && n !== body) {
+      if (n.nodeType === Node.ELEMENT_NODE) {
+        const tag = (n as Element).tagName.toUpperCase();
+
+        if (["DIV", "P", "SECTION", "LI", "TD"].includes(tag)) {
+          return (n.textContent || "").trim();
+        }
+      }
+      n = n.parentNode;
+    }
+
+    return "";
+  };
   const walker = doc.createTreeWalker(body, NodeFilter.SHOW_TEXT);
   let marker_text: Text | null = null;
 
@@ -392,6 +435,16 @@ export function collapse_quoted_replies(doc: Document, t: translate_fn): void {
     const text = (walker.currentNode.textContent || "").trim();
 
     if (text && wrote_re.test(text)) {
+      marker_text = walker.currentNode as Text;
+      break;
+    }
+    const block_text = attribution_block_text(walker.currentNode);
+
+    if (
+      block_text &&
+      block_text.length <= max_attribution_length &&
+      wrote_re.test(block_text)
+    ) {
       marker_text = walker.currentNode as Text;
       break;
     }

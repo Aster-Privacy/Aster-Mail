@@ -20,6 +20,8 @@
 //
 import DOMPurify from "dompurify";
 
+import { split_autolinks } from "./autolink";
+
 import { mark_stylesheet_background_images } from "./html_sanitizer_background_marks";
 
 import {
@@ -561,33 +563,26 @@ function sanitize_html_impl(
 
   const autolink_text_node = (text_node: Node): Node => {
     const text = text_node.textContent || "";
-    const url_pattern = /(https?:\/\/[^\s<>"'{}|\\^`[\]]+)/g;
+    const segments = split_autolinks(text);
 
-    if (!url_pattern.test(text)) return text_node.cloneNode(true);
+    if (!segments.some((segment) => segment.href)) {
+      return text_node.cloneNode(true);
+    }
 
     const fragment = document.createDocumentFragment();
-    let last_index = 0;
 
-    url_pattern.lastIndex = 0;
-    let match;
-
-    while ((match = url_pattern.exec(text)) !== null) {
-      if (match.index > last_index) {
-        fragment.appendChild(
-          document.createTextNode(text.slice(last_index, match.index)),
-        );
+    for (const segment of segments) {
+      if (!segment.href) {
+        fragment.appendChild(document.createTextNode(segment.text));
+        continue;
       }
       const a = document.createElement("a");
 
-      a.href = match[1];
+      a.href = segment.href;
       a.target = "_blank";
       a.rel = "noopener noreferrer";
-      a.textContent = match[1];
+      a.textContent = segment.text;
       fragment.appendChild(a);
-      last_index = url_pattern.lastIndex;
-    }
-    if (last_index < text.length) {
-      fragment.appendChild(document.createTextNode(text.slice(last_index)));
     }
 
     return fragment;
