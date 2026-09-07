@@ -234,6 +234,7 @@ export function DomainSetupWizard({
   }, [mode, domain_name, is_open]);
 
   const handle_add = async () => {
+    if (saving || (turnstile_required && !captcha_token)) return;
     const validation = validate_domain_name(domain_input);
 
     if (!validation.valid) {
@@ -440,7 +441,7 @@ export function DomainSetupWizard({
                 {t("settings.domain_without_www_note")}
               </p>
               <button
-                className="text-xs mt-1.5 text-txt-muted hover:text-[var(--accent-color)] hover:underline transition-colors"
+                className="text-xs mt-1.5 font-medium text-[var(--accent-color)] hover:underline transition-colors"
                 type="button"
                 onClick={() => {
                   on_close();

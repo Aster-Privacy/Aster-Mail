@@ -162,7 +162,7 @@ export function PurchasedDomainManageModal({
           {t("settings.domain_purchase_manage_description")}
         </ModalDescription>
       </ModalHeader>
-      <ModalBody className="space-y-4">
+      <ModalBody className="px-6 space-y-4">
         <div className="overflow-hidden rounded-xl border border-edge-secondary bg-surf-primary divide-y divide-edge-secondary">
           {rows.map((row) => (
             <div
@@ -187,48 +187,6 @@ export function PurchasedDomainManageModal({
           {t("settings.domain_purchase_manage_auto_renew_note")}
         </p>
 
-        <div className="flex flex-col gap-2">
-          <Button
-            className="w-full"
-            disabled={renewing || captcha_pending}
-            size="lg"
-            variant="depth"
-            onClick={() => on_renew()}
-          >
-            {renewing || captcha_pending ? (
-              <Spinner size="xs" />
-            ) : (
-              <ArrowPathIcon className="w-4 h-4 me-2" />
-            )}
-            {t("settings.domain_purchase_renew")}
-          </Button>
-
-          {custom_domain && (
-            <Button
-              className="w-full"
-              size="lg"
-              variant="secondary"
-              onClick={() => {
-                on_close();
-                on_open_setup(custom_domain);
-              }}
-            >
-              <Cog6ToothIcon className="w-4 h-4 me-2" />
-              {t("settings.domain_purchase_manage_dns")}
-            </Button>
-          )}
-
-          <Button
-            className="w-full"
-            size="lg"
-            variant="ghost"
-            onClick={contact_support}
-          >
-            <LifebuoyIcon className="w-4 h-4 me-2" />
-            {t("common.contact_support")}
-          </Button>
-        </div>
-
         {captcha_pending && !renewing && (
           <TurnstileWidget
             class_name="flex justify-center"
@@ -244,10 +202,46 @@ export function PurchasedDomainManageModal({
           {t("settings.domain_purchase_manage_support_note")}
         </p>
       </ModalBody>
-      <ModalFooter>
-        <Button variant="outline" onClick={on_close}>
-          {t("common.close")}
+      <ModalFooter className="flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <Button
+          className="w-full sm:w-auto"
+          size="sm"
+          variant="ghost"
+          onClick={contact_support}
+        >
+          <LifebuoyIcon className="w-4 h-4 me-2" />
+          {t("common.contact_support")}
         </Button>
+
+        <div className="flex w-full flex-col-reverse gap-2 sm:w-auto sm:flex-row sm:items-center">
+          {custom_domain && (
+            <Button
+              className="w-full sm:w-auto"
+              variant="secondary"
+              onClick={() => {
+                on_close();
+                on_open_setup(custom_domain);
+              }}
+            >
+              <Cog6ToothIcon className="w-4 h-4 me-2" />
+              {t("settings.domain_purchase_manage_dns")}
+            </Button>
+          )}
+
+          <Button
+            className="w-full sm:w-auto"
+            disabled={renewing || captcha_pending}
+            variant="depth"
+            onClick={() => on_renew()}
+          >
+            {renewing || captcha_pending ? (
+              <Spinner size="xs" />
+            ) : (
+              <ArrowPathIcon className="w-4 h-4 me-2" />
+            )}
+            {t("settings.domain_purchase_renew")}
+          </Button>
+        </div>
       </ModalFooter>
     </Modal>
   );

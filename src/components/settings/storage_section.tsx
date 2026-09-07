@@ -45,6 +45,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert_dialog";
 import { StorageAddonsSection } from "@/components/settings/billing/storage_addons_section";
+import { StorageFormatPicker } from "@/components/settings/storage/storage_format_picker";
+import { use_storage_format } from "@/components/settings/hooks/use_storage_format";
 import { PlanPaymentMethodModal } from "@/components/settings/billing/plan_payment_method_modal";
 import { CryptoAddonTermModal } from "@/components/settings/billing/crypto_addon_term_modal";
 import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
@@ -153,6 +155,7 @@ function share_of(bytes: number, total: number): number {
 
 export function StorageSection() {
   const { t } = use_i18n();
+  const { storage_format, handle_storage_format_change } = use_storage_format();
   const on_onion = is_onion_host();
 
   const [overview, set_overview] = useState<StorageOverviewResponse | null>(
@@ -191,6 +194,7 @@ export function StorageSection() {
   const [cleanup_target, set_cleanup_target] = useState<
     "trash" | "spam" | null
   >(null);
+  const [active_category, set_active_category] = useState<string | null>(null);
 
   const cleanup_view = use_sticky_value(cleanup_target);
   const capacity_sources = useMemo(() => {
@@ -310,19 +314,6 @@ export function StorageSection() {
     [overview],
   );
 
-  const usage_segments = useMemo(() => {
-    if (total_limit <= 0) return [];
-
-    const widths = build_bar_segments(
-      categories.map((entry) => (entry.bytes_used / total_limit) * 100),
-    );
-
-    return categories.map((entry, index) => ({
-      name: entry.name,
-      share: widths[index],
-    }));
-  }, [categories, total_limit]);
-
   const breakdown_rows = useMemo(() => {
     const by_name = new Map(
       (overview?.categories ?? []).map((entry) => [entry.name, entry]),
@@ -425,18 +416,22 @@ export function StorageSection() {
 
       if (response.data?.success) {
         show_toast(t("settings.storage_cleanup_done"), "success");
+        set_is_action_loading(false);
+        set_cleanup_target(null);
         request_cache.invalidate("/sync/v1");
         invalidate_mail_stats();
-        await load_data();
-      } else {
-        show_toast(t("settings.storage_cleanup_failed"), "error");
+        load_data();
+
+        return;
       }
+
+      show_toast(t("settings.storage_cleanup_failed"), "error");
     } catch {
       show_toast(t("settings.storage_cleanup_failed"), "error");
-    } finally {
-      set_is_action_loading(false);
-      set_cleanup_target(null);
     }
+
+    set_is_action_loading(false);
+    set_cleanup_target(null);
   };
 
   if (is_initial_load) {
@@ -463,10 +458,41 @@ export function StorageSection() {
     0,
   );
 
+  const donut_rows = breakdown_rows.filter((entry) => entry.bytes_used > 0);
+  const focused_row =
+    donut_rows.find((entry) => entry.name === active_category) ?? null;
+  const donut_segments = build_bar_segments(
+    donut_rows.map((entry) =>
+      share_of(entry.bytes_used, total_breakdown_bytes),
+    ),
+  ).reduce<{ name: string; color: string; share: number; offset: number }[]>(
+    (acc, share, index) => {
+      const previous = acc[acc.length - 1];
+
+      acc.push({
+        name: donut_rows[index].name,
+        color: style_of(donut_rows[index].name).color,
+        share,
+        offset: previous ? previous.offset + previous.share : 0,
+      });
+
+      return acc;
+    },
+    [],
+  );
+
   const percent_label =
     percentage > 0 && percentage < 1
       ? t("common.storage_under_one_percent")
       : `${format_decimal(percentage, percentage < 10 ? 1 : 0)}%`;
+
+  const meter_segments = build_bar_segments(
+    categories.map((entry) => share_of(entry.bytes_used, total_limit)),
+  ).map((share, index) => ({
+    name: categories[index].name,
+    share,
+    color: style_of(categories[index].name).color,
+  }));
 
   return (
     <div className="space-y-8">
@@ -499,7 +525,7 @@ export function StorageSection() {
                 </p>
               </div>
               <button
-                className="flex-shrink-0 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors bg-blue-600 hover:bg-blue-700 text-white"
+                className="flex-shrink-0 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors text-[var(--accent-fg,#ffffff)] bg-[var(--accent-color)] hover:bg-[var(--accent-color-hover)]"
                 type="button"
                 onClick={() => {
                   document
@@ -513,78 +539,52 @@ export function StorageSection() {
           </div>
         )}
 
-      <div>
-        <p className="text-3xl font-normal text-txt-primary">
-          {t("settings.storage_used_of_total")
-            .replace("{{used}}", format_bytes(total_used))
-            .replace("{{total}}", format_bytes(total_limit))}
-        </p>
-        <p className="mt-1 text-sm text-txt-muted">
-          {t("settings.storage_overview_description")}
-        </p>
-
-        <div
-          aria-label={t("common.storage_used")}
-          aria-valuemax={100}
-          aria-valuemin={0}
-          aria-valuenow={Math.round(Math.min(100, percentage))}
-          className="mt-6 flex h-3 w-full gap-[3px] overflow-hidden rounded-full"
-          role="progressbar"
-          style={{
-            backgroundColor: "var(--storage-track)",
-          }}
-        >
-          {usage_segments.map((segment) => (
-            <div
-              key={segment.name}
-              style={{
-                width: `${segment.share}%`,
-                backgroundColor: style_of(segment.name).color,
-              }}
-            />
-          ))}
-        </div>
-
-        <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2">
-          {categories.map((entry) => (
-            <span
-              key={entry.name}
-              className="flex items-center gap-2 text-sm text-txt-secondary"
-            >
-              <span
-                className="h-2.5 w-2.5 flex-shrink-0 rounded-full"
-                style={{ backgroundColor: style_of(entry.name).color }}
-              />
-              {t(style_of(entry.name).label_key)}
-              <span className="tabular-nums text-txt-primary">
-                {format_bytes(entry.bytes_used)}
+      <section>
+        <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
+          <div className="min-w-0">
+            <p className="flex items-baseline gap-2.5">
+              <span className="text-4xl font-semibold leading-none tabular-nums text-txt-primary">
+                {percent_label}
               </span>
-            </span>
-          ))}
-          <span className="flex items-center gap-2 text-sm text-txt-secondary">
-            <span
-              className="h-2.5 w-2.5 flex-shrink-0 rounded-full"
-              style={{
-                backgroundColor:
-                  "color-mix(in srgb, var(--text-muted) 35%, transparent)",
-              }}
-            />
-            {t("settings.free")}
+              <span className="text-sm text-txt-muted">
+                {t("common.storage_used").toLowerCase()}
+              </span>
+            </p>
+            <p className="mt-2.5 text-base text-txt-secondary">
+              {t("settings.storage_used_of_total")
+                .replace("{{used}}", format_bytes(total_used))
+                .replace("{{total}}", format_bytes(total_limit))}
+            </p>
+          </div>
+          <p className="text-sm text-txt-muted">
+            {t("settings.storage_available")}{" "}
             <span className="tabular-nums text-txt-primary">
               {format_bytes(available_bytes)}
             </span>
-          </span>
+          </p>
         </div>
 
-        <p className="mt-3 text-sm text-txt-muted">
-          {t("settings.storage_free_space")
-            .replace("{{size}}", format_bytes(available_bytes))
-            .replace("{{percent}}", percent_label)}
-        </p>
+        <div
+          aria-label={t("common.storage_used")}
+          className="mt-5 flex h-3.5 w-full gap-[3px] overflow-hidden rounded-full"
+          role="img"
+          style={{ backgroundColor: "var(--storage-track)" }}
+        >
+          {meter_segments.map((segment) => (
+            <div
+              key={segment.name}
+              className="transition-[width] duration-500"
+              style={{
+                width: `${segment.share}%`,
+                backgroundColor: segment.color,
+              }}
+            />
+          ))}
+        </div>
 
         {overview?.is_over_limit && (
           <div
-            className="mt-5 flex items-start gap-2 rounded-lg border p-3"
+            className="mt-6 flex items-start gap-2 rounded-lg border p-3"
             style={{
               borderColor:
                 "color-mix(in srgb, var(--color-danger) 40%, transparent)",
@@ -606,7 +606,7 @@ export function StorageSection() {
             </div>
           </div>
         )}
-      </div>
+      </section>
 
       <div>
         <div className="mb-4">
@@ -617,144 +617,155 @@ export function StorageSection() {
           <div className="mt-2 h-px bg-edge-secondary" />
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[420px] text-sm">
-            <thead>
-              <tr className="text-xs text-txt-muted">
-                <th className="py-2 ps-2 text-start font-medium">
-                  {t("settings.storage_col_category")}
-                </th>
-                <th className="py-2 text-end font-medium">
-                  {t("settings.storage_col_items")}
-                </th>
-                <th className="py-2 text-end font-medium">
-                  {t("settings.storage_col_size")}
-                </th>
-                <th className="py-2 pe-2 text-end font-medium">
-                  {t("settings.storage_col_share")}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
+        {total_breakdown_bytes === 0 ? (
+          <p className="py-6 text-center text-sm text-txt-muted">
+            {t("settings.storage_breakdown_empty")}
+          </p>
+        ) : (
+          <div className="flex flex-col items-center gap-7 sm:flex-row sm:gap-9">
+            <div className="relative h-44 w-44 flex-shrink-0">
+              <svg
+                aria-label={t("settings.storage_breakdown_title")}
+                className="h-full w-full -rotate-90"
+                role="img"
+                viewBox="0 0 42 42"
+              >
+                <circle
+                  cx="21"
+                  cy="21"
+                  fill="none"
+                  r="15.915494"
+                  stroke="var(--storage-track)"
+                  strokeWidth="3"
+                />
+                {donut_segments.map((segment) => {
+                  const dimmed =
+                    active_category !== null &&
+                    active_category !== segment.name;
+
+                  return (
+                    <circle
+                      key={segment.name}
+                      className="transition-all duration-300 motion-reduce:transition-none"
+                      cx="21"
+                      cy="21"
+                      fill="none"
+                      opacity={dimmed ? 0.25 : 1}
+                      r="15.915494"
+                      stroke={segment.color}
+                      strokeDasharray={`${segment.share} ${Math.max(0, 100 - segment.share)}`}
+                      strokeDashoffset={-segment.offset}
+                      strokeLinecap="butt"
+                      strokeWidth={active_category === segment.name ? 4.5 : 3}
+                      onMouseEnter={() => set_active_category(segment.name)}
+                      onMouseLeave={() => set_active_category(null)}
+                    >
+                      <title>{t(style_of(segment.name).label_key)}</title>
+                    </circle>
+                  );
+                })}
+              </svg>
+              <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center px-6 text-center">
+                <span className="text-3xl font-semibold tabular-nums text-txt-primary">
+                  {format_bytes(
+                    focused_row
+                      ? focused_row.bytes_used
+                      : total_breakdown_bytes,
+                  )}
+                </span>
+                <span className="mt-1.5 truncate text-xs text-txt-muted">
+                  {focused_row
+                    ? t(style_of(focused_row.name).label_key)
+                    : t("settings.storage_items_count", { count: total_items })}
+                </span>
+              </div>
+            </div>
+
+            <div className="w-full min-w-0 flex-1 divide-y divide-edge-secondary">
               {breakdown_rows.map((entry) => {
                 const style = style_of(entry.name);
-                const Icon = style.icon;
-                const row_share = share_of(entry.bytes_used, total_used);
+                const row_share = share_of(
+                  entry.bytes_used,
+                  total_breakdown_bytes,
+                );
                 const is_cleanable =
                   entry.name === "trash" || entry.name === "spam";
+                const is_busy =
+                  is_action_loading && cleanup_target === entry.name;
 
                 return (
-                  <tr
+                  <div
                     key={entry.name}
-                    className="border-t border-edge-secondary"
+                    className={`flex items-center gap-3 py-2.5 transition-opacity duration-200 motion-reduce:transition-none ${
+                      active_category !== null && active_category !== entry.name
+                        ? "opacity-40"
+                        : "opacity-100"
+                    }`}
                   >
-                    <td className="py-3 ps-2">
-                      <span className="flex items-center gap-2 text-txt-primary">
-                        <Icon
-                          className="h-4 w-4 flex-shrink-0"
-                          style={{ color: style.color }}
-                        />
-                        {t(style.label_key)}
-                        {is_cleanable && entry.item_count > 0 && (
-                          <button
-                            aria-busy={
-                              is_action_loading && cleanup_target === entry.name
-                            }
-                            aria-label={
-                              entry.name === "spam"
-                                ? t("mail.empty_spam")
-                                : t("mail.empty_trash")
-                            }
-                            className="inline-flex items-center justify-center rounded-md px-1.5 py-0.5 text-xs font-medium text-brand transition-colors hover:bg-surf-tertiary disabled:cursor-default disabled:hover:bg-transparent"
-                            disabled={is_action_loading}
-                            type="button"
-                            onClick={() =>
-                              set_cleanup_target(
-                                entry.name === "spam" ? "spam" : "trash",
-                              )
-                            }
-                          >
-                            <span className="relative inline-flex items-center justify-center">
-                              <span
-                                className={
-                                  is_action_loading &&
-                                  cleanup_target === entry.name
-                                    ? "invisible"
-                                    : undefined
-                                }
-                              >
-                                {entry.name === "spam"
-                                  ? t("mail.empty_spam")
-                                  : t("mail.empty_trash")}
-                              </span>
-                              {is_action_loading &&
-                                cleanup_target === entry.name && (
-                                  <Spinner className="absolute" size="xs" />
-                                )}
-                            </span>
-                          </button>
-                        )}
-                      </span>
-                    </td>
-                    <td className="py-3 text-end tabular-nums text-txt-muted">
-                      {format_number(entry.item_count)}
-                    </td>
-                    <td
-                      className={`py-3 text-end tabular-nums ${entry.bytes_used > 0 ? "text-txt-primary" : "text-txt-muted"}`}
+                    <span
+                      className="h-2.5 w-2.5 flex-shrink-0 rounded-full"
+                      style={{
+                        backgroundColor:
+                          entry.bytes_used > 0
+                            ? style.color
+                            : "var(--storage-track)",
+                      }}
+                    />
+                    <span className="min-w-0 flex-1 truncate text-sm text-txt-primary">
+                      {t(style.label_key)}
+                    </span>
+                    {is_cleanable && entry.item_count > 0 && (
+                      <button
+                        aria-busy={is_busy}
+                        aria-label={
+                          entry.name === "spam"
+                            ? t("mail.empty_spam")
+                            : t("mail.empty_trash")
+                        }
+                        className="flex-shrink-0 rounded-md px-1.5 py-0.5 text-xs font-medium text-brand transition-colors hover:bg-surf-tertiary disabled:cursor-default disabled:hover:bg-transparent"
+                        disabled={is_action_loading}
+                        type="button"
+                        onClick={() =>
+                          set_cleanup_target(
+                            entry.name === "spam" ? "spam" : "trash",
+                          )
+                        }
+                      >
+                        <span className="relative inline-flex items-center justify-center">
+                          <span className={is_busy ? "invisible" : undefined}>
+                            {entry.name === "spam"
+                              ? t("mail.empty_spam")
+                              : t("mail.empty_trash")}
+                          </span>
+                          {is_busy && (
+                            <Spinner className="absolute" size="xs" />
+                          )}
+                        </span>
+                      </button>
+                    )}
+                    <span className="hidden flex-shrink-0 text-end text-xs tabular-nums text-txt-muted sm:block">
+                      {entry.item_count > 0
+                        ? t("settings.storage_items_count", {
+                            count: entry.item_count,
+                          })
+                        : ""}
+                    </span>
+                    <span className="w-11 flex-shrink-0 text-end text-xs tabular-nums text-txt-muted">
+                      {row_share > 0
+                        ? `${format_decimal(row_share, row_share < 10 ? 1 : 0)}%`
+                        : ""}
+                    </span>
+                    <span
+                      className={`w-20 flex-shrink-0 text-end text-sm tabular-nums ${entry.bytes_used > 0 ? "text-txt-primary" : "text-txt-muted"}`}
                     >
                       {format_bytes(entry.bytes_used)}
-                    </td>
-                    <td className="py-3 pe-2 ps-4">
-                      <div className="flex items-center justify-end gap-3">
-                        <div
-                          className="h-2 w-20 flex-shrink-0 overflow-hidden rounded-full sm:w-40"
-                          style={{ backgroundColor: "var(--storage-track)" }}
-                        >
-                          <div
-                            className="h-full rounded-full"
-                            style={{
-                              width: `${row_share}%`,
-                              minWidth: row_share > 0 ? "4px" : "0",
-                              backgroundColor: style.color,
-                            }}
-                          />
-                        </div>
-                        <span className="w-14 text-end font-medium tabular-nums text-txt-primary">
-                          {format_decimal(row_share, 1)}%
-                        </span>
-                      </div>
-                    </td>
-                  </tr>
+                    </span>
+                  </div>
                 );
               })}
-              {breakdown_rows.length === 0 && (
-                <tr className="border-t border-edge-secondary">
-                  <td className="py-3 ps-2 text-txt-muted" colSpan={4}>
-                    {t("settings.storage_breakdown_empty")}
-                  </td>
-                </tr>
-              )}
-            </tbody>
-            {breakdown_rows.length > 0 && (
-              <tfoot>
-                <tr className="border-t border-edge-primary">
-                  <td className="py-3 ps-2 font-medium text-txt-primary">
-                    {t("common.total")}
-                  </td>
-                  <td className="py-3 text-end font-medium tabular-nums text-txt-primary">
-                    {format_number(total_items)}
-                  </td>
-                  <td className="py-3 text-end font-medium tabular-nums text-txt-primary">
-                    {format_bytes(total_breakdown_bytes)}
-                  </td>
-                  <td className="py-3 pe-2 text-end font-medium tabular-nums text-txt-muted">
-                    {format_decimal(total_breakdown_bytes > 0 ? 100 : 0, 0)}%
-                  </td>
-                </tr>
-              </tfoot>
-            )}
-          </table>
-        </div>
+            </div>
+          </div>
+        )}
       </div>
 
       <div>
@@ -766,63 +777,61 @@ export function StorageSection() {
           <div className="mt-2 h-px bg-edge-secondary" />
         </div>
 
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <p className="text-sm text-txt-muted">
-              {t("settings.storage_total_capacity")}
-            </p>
-            <p className="mt-1 text-3xl font-normal tabular-nums text-txt-primary">
-              {format_bytes(total_limit)}
-            </p>
+        <div>
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <p className="text-sm text-txt-muted">
+                {t("settings.storage_total_capacity")}
+              </p>
+              <p className="mt-1 text-3xl font-semibold tabular-nums text-txt-primary">
+                {format_bytes(total_limit)}
+              </p>
+            </div>
           </div>
-          <p className="text-sm text-txt-muted">
-            {t("settings.storage_available")}{" "}
-            <span className="tabular-nums text-txt-primary">
-              {format_bytes(available_bytes)}
-            </span>
-          </p>
-        </div>
 
-        <div
-          className="mt-5 flex h-3 w-full gap-[3px] overflow-hidden rounded-full"
-          style={{ backgroundColor: "var(--storage-track)" }}
-        >
-          {capacity_sources.map((source) => (
+          {capacity_sources.length > 1 && (
             <div
-              key={source.key}
-              style={{
-                width: `${source.bar_share}%`,
-                backgroundColor: source.color,
-              }}
-            />
-          ))}
-        </div>
-
-        <dl className="mt-2 text-sm">
-          {capacity_sources.map((source) => (
-            <div
-              key={source.key}
-              className="flex items-center gap-4 border-t border-edge-secondary py-3"
+              className="mt-5 flex h-3.5 w-full gap-[3px] overflow-hidden rounded-full"
+              style={{ backgroundColor: "var(--storage-track)" }}
             >
-              <dt className="flex min-w-0 flex-1 items-center gap-2 text-txt-primary">
+              {capacity_sources.map((source) => (
+                <div
+                  key={source.key}
+                  style={{
+                    width: `${source.bar_share}%`,
+                    backgroundColor: source.color,
+                  }}
+                />
+              ))}
+            </div>
+          )}
+
+          <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2">
+            {capacity_sources.map((source) => (
+              <span
+                key={source.key}
+                className="flex items-center gap-2 text-sm"
+              >
                 <span
                   className="h-2.5 w-2.5 flex-shrink-0 rounded-full"
                   style={{ backgroundColor: source.color }}
                 />
-                <span className="truncate">{t(source.label_key)}</span>
-              </dt>
-              <dd className="flex flex-shrink-0 items-center gap-6">
+                <span className="text-txt-secondary">
+                  {t(source.label_key)}
+                </span>
                 <span className="tabular-nums text-txt-primary">
                   {format_bytes(source.bytes)}
                 </span>
-                <span className="w-14 text-end tabular-nums text-txt-muted">
-                  {format_decimal(source.share, source.share < 10 ? 1 : 0)}%
-                </span>
-              </dd>
-            </div>
-          ))}
-        </dl>
+              </span>
+            ))}
+          </div>
+        </div>
       </div>
+
+      <StorageFormatPicker
+        on_change={handle_storage_format_change}
+        storage_format={storage_format}
+      />
 
       {!on_onion && (
         <StorageAddonsSection
@@ -883,8 +892,12 @@ export function StorageSection() {
           addon_name={crypto_addon.name}
           is_open={show_crypto_addon_modal}
           on_close={() => {
+            const addon = crypto_addon;
+
             set_show_crypto_addon_modal(false);
             set_crypto_addon(null);
+            set_addon_method_target(addon);
+            set_show_addon_method_modal(true);
           }}
           preferred_currency={preferred_currency}
           price_cents={crypto_addon.price_cents}

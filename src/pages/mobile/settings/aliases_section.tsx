@@ -949,37 +949,33 @@ export function AliasesSection({
           ) : (
             <div className="space-y-2">
               {purchased_orders.map((order) => (
-                <button
+                <div
                   key={order.id}
-                  className={`flex w-full items-center justify-between gap-3 rounded-xl bg-[var(--mobile-bg-card)] p-4 text-start ${
-                    order.status === "complete" ||
-                    order.status === "pending_payment"
-                      ? "cursor-default"
-                      : ""
-                  }`}
-                  type="button"
-                  onClick={() => {
-                    if (
-                      order.status === "complete" ||
-                      order.status === "pending_payment"
-                    ) {
-                      return;
-                    }
-                    set_purchase_order_id(
-                      order.status === "lapsed" ? null : order.id,
-                    );
-                    set_purchase_open(true);
-                  }}
+                  className="relative flex w-full items-center justify-between gap-3 rounded-xl bg-[var(--mobile-bg-card)] p-4 text-start"
                 >
-                  <span className="truncate text-[15px] font-medium text-[var(--mobile-text-primary)]">
+                  {order.status !== "complete" &&
+                    order.status !== "pending_payment" && (
+                      <button
+                        aria-label={order.domain}
+                        className="absolute inset-0 rounded-xl"
+                        type="button"
+                        onClick={() => {
+                          set_purchase_order_id(
+                            order.status === "lapsed" ? null : order.id,
+                          );
+                          set_purchase_open(true);
+                        }}
+                      />
+                    )}
+                  <span className="pointer-events-none truncate text-[15px] font-medium text-[var(--mobile-text-primary)]">
                     {order.domain}
                   </span>
-                  <span className="flex flex-shrink-0 items-center gap-2.5">
+                  <span className="relative flex flex-shrink-0 items-center gap-2.5">
                     {order.status === "pending_payment" && (
                       <>
-                        <span
+                        <button
                           className="rounded-full bg-[var(--accent-color)] px-3 py-1 text-[12px] font-semibold text-[var(--accent-fg,#ffffff)]"
-                          role="button"
+                          type="button"
                           onClick={(e) => {
                             e.stopPropagation();
                             set_purchase_order_id(null);
@@ -988,10 +984,11 @@ export function AliasesSection({
                           }}
                         >
                           {t("settings.domain_purchase_complete_cta")}
-                        </span>
-                        <span
+                        </button>
+                        <button
                           className="flex items-center gap-1.5 rounded-full border border-[var(--border-primary)] px-3 py-1 text-[12px] font-medium text-[var(--mobile-text-secondary)]"
-                          role="button"
+                          disabled={cancelling_order_id === order.id}
+                          type="button"
                           onClick={(e) => {
                             e.stopPropagation();
                             if (cancelling_order_id !== order.id) {
@@ -1003,7 +1000,7 @@ export function AliasesSection({
                             <Spinner size="xs" />
                           )}
                           {t("common.cancel")}
-                        </span>
+                        </button>
                       </>
                     )}
                     <span
@@ -1032,7 +1029,7 @@ export function AliasesSection({
                               )}
                     </span>
                   </span>
-                </button>
+                </div>
               ))}
             </div>
           )}

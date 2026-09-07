@@ -57,6 +57,7 @@ import {
   type DecryptedDomainAddress,
 } from "@/services/api/domains";
 import { strip_formula_guard } from "@/components/settings/aliases/alias_export_utils";
+import { show_toast } from "@/components/toast/simple_toast";
 
 type ImportStep = "select" | "preview" | "progress" | "done";
 type ConflictMode = "skip" | "update";
@@ -522,6 +523,15 @@ export function AliasImportModal({
   };
 
   const handle_import = async () => {
+    try {
+      await run_import();
+    } catch {
+      set_step("preview");
+      show_toast(t("common.import_failed"), "error");
+    }
+  };
+
+  const run_import = async () => {
     const importable = preview_rows.filter(
       (r, i) => r.status === "will_import" && selected_indices.has(i),
     );

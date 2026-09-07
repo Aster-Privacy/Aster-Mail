@@ -21,6 +21,7 @@
 import { DomainPurchaseFlow } from "./domain_purchase_flow";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { InfoPopover } from "@/components/ui/info_popover";
 import {
   Modal,
   ModalHeader,
@@ -57,7 +58,15 @@ export function DomainPurchaseModal({
       size="2xl"
     >
       <ModalHeader>
-        <ModalTitle>{t("settings.domain_purchase_title")}</ModalTitle>
+        <ModalTitle>
+          <span className="flex items-center gap-2">
+            {t("settings.domain_purchase_title")}
+            <InfoPopover
+              description={t("settings.domain_purchase_purchased_info")}
+              title={t("settings.domain_purchase_title")}
+            />
+          </span>
+        </ModalTitle>
       </ModalHeader>
       <ModalBody>
         <DomainPurchaseFlow

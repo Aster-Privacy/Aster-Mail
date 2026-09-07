@@ -32,9 +32,8 @@ vi.mock("@/services/api/aliases", () => ({
   cancel_alias_run: vi.fn(),
 }));
 
-const { ALIAS_RUN_POLL_MAX_FAILURES, use_alias_run } = await import(
-  "./delivery"
-);
+const { ALIAS_RUN_POLL_MAX_FAILURES, use_alias_run } =
+  await import("./delivery");
 
 function make_run(status: AliasRun["status"]): AliasRun {
   return {

@@ -44,6 +44,10 @@ export function register_ghost_email(email: string, sender?: SenderOption) {
   });
 }
 
+export function clear_ghost_entries() {
+  ghost_entries.clear();
+}
+
 export function is_ghost_email(email: string): boolean {
   return ghost_entries.has(email.toLowerCase());
 }

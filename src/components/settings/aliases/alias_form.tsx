@@ -529,7 +529,8 @@ export function CreateAliasModal({
                                   <span className="inline-flex shrink-0 items-center gap-1 rounded-md border border-edge-secondary bg-surf-tertiary px-1.5 py-0.5 text-[11px] font-medium text-txt-muted">
                                     <LockClosedIcon className="h-3 w-3" />
                                     {t("settings.requires_plan", {
-                                      plan: premium_domain_min_plan?.name ?? "Star",
+                                      plan:
+                                        premium_domain_min_plan?.name ?? "Star",
                                     })}
                                   </span>
                                 )}
