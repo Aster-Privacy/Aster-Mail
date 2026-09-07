@@ -37,7 +37,7 @@ import {
   type LegacyDerivedKek,
   type RatchetKeySet,
 } from "./key_manager_core";
-import { prepend_kek_to_list, serialize_kek_for_vault } from "./legacy_keks";
+import { append_keks_to_list, serialize_kek_for_vault } from "./legacy_keks";
 import { base64_to_array } from "./base64";
 import { zero_uint8_array } from "./secure_memory";
 import {
@@ -159,15 +159,17 @@ export async function restore_inactive_key_sets(
 
     if (unlocked.length === 0) return 0;
 
-    let next_legacy_keks: LegacyDerivedKek[] | undefined = vault.legacy_keks;
+    const harvested_entries: LegacyDerivedKek[] = [];
 
     for (const raw of recovered_keks) {
-      next_legacy_keks = prepend_kek_to_list(
-        next_legacy_keks,
-        serialize_kek_for_vault(raw),
-      );
+      harvested_entries.push(serialize_kek_for_vault(raw));
       zero_uint8_array(raw);
     }
+
+    const next_legacy_keks = append_keks_to_list(
+      vault.legacy_keks,
+      harvested_entries,
+    );
 
     const next_vault: EncryptedVault = {
       ...vault,
