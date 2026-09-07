@@ -20,6 +20,8 @@
 //
 import type { AddAccountFormProps } from "@/components/settings/external_accounts/form_types";
 
+import { Button } from "@aster/ui";
+
 import { AccountInfoSection } from "@/components/settings/external_accounts/account_info_section";
 import { IncomingMailSection } from "@/components/settings/external_accounts/incoming_mail_section";
 import { OutgoingMailSection } from "@/components/settings/external_accounts/outgoing_mail_section";
@@ -30,7 +32,6 @@ import { AdvancedSettingsSection } from "@/components/settings/external_accounts
 import { TestResultBanner } from "@/components/settings/external_accounts/test_result_banner";
 import { FormFooter } from "@/components/settings/external_accounts/form_footer";
 import { Modal, ModalTitle } from "@/components/ui/modal";
-import { Button } from "@aster/ui";
 
 export type { AddAccountFormProps } from "@/components/settings/external_accounts/form_types";
 
@@ -94,6 +95,7 @@ export function AddAccountForm({
   retry_prefill,
   handle_protocol_change,
   handle_email_change,
+  active_preset,
   handle_host_change,
   handle_port_change,
   handle_username_change,
@@ -140,7 +142,7 @@ export function AddAccountForm({
             <p className="text-[13px] text-txt-secondary">
               {t("common.something_went_wrong_try_again")}
             </p>
-            <Button onClick={retry_prefill} size="sm" variant="outline">
+            <Button size="sm" variant="outline" onClick={retry_prefill}>
               {t("common.retry")}
             </Button>
           </div>
@@ -156,6 +158,7 @@ export function AddAccountForm({
 
         {!is_oauth_account && (
           <IncomingMailSection
+            app_password_url={active_preset?.app_password_url}
             editing_account={editing_account}
             form_host={form_host}
             form_password={form_password}

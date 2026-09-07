@@ -115,6 +115,26 @@ export function sanitize_hostname(host: string): string {
     .replace(/\/+$/, "");
 }
 
+const GOOGLE_MAIL_HOSTS = new Set([
+  "imap.gmail.com",
+  "smtp.gmail.com",
+  "pop.gmail.com",
+]);
+
+const APP_PASSWORD_GROUPS = /^[a-z0-9]{4}(?:[  ][a-z0-9]{4}){3}$/i;
+
+export function normalize_app_password(host: string, password: string): string {
+  if (!GOOGLE_MAIL_HOSTS.has(sanitize_hostname(host).toLowerCase())) {
+    return password;
+  }
+
+  const trimmed = password.trim();
+
+  if (!APP_PASSWORD_GROUPS.test(trimmed)) return password;
+
+  return trimmed.replace(/[  ]/g, "");
+}
+
 export function is_private_hostname(host: string): boolean {
   return PRIVATE_IP_PATTERNS.some((pattern) => pattern.test(host));
 }

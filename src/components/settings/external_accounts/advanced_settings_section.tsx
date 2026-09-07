@@ -19,7 +19,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { TlsMethod } from "@/components/settings/hooks/use_external_accounts";
-import { commit_on_enter } from "@/lib/commit_on_enter";
 import type { TranslationFn } from "@/components/settings/external_accounts/form_types";
 
 import {
@@ -29,6 +28,7 @@ import {
 import { Checkbox } from "@aster/ui";
 import { useState } from "react";
 
+import { commit_on_enter } from "@/lib/commit_on_enter";
 import { Input } from "@/components/ui/input";
 import { render_toggle_button } from "@/components/settings/external_accounts/toggle_button";
 

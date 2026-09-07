@@ -58,36 +58,36 @@ export function FormFooter({
       <div className="flex items-center gap-2">
         {!is_oauth_account && (
           <>
-        <Button
-          aria-label={t("settings.test_incoming_connection")}
-          className="gap-1.5"
-          disabled={is_form_busy}
-          size="md"
-          variant="outline"
-          onClick={handle_test_connection}
-        >
-          {is_testing ? (
-            <Spinner size="md" />
-          ) : (
-            <ServerStackIcon className="w-4 h-4" />
-          )}
-          {t("settings.test_connection")}
-        </Button>
-        <Button
-          aria-label={t("settings.test_smtp_connection")}
-          className="gap-1.5"
-          disabled={is_form_busy}
-          size="md"
-          variant="outline"
-          onClick={handle_test_smtp}
-        >
-          {is_testing_smtp ? (
-            <Spinner size="md" />
-          ) : (
-            <EnvelopeIcon className="w-4 h-4" />
-          )}
-          {t("settings.test_smtp")}
-        </Button>
+            <Button
+              aria-label={t("settings.test_incoming_connection")}
+              className="gap-1.5"
+              disabled={is_form_busy}
+              size="md"
+              variant="outline"
+              onClick={handle_test_connection}
+            >
+              {is_testing ? (
+                <Spinner size="md" />
+              ) : (
+                <ServerStackIcon className="w-4 h-4" />
+              )}
+              {t("settings.test_connection")}
+            </Button>
+            <Button
+              aria-label={t("settings.test_smtp_connection")}
+              className="gap-1.5"
+              disabled={is_form_busy}
+              size="md"
+              variant="outline"
+              onClick={handle_test_smtp}
+            >
+              {is_testing_smtp ? (
+                <Spinner size="md" />
+              ) : (
+                <EnvelopeIcon className="w-4 h-4" />
+              )}
+              {t("settings.test_smtp")}
+            </Button>
           </>
         )}
       </div>

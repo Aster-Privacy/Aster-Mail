@@ -80,7 +80,7 @@ export function use_external_accounts() {
     [t],
   );
   const tls_method_options = useMemo(() => get_tls_method_options(t), [t]);
-  const { create_new_tag, state: tags_state } = use_tags();
+  const { create_new_tag, update_existing_tag, state: tags_state } = use_tags();
 
   const form = use_external_accounts_form(t);
 
@@ -228,6 +228,20 @@ export function use_external_accounts() {
         if (!form.is_mounted_ref.current) return;
 
         if (result.data) {
+          const linked_tag = tags_state.tags.find(
+            (candidate) =>
+              candidate.name.toLowerCase() === label_name.toLowerCase(),
+          );
+
+          if (linked_tag && !linked_tag.icon) {
+            await update_existing_tag(
+              linked_tag.id,
+              undefined,
+              undefined,
+              "envelope",
+            );
+          }
+
           const settings_saved = await save_account_settings(
             form.editing_account.account_token,
           );
@@ -252,7 +266,11 @@ export function use_external_accounts() {
         }
       } else {
         let tag_token: string | undefined;
-        const tag = await create_new_tag(label_name, form.form_label_color);
+        const tag = await create_new_tag(
+          label_name,
+          form.form_label_color,
+          "envelope",
+        );
 
         if (tag) {
           tag_token = tag.tag_token;
@@ -339,6 +357,7 @@ export function use_external_accounts() {
     form.form_archive_sent,
     form.form_delete_after_fetch,
     create_new_tag,
+    update_existing_tag,
     tags_state.tags,
     fetch_accounts,
     save_account_settings,
@@ -627,6 +646,7 @@ export function use_external_accounts() {
     close_form: form.close_form,
     handle_protocol_change: form.handle_protocol_change,
     handle_email_change: form.handle_email_change,
+    active_preset: form.active_preset,
     handle_host_change: form.handle_host_change,
     handle_port_change: form.handle_port_change,
     handle_username_change: form.handle_username_change,

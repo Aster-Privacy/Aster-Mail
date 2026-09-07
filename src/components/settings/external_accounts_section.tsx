@@ -18,11 +18,12 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { useEffect, useRef, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { PlusIcon, ServerStackIcon } from "@heroicons/react/24/outline";
 import { Button, Checkbox } from "@aster/ui";
 
 import { Spinner } from "@/components/ui/spinner";
-
 import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
 import {
   AlertDialog,
@@ -34,17 +35,53 @@ import {
   AlertDialogCancel,
 } from "@/components/ui/alert_dialog";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
+import { show_plan_limit_upgrade } from "@/stores/upgrade_store";
 import { use_external_accounts } from "@/components/settings/hooks/use_external_accounts";
 import { AccountList } from "@/components/settings/external_accounts/account_list";
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { AddAccountForm } from "@/components/settings/external_accounts/add_account_form";
+import { GmailSetupWizard } from "@/components/settings/external_accounts/gmail_setup_wizard";
 
 export function ExternalAccountsSection() {
   const state = use_external_accounts();
   const { limits } = use_plan_limits();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const has_auto_opened = useRef(false);
+  const [gmail_wizard_open, set_gmail_wizard_open] = useState(false);
   const account_limit = limits?.limits["max_multi_accounts"]?.limit ?? -1;
+  const external_accounts_enabled =
+    (limits?.limits["has_external_accounts"]?.limit ?? 1) >= 1;
   const at_account_limit =
-    account_limit > 0 && state.accounts.length >= account_limit;
+    !external_accounts_enabled ||
+    (account_limit >= 0 && state.accounts.length >= account_limit);
+  const wants_add_form =
+    (location.state as { open_external_account_form?: boolean } | null)
+      ?.open_external_account_form === true;
+  const { open_add_form } = state;
+
+  useEffect(() => {
+    if (!wants_add_form || has_auto_opened.current) return;
+    if (state.is_loading || !limits) return;
+    if (at_account_limit) return;
+
+    has_auto_opened.current = true;
+    open_add_form();
+    set_gmail_wizard_open(true);
+    navigate(location.pathname, { replace: true, state: null });
+  }, [
+    wants_add_form,
+    at_account_limit,
+    state.is_loading,
+    limits,
+    open_add_form,
+    navigate,
+    location.pathname,
+  ]);
+
+  useEffect(() => {
+    if (!state.show_add_form) set_gmail_wizard_open(false);
+  }, [state.show_add_form]);
 
   if (state.is_loading) {
     return <SettingsSkeleton variant="list" />;
@@ -60,9 +97,16 @@ export function ExternalAccountsSection() {
           </h3>
           <Button
             className="gap-2"
-            disabled={at_account_limit}
             variant="depth"
-            onClick={state.open_add_form}
+            onClick={() => {
+              if (at_account_limit) {
+                show_plan_limit_upgrade({ resource: "external accounts" });
+
+                return;
+              }
+
+              state.open_add_form();
+            }}
           >
             <PlusIcon className="w-4 h-4" />
             {state.t("settings.add_account")}
@@ -74,18 +118,38 @@ export function ExternalAccountsSection() {
         </p>
         {at_account_limit && (
           <p className="text-[12px] mt-2 text-txt-muted">
-            {state.t("settings.plan_limit_reached")}
+            {state.t("settings.external_accounts_limit_reached")}
           </p>
         )}
       </div>
 
-      {(state.show_add_form || state.editing_account) && (
+      {gmail_wizard_open && state.show_add_form && (
+        <GmailSetupWizard
+          close_form={() => {
+            set_gmail_wizard_open(false);
+            state.close_form();
+          }}
+          form_email={state.form_email}
+          form_password={state.form_password}
+          handle_email_change={state.handle_email_change}
+          handle_password_change={state.handle_password_change}
+          handle_submit={state.handle_submit}
+          handle_test_connection={state.handle_test_connection}
+          is_form_busy={state.is_form_busy}
+          is_submitting={state.is_submitting}
+          is_testing={state.is_testing}
+          t={state.t}
+          test_result={state.test_result}
+        />
+      )}
+
+      {!gmail_wizard_open && (state.show_add_form || state.editing_account) && (
         <AddAccountForm
+          active_preset={state.active_preset}
           available_folders={state.available_folders}
           close_form={state.close_form}
           editing_account={state.editing_account}
           form_archive_sent={state.form_archive_sent}
-          is_oauth_account={state.is_oauth_account}
           form_connection_timeout={state.form_connection_timeout}
           form_delete_after_fetch={state.form_delete_after_fetch}
           form_display_name={state.form_display_name}
@@ -132,11 +196,12 @@ export function ExternalAccountsSection() {
           has_stored_smtp_password={state.has_stored_smtp_password}
           is_fetching_folders={state.is_fetching_folders}
           is_form_busy={state.is_form_busy}
-          prefill_failed={state.prefill_failed}
-          retry_prefill={state.retry_prefill}
+          is_oauth_account={state.is_oauth_account}
           is_submitting={state.is_submitting}
           is_testing={state.is_testing}
           is_testing_smtp={state.is_testing_smtp}
+          prefill_failed={state.prefill_failed}
+          retry_prefill={state.retry_prefill}
           selected_folders={state.selected_folders}
           set_form_archive_sent={state.set_form_archive_sent}
           set_form_delete_after_fetch={state.set_form_delete_after_fetch}

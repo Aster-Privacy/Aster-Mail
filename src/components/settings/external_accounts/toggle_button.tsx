@@ -52,17 +52,17 @@ export function render_toggle_button(
     <button
       key={key}
       aria-checked={is_active}
-      role="radio"
-      tabIndex={is_active ? 0 : -1}
-      onKeyDown={handle_keydown}
       className={`px-4 py-1.5 text-sm font-medium rounded-[12px] transition-all duration-200 outline-none ${is_active ? "bg-surf-primary text-txt-primary" : "bg-transparent text-txt-muted"}`}
+      role="radio"
       style={{
         boxShadow: is_active
           ? "rgba(0, 0, 0, 0.1) 0px 1px 3px, rgba(0, 0, 0, 0.06) 0px 1px 2px"
           : "none",
       }}
+      tabIndex={is_active ? 0 : -1}
       type="button"
       onClick={on_click}
+      onKeyDown={handle_keydown}
     >
       {label}
     </button>

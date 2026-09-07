@@ -31,6 +31,7 @@ import { Button } from "@aster/ui";
 
 import { SettingsGroup, SettingsHeader } from "./shared";
 
+import { GmailSyncModal } from "@/components/settings/import_section/gmail_sync_modal";
 import {
   ConnectProviderModal,
   type ConnectProvider,
@@ -42,6 +43,10 @@ import {
   delete_import_job,
 } from "@/services/api/email_import";
 import { ImportModal } from "@/components/settings/import_modal";
+import {
+  OAUTH_PROVIDERS,
+  PROVIDER_TO_OAUTH,
+} from "@/components/settings/import_section/providers";
 import { ignore_error } from "@/lib/ignore_error";
 import { show_toast } from "@/components/toast/simple_toast";
 import {
@@ -73,13 +78,12 @@ export function ImportSection({
   const [jobs_load_failed, set_jobs_load_failed] = useState(false);
   const [selected_provider, set_selected_provider] =
     useState<ImportSource | null>(null);
+  const [gmail_sync_open, set_gmail_sync_open] = useState(false);
   const [connect_provider, set_connect_provider] =
     useState<ConnectProvider | null>(null);
   const [confirm_delete_id, set_confirm_delete_id] = useState<string | null>(
     null,
   );
-
-  const OAUTH_PROVIDERS = new Set<ImportSource>(["gmail", "outlook"]);
 
   const mobile_providers: {
     id: ImportSource;
@@ -234,40 +238,52 @@ export function ImportSection({
             {mobile_providers.map((provider) => (
               <div
                 key={provider.id}
-                className="flex items-center gap-3 px-4 py-3 rounded-xl border bg-[var(--mobile-bg-card)] border-[var(--mobile-border)]"
+                className="flex flex-col gap-2 px-4 py-3 rounded-xl border bg-[var(--mobile-bg-card)] border-[var(--mobile-border)]"
               >
-                <div className="flex-shrink-0">{provider.icon}</div>
-                <span className="flex-1 text-[14px] font-medium text-[var(--mobile-text-primary)]">
-                  {provider.label}
-                </span>
-                <div className="flex items-center gap-2">
-                  {OAUTH_PROVIDERS.has(provider.id) && (
+                <div className="flex items-center gap-3">
+                  <div className="flex-shrink-0">{provider.icon}</div>
+                  <span className="flex-1 text-[14px] font-medium text-[var(--mobile-text-primary)]">
+                    {provider.label}
+                  </span>
+                  <div className="flex items-center gap-2">
+                    {OAUTH_PROVIDERS.has(provider.id) && (
+                      <Button
+                        size="sm"
+                        variant="depth"
+                        onClick={() => {
+                          const mapped = PROVIDER_TO_OAUTH[provider.id];
+
+                          if (mapped) set_connect_provider(mapped);
+                        }}
+                      >
+                        {t("settings.import_oauth_button")}
+                      </Button>
+                    )}
+                    {provider.id === "gmail" && (
+                      <Button
+                        size="sm"
+                        variant="depth"
+                        onClick={() => set_gmail_sync_open(true)}
+                      >
+                        {t("settings.gmail_sync_setup_button")}
+                      </Button>
+                    )}
                     <Button
                       size="sm"
-                      variant="depth"
-                      onClick={() => {
-                        const PROVIDER_MAP: Record<string, ConnectProvider> = {
-                          gmail: "google",
-                          outlook: "microsoft",
-                        };
-                        const mapped = PROVIDER_MAP[provider.id];
-
-                        if (mapped) set_connect_provider(mapped);
-                      }}
+                      variant="outline"
+                      onClick={() => set_selected_provider(provider.id)}
                     >
-                      {t("settings.import_oauth_button")}
+                      {OAUTH_PROVIDERS.has(provider.id)
+                        ? t("settings.import_manual_button")
+                        : t("settings.browse_files")}
                     </Button>
-                  )}
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => set_selected_provider(provider.id)}
-                  >
-                    {OAUTH_PROVIDERS.has(provider.id)
-                      ? t("settings.import_manual_button")
-                      : t("settings.browse_files")}
-                  </Button>
+                  </div>
                 </div>
+                {provider.id === "gmail" && (
+                  <p className="text-[12px] text-[var(--mobile-text-muted)]">
+                    {t("settings.gmail_app_password_notice")}
+                  </p>
+                )}
               </div>
             ))}
           </div>
@@ -385,6 +401,10 @@ export function ImportSection({
         is_open={selected_provider !== null}
         on_close={handle_import_close}
         provider={selected_provider}
+      />
+      <GmailSyncModal
+        is_open={gmail_sync_open}
+        on_close={() => set_gmail_sync_open(false)}
       />
       <ConnectProviderModal
         on_close={() => set_connect_provider(null)}
