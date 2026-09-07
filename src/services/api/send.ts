@@ -131,10 +131,14 @@ interface ExternalSendRequest {
   signed_mime_micalg?: string;
 }
 
+const SEND_TIMEOUT_MS = 120000;
+
 export async function send_simple_email(
   request: SimpleSendRequest,
 ): Promise<ApiResponse<SimpleSendResponse>> {
-  return api_client.post<SimpleSendResponse>("/mail/v1/send", request);
+  return api_client.post<SimpleSendResponse>("/mail/v1/send", request, {
+    timeout: SEND_TIMEOUT_MS,
+  });
 }
 
 export async function queue_send_email(
@@ -149,7 +153,11 @@ export async function queue_send_email(
 export async function send_external_email(
   request: ExternalSendRequest,
 ): Promise<ApiResponse<SimpleSendResponse>> {
-  return api_client.post<SimpleSendResponse>("/mail/v1/send/external", request);
+  return api_client.post<SimpleSendResponse>(
+    "/mail/v1/send/external",
+    request,
+    { timeout: SEND_TIMEOUT_MS },
+  );
 }
 
 export async function send_email(

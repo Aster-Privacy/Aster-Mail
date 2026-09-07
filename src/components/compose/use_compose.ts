@@ -34,6 +34,7 @@ import {
 } from "react";
 
 import { list_contacts, decrypt_contacts } from "@/services/api/contacts";
+import { is_contact_trashed } from "@/lib/contact_trash";
 import {
   list_recent_recipients,
   decrypt_recent_recipients,
@@ -103,6 +104,7 @@ export interface UseComposeOptions {
   edit_draft?: EditDraftData | null;
   on_draft_cleared?: () => void;
   initial_to?: string;
+  initial_attachments?: File[];
   session_storage_key: string;
   init_trigger?: unknown;
   load_contacts_trigger?: unknown;
@@ -217,6 +219,7 @@ export function use_compose({
   edit_draft,
   on_draft_cleared,
   initial_to,
+  initial_attachments,
   session_storage_key,
   init_trigger,
   load_contacts_trigger,
@@ -256,10 +259,14 @@ export function use_compose({
       : null;
 
   useEffect(() => {
-    fetch_my_badges().then((r) => {
-      if (r.data) set_badges(r.data);
-      set_badges_loaded(true);
-    });
+    fetch_my_badges()
+      .then((r) => {
+        if (r.data) set_badges(r.data);
+      })
+      .catch((caught) =>
+        ignore_error("components/compose/use_compose:fetch_my_badges", caught),
+      )
+      .finally(() => set_badges_loaded(true));
   }, []);
 
   const is_sending_ref = useRef(false);
@@ -615,7 +622,9 @@ export function use_compose({
         if (response.data?.items) {
           const decrypted = await decrypt_contacts(response.data.items);
 
-          set_contacts(decrypted);
+          set_contacts(
+            decrypted.filter((contact) => !is_contact_trashed(contact)),
+          );
         }
       } catch (error) {
         if (import.meta.env.DEV) console.error(error);
@@ -696,6 +705,13 @@ export function use_compose({
       });
       set_subject(edit_draft.subject);
       set_message(edit_draft.message);
+      if (edit_draft.expires_at) {
+        const parsed = new Date(edit_draft.expires_at);
+        if (!Number.isNaN(parsed.getTime())) set_expires_at(parsed);
+      }
+      if (edit_draft.expiry_password) {
+        set_expiry_password(edit_draft.expiry_password);
+      }
       if (edit_draft.attachments && edit_draft.attachments.length > 0) {
         attachment_hook.set_attachments(
           draft_data_to_attachments(edit_draft.attachments),
@@ -708,8 +724,11 @@ export function use_compose({
       draft_hook.set_draft_status("saved");
       draft_hook.set_last_saved_time(new Date(edit_draft.updated_at));
 
+      const has_saved_attachments =
+        !!edit_draft.attachments && edit_draft.attachments.length > 0;
       const forward_source_id =
-        edit_draft.id === "" && edit_draft.draft_type === "forward"
+        edit_draft.draft_type === "forward" &&
+        (edit_draft.id === "" || !has_saved_attachments)
           ? edit_draft.forward_from_id
           : undefined;
 
@@ -804,6 +823,10 @@ export function use_compose({
         if (emails.length > 0) {
           dispatch_recipients({ type: "SET", field: "to", emails });
         }
+      }
+
+      if (initial_attachments && initial_attachments.length > 0) {
+        files_drop_ref.current?.(initial_attachments);
       }
     }
 
@@ -914,7 +937,7 @@ export function use_compose({
 
   useEffect(() => {
     if (!content_initialized_ref.current) return;
-    if (preferences.signature_mode === "disabled") return;
+    if (preferences.signature_mode !== "auto") return;
     const editor = message_textarea_ref.current;
 
     if (!editor) return;

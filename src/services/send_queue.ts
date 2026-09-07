@@ -212,6 +212,8 @@ class SendQueue {
       attachments: email.attachments,
       forward_original_mail_id: email.forward_original_mail_id,
       in_reply_to: email.in_reply_to,
+      force_pgp: email.force_pgp,
+      allow_non_post_quantum: email.allow_non_post_quantum,
       scheduled_time,
       timeout_id,
       callbacks: {

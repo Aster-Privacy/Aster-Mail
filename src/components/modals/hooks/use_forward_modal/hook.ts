@@ -128,6 +128,8 @@ import {
 import { use_escape_layer } from "@/lib/overlay_layer_stack";
 import { user_facing_error } from "@/utils/user_facing_error";
 import { record_review_prompt_action } from "@/lib/review_prompt";
+import { is_contact_trashed } from "@/lib/contact_trash";
+import { ignore_error } from "@/lib/ignore_error";
 
 export function use_forward_modal({
   is_open,
@@ -165,10 +167,17 @@ export function use_forward_modal({
       : null;
 
   useEffect(() => {
-    fetch_my_badges().then((r) => {
-      if (r.data) set_badges(r.data);
-      set_badges_loaded(true);
-    });
+    fetch_my_badges()
+      .then((r) => {
+        if (r.data) set_badges(r.data);
+      })
+      .catch((caught) =>
+        ignore_error(
+          "components/modals/hooks/use_forward_modal/hook:fetch_my_badges",
+          caught,
+        ),
+      )
+      .finally(() => set_badges_loaded(true));
   }, []);
   const { sender_options, loading: sender_loading } = use_sender_aliases();
   const [selected_sender, set_selected_sender_state] =
@@ -521,9 +530,8 @@ export function use_forward_modal({
         }
 
         if (!cancelled) {
-          original_has_attachments_ref.current = true;
-
           if (loaded.length > 0) {
+            original_has_attachments_ref.current = true;
             set_attachments(loaded);
           }
 
@@ -600,7 +608,9 @@ export function use_forward_modal({
         if (response.data?.items) {
           const decrypted = await decrypt_contacts(response.data.items);
 
-          set_contacts(decrypted);
+          set_contacts(
+            decrypted.filter((contact) => !is_contact_trashed(contact)),
+          );
         }
       } catch (error) {
         if (import.meta.env.DEV) console.error(error);

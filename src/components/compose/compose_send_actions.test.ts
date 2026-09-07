@@ -25,6 +25,7 @@ const queue_email = vi.fn();
 const execute_external_send = vi.fn();
 let undo_send_delay_ms = 0;
 const undo_send_add = vi.fn();
+const store_pending_send_payload = vi.fn();
 
 vi.mock("@/services/send_queue", () => ({
   queue_email_to_server: (...args: unknown[]) => queue_email_to_server(...args),
@@ -38,7 +39,8 @@ vi.mock("@/hooks/use_undo_send", () => ({
     add: (...args: unknown[]) => undo_send_add(...args),
     remove: vi.fn(),
   },
-  store_pending_send_payload: vi.fn(),
+  store_pending_send_payload: (...args: unknown[]) =>
+    store_pending_send_payload(...args),
 }));
 
 vi.mock("@/services/api/external_accounts", () => ({
@@ -216,5 +218,55 @@ describe("the stashed plaintext message is cleared once it is no longer needed",
     await pending.on_send_immediately();
 
     expect(sessionStorage.getItem("compose_test")).toBeNull();
+  });
+});
+
+describe("the pending payload keeps the draft context for undo", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    undo_send_delay_ms = 10_000;
+  });
+
+  it("stores the reply context, expiry, and thread token alongside the message", async () => {
+    queue_email_to_server.mockResolvedValue({ queue_id: "queue_9" });
+
+    const ctx = make_ctx({
+      undo_send_enabled: true,
+      undo_send_seconds: 10,
+      undo_send_period: "seconds",
+      edit_draft: {
+        id: "",
+        version: 0,
+        draft_type: "reply",
+        reply_to_id: "mail-uuid",
+        rfc_message_id: "<abc@example.com>",
+        thread_token: "thread-1",
+        to_recipients: [],
+        cc_recipients: [],
+        bcc_recipients: [],
+        subject: "",
+        message: "",
+        updated_at: "",
+      },
+    });
+
+    await execute_internal_send(ctx, {
+      ...email_data,
+      expires_at: "2030-01-01T00:00:00.000Z",
+    });
+
+    expect(store_pending_send_payload).toHaveBeenCalledWith(
+      "queue_9",
+      expect.objectContaining({
+        draft_type: "reply",
+        reply_to_id: "mail-uuid",
+        rfc_message_id: "<abc@example.com>",
+        thread_token: "thread-1",
+        expires_at: "2030-01-01T00:00:00.000Z",
+      }),
+    );
+    expect(undo_send_add).toHaveBeenCalledWith(
+      expect.objectContaining({ thread_token: "thread-1" }),
+    );
   });
 });

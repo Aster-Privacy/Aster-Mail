@@ -102,4 +102,12 @@ describe("assemble_reply_with_placement", () => {
       assemble_reply_with_placement(`Hello${signature}`, "", () => "below"),
     ).toBe(`Hello${signature}`);
   });
+  it("keeps the quote last when the whole reply was typed inside the signature block", () => {
+    const typed =
+      '<div data-aster-signature="1" data-aster-signature-id="sig_1">Hello!<br><br>--<br>The Aster Team</div>';
+
+    expect(assemble_reply_with_placement(typed, quote, () => "below")).toBe(
+      `${typed}${quote}`,
+    );
+  });
 });

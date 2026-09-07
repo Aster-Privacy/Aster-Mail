@@ -108,7 +108,10 @@ vi.mock("@/components/toast/action_toast", () => ({
   show_action_toast: vi.fn(),
 }));
 
-vi.mock("@/hooks/mail_events", () => ({ emit_thread_reply_sent: vi.fn() }));
+vi.mock("@/hooks/mail_events", async (import_original) => ({
+  ...(await import_original<typeof import("@/hooks/mail_events")>()),
+  emit_thread_reply_sent: vi.fn(),
+}));
 
 vi.mock("@/components/compose/send_lock", () => ({
   build_send_fingerprint: () => "fingerprint",

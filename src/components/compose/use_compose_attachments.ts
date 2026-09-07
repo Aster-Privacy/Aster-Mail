@@ -191,7 +191,7 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
         const file = files[i];
 
         if (
-          attachments.length + new_attachments.length >=
+          attachments_ref.current.length + new_attachments.length >=
           MAX_ATTACHMENTS_PER_SEND
         ) {
           const message = describe_too_many_attachments(t);
@@ -227,7 +227,7 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
         const mime_type = resolve_mime_type(file);
 
         const same_file_attached =
-          attachments.some(
+          attachments_ref.current.some(
             (a) => a.name === file.name && a.size_bytes === file.size,
           ) ||
           new_attachments.some(
@@ -315,7 +315,7 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
 
       for (const file of files) {
         if (
-          attachments.length + new_attachments.length >=
+          attachments_ref.current.length + new_attachments.length >=
           MAX_ATTACHMENTS_PER_SEND
         ) {
           const message = describe_too_many_attachments(t);
@@ -351,7 +351,7 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
         const mime_type = resolve_mime_type(file);
 
         const same_file_attached =
-          attachments.some(
+          attachments_ref.current.some(
             (a) => a.name === file.name && a.size_bytes === file.size,
           ) ||
           new_attachments.some(

@@ -109,6 +109,7 @@ export interface EditDraftData {
   version: number;
   draft_type: DraftType;
   reply_to_id?: string;
+  rfc_message_id?: string;
   forward_from_id?: string;
   thread_token?: string;
   to_recipients: string[];
@@ -117,6 +118,8 @@ export interface EditDraftData {
   subject: string;
   message: string;
   from_email?: string;
+  expires_at?: string;
+  expiry_password?: string;
   updated_at: string;
   attachments?: DraftAttachmentData[];
 }

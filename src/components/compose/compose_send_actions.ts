@@ -41,6 +41,7 @@ import { show_action_toast } from "@/components/toast/action_toast";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 import { emit_email_sent } from "@/hooks/mail_events";
 import { record_review_prompt_action } from "@/lib/review_prompt";
+import { safe_session_set } from "@/lib/safe_storage";
 
 export interface SendActionContext {
   undo_send_enabled: boolean;
@@ -81,6 +82,8 @@ function save_and_close(
     subject: string;
     body?: string;
     sender_email?: string;
+    expires_at?: string;
+    expiry_password?: string;
     attachments?: Attachment[];
   },
 ) {
@@ -91,6 +94,13 @@ function save_and_close(
     subject: email_data.subject,
     body: email_data.body ?? ctx.message,
     sender_email: email_data.sender_email,
+    thread_token: ctx.edit_draft?.thread_token,
+    draft_type: ctx.edit_draft?.draft_type,
+    reply_to_id: ctx.edit_draft?.reply_to_id,
+    rfc_message_id: ctx.edit_draft?.rfc_message_id,
+    forward_from_id: ctx.edit_draft?.forward_from_id,
+    expires_at: email_data.expires_at,
+    expiry_password: email_data.expiry_password,
     attachments: email_data.attachments,
   });
 
@@ -103,7 +113,7 @@ function save_and_close(
   };
 
   ctx.set_queued_email_id(email_id);
-  sessionStorage.setItem(ctx.session_storage_key, JSON.stringify(saved_data));
+  safe_session_set(ctx.session_storage_key, JSON.stringify(saved_data));
 
   ctx.reset_form();
   ctx.on_close();
@@ -206,6 +216,7 @@ export async function execute_internal_send(
       subject: email_data.subject,
       body: email_data.body,
       sender_email: email_data.sender_email,
+      thread_token: ctx.edit_draft?.thread_token,
       scheduled_time: Date.now() + delay_ms,
       total_seconds: delay_seconds,
       is_server_queued: true,
@@ -333,6 +344,7 @@ export async function execute_external_email_send(
       subject: email_data.subject,
       body: email_data.body,
       sender_email: email_data.sender_email,
+      thread_token: ctx.edit_draft?.thread_token,
       scheduled_time: Date.now() + delay_ms,
       total_seconds: delay_seconds,
       is_external: true,
@@ -385,6 +397,7 @@ export async function execute_external_email_send(
       subject: email_data.subject,
       body: email_data.body,
       sender_email: email_data.sender_email,
+      thread_token: ctx.edit_draft?.thread_token,
       scheduled_time: Date.now() + delay_ms,
       total_seconds: delay_seconds,
       timeout_id,
@@ -528,6 +541,7 @@ export async function execute_external_account_email_send(
       subject: email_data.subject,
       body: email_data.body,
       sender_email: email_data.sender_email,
+      thread_token: ctx.edit_draft?.thread_token,
       scheduled_time: Date.now() + delay_ms,
       total_seconds: delay_seconds,
       timeout_id,

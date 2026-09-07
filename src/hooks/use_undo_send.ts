@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { Attachment } from "@/components/compose/compose_shared";
+import type { DraftType } from "@/services/api/multi_drafts";
 
 import { useState, useEffect, useCallback } from "react";
 
@@ -60,6 +61,12 @@ export interface PendingSendPayload {
   body: string;
   sender_email?: string;
   thread_token?: string;
+  draft_type?: DraftType;
+  reply_to_id?: string;
+  rfc_message_id?: string;
+  forward_from_id?: string;
+  expires_at?: string;
+  expiry_password?: string;
   attachments?: Attachment[];
 }
 
@@ -288,9 +295,19 @@ export function use_undo_send(): UseUndoSendReturn {
       payload = take_pending_send_payload(id);
       undo_send_manager.remove(id);
     } else {
+      const cancelled = cancel_queue_send(id);
+
+      if (!cancelled) {
+        show_toast(
+          get_active_translations().common.undo_send_too_late,
+          "error",
+        );
+
+        return false;
+      }
+
       payload = take_pending_send_payload(id);
       undo_send_manager.remove(id);
-      cancel_queue_send(id);
     }
 
     dispatch_undo_send_event(id, pending, payload);
