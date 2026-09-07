@@ -64,8 +64,6 @@ const CATEGORY_LABEL: Record<CategoryValue, TranslationKey> = {
   finance: "settings.category_finance",
   travel: "settings.category_travel",
   shopping: "settings.category_shopping",
-  newsletters: "settings.category_newsletters",
-  transactions: "settings.category_transactions",
 };
 
 export function ActionChip({

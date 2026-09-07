@@ -5,7 +5,14 @@
     <meta name="referrer" content="no-referrer" />
     <meta http-equiv="x-dns-prefetch-control" content="off" />
     <meta name="robots" content="noindex, nofollow" />
-    <meta name="theme-color" content="#ffffff" />
+    <meta name="theme-color" content="#0a0a0a" />
+    <meta name="color-scheme" content="dark light" />
+    <style>
+      html,
+      body {
+        background-color: #0a0a0a;
+      }
+    </style>
     <script src="/theme-bootstrap.js"></script>
     <script src="/tauri-crypto-shim.js"></script>
     <script>
@@ -29,9 +36,14 @@
           send("frontend_painted");
         };
 
-        var supported = PerformanceObserver && PerformanceObserver.supportedEntryTypes;
+        var supported =
+          PerformanceObserver && PerformanceObserver.supportedEntryTypes;
 
-        if (typeof PerformanceObserver !== "function" || !supported || supported.indexOf("paint") === -1) {
+        if (
+          typeof PerformanceObserver !== "function" ||
+          !supported ||
+          supported.indexOf("paint") === -1
+        ) {
           report_painted();
           return;
         }
@@ -56,37 +68,42 @@
       })();
     </script>
     <style>
-      html, body { background-color: #ffffff; }
-      html.dark, html.dark body { background-color: #0a0a0a; }
+      html.light,
+      html.light body {
+        background-color: #ffffff;
+      }
       @font-face {
-        font-family: 'Google Sans Flex';
+        font-family: "Google Sans Flex";
         font-style: normal;
         font-weight: 400;
         font-display: swap;
-        src: url('/fonts/GoogleSansFlex-400.woff2') format('woff2');
+        src: url("/fonts/GoogleSansFlex-400.woff2") format("woff2");
       }
       @font-face {
-        font-family: 'Google Sans Flex';
+        font-family: "Google Sans Flex";
         font-style: normal;
         font-weight: 500;
         font-display: swap;
-        src: url('/fonts/GoogleSansFlex-500.woff2') format('woff2');
+        src: url("/fonts/GoogleSansFlex-500.woff2") format("woff2");
       }
       @font-face {
-        font-family: 'Google Sans Flex';
+        font-family: "Google Sans Flex";
         font-style: normal;
         font-weight: 600;
         font-display: swap;
-        src: url('/fonts/GoogleSansFlex-600.woff2') format('woff2');
+        src: url("/fonts/GoogleSansFlex-600.woff2") format("woff2");
       }
       @font-face {
-        font-family: 'Google Sans Flex';
+        font-family: "Google Sans Flex";
         font-style: normal;
         font-weight: 700;
         font-display: swap;
-        src: url('/fonts/GoogleSansFlex-700.woff2') format('woff2');
+        src: url("/fonts/GoogleSansFlex-700.woff2") format("woff2");
       }
-      html, body { font-family: 'Google Sans Flex', system-ui, sans-serif; }
+      html,
+      body {
+        font-family: "Google Sans Flex", system-ui, sans-serif;
+      }
       #initial-loader {
         position: fixed;
         top: 0;
@@ -96,7 +113,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        background-color: var(--bg-secondary, #ffffff);
+        background-color: var(--bg-secondary, #0a0a0a);
         z-index: 10000;
       }
       #initial-loader-content {
@@ -123,7 +140,9 @@
         box-sizing: border-box !important;
       }
       @keyframes initial-loader-spin {
-        to { transform: rotate(360deg); }
+        to {
+          transform: rotate(360deg);
+        }
       }
       #initial-loader-stack {
         display: flex;
@@ -195,34 +214,61 @@
         background: rgba(255, 255, 255, 0.1);
       }
       @keyframes initial-loader-dot-one {
-        0% { opacity: 0; }
-        25%, 100% { opacity: 1; }
+        0% {
+          opacity: 0;
+        }
+        25%,
+        100% {
+          opacity: 1;
+        }
       }
       @keyframes initial-loader-dot-two {
-        0% { opacity: 0; }
-        50%, 100% { opacity: 1; }
+        0% {
+          opacity: 0;
+        }
+        50%,
+        100% {
+          opacity: 1;
+        }
       }
       @keyframes initial-loader-dot-three {
-        0% { opacity: 0; }
-        75%, 100% { opacity: 1; }
+        0% {
+          opacity: 0;
+        }
+        75%,
+        100% {
+          opacity: 1;
+        }
       }
       @font-face {
-        font-family: 'OpenDyslexic';
+        font-family: "OpenDyslexic";
         font-style: normal;
         font-weight: 400;
         font-display: swap;
-        src: url('/fonts/OpenDyslexic-Regular.woff2') format('woff2');
+        src: url("/fonts/OpenDyslexic-Regular.woff2") format("woff2");
       }
       @font-face {
-        font-family: 'OpenDyslexic';
+        font-family: "OpenDyslexic";
         font-style: normal;
         font-weight: 700;
         font-display: swap;
-        src: url('/fonts/OpenDyslexic-Bold.woff2') format('woff2');
+        src: url("/fonts/OpenDyslexic-Bold.woff2") format("woff2");
       }
     </style>
-    <link rel="preload" as="font" type="font/woff2" href="/fonts/GoogleSansFlex-400.woff2" crossorigin />
-    <link rel="preload" as="font" type="font/woff2" href="/fonts/GoogleSansFlex-500.woff2" crossorigin />
+    <link
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      href="/fonts/GoogleSansFlex-400.woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      href="/fonts/GoogleSansFlex-500.woff2"
+      crossorigin
+    />
     <link rel="preload" as="image" href="/text_logo.png" fetchpriority="high" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
@@ -242,13 +288,31 @@
         <img alt="Aster" draggable="false" src="/text_logo.png" />
         <div id="initial-loader-stack">
           <div id="initial-loader-spinner"></div>
-          <div id="initial-loader-text">Loading<span id="initial-loader-dots"><span>.</span><span>.</span><span>.</span></span></div>
+          <div id="initial-loader-text">
+            Loading<span id="initial-loader-dots"
+              ><span>.</span><span>.</span><span>.</span></span
+            >
+          </div>
         </div>
         <div id="initial-loader-fallback">
-          <div id="initial-loader-fallback-text">This is taking longer than usual</div>
+          <div id="initial-loader-fallback-text">
+            This is taking longer than usual
+          </div>
           <div id="initial-loader-fallback-actions">
-            <button class="initial-loader-btn" id="initial-loader-reload" type="button">Reload</button>
-            <button class="initial-loader-btn" id="initial-loader-hard-reset" type="button">Clear cache &amp; reload</button>
+            <button
+              class="initial-loader-btn"
+              id="initial-loader-reload"
+              type="button"
+            >
+              Reload
+            </button>
+            <button
+              class="initial-loader-btn"
+              id="initial-loader-hard-reset"
+              type="button"
+            >
+              Clear cache &amp; reload
+            </button>
           </div>
         </div>
       </div>
@@ -283,19 +347,28 @@
             Promise.resolve()
               .then(function () {
                 if (window.caches && caches.keys) {
-                  return caches
-                    .keys()
-                    .then(function (keys) {
-                      return Promise.all(keys.map(function (key) { return caches.delete(key); }));
-                    });
+                  return caches.keys().then(function (keys) {
+                    return Promise.all(
+                      keys.map(function (key) {
+                        return caches.delete(key);
+                      }),
+                    );
+                  });
                 }
               })
               .then(function () {
-                if (navigator.serviceWorker && navigator.serviceWorker.getRegistrations) {
+                if (
+                  navigator.serviceWorker &&
+                  navigator.serviceWorker.getRegistrations
+                ) {
                   return navigator.serviceWorker
                     .getRegistrations()
                     .then(function (regs) {
-                      return Promise.all(regs.map(function (reg) { return reg.unregister(); }));
+                      return Promise.all(
+                        regs.map(function (reg) {
+                          return reg.unregister();
+                        }),
+                      );
                     });
                 }
               })

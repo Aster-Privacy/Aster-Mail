@@ -50,6 +50,12 @@
 
       var meta = document.querySelector('meta[name="theme-color"]');
       if (meta) meta.setAttribute("content", colors.bg);
+    } else {
+      document.documentElement.classList.add("light");
+      document.documentElement.style.setProperty("color-scheme", "light");
+
+      var light_meta = document.querySelector('meta[name="theme-color"]');
+      if (light_meta) light_meta.setAttribute("content", "#ffffff");
     }
   } catch (e) {}
 })();

@@ -249,7 +249,7 @@ export default defineConfig({
     __BUILD_HASH__: JSON.stringify(build_hash),
   },
   server: {
-    host: "localhost",
+    host: "127.0.0.1",
     port: 5173,
     allowedHosts: true,
     proxy: {
