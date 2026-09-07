@@ -126,6 +126,9 @@ const OPTIMISTIC_HOLD_MS = 4_000;
 const CONFIRM_WINDOW_MS = 45_000;
 const MAX_CONFIRM_RETRIES = 3;
 
+const FETCH_STUCK_MS = 45_000;
+const VERIFY_AFTER_RECEIVE_MS = 8_000;
+
 const INITIAL_STATS_DELAY_MS = 1_000;
 const STORAGE_KEY_PREFIX = "aster_mail_stats_";
 const STORAGE_SCHEMA_VERSION = 3;
@@ -168,8 +171,12 @@ class MailStatsStore {
     null;
   private last_adjust_at: Partial<Record<keyof MailStats, number>> = {};
   private confirm_retries: Partial<Record<keyof MailStats, number>> = {};
+  private clamped_debt: Partial<Record<keyof MailStats, number>> = {};
   private authoritative_unread: number | null = null;
   private needs_revalidate = false;
+  private fetch_sequence = 0;
+  private fetch_started_at = 0;
+  private verify_timer: ReturnType<typeof setTimeout> | null = null;
 
   get_cache(): StatsCache {
     return this.cache;
@@ -213,6 +220,11 @@ class MailStatsStore {
       clearTimeout(this.late_reconcile_timer);
       this.late_reconcile_timer = null;
     }
+
+    if (this.verify_timer) {
+      clearTimeout(this.verify_timer);
+      this.verify_timer = null;
+    }
   }
 
   private reset_account_state(): void {
@@ -234,8 +246,11 @@ class MailStatsStore {
     this.in_flight_deltas = null;
     this.last_adjust_at = {};
     this.confirm_retries = {};
+    this.clamped_debt = {};
     this.authoritative_unread = null;
     this.needs_revalidate = false;
+    this.fetch_sequence += 1;
+    this.fetch_started_at = 0;
     this.cache = {
       data: DEFAULT_STATS,
       timestamp: 0,
@@ -332,9 +347,14 @@ class MailStatsStore {
     }
 
     if (this.cache.fetching && this.active_request) {
-      this.refetch_queued = true;
+      if (Date.now() - this.fetch_started_at < FETCH_STUCK_MS) {
+        this.refetch_queued = true;
 
-      return this.active_request;
+        return this.active_request;
+      }
+
+      this.active_request = null;
+      this.refetch_queued = false;
     }
 
     this.cache.fetching = true;
@@ -347,7 +367,9 @@ class MailStatsStore {
 
   private async execute_fetch(): Promise<MailStats | null> {
     const fetch_generation = this.account_generation;
+    const fetch_sequence = ++this.fetch_sequence;
 
+    this.fetch_started_at = Date.now();
     this.in_flight_deltas = {};
     const query_started_at = Date.now();
     const has_unconfirmed_adjustments =
@@ -356,7 +378,7 @@ class MailStatsStore {
     try {
       const [stats_response, contacts_response, snoozed_response] =
         await Promise.allSettled([
-          get_mail_stats(has_unconfirmed_adjustments),
+          get_mail_stats(true),
           get_contacts_count(has_unconfirmed_adjustments),
           list_snoozed_emails(has_unconfirmed_adjustments),
         ]);
@@ -366,7 +388,11 @@ class MailStatsStore {
           ? stats_response.value.data
           : null;
 
-      if (!server_stats || fetch_generation !== this.account_generation) {
+      if (
+        !server_stats ||
+        fetch_generation !== this.account_generation ||
+        fetch_sequence !== this.fetch_sequence
+      ) {
         return null;
       }
 
@@ -411,6 +437,7 @@ class MailStatsStore {
 
         delete this.confirm_retries[field];
         delete this.last_adjust_at[field];
+        delete this.clamped_debt[field];
 
         return settled;
       };
@@ -450,7 +477,10 @@ class MailStatsStore {
     } catch {
       return null;
     } finally {
-      if (fetch_generation === this.account_generation) {
+      if (
+        fetch_generation === this.account_generation &&
+        fetch_sequence === this.fetch_sequence
+      ) {
         this.in_flight_deltas = null;
         this.cache.fetching = false;
         this.active_request = null;
@@ -467,6 +497,16 @@ class MailStatsStore {
 
   invalidate(): void {
     this.cache.timestamp = 0;
+  }
+
+  verify_later(): void {
+    if (this.verify_timer) return;
+
+    this.verify_timer = setTimeout(() => {
+      this.verify_timer = null;
+      this.cache.timestamp = 0;
+      void this.fetch(true);
+    }, VERIFY_AFTER_RECEIVE_MS);
   }
 
   fetch_debounced(): void {
@@ -500,6 +540,7 @@ class MailStatsStore {
     this.authoritative_unread = next;
     delete this.last_adjust_at.unread;
     delete this.confirm_retries.unread;
+    delete this.clamped_debt.unread;
 
     if (this.in_flight_deltas) delete this.in_flight_deltas.unread;
 
@@ -517,9 +558,15 @@ class MailStatsStore {
     const current = this.cache.data[field];
 
     if (typeof current === "number") {
+      const raw = current + this.absorb_clamped_debt(field, delta);
+
+      if (raw < 0) {
+        this.clamped_debt[field] = (this.clamped_debt[field] ?? 0) + raw;
+      }
+
       this.cache.data = {
         ...this.cache.data,
-        [field]: Math.max(0, current + delta),
+        [field]: Math.max(0, raw),
       };
       this.last_adjust_at[field] = Date.now();
       this.confirm_retries[field] = 0;
@@ -534,6 +581,23 @@ class MailStatsStore {
       this.sync_external_surfaces();
       this.schedule_reconcile();
     }
+  }
+
+  private absorb_clamped_debt(field: keyof MailStats, delta: number): number {
+    const debt = this.clamped_debt[field] ?? 0;
+
+    if (delta <= 0 || debt >= 0) return delta;
+
+    const absorbed = Math.min(delta, -debt);
+    const remaining = debt + absorbed;
+
+    if (remaining === 0) {
+      delete this.clamped_debt[field];
+    } else {
+      this.clamped_debt[field] = remaining;
+    }
+
+    return delta - absorbed;
   }
 
   private schedule_confirm_retry(): void {
@@ -618,7 +682,7 @@ if (typeof window !== "undefined") {
     if (has_passphrase_in_memory() && stats_store.is_stale()) {
       void stats_store.fetch(false);
     }
-  }, BACKGROUND_RECONCILE_MS);
+  }, BACKGROUND_RECONCILE_MS / 2);
 }
 
 export function should_reconcile_on_item_update(
@@ -733,6 +797,11 @@ export function use_mail_stats(): UseMailStatsReturn {
       stats_store.fetch_debounced();
     };
 
+    const handle_received = () => {
+      stats_store.fetch_debounced();
+      stats_store.verify_later();
+    };
+
     const handle_item_update = (event: Event) => {
       const detail = (event as CustomEvent<MailItemUpdatedEventDetail>).detail;
 
@@ -760,7 +829,7 @@ export function use_mail_stats(): UseMailStatsReturn {
     window.addEventListener(MAIL_EVENTS.MAIL_ITEM_UPDATED, handle_item_update);
     window.addEventListener(MAIL_EVENTS.MAIL_SOFT_REFRESH, handle_change);
     window.addEventListener(MAIL_EVENTS.EMAIL_SENT, handle_change);
-    window.addEventListener(MAIL_EVENTS.EMAIL_RECEIVED, handle_change);
+    window.addEventListener(MAIL_EVENTS.EMAIL_RECEIVED, handle_received);
     window.addEventListener(MAIL_EVENTS.MAIL_STATS_STALE, handle_change);
     window.addEventListener(MAIL_EVENTS.DRAFTS_CHANGED, handle_change);
     window.addEventListener(MAIL_EVENTS.CONTACTS_CHANGED, handle_change);
@@ -780,7 +849,10 @@ export function use_mail_stats(): UseMailStatsReturn {
       );
       window.removeEventListener(MAIL_EVENTS.MAIL_SOFT_REFRESH, handle_change);
       window.removeEventListener(MAIL_EVENTS.EMAIL_SENT, handle_change);
-      window.removeEventListener(MAIL_EVENTS.EMAIL_RECEIVED, handle_change);
+      window.removeEventListener(
+        MAIL_EVENTS.EMAIL_RECEIVED,
+        handle_received,
+      );
       window.removeEventListener(MAIL_EVENTS.MAIL_STATS_STALE, handle_change);
       window.removeEventListener(MAIL_EVENTS.DRAFTS_CHANGED, handle_change);
       window.removeEventListener(MAIL_EVENTS.CONTACTS_CHANGED, handle_change);
