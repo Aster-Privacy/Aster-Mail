@@ -89,6 +89,16 @@ export async function create_attachment(
   );
 }
 
+export async function update_attachment_meta(
+  attachment_id: string,
+  data: { encrypted_meta: string; meta_nonce: string },
+): Promise<ApiResponse<{ status: string }>> {
+  return api_client.put<{ status: string }>(
+    `/mail/v1/attachments/${attachment_id}/meta`,
+    data,
+  );
+}
+
 export async function delete_attachment(
   attachment_id: string,
 ): Promise<ApiResponse<{ status: string }>> {

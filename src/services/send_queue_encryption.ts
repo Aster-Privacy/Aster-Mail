@@ -31,8 +31,9 @@ export {
   check_send_readiness_internal,
   encrypt_for_recipients,
 } from "./send_queue_body_encryption";
+export { create_sent_envelope } from "./send_queue_envelope";
 export {
-  create_sent_envelope,
   reencrypt_all_sent_mail,
-} from "./send_queue_envelope";
+  type SentMailResealSummary,
+} from "./sent_mail_reseal";
 export { execute_external_send, execute_send } from "./send_queue_execute";

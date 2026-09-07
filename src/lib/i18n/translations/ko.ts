@@ -3980,6 +3980,16 @@ export const ko = {
       "비밀번호를 변경했습니다. 키를 사용할 수 없어 암호화된 항목 {{count}}개가 이전 암호화를 유지합니다. 메일 수신에는 영향이 없습니다. 복원하려면 지원팀에 문의하세요.",
     password_change_background_reencrypt_failed:
       "비밀번호가 변경되었지만 보낸 메일과 설정 일부가 다시 암호화되지 않았습니다. 메일이나 설정이 읽힐 수 없는 상태라면 고객 지원에 문의하세요.",
+    restore_sent_mail: "보낸 메일 복원",
+    restore_sent_mail_description: "비밀번호 변경 전에 보낸 메일이 열리지 않으면 그때 사용하던 비밀번호를 입력하세요. Aster Mail이 해당 사본을 현재 비밀번호로 다시 암호화합니다.",
+    previous_password: "이전 비밀번호",
+    enter_previous_password: "이전 비밀번호 입력",
+    restore_sent_mail_running: "보낸 메일 확인 중... {{count}}개 확인됨",
+    restore_sent_mail_result: "보낸 이메일 {{rewritten}}개가 이제 현재 비밀번호로 열립니다. {{unreadable}}개는 여전히 다른 이전 비밀번호가 필요합니다.",
+    restore_sent_mail_nothing: "모든 보낸 이메일이 이미 현재 비밀번호로 열립니다.",
+    restore_sent_mail_failed: "일부 보낸 메일을 업데이트하지 못했습니다. 연결을 확인하고 다시 시도하세요.",
+    restore_sent_mail_session_expired: "세션 키를 사용할 수 없습니다. 로그아웃한 뒤 다시 로그인하고 다시 시도하세요.",
+    password_change_sent_mail_locked: "비밀번호가 변경되었습니다. 보낸 이메일 {{count}}개가 이전 비밀번호로 암호화되어 있어 업데이트되지 않았습니다. 복원하려면 설정 > 보안 > 보낸 메일 복원을 여세요.",
     password_changed_signing_out:
       "비밀번호가 성공적으로 변경되었습니다. 로그아웃 중...",
     password_changed_success: "비밀번호를 변경했습니다",

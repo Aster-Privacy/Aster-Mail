@@ -3958,6 +3958,16 @@ export const nl = {
       "Je wachtwoord is gewijzigd. {{count}} versleutelde items behouden hun eerdere versleuteling omdat hun sleutel niet beschikbaar was. De bezorging van e-mail wordt niet beïnvloed. Neem contact op met de ondersteuning om ze te herstellen.",
     password_change_background_reencrypt_failed:
       "Je wachtwoord is gewijzigd, maar een deel van je verzonden berichten en instellingen is niet opnieuw versleuteld. Neem contact op met de klantenservice als berichten of instellingen onleesbaar lijken.",
+    restore_sent_mail: "Verzonden e-mails herstellen",
+    restore_sent_mail_description: "Als verzonden e-mails van voor een wachtwoordwijziging niet openen, voer dan het wachtwoord in dat je toen gebruikte. Aster Mail versleutelt die kopieën opnieuw met je huidige wachtwoord.",
+    previous_password: "Vorig wachtwoord",
+    enter_previous_password: "Voer het vorige wachtwoord in",
+    restore_sent_mail_running: "Verzonden e-mails controleren... {{count}} gecontroleerd",
+    restore_sent_mail_result: "{{rewritten}} verzonden e-mails openen nu met je huidige wachtwoord. {{unreadable}} hebben nog een ander eerder wachtwoord nodig.",
+    restore_sent_mail_nothing: "Alle verzonden e-mails openen al met je huidige wachtwoord.",
+    restore_sent_mail_failed: "Sommige verzonden e-mails konden niet worden bijgewerkt. Controleer je verbinding en probeer het opnieuw.",
+    restore_sent_mail_session_expired: "Je sessiesleutels zijn niet beschikbaar. Meld je af, meld je opnieuw aan en probeer het opnieuw.",
+    password_change_sent_mail_locked: "Je wachtwoord is gewijzigd. {{count}} verzonden e-mails waren versleuteld met een eerder wachtwoord en zijn niet bijgewerkt. Open Instellingen > Beveiliging > Verzonden e-mails herstellen om ze te herstellen.",
     password_changed_signing_out:
       "Wachtwoord succesvol gewijzigd. Je wordt uitgelogd...",
     password_changed_success: "Wachtwoord gewijzigd",

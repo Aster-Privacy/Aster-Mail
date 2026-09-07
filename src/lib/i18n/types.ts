@@ -2933,6 +2933,16 @@ export interface SettingsTranslations {
   password_change_encrypted_data_warning: string;
   password_changed_items_unreadable: string;
   password_change_background_reencrypt_failed: string;
+  restore_sent_mail: string;
+  restore_sent_mail_description: string;
+  previous_password: string;
+  enter_previous_password: string;
+  restore_sent_mail_running: string;
+  restore_sent_mail_result: string;
+  restore_sent_mail_nothing: string;
+  restore_sent_mail_failed: string;
+  restore_sent_mail_session_expired: string;
+  password_change_sent_mail_locked: string;
   password_changed_signing_out: string;
   password_changed_success: string;
   vault_recovery_title: string;

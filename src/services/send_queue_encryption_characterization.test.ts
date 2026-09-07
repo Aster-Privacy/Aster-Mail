@@ -43,6 +43,7 @@ const h = vi.hoisted(() => ({
     data: { success: true, mail_item_id: "mail-2" },
   } as Record<string, unknown>,
   listed_items: [] as Record<string, unknown>[],
+  listed_attachments: [] as Record<string, unknown>[],
 }));
 
 vi.mock("@/services/crypto/memory_key_store", () => ({
@@ -91,6 +92,10 @@ vi.mock("@/services/api/mail", () => ({
 
 vi.mock("@/services/api/attachments", () => ({
   create_attachment: vi.fn(async () => ({ data: {} })),
+  list_attachments: vi.fn(async () => ({
+    data: { attachments: h.listed_attachments },
+  })),
+  update_attachment_meta: vi.fn(async () => ({ data: { status: "updated" } })),
 }));
 
 vi.mock("@/services/crypto/mail_metadata", () => ({
@@ -147,7 +152,11 @@ import type { QueuedEmailInternal, MailEnvelope } from "./send_queue_types";
 import { send_simple_email, send_external_email } from "./api/send";
 import { list_encrypted_mail_items, update_mail_item } from "./api/mail";
 import { get_recipient_public_key } from "./api/keys";
-import { create_attachment } from "./api/attachments";
+import {
+  create_attachment,
+  list_attachments,
+  update_attachment_meta,
+} from "./api/attachments";
 import { encrypt_attachments_for_send } from "./crypto/attachment_crypto";
 import {
   encrypt_envelope_with_bytes,
@@ -157,6 +166,7 @@ import {
 } from "./crypto/envelope";
 
 function reset_state(): void {
+  h.listed_attachments = [];
   h.vault = {
     identity_key: "identity-secret",
     ratchet_identity_key: "",
@@ -937,9 +947,143 @@ describe("reencrypt_all_sent_mail", () => {
   });
 
   it("stops when the listing comes back empty", async () => {
-    await reencrypt_all_sent_mail("old-pass", "new-pass");
+    const summary = await reencrypt_all_sent_mail("old-pass", "new-pass");
 
     expect(vi.mocked(list_encrypted_mail_items)).toHaveBeenCalledTimes(1);
     expect(vi.mocked(update_mail_item)).not.toHaveBeenCalled();
+    expect(summary).toEqual({
+      checked: 0,
+      rewritten: 0,
+      unreadable: 0,
+      failed: 0,
+    });
+  });
+
+  it("counts an item as failed when the server rejects the rewrite", async () => {
+    const sealed = await encrypt_envelope_with_bytes(
+      { subject: "kept" },
+      new TextEncoder().encode("old-pass"),
+    );
+
+    h.listed_items = [
+      {
+        id: "item-1",
+        encrypted_envelope: sealed.encrypted,
+        envelope_nonce: marker_nonce,
+      },
+    ];
+    vi.mocked(update_mail_item).mockResolvedValueOnce({
+      error: "envelope_nonce must accompany encrypted_envelope",
+      code: "VALIDATION_ERROR",
+    } as never);
+
+    const summary = await reencrypt_all_sent_mail("old-pass", "new-pass");
+
+    expect(summary.failed).toBe(1);
+    expect(summary.rewritten).toBe(0);
+  });
+
+  it("counts items sealed with another earlier password as unreadable", async () => {
+    const other = await encrypt_envelope_with_bytes(
+      { subject: "lost" },
+      new TextEncoder().encode("other-pass"),
+    );
+    const current = await encrypt_envelope_with_bytes(
+      { subject: "fine" },
+      new TextEncoder().encode("new-pass"),
+    );
+
+    h.listed_items = [
+      {
+        id: "lost",
+        encrypted_envelope: other.encrypted,
+        envelope_nonce: marker_nonce,
+      },
+      {
+        id: "fine",
+        encrypted_envelope: current.encrypted,
+        envelope_nonce: marker_nonce,
+      },
+    ];
+
+    const summary = await reencrypt_all_sent_mail("old-pass", "new-pass");
+
+    expect(summary).toEqual({
+      checked: 2,
+      rewritten: 0,
+      unreadable: 1,
+      failed: 0,
+    });
+    expect(vi.mocked(update_mail_item)).not.toHaveBeenCalled();
+  });
+
+  it("re-seals attachment metadata of a rewritten item", async () => {
+    const sealed = await encrypt_envelope_with_bytes(
+      { subject: "kept" },
+      new TextEncoder().encode("old-pass"),
+    );
+    const meta = await encrypt_envelope_with_bytes(
+      { filename: "a.pdf", content_type: "application/pdf", session_key: "k" },
+      new TextEncoder().encode("old-pass"),
+    );
+
+    h.listed_items = [
+      {
+        id: "item-1",
+        encrypted_envelope: sealed.encrypted,
+        envelope_nonce: marker_nonce,
+        has_attachments: true,
+        attachment_count: 1,
+      },
+    ];
+    h.listed_attachments = [
+      { id: "att-1", encrypted_meta: meta.encrypted, meta_nonce: "x" },
+    ];
+
+    const summary = await reencrypt_all_sent_mail("old-pass", "new-pass");
+
+    expect(summary.rewritten).toBe(1);
+    expect(vi.mocked(list_attachments)).toHaveBeenCalledWith("item-1");
+    expect(vi.mocked(update_attachment_meta)).toHaveBeenCalledTimes(1);
+
+    const [att_id, patch] = vi.mocked(update_attachment_meta).mock.calls[0] as [
+      string,
+      { encrypted_meta: string; meta_nonce: string },
+    ];
+
+    expect(att_id).toBe("att-1");
+    expect(base64_to_array(patch.meta_nonce)).toHaveLength(12);
+    expect(
+      await decrypt_envelope_with_bytes<{ filename: string }>(
+        patch.encrypted_meta,
+        new TextEncoder().encode("new-pass"),
+      ),
+    ).toMatchObject({ filename: "a.pdf" });
+  });
+
+  it("reports progress after every checked item", async () => {
+    const sealed = await encrypt_envelope_with_bytes(
+      { subject: "kept" },
+      new TextEncoder().encode("old-pass"),
+    );
+
+    h.listed_items = [
+      {
+        id: "item-1",
+        encrypted_envelope: sealed.encrypted,
+        envelope_nonce: marker_nonce,
+      },
+    ];
+
+    const on_progress = vi.fn();
+
+    await reencrypt_all_sent_mail("old-pass", "new-pass", { on_progress });
+
+    expect(on_progress).toHaveBeenCalledWith({
+      checked: 1,
+      rewritten: 1,
+      unreadable: 0,
+      failed: 0,
+    });
   });
 });

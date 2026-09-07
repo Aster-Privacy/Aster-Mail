@@ -3969,6 +3969,16 @@ export const es = {
       "Tu contraseña cambió. {{count}} elementos cifrados conservaron su cifrado anterior porque su clave no estaba disponible. La entrega de correo no se ve afectada. Para restaurarlos, contacta con el soporte.",
     password_change_background_reencrypt_failed:
       "Tu contraseña cambió, pero parte de tu correo enviado y de tus ajustes no terminó de cifrarse de nuevo. Ponte en contacto con el equipo de soporte si algo aparece ilegible.",
+    restore_sent_mail: "Restaurar correos enviados",
+    restore_sent_mail_description: "Si los correos enviados antes de un cambio de contraseña no se abren, introduce la contraseña que usabas entonces. Aster Mail vuelve a cifrar esas copias con tu contraseña actual.",
+    previous_password: "Contraseña anterior",
+    enter_previous_password: "Introduce la contraseña anterior",
+    restore_sent_mail_running: "Comprobando correos enviados... {{count}} comprobados",
+    restore_sent_mail_result: "{{rewritten}} correos enviados ya se abren con tu contraseña actual. {{unreadable}} siguen necesitando otra contraseña anterior.",
+    restore_sent_mail_nothing: "Todos los correos enviados ya se abren con tu contraseña actual.",
+    restore_sent_mail_failed: "No se pudieron actualizar algunos correos enviados. Comprueba tu conexión e inténtalo de nuevo.",
+    restore_sent_mail_session_expired: "Las claves de tu sesión no están disponibles. Cierra sesión, vuelve a iniciarla e inténtalo de nuevo.",
+    password_change_sent_mail_locked: "Tu contraseña cambió. {{count}} correos enviados estaban cifrados con una contraseña anterior y no se actualizaron. Para restaurarlos, abre Ajustes > Seguridad > Restaurar correos enviados.",
     password_changed_signing_out:
       "Contraseña cambiada exitosamente. Cerrando sesión...",
     password_changed_success: "Contraseña cambiada",

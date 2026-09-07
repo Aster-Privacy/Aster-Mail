@@ -4024,6 +4024,16 @@ export const it = {
       "La tua password è cambiata. {{count}} elementi cifrati hanno mantenuto la cifratura precedente perché la loro chiave non era disponibile. La consegna della posta non è interessata. Per ripristinarli, contatta l'assistenza.",
     password_change_background_reencrypt_failed:
       "La tua password è stata cambiata, ma una parte della posta inviata e delle impostazioni non ha completato la ricifratura. Contatta l’assistenza se qualcosa risulta illeggibile.",
+    restore_sent_mail: "Ripristina la posta inviata",
+    restore_sent_mail_description: "Se le email inviate prima di un cambio di password non si aprono, inserisci la password che usavi allora. Aster Mail cifra di nuovo quelle copie con la password attuale.",
+    previous_password: "Password precedente",
+    enter_previous_password: "Inserisci la password precedente",
+    restore_sent_mail_running: "Controllo della posta inviata... {{count}} controllate",
+    restore_sent_mail_result: "{{rewritten}} email inviate ora si aprono con la password attuale. {{unreadable}} richiedono ancora un'altra password precedente.",
+    restore_sent_mail_nothing: "Tutte le email inviate si aprono già con la password attuale.",
+    restore_sent_mail_failed: "Alcune email inviate non sono state aggiornate. Controlla la connessione e riprova.",
+    restore_sent_mail_session_expired: "Le chiavi della sessione non sono disponibili. Esci, accedi di nuovo e riprova.",
+    password_change_sent_mail_locked: "La password è cambiata. {{count}} email inviate erano cifrate con una password precedente e non sono state aggiornate. Per ripristinarle, apri Impostazioni > Sicurezza > Ripristina la posta inviata.",
     password_changed_signing_out:
       "Password cambiata con successo. Disconnessione in corso...",
     password_changed_success: "Password modificata",

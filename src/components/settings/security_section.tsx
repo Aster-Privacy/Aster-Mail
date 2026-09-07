@@ -223,6 +223,7 @@ export function SecuritySection({
             password_loading: security.password_loading,
             password_success: security.password_success,
             password_unreadable_notice: security.password_unreadable_notice,
+            restore_sent_mail: security.restore_sent_mail,
             set_confirm_password: security.set_confirm_password,
             set_current_password: security.set_current_password,
             set_new_password: security.set_new_password,

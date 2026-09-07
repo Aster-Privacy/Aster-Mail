@@ -3993,6 +3993,16 @@ export const ja = {
       "パスワードを変更しました。鍵が利用できなかったため、{{count}} 件の暗号化された項目は以前の暗号化のままです。メールの配信には影響しません。復元するには、サポートにお問い合わせください。",
     password_change_background_reencrypt_failed:
       "パスワードは変更されましたが、送信済みメールと設定の一部の再暗号化が完了していません。メールや設定が読めない場合はサポートにご連絡ください。",
+    restore_sent_mail: "送信済みメールを復元",
+    restore_sent_mail_description: "パスワード変更前に送信したメールが開けない場合は、当時使用していたパスワードを入力してください。Aster Mail はそれらのコピーを現在のパスワードで再暗号化します。",
+    previous_password: "以前のパスワード",
+    enter_previous_password: "以前のパスワードを入力",
+    restore_sent_mail_running: "送信済みメールを確認しています... {{count}} 件確認済み",
+    restore_sent_mail_result: "{{rewritten}} 件の送信済みメールが現在のパスワードで開けるようになりました。{{unreadable}} 件は別の以前のパスワードが必要です。",
+    restore_sent_mail_nothing: "すべての送信済みメールはすでに現在のパスワードで開けます。",
+    restore_sent_mail_failed: "一部の送信済みメールを更新できませんでした。接続を確認して、もう一度お試しください。",
+    restore_sent_mail_session_expired: "セッションキーを利用できません。サインアウトしてからサインインし直し、もう一度お試しください。",
+    password_change_sent_mail_locked: "パスワードが変更されました。{{count}} 件の送信済みメールは以前のパスワードで暗号化されており、更新されませんでした。復元するには、設定 > セキュリティ > 送信済みメールを復元 を開いてください。",
     password_changed_signing_out:
       "パスワードが正常に変更されました。サインアウトしています...",
     password_changed_success: "パスワードを変更しました",

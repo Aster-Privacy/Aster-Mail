@@ -44,6 +44,19 @@ import { clamp_password } from "@/services/sanitize";
 import { ActionRecommendedBadge } from "@/components/settings/security/recommendation_box";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
 
+export interface RestoreSentMailProps {
+  show: boolean;
+  set_show: (show: boolean) => void;
+  previous_password: string;
+  set_previous_password: (value: string) => void;
+  loading: boolean;
+  progress: number;
+  result: string;
+  error: string;
+  on_restore: () => void;
+  on_cancel: () => void;
+}
+
 interface PasswordSectionProps {
   show_header?: boolean;
   last_password_change?: string | null;
@@ -64,6 +77,7 @@ interface PasswordSectionProps {
   password_error: string;
   password_success: boolean;
   password_unreadable_notice?: string;
+  restore_sent_mail?: RestoreSentMailProps;
   password_breach_warning?: boolean;
   on_new_password_blur?: () => void;
   on_change_password: () => void;
@@ -90,6 +104,7 @@ export function PasswordSection({
   password_error,
   password_success,
   password_unreadable_notice,
+  restore_sent_mail,
   password_breach_warning,
   on_new_password_blur,
   on_change_password,
@@ -215,6 +230,133 @@ export function PasswordSection({
         <div className="mt-3 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-txt-primary">
           {password_unreadable_notice}
         </div>
+      )}
+
+      {restore_sent_mail && (
+        <div className="mt-4 flex items-start justify-between gap-4 border-t border-border-subtle pt-4">
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-txt-primary">
+              {t("settings.restore_sent_mail")}
+            </p>
+            <p className="text-sm text-txt-muted mt-1">
+              {t("settings.restore_sent_mail_description")}
+            </p>
+          </div>
+          <Button
+            variant="secondary"
+            onClick={() => restore_sent_mail.set_show(true)}
+          >
+            {t("settings.restore_sent_mail")}
+          </Button>
+        </div>
+      )}
+
+      {restore_sent_mail && (
+        <Modal
+          close_on_escape={!restore_sent_mail.loading}
+          close_on_overlay={!restore_sent_mail.loading}
+          is_open={restore_sent_mail.show}
+          on_close={restore_sent_mail.on_cancel}
+          show_close_button={!restore_sent_mail.loading}
+          size="md"
+          z_index={70}
+        >
+          <ModalHeader>
+            <ModalTitle>{t("settings.restore_sent_mail")}</ModalTitle>
+            <ModalDescription>
+              {t("settings.restore_sent_mail_description")}
+            </ModalDescription>
+          </ModalHeader>
+
+          <ModalBody>
+            <div
+              className="space-y-4"
+              onKeyDown={(event) => {
+                if (
+                  event.key === "Enter" &&
+                  restore_sent_mail.previous_password &&
+                  !restore_sent_mail.loading
+                ) {
+                  event.preventDefault();
+                  restore_sent_mail.on_restore();
+                }
+              }}
+            >
+              <div>
+                <label
+                  className="text-sm font-medium block mb-2 text-txt-primary"
+                  htmlFor="previous-password"
+                >
+                  {t("settings.previous_password")}
+                </label>
+                <Input
+                  autoComplete="off"
+                  disabled={restore_sent_mail.loading}
+                  id="previous-password"
+                  maxLength={128}
+                  placeholder={t("settings.enter_previous_password")}
+                  type="password"
+                  value={restore_sent_mail.previous_password}
+                  onChange={(e) =>
+                    restore_sent_mail.set_previous_password(
+                      clamp_password(e.target.value),
+                    )
+                  }
+                />
+              </div>
+
+              {restore_sent_mail.loading && (
+                <p className="text-sm text-txt-muted">
+                  {t("settings.restore_sent_mail_running").replace(
+                    "{{count}}",
+                    String(restore_sent_mail.progress),
+                  )}
+                </p>
+              )}
+
+              {restore_sent_mail.error && (
+                <div
+                  className="flex items-center gap-2 p-3 rounded-lg text-sm"
+                  style={{ backgroundColor: "#dc2626", color: "#fff" }}
+                >
+                  <ExclamationCircleIcon className="w-4 h-4 flex-shrink-0" />
+                  <span>{restore_sent_mail.error}</span>
+                </div>
+              )}
+
+              {restore_sent_mail.result && (
+                <div
+                  className="flex items-center gap-2 p-3 rounded-lg text-sm"
+                  style={{ backgroundColor: "#16a34a", color: "#fff" }}
+                >
+                  <CheckCircleIcon className="w-4 h-4 flex-shrink-0" />
+                  <span>{restore_sent_mail.result}</span>
+                </div>
+              )}
+            </div>
+          </ModalBody>
+
+          <ModalFooter>
+            <Button
+              disabled={restore_sent_mail.loading}
+              variant="outline"
+              onClick={restore_sent_mail.on_cancel}
+            >
+              {t("common.cancel")}
+            </Button>
+            <Button
+              disabled={
+                restore_sent_mail.loading ||
+                !restore_sent_mail.previous_password
+              }
+              is_loading={restore_sent_mail.loading}
+              variant="depth"
+              onClick={restore_sent_mail.on_restore}
+            >
+              {t("settings.restore_sent_mail")}
+            </Button>
+          </ModalFooter>
+        </Modal>
       )}
 
       <Modal

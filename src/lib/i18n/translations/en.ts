@@ -2737,6 +2737,16 @@ export const en: Translations = {
       "Your password changed. {{count}} encrypted items kept their earlier encryption because their key wasn't available. Mail delivery isn't affected. To restore them, contact support.",
     password_change_background_reencrypt_failed:
       "Your password changed, but some of your sent mail and settings did not finish re-encrypting. Contact support if any mail or settings look unreadable.",
+    restore_sent_mail: "Restore sent mail",
+    restore_sent_mail_description: "If sent mail from before a password change won't open, enter the password you used at that time. Aster Mail re-encrypts those copies with your current password.",
+    previous_password: "Previous password",
+    enter_previous_password: "Enter the previous password",
+    restore_sent_mail_running: "Checking sent mail... {{count}} checked",
+    restore_sent_mail_result: "{{rewritten}} sent emails now open with your current password. {{unreadable}} still need a different earlier password.",
+    restore_sent_mail_nothing: "Every sent email already opens with your current password.",
+    restore_sent_mail_failed: "Some sent mail could not be updated. Check your connection and try again.",
+    restore_sent_mail_session_expired: "Your session keys are not available. Sign out, sign back in, and try again.",
+    password_change_sent_mail_locked: "Your password changed. {{count}} sent emails were encrypted with an earlier password and did not update. To restore them, open Settings > Security > Restore sent mail.",
     password_changed_signing_out:
       "Password changed successfully. Signing you out...",
     password_changed_success: "Password changed",

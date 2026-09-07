@@ -3976,6 +3976,16 @@ export const de = {
       "Dein Passwort wurde geändert. {{count}} verschlüsselte Elemente behalten ihre frühere Verschlüsselung, weil ihr Schlüssel nicht verfügbar war. Die Zustellung von E-Mails ist nicht betroffen. Wende dich an den Support, um sie wiederherzustellen.",
     password_change_background_reencrypt_failed:
       "Dein Passwort wurde geändert, aber ein Teil deiner gesendeten Nachrichten und Einstellungen wurde nicht neu verschlüsselt. Wende dich an den Support, wenn Nachrichten oder Einstellungen unlesbar wirken.",
+    restore_sent_mail: "Gesendete E-Mails wiederherstellen",
+    restore_sent_mail_description: "Wenn sich gesendete E-Mails aus der Zeit vor einer Passwortänderung nicht öffnen lassen, gib das damals verwendete Passwort ein. Aster Mail verschlüsselt diese Kopien mit deinem aktuellen Passwort neu.",
+    previous_password: "Vorheriges Passwort",
+    enter_previous_password: "Vorheriges Passwort eingeben",
+    restore_sent_mail_running: "Gesendete E-Mails werden geprüft... {{count}} geprüft",
+    restore_sent_mail_result: "{{rewritten}} gesendete E-Mails lassen sich jetzt mit deinem aktuellen Passwort öffnen. {{unreadable}} benötigen weiterhin ein anderes früheres Passwort.",
+    restore_sent_mail_nothing: "Alle gesendeten E-Mails lassen sich bereits mit deinem aktuellen Passwort öffnen.",
+    restore_sent_mail_failed: "Einige gesendete E-Mails konnten nicht aktualisiert werden. Prüfe deine Verbindung und versuche es erneut.",
+    restore_sent_mail_session_expired: "Deine Sitzungsschlüssel sind nicht verfügbar. Melde dich ab, wieder an und versuche es erneut.",
+    password_change_sent_mail_locked: "Dein Passwort wurde geändert. {{count}} gesendete E-Mails waren mit einem früheren Passwort verschlüsselt und wurden nicht aktualisiert. Öffne zum Wiederherstellen Einstellungen > Sicherheit > Gesendete E-Mails wiederherstellen.",
     password_changed_signing_out:
       "Passwort erfolgreich geändert. Sie werden abgemeldet...",
     password_changed_success: "Passwort geändert",

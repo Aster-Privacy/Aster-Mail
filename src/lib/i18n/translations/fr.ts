@@ -4002,6 +4002,16 @@ export const fr = {
       "Votre mot de passe a changé. {{count}} éléments chiffrés ont conservé leur chiffrement précédent, car leur clé n'était pas disponible. La distribution du courrier n'est pas affectée. Pour les restaurer, contactez l'assistance.",
     password_change_background_reencrypt_failed:
       "Votre mot de passe a été modifié, mais une partie de vos messages envoyés et de vos réglages n’a pas fini d’être rechiffrée. Contactez l’assistance si des messages ou des réglages semblent illisibles.",
+    restore_sent_mail: "Restaurer les e-mails envoyés",
+    restore_sent_mail_description: "Si des e-mails envoyés avant un changement de mot de passe ne s'ouvrent pas, saisissez le mot de passe que vous utilisiez à ce moment-là. Aster Mail rechiffre ces copies avec votre mot de passe actuel.",
+    previous_password: "Ancien mot de passe",
+    enter_previous_password: "Saisissez l'ancien mot de passe",
+    restore_sent_mail_running: "Vérification des e-mails envoyés... {{count}} vérifiés",
+    restore_sent_mail_result: "{{rewritten}} e-mails envoyés s'ouvrent désormais avec votre mot de passe actuel. {{unreadable}} nécessitent encore un autre ancien mot de passe.",
+    restore_sent_mail_nothing: "Tous les e-mails envoyés s'ouvrent déjà avec votre mot de passe actuel.",
+    restore_sent_mail_failed: "Certains e-mails envoyés n'ont pas pu être mis à jour. Vérifiez votre connexion et réessayez.",
+    restore_sent_mail_session_expired: "Les clés de votre session ne sont pas disponibles. Déconnectez-vous, reconnectez-vous et réessayez.",
+    password_change_sent_mail_locked: "Votre mot de passe a changé. {{count}} e-mails envoyés étaient chiffrés avec un ancien mot de passe et n'ont pas été mis à jour. Pour les restaurer, ouvrez Réglages > Sécurité > Restaurer les e-mails envoyés.",
     password_changed_signing_out:
       "Mot de passe changé avec succès. Déconnexion en cours...",
     password_changed_success: "Mot de passe modifié",

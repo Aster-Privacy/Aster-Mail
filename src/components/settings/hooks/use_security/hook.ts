@@ -141,6 +141,14 @@ export function use_security() {
   const [password_success, set_password_success] = useState(false);
   const [password_unreadable_notice, set_password_unreadable_notice] =
     useState("");
+  const [show_restore_sent_mail, set_show_restore_sent_mail] = useState(false);
+  const [previous_password, set_previous_password] = useState("");
+  const [restore_sent_mail_loading, set_restore_sent_mail_loading] =
+    useState(false);
+  const [restore_sent_mail_progress, set_restore_sent_mail_progress] =
+    useState(0);
+  const [restore_sent_mail_result, set_restore_sent_mail_result] = useState("");
+  const [restore_sent_mail_error, set_restore_sent_mail_error] = useState("");
   const [password_breach_warning, set_password_breach_warning] =
     useState(false);
   const [logout_others_loading, set_logout_others_loading] = useState(false);
@@ -692,9 +700,25 @@ export function use_security() {
         );
       };
 
-      reencrypt_all_sent_mail(current_password, new_password).catch(
-        note_reencrypt_failure,
-      );
+      reencrypt_all_sent_mail(current_password, new_password)
+        .then((summary) => {
+          if (summary.failed > 0) {
+            note_reencrypt_failure(
+              new Error(`sent mail reseal failed for ${summary.failed} items`),
+            );
+          }
+
+          if (summary.unreadable > 0) {
+            const message = t(
+              "settings.password_change_sent_mail_locked",
+            ).replace("{{count}}", String(summary.unreadable));
+
+            set_password_unreadable_notice((prev) =>
+              prev ? `${prev} ${message}` : message,
+            );
+          }
+        })
+        .catch(note_reencrypt_failure);
 
       if (master_key_mode) {
         reencrypt_identity_scoped_password_change(
@@ -997,6 +1021,74 @@ export function use_security() {
     set_show_password_section(show);
   };
 
+  const handle_restore_sent_mail = async () => {
+    if (!previous_password || restore_sent_mail_loading) return;
+
+    const current = get_passphrase_from_memory();
+
+    set_restore_sent_mail_error("");
+    set_restore_sent_mail_result("");
+    set_restore_sent_mail_progress(0);
+
+    if (!current) {
+      set_restore_sent_mail_error(
+        t("settings.restore_sent_mail_session_expired"),
+      );
+
+      return;
+    }
+
+    set_restore_sent_mail_loading(true);
+
+    try {
+      const summary = await reencrypt_all_sent_mail(
+        previous_password,
+        current,
+        {
+          on_progress: (progress) =>
+            set_restore_sent_mail_progress(progress.checked),
+        },
+      );
+
+      if (summary.failed > 0) {
+        set_restore_sent_mail_error(t("settings.restore_sent_mail_failed"));
+      }
+
+      if (summary.rewritten === 0 && summary.unreadable === 0) {
+        set_restore_sent_mail_result(t("settings.restore_sent_mail_nothing"));
+      } else {
+        set_restore_sent_mail_result(
+          t("settings.restore_sent_mail_result")
+            .replace("{{rewritten}}", String(summary.rewritten))
+            .replace("{{unreadable}}", String(summary.unreadable)),
+        );
+      }
+
+      if (summary.rewritten > 0) {
+        set_password_unreadable_notice("");
+        set_previous_password("");
+      }
+    } catch (caught) {
+      ignore_error(
+        "components/settings/hooks/use_security/hook:handle_restore_sent_mail",
+        caught,
+      );
+      set_restore_sent_mail_error(t("settings.restore_sent_mail_failed"));
+    } finally {
+      set_restore_sent_mail_loading(false);
+    }
+  };
+
+  const handle_restore_sent_mail_cancel = () => {
+    if (restore_sent_mail_loading) return;
+
+    set_show_restore_sent_mail(false);
+    set_previous_password("");
+    set_restore_sent_mail_result("");
+    set_restore_sent_mail_error("");
+    set_restore_sent_mail_progress(0);
+  };
+
   const handle_password_cancel = () => {
     set_password_success(false);
     set_show_password_section(false);
@@ -1063,6 +1155,18 @@ export function use_security() {
     password_unreadable_notice,
     handle_change_password,
     handle_password_cancel,
+    restore_sent_mail: {
+      show: show_restore_sent_mail,
+      set_show: set_show_restore_sent_mail,
+      previous_password,
+      set_previous_password,
+      loading: restore_sent_mail_loading,
+      progress: restore_sent_mail_progress,
+      result: restore_sent_mail_result,
+      error: restore_sent_mail_error,
+      on_restore: handle_restore_sent_mail,
+      on_cancel: handle_restore_sent_mail_cancel,
+    },
 
     handle_timeout_toggle,
     handle_timeout_change,

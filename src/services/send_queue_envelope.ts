@@ -20,11 +20,8 @@
 //
 import DOMPurify from "dompurify";
 
-import { list_encrypted_mail_items, update_mail_item } from "./api/mail";
 import {
   array_to_base64,
-  base64_to_array,
-  decrypt_envelope_with_bytes,
   encrypt_envelope_with_bytes,
 } from "./crypto/envelope";
 import { encrypt_mail_metadata } from "./crypto/mail_metadata";
@@ -177,66 +174,5 @@ export async function create_sent_envelope(
       "encryption_failed",
       get_active_translations().errors.failed_encrypt_envelope,
     );
-  }
-}
-
-export async function reencrypt_all_sent_mail(
-  old_passphrase: string,
-  new_passphrase: string,
-): Promise<void> {
-  const old_bytes = new TextEncoder().encode(old_passphrase);
-  const new_bytes = new TextEncoder().encode(new_passphrase);
-
-  try {
-    let cursor: string | undefined;
-
-    for (;;) {
-      const response = await list_encrypted_mail_items({
-        item_type: "sent",
-        limit: 100,
-        cursor,
-        include_reactions: true,
-      });
-
-      const items = response.data?.items;
-
-      if (!items || items.length === 0) break;
-
-      for (const item of items) {
-        if (!item.encrypted_envelope || !item.envelope_nonce) continue;
-
-        const nonce_bytes = base64_to_array(item.envelope_nonce);
-
-        if (!(nonce_bytes.length === 1 && nonce_bytes[0] === 1)) continue;
-
-        try {
-          const decrypted = await decrypt_envelope_with_bytes(
-            item.encrypted_envelope,
-            old_bytes,
-          );
-
-          if (!decrypted) continue;
-
-          const { encrypted, nonce } = await encrypt_envelope_with_bytes(
-            decrypted as object,
-            new_bytes,
-          );
-
-          await update_mail_item(item.id, {
-            encrypted_envelope: encrypted,
-            envelope_nonce: nonce,
-          });
-        } catch {
-          continue;
-        }
-      }
-
-      cursor = response.data?.next_cursor ?? undefined;
-
-      if (!cursor) break;
-    }
-  } finally {
-    zero_uint8_array(old_bytes);
-    zero_uint8_array(new_bytes);
   }
 }

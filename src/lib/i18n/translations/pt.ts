@@ -3982,6 +3982,16 @@ export const pt = {
       "A tua palavra-passe foi alterada. {{count}} itens encriptados mantiveram a encriptação anterior porque a respetiva chave não estava disponível. A entrega de correio não é afetada. Para os restaurar, contacta o suporte.",
     password_change_background_reencrypt_failed:
       "A tua palavra-passe foi alterada, mas parte do correio enviado e das definições não terminou de ser novamente encriptada. Contacta o suporte se algo aparecer ilegível.",
+    restore_sent_mail: "Restaurar e-mails enviados",
+    restore_sent_mail_description: "Se os e-mails enviados antes de uma alteração de senha não abrirem, digite a senha que você usava na época. O Aster Mail criptografa essas cópias novamente com sua senha atual.",
+    previous_password: "Senha anterior",
+    enter_previous_password: "Digite a senha anterior",
+    restore_sent_mail_running: "Verificando e-mails enviados... {{count}} verificados",
+    restore_sent_mail_result: "{{rewritten}} e-mails enviados agora abrem com sua senha atual. {{unreadable}} ainda precisam de outra senha anterior.",
+    restore_sent_mail_nothing: "Todos os e-mails enviados já abrem com sua senha atual.",
+    restore_sent_mail_failed: "Alguns e-mails enviados não puderam ser atualizados. Verifique sua conexão e tente novamente.",
+    restore_sent_mail_session_expired: "As chaves da sua sessão não estão disponíveis. Saia, entre novamente e tente de novo.",
+    password_change_sent_mail_locked: "Sua senha foi alterada. {{count}} e-mails enviados estavam criptografados com uma senha anterior e não foram atualizados. Para restaurá-los, abra Ajustes > Segurança > Restaurar e-mails enviados.",
     password_changed_signing_out:
       "Senha alterada com sucesso. Desconectando...",
     password_changed_success: "Senha alterada",

@@ -3936,6 +3936,16 @@ export const tr = {
       "Parolan değiştirildi. Anahtarları kullanılamadığı için {{count}} şifreli öğe önceki şifrelemesini korudu. Posta teslimi bundan etkilenmez. Bunları geri yüklemek için destek ekibine başvur.",
     password_change_background_reencrypt_failed:
       "Parolan değişti ancak gönderilen postalarının ve ayarlarının bir bölümü yeniden şifrelenmedi. Postaların veya ayarların okunamaz görünüyorsa destek ekibine ulaş.",
+    restore_sent_mail: "Gönderilen postaları geri yükle",
+    restore_sent_mail_description: "Parola değişikliğinden önce gönderilen postalar açılmıyorsa o sırada kullandığınız parolayı girin. Aster Mail bu kopyaları geçerli parolanızla yeniden şifreler.",
+    previous_password: "Önceki parola",
+    enter_previous_password: "Önceki parolayı girin",
+    restore_sent_mail_running: "Gönderilen postalar denetleniyor... {{count}} denetlendi",
+    restore_sent_mail_result: "{{rewritten}} gönderilen e-posta artık geçerli parolanızla açılıyor. {{unreadable}} tanesi hâlâ farklı bir önceki parola gerektiriyor.",
+    restore_sent_mail_nothing: "Gönderilen tüm e-postalar zaten geçerli parolanızla açılıyor.",
+    restore_sent_mail_failed: "Bazı gönderilen postalar güncellenemedi. Bağlantınızı denetleyip yeniden deneyin.",
+    restore_sent_mail_session_expired: "Oturum anahtarlarınız kullanılamıyor. Oturumu kapatıp yeniden açın ve tekrar deneyin.",
+    password_change_sent_mail_locked: "Parolanız değişti. {{count}} gönderilen e-posta önceki bir parolayla şifrelenmişti ve güncellenmedi. Geri yüklemek için Ayarlar > Güvenlik > Gönderilen postaları geri yükle bölümünü açın.",
     password_changed_signing_out:
       "Parola başarıyla değiştirildi. Çıkış yapılıyor...",
     password_changed_success: "Parola değiştirildi",
