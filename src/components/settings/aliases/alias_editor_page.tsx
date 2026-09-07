@@ -324,28 +324,29 @@ export function AliasEditorPage({
 
   return (
     <div className="space-y-4">
-      <button
-        className="-ms-2 flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-[13px] font-medium text-txt-secondary transition-colors hover:bg-surf-hover hover:text-txt-primary"
-        type="button"
-        onClick={on_back}
-      >
-        <ArrowLeftIcon className="h-4 w-4 shrink-0 rtl:-scale-x-100" />
-        {t("common.back")}
-      </button>
-
       <div>
         <div className="mb-4">
-          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-            <AtSymbolIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
+          <div className="flex items-center gap-2 -ms-2">
             <button
-              className="min-w-0 truncate rounded-none text-start transition-colors hover:text-txt-secondary"
-              title={t("common.copy_address")}
+              aria-label={t("common.back")}
+              className="w-9 h-9 flex-shrink-0 rounded-full flex items-center justify-center text-txt-secondary transition-colors hover:bg-surf-hover hover:text-txt-primary"
               type="button"
-              onClick={copy_address}
+              onClick={on_back}
             >
-              {heading}
+              <ArrowLeftIcon className="h-[18px] w-[18px] rtl:-scale-x-100" />
             </button>
-          </h3>
+            <h3 className="min-w-0 text-base font-semibold text-txt-primary flex items-center gap-2">
+              <AtSymbolIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
+              <button
+                className="min-w-0 truncate rounded-none text-start transition-colors hover:text-txt-secondary"
+                title={t("common.copy_address")}
+                type="button"
+                onClick={copy_address}
+              >
+                {heading}
+              </button>
+            </h3>
+          </div>
           <div className="mt-2 h-px bg-edge-secondary" />
         </div>
 

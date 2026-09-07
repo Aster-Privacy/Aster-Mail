@@ -68,6 +68,7 @@ export interface CustomDomain {
   dmarc_configured: boolean;
   catch_all_enabled: boolean;
   is_primary: boolean;
+  purchased?: boolean;
   health_status: string;
   verification_token: string;
   created_at: string;

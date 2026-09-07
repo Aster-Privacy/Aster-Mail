@@ -76,6 +76,7 @@ export function AliasDirectoriesSection() {
   const [busy, set_busy] = useState(false);
   const [checking_availability, set_checking_availability] = useState(false);
   const [is_available, set_is_available] = useState<boolean | null>(null);
+  const availability_request_ref = useRef(0);
   const availability_timeout_ref = useRef<ReturnType<typeof setTimeout> | null>(
     null,
   );
@@ -155,9 +156,13 @@ export function AliasDirectoriesSection() {
     }
 
     set_checking_availability(true);
+    const request_id = ++availability_request_ref.current;
+
     availability_timeout_ref.current = setTimeout(async () => {
       try {
         const response = await check_directory_availability(key, domain);
+
+        if (request_id !== availability_request_ref.current) return;
 
         if (response.data) {
           set_is_available(response.data.available);
@@ -165,9 +170,12 @@ export function AliasDirectoriesSection() {
           set_is_available(null);
         }
       } catch {
+        if (request_id !== availability_request_ref.current) return;
         set_is_available(null);
       } finally {
-        set_checking_availability(false);
+        if (request_id === availability_request_ref.current) {
+          set_checking_availability(false);
+        }
       }
     }, 500);
 

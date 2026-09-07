@@ -54,6 +54,7 @@ vi.mock("@/hooks/use_mail_stats", () => ({
 
 vi.mock("@/lib/i18n/context", () => ({
   use_i18n: () => ({ t: (key: string) => key }),
+  use_translation: () => ({ t: (key: string) => key }),
 }));
 
 vi.mock("@/components/toast/simple_toast", () => ({
@@ -62,6 +63,13 @@ vi.mock("@/components/toast/simple_toast", () => ({
 
 vi.mock("@/components/settings/billing/storage_addons_section", () => ({
   StorageAddonsSection: () => null,
+}));
+
+vi.mock("@/components/settings/hooks/use_storage_format", () => ({
+  use_storage_format: () => ({
+    storage_format: "aster",
+    handle_storage_format_change: vi.fn(),
+  }),
 }));
 
 const mocked_overview = vi.mocked(get_storage_overview);

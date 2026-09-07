@@ -59,6 +59,10 @@ import { Input } from "@/components/ui/input";
 import { show_toast } from "@/components/toast/simple_toast";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { ignore_error } from "@/lib/ignore_error";
+import { emit_aliases_changed } from "@/hooks/mail_events";
+import { app_pathname } from "@/lib/account_index_url";
+import { app_locale, get_display_time_zone } from "@/utils/date_format";
+import { INSTANT_ALIAS_DELETE_KEY } from "@/components/settings/hooks/use_aliases";
 
 type FilterMode = "all" | "enabled" | "disabled";
 
@@ -77,7 +81,13 @@ interface AliasListProps {
   domain_addr_deleting_id: string | null;
   on_alias_toggle: (id: string, enabled: boolean) => void;
   on_alias_delete: (id: string) => void;
+  on_alias_too_new?: (eligible_date: string) => void;
   on_domain_addr_delete: (id: string, domain_id: string) => void;
+  on_domain_address_toggle?: (
+    id: string,
+    domain_id: string,
+    enabled: boolean,
+  ) => void;
   on_avatar_changed?: () => void;
   on_aliases_changed?: () => void;
   on_domain_address_display_name_saved?: (
@@ -248,7 +258,9 @@ export function AliasList({
   domain_addr_deleting_id,
   on_alias_toggle,
   on_alias_delete,
+  on_alias_too_new,
   on_domain_addr_delete,
+  on_domain_address_toggle,
   on_avatar_changed,
   on_aliases_changed,
   on_domain_address_display_name_saved,
@@ -426,6 +438,7 @@ export function AliasList({
     const failed = results.filter((result) => !!result.error).length;
 
     on_aliases_changed?.();
+    emit_aliases_changed();
 
     if (failed > 0) {
       show_toast(
@@ -456,7 +469,28 @@ export function AliasList({
   };
 
   const handle_bulk_delete_confirm = async () => {
-    const ids = Array.from(selected_ids);
+    const delete_gated = is_feature_locked(INSTANT_ALIAS_DELETE_KEY);
+    const now = Date.now();
+    let latest_eligible: Date | null = null;
+    const too_new_ids = new Set<string>();
+
+    if (delete_gated) {
+      for (const alias of aliases) {
+        if (!selected_ids.has(alias.id) || alias.decryption_failed) continue;
+        const eligible = new Date(
+          new Date(alias.created_at).getTime() + 30 * 24 * 60 * 60 * 1000,
+        );
+
+        if (now < eligible.getTime()) {
+          too_new_ids.add(alias.id);
+          if (!latest_eligible || eligible > latest_eligible) {
+            latest_eligible = eligible;
+          }
+        }
+      }
+    }
+
+    const ids = Array.from(selected_ids).filter((id) => !too_new_ids.has(id));
     const results: { error?: string }[] = [];
 
     for (let index = 0; index < ids.length; index += BULK_BATCH_SIZE) {
@@ -478,10 +512,38 @@ export function AliasList({
       );
     }
     const failed_ids = ids.filter((_, index) => !!results[index].error);
+    const deleted_ids = new Set(
+      ids.filter((_, index) => !results[index].error),
+    );
+    const current_path = app_pathname();
+    const deleted_current_alias = aliases.some(
+      (alias) =>
+        deleted_ids.has(alias.id) &&
+        !!alias.full_address &&
+        current_path === `/alias/${encodeURIComponent(alias.full_address)}`,
+    );
 
-    set_selected_ids(new Set(failed_ids));
+    set_selected_ids(new Set([...failed_ids, ...too_new_ids]));
     set_show_bulk_delete_confirm(false);
     on_aliases_changed?.();
+    emit_aliases_changed();
+
+    if (deleted_current_alias) {
+      window.dispatchEvent(
+        new CustomEvent("astermail:navigate", { detail: "/settings/aliases" }),
+      );
+    }
+
+    if (latest_eligible) {
+      on_alias_too_new?.(
+        latest_eligible.toLocaleDateString(app_locale(), {
+          timeZone: get_display_time_zone(),
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        }),
+      );
+    }
 
     if (failed_ids.length > 0) {
       show_toast(
@@ -681,6 +743,7 @@ export function AliasList({
               on_delete={on_domain_addr_delete}
               on_display_name_saved={on_domain_address_display_name_saved}
               on_open_editor={() => on_open_domain_editor(entry.address.id)}
+              on_toggle={on_domain_address_toggle}
             />
           ) : entry.alias.decryption_failed ? (
             <UndecryptableAliasCard

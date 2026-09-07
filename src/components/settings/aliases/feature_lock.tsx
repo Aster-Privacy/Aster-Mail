@@ -65,12 +65,7 @@ export function RequiredPlanPill({
 
   return (
     <span
-      className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ${className}`}
-      style={{
-        backgroundColor:
-          "color-mix(in srgb, var(--accent-color) 14%, transparent)",
-        color: "var(--accent-color)",
-      }}
+      className={`inline-flex shrink-0 items-center gap-1 rounded-md border border-edge-secondary bg-surf-tertiary px-1.5 py-0.5 text-[11px] font-medium text-txt-muted ${className}`}
     >
       <LockClosedIcon className="h-3 w-3" />
       {t("settings.requires_plan", { plan: tier.name })}
@@ -117,13 +112,21 @@ export function LockedFeature({
   }
 
   return (
-    <div className="relative min-h-[196px]">
+    <div className="relative min-h-[196px] overflow-hidden rounded-xl">
       <div
         aria-hidden="true"
-        className="pointer-events-none select-none opacity-40 blur-[1px]"
+        className="pointer-events-none select-none opacity-[0.12] blur-[6px] saturate-0"
       >
         {children}
       </div>
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            "linear-gradient(180deg, color-mix(in srgb, var(--accent-color) 7%, var(--bg-secondary)) 0%, var(--bg-secondary) 100%)",
+        }}
+      />
       <div className="pointer-events-none absolute inset-0 flex items-center justify-center p-4">
         <LockedFeatureCard feature={feature} message={message} />
       </div>
@@ -143,12 +146,22 @@ export function LockedFeatureCard({
   const { t } = use_i18n();
 
   return (
-    <div className="pointer-events-auto flex w-full max-w-sm flex-col items-center gap-3 rounded-2xl border border-edge-secondary bg-surf-primary px-6 py-5 text-center shadow-xl">
+    <div
+      className="pointer-events-auto flex w-full max-w-sm flex-col items-center gap-3 rounded-2xl border px-6 py-5 text-center"
+      style={{
+        borderColor: "color-mix(in srgb, var(--accent-color) 24%, transparent)",
+        background:
+          "linear-gradient(180deg, color-mix(in srgb, var(--accent-color) 12%, var(--bg-tertiary)) 0%, var(--bg-tertiary) 100%)",
+        boxShadow: "0 12px 32px color-mix(in srgb, #000000 28%, transparent)",
+      }}
+    >
       <span
         className="flex h-10 w-10 items-center justify-center rounded-full"
         style={{
           backgroundColor:
-            "color-mix(in srgb, var(--accent-color) 14%, transparent)",
+            "color-mix(in srgb, var(--accent-color) 18%, transparent)",
+          boxShadow:
+            "inset 0 0 0 1px color-mix(in srgb, var(--accent-color) 30%, transparent)",
         }}
       >
         <LockClosedIcon

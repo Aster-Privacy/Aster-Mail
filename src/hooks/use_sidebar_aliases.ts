@@ -1,4 +1,4 @@
-//
+﻿//
 // Aster Communications Inc.
 //
 // Copyright (c) 2026 Aster Communications Inc.
@@ -129,6 +129,10 @@ function notify_alias_subscribers(): void {
       return;
     }
   });
+}
+
+export function get_cached_aliases(): DecryptedEmailAlias[] {
+  return cached_aliases.data;
 }
 
 export function subscribe_aliases(cb: () => void): () => void {
