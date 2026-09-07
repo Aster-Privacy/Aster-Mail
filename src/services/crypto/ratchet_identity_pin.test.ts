@@ -129,10 +129,10 @@ describe("ratchet identity pin", () => {
     expect(await check_and_pin_identity("alice", KEY_B)).toBe("first");
   });
 
-  it("fails open (never blocks a send) when key material is unavailable", async () => {
+  it("reports unknown instead of ok when key material is unavailable", async () => {
     h.key = null;
 
-    expect(await check_and_pin_identity("alice", KEY_A)).toBe("ok");
-    expect(await check_and_pin_identity("alice", KEY_B)).toBe("ok");
+    expect(await check_and_pin_identity("alice", KEY_A)).toBe("unknown");
+    expect(await check_and_pin_identity("alice", KEY_B)).toBe("unknown");
   });
 });

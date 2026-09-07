@@ -35,7 +35,11 @@ import { is_webauthn_supported } from "@/services/api/webauthn";
 import { emit_auth_ready } from "@/hooks/mail_events";
 import { get_current_account_id } from "@/services/account_manager";
 import { ignore_error } from "@/lib/ignore_error";
+import { set_post_switch_path } from "@/lib/post_switch_path";
+import { get_safe_next_path } from "@/pages/sign_in_helpers";
 import { user_facing_error } from "@/utils/user_facing_error";
+import { is_auth_salt_collision } from "@/services/crypto/auth_salt_guard";
+import { api_client } from "@/services/api/client";
 
 type MobileSignInHandlerParams = Pick<
   ReturnType<typeof use_mobile_sign_in>,
@@ -101,11 +105,14 @@ export function build_mobile_sign_in_handlers(
     set_active_2fa_method,
   } = params;
 
+  const cancel_return_path = get_safe_next_path();
+
   const handle_cancel_add_account = async () => {
     set_is_adding_account(false);
 
     if (!is_authenticated && previous_account_id) {
       try {
+        set_post_switch_path(cancel_return_path);
         await switch_to_account(previous_account_id);
 
         return;
@@ -114,7 +121,7 @@ export function build_mobile_sign_in_handlers(
       }
     }
 
-    navigate("/");
+    navigate(cancel_return_path);
   };
 
   const handle_totp_cancel = () => {
@@ -364,6 +371,8 @@ export function build_mobile_sign_in_handlers(
         if (!add_result.success) {
           set_error(add_result.error || t("errors.login_failed"));
           set_is_loading(false);
+          set_captcha_token("");
+          turnstile_ref.current?.reset();
 
           return;
         }
@@ -398,7 +407,10 @@ export function build_mobile_sign_in_handlers(
       if (elapsed < min_time) {
         await new Promise((resolve) => setTimeout(resolve, min_time - elapsed));
       }
-      if (err instanceof Error && err.message.includes("decrypt")) {
+      if (is_auth_salt_collision(err)) {
+        void api_client.clear_session_cookies();
+        set_error(t("errors.auth_salt_collision"));
+      } else if (err instanceof Error && err.message.includes("decrypt")) {
         set_error(t("errors.wrong_vault_password"));
       } else {
         set_error(user_facing_error(err, t("errors.login_failed")));

@@ -20,6 +20,8 @@
 //
 import * as openpgp from "openpgp";
 
+import "@/services/crypto/openpgp_limits";
+
 import { type EncryptedKeyHandle } from "./key_manager_core";
 import { unlock_private_key } from "./key_manager_pgp_unlocked_cache";
 import { with_decrypted_key } from "./key_manager_pgp_usage";

@@ -89,3 +89,7 @@ export function use_preferences(): PreferencesContextType {
 
   return context;
 }
+
+export function use_preferences_optional(): PreferencesContextType | null {
+  return useContext(PreferencesContext);
+}

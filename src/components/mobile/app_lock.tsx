@@ -53,6 +53,11 @@ import {
   clear_session_unlock,
   attempt_pin_unlock,
 } from "@/services/app_lock_store";
+import {
+  clear_native_lock_hint,
+  has_pending_native_lock_hint,
+  save_native_lock_hint,
+} from "@/services/app_lock_store";
 import { purge_all_local_data } from "@/contexts/auth/purge_local_data";
 import { sync_client } from "@/services/sync_client";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
@@ -528,11 +533,13 @@ function WebPinOverlay({
 export function AppLock({ children }: { children: React.ReactNode }) {
   const { t } = use_i18n();
   const reduce_motion = use_should_reduce_motion();
-  const { preferences } = use_preferences();
+  const { preferences, has_loaded_from_server } = use_preferences();
   const auth = use_auth_safe();
   const account_id = auth?.current_account_id ?? "";
 
-  const [is_locked, set_is_locked] = useState(false);
+  const [is_locked, set_is_locked] = useState(
+    () => is_native_platform() && has_pending_native_lock_hint(),
+  );
   const [is_authenticating, set_is_authenticating] = useState(false);
   const [unlock_error, set_unlock_error] = useState<string | null>(null);
   const [biometry_name, set_biometry_name] = useState("Biometric");
@@ -577,19 +584,30 @@ export function AppLock({ children }: { children: React.ReactNode }) {
   }, [auth?.is_authenticated, auth?.current_account_id]);
 
   useEffect(() => {
-    if (!is_native_platform() || !preferences.biometric_app_lock_enabled)
+    if (!is_native_platform()) return;
+    if (!preferences.biometric_app_lock_enabled) {
+      if (has_loaded_from_server) {
+        clear_native_lock_hint(account_id);
+        set_is_locked(false);
+      }
+
       return;
+    }
     const check_and_lock = async () => {
       const availability = await check_biometric_availability();
 
       if (availability.is_available) {
         set_biometry_name(get_biometry_type_name(availability.biometry_type));
+        save_native_lock_hint(account_id);
         set_is_locked(true);
+      } else {
+        clear_native_lock_hint(account_id);
+        set_is_locked(false);
       }
     };
 
     check_and_lock();
-  }, [preferences.biometric_app_lock_enabled]);
+  }, [preferences.biometric_app_lock_enabled, has_loaded_from_server, account_id]);
 
   useEffect(() => {
     if (!is_native_platform() || !preferences.biometric_app_lock_enabled)

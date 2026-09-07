@@ -25,6 +25,14 @@ import {
 
 export type SenderIdentityStatus = "verified" | "unverified" | "mismatch";
 
+export type PeerIdentityEvent = "rotated" | "downgraded";
+
+export interface PeerIdentityEventRecord {
+  peer: string;
+  event: PeerIdentityEvent;
+  observed_at: number;
+}
+
 export interface BundleVerificationRecord {
   peer: string;
   verdict: RatchetPrekeyVerdict;
@@ -38,6 +46,62 @@ const MAX_TRACKED_MESSAGES = 512;
 
 const bundle_records = new Map<string, BundleVerificationRecord>();
 const message_records = new Map<string, SenderIdentityStatus>();
+const peer_identity_events = new Map<string, PeerIdentityEventRecord>();
+const peer_identity_listeners = new Set<() => void>();
+
+function notify_peer_identity_listeners(): void {
+  peer_identity_listeners.forEach((listener) => {
+    try {
+      listener();
+    } catch {
+      return;
+    }
+  });
+}
+
+export function record_peer_identity_event(
+  peer: string,
+  event: PeerIdentityEvent,
+): void {
+  const key = peer.trim().toLowerCase();
+
+  if (!key) return;
+
+  peer_identity_events.delete(key);
+  peer_identity_events.set(key, { peer: key, event, observed_at: Date.now() });
+
+  evict_oldest(peer_identity_events, MAX_TRACKED_PEERS);
+
+  if (import.meta.env.DEV) {
+    console.warn(`ratchet peer identity ${event} for ${key}`);
+  }
+
+  notify_peer_identity_listeners();
+}
+
+export function get_peer_identity_event(
+  peer: string | null | undefined,
+): PeerIdentityEventRecord | null {
+  if (!peer) return null;
+
+  return peer_identity_events.get(peer.trim().toLowerCase()) ?? null;
+}
+
+export function dismiss_peer_identity_event(peer: string): void {
+  if (peer_identity_events.delete(peer.trim().toLowerCase())) {
+    notify_peer_identity_listeners();
+  }
+}
+
+export function subscribe_peer_identity_events(
+  listener: () => void,
+): () => void {
+  peer_identity_listeners.add(listener);
+
+  return () => {
+    peer_identity_listeners.delete(listener);
+  };
+}
 
 function evict_oldest<K, V>(store: Map<K, V>, limit: number): void {
   while (store.size > limit) {
@@ -102,4 +166,6 @@ export function get_message_sender_identity(
 export function clear_ratchet_verification_status(): void {
   bundle_records.clear();
   message_records.clear();
+  peer_identity_events.clear();
+  notify_peer_identity_listeners();
 }

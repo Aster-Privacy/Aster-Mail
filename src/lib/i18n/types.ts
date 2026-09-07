@@ -738,6 +738,7 @@ export interface CommonTranslations {
   show_more: string;
   show_less: string;
   contacts: string;
+  security_center: string;
   open_contacts: string;
   send_feedback: string;
   send_feedback_to_aster: string;
@@ -1594,6 +1595,8 @@ export interface CommonTranslations {
   trash_days_left: string;
   print_contacts: string;
   share_contact: string;
+  share_contact_via_email: string;
+  share_contact_device: string;
   empty_trash_confirm: string;
   failed_to_move_to_trash: string;
   change_photo: string;
@@ -2254,6 +2257,8 @@ export interface CommonTranslations {
   clear_selection: string;
   delete_contacts: string;
   export_selection_vcf: string;
+  export_selection_csv: string;
+  export_selection: string;
   contacts_exported: string;
   compose_to_selection: string;
   import_search_placeholder: string;
@@ -2268,9 +2273,6 @@ export interface CommonTranslations {
   contact_count_other: string;
   n_of_n_contacts: string;
   contact_groups: string;
-  more_contact_groups: string;
-  more_contact_groups_one: string;
-  more_contact_groups_other: string;
   new_group: string;
   create_contact_group: string;
   rename_contact_group: string;
@@ -3246,6 +3248,13 @@ export interface SettingsTranslations {
   account_security_review_cta: string;
   account_security_dont_show_again: string;
   protection_breakdown_title: string;
+  security_center_recommended: string;
+  security_center_protected: string;
+  security_center_all_clear: string;
+  security_center_protection_score: string;
+  security_center_encryption_title: string;
+  security_center_encryption_detail: string;
+  security_center_identity_key: string;
   criterion_two_factor: string;
   criterion_passkey: string;
   criterion_recovery_email: string;
@@ -6875,6 +6884,8 @@ export interface SettingsTranslations {
 }
 
 export interface MailTranslations {
+  sender_identity_rotated: string;
+  sender_identity_downgraded: string;
   encrypted_message_unavailable: string;
   pgp_password_protected_title: string;
   pgp_password_protected_description: string;
@@ -8118,6 +8129,7 @@ export interface AuthTranslations {
 }
 
 export interface ErrorTranslations {
+  auth_salt_collision: string;
   upload_too_large: string;
   post_quantum_unavailable: string;
   generic: string;

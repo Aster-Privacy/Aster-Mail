@@ -20,6 +20,8 @@
 //
 import * as openpgp from "openpgp";
 
+import "@/services/crypto/openpgp_limits";
+
 import { ignore_error } from "@/lib/ignore_error";
 import {
   get_passphrase_from_memory,

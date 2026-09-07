@@ -18,16 +18,16 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-export {
-  FONT_SIZE_DEFAULT,
-  FONT_SIZE_MAX,
-  FONT_SIZE_MIN,
-  label_to_language_code,
-  normalize_font_size_scale,
-} from "./helpers";
-export type { SaveStatus } from "./helpers";
-export {
-  PreferencesProvider,
-  use_preferences,
-  use_preferences_optional,
-} from "./provider";
+import * as openpgp from "openpgp";
+
+const LARGEST_ATTACHMENT_BYTES = 250 * 1024 * 1024;
+const DECOMPRESSION_HEADROOM_BYTES = 16 * 1024 * 1024;
+
+export const MAX_DECOMPRESSED_MESSAGE_SIZE =
+  LARGEST_ATTACHMENT_BYTES + DECOMPRESSION_HEADROOM_BYTES;
+
+export function apply_openpgp_limits(): void {
+  openpgp.config.maxDecompressedMessageSize = MAX_DECOMPRESSED_MESSAGE_SIZE;
+}
+
+apply_openpgp_limits();

@@ -20,6 +20,10 @@
 //
 import * as openpgp from "openpgp";
 
+import "@/services/crypto/openpgp_limits";
+
+import { assert_vault_salt_not_auth_salt } from "./auth_salt_guard";
+
 import {
   HASH_ALG,
   KEY_DERIVATION_ITERATIONS,
@@ -110,6 +114,8 @@ export async function decrypt_vault_to_handles(
 ): Promise<SecureVaultHandle> {
   const combined = base64_to_array(encrypted_vault);
   const nonce = base64_to_array(vault_nonce);
+
+  await assert_vault_salt_not_auth_salt(combined);
 
   const salt = combined.slice(0, 16);
   const ciphertext = combined.slice(16);
@@ -245,6 +251,8 @@ export async function decrypt_vault(
   const encoder = new TextEncoder();
   const combined = base64_to_array(encrypted_vault);
   const nonce = base64_to_array(vault_nonce);
+
+  await assert_vault_salt_not_auth_salt(combined);
 
   const salt = combined.slice(0, 16);
   const ciphertext = combined.slice(16);

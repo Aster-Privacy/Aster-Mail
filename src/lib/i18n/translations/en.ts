@@ -1703,9 +1703,6 @@ export const en: Translations = {
     contact_count_other: "{{count}} contacts",
     n_of_n_contacts: "{{ filtered }} of {{ total }}",
     contact_groups: "Groups",
-    more_contact_groups: "{{count}} more groups",
-    more_contact_groups_one: "{{count}} more group",
-    more_contact_groups_other: "{{count}} more groups",
     new_group: "New group",
     create_contact_group: "Create group",
     rename_contact_group: "Rename group",
@@ -2133,6 +2130,8 @@ export const en: Translations = {
     empty_trash_confirm:
       "Delete every contact in Trash permanently? You can’t undo this.",
     export_selection_vcf: "Export as vCard",
+    export_selection_csv: "Export as CSV",
+    export_selection: "Export selection",
     failed_to_add_to_group: "Couldn’t add the contact to the group.",
     failed_to_create_group: "Couldn’t create the group.",
     failed_to_delete_group: "Couldn’t delete the group.",
@@ -2163,6 +2162,7 @@ export const en: Translations = {
     no_groups_match: "No groups match your search",
     no_groups_yet: "No groups yet",
     no_published_key: "No published key",
+    security_center: "Security Center",
     open_contacts: "Open Contacts",
     preview_contact: "Preview contact",
     print_contacts: "Print contacts",
@@ -2170,6 +2170,8 @@ export const en: Translations = {
     search_groups: "Search groups",
     select_contact: "Select contact",
     share_contact: "Share contact",
+    share_contact_via_email: "Attach to a new email",
+    share_contact_device: "Share with another app",
     trash_days_left: "{{count}} days left",
     undo_change: "Undo change",
   },
@@ -3121,6 +3123,14 @@ export const en: Translations = {
     account_security_review_cta: "Review security",
     account_security_dont_show_again: "Don't show again",
     protection_breakdown_title: "Protection breakdown",
+    security_center_recommended: "Recommended actions",
+    security_center_protected: "Protected",
+    security_center_all_clear: "Every protection is turned on.",
+    security_center_protection_score: "Protection score",
+    security_center_encryption_title: "End-to-end encryption",
+    security_center_encryption_detail:
+      "Your mail, contacts, and files are encrypted on your device before they reach Aster.",
+    security_center_identity_key: "Identity key",
     criterion_two_factor: "Two-factor authentication",
     criterion_passkey: "Passkey registered",
     criterion_recovery_email: "Verified recovery email",
@@ -7661,6 +7671,10 @@ export const en: Translations = {
     usage_external_accounts: "External Accounts",
   },
   mail: {
+    sender_identity_rotated:
+      "This sender's encryption identity changed since you last exchanged messages. If you did not expect that, confirm it with them another way.",
+    sender_identity_downgraded:
+      "This sender's messages no longer carry post-quantum protection. If you did not expect that, confirm it with them another way.",
     encrypted_message_unavailable:
       "This message could not be decrypted. The sender may have used an outdated key.",
     pgp_password_protected_title: "Password protected message",
@@ -9156,6 +9170,8 @@ export const en: Translations = {
       "Adds a second factor using Windows Hello, a YubiKey, or your password manager.",
   },
   errors: {
+    auth_salt_collision:
+      "Sign-in stopped because the server sent an unsafe value, so nothing was unlocked. Contact support before you try again.",
     upload_too_large:
       "The upload is too large. To continue, remove or shrink a file and try again.",
     generic: "That did not work. Another attempt should do it.",

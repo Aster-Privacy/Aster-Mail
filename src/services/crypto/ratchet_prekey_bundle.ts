@@ -31,7 +31,12 @@ import {
 } from "./key_manager_core";
 import { sign_ratchet_prekey_bundle } from "./key_manager_pgp";
 import { select_published_signing_key } from "./published_signing_key";
-import { get_passphrase_from_memory } from "./memory_key_store";
+import {
+  get_passphrase_from_memory,
+  get_vault_from_memory,
+  on_keys_ready,
+} from "./memory_key_store";
+import { get_pinned_identity_fingerprint } from "./ratchet_identity_pin";
 import { type PrekeyBundle } from "./x3dh";
 
 import { HASH_ALG } from "@/services/crypto/constants";
@@ -52,9 +57,13 @@ export async function detect_identity_pin_drift(
     const namespaced_pin_id = `ratchet_identity:${pin_id}`;
 
     if (!PINNED_FINGERPRINTS.has(namespaced_pin_id)) {
-      pin_fingerprint(namespaced_pin_id, fingerprint, "identity");
+      const persisted = await get_pinned_identity_fingerprint(pin_id);
 
-      return;
+      pin_fingerprint(namespaced_pin_id, persisted ?? fingerprint, "identity");
+
+      if (!persisted) {
+        return;
+      }
     }
 
     const matches = await verify_pinned_fingerprint(
@@ -190,6 +199,34 @@ export async function upload_prekey_bundle(
   return (await upload_prekey_bundle_result(vault)).ok;
 }
 
+let deferred_publish_unsubscribe: (() => void) | null = null;
+
+function schedule_deferred_publish(): void {
+  if (deferred_publish_unsubscribe) return;
+
+  let armed = false;
+
+  const unsubscribe = on_keys_ready(() => {
+    if (!armed || !get_passphrase_from_memory()) return;
+
+    deferred_publish_unsubscribe?.();
+    deferred_publish_unsubscribe = null;
+
+    const vault = get_vault_from_memory();
+
+    if (!vault) return;
+
+    void upload_prekey_bundle_result(vault).catch(() => undefined);
+  });
+
+  deferred_publish_unsubscribe = unsubscribe;
+  armed = true;
+}
+
+export function has_deferred_prekey_publish(): boolean {
+  return deferred_publish_unsubscribe !== null;
+}
+
 export async function upload_prekey_bundle_result(
   vault: EncryptedVault,
 ): Promise<UploadPrekeyBundleResult> {
@@ -199,6 +236,12 @@ export async function upload_prekey_bundle_result(
 
   const passphrase = get_passphrase_from_memory();
   let signature: string;
+
+  if (vault.identity_key && !passphrase) {
+    schedule_deferred_publish();
+
+    return { ok: false, code: "deferred" };
+  }
 
   if (vault.identity_key && passphrase) {
     try {
