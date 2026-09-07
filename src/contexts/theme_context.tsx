@@ -31,6 +31,7 @@ import {
 import { update_status_bar_theme } from "@/native/capacitor_bridge";
 import { is_dark_appearance_active, set_theme_is_dark } from "@/lib/dark_mode";
 import { ignore_error } from "@/lib/ignore_error";
+import { safe_local_get } from "@/lib/safe_storage";
 
 export type Theme = "light" | "dark";
 export type ThemePreference = "light" | "dark" | "system";
@@ -57,7 +58,7 @@ function get_system_theme(): Theme {
 
 function get_initial_preference(): ThemePreference {
   try {
-    const stored = localStorage.getItem(THEME_STORAGE_KEY);
+    const stored = safe_local_get(THEME_STORAGE_KEY);
 
     if (stored === "dark" || stored === "light" || stored === "system") {
       return stored;

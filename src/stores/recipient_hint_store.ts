@@ -29,6 +29,10 @@ export function set_recipient_hint(
   }
 }
 
+export function clear_recipient_hints(): void {
+  hint_map.clear();
+}
+
 export function get_recipient_hint(
   email_id: string | null | undefined,
 ): string[] {

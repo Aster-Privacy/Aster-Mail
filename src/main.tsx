@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { lazy, Suspense } from "react";
+import { Suspense } from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter, HashRouter } from "react-router-dom";
 
@@ -59,8 +59,10 @@ import "@/styles/globals.css";
 import "@/styles/mobile.css";
 
 import { ignore_error } from "@/lib/ignore_error";
+import { safe_local_get } from "@/lib/safe_storage";
+import { lazy_with_retry } from "@/utils/lazy_with_retry";
 
-const MobileApp = lazy(() => import("@/mobile_app"));
+const MobileApp = lazy_with_retry(() => import("@/mobile_app"));
 
 start_input_modality_tracking();
 
@@ -78,7 +80,7 @@ if (!is_native_platform()) {
     });
 }
 
-const cached_prefs_raw = localStorage.getItem("aster_preferences_cache");
+const cached_prefs_raw = safe_local_get("aster_preferences_cache");
 let low_network_on_startup = false;
 
 try {
@@ -113,7 +115,7 @@ if (is_tauri_runtime) {
     .then(({ invoke }) => {
       void invoke("frontend_ready");
       const cached = Number(
-        localStorage.getItem("aster_last_unread_badge") || "0",
+        safe_local_get("aster_last_unread_badge") || "0",
       );
 
       if (Number.isFinite(cached) && cached > 0) {

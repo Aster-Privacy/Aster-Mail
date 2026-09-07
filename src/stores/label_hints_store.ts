@@ -38,6 +38,10 @@ export function set_label_hints(email_id: string, hints: LabelHint[]): void {
   hint_map.delete(email_id);
 }
 
+export function clear_label_hints(): void {
+  hint_map.clear();
+}
+
 export function get_label_hints(
   email_id: string | null | undefined,
 ): LabelHint[] {

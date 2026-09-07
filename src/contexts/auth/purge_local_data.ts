@@ -57,6 +57,7 @@ import { clear_translation_cache } from "@/services/translation/translation_cach
 import { clear_detection_cache } from "@/services/translation/language_detect";
 import { release_engines } from "@/services/translation/engine_registry";
 import { ignore_error } from "@/lib/ignore_error";
+import { safe_local_keys, safe_local_remove } from "@/lib/safe_storage";
 
 export async function purge_all_local_data(): Promise<boolean> {
   const errors: Error[] = [];
@@ -88,14 +89,14 @@ export async function purge_all_local_data(): Promise<boolean> {
   }
 
   clear_all_app_lock_data();
-  for (const key of Object.keys(localStorage)) {
-    if (key.startsWith("aster:lockdown:")) localStorage.removeItem(key);
-    if (key === "pq_prekey_missing") localStorage.removeItem(key);
-    if (key.startsWith("astermail_pq_self_heal_at_")) {
-      localStorage.removeItem(key);
-    }
-    if (key.startsWith("astermail_pq_reconciler_at_")) {
-      localStorage.removeItem(key);
+  for (const key of safe_local_keys()) {
+    if (
+      key.startsWith("aster:lockdown:") ||
+      key === "pq_prekey_missing" ||
+      key.startsWith("astermail_pq_self_heal_at_") ||
+      key.startsWith("astermail_pq_reconciler_at_")
+    ) {
+      safe_local_remove(key);
     }
   }
   clear_cache();

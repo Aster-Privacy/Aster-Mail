@@ -49,6 +49,13 @@ function get_snapshot(): BadgePreferences | null {
   return current;
 }
 
+export function clear_my_badge_prefs() {
+  current = null;
+  has_fetched = false;
+  last_failed_at = 0;
+  notify();
+}
+
 export function set_my_badge_prefs(prefs: BadgePreferences | null) {
   current = prefs;
   has_fetched = true;
