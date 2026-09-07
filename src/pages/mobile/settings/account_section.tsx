@@ -314,7 +314,7 @@ export function AccountSection({
     if (r.code === "CONFLICT") {
       throw new Error(r.error || t("common.recovery_conflict"));
     }
-    if (!r.data.success) {
+    if (r.error || !r.data?.success) {
       throw new Error(r.error || t("common.failed_to_save"));
     }
 
@@ -338,7 +338,7 @@ export function AccountSection({
       if (r.code === "CONFLICT") {
         throw new Error(r.error || t("common.recovery_conflict"));
       }
-      if (!r.data.success) {
+      if (r.error || !r.data?.success) {
         throw new Error(r.error || t("common.step_up_error"));
       }
 
@@ -352,7 +352,7 @@ export function AccountSection({
     } else {
       const r = await remove_recovery_email(credentials);
 
-      if (!r.data.success) {
+      if (r.error || !r.data?.success) {
         throw new Error(r.error || t("common.step_up_error"));
       }
 
@@ -368,7 +368,7 @@ export function AccountSection({
     try {
       const r = await resend_recovery_verification();
 
-      if (r.data.success) {
+      if (!r.error && r.data?.success) {
         show_toast(t("common.verification_email_sent"), "success");
       } else {
         show_toast(r.error || t("common.failed_verification_email"), "error");

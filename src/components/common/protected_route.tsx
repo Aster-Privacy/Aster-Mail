@@ -54,10 +54,16 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
       return <FullPageLoader />;
     }
 
-    const search = location.search || window.location.search;
+    const next_path = encodeURIComponent(
+      location.pathname + location.search + location.hash,
+    );
 
     return (
-      <Navigate replace state={{ from: location }} to={"/sign-in" + search} />
+      <Navigate
+        replace
+        state={{ from: location }}
+        to={"/sign-in?next=" + next_path}
+      />
     );
   }
 

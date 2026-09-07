@@ -18,10 +18,10 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { copy_text_or_throw } from "@/utils/copy_text";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
+import { copy_text_or_throw } from "@/utils/copy_text";
 import {
   type DevicePubkeys,
   init_desktop_device_auth,
@@ -69,7 +69,6 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
   const reduce_motion = use_should_reduce_motion();
   const [checked, set_checked] = useState(() => !is_tauri());
   const [init_key, set_init_key] = useState(0);
-  const [_pubkeys, set_pubkeys] = useState<DevicePubkeys | null>(null);
   const [gate_state, set_gate_state] = useState<GateState>("loading");
   const [code, set_code] = useState<string | null>(null);
   const [copied, set_copied] = useState(false);
@@ -248,7 +247,6 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
                         lr.vault_nonce,
                       );
                       setTimeout(() => emit_auth_ready(), 50);
-                      set_pubkeys(null);
                     } catch (inner_err) {
                       if (import.meta.env.DEV) console.error(inner_err);
                       set_error_detail(
@@ -308,7 +306,6 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
 
         if (cancelled) return;
         if (!pk.device_id) {
-          set_pubkeys(pk);
           start_code_flow(pk);
         } else {
           const pending = consume_pending_device_login();
@@ -363,7 +360,6 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
                 await core.invoke<DevicePubkeys>("device_get_pubkeys");
 
               if (!cancelled) {
-                set_pubkeys(fresh_pk);
                 start_code_flow(fresh_pk);
               }
             }
@@ -399,7 +395,6 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
                   await core.invoke<DevicePubkeys>("device_get_pubkeys");
 
                 if (!cancelled) {
-                  set_pubkeys(fresh_pk);
                   start_code_flow(fresh_pk);
                 }
               }
@@ -409,7 +404,6 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
                 await core.invoke<DevicePubkeys>("device_get_pubkeys");
 
               if (!cancelled) {
-                set_pubkeys(fresh_pk);
                 start_code_flow(fresh_pk);
               }
             }
@@ -424,7 +418,6 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
     })();
 
     const on_paired = () => {
-      set_pubkeys(null);
       stop_polling();
     };
 
@@ -493,15 +486,11 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
       });
     } catch (open_url_err) {
       if (import.meta.env.DEV) console.error(open_url_err);
-      const opened = window.open(
+      window.open(
         "https://app.astermail.org/link-device",
         "_blank",
         "noopener,noreferrer",
       );
-
-      if (!opened) {
-        show_toast(t("common.something_went_wrong"), "error");
-      }
     }
   };
 
@@ -513,7 +502,6 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
       await clear_device_session();
       const pk = await core.invoke<DevicePubkeys>("device_get_pubkeys");
 
-      set_pubkeys(pk);
       start_code_flow(pk);
     } catch {
       set_gate_state("error");

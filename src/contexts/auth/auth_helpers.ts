@@ -49,6 +49,10 @@ import { clear_preferences_cache } from "@/services/api/preferences";
 import { clear_category_index_memory } from "@/services/category_index";
 import { clear_profiles_cache } from "@/services/api/profiles";
 import { clear_unsubscribed_senders_cache } from "@/hooks/use_unsubscribed_senders";
+import { clear_my_badge_prefs } from "@/stores/my_badge_prefs_store";
+import { clear_ghost_entries } from "@/stores/ghost_alias_store";
+import { clear_recipient_hints } from "@/stores/recipient_hint_store";
+import { clear_label_hints } from "@/stores/label_hints_store";
 
 export const AUTH_VERIFY_TIMEOUT_MS = 12000;
 
@@ -79,6 +83,10 @@ export async function clear_account_scoped_caches(): Promise<void> {
   clear_unreadable_attachment_rows();
   clear_profiles_cache();
   clear_unsubscribed_senders_cache();
+  clear_my_badge_prefs();
+  clear_ghost_entries();
+  clear_recipient_hints();
+  clear_label_hints();
   request_cache.clear();
   await clear_all_ratchet_states();
 }
