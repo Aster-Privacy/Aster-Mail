@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useMemo, useState, useCallback, memo, lazy, Suspense } from "react";
+import { useMemo, useState, useCallback, memo, Suspense } from "react";
 
 import { Skeleton } from "./skeleton";
 
@@ -43,7 +43,9 @@ import { is_aster_email } from "@/services/api/profiles";
 import { GHOST_DOMAIN } from "@/services/api/ghost_aliases";
 import mail_logo_url from "@/assets/mail_logo.webp";
 
-const SenderProfileTrigger = lazy(() =>
+import { lazy_with_retry } from "@/utils/lazy_with_retry";
+
+const SenderProfileTrigger = lazy_with_retry(() =>
   import("@/components/profile/sender_profile_trigger").then((mod) => ({
     default: mod.SenderProfileTrigger,
   })),
@@ -84,7 +86,12 @@ const ASTER_SYSTEM_EMAILS = new Set([
 
 const SYSTEM_LOCAL_PARTS = new Set(["mailer-daemon", "postmaster"]);
 
-const ASTER_DOMAINS = new Set(["astermail.org", "aster.cx"]);
+const ASTER_DOMAINS = new Set([
+  "astermail.org",
+  "aster.cx",
+  "astermail.me",
+  "astermail.net",
+]);
 
 const LOADED_SOURCE_LIMIT = 600;
 const loaded_sources = new Set<string>();

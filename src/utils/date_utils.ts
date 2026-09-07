@@ -38,6 +38,22 @@ export function parse_calendar_date(value: string): Date {
   return new Date(Number(parts[1]), Number(parts[2]) - 1, Number(parts[3]));
 }
 
+export function format_contact_date(value: string): string {
+  const trimmed = value.trim();
+
+  if (!trimmed) return "";
+
+  const parsed = parse_calendar_date(trimmed);
+
+  if (Number.isNaN(parsed.getTime())) return trimmed;
+
+  return parsed.toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+}
+
 export function format_relative_time(
   timestamp: string,
   t?: TranslateFn,

@@ -47,7 +47,7 @@ export async function process_envelope_body(
   user_email?: string,
   message_id?: string,
 ): Promise<ProcessedEnvelope> {
-  let resolved_html = envelope.body_html ?? envelope.html_body ?? undefined;
+  let resolved_html = envelope.body_html || envelope.html_body || undefined;
 
   if (resolved_html && /^content-type\s*:/im.test(resolved_html)) {
     resolved_html = try_extract_mime_body(resolved_html) || undefined;
@@ -117,7 +117,7 @@ export async function process_envelope_body(
   if (
     is_ratchet_envelope(resolved_text) &&
     !is_ratchet_envelope(body_text) &&
-    safe_html === undefined
+    !safe_html
   ) {
     safe_html = body_text;
   }

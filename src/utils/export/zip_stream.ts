@@ -330,10 +330,10 @@ export class ZipStreamWriter {
       .u32(END_SIGNATURE)
       .u16(0)
       .u16(0)
-      .u16(needs_zip64 ? U16_MAX : count)
-      .u16(needs_zip64 ? U16_MAX : count)
-      .u32(needs_zip64 ? U32_MAX : directory_size)
-      .u32(needs_zip64 ? U32_MAX : directory_offset)
+      .u16(count > U16_MAX ? U16_MAX : count)
+      .u16(count > U16_MAX ? U16_MAX : count)
+      .u32(directory_size > U32_LIMIT ? U32_MAX : directory_size)
+      .u32(directory_offset > U32_LIMIT ? U32_MAX : directory_offset)
       .u16(0);
 
     await this.emit(end.build());

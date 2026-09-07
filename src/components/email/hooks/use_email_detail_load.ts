@@ -589,6 +589,9 @@ export function use_email_detail_load() {
           set_email(decrypted);
           has_loaded_once.current = true;
           await ensure_min_duration();
+
+          if (is_stale()) return;
+
           set_is_loading(false);
 
           return;
@@ -601,6 +604,9 @@ export function use_email_detail_load() {
       ) {
         request_folder_unlock();
         await ensure_min_duration();
+
+        if (is_stale()) return;
+
         set_error(t("common.email_in_locked_folder"));
         set_is_loading(false);
 
@@ -608,6 +614,9 @@ export function use_email_detail_load() {
       }
 
       await ensure_min_duration();
+
+      if (is_stale()) return;
+
       set_error(response.error);
       set_is_loading(false);
 
@@ -629,6 +638,9 @@ export function use_email_detail_load() {
           ) {
             request_folder_unlock(mail_folder.token);
             await ensure_min_duration();
+
+            if (is_stale()) return;
+
             set_error(t("common.email_in_locked_folder"));
             set_is_loading(false);
 
@@ -871,10 +883,16 @@ export function use_email_detail_load() {
 
       has_loaded_once.current = true;
       await ensure_min_duration();
+
+      if (is_stale()) return;
+
       set_is_loading(false);
     } else {
       has_loaded_once.current = true;
       await ensure_min_duration();
+
+      if (is_stale()) return;
+
       set_is_loading(false);
     }
   }, [

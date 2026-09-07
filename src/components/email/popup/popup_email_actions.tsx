@@ -72,7 +72,7 @@ interface PopupEmailActionsProps {
   applied_folder_tokens?: string[];
   on_unarchive?: () => void;
   on_not_spam?: () => void;
-  on_folder_toggle?: (folder_id: string) => void;
+  on_folder_toggle?: (folder_id: string) => void | Promise<void>;
   on_close: () => void;
   on_drag_start: (e: React.MouseEvent) => void;
   on_toggle_size: () => void;
@@ -337,9 +337,11 @@ export function PopupEmailActions({
                       <DropdownMenuItem
                         onSelect={(e) => {
                           e.preventDefault();
-                          applied_folder_tokens.forEach((token) =>
-                            on_folder_toggle(token),
-                          );
+                          void (async () => {
+                            for (const token of applied_folder_tokens) {
+                              await on_folder_toggle(token);
+                            }
+                          })();
                         }}
                       >
                         <InboxIcon className="w-4 h-4 me-2 flex-shrink-0" />

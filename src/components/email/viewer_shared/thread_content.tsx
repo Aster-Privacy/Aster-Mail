@@ -236,6 +236,7 @@ export function ViewerThreadContent({
         inline_reply_msg={inline_reply_msg}
         inline_reply_thread_token={email.thread_token}
         loaded_content_types={loaded_content_types}
+        main_email_id={email.id}
         messages={thread_messages}
         on_archive={on_archive}
         on_close_inline_reply={handle_close_inline_reply}
@@ -257,6 +258,7 @@ export function ViewerThreadContent({
         preloaded_sanitized={thread_sanitized}
         size_bytes={size_bytes}
         subject={email.subject}
+        thread_token={email.thread_token}
         unsubscribe_url={unsubscribe_url}
       />
 

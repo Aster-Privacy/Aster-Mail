@@ -35,9 +35,12 @@ const POOL_SIZE = Math.min(
   6,
 );
 
+const REQUEST_TIMEOUT_MS = 60_000;
+
 interface pending_request {
   resolve: (plaintext: string) => void;
   reject: (error: Error) => void;
+  timer: ReturnType<typeof setTimeout>;
 }
 
 let workers: Worker[] | null = null;
@@ -55,12 +58,61 @@ function handle_worker_message(
   if (!pending) return;
 
   pending_requests.delete(id);
+  clearTimeout(pending.timer);
 
   if (error) {
     pending.reject(new Error(error));
   } else {
     pending.resolve(plaintext ?? "");
   }
+}
+
+function reject_all_pending(reason: string): void {
+  const entries = Array.from(pending_requests.values());
+
+  pending_requests.clear();
+
+  for (const pending of entries) {
+    clearTimeout(pending.timer);
+    pending.reject(new Error(reason));
+  }
+}
+
+function shutdown_pool(reason: string): void {
+  const active = workers;
+
+  workers = null;
+  pool_init_failed = true;
+
+  if (active) {
+    for (const worker of active) {
+      worker.onmessage = null;
+      worker.onerror = null;
+      worker.onmessageerror = null;
+      worker.terminate();
+    }
+  }
+
+  reject_all_pending(reason);
+}
+
+function handle_worker_failure(event: Event | ErrorEvent | MessageEvent): void {
+  const message =
+    "message" in event && typeof event.message === "string"
+      ? event.message
+      : "pgp decrypt worker failed";
+
+  shutdown_pool(message);
+}
+
+function fail_request(id: number, reason: string): void {
+  const pending = pending_requests.get(id);
+
+  if (!pending) return;
+
+  pending_requests.delete(id);
+  clearTimeout(pending.timer);
+  pending.reject(new Error(reason));
 }
 
 function get_pool(): Worker[] | null {
@@ -81,7 +133,8 @@ function get_pool(): Worker[] | null {
       );
 
       worker.onmessage = handle_worker_message;
-      worker.onerror = () => {};
+      worker.onerror = handle_worker_failure;
+      worker.onmessageerror = handle_worker_failure;
 
       return worker;
     });
@@ -113,7 +166,12 @@ export async function decrypt_pgp_message_parallel(
   const id = next_request_id++;
 
   return new Promise<string>((resolve, reject) => {
-    pending_requests.set(id, { resolve, reject });
+    const timer = setTimeout(
+      () => fail_request(id, "pgp decrypt worker timed out"),
+      REQUEST_TIMEOUT_MS,
+    );
+
+    pending_requests.set(id, { resolve, reject, timer });
 
     const request: pgp_decrypt_worker_request = {
       id,
@@ -122,7 +180,14 @@ export async function decrypt_pgp_message_parallel(
       passphrase,
     };
 
-    worker.postMessage(request);
+    try {
+      worker.postMessage(request);
+    } catch (error) {
+      fail_request(
+        id,
+        error instanceof Error ? error.message : "pgp decrypt worker failed",
+      );
+    }
   }).catch(async () => {
     return decrypt_message_with_any_key(ciphertext, secret_keys, passphrase);
   });

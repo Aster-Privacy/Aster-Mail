@@ -59,6 +59,7 @@ export function UnsubscribeBanner({
   const tracked_ref = useRef(false);
   const pending_timeout_ref = useRef<NodeJS.Timeout | null>(null);
   const cancelled_ref = useRef(false);
+  const mounted_ref = useRef(true);
 
   useEffect(() => {
     if (!unsubscribe_info.has_unsubscribe || tracked_ref.current) return;
@@ -83,10 +84,10 @@ export function UnsubscribeBanner({
   }, [sender_email, sender_name, unsubscribe_info]);
 
   useEffect(() => {
+    mounted_ref.current = true;
+
     return () => {
-      if (pending_timeout_ref.current) {
-        clearTimeout(pending_timeout_ref.current);
-      }
+      mounted_ref.current = false;
     };
   }, []);
 
@@ -108,7 +109,7 @@ export function UnsubscribeBanner({
           clearTimeout(pending_timeout_ref.current);
           pending_timeout_ref.current = null;
         }
-        set_is_dismissed(false);
+        if (mounted_ref.current) set_is_dismissed(false);
       },
     });
 
@@ -154,7 +155,7 @@ export function UnsubscribeBanner({
           });
         }
       } catch {
-        set_is_dismissed(false);
+        if (mounted_ref.current) set_is_dismissed(false);
         show_action_toast({
           message: t("mail.unsubscribe_failed"),
           action_type: "not_spam",

@@ -324,6 +324,7 @@ export function PopupEmailBody({
             inline_reply_msg={inline_reply_msg}
             inline_reply_thread_token={thread_token}
             loaded_content_types={loaded_content_types}
+            main_email_id={email?.id}
             messages={thread_messages}
             on_archive={on_per_message_archive}
             on_close_inline_reply={handle_close_inline_reply}
@@ -350,6 +351,7 @@ export function PopupEmailBody({
                 : undefined
             }
             subject={email.subject}
+            thread_token={thread_token}
             unsubscribe_url={email.unsubscribe_info?.unsubscribe_link}
           />
         </div>

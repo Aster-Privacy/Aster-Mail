@@ -147,6 +147,12 @@ async function sha256_hash(input: string): Promise<Uint8Array> {
   return new Uint8Array(buffer);
 }
 
+function bytes_to_hex(bytes: Uint8Array): string {
+  return Array.from(bytes)
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
 export async function init_blocklist(): Promise<void> {
   const stored = await load_from_idb();
 
@@ -192,20 +198,19 @@ export async function verify_url_with_server(
 
   if (urls.length === 0) return matched;
 
-  const prefix_map = new Map<string, string[]>();
+  const prefix_map = new Map<string, { url: string; full_hash: string }[]>();
 
   for (const url of urls) {
     try {
       const domain = extract_domain(url);
       const hash = await sha256_hash(domain.toLowerCase());
-      const prefix = Array.from(hash.slice(0, 4))
-        .map((b) => b.toString(16).padStart(2, "0"))
-        .join("");
+      const full_hash = bytes_to_hex(hash);
+      const prefix = full_hash.slice(0, 8);
 
       if (!prefix_map.has(prefix)) {
         prefix_map.set(prefix, []);
       }
-      prefix_map.get(prefix)!.push(url);
+      prefix_map.get(prefix)!.push({ url, full_hash });
     } catch (caught) {
       ignore_error("lib/phishing_blocklist:verify_url_with_server", caught);
     }
@@ -220,10 +225,15 @@ export async function verify_url_with_server(
 
     if (response.data?.matches) {
       for (const match of response.data.matches) {
-        const urls_for_prefix = prefix_map.get(match.prefix) || [];
+        const entries_for_prefix = prefix_map.get(match.prefix) || [];
+        const full_hashes = new Set(
+          (match.full_hashes || []).map((h) => h.toLowerCase()),
+        );
 
-        for (const url of urls_for_prefix) {
-          matched.add(url);
+        for (const entry of entries_for_prefix) {
+          if (full_hashes.has(entry.full_hash)) {
+            matched.add(entry.url);
+          }
         }
       }
     }

@@ -40,6 +40,7 @@ import {
   type ThreadReplyOptimisticEventDetail,
   type ThreadReplyCancelledEventDetail,
 } from "@/hooks/mail_events";
+import { ignore_error } from "@/lib/ignore_error";
 import { get_email_username } from "@/lib/utils";
 import { extract_reply_to } from "@/utils/reply_to";
 import { resolve_forwarding_display } from "@/utils/forwarding_alias";
@@ -857,16 +858,23 @@ export function use_email_viewer({
     let unsubscribe: (() => void) | null = null;
     let cancelled = false;
 
-    void import("@/services/crypto/memory_key_store").then((module) => {
-      if (cancelled || module.are_keys_ready()) return;
+    void import("@/services/crypto/memory_key_store")
+      .then((module) => {
+        if (cancelled || module.are_keys_ready()) return;
 
-      unsubscribe = module.on_keys_ready(() => {
-        delete_preloaded_email(email_id);
-        loaded_email_id_ref.current = null;
-        set_error(null);
-        set_refresh_key((k) => k + 1);
-      });
-    });
+        unsubscribe = module.on_keys_ready(() => {
+          delete_preloaded_email(email_id);
+          loaded_email_id_ref.current = null;
+          set_error(null);
+          set_refresh_key((k) => k + 1);
+        });
+      })
+      .catch((caught) =>
+        ignore_error(
+          "components/email/use_email_viewer:memory_key_store",
+          caught,
+        ),
+      );
 
     return () => {
       cancelled = true;

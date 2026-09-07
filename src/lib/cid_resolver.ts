@@ -253,11 +253,15 @@ export function extract_cid_references(html: string): string[] {
   return cids;
 }
 
+const UNSAFE_RESOLVED_URL = /["'<>\s]/;
+
 export function replace_cid_reference(
   html: string,
   cid: string,
   url: string,
 ): string {
+  if (UNSAFE_RESOLVED_URL.test(url)) return html;
+
   const escaped = escape_regexp(cid);
 
   return html
@@ -477,15 +481,17 @@ export async function resolve_cid_references(
         att.seq_num,
       );
 
+      const content_type = resolved_image_content_type(meta) ?? "image/png";
+
       if (url_mode === "data") {
         return {
           original_cid,
-          url: `data:${meta.content_type};base64,${array_to_base64(data)}`,
+          url: `data:${content_type};base64,${array_to_base64(data)}`,
           is_blob: false,
         };
       }
 
-      const blob = new Blob([data], { type: meta.content_type });
+      const blob = new Blob([data], { type: content_type });
 
       return { original_cid, url: URL.createObjectURL(blob), is_blob: true };
     }),

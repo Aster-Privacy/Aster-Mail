@@ -98,8 +98,72 @@ function parse_line(line: string): RawLine | null {
   return { name, params, value: value.trim() };
 }
 
+function is_known_time_zone(zone: string): boolean {
+  try {
+    new Intl.DateTimeFormat("en-US", { timeZone: zone });
+
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function zone_offset_ms(zone: string, utc_ms: number): number {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: zone,
+    hourCycle: "h23",
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+    second: "numeric",
+  }).formatToParts(new Date(utc_ms));
+  const field: Record<string, number> = {};
+
+  for (const part of parts) {
+    if (part.type !== "literal") {
+      field[part.type] = Number(part.value);
+    }
+  }
+
+  const as_utc = Date.UTC(
+    field.year,
+    field.month - 1,
+    field.day,
+    field.hour === 24 ? 0 : field.hour,
+    field.minute,
+    field.second,
+  );
+
+  return as_utc - utc_ms;
+}
+
+function zoned_wall_time_to_date(
+  zone: string,
+  year: number,
+  month: number,
+  day: number,
+  hour: number,
+  minute: number,
+  second: number,
+): Date {
+  const wall_as_utc = Date.UTC(year, month, day, hour, minute, second);
+  let instant = wall_as_utc - zone_offset_ms(zone, wall_as_utc);
+
+  for (let round = 0; round < 2; round += 1) {
+    const corrected = wall_as_utc - zone_offset_ms(zone, instant);
+
+    if (corrected === instant) break;
+    instant = corrected;
+  }
+
+  return new Date(instant);
+}
+
 function ics_datetime_to_date(
   raw: string,
+  tzid?: string,
 ): { date: Date; is_date: boolean } | null {
   const match = raw
     .trim()
@@ -124,6 +188,21 @@ function ics_datetime_to_date(
   if (match[7]) {
     return {
       date: new Date(Date.UTC(year, month, day, hour, minute, second)),
+      is_date: false,
+    };
+  }
+
+  if (tzid && is_known_time_zone(tzid)) {
+    return {
+      date: zoned_wall_time_to_date(
+        tzid,
+        year,
+        month,
+        day,
+        hour,
+        minute,
+        second,
+      ),
       is_date: false,
     };
   }
@@ -216,10 +295,10 @@ export function parse_invite_from_ics(ics: string): ParsedInvite | null {
         location = unescape_text(line.value);
         break;
       case "DTSTART":
-        start = ics_datetime_to_date(line.value);
+        start = ics_datetime_to_date(line.value, line.params.TZID);
         break;
       case "DTEND":
-        end = ics_datetime_to_date(line.value);
+        end = ics_datetime_to_date(line.value, line.params.TZID);
         break;
       case "ORGANIZER":
         organizer_email = parse_mailto(line.value);

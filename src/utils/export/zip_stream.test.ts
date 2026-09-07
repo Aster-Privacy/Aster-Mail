@@ -338,6 +338,25 @@ describe("ZipStreamWriter", () => {
     expect(read_u64(view, zip64_end + 32)).toBe(70000);
   });
 
+  it("keeps the real entry count in the end record when only the offset overflows", async () => {
+    const target = new MemoryTarget();
+    const writer = new ZipStreamWriter(target);
+
+    await writer.begin_entry("a.txt");
+    await writer.write(text("a"));
+    await writer.end_entry();
+    (writer as unknown as { offset: number }).offset = 0x100000000;
+    await writer.finish();
+    const bytes = target.concat();
+    const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    const end = bytes.length - 22;
+
+    expect(read_u32(view, end)).toBe(0x06054b50);
+    expect(read_u16(view, end + 10)).toBe(1);
+    expect(read_u32(view, end + 16)).toBe(0xffffffff);
+    expect(read_u32(view, end - 20)).toBe(0x07064b50);
+  });
+
   it("refuses to close an oversized entry that was not opened as zip64", async () => {
     const writer = new ZipStreamWriter(new MemoryTarget());
 

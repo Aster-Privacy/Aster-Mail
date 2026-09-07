@@ -403,22 +403,12 @@ export function FullEmailViewer({
     }
   }, [email_id]);
 
-  const handle_keyboard_reply = useCallback(
-    (event: Event) =>
-      viewer.handle_reply({
-        reply_all:
-          (event as CustomEvent<{ reply_all?: boolean }>).detail?.reply_all ===
-          true,
-      }),
-    [viewer.handle_reply],
-  );
   const handle_keyboard_forward = useCallback(
     () => viewer.handle_forward(),
     [viewer.handle_forward],
   );
 
   useEffect(() => {
-    window.addEventListener("astermail:keyboard-reply", handle_keyboard_reply);
     window.addEventListener(
       "astermail:keyboard-forward",
       handle_keyboard_forward,
@@ -426,15 +416,11 @@ export function FullEmailViewer({
 
     return () => {
       window.removeEventListener(
-        "astermail:keyboard-reply",
-        handle_keyboard_reply,
-      );
-      window.removeEventListener(
         "astermail:keyboard-forward",
         handle_keyboard_forward,
       );
     };
-  }, [handle_keyboard_reply, handle_keyboard_forward]);
+  }, [handle_keyboard_forward]);
 
   if (viewer.error || (!viewer.email && !viewer.is_loading)) {
     return (

@@ -60,6 +60,7 @@ import {
 import { filter_locked_mail_items } from "@/services/locked_folders";
 import { resolve_forwarding_display } from "@/utils/forwarding_alias";
 import { is_reaction_payload_body } from "@/lib/reaction_payload";
+import { compare_timestamps_asc } from "@/utils/email_timestamp";
 
 interface DecryptedEnvelope {
   subject: string;
@@ -422,8 +423,8 @@ export async function fetch_and_decrypt_thread_messages(
     ...results.filter((msg) => !is_reaction_payload_body(msg.body)),
   );
 
-  decrypted_messages.sort(
-    (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
+  decrypted_messages.sort((a, b) =>
+    compare_timestamps_asc(a.timestamp, b.timestamp),
   );
 
   await resolve_reaction_emojis(decrypted_messages, our_email);
@@ -618,9 +619,7 @@ export async function fetch_and_decrypt_virtual_group(
     (msg) => !is_reaction_payload_body(msg.body),
   );
 
-  results.sort(
-    (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
-  );
+  results.sort((a, b) => compare_timestamps_asc(a.timestamp, b.timestamp));
 
   await resolve_reaction_emojis(results, our_email);
 
