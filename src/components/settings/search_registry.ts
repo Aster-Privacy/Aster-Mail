@@ -473,6 +473,7 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
     label_key: "settings_search.custom_domain",
     section: "aliases",
     breadcrumb: "Aliases > Domains",
+    crumb_key: "settings_search.domains",
     keywords: ["add domain", "domain setup"],
   },
   {
@@ -480,6 +481,7 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
     label_key: "settings.domain_purchase_banner_cta",
     section: "aliases",
     breadcrumb: "Aliases > Domains",
+    crumb_key: "settings_search.domains",
     keywords: [
       "purchase domain",
       "register domain",
@@ -492,6 +494,7 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
     label_key: "settings.verify_all_records",
     section: "aliases",
     breadcrumb: "Aliases > Domains",
+    crumb_key: "settings_search.domains",
     keywords: ["domain verification", "verify domain", "dns setup"],
   },
   {
@@ -499,6 +502,7 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
     label_key: "settings_search.dns_records",
     section: "aliases",
     breadcrumb: "Aliases > Domains",
+    crumb_key: "settings_search.domains",
     keywords: ["mx record", "dkim", "spf", "dmarc"],
   },
   {
@@ -1665,6 +1669,7 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
     label_key: "settings.catch_all_label",
     section: "aliases",
     breadcrumb: "Aliases > Domains",
+    crumb_key: "settings_search.domains",
     keywords: [
       "catch-all email address",
       "catch all",

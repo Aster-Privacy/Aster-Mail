@@ -130,6 +130,11 @@ export function SearchBar({
   const [rect, set_rect] = useState<AnchorRect | null>(null);
   const [is_advanced_open, set_is_advanced_open] = useState(false);
 
+  useEffect(() => {
+    if (search_context === undefined) return;
+    set_query((prev) => (prev === search_context ? prev : search_context));
+  }, [search_context]);
+
   const {
     state: search_state,
     search,
@@ -507,9 +512,6 @@ export function SearchBar({
             onFocus={() => {
               if (is_page_filter) return;
               set_is_open(true);
-              if (!query && scope && scope.token !== "inbox") {
-                set_query(`in:${scope.token} `);
-              }
             }}
             onKeyDown={handle_key_down}
           />

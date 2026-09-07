@@ -655,9 +655,7 @@ function SetupDuressPinModal({
                 {t("settings.duress_pin_how_it_works_body")}
               </p>
             </div>
-            {error_msg && (
-              <p className="text-sm text-red-500">{error_msg}</p>
-            )}
+            {error_msg && <p className="text-sm text-red-500">{error_msg}</p>}
           </div>
         )}
         {(step === "set_text" || step === "confirm_text") && (

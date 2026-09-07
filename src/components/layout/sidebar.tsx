@@ -58,7 +58,6 @@ import { SidebarNavSection } from "@/components/layout/sidebar/sidebar_nav_secti
 import { SidebarFolders } from "@/components/layout/sidebar/sidebar_folders";
 import { SidebarTags } from "@/components/layout/sidebar/sidebar_tags";
 import { SidebarAliases } from "@/components/layout/sidebar/sidebar_aliases";
-import { SidebarContactGroups } from "@/components/layout/sidebar/sidebar_contact_groups";
 import { SidebarAccountSwitcher } from "@/components/layout/sidebar/sidebar_account_switcher";
 import { RailTipLayer } from "@/components/layout/sidebar/rail_tip_layer";
 import { use_sidebar_aliases } from "@/hooks/use_sidebar_aliases";
@@ -564,7 +563,6 @@ const sidebar_base = ({
     preferences.sidebar_folders_collapsed,
     preferences.sidebar_labels_collapsed,
     preferences.sidebar_aliases_collapsed,
-    preferences.sidebar_contact_groups_collapsed,
   ]);
 
   useEffect(() => {
@@ -621,13 +619,6 @@ const sidebar_base = ({
     cache_sidebar_state("sidebar_labels_collapsed", next);
     update_preference("sidebar_labels_collapsed", next, true);
   }, [preferences.sidebar_labels_collapsed, update_preference]);
-
-  const toggle_contact_groups_collapsed = useCallback(() => {
-    const next = !preferences.sidebar_contact_groups_collapsed;
-
-    cache_sidebar_state("sidebar_contact_groups_collapsed", next);
-    update_preference("sidebar_contact_groups_collapsed", next, true);
-  }, [preferences.sidebar_contact_groups_collapsed, update_preference]);
 
   const toggle_aliases_collapsed = useCallback(() => {
     const next = !preferences.sidebar_aliases_collapsed;
@@ -910,16 +901,6 @@ const sidebar_base = ({
             set_selected_item={set_selected_item}
             tag_refs={tag_refs}
             tags={tags_state.tags}
-          />
-
-          <SidebarContactGroups
-            effective_selected={effective_selected}
-            handle_nav_click={handle_nav_click}
-            is_collapsed={is_collapsed}
-            navigate={navigate}
-            on_toggle_section={toggle_contact_groups_collapsed}
-            section_collapsed={preferences.sidebar_contact_groups_collapsed}
-            set_selected_item={set_selected_item}
           />
 
           <SidebarAliases

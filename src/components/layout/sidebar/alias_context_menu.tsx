@@ -153,7 +153,7 @@ export function AliasContextMenu({
           </ContextMenuItem>
         )}
 
-        {is_real_alias && (
+        {is_real_alias && !alias.downgrade_grace_expires_at && (
           <ContextMenuItem onClick={toggle_enabled}>
             <PowerIcon
               className="me-2 h-4 w-4"

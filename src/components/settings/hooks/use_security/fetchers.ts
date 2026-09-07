@@ -138,7 +138,12 @@ export function use_security_fetchers(ctx: security_fetchers_context) {
 
       return;
     }
-  }, [cache, set_login_alerts_enabled, set_login_alerts_failed, set_login_alerts_loaded]);
+  }, [
+    cache,
+    set_login_alerts_enabled,
+    set_login_alerts_failed,
+    set_login_alerts_loaded,
+  ]);
 
   const fetch_login_events = useCallback(async () => {
     set_login_events_loading(true);

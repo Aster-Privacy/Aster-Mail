@@ -18,38 +18,29 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { LockClosedIcon } from "@heroicons/react/24/solid";
-
-export type SecurityStatus = "weak" | "fair" | "partial" | "strong";
-
-export const SECURITY_LOCK_COLOR: Record<SecurityStatus, string> = {
-  weak: "#ef4444",
-  fair: "#f59e0b",
-  partial: "#eab308",
-  strong: "#22c55e",
-};
-
-export function security_status_from_percent(percent: number): SecurityStatus {
-  if (percent < 35) return "weak";
-  if (percent < 60) return "fair";
-  if (percent < 90) return "partial";
-
-  return "strong";
-}
-
-interface SecurityLockIconProps {
-  status: SecurityStatus;
+interface AsterSecurityMarkProps {
   className?: string;
 }
 
-export function SecurityLockIcon({
-  status,
-  className = "w-4 h-4",
-}: SecurityLockIconProps) {
+export function AsterSecurityMark({
+  className = "h-5 w-5",
+}: AsterSecurityMarkProps) {
   return (
-    <LockClosedIcon
+    <svg
+      aria-hidden="true"
       className={className}
-      style={{ color: SECURITY_LOCK_COLOR[status] }}
-    />
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={1.7}
+      viewBox="0 0 24 24"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path d="M8 10.3V7.9a4 4 0 1 1 8 0v2.4" />
+      <rect height="9.7" rx="3.3" width="13.8" x="5.1" y="10.3" />
+      <circle cx="12" cy="14.6" r="1.15" />
+      <path d="M12 15.7v1.6" />
+    </svg>
   );
 }

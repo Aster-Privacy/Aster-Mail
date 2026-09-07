@@ -107,21 +107,18 @@ export function RecoveryReminder({
             }}
             transition={{ duration, ease: "easeOut" }}
           >
-            <div
-              className="flex h-10 w-10 items-center justify-center rounded-full"
-              style={{ backgroundColor: "var(--accent-color-fade, #2563eb1a)" }}
-            >
+            <div className="flex items-center gap-2.5">
               <KeyIcon
-                className="h-5 w-5"
-                style={{ color: "var(--accent-color)" }}
+                aria-hidden="true"
+                className="h-5 w-5 flex-shrink-0 text-txt-primary"
+                strokeWidth={1.75}
               />
+              <h2 className="text-base font-semibold text-txt-primary">
+                {t("common.recovery_reminder_title")}
+              </h2>
             </div>
 
-            <h2 className="mt-4 text-base font-semibold text-txt-primary">
-              {t("common.recovery_reminder_title")}
-            </h2>
-
-            <p className="mt-2 text-sm leading-relaxed text-txt-secondary">
+            <p className="mt-2.5 text-sm leading-relaxed text-txt-secondary">
               {t("common.recovery_reminder_body")}
             </p>
 

@@ -31,18 +31,15 @@ import {
 } from "@/components/ui/modal";
 import {
   SecurityLockIcon,
+  security_status_from_percent,
   type SecurityStatus,
 } from "@/components/settings/security/security_lock_icon";
+import {
+  build_security_criteria,
+  security_percent,
+} from "@/lib/security_criteria";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
-
-function get_status(bar_pct: number): SecurityStatus {
-  if (bar_pct < 35) return "weak";
-  if (bar_pct < 60) return "fair";
-  if (bar_pct < 90) return "partial";
-
-  return "strong";
-}
 
 const STATUS_BUTTON_STYLES: Record<SecurityStatus, string> = {
   weak: "bg-red-600 hover:bg-red-700 text-white",
@@ -64,7 +61,6 @@ interface AccountProtectionScoreProps {
 }
 
 const WEIGHTS = [1, 1, 1, 1, 1, 1, 1] as const;
-const MAX_SCORE = 7;
 
 export function AccountProtectionScore({
   totp_enabled,
@@ -82,7 +78,7 @@ export function AccountProtectionScore({
   const [popover_open, set_popover_open] = useState(false);
   const [dismissed, set_dismissed] = useState(false);
 
-  const criteria_met = [
+  const criteria = build_security_criteria({
     totp_enabled,
     passkey_registered,
     recovery_email_verified,
@@ -90,25 +86,10 @@ export function AccountProtectionScore({
     block_tracking_pixels,
     block_remote_images,
     strip_exif_on_compose,
-  ];
+  });
 
-  const criteria_labels = [
-    t("settings.criterion_two_factor"),
-    t("settings.criterion_passkey"),
-    t("settings.criterion_recovery_email"),
-    t("settings.criterion_login_alerts"),
-    t("settings.block_spy_pixels"),
-    t("settings.block_remote_images_label"),
-    t("settings.strip_exif_on_compose_label"),
-  ];
-
-  const score = criteria_met.reduce(
-    (sum, met, i) => sum + (met ? WEIGHTS[i] : 0),
-    0,
-  );
-
-  const bar_pct = Math.round((score / MAX_SCORE) * 100);
-  const status = get_status(bar_pct);
+  const bar_pct = security_percent(criteria);
+  const status = security_status_from_percent(bar_pct);
 
   if (!security_loaded) {
     return (
@@ -185,12 +166,12 @@ export function AccountProtectionScore({
           </ModalHeader>
           <ModalBody>
             <ul className="space-y-0.5">
-              {criteria_labels.map((label, i) => {
+              {criteria.map((criterion, i) => {
                 const click_handler = on_criterion_click?.[i];
                 const is_clickable = !!click_handler;
 
                 return (
-                  <li key={label}>
+                  <li key={criterion.id}>
                     <button
                       className={`w-full flex items-center gap-2.5 px-2 py-1.5 rounded-lg transition-colors text-start ${is_clickable ? "hover:bg-edge-secondary/60 cursor-pointer" : "cursor-default"}`}
                       disabled={!is_clickable}
@@ -203,14 +184,14 @@ export function AccountProtectionScore({
                     >
                       <SecurityLockIcon
                         className="w-4 h-4 flex-shrink-0"
-                        status={criteria_met[i] ? "strong" : "weak"}
+                        status={criterion.met ? "strong" : "weak"}
                       />
                       <span
-                        className={`text-sm flex-1 ${criteria_met[i] ? "text-txt-primary" : "text-txt-muted"}`}
+                        className={`text-sm flex-1 ${criterion.met ? "text-txt-primary" : "text-txt-muted"}`}
                       >
-                        {label}
+                        {t(criterion.label_key)}
                       </span>
-                      {!criteria_met[i] && (
+                      {!criterion.met && (
                         <span className="text-xs font-semibold text-txt-muted tabular-nums">
                           +{WEIGHTS[i]}
                         </span>

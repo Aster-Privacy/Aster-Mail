@@ -27,12 +27,18 @@ import {
 } from "@heroicons/react/24/outline";
 
 import { QuickContactsPanel } from "@/components/layout/quick_contacts_panel";
+import { QuickSecurityPanel } from "@/components/layout/quick_security_panel";
+import { AsterSecurityMark } from "@/components/icons/aster_security_mark";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
 import {
   read_rail_contacts_open,
   write_rail_contacts_open,
 } from "@/lib/rail_contacts_open";
+import {
+  read_rail_security_open,
+  write_rail_security_open,
+} from "@/lib/rail_security_open";
 
 const RAIL_HIDDEN_KEY = "aster_app_rail_hidden";
 
@@ -46,13 +52,17 @@ function read_hidden() {
 
 interface AppRailProps {
   is_contacts_open: boolean;
+  is_security_open: boolean;
   on_contacts_open_change: (is_open: boolean) => void;
+  on_security_open_change: (is_open: boolean) => void;
   on_compose: (address: string) => void;
 }
 
 function AppRailComponent({
   is_contacts_open,
+  is_security_open,
   on_contacts_open_change,
+  on_security_open_change,
   on_compose,
 }: AppRailProps) {
   const { t } = use_i18n();
@@ -61,19 +71,46 @@ function AppRailComponent({
   const is_settings_view = location.pathname.startsWith("/settings");
   const [is_hidden, set_is_hidden] = useState(read_hidden);
   const [has_icon, set_has_icon] = useState(true);
+  const [has_security_icon, set_has_security_icon] = useState(true);
 
   const close_contacts = useCallback(() => {
     write_rail_contacts_open(false);
     on_contacts_open_change(false);
   }, [on_contacts_open_change]);
 
+  const close_security = useCallback(() => {
+    write_rail_security_open(false);
+    on_security_open_change(false);
+  }, [on_security_open_change]);
+
   const toggle_contacts = useCallback(() => {
-    write_rail_contacts_open(!is_contacts_open);
-    on_contacts_open_change(!is_contacts_open);
-  }, [is_contacts_open, on_contacts_open_change]);
+    const next = !is_contacts_open;
+
+    write_rail_contacts_open(next);
+    on_contacts_open_change(next);
+    if (next) {
+      write_rail_security_open(false);
+      on_security_open_change(false);
+    }
+  }, [is_contacts_open, on_contacts_open_change, on_security_open_change]);
+
+  const toggle_security = useCallback(() => {
+    const next = !is_security_open;
+
+    write_rail_security_open(next);
+    on_security_open_change(next);
+    if (next) {
+      write_rail_contacts_open(false);
+      on_contacts_open_change(false);
+    }
+  }, [is_security_open, on_contacts_open_change, on_security_open_change]);
 
   const handle_icon_error = useCallback(() => {
     set_has_icon(false);
+  }, []);
+
+  const handle_security_icon_error = useCallback(() => {
+    set_has_security_icon(false);
   }, []);
 
   const toggle_hidden = useCallback(() => {
@@ -89,15 +126,25 @@ function AppRailComponent({
   }, [is_hidden]);
 
   useEffect(() => {
-    if (is_hidden) on_contacts_open_change(false);
-  }, [is_hidden, on_contacts_open_change]);
+    if (!is_hidden) return;
+    on_contacts_open_change(false);
+    on_security_open_change(false);
+  }, [is_hidden, on_contacts_open_change, on_security_open_change]);
 
   useEffect(() => {
     if (!preferences.show_side_panel) return;
     if (read_hidden()) return;
-    if (!read_rail_contacts_open()) return;
-    on_contacts_open_change(true);
-  }, [on_contacts_open_change, preferences.show_side_panel]);
+    if (read_rail_contacts_open()) {
+      on_contacts_open_change(true);
+
+      return;
+    }
+    if (read_rail_security_open()) on_security_open_change(true);
+  }, [
+    on_contacts_open_change,
+    on_security_open_change,
+    preferences.show_side_panel,
+  ]);
 
   if (!preferences.show_side_panel) return null;
 
@@ -108,6 +155,11 @@ function AppRailComponent({
         is_top_inset={is_settings_view}
         on_close={close_contacts}
         on_compose={on_compose}
+      />
+      <QuickSecurityPanel
+        is_open={is_security_open}
+        is_top_inset={is_settings_view}
+        on_close={close_security}
       />
       {is_hidden && (
         <button
@@ -154,6 +206,37 @@ function AppRailComponent({
             />
           ) : (
             <UsersIcon className="h-5 w-5 shrink-0" />
+          )}
+        </button>
+        <button
+          aria-expanded={is_security_open}
+          aria-label={t("common.security_center")}
+          className="app_rail_btn mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px]"
+          data-rail-tip={
+            is_security_open ? undefined : t("common.security_center")
+          }
+          data-rail-tip-side="left"
+          data-selected={is_security_open ? "true" : undefined}
+          tabIndex={is_hidden ? -1 : undefined}
+          type="button"
+          onClick={toggle_security}
+        >
+          {has_security_icon ? (
+            <img
+              alt=""
+              aria-hidden="true"
+              className="h-6 w-6 shrink-0 select-none"
+              decoding="sync"
+              draggable={false}
+              height={24}
+              loading="eager"
+              src="/icons/security/security_24.png"
+              srcSet="/icons/security/security_24.png 1x, /icons/security/security_48.png 2x, /icons/security/security_72.png 3x"
+              width={24}
+              onError={handle_security_icon_error}
+            />
+          ) : (
+            <AsterSecurityMark className="h-5 w-5 shrink-0" />
           )}
         </button>
         <button

@@ -20,14 +20,7 @@
 //
 import type { SettingsSection } from "@/components/settings/settings_content";
 
-import {
-  lazy,
-  Suspense,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import { WifiIcon } from "@heroicons/react/24/outline";
@@ -44,12 +37,17 @@ import { EmailInbox } from "@/components/email/email_inbox";
 import { SenderDetailHeader } from "@/components/subscriptions/sender_detail_header";
 import { UpgradeGate } from "@/components/common/upgrade_gate";
 import { use_i18n } from "@/lib/i18n/context";
+import {
+  scroll_to_settings_anchor,
+  set_pending_settings_anchor,
+} from "@/lib/settings_anchor";
 import { FullPageLoader } from "@/components/common/full_page_loader";
 import { QuickSettingsPanel } from "@/components/settings/quick_settings_panel";
 import { Spinner } from "@/components/ui/spinner";
+import { lazy_with_retry } from "@/utils/lazy_with_retry";
 const load_settings_content = () =>
   import("@/components/settings/settings_content");
-const SettingsContent = lazy(() =>
+const SettingsContent = lazy_with_retry(() =>
   load_settings_content().then((m) => ({
     default: m.SettingsContent,
   })),
@@ -62,37 +60,37 @@ function SettingsFallback() {
     </div>
   );
 }
-const ContactsContent = lazy(() =>
+const ContactsContent = lazy_with_retry(() =>
   import("@/components/common/contacts_content").then((m) => ({
     default: m.ContactsContent,
   })),
 );
-const SubscriptionsContent = lazy(() =>
+const SubscriptionsContent = lazy_with_retry(() =>
   import("@/components/subscriptions/subscriptions_content").then((m) => ({
     default: m.SubscriptionsContent,
   })),
 );
-const SearchResultsPage = lazy(() =>
+const SearchResultsPage = lazy_with_retry(() =>
   import("@/components/search/search_results_page").then((m) => ({
     default: m.SearchResultsPage,
   })),
 );
-const CommandPalette = lazy(() =>
+const CommandPalette = lazy_with_retry(() =>
   import("@/components/search/command_palette").then((m) => ({
     default: m.CommandPalette,
   })),
 );
-const KeyboardShortcutsModal = lazy(() =>
+const KeyboardShortcutsModal = lazy_with_retry(() =>
   import("@/components/modals/keyboard_shortcuts_modal").then((m) => ({
     default: m.KeyboardShortcutsModal,
   })),
 );
-const KeyRotationModal = lazy(() =>
+const KeyRotationModal = lazy_with_retry(() =>
   import("@/components/modals/key_rotation_modal").then((m) => ({
     default: m.KeyRotationModal,
   })),
 );
-const PurchaseSuccessModal = lazy(() =>
+const PurchaseSuccessModal = lazy_with_retry(() =>
   import("@/components/modals/purchase_success_modal").then((m) => ({
     default: m.PurchaseSuccessModal,
   })),
@@ -106,6 +104,7 @@ import { NotificationBanner } from "@/components/common/notification_banner";
 import { PaymentPastDueBanner } from "@/components/common/payment_past_due_banner";
 import { use_payment_past_due } from "@/hooks/use_payment_past_due";
 import { SurveyBanner } from "@/components/survey/survey_banner";
+import { ReviewPromptBanner } from "@/components/review/review_prompt_banner";
 import { OnboardingChecklist } from "@/components/onboarding/onboarding_checklist";
 import { FirstRunSetup } from "@/components/onboarding/first_run_setup";
 import { RecoveryReminder } from "@/components/onboarding/recovery_reminder";
@@ -137,10 +136,14 @@ export default function IndexPage() {
   const { section } = useParams<{ section?: string }>();
   const [is_quick_settings_open, set_is_quick_settings_open] = useState(false);
   const [is_rail_contacts_open, set_is_rail_contacts_open] = useState(false);
+  const [is_rail_security_open, set_is_rail_security_open] = useState(false);
   const [first_run_setup_done, set_first_run_setup_done] = useState(
     () => !is_first_run_setup_pending(),
   );
   const [checklist_complete, set_checklist_complete] = useState(false);
+  const [checklist_visible, set_checklist_visible] = useState<boolean | null>(
+    null,
+  );
   const is_mobile = use_is_mobile();
   const handle_checklist_complete = useCallback(() => {
     set_checklist_complete(true);
@@ -157,7 +160,10 @@ export default function IndexPage() {
 
     let cancelled = false;
     const timer = window.setTimeout(() => {
-      if (!cancelled) void load_settings_content();
+      if (!cancelled)
+        void load_settings_content().catch((caught) =>
+          ignore_error("pages/index:load_settings_content", caught),
+        );
     }, 400);
 
     return () => {
@@ -178,6 +184,7 @@ export default function IndexPage() {
   const purchase_modal_mounted = use_mount_latch(!!state.checkout_success);
 
   const state_ref = useRef(state);
+  const opened_domain_order_ref = useRef<string | null>(null);
 
   state_ref.current = state;
 
@@ -313,17 +320,40 @@ export default function IndexPage() {
       const nav_section = resolve_settings_section(
         typeof detail === "string" ? detail : detail?.section,
       );
+      const anchor = typeof detail === "string" ? undefined : detail?.anchor;
 
       if (!state.is_settings_route) {
+        if (anchor) set_pending_settings_anchor(anchor);
         state.open_settings(nav_section);
+
+        return;
       }
+
+      if (nav_section) {
+        window.dispatchEvent(
+          new CustomEvent("astermail:navigate-settings-section", {
+            detail: nav_section,
+          }),
+        );
+      }
+
+      if (anchor) scroll_to_settings_anchor(anchor, true);
     };
 
     const handle_navigate_sent = () => navigate("/sent");
 
     try {
-      if (sessionStorage.getItem("aster_pending_domain_order")) {
-        state.open_settings("aliases" as SettingsSection);
+      const pending_domain_order = sessionStorage.getItem(
+        "aster_pending_domain_order",
+      );
+
+      if (
+        pending_domain_order &&
+        !state.is_settings_route &&
+        opened_domain_order_ref.current !== pending_domain_order
+      ) {
+        opened_domain_order_ref.current = pending_domain_order;
+        state.open_settings("domains" as SettingsSection);
       }
     } catch (caught) {
       ignore_error("pages/index:toggle_quick_settings", caught);
@@ -359,6 +389,7 @@ export default function IndexPage() {
           <NotificationBanner />
         )}
         <SurveyBanner />
+        <ReviewPromptBanner />
         <TopBar
           is_settings_view={state.is_settings_route && !settings_popup_mode}
           on_mobile_menu_toggle={handle_mobile_menu_toggle}
@@ -578,8 +609,10 @@ export default function IndexPage() {
           )}
           <AppRail
             is_contacts_open={is_rail_contacts_open}
+            is_security_open={is_rail_security_open}
             on_compose={handle_contacts_compose}
             on_contacts_open_change={set_is_rail_contacts_open}
+            on_security_open_change={set_is_rail_security_open}
           />
         </div>
       </div>
@@ -735,11 +768,17 @@ export default function IndexPage() {
       {!state.is_settings_route && first_run_setup_done && (
         <>
           <OnboardingChecklist
+            hidden={
+              is_quick_settings_open ||
+              is_rail_contacts_open ||
+              is_rail_security_open
+            }
             on_all_tasks_done={handle_checklist_complete}
             on_compose={state.open_compose}
             on_open_settings={(section) => {
               state.open_settings(section);
             }}
+            on_visibility_change={set_checklist_visible}
           />
           <RecoveryReminder
             on_open_recovery={() => {
@@ -748,6 +787,7 @@ export default function IndexPage() {
           />
           <PlanPrompt
             checklist_complete={checklist_complete}
+            checklist_visible={checklist_visible}
             on_open_plans={() => {
               state.open_settings("billing");
             }}

@@ -544,7 +544,8 @@ function SetupPinModal({
             ? await duress_pin_correct(account_id, next)
             : false;
           const duress_format_changed =
-            existing?.pin_type !== "numeric" || existing?.digits !== chosen_digits;
+            existing?.pin_type !== "numeric" ||
+            existing?.digits !== chosen_digits;
           const carrying_duress =
             !duress_collides &&
             !duress_format_changed &&

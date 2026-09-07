@@ -1020,7 +1020,12 @@ export function use_index_page_state() {
       open_compose_instance({
         id: "",
         version: 0,
-        draft_type: "new",
+        draft_type: payload?.draft_type ?? "new",
+        reply_to_id: payload?.reply_to_id,
+        rfc_message_id: payload?.rfc_message_id,
+        forward_from_id: payload?.forward_from_id,
+        expires_at: payload?.expires_at,
+        expiry_password: payload?.expiry_password,
         thread_token: payload?.thread_token ?? pending.thread_token,
         to_recipients: payload?.to ?? pending.to ?? [],
         cc_recipients: payload?.cc ?? pending.cc ?? [],

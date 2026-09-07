@@ -44,6 +44,10 @@ vi.mock("@/components/layout/quick_contacts_panel", () => ({
   QuickContactsPanel: () => null,
 }));
 
+vi.mock("@/components/layout/quick_security_panel", () => ({
+  QuickSecurityPanel: () => null,
+}));
+
 declare global {
   var IS_REACT_ACT_ENVIRONMENT: boolean;
 }
@@ -56,14 +60,17 @@ describe("side panel setting", () => {
   const render_rail = async (
     initial_path: string,
     on_contacts_open_change: (is_open: boolean) => void = () => {},
+    on_security_open_change: (is_open: boolean) => void = () => {},
   ) => {
     await act(async () => {
       root.render(
         <MemoryRouter initialEntries={[initial_path]}>
           <AppRail
             is_contacts_open={false}
+            is_security_open={false}
             on_compose={() => {}}
             on_contacts_open_change={on_contacts_open_change}
+            on_security_open_change={on_security_open_change}
           />
         </MemoryRouter>,
       );

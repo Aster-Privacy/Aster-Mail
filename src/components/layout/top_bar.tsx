@@ -48,6 +48,7 @@ import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_primary_identity } from "@/lib/primary_identity";
 import { open_external } from "@/utils/open_link";
+import { show_upgrade_plans } from "@/stores/upgrade_store";
 
 const HELP_CENTER_URL = "https://astermail.org/help";
 const SUPPORT_ADDRESS = "hello@astermail.org";
@@ -122,9 +123,9 @@ function top_bar_base({
   const { t } = use_i18n();
   const { user } = use_auth();
   const { preferences, update_preference } = use_preferences();
-  const { limits } = use_plan_limits();
-  const is_free_plan = limits?.plan_code === "free";
-  const is_paid_plan = !!limits && limits.plan_code !== "free";
+  const { plan_code } = use_plan_limits();
+  const is_free_plan = plan_code === "free";
+  const is_paid_plan = plan_code !== null && plan_code !== "free";
   const navigate = useNavigate();
   const [is_accounts_open, set_is_accounts_open] = useState(false);
   const [is_mobile, set_is_mobile] = useState(false);
@@ -199,12 +200,6 @@ function top_bar_base({
     user?.display_name ||
     user?.username ||
     (primary_identity.email || account_email).split("@")[0];
-
-  const open_billing = useCallback(() => {
-    window.dispatchEvent(
-      new CustomEvent("navigate-settings", { detail: "billing" }),
-    );
-  }, []);
 
   const sidebar_expanded_width = Math.min(
     360,
@@ -345,7 +340,7 @@ function top_bar_base({
               className="hidden sm:inline-flex !h-9 !rounded-full !text-[14px] !font-medium !px-5 ms-1"
               size="sm"
               variant="depth"
-              onClick={open_billing}
+              onClick={() => show_upgrade_plans()}
             >
               {t("common.upgrade")}
             </Button>

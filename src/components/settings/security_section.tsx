@@ -21,7 +21,7 @@
 import type { ApiResponse } from "@/services/api/client";
 import type { HardwareKeysListResponse } from "@/services/api/webauthn";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Badge, Button, Switch } from "@aster/ui";
 import {
   ShieldCheckIcon,
@@ -56,6 +56,10 @@ import { AccountProtectionScore } from "@/components/settings/security/account_p
 import { use_security } from "@/components/settings/hooks/use_security";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
+import {
+  consume_pending_settings_anchor,
+  scroll_to_settings_anchor,
+} from "@/lib/settings_anchor";
 import { use_preferences } from "@/contexts/preferences_context";
 import {
   Select,
@@ -71,49 +75,6 @@ interface SecuritySectionProps {
   set_show_inline_totp_setup?: (
     value: boolean | ((prev: boolean) => boolean),
   ) => void;
-}
-
-function find_scroll_container(el: HTMLElement): HTMLElement | null {
-  let container: HTMLElement | null = el.parentElement;
-
-  while (container && container !== document.body) {
-    const { overflowY } = window.getComputedStyle(container);
-
-    if (overflowY === "auto" || overflowY === "scroll") {
-      return container;
-    }
-
-    container = container.parentElement;
-  }
-
-  return null;
-}
-
-function scroll_to_id(id: string) {
-  const run = () => {
-    const el = document.getElementById(id);
-
-    if (!el) return;
-
-    const container = find_scroll_container(el);
-
-    if (!container) {
-      el.scrollIntoView({ behavior: "smooth", block: "start" });
-
-      return;
-    }
-
-    const target =
-      container.scrollTop +
-      (el.getBoundingClientRect().top - container.getBoundingClientRect().top) -
-      24;
-    const max_top = container.scrollHeight - container.clientHeight;
-    const clamped = Math.max(0, Math.min(target, max_top));
-
-    container.scrollTo({ top: clamped, behavior: "smooth" });
-  };
-
-  requestAnimationFrame(() => requestAnimationFrame(run));
 }
 
 export function SecuritySection({
@@ -136,6 +97,12 @@ export function SecuritySection({
     show_inline_totp_setup_prop ?? show_inline_totp_setup_local;
   const set_show_inline_totp_setup =
     set_show_inline_totp_setup_prop ?? set_show_inline_totp_setup_local;
+
+  useEffect(() => {
+    const anchor = consume_pending_settings_anchor();
+
+    if (anchor) scroll_to_settings_anchor(anchor, true);
+  }, []);
   const {
     data: passkey_data,
     error: passkey_error,
@@ -210,16 +177,16 @@ export function SecuritySection({
           block_tracking_pixels={preferences.block_tracking_pixels}
           login_alerts_enabled={security.login_alerts_enabled}
           on_criterion_click={[
-            () => scroll_to_id("sec-2fa"),
-            () => scroll_to_id("sec-passkeys"),
+            () => scroll_to_settings_anchor("sec-2fa"),
+            () => scroll_to_settings_anchor("sec-passkeys"),
             () =>
               window.dispatchEvent(
                 new CustomEvent("navigate-settings", { detail: "account" }),
               ),
-            () => scroll_to_id("sec-2fa"),
-            () => scroll_to_id("sec-tracking"),
-            () => scroll_to_id("sec-images"),
-            () => scroll_to_id("sec-images"),
+            () => scroll_to_settings_anchor("sec-2fa"),
+            () => scroll_to_settings_anchor("sec-tracking"),
+            () => scroll_to_settings_anchor("sec-images"),
+            () => scroll_to_settings_anchor("sec-images"),
           ]}
           passkey_registered={passkey_registered}
           recovery_email_verified={security.recovery_email_verified}
@@ -279,17 +246,21 @@ export function SecuritySection({
         <PasskeySection />
       </div>
 
-      <SessionSection
-        logout_others_loading={security.logout_others_loading}
-        logout_others_result={security.logout_others_result}
-        on_revoke_all_sessions={security.handle_revoke_all_sessions}
-        on_revoke_session={security.handle_revoke_session}
-        sessions={security.sessions}
-        sessions_error={security.sessions_error}
-        sessions_loading={security.sessions_loading}
-      />
+      <div id="sec-sessions">
+        <SessionSection
+          logout_others_loading={security.logout_others_loading}
+          logout_others_result={security.logout_others_result}
+          on_revoke_all_sessions={security.handle_revoke_all_sessions}
+          on_revoke_session={security.handle_revoke_session}
+          sessions={security.sessions}
+          sessions_error={security.sessions_error}
+          sessions_loading={security.sessions_loading}
+        />
+      </div>
 
-      <TrustedDevicesSection />
+      <div id="sec-devices">
+        <TrustedDevicesSection />
+      </div>
 
       <LoginAlertsSessionsGroup
         login_alerts_enabled={security.login_alerts_enabled}
