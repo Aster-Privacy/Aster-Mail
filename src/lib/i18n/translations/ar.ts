@@ -7400,6 +7400,12 @@ export const ar = {
     referral_claim_success:
       "تمت إضافة الدعوة. يصل التخزين بعد أن تستخدم Aster Mail بضعة أيام.",
     referral_claim_invalid: "رمز الدعوة هذا غير صالح.",
+    referral_commission_headline: "اكسب {{ percent }}% من كل دفعة يقوم بها أصدقاؤك",
+    referral_commission_subhead: "شارك رابطك. عندما يشترك صديق، تحصل على حصة من كل دفعة يقوم بها طالما بقي مشتركًا.",
+    referral_step_earn_commission: "عندما يشتركون، تحصل على {{ percent }}% من كل دفعة يقومون بها.",
+    referral_share_message_plain: "أستخدم Aster Mail للبريد المشفر من طرف إلى طرف. انضم عبر رابطي.",
+    referral_email_body_plain:
+      "مرحبًا،\n\nأستخدم Aster Mail منذ فترة وأنا معجب به كثيرًا. كل شيء مشفّر من طرف إلى طرف، فلا أحد يستطيع قراءة رسائلك سواك، ولا حتى القائمون على الخدمة.\n\nإذا أردت تجربته، هذا رابط دعوتي:\n\n{{ referral_link }}\n\nتحياتي",
     referral_claim_window_closed:
       "انتهت المدة المتاحة لإضافة رمز دعوة إلى هذا الحساب.",
     referral_claim_already: "هذا الحساب مرتبط بدعوة بالفعل.",

@@ -6776,6 +6776,12 @@ export const zh_CN = {
     referral_claim_success:
       "邀请已添加。你使用 Aster Mail 几天后，存储空间就会到账。",
     referral_claim_invalid: "该邀请代码无效。",
+    referral_commission_headline: "好友每次付款，你都能获得 {{ percent }}%",
+    referral_commission_subhead: "分享你的链接。好友订阅后，只要订阅有效，你就能从其每次付款中获得分成。",
+    referral_step_earn_commission: "好友订阅后，你可从其每次付款中获得 {{ percent }}%。",
+    referral_share_message_plain: "我在用 Aster Mail 收发端到端加密邮件。通过我的链接加入吧。",
+    referral_email_body_plain:
+      "你好：\n\n我用 Aster Mail 已经有一段时间了，体验很不错。所有内容都是端到端加密的，除了你自己，没有人能读到你的邮件，运营方也不行。\n\n如果你想试试，这是我的邀请链接：\n\n{{ referral_link }}\n\n祝好",
     referral_claim_window_closed: "为此账户添加邀请代码的时限已过。",
     referral_claim_already: "此账户已关联一个邀请。",
     referral_claim_self: "不能使用你自己的邀请代码。",

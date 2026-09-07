@@ -7597,6 +7597,12 @@ export const it = {
     referral_claim_success:
       "Invito aggiunto. Lo spazio arriva quando usi Aster Mail da qualche giorno.",
     referral_claim_invalid: "Questo codice invito non è valido.",
+    referral_commission_headline: "Guadagna il {{ percent }}% di ogni pagamento dei tuoi amici",
+    referral_commission_subhead: "Condividi il tuo link. Quando un amico si abbona, guadagni una parte di ogni pagamento che effettua, finché resta abbonato.",
+    referral_step_earn_commission: "Quando si abbonano, guadagni il {{ percent }}% di ogni loro pagamento.",
+    referral_share_message_plain: "Uso Aster Mail per email cifrate end-to-end. Unisciti con il mio link.",
+    referral_email_body_plain:
+      "Ciao,\n\nuso Aster Mail da un po' e mi trovo molto bene. Tutto è cifrato end to end, quindi nessuno può leggere le tue email tranne te. Nemmeno chi gestisce il servizio.\n\nSe vuoi provarlo, questo è il mio link di invito:\n\n{{ referral_link }}\n\nA presto",
     referral_claim_window_closed:
       "Il periodo per aggiungere un codice invito a questo account è terminato.",
     referral_claim_already: "Questo account ha già un invito associato.",

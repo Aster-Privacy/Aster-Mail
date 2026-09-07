@@ -33,6 +33,7 @@ import {
 } from "@/services/api/billing";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
+import { format_bytes } from "@/lib/utils";
 import { copy_text } from "@/utils/copy_text";
 
 interface ReferralSectionProps {
@@ -92,9 +93,16 @@ export function ReferralSection({
             </div>
             {!referral_info.is_affiliate && (
               <>
-                <p className="text-xs text-txt-muted mt-2">
-                  {t("settings.referral_reward_info")}
-                </p>
+                {referral_info.bonus_bytes_per_referral > 0 && (
+                  <p className="text-xs text-txt-muted mt-2">
+                    {t("settings.referral_reward_info", {
+                      amount: format_bytes(
+                        referral_info.bonus_bytes_per_referral,
+                      ),
+                      max: format_bytes(referral_info.bonus_bytes_max),
+                    })}
+                  </p>
+                )}
                 <p className="text-xs text-txt-muted mt-1">
                   {t("settings.referral_commission_info", {
                     percent: referral_info.commission_percent || 10,

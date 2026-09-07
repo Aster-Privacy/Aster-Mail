@@ -18,9 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-export const REFERRAL_BONUS_BYTES_PER_REFERRAL = 1073741824;
-export const REFERRAL_BONUS_BYTES_MAX = 10737418240;
-
 export function referral_count(value: unknown): number {
   return typeof value === "number" && Number.isFinite(value) && value > 0
     ? Math.floor(value)
@@ -34,9 +31,13 @@ export function referral_bytes(value: unknown, fallback = 0): number {
 }
 
 export function bonus_bytes_per_referral(value: unknown): number {
-  return referral_bytes(value, REFERRAL_BONUS_BYTES_PER_REFERRAL);
+  return referral_bytes(value);
 }
 
 export function bonus_bytes_max(value: unknown): number {
-  return referral_bytes(value, REFERRAL_BONUS_BYTES_MAX);
+  return referral_bytes(value);
+}
+
+export function has_storage_bonus(value: unknown): boolean {
+  return referral_bytes(value) > 0;
 }

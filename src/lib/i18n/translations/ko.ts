@@ -7321,6 +7321,12 @@ export const ko = {
     referral_claim_success:
       "초대를 추가했습니다. Aster Mail을 며칠 사용하면 저장 공간이 지급됩니다.",
     referral_claim_invalid: "유효하지 않은 초대 코드입니다.",
+    referral_commission_headline: "친구가 결제할 때마다 {{ percent }}% 적립",
+    referral_commission_subhead: "링크를 공유하세요. 친구가 구독하면 구독이 유지되는 동안 결제 금액의 일부를 받습니다.",
+    referral_step_earn_commission: "친구가 구독하면 결제할 때마다 {{ percent }}%를 받습니다.",
+    referral_share_message_plain: "저는 종단 간 암호화 이메일 Aster Mail을 사용합니다. 제 링크로 가입하세요.",
+    referral_email_body_plain:
+      "안녕하세요.\n\n한동안 Aster Mail을 쓰고 있는데 아주 마음에 듭니다. 모든 내용이 종단 간 암호화되어 있어서 본인 말고는 아무도 메일을 읽을 수 없습니다. 서비스를 운영하는 쪽도 마찬가지입니다.\n\n한번 써보고 싶다면 제 초대 링크입니다.\n\n{{ referral_link }}\n\n감사합니다",
     referral_claim_window_closed:
       "이 계정에 초대 코드를 추가할 수 있는 기간이 끝났습니다.",
     referral_claim_already: "이 계정에는 이미 초대가 등록되어 있습니다.",

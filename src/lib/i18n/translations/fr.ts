@@ -7581,6 +7581,12 @@ export const fr = {
     referral_claim_success:
       "Invitation ajoutée. Votre stockage arrive après quelques jours d'utilisation d'Aster Mail.",
     referral_claim_invalid: "Ce code d'invitation n'est pas valide.",
+    referral_commission_headline: "Gagnez {{ percent }}% de chaque paiement de vos amis",
+    referral_commission_subhead: "Partagez votre lien. Dès qu'un ami s'abonne, vous gagnez une part de chaque paiement qu'il effectue, tant qu'il reste abonné.",
+    referral_step_earn_commission: "Dès qu'ils s'abonnent, vous gagnez {{ percent }}% de chacun de leurs paiements.",
+    referral_share_message_plain: "J'utilise Aster Mail pour des e-mails chiffrés de bout en bout. Rejoignez-moi avec mon lien.",
+    referral_email_body_plain:
+      "Bonjour,\n\nJ'utilise Aster Mail depuis un moment et j'aime beaucoup. Tout est chiffré de bout en bout, donc personne ne peut lire vos e-mails à part vous. Pas même ceux qui gèrent le service.\n\nSi vous voulez essayer, voici mon lien d'invitation :\n\n{{ referral_link }}\n\nÀ bientôt",
     referral_claim_window_closed:
       "Le délai pour ajouter un code d'invitation à ce compte est écoulé.",
     referral_claim_already: "Ce compte est déjà associé à une invitation.",

@@ -7496,6 +7496,12 @@ export const de = {
     referral_claim_success:
       "Einladung hinzugefügt. Ihr Speicher kommt an, sobald Sie Aster Mail ein paar Tage genutzt haben.",
     referral_claim_invalid: "Dieser Einladungscode ist ungültig.",
+    referral_commission_headline: "Verdiene {{ percent }}% von jeder Zahlung deiner Freunde",
+    referral_commission_subhead: "Teile deinen Link. Sobald ein Freund ein Abo abschließt, erhältst du einen Anteil an jeder Zahlung, solange das Abo besteht.",
+    referral_step_earn_commission: "Sobald sie ein Abo abschließen, erhältst du {{ percent }}% von jeder ihrer Zahlungen.",
+    referral_share_message_plain: "Ich nutze Aster Mail für Ende-zu-Ende-verschlüsselte E-Mails. Melde dich über meinen Link an.",
+    referral_email_body_plain:
+      "Hallo,\n\nich nutze Aster Mail seit einer Weile und mag es sehr. Alles ist Ende-zu-Ende-verschlüsselt, also kann niemand außer dir deine E-Mails lesen. Nicht einmal die Betreiber.\n\nWenn du es ausprobieren möchtest, hier ist mein Einladungslink:\n\n{{ referral_link }}\n\nViele Grüße",
     referral_claim_window_closed:
       "Der Zeitraum, in dem sich ein Einladungscode zu diesem Konto hinzufügen lässt, ist abgelaufen.",
     referral_claim_already:

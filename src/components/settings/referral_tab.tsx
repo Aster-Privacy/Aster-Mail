@@ -69,6 +69,7 @@ import { use_auth } from "@/contexts/auth/use_auth_hook";
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { RoundedQrCode } from "@/components/ui/rounded_qr_code";
 import { format_bytes } from "@/lib/utils";
+import { has_storage_bonus } from "@/lib/referral_bonus";
 import { share_invite, copy_invite_link } from "@/lib/referral_share";
 import { invalidate_referral_summary } from "@/hooks/use_referral_summary";
 
@@ -236,9 +237,17 @@ export function ReferralTab() {
         return;
       }
 
-      const body_text = t("settings.referral_email_body", {
-        referral_link: build_referral_invite_url(referral_info.referral_code),
-      });
+      const referral_link = build_referral_invite_url(
+        referral_info.referral_code,
+      );
+      const body_text = has_storage_bonus(
+        referral_info.bonus_bytes_per_referral,
+      )
+        ? t("settings.referral_email_body", {
+            referral_link,
+            amount: format_bytes(referral_info.bonus_bytes_per_referral),
+          })
+        : t("settings.referral_email_body_plain", { referral_link });
 
       const body_html = body_text
         .split("\n")
@@ -280,9 +289,17 @@ export function ReferralTab() {
         return;
       }
 
-      const body_text = t("settings.referral_email_body", {
-        referral_link: build_referral_invite_url(referral_info.referral_code),
-      });
+      const referral_link = build_referral_invite_url(
+        referral_info.referral_code,
+      );
+      const body_text = has_storage_bonus(
+        referral_info.bonus_bytes_per_referral,
+      )
+        ? t("settings.referral_email_body", {
+            referral_link,
+            amount: format_bytes(referral_info.bonus_bytes_per_referral),
+          })
+        : t("settings.referral_email_body_plain", { referral_link });
 
       const body_html = body_text
         .split("\n")
@@ -864,9 +881,13 @@ export function ReferralTab() {
     (referral_info.commission_earned_cents || 0);
 
   const invite_url = build_referral_invite_url(referral_info.referral_code);
+  const storage_bonus = has_storage_bonus(
+    referral_info.bonus_bytes_per_referral,
+  );
   const bonus_amount = format_bytes(referral_info.bonus_bytes_per_referral);
   const bonus_max = format_bytes(referral_info.bonus_bytes_max);
   const bonus_earned = format_bytes(referral_info.bonus_bytes_earned);
+  const commission_percent = referral_info.commission_percent || 10;
 
   const handle_share = async () => {
     set_is_sharing(true);
@@ -874,7 +895,9 @@ export function ReferralTab() {
     try {
       const outcome = await share_invite(
         t("settings.referral_share_title"),
-        t("settings.referral_share_message", { amount: bonus_amount }),
+        storage_bonus
+          ? t("settings.referral_share_message", { amount: bonus_amount })
+          : t("settings.referral_share_message_plain"),
         invite_url,
       );
 
@@ -956,9 +979,13 @@ export function ReferralTab() {
                 className="text-lg font-bold text-white tracking-tight max-w-[380px]"
                 style={{ textShadow: "0 1px 3px rgba(0, 0, 0, 0.15)" }}
               >
-                {t("settings.referral_storage_headline", {
-                  amount: bonus_amount,
-                })}
+                {storage_bonus
+                  ? t("settings.referral_storage_headline", {
+                      amount: bonus_amount,
+                    })
+                  : t("settings.referral_commission_headline", {
+                      percent: commission_percent,
+                    })}
               </h3>
               {referral_info.bonus_bytes_earned > 0 && (
                 <span className="flex-shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full bg-white/15 text-white tabular-nums">
@@ -972,10 +999,12 @@ export function ReferralTab() {
               className="text-sm text-white/70 mb-4 max-w-[420px]"
               style={{ textShadow: "0 1px 2px rgba(0, 0, 0, 0.1)" }}
             >
-              {t("settings.referral_storage_subhead", {
-                amount: bonus_amount,
-                max: bonus_max,
-              })}
+              {storage_bonus
+                ? t("settings.referral_storage_subhead", {
+                    amount: bonus_amount,
+                    max: bonus_max,
+                  })
+                : t("settings.referral_commission_subhead")}
             </p>
             <div className="flex flex-col sm:flex-row gap-2">
               <div className="flex-1 h-9 px-3 rounded-lg bg-black/20 border border-white/10 flex items-center gap-2 min-w-0">
@@ -1127,10 +1156,14 @@ export function ReferralTab() {
                 3
               </span>
               <span className="text-sm text-txt-secondary">
-                {t("settings.referral_step_earn", {
-                  amount: bonus_amount,
-                  max: bonus_max,
-                })}
+                {storage_bonus
+                  ? t("settings.referral_step_earn", {
+                      amount: bonus_amount,
+                      max: bonus_max,
+                    })
+                  : t("settings.referral_step_earn_commission", {
+                      percent: commission_percent,
+                    })}
               </span>
             </li>
           </ol>
@@ -1143,18 +1176,20 @@ export function ReferralTab() {
             {t("settings.referral_rewards")}
           </p>
           <div className="rounded-lg border border-edge-secondary p-4 space-y-2 bg-surf-tertiary">
-            <p className="text-sm text-txt-secondary">
-              {t("settings.referral_reward_info", {
-                amount: bonus_amount,
-                max: bonus_max,
-              })}
-            </p>
+            {storage_bonus && (
+              <p className="text-sm text-txt-secondary">
+                {t("settings.referral_reward_info", {
+                  amount: bonus_amount,
+                  max: bonus_max,
+                })}
+              </p>
+            )}
             <p className="text-sm text-txt-secondary">
               {t("settings.referral_commission_info", {
-                percent: referral_info.commission_percent || 10,
+                percent: commission_percent,
               })}
             </p>
-            {referral_info.bonus_bytes_max > 0 && (
+            {storage_bonus && referral_info.bonus_bytes_max > 0 && (
               <div className="pt-2 flex flex-col items-center">
                 <SemicircleGauge
                   bottom_label={`${t("settings.referral_bonus_gauge_label")} ${bonus_earned}`}

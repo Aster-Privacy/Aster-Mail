@@ -7690,6 +7690,12 @@ export const pl = {
     referral_claim_success:
       "Zaproszenie dodane. Miejsce pojawi się, gdy pokorzystasz z Aster Mail przez kilka dni.",
     referral_claim_invalid: "Ten kod zaproszenia jest nieprawidłowy.",
+    referral_commission_headline: "Zarabiaj {{ percent }}% z każdej płatności znajomych",
+    referral_commission_subhead: "Udostępnij swój link. Gdy znajomy wykupi subskrypcję, otrzymujesz część każdej jego płatności, dopóki pozostaje subskrybentem.",
+    referral_step_earn_commission: "Gdy wykupią subskrypcję, otrzymujesz {{ percent }}% z każdej ich płatności.",
+    referral_share_message_plain: "Używam Aster Mail do poczty szyfrowanej end-to-end. Dołącz przez mój link.",
+    referral_email_body_plain:
+      "Cześć,\n\nkorzystam z Aster Mail od jakiegoś czasu i bardzo mi się podoba. Wszystko jest szyfrowane end-to-end, więc nikt poza Tobą nie przeczyta Twojej poczty. Nawet osoby prowadzące usługę.\n\nJeśli chcesz spróbować, oto mój link z zaproszeniem:\n\n{{ referral_link }}\n\nPozdrawiam",
     referral_claim_window_closed:
       "Czas na dodanie kodu zaproszenia do tego konta minął.",
     referral_claim_already: "To konto ma już przypisane zaproszenie.",

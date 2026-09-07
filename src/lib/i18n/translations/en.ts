@@ -5048,6 +5048,12 @@ export const en: Translations = {
     referral_claim_success:
       "Invite added. Your storage arrives once you have been using Aster Mail for a couple of days.",
     referral_claim_invalid: "That invite code isn't valid.",
+    referral_commission_headline: "Earn {{ percent }}% of every payment your friends make",
+    referral_commission_subhead: "Share your link. Once a friend subscribes, you earn a share of every payment they make, for as long as they stay subscribed.",
+    referral_step_earn_commission: "Once they subscribe, you earn {{ percent }}% of every payment they make.",
+    referral_share_message_plain: "I use Aster Mail for end to end encrypted email. Join with my link.",
+    referral_email_body_plain:
+      "Hey,\n\nI've been using Aster Mail for a while now and really like it. Everything is end to end encrypted, so nobody can read your emails except you. Not even the people who run it.\n\nIf you want to give it a try, here's my invite link:\n\n{{ referral_link }}\n\nCheers",
     referral_claim_window_closed:
       "The window to add an invite code to this account has closed.",
     referral_claim_already: "This account already has an invite on it.",

@@ -7562,6 +7562,12 @@ export const pt = {
     referral_claim_success:
       "Convite adicionado. Seu armazenamento chega depois que você usar o Aster Mail por alguns dias.",
     referral_claim_invalid: "Esse código de convite não é válido.",
+    referral_commission_headline: "Ganhe {{ percent }}% de cada pagamento dos seus amigos",
+    referral_commission_subhead: "Partilhe o seu link. Quando um amigo subscrever, ganha uma parte de cada pagamento que ele fizer, enquanto se mantiver subscrito.",
+    referral_step_earn_commission: "Quando subscreverem, ganha {{ percent }}% de cada pagamento que fizerem.",
+    referral_share_message_plain: "Uso o Aster Mail para e-mail cifrado de ponta a ponta. Junte-se com o meu link.",
+    referral_email_body_plain:
+      "Oi,\n\nuso o Aster Mail há um tempo e gosto bastante. Tudo é criptografado de ponta a ponta, então ninguém consegue ler seus e-mails além de você. Nem quem administra o serviço.\n\nSe quiser experimentar, este é o meu link de convite:\n\n{{ referral_link }}\n\nAbraço",
     referral_claim_window_closed:
       "O prazo para adicionar um código de convite a esta conta terminou.",
     referral_claim_already: "Esta conta já tem um convite associado.",

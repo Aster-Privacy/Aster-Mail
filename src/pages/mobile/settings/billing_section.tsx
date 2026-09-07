@@ -34,6 +34,7 @@ import {
 import { SettingsGroup, SettingsHeader } from "./shared";
 import { render_billing_dialogs } from "./billing_dialogs";
 import { use_billing_section } from "./use_billing_section";
+import { format_bytes } from "@/lib/utils";
 
 import {
   describe_billing_entry,
@@ -1047,9 +1048,18 @@ export function BillingSection({
                       </button>
                       {!referral_info.is_affiliate && (
                         <>
-                          <p className="text-xs text-txt-muted mt-2">
-                            {t("settings.referral_reward_info")}
-                          </p>
+                          {referral_info.bonus_bytes_per_referral > 0 && (
+                            <p className="text-xs text-txt-muted mt-2">
+                              {t("settings.referral_reward_info", {
+                                amount: format_bytes(
+                                  referral_info.bonus_bytes_per_referral,
+                                ),
+                                max: format_bytes(
+                                  referral_info.bonus_bytes_max,
+                                ),
+                              })}
+                            </p>
+                          )}
                           <p className="text-xs text-txt-muted mt-1">
                             {t("settings.referral_commission_info", {
                               percent: String(

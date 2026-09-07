@@ -7491,6 +7491,12 @@ export const nl = {
     referral_claim_success:
       "Uitnodiging toegevoegd. Je opslag komt binnen zodra je Aster Mail een paar dagen gebruikt.",
     referral_claim_invalid: "Die uitnodigingscode is niet geldig.",
+    referral_commission_headline: "Verdien {{ percent }}% van elke betaling van je vrienden",
+    referral_commission_subhead: "Deel je link. Zodra een vriend een abonnement neemt, verdien je een deel van elke betaling, zolang het abonnement loopt.",
+    referral_step_earn_commission: "Zodra ze een abonnement nemen, verdien je {{ percent }}% van elke betaling.",
+    referral_share_message_plain: "Ik gebruik Aster Mail voor end-to-end versleutelde e-mail. Doe mee via mijn link.",
+    referral_email_body_plain:
+      "Hoi,\n\nik gebruik Aster Mail nu een tijdje en het bevalt me erg goed. Alles is end-to-end versleuteld, dus niemand kan je e-mail lezen behalve jijzelf. Zelfs de beheerders niet.\n\nWil je het proberen, dit is mijn uitnodigingslink:\n\n{{ referral_link }}\n\nGroeten",
     referral_claim_window_closed:
       "De periode om een uitnodigingscode aan dit account toe te voegen is voorbij.",
     referral_claim_already: "Aan dit account is al een uitnodiging gekoppeld.",

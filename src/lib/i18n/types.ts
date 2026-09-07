@@ -6153,6 +6153,11 @@ export interface SettingsTranslations {
   referral_claim_button: string;
   referral_claim_success: string;
   referral_claim_invalid: string;
+  referral_commission_headline: string;
+  referral_commission_subhead: string;
+  referral_step_earn_commission: string;
+  referral_share_message_plain: string;
+  referral_email_body_plain: string;
   referral_claim_window_closed: string;
   referral_claim_already: string;
   referral_claim_self: string;

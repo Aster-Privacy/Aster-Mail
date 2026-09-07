@@ -7501,6 +7501,12 @@ export const tr = {
     referral_claim_success:
       "Davet eklendi. Aster Mail'i birkaç gün kullandıktan sonra depolama alanınız gelir.",
     referral_claim_invalid: "Bu davet kodu geçerli değil.",
+    referral_commission_headline: "Arkadaşlarının her ödemesinden %{{ percent }} kazan",
+    referral_commission_subhead: "Bağlantını paylaş. Bir arkadaşın abone olduğunda, abone kaldığı sürece yaptığı her ödemeden pay kazanırsın.",
+    referral_step_earn_commission: "Abone olduklarında, yaptıkları her ödemeden %{{ percent }} kazanırsın.",
+    referral_share_message_plain: "Uçtan uca şifreli e-posta için Aster Mail kullanıyorum. Bağlantımla katıl.",
+    referral_email_body_plain:
+      "Merhaba,\n\nbir süredir Aster Mail kullanıyorum ve gerçekten memnunum. Her şey uçtan uca şifreli, yani senden başka kimse e-postalarını okuyamıyor. Servisi işletenler bile okuyamıyor.\n\nDenemek istersen davet bağlantım şu:\n\n{{ referral_link }}\n\nSevgiler",
     referral_claim_window_closed: "Bu hesaba davet kodu ekleme süresi doldu.",
     referral_claim_already: "Bu hesapta zaten bir davet var.",
     referral_claim_self: "Kendi davet kodunuzu kullanamazsınız.",

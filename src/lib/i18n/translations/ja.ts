@@ -7526,6 +7526,12 @@ export const ja = {
     referral_claim_success:
       "招待を追加しました。Aster Mail を数日使うとストレージが追加されます。",
     referral_claim_invalid: "その招待コードは無効です。",
+    referral_commission_headline: "友達の支払いごとに {{ percent }}% を獲得",
+    referral_commission_subhead: "リンクを共有しましょう。友達が有料プランに登録すると、登録が続く限り、その支払いの一部があなたに入ります。",
+    referral_step_earn_commission: "友達が有料プランに登録すると、その支払いごとに {{ percent }}% を獲得できます。",
+    referral_share_message_plain: "エンドツーエンド暗号化メールの Aster Mail を使っています。私のリンクから参加してください。",
+    referral_email_body_plain:
+      "こんにちは。\n\nしばらく Aster Mail を使っていますが、とても気に入っています。すべてがエンドツーエンドで暗号化されているので、あなた以外は誰もメールを読めません。運営者でさえ読めません。\n\n試してみたい場合は、こちらが私の招待リンクです。\n\n{{ referral_link }}\n\nそれでは",
     referral_claim_window_closed:
       "このアカウントに招待コードを追加できる期間は終了しました。",
     referral_claim_already: "このアカウントにはすでに招待が登録されています。",

@@ -35,7 +35,10 @@ import { Spinner } from "@/components/ui/spinner";
 import { Logo } from "@/components/auth/auth_styles";
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { format_bytes } from "@/lib/utils";
-import { bonus_bytes_per_referral } from "@/lib/referral_bonus";
+import {
+  bonus_bytes_per_referral,
+  has_storage_bonus,
+} from "@/lib/referral_bonus";
 
 const page_wrap =
   "min-h-screen flex items-center justify-center p-4 bg-surf-secondary";
@@ -148,9 +151,8 @@ export default function InvitePage() {
     );
   }
 
-  const bonus_amount = format_bytes(
-    bonus_bytes_per_referral(invite.bonus_bytes_per_referral),
-  );
+  const storage_bonus = has_storage_bonus(invite.bonus_bytes_per_referral);
+  const bonus_amount = format_bytes(invite.bonus_bytes_per_referral);
 
   const title = invite.referrer_display_name
     ? t("settings.invite_title_named", { name: invite.referrer_display_name })
@@ -173,17 +175,27 @@ export default function InvitePage() {
           className="rounded-2xl p-5 space-y-1 text-center"
           style={{ background: "var(--accent-mix-b85, #326fd1)" }}
         >
-          <p className="text-lg font-bold text-white">
-            {t("settings.invite_storage_line", { amount: bonus_amount })}
-          </p>
-          <p className="text-sm text-white/75">
-            {t("settings.invite_storage_note")}
-          </p>
-          <p className="text-xs text-white/60 pt-1">
-            {t("settings.invite_discount_note", {
-              percent: INVITE_DISCOUNT_PERCENT,
-            })}
-          </p>
+          {storage_bonus ? (
+            <>
+              <p className="text-lg font-bold text-white">
+                {t("settings.invite_storage_line", { amount: bonus_amount })}
+              </p>
+              <p className="text-sm text-white/75">
+                {t("settings.invite_storage_note")}
+              </p>
+              <p className="text-xs text-white/60 pt-1">
+                {t("settings.invite_discount_note", {
+                  percent: INVITE_DISCOUNT_PERCENT,
+                })}
+              </p>
+            </>
+          ) : (
+            <p className="text-lg font-bold text-white">
+              {t("settings.invite_discount_line", {
+                percent: INVITE_DISCOUNT_PERCENT,
+              })}
+            </p>
+          )}
         </div>
 
         <div className="rounded-2xl border border-edge-secondary p-5 space-y-3 bg-surf-primary">
