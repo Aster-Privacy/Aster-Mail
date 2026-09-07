@@ -7861,13 +7861,12 @@ export const ko = {
     confirm_bulk_action_scope_description:
       "{{scope}}의 대화 {{count}}개 모두에 적용됩니다.",
     confirm_bulk_action_scope_description_one:
-      "{{scope}}의 대화 {{count}}개 모두에 적용됩니다.",
+      "{{scope}}에 있는 메일 1개에 적용됩니다.",
     confirm_bulk_action_scope_description_other:
       "{{scope}}의 대화 {{count}}개 모두에 적용됩니다.",
     confirm_bulk_action_count_description:
       "이 보기의 대화 {{count}}개 모두에 적용됩니다.",
-    confirm_bulk_action_count_description_one:
-      "이 보기의 대화 {{count}}개 모두에 적용됩니다.",
+    confirm_bulk_action_count_description_one: "메일 1개에 적용됩니다.",
     confirm_bulk_action_count_description_other:
       "이 보기의 대화 {{count}}개 모두에 적용됩니다.",
     remove_from_folder: "폴더에서 제거",

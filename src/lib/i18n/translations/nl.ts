@@ -8083,13 +8083,12 @@ export const nl = {
     confirm_bulk_action_scope_description:
       "Dit heeft gevolgen voor alle {{count}} gesprekken in {{scope}}.",
     confirm_bulk_action_scope_description_one:
-      "Dit heeft gevolgen voor {{count}} gesprek in {{scope}}.",
+      "Dit raakt de e-mail in {{scope}}.",
     confirm_bulk_action_scope_description_other:
       "Dit heeft gevolgen voor alle {{count}} gesprekken in {{scope}}.",
     confirm_bulk_action_count_description:
       "Dit heeft gevolgen voor alle {{count}} gesprekken in deze weergave.",
-    confirm_bulk_action_count_description_one:
-      "Dit heeft gevolgen voor {{count}} gesprek in deze weergave.",
+    confirm_bulk_action_count_description_one: "Dit raakt 1 e-mail.",
     confirm_bulk_action_count_description_other:
       "Dit heeft gevolgen voor alle {{count}} gesprekken in deze weergave.",
     remove_from_folder: "Uit map verwijderen",

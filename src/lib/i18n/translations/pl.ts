@@ -8338,13 +8338,12 @@ export const pl = {
     confirm_bulk_action_scope_description:
       "Ta czynność obejmie wszystkie rozmowy ({{count}}) w {{scope}}.",
     confirm_bulk_action_scope_description_one:
-      "Ta czynność obejmie {{count}} rozmowę w {{scope}}.",
+      "Dotyczy to wiadomości w {{scope}}.",
     confirm_bulk_action_scope_description_other:
       "Ta czynność obejmie wszystkie rozmowy ({{count}}) w {{scope}}.",
     confirm_bulk_action_count_description:
       "Ta czynność obejmie wszystkie rozmowy ({{count}}) w tym widoku.",
-    confirm_bulk_action_count_description_one:
-      "Ta czynność obejmie {{count}} rozmowę w tym widoku.",
+    confirm_bulk_action_count_description_one: "Dotyczy to 1 wiadomości.",
     confirm_bulk_action_count_description_other:
       "Ta czynność obejmie wszystkie rozmowy ({{count}}) w tym widoku.",
     remove_from_folder: "Usuń z folderu",

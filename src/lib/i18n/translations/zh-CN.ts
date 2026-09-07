@@ -7271,13 +7271,12 @@ export const zh_CN = {
     confirm_bulk_action_scope_description:
       "此操作将影响 {{scope}} 中的全部 {{count}} 个会话。",
     confirm_bulk_action_scope_description_one:
-      "此操作将影响 {{scope}} 中的全部 {{count}} 个会话。",
+      "此操作会影响{{scope}}中的 1 封邮件。",
     confirm_bulk_action_scope_description_other:
       "此操作将影响 {{scope}} 中的全部 {{count}} 个会话。",
     confirm_bulk_action_count_description:
       "此操作将影响当前视图中的全部 {{count}} 个会话。",
-    confirm_bulk_action_count_description_one:
-      "此操作将影响当前视图中的全部 {{count}} 个会话。",
+    confirm_bulk_action_count_description_one: "此操作会影响 1 封邮件。",
     confirm_bulk_action_count_description_other:
       "此操作将影响当前视图中的全部 {{count}} 个会话。",
     remove_from_folder: "从文件夹中移除",

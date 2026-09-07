@@ -8067,13 +8067,12 @@ export const tr = {
     confirm_bulk_action_scope_description:
       "Bu işlem {{scope}} içindeki {{count}} sohbetin tümünü etkiler.",
     confirm_bulk_action_scope_description_one:
-      "Bu işlem {{scope}} içindeki {{count}} sohbeti etkiler.",
+      "Bu işlem {{scope}} içindeki e-postayı etkiler.",
     confirm_bulk_action_scope_description_other:
       "Bu işlem {{scope}} içindeki {{count}} sohbetin tümünü etkiler.",
     confirm_bulk_action_count_description:
       "Bu işlem bu görünümdeki {{count}} sohbetin tümünü etkiler.",
-    confirm_bulk_action_count_description_one:
-      "Bu işlem bu görünümdeki {{count}} sohbeti etkiler.",
+    confirm_bulk_action_count_description_one: "Bu işlem 1 e-postayı etkiler.",
     confirm_bulk_action_count_description_other:
       "Bu işlem bu görünümdeki {{count}} sohbetin tümünü etkiler.",
     remove_from_folder: "Klasörden kaldır",

@@ -8082,13 +8082,12 @@ export const ja = {
     confirm_bulk_action_scope_description:
       "{{scope}}内のすべての会話（{{count}}件）に適用されます。",
     confirm_bulk_action_scope_description_one:
-      "{{scope}}内のすべての会話（{{count}}件）に適用されます。",
+      "{{scope}} 内の 1 件のメールが対象になります。",
     confirm_bulk_action_scope_description_other:
       "{{scope}}内のすべての会話（{{count}}件）に適用されます。",
     confirm_bulk_action_count_description:
       "この表示内のすべての会話（{{count}}件）に適用されます。",
-    confirm_bulk_action_count_description_one:
-      "この表示内のすべての会話（{{count}}件）に適用されます。",
+    confirm_bulk_action_count_description_one: "1 件のメールが対象になります。",
     confirm_bulk_action_count_description_other:
       "この表示内のすべての会話（{{count}}件）に適用されます。",
     remove_from_folder: "フォルダから削除",

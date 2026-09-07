@@ -8069,13 +8069,12 @@ export const es = {
     confirm_bulk_action_scope_description:
       "Esto afecta a las {{count}} conversaciones de {{scope}}.",
     confirm_bulk_action_scope_description_one:
-      "Esto afecta a {{count}} conversación de {{scope}}.",
+      "Esto afecta al correo de {{scope}}.",
     confirm_bulk_action_scope_description_other:
       "Esto afecta a las {{count}} conversaciones de {{scope}}.",
     confirm_bulk_action_count_description:
       "Esto afecta a las {{count}} conversaciones de esta vista.",
-    confirm_bulk_action_count_description_one:
-      "Esto afecta a {{count}} conversación de esta vista.",
+    confirm_bulk_action_count_description_one: "Esto afecta a 1 correo.",
     confirm_bulk_action_count_description_other:
       "Esto afecta a las {{count}} conversaciones de esta vista.",
     remove_from_folder: "Quitar de la carpeta",

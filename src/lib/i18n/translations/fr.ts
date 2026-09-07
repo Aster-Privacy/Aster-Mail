@@ -8166,13 +8166,12 @@ export const fr = {
     confirm_bulk_action_scope_description:
       "Cette action concerne les {{count}} conversations dans {{scope}}.",
     confirm_bulk_action_scope_description_one:
-      "Cette action concerne {{count}} conversation dans {{scope}}.",
+      "Cela concerne l’e-mail de {{scope}}.",
     confirm_bulk_action_scope_description_other:
       "Cette action concerne les {{count}} conversations dans {{scope}}.",
     confirm_bulk_action_count_description:
       "Cette action concerne les {{count}} conversations de cette vue.",
-    confirm_bulk_action_count_description_one:
-      "Cette action concerne {{count}} conversation de cette vue.",
+    confirm_bulk_action_count_description_one: "Cela concerne 1 e-mail.",
     confirm_bulk_action_count_description_other:
       "Cette action concerne les {{count}} conversations de cette vue.",
     remove_from_folder: "Retirer du dossier",

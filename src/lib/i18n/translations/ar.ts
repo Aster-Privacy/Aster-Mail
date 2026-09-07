@@ -8039,13 +8039,12 @@ export const ar = {
     confirm_bulk_action_scope_description:
       "يؤثر هذا في جميع المحادثات في {{scope}} وعددها {{count}}.",
     confirm_bulk_action_scope_description_one:
-      "يؤثر هذا في {{count}} محادثة في {{scope}}.",
+      "يؤثر هذا في الرسالة الموجودة في {{scope}}.",
     confirm_bulk_action_scope_description_other:
       "يؤثر هذا في جميع المحادثات في {{scope}} وعددها {{count}}.",
     confirm_bulk_action_count_description:
       "يؤثر هذا في جميع المحادثات في هذا العرض وعددها {{count}}.",
-    confirm_bulk_action_count_description_one:
-      "يؤثر هذا في {{count}} محادثة في هذا العرض.",
+    confirm_bulk_action_count_description_one: "يؤثر هذا في رسالة واحدة.",
     confirm_bulk_action_count_description_other:
       "يؤثر هذا في جميع المحادثات في هذا العرض وعددها {{count}}.",
     remove_from_folder: "إزالة من المجلد",

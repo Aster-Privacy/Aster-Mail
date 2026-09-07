@@ -8832,7 +8832,8 @@ export const de = {
     confirm_bulk_action_count_description_one: "Das betrifft 1 E-Mail.",
     confirm_bulk_action_count_description_other: "Das betrifft alle {{count}} E-Mails.",
     confirm_bulk_action_scope_description: "Das betrifft alle {{count}} E-Mails in {{scope}}.",
-    confirm_bulk_action_scope_description_one: "Das betrifft die 1 E-Mail in {{scope}}.",
+    confirm_bulk_action_scope_description_one:
+      "Das betrifft die 1 E-Mail in {{scope}}.",
     confirm_bulk_action_scope_description_other: "Das betrifft alle {{count}} E-Mails in {{scope}}.",
     remove_from_folder: "Aus Ordner entfernen",
     remove_label: "Label entfernen",

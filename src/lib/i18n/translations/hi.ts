@@ -7697,10 +7697,11 @@ export const hi = {
     bulk_trash_title_one: "1 ईमेल ट्रैश में ले जाएँ?",
     bulk_trash_title_other: "{{count}} ईमेल ट्रैश में ले जाएँ?",
     confirm_bulk_action_count_description: "यह कार्रवाई सभी {{count}} ईमेल पर लागू होती है।",
-    confirm_bulk_action_count_description_one: "यह कार्रवाई 1 ईमेल पर लागू होती है।",
+    confirm_bulk_action_count_description_one: "यह 1 ईमेल पर लागू होता है।",
     confirm_bulk_action_count_description_other: "यह कार्रवाई सभी {{count}} ईमेल पर लागू होती है।",
     confirm_bulk_action_scope_description: "यह कार्रवाई {{scope}} के सभी {{count}} ईमेल पर लागू होती है।",
-    confirm_bulk_action_scope_description_one: "यह कार्रवाई {{scope}} के 1 ईमेल पर लागू होती है।",
+    confirm_bulk_action_scope_description_one:
+      "यह {{scope}} के 1 ईमेल पर लागू होता है।",
     confirm_bulk_action_scope_description_other: "यह कार्रवाई {{scope}} के सभी {{count}} ईमेल पर लागू होती है।",
     remove_from_folder: "फ़ोल्डर से हटाएँ",
     remove_label: "लेबल हटाएँ",

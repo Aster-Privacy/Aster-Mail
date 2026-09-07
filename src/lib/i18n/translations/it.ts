@@ -8182,13 +8182,12 @@ export const it = {
     confirm_bulk_action_scope_description:
       "Questa azione riguarda tutte le {{count}} conversazioni in {{scope}}.",
     confirm_bulk_action_scope_description_one:
-      "Questa azione riguarda {{count}} conversazione in {{scope}}.",
+      "L’operazione riguarda l’email in {{scope}}.",
     confirm_bulk_action_scope_description_other:
       "Questa azione riguarda tutte le {{count}} conversazioni in {{scope}}.",
     confirm_bulk_action_count_description:
       "Questa azione riguarda tutte le {{count}} conversazioni in questa vista.",
-    confirm_bulk_action_count_description_one:
-      "Questa azione riguarda {{count}} conversazione in questa vista.",
+    confirm_bulk_action_count_description_one: "L’operazione riguarda 1 email.",
     confirm_bulk_action_count_description_other:
       "Questa azione riguarda tutte le {{count}} conversazioni in questa vista.",
     remove_from_folder: "Rimuovi dalla cartella",

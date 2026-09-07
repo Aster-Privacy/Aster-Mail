@@ -8140,13 +8140,12 @@ export const pt = {
     confirm_bulk_action_scope_description:
       "Isto afeta todas as {{count}} conversas em {{scope}}.",
     confirm_bulk_action_scope_description_one:
-      "Isto afeta {{count}} conversa em {{scope}}.",
+      "Isso afeta o e-mail em {{scope}}.",
     confirm_bulk_action_scope_description_other:
       "Isto afeta todas as {{count}} conversas em {{scope}}.",
     confirm_bulk_action_count_description:
       "Isto afeta todas as {{count}} conversas nesta vista.",
-    confirm_bulk_action_count_description_one:
-      "Isto afeta {{count}} conversa nesta vista.",
+    confirm_bulk_action_count_description_one: "Isso afeta 1 e-mail.",
     confirm_bulk_action_count_description_other:
       "Isto afeta todas as {{count}} conversas nesta vista.",
     remove_from_folder: "Remover da pasta",

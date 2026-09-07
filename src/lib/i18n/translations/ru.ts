@@ -8300,13 +8300,12 @@ export const ru = {
     confirm_bulk_action_scope_description:
       "Это затронет все беседы ({{count}}) в разделе {{scope}}.",
     confirm_bulk_action_scope_description_one:
-      "Это затронет {{count}} беседу в разделе {{scope}}.",
+      "Это затронет письмо в {{scope}}.",
     confirm_bulk_action_scope_description_other:
       "Это затронет все беседы ({{count}}) в разделе {{scope}}.",
     confirm_bulk_action_count_description:
       "Это затронет все беседы ({{count}}) в этом представлении.",
-    confirm_bulk_action_count_description_one:
-      "Это затронет {{count}} беседу в этом представлении.",
+    confirm_bulk_action_count_description_one: "Это затронет 1 письмо.",
     confirm_bulk_action_count_description_other:
       "Это затронет все беседы ({{count}}) в этом представлении.",
     remove_from_folder: "Убрать из папки",
