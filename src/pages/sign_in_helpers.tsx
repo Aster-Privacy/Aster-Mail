@@ -69,6 +69,14 @@ export function get_safe_next_path(): string {
   return remembered_next_path ?? "/";
 }
 
+export function consume_safe_next_path(): string {
+  const path = get_safe_next_path();
+
+  remembered_next_path = null;
+
+  return path;
+}
+
 export async function decrypt_with_prf(
   prf_output: ArrayBuffer,
   encrypted_b64: string,

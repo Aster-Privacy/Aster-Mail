@@ -24,6 +24,7 @@ import { Button, Checkbox } from "@aster/ui";
 
 import {
   Alert,
+  consume_safe_next_path,
   get_safe_next_path,
   page_transition,
   page_variants,
@@ -59,6 +60,7 @@ import { emit_auth_ready } from "@/hooks/mail_events";
 import { is_tauri } from "@/native/desktop_device_auth";
 import { get_current_account_id } from "@/services/account_manager";
 import { ignore_error } from "@/lib/ignore_error";
+import { set_post_switch_path } from "@/lib/post_switch_path";
 import { user_facing_error } from "@/utils/user_facing_error";
 import { is_auth_salt_collision } from "@/services/crypto/auth_salt_guard";
 import { api_client } from "@/services/api/client";
@@ -157,11 +159,16 @@ export default function SignInPage() {
     );
   }
 
+  const cancel_return_path = get_safe_next_path();
+  const returns_to_link_device =
+    cancel_return_path.replace(/^\/u\/\d+/, "") === "/link-device";
+
   const handle_cancel_add_account = async () => {
     set_is_adding_account(false);
 
     if (!is_authenticated && previous_account_id) {
       try {
+        set_post_switch_path(cancel_return_path);
         await switch_to_account(previous_account_id);
 
         return;
@@ -170,7 +177,7 @@ export default function SignInPage() {
       }
     }
 
-    navigate("/");
+    navigate(cancel_return_path);
   };
 
   const handle_totp_cancel = () => {
@@ -445,11 +452,11 @@ export default function SignInPage() {
         check_and_replenish_prekeys();
       }
 
-      navigate(get_safe_next_path());
+      navigate(consume_safe_next_path());
       setTimeout(() => emit_auth_ready(), 50);
     } catch (err) {
       if (err instanceof Error && err.message === "login_timeout") {
-        navigate(get_safe_next_path());
+        navigate(consume_safe_next_path());
         setTimeout(() => emit_auth_ready(), 50);
 
         return;
@@ -596,7 +603,9 @@ export default function SignInPage() {
                       strokeLinejoin="round"
                     />
                   </svg>
-                  {t("auth.back_to_inbox")}
+                  {returns_to_link_device
+                    ? t("auth.back_to_link_device")
+                    : t("auth.back_to_inbox")}
                 </button>
               )}
 

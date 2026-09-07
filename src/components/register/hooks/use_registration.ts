@@ -87,6 +87,7 @@ import { EMAIL_REGEX } from "@/lib/utils";
 import { use_i18n } from "@/lib/i18n/context";
 import { prefetch_plans } from "@/components/register/register_step_plan_selection";
 import { user_facing_error } from "@/utils/user_facing_error";
+import { get_safe_next_path } from "@/pages/sign_in_helpers";
 
 export async function build_registration_ratchet_fields(): Promise<
   Partial<EncryptedVault>
@@ -273,10 +274,9 @@ export function use_registration(options?: RegistrationClaimOptions) {
   const last_phrase_vault_ref = useRef<string>("");
   const registration_password_hash_ref = useRef<string>("");
   const [phrase_wrap_error, set_phrase_wrap_error] = useState(false);
-
   useEffect(() => {
     if (has_existing_session) {
-      navigate("/", { replace: true });
+      navigate(get_safe_next_path(), { replace: true });
     }
   }, [has_existing_session, navigate]);
 
@@ -856,7 +856,7 @@ export function use_registration(options?: RegistrationClaimOptions) {
 
     set_is_completing_registration(false);
 
-    navigate("/");
+    navigate(get_safe_next_path());
   };
 
   const complete_registration = async () => {

@@ -32,12 +32,19 @@ import { use_i18n } from "@/lib/i18n/context";
 import { is_onion_host } from "@/lib/onion_host";
 import { is_tauri } from "@/native/desktop_device_auth";
 
-// Onion and Tauri desktop users are exempt. The Cloudflare challenge iframe
-// cannot load inside Tauri's WebView2 (tauri.localhost origin is blocked).
-// The backend already exempts tauri-desktop from the captcha requirement
-// server-side via the client_platform header. Prod web is unchanged.
+// Local development is exempt. The Cloudflare widget only accepts the
+// production hostnames, so a localhost token always fails siteverify.
+// Onion and Tauri desktop users are exempt too. The Cloudflare challenge
+// iframe cannot load inside Tauri's WebView2 (tauri.localhost origin is
+// blocked). The backend already exempts tauri-desktop from the captcha
+// requirement server-side via the client_platform header. Prod web is
+// unchanged.
+const CAPTCHA_DISABLED_IN_DEV =
+  import.meta.env.DEV && import.meta.env.MODE !== "test";
+
 export const TURNSTILE_SITE_KEY =
-  typeof window !== "undefined" && (is_onion_host() || is_tauri())
+  CAPTCHA_DISABLED_IN_DEV ||
+  (typeof window !== "undefined" && (is_onion_host() || is_tauri()))
     ? ""
     : import.meta.env.VITE_TURNSTILE_SITE_KEY || "";
 const SCRIPT_URL =

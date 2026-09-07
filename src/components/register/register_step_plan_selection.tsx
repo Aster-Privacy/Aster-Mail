@@ -106,9 +106,32 @@ export function prefetch_plans(): void {
 
 async function load_plans(): Promise<AvailablePlan[]> {
   if (!plans_promise_cache) prefetch_plans();
-  const res = await plans_promise_cache!;
+  const pending = plans_promise_cache!;
+  const res = await pending;
 
-  return res.data?.plans ?? [];
+  if (!res.data?.plans?.length) {
+    if (plans_promise_cache === pending) plans_promise_cache = null;
+
+    return [];
+  }
+
+  return res.data.plans;
+}
+
+function fallback_api_plan(tier: { id: string; name: string }): AvailablePlan {
+  return {
+    id: tier.id,
+    code: tier.id,
+    name: tier.name,
+    description: null,
+    storage_limit_bytes: 0,
+    max_attachment_size_bytes: 0,
+    max_email_aliases: 0,
+    max_custom_domains: 0,
+    price_cents: 0,
+    billing_period: null,
+    stripe_price_id: null,
+  };
 }
 
 interface FeatureRow {
@@ -379,14 +402,17 @@ export const RegisterStepPlanSelection = ({
   const billing_interval: "month" | "year" =
     billing_period === "yearly" ? "year" : "month";
 
+  const resolve_api_plan = useCallback(
+    (tier: { id: string; name: string }): AvailablePlan =>
+      plans.find((p) => p.code === tier.id) ?? fallback_api_plan(tier),
+    [plans],
+  );
+
   const handle_select_tier = useCallback(
     (tier: PlanTier) => {
-      const api_plan = plans.find((p) => p.code === tier.id);
-
-      if (!api_plan) return;
-      set_pending_tier({ tier, plan: api_plan });
+      set_pending_tier({ tier, plan: resolve_api_plan(tier) });
     },
-    [plans],
+    [resolve_api_plan],
   );
 
   const handle_pay_with_card = useCallback(async () => {
@@ -793,7 +819,6 @@ export const RegisterStepPlanSelection = ({
               currency,
             );
             const saves = billing_period === "yearly" ? tier.savings_cents : 0;
-            const has_api_plan = plans.some((p) => p.code === tier.id);
             const features = feature_list_for_tier(tier.id, t);
             const description = t(
               TIER_DESCRIPTION_KEYS[tier.id] as never,
@@ -881,7 +906,7 @@ export const RegisterStepPlanSelection = ({
 
                 <Button
                   className={`w-full ${tier.is_recommended ? "plan_galaxy_cta" : ""}`}
-                  disabled={!has_api_plan || is_finalizing}
+                  disabled={is_finalizing}
                   size="xl"
                   variant={tier.is_recommended ? "primary" : "outline"}
                   onClick={() => handle_select_tier(tier)}
@@ -1042,18 +1067,14 @@ export const RegisterStepPlanSelection = ({
           on_close={() => set_pending_tier(null)}
           on_select_plan={(id) => {
             const next = PLAN_TIERS.find((entry) => entry.id === id);
-            const api_plan = plans.find((entry) => entry.code === id);
 
-            if (next && api_plan)
-              set_pending_tier({ tier: next, plan: api_plan });
+            if (next) set_pending_tier({ tier: next, plan: resolve_api_plan(next) });
           }}
           on_select_term={(id) =>
             set_billing_period(id === "yearly" ? "yearly" : "monthly")
           }
           open={!!pending_tier}
-          plan_choices={PLAN_TIERS.filter((entry) =>
-            plans.some((api_plan) => api_plan.code === entry.id),
-          ).map((entry) => ({
+          plan_choices={PLAN_TIERS.map((entry) => ({
             id: entry.id,
             name: entry.name,
             is_recommended: entry.is_recommended,

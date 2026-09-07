@@ -22,20 +22,21 @@ import type { Badge, BadgePreferences } from "@/services/api/user";
 import type { StepUpCredentials } from "@/services/api/step_up";
 import type { RecoveryEmailData } from "@/services/api/recovery_email";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion } from "framer-motion";
 import {
   CameraIcon,
   CheckCircleIcon,
   ExclamationCircleIcon,
   XMarkIcon,
-  CreditCardIcon,
+  SparklesIcon,
 } from "@heroicons/react/24/outline";
 import { Button, Switch } from "@aster/ui";
 
 import { StepUpModal } from "./step_up_modal";
 
 import { copy_text_or_throw } from "@/utils/copy_text";
+import { ignore_error } from "@/lib/ignore_error";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
@@ -98,6 +99,7 @@ import {
   use_profile_picture_upload,
 } from "@/hooks/use_profile_picture_upload";
 import { is_onion_host } from "@/lib/onion_host";
+import { show_upgrade_plans } from "@/stores/upgrade_store";
 import { app_locale } from "@/utils/date_format";
 import { is_composing } from "@/utils/ime";
 import { MAX_DISPLAY_NAME_LENGTH } from "@/services/sanitize";
@@ -190,12 +192,6 @@ function RecoveryModal({
   );
 }
 
-function navigate_to_billing() {
-  window.dispatchEvent(
-    new CustomEvent("navigate-settings", { detail: "billing" }),
-  );
-}
-
 function FreePlanBanner() {
   const { t } = use_i18n();
   const { limits } = use_plan_limits();
@@ -203,26 +199,30 @@ function FreePlanBanner() {
   if (is_onion_host() || !limits || limits.plan_code !== "free") return null;
 
   return (
-    <div className="rounded-xl bg-surf-secondary border border-edge-secondary px-4 py-3.5">
-      <div className="flex items-center gap-3">
-        <div className="flex-1 min-w-0">
+    <div className="plan_galaxy rounded-2xl border border-edge-secondary px-4 py-3.5">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+        <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <CreditCardIcon className="h-5 w-5 flex-shrink-0 text-blue-600" />
-            <p className="text-sm font-semibold text-txt-primary">
+            <SparklesIcon
+              className="h-5 w-5 flex-shrink-0"
+              style={{ color: "var(--accent-blue)" }}
+            />
+            <p className="text-sm font-semibold plan_galaxy_text_primary">
               {t("settings.free_plan_banner_title")}
             </p>
           </div>
-          <p className="text-sm text-txt-muted mt-1 ms-7">
+          <p className="mt-1 ms-7 text-sm leading-relaxed plan_galaxy_text_body">
             {t("settings.free_plan_description")}
           </p>
         </div>
-        <button
-          className="flex-shrink-0 px-3 py-1.5 rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors"
-          type="button"
-          onClick={navigate_to_billing}
+        <Button
+          className="plan_galaxy_cta flex-shrink-0"
+          size="sm"
+          variant="primary"
+          onClick={() => show_upgrade_plans()}
         >
           {t("settings.upgrade_view_plans")}
-        </button>
+        </Button>
       </div>
     </div>
   );
@@ -383,9 +383,17 @@ export function AccountSection() {
     }
   };
 
+  const derived_name = user?.display_name || user?.username || "";
+  const derived_name_ref = useRef(derived_name);
+
   useEffect(() => {
-    set_name(user?.display_name || user?.username || "");
-  }, [user]);
+    const previous = derived_name_ref.current;
+
+    derived_name_ref.current = derived_name;
+    set_name((current) =>
+      current === previous || current.trim() === "" ? derived_name : current,
+    );
+  }, [derived_name]);
 
   useEffect(() => {
     if (preferences.profile_color) {
@@ -684,27 +692,41 @@ export function AccountSection() {
                   }}
                   onClick={async () => {
                     const prev = color;
-
-                    set_color(c);
-                    update_preference("profile_color", c, true);
-                    if (user) {
-                      await update_user({ ...user, profile_color: c });
-                    }
-                    const response = await update_profile_color(c);
-
-                    if (response.error) {
+                    const revert = async () => {
                       set_color(prev);
                       update_preference("profile_color", prev, true);
                       if (user) {
                         await update_user({
                           ...user,
                           profile_color: prev || undefined,
-                        });
+                        }).catch((caught) =>
+                          ignore_error(
+                            "components/settings/account_section:revert_color",
+                            caught,
+                          ),
+                        );
                       }
                       show_toast(
                         t("common.failed_save_profile_color"),
                         "error",
                       );
+                    };
+
+                    try {
+                      set_color(c);
+                      update_preference("profile_color", c, true);
+                      if (user) {
+                        await update_user({ ...user, profile_color: c });
+                      }
+                      const response = await update_profile_color(c);
+
+                      if (response.error) await revert();
+                    } catch (caught) {
+                      ignore_error(
+                        "components/settings/account_section:update_color",
+                        caught,
+                      );
+                      await revert();
                     }
                   }}
                 />

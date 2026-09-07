@@ -25,7 +25,7 @@ import {
   SignInDomain,
   decrypt_checkout_password,
   decrypt_with_prf,
-  get_safe_next_path,
+  consume_safe_next_path,
   parse_prefill_identity,
 } from "./sign_in_helpers";
 
@@ -178,7 +178,7 @@ export function use_sign_in_page() {
           detail.login_response.vault_nonce,
         );
         setTimeout(() => emit_auth_ready(), 50);
-        hard_redirect(get_safe_next_path());
+        hard_redirect(consume_safe_next_path());
       } catch (e) {
         if (import.meta.env.DEV) console.error(e);
         set_device_logging_in(false);
@@ -245,7 +245,7 @@ export function use_sign_in_page() {
       if (academic === "verified") {
         navigate("/settings/billing?academic=verified", { replace: true });
       } else {
-        navigate(get_safe_next_path(), { replace: true });
+        navigate(consume_safe_next_path(), { replace: true });
       }
     }
   }, [has_existing_session, navigate]);
@@ -420,7 +420,7 @@ export function use_sign_in_page() {
 
         scrub_checkout_params();
 
-        hard_redirect(get_safe_next_path());
+        hard_redirect(consume_safe_next_path());
       } catch (err) {
         scrub_checkout_params();
         set_is_checkout_login(false);
@@ -654,7 +654,7 @@ export function use_sign_in_page() {
         set_available_2fa_methods([]);
         set_active_2fa_method("totp");
 
-        navigate(get_safe_next_path());
+        navigate(consume_safe_next_path());
         setTimeout(() => emit_auth_ready(), 50);
 
         return;
@@ -664,7 +664,7 @@ export function use_sign_in_page() {
           set_pending_login_token("");
           set_available_2fa_methods([]);
           set_active_2fa_method("totp");
-          navigate(get_safe_next_path());
+          navigate(consume_safe_next_path());
           setTimeout(() => emit_auth_ready(), 50);
 
           return;
