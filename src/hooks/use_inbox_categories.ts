@@ -33,6 +33,7 @@ import {
 
 import { use_preferences } from "@/contexts/preferences_context";
 import {
+  are_counts_partial,
   get_counts,
   mark_category_seen,
   is_index_loaded,
@@ -126,6 +127,7 @@ export interface UseInboxCategoriesReturn {
   active_category: EmailCategory;
   set_active_category: (category: EmailCategory) => void;
   counts: CategoryCounts;
+  counts_pending: boolean;
   restored: boolean;
 }
 
@@ -176,6 +178,10 @@ export function use_inbox_categories(
   );
 
   const counts = useMemo(() => get_counts(), [index_version]);
+  const counts_pending = useMemo(
+    () => are_counts_partial(),
+    [index_version],
+  );
 
   const custom_categories_key = JSON.stringify(
     preferences.custom_categories ?? [],
@@ -303,6 +309,7 @@ export function use_inbox_categories(
     active_category,
     set_active_category,
     counts,
+    counts_pending,
     restored,
   };
 }

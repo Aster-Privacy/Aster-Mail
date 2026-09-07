@@ -38,6 +38,11 @@ import {
   show_bulk_result_toast,
 } from "@/hooks/bulk_action_result";
 import { show_toast } from "@/components/toast/simple_toast";
+import {
+  category_display_name,
+  type CustomCategoryRule,
+} from "@/data/category_catalog";
+import { maybe_offer_sender_rule } from "@/components/email/inbox/category_sender_rule";
 
 const CATEGORY_MOVE_CONCURRENCY = 6;
 
@@ -53,6 +58,7 @@ interface UseCategoryDropOptions {
   emails: InboxEmail[];
   update_email: UpdateEmail;
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
+  custom_categories?: readonly CustomCategoryRule[];
 }
 
 function index_entry_for(
@@ -160,6 +166,7 @@ export function use_category_drop({
   emails,
   update_email,
   t,
+  custom_categories,
 }: UseCategoryDropOptions): (
   category: EmailCategory,
   email_ids: string[],
@@ -281,12 +288,21 @@ export function use_category_drop({
           email_ids: moved.map((snapshot) => snapshot.email.id),
           on_undo: () => run_undo(moved, category),
         });
+
+        if (moved.length > 0) {
+          maybe_offer_sender_rule(
+            moved.map((snapshot) => snapshot.email),
+            category,
+            category_display_name(category, custom_categories, t),
+            t,
+          );
+        }
       };
 
       queue_ref.current = queue_ref.current.then(run, run);
 
       return queue_ref.current;
     },
-    [update_email, run_undo, t],
+    [update_email, run_undo, t, custom_categories],
   );
 }

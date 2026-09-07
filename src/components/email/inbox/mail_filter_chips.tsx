@@ -307,7 +307,6 @@ export function MailFilterChips({
               onSelect={(event) => {
                 event.preventDefault();
                 set_show_custom_range(true);
-                set_filters({ ...filters, date_window: "custom" });
               }}
             >
               {`${t("mail.chip_custom_range")}...`}

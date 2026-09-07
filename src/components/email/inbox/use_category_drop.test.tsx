@@ -75,6 +75,9 @@ vi.mock("@/components/toast/simple_toast", () => ({
 const { use_category_drop } = await import(
   "@/components/email/inbox/use_category_drop"
 );
+const { reset_sender_rule_state } = await import(
+  "@/components/email/inbox/category_sender_rule"
+);
 
 declare global {
   var IS_REACT_ACT_ENVIRONMENT: boolean;
@@ -149,6 +152,7 @@ beforeEach(() => {
   get_index_entries.mockReturnValue([]);
   show_action_toast.mockClear();
   show_toast.mockClear();
+  reset_sender_rule_state();
 });
 
 afterEach(() => {
@@ -248,6 +252,23 @@ describe("use_category_drop", () => {
       "error",
     );
     expect(show_action_toast).not.toHaveBeenCalled();
+  });
+
+  it("offers a sender rule only after the same sender repeats", async () => {
+    set_message_category.mockResolvedValue(applied_result);
+
+    const harness = mount([email("a", "primary"), email("b", "primary")]);
+
+    await act(async () => {
+      await harness.drop("promotions", ["a"]);
+    });
+    expect(show_toast).not.toHaveBeenCalled();
+
+    await act(async () => {
+      await harness.drop("promotions", ["b"]);
+    });
+    expect(show_toast).toHaveBeenCalledTimes(1);
+    expect(show_toast.mock.calls[0]![0]).toBe("mail.sender_rule_offer");
   });
 
   it("rolls back only the failures and warns on a partial move", async () => {

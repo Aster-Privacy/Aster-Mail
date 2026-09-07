@@ -298,7 +298,10 @@ export function use_email_list(current_view: string): UseEmailListReturn {
         );
 
         if (signal.aborted) {
-          if (committed_view_ref.current === fetch_view) {
+          if (
+            abort_ref.current?.signal === signal &&
+            committed_view_ref.current === fetch_view
+          ) {
             set_state((prev) => ({
               ...prev,
               is_loading: false,

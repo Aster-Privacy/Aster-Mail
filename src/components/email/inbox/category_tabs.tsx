@@ -1,4 +1,4 @@
-//
+﻿//
 // Aster Communications Inc.
 //
 // Copyright (c) 2026 Aster Communications Inc.
@@ -37,7 +37,6 @@ import {
   category_color_key,
   category_color_style,
 } from "@/data/category_colors";
-import { use_category_previews } from "@/hooks/use_category_previews";
 import { ignore_error } from "@/lib/ignore_error";
 import {
   EMAIL_DRAG_MIME,
@@ -45,6 +44,7 @@ import {
   use_category_drag_active,
 } from "@/components/email/inbox/category_drag";
 import { app_locale } from "@/utils/date_format";
+import { use_category_previews } from "@/hooks/use_category_previews";
 
 interface TabConfig {
   key: EmailCategory;
@@ -63,6 +63,7 @@ function format_count(value: number): string {
 interface CategoryTabsProps {
   active_category: EmailCategory;
   counts: CategoryCounts;
+  counts_pending?: boolean;
   on_change: (category: EmailCategory) => void;
   on_category_drop?: (category: EmailCategory, email_ids: string[]) => void;
 }
@@ -70,13 +71,13 @@ interface CategoryTabsProps {
 export function CategoryTabs({
   active_category,
   counts,
+  counts_pending = false,
   on_change,
   on_category_drop,
 }: CategoryTabsProps): React.ReactElement {
   const { t } = use_i18n();
   const { preferences } = use_preferences();
   const { limits } = use_plan_limits();
-  const previews = use_category_previews(true);
 
   const category_limit = limits
     ? (limits.limits["max_custom_categories"]?.limit ?? -1)
@@ -125,6 +126,7 @@ export function CategoryTabs({
     t,
   ]);
 
+  const previews = use_category_previews(true);
   const drag_active = use_category_drag_active();
   const drop_enabled = drag_active && !!on_category_drop;
   const [drop_target, set_drop_target] = useState<EmailCategory | null>(null);
@@ -177,21 +179,25 @@ export function CategoryTabs({
         const { key, label, Icon, color_style } = tab;
         const is_active = key === active_category;
         const bucket = counts[key];
-        const unread_count = bucket?.unread ?? 0;
-        const new_count = is_active ? 0 : (bucket?.new_count ?? 0);
-        const show_new = new_count > 0;
-        const show_unread = !show_new && unread_count > 0;
-        const preview = show_new ? previews[key] : undefined;
+        const counts_badge = key !== "primary";
+        const unread_count = counts_badge ? (bucket?.unread ?? 0) : 0;
+        const new_count =
+          is_active || !counts_badge ? 0 : (bucket?.new_count ?? 0);
+        const show_counting = counts_pending && unread_count + new_count > 0;
+        const show_new = !show_counting && new_count > 0;
+        const show_unread = !show_counting && !show_new && unread_count > 0;
         const is_drop_target = drop_enabled && drop_target === key;
+        const preview = show_new ? previews[key] : undefined;
+        const show_preview = !drop_enabled && !!preview;
 
         const tab_button = (
           <button
             key={key}
             aria-current={is_active ? "page" : undefined}
-            className={`group relative flex h-12 min-w-[104px] max-w-[248px] flex-1 basis-auto items-center justify-start gap-2 overflow-hidden whitespace-nowrap px-2.5 text-[13px] font-medium outline-none transition-colors duration-150 sm:px-3 ${
+            className={`group relative flex h-12 min-w-0 max-w-[204px] shrink-0 items-center justify-start gap-2 overflow-hidden whitespace-nowrap px-3.5 text-[13px] font-medium outline-none transition-colors duration-150 ${
               is_active
-                ? "text-brand"
-                : "text-txt-secondary hover:bg-black/[0.03] hover:text-txt-primary dark:hover:bg-white/[0.04]"
+                ? "aster_cat_tab_current text-brand"
+                : "text-txt-secondary"
             } ${
               is_drop_target
                 ? "bg-brand/10 text-brand ring-1 ring-inset ring-brand/40"
@@ -224,21 +230,25 @@ export function CategoryTabs({
             onDrop={drop_enabled ? (e) => handle_drop(e, key) : undefined}
             onMouseDown={(e) => e.preventDefault()}
           >
-            <span className="flex min-w-0 flex-1 items-center gap-2.5">
+            <span className="flex min-w-0 flex-1 items-center gap-2">
               <Icon
                 className={`h-4 w-4 shrink-0 ${
-                  is_active
-                    ? "text-brand"
-                    : "text-txt-muted group-hover:text-txt-secondary"
+                  is_active ? "text-brand" : "text-txt-muted"
                 }`}
               />
               <span
                 className={`relative flex min-w-0 flex-1 flex-col items-start ${
-                  drop_enabled && !preview ? "-translate-y-2" : ""
+                  drop_enabled || show_preview ? "-translate-y-2" : ""
                 }`}
               >
                 <span className="flex h-5 w-full min-w-0 items-center gap-2">
                   <span className="truncate">{label}</span>
+                  {show_counting ? (
+                    <span
+                      aria-label={t("mail.tab_counting_unread")}
+                      className="aster_cat_badge aster_cat_badge_counting shrink-0"
+                    />
+                  ) : null}
                   {show_new ? (
                     <span className="aster_cat_badge shrink-0">
                       {format_count(new_count)} {t("mail.tab_new_count")}
@@ -255,20 +265,16 @@ export function CategoryTabs({
                     </span>
                   ) : null}
                 </span>
-                {preview ? (
-                  <span
-                    className={`mt-[3px] block h-[13px] w-0 min-w-full truncate text-start text-[11.5px] font-normal leading-[13px] text-txt-muted ${
-                      drop_enabled ? "invisible" : ""
-                    }`}
-                  >
-                    {preview.subject
-                      ? `${preview.sender} - ${preview.subject}`
-                      : preview.sender}
-                  </span>
-                ) : null}
                 {drop_enabled ? (
                   <span className="pointer-events-none absolute start-0 top-[23px] block h-[13px] w-full truncate text-start text-[11.5px] font-normal leading-[13px] text-brand">
                     {t("mail.drop_to_move_here")}
+                  </span>
+                ) : null}
+                {show_preview ? (
+                  <span className="pointer-events-none absolute start-0 top-[23px] block h-[13px] w-full truncate text-start text-[11.5px] font-normal leading-[13px] text-txt-muted">
+                    {preview.subject
+                      ? `${preview.sender} - ${preview.subject}`
+                      : preview.sender}
                   </span>
                 ) : null}
               </span>

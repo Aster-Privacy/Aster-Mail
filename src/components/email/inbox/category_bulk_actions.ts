@@ -25,10 +25,12 @@ import { batch_archive } from "@/services/api/archive";
 import { bulk_update_metadata_by_ids } from "@/services/crypto/mail_metadata";
 import {
   get_category_action_ids,
+  get_index_entries,
   is_fully_built,
   is_index_capped,
   remove_ids,
   reindex_ids,
+  set_ids_read,
 } from "@/services/category_index";
 import { stale_all_view_caches } from "@/hooks/email_list_cache";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
@@ -55,6 +57,14 @@ export function supports_category_scope(action: BulkScopeAction): boolean {
 export interface CategoryBulkOptions {
   on_progress?: (completed: number, total: number) => void;
   exclude_ids?: string[];
+}
+
+function filter_by_read_state(ids: string[], is_read: boolean): string[] {
+  const states = new Map(
+    get_index_entries(ids).map((entry) => [entry.id, entry.is_read]),
+  );
+
+  return ids.filter((id) => (states.get(id) ?? is_read) === is_read);
 }
 
 function chunk_ids(ids: string[]): string[][] {
@@ -117,10 +127,17 @@ export async function run_category_scope_action(
 
   if (all_ids.length === 0) return "noop";
 
-  const total = all_ids.length;
+  const target_ids =
+    action === "mark_read" || action === "mark_unread"
+      ? filter_by_read_state(all_ids, action === "mark_unread")
+      : all_ids;
+
+  if (target_ids.length === 0) return "noop";
+
+  const total = target_ids.length;
   const report = (completed: number) =>
     options?.on_progress?.(completed, total);
-  const chunks = chunk_ids(all_ids);
+  const chunks = chunk_ids(target_ids);
 
   report(0);
 
@@ -183,17 +200,18 @@ export async function run_category_scope_action(
     }
     case "mark_read":
     case "mark_unread": {
-      const succeeded = await apply_metadata_chunks(
+      const is_read = action === "mark_read";
+
+      await apply_metadata_chunks(
         chunks,
-        { is_read: action === "mark_read" },
+        { is_read },
         {
-          on_chunk_done: () => {},
-          on_failure: (succeeded_ids) => reindex_ids(succeeded_ids),
+          on_chunk_done: (succeeded_ids) =>
+            set_ids_read(succeeded_ids, is_read),
+          on_failure: () => {},
           on_progress: report,
         },
       );
-
-      reindex_ids(succeeded);
       break;
     }
     case "star":

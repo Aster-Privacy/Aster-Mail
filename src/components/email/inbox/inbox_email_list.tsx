@@ -468,16 +468,16 @@ export function EmailList({
 
   const hovered_row_ref = useRef<string | null>(null);
 
-  const row_id_from_event = (e: React.MouseEvent): string | null => {
+  const row_id_from_event = (
+    e: React.SyntheticEvent<Element, Event>,
+  ): string | null => {
     const target = e.target as HTMLElement | null;
     const row = target?.closest?.("[data-row-email-id]") as HTMLElement | null;
 
     return row?.dataset["rowEmailId"] ?? null;
   };
 
-  const handle_list_mouse_over = useCallback((e: React.MouseEvent) => {
-    const id = row_id_from_event(e);
-
+  const enter_row = useCallback((id: string | null) => {
     if (id === hovered_row_ref.current) return;
 
     hovered_row_ref.current = id;
@@ -491,9 +491,7 @@ export function EmailList({
     hover_preload_ref.current?.(id);
   }, []);
 
-  const handle_list_mouse_out = useCallback((e: React.MouseEvent) => {
-    const next = e.relatedTarget as Node | null;
-
+  const leave_row = useCallback((next: Node | null) => {
     if (next instanceof HTMLElement && next.closest("[data-row-email-id]")) {
       return;
     }
@@ -503,6 +501,34 @@ export function EmailList({
     hovered_row_ref.current = null;
     cancel_hover_preload_ref.current?.();
   }, []);
+
+  const handle_list_mouse_over = useCallback(
+    (e: React.MouseEvent) => {
+      enter_row(row_id_from_event(e));
+    },
+    [enter_row],
+  );
+
+  const handle_list_mouse_out = useCallback(
+    (e: React.MouseEvent) => {
+      leave_row(e.relatedTarget as Node | null);
+    },
+    [leave_row],
+  );
+
+  const handle_list_focus = useCallback(
+    (e: React.FocusEvent) => {
+      enter_row(row_id_from_event(e));
+    },
+    [enter_row],
+  );
+
+  const handle_list_blur = useCallback(
+    (e: React.FocusEvent) => {
+      leave_row(e.relatedTarget as Node | null);
+    },
+    [leave_row],
+  );
 
   const handle_list_context_menu = useCallback((e: React.MouseEvent) => {
     const id = row_id_from_event(e);
@@ -549,6 +575,8 @@ export function EmailList({
           onContextMenu={handle_list_context_menu}
           onMouseOver={handle_list_mouse_over}
           onMouseOut={handle_list_mouse_out}
+          onFocus={handle_list_focus}
+          onBlur={handle_list_blur}
         >
           {pinned_emails.length > 0 && (
             <>
@@ -888,6 +916,14 @@ export function EmptyState({
         icon_color: "text-txt-muted",
         title: t("mail.empty_snoozed_title"),
         subtitle: t("mail.empty_snoozed_subtitle"),
+      };
+    }
+    if (current_view === "all") {
+      return {
+        icon: EnvelopeIcon,
+        icon_color: "text-txt-muted",
+        title: t("mail.empty_all_title"),
+        subtitle: t("mail.empty_all_subtitle"),
       };
     }
     if (current_view.startsWith("folder-")) {

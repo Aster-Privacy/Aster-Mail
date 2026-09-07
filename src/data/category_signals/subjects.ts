@@ -148,3 +148,50 @@ export const SHOPPING_SUBJECT_PATTERNS: readonly RegExp[] = [
   /\bcoupon\b/i,
   /\bpromo\s+code\b/i,
 ];
+
+// Periodical editorial mail. These are shape signals (an issue number, a
+// digest cadence, a "read online" masthead) rather than topic words, so they
+// stay reliable across languages that borrow the English framing.
+export const NEWSLETTER_SUBJECT_PATTERNS: readonly RegExp[] = [
+  /\bnewsletter\b/i,
+  /\bissue\s*#?\s*\d+/i,
+  /\bvol(?:ume)?\.?\s*\d+\b/i,
+  /\bedition\b/i,
+  /\bdigest\b/i,
+  /\bround[\s-]?up\b/i,
+  /\brecap\b/i,
+  /\bbulletin\b/i,
+  /\bbriefing\b/i,
+  /\bdispatch\b/i,
+  /\bthis\s+(?:week|month|morning)\s+in\b/i,
+  /\b(?:weekly|monthly|daily)\s+(?:digest|update|roundup|read|edition|newsletter)\b/i,
+  /\byour\s+(?:weekly|monthly|daily)\b/i,
+  /\bnew\s+(?:post|story|article|episode)\s+(?:from|by)\b/i,
+  /\bnew\s+from\b/i,
+  /\bread\s+(?:online|in\s+(?:browser|app))\b/i,
+  /\bfrom\s+the\s+(?:editor|desk\s+of)\b/i,
+];
+
+// The purchase and payment lifecycle. Kept separate from UPDATES so a receipt
+// or a delivery notice never competes with a security alert for attention.
+export const TRANSACTIONS_SUBJECT_PATTERNS: readonly RegExp[] = [
+  /\border(?:\s*#|\s+(?:confirm|number|placed|update|received))/i,
+  /\byour\s+order\b/i,
+  /\breceipt\b/i,
+  /\binvoice\b/i,
+  /\bbill(?:ing)?\s+(?:statement|summary)\b/i,
+  /\bpayment\s+(?:received|sent|due|failed|confirm)/i,
+  /\bpaid\b/i,
+  /\bcharged\b/i,
+  /\brefund(?:ed)?\b/i,
+  /\bshipped\b/i,
+  /\bshipping\s+(?:confirm|update|notice)/i,
+  /\bout\s+for\s+delivery\b/i,
+  /\bdelivered\b/i,
+  /\btracking\s+(?:number|info|update)\b/i,
+  /\bpurchase\b/i,
+  /\bthanks?\s+for\s+your\s+(?:order|purchase|payment)\b/i,
+  /\bsubscription\s+(?:renew|charge|payment)/i,
+  /\breturn\s+(?:label|confirmation|received)\b/i,
+  /\bpre[\s-]?order\b/i,
+];

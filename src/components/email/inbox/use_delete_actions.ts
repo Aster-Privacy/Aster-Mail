@@ -180,6 +180,15 @@ export function use_delete_actions({
     [email_state.emails, remove_email, restore_emails, t],
   );
 
+  const is_threaded_email = useCallback(
+    (email: InboxEmail): boolean =>
+      !!email.thread_token &&
+      ((email.grouped_email_ids?.length ?? 0) > 1 ||
+        (preferences.conversation_grouping !== false &&
+          (email.thread_message_count ?? 0) > 1)),
+    [preferences.conversation_grouping],
+  );
+
   const run_move_to_trash = useCallback(
     async (ids: string[]): Promise<void> => {
       const selected_emails = email_state.emails.filter((e) =>
@@ -188,10 +197,20 @@ export function use_delete_actions({
       const result = await bulk_delete(ids);
       const succeeded_ids = bulk_succeeded_ids(result);
       const succeeded_set = new Set(succeeded_ids);
+      const succeeded_emails = selected_emails.filter((e) =>
+        succeeded_set.has(e.id),
+      );
+      const undo_thread_tokens = Array.from(
+        new Set(
+          succeeded_emails
+            .filter((e) => is_threaded_email(e))
+            .map((e) => e.thread_token as string),
+        ),
+      );
       const undo_ids = Array.from(
         new Set(
-          selected_emails
-            .filter((e) => succeeded_set.has(e.id))
+          succeeded_emails
+            .filter((e) => !is_threaded_email(e))
             .flatMap(expand_email_ids),
         ),
       );

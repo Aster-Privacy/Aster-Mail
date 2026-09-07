@@ -82,6 +82,7 @@ import {
   remove_ids as remove_index_ids,
   remove_thread_entries,
   reindex_ids,
+  set_ids_read,
 } from "@/services/category_index";
 
 const EMIT_UPDATED_MAX = 200;
@@ -490,11 +491,12 @@ export function use_inbox_toolbar_actions({
 
   const handle_toolbar_mark_read = useCallback(async (): Promise<void> => {
     if (is_drafts_view || is_scheduled_view) return;
-    const selected = email_state.emails.filter((e) => e.is_selected);
+    const selected = email_state.emails.filter(
+      (e) => e.is_selected && e.item_type !== "sent",
+    );
 
     if (selected.length === 0) return;
-    const has_unread = selected.some((e) => !e.is_read);
-    const new_state = has_unread;
+    const new_state = true;
     const unread_count_delta = conversation_read_delta(
       selected,
       new_state,
@@ -556,6 +558,18 @@ export function use_inbox_toolbar_actions({
       if (failed_delta !== 0) {
         adjust_stats_unread(-failed_delta);
       }
+    }
+
+    const succeeded_message_ids = Array.from(
+      new Set(
+        selected
+          .filter((email) => !failed_id_set.has(email.id))
+          .flatMap(expand_email_ids),
+      ),
+    );
+
+    if (succeeded_message_ids.length > 0) {
+      set_ids_read(succeeded_message_ids, new_state);
     }
 
     const result = bulk_action_result(
@@ -637,6 +651,18 @@ export function use_inbox_toolbar_actions({
       if (failed_delta !== 0) {
         adjust_stats_unread(-failed_delta);
       }
+    }
+
+    const succeeded_unread_ids = Array.from(
+      new Set(
+        selected
+          .filter((email) => !failed_id_set.has(email.id))
+          .flatMap(expand_email_ids),
+      ),
+    );
+
+    if (succeeded_unread_ids.length > 0) {
+      set_ids_read(succeeded_unread_ids, false);
     }
 
     show_bulk_result_toast({

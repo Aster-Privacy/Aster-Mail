@@ -130,7 +130,7 @@ export function build_context_menu_actions(
     const opened = window.open(
       `/email/${encodeURIComponent(email.id)}?popup=1`,
       "_blank",
-      `popup=yes,noopener,noreferrer,width=${width},height=${height},left=${left},top=${top}`,
+      `popup=yes,width=${width},height=${height},left=${left},top=${top}`,
     );
 
     if (!opened) {

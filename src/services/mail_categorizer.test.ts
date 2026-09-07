@@ -24,6 +24,8 @@ import { describe, it, expect } from "vitest";
 
 import { classify, is_locked_to_primary } from "./mail_categorizer";
 
+import { BUILTIN_CATEGORIES, fold_builtin } from "@/data/category_catalog";
+
 function make_envelope(
   overrides: Partial<DecryptedEnvelope> & {
     from: { name: string; email: string };
@@ -122,13 +124,13 @@ describe("classify", () => {
     expect(classify(envelope)).toBe("forums");
   });
 
-  it("classifies transactional receipts as updates", () => {
+  it("classifies transactional receipts as transactions", () => {
     const envelope = make_envelope({
       from: { name: "Acme Store", email: "receipts@acme.com" },
       subject: "Your order #12345 has shipped",
     });
 
-    expect(classify(envelope)).toBe("updates");
+    expect(classify(envelope)).toBe("transactions");
   });
 
   it("classifies bulk marketing as promotions", () => {
@@ -203,22 +205,22 @@ describe("classify", () => {
     expect(classify(envelope)).toBe("promotions");
   });
 
-  it("routes a transactional service notification to Updates", () => {
+  it("routes a delivery notification to Transactions", () => {
     const envelope = make_envelope({
       from: { name: "UPS", email: "no-reply@ups.com" },
       subject: "Your package was delivered",
     });
 
-    expect(classify(envelope)).toBe("updates");
+    expect(classify(envelope)).toBe("transactions");
   });
 
-  it("routes a receipt from a service domain with no bulk markers to Updates", () => {
+  it("routes a receipt from a service domain with no bulk markers to Transactions", () => {
     const envelope = make_envelope({
       from: { name: "Amazon", email: "auto-confirm@amazon.com" },
       subject: "Your order #112-9 has shipped",
     });
 
-    expect(classify(envelope)).toBe("updates");
+    expect(classify(envelope)).toBe("transactions");
   });
 
   it("keeps a personal note from a service-domain address in Primary", () => {
@@ -249,5 +251,69 @@ describe("classify", () => {
     });
 
     expect(classify(envelope)).toBe("primary");
+  });
+  it("keeps a tagged mailing-list digest in Forums", () => {
+    const envelope = make_envelope({
+      from: { name: "Dev List", email: "announce@example.org" },
+      subject: "[dev] weekly digest",
+      raw_headers: [{ name: "List-Id", value: "<dev.example.org>" }],
+    });
+
+    expect(classify(envelope)).toBe("forums");
+  });
+
+  it("keeps a postable discussion list in Forums", () => {
+    const envelope = make_envelope({
+      from: { name: "Rust Users", email: "announce@example.org" },
+      subject: "Weekly roundup",
+      raw_headers: [
+        { name: "List-Id", value: "<users.example.org>" },
+        { name: "List-Post", value: "<mailto:users@example.org>" },
+      ],
+    });
+
+    expect(classify(envelope)).toBe("forums");
+  });
+
+  it("keeps a discussion-shaped localpart in Forums", () => {
+    const envelope = make_envelope({
+      from: { name: "Group", email: "discuss@example.org" },
+      subject: "Monthly digest",
+      raw_headers: [{ name: "List-Id", value: "<discuss.example.org>" }],
+    });
+
+    expect(classify(envelope)).toBe("forums");
+  });
+
+  it("still routes an editorial send to Newsletters", () => {
+    const envelope = make_envelope({
+      from: { name: "The Daily", email: "editor@example.org" },
+      subject: "Issue #42",
+      raw_headers: [
+        { name: "List-Id", value: "<thedaily.example.org>" },
+        { name: "List-Unsubscribe", value: "<mailto:u@example.org>" },
+      ],
+    });
+
+    expect(classify(envelope)).toBe("newsletters");
+  });
+});
+
+describe("category folding", () => {
+  it("folds Transactions back into Updates", () => {
+    expect(fold_builtin("transactions")).toBe("updates");
+  });
+
+  it("folds Newsletters back into Promotions", () => {
+    expect(fold_builtin("newsletters")).toBe("promotions");
+  });
+
+  it("leaves both new tabs off by default", () => {
+    expect(
+      BUILTIN_CATEGORIES.find((c) => c.id === "transactions")?.default_enabled,
+    ).toBe(false);
+    expect(
+      BUILTIN_CATEGORIES.find((c) => c.id === "newsletters")?.default_enabled,
+    ).toBe(false);
   });
 });

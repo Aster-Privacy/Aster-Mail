@@ -91,7 +91,7 @@ describe("EmptyState load error variant", () => {
     );
 
     expect(el.textContent).toContain("errors.connection_failed");
-    expect(el.textContent).not.toContain("mail.no_messages");
+    expect(el.textContent).not.toContain("mail.empty_all_title");
 
     const button = el.querySelector("button")!;
 
@@ -107,7 +107,7 @@ describe("EmptyState load error variant", () => {
       <EmptyState current_view="all" user_email="user@example.com" />,
     );
 
-    expect(el.textContent).toContain("mail.no_messages");
+    expect(el.textContent).toContain("mail.empty_all_title");
     expect(el.textContent).not.toContain("errors.connection_failed");
   });
 });

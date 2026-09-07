@@ -272,6 +272,7 @@ export function use_email_inbox_state(props: EmailInboxProps) {
     emails: filtered_emails,
     update_email,
     t,
+    custom_categories: preferences.custom_categories,
   });
 
   const skeleton_pending =
