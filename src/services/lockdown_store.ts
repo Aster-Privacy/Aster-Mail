@@ -20,6 +20,12 @@
 //
 import { get_lockdown_status } from "@/services/api/lockdown";
 import { apply_desktop_content_protection } from "@/native/desktop_content_protection";
+import {
+  safe_local_get,
+  safe_local_keys,
+  safe_local_remove,
+  safe_local_set,
+} from "@/lib/safe_storage";
 
 const LS_KEY = (account_id: string) => `aster:lockdown:${account_id}`;
 
@@ -31,7 +37,7 @@ export function is_lockdown_enabled(account_id: string): boolean {
   if (!account_id) return false;
   if (lockdown_state.has(account_id)) return lockdown_state.get(account_id)!;
 
-  return localStorage.getItem(LS_KEY(account_id)) === "1";
+  return safe_local_get(LS_KEY(account_id)) === "1";
 }
 
 export function set_lockdown_enabled(
@@ -40,9 +46,9 @@ export function set_lockdown_enabled(
 ): void {
   lockdown_state.set(account_id, enabled);
   if (enabled) {
-    localStorage.setItem(LS_KEY(account_id), "1");
+    safe_local_set(LS_KEY(account_id), "1");
   } else {
-    localStorage.removeItem(LS_KEY(account_id));
+    safe_local_remove(LS_KEY(account_id));
   }
   window.dispatchEvent(
     new CustomEvent(LOCKDOWN_CHANGED_EVENT, {
@@ -56,13 +62,8 @@ export function is_any_lockdown_active(): boolean {
   for (const [, enabled] of lockdown_state) {
     if (enabled) return true;
   }
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
-
-    if (
-      key?.startsWith("aster:lockdown:") &&
-      localStorage.getItem(key) === "1"
-    ) {
+  for (const key of safe_local_keys()) {
+    if (key.startsWith("aster:lockdown:") && safe_local_get(key) === "1") {
       return true;
     }
   }
@@ -80,7 +81,7 @@ export async function init_lockdown_from_server(
 
     return response.data.enabled;
   }
-  const cached = localStorage.getItem(LS_KEY(account_id));
+  const cached = safe_local_get(LS_KEY(account_id));
 
   if (cached === null && !lockdown_state.has(account_id)) {
     setTimeout(() => init_lockdown_from_server(account_id), 5000);

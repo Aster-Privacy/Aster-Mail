@@ -20,6 +20,16 @@
 //
 import { ignore_error } from "@/lib/ignore_error";
 
+export function safe_local_get(key: string): string | null {
+  try {
+    return localStorage.getItem(key);
+  } catch (caught) {
+    ignore_error("lib/safe_storage:safe_local_get", caught);
+
+    return null;
+  }
+}
+
 export function safe_local_set(key: string, value: string): boolean {
   try {
     localStorage.setItem(key, value);
@@ -37,5 +47,71 @@ export function safe_local_remove(key: string): void {
     localStorage.removeItem(key);
   } catch (caught) {
     ignore_error("lib/safe_storage:safe_local_remove", caught);
+  }
+}
+
+export function safe_local_keys(): string[] {
+  try {
+    const keys: string[] = [];
+
+    for (let index = 0; index < localStorage.length; index += 1) {
+      const key = localStorage.key(index);
+
+      if (key !== null) keys.push(key);
+    }
+
+    return keys;
+  } catch (caught) {
+    ignore_error("lib/safe_storage:safe_local_keys", caught);
+
+    return [];
+  }
+}
+
+export function safe_session_keys(): string[] {
+  try {
+    const keys: string[] = [];
+
+    for (let index = 0; index < sessionStorage.length; index += 1) {
+      const key = sessionStorage.key(index);
+
+      if (key !== null) keys.push(key);
+    }
+
+    return keys;
+  } catch (caught) {
+    ignore_error("lib/safe_storage:safe_session_keys", caught);
+
+    return [];
+  }
+}
+
+export function safe_session_get(key: string): string | null {
+  try {
+    return sessionStorage.getItem(key);
+  } catch (caught) {
+    ignore_error("lib/safe_storage:safe_session_get", caught);
+
+    return null;
+  }
+}
+
+export function safe_session_set(key: string, value: string): boolean {
+  try {
+    sessionStorage.setItem(key, value);
+
+    return true;
+  } catch (caught) {
+    ignore_error("lib/safe_storage:safe_session_set", caught);
+
+    return false;
+  }
+}
+
+export function safe_session_remove(key: string): void {
+  try {
+    sessionStorage.removeItem(key);
+  } catch (caught) {
+    ignore_error("lib/safe_storage:safe_session_remove", caught);
   }
 }

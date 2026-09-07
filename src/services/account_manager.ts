@@ -26,6 +26,12 @@ import { api_client } from "@/services/api/client";
 import { write_account_index_hint } from "@/lib/account_index_url";
 import { get_active_translations } from "@/lib/i18n/translations";
 import { ignore_error } from "@/lib/ignore_error";
+import {
+  safe_local_get,
+  safe_local_keys,
+  safe_local_remove,
+  safe_local_set,
+} from "@/lib/safe_storage";
 
 async function clear_offline_email_cache(): Promise<void> {
   try {
@@ -141,20 +147,20 @@ function adopt_session_roster(data: AccountsData): boolean {
 
 async function migrate_from_plaintext(): Promise<AccountsData | null> {
   try {
-    const legacy_stored = localStorage.getItem(LEGACY_ACCOUNTS_KEY);
+    const legacy_stored = safe_local_get(LEGACY_ACCOUNTS_KEY);
 
     if (legacy_stored) {
       const data = JSON.parse(legacy_stored) as AccountsData;
 
       if (data && Array.isArray(data.accounts)) {
         await device_store(ACCOUNTS_KEY, data);
-        localStorage.removeItem(LEGACY_ACCOUNTS_KEY);
+        safe_local_remove(LEGACY_ACCOUNTS_KEY);
 
         return data;
       }
     }
   } catch {
-    localStorage.removeItem(LEGACY_ACCOUNTS_KEY);
+    safe_local_remove(LEGACY_ACCOUNTS_KEY);
   }
 
   return null;
@@ -208,9 +214,9 @@ async function get_accounts_data_async(): Promise<AccountsData> {
     }
 
     load_failure =
-      localStorage.getItem(ACCOUNTS_KEY) !== null ? "undecryptable" : "none";
+      safe_local_get(ACCOUNTS_KEY) !== null ? "undecryptable" : "none";
   } catch (e) {
-    if (localStorage.getItem(ACCOUNTS_KEY) === null) {
+    if (safe_local_get(ACCOUNTS_KEY) === null) {
       load_failure = "none";
     } else {
       load_failure = is_undecryptable_error(e) ? "undecryptable" : "unavailable";
@@ -246,11 +252,7 @@ export function accounts_storage_failure(): RosterLoadFailure {
 }
 
 export async function reset_accounts_storage(): Promise<void> {
-  try {
-    localStorage.removeItem(ACCOUNTS_KEY);
-  } catch (caught) {
-    ignore_error("services/account_manager:reset_accounts_storage", caught);
-  }
+  safe_local_remove(ACCOUNTS_KEY);
 
   cached_data = null;
   session_roster = null;
@@ -297,20 +299,20 @@ async function save_accounts_data(data: AccountsData): Promise<void> {
 }
 
 function migrate_legacy_storage(): StoredAccount | null {
-  const legacy_user = localStorage.getItem("user");
+  const legacy_user = safe_local_get("user");
 
-  localStorage.removeItem("vault");
-  localStorage.removeItem("astermail_accounts");
-  localStorage.removeItem("astermail_accounts_v2");
-  localStorage.removeItem("astermail_accounts_v3");
-  localStorage.removeItem("astermail_accounts_v4");
-  localStorage.removeItem("auth_token");
+  safe_local_remove("vault");
+  safe_local_remove("astermail_accounts");
+  safe_local_remove("astermail_accounts_v2");
+  safe_local_remove("astermail_accounts_v3");
+  safe_local_remove("astermail_accounts_v4");
+  safe_local_remove("auth_token");
 
   if (legacy_user) {
     try {
       const user = JSON.parse(legacy_user) as User;
 
-      localStorage.removeItem("user");
+      safe_local_remove("user");
 
       return {
         id: user.id,
@@ -318,7 +320,7 @@ function migrate_legacy_storage(): StoredAccount | null {
         added_at: Date.now(),
       };
     } catch {
-      localStorage.removeItem("user");
+      safe_local_remove("user");
     }
   }
 
@@ -434,12 +436,8 @@ export async function set_account_plan_flag(
 }
 
 export async function repair_stale_plan_flags(): Promise<boolean> {
-  try {
-    if (localStorage.getItem(PLAN_FLAG_REPAIR_KEY) === "1") return false;
-    localStorage.setItem(PLAN_FLAG_REPAIR_KEY, "1");
-  } catch {
-    return false;
-  }
+  if (safe_local_get(PLAN_FLAG_REPAIR_KEY) === "1") return false;
+  if (!safe_local_set(PLAN_FLAG_REPAIR_KEY, "1")) return false;
 
   const data = await get_accounts_data_async();
   let changed = false;
@@ -563,11 +561,7 @@ const ACCOUNT_SCOPED_LOCAL_KEYS: readonly string[] = [
 
 function clear_account_scoped_local_keys(): void {
   for (const key of ACCOUNT_SCOPED_LOCAL_KEYS) {
-    try {
-      localStorage.removeItem(key);
-    } catch {
-      return;
-    }
+    safe_local_remove(key);
   }
 }
 
@@ -579,6 +573,18 @@ async function clear_account_scoped_preferences_cache(): Promise<void> {
     );
 
     clear_preferences_cache();
+  } catch {
+    return;
+  }
+}
+
+async function clear_account_scoped_contact_index(): Promise<void> {
+  try {
+    const { invalidate_contact_email_index } = await import(
+      "@/services/contact_email_index"
+    );
+
+    invalidate_contact_email_index();
   } catch {
     return;
   }
@@ -596,6 +602,7 @@ export async function switch_account(
   await save_accounts_data(data);
   await clear_offline_email_cache();
   await clear_account_scoped_preferences_cache();
+  await clear_account_scoped_contact_index();
 
   return account;
 }
@@ -626,6 +633,7 @@ export async function remove_account(
   await save_accounts_data(data);
   await clear_offline_email_cache();
   await clear_account_scoped_preferences_cache();
+  await clear_account_scoped_contact_index();
 
   return { removed: true, switched_to };
 }
@@ -693,15 +701,15 @@ export async function update_account_user(
 export async function logout_all(): Promise<void> {
   cached_data = null;
   storage_initialized = false;
-  localStorage.removeItem(ACCOUNTS_KEY);
-  localStorage.removeItem(LEGACY_ACCOUNTS_KEY);
-  localStorage.removeItem("user");
-  localStorage.removeItem("vault");
-  localStorage.removeItem("auth_token");
-  localStorage.removeItem("astermail_accounts");
-  localStorage.removeItem("astermail_accounts_v2");
-  localStorage.removeItem("astermail_accounts_v3");
-  localStorage.removeItem("astermail_accounts_v4");
+  safe_local_remove(ACCOUNTS_KEY);
+  safe_local_remove(LEGACY_ACCOUNTS_KEY);
+  safe_local_remove("user");
+  safe_local_remove("vault");
+  safe_local_remove("auth_token");
+  safe_local_remove("astermail_accounts");
+  safe_local_remove("astermail_accounts_v2");
+  safe_local_remove("astermail_accounts_v3");
+  safe_local_remove("astermail_accounts_v4");
   try {
     sessionStorage.clear();
   } catch (caught) {
@@ -735,19 +743,11 @@ export async function reload_accounts_from_storage(): Promise<void> {
 }
 
 export function clear_all_switch_tokens(): void {
-  const keys_to_remove: string[] = [];
+  const keys_to_remove = safe_local_keys().filter(
+    (key) =>
+      key.startsWith(SWITCH_TOKEN_KEY_PREFIX) ||
+      key.startsWith(SWITCH_TOKEN_EXPIRY_KEY_PREFIX),
+  );
 
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
-
-    if (
-      key &&
-      (key.startsWith(SWITCH_TOKEN_KEY_PREFIX) ||
-        key.startsWith(SWITCH_TOKEN_EXPIRY_KEY_PREFIX))
-    ) {
-      keys_to_remove.push(key);
-    }
-  }
-
-  keys_to_remove.forEach((key) => localStorage.removeItem(key));
+  keys_to_remove.forEach((key) => safe_local_remove(key));
 }

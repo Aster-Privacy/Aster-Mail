@@ -32,6 +32,12 @@ import {
   check_session_expired,
   clear_session_timeout_data,
 } from "@/services/session_timeout_service";
+import {
+  safe_local_get,
+  safe_local_keys,
+  safe_local_remove,
+  safe_local_set,
+} from "@/lib/safe_storage";
 
 const ENCRYPTED_VAULT_KEY_PREFIX = "astermail_encrypted_vault_";
 const VAULT_NONCE_KEY_PREFIX = "astermail_vault_nonce_";
@@ -46,12 +52,12 @@ export function store_encrypted_vault(
   encrypted_vault: string,
   vault_nonce: string,
 ): void {
-  localStorage.setItem(
+  safe_local_set(
     ENCRYPTED_VAULT_KEY_PREFIX + account_id,
     encrypted_vault,
   );
-  localStorage.setItem(VAULT_NONCE_KEY_PREFIX + account_id, vault_nonce);
-  localStorage.setItem(
+  safe_local_set(VAULT_NONCE_KEY_PREFIX + account_id, vault_nonce);
+  safe_local_set(
     SESSION_TIMESTAMP_KEY_PREFIX + account_id,
     Date.now().toString(),
   );
@@ -68,10 +74,10 @@ export function get_stored_encrypted_vault(account_id: string): {
     return null;
   }
 
-  const encrypted_vault = localStorage.getItem(
+  const encrypted_vault = safe_local_get(
     ENCRYPTED_VAULT_KEY_PREFIX + account_id,
   );
-  const vault_nonce = localStorage.getItem(VAULT_NONCE_KEY_PREFIX + account_id);
+  const vault_nonce = safe_local_get(VAULT_NONCE_KEY_PREFIX + account_id);
 
   return encrypted_vault && vault_nonce
     ? { encrypted_vault, vault_nonce }
@@ -79,9 +85,9 @@ export function get_stored_encrypted_vault(account_id: string): {
 }
 
 export function clear_stored_encrypted_vault(account_id: string): void {
-  localStorage.removeItem(ENCRYPTED_VAULT_KEY_PREFIX + account_id);
-  localStorage.removeItem(VAULT_NONCE_KEY_PREFIX + account_id);
-  localStorage.removeItem(SESSION_TIMESTAMP_KEY_PREFIX + account_id);
+  safe_local_remove(ENCRYPTED_VAULT_KEY_PREFIX + account_id);
+  safe_local_remove(VAULT_NONCE_KEY_PREFIX + account_id);
+  safe_local_remove(SESSION_TIMESTAMP_KEY_PREFIX + account_id);
 }
 
 export async function store_session_passphrase(
@@ -103,17 +109,17 @@ export async function store_session_passphrase(
   );
   const iv_base64 = btoa(String.fromCharCode(...iv));
 
-  localStorage.setItem(
+  safe_local_set(
     SESSION_PASSPHRASE_KEY_PREFIX + account_id,
     encrypted_base64,
   );
-  localStorage.setItem(
+  safe_local_set(
     SESSION_PASSPHRASE_IV_KEY_PREFIX + account_id,
     iv_base64,
   );
 
-  localStorage.removeItem(LEGACY_SESSION_PASSPHRASE_FB_KEY_PREFIX + account_id);
-  localStorage.removeItem(
+  safe_local_remove(LEGACY_SESSION_PASSPHRASE_FB_KEY_PREFIX + account_id);
+  safe_local_remove(
     LEGACY_SESSION_PASSPHRASE_FB_IV_KEY_PREFIX + account_id,
   );
 }
@@ -125,16 +131,16 @@ export function has_stored_session_passphrase(account_id: string): boolean {
     }
 
     const has_current =
-      localStorage.getItem(SESSION_PASSPHRASE_KEY_PREFIX + account_id) !==
+      safe_local_get(SESSION_PASSPHRASE_KEY_PREFIX + account_id) !==
         null &&
-      localStorage.getItem(SESSION_PASSPHRASE_IV_KEY_PREFIX + account_id) !==
+      safe_local_get(SESSION_PASSPHRASE_IV_KEY_PREFIX + account_id) !==
         null;
 
     const has_legacy =
-      localStorage.getItem(
+      safe_local_get(
         LEGACY_SESSION_PASSPHRASE_FB_KEY_PREFIX + account_id,
       ) !== null &&
-      localStorage.getItem(
+      safe_local_get(
         LEGACY_SESSION_PASSPHRASE_FB_IV_KEY_PREFIX + account_id,
       ) !== null;
 
@@ -147,10 +153,10 @@ export function has_stored_session_passphrase(account_id: string): boolean {
 export async function get_session_passphrase(
   account_id: string,
 ): Promise<string | null> {
-  const encrypted_base64 = localStorage.getItem(
+  const encrypted_base64 = safe_local_get(
     SESSION_PASSPHRASE_KEY_PREFIX + account_id,
   );
-  const iv_base64 = localStorage.getItem(
+  const iv_base64 = safe_local_get(
     SESSION_PASSPHRASE_IV_KEY_PREFIX + account_id,
   );
 
@@ -170,8 +176,8 @@ export async function get_session_passphrase(
       }
     } catch (err) {
       if (err instanceof RequiresReauthError) {
-        localStorage.removeItem(SESSION_PASSPHRASE_KEY_PREFIX + account_id);
-        localStorage.removeItem(SESSION_PASSPHRASE_IV_KEY_PREFIX + account_id);
+        safe_local_remove(SESSION_PASSPHRASE_KEY_PREFIX + account_id);
+        safe_local_remove(SESSION_PASSPHRASE_IV_KEY_PREFIX + account_id);
         throw err;
       }
 
@@ -204,34 +210,26 @@ export async function get_session_passphrase(
 export async function clear_session_passphrase(
   account_id: string,
 ): Promise<void> {
-  localStorage.removeItem(SESSION_PASSPHRASE_KEY_PREFIX + account_id);
-  localStorage.removeItem(SESSION_PASSPHRASE_IV_KEY_PREFIX + account_id);
-  localStorage.removeItem(LEGACY_SESSION_PASSPHRASE_FB_KEY_PREFIX + account_id);
-  localStorage.removeItem(
+  safe_local_remove(SESSION_PASSPHRASE_KEY_PREFIX + account_id);
+  safe_local_remove(SESSION_PASSPHRASE_IV_KEY_PREFIX + account_id);
+  safe_local_remove(LEGACY_SESSION_PASSPHRASE_FB_KEY_PREFIX + account_id);
+  safe_local_remove(
     LEGACY_SESSION_PASSPHRASE_FB_IV_KEY_PREFIX + account_id,
   );
 }
 
 export async function clear_all_session_passphrases(): Promise<void> {
-  const keys_to_remove: string[] = [];
+  const keys_to_remove = safe_local_keys().filter(
+    (key) =>
+      key.startsWith(SESSION_PASSPHRASE_KEY_PREFIX) ||
+      key.startsWith(SESSION_PASSPHRASE_IV_KEY_PREFIX) ||
+      key.startsWith(ENCRYPTED_VAULT_KEY_PREFIX) ||
+      key.startsWith(VAULT_NONCE_KEY_PREFIX) ||
+      key.startsWith(SESSION_TIMESTAMP_KEY_PREFIX) ||
+      key.startsWith(LEGACY_SESSION_PASSPHRASE_FB_KEY_PREFIX) ||
+      key.startsWith(LEGACY_SESSION_PASSPHRASE_FB_IV_KEY_PREFIX),
+  );
 
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
-
-    if (
-      key &&
-      (key.startsWith(SESSION_PASSPHRASE_KEY_PREFIX) ||
-        key.startsWith(SESSION_PASSPHRASE_IV_KEY_PREFIX) ||
-        key.startsWith(ENCRYPTED_VAULT_KEY_PREFIX) ||
-        key.startsWith(VAULT_NONCE_KEY_PREFIX) ||
-        key.startsWith(SESSION_TIMESTAMP_KEY_PREFIX) ||
-        key.startsWith(LEGACY_SESSION_PASSPHRASE_FB_KEY_PREFIX) ||
-        key.startsWith(LEGACY_SESSION_PASSPHRASE_FB_IV_KEY_PREFIX))
-    ) {
-      keys_to_remove.push(key);
-    }
-  }
-
-  keys_to_remove.forEach((key) => localStorage.removeItem(key));
+  keys_to_remove.forEach((key) => safe_local_remove(key));
   await clear_session_key();
 }
