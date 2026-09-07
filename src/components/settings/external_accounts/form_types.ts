@@ -27,6 +27,7 @@ import type {
   TlsMethod,
   UseExternalAccountsReturn,
 } from "@/components/settings/hooks/use_external_accounts";
+import type { ProviderPreset } from "@/components/settings/external_accounts/provider_presets";
 
 export interface AddAccountFormProps {
   editing_account: DecryptedExternalAccount | null;
@@ -88,6 +89,7 @@ export interface AddAccountFormProps {
   retry_prefill: () => void;
   handle_protocol_change: (protocol: "imap" | "pop3") => void;
   handle_email_change: (email: string) => void;
+  active_preset: ProviderPreset | null;
   handle_host_change: (value: string) => void;
   handle_port_change: (value: string) => void;
   handle_username_change: (value: string) => void;

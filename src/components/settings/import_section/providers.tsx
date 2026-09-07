@@ -26,10 +26,9 @@ import { type ImportSource } from "@/services/api/email_import";
 
 export type OAuthProvider = "google" | "microsoft" | "yahoo";
 
-export const OAUTH_PROVIDERS: Set<string> = new Set(["gmail", "outlook"]);
+export const OAUTH_PROVIDERS: Set<string> = new Set(["outlook"]);
 
 export const PROVIDER_TO_OAUTH: Record<string, OAuthProvider> = {
-  gmail: "google",
   outlook: "microsoft",
 };
 

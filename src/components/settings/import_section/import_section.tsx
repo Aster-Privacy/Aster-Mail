@@ -33,6 +33,7 @@ import {
   type ConnectProvider,
 } from "../connect_provider_modal";
 
+import { GmailSyncModal } from "./gmail_sync_modal";
 import { ConnectedAccountCard } from "./connected_account";
 import { ImportJobCard } from "./job_card";
 import { OAUTH_PROVIDERS, PROVIDERS, PROVIDER_TO_OAUTH } from "./providers";
@@ -96,6 +97,7 @@ export function ImportSection() {
   const [recent_jobs, set_recent_jobs] = useState<ImportJob[]>([]);
   const [is_loading_jobs, set_is_loading_jobs] = useState(true);
   const [oauth_loading, set_oauth_loading] = useState<string | null>(null);
+  const [gmail_sync_open, set_gmail_sync_open] = useState(false);
   const [connect_provider, set_connect_provider] =
     useState<ConnectProvider | null>(null);
   const [connected_accounts, set_connected_accounts] = useState<
@@ -831,14 +833,18 @@ export function ImportSection() {
         />
       )}
 
-      {(is_loading_accounts || connected_accounts.length > 0) && (
+      {is_loading_accounts && (
+        <div aria-hidden="true">
+          <div className="mb-2 h-3 w-40 animate-pulse rounded bg-surf-secondary" />
+          <div className="h-16 animate-pulse rounded-xl border border-edge-secondary bg-surf-secondary" />
+        </div>
+      )}
+
+      {!is_loading_accounts && connected_accounts.length > 0 && (
         <div>
           <h4 className="text-xs font-semibold uppercase tracking-wide text-txt-muted mb-2">
             {t("settings.connected_accounts_title")}
           </h4>
-          {is_loading_accounts ? (
-            <div className="rounded-xl border border-edge-secondary bg-surf-secondary h-16 animate-pulse" />
-          ) : null}
           <div className="space-y-2">
             {connected_accounts.map((account) => (
               <ConnectedAccountCard
@@ -881,9 +887,16 @@ export function ImportSection() {
       {/* Import options */}
       <div>
         <h4 className="text-xs font-semibold uppercase tracking-wide text-txt-muted mb-2">
-          {!is_loading_accounts && connected_accounts.length > 0
-            ? t("settings.import_add_another")
-            : t("settings.import_choose_source")}
+          {is_loading_accounts ? (
+            <span
+              aria-hidden="true"
+              className="block h-3 w-32 animate-pulse rounded bg-surf-secondary"
+            />
+          ) : connected_accounts.length > 0 ? (
+            t("settings.import_add_another")
+          ) : (
+            t("settings.import_choose_source")
+          )}
         </h4>
         <div className="space-y-2">
           {PROVIDERS.map((provider) => {
@@ -895,47 +908,64 @@ export function ImportSection() {
             return (
               <div
                 key={provider.id}
-                className="flex items-center gap-3 px-4 py-3 rounded-xl border bg-surf-secondary border-edge-secondary"
+                className="flex flex-col gap-2 px-4 py-3 rounded-xl border bg-surf-secondary border-edge-secondary"
               >
-                <div className="flex-shrink-0 w-6 flex items-center justify-center">
-                  {provider.icon}
-                </div>
-                <span className="flex-1 min-w-0 truncate text-sm font-medium text-txt-primary">
-                  {t(provider.label_key)}
-                </span>
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  {is_oauth && (
-                    <Button
-                      disabled={any_loading}
-                      size="sm"
-                      variant="depth"
-                      onClick={() => {
-                        const mapped = PROVIDER_TO_OAUTH[provider.id];
+                <div className="flex items-center gap-3">
+                  <div className="flex-shrink-0 w-6 flex items-center justify-center">
+                    {provider.icon}
+                  </div>
+                  <span className="flex-1 min-w-0 truncate text-sm font-medium text-txt-primary">
+                    {t(provider.label_key)}
+                  </span>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    {is_oauth && (
+                      <Button
+                        disabled={any_loading}
+                        size="sm"
+                        variant="depth"
+                        onClick={() => {
+                          const mapped = PROVIDER_TO_OAUTH[provider.id];
 
-                        if (mapped) {
-                          set_oauth_loading(provider.id);
-                          set_connect_provider(mapped);
-                        }
-                      }}
+                          if (mapped) {
+                            set_oauth_loading(provider.id);
+                            set_connect_provider(mapped);
+                          }
+                        }}
+                      >
+                        {is_loading ? (
+                          <span className="flex items-center gap-1.5">
+                            {t("settings.import_oauth_button")}
+                            <Spinner className="text-current" size="sm" />
+                          </span>
+                        ) : (
+                          t("settings.import_oauth_button")
+                        )}
+                      </Button>
+                    )}
+                    {provider.id === "gmail" && (
+                      <Button
+                        disabled={any_loading}
+                        size="sm"
+                        variant="depth"
+                        onClick={() => set_gmail_sync_open(true)}
+                      >
+                        {t("settings.gmail_sync_setup_button")}
+                      </Button>
+                    )}
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => set_selected_provider(provider.id)}
                     >
-                      {is_loading ? (
-                        <span className="flex items-center gap-1.5">
-                          {t("settings.import_oauth_button")}
-                          <Spinner className="text-current" size="sm" />
-                        </span>
-                      ) : (
-                        t("settings.import_oauth_button")
-                      )}
+                      {t("settings.import_manual_button")}
                     </Button>
-                  )}
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => set_selected_provider(provider.id)}
-                  >
-                    {t("settings.import_manual_button")}
-                  </Button>
+                  </div>
                 </div>
+                {provider.id === "gmail" && (
+                  <p className="text-xs text-txt-muted">
+                    {t("settings.gmail_app_password_notice")}
+                  </p>
+                )}
               </div>
             );
           })}
@@ -996,6 +1026,11 @@ export function ImportSection() {
           </div>
         </div>
       </div>
+
+      <GmailSyncModal
+        is_open={gmail_sync_open}
+        on_close={() => set_gmail_sync_open(false)}
+      />
 
       <ImportModal
         is_open={selected_provider !== null}

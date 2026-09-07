@@ -42,9 +42,7 @@ import type { DecryptedExternalAccount } from "@/services/api/external_accounts"
 
 const t = ((key: string) => key) as never;
 
-function make_account(
-  protocol: string,
-): DecryptedExternalAccount {
+function make_account(protocol: string): DecryptedExternalAccount {
   return {
     id: "acct-1",
     account_token: "token-1",
@@ -93,6 +91,7 @@ describe("connected account re-authorization messages", () => {
         />,
       );
     });
+
     return container.textContent ?? "";
   }
 
@@ -100,6 +99,7 @@ describe("connected account re-authorization messages", () => {
     act(() => {
       root.render(<SyncHealthDot account={make_account(protocol)} t={t} />);
     });
+
     return container.querySelector("[role=status]")?.getAttribute("aria-label");
   }
 

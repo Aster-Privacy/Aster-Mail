@@ -22,7 +22,6 @@ import type { DecryptedExternalAccount } from "@/services/api/external_accounts"
 import type { UseExternalAccountsReturn } from "@/components/settings/hooks/use_external_accounts";
 
 import {
-  ArrowPathIcon,
   CheckCircleIcon,
   XCircleIcon,
   ChevronDownIcon,
@@ -30,6 +29,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { Tooltip } from "@aster/ui";
 
+import { Spinner } from "@/components/ui/spinner";
 import {
   get_sync_progress_state,
   is_syncing as check_is_syncing,
@@ -50,12 +50,12 @@ export function SyncHealthDot({ account, t }: SyncHealthDotProps) {
       account.protocol === "oauth_imap"
         ? t("settings.connected_accounts_reauth_needed")
         : t("settings.connected_accounts_password_reauth_needed");
-  } else if (account.last_sync_status === "success") {
-    dot_color = "rgb(34, 197, 94)";
-    dot_label = t("common.last_sync_successful");
   } else if (account.last_sync_status === "error") {
     dot_color = "rgb(239, 68, 68)";
     dot_label = t("common.last_sync_failed");
+  } else if (account.last_sync_at) {
+    dot_color = "rgb(34, 197, 94)";
+    dot_label = t("common.last_sync_successful");
   }
 
   return (
@@ -113,10 +113,20 @@ export function SyncStatusIndicator({
     }
 
     return (
-      <div className="flex flex-col gap-1 min-w-0" role="status">
-        <span className="flex items-center gap-1 text-[11px] text-txt-muted">
-          <ArrowPathIcon className="w-3 h-3 animate-spin flex-shrink-0" />
+      <div
+        aria-live="polite"
+        className="flex flex-col gap-1 min-w-0 w-full max-w-[220px]"
+        role="status"
+      >
+        <span
+          className="flex items-center gap-1 text-[11px] font-medium"
+          style={{ color: "var(--accent-color)" }}
+        >
+          <Spinner className="flex-shrink-0" size="xs" />
           <span className="truncate">{label}</span>
+          {has_progress && (
+            <span className="flex-shrink-0 tabular-nums">{percent}%</span>
+          )}
         </span>
         <div className="w-full h-1 rounded-full overflow-hidden bg-edge-secondary">
           {has_progress ? (
@@ -181,18 +191,6 @@ export function SyncStatusIndicator({
     );
   }
 
-  if (account.last_sync_status === "success" && account.last_sync_at) {
-    return (
-      <span
-        className="flex items-center gap-1 text-[11px]"
-        style={{ color: "rgb(34, 197, 94)" }}
-      >
-        <CheckCircleIcon className="w-3 h-3" />
-        {format_sync_time(account.last_sync_at)}
-      </span>
-    );
-  }
-
   if (account.last_sync_status === "quota_exceeded" && account.last_sync_at) {
     return (
       <span
@@ -205,10 +203,25 @@ export function SyncStatusIndicator({
     );
   }
 
+  if (account.last_sync_at) {
+    return (
+      <Tooltip tip={t("settings.last_sync_tooltip")}>
+        <span
+          className="flex items-center gap-1 text-[11px]"
+          style={{ color: "rgb(34, 197, 94)" }}
+        >
+          <CheckCircleIcon className="w-3 h-3" />
+          {format_sync_time(account.last_sync_at)}
+        </span>
+      </Tooltip>
+    );
+  }
+
   return (
-    <span className="flex items-center gap-1 text-[11px] text-txt-muted">
-      <span className="inline-block w-1.5 h-1.5 rounded-full bg-[var(--text-muted)]" />
-      {t("settings.not_synced")}
-    </span>
+    <Tooltip tip={t("settings.not_synced_tooltip")}>
+      <span className="flex items-center gap-1 text-[11px] text-txt-muted">
+        {t("settings.not_synced")}
+      </span>
+    </Tooltip>
   );
 }

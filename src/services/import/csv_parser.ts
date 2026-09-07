@@ -126,7 +126,9 @@ function parse_csv_records(content: string, delimiter: string): string[][] {
   return records.filter((r) => r.some((field) => field.trim().length > 0));
 }
 
-function parse_csv(content: string): CsvRow[] {
+function parse_csv(raw_content: string): CsvRow[] {
+  const content =
+    raw_content.charCodeAt(0) === 0xfeff ? raw_content.slice(1) : raw_content;
   const records = parse_csv_records(content, detect_delimiter(content));
 
   if (records.length < 2) return [];
