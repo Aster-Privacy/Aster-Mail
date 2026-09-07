@@ -41,6 +41,7 @@ import { use_i18n } from "@/lib/i18n/context";
 
 interface InboxDialogsProps {
   current_view: string;
+  selected_count: number;
   confirmations: ConfirmationDialogState;
   dont_ask_delete: boolean;
   set_dont_ask_delete: (v: boolean) => void;
@@ -86,6 +87,7 @@ interface InboxDialogsProps {
 
 export function InboxDialogs({
   current_view,
+  selected_count,
   confirmations,
   dont_ask_delete,
   set_dont_ask_delete,
@@ -149,7 +151,11 @@ export function InboxDialogs({
         on_confirm={confirm_delete}
         on_dont_ask_change={set_dont_ask_delete}
         show={confirmations.show_delete}
-        title={t("mail.delete_messages_title")}
+        title={
+          current_view === "trash" || current_view === "drafts"
+            ? t("mail.bulk_delete_title", { count: selected_count })
+            : t("mail.bulk_trash_title", { count: selected_count })
+        }
       />
       <ConfirmModal
         confirm_text={t("mail.archive")}
@@ -160,7 +166,7 @@ export function InboxDialogs({
         on_confirm={confirm_archive}
         on_dont_ask_change={set_dont_ask_archive}
         show={confirmations.show_archive}
-        title={t("mail.archive_messages_title")}
+        title={t("mail.bulk_archive_title", { count: selected_count })}
       />
       <ConfirmModal
         confirm_text={
@@ -216,7 +222,7 @@ export function InboxDialogs({
         on_confirm={confirm_spam}
         on_dont_ask_change={set_dont_ask_spam}
         show={confirmations.show_spam}
-        title={t("mail.mark_spam_title")}
+        title={t("mail.bulk_spam_title", { count: selected_count })}
       />
 
       <AlertDialog

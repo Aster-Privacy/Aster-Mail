@@ -605,6 +605,7 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
             set_custom_snooze_email(null);
             set_show_toolbar_custom_snooze(false);
           }}
+          selected_count={selection.selected_count}
           set_dont_ask_archive={toolbar.set_dont_ask_archive}
           set_dont_ask_delete={toolbar.set_dont_ask_delete}
           set_dont_ask_single_archive={toolbar.set_dont_ask_single_archive}

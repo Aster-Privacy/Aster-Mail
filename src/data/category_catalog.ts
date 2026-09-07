@@ -39,6 +39,8 @@ export type CategoryIconKey =
   | "globe"
   | "academic_cap"
   | "megaphone"
+  | "newspaper"
+  | "receipt"
   | "gift"
   | "folder"
   | "sparkles";
@@ -55,6 +57,8 @@ export const CUSTOM_CATEGORY_ICON_CHOICES: readonly CategoryIconKey[] = [
   "plane",
   "academic_cap",
   "megaphone",
+  "newspaper",
+  "receipt",
   "gift",
   "folder",
   "sparkles",
@@ -94,6 +98,15 @@ export const BUILTIN_CATEGORIES: readonly BuiltinCategoryDef[] = [
     fold_target: "primary",
   },
   {
+    id: "newsletters",
+    icon: "newspaper",
+    label_key: "settings.category_newsletters",
+    info_key: "settings.category_info_newsletters",
+    default_enabled: false,
+    removable: true,
+    fold_target: "promotions",
+  },
+  {
     id: "social",
     icon: "users",
     label_key: "mail_rules.category_social",
@@ -110,6 +123,15 @@ export const BUILTIN_CATEGORIES: readonly BuiltinCategoryDef[] = [
     default_enabled: true,
     removable: true,
     fold_target: "primary",
+  },
+  {
+    id: "transactions",
+    icon: "receipt",
+    label_key: "settings.category_transactions",
+    info_key: "settings.category_info_transactions",
+    default_enabled: false,
+    removable: true,
+    fold_target: "updates",
   },
   {
     id: "forums",
@@ -166,6 +188,18 @@ export function builtin_category_def(
 
 export function fold_builtin(id: string): string {
   return builtin_category_def(id)?.fold_target ?? "primary";
+}
+
+export function category_display_name(
+  id: string,
+  custom_categories: readonly CustomCategoryRule[] | undefined,
+  t: (key: TranslationKey) => string,
+): string {
+  const builtin = builtin_category_def(id);
+
+  if (builtin) return t(builtin.label_key);
+
+  return (custom_categories ?? []).find((c) => c.id === id)?.name ?? id;
 }
 
 export const CUSTOM_CATEGORY_PREFIX = "custom:";

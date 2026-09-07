@@ -28,6 +28,8 @@ import {
   TrashIcon,
   Squares2X2Icon,
   LockClosedIcon,
+  BellIcon,
+  BellSlashIcon,
 } from "@heroicons/react/24/outline";
 
 import { CustomCategoryModal } from "./custom_category_modal";
@@ -46,6 +48,42 @@ import {
 import { category_icon } from "@/data/category_icons";
 import { use_i18n } from "@/lib/i18n/context";
 
+function MuteToggle({
+  id,
+  label,
+  is_enabled,
+  is_muted,
+  on_toggle,
+}: {
+  id: string;
+  label: string;
+  is_enabled: boolean;
+  is_muted: boolean;
+  on_toggle: (id: string) => void;
+}) {
+  const { t } = use_i18n();
+  const title = `${label} - ${is_muted ? t("common.unmute_notifications") : t("common.mute_notifications")}`;
+
+  return (
+    <Button
+      aria-label={title}
+      aria-pressed={is_muted}
+      className={is_muted ? "text-txt-primary" : "text-txt-muted"}
+      disabled={!is_enabled}
+      size="icon"
+      title={title}
+      variant="ghost"
+      onClick={() => on_toggle(id)}
+    >
+      {is_muted ? (
+        <BellSlashIcon className="w-4 h-4" />
+      ) : (
+        <BellIcon className="w-4 h-4" />
+      )}
+    </Button>
+  );
+}
+
 export function CategorySettingsSection() {
   const { preferences, update_preference, update_preferences } =
     use_preferences();
@@ -63,6 +101,7 @@ export function CategorySettingsSection() {
     useState<CustomCategoryRule | null>(null);
 
   const enabled_ids = new Set(preferences.enabled_categories ?? []);
+  const muted_ids = new Set(preferences.muted_notification_categories ?? []);
   const custom_categories = preferences.custom_categories ?? [];
 
   const category_limit = limits
@@ -90,6 +129,14 @@ export function CategorySettingsSection() {
     }
 
     update_preference("enabled_categories", Array.from(next_ids), true);
+  };
+
+  const toggle_muted = (id: string) => {
+    const next = muted_ids.has(id)
+      ? [...muted_ids].filter((value) => value !== id)
+      : [...muted_ids, id];
+
+    update_preference("muted_notification_categories", next, true);
   };
 
   const toggle_custom = (rule: CustomCategoryRule) => {
@@ -193,11 +240,20 @@ export function CategorySettingsSection() {
                   />
                 </p>
               </div>
-              <Switch
-                aria-label={t(cat.label_key)}
-                checked={is_enabled}
-                onCheckedChange={() => toggle_builtin(cat.id, is_enabled)}
-              />
+              <div className="flex items-center gap-1">
+                <MuteToggle
+                  id={cat.id}
+                  is_enabled={is_enabled}
+                  is_muted={muted_ids.has(cat.id)}
+                  label={t(cat.label_key)}
+                  on_toggle={toggle_muted}
+                />
+                <Switch
+                  aria-label={t(cat.label_key)}
+                  checked={is_enabled}
+                  onCheckedChange={() => toggle_builtin(cat.id, is_enabled)}
+                />
+              </div>
             </div>
           );
         })}
@@ -275,6 +331,13 @@ export function CategorySettingsSection() {
                         </div>
                       </div>
                       <div className="flex items-center gap-1">
+                        <MuteToggle
+                          id={rule.id}
+                          is_enabled={rule.enabled && !is_locked}
+                          is_muted={muted_ids.has(rule.id)}
+                          label={rule.name}
+                          on_toggle={toggle_muted}
+                        />
                         <Button
                           size="icon"
                           title={t("common.edit")}

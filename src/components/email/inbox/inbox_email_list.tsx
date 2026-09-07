@@ -918,6 +918,14 @@ export function EmptyState({
         subtitle: t("mail.empty_snoozed_subtitle"),
       };
     }
+    if (current_view === "all") {
+      return {
+        icon: EnvelopeIcon,
+        icon_color: "text-txt-muted",
+        title: t("mail.empty_all_title"),
+        subtitle: t("mail.empty_all_subtitle"),
+      };
+    }
     if (current_view.startsWith("folder-")) {
       return {
         icon: FolderIcon,

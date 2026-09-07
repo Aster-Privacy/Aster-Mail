@@ -77,17 +77,19 @@ describe("category_colors", () => {
     expect(is_category_color("Blue")).toBe(false);
   });
 
-  it("emits the three tokens the badge reads", () => {
+  it("emits the tokens the badge reads", () => {
     const style = category_color_style("green") as Record<string, string>;
 
     expect(style["--cat-fg"]).toBe("var(--cat-green-fg)");
     expect(style["--cat-soft"]).toBe("var(--cat-green-soft)");
     expect(style["--cat-border"]).toBe("var(--cat-green-border)");
+    expect(style["--cat-solid"]).toBe("var(--cat-green-solid)");
+    expect(style["--cat-on-solid"]).toBe("var(--cat-green-on-solid)");
   });
 
   it("defines every color token for light and again for dark", () => {
     for (const key of CUSTOM_CATEGORY_COLOR_CHOICES) {
-      for (const slot of ["fg", "soft", "border"]) {
+      for (const slot of ["fg", "soft", "border", "solid", "on-solid"]) {
         const token = `--cat-${key}-${slot}:`;
         const declarations = globals_css.split(token).length - 1;
 

@@ -491,11 +491,12 @@ export function use_inbox_toolbar_actions({
 
   const handle_toolbar_mark_read = useCallback(async (): Promise<void> => {
     if (is_drafts_view || is_scheduled_view) return;
-    const selected = email_state.emails.filter((e) => e.is_selected);
+    const selected = email_state.emails.filter(
+      (e) => e.is_selected && e.item_type !== "sent",
+    );
 
     if (selected.length === 0) return;
-    const has_unread = selected.some((e) => !e.is_read);
-    const new_state = has_unread;
+    const new_state = true;
     const unread_count_delta = conversation_read_delta(
       selected,
       new_state,

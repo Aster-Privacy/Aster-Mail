@@ -114,3 +114,47 @@ export const BULK_SENDER_LOCALPARTS: readonly string[] = [
   "2fa",
   "otp",
 ];
+
+// Localparts a publication uses for its own editorial send. These sit apart
+// from BULK_SENDER_LOCALPARTS because they distinguish a newsletter from a
+// promotion, rather than marking mail as bulk at all.
+export const NEWSLETTER_SENDER_LOCALPARTS: readonly string[] = [
+  "newsletter",
+  "newsletters",
+  "digest",
+  "weekly",
+  "daily",
+  "monthly",
+  "editor",
+  "editors",
+  "editorial",
+  "briefing",
+  "bulletin",
+  "dispatch",
+  "roundup",
+  "substack",
+  "posts",
+  "stories",
+  "reads",
+  "letter",
+  "letters",
+];
+
+export const DISCUSSION_SENDER_LOCALPARTS: readonly string[] = [
+  "list",
+  "lists",
+  "listserv",
+  "mailinglist",
+  "mailing-list",
+  "group",
+  "groups",
+  "forum",
+  "forums",
+  "discuss",
+  "discussion",
+  "discussions",
+  "users",
+  "dev",
+  "devel",
+  "developers",
+];
