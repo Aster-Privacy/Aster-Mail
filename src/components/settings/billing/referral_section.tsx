@@ -165,11 +165,11 @@ export function ReferralSection({
                     </div>
                     <div className="flex items-center gap-2">
                       <span
-                        className={`text-xs font-medium px-2 py-0.5 rounded ${
+                        className={
                           ref_item.status === "completed"
-                            ? "bg-green-500/20 text-green-500"
-                            : "bg-yellow-500/20 text-yellow-500"
-                        }`}
+                            ? "aster_badge aster_badge_green"
+                            : "aster_badge aster_badge_amber"
+                        }
                       >
                         {ref_item.status === "completed"
                           ? t("settings.referral_status_completed")

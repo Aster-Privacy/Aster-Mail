@@ -43,7 +43,6 @@ import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
 import { show_toast } from "@/components/toast/simple_toast";
-import { ignore_error } from "@/lib/ignore_error";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
 
 function format_date_short(iso: string): string {
@@ -202,19 +201,11 @@ export function SmtpTokensSection() {
           <Button
             className="mt-4"
             variant="depth"
-            onClick={() => {
-              try {
-                sessionStorage.setItem("alias_tab", "domains");
-              } catch (caught) {
-                ignore_error(
-                  "components/settings/smtp_tokens_section:header",
-                  caught,
-                );
-              }
+            onClick={() =>
               window.dispatchEvent(
-                new CustomEvent("navigate-settings", { detail: "aliases" }),
-              );
-            }}
+                new CustomEvent("navigate-settings", { detail: "domains" }),
+              )
+            }
           >
             {t("settings.smtp_tokens_add_domain_cta")}
           </Button>

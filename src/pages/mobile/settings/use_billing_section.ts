@@ -88,6 +88,7 @@ import {
 } from "@/services/api/billing";
 import { checkout_error_text } from "@/components/settings/billing/checkout_error_text";
 import { read_billing_interval } from "@/components/settings/billing/cancel_offer";
+import { is_contact_trashed } from "@/lib/contact_trash";
 
 export function use_billing_section() {
   const { t } = use_i18n();
@@ -306,6 +307,7 @@ export function use_billing_section() {
         const decrypted = await decrypt_contacts(res.data.items);
 
         for (const contact of decrypted) {
+          if (is_contact_trashed(contact)) continue;
           if (contact.emails) {
             all_emails.push(...contact.emails);
           }

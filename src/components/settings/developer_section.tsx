@@ -215,9 +215,7 @@ export function DeveloperSection() {
         if (registrations.length > 0) {
           const active = registrations.filter((r) => r.active).length;
 
-          set_sw_status(
-            t("settings.dev_active_count", { count: active }),
-          );
+          set_sw_status(t("settings.dev_active_count", { count: active }));
         } else {
           set_sw_status(t("settings.dev_none_registered"));
         }
@@ -291,16 +289,13 @@ export function DeveloperSection() {
     const delta_ms = Date.now() - ts;
     const seconds = Math.max(0, Math.floor(delta_ms / 1000));
 
-    if (seconds < 60)
-      return t("settings.dev_seconds_ago", { count: seconds });
+    if (seconds < 60) return t("settings.dev_seconds_ago", { count: seconds });
     const minutes = Math.floor(seconds / 60);
 
-    if (minutes < 60)
-      return t("settings.dev_minutes_ago", { count: minutes });
+    if (minutes < 60) return t("settings.dev_minutes_ago", { count: minutes });
     const hours = Math.floor(minutes / 60);
 
-    if (hours < 24)
-      return t("settings.dev_hours_ago", { count: hours });
+    if (hours < 24) return t("settings.dev_hours_ago", { count: hours });
     const days = Math.floor(hours / 24);
 
     return t("settings.dev_days_ago", { count: days });

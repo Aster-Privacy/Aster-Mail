@@ -19,7 +19,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useState, useEffect, useCallback } from "react";
-import { use_escape_layer } from "@/lib/overlay_layer_stack";
 import {
   XMarkIcon,
   ShieldCheckIcon,
@@ -29,6 +28,7 @@ import { Switch, Button } from "@aster/ui";
 
 import { ConsentGateDialog } from "./filters";
 
+import { use_escape_layer } from "@/lib/overlay_layer_stack";
 import { Input } from "@/components/ui/input";
 import { InfoPopover } from "@/components/ui/info_popover";
 import { Spinner } from "@/components/ui/spinner";
@@ -279,7 +279,7 @@ export function SecurityContent({
         <p className="text-sm text-txt-secondary mb-3">
           {t("settings.fam_org_sec_load_failed")}
         </p>
-        <Button onClick={load_security} size="sm" variant="outline">
+        <Button size="sm" variant="outline" onClick={load_security}>
           {t("common.retry")}
         </Button>
       </div>

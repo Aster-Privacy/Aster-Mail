@@ -29,7 +29,7 @@ import {
   PencilSquareIcon,
   ViewColumnsIcon,
 } from "@heroicons/react/24/outline";
-import { Switch, UpgradeBtn } from "@aster/ui";
+import { Switch } from "@aster/ui";
 
 import { SettingsSaveIndicatorInline } from "./settings_save_indicator";
 
@@ -406,23 +406,41 @@ export function AppearanceSection() {
             </>
           )}
         </div>
-        <button
-          className="mt-3 flex items-center gap-1 text-sm font-medium text-txt-secondary hover:text-txt-primary transition-colors cursor-pointer"
-          type="button"
-          onClick={() => set_show_more_themes((prev) => !prev)}
-        >
-          {show_more_themes ? (
-            <>
-              {t("common.show_less")}
-              <ChevronUpIcon className="w-4 h-4" />
-            </>
-          ) : (
-            <>
+        <div className="mt-3 flex items-center gap-4">
+          <button
+            className="flex items-center gap-1 text-sm font-medium text-txt-secondary hover:text-txt-primary transition-colors cursor-pointer"
+            type="button"
+            onClick={() => set_show_more_themes((prev) => !prev)}
+          >
+            {show_more_themes ? (
+              <>
+                {t("common.show_less")}
+                <ChevronUpIcon className="w-4 h-4" />
+              </>
+            ) : (
+              <>
+                {t("common.show_more")}
+                <ChevronDownIcon className="w-4 h-4" />
+              </>
+            )}
+          </button>
+          {show_more_themes && !is_paid_plan && (
+            <button
+              className="flex items-center gap-1 text-sm font-medium text-txt-secondary hover:text-txt-primary transition-colors cursor-pointer"
+              type="button"
+              onClick={() =>
+                prompt_upgrade(
+                  t("settings.feature_requires_upgrade"),
+                  undefined,
+                  "star",
+                )
+              }
+            >
               {t("common.show_more")}
               <ChevronDownIcon className="w-4 h-4" />
-            </>
+            </button>
           )}
-        </button>
+        </div>
         <SettingRow
           description={t("settings.theme_sync_across_devices_description")}
           label={t("settings.theme_sync_across_devices")}
@@ -499,134 +517,87 @@ export function AppearanceSection() {
           </Select>
         </SettingRow>
 
-        <div className="mt-6">
-          {is_paid_plan ? (
-            <>
-              <p className="text-sm font-semibold text-txt-primary mb-4">
-                {t("settings.custom_theme_colors_title")}
-              </p>
+        {is_paid_plan && (
+          <div className="mt-6">
+            <p className="text-sm font-semibold text-txt-primary mb-4">
+              {t("settings.custom_theme_colors_title")}
+            </p>
 
-              <div className="flex items-center gap-3 mb-4">
-                <ColorSwatchPicker
-                  label={t("settings.custom_theme_color_label")}
-                  value={
-                    is_valid_hex_color(effective_theme_fields.custom_theme_seed)
-                      ? effective_theme_fields.custom_theme_seed
-                      : "#3b82f6"
-                  }
-                  onChange={(hex) => handle_custom_color_change(hex, false)}
-                  onCommit={(hex) => handle_custom_color_change(hex, true)}
-                />
-                <div className="flex-1">
-                  <p className="text-sm text-txt-primary">
-                    {t("settings.custom_theme_color_label")}
-                  </p>
-                  <p className="text-xs text-txt-muted">
-                    {effective_theme_fields.color_theme === "custom"
-                      ? t("settings.custom_theme_active")
-                      : t("settings.custom_theme_inactive")}
-                  </p>
-                </div>
-                {Object.keys(preferences.custom_theme_overrides ?? {}).length >
-                  0 && (
-                  <button
-                    className="text-xs text-txt-muted hover:text-txt-primary flex-shrink-0"
-                    type="button"
-                    onClick={handle_reset_all_overrides}
-                  >
-                    {t("settings.custom_theme_reset_all")}
-                  </button>
-                )}
+            <div className="flex items-center gap-3 mb-4">
+              <ColorSwatchPicker
+                label={t("settings.custom_theme_color_label")}
+                value={
+                  is_valid_hex_color(effective_theme_fields.custom_theme_seed)
+                    ? effective_theme_fields.custom_theme_seed
+                    : "#3b82f6"
+                }
+                onChange={(hex) => handle_custom_color_change(hex, false)}
+                onCommit={(hex) => handle_custom_color_change(hex, true)}
+              />
+              <div className="flex-1">
+                <p className="text-sm text-txt-primary">
+                  {t("settings.custom_theme_color_label")}
+                </p>
+                <p className="text-xs text-txt-muted">
+                  {effective_theme_fields.color_theme === "custom"
+                    ? t("settings.custom_theme_active")
+                    : t("settings.custom_theme_inactive")}
+                </p>
               </div>
-
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {CUSTOM_THEME_ROLE_KEYS.map((key) => {
-                  const override = preferences.custom_theme_overrides?.[key];
-                  const value = override ?? custom_theme_base[key];
-
-                  const role_label = t(
-                    `settings.${CUSTOM_THEME_ROLE_LABEL_KEYS[key]}`,
-                  );
-
-                  return (
-                    <div key={key} className="flex items-center gap-2">
-                      <ColorSwatchPicker
-                        label={role_label}
-                        size="sm"
-                        value={value}
-                        onChange={(hex) =>
-                          handle_role_override_change(key, hex, false)
-                        }
-                        onCommit={(hex) =>
-                          handle_role_override_change(key, hex, true)
-                        }
-                      />
-                      <span className="text-xs text-txt-secondary flex-1 truncate">
-                        {role_label}
-                      </span>
-                      {override && (
-                        <button
-                          aria-label={t("settings.custom_theme_reset_role")}
-                          className="text-txt-muted hover:text-txt-primary flex-shrink-0 text-xs"
-                          title={t("settings.custom_theme_reset_role")}
-                          type="button"
-                          onClick={() => handle_role_override_reset(key)}
-                        >
-                          ×
-                        </button>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </>
-          ) : (
-            <div className="space-y-4">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div className="min-w-0 space-y-1">
-                  <p className="text-[15px] font-semibold text-txt-primary">
-                    {t("settings.custom_theme_colors_title")}
-                  </p>
-                  <p className="text-sm text-txt-secondary">
-                    {t("settings.custom_theme_description")}
-                  </p>
-                </div>
-
-                <UpgradeBtn
-                  className="w-full flex-shrink-0 sm:w-auto"
-                  onClick={() =>
-                    prompt_upgrade(
-                      t("settings.feature_requires_upgrade"),
-                      undefined,
-                      "star",
-                    )
-                  }
+              {Object.keys(preferences.custom_theme_overrides ?? {}).length >
+                0 && (
+                <button
+                  className="text-xs text-txt-muted hover:text-txt-primary flex-shrink-0"
+                  type="button"
+                  onClick={handle_reset_all_overrides}
                 >
-                  {t("settings.upgrade_to_unlock")}
-                </UpgradeBtn>
-              </div>
-
-              <div
-                aria-hidden="true"
-                className="pointer-events-none select-none opacity-50"
-              >
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  {CUSTOM_THEME_ROLE_KEYS.map((key) => (
-                    <div key={key} className="flex items-center gap-2">
-                      <span
-                        className="h-7 w-7 flex-shrink-0 rounded-full border border-edge-secondary"
-                        style={{ background: custom_theme_base[key] }}
-                      />
-                      <span className="text-xs text-txt-secondary flex-1 truncate">
-                        {t(`settings.${CUSTOM_THEME_ROLE_LABEL_KEYS[key]}`)}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
+                  {t("settings.custom_theme_reset_all")}
+                </button>
+              )}
             </div>
-          )}
-        </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {CUSTOM_THEME_ROLE_KEYS.map((key) => {
+                const override = preferences.custom_theme_overrides?.[key];
+                const value = override ?? custom_theme_base[key];
+
+                const role_label = t(
+                  `settings.${CUSTOM_THEME_ROLE_LABEL_KEYS[key]}`,
+                );
+
+                return (
+                  <div key={key} className="flex items-center gap-2">
+                    <ColorSwatchPicker
+                      label={role_label}
+                      size="sm"
+                      value={value}
+                      onChange={(hex) =>
+                        handle_role_override_change(key, hex, false)
+                      }
+                      onCommit={(hex) =>
+                        handle_role_override_change(key, hex, true)
+                      }
+                    />
+                    <span className="text-xs text-txt-secondary flex-1 truncate">
+                      {role_label}
+                    </span>
+                    {override && (
+                      <button
+                        aria-label={t("settings.custom_theme_reset_role")}
+                        className="text-txt-muted hover:text-txt-primary flex-shrink-0 text-xs"
+                        title={t("settings.custom_theme_reset_role")}
+                        type="button"
+                        onClick={() => handle_role_override_reset(key)}
+                      >
+                        ×
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="pt-3">

@@ -18,7 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { apply_input_transform } from "@/utils/input_transform";
 import { useState, useEffect, useCallback, useRef } from "react";
 import {
   UserGroupIcon,
@@ -31,6 +30,7 @@ import { Button } from "@aster/ui";
 
 import { SkeletonRows } from "./shared";
 
+import { apply_input_transform } from "@/utils/input_transform";
 import { Input } from "@/components/ui/input";
 import { InfoPopover } from "@/components/ui/info_popover";
 import { Spinner } from "@/components/ui/spinner";

@@ -50,6 +50,7 @@ import {
 } from "@/components/auth/turnstile_widget";
 import mail_logo_url from "@/assets/mail_logo.webp";
 import { is_composing } from "@/utils/ime";
+import { show_upgrade_plans } from "@/stores/upgrade_store";
 
 interface AccountMenuSheetProps {
   is_open: boolean;
@@ -145,7 +146,7 @@ export function AccountMenuSheet({
             variant="depth"
             onClick={() => {
               on_close();
-              handle_nav("/settings/billing");
+              show_upgrade_plans();
             }}
           >
             {t("common.upgrade")}

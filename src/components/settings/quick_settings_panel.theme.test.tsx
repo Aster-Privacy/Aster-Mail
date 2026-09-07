@@ -123,9 +123,9 @@ describe("QuickSettingsPanel theme selection", () => {
   it("marks dark as selected when no color theme is active", () => {
     const el = render();
 
-    expect(theme_radio(el, "settings.theme_dark").getAttribute("aria-checked")).toBe(
-      "true",
-    );
+    expect(
+      theme_radio(el, "settings.theme_dark").getAttribute("aria-checked"),
+    ).toBe("true");
   });
 
   it("marks neither light nor dark when a color theme is active", () => {
@@ -133,9 +133,9 @@ describe("QuickSettingsPanel theme selection", () => {
 
     const el = render();
 
-    expect(theme_radio(el, "settings.theme_dark").getAttribute("aria-checked")).toBe(
-      "false",
-    );
+    expect(
+      theme_radio(el, "settings.theme_dark").getAttribute("aria-checked"),
+    ).toBe("false");
     expect(
       theme_radio(el, "settings.theme_light").getAttribute("aria-checked"),
     ).toBe("false");

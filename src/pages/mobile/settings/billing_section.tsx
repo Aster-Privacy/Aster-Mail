@@ -935,13 +935,13 @@ export function BillingSection({
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                       <span
-                        className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${
+                        className={
                           item.status === "paid"
-                            ? "bg-green-500/20 text-green-500"
+                            ? "aster_badge aster_badge_green"
                             : item.status === "failed"
-                              ? "bg-red-500/20 text-red-500"
-                              : "bg-yellow-500/20 text-yellow-500"
-                        }`}
+                              ? "aster_badge aster_badge_red"
+                              : "aster_badge aster_badge_amber"
+                        }
                       >
                         {t(`settings.invoice_status_${item.status}` as any)}
                       </span>
@@ -1120,11 +1120,11 @@ export function BillingSection({
                               </div>
                               <div className="flex items-center gap-2">
                                 <span
-                                  className={`text-xs font-medium px-2 py-0.5 rounded ${
+                                  className={
                                     ref_item.status === "completed"
-                                      ? "bg-green-500/20 text-green-500"
-                                      : "bg-yellow-500/20 text-yellow-500"
-                                  }`}
+                                      ? "aster_badge aster_badge_green"
+                                      : "aster_badge aster_badge_amber"
+                                  }
                                 >
                                   {ref_item.status === "completed"
                                     ? t("settings.referral_status_completed")

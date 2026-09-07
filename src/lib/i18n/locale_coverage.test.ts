@@ -41,10 +41,6 @@ const LOCALES = [
 
 const NO_PLURAL_ONE_FORM = new Set(["zh-CN", "ja", "ko"]);
 
-const UNSHIPPED_NAMESPACES = new Set(["calendar"]);
-
-const SHIPPED_CALENDAR_PREFIX = "invite_";
-
 function flat(source: unknown): Set<string> {
   const out = new Set<string>();
 
@@ -57,12 +53,6 @@ function flat(source: unknown): Set<string> {
       entries as Record<string, unknown>,
     )) {
       if (typeof value !== "string") continue;
-      if (
-        UNSHIPPED_NAMESPACES.has(ns) &&
-        !key.startsWith(SHIPPED_CALENDAR_PREFIX)
-      ) {
-        continue;
-      }
       out.add(`${ns}.${key}`);
     }
   }
