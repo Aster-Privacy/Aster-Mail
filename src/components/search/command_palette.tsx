@@ -121,10 +121,6 @@ export function CommandPalette({
   const decrypt_items_metadata = useCallback(
     async (items: MailItem[]): Promise<Map<string, MailItemMetadata>> => {
       const results = new Map<string, MailItemMetadata>();
-      let used_defaults = 0;
-      let decrypted_ok = 0;
-      let decrypt_failures = 0;
-      let decrypt_nulls = 0;
 
       let processed = 0;
 
@@ -142,7 +138,6 @@ export function CommandPalette({
           defaults.is_read = is_sent_type;
           if (item.message_ts) defaults.message_ts = item.message_ts;
           results.set(item.id, defaults);
-          used_defaults++;
           continue;
         }
         try {
@@ -154,18 +149,15 @@ export function CommandPalette({
 
           if (meta) {
             results.set(item.id, meta);
-            decrypted_ok++;
           } else {
             const defaults = create_default_metadata(item.item_type);
 
             results.set(item.id, defaults);
-            decrypt_nulls++;
           }
-        } catch (err) {
+        } catch {
           const defaults = create_default_metadata(item.item_type);
 
           results.set(item.id, defaults);
-          decrypt_failures++;
         }
       }
 

@@ -22,7 +22,6 @@ import { use_encryption } from "@/components/settings/hooks/use_encryption";
 import { EncryptionFlowBanner } from "@/components/settings/encryption/encryption_flow_banner";
 import { KeyRotationPanel } from "@/components/settings/encryption/key_rotation_panel";
 import { EncryptionSettingsForm } from "@/components/settings/encryption/encryption_settings_form";
-import { StorageFormatPicker } from "@/components/settings/storage/storage_format_picker";
 import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
 
 export function EncryptionSection() {
@@ -80,11 +79,6 @@ export function EncryptionSection() {
         show_export_prompt={encryption.show_export_prompt}
         show_recovery_codes={encryption.show_recovery_codes}
         show_regenerate_confirm={encryption.show_regenerate_confirm}
-      />
-
-      <StorageFormatPicker
-        on_change={encryption.handle_storage_format_change}
-        storage_format={encryption.preferences.storage_format}
       />
 
       <EncryptionSettingsForm

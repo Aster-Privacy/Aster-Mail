@@ -131,6 +131,10 @@ function notify_alias_subscribers(): void {
   });
 }
 
+export function get_cached_aliases(): DecryptedEmailAlias[] {
+  return cached_aliases.data;
+}
+
 export function subscribe_aliases(cb: () => void): () => void {
   alias_subscribers.add(cb);
 

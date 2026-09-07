@@ -23,10 +23,11 @@ import { useLocation } from "react-router-dom";
 import {
   ChevronDoubleLeftIcon,
   ChevronRightIcon,
-  ShieldCheckIcon,
+
   UsersIcon,
 } from "@heroicons/react/24/outline";
 
+import { AsterSecurityMark } from "@/components/icons/aster_security_mark";
 import { QuickContactsPanel } from "@/components/layout/quick_contacts_panel";
 import { QuickSecurityPanel } from "@/components/layout/quick_security_panel";
 import { use_i18n } from "@/lib/i18n/context";
@@ -203,7 +204,7 @@ function AppRailComponent({
               onError={handle_security_icon_error}
             />
           ) : (
-            <ShieldCheckIcon className="h-5 w-5 shrink-0" />
+            <AsterSecurityMark className="h-5 w-5 shrink-0" />
           )}
         </button>
         <button

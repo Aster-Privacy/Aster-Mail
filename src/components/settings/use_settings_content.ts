@@ -200,6 +200,7 @@ export function use_settings_content(props: SettingsContentProps) {
     encryption: null,
     trusted_devices: null,
     aliases: null,
+    domains: null,
     billing: null,
     storage: null,
     family: null,

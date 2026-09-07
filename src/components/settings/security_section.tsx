@@ -247,17 +247,21 @@ export function SecuritySection({
         <PasskeySection />
       </div>
 
-      <SessionSection
-        logout_others_loading={security.logout_others_loading}
-        logout_others_result={security.logout_others_result}
-        on_revoke_all_sessions={security.handle_revoke_all_sessions}
-        on_revoke_session={security.handle_revoke_session}
-        sessions={security.sessions}
-        sessions_error={security.sessions_error}
-        sessions_loading={security.sessions_loading}
-      />
+      <div id="sec-sessions">
+        <SessionSection
+          logout_others_loading={security.logout_others_loading}
+          logout_others_result={security.logout_others_result}
+          on_revoke_all_sessions={security.handle_revoke_all_sessions}
+          on_revoke_session={security.handle_revoke_session}
+          sessions={security.sessions}
+          sessions_error={security.sessions_error}
+          sessions_loading={security.sessions_loading}
+        />
+      </div>
 
-      <TrustedDevicesSection />
+      <div id="sec-devices">
+        <TrustedDevicesSection />
+      </div>
 
       <LoginAlertsSessionsGroup
         login_alerts_enabled={security.login_alerts_enabled}

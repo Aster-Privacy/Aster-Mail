@@ -25,11 +25,14 @@ interface RailTipState {
   text: string;
   top: number;
   left: number;
+  anchor_center: number;
+  side: "left" | "right";
 }
 
 const SHOW_DELAY_MS = 400;
 const GAP_PX = 10;
 const EDGE_PADDING_PX = 8;
+const ARROW_INSET_PX = 8;
 const TIP_ID = "aster_rail_tip";
 
 export function RailTipLayer() {
@@ -73,13 +76,17 @@ export function RailTipLayer() {
 
       if (!text) return;
       const rect = el.getBoundingClientRect();
+      const side =
+        el.getAttribute("data-rail-tip-side") === "left" ? "left" : "right";
 
       el.setAttribute("aria-describedby", TIP_ID);
       tip_visible_ref.current = true;
       set_tip({
         text,
         top: rect.top + rect.height / 2,
-        left: rect.right + GAP_PX,
+        left: side === "left" ? rect.left - GAP_PX : rect.right + GAP_PX,
+        anchor_center: rect.top + rect.height / 2,
+        side,
       });
     };
 
@@ -126,8 +133,7 @@ export function RailTipLayer() {
       }
     };
 
-    const rail_root: HTMLElement | Document =
-      document.querySelector<HTMLElement>("[data-sidebar-root]") ?? document;
+    const rail_root: HTMLElement | Document = document;
 
     rail_root.addEventListener("pointerover", handle_over as EventListener);
     rail_root.addEventListener("pointerleave", hide);
@@ -141,9 +147,15 @@ export function RailTipLayer() {
     return () => {
       clear_timer();
       clear_target();
-      rail_root.removeEventListener("pointerover", handle_over as EventListener);
+      rail_root.removeEventListener(
+        "pointerover",
+        handle_over as EventListener,
+      );
       rail_root.removeEventListener("pointerleave", hide);
-      rail_root.removeEventListener("focusin", handle_focus_in as EventListener);
+      rail_root.removeEventListener(
+        "focusin",
+        handle_focus_in as EventListener,
+      );
       rail_root.removeEventListener(
         "focusout",
         handle_focus_out as EventListener,
@@ -160,14 +172,24 @@ export function RailTipLayer() {
     const rect = node_ref.current.getBoundingClientRect();
     const max_left = window.innerWidth - rect.width - EDGE_PADDING_PX;
     const max_top = window.innerHeight - rect.height - EDGE_PADDING_PX;
-    const next_left = Math.min(tip.left, Math.max(EDGE_PADDING_PX, max_left));
+    const desired_left = tip.side === "left" ? tip.left - rect.width : tip.left;
+    const next_left = Math.max(
+      EDGE_PADDING_PX,
+      Math.min(desired_left, Math.max(EDGE_PADDING_PX, max_left)),
+    );
     const next_top = Math.min(
       Math.max(EDGE_PADDING_PX, tip.top - rect.height / 2),
       Math.max(EDGE_PADDING_PX, max_top),
     );
 
+    const arrow_top = Math.min(
+      Math.max(ARROW_INSET_PX, tip.anchor_center - next_top),
+      Math.max(ARROW_INSET_PX, rect.height - ARROW_INSET_PX),
+    );
+
     node_ref.current.style.left = `${next_left}px`;
     node_ref.current.style.top = `${next_top}px`;
+    node_ref.current.style.setProperty("--tip-arrow-top", `${arrow_top}px`);
     node_ref.current.style.visibility = "visible";
   }, [tip]);
 
@@ -177,6 +199,7 @@ export function RailTipLayer() {
     <div
       ref={node_ref}
       className="aster_tip_portal"
+      data-tip-arrow={tip.side}
       id={TIP_ID}
       role="tooltip"
       style={{

@@ -18,29 +18,37 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { ComponentType } from "react";
 import type { SecurityCriterion } from "@/lib/security_criteria";
 
-import { useCallback, useMemo, useRef } from "react";
+import { useCallback, useMemo, useRef, useSyncExternalStore } from "react";
 import {
   ArrowPathIcon,
+  AtSymbolIcon,
   ChevronRightIcon,
+  ComputerDesktopIcon,
+  DevicePhoneMobileIcon,
   ExclamationTriangleIcon,
-  ShieldCheckIcon,
+  FingerPrintIcon,
+  ShieldExclamationIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
-import { CheckCircleIcon } from "@heroicons/react/24/solid";
 import { Button, Spinner, Tooltip } from "@aster/ui";
 
-import {
-  SECURITY_LOCK_COLOR,
-  SecurityLockIcon,
-  security_status_from_percent,
-} from "@/components/settings/security/security_lock_icon";
+import { security_status_from_percent } from "@/components/settings/security/security_lock_icon";
 import {
   build_security_criteria,
   security_percent,
 } from "@/lib/security_criteria";
-import { use_security_overview } from "@/hooks/use_security_overview";
+import { AsterSecurityMark } from "@/components/icons/aster_security_mark";
+import {
+  format_key_fingerprint,
+  use_security_overview,
+} from "@/hooks/use_security_overview";
+import {
+  get_cached_aliases,
+  subscribe_aliases,
+} from "@/hooks/use_sidebar_aliases";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_escape_layer } from "@/lib/overlay_layer_stack";
@@ -52,13 +60,73 @@ interface QuickSecurityPanelProps {
   on_close: () => void;
 }
 
-function navigate_to(criterion: SecurityCriterion) {
+type PanelIcon = ComponentType<{ className?: string }>;
+
+interface SecurityStat {
+  id: string;
+  label: string;
+  value: string;
+  icon: PanelIcon;
+  section: string;
+  anchor?: string;
+}
+
+const ALIAS_PREVIEW_LIMIT = 4;
+const ROW_CLASS =
+  "group flex w-full items-center gap-2.5 rounded-lg px-2 py-[9px] text-start hover:bg-surf-secondary";
+const ROW_LABEL_CLASS =
+  "min-w-0 flex-1 truncate text-[13.5px] leading-5 text-txt-primary";
+const ROW_VALUE_CLASS =
+  "flex-shrink-0 text-[12.5px] text-txt-secondary tabular-nums";
+const CHEVRON_CLASS =
+  "h-4 w-4 flex-shrink-0 text-[var(--icon-muted)] rtl:rotate-180";
+const QUIET_CHEVRON_CLASS = `${CHEVRON_CLASS} opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100`;
+const TRACK_COLOR = "color-mix(in srgb, var(--text-muted) 26%, transparent)";
+const ICON_CLASS = "h-[18px] w-[18px] flex-shrink-0 text-[var(--icon-muted)]";
+
+function navigate_to_settings(section: string, anchor?: string) {
   window.dispatchEvent(
     new CustomEvent("navigate-settings", {
-      detail: criterion.anchor
-        ? { section: criterion.section, anchor: criterion.anchor }
-        : criterion.section,
+      detail: anchor ? { section, anchor } : section,
     }),
+  );
+}
+
+function SecurityScoreMeter({
+  met,
+  percent,
+  total,
+}: {
+  met: number;
+  percent: number;
+  total: number;
+}) {
+  return (
+    <div
+      aria-valuemax={100}
+      aria-valuemin={0}
+      aria-valuenow={percent}
+      className="mt-2.5 flex w-full gap-1"
+      role="progressbar"
+    >
+      {Array.from({ length: total }, (_, index) => (
+        <span
+          key={index}
+          className="h-1.5 flex-1 rounded-full transition-colors duration-500"
+          style={{
+            backgroundColor: index < met ? "var(--accent-color)" : TRACK_COLOR,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+function PanelHeading({ label }: { label: string }) {
+  return (
+    <h3 className="mt-4 mb-1 px-2 text-[11px] font-medium tracking-wide text-txt-muted uppercase">
+      {label}
+    </h3>
   );
 }
 
@@ -71,6 +139,23 @@ export function QuickSecurityPanel({
   const { preferences } = use_preferences();
   const overview = use_security_overview(is_open);
   const panel_ref = useRef<HTMLElement | null>(null);
+  const cached_aliases = useSyncExternalStore(
+    subscribe_aliases,
+    get_cached_aliases,
+  );
+
+  const go_to_settings = useCallback(
+    (section: string, anchor?: string) => {
+      navigate_to_settings(section, anchor);
+      on_close();
+    },
+    [on_close],
+  );
+  const go_to_criterion = useCallback(
+    (criterion: SecurityCriterion) =>
+      go_to_settings(criterion.section, criterion.anchor),
+    [go_to_settings],
+  );
 
   use_escape_layer(is_open, on_close, "quick_security_panel", false);
   use_panel_inset(is_open, panel_ref);
@@ -97,16 +182,74 @@ export function QuickSecurityPanel({
     ],
   );
 
+  const alias_preview = useMemo(
+    () =>
+      [...cached_aliases]
+        .sort((a, b) => {
+          if (a.is_enabled !== b.is_enabled) return a.is_enabled ? -1 : 1;
+
+          return a.full_address.localeCompare(b.full_address);
+        })
+        .slice(0, ALIAS_PREVIEW_LIMIT),
+    [cached_aliases],
+  );
+  const alias_overflow = cached_aliases.length - alias_preview.length;
+
   const percent = security_percent(criteria);
   const status = security_status_from_percent(percent);
   const pending = criteria.filter((item) => !item.met);
   const done = criteria.filter((item) => item.met);
+  const state_label = (value: boolean) =>
+    value ? t("common.enabled") : t("common.disabled");
+  const criterion_state = (item: SecurityCriterion) =>
+    item.id === "recovery_email"
+      ? item.met
+        ? t("common.verified")
+        : t("common.not_verified")
+      : state_label(item.met);
+
+  const alias_value = overview.alias_max
+    ? `${overview.alias_count}/${overview.alias_max}`
+    : String(overview.alias_count);
+
+  const stats: SecurityStat[] = [
+    {
+      id: "sessions",
+      label: t("settings_search.sessions"),
+      value: String(overview.session_count),
+      icon: ComputerDesktopIcon,
+      section: "security",
+      anchor: "sec-sessions",
+    },
+    {
+      id: "trusted_devices",
+      label: t("settings.trusted_devices"),
+      value: String(overview.trusted_device_count),
+      icon: DevicePhoneMobileIcon,
+      section:
+        overview.trusted_device_count > 0 ? "trusted_devices" : "security",
+      anchor: overview.trusted_device_count > 0 ? undefined : "sec-devices",
+    },
+    {
+      id: "aliases",
+      label: t("common.aliases"),
+      value: alias_value,
+      icon: AtSymbolIcon,
+      section: "aliases",
+    },
+    {
+      id: "lockdown",
+      label: t("settings.lockdown_title"),
+      value: state_label(overview.lockdown_enabled),
+      icon: ShieldExclamationIcon,
+      section: "security",
+      anchor: "sec-vanguard",
+    },
+  ].filter((stat) => stat.id !== "aliases" || alias_preview.length === 0);
 
   const open_security = useCallback(() => {
-    window.dispatchEvent(
-      new CustomEvent("navigate-settings", { detail: "security" }),
-    );
-  }, []);
+    go_to_settings("security");
+  }, [go_to_settings]);
 
   return (
     <aside
@@ -116,22 +259,11 @@ export function QuickSecurityPanel({
         is_open ? "flex" : "hidden"
       } ${is_top_inset ? "mt-1 md:mt-2" : ""}`}
     >
-      <div className="flex h-12 flex-shrink-0 items-center gap-1 ps-3 pe-2">
-        <ShieldCheckIcon className="h-4 w-4 flex-shrink-0 text-[var(--icon-muted)]" />
+      <div className="flex h-12 flex-shrink-0 items-center gap-2 ps-3 pe-2">
+        <AsterSecurityMark className="h-[18px] w-[18px] flex-shrink-0 text-brand-primary" />
         <h2 className="flex-1 truncate text-[15px] font-medium text-txt-primary">
           {t("common.security_center")}
         </h2>
-        <Tooltip position="bottom" tip={t("common.refresh")}>
-          <Button
-            aria-label={t("common.refresh")}
-            className="h-8 w-8 flex-shrink-0 text-[var(--icon-muted)]"
-            size="icon"
-            variant="ghost"
-            onClick={overview.reload}
-          >
-            <ArrowPathIcon className="h-4 w-4" />
-          </Button>
-        </Tooltip>
         <Tooltip position="bottom" tip={t("common.close")}>
           <Button
             aria-label={t("common.close")}
@@ -149,7 +281,7 @@ export function QuickSecurityPanel({
           <Spinner size="md" />
         </div>
       ) : (
-        <div className="flex-1 overflow-y-auto px-3 pb-3">
+        <div className="flex-1 overflow-y-auto px-3 pb-1">
           {overview.has_failed && (
             <button
               className="mb-2 flex w-full items-center gap-2 rounded-lg bg-surf-secondary px-3 py-2 text-start text-[12.5px] text-txt-secondary hover:bg-surf-tertiary"
@@ -163,88 +295,170 @@ export function QuickSecurityPanel({
               <ArrowPathIcon className="h-4 w-4 flex-shrink-0" />
             </button>
           )}
-          <div className="rounded-xl border border-edge-secondary bg-surf-secondary px-3 py-3">
-            <div className="flex items-start gap-2.5">
-              <SecurityLockIcon className="mt-0.5 h-5 w-5" status={status} />
-              <div className="min-w-0 flex-1">
-                <p className="text-[13.5px] font-medium text-txt-primary">
-                  {t("settings.account_security_percent_title", { percent })}
-                </p>
-                <p className="mt-0.5 text-[12.5px] text-txt-secondary">
-                  {t(`settings.account_protection_hint_${status}`)}
-                </p>
-              </div>
+          <div className="px-2 pt-1">
+            <p className="text-[11px] font-medium tracking-wide text-txt-muted uppercase">
+              {t("settings.security_center_protection_score")}
+            </p>
+            <div className="mt-1 flex items-baseline gap-2">
+              <p className="text-[28px] leading-8 font-semibold text-txt-primary tabular-nums">
+                {percent}%
+              </p>
+              <p className="min-w-0 flex-1 truncate text-[13px] text-txt-secondary">
+                {t(`settings.account_protection_${status}`)}
+              </p>
+              <p className="flex-shrink-0 text-[12px] text-txt-muted tabular-nums">
+                {done.length}/{criteria.length}
+              </p>
             </div>
-            <div
-              aria-label={t("settings.account_protection_title")}
-              aria-valuemax={100}
-              aria-valuemin={0}
-              aria-valuenow={percent}
-              className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-surf-tertiary"
-              role="progressbar"
-            >
-              <div
-                className="h-full rounded-full transition-all"
-                style={{
-                  width: `${percent}%`,
-                  backgroundColor: SECURITY_LOCK_COLOR[status],
-                }}
-              />
-            </div>
+            <SecurityScoreMeter
+              met={done.length}
+              percent={percent}
+              total={criteria.length}
+            />
+            <p className="mt-2.5 text-[12.5px] leading-snug text-txt-secondary">
+              {t(`settings.account_protection_hint_${status}`)}
+            </p>
           </div>
           {pending.length > 0 ? (
             <>
-              <h3 className="mt-4 mb-1.5 px-1 text-[11.5px] font-medium tracking-wide text-txt-secondary uppercase">
-                {t("settings.security_center_recommended")}
-              </h3>
-              <ul className="space-y-1">
+              <PanelHeading label={t("settings.security_center_recommended")} />
+              <ul>
                 {pending.map((item) => (
                   <li key={item.id}>
                     <button
-                      className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-start hover:bg-surf-secondary"
+                      className={ROW_CLASS}
                       type="button"
-                      onClick={() => navigate_to(item)}
+                      onClick={() => go_to_criterion(item)}
                     >
-                      <span className="h-4 w-4 flex-shrink-0 rounded-full border-2 border-edge-primary" />
-                      <span className="min-w-0 flex-1 truncate text-[13px] text-txt-primary">
+                      <span className={ROW_LABEL_CLASS}>
                         {t(item.label_key)}
                       </span>
-                      <ChevronRightIcon className="h-4 w-4 flex-shrink-0 text-[var(--icon-muted)] rtl:rotate-180" />
+                      <span className={ROW_VALUE_CLASS}>
+                        {criterion_state(item)}
+                      </span>
+                      <ChevronRightIcon className={CHEVRON_CLASS} />
                     </button>
                   </li>
                 ))}
               </ul>
             </>
           ) : (
-            <p className="mt-4 px-1 text-[13px] text-txt-secondary">
-              {t("settings.security_center_all_clear")}
-            </p>
+            <div className="mt-3 px-2">
+              <p className="text-[13.5px] leading-5 text-txt-secondary">
+                {t("settings.security_center_all_clear")}
+              </p>
+            </div>
+          )}
+          <div className="my-2 h-px bg-edge-secondary" />
+          {stats.map((stat) => (
+            <button
+              key={stat.id}
+              className={ROW_CLASS}
+              type="button"
+              onClick={() => go_to_settings(stat.section, stat.anchor)}
+            >
+              <stat.icon className={ICON_CLASS} />
+              <span className={ROW_LABEL_CLASS}>{stat.label}</span>
+              <span className={ROW_VALUE_CLASS}>{stat.value}</span>
+              <ChevronRightIcon className={CHEVRON_CLASS} />
+            </button>
+          ))}
+          <button
+            className={ROW_CLASS}
+            type="button"
+            onClick={() => go_to_settings("security", "sec-vanguard")}
+          >
+            <AsterSecurityMark className={ICON_CLASS} />
+            <span className={ROW_LABEL_CLASS}>
+              {t("settings.vanguard_title")}
+            </span>
+            <span className={ROW_VALUE_CLASS}>
+              {state_label(overview.vanguard_enabled)}
+            </span>
+            <ChevronRightIcon className={CHEVRON_CLASS} />
+          </button>
+          <button
+            className={ROW_CLASS}
+            type="button"
+            onClick={() => go_to_settings("encryption")}
+          >
+            <FingerPrintIcon className={ICON_CLASS} />
+            <span className={ROW_LABEL_CLASS}>
+              {t("settings.security_center_encryption_title")}
+            </span>
+            {overview.key_fingerprint && (
+              <span className="flex-shrink-0 font-mono text-[11.5px] tracking-wide text-txt-secondary">
+                {format_key_fingerprint(overview.key_fingerprint)}
+              </span>
+            )}
+            <ChevronRightIcon className={CHEVRON_CLASS} />
+          </button>
+          {alias_preview.length > 0 && (
+            <button
+              className="w-full rounded-lg px-2 py-2 text-start hover:bg-surf-secondary"
+              type="button"
+              onClick={() => go_to_settings("aliases")}
+            >
+              <div className="flex items-center gap-2.5">
+                <AtSymbolIcon className={ICON_CLASS} />
+                <span className={ROW_LABEL_CLASS}>{t("common.aliases")}</span>
+                <span className={ROW_VALUE_CLASS}>
+                  {alias_overflow > 0
+                    ? t("common.n_more", { count: alias_overflow })
+                    : alias_value}
+                </span>
+                <ChevronRightIcon className={CHEVRON_CLASS} />
+              </div>
+              <ul
+                className="mt-1.5 ms-[28px] space-y-1 border-s ps-2.5"
+                style={{ borderColor: TRACK_COLOR }}
+              >
+                {alias_preview.map((alias) => (
+                  <li
+                    key={alias.id}
+                    className={`truncate text-[12.5px] leading-4 ${
+                      alias.is_enabled ? "text-txt-secondary" : "text-txt-muted"
+                    }`}
+                  >
+                    {alias.full_address.split("@")[0]}
+                    <span className="text-txt-muted">
+                      @{alias.full_address.split("@").slice(1).join("@")}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </button>
           )}
           {done.length > 0 && (
             <>
-              <h3 className="mt-4 mb-1.5 px-1 text-[11.5px] font-medium tracking-wide text-txt-secondary uppercase">
-                {t("settings.security_center_protected")}
-              </h3>
-              <ul className="space-y-1">
+              <PanelHeading label={t("settings.security_center_protected")} />
+              <ul>
                 {done.map((item) => (
                   <li key={item.id}>
                     <button
-                      className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-start hover:bg-surf-secondary"
+                      className={ROW_CLASS}
                       type="button"
-                      onClick={() => navigate_to(item)}
+                      onClick={() => go_to_criterion(item)}
                     >
-                      <CheckCircleIcon className="h-4 w-4 flex-shrink-0 text-green-500" />
-                      <span className="min-w-0 flex-1 truncate text-[13px] text-txt-secondary">
+                      <span className={`${ROW_LABEL_CLASS} text-txt-secondary`}>
                         {t(item.label_key)}
                       </span>
+                      <span className={`${ROW_VALUE_CLASS} text-txt-muted`}>
+                        {criterion_state(item)}
+                      </span>
+                      <ChevronRightIcon className={QUIET_CHEVRON_CLASS} />
                     </button>
                   </li>
                 ))}
               </ul>
             </>
           )}
+        </div>
+      )}
+      {overview.is_loaded && (
+        <div className="flex-shrink-0 px-3 pt-2 pb-3">
           <Button
-            className="mt-4 w-full"
+            className="w-full"
             size="sm"
             variant="secondary"
             onClick={open_security}

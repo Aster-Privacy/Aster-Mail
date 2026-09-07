@@ -24,6 +24,8 @@ import { createRoot, type Root } from "react-dom/client";
 
 import { QuickSecurityPanel } from "./quick_security_panel";
 
+import { format_key_fingerprint } from "@/hooks/use_security_overview";
+
 const totp_status = vi.fn();
 const hardware_keys = vi.fn();
 const login_alerts = vi.fn();
@@ -63,6 +65,42 @@ vi.mock("@/services/api/recovery_email", () => ({
   get_recovery_email: () => recovery_email(),
 }));
 
+vi.mock("@/services/api/sessions", () => ({
+  list_sessions: () => Promise.resolve({ data: { sessions: [{ id: "a" }] } }),
+}));
+
+vi.mock("@/services/api/trusted_devices", () => ({
+  list_trusted_devices: () => Promise.resolve({ data: { devices: [] } }),
+}));
+
+vi.mock("@/services/api/vanguard", () => ({
+  get_vanguard_status: () => Promise.resolve({ data: { enabled: true } }),
+}));
+
+vi.mock("@/services/api/lockdown", () => ({
+  get_lockdown_status: () => Promise.resolve({ data: { enabled: false } }),
+}));
+
+vi.mock("@/services/api/key_rotation", () => ({
+  get_identity_key_status: () =>
+    Promise.resolve({ data: { key_fingerprint: "ab:cd:ef:12:34:56:78:9a" } }),
+}));
+
+vi.mock("@/services/api/aliases", () => ({
+  get_alias_counts: () => Promise.resolve({ data: { count: 3, max: 10 } }),
+}));
+
+let alias_cache: {
+  id: string;
+  full_address: string;
+  is_enabled: boolean;
+}[] = [];
+
+vi.mock("@/hooks/use_sidebar_aliases", () => ({
+  subscribe_aliases: () => () => {},
+  get_cached_aliases: () => alias_cache,
+}));
+
 vi.mock("@/services/crypto/memory_key_store", () => ({
   get_vault_from_memory: () => ({ id: "vault" }),
 }));
@@ -98,6 +136,7 @@ describe("quick security panel", () => {
     hardware_keys.mockResolvedValue({ data: { keys: [] } });
     login_alerts.mockResolvedValue({ data: { enabled: false } });
     recovery_email.mockResolvedValue({ data: { verified: false } });
+    alias_cache = [];
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
@@ -131,7 +170,7 @@ describe("quick security panel", () => {
       "settings.security_center_recommended",
     );
     expect(container.textContent).toContain(
-      "settings.account_security_percent_title",
+      "settings.security_center_protection_score",
     );
   });
 
@@ -151,6 +190,40 @@ describe("quick security panel", () => {
     expect(lists[1].querySelectorAll("li")).toHaveLength(4);
   });
 
+  it("previews enabled aliases first and counts the remainder", async () => {
+    alias_cache = [
+      { id: "1", full_address: "archive@aster.cx", is_enabled: false },
+      { id: "2", full_address: "shop@aster.cx", is_enabled: true },
+      { id: "3", full_address: "news@aster.cx", is_enabled: true },
+      { id: "4", full_address: "games@aster.cx", is_enabled: true },
+      { id: "5", full_address: "travel@aster.cx", is_enabled: true },
+      { id: "6", full_address: "work@aster.cx", is_enabled: true },
+    ];
+    await render_panel();
+
+    const rows = Array.from(container.querySelectorAll("ul")).find((list) =>
+      list.textContent?.includes("@aster.cx"),
+    );
+
+    expect(rows).toBeTruthy();
+    expect(
+      Array.from(rows!.querySelectorAll("li")).map((li) => li.textContent),
+    ).toEqual([
+      "games@aster.cx",
+      "news@aster.cx",
+      "shop@aster.cx",
+      "travel@aster.cx",
+    ]);
+    expect(container.textContent).toContain("common.n_more");
+  });
+
+  it("hides the alias preview when there are no aliases", async () => {
+    await render_panel();
+
+    expect(container.textContent).not.toContain("@aster.cx");
+    expect(container.textContent).not.toContain("common.n_more");
+  });
+
   it("reports a fully protected account with no recommendations", async () => {
     totp_status.mockResolvedValue({ data: { enabled: true } });
     hardware_keys.mockResolvedValue({ data: { keys: [{ id: "key" }] } });
@@ -166,11 +239,9 @@ describe("quick security panel", () => {
     expect(container.textContent).toContain(
       "settings.security_center_all_clear",
     );
-    expect(
-      container
-        .querySelector('[role="progressbar"]')
-        ?.getAttribute("aria-valuenow"),
-    ).toBe("100");
+    expect(container.textContent).toContain(
+      "settings.account_protection_strong",
+    );
   });
 
   it("deep-links a criterion into its settings section", async () => {
@@ -192,6 +263,31 @@ describe("quick security panel", () => {
     window.removeEventListener("navigate-settings", listener);
 
     expect(events).toEqual([{ section: "security", anchor: "sec-2fa" }]);
+  });
+
+  it("shows our own protection signals alongside the criteria", async () => {
+    await render_panel();
+
+    expect(container.textContent).toContain("settings.vanguard_title");
+    expect(container.textContent).toContain("settings.lockdown_title");
+    expect(container.textContent).toContain("settings_search.sessions");
+    expect(container.textContent).toContain("settings.trusted_devices");
+    expect(container.textContent).toContain("3/10");
+    expect(container.textContent).toContain(
+      "settings.security_center_encryption_title",
+    );
+    expect(container.textContent).toContain("3456 789A");
+  });
+
+  it("carries no refresh control in the header", async () => {
+    await render_panel();
+
+    const header_buttons = container.querySelectorAll(
+      "aside > div:first-child > button",
+    );
+
+    expect(header_buttons).toHaveLength(1);
+    expect(header_buttons[0].getAttribute("aria-label")).toBe("common.close");
   });
 
   it("writes the panel inset while it is open", async () => {
@@ -225,5 +321,19 @@ describe("quick security panel", () => {
     expect(container.textContent).not.toContain(
       "settings.failed_load_security_status",
     );
+  });
+});
+
+describe("format_key_fingerprint", () => {
+  it("returns nothing without a fingerprint", () => {
+    expect(format_key_fingerprint(null)).toBe("");
+  });
+
+  it("groups the last eight characters of a fingerprint", () => {
+    expect(format_key_fingerprint("ab:cd:ef:12:34:56:78:9a")).toBe("3456 789A");
+  });
+
+  it("returns a short fingerprint unchanged", () => {
+    expect(format_key_fingerprint("ab-cd")).toBe("ABCD");
   });
 });

@@ -20,14 +20,7 @@
 //
 import type { SettingsSection } from "@/components/settings/settings_content";
 
-import {
-  lazy,
-  Suspense,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import { WifiIcon } from "@heroicons/react/24/outline";
@@ -51,9 +44,10 @@ import {
 import { FullPageLoader } from "@/components/common/full_page_loader";
 import { QuickSettingsPanel } from "@/components/settings/quick_settings_panel";
 import { Spinner } from "@/components/ui/spinner";
+import { lazy_with_retry } from "@/utils/lazy_with_retry";
 const load_settings_content = () =>
   import("@/components/settings/settings_content");
-const SettingsContent = lazy(() =>
+const SettingsContent = lazy_with_retry(() =>
   load_settings_content().then((m) => ({
     default: m.SettingsContent,
   })),
@@ -66,37 +60,37 @@ function SettingsFallback() {
     </div>
   );
 }
-const ContactsContent = lazy(() =>
+const ContactsContent = lazy_with_retry(() =>
   import("@/components/common/contacts_content").then((m) => ({
     default: m.ContactsContent,
   })),
 );
-const SubscriptionsContent = lazy(() =>
+const SubscriptionsContent = lazy_with_retry(() =>
   import("@/components/subscriptions/subscriptions_content").then((m) => ({
     default: m.SubscriptionsContent,
   })),
 );
-const SearchResultsPage = lazy(() =>
+const SearchResultsPage = lazy_with_retry(() =>
   import("@/components/search/search_results_page").then((m) => ({
     default: m.SearchResultsPage,
   })),
 );
-const CommandPalette = lazy(() =>
+const CommandPalette = lazy_with_retry(() =>
   import("@/components/search/command_palette").then((m) => ({
     default: m.CommandPalette,
   })),
 );
-const KeyboardShortcutsModal = lazy(() =>
+const KeyboardShortcutsModal = lazy_with_retry(() =>
   import("@/components/modals/keyboard_shortcuts_modal").then((m) => ({
     default: m.KeyboardShortcutsModal,
   })),
 );
-const KeyRotationModal = lazy(() =>
+const KeyRotationModal = lazy_with_retry(() =>
   import("@/components/modals/key_rotation_modal").then((m) => ({
     default: m.KeyRotationModal,
   })),
 );
-const PurchaseSuccessModal = lazy(() =>
+const PurchaseSuccessModal = lazy_with_retry(() =>
   import("@/components/modals/purchase_success_modal").then((m) => ({
     default: m.PurchaseSuccessModal,
   })),
@@ -148,6 +142,9 @@ export default function IndexPage() {
     () => !is_first_run_setup_pending(),
   );
   const [checklist_complete, set_checklist_complete] = useState(false);
+  const [checklist_visible, set_checklist_visible] = useState<boolean | null>(
+    null,
+  );
   const is_mobile = use_is_mobile();
   const handle_checklist_complete = useCallback(() => {
     set_checklist_complete(true);
@@ -164,7 +161,10 @@ export default function IndexPage() {
 
     let cancelled = false;
     const timer = window.setTimeout(() => {
-      if (!cancelled) void load_settings_content();
+      if (!cancelled)
+        void load_settings_content().catch((caught) =>
+          ignore_error("pages/index:load_settings_content", caught),
+        );
     }, 400);
 
     return () => {
@@ -185,6 +185,7 @@ export default function IndexPage() {
   const purchase_modal_mounted = use_mount_latch(!!state.checkout_success);
 
   const state_ref = useRef(state);
+  const opened_domain_order_ref = useRef<string | null>(null);
 
   state_ref.current = state;
 
@@ -320,7 +321,6 @@ export default function IndexPage() {
       const nav_section = resolve_settings_section(
         typeof detail === "string" ? detail : detail?.section,
       );
-
       const anchor = typeof detail === "string" ? undefined : detail?.anchor;
 
       if (!state_ref.current.is_settings_route) {
@@ -344,7 +344,16 @@ export default function IndexPage() {
     const handle_navigate_sent = () => navigate("/sent");
 
     try {
-      if (sessionStorage.getItem("aster_pending_domain_order")) {
+      const pending_domain_order = sessionStorage.getItem(
+        "aster_pending_domain_order",
+      );
+
+      if (
+        pending_domain_order &&
+        !state_ref.current.is_settings_route &&
+        opened_domain_order_ref.current !== pending_domain_order
+      ) {
+        opened_domain_order_ref.current = pending_domain_order;
         state_ref.current.open_settings("domains" as SettingsSection);
       }
     } catch (caught) {
@@ -764,11 +773,17 @@ export default function IndexPage() {
       {!state.is_settings_route && first_run_setup_done && (
         <>
           <OnboardingChecklist
+            hidden={
+              is_quick_settings_open ||
+              is_rail_contacts_open ||
+              is_rail_security_open
+            }
             on_all_tasks_done={handle_checklist_complete}
             on_compose={state.open_compose}
             on_open_settings={(section) => {
               state.open_settings(section);
             }}
+            on_visibility_change={set_checklist_visible}
           />
           <RecoveryReminder
             on_open_recovery={() => {
@@ -777,6 +792,7 @@ export default function IndexPage() {
           />
           <PlanPrompt
             checklist_complete={checklist_complete}
+            checklist_visible={checklist_visible}
             on_open_plans={() => {
               state.open_settings("billing");
             }}
