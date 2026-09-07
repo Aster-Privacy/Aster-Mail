@@ -328,7 +328,7 @@ export function use_compose_send({
             body: message,
             in_reply_to:
               edit_draft?.draft_type === "reply"
-                ? edit_draft.reply_to_id
+                ? edit_draft.rfc_message_id
                 : undefined,
             sender_email:
               selected_sender?.type !== "primary"
@@ -417,7 +417,7 @@ export function use_compose_send({
         thread_id,
         in_reply_to:
           edit_draft?.draft_type === "reply"
-            ? edit_draft.reply_to_id
+            ? edit_draft.rfc_message_id
             : undefined,
         sender_email:
           selected_sender?.type !== "primary"
@@ -652,6 +652,19 @@ export function use_compose_send({
 
     clear_all_errors();
 
+    let scheduled_thread_id: string | undefined;
+
+    if (edit_draft?.draft_type === "reply" && edit_draft.reply_to_id) {
+      const resolved_token = await get_or_create_thread_token(
+        edit_draft.reply_to_id,
+        edit_draft.thread_token,
+      );
+
+      if (resolved_token) {
+        scheduled_thread_id = resolved_token;
+      }
+    }
+
     const content: ScheduledEmailContent = {
       to_recipients: recipients.to,
       cc_recipients: recipients.cc,
@@ -659,6 +672,10 @@ export function use_compose_send({
       subject,
       body: message,
       scheduled_at: scheduled_time.toISOString(),
+      ...(edit_draft?.draft_type === "reply" && edit_draft.rfc_message_id
+        ? { in_reply_to: edit_draft.rfc_message_id }
+        : {}),
+      ...(scheduled_thread_id ? { thread_id: scheduled_thread_id } : {}),
       ...(selected_sender && selected_sender.type !== "primary"
         ? {
             from: {

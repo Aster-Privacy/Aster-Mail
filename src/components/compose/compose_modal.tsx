@@ -58,6 +58,7 @@ interface ComposeModalProps {
   edit_draft?: EditDraftData | null;
   on_draft_cleared?: () => void;
   initial_to?: string;
+  initial_attachments?: File[];
 }
 
 export function ComposeModal({
@@ -66,6 +67,7 @@ export function ComposeModal({
   edit_draft,
   on_draft_cleared,
   initial_to,
+  initial_attachments,
 }: ComposeModalProps) {
   const { t } = use_i18n();
   const reduce_motion = use_should_reduce_motion();
@@ -81,6 +83,7 @@ export function ComposeModal({
     edit_draft,
     on_draft_cleared,
     initial_to,
+    initial_attachments,
     session_storage_key: "astermail_pending_send",
     init_trigger: is_open,
     load_contacts_trigger: is_open,

@@ -61,6 +61,7 @@ import { use_my_badge_prefs } from "@/stores/my_badge_prefs_store";
 import { Spinner } from "@/components/ui/spinner";
 import { ignore_error } from "@/lib/ignore_error";
 import { is_composing } from "@/utils/ime";
+import { get_undo_send_delay_ms } from "@/services/send_queue";
 
 type SendState = "idle" | "queued" | "sending" | "sent" | "error";
 
@@ -162,15 +163,24 @@ export const InlineReplySection = forwardRef<
       : null;
 
   useEffect(() => {
-    fetch_my_badges().then((r) => {
-      if (r.data) set_badges(r.data);
-    });
+    fetch_my_badges()
+      .then((r) => {
+        if (r.data) set_badges(r.data);
+      })
+      .catch((caught) =>
+        ignore_error(
+          "components/email/inline_reply_section:fetch_my_badges",
+          caught,
+        ),
+      );
   }, []);
 
-  const undo_enabled = preferences.undo_send_enabled ?? true;
-  const undo_seconds = undo_enabled
-    ? Math.min(30, Math.max(1, preferences.undo_send_seconds ?? 10))
-    : 0;
+  const undo_delay_ms = get_undo_send_delay_ms(
+    preferences.undo_send_enabled ?? true,
+    preferences.undo_send_seconds,
+    preferences.undo_send_period,
+  );
+  const undo_seconds = undo_delay_ms / 1000;
 
   useEffect(() => {
     if (!matching_draft) return;

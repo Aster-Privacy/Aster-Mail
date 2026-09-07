@@ -39,6 +39,7 @@ export interface EditDraftData {
   version: number;
   draft_type: DraftType;
   reply_to_id?: string;
+  rfc_message_id?: string;
   forward_from_id?: string;
   thread_token?: string;
   to_recipients: string[];
@@ -47,6 +48,8 @@ export interface EditDraftData {
   subject: string;
   message: string;
   from_email?: string;
+  expires_at?: string;
+  expiry_password?: string;
   updated_at: string;
   attachments?: DraftAttachmentData[];
 }
@@ -83,6 +86,21 @@ export function use_compose_manager() {
       initial_ghost_mode?: boolean,
     ) => {
       set_instances((prev) => {
+        if (!edit_draft && initial_to) {
+          const existing = prev.find(
+            (instance) =>
+              !instance.edit_draft && instance.initial_to === initial_to,
+          );
+
+          if (existing) {
+            return prev.map((instance) =>
+              instance.id === existing.id
+                ? { ...instance, is_minimized: false }
+                : instance,
+            );
+          }
+        }
+
         if (prev.length >= MAX_COMPOSE_INSTANCES) {
           show_toast(t("mail.max_composers_warning"), "error");
 
@@ -184,7 +202,10 @@ export function ComposeManager({
   }
 
   return (
-    <div className="fixed bottom-0 start-0 end-0 z-50 pointer-events-none">
+    <div
+      className="fixed bottom-0 start-0 end-0 z-50 pointer-events-none"
+      style={{ paddingInlineEnd: "var(--quick_panel_inset, 0px)" }}
+    >
       <div
         ref={container_ref}
         className="flex flex-row-reverse items-end gap-2 px-4 pb-0 overflow-x-auto scrollbar-compose"

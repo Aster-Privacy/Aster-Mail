@@ -405,6 +405,7 @@ export async function execute_external_send(
     sender_email: email.sender_email,
     sender_alias_hash: email.sender_alias_hash,
     sender_display_name: email.sender_display_name,
+    attachments: email.attachments,
     scheduled_time: Date.now(),
     timeout_id: 0,
     callbacks: {

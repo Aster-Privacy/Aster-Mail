@@ -216,7 +216,11 @@ function MobileApp() {
 
   const handle_compose_open = useCallback((to?: string) => {
     if (to) {
-      const recipients = to
+      const mailto_match = to.match(/^mailto:(.+)/i);
+      const raw_recipients = mailto_match
+        ? decodeURIComponent(mailto_match[1])
+        : to;
+      const recipients = raw_recipients
         .split(",")
         .map((e) => e.trim())
         .filter(Boolean);
@@ -297,6 +301,7 @@ function MobileApp() {
           message: string;
           draft_type: "reply" | "forward" | "new";
           reply_to_id?: string;
+          rfc_message_id?: string;
           forward_from_id?: string;
           thread_token?: string;
         }>
@@ -307,6 +312,7 @@ function MobileApp() {
         version: 0,
         draft_type: data.draft_type,
         reply_to_id: data.reply_to_id,
+        rfc_message_id: data.rfc_message_id,
         forward_from_id: data.forward_from_id,
         thread_token: data.thread_token,
         to_recipients: data.to_recipients,

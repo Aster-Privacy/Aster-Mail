@@ -29,7 +29,7 @@ export function resolve_signature_placement(
   }
   if (preference === "above" || preference === "below") return preference;
 
-  return "below";
+  return "above";
 }
 
 export function assemble_reply_with_placement(
@@ -62,6 +62,12 @@ export function assemble_reply_with_placement(
   const signature_html = signature.outerHTML;
 
   signature.remove();
+
+  const has_body_outside_signature =
+    !!root.textContent?.trim() ||
+    !!root.querySelector("img, video, table, hr, blockquote");
+
+  if (!has_body_outside_signature) return reply_body + quoted_content;
 
   return root.innerHTML + quoted_content + signature_html;
 }

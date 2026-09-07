@@ -169,25 +169,16 @@ class UndoSendManager {
     const response = await undo_send_api.send_now(queue_id);
 
     if (response.error || !response.data?.success) {
-      pending.status = "failed";
-      if (pending.on_error) {
-        pending.on_error(
-          response.error || get_active_translations().errors.failed_send_email,
-        );
-      }
-      this.notify_listeners();
+      this.apply_terminal_status(
+        pending,
+        "failed",
+        response.error || get_active_translations().errors.failed_send_email,
+      );
 
       return false;
     }
 
-    pending.status = "sent";
-
-    if (pending.on_sent) {
-      pending.on_sent();
-    }
-
-    this.pending_sends.delete(queue_id);
-    this.notify_listeners();
+    this.apply_terminal_status(pending, "sent");
 
     return true;
   }

@@ -237,6 +237,40 @@ describe("undo_send_manager send finalization", () => {
     expect(on_error).toHaveBeenCalledWith("sender address not authorized");
   });
 
+  it("removes the entry and stops polling when send now fails", async () => {
+    const on_sent = vi.fn();
+    const on_error = vi.fn();
+
+    mocked_api.send_now.mockResolvedValue({
+      data: null,
+      error: "relay rejected",
+    } as never);
+
+    await queue_one({ on_sent, on_error });
+    expect(undo_send_manager.get_send("q1")).toBeDefined();
+
+    const sent = await undo_send_manager.send_immediately("q1");
+
+    expect(sent).toBe(false);
+    expect(on_sent).not.toHaveBeenCalled();
+    expect(on_error).toHaveBeenCalledWith("relay rejected");
+    expect(undo_send_manager.get_send("q1")).toBeUndefined();
+    expect(undo_send_manager.get_all_sends()).toHaveLength(0);
+
+    const polls_before = mocked_api.get_pending.mock.calls.length;
+
+    await vi.advanceTimersByTimeAsync(5_100);
+    expect(mocked_api.get_pending.mock.calls.length).toBeLessThanOrEqual(
+      polls_before + 1,
+    );
+
+    await vi.advanceTimersByTimeAsync(30_000);
+    expect(mocked_api.get_pending.mock.calls.length).toBeLessThanOrEqual(
+      polls_before + 1,
+    );
+    expect(mocked_api.get_status).not.toHaveBeenCalled();
+  });
+
   it("reports a failure when the server drops the send from the pending list", async () => {
     const on_sent = vi.fn();
     const on_error = vi.fn();

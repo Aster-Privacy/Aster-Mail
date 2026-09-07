@@ -39,8 +39,8 @@ describe("resolve_signature_placement", () => {
     expect(resolve_signature_placement(null, "above")).toBe("above");
   });
 
-  it("defaults to below", () => {
-    expect(resolve_signature_placement(undefined, undefined)).toBe("below");
+  it("defaults to above", () => {
+    expect(resolve_signature_placement(undefined, undefined)).toBe("above");
   });
 });
 
@@ -89,5 +89,13 @@ describe("assemble_reply_with_placement", () => {
     expect(
       assemble_reply_with_placement(`Hello${signature}`, "", () => "below"),
     ).toBe(`Hello${signature}`);
+  });
+  it("keeps the quote last when the whole reply was typed inside the signature block", () => {
+    const typed =
+      '<div data-aster-signature="1" data-aster-signature-id="sig_1">Hello!<br><br>--<br>The Aster Team</div>';
+
+    expect(assemble_reply_with_placement(typed, quote, () => "below")).toBe(
+      `${typed}${quote}`,
+    );
   });
 });

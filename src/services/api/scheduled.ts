@@ -40,6 +40,8 @@ export interface ScheduledEmailContent {
   body: string;
   scheduled_at: string;
   from?: ScheduledEnvelopeSender;
+  in_reply_to?: string;
+  thread_id?: string;
 }
 
 export interface ScheduledEmail {
@@ -273,6 +275,9 @@ async function encrypt_with_ephemeral_key(
     subject: content.subject,
     body: content.body,
     scheduled_at: content.scheduled_at,
+    ...(content.from ? { from: content.from } : {}),
+    ...(content.in_reply_to ? { in_reply_to: content.in_reply_to } : {}),
+    ...(content.thread_id ? { thread_id: content.thread_id } : {}),
   };
 
   const envelope_plaintext = new TextEncoder().encode(

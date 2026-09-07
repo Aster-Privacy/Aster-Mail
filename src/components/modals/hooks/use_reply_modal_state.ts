@@ -98,6 +98,7 @@ import {
   get_display_time_zone,
 } from "@/utils/date_format";
 import { use_escape_layer } from "@/lib/overlay_layer_stack";
+import { is_contact_trashed } from "@/lib/contact_trash";
 
 function attachments_key(ids: string[]): string {
   return ids.join(",");
@@ -149,10 +150,17 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
       : null;
 
   useEffect(() => {
-    fetch_my_badges().then((r) => {
-      if (r.data) set_badges(r.data);
-      set_badges_loaded(true);
-    });
+    fetch_my_badges()
+      .then((r) => {
+        if (r.data) set_badges(r.data);
+      })
+      .catch((caught) =>
+        ignore_error(
+          "components/modals/hooks/use_reply_modal_state:fetch_my_badges",
+          caught,
+        ),
+      )
+      .finally(() => set_badges_loaded(true));
   }, []);
   const { sender_options, loading: sender_loading } = use_sender_aliases();
   const [selected_sender, set_selected_sender_state] =
@@ -408,7 +416,11 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
 
         const decrypted = await decrypt_contacts(response.data.items);
 
-        if (!cancelled) set_contacts(decrypted);
+        if (!cancelled) {
+          set_contacts(
+            decrypted.filter((contact) => !is_contact_trashed(contact)),
+          );
+        }
       })
       .catch((caught) =>
         ignore_error(
@@ -647,6 +659,10 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
       } else {
         content =
           badge_html + get_aster_footer(t, preferences.show_aster_branding);
+      }
+
+      if (content) {
+        content = `<div><br></div>${content}`;
       }
 
       const sanitized_result = sanitize_html(content, {
