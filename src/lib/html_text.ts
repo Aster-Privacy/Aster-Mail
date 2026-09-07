@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { split_autolinks } from "./autolink";
 import { is_transparent_color_value } from "./html_sanitizer_css";
 import { looks_format_flowed, unflow_format_flowed } from "./format_flowed";
 import { repair_comment_markup } from "./html_sanitizer_utils";
@@ -89,10 +90,17 @@ export function has_rich_html(content: string): boolean {
   return false;
 }
 
+function escape_text(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
 export function plain_text_to_html(text: string): string {
   if (!text) return "";
 
-  const url_regex = /(https?:\/\/[^\s<>"'{}|\\^`[\]]+)/g;
   const normalized = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
   const reflowed = looks_format_flowed(normalized)
     ? unflow_format_flowed(normalized)
@@ -101,19 +109,15 @@ export function plain_text_to_html(text: string): string {
 
   return paragraphs
     .map((para) => {
-      let escaped = para
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;");
+      const escaped = split_autolinks(para)
+        .map((segment) => {
+          if (!segment.href) return escape_text(segment.text);
+          const href = escape_text(segment.href).replace(/'/g, "&#39;");
 
-      escaped = escaped.replace(url_regex, (url) => {
-        const href_url = url.replace(/"/g, "&quot;").replace(/'/g, "&#39;");
-
-        return `<a href="${href_url}" target="_blank" rel="noopener noreferrer">${url}</a>`;
-      });
-
-      escaped = escaped.replace(/\n/g, "<br>");
+          return `<a href="${href}" target="_blank" rel="noopener noreferrer">${escape_text(segment.text)}</a>`;
+        })
+        .join("")
+        .replace(/\n/g, "<br>");
 
       return `<p dir="auto">${escaped}</p>`;
     })
