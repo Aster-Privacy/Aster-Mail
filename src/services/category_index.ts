@@ -258,6 +258,7 @@ function fold_category(raw: EmailCategory): EmailCategory {
 
 const listeners = new Set<() => void>();
 const in_flight_reclassify = new Map<string, boolean>();
+const reclassify_promises = new Map<string, Promise<void>>();
 const recent_reclassify_meta = new Map<string, string>();
 const recently_read = new Map<string, number>();
 const recent_pins = new Map<string, { category: EmailCategory; at: number }>();
@@ -2163,6 +2164,20 @@ function schedule_resync(): void {
   }, RESYNC_DEBOUNCE_MS);
 }
 
+export function index_arrival(id: string): Promise<void> {
+  const pending = reclassify_promises.get(id);
+
+  if (pending) return pending;
+
+  const run = reclassify_id(id).finally(() => {
+    if (reclassify_promises.get(id) === run) reclassify_promises.delete(id);
+  });
+
+  reclassify_promises.set(id, run);
+
+  return run;
+}
+
 async function reclassify_id(id: string): Promise<void> {
   if (!has_vault_in_memory()) return;
 
@@ -2171,7 +2186,7 @@ async function reclassify_id(id: string): Promise<void> {
   if (in_flight_reclassify.has(id)) {
     in_flight_reclassify.set(id, true);
 
-    return;
+    return reclassify_promises.get(id);
   }
   in_flight_reclassify.set(id, false);
 
@@ -2368,7 +2383,12 @@ export function start_event_listeners(): void {
   });
 
   on_mail_event(MAIL_EVENTS.EMAIL_RECEIVED, (detail) => {
-    void reclassify_id(detail.email_id);
+    if (!detail.email_id) {
+      void sync_recent();
+
+      return;
+    }
+    void index_arrival(detail.email_id);
   });
 
   if (typeof document !== "undefined") {

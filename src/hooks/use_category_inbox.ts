@@ -72,6 +72,7 @@ import {
   request_full_rebuild,
   is_recently_read,
   is_representative_unread,
+  index_arrival,
   sync_recent,
   set_sort_order,
   reconcile_server_read,
@@ -820,11 +821,28 @@ export function use_category_inbox(
       void fetch_page(page, page_size, { silent: true });
     };
 
-    const handle_email_received = () => {
+    const handle_email_received = (event: Event) => {
       if (!has_passphrase_in_memory()) return;
+      const email_id = (event as CustomEvent<{ email_id?: string }>).detail
+        ?.email_id;
+
       last_arrival_fetch_ref.current = Date.now();
-      page_cache.current.clear();
-      void fetch_page(page, page_size, { silent: true });
+      void (async () => {
+        try {
+          if (email_id) {
+            await index_arrival(email_id);
+          } else {
+            await sync_recent();
+          }
+        } catch {
+          void 0;
+        }
+
+        if (cancelled) return;
+
+        page_cache.current.clear();
+        await fetch_page(page, page_size, { silent: true });
+      })();
     };
 
     const handle_visible = () => {

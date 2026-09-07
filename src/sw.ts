@@ -160,6 +160,10 @@ self.addEventListener("push", (event: PushEvent) => {
       const app_is_open = clients.length > 0;
 
       if (app_is_open && !is_test) {
+        for (const client of clients) {
+          client.postMessage({ type: "aster_push_arrived" });
+        }
+
         return;
       }
 

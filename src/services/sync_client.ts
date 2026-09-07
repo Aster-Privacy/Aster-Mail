@@ -73,6 +73,9 @@ interface ServerMessage {
 
 const HEARTBEAT_INTERVAL_MS = 30000;
 const LIVENESS_TIMEOUT_MS = 75000;
+const CATCH_UP_TICK_MS = 60000;
+export const PUSH_ARRIVED_MESSAGE = "aster_push_arrived";
+const CATCH_UP_WHILE_LIVE_MS = 180000;
 const MUTATION_REFRESH_DEBOUNCE_MS = 600;
 const REMOVAL_ACTIONS = new Set([
   "trash",
@@ -101,6 +104,9 @@ class SyncClient {
   private auth_error_count = 0;
   private last_auth_error = false;
   private reconnect_attempt = 0;
+  private has_authenticated_before = false;
+  private last_catch_up_at = 0;
+  private catch_up_timer: ReturnType<typeof setInterval> | null = null;
   private pending_connect_reject: ((err: Error) => void) | null = null;
   private heartbeat_timer: ReturnType<typeof setInterval> | null = null;
   private last_message_at = 0;
@@ -226,16 +232,19 @@ class SyncClient {
         this.handle_message(data);
 
         if (data.type === "auth_success") {
-          const is_reconnect = this.reconnect_attempt > 0;
+          const is_reconnect =
+            this.reconnect_attempt > 0 || this.has_authenticated_before;
 
           this.authenticated = true;
+          this.has_authenticated_before = true;
           this.auth_error_count = 0;
           this.last_auth_error = false;
           this.reconnect_attempt = 0;
           this.start_heartbeat();
+          this.start_catch_up_timer();
           void check_and_replenish_prekeys();
           if (is_reconnect) {
-            void sync_recent(true);
+            this.catch_up_now();
             window.dispatchEvent(
               new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH),
             );
@@ -283,6 +292,63 @@ class SyncClient {
     if (this.heartbeat_timer) {
       clearInterval(this.heartbeat_timer);
       this.heartbeat_timer = null;
+    }
+  }
+
+  catch_up_now(): void {
+    if (!this.should_reconnect) return;
+    if (
+      typeof document !== "undefined" &&
+      document.visibilityState === "hidden"
+    ) {
+      return;
+    }
+    this.last_catch_up_at = Date.now();
+    sync_recent(true).catch((caught) =>
+      ignore_error("services/sync_client:catch_up", caught),
+    );
+  }
+
+  private start_catch_up_timer(): void {
+    if (this.catch_up_timer) return;
+
+    this.catch_up_timer = setInterval(() => {
+      if (!this.should_reconnect) return;
+      if (
+        typeof document !== "undefined" &&
+        document.visibilityState === "hidden"
+      ) {
+        return;
+      }
+      const socket_live =
+        this.authenticated && this.socket?.readyState === WebSocket.OPEN;
+      const since_last = Date.now() - this.last_catch_up_at;
+      const due = socket_live
+        ? since_last >= CATCH_UP_WHILE_LIVE_MS
+        : since_last >= CATCH_UP_TICK_MS;
+
+      if (due) this.catch_up_now();
+    }, CATCH_UP_TICK_MS);
+  }
+
+  private stop_catch_up_timer(): void {
+    if (this.catch_up_timer) {
+      clearInterval(this.catch_up_timer);
+      this.catch_up_timer = null;
+    }
+  }
+
+  on_wake(): void {
+    this.reconnect_now();
+
+    const socket_live =
+      this.authenticated && this.socket?.readyState === WebSocket.OPEN;
+
+    if (
+      socket_live &&
+      Date.now() - this.last_catch_up_at >= CATCH_UP_TICK_MS
+    ) {
+      this.catch_up_now();
     }
   }
 
@@ -406,6 +472,7 @@ class SyncClient {
     }
 
     if (data.type === "new_mail") {
+      this.last_catch_up_at = Date.now();
       mark_view_stale();
       if (!is_low_network()) {
         window.dispatchEvent(
@@ -560,11 +627,13 @@ class SyncClient {
     this.last_auth_error = false;
     this.auth_error_count = 0;
     this.reconnect_attempt = 0;
+    this.has_authenticated_before = false;
     if (this.reconnect_timeout) {
       clearTimeout(this.reconnect_timeout);
       this.reconnect_timeout = null;
     }
     this.stop_heartbeat();
+    this.stop_catch_up_timer();
     if (this.mutation_refresh_timer) {
       clearTimeout(this.mutation_refresh_timer);
       this.mutation_refresh_timer = null;
@@ -664,16 +733,28 @@ if (typeof window !== "undefined") {
     }
   });
   window.addEventListener("online", () => {
-    sync_client.reconnect_now();
+    sync_client.on_wake();
   });
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") {
-      sync_client.reconnect_now();
+      sync_client.on_wake();
     }
   });
   window.addEventListener("focus", () => {
-    sync_client.reconnect_now();
+    sync_client.on_wake();
   });
+  if (typeof navigator !== "undefined" && "serviceWorker" in navigator) {
+    navigator.serviceWorker.addEventListener("message", (event) => {
+      const data = (event as MessageEvent).data as
+        | { type?: string }
+        | null
+        | undefined;
+
+      if (data?.type === PUSH_ARRIVED_MESSAGE) {
+        sync_client.catch_up_now();
+      }
+    });
+  }
 }
 
 async function derive_key(
