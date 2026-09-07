@@ -42,11 +42,16 @@ import { extract_metadata_from_server } from "@/services/crypto/mail_metadata";
 import { type FormatOptions } from "@/utils/date_format";
 import { get_cached_profile } from "@/services/api/sender_profiles";
 
+export interface MailToEmailOptions {
+  collapsed_threads?: boolean;
+}
+
 export function mail_to_email(
   item: MailItem,
   envelope: DecryptedEnvelope | null,
   metadata: MailItemMetadata | null,
   format_options: FormatOptions,
+  options: MailToEmailOptions = {},
 ): InboxEmail {
   const folders = item.labels?.map((label) => ({
     folder_token: label.token,
@@ -79,6 +84,10 @@ export function mail_to_email(
     size_bytes: item.size_bytes,
   });
 
+  const is_read =
+    effective_metadata.is_read &&
+    !(options.collapsed_threads === true && (item.thread_unread_count ?? 0) > 0);
+
   if (!envelope) {
     return {
       id: item.id,
@@ -92,7 +101,7 @@ export function mail_to_email(
       is_pinned: effective_metadata.is_pinned,
       is_starred: effective_metadata.is_starred,
       is_selected: false,
-      is_read: effective_metadata.is_read,
+      is_read,
       is_trashed: effective_metadata.is_trashed,
       is_archived: effective_metadata.is_archived,
       is_spam: effective_metadata.is_spam,
@@ -174,7 +183,7 @@ export function mail_to_email(
     is_pinned: effective_metadata.is_pinned,
     is_starred: effective_metadata.is_starred,
     is_selected: false,
-    is_read: effective_metadata.is_read,
+    is_read,
     is_trashed: effective_metadata.is_trashed,
     is_archived: effective_metadata.is_archived,
     is_spam: effective_metadata.is_spam,
@@ -218,12 +227,13 @@ export function mail_to_email_safe(
   envelope: DecryptedEnvelope | null,
   metadata: MailItemMetadata | null,
   format_options: FormatOptions,
+  options: MailToEmailOptions = {},
 ): InboxEmail | null {
   try {
-    return mail_to_email(item, envelope, metadata, format_options);
+    return mail_to_email(item, envelope, metadata, format_options, options);
   } catch {
     try {
-      return mail_to_email(item, null, null, format_options);
+      return mail_to_email(item, null, null, format_options, options);
     } catch {
       return null;
     }

@@ -195,7 +195,9 @@ export async function fetch_mail_from_api(
     const mapped = await map_sync_in_chunks(
       successful,
       ({ item, envelope, metadata }) =>
-        mail_to_email_safe(item, envelope, metadata, format_options),
+        mail_to_email_safe(item, envelope, metadata, format_options, {
+          collapsed_threads: should_group,
+        }),
       MAP_CHUNK_SIZE,
       signal,
     );
