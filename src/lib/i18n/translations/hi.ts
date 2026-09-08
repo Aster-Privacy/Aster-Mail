@@ -4740,6 +4740,8 @@ export const hi = {
     checkout_term_save: "{{amount}} बचाएं",
     checkout_term_per_month: "{{amount}}/माह",
     checkout_term_crypto_only: "सिर्फ़ क्रिप्टो",
+    billing_onion_card_notice:
+      "कार्ड से भुगतान करने के लिए app.astermail.org पर साइन इन करें। इस पते पर भुगतान क्रिप्टो से होता है।",
     checkout_card_term_unavailable:
       "2 साल की अवधि क्रिप्टो से भुगतान करने पर उपलब्ध है।",
     checkout_term_total: "कुल {{amount}}",

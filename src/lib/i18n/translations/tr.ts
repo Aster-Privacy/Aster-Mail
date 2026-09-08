@@ -5697,6 +5697,8 @@ export const tr = {
     checkout_term_save: "{{amount}} tasarruf edin",
     checkout_term_per_month: "{{amount}}/ay",
     checkout_term_crypto_only: "Yalnızca kripto",
+    billing_onion_card_notice:
+      "Kartla ödemek için app.astermail.org adresinde oturum açın. Bu adreste ödeme kripto ile yapılır.",
     checkout_card_term_unavailable:
       "2 yıllık süre kripto ile ödeme yaptığınızda kullanılabilir.",
     checkout_term_total: "toplam {{amount}}",

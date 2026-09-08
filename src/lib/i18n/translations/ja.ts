@@ -5764,6 +5764,8 @@ export const ja = {
     checkout_term_save: "{{amount}} お得",
     checkout_term_per_month: "{{amount}}/月",
     checkout_term_crypto_only: "暗号資産のみ",
+    billing_onion_card_notice:
+      "カードで支払うには app.astermail.org にサインインしてください。このアドレスでは暗号資産で支払います。",
     checkout_card_term_unavailable:
       "2年契約は暗号資産でのお支払い時にご利用いただけます。",
     checkout_term_total: "合計 {{amount}}",

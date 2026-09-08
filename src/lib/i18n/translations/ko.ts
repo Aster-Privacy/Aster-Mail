@@ -5694,6 +5694,8 @@ export const ko = {
     checkout_term_save: "{{amount}} 절약",
     checkout_term_per_month: "{{amount}}/월",
     checkout_term_crypto_only: "암호화폐 전용",
+    billing_onion_card_notice:
+      "카드로 결제하려면 app.astermail.org에 로그인하세요. 이 주소에서는 암호화폐로 결제합니다.",
     checkout_card_term_unavailable:
       "2년 약정은 암호화폐로 결제할 때 이용할 수 있습니다.",
     checkout_term_total: "총 {{amount}}",

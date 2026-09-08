@@ -5806,6 +5806,7 @@ export interface SettingsTranslations {
   checkout_term_save: string;
   checkout_term_per_month: string;
   checkout_term_crypto_only: string;
+  billing_onion_card_notice: string;
   checkout_card_term_unavailable: string;
   checkout_term_total: string;
   checkout_method_title: string;

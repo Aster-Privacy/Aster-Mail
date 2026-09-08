@@ -5857,6 +5857,8 @@ export const ru = {
     checkout_term_save: "Экономия {{amount}}",
     checkout_term_per_month: "{{amount}}/мес",
     checkout_term_crypto_only: "Только криптовалюта",
+    billing_onion_card_notice:
+      "Чтобы оплатить картой, войдите на app.astermail.org. По этому адресу оплата проходит в криптовалюте.",
     checkout_card_term_unavailable:
       "Срок 2 года доступен при оплате криптовалютой.",
     checkout_term_total: "{{amount}} всего",

@@ -44,6 +44,7 @@ import {
 } from "@/components/ui/modal";
 import { Spinner } from "@/components/ui/spinner";
 import { use_i18n } from "@/lib/i18n/context";
+import { is_onion_host } from "@/lib/onion_host";
 import { format_price } from "@/services/api/billing";
 import text_logo_url from "@/assets/text_logo.webp";
 
@@ -185,7 +186,8 @@ export function PlanPaymentMethodModal({
 
   const term_id = active_term ?? selected_term;
   const active_option = term_options?.find((option) => option.id === term_id);
-  const card_unavailable = !!active_option?.crypto_only;
+  const on_onion = is_onion_host();
+  const card_unavailable = !!active_option?.crypto_only || on_onion;
   const effective_method: pay_method = card_unavailable ? "crypto" : method;
   const active_choice = plan_choices?.find(
     (choice) => choice.id === selected_plan_id,
@@ -466,7 +468,9 @@ export function PlanPaymentMethodModal({
             />
             {card_unavailable && (
               <p className="mt-2 px-1 text-[11px] leading-relaxed text-txt-muted">
-                {t("settings.checkout_card_term_unavailable")}
+                {on_onion
+                  ? t("settings.billing_onion_card_notice")
+                  : t("settings.checkout_card_term_unavailable")}
               </p>
             )}
           </div>

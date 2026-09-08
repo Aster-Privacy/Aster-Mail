@@ -5785,6 +5785,8 @@ export const ar = {
     checkout_term_save: "وفّر {{amount}}",
     checkout_term_per_month: "{{amount}}/شهر",
     checkout_term_crypto_only: "العملات المشفّرة فقط",
+    billing_onion_card_notice:
+      "للدفع بالبطاقة، سجّل الدخول على app.astermail.org. المدفوعات على هذا العنوان تتم بالعملات الرقمية.",
     checkout_card_term_unavailable:
       "مدة السنتين متاحة عند الدفع بالعملات المشفّرة.",
     checkout_term_total: "{{amount}} الإجمالي",

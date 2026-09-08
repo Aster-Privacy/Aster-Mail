@@ -4721,6 +4721,8 @@ export const en: Translations = {
     checkout_term_save: "Save {{amount}}",
     checkout_term_per_month: "{{amount}}/month",
     checkout_term_crypto_only: "Crypto only",
+    billing_onion_card_notice:
+      "To pay by card, sign in at app.astermail.org. Payments on this address use crypto.",
     checkout_card_term_unavailable:
       "The 2-year term is available when you pay with crypto.",
     checkout_term_total: "{{amount}} total",

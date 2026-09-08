@@ -5193,6 +5193,8 @@ export const zh_CN = {
     checkout_term_save: "省 {{amount}}",
     checkout_term_per_month: "{{amount}}/月",
     checkout_term_crypto_only: "仅限加密货币",
+    billing_onion_card_notice:
+      "如需使用银行卡付款，请登录 app.astermail.org。在此地址通过加密货币付款。",
     checkout_card_term_unavailable: "使用加密货币付款时可选择 2 年期。",
     checkout_term_total: "共 {{amount}}",
     checkout_method_description: "选择你的付款方式。",

@@ -169,7 +169,7 @@ export function use_settings_content(props: SettingsContentProps) {
   useEffect(() => {
     const is_unavailable =
       (section === "family" && is_family_plan_resolved && !is_family_plan) ||
-      ((section === "billing" || section === "import") && is_onion_host());
+      (section === "import" && is_onion_host());
 
     if (!is_unavailable) return;
 
