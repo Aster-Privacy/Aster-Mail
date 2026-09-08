@@ -272,7 +272,18 @@ export function use_sign_in_page() {
 
     const ep = params.get("ep");
     const en = params.get("en");
-    const checkout_username = params.get("u") || "";
+    const checkout_identity = params.get("u") || "";
+    const checkout_at_index = checkout_identity.indexOf("@");
+    const checkout_username =
+      checkout_at_index === -1
+        ? checkout_identity
+        : checkout_identity.slice(0, checkout_at_index);
+    const checkout_raw_domain =
+      checkout_at_index === -1
+        ? ""
+        : checkout_identity.slice(checkout_at_index + 1).toLowerCase();
+    const checkout_domain =
+      checkout_raw_domain === "aster.cx" ? "aster.cx" : "astermail.org";
     const checkout_plan = params.get("plan") || "";
     const checkout_billing = params.get("billing") || "";
     const hash = window.location.hash;
@@ -305,7 +316,7 @@ export function use_sign_in_page() {
           );
         }
 
-        const email = `${checkout_username}@astermail.org`;
+        const email = `${checkout_username}@${checkout_domain}`;
         const user_hash = await hash_email(email);
 
         set_checkout_status(translate("auth.fetching_auth_data"));
