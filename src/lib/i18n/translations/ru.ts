@@ -337,6 +337,7 @@ export const ru = {
     now: "Сейчас",
     new_message: "Новое сообщение",
     expand: "Развернуть",
+    collapse: "Свернуть",
     minimize: "Свернуть",
     fullscreen: "Полный экран",
     exit_fullscreen: "Выйти из полного экрана",

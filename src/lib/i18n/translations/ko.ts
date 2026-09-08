@@ -405,6 +405,7 @@ export const ko = {
     now: "지금",
     new_message: "새 메시지",
     expand: "확장",
+    collapse: "축소",
     minimize: "최소화",
     fullscreen: "전체 화면",
     exit_fullscreen: "전체 화면 나가기",

@@ -548,6 +548,7 @@ export async function get_account_kind(
 const ACCOUNT_SCOPED_LOCAL_KEYS: readonly string[] = [
   "aster_pref_migrations_done",
   "aster_sidebar_state",
+  "aster_app_rail_hidden",
   "aster_crypto_banner_dismissed",
   "aster_family_2fa_banner_dismissed",
   "aster_is_family_plan",

@@ -408,6 +408,7 @@ export const hi = {
     now: "अभी",
     new_message: "नया संदेश",
     expand: "फैलाएं",
+    collapse: "समेटें",
     minimize: "छोटा करें",
     fullscreen: "फ़ुलस्क्रीन",
     exit_fullscreen: "फ़ुलस्क्रीन से बाहर निकलें",

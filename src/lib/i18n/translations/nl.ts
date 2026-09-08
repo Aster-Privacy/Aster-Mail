@@ -334,6 +334,7 @@ export const nl = {
     now: "Nu",
     new_message: "Nieuw bericht",
     expand: "Uitvouwen",
+    collapse: "Inklappen",
     minimize: "Minimaliseren",
     fullscreen: "Volledig scherm",
     exit_fullscreen: "Volledig scherm sluiten",

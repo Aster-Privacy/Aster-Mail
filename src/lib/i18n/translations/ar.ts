@@ -331,6 +331,7 @@ export const ar = {
     now: "الآن",
     new_message: "رسالة جديدة",
     expand: "توسيع",
+    collapse: "طي",
     minimize: "تصغير",
     fullscreen: "ملء الشاشة",
     exit_fullscreen: "الخروج من ملء الشاشة",

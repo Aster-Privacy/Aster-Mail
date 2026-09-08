@@ -76,8 +76,16 @@ export function RailTipLayer() {
 
       if (!text) return;
       const rect = el.getBoundingClientRect();
-      const side =
+      const requested_side =
         el.getAttribute("data-rail-tip-side") === "left" ? "left" : "right";
+      const is_rtl =
+        window.getComputedStyle(el).direction === "rtl" ||
+        el.ownerDocument.documentElement.dir === "rtl";
+      const side = is_rtl
+        ? requested_side === "left"
+          ? "right"
+          : "left"
+        : requested_side;
 
       el.setAttribute("aria-describedby", TIP_ID);
       tip_visible_ref.current = true;

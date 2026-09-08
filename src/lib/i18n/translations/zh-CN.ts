@@ -322,6 +322,7 @@ export const zh_CN = {
     send_now: "立即发送",
     new_message: "新邮件",
     expand: "展开",
+    collapse: "收起",
     minimize: "最小化",
     fullscreen: "全屏",
     exit_fullscreen: "退出全屏",

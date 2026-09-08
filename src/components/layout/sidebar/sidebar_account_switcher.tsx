@@ -40,7 +40,7 @@ function PanelToggleIcon({
   return (
     <svg
       aria-hidden="true"
-      className={className}
+      className={`${className ?? ""} rtl:-scale-x-100`}
       fill="none"
       viewBox="0 0 24 24"
       xmlns="http://www.w3.org/2000/svg"
@@ -96,7 +96,7 @@ export const SidebarAccountSwitcher = memo(function SidebarAccountSwitcher({
   return (
     <div className="mt-auto flex-shrink-0">
       <div
-        className={`${is_collapsed ? "px-2" : "px-3"} pb-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]`}
+        className={`${is_collapsed ? "px-2" : "px-3"} pb-[max(0.75rem,env(safe-area-inset-bottom))]`}
       >
         {!is_collapsed && (
           <StorageMeter

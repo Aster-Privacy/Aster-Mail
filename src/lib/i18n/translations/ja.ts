@@ -404,6 +404,7 @@ export const ja = {
     now: "今",
     new_message: "新規メッセージ",
     expand: "展開",
+    collapse: "折りたたむ",
     minimize: "最小化",
     fullscreen: "全画面表示",
     exit_fullscreen: "全画面表示を終了",

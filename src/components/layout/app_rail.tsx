@@ -138,7 +138,7 @@ function AppRailComponent({
           type="button"
           onClick={toggle_hidden}
         >
-          <ChevronDoubleLeftIcon className="h-4 w-4" />
+          <ChevronDoubleLeftIcon className="h-4 w-4 rtl:rotate-180" />
         </button>
       )}
       <div
@@ -216,7 +216,7 @@ function AppRailComponent({
           type="button"
           onClick={toggle_hidden}
         >
-          <ChevronRightIcon className="h-4 w-4" />
+          <ChevronRightIcon className="h-4 w-4 rtl:rotate-180" />
         </button>
       </div>
     </>

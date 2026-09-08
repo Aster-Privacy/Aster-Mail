@@ -278,6 +278,7 @@ export const pt = {
     send_now: "Enviar agora",
     new_message: "Nova Mensagem",
     expand: "Expandir",
+    collapse: "Recolher",
     minimize: "Minimizar",
     fullscreen: "Tela cheia",
     exit_fullscreen: "Sair da tela cheia",

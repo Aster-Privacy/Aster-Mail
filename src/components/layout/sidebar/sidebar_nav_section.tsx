@@ -129,6 +129,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
               ? "var(--indicator-bg)"
               : undefined,
         }}
+        type="button"
         onClick={() =>
           handle_nav_click(() => {
             set_selected_item("inbox");
@@ -177,6 +178,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
               ? "var(--indicator-bg)"
               : undefined,
         }}
+        type="button"
         onClick={() =>
           handle_nav_click(() => {
             set_selected_item("sent");
@@ -213,6 +215,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
               ? "var(--indicator-bg)"
               : undefined,
         }}
+        type="button"
         onClick={() =>
           handle_nav_click(() => {
             set_selected_item("scheduled");
@@ -249,6 +252,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
               ? "var(--indicator-bg)"
               : undefined,
         }}
+        type="button"
         onClick={() =>
           handle_nav_click(() => {
             set_selected_item("snoozed");
@@ -285,6 +289,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
               ? "var(--indicator-bg)"
               : undefined,
         }}
+        type="button"
         onClick={() =>
           handle_nav_click(() => {
             set_selected_item("drafts");
@@ -310,6 +315,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
         <div className="mt-5 mb-1 px-2.5">
           <button
             className="w-full flex items-center gap-1 py-1 text-txt-muted opacity-70 hover:opacity-100"
+            type="button"
             onClick={on_toggle_section}
           >
             {section_collapsed ? (
@@ -343,6 +349,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
                   ? "var(--indicator-bg)"
                   : undefined,
             }}
+            type="button"
             onClick={() =>
               handle_nav_click(() => {
                 set_selected_item("starred");
@@ -379,6 +386,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
                   ? "var(--indicator-bg)"
                   : undefined,
             }}
+            type="button"
             onClick={() =>
               handle_nav_click(() => {
                 set_selected_item("all");
@@ -415,6 +423,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
                   ? "var(--indicator-bg)"
                   : undefined,
             }}
+            type="button"
             onClick={() =>
               handle_nav_click(() => {
                 set_selected_item("archive");
@@ -451,6 +460,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
                   ? "var(--indicator-bg)"
                   : undefined,
             }}
+            type="button"
             onClick={() =>
               handle_nav_click(() => {
                 set_selected_item("spam");
@@ -487,6 +497,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
                   ? "var(--indicator-bg)"
                   : undefined,
             }}
+            type="button"
             onClick={() =>
               handle_nav_click(() => {
                 set_selected_item("trash");
@@ -523,6 +534,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
                   ? "var(--indicator-bg)"
                   : undefined,
             }}
+            type="button"
             onClick={() =>
               handle_nav_click(() => {
                 set_selected_item("contacts");
@@ -559,6 +571,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
                   ? "var(--indicator-bg)"
                   : undefined,
             }}
+            type="button"
             onClick={() =>
               handle_nav_click(() => {
                 set_selected_item("subscriptions");

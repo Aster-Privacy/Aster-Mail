@@ -336,6 +336,7 @@ export const pl = {
     now: "Teraz",
     new_message: "Nowa wiadomość",
     expand: "Rozwiń",
+    collapse: "Zwiń",
     minimize: "Minimalizuj",
     fullscreen: "Pełny ekran",
     exit_fullscreen: "Wyjdź z pełnego ekranu",
