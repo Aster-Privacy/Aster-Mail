@@ -53,6 +53,13 @@ import {
 } from "@heroicons/react/24/solid";
 import { Button, Spinner, Tooltip } from "@aster/ui";
 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown_menu";
 import { ContactAvatar } from "@/components/common/contacts/contact_avatar";
 import { ContactGroupGlyph } from "@/components/common/contacts/contact_group_glyph";
 import { ContactForm } from "@/components/contacts";
@@ -658,7 +665,7 @@ export function QuickContactsPanel({
             <Tooltip position="bottom" tip={t("common.back")}>
               <Button
                 aria-label={t("common.back")}
-                className="h-8 w-8 flex-shrink-0 text-[var(--icon-muted)]"
+                className="h-8 w-8 flex-shrink-0 text-txt-secondary"
                 size="icon"
                 variant="ghost"
                 onClick={close_detail}
@@ -672,7 +679,7 @@ export function QuickContactsPanel({
             <Tooltip position="bottom" tip={t("common.edit_contact")}>
               <Button
                 aria-label={t("common.edit_contact")}
-                className="h-8 w-8 flex-shrink-0 text-[var(--icon-muted)]"
+                className="h-8 w-8 flex-shrink-0 text-txt-secondary"
                 size="icon"
                 variant="ghost"
                 onClick={() => open_edit(detail_contact)}
@@ -683,7 +690,7 @@ export function QuickContactsPanel({
             <Tooltip position="bottom" tip={t("common.close")}>
               <Button
                 aria-label={t("common.close")}
-                className="h-8 w-8 flex-shrink-0 text-[var(--icon-muted)]"
+                className="h-8 w-8 flex-shrink-0 text-txt-secondary"
                 size="icon"
                 variant="ghost"
                 onClick={on_close}
@@ -697,7 +704,7 @@ export function QuickContactsPanel({
             <Tooltip position="bottom" tip={t("common.clear_selection")}>
               <Button
                 aria-label={t("common.clear_selection")}
-                className="h-8 w-8 flex-shrink-0 text-[var(--icon-muted)]"
+                className="h-8 w-8 flex-shrink-0 text-txt-secondary"
                 size="icon"
                 variant="ghost"
                 onClick={clear_selection}
@@ -711,7 +718,7 @@ export function QuickContactsPanel({
             <Tooltip position="bottom" tip={t("common.compose_to_selection")}>
               <Button
                 aria-label={t("common.compose_to_selection")}
-                className="h-8 w-8 flex-shrink-0 text-[var(--icon-muted)]"
+                className="h-8 w-8 flex-shrink-0 text-txt-secondary"
                 size="icon"
                 variant="ghost"
                 onClick={compose_selection}
@@ -719,51 +726,47 @@ export function QuickContactsPanel({
                 <EnvelopeIcon className="h-4 w-4" />
               </Button>
             </Tooltip>
-            <div className="relative">
-              <Tooltip position="bottom" tip={t("common.add_to_group")}>
+            <DropdownMenu
+              open={is_group_picker_open}
+              onOpenChange={set_is_group_picker_open}
+            >
+              <DropdownMenuTrigger asChild>
                 <Button
                   aria-label={t("common.add_to_group")}
-                  className="h-8 w-8 flex-shrink-0 text-[var(--icon-muted)]"
+                  className="h-8 w-8 flex-shrink-0 text-txt-secondary"
                   size="icon"
+                  title={t("common.add_to_group")}
                   variant="ghost"
-                  onClick={() => {
-                    set_is_bulk_menu_open(false);
-                    set_is_group_picker_open((open) => !open);
-                  }}
                 >
                   <UserGroupIcon className="h-4 w-4" />
                 </Button>
-              </Tooltip>
-              {is_group_picker_open && (
-                <div className="quick_contacts_menu absolute end-0 top-9 z-20 max-h-64 w-56 overflow-y-auto rounded-xl py-1">
-                  {groups.length === 0 ? (
-                    <p className="px-3 py-2 text-[12.5px] text-txt-muted">
-                      {t("common.no_groups_yet")}
-                    </p>
-                  ) : (
-                    groups.map((group) => (
-                      <button
-                        key={group.id}
-                        className="quick_contacts_menu_item flex w-full items-center gap-2 px-3 py-2 text-start text-[13px]"
-                        disabled={is_bulk_busy}
-                        type="button"
-                        onClick={() => add_selection_to_group(group)}
-                      >
-                        <ContactGroupGlyph
-                          color={group.color}
-                          icon={group.icon}
-                        />
-                        <span className="truncate">{group.name}</span>
-                      </button>
-                    ))
-                  )}
-                </div>
-              )}
-            </div>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="max-h-64 w-56">
+                {groups.length === 0 ? (
+                  <DropdownMenuLabel className="font-normal text-txt-muted">
+                    {t("common.no_groups_yet")}
+                  </DropdownMenuLabel>
+                ) : (
+                  groups.map((group) => (
+                    <DropdownMenuItem
+                      key={group.id}
+                      disabled={is_bulk_busy}
+                      onSelect={() => add_selection_to_group(group)}
+                    >
+                      <ContactGroupGlyph
+                        color={group.color}
+                        icon={group.icon}
+                      />
+                      <span className="truncate">{group.name}</span>
+                    </DropdownMenuItem>
+                  ))
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
             <Tooltip position="bottom" tip={t("common.delete_contacts")}>
               <Button
                 aria-label={t("common.delete_contacts")}
-                className="h-8 w-8 flex-shrink-0 text-[var(--icon-muted)]"
+                className="h-8 w-8 flex-shrink-0 text-txt-secondary"
                 disabled={is_bulk_busy}
                 size="icon"
                 variant="ghost"
@@ -772,67 +775,47 @@ export function QuickContactsPanel({
                 <TrashIcon className="h-4 w-4" />
               </Button>
             </Tooltip>
-            <div className="relative">
-              <Tooltip position="bottom" tip={t("common.more_actions")}>
+            <DropdownMenu
+              open={is_bulk_menu_open}
+              onOpenChange={set_is_bulk_menu_open}
+            >
+              <DropdownMenuTrigger asChild>
                 <Button
                   aria-label={t("common.more_actions")}
-                  className="h-8 w-8 flex-shrink-0 text-[var(--icon-muted)]"
+                  className="h-8 w-8 flex-shrink-0 text-txt-secondary"
                   size="icon"
+                  title={t("common.more_actions")}
                   variant="ghost"
-                  onClick={() => {
-                    set_is_group_picker_open(false);
-                    set_is_bulk_menu_open((open) => !open);
-                  }}
                 >
                   <EllipsisHorizontalIcon className="h-4 w-4" />
                 </Button>
-              </Tooltip>
-              {is_bulk_menu_open && (
-                <div className="quick_contacts_menu absolute end-0 top-9 z-20 w-56 rounded-xl py-1">
-                  <button
-                    className="quick_contacts_menu_item flex w-full items-center gap-2 px-3 py-2 text-start text-[13px] disabled:opacity-40"
-                    disabled={selection_count < 2}
-                    type="button"
-                    onClick={() => {
-                      set_merge_targets(selected_contacts);
-                      set_is_bulk_menu_open(false);
-                    }}
-                  >
-                    <ArrowsRightLeftIcon className="h-4 w-4 flex-shrink-0" />
-                    {t("common.merge_contacts")}
-                  </button>
-                  <button
-                    className="quick_contacts_menu_item flex w-full items-center gap-2 px-3 py-2 text-start text-[13px]"
-                    type="button"
-                    onClick={export_selection}
-                  >
-                    <ArrowDownTrayIcon className="h-4 w-4 flex-shrink-0" />
-                    {t("common.export_selection_vcf")}
-                  </button>
-                  <button
-                    className="quick_contacts_menu_item flex w-full items-center gap-2 px-3 py-2 text-start text-[13px]"
-                    type="button"
-                    onClick={print_selection}
-                  >
-                    <PrinterIcon className="h-4 w-4 flex-shrink-0" />
-                    {t("common.print_contacts")}
-                  </button>
-                  <button
-                    className="quick_contacts_menu_item flex w-full items-center gap-2 px-3 py-2 text-start text-[13px]"
-                    data-destructive="true"
-                    disabled={is_bulk_busy}
-                    type="button"
-                    onClick={() => {
-                      set_is_bulk_menu_open(false);
-                      set_is_confirm_delete_open(true);
-                    }}
-                  >
-                    <TrashIcon className="h-4 w-4 flex-shrink-0" />
-                    {t("common.delete_contacts")}
-                  </button>
-                </div>
-              )}
-            </div>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem
+                  disabled={selection_count < 2}
+                  onSelect={() => set_merge_targets(selected_contacts)}
+                >
+                  <ArrowsRightLeftIcon className="h-4 w-4 flex-shrink-0" />
+                  {t("common.merge_contacts")}
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={export_selection}>
+                  <ArrowDownTrayIcon className="h-4 w-4 flex-shrink-0" />
+                  {t("common.export_selection_vcf")}
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={print_selection}>
+                  <PrinterIcon className="h-4 w-4 flex-shrink-0" />
+                  {t("common.print_contacts")}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="text-[var(--color-danger)]"
+                  disabled={is_bulk_busy}
+                  onSelect={() => set_is_confirm_delete_open(true)}
+                >
+                  <TrashIcon className="h-4 w-4 flex-shrink-0" />
+                  {t("common.delete_contacts")}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         ) : (
           <div className="flex h-12 flex-shrink-0 items-center gap-1 ps-3 pe-2">
@@ -869,7 +852,7 @@ export function QuickContactsPanel({
             <Tooltip position="bottom" tip={t("common.add_contact")}>
               <Button
                 aria-label={t("common.add_contact")}
-                className="h-8 w-8 flex-shrink-0 text-[var(--icon-muted)]"
+                className="h-8 w-8 flex-shrink-0 text-txt-secondary"
                 size="icon"
                 variant="ghost"
                 onClick={open_new}
@@ -880,7 +863,7 @@ export function QuickContactsPanel({
             <Tooltip position="bottom" tip={t("common.close")}>
               <Button
                 aria-label={t("common.close")}
-                className="h-8 w-8 flex-shrink-0 text-[var(--icon-muted)]"
+                className="h-8 w-8 flex-shrink-0 text-txt-secondary"
                 size="icon"
                 variant="ghost"
                 onClick={on_close}
