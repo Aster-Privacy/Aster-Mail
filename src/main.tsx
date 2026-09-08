@@ -45,6 +45,7 @@ import {
 } from "@/lib/chunk_recovery";
 import { show_self_xss_warning } from "@/lib/security/console_warning";
 import { start_input_modality_tracking } from "@/lib/input_modality";
+import { install_global_error_reporting } from "@/services/error_reporter";
 import { connection_store } from "@/services/routing/connection_store";
 import { apply_desktop_content_protection } from "@/native/desktop_content_protection";
 import { start_desktop_link_bridge } from "@/native/desktop_link_bridge";
@@ -65,6 +66,7 @@ import { lazy_with_retry } from "@/utils/lazy_with_retry";
 const MobileApp = lazy_with_retry(() => import("@/mobile_app"));
 
 start_input_modality_tracking();
+install_global_error_reporting();
 
 initialize_capacitor().catch((e) => {
   if (import.meta.env.DEV) console.error(e);
