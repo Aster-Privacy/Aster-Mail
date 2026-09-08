@@ -480,3 +480,14 @@ export function crypto_term_months(term_id: string | undefined): number {
 
   return 12;
 }
+
+export function is_resumable_checkout_plan(
+  plan_code: string | null | undefined,
+): boolean {
+  if (!plan_code) return false;
+
+  return (
+    PLAN_TIERS.some((tier) => tier.id === plan_code) ||
+    FAMILY_PLAN_TIERS.some((tier) => tier.id === plan_code)
+  );
+}

@@ -84,7 +84,7 @@ import {
   show_checkout_cancelled_upgrade,
   type UpgradeInterval,
 } from "@/stores/upgrade_store";
-import { PLAN_TIERS } from "@/components/settings/billing/billing_constants";
+import { is_resumable_checkout_plan } from "@/components/settings/billing/billing_constants";
 import { UndoSendContainer } from "@/components/toast/undo_send_container";
 import { UndoSendPreviewModal } from "@/components/toast/undo_send_preview_modal";
 import { EmailNotificationManager } from "@/components/email/email_notification_manager";
@@ -191,12 +191,8 @@ function BillingSuccessHandler() {
 
     if (billing === "cancelled") {
       const target = read_checkout_target();
-      const target_tier = target
-        ? PLAN_TIERS.find((tier) => tier.id === target.plan_code)
-        : null;
-
       const resumed =
-        target && target_tier
+        target && is_resumable_checkout_plan(target.plan_code)
           ? show_checkout_cancelled_upgrade({
               plan_code: target.plan_code,
               interval: upgrade_interval_for(target.billing_interval),
@@ -204,7 +200,9 @@ function BillingSuccessHandler() {
           : false;
 
       if (!resumed) {
-        clear_checkout_target();
+        if (!target || !is_resumable_checkout_plan(target.plan_code))
+          clear_checkout_target();
+
         show_toast(
           t("settings.billing_checkout_cancelled"),
           "info",

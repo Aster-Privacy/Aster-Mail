@@ -21,6 +21,7 @@
 import { describe, it, expect, afterEach } from "vitest";
 
 import {
+  is_resumable_checkout_plan,
   CURRENCY_CONVERSION_MARGIN,
   CURRENCY_RATES,
   FALLBACK_CURRENCY_RATES,
@@ -124,5 +125,26 @@ describe("fallback rate table", () => {
     for (const currency of SUPPORTED_CURRENCIES) {
       expect(FALLBACK_CURRENCY_RATES[currency.code]).toBeGreaterThan(0);
     }
+  });
+});
+
+describe("is_resumable_checkout_plan", () => {
+  it("resumes an individual plan", () => {
+    expect(is_resumable_checkout_plan("star")).toBe(true);
+    expect(is_resumable_checkout_plan("nova")).toBe(true);
+    expect(is_resumable_checkout_plan("supernova")).toBe(true);
+  });
+
+  it("resumes a shared plan", () => {
+    expect(is_resumable_checkout_plan("duo")).toBe(true);
+    expect(is_resumable_checkout_plan("family")).toBe(true);
+  });
+
+  it("refuses a plan code that no picker can show", () => {
+    expect(is_resumable_checkout_plan("free")).toBe(false);
+    expect(is_resumable_checkout_plan("storage_1tb")).toBe(false);
+    expect(is_resumable_checkout_plan(null)).toBe(false);
+    expect(is_resumable_checkout_plan(undefined)).toBe(false);
+    expect(is_resumable_checkout_plan("")).toBe(false);
   });
 });

@@ -36,7 +36,7 @@ import {
 import { use_i18n } from "@/lib/i18n/context";
 import { use_auth } from "@/contexts/auth_context";
 import { ignore_error } from "@/lib/ignore_error";
-import { PLAN_TIERS } from "@/components/settings/billing/billing_constants";
+import { is_resumable_checkout_plan } from "@/components/settings/billing/billing_constants";
 import {
   show_checkout_cancelled_upgrade,
   type UpgradeInterval,
@@ -112,12 +112,8 @@ export function MobileBillingReturnHandler() {
 
     if (billing === "cancelled") {
       const target = read_checkout_target();
-      const target_tier = target
-        ? PLAN_TIERS.find((tier) => tier.id === target.plan_code)
-        : null;
-
       const resumed =
-        target && target_tier
+        target && is_resumable_checkout_plan(target.plan_code)
           ? show_checkout_cancelled_upgrade({
               plan_code: target.plan_code,
               interval: upgrade_interval_for(target.billing_interval),
@@ -125,7 +121,9 @@ export function MobileBillingReturnHandler() {
           : false;
 
       if (!resumed) {
-        clear_checkout_target();
+        if (!target || !is_resumable_checkout_plan(target.plan_code))
+          clear_checkout_target();
+
         show_toast(
           t("settings.billing_checkout_cancelled"),
           "info",
