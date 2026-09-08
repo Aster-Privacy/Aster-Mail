@@ -1681,6 +1681,29 @@ html:not(.dark) {
   color-scheme: dark;
 }
 
+input[type="date"]::-webkit-calendar-picker-indicator {
+  width: 16px;
+  height: 16px;
+  padding: 7px;
+  margin-inline-end: -6px;
+  border-radius: 999px;
+  cursor: pointer;
+  opacity: 0.7;
+  transition:
+    opacity 0.15s ease,
+    background-color 0.15s ease;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+  background-color: var(--sidebar-hover);
+}
+
+input[type="date"]::-webkit-clear-button,
+input[type="date"]::-webkit-inner-spin-button {
+  display: none;
+}
+
 select option,
 select optgroup {
   background-color: var(--bg-primary);

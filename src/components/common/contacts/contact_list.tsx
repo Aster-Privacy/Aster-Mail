@@ -48,6 +48,7 @@ import {
   CakeIcon,
   XMarkIcon,
   SparklesIcon,
+  Square2StackIcon,
   UserCircleIcon,
   EnvelopeIcon,
 } from "@heroicons/react/24/outline";
@@ -392,7 +393,7 @@ export function ContactList({
                 disabled={duplicate_count === 0}
                 onClick={open_merge_review}
               >
-                <SparklesIcon className="w-4 h-4" />
+                <Square2StackIcon className="w-4 h-4" />
                 {duplicate_count === 0
                   ? t("common.no_duplicates_found")
                   : t("common.merge_and_fix")}

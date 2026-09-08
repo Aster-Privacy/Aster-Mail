@@ -49,6 +49,7 @@ import {
   ChevronRightIcon,
   MagnifyingGlassIcon,
   PencilSquareIcon,
+  XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { StarIcon as StarSolidIcon } from "@heroicons/react/24/solid";
 import { Button } from "@aster/ui";
@@ -794,20 +795,34 @@ export function ContactDetailPanel({
             <Section title={t("common.personal")}>
               <div>
                 <FieldLabel icon={CakeIcon}>{t("common.birthday")}</FieldLabel>
-                <input
-                  className={FIELD_CLASS}
-                  placeholder={app_date_format()}
-                  readOnly={!is_editing}
-                  type={is_editing ? "date" : "text"}
-                  value={
-                    is_editing
-                      ? draft.birthday
-                      : format_iso_date(draft.birthday)
-                  }
-                  onChange={(e) =>
-                    handle_field_change("birthday", e.target.value)
-                  }
-                />
+                <div className="relative">
+                  <input
+                    className={`${FIELD_CLASS} ${
+                      is_editing && draft.birthday ? "pe-12" : ""
+                    }`}
+                    placeholder={app_date_format()}
+                    readOnly={!is_editing}
+                    type={is_editing ? "date" : "text"}
+                    value={
+                      is_editing
+                        ? draft.birthday
+                        : format_iso_date(draft.birthday)
+                    }
+                    onChange={(e) =>
+                      handle_field_change("birthday", e.target.value)
+                    }
+                  />
+                  {is_editing && draft.birthday && (
+                    <button
+                      aria-label={t("common.clear")}
+                      className="absolute end-9 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full text-txt-secondary transition-colors hover:bg-black/10 hover:text-txt-primary dark:hover:bg-white/10"
+                      type="button"
+                      onClick={() => handle_field_change("birthday", "")}
+                    >
+                      <XMarkIcon className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
               </div>
               <div>
                 <FieldLabel icon={CalendarIcon}>{t("common.dates")}</FieldLabel>
