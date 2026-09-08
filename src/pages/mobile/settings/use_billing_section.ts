@@ -298,7 +298,7 @@ export function use_billing_section() {
     useState<UserActiveAddon | null>(null);
   const [billing_period, set_billing_period] = useState<
     "monthly" | "yearly" | "biennial"
-  >("yearly");
+  >("monthly");
   const [referral_load_failed, set_referral_load_failed] = useState(false);
   const [plans_load_failed, set_plans_load_failed] = useState(false);
   const [addons_load_failed, set_addons_load_failed] = useState(false);
