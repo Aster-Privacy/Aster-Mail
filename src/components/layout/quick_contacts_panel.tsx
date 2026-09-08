@@ -65,7 +65,6 @@ import { ContactGroupGlyph } from "@/components/common/contacts/contact_group_gl
 import { ContactForm } from "@/components/contacts";
 import { ContactImportModal } from "@/components/contacts/contact_import_modal";
 import { ContactMergeModal } from "@/components/contacts/contact_merge_modal";
-import { ContactGroupModal } from "@/components/contacts/contact_group_modal";
 import { EncryptionInfoDropdown } from "@/components/common/encryption_info_dropdown";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { OpenFullIcon } from "@/components/common/open_full_icon";
@@ -102,6 +101,7 @@ const CONTACT_PAGE_LIMIT = 200;
 const MAX_CONTACT_PAGES = 25;
 const RENDER_PAGE_SIZE = 40;
 const RENDER_AHEAD_PX = 600;
+const GROUP_BATCH_SIZE = 10;
 
 interface QuickContactsPanelProps {
   is_open: boolean;
@@ -226,7 +226,6 @@ export function QuickContactsPanel({
   >({});
   const [is_keys_loading, set_is_keys_loading] = useState(false);
   const [groups, set_groups] = useState<ContactGroup[]>([]);
-  const [is_group_modal_open, set_is_group_modal_open] = useState(false);
   const [selected_ids, set_selected_ids] = useState<Set<string>>(new Set());
   const [is_bulk_menu_open, set_is_bulk_menu_open] = useState(false);
   const [is_group_picker_open, set_is_group_picker_open] = useState(false);
@@ -306,7 +305,6 @@ export function QuickContactsPanel({
     set_is_saving(false);
     set_query("");
     set_detail_id(null);
-    set_is_group_modal_open(false);
     set_selected_ids(new Set());
     set_is_bulk_menu_open(false);
     set_is_group_picker_open(false);
@@ -609,13 +607,19 @@ export function QuickContactsPanel({
 
       set_is_bulk_busy(true);
       try {
-        const results = await Promise.all(
-          selected_contacts.map((contact) =>
-            add_contact_to_group(contact.id, group.id),
-          ),
-        );
+        let failed_count = 0;
 
-        if (results.some((result) => result.error)) {
+        for (let i = 0; i < selected_contacts.length; i += GROUP_BATCH_SIZE) {
+          const batch = selected_contacts.slice(i, i + GROUP_BATCH_SIZE);
+          const results = await Promise.allSettled(
+            batch.map((contact) => add_contact_to_group(contact.id, group.id)),
+          );
+
+          failed_count += results.filter(
+            (result) => result.status === "rejected" || result.value?.error,
+          ).length;
+        }
+        if (failed_count > 0) {
           show_toast(t("common.failed_to_add_to_group"), "error");
 
           return;
@@ -637,11 +641,6 @@ export function QuickContactsPanel({
     },
     [clear_selection, is_bulk_busy, load_groups, selected_contacts, t],
   );
-
-  const handle_group_created = useCallback(() => {
-    show_toast(t("common.group_created"), "success");
-    void load_groups();
-  }, [load_groups, t]);
 
   const has_contacts = contacts.length > 0;
   const search_placeholder = t("common.search_contacts");
@@ -1301,13 +1300,6 @@ export function QuickContactsPanel({
           }}
         />
       )}
-
-      <ContactGroupModal
-        existing_count={groups.length}
-        is_open={is_group_modal_open}
-        on_close={() => set_is_group_modal_open(false)}
-        on_created={handle_group_created}
-      />
 
       <ContactForm
         contact={editor_contact}
