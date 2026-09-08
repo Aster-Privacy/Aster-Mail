@@ -77,15 +77,15 @@ describe("quick contacts panel detail view", () => {
   let container: HTMLDivElement;
   let root: Root;
 
-  const render_panel = async () => {
+  const render_panel = async (is_open = true, on_close = () => {}) => {
     await act(async () => {
       root.render(
         <MemoryRouter>
           <QuickContactsPanel
-            is_open
+            is_open={is_open}
             is_top_inset={false}
+            on_close={on_close}
             on_compose={() => {}}
-            on_close={() => {}}
           />
         </MemoryRouter>,
       );
@@ -120,6 +120,42 @@ describe("quick contacts panel detail view", () => {
     });
     container.remove();
     vi.restoreAllMocks();
+  });
+
+  it("hides the panel while it stays closed", async () => {
+    await render_panel(false);
+
+    const panel = container.querySelector(".quick_contacts_panel");
+
+    expect(panel).not.toBeNull();
+    expect(panel!.classList.contains("hidden")).toBe(true);
+    expect(panel!.classList.contains("flex")).toBe(false);
+  });
+
+  it("shows the panel once it opens", async () => {
+    await render_panel();
+
+    const panel = container.querySelector(".quick_contacts_panel");
+
+    expect(panel!.classList.contains("flex")).toBe(true);
+    expect(panel!.classList.contains("hidden")).toBe(false);
+  });
+
+  it("closes from the header close action", async () => {
+    const on_close = vi.fn();
+
+    await render_panel(true, on_close);
+    await click(container.querySelector('[aria-label="common.close"]')!);
+
+    expect(on_close).toHaveBeenCalledTimes(1);
+
+    await render_panel(false, on_close);
+
+    expect(
+      container
+        .querySelector(".quick_contacts_panel")!
+        .classList.contains("hidden"),
+    ).toBe(true);
   });
 
   it("opens the contact in the panel instead of the editor", async () => {

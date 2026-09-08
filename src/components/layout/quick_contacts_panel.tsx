@@ -649,9 +649,9 @@ export function QuickContactsPanel({
       <aside
         ref={panel_ref}
         aria-label={t("common.contacts")}
-        className={`quick_contacts_panel me-1 mb-1 hidden w-[clamp(272px,23vw,320px)] flex-shrink-0 flex-col overflow-hidden rounded-lg bg-surf-primary md:me-2 md:mb-2 md:rounded-xl lg:flex ${
-          is_top_inset ? "mt-1 md:mt-2" : ""
-        }`}
+        className={`quick_contacts_panel me-1 mb-1 w-[min(320px,78vw)] flex-shrink-0 flex-col overflow-hidden rounded-lg bg-surf-primary md:me-2 md:mb-2 md:w-[clamp(272px,23vw,320px)] md:rounded-xl ${
+          is_open ? "flex" : "hidden"
+        } ${is_top_inset ? "mt-1 md:mt-2" : ""}`}
       >
         {detail_contact ? (
           <div className="flex h-12 flex-shrink-0 items-center gap-1 ps-2 pe-2">
