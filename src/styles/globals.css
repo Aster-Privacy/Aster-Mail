@@ -2331,8 +2331,6 @@ button.press_scale:active {
     var(--accent-color) 16%,
     var(--bg-primary)
   );
-  box-shadow: inset 0 0 0 1px
-    color-mix(in srgb, var(--accent-color) 34%, transparent);
 }
 
 .quick_contacts_row[data-selected="true"]:hover {
@@ -2351,7 +2349,7 @@ button.press_scale:active {
 .quick_contacts_avatar_hint {
   opacity: 0;
   color: var(--accent-fg, #fff);
-  background-color: color-mix(in srgb, var(--accent-color) 82%, transparent);
+  background-color: var(--accent-color);
   transition: opacity 0.12s ease;
 }
 
@@ -2432,25 +2430,6 @@ button.press_scale:active {
 
 .quick_contacts_notice_link:hover {
   text-decoration: underline;
-}
-
-.quick_contacts_menu {
-  background-color: var(--bg-elevated, var(--bg-secondary));
-  border: 1px solid var(--border-primary);
-  box-shadow: 0 12px 32px -12px rgba(0, 0, 0, 0.45);
-}
-
-.quick_contacts_menu_item {
-  color: var(--text-primary);
-  transition: background-color 0.15s ease;
-}
-
-.quick_contacts_menu_item:hover {
-  background-color: var(--sidebar-hover);
-}
-
-.quick_contacts_menu_item[data-destructive="true"] {
-  color: var(--danger-color, #ef4444);
 }
 
 .contact_merge_row {
@@ -3898,8 +3877,7 @@ input:-webkit-autofill:active {
     var(--modal-bg, var(--bg-primary))
   );
   color: var(--tag-icon-accent, var(--accent-color));
-  box-shadow: inset 0 0 0 1.5px
-    var(--tag-icon-accent, var(--accent-color));
+  box-shadow: inset 0 0 0 1.5px var(--tag-icon-accent, var(--accent-color));
 }
 
 .contact_group_color_grid {
