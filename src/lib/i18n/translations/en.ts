@@ -314,6 +314,7 @@ export const en: Translations = {
     now: "Now",
     new_message: "New Message",
     expand: "Expand",
+    collapse: "Collapse",
     minimize: "Minimize",
     fullscreen: "Fullscreen",
     exit_fullscreen: "Exit fullscreen",

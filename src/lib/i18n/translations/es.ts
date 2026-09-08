@@ -248,6 +248,7 @@ export const es = {
     now: "Ahora",
     new_message: "Nuevo mensaje",
     expand: "Expandir",
+    collapse: "Contraer",
     minimize: "Minimizar",
     fullscreen: "Pantalla completa",
     exit_fullscreen: "Salir de pantalla completa",

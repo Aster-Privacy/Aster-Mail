@@ -140,6 +140,7 @@ export const SidebarAliases = memo(function SidebarAliases({
           <div className="w-full flex items-center justify-between">
             <button
               className="flex-1 flex items-center gap-1 py-1 text-txt-muted opacity-70 hover:opacity-100"
+              type="button"
               onClick={on_toggle_section}
             >
               {section_collapsed ? (
@@ -154,6 +155,7 @@ export const SidebarAliases = memo(function SidebarAliases({
             <button
               aria-label={t("settings.create_alias")}
               className="p-1 rounded-[14px]  hover:bg-black/[0.06] dark:hover:bg-white/[0.08] text-icon-muted"
+              type="button"
               onClick={on_create_alias}
             >
               <PlusIcon aria-hidden="true" className="w-4 h-4" />
@@ -167,6 +169,7 @@ export const SidebarAliases = memo(function SidebarAliases({
           <button
             className="sidebar-rail-btn"
             data-rail-tip={t("common.aliases")}
+            type="button"
             onClick={() => on_settings_click("aliases")}
           >
             <AtSymbolIcon
@@ -208,6 +211,7 @@ export const SidebarAliases = memo(function SidebarAliases({
                         ? "var(--indicator-bg)"
                         : undefined,
                   }}
+                  type="button"
                   onClick={() =>
                     handle_nav_click(() => {
                       set_selected_item(alias_item_id);
@@ -246,6 +250,7 @@ export const SidebarAliases = memo(function SidebarAliases({
         {has_more && !is_collapsed && !section_collapsed && (
           <button
             className="w-full flex items-center gap-2 px-2.5 h-7 text-[12px]  rounded-[12px] hover:bg-black/[0.03] dark:hover:bg-white/[0.04] text-txt-muted"
+            type="button"
             onClick={() => set_aliases_expanded(!aliases_expanded)}
           >
             {aliases_expanded ? (

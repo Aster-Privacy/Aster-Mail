@@ -935,6 +935,7 @@ export interface CommonTranslations {
   now: string;
   new_message: string;
   expand: string;
+  collapse: string;
   minimize: string;
   fullscreen: string;
   exit_fullscreen: string;

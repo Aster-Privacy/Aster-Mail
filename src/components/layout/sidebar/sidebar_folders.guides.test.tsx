@@ -107,7 +107,7 @@ function render_sidebar_folders(
 function expand(folder_name: string) {
   const chevron = Array.from(
     document.querySelectorAll("span[role='button']"),
-  ).find((el) => el.getAttribute("aria-label") === folder_name);
+  ).find((el) => el.closest("button")?.textContent?.includes(folder_name));
 
   if (!chevron) throw new Error(`chevron not found for ${folder_name}`);
   act(() => {

@@ -243,6 +243,7 @@ export const de = {
     unmute_notifications: "Stummschaltung aufheben",
     new_message: "Neue Nachricht",
     expand: "Erweitern",
+    collapse: "Einklappen",
     minimize: "Minimieren",
     fullscreen: "Vollbild",
     exit_fullscreen: "Vollbild beenden",

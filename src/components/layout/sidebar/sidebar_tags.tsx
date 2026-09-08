@@ -30,6 +30,7 @@ import {
   TagIcon,
 } from "@heroicons/react/24/outline";
 
+import { EMAIL_DRAG_MIME } from "@/components/email/inbox/category_drag";
 import { NavSectionSkeleton } from "@/components/common/nav_section_skeleton";
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { TagContextMenu } from "@/components/tags/tag_context_menu";
@@ -117,6 +118,7 @@ export const SidebarTags = memo(function SidebarTags({
           <div className="w-full flex items-center justify-between">
             <button
               className="flex-1 flex items-center gap-1 py-1 text-txt-muted opacity-70 hover:opacity-100"
+              type="button"
               onClick={on_toggle_section}
             >
               {section_collapsed ? (
@@ -131,6 +133,7 @@ export const SidebarTags = memo(function SidebarTags({
             <button
               aria-label={t("common.create_label")}
               className="p-1 rounded-[14px]  hover:bg-black/[0.06] dark:hover:bg-white/[0.08] text-icon-muted"
+              type="button"
               onClick={() => set_is_create_tag_open(true)}
             >
               <PlusIcon aria-hidden="true" className="w-4 h-4" />
@@ -144,6 +147,7 @@ export const SidebarTags = memo(function SidebarTags({
           <button
             className="sidebar-rail-btn"
             data-rail-tip={t("common.create_label")}
+            type="button"
             onClick={() => set_is_create_tag_open(true)}
           >
             <TagIcon className="w-5 h-5" />
@@ -192,13 +196,17 @@ export const SidebarTags = memo(function SidebarTags({
                           ? "var(--indicator-bg)"
                           : undefined,
                   }}
+                  type="button"
                   onClick={() =>
                     handle_nav_click(() => {
                       set_selected_item(tag_item_id);
                       navigate(`/tag/${encodeURIComponent(tag.tag_token)}`);
                     })
                   }
-                  onDragEnter={() => set_drag_over_token(tag.tag_token)}
+                  onDragEnter={(e) => {
+                    if (!e.dataTransfer.types.includes(EMAIL_DRAG_MIME)) return;
+                    set_drag_over_token(tag.tag_token);
+                  }}
                   onDragLeave={(e) => {
                     if (e.currentTarget.contains(e.relatedTarget as Node))
                       return;
@@ -206,15 +214,17 @@ export const SidebarTags = memo(function SidebarTags({
                   }}
                   onDragOver={(e) => {
                     e.preventDefault();
-                    e.dataTransfer.dropEffect = "move";
+                    e.dataTransfer.dropEffect = e.dataTransfer.types.includes(
+                      EMAIL_DRAG_MIME,
+                    )
+                      ? "move"
+                      : "none";
                   }}
                   onDrop={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
                     set_drag_over_token(null);
-                    const raw = e.dataTransfer.getData(
-                      "application/x-astermail-emails",
-                    );
+                    const raw = e.dataTransfer.getData(EMAIL_DRAG_MIME);
 
                     if (!raw || !on_drop_emails) return;
                     try {
@@ -272,6 +282,7 @@ export const SidebarTags = memo(function SidebarTags({
         {has_more && !is_collapsed && !section_collapsed && (
           <button
             className="w-full flex items-center gap-2 px-2.5 h-7 text-[12px]  rounded-[12px] hover:bg-black/[0.03] dark:hover:bg-white/[0.04] text-txt-muted"
+            type="button"
             onClick={() => set_labels_expanded(!labels_expanded)}
           >
             {labels_expanded ? (

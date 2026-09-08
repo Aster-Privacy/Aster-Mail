@@ -254,6 +254,7 @@ export const it = {
     now: "Ora",
     new_message: "Nuovo messaggio",
     expand: "Espandi",
+    collapse: "Comprimi",
     minimize: "Riduci",
     fullscreen: "Schermo intero",
     exit_fullscreen: "Esci da schermo intero",

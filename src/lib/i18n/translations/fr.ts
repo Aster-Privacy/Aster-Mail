@@ -249,6 +249,7 @@ export const fr = {
     unmute_notifications: "Réactiver les notifications",
     new_message: "Nouveau message",
     expand: "Agrandir",
+    collapse: "Réduire",
     minimize: "Réduire",
     fullscreen: "Plein écran",
     exit_fullscreen: "Quitter le plein écran",

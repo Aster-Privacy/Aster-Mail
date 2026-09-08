@@ -244,6 +244,7 @@ export const tr = {
     now: "Şimdi",
     new_message: "Yeni Mesaj",
     expand: "Genişlet",
+    collapse: "Daralt",
     minimize: "Küçült",
     fullscreen: "Tam ekran",
     exit_fullscreen: "Tam ekrandan çık",

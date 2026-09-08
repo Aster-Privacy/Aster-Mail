@@ -37,6 +37,7 @@ import {
   flatten_visible_tree,
   get_sibling_folders,
 } from "@/hooks/use_folders";
+import { EMAIL_DRAG_MIME } from "@/components/email/inbox/category_drag";
 import { CountBadge } from "@/components/common/count_badge";
 import { RailUnreadDot } from "@/components/common/rail_unread_dot";
 import { NavSectionSkeleton } from "@/components/common/nav_section_skeleton";
@@ -192,6 +193,7 @@ export const SidebarFolders = memo(function SidebarFolders({
           <div className="w-full flex items-center justify-between">
             <button
               className="flex-1 flex items-center gap-1 py-1 text-txt-muted opacity-70 hover:opacity-100"
+              type="button"
               onClick={on_toggle_section}
             >
               {section_collapsed ? (
@@ -207,6 +209,7 @@ export const SidebarFolders = memo(function SidebarFolders({
               aria-label={t("common.create_folder")}
               className="p-1 rounded-[14px]  hover:bg-black/[0.06] dark:hover:bg-white/[0.08] text-icon-muted"
               data-rail-tip={t("common.create_folder")}
+              type="button"
               onClick={() => set_is_create_folder_open(true)}
             >
               <PlusIcon aria-hidden="true" className="w-4 h-4" />
@@ -220,6 +223,7 @@ export const SidebarFolders = memo(function SidebarFolders({
           <button
             className="sidebar-rail-btn"
             data-rail-tip={t("common.create_folder")}
+            type="button"
             onClick={() => set_is_create_folder_open(true)}
           >
             <PlusIcon className="w-5 h-5" />
@@ -425,6 +429,7 @@ export const SidebarFolders = memo(function SidebarFolders({
                             ? "var(--indicator-bg)"
                             : undefined,
                     }}
+                    type="button"
                     onClick={() =>
                       handle_nav_click(() => {
                         if (folder.is_password_protected) {
@@ -455,7 +460,11 @@ export const SidebarFolders = memo(function SidebarFolders({
                         );
                       })
                     }
-                    onDragEnter={() => set_drag_over_token(folder.folder_token)}
+                    onDragEnter={(e) => {
+                      if (!e.dataTransfer.types.includes(EMAIL_DRAG_MIME))
+                        return;
+                      set_drag_over_token(folder.folder_token);
+                    }}
                     onDragLeave={(e) => {
                       if (e.currentTarget.contains(e.relatedTarget as Node))
                         return;
@@ -463,15 +472,17 @@ export const SidebarFolders = memo(function SidebarFolders({
                     }}
                     onDragOver={(e) => {
                       e.preventDefault();
-                      e.dataTransfer.dropEffect = "move";
+                      e.dataTransfer.dropEffect = e.dataTransfer.types.includes(
+                        EMAIL_DRAG_MIME,
+                      )
+                        ? "move"
+                        : "none";
                     }}
                     onDrop={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
                       set_drag_over_token(null);
-                      const raw = e.dataTransfer.getData(
-                        "application/x-astermail-emails",
-                      );
+                      const raw = e.dataTransfer.getData(EMAIL_DRAG_MIME);
 
                       if (!raw || !on_drop_emails) return;
                       try {
@@ -499,10 +510,11 @@ export const SidebarFolders = memo(function SidebarFolders({
                     {!is_collapsed && hasChildren && (
                       <span
                         aria-expanded={is_expanded}
-                        aria-label={folder.name}
-                        className="absolute top-1/2 -translate-y-1/2 p-0.5 rounded hover:bg-black/[0.06] dark:hover:bg-white/[0.08]"
+                        aria-label={t(
+                          is_expanded ? "common.collapse" : "common.expand",
+                        )}
+                        className="absolute start-0 top-1/2 -translate-y-1/2 p-0.5 rounded hover:bg-black/[0.06] dark:hover:bg-white/[0.08]"
                         role="button"
-                        style={{ left: "0px" }}
                         tabIndex={0}
                         onClick={(e) => {
                           e.stopPropagation();
@@ -573,6 +585,7 @@ export const SidebarFolders = memo(function SidebarFolders({
         {has_more && !is_collapsed && !section_collapsed && !is_pinned && (
           <button
             className="w-full flex items-center gap-2 px-2.5 h-7 text-[12px]  rounded-[12px] hover:bg-black/[0.03] dark:hover:bg-white/[0.04] text-txt-muted"
+            type="button"
             onClick={() => set_folders_expanded(!folders_expanded)}
           >
             {folders_expanded ? (
