@@ -59,7 +59,7 @@ const PASSPHRASE = "correct horse battery staple";
 async function generate_armored_private_key(): Promise<string> {
   const { privateKey } = await openpgp.generateKey({
     type: "curve25519",
-    userIDs: [{ name: "maple1", email: "maple1@aster.cx" }],
+    userIDs: [{ name: "test_user", email: "test_user@aster.cx" }],
     passphrase: PASSPHRASE,
     format: "armored",
   });
