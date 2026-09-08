@@ -3697,7 +3697,8 @@ input:-webkit-autofill:active {
   }
 }
 
-.plan_galaxy_badge {
+.plan_galaxy_badge,
+.plan_current_badge {
   color: var(--accent-fg, #ffffff);
   background-image:
     linear-gradient(
@@ -3719,13 +3720,6 @@ input:-webkit-autofill:active {
   text-shadow: 0 1px 1px
     color-mix(in srgb, var(--plan_galaxy_accent, #3b82f6) 70%, #000000);
   box-shadow: 0 1px 0 color-mix(in srgb, #ffffff 30%, transparent) inset;
-}
-
-.plan_current_badge {
-  color: var(--text-secondary, #b0b0b0);
-  background: var(--bg-secondary, #12151c);
-  box-shadow: inset 0 0 0 1px
-    color-mix(in srgb, var(--text-primary) 18%, transparent);
 }
 
 .offer_banner {
