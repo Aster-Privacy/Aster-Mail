@@ -5261,11 +5261,15 @@ export const zh_CN = {
     cancel_reason_placeholder_privacy_trust: "是什么引起了这个顾虑？",
     cancel_reason_placeholder_just_testing: "你想了解什么？",
     cancel_reason_placeholder_other: "是什么让你决定取消？",
-    cancel_reason_detail_required:
-      "写一句简短的说明，我们才能据此改进，或者跳过这一步。",
+    cancel_reason_detail_required: "写一句简短的说明，我们才能据此改进。",
     cancel_not_cancellable: "此订阅无法在应用内取消。请联系支持团队取消。",
     cancel_failed: "你的套餐未取消，账单也没有变化，可以再试一次。",
-    cancel_reason_skip: "跳过",
+    cancel_early_title: "是不是出了什么问题？",
+    cancel_early_description: "你在最近几天刚订阅，可能是遇到了什么问题。",
+    cancel_early_body:
+      "取消后，套餐会保留到本计费周期结束，你现在也可以继续操作。如果有功能没有按预期工作，帮助中心列出了常见原因和联系团队的方式。",
+    cancel_early_help: "打开帮助中心",
+    cancel_early_continue: "继续取消",
     cancel_reason_continue: "继续",
     cancel_impact_title: "取消后会有哪些变化",
     cancel_impact_description: "您的方案在 {{date}} 前仍然有效。之后：",
@@ -9141,7 +9145,8 @@ export const zh_CN = {
     previous_period: "上一个",
     next_period: "下一个",
     search_events: "搜索活动",
-    only_you_can_read_calendar: "只有你能读取自己的日历。活动在离开设备前先在设备上加密。",
+    only_you_can_read_calendar:
+      "只有你能读取自己的日历。活动在离开设备前先在设备上加密。",
     all_day: "全天",
     more_events: "还有 {{count}} 项",
     no_upcoming_events: "暂无活动",

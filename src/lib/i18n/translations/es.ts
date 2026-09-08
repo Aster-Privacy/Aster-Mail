@@ -5825,12 +5825,18 @@ export const es = {
     cancel_reason_placeholder_just_testing: "¿Qué querías averiguar?",
     cancel_reason_placeholder_other: "¿Qué te ha llevado a cancelar?",
     cancel_reason_detail_required:
-      "Escribe una respuesta breve para que podamos actuar, o salta este paso.",
+      "Escribe una respuesta breve para que podamos actuar.",
     cancel_not_cancellable:
       "Esta suscripción no se puede cancelar en la app. Contacta con el equipo de soporte para cancelarla.",
     cancel_failed:
       "Tu plan no se ha cancelado. Tu facturación no ha cambiado, así que puedes volver a intentarlo.",
-    cancel_reason_skip: "Omitir",
+    cancel_early_title: "¿Algo salió mal?",
+    cancel_early_description:
+      "Te suscribiste hace pocos días, así que puede haber un problema detrás.",
+    cancel_early_body:
+      "Al cancelar, tu plan sigue activo hasta el final del periodo de facturación y puedes continuar ahora. Si algo no funcionó como esperabas, el centro de ayuda explica las causas más comunes y cómo contactar con el equipo.",
+    cancel_early_help: "Abrir el centro de ayuda",
+    cancel_early_continue: "Continuar con la cancelación",
     cancel_reason_continue: "Continuar",
     cancel_impact_title: "Qué cambia si cancelas",
     cancel_impact_description:

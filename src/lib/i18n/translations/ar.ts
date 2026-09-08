@@ -5856,12 +5856,18 @@ export const ar = {
     cancel_reason_placeholder_just_testing: "ما الذي كنت تأمل معرفته؟",
     cancel_reason_placeholder_other: "ما الذي دفعك إلى الإلغاء؟",
     cancel_reason_detail_required:
-      "أضف إجابة قصيرة حتى نتمكن من التصرف بناءً عليها، أو تخط هذه الخطوة.",
+      "أضف إجابة قصيرة حتى نتمكن من التصرف بناءً عليها.",
     cancel_not_cancellable:
       "لا يمكن إلغاء هذا الاشتراك من التطبيق. تواصل مع الدعم لإلغائه.",
     cancel_failed:
       "لم يتم إلغاء خطتك، ولم يطرأ أي تغيير على فوترتك، لذا يمكنك المحاولة مرة أخرى.",
-    cancel_reason_skip: "تخطٍ",
+    cancel_early_title: "هل حدث خطأ ما؟",
+    cancel_early_description:
+      "لقد اشتركت خلال الأيام القليلة الماضية، وربما كانت هناك مشكلة وراء ذلك.",
+    cancel_early_body:
+      "الإلغاء يبقي خطتك حتى نهاية فترة الفوترة، ويمكنك المتابعة الآن. وإذا لم يعمل شيء كما توقعت، فمركز المساعدة يشرح الأسباب الشائعة وطريقة التواصل مع الفريق.",
+    cancel_early_help: "افتح مركز المساعدة",
+    cancel_early_continue: "متابعة الإلغاء",
     cancel_reason_continue: "متابعة",
     cancel_impact_title: "ما الذي يتغير إذا ألغيت",
     cancel_impact_description: "تظل خطتك نشطة حتى {{date}}. بعد ذلك:",

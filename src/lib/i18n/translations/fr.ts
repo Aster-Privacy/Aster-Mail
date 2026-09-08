@@ -5887,12 +5887,18 @@ export const fr = {
     cancel_reason_placeholder_just_testing: "Que vouliez-vous découvrir ?",
     cancel_reason_placeholder_other: "Qu'est-ce qui vous a décidé à résilier ?",
     cancel_reason_detail_required:
-      "Ajoutez une réponse courte pour que nous puissions agir, ou passez cette étape.",
+      "Ajoutez une réponse courte pour que nous puissions agir.",
     cancel_not_cancellable:
       "Cet abonnement ne peut pas être résilié dans l'app. Contactez l'assistance pour le résilier.",
     cancel_failed:
       "Votre forfait n'a pas été résilié. Votre facturation est inchangée, vous pouvez réessayer.",
-    cancel_reason_skip: "Passer",
+    cancel_early_title: "Un problème est-il survenu ?",
+    cancel_early_description:
+      "Vous vous êtes abonné il y a quelques jours, un problème est peut-être en cause.",
+    cancel_early_body:
+      "L'annulation laisse votre offre active jusqu'à la fin de la période de facturation, et vous pouvez continuer maintenant. Si quelque chose n'a pas fonctionné comme prévu, le centre d'aide explique les causes les plus courantes et comment joindre l'équipe.",
+    cancel_early_help: "Ouvrir le centre d'aide",
+    cancel_early_continue: "Continuer l'annulation",
     cancel_reason_continue: "Continuer",
     cancel_impact_title: "Ce qui change si vous annulez",
     cancel_impact_description:

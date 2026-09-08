@@ -4842,13 +4842,18 @@ export const en: Translations = {
     cancel_reason_placeholder_privacy_trust: "What raised the concern?",
     cancel_reason_placeholder_just_testing: "What were you hoping to find out?",
     cancel_reason_placeholder_other: "What made you decide to cancel?",
-    cancel_reason_detail_required:
-      "Add a short answer so we can act on it, or skip this step.",
+    cancel_reason_detail_required: "Add a short answer so we can act on it.",
     cancel_not_cancellable:
       "This subscription can't be canceled in the app. Contact support to cancel it.",
     cancel_failed:
       "Your plan wasn't canceled. Your billing is unchanged, so you can try again.",
-    cancel_reason_skip: "Skip",
+    cancel_early_title: "Did something go wrong?",
+    cancel_early_description:
+      "You subscribed in the last few days, so a problem may be behind this.",
+    cancel_early_body:
+      "Canceling keeps your plan until the end of the billing period, and you can go ahead with it now. If something did not work the way you expected, the help center covers the common causes and how to reach the team.",
+    cancel_early_help: "Open the help center",
+    cancel_early_continue: "Continue to cancel",
     cancel_reason_continue: "Continue",
     cancel_impact_title: "What changes if you cancel",
     cancel_impact_description:

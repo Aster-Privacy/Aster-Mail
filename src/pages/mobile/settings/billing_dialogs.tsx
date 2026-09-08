@@ -52,6 +52,7 @@ import {
   read_billing_interval,
 } from "@/components/settings/billing/cancel_offer";
 import { CancelOfferStep } from "@/components/settings/billing/cancel_offer_step";
+import { CancelEarlyStep } from "@/components/settings/billing/cancel_early_step";
 import { show_toast } from "@/components/toast/simple_toast";
 import { PaymentMethodsModal } from "@/components/settings/payment_methods_modal";
 import { PlanPaymentMethodModal } from "@/components/settings/billing/plan_payment_method_modal";
@@ -164,46 +165,59 @@ export function render_billing_dialogs(
         <AlertDialogContent className="w-[calc(100%-2rem)] max-w-[520px]">
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {cancel_step === "reason"
-                ? t("settings.cancel_reason_title")
-                : cancel_step === "offer"
-                  ? t("settings.cancel_offer_title")
-                  : cancel_step === "impact"
-                    ? t("settings.cancel_impact_title")
-                    : cancel_step === "confirm"
-                      ? t("settings.cancel_final_title")
-                      : t("settings.cancel_confirm_title")}
+              {cancel_step === "early"
+                ? t("settings.cancel_early_title")
+                : cancel_step === "reason"
+                  ? t("settings.cancel_reason_title")
+                  : cancel_step === "offer"
+                    ? t("settings.cancel_offer_title")
+                    : cancel_step === "impact"
+                      ? t("settings.cancel_impact_title")
+                      : cancel_step === "confirm"
+                        ? t("settings.cancel_final_title")
+                        : t("settings.cancel_confirm_title")}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              {cancel_step === "reason"
-                ? t("settings.cancel_reason_description")
-                : cancel_step === "offer"
-                  ? t("settings.cancel_offer_description")
-                  : cancel_step === "impact"
-                    ? cancel_effective_date
-                      ? t("settings.cancel_impact_description", {
-                          date: cancel_effective_date,
-                        })
-                      : t("settings.cancel_impact_description_nodate")
-                    : cancel_step === "confirm"
+              {cancel_step === "early"
+                ? t("settings.cancel_early_description")
+                : cancel_step === "reason"
+                  ? t("settings.cancel_reason_description")
+                  : cancel_step === "offer"
+                    ? t("settings.cancel_offer_description")
+                    : cancel_step === "impact"
                       ? cancel_effective_date
-                        ? t("settings.cancel_final_description", {
+                        ? t("settings.cancel_impact_description", {
                             date: cancel_effective_date,
-                            plan:
-                              cancel_impact?.plan_name ??
-                              subscription?.plan.name ??
-                              "",
                           })
-                        : t("settings.cancel_final_description_nodate", {
-                            plan:
-                              cancel_impact?.plan_name ??
-                              subscription?.plan.name ??
-                              "",
-                          })
-                      : t("settings.cancel_confirm_description")}
+                        : t("settings.cancel_impact_description_nodate")
+                      : cancel_step === "confirm"
+                        ? cancel_effective_date
+                          ? t("settings.cancel_final_description", {
+                              date: cancel_effective_date,
+                              plan:
+                                cancel_impact?.plan_name ??
+                                subscription?.plan.name ??
+                                "",
+                            })
+                          : t("settings.cancel_final_description_nodate", {
+                              plan:
+                                cancel_impact?.plan_name ??
+                                subscription?.plan.name ??
+                                "",
+                            })
+                        : t("settings.cancel_confirm_description")}
             </AlertDialogDescription>
           </AlertDialogHeader>
-          {cancel_step === "reason" ? (
+          {cancel_step === "early" ? (
+            <CancelEarlyStep
+              keep_plan_slot={
+                <AlertDialogCancel className="mt-0">
+                  {t("settings.keep_plan")}
+                </AlertDialogCancel>
+              }
+              on_continue={() => set_cancel_step("reason")}
+            />
+          ) : cancel_step === "reason" ? (
             <CancelReasonStep
               keep_plan_slot={
                 <AlertDialogCancel className="mt-0">
@@ -211,7 +225,6 @@ export function render_billing_dialogs(
                 </AlertDialogCancel>
               }
               on_continue={() => set_cancel_step(step_after_reason)}
-              on_skip={() => set_cancel_step(step_after_reason)}
               reason={cancel_reason}
               reason_text={cancel_reason_text}
               set_reason={set_cancel_reason}

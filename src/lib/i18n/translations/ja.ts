@@ -5841,12 +5841,18 @@ export const ja = {
     cancel_reason_placeholder_just_testing: "何を確かめたかったですか。",
     cancel_reason_placeholder_other: "解約を決めた理由を教えてください。",
     cancel_reason_detail_required:
-      "改善につなげられるよう、ひとことご記入いただくか、この手順をスキップしてください。",
+      "改善につなげられるよう、ひとことご記入ください。",
     cancel_not_cancellable:
       "このサブスクリプションはアプリから解約できません。解約はサポートにお問い合わせください。",
     cancel_failed:
       "プランは解約されていません。請求内容は変わっていないので、もう一度お試しください。",
-    cancel_reason_skip: "スキップ",
+    cancel_early_title: "うまくいかないことがありましたか。",
+    cancel_early_description:
+      "ここ数日でご契約いただいたばかりのため、何か問題があったのかもしれません。",
+    cancel_early_body:
+      "解約しても請求期間の終わりまではプランをご利用いただけます。このまま進めることもできます。想定どおりに動作しなかった場合は、ヘルプセンターに主な原因とお問い合わせ方法を掲載しています。",
+    cancel_early_help: "ヘルプセンターを開く",
+    cancel_early_continue: "解約に進む",
     cancel_reason_continue: "次へ",
     cancel_impact_title: "解約するとどうなるか",
     cancel_impact_description: "プランは {{date}} まで有効です。その後:",
@@ -10145,7 +10151,8 @@ export const ja = {
     previous_period: "前へ",
     next_period: "次へ",
     search_events: "予定を検索",
-    only_you_can_read_calendar: "カレンダーを読めるのはあなただけです。予定はデバイスから送信される前に暗号化されます。",
+    only_you_can_read_calendar:
+      "カレンダーを読めるのはあなただけです。予定はデバイスから送信される前に暗号化されます。",
     all_day: "終日",
     more_events: "他 {{count}} 件",
     no_upcoming_events: "予定はありません",
@@ -10153,7 +10160,8 @@ export const ja = {
     new_event: "新規予定",
     edit_event: "予定を編集",
     delete_event: "予定を削除",
-    delete_event_confirmation: "「{{title}}」を削除しますか。元に戻すことはできません。",
+    delete_event_confirmation:
+      "「{{title}}」を削除しますか。元に戻すことはできません。",
     event_title: "タイトル",
     event_title_placeholder: "タイトルを追加",
     starts: "開始",

@@ -5889,12 +5889,18 @@ export const de = {
     cancel_reason_placeholder_other:
       "Warum haben Sie sich für die Kündigung entschieden?",
     cancel_reason_detail_required:
-      "Schreiben Sie kurz etwas dazu, damit wir daran arbeiten können, oder überspringen Sie diesen Schritt.",
+      "Schreiben Sie kurz etwas dazu, damit wir daran arbeiten können.",
     cancel_not_cancellable:
       "Dieses Abo lässt sich nicht in der App kündigen. Wenden Sie sich an den Support.",
     cancel_failed:
       "Ihr Tarif wurde nicht gekündigt. An Ihrer Abrechnung ändert sich nichts, Sie können es erneut versuchen.",
-    cancel_reason_skip: "Überspringen",
+    cancel_early_title: "Ist etwas schiefgelaufen?",
+    cancel_early_description:
+      "Sie haben in den letzten Tagen abonniert, daher steckt vielleicht ein Problem dahinter.",
+    cancel_early_body:
+      "Bei einer Kündigung bleibt Ihr Tarif bis zum Ende des Abrechnungszeitraums aktiv, und Sie können jetzt fortfahren. Wenn etwas nicht wie erwartet funktioniert hat, beschreibt das Hilfecenter die häufigsten Ursachen und den Weg zum Team.",
+    cancel_early_help: "Hilfecenter öffnen",
+    cancel_early_continue: "Weiter zur Kündigung",
     cancel_reason_continue: "Weiter",
     cancel_impact_title: "Was sich bei einer Kündigung ändert",
     cancel_impact_description: "Dein Plan bleibt bis {{date}} aktiv. Danach:",

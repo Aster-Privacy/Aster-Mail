@@ -5819,12 +5819,18 @@ export const nl = {
     cancel_reason_placeholder_just_testing: "Wat wilde je uitzoeken?",
     cancel_reason_placeholder_other: "Waarom heb je besloten op te zeggen?",
     cancel_reason_detail_required:
-      "Schrijf er kort iets bij zodat we er iets mee kunnen, of sla deze stap over.",
+      "Schrijf er kort iets bij zodat we er iets mee kunnen.",
     cancel_not_cancellable:
       "Dit abonnement kun je niet in de app opzeggen. Neem contact op met de klantenservice.",
     cancel_failed:
       "Je abonnement is niet opgezegd. Je facturering is ongewijzigd, dus je kunt het opnieuw proberen.",
-    cancel_reason_skip: "Overslaan",
+    cancel_early_title: "Is er iets misgegaan?",
+    cancel_early_description:
+      "Je bent een paar dagen geleden begonnen, dus mogelijk zit er een probleem achter.",
+    cancel_early_body:
+      "Bij opzeggen blijft je abonnement lopen tot het einde van de factuurperiode en je kunt nu verdergaan. Als iets niet werkte zoals verwacht, staan in het helpcentrum de bekende oorzaken en hoe je het team bereikt.",
+    cancel_early_help: "Helpcentrum openen",
+    cancel_early_continue: "Doorgaan met opzeggen",
     cancel_reason_continue: "Doorgaan",
     cancel_impact_title: "Wat er verandert als je opzegt",
     cancel_impact_description:

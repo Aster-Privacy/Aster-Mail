@@ -4669,12 +4669,18 @@ export const it = {
     cancel_reason_placeholder_just_testing: "Che cosa volevi scoprire?",
     cancel_reason_placeholder_other: "Che cosa ti ha portato ad annullare?",
     cancel_reason_detail_required:
-      "Aggiungi una risposta breve così possiamo intervenire, oppure salta questo passaggio.",
+      "Aggiungi una risposta breve così possiamo intervenire.",
     cancel_not_cancellable:
       "Questo abbonamento non può essere annullato nell'app. Contatta l'assistenza per annullarlo.",
     cancel_failed:
       "Il tuo piano non è stato annullato. La fatturazione non è cambiata, quindi puoi riprovare.",
-    cancel_reason_skip: "Salta",
+    cancel_early_title: "È andato storto qualcosa?",
+    cancel_early_description:
+      "Hai attivato l'abbonamento pochi giorni fa, quindi potrebbe esserci un problema.",
+    cancel_early_body:
+      "Annullando, il piano resta attivo fino alla fine del periodo di fatturazione e puoi procedere subito. Se qualcosa non ha funzionato come ti aspettavi, il centro assistenza spiega le cause più comuni e come contattare il team.",
+    cancel_early_help: "Apri il centro assistenza",
+    cancel_early_continue: "Continua con l'annullamento",
     cancel_reason_continue: "Continua",
     cancel_impact_title: "Cosa cambia se annulli",
     cancel_impact_description:

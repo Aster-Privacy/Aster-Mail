@@ -5774,12 +5774,18 @@ export const tr = {
     cancel_reason_placeholder_just_testing: "Neyi öğrenmek istediniz?",
     cancel_reason_placeholder_other: "İptal kararınızın nedeni nedir?",
     cancel_reason_detail_required:
-      "Bir şeyler yapabilmemiz için kısa bir yanıt yazın veya bu adımı atlayın.",
+      "Bir şeyler yapabilmemiz için kısa bir yanıt yazın.",
     cancel_not_cancellable:
       "Bu abonelik uygulamadan iptal edilemez. İptal için destek ekibiyle iletişime geçin.",
     cancel_failed:
       "Planınız iptal edilmedi. Faturalandırmanız değişmedi, tekrar deneyebilirsiniz.",
-    cancel_reason_skip: "Atla",
+    cancel_early_title: "Bir sorun mu yaşadınız?",
+    cancel_early_description:
+      "Son birkaç gün içinde abone oldunuz, bu yüzden arkasında bir sorun olabilir.",
+    cancel_early_body:
+      "İptal ettiğinizde planınız fatura döneminin sonuna kadar açık kalır ve şimdi devam edebilirsiniz. Bir şey beklediğiniz gibi çalışmadıysa yardım merkezinde sık görülen nedenleri ve ekibe nasıl ulaşacağınızı bulabilirsiniz.",
+    cancel_early_help: "Yardım merkezini aç",
+    cancel_early_continue: "İptale devam et",
     cancel_reason_continue: "Devam",
     cancel_impact_title: "İptal ederseniz neler değişir",
     cancel_impact_description:

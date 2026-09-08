@@ -5766,13 +5766,18 @@ export const ko = {
     cancel_reason_placeholder_privacy_trust: "무엇 때문에 걱정되셨나요?",
     cancel_reason_placeholder_just_testing: "무엇을 확인하고 싶으셨나요?",
     cancel_reason_placeholder_other: "해지를 결정하신 이유는 무엇인가요?",
-    cancel_reason_detail_required:
-      "개선에 반영할 수 있도록 짧게 적어 주시거나, 이 단계를 건너뛰세요.",
+    cancel_reason_detail_required: "개선에 반영할 수 있도록 짧게 적어 주세요.",
     cancel_not_cancellable:
       "이 구독은 앱에서 해지할 수 없습니다. 해지하려면 고객지원에 문의하세요.",
     cancel_failed:
       "요금제가 해지되지 않았습니다. 결제 내용은 그대로이니 다시 시도해 보세요.",
-    cancel_reason_skip: "건너뛰기",
+    cancel_early_title: "문제가 있었나요?",
+    cancel_early_description:
+      "최근 며칠 사이에 구독하셨기 때문에 문제가 원인일 수 있습니다.",
+    cancel_early_body:
+      "취소해도 결제 주기가 끝날 때까지 요금제가 유지되며, 지금 바로 진행할 수 있습니다. 예상대로 작동하지 않은 부분이 있다면 도움말 센터에서 주요 원인과 문의 방법을 확인할 수 있습니다.",
+    cancel_early_help: "도움말 센터 열기",
+    cancel_early_continue: "취소 계속하기",
     cancel_reason_continue: "계속",
     cancel_impact_title: "취소하면 달라지는 점",
     cancel_impact_description: "플랜은 {{date}}까지 유지됩니다. 그 이후:",
@@ -9855,7 +9860,8 @@ export const ko = {
     previous_period: "이전",
     next_period: "다음",
     search_events: "일정 검색",
-    only_you_can_read_calendar: "캘린더는 회원님만 읽을 수 있습니다. 일정은 기기를 떠나기 전에 암호화됩니다.",
+    only_you_can_read_calendar:
+      "캘린더는 회원님만 읽을 수 있습니다. 일정은 기기를 떠나기 전에 암호화됩니다.",
     all_day: "종일",
     more_events: "+{{count}}개 더",
     no_upcoming_events: "일정 없음",
@@ -9863,7 +9869,8 @@ export const ko = {
     new_event: "새 일정",
     edit_event: "일정 수정",
     delete_event: "일정 삭제",
-    delete_event_confirmation: "“{{title}}”을(를) 삭제할까요? 실행을 취소할 수 없습니다.",
+    delete_event_confirmation:
+      "“{{title}}”을(를) 삭제할까요? 실행을 취소할 수 없습니다.",
     event_title: "제목",
     event_title_placeholder: "제목 추가",
     starts: "시작",

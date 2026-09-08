@@ -6017,12 +6017,18 @@ export const pl = {
     cancel_reason_placeholder_just_testing: "Co chcesz sprawdzić?",
     cancel_reason_placeholder_other: "Co przesądziło o rezygnacji?",
     cancel_reason_detail_required:
-      "Dopisz krótką odpowiedź, żebyśmy mogli coś z tym zrobić, albo pomiń ten krok.",
+      "Dopisz krótką odpowiedź, żebyśmy mogli coś z tym zrobić.",
     cancel_not_cancellable:
       "Tej subskrypcji nie można anulować w aplikacji. Skontaktuj się z pomocą techniczną.",
     cancel_failed:
       "Plan nie został anulowany. Rozliczenia się nie zmieniły, więc możesz spróbować ponownie.",
-    cancel_reason_skip: "Pomiń",
+    cancel_early_title: "Czy coś poszło nie tak?",
+    cancel_early_description:
+      "Subskrypcja zaczęła się kilka dni temu, więc może chodzić o jakiś problem.",
+    cancel_early_body:
+      "Po anulowaniu plan działa do końca okresu rozliczeniowego i możesz przejść dalej już teraz. Jeśli coś nie zadziałało zgodnie z oczekiwaniami, w centrum pomocy opisujemy najczęstsze przyczyny i sposób kontaktu z zespołem.",
+    cancel_early_help: "Otwórz centrum pomocy",
+    cancel_early_continue: "Przejdź do anulowania",
     cancel_reason_continue: "Dalej",
     cancel_impact_title: "Co się zmieni po anulowaniu",
     cancel_impact_description:

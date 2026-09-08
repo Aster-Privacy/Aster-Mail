@@ -44,6 +44,7 @@ import { use_mail_stats } from "@/hooks/use_mail_stats";
 import { use_auth } from "@/contexts/auth/use_auth_hook";
 import { type CancelReason } from "@/components/settings/billing/cancel_reason_step";
 import { type CancelStep } from "@/components/settings/billing/cancel_impact_step";
+import { is_early_cancel } from "@/components/settings/billing/cancel_early_step";
 import {
   clear_cancel_password_cache,
   get_cancel_password_hash,
@@ -109,6 +110,7 @@ export function use_billing_section() {
   );
   const [cancel_reason_text, set_cancel_reason_text] = useState("");
   const [cancel_step, set_cancel_step] = useState<CancelStep>("reason");
+  const subscription_started_at = subscription?.current_period_start ?? null;
   const [is_verifying_password, set_is_verifying_password] = useState(false);
   const [cancel_totp_code, set_cancel_totp_code] = useState("");
   const [cancel_totp_required, set_cancel_totp_required] = useState(false);
@@ -123,13 +125,15 @@ export function use_billing_section() {
     set_show_cancel_password(false);
     set_cancel_reason(null);
     set_cancel_reason_text("");
-    set_cancel_step("reason");
+    set_cancel_step(
+      is_early_cancel(subscription_started_at) ? "early" : "reason",
+    );
     set_cancel_totp_code("");
     set_cancel_totp_required(false);
     set_cancel_impact(null);
     set_is_verifying_password(false);
     clear_cancel_password_cache();
-  }, [show_cancel_dialog]);
+  }, [show_cancel_dialog, subscription_started_at]);
 
   useEffect(() => {
     if (!show_cancel_dialog || cancel_step !== "impact" || cancel_impact)

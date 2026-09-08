@@ -5994,7 +5994,11 @@ export interface SettingsTranslations {
   cancel_reason_detail_required: string;
   cancel_not_cancellable: string;
   cancel_failed: string;
-  cancel_reason_skip: string;
+  cancel_early_title: string;
+  cancel_early_description: string;
+  cancel_early_body: string;
+  cancel_early_help: string;
+  cancel_early_continue: string;
   cancel_reason_continue: string;
   cancel_impact_title: string;
   cancel_impact_description: string;
