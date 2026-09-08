@@ -65,6 +65,12 @@ export function privacy_signal_opt_out(): boolean {
       .globalPrivacyControl;
     if (gpc === true) return true;
     if (navigator.doNotTrack === "1") return true;
+    if (
+      typeof window !== "undefined" &&
+      (window as Window & { doNotTrack?: string }).doNotTrack === "1"
+    ) {
+      return true;
+    }
   } catch {
     void 0;
   }
@@ -90,7 +96,11 @@ export function capture_source(search: string): AcquisitionSource {
   }
   const click_id = normalize_click_id(params.get(CLICK_ID_FIELD));
   if (click_id) captured.reddit_click_id = click_id;
-  if (Object.keys(captured).length > 0) memory_source = captured;
+  if (click_id) {
+    memory_source = captured;
+  } else if (Object.keys(captured).length > 0) {
+    memory_source = { ...memory_source, ...captured };
+  }
   return memory_source;
 }
 

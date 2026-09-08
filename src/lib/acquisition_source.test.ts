@@ -208,4 +208,27 @@ describe("acquisition_source", () => {
       acquisition_term: "ok",
     });
   });
+
+  it("keeps the click id when a later url carries only campaign labels", () => {
+    clear_source();
+    capture_source("?utm_source=reddit&rdt_cid=abc123");
+    const after = capture_source("?utm_campaign=privacy_launch");
+    expect(after.reddit_click_id).toBe("abc123");
+    expect(after.acquisition_source).toBe("reddit");
+    expect(after.acquisition_campaign).toBe("privacy_launch");
+  });
+
+  it("starts a fresh attribution when a new click id arrives", () => {
+    clear_source();
+    capture_source("?utm_source=reddit&utm_campaign=old&rdt_cid=first");
+    const after = capture_source("?utm_source=reddit&rdt_cid=second");
+    expect(after.reddit_click_id).toBe("second");
+    expect(after.acquisition_campaign).toBeUndefined();
+  });
+
+  it("keeps the click id when a later url carries nothing", () => {
+    clear_source();
+    capture_source("?rdt_cid=abc123");
+    expect(capture_source("").reddit_click_id).toBe("abc123");
+  });
 });
