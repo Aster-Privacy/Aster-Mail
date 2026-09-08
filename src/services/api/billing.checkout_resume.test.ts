@@ -23,11 +23,13 @@ import { describe, it, expect, beforeEach } from "vitest";
 import {
   BILLING_RESUME_EVENT,
   clear_addon_target,
+  consume_addon_resume,
   consume_checkout_resume,
   read_addon_target,
   read_checkout_target,
   remember_addon_target,
   remember_checkout_target,
+  request_addon_resume,
   request_checkout_resume,
 } from "./billing";
 
@@ -70,5 +72,26 @@ describe("checkout resume plumbing", () => {
     clear_addon_target();
 
     expect(read_addon_target()).toBeNull();
+  });
+
+  it("requests an add-on resume and announces it once", () => {
+    let announced = 0;
+    const listener = () => {
+      announced += 1;
+    };
+
+    window.addEventListener(BILLING_RESUME_EVENT, listener);
+    remember_addon_target("addon_50gb");
+    request_addon_resume();
+    window.removeEventListener(BILLING_RESUME_EVENT, listener);
+
+    expect(announced).toBe(1);
+    expect(consume_addon_resume()).toBe(true);
+    expect(consume_addon_resume()).toBe(false);
+    expect(read_addon_target()).toBe("addon_50gb");
+  });
+
+  it("reports no add-on resume when no add-on checkout was cancelled", () => {
+    expect(consume_addon_resume()).toBe(false);
   });
 });

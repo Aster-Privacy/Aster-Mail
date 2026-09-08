@@ -29,6 +29,7 @@ import {
 import { use_i18n } from "@/lib/i18n/context";
 import type { TranslationKey } from "@/lib/i18n/types";
 import { use_auth } from "@/contexts/auth_context";
+import { request_addon_resume } from "@/services/api/billing";
 import { ignore_error } from "@/lib/ignore_error";
 
 const RETURN_KEY = "aster_checkout_return";
@@ -114,6 +115,11 @@ export function CheckoutReturnHandler() {
     if (!flow) return;
 
     if (outcome !== "success") {
+      if (param === "addon_purchase") {
+        request_addon_resume();
+
+        return;
+      }
       if (flow.cancelled_key)
         show_toast(t(flow.cancelled_key), "info", TOAST_DURATION_BILLING_MS);
 

@@ -79,6 +79,11 @@ import {
   get_cancel_impact,
   format_date,
   open_payment_url,
+  remember_addon_target,
+  read_addon_target,
+  clear_addon_target,
+  consume_addon_resume,
+  BILLING_RESUME_EVENT,
   type ReferralInfo,
   type ReferralHistoryItem,
   type CreditBalanceResponse,
@@ -228,10 +233,45 @@ export function use_billing_section() {
     set_crypto_plan(matching);
     set_show_crypto_modal(true);
   }, [plans]);
+  const [resume_tick, set_resume_tick] = useState(0);
+  const [pending_addon_resume, set_pending_addon_resume] = useState<
+    string | null
+  >(null);
   const [show_addon_method_modal, set_show_addon_method_modal] =
     useState(false);
   const [addon_method_target, set_addon_method_target] =
     useState<StorageAddonItem | null>(null);
+
+  useEffect(() => {
+    const handle_resume = () => set_resume_tick((tick) => tick + 1);
+
+    window.addEventListener(BILLING_RESUME_EVENT, handle_resume);
+
+    return () =>
+      window.removeEventListener(BILLING_RESUME_EVENT, handle_resume);
+  }, []);
+
+  useEffect(() => {
+    if (!consume_addon_resume()) return;
+
+    set_pending_addon_resume(read_addon_target());
+    clear_addon_target();
+  }, [resume_tick]);
+
+  useEffect(() => {
+    if (!pending_addon_resume) return;
+    if (available_addons.length === 0) return;
+
+    const addon = available_addons.find(
+      (entry) => entry.id === pending_addon_resume,
+    );
+
+    set_pending_addon_resume(null);
+    if (!addon) return;
+
+    set_addon_method_target(addon);
+    set_show_addon_method_modal(true);
+  }, [available_addons, pending_addon_resume]);
   const [show_crypto_addon_modal, set_show_crypto_addon_modal] =
     useState(false);
   const [crypto_addon, set_crypto_addon] = useState<StorageAddonItem | null>(
@@ -964,6 +1004,7 @@ export function use_billing_section() {
     if (is_action_loading) return;
 
     set_is_action_loading(true);
+    remember_addon_target(addon.id);
     try {
       const credit_cents = await resolve_credit_cents();
 

@@ -45,6 +45,7 @@ import {
   change_plan,
   read_checkout_target,
   clear_checkout_target,
+  consume_addon_resume,
   consume_checkout_resume,
   BILLING_RESUME_EVENT,
   remember_addon_target,
@@ -701,10 +702,6 @@ export function BillingSection() {
       invalidate_mail_stats();
       load_data();
     }
-    if (params.get("addon_purchase") === "cancelled") {
-      set_pending_addon_resume(read_addon_target());
-      clear_addon_target();
-    }
     if (params.get("addon_purchase")) {
       const url = new URL(window.location.href);
 
@@ -712,6 +709,13 @@ export function BillingSection() {
       window.history.replaceState({}, "", url.toString());
     }
   }, [load_data, t]);
+
+  useEffect(() => {
+    if (!consume_addon_resume()) return;
+
+    set_pending_addon_resume(read_addon_target());
+    clear_addon_target();
+  }, [resume_tick]);
 
   useEffect(() => {
     if (!pending_addon_resume) return;

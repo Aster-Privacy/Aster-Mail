@@ -422,6 +422,32 @@ export function consume_checkout_resume(): boolean {
   }
 }
 
+export const ADDON_RESUME_KEY = "aster_billing_resume_addon";
+
+export function request_addon_resume(): void {
+  try {
+    sessionStorage.setItem(ADDON_RESUME_KEY, "1");
+  } catch {
+    return;
+  }
+  try {
+    window.dispatchEvent(new CustomEvent(BILLING_RESUME_EVENT));
+  } catch {
+    return;
+  }
+}
+
+export function consume_addon_resume(): boolean {
+  try {
+    if (sessionStorage.getItem(ADDON_RESUME_KEY) !== "1") return false;
+    sessionStorage.removeItem(ADDON_RESUME_KEY);
+
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export function remember_addon_target(addon_id: string): void {
   try {
     sessionStorage.setItem(ADDON_TARGET_KEY, addon_id);
