@@ -43,6 +43,7 @@ import { Button } from "@aster/ui";
 
 import {
   BillingSection,
+  OnionBillingSection,
   FamilySection,
   StorageSection,
 } from "./settings_lazy_sections";
@@ -152,13 +153,9 @@ function SettingsContentInner(props: SettingsContentProps) {
       case "domains":
         return <DomainsSection />;
       case "billing":
-        if (is_onion_host()) {
-          return null;
-        }
-
         return (
           <Suspense fallback={<SettingsSkeleton variant="billing" />}>
-            <BillingSection />
+            {is_onion_host() ? <OnionBillingSection /> : <BillingSection />}
           </Suspense>
         );
       case "storage":

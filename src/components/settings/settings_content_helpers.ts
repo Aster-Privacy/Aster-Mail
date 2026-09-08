@@ -371,35 +371,31 @@ export function get_nav_items(
           "dmarc",
         ],
       },
-      ...(!on_onion
-        ? [
-            {
-              id: "billing" as Section,
-              label: t("settings.billing"),
-              icon: CreditCardIcon,
-              description:
-                "Subscription plan, payment methods, invoices, storage add-ons, and upgrades",
-              keywords: [
-                "plan",
-                "subscription",
-                "upgrade plan",
-                "downgrade plan",
-                "payment method",
-                "credit card",
-                "invoice",
-                "billing history",
-                "storage",
-                "storage addon",
-                "add storage",
-                "star plan",
-                "supernova plan",
-                "cancel subscription",
-                "renew",
-                "price",
-              ],
-            },
-          ]
-        : []),
+      {
+        id: "billing" as Section,
+        label: t("settings.billing"),
+        icon: CreditCardIcon,
+        description:
+          "Subscription plan, payment methods, invoices, storage add-ons, and upgrades",
+        keywords: [
+          "plan",
+          "subscription",
+          "upgrade plan",
+          "downgrade plan",
+          "payment method",
+          "credit card",
+          "invoice",
+          "billing history",
+          "storage",
+          "storage addon",
+          "add storage",
+          "star plan",
+          "supernova plan",
+          "cancel subscription",
+          "renew",
+          "price",
+        ],
+      },
       ...(!on_onion
         ? [
             {

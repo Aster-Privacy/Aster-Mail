@@ -5792,6 +5792,8 @@ export const nl = {
     checkout_term_save: "Bespaar {{amount}}",
     checkout_term_per_month: "{{amount}}/maand",
     checkout_term_crypto_only: "Alleen crypto",
+    billing_onion_card_notice:
+      "Om met een kaart te betalen, meld je aan op app.astermail.org. Op dit adres betaal je met crypto.",
     checkout_card_term_unavailable:
       "De looptijd van 2 jaar is beschikbaar als je met crypto betaalt.",
     checkout_term_total: "{{amount}} totaal",

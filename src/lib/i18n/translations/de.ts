@@ -5806,6 +5806,8 @@ export const de = {
     checkout_term_save: "Spare {{amount}}",
     checkout_term_per_month: "{{amount}}/Monat",
     checkout_term_crypto_only: "Nur Krypto",
+    billing_onion_card_notice:
+      "Um mit Karte zu bezahlen, melde dich auf app.astermail.org an. Auf dieser Adresse bezahlst du mit Kryptowährung.",
     checkout_card_term_unavailable:
       "Die 2-Jahres-Laufzeit ist bei Zahlung mit Krypto verfügbar.",
     checkout_term_total: "{{amount}} insgesamt",
