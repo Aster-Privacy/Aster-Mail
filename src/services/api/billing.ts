@@ -391,6 +391,60 @@ export function clear_checkout_target(): void {
   }
 }
 
+export const BILLING_RESUME_KEY = "aster_billing_resume";
+
+export const BILLING_RESUME_EVENT = "aster:billing-resume-checkout";
+
+export const ADDON_TARGET_KEY = "aster_billing_target_addon";
+
+export function request_checkout_resume(): void {
+  try {
+    sessionStorage.setItem(BILLING_RESUME_KEY, "1");
+  } catch {
+    return;
+  }
+  try {
+    window.dispatchEvent(new CustomEvent(BILLING_RESUME_EVENT));
+  } catch {
+    return;
+  }
+}
+
+export function consume_checkout_resume(): boolean {
+  try {
+    if (sessionStorage.getItem(BILLING_RESUME_KEY) !== "1") return false;
+    sessionStorage.removeItem(BILLING_RESUME_KEY);
+
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function remember_addon_target(addon_id: string): void {
+  try {
+    sessionStorage.setItem(ADDON_TARGET_KEY, addon_id);
+  } catch {
+    return;
+  }
+}
+
+export function read_addon_target(): string | null {
+  try {
+    return sessionStorage.getItem(ADDON_TARGET_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export function clear_addon_target(): void {
+  try {
+    sessionStorage.removeItem(ADDON_TARGET_KEY);
+  } catch {
+    return;
+  }
+}
+
 export async function change_plan(
   plan_code: string,
   billing_interval: string = "month",

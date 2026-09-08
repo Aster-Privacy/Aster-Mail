@@ -26,6 +26,7 @@ import {
   clear_checkout_target,
   get_subscription,
   read_checkout_target,
+  request_checkout_resume,
 } from "@/services/api/billing";
 import { FamilyWelcomeModal } from "@/components/settings/billing/family_welcome_modal";
 import { CheckoutReturnHandler } from "@/components/common/checkout_return_handler";
@@ -126,6 +127,10 @@ function mark_family_welcome_seen(account_id: string): void {
 
 const BILLING_RETURN_KEY = "aster_billing_return";
 
+function is_on_billing_settings_route(): boolean {
+  return window.location.pathname.includes("/settings/billing");
+}
+
 function upgrade_interval_for(billing_interval: string): UpgradeInterval {
   if (billing_interval === "month") return "month";
   if (billing_interval === "biennial") return "biennial";
@@ -191,6 +196,17 @@ function BillingSuccessHandler() {
 
     if (billing === "cancelled") {
       const target = read_checkout_target();
+
+      if (
+        target &&
+        is_resumable_checkout_plan(target.plan_code) &&
+        is_on_billing_settings_route()
+      ) {
+        request_checkout_resume();
+
+        return;
+      }
+
       const resumed =
         target && is_resumable_checkout_plan(target.plan_code)
           ? show_checkout_cancelled_upgrade({

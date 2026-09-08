@@ -26,6 +26,7 @@ import {
   clear_checkout_target,
   get_subscription,
   read_checkout_target,
+  request_checkout_resume,
 } from "@/services/api/billing";
 import { request_cache } from "@/services/api/request_cache";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
@@ -112,6 +113,17 @@ export function MobileBillingReturnHandler() {
 
     if (billing === "cancelled") {
       const target = read_checkout_target();
+
+      if (
+        target &&
+        is_resumable_checkout_plan(target.plan_code) &&
+        window.location.pathname.includes("/settings/billing")
+      ) {
+        request_checkout_resume();
+
+        return;
+      }
+
       const resumed =
         target && is_resumable_checkout_plan(target.plan_code)
           ? show_checkout_cancelled_upgrade({

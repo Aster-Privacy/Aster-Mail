@@ -43,6 +43,13 @@ import {
   get_stripe_config,
   start_hosted_checkout,
   change_plan,
+  read_checkout_target,
+  clear_checkout_target,
+  consume_checkout_resume,
+  BILLING_RESUME_EVENT,
+  remember_addon_target,
+  read_addon_target,
+  clear_addon_target,
   format_price,
   get_academic_discount_status,
   type SubscriptionResponse,
@@ -167,6 +174,10 @@ export function BillingSection() {
   const [crypto_plan, set_crypto_plan] = useState<AvailablePlan | null>(null);
   const [crypto_resume, set_crypto_resume] =
     useState<CryptoResumeSelection | null>(null);
+  const [resume_tick, set_resume_tick] = useState(0);
+  const [pending_addon_resume, set_pending_addon_resume] = useState<
+    string | null
+  >(null);
   const [plan_method_target, set_plan_method_target] =
     useState<AvailablePlan | null>(null);
   const [crypto_back_plan, set_crypto_back_plan] =
@@ -197,6 +208,38 @@ export function BillingSection() {
   useEffect(() => {
     if (!show_payment_methods) set_auto_add_card(false);
   }, [show_payment_methods]);
+
+  useEffect(() => {
+    const handle_resume = () => set_resume_tick((tick) => tick + 1);
+
+    window.addEventListener(BILLING_RESUME_EVENT, handle_resume);
+
+    return () =>
+      window.removeEventListener(BILLING_RESUME_EVENT, handle_resume);
+  }, []);
+
+  useEffect(() => {
+    if (plans.length === 0) return;
+    if (!consume_checkout_resume()) return;
+
+    const target = read_checkout_target();
+
+    clear_checkout_target();
+    if (!target) return;
+
+    const plan = plans.find((entry) => entry.code === target.plan_code);
+
+    if (!plan) return;
+
+    set_billing_period(
+      target.billing_interval === "month"
+        ? "monthly"
+        : target.billing_interval === "biennial"
+          ? "biennial"
+          : "yearly",
+    );
+    set_plan_method_target(plan);
+  }, [plans, resume_tick]);
 
   useEffect(() => {
     if (!window.location.pathname.endsWith("/settings/credits")) return;
@@ -658,6 +701,10 @@ export function BillingSection() {
       invalidate_mail_stats();
       load_data();
     }
+    if (params.get("addon_purchase") === "cancelled") {
+      set_pending_addon_resume(read_addon_target());
+      clear_addon_target();
+    }
     if (params.get("addon_purchase")) {
       const url = new URL(window.location.href);
 
@@ -665,6 +712,29 @@ export function BillingSection() {
       window.history.replaceState({}, "", url.toString());
     }
   }, [load_data, t]);
+
+  useEffect(() => {
+    if (!pending_addon_resume) return;
+    if (available_addons.length === 0) return;
+
+    const addon = available_addons.find(
+      (entry) => entry.id === pending_addon_resume,
+    );
+
+    set_pending_addon_resume(null);
+    if (!addon) {
+      show_toast(
+        t("settings.billing_checkout_cancelled"),
+        "info",
+        TOAST_DURATION_BILLING_MS,
+      );
+
+      return;
+    }
+
+    set_addon_method_target(addon);
+    set_show_addon_method_modal(true);
+  }, [available_addons, pending_addon_resume, t]);
 
   const crypto_term_prices_for = (plan_code: string) =>
     PLAN_TIERS.find((p) => p.id === plan_code) ??
@@ -970,6 +1040,7 @@ export function BillingSection() {
       const url = response.data?.url;
 
       if (url) {
+        remember_addon_target(addon.id);
         const is_tauri =
           typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
 
