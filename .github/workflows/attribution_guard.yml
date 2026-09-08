@@ -1,0 +1,98 @@
+name: Attribution Guard
+
+# Every commit, tag, and pull request in this repo is written by a person.
+# This check fails when a commit message, tag message, author, committer,
+# pull request title, or pull request body carries AI attribution: a
+# Co-Authored-By line naming an assistant, a Claude-Session trailer, an
+# @anthropic.com identity, a claude.ai session URL, or a "Generated with
+# Claude Code" footer. Local git hooks block these before they leave a
+# device that runs them; this workflow catches the devices that do not.
+
+on:
+  push:
+    branches: ['**']
+    tags: ['**']
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Scan commits, tags, and pull request text
+        shell: bash
+        env:
+          EVENT: ${{ github.event_name }}
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.sha }}
+          REF: ${{ github.ref }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          set -uo pipefail
+          pat='co-authored-by:.*(claude|anthropic|copilot|chatgpt|openai|gemini|cursor|codex)|claude-session:|@anthropic\.com|claude\.ai/code|generated with.{0,6}(claude|copilot|cursor|codex)'
+          zero=0000000000000000000000000000000000000000
+          hits=0
+
+          report() {
+            echo "::error::$1"
+            hits=$((hits + 1))
+          }
+
+          scan_range() {
+            local range="$1"
+            local out
+            out=$(git log "$range" --format='@@ %H %an <%ae> / %cn <%ce>%n%B' 2>/dev/null | grep -iE "^@@ |$pat" | grep -iE -B1 "$pat" | grep -v '^--$' || true)
+            if [ -n "$out" ]; then
+              report "commit carries AI attribution"
+              printf '%s\n' "$out"
+            fi
+          }
+
+          case "$EVENT" in
+            pull_request)
+              scan_range "$PR_BASE..$PR_HEAD"
+              if printf '%s\n%s\n' "$PR_TITLE" "$PR_BODY" | grep -qiE "$pat"; then
+                report "pull request title or body carries AI attribution"
+                printf '%s\n%s\n' "$PR_TITLE" "$PR_BODY" | grep -iE "$pat"
+              fi
+              ;;
+            push)
+              case "$REF" in
+                refs/tags/*)
+                  tag="${REF#refs/tags/}"
+                  if [ "$(git cat-file -t "$tag" 2>/dev/null)" = "tag" ]; then
+                    out=$(git cat-file tag "$tag" | grep -iE "$pat" || true)
+                    if [ -n "$out" ]; then
+                      report "tag $tag carries AI attribution"
+                      printf '%s\n' "$out"
+                    fi
+                  fi
+                  scan_range "-n 200 $AFTER"
+                  ;;
+                *)
+                  if [ -z "$BEFORE" ] || [ "$BEFORE" = "$zero" ] || ! git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
+                    scan_range "-n 200 $AFTER"
+                  else
+                    scan_range "$BEFORE..$AFTER"
+                  fi
+                  ;;
+              esac
+              ;;
+          esac
+
+          if [ "$hits" -gt 0 ]; then
+            echo "Remove the attribution and rewrite the affected commits before pushing again."
+            exit 1
+          fi
+          echo "No AI attribution found."
