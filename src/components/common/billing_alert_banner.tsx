@@ -42,12 +42,28 @@ function days_remaining(grace_period_end: string | null): number | null {
   return days > 0 ? days : null;
 }
 
+export function hosted_pay_url(value: string | null | undefined): string | null {
+  if (!value) return null;
+
+  try {
+    const parsed = new URL(value);
+
+    if (parsed.protocol !== "https:") return null;
+    if (parsed.hostname !== "invoice.stripe.com") return null;
+
+    return parsed.toString();
+  } catch {
+    return null;
+  }
+}
+
 export function BillingAlertBanner() {
   const reduce_motion = use_should_reduce_motion();
   const navigate = useNavigate();
   const { t } = use_i18n();
   const [grace_days, set_grace_days] = useState<number | null>(null);
   const [is_past_due, set_is_past_due] = useState(false);
+  const [pay_url, set_pay_url] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -70,12 +86,14 @@ export function BillingAlertBanner() {
             subscription.cancel_at_period_end
           ) {
             set_is_past_due(false);
+            set_pay_url(null);
 
             return;
           }
 
           set_is_past_due(true);
           set_grace_days(days_remaining(subscription.grace_period_end));
+          set_pay_url(hosted_pay_url(subscription.pay_url));
         })
         .catch((caught) => {
           ignore_error("components/common/billing_alert_banner:load", caught);
@@ -100,6 +118,12 @@ export function BillingAlertBanner() {
   }, []);
 
   const handle_pay = () => {
+    if (pay_url) {
+      window.open(pay_url, "_blank", "noopener,noreferrer");
+
+      return;
+    }
+
     navigate("/settings/billing");
   };
 

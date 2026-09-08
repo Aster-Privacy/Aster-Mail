@@ -68,6 +68,7 @@ export interface SubscriptionResponse {
   payment_provider?: string | null;
   paid_until?: string | null;
   has_stripe_subscription?: boolean;
+  pay_url?: string | null;
   active_discount_description?: string | null;
   pending_offer?: PendingOffer | null;
 }
