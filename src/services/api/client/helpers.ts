@@ -283,3 +283,40 @@ export interface PendingTokenWrite {
   access_token: string | null;
   refresh_token?: string | null;
 }
+
+const PLATFORM_DECLARED_PATHS = ["/auth/login", "/auth/register"];
+
+export function declared_native_platform(): string | null {
+  if (CLIENT_PLATFORM_HEADER === "tauri-desktop") return "desktop";
+  if (CLIENT_PLATFORM_HEADER === "capacitor-android") return "android";
+  if (CLIENT_PLATFORM_HEADER === "capacitor-ios") return "ios";
+
+  return null;
+}
+
+export function with_declared_platform(
+  endpoint: string,
+  body: BodyInit | null | undefined,
+): BodyInit | null | undefined {
+  const platform = declared_native_platform();
+
+  if (!platform || typeof body !== "string") return body;
+
+  const path = endpoint.split("?")[0];
+
+  if (!PLATFORM_DECLARED_PATHS.some((suffix) => path.endsWith(suffix))) {
+    return body;
+  }
+
+  try {
+    const parsed = JSON.parse(body) as Record<string, unknown>;
+
+    if (typeof parsed.client_platform === "string" && parsed.client_platform) {
+      return body;
+    }
+
+    return JSON.stringify({ ...parsed, client_platform: platform });
+  } catch {
+    return body;
+  }
+}

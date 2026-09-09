@@ -71,6 +71,7 @@ import {
   is_tauri_env,
   is_write_dead_streak,
   unlock_token_cache_suffix,
+  with_declared_platform,
   write_last_auth_ms,
 } from "./helpers";
 import { should_show_server_message } from "./server_message";
@@ -1506,6 +1507,8 @@ export class ApiClient {
     }
 
     const method = options.method || "GET";
+
+    options.body = with_declared_platform(endpoint, options.body);
 
     if (is_state_changing_method(method)) {
       if (
