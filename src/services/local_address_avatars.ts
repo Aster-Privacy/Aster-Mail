@@ -29,7 +29,9 @@ export interface local_address_avatar {
 let entries: Map<string, local_address_avatar> = new Map();
 const listeners = new Set<() => void>();
 
-function build_map(values: local_address_avatar[]): Map<string, local_address_avatar> {
+function build_map(
+  values: local_address_avatar[],
+): Map<string, local_address_avatar> {
   const next = new Map<string, local_address_avatar>();
 
   for (const value of values) {
@@ -62,7 +64,9 @@ function is_same_map(
   return true;
 }
 
-export function set_local_address_avatars(values: local_address_avatar[]): void {
+export function set_local_address_avatars(
+  values: local_address_avatar[],
+): void {
   const next = build_map(values);
 
   if (is_same_map(entries, next)) return;
@@ -87,7 +91,9 @@ export function get_local_address_avatar(
   return entries.get(normalize_address_ignoring_dots(trimmed)) ?? null;
 }
 
-export function subscribe_local_address_avatars(listener: () => void): () => void {
+export function subscribe_local_address_avatars(
+  listener: () => void,
+): () => void {
   listeners.add(listener);
 
   return () => {

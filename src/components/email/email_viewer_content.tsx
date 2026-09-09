@@ -31,13 +31,13 @@ import {
   useRef,
   useSyncExternalStore,
 } from "react";
+
 import {
   get_peer_identity_event,
   subscribe_peer_identity_events,
 } from "@/services/crypto/ratchet_verification_status";
 import { should_retry_cid, cid_retry_delay_ms } from "@/lib/cid_retry";
 import { resolve_content_blocking } from "@/components/email/resolve_content_blocking";
-
 import { pop_preloaded_cid } from "@/components/email/hooks/preload_cache";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { Separator } from "@/components/ui/separator";

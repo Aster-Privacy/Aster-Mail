@@ -123,6 +123,7 @@ export function use_folder_tag_actions({
         (e) => !failed_emails.includes(e),
       );
       const succeeded_ids = succeeded_emails.flatMap(expand_email_ids);
+
       if (failed_emails.length > 0) {
         for (const email of failed_emails) {
           update_email(email.id, {

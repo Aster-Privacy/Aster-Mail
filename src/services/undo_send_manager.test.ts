@@ -227,7 +227,10 @@ describe("undo_send_manager send finalization", () => {
     expect(undo_send_manager.get_send("q1")).toBeDefined();
 
     mocked_api.get_status.mockResolvedValue({
-      data: { status: "failed", error_message: "sender address not authorized" },
+      data: {
+        status: "failed",
+        error_message: "sender address not authorized",
+      },
       error: null,
     } as never);
 

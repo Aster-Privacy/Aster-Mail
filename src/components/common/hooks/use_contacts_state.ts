@@ -1043,7 +1043,11 @@ export function use_contacts_state() {
   );
 
   const handle_toggle_contact_group = useCallback(
-    async (contact: DecryptedContact, group_id: string, should_add: boolean) => {
+    async (
+      contact: DecryptedContact,
+      group_id: string,
+      should_add: boolean,
+    ) => {
       const current = contact.groups || [];
 
       if (current.includes(group_id) === should_add) return;

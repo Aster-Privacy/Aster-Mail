@@ -19,8 +19,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
-import { build_search_haystack } from "./matching";
 import type { DecryptedIndexEntry, SearchHaystack } from "./types";
+
+import { build_search_haystack } from "./matching";
 
 const empty_haystack: SearchHaystack = {
   subject: "",

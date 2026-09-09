@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useEffect, useState } from "react";
+
 import {
   is_preferred_sender_ready,
   subscribe_preferred_sender_ready,
@@ -32,9 +33,7 @@ export function use_preferred_sender_ready(): boolean {
   useEffect(() => {
     if (ready) return;
 
-    const unsubscribe = subscribe_preferred_sender_ready(() =>
-      set_ready(true),
-    );
+    const unsubscribe = subscribe_preferred_sender_ready(() => set_ready(true));
     const timer = window.setTimeout(
       () => set_ready(true),
       PREFERRED_SENDER_READY_TIMEOUT_MS,

@@ -116,7 +116,7 @@ export function trim_email_tail(address: string): string {
 export function find_autolinks(text: string): AutolinkMatch[] {
   const matches: AutolinkMatch[] = [];
 
-  if (!text || (!/:\/\/|www\.|@/i.test(text))) return matches;
+  if (!text || !/:\/\/|www\.|@/i.test(text)) return matches;
 
   CANDIDATE_PATTERN.lastIndex = 0;
   let match: RegExpExecArray | null;

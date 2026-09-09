@@ -68,8 +68,10 @@ export function use_inbox_selection({
   );
 
   const emails_ref = useRef(emails);
+
   emails_ref.current = emails;
   const page_emails_ref = useRef(page_emails);
+
   page_emails_ref.current = page_emails;
 
   const get_update_fn = useCallback(() => {
@@ -231,7 +233,7 @@ export function use_inbox_selection({
   const handle_select_only = useCallback(
     (id: string): void => {
       const update_fn = get_update_fn();
-    const current_emails = emails_ref.current;
+      const current_emails = emails_ref.current;
 
       exit_select_all_mode();
 
@@ -279,8 +281,7 @@ export function use_inbox_selection({
 
   const handle_clear_selection = useCallback((): void => {
     const update_fn = get_update_fn();
-      const current_emails = emails_ref.current;
-
+    const current_emails = emails_ref.current;
 
     exit_select_all_mode();
 

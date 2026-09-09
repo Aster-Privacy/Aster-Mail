@@ -717,6 +717,7 @@ export function use_compose({
       set_message(edit_draft.message);
       if (edit_draft.expires_at) {
         const parsed = new Date(edit_draft.expires_at);
+
         if (!Number.isNaN(parsed.getTime())) set_expires_at(parsed);
       }
       if (edit_draft.expiry_password) {

@@ -285,8 +285,10 @@ export async function create_checkout_session(
   billing_interval: string = "month",
   currency?: string,
   apply_credits_cents?: number,
+  promo_code?: string,
 ) {
   const { success_url, cancel_url } = billing_return_urls();
+  const code = promo_code?.trim();
 
   return api_client.post<CheckoutSessionResponse>(
     "/payments/v1/checkout-session",
@@ -299,6 +301,7 @@ export async function create_checkout_session(
       ...(apply_credits_cents && apply_credits_cents > 0
         ? { apply_credits_cents }
         : {}),
+      ...(code ? { promo_code: code } : {}),
       ...(arrived_with_promo_code() ? { arrived_with_promo_code: true } : {}),
     },
   );
@@ -309,12 +312,14 @@ export async function start_hosted_checkout(
   billing_interval: string = "month",
   currency?: string,
   apply_credits_cents?: number,
+  promo_code?: string,
 ): Promise<{ ok: boolean; error?: string; server_code?: string }> {
   const response = await create_checkout_session(
     plan_code,
     billing_interval,
     currency,
     apply_credits_cents,
+    promo_code,
   );
 
   const url = response.data?.url;
@@ -554,7 +559,10 @@ export async function create_crypto_checkout_session(
   term_months: number,
   success_url?: string,
   cancel_url?: string,
+  promo_code?: string,
 ) {
+  const code = promo_code?.trim();
+
   return api_client.post<CheckoutSessionResponse>(
     "/payments/v1/crypto/checkout-session",
     {
@@ -562,6 +570,7 @@ export async function create_crypto_checkout_session(
       term_months,
       ...(success_url ? { success_url } : {}),
       ...(cancel_url ? { cancel_url } : {}),
+      ...(code ? { promo_code: code } : {}),
     },
   );
 }
@@ -668,10 +677,19 @@ export async function create_crypto_native_invoice(
   term_months: number,
   currency: string,
   chain: string,
+  promo_code?: string,
 ) {
+  const code = promo_code?.trim();
+
   return api_client.post<CryptoNativeInvoiceResponse>(
     "/payments/v1/crypto-native/invoice",
-    { plan_code, term_months, currency, chain },
+    {
+      plan_code,
+      term_months,
+      currency,
+      chain,
+      ...(code ? { promo_code: code } : {}),
+    },
   );
 }
 

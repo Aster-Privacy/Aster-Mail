@@ -47,6 +47,7 @@ describe("acquisition_source", () => {
     const captured = capture_source(
       "?utm_source=reddit&utm_medium=cpc&utm_campaign=privacy-launch",
     );
+
     expect(captured).toEqual({
       acquisition_source: "reddit",
       acquisition_medium: "cpc",
@@ -90,6 +91,7 @@ describe("acquisition_source", () => {
     expect(read_source().acquisition_source).toBe("reddit");
     vi.resetModules();
     const fresh = await import("./acquisition_source");
+
     expect(fresh.read_source()).toEqual({});
   });
 
@@ -111,6 +113,7 @@ describe("acquisition_source", () => {
     expect(read_source().reddit_click_id).toBe("3184742045291813272");
     vi.resetModules();
     const fresh = await import("./acquisition_source");
+
     expect(fresh.read_source().reddit_click_id).toBeUndefined();
   });
 
@@ -130,6 +133,7 @@ describe("acquisition_source", () => {
     const captured = capture_source(
       "?utm_source=reddit&utm_campaign=launch&rdt_cid=3184742045291813272&email=a@b.c&fbclid=xyz",
     );
+
     expect(captured.reddit_click_id).toBe("3184742045291813272");
     expect(JSON.stringify(captured)).not.toContain("a@b.c");
     expect(JSON.stringify(captured)).not.toContain("xyz");
@@ -142,6 +146,7 @@ describe("acquisition_source", () => {
 
   it("keeps the click id verbatim instead of normalizing it", () => {
     const captured = capture_source("?rdt_cid=Abc-123_XY~z");
+
     expect(captured.reddit_click_id).toBe("Abc-123_XY~z");
   });
 
@@ -160,7 +165,10 @@ describe("acquisition_source", () => {
   });
 
   it("drops the click id when a privacy signal is set", () => {
-    vi.stubGlobal("navigator", { globalPrivacyControl: true, doNotTrack: null });
+    vi.stubGlobal("navigator", {
+      globalPrivacyControl: true,
+      doNotTrack: null,
+    });
     expect(capture_source("?rdt_cid=3184742045291813272")).toEqual({});
   });
 
@@ -181,6 +189,7 @@ describe("acquisition_source", () => {
     const captured = capture_source(
       "?utm_source=Reddit&utm_medium=CPC&utm_campaign=Privacy%20Launch",
     );
+
     expect(captured).toEqual({
       acquisition_source: "reddit",
       acquisition_medium: "cpc",
@@ -191,6 +200,7 @@ describe("acquisition_source", () => {
     const captured = capture_source(
       "?utm_source=reddit&utm_campaign=privacy_launch&utm_content=Hero%20V3&utm_term=private%20email",
     );
+
     expect(captured).toEqual({
       acquisition_source: "reddit",
       acquisition_campaign: "privacy_launch",
@@ -203,6 +213,7 @@ describe("acquisition_source", () => {
     const captured = capture_source(
       "?utm_source=reddit&utm_content=%3Cscript%3E&utm_term=ok",
     );
+
     expect(captured).toEqual({
       acquisition_source: "reddit",
       acquisition_term: "ok",
@@ -213,6 +224,7 @@ describe("acquisition_source", () => {
     clear_source();
     capture_source("?utm_source=reddit&rdt_cid=abc123");
     const after = capture_source("?utm_campaign=privacy_launch");
+
     expect(after.reddit_click_id).toBe("abc123");
     expect(after.acquisition_source).toBe("reddit");
     expect(after.acquisition_campaign).toBe("privacy_launch");
@@ -222,6 +234,7 @@ describe("acquisition_source", () => {
     clear_source();
     capture_source("?utm_source=reddit&utm_campaign=old&rdt_cid=first");
     const after = capture_source("?utm_source=reddit&rdt_cid=second");
+
     expect(after.reddit_click_id).toBe("second");
     expect(after.acquisition_campaign).toBeUndefined();
   });

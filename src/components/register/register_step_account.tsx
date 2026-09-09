@@ -18,12 +18,12 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { apply_input_transform } from "@/utils/input_transform";
 import type { UseRegistrationReturn } from "@/components/register/hooks/use_registration";
 
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@aster/ui";
 
+import { apply_input_transform } from "@/utils/input_transform";
 import { Input } from "@/components/ui/input";
 import { Logo } from "@/components/auth/auth_styles";
 import { PROFILE_COLORS } from "@/constants/profile";

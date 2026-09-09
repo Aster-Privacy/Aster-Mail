@@ -449,7 +449,9 @@ describe("canonicalize_recovery_code", () => {
   it("hashes separator variations to the same value", async () => {
     const expected = await hash_recovery_code(four_segment);
 
-    expect(await hash_recovery_code("ASTER ABCD EFGH JKLM NPQR")).toBe(expected);
+    expect(await hash_recovery_code("ASTER ABCD EFGH JKLM NPQR")).toBe(
+      expected,
+    );
     expect(await hash_recovery_code("ASTERABCDEFGHJKLMNPQR")).toBe(expected);
   });
 

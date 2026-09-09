@@ -18,12 +18,12 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { user_facing_error } from "@/utils/user_facing_error";
 import type {
   EncryptedVault,
   PgpKeyData,
 } from "@/services/crypto/key_manager_core";
 
+import { user_facing_error } from "@/utils/user_facing_error";
 import {
   generate_identity_keypair,
   prepare_pgp_key_data,

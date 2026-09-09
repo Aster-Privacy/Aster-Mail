@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { describe, it, expect } from "vitest";
+
 import {
   resolve_from_sender,
   from_tier_draft,
@@ -33,7 +34,12 @@ const options = [
   { id: "alias-1", email: "shopping@astermail.org", type: "alias" },
   { id: "alias-2", email: "work@astermail.org", type: "alias" },
   { id: "ext-1", email: "old@example.com", type: "external" },
-  { id: "alias-off", email: "retired@astermail.org", type: "alias", is_enabled: false },
+  {
+    id: "alias-off",
+    email: "retired@astermail.org",
+    type: "alias",
+    is_enabled: false,
+  },
 ];
 
 describe("resolve_from_sender", () => {

@@ -117,10 +117,10 @@ export function EmailStep({
               autoCapitalize="none"
               autoComplete="username"
               autoCorrect="off"
-              spellCheck={false}
               className={INNER_INPUT_CLASS}
               maxLength={55}
               placeholder={t("common.yourname_placeholder")}
+              spellCheck={false}
               status={error ? "error" : "default"}
               type="text"
               value={username}

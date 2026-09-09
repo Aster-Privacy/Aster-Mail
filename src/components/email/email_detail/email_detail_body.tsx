@@ -196,8 +196,8 @@ export function EmailDetailBody({
               <div className="flex items-center gap-2 mb-1 sm:mb-2">
                 <h1 className="text-lg sm:text-xl md:text-2xl font-semibold text-txt-primary break-words flex-1 min-w-0">
                   <span
-                    dir="auto"
                     className="inline-flex items-center me-2"
+                    dir="auto"
                     style={{ verticalAlign: "-0.15em" }}
                   >
                     <EncryptionInfoDropdown

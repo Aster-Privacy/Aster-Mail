@@ -36,6 +36,7 @@ vi.mock("@/hooks/mail_events", () => ({
 }));
 
 import { draft_manager, type DraftData } from "./encrypted_drafts";
+
 import type { EncryptedVault } from "./key_manager";
 
 const vault = {} as EncryptedVault;

@@ -18,7 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { user_facing_error } from "@/utils/user_facing_error";
 import {
   type ConnectionInfoResponse,
   type ConnectionMethod,
@@ -35,6 +34,7 @@ import {
 } from "./tor_transport";
 import { is_relay_host_allowed } from "./cdn_relay_transport";
 
+import { user_facing_error } from "@/utils/user_facing_error";
 import { api_client } from "@/services/api/client";
 import { ignore_error } from "@/lib/ignore_error";
 

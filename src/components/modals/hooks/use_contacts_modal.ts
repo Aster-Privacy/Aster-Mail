@@ -18,16 +18,16 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { DecryptedContact, ContactFormData } from "@/types/contacts";
+
+import { useState, useCallback, useEffect, useRef, useMemo } from "react";
+
 import { show_toast } from "@/components/toast/simple_toast";
 import { copy_text_or_throw } from "@/utils/copy_text";
 import {
   export_contacts_file,
   type ContactExportFormat,
 } from "@/utils/contact_export";
-import type { DecryptedContact, ContactFormData } from "@/types/contacts";
-
-import { useState, useCallback, useEffect, useRef, useMemo } from "react";
-
 import { contact_to_form_data } from "@/components/common/hooks/use_contacts_state";
 import {
   list_contacts,

@@ -1068,7 +1068,8 @@ export const RegisterStepPlanSelection = ({
           on_select_plan={(id) => {
             const next = PLAN_TIERS.find((entry) => entry.id === id);
 
-            if (next) set_pending_tier({ tier: next, plan: resolve_api_plan(next) });
+            if (next)
+              set_pending_tier({ tier: next, plan: resolve_api_plan(next) });
           }}
           on_select_term={(id) =>
             set_billing_period(id === "yearly" ? "yearly" : "monthly")

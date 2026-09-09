@@ -100,8 +100,8 @@ describe("quick contacts panel groups tab", () => {
           <QuickContactsPanel
             is_open
             is_top_inset={false}
-            on_compose={() => {}}
             on_close={() => {}}
+            on_compose={() => {}}
           />
         </MemoryRouter>,
       );

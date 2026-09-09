@@ -69,7 +69,10 @@ describe("use_panel_inset", () => {
   let container: HTMLDivElement;
   let root: Root;
 
-  const render_rail = async (contacts_open: boolean, security_open: boolean) => {
+  const render_rail = async (
+    contacts_open: boolean,
+    security_open: boolean,
+  ) => {
     await act(async () => {
       root.render(
         <Rail contacts_open={contacts_open} security_open={security_open} />,

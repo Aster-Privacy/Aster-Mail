@@ -2632,6 +2632,24 @@ aside[data-collapsed="true"] .sidebar-nav-btn.sidebar-selected {
 .dark .aster_checkbox_box {
   border-color: var(--checkbox-border);
   border-width: 1.25px;
+  background-color: var(--bg-card);
+}
+
+.aster_checkbox_input:checked + .aster_checkbox_box,
+.dark .aster_checkbox_input:checked + .aster_checkbox_box,
+.aster_checkbox_input:indeterminate + .aster_checkbox_box,
+.dark .aster_checkbox_input:indeterminate + .aster_checkbox_box {
+  background-color: var(--accent-color);
+  border-color: var(--accent-color);
+}
+
+.aster_checkbox_check {
+  color: var(--accent-fg);
+}
+
+.aster_checkbox_text,
+.dark .aster_checkbox_text {
+  color: var(--text-secondary);
 }
 
 .aster_search_mark {

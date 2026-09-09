@@ -18,7 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { user_facing_error } from "@/utils/user_facing_error";
 import { api_client, type ApiResponse } from "./client";
 import {
   array_to_base64,
@@ -26,6 +25,7 @@ import {
   normalize_email,
 } from "./sender_utils";
 
+import { user_facing_error } from "@/utils/user_facing_error";
 import { HASH_ALG } from "@/services/crypto/constants";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import {
@@ -34,7 +34,6 @@ import {
 } from "@/services/crypto/memory_key_store";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import { get_key, store_key } from "@/services/crypto/crypto_key_cache";
-
 
 const ALLOWED_SENDERS_HMAC_KEY_ID = "allowed_senders_hmac_key";
 

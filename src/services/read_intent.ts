@@ -68,7 +68,10 @@ function prune_oldest(): void {
   }
 }
 
-function read_entry(flag: keyof FlagIntents, id: string): IntentValue | undefined {
+function read_entry(
+  flag: keyof FlagIntents,
+  id: string,
+): IntentValue | undefined {
   const key = intent_key(flag, id);
   const current = intents.get(key);
 
@@ -108,7 +111,9 @@ export function pick_flag_intents(
   return picked;
 }
 
-function intent_entries(updates: FlagIntents): Array<[keyof FlagIntents, IntentValue]> {
+function intent_entries(
+  updates: FlagIntents,
+): Array<[keyof FlagIntents, IntentValue]> {
   const entries: Array<[keyof FlagIntents, IntentValue]> = [];
 
   for (const flag of BOOLEAN_INTENT_FLAGS) {

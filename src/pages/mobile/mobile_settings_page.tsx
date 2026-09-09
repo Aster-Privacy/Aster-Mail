@@ -513,6 +513,9 @@ function MobileSettingsPage() {
                   </span>
                   <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
                 </button>
+              </SettingsGroup>
+
+              <SettingsGroup title={t("settings.security")}>
                 <button
                   className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
                   type="button"
@@ -548,6 +551,9 @@ function MobileSettingsPage() {
                     <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
                   </button>
                 )}
+              </SettingsGroup>
+
+              <SettingsGroup title={t("settings.aliases_and_domains")}>
                 <button
                   className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
                   type="button"
@@ -555,7 +561,7 @@ function MobileSettingsPage() {
                 >
                   <AtSymbolIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
                   <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
-                    {t("settings.aliases_and_domains")}
+                    {t("settings.alias_tab_aliases")}
                   </span>
                   <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
                 </button>
@@ -581,6 +587,9 @@ function MobileSettingsPage() {
                   </span>
                   <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
                 </button>
+              </SettingsGroup>
+
+              <SettingsGroup title={t("settings.billing")}>
                 <button
                   className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
                   type="button"
@@ -671,6 +680,31 @@ function MobileSettingsPage() {
                 <button
                   className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
                   type="button"
+                  onClick={() => open_section("mail_rules")}
+                >
+                  <BoltIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
+                  <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
+                    {t("mail_rules.title")}
+                  </span>
+                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
+                </button>
+                <button
+                  className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
+                  type="button"
+                  onClick={() => open_section("sender_filters")}
+                >
+                  <FunnelIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
+                  <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
+                    {t("settings.mail_management")}
+                  </span>
+                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
+                </button>
+              </SettingsGroup>
+
+              <SettingsGroup title={t("settings.advanced")}>
+                <button
+                  className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
+                  type="button"
                   onClick={() => open_section("import")}
                 >
                   <ArrowDownTrayIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
@@ -693,28 +727,6 @@ function MobileSettingsPage() {
                 <button
                   className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
                   type="button"
-                  onClick={() => open_section("sender_filters")}
-                >
-                  <FunnelIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
-                  <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
-                    {t("settings.mail_management")}
-                  </span>
-                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
-                </button>
-                <button
-                  className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
-                  type="button"
-                  onClick={() => open_section("mail_rules")}
-                >
-                  <BoltIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
-                  <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
-                    {t("mail_rules.title")}
-                  </span>
-                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
-                </button>
-                <button
-                  className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
-                  type="button"
                   onClick={() => open_section("connection")}
                 >
                   <SignalIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
@@ -723,9 +735,6 @@ function MobileSettingsPage() {
                   </span>
                   <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
                 </button>
-              </SettingsGroup>
-
-              <SettingsGroup title={t("settings.about")}>
                 <button
                   className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
                   type="button"
@@ -733,7 +742,7 @@ function MobileSettingsPage() {
                 >
                   <InformationCircleIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
                   <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
-                    {t("settings.advanced")}
+                    {t("settings.about")}
                   </span>
                   <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
                 </button>

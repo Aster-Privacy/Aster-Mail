@@ -18,7 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { copy_text_or_throw } from "@/utils/copy_text";
 import type { DecryptedThreadMessage } from "@/types/thread";
 import type { ExternalContentReport } from "@/lib/html_sanitizer";
 
@@ -27,6 +26,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 
 import { swipe_nav_state } from "./mobile_mail_detail_swipe";
 
+import { copy_text_or_throw } from "@/utils/copy_text";
 import { use_spam_confirm } from "@/components/email/use_spam_confirm";
 import { use_email_detail } from "@/components/email/hooks/use_email_detail";
 import { use_sender_aliases } from "@/hooks/use_sender_aliases";

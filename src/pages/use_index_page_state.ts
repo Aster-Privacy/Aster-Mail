@@ -27,13 +27,12 @@ import type { TranslationKey } from "@/lib/i18n";
 import type { LocalEmailData } from "@/components/email/email_viewer_types";
 import type { CachedSubscription } from "@/services/subscription_cache";
 import type { SettingsSection } from "@/components/settings/settings_content";
+import type { UndoSendEvent } from "@/hooks/use_undo_send";
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 
-import type { UndoSendEvent } from "@/hooks/use_undo_send";
 import { attachments_to_draft_data } from "@/components/compose/compose_draft_helpers";
-
 import { use_compose_manager } from "@/components/compose/compose_manager";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_auth } from "@/contexts/auth_context";

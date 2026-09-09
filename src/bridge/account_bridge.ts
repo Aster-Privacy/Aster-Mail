@@ -49,7 +49,8 @@ interface bridge_request {
 }
 
 function allowed_origins(): string[] {
-  const configured = (import.meta.env.VITE_ACCOUNT_LINK_ORIGINS as string | undefined) ?? "";
+  const configured =
+    (import.meta.env.VITE_ACCOUNT_LINK_ORIGINS as string | undefined) ?? "";
   const list = configured
     .split(",")
     .map((origin) => origin.trim())
@@ -161,7 +162,8 @@ window.addEventListener("message", (event: MessageEvent) => {
 
   const request = event.data as bridge_request | null;
 
-  if (!request || request.channel !== CHANNEL || typeof request.id !== "string") return;
+  if (!request || request.channel !== CHANNEL || typeof request.id !== "string")
+    return;
 
   handle(request)
     .catch(() => ({ ok: false, error: "unavailable" }))

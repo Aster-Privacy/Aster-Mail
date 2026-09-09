@@ -82,6 +82,7 @@ import { UnsubscribeConfirmationModal } from "@/components/modals/unsubscribe_co
 import { PurchaseSuccessModal } from "@/components/modals/purchase_success_modal";
 import { UpgradeModal } from "@/components/upgrade/upgrade_modal";
 import { AliasCapUpsellModal } from "@/components/upgrade/alias_cap_upsell_modal";
+import { SpecialOfferModal } from "@/components/upgrade/special_offer_modal";
 import {
   show_checkout_cancelled_upgrade,
   type UpgradeInterval,
@@ -550,6 +551,7 @@ function App() {
       <PostQuantumSendPrompt />
       <UpgradeModal />
       <AliasCapUpsellModal />
+      <SpecialOfferModal />
       <UndoSendContainer max_visible={3} position="bottom-center" />
       <UndoSendPreviewModal />
       <EmailNotificationManager />

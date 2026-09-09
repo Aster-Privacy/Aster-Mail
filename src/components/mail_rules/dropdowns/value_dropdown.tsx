@@ -35,6 +35,7 @@ import {
 import { Input } from "@/components/ui/input";
 
 const MAX_CONDITION_VALUE_LENGTH = 4000;
+
 import { use_i18n } from "@/lib/i18n/context";
 import { cn } from "@/lib/utils";
 import { field_kind } from "@/components/mail_rules/field_kind";

@@ -173,6 +173,8 @@ export interface UserPreferences {
   external_link_warning_dismissed: boolean;
   notification_banner_dismissed: boolean;
   account_security_banner_dismissed: boolean;
+  special_offer_seen: boolean;
+  special_offer_dismissed: boolean;
   biometric_app_lock_enabled: boolean;
   biometric_send_enabled: boolean;
   biometric_settings_enabled: boolean;
@@ -569,6 +571,8 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   external_link_warning_dismissed: false,
   notification_banner_dismissed: false,
   account_security_banner_dismissed: false,
+  special_offer_seen: false,
+  special_offer_dismissed: false,
   biometric_app_lock_enabled: false,
   biometric_send_enabled: false,
   biometric_settings_enabled: false,

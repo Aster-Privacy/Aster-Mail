@@ -18,12 +18,12 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { apply_input_transform } from "@/utils/input_transform";
 import type { UseComposeReturn } from "@/components/compose/use_compose";
 import type { Attachment } from "@/components/compose/compose_shared";
 
 import { useRef, useState, useCallback, useEffect } from "react";
 
+import { apply_input_transform } from "@/utils/input_transform";
 import { CloseIcon } from "@/components/common/icons";
 import { sanitize_html } from "@/lib/html_sanitizer";
 import { is_any_lockdown_active } from "@/services/lockdown_store";

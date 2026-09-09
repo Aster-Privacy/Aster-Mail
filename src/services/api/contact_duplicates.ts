@@ -18,7 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { user_facing_error } from "@/utils/user_facing_error";
 import type {
   DuplicateCandidate,
   DuplicateCandidateWithContacts,
@@ -28,6 +27,8 @@ import type {
 
 import { api_client, type ApiResponse } from "./client";
 import { decrypt_contact, get_contact, encrypt_contact_data } from "./contacts";
+
+import { user_facing_error } from "@/utils/user_facing_error";
 
 interface ListDuplicatesResponse {
   items: DuplicateCandidate[];

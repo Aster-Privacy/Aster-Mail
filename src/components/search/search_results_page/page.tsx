@@ -42,10 +42,9 @@ import {
   extract_snippet,
 } from "./helpers";
 import { use_search_results_page } from "./use_search_results_page";
-
-import { use_indexing_progress } from "@/hooks/use_search/progress";
 import { search_row_key } from "./thread_grouping";
 
+import { use_indexing_progress } from "@/hooks/use_search/progress";
 import { emit_mail_items_removed } from "@/hooks/mail_events";
 import { InboxHeader } from "@/components/inbox/inbox_header";
 import { InboxEmailListItem } from "@/components/email/inbox_email_list_item";

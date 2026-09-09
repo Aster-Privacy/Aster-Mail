@@ -21,6 +21,8 @@
 import type { EmailInboxProps } from "@/components/email/inbox/inbox_types";
 import type { TranslationKey } from "@/lib/i18n/types";
 
+import { use_email_inbox_state } from "./use_email_inbox_state";
+
 import { EmailListHeader } from "@/components/email/email_list_header";
 import { CategoryTabs } from "@/components/email/inbox/category_tabs";
 import { MailFilterChips } from "@/components/email/inbox/mail_filter_chips";
@@ -54,7 +56,6 @@ export type {
   DraftClickData,
   ScheduledClickData,
 } from "@/components/email/inbox/inbox_types";
-import { use_email_inbox_state } from "./use_email_inbox_state";
 
 const DESTRUCTIVE_BULK_ACTION_LABELS = new Set<TranslationKey>([
   "mail.move_to_trash",
@@ -625,6 +626,11 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
         />
         <ConfirmModal
           hide_dont_ask
+          confirm_text={
+            pending_select_all_action
+              ? t(pending_select_all_action.label_key)
+              : t("common.ok")
+          }
           confirm_variant={
             pending_select_all_action &&
             DESTRUCTIVE_BULK_ACTION_LABELS.has(
@@ -632,11 +638,6 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
             )
               ? "destructive"
               : "default"
-          }
-          confirm_text={
-            pending_select_all_action
-              ? t(pending_select_all_action.label_key)
-              : t("common.ok")
           }
           description={
             active_category_title

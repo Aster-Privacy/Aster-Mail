@@ -18,12 +18,12 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { user_facing_error } from "@/utils/user_facing_error";
 import { Preferences } from "@capacitor/preferences";
 
 import { is_native_platform, get_network_status } from "./capacitor_bridge";
 import { haptic_notification } from "./haptic_feedback";
 
+import { user_facing_error } from "@/utils/user_facing_error";
 import { MAIL_EVENTS } from "@/hooks/mail_events";
 import {
   accounts_storage_unreadable,

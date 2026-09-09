@@ -18,7 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { copy_text_or_throw } from "@/utils/copy_text";
 import { useEffect, useRef, useState } from "react";
 import {
   LinkIcon,
@@ -27,6 +26,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
+import { copy_text_or_throw } from "@/utils/copy_text";
 import { open_external } from "@/utils/open_link";
 import {
   build_referral_invite_url,

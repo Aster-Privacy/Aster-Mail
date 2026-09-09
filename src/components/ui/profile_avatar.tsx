@@ -42,7 +42,6 @@ import { use_peer_profile } from "@/hooks/use_peer_profile";
 import { is_aster_email } from "@/services/api/profiles";
 import { GHOST_DOMAIN } from "@/services/api/ghost_aliases";
 import mail_logo_url from "@/assets/mail_logo.webp";
-
 import { lazy_with_retry } from "@/utils/lazy_with_retry";
 
 const SenderProfileTrigger = lazy_with_retry(() =>

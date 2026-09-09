@@ -66,6 +66,7 @@ export function use_context_menu_actions({
     preferences;
 
   const emails_ref = useRef(emails);
+
   emails_ref.current = emails;
   const get_emails = useCallback(() => emails_ref.current, []);
 

@@ -114,7 +114,8 @@ export function use_contact_groups() {
       set_state((prev) => ({
         ...prev,
         is_loading: false,
-        error: failure || t_ref.current("common.failed_to_fetch_contact_groups"),
+        error:
+          failure || t_ref.current("common.failed_to_fetch_contact_groups"),
       }));
 
       return;

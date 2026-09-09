@@ -116,9 +116,7 @@ if (is_tauri_runtime) {
   void import("@tauri-apps/api/core")
     .then(({ invoke }) => {
       void invoke("frontend_ready");
-      const cached = Number(
-        safe_local_get("aster_last_unread_badge") || "0",
-      );
+      const cached = Number(safe_local_get("aster_last_unread_badge") || "0");
 
       if (Number.isFinite(cached) && cached > 0) {
         void invoke("set_unread_badge", { count: Math.floor(cached) }).catch(

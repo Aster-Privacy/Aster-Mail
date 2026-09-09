@@ -18,12 +18,12 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { copy_text_or_throw } from "@/utils/copy_text";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { LinkIcon } from "@heroicons/react/24/outline";
 
+import { copy_text_or_throw } from "@/utils/copy_text";
 import { ErrorBoundary } from "@/components/ui/error_boundary";
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { Spinner } from "@/components/ui/spinner";

@@ -388,9 +388,7 @@ export function use_snoozed_emails(): UseSnoozedEmailsReturn {
       const response = await unsnooze_by_mail_item(mail_item_id);
 
       if (response.error) {
-        throw new Error(
-          response.error || t("errors.failed_to_unsnooze_email"),
-        );
+        throw new Error(response.error || t("errors.failed_to_unsnooze_email"));
       }
 
       set_state((prev) => ({

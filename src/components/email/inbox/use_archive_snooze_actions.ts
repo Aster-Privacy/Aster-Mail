@@ -46,10 +46,7 @@ import { batch_archive, batch_unarchive } from "@/services/api/archive";
 import { get_thread_messages } from "@/services/api/mail";
 import { bulk_update_metadata_by_ids } from "@/services/crypto/mail_metadata";
 import { ignore_error } from "@/lib/ignore_error";
-import {
-  clear_flag_intents,
-  note_flag_intents,
-} from "@/services/read_intent";
+import { clear_flag_intents, note_flag_intents } from "@/services/read_intent";
 import {
   remove_ids as remove_index_ids,
   remove_thread_entries,

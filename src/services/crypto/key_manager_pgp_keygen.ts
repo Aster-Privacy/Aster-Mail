@@ -22,7 +22,6 @@ import * as openpgp from "openpgp";
 
 import "@/services/crypto/openpgp_limits";
 import { require_usable_auth_salt } from "./auth_salt_guard";
-
 import {
   HASH_ALG,
   KEY_DERIVATION_ITERATIONS,

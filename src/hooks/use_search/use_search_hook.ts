@@ -19,7 +19,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
-import { user_facing_error } from "@/utils/user_facing_error";
 import { useState, useCallback, useEffect, useRef } from "react";
 
 import {
@@ -65,6 +64,7 @@ import {
   SearchState,
 } from "./types";
 
+import { user_facing_error } from "@/utils/user_facing_error";
 import { type MailItem } from "@/services/api/mail";
 import { meets_min_search_length } from "@/utils/search_query";
 import { parse_search_query } from "@/utils/search_operators";

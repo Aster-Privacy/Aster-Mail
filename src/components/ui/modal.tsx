@@ -39,6 +39,8 @@ interface ModalProps {
   close_on_overlay?: boolean;
   close_on_escape?: boolean;
   z_index?: number;
+  panel_class_name?: string;
+  overlay_class_name?: string;
 }
 
 interface ModalHeaderProps {
@@ -79,6 +81,8 @@ export function Modal({
   close_on_overlay = true,
   close_on_escape = true,
   z_index,
+  panel_class_name,
+  overlay_class_name,
 }: ModalProps) {
   const reduce_motion = use_should_reduce_motion();
   const { t } = use_i18n();
@@ -108,7 +112,10 @@ export function Modal({
           style={{ zIndex: z_index ?? 60 }}
         >
           <div
-            className="absolute inset-0 backdrop-blur-sm sm:backdrop-blur-md"
+            className={cn(
+              "absolute inset-0 backdrop-blur-sm sm:backdrop-blur-md",
+              overlay_class_name,
+            )}
             style={{
               backgroundColor: "var(--modal-overlay)",
               transform: "translateZ(0)",
@@ -127,6 +134,7 @@ export function Modal({
             className={cn(
               "relative w-full mx-4 my-4 rounded-xl border flex flex-col max-h-[calc(100dvh-2rem)] overflow-y-auto overscroll-contain outline-none focus:outline-none focus-visible:outline-none",
               SIZE_CLASSES[size],
+              panel_class_name,
             )}
             exit={{ opacity: 0, scale: 0.97, y: 4 }}
             initial={reduce_motion ? false : { opacity: 0, scale: 0.97, y: 4 }}

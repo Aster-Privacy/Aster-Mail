@@ -61,15 +61,15 @@ describe("reconcile_entry_fields", () => {
       ],
     };
 
-    expect(reconcile_entry_fields({ ...base, phone: "999" }).phone_entries).toEqual(
-      [
-        { value: "999", type: "mobile" },
-        { value: "222", type: "work" },
-      ],
-    );
-    expect(reconcile_entry_fields({ ...base, phone: "" }).phone_entries).toEqual([
+    expect(
+      reconcile_entry_fields({ ...base, phone: "999" }).phone_entries,
+    ).toEqual([
+      { value: "999", type: "mobile" },
       { value: "222", type: "work" },
     ]);
+    expect(
+      reconcile_entry_fields({ ...base, phone: "" }).phone_entries,
+    ).toEqual([{ value: "222", type: "work" }]);
   });
 
   it("applies the edited address to the primary address entry", () => {

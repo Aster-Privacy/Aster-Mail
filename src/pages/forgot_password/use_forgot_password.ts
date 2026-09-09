@@ -22,6 +22,7 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 
 import { RecoveryMethod, RecoveryStep } from "./shared";
+import { recovery_error_message } from "./recovery_error";
 
 import { copy_text_or_throw } from "@/utils/copy_text";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -76,8 +77,6 @@ import {
 } from "@/services/sanitize";
 import { use_i18n } from "@/lib/i18n/context";
 import { user_facing_error } from "@/utils/user_facing_error";
-
-import { recovery_error_message } from "./recovery_error";
 
 const TRANSPORT_FAILURE_CODES = new Set([
   "NETWORK_ERROR",

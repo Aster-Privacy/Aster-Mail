@@ -18,12 +18,12 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { apply_input_transform } from "@/utils/input_transform";
 import type { CodeStepProps } from "./types";
 
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeftIcon } from "@heroicons/react/20/solid";
 
+import { apply_input_transform } from "@/utils/input_transform";
 import { use_i18n } from "@/lib/i18n/context";
 import { Input } from "@/components/ui/input";
 import {

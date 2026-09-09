@@ -18,7 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { copy_text_or_throw } from "@/utils/copy_text";
 import {
   XMarkIcon,
   EnvelopeIcon,
@@ -28,6 +27,7 @@ import {
 import { useCallback } from "react";
 import { Button } from "@aster/ui";
 
+import { copy_text_or_throw } from "@/utils/copy_text";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { BadgeChip } from "@/components/ui/badge_chip";
 import { Modal, ModalTitle } from "@/components/ui/modal";

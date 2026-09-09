@@ -25,7 +25,6 @@ import {
   ClipboardDocumentIcon,
 } from "@heroicons/react/24/outline";
 
-
 import { Spinner } from "@/components/ui/spinner";
 
 export interface StatusStep {
@@ -400,7 +399,9 @@ export function invoice_skeleton() {
           <div className="mt-5 space-y-4">
             {Array.from({ length: 4 }).map((_, index) => (
               <div key={index} className="flex items-start gap-3">
-                <div className={`${SKELETON_TONE} h-6 w-6 shrink-0 rounded-full`} />
+                <div
+                  className={`${SKELETON_TONE} h-6 w-6 shrink-0 rounded-full`}
+                />
                 <div className="flex-1 space-y-2">
                   <SkeletonBar className="h-3.5 w-1/3" />
                   <SkeletonBar className="h-3 w-4/5" />

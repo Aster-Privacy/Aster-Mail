@@ -42,6 +42,7 @@ import { ActionToast } from "@/components/toast/action_toast";
 import { UndoSendContainer } from "@/components/toast/undo_send_container";
 import { UpgradeModal } from "@/components/upgrade/upgrade_modal";
 import { AliasCapUpsellModal } from "@/components/upgrade/alias_cap_upsell_modal";
+import { SpecialOfferModal } from "@/components/upgrade/special_offer_modal";
 import { EmailNotificationManager } from "@/components/email/email_notification_manager";
 import { UndoSendPreviewModal } from "@/components/toast/undo_send_preview_modal";
 import { Family2faDialog } from "@/components/common/family_2fa_dialog";
@@ -834,6 +835,7 @@ function MobileApp() {
         <PostQuantumSendPrompt />
         <UpgradeModal />
         <AliasCapUpsellModal />
+        <SpecialOfferModal />
         <EmailNotificationManager />
       </div>
     </AppLock>

@@ -53,7 +53,9 @@ function MobileContactsPage({
         is_loading={s.is_loading}
         is_select_mode={s.is_select_mode}
         is_syncing={s.is_syncing}
+        load_failed={s.load_failed}
         on_contact_press={s.handle_contact_press}
+        on_long_press_consume={s.consume_long_press}
         on_long_press_end={s.handle_long_press_end}
         on_long_press_start={s.handle_long_press_start}
         on_mass_copy_emails={s.handle_mass_copy_emails}
@@ -61,9 +63,7 @@ function MobileContactsPage({
         on_mass_favorite={s.handle_mass_favorite}
         on_open_create={s.handle_open_create}
         on_open_drawer={on_open_drawer}
-        on_long_press_consume={s.consume_long_press}
         on_retry_load={s.retry_load_contacts}
-        load_failed={s.load_failed}
         on_show_delete_confirm={() => s.set_show_delete_confirm(true)}
         on_show_sync_confirm={() => s.set_show_sync_confirm(true)}
         search_query={s.search_query}
@@ -128,13 +128,13 @@ function MobileContactsPage({
                 </button>
                 <button
                   className="flex-1 rounded-[14px] py-2.5 text-[15px] font-semibold text-white active:brightness-90"
+                  disabled={s.is_mass_deleting}
                   style={{
                     background:
                       "linear-gradient(180deg, #ef4444 0%, #dc2626 100%)",
                     boxShadow:
                       "0 2px 4px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15)",
                   }}
-                  disabled={s.is_mass_deleting}
                   type="button"
                   onClick={s.confirm_delete}
                 >

@@ -59,7 +59,11 @@ export function selectors_with_background_image(css: string): string[] {
     const selector_text = css.slice(segment_start, index);
     const block_end = next_brace_index(css, index + 1);
 
-    if (selector_text.length === 0 || block_end === -1 || css[block_end] === "{") {
+    if (
+      selector_text.length === 0 ||
+      block_end === -1 ||
+      css[block_end] === "{"
+    ) {
       segment_start = index + 1;
       index = next_brace_index(css, segment_start);
       continue;

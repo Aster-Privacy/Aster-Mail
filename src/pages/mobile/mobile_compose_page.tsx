@@ -23,8 +23,6 @@ import type { MobileComposePageProps } from "./mobile_compose_helpers";
 
 import { useState, useCallback, useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
-import { format_datetime_hint } from "@/utils/date_format";
-import { split_recipient_list } from "@/utils/recipient_list";
 import {
   XMarkIcon,
   PaperClipIcon,
@@ -42,7 +40,6 @@ import {
   MobileSenderIcon,
   format_expiry_relative,
 } from "./mobile_compose_helpers";
-import { is_valid_email } from "@/components/compose/compose_shared";
 import { MobileRecipientRow } from "./mobile_compose_recipients";
 import {
   MobileSenderSheet,
@@ -52,6 +49,9 @@ import {
 } from "./mobile_compose_bottom_sheets";
 import { use_mobile_compose_images } from "./use_mobile_compose_images";
 
+import { is_valid_email } from "@/components/compose/compose_shared";
+import { split_recipient_list } from "@/utils/recipient_list";
+import { format_datetime_hint } from "@/utils/date_format";
 import { use_compose } from "@/components/compose/use_compose";
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
@@ -573,9 +573,7 @@ function MobileComposePage({
         </button>
         <button
           className={`flex h-9 w-9 items-center justify-center rounded-full active:bg-[var(--bg-tertiary)] disabled:opacity-40 ${
-            compose.expires_at
-              ? "text-red-500"
-              : "text-[var(--text-secondary)]"
+            compose.expires_at ? "text-red-500" : "text-[var(--text-secondary)]"
           }`}
           disabled={!has_recipients}
           type="button"

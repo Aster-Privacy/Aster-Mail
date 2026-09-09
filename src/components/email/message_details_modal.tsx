@@ -18,8 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { copy_text_or_throw } from "@/utils/copy_text";
-import { trigger_download } from "@/utils/download_blob";
 import type { DecryptedThreadMessage } from "@/types/thread";
 
 import { useMemo } from "react";
@@ -28,6 +26,8 @@ import {
   ClipboardDocumentIcon,
 } from "@heroicons/react/24/outline";
 
+import { trigger_download } from "@/utils/download_blob";
+import { copy_text_or_throw } from "@/utils/copy_text";
 import {
   Modal,
   ModalHeader,
@@ -184,7 +184,7 @@ export function MessageDetailsModal({
           <span className="min-w-24 flex-shrink-0 whitespace-nowrap pe-2 font-medium text-txt-muted">
             {t("common.subject_label")}
           </span>
-          <span dir="auto" className="min-w-0 text-txt-secondary break-words">
+          <span className="min-w-0 text-txt-secondary break-words" dir="auto">
             {message.subject || t("mail.no_subject")}
           </span>
         </div>

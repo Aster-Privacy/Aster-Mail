@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { TranslationKey } from "@/lib/i18n/types";
+
 import { useEffect, useRef } from "react";
 
 import { request_cache } from "@/services/api/request_cache";
@@ -27,7 +29,6 @@ import {
   TOAST_DURATION_BILLING_MS,
 } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
-import type { TranslationKey } from "@/lib/i18n/types";
 import { use_auth } from "@/contexts/auth_context";
 import { request_addon_resume } from "@/services/api/billing";
 import { ignore_error } from "@/lib/ignore_error";

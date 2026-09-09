@@ -138,8 +138,6 @@ export function ContactAvatar({
   }
 
   if (!low_network && favicon_eligible && !favicon_failed) {
-    const pad = Math.max(2, Math.round(size_px * 0.14));
-
     return (
       <div
         className={`${rounded} overflow-hidden flex items-center justify-center ${
@@ -149,13 +147,11 @@ export function ContactAvatar({
       >
         <img
           alt=""
-          className="object-contain transition-opacity duration-200"
+          className="w-full h-full object-cover transition-opacity duration-200"
           draggable={false}
           referrerPolicy="no-referrer"
           src={cached_favicon_src || get_favicon_url(domain)}
           style={{
-            width: size_px - pad * 2,
-            height: size_px - pad * 2,
             userSelect: "none",
             opacity: favicon_loaded ? 1 : 0,
           }}

@@ -36,10 +36,13 @@ describe("is_app_password_error", () => {
   });
 
   it("matches a generic auth failure only on a Google mailbox", () => {
-    const message = "IMAP connection failed: [AUTHENTICATIONFAILED] Invalid credentials";
+    const message =
+      "IMAP connection failed: [AUTHENTICATIONFAILED] Invalid credentials";
 
     expect(is_app_password_error(message, { email: "a@gmail.com" })).toBe(true);
-    expect(is_app_password_error(message, { email: "a@example.org" })).toBe(false);
+    expect(is_app_password_error(message, { email: "a@example.org" })).toBe(
+      false,
+    );
   });
 
   it("ignores an unrelated failure", () => {

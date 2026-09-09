@@ -158,8 +158,8 @@ export function MobileContactList({
               {contacts.length > 0 && (
                 <button
                   className="rounded-[12px] px-3 py-1.5 text-[13px] font-medium text-[var(--text-secondary)] active:opacity-70"
-                  type="button"
                   disabled={filtered_contacts.length === 0}
+                  type="button"
                   onClick={() => {
                     if (filtered_contacts.length === 0) return;
                     set_is_select_mode(true);

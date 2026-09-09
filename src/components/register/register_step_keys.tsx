@@ -107,10 +107,7 @@ export const RegisterStepKeys = ({ reg }: RegisterStepKeysProps) => {
   useEffect(() => {
     set_stalled(false);
 
-    const timer = window.setTimeout(
-      () => set_stalled(true),
-      STALL_NOTICE_MS,
-    );
+    const timer = window.setTimeout(() => set_stalled(true), STALL_NOTICE_MS);
 
     return () => window.clearTimeout(timer);
   }, [reg.generation_status]);

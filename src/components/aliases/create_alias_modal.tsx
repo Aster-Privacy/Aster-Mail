@@ -156,11 +156,11 @@ export function CreateAliasModal({ is_open, on_close }: CreateAliasModalProps) {
                       autoFocus
                       autoCapitalize="none"
                       autoCorrect="off"
-                      spellCheck={false}
                       className={`flex-1 h-10 px-3 rounded-s-lg bg-transparent border border-e-0 border-edge-secondary text-sm text-txt-primary placeholder:text-txt-muted outline-none ${error ? "border-red-500" : ""}`}
                       disabled={is_creating}
                       id="create-alias-local-part"
                       placeholder={t("settings.alias_local_part_placeholder")}
+                      spellCheck={false}
                       type="text"
                       value={local_part}
                       onChange={(e) => {

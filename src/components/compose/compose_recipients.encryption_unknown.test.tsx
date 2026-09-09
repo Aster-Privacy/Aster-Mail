@@ -35,7 +35,9 @@ vi.mock("@/lib/i18n/context", () => ({
 }));
 
 vi.mock("@/contexts/preferences_context", () => ({
-  use_preferences: () => ({ preferences: { show_encryption_indicators: true } }),
+  use_preferences: () => ({
+    preferences: { show_encryption_indicators: true },
+  }),
 }));
 
 vi.mock("@/services/api/keys", () => ({
@@ -65,7 +67,10 @@ describe("recipient badge encryption status", () => {
   it("labels a failed key lookup as undetermined rather than transit only", () => {
     act(() => {
       root.render(
-        <RecipientBadge email="someone@example.test" encryption_status="unknown" />,
+        <RecipientBadge
+          email="someone@example.test"
+          encryption_status="unknown"
+        />,
       );
     });
 
@@ -88,12 +93,17 @@ describe("recipient badge encryption status", () => {
   it("keeps the transport-only wording for a recipient with no keys", () => {
     act(() => {
       root.render(
-        <RecipientBadge email="someone@example.test" encryption_status="transit" />,
+        <RecipientBadge
+          email="someone@example.test"
+          encryption_status="transit"
+        />,
       );
     });
 
     const lock = container.querySelector("button");
 
-    expect(lock?.getAttribute("aria-label")).toBe("common.protected_in_transit");
+    expect(lock?.getAttribute("aria-label")).toBe(
+      "common.protected_in_transit",
+    );
   });
 });

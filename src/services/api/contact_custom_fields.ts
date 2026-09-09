@@ -18,7 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { user_facing_error } from "@/utils/user_facing_error";
 import type {
   CustomFieldDefinition,
   CustomFieldValue,
@@ -30,6 +29,7 @@ import type {
 import { api_client, type ApiResponse } from "./client";
 import { get_contacts_encryption_key } from "./contacts";
 
+import { user_facing_error } from "@/utils/user_facing_error";
 import { get_active_translations } from "@/lib/i18n/translations";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 

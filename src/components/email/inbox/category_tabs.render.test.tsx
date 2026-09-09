@@ -302,9 +302,9 @@ describe("CategoryTabs", () => {
   it("swaps the count for a dot while the first index build is counting", () => {
     const el = render(
       <CategoryTabs
+        counts_pending
         active_category="primary"
         counts={counts}
-        counts_pending
         on_change={() => {}}
       />,
     );
@@ -320,9 +320,9 @@ describe("CategoryTabs", () => {
   it("shows no dot on a category with nothing unread", () => {
     const el = render(
       <CategoryTabs
+        counts_pending
         active_category="primary"
         counts={counts}
-        counts_pending
         on_change={() => {}}
       />,
     );

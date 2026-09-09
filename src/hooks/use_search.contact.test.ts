@@ -95,8 +95,9 @@ function run(query: string, envelope: DecryptedEnvelope): boolean {
 
 describe("build_contact_mail_query", () => {
   it("emits one contact operator per address", () => {
-    expect(build_contact_mail_query(["Alice@Example.com", "a2@example.com"]))
-      .toBe("contact:alice@example.com contact:a2@example.com");
+    expect(
+      build_contact_mail_query(["Alice@Example.com", "a2@example.com"]),
+    ).toBe("contact:alice@example.com contact:a2@example.com");
   });
 
   it("drops blanks and duplicates", () => {
@@ -184,9 +185,9 @@ describe("contact operator", () => {
   });
 
   it("treats several to operators as any-of", () => {
-    expect(
-      run("to:bob@example.com to:dave@example.com", make_envelope()),
-    ).toBe(true);
+    expect(run("to:bob@example.com to:dave@example.com", make_envelope())).toBe(
+      true,
+    );
   });
 
   it("still ands a contact operator with other operators", () => {

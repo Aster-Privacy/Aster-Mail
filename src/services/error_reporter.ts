@@ -72,17 +72,20 @@ function platform(): string {
     }
     if (Capacitor.isNativePlatform()) {
       const name = Capacitor.getPlatform();
+
       return SLUG_PATTERN.test(name) ? name : "native";
     }
   } catch {
     return "web";
   }
+
   return "web";
 }
 
 function release(): string {
   try {
     const value = __APP_VERSION__;
+
     return typeof value === "string" && SLUG_PATTERN.test(value)
       ? value
       : "unknown";
@@ -99,11 +102,13 @@ function route_pattern(): string {
     ? window.location.hash.slice(1)
     : window.location.pathname;
   const path = raw.split("?")[0].replace(/\/+$/, "") || "/";
+
   if (path === "/") {
     return "/";
   }
   const first = path.split("/").filter(Boolean)[0] ?? "";
   const root = first.toLowerCase();
+
   return ROUTE_ROOTS.includes(root) ? `/${root}/*` : "/other";
 }
 
@@ -118,6 +123,7 @@ export function feature_of_endpoint(endpoint: string): string {
       .map((segment) => segment.toLowerCase().replace(/[^a-z0-9_.-]/g, ""))
       .filter(Boolean);
     const slug = segments.slice(0, 3).join("_").slice(0, 64);
+
     return SLUG_PATTERN.test(slug) ? slug : "request";
   } catch {
     return "request";
@@ -126,6 +132,7 @@ export function feature_of_endpoint(endpoint: string): string {
 
 export function http_error_code(prefix: string, status: number): string {
   const safe_prefix = SLUG_PATTERN.test(prefix) ? prefix : "request";
+
   return `${safe_prefix}_http_${status}`.slice(0, 64);
 }
 
@@ -135,11 +142,13 @@ function should_send(key: string): boolean {
   }
   const now = Date.now();
   const previous = last_seen.get(key);
+
   if (previous !== undefined && now - previous < DEDUPE_WINDOW_MS) {
     return false;
   }
   last_seen.set(key, now);
   reports_sent += 1;
+
   return true;
 }
 
@@ -164,6 +173,7 @@ export function report_client_error(input: ClientErrorInput): void {
         : undefined;
 
     const key = `${input.feature}|${input.error_code}|${status ?? 0}`;
+
     if (!should_send(key)) {
       return;
     }
@@ -203,6 +213,7 @@ export function install_global_error_reporting(): void {
     const is_asset =
       event.target instanceof HTMLScriptElement ||
       event.target instanceof HTMLLinkElement;
+
     report_client_error({
       feature: "app",
       error_code: is_asset ? "asset_load_failed" : "uncaught_exception",

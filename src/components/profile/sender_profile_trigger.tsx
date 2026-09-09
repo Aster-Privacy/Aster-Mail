@@ -18,7 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { copy_text_or_throw } from "@/utils/copy_text";
 import type { ContactFormData } from "@/types/contacts";
 import type { TranslationKey } from "@/lib/i18n/types";
 
@@ -35,6 +34,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { ShieldCheckIcon as ShieldCheckSolid } from "@heroicons/react/24/solid";
 
+import { copy_text_or_throw } from "@/utils/copy_text";
 import {
   DropdownMenu,
   DropdownMenuContent,

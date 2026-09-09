@@ -29,8 +29,12 @@ function make_file(content: string, name: string): File {
 
 describe("parse_csv_file delimiters", () => {
   it("parses tab separated files", async () => {
-    const content =
-      ["from@x.com", "to@y.com", "Tabbed subject", "Tabbed body"].join("\t");
+    const content = [
+      "from@x.com",
+      "to@y.com",
+      "Tabbed subject",
+      "Tabbed body",
+    ].join("\t");
     const result = await parse_csv_file(
       make_file("from\tto\tsubject\tbody\n" + content, "export.tsv"),
     );

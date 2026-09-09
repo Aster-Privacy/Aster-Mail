@@ -18,8 +18,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { copy_text_or_throw } from "@/utils/copy_text";
-import { trigger_download } from "@/utils/download_blob";
 import type { DecryptedThreadMessage } from "@/types/thread";
 import type { UserPreferences } from "@/services/api/preferences";
 import type { TranslationKey } from "@/lib/i18n";
@@ -49,8 +47,6 @@ import {
 } from "@heroicons/react/24/outline";
 import { StarIcon as StarSolidIcon } from "@heroicons/react/24/solid";
 
-import { format_datetime_hint } from "@/utils/date_format";
-import { compute_snooze_target } from "@/utils/snooze_targets";
 import { format_safe_date } from "./mobile_thread_message";
 import {
   TOOLBAR_ACTION_MAP,
@@ -59,6 +55,10 @@ import {
   MAX_TOOLBAR_ACTIONS,
 } from "./mobile_detail_toolbar";
 
+import { format_datetime_hint } from "@/utils/date_format";
+import { compute_snooze_target } from "@/utils/snooze_targets";
+import { trigger_download } from "@/utils/download_blob";
+import { copy_text_or_throw } from "@/utils/copy_text";
 import { PinIcon } from "@/components/common/icons";
 import { use_i18n } from "@/lib/i18n/context";
 import { MobileBottomSheet } from "@/components/mobile/mobile_bottom_sheet";
@@ -816,8 +816,8 @@ export function MobileMessageDetailsSheet({
                 {t("common.subject_label")}
               </span>
               <span
-                dir="auto"
                 className="min-w-0 text-[12px] text-[var(--text-secondary)] break-words"
+                dir="auto"
               >
                 {message.subject || t("mail.no_subject")}
               </span>

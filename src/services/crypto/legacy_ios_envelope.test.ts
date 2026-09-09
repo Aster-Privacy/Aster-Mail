@@ -112,7 +112,10 @@ describe("decrypt_legacy_ios_envelope", () => {
   }, 30000);
 
   it("returns null for ciphertext sealed under a different password", async () => {
-    const key_material = await derive_ios_key_material("wrong password", salt_bytes);
+    const key_material = await derive_ios_key_material(
+      "wrong password",
+      salt_bytes,
+    );
     const nonce = new Uint8Array(12).fill(4);
     const ciphertext = await seal_like_ios("{}", key_material, nonce);
 

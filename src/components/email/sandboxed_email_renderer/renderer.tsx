@@ -19,7 +19,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useRef, useEffect, useState, useCallback, useMemo } from "react";
-import { should_retry_cid, cid_retry_delay_ms } from "@/lib/cid_retry";
 
 import * as dom_cleanup from "./dom_cleanup";
 import { build_measurement_controls } from "./measurement_controls";
@@ -38,6 +37,7 @@ import {
   safe_hex,
 } from "./helpers";
 
+import { should_retry_cid, cid_retry_delay_ms } from "@/lib/cid_retry";
 import {
   build_email_body_css,
   build_auto_dark_mode_css,

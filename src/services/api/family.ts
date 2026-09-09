@@ -19,6 +19,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { api_client, type ApiResponse } from "./client";
+
+import { get_cached_plan_code } from "@/hooks/use_plan_limits";
 import { safe_local_set } from "@/lib/safe_storage";
 
 export interface FamilyMemberInfo {
@@ -84,7 +86,13 @@ export interface JoinFamilyResponse {
 // on api_client's request_cache (deduped + auto-invalidated on any mutation to
 // /payments/v1/family) rather than a bespoke cache, so post-mutation reads are
 // never stale.
+const FAMILY_CAPABLE_PLANS = new Set(["duo", "family"]);
+
 export function prefetch_family_group(): void {
+  const plan_code = get_cached_plan_code();
+
+  if (plan_code && !FAMILY_CAPABLE_PLANS.has(plan_code)) return;
+
   void get_family_group();
 }
 

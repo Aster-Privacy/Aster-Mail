@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { DecryptedEmailAlias } from "@/services/api/aliases/types";
+
 import {
   compute_alias_hash,
   compute_routing_hash,
@@ -25,7 +27,6 @@ import {
 } from "./crypto";
 
 import { rekey_user_data } from "@/services/api/auth";
-import type { DecryptedEmailAlias } from "@/services/api/aliases/types";
 
 export type RestoreAliasOutcome =
   | { status: "restored" }

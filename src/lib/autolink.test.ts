@@ -88,9 +88,7 @@ describe("find_autolinks", () => {
   });
 
   it("links www addresses with an http href", () => {
-    expect(hrefs("visit www.example.com.")).toEqual([
-      "http://www.example.com",
-    ]);
+    expect(hrefs("visit www.example.com.")).toEqual(["http://www.example.com"]);
     expect(links("visit www.example.com.")).toEqual(["www.example.com"]);
   });
 
@@ -106,9 +104,7 @@ describe("find_autolinks", () => {
     expect(links("Write to support@astermail.org, thanks")).toEqual([
       "support@astermail.org",
     ]);
-    expect(links("(support@astermail.org)")).toEqual([
-      "support@astermail.org",
-    ]);
+    expect(links("(support@astermail.org)")).toEqual(["support@astermail.org"]);
   });
 
   it("does not turn a url containing an at sign into an email", () => {
@@ -179,10 +175,10 @@ describe("sanitize_html autolinks", () => {
       "<p>The standard (https://www.rfc-editor.org/rfc/rfc6530), which</p>",
     ).html;
 
+    expect(html).toContain('href="https://www.rfc-editor.org/rfc/rfc6530"');
     expect(html).toContain(
-      'href="https://www.rfc-editor.org/rfc/rfc6530"',
+      ">https://www.rfc-editor.org/rfc/rfc6530</a>), which",
     );
-    expect(html).toContain(">https://www.rfc-editor.org/rfc/rfc6530</a>), which");
   });
 
   it("does not relink text that is already inside an anchor", () => {

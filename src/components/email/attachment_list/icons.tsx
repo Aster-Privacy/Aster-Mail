@@ -121,7 +121,14 @@ const GLYPH_MARKS: Partial<
     <>
       <rect fill={color} height="1.92" rx="0.96" width="9.8" x="7.1" y="5.71" />
       <rect fill={color} height="1.92" rx="0.96" width="9.8" x="7.1" y="9.09" />
-      <rect fill={color} height="1.92" rx="0.96" width="6.49" x="7.1" y="12.47" />
+      <rect
+        fill={color}
+        height="1.92"
+        rx="0.96"
+        width="6.49"
+        x="7.1"
+        y="12.47"
+      />
     </>
   ),
   archive: (color) => (
@@ -182,7 +189,14 @@ export function FileTypeIcon({
         ) : null}
         {mark?.(color)}
         <path d={FOLD_PATH} fill={FOLD_FILL} />
-        <rect fill={color} height="5.8" rx="1.7" width="15.6" x="4.2" y="15.2" />
+        <rect
+          fill={color}
+          height="5.8"
+          rx="1.7"
+          width="15.6"
+          x="4.2"
+          y="15.2"
+        />
         <text
           fill="#ffffff"
           fontSize={font_size}

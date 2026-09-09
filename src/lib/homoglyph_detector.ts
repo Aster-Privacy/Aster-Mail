@@ -157,7 +157,11 @@ const PUNYCODE_DAMP = 700;
 const PUNYCODE_INITIAL_BIAS = 72;
 const PUNYCODE_INITIAL_N = 128;
 
-function punycode_adapt(delta: number, num_points: number, first: boolean): number {
+function punycode_adapt(
+  delta: number,
+  num_points: number,
+  first: boolean,
+): number {
   let k = 0;
 
   delta = first ? Math.floor(delta / PUNYCODE_DAMP) : delta >> 1;
@@ -168,7 +172,12 @@ function punycode_adapt(delta: number, num_points: number, first: boolean): numb
     k += PUNYCODE_BASE;
   }
 
-  return k + Math.floor(((PUNYCODE_BASE - PUNYCODE_T_MIN + 1) * delta) / (delta + PUNYCODE_SKEW));
+  return (
+    k +
+    Math.floor(
+      ((PUNYCODE_BASE - PUNYCODE_T_MIN + 1) * delta) / (delta + PUNYCODE_SKEW),
+    )
+  );
 }
 
 function punycode_digit(code: number): number {
@@ -304,7 +313,8 @@ export function detect_homoglyph(domain: string): HomoglyphResult {
   const mixed = has_mixed_scripts(decoded);
   const raw_base = decoded.split(".")[0];
   const domain_base = normalized.split(".")[0];
-  const base_is_confusable = raw_base !== domain_base || !is_plain_ascii(raw_base);
+  const base_is_confusable =
+    raw_base !== domain_base || !is_plain_ascii(raw_base);
 
   for (const [brand, domains] of Object.entries(BRAND_DOMAINS)) {
     for (const legit_domain of domains) {

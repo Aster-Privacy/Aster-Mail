@@ -42,7 +42,9 @@ function days_remaining(grace_period_end: string | null): number | null {
   return days > 0 ? days : null;
 }
 
-export function hosted_pay_url(value: string | null | undefined): string | null {
+export function hosted_pay_url(
+  value: string | null | undefined,
+): string | null {
   if (!value) return null;
 
   try {
