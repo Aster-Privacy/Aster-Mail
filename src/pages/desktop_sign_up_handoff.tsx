@@ -23,16 +23,16 @@ import { useLocation, useNavigate } from "react-router-dom";
 
 import { open_external } from "@/utils/open_link";
 
-const WEB_SIGN_UP_URL = "https://app.astermail.org/register";
+const WEB_APP_ORIGIN = "https://app.astermail.org";
 
 export function DesktopSignUpHandoff() {
   const navigate = useNavigate();
-  const { search } = useLocation();
+  const { pathname, search } = useLocation();
 
   useEffect(() => {
-    open_external(`${WEB_SIGN_UP_URL}${search}`);
+    open_external(`${WEB_APP_ORIGIN}${pathname}${search}`);
     navigate("/sign-in", { replace: true });
-  }, [navigate, search]);
+  }, [navigate, pathname, search]);
 
   return null;
 }
