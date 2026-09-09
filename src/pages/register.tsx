@@ -36,8 +36,18 @@ import { RegisterStepRecoveryPhrase } from "@/components/register/register_step_
 import { RegisterStepPhraseConfirm } from "@/components/register/register_step_phrase_confirm";
 import { RegisterStepPlanSelection } from "@/components/register/register_step_plan_selection";
 import { RegisterStepAcademicOffer } from "@/components/register/register_step_academic_offer";
+import { DesktopSignUpHandoff } from "@/pages/desktop_sign_up_handoff";
+import { is_tauri } from "@/native/desktop_device_auth";
 
 export default function RegisterPage() {
+  if (is_tauri()) {
+    return <DesktopSignUpHandoff />;
+  }
+
+  return <BrowserRegisterPage />;
+}
+
+function BrowserRegisterPage() {
   const reg = use_registration();
 
   if (reg.auth_loading || reg.has_existing_session) {
