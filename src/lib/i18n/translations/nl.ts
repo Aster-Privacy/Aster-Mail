@@ -5009,6 +5009,27 @@ export const nl = {
     alias_cap_upsell_alternative:
       "{{plan}} removes the alias limit if you need more.",
     alias_cap_upsell_cta: "Upgrade to {{plan}}",
+    special_offer_button: "Special offer",
+    special_offer_title: "Private mail, half price",
+    special_offer_subtitle: "50% off your first 12 months",
+    special_offer_price_period: "per month",
+    special_offer_save_badge: "Bespaar {{percent}}%",
+    special_offer_checkout_error: "Er ging iets mis bij het starten van de betaling. Probeer het opnieuw.",
+    special_offer_was_price: "Was {{price}} per month",
+    special_offer_cta: "Get {{percent}}% off",
+    special_offer_feature_aliases: "Unlimited aliases and custom domains",
+    special_offer_feature_vanguard:
+      "Aster Vanguard app lock, lockdown mode, and security monitoring",
+    special_offer_feature_storage: "500 GB of encrypted storage",
+    special_offer_fine_print:
+      "You pay {{offer_price}} per month for the first {{months}} months. Your plan then renews at {{price}} per month until you cancel it in Settings.",
+    special_offer_dismiss: "Don't show this offer again",
+    special_offer_dismissed_toast: "We won't show you this again.",
+    special_offer_hero_plan: "Nova",
+    special_offer_hero_duration: "{{months}} maanden lang",
+    plan_billing_terms:
+      "Subscriptions renew automatically at the standard rate until you cancel. Cancel at any time in Settings.",
+    upgrade_offer_note: "Your {{percent}}% discount is applied at checkout.",
     dns_records_for_domain: "DNS-records voor dit domein:",
     add_dns_records_description:
       "Voeg deze DNS-records toe bij je domeinregistrar om eigendom te verifiëren en e-mail in te schakelen:",
@@ -6442,6 +6463,8 @@ export const nl = {
     connected_accounts_disconnect: "Ontkoppelen",
     connected_accounts_error:
       "Dit gekoppelde account heeft moeite met synchroniseren, en we proberen automatisch opnieuw.",
+    connected_accounts_app_password_needed:
+      "Inloggen is mislukt. Dit account vraagt om een app-wachtwoord, niet om je gewone wachtwoord.",
     connected_accounts_password_reauth_needed:
       "Inloggen is mislukt. Bewerk het account om het wachtwoord bij te werken.",
     connected_accounts_reauth_needed:
@@ -7790,6 +7813,10 @@ export const nl = {
     gmail_sync_step_3: "Maak een app-wachtwoord voor e-mail aan.",
     gmail_sync_step_4: "Kopieer het wachtwoord en plak het in Aster.",
     gmail_sync_title: "Een app-wachtwoord aanmaken",
+    gmail_wizard_app_password_error_body:
+      "Het gewone wachtwoord van je account werkt hier niet. Zet verificatie in twee stappen aan, maak een app-wachtwoord voor e-mail en plak dat hierboven.",
+    gmail_wizard_app_password_error_title:
+      "Dit wachtwoord is geweigerd",
     gmail_wizard_connect: "Postvak koppelen",
     gmail_wizard_password_label: "App-wachtwoord",
     gmail_wizard_progress: "Stap {{current}} van {{total}}",

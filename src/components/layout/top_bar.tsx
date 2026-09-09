@@ -30,6 +30,7 @@ import {
   QuestionMarkCircleIcon,
   ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
+import { TagIcon } from "@heroicons/react/24/solid";
 import { Button, Tooltip } from "@aster/ui";
 
 import {
@@ -49,6 +50,9 @@ import { use_preferences } from "@/contexts/preferences_context";
 import { use_primary_identity } from "@/lib/primary_identity";
 import { open_external } from "@/utils/open_link";
 import { show_upgrade_plans } from "@/stores/upgrade_store";
+import { show_special_offer } from "@/stores/special_offer_store";
+import { use_special_offer_status } from "@/stores/special_offer_status";
+import { is_special_offer_available } from "@/lib/special_offer";
 
 const HELP_CENTER_URL = "https://astermail.org/help";
 const SUPPORT_ADDRESS = "hello@astermail.org";
@@ -126,13 +130,30 @@ function top_bar_base({
   const { plan_code } = use_plan_limits();
   const is_free_plan = plan_code === "free";
   const is_paid_plan = plan_code !== null && plan_code !== "free";
+  const { status: special_offer_status } = use_special_offer_status();
+  const has_special_offer =
+    (special_offer_status?.available ?? false) &&
+    is_special_offer_available({ plan_code, is_dismissed: false });
   const navigate = useNavigate();
+  const is_mounted = useRef(true);
   const [is_accounts_open, set_is_accounts_open] = useState(false);
   const [is_mobile, set_is_mobile] = useState(false);
   const [show_account_tip, set_show_account_tip] = useState(false);
   const account_tip_timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const account_tip_blocked = useRef(false);
   const account_tip_anchor = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    is_mounted.current = true;
+
+    return () => {
+      is_mounted.current = false;
+    };
+  }, []);
+
+  const open_special_offer = useCallback(() => {
+    show_special_offer("manual");
+  }, []);
 
   const close_account_tip = useCallback(() => {
     if (account_tip_timer.current) clearTimeout(account_tip_timer.current);
@@ -334,7 +355,21 @@ function top_bar_base({
           <Cog6ToothIcon className="w-5 h-5" />
         </IconButton>
 
-        {is_free_plan && (
+        {is_free_plan && has_special_offer && (
+          <Tooltip tip={t("settings.special_offer_subtitle")}>
+            <Button
+              className="special_offer_pill hidden sm:inline-flex !h-9 !rounded-full !text-[14px] !font-medium !px-5 ms-1 gap-1.5"
+              size="sm"
+              variant="depth"
+              onClick={open_special_offer}
+            >
+              <TagIcon className="w-4 h-4" />
+              {t("settings.special_offer_button")}
+            </Button>
+          </Tooltip>
+        )}
+
+        {is_free_plan && !has_special_offer && (
           <Tooltip tip={t("common.upgrade_tooltip")}>
             <Button
               className="hidden sm:inline-flex !h-9 !rounded-full !text-[14px] !font-medium !px-5 ms-1"

@@ -5031,6 +5031,27 @@ export const tr = {
     alias_cap_upsell_alternative:
       "{{plan}} removes the alias limit if you need more.",
     alias_cap_upsell_cta: "Upgrade to {{plan}}",
+    special_offer_button: "Special offer",
+    special_offer_title: "Private mail, half price",
+    special_offer_subtitle: "50% off your first 12 months",
+    special_offer_price_period: "per month",
+    special_offer_save_badge: "%{{percent}} tasarruf",
+    special_offer_checkout_error: "Ödeme başlatılırken bir sorun oluştu. Yeniden deneyin.",
+    special_offer_was_price: "Was {{price}} per month",
+    special_offer_cta: "Get {{percent}}% off",
+    special_offer_feature_aliases: "Unlimited aliases and custom domains",
+    special_offer_feature_vanguard:
+      "Aster Vanguard app lock, lockdown mode, and security monitoring",
+    special_offer_feature_storage: "500 GB of encrypted storage",
+    special_offer_fine_print:
+      "You pay {{offer_price}} per month for the first {{months}} months. Your plan then renews at {{price}} per month until you cancel it in Settings.",
+    special_offer_dismiss: "Don't show this offer again",
+    special_offer_dismissed_toast: "We won't show you this again.",
+    special_offer_hero_plan: "Nova",
+    special_offer_hero_duration: "{{months}} ay boyunca",
+    plan_billing_terms:
+      "Subscriptions renew automatically at the standard rate until you cancel. Cancel at any time in Settings.",
+    upgrade_offer_note: "Your {{percent}}% discount is applied at checkout.",
     dns_records_for_domain: "Bu alan adı için DNS kayıtları:",
     add_dns_records_description:
       "Sahipliği doğrulamak ve e-postayı etkinleştirmek için bu DNS kayıtlarını alan adı kayıt firmanıza ekleyin:",
@@ -6146,6 +6167,8 @@ export const tr = {
     connected_accounts_disconnect: "Bağlantıyı Kes",
     connected_accounts_error:
       "Bağlı bu hesap eşitlemede sorun yaşıyor, otomatik olarak yeniden deneyeceğiz.",
+    connected_accounts_app_password_needed:
+      "Oturum açılamadı. Bu hesap normal parolanızı değil, bir uygulama parolası ister.",
     connected_accounts_password_reauth_needed:
       "Oturum açılamadı. Parolayı güncellemek için hesabı düzenleyin.",
     connected_accounts_reauth_needed:
@@ -7781,6 +7804,10 @@ export const tr = {
     gmail_sync_step_3: "E-posta için bir uygulama parolası oluşturun.",
     gmail_sync_step_4: "Parolayı kopyalayın ve Aster’a yapıştırın.",
     gmail_sync_title: "Uygulama parolası oluşturma",
+    gmail_wizard_app_password_error_body:
+      "Hesabınızın normal parolası burada çalışmaz. İki adımlı doğrulamayı açın, posta için bir uygulama parolası oluşturun ve yukarıya yapıştırın.",
+    gmail_wizard_app_password_error_title:
+      "Bu parola kabul edilmedi",
     gmail_wizard_connect: "Posta kutusunu bağla",
     gmail_wizard_password_label: "Uygulama parolası",
     gmail_wizard_progress: "{{total}} adımdan {{current}}. adım",

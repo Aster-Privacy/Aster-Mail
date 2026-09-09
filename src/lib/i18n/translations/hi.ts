@@ -5951,6 +5951,27 @@ export const hi = {
     alias_cap_upsell_alternative:
       "{{plan}} removes the alias limit if you need more.",
     alias_cap_upsell_cta: "Upgrade to {{plan}}",
+    special_offer_button: "Special offer",
+    special_offer_title: "Private mail, half price",
+    special_offer_subtitle: "50% off your first 12 months",
+    special_offer_price_period: "per month",
+    special_offer_save_badge: "{{percent}}% बचाएँ",
+    special_offer_checkout_error: "चेकआउट शुरू करने में कुछ गड़बड़ हो गई। फिर से कोशिश करें।",
+    special_offer_was_price: "Was {{price}} per month",
+    special_offer_cta: "Get {{percent}}% off",
+    special_offer_feature_aliases: "Unlimited aliases and custom domains",
+    special_offer_feature_vanguard:
+      "Aster Vanguard app lock, lockdown mode, and security monitoring",
+    special_offer_feature_storage: "500 GB of encrypted storage",
+    special_offer_fine_print:
+      "You pay {{offer_price}} per month for the first {{months}} months. Your plan then renews at {{price}} per month until you cancel it in Settings.",
+    special_offer_dismiss: "Don't show this offer again",
+    special_offer_dismissed_toast: "We won't show you this again.",
+    special_offer_hero_plan: "Nova",
+    special_offer_hero_duration: "{{months}} महीनों के लिए",
+    plan_billing_terms:
+      "Subscriptions renew automatically at the standard rate until you cancel. Cancel at any time in Settings.",
+    upgrade_offer_note: "Your {{percent}}% discount is applied at checkout.",
     dns_records_for_domain: "इस डोमेन के DNS रिकॉर्ड:",
     add_dns_records_description:
       "स्वामित्व सत्यापित करने और ईमेल चालू करने के लिए ये DNS रिकॉर्ड अपने डोमेन रजिस्ट्रार में जोड़ें:",
@@ -6603,6 +6624,8 @@ export const hi = {
       "क्या आप वाकई सिंक रोकना चाहते हैं? पहले से इंपोर्ट हो चुकी ईमेल बनी रहेंगी।",
     connected_accounts_error:
       "इस जुड़े हुए खाते को सिंक करने में दिक्कत आ रही है, और हम अपने आप फिर से कोशिश करेंगे।",
+    connected_accounts_app_password_needed:
+      "साइन इन नहीं हो सका। इस खाते के लिए आपका सामान्य पासवर्ड नहीं, बल्कि ऐप पासवर्ड चाहिए।",
     connected_accounts_password_reauth_needed:
       "साइन इन नहीं हो सका। पासवर्ड अपडेट करने के लिए खाते में बदलाव करें।",
     connected_accounts_reauth_needed:
@@ -7625,6 +7648,10 @@ export const hi = {
     gmail_sync_step_3: "मेल के लिए एक ऐप पासवर्ड बनाएँ।",
     gmail_sync_step_4: "पासवर्ड कॉपी करें और उसे Aster में चिपकाएँ।",
     gmail_sync_title: "ऐप पासवर्ड बनाएँ",
+    gmail_wizard_app_password_error_body:
+      "आपका सामान्य खाता पासवर्ड यहाँ काम नहीं करता। दो-चरणीय सत्यापन चालू करें, मेल के लिए ऐप पासवर्ड बनाएँ, फिर उसे ऊपर चिपकाएँ।",
+    gmail_wizard_app_password_error_title:
+      "यह पासवर्ड स्वीकार नहीं हुआ",
     gmail_wizard_connect: "मेलबॉक्स कनेक्ट करें",
     gmail_wizard_password_label: "ऐप पासवर्ड",
     gmail_wizard_progress: "{{total}} में से चरण {{current}}",

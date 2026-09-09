@@ -5136,6 +5136,27 @@ export const fr = {
     alias_cap_upsell_alternative:
       "{{plan}} removes the alias limit if you need more.",
     alias_cap_upsell_cta: "Upgrade to {{plan}}",
+    special_offer_button: "Special offer",
+    special_offer_title: "Private mail, half price",
+    special_offer_subtitle: "50% off your first 12 months",
+    special_offer_price_period: "per month",
+    special_offer_save_badge: "Économisez {{percent}} %",
+    special_offer_checkout_error: "Une erreur s'est produite au lancement du paiement. Réessayez.",
+    special_offer_was_price: "Was {{price}} per month",
+    special_offer_cta: "Get {{percent}}% off",
+    special_offer_feature_aliases: "Unlimited aliases and custom domains",
+    special_offer_feature_vanguard:
+      "Aster Vanguard app lock, lockdown mode, and security monitoring",
+    special_offer_feature_storage: "500 GB of encrypted storage",
+    special_offer_fine_print:
+      "You pay {{offer_price}} per month for the first {{months}} months. Your plan then renews at {{price}} per month until you cancel it in Settings.",
+    special_offer_dismiss: "Don't show this offer again",
+    special_offer_dismissed_toast: "We won't show you this again.",
+    special_offer_hero_plan: "Nova",
+    special_offer_hero_duration: "pendant {{months}} mois",
+    plan_billing_terms:
+      "Subscriptions renew automatically at the standard rate until you cancel. Cancel at any time in Settings.",
+    upgrade_offer_note: "Your {{percent}}% discount is applied at checkout.",
     dns_records_for_domain: "Enregistrements DNS pour ce domaine :",
     add_dns_records_description:
       "Ajoutez ces enregistrements DNS à votre registraire de domaine pour vérifier la propriété et activer l'e-mail :",
@@ -6268,6 +6289,8 @@ export const fr = {
     connected_accounts_disconnect: "Déconnecter",
     connected_accounts_error:
       "Ce compte lié a du mal à se synchroniser, et nous réessaierons automatiquement.",
+    connected_accounts_app_password_needed:
+      "Échec de la connexion. Ce compte exige un mot de passe d’application, pas votre mot de passe habituel.",
     connected_accounts_password_reauth_needed:
       "Échec de la connexion. Modifiez le compte pour mettre à jour le mot de passe.",
     connected_accounts_reauth_needed:
@@ -7877,6 +7900,10 @@ export const fr = {
       "Créez un mot de passe d’application pour la messagerie.",
     gmail_sync_step_4: "Copiez le mot de passe et collez-le dans Aster.",
     gmail_sync_title: "Créer un mot de passe d’application",
+    gmail_wizard_app_password_error_body:
+      "Le mot de passe habituel de votre compte ne fonctionne pas ici. Activez la validation en deux étapes, créez un mot de passe d’application pour la messagerie, puis collez-le ci-dessus.",
+    gmail_wizard_app_password_error_title:
+      "Ce mot de passe a été refusé",
     gmail_wizard_connect: "Connecter la boîte aux lettres",
     gmail_wizard_password_label: "Mot de passe d’application",
     gmail_wizard_progress: "Étape {{current}} sur {{total}}",

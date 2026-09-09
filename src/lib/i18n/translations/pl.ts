@@ -5226,6 +5226,27 @@ export const pl = {
     alias_cap_upsell_alternative:
       "{{plan}} removes the alias limit if you need more.",
     alias_cap_upsell_cta: "Upgrade to {{plan}}",
+    special_offer_button: "Special offer",
+    special_offer_title: "Private mail, half price",
+    special_offer_subtitle: "50% off your first 12 months",
+    special_offer_price_period: "per month",
+    special_offer_save_badge: "Oszczędź {{percent}}%",
+    special_offer_checkout_error: "Coś poszło nie tak przy uruchamianiu płatności. Spróbuj ponownie.",
+    special_offer_was_price: "Was {{price}} per month",
+    special_offer_cta: "Get {{percent}}% off",
+    special_offer_feature_aliases: "Unlimited aliases and custom domains",
+    special_offer_feature_vanguard:
+      "Aster Vanguard app lock, lockdown mode, and security monitoring",
+    special_offer_feature_storage: "500 GB of encrypted storage",
+    special_offer_fine_print:
+      "You pay {{offer_price}} per month for the first {{months}} months. Your plan then renews at {{price}} per month until you cancel it in Settings.",
+    special_offer_dismiss: "Don't show this offer again",
+    special_offer_dismissed_toast: "We won't show you this again.",
+    special_offer_hero_plan: "Nova",
+    special_offer_hero_duration: "przez {{months}} miesięcy",
+    plan_billing_terms:
+      "Subscriptions renew automatically at the standard rate until you cancel. Cancel at any time in Settings.",
+    upgrade_offer_note: "Your {{percent}}% discount is applied at checkout.",
     dns_records_for_domain: "Rekordy DNS dla tej domeny:",
     add_dns_records_description:
       "Dodaj te rekordy DNS u rejestratora domeny, aby zweryfikować własność i włączyć pocztę:",
@@ -6583,6 +6604,8 @@ export const pl = {
     connected_accounts_disconnect: "Rozłącz",
     connected_accounts_error:
       "To połączone konto ma problemy z synchronizacją, a my spróbujemy ponownie automatycznie.",
+    connected_accounts_app_password_needed:
+      "Logowanie nie powiodło się. To konto wymaga hasła do aplikacji, a nie zwykłego hasła.",
     connected_accounts_password_reauth_needed:
       "Logowanie nie powiodło się. Edytuj konto, aby zaktualizować hasło.",
     connected_accounts_reauth_needed:
@@ -8044,6 +8067,10 @@ export const pl = {
     gmail_sync_step_3: "Utwórz hasło do aplikacji dla poczty.",
     gmail_sync_step_4: "Skopiuj hasło i wklej je w Asterze.",
     gmail_sync_title: "Utwórz hasło do aplikacji",
+    gmail_wizard_app_password_error_body:
+      "Zwykłe hasło do konta tutaj nie zadziała. Włącz weryfikację dwuetapową, utwórz hasło do aplikacji dla poczty, a następnie wklej je powyżej.",
+    gmail_wizard_app_password_error_title:
+      "To hasło nie zostało przyjęte",
     gmail_wizard_connect: "Połącz skrzynkę",
     gmail_wizard_password_label: "Hasło do aplikacji",
     gmail_wizard_progress: "Krok {{current}} z {{total}}",

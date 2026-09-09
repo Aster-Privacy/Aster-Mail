@@ -5937,6 +5937,27 @@ export const en: Translations = {
     alias_cap_upsell_alternative:
       "{{plan}} removes the alias limit if you need more.",
     alias_cap_upsell_cta: "Upgrade to {{plan}}",
+    special_offer_button: "Special offer",
+    special_offer_title: "Private mail, half price",
+    special_offer_subtitle: "50% off your first 12 months",
+    special_offer_price_period: "per month",
+    special_offer_save_badge: "Save {{percent}}%",
+    special_offer_checkout_error: "Something went wrong starting checkout. Try again.",
+    special_offer_was_price: "Was {{price}} per month",
+    special_offer_cta: "Get {{percent}}% off",
+    special_offer_feature_aliases: "Unlimited aliases and custom domains",
+    special_offer_feature_vanguard:
+      "Aster Vanguard app lock, lockdown mode, and security monitoring",
+    special_offer_feature_storage: "500 GB of encrypted storage",
+    special_offer_fine_print:
+      "You pay {{offer_price}} per month for the first {{months}} months. Your plan then renews at {{price}} per month until you cancel it in Settings.",
+    special_offer_dismiss: "Don't show this offer again",
+    special_offer_dismissed_toast: "We won't show you this again.",
+    special_offer_hero_plan: "Nova",
+    special_offer_hero_duration: "for {{months}} months",
+    plan_billing_terms:
+      "Subscriptions renew automatically at the standard rate until you cancel. Cancel at any time in Settings.",
+    upgrade_offer_note: "Your {{percent}}% discount is applied at checkout.",
     dns_records_for_domain: "DNS records for this domain:",
     add_dns_records_description:
       "Add these DNS records to your domain registrar to verify ownership and enable email:",
@@ -6591,6 +6612,8 @@ export const en: Translations = {
       "Are you sure you want to stop the sync? Already imported emails will remain.",
     connected_accounts_error:
       "This linked account is having trouble syncing, and we will retry automatically.",
+    connected_accounts_app_password_needed:
+      "Sign-in failed. This account needs an app password, not your regular password.",
     connected_accounts_password_reauth_needed:
       "Sign-in failed. Edit the account to update the password.",
     connected_accounts_reauth_needed:
@@ -7582,6 +7605,10 @@ export const en: Translations = {
     gmail_sync_step_3: "Create an app password for mail.",
     gmail_sync_step_4: "Copy the password and paste it into Aster.",
     gmail_sync_title: "Create an app password",
+    gmail_wizard_app_password_error_body:
+      "Your regular account password doesn't work here. Turn on two-step verification, create an app password for mail, then paste that password above.",
+    gmail_wizard_app_password_error_title:
+      "That password wasn't accepted",
     gmail_wizard_connect: "Connect mailbox",
     gmail_wizard_password_label: "App password",
     gmail_wizard_progress: "Step {{current}} of {{total}}",

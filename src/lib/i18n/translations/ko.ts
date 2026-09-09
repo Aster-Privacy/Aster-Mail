@@ -4995,6 +4995,27 @@ export const ko = {
     alias_cap_upsell_alternative:
       "{{plan}} removes the alias limit if you need more.",
     alias_cap_upsell_cta: "Upgrade to {{plan}}",
+    special_offer_button: "Special offer",
+    special_offer_title: "Private mail, half price",
+    special_offer_subtitle: "50% off your first 12 months",
+    special_offer_price_period: "per month",
+    special_offer_save_badge: "{{percent}}% 할인",
+    special_offer_checkout_error: "결제를 시작하지 못했습니다. 다시 시도해 주세요.",
+    special_offer_was_price: "Was {{price}} per month",
+    special_offer_cta: "Get {{percent}}% off",
+    special_offer_feature_aliases: "Unlimited aliases and custom domains",
+    special_offer_feature_vanguard:
+      "Aster Vanguard app lock, lockdown mode, and security monitoring",
+    special_offer_feature_storage: "500 GB of encrypted storage",
+    special_offer_fine_print:
+      "You pay {{offer_price}} per month for the first {{months}} months. Your plan then renews at {{price}} per month until you cancel it in Settings.",
+    special_offer_dismiss: "Don't show this offer again",
+    special_offer_dismissed_toast: "We won't show you this again.",
+    special_offer_hero_plan: "Nova",
+    special_offer_hero_duration: "{{months}}개월 동안",
+    plan_billing_terms:
+      "Subscriptions renew automatically at the standard rate until you cancel. Cancel at any time in Settings.",
+    upgrade_offer_note: "Your {{percent}}% discount is applied at checkout.",
     dns_records_for_domain: "이 도메인의 DNS 레코드:",
     add_dns_records_description:
       "소유권을 확인하고 이메일을 활성화하려면 도메인 등록 기관에 이 DNS 레코드를 추가하세요:",
@@ -6321,6 +6342,8 @@ export const ko = {
     connected_accounts_disconnect: "연결 끊기",
     connected_accounts_error:
       "이 연결한 계정의 동기화에 문제가 있어, 자동으로 다시 시도합니다.",
+    connected_accounts_app_password_needed:
+      "로그인하지 못했습니다. 이 계정에는 일반 비밀번호가 아니라 앱 비밀번호가 필요합니다.",
     connected_accounts_password_reauth_needed:
       "로그인하지 못했습니다. 계정을 편집해 비밀번호를 업데이트하세요.",
     connected_accounts_reauth_needed:
@@ -7561,6 +7584,10 @@ export const ko = {
     gmail_sync_step_3: "메일용 앱 비밀번호를 만듭니다.",
     gmail_sync_step_4: "비밀번호를 복사해 Aster에 붙여 넣습니다.",
     gmail_sync_title: "앱 비밀번호 만들기",
+    gmail_wizard_app_password_error_body:
+      "일반 계정 비밀번호는 여기서 작동하지 않습니다. 2단계 인증을 켜고 메일용 앱 비밀번호를 만든 다음 위에 붙여넣으세요.",
+    gmail_wizard_app_password_error_title:
+      "이 비밀번호는 사용할 수 없습니다",
     gmail_wizard_connect: "메일함 연결",
     gmail_wizard_password_label: "앱 비밀번호",
     gmail_wizard_progress: "{{total}}단계 중 {{current}}단계",

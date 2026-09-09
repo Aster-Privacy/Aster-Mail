@@ -5194,6 +5194,27 @@ export const ru = {
     alias_cap_upsell_alternative:
       "{{plan}} removes the alias limit if you need more.",
     alias_cap_upsell_cta: "Upgrade to {{plan}}",
+    special_offer_button: "Special offer",
+    special_offer_title: "Private mail, half price",
+    special_offer_subtitle: "50% off your first 12 months",
+    special_offer_price_period: "per month",
+    special_offer_save_badge: "Скидка {{percent}}%",
+    special_offer_checkout_error: "Не удалось начать оплату. Попробуйте снова.",
+    special_offer_was_price: "Was {{price}} per month",
+    special_offer_cta: "Get {{percent}}% off",
+    special_offer_feature_aliases: "Unlimited aliases and custom domains",
+    special_offer_feature_vanguard:
+      "Aster Vanguard app lock, lockdown mode, and security monitoring",
+    special_offer_feature_storage: "500 GB of encrypted storage",
+    special_offer_fine_print:
+      "You pay {{offer_price}} per month for the first {{months}} months. Your plan then renews at {{price}} per month until you cancel it in Settings.",
+    special_offer_dismiss: "Don't show this offer again",
+    special_offer_dismissed_toast: "We won't show you this again.",
+    special_offer_hero_plan: "Nova",
+    special_offer_hero_duration: "на {{months}} месяцев",
+    plan_billing_terms:
+      "Subscriptions renew automatically at the standard rate until you cancel. Cancel at any time in Settings.",
+    upgrade_offer_note: "Your {{percent}}% discount is applied at checkout.",
     dns_records_for_domain: "DNS-записи для этого домена:",
     add_dns_records_description:
       "Добавьте эти DNS-записи у вашего регистратора доменов для подтверждения владения и включения электронной почты:",
@@ -6305,6 +6326,8 @@ export const ru = {
     connected_accounts_disconnect: "Отключить",
     connected_accounts_error:
       "У этой связанной учётной записи возникают трудности с синхронизацией, и повтор будет автоматическим.",
+    connected_accounts_app_password_needed:
+      "Не удалось войти. Для этой учётной записи нужен пароль приложения, а не обычный пароль.",
     connected_accounts_password_reauth_needed:
       "Не удалось войти. Измените учётную запись, чтобы обновить пароль.",
     connected_accounts_reauth_needed:
@@ -8015,6 +8038,10 @@ export const ru = {
     gmail_sync_step_3: "Создайте пароль приложения для почты.",
     gmail_sync_step_4: "Скопируйте пароль и вставьте его в Aster.",
     gmail_sync_title: "Создание пароля приложения",
+    gmail_wizard_app_password_error_body:
+      "Обычный пароль учётной записи здесь не подходит. Включите двухэтапную проверку, создайте пароль приложения для почты и вставьте его выше.",
+    gmail_wizard_app_password_error_title:
+      "Этот пароль не принят",
     gmail_wizard_connect: "Подключить почтовый ящик",
     gmail_wizard_password_label: "Пароль приложения",
     gmail_wizard_progress: "Шаг {{current}} из {{total}}",

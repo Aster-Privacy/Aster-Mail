@@ -5084,6 +5084,27 @@ export const es = {
     alias_cap_upsell_alternative:
       "{{plan}} removes the alias limit if you need more.",
     alias_cap_upsell_cta: "Upgrade to {{plan}}",
+    special_offer_button: "Special offer",
+    special_offer_title: "Private mail, half price",
+    special_offer_subtitle: "50% off your first 12 months",
+    special_offer_price_period: "per month",
+    special_offer_save_badge: "Ahorra un {{percent}} %",
+    special_offer_checkout_error: "Se produjo un error al iniciar el pago. Vuelve a intentarlo.",
+    special_offer_was_price: "Was {{price}} per month",
+    special_offer_cta: "Get {{percent}}% off",
+    special_offer_feature_aliases: "Unlimited aliases and custom domains",
+    special_offer_feature_vanguard:
+      "Aster Vanguard app lock, lockdown mode, and security monitoring",
+    special_offer_feature_storage: "500 GB of encrypted storage",
+    special_offer_fine_print:
+      "You pay {{offer_price}} per month for the first {{months}} months. Your plan then renews at {{price}} per month until you cancel it in Settings.",
+    special_offer_dismiss: "Don't show this offer again",
+    special_offer_dismissed_toast: "We won't show you this again.",
+    special_offer_hero_plan: "Nova",
+    special_offer_hero_duration: "durante {{months}} meses",
+    plan_billing_terms:
+      "Subscriptions renew automatically at the standard rate until you cancel. Cancel at any time in Settings.",
+    upgrade_offer_note: "Your {{percent}}% discount is applied at checkout.",
     dns_records_for_domain: "Registros DNS para este dominio:",
     add_dns_records_description:
       "Añade estos registros DNS en tu registrador de dominio para verificar la propiedad y habilitar el correo:",
@@ -6202,6 +6223,8 @@ export const es = {
     connected_accounts_disconnect: "Desconectar",
     connected_accounts_error:
       "Esta cuenta vinculada está teniendo problemas para sincronizarse, y reintentaremos automáticamente.",
+    connected_accounts_app_password_needed:
+      "No se pudo iniciar sesión. Esta cuenta necesita una contraseña de aplicación, no tu contraseña habitual.",
     connected_accounts_password_reauth_needed:
       "No se pudo iniciar sesión. Edita la cuenta para actualizar la contraseña.",
     connected_accounts_reauth_needed:
@@ -7782,6 +7805,10 @@ export const es = {
     gmail_sync_step_3: "Crea una contraseña de aplicación para el correo.",
     gmail_sync_step_4: "Copia la contraseña y pégala en Aster.",
     gmail_sync_title: "Crear una contraseña de aplicación",
+    gmail_wizard_app_password_error_body:
+      "La contraseña normal de tu cuenta no funciona aquí. Activa la verificación en dos pasos, crea una contraseña de aplicación para el correo y pégala arriba.",
+    gmail_wizard_app_password_error_title:
+      "No se aceptó esa contraseña",
     gmail_wizard_connect: "Conectar el buzón",
     gmail_wizard_password_label: "Contraseña de aplicación",
     gmail_wizard_progress: "Paso {{current}} de {{total}}",

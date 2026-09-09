@@ -5044,6 +5044,27 @@ export const de = {
     alias_cap_upsell_alternative:
       "{{plan}} removes the alias limit if you need more.",
     alias_cap_upsell_cta: "Upgrade to {{plan}}",
+    special_offer_button: "Special offer",
+    special_offer_title: "Private mail, half price",
+    special_offer_subtitle: "50% off your first 12 months",
+    special_offer_price_period: "per month",
+    special_offer_save_badge: "{{percent}} % sparen",
+    special_offer_checkout_error: "Beim Start des Bezahlvorgangs ist etwas schiefgelaufen. Versuche es erneut.",
+    special_offer_was_price: "Was {{price}} per month",
+    special_offer_cta: "Get {{percent}}% off",
+    special_offer_feature_aliases: "Unlimited aliases and custom domains",
+    special_offer_feature_vanguard:
+      "Aster Vanguard app lock, lockdown mode, and security monitoring",
+    special_offer_feature_storage: "500 GB of encrypted storage",
+    special_offer_fine_print:
+      "You pay {{offer_price}} per month for the first {{months}} months. Your plan then renews at {{price}} per month until you cancel it in Settings.",
+    special_offer_dismiss: "Don't show this offer again",
+    special_offer_dismissed_toast: "We won't show you this again.",
+    special_offer_hero_plan: "Nova",
+    special_offer_hero_duration: "für {{months}} Monate",
+    plan_billing_terms:
+      "Subscriptions renew automatically at the standard rate until you cancel. Cancel at any time in Settings.",
+    upgrade_offer_note: "Your {{percent}}% discount is applied at checkout.",
     dns_records_for_domain: "DNS-Einträge für diese Domain:",
     add_dns_records_description:
       "Fügen Sie diese DNS-Einträge bei Ihrem Domain-Registrar hinzu, um den Besitz zu verifizieren und E-Mail zu aktivieren:",
@@ -6433,6 +6454,8 @@ export const de = {
     connected_accounts_disconnect: "Trennen",
     connected_accounts_error:
       "Dieses verknüpfte Konto hat Schwierigkeiten beim Synchronisieren, ein erneuter Versuch erfolgt automatisch.",
+    connected_accounts_app_password_needed:
+      "Anmeldung fehlgeschlagen. Dieses Konto benötigt ein App-Passwort, nicht Ihr normales Passwort.",
     connected_accounts_password_reauth_needed:
       "Anmeldung fehlgeschlagen. Bearbeiten Sie das Konto, um das Passwort zu aktualisieren.",
     connected_accounts_reauth_needed:
@@ -7876,6 +7899,10 @@ export const de = {
     gmail_sync_step_3: "Erstelle ein App-Passwort für Mail.",
     gmail_sync_step_4: "Kopiere das Passwort und füge es in Aster ein.",
     gmail_sync_title: "App-Passwort erstellen",
+    gmail_wizard_app_password_error_body:
+      "Ihr normales Kontopasswort funktioniert hier nicht. Aktivieren Sie die zweistufige Verifizierung, erstellen Sie ein App-Passwort für E-Mail und fügen Sie es oben ein.",
+    gmail_wizard_app_password_error_title:
+      "Dieses Passwort wurde nicht akzeptiert",
     gmail_wizard_connect: "Postfach verbinden",
     gmail_wizard_password_label: "App-Passwort",
     gmail_wizard_progress: "Schritt {{current}} von {{total}}",

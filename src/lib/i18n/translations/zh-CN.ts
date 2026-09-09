@@ -4554,6 +4554,27 @@ export const zh_CN = {
     alias_cap_upsell_alternative:
       "{{plan}} removes the alias limit if you need more.",
     alias_cap_upsell_cta: "Upgrade to {{plan}}",
+    special_offer_button: "Special offer",
+    special_offer_title: "Private mail, half price",
+    special_offer_subtitle: "50% off your first 12 months",
+    special_offer_price_period: "per month",
+    special_offer_save_badge: "省 {{percent}}%",
+    special_offer_checkout_error: "启动结账时出现问题。请重试。",
+    special_offer_was_price: "Was {{price}} per month",
+    special_offer_cta: "Get {{percent}}% off",
+    special_offer_feature_aliases: "Unlimited aliases and custom domains",
+    special_offer_feature_vanguard:
+      "Aster Vanguard app lock, lockdown mode, and security monitoring",
+    special_offer_feature_storage: "500 GB of encrypted storage",
+    special_offer_fine_print:
+      "You pay {{offer_price}} per month for the first {{months}} months. Your plan then renews at {{price}} per month until you cancel it in Settings.",
+    special_offer_dismiss: "Don't show this offer again",
+    special_offer_dismissed_toast: "We won't show you this again.",
+    special_offer_hero_plan: "Nova",
+    special_offer_hero_duration: "为期 {{months}} 个月",
+    plan_billing_terms:
+      "Subscriptions renew automatically at the standard rate until you cancel. Cancel at any time in Settings.",
+    upgrade_offer_note: "Your {{percent}}% discount is applied at checkout.",
     dns_records_for_domain: "此域名的 DNS 记录：",
     add_dns_records_description:
       "将这些 DNS 记录添加到您的域名注册商以验证所有权并启用邮件：",
@@ -5777,6 +5798,8 @@ export const zh_CN = {
     connected_accounts_disconnect: "断开连接",
     connected_accounts_error:
       "这个关联账户的同步出现了一些问题，我们会自动重试。",
+    connected_accounts_app_password_needed:
+      "登录失败。此账户需要应用专用密码，而不是您的常用密码。",
     connected_accounts_password_reauth_needed:
       "登录失败。请编辑账户以更新密码。",
     connected_accounts_reauth_needed: "需要重新授权。请点按重新连接来解决。",
@@ -6981,6 +7004,10 @@ export const zh_CN = {
     gmail_sync_step_3: "为邮件创建一个应用专用密码。",
     gmail_sync_step_4: "复制该密码并粘贴到 Aster。",
     gmail_sync_title: "创建应用专用密码",
+    gmail_wizard_app_password_error_body:
+      "您的常用账户密码在此无法使用。请开启两步验证，为邮件创建应用专用密码，然后将其粘贴到上方。",
+    gmail_wizard_app_password_error_title:
+      "该密码未被接受",
     gmail_wizard_connect: "连接邮箱",
     gmail_wizard_password_label: "应用专用密码",
     gmail_wizard_progress: "第 {{current}} 步，共 {{total}} 步",

@@ -5107,6 +5107,27 @@ export const ar = {
     alias_cap_upsell_alternative:
       "{{plan}} removes the alias limit if you need more.",
     alias_cap_upsell_cta: "Upgrade to {{plan}}",
+    special_offer_button: "Special offer",
+    special_offer_title: "Private mail, half price",
+    special_offer_subtitle: "50% off your first 12 months",
+    special_offer_price_period: "per month",
+    special_offer_save_badge: "وفّر {{percent}}٪",
+    special_offer_checkout_error: "حدث خطأ أثناء بدء الدفع. حاول مرة أخرى.",
+    special_offer_was_price: "Was {{price}} per month",
+    special_offer_cta: "Get {{percent}}% off",
+    special_offer_feature_aliases: "Unlimited aliases and custom domains",
+    special_offer_feature_vanguard:
+      "Aster Vanguard app lock, lockdown mode, and security monitoring",
+    special_offer_feature_storage: "500 GB of encrypted storage",
+    special_offer_fine_print:
+      "You pay {{offer_price}} per month for the first {{months}} months. Your plan then renews at {{price}} per month until you cancel it in Settings.",
+    special_offer_dismiss: "Don't show this offer again",
+    special_offer_dismissed_toast: "We won't show you this again.",
+    special_offer_hero_plan: "Nova",
+    special_offer_hero_duration: "لمدة {{months}} شهرًا",
+    plan_billing_terms:
+      "Subscriptions renew automatically at the standard rate until you cancel. Cancel at any time in Settings.",
+    upgrade_offer_note: "Your {{percent}}% discount is applied at checkout.",
     dns_records_for_domain: "سجلات DNS لهذا النطاق:",
     add_dns_records_description:
       "أضف سجلات DNS هذه إلى مسجل نطاقك للتحقق من الملكية وتفعيل البريد:",
@@ -6403,6 +6424,8 @@ export const ar = {
     connected_accounts_disconnect: "قطع الاتصال",
     connected_accounts_error:
       "هذا الحساب المرتبط يواجه صعوبة في المزامنة، وستُعاد المحاولة تلقائيًا.",
+    connected_accounts_app_password_needed:
+      "فشل تسجيل الدخول. يحتاج هذا الحساب إلى كلمة مرور تطبيق، وليس كلمة مرورك المعتادة.",
     connected_accounts_password_reauth_needed:
       "فشل تسجيل الدخول. عدّل الحساب لتحديث كلمة السر.",
     connected_accounts_reauth_needed:
@@ -7759,6 +7782,10 @@ export const ar = {
     gmail_sync_step_3: "أنشئ كلمة مرور تطبيق للبريد.",
     gmail_sync_step_4: "انسخ كلمة المرور والصقها في Aster.",
     gmail_sync_title: "إنشاء كلمة مرور تطبيق",
+    gmail_wizard_app_password_error_body:
+      "كلمة مرور حسابك المعتادة لا تعمل هنا. فعّل التحقق بخطوتين، وأنشئ كلمة مرور تطبيق للبريد، ثم الصقها في الأعلى.",
+    gmail_wizard_app_password_error_title:
+      "لم تُقبل كلمة المرور هذه",
     gmail_wizard_connect: "ربط صندوق البريد",
     gmail_wizard_password_label: "كلمة مرور التطبيق",
     gmail_wizard_progress: "الخطوة {{current}} من {{total}}",

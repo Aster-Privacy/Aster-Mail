@@ -5053,6 +5053,27 @@ export const ja = {
     alias_cap_upsell_alternative:
       "{{plan}} removes the alias limit if you need more.",
     alias_cap_upsell_cta: "Upgrade to {{plan}}",
+    special_offer_button: "Special offer",
+    special_offer_title: "Private mail, half price",
+    special_offer_subtitle: "50% off your first 12 months",
+    special_offer_price_period: "per month",
+    special_offer_save_badge: "{{percent}}%お得",
+    special_offer_checkout_error: "チェックアウトを開始できませんでした。もう一度お試しください。",
+    special_offer_was_price: "Was {{price}} per month",
+    special_offer_cta: "Get {{percent}}% off",
+    special_offer_feature_aliases: "Unlimited aliases and custom domains",
+    special_offer_feature_vanguard:
+      "Aster Vanguard app lock, lockdown mode, and security monitoring",
+    special_offer_feature_storage: "500 GB of encrypted storage",
+    special_offer_fine_print:
+      "You pay {{offer_price}} per month for the first {{months}} months. Your plan then renews at {{price}} per month until you cancel it in Settings.",
+    special_offer_dismiss: "Don't show this offer again",
+    special_offer_dismissed_toast: "We won't show you this again.",
+    special_offer_hero_plan: "Nova",
+    special_offer_hero_duration: "{{months}} か月間",
+    plan_billing_terms:
+      "Subscriptions renew automatically at the standard rate until you cancel. Cancel at any time in Settings.",
+    upgrade_offer_note: "Your {{percent}}% discount is applied at checkout.",
     dns_records_for_domain: "このドメインのDNSレコード：",
     add_dns_records_description:
       "所有権を確認しメールを有効にするには、ドメインレジストラに以下のDNSレコードを追加してください：",
@@ -6399,6 +6420,8 @@ export const ja = {
     connected_accounts_disconnect: "切断",
     connected_accounts_error:
       "この連携アカウントは同期に問題が発生しており、自動的に再試行されます。",
+    connected_accounts_app_password_needed:
+      "サインインできませんでした。このアカウントには通常のパスワードではなくアプリパスワードが必要です。",
     connected_accounts_password_reauth_needed:
       "サインインできませんでした。アカウントを編集してパスワードを更新してください。",
     connected_accounts_reauth_needed:
@@ -7773,6 +7796,10 @@ export const ja = {
     gmail_sync_step_3: "メール用のアプリパスワードを作成します。",
     gmail_sync_step_4: "パスワードをコピーして Aster に貼り付けます。",
     gmail_sync_title: "アプリパスワードを作成する",
+    gmail_wizard_app_password_error_body:
+      "通常のアカウントのパスワードはここでは使えません。2 段階認証を有効にし、メール用のアプリパスワードを作成して、上に貼り付けてください。",
+    gmail_wizard_app_password_error_title:
+      "このパスワードは受け付けられませんでした",
     gmail_wizard_connect: "メールボックスを接続",
     gmail_wizard_password_label: "アプリパスワード",
     gmail_wizard_progress: "ステップ {{current}}/{{total}}",
