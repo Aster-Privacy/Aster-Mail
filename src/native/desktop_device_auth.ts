@@ -264,13 +264,9 @@ export function consume_pending_device_login(): {
   return data;
 }
 
-let desktop_device_auth_initialized = false;
+let desktop_device_auth_run: Promise<void> | null = null;
 
-export async function init_desktop_device_auth(): Promise<void> {
-  if (!is_tauri()) return;
-  if (desktop_device_auth_initialized) return;
-  desktop_device_auth_initialized = true;
-
+async function run_desktop_device_auth(): Promise<void> {
   try {
     const pubkeys = await invoke<DevicePubkeys>("device_get_pubkeys");
 
@@ -285,14 +281,22 @@ export async function init_desktop_device_auth(): Promise<void> {
     }
 
     await silent_device_login(pubkeys.device_id);
-  } catch {
-    // Pairing failed; UI will surface needs-pairing event when applicable
+  } catch (caught) {
+    ignore_error("native/desktop_device_auth:init", caught);
   }
+}
+
+export function init_desktop_device_auth(): Promise<void> {
+  if (!is_tauri()) return Promise.resolve();
+  if (desktop_device_auth_run) return desktop_device_auth_run;
+  desktop_device_auth_run = run_desktop_device_auth();
+
+  return desktop_device_auth_run;
 }
 
 async function reset_device_auth(command: string): Promise<void> {
   if (!is_tauri()) return;
-  desktop_device_auth_initialized = false;
+  desktop_device_auth_run = null;
   pending_device_login = null;
   await invoke(command);
 }
