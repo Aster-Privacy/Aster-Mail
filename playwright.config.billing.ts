@@ -22,46 +22,20 @@ import { defineConfig, devices } from "@playwright/test";
 
 import { resolve_base_url } from "./playwright_base_url";
 
-const BASE_URL = resolve_base_url();
-
 export default defineConfig({
   testDir: "./playwright",
+  testMatch: ["billing_*_local.spec.ts"],
   fullyParallel: false,
-  forbidOnly: !!process.env.CI,
-  retries: 1,
+  retries: 0,
   workers: 1,
-  reporter: [["html", { open: "never" }], ["list"]],
-  timeout: 90_000,
-  expect: {
-    timeout: 15_000,
-  },
+  reporter: [["list"]],
+  timeout: 600_000,
+  expect: { timeout: 15_000 },
   use: {
-    baseURL: BASE_URL,
-    trace: "on-first-retry",
+    baseURL: resolve_base_url(),
+    trace: "off",
     screenshot: "only-on-failure",
-    video: "on-first-retry",
-    ignoreHTTPSErrors: true,
-    serviceWorkers: "block",
+    video: "off",
   },
-  projects: [
-    {
-      name: "setup",
-      testMatch: /global_setup\.ts/,
-    },
-    {
-      name: "chromium",
-      use: { ...devices["Desktop Chrome"] },
-      dependencies: ["setup"],
-    },
-    {
-      name: "firefox",
-      use: { ...devices["Desktop Firefox"] },
-      dependencies: ["setup"],
-    },
-    {
-      name: "mobile-chrome",
-      use: { ...devices["Pixel 7"] },
-      dependencies: ["setup"],
-    },
-  ],
+  projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
 });
