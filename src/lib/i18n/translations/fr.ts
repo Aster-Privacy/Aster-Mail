@@ -5139,28 +5139,29 @@ export const fr = {
     alias_cap_upsell_alternative:
       "{{plan}} removes the alias limit if you need more.",
     alias_cap_upsell_cta: "Upgrade to {{plan}}",
-    special_offer_button: "Special offer",
-    special_offer_title: "Private mail, half price",
-    special_offer_subtitle: "50% off your first 12 months",
-    special_offer_price_period: "per month",
+    special_offer_button: "Offre spéciale",
+    special_offer_title: "La messagerie privée à moitié prix",
+    special_offer_subtitle: "50 % de réduction sur les 12 premiers mois",
+    special_offer_price_period: "par mois",
     special_offer_save_badge: "Économisez {{percent}} %",
     special_offer_checkout_error:
       "Une erreur s'est produite au lancement du paiement. Réessayez.",
-    special_offer_was_price: "Was {{price}} per month",
-    special_offer_cta: "Get {{percent}}% off",
-    special_offer_feature_aliases: "Unlimited aliases and custom domains",
+    special_offer_was_price: "Avant {{price}} par mois",
+    special_offer_cta: "Obtenir {{percent}} % de réduction",
+    special_offer_feature_aliases: "Alias illimités et domaines personnalisés",
     special_offer_feature_vanguard:
-      "Aster Vanguard app lock, lockdown mode, and security monitoring",
-    special_offer_feature_storage: "500 GB of encrypted storage",
+      "Verrouillage de l'app Aster Vanguard, mode confinement et surveillance de sécurité",
+    special_offer_feature_storage: "500 Go de stockage chiffré",
     special_offer_fine_print:
-      "You pay {{offer_price}} per month for the first {{months}} months. Your plan then renews at {{price}} per month until you cancel it in Settings.",
-    special_offer_dismiss: "Don't show this offer again",
-    special_offer_dismissed_toast: "We won't show you this again.",
+      "Vous payez {{offer_price}} par mois pendant les {{months}} premiers mois. Votre offre est ensuite renouvelée à {{price}} par mois jusqu'à ce que vous l'annuliez dans Réglages.",
+    special_offer_dismiss: "Ne plus afficher cette offre",
+    special_offer_dismissed_toast: "Nous ne vous le montrerons plus.",
     special_offer_hero_plan: "Nova",
     special_offer_hero_duration: "pendant {{months}} mois",
     plan_billing_terms:
-      "Subscriptions renew automatically at the standard rate until you cancel. Cancel at any time in Settings.",
-    upgrade_offer_note: "Your {{percent}}% discount is applied at checkout.",
+      "Les abonnements sont renouvelés automatiquement au tarif standard jusqu'à leur annulation. Vous pouvez annuler à tout moment dans Réglages.",
+    upgrade_offer_note:
+      "Votre réduction de {{percent}} % est appliquée au paiement.",
     dns_records_for_domain: "Enregistrements DNS pour ce domaine :",
     add_dns_records_description:
       "Ajoutez ces enregistrements DNS à votre registraire de domaine pour vérifier la propriété et activer l'e-mail :",
