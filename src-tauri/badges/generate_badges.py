@@ -9,8 +9,10 @@ RING = (10, 10, 14, 235)
 TEXT = (255, 255, 255, 255)
 FONT_PATH = "C:/Windows/Fonts/segoeuib.ttf"
 
-RING_PX = 1.35
-INSET_PX = 0.35
+DIAM_PX = 22.0
+MARGIN_PX = 0.5
+RING_PX = 1.1
+SCALE = DIAM_PX / SIZE
 
 
 def label_for(count):
@@ -20,9 +22,8 @@ def label_for(count):
 
 
 def fitted_font(draw, label):
-    target_w = {1: 17.5, 2: 22.0, 3: 25.0}[len(label)]
-    target_h = {1: 19.0, 2: 17.0, 3: 14.0}[len(label)]
-    size = SIZE * SS
+    target_w = {1: 17.5, 2: 22.0, 3: 27.5}[len(label)] * SCALE
+    target_h = {1: 19.0, 2: 17.0, 3: 15.5}[len(label)] * SCALE
     lo, hi = 8, CANVAS
     best = None
     while lo <= hi:
@@ -42,17 +43,21 @@ def fitted_font(draw, label):
 def render(count):
     im = Image.new("RGBA", (CANVAS, CANVAS), (0, 0, 0, 0))
     d = ImageDraw.Draw(im)
-    outer = INSET_PX * SS
-    d.ellipse([outer, outer, CANVAS - 1 - outer, CANVAS - 1 - outer], fill=RING)
-    inner = outer + RING_PX * SS
-    d.ellipse([inner, inner, CANVAS - 1 - inner, CANVAS - 1 - inner], fill=FILL)
+
+    right = CANVAS - 1 - MARGIN_PX * SS
+    bottom = right
+    left = right - DIAM_PX * SS
+    top = bottom - DIAM_PX * SS
+    d.ellipse([left, top, right, bottom], fill=RING)
+    ring = RING_PX * SS
+    d.ellipse([left + ring, top + ring, right - ring, bottom - ring], fill=FILL)
 
     label = label_for(count)
     font, box = fitted_font(d, label)
     w = box[2] - box[0]
     h = box[3] - box[1]
-    x = (CANVAS - w) / 2 - box[0]
-    y = (CANVAS - h) / 2 - box[1]
+    x = (left + right - w) / 2 - box[0]
+    y = (top + bottom - h) / 2 - box[1]
     d.text((x, y), label, font=font, fill=TEXT)
 
     return im.resize((SIZE, SIZE), Image.LANCZOS)
