@@ -147,22 +147,22 @@ export async function perform_pgp_rekey(
 export async function rekey_pgp_if_needed(
   user_email: string | null,
   user_name: string | null,
-): Promise<void> {
-  if (rekey_in_progress) return;
-  if (!user_email) return;
+): Promise<boolean> {
+  if (rekey_in_progress) return false;
+  if (!user_email) return false;
 
-  if (!get_vault_from_memory() || !get_passphrase_from_memory()) return;
+  if (!get_vault_from_memory() || !get_passphrase_from_memory()) return false;
 
   rekey_in_progress = true;
 
   try {
-    await with_vault_write_lock(async () => {
+    return await with_vault_write_lock(async () => {
       const { sync_vault_with_server } = await import(
         "@/services/crypto/ensure_ratchet_keys"
       );
       const freshness = await sync_vault_with_server();
 
-      if (freshness.status === "unverified") return;
+      if (freshness.status === "unverified") return false;
 
       const vault =
         freshness.status === "adopted"
@@ -170,7 +170,7 @@ export async function rekey_pgp_if_needed(
           : get_vault_from_memory();
       const passphrase = get_passphrase_from_memory();
 
-      if (!vault || !passphrase) return;
+      if (!vault || !passphrase) return false;
 
       const result = await perform_pgp_rekey(
         vault,
@@ -179,23 +179,24 @@ export async function rekey_pgp_if_needed(
         user_name || user_email,
       );
 
-      if (result.success && result.new_vault) {
-        await store_vault_in_memory(result.new_vault, passphrase);
+      if (!result.success || !result.new_vault) return false;
 
-        const { upload_prekey_bundle } = await import(
-          "@/services/crypto/ratchet_manager"
-        );
+      await store_vault_in_memory(result.new_vault, passphrase);
 
-        await upload_prekey_bundle(result.new_vault).catch((caught) =>
-          ignore_error(
-            "services/pgp_rekey_service:rekey_pgp_if_needed",
-            caught,
-          ),
-        );
-      }
+      const { upload_prekey_bundle } = await import(
+        "@/services/crypto/ratchet_manager"
+      );
+
+      await upload_prekey_bundle(result.new_vault).catch((caught) =>
+        ignore_error("services/pgp_rekey_service:rekey_pgp_if_needed", caught),
+      );
+
+      return true;
     });
   } catch (caught) {
     ignore_error("services/pgp_rekey_service:rekey_pgp_if_needed", caught);
+
+    return false;
   } finally {
     rekey_in_progress = false;
   }
