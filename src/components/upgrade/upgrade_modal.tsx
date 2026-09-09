@@ -23,7 +23,6 @@ import type { ChangeEvent } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { LockClosedIcon, CheckCircleIcon } from "@heroicons/react/24/solid";
-import { ShieldCheckIcon } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
 import {
@@ -83,6 +82,10 @@ import {
   type UpgradeLimitKey,
 } from "@/stores/upgrade_store";
 import { checkout_error_text } from "@/components/settings/billing/checkout_error_text";
+import {
+  SPECIAL_OFFER_INTERVAL,
+  SPECIAL_OFFER_PLAN_CODE,
+} from "@/lib/special_offer";
 
 const LIMIT_LABEL_KEY: Record<UpgradeLimitKey, string> = {
   max_email_aliases: "settings.usage_aliases",
@@ -168,8 +171,6 @@ const GRID_COLUMNS: Record<number, string> = {
 
 function upgrade_tiers(plan_code: string | null): PlanTier[] {
   const index = PLAN_TIERS.findIndex((tier) => tier.id === plan_code);
-
-  if (index === -1 && plan_code && plan_code !== "free") return [];
 
   return PLAN_TIERS.slice(index + 1);
 }
@@ -544,6 +545,16 @@ export function UpgradeModal() {
     set_pending_tier(tier);
   };
 
+  const offer_promo_code_for = (tier_id: string, billing?: string) => {
+    if (!state.offer_promo_code) return undefined;
+    if (tier_id !== SPECIAL_OFFER_PLAN_CODE) return undefined;
+    if (billing !== undefined && billing !== SPECIAL_OFFER_INTERVAL) {
+      return undefined;
+    }
+
+    return state.offer_promo_code;
+  };
+
   const handle_choose_crypto = (selected_term_id?: string) => {
     if (is_starting || !pending_tier) return;
 
@@ -575,6 +586,8 @@ export function UpgradeModal() {
         pending_tier.id,
         billing,
         currency,
+        undefined,
+        offer_promo_code_for(pending_tier.id, billing),
       );
 
       if (!result.ok) {
@@ -599,7 +612,7 @@ export function UpgradeModal() {
   };
 
   useEffect(() => {
-    const guard_active = (state.is_open && !is_blocked) || !!pending_tier;
+    const guard_active = is_starting || !!pending_tier;
 
     if (!guard_active) return;
 
@@ -615,7 +628,7 @@ export function UpgradeModal() {
     return () => {
       window.removeEventListener("beforeunload", handle_before_unload);
     };
-  }, [state.is_open, is_blocked, pending_tier, t]);
+  }, [is_starting, pending_tier, t]);
 
   const handle_compare_plans = () => {
     set_compare_open(true);
@@ -655,6 +668,16 @@ export function UpgradeModal() {
         </ModalHeader>
 
         <ModalBody className="space-y-4">
+          {state.offer_percent_off ? (
+            <div className="rounded-2xl border border-edge-secondary bg-surf-tertiary px-3.5 py-2.5">
+              <p className="text-[13px] text-txt-secondary">
+                {t("settings.upgrade_offer_note", {
+                  percent: String(state.offer_percent_off),
+                })}
+              </p>
+            </div>
+          ) : null}
+
           {state.limit_key === "max_external_accounts" ? (
             <div className="rounded-2xl border border-edge-secondary bg-surf-tertiary px-3.5 py-2.5">
               <p className="text-[13px] text-txt-secondary">
@@ -907,13 +930,9 @@ export function UpgradeModal() {
           )}
 
           <div className="flex flex-col items-center gap-1.5 pt-1">
-            <div className="flex items-center justify-center gap-1.5 text-[13px] text-txt-secondary">
-              <ShieldCheckIcon
-                className="w-4 h-4 flex-shrink-0"
-                style={{ color: "var(--accent-blue)" }}
-              />
-              <span>{t("settings.cancel_anytime")}</span>
-            </div>
+            <p className="text-center text-[12px] leading-relaxed text-txt-tertiary">
+              {t("settings.plan_billing_terms")}
+            </p>
             <p className="text-xs text-txt-muted text-center">
               {t("auth.no_ads_no_tracking")}
             </p>
@@ -1039,6 +1058,7 @@ export function UpgradeModal() {
           plan_code={crypto_tier.id}
           plan_name={crypto_tier.name}
           preferred_currency={currency}
+          promo_code={offer_promo_code_for(crypto_tier.id) ?? null}
           yearly_price_cents={crypto_tier.yearly_cents}
         />
       )}
