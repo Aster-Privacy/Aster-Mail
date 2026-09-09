@@ -6418,6 +6418,11 @@ export const ja = {
     domain_purchase_progress_note:
       "ドメインの登録とメールボックスの設定を行っています。通常は1分ほどで完了します。",
     domain_purchase_complete_cta: "購入を完了",
+    domain_purchase_cancel_payment_title: "この支払いをキャンセルしますか？",
+    domain_purchase_cancel_payment_message:
+      "カスタムドメインのこの支払いを本当にキャンセルしますか？",
+    domain_purchase_cancel_payment_confirm: "支払いをキャンセル",
+    domain_purchase_cancel_payment_keep: "支払いを続ける",
     domain_purchase_purchased_lapsed: "期限切れ - 再購入",
     domain_purchase_error_paused:
       "ドメインの購入は数分間停止しています。しばらくしてからもう一度お試しください。",

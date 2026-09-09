@@ -6419,6 +6419,11 @@ export const tr = {
     domain_purchase_progress_note:
       "Alan adınızı kaydedip posta kutularınızı kurarken lütfen bekleyin. Bu genellikle yaklaşık bir dakika sürer.",
     domain_purchase_complete_cta: "Satın almayı tamamla",
+    domain_purchase_cancel_payment_title: "Bu ödeme iptal edilsin mi?",
+    domain_purchase_cancel_payment_message:
+      "Özel alan adı için bu ödemeyi iptal etmek istediğinden emin misin?",
+    domain_purchase_cancel_payment_confirm: "Ödemeyi iptal et",
+    domain_purchase_cancel_payment_keep: "Ödemeyi koru",
     domain_purchase_purchased_lapsed: "Süresi doldu - yeniden al",
     domain_purchase_error_paused:
       "Alan adı satın alma işlemleri birkaç dakikalığına duraklatıldı. Lütfen kısa süre sonra tekrar deneyin.",

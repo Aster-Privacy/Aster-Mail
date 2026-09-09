@@ -6331,6 +6331,11 @@ export const de = {
     domain_purchase_progress_note:
       "Bitte warte, während wir deine Domain registrieren und deine Postfächer einrichten. Das dauert in der Regel etwa eine Minute.",
     domain_purchase_complete_cta: "Kauf abschließen",
+    domain_purchase_cancel_payment_title: "Diese Zahlung abbrechen?",
+    domain_purchase_cancel_payment_message:
+      "Möchtest du diese Zahlung für die eigene Domain wirklich abbrechen?",
+    domain_purchase_cancel_payment_confirm: "Zahlung abbrechen",
+    domain_purchase_cancel_payment_keep: "Zahlung behalten",
     domain_purchase_purchased_lapsed: "Abgelaufen - erneut kaufen",
     domain_purchase_error_paused:
       "Domain-Käufe sind für ein paar Minuten pausiert. Bitte versuchen Sie es gleich noch einmal.",

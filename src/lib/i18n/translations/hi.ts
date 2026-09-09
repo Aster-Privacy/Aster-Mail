@@ -6213,6 +6213,11 @@ export const hi = {
     domain_purchase_progress_note:
       "जब तक हम आपका डोमेन पंजीकृत करके आपके मेलबॉक्स सेट करते हैं, थोड़ा इंतज़ार करें। इसमें आमतौर पर करीब एक मिनट लगता है।",
     domain_purchase_complete_cta: "खरीद पूरी करें",
+    domain_purchase_cancel_payment_title: "यह भुगतान रद्द करें?",
+    domain_purchase_cancel_payment_message:
+      "क्या आप वाकई कस्टम डोमेन के लिए यह भुगतान रद्द करना चाहते हैं?",
+    domain_purchase_cancel_payment_confirm: "भुगतान रद्द करें",
+    domain_purchase_cancel_payment_keep: "भुगतान रखें",
     domain_purchase_purchased_lapsed: "समाप्त हो गया, दोबारा खरीदें",
     domain_purchase_terms_notice:
       "Aster आपकी ओर से हमारे रजिस्ट्रार साझेदार के ज़रिए डोमेन पंजीकृत करता है, और नवीनीकरण की कीमत भुगतान से पहले हमेशा दिखाई जाती है। अगर आप कभी किसी डोमेन को समाप्त हो जाने देते हैं, तो रजिस्ट्रार उसे वापस पाने के लिए रिकवरी शुल्क ले सकता है।",
