@@ -22,7 +22,6 @@ def label_for(count):
 def fitted_font(draw, label):
     target_w = {1: 17.5, 2: 22.0, 3: 25.0}[len(label)]
     target_h = {1: 19.0, 2: 17.0, 3: 14.0}[len(label)]
-    size = SIZE * SS
     lo, hi = 8, CANVAS
     best = None
     while lo <= hi:
