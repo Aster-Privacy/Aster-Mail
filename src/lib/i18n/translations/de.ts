@@ -5018,6 +5018,9 @@ export const de = {
       "{{ address }} ist für Ihr Konto reserviert, niemand sonst kann sie registrieren. Erstellen Sie sie als Alias, wenn Sie damit senden und empfangen möchten.",
     twin_address_available_description:
       "{{ address }} ist die passende Adresse auf der anderen Aster-Domain. Erstellen Sie sie als Alias, um damit zu senden und zu empfangen.",
+    twin_address_title_multiple: "Ihre passenden Adressen",
+    twin_address_multiple_description:
+      "{{ local_part }} ist auf {{ count }} Aster-Domains für Ihr Konto reserviert, niemand sonst kann sie registrieren. Erstellen Sie sie als Alias, wenn Sie damit senden und empfangen möchten.",
     twin_address_create: "Alias erstellen",
     custom_domain_addresses_note:
       "Sie können auch Adressen auf Ihren verifizierten benutzerdefinierten Domains erstellen.",
@@ -5049,7 +5052,8 @@ export const de = {
     special_offer_subtitle: "50% off your first 12 months",
     special_offer_price_period: "per month",
     special_offer_save_badge: "{{percent}} % sparen",
-    special_offer_checkout_error: "Beim Start des Bezahlvorgangs ist etwas schiefgelaufen. Versuche es erneut.",
+    special_offer_checkout_error:
+      "Beim Start des Bezahlvorgangs ist etwas schiefgelaufen. Versuche es erneut.",
     special_offer_was_price: "Was {{price}} per month",
     special_offer_cta: "Get {{percent}}% off",
     special_offer_feature_aliases: "Unlimited aliases and custom domains",

@@ -5063,6 +5063,9 @@ export const pt = {
       "{{ address }} está reservado para a sua conta, por isso mais ninguém o pode registar. Crie-o como alias quando quiser enviar e receber a partir dele.",
     twin_address_available_description:
       "{{ address }} é o endereço correspondente no outro domínio Aster. Crie-o como alias para enviar e receber a partir dele.",
+    twin_address_title_multiple: "Os seus endereços correspondentes",
+    twin_address_multiple_description:
+      "{{ local_part }} está reservado para a sua conta em {{ count }} domínios Aster, por isso mais ninguém o pode registar. Crie-o como alias sempre que quiser enviar e receber a partir dele.",
     twin_address_create: "Criar alias",
     custom_domain_addresses_note:
       "Você também pode criar endereços nos seus domínios personalizados verificados.",
@@ -5096,7 +5099,8 @@ export const pt = {
     special_offer_subtitle: "50% off your first 12 months",
     special_offer_price_period: "per month",
     special_offer_save_badge: "Poupe {{percent}}%",
-    special_offer_checkout_error: "Algo deu errado ao iniciar o pagamento. Tente novamente.",
+    special_offer_checkout_error:
+      "Algo deu errado ao iniciar o pagamento. Tente novamente.",
     special_offer_was_price: "Was {{price}} per month",
     special_offer_cta: "Get {{percent}}% off",
     special_offer_feature_aliases: "Unlimited aliases and custom domains",
@@ -7876,8 +7880,7 @@ export const pt = {
     gmail_sync_title: "Criar uma senha de app",
     gmail_wizard_app_password_error_body:
       "A senha normal da sua conta não funciona aqui. Ative a verificação em duas etapas, crie uma senha de app para o e-mail e cole essa senha acima.",
-    gmail_wizard_app_password_error_title:
-      "Essa senha não foi aceita",
+    gmail_wizard_app_password_error_title: "Essa senha não foi aceita",
     gmail_wizard_connect: "Conectar a caixa de correio",
     gmail_wizard_password_label: "Senha de app",
     gmail_wizard_progress: "Etapa {{current}} de {{total}}",

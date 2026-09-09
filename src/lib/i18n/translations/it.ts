@@ -6101,6 +6101,9 @@ export const it = {
       "{{ address }} è riservato al tuo account, quindi nessun altro può registrarlo. Crealo come alias quando vuoi inviare e ricevere da questo indirizzo.",
     twin_address_available_description:
       "{{ address }} è l'indirizzo corrispondente sull'altro dominio Aster. Crealo come alias per inviare e ricevere da questo indirizzo.",
+    twin_address_title_multiple: "I tuoi indirizzi corrispondenti",
+    twin_address_multiple_description:
+      "{{ local_part }} è riservato al tuo account su {{ count }} domini Aster, quindi nessun altro può registrarlo. Crealo come alias quando vuoi inviare e ricevere da questo indirizzo.",
     twin_address_create: "Crea alias",
     custom_domain_addresses_note:
       "Puoi anche creare indirizzi sui tuoi domini personalizzati verificati.",
@@ -6134,7 +6137,8 @@ export const it = {
     special_offer_subtitle: "50% off your first 12 months",
     special_offer_price_period: "per month",
     special_offer_save_badge: "Risparmia il {{percent}}%",
-    special_offer_checkout_error: "Si è verificato un problema all'avvio del pagamento. Riprova.",
+    special_offer_checkout_error:
+      "Si è verificato un problema all'avvio del pagamento. Riprova.",
     special_offer_was_price: "Was {{price}} per month",
     special_offer_cta: "Get {{percent}}% off",
     special_offer_feature_aliases: "Unlimited aliases and custom domains",

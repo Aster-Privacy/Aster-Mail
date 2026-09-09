@@ -5080,6 +5080,9 @@ export const ar = {
       "‏{{ address }} محجوز لحسابك، لذا لا يمكن لأي شخص آخر تسجيله. أنشئه كاسم مستعار متى أردت الإرسال والاستقبال منه.",
     twin_address_available_description:
       "‏{{ address }} هو العنوان المطابق على نطاق Aster الآخر. أنشئه كاسم مستعار للإرسال والاستقبال منه.",
+    twin_address_title_multiple: "عناوينك المطابقة",
+    twin_address_multiple_description:
+      "{{ local_part }} محجوز لحسابك على {{ count }} من نطاقات Aster، لذا لا يمكن لأي شخص آخر تسجيله. أنشئه كاسم مستعار متى أردت الإرسال والاستقبال منه.",
     twin_address_create: "إنشاء اسم مستعار",
     custom_domain_addresses_note:
       "يمكنك أيضًا إنشاء عناوين على نطاقاتك المخصصة الموثقة.",
@@ -7784,8 +7787,7 @@ export const ar = {
     gmail_sync_title: "إنشاء كلمة مرور تطبيق",
     gmail_wizard_app_password_error_body:
       "كلمة مرور حسابك المعتادة لا تعمل هنا. فعّل التحقق بخطوتين، وأنشئ كلمة مرور تطبيق للبريد، ثم الصقها في الأعلى.",
-    gmail_wizard_app_password_error_title:
-      "لم تُقبل كلمة المرور هذه",
+    gmail_wizard_app_password_error_title: "لم تُقبل كلمة المرور هذه",
     gmail_wizard_connect: "ربط صندوق البريد",
     gmail_wizard_password_label: "كلمة مرور التطبيق",
     gmail_wizard_progress: "الخطوة {{current}} من {{total}}",

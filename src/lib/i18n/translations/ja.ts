@@ -5027,6 +5027,9 @@ export const ja = {
       "{{ address }} はあなたのアカウント用に予約されているため、他の人は登録できません。このアドレスで送受信したくなったら、エイリアスとして作成してください。",
     twin_address_available_description:
       "{{ address }} はもう一方の Aster ドメインで対応するアドレスです。このアドレスで送受信するには、エイリアスとして作成してください。",
+    twin_address_title_multiple: "対応するアドレス",
+    twin_address_multiple_description:
+      "{{ local_part }} は {{ count }} 個の Aster ドメインであなたのアカウント用に予約されているため、他の人は登録できません。このアドレスで送受信したくなったら、エイリアスとして作成してください。",
     twin_address_create: "エイリアスを作成",
     custom_domain_addresses_note:
       "認証済みのカスタムドメインでもアドレスを作成できます。",
@@ -5058,7 +5061,8 @@ export const ja = {
     special_offer_subtitle: "50% off your first 12 months",
     special_offer_price_period: "per month",
     special_offer_save_badge: "{{percent}}%お得",
-    special_offer_checkout_error: "チェックアウトを開始できませんでした。もう一度お試しください。",
+    special_offer_checkout_error:
+      "チェックアウトを開始できませんでした。もう一度お試しください。",
     special_offer_was_price: "Was {{price}} per month",
     special_offer_cta: "Get {{percent}}% off",
     special_offer_feature_aliases: "Unlimited aliases and custom domains",

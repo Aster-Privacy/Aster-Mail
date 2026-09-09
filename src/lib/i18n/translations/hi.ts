@@ -5919,6 +5919,9 @@ export const hi = {
       "{{ address }} आपके खाते के लिए सुरक्षित है, इसलिए इसे कोई और पंजीकृत नहीं कर सकता। जब भी आप इससे भेजना और पाना चाहें, इसे एलियास के रूप में बनाएं।",
     twin_address_available_description:
       "दूसरे Aster डोमेन पर {{ address }} आपका मेल खाता पता है। इससे भेजने और पाने के लिए इसे एलियास के रूप में बनाएं।",
+    twin_address_title_multiple: "आपके मिलते-जुलते पते",
+    twin_address_multiple_description:
+      "{{ local_part }} आपके खाते के लिए {{ count }} Aster डोमेन पर आरक्षित है, इसलिए इसे कोई और पंजीकृत नहीं कर सकता। जब भी आप इससे भेजना और प्राप्त करना चाहें, इसे उपनाम के रूप में बनाएं।",
     twin_address_create: "एलियास बनाएं",
     custom_domain_addresses_note:
       "आप अपने पुष्ट कस्टम डोमेन पर भी पते बना सकते हैं।",
@@ -5956,7 +5959,8 @@ export const hi = {
     special_offer_subtitle: "50% off your first 12 months",
     special_offer_price_period: "per month",
     special_offer_save_badge: "{{percent}}% बचाएँ",
-    special_offer_checkout_error: "चेकआउट शुरू करने में कुछ गड़बड़ हो गई। फिर से कोशिश करें।",
+    special_offer_checkout_error:
+      "चेकआउट शुरू करने में कुछ गड़बड़ हो गई। फिर से कोशिश करें।",
     special_offer_was_price: "Was {{price}} per month",
     special_offer_cta: "Get {{percent}}% off",
     special_offer_feature_aliases: "Unlimited aliases and custom domains",
@@ -7650,8 +7654,7 @@ export const hi = {
     gmail_sync_title: "ऐप पासवर्ड बनाएँ",
     gmail_wizard_app_password_error_body:
       "आपका सामान्य खाता पासवर्ड यहाँ काम नहीं करता। दो-चरणीय सत्यापन चालू करें, मेल के लिए ऐप पासवर्ड बनाएँ, फिर उसे ऊपर चिपकाएँ।",
-    gmail_wizard_app_password_error_title:
-      "यह पासवर्ड स्वीकार नहीं हुआ",
+    gmail_wizard_app_password_error_title: "यह पासवर्ड स्वीकार नहीं हुआ",
     gmail_wizard_connect: "मेलबॉक्स कनेक्ट करें",
     gmail_wizard_password_label: "ऐप पासवर्ड",
     gmail_wizard_progress: "{{total}} में से चरण {{current}}",

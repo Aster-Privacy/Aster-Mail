@@ -5108,6 +5108,9 @@ export const fr = {
       "{{ address }} est réservée à votre compte, donc personne d'autre ne peut l'enregistrer. Créez-la comme alias quand vous voulez envoyer et recevoir avec elle.",
     twin_address_available_description:
       "{{ address }} est l'adresse correspondante sur l'autre domaine Aster. Créez-la comme alias pour envoyer et recevoir avec elle.",
+    twin_address_title_multiple: "Vos adresses correspondantes",
+    twin_address_multiple_description:
+      "{{ local_part }} est réservé à votre compte sur {{ count }} domaines Aster, personne d'autre ne peut l'enregistrer. Créez-le comme alias lorsque vous voulez envoyer et recevoir depuis cette adresse.",
     twin_address_create: "Créer un alias",
     custom_domain_addresses_note:
       "Vous pouvez également créer des adresses sur vos domaines personnalisés vérifiés.",
@@ -5141,7 +5144,8 @@ export const fr = {
     special_offer_subtitle: "50% off your first 12 months",
     special_offer_price_period: "per month",
     special_offer_save_badge: "Économisez {{percent}} %",
-    special_offer_checkout_error: "Une erreur s'est produite au lancement du paiement. Réessayez.",
+    special_offer_checkout_error:
+      "Une erreur s'est produite au lancement du paiement. Réessayez.",
     special_offer_was_price: "Was {{price}} per month",
     special_offer_cta: "Get {{percent}}% off",
     special_offer_feature_aliases: "Unlimited aliases and custom domains",
@@ -7902,8 +7906,7 @@ export const fr = {
     gmail_sync_title: "Créer un mot de passe d’application",
     gmail_wizard_app_password_error_body:
       "Le mot de passe habituel de votre compte ne fonctionne pas ici. Activez la validation en deux étapes, créez un mot de passe d’application pour la messagerie, puis collez-le ci-dessus.",
-    gmail_wizard_app_password_error_title:
-      "Ce mot de passe a été refusé",
+    gmail_wizard_app_password_error_title: "Ce mot de passe a été refusé",
     gmail_wizard_connect: "Connecter la boîte aux lettres",
     gmail_wizard_password_label: "Mot de passe d’application",
     gmail_wizard_progress: "Étape {{current}} sur {{total}}",

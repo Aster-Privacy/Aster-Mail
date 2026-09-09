@@ -4533,6 +4533,9 @@ export const zh_CN = {
       "{{ address }} 已为你的账户保留，其他人无法注册。想用它收发邮件时，可以将它创建为别名。",
     twin_address_available_description:
       "{{ address }} 是另一个 Aster 域名上的对应地址。将它创建为别名即可用它收发邮件。",
+    twin_address_title_multiple: "您的匹配地址",
+    twin_address_multiple_description:
+      "{{ local_part }} 已在 {{ count }} 个 Aster 域名上为您的账户保留，其他人无法注册。想用它收发邮件时，将其创建为别名即可。",
     twin_address_create: "创建别名",
     custom_domain_addresses_note: "您还可以在已验证的自定义域名上创建地址。",
     alias_taken_try_different: "此别名已被占用。请尝试其他名称。",
@@ -7006,8 +7009,7 @@ export const zh_CN = {
     gmail_sync_title: "创建应用专用密码",
     gmail_wizard_app_password_error_body:
       "您的常用账户密码在此无法使用。请开启两步验证，为邮件创建应用专用密码，然后将其粘贴到上方。",
-    gmail_wizard_app_password_error_title:
-      "该密码未被接受",
+    gmail_wizard_app_password_error_title: "该密码未被接受",
     gmail_wizard_connect: "连接邮箱",
     gmail_wizard_password_label: "应用专用密码",
     gmail_wizard_progress: "第 {{current}} 步，共 {{total}} 步",

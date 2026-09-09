@@ -5905,6 +5905,9 @@ export const en: Translations = {
       "{{ address }} is reserved for your account, so no one else can register it. Create it as an alias whenever you want to send and receive from it.",
     twin_address_available_description:
       "{{ address }} is the matching address on the other Aster domain. Create it as an alias to send and receive from it.",
+    twin_address_title_multiple: "Your matching addresses",
+    twin_address_multiple_description:
+      "{{ local_part }} is reserved for your account on {{ count }} Aster domains, so no one else can register it. Create it as an alias whenever you want to send and receive from it.",
     twin_address_create: "Create alias",
     custom_domain_addresses_note:
       "You can also create addresses on your verified custom domains.",
@@ -5942,7 +5945,8 @@ export const en: Translations = {
     special_offer_subtitle: "50% off your first 12 months",
     special_offer_price_period: "per month",
     special_offer_save_badge: "Save {{percent}}%",
-    special_offer_checkout_error: "Something went wrong starting checkout. Try again.",
+    special_offer_checkout_error:
+      "Something went wrong starting checkout. Try again.",
     special_offer_was_price: "Was {{price}} per month",
     special_offer_cta: "Get {{percent}}% off",
     special_offer_feature_aliases: "Unlimited aliases and custom domains",
@@ -7607,8 +7611,7 @@ export const en: Translations = {
     gmail_sync_title: "Create an app password",
     gmail_wizard_app_password_error_body:
       "Your regular account password doesn't work here. Turn on two-step verification, create an app password for mail, then paste that password above.",
-    gmail_wizard_app_password_error_title:
-      "That password wasn't accepted",
+    gmail_wizard_app_password_error_title: "That password wasn't accepted",
     gmail_wizard_connect: "Connect mailbox",
     gmail_wizard_password_label: "App password",
     gmail_wizard_progress: "Step {{current}} of {{total}}",

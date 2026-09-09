@@ -5057,6 +5057,9 @@ export const es = {
       "{{ address }} está reservada para tu cuenta, así que nadie más puede registrarla. Créala como alias cuando quieras enviar y recibir desde ella.",
     twin_address_available_description:
       "{{ address }} es la dirección coincidente en el otro dominio de Aster. Créala como alias para enviar y recibir desde ella.",
+    twin_address_title_multiple: "Tus direcciones coincidentes",
+    twin_address_multiple_description:
+      "{{ local_part }} está reservado para tu cuenta en {{ count }} dominios de Aster, así que nadie más puede registrarlo. Créalo como alias cuando quieras enviar y recibir desde él.",
     twin_address_create: "Crear alias",
     custom_domain_addresses_note:
       "También puedes crear direcciones en tus dominios personalizados verificados.",
@@ -5089,7 +5092,8 @@ export const es = {
     special_offer_subtitle: "50% off your first 12 months",
     special_offer_price_period: "per month",
     special_offer_save_badge: "Ahorra un {{percent}} %",
-    special_offer_checkout_error: "Se produjo un error al iniciar el pago. Vuelve a intentarlo.",
+    special_offer_checkout_error:
+      "Se produjo un error al iniciar el pago. Vuelve a intentarlo.",
     special_offer_was_price: "Was {{price}} per month",
     special_offer_cta: "Get {{percent}}% off",
     special_offer_feature_aliases: "Unlimited aliases and custom domains",
@@ -7807,8 +7811,7 @@ export const es = {
     gmail_sync_title: "Crear una contraseña de aplicación",
     gmail_wizard_app_password_error_body:
       "La contraseña normal de tu cuenta no funciona aquí. Activa la verificación en dos pasos, crea una contraseña de aplicación para el correo y pégala arriba.",
-    gmail_wizard_app_password_error_title:
-      "No se aceptó esa contraseña",
+    gmail_wizard_app_password_error_title: "No se aceptó esa contraseña",
     gmail_wizard_connect: "Conectar el buzón",
     gmail_wizard_password_label: "Contraseña de aplicación",
     gmail_wizard_progress: "Paso {{current}} de {{total}}",

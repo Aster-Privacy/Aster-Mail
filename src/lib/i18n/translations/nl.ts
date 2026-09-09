@@ -4982,6 +4982,9 @@ export const nl = {
       "{{ address }} is gereserveerd voor je account, dus niemand anders kan het registreren. Maak het als alias aan wanneer je ermee wilt verzenden en ontvangen.",
     twin_address_available_description:
       "{{ address }} is het bijpassende adres op het andere Aster-domein. Maak het als alias aan om ermee te verzenden en ontvangen.",
+    twin_address_title_multiple: "Uw overeenkomende adressen",
+    twin_address_multiple_description:
+      "{{ local_part }} is op {{ count }} Aster-domeinen gereserveerd voor uw account, dus niemand anders kan het registreren. Maak het aan als alias wanneer u ermee wilt verzenden en ontvangen.",
     twin_address_create: "Alias aanmaken",
     custom_domain_addresses_note:
       "Je kunt ook adressen aanmaken op je geverifieerde aangepaste domeinen.",
@@ -5014,7 +5017,8 @@ export const nl = {
     special_offer_subtitle: "50% off your first 12 months",
     special_offer_price_period: "per month",
     special_offer_save_badge: "Bespaar {{percent}}%",
-    special_offer_checkout_error: "Er ging iets mis bij het starten van de betaling. Probeer het opnieuw.",
+    special_offer_checkout_error:
+      "Er ging iets mis bij het starten van de betaling. Probeer het opnieuw.",
     special_offer_was_price: "Was {{price}} per month",
     special_offer_cta: "Get {{percent}}% off",
     special_offer_feature_aliases: "Unlimited aliases and custom domains",
@@ -7815,8 +7819,7 @@ export const nl = {
     gmail_sync_title: "Een app-wachtwoord aanmaken",
     gmail_wizard_app_password_error_body:
       "Het gewone wachtwoord van je account werkt hier niet. Zet verificatie in twee stappen aan, maak een app-wachtwoord voor e-mail en plak dat hierboven.",
-    gmail_wizard_app_password_error_title:
-      "Dit wachtwoord is geweigerd",
+    gmail_wizard_app_password_error_title: "Dit wachtwoord is geweigerd",
     gmail_wizard_connect: "Postvak koppelen",
     gmail_wizard_password_label: "App-wachtwoord",
     gmail_wizard_progress: "Stap {{current}} van {{total}}",

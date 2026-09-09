@@ -5199,6 +5199,9 @@ export const pl = {
       "{{ address }} jest zarezerwowany dla Twojego konta, więc nikt inny nie może go zarejestrować. Utwórz go jako alias, gdy zechcesz z niego wysyłać i odbierać.",
     twin_address_available_description:
       "{{ address }} to odpowiadający adres w drugiej domenie Aster. Utwórz go jako alias, aby z niego wysyłać i odbierać.",
+    twin_address_title_multiple: "Twoje pasujące adresy",
+    twin_address_multiple_description:
+      "{{ local_part }} jest zarezerwowany dla Twojego konta w {{ count }} domenach Aster, więc nikt inny nie może go zarejestrować. Utwórz go jako alias, gdy zechcesz z niego wysyłać i odbierać.",
     twin_address_create: "Utwórz alias",
     custom_domain_addresses_note:
       "Możesz również tworzyć adresy na zweryfikowanych domenach niestandardowych.",
@@ -5231,7 +5234,8 @@ export const pl = {
     special_offer_subtitle: "50% off your first 12 months",
     special_offer_price_period: "per month",
     special_offer_save_badge: "Oszczędź {{percent}}%",
-    special_offer_checkout_error: "Coś poszło nie tak przy uruchamianiu płatności. Spróbuj ponownie.",
+    special_offer_checkout_error:
+      "Coś poszło nie tak przy uruchamianiu płatności. Spróbuj ponownie.",
     special_offer_was_price: "Was {{price}} per month",
     special_offer_cta: "Get {{percent}}% off",
     special_offer_feature_aliases: "Unlimited aliases and custom domains",
@@ -8069,8 +8073,7 @@ export const pl = {
     gmail_sync_title: "Utwórz hasło do aplikacji",
     gmail_wizard_app_password_error_body:
       "Zwykłe hasło do konta tutaj nie zadziała. Włącz weryfikację dwuetapową, utwórz hasło do aplikacji dla poczty, a następnie wklej je powyżej.",
-    gmail_wizard_app_password_error_title:
-      "To hasło nie zostało przyjęte",
+    gmail_wizard_app_password_error_title: "To hasło nie zostało przyjęte",
     gmail_wizard_connect: "Połącz skrzynkę",
     gmail_wizard_password_label: "Hasło do aplikacji",
     gmail_wizard_progress: "Krok {{current}} z {{total}}",

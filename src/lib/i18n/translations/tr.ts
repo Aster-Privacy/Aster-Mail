@@ -5004,6 +5004,9 @@ export const tr = {
       "{{ address }} hesabınız için ayrıldı, bu yüzden başka kimse kaydedemez. Bu adresten gönderip almak istediğinizde takma ad olarak oluşturun.",
     twin_address_available_description:
       "{{ address }}, diğer Aster alan adındaki eşleşen adrestir. Bu adresten gönderip almak için takma ad olarak oluşturun.",
+    twin_address_title_multiple: "Eşleşen adresleriniz",
+    twin_address_multiple_description:
+      "{{ local_part }}, {{ count }} Aster alan adında hesabınız için ayrılmıştır, bu yüzden başka kimse kaydedemez. Bu adresten gönderip almak istediğinizde takma ad olarak oluşturun.",
     twin_address_create: "Takma ad oluştur",
     custom_domain_addresses_note:
       "Doğrulanmış özel alan adlarınızda da adresler oluşturabilirsiniz.",
@@ -5036,7 +5039,8 @@ export const tr = {
     special_offer_subtitle: "50% off your first 12 months",
     special_offer_price_period: "per month",
     special_offer_save_badge: "%{{percent}} tasarruf",
-    special_offer_checkout_error: "Ödeme başlatılırken bir sorun oluştu. Yeniden deneyin.",
+    special_offer_checkout_error:
+      "Ödeme başlatılırken bir sorun oluştu. Yeniden deneyin.",
     special_offer_was_price: "Was {{price}} per month",
     special_offer_cta: "Get {{percent}}% off",
     special_offer_feature_aliases: "Unlimited aliases and custom domains",
@@ -7806,8 +7810,7 @@ export const tr = {
     gmail_sync_title: "Uygulama parolası oluşturma",
     gmail_wizard_app_password_error_body:
       "Hesabınızın normal parolası burada çalışmaz. İki adımlı doğrulamayı açın, posta için bir uygulama parolası oluşturun ve yukarıya yapıştırın.",
-    gmail_wizard_app_password_error_title:
-      "Bu parola kabul edilmedi",
+    gmail_wizard_app_password_error_title: "Bu parola kabul edilmedi",
     gmail_wizard_connect: "Posta kutusunu bağla",
     gmail_wizard_password_label: "Uygulama parolası",
     gmail_wizard_progress: "{{total}} adımdan {{current}}. adım",
