@@ -4986,6 +4986,15 @@ export const ko = {
     continue_setup: "설정 계속",
     verified_count: "{{count}}/5 인증됨",
     used_count: "{{current}} / {{max}} 사용됨",
+    alias_usage_remaining: "{{count}} aliases left on your plan",
+    alias_usage_remaining_other: "{{count}} aliases left on your plan",
+    alias_cap_upsell_benefit:
+      "{{plan}} gives you {{aliases}} aliases for {{price}} per month.",
+    alias_cap_upsell_benefit_unlimited:
+      "{{plan}} gives you unlimited aliases for {{price}} per month.",
+    alias_cap_upsell_alternative:
+      "{{plan}} removes the alias limit if you need more.",
+    alias_cap_upsell_cta: "Upgrade to {{plan}}",
     dns_records_for_domain: "이 도메인의 DNS 레코드:",
     add_dns_records_description:
       "소유권을 확인하고 이메일을 활성화하려면 도메인 등록 기관에 이 DNS 레코드를 추가하세요:",

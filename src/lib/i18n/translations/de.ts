@@ -5034,6 +5034,16 @@ export const de = {
     continue_setup: "Einrichtung fortsetzen",
     verified_count: "{{count}}/5 verifiziert",
     used_count: "{{current}} / {{max}} verwendet",
+    alias_usage_remaining: "{{count}} aliases left on your plan",
+    alias_usage_remaining_one: "{{count}} alias left on your plan",
+    alias_usage_remaining_other: "{{count}} aliases left on your plan",
+    alias_cap_upsell_benefit:
+      "{{plan}} gives you {{aliases}} aliases for {{price}} per month.",
+    alias_cap_upsell_benefit_unlimited:
+      "{{plan}} gives you unlimited aliases for {{price}} per month.",
+    alias_cap_upsell_alternative:
+      "{{plan}} removes the alias limit if you need more.",
+    alias_cap_upsell_cta: "Upgrade to {{plan}}",
     dns_records_for_domain: "DNS-Einträge für diese Domain:",
     add_dns_records_description:
       "Fügen Sie diese DNS-Einträge bei Ihrem Domain-Registrar hinzu, um den Besitz zu verifizieren und E-Mail zu aktivieren:",

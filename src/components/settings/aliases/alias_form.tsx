@@ -699,7 +699,10 @@ export function CreateAliasModal({
               variant="depth"
               onClick={() => {
                 on_close();
-                prompt_alias_limit_upgrade();
+                prompt_alias_limit_upgrade({
+                  used: current_count + domain_addresses.length,
+                  limit: max_aliases,
+                });
               }}
             >
               {t("common.upgrade_plan")}

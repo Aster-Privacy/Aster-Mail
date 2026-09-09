@@ -48,6 +48,7 @@ import { use_aliases } from "@/components/settings/hooks/use_aliases";
 import { BottomPagination } from "@/components/email/inbox/inbox_bottom_pagination";
 import { CreateAliasModal } from "@/components/settings/aliases/alias_form";
 import { prompt_alias_limit_upgrade } from "@/components/settings/aliases/feature_lock";
+import { AliasUsageMeter } from "@/components/settings/aliases/alias_usage_meter";
 import { UpgradeInlineCard } from "@/components/upgrade/upgrade_inline_card";
 import { RecentlyDeletedAliasesSection } from "@/components/settings/aliases/recently_deleted_aliases_section";
 import { DomainSetupWizard } from "@/components/settings/aliases_section";
@@ -400,6 +401,7 @@ export function AliasesSection({
           <p className="text-[13px] text-[var(--text-muted)] mb-3">
             {t("settings.aliases_description")}
           </p>
+          <AliasUsageMeter limit={max_count} used={total_count} />
         </div>
 
         <div className="px-4">
@@ -427,7 +429,10 @@ export function AliasesSection({
                 total_count >= max_count &&
                 !has_custom_domains
               ) {
-                prompt_alias_limit_upgrade();
+                prompt_alias_limit_upgrade({
+                  used: total_count,
+                  limit: max_count,
+                });
               } else {
                 hook.set_show_create_alias_modal(true);
               }

@@ -5941,6 +5941,16 @@ export const hi = {
       "अपने DNS रिकॉर्ड सेट करने और डोमेन की पुष्टि करने के लिए सेटअप जारी रखें पर क्लिक करें।",
     verified_count: "5 में से {{count}} सत्यापित",
     used_count: "{{max}} में से {{current}} इस्तेमाल हुआ",
+    alias_usage_remaining: "{{count}} aliases left on your plan",
+    alias_usage_remaining_one: "{{count}} alias left on your plan",
+    alias_usage_remaining_other: "{{count}} aliases left on your plan",
+    alias_cap_upsell_benefit:
+      "{{plan}} gives you {{aliases}} aliases for {{price}} per month.",
+    alias_cap_upsell_benefit_unlimited:
+      "{{plan}} gives you unlimited aliases for {{price}} per month.",
+    alias_cap_upsell_alternative:
+      "{{plan}} removes the alias limit if you need more.",
+    alias_cap_upsell_cta: "Upgrade to {{plan}}",
     dns_records_for_domain: "इस डोमेन के DNS रिकॉर्ड:",
     add_dns_records_description:
       "स्वामित्व सत्यापित करने और ईमेल चालू करने के लिए ये DNS रिकॉर्ड अपने डोमेन रजिस्ट्रार में जोड़ें:",

@@ -23,6 +23,7 @@ import { UpgradeBtn } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { show_plan_limit_upgrade } from "@/stores/upgrade_store";
+import { show_alias_cap_upsell } from "@/stores/alias_cap_upsell_store";
 import { min_plan_for_feature } from "@/components/settings/billing/billing_constants";
 
 export function prompt_upgrade(
@@ -47,8 +48,11 @@ export function is_alias_limit_error(response: {
   );
 }
 
-export function prompt_alias_limit_upgrade() {
-  show_plan_limit_upgrade({ resource: "aliases" });
+export function prompt_alias_limit_upgrade(opts?: {
+  used?: number | null;
+  limit?: number | null;
+}) {
+  show_alias_cap_upsell({ used: opts?.used ?? null, limit: opts?.limit ?? null });
 }
 
 export function RequiredPlanPill({

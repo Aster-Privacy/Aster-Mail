@@ -5217,6 +5217,13 @@ export interface SettingsTranslations {
   domain_pending_hint: string;
   verified_count: string;
   used_count: string;
+  alias_usage_remaining: string;
+  alias_usage_remaining_one: string;
+  alias_usage_remaining_other: string;
+  alias_cap_upsell_benefit: string;
+  alias_cap_upsell_benefit_unlimited: string;
+  alias_cap_upsell_alternative: string;
+  alias_cap_upsell_cta: string;
   dns_records_for_domain: string;
   add_dns_records_description: string;
   domains_description: string;

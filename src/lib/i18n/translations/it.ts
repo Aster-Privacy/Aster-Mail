@@ -6117,6 +6117,16 @@ export const it = {
     continue_setup: "Continua configurazione",
     verified_count: "{{count}}/5 verificati",
     used_count: "{{current}} / {{max}} usati",
+    alias_usage_remaining: "{{count}} aliases left on your plan",
+    alias_usage_remaining_one: "{{count}} alias left on your plan",
+    alias_usage_remaining_other: "{{count}} aliases left on your plan",
+    alias_cap_upsell_benefit:
+      "{{plan}} gives you {{aliases}} aliases for {{price}} per month.",
+    alias_cap_upsell_benefit_unlimited:
+      "{{plan}} gives you unlimited aliases for {{price}} per month.",
+    alias_cap_upsell_alternative:
+      "{{plan}} removes the alias limit if you need more.",
+    alias_cap_upsell_cta: "Upgrade to {{plan}}",
     dns_records_for_domain: "Record DNS per questo dominio:",
     add_dns_records_description:
       "Aggiungi questi record DNS al tuo registrar di dominio per verificare la proprietà e abilitare l'email:",

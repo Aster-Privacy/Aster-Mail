@@ -5184,6 +5184,16 @@ export const ru = {
     continue_setup: "Продолжить настройку",
     verified_count: "{{count}}/5 проверено",
     used_count: "{{current}} / {{max}} использовано",
+    alias_usage_remaining: "{{count}} aliases left on your plan",
+    alias_usage_remaining_one: "{{count}} alias left on your plan",
+    alias_usage_remaining_other: "{{count}} aliases left on your plan",
+    alias_cap_upsell_benefit:
+      "{{plan}} gives you {{aliases}} aliases for {{price}} per month.",
+    alias_cap_upsell_benefit_unlimited:
+      "{{plan}} gives you unlimited aliases for {{price}} per month.",
+    alias_cap_upsell_alternative:
+      "{{plan}} removes the alias limit if you need more.",
+    alias_cap_upsell_cta: "Upgrade to {{plan}}",
     dns_records_for_domain: "DNS-записи для этого домена:",
     add_dns_records_description:
       "Добавьте эти DNS-записи у вашего регистратора доменов для подтверждения владения и включения электронной почты:",
