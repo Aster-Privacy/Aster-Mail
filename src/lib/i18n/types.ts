@@ -4906,6 +4906,10 @@ export interface SettingsTranslations {
   domain_purchase_create_first_address: string;
   domain_purchase_progress_note: string;
   domain_purchase_complete_cta: string;
+  domain_purchase_cancel_payment_title: string;
+  domain_purchase_cancel_payment_message: string;
+  domain_purchase_cancel_payment_confirm: string;
+  domain_purchase_cancel_payment_keep: string;
   domain_purchase_purchased_lapsed: string;
   domain_purchase_error_paused: string;
   domain_purchase_error_not_allowed: string;

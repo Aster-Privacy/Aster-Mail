@@ -46,6 +46,7 @@ import { DomainPurchaseModal } from "@/components/settings/aliases/domain_purcha
 import { DomainCardV2 } from "@/components/settings/aliases/domain_card_v2";
 import { DomainDeleteModal } from "@/components/settings/aliases/domain_delete_modal";
 import { PurchasedDomainManageModal } from "@/components/settings/aliases/purchased_domain_manage_modal";
+import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { is_https_payment_url } from "@/lib/payment_url";
 import { ignore_error } from "@/lib/ignore_error";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
@@ -112,6 +113,9 @@ export function DomainsSection() {
     null,
   );
   const [cancelling_order_id, set_cancelling_order_id] = useState<
+    string | null
+  >(null);
+  const [pending_cancel_order_id, set_pending_cancel_order_id] = useState<
     string | null
   >(null);
   const [renew_errors, set_renew_errors] = useState<Record<string, string>>({});
@@ -546,7 +550,7 @@ export function DomainsSection() {
                                   type="button"
                                   onClick={(event) => {
                                     event.stopPropagation();
-                                    handle_cancel_order(order.id);
+                                    set_pending_cancel_order_id(order.id);
                                   }}
                                 >
                                   {cancelling_order_id === order.id && (
@@ -688,6 +692,21 @@ export function DomainsSection() {
           hook.set_show_create_alias_modal(true);
         }}
         on_purchased={hook.load_domains}
+      />
+      <ConfirmationModal
+        cancel_text={t("settings.domain_purchase_cancel_payment_keep")}
+        confirm_text={t("settings.domain_purchase_cancel_payment_confirm")}
+        is_open={pending_cancel_order_id !== null}
+        message={t("settings.domain_purchase_cancel_payment_message")}
+        on_cancel={() => set_pending_cancel_order_id(null)}
+        on_confirm={() => {
+          const order_id = pending_cancel_order_id;
+
+          set_pending_cancel_order_id(null);
+          if (order_id) void handle_cancel_order(order_id);
+        }}
+        title={t("settings.domain_purchase_cancel_payment_title")}
+        variant="danger"
       />
       <CreateAliasModal
         available_domains={hook.available_domains_for_aliases}
