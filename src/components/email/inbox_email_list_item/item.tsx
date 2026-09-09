@@ -230,6 +230,8 @@ export const InboxEmailListItem = memo(
             !domain ||
             domain === "astermail.org" ||
             domain === "aster.cx" ||
+            domain === "astermail.me" ||
+            domain === "astermail.net" ||
             domain === "gs-cloud.space"
           ) {
             return false;
@@ -368,13 +370,13 @@ export const InboxEmailListItem = memo(
           onDragEnd={handle_drag_end}
           onDragStart={handle_drag_start}
           onFocusCapture={engage_row}
-          onMouseEnter={engage_row}
           onKeyDown={(e) => {
             if (e["key"] === "Enter" || e["key"] === " ") {
               e.preventDefault();
               on_email_click(email.id);
             }
           }}
+          onMouseEnter={engage_row}
           {...props}
         >
           <Tooltip delay={600} tip={t("mail.select")}>
