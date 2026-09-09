@@ -42,6 +42,7 @@ import {
   special_offer_pricing,
   special_offer_promo_code,
 } from "@/lib/special_offer";
+import { SPECIAL_OFFER_HERO_SRC } from "@/lib/special_offer_hero";
 import {
   close_special_offer,
   show_special_offer,
@@ -186,49 +187,51 @@ export function SpecialOfferModal() {
         show_close_button={false}
         size="sm"
       >
-        <div className="special_offer_media rounded-t-xl">
-          <div className="relative max-w-[15.5rem]">
-            <div className="special_offer_plan_tag">
-              <span aria-hidden="true" className="special_offer_hero_logo" />
-              <span className="text-[13px] font-semibold leading-none tracking-[-0.01em] text-white">
-                {t("settings.special_offer_hero_plan")}
-              </span>
-            </div>
-
-            <ModalTitle className="mt-4 max-w-[15rem] text-[24px] font-semibold leading-[1.2] tracking-[-0.015em] text-white">
-              {t("settings.special_offer_title")}
-            </ModalTitle>
-
-            <div className="mt-5 flex items-baseline gap-2.5">
-              <span className="text-[34px] font-semibold leading-none tracking-[-0.025em] text-white">
-                {offer_label}
-              </span>
-              <span className="text-[13px] font-medium text-white/70">
-                {t("settings.special_offer_price_period")}
-              </span>
-              <span className="text-[15px] font-medium text-white/45 line-through">
-                {list_label}
-              </span>
-            </div>
-
-            <p className="mt-2 text-[13px] font-medium text-white/70">
-              {t("settings.special_offer_hero_duration", {
-                months: String(SPECIAL_OFFER_DURATION_MONTHS),
-              })}
-            </p>
-          </div>
+        <div className="special_offer_hero rounded-t-xl">
+          <img
+            alt=""
+            aria-hidden="true"
+            className="special_offer_hero_image"
+            src={SPECIAL_OFFER_HERO_SRC}
+          />
         </div>
 
         <button
           aria-label={t("common.close")}
-          className="absolute end-4 top-4 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 focus:outline-none"
+          className="absolute end-4 top-4 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-black/35 text-white backdrop-blur-sm transition-colors hover:bg-black/55 focus:outline-none"
           type="button"
           onClick={close_special_offer}
         >
           <XMarkIcon className="h-4 w-4" />
         </button>
 
-        <div className="px-6 pb-6 pt-4">
+        <div className="px-6 pb-6 pt-5">
+          <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-brand">
+            {t("settings.special_offer_hero_plan")}
+          </p>
+
+          <ModalTitle className="mt-1.5 text-[22px] font-semibold leading-[1.2] tracking-[-0.015em] text-txt-primary">
+            {t("settings.special_offer_title")}
+          </ModalTitle>
+
+          <div className="mt-4 flex items-baseline gap-2.5">
+            <span className="text-[32px] font-semibold leading-none tracking-[-0.025em] text-txt-primary">
+              {offer_label}
+            </span>
+            <span className="text-[13px] font-medium text-txt-secondary">
+              {t("settings.special_offer_price_period")}
+            </span>
+            <span className="text-[15px] font-medium text-txt-tertiary line-through">
+              {list_label}
+            </span>
+          </div>
+
+          <p className="mt-1.5 mb-4 text-[13px] font-medium text-txt-secondary">
+            {t("settings.special_offer_hero_duration", {
+              months: String(SPECIAL_OFFER_DURATION_MONTHS),
+            })}
+          </p>
+
           <ul className="special_offer_features">
             {features.map((feature) => (
               <li key={feature} className="special_offer_feature">
