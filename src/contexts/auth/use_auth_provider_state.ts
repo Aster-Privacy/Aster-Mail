@@ -77,7 +77,12 @@ import { ensure_default_labels } from "@/services/labels/ensure_defaults";
 import { show_toast } from "@/components/toast/simple_toast";
 import { hard_redirect } from "@/lib/hard_redirect";
 import { take_post_switch_path } from "@/lib/post_switch_path";
-import { clear_device_session } from "@/native/desktop_device_auth";
+import {
+  clear_device_session,
+  forget_device_account,
+  is_tauri,
+  read_device_passphrase,
+} from "@/native/desktop_device_auth";
 import { process_offline_queue } from "@/native/offline_queue";
 import {
   account_index_routing_enabled,
@@ -158,6 +163,8 @@ export function use_auth_provider_state() {
         let stored_passphrase: string | null = null;
         let stored_vault: ReturnType<typeof get_stored_encrypted_vault> = null;
 
+        let device_passphrase_used = false;
+
         if (target_kind !== "shared") {
           try {
             stored_passphrase = await get_session_passphrase(target.id);
@@ -165,6 +172,11 @@ export function use_auth_provider_state() {
             stored_passphrase = null;
           }
           stored_vault = get_stored_encrypted_vault(target.id);
+
+          if (!stored_passphrase && stored_vault && is_tauri()) {
+            stored_passphrase = await read_device_passphrase(target.device_id);
+            device_passphrase_used = !!stored_passphrase;
+          }
 
           if (!stored_passphrase || !stored_vault) {
             begin_account_reauth(target, previous_account_id);
@@ -282,7 +294,11 @@ export function use_auth_provider_state() {
             session_result = await attempt();
           }
 
-          if (session_result === "ok" || session_result === "unavailable") {
+          if (
+            session_result === "ok" ||
+            session_result === "unavailable" ||
+            device_passphrase_used
+          ) {
             hard_redirect(take_post_switch_path() ?? "/");
 
             return;
@@ -355,12 +371,27 @@ export function use_auth_provider_state() {
         safe_log_error(e);
       }
 
-      await with_timeout(clear_device_session(), 2000).catch((caught) =>
-        ignore_error(
-          "contexts/auth/use_auth_provider_state:use_auth_provider_state",
-          caught,
-        ),
-      );
+      if (other && current_id) {
+        await with_timeout(
+          forget_device_account(
+            (await get_all_accounts()).find((a) => a.id === current_id)
+              ?.device_id,
+          ),
+          2000,
+        ).catch((caught) =>
+          ignore_error(
+            "contexts/auth/use_auth_provider_state:use_auth_provider_state",
+            caught,
+          ),
+        );
+      } else {
+        await with_timeout(clear_device_session(), 2000).catch((caught) =>
+          ignore_error(
+            "contexts/auth/use_auth_provider_state:use_auth_provider_state",
+            caught,
+          ),
+        );
+      }
 
       await with_timeout(api_client.post("/core/v1/auth/logout", {}), 3000);
 
@@ -475,19 +506,23 @@ export function use_auth_provider_state() {
       message_key: TranslationKey,
       reason?: string,
     ) => {
-      await clear_device_session().catch((caught) =>
-        ignore_error(
-          "contexts/auth/use_auth_provider_state:sign_out_keeping_other_accounts",
-          caught,
-        ),
-      );
-
       const path = app_pathname();
       const current_id = state.current_account_id;
       const all_accounts = await get_all_accounts();
       const target = all_accounts.find((a) => a.id === current_id);
       const keep_accounts =
         all_accounts.length > 1 || accounts_storage_unreadable();
+
+      await (
+        keep_accounts
+          ? forget_device_account(target?.device_id)
+          : clear_device_session()
+      ).catch((caught) =>
+        ignore_error(
+          "contexts/auth/use_auth_provider_state:sign_out_keeping_other_accounts",
+          caught,
+        ),
+      );
 
       if (!keep_accounts) {
         await clear_local_auth_data();

@@ -42,7 +42,10 @@ import {
 } from "./auth_helpers";
 
 import { ensure_ratchet_keys } from "@/services/crypto/ensure_ratchet_keys";
-import { init_desktop_device_auth } from "@/native/desktop_device_auth";
+import {
+  init_desktop_device_auth,
+  forget_device_account,
+} from "@/native/desktop_device_auth";
 import { api_client } from "@/services/api/client";
 import { verify_auth_status, get_user_info } from "@/services/api/auth";
 import { rekey_pgp_if_needed } from "@/services/pgp_rekey_service";
@@ -64,6 +67,7 @@ import {
   switch_account as storage_switch_account,
   update_account_user,
   update_account_tokens,
+  update_account_device_id,
   get_account_kind,
 } from "@/services/account_manager";
 import {
@@ -260,7 +264,26 @@ export function use_auth_account_state() {
         api_client.set_expected_user_id(current.user.id);
 
         if ("__TAURI_INTERNALS__" in window) {
-          await init_desktop_device_auth();
+          await init_desktop_device_auth(current.device_id ?? null);
+
+          if (!current.device_id) {
+            const { invoke } = await import("@tauri-apps/api/core");
+            const pubkeys = await invoke<{ device_id: string | null }>(
+              "device_get_pubkeys",
+            ).catch(() => null);
+
+            if (pubkeys?.device_id) {
+              await update_account_device_id(
+                current.id,
+                pubkeys.device_id,
+              ).catch((caught) =>
+                ignore_error(
+                  "contexts/auth/use_auth_account_state:init",
+                  caught,
+                ),
+              );
+            }
+          }
         }
 
         let verify_timed_out = false;
@@ -328,6 +351,7 @@ export function use_auth_account_state() {
               const { invoke } = await import("@tauri-apps/api/core");
               const raw_b64 = await invoke<string | null>(
                 "device_get_stored_passphrase",
+                { deviceId: current.device_id ?? null },
               );
 
               if (raw_b64) {
@@ -860,6 +884,19 @@ export function use_auth_account_state() {
   const remove_account_handler = useCallback(
     async (account_id: string) => {
       const is_current = account_id === state.current_account_id;
+
+      if ("__TAURI_INTERNALS__" in window) {
+        const stored = (await get_all_accounts()).find(
+          (a) => a.id === account_id,
+        );
+
+        await forget_device_account(stored?.device_id).catch((caught) =>
+          ignore_error(
+            "contexts/auth/use_auth_account_state:remove_account",
+            caught,
+          ),
+        );
+      }
 
       if (is_current) {
         sync_client.disconnect();

@@ -55,34 +55,55 @@ beforeEach(() => {
   device_state.identity = "identity-a";
   install_tauri();
 
-  invoke_mock.mockImplementation((cmd: string) => {
-    if (cmd === "device_get_pubkeys") {
-      return Promise.resolve({
-        device_id: device_state.device_id,
-        ed25519_pk: device_state.identity,
-        mlkem_pk: "mlkem",
-        x25519_pk: "x25519",
-        machine_name: "machine",
-      });
-    }
-    if (cmd === "device_clear_session") {
-      device_state.device_id = null;
+  invoke_mock.mockImplementation(
+    (cmd: string, args?: Record<string, unknown>) => {
+      if (cmd === "device_get_pubkeys") {
+        return Promise.resolve({
+          device_id: device_state.device_id,
+          ed25519_pk: device_state.identity,
+          mlkem_pk: "mlkem",
+          x25519_pk: "x25519",
+          machine_name: "machine",
+        });
+      }
+      if (cmd === "device_clear_session") {
+        device_state.device_id = null;
 
-      return Promise.resolve();
-    }
-    if (cmd === "device_clear_identity") {
-      device_state.device_id = null;
-      device_state.identity = "identity-b";
+        return Promise.resolve();
+      }
+      if (cmd === "device_clear_identity") {
+        device_state.device_id = null;
+        device_state.identity = "identity-b";
 
-      return Promise.resolve();
-    }
-    if (cmd === "device_sign_challenge") return Promise.resolve("signature");
-    if (cmd === "device_get_stored_passphrase") {
-      return Promise.resolve("cGFzcw");
-    }
+        return Promise.resolve();
+      }
+      if (cmd === "device_forget_account") {
+        if (device_state.device_id === (args?.deviceId as string)) {
+          device_state.device_id = null;
+        }
 
-    return Promise.resolve(null);
-  });
+        return Promise.resolve();
+      }
+      if (cmd === "device_set_id") {
+        device_state.device_id = args?.deviceId as string;
+
+        return Promise.resolve();
+      }
+      if (cmd === "device_unseal_vault_envelope") {
+        if (args?.envelopeB64 === "broken") {
+          return Promise.reject(new Error("bad envelope"));
+        }
+
+        return Promise.resolve("cGFzcw");
+      }
+      if (cmd === "device_sign_challenge") return Promise.resolve("signature");
+      if (cmd === "device_get_stored_passphrase") {
+        return Promise.resolve("cGFzcw");
+      }
+
+      return Promise.resolve(null);
+    },
+  );
 
   post_mock.mockImplementation((path: string) => {
     if (path === "/core/v1/auth/device/challenge") {
@@ -141,6 +162,78 @@ describe("desktop device session lifecycle", () => {
     await module.clear_device_session();
 
     expect(module.consume_pending_device_login()).toBeNull();
+  });
+
+  it("signs in with the account's own device id when one is stored", async () => {
+    const module = await import("./desktop_device_auth");
+
+    await module.init_desktop_device_auth("device-account-b");
+
+    expect(post_mock).toHaveBeenCalledWith("/core/v1/auth/device/challenge", {
+      device_id: "device-account-b",
+    });
+    expect(invoke_mock).toHaveBeenCalledWith("device_get_stored_passphrase", {
+      deviceId: "device-account-b",
+    });
+    expect(module.consume_pending_device_login()?.device_id).toBe(
+      "device-account-b",
+    );
+  });
+
+  it("completes pairing without broadcasting a sign-in event", async () => {
+    const module = await import("./desktop_device_auth");
+    const events: string[] = [];
+    const listener = () => events.push("success");
+
+    window.addEventListener("astermail:device-login-success", listener);
+    const result = await module.complete_device_pairing("device-2", "sealed");
+
+    window.removeEventListener("astermail:device-login-success", listener);
+
+    expect(events).toEqual([]);
+    expect(result.error).toBeNull();
+    expect(result.device_id).toBe("device-2");
+    expect(result.passphrase).toBe("pass");
+    expect(invoke_mock).toHaveBeenCalledWith("device_unseal_vault_envelope", {
+      envelopeB64: "sealed",
+      deviceId: "device-2",
+    });
+    expect(module.consume_pending_device_login()).toBeNull();
+  });
+
+  it("forgets only the failed account when pairing breaks", async () => {
+    const module = await import("./desktop_device_auth");
+
+    const result = await module.complete_device_pairing("device-2", "broken");
+
+    expect(result.error).toBe("bad envelope");
+    expect(invoke_mock).toHaveBeenCalledWith("device_forget_account", {
+      deviceId: "device-2",
+    });
+    expect(invoke_mock).not.toHaveBeenCalledWith(
+      "device_clear_session",
+      undefined,
+    );
+  });
+
+  it("forgets one account and lets the device pair again", async () => {
+    const module = await import("./desktop_device_auth");
+
+    await module.init_desktop_device_auth();
+    await module.forget_device_account("device-1");
+
+    expect(invoke_mock).toHaveBeenCalledWith("device_forget_account", {
+      deviceId: "device-1",
+    });
+
+    const events: string[] = [];
+    const pairing = () => events.push("pairing");
+
+    window.addEventListener("astermail:device-needs-pairing", pairing);
+    await module.init_desktop_device_auth();
+    window.removeEventListener("astermail:device-needs-pairing", pairing);
+
+    expect(events).toEqual(["pairing"]);
   });
 
   it("rotates the device identity when the identity is cleared", async () => {

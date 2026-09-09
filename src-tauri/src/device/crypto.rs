@@ -97,6 +97,54 @@ fn passphrase_file_path() -> Result<std::path::PathBuf, String> {
     Ok(app_dir.join("device_passphrase.bin"))
 }
 
+fn passphrase_file_name_for(device_id: Uuid) -> String {
+    format!("device_passphrase_{}.bin", device_id.as_simple())
+}
+
+fn passphrase_file_path_for(device_id: Uuid) -> Result<std::path::PathBuf, String> {
+    let legacy = passphrase_file_path()?;
+    let dir = legacy
+        .parent()
+        .ok_or_else(|| "cannot resolve passphrase directory".to_string())?;
+    Ok(dir.join(passphrase_file_name_for(device_id)))
+}
+
+fn is_passphrase_file_name(name: &str) -> bool {
+    name.starts_with("device_passphrase") && name.ends_with(".bin")
+}
+
+fn delete_all_passphrase_files() {
+    let Ok(legacy) = passphrase_file_path() else {
+        return;
+    };
+    let Some(dir) = legacy.parent() else {
+        return;
+    };
+    let Ok(entries) = std::fs::read_dir(dir) else {
+        return;
+    };
+    for entry in entries.flatten() {
+        let name = entry.file_name();
+        if is_passphrase_file_name(&name.to_string_lossy()) {
+            secure_delete_file(&entry.path());
+        }
+    }
+}
+
+fn parse_device_id(device_id: Option<String>) -> Result<Option<Uuid>, String> {
+    match device_id {
+        Some(raw) => Uuid::parse_str(&raw).map(Some).map_err(|e| e.to_string()),
+        None => Ok(None),
+    }
+}
+
+fn resolve_passphrase_device(device_id: Option<String>) -> Result<Option<Uuid>, String> {
+    if let Some(parsed) = parse_device_id(device_id)? {
+        return Ok(Some(parsed));
+    }
+    Ok(load_stored()?.and_then(|stored| stored.device_id))
+}
+
 fn wrap_key_file_path() -> Result<std::path::PathBuf, String> {
     let data_dir = dirs::data_local_dir()
         .ok_or_else(|| "cannot resolve local data directory".to_string())?;
@@ -592,8 +640,10 @@ fn require_primary_webview(window: &tauri::WebviewWindow) -> Result<(), String> 
 pub fn device_unseal_vault_envelope(
     window: tauri::WebviewWindow,
     envelope_b64: String,
+    device_id: Option<String>,
 ) -> Result<String, String> {
     require_primary_webview(&window)?;
+    let target_device = resolve_passphrase_device(device_id)?;
     let data = b64url_decode(&envelope_b64)?;
     if data.len() < 32 + 1088 + 24 + 16 {
         return Err("envelope too short".to_string());
@@ -641,7 +691,10 @@ pub fn device_unseal_vault_envelope(
     shared_key.zeroize();
 
     let encoded = b64url(&plaintext);
-    let path = passphrase_file_path()?;
+    let path = match target_device {
+        Some(id) => passphrase_file_path_for(id)?,
+        None => passphrase_file_path()?,
+    };
     let wrap_key = wrap_key_load_or_create()?;
     let blob = aead_seal(&wrap_key, MAGIC_PP, &plaintext)?;
     atomic_write(&path, &blob)?;
@@ -669,16 +722,52 @@ fn reseal_legacy_passphrase(path: &std::path::Path, raw: &[u8]) {
     }
 }
 
+fn locate_passphrase_file(
+    device_id: Option<String>,
+) -> Result<Option<std::path::PathBuf>, String> {
+    let requested = parse_device_id(device_id)?;
+    let stored_device = load_stored()?.and_then(|stored| stored.device_id);
+    let target = requested.or(stored_device);
+
+    if let Some(id) = target {
+        let scoped = passphrase_file_path_for(id)?;
+        if scoped.exists() {
+            return Ok(Some(scoped));
+        }
+    }
+
+    let legacy = passphrase_file_path()?;
+    if !legacy.exists() {
+        return Ok(None);
+    }
+
+    let legacy_belongs_to_target = match (requested, stored_device) {
+        (Some(wanted), Some(owner)) => wanted == owner,
+        _ => true,
+    };
+    if !legacy_belongs_to_target {
+        return Ok(None);
+    }
+
+    if let Some(id) = target {
+        let scoped = passphrase_file_path_for(id)?;
+        if std::fs::rename(&legacy, &scoped).is_ok() {
+            return Ok(Some(scoped));
+        }
+    }
+
+    Ok(Some(legacy))
+}
+
 #[tauri::command]
 pub fn device_get_stored_passphrase(
     window: tauri::WebviewWindow,
+    device_id: Option<String>,
 ) -> Result<Option<String>, String> {
     require_primary_webview(&window)?;
-    let path = passphrase_file_path()?;
-
-    if !path.exists() {
+    let Some(path) = locate_passphrase_file(device_id)? else {
         return Ok(None);
-    }
+    };
 
     let data = std::fs::read(&path).map_err(|e| e.to_string())?;
 
@@ -735,12 +824,29 @@ pub fn device_auth_store_clear(window: tauri::WebviewWindow) -> Result<(), Strin
 }
 
 #[tauri::command]
-pub fn device_clear_session() -> Result<(), String> {
-    auth_store_clear_all();
+pub fn device_forget_account(device_id: String) -> Result<(), String> {
+    let parsed = Uuid::parse_str(&device_id).map_err(|e| e.to_string())?;
 
-    if let Ok(path) = passphrase_file_path() {
+    if let Ok(path) = passphrase_file_path_for(parsed) {
         secure_delete_file(&path);
     }
+    if let Some(mut stored) = load_stored()? {
+        if stored.device_id == Some(parsed) {
+            if let Ok(path) = passphrase_file_path() {
+                secure_delete_file(&path);
+            }
+            stored.device_id = None;
+            save_stored(&stored)?;
+        }
+    }
+    Ok(())
+}
+
+#[tauri::command]
+pub fn device_clear_session() -> Result<(), String> {
+    auth_store_clear_all();
+    delete_all_passphrase_files();
+
     if let Some(mut stored) = load_stored()? {
         stored.device_id = None;
         save_stored(&stored)?;
@@ -751,11 +857,9 @@ pub fn device_clear_session() -> Result<(), String> {
 #[tauri::command]
 pub fn device_clear_identity() -> Result<(), String> {
     auth_store_clear_all();
+    delete_all_passphrase_files();
 
     if let Ok(path) = identity_file_path() {
-        secure_delete_file(&path);
-    }
-    if let Ok(path) = passphrase_file_path() {
         secure_delete_file(&path);
     }
     let _ = keyring_delete(KEYRING_IDENTITY_USER);
@@ -1163,6 +1267,29 @@ mod tests {
         assert_eq!(std::fs::read(&path).unwrap(), b"x");
 
         let _ = std::fs::remove_file(&path);
+    }
+
+    #[test]
+    fn scoped_passphrase_files_are_per_device_and_match_the_cleanup_filter() {
+        let a = Uuid::new_v4();
+        let b = Uuid::new_v4();
+        let name_a = passphrase_file_name_for(a);
+        let name_b = passphrase_file_name_for(b);
+
+        assert_ne!(name_a, name_b);
+        assert!(is_passphrase_file_name(&name_a));
+        assert!(is_passphrase_file_name("device_passphrase.bin"));
+        assert!(!is_passphrase_file_name("device_identity.bin"));
+        assert!(!is_passphrase_file_name("device_wrap.key"));
+        assert!(!is_passphrase_file_name("auth_access.bin"));
+    }
+
+    #[test]
+    fn parse_device_id_accepts_absent_and_valid_ids_only() {
+        assert_eq!(parse_device_id(None).unwrap(), None);
+        let id = Uuid::new_v4();
+        assert_eq!(parse_device_id(Some(id.to_string())).unwrap(), Some(id));
+        assert!(parse_device_id(Some("not-a-uuid".to_string())).is_err());
     }
 
     #[test]
