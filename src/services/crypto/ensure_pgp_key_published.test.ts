@@ -28,6 +28,7 @@ import {
 
 import { api_client } from "@/services/api/client";
 import { republish_pgp_key } from "@/services/api/key_rotation";
+import { rekey_pgp_if_needed } from "@/services/pgp_rekey_service";
 import {
   get_vault_from_memory,
   get_passphrase_from_memory,
@@ -50,18 +51,39 @@ vi.mock("@/services/crypto/memory_key_store", () => ({
 
 vi.mock("@/services/account_manager", () => ({
   get_current_account: vi.fn(async () => ({
-    user: { id: "test-account-id" },
+    user: {
+      id: "test-account-id",
+      email: "test_user@aster.cx",
+      display_name: "test_user",
+    },
   })),
+}));
+
+vi.mock("@/services/pgp_rekey_service", () => ({
+  rekey_pgp_if_needed: vi.fn(async () => true),
 }));
 
 const PASSPHRASE = "correct horse battery staple";
 
 async function generate_armored_private_key(): Promise<string> {
   const { privateKey } = await openpgp.generateKey({
+    type: "ecc",
+    curve: "ed25519Legacy",
+    userIDs: [{ name: "test_user", email: "test_user@aster.cx" }],
+    passphrase: PASSPHRASE,
+    format: "armored",
+  });
+
+  return privateKey;
+}
+
+async function generate_armored_unpublishable_key(): Promise<string> {
+  const { privateKey } = await openpgp.generateKey({
     type: "curve25519",
     userIDs: [{ name: "maple1", email: "maple1@aster.cx" }],
     passphrase: PASSPHRASE,
     format: "armored",
+    config: { v6Keys: false },
   });
 
   return privateKey;
@@ -72,6 +94,7 @@ describe("ensure_pgp_key_published", () => {
     vi.clearAllMocks();
     reset_pgp_publish_attempt();
     vi.mocked(get_passphrase_from_memory).mockReturnValue(PASSPHRASE);
+    vi.mocked(rekey_pgp_if_needed).mockResolvedValue(true);
   });
 
   it("republishes the vault PGP key when the server has none", async () => {
@@ -192,5 +215,43 @@ describe("ensure_pgp_key_published", () => {
 
     expect(forced).toBe("healed");
     expect(republish_pgp_key).toHaveBeenCalledTimes(2);
+  });
+  it("re-keys instead of republishing a key the server rejects", async () => {
+    const armored = await generate_armored_unpublishable_key();
+
+    vi.mocked(get_vault_from_memory).mockReturnValue({
+      identity_key: armored,
+    } as never);
+    vi.mocked(api_client.get).mockResolvedValue({
+      error: "PGP key not found",
+      code: "NOT_FOUND",
+    });
+
+    const result = await ensure_pgp_key_published();
+
+    expect(result).toBe("healed");
+    expect(republish_pgp_key).not.toHaveBeenCalled();
+    expect(rekey_pgp_if_needed).toHaveBeenCalledWith(
+      "test_user@aster.cx",
+      "test_user",
+    );
+  });
+
+  it("reports failure when the re-key of a rejected key does not run", async () => {
+    const armored = await generate_armored_unpublishable_key();
+
+    vi.mocked(rekey_pgp_if_needed).mockResolvedValue(false);
+    vi.mocked(get_vault_from_memory).mockReturnValue({
+      identity_key: armored,
+    } as never);
+    vi.mocked(api_client.get).mockResolvedValue({
+      error: "PGP key not found",
+      code: "NOT_FOUND",
+    });
+
+    const result = await ensure_pgp_key_published();
+
+    expect(result).toBe("failed");
+    expect(republish_pgp_key).not.toHaveBeenCalled();
   });
 });
