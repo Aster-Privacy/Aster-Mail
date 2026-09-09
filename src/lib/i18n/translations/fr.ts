@@ -6871,6 +6871,17 @@ export const fr = {
     crypto_modal_title: "Paiement en cryptomonnaie",
     crypto_no_renew_notice: "Ce forfait ne se renouvelle pas automatiquement.",
     crypto_paid_until: "Payé jusqu'au {{date}} (crypto)",
+    card_declined_title: "Votre dernier paiement par carte n'a pas abouti",
+    card_declined_insufficient_funds:
+      "Votre banque a refusé le paiement, car le compte n'avait pas assez de fonds. Essayez une autre carte ou payez en crypto ci-dessous.",
+    card_declined_expired_card:
+      "Votre carte a expiré. Utilisez une carte dont la date d'expiration est valide ou payez en crypto ci-dessous.",
+    card_declined_card_details:
+      "Une des informations de la carte ne correspond pas. Vérifiez le numéro, la date d'expiration et le code de sécurité, ou payez en crypto ci-dessous.",
+    card_declined_card_not_supported:
+      "Votre banque ne prend pas en charge ce paiement. Beaucoup de cartes prépayées ne peuvent pas servir à un abonnement. Essayez une carte de débit ou de crédit, ou payez en crypto ci-dessous.",
+    card_declined_contact_bank:
+      "Votre banque a refusé le paiement sans nous en donner la raison. Contactez votre banque ou payez en crypto ci-dessous.",
     crypto_pay_button: "Payer avec de la crypto",
     crypto_pay_now: "Payer maintenant en crypto",
     crypto_renew_link: "Renouveler",

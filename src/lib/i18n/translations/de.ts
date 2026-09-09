@@ -6791,6 +6791,17 @@ export const de = {
     crypto_modal_title: "Mit Krypto bezahlen",
     crypto_no_renew_notice: "Krypto-Käufe verlängern sich nicht automatisch.",
     crypto_paid_until: "Bezahlt bis {{date}} (Krypto)",
+    card_declined_title: "Ihre letzte Kartenzahlung war nicht erfolgreich",
+    card_declined_insufficient_funds:
+      "Ihre Bank hat die Zahlung abgelehnt, weil das Konto nicht genug Guthaben hatte. Versuchen Sie es mit einer anderen Karte oder bezahlen Sie unten mit Krypto.",
+    card_declined_expired_card:
+      "Ihre Karte ist abgelaufen. Verwenden Sie eine Karte mit gültigem Ablaufdatum oder bezahlen Sie unten mit Krypto.",
+    card_declined_card_details:
+      "Eine der Kartenangaben stimmt nicht. Prüfen Sie Nummer, Ablaufdatum und Prüfziffer oder bezahlen Sie unten mit Krypto.",
+    card_declined_card_not_supported:
+      "Ihre Bank unterstützt diese Zahlung nicht. Viele Prepaid-Karten lassen sich nicht für ein Abo verwenden. Versuchen Sie eine Debit- oder Kreditkarte oder bezahlen Sie unten mit Krypto.",
+    card_declined_contact_bank:
+      "Ihre Bank hat die Zahlung ohne Angabe eines Grundes abgelehnt. Wenden Sie sich an Ihre Bank oder bezahlen Sie unten mit Krypto.",
     crypto_pay_button: "Mit Krypto bezahlen",
     crypto_pay_now: "Mit Krypto bezahlen",
     crypto_renew_link: "Mit Krypto verlängern",

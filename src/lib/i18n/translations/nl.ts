@@ -6791,6 +6791,17 @@ export const nl = {
     crypto_modal_title: "Betalen met cryptovaluta",
     crypto_no_renew_notice: "Dit abonnement wordt niet automatisch verlengd",
     crypto_paid_until: "Betaald tot {{date}} (crypto)",
+    card_declined_title: "Je laatste kaartbetaling is niet gelukt",
+    card_declined_insufficient_funds:
+      "Je bank heeft de betaling geweigerd omdat er niet genoeg saldo was. Probeer een andere kaart of betaal hieronder met crypto.",
+    card_declined_expired_card:
+      "Je kaart is verlopen. Gebruik een kaart met een geldige vervaldatum of betaal hieronder met crypto.",
+    card_declined_card_details:
+      "Een van de kaartgegevens klopt niet. Controleer het nummer, de vervaldatum en de beveiligingscode, of betaal hieronder met crypto.",
+    card_declined_card_not_supported:
+      "Je bank ondersteunt deze betaling niet. Veel prepaidkaarten werken niet voor een abonnement. Probeer een debit- of creditcard of betaal hieronder met crypto.",
+    card_declined_contact_bank:
+      "Je bank heeft de betaling geweigerd zonder ons een reden te geven. Neem contact op met je bank of betaal hieronder met crypto.",
     crypto_pay_button: "Betalen met crypto",
     crypto_pay_now: "Nu betalen",
     crypto_renew_link: "Handmatig verlengen",

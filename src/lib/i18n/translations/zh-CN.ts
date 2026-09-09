@@ -6324,6 +6324,17 @@ export const zh_CN = {
     checkout_pay_now: "立即支付",
     or_pay_with_card: "或使用信用卡支付",
     cashapp_redirect_notice: "您将被重定向到 Cash App 以完成支付。",
+    card_declined_title: "你上次的银行卡支付未能完成",
+    card_declined_insufficient_funds:
+      "账户余额不足，银行拒绝了这笔支付。请换一张卡，或在下方使用加密货币支付。",
+    card_declined_expired_card:
+      "你的银行卡已过期。请使用未过期的银行卡，或在下方使用加密货币支付。",
+    card_declined_card_details:
+      "银行卡信息有一项不匹配。请检查卡号、有效期和安全码，或在下方使用加密货币支付。",
+    card_declined_card_not_supported:
+      "银行不支持这笔支付。许多预付卡无法用于订阅。请改用借记卡或信用卡，或在下方使用加密货币支付。",
+    card_declined_contact_bank:
+      "银行拒绝了这笔支付，且未说明原因。请联系银行，或在下方使用加密货币支付。",
     crypto_pay_button: "用加密货币支付",
     crypto_summary_plan: "套餐",
     crypto_summary_addon: "附加项",
