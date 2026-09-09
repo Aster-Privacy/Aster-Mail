@@ -122,7 +122,11 @@ export function AliasCapUpsellModal() {
       </ModalHeader>
 
       <ModalBody className="space-y-3">
-        <AliasUsageMeter limit={limit} show_upgrade_action={false} used={used} />
+        <AliasUsageMeter
+          limit={limit}
+          show_upgrade_action={false}
+          used={used}
+        />
 
         <div
           className="flex items-start gap-2.5 rounded-2xl px-3.5 py-3"
