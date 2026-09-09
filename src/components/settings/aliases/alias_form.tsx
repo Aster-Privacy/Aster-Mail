@@ -522,7 +522,7 @@ export function CreateAliasModal({
                           </div>
                           {premium_domains.map((d) => (
                             <SelectItem key={d} value={d}>
-                              <span className="flex items-center gap-2">
+                              <span className="inline-flex items-center gap-2 align-middle">
                                 {d}
                                 {!premium_domains_allowed && (
                                   <span className="inline-flex shrink-0 items-center gap-1 rounded-md border border-edge-secondary bg-surf-tertiary px-1.5 py-0.5 text-[11px] font-medium text-txt-muted">
