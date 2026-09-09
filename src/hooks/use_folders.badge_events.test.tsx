@@ -53,6 +53,11 @@ vi.mock("@/services/api/mail", () => ({
 vi.mock("@/services/crypto/memory_key_store", () => ({
   get_vault_from_memory: () => ({ identity_key: "key" }),
   has_passphrase_in_memory: () => true,
+  on_keys_ready: (callback: () => void) => {
+    callback();
+
+    return () => {};
+  },
 }));
 
 vi.mock("@/services/crypto/legacy_keks", () => ({
