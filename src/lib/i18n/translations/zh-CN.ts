@@ -4537,6 +4537,7 @@ export const zh_CN = {
     twin_address_multiple_description:
       "{{ local_part }} 已在 {{ count }} 个 Aster 域名上为您的账户保留，其他人无法注册。想用它收发邮件时，将其创建为别名即可。",
     twin_address_create: "创建别名",
+    twin_address_dismiss: "关闭",
     custom_domain_addresses_note: "您还可以在已验证的自定义域名上创建地址。",
     alias_taken_try_different: "此别名已被占用。请尝试其他名称。",
     upgrade_plan_more_aliases: "升级套餐以创建更多别名并解锁更多功能。",

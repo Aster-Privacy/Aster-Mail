@@ -5008,6 +5008,7 @@ export const tr = {
     twin_address_multiple_description:
       "{{ local_part }}, {{ count }} Aster alan adında hesabınız için ayrılmıştır, bu yüzden başka kimse kaydedemez. Bu adresten gönderip almak istediğinizde takma ad olarak oluşturun.",
     twin_address_create: "Takma ad oluştur",
+    twin_address_dismiss: "Kapat",
     custom_domain_addresses_note:
       "Doğrulanmış özel alan adlarınızda da adresler oluşturabilirsiniz.",
     alias_taken_try_different:

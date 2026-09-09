@@ -4986,6 +4986,7 @@ export const nl = {
     twin_address_multiple_description:
       "{{ local_part }} is op {{ count }} Aster-domeinen gereserveerd voor uw account, dus niemand anders kan het registreren. Maak het aan als alias wanneer u ermee wilt verzenden en ontvangen.",
     twin_address_create: "Alias aanmaken",
+    twin_address_dismiss: "Sluiten",
     custom_domain_addresses_note:
       "Je kunt ook adressen aanmaken op je geverifieerde aangepaste domeinen.",
     alias_taken_try_different:

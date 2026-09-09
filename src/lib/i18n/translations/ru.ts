@@ -5170,6 +5170,7 @@ export const ru = {
     twin_address_multiple_description:
       "{{ local_part }} зарезервирован за вашей учётной записью на {{ count }} доменах Aster, поэтому никто другой не сможет его зарегистрировать. Создайте его как псевдоним, когда захотите отправлять и получать письма с него.",
     twin_address_create: "Создать псевдоним",
+    twin_address_dismiss: "Скрыть",
     custom_domain_addresses_note:
       "Вы также можете создавать адреса на ваших подтверждённых пользовательских доменах.",
     alias_taken_try_different:

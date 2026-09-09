@@ -5061,6 +5061,7 @@ export const es = {
     twin_address_multiple_description:
       "{{ local_part }} está reservado para tu cuenta en {{ count }} dominios de Aster, así que nadie más puede registrarlo. Créalo como alias cuando quieras enviar y recibir desde él.",
     twin_address_create: "Crear alias",
+    twin_address_dismiss: "Descartar",
     custom_domain_addresses_note:
       "También puedes crear direcciones en tus dominios personalizados verificados.",
     alias_taken_try_different:

@@ -5923,6 +5923,7 @@ export const hi = {
     twin_address_multiple_description:
       "{{ local_part }} आपके खाते के लिए {{ count }} Aster डोमेन पर आरक्षित है, इसलिए इसे कोई और पंजीकृत नहीं कर सकता। जब भी आप इससे भेजना और प्राप्त करना चाहें, इसे उपनाम के रूप में बनाएं।",
     twin_address_create: "एलियास बनाएं",
+    twin_address_dismiss: "खारिज करें",
     custom_domain_addresses_note:
       "आप अपने पुष्ट कस्टम डोमेन पर भी पते बना सकते हैं।",
     alias_taken_try_different:

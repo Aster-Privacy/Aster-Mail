@@ -4973,6 +4973,7 @@ export const ko = {
     twin_address_multiple_description:
       "{{ local_part }}은(는) {{ count }}개의 Aster 도메인에서 회원님의 계정용으로 예약되어 있어 다른 사람이 등록할 수 없습니다. 이 주소로 보내고 받으려면 별칭으로 만드세요.",
     twin_address_create: "별칭 만들기",
+    twin_address_dismiss: "닫기",
     custom_domain_addresses_note:
       "인증된 사용자 정의 도메인에서도 주소를 만들 수 있습니다.",
     alias_taken_try_different:

@@ -5208,6 +5208,7 @@ export interface SettingsTranslations {
   twin_address_title_multiple: string;
   twin_address_multiple_description: string;
   twin_address_create: string;
+  twin_address_dismiss: string;
   custom_domain_addresses_note: string;
   alias_taken_try_different: string;
   alias_is_available: string;

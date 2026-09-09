@@ -5909,6 +5909,7 @@ export const en: Translations = {
     twin_address_multiple_description:
       "{{ local_part }} is reserved for your account on {{ count }} Aster domains, so no one else can register it. Create it as an alias whenever you want to send and receive from it.",
     twin_address_create: "Create alias",
+    twin_address_dismiss: "Dismiss",
     custom_domain_addresses_note:
       "You can also create addresses on your verified custom domains.",
     alias_taken_try_different:

@@ -5084,6 +5084,7 @@ export const ar = {
     twin_address_multiple_description:
       "{{ local_part }} محجوز لحسابك على {{ count }} من نطاقات Aster، لذا لا يمكن لأي شخص آخر تسجيله. أنشئه كاسم مستعار متى أردت الإرسال والاستقبال منه.",
     twin_address_create: "إنشاء اسم مستعار",
+    twin_address_dismiss: "إغلاق",
     custom_domain_addresses_note:
       "يمكنك أيضًا إنشاء عناوين على نطاقاتك المخصصة الموثقة.",
     alias_taken_try_different:

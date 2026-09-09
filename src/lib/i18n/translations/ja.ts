@@ -5031,6 +5031,7 @@ export const ja = {
     twin_address_multiple_description:
       "{{ local_part }} は {{ count }} 個の Aster ドメインであなたのアカウント用に予約されているため、他の人は登録できません。このアドレスで送受信したくなったら、エイリアスとして作成してください。",
     twin_address_create: "エイリアスを作成",
+    twin_address_dismiss: "閉じる",
     custom_domain_addresses_note:
       "認証済みのカスタムドメインでもアドレスを作成できます。",
     alias_taken_try_different:

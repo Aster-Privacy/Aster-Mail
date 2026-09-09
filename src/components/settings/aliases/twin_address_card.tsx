@@ -19,9 +19,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useEffect, useState } from "react";
-import { ShieldCheckIcon } from "@heroicons/react/24/outline";
+import { ShieldCheckIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
+import { use_preferences } from "@/contexts/preferences_context";
 import { use_i18n } from "@/lib/i18n/context";
 import {
   get_twin_address,
@@ -62,6 +63,7 @@ export function TwinAddressCard({
   on_claim,
 }: TwinAddressCardProps) {
   const { t } = use_i18n();
+  const { preferences, update_preference } = use_preferences();
   const [twin, set_twin] = useState<TwinAddressResponse | null>(cached_twin);
   const [loaded, set_loaded] = useState(cached_twin_loaded);
 
@@ -94,6 +96,8 @@ export function TwinAddressCard({
   }, [refresh_token]);
 
   const siblings = claimable_siblings(twin);
+
+  if (preferences.twin_address_banner_dismissed) return null;
 
   if (!loaded) {
     return (
@@ -134,14 +138,25 @@ export function TwinAddressCard({
                   })}
           </p>
         </div>
-        <Button
-          className="shrink-0 self-center"
-          size="sm"
-          variant="secondary"
-          onClick={() => on_claim(primary.local_part, primary.domain)}
-        >
-          {t("settings.twin_address_create")}
-        </Button>
+        <div className="flex shrink-0 items-center gap-1 self-center">
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => on_claim(primary.local_part, primary.domain)}
+          >
+            {t("settings.twin_address_create")}
+          </Button>
+          <button
+            aria-label={t("settings.twin_address_dismiss")}
+            className="rounded-lg p-1.5 text-txt-muted transition-colors hover:bg-surf-tertiary hover:text-txt-primary"
+            type="button"
+            onClick={() =>
+              update_preference("twin_address_banner_dismissed", true, true)
+            }
+          >
+            <XMarkIcon className="h-4 w-4" />
+          </button>
+        </div>
       </div>
     </div>
   );
