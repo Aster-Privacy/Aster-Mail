@@ -364,7 +364,6 @@ export function FolderRetentionSection() {
               {t("folder_retention.add")}
             </Button>
           </div>
-          <div className="mt-2 h-px bg-edge-secondary" />
         </div>
         <p className="text-sm mb-4 text-txt-muted">
           {t("folder_retention.subtitle")}

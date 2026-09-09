@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type {
+  NavGroup,
   NavItem,
   Section,
   SettingsContentProps,
@@ -38,16 +39,16 @@ import {
   ArrowLeftIcon,
   ArrowUturnLeftIcon,
   MagnifyingGlassIcon,
+  ChevronRightIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
+import { StorageSection } from "./settings_lazy_sections";
 import {
-  BillingSection,
-  OnionBillingSection,
-  FamilySection,
-  StorageSection,
-} from "./settings_lazy_sections";
-import { set_persisted_section } from "./settings_content_helpers";
+  flatten_nav_items,
+  request_settings_tab,
+  set_persisted_section,
+} from "./settings_content_helpers";
 import { use_settings_content } from "./use_settings_content";
 
 import { SearchRegistryProvider } from "@/components/settings/search_context";
@@ -56,34 +57,30 @@ import {
   scroll_to_storage_addons,
 } from "@/components/layout/storage_meter";
 import { AccountSection } from "@/components/settings/account_section";
-import { AppearanceSection } from "@/components/settings/appearance_section";
-import { AccessibilitySection } from "@/components/settings/accessibility_section";
-import { SecuritySection } from "@/components/settings/security_section";
-import { ImportSection } from "@/components/settings/import_section";
+import { AppearanceGroupSection } from "@/components/settings/appearance_group_section";
+import { SecurityGroupSection } from "@/components/settings/security_group_section";
+import { BillingGroupSection } from "@/components/settings/billing_group_section";
 import { NotificationsSection } from "@/components/settings/notifications_section";
-import { ComposeSection } from "@/components/settings/compose_section";
-import { SignatureSection } from "@/components/settings/signature_section";
-import { BehaviorSection } from "@/components/settings/behavior_section";
+import { ReadingGroupSection } from "@/components/settings/reading_group_section";
+import { ComposeGroupSection } from "@/components/settings/compose_group_section";
+import { RulesGroupSection } from "@/components/settings/rules_group_section";
+import { ImportGroupSection } from "@/components/settings/import_group_section";
+import { HelpGroupSection } from "@/components/settings/help_group_section";
 import { AliasesSection } from "@/components/settings/aliases_section";
 import { DomainsSection } from "@/components/settings/domains_section";
-import { EncryptionSection } from "@/components/settings/encryption_section";
-import { DeveloperSection } from "@/components/settings/developer_section";
-import { UpdatesSection } from "@/components/settings/updates_section";
-import { TemplatesSection } from "@/components/settings/templates_section";
-import { MailManagementSection } from "@/components/settings/mail_management_section";
-import { MailRulesSection } from "@/components/settings/mail_rules_section";
-import { CategorySettingsSection } from "@/components/settings/category_settings_section";
-import { FeedbackSection } from "@/components/settings/feedback_section";
 import { ReferralTab } from "@/components/settings/referral_tab";
 import { BridgeSection } from "@/components/settings/bridge_section";
-import { TrustedDevicesPanel } from "@/components/settings/trusted_devices_panel";
 import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
 import { SettingsSaveIndicator } from "@/components/settings/settings_save_indicator";
 import { SettingsCacheProvider } from "@/contexts/settings_cache_context";
 import { is_onion_host } from "@/lib/onion_host";
+import { is_desktop_runtime } from "@/services/updates/updater";
 import { is_composing } from "@/utils/ime";
 
 export type { SettingsSection } from "./settings_content_helpers";
+
+const BREADCRUMB_LINK_CLASS =
+  "rounded-sm outline-none transition-colors hover:text-txt-primary hover:underline underline-offset-2 focus-visible:ring-2 focus-visible:ring-blue-500/50";
 
 export function SettingsContent(props: SettingsContentProps) {
   return (
@@ -122,6 +119,8 @@ function SettingsContentInner(props: SettingsContentProps) {
     content_container_ref,
     nav_item_refs,
     handle_account_deleted,
+    has_devices,
+    dev_mode_enabled,
     nav_items,
     is_searching,
     search_results,
@@ -130,86 +129,71 @@ function SettingsContentInner(props: SettingsContentProps) {
 
   const active_section_element = useMemo(() => {
     switch (section) {
+      case "appearance":
+        return <AppearanceGroupSection />;
       case "account":
         return <AccountSection />;
-      case "appearance":
-        return <AppearanceSection />;
-      case "accessibility":
-        return <AccessibilitySection />;
       case "security":
         return (
-          <SecuritySection
+          <SecurityGroupSection
+            has_devices={has_devices}
             on_account_deleted={handle_account_deleted}
             set_show_inline_totp_setup={set_show_inline_totp_setup}
             show_inline_totp_setup={show_inline_totp_setup}
           />
         );
-      case "encryption":
-        return <EncryptionSection />;
-      case "trusted_devices":
-        return <TrustedDevicesPanel />;
       case "aliases":
         return <AliasesSection />;
       case "domains":
         return <DomainsSection />;
-      case "billing":
-        return (
-          <Suspense fallback={<SettingsSkeleton variant="billing" />}>
-            {is_onion_host() ? <OnionBillingSection /> : <BillingSection />}
-          </Suspense>
-        );
       case "storage":
         return (
           <Suspense fallback={<SettingsSkeleton />}>
             <StorageSection />
           </Suspense>
         );
-      case "family":
-        if (!is_family_plan) {
+      case "billing":
+        return <BillingGroupSection is_family_plan={is_family_plan} />;
+      case "referral":
+        if (is_onion_host()) {
           return null;
         }
 
-        return (
-          <Suspense fallback={<SettingsSkeleton />}>
-            <FamilySection is_family_plan={is_family_plan} />
-          </Suspense>
-        );
-      case "referral":
         return <ReferralTab />;
+      case "notifications":
+        return <NotificationsSection />;
+      case "behavior":
+        return <ReadingGroupSection />;
+      case "compose":
+        return <ComposeGroupSection />;
+      case "mail_rules":
+        return <RulesGroupSection />;
       case "import":
         if (is_onion_host()) {
           return null;
         }
 
-        return <ImportSection />;
-      case "notifications":
-        return <NotificationsSection />;
-      case "compose":
-        return <ComposeSection />;
-      case "signature":
-        return <SignatureSection />;
-      case "templates":
-        return <TemplatesSection />;
-      case "behavior":
-        return <BehaviorSection />;
-      case "categories":
-        return <CategorySettingsSection />;
-      case "sender_filters":
-        return <MailManagementSection />;
-      case "mail_rules":
-        return <MailRulesSection />;
-      case "feedback":
-        return <FeedbackSection />;
-      case "developer":
-        return <DeveloperSection />;
-      case "updates":
-        return <UpdatesSection />;
+        return <ImportGroupSection />;
       case "bridge":
         return <BridgeSection />;
+      case "feedback":
+        return (
+          <HelpGroupSection
+            show_developer={dev_mode_enabled}
+            show_updates={is_desktop_runtime()}
+          />
+        );
       default:
         return null;
     }
-  }, [section, handle_account_deleted, show_inline_totp_setup, is_family_plan]);
+  }, [
+    section,
+    handle_account_deleted,
+    show_inline_totp_setup,
+    is_family_plan,
+    has_devices,
+    dev_mode_enabled,
+  ]);
 
   const handle_desktop_nav_click = useCallback(
     (item_id: Section) => {
@@ -235,7 +219,7 @@ function SettingsContentInner(props: SettingsContentProps) {
         ref={(el) => {
           nav_item_refs.current[item.id] = el;
         }}
-        className="w-full flex items-center gap-2.5 px-2.5 h-8 rounded-[12px] text-[13px] transition-colors duration-150 relative z-[1] outline-none focus:outline-none hover:bg-black/[0.04] dark:hover:bg-white/[0.04]"
+        className={`w-full flex items-center gap-2.5 px-2.5 h-[34px] rounded-[10px] text-[13px] transition-colors duration-150 relative z-[1] outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40 ${is_selected ? "font-medium" : "hover:bg-black/[0.04] dark:hover:bg-white/[0.04]"}`}
         style={{
           color: is_selected ? "var(--text-primary)" : "var(--text-secondary)",
         }}
@@ -269,12 +253,39 @@ function SettingsContentInner(props: SettingsContentProps) {
     );
   };
 
+  const render_nav_group = (group: NavGroup, index: number) => (
+    <div key={group.id} className={index === 0 ? "" : "mt-5"}>
+      <div className="text-[11px] font-semibold uppercase tracking-[0.06em] px-2.5 mb-1.5 text-txt-muted">
+        {group.label}
+      </div>
+      <div className="space-y-0.5">{group.items.map(render_nav_item)}</div>
+    </div>
+  );
+
+  const render_mobile_nav_group = (group: NavGroup, index: number) => (
+    <div key={group.id}>
+      <div
+        className={
+          "text-[11px] font-semibold uppercase tracking-wider px-4 py-3 text-txt-muted" +
+          (index === 0 ? "" : " mt-2")
+        }
+      >
+        {group.label}
+      </div>
+      {group.items.map(render_mobile_nav_item)}
+    </div>
+  );
+
   const get_current_section_label = () => {
-    const all_items = [...nav_items.general, ...nav_items.mail];
-    const item = all_items.find((i) => i.id === section);
+    const item = flatten_nav_items(nav_items).find((i) => i.id === section);
 
     return item?.label || t("settings.title");
   };
+
+  const get_current_group = () =>
+    nav_items.find((candidate) =>
+      candidate.items.some((item) => item.id === section),
+    ) ?? null;
 
   const [search_slot, set_search_slot] = useState<HTMLElement | null>(null);
   const [active_result_index, set_active_result_index] = useState(0);
@@ -309,7 +320,8 @@ function SettingsContentInner(props: SettingsContentProps) {
   }, [results_open]);
 
   const open_search_result = useCallback(
-    (entry: { section: Section; label: string }) => {
+    (entry: { section: Section; label: string; tab?: string }) => {
+      if (entry.tab) request_settings_tab(entry.tab);
       handle_desktop_nav_click(entry.section);
       set_scroll_target(entry.label);
       set_search_query("");
@@ -390,10 +402,9 @@ function SettingsContentInner(props: SettingsContentProps) {
                     </div>
                   ) : (
                     registry_results.map((entry, idx) => {
-                      const nav_item = [
-                        ...nav_items.general,
-                        ...nav_items.mail,
-                      ].find((n) => n.id === entry.section);
+                      const nav_item = flatten_nav_items(nav_items).find(
+                        (n) => n.id === entry.section,
+                      );
                       const is_active = idx === active_result_index;
 
                       return (
@@ -488,20 +499,7 @@ function SettingsContentInner(props: SettingsContentProps) {
                 {search_results.map(render_nav_item)}
               </div>
             ) : (
-              <>
-                <div className="text-[10px] font-semibold uppercase tracking-wider px-2.5 mb-2 text-txt-muted">
-                  {t("settings.general")}
-                </div>
-                <div className="space-y-0.5 mb-4">
-                  {nav_items.general.map(render_nav_item)}
-                </div>
-                <div className="text-[10px] font-semibold uppercase tracking-wider px-2.5 mb-2 text-txt-muted">
-                  {t("common.mail")}
-                </div>
-                <div className="space-y-0.5">
-                  {nav_items.mail.map(render_nav_item)}
-                </div>
-              </>
+              nav_items.map(render_nav_group)
             )}
           </div>
         </nav>
@@ -595,20 +593,9 @@ function SettingsContentInner(props: SettingsContentProps) {
                   />
                 </div>
               </div>
-              {is_searching ? (
-                search_results.map(render_mobile_nav_item)
-              ) : (
-                <>
-                  <div className="text-[11px] font-semibold uppercase tracking-wider px-4 py-3 text-txt-muted">
-                    {t("settings.general")}
-                  </div>
-                  {nav_items.general.map(render_mobile_nav_item)}
-                  <div className="text-[11px] font-semibold uppercase tracking-wider px-4 py-3 mt-2 text-txt-muted">
-                    {t("common.mail")}
-                  </div>
-                  {nav_items.mail.map(render_mobile_nav_item)}
-                </>
-              )}
+              {is_searching
+                ? search_results.map(render_mobile_nav_item)
+                : nav_items.map(render_mobile_nav_group)}
             </div>
           )}
 
@@ -661,9 +648,49 @@ function SettingsContentInner(props: SettingsContentProps) {
               }
             >
               {!is_popup && (
-                <h1 className="hidden md:block text-[26px] font-bold text-txt-primary mb-6">
-                  {get_current_section_label()}
-                </h1>
+                <div className="hidden md:block mb-7">
+                  <nav
+                    aria-label={t("settings.title")}
+                    className="mb-2 flex items-center gap-1 text-[12px] text-txt-muted"
+                  >
+                    <button
+                      className={BREADCRUMB_LINK_CLASS}
+                      type="button"
+                      onClick={() => {
+                        const first = nav_items[0]?.items[0];
+
+                        if (first) handle_desktop_nav_click(first.id);
+                      }}
+                    >
+                      {t("settings.title")}
+                    </button>
+                    <ChevronRightIcon className="h-3 w-3 shrink-0 rtl:-scale-x-100" />
+                    {get_current_group() &&
+                      get_current_group()?.label !==
+                        get_current_section_label() && (
+                        <>
+                          <button
+                            className={BREADCRUMB_LINK_CLASS}
+                            type="button"
+                            onClick={() => {
+                              const first = get_current_group()?.items[0];
+
+                              if (first) handle_desktop_nav_click(first.id);
+                            }}
+                          >
+                            {get_current_group()?.label}
+                          </button>
+                          <ChevronRightIcon className="h-3 w-3 shrink-0 rtl:-scale-x-100" />
+                        </>
+                      )}
+                    <span aria-current="page" className="text-txt-secondary">
+                      {get_current_section_label()}
+                    </span>
+                  </nav>
+                  <h1 className="text-[26px] font-bold text-txt-primary">
+                    {get_current_section_label()}
+                  </h1>
+                </div>
               )}
               {active_section_element}
             </div>

@@ -260,7 +260,6 @@ export function GhostAliasesSection() {
               })}
             </span>
           </div>
-          <div className="mt-2 h-px bg-edge-secondary" />
         </div>
         <p className="text-sm mb-3 text-txt-muted">
           {t("settings.ghost_aliases_description")}

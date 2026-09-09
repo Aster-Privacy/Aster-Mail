@@ -53,6 +53,12 @@ describe("resolve_mobile_section", () => {
     expect(resolve_mobile_section("bridge")).toBe("connection");
     expect(resolve_mobile_section("smtp_tokens")).toBe("connection");
     expect(resolve_mobile_section("updates")).toBe("about");
+    expect(resolve_mobile_section("storage")).toBe("billing");
+    expect(resolve_mobile_section("credits")).toBe("billing");
+    expect(resolve_mobile_section("blocked")).toBe("sender_filters");
+    expect(resolve_mobile_section("vacation_reply")).toBe("sender_filters");
+    expect(resolve_mobile_section("export")).toBe("import");
+    expect(resolve_mobile_section("help")).toBe("feedback");
   });
 
   it("rejects an unknown section instead of opening a blank screen", () => {

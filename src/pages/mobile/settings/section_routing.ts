@@ -57,6 +57,15 @@ const SECTION_ALIASES: Record<string, SettingsSection> = {
   updates: "about",
   plans: "billing",
   subscription: "billing",
+  storage: "billing",
+  storage_addons: "billing",
+  credits: "billing",
+  blocked: "sender_filters",
+  allowlist: "sender_filters",
+  auto_forward: "sender_filters",
+  vacation_reply: "sender_filters",
+  export: "import",
+  help: "feedback",
 };
 
 export function resolve_mobile_section(

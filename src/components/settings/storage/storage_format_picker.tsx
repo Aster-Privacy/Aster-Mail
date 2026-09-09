@@ -73,7 +73,6 @@ export function StorageFormatPicker({
             title={t("settings.info_storage_format_title")}
           />
         </h3>
-        <div className="mt-2 h-px bg-edge-secondary" />
       </div>
       <p className="text-sm mb-4 text-txt-muted">
         {t("settings.storage_format_description")}

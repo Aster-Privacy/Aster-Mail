@@ -23,10 +23,10 @@ import type {
   BillingHistoryItem,
   AvailablePlan,
 } from "@/services/api/billing";
-import { server_error_text } from "@/components/settings/billing/server_error_text";
 
 import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 
+import { server_error_text } from "@/components/settings/billing/server_error_text";
 import {
   PLAN_TIERS,
   FAMILY_PLAN_TIERS,

@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { PlanFeature } from "@/components/settings/billing/plan_card";
+
 import {
   ExclamationTriangleIcon,
   CreditCardIcon,
@@ -41,7 +43,6 @@ import {
   PLAN_TIERS,
 } from "@/components/settings/billing/billing_constants";
 import { DEFAULT_RECOMMENDED_PLAN } from "@/components/settings/billing/plan_recommendation";
-import type { PlanFeature } from "@/components/settings/billing/plan_card";
 import { CrownIcon } from "@/components/ui/crown_icon";
 import { describe_plan } from "@/utils/billing_description";
 
@@ -159,7 +160,6 @@ export function CurrentPlanCard({
               {t("settings.current_plan")}
             </h3>
           </div>
-          <div className="mt-2 h-px bg-edge-secondary" />
         </div>
 
         <div className="p-4 rounded-lg bg-surf-tertiary border border-edge-secondary">

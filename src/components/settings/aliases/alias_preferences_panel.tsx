@@ -170,7 +170,6 @@ export function AliasPreferencesPanel({
           <AdjustmentsHorizontalIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
           {t("settings.alias_pref_section")}
         </h3>
-        <div className="mt-2 h-px bg-edge-secondary" />
       </div>
       <div>
         {loading ? (

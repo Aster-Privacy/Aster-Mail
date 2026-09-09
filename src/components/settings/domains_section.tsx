@@ -363,7 +363,6 @@ export function DomainsSection() {
               </span>
             )}
           </div>
-          <div className="mt-2 h-px bg-edge-secondary" />
         </div>
         <p className="text-sm mb-3 text-txt-muted">
           {t("settings.domains_page_description")}
@@ -471,7 +470,6 @@ export function DomainsSection() {
                     </span>
                   )}
                 </div>
-                <div className="mt-2 h-px bg-edge-secondary" />
                 <p className="text-sm mt-3 text-txt-muted">
                   {t("settings.domain_purchase_purchased_desc")}
                 </p>

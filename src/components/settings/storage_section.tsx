@@ -614,7 +614,6 @@ export function StorageSection() {
             <ChartPieIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
             {t("settings.storage_breakdown_title")}
           </h3>
-          <div className="mt-2 h-px bg-edge-secondary" />
         </div>
 
         {total_breakdown_bytes === 0 ? (
@@ -774,7 +773,6 @@ export function StorageSection() {
             <CircleStackIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
             {t("settings.storage_capacity_title")}
           </h3>
-          <div className="mt-2 h-px bg-edge-secondary" />
         </div>
 
         <div>

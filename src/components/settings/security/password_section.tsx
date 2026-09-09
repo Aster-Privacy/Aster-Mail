@@ -168,7 +168,6 @@ export function PasswordSection({
               />
             )}
           </h3>
-          <div className="mt-2 h-px bg-edge-secondary" />
         </div>
       )}
       {!show_header && (

@@ -56,7 +56,6 @@ export function ReferralSection({
         <p className="text-xs text-txt-muted mt-1">
           {t("settings.referral_program_description")}
         </p>
-        <div className="mt-2 h-px bg-edge-secondary" />
       </div>
 
       {referral_info && referral_info.referral_code ? (

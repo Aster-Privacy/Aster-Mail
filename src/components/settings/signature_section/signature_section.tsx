@@ -122,7 +122,6 @@ export function SignatureSection() {
             <PencilSquareIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
             {t("settings.email_signature_title")}
           </h3>
-          <div className="mt-2 h-px bg-edge-secondary" />
         </div>
         <p className="text-sm mb-3 text-txt-muted">
           {t("settings.email_signature_description")}
@@ -768,7 +767,6 @@ export function SignatureSection() {
             <Bars3BottomLeftIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
             {t("settings.signature_placement")}
           </h3>
-          <div className="mt-2 h-px bg-edge-secondary" />
         </div>
 
         <div className="flex items-center justify-between py-4">
@@ -808,7 +806,6 @@ export function SignatureSection() {
           <h3 className="text-base font-semibold text-txt-primary">
             {t("settings.show_signature_separator")}
           </h3>
-          <div className="mt-2 h-px bg-edge-secondary" />
         </div>
         <div className="flex items-center justify-between">
           <div className="flex-1">
@@ -847,7 +844,6 @@ export function SignatureSection() {
           <h3 className="text-base font-semibold text-txt-primary">
             {t("settings.show_aster_branding")}
           </h3>
-          <div className="mt-2 h-px bg-edge-secondary" />
         </div>
         <div className="flex items-center justify-between">
           <div className="flex-1">

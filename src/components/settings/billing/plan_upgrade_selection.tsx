@@ -28,6 +28,8 @@ import {
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
+import { checkout_error_text } from "./checkout_error_text";
+
 import { safe_local_set } from "@/lib/safe_storage";
 import { use_i18n } from "@/lib/i18n/context";
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
@@ -60,7 +62,6 @@ import {
   CURRENCY_STORAGE_KEY,
 } from "@/components/settings/billing/billing_constants";
 import { use_currency_rates } from "@/components/settings/billing/use_currency_rates";
-import { checkout_error_text } from "./checkout_error_text";
 
 type TFunc = (
   key: TranslationKey,

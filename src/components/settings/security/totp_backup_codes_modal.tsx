@@ -24,9 +24,9 @@ import {
   ExclamationTriangleIcon,
   ArrowDownTrayIcon,
 } from "@heroicons/react/24/outline";
-import { trigger_download } from "@/utils/download_blob";
 import { Button } from "@aster/ui";
 
+import { trigger_download } from "@/utils/download_blob";
 import { show_toast } from "@/components/toast/simple_toast";
 import {
   Modal,

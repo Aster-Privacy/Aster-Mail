@@ -126,7 +126,6 @@ export function SmtpTokensSection() {
           title={t("settings.smtp_tokens")}
         />
       </div>
-      <div className="mt-2 h-px bg-edge-secondary" />
       <p className="text-sm text-txt-muted mt-2">
         {t("settings.smtp_tokens_description")}
       </p>

@@ -24,6 +24,8 @@ import { Capacitor } from "@capacitor/core";
 import { BanknotesIcon } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
+import { checkout_error_text } from "./checkout_error_text";
+
 import {
   Modal,
   ModalHeader,
@@ -55,8 +57,6 @@ import {
   notify_crypto_invoice_changed,
   remember_crypto_selection,
 } from "@/components/settings/billing/billing_constants";
-import { checkout_error_text } from "./checkout_error_text";
-
 import { is_onion_host } from "@/lib/onion_host";
 
 type TermMonths = 1 | 3 | 6 | 12 | 24;
@@ -76,6 +76,7 @@ interface CryptoTermModalProps {
   initial_term_months?: number;
   initial_coin_key?: string;
   initial_invoice_id?: string;
+  promo_code?: string | null;
 }
 
 const TERM_OPTIONS: TermMonths[] = [1, 3, 6, 12, 24];
@@ -115,6 +116,7 @@ export function crypto_term_modal({
   initial_term_months,
   initial_coin_key,
   initial_invoice_id,
+  promo_code,
 }: CryptoTermModalProps) {
   const { t } = use_i18n();
   const navigate = useNavigate();
@@ -284,6 +286,7 @@ export function crypto_term_modal({
         selected_term,
         `${origin}/?crypto=success`,
         `${origin}/?crypto=cancelled`,
+        promo_code ?? undefined,
       );
 
       if (response.data?.url) {
@@ -335,6 +338,7 @@ export function crypto_term_modal({
         selected_term,
         coin.currency,
         coin.chain,
+        promo_code ?? undefined,
       );
 
       if (response.data?.id) {
@@ -685,8 +689,8 @@ export function crypto_term_modal({
       <Modal
         show_close_button
         is_open={show_energy}
-        size="sm"
         on_close={() => set_show_energy(false)}
+        size="sm"
       >
         <ModalHeader>
           <ModalTitle>{t("settings.crypto_energy_toggle")}</ModalTitle>

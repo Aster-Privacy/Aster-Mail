@@ -49,8 +49,9 @@ vi.mock("@/services/api/external_accounts", () => ({
   list_account_folders: vi.fn(),
 }));
 
-const { use_external_accounts_form } =
-  await import("@/components/settings/hooks/use_external_accounts_form");
+const { use_external_accounts_form } = await import(
+  "@/components/settings/hooks/use_external_accounts_form"
+);
 
 type FormHook = ReturnType<typeof use_external_accounts_form>;
 

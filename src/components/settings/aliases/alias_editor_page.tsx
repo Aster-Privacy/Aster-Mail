@@ -98,7 +98,6 @@ function SectionHeading({
         </h3>
         {action}
       </div>
-      <div className="mt-2 h-px bg-edge-secondary" />
     </div>
   );
 }
@@ -347,7 +346,6 @@ export function AliasEditorPage({
               </button>
             </h3>
           </div>
-          <div className="mt-2 h-px bg-edge-secondary" />
         </div>
 
         {alias && on_toggle_enabled && (

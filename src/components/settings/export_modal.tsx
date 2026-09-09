@@ -579,15 +579,19 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
             </p>
           </div>
         </div>
-        <label className="flex items-center gap-2.5 cursor-pointer select-none">
+        <div className="flex items-center gap-2.5">
           <Checkbox
             checked={warning_ack}
+            id="export-warning-ack"
             onCheckedChange={(v) => set_warning_ack(v === true)}
           />
-          <span className="text-sm text-txt-secondary">
+          <label
+            className="text-sm text-txt-secondary cursor-pointer select-none"
+            htmlFor="export-warning-ack"
+          >
             {t("settings.export_warning_confirm")}
-          </span>
-        </label>
+          </label>
+        </div>
       </div>
     );
     footer = (

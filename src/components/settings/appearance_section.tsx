@@ -27,6 +27,7 @@ import {
   GlobeAltIcon,
   PaintBrushIcon,
   PencilSquareIcon,
+  SwatchIcon,
   ViewColumnsIcon,
 } from "@heroicons/react/24/outline";
 import { Switch } from "@aster/ui";
@@ -277,7 +278,6 @@ export function AppearanceSection() {
             <PaintBrushIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
             {t("settings.theme")}
           </h3>
-          <div className="mt-2 h-px bg-edge-secondary" />
         </div>
         <p className="text-sm mb-4 text-txt-muted">
           {t("settings.change_appearance")}
@@ -456,10 +456,9 @@ export function AppearanceSection() {
       <div className="pt-3">
         <div className="mb-4">
           <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-            <PaintBrushIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
+            <SwatchIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
             {t("settings.custom_theme_title")}
           </h3>
-          <div className="mt-2 h-px bg-edge-secondary" />
         </div>
         <p className="text-sm mb-4 text-txt-muted">
           {t("settings.custom_theme_description")}
@@ -606,7 +605,6 @@ export function AppearanceSection() {
             <GlobeAltIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
             {t("settings.language_format_title")}
           </h3>
-          <div className="mt-2 h-px bg-edge-secondary" />
         </div>
         <SettingRow
           description={t("settings.language_description")}
@@ -689,7 +687,6 @@ export function AppearanceSection() {
             <ViewColumnsIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
             {t("settings.email_view_mode")}
           </h3>
-          <div className="mt-2 h-px bg-edge-secondary" />
         </div>
         <p className="text-sm mb-2 text-txt-muted">
           {t("settings.email_view_description")}
@@ -755,7 +752,6 @@ export function AppearanceSection() {
             <PencilSquareIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
             {t("settings.compose_window_mode")}
           </h3>
-          <div className="mt-2 h-px bg-edge-secondary" />
         </div>
         <p className="text-sm mb-2 text-txt-muted">
           {t("settings.compose_window_mode_description")}

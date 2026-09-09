@@ -411,7 +411,6 @@ export function BehaviorSection() {
             <BookOpenIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
             {t("settings.reading_and_conversations")}
           </h3>
-          <div className="mt-2 h-px bg-edge-secondary" />
         </div>
 
         <SelectSetting
@@ -636,7 +635,6 @@ export function BehaviorSection() {
             <LanguageIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
             {t("settings.translation")}
           </h3>
-          <div className="mt-2 h-px bg-edge-secondary" />
         </div>
 
         <SelectSetting
@@ -702,7 +700,6 @@ export function BehaviorSection() {
             <ViewColumnsIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
             {t("settings.navigation_panel")}
           </h3>
-          <div className="mt-2 h-px bg-edge-secondary" />
         </div>
 
         <div className="py-4">
@@ -880,7 +877,6 @@ export function BehaviorSection() {
             <PencilSquareIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
             {t("settings.composing_and_replies")}
           </h3>
-          <div className="mt-2 h-px bg-edge-secondary" />
         </div>
 
         <SelectSetting
@@ -954,7 +950,6 @@ export function BehaviorSection() {
               <LockClosedIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
               {t("settings.protected_folders")}
             </h3>
-            <div className="mt-2 h-px bg-edge-secondary" />
           </div>
 
           <SelectSetting
@@ -986,7 +981,6 @@ export function BehaviorSection() {
             <ClockIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
             {t("settings.undo_send")}
           </h3>
-          <div className="mt-2 h-px bg-edge-secondary" />
         </div>
 
         <ToggleSetting
@@ -1116,7 +1110,6 @@ export function BehaviorSection() {
             <QuestionMarkCircleIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
             {t("settings.confirmations")}
           </h3>
-          <div className="mt-2 h-px bg-edge-secondary" />
         </div>
 
         <ToggleSetting
@@ -1168,7 +1161,6 @@ export function BehaviorSection() {
           <p className="text-sm text-txt-muted mt-1">
             {t("settings.spam_filtering_description")}
           </p>
-          <div className="mt-2 h-px bg-edge-secondary" />
         </div>
 
         {spam_load_failed && (
@@ -1255,7 +1247,6 @@ export function BehaviorSection() {
             <Cog6ToothIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
             {t("settings.advanced")}
           </h3>
-          <div className="mt-2 h-px bg-edge-secondary" />
         </div>
 
         <SelectSetting

@@ -282,7 +282,6 @@ export function AliasDirectoriesSection() {
               title={t("settings.alias_directories_title")}
             />
           </h3>
-          <div className="mt-2 h-px bg-edge-secondary" />
         </div>
         <p className="text-sm mb-3 text-txt-muted">
           {t("settings.alias_directories_description")}

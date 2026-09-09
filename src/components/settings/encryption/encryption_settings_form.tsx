@@ -169,7 +169,6 @@ export function EncryptionSettingsForm({
           <ShieldCheckIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
           {t("settings.encryption_behavior")}
         </h3>
-        <div className="mt-2 h-px bg-edge-secondary" />
       </div>
       <p className="text-sm mb-3 text-txt-muted">
         {t("settings.control_encryption_description")}
@@ -253,7 +252,6 @@ export function EncryptionSettingsForm({
             title={t("settings.info_keyservers_title")}
           />
         </h3>
-        <div className="mt-2 h-px bg-edge-secondary" />
       </div>
 
       <div className="flex items-center justify-between py-4 border-b border-b-edge-secondary">

@@ -64,7 +64,6 @@ export function StorageAddonsSection({
           <CircleStackIcon className="w-4 h-4 text-txt-primary flex-shrink-0" />
           {t("settings.storage_addons")}
         </h3>
-        <div className="mt-2 h-px bg-edge-secondary" />
       </div>
       <p className="text-sm mb-1 text-txt-muted">
         {t("settings.storage_addons_description")}

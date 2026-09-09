@@ -18,7 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { apply_input_transform } from "@/utils/input_transform";
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
 import {
@@ -54,6 +53,7 @@ import {
   write_checkout_draft,
 } from "./shared";
 
+import { apply_input_transform } from "@/utils/input_transform";
 import { Spinner } from "@/components/ui/spinner";
 import { use_i18n } from "@/lib/i18n/context";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";

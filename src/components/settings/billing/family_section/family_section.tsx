@@ -700,7 +700,6 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
         <h2 className="text-base font-semibold text-txt-primary">
           {t("settings.fam_org_heading")}
         </h2>
-        <div className="mt-2 h-px bg-edge-secondary" />
         <div className="flex flex-col items-center gap-2 py-10 text-center">
           <CheckCircleIcon className="w-10 h-10 text-green-500" />
           <p className="text-sm font-medium text-txt-primary">
@@ -720,7 +719,6 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
         <h2 className="text-base font-semibold text-txt-primary">
           {t("settings.fam_org_heading")}
         </h2>
-        <div className="mt-2 h-px bg-edge-secondary" />
         {group_load_failed ? (
           <p className="py-8 text-center text-sm text-txt-muted">
             {t("common.something_went_wrong_try_again")}
@@ -1257,7 +1255,6 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
                   {seats_used} / {group.max_members}
                 </span>
               </h3>
-              <div className="mt-2 h-px bg-edge-secondary" />
             </div>
             <div className="divide-y divide-edge-secondary">
               {(() => {
@@ -1474,7 +1471,6 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
                 <h3 className="text-xs font-semibold text-txt-muted uppercase tracking-wide">
                   {t("settings.family_invite_pending")}
                 </h3>
-                <div className="mt-2 h-px bg-edge-secondary" />
               </div>
               <div className="divide-y divide-edge-secondary">
                 {group.pending_invites.map((inv) => (

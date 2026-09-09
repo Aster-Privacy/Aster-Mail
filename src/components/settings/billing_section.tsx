@@ -18,11 +18,12 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { read_billing_interval } from "@/components/settings/billing/cancel_offer";
-
 import { useEffect, useRef, useState, useCallback } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 
+import { checkout_error_text } from "./billing/checkout_error_text";
+
+import { read_billing_interval } from "@/components/settings/billing/cancel_offer";
 import { safe_local_set } from "@/lib/safe_storage";
 import {
   consume_payment_method_request,
@@ -110,8 +111,6 @@ import {
   clear_cancel_password_cache,
   get_cancel_password_hash,
 } from "@/components/settings/billing/cancel_password";
-import { checkout_error_text } from "./billing/checkout_error_text";
-
 import { use_plan_features } from "@/components/settings/billing/use_plan_features";
 
 export function BillingSection() {
@@ -1083,8 +1082,8 @@ export function BillingSection() {
         storage_limit_bytes={storage_limit_bytes}
         storage_percentage={storage_percentage}
         storage_used_bytes={storage_used_bytes}
-        upgrade_features={plan_features[DEFAULT_RECOMMENDED_PLAN]}
         subscription={subscription}
+        upgrade_features={plan_features[DEFAULT_RECOMMENDED_PLAN]}
       />
 
       {stripe_load_failed && (

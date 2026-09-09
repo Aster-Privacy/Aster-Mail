@@ -195,8 +195,8 @@ export function MailRulesSection() {
     <div className="space-y-4">
       <div>
         <div className="mb-4">
-          <div className="flex items-center justify-between">
-            <h3 className="flex items-center gap-2 text-base font-semibold text-txt-primary">
+          <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+            <h3 className="flex items-center gap-2 text-base font-semibold text-txt-primary whitespace-nowrap">
               <BoltIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
               {t("mail_rules.title")}
               <span className="text-xs font-normal text-txt-muted">
@@ -205,16 +205,27 @@ export function MailRulesSection() {
                   : `${format_number(rules.length)}/${rules_limit_label}`}
               </span>
             </h3>
-            <div className="flex items-center gap-2">
-              <Button size="md" variant="outline" onClick={open_templates}>
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                className="shrink-0 whitespace-nowrap"
+                size="md"
+                variant="outline"
+                onClick={open_templates}
+              >
                 <Squares2X2Icon className="w-4 h-4" />
                 {t("mail_rules.templates_button")}
               </Button>
-              <Button size="md" variant="outline" onClick={retention.open_new}>
+              <Button
+                className="shrink-0 whitespace-nowrap"
+                size="md"
+                variant="outline"
+                onClick={retention.open_new}
+              >
                 <ClockIcon className="w-4 h-4" />
                 {t("folder_retention.add")}
               </Button>
               <Button
+                className="shrink-0 whitespace-nowrap"
                 size="md"
                 title={at_limit ? t("mail_rules.at_limit_upgrade") : undefined}
                 variant="depth"
@@ -227,7 +238,6 @@ export function MailRulesSection() {
               </Button>
             </div>
           </div>
-          <div className="mt-2 h-px bg-edge-secondary" />
         </div>
         <p className="text-sm mb-4 text-txt-muted">
           {t("mail_rules.subtitle")}
@@ -252,7 +262,7 @@ export function MailRulesSection() {
           <p className="text-sm text-txt-secondary mb-3">
             {t("common.something_went_wrong_try_again")}
           </p>
-          <Button onClick={() => void load_rules()} size="sm" variant="outline">
+          <Button size="sm" variant="outline" onClick={() => void load_rules()}>
             {t("common.retry")}
           </Button>
         </div>
@@ -379,8 +389,6 @@ export function MailRulesSection() {
         confirm_text={t("folder_retention.remove")}
         is_open={confirm_delete_policy !== null}
         message={t("common.action_cannot_be_undone")}
-        title={t("folder_retention.delete")}
-        variant="danger"
         on_cancel={() => set_confirm_delete_policy(null)}
         on_confirm={() => {
           const target = confirm_delete_policy;
@@ -389,6 +397,8 @@ export function MailRulesSection() {
 
           if (target) void retention.handle_delete(target);
         }}
+        title={t("folder_retention.delete")}
+        variant="danger"
       />
     </div>
   );

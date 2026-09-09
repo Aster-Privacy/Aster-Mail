@@ -25,6 +25,7 @@ import { describe, it, expect } from "vitest";
 
 import {
   SETTINGS_SECTION_IDS,
+  resolve_nav_target,
   resolve_settings_section,
 } from "@/components/settings/settings_content_helpers";
 
@@ -59,9 +60,25 @@ describe("resolve_settings_section", () => {
     expect(resolve_settings_section("ghost_aliases")).toBe("aliases");
     expect(resolve_settings_section("alias_directories")).toBe("aliases");
     expect(resolve_settings_section("connection")).toBe("bridge");
-    expect(resolve_settings_section("signatures")).toBe("signature");
-    expect(resolve_settings_section("about")).toBe("updates");
+    expect(resolve_settings_section("signatures")).toBe("compose");
+    expect(resolve_settings_section("about")).toBe("feedback");
     expect(resolve_settings_section("external_accounts")).toBe("import");
+  });
+
+  it("resolves a retired section id to its parent section and tab", () => {
+    expect(resolve_nav_target("encryption")).toEqual({
+      section: "security",
+      tab: "encryption",
+    });
+    expect(resolve_nav_target("templates")).toEqual({
+      section: "compose",
+      tab: "templates",
+    });
+    expect(resolve_nav_target("vacation_reply")).toEqual({
+      section: "mail_rules",
+      tab: "vacation_reply",
+    });
+    expect(resolve_nav_target("billing")).toEqual({ section: "billing" });
   });
 
   it("rejects an unknown section instead of opening a blank pane", () => {

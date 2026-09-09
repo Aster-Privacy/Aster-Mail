@@ -257,7 +257,6 @@ export function AvailablePlansSection({
           <CrownIcon className="w-4 h-4 text-txt-primary flex-shrink-0" />
           {t("settings.available_plans")}
         </h3>
-        <div className="mt-2 h-px bg-edge-secondary" />
       </div>
 
       <div className="flex flex-col items-center gap-4 mb-4">

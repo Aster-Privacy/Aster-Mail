@@ -51,7 +51,6 @@ export function BillingHistorySection({
           <ReceiptPercentIcon className="w-4 h-4 text-txt-primary flex-shrink-0" />
           {t("settings.billing_history")}
         </h3>
-        <div className="mt-2 h-px bg-edge-secondary" />
       </div>
       {history.length === 0 && load_failed && on_retry ? (
         <LoadFailedNotice on_retry={on_retry} />

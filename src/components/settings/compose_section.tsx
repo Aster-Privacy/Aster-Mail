@@ -93,7 +93,6 @@ export function ComposeSection() {
             <PaintBrushIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
             {t("settings.compose_defaults_title")}
           </h3>
-          <div className="mt-2 h-px bg-edge-secondary" />
         </div>
         <p className="text-sm mb-1 text-txt-muted">
           {t("settings.compose_defaults_description")}

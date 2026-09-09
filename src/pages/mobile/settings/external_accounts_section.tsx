@@ -964,17 +964,21 @@ export function ExternalAccountsSection({
             : state.t("settings.connected_accounts_disconnect")
         }
         extra_content={
-          <label className="mt-4 flex items-center gap-2.5 cursor-pointer select-none">
+          <div className="mt-4 flex items-center gap-2.5">
             <Checkbox
               checked={state.purge_also_delete_messages}
+              id="mobile-ext-account-purge-messages"
               onCheckedChange={(v) =>
                 state.set_purge_also_delete_messages(v === true)
               }
             />
-            <span className="text-[13px] leading-none text-[var(--text-secondary)]">
+            <label
+              className="text-[13px] leading-none text-[var(--text-secondary)] cursor-pointer select-none"
+              htmlFor="mobile-ext-account-purge-messages"
+            >
               {state.t("settings.disconnect_delete_messages_label")}
-            </span>
-          </label>
+            </label>
+          </div>
         }
         is_open={!!state.purge_target}
         message={state.t("settings.disconnect_confirm")}

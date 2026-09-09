@@ -34,14 +34,12 @@ import {
   useMemo,
 } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  ArrowDownTrayIcon,
-  CodeBracketIcon,
-} from "@heroicons/react/24/outline";
 
 import { load_family_section } from "./settings_lazy_sections";
 import {
+  flatten_nav_items,
   get_nav_items,
+  resolve_nav_target,
   get_persisted_section,
   set_persisted_section,
 } from "./settings_content_helpers";
@@ -67,7 +65,6 @@ import {
   get_credits,
 } from "@/services/api/billing";
 import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
-import { is_desktop_runtime } from "@/services/updates/updater";
 import { use_settings_prefetch } from "@/components/settings/hooks/use_settings_prefetch";
 import { list_devices } from "@/services/api/devices";
 import {
@@ -168,8 +165,7 @@ export function use_settings_content(props: SettingsContentProps) {
 
   useEffect(() => {
     const is_unavailable =
-      (section === "family" && is_family_plan_resolved && !is_family_plan) ||
-      (section === "import" && is_onion_host());
+      (section === "import" || section === "storage") && is_onion_host();
 
     if (!is_unavailable) return;
 
@@ -424,53 +420,7 @@ export function use_settings_content(props: SettingsContentProps) {
     content_container_ref.current?.scrollTo(0, 0);
   }, [section]);
 
-  const nav_items = useMemo((): NavItems => {
-    const base = NAV_ITEMS_BASE;
-    const general = has_devices
-      ? base.general
-      : base.general.filter((item) => item.id !== "trusted_devices");
-    const mail = [...base.mail];
-
-    if (is_desktop_runtime()) {
-      mail.push({
-        id: "updates" as Section,
-        label: t("settings.updates"),
-        icon: ArrowDownTrayIcon,
-        description: "Check for app updates and manage auto-update settings",
-        keywords: [
-          "update",
-          "check for updates",
-          "auto update",
-          "automatic updates",
-          "app version",
-          "version history",
-          "release notes",
-          "update available",
-        ],
-      });
-    }
-    if (dev_mode_enabled) {
-      mail.push({
-        id: "developer" as Section,
-        label: t("settings.developer"),
-        icon: CodeBracketIcon,
-        description:
-          "API tokens, developer mode, request logs, and diagnostics",
-        keywords: [
-          "developer",
-          "dev mode",
-          "api token",
-          "access token",
-          "debug",
-          "request logs",
-          "diagnostics",
-          "developer tools",
-        ],
-      });
-    }
-
-    return { general, mail };
-  }, [NAV_ITEMS_BASE, dev_mode_enabled, has_devices, t]);
+  const nav_items = useMemo((): NavItems => NAV_ITEMS_BASE, [NAV_ITEMS_BASE]);
 
   const is_searching = search_query.trim().length > 0;
 
@@ -483,7 +433,7 @@ export function use_settings_content(props: SettingsContentProps) {
       item.description.toLowerCase().includes(q) ||
       item.keywords.some((kw) => kw.includes(q));
 
-    return [...nav_items.general, ...nav_items.mail].filter(match);
+    return flatten_nav_items(nav_items).filter(match);
   }, [search_query, nav_items]);
 
   const { dynamic_entries } = use_search_registry();
@@ -492,20 +442,19 @@ export function use_settings_content(props: SettingsContentProps) {
     const q = search_query.trim().toLowerCase();
 
     if (q.length < 2) return [];
-    const visible_sections = new Set([
-      ...nav_items.general.map((i) => i.id),
-      ...nav_items.mail.map((i) => i.id),
-    ]);
-    const section_labels = new Map(
-      [...nav_items.general, ...nav_items.mail].map((i) => [i.id, i.label]),
-    );
+    const flat_items = flatten_nav_items(nav_items);
+    const visible_sections = new Set(flat_items.map((i) => i.id));
+    const section_labels = new Map(flat_items.map((i) => [i.id, i.label]));
     const all = [...SETTINGS_SEARCH_REGISTRY, ...dynamic_entries].map(
       (entry) => {
-        const section_label = section_labels.get(entry.section);
+        const target = resolve_nav_target(entry.section);
+        const section_label = section_labels.get(target.section);
         const separator = entry.breadcrumb.indexOf(" > ");
 
         return {
           ...entry,
+          section: target.section,
+          tab: target.tab,
           english_label: entry.label,
           english_breadcrumb: entry.breadcrumb,
           label: entry.label_key ? t(entry.label_key) : entry.label,
@@ -627,6 +576,8 @@ export function use_settings_content(props: SettingsContentProps) {
     content_container_ref,
     nav_item_refs,
     handle_account_deleted,
+    has_devices,
+    dev_mode_enabled,
     nav_items,
     is_searching,
     search_results,

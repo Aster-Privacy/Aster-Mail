@@ -288,17 +288,21 @@ export function VacationReplyTab() {
               </div>
             </div>
 
-            <label className="flex cursor-pointer items-center gap-2.5">
+            <div className="flex items-center gap-2.5">
               <Checkbox
                 checked={vacation_external_only}
+                id="mobile-vacation-external-only"
                 onCheckedChange={(checked) =>
                   set_vacation_external_only(checked === true)
                 }
               />
-              <span className="text-[14px] text-[var(--mobile-text-primary)]">
+              <label
+                className="text-[14px] text-[var(--mobile-text-primary)] cursor-pointer select-none"
+                htmlFor="mobile-vacation-external-only"
+              >
                 {t("settings.vacation_reply_external_only")}
-              </span>
-            </label>
+              </label>
+            </div>
           </div>
 
           {vacation && vacation.reply_count > 0 && (

@@ -99,7 +99,6 @@ export function AccessibilitySection() {
             <AdjustmentsHorizontalIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
             {t("settings.font_size")}
           </h3>
-          <div className="mt-2 h-px bg-edge-secondary" />
         </div>
         <p className="text-sm mb-3 text-txt-muted">
           {t("settings.font_size_description")}
@@ -172,7 +171,6 @@ export function AccessibilitySection() {
             <EyeIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
             {t("settings.vision")}
           </h3>
-          <div className="mt-2 h-px bg-edge-secondary" />
         </div>
         <p className="text-sm mb-1 text-txt-muted">
           {t("settings.vision_description")}
@@ -219,7 +217,6 @@ export function AccessibilitySection() {
             <DocumentTextIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
             {t("settings.reading")}
           </h3>
-          <div className="mt-2 h-px bg-edge-secondary" />
         </div>
         <p className="text-sm mb-1 text-txt-muted">
           {t("settings.reading_description")}
@@ -252,7 +249,6 @@ export function AccessibilitySection() {
             <Square2StackIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
             {t("settings.motion_layout")}
           </h3>
-          <div className="mt-2 h-px bg-edge-secondary" />
         </div>
         <p className="text-sm mb-1 text-txt-muted">
           {t("settings.motion_layout_description")}
@@ -285,7 +281,6 @@ export function AccessibilitySection() {
             <CommandLineIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
             {t("common.keyboard_shortcuts")}
           </h3>
-          <div className="mt-2 h-px bg-edge-secondary" />
         </div>
         <p className="text-sm mb-1 text-txt-muted">
           {t("settings.keyboard_shortcuts_description")}
@@ -326,7 +321,6 @@ export function AccessibilitySection() {
             <WifiIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
             {t("settings.low_network_mode_section_title")}
           </h3>
-          <div className="mt-2 h-px bg-edge-secondary" />
         </div>
         <div className="flex items-center justify-between py-3">
           <div className="flex-1 pe-4">

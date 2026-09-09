@@ -225,7 +225,6 @@ export function AliasesSection() {
                   </Button>
                 </div>
               </div>
-              <div className="mt-2 h-px bg-edge-secondary" />
             </div>
             <p className="text-sm mb-3 text-txt-muted">
               {t("settings.aliases_description")}
@@ -238,11 +237,11 @@ export function AliasesSection() {
             />
 
             <TwinAddressCard
-              refresh_token={twin_refresh}
               on_claim={(local_part, domain) => {
                 set_twin_prefill({ local_part, domain });
                 hook.set_show_create_alias_modal(true);
               }}
+              refresh_token={twin_refresh}
             />
 
             <div className="flex gap-2 mb-2">
@@ -287,10 +286,10 @@ export function AliasesSection() {
               domain_addresses={hook.domain_addresses}
               on_alias_delete={hook.handle_alias_delete}
               on_alias_pin_toggle={hook.handle_pin_toggle}
+              on_alias_toggle={hook.handle_alias_toggle}
               on_alias_too_new={(eligible_date) =>
                 hook.set_alias_too_new_info({ is_open: true, eligible_date })
               }
-              on_alias_toggle={hook.handle_alias_toggle}
               on_aliases_changed={hook.load_aliases}
               on_avatar_changed={hook.load_aliases}
               on_domain_addr_delete={hook.handle_domain_addr_delete}

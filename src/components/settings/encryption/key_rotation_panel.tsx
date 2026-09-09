@@ -150,7 +150,6 @@ export function KeyRotationPanel({
             <KeyIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
             {t("settings.encryption_keys")}
           </h3>
-          <div className="mt-2 h-px bg-edge-secondary" />
         </div>
         <p className="text-sm mb-4 text-txt-muted">
           {t("settings.encryption_keys_description")}
@@ -354,7 +353,6 @@ export function KeyRotationPanel({
             <ShieldCheckIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
             {t("settings.recovery_codes")}
           </h3>
-          <div className="mt-2 h-px bg-edge-secondary" />
         </div>
         <p className="text-sm mb-4 text-txt-muted">
           {recovery_info

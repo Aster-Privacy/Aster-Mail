@@ -213,14 +213,10 @@ export function PlanCard({
                   }}
                 />
                 <span className="min-w-0 flex-1">
-                  <span
-                    className={`flex items-start gap-1.5 leading-snug ${body_cls}`}
-                  >
-                    <span className="min-w-0">
-                      {render_feature_label(feature.label, galaxy)}
-                    </span>
+                  <span className={`block leading-snug ${body_cls}`}>
+                    {render_feature_label(feature.label, galaxy)}
                     {feature.info && (
-                      <span className="mt-px inline-flex flex-shrink-0">
+                      <span className="ms-1.5 inline-flex align-middle">
                         <InfoPopover
                           description={feature.info}
                           icon_class="w-3.5 h-3.5"

@@ -35,7 +35,6 @@ import {
   update_progress_percent,
   type DesktopUpdateInfo,
 } from "@/services/updates/updater";
-
 import { format_relative_time_short } from "@/utils/date_utils";
 
 declare const __APP_VERSION__: string;
@@ -126,7 +125,6 @@ export function UpdatesSection() {
             <ArrowDownTrayIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
             {t("settings.updates")}
           </h3>
-          <div className="mt-2 h-px bg-edge-secondary" />
         </div>
         <p className="text-sm mb-4 text-txt-muted">
           {t("settings.updates_description")}

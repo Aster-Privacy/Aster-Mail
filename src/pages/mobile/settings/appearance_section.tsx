@@ -29,9 +29,9 @@ import {
 } from "@heroicons/react/24/outline";
 
 import { SettingsGroup, SettingsHeader, OptionList } from "./shared";
+
 import { TimeZonePicker } from "@/components/settings/appearance/time_zone_picker";
 import { get_supported_time_zones } from "@/lib/time_zones";
-
 import {
   label_to_language_code,
   use_preferences,
