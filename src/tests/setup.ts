@@ -101,6 +101,16 @@ if (typeof globalThis.crypto === "undefined") {
 
 if (typeof globalThis.indexedDB === "undefined") {
   const stores = new Map<string, Map<string, unknown>>();
+  const db_store_names = new Set<string>(["encrypted_data"]);
+
+  const mock_store_name_list = () => {
+    const names = Array.from(db_store_names);
+
+    return Object.assign(names, {
+      contains: (name: string) => db_store_names.has(name),
+      item: (index: number) => names[index] ?? null,
+    });
+  };
 
   const mock_idb_request = (result: unknown, error: unknown = null) => ({
     result,
@@ -255,14 +265,23 @@ if (typeof globalThis.indexedDB === "undefined") {
   const mock_database = {
     name: "astermail_secure_db",
     version: 1,
-    objectStoreNames: ["encrypted_data"],
+    get objectStoreNames() {
+      return mock_store_name_list();
+    },
     onabort: null,
     onclose: null,
     onerror: null,
     onversionchange: null,
     close: vi.fn(),
-    createObjectStore: vi.fn((name: string) => mock_object_store(name)),
-    deleteObjectStore: vi.fn(),
+    createObjectStore: vi.fn((name: string) => {
+      db_store_names.add(name);
+
+      return mock_object_store(name);
+    }),
+    deleteObjectStore: vi.fn((name: string) => {
+      db_store_names.delete(name);
+      stores.delete(name);
+    }),
     transaction: vi.fn((names: string | string[]) =>
       mock_transaction(Array.isArray(names) ? names : [names]),
     ),
