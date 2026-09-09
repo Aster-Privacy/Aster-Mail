@@ -438,19 +438,19 @@ export function PlanPaymentMethodModal({
                     {entry.id === "crypto" && <CoinStack class_name="mt-2.5" />}
                     {entry.id === "card" && discount_note && (
                       <span
-                        className="mt-1 flex items-center gap-1.5 text-[11px]"
+                        className="mt-1 flex items-start gap-1.5 text-[11px] leading-snug"
                         style={{ color: "var(--accent-color)" }}
                       >
-                        <TagIcon className="h-3.5 w-3.5 flex-shrink-0" />
+                        <TagIcon className="mt-px h-3.5 w-3.5 flex-shrink-0" />
                         <span>{discount_note}</span>
                       </span>
                     )}
                     {entry.id === "card" && credit_amount && (
                       <span
-                        className="mt-1 flex items-center gap-1.5 text-[11px]"
+                        className="mt-1 flex items-start gap-1.5 text-[11px] leading-snug"
                         style={{ color: "var(--accent-color)" }}
                       >
-                        <SparklesIcon className="h-3.5 w-3.5 flex-shrink-0" />
+                        <SparklesIcon className="mt-px h-3.5 w-3.5 flex-shrink-0" />
                         <span>
                           {t("settings.credits_will_be_applied", {
                             amount: credit_amount,
