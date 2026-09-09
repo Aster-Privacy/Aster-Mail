@@ -1636,6 +1636,9 @@ export const it = {
     settings_disabled_suspended:
       "Le impostazioni sono disattivate mentre il suo account è sospeso. hello@astermail.org può aiutarla con un ricorso o con maggiori dettagli.",
     new_email_body: "Hai una nuova email",
+    new_emails_body_one: "Hai {{count}} nuova email",
+    new_emails_body: "Hai {{count}} nuove email",
+    new_emails_body_other: "Hai {{count}} nuove email",
     create_ghost_alias: "Crea alias Ghost",
     hide_real_address_expiry:
       "Nascondi il tuo vero indirizzo (scadenza {{days}}g)",

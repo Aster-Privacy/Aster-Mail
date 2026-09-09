@@ -1634,6 +1634,9 @@ export const ru = {
     settings_disabled_suspended:
       "Настройки отключены, пока учётная запись приостановлена. hello@astermail.org сможет помочь с апелляцией или с подробностями.",
     new_email_body: "У вас новое письмо",
+    new_emails_body_one: "У вас {{count}} новое письмо",
+    new_emails_body: "У вас {{count}} новых писем",
+    new_emails_body_other: "У вас {{count}} новых писем",
     create_ghost_alias: "Создать призрачный псевдоним",
     hide_real_address_expiry: "Скрыть ваш настоящий адрес (срок {{days}}д)",
     sender_group_primary: "Основной",

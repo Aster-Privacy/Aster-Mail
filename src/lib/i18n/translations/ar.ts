@@ -1580,6 +1580,9 @@ export const ar = {
     settings_disabled_suspended:
       "الإعدادات معطّلة طوال فترة تعليق حسابك. hello@astermail.org مستعد للمساعدة في الاعتراض أو لمزيد من التفاصيل.",
     new_email_body: "لديك رسالة جديدة",
+    new_emails_body_one: "لديك {{count}} رسالة جديدة",
+    new_emails_body: "لديك {{count}} رسائل جديدة",
+    new_emails_body_other: "لديك {{count}} رسائل جديدة",
     create_ghost_alias: "إنشاء اسم مستعار شبحي",
     hide_real_address_expiry: "إخفاء عنوانك الحقيقي (انتهاء بعد {{days}} يوم)",
     sender_group_primary: "الأساسي",

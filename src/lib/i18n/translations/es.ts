@@ -1641,6 +1641,9 @@ export const es = {
     settings_disabled_suspended:
       "Los ajustes están desactivados mientras tu cuenta está suspendida. Escribe a hello@astermail.org para apelar o saber más.",
     new_email_body: "Tienes un correo nuevo",
+    new_emails_body_one: "Tienes {{count}} correo nuevo",
+    new_emails_body: "Tienes {{count}} correos nuevos",
+    new_emails_body_other: "Tienes {{count}} correos nuevos",
     create_ghost_alias: "Crear alias fantasma",
     hide_real_address_expiry: "Oculta tu dirección real (caduca en {{days}} d)",
     sender_group_primary: "Principal",

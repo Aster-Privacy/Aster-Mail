@@ -103,6 +103,12 @@ async function receive_email(email_id: string): Promise<void> {
   });
 }
 
+async function wait_for_burst_window(): Promise<void> {
+  await act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 1600));
+  });
+}
+
 describe("email notification manager category mute", () => {
   beforeEach(() => {
     show_notification.mockClear();
@@ -122,6 +128,7 @@ describe("email notification manager category mute", () => {
     mount();
 
     await receive_email("m-unmuted");
+    await wait_for_burst_window();
 
     expect(show_notification).toHaveBeenCalledTimes(1);
   });
@@ -131,8 +138,24 @@ describe("email notification manager category mute", () => {
     mount();
 
     await receive_email("m-muted");
+    await wait_for_burst_window();
 
     expect(show_notification).not.toHaveBeenCalled();
+  });
+
+  it("collapses a burst of arrivals into one notification", async () => {
+    mount();
+
+    await receive_email("m-burst-1");
+    await receive_email("m-burst-2");
+    await receive_email("m-burst-3");
+    await wait_for_burst_window();
+
+    expect(show_notification).toHaveBeenCalledTimes(1);
+    expect(show_notification.mock.calls[0][1]).toMatchObject({
+      tag: "email-burst",
+      data: { email_id: "m-burst-3" },
+    });
   });
 
   it("notifies when a different category is muted", async () => {
@@ -140,6 +163,7 @@ describe("email notification manager category mute", () => {
     mount();
 
     await receive_email("m-other");
+    await wait_for_burst_window();
 
     expect(show_notification).toHaveBeenCalledTimes(1);
   });
@@ -153,6 +177,7 @@ describe("email notification manager category mute", () => {
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 1700));
     });
+    await wait_for_burst_window();
 
     expect(show_notification).toHaveBeenCalledTimes(1);
   });

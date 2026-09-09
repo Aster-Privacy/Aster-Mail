@@ -1628,6 +1628,9 @@ export const tr = {
     settings_disabled_suspended:
       "Hesabınız askıdayken ayarlar kapalı. hello@astermail.org itiraz ya da daha fazla ayrıntı için yardımcı olabilir.",
     new_email_body: "Yeni bir e-postanız var",
+    new_emails_body_one: "{{count}} yeni e-postanız var",
+    new_emails_body: "{{count}} yeni e-postanız var",
+    new_emails_body_other: "{{count}} yeni e-postanız var",
     create_ghost_alias: "Ghost takma adı oluştur",
     hide_real_address_expiry: "Gerçek adresinizi gizleyin ({{days}}g geçerli)",
     sender_group_primary: "Birincil",

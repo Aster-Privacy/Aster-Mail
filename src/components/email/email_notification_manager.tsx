@@ -43,6 +43,13 @@ import {
 } from "@/services/locked_folders";
 
 const REPLY_STATE_TIMEOUT_MS = 1500;
+const ARRIVAL_BURST_WINDOW_MS = 1500;
+const ARRIVAL_BURST_MAX_WAIT_MS = 5000;
+
+interface PendingArrival {
+  email_id: string;
+  arrival_type: NotificationType;
+}
 const REPLY_STATE_POLL_MS = 150;
 const CATEGORY_TIMEOUT_MS = 1500;
 const CATEGORY_POLL_MS = 150;
@@ -201,6 +208,65 @@ export function EmailNotificationManager() {
   useEffect(() => {
     if (!is_authenticated) return;
 
+    let pending: PendingArrival[] = [];
+    let flush_timer: ReturnType<typeof setTimeout> | null = null;
+    let burst_started_at = 0;
+
+    const flush = () => {
+      flush_timer = null;
+      burst_started_at = 0;
+
+      const batch = pending;
+
+      pending = [];
+
+      if (batch.length === 0) return;
+
+      const newest = batch[batch.length - 1];
+      const arrival_type = batch.some(
+        (item) => item.arrival_type === "new_email",
+      )
+        ? "new_email"
+        : "reply";
+      const body =
+        batch.length === 1
+          ? t("common.new_email_body")
+          : t("common.new_emails_body", { count: batch.length });
+      const tag =
+        batch.length === 1 ? `email-${newest.email_id}` : "email-burst";
+
+      void show_notification(
+        arrival_type,
+        {
+          title: t("common.aster_mail"),
+          body,
+          tag,
+          data: newest.email_id ? { email_id: newest.email_id } : undefined,
+        },
+        preferences_ref.current,
+        is_lockdown_enabled(current_account_id ?? ""),
+      );
+    };
+
+    const enqueue = (arrival: PendingArrival) => {
+      const now = Date.now();
+
+      pending.push(arrival);
+
+      if (burst_started_at === 0) {
+        burst_started_at = now;
+      }
+
+      if (flush_timer !== null) {
+        clearTimeout(flush_timer);
+      }
+
+      const remaining = burst_started_at + ARRIVAL_BURST_MAX_WAIT_MS - now;
+      const wait = Math.max(0, Math.min(ARRIVAL_BURST_WINDOW_MS, remaining));
+
+      flush_timer = setTimeout(flush, wait);
+    };
+
     const handler = (event: Event) => {
       const detail = (event as CustomEvent).detail;
       const email_id = detail?.email_id || "";
@@ -233,17 +299,7 @@ export function EmailNotificationManager() {
           preferences_ref.current.notify_new_email,
         );
 
-        show_notification(
-          arrival_type,
-          {
-            title: t("common.aster_mail"),
-            body: t("common.new_email_body"),
-            tag: `email-${email_id}`,
-            data: email_id ? { email_id } : undefined,
-          },
-          preferences_ref.current,
-          is_lockdown_enabled(current_account_id ?? ""),
-        );
+        enqueue({ email_id, arrival_type });
       })();
     };
 
@@ -251,6 +307,11 @@ export function EmailNotificationManager() {
 
     return () => {
       window.removeEventListener(MAIL_EVENTS.EMAIL_RECEIVED, handler);
+      if (flush_timer !== null) {
+        clearTimeout(flush_timer);
+        flush_timer = null;
+      }
+      pending = [];
     };
   }, [is_authenticated, t, current_account_id]);
 

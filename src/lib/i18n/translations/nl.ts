@@ -1636,6 +1636,9 @@ export const nl = {
     settings_disabled_suspended:
       "Instellingen zijn uitgeschakeld zolang uw account is opgeschort. hello@astermail.org kan helpen met bezwaar of meer informatie.",
     new_email_body: "Je hebt een nieuwe e-mail",
+    new_emails_body_one: "Je hebt {{count}} nieuwe e-mail",
+    new_emails_body: "Je hebt {{count}} nieuwe e-mails",
+    new_emails_body_other: "Je hebt {{count}} nieuwe e-mails",
     create_ghost_alias: "Ghost-alias aanmaken",
     hide_real_address_expiry: "Verberg je echte adres ({{days}}d verloopt)",
     sender_group_primary: "Primair",

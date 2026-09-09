@@ -84,6 +84,8 @@ import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { normalize_address_ignoring_dots } from "@/utils/address_dots";
 import { viewer_still_showing } from "@/components/email/thread_reply_target";
 
+const ARRIVAL_REFRESH_DEBOUNCE_MS = 800;
+
 export type {
   EmailRecipient,
   DecryptedEmail,
@@ -1015,8 +1017,16 @@ export function use_email_viewer({
       void refresh_thread(false);
     };
 
+    let arrival_refresh_timer: ReturnType<typeof setTimeout> | null = null;
+
     const handle_email_received = () => {
-      void refresh_thread(true);
+      if (arrival_refresh_timer !== null) {
+        clearTimeout(arrival_refresh_timer);
+      }
+      arrival_refresh_timer = setTimeout(() => {
+        arrival_refresh_timer = null;
+        void refresh_thread(true);
+      }, ARRIVAL_REFRESH_DEBOUNCE_MS);
     };
 
     const handle_mail_changed = () => {
@@ -1043,6 +1053,10 @@ export function use_email_viewer({
 
     return () => {
       window.clearInterval(poll_interval);
+      if (arrival_refresh_timer !== null) {
+        clearTimeout(arrival_refresh_timer);
+        arrival_refresh_timer = null;
+      }
       window.removeEventListener(
         MAIL_EVENTS.EMAIL_RECEIVED,
         handle_email_received,

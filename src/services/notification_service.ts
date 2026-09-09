@@ -36,6 +36,9 @@ interface NotificationOptions {
 }
 
 let notification_sound: HTMLAudioElement | null = null;
+let last_sound_played_at = 0;
+
+const SOUND_MIN_INTERVAL_MS = 3000;
 
 function is_tauri(): boolean {
   return "__TAURI_INTERNALS__" in window;
@@ -242,6 +245,14 @@ export async function show_notification(
 }
 
 export function play_notification_sound(): void {
+  const now = Date.now();
+
+  if (now - last_sound_played_at < SOUND_MIN_INTERVAL_MS) {
+    return;
+  }
+
+  last_sound_played_at = now;
+
   const sound = get_notification_sound();
 
   sound.currentTime = 0;

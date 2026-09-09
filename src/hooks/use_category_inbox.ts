@@ -101,6 +101,7 @@ const EMPTY_STATE: EmailListState = {
 
 const MIN_REFRESH_SKELETON_MS = 300;
 const VISIBLE_REFETCH_MIN_MS = 10_000;
+const ARRIVAL_REFETCH_DEBOUNCE_MS = 800;
 const PREFETCH_DELAY_MS = 250;
 const PREFETCH_MAX_TABS = 6;
 const LOADING_BACKSTOP_MS = 6_000;
@@ -821,6 +822,20 @@ export function use_category_inbox(
       void fetch_page(page, page_size, { silent: true });
     };
 
+    let arrival_refetch_timer: ReturnType<typeof setTimeout> | null = null;
+
+    const schedule_arrival_refetch = () => {
+      if (arrival_refetch_timer !== null) {
+        clearTimeout(arrival_refetch_timer);
+      }
+      arrival_refetch_timer = setTimeout(() => {
+        arrival_refetch_timer = null;
+        if (cancelled) return;
+        page_cache.current.clear();
+        void fetch_page(page, page_size, { silent: true });
+      }, ARRIVAL_REFETCH_DEBOUNCE_MS);
+    };
+
     const handle_email_received = (event: Event) => {
       if (!has_passphrase_in_memory()) return;
       const email_id = (event as CustomEvent<{ email_id?: string }>).detail
@@ -840,8 +855,7 @@ export function use_category_inbox(
 
         if (cancelled) return;
 
-        page_cache.current.clear();
-        await fetch_page(page, page_size, { silent: true });
+        schedule_arrival_refetch();
       })();
     };
 
@@ -868,6 +882,10 @@ export function use_category_inbox(
 
     return () => {
       cancelled = true;
+      if (arrival_refetch_timer !== null) {
+        clearTimeout(arrival_refetch_timer);
+        arrival_refetch_timer = null;
+      }
       document.removeEventListener("visibilitychange", handle_visible);
       window.removeEventListener(
         MAIL_EVENTS.EMAIL_RECEIVED,

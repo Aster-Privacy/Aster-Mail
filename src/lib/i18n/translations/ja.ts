@@ -1699,6 +1699,9 @@ export const ja = {
     settings_disabled_suspended:
       "アカウントが停止されている間、設定は無効になっています。異議申し立てや詳細については hello@astermail.org がお力になれます。",
     new_email_body: "新しいメールが届いています",
+    new_emails_body_one: "{{count}}件の新しいメールがあります",
+    new_emails_body: "{{count}}件の新しいメールがあります",
+    new_emails_body_other: "{{count}}件の新しいメールがあります",
     create_ghost_alias: "ゴーストエイリアスを作成",
     hide_real_address_expiry: "実際のアドレスを隠す（{{days}}日で有効期限）",
     sender_group_primary: "プライマリ",

@@ -88,6 +88,10 @@ import {
   get_effective_retry_delay,
 } from "@/services/routing/routing_provider";
 
+const RATE_LIMIT_DEFAULT_HOLD_MS = 2000;
+const RATE_LIMIT_MAX_HOLD_MS = 15_000;
+const RATE_LIMIT_RETRY_MAX_HOLD_MS = 5000;
+
 export class ApiClient {
   private refresh_timeout: number | null = null;
   private is_authenticated_flag: boolean = false;
@@ -108,6 +112,7 @@ export class ApiClient {
   private expected_user_id: string | null = null;
   private identity_mismatch_dispatched: boolean = false;
   private last_identity_check_timestamp: number = 0;
+  private rate_limited_until: number = 0;
   private pending_account_token_writes: Map<string, PendingTokenWrite> =
     new Map();
   private tauri_auth_hydration: Promise<void> | null = null;
@@ -1542,8 +1547,12 @@ export class ApiClient {
     };
     let has_attempted_refresh = false;
 
+    let rate_limit_retried = false;
+
     for (let attempt = 0; attempt <= retry; attempt++) {
       try {
+        await this.wait_for_rate_limit_window();
+
         const response = await this.request_with_timeout(
           url,
           { ...options, headers, credentials: "include" },
@@ -1818,6 +1827,23 @@ export class ApiClient {
             }
           }
 
+          if (response.status === 429 && !error_data.resets_at) {
+            const hold_ms = this.note_rate_limited(
+              response.headers.get("retry-after"),
+              error_data.resets_at,
+            );
+
+            if (
+              !rate_limit_retried &&
+              !is_state_changing_method(method) &&
+              hold_ms <= RATE_LIMIT_RETRY_MAX_HOLD_MS
+            ) {
+              rate_limit_retried = true;
+              attempt--;
+              continue;
+            }
+          }
+
           const generic_rate_limit =
             error_code === "RATE_LIMIT_EXCEEDED" && !error_data.resets_at;
 
@@ -1954,6 +1980,47 @@ export class ApiClient {
 
   private delay(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  private async wait_for_rate_limit_window(): Promise<void> {
+    const remaining = this.rate_limited_until - Date.now();
+
+    if (remaining > 0) {
+      await this.delay(remaining);
+    }
+  }
+
+  private note_rate_limited(
+    retry_after_header: string | null,
+    resets_at: string | undefined,
+  ): number {
+    const now = Date.now();
+    let hold_ms = RATE_LIMIT_DEFAULT_HOLD_MS;
+
+    if (retry_after_header) {
+      const seconds = Number(retry_after_header);
+
+      if (Number.isFinite(seconds) && seconds > 0) {
+        hold_ms = seconds * 1000;
+      } else {
+        const at = Date.parse(retry_after_header);
+
+        if (Number.isFinite(at) && at > now) {
+          hold_ms = at - now;
+        }
+      }
+    } else if (resets_at) {
+      const at = Date.parse(resets_at);
+
+      if (Number.isFinite(at) && at > now) {
+        hold_ms = at - now;
+      }
+    }
+
+    hold_ms = Math.min(hold_ms, RATE_LIMIT_MAX_HOLD_MS);
+    this.rate_limited_until = Math.max(this.rate_limited_until, now + hold_ms);
+
+    return hold_ms;
   }
 
   private get_generic_error_message(code: ApiErrorCode): string {

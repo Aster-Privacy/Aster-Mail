@@ -1765,6 +1765,9 @@ export const hi = {
     settings_disabled_suspended:
       "आपका खाता निलंबित रहने तक सेटिंग बंद रहती हैं। अपील या ज़्यादा जानकारी के लिए hello@astermail.org मदद कर सकता है।",
     new_email_body: "आपके पास एक नया ईमेल है",
+    new_emails_body_one: "आपके पास {{count}} नया ईमेल है",
+    new_emails_body: "आपके पास {{count}} नए ईमेल हैं",
+    new_emails_body_other: "आपके पास {{count}} नए ईमेल हैं",
     create_ghost_alias: "घोस्ट एलियास बनाएं",
     hide_real_address_expiry: "अपना असली पता छिपाएं ({{days}} दिन में समाप्त)",
     sender_group_primary: "मुख्य",

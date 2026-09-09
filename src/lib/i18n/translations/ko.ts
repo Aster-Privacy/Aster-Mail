@@ -1671,6 +1671,9 @@ export const ko = {
     settings_disabled_suspended:
       "계정이 정지된 동안 설정은 사용할 수 없습니다. 이의 신청이나 자세한 안내는 hello@astermail.org에서 도움을 받을 수 있습니다.",
     new_email_body: "새 이메일이 도착했습니다",
+    new_emails_body_one: "새 이메일 {{count}}통이 도착했습니다",
+    new_emails_body: "새 이메일 {{count}}통이 도착했습니다",
+    new_emails_body_other: "새 이메일 {{count}}통이 도착했습니다",
     create_ghost_alias: "고스트 별칭 만들기",
     hide_real_address_expiry: "실제 주소 숨기기 ({{days}}일 후 만료)",
     sender_group_primary: "기본",

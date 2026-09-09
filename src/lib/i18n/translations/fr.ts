@@ -1587,6 +1587,9 @@ export const fr = {
       "Masquer votre adresse réelle (expire dans {{days}} j)",
     create_ghost_alias: "Créer un alias fantôme",
     new_email_body: "Vous avez un nouvel e-mail",
+    new_emails_body_one: "Vous avez {{count}} nouvel e-mail",
+    new_emails_body: "Vous avez {{count}} nouveaux e-mails",
+    new_emails_body_other: "Vous avez {{count}} nouveaux e-mails",
     settings_disabled_suspended:
       "Les paramètres sont désactivés pendant que votre compte est suspendu. hello@astermail.org peut aider pour un appel ou plus de détails.",
     submit_an_appeal: "Soumettre un recours",
