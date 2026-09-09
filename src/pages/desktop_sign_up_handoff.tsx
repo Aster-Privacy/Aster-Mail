@@ -19,7 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import { open_external } from "@/utils/open_link";
 
@@ -27,11 +27,12 @@ const WEB_SIGN_UP_URL = "https://app.astermail.org/register";
 
 export function DesktopSignUpHandoff() {
   const navigate = useNavigate();
+  const { search } = useLocation();
 
   useEffect(() => {
-    open_external(`${WEB_SIGN_UP_URL}${window.location.search}`);
+    open_external(`${WEB_SIGN_UP_URL}${search}`);
     navigate("/sign-in", { replace: true });
-  }, [navigate]);
+  }, [navigate, search]);
 
   return null;
 }

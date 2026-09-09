@@ -51,10 +51,6 @@ import {
 import { is_webauthn_supported } from "@/services/api/webauthn";
 import { get_session_passphrase } from "@/contexts/auth/session_passphrase";
 import { emit_auth_ready } from "@/hooks/mail_events";
-import {
-  is_tauri,
-  consume_pending_device_login,
-} from "@/native/desktop_device_auth";
 import { show_toast } from "@/components/toast/simple_toast";
 import { hard_redirect, get_app_query_param } from "@/lib/hard_redirect";
 import { ignore_error } from "@/lib/ignore_error";
@@ -123,95 +119,6 @@ export function use_sign_in_page() {
     );
   });
   const [checkout_status, set_checkout_status] = useState("");
-  const [device_logging_in, set_device_logging_in] = useState(false);
-
-  useEffect(() => {
-    if (!is_tauri()) return;
-
-    type DeviceLoginDetail = {
-      login_response: {
-        user_id: string;
-        username: string;
-        email: string;
-        encrypted_vault: string;
-        vault_nonce: string;
-      };
-      passphrase: string | null;
-    };
-
-    const process_device_login = async (detail: DeviceLoginDetail) => {
-      if (!detail.passphrase) {
-        show_toast(t("errors.login_failed"), "error");
-
-        return;
-      }
-
-      set_device_logging_in(true);
-      try {
-        const vault = await decrypt_vault(
-          detail.login_response.encrypted_vault,
-          detail.login_response.vault_nonce,
-          detail.passphrase,
-        );
-        const user_info_response = await get_user_info();
-        const user_data = user_info_response.data
-          ? {
-              id: detail.login_response.user_id,
-              username: detail.login_response.username,
-              email: detail.login_response.email,
-              display_name: user_info_response.data.display_name || undefined,
-              profile_color: user_info_response.data.profile_color || undefined,
-              profile_picture:
-                user_info_response.data.profile_picture || undefined,
-            }
-          : {
-              id: detail.login_response.user_id,
-              username: detail.login_response.username,
-              email: detail.login_response.email,
-            };
-
-        await login(
-          user_data,
-          vault,
-          detail.passphrase,
-          detail.login_response.encrypted_vault,
-          detail.login_response.vault_nonce,
-        );
-        setTimeout(() => emit_auth_ready(), 50);
-        hard_redirect(consume_safe_next_path());
-      } catch (e) {
-        if (import.meta.env.DEV) console.error(e);
-        set_device_logging_in(false);
-        show_toast(t("errors.login_failed"), "error");
-      }
-    };
-
-    const pending = consume_pending_device_login();
-
-    if (pending) {
-      process_device_login(pending as DeviceLoginDetail);
-    }
-
-    const handle_login_success = () => {
-      const pending = consume_pending_device_login();
-
-      if (pending) {
-        process_device_login(pending as DeviceLoginDetail);
-      }
-    };
-
-    window.addEventListener(
-      "astermail:device-login-success",
-      handle_login_success,
-    );
-
-    return () => {
-      window.removeEventListener(
-        "astermail:device-login-success",
-        handle_login_success,
-      );
-    };
-  }, [login, t]);
 
   useEffect(() => {
     document.title = `${t("auth.sign_in")} | ${t("common.aster_mail")}`;
@@ -792,7 +699,6 @@ export function use_sign_in_page() {
     set_status,
     is_checkout_login,
     checkout_status,
-    device_logging_in,
     captcha_token,
     set_captcha_token,
     turnstile_ref,

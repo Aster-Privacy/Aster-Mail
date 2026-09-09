@@ -57,8 +57,15 @@ import { totp_flow } from "@/pages/sign_in/totp_flow";
 import { password_recovery_flow } from "@/pages/sign_in/password_recovery_flow";
 import { is_webauthn_supported } from "@/services/api/webauthn";
 import { emit_auth_ready } from "@/hooks/mail_events";
-import { is_tauri } from "@/native/desktop_device_auth";
-import { get_current_account_id } from "@/services/account_manager";
+import { is_tauri, forget_device_account } from "@/native/desktop_device_auth";
+import {
+  get_current_account_id,
+  update_account_device_id,
+} from "@/services/account_manager";
+import {
+  DesktopCodeSignIn,
+  type DeviceSignInSession,
+} from "@/components/common/desktop_code_sign_in";
 import { ignore_error } from "@/lib/ignore_error";
 import { set_post_switch_path } from "@/lib/post_switch_path";
 import { user_facing_error } from "@/utils/user_facing_error";
@@ -100,7 +107,6 @@ export default function SignInPage() {
     set_status,
     is_checkout_login,
     checkout_status,
-    device_logging_in,
     captcha_token,
     set_captcha_token,
     turnstile_ref,
@@ -179,6 +185,63 @@ export default function SignInPage() {
 
     navigate(cancel_return_path);
   };
+
+  if (is_tauri()) {
+    const desktop_adds_account =
+      is_adding_account || !!reauth_account_id || accounts.length > 0;
+    const desktop_can_cancel =
+      is_adding_account && (is_authenticated || !!previous_account_id);
+
+    const handle_desktop_signed_in = async (session: DeviceSignInSession) => {
+      try {
+        if (desktop_adds_account) {
+          const add_result = await add_account(
+            session.user,
+            session.vault,
+            session.passphrase,
+            session.encrypted_vault,
+            session.vault_nonce,
+          );
+
+          if (!add_result.success) {
+            throw new Error(add_result.error || t("errors.login_failed"));
+          }
+        } else {
+          await login(
+            session.user,
+            session.vault,
+            session.passphrase,
+            session.encrypted_vault,
+            session.vault_nonce,
+          );
+        }
+      } catch (err) {
+        await forget_device_account(session.device_id).catch((caught) =>
+          ignore_error("pages/sign_in:handle_desktop_signed_in", caught),
+        );
+        throw err;
+      }
+
+      await update_account_device_id(session.user.id, session.device_id).catch(
+        (caught) =>
+          ignore_error("pages/sign_in:handle_desktop_signed_in", caught),
+      );
+      setTimeout(() => emit_auth_ready(), 50);
+      if (!desktop_adds_account) navigate(consume_safe_next_path());
+    };
+
+    return (
+      <DesktopCodeSignIn
+        cancel_label={
+          returns_to_link_device
+            ? t("auth.back_to_link_device")
+            : t("auth.back_to_inbox")
+        }
+        on_cancel={desktop_can_cancel ? handle_cancel_add_account : undefined}
+        on_signed_in={handle_desktop_signed_in}
+      />
+    );
+  }
 
   const handle_totp_cancel = () => {
     set_totp_required(false);
@@ -480,34 +543,6 @@ export default function SignInPage() {
       turnstile_ref.current?.reset();
     }
   };
-
-  if (is_tauri() && device_logging_in) {
-    return (
-      <div className="fixed inset-0 overflow-y-auto transition-colors duration-200 bg-surf-primary">
-        <div className="min-h-full flex items-center justify-center px-4">
-          <div className="flex flex-col items-center w-full max-w-sm">
-            <img
-              alt="Aster"
-              className="h-10 mb-8"
-              decoding="async"
-              draggable={false}
-              src="/text_logo.png"
-            />
-            <div
-              className="h-8 w-8 mx-auto animate-spin rounded-full border-2 mb-4"
-              style={{
-                borderColor: is_dark ? "#374151" : "#bfdbfe",
-                borderTopColor: is_dark
-                  ? "var(--accent-color-hover)"
-                  : "var(--accent-color)",
-              }}
-            />
-            <p className="text-sm text-txt-secondary">{t("auth.signing_in")}</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   if (totp_required) {
     return (

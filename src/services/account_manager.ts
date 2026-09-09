@@ -85,6 +85,7 @@ export interface StoredAccount {
   kind?: "personal" | "shared";
   access_token?: string;
   refresh_token?: string;
+  device_id?: string;
 }
 
 export interface AccountsData {
@@ -219,7 +220,9 @@ async function get_accounts_data_async(): Promise<AccountsData> {
     if (safe_local_get(ACCOUNTS_KEY) === null) {
       load_failure = "none";
     } else {
-      load_failure = is_undecryptable_error(e) ? "undecryptable" : "unavailable";
+      load_failure = is_undecryptable_error(e)
+        ? "undecryptable"
+        : "unavailable";
     }
     if (import.meta.env.DEV) console.error(e);
   }
@@ -637,6 +640,28 @@ export async function remove_account(
   await clear_account_scoped_contact_index();
 
   return { removed: true, switched_to };
+}
+
+export async function update_account_device_id(
+  account_id: string,
+  device_id: string | null,
+): Promise<boolean> {
+  return serialize_account_write(async () => {
+    const data = await get_accounts_data_async();
+    const account = data.accounts.find((a) => a.id === account_id);
+
+    if (!account) return false;
+
+    if (device_id === null) {
+      delete account.device_id;
+    } else {
+      account.device_id = device_id;
+    }
+
+    await save_accounts_data(data);
+
+    return true;
+  });
 }
 
 export async function update_account_tokens(
