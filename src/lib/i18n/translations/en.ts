@@ -3394,6 +3394,17 @@ export const en: Translations = {
     failed_checkout:
       "We could not open checkout just now. Another attempt should do it. Your billing is unchanged.",
     checkout_welcome: "Welcome to Aster! Your subscription is active.",
+    card_declined_title: "Your last card payment did not go through",
+    card_declined_insufficient_funds:
+      "Your bank declined the payment because the account did not have enough funds. Try another card, or pay with crypto below.",
+    card_declined_expired_card:
+      "Your card has expired. Use a card with a current expiration date, or pay with crypto below.",
+    card_declined_card_details:
+      "One of the card details did not match. Check the number, expiration date, and security code, or pay with crypto below.",
+    card_declined_card_not_supported:
+      "Your bank does not support this payment. Many prepaid cards cannot be used for a subscription. Try a debit or credit card, or pay with crypto below.",
+    card_declined_contact_bank:
+      "Your bank declined the payment without telling us why. Contact your bank, or pay with crypto below.",
     crypto_pay_button: "Pay with crypto",
     crypto_summary_plan: "Plan",
     crypto_summary_addon: "Add-on",

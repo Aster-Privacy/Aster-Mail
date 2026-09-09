@@ -6848,6 +6848,18 @@ export const it = {
     or_pay_with_card: "O paga con carta",
     cardholder_name_placeholder: "Nome completo",
     billing_postal_placeholder: "12345",
+    card_declined_title:
+      "Il tuo ultimo pagamento con carta non è andato a buon fine",
+    card_declined_insufficient_funds:
+      "La tua banca ha rifiutato il pagamento perché il conto non aveva fondi sufficienti. Prova con un'altra carta oppure paga con crypto qui sotto.",
+    card_declined_expired_card:
+      "La tua carta è scaduta. Usa una carta con una data di scadenza valida oppure paga con crypto qui sotto.",
+    card_declined_card_details:
+      "Uno dei dati della carta non corrisponde. Controlla numero, data di scadenza e codice di sicurezza, oppure paga con crypto qui sotto.",
+    card_declined_card_not_supported:
+      "La tua banca non supporta questo pagamento. Molte carte prepagate non si possono usare per un abbonamento. Prova con una carta di debito o di credito, oppure paga con crypto qui sotto.",
+    card_declined_contact_bank:
+      "La tua banca ha rifiutato il pagamento senza dirci il motivo. Contatta la tua banca oppure paga con crypto qui sotto.",
     crypto_pay_button: "Paga con crypto",
     crypto_summary_plan: "Piano",
     crypto_summary_addon: "Componente aggiuntivo",

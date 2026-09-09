@@ -74,6 +74,7 @@ import {
 import { DEFAULT_RECOMMENDED_PLAN } from "@/components/settings/billing/plan_recommendation";
 import { server_error_text } from "@/components/settings/billing/server_error_text";
 import { CurrentPlanCard } from "@/components/settings/billing/current_plan_card";
+import { CardDeclineNotice } from "@/components/settings/billing/card_decline_notice";
 import { CryptoResumeBanner } from "@/components/settings/billing/crypto_resume_banner";
 import { ResumeCheckoutCard } from "@/components/settings/billing/resume_checkout_card";
 import { WinBackOfferCard } from "@/components/settings/billing/win_back_offer_card";
@@ -971,6 +972,8 @@ export function BillingSection() {
   return (
     <div className="space-y-6">
       <CryptoResumeBanner />
+
+      <CardDeclineNotice decline={subscription?.last_card_decline} />
 
       <ResumeCheckoutCard current_plan_code={subscription?.plan.code ?? null} />
 

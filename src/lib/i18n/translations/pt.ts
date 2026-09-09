@@ -6836,6 +6836,17 @@ export const pt = {
     or_pay_with_card: "Ou pagar com cartão",
     cardholder_name_placeholder: "Nome como no cartão",
     billing_postal_placeholder: "CEP",
+    card_declined_title: "O seu último pagamento com cartão não foi concluído",
+    card_declined_insufficient_funds:
+      "O seu banco recusou o pagamento porque a conta não tinha saldo suficiente. Experimente outro cartão ou pague com cripto abaixo.",
+    card_declined_expired_card:
+      "O seu cartão expirou. Use um cartão com uma data de validade atual ou pague com cripto abaixo.",
+    card_declined_card_details:
+      "Um dos dados do cartão não corresponde. Verifique o número, a data de validade e o código de segurança, ou pague com cripto abaixo.",
+    card_declined_card_not_supported:
+      "O seu banco não suporta este pagamento. Muitos cartões pré-pagos não podem ser usados numa subscrição. Experimente um cartão de débito ou crédito, ou pague com cripto abaixo.",
+    card_declined_contact_bank:
+      "O seu banco recusou o pagamento sem nos dizer porquê. Contacte o seu banco ou pague com cripto abaixo.",
     crypto_pay_button: "Pagar com cripto",
     crypto_summary_plan: "Plano",
     crypto_summary_addon: "Complemento",

@@ -55,6 +55,11 @@ export interface PendingOffer {
   expires_at: string;
 }
 
+export interface CardDecline {
+  reason: string;
+  at: string;
+}
+
 export interface SubscriptionResponse {
   plan: PlanInfo;
   status: string;
@@ -70,6 +75,7 @@ export interface SubscriptionResponse {
   has_stripe_subscription?: boolean;
   active_discount_description?: string | null;
   pending_offer?: PendingOffer | null;
+  last_card_decline?: CardDecline | null;
 }
 
 export interface AvailablePlan {

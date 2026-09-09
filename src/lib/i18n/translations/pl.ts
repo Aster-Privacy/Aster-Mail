@@ -6954,6 +6954,17 @@ export const pl = {
     or_pay_with_card: "Lub zapłać kartą",
     cardholder_name_placeholder: "Imię i nazwisko",
     billing_postal_placeholder: "00-000",
+    card_declined_title: "Ostatnia płatność kartą nie powiodła się",
+    card_declined_insufficient_funds:
+      "Bank odrzucił płatność, ponieważ na koncie zabrakło środków. Spróbuj innej karty lub zapłać kryptowalutą poniżej.",
+    card_declined_expired_card:
+      "Twoja karta straciła ważność. Użyj karty z aktualną datą ważności lub zapłać kryptowalutą poniżej.",
+    card_declined_card_details:
+      "Jedna z danych karty się nie zgadza. Sprawdź numer, datę ważności i kod bezpieczeństwa lub zapłać kryptowalutą poniżej.",
+    card_declined_card_not_supported:
+      "Twój bank nie obsługuje tej płatności. Wielu kart przedpłaconych nie da się użyć do subskrypcji. Spróbuj karty debetowej lub kredytowej albo zapłać kryptowalutą poniżej.",
+    card_declined_contact_bank:
+      "Bank odrzucił płatność bez podania przyczyny. Skontaktuj się z bankiem lub zapłać kryptowalutą poniżej.",
     crypto_pay_button: "Zapłać kryptowalutą",
     crypto_summary_plan: "Plan",
     crypto_summary_addon: "Dodatek",

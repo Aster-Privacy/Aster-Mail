@@ -6646,6 +6646,17 @@ export const ko = {
     or_pay_with_card: "또는 카드로 결제",
     cardholder_name_placeholder: "성명",
     billing_postal_placeholder: "12345",
+    card_declined_title: "지난 카드 결제가 완료되지 않았습니다",
+    card_declined_insufficient_funds:
+      "계좌 잔액이 부족해 은행이 결제를 거절했습니다. 다른 카드를 사용하거나 아래에서 암호화폐로 결제하세요.",
+    card_declined_expired_card:
+      "카드 유효기간이 지났습니다. 유효기간이 남은 카드를 사용하거나 아래에서 암호화폐로 결제하세요.",
+    card_declined_card_details:
+      "카드 정보 중 하나가 일치하지 않습니다. 번호, 유효기간, 보안 코드를 확인하거나 아래에서 암호화폐로 결제하세요.",
+    card_declined_card_not_supported:
+      "은행이 이 결제를 지원하지 않습니다. 선불 카드는 대부분 구독에 사용할 수 없습니다. 체크카드나 신용카드를 사용하거나 아래에서 암호화폐로 결제하세요.",
+    card_declined_contact_bank:
+      "은행이 이유를 알려주지 않고 결제를 거절했습니다. 은행에 문의하거나 아래에서 암호화폐로 결제하세요.",
     crypto_pay_button: "암호화폐로 결제",
     crypto_summary_plan: "요금제",
     crypto_summary_addon: "부가 기능",
