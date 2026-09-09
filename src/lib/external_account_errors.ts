@@ -18,7 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-export const GOOGLE_APP_PASSWORD_URL = "https://myaccount.google.com/apppasswords";
+export const GOOGLE_APP_PASSWORD_URL =
+  "https://myaccount.google.com/apppasswords";
 export const GOOGLE_TWO_STEP_URL =
   "https://myaccount.google.com/signinoptions/two-step-verification";
 
@@ -76,7 +77,9 @@ export function is_app_password_error(
 ): boolean {
   const text = normalize(message);
 
-  if (EXPLICIT_APP_PASSWORD_PATTERNS.some((pattern) => text.includes(pattern))) {
+  if (
+    EXPLICIT_APP_PASSWORD_PATTERNS.some((pattern) => text.includes(pattern))
+  ) {
     return true;
   }
 
