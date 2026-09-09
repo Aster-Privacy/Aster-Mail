@@ -93,6 +93,9 @@ export function AliasesSection({
   const [purchase_initial_query, set_purchase_initial_query] = useState<
     string | null
   >(null);
+  const [pending_cancel_order_id, set_pending_cancel_order_id] = useState<
+    string | null
+  >(null);
   const [cancelling_order_id, set_cancelling_order_id] = useState<
     string | null
   >(null);
@@ -997,7 +1000,7 @@ export function AliasesSection({
                           onClick={(e) => {
                             e.stopPropagation();
                             if (cancelling_order_id !== order.id) {
-                              handle_cancel_order(order.id);
+                              set_pending_cancel_order_id(order.id);
                             }
                           }}
                         >
@@ -1153,6 +1156,22 @@ export function AliasesSection({
         }
         on_confirm={hook.confirm_domain_addr_delete}
         title={t("common.delete_address")}
+        variant="danger"
+      />
+
+      <ConfirmationModal
+        cancel_text={t("settings.domain_purchase_cancel_payment_keep")}
+        confirm_text={t("settings.domain_purchase_cancel_payment_confirm")}
+        is_open={pending_cancel_order_id !== null}
+        message={t("settings.domain_purchase_cancel_payment_message")}
+        on_cancel={() => set_pending_cancel_order_id(null)}
+        on_confirm={() => {
+          const order_id = pending_cancel_order_id;
+
+          set_pending_cancel_order_id(null);
+          if (order_id) void handle_cancel_order(order_id);
+        }}
+        title={t("settings.domain_purchase_cancel_payment_title")}
         variant="danger"
       />
     </div>

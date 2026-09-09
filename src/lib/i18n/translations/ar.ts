@@ -6371,6 +6371,11 @@ export const ar = {
     domain_purchase_progress_note:
       "يرجى الانتظار بينما نسجّل نطاقك ونجهّز صناديق البريد. يستغرق ذلك عادةً نحو دقيقة.",
     domain_purchase_complete_cta: "إكمال الشراء",
+    domain_purchase_cancel_payment_title: "إلغاء هذه الدفعة؟",
+    domain_purchase_cancel_payment_message:
+      "هل تريد بالتأكيد إلغاء هذه الدفعة للنطاق المخصص؟",
+    domain_purchase_cancel_payment_confirm: "إلغاء الدفع",
+    domain_purchase_cancel_payment_keep: "الاحتفاظ بالدفع",
     domain_purchase_purchased_lapsed: "منتهٍ - اشترِ مجددًا",
     domain_purchase_error_paused:
       "تم إيقاف شراء النطاقات مؤقتًا لبضع دقائق. يرجى المحاولة مرة أخرى بعد قليل.",

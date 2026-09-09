@@ -5345,6 +5345,11 @@ export const it = {
     domain_purchase_progress_note:
       "Attendi mentre registriamo il tuo dominio e configuriamo le tue caselle. Di solito ci vuole circa un minuto.",
     domain_purchase_complete_cta: "Completa l'acquisto",
+    domain_purchase_cancel_payment_title: "Annullare questo pagamento?",
+    domain_purchase_cancel_payment_message:
+      "Vuoi davvero annullare questo pagamento per il dominio personalizzato?",
+    domain_purchase_cancel_payment_confirm: "Annulla pagamento",
+    domain_purchase_cancel_payment_keep: "Mantieni pagamento",
     domain_purchase_purchased_lapsed: "Scaduto - acquista di nuovo",
     domain_purchase_error_paused:
       "Gli acquisti di domini sono in pausa per qualche minuto. Riprova tra poco.",

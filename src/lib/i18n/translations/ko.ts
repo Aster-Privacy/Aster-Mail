@@ -6289,6 +6289,11 @@ export const ko = {
     domain_purchase_progress_note:
       "도메인을 등록하고 메일함을 설정하는 동안 잠시 기다려 주세요. 보통 1분 정도 걸립니다.",
     domain_purchase_complete_cta: "구매 완료하기",
+    domain_purchase_cancel_payment_title: "이 결제를 취소할까요?",
+    domain_purchase_cancel_payment_message:
+      "맞춤 도메인에 대한 이 결제를 정말 취소하시겠어요?",
+    domain_purchase_cancel_payment_confirm: "결제 취소",
+    domain_purchase_cancel_payment_keep: "결제 유지",
     domain_purchase_purchased_lapsed: "만료됨 - 다시 구매",
     domain_purchase_error_paused:
       "도메인 구매가 몇 분 동안 일시 중지되었습니다. 잠시 후 다시 시도해 주세요.",

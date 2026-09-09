@@ -6576,6 +6576,11 @@ export const fr = {
     domain_purchase_progress_note:
       "Veuillez patienter pendant que nous enregistrons votre domaine et configurons vos boîtes mail. Cela prend généralement environ une minute.",
     domain_purchase_complete_cta: "Finaliser l'achat",
+    domain_purchase_cancel_payment_title: "Annuler ce paiement ?",
+    domain_purchase_cancel_payment_message:
+      "Voulez-vous vraiment annuler ce paiement pour le domaine personnalisé ?",
+    domain_purchase_cancel_payment_confirm: "Annuler le paiement",
+    domain_purchase_cancel_payment_keep: "Conserver le paiement",
     domain_purchase_purchased_lapsed: "Expiré - racheter",
     domain_purchase_error_paused:
       "Les achats de domaines sont en pause quelques minutes. Réessayez dans un instant.",

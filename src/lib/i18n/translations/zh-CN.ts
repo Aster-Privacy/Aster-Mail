@@ -5746,6 +5746,11 @@ export const zh_CN = {
     domain_purchase_progress_note:
       "请稍候，我们正在注册您的域名并设置邮箱。通常需要大约一分钟。",
     domain_purchase_complete_cta: "完成购买",
+    domain_purchase_cancel_payment_title: "取消此付款？",
+    domain_purchase_cancel_payment_message:
+      "确定要取消这笔自定义域名的付款吗？",
+    domain_purchase_cancel_payment_confirm: "取消付款",
+    domain_purchase_cancel_payment_keep: "保留付款",
     domain_purchase_purchased_lapsed: "已过期 - 重新购买",
     domain_purchase_error_paused: "域名购买暂停几分钟，请稍后再试。",
     domain_purchase_error_not_allowed:

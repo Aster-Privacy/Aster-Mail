@@ -6115,6 +6115,11 @@ export const en: Translations = {
     domain_purchase_progress_note:
       "Please wait while we register your domain and set up your mailboxes. This usually takes about a minute.",
     domain_purchase_complete_cta: "Complete purchase",
+    domain_purchase_cancel_payment_title: "Cancel this payment?",
+    domain_purchase_cancel_payment_message:
+      "Are you sure you want to cancel this payment for the custom domain?",
+    domain_purchase_cancel_payment_confirm: "Cancel payment",
+    domain_purchase_cancel_payment_keep: "Keep payment",
     domain_purchase_purchased_lapsed: "Expired - buy again",
     domain_purchase_terms_notice:
       "Aster registers the domain on your behalf through our registrar partner, and the renewal price is always shown before you pay. If you ever let a domain lapse, the registrar may charge a recovery fee to get it back.",
