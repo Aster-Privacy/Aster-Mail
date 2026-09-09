@@ -34,12 +34,36 @@ interface TwinAddressCardProps {
   on_claim: (local_part: string, domain: string) => void;
 }
 
+let cached_twin: TwinAddressResponse | null = null;
+let cached_twin_loaded = false;
+
+function claimable_siblings(twin: TwinAddressResponse | null): TwinSibling[] {
+  if (!twin) return [];
+
+  const all: TwinSibling[] =
+    twin.siblings && twin.siblings.length > 0
+      ? twin.siblings
+      : [
+          {
+            address: twin.address,
+            domain: twin.domain,
+            local_part: twin.local_part,
+            state: twin.state,
+          },
+        ];
+
+  return all.filter(
+    (sibling) => sibling.state === "reserved" || sibling.state === "available",
+  );
+}
+
 export function TwinAddressCard({
   refresh_token,
   on_claim,
 }: TwinAddressCardProps) {
   const { t } = use_i18n();
-  const [twin, set_twin] = useState<TwinAddressResponse | null>(null);
+  const [twin, set_twin] = useState<TwinAddressResponse | null>(cached_twin);
+  const [loaded, set_loaded] = useState(cached_twin_loaded);
 
   useEffect(() => {
     let cancelled = false;
@@ -50,12 +74,16 @@ export function TwinAddressCard({
 
         if (cancelled) return;
 
-        set_twin(response.data ?? null);
+        cached_twin = response.data ?? null;
       } catch {
         if (cancelled) return;
 
-        set_twin(null);
+        cached_twin = null;
       }
+
+      cached_twin_loaded = true;
+      set_twin(cached_twin);
+      set_loaded(true);
     };
 
     void load();
@@ -65,59 +93,56 @@ export function TwinAddressCard({
     };
   }, [refresh_token]);
 
-  if (!twin) return null;
+  const siblings = claimable_siblings(twin);
 
-  const siblings: TwinSibling[] = (
-    twin.siblings && twin.siblings.length > 0
-      ? twin.siblings
-      : [
-          {
-            address: twin.address,
-            domain: twin.domain,
-            local_part: twin.local_part,
-            state: twin.state,
-          },
-        ]
-  ).filter(
-    (sibling) => sibling.state === "reserved" || sibling.state === "available",
-  );
+  if (!loaded) {
+    return (
+      <div
+        aria-hidden="true"
+        className="mb-3 h-[74px] animate-pulse rounded-xl bg-surf-secondary"
+      />
+    );
+  }
 
   if (siblings.length === 0) return null;
 
+  const primary = siblings[0];
+  const multiple = siblings.length > 1;
+
   return (
-    <>
-      {siblings.map((sibling) => (
-        <div
-          key={sibling.address}
-          className="mb-3 rounded-xl border border-edge-secondary bg-surf-secondary p-3"
-        >
-          <div className="flex items-start gap-3">
-            <ShieldCheckIcon className="mt-0.5 h-5 w-5 shrink-0 text-txt-secondary" />
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold text-txt-primary">
-                {t("settings.twin_address_title")}
-              </p>
-              <p className="mt-1 break-words text-sm text-txt-muted">
-                {sibling.state === "reserved"
-                  ? t("settings.twin_address_reserved_description", {
-                      address: sibling.address,
-                    })
-                  : t("settings.twin_address_available_description", {
-                      address: sibling.address,
-                    })}
-              </p>
-            </div>
-            <Button
-              className="shrink-0 self-center"
-              size="sm"
-              variant="secondary"
-              onClick={() => on_claim(sibling.local_part, sibling.domain)}
-            >
-              {t("settings.twin_address_create")}
-            </Button>
-          </div>
+    <div className="mb-3 rounded-xl border border-edge-secondary bg-surf-secondary p-3">
+      <div className="flex items-start gap-3">
+        <ShieldCheckIcon className="mt-0.5 h-5 w-5 shrink-0 text-txt-secondary" />
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-semibold text-txt-primary">
+            {multiple
+              ? t("settings.twin_address_title_multiple")
+              : t("settings.twin_address_title")}
+          </p>
+          <p className="mt-1 break-words text-sm text-txt-muted">
+            {multiple
+              ? t("settings.twin_address_multiple_description", {
+                  local_part: primary.local_part,
+                  count: siblings.length,
+                })
+              : primary.state === "reserved"
+                ? t("settings.twin_address_reserved_description", {
+                    address: primary.address,
+                  })
+                : t("settings.twin_address_available_description", {
+                    address: primary.address,
+                  })}
+          </p>
         </div>
-      ))}
-    </>
+        <Button
+          className="shrink-0 self-center"
+          size="sm"
+          variant="secondary"
+          onClick={() => on_claim(primary.local_part, primary.domain)}
+        >
+          {t("settings.twin_address_create")}
+        </Button>
+      </div>
+    </div>
   );
 }
