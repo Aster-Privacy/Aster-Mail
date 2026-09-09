@@ -30,6 +30,7 @@ import {
 import { Tooltip } from "@aster/ui";
 
 import { Spinner } from "@/components/ui/spinner";
+import { needs_app_password_notice } from "@/lib/external_account_errors";
 import {
   get_sync_progress_state,
   is_syncing as check_is_syncing,
@@ -49,7 +50,9 @@ export function SyncHealthDot({ account, t }: SyncHealthDotProps) {
     dot_label =
       account.protocol === "oauth_imap"
         ? t("settings.connected_accounts_reauth_needed")
-        : t("settings.connected_accounts_password_reauth_needed");
+        : needs_app_password_notice(account)
+          ? t("settings.connected_accounts_app_password_needed")
+          : t("settings.connected_accounts_password_reauth_needed");
   } else if (account.last_sync_status === "error") {
     dot_color = "rgb(239, 68, 68)";
     dot_label = t("common.last_sync_failed");
@@ -162,7 +165,9 @@ export function SyncStatusIndicator({
         <ExclamationTriangleIcon className="w-3 h-3" />
         {account.protocol === "oauth_imap"
           ? t("settings.connected_accounts_reauth_needed")
-          : t("settings.connected_accounts_password_reauth_needed")}
+          : needs_app_password_notice(account)
+            ? t("settings.connected_accounts_app_password_needed")
+            : t("settings.connected_accounts_password_reauth_needed")}
       </span>
     );
   }

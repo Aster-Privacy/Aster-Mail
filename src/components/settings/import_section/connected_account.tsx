@@ -46,6 +46,7 @@ import {
   type SyncProgressEvent,
 } from "@/services/api/external_accounts";
 import { app_locale } from "@/utils/date_format";
+import { needs_app_password_notice } from "@/lib/external_account_errors";
 
 export function ConnectedAccountCard({
   account,
@@ -274,7 +275,9 @@ export function ConnectedAccountCard({
                 <ExclamationTriangleIcon className="w-3 h-3 flex-shrink-0" />
                 {can_reconnect
                   ? t("settings.connected_accounts_reauth_needed")
-                  : t("settings.connected_accounts_password_reauth_needed")}
+                  : needs_app_password_notice(account)
+                    ? t("settings.connected_accounts_app_password_needed")
+                    : t("settings.connected_accounts_password_reauth_needed")}
               </span>
             ) : has_error && !sync_active ? (
               <span className="flex items-center gap-1 text-red-500">

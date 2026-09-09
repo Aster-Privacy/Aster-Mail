@@ -36,6 +36,7 @@ import { Modal, ModalTitle } from "@/components/ui/modal";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { TestResultBanner } from "@/components/settings/external_accounts/test_result_banner";
+import { is_app_password_error } from "@/lib/external_account_errors";
 
 const TWO_STEP_URL =
   "https://myaccount.google.com/signinoptions/two-step-verification";
@@ -144,8 +145,8 @@ export function GmailSetupWizard({
               key={index}
               className={
                 index < step
-                  ? "h-1 flex-1 rounded-full bg-accent-primary"
-                  : "h-1 flex-1 rounded-full bg-surf-tertiary"
+                  ? "h-1 flex-1 rounded-full bg-brand"
+                  : "h-1 flex-1 rounded-full bg-txt-primary/15"
               }
             />
           ))}
@@ -173,7 +174,7 @@ export function GmailSetupWizard({
 
         {step === 1 && (
           <a
-            className="inline-flex items-center gap-1.5 text-[13px] font-medium text-accent-primary hover:underline"
+            className="inline-flex items-center gap-1.5 text-[13px] font-medium text-brand hover:underline"
             href={TWO_STEP_URL}
             rel="noopener noreferrer"
             target="_blank"
@@ -186,7 +187,7 @@ export function GmailSetupWizard({
         {step === 2 && (
           <div className="space-y-3">
             <a
-              className="inline-flex items-center gap-1.5 text-[13px] font-medium text-accent-primary hover:underline"
+              className="inline-flex items-center gap-1.5 text-[13px] font-medium text-brand hover:underline"
               href={APP_PASSWORD_URL}
               rel="noopener noreferrer"
               target="_blank"
@@ -260,6 +261,30 @@ export function GmailSetupWizard({
             {test_result && (
               <TestResultBanner label="IMAP" result={test_result} />
             )}
+
+            {test_result &&
+              !test_result.success &&
+              is_app_password_error(test_result.message, {
+                email: form_email,
+              }) && (
+                <div className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2.5 space-y-1.5">
+                  <p className="text-[13px] font-medium text-txt-primary">
+                    {t("settings.gmail_wizard_app_password_error_title")}
+                  </p>
+                  <p className="text-xs leading-relaxed text-txt-secondary">
+                    {t("settings.gmail_wizard_app_password_error_body")}
+                  </p>
+                  <a
+                    className="inline-flex items-center gap-1.5 text-[13px] font-medium text-brand hover:underline"
+                    href={APP_PASSWORD_URL}
+                    rel="noopener noreferrer"
+                    target="_blank"
+                  >
+                    {t("settings.app_password_create_link")}
+                    <ArrowTopRightOnSquareIcon className="w-4 h-4 rtl:-scale-x-100" />
+                  </a>
+                </div>
+              )}
           </div>
         )}
       </div>
