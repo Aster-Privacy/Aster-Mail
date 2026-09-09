@@ -1665,6 +1665,9 @@ export const en: Translations = {
     settings_disabled_suspended:
       "Settings are turned off while your account is suspended. hello@astermail.org can help with an appeal or more detail.",
     new_email_body: "You have a new email",
+    new_emails_body_one: "You have {{count}} new email",
+    new_emails_body: "You have {{count}} new emails",
+    new_emails_body_other: "You have {{count}} new emails",
     create_ghost_alias: "Create Ghost Alias",
     hide_real_address_expiry: "Hide your real address ({{days}}d expiry)",
     sender_group_primary: "Primary",

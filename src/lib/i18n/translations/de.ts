@@ -1502,6 +1502,9 @@ export const de = {
       "Echte Adresse ausblenden (läuft in {{days}}T ab)",
     create_ghost_alias: "Ghost-Alias erstellen",
     new_email_body: "Sie haben eine neue E-Mail",
+    new_emails_body_one: "Sie haben {{count}} neue E-Mail",
+    new_emails_body: "Sie haben {{count}} neue E-Mails",
+    new_emails_body_other: "Sie haben {{count}} neue E-Mails",
     settings_disabled_suspended:
       "Einstellungen sind deaktiviert, solange Ihr Konto gesperrt ist. hello@astermail.org hilft bei einem Einspruch oder weiteren Details gern weiter.",
     submit_an_appeal: "Einspruch einreichen",

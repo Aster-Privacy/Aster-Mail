@@ -2169,6 +2169,9 @@ export interface CommonTranslations {
   family_2fa_action: string;
   family_2fa_sign_out: string;
   new_email_body: string;
+  new_emails_body: string;
+  new_emails_body_one: string;
+  new_emails_body_other: string;
   create_ghost_alias: string;
   hide_real_address_expiry: string;
   sender_group_primary: string;
