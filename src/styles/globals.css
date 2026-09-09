@@ -3287,9 +3287,29 @@ input:-webkit-autofill:active {
   animation: quick_settings_slide_in 160ms cubic-bezier(0.32, 0.72, 0, 1);
 }
 
+.quick_contacts_panel.quick_panel_closing,
+.quick_security_panel.quick_panel_closing {
+  animation: quick_settings_slide_out 160ms cubic-bezier(0.32, 0.72, 0, 1)
+    forwards;
+  pointer-events: none;
+}
+
+@keyframes quick_settings_slide_out {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(12px);
+    opacity: 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .quick_contacts_panel,
-  .quick_security_panel {
+  .quick_security_panel,
+  .quick_contacts_panel.quick_panel_closing,
+  .quick_security_panel.quick_panel_closing {
     animation: none;
   }
 }

@@ -94,6 +94,7 @@ import {
   update_contact_encrypted,
 } from "@/services/api/contacts";
 import { is_contact_trashed } from "@/lib/contact_trash";
+import { use_panel_transition } from "@/components/layout/use_panel_transition";
 
 const RELOAD_INTERVAL_MS = 30000;
 const CONTACT_PAGE_LIMIT = 200;
@@ -735,14 +736,16 @@ export function QuickContactsPanel({
     visible.every((contact) => selected_ids.has(contact.id));
   const is_selecting = selection_count > 0;
 
+  const { is_visible, is_closing } = use_panel_transition(is_open);
+
   return (
     <>
       <aside
         ref={panel_ref}
         aria-label={t("common.contacts")}
         className={`quick_contacts_panel me-1 mb-1 w-[min(320px,78vw)] flex-shrink-0 flex-col overflow-hidden rounded-lg bg-surf-primary md:me-2 md:mb-2 md:w-[clamp(272px,23vw,320px)] md:rounded-xl ${
-          is_open ? "flex" : "hidden"
-        } ${is_top_inset ? "mt-1 md:mt-2" : ""}`}
+          is_visible ? "flex" : "hidden"
+        } ${is_closing ? "quick_panel_closing" : ""} ${is_top_inset ? "mt-1 md:mt-2" : ""}`}
       >
         {detail_contact ? (
           <div className="flex h-12 flex-shrink-0 items-center gap-1 ps-2 pe-2">

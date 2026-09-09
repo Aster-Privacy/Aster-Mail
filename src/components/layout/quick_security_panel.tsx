@@ -1,4 +1,4 @@
-﻿//
+//
 // Aster Communications Inc.
 //
 // Copyright (c) 2026 Aster Communications Inc.
@@ -53,6 +53,7 @@ import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_escape_layer } from "@/lib/overlay_layer_stack";
 import { use_panel_inset } from "@/hooks/use_panel_inset";
+import { use_panel_transition } from "@/components/layout/use_panel_transition";
 
 interface QuickSecurityPanelProps {
   is_open: boolean;
@@ -251,13 +252,15 @@ export function QuickSecurityPanel({
     go_to_settings("security");
   }, [go_to_settings]);
 
+  const { is_visible, is_closing } = use_panel_transition(is_open);
+
   return (
     <aside
       ref={panel_ref}
       aria-label={t("common.security_center")}
       className={`quick_security_panel me-1 mb-1 w-[min(320px,78vw)] flex-shrink-0 flex-col overflow-hidden rounded-lg bg-surf-primary md:me-2 md:mb-2 md:w-[clamp(272px,23vw,320px)] md:rounded-xl ${
-        is_open ? "flex" : "hidden"
-      } ${is_top_inset ? "mt-1 md:mt-2" : ""}`}
+        is_visible ? "flex" : "hidden"
+      } ${is_closing ? "quick_panel_closing" : ""} ${is_top_inset ? "mt-1 md:mt-2" : ""}`}
     >
       <div className="flex h-12 flex-shrink-0 items-center gap-2 ps-3 pe-2">
         <AsterSecurityMark className="h-[18px] w-[18px] flex-shrink-0 text-brand-primary" />
