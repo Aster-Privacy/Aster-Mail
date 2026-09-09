@@ -6852,6 +6852,10 @@ export const ar = {
     finish_plan_setup_message:
       "لقد أغلقت صفحة الدفع قبل إتمامه. يبقى حسابك على الخطة المجانية حتى تنتهي.",
     finish_plan_setup_action: "أكمل الإعداد",
+    yearly_switch_title: "بدّل إلى الخطة السنوية ووفّر {{amount}} في السنة",
+    yearly_switch_body:
+      "تدفع الآن {{monthly}} شهريًا. مع الخطة السنوية يصبح ذلك {{yearly_monthly}} شهريًا، وتُعدّل فاتورتك التالية حسب المدة التي دفعت ثمنها بالفعل.",
+    yearly_switch_action: "التبديل إلى الخطة السنوية",
     win_back_offer_title: "خصم {{discount}} في انتظارك",
     win_back_offer_expires_today: "اليوم هو آخر يوم لاستخدامه.",
     win_back_offer_expires_tomorrow: "ينتهي غدًا.",

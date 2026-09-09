@@ -7223,6 +7223,11 @@ export const de = {
     finish_plan_setup_message:
       "Du hast die Kasse vor der Zahlung geschlossen. Dein Konto bleibt im kostenlosen Tarif, bis du fertig bist.",
     finish_plan_setup_action: "Einrichtung abschließen",
+    yearly_switch_title:
+      "Wechseln Sie zur Jahreszahlung und sparen Sie {{amount}} pro Jahr",
+    yearly_switch_body:
+      "Sie zahlen derzeit {{monthly}} pro Monat. Im Jahrestarif entspricht das {{yearly_monthly}} pro Monat, und Ihre nächste Rechnung wird um den bereits bezahlten Zeitraum angepasst.",
+    yearly_switch_action: "Zur Jahreszahlung wechseln",
     win_back_offer_title: "Dein {{discount}} wartet auf dich",
     win_back_offer_expires_today:
       "Heute ist der letzte Tag, um ihn einzulösen.",

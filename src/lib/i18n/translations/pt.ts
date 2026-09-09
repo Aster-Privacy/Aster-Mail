@@ -7005,6 +7005,11 @@ export const pt = {
     finish_plan_setup_message:
       "Você fechou o checkout antes de pagar. A sua conta permanece no plano gratuito até você concluir.",
     finish_plan_setup_action: "Concluir configuração",
+    yearly_switch_title:
+      "Mude para o plano anual e economize {{amount}} por ano",
+    yearly_switch_body:
+      "Você paga {{monthly}} por mês. No plano anual, isso equivale a {{yearly_monthly}} por mês, e a próxima fatura é ajustada pelo período que você já pagou.",
+    yearly_switch_action: "Mudar para o plano anual",
     win_back_offer_title: "O seu {{discount}} está à espera",
     win_back_offer_expires_today: "Hoje é o último dia para usar.",
     win_back_offer_expires_tomorrow: "Termina amanhã.",

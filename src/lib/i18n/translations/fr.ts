@@ -7262,6 +7262,11 @@ export const fr = {
     finish_plan_setup_message:
       "Vous avez fermé le paiement avant de régler. Votre compte reste sur l'offre gratuite jusqu'à ce que vous terminiez.",
     finish_plan_setup_action: "Terminer la configuration",
+    yearly_switch_title:
+      "Passez au paiement annuel et économisez {{amount}} par an",
+    yearly_switch_body:
+      "Vous payez {{monthly}} par mois. Avec la formule annuelle, cela revient à {{yearly_monthly}} par mois, et votre prochaine facture tient compte de la période déjà payée.",
+    yearly_switch_action: "Passer au paiement annuel",
     win_back_offer_title: "Votre {{discount}} vous attend",
     win_back_offer_expires_today: "C’est le dernier jour pour en profiter.",
     win_back_offer_expires_tomorrow: "Elle se termine demain.",

@@ -4775,6 +4775,10 @@ export const hi = {
     finish_plan_setup_message:
       "आपने भुगतान से पहले चेकआउट बंद कर दिया। पूरा करने तक आपका खाता मुफ़्त प्लान पर ही रहेगा।",
     finish_plan_setup_action: "सेटअप पूरा करें",
+    yearly_switch_title: "सालाना प्लान पर जाएं और हर साल {{amount}} बचाएं",
+    yearly_switch_body:
+      "अभी आप हर महीने {{monthly}} देते हैं। सालाना प्लान में यह हर महीने {{yearly_monthly}} पड़ता है, और आपके अगले बिल में पहले से चुकाई गई अवधि का समायोजन हो जाता है।",
+    yearly_switch_action: "सालाना प्लान पर जाएं",
     win_back_offer_title: "आपकी {{discount}} इंतज़ार कर रही है",
     win_back_offer_expires_today: "इसे इस्तेमाल करने का आज आखिरी दिन है।",
     win_back_offer_expires_tomorrow: "यह कल खत्म हो जाएगी।",

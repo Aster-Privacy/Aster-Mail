@@ -6776,6 +6776,10 @@ export const ko = {
     finish_plan_setup_message:
       "결제를 마치기 전에 결제 화면을 닫았습니다. 설정을 마칠 때까지 계정은 무료 요금제로 유지됩니다.",
     finish_plan_setup_action: "설정 마치기",
+    yearly_switch_title: "연간 요금제로 바꾸고 매년 {{amount}}을 아끼세요",
+    yearly_switch_body:
+      "지금은 매월 {{monthly}}을 결제합니다. 연간 요금제에서는 월 {{yearly_monthly}} 수준이며, 다음 청구서는 이미 결제한 기간만큼 조정됩니다.",
+    yearly_switch_action: "연간 요금제로 바꾸기",
     win_back_offer_title: "{{discount}} 혜택이 기다리고 있습니다",
     win_back_offer_expires_today: "오늘이 사용할 수 있는 마지막 날입니다.",
     win_back_offer_expires_tomorrow: "내일 종료됩니다.",

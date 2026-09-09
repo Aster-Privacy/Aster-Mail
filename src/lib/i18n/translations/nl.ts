@@ -7185,6 +7185,11 @@ export const nl = {
     finish_plan_setup_message:
       "Je hebt het afrekenen gesloten voordat je betaalde. Je account blijft op het gratis abonnement tot je klaar bent.",
     finish_plan_setup_action: "Instellen afronden",
+    yearly_switch_title:
+      "Stap over op jaarlijks en bespaar {{amount}} per jaar",
+    yearly_switch_body:
+      "Je betaalt nu {{monthly}} per maand. Met het jaarabonnement komt dat neer op {{yearly_monthly}} per maand, en je volgende factuur wordt aangepast voor de periode die je al hebt betaald.",
+    yearly_switch_action: "Overstappen op jaarlijks",
     win_back_offer_title: "Je {{discount}} staat klaar",
     win_back_offer_expires_today:
       "Vandaag is de laatste dag om hem te gebruiken.",

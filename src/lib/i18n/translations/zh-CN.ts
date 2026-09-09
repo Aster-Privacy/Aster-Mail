@@ -6496,6 +6496,10 @@ export const zh_CN = {
     finish_plan_setup_message:
       "您在付款前关闭了结账页面。完成之前，您的账户将保持免费套餐。",
     finish_plan_setup_action: "完成设置",
+    yearly_switch_title: "改用年付，每年节省 {{amount}}",
+    yearly_switch_body:
+      "你现在每月支付 {{monthly}}。改用年付后相当于每月 {{yearly_monthly}}，下一张账单会按已付费的时间进行抵扣。",
+    yearly_switch_action: "改用年付",
     win_back_offer_title: "您的{{discount}}正在等您",
     win_back_offer_expires_today: "今天是最后一天。",
     win_back_offer_expires_tomorrow: "优惠明天结束。",

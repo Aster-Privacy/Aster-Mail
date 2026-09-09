@@ -4760,6 +4760,10 @@ export const en: Translations = {
     finish_plan_setup_message:
       "You closed checkout before paying. Your account stays on the free plan until you finish.",
     finish_plan_setup_action: "Finish setting up",
+    yearly_switch_title: "Switch to yearly and save {{amount}} a year",
+    yearly_switch_body:
+      "You pay {{monthly}} a month now. On the yearly plan that works out to {{yearly_monthly}} a month, and your next invoice is adjusted for the time you already paid for.",
+    yearly_switch_action: "Switch to yearly",
     win_back_offer_title: "Your {{discount}} is waiting",
     win_back_offer_expires_today: "This is the last day to use it.",
     win_back_offer_expires_tomorrow: "It ends tomorrow.",

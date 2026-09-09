@@ -7122,6 +7122,11 @@ export const pl = {
     finish_plan_setup_message:
       "Zamykasz stronę płatności przed jej opłaceniem. Twoje konto pozostaje w planie darmowym, dopóki nie dokończysz konfiguracji.",
     finish_plan_setup_action: "Dokończ konfigurację",
+    yearly_switch_title:
+      "Przejdź na plan roczny i zaoszczędź {{amount}} rocznie",
+    yearly_switch_body:
+      "Teraz płacisz {{monthly}} miesięcznie. W planie rocznym to {{yearly_monthly}} miesięcznie, a następna faktura zostanie skorygowana o już opłacony okres.",
+    yearly_switch_action: "Przejdź na plan roczny",
     win_back_offer_title: "Twoje {{discount}} czeka",
     win_back_offer_expires_today: "Dziś ostatni dzień, by z niego skorzystać.",
     win_back_offer_expires_tomorrow: "Kończy się jutro.",

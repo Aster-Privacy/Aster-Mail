@@ -7062,6 +7062,10 @@ export const ja = {
     finish_plan_setup_message:
       "お支払いの前にチェックアウトを閉じました。完了するまで、アカウントは無料プランのままです。",
     finish_plan_setup_action: "設定を完了",
+    yearly_switch_title: "年額プランに切り替えて年間 {{amount}} 節約できます",
+    yearly_switch_body:
+      "現在は月額 {{monthly}} をお支払いです。年額プランなら月あたり {{yearly_monthly}} になり、次回の請求はお支払い済みの期間分が調整されます。",
+    yearly_switch_action: "年額プランに切り替える",
     win_back_offer_title: "{{discount}} をご用意しています",
     win_back_offer_expires_today: "ご利用は本日までです。",
     win_back_offer_expires_tomorrow: "明日で終了します。",

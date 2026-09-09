@@ -6934,6 +6934,10 @@ export const tr = {
     finish_plan_setup_message:
       "Ödeme yapmadan önce ödeme sayfasını kapattınız. Kurulumu tamamlayana kadar hesabınız ücretsiz planda kalır.",
     finish_plan_setup_action: "Kurulumu tamamla",
+    yearly_switch_title: "Yıllık plana geçin ve yılda {{amount}} tasarruf edin",
+    yearly_switch_body:
+      "Şu anda ayda {{monthly}} ödüyorsunuz. Yıllık planda bu ayda {{yearly_monthly}} eder ve bir sonraki faturanız halihazırda ödediğiniz süreye göre düzeltilir.",
+    yearly_switch_action: "Yıllık plana geç",
     win_back_offer_title: "{{discount}} indiriminiz sizi bekliyor",
     win_back_offer_expires_today: "Kullanmak için son gün bugün.",
     win_back_offer_expires_tomorrow: "Yarın sona eriyor.",

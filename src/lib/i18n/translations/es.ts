@@ -7186,6 +7186,10 @@ export const es = {
     finish_plan_setup_message:
       "Cerraste el pago antes de completarlo. Tu cuenta sigue en el plan gratuito hasta que termines.",
     finish_plan_setup_action: "Terminar la configuración",
+    yearly_switch_title: "Cambia al plan anual y ahorra {{amount}} al año",
+    yearly_switch_body:
+      "Ahora pagas {{monthly}} al mes. Con el plan anual equivale a {{yearly_monthly}} al mes, y tu próxima factura se ajusta por el tiempo que ya pagaste.",
+    yearly_switch_action: "Cambiar al plan anual",
     win_back_offer_title: "Tu {{discount}} te espera",
     win_back_offer_expires_today: "Hoy es el último día para usarlo.",
     win_back_offer_expires_tomorrow: "Termina mañana.",

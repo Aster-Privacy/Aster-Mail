@@ -5840,6 +5840,9 @@ export interface SettingsTranslations {
   card_declined_card_details: string;
   card_declined_card_not_supported: string;
   card_declined_contact_bank: string;
+  yearly_switch_title: string;
+  yearly_switch_body: string;
+  yearly_switch_action: string;
   win_back_offer_title: string;
   win_back_offer_expires_today: string;
   win_back_offer_expires_tomorrow: string;

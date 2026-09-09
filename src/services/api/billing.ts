@@ -55,6 +55,13 @@ export interface PendingOffer {
   expires_at: string;
 }
 
+export interface YearlySwitchOffer {
+  plan_code: string;
+  monthly_price_cents: number;
+  yearly_price_cents: number;
+  saving_cents: number;
+}
+
 export interface CardDecline {
   reason: string;
   at: string;
@@ -77,6 +84,7 @@ export interface SubscriptionResponse {
   active_discount_description?: string | null;
   pending_offer?: PendingOffer | null;
   last_card_decline?: CardDecline | null;
+  yearly_switch_offer?: YearlySwitchOffer | null;
 }
 
 export interface AvailablePlan {
@@ -734,6 +742,10 @@ export async function get_cancel_impact() {
 
 export async function reactivate_subscription() {
   return api_client.post<ReactivateResponse>("/payments/v1/reactivate", {});
+}
+
+export async function record_yearly_switch_click(): Promise<void> {
+  await api_client.post("/payments/v1/yearly-switch-click", {});
 }
 
 export async function switch_billing_interval(billing_interval: string) {

@@ -42,6 +42,7 @@ import {
   get_stripe_config,
   start_hosted_checkout,
   change_plan,
+  record_yearly_switch_click,
   read_checkout_target,
   clear_checkout_target,
   consume_addon_resume,
@@ -86,6 +87,7 @@ import { CardDeclineNotice } from "@/components/settings/billing/card_decline_no
 import { CryptoResumeBanner } from "@/components/settings/billing/crypto_resume_banner";
 import { ResumeCheckoutCard } from "@/components/settings/billing/resume_checkout_card";
 import { WinBackOfferCard } from "@/components/settings/billing/win_back_offer_card";
+import { YearlySwitchCard } from "@/components/settings/billing/yearly_switch_card";
 import { AvailablePlansSection } from "@/components/settings/billing/available_plans_section";
 import { PlanComparisonSection } from "@/components/settings/billing/plan_comparison_section";
 import { StorageAddonsSection } from "@/components/settings/billing/storage_addons_section";
@@ -752,6 +754,16 @@ export function BillingSection() {
     return options;
   };
 
+  const handle_switch_to_yearly = (plan_code: string) => {
+    const plan = plans.find((p) => p.code === plan_code);
+
+    if (!plan) return;
+
+    void record_yearly_switch_click();
+    set_plan_change_confirm_target({ plan, interval: "year" });
+    set_show_plan_change_confirm(true);
+  };
+
   const handle_confirm_plan_change = async () => {
     if (!plan_change_confirm_target) return;
     const { plan, interval } = plan_change_confirm_target;
@@ -1048,6 +1060,12 @@ export function BillingSection() {
       <WinBackOfferCard
         offer={subscription?.pending_offer}
         on_choose_plan={scroll_to_plans}
+      />
+
+      <YearlySwitchCard
+        currency={preferred_currency}
+        offer={subscription?.yearly_switch_offer}
+        on_switch={handle_switch_to_yearly}
       />
 
       <CurrentPlanCard
