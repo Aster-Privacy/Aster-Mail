@@ -135,6 +135,30 @@ describe("desktop sign-up handoff", () => {
     expect(container!.querySelector("form")).toBeNull();
   });
 
+  it("hands a family claim link to the browser as well", async () => {
+    await render_tree(
+      <MemoryRouter initialEntries={["/family/claim/tok-1"]}>
+        <Routes>
+          <Route
+            element={<DesktopSignUpHandoff />}
+            path="/family/claim/:token"
+          />
+          <Route
+            element={<div data-testid="sign-in-route" />}
+            path="/sign-in"
+          />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    expect(open_external_mock).toHaveBeenCalledWith(
+      "https://app.astermail.org/family/claim/tok-1",
+    );
+    expect(
+      container!.querySelector('[data-testid="sign-in-route"]'),
+    ).not.toBeNull();
+  });
+
   it("requests a code on the desktop sign-in screen and sends sign-up to the browser", async () => {
     await render_tree(<DesktopCodeSignIn on_signed_in={async () => {}} />);
     for (let i = 0; i < 50 && !container!.textContent?.includes("A"); i++) {

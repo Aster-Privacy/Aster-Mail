@@ -40,6 +40,8 @@ import { preview_claim } from "@/services/api/family";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_auth_safe } from "@/contexts/auth_context";
 import { show_toast } from "@/components/toast/simple_toast";
+import { DesktopSignUpHandoff } from "@/pages/desktop_sign_up_handoff";
+import { is_tauri } from "@/native/desktop_device_auth";
 
 const TRANSIENT_ERROR_CODES = [
   "NETWORK_ERROR",
@@ -129,6 +131,14 @@ function SignedInPanel() {
 }
 
 export default function FamilyClaimPage() {
+  if (is_tauri()) {
+    return <DesktopSignUpHandoff />;
+  }
+
+  return <BrowserFamilyClaimPage />;
+}
+
+function BrowserFamilyClaimPage() {
   const { token } = useParams<{ token: string }>();
   const { t } = use_i18n();
   const auth = use_auth_safe();
