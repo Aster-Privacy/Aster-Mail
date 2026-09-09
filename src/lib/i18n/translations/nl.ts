@@ -5030,7 +5030,6 @@ export const nl = {
       "Je betaalt {{offer_price}} per maand voor de eerste {{months}} maanden. Daarna wordt je abonnement verlengd voor {{price}} per maand totdat je het opzegt in Instellingen.",
     special_offer_dismiss: "Deze aanbieding niet meer tonen",
     special_offer_dismissed_toast: "We laten dit niet meer zien.",
-    special_offer_hero_plan: "Nova",
     special_offer_hero_duration: "voor {{months}} maanden",
     plan_billing_terms:
       "Abonnementen worden automatisch verlengd tegen het standaardtarief totdat je opzegt. Je kunt op elk moment opzeggen in Instellingen.",

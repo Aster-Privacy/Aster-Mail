@@ -5112,7 +5112,6 @@ export const pt = {
       "Você paga {{offer_price}} por mês nos primeiros {{months}} meses. Depois, seu plano é renovado por {{price}} por mês até você cancelar em Configurações.",
     special_offer_dismiss: "Não mostrar esta oferta novamente",
     special_offer_dismissed_toast: "Não mostraremos isto novamente.",
-    special_offer_hero_plan: "Nova",
     special_offer_hero_duration: "por {{months}} meses",
     plan_billing_terms:
       "As assinaturas são renovadas automaticamente pelo preço padrão até você cancelar. Cancele quando quiser em Configurações.",

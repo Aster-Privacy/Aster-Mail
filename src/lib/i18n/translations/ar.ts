@@ -5126,7 +5126,6 @@ export const ar = {
       "تدفع {{offer_price}} شهريًا لأول {{months}} شهرًا. بعد ذلك تُجدَّد خطتك بسعر {{price}} شهريًا حتى تلغيها من الإعدادات.",
     special_offer_dismiss: "عدم عرض هذا العرض مرة أخرى",
     special_offer_dismissed_toast: "لن نعرض هذا مرة أخرى.",
-    special_offer_hero_plan: "Nova",
     special_offer_hero_duration: "لمدة {{months}} شهرًا",
     plan_billing_terms:
       "تُجدَّد الاشتراكات تلقائيًا بالسعر العادي حتى تلغيها. يمكنك الإلغاء في أي وقت من الإعدادات.",

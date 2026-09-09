@@ -5104,7 +5104,6 @@ export const es = {
       "Pagas {{offer_price}} al mes durante los primeros {{months}} meses. Después, tu plan se renueva por {{price}} al mes hasta que lo canceles en Ajustes.",
     special_offer_dismiss: "No volver a mostrar esta oferta",
     special_offer_dismissed_toast: "No volveremos a mostrártelo.",
-    special_offer_hero_plan: "Nova",
     special_offer_hero_duration: "durante {{months}} meses",
     plan_billing_terms:
       "Las suscripciones se renuevan automáticamente a la tarifa estándar hasta que las canceles. Puedes cancelarla cuando quieras en Ajustes.",

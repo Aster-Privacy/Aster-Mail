@@ -5157,7 +5157,6 @@ export const fr = {
       "Vous payez {{offer_price}} par mois pendant les {{months}} premiers mois. Votre offre est ensuite renouvelée à {{price}} par mois jusqu'à ce que vous l'annuliez dans Réglages.",
     special_offer_dismiss: "Ne plus afficher cette offre",
     special_offer_dismissed_toast: "Nous ne vous le montrerons plus.",
-    special_offer_hero_plan: "Nova",
     special_offer_hero_duration: "pendant {{months}} mois",
     plan_billing_terms:
       "Les abonnements sont renouvelés automatiquement au tarif standard jusqu'à leur annulation. Vous pouvez annuler à tout moment dans Réglages.",

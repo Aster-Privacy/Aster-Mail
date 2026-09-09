@@ -5957,7 +5957,6 @@ export const en: Translations = {
       "You pay {{offer_price}} per month for the first {{months}} months. Your plan then renews at {{price}} per month until you cancel it in Settings.",
     special_offer_dismiss: "Don't show this offer again",
     special_offer_dismissed_toast: "We won't show you this again.",
-    special_offer_hero_plan: "Nova",
     special_offer_hero_duration: "for {{months}} months",
     plan_billing_terms:
       "Subscriptions renew automatically at the standard rate until you cancel. Cancel at any time in Settings.",

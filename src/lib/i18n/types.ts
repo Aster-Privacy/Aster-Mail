@@ -5240,7 +5240,6 @@ export interface SettingsTranslations {
   special_offer_fine_print: string;
   special_offer_dismiss: string;
   special_offer_dismissed_toast: string;
-  special_offer_hero_plan: string;
   special_offer_hero_duration: string;
   plan_billing_terms: string;
   upgrade_offer_note: string;

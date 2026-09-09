@@ -5246,7 +5246,6 @@ export const pl = {
       "Przez pierwsze {{months}} miesięcy płacisz {{offer_price}} miesięcznie. Potem plan odnawia się za {{price}} miesięcznie, dopóki nie anulujesz go w Ustawieniach.",
     special_offer_dismiss: "Nie pokazuj więcej tej oferty",
     special_offer_dismissed_toast: "Nie pokażemy tego ponownie.",
-    special_offer_hero_plan: "Nova",
     special_offer_hero_duration: "przez {{months}} miesięcy",
     plan_billing_terms:
       "Subskrypcje odnawiają się automatycznie w cenie standardowej, dopóki ich nie anulujesz. Możesz anulować w dowolnym momencie w Ustawieniach.",

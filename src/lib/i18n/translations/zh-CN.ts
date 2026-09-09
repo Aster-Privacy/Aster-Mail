@@ -4571,7 +4571,6 @@ export const zh_CN = {
       "前 {{months}} 个月每月支付 {{offer_price}}。之后套餐将按每月 {{price}} 续订，直到你在设置中取消。",
     special_offer_dismiss: "不再显示此优惠",
     special_offer_dismissed_toast: "我们不会再显示了。",
-    special_offer_hero_plan: "Nova",
     special_offer_hero_duration: "为期 {{months}} 个月",
     plan_billing_terms:
       "订阅会按标准价格自动续订，直到你取消。你可以随时在设置中取消。",

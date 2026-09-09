@@ -5064,7 +5064,6 @@ export const de = {
       "Sie zahlen {{offer_price}} pro Monat für die ersten {{months}} Monate. Danach verlängert sich Ihr Tarif für {{price}} pro Monat, bis Sie ihn in den Einstellungen kündigen.",
     special_offer_dismiss: "Dieses Angebot nicht mehr anzeigen",
     special_offer_dismissed_toast: "Wir zeigen Ihnen das nicht mehr an.",
-    special_offer_hero_plan: "Nova",
     special_offer_hero_duration: "für {{months}} Monate",
     plan_billing_terms:
       "Abonnements verlängern sich automatisch zum Standardpreis, bis Sie kündigen. Sie können jederzeit in den Einstellungen kündigen.",

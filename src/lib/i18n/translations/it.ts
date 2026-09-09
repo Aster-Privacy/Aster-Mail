@@ -6149,7 +6149,6 @@ export const it = {
       "Paghi {{offer_price}} al mese per i primi {{months}} mesi. Il piano si rinnova poi a {{price}} al mese finché non lo annulli in Impostazioni.",
     special_offer_dismiss: "Non mostrare più questa offerta",
     special_offer_dismissed_toast: "Non te lo mostreremo più.",
-    special_offer_hero_plan: "Nova",
     special_offer_hero_duration: "per {{months}} mesi",
     plan_billing_terms:
       "Gli abbonamenti si rinnovano automaticamente alla tariffa standard finché non li annulli. Puoi annullare in qualsiasi momento in Impostazioni.",

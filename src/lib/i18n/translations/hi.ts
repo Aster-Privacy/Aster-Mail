@@ -5971,7 +5971,6 @@ export const hi = {
       "पहले {{months}} महीनों के लिए आप {{offer_price}} प्रति माह चुकाते हैं। इसके बाद आपकी योजना {{price}} प्रति माह पर नवीनीकृत होती रहेगी, जब तक आप इसे सेटिंग में रद्द नहीं करते।",
     special_offer_dismiss: "यह ऑफ़र दोबारा न दिखाएँ",
     special_offer_dismissed_toast: "हम यह दोबारा नहीं दिखाएँगे।",
-    special_offer_hero_plan: "Nova",
     special_offer_hero_duration: "{{months}} महीनों के लिए",
     plan_billing_terms:
       "सदस्यताएँ रद्द करने तक मानक दर पर अपने आप नवीनीकृत होती हैं। आप सेटिंग में कभी भी रद्द कर सकते हैं।",

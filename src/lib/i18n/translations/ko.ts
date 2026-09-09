@@ -5015,7 +5015,6 @@ export const ko = {
       "처음 {{months}}개월 동안 월 {{offer_price}}을 결제합니다. 이후에는 설정에서 취소할 때까지 월 {{price}}으로 갱신됩니다.",
     special_offer_dismiss: "이 혜택 다시 보지 않기",
     special_offer_dismissed_toast: "다시 표시하지 않습니다.",
-    special_offer_hero_plan: "Nova",
     special_offer_hero_duration: "{{months}}개월 동안",
     plan_billing_terms:
       "구독은 취소할 때까지 표준 요금으로 자동 갱신됩니다. 설정에서 언제든지 취소할 수 있습니다.",

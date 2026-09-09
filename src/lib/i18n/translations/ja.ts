@@ -5073,7 +5073,6 @@ export const ja = {
       "最初の{{months}}か月は月額{{offer_price}}です。その後は、設定で解約するまで月額{{price}}で更新されます。",
     special_offer_dismiss: "このオファーを今後表示しない",
     special_offer_dismissed_toast: "今後は表示しません。",
-    special_offer_hero_plan: "Nova",
     special_offer_hero_duration: "{{months}}か月間",
     plan_billing_terms:
       "サブスクリプションは、解約するまで通常価格で自動的に更新されます。設定からいつでも解約できます。",

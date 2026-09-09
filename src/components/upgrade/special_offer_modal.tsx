@@ -42,7 +42,7 @@ import {
   special_offer_pricing,
   special_offer_promo_code,
 } from "@/lib/special_offer";
-import { SPECIAL_OFFER_HERO_SRC } from "@/lib/special_offer_hero";
+import special_offer_hero_url from "@/assets/special_offer_hero.webp";
 import {
   close_special_offer,
   show_special_offer,
@@ -192,7 +192,7 @@ export function SpecialOfferModal() {
             alt=""
             aria-hidden="true"
             className="special_offer_hero_image"
-            src={SPECIAL_OFFER_HERO_SRC}
+            src={special_offer_hero_url}
           />
         </div>
 
@@ -206,11 +206,7 @@ export function SpecialOfferModal() {
         </button>
 
         <div className="px-6 pb-6 pt-5">
-          <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-brand">
-            {t("settings.special_offer_hero_plan")}
-          </p>
-
-          <ModalTitle className="mt-1.5 text-[22px] font-semibold leading-[1.2] tracking-[-0.015em] text-txt-primary">
+          <ModalTitle className="text-[22px] font-semibold leading-[1.2] tracking-[-0.015em] text-txt-primary">
             {t("settings.special_offer_title")}
           </ModalTitle>
 

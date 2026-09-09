@@ -5051,7 +5051,6 @@ export const tr = {
       "İlk {{months}} ay boyunca aylık {{offer_price}} ödersiniz. Ardından planınız, Ayarlar bölümünden iptal edene kadar aylık {{price}} olarak yenilenir.",
     special_offer_dismiss: "Bu teklifi bir daha gösterme",
     special_offer_dismissed_toast: "Bunu bir daha göstermeyeceğiz.",
-    special_offer_hero_plan: "Nova",
     special_offer_hero_duration: "{{months}} ay boyunca",
     plan_billing_terms:
       "Abonelikler, siz iptal edene kadar standart fiyattan otomatik olarak yenilenir. İstediğiniz zaman Ayarlar bölümünden iptal edebilirsiniz.",

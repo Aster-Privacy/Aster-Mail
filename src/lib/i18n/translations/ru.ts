@@ -5215,7 +5215,6 @@ export const ru = {
       "Первые {{months}} месяцев вы платите {{offer_price}} в месяц. Затем план продлевается за {{price}} в месяц, пока вы не отмените его в Настройках.",
     special_offer_dismiss: "Больше не показывать это предложение",
     special_offer_dismissed_toast: "Мы больше это не покажем.",
-    special_offer_hero_plan: "Nova",
     special_offer_hero_duration: "на {{months}} месяцев",
     plan_billing_terms:
       "Подписки продлеваются автоматически по стандартной цене, пока вы их не отмените. Отменить можно в любой момент в Настройках.",
