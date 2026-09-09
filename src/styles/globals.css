@@ -4060,20 +4060,6 @@ input:-webkit-autofill:active {
   user-select: none;
 }
 
-.special_offer_hero_logo {
-  position: absolute;
-  top: 1.75rem;
-  inset-inline-start: 1.5rem;
-  width: 4.42rem;
-  height: 1.1rem;
-  background-image: url("/text_logo_white.png");
-  background-position: left center;
-  background-repeat: no-repeat;
-  background-size: contain;
-  pointer-events: none;
-  z-index: 1;
-}
-
 .special_offer_hero_image {
   display: block;
   width: 100%;

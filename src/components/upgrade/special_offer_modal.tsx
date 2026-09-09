@@ -194,8 +194,6 @@ export function SpecialOfferModal() {
             className="special_offer_hero_image"
             src={SPECIAL_OFFER_HERO_SRC}
           />
-
-          <div aria-hidden="true" className="special_offer_hero_logo" />
         </div>
 
         <button
