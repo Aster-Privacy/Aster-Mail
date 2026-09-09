@@ -60,6 +60,7 @@ import {
   get_active_tabs,
   is_build_in_progress,
   is_build_stalled,
+  is_index_capped,
   subscribe as subscribe_index,
   get_version as get_index_version,
   remove_ids,
@@ -160,7 +161,9 @@ function correct_received_rows(rows: InboxEmail[]): InboxEmail[] {
     const intended = resolve_read_intent(email);
 
     if (intended !== undefined) {
-      return email.is_read === intended ? email : { ...email, is_read: intended };
+      return email.is_read === intended
+        ? email
+        : { ...email, is_read: intended };
     }
 
     if (is_recently_read(email.id)) {
@@ -758,6 +761,15 @@ export function use_category_inbox(
     const signature = `${active_category}|${page}|${page_variant}|${built}|${unread_bits}|${ids.join(",")}`;
 
     if (signature === last_signature_ref.current) return;
+
+    if (
+      !is_index_settled() &&
+      !is_index_capped() &&
+      is_build_in_progress() &&
+      !is_build_stalled()
+    ) {
+      return;
+    }
 
     last_signature_ref.current = signature;
     void fetch_page(page, page_size);
