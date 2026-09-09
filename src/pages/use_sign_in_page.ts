@@ -274,7 +274,8 @@ export function use_sign_in_page() {
     const en = params.get("en");
     const checkout_username = params.get("u") || "";
     const checkout_plan = params.get("plan") || "";
-    const checkout_billing = params.get("billing") || "";
+    const checkout_interval =
+      params.get("billing") === "year" ? "year" : "month";
     const hash = window.location.hash;
     const tk_match = hash.match(/tk=([A-Za-z0-9_-]+)/);
 
@@ -415,7 +416,7 @@ export function use_sign_in_page() {
 
         safe_session_set(
           "aster_checkout_success",
-          JSON.stringify({ plan: checkout_plan, billing: checkout_billing }),
+          JSON.stringify({ plan: checkout_plan, billing: checkout_interval }),
         );
 
         scrub_checkout_params();
