@@ -319,8 +319,6 @@ describe("sender identity rotation", () => {
 
     const after = await send("after rotation", sender_vault);
 
-    sender_store = snapshot();
-
     restore(receiver_store);
     expect(await receive(after, receiver_vault, "m2")).toBe("after rotation");
   });
@@ -357,8 +355,6 @@ describe("sender identity rotation", () => {
     clear_local_ratchet_states();
 
     const after = await send("after rotation", sender_vault);
-
-    sender_store = snapshot();
 
     const stranger = make_vault((await generate_ratchet_keys())!);
 
@@ -420,8 +416,6 @@ describe("sender identity rotation", () => {
 
     restore(sender_store);
     const after = await send("after three rotations", sender_vault);
-
-    sender_store = snapshot();
 
     restore(receiver_store);
 
