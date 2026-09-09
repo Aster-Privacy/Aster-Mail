@@ -4989,15 +4989,15 @@ export const ko = {
     continue_setup: "설정 계속",
     verified_count: "{{count}}/5 인증됨",
     used_count: "{{current}} / {{max}} 사용됨",
-    alias_usage_remaining: "{{count}} aliases left on your plan",
-    alias_usage_remaining_other: "{{count}} aliases left on your plan",
+    alias_usage_remaining: "플랜에 별칭 {{count}}개가 남았습니다",
+    alias_usage_remaining_other: "플랜에 별칭 {{count}}개가 남았습니다",
     alias_cap_upsell_benefit:
-      "{{plan}} gives you {{aliases}} aliases for {{price}} per month.",
+      "{{plan}}에서는 월 {{price}}에 별칭 {{aliases}}개를 사용할 수 있습니다.",
     alias_cap_upsell_benefit_unlimited:
-      "{{plan}} gives you unlimited aliases for {{price}} per month.",
+      "{{plan}}에서는 월 {{price}}에 별칭을 무제한으로 사용할 수 있습니다.",
     alias_cap_upsell_alternative:
-      "{{plan}} removes the alias limit if you need more.",
-    alias_cap_upsell_cta: "Upgrade to {{plan}}",
+      "더 필요하면 {{plan}}이 별칭 제한을 없애 줍니다.",
+    alias_cap_upsell_cta: "{{plan}}으로 업그레이드",
     special_offer_button: "특별 혜택",
     special_offer_title: "프라이빗 메일을 반값에",
     special_offer_subtitle: "첫 12개월 50% 할인",

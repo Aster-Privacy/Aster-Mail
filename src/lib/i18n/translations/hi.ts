@@ -5944,16 +5944,16 @@ export const hi = {
       "अपने DNS रिकॉर्ड सेट करने और डोमेन की पुष्टि करने के लिए सेटअप जारी रखें पर क्लिक करें।",
     verified_count: "5 में से {{count}} सत्यापित",
     used_count: "{{max}} में से {{current}} इस्तेमाल हुआ",
-    alias_usage_remaining: "{{count}} aliases left on your plan",
-    alias_usage_remaining_one: "{{count}} alias left on your plan",
-    alias_usage_remaining_other: "{{count}} aliases left on your plan",
+    alias_usage_remaining: "आपकी योजना में {{count}} उपनाम बचे हैं",
+    alias_usage_remaining_one: "आपकी योजना में {{count}} उपनाम बचा है",
+    alias_usage_remaining_other: "आपकी योजना में {{count}} उपनाम बचे हैं",
     alias_cap_upsell_benefit:
-      "{{plan}} gives you {{aliases}} aliases for {{price}} per month.",
+      "{{plan}} आपको {{price}} प्रति माह में {{aliases}} उपनाम देता है।",
     alias_cap_upsell_benefit_unlimited:
-      "{{plan}} gives you unlimited aliases for {{price}} per month.",
+      "{{plan}} आपको {{price}} प्रति माह में असीमित उपनाम देता है।",
     alias_cap_upsell_alternative:
-      "{{plan}} removes the alias limit if you need more.",
-    alias_cap_upsell_cta: "Upgrade to {{plan}}",
+      "अगर आपको और चाहिए तो {{plan}} उपनाम की सीमा हटा देता है।",
+    alias_cap_upsell_cta: "{{plan}} में अपग्रेड करें",
     special_offer_button: "विशेष ऑफ़र",
     special_offer_title: "निजी मेल, आधी कीमत में",
     special_offer_subtitle: "पहले 12 महीनों पर 50% की छूट",

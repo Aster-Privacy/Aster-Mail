@@ -4548,15 +4548,14 @@ export const zh_CN = {
     continue_setup: "继续设置",
     verified_count: "{{count}}/5 已验证",
     used_count: "已使用 {{current}} / {{max}}",
-    alias_usage_remaining: "{{count}} aliases left on your plan",
-    alias_usage_remaining_other: "{{count}} aliases left on your plan",
+    alias_usage_remaining: "你的套餐还剩 {{count}} 个别名",
+    alias_usage_remaining_other: "你的套餐还剩 {{count}} 个别名",
     alias_cap_upsell_benefit:
-      "{{plan}} gives you {{aliases}} aliases for {{price}} per month.",
+      "{{plan}} 每月 {{price}}，提供 {{aliases}} 个别名。",
     alias_cap_upsell_benefit_unlimited:
-      "{{plan}} gives you unlimited aliases for {{price}} per month.",
-    alias_cap_upsell_alternative:
-      "{{plan}} removes the alias limit if you need more.",
-    alias_cap_upsell_cta: "Upgrade to {{plan}}",
+      "{{plan}} 每月 {{price}}，提供无限别名。",
+    alias_cap_upsell_alternative: "如果你需要更多，{{plan}} 将取消别名上限。",
+    alias_cap_upsell_cta: "升级到 {{plan}}",
     special_offer_button: "特别优惠",
     special_offer_title: "私密邮箱，半价体验",
     special_offer_subtitle: "前 12 个月五折",

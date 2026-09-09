@@ -5219,16 +5219,16 @@ export const pl = {
     continue_setup: "Kontynuuj konfigurację",
     verified_count: "{{count}}/5 zweryfikowanych",
     used_count: "{{current}} / {{max}} wykorzystanych",
-    alias_usage_remaining: "{{count}} aliases left on your plan",
-    alias_usage_remaining_one: "{{count}} alias left on your plan",
-    alias_usage_remaining_other: "{{count}} aliases left on your plan",
+    alias_usage_remaining: "W Twoim planie zostało {{count}} aliasów",
+    alias_usage_remaining_one: "W Twoim planie został {{count}} alias",
+    alias_usage_remaining_other: "W Twoim planie zostało {{count}} aliasów",
     alias_cap_upsell_benefit:
-      "{{plan}} gives you {{aliases}} aliases for {{price}} per month.",
+      "{{plan}} daje Ci {{aliases}} aliasów za {{price}} miesięcznie.",
     alias_cap_upsell_benefit_unlimited:
-      "{{plan}} gives you unlimited aliases for {{price}} per month.",
+      "{{plan}} daje Ci nieograniczone aliasy za {{price}} miesięcznie.",
     alias_cap_upsell_alternative:
-      "{{plan}} removes the alias limit if you need more.",
-    alias_cap_upsell_cta: "Upgrade to {{plan}}",
+      "{{plan}} znosi limit aliasów, jeśli potrzebujesz więcej.",
+    alias_cap_upsell_cta: "Przejdź na {{plan}}",
     special_offer_button: "Oferta specjalna",
     special_offer_title: "Prywatna poczta o połowę taniej",
     special_offer_subtitle: "50% zniżki przez pierwsze 12 miesięcy",

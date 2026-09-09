@@ -5024,16 +5024,16 @@ export const tr = {
     continue_setup: "Kuruluma Devam Et",
     verified_count: "{{count}}/5 doğrulandı",
     used_count: "{{current}} / {{max}} kullanıldı",
-    alias_usage_remaining: "{{count}} aliases left on your plan",
-    alias_usage_remaining_one: "{{count}} alias left on your plan",
-    alias_usage_remaining_other: "{{count}} aliases left on your plan",
+    alias_usage_remaining: "Planınızda {{count}} takma ad kaldı",
+    alias_usage_remaining_one: "Planınızda {{count}} takma ad kaldı",
+    alias_usage_remaining_other: "Planınızda {{count}} takma ad kaldı",
     alias_cap_upsell_benefit:
-      "{{plan}} gives you {{aliases}} aliases for {{price}} per month.",
+      "{{plan}}, aylık {{price}} karşılığında {{aliases}} takma ad sunar.",
     alias_cap_upsell_benefit_unlimited:
-      "{{plan}} gives you unlimited aliases for {{price}} per month.",
+      "{{plan}}, aylık {{price}} karşılığında sınırsız takma ad sunar.",
     alias_cap_upsell_alternative:
-      "{{plan}} removes the alias limit if you need more.",
-    alias_cap_upsell_cta: "Upgrade to {{plan}}",
+      "Daha fazlasına ihtiyacınız varsa {{plan}} takma ad sınırını kaldırır.",
+    alias_cap_upsell_cta: "{{plan}} planına yükseltin",
     special_offer_button: "Özel teklif",
     special_offer_title: "Gizli e-posta, yarı fiyatına",
     special_offer_subtitle: "İlk 12 ayda %50 indirim",

@@ -5100,16 +5100,16 @@ export const ar = {
     continue_setup: "متابعة الإعداد",
     verified_count: "{{count}}/5 تم التحقق",
     used_count: "{{current}} / {{max}} مستخدم",
-    alias_usage_remaining: "{{count}} aliases left on your plan",
-    alias_usage_remaining_one: "{{count}} alias left on your plan",
-    alias_usage_remaining_other: "{{count}} aliases left on your plan",
+    alias_usage_remaining: "تبقّى {{count}} اسم مستعار في خطتك",
+    alias_usage_remaining_one: "تبقّى {{count}} اسم مستعار في خطتك",
+    alias_usage_remaining_other: "تبقّى {{count}} اسم مستعار في خطتك",
     alias_cap_upsell_benefit:
-      "{{plan}} gives you {{aliases}} aliases for {{price}} per month.",
+      "يمنحك {{plan}} عدد {{aliases}} اسمًا مستعارًا مقابل {{price}} شهريًا.",
     alias_cap_upsell_benefit_unlimited:
-      "{{plan}} gives you unlimited aliases for {{price}} per month.",
+      "يمنحك {{plan}} أسماء مستعارة غير محدودة مقابل {{price}} شهريًا.",
     alias_cap_upsell_alternative:
-      "{{plan}} removes the alias limit if you need more.",
-    alias_cap_upsell_cta: "Upgrade to {{plan}}",
+      "يزيل {{plan}} حد الأسماء المستعارة إذا احتجت إلى المزيد.",
+    alias_cap_upsell_cta: "الترقية إلى {{plan}}",
     special_offer_button: "عرض خاص",
     special_offer_title: "بريد خاص بنصف السعر",
     special_offer_subtitle: "خصم 50% على أول 12 شهرًا",

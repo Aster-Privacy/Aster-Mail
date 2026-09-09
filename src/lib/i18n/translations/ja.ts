@@ -5047,15 +5047,15 @@ export const ja = {
     continue_setup: "セットアップを続行",
     verified_count: "{{count}}/5 認証済み",
     used_count: "{{current}} / {{max}} 使用済み",
-    alias_usage_remaining: "{{count}} aliases left on your plan",
-    alias_usage_remaining_other: "{{count}} aliases left on your plan",
+    alias_usage_remaining: "プランの残りエイリアスは{{count}}個です",
+    alias_usage_remaining_other: "プランの残りエイリアスは{{count}}個です",
     alias_cap_upsell_benefit:
-      "{{plan}} gives you {{aliases}} aliases for {{price}} per month.",
+      "{{plan}}なら月額{{price}}でエイリアスを{{aliases}}個使えます。",
     alias_cap_upsell_benefit_unlimited:
-      "{{plan}} gives you unlimited aliases for {{price}} per month.",
+      "{{plan}}なら月額{{price}}でエイリアスを無制限に使えます。",
     alias_cap_upsell_alternative:
-      "{{plan}} removes the alias limit if you need more.",
-    alias_cap_upsell_cta: "Upgrade to {{plan}}",
+      "さらに必要な場合は、{{plan}}がエイリアスの上限をなくします。",
+    alias_cap_upsell_cta: "{{plan}}にアップグレード",
     special_offer_button: "特別オファー",
     special_offer_title: "プライベートなメールを半額で",
     special_offer_subtitle: "最初の12か月が50%オフ",

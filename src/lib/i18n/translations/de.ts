@@ -5037,16 +5037,16 @@ export const de = {
     continue_setup: "Einrichtung fortsetzen",
     verified_count: "{{count}}/5 verifiziert",
     used_count: "{{current}} / {{max}} verwendet",
-    alias_usage_remaining: "{{count}} aliases left on your plan",
-    alias_usage_remaining_one: "{{count}} alias left on your plan",
-    alias_usage_remaining_other: "{{count}} aliases left on your plan",
+    alias_usage_remaining: "Noch {{count}} Aliase in Ihrem Tarif",
+    alias_usage_remaining_one: "Noch {{count}} Alias in Ihrem Tarif",
+    alias_usage_remaining_other: "Noch {{count}} Aliase in Ihrem Tarif",
     alias_cap_upsell_benefit:
-      "{{plan}} gives you {{aliases}} aliases for {{price}} per month.",
+      "{{plan}} bietet Ihnen {{aliases}} Aliase für {{price}} pro Monat.",
     alias_cap_upsell_benefit_unlimited:
-      "{{plan}} gives you unlimited aliases for {{price}} per month.",
+      "{{plan}} bietet Ihnen unbegrenzte Aliase für {{price}} pro Monat.",
     alias_cap_upsell_alternative:
-      "{{plan}} removes the alias limit if you need more.",
-    alias_cap_upsell_cta: "Upgrade to {{plan}}",
+      "{{plan}} hebt das Alias-Limit auf, wenn Sie mehr brauchen.",
+    alias_cap_upsell_cta: "Auf {{plan}} upgraden",
     special_offer_button: "Sonderangebot",
     special_offer_title: "Private E-Mails zum halben Preis",
     special_offer_subtitle: "50 % Rabatt auf die ersten 12 Monate",

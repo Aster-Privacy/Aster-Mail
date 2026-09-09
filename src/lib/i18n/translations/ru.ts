@@ -5187,16 +5187,16 @@ export const ru = {
     continue_setup: "Продолжить настройку",
     verified_count: "{{count}}/5 проверено",
     used_count: "{{current}} / {{max}} использовано",
-    alias_usage_remaining: "{{count}} aliases left on your plan",
-    alias_usage_remaining_one: "{{count}} alias left on your plan",
-    alias_usage_remaining_other: "{{count}} aliases left on your plan",
+    alias_usage_remaining: "В вашем плане осталось {{count}} псевдонимов",
+    alias_usage_remaining_one: "В вашем плане остался {{count}} псевдоним",
+    alias_usage_remaining_other: "В вашем плане осталось {{count}} псевдонимов",
     alias_cap_upsell_benefit:
-      "{{plan}} gives you {{aliases}} aliases for {{price}} per month.",
+      "{{plan}} даёт {{aliases}} псевдонимов за {{price}} в месяц.",
     alias_cap_upsell_benefit_unlimited:
-      "{{plan}} gives you unlimited aliases for {{price}} per month.",
+      "{{plan}} даёт неограниченные псевдонимы за {{price}} в месяц.",
     alias_cap_upsell_alternative:
-      "{{plan}} removes the alias limit if you need more.",
-    alias_cap_upsell_cta: "Upgrade to {{plan}}",
+      "{{plan}} снимает ограничение на псевдонимы, если нужно больше.",
+    alias_cap_upsell_cta: "Перейти на {{plan}}",
     special_offer_button: "Спецпредложение",
     special_offer_title: "Приватная почта за полцены",
     special_offer_subtitle: "Скидка 50% на первые 12 месяцев",

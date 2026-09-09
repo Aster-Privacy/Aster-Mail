@@ -5129,16 +5129,17 @@ export const fr = {
     continue_setup: "Continuer la configuration",
     verified_count: "{{count}}/5 vérifiés",
     used_count: "{{current}} / {{max}} utilisés",
-    alias_usage_remaining: "{{count}} aliases left on your plan",
-    alias_usage_remaining_one: "{{count}} alias left on your plan",
-    alias_usage_remaining_other: "{{count}} aliases left on your plan",
+    alias_usage_remaining: "Il vous reste {{count}} alias sur votre offre",
+    alias_usage_remaining_one: "Il vous reste {{count}} alias sur votre offre",
+    alias_usage_remaining_other:
+      "Il vous reste {{count}} alias sur votre offre",
     alias_cap_upsell_benefit:
-      "{{plan}} gives you {{aliases}} aliases for {{price}} per month.",
+      "{{plan}} vous offre {{aliases}} alias pour {{price}} par mois.",
     alias_cap_upsell_benefit_unlimited:
-      "{{plan}} gives you unlimited aliases for {{price}} per month.",
+      "{{plan}} vous offre des alias illimités pour {{price}} par mois.",
     alias_cap_upsell_alternative:
-      "{{plan}} removes the alias limit if you need more.",
-    alias_cap_upsell_cta: "Upgrade to {{plan}}",
+      "{{plan}} supprime la limite d'alias si vous en avez besoin de plus.",
+    alias_cap_upsell_cta: "Passer à {{plan}}",
     special_offer_button: "Offre spéciale",
     special_offer_title: "La messagerie privée à moitié prix",
     special_offer_subtitle: "50 % de réduction sur les 12 premiers mois",

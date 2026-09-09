@@ -5077,16 +5077,16 @@ export const es = {
     continue_setup: "Continuar configuración",
     verified_count: "{{count}}/5 verificados",
     used_count: "{{current}} / {{max}} usados",
-    alias_usage_remaining: "{{count}} aliases left on your plan",
-    alias_usage_remaining_one: "{{count}} alias left on your plan",
-    alias_usage_remaining_other: "{{count}} aliases left on your plan",
+    alias_usage_remaining: "Te quedan {{count}} alias en tu plan",
+    alias_usage_remaining_one: "Te queda {{count}} alias en tu plan",
+    alias_usage_remaining_other: "Te quedan {{count}} alias en tu plan",
     alias_cap_upsell_benefit:
-      "{{plan}} gives you {{aliases}} aliases for {{price}} per month.",
+      "{{plan}} te da {{aliases}} alias por {{price}} al mes.",
     alias_cap_upsell_benefit_unlimited:
-      "{{plan}} gives you unlimited aliases for {{price}} per month.",
+      "{{plan}} te da alias ilimitados por {{price}} al mes.",
     alias_cap_upsell_alternative:
-      "{{plan}} removes the alias limit if you need more.",
-    alias_cap_upsell_cta: "Upgrade to {{plan}}",
+      "{{plan}} elimina el límite de alias si necesitas más.",
+    alias_cap_upsell_cta: "Cambiar a {{plan}}",
     special_offer_button: "Oferta especial",
     special_offer_title: "Correo privado a mitad de precio",
     special_offer_subtitle: "50 % de descuento en los primeros 12 meses",
