@@ -4830,6 +4830,14 @@ export const es = {
       "Inténtalo de nuevo.",
     failed_fetch_folders_external:
       "Inténtalo de nuevo.",
+    external_sign_in_rejected:
+      "El servidor de correo no aceptó este nombre de usuario y contraseña. Vuelve a comprobarlos. Si tu proveedor requiere una contraseña de aplicación, introdúcela en su lugar.",
+    external_server_unreachable:
+      "Aster Mail no pudo conectarse a este servidor de correo. Comprueba el nombre del servidor, el puerto y la configuración de seguridad, y vuelve a intentarlo.",
+    external_reconnect_required:
+      "Tu proveedor ya no acepta el inicio de sesión guardado para esta cuenta. Para seguir usándola, vuelve a conectar la cuenta.",
+    external_message_rejected:
+      "El servidor de correo de esta cuenta rechazó el envío de este mensaje.",
     show_password_toggle: "Mostrar contraseña",
     hide_password_toggle: "Ocultar contraseña",
     hide_smtp_password: "Ocultar contraseña SMTP",

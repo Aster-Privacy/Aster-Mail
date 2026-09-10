@@ -4879,6 +4879,14 @@ export const fr = {
       "Réessayez.",
     failed_fetch_folders_external:
       "Réessayez.",
+    external_sign_in_rejected:
+      "Le serveur de messagerie n'a pas accepté ce nom d'utilisateur et ce mot de passe. Vérifiez-les à nouveau. Si votre fournisseur exige un mot de passe d'application, saisissez-le à la place.",
+    external_server_unreachable:
+      "Aster Mail n'a pas pu se connecter à ce serveur de messagerie. Vérifiez le nom du serveur, le port et le paramètre de sécurité, puis réessayez.",
+    external_reconnect_required:
+      "Votre fournisseur n'accepte plus la connexion enregistrée pour ce compte. Pour continuer à l'utiliser, reconnectez le compte.",
+    external_message_rejected:
+      "Le serveur de messagerie de ce compte a refusé d'envoyer ce message.",
     show_password_toggle: "Afficher le mot de passe",
     hide_password_toggle: "Masquer le mot de passe",
     hide_smtp_password: "Masquer le mot de passe SMTP",

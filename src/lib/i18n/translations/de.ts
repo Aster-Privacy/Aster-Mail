@@ -4817,6 +4817,14 @@ export const de = {
       "Versuchen Sie es erneut.",
     failed_fetch_folders_external:
       "Versuchen Sie es erneut.",
+    external_sign_in_rejected:
+      "Der Mailserver hat diesen Benutzernamen und dieses Passwort nicht akzeptiert. Prüfen Sie beide erneut. Wenn Ihr Anbieter ein App-Passwort verlangt, geben Sie stattdessen dieses ein.",
+    external_server_unreachable:
+      "Aster Mail konnte keine Verbindung zu diesem Mailserver herstellen. Prüfen Sie Servername, Port und Sicherheitseinstellung und versuchen Sie es dann erneut.",
+    external_reconnect_required:
+      "Ihr Anbieter akzeptiert die gespeicherte Anmeldung für dieses Konto nicht mehr. Um es weiter zu verwenden, verbinden Sie das Konto erneut.",
+    external_message_rejected:
+      "Der Mailserver dieses Kontos hat das Senden dieser Nachricht abgelehnt.",
     show_password_toggle: "Passwort anzeigen",
     hide_password_toggle: "Passwort ausblenden",
     hide_smtp_password: "SMTP-Passwort ausblenden",

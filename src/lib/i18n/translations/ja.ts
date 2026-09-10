@@ -4807,6 +4807,14 @@ export const ja = {
       "もう一度お試しください。",
     failed_fetch_folders_external:
       "もう一度お試しください。",
+    external_sign_in_rejected:
+      "メールサーバーがこのユーザー名とパスワードを受け付けませんでした。もう一度確認してください。プロバイダでアプリパスワードが必要な場合は、そちらを入力してください。",
+    external_server_unreachable:
+      "Aster Mail はこのメールサーバーに接続できませんでした。サーバー名、ポート、セキュリティ設定を確認してから、もう一度お試しください。",
+    external_reconnect_required:
+      "このアカウントに保存されたサインイン情報は、プロバイダで受け付けられなくなりました。引き続き使用するには、アカウントを再接続してください。",
+    external_message_rejected:
+      "このアカウントのメールサーバーがこのメッセージの送信を拒否しました。",
     show_password_toggle: "パスワードを表示",
     hide_password_toggle: "パスワードを非表示",
     hide_smtp_password: "SMTPパスワードを非表示",
