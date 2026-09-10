@@ -4819,6 +4819,14 @@ export const tr = {
       "Bu e-postalar bağladığınız hesaptan kaldırılmadı. Bir kez daha denemek genellikle yeterli olur.",
     failed_fetch_folders_external:
       "Bağladığınız hesaptan klasörler yüklenmedi. Bir kez daha denemek genellikle yeterli olur.",
+    external_sign_in_rejected:
+      "Posta sunucusu bu kullanıcı adını ve parolayı kabul etmedi. Bilgileri yeniden kontrol edin. Sağlayıcınız uygulama parolası istiyorsa bunun yerine onu girin.",
+    external_server_unreachable:
+      "Aster Mail bu posta sunucusuna bağlanamadı. Sunucu adını, bağlantı noktasını ve güvenlik ayarını kontrol edip yeniden deneyin.",
+    external_reconnect_required:
+      "Sağlayıcınız bu hesap için kayıtlı oturum açma bilgilerini artık kabul etmiyor. Hesabı kullanmaya devam etmek için yeniden bağlayın.",
+    external_message_rejected:
+      "Bu hesabın posta sunucusu bu iletiyi göndermeyi reddetti.",
     show_password_toggle: "Parolayı göster",
     hide_password_toggle: "Parolayı gizle",
     hide_smtp_password: "SMTP parolasını gizle",

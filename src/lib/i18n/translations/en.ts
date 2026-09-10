@@ -5663,6 +5663,14 @@ export const en: Translations = {
       "These emails were not removed from your linked account. Another attempt should do it.",
     failed_fetch_folders_external:
       "Folders from your linked account did not load. Another attempt should do it.",
+    external_sign_in_rejected:
+      "The mail server didn't accept this username and password. Check them again. If your provider requires an app password, enter that instead.",
+    external_server_unreachable:
+      "Aster Mail couldn't connect to this mail server. Check the server name, port, and security setting, then try again.",
+    external_reconnect_required:
+      "Your provider no longer accepts the saved sign-in for this account. To keep using it, reconnect the account.",
+    external_message_rejected:
+      "The mail server for this account refused to send this message.",
     show_password_toggle: "Show password",
     hide_password_toggle: "Hide password",
     hide_smtp_password: "Hide SMTP password",

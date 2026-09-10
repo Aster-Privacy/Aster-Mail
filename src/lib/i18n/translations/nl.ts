@@ -4803,6 +4803,14 @@ export const nl = {
       "Deze e-mails zijn niet verwijderd uit uw gekoppelde account. Een nieuwe poging zou werken.",
     failed_fetch_folders_external:
       "Mappen uit uw gekoppelde account zijn niet geladen. Een nieuwe poging zou werken.",
+    external_sign_in_rejected:
+      "De mailserver heeft deze gebruikersnaam en dit wachtwoord niet geaccepteerd. Controleer ze opnieuw. Als uw provider een app-wachtwoord vereist, voert u dat in.",
+    external_server_unreachable:
+      "Aster Mail kan geen verbinding maken met deze mailserver. Controleer de servernaam, de poort en de beveiligingsinstelling en probeer het opnieuw.",
+    external_reconnect_required:
+      "Uw provider accepteert de opgeslagen aanmelding voor dit account niet meer. Als u het account wilt blijven gebruiken, koppelt u het opnieuw.",
+    external_message_rejected:
+      "De mailserver van dit account heeft geweigerd dit bericht te verzenden.",
     show_password_toggle: "Wachtwoord tonen",
     hide_password_toggle: "Wachtwoord verbergen",
     hide_smtp_password: "SMTP-wachtwoord verbergen",

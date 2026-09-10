@@ -4401,6 +4401,14 @@ export const zh_CN = {
       "这些邮件未能从您关联的账户中移除，再试一次应该可以。",
     failed_fetch_folders_external:
       "您关联账户的文件夹未能加载，再试一次应该可以。",
+    external_sign_in_rejected:
+      "邮件服务器未接受此用户名和密码。请重新检查。如果您的服务提供商要求使用应用专用密码，请改为输入该密码。",
+    external_server_unreachable:
+      "Aster Mail 无法连接到此邮件服务器。请检查服务器名称、端口和安全设置，然后重试。",
+    external_reconnect_required:
+      "您的服务提供商已不再接受此账户保存的登录信息。如需继续使用，请重新连接该账户。",
+    external_message_rejected:
+      "此账户的邮件服务器拒绝发送这封邮件。",
     show_password_toggle: "显示密码",
     hide_password_toggle: "隐藏密码",
     hide_smtp_password: "隐藏 SMTP 密码",

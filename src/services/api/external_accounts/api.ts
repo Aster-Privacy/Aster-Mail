@@ -50,6 +50,25 @@ import {
 
 import { get_active_translations } from "@/lib/i18n/translations";
 
+export function external_account_error_message(
+  server_code: string | undefined,
+): string | undefined {
+  const settings = get_active_translations().settings;
+
+  switch (server_code) {
+    case "EXTERNAL_ACCOUNT_SIGN_IN_REJECTED":
+      return settings.external_sign_in_rejected;
+    case "EXTERNAL_ACCOUNT_SERVER_UNREACHABLE":
+      return settings.external_server_unreachable;
+    case "EXTERNAL_ACCOUNT_RECONNECT_REQUIRED":
+      return settings.external_reconnect_required;
+    case "EXTERNAL_ACCOUNT_MESSAGE_REJECTED":
+      return settings.external_message_rejected;
+    default:
+      return undefined;
+  }
+}
+
 export async function list_external_accounts(
   fallback_name = "Connected account",
 ): Promise<ApiResponse<DecryptedExternalAccount[]>> {
@@ -517,7 +536,13 @@ export async function send_via_external_account(
     }>("/mail/v1/external_accounts/send", payload);
 
     if (response.error || !response.data) {
-      return { error: response.error || "Failed to send via external account" };
+      return {
+        error:
+          external_account_error_message(response.server_code) ||
+          response.error ||
+          "Failed to send via external account",
+        server_code: response.server_code,
+      };
     }
 
     return { data: response.data };
@@ -548,7 +573,13 @@ export async function list_account_folders(credentials: {
     }>("/mail/v1/external_accounts/folders", credentials);
 
     if (response.error || !response.data) {
-      return { error: response.error || "Failed to list account folders" };
+      return {
+        error:
+          external_account_error_message(response.server_code) ||
+          response.error ||
+          "Failed to list account folders",
+        server_code: response.server_code,
+      };
     }
 
     return { data: response.data };
@@ -907,7 +938,13 @@ export async function list_oauth_folders(
     );
 
     if (response.error || !response.data) {
-      return { error: response.error || "Failed to list folders" };
+      return {
+        error:
+          external_account_error_message(response.server_code) ||
+          response.error ||
+          "Failed to list folders",
+        server_code: response.server_code,
+      };
     }
 
     return { data: response.data };

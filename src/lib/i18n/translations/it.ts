@@ -5907,6 +5907,14 @@ export const it = {
       "Queste email non sono state rimosse dal suo account collegato. Un altro tentativo dovrebbe bastare.",
     failed_fetch_folders_external:
       "Le cartelle dal suo account collegato non si sono caricate. Un altro tentativo dovrebbe bastare.",
+    external_sign_in_rejected:
+      "Il server di posta non ha accettato questo nome utente e questa password. Li controlli di nuovo. Se il suo provider richiede una password per app, inserisca quella.",
+    external_server_unreachable:
+      "Aster Mail non è riuscito a connettersi a questo server di posta. Controlli il nome del server, la porta e l'impostazione di sicurezza, poi riprovi.",
+    external_reconnect_required:
+      "Il suo provider non accetta più l'accesso salvato per questo account. Per continuare a usarlo, ricolleghi l'account.",
+    external_message_rejected:
+      "Il server di posta di questo account ha rifiutato di inviare questo messaggio.",
     show_password_toggle: "Mostra password",
     hide_password_toggle: "Nascondi password",
     hide_smtp_password: "Nascondi password SMTP",

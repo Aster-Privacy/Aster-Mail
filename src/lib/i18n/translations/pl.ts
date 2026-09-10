@@ -5014,6 +5014,14 @@ export const pl = {
       "Te wiadomości nie zostały usunięte z połączonego konta. Kolejna próba powinna to załatwić.",
     failed_fetch_folders_external:
       "Foldery z połączonego konta się nie załadowały. Kolejna próba powinna to załatwić.",
+    external_sign_in_rejected:
+      "Serwer poczty nie zaakceptował tej nazwy użytkownika i hasła. Sprawdź je ponownie. Jeśli dostawca wymaga hasła do aplikacji, wpisz je zamiast zwykłego hasła.",
+    external_server_unreachable:
+      "Aster Mail nie może połączyć się z tym serwerem poczty. Sprawdź nazwę serwera, port i ustawienie zabezpieczeń, a potem spróbuj ponownie.",
+    external_reconnect_required:
+      "Dostawca nie akceptuje już zapisanego logowania do tego konta. Aby dalej z niego korzystać, połącz konto ponownie.",
+    external_message_rejected:
+      "Serwer poczty tego konta odmówił wysłania tej wiadomości.",
     show_password_toggle: "Pokaż hasło",
     hide_password_toggle: "Ukryj hasło",
     hide_smtp_password: "Ukryj hasło SMTP",

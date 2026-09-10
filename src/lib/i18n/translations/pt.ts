@@ -4878,6 +4878,14 @@ export const pt = {
       "Estes e-mails não foram removidos da sua conta vinculada. Outra tentativa deve funcionar.",
     failed_fetch_folders_external:
       "As pastas da sua conta vinculada não carregaram. Outra tentativa deve funcionar.",
+    external_sign_in_rejected:
+      "O servidor de e-mail não aceitou este nome de usuário e senha. Verifique-os novamente. Se o seu provedor exigir uma senha de app, digite-a no lugar.",
+    external_server_unreachable:
+      "O Aster Mail não conseguiu se conectar a este servidor de e-mail. Verifique o nome do servidor, a porta e a configuração de segurança e tente novamente.",
+    external_reconnect_required:
+      "Seu provedor não aceita mais o login salvo desta conta. Para continuar usando a conta, reconecte-a.",
+    external_message_rejected:
+      "O servidor de e-mail desta conta se recusou a enviar esta mensagem.",
     show_password_toggle: "Mostrar senha",
     hide_password_toggle: "Ocultar senha",
     hide_smtp_password: "Ocultar senha SMTP",

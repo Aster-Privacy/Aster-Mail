@@ -4823,6 +4823,14 @@ export const ko = {
       "연결한 계정에서 이 이메일들이 제거되지 않았습니다. 다시 시도하면 됩니다.",
     failed_fetch_folders_external:
       "연결한 계정의 폴더가 불러와지지 않았습니다. 다시 시도하면 됩니다.",
+    external_sign_in_rejected:
+      "메일 서버가 이 사용자 이름과 비밀번호를 허용하지 않았습니다. 다시 확인하세요. 제공업체에서 앱 비밀번호를 요구하면 대신 앱 비밀번호를 입력하세요.",
+    external_server_unreachable:
+      "Aster Mail이 이 메일 서버에 연결하지 못했습니다. 서버 이름, 포트, 보안 설정을 확인한 후 다시 시도하세요.",
+    external_reconnect_required:
+      "제공업체가 이 계정에 저장된 로그인 정보를 더 이상 허용하지 않습니다. 계속 사용하려면 계정을 다시 연결하세요.",
+    external_message_rejected:
+      "이 계정의 메일 서버가 이 메시지 전송을 거부했습니다.",
     show_password_toggle: "비밀번호 표시",
     hide_password_toggle: "비밀번호 숨기기",
     hide_smtp_password: "SMTP 비밀번호 숨기기",
