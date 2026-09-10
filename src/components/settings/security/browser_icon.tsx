@@ -18,9 +18,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { useId } from "react";
 import { GlobeAltIcon } from "@heroicons/react/24/outline";
 
 function ChromeGlyph({ className }: { className?: string }) {
+  const uid = useId().replace(/:/g, "");
+
   return (
     <svg
       className={className}
@@ -30,7 +33,7 @@ function ChromeGlyph({ className }: { className?: string }) {
       <defs>
         <linearGradient
           gradientUnits="userSpaceOnUse"
-          id="chrome_a"
+          id={`${uid}_chrome_a`}
           x1="3.2173"
           x2="44.7812"
           y1="15"
@@ -41,7 +44,7 @@ function ChromeGlyph({ className }: { className?: string }) {
         </linearGradient>
         <linearGradient
           gradientUnits="userSpaceOnUse"
-          id="chrome_b"
+          id={`${uid}_chrome_b`}
           x1="20.7219"
           x2="41.5039"
           y1="47.6791"
@@ -52,7 +55,7 @@ function ChromeGlyph({ className }: { className?: string }) {
         </linearGradient>
         <linearGradient
           gradientUnits="userSpaceOnUse"
-          id="chrome_c"
+          id={`${uid}_chrome_c`}
           x1="26.5981"
           x2="5.8161"
           y1="46.5015"
@@ -65,22 +68,24 @@ function ChromeGlyph({ className }: { className?: string }) {
       <circle cx="24" cy="23.9947" fill="#fff" r="12" />
       <path
         d="M24,12H44.7812a23.9939,23.9939,0,0,0-41.5639.0029L13.6079,30l.0093-.0024A11.9852,11.9852,0,0,1,24,12Z"
-        fill="url(#chrome_a)"
+        fill={`url(#${uid}_chrome_a)`}
       />
       <circle cx="24" cy="24" fill="#1a73e8" r="9.5" />
       <path
         d="M34.3913,30.0029,24.0007,48A23.994,23.994,0,0,0,44.78,12.0031H23.9989l-.0025.0093A11.985,11.985,0,0,1,34.3913,30.0029Z"
-        fill="url(#chrome_b)"
+        fill={`url(#${uid}_chrome_b)`}
       />
       <path
         d="M13.6086,30.0031,3.218,12.006A23.994,23.994,0,0,0,24.0025,48L34.3931,30.0029l-.0067-.0068a11.9852,11.9852,0,0,1-20.7778.007Z"
-        fill="url(#chrome_c)"
+        fill={`url(#${uid}_chrome_c)`}
       />
     </svg>
   );
 }
 
 function FirefoxGlyph({ className }: { className?: string }) {
+  const uid = useId().replace(/:/g, "");
+
   return (
     <svg
       className={className}
@@ -88,7 +93,7 @@ function FirefoxGlyph({ className }: { className?: string }) {
       xmlns="http://www.w3.org/2000/svg"
     >
       <defs>
-        <radialGradient cx="210%" cy="-100%" id="firefox_g" r="290%">
+        <radialGradient cx="210%" cy="-100%" id={`${uid}_firefox_g`} r="290%">
           <stop offset=".1" stopColor="#ffe226" />
           <stop offset=".79" stopColor="#ff7139" />
         </radialGradient>
@@ -96,7 +101,7 @@ function FirefoxGlyph({ className }: { className?: string }) {
           cx="49%"
           cy="40%"
           gradientTransform="matrix(.82 0 0 1 .088 0)"
-          id="firefox_c"
+          id={`${uid}_firefox_c`}
           r="128%"
         >
           <stop offset=".3" stopColor="#960e18" />
@@ -105,11 +110,11 @@ function FirefoxGlyph({ className }: { className?: string }) {
           <stop offset=".5" stopColor="#f5334b" stopOpacity=".09" />
           <stop offset=".53" stopColor="#ff3750" stopOpacity="0" />
         </radialGradient>
-        <radialGradient cx="48%" cy="-12%" id="firefox_d" r="140%">
+        <radialGradient cx="48%" cy="-12%" id={`${uid}_firefox_d`} r="140%">
           <stop offset=".13" stopColor="#fff44f" />
           <stop offset=".53" stopColor="#ff980e" />
         </radialGradient>
-        <radialGradient cx="22.76%" cy="110.11%" id="firefox_e" r="100%">
+        <radialGradient cx="22.76%" cy="110.11%" id={`${uid}_firefox_e`} r="100%">
           <stop offset=".35" stopColor="#3a8ee6" />
           <stop offset=".67" stopColor="#9059ff" />
           <stop offset="1" stopColor="#c139e6" />
@@ -118,7 +123,7 @@ function FirefoxGlyph({ className }: { className?: string }) {
           cx="52%"
           cy="33%"
           gradientTransform="scale(.9 1)"
-          id="firefox_f"
+          id={`${uid}_firefox_f`}
           r="59%"
         >
           <stop offset=".21" stopColor="#9059ff" stopOpacity="0" />
@@ -128,7 +133,7 @@ function FirefoxGlyph({ className }: { className?: string }) {
           cx="87.4%"
           cy="-12.9%"
           gradientTransform="matrix(.8 0 0 1 .178 .129)"
-          id="firefox_b"
+          id={`${uid}_firefox_b`}
           r="128%"
         >
           <stop offset=".13" stopColor="#ffbd4f" />
@@ -137,7 +142,7 @@ function FirefoxGlyph({ className }: { className?: string }) {
           <stop offset=".78" stopColor="#eb0878" />
           <stop offset=".86" stopColor="#e50080" />
         </radialGradient>
-        <radialGradient cx="84%" cy="-41%" id="firefox_h" r="180%">
+        <radialGradient cx="84%" cy="-41%" id={`${uid}_firefox_h`} r="180%">
           <stop offset=".11" stopColor="#fff44f" />
           <stop offset=".46" stopColor="#ff980e" />
           <stop offset=".72" stopColor="#ff3647" />
@@ -147,7 +152,7 @@ function FirefoxGlyph({ className }: { className?: string }) {
           cx="16.1%"
           cy="-18.6%"
           gradientTransform="scale(1 .47) rotate(84 .279 -.297)"
-          id="firefox_i"
+          id={`${uid}_firefox_i`}
           r="348.8%"
         >
           <stop offset="0" stopColor="#fff44f" />
@@ -155,18 +160,18 @@ function FirefoxGlyph({ className }: { className?: string }) {
           <stop offset=".57" stopColor="#ff3647" />
           <stop offset=".74" stopColor="#e31587" />
         </radialGradient>
-        <radialGradient cx="18.9%" cy="-42.5%" id="firefox_j" r="238.4%">
+        <radialGradient cx="18.9%" cy="-42.5%" id={`${uid}_firefox_j`} r="238.4%">
           <stop offset=".14" stopColor="#fff44f" />
           <stop offset=".48" stopColor="#ff980e" />
           <stop offset=".66" stopColor="#ff3647" />
           <stop offset=".9" stopColor="#e31587" />
         </radialGradient>
-        <radialGradient cx="159.3%" cy="-44.72%" id="firefox_k" r="313.1%">
+        <radialGradient cx="159.3%" cy="-44.72%" id={`${uid}_firefox_k`} r="313.1%">
           <stop offset=".09" stopColor="#fff44f" />
           <stop offset=".63" stopColor="#ff980e" />
         </radialGradient>
         <linearGradient
-          id="firefox_a"
+          id={`${uid}_firefox_a`}
           x1="87.25%"
           x2="9.4%"
           y1="15.5%"
@@ -177,64 +182,66 @@ function FirefoxGlyph({ className }: { className?: string }) {
           <stop offset=".53" stopColor="#ff3647" />
           <stop offset=".7" stopColor="#e31587" />
         </linearGradient>
-        <linearGradient id="firefox_l" x1="80%" x2="18%" y1="14%" y2="84%">
+        <linearGradient id={`${uid}_firefox_l`} x1="80%" x2="18%" y1="14%" y2="84%">
           <stop offset=".17" stopColor="#fff44f" stopOpacity=".8" />
           <stop offset=".6" stopColor="#fff44f" stopOpacity="0" />
         </linearGradient>
       </defs>
       <path
         d="M478.711 166.353c-10.445-25.124-31.6-52.248-48.212-60.821 13.52 26.505 21.345 53.093 24.335 72.936 0 .039.015.136.047.4C427.706 111.135 381.627 83.823 344 24.355c-1.9-3.007-3.805-6.022-5.661-9.2a73.716 73.716 0 01-2.646-4.972A43.7 43.7 0 01332.1.677a.626.626 0 00-.546-.644.818.818 0 00-.451 0c-.034.012-.084.051-.12.065-.053.021-.12.069-.176.1.027-.036.083-.117.1-.136-60.37 35.356-80.85 100.761-82.732 133.484a120.249 120.249 0 00-66.142 25.488 71.355 71.355 0 00-6.225-4.7 111.338 111.338 0 01-.674-58.732c-24.688 11.241-43.89 29.01-57.85 44.7h-.111c-9.527-12.067-8.855-51.873-8.312-60.184-.114-.515-7.107 3.63-8.023 4.255a175.073 175.073 0 00-23.486 20.12 210.478 210.478 0 00-22.442 26.913c0 .012-.007.026-.011.038 0-.013.007-.026.011-.038a202.838 202.838 0 00-32.247 72.805c-.115.521-.212 1.061-.324 1.586-.452 2.116-2.08 12.7-2.365 15-.022.177-.032.347-.053.524a229.066 229.066 0 00-3.9 33.157c0 .41-.025.816-.025 1.227C16 388.418 123.6 496 256.324 496c118.865 0 217.56-86.288 236.882-199.63.407-3.076.733-6.168 1.092-9.271 4.777-41.21-.53-84.525-15.587-120.746zM201.716 354.447c1.124.537 2.18 1.124 3.334 1.639.048.033.114.07.163.1a126.191 126.191 0 01-3.497-1.739zm55.053-144.93zm198.131-30.59l-.032-.233c.012.085.027.174.04.259z"
-        fill="url(#firefox_a)"
+        fill={`url(#${uid}_firefox_a)`}
       />
       <path
         d="M478.711 166.353c-10.445-25.124-31.6-52.248-48.212-60.821 13.52 26.505 21.345 53.093 24.335 72.936 0-.058.011.048.036.226.012.085.027.174.04.259 22.675 61.47 10.322 123.978-7.479 162.175-27.539 59.1-94.215 119.67-198.576 116.716C136.1 454.651 36.766 370.988 18.223 261.41c-3.379-17.28 0-26.054 1.7-40.084-2.071 10.816-2.86 13.94-3.9 33.157 0 .41-.025.816-.025 1.227C16 388.418 123.6 496 256.324 496c118.865 0 217.56-86.288 236.882-199.63.407-3.076.733-6.168 1.092-9.271 4.777-41.21-.53-84.525-15.587-120.746z"
-        fill="url(#firefox_b)"
+        fill={`url(#${uid}_firefox_b)`}
       />
       <path
         d="M478.711 166.353c-10.445-25.124-31.6-52.248-48.212-60.821 13.52 26.505 21.345 53.093 24.335 72.936 0-.058.011.048.036.226.012.085.027.174.04.259 22.675 61.47 10.322 123.978-7.479 162.175-27.539 59.1-94.215 119.67-198.576 116.716C136.1 454.651 36.766 370.988 18.223 261.41c-3.379-17.28 0-26.054 1.7-40.084-2.071 10.816-2.86 13.94-3.9 33.157 0 .41-.025.816-.025 1.227C16 388.418 123.6 496 256.324 496c118.865 0 217.56-86.288 236.882-199.63.407-3.076.733-6.168 1.092-9.271 4.777-41.21-.53-84.525-15.587-120.746z"
-        fill="url(#firefox_c)"
+        fill={`url(#${uid}_firefox_c)`}
       />
       <path
         d="M361.922 194.6c.524.368 1 .734 1.493 1.1a130.706 130.706 0 00-22.31-29.112C266.4 91.892 321.516 4.626 330.811.194c.027-.036.083-.117.1-.136-60.37 35.356-80.85 100.761-82.732 133.484 2.8-.194 5.592-.429 8.442-.429 45.051 0 84.289 24.77 105.301 61.487z"
-        fill="url(#firefox_d)"
+        fill={`url(#${uid}_firefox_d)`}
       />
       <path
         d="M256.772 209.514c-.393 5.978-21.514 26.593-28.9 26.593-68.339 0-79.432 41.335-79.432 41.335 3.027 34.81 27.261 63.475 56.611 78.643 1.339.692 2.694 1.317 4.05 1.935a132.768 132.768 0 007.059 2.886 106.743 106.743 0 0031.271 6.031c119.78 5.618 142.986-143.194 56.545-186.408 22.137-3.85 45.115 5.053 57.947 14.067-21.012-36.714-60.25-61.484-105.3-61.484-2.85 0-5.641.235-8.442.429a120.249 120.249 0 00-66.142 25.488c3.664 3.1 7.8 7.244 16.514 15.828 16.302 16.067 58.13 32.705 58.219 34.657z"
-        fill="url(#firefox_e)"
+        fill={`url(#${uid}_firefox_e)`}
       />
       <path
         d="M256.772 209.514c-.393 5.978-21.514 26.593-28.9 26.593-68.339 0-79.432 41.335-79.432 41.335 3.027 34.81 27.261 63.475 56.611 78.643 1.339.692 2.694 1.317 4.05 1.935a132.768 132.768 0 007.059 2.886 106.743 106.743 0 0031.271 6.031c119.78 5.618 142.986-143.194 56.545-186.408 22.137-3.85 45.115 5.053 57.947 14.067-21.012-36.714-60.25-61.484-105.3-61.484-2.85 0-5.641.235-8.442.429a120.249 120.249 0 00-66.142 25.488c3.664 3.1 7.8 7.244 16.514 15.828 16.302 16.067 58.13 32.705 58.219 34.657z"
-        fill="url(#firefox_f)"
+        fill={`url(#${uid}_firefox_f)`}
       />
       <path
         d="M170.829 151.036a244.042 244.042 0 014.981 3.3 111.338 111.338 0 01-.674-58.732c-24.688 11.241-43.89 29.01-57.85 44.7 1.155-.033 36.014-.66 53.543 10.732z"
-        fill="url(#firefox_g)"
+        fill={`url(#${uid}_firefox_g)`}
       />
       <path
         d="M18.223 261.41C36.766 370.988 136.1 454.651 248.855 457.844c104.361 2.954 171.037-57.62 198.576-116.716 17.8-38.2 30.154-100.7 7.479-162.175l-.008-.026-.032-.233c-.025-.178-.04-.284-.036-.226 0 .039.015.136.047.4 8.524 55.661-19.79 109.584-64.051 146.044l-.133.313c-86.245 70.223-168.774 42.368-185.484 30.966a144.108 144.108 0 01-3.5-1.743c-50.282-24.029-71.054-69.838-66.6-109.124-42.457 0-56.934-35.809-56.934-35.809s38.119-27.179 88.358-3.541c46.53 21.893 90.228 3.543 90.233 3.541-.089-1.952-41.917-18.59-58.223-34.656-8.713-8.584-12.85-12.723-16.514-15.828a71.355 71.355 0 00-6.225-4.7 282.929 282.929 0 00-4.981-3.3c-17.528-11.392-52.388-10.765-53.543-10.735h-.111c-9.527-12.067-8.855-51.873-8.312-60.184-.114-.515-7.107 3.63-8.023 4.255a175.073 175.073 0 00-23.486 20.12 210.478 210.478 0 00-22.442 26.919c0 .012-.007.026-.011.038 0-.013.007-.026.011-.038a202.838 202.838 0 00-32.247 72.805c-.115.521-8.65 37.842-4.44 57.199z"
-        fill="url(#firefox_h)"
+        fill={`url(#${uid}_firefox_h)`}
       />
       <path
         d="M341.105 166.587a130.706 130.706 0 0122.31 29.112c1.323.994 2.559 1.985 3.608 2.952 54.482 50.2 25.936 121.2 23.807 126.26 44.261-36.46 72.575-90.383 64.051-146.044C427.706 111.135 381.627 83.823 344 24.355c-1.9-3.007-3.805-6.022-5.661-9.2a73.716 73.716 0 01-2.646-4.972A43.7 43.7 0 01332.1.677a.626.626 0 00-.546-.644.818.818 0 00-.451 0c-.034.012-.084.051-.12.065-.053.021-.12.069-.176.1-9.291 4.428-64.407 91.694 10.298 166.389z"
-        fill="url(#firefox_i)"
+        fill={`url(#${uid}_firefox_i)`}
       />
       <path
         d="M367.023 198.651c-1.049-.967-2.285-1.958-3.608-2.952-.489-.368-.969-.734-1.493-1.1-12.832-9.014-35.81-17.917-57.947-14.067 86.441 43.214 63.235 192.026-56.545 186.408a106.743 106.743 0 01-31.271-6.031 134.51 134.51 0 01-7.059-2.886c-1.356-.618-2.711-1.243-4.05-1.935.048.033.114.07.163.1 16.71 11.4 99.239 39.257 185.484-30.966l.133-.313c2.129-5.054 30.675-76.057-23.807-126.258z"
-        fill="url(#firefox_j)"
+        fill={`url(#${uid}_firefox_j)`}
       />
       <path
         d="M148.439 277.443s11.093-41.335 79.432-41.335c7.388 0 28.509-20.615 28.9-26.593s-43.7 18.352-90.233-3.541c-50.239-23.638-88.358 3.541-88.358 3.541s14.477 35.809 56.934 35.809c-4.453 39.286 16.319 85.1 66.6 109.124 1.124.537 2.18 1.124 3.334 1.639-29.348-15.169-53.582-43.834-56.609-78.644z"
-        fill="url(#firefox_k)"
+        fill={`url(#${uid}_firefox_k)`}
       />
       <path
         d="M478.711 166.353c-10.445-25.124-31.6-52.248-48.212-60.821 13.52 26.505 21.345 53.093 24.335 72.936 0 .039.015.136.047.4C427.706 111.135 381.627 83.823 344 24.355c-1.9-3.007-3.805-6.022-5.661-9.2a73.716 73.716 0 01-2.646-4.972A43.7 43.7 0 01332.1.677a.626.626 0 00-.546-.644.818.818 0 00-.451 0c-.034.012-.084.051-.12.065-.053.021-.12.069-.176.1.027-.036.083-.117.1-.136-60.37 35.356-80.85 100.761-82.732 133.484 2.8-.194 5.592-.429 8.442-.429 45.053 0 84.291 24.77 105.3 61.484-12.832-9.014-35.81-17.917-57.947-14.067 86.441 43.214 63.235 192.026-56.545 186.408a106.743 106.743 0 01-31.271-6.031 134.51 134.51 0 01-7.059-2.886c-1.356-.618-2.711-1.243-4.05-1.935.048.033.114.07.163.1a144.108 144.108 0 01-3.5-1.743c1.124.537 2.18 1.124 3.334 1.639-29.35-15.168-53.584-43.833-56.611-78.643 0 0 11.093-41.335 79.432-41.335 7.388 0 28.509-20.615 28.9-26.593-.089-1.952-41.917-18.59-58.223-34.656-8.713-8.584-12.85-12.723-16.514-15.828a71.355 71.355 0 00-6.225-4.7 111.338 111.338 0 01-.674-58.732c-24.688 11.241-43.89 29.01-57.85 44.7h-.111c-9.527-12.067-8.855-51.873-8.312-60.184-.114-.515-7.107 3.63-8.023 4.255a175.073 175.073 0 00-23.486 20.12 210.478 210.478 0 00-22.435 26.916c0 .012-.007.026-.011.038 0-.013.007-.026.011-.038a202.838 202.838 0 00-32.247 72.805c-.115.521-.212 1.061-.324 1.586-.452 2.116-2.486 12.853-2.77 15.156-.022.177.021-.176 0 0a279.565 279.565 0 00-3.544 33.53c0 .41-.025.816-.025 1.227C16 388.418 123.6 496 256.324 496c118.865 0 217.56-86.288 236.882-199.63.407-3.076.733-6.168 1.092-9.271 4.777-41.21-.53-84.525-15.587-120.746zm-23.841 12.341c.012.085.027.174.04.259l-.008-.026-.032-.233z"
-        fill="url(#firefox_l)"
+        fill={`url(#${uid}_firefox_l)`}
       />
     </svg>
   );
 }
 
 function SafariGlyph({ className }: { className?: string }) {
+  const uid = useId().replace(/:/g, "");
+
   return (
     <svg
       className={className}
@@ -242,12 +249,12 @@ function SafariGlyph({ className }: { className?: string }) {
       xmlns="http://www.w3.org/2000/svg"
     >
       <defs>
-        <linearGradient id="safari_ring" x1="0" x2="1" y1="0" y2="1">
+        <linearGradient id={`${uid}_safari_ring`} x1="0" x2="1" y1="0" y2="1">
           <stop offset="0" stopColor="#5AC8FA" />
           <stop offset="1" stopColor="#007AFF" />
         </linearGradient>
       </defs>
-      <circle cx="12" cy="12" fill="url(#safari_ring)" r="12" />
+      <circle cx="12" cy="12" fill={`url(#${uid}_safari_ring)`} r="12" />
       <circle cx="12" cy="12" fill="#F2F2F7" r="9.6" />
       <g transform="rotate(45 12 12)">
         <path d="M12 3.6 L14 12 L12 12 Z" fill="#FF3B30" />
@@ -259,6 +266,8 @@ function SafariGlyph({ className }: { className?: string }) {
 }
 
 function BraveGlyph({ className }: { className?: string }) {
+  const uid = useId().replace(/:/g, "");
+
   return (
     <svg
       className={className}
@@ -268,7 +277,7 @@ function BraveGlyph({ className }: { className?: string }) {
       <defs>
         <linearGradient
           gradientUnits="userSpaceOnUse"
-          id="brave_a"
+          id={`${uid}_brave_a`}
           x1=".419"
           x2="34.5"
           y1="40.199"
@@ -282,7 +291,7 @@ function BraveGlyph({ className }: { className?: string }) {
       <path
         clipRule="evenodd"
         d="m33.308 9.576.937-2.298S33.052 6 31.603 4.554s-4.515-.595-4.515-.595L23.594 0H11.325L7.832 3.959s-3.067-.851-4.516.595A124 124 0 0 0 .675 7.278l.937 2.298L.42 12.98s3.509 13.273 3.92 14.894c.81 3.191 1.363 4.425 3.663 6.042s6.476 4.426 7.157 4.851c.682.426 1.534 1.15 2.3 1.15.768 0 1.62-.724 2.301-1.15.682-.425 4.857-3.234 7.157-4.85 2.3-1.618 2.855-2.852 3.664-6.043.411-1.621 3.92-14.894 3.92-14.894z"
-        fill="url(#brave_a)"
+        fill={`url(#${uid}_brave_a)`}
         fillRule="evenodd"
       />
       <path
@@ -298,6 +307,8 @@ function BraveGlyph({ className }: { className?: string }) {
 }
 
 function EdgeGlyph({ className }: { className?: string }) {
+  const uid = useId().replace(/:/g, "");
+
   return (
     <svg
       className={className}
@@ -310,7 +321,7 @@ function EdgeGlyph({ className }: { className?: string }) {
           cy="68.9"
           gradientTransform="matrix(1 0 0 -.95 0 248.8)"
           gradientUnits="userSpaceOnUse"
-          id="edge_b"
+          id={`${uid}_edge_b`}
           r="95.4"
         >
           <stop offset=".7" stopOpacity="0" />
@@ -322,7 +333,7 @@ function EdgeGlyph({ className }: { className?: string }) {
           cy="63"
           gradientTransform="matrix(.15 -.99 -.8 -.12 176.6 -125.4)"
           gradientUnits="userSpaceOnUse"
-          id="edge_d"
+          id={`${uid}_edge_d`}
           r="143.2"
         >
           <stop offset=".8" stopOpacity="0" />
@@ -334,7 +345,7 @@ function EdgeGlyph({ className }: { className?: string }) {
           cy="570.2"
           gradientTransform="matrix(-.04 1 2.13 .08 -1179.5 -106.7)"
           gradientUnits="userSpaceOnUse"
-          id="edge_e"
+          id={`${uid}_edge_e`}
           r="202.4"
         >
           <stop offset="0" stopColor="#35c1f1" />
@@ -348,7 +359,7 @@ function EdgeGlyph({ className }: { className?: string }) {
           cy="568"
           gradientTransform="matrix(.28 .96 .78 -.23 -303.8 -148.5)"
           gradientUnits="userSpaceOnUse"
-          id="edge_f"
+          id={`${uid}_edge_f`}
           r="97.3"
         >
           <stop offset="0" stopColor="#66eb6e" />
@@ -357,7 +368,7 @@ function EdgeGlyph({ className }: { className?: string }) {
         <linearGradient
           gradientTransform="matrix(1 0 0 -1 0 266)"
           gradientUnits="userSpaceOnUse"
-          id="edge_a"
+          id={`${uid}_edge_a`}
           x1="63.3"
           x2="241.7"
           y1="84"
@@ -369,7 +380,7 @@ function EdgeGlyph({ className }: { className?: string }) {
         <linearGradient
           gradientTransform="matrix(1 0 0 -1 0 266)"
           gradientUnits="userSpaceOnUse"
-          id="edge_c"
+          id={`${uid}_edge_c`}
           x1="157.3"
           x2="46"
           y1="161.4"
@@ -383,34 +394,34 @@ function EdgeGlyph({ className }: { className?: string }) {
       </defs>
       <path
         d="M235.7 195.5a93.7 93.7 0 0 1-10.6 4.7 101.9 101.9 0 0 1-35.9 6.4c-47.3 0-88.5-32.5-88.5-74.3a31.5 31.5 0 0 1 16.4-27.3c-42.8 1.8-53.8 46.4-53.8 72.5 0 74 68.1 81.4 82.8 81.4 7.9 0 19.8-2.3 27-4.6l1.3-.4a128.3 128.3 0 0 0 66.6-52.8 4 4 0 0 0-5.3-5.6Z"
-        fill="url(#edge_a)"
+        fill={`url(#${uid}_edge_a)`}
         transform="translate(-4.6 -5)"
       />
       <path
         d="M235.7 195.5a93.7 93.7 0 0 1-10.6 4.7 101.9 101.9 0 0 1-35.9 6.4c-47.3 0-88.5-32.5-88.5-74.3a31.5 31.5 0 0 1 16.4-27.3c-42.8 1.8-53.8 46.4-53.8 72.5 0 74 68.1 81.4 82.8 81.4 7.9 0 19.8-2.3 27-4.6l1.3-.4a128.3 128.3 0 0 0 66.6-52.8 4 4 0 0 0-5.3-5.6Z"
-        fill="url(#edge_b)"
+        fill={`url(#${uid}_edge_b)`}
         opacity=".35"
         transform="translate(-4.6 -5)"
       />
       <path
         d="M110.3 246.3A79.2 79.2 0 0 1 87.6 225a80.7 80.7 0 0 1 29.5-120c3.2-1.5 8.5-4.1 15.6-4a32.4 32.4 0 0 1 25.7 13 31.9 31.9 0 0 1 6.3 18.7c0-.2 24.5-79.6-80-79.6-43.9 0-80 41.6-80 78.2a130.2 130.2 0 0 0 12.1 56 128 128 0 0 0 156.4 67 75.5 75.5 0 0 1-62.8-8Z"
-        fill="url(#edge_c)"
+        fill={`url(#${uid}_edge_c)`}
         transform="translate(-4.6 -5)"
       />
       <path
         d="M110.3 246.3A79.2 79.2 0 0 1 87.6 225a80.7 80.7 0 0 1 29.5-120c3.2-1.5 8.5-4.1 15.6-4a32.4 32.4 0 0 1 25.7 13 31.9 31.9 0 0 1 6.3 18.7c0-.2 24.5-79.6-80-79.6-43.9 0-80 41.6-80 78.2a130.2 130.2 0 0 0 12.1 56 128 128 0 0 0 156.4 67 75.5 75.5 0 0 1-62.8-8Z"
-        fill="url(#edge_d)"
+        fill={`url(#${uid}_edge_d)`}
         opacity=".41"
         transform="translate(-4.6 -5)"
       />
       <path
         d="M157 153.8c-.9 1-3.4 2.5-3.4 5.6 0 2.6 1.7 5.2 4.8 7.3 14.3 10 41.4 8.6 41.5 8.6a59.6 59.6 0 0 0 30.3-8.3 61.4 61.4 0 0 0 30.4-52.9c.3-22.4-8-37.3-11.3-43.9C228 28.8 182.3 5 132.6 5a128 128 0 0 0-128 126.2c.5-36.5 36.8-66 80-66 3.5 0 23.5.3 42 10a72.6 72.6 0 0 1 30.9 29.3c6.1 10.6 7.2 24.1 7.2 29.5s-2.7 13.3-7.8 19.9Z"
-        fill="url(#edge_e)"
+        fill={`url(#${uid}_edge_e)`}
         transform="translate(-4.6 -5)"
       />
       <path
         d="M157 153.8c-.9 1-3.4 2.5-3.4 5.6 0 2.6 1.7 5.2 4.8 7.3 14.3 10 41.4 8.6 41.5 8.6a59.6 59.6 0 0 0 30.3-8.3 61.4 61.4 0 0 0 30.4-52.9c.3-22.4-8-37.3-11.3-43.9C228 28.8 182.3 5 132.6 5a128 128 0 0 0-128 126.2c.5-36.5 36.8-66 80-66 3.5 0 23.5.3 42 10a72.6 72.6 0 0 1 30.9 29.3c6.1 10.6 7.2 24.1 7.2 29.5s-2.7 13.3-7.8 19.9Z"
-        fill="url(#edge_f)"
+        fill={`url(#${uid}_edge_f)`}
         transform="translate(-4.6 -5)"
       />
     </svg>
@@ -418,6 +429,8 @@ function EdgeGlyph({ className }: { className?: string }) {
 }
 
 function OperaGlyph({ className }: { className?: string }) {
+  const uid = useId().replace(/:/g, "");
+
   return (
     <svg
       className={className}
@@ -428,7 +441,7 @@ function OperaGlyph({ className }: { className?: string }) {
         <linearGradient
           gradientTransform="matrix(0 -54.944 -54.944 0 23.62 79.474)"
           gradientUnits="userSpaceOnUse"
-          id="opera_a"
+          id={`${uid}_opera_a`}
           x2="1"
         >
           <stop offset="0" stopColor="#ff1b2d" />
@@ -439,7 +452,7 @@ function OperaGlyph({ className }: { className?: string }) {
         <linearGradient
           gradientTransform="matrix(0 -48.595 -48.595 0 37.854 76.235)"
           gradientUnits="userSpaceOnUse"
-          id="opera_b"
+          id={`${uid}_opera_b`}
           x2="1"
         >
           <stop offset="0" stopColor="#9c0000" />
@@ -450,11 +463,11 @@ function OperaGlyph({ className }: { className?: string }) {
       <g transform="matrix(1.3333 0 0 -1.3333 0 107.2)">
         <path
           d="m28.346 80.398c-15.655 0-28.346-12.691-28.346-28.346 0-15.202 11.968-27.609 26.996-28.313.44848-.02115.89766-.03314 1.3504-.03314 7.2574 0 13.876 2.7289 18.891 7.2137-3.3227-2.2036-7.2074-3.4715-11.359-3.4715-6.7504 0-12.796 3.3488-16.862 8.6297-3.1344 3.6999-5.1645 9.1691-5.3028 15.307v1.3349c.13821 6.1377 2.1683 11.608 5.302 15.307 4.0666 5.2809 10.112 8.6297 16.862 8.6297 4.1526 0 8.038-1.2679 11.361-3.4729-4.9904 4.4643-11.569 7.1876-18.786 7.2144-.03596 0-.07122.0014-.10718.0014z"
-          fill="url(#opera_a)"
+          fill={`url(#${uid}_opera_a)`}
         />
         <path
           d="m19.016 68.025c2.6013 3.0709 5.9607 4.9227 9.631 4.9227 8.2524 0 14.941-9.356 14.941-20.897s-6.6891-20.897-14.941-20.897c-3.6703 0-7.0297 1.851-9.6303 4.922 4.0659-5.2809 10.111-8.6297 16.862-8.6297 4.1519 0 8.0366 1.2679 11.359 3.4715 5.802 5.1906 9.4554 12.735 9.4554 21.133 0 8.397-3.6527 15.941-9.4533 21.131-3.3234 2.205-7.2088 3.4729-11.361 3.4729-6.7504 0-12.796-3.3488-16.862-8.6297"
-          fill="url(#opera_b)"
+          fill={`url(#${uid}_opera_b)`}
         />
       </g>
     </svg>
@@ -462,6 +475,8 @@ function OperaGlyph({ className }: { className?: string }) {
 }
 
 function VivaldiGlyph({ className }: { className?: string }) {
+  const uid = useId().replace(/:/g, "");
+
   return (
     <svg
       className={className}
@@ -470,7 +485,7 @@ function VivaldiGlyph({ className }: { className?: string }) {
     >
       <defs>
         <linearGradient
-          id="vivaldi_a"
+          id={`${uid}_vivaldi_a`}
           x1="21.587%"
           x2="76.116%"
           y1="5.709%"
@@ -487,7 +502,7 @@ function VivaldiGlyph({ className }: { className?: string }) {
         />
         <path
           d="M376 143.7c-21.8-38.1-58.3-67.8-104.2-80.1C180.7 39.3 87.1 93.1 62.7 183.8c-12.3 45.6-4.7 91.9 17.5 129.7.3.5.6 1.1 1 1.6l80.2 138.5c13.3.4 27.7.5 43.2.5H227.2c44.3 0 79.9 0 109-3.2 36.3-4 62.3-12.9 82.4-32.9 29.3-29.2 34.9-71 36-138.7-46.8-80.8-78.5-135.5-78.6-135.6z"
-          fill="url(#vivaldi_a)"
+          fill={`url(#${uid}_vivaldi_a)`}
         />
         <path
           d="M347.8 107.6c-66.5-66.4-174.4-66.4-241 0-66.5 66.4-66.5 174 0 240.3 66.5 66.4 174.4 66.4 241 0s66.6-174 0-240.3zm-10.2 78.1c-28.1 48.7-56.2 97.4-84.3 146.2-5.2 9.1-12.8 14.5-23.2 15.3-11.6.8-20.8-4.1-26.7-14.1-17.8-30.5-35.4-61.2-53-91.8-10.7-18.6-21.5-37.2-32.2-55.9-10.8-18.8 1.4-41.7 23-42.8 11.4-.6 20.2 4.7 26 14.6 7.9 13.5 15.7 27.2 23.6 40.8 5.7 9.8 11.2 19.7 17 29.3 8.4 14.1 20.8 22 37.3 23 23.3 1.4 45-15.5 47.8-40.2.2-1.8.3-3.7.4-4.6-.1-8-1.6-14.8-4.8-21.1-8.7-17.4.6-36.9 19.5-41.1 15.4-3.4 31.4 7.9 33.4 23.5 1 6.7-.4 13-3.8 18.9z"

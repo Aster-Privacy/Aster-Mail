@@ -676,13 +676,21 @@ export function AccountSection() {
               {photo_error}
             </motion.p>
           )}
-          <div className="flex items-center gap-2.5">
+          <div
+            className="flex items-center gap-2.5"
+            role="radiogroup"
+            aria-label={t("auth.profile_color")}
+          >
             {PROFILE_COLORS.map((c) => {
               const is_selected = c === color;
 
               return (
                 <button
                   key={c}
+                  type="button"
+                  role="radio"
+                  aria-checked={is_selected}
+                  aria-label={c}
                   className="relative w-9 h-9 rounded-full"
                   style={{
                     backgroundColor: c,
@@ -770,6 +778,7 @@ export function AccountSection() {
         </div>
         <div className="flex items-center gap-3">
           <Input
+            aria-label={t("settings.display_name")}
             className="w-48"
             maxLength={MAX_DISPLAY_NAME_LENGTH}
             value={name}

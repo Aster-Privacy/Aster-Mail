@@ -1008,6 +1008,7 @@ export function BillingSection({
                       <div className="flex gap-2">
                         <input
                           readOnly
+                          aria-label={t("settings.your_referral_link")}
                           className="flex-1 h-9 px-3 rounded-lg bg-transparent border border-edge-secondary text-sm text-txt-primary outline-none"
                           value={build_referral_invite_url(
                             referral_info.referral_code,

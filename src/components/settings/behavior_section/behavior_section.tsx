@@ -1024,6 +1024,7 @@ export function BehaviorSection() {
               </div>
               <div className="flex items-center gap-2">
                 <Input
+                  aria-label={t("settings.cancellation_period")}
                   className="w-20 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   max={UNDO_MAX_SECONDS}
                   min={UNDO_MIN_SECONDS}

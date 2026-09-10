@@ -74,7 +74,7 @@ export function StatRing({
   const dash = circumference * ratio;
 
   return (
-    <div className="flex items-center gap-3 px-3 py-3 rounded-xl border border-edge-secondary">
+    <div className="flex flex-col items-center gap-2 px-3 py-3 rounded-xl border border-edge-secondary text-center lg:flex-row lg:gap-3 lg:text-start">
       <div className="relative flex-shrink-0 w-11 h-11">
         <svg className="w-11 h-11 -rotate-90" viewBox="0 0 40 40">
           <circle
@@ -104,13 +104,13 @@ export function StatRing({
           <Icon className={`w-4 h-4 ${color_class}`} />
         </div>
       </div>
-      <div className="min-w-0">
+      <div className="w-full min-w-0 lg:w-auto">
         <p className={`text-lg font-bold tabular-nums ${color_class}`}>
           {display_value ?? value}
         </p>
-        <p className="text-xs text-txt-muted mt-0.5 truncate">{label}</p>
+        <p className="text-xs text-txt-muted mt-0.5 break-words">{label}</p>
         {sublabel && (
-          <p className="text-[11px] text-txt-muted mt-0.5 truncate">
+          <p className="text-[11px] text-txt-muted mt-0.5 break-words">
             {sublabel}
           </p>
         )}

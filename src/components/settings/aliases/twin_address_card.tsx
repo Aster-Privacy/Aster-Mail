@@ -18,97 +18,25 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useEffect, useState } from "react";
 import { ShieldCheckIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_i18n } from "@/lib/i18n/context";
-import {
-  get_twin_address,
-  type TwinAddressResponse,
-  type TwinSibling,
-} from "@/services/api/aliases";
+import type { TwinSibling } from "@/services/api/aliases";
 
 interface TwinAddressCardProps {
-  refresh_token: number;
+  siblings: TwinSibling[];
   on_claim: (local_part: string, domain: string) => void;
 }
 
-let cached_twin: TwinAddressResponse | null = null;
-let cached_twin_loaded = false;
-
-function claimable_siblings(twin: TwinAddressResponse | null): TwinSibling[] {
-  if (!twin) return [];
-
-  const all: TwinSibling[] =
-    twin.siblings && twin.siblings.length > 0
-      ? twin.siblings
-      : [
-          {
-            address: twin.address,
-            domain: twin.domain,
-            local_part: twin.local_part,
-            state: twin.state,
-          },
-        ];
-
-  return all.filter(
-    (sibling) => sibling.state === "reserved" || sibling.state === "available",
-  );
-}
-
-export function TwinAddressCard({
-  refresh_token,
-  on_claim,
-}: TwinAddressCardProps) {
+export function TwinAddressCard({ siblings, on_claim }: TwinAddressCardProps) {
   const { t } = use_i18n();
   const { preferences, update_preference } = use_preferences();
-  const [twin, set_twin] = useState<TwinAddressResponse | null>(cached_twin);
-  const [loaded, set_loaded] = useState(cached_twin_loaded);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    const load = async () => {
-      try {
-        const response = await get_twin_address();
-
-        if (cancelled) return;
-
-        cached_twin = response.data ?? null;
-      } catch {
-        if (cancelled) return;
-
-        cached_twin = null;
-      }
-
-      cached_twin_loaded = true;
-      set_twin(cached_twin);
-      set_loaded(true);
-    };
-
-    void load();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [refresh_token]);
-
-  const siblings = claimable_siblings(twin);
-
-  if (preferences.twin_address_banner_dismissed) return null;
-
-  if (!loaded) {
-    return (
-      <div
-        aria-hidden="true"
-        className="mb-3 h-[74px] animate-pulse rounded-xl bg-surf-secondary"
-      />
-    );
+  if (siblings.length === 0 || preferences.twin_address_banner_dismissed) {
+    return null;
   }
-
-  if (siblings.length === 0) return null;
 
   const primary = siblings[0];
   const multiple = siblings.length > 1;

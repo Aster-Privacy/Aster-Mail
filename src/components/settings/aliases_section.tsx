@@ -40,6 +40,7 @@ import {
 import { AliasEditorPage } from "@/components/settings/aliases/alias_editor_page";
 import { AliasList } from "@/components/settings/aliases/alias_list";
 import { TwinAddressCard } from "@/components/settings/aliases/twin_address_card";
+import { use_twin_address } from "@/components/settings/aliases/use_twin_address";
 import { AliasDirectoriesSection } from "@/components/settings/alias_directories_section";
 import { GhostAliasesSection } from "@/components/settings/ghost_aliases_section";
 import { AliasImportModal } from "@/components/settings/aliases/alias_import_modal";
@@ -89,6 +90,7 @@ export function AliasesSection() {
     null,
   );
   const [twin_refresh, set_twin_refresh] = useState(0);
+  const twin = use_twin_address(twin_refresh);
   const [twin_prefill, set_twin_prefill] = useState<{
     local_part: string;
     domain: string;
@@ -241,7 +243,7 @@ export function AliasesSection() {
                 set_twin_prefill({ local_part, domain });
                 hook.set_show_create_alias_modal(true);
               }}
-              refresh_token={twin_refresh}
+              siblings={twin.siblings}
             />
 
             <div className="flex gap-2 mb-2">

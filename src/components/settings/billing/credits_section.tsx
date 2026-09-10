@@ -595,6 +595,9 @@ export function CreditsSection({
                     : "bg-zinc-600"
                 }`}
                 type="button"
+                role="switch"
+                aria-checked={!!credit_balance?.use_credits_for_renewals}
+                aria-label={t("settings.use_credits_for_renewals")}
                 onClick={async () => {
                   const new_value = !credit_balance?.use_credits_for_renewals;
 

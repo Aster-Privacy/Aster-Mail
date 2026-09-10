@@ -820,6 +820,9 @@ export function SignatureSection() {
                 : "bg-zinc-600"
             }`}
             type="button"
+            role="switch"
+            aria-checked={preferences.show_signature_separator !== false}
+            aria-label={t("settings.show_signature_separator")}
             onClick={() =>
               update_preference(
                 "show_signature_separator",

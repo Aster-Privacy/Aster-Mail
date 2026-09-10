@@ -621,8 +621,8 @@ export function StorageSection() {
             {t("settings.storage_breakdown_empty")}
           </p>
         ) : (
-          <div className="flex flex-col items-center gap-7 sm:flex-row sm:gap-9">
-            <div className="relative h-44 w-44 flex-shrink-0">
+          <div className="flex flex-col items-center gap-7 sm:flex-row sm:gap-6 lg:gap-9">
+            <div className="relative h-36 w-36 flex-shrink-0 lg:h-44 lg:w-44">
               <svg
                 aria-label={t("settings.storage_breakdown_title")}
                 className="h-full w-full -rotate-90"
@@ -664,8 +664,8 @@ export function StorageSection() {
                   );
                 })}
               </svg>
-              <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center px-6 text-center">
-                <span className="text-3xl font-semibold tabular-nums text-txt-primary">
+              <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center px-4 text-center lg:px-6">
+                <span className="text-2xl font-semibold tabular-nums text-txt-primary lg:text-3xl">
                   {format_bytes(
                     focused_row
                       ? focused_row.bytes_used
@@ -695,7 +695,7 @@ export function StorageSection() {
                 return (
                   <div
                     key={entry.name}
-                    className={`flex items-center gap-3 py-2.5 transition-opacity duration-200 motion-reduce:transition-none ${
+                    className={`flex items-center gap-2 py-2.5 transition-opacity duration-200 motion-reduce:transition-none lg:gap-3 ${
                       active_category !== null && active_category !== entry.name
                         ? "opacity-40"
                         : "opacity-100"
@@ -710,7 +710,7 @@ export function StorageSection() {
                             : "var(--storage-track)",
                       }}
                     />
-                    <span className="min-w-0 flex-1 truncate text-sm text-txt-primary">
+                    <span className="min-w-0 flex-1 basis-20 truncate text-sm text-txt-primary">
                       {t(style.label_key)}
                     </span>
                     {is_cleanable && entry.item_count > 0 && (
@@ -742,20 +742,20 @@ export function StorageSection() {
                         </span>
                       </button>
                     )}
-                    <span className="hidden flex-shrink-0 text-end text-xs tabular-nums text-txt-muted sm:block">
+                    <span className="hidden flex-shrink-0 text-end text-xs tabular-nums text-txt-muted lg:block">
                       {entry.item_count > 0
                         ? t("settings.storage_items_count", {
                             count: entry.item_count,
                           })
                         : ""}
                     </span>
-                    <span className="w-11 flex-shrink-0 text-end text-xs tabular-nums text-txt-muted">
+                    <span className="w-10 flex-shrink-0 text-end text-xs tabular-nums text-txt-muted sm:hidden lg:block lg:w-11">
                       {row_share > 0
                         ? `${format_decimal(row_share, row_share < 10 ? 1 : 0)}%`
                         : ""}
                     </span>
                     <span
-                      className={`w-20 flex-shrink-0 text-end text-sm tabular-nums ${entry.bytes_used > 0 ? "text-txt-primary" : "text-txt-muted"}`}
+                      className={`w-16 flex-shrink-0 text-end text-sm tabular-nums lg:w-20 ${entry.bytes_used > 0 ? "text-txt-primary" : "text-txt-muted"}`}
                     >
                       {format_bytes(entry.bytes_used)}
                     </span>

@@ -50,10 +50,9 @@ describe("resolve_mobile_section", () => {
 
   it("maps desktop-only section ids onto their mobile equivalent", () => {
     expect(resolve_mobile_section("signature")).toBe("signatures");
-    expect(resolve_mobile_section("bridge")).toBe("connection");
-    expect(resolve_mobile_section("smtp_tokens")).toBe("connection");
+    expect(resolve_mobile_section("smtp_tokens")).toBe("bridge");
     expect(resolve_mobile_section("updates")).toBe("about");
-    expect(resolve_mobile_section("storage")).toBe("billing");
+    expect(resolve_mobile_section("storage_addons")).toBe("storage");
     expect(resolve_mobile_section("credits")).toBe("billing");
     expect(resolve_mobile_section("blocked")).toBe("sender_filters");
     expect(resolve_mobile_section("vacation_reply")).toBe("sender_filters");

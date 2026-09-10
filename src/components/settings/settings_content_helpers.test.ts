@@ -59,7 +59,7 @@ describe("resolve_settings_section", () => {
   it("maps mobile-only section ids onto their desktop equivalent", () => {
     expect(resolve_settings_section("ghost_aliases")).toBe("aliases");
     expect(resolve_settings_section("alias_directories")).toBe("aliases");
-    expect(resolve_settings_section("connection")).toBe("bridge");
+    expect(resolve_settings_section("connection")).toBe("security");
     expect(resolve_settings_section("signatures")).toBe("compose");
     expect(resolve_settings_section("about")).toBe("feedback");
     expect(resolve_settings_section("external_accounts")).toBe("import");

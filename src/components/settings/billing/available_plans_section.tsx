@@ -500,7 +500,7 @@ export function AvailablePlansSection({
       )}
 
       {plan_type === "individual" && (
-        <div className="grid gap-4 pt-3 grid-cols-1 sm:grid-cols-3 items-stretch">
+        <div className="grid gap-4 pt-3 grid-cols-1 lg:grid-cols-3 items-stretch">
           {PLAN_TIERS.map((tier) => {
             const tier_index = PLAN_TIERS.findIndex((p) => p.id === tier.id);
             const current_plan_code = subscription?.plan.code;

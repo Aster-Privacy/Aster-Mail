@@ -57,6 +57,7 @@ export function SettingsTabBar<T extends string>({
   const row_ref = useRef<HTMLDivElement | null>(null);
   const button_refs = useRef<(HTMLButtonElement | null)[]>([]);
   const has_rendered_ref = useRef(false);
+  const pointer_inside_ref = useRef(false);
   const [active_rect, set_active_rect] = useState<Rect>(EMPTY_RECT);
   const [hover_rect, set_hover_rect] = useState<Rect>(EMPTY_RECT);
   const [hover_visible, set_hover_visible] = useState(false);
@@ -113,6 +114,14 @@ export function SettingsTabBar<T extends string>({
   const point_at = (index: number) => {
     set_hover_rect(rect_of(index));
     set_hover_visible(true);
+  };
+
+  const is_keyboard_focus = (node: HTMLElement) => {
+    try {
+      return node.matches(":focus-visible");
+    } catch {
+      return false;
+    }
   };
 
   const reveal = useCallback((index: number) => {
@@ -197,8 +206,14 @@ export function SettingsTabBar<T extends string>({
           ref={row_ref}
           className="relative inline-flex items-center"
           role="tablist"
-          onPointerCancel={() => set_hover_visible(false)}
-          onPointerLeave={() => set_hover_visible(false)}
+          onPointerCancel={() => {
+            pointer_inside_ref.current = false;
+            set_hover_visible(false);
+          }}
+          onPointerLeave={() => {
+            pointer_inside_ref.current = false;
+            set_hover_visible(false);
+          }}
         >
           <span
             aria-hidden="true"
@@ -226,11 +241,19 @@ export function SettingsTabBar<T extends string>({
                 role="tab"
                 tabIndex={selected ? 0 : -1}
                 type="button"
+                onBlur={() => {
+                  if (pointer_inside_ref.current) return;
+                  set_hover_visible(false);
+                }}
                 onClick={() => on_change(key)}
-                onFocus={() => point_at(index)}
+                onFocus={(event) => {
+                  if (!is_keyboard_focus(event.currentTarget)) return;
+                  point_at(index);
+                }}
                 onKeyDown={(event) => handle_key(event, index)}
                 onPointerEnter={(event) => {
                   if (event.pointerType !== "mouse") return;
+                  pointer_inside_ref.current = true;
                   point_at(index);
                 }}
               >

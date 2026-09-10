@@ -28,6 +28,7 @@ import {
 } from "@heroicons/react/24/outline";
 
 import { label_toggle_child } from "@/lib/labeled_control";
+import { use_i18n } from "@/lib/i18n";
 import { use_platform } from "@/hooks/use_platform";
 import { use_should_reduce_motion } from "@/provider";
 
@@ -39,14 +40,17 @@ export type SettingsSection =
   | "encryption"
   | "trusted_devices"
   | "aliases"
+  | "domains"
   | "alias_directories"
   | "ghost_aliases"
   | "family"
   | "billing"
+  | "storage"
   | "referral"
   | "notifications"
   | "behavior"
   | "connection"
+  | "bridge"
   | "signatures"
   | "templates"
   | "import"
@@ -196,6 +200,7 @@ export function SettingsHeader({
   on_back?: () => void;
   on_close: () => void;
 }) {
+  const { t } = use_i18n();
   const { safe_area_insets } = use_platform();
 
   return (
@@ -211,6 +216,7 @@ export function SettingsHeader({
           <motion.button
             className="flex h-8 w-8 items-center justify-center rounded-full text-[var(--text-secondary)]"
             type="button"
+            aria-label={t("common.back")}
             onClick={on_back}
           >
             <ChevronLeftIcon className="h-4 w-4 rtl:-scale-x-100" />
@@ -223,6 +229,7 @@ export function SettingsHeader({
       <motion.button
         className="flex h-8 w-8 items-center justify-center rounded-full text-[var(--text-secondary)]"
         type="button"
+        aria-label={t("common.close")}
         onClick={on_close}
       >
         <XMarkIcon className="h-4 w-4" strokeWidth={2.5} />

@@ -102,7 +102,7 @@ const SECTION_ALIASES: Record<string, SettingsSection> = {
   credits: "billing",
   ghost_aliases: "aliases",
   alias_directories: "aliases",
-  connection: "bridge",
+  connection: "security",
   smtp_tokens: "bridge",
   plans: "billing",
   subscription: "billing",
@@ -225,7 +225,7 @@ export interface NavItem {
 }
 
 export interface NavGroup {
-  id: "general" | "addresses" | "billing" | "mail" | "advanced";
+  id: "general" | "security" | "addresses" | "billing" | "mail" | "advanced";
   label: string;
   items: NavItem[];
 }
@@ -359,6 +359,15 @@ export function get_nav_items(
         "key algorithm",
         "ecc",
         "curve25519",
+        "connection",
+        "connection method",
+        "direct connection",
+        "cdn relay",
+        "relay",
+        "tor",
+        "onion",
+        "network",
+        "vanguard",
       ],
     },
     {
@@ -713,7 +722,12 @@ export function get_nav_items(
     {
       id: "general",
       label: t("settings.general"),
-      items: pick(["appearance", "account", "security"]),
+      items: pick(["appearance", "account"]),
+    },
+    {
+      id: "security",
+      label: t("settings.security"),
+      items: pick(["security"]),
     },
     {
       id: "addresses",

@@ -979,14 +979,14 @@ export function ReferralTab() {
                 max: bonus_max,
               })}
             </p>
-            <div className="flex flex-col sm:flex-row gap-2">
-              <div className="flex-1 h-9 px-3 rounded-lg bg-black/20 border border-white/10 flex items-center gap-2 min-w-0">
+            <div className="flex flex-col gap-2 lg:flex-row">
+              <div className="flex-1 h-9 min-w-[10rem] px-3 rounded-lg bg-black/20 border border-white/10 flex items-center gap-2">
                 <GiftIcon className="w-4 h-4 text-white/60 flex-shrink-0" />
                 <span className="font-mono text-xs text-white whitespace-nowrap overflow-x-auto">
                   {build_referral_invite_url(referral_info.referral_code)}
                 </span>
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <button
                   className="h-9 px-3 rounded-lg text-sm font-semibold bg-white inline-flex items-center justify-center gap-2 whitespace-nowrap disabled:opacity-60"
                   disabled={is_sharing}
