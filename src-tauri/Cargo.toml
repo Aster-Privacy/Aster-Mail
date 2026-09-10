@@ -24,7 +24,7 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tokio = { version = "1", features = ["full"] }
 dirs = "5"
-libsqlite3-sys = { version = "0.28", features = ["bundled"] }
+libsqlite3-sys = { version = "0.38", features = ["bundled"] }
 reqwest = { version = "0.12", default-features = false, features = ["socks", "rustls-tls", "charset", "http2", "cookies", "macos-system-configuration"] }
 rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12"] }
 rustls-pki-types = "1"
