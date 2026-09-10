@@ -33,7 +33,7 @@ x509-parser = "0.16"
 subtle = "2"
 tracing = "0.1"
 ed25519-dalek = { version = "2", features = ["rand_core"] }
-x25519-dalek = { version = "2", features = ["static_secrets"] }
+x25519-dalek = { version = "3", features = ["static_secrets"] }
 ml-kem = "0.2"
 chacha20poly1305 = "0.10"
 aes-gcm = "0.10"
