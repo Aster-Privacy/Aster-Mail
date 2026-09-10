@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { CheckIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
@@ -72,12 +72,24 @@ export function SpecialOfferModal() {
   const [is_starting_checkout, set_is_starting_checkout] = useState(false);
   const [is_choosing_method, set_is_choosing_method] = useState(false);
   const [is_choosing_coin, set_is_choosing_coin] = useState(false);
+  const [is_hero_loaded, set_is_hero_loaded] = useState(false);
+  const hero_ref = useRef<HTMLImageElement | null>(null);
 
   use_currency_rates();
 
   useEffect(() => {
     set_currency(detect_currency_from_locale());
   }, []);
+
+  useEffect(() => {
+    if (!is_open) {
+      set_is_hero_loaded(false);
+
+      return;
+    }
+
+    if (hero_ref.current?.complete) set_is_hero_loaded(true);
+  }, [is_open]);
 
   useEffect(() => {
     if (!is_loaded) return;
@@ -189,10 +201,13 @@ export function SpecialOfferModal() {
       >
         <div className="special_offer_hero rounded-t-xl">
           <img
+            ref={hero_ref}
             alt=""
             aria-hidden="true"
             className="special_offer_hero_image"
             src={special_offer_hero_url}
+            onError={() => set_is_hero_loaded(true)}
+            onLoad={() => set_is_hero_loaded(true)}
           />
         </div>
 
@@ -243,6 +258,8 @@ export function SpecialOfferModal() {
 
           <Button
             className="mt-5 w-full !h-11 !text-[15px] !font-semibold"
+            disabled={!is_hero_loaded}
+            is_loading={!is_hero_loaded}
             variant="depth"
             onClick={accept}
           >
