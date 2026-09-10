@@ -1,6 +1,9 @@
-<img width="200" alt="Aster" src="https://raw.githubusercontent.com/Aster-Privacy/.github/main/profile/aster_logo.png" />
-
-# Aster Mail
+<p align="left">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/Aster-Privacy/Aster-Mail/01a79449e4706b43cd790419736ed24bfbea95c0/public/aster_mail_logo_dark.png">
+    <img alt="Aster Mail" src="https://raw.githubusercontent.com/Aster-Privacy/Aster-Mail/01a79449e4706b43cd790419736ed24bfbea95c0/public/aster_mail_logo_light.png" width="320">
+  </picture>
+</p>
 
 Aster Mail is a free, open-source, end-to-end encrypted mail service. Every message subject line and attachment is encrypted locally on your device. This means we have no way to read your email and we never will.
 
