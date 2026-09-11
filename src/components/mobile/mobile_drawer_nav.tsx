@@ -52,20 +52,11 @@ import {
 } from "@/hooks/use_folders";
 import { tag_icon_map } from "@/components/ui/email_tag";
 import { is_folder_unlocked } from "@/hooks/use_protected_folder";
-import { PROFILE_COLORS, get_gradient_background } from "@/constants/profile";
+import { get_gradient_background } from "@/constants/profile";
+import { get_alias_color } from "@/lib/avatar_color";
 import { SidebarNavButton } from "@/components/mobile/sidebar_nav_button";
 import { NavSectionSkeleton } from "@/components/common/nav_section_skeleton";
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
-
-function get_alias_color(address: string): string {
-  let hash = 0;
-
-  for (let i = 0; i < address.length; i++) {
-    hash = (hash * 31 + address.charCodeAt(i)) | 0;
-  }
-
-  return PROFILE_COLORS[Math.abs(hash) % PROFILE_COLORS.length];
-}
 
 function MobileAliasIcon({
   address,

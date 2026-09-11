@@ -44,21 +44,12 @@ import {
 import { PinIcon } from "@/components/common/icons";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { use_should_reduce_motion } from "@/provider";
-import { PROFILE_COLORS, get_gradient_background } from "@/constants/profile";
+import { get_gradient_background } from "@/constants/profile";
+import { get_alias_color } from "@/lib/avatar_color";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_escape_layer } from "@/lib/overlay_layer_stack";
 import { is_composing } from "@/utils/ime";
 import { format_number } from "@/lib/utils";
-
-function get_alias_color(address: string): string {
-  let hash = 0;
-
-  for (let i = 0; i < address.length; i++) {
-    hash = (hash * 31 + address.charCodeAt(i)) | 0;
-  }
-
-  return PROFILE_COLORS[Math.abs(hash) % PROFILE_COLORS.length];
-}
 
 function SenderAliasIcon({
   address,

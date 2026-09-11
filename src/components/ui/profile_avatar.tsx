@@ -34,7 +34,11 @@ import {
   use_favicon_src,
   store_favicon_if_api_url,
 } from "@/hooks/use_favicon_src";
-import { get_avatar_color, get_contrast_text } from "@/lib/avatar_color";
+import {
+  get_avatar_color,
+  get_avatar_key,
+  get_contrast_text,
+} from "@/lib/avatar_color";
 import { get_root_domain, is_official_address } from "@/lib/utils";
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
@@ -300,7 +304,8 @@ export const ProfileAvatar = memo(function ProfileAvatar({
     const font_size = Math.round(
       pixel_size * (initials.length > 1 ? 0.36 : 0.44),
     );
-    const avatar_bg = profile_hex || get_avatar_color(email || name || "?");
+    const avatar_bg =
+      profile_hex || get_avatar_color(get_avatar_key(email, name));
     const text_color = get_contrast_text(avatar_bg);
 
     const letter_element = (

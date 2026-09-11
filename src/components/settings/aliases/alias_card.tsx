@@ -43,7 +43,8 @@ import { copy_text_or_throw } from "@/utils/copy_text";
 import { Spinner } from "@/components/ui/spinner";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
-import { PROFILE_COLORS, get_gradient_background } from "@/constants/profile";
+import { get_gradient_background } from "@/constants/profile";
+import { get_alias_color } from "@/lib/avatar_color";
 import { update_alias } from "@/services/api/aliases";
 import { update_domain_address } from "@/services/api/domains";
 import {
@@ -91,16 +92,6 @@ function compress_avatar(file: File): Promise<string> {
     };
     img.src = url;
   });
-}
-
-function get_alias_color(address: string): string {
-  let hash = 0;
-
-  for (let i = 0; i < address.length; i++) {
-    hash = (hash * 31 + address.charCodeAt(i)) | 0;
-  }
-
-  return PROFILE_COLORS[Math.abs(hash) % PROFILE_COLORS.length];
 }
 
 function AliasAvatar({

@@ -31,7 +31,11 @@ import {
   use_favicon_src,
   store_favicon_if_api_url,
 } from "@/hooks/use_favicon_src";
-import { get_avatar_color, get_contrast_text } from "@/lib/avatar_color";
+import {
+  get_avatar_color,
+  get_avatar_key,
+  get_contrast_text,
+} from "@/lib/avatar_color";
 import { get_root_domain } from "@/lib/utils";
 import { use_peer_profile } from "@/hooks/use_peer_profile";
 import { use_preferences } from "@/contexts/preferences_context";
@@ -180,7 +184,8 @@ export function ContactAvatar({
 
   const initials = get_initials(name, email, get_active_locale());
   const font_size = Math.round(size_px * (initials.length > 1 ? 0.36 : 0.44));
-  const avatar_bg = profile_color || get_avatar_color(email || name || "?");
+  const avatar_bg =
+    profile_color || get_avatar_color(get_avatar_key(email, name));
   const text_color = get_contrast_text(avatar_bg);
 
   return (

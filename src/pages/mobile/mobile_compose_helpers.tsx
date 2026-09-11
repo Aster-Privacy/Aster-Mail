@@ -26,17 +26,8 @@ import { useMemo } from "react";
 import { AtSymbolIcon } from "@heroicons/react/24/outline";
 
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
-import { PROFILE_COLORS, get_gradient_background } from "@/constants/profile";
-
-export function get_alias_color(address: string): string {
-  let hash = 0;
-
-  for (let i = 0; i < address.length; i++) {
-    hash = (hash * 31 + address.charCodeAt(i)) | 0;
-  }
-
-  return PROFILE_COLORS[Math.abs(hash) % PROFILE_COLORS.length];
-}
+import { get_gradient_background } from "@/constants/profile";
+import { get_alias_color } from "@/lib/avatar_color";
 
 export function MobileSenderIcon({
   option,

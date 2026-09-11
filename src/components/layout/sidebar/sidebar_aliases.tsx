@@ -37,18 +37,9 @@ import { CountBadge } from "@/components/common/count_badge";
 import { NavSectionSkeleton } from "@/components/common/nav_section_skeleton";
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { RailUnreadDot } from "@/components/common/rail_unread_dot";
-import { PROFILE_COLORS, get_gradient_background } from "@/constants/profile";
+import { get_gradient_background } from "@/constants/profile";
+import { get_alias_color } from "@/lib/avatar_color";
 import { AliasContextMenu } from "@/components/layout/sidebar/alias_context_menu";
-
-function get_alias_color(address: string): string {
-  let hash = 0;
-
-  for (let i = 0; i < address.length; i++) {
-    hash = (hash * 31 + address.charCodeAt(i)) | 0;
-  }
-
-  return PROFILE_COLORS[Math.abs(hash) % PROFILE_COLORS.length];
-}
 
 function AliasIcon({
   address,
