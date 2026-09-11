@@ -767,6 +767,7 @@ export async function preload_email_detail(
         ...(forwarding ?? {}),
         is_external: item.is_external,
         system_origin: item.system_origin,
+        sender_verified_domain: item.sender_verified ? item.sender_verified_domain : undefined,
         raw_headers: envelope.raw_headers,
         reply_to: preload_reply_to
           ? { name: preload_reply_to.name, email: preload_reply_to.email }
@@ -823,6 +824,7 @@ export async function preload_email_detail(
         is_deleted: false,
         is_external: item.is_external,
         system_origin: item.system_origin,
+        sender_verified_domain: item.sender_verified ? item.sender_verified_domain : undefined,
         encrypted_metadata: item.encrypted_metadata,
         metadata_nonce: item.metadata_nonce,
         to_recipients: envelope.to || [],

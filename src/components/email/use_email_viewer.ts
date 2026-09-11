@@ -668,6 +668,7 @@ export function use_email_viewer({
           sender_verification: envelope.sender_verification,
           is_external: item.is_external,
           system_origin: item.system_origin,
+          sender_verified_domain: item.sender_verified ? item.sender_verified_domain : undefined,
         });
         set_is_external(item.is_external);
         set_has_recipient_key(!!item.has_recipient_key);

@@ -158,6 +158,8 @@ export function build_single_thread_message(
     created_at: string;
     is_external: boolean;
     system_origin?: boolean;
+    sender_verified?: boolean;
+    sender_verified_domain?: string;
     has_recipient_key?: boolean;
     encrypted_metadata?: string;
     metadata_nonce?: string;
@@ -192,6 +194,7 @@ export function build_single_thread_message(
     is_deleted: false,
     is_external: item.is_external,
     system_origin: item.system_origin,
+    sender_verified_domain: item.sender_verified ? item.sender_verified_domain : undefined,
     has_recipient_key: item.has_recipient_key,
     encrypted_metadata: item.encrypted_metadata,
     metadata_nonce: item.metadata_nonce,

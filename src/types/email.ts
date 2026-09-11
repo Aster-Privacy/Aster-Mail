@@ -86,6 +86,7 @@ export interface Email {
   expires_at?: string;
   expiry_type?: "sender" | "recipient";
   sender_verification?: SenderVerificationStatus;
+  sender_verified_domain?: string;
 }
 
 export interface DecryptedEmail extends Email {
@@ -155,6 +156,7 @@ export interface InboxEmail {
   is_external?: boolean;
   system_origin?: boolean;
   sender_verification?: SenderVerificationStatus;
+  sender_verified_domain?: string;
   labels?: InboxEmailLabel[];
   folders?: InboxEmailFolder[];
   tags?: InboxEmailTag[];
@@ -222,6 +224,7 @@ export interface DecryptedEnvelope {
   list_unsubscribe_post?: string;
   raw_headers?: { name: string; value: string }[];
   sender_verification?: SenderVerificationStatus;
+  sender_verified_domain?: string;
   attachment_keys?: Array<{
     seq: number;
     key: string;

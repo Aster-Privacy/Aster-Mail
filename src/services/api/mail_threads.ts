@@ -63,6 +63,8 @@ export interface ThreadMessageItem {
   is_spam?: boolean;
   message_group_id?: string;
   rule_category?: string;
+  sender_verified?: boolean;
+  sender_verified_domain?: string;
   is_reaction?: boolean;
   reactions?: ReactionSummary[];
 }

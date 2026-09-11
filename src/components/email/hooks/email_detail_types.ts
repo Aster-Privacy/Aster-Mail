@@ -55,6 +55,7 @@ export interface DecryptedEmail {
   labels: string[];
   is_external?: boolean;
   system_origin?: boolean;
+  sender_verified_domain?: string;
   unsubscribe_info?: UnsubscribeInfo;
 }
 
@@ -73,6 +74,7 @@ export interface ReplyModalData {
   original_to?: string[];
   is_external?: boolean;
   system_origin?: boolean;
+  sender_verified_domain?: string;
   thread_ghost_email?: string;
   reply_from_address?: string;
   original_rfc_message_id?: string;

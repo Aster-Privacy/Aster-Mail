@@ -153,10 +153,10 @@ function dai_mark(): ReactElement {
       <circle cx="16" cy="16" fill="#f5ac37" r="16" />
       <g fill="#ffffff">
         <path
-          d="M9.5 8.5h7a7.5 7.5 0 010 15h-7zm3.3 3.3v8.4h3.7a4.2 4.2 0 000-8.4z"
+          d="M9.6 8H16a8 8 0 0 1 0 16H9.6zm3 3v10H16a5 5 0 0 0 0-10z"
           fillRule="evenodd"
         />
-        <path d="M6.9 14.1h19v1.5h-19zM6.9 16.5h19V18h-19z" />
+        <path d="M7 13.5h17.6v1.6H7zM7 16.9h17.6v1.6H7z" />
       </g>
     </g>
   );
@@ -177,7 +177,7 @@ function ltc_mark(): ReactElement {
 function bch_mark(): ReactElement {
   return (
     <g>
-      <circle cx="16" cy="16" fill="#8dc351" r="16" />
+      <circle cx="16" cy="16" fill="#0ac18e" r="16" />
       <path
         d="M21.207 10.534c-.776-1.797-2.469-2.203-4.511-1.837l-.68-2.633-1.604.414.672 2.598c-.42.107-.851.19-1.279.301l-.665-2.572-1.602.414.678 2.632c-.347.09-2.579.665-2.579.665l.44 1.71s1.18-.32 1.169-.295c.655-.17.966.135 1.116.428l1.86 7.198c.027.187-.008.505-.412.611.023.011-1.17.3-1.17.3l.204 1.997s2.212-.567 2.58-.658l.687 2.663 1.602-.414-.688-2.677a65.55 65.55 0 001.283-.317l.684 2.664 1.604-.414-.686-2.658c2.476-.606 4.213-2.147 3.853-4.557-.226-1.51-1.947-2.788-3.298-2.953.833-.63 1.315-1.673.741-3.21zm-.294 6.484c.4 1.564-1.8 2.176-3.72 2.674l-.918-3.555c1.92-.494 4.219-1.35 4.638.881zm-2.104-5.312c.386 1.425-1.494 1.921-3.09 2.335l-.834-3.225c1.596-.414 3.463-1.02 3.924.89z"
         fill="#ffffff"
@@ -195,18 +195,18 @@ function sol_mark(gradient_id: string): ReactElement {
           id={gradient_id}
           x1="26"
           x2="6"
-          y1="24"
-          y2="8"
+          y1="8.2"
+          y2="23.8"
         >
           <stop offset="0" stopColor="#00ffa3" />
           <stop offset="1" stopColor="#dc1fff" />
         </linearGradient>
       </defs>
-      <circle cx="16" cy="16" fill="#12121c" r="16" />
+      <circle cx="16" cy="16" fill="#000000" r="16" />
       <g fill={`url(#${gradient_id})`}>
-        <path d="M9.2 8.4H26l-3.2 3.6H6z" />
-        <path d="M6 14.2h16.8l3.2 3.6H9.2z" />
-        <path d="M9.2 20H26l-3.2 3.6H6z" />
+        <path d="M9.15 8.2h16.8l-3.1 3.9H6.05z" />
+        <path d="M6.05 14.05h16.8l3.1 3.9H9.15z" />
+        <path d="M9.15 19.9h16.8l-3.1 3.9H6.05z" />
       </g>
     </g>
   );
@@ -222,7 +222,7 @@ function xmr_mark(): ReactElement {
       />
       <path
         d="M14.253 19.837l-3.145-3.145v5.516H6.005A12.005 12.005 0 0016 28a12.005 12.005 0 009.995-5.792h-5.103v-5.516l-3.145 3.145L16 21.584z"
-        fill="#ffffff"
+        fill="#4c4c4c"
       />
     </g>
   );
@@ -345,6 +345,7 @@ interface CoinIconProps {
   chain: string;
   size?: number;
   class_name?: string;
+  show_chain?: boolean;
 }
 
 export function CoinIcon({
@@ -352,6 +353,7 @@ export function CoinIcon({
   chain,
   size = 32,
   class_name = "",
+  show_chain = true,
 }: CoinIconProps): ReactElement {
   const instance_id = useId().replace(/[^a-zA-Z0-9_-]/g, "");
   const currency_mark = resolve_currency(currency);
@@ -363,7 +365,9 @@ export function CoinIcon({
     (chain_mark === native_chain || chain_key === native_chain);
   const chain_initial = chain_letter(chain);
   const show_badge =
-    !is_native_chain && (chain_mark !== "generic" || chain_initial !== null);
+    show_chain &&
+    !is_native_chain &&
+    (chain_mark !== "generic" || chain_initial !== null);
   const show_letter_badge = show_badge && chain_mark === "generic";
   const cutout_id = `coin_icon_cutout_${instance_id}`;
 

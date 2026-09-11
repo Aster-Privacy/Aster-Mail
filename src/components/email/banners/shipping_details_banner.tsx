@@ -23,13 +23,46 @@ import type {
   ShippingStatus,
 } from "@/services/extraction/types";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import {
+  ArrowTopRightOnSquareIcon,
+  CalendarDaysIcon,
+  ClockIcon,
+  CubeIcon,
+  HashtagIcon,
+  TruckIcon,
+} from "@heroicons/react/24/outline";
 
 import { open_external } from "@/utils/open_link";
-import { cn } from "@/lib/utils";
 import { use_i18n } from "@/lib/i18n/context";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { ContactAvatar } from "@/components/common/contacts/contact_avatar";
+
+import {
+  ExtractionCard,
+  ExtractionCardAction,
+  ExtractionCardActions,
+  ExtractionCardRow,
+} from "./extraction_card";
+
+const COLLAPSED_PREF_KEY = "shipping_banner_collapsed";
+const MAX_VISIBLE_ITEMS = 3;
+
+function read_collapsed_pref(): boolean {
+  try {
+    return localStorage.getItem(COLLAPSED_PREF_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function write_collapsed_pref(collapsed: boolean) {
+  try {
+    localStorage.setItem(COLLAPSED_PREF_KEY, collapsed ? "1" : "0");
+  } catch {
+    return;
+  }
+}
 
 interface ShippingDetailsBannerProps {
   details: ExtractedShippingDetails;
@@ -45,6 +78,7 @@ export function ShippingDetailsBanner({
   className,
 }: ShippingDetailsBannerProps) {
   const { t } = use_i18n();
+  const [is_collapsed, set_is_collapsed] = useState(read_collapsed_pref);
 
   const STATUS_CONFIG: Record<
     ShippingStatus,
@@ -85,12 +119,23 @@ export function ShippingDetailsBanner({
     ? STATUS_CONFIG[details.status]
     : STATUS_CONFIG.unknown;
 
-  const date_suffix =
-    details.status === "delivered" && details.delivery_date
-      ? details.delivery_date
-      : details.estimated_delivery && details.status !== "delivered"
-        ? t("common.estimated_short", { date: details.estimated_delivery })
-        : null;
+  const is_delivered = details.status === "delivered";
+
+  const date_line = is_delivered
+    ? details.delivery_date
+      ? t("mail.delivered_on", { date: details.delivery_date })
+      : null
+    : details.estimated_delivery
+      ? t("mail.expected_by", { date: details.estimated_delivery })
+      : null;
+
+  const toggle_collapsed = () => {
+    set_is_collapsed((prev) => {
+      write_collapsed_pref(!prev);
+
+      return !prev;
+    });
+  };
 
   const handle_track_click = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -99,38 +144,106 @@ export function ShippingDetailsBanner({
     }
   };
 
+  const title = details.carrier_name
+    ? t("mail.package_from", { carrier: details.carrier_name })
+    : t("mail.shipment_update");
+
+  const visible_items = details.items_shipped
+    .filter((item) => item.trim().length > 0)
+    .slice(0, MAX_VISIBLE_ITEMS);
+
   return (
-    <div className={cn("flex items-center gap-2 text-[13px]", className)}>
-      <ContactAvatar
-        email={sender_email}
-        name={sender_name || details.carrier_name || undefined}
-        rounded="rounded-md"
-        size_px={20}
-      />
-      <span className="min-w-0 truncate text-txt-secondary">
-        <span className="font-semibold text-txt-primary">
-          {details.carrier_name || t("common.shipment_update")}
-        </span>
-        <span className="mx-1 text-txt-muted">·</span>
-        <span className="font-medium" style={{ color: status_config.color }}>
-          {status_config.label}
-        </span>
-        {date_suffix && (
-          <span className="text-txt-muted">
-            <span className="mx-1">·</span>
-            {date_suffix}
+    <ExtractionCard
+      className={className}
+      is_collapsed={is_collapsed}
+      leading={
+        <ContactAvatar
+          email={sender_email}
+          name={sender_name || details.carrier_name || undefined}
+          rounded="rounded-lg"
+          size_px={36}
+        />
+      }
+      subtitle={
+        <>
+          <span className="font-medium" style={{ color: status_config.color }}>
+            {status_config.label}
           </span>
+          {date_line && (
+            <>
+              <span className="mx-1">·</span>
+              <span>{date_line}</span>
+            </>
+          )}
+        </>
+      }
+      test_id="shipping_details_card"
+      title={title}
+      toggle_label={
+        is_collapsed ? t("mail.show_details") : t("mail.hide_details")
+      }
+      on_toggle={toggle_collapsed}
+    >
+      <div className="py-2">
+        {details.carrier_name && (
+          <ExtractionCardRow
+            icon={TruckIcon}
+            primary={details.carrier_name}
+            secondary={status_config.label}
+            test_id="shipping_carrier_row"
+          />
         )}
-      </span>
+        {details.tracking_number && (
+          <ExtractionCardRow
+            icon={HashtagIcon}
+            primary={
+              <span className="font-mono tabular-nums">
+                {details.tracking_number}
+              </span>
+            }
+            secondary={t("mail.tracking_number")}
+            test_id="shipping_tracking_row"
+          />
+        )}
+        {date_line && (
+          <ExtractionCardRow
+            icon={ClockIcon}
+            primary={date_line}
+            test_id="shipping_date_row"
+          />
+        )}
+        {details.shipped_date && !is_delivered && (
+          <ExtractionCardRow
+            icon={CalendarDaysIcon}
+            primary={t("mail.shipped_on", { date: details.shipped_date })}
+          />
+        )}
+        {visible_items.length > 0 && (
+          <ExtractionCardRow
+            icon={CubeIcon}
+            primary={t("mail.items")}
+            secondary={
+              <div className="space-y-0.5 mt-1">
+                {visible_items.map((item, index) => (
+                  <div key={index} className="text-sm text-txt-primary">
+                    {item}
+                  </div>
+                ))}
+              </div>
+            }
+          />
+        )}
+      </div>
       {details.tracking_url && (
-        <button
-          className="flex-shrink-0 ms-auto rounded px-1.5 py-0.5 text-xs font-medium text-blue-500 transition-colors hover:bg-blue-500/10"
-          type="button"
-          onClick={handle_track_click}
-        >
-          {t("common.track_package")}
-        </button>
+        <ExtractionCardActions>
+          <ExtractionCardAction
+            icon={ArrowTopRightOnSquareIcon}
+            label={t("mail.track_package")}
+            test_id="shipping_track_package"
+            on_click={handle_track_click}
+          />
+        </ExtractionCardActions>
       )}
-    </div>
+    </ExtractionCard>
   );
 }
