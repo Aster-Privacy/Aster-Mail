@@ -6340,6 +6340,33 @@ export const es = {
       "No se pudo cargar el desglose del precio. Intentalo de nuevo.",
     plan_change_confirm_button: "Confirmar y pagar",
     plan_change_confirming: "Procesando...",
+    promo_error_invalid:
+      "Ese código promocional no es válido. Revisa el código e inténtalo de nuevo.",
+    promo_error_expired:
+      "Ese código promocional caducó o ya no está disponible.",
+    promo_error_not_for_plan:
+      "Ese código promocional no se aplica a este plan.",
+    promo_error_not_for_plan_change:
+      "Ese código promocional no se puede usar al cambiar de plan.",
+    promo_error_discount_active:
+      "Tu suscripción ya tiene un descuento, así que no puedes agregar otro código promocional.",
+    promo_error_same_plan:
+      "Ya tienes este plan. Los códigos promocionales se aplican cuando cambias a otro plan.",
+    promo_error_not_upgrade:
+      "Los códigos promocionales se aplican cuando mejoras a un plan superior.",
+    promo_error_generic:
+      "No se pudo comprobar tu código promocional. Inténtalo de nuevo en un momento.",
+    plan_change_discount_amount: "{{amount}} de descuento",
+    plan_change_discount_once: "{{discount}} en este pago",
+    plan_change_discount_forever: "{{discount}} en todos los pagos",
+    plan_change_discount_months: "{{discount}} durante {{count}} meses",
+    plan_change_discount_months_one: "{{discount}} durante {{count}} mes",
+    plan_change_discount_months_other: "{{discount}} durante {{count}} meses",
+    plan_change_discount_label: "Código promocional {{code}}",
+    plan_change_price_before_discount: "Precio sin descuento",
+    plan_change_promo_applied:
+      "{{code}} está aplicado. Hoy ahorras {{amount}}.",
+    plan_change_promo_remove: "Quitar",
     billing_banner_subtitle:
       "Mejora tu plan o compra almacenamiento adicional para mantener tu privacidad protegida.",
     storage_addons_monthly_note:

@@ -5771,6 +5771,31 @@ export const pl = {
       "Nie udalo sie zaladowac podzialu ceny. Sprobuj ponownie.",
     plan_change_confirm_button: "Potwierdz i zaplac",
     plan_change_confirming: "Przetwarzanie...",
+    promo_error_invalid:
+      "Ten kod promocyjny jest nieprawidłowy. Sprawdź kod i spróbuj ponownie.",
+    promo_error_expired: "Ten kod promocyjny wygasł lub nie jest już dostępny.",
+    promo_error_not_for_plan: "Ten kod promocyjny nie dotyczy tego planu.",
+    promo_error_not_for_plan_change:
+      "Tego kodu promocyjnego nie można użyć przy zmianie planu.",
+    promo_error_discount_active:
+      "Twoja subskrypcja ma już zniżkę, więc nie możesz dodać kolejnego kodu promocyjnego.",
+    promo_error_same_plan:
+      "Masz już ten plan. Kody promocyjne działają, gdy przechodzisz na inny plan.",
+    promo_error_not_upgrade:
+      "Kody promocyjne działają, gdy przechodzisz na wyższy plan.",
+    promo_error_generic:
+      "Nie udało się sprawdzić kodu promocyjnego. Spróbuj ponownie za chwilę.",
+    plan_change_discount_amount: "{{amount}} zniżki",
+    plan_change_discount_once: "{{discount}} na tę płatność",
+    plan_change_discount_forever: "{{discount}} na każdą płatność",
+    plan_change_discount_months: "{{discount}} przez {{count}} mies.",
+    plan_change_discount_months_one: "{{discount}} przez {{count}} miesiąc",
+    plan_change_discount_months_other: "{{discount}} przez {{count}} mies.",
+    plan_change_discount_label: "Kod promocyjny {{code}}",
+    plan_change_price_before_discount: "Cena przed zniżką",
+    plan_change_promo_applied:
+      "Zastosowano kod {{code}}. Dziś oszczędzasz {{amount}}.",
+    plan_change_promo_remove: "Usuń",
     billing_switched: "Cykl rozliczeniowy zmieniony pomyślnie",
     failed_switch_billing:
       "Cykl rozliczeniowy nie został zmieniony. Kolejna próba powinna to załatwić. Obecny cykl pozostaje aktywny.",

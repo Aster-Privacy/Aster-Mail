@@ -3610,6 +3610,32 @@ export const en: Translations = {
       "We could not load the price breakdown. Please try again.",
     plan_change_confirm_button: "Confirm and Pay",
     plan_change_confirming: "Processing...",
+    promo_error_invalid:
+      "That promo code isn't valid. Check the code and try again.",
+    promo_error_expired:
+      "That promo code has expired or is no longer available.",
+    promo_error_not_for_plan: "That promo code doesn't apply to this plan.",
+    promo_error_not_for_plan_change:
+      "That promo code can't be used when you change plans.",
+    promo_error_discount_active:
+      "Your subscription already has a discount, so you can't add another promo code.",
+    promo_error_same_plan:
+      "You're already on this plan. Promo codes apply when you move to a different plan.",
+    promo_error_not_upgrade:
+      "Promo codes apply when you upgrade to a higher plan.",
+    promo_error_generic:
+      "Your promo code couldn't be checked. Try again in a moment.",
+    plan_change_discount_amount: "{{amount}} off",
+    plan_change_discount_once: "{{discount}} on this payment",
+    plan_change_discount_forever: "{{discount}} on every payment",
+    plan_change_discount_months: "{{discount}} for {{count}} months",
+    plan_change_discount_months_one: "{{discount}} for {{count}} month",
+    plan_change_discount_months_other: "{{discount}} for {{count}} months",
+    plan_change_discount_label: "Promo code {{code}}",
+    plan_change_price_before_discount: "Price before discount",
+    plan_change_promo_applied:
+      "{{code}} is applied. You save {{amount}} today.",
+    plan_change_promo_remove: "Remove",
     family_plan_title: "Family Plan",
     family_plan_subtitle: "Manage your family group members and storage",
     family_members: "Members",

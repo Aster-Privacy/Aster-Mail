@@ -5622,6 +5622,29 @@ export const ar = {
       "تعذر تحميل تفاصيل السعر. يرجى المحاولة مرة اخرى.",
     plan_change_confirm_button: "تاكيد والدفع",
     plan_change_confirming: "جاري المعالجة...",
+    promo_error_invalid:
+      "هذا الرمز الترويجي غير صالح. تحقق من الرمز ثم أعد المحاولة.",
+    promo_error_expired: "انتهت صلاحية هذا الرمز الترويجي أو لم يعد متاحًا.",
+    promo_error_not_for_plan: "هذا الرمز الترويجي لا ينطبق على هذه الخطة.",
+    promo_error_not_for_plan_change:
+      "لا يمكن استخدام هذا الرمز الترويجي عند تغيير الخطة.",
+    promo_error_discount_active:
+      "اشتراكك عليه خصم بالفعل، لذا لا يمكنك إضافة رمز ترويجي آخر.",
+    promo_error_same_plan:
+      "أنت مشترك في هذه الخطة بالفعل. تنطبق الرموز الترويجية عند الانتقال إلى خطة أخرى.",
+    promo_error_not_upgrade: "تنطبق الرموز الترويجية عند الترقية إلى خطة أعلى.",
+    promo_error_generic:
+      "تعذر التحقق من الرمز الترويجي. أعد المحاولة بعد قليل.",
+    plan_change_discount_amount: "خصم {{amount}}",
+    plan_change_discount_once: "{{discount}} على هذه الدفعة",
+    plan_change_discount_forever: "{{discount}} على كل دفعة",
+    plan_change_discount_months: "{{discount}} لمدة {{count}} أشهر",
+    plan_change_discount_months_one: "{{discount}} لمدة شهر واحد",
+    plan_change_discount_months_other: "{{discount}} لمدة {{count}} شهر",
+    plan_change_discount_label: "الرمز الترويجي {{code}}",
+    plan_change_price_before_discount: "السعر قبل الخصم",
+    plan_change_promo_applied: "تم تطبيق {{code}}. توفر {{amount}} اليوم.",
+    plan_change_promo_remove: "إزالة",
     billing_switched: "تم تبديل دورة الفوترة بنجاح",
     failed_switch_billing:
       "دورة الفوترة لم تتغير. محاولة أخرى ينبغي أن تنجح. دورتك الحالية لا تزال نشطة.",

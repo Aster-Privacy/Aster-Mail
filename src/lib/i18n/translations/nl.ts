@@ -5569,6 +5569,33 @@ export const nl = {
       "Het prijsoverzicht kon niet worden geladen. Probeer het opnieuw.",
     plan_change_confirm_button: "Bevestigen en betalen",
     plan_change_confirming: "Verwerken...",
+    promo_error_invalid:
+      "Deze promotiecode is niet geldig. Controleer de code en probeer het opnieuw.",
+    promo_error_expired:
+      "Deze promotiecode is verlopen of niet meer beschikbaar.",
+    promo_error_not_for_plan: "Deze promotiecode geldt niet voor dit plan.",
+    promo_error_not_for_plan_change:
+      "Deze promotiecode kun je niet gebruiken als je van plan wisselt.",
+    promo_error_discount_active:
+      "Je abonnement heeft al korting, dus je kunt geen andere promotiecode toevoegen.",
+    promo_error_same_plan:
+      "Je hebt dit plan al. Promotiecodes gelden als je naar een ander plan overstapt.",
+    promo_error_not_upgrade:
+      "Promotiecodes gelden als je upgradet naar een hoger plan.",
+    promo_error_generic:
+      "Je promotiecode kon niet worden gecontroleerd. Probeer het zo opnieuw.",
+    plan_change_discount_amount: "{{amount}} korting",
+    plan_change_discount_once: "{{discount}} op deze betaling",
+    plan_change_discount_forever: "{{discount}} op elke betaling",
+    plan_change_discount_months: "{{discount}} gedurende {{count}} maanden",
+    plan_change_discount_months_one: "{{discount}} gedurende {{count}} maand",
+    plan_change_discount_months_other:
+      "{{discount}} gedurende {{count}} maanden",
+    plan_change_discount_label: "Promotiecode {{code}}",
+    plan_change_price_before_discount: "Prijs zonder korting",
+    plan_change_promo_applied:
+      "{{code}} is toegepast. Je bespaart vandaag {{amount}}.",
+    plan_change_promo_remove: "Verwijderen",
     billing_switched: "Factureringscyclus succesvol gewijzigd",
     failed_switch_billing:
       "Uw factureringscyclus is niet gewijzigd. Een nieuwe poging zou werken. Uw huidige cyclus is nog steeds actief.",

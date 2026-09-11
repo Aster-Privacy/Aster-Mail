@@ -22,6 +22,11 @@ import { useState, useEffect, useRef } from "react";
 import { Button } from "@aster/ui";
 
 import {
+  plan_change_discount_text,
+  promo_code_error_text,
+} from "./plan_change_discount_text";
+
+import {
   Modal,
   ModalHeader,
   ModalTitle,
@@ -81,13 +86,16 @@ export function PlanChangeConfirmModal({
         (res) => {
           if (fetch_gen.current !== gen) return;
           if (res.data) {
-            set_preview(res.data);
             if (applied_promo_code && !res.data.promo_code_applied) {
-              set_promo_error(t_ref.current("settings.promo_invalid"));
+              set_promo_error(promo_code_error_text(t_ref.current, null));
               set_applied_promo_code("");
+            } else {
+              set_preview(res.data);
             }
           } else if (applied_promo_code) {
-            set_promo_error(res.error || t_ref.current("settings.promo_invalid"));
+            set_promo_error(
+              promo_code_error_text(t_ref.current, res.server_code),
+            );
             set_applied_promo_code("");
           } else {
             set_preview_failed(true);
@@ -114,7 +122,28 @@ export function PlanChangeConfirmModal({
     set_applied_promo_code(code);
   };
 
+  const remove_promo = () => {
+    if (loading) return;
+    set_promo_error("");
+    set_promo_input("");
+    set_applied_promo_code("");
+  };
+
   const currency = preview?.currency ?? "usd";
+  const discount_cents = preview?.discount_cents ?? 0;
+  const promo_applied = Boolean(
+    applied_promo_code && preview?.promo_code_applied,
+  );
+  const shown_promo_code = preview?.promo_code || applied_promo_code;
+  const discount_terms = preview
+    ? plan_change_discount_text(t, format_price, preview, billing_interval)
+    : "";
+  const amount_before_discount = preview?.amount_due_before_discount_cents;
+  const show_amount_before_discount =
+    promo_applied &&
+    typeof amount_before_discount === "number" &&
+    preview !== null &&
+    amount_before_discount > preview.amount_due_cents;
 
   return (
     <Modal
@@ -160,13 +189,24 @@ export function PlanChangeConfirmModal({
                 </span>
               </div>
             )}
-            {preview && (preview.discount_cents ?? 0) > 0 && (
-              <div className="flex items-center justify-between text-sm py-2 px-3 rounded-lg bg-surface-secondary">
-                <span className="text-txt-secondary">
-                  {preview.discount_description || t("common.discount")}
+            {preview && discount_cents > 0 && (
+              <div className="flex items-center justify-between gap-3 text-sm py-2 px-3 rounded-lg bg-surface-secondary">
+                <span className="flex flex-col min-w-0">
+                  <span className="text-txt-secondary">
+                    {promo_applied && shown_promo_code
+                      ? t("settings.plan_change_discount_label", {
+                          code: shown_promo_code,
+                        })
+                      : preview.discount_description || t("common.discount")}
+                  </span>
+                  {promo_applied && discount_terms && (
+                    <span className="text-xs text-txt-muted">
+                      {discount_terms}
+                    </span>
+                  )}
                 </span>
                 <span className="font-medium text-txt-primary">
-                  -{format_price(preview.discount_cents ?? 0, currency)}
+                  -{format_price(discount_cents, currency)}
                 </span>
               </div>
             )}
@@ -174,53 +214,92 @@ export function PlanChangeConfirmModal({
               <span className="font-semibold text-txt-primary">
                 {t("settings.plan_change_due_today")}
               </span>
-              <span className="font-semibold text-txt-primary">
-                {preview
-                  ? format_price(preview.amount_due_cents, currency)
-                  : "-"}
+              <span className="flex items-baseline gap-2">
+                {show_amount_before_discount && (
+                  <span className="text-xs text-txt-muted line-through">
+                    <span className="sr-only">
+                      {t("settings.plan_change_price_before_discount")}
+                    </span>
+                    {format_price(amount_before_discount, currency)}
+                  </span>
+                )}
+                <span className="font-semibold text-txt-primary">
+                  {preview
+                    ? format_price(preview.amount_due_cents, currency)
+                    : "-"}
+                </span>
               </span>
             </div>
             <div className="flex flex-col gap-2">
-              <label
-                className="text-xs font-medium text-txt-secondary"
-                htmlFor="plan_change_promo_code"
-              >
-                {t("settings.promo_code")}
-              </label>
-              <div className="flex items-center gap-2">
-                <input
-                  autoComplete="off"
-                  className="flex-1 px-3 py-2 text-sm rounded-lg bg-surface-secondary border border-edge-secondary text-txt-primary placeholder:text-txt-muted"
-                  disabled={is_confirming}
-                  id="plan_change_promo_code"
-                  placeholder={t("settings.promo_code_placeholder")}
-                  value={promo_input}
-                  onChange={(event) => set_promo_input(event.target.value)}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter") {
-                      event.preventDefault();
-                      apply_promo();
-                    }
-                  }}
-                />
-                <Button
-                  disabled={
-                    is_confirming || loading || promo_input.trim().length === 0
-                  }
-                  size="sm"
-                  variant="outline"
-                  onClick={apply_promo}
-                >
-                  {t("settings.promo_apply")}
-                </Button>
-              </div>
-              {promo_error && (
-                <p className="text-xs text-red-500">{promo_error}</p>
-              )}
-              {preview?.promo_code_applied && (
-                <p className="text-xs text-txt-secondary">
-                  {t("settings.promo_applied")}
-                </p>
+              {promo_applied ? (
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-xs text-txt-secondary" role="status">
+                    {t("settings.plan_change_promo_applied", {
+                      code: shown_promo_code,
+                      amount: format_price(discount_cents, currency),
+                    })}
+                  </p>
+                  <Button
+                    disabled={is_confirming || loading}
+                    size="sm"
+                    variant="ghost"
+                    onClick={remove_promo}
+                  >
+                    {t("settings.plan_change_promo_remove")}
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <label
+                    className="text-xs font-medium text-txt-secondary"
+                    htmlFor="plan_change_promo_code"
+                  >
+                    {t("settings.promo_code")}
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      aria-describedby={
+                        promo_error ? "plan_change_promo_error" : undefined
+                      }
+                      aria-invalid={promo_error ? true : undefined}
+                      autoComplete="off"
+                      className="flex-1 px-3 py-2 text-sm rounded-lg bg-surface-secondary border border-edge-secondary text-txt-primary placeholder:text-txt-muted"
+                      disabled={is_confirming}
+                      id="plan_change_promo_code"
+                      maxLength={64}
+                      placeholder={t("settings.promo_code_placeholder")}
+                      value={promo_input}
+                      onChange={(event) => set_promo_input(event.target.value)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter") {
+                          event.preventDefault();
+                          apply_promo();
+                        }
+                      }}
+                    />
+                    <Button
+                      disabled={
+                        is_confirming ||
+                        loading ||
+                        promo_input.trim().length === 0
+                      }
+                      size="sm"
+                      variant="outline"
+                      onClick={apply_promo}
+                    >
+                      {t("settings.promo_apply")}
+                    </Button>
+                  </div>
+                  {promo_error && (
+                    <p
+                      className="text-xs text-red-500"
+                      id="plan_change_promo_error"
+                      role="alert"
+                    >
+                      {promo_error}
+                    </p>
+                  )}
+                </>
               )}
             </div>
           </div>
@@ -233,7 +312,9 @@ export function PlanChangeConfirmModal({
         <Button
           disabled={loading || is_confirming || !preview}
           variant="primary"
-          onClick={() => on_confirm(applied_promo_code || undefined)}
+          onClick={() =>
+            on_confirm(promo_applied ? shown_promo_code : undefined)
+          }
         >
           {is_confirming
             ? t("settings.plan_change_confirming")

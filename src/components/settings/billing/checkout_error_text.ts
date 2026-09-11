@@ -20,6 +20,8 @@
 //
 import type { TranslationKey } from "@/lib/i18n/types";
 
+import { promo_server_code_key } from "./plan_change_discount_text";
+
 type Translate = (
   key: TranslationKey,
   params?: Record<string, string | number>,
@@ -49,7 +51,9 @@ export function checkout_error_text(
   t: Translate,
   server_code?: string | null,
 ): string {
-  const key = server_code ? SERVER_CODE_KEYS[server_code] : undefined;
+  const key = server_code
+    ? (SERVER_CODE_KEYS[server_code] ?? promo_server_code_key(server_code))
+    : undefined;
 
   return t(key ?? "settings.failed_checkout");
 }

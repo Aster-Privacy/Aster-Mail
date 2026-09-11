@@ -87,6 +87,7 @@ import {
   type CancelImpactResponse,
 } from "@/services/api/billing";
 import { checkout_error_text } from "@/components/settings/billing/checkout_error_text";
+import { is_promo_code_rejection } from "@/components/settings/billing/plan_change_discount_text";
 import { read_billing_interval } from "@/components/settings/billing/cancel_offer";
 import { is_contact_trashed } from "@/lib/contact_trash";
 
@@ -891,6 +892,16 @@ export function use_billing_section() {
       );
 
       if (!result.ok) {
+        if (is_promo_code_rejection(result.server_code)) {
+          show_toast(
+            checkout_error_text(t, result.server_code),
+            "error",
+            TOAST_DURATION_BILLING_MS,
+          );
+
+          return;
+        }
+
         show_toast(
           t("settings.payment_failed"),
           "error",

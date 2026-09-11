@@ -5626,6 +5626,33 @@ export const ja = {
       "料金の内訳を読み込めませんでした。もう一度お試しください。",
     plan_change_confirm_button: "確認して支払う",
     plan_change_confirming: "処理中...",
+    promo_error_invalid:
+      "このプロモーションコードは無効です。コードを確認して、もう一度お試しください。",
+    promo_error_expired:
+      "このプロモーションコードは有効期限が切れているか、利用できなくなっています。",
+    promo_error_not_for_plan:
+      "このプロモーションコードはこのプランには適用されません。",
+    promo_error_not_for_plan_change:
+      "このプロモーションコードはプラン変更時には使用できません。",
+    promo_error_discount_active:
+      "サブスクリプションにはすでに割引が適用されているため、別のプロモーションコードは追加できません。",
+    promo_error_same_plan:
+      "すでにこのプランをご利用中です。プロモーションコードは別のプランに変更するときに適用されます。",
+    promo_error_not_upgrade:
+      "プロモーションコードは上位プランにアップグレードするときに適用されます。",
+    promo_error_generic:
+      "プロモーションコードを確認できませんでした。しばらくしてからもう一度お試しください。",
+    plan_change_discount_amount: "{{amount}}オフ",
+    plan_change_discount_once: "今回のお支払いで{{discount}}",
+    plan_change_discount_forever: "毎回のお支払いで{{discount}}",
+    plan_change_discount_months: "{{count}}か月間{{discount}}",
+    plan_change_discount_months_one: "{{count}}か月間{{discount}}",
+    plan_change_discount_months_other: "{{count}}か月間{{discount}}",
+    plan_change_discount_label: "プロモーションコード {{code}}",
+    plan_change_price_before_discount: "割引前の価格",
+    plan_change_promo_applied:
+      "{{code}} を適用しました。本日 {{amount}} お得になります。",
+    plan_change_promo_remove: "削除",
     billing_switched: "請求サイクルを切り替えました",
     failed_switch_billing:
       "請求サイクルは変更されませんでした。もう一度試すと通ることが多いです。現在のサイクルが引き続き有効です。",
