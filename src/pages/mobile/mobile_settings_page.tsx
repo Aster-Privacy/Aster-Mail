@@ -113,6 +113,7 @@ import { format_bytes } from "@/lib/utils";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { use_should_reduce_motion } from "@/provider";
 import { use_mail_stats } from "@/hooks/use_mail_stats";
+import { read_settings_navigation } from "@/lib/settings_links";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_referral_summary } from "@/hooks/use_referral_summary";
 import { use_preferences } from "@/contexts/preferences_context";
@@ -274,11 +275,11 @@ function MobileSettingsPage() {
 
   useEffect(() => {
     const handler = (e: Event) => {
-      const detail = (e as CustomEvent<string>).detail;
+      const { section: requested } = read_settings_navigation(
+        (e as CustomEvent<unknown>).detail,
+      );
 
-      if (typeof detail === "string" && detail) {
-        open_section(detail as SettingsSection);
-      }
+      if (requested) open_section(requested as SettingsSection);
     };
 
     window.addEventListener("navigate-settings", handler);

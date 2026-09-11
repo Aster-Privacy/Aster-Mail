@@ -20,6 +20,7 @@
 //
 import type { ComponentType } from "react";
 import type { SecurityCriterion } from "@/lib/security_criteria";
+import type { SettingsTarget } from "@/lib/settings_links";
 
 import { useCallback, useMemo, useRef, useSyncExternalStore } from "react";
 import {
@@ -52,6 +53,10 @@ import {
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_escape_layer } from "@/lib/overlay_layer_stack";
+import {
+  open_settings_target,
+  SECURITY_CENTER_TARGETS,
+} from "@/lib/settings_links";
 import { use_panel_inset } from "@/hooks/use_panel_inset";
 import { use_panel_transition } from "@/components/layout/use_panel_transition";
 
@@ -68,8 +73,7 @@ interface SecurityStat {
   label: string;
   value: string;
   icon: PanelIcon;
-  section: string;
-  anchor?: string;
+  target: SettingsTarget;
 }
 
 const ALIAS_PREVIEW_LIMIT = 4;
@@ -84,14 +88,6 @@ const CHEVRON_CLASS =
 const QUIET_CHEVRON_CLASS = `${CHEVRON_CLASS} opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100`;
 const TRACK_COLOR = "color-mix(in srgb, var(--text-muted) 26%, transparent)";
 const ICON_CLASS = "h-[18px] w-[18px] flex-shrink-0 text-[var(--icon-muted)]";
-
-function navigate_to_settings(section: string, anchor?: string) {
-  window.dispatchEvent(
-    new CustomEvent("navigate-settings", {
-      detail: anchor ? { section, anchor } : section,
-    }),
-  );
-}
 
 function SecurityScoreMeter({
   met,
@@ -146,15 +142,14 @@ export function QuickSecurityPanel({
   );
 
   const go_to_settings = useCallback(
-    (section: string, anchor?: string) => {
-      navigate_to_settings(section, anchor);
+    (target: SettingsTarget) => {
+      open_settings_target(target);
       on_close();
     },
     [on_close],
   );
   const go_to_criterion = useCallback(
-    (criterion: SecurityCriterion) =>
-      go_to_settings(criterion.section, criterion.anchor),
+    (criterion: SecurityCriterion) => go_to_settings(criterion.target),
     [go_to_settings],
   );
 
@@ -219,37 +214,33 @@ export function QuickSecurityPanel({
       label: t("settings_search.sessions"),
       value: String(overview.session_count),
       icon: ComputerDesktopIcon,
-      section: "security",
-      anchor: "sec-sessions",
+      target: SECURITY_CENTER_TARGETS.sessions,
     },
     {
       id: "trusted_devices",
       label: t("settings.trusted_devices"),
       value: String(overview.trusted_device_count),
       icon: DevicePhoneMobileIcon,
-      section:
-        overview.trusted_device_count > 0 ? "trusted_devices" : "security",
-      anchor: overview.trusted_device_count > 0 ? undefined : "sec-devices",
+      target: SECURITY_CENTER_TARGETS.trusted_devices,
     },
     {
       id: "aliases",
       label: t("common.aliases"),
       value: alias_value,
       icon: AtSymbolIcon,
-      section: "aliases",
+      target: SECURITY_CENTER_TARGETS.aliases,
     },
     {
       id: "lockdown",
       label: t("settings.lockdown_title"),
       value: state_label(overview.lockdown_enabled),
       icon: ShieldExclamationIcon,
-      section: "security",
-      anchor: "sec-vanguard",
+      target: SECURITY_CENTER_TARGETS.lockdown,
     },
   ].filter((stat) => stat.id !== "aliases" || alias_preview.length === 0);
 
   const open_security = useCallback(() => {
-    go_to_settings("security");
+    go_to_settings(SECURITY_CENTER_TARGETS.overview);
   }, [go_to_settings]);
 
   const { is_visible, is_closing } = use_panel_transition(is_open);
@@ -358,7 +349,7 @@ export function QuickSecurityPanel({
               key={stat.id}
               className={ROW_CLASS}
               type="button"
-              onClick={() => go_to_settings(stat.section, stat.anchor)}
+              onClick={() => go_to_settings(stat.target)}
             >
               <stat.icon className={ICON_CLASS} />
               <span className={ROW_LABEL_CLASS}>{stat.label}</span>
@@ -369,7 +360,7 @@ export function QuickSecurityPanel({
           <button
             className={ROW_CLASS}
             type="button"
-            onClick={() => go_to_settings("security", "sec-vanguard")}
+            onClick={() => go_to_settings(SECURITY_CENTER_TARGETS.vanguard)}
           >
             <AsterSecurityMark className={ICON_CLASS} />
             <span className={ROW_LABEL_CLASS}>
@@ -383,7 +374,7 @@ export function QuickSecurityPanel({
           <button
             className={ROW_CLASS}
             type="button"
-            onClick={() => go_to_settings("encryption")}
+            onClick={() => go_to_settings(SECURITY_CENTER_TARGETS.encryption)}
           >
             <FingerPrintIcon className={ICON_CLASS} />
             <span className={ROW_LABEL_CLASS}>
@@ -400,7 +391,7 @@ export function QuickSecurityPanel({
             <button
               className="w-full rounded-lg px-2 py-2 text-start hover:bg-surf-secondary"
               type="button"
-              onClick={() => go_to_settings("aliases")}
+              onClick={() => go_to_settings(SECURITY_CENTER_TARGETS.aliases)}
             >
               <div className="flex items-center gap-2.5">
                 <AtSymbolIcon className={ICON_CLASS} />

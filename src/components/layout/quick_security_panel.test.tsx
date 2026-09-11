@@ -265,6 +265,29 @@ describe("quick security panel", () => {
     expect(events).toEqual([{ section: "security", anchor: "sec-2fa" }]);
   });
 
+  it("opens the trusted devices panel inside security settings", async () => {
+    const events: unknown[] = [];
+    const listener = (event: Event) => {
+      events.push((event as CustomEvent).detail);
+    };
+
+    window.addEventListener("navigate-settings", listener);
+    await render_panel();
+
+    const row = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button"),
+    ).find((button) =>
+      button.textContent?.includes("settings.trusted_devices"),
+    );
+
+    await act(async () => {
+      row?.click();
+    });
+    window.removeEventListener("navigate-settings", listener);
+
+    expect(events).toEqual([{ section: "security", anchor: "sec-devices" }]);
+  });
+
   it("shows our own protection signals alongside the criteria", async () => {
     await render_panel();
 

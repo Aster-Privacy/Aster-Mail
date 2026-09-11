@@ -70,6 +70,60 @@ describe("settings anchor", () => {
     expect(el.scrollIntoView).toHaveBeenCalled();
   });
 
+  it("follows the anchor when content above it finishes loading", async () => {
+    const container = document.createElement("div");
+    const el = document.createElement("div");
+    let el_top = 400;
+
+    container.style.overflowY = "auto";
+    Object.defineProperty(container, "scrollHeight", { value: 5000 });
+    Object.defineProperty(container, "clientHeight", { value: 600 });
+    container.getBoundingClientRect = () => ({ top: 0 }) as DOMRect;
+    container.scrollTo = vi.fn() as unknown as typeof container.scrollTo;
+    el.id = "sec-devices";
+    el.getBoundingClientRect = () => ({ top: el_top }) as DOMRect;
+    container.appendChild(el);
+    document.body.appendChild(container);
+
+    scroll_to_settings_anchor("sec-devices", true);
+    await new Promise((resolve) => setTimeout(resolve, 60));
+    el_top = 1100;
+    await new Promise((resolve) => setTimeout(resolve, 60));
+
+    expect(container.scrollTo).toHaveBeenNthCalledWith(1, {
+      top: 376,
+      behavior: "smooth",
+    });
+    expect(container.scrollTo).toHaveBeenLastCalledWith({
+      top: 1076,
+      behavior: "smooth",
+    });
+  });
+
+  it("stops following the anchor once the user scrolls", async () => {
+    const container = document.createElement("div");
+    const el = document.createElement("div");
+    let el_top = 400;
+
+    container.style.overflowY = "auto";
+    Object.defineProperty(container, "scrollHeight", { value: 5000 });
+    Object.defineProperty(container, "clientHeight", { value: 600 });
+    container.getBoundingClientRect = () => ({ top: 0 }) as DOMRect;
+    container.scrollTo = vi.fn() as unknown as typeof container.scrollTo;
+    el.id = "sec-vanguard";
+    el.getBoundingClientRect = () => ({ top: el_top }) as DOMRect;
+    container.appendChild(el);
+    document.body.appendChild(container);
+
+    scroll_to_settings_anchor("sec-vanguard", true);
+    await new Promise((resolve) => setTimeout(resolve, 60));
+    window.dispatchEvent(new Event("wheel"));
+    el_top = 1100;
+    await new Promise((resolve) => setTimeout(resolve, 60));
+
+    expect(container.scrollTo).toHaveBeenCalledTimes(1);
+  });
+
   it("gives up quietly when the element never appears", async () => {
     expect(() => scroll_to_settings_anchor("sec-missing")).not.toThrow();
     await new Promise((resolve) => setTimeout(resolve, 60));

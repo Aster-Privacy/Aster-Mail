@@ -23,8 +23,10 @@ import { describe, it, expect } from "vitest";
 import {
   build_security_criteria,
   security_percent,
+  SECURITY_CRITERION_IDS,
   type SecurityCriterionSource,
 } from "./security_criteria";
+import { SETTINGS_ANCHORS } from "./settings_links";
 
 const none: SecurityCriterionSource = {
   totp_enabled: false,
@@ -61,21 +63,29 @@ describe("security criteria", () => {
     expect(security_percent(criteria)).toBe(14);
   });
 
-  it("routes the recovery email criterion to the account section", () => {
+  it("routes the recovery email criterion to its account row", () => {
     const criteria = build_security_criteria(none);
     const recovery = criteria.find((item) => item.id === "recovery_email");
 
-    expect(recovery?.section).toBe("account");
-    expect(recovery?.anchor).toBeUndefined();
+    expect(recovery?.target).toEqual({
+      section: "account",
+      anchor: SETTINGS_ANCHORS.recovery_email,
+    });
   });
 
-  it("gives every security criterion an anchor to scroll to", () => {
-    const criteria = build_security_criteria(none).filter(
-      (item) => item.section === "security",
-    );
+  it("gives every criterion an anchor to scroll to", () => {
+    const criteria = build_security_criteria(none);
 
-    expect(criteria).toHaveLength(6);
-    expect(criteria.every((item) => Boolean(item.anchor))).toBe(true);
+    expect(
+      criteria.filter((item) => item.target.section === "security"),
+    ).toHaveLength(6);
+    expect(criteria.every((item) => Boolean(item.target.anchor))).toBe(true);
+  });
+
+  it("builds criteria in the shared order", () => {
+    expect(build_security_criteria(none).map((item) => item.id)).toEqual(
+      SECURITY_CRITERION_IDS,
+    );
   });
 
   it("marks only the enabled criteria as met", () => {

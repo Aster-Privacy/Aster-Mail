@@ -41,10 +41,17 @@ import {
   get_nav_items,
   resolve_nav_target,
   get_persisted_section,
+  resolve_settings_section,
   set_persisted_section,
 } from "./settings_content_helpers";
 
 import { safe_local_set } from "@/lib/safe_storage";
+import {
+  consume_pending_settings_anchor,
+  scroll_to_settings_anchor,
+  set_pending_settings_anchor,
+} from "@/lib/settings_anchor";
+import { read_settings_navigation } from "@/lib/settings_links";
 import { start_scroll_seek } from "@/components/settings/settings_scroll_target";
 import { SETTINGS_SEARCH_REGISTRY } from "@/components/settings/search_registry";
 import { use_search_registry } from "@/components/settings/search_context";
@@ -278,13 +285,15 @@ export function use_settings_content(props: SettingsContentProps) {
 
   useEffect(() => {
     const handle_navigate_section = (e: Event) => {
-      const detail = (e as CustomEvent<string>).detail;
+      const next = resolve_settings_section(
+        read_settings_navigation((e as CustomEvent<unknown>).detail).section,
+      );
 
-      if (detail) {
-        set_section(detail as Section);
-        set_persisted_section(detail as Section);
+      if (next) {
+        set_section(next);
+        set_persisted_section(next);
         set_show_mobile_nav(false);
-        on_section_change_ref.current(detail as Section);
+        on_section_change_ref.current(next);
       }
     };
 
@@ -351,28 +360,25 @@ export function use_settings_content(props: SettingsContentProps) {
     };
 
     const handle_navigate_section = (e: Event) => {
-      const detail = (
-        e as CustomEvent<string | { section: string; anchor?: string }>
-      ).detail;
-      const value = (
-        typeof detail === "string" ? detail : detail?.section
-      ) as Section;
-      const anchor = typeof detail === "string" ? undefined : detail?.anchor;
+      const { section: requested, anchor } = read_settings_navigation(
+        (e as CustomEvent<unknown>).detail,
+      );
+      const value = resolve_settings_section(requested);
 
       if (!value) return;
 
+      set_show_mobile_nav(false);
+
+      if (value === section_ref.current) {
+        if (anchor) scroll_to_settings_anchor(anchor, true);
+
+        return;
+      }
+
+      if (anchor) set_pending_settings_anchor(anchor);
       set_section(value);
       set_persisted_section(value);
-      set_show_mobile_nav(false);
       on_section_change_ref.current(value);
-
-      if (anchor) {
-        requestAnimationFrame(() =>
-          document
-            .getElementById(anchor)
-            ?.scrollIntoView({ behavior: "smooth", block: "start" }),
-        );
-      }
     };
 
     const handle_plan_changed = () => {
@@ -418,6 +424,10 @@ export function use_settings_content(props: SettingsContentProps) {
 
   useEffect(() => {
     content_container_ref.current?.scrollTo(0, 0);
+
+    const anchor = consume_pending_settings_anchor();
+
+    if (anchor) scroll_to_settings_anchor(anchor, true);
   }, [section]);
 
   const nav_items = useMemo((): NavItems => NAV_ITEMS_BASE, [NAV_ITEMS_BASE]);

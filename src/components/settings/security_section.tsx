@@ -21,7 +21,7 @@
 import type { ApiResponse } from "@/services/api/client";
 import type { HardwareKeysListResponse } from "@/services/api/webauthn";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Badge, Button, Switch } from "@aster/ui";
 import {
   ShieldCheckIcon,
@@ -57,9 +57,10 @@ import { use_security } from "@/components/settings/hooks/use_security";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 import {
-  consume_pending_settings_anchor,
-  scroll_to_settings_anchor,
-} from "@/lib/settings_anchor";
+  SECURITY_CRITERION_IDS,
+  SECURITY_CRITERION_TARGETS,
+} from "@/lib/security_criteria";
+import { open_settings_target, SETTINGS_ANCHORS } from "@/lib/settings_links";
 import { use_preferences } from "@/contexts/preferences_context";
 import {
   Select,
@@ -97,12 +98,6 @@ export function SecuritySection({
     show_inline_totp_setup_prop ?? show_inline_totp_setup_local;
   const set_show_inline_totp_setup =
     set_show_inline_totp_setup_prop ?? set_show_inline_totp_setup_local;
-
-  useEffect(() => {
-    const anchor = consume_pending_settings_anchor();
-
-    if (anchor) scroll_to_settings_anchor(anchor, true);
-  }, []);
   const {
     data: passkey_data,
     error: passkey_error,
@@ -176,18 +171,9 @@ export function SecuritySection({
           block_remote_images={preferences.block_remote_images}
           block_tracking_pixels={preferences.block_tracking_pixels}
           login_alerts_enabled={security.login_alerts_enabled}
-          on_criterion_click={[
-            () => scroll_to_settings_anchor("sec-2fa"),
-            () => scroll_to_settings_anchor("sec-passkeys"),
-            () =>
-              window.dispatchEvent(
-                new CustomEvent("navigate-settings", { detail: "account" }),
-              ),
-            () => scroll_to_settings_anchor("sec-2fa"),
-            () => scroll_to_settings_anchor("sec-tracking"),
-            () => scroll_to_settings_anchor("sec-images"),
-            () => scroll_to_settings_anchor("sec-images"),
-          ]}
+          on_criterion_click={SECURITY_CRITERION_IDS.map(
+            (id) => () => open_settings_target(SECURITY_CRITERION_TARGETS[id]),
+          )}
           passkey_registered={passkey_registered}
           recovery_email_verified={security.recovery_email_verified}
           security_loaded={
@@ -200,7 +186,7 @@ export function SecuritySection({
         />
       )}
 
-      <div id="sec-2fa">
+      <div id={SETTINGS_ANCHORS.two_factor}>
         <BasicsSection
           on_inline_totp_setup_success={() => {
             set_show_inline_totp_setup(false);
@@ -243,11 +229,11 @@ export function SecuritySection({
         />
       </div>
 
-      <div id="sec-passkeys">
+      <div id={SETTINGS_ANCHORS.passkeys}>
         <PasskeySection />
       </div>
 
-      <div id="sec-sessions">
+      <div id={SETTINGS_ANCHORS.sessions}>
         <SessionSection
           logout_others_loading={security.logout_others_loading}
           logout_others_result={security.logout_others_result}
@@ -259,26 +245,30 @@ export function SecuritySection({
         />
       </div>
 
-      <div id="sec-devices">
+      <div id={SETTINGS_ANCHORS.trusted_devices}>
         <TrustedDevicesSection />
       </div>
 
-      <LoginAlertsSessionsGroup
-        login_alerts_enabled={security.login_alerts_enabled}
-        login_alerts_failed={security.login_alerts_failed}
-        login_alerts_loaded={security.login_alerts_loaded}
-        login_events={security.login_events}
-        login_events_failed={security.login_events_failed}
-        login_events_loading={security.login_events_loading}
-        on_login_alerts_toggle={on_login_alerts_toggle}
-        on_reload_login_alerts={() => void security.fetch_login_alerts_status()}
-        on_reload_login_events={security.fetch_login_events}
-        on_timeout_change={security.handle_timeout_change}
-        on_timeout_toggle={security.handle_timeout_toggle}
-        session_timeout_enabled={security.preferences.session_timeout_enabled}
-        session_timeout_minutes={security.preferences.session_timeout_minutes}
-        timeout_description={security.get_timeout_description()}
-      />
+      <div id={SETTINGS_ANCHORS.login_alerts}>
+        <LoginAlertsSessionsGroup
+          login_alerts_enabled={security.login_alerts_enabled}
+          login_alerts_failed={security.login_alerts_failed}
+          login_alerts_loaded={security.login_alerts_loaded}
+          login_events={security.login_events}
+          login_events_failed={security.login_events_failed}
+          login_events_loading={security.login_events_loading}
+          on_login_alerts_toggle={on_login_alerts_toggle}
+          on_reload_login_alerts={() =>
+            void security.fetch_login_alerts_status()
+          }
+          on_reload_login_events={security.fetch_login_events}
+          on_timeout_change={security.handle_timeout_change}
+          on_timeout_toggle={security.handle_timeout_toggle}
+          session_timeout_enabled={security.preferences.session_timeout_enabled}
+          session_timeout_minutes={security.preferences.session_timeout_minutes}
+          timeout_description={security.get_timeout_description()}
+        />
+      </div>
 
       <ExternalLinkWarningsGroup
         external_link_warning_dismissed={
@@ -314,7 +304,7 @@ export function SecuritySection({
 
       <RecoverOlderDataSection />
 
-      <div id="sec-tracking">
+      <div id={SETTINGS_ANCHORS.tracking}>
         <div className="mb-4">
           <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
             <ShieldCheckIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
@@ -413,7 +403,7 @@ export function SecuritySection({
         )}
       </div>
 
-      <div id="sec-images">
+      <div id={SETTINGS_ANCHORS.images}>
         <div className="mb-4">
           <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
             <PhotoIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
@@ -608,7 +598,7 @@ export function SecuritySection({
         </div>
       </div>
 
-      <div id="sec-vanguard">
+      <div id={SETTINGS_ANCHORS.vanguard}>
         <div className="mb-4">
           <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
             <CpuChipIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />

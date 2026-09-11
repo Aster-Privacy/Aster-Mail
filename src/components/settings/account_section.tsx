@@ -99,6 +99,7 @@ import {
   use_profile_picture_upload,
 } from "@/hooks/use_profile_picture_upload";
 import { is_onion_host } from "@/lib/onion_host";
+import { SETTINGS_ANCHORS } from "@/lib/settings_links";
 import { show_upgrade_plans } from "@/stores/upgrade_store";
 import { app_locale } from "@/utils/date_format";
 import { is_composing } from "@/utils/ime";
@@ -869,7 +870,7 @@ export function AccountSection() {
         </div>
       )}
 
-      <div className="py-4">
+      <div className="py-4" id={SETTINGS_ANCHORS.recovery_email}>
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm font-medium text-txt-primary">

@@ -27,6 +27,7 @@ import {
 import { Badge, Button } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { SETTINGS_ANCHORS } from "@/lib/settings_links";
 import { get_recovery_methods, RecoveryMethods } from "@/services/api/recovery";
 import { RecoveryCodesModal } from "@/components/settings/security/recovery_codes_modal";
 
@@ -55,7 +56,7 @@ export function AccountRecoverySection() {
   const has_offline_method = has_codes || (methods?.has_phrase ?? false);
 
   return (
-    <div id="sec-recovery">
+    <div id={SETTINGS_ANCHORS.account_recovery}>
       <div className="mb-4">
         <div className="flex items-center flex-wrap gap-x-3 gap-y-1">
           <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">

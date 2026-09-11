@@ -18,8 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { SettingsSection } from "@/components/settings/settings_content";
-
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -49,6 +47,9 @@ import {
 import { show_action_toast } from "@/components/toast/action_toast";
 import { open_external } from "@/utils/open_link";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
+import { resolve_settings_section } from "@/components/settings/settings_content_helpers";
+import { set_pending_settings_anchor } from "@/lib/settings_anchor";
+import { read_settings_navigation } from "@/lib/settings_links";
 
 export default function EmailDetailPage() {
   const reduce_motion = use_should_reduce_motion();
@@ -130,13 +131,12 @@ export default function EmailDetailPage() {
 
   useEffect(() => {
     const handle_navigate = (e: Event) => {
-      const detail_value = (
-        e as CustomEvent<string | { section: string; anchor?: string }>
-      ).detail;
-      const section = (
-        typeof detail_value === "string" ? detail_value : detail_value?.section
-      ) as SettingsSection | undefined;
+      const { section: requested, anchor } = read_settings_navigation(
+        (e as CustomEvent<unknown>).detail,
+      );
+      const section = resolve_settings_section(requested);
 
+      if (anchor) set_pending_settings_anchor(anchor);
       navigate(section ? `/settings/${section}` : "/settings");
     };
 

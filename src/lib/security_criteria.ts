@@ -21,6 +21,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { TranslationKey } from "@/lib/i18n/types";
+import type { SettingsTarget } from "@/lib/settings_links";
+
+import { SETTINGS_ANCHORS } from "@/lib/settings_links";
 
 export type SecurityCriterionId =
   | "two_factor"
@@ -45,63 +48,64 @@ export interface SecurityCriterion {
   id: SecurityCriterionId;
   label_key: TranslationKey;
   met: boolean;
-  section: "security" | "account";
-  anchor?: string;
+  target: SettingsTarget;
 }
+
+export const SECURITY_CRITERION_IDS: readonly SecurityCriterionId[] = [
+  "two_factor",
+  "passkey",
+  "recovery_email",
+  "login_alerts",
+  "tracking_pixels",
+  "remote_images",
+  "strip_exif",
+];
+
+export const SECURITY_CRITERION_TARGETS: Record<
+  SecurityCriterionId,
+  SettingsTarget
+> = {
+  two_factor: { section: "security", anchor: SETTINGS_ANCHORS.two_factor },
+  passkey: { section: "security", anchor: SETTINGS_ANCHORS.passkeys },
+  recovery_email: {
+    section: "account",
+    anchor: SETTINGS_ANCHORS.recovery_email,
+  },
+  login_alerts: { section: "security", anchor: SETTINGS_ANCHORS.login_alerts },
+  tracking_pixels: { section: "security", anchor: SETTINGS_ANCHORS.tracking },
+  remote_images: { section: "security", anchor: SETTINGS_ANCHORS.images },
+  strip_exif: { section: "security", anchor: SETTINGS_ANCHORS.images },
+};
+
+const CRITERION_LABELS: Record<SecurityCriterionId, TranslationKey> = {
+  two_factor: "settings.criterion_two_factor",
+  passkey: "settings.criterion_passkey",
+  recovery_email: "settings.criterion_recovery_email",
+  login_alerts: "settings.criterion_login_alerts",
+  tracking_pixels: "settings.block_spy_pixels",
+  remote_images: "settings.block_remote_images_label",
+  strip_exif: "settings.strip_exif_on_compose_label",
+};
 
 export function build_security_criteria(
   source: SecurityCriterionSource,
 ): SecurityCriterion[] {
-  return [
-    {
-      id: "two_factor",
-      label_key: "settings.criterion_two_factor",
-      met: source.totp_enabled,
-      section: "security",
-      anchor: "sec-2fa",
-    },
-    {
-      id: "passkey",
-      label_key: "settings.criterion_passkey",
-      met: source.passkey_registered,
-      section: "security",
-      anchor: "sec-passkeys",
-    },
-    {
-      id: "recovery_email",
-      label_key: "settings.criterion_recovery_email",
-      met: source.recovery_email_verified,
-      section: "account",
-    },
-    {
-      id: "login_alerts",
-      label_key: "settings.criterion_login_alerts",
-      met: source.login_alerts_enabled,
-      section: "security",
-      anchor: "sec-2fa",
-    },
-    {
-      id: "tracking_pixels",
-      label_key: "settings.block_spy_pixels",
-      met: source.block_tracking_pixels,
-      section: "security",
-      anchor: "sec-tracking",
-    },
-    {
-      id: "remote_images",
-      label_key: "settings.block_remote_images_label",
-      met: source.block_remote_images,
-      section: "security",
-      anchor: "sec-images",
-    },
-    {
-      id: "strip_exif",
-      label_key: "settings.strip_exif_on_compose_label",
-      met: source.strip_exif_on_compose,
-      section: "security",
-      anchor: "sec-images",
-    },
-  ];
+  const met: Record<SecurityCriterionId, boolean> = {
+    two_factor: source.totp_enabled,
+    passkey: source.passkey_registered,
+    recovery_email: source.recovery_email_verified,
+    login_alerts: source.login_alerts_enabled,
+    tracking_pixels: source.block_tracking_pixels,
+    remote_images: source.block_remote_images,
+    strip_exif: source.strip_exif_on_compose,
+  };
+
+  return SECURITY_CRITERION_IDS.map((id) => ({
+    id,
+    label_key: CRITERION_LABELS[id],
+    met: met[id],
+    target: SECURITY_CRITERION_TARGETS[id],
+  }));
 }
 
 export function security_percent(criteria: SecurityCriterion[]): number {
