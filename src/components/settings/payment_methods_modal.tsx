@@ -21,7 +21,9 @@
 import type { KeyboardEvent } from "react";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { loadStripe, type Stripe } from "@stripe/stripe-js";
+import type { Stripe } from "@stripe/stripe-js";
+
+import { loadStripe } from "@stripe/stripe-js/pure";
 import {
   Elements,
   CardNumberElement,

@@ -22,7 +22,7 @@ import type { PlanFeature } from "@/components/settings/billing/plan_card";
 import { read_billing_interval } from "@/components/settings/billing/cancel_offer";
 
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
-import { loadStripe } from "@stripe/stripe-js";
+import { loadStripe } from "@stripe/stripe-js/pure";
 
 import { safe_local_set } from "@/lib/safe_storage";
 import {

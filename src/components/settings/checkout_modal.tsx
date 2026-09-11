@@ -205,7 +205,7 @@ export function CheckoutModal({
         return;
       }
 
-      const { loadStripe } = await import("@stripe/stripe-js");
+      const { loadStripe } = await import("@stripe/stripe-js/pure");
 
       set_stripe_promise(
         loadStripe(config_response.data.publishable_key, {
