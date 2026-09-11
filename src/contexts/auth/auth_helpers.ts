@@ -53,6 +53,7 @@ import { clear_my_badge_prefs } from "@/stores/my_badge_prefs_store";
 import { clear_ghost_entries } from "@/stores/ghost_alias_store";
 import { clear_recipient_hints } from "@/stores/recipient_hint_store";
 import { clear_label_hints } from "@/stores/label_hints_store";
+import { reset_special_offer_status } from "@/stores/special_offer_status";
 
 export const AUTH_VERIFY_TIMEOUT_MS = 12000;
 
@@ -63,6 +64,7 @@ export async function clear_account_scoped_caches(): Promise<void> {
   clear_tags_cache();
   clear_preload_cache();
   clear_plan_limits_cache();
+  reset_special_offer_status();
   clear_attachment_limits_cache();
   clear_aliases_cache();
   clear_plan_cache();

@@ -95,8 +95,6 @@ export function SpecialOfferModal() {
     if (!is_loaded) return;
     if (!status?.auto_show) return;
 
-    let cancelled = false;
-
     let timer = setTimeout(function attempt() {
       if (is_another_dialog_open()) {
         timer = setTimeout(attempt, AUTO_SHOW_RETRY_MS);
@@ -105,14 +103,11 @@ export function SpecialOfferModal() {
       }
 
       void claim_special_offer_slot().then((granted) => {
-        if (cancelled || !granted) return;
-
-        show_special_offer("auto");
+        if (granted) show_special_offer("auto");
       });
     }, AUTO_SHOW_DELAY_MS);
 
     return () => {
-      cancelled = true;
       clearTimeout(timer);
     };
   }, [is_loaded, status?.auto_show]);

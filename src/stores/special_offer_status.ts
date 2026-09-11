@@ -20,6 +20,8 @@
 //
 import { useEffect, useSyncExternalStore } from "react";
 
+import { use_auth } from "@/contexts/auth_context";
+
 import {
   accept_special_offer_on_server,
   claim_special_offer,
@@ -35,6 +37,7 @@ export interface SpecialOfferStatusState {
 
 let current: SpecialOfferStatusState = { status: null, is_loaded: false };
 let in_flight: Promise<void> | null = null;
+let generation = 0;
 const listeners = new Set<() => void>();
 
 function notify() {
@@ -63,23 +66,30 @@ function patch(next: Partial<SpecialOfferStatus>) {
 export function load_special_offer_status(): Promise<void> {
   if (in_flight) return in_flight;
 
+  const request_generation = generation;
+
   in_flight = fetch_special_offer_status()
     .then((status) => {
+      if (request_generation !== generation) return;
+
       current = { status, is_loaded: true };
       notify();
     })
     .catch(() => {
+      if (request_generation !== generation) return;
+
       current = { status: null, is_loaded: true };
       notify();
     })
     .finally(() => {
-      in_flight = null;
+      if (request_generation === generation) in_flight = null;
     });
 
   return in_flight;
 }
 
 export function reset_special_offer_status() {
+  generation += 1;
   current = { status: null, is_loaded: false };
   in_flight = null;
   notify();
@@ -105,10 +115,11 @@ export async function record_special_offer_accepted(): Promise<void> {
 
 export function use_special_offer_status(): SpecialOfferStatusState {
   const state = useSyncExternalStore(subscribe, snapshot, snapshot);
+  const { is_authenticated } = use_auth();
 
   useEffect(() => {
-    if (!state.is_loaded) void load_special_offer_status();
-  }, [state.is_loaded]);
+    if (is_authenticated && !state.is_loaded) void load_special_offer_status();
+  }, [is_authenticated, state.is_loaded]);
 
   return state;
 }
