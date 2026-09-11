@@ -27,7 +27,13 @@ export interface AutolinkMatch {
 }
 
 const CANDIDATE_PATTERN =
-  /(?<![\w@/.-])(?:(https?:\/\/|www\.)[^\s<>"'`]+|([A-Za-z0-9._%+-]+@[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?)*\.[A-Za-z]{2,}))/g;
+  /(?:(https?:\/\/|www\.)[^\s<>"'`]+|([A-Za-z0-9._%+-]+@[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?)*\.[A-Za-z]{2,}))/g;
+
+const BLOCKED_LEADING_CHAR = /[\w@/.-]/;
+
+function is_blocked_start(text: string, index: number): boolean {
+  return index > 0 && BLOCKED_LEADING_CHAR.test(text[index - 1]);
+}
 
 const TRAILING_PUNCTUATION = new Set([
   ".",
@@ -122,6 +128,10 @@ export function find_autolinks(text: string): AutolinkMatch[] {
   let match: RegExpExecArray | null;
 
   while ((match = CANDIDATE_PATTERN.exec(text)) !== null) {
+    if (is_blocked_start(text, match.index)) {
+      CANDIDATE_PATTERN.lastIndex = match.index + 1;
+      continue;
+    }
     const raw = match[0];
     const prefix = match[1];
 
