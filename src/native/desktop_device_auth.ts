@@ -85,7 +85,7 @@ function base64url_decode_to_bytes(input: string): Uint8Array {
   return bytes;
 }
 
-async function device_challenge(
+export async function device_challenge(
   device_id: string,
 ): Promise<{ challenge_id: string; nonce: string }> {
   const { api_client } = await import("@/services/api/client");
@@ -101,7 +101,7 @@ async function device_challenge(
   return result.data;
 }
 
-async function device_login(
+export async function device_login(
   challenge_id: string,
   signature: string,
 ): Promise<unknown> {

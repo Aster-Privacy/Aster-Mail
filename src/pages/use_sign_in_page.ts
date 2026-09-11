@@ -19,7 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useNavigate, useLocation } from "react-router-dom";
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 
 import {
   SignInDomain,
@@ -54,9 +54,30 @@ import { emit_auth_ready } from "@/hooks/mail_events";
 import { show_toast } from "@/components/toast/simple_toast";
 import { hard_redirect, get_app_query_param } from "@/lib/hard_redirect";
 import { ignore_error } from "@/lib/ignore_error";
-import { safe_session_set } from "@/lib/safe_storage";
+import { safe_session_get, safe_session_set } from "@/lib/safe_storage";
+import {
+  type hub_account,
+  on_hub_accounts_changed,
+  read_hub_accounts,
+  uses_account_hub,
+} from "@/services/account_hub_link";
+import { sign_in_with_hub_account } from "@/services/hub_linked_login";
+import { is_tauri } from "@/native/desktop_device_auth";
 import { user_facing_error } from "@/utils/user_facing_error";
 import { is_auth_salt_collision } from "@/services/crypto/auth_salt_guard";
+
+const HUB_AUTO_SIGN_IN_KEY = "aster_hub_auto_sign_in_attempted";
+
+type device_login_detail = {
+  login_response: {
+    user_id: string;
+    username: string;
+    email: string;
+    encrypted_vault: string;
+    vault_nonce: string;
+  };
+  passphrase: string | null;
+};
 
 export function use_sign_in_page() {
   const navigate = useNavigate();
@@ -119,6 +140,198 @@ export function use_sign_in_page() {
     );
   });
   const [checkout_status, set_checkout_status] = useState("");
+  const [hub_account_list, set_hub_account_list] = useState<hub_account[]>([]);
+  const [hub_signing_in_id, set_hub_signing_in_id] = useState<string | null>(
+    null,
+  );
+  const hub_auto_started = useRef(false);
+  const hub_enabled = !is_tauri() && uses_account_hub();
+
+  const process_device_login = useCallback(
+    async (detail: device_login_detail): Promise<string | null> => {
+      if (!detail.passphrase) return "";
+
+      try {
+        const vault = await decrypt_vault(
+          detail.login_response.encrypted_vault,
+          detail.login_response.vault_nonce,
+          detail.passphrase,
+        );
+        const user_info_response = await get_user_info();
+        const user_data = user_info_response.data
+          ? {
+              id: detail.login_response.user_id,
+              username: detail.login_response.username,
+              email: detail.login_response.email,
+              display_name: user_info_response.data.display_name || undefined,
+              profile_color: user_info_response.data.profile_color || undefined,
+              profile_picture:
+                user_info_response.data.profile_picture || undefined,
+            }
+          : {
+              id: detail.login_response.user_id,
+              username: detail.login_response.username,
+              email: detail.login_response.email,
+            };
+
+        if (is_adding_account) {
+          const add_result = await add_account(
+            user_data,
+            vault,
+            detail.passphrase,
+            detail.login_response.encrypted_vault,
+            detail.login_response.vault_nonce,
+          );
+
+          if (!add_result.success) {
+            return add_result.error || "";
+          }
+        } else {
+          await login(
+            user_data,
+            vault,
+            detail.passphrase,
+            detail.login_response.encrypted_vault,
+            detail.login_response.vault_nonce,
+          );
+        }
+        setTimeout(() => emit_auth_ready(), 50);
+        hard_redirect(consume_safe_next_path());
+
+        return null;
+      } catch (e) {
+        if (import.meta.env.DEV) console.error(e);
+
+        return "";
+      }
+    },
+    [add_account, is_adding_account, login],
+  );
+
+  useEffect(() => {
+    if (!hub_enabled || auth_loading || has_existing_session) return;
+
+    let cancelled = false;
+    const load = () => {
+      read_hub_accounts().then((list) => {
+        if (!cancelled) set_hub_account_list(list ?? []);
+      });
+    };
+
+    load();
+    const unsubscribe = on_hub_accounts_changed(load);
+
+    return () => {
+      cancelled = true;
+      unsubscribe();
+    };
+  }, [hub_enabled, auth_loading, has_existing_session]);
+
+  const hub_accounts = useMemo(() => {
+    if (reauth_account_id) {
+      return hub_account_list.filter((acc) => acc.id === reauth_account_id);
+    }
+    if (!is_adding_account) return hub_account_list;
+
+    const local_ids = new Set(accounts.map((acc) => acc.id));
+
+    return hub_account_list.filter((acc) => !local_ids.has(acc.id));
+  }, [hub_account_list, reauth_account_id, is_adding_account, accounts]);
+
+  const prefill_from_email = useCallback((email: string) => {
+    const at = email.lastIndexOf("@");
+    const domain = email.slice(at + 1).toLowerCase();
+
+    set_username(at > 0 ? email.slice(0, at) : email);
+    if (domain === "astermail.org" || domain === "aster.cx") {
+      set_email_domain(domain);
+    }
+    set_password("");
+  }, []);
+
+  const handle_hub_account = useCallback(
+    async (account: hub_account) => {
+      if (hub_signing_in_id !== null) return;
+
+      set_error("");
+      if (!account.linkable) {
+        prefill_from_email(account.email);
+
+        return;
+      }
+
+      set_hub_signing_in_id(account.id);
+      let failure: string | null = "";
+
+      try {
+        const result = await sign_in_with_hub_account(
+          account.id,
+          t("common.aster_mail"),
+        );
+
+        failure = await process_device_login(result);
+      } catch (e) {
+        if (import.meta.env.DEV) console.error(e);
+      }
+
+      if (failure === null) return;
+
+      prefill_from_email(account.email);
+      set_error(failure || t("auth.hub_account_link_failed"));
+      set_hub_signing_in_id(null);
+    },
+    [hub_signing_in_id, prefill_from_email, process_device_login, t],
+  );
+
+  useEffect(() => {
+    if (
+      hub_auto_started.current ||
+      !hub_enabled ||
+      auth_loading ||
+      is_authenticated ||
+      is_adding_account ||
+      reauth_account_id ||
+      is_checkout_login ||
+      get_app_query_param("reason") ||
+      safe_session_get(HUB_AUTO_SIGN_IN_KEY)
+    ) {
+      return;
+    }
+
+    const current = hub_account_list.find(
+      (acc) => acc.is_current && acc.linkable,
+    );
+
+    if (!current) return;
+
+    hub_auto_started.current = true;
+    safe_session_set(HUB_AUTO_SIGN_IN_KEY, "1");
+    void handle_hub_account(current);
+  }, [
+    hub_enabled,
+    auth_loading,
+    is_authenticated,
+    is_adding_account,
+    reauth_account_id,
+    is_checkout_login,
+    hub_account_list,
+    handle_hub_account,
+  ]);
+
+  const hub_requested_id = useRef(get_app_query_param("hub_account"));
+
+  useEffect(() => {
+    const requested = hub_requested_id.current;
+
+    if (!requested || auth_loading) return;
+
+    const account = hub_accounts.find((acc) => acc.id === requested);
+
+    if (!account) return;
+
+    hub_requested_id.current = null;
+    void handle_hub_account(account);
+  }, [auth_loading, hub_accounts, handle_hub_account]);
 
   useEffect(() => {
     document.title = `${t("auth.sign_in")} | ${t("common.aster_mail")}`;
@@ -430,8 +643,7 @@ export function use_sign_in_page() {
             totp_response.prf_nonce
           ) {
             const prf_out = (totp_response as any).prf_output as
-              | ArrayBuffer
-              | undefined;
+              ArrayBuffer | undefined;
 
             if (prf_out) {
               const prf_passphrase = await decrypt_with_prf(
@@ -729,5 +941,8 @@ export function use_sign_in_page() {
     set_active_2fa_method,
     handle_totp_success,
     handle_resend_pending,
+    hub_accounts,
+    hub_signing_in_id,
+    handle_hub_account,
   };
 }
