@@ -46,6 +46,11 @@ import { Spinner } from "@/components/ui/spinner";
 import { use_i18n } from "@/lib/i18n/context";
 import { is_onion_host } from "@/lib/onion_host";
 import { format_price } from "@/services/api/billing";
+import { convert_cents } from "@/components/settings/billing/billing_constants";
+import {
+  special_offer_term_months,
+  type SpecialOfferPlanPricing,
+} from "@/lib/special_offer";
 import text_logo_url from "@/assets/text_logo.webp";
 
 export interface plan_term_option {
@@ -89,6 +94,8 @@ interface plan_payment_method_modal_props {
   credits_apply_to_card?: boolean;
   discount_percent_off?: number;
   discount_duration_months?: number;
+  special_offer?: SpecialOfferPlanPricing;
+  card_currency?: string;
   on_close: () => void;
   on_choose_card: (term_id?: string) => void;
   on_choose_crypto: (term_id?: string) => void;
@@ -152,6 +159,8 @@ export function PlanPaymentMethodModal({
   credits_apply_to_card = true,
   discount_percent_off,
   discount_duration_months,
+  special_offer,
+  card_currency,
   on_close,
   on_choose_card,
   on_choose_crypto,
@@ -219,9 +228,90 @@ export function PlanPaymentMethodModal({
           },
         )
       : null;
+  const method_currency = (entry_method: pay_method) =>
+    entry_method === "card" && card_currency ? card_currency : undefined;
+  const to_method_cents = (entry_method: pay_method, cents: number) => {
+    const currency = method_currency(entry_method);
+
+    return currency ? convert_cents(cents, currency) : cents;
+  };
+  const format_for = (entry_method: pay_method, cents: number) =>
+    format_price(cents, method_currency(entry_method));
+  const option_offer_quote = (
+    entry_method: pay_method,
+    option: plan_term_option | undefined,
+  ) => {
+    if (!special_offer || !option) return null;
+
+    const term_months = special_offer_term_months(option.id);
+
+    if (!term_months) return null;
+
+    const list_total_cents = to_method_cents(entry_method, option.total_cents);
+    const offer_total_cents = special_offer.discounted_total_cents(
+      entry_method,
+      option.id,
+      list_total_cents,
+    );
+
+    if (offer_total_cents === null || offer_total_cents >= list_total_cents) {
+      return null;
+    }
+
+    return {
+      list_per_month_cents: to_method_cents(
+        entry_method,
+        option.per_month_cents,
+      ),
+      offer_total_cents,
+      offer_per_month_cents: Math.round(offer_total_cents / term_months),
+    };
+  };
+  const offer_quote = (entry_method: pay_method) =>
+    option_offer_quote(entry_method, active_option);
+  const summary_quote = offer_quote(effective_method);
+  const summary_per_month_cents =
+    summary_quote?.offer_per_month_cents ??
+    to_method_cents(effective_method, active_option?.per_month_cents ?? 0);
+  const summary_total_cents =
+    summary_quote?.offer_total_cents ??
+    to_method_cents(effective_method, active_option?.total_cents ?? 0);
   const amount_due = active_option
-    ? format_price(active_option.total_cents)
+    ? format_for(effective_method, summary_total_cents)
     : null;
+  const save_badge = special_offer ? (
+    <span
+      className="inline-flex flex-shrink-0 items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide"
+      style={{
+        backgroundColor: "var(--accent-color)",
+        color: "var(--accent-fg, #ffffff)",
+      }}
+    >
+      {t("settings.special_offer_save_badge", {
+        percent: String(special_offer.percent_off),
+      })}
+    </span>
+  ) : null;
+  const original_per_month = (
+    entry_method: pay_method,
+    list_per_month_cents: number,
+    tone_class: string,
+  ) => {
+    const label = t("settings.checkout_term_per_month", {
+      amount: format_for(entry_method, list_per_month_cents),
+    });
+
+    return (
+      <>
+        <span className="sr-only">
+          {t("settings.special_offer_original_price", { price: label })}
+        </span>
+        <span aria-hidden="true" className={`line-through ${tone_class}`}>
+          {label}
+        </span>
+      </>
+    );
+  };
 
   const methods: {
     id: pay_method;
@@ -339,6 +429,10 @@ export function PlanPaymentMethodModal({
               <div className="space-y-2" role="radiogroup">
                 {term_options.map((option) => {
                   const active = option.id === term_id;
+                  const term_quote = option_offer_quote(
+                    effective_method,
+                    option,
+                  );
 
                   return (
                     <button
@@ -381,18 +475,49 @@ export function PlanPaymentMethodModal({
                           </span>
                         )}
                       </span>
-                      <span className="flex-shrink-0 text-end">
-                        <span className="block text-[15px] font-bold text-txt-primary">
-                          {t("settings.checkout_term_per_month", {
-                            amount: format_price(option.per_month_cents),
-                          })}
+                      {term_quote ? (
+                        <span
+                          className="flex-shrink-0 text-end"
+                          data-special-offer-term={option.id}
+                        >
+                          <span className="block text-[11px]">
+                            {original_per_month(
+                              effective_method,
+                              term_quote.list_per_month_cents,
+                              "text-txt-muted",
+                            )}
+                          </span>
+                          <span className="block text-[15px] font-bold text-txt-primary">
+                            {t("settings.checkout_term_per_month", {
+                              amount: format_for(
+                                effective_method,
+                                term_quote.offer_per_month_cents,
+                              ),
+                            })}
+                          </span>
+                          <span className="block text-[11px] text-txt-muted">
+                            {t("settings.checkout_term_total", {
+                              amount: format_for(
+                                effective_method,
+                                term_quote.offer_total_cents,
+                              ),
+                            })}
+                          </span>
                         </span>
-                        <span className="block text-[11px] text-txt-muted">
-                          {t("settings.checkout_term_total", {
-                            amount: format_price(option.total_cents),
-                          })}
+                      ) : (
+                        <span className="flex-shrink-0 text-end">
+                          <span className="block text-[15px] font-bold text-txt-primary">
+                            {t("settings.checkout_term_per_month", {
+                              amount: format_price(option.per_month_cents),
+                            })}
+                          </span>
+                          <span className="block text-[11px] text-txt-muted">
+                            {t("settings.checkout_term_total", {
+                              amount: format_price(option.total_cents),
+                            })}
+                          </span>
                         </span>
-                      </span>
+                      )}
                     </button>
                   );
                 })}
@@ -406,6 +531,7 @@ export function PlanPaymentMethodModal({
               {methods.map((entry) => {
                 const active = entry.id === effective_method;
                 const MethodIcon = entry.icon;
+                const quote = offer_quote(entry.id);
 
                 return (
                   <button
@@ -436,6 +562,27 @@ export function PlanPaymentMethodModal({
                       <CardBrandMarks class_name="mt-2.5" />
                     )}
                     {entry.id === "crypto" && <CoinStack class_name="mt-2.5" />}
+                    {quote && (
+                      <span
+                        className="mt-2.5 flex flex-wrap items-center gap-x-1.5 gap-y-1"
+                        data-special-offer-price={entry.id}
+                      >
+                        {original_per_month(
+                          entry.id,
+                          quote.list_per_month_cents,
+                          "text-[12px] text-txt-muted",
+                        )}
+                        <span className="text-[13px] font-semibold text-txt-primary">
+                          {t("settings.checkout_term_per_month", {
+                            amount: format_for(
+                              entry.id,
+                              quote.offer_per_month_cents,
+                            ),
+                          })}
+                        </span>
+                        {save_badge}
+                      </span>
+                    )}
                     {entry.id === "card" && discount_note && (
                       <span
                         className="mt-1 flex items-start gap-1.5 text-[11px] leading-snug"
@@ -497,11 +644,14 @@ export function PlanPaymentMethodModal({
               <span className="text-[15px] font-bold plan_galaxy_text_primary">
                 {summary_name}
               </span>
-              {active_option && active_option.id === best_value_id && (
-                <span className="plan_galaxy_badge inline-flex flex-shrink-0 items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide">
-                  {t("settings.best_value")}
-                </span>
-              )}
+              {summary_quote
+                ? save_badge
+                : active_option &&
+                  active_option.id === best_value_id && (
+                    <span className="plan_galaxy_badge inline-flex flex-shrink-0 items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide">
+                      {t("settings.best_value")}
+                    </span>
+                  )}
             </div>
 
             {active_option && (
@@ -511,17 +661,35 @@ export function PlanPaymentMethodModal({
                     <span className="plan_galaxy_text_muted">
                       {active_option.label}
                     </span>
-                    <span>
-                      {t("settings.checkout_term_per_month", {
-                        amount: format_price(active_option.per_month_cents),
-                      })}
+                    <span
+                      className="flex flex-wrap items-baseline justify-end gap-x-1.5"
+                      data-special-offer-summary={
+                        summary_quote ? effective_method : undefined
+                      }
+                    >
+                      {summary_quote &&
+                        original_per_month(
+                          effective_method,
+                          summary_quote.list_per_month_cents,
+                          "plan_galaxy_text_muted",
+                        )}
+                      <span>
+                        {t("settings.checkout_term_per_month", {
+                          amount: format_for(
+                            effective_method,
+                            summary_per_month_cents,
+                          ),
+                        })}
+                      </span>
                     </span>
                   </div>
                   <div className="flex items-center justify-between gap-2">
                     <span className="plan_galaxy_text_muted">
                       {t("common.subtotal")}
                     </span>
-                    <span>{format_price(active_option.total_cents)}</span>
+                    <span>
+                      {format_for(effective_method, summary_total_cents)}
+                    </span>
                   </div>
                   {active_option.save_cents > 0 && (
                     <div style={{ color: "var(--accent-color)" }}>

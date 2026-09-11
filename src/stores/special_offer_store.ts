@@ -56,12 +56,20 @@ export function get_special_offer_snapshot(): SpecialOfferState {
   return current;
 }
 
-export function show_special_offer(source: SpecialOfferSource = "manual") {
-  if (is_on_auth_route()) return;
+export function can_show_special_offer(): boolean {
+  return !is_on_auth_route();
+}
+
+export function show_special_offer(
+  source: SpecialOfferSource = "manual",
+): boolean {
+  if (!can_show_special_offer()) return false;
 
   open_seq += 1;
   current = { is_open: true, source, open_seq };
   notify();
+
+  return true;
 }
 
 export function close_special_offer() {

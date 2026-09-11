@@ -5043,6 +5043,7 @@ export const tr = {
     special_offer_checkout_error:
       "Ödeme başlatılırken bir sorun oluştu. Tekrar deneyin.",
     special_offer_was_price: "Önceki fiyat: aylık {{price}}",
+    special_offer_original_price: "Normal fiyat: {{price}}",
     special_offer_cta: "%{{percent}} indirim alın",
     special_offer_feature_aliases: "Sınırsız takma ad ve özel alan adları",
     special_offer_feature_vanguard:

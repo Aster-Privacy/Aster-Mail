@@ -5007,6 +5007,7 @@ export const ko = {
     special_offer_checkout_error:
       "결제를 시작하는 중 문제가 발생했습니다. 다시 시도하세요.",
     special_offer_was_price: "이전 가격 월 {{price}}",
+    special_offer_original_price: "정가: {{price}}",
     special_offer_cta: "{{percent}}% 할인 받기",
     special_offer_feature_aliases: "무제한 별칭과 맞춤 도메인",
     special_offer_feature_vanguard:

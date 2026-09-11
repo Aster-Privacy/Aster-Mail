@@ -65,6 +65,7 @@ export function render_billing_dialogs(
 ) {
   const {
     t,
+    special_offer_checkout,
     subscription,
     is_action_loading,
     show_cancel_dialog,
@@ -153,6 +154,40 @@ export function render_billing_dialogs(
   const downgrade_offer =
     base_offer && !base_offer.is_family ? base_offer : null;
   const step_after_reason: CancelStep = downgrade_offer ? "offer" : "impact";
+  const method_modal_tier = method_modal_plan
+    ? PLAN_TIERS.find((tier) => tier.id === method_modal_plan.code)
+    : undefined;
+  const method_modal_offer = method_modal_plan
+    ? special_offer_checkout.plan_pricing(method_modal_plan.code)
+    : undefined;
+  const method_modal_term =
+    method_modal_tier && method_modal_offer
+      ? billing_period === "yearly"
+        ? {
+            id: "yearly",
+            label: t("settings.billing_yearly"),
+            per_month_cents: Math.round(method_modal_tier.yearly_cents / 12),
+            total_cents: method_modal_tier.yearly_cents,
+            save_cents: 0,
+          }
+        : billing_period === "biennial"
+          ? {
+              id: "biennial",
+              label: t("settings.biennial"),
+              per_month_cents: Math.round(
+                method_modal_tier.biennial_cents / 24,
+              ),
+              total_cents: method_modal_tier.biennial_cents,
+              save_cents: 0,
+            }
+          : {
+              id: "monthly",
+              label: t("settings.billing_monthly"),
+              per_month_cents: method_modal_tier.monthly_cents,
+              total_cents: method_modal_tier.monthly_cents,
+              save_cents: 0,
+            }
+      : undefined;
 
   return (
     <>
@@ -442,6 +477,9 @@ export function render_billing_dialogs(
           }}
           open={show_method_modal}
           plan_name={method_modal_plan.name}
+          selected_term={method_modal_term?.id}
+          special_offer={method_modal_term ? method_modal_offer : undefined}
+          term_options={method_modal_term ? [method_modal_term] : undefined}
         />
       )}
 
@@ -453,6 +491,10 @@ export function render_billing_dialogs(
 
           return (
             <CryptoTermModal
+              discount_percent_off={special_offer_checkout.percent_off}
+              discounted_price_cents={special_offer_checkout.crypto_price(
+                crypto_plan.code,
+              )}
               initial_coin_key={
                 crypto_resume
                   ? `${crypto_resume.currency}:${crypto_resume.chain}`

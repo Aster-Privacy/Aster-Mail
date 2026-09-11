@@ -5949,6 +5949,7 @@ export const en: Translations = {
     special_offer_checkout_error:
       "Something went wrong starting checkout. Try again.",
     special_offer_was_price: "Was {{price}} per month",
+    special_offer_original_price: "Original price: {{price}}",
     special_offer_cta: "Get {{percent}}% off",
     special_offer_feature_aliases: "Unlimited aliases and custom domains",
     special_offer_feature_vanguard:

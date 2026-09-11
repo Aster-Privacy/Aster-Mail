@@ -5096,6 +5096,7 @@ export const es = {
     special_offer_checkout_error:
       "Se ha producido un error al iniciar el pago. Inténtalo de nuevo.",
     special_offer_was_price: "Antes {{price}} al mes",
+    special_offer_original_price: "Precio original: {{price}}",
     special_offer_cta: "Consigue un {{percent}} % de descuento",
     special_offer_feature_aliases: "Alias ilimitados y dominios propios",
     special_offer_feature_vanguard:

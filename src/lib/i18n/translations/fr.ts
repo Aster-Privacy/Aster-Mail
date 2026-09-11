@@ -5149,6 +5149,7 @@ export const fr = {
     special_offer_checkout_error:
       "Une erreur s'est produite au lancement du paiement. Réessayez.",
     special_offer_was_price: "Avant {{price}} par mois",
+    special_offer_original_price: "Prix initial : {{price}}",
     special_offer_cta: "Obtenir {{percent}} % de réduction",
     special_offer_feature_aliases: "Alias illimités et domaines personnalisés",
     special_offer_feature_vanguard:

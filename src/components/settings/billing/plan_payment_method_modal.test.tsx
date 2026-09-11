@@ -27,8 +27,13 @@ import {
   type plan_term_option,
 } from "./plan_payment_method_modal";
 
+import { special_offer_checkout } from "@/lib/special_offer";
+
 vi.mock("@/lib/i18n/context", () => ({
-  use_i18n: () => ({ t: (key: string) => key }),
+  use_i18n: () => ({
+    t: (key: string, params?: Record<string, string>) =>
+      params ? `${key}(${Object.values(params).join(",")})` : key,
+  }),
 }));
 
 vi.mock("@/services/api/billing", () => ({
@@ -147,5 +152,191 @@ describe("PlanPaymentMethodModal crypto-only terms", () => {
 
     act(() => card.click());
     expect(on_choose_card).not.toHaveBeenCalled();
+  });
+});
+
+describe("PlanPaymentMethodModal special offer pricing", () => {
+  let container: HTMLDivElement;
+  let root: Root;
+
+  const NOVA_TERMS: plan_term_option[] = [
+    {
+      id: "monthly",
+      label: "settings.billing_monthly",
+      per_month_cents: 899,
+      total_cents: 899,
+      save_cents: 0,
+    },
+    {
+      id: "yearly",
+      label: "settings.billing_yearly",
+      per_month_cents: 725,
+      total_cents: 8699,
+      save_cents: 2089,
+    },
+    {
+      id: "biennial",
+      label: "settings.biennial",
+      per_month_cents: 625,
+      total_cents: 14999,
+      save_cents: 6577,
+      crypto_only: true,
+    },
+  ];
+
+  beforeEach(() => {
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+  });
+
+  afterEach(() => {
+    act(() => root.unmount());
+    container.remove();
+  });
+
+  function render(
+    with_offer: boolean,
+    selected_term = "monthly",
+    on_choose_crypto = vi.fn(),
+  ) {
+    act(() => {
+      root.render(
+        <PlanPaymentMethodModal
+          open
+          on_choose_card={vi.fn()}
+          on_choose_crypto={on_choose_crypto}
+          on_close={vi.fn()}
+          plan_name="Nova"
+          selected_term={selected_term}
+          special_offer={
+            with_offer
+              ? special_offer_checkout(true).plan_pricing("nova")
+              : undefined
+          }
+          term_options={NOVA_TERMS}
+        />,
+      );
+    });
+
+    return on_choose_crypto;
+  }
+
+  function offer_price(selector: string): HTMLElement {
+    const match = document.body.querySelector<HTMLElement>(selector);
+
+    if (!match) throw new Error(`special offer price not found: ${selector}`);
+
+    return match;
+  }
+
+  function struck_text(element: HTMLElement): string {
+    return element.querySelector(".line-through")?.textContent ?? "";
+  }
+
+  it("discounts both methods on monthly billing", () => {
+    render(true);
+
+    const card = offer_price('[data-special-offer-price="card"]');
+    const crypto = offer_price('[data-special-offer-price="crypto"]');
+
+    for (const tile of [card, crypto]) {
+      expect(struck_text(tile)).toBe("settings.checkout_term_per_month($8.99)");
+      expect(tile.textContent).toContain(
+        "settings.checkout_term_per_month($4.49)",
+      );
+      expect(tile.textContent).toContain(
+        "settings.special_offer_save_badge(50)",
+      );
+    }
+
+    const card_summary = offer_price('[data-special-offer-summary="card"]');
+
+    expect(struck_text(card_summary)).toBe(
+      "settings.checkout_term_per_month($8.99)",
+    );
+    expect(card_summary.textContent).toContain(
+      "settings.checkout_term_per_month($4.49)",
+    );
+  });
+
+  it("discounts only crypto on yearly billing and prices the summary for it", () => {
+    const on_choose_crypto = render(true, "yearly");
+
+    expect(
+      document.body.querySelector('[data-special-offer-price="card"]'),
+    ).toBeNull();
+    expect(
+      document.body.querySelector("[data-special-offer-summary]"),
+    ).toBeNull();
+    expect(document.body.textContent).toContain("$86.99");
+
+    const crypto = offer_price('[data-special-offer-price="crypto"]');
+
+    expect(struck_text(crypto)).toBe("settings.checkout_term_per_month($7.25)");
+    expect(crypto.textContent).toContain(
+      "settings.checkout_term_per_month($3.62)",
+    );
+
+    act(() =>
+      method_button(document.body, "settings.checkout_method_crypto").click(),
+    );
+
+    const crypto_summary = offer_price('[data-special-offer-summary="crypto"]');
+
+    expect(crypto_summary.textContent).toContain(
+      "settings.checkout_term_per_month($3.62)",
+    );
+    expect(document.body.textContent).toContain("$43.49");
+
+    act(() => {
+      method_button(document.body, "settings.continue_to_checkout").click();
+    });
+
+    expect(on_choose_crypto).toHaveBeenCalledWith("yearly");
+  });
+
+  it("charges full price on the two year term", () => {
+    render(true, "biennial");
+
+    expect(
+      document.body.querySelector("[data-special-offer-price]"),
+    ).toBeNull();
+    expect(
+      document.body.querySelector("[data-special-offer-summary] .line-through"),
+    ).toBeNull();
+    expect(
+      document.body.querySelector('[data-special-offer-term="biennial"]'),
+    ).toBeNull();
+    expect(document.body.textContent).not.toContain(
+      "settings.special_offer_save_badge",
+    );
+  });
+
+  it("shows the discount on the monthly term row while another term is selected", () => {
+    render(true, "biennial");
+
+    const monthly_row = document.body.querySelector(
+      '[data-special-offer-term="monthly"]',
+    );
+
+    expect(monthly_row?.querySelector(".line-through")?.textContent).toBe(
+      "settings.checkout_term_per_month($8.99)",
+    );
+    expect(monthly_row?.textContent).toContain(
+      "settings.checkout_term_per_month($4.49)",
+    );
+  });
+
+  it("adds no offer pricing without a special offer", () => {
+    render(false);
+
+    expect(
+      document.body.querySelector("[data-special-offer-price]"),
+    ).toBeNull();
+    expect(document.body.querySelector(".line-through")).toBeNull();
+    expect(document.body.textContent).not.toContain(
+      "settings.special_offer_save_badge",
+    );
   });
 });

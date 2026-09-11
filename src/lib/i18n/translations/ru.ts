@@ -5206,6 +5206,7 @@ export const ru = {
     special_offer_checkout_error:
       "Не удалось начать оплату. Попробуйте ещё раз.",
     special_offer_was_price: "Было {{price}} в месяц",
+    special_offer_original_price: "Обычная цена: {{price}}",
     special_offer_cta: "Получить скидку {{percent}}%",
     special_offer_feature_aliases:
       "Неограниченные псевдонимы и собственные домены",

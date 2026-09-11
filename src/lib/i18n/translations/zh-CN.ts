@@ -4564,6 +4564,7 @@ export const zh_CN = {
     special_offer_save_badge: "省 {{percent}}%",
     special_offer_checkout_error: "启动结账时出错。请重试。",
     special_offer_was_price: "原价每月 {{price}}",
+    special_offer_original_price: "原价：{{price}}",
     special_offer_cta: "享 {{percent}}% 折扣",
     special_offer_feature_aliases: "无限别名和自定义域名",
     special_offer_feature_vanguard: "Aster Vanguard 应用锁、锁定模式和安全监控",

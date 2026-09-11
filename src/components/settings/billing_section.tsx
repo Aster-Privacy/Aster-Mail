@@ -65,6 +65,7 @@ import {
 } from "@/services/api/billing";
 import { request_cache } from "@/services/api/request_cache";
 import { use_mail_stats, invalidate_mail_stats } from "@/hooks/use_mail_stats";
+import { use_special_offer_checkout } from "@/hooks/use_special_offer_checkout";
 import {
   show_toast,
   TOAST_DURATION_BILLING_MS,
@@ -115,6 +116,7 @@ import { use_plan_features } from "@/components/settings/billing/use_plan_featur
 
 export function BillingSection() {
   const { t } = use_i18n();
+  const offer_checkout = use_special_offer_checkout();
   const { stats } = use_mail_stats();
   const [subscription, set_subscription] =
     useState<SubscriptionResponse | null>(null);
@@ -1162,6 +1164,10 @@ export function BillingSection() {
 
           return (
             <CryptoTermModal
+              discount_percent_off={offer_checkout.percent_off}
+              discounted_price_cents={offer_checkout.crypto_price(
+                crypto_plan.code,
+              )}
               initial_coin_key={
                 crypto_resume
                   ? `${crypto_resume.currency}:${crypto_resume.chain}`
@@ -1244,6 +1250,7 @@ export function BillingSection() {
           plan_name={plan_method_target.name}
           selected_plan_id={plan_method_target.code}
           selected_term={billing_period}
+          special_offer={offer_checkout.plan_pricing(plan_method_target.code)}
           term_options={plan_term_options_for(plan_method_target.code)}
         />
       )}

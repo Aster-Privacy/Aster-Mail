@@ -5238,6 +5238,7 @@ export const pl = {
     special_offer_checkout_error:
       "Coś poszło nie tak podczas rozpoczynania płatności. Spróbuj ponownie.",
     special_offer_was_price: "Wcześniej {{price}} miesięcznie",
+    special_offer_original_price: "Cena regularna: {{price}}",
     special_offer_cta: "Odbierz {{percent}}% zniżki",
     special_offer_feature_aliases: "Nieograniczone aliasy i własne domeny",
     special_offer_feature_vanguard:

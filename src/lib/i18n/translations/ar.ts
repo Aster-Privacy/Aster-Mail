@@ -5118,6 +5118,7 @@ export const ar = {
     special_offer_save_badge: "وفّر {{percent}}%",
     special_offer_checkout_error: "تعذّر بدء الدفع. حاول مرة أخرى.",
     special_offer_was_price: "كان {{price}} شهريًا",
+    special_offer_original_price: "السعر الأصلي: {{price}}",
     special_offer_cta: "احصل على خصم {{percent}}%",
     special_offer_feature_aliases: "أسماء مستعارة غير محدودة ونطاقات مخصصة",
     special_offer_feature_vanguard:

@@ -5056,6 +5056,7 @@ export const de = {
     special_offer_checkout_error:
       "Beim Start des Bezahlvorgangs ist ein Fehler aufgetreten. Versuchen Sie es erneut.",
     special_offer_was_price: "Vorher {{price}} pro Monat",
+    special_offer_original_price: "Ursprünglicher Preis: {{price}}",
     special_offer_cta: "{{percent}} % Rabatt sichern",
     special_offer_feature_aliases: "Unbegrenzte Aliase und eigene Domains",
     special_offer_feature_vanguard:

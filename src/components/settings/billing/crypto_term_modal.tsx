@@ -77,6 +77,11 @@ interface CryptoTermModalProps {
   initial_coin_key?: string;
   initial_invoice_id?: string;
   promo_code?: string | null;
+  discounted_price_cents?: (
+    term_months: number,
+    list_price_cents: number,
+  ) => number | null;
+  discount_percent_off?: number;
 }
 
 const TERM_OPTIONS: TermMonths[] = [1, 3, 6, 12, 24];
@@ -117,6 +122,8 @@ export function crypto_term_modal({
   initial_coin_key,
   initial_invoice_id,
   promo_code,
+  discounted_price_cents,
+  discount_percent_off,
 }: CryptoTermModalProps) {
   const { t } = use_i18n();
   const navigate = useNavigate();
@@ -216,11 +223,67 @@ export function crypto_term_modal({
     return tier?.biennial_cents ?? yearly_price_cents * 2;
   }, [plan_code, yearly_price_cents]);
 
-  const compute_price_cents = (term: TermMonths): number => {
+  const list_price_cents = (term: TermMonths): number => {
     if (term === 12) return yearly_price_cents;
     if (term === 24) return biennial_price_cents;
 
     return monthly_price_cents * term;
+  };
+
+  const compute_price_cents = (term: TermMonths): number => {
+    const list = list_price_cents(term);
+
+    return discounted_price_cents?.(term, list) ?? list;
+  };
+
+  const is_discounted = (term: TermMonths): boolean =>
+    compute_price_cents(term) < list_price_cents(term);
+
+  const original_price = (term: TermMonths, is_selected: boolean) => {
+    if (!is_discounted(term)) return null;
+
+    const label = format_price(list_price_cents(term), CHARGE_CURRENCY);
+
+    return (
+      <>
+        <span className="sr-only">
+          {t("settings.special_offer_original_price", { price: label })}
+        </span>
+        <span
+          aria-hidden="true"
+          className={`text-xs font-medium line-through ${
+            is_selected ? "opacity-70" : "text-txt-muted"
+          }`}
+          style={
+            is_selected ? { color: "var(--accent-fg, #ffffff)" } : undefined
+          }
+        >
+          {label}
+        </span>
+      </>
+    );
+  };
+
+  const save_badge = (term: TermMonths, is_selected: boolean) => {
+    if (!discount_percent_off || !is_discounted(term)) return null;
+
+    return (
+      <span
+        className="inline-flex flex-shrink-0 items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide"
+        style={{
+          backgroundColor: is_selected
+            ? "var(--accent-fg, #ffffff)"
+            : "var(--accent-color)",
+          color: is_selected
+            ? "var(--accent-color)"
+            : "var(--accent-fg, #ffffff)",
+        }}
+      >
+        {t("settings.special_offer_save_badge", {
+          percent: String(discount_percent_off),
+        })}
+      </span>
+    );
   };
 
   const term_label = (term: TermMonths): string => {
@@ -448,27 +511,33 @@ export function crypto_term_modal({
                       onClick={() => set_selected_term(term)}
                       onKeyDown={(event) => handle_term_keydown(event, index)}
                     >
-                      <span
-                        className="text-sm font-medium"
-                        style={{
-                          color: is_selected
-                            ? "var(--accent-fg, #ffffff)"
-                            : "var(--text-primary)",
-                        }}
-                      >
-                        {term_label(term)}
+                      <span className="flex min-w-0 flex-wrap items-center gap-2">
+                        <span
+                          className="text-sm font-medium"
+                          style={{
+                            color: is_selected
+                              ? "var(--accent-fg, #ffffff)"
+                              : "var(--text-primary)",
+                          }}
+                        >
+                          {term_label(term)}
+                        </span>
+                        {save_badge(term, is_selected)}
                       </span>
-                      <span
-                        className="text-sm font-semibold"
-                        style={{
-                          color: is_selected
-                            ? "var(--accent-fg, #ffffff)"
-                            : "var(--text-primary)",
-                        }}
-                      >
-                        {t("settings.crypto_modal_price", {
-                          amount: format_price(price, CHARGE_CURRENCY),
-                        })}
+                      <span className="flex flex-shrink-0 items-baseline gap-2">
+                        {original_price(term, is_selected)}
+                        <span
+                          className="text-sm font-semibold"
+                          style={{
+                            color: is_selected
+                              ? "var(--accent-fg, #ffffff)"
+                              : "var(--text-primary)",
+                          }}
+                        >
+                          {t("settings.crypto_modal_price", {
+                            amount: format_price(price, CHARGE_CURRENCY),
+                          })}
+                        </span>
                       </span>
                     </button>
                   );
@@ -536,8 +605,9 @@ export function crypto_term_modal({
                   <dt className="text-xs text-txt-muted">
                     {t("common.total")}
                   </dt>
-                  <dd className="text-base font-semibold text-txt-primary">
-                    {selected_price_label}
+                  <dd className="flex items-baseline gap-2 text-base font-semibold text-txt-primary">
+                    {original_price(selected_term, false)}
+                    <span>{selected_price_label}</span>
                   </dd>
                 </div>
               </dl>

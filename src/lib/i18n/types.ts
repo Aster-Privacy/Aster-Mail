@@ -5238,6 +5238,7 @@ export interface SettingsTranslations {
   special_offer_save_badge: string;
   special_offer_checkout_error: string;
   special_offer_was_price: string;
+  special_offer_original_price: string;
   special_offer_cta: string;
   special_offer_feature_aliases: string;
   special_offer_feature_vanguard: string;

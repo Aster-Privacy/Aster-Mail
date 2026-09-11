@@ -5103,6 +5103,7 @@ export const pt = {
     special_offer_checkout_error:
       "Algo deu errado ao iniciar o pagamento. Tente novamente.",
     special_offer_was_price: "Antes {{price}} por mês",
+    special_offer_original_price: "Preço original: {{price}}",
     special_offer_cta: "Obter {{percent}}% de desconto",
     special_offer_feature_aliases:
       "Aliases ilimitados e domínios personalizados",

@@ -5963,6 +5963,7 @@ export const hi = {
     special_offer_checkout_error:
       "चेकआउट शुरू करने में कुछ गड़बड़ हुई। फिर से कोशिश करें।",
     special_offer_was_price: "पहले {{price}} प्रति माह",
+    special_offer_original_price: "मूल कीमत: {{price}}",
     special_offer_cta: "{{percent}}% की छूट पाएँ",
     special_offer_feature_aliases: "असीमित उपनाम और कस्टम डोमेन",
     special_offer_feature_vanguard:

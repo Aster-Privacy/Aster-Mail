@@ -5065,6 +5065,7 @@ export const ja = {
     special_offer_checkout_error:
       "決済を開始できませんでした。もう一度お試しください。",
     special_offer_was_price: "以前は月額{{price}}",
+    special_offer_original_price: "通常価格：{{price}}",
     special_offer_cta: "{{percent}}%オフで購入",
     special_offer_feature_aliases: "エイリアスとカスタムドメインが無制限",
     special_offer_feature_vanguard:

@@ -5022,6 +5022,7 @@ export const nl = {
     special_offer_checkout_error:
       "Er is iets misgegaan bij het starten van het afrekenen. Probeer het opnieuw.",
     special_offer_was_price: "Was {{price}} per maand",
+    special_offer_original_price: "Oorspronkelijke prijs: {{price}}",
     special_offer_cta: "Krijg {{percent}}% korting",
     special_offer_feature_aliases: "Onbeperkt aliassen en eigen domeinen",
     special_offer_feature_vanguard:

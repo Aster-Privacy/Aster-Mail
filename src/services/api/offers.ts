@@ -41,6 +41,7 @@ interface AckResponse {
 export async function fetch_special_offer_status(): Promise<SpecialOfferStatus | null> {
   const response = await api_client.get<SpecialOfferStatus>(
     "/core/v1/offers/special",
+    { skip_cache: true },
   );
 
   return response.data ?? null;

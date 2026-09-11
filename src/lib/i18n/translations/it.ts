@@ -6146,6 +6146,7 @@ export const it = {
     special_offer_checkout_error:
       "Si è verificato un errore all'avvio del pagamento. Riprova.",
     special_offer_was_price: "Prima {{price}} al mese",
+    special_offer_original_price: "Prezzo originale: {{price}}",
     special_offer_cta: "Ottieni il {{percent}}% di sconto",
     special_offer_feature_aliases: "Alias illimitati e domini personalizzati",
     special_offer_feature_vanguard:
