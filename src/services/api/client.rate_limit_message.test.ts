@@ -38,13 +38,17 @@ vi.mock("@/services/account_manager", () => ({
 
 const { ApiClient } = await import("./client/api_client");
 const { get_translations } = await import("@/lib/i18n/translations");
+const { parse_retry_after_header } = await import("./client/helpers");
 
 const SERVER_MESSAGE = "Rate limit exceeded. Please try again later";
 
-function rate_limited(body: Record<string, unknown>): Response {
+function rate_limited(
+  body: Record<string, unknown>,
+  extra_headers: Record<string, string> = {},
+): Response {
   return new Response(JSON.stringify(body), {
     status: 429,
-    headers: { "content-type": "application/json" },
+    headers: { "content-type": "application/json", ...extra_headers },
   });
 }
 
@@ -82,5 +86,73 @@ describe("rate limit error messages", () => {
 
     expect(response.error).toBe("Too many sign-in attempts.");
     expect(response.resets_at).toBe(resets_at);
+  });
+
+  it("exposes the domain search throttle and its Retry-After header", async () => {
+    routed_fetch.mockResolvedValue(
+      rate_limited(
+        {
+          error: "Too many searches. Try again in a minute.",
+          code: "DOMAIN_SEARCH_RATE_LIMITED",
+        },
+        { "Retry-After": "120" },
+      ),
+    );
+
+    const response = await new ApiClient().get(
+      "/addresses/v1/domains/purchase/search?query=example",
+    );
+
+    expect(response.code).toBe("RATE_LIMIT_EXCEEDED");
+    expect(response.server_code).toBe("DOMAIN_SEARCH_RATE_LIMITED");
+    expect(response.retry_after_secs).toBe(120);
+  });
+
+  it("ignores a missing or unreadable Retry-After header", async () => {
+    routed_fetch.mockResolvedValueOnce(
+      rate_limited(
+        { code: "DOMAIN_SEARCH_RATE_LIMITED" },
+        { "Retry-After": "soon" },
+      ),
+    );
+    routed_fetch.mockResolvedValueOnce(
+      rate_limited({ code: "DOMAIN_SEARCH_RATE_LIMITED" }),
+    );
+
+    const garbage = await new ApiClient().get(
+      "/addresses/v1/domains/purchase/search",
+    );
+    const missing = await new ApiClient().get(
+      "/addresses/v1/domains/purchase/search",
+    );
+
+    expect(garbage.server_code).toBe("DOMAIN_SEARCH_RATE_LIMITED");
+    expect(garbage.retry_after_secs).toBeUndefined();
+    expect(missing.retry_after_secs).toBeUndefined();
+  });
+});
+
+describe("parse_retry_after_header", () => {
+  const now = Date.parse("2026-09-11T18:15:00.000Z");
+
+  it("reads delay seconds and HTTP dates", () => {
+    expect(parse_retry_after_header("60", now)).toBe(60);
+    expect(parse_retry_after_header(" 7 ", now)).toBe(7);
+    expect(
+      parse_retry_after_header(new Date(now + 31_000).toUTCString(), now),
+    ).toBe(31);
+  });
+
+  it("rejects garbage, zero, negative, past, and absurd values", () => {
+    expect(parse_retry_after_header(null, now)).toBeUndefined();
+    expect(parse_retry_after_header("", now)).toBeUndefined();
+    expect(parse_retry_after_header("soon", now)).toBeUndefined();
+    expect(parse_retry_after_header("0", now)).toBeUndefined();
+    expect(parse_retry_after_header("-5", now)).toBeUndefined();
+    expect(parse_retry_after_header("1.5", now)).toBeUndefined();
+    expect(parse_retry_after_header("99999999", now)).toBeUndefined();
+    expect(
+      parse_retry_after_header(new Date(now - 1_000).toUTCString(), now),
+    ).toBeUndefined();
   });
 });

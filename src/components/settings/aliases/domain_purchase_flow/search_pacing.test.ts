@@ -51,6 +51,33 @@ describe("classify_search_failure", () => {
     ).toBe("slow_down");
   });
 
+  it("treats a long retry after without the throttle code as throttled", () => {
+    expect(
+      classify_search_failure({
+        code: "RATE_LIMIT_EXCEEDED",
+        retry_after_secs: 45,
+      }),
+    ).toBe("throttled");
+    expect(
+      classify_search_failure({
+        code: "RATE_LIMIT_EXCEEDED",
+        details: { retry_after_secs: "30" },
+      }),
+    ).toBe("throttled");
+    expect(
+      classify_search_failure({
+        code: "RATE_LIMIT_EXCEEDED",
+        retry_after_secs: 1,
+      }),
+    ).toBe("slow_down");
+    expect(
+      classify_search_failure({
+        code: "RATE_LIMIT_EXCEEDED",
+        details: { retry_after_secs: "soon" },
+      }),
+    ).toBe("slow_down");
+  });
+
   it("keeps not released and generic failures apart", () => {
     expect(classify_search_failure({ code: "NOT_FOUND" })).toBe("not_released");
     expect(classify_search_failure({ code: "SERVICE_UNAVAILABLE" })).toBe(
@@ -82,14 +109,41 @@ describe("throttle_wait_ms", () => {
     ).toBe(30_500);
   });
 
-  it("uses a minute when the server gives no hint", () => {
+  it("falls back to the Retry-After header before resets_at", () => {
+    expect(
+      throttle_wait_ms(
+        {
+          retry_after_secs: 90,
+          resets_at: new Date(now + 5_000).toISOString(),
+        },
+        now,
+      ),
+    ).toBe(90_000);
+  });
+
+  it("accepts a numeric string in the details", () => {
+    expect(throttle_wait_ms({ details: { retry_after_secs: "75" } }, now)).toBe(
+      75_000,
+    );
+  });
+
+  it("uses a minute when the server gives no usable hint", () => {
     expect(throttle_wait_ms({}, now)).toBe(SEARCH_DEFAULT_THROTTLE_MS);
     expect(
       throttle_wait_ms({ resets_at: new Date(now - 1_000).toISOString() }, now),
     ).toBe(SEARCH_DEFAULT_THROTTLE_MS);
-    expect(throttle_wait_ms({ details: { retry_after_secs: "60" } }, now)).toBe(
+    expect(
+      throttle_wait_ms(
+        { details: { retry_after_secs: "soon" }, resets_at: "garbage" },
+        now,
+      ),
+    ).toBe(SEARCH_DEFAULT_THROTTLE_MS);
+    expect(throttle_wait_ms({ details: { retry_after_secs: -5 } }, now)).toBe(
       SEARCH_DEFAULT_THROTTLE_MS,
     );
+    expect(
+      throttle_wait_ms({ details: { retry_after_secs: Number.NaN } }, now),
+    ).toBe(SEARCH_DEFAULT_THROTTLE_MS);
   });
 
   it("clamps extreme values", () => {

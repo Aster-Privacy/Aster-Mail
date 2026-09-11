@@ -133,6 +133,7 @@ export function DomainPurchaseFlow({
     useState(false);
   const [error, set_error] = useState<string | null>(null);
   const [throttled_until, set_throttled_until] = useState<number | null>(null);
+  const [rate_limited, set_rate_limited] = useState(false);
   const [unavailable, set_unavailable] = useState(false);
   const [selected, set_selected] = useState<DomainSearchResult | null>(
     restored_checkout.current?.selected ?? null,
@@ -194,6 +195,7 @@ export function DomainPurchaseFlow({
       last_started_ref.current = Date.now();
       set_searching(true);
       set_error(null);
+      set_rate_limited(false);
       set_unavailable(false);
       set_throttled_until(null);
       let response: Awaited<ReturnType<typeof search_purchasable_domains>>;
@@ -228,7 +230,7 @@ export function DomainPurchaseFlow({
         set_searching(false);
       } else if (current && kind === "throttled") {
         set_searching(false);
-        set_error(t("settings.domain_purchase_search_rate_limited"));
+        set_rate_limited(true);
         if (auto_retried_query_ref.current !== trimmed) {
           auto_retried_query_ref.current = trimmed;
           pending_query_ref.current = trimmed;
@@ -240,6 +242,10 @@ export function DomainPurchaseFlow({
       ) {
         rate_limit_retries.current += 1;
         pending_query_ref.current = trimmed;
+      } else if (current && kind === "slow_down") {
+        rate_limit_retries.current = 0;
+        set_searching(false);
+        set_rate_limited(true);
       } else if (current) {
         rate_limit_retries.current = 0;
         set_searching(false);
@@ -270,7 +276,8 @@ export function DomainPurchaseFlow({
     retry_ref.current = null;
     if (blocked_until_ref.current > Date.now()) {
       set_searching(false);
-      set_error(t("settings.domain_purchase_search_rate_limited"));
+      set_error(null);
+      set_rate_limited(true);
       set_throttled_until(blocked_until_ref.current);
     }
     if (delay > 0) {
@@ -283,7 +290,7 @@ export function DomainPurchaseFlow({
     }
     pending_query_ref.current = null;
     void execute_search(next);
-  }, [execute_search, t]);
+  }, [execute_search]);
 
   pump_ref.current = pump_search;
 
@@ -963,6 +970,16 @@ export function DomainPurchaseFlow({
                 </Button>
               )}
             </div>
+          ) : rate_limited && !has_rows ? (
+            <div
+              className="flex flex-col items-center justify-center text-center h-[280px]"
+              role="status"
+            >
+              <ExclamationTriangleIcon className="w-8 h-8 text-yellow-500 mb-3" />
+              <p className="text-sm text-txt-secondary max-w-[300px]">
+                {t("settings.domain_purchase_search_rate_limited")}
+              </p>
+            </div>
           ) : !has_rows ? (
             searching || !results_query ? (
               <SkeletonRows />
@@ -974,106 +991,119 @@ export function DomainPurchaseFlow({
               </div>
             )
           ) : (
-            <div
-              className={`transition-opacity divide-y divide-edge-secondary/60 ${
-                showing_stale ? "opacity-40" : "opacity-100"
-              }`}
-            >
-              <div className="flex flex-col items-start gap-1 pt-4 pb-3 px-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-                <div className="min-w-0 max-w-full">
-                  <h3 className="text-[15px] font-semibold text-txt-primary truncate">
-                    {t("settings.domain_purchase_results_for", {
-                      name: results_query,
-                    })}
-                  </h3>
-                </div>
-                <button
-                  className="flex-shrink-0 -mx-2 px-2 py-2 min-h-[40px] text-[13px] font-medium text-[var(--accent-color)] hover:underline"
-                  onClick={() => {
-                    set_query("");
-                  }}
+            <>
+              {rate_limited && (
+                <div
+                  className="flex items-start gap-2 mb-2 px-3 py-2.5 rounded-lg bg-yellow-500/10"
+                  role="status"
                 >
-                  {t("settings.domain_purchase_change_name")}
-                </button>
-              </div>
-              <div className="pb-1">
-                {results.length > 0 && filtered_results.length === 0 && (
-                  <p className="px-3 py-8 text-center text-sm text-txt-muted">
-                    {t("settings.domain_purchase_no_results")}
+                  <ExclamationTriangleIcon className="w-4 h-4 mt-0.5 text-yellow-500 flex-shrink-0" />
+                  <p className="text-sm text-txt-secondary">
+                    {t("settings.domain_purchase_search_rate_limited")}
                   </p>
-                )}
-                {best_match && (
-                  <ResultRow
-                    primary
-                    on_select={(r) => {
-                      set_selected(r);
-                      set_error(null);
-                      set_view("confirm");
-                    }}
-                    result={best_match}
-                  />
-                )}
-                {rest_results.map((result) => (
-                  <ResultRow
-                    key={result.domain}
-                    on_select={(r) => {
-                      set_selected(r);
-                      set_error(null);
-                      set_view("confirm");
-                    }}
-                    result={result}
-                  />
-                ))}
-                {filtered_results.length > visible_count && (
-                  <div className="flex justify-center pt-2 pb-1">
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => set_visible_count((c) => c + 10)}
-                    >
-                      {t("settings.domain_purchase_show_more")}
-                    </Button>
+                </div>
+              )}
+              <div
+                className={`transition-opacity divide-y divide-edge-secondary/60 ${
+                  showing_stale ? "opacity-40" : "opacity-100"
+                }`}
+              >
+                <div className="flex flex-col items-start gap-1 pt-4 pb-3 px-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+                  <div className="min-w-0 max-w-full">
+                    <h3 className="text-[15px] font-semibold text-txt-primary truncate">
+                      {t("settings.domain_purchase_results_for", {
+                        name: results_query,
+                      })}
+                    </h3>
                   </div>
-                )}
+                  <button
+                    className="flex-shrink-0 -mx-2 px-2 py-2 min-h-[40px] text-[13px] font-medium text-[var(--accent-color)] hover:underline"
+                    onClick={() => {
+                      set_query("");
+                    }}
+                  >
+                    {t("settings.domain_purchase_change_name")}
+                  </button>
+                </div>
+                <div className="pb-1">
+                  {results.length > 0 && filtered_results.length === 0 && (
+                    <p className="px-3 py-8 text-center text-sm text-txt-muted">
+                      {t("settings.domain_purchase_no_results")}
+                    </p>
+                  )}
+                  {best_match && (
+                    <ResultRow
+                      primary
+                      on_select={(r) => {
+                        set_selected(r);
+                        set_error(null);
+                        set_view("confirm");
+                      }}
+                      result={best_match}
+                    />
+                  )}
+                  {rest_results.map((result) => (
+                    <ResultRow
+                      key={result.domain}
+                      on_select={(r) => {
+                        set_selected(r);
+                        set_error(null);
+                        set_view("confirm");
+                      }}
+                      result={result}
+                    />
+                  ))}
+                  {filtered_results.length > visible_count && (
+                    <div className="flex justify-center pt-2 pb-1">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => set_visible_count((c) => c + 10)}
+                      >
+                        {t("settings.domain_purchase_show_more")}
+                      </Button>
+                    </div>
+                  )}
+                </div>
+                {(suggestions.length > 0 || has_more_suggestions) &&
+                  active_tld === null && (
+                    <div className="pt-2">
+                      {suggestions.length > 0 && (
+                        <p className="px-3 pt-2 pb-1.5 text-[12px] font-semibold uppercase tracking-wide text-txt-muted">
+                          {t("settings.domain_purchase_try_instead")}
+                        </p>
+                      )}
+                      {suggestions.map((result) => (
+                        <ResultRow
+                          key={result.domain}
+                          on_select={(r) => {
+                            set_selected(r);
+                            set_error(null);
+                            set_view("confirm");
+                          }}
+                          result={result}
+                        />
+                      ))}
+                      {has_more_suggestions && (
+                        <div className="flex justify-center pt-2 pb-1">
+                          <Button
+                            disabled={loading_more_suggestions}
+                            size="sm"
+                            variant="ghost"
+                            onClick={load_more_suggestions}
+                          >
+                            {loading_more_suggestions ? (
+                              <Spinner size="sm" />
+                            ) : (
+                              t("settings.domain_purchase_more_suggestions")
+                            )}
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  )}
               </div>
-              {(suggestions.length > 0 || has_more_suggestions) &&
-                active_tld === null && (
-                  <div className="pt-2">
-                    {suggestions.length > 0 && (
-                      <p className="px-3 pt-2 pb-1.5 text-[12px] font-semibold uppercase tracking-wide text-txt-muted">
-                        {t("settings.domain_purchase_try_instead")}
-                      </p>
-                    )}
-                    {suggestions.map((result) => (
-                      <ResultRow
-                        key={result.domain}
-                        on_select={(r) => {
-                          set_selected(r);
-                          set_error(null);
-                          set_view("confirm");
-                        }}
-                        result={result}
-                      />
-                    ))}
-                    {has_more_suggestions && (
-                      <div className="flex justify-center pt-2 pb-1">
-                        <Button
-                          disabled={loading_more_suggestions}
-                          size="sm"
-                          variant="ghost"
-                          onClick={load_more_suggestions}
-                        >
-                          {loading_more_suggestions ? (
-                            <Spinner size="sm" />
-                          ) : (
-                            t("settings.domain_purchase_more_suggestions")
-                          )}
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                )}
-            </div>
+            </>
           )}
         </div>
       </div>

@@ -175,6 +175,30 @@ export interface ApiResponse<T> {
   server_code?: string;
   resets_at?: string;
   details?: Record<string, unknown>;
+  retry_after_secs?: number;
+}
+
+const MAX_RETRY_AFTER_HEADER_SECS = 86_400;
+
+export function parse_retry_after_header(
+  value: string | null | undefined,
+  now: number,
+): number | undefined {
+  const raw = value?.trim();
+
+  if (!raw) return undefined;
+  if (/^\d+$/.test(raw)) {
+    const secs = Number(raw);
+
+    return secs > 0 && secs <= MAX_RETRY_AFTER_HEADER_SECS ? secs : undefined;
+  }
+  if (!/[a-z]/i.test(raw)) return undefined;
+  const at = Date.parse(raw);
+
+  if (!Number.isFinite(at) || at <= now) return undefined;
+  const secs = Math.ceil((at - now) / 1000);
+
+  return secs <= MAX_RETRY_AFTER_HEADER_SECS ? secs : undefined;
 }
 
 export function is_api_success<T>(

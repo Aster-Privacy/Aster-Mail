@@ -70,6 +70,7 @@ import {
   is_pending_deletion_error,
   is_tauri_env,
   is_write_dead_streak,
+  parse_retry_after_header,
   unlock_token_cache_suffix,
   with_declared_platform,
   write_last_auth_ms,
@@ -1873,6 +1874,16 @@ export class ApiClient {
             resets_at: error_data.resets_at,
             details: error_data.details,
           };
+          if (response.status === 429) {
+            const retry_after_secs = parse_retry_after_header(
+              response.headers.get("retry-after"),
+              Date.now(),
+            );
+
+            if (retry_after_secs !== undefined) {
+              last_error.retry_after_secs = retry_after_secs;
+            }
+          }
 
           if (
             response.status === 403 &&

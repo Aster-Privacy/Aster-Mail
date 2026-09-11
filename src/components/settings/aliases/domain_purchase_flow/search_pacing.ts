@@ -24,6 +24,7 @@ export const SEARCH_DEFAULT_THROTTLE_MS = 60_000;
 export const SEARCH_MAX_THROTTLE_MS = 300_000;
 export const SEARCH_MIN_THROTTLE_MS = 1000;
 export const SEARCH_MAX_GAP_RETRIES = 3;
+export const SEARCH_SHORT_RETRY_MAX_SECS = 2;
 export const DOMAIN_SEARCH_RATE_LIMITED = "DOMAIN_SEARCH_RATE_LIMITED";
 
 export type search_failure_kind =
@@ -37,6 +38,7 @@ export interface search_failure_response {
   server_code?: string;
   resets_at?: string;
   details?: Record<string, unknown>;
+  retry_after_secs?: number;
 }
 
 function clamp_throttle_ms(ms: number): number {
@@ -46,11 +48,37 @@ function clamp_throttle_ms(ms: number): number {
   );
 }
 
+function positive_secs(value: unknown): number | null {
+  const parsed =
+    typeof value === "number"
+      ? value
+      : typeof value === "string" && /^\s*\d+(\.\d+)?\s*$/.test(value)
+        ? Number(value)
+        : Number.NaN;
+
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+}
+
+export function retry_after_hint_secs(
+  response: search_failure_response,
+): number | null {
+  return (
+    positive_secs(response.details?.retry_after_secs) ??
+    positive_secs(response.retry_after_secs)
+  );
+}
+
 export function classify_search_failure(
   response: search_failure_response,
 ): search_failure_kind {
   if (response.server_code === DOMAIN_SEARCH_RATE_LIMITED) return "throttled";
-  if (response.code === "RATE_LIMIT_EXCEEDED") return "slow_down";
+  if (response.code === "RATE_LIMIT_EXCEEDED") {
+    const hint = retry_after_hint_secs(response);
+
+    return hint !== null && hint > SEARCH_SHORT_RETRY_MAX_SECS
+      ? "throttled"
+      : "slow_down";
+  }
   if (response.code === "NOT_FOUND") return "not_released";
 
   return "failed";
@@ -60,15 +88,9 @@ export function throttle_wait_ms(
   response: search_failure_response,
   now: number,
 ): number {
-  const retry_after_secs = response.details?.retry_after_secs;
+  const hint = retry_after_hint_secs(response);
 
-  if (
-    typeof retry_after_secs === "number" &&
-    Number.isFinite(retry_after_secs) &&
-    retry_after_secs > 0
-  ) {
-    return clamp_throttle_ms(retry_after_secs * 1000);
-  }
+  if (hint !== null) return clamp_throttle_ms(hint * 1000);
   if (response.resets_at) {
     const resets_at = Date.parse(response.resets_at);
 
