@@ -112,7 +112,6 @@ export interface UserPreferences {
   block_remote_css: boolean;
   block_tracking_pixels: boolean;
   show_tracking_protection: boolean;
-  skip_logout_confirmation: boolean;
   skip_draft_delete_confirmation: boolean;
   split_pane_width: number;
   split_pane_height: number;
@@ -545,7 +544,6 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   block_remote_css: true,
   block_tracking_pixels: true,
   show_tracking_protection: true,
-  skip_logout_confirmation: false,
   skip_draft_delete_confirmation: false,
   split_pane_width: 0,
   split_pane_height: 0,

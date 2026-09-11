@@ -579,9 +579,6 @@ export const ja = {
     pending_email_notifications: "保留中のメール通知",
     selected: "選択済み",
     are_you_sure: "よろしいですか？",
-    sign_out_all_confirmation:
-      "このデバイスのすべてのアカウントからサインアウトしてもよろしいですか？",
-    sign_out_confirmation: "アカウントからサインアウトしてもよろしいですか？",
     remove_account_confirmation:
       "このアカウントを削除してもよろしいですか？後で再度追加できます。",
     go_back: "戻る",

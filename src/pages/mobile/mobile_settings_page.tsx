@@ -109,7 +109,6 @@ const BridgeSection = lazy_with_retry(() =>
 
 import { SettingsSaveIndicatorInline } from "@/components/settings/settings_save_indicator";
 import { FullPageLoader } from "@/components/common/full_page_loader";
-import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { format_bytes } from "@/lib/utils";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { use_should_reduce_motion } from "@/provider";
@@ -148,13 +147,12 @@ function MobileSettingsPage() {
       : null;
   const { user, logout, current_account_id } = use_auth();
   const { stats } = use_mail_stats();
-  const { preferences, update_preference, save_now } = use_preferences();
+  const { preferences } = use_preferences();
   const { limits } = use_plan_limits();
   const is_paid_plan = !!limits && limits.plan_code !== "free";
   const reduce_motion = use_should_reduce_motion();
   const [section, set_section] = useState<SettingsSection | null>(null);
   const [is_closing, set_is_closing] = useState(false);
-  const [show_logout_confirm, set_show_logout_confirm] = useState(false);
   const [has_devices, set_has_devices] = useState(false);
   const [dev_mode_enabled, set_dev_mode_enabled] = useState(
     () => read_dev_mode_cache(current_account_id) ?? false,
@@ -301,8 +299,7 @@ function MobileSettingsPage() {
     return () => window.removeEventListener("popstate", handle_popstate);
   }, []);
 
-  const do_logout = useCallback(async () => {
-    set_show_logout_confirm(false);
+  const handle_logout = useCallback(async () => {
     try {
       await logout();
     } catch (caught) {
@@ -312,19 +309,6 @@ function MobileSettingsPage() {
       );
     }
   }, [logout]);
-
-  const handle_logout = useCallback(() => {
-    if (preferences.skip_logout_confirmation) {
-      do_logout();
-    } else {
-      set_show_logout_confirm(true);
-    }
-  }, [preferences.skip_logout_confirmation, do_logout]);
-
-  const handle_logout_dont_ask_again = useCallback(async () => {
-    update_preference("skip_logout_confirmation", true, true);
-    await save_now();
-  }, [update_preference, save_now]);
 
   const handle_back = useCallback(() => {
     if (section_ref.current) {
@@ -860,19 +844,6 @@ function MobileSettingsPage() {
           </motion.div>
         )}
       </AnimatePresence>
-
-      <ConfirmationModal
-        show_dont_ask_again
-        cancel_text={t("common.cancel")}
-        confirm_text={t("auth.sign_out")}
-        is_open={show_logout_confirm}
-        message={t("common.sign_out_confirmation")}
-        on_cancel={() => set_show_logout_confirm(false)}
-        on_confirm={do_logout}
-        on_dont_ask_again={handle_logout_dont_ask_again}
-        title={t("auth.sign_out")}
-        variant="danger"
-      />
     </motion.div>
   );
 }

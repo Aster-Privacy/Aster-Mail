@@ -493,8 +493,6 @@ export const zh_CN = {
     pending_email_notifications: "待处理的邮件通知",
     selected: "已选中",
     are_you_sure: "确定吗？",
-    sign_out_all_confirmation: "确定要退出此设备上的所有账户吗？",
-    sign_out_confirmation: "确定要退出登录吗？",
     remove_account_confirmation: "确定要移除此账户吗？您可以稍后再次添加。",
     go_back: "返回",
     continue_anyway: "仍然继续",

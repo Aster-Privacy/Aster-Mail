@@ -516,9 +516,6 @@ export const nl = {
     pending_email_notifications: "Wachtende e-mailmeldingen",
     selected: "geselecteerd",
     are_you_sure: "Weet je het zeker?",
-    sign_out_all_confirmation:
-      "Weet je zeker dat je wilt uitloggen bij alle accounts op dit apparaat?",
-    sign_out_confirmation: "Weet je zeker dat je wilt uitloggen?",
     remove_account_confirmation:
       "Weet je zeker dat je dit account wilt verwijderen? Je kunt het later opnieuw toevoegen.",
     go_back: "Ga terug",

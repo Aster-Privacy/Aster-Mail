@@ -1233,9 +1233,6 @@ export const de = {
     discard_changes_message:
       "Deine Änderungen wurden nicht gespeichert. Wenn du jetzt schließt, gehen sie verloren.",
     state_province: "Bundesland / Kanton",
-    sign_out_all_confirmation:
-      "Möchten Sie sich wirklich von allen Konten auf diesem Gerät abmelden?",
-    sign_out_confirmation: "Sind Sie sicher, dass Sie sich abmelden möchten?",
     keyboard_shortcut_label: "Tastenkürzel: {shortcut}",
     something_went_wrong_try_again:
       "Das hat nicht funktioniert. Ein erneuter Versuch in einem Moment genügt meist.",

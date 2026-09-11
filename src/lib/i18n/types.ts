@@ -1142,8 +1142,6 @@ export interface CommonTranslations {
   pending_email_notifications: string;
   selected: string;
   are_you_sure: string;
-  sign_out_all_confirmation: string;
-  sign_out_confirmation: string;
   remove_account_confirmation: string;
   go_back: string;
   continue_anyway: string;

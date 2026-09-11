@@ -523,10 +523,6 @@ export const tr = {
     pending_email_notifications: "Bekleyen e-posta bildirimleri",
     selected: "seçili",
     are_you_sure: "Emin misiniz?",
-    sign_out_all_confirmation:
-      "Bu cihazdaki tüm hesaplardan çıkış yapmak istediğinizden emin misiniz?",
-    sign_out_confirmation:
-      "Hesabınızdan çıkış yapmak istediğinizden emin misiniz?",
     remove_account_confirmation:
       "Bu hesabı kaldırmak istediğinizden emin misiniz? Daha sonra tekrar ekleyebilirsiniz.",
     go_back: "Geri dön",

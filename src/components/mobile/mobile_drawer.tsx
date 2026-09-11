@@ -40,7 +40,6 @@ import { use_should_reduce_motion } from "@/provider";
 import { use_auth } from "@/contexts/auth_context";
 import { use_primary_identity } from "@/lib/primary_identity";
 import { use_i18n } from "@/lib/i18n/context";
-import { use_preferences } from "@/contexts/preferences_context";
 import { use_folders } from "@/hooks/use_folders";
 import { use_tags } from "@/hooks/use_tags";
 import { use_mail_stats } from "@/hooks/use_mail_stats";
@@ -69,7 +68,6 @@ import {
   EditTagSheet,
   CreateAliasSheet,
   PasswordModalWrapper,
-  LogoutConfirmWrapper,
 } from "@/components/mobile/mobile_drawer_sheets";
 import { DrawerNavContent } from "@/components/mobile/mobile_drawer_nav";
 import { FolderDeleteDialog } from "@/components/folders/folder_delete_dialog";
@@ -101,11 +99,6 @@ export const MobileDrawer = memo(function MobileDrawer({
 
     return parts && parts.length === 2 ? parts[1] : "astermail.org";
   }, [user?.email]);
-  const { preferences, update_preference } = use_preferences();
-  const [show_logout_confirm, set_show_logout_confirm] = useState(false);
-  const logout_confirm_timer_ref = useRef<ReturnType<typeof setTimeout> | null>(
-    null,
-  );
   const {
     state: folders_state,
     unread_counts: folder_unread_counts,
@@ -227,10 +220,7 @@ export const MobileDrawer = memo(function MobileDrawer({
     if (!is_open) return;
 
     const handle_back = (e: Event) => {
-      if (show_logout_confirm) {
-        e.preventDefault();
-        set_show_logout_confirm(false);
-      } else if (deleting_folder) {
+      if (deleting_folder) {
         e.preventDefault();
         set_deleting_folder(null);
       } else if (editing_folder) {
@@ -278,26 +268,11 @@ export const MobileDrawer = memo(function MobileDrawer({
     editing_tag,
     confirm_delete_tag,
     password_modal_folder,
-    show_logout_confirm,
     on_close,
   ]);
 
-  useEffect(
-    () => () => {
-      if (logout_confirm_timer_ref.current !== null) {
-        clearTimeout(logout_confirm_timer_ref.current);
-      }
-    },
-    [],
-  );
-
   useEffect(() => {
     if (!is_open) {
-      if (logout_confirm_timer_ref.current !== null) {
-        clearTimeout(logout_confirm_timer_ref.current);
-        logout_confirm_timer_ref.current = null;
-      }
-
       set_show_account_menu(false);
       set_show_create_folder(false);
       set_show_create_label(false);
@@ -645,32 +620,11 @@ export const MobileDrawer = memo(function MobileDrawer({
     [toggle_folder_lock, t],
   );
 
-  const do_logout = useCallback(async () => {
-    set_show_logout_confirm(false);
+  const handle_logout = useCallback(async () => {
     set_show_account_menu(false);
     on_close();
     await logout();
   }, [logout, on_close]);
-
-  const handle_logout = useCallback(() => {
-    set_show_account_menu(false);
-    if (preferences.skip_logout_confirmation) {
-      do_logout();
-    } else {
-      if (logout_confirm_timer_ref.current !== null) {
-        clearTimeout(logout_confirm_timer_ref.current);
-      }
-
-      logout_confirm_timer_ref.current = setTimeout(() => {
-        logout_confirm_timer_ref.current = null;
-        set_show_logout_confirm(true);
-      }, 300);
-    }
-  }, [preferences.skip_logout_confirmation, do_logout]);
-
-  const handle_logout_dont_ask_again = useCallback(async () => {
-    update_preference("skip_logout_confirmation", true, true);
-  }, [update_preference]);
 
   const folders = useMemo(
     () => (folders_state.folders ?? []).filter((f) => !f.is_system),
@@ -941,13 +895,6 @@ export const MobileDrawer = memo(function MobileDrawer({
           handle_nav(`/folder/${encodeURIComponent(token)}`);
         }}
         password_modal_folder={password_modal_folder}
-      />
-
-      <LogoutConfirmWrapper
-        is_open={show_logout_confirm}
-        on_cancel={() => set_show_logout_confirm(false)}
-        on_confirm={do_logout}
-        on_dont_ask_again={handle_logout_dont_ask_again}
       />
     </>
   );

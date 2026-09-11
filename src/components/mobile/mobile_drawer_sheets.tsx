@@ -32,7 +32,6 @@ import { Button, Switch, UpgradeBtn } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
-import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { MobileBottomSheet } from "@/components/mobile/mobile_bottom_sheet";
 import { Input } from "@/components/ui/input";
 import { format_bytes } from "@/lib/utils";
@@ -759,37 +758,6 @@ export function PasswordModalWrapper({
       mode={password_modal_folder.mode}
       on_close={on_close}
       on_success={on_success}
-    />
-  );
-}
-
-interface LogoutConfirmWrapperProps {
-  is_open: boolean;
-  on_cancel: () => void;
-  on_confirm: () => void;
-  on_dont_ask_again: () => void;
-}
-
-export function LogoutConfirmWrapper({
-  is_open,
-  on_cancel,
-  on_confirm,
-  on_dont_ask_again,
-}: LogoutConfirmWrapperProps) {
-  const { t } = use_i18n();
-
-  return (
-    <ConfirmationModal
-      show_dont_ask_again
-      cancel_text={t("common.cancel")}
-      confirm_text={t("auth.sign_out")}
-      is_open={is_open}
-      message={t("common.sign_out_confirmation")}
-      on_cancel={on_cancel}
-      on_confirm={on_confirm}
-      on_dont_ask_again={on_dont_ask_again}
-      title={t("auth.sign_out")}
-      variant="danger"
     />
   );
 }

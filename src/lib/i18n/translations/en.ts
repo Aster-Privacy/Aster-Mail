@@ -525,9 +525,6 @@ export const en: Translations = {
     pending_email_notifications: "Pending email notifications",
     selected: "selected",
     are_you_sure: "Are you sure?",
-    sign_out_all_confirmation:
-      "Are you sure you want to sign out of all accounts on this device?",
-    sign_out_confirmation: "Are you sure you want to sign out of your account?",
     remove_account_confirmation:
       "Are you sure you want to remove this account? You can add it back later.",
     go_back: "Go back",

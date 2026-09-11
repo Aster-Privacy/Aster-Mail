@@ -30,7 +30,6 @@ import { Tooltip } from "@aster/ui";
 import { get_zoned_parts } from "@/utils/date_format";
 import { copy_text_or_throw } from "@/utils/copy_text";
 import { show_toast } from "@/components/toast/simple_toast";
-import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import {
   Popover,
   PopoverContent,
@@ -89,9 +88,6 @@ export function WorkspaceSwitcher({
   const { limits } = use_plan_limits();
   const is_paid_plan = !!limits && limits.plan_code !== "free";
 
-  const [show_logout_confirm, set_show_logout_confirm] = useState(false);
-  const [show_logout_all_confirm, set_show_logout_all_confirm] =
-    useState(false);
   const is_unlimited_accounts = max_account_limit === UNLIMITED_ACCOUNTS;
   const max_allowed =
     max_account_limit !== null && max_account_limit > 0
@@ -274,7 +270,7 @@ export function WorkspaceSwitcher({
     [on_open_change, switch_to_account, t],
   );
 
-  const do_logout = useCallback(async () => {
+  const handle_logout = useCallback(async () => {
     on_open_change(false);
     try {
       await logout();
@@ -284,12 +280,7 @@ export function WorkspaceSwitcher({
     }
   }, [on_open_change, logout, navigate]);
 
-  const handle_logout = useCallback(() => {
-    set_show_logout_confirm(true);
-    on_open_change(false);
-  }, [on_open_change]);
-
-  const do_logout_all = useCallback(async () => {
+  const handle_logout_all = useCallback(async () => {
     if (uses_account_hub()) {
       await sign_out_hub_accounts("all");
     }
@@ -300,8 +291,8 @@ export function WorkspaceSwitcher({
         if (import.meta.env.DEV) console.error(e);
       }
     }
-    await do_logout();
-  }, [other_accounts, remove_account, do_logout]);
+    await handle_logout();
+  }, [other_accounts, remove_account, handle_logout]);
 
   const copy_account_email = useCallback(async () => {
     if (!current_user_email) return;
@@ -312,11 +303,6 @@ export function WorkspaceSwitcher({
       show_toast(t("common.failed_to_copy"), "error");
     }
   }, [current_user_email, t]);
-
-  const handle_logout_all = useCallback(() => {
-    set_show_logout_all_confirm(true);
-    on_open_change(false);
-  }, [on_open_change]);
 
   return (
     <>
@@ -614,34 +600,6 @@ export function WorkspaceSwitcher({
           </div>
         </PopoverContent>
       </Popover>
-
-      <ConfirmationModal
-        cancel_text={t("common.cancel")}
-        confirm_text={t("auth.sign_out")}
-        is_open={show_logout_confirm}
-        message={t("common.sign_out_confirmation")}
-        on_cancel={() => set_show_logout_confirm(false)}
-        on_confirm={() => {
-          set_show_logout_confirm(false);
-          do_logout();
-        }}
-        title={t("auth.sign_out")}
-        variant="danger"
-      />
-
-      <ConfirmationModal
-        cancel_text={t("common.cancel")}
-        confirm_text={t("auth.sign_out_all")}
-        is_open={show_logout_all_confirm}
-        message={t("common.sign_out_all_confirmation")}
-        on_cancel={() => set_show_logout_all_confirm(false)}
-        on_confirm={() => {
-          set_show_logout_all_confirm(false);
-          do_logout_all();
-        }}
-        title={t("auth.sign_out_all")}
-        variant="danger"
-      />
     </>
   );
 }

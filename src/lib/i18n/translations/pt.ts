@@ -459,9 +459,6 @@ export const pt = {
     pending_email_notifications: "Notificações de e-mail pendentes",
     selected: "selecionado(s)",
     are_you_sure: "Tem certeza?",
-    sign_out_all_confirmation:
-      "Tem certeza de que deseja sair de todas as contas neste dispositivo?",
-    sign_out_confirmation: "Tem certeza de que deseja sair da sua conta?",
     remove_account_confirmation:
       "Tem certeza de que deseja remover esta conta? Você pode adicioná-la novamente depois.",
     go_back: "Voltar",

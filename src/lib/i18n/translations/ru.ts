@@ -519,9 +519,6 @@ export const ru = {
     pending_email_notifications: "Ожидающие уведомления по электронной почте",
     selected: "выбрано",
     are_you_sure: "Вы уверены?",
-    sign_out_all_confirmation:
-      "Вы уверены, что хотите выйти из всех аккаунтов на этом устройстве?",
-    sign_out_confirmation: "Вы уверены, что хотите выйти из аккаунта?",
     remove_account_confirmation:
       "Вы уверены, что хотите удалить этот аккаунт? Вы сможете добавить его позже.",
     go_back: "Вернуться",

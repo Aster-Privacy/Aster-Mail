@@ -515,9 +515,6 @@ export const ar = {
     pending_email_notifications: "إشعارات البريد المعلقة",
     selected: "محدد",
     are_you_sure: "هل أنت متأكد؟",
-    sign_out_all_confirmation:
-      "هل أنت متأكد أنك تريد تسجيل الخروج من جميع الحسابات على هذا الجهاز؟",
-    sign_out_confirmation: "هل أنت متأكد أنك تريد تسجيل الخروج من حسابك؟",
     remove_account_confirmation:
       "هل أنت متأكد أنك تريد إزالة هذا الحساب؟ يمكنك إضافته مرة أخرى لاحقًا.",
     go_back: "الرجوع",

@@ -522,9 +522,6 @@ export const hi = {
     pending_email_notifications: "बाकी ईमेल सूचनाएं",
     selected: "चुने गए",
     are_you_sure: "क्या आप निश्चित हैं?",
-    sign_out_all_confirmation:
-      "क्या आप वाकई इस डिवाइस के सभी खातों से साइन आउट करना चाहते हैं?",
-    sign_out_confirmation: "क्या आप वाकई अपने खाते से साइन आउट करना चाहते हैं?",
     remove_account_confirmation:
       "क्या आप वाकई यह खाता निकालना चाहते हैं? आप इसे बाद में फिर से जोड़ सकते हैं।",
     go_back: "वापस जाएं",

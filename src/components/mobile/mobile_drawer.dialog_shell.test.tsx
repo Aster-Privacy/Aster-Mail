@@ -131,7 +131,6 @@ vi.mock("@/components/mobile/mobile_drawer_sheets", () => ({
   EditTagSheet: () => null,
   CreateAliasSheet: () => null,
   PasswordModalWrapper: () => null,
-  LogoutConfirmWrapper: () => null,
 }));
 
 vi.mock("@/components/mobile/mobile_drawer_nav", () => ({

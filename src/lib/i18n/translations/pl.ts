@@ -525,10 +525,6 @@ export const pl = {
     pending_email_notifications: "Oczekujące powiadomienia e-mail",
     selected: "zaznaczono",
     are_you_sure: "Czy na pewno?",
-    sign_out_all_confirmation:
-      "Czy na pewno chcesz wylogować się ze wszystkich kont na tym urządzeniu?",
-    sign_out_confirmation:
-      "Czy na pewno chcesz się wylogować ze swojego konta?",
     remove_account_confirmation:
       "Czy na pewno chcesz usunąć to konto? Możesz je później dodać ponownie.",
     go_back: "Wróć",

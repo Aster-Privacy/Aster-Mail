@@ -587,8 +587,6 @@ export const ko = {
     pending_email_notifications: "대기 중인 이메일 알림",
     selected: "선택됨",
     are_you_sure: "정말로 하시겠습니까?",
-    sign_out_all_confirmation: "이 기기의 모든 계정에서 로그아웃하시겠습니까?",
-    sign_out_confirmation: "계정에서 로그아웃하시겠습니까?",
     remove_account_confirmation:
       "이 계정을 제거하시겠습니까? 나중에 다시 추가할 수 있습니다.",
     go_back: "뒤로 가기",

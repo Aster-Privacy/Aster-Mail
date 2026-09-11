@@ -535,10 +535,6 @@ export const fr = {
     pending_email_notifications: "Notifications d'e-mails en attente",
     selected: "sélectionné(s)",
     are_you_sure: "Êtes-vous sûr ?",
-    sign_out_all_confirmation:
-      "Voulez-vous vraiment vous déconnecter de tous les comptes sur cet appareil ?",
-    sign_out_confirmation:
-      "Êtes-vous sûr de vouloir vous déconnecter de votre compte ?",
     remove_account_confirmation:
       "Voulez-vous vraiment retirer ce compte ? Vous pourrez l’ajouter à nouveau plus tard.",
     go_back: "Retour",

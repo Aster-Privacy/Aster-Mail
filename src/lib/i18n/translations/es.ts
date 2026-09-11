@@ -534,10 +534,6 @@ export const es = {
     pending_email_notifications: "Notificaciones de correo pendientes",
     selected: "seleccionado(s)",
     are_you_sure: "¿Estás seguro?",
-    sign_out_all_confirmation:
-      "¿Seguro que quieres cerrar sesión en todas las cuentas de este dispositivo?",
-    sign_out_confirmation:
-      "¿Estás seguro de que quieres cerrar sesión en tu cuenta?",
     remove_account_confirmation:
       "¿Seguro que quieres quitar esta cuenta? Puedes volver a añadirla más tarde.",
     go_back: "Volver",

@@ -527,9 +527,6 @@ export const it = {
     pending_email_notifications: "Notifiche email in sospeso",
     selected: "selezionato/i",
     are_you_sure: "Sei sicuro?",
-    sign_out_all_confirmation:
-      "Vuoi davvero uscire da tutti gli account su questo dispositivo?",
-    sign_out_confirmation: "Sei sicuro di voler uscire dal tuo account?",
     remove_account_confirmation:
       "Sei sicuro di voler rimuovere questo account? Potrai aggiungerlo di nuovo in seguito.",
     go_back: "Torna indietro",
