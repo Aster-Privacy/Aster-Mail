@@ -55,6 +55,7 @@ import {
 import { use_auth } from "@/contexts/auth_context";
 import { use_i18n } from "@/lib/i18n/context";
 import { emit_mail_changed, emit_contacts_changed } from "@/hooks/mail_events";
+import { build_sender_mail_query } from "@/utils/contact_mail_search";
 
 interface ProfileDropdownProps {
   email: string;
@@ -191,8 +192,11 @@ export function ProfileDropdown({
   }, []);
 
   const handle_messages_from_sender = useCallback(() => {
+    const search_query = build_sender_mail_query(email);
+
     set_is_open(false);
-    navigate("/all", { state: { search_query: `from:${email}` } });
+    if (!search_query) return;
+    navigate("/all", { state: { search_query } });
   }, [navigate, email]);
 
   const handle_block_sender = useCallback(async () => {

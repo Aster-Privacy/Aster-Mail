@@ -46,6 +46,7 @@ import { search_row_key } from "./thread_grouping";
 
 import { use_indexing_progress } from "@/hooks/use_search/progress";
 import { emit_mail_items_removed } from "@/hooks/mail_events";
+import { build_sender_mail_query } from "@/utils/contact_mail_search";
 import { InboxHeader } from "@/components/inbox/inbox_header";
 import { InboxEmailListItem } from "@/components/email/inbox_email_list_item";
 import { EmailContextMenuContent } from "@/components/email/email_context_menu";
@@ -266,13 +267,13 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
 
   const handle_find_from_sender = useCallback(
     (email: { sender_email?: string | null }) => {
-      const sender = (email.sender_email || "").trim();
+      const sender_query = build_sender_mail_query(email.sender_email);
 
-      if (!sender) return;
+      if (!sender_query) return;
       set_selected_ids(new Set());
       window.dispatchEvent(
         new CustomEvent("astermail:open-search-with-query", {
-          detail: { query: `from:${sender}` },
+          detail: { query: sender_query },
         }),
       );
     },
@@ -393,6 +394,29 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
             >
               {t("mail.search_message_content")}
             </button>
+          )}
+          {state.hidden_spam_trash > 0 && (
+            <div
+              className="mt-4 flex flex-col items-center gap-1 text-xs text-center max-w-[280px]"
+              style={{ color: "var(--text-secondary)" }}
+            >
+              <span>{t("mail.spam_trash_hidden_notice")}</span>
+              {on_search_submit && (
+                <button
+                  className="font-medium text-blue-500 hover:underline"
+                  type="button"
+                  onClick={() =>
+                    on_search_submit(
+                      query.includes("in:anywhere")
+                        ? query
+                        : `${query.trim()} in:anywhere`.trim(),
+                    )
+                  }
+                >
+                  {t("mail.view_spam_trash_messages")}
+                </button>
+              )}
+            </div>
           )}
         </div>
       ) : (

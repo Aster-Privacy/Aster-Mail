@@ -41,6 +41,10 @@ import {
   normalize_envelope_recipients,
 } from "@/services/crypto/envelope_normalize";
 import { date_boundary_local } from "@/services/search_chunk_filter";
+import {
+  address_list_includes,
+  is_full_address,
+} from "@/utils/contact_mail_search";
 
 export function preheader_html_source(envelope: DecryptedEnvelope): string {
   const html = envelope.body_html || envelope.html_body || "";
@@ -112,10 +116,19 @@ export function matches_operator(
 
   switch (op.type) {
     case "from":
+      if (is_full_address(val))
+        return address_list_includes(hay.sender_email, val);
+
       return hay.sender_email.includes(val) || hay.sender_name.includes(val);
     case "to":
       return hay.recipients.includes(val);
     case "contact":
+      if (is_full_address(val))
+        return (
+          address_list_includes(hay.contact, val) ||
+          address_list_includes(hay.recipients, val)
+        );
+
       return hay.contact.includes(val) || hay.recipients.includes(val);
     case "subject":
       return hay.subject.includes(val);

@@ -57,6 +57,7 @@ import {
   check_allowed_senders,
 } from "@/services/api/allowed_senders";
 import { emit_mail_changed, emit_contacts_changed } from "@/hooks/mail_events";
+import { build_sender_mail_query } from "@/utils/contact_mail_search";
 
 const ASTER_DOMAINS = new Set([
   "astermail.org",
@@ -280,8 +281,11 @@ export function SenderProfileModal({
   }, [email, name, is_blocking, on_close, t]);
 
   const handle_messages_from = useCallback(() => {
+    const search_query = build_sender_mail_query(email);
+
     on_close();
-    navigate("/all", { state: { search_query: `from:${email}` } });
+    if (!search_query) return;
+    navigate("/all", { state: { search_query } });
   }, [navigate, email, on_close]);
 
   const handle_compose = useCallback(() => {

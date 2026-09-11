@@ -44,3 +44,28 @@ export function build_contact_mail_query(
     )
     .join(" ");
 }
+
+const FULL_ADDRESS_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+export function is_full_address(value: string): boolean {
+  return FULL_ADDRESS_REGEX.test(value.trim());
+}
+
+export function address_list_includes(field: string, address: string): boolean {
+  const target = address.trim().toLowerCase();
+
+  return field
+    .toLowerCase()
+    .split(/[\s<>]+/)
+    .some((candidate) => candidate === target);
+}
+
+export function build_sender_mail_query(
+  address: string | null | undefined,
+): string {
+  const value = (address || "").replace(/"/g, "").trim().toLowerCase();
+
+  if (!value) return "";
+
+  return /\s/.test(value) ? `from:"${value}"` : `from:${value}`;
+}

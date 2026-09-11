@@ -55,6 +55,7 @@ import {
 } from "@/services/crypto/mail_metadata";
 import { batch_archive, batch_unarchive } from "@/services/api/archive";
 import { ignore_error } from "@/lib/ignore_error";
+import { build_sender_mail_query } from "@/utils/contact_mail_search";
 
 export function build_context_menu_actions(
   params: UseContextMenuActionsParams,
@@ -101,10 +102,12 @@ export function build_context_menu_actions(
   };
 
   const handle_find_from_sender = (email: InboxEmail) => {
-    if (!email.sender_email) return;
+    const query = build_sender_mail_query(email.sender_email);
+
+    if (!query) return;
     window.dispatchEvent(
       new CustomEvent("astermail:open-search-with-query", {
-        detail: { query: `from:${email.sender_email}` },
+        detail: { query },
       }),
     );
   };
