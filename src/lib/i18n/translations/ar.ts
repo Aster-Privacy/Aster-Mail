@@ -35,12 +35,14 @@ export const ar = {
     clear_selection: "مسح التحديد",
     compose_to_selection: "مراسلة المحددين",
     contact_change_undone: "تم التراجع عن التغيير",
-    contact_encryption_info: "عندما ينشر أحد جهات الاتصال مفتاحًا عامًا، يشفّر Aster رسائلك إليه تلقائيًا.",
+    contact_encryption_info:
+      "عندما ينشر أحد جهات الاتصال مفتاحًا عامًا، يشفّر Aster رسائلك إليه تلقائيًا.",
     contact_moved_to_trash: "تم نقل جهة الاتصال إلى المهملات",
     contact_restored: "تمت استعادة جهة الاتصال",
     contacts_created: "تم إنشاء {{count}} جهة اتصال",
     contacts_exported: "تم تصدير جهات الاتصال",
-    contacts_in_trash_notice: "تُحذف جهات الاتصال الموجودة في المهملات نهائيًا بعد 30 يومًا.",
+    contacts_in_trash_notice:
+      "تُحذف جهات الاتصال الموجودة في المهملات نهائيًا بعد 30 يومًا.",
     contacts_merged: "تم دمج جهات الاتصال",
     contacts_moved_to_trash: "تم نقل جهات الاتصال إلى المهملات",
     contacts_updated_stat: "المحدَّثة",
@@ -48,13 +50,16 @@ export const ar = {
     create_multiple_contacts: "إنشاء عدة جهات اتصال",
     delete_contacts: "حذف جهات الاتصال",
     delete_group: "حذف المجموعة",
-    delete_group_confirmation: "حذف «{{name}}» يزيل المجموعة. تبقى جهات الاتصال الموجودة فيها في دفتر العناوين.",
+    delete_group_confirmation:
+      "حذف «{{name}}» يزيل المجموعة. تبقى جهات الاتصال الموجودة فيها في دفتر العناوين.",
     deselect_contact: "إلغاء تحديد جهة الاتصال",
     discard: "تجاهل",
-    discard_new_contact_message: "جهة الاتصال التي بدأتها لم تُحفظ بعد. إذا فتحت جهة اتصال أخرى الآن، ستفقدها.",
+    discard_new_contact_message:
+      "جهة الاتصال التي بدأتها لم تُحفظ بعد. إذا فتحت جهة اتصال أخرى الآن، ستفقدها.",
     duplicates_found: "تم العثور على تكرارات",
     email_group: "مراسلة المجموعة",
-    empty_trash_confirm: "هل تريد حذف كل جهات الاتصال في المهملات نهائيًا؟ لا يمكن التراجع عن ذلك.",
+    empty_trash_confirm:
+      "هل تريد حذف كل جهات الاتصال في المهملات نهائيًا؟ لا يمكن التراجع عن ذلك.",
     export_selection_vcf: "التصدير بصيغة vCard",
     failed_to_add_to_group: "تعذّرت إضافة جهة الاتصال إلى المجموعة.",
     failed_to_create_group: "تعذّر إنشاء المجموعة.",
@@ -67,7 +72,8 @@ export const ar = {
     group_contact_count: "{{count}} جهة اتصال",
     group_created: "تم إنشاء المجموعة",
     group_deleted: "تم حذف المجموعة",
-    group_empty_hint: "لملء هذه المجموعة، حدّد جهات اتصال في علامة التبويب «جهات الاتصال» ثم اختر «إضافة إلى المجموعة».",
+    group_empty_hint:
+      "لملء هذه المجموعة، حدّد جهات اتصال في علامة التبويب «جهات الاتصال» ثم اختر «إضافة إلى المجموعة».",
     group_empty_title: "لا توجد جهات اتصال في هذه المجموعة",
     group_modal_description: "أنشئ مجموعات لمراسلة عدة جهات اتصال دفعة واحدة.",
     group_name: "اسم المجموعة",
@@ -82,11 +88,13 @@ export const ar = {
     manage_contacts: "إدارة جهات الاتصال",
     merge: "دمج",
     merge_and_fix: "الدمج والإصلاح",
-    merge_contacts_hint: "اختر البيانات التي تريد الاحتفاظ بها. تنتقل جهات الاتصال الأخرى إلى المهملات.",
+    merge_contacts_hint:
+      "اختر البيانات التي تريد الاحتفاظ بها. تنتقل جهات الاتصال الأخرى إلى المهملات.",
     merge_keeps_this: "محتفظ به",
     merged_contact_preview: "جهة الاتصال المدمجة",
     no_contact_changes: "لا توجد تغييرات بعد",
-    no_contact_details: "لا تحتوي جهة الاتصال هذه على بيانات بعد. اختر «تحرير» لإضافتها.",
+    no_contact_details:
+      "لا تحتوي جهة الاتصال هذه على بيانات بعد. اختر «تحرير» لإضافتها.",
     no_contacts_in_trash: "المهملات فارغة",
     no_duplicates_found: "لا توجد جهات اتصال مكررة لإصلاحها",
     no_email: "لا يوجد عنوان بريد إلكتروني",
@@ -2283,14 +2291,17 @@ export const ar = {
     app_password_create_link: "إنشاء كلمة مرور تطبيق",
     app_password_required: "كلمة مرور التطبيق مطلوبة",
     category_info_newsletters: "النشرات وقوائم المراسلة التي اشتركت فيها.",
-    category_info_transactions: "الطلبات والمدفوعات والإيصالات من المتاجر والخدمات.",
+    category_info_transactions:
+      "الطلبات والمدفوعات والإيصالات من المتاجر والخدمات.",
     category_newsletters: "النشرات",
     category_transactions: "المشتريات",
     edit_account_tooltip: "تحرير الحساب",
-    gmail_app_password_notice: "يتطلب هذا المزوّد كلمة مرور تطبيق. لن تعمل كلمة مرور حسابك المعتادة.",
+    gmail_app_password_notice:
+      "يتطلب هذا المزوّد كلمة مرور تطبيق. لن تعمل كلمة مرور حسابك المعتادة.",
     gmail_sync_continue: "متابعة",
     gmail_sync_intro: "أنشئ كلمة مرور تطبيق في إعدادات حسابك، ثم الصقها هنا.",
-    gmail_sync_note_unavailable: "إذا لم تكن كلمات مرور التطبيقات متاحة، فعّل التحقق بخطوتين أولًا ثم تحقق مرة أخرى.",
+    gmail_sync_note_unavailable:
+      "إذا لم تكن كلمات مرور التطبيقات متاحة، فعّل التحقق بخطوتين أولًا ثم تحقق مرة أخرى.",
     gmail_sync_open_google: "فتح إعدادات الحساب",
     gmail_sync_setup_button: "اعرض لي الطريقة",
     gmail_sync_step_1: "سجّل الدخول إلى إعدادات أمان حسابك.",
@@ -2303,25 +2314,32 @@ export const ar = {
     gmail_wizard_progress: "الخطوة {{current}} من {{total}}",
     gmail_wizard_reveal_password: "إظهار كلمة مرور التطبيق",
     gmail_wizard_step_1_action: "فتح إعدادات الأمان",
-    gmail_wizard_step_1_body: "توجد كلمات مرور التطبيقات في قسم الأمان بحساب المزوّد الخاص بك.",
+    gmail_wizard_step_1_body:
+      "توجد كلمات مرور التطبيقات في قسم الأمان بحساب المزوّد الخاص بك.",
     gmail_wizard_step_1_title: "افتح إعدادات أمان حسابك",
-    gmail_wizard_step_2_body: "لا تتوفر كلمات مرور التطبيقات إلا بعد تفعيل التحقق بخطوتين.",
+    gmail_wizard_step_2_body:
+      "لا تتوفر كلمات مرور التطبيقات إلا بعد تفعيل التحقق بخطوتين.",
     gmail_wizard_step_2_title: "فعّل التحقق بخطوتين",
     gmail_wizard_step_3_body: "اختر «البريد» كتطبيق، ثم أنشئ كلمة المرور.",
     gmail_wizard_step_3_title: "أنشئ كلمة مرور تطبيق",
-    gmail_wizard_step_4_body: "الصق كلمة مرور التطبيق أدناه. يخزّنها Aster مشفّرة ويستخدمها فقط لمزامنة صندوق البريد هذا.",
+    gmail_wizard_step_4_body:
+      "الصق كلمة مرور التطبيق أدناه. يخزّنها Aster مشفّرة ويستخدمها فقط لمزامنة صندوق البريد هذا.",
     gmail_wizard_step_4_title: "الصق كلمة المرور",
     gmail_wizard_title: "اربط صندوق بريدك",
     last_sync_tooltip: "وقت آخر مزامنة لهذا الحساب",
     not_synced_tooltip: "لم تتم مزامنة هذا الحساب بعد.",
     protocol_desc_imap: "يزامن المجلدات ويبقيها محدّثة على كل أجهزتك.",
     protocol_desc_pop3: "ينزّل البريد مرة واحدة ولا يترك شيئًا للمزامنة.",
-    protocol_tooltip_imap: "يبقي IMAP بريدك على الخادم ويزامن كل تغيير عبر أجهزتك.",
-    protocol_tooltip_jmap: "‏JMAP بروتوكول مزامنة حديث يدعمه عدد قليل من المزوّدين.",
-    protocol_tooltip_pop3: "ينزّل POP3 البريد إلى جهاز واحد ولا يزامن التغييرات مرة أخرى.",
+    protocol_tooltip_imap:
+      "يبقي IMAP بريدك على الخادم ويزامن كل تغيير عبر أجهزتك.",
+    protocol_tooltip_jmap:
+      "‏JMAP بروتوكول مزامنة حديث يدعمه عدد قليل من المزوّدين.",
+    protocol_tooltip_pop3:
+      "ينزّل POP3 البريد إلى جهاز واحد ولا يزامن التغييرات مرة أخرى.",
     remove_account_tooltip: "إزالة الحساب",
     show_side_panel: "إظهار اللوحة الجانبية",
-    show_side_panel_description: "احتفظ بجهات الاتصال وأدوات سريعة أخرى في لوحة بجانب بريدك.",
+    show_side_panel_description:
+      "احتفظ بجهات الاتصال وأدوات سريعة أخرى في لوحة بجانب بريدك.",
     sync_now_tooltip: "مزامنة الآن",
     purge_locked_folder_on_delete: "إتلاف محتوى المجلدات المحمية",
     purge_locked_folder_on_delete_description:
@@ -2401,7 +2419,8 @@ export const ar = {
       "هذا لم يفتح البيانات الأقدم. تحقق من كلمة المرور أو العبارة وحاول مجددًا.",
     discard_older_data_button: "تجاهل البيانات الأقدم",
     discard_older_data_title: "هل تريد تجاهل البيانات الأقدم؟",
-    discard_older_data_desc: "يؤدي هذا إلى إزالة خيار فتح البريد والأسماء المستعارة السابقة لإعادة التعيين نهائيًا. لا يمكن التراجع عن ذلك.",
+    discard_older_data_desc:
+      "يؤدي هذا إلى إزالة خيار فتح البريد والأسماء المستعارة السابقة لإعادة التعيين نهائيًا. لا يمكن التراجع عن ذلك.",
     discard_older_data_success: "تم تجاهل البيانات الأقدم.",
     discard_older_data_failed: "تعذر تجاهل البيانات الأقدم. حاول مرة أخرى.",
     phrase_wrap_save_failed:
@@ -7133,7 +7152,8 @@ export const ar = {
     ghost_alias_expires_in: "ينتهي خلال {{ days }} يوم",
     ghost_alias_extend: "تمديد",
     ghost_alias_expire_now: "إنهاء",
-    ghost_alias_expire_confirm_title: "هل تريد إنهاء صلاحية هذا الاسم المستعار الشبح؟",
+    ghost_alias_expire_confirm_title:
+      "هل تريد إنهاء صلاحية هذا الاسم المستعار الشبح؟",
     ghost_alias_expire_confirm_message_named:
       "هل أنت متأكد أنك تريد إنهاء صلاحية {{address}}؟ لن تتمكن من استعادته. ستستمر فترة السماح حتى {{date}}.",
     delete_aliases_confirmation_count:
@@ -7729,9 +7749,11 @@ export const ar = {
     bulk_trash_title_one: "نقل رسالة واحدة إلى المهملات؟",
     bulk_trash_title_other: "نقل {{count}} رسالة إلى المهملات؟",
     sender_rule_confirm: "إنشاء قاعدة",
-    sender_rule_created: "أصبحت الرسائل الجديدة من هذا المرسل تذهب إلى {{category}}.",
+    sender_rule_created:
+      "أصبحت الرسائل الجديدة من هذا المرسل تذهب إلى {{category}}.",
     sender_rule_name: "{{sender}} إلى {{category}}",
-    sender_rule_offer: "أنت تنقل رسائل {{sender}} إلى {{category}} باستمرار. هل تريد أن يحدث ذلك تلقائيًا؟",
+    sender_rule_offer:
+      "أنت تنقل رسائل {{sender}} إلى {{category}} باستمرار. هل تريد أن يحدث ذلك تلقائيًا؟",
     load_all_thread_messages: "تحميل كل الرسائل",
     move_to_category: "النقل إلى فئة",
     menu_applies_to_selection: "ينطبق على {count} محددة",
@@ -10153,5 +10175,44 @@ export const ar = {
     vacation_reply: "رد الإجازة",
     vanguard: "Vanguard",
     vision: "الرؤية",
+  },
+  app_store: {
+    section_title: "اشتراك App Store",
+    section_description:
+      "تُحتسب رسوم الخطط التي تشتريها في هذا التطبيق على حساب Apple الخاص بك، وتتجدد تلقائيًا إلى أن تلغيها.",
+    per_month: "شهريًا",
+    per_year: "سنويًا",
+    subscribe_to: "الاشتراك في {{plan}}",
+    processing: "جارٍ المعالجة...",
+    restore_purchases: "استعادة المشتريات",
+    restoring: "جارٍ الاستعادة...",
+    manage_subscriptions: "إدارة الاشتراكات",
+    terms_of_use: "شروط الاستخدام",
+    renewal_terms:
+      "تُحتسب الرسوم على حساب Apple الخاص بك عند تأكيد عملية الشراء. يتجدد اشتراكك تلقائيًا ما لم تلغه قبل 24 ساعة على الأقل من نهاية الفترة الحالية. للإلغاء، انقر على إدارة الاشتراكات.",
+    purchase_pending:
+      "عملية الشراء في انتظار الموافقة. ستُحدَّث خطتك بعد موافقة App Store عليها.",
+    purchase_success: "خطتك الجديدة مفعّلة.",
+    purchase_failed: "تعذّر على App Store إتمام عملية الشراء. حاول مرة أخرى.",
+    verify_failed:
+      "تمت عملية الشراء، لكن تعذّر على Aster Mail تأكيدها حتى الآن. للمحاولة مرة أخرى، انقر على استعادة المشتريات.",
+    conflict:
+      "ينتمي اشتراك App Store هذا إلى حساب آخر في Aster Mail. لاستخدامه، سجّل الدخول إلى ذلك الحساب.",
+    restore_success: "تمت استعادة مشترياتك.",
+    restore_none:
+      "لم يعثر App Store على أي اشتراكات نشطة لحساب Apple الخاص بك.",
+    restore_failed: "تعذّر على App Store استعادة مشترياتك. حاول مرة أخرى.",
+    managed_elsewhere_title: "تُدار خطتك خارج App Store",
+    managed_elsewhere_description:
+      "اشتريت خطتك الحالية من منصة أخرى، ويمكنك مواصلة استخدامها هنا. لتغييرها، استخدم المنصة التي اشتريتها منها.",
+    upgrade_title: "ترقية خطتك",
+    upgrade_limit_description:
+      "وصلت إلى أحد حدود خطتك الحالية. للحصول على المزيد، اختر خطة.",
+    upgrade_storage_description:
+      "مساحة التخزين ممتلئة. للحصول على مساحة إضافية، اختر خطة.",
+    upgrade_generic_description:
+      "للحصول على مزيد من التخزين والأسماء المستعارة والنطاقات المخصصة، اختر خطة.",
+    register_subtitle:
+      "اشترك عبر App Store، أو تابع باستخدام حساب مجاني. يمكنك تغيير خطتك في أي وقت.",
   },
 };

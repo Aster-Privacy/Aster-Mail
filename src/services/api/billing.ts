@@ -1211,3 +1211,15 @@ export async function claim_referral_code(code: string) {
 export async function record_referral_share() {
   return api_client.post<void>("/payments/v1/referrals/share", {});
 }
+
+export interface AppStoreVerifyResponse {
+  plan_code: string;
+  paid_until: string | null;
+}
+
+export async function verify_app_store_transaction(signed_transaction: string) {
+  return api_client.post<AppStoreVerifyResponse>(
+    "/payments/v1/app-store/verify",
+    { signed_transaction },
+  );
+}

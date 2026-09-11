@@ -52,6 +52,7 @@ import { UpgradeInlineCard } from "@/components/upgrade/upgrade_inline_card";
 import { RecentlyDeletedAliasesSection } from "@/components/settings/aliases/recently_deleted_aliases_section";
 import { DomainSetupWizard } from "@/components/settings/aliases_section";
 import { DomainPurchaseModal } from "@/components/settings/aliases/domain_purchase_modal";
+import { use_distribution_channel } from "@/native/distribution_channel";
 import {
   cancel_domain_order,
   get_dns_records,
@@ -81,6 +82,8 @@ export function AliasesSection({
 }) {
   const { t } = use_i18n();
   const hook = use_aliases();
+  const channel = use_distribution_channel();
+  const domain_purchases_hidden = channel === null || channel === "mas";
   const [expanded_domain, set_expanded_domain] = useState<string | null>(null);
   const [purchase_open, set_purchase_open] = useState(false);
   const [purchase_order_id, set_purchase_order_id] = useState<string | null>(
@@ -343,7 +346,7 @@ export function AliasesSection({
         title={t("settings.aliases_and_domains")}
       />
       <div ref={scroll_ref} className="flex-1 overflow-y-auto pb-8">
-        <div className="px-4 pt-4">
+        <div className="px-4 pt-4" hidden={domain_purchases_hidden}>
           <div
             className="relative overflow-hidden rounded-2xl p-5"
             style={{
@@ -889,7 +892,7 @@ export function AliasesSection({
           )}
         </div>
 
-        <div className="px-4 pt-6">
+        <div className="px-4 pt-6" hidden={domain_purchases_hidden}>
           <div className="flex items-center justify-between mb-2">
             <p className="flex items-center gap-2 text-[14px] font-semibold text-[var(--text-primary)]">
               <ShoppingBagIcon className="h-4 w-4 flex-shrink-0" />
@@ -1070,7 +1073,7 @@ export function AliasesSection({
       <DomainPurchaseModal
         initial_order_id={purchase_order_id}
         initial_query={purchase_initial_query}
-        is_open={purchase_open}
+        is_open={purchase_open && !domain_purchases_hidden}
         on_close={() => {
           set_purchase_open(false);
           set_purchase_order_id(null);

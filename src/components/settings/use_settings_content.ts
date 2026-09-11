@@ -68,6 +68,7 @@ import {
 } from "@/services/api/billing";
 import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
 import { is_desktop_runtime } from "@/services/updates/updater";
+import { use_distribution_channel } from "@/native/distribution_channel";
 import { use_settings_prefetch } from "@/components/settings/hooks/use_settings_prefetch";
 import { list_devices } from "@/services/api/devices";
 import {
@@ -118,6 +119,7 @@ export function use_settings_content(props: SettingsContentProps) {
   const [dev_mode_enabled, set_dev_mode_enabled] = useState(
     () => read_dev_mode_cache(current_account_id) ?? false,
   );
+  const distribution_channel = use_distribution_channel();
   const [has_devices, set_has_devices] = useState(
     () => localStorage.getItem("aster_has_devices") === "1",
   );
@@ -430,7 +432,7 @@ export function use_settings_content(props: SettingsContentProps) {
       : base.general.filter((item) => item.id !== "trusted_devices");
     const mail = [...base.mail];
 
-    if (is_desktop_runtime()) {
+    if (is_desktop_runtime() && distribution_channel === "direct") {
       mail.push({
         id: "updates" as Section,
         label: t("settings.updates"),
@@ -469,7 +471,7 @@ export function use_settings_content(props: SettingsContentProps) {
     }
 
     return { general, mail };
-  }, [NAV_ITEMS_BASE, dev_mode_enabled, has_devices, t]);
+  }, [NAV_ITEMS_BASE, dev_mode_enabled, distribution_channel, has_devices, t]);
 
   const is_searching = search_query.trim().length > 0;
 

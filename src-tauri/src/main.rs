@@ -24,7 +24,13 @@ mod badge;
 mod badges_data;
 mod boot_guard;
 mod device;
+mod distribution;
 mod http_client;
+#[cfg(all(target_os = "macos", feature = "mas"))]
+mod storekit;
+
+#[cfg(all(feature = "mas", feature = "updater"))]
+compile_error!("the mas feature cannot be combined with the updater feature; build with --no-default-features");
 
 use std::sync::Mutex;
 #[cfg(windows)]
@@ -45,6 +51,12 @@ const APP_NAVIGATION_HOSTS: &[&str] = &[
     "localhost",
     "127.0.0.1",
     "challenges.cloudflare.com",
+];
+
+const APP_NAVIGATION_SUFFIXES: &[&str] = &[".astermail.org", ".astermail.com", ".onion"];
+
+#[cfg(not(feature = "mas"))]
+const PAYMENT_NAVIGATION_HOSTS: &[&str] = &[
     "js.stripe.com",
     "hooks.stripe.com",
     "api.stripe.com",
@@ -53,13 +65,14 @@ const APP_NAVIGATION_HOSTS: &[&str] = &[
     "q.stripe.com",
 ];
 
-const APP_NAVIGATION_SUFFIXES: &[&str] = &[
-    ".astermail.org",
-    ".astermail.com",
-    ".stripe.com",
-    ".stripe.network",
-    ".onion",
-];
+#[cfg(not(feature = "mas"))]
+const PAYMENT_NAVIGATION_SUFFIXES: &[&str] = &[".stripe.com", ".stripe.network"];
+
+#[cfg(feature = "mas")]
+const PAYMENT_NAVIGATION_HOSTS: &[&str] = &[];
+
+#[cfg(feature = "mas")]
+const PAYMENT_NAVIGATION_SUFFIXES: &[&str] = &[];
 
 const INTERNAL_SCHEMES: &[&str] = &["about", "blob", "data", "tauri", "asset", "ipc", "file"];
 
@@ -79,9 +92,13 @@ fn is_app_navigation(url: &Url) -> bool {
     };
     let host = host.to_ascii_lowercase();
 
-    APP_NAVIGATION_HOSTS.iter().any(|entry| host == *entry)
+    APP_NAVIGATION_HOSTS
+        .iter()
+        .chain(PAYMENT_NAVIGATION_HOSTS)
+        .any(|entry| host == *entry)
         || APP_NAVIGATION_SUFFIXES
             .iter()
+            .chain(PAYMENT_NAVIGATION_SUFFIXES)
             .any(|suffix| host.ends_with(suffix))
 }
 
@@ -309,12 +326,18 @@ static WEBKIT_KEYCHAIN_RESET_DONE: std::sync::atomic::AtomicBool =
     std::sync::atomic::AtomicBool::new(false);
 
 #[cfg(target_os = "macos")]
-fn clear_stale_webkit_keychain() {
+const WEBKIT_KEYCHAIN_LABEL: &str = "Aster Mail Desktop web mail web crypto master key";
+
+#[cfg(target_os = "macos")]
+const WEBKIT_KEYCHAIN_MAX_DELETIONS: usize = 5;
+
+#[cfg(all(target_os = "macos", not(feature = "mas")))]
+fn clear_stale_webkit_keychain(service: &str) {
     use std::process::Command;
 
-    for _ in 0..5 {
+    for _ in 0..WEBKIT_KEYCHAIN_MAX_DELETIONS {
         let result = Command::new("security")
-            .args(["delete-generic-password", "-s", "com.astermail.mail", "-l", "Aster Mail Desktop web mail web crypto master key"])
+            .args(["delete-generic-password", "-s", service, "-l", WEBKIT_KEYCHAIN_LABEL])
             .output();
         match result {
             Ok(output) if output.status.success() => continue,
@@ -323,16 +346,51 @@ fn clear_stale_webkit_keychain() {
     }
 }
 
+#[cfg(all(target_os = "macos", feature = "mas"))]
+fn clear_stale_webkit_keychain(service: &str) {
+    use core_foundation::base::{CFType, TCFType};
+    use core_foundation::dictionary::CFDictionary;
+    use core_foundation::string::CFString;
+    use security_framework_sys::base::errSecSuccess;
+    use security_framework_sys::item::{kSecAttrLabel, kSecAttrService, kSecClass, kSecClassGenericPassword};
+    use security_framework_sys::keychain_item::SecItemDelete;
+
+    let pairs: [(CFString, CFType); 3] = unsafe {
+        [
+            (
+                CFString::wrap_under_get_rule(kSecClass),
+                CFString::wrap_under_get_rule(kSecClassGenericPassword).as_CFType(),
+            ),
+            (
+                CFString::wrap_under_get_rule(kSecAttrService),
+                CFString::new(service).as_CFType(),
+            ),
+            (
+                CFString::wrap_under_get_rule(kSecAttrLabel),
+                CFString::new(WEBKIT_KEYCHAIN_LABEL).as_CFType(),
+            ),
+        ]
+    };
+    let query = CFDictionary::from_CFType_pairs(&pairs);
+
+    for _ in 0..WEBKIT_KEYCHAIN_MAX_DELETIONS {
+        let status = unsafe { SecItemDelete(query.as_concrete_TypeRef()) };
+        if status != errSecSuccess {
+            break;
+        }
+    }
+}
+
 #[cfg(target_os = "macos")]
 #[tauri::command]
-fn reset_webkit_crypto_keychain() -> bool {
+fn reset_webkit_crypto_keychain(app: tauri::AppHandle) -> bool {
     use std::sync::atomic::Ordering;
 
     if WEBKIT_KEYCHAIN_RESET_DONE.swap(true, Ordering::SeqCst) {
         return false;
     }
 
-    clear_stale_webkit_keychain();
+    clear_stale_webkit_keychain(&app.config().identifier);
 
     true
 }
@@ -361,22 +419,28 @@ fn main() {
         }
     }
 
-    tauri::Builder::default()
-        .plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| {
-            if let Some(window) = app.get_webview_window("main") {
-                let was_visible = window.is_visible().unwrap_or(true);
-                if !was_visible {
-                    let _ = window.eval("window.location.reload()");
-                }
-                let _ = window.show();
-                let _ = window.unminimize();
-                let _ = window.set_focus();
+    let builder = tauri::Builder::default();
+
+    #[cfg(feature = "single-instance")]
+    let builder = builder.plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| {
+        if let Some(window) = app.get_webview_window("main") {
+            let was_visible = window.is_visible().unwrap_or(true);
+            if !was_visible {
+                let _ = window.eval("window.location.reload()");
             }
-        }))
+            let _ = window.show();
+            let _ = window.unminimize();
+            let _ = window.set_focus();
+        }
+    }));
+
+    #[cfg(feature = "updater")]
+    let builder = builder.plugin(tauri_plugin_updater::Builder::new().build());
+
+    builder
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_notification::init())
-        .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_dialog::init())
         .manage(TrayState(Mutex::new(None)))
@@ -394,6 +458,21 @@ fn main() {
             set_tray_labels,
             set_content_protection,
             open_external_url,
+            distribution::get_distribution_channel,
+            #[cfg(all(target_os = "macos", feature = "mas"))]
+            storekit::storekit_products,
+            #[cfg(all(target_os = "macos", feature = "mas"))]
+            storekit::storekit_purchase,
+            #[cfg(all(target_os = "macos", feature = "mas"))]
+            storekit::storekit_restore,
+            #[cfg(all(target_os = "macos", feature = "mas"))]
+            storekit::storekit_current_entitlements,
+            #[cfg(all(target_os = "macos", feature = "mas"))]
+            storekit::storekit_finish,
+            #[cfg(all(target_os = "macos", feature = "mas"))]
+            storekit::storekit_take_pending,
+            #[cfg(all(target_os = "macos", feature = "mas"))]
+            storekit::storekit_manage_subscriptions,
             device::crypto::device_get_pubkeys,
             device::crypto::device_set_id,
             device::crypto::device_sign_challenge,
@@ -561,6 +640,9 @@ fn main() {
             }
 
             boot_guard::spawn_watchdog(app.handle().clone());
+
+            #[cfg(all(target_os = "macos", feature = "mas"))]
+            storekit::start(app.handle());
 
             Ok(())
         })

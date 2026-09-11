@@ -1,0 +1,25 @@
+{
+  "identifier": "org.astermail.ios",
+  "app": {
+    "security": {
+      "csp": "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: cid: https:; font-src 'self' data: blob: https:; connect-src 'self' ipc: http://ipc.localhost https://*.astermail.org wss://*.astermail.org https://*.astermail.com wss://*.astermail.com https://challenges.cloudflare.com; frame-src 'self' blob: https://challenges.cloudflare.com; media-src 'self' blob: data:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; worker-src 'self' blob:"
+    }
+  },
+  "bundle": {
+    "targets": ["app"],
+    "category": "Productivity",
+    "createUpdaterArtifacts": false,
+    "macOS": {
+      "minimumSystemVersion": "12.0",
+      "signingIdentity": "Apple Distribution: Aster Communications Inc (UD4F4Q58WU)",
+      "entitlements": "mas/entitlements.plist",
+      "bundleVersion": "1",
+      "files": {
+        "embedded.provisionprofile": "mas/embedded.provisionprofile"
+      }
+    }
+  },
+  "plugins": {
+    "updater": null
+  }
+}

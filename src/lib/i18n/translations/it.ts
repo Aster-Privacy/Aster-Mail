@@ -36,12 +36,14 @@ export const it = {
     clear_selection: "Annulla selezione",
     compose_to_selection: "Scrivi ai contatti selezionati",
     contact_change_undone: "Modifica annullata",
-    contact_encryption_info: "Quando un contatto pubblica una chiave pubblica, Aster cifra automaticamente i messaggi che gli invii.",
+    contact_encryption_info:
+      "Quando un contatto pubblica una chiave pubblica, Aster cifra automaticamente i messaggi che gli invii.",
     contact_moved_to_trash: "Contatto spostato nel cestino",
     contact_restored: "Contatto ripristinato",
     contacts_created: "{{count}} contatti creati",
     contacts_exported: "Contatti esportati",
-    contacts_in_trash_notice: "I contatti nel cestino vengono eliminati definitivamente dopo 30 giorni.",
+    contacts_in_trash_notice:
+      "I contatti nel cestino vengono eliminati definitivamente dopo 30 giorni.",
     contacts_merged: "Contatti uniti",
     contacts_moved_to_trash: "Contatti spostati nel cestino",
     contacts_updated_stat: "Aggiornati",
@@ -49,28 +51,36 @@ export const it = {
     create_multiple_contacts: "Crea più contatti",
     delete_contacts: "Elimina contatti",
     delete_group: "Elimina gruppo",
-    delete_group_confirmation: "Eliminando «{{name}}» rimuovi il gruppo. I contatti che contiene restano nella tua rubrica.",
+    delete_group_confirmation:
+      "Eliminando «{{name}}» rimuovi il gruppo. I contatti che contiene restano nella tua rubrica.",
     deselect_contact: "Deseleziona contatto",
     discard: "Scarta",
-    discard_new_contact_message: "Il contatto che hai iniziato non è ancora salvato. Se apri un altro contatto adesso, lo perdi.",
+    discard_new_contact_message:
+      "Il contatto che hai iniziato non è ancora salvato. Se apri un altro contatto adesso, lo perdi.",
     duplicates_found: "Duplicati trovati",
     email_group: "Scrivi al gruppo",
-    empty_trash_confirm: "Vuoi eliminare definitivamente tutti i contatti nel cestino? Questa operazione non si può annullare.",
+    empty_trash_confirm:
+      "Vuoi eliminare definitivamente tutti i contatti nel cestino? Questa operazione non si può annullare.",
     export_selection_vcf: "Esporta come vCard",
-    failed_to_add_to_group: "Non è stato possibile aggiungere il contatto al gruppo.",
+    failed_to_add_to_group:
+      "Non è stato possibile aggiungere il contatto al gruppo.",
     failed_to_create_group: "Non è stato possibile creare il gruppo.",
     failed_to_delete_group: "Non è stato possibile eliminare il gruppo.",
     failed_to_load_groups: "Non è stato possibile caricare i tuoi gruppi.",
-    failed_to_move_to_trash: "Non è stato possibile spostare il contatto nel cestino.",
-    failed_to_remove_from_group: "Non è stato possibile rimuovere il contatto dal gruppo.",
+    failed_to_move_to_trash:
+      "Non è stato possibile spostare il contatto nel cestino.",
+    failed_to_remove_from_group:
+      "Non è stato possibile rimuovere il contatto dal gruppo.",
     frequent_contacts: "Frequenti",
     frequent_contacts_hint: "I contatti a cui scrivi più spesso compaiono qui.",
     group_contact_count: "{{count}} contatti",
     group_created: "Gruppo creato",
     group_deleted: "Gruppo eliminato",
-    group_empty_hint: "Per riempire questo gruppo, seleziona dei contatti nella scheda Contatti e scegli Aggiungi al gruppo.",
+    group_empty_hint:
+      "Per riempire questo gruppo, seleziona dei contatti nella scheda Contatti e scegli Aggiungi al gruppo.",
     group_empty_title: "Nessun contatto in questo gruppo",
-    group_modal_description: "Crea gruppi per scrivere a più contatti in una volta sola.",
+    group_modal_description:
+      "Crea gruppi per scrivere a più contatti in una volta sola.",
     group_name: "Nome del gruppo",
     groups: "Gruppi",
     import_add_to_group: "Aggiungi i contatti importati a un gruppo",
@@ -83,11 +93,13 @@ export const it = {
     manage_contacts: "Gestisci contatti",
     merge: "Unisci",
     merge_and_fix: "Unisci e correggi",
-    merge_contacts_hint: "Scegli i dati da mantenere. Gli altri contatti vengono spostati nel cestino.",
+    merge_contacts_hint:
+      "Scegli i dati da mantenere. Gli altri contatti vengono spostati nel cestino.",
     merge_keeps_this: "Mantenuto",
     merged_contact_preview: "Contatto unito",
     no_contact_changes: "Ancora nessuna modifica",
-    no_contact_details: "Questo contatto non ha ancora dati. Scegli Modifica per aggiungerne.",
+    no_contact_details:
+      "Questo contatto non ha ancora dati. Scegli Modifica per aggiungerne.",
     no_contacts_in_trash: "Il cestino è vuoto",
     no_duplicates_found: "Nessun duplicato da correggere",
     no_email: "Nessun indirizzo email",
@@ -2187,19 +2199,25 @@ export const it = {
     account_resume_tooltip: "Riprendi la sincronizzazione",
     app_password_create_link: "Crea una password per l’app",
     app_password_required: "Serve una password per l’app",
-    category_info_newsletters: "Newsletter e mailing list a cui ti sei iscritto.",
-    category_info_transactions: "Ordini, pagamenti e ricevute di negozi e servizi.",
+    category_info_newsletters:
+      "Newsletter e mailing list a cui ti sei iscritto.",
+    category_info_transactions:
+      "Ordini, pagamenti e ricevute di negozi e servizi.",
     category_newsletters: "Newsletter",
     category_transactions: "Acquisti",
     edit_account_tooltip: "Modifica account",
-    gmail_app_password_notice: "Questo provider richiede una password per l’app. La normale password del tuo account non funziona.",
+    gmail_app_password_notice:
+      "Questo provider richiede una password per l’app. La normale password del tuo account non funziona.",
     gmail_sync_continue: "Continua",
-    gmail_sync_intro: "Crea una password per l’app nelle impostazioni del tuo account, poi incollala qui.",
-    gmail_sync_note_unavailable: "Se le password per le app non sono disponibili, attiva prima la verifica in due passaggi e poi controlla di nuovo.",
+    gmail_sync_intro:
+      "Crea una password per l’app nelle impostazioni del tuo account, poi incollala qui.",
+    gmail_sync_note_unavailable:
+      "Se le password per le app non sono disponibili, attiva prima la verifica in due passaggi e poi controlla di nuovo.",
     gmail_sync_open_google: "Apri le impostazioni dell’account",
     gmail_sync_setup_button: "Mostrami come",
     gmail_sync_step_1: "Accedi alle impostazioni di sicurezza del tuo account.",
-    gmail_sync_step_2: "Attiva la verifica in due passaggi, se non è già attiva.",
+    gmail_sync_step_2:
+      "Attiva la verifica in due passaggi, se non è già attiva.",
     gmail_sync_step_3: "Crea una password per l’app di posta.",
     gmail_sync_step_4: "Copia la password e incollala in Aster.",
     gmail_sync_title: "Crea una password per l’app",
@@ -2208,25 +2226,36 @@ export const it = {
     gmail_wizard_progress: "Passaggio {{current}} di {{total}}",
     gmail_wizard_reveal_password: "Mostra la password per l’app",
     gmail_wizard_step_1_action: "Apri le impostazioni di sicurezza",
-    gmail_wizard_step_1_body: "Le password per le app si trovano nella sezione sicurezza dell’account del tuo provider.",
-    gmail_wizard_step_1_title: "Apri le impostazioni di sicurezza del tuo account",
-    gmail_wizard_step_2_body: "Le password per le app sono disponibili solo con la verifica in due passaggi attiva.",
+    gmail_wizard_step_1_body:
+      "Le password per le app si trovano nella sezione sicurezza dell’account del tuo provider.",
+    gmail_wizard_step_1_title:
+      "Apri le impostazioni di sicurezza del tuo account",
+    gmail_wizard_step_2_body:
+      "Le password per le app sono disponibili solo con la verifica in due passaggi attiva.",
     gmail_wizard_step_2_title: "Attiva la verifica in due passaggi",
     gmail_wizard_step_3_body: "Scegli Posta come app, poi crea la password.",
     gmail_wizard_step_3_title: "Crea una password per l’app",
-    gmail_wizard_step_4_body: "Incolla qui sotto la password per l’app. Aster la conserva cifrata e la usa solo per sincronizzare questa casella.",
+    gmail_wizard_step_4_body:
+      "Incolla qui sotto la password per l’app. Aster la conserva cifrata e la usa solo per sincronizzare questa casella.",
     gmail_wizard_step_4_title: "Incolla la password",
     gmail_wizard_title: "Connetti la tua casella",
-    last_sync_tooltip: "Quando questo account si è sincronizzato l’ultima volta",
+    last_sync_tooltip:
+      "Quando questo account si è sincronizzato l’ultima volta",
     not_synced_tooltip: "Questo account non si è ancora sincronizzato.",
-    protocol_desc_imap: "Sincronizza le cartelle e resta aggiornato su tutti i dispositivi.",
-    protocol_desc_pop3: "Scarica la posta una volta sola e non lascia nulla da sincronizzare.",
-    protocol_tooltip_imap: "IMAP tiene la posta sul server e sincronizza ogni modifica su tutti i tuoi dispositivi.",
-    protocol_tooltip_jmap: "JMAP è un protocollo di sincronizzazione moderno supportato solo da pochi provider.",
-    protocol_tooltip_pop3: "POP3 scarica la posta su un solo dispositivo e non sincronizza le modifiche.",
+    protocol_desc_imap:
+      "Sincronizza le cartelle e resta aggiornato su tutti i dispositivi.",
+    protocol_desc_pop3:
+      "Scarica la posta una volta sola e non lascia nulla da sincronizzare.",
+    protocol_tooltip_imap:
+      "IMAP tiene la posta sul server e sincronizza ogni modifica su tutti i tuoi dispositivi.",
+    protocol_tooltip_jmap:
+      "JMAP è un protocollo di sincronizzazione moderno supportato solo da pochi provider.",
+    protocol_tooltip_pop3:
+      "POP3 scarica la posta su un solo dispositivo e non sincronizza le modifiche.",
     remove_account_tooltip: "Rimuovi account",
     show_side_panel: "Mostra il pannello laterale",
-    show_side_panel_description: "Tieni i contatti e altri strumenti rapidi in un pannello accanto alla posta.",
+    show_side_panel_description:
+      "Tieni i contatti e altri strumenti rapidi in un pannello accanto alla posta.",
     sync_now_tooltip: "Sincronizza ora",
     purge_locked_folder_on_delete:
       "Elimina il contenuto delle cartelle protette",
@@ -2317,9 +2346,11 @@ export const it = {
       "Non è stato possibile sbloccare i dati precedenti. Verifichi la password o la frase e riprovi.",
     discard_older_data_button: "Elimina i dati precedenti",
     discard_older_data_title: "Eliminare i dati precedenti?",
-    discard_older_data_desc: "Questa operazione rimuove in modo permanente la possibilità di sbloccare la posta e gli alias precedenti al ripristino. Non può essere annullata.",
+    discard_older_data_desc:
+      "Questa operazione rimuove in modo permanente la possibilità di sbloccare la posta e gli alias precedenti al ripristino. Non può essere annullata.",
     discard_older_data_success: "Dati precedenti eliminati.",
-    discard_older_data_failed: "Impossibile eliminare i dati precedenti. Riprova.",
+    discard_older_data_failed:
+      "Impossibile eliminare i dati precedenti. Riprova.",
     phrase_wrap_save_failed:
       "Non è stato possibile salvare la sua frase di recupero sul server. Riprovi.",
     smtp_tokens: "Token SMTP",
@@ -7851,9 +7882,11 @@ export const it = {
     bulk_trash_title_one: "Vuoi spostare 1 email nel cestino?",
     bulk_trash_title_other: "Vuoi spostare {{count}} email nel cestino?",
     sender_rule_confirm: "Crea regola",
-    sender_rule_created: "Le nuove email di questo mittente ora vanno in {{category}}.",
+    sender_rule_created:
+      "Le nuove email di questo mittente ora vanno in {{category}}.",
     sender_rule_name: "{{sender}} in {{category}}",
-    sender_rule_offer: "Sposti spesso le email di {{sender}} in {{category}}. Vuoi farlo automaticamente?",
+    sender_rule_offer:
+      "Sposti spesso le email di {{sender}} in {{category}}. Vuoi farlo automaticamente?",
     load_all_thread_messages: "Carica tutti i messaggi",
     move_to_category: "Sposta nella categoria",
     menu_applies_to_selection: "Si applica a {count} selezionati",
@@ -10378,5 +10411,47 @@ export const it = {
     vacation_reply: "Risposta di assenza",
     vanguard: "Vanguard",
     vision: "Vista",
+  },
+  app_store: {
+    section_title: "Abbonamento App Store",
+    section_description:
+      "I piani acquistati in questa app vengono addebitati sul tuo Account Apple e si rinnovano automaticamente finché non li annulli.",
+    per_month: "al mese",
+    per_year: "all'anno",
+    subscribe_to: "Abbonati a {{plan}}",
+    processing: "Elaborazione...",
+    restore_purchases: "Ripristina acquisti",
+    restoring: "Ripristino...",
+    manage_subscriptions: "Gestisci abbonamenti",
+    terms_of_use: "Condizioni d'uso",
+    renewal_terms:
+      "Il pagamento viene addebitato sul tuo Account Apple quando confermi l'acquisto. L'abbonamento si rinnova automaticamente, a meno che tu non lo annulli almeno 24 ore prima della fine del periodo in corso. Per annullarlo, fai clic su Gestisci abbonamenti.",
+    purchase_pending:
+      "Il tuo acquisto è in attesa di approvazione. Il piano verrà aggiornato dopo l'approvazione dell'App Store.",
+    purchase_success: "Il tuo nuovo piano è attivo.",
+    purchase_failed:
+      "L'App Store non è riuscito a completare l'acquisto. Riprova.",
+    verify_failed:
+      "L'acquisto è andato a buon fine, ma Aster Mail non è ancora riuscito a confermarlo. Per riprovare, fai clic su Ripristina acquisti.",
+    conflict:
+      "Questo abbonamento App Store appartiene a un altro account Aster Mail. Per usarlo, accedi a quell'account.",
+    restore_success: "I tuoi acquisti sono stati ripristinati.",
+    restore_none:
+      "L'App Store non ha trovato abbonamenti attivi per il tuo Account Apple.",
+    restore_failed:
+      "L'App Store non è riuscito a ripristinare i tuoi acquisti. Riprova.",
+    managed_elsewhere_title:
+      "Il tuo piano è gestito al di fuori dell'App Store",
+    managed_elsewhere_description:
+      "Hai acquistato il piano attuale su un'altra piattaforma e puoi continuare a usarlo qui. Per modificarlo, usa la piattaforma su cui l'hai acquistato.",
+    upgrade_title: "Passa a un piano superiore",
+    upgrade_limit_description:
+      "Hai raggiunto un limite del tuo piano attuale. Per ottenere di più, scegli un piano.",
+    upgrade_storage_description:
+      "Lo spazio di archiviazione è pieno. Per ottenere più spazio, scegli un piano.",
+    upgrade_generic_description:
+      "Per ottenere più spazio, alias e domini personalizzati, scegli un piano.",
+    register_subtitle:
+      "Abbonati tramite l'App Store o continua con un account gratuito. Puoi cambiare piano in qualsiasi momento.",
   },
 };

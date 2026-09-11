@@ -53,23 +53,28 @@ export const hi = {
     clear_selection: "चयन हटाएँ",
     compose_to_selection: "चुने गए संपर्कों को लिखें",
     contact_change_undone: "बदलाव पहले जैसा कर दिया गया",
-    contact_encryption_info: "जब कोई संपर्क अपनी सार्वजनिक कुंजी प्रकाशित करता है, तो Aster उसे भेजे जाने वाले मेल को अपने आप एन्क्रिप्ट कर देता है।",
+    contact_encryption_info:
+      "जब कोई संपर्क अपनी सार्वजनिक कुंजी प्रकाशित करता है, तो Aster उसे भेजे जाने वाले मेल को अपने आप एन्क्रिप्ट कर देता है।",
     contact_moved_to_trash: "संपर्क ट्रैश में ले जाया गया",
     contact_restored: "संपर्क वापस लाया गया",
     contacts_exported: "संपर्क एक्सपोर्ट किए गए",
-    contacts_in_trash_notice: "ट्रैश में मौजूद संपर्क 30 दिन बाद हमेशा के लिए मिटा दिए जाते हैं।",
+    contacts_in_trash_notice:
+      "ट्रैश में मौजूद संपर्क 30 दिन बाद हमेशा के लिए मिटा दिए जाते हैं।",
     contacts_merged: "संपर्क मर्ज किए गए",
     contacts_moved_to_trash: "संपर्क ट्रैश में ले जाए गए",
     contacts_updated_stat: "अपडेट किए गए",
     delete_contacts: "संपर्क मिटाएँ",
     delete_group: "समूह मिटाएँ",
-    delete_group_confirmation: "“{{name}}” मिटाने पर समूह हट जाता है। इसमें शामिल संपर्क आपकी पता पुस्तिका में बने रहते हैं।",
+    delete_group_confirmation:
+      "“{{name}}” मिटाने पर समूह हट जाता है। इसमें शामिल संपर्क आपकी पता पुस्तिका में बने रहते हैं।",
     deselect_contact: "संपर्क का चयन हटाएँ",
     discard: "छोड़ें",
-    discard_new_contact_message: "आपने जो संपर्क बनाना शुरू किया है, वह अभी सहेजा नहीं गया है। अभी कोई दूसरा संपर्क खोलने पर यह मिट जाएगा।",
+    discard_new_contact_message:
+      "आपने जो संपर्क बनाना शुरू किया है, वह अभी सहेजा नहीं गया है। अभी कोई दूसरा संपर्क खोलने पर यह मिट जाएगा।",
     duplicates_found: "डुप्लिकेट मिले",
     email_group: "समूह को लिखें",
-    empty_trash_confirm: "ट्रैश में मौजूद सभी संपर्क हमेशा के लिए मिटाएँ? यह वापस नहीं किया जा सकता।",
+    empty_trash_confirm:
+      "ट्रैश में मौजूद सभी संपर्क हमेशा के लिए मिटाएँ? यह वापस नहीं किया जा सकता।",
     export_selection_vcf: "vCard के रूप में एक्सपोर्ट करें",
     failed_to_add_to_group: "संपर्क को समूह में नहीं जोड़ा जा सका।",
     failed_to_create_group: "समूह नहीं बनाया जा सका।",
@@ -80,7 +85,8 @@ export const hi = {
     group_contact_count: "{{count}} संपर्क",
     group_created: "समूह बना दिया गया",
     group_deleted: "समूह मिटा दिया गया",
-    group_empty_hint: "इस समूह को भरने के लिए, संपर्क टैब में संपर्क चुनें और फिर समूह में जोड़ें चुनें।",
+    group_empty_hint:
+      "इस समूह को भरने के लिए, संपर्क टैब में संपर्क चुनें और फिर समूह में जोड़ें चुनें।",
     group_empty_title: "इस समूह में कोई संपर्क नहीं है",
     group_modal_description: "एक साथ कई संपर्कों को लिखने के लिए समूह बनाएँ।",
     group_name: "समूह का नाम",
@@ -93,11 +99,13 @@ export const hi = {
     import_select_all: "सभी चुनें",
     import_selected_count: "{{total}} में से {{selected}} चुने गए",
     merge: "मर्ज करें",
-    merge_contacts_hint: "वह जानकारी चुनें जो आप रखना चाहते हैं। बाकी संपर्क ट्रैश में चले जाते हैं।",
+    merge_contacts_hint:
+      "वह जानकारी चुनें जो आप रखना चाहते हैं। बाकी संपर्क ट्रैश में चले जाते हैं।",
     merge_keeps_this: "रखा गया",
     merged_contact_preview: "मर्ज किया गया संपर्क",
     no_contact_changes: "अभी तक कोई बदलाव नहीं",
-    no_contact_details: "इस संपर्क में अभी कोई जानकारी नहीं है। जोड़ने के लिए संपादित करें चुनें।",
+    no_contact_details:
+      "इस संपर्क में अभी कोई जानकारी नहीं है। जोड़ने के लिए संपादित करें चुनें।",
     no_contacts_in_trash: "ट्रैश खाली है",
     no_email: "कोई ईमेल पता नहीं",
     no_groups_match: "आपकी खोज से मेल खाने वाला कोई समूह नहीं",
@@ -2153,34 +2161,44 @@ export const hi = {
     account_resume_tooltip: "सिंक फिर से शुरू करें",
     app_password_create_link: "ऐप पासवर्ड बनाएँ",
     app_password_required: "ऐप पासवर्ड ज़रूरी है",
-    category_info_newsletters: "आपने जिन न्यूज़लेटर और मेलिंग सूचियों की सदस्यता ली है।",
-    category_info_transactions: "स्टोर और सेवाओं से आए ऑर्डर, भुगतान और रसीदें।",
+    category_info_newsletters:
+      "आपने जिन न्यूज़लेटर और मेलिंग सूचियों की सदस्यता ली है।",
+    category_info_transactions:
+      "स्टोर और सेवाओं से आए ऑर्डर, भुगतान और रसीदें।",
     category_newsletters: "न्यूज़लेटर",
     category_transactions: "खरीदारी",
     checkout_abandon_confirm: "भुगतान रद्द करें",
     checkout_abandon_keep: "भुगतान जारी रखें",
-    checkout_abandon_message: "आपका इनवॉइस रद्द हो जाता है और कोई शुल्क नहीं लिया जाता। आप कभी भी दोबारा शुरू कर सकते हैं।",
+    checkout_abandon_message:
+      "आपका इनवॉइस रद्द हो जाता है और कोई शुल्क नहीं लिया जाता। आप कभी भी दोबारा शुरू कर सकते हैं।",
     checkout_abandon_title: "यह भुगतान रद्द करें?",
     checkout_add_promo: "प्रोमो कोड जोड़ें",
     checkout_amount_due: "देय राशि",
     checkout_card_details: "कार्ड की जानकारी",
     checkout_full_features_title: "{{plan}} की सुविधाएँ",
-    checkout_leave_warning: "आपका एक भुगतान चल रहा है। अभी छोड़ने पर वह पूरा नहीं होता।",
-    checkout_method_card_note: "जब तक आप रद्द नहीं करते, यह अपने आप रिन्यू होता रहता है।",
-    checkout_method_crypto_note: "आप जितनी अवधि चुनते हैं, उसके लिए एक बार भुगतान करें। कुछ भी अपने आप रिन्यू नहीं होता।",
+    checkout_leave_warning:
+      "आपका एक भुगतान चल रहा है। अभी छोड़ने पर वह पूरा नहीं होता।",
+    checkout_method_card_note:
+      "जब तक आप रद्द नहीं करते, यह अपने आप रिन्यू होता रहता है।",
+    checkout_method_crypto_note:
+      "आप जितनी अवधि चुनते हैं, उसके लिए एक बार भुगतान करें। कुछ भी अपने आप रिन्यू नहीं होता।",
     checkout_method_description: "चुनें कि आप भुगतान कैसे करना चाहते हैं।",
     checkout_pay_amount: "{{amount}} का भुगतान करें",
     checkout_review_title: "देखें और भुगतान करें",
     checkout_what_you_get: "आपको क्या मिलता है",
     credits_method_card_note: "भुगतान पूरा होते ही क्रेडिट जोड़ दिए जाते हैं।",
-    credits_method_crypto_note: "क्रिप्टो में एक बार भुगतान करें। भुगतान की पुष्टि चेन पर होने के बाद क्रेडिट जोड़े जाते हैं।",
+    credits_method_crypto_note:
+      "क्रिप्टो में एक बार भुगतान करें। भुगतान की पुष्टि चेन पर होने के बाद क्रेडिट जोड़े जाते हैं।",
     edit_account_tooltip: "खाता संपादित करें",
     free_upgrade_price_note: "प्लान {{price}} प्रति माह से शुरू होते हैं।",
     free_upgrade_title: "{{plan}} के साथ और ज़्यादा पाएँ",
-    gmail_app_password_notice: "इस प्रदाता को ऐप पासवर्ड चाहिए। आपका सामान्य खाता पासवर्ड काम नहीं करेगा।",
+    gmail_app_password_notice:
+      "इस प्रदाता को ऐप पासवर्ड चाहिए। आपका सामान्य खाता पासवर्ड काम नहीं करेगा।",
     gmail_sync_continue: "जारी रखें",
-    gmail_sync_intro: "अपनी खाता सेटिंग में ऐप पासवर्ड बनाएँ, फिर उसे यहाँ पेस्ट करें।",
-    gmail_sync_note_unavailable: "अगर ऐप पासवर्ड उपलब्ध नहीं हैं, तो पहले दो-चरणीय पुष्टिकरण चालू करें और फिर से देखें।",
+    gmail_sync_intro:
+      "अपनी खाता सेटिंग में ऐप पासवर्ड बनाएँ, फिर उसे यहाँ पेस्ट करें।",
+    gmail_sync_note_unavailable:
+      "अगर ऐप पासवर्ड उपलब्ध नहीं हैं, तो पहले दो-चरणीय पुष्टिकरण चालू करें और फिर से देखें।",
     gmail_sync_open_google: "खाता सेटिंग खोलें",
     gmail_sync_setup_button: "तरीका देखें",
     gmail_sync_step_1: "अपने खाते की सुरक्षा सेटिंग में साइन इन करें।",
@@ -2193,13 +2211,16 @@ export const hi = {
     gmail_wizard_progress: "चरण {{current}}/{{total}}",
     gmail_wizard_reveal_password: "ऐप पासवर्ड दिखाएँ",
     gmail_wizard_step_1_action: "सुरक्षा सेटिंग खोलें",
-    gmail_wizard_step_1_body: "ऐप पासवर्ड आपके प्रदाता के खाते के सुरक्षा हिस्से में मिलते हैं।",
+    gmail_wizard_step_1_body:
+      "ऐप पासवर्ड आपके प्रदाता के खाते के सुरक्षा हिस्से में मिलते हैं।",
     gmail_wizard_step_1_title: "अपने खाते की सुरक्षा सेटिंग खोलें",
-    gmail_wizard_step_2_body: "ऐप पासवर्ड तभी उपलब्ध होते हैं जब दो-चरणीय पुष्टिकरण चालू हो।",
+    gmail_wizard_step_2_body:
+      "ऐप पासवर्ड तभी उपलब्ध होते हैं जब दो-चरणीय पुष्टिकरण चालू हो।",
     gmail_wizard_step_2_title: "दो-चरणीय पुष्टिकरण चालू करें",
     gmail_wizard_step_3_body: "ऐप के तौर पर मेल चुनें, फिर पासवर्ड बनाएँ।",
     gmail_wizard_step_3_title: "ऐप पासवर्ड बनाएँ",
-    gmail_wizard_step_4_body: "ऐप पासवर्ड नीचे पेस्ट करें। Aster इसे एन्क्रिप्ट करके रखता है और सिर्फ़ इस मेलबॉक्स को सिंक करने में इस्तेमाल करता है।",
+    gmail_wizard_step_4_body:
+      "ऐप पासवर्ड नीचे पेस्ट करें। Aster इसे एन्क्रिप्ट करके रखता है और सिर्फ़ इस मेलबॉक्स को सिंक करने में इस्तेमाल करता है।",
     gmail_wizard_step_4_title: "पासवर्ड पेस्ट करें",
     gmail_wizard_title: "अपना मेलबॉक्स कनेक्ट करें",
     last_sync_tooltip: "यह खाता आख़िरी बार कब सिंक हुआ",
@@ -2207,7 +2228,8 @@ export const hi = {
     offer_modal_action: "यह ऑफ़र लें",
     offer_modal_badge: "{{percent}}% की छूट",
     offer_modal_dismiss: "अभी नहीं",
-    offer_modal_fine_print: "कोड {{code}} चेकआउट पर लागू होता है। हर खाते के लिए एक बार।",
+    offer_modal_fine_print:
+      "कोड {{code}} चेकआउट पर लागू होता है। हर खाते के लिए एक बार।",
     offer_modal_price_note: "छूट चेकआउट पर लागू होती है।",
     offer_modal_subtitle: "कम कीमत पर {{plan}} पर जाएँ।",
     offer_modal_title: "अपने प्लान पर {{percent}}% बचाएँ",
@@ -2255,34 +2277,56 @@ export const hi = {
     plan_f_vanguard_lockdown_mode: "लॉकडाउन मोड",
     plan_f_wkd: "वेब कुंजी निर्देशिका",
     plan_tip_alias_bulk: "एक साथ कई उपनाम चालू करें, बंद करें या मिटाएँ।",
-    plan_tip_alias_csv: "हर उपनाम को उसके नियमों और स्थिति के साथ CSV फ़ाइल के रूप में एक्सपोर्ट करें।",
+    plan_tip_alias_csv:
+      "हर उपनाम को उसके नियमों और स्थिति के साथ CSV फ़ाइल के रूप में एक्सपोर्ट करें।",
     plan_tip_alias_import: "दूसरे प्रदाता से उपनाम एक ही चरण में ले आएँ।",
-    plan_tip_alias_no_cooldown: "बीच में इंतज़ार किए बिना एक के बाद एक उपनाम बनाएँ।",
-    plan_tip_alias_pin: "जिन उपनामों का सबसे ज़्यादा इस्तेमाल करते हैं, उन्हें सूची में सबसे ऊपर रखें।",
+    plan_tip_alias_no_cooldown:
+      "बीच में इंतज़ार किए बिना एक के बाद एक उपनाम बनाएँ।",
+    plan_tip_alias_pin:
+      "जिन उपनामों का सबसे ज़्यादा इस्तेमाल करते हैं, उन्हें सूची में सबसे ऊपर रखें।",
     plan_tip_alias_transfer: "किसी उपनाम को अपने दूसरे Aster खाते में ले जाएँ।",
-    plan_tip_allowlist: "चुने हुए प्रेषकों को तब भी आने दें, जब कोई फ़िल्टर उन्हें रोक देता।",
-    plan_tip_contact_sync: "संपर्कों को macOS और iOS पर संपर्क, Android पर DAVx5, या किसी भी CardDAV क्लाइंट से सिंक करें। यह आपके डिवाइस पर चल रहे Aster Bridge साथी ऐप से काम करता है।",
-    plan_tip_custom_categories: "अपने इनबॉक्स टैब बनाएँ और तय करें कि हर टैब में क्या आए।",
-    plan_tip_email_export: "अपना मेल एक मानक संग्रह के रूप में डाउनलोड करें, जिसे आप कहीं भी खोल सकते हैं।",
-    plan_tip_email_import: "IMAP के ज़रिए दूसरे प्रदाता से मेल ले आएँ, फ़ोल्डर के साथ।",
-    plan_tip_expiration: "ऐसी तारीख़ तय करें, जिसके बाद ईमेल पाने वाले की दृष्टि से खुद मिट जाता है।",
-    plan_tip_extra_alias_domains: "सिर्फ़ astermail.org ही नहीं, दूसरे Aster डोमेन पर भी उपनाम बनाएँ।",
-    plan_tip_folder_auto_clean: "हर फ़ोल्डर के लिए तय अवधि से पुरानी हर चीज़ मिटाएँ।",
-    plan_tip_sub_scanner: "जिन न्यूज़लेटर और सेवाओं की आपने सदस्यता ली है, उन सबको ढूँढें और एक ही जगह से सदस्यता छोड़ें।",
-    plan_tip_vanguard_app_lock: "हर बार Aster खोलने पर अपने डिवाइस का पासकोड या बायोमेट्रिक्स ज़रूरी करें।",
-    plan_tip_vanguard_lockdown_mode: "जब तक आप इसे बंद नहीं करते, रिमोट सामग्री, बाहरी लिंक और नए प्रेषक अवरोधित रहते हैं।",
-    plan_tip_wkd: "अपनी सार्वजनिक कुंजी अपने डोमेन पर प्रकाशित करें, ताकि कोई भी उसे ढूँढकर आपको एन्क्रिप्टेड लिख सके।",
-    protocol_desc_imap: "फ़ोल्डर सिंक करता है और आपके सभी डिवाइस पर एक जैसा रहता है।",
-    protocol_desc_pop3: "मेल एक बार डाउनलोड करता है और सिंक करने के लिए कुछ नहीं छोड़ता।",
-    protocol_tooltip_imap: "IMAP आपका मेल सर्वर पर रखता है और हर बदलाव को आपके सभी डिवाइस पर सिंक करता है।",
-    protocol_tooltip_jmap: "JMAP एक आधुनिक सिंक प्रोटोकॉल है, जिसे कुछ ही प्रदाता समर्थन करते हैं।",
-    protocol_tooltip_pop3: "POP3 मेल को एक ही डिवाइस पर डाउनलोड करता है और बदलाव वापस सिंक नहीं करता।",
+    plan_tip_allowlist:
+      "चुने हुए प्रेषकों को तब भी आने दें, जब कोई फ़िल्टर उन्हें रोक देता।",
+    plan_tip_contact_sync:
+      "संपर्कों को macOS और iOS पर संपर्क, Android पर DAVx5, या किसी भी CardDAV क्लाइंट से सिंक करें। यह आपके डिवाइस पर चल रहे Aster Bridge साथी ऐप से काम करता है।",
+    plan_tip_custom_categories:
+      "अपने इनबॉक्स टैब बनाएँ और तय करें कि हर टैब में क्या आए।",
+    plan_tip_email_export:
+      "अपना मेल एक मानक संग्रह के रूप में डाउनलोड करें, जिसे आप कहीं भी खोल सकते हैं।",
+    plan_tip_email_import:
+      "IMAP के ज़रिए दूसरे प्रदाता से मेल ले आएँ, फ़ोल्डर के साथ।",
+    plan_tip_expiration:
+      "ऐसी तारीख़ तय करें, जिसके बाद ईमेल पाने वाले की दृष्टि से खुद मिट जाता है।",
+    plan_tip_extra_alias_domains:
+      "सिर्फ़ astermail.org ही नहीं, दूसरे Aster डोमेन पर भी उपनाम बनाएँ।",
+    plan_tip_folder_auto_clean:
+      "हर फ़ोल्डर के लिए तय अवधि से पुरानी हर चीज़ मिटाएँ।",
+    plan_tip_sub_scanner:
+      "जिन न्यूज़लेटर और सेवाओं की आपने सदस्यता ली है, उन सबको ढूँढें और एक ही जगह से सदस्यता छोड़ें।",
+    plan_tip_vanguard_app_lock:
+      "हर बार Aster खोलने पर अपने डिवाइस का पासकोड या बायोमेट्रिक्स ज़रूरी करें।",
+    plan_tip_vanguard_lockdown_mode:
+      "जब तक आप इसे बंद नहीं करते, रिमोट सामग्री, बाहरी लिंक और नए प्रेषक अवरोधित रहते हैं।",
+    plan_tip_wkd:
+      "अपनी सार्वजनिक कुंजी अपने डोमेन पर प्रकाशित करें, ताकि कोई भी उसे ढूँढकर आपको एन्क्रिप्टेड लिख सके।",
+    protocol_desc_imap:
+      "फ़ोल्डर सिंक करता है और आपके सभी डिवाइस पर एक जैसा रहता है।",
+    protocol_desc_pop3:
+      "मेल एक बार डाउनलोड करता है और सिंक करने के लिए कुछ नहीं छोड़ता।",
+    protocol_tooltip_imap:
+      "IMAP आपका मेल सर्वर पर रखता है और हर बदलाव को आपके सभी डिवाइस पर सिंक करता है।",
+    protocol_tooltip_jmap:
+      "JMAP एक आधुनिक सिंक प्रोटोकॉल है, जिसे कुछ ही प्रदाता समर्थन करते हैं।",
+    protocol_tooltip_pop3:
+      "POP3 मेल को एक ही डिवाइस पर डाउनलोड करता है और बदलाव वापस सिंक नहीं करता।",
     remove_account_tooltip: "खाता हटाएँ",
     show_side_panel: "साइड पैनल दिखाएँ",
-    show_side_panel_description: "संपर्क और दूसरे तेज़ टूल अपने मेल के बगल के पैनल में रखें।",
+    show_side_panel_description:
+      "संपर्क और दूसरे तेज़ टूल अपने मेल के बगल के पैनल में रखें।",
     stripe_secure_short: "Stripe से सुरक्षित",
     sync_now_tooltip: "अभी सिंक करें",
-    upgrade_external_accounts_note: "और बाहरी खाते कनेक्ट करने के लिए अपग्रेड करें।",
+    upgrade_external_accounts_note:
+      "और बाहरी खाते कनेक्ट करने के लिए अपग्रेड करें।",
     usage_external_accounts: "बाहरी खाते",
     purge_locked_folder_on_delete: "सुरक्षित फ़ोल्डर की सामग्री मिटाएं",
     purge_locked_folder_on_delete_description:
@@ -2370,9 +2414,11 @@ export const hi = {
       "इससे पुराना डेटा नहीं खुला। पासवर्ड या वाक्यांश जांचें और फिर कोशिश करें।",
     discard_older_data_button: "पुराना डेटा हटाएँ",
     discard_older_data_title: "पुराना डेटा हटाएँ?",
-    discard_older_data_desc: "इससे रीसेट से पहले के मेल और उपनाम खोलने का विकल्प स्थायी रूप से हट जाएगा। इसे पूर्ववत नहीं किया जा सकता।",
+    discard_older_data_desc:
+      "इससे रीसेट से पहले के मेल और उपनाम खोलने का विकल्प स्थायी रूप से हट जाएगा। इसे पूर्ववत नहीं किया जा सकता।",
     discard_older_data_success: "पुराना डेटा हटा दिया गया।",
-    discard_older_data_failed: "पुराना डेटा नहीं हटाया जा सका। फिर से कोशिश करें।",
+    discard_older_data_failed:
+      "पुराना डेटा नहीं हटाया जा सका। फिर से कोशिश करें।",
     phrase_wrap_save_failed:
       "आपका रिकवरी वाक्यांश सर्वर पर सहेजा नहीं जा सका। फिर से कोशिश करें।",
     general: "सामान्य",
@@ -7236,7 +7282,8 @@ export const hi = {
     alias_paid_badge: "भुगतान हो गया",
     requires_plan: "इसके लिए {{plan}} चाहिए",
     alias_domain_group_extra: "अतिरिक्त डोमेन",
-    alias_domain_requires_plan: "यह डोमेन {{plan}} प्लान और उससे ऊपर उपलब्ध है।",
+    alias_domain_requires_plan:
+      "यह डोमेन {{plan}} प्लान और उससे ऊपर उपलब्ध है।",
     alias_feature_locked_view_plans: "प्लान देखें",
     alias_feature_locked_upgrade_plan: "प्लान बढ़ाएं",
     alias_feature_locked_upgrade_cta: "अपग्रेड करें",
@@ -7392,7 +7439,8 @@ export const hi = {
       "{{ total }} में से {{ count }} संदेश एक्सपोर्ट हुए।",
     export_incomplete_summary:
       "एक्सपोर्ट रुकने से पहले {{ total }} में से {{ count }} संदेश एक्सपोर्ट हुए।",
-    export_progress_messages_unknown_total: "{{ processed }} संदेश एक्सपोर्ट हुए",
+    export_progress_messages_unknown_total:
+      "{{ processed }} संदेश एक्सपोर्ट हुए",
     export_complete_summary_unknown_total: "{{ count }} संदेश एक्सपोर्ट हुए।",
     export_incomplete_summary_unknown_total:
       "एक्सपोर्ट रुकने से पहले {{ count }} संदेश एक्सपोर्ट हुए।",
@@ -7643,18 +7691,25 @@ export const hi = {
     bulk_trash_title: "{{count}} ईमेल ट्रैश में ले जाएँ?",
     bulk_trash_title_one: "1 ईमेल ट्रैश में ले जाएँ?",
     bulk_trash_title_other: "{{count}} ईमेल ट्रैश में ले जाएँ?",
-    confirm_bulk_action_count_description: "यह कार्रवाई सभी {{count}} ईमेल पर लागू होती है।",
-    confirm_bulk_action_count_description_one: "यह कार्रवाई 1 ईमेल पर लागू होती है।",
-    confirm_bulk_action_count_description_other: "यह कार्रवाई सभी {{count}} ईमेल पर लागू होती है।",
-    confirm_bulk_action_scope_description: "यह कार्रवाई {{scope}} के सभी {{count}} ईमेल पर लागू होती है।",
-    confirm_bulk_action_scope_description_one: "यह कार्रवाई {{scope}} के 1 ईमेल पर लागू होती है।",
-    confirm_bulk_action_scope_description_other: "यह कार्रवाई {{scope}} के सभी {{count}} ईमेल पर लागू होती है।",
+    confirm_bulk_action_count_description:
+      "यह कार्रवाई सभी {{count}} ईमेल पर लागू होती है।",
+    confirm_bulk_action_count_description_one:
+      "यह कार्रवाई 1 ईमेल पर लागू होती है।",
+    confirm_bulk_action_count_description_other:
+      "यह कार्रवाई सभी {{count}} ईमेल पर लागू होती है।",
+    confirm_bulk_action_scope_description:
+      "यह कार्रवाई {{scope}} के सभी {{count}} ईमेल पर लागू होती है।",
+    confirm_bulk_action_scope_description_one:
+      "यह कार्रवाई {{scope}} के 1 ईमेल पर लागू होती है।",
+    confirm_bulk_action_scope_description_other:
+      "यह कार्रवाई {{scope}} के सभी {{count}} ईमेल पर लागू होती है।",
     remove_from_folder: "फ़ोल्डर से हटाएँ",
     remove_label: "लेबल हटाएँ",
     sender_rule_confirm: "नियम बनाएँ",
     sender_rule_created: "इस प्रेषक के नए मेल अब {{category}} में जाते हैं।",
     sender_rule_name: "{{sender}} को {{category}} में",
-    sender_rule_offer: "आप {{sender}} के मेल अक्सर {{category}} में ले जाते हैं। क्या यह अपने आप हो जाए?",
+    sender_rule_offer:
+      "आप {{sender}} के मेल अक्सर {{category}} में ले जाते हैं। क्या यह अपने आप हो जाए?",
     encrypted_message_unavailable:
       "यह संदेश डिक्रिप्ट नहीं हो सका। प्रेषक ने शायद पुरानी कुंजी इस्तेमाल की हो।",
     pgp_password_protected_title: "पासवर्ड से सुरक्षित संदेश",
@@ -10145,5 +10200,45 @@ export const hi = {
     vacation_reply: "छुट्टी का जवाब",
     vanguard: "Vanguard",
     vision: "दृष्टि",
+  },
+  app_store: {
+    section_title: "App Store सदस्यता",
+    section_description:
+      "इस ऐप में खरीदे गए प्लान का शुल्क आपके Apple खाते से लिया जाता है और रद्द करने तक वे अपने आप रिन्यू होते रहते हैं।",
+    per_month: "प्रति माह",
+    per_year: "प्रति वर्ष",
+    subscribe_to: "{{plan}} की सदस्यता लें",
+    processing: "प्रोसेस हो रहा है...",
+    restore_purchases: "खरीदारी रीस्टोर करें",
+    restoring: "रीस्टोर हो रहा है...",
+    manage_subscriptions: "सदस्यताएँ प्रबंधित करें",
+    terms_of_use: "उपयोग की शर्तें",
+    renewal_terms:
+      "खरीदारी की पुष्टि करने पर आपके Apple खाते से भुगतान लिया जाता है। मौजूदा अवधि खत्म होने से कम से कम 24 घंटे पहले रद्द न करने पर आपकी सदस्यता अपने आप रिन्यू हो जाती है। रद्द करने के लिए, सदस्यताएँ प्रबंधित करें पर क्लिक करें।",
+    purchase_pending:
+      "आपकी खरीदारी मंज़ूरी का इंतज़ार कर रही है। App Store की मंज़ूरी मिलने के बाद आपका प्लान अपडेट हो जाएगा।",
+    purchase_success: "आपका नया प्लान सक्रिय है।",
+    purchase_failed: "App Store खरीदारी पूरी नहीं कर सका। फिर से कोशिश करें।",
+    verify_failed:
+      "आपकी खरीदारी हो गई है, लेकिन Aster Mail अभी तक इसकी पुष्टि नहीं कर सका। फिर से कोशिश करने के लिए, खरीदारी रीस्टोर करें पर क्लिक करें।",
+    conflict:
+      "यह App Store सदस्यता किसी दूसरे Aster Mail खाते की है। इसका इस्तेमाल करने के लिए, उस खाते में साइन इन करें।",
+    restore_success: "आपकी खरीदारी रीस्टोर हो गई है।",
+    restore_none:
+      "App Store को आपके Apple खाते के लिए कोई सक्रिय सदस्यता नहीं मिली।",
+    restore_failed:
+      "App Store आपकी खरीदारी रीस्टोर नहीं कर सका। फिर से कोशिश करें।",
+    managed_elsewhere_title: "आपका प्लान App Store के बाहर प्रबंधित होता है",
+    managed_elsewhere_description:
+      "आपने अपना मौजूदा प्लान किसी दूसरे प्लेटफ़ॉर्म पर खरीदा है और आप इसे यहाँ इस्तेमाल करते रह सकते हैं। इसे बदलने के लिए, उसी प्लेटफ़ॉर्म का इस्तेमाल करें जहाँ से आपने इसे खरीदा था।",
+    upgrade_title: "अपना प्लान अपग्रेड करें",
+    upgrade_limit_description:
+      "आप अपने मौजूदा प्लान की एक सीमा तक पहुँच गए हैं। ज़्यादा पाने के लिए, कोई प्लान चुनें।",
+    upgrade_storage_description:
+      "आपका स्टोरेज भर गया है। ज़्यादा जगह पाने के लिए, कोई प्लान चुनें।",
+    upgrade_generic_description:
+      "ज़्यादा स्टोरेज, उपनाम और कस्टम डोमेन पाने के लिए, कोई प्लान चुनें।",
+    register_subtitle:
+      "App Store से सदस्यता लें या मुफ़्त खाते के साथ जारी रखें। आप कभी भी अपना प्लान बदल सकते हैं।",
   },
 };

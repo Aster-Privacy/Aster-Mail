@@ -24,6 +24,7 @@ import { XMarkIcon, ArrowDownTrayIcon } from "@heroicons/react/24/outline";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 import { ignore_error } from "@/lib/ignore_error";
+import { use_distribution_channel } from "@/native/distribution_channel";
 import {
   is_desktop_runtime,
   get_auto_update_enabled,
@@ -48,8 +49,10 @@ export function UpdateBanner() {
   const [installing, set_installing] = useState(false);
   const [progress, set_progress] = useState<UpdateProgress | null>(null);
 
+  const channel = use_distribution_channel();
+
   useEffect(() => {
-    if (!is_desktop_runtime()) return;
+    if (!is_desktop_runtime() || channel !== "direct") return;
     let cancelled = false;
     const run = async () => {
       if (!get_auto_update_enabled()) return;
@@ -73,7 +76,7 @@ export function UpdateBanner() {
       window.clearTimeout(first_id);
       window.clearInterval(id);
     };
-  }, []);
+  }, [channel]);
 
   if (!info || dismissed_version === info.version) return null;
 

@@ -36,7 +36,8 @@ export const ja = {
     clear_selection: "選択を解除",
     compose_to_selection: "選択した連絡先に書く",
     contact_change_undone: "変更を元に戻しました",
-    contact_encryption_info: "連絡先が公開鍵を公開すると、Aster はその相手宛てのメールを自動的に暗号化します。",
+    contact_encryption_info:
+      "連絡先が公開鍵を公開すると、Aster はその相手宛てのメールを自動的に暗号化します。",
     contact_moved_to_trash: "連絡先をゴミ箱に移動しました",
     contact_restored: "連絡先を復元しました",
     contacts_created: "{{count}} 件の連絡先を作成しました",
@@ -77,10 +78,12 @@ export const ja = {
     delete_contacts_confirmation_one:
       "{{count}} 件の連絡先を削除しますか。この操作は取り消せません。",
     delete_group: "グループを削除",
-    delete_group_confirmation: "「{{name}}」を削除するとグループがなくなります。含まれている連絡先はアドレス帳に残ります。",
+    delete_group_confirmation:
+      "「{{name}}」を削除するとグループがなくなります。含まれている連絡先はアドレス帳に残ります。",
     deselect_contact: "連絡先の選択を解除",
     discard: "破棄",
-    discard_new_contact_message: "作成中の連絡先はまだ保存されていません。ここで別の連絡先を開くと失われます。",
+    discard_new_contact_message:
+      "作成中の連絡先はまだ保存されていません。ここで別の連絡先を開くと失われます。",
     drafts_deleted_one: "{{count}}件の下書きを完全に削除しました",
     duplicates_found: "重複が見つかりました",
     email_count_one: "{{count}} 件のメール",
@@ -100,7 +103,8 @@ export const ja = {
     emails_unstarred_one: "{{count}}件のメールのスターを外しました",
     emails_will_reappear_one:
       "{{count}} 件のメールは {{time}} に再表示されます",
-    empty_trash_confirm: "ゴミ箱の連絡先をすべて完全に削除しますか？この操作は元に戻せません。",
+    empty_trash_confirm:
+      "ゴミ箱の連絡先をすべて完全に削除しますか？この操作は元に戻せません。",
     entry_count_one: "{{count}} 件のエントリ",
     export_selection_vcf: "vCard として書き出す",
     failed_to_add_to_group: "連絡先をグループに追加できませんでした。",
@@ -116,9 +120,11 @@ export const ja = {
     group_contact_count: "{{count}} 件の連絡先",
     group_created: "グループを作成しました",
     group_deleted: "グループを削除しました",
-    group_empty_hint: "このグループに追加するには、「連絡先」タブで連絡先を選び、「グループに追加」を選択します。",
+    group_empty_hint:
+      "このグループに追加するには、「連絡先」タブで連絡先を選び、「グループに追加」を選択します。",
     group_empty_title: "このグループに連絡先はありません",
-    group_modal_description: "グループを作ると、複数の連絡先にまとめて書けます。",
+    group_modal_description:
+      "グループを作ると、複数の連絡先にまとめて書けます。",
     group_name: "グループ名",
     groups: "グループ",
     hours_ago_long_one: "{{count}}時間前",
@@ -135,7 +141,8 @@ export const ja = {
     manage_contacts: "連絡先を管理",
     merge: "結合",
     merge_and_fix: "統合して修正",
-    merge_contacts_hint: "残す情報を選びます。ほかの連絡先はゴミ箱に移動します。",
+    merge_contacts_hint:
+      "残す情報を選びます。ほかの連絡先はゴミ箱に移動します。",
     merge_keeps_this: "残す",
     merged_contact_preview: "結合後の連絡先",
     minutes_ago_long_one: "{{count}}分前",
@@ -149,7 +156,8 @@ export const ja = {
       "{{ count }}件の会話をゴミ箱に移動しました",
     newsletters_archived_one: "{{count}}件のニュースレターをアーカイブしました",
     no_contact_changes: "まだ変更はありません",
-    no_contact_details: "この連絡先にはまだ情報がありません。「編集」を選んで追加してください。",
+    no_contact_details:
+      "この連絡先にはまだ情報がありません。「編集」を選んで追加してください。",
     no_contacts_in_trash: "ゴミ箱は空です",
     no_duplicates_found: "修正が必要な重複はありません",
     no_email: "メールアドレスなし",
@@ -2176,7 +2184,8 @@ export const ja = {
     app_password_required: "アプリパスワードが必要です",
     blocked_senders_count_one: "{{count}} 件のブロック済み送信者",
     category_info_newsletters: "登録したニュースレターやメーリングリストです。",
-    category_info_transactions: "ストアやサービスからの注文、支払い、領収書です。",
+    category_info_transactions:
+      "ストアやサービスからの注文、支払い、領収書です。",
     category_newsletters: "ニュースレター",
     category_transactions: "買い物",
     deleted_emails_count_one: "{{count}} 件のメールを削除しました",
@@ -2202,10 +2211,13 @@ export const ja = {
     family_security_warning_2fa_one:
       "{{count}} 人のメンバーが二要素認証を有効にしていません",
     forwarding_rules_count_one: "{{count}} 件の転送ルール",
-    gmail_app_password_notice: "このプロバイダはアプリパスワードを必要とします。通常のアカウントのパスワードは使えません。",
+    gmail_app_password_notice:
+      "このプロバイダはアプリパスワードを必要とします。通常のアカウントのパスワードは使えません。",
     gmail_sync_continue: "続ける",
-    gmail_sync_intro: "アカウント設定でアプリパスワードを作成し、ここに貼り付けます。",
-    gmail_sync_note_unavailable: "アプリパスワードを使えない場合は、まず 2 段階認証を有効にしてから、もう一度確認してください。",
+    gmail_sync_intro:
+      "アカウント設定でアプリパスワードを作成し、ここに貼り付けます。",
+    gmail_sync_note_unavailable:
+      "アプリパスワードを使えない場合は、まず 2 段階認証を有効にしてから、もう一度確認してください。",
     gmail_sync_open_google: "アカウント設定を開く",
     gmail_sync_setup_button: "手順を見る",
     gmail_sync_step_1: "アカウントのセキュリティ設定にサインインします。",
@@ -2218,28 +2230,38 @@ export const ja = {
     gmail_wizard_progress: "ステップ {{current}}/{{total}}",
     gmail_wizard_reveal_password: "アプリパスワードを表示",
     gmail_wizard_step_1_action: "セキュリティ設定を開く",
-    gmail_wizard_step_1_body: "アプリパスワードは、プロバイダのアカウントのセキュリティ欄にあります。",
+    gmail_wizard_step_1_body:
+      "アプリパスワードは、プロバイダのアカウントのセキュリティ欄にあります。",
     gmail_wizard_step_1_title: "アカウントのセキュリティ設定を開く",
-    gmail_wizard_step_2_body: "アプリパスワードは、2 段階認証をオンにしたあとでのみ使えます。",
+    gmail_wizard_step_2_body:
+      "アプリパスワードは、2 段階認証をオンにしたあとでのみ使えます。",
     gmail_wizard_step_2_title: "2 段階認証をオンにする",
-    gmail_wizard_step_3_body: "アプリとして「メール」を選び、パスワードを作成します。",
+    gmail_wizard_step_3_body:
+      "アプリとして「メール」を選び、パスワードを作成します。",
     gmail_wizard_step_3_title: "アプリパスワードを作成する",
-    gmail_wizard_step_4_body: "アプリパスワードを下に貼り付けます。Aster は暗号化して保存し、このメールボックスの同期にのみ使用します。",
+    gmail_wizard_step_4_body:
+      "アプリパスワードを下に貼り付けます。Aster は暗号化して保存し、このメールボックスの同期にのみ使用します。",
     gmail_wizard_step_4_title: "パスワードを貼り付ける",
     gmail_wizard_title: "メールボックスを接続",
     last_sync_tooltip: "このアカウントが最後に同期した日時",
     not_synced_tooltip: "このアカウントはまだ同期していません。",
     plan_domains_count_one: "{{count}} 件のドメイン",
-    protocol_desc_imap: "フォルダを同期し、すべてのデバイスで同じ状態を保ちます。",
-    protocol_desc_pop3: "メールを一度だけダウンロードし、同期する内容を残しません。",
-    protocol_tooltip_imap: "IMAP はメールをサーバーに置き、すべての変更をお使いのデバイス間で同期します。",
-    protocol_tooltip_jmap: "JMAP は新しい同期プロトコルで、対応しているプロバイダはごくわずかです。",
-    protocol_tooltip_pop3: "POP3 はメールを 1 台のデバイスにダウンロードし、変更を同期し返しません。",
+    protocol_desc_imap:
+      "フォルダを同期し、すべてのデバイスで同じ状態を保ちます。",
+    protocol_desc_pop3:
+      "メールを一度だけダウンロードし、同期する内容を残しません。",
+    protocol_tooltip_imap:
+      "IMAP はメールをサーバーに置き、すべての変更をお使いのデバイス間で同期します。",
+    protocol_tooltip_jmap:
+      "JMAP は新しい同期プロトコルで、対応しているプロバイダはごくわずかです。",
+    protocol_tooltip_pop3:
+      "POP3 はメールを 1 台のデバイスにダウンロードし、変更を同期し返しません。",
     purge_confirm_message_one:
       "{{email}} からインポートした {{count}} 件のメールを完全に削除します。この操作は取り消せません。",
     remove_account_tooltip: "アカウントを削除",
     show_side_panel: "サイドパネルを表示",
-    show_side_panel_description: "連絡先やそのほかの便利なツールを、メールの横のパネルに表示します。",
+    show_side_panel_description:
+      "連絡先やそのほかの便利なツールを、メールの横のパネルに表示します。",
     sign_out_everywhere_success_one:
       "他の {{count}} 件のセッションからサインアウトしました",
     sync_now_tooltip: "今すぐ同期",
@@ -2326,9 +2348,11 @@ export const ja = {
       "以前のデータのロックを解除できませんでした。パスワードまたはフレーズを確認して、もう一度お試しください。",
     discard_older_data_button: "以前のデータを破棄",
     discard_older_data_title: "以前のデータを破棄しますか？",
-    discard_older_data_desc: "リセット前のメールとエイリアスのロックを解除するオプションが完全に削除されます。この操作は取り消せません。",
+    discard_older_data_desc:
+      "リセット前のメールとエイリアスのロックを解除するオプションが完全に削除されます。この操作は取り消せません。",
     discard_older_data_success: "以前のデータを破棄しました。",
-    discard_older_data_failed: "以前のデータを破棄できませんでした。もう一度お試しください。",
+    discard_older_data_failed:
+      "以前のデータを破棄できませんでした。もう一度お試しください。",
     phrase_wrap_save_failed:
       "リカバリーフレーズをサーバーに保存できませんでした。もう一度お試しください。",
     smtp_tokens: "SMTP トークン",
@@ -6908,7 +6932,8 @@ export const ja = {
     feature_tracker_protection: "トラッカー保護",
     ghost_alias_active: "アクティブ",
     ghost_alias_expire_now: "期限切れにする",
-    ghost_alias_expire_confirm_title: "このゴーストエイリアスを失効させますか？",
+    ghost_alias_expire_confirm_title:
+      "このゴーストエイリアスを失効させますか？",
     ghost_alias_expire_confirm_message_named:
       "{{address}} を失効させてもよろしいですか？元に戻すことはできません。猶予期間は{{date}}まで続きます。",
     delete_aliases_confirmation_count:
@@ -7742,7 +7767,8 @@ export const ja = {
     bulk_delete_title_other: "{{count}} 件のメールを完全に削除しますか？",
     bulk_spam_title: "{{count}} 件のメールを迷惑メールとして報告しますか？",
     bulk_spam_title_one: "1 件のメールを迷惑メールとして報告しますか。",
-    bulk_spam_title_other: "{{count}} 件のメールを迷惑メールとして報告しますか？",
+    bulk_spam_title_other:
+      "{{count}} 件のメールを迷惑メールとして報告しますか？",
     bulk_trash_title: "{{count}} 件のメールをゴミ箱に移動しますか？",
     bulk_trash_title_one: "1 件のメールをゴミ箱に移動しますか。",
     bulk_trash_title_other: "{{count}} 件のメールをゴミ箱に移動しますか？",
@@ -7754,9 +7780,11 @@ export const ja = {
     remote_images_blocked_count_one:
       "{{count}} 件のリモート画像をブロックしました",
     sender_rule_confirm: "ルールを作成",
-    sender_rule_created: "この差出人からの新しいメールは、今後「{{category}}」に届きます。",
+    sender_rule_created:
+      "この差出人からの新しいメールは、今後「{{category}}」に届きます。",
     sender_rule_name: "{{sender}} を {{category}} へ",
-    sender_rule_offer: "{{sender}} からのメールをよく「{{category}}」に移動しています。自動で行いますか？",
+    sender_rule_offer:
+      "{{sender}} からのメールをよく「{{category}}」に移動しています。自動で行いますか？",
     spy_pixels_blocked_count_one:
       "{{count}} 件のスパイピクセルをブロックしました",
     trackers_found_one: "{{count}} 件のトラッカーを検出してブロックしました",
@@ -10239,5 +10267,46 @@ export const ja = {
     vacation_reply: "不在時の自動返信",
     vanguard: "Vanguard",
     vision: "視覚",
+  },
+  app_store: {
+    section_title: "App Store のサブスクリプション",
+    section_description:
+      "この App で購入したプランは Apple アカウントに請求され、キャンセルするまで自動的に更新されます。",
+    per_month: "/月",
+    per_year: "/年",
+    subscribe_to: "{{plan}} に登録",
+    processing: "処理中...",
+    restore_purchases: "購入を復元",
+    restoring: "復元中...",
+    manage_subscriptions: "サブスクリプションを管理",
+    terms_of_use: "利用規約",
+    renewal_terms:
+      "購入を確定すると、Apple アカウントに請求されます。現在の期間が終了する 24 時間前までにキャンセルしない限り、サブスクリプションは自動的に更新されます。キャンセルするには、「サブスクリプションを管理」をクリックします。",
+    purchase_pending:
+      "購入は承認待ちです。App Store で承認されると、プランが更新されます。",
+    purchase_success: "新しいプランが有効になりました。",
+    purchase_failed:
+      "App Store で購入を完了できませんでした。もう一度お試しください。",
+    verify_failed:
+      "購入は完了しましたが、Aster Mail でまだ確認できていません。もう一度試すには、「購入を復元」をクリックします。",
+    conflict:
+      "この App Store のサブスクリプションは、別の Aster Mail アカウントに属しています。使用するには、そのアカウントにサインインしてください。",
+    restore_success: "購入を復元しました。",
+    restore_none:
+      "App Store で、お使いの Apple アカウントの有効なサブスクリプションが見つかりませんでした。",
+    restore_failed:
+      "App Store で購入を復元できませんでした。もう一度お試しください。",
+    managed_elsewhere_title: "プランは App Store 以外で管理されています",
+    managed_elsewhere_description:
+      "現在のプランは別のプラットフォームで購入されたもので、ここでも引き続き使用できます。変更するには、購入したプラットフォームを使用してください。",
+    upgrade_title: "プランをアップグレード",
+    upgrade_limit_description:
+      "現在のプランの上限に達しました。さらに利用するには、プランを選択してください。",
+    upgrade_storage_description:
+      "ストレージがいっぱいです。容量を増やすには、プランを選択してください。",
+    upgrade_generic_description:
+      "ストレージ、エイリアス、カスタムドメインを増やすには、プランを選択してください。",
+    register_subtitle:
+      "App Store で登録するか、無料アカウントで続行します。プランはいつでも変更できます。",
   },
 };

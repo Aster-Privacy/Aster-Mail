@@ -2227,7 +2227,8 @@ export const en: Translations = {
       "That did not unlock the older data. Check the password or phrase and try again.",
     discard_older_data_button: "Discard older data",
     discard_older_data_title: "Discard older data?",
-    discard_older_data_desc: "This permanently removes the option to unlock mail and aliases from before the reset. You cannot undo this.",
+    discard_older_data_desc:
+      "This permanently removes the option to unlock mail and aliases from before the reset. You cannot undo this.",
     discard_older_data_success: "Older data discarded.",
     discard_older_data_failed: "Could not discard the older data. Try again.",
     phrase_wrap_save_failed:
@@ -7097,7 +7098,8 @@ export const en: Translations = {
     alias_paid_badge: "Paid",
     requires_plan: "Requires {{plan}}",
     alias_domain_group_extra: "Extra domains",
-    alias_domain_requires_plan: "This domain is available on the {{plan}} plan and up.",
+    alias_domain_requires_plan:
+      "This domain is available on the {{plan}} plan and up.",
     alias_feature_locked_view_plans: "View plans",
     alias_feature_locked_upgrade_plan: "Upgrade plan",
     alias_feature_locked_upgrade_cta: "Upgrade",
@@ -7512,7 +7514,8 @@ export const en: Translations = {
     credits_method_crypto_note:
       "Pay once in crypto. Credits are added after the payment confirms on chain.",
     edit_account_tooltip: "Edit account",
-    gmail_app_password_notice: "This provider requires an app password. Your normal account password won’t work.",
+    gmail_app_password_notice:
+      "This provider requires an app password. Your normal account password won’t work.",
     gmail_sync_continue: "Continue",
     gmail_sync_intro:
       "Create an app password in your account settings, then paste it here.",
@@ -10160,5 +10163,44 @@ export const en: Translations = {
     vacation_reply: "Vacation Reply",
     vanguard: "Vanguard",
     vision: "Vision",
+  },
+  app_store: {
+    section_title: "App Store subscription",
+    section_description:
+      "Plans you buy in this app are billed to your Apple Account and renew automatically until you cancel them.",
+    per_month: "per month",
+    per_year: "per year",
+    subscribe_to: "Subscribe to {{plan}}",
+    processing: "Processing...",
+    restore_purchases: "Restore Purchases",
+    restoring: "Restoring...",
+    manage_subscriptions: "Manage Subscriptions",
+    terms_of_use: "Terms of Use",
+    renewal_terms:
+      "Payment is charged to your Apple Account when you confirm the purchase. Your subscription renews automatically unless you cancel it at least 24 hours before the current period ends. To cancel, click Manage Subscriptions.",
+    purchase_pending:
+      "Your purchase is waiting for approval. Your plan updates after the App Store approves it.",
+    purchase_success: "Your new plan is active.",
+    purchase_failed: "The App Store couldn't complete the purchase. Try again.",
+    verify_failed:
+      "Your purchase went through, but Aster Mail couldn't confirm it yet. To try again, click Restore Purchases.",
+    conflict:
+      "This App Store subscription belongs to a different Aster Mail account. To use it, sign in to that account.",
+    restore_success: "Your purchases are restored.",
+    restore_none:
+      "The App Store didn't find any active subscriptions for your Apple Account.",
+    restore_failed: "The App Store couldn't restore your purchases. Try again.",
+    managed_elsewhere_title: "Your plan is managed outside the App Store",
+    managed_elsewhere_description:
+      "You bought your current plan on another platform, and you can keep using it here. To change it, use the platform where you bought it.",
+    upgrade_title: "Upgrade your plan",
+    upgrade_limit_description:
+      "You reached a limit on your current plan. To get more, choose a plan.",
+    upgrade_storage_description:
+      "Your storage is full. To get more space, choose a plan.",
+    upgrade_generic_description:
+      "To get more storage, aliases, and custom domains, choose a plan.",
+    register_subtitle:
+      "Subscribe through the App Store, or continue with a free account. You can change your plan at any time.",
   },
 };

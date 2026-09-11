@@ -35,12 +35,14 @@ export const tr = {
     clear_selection: "Seçimi temizle",
     compose_to_selection: "Seçilenlere yaz",
     contact_change_undone: "Değişiklik geri alındı",
-    contact_encryption_info: "Bir kişi açık anahtarını yayımladığında Aster, ona gönderdiğiniz postayı otomatik olarak şifreler.",
+    contact_encryption_info:
+      "Bir kişi açık anahtarını yayımladığında Aster, ona gönderdiğiniz postayı otomatik olarak şifreler.",
     contact_moved_to_trash: "Kişi çöp kutusuna taşındı",
     contact_restored: "Kişi geri yüklendi",
     contacts_created: "{{count}} kişi oluşturuldu",
     contacts_exported: "Kişiler dışa aktarıldı",
-    contacts_in_trash_notice: "Çöp kutusundaki kişiler 30 gün sonra kalıcı olarak silinir.",
+    contacts_in_trash_notice:
+      "Çöp kutusundaki kişiler 30 gün sonra kalıcı olarak silinir.",
     contacts_merged: "Kişiler birleştirildi",
     contacts_moved_to_trash: "Kişiler çöp kutusuna taşındı",
     contacts_updated_stat: "Güncellenen",
@@ -48,13 +50,16 @@ export const tr = {
     create_multiple_contacts: "Birden çok kişi oluştur",
     delete_contacts: "Kişileri sil",
     delete_group: "Grubu sil",
-    delete_group_confirmation: "“{{name}}” silindiğinde grup kaldırılır. İçindeki kişiler adres defterinizde kalır.",
+    delete_group_confirmation:
+      "“{{name}}” silindiğinde grup kaldırılır. İçindeki kişiler adres defterinizde kalır.",
     deselect_contact: "Kişi seçimini kaldır",
     discard: "Vazgeç",
-    discard_new_contact_message: "Başladığınız kişi henüz kaydedilmedi. Şimdi başka bir kişi açarsanız bu kaydı kaybedersiniz.",
+    discard_new_contact_message:
+      "Başladığınız kişi henüz kaydedilmedi. Şimdi başka bir kişi açarsanız bu kaydı kaybedersiniz.",
     duplicates_found: "Yinelenen kayıtlar bulundu",
     email_group: "Gruba yaz",
-    empty_trash_confirm: "Çöp kutusundaki tüm kişiler kalıcı olarak silinsin mi? Bu işlem geri alınamaz.",
+    empty_trash_confirm:
+      "Çöp kutusundaki tüm kişiler kalıcı olarak silinsin mi? Bu işlem geri alınamaz.",
     export_selection_vcf: "vCard olarak dışa aktar",
     failed_to_add_to_group: "Kişi gruba eklenemedi.",
     failed_to_create_group: "Grup oluşturulamadı.",
@@ -67,9 +72,11 @@ export const tr = {
     group_contact_count: "{{count}} kişi",
     group_created: "Grup oluşturuldu",
     group_deleted: "Grup silindi",
-    group_empty_hint: "Bu grubu doldurmak için Kişiler sekmesinden kişileri seçin ve Gruba ekle seçeneğini kullanın.",
+    group_empty_hint:
+      "Bu grubu doldurmak için Kişiler sekmesinden kişileri seçin ve Gruba ekle seçeneğini kullanın.",
     group_empty_title: "Bu grupta kişi yok",
-    group_modal_description: "Birden çok kişiye aynı anda yazmak için grup oluşturun.",
+    group_modal_description:
+      "Birden çok kişiye aynı anda yazmak için grup oluşturun.",
     group_name: "Grup adı",
     groups: "Gruplar",
     import_add_to_group: "İçe aktarılan kişileri bir gruba ekle",
@@ -82,11 +89,13 @@ export const tr = {
     manage_contacts: "Kişileri yönet",
     merge: "Birleştir",
     merge_and_fix: "Birleştir ve düzelt",
-    merge_contacts_hint: "Saklamak istediğiniz bilgileri seçin. Diğer kişiler çöp kutusuna taşınır.",
+    merge_contacts_hint:
+      "Saklamak istediğiniz bilgileri seçin. Diğer kişiler çöp kutusuna taşınır.",
     merge_keeps_this: "Saklanan",
     merged_contact_preview: "Birleştirilmiş kişi",
     no_contact_changes: "Henüz değişiklik yok",
-    no_contact_details: "Bu kişinin henüz bilgisi yok. Eklemek için Düzenle seçeneğini kullanın.",
+    no_contact_details:
+      "Bu kişinin henüz bilgisi yok. Eklemek için Düzenle seçeneğini kullanın.",
     no_contacts_in_trash: "Çöp kutusu boş",
     no_duplicates_found: "Düzeltilecek yinelenen kişi yok",
     no_email: "E-posta adresi yok",
@@ -2167,14 +2176,18 @@ export const tr = {
     app_password_create_link: "Uygulama parolası oluşturun",
     app_password_required: "Uygulama parolası gerekiyor",
     category_info_newsletters: "Abone olduğunuz bültenler ve posta listeleri.",
-    category_info_transactions: "Mağaza ve hizmetlerden gelen siparişler, ödemeler ve makbuzlar.",
+    category_info_transactions:
+      "Mağaza ve hizmetlerden gelen siparişler, ödemeler ve makbuzlar.",
     category_newsletters: "Bültenler",
     category_transactions: "Alışverişler",
     edit_account_tooltip: "Hesabı düzenle",
-    gmail_app_password_notice: "Bu sağlayıcı uygulama parolası ister. Normal hesap parolanız çalışmaz.",
+    gmail_app_password_notice:
+      "Bu sağlayıcı uygulama parolası ister. Normal hesap parolanız çalışmaz.",
     gmail_sync_continue: "Devam",
-    gmail_sync_intro: "Hesap ayarlarınızda bir uygulama parolası oluşturun, sonra buraya yapıştırın.",
-    gmail_sync_note_unavailable: "Uygulama parolaları kullanılamıyorsa önce iki adımlı doğrulamayı açın, sonra yeniden bakın.",
+    gmail_sync_intro:
+      "Hesap ayarlarınızda bir uygulama parolası oluşturun, sonra buraya yapıştırın.",
+    gmail_sync_note_unavailable:
+      "Uygulama parolaları kullanılamıyorsa önce iki adımlı doğrulamayı açın, sonra yeniden bakın.",
     gmail_sync_open_google: "Hesap ayarlarını aç",
     gmail_sync_setup_button: "Nasıl yapıldığını göster",
     gmail_sync_step_1: "Hesabınızın güvenlik ayarlarında oturum açın.",
@@ -2187,25 +2200,35 @@ export const tr = {
     gmail_wizard_progress: "Adım {{current}} / {{total}}",
     gmail_wizard_reveal_password: "Uygulama parolasını göster",
     gmail_wizard_step_1_action: "Güvenlik ayarlarını aç",
-    gmail_wizard_step_1_body: "Uygulama parolaları, sağlayıcı hesabınızın güvenlik bölümünde bulunur.",
+    gmail_wizard_step_1_body:
+      "Uygulama parolaları, sağlayıcı hesabınızın güvenlik bölümünde bulunur.",
     gmail_wizard_step_1_title: "Hesabınızın güvenlik ayarlarını açın",
-    gmail_wizard_step_2_body: "Uygulama parolaları yalnızca iki adımlı doğrulama açıkken kullanılabilir.",
+    gmail_wizard_step_2_body:
+      "Uygulama parolaları yalnızca iki adımlı doğrulama açıkken kullanılabilir.",
     gmail_wizard_step_2_title: "İki adımlı doğrulamayı açın",
-    gmail_wizard_step_3_body: "Uygulama olarak Posta’yı seçin, sonra parolayı oluşturun.",
+    gmail_wizard_step_3_body:
+      "Uygulama olarak Posta’yı seçin, sonra parolayı oluşturun.",
     gmail_wizard_step_3_title: "Uygulama parolası oluşturun",
-    gmail_wizard_step_4_body: "Uygulama parolasını aşağıya yapıştırın. Aster parolayı şifreli saklar ve yalnızca bu posta kutusunu eşitlemek için kullanır.",
+    gmail_wizard_step_4_body:
+      "Uygulama parolasını aşağıya yapıştırın. Aster parolayı şifreli saklar ve yalnızca bu posta kutusunu eşitlemek için kullanır.",
     gmail_wizard_step_4_title: "Parolayı yapıştırın",
     gmail_wizard_title: "Posta kutunuzu bağlayın",
     last_sync_tooltip: "Bu hesabın en son ne zaman eşitlendiği",
     not_synced_tooltip: "Bu hesap henüz eşitlenmedi.",
-    protocol_desc_imap: "Klasörleri eşitler ve tüm cihazlarınızda güncel kalır.",
-    protocol_desc_pop3: "Postayı bir kez indirir, eşitlenecek bir şey bırakmaz.",
-    protocol_tooltip_imap: "IMAP postanızı sunucuda tutar ve her değişikliği tüm cihazlarınıza eşitler.",
-    protocol_tooltip_jmap: "JMAP, yalnızca birkaç sağlayıcının desteklediği modern bir eşitleme protokolüdür.",
-    protocol_tooltip_pop3: "POP3 postayı tek bir cihaza indirir ve değişiklikleri geri eşitlemez.",
+    protocol_desc_imap:
+      "Klasörleri eşitler ve tüm cihazlarınızda güncel kalır.",
+    protocol_desc_pop3:
+      "Postayı bir kez indirir, eşitlenecek bir şey bırakmaz.",
+    protocol_tooltip_imap:
+      "IMAP postanızı sunucuda tutar ve her değişikliği tüm cihazlarınıza eşitler.",
+    protocol_tooltip_jmap:
+      "JMAP, yalnızca birkaç sağlayıcının desteklediği modern bir eşitleme protokolüdür.",
+    protocol_tooltip_pop3:
+      "POP3 postayı tek bir cihaza indirir ve değişiklikleri geri eşitlemez.",
     remove_account_tooltip: "Hesabı kaldır",
     show_side_panel: "Yan paneli göster",
-    show_side_panel_description: "Kişileri ve diğer hızlı araçları postanızın yanındaki bir panelde tutun.",
+    show_side_panel_description:
+      "Kişileri ve diğer hızlı araçları postanızın yanındaki bir panelde tutun.",
     sync_now_tooltip: "Şimdi eşitle",
     purge_locked_folder_on_delete: "Korumalı klasör içeriğini yok et",
     purge_locked_folder_on_delete_description:
@@ -2292,7 +2315,8 @@ export const tr = {
       "Bu, eski verilerin kilidini açmadı. Parolayı veya ifadeyi kontrol edip tekrar deneyin.",
     discard_older_data_button: "Eski verileri sil",
     discard_older_data_title: "Eski veriler silinsin mi?",
-    discard_older_data_desc: "Bu işlem, sıfırlamadan önceki postaların ve takma adların kilidini açma seçeneğini kalıcı olarak kaldırır. Geri alınamaz.",
+    discard_older_data_desc:
+      "Bu işlem, sıfırlamadan önceki postaların ve takma adların kilidini açma seçeneğini kalıcı olarak kaldırır. Geri alınamaz.",
     discard_older_data_success: "Eski veriler silindi.",
     discard_older_data_failed: "Eski veriler silinemedi. Yeniden deneyin.",
     phrase_wrap_save_failed:
@@ -7752,9 +7776,11 @@ export const tr = {
     bulk_trash_title_one: "1 e-posta çöp kutusuna taşınsın mı?",
     bulk_trash_title_other: "{{count}} e-posta çöp kutusuna taşınsın mı?",
     sender_rule_confirm: "Kural oluştur",
-    sender_rule_created: "Bu göndericiden gelen yeni postalar artık {{category}} bölümüne gidiyor.",
+    sender_rule_created:
+      "Bu göndericiden gelen yeni postalar artık {{category}} bölümüne gidiyor.",
     sender_rule_name: "{{sender}} için {{category}}",
-    sender_rule_offer: "{{sender}} göndericisinden gelen postaları sık sık {{category}} bölümüne taşıyorsunuz. Bu otomatik yapılsın mı?",
+    sender_rule_offer:
+      "{{sender}} göndericisinden gelen postaları sık sık {{category}} bölümüne taşıyorsunuz. Bu otomatik yapılsın mı?",
     load_all_thread_messages: "Tüm mesajları yükle",
     move_to_category: "Kategoriye taşı",
     menu_applies_to_selection: "{count} seçili öğeye uygulanır",
@@ -10229,5 +10255,45 @@ export const tr = {
     vacation_reply: "Tatil yanıtı",
     vanguard: "Vanguard",
     vision: "Görme",
+  },
+  app_store: {
+    section_title: "App Store aboneliği",
+    section_description:
+      "Bu uygulamada satın aldığınız planlar Apple Hesabınızdan ücretlendirilir ve iptal edene kadar otomatik olarak yenilenir.",
+    per_month: "aylık",
+    per_year: "yıllık",
+    subscribe_to: "{{plan}} planına abone ol",
+    processing: "İşleniyor...",
+    restore_purchases: "Satın Alınanları Geri Yükle",
+    restoring: "Geri yükleniyor...",
+    manage_subscriptions: "Abonelikleri Yönet",
+    terms_of_use: "Kullanım Koşulları",
+    renewal_terms:
+      "Satın alma işlemini onayladığınızda ödeme Apple Hesabınızdan alınır. Mevcut dönemin bitiminden en az 24 saat önce iptal etmezseniz aboneliğiniz otomatik olarak yenilenir. İptal etmek için Abonelikleri Yönet'i tıklayın.",
+    purchase_pending:
+      "Satın alma işleminiz onay bekliyor. App Store onayladıktan sonra planınız güncellenir.",
+    purchase_success: "Yeni planınız etkin.",
+    purchase_failed:
+      "App Store satın alma işlemini tamamlayamadı. Tekrar deneyin.",
+    verify_failed:
+      "Satın alma işleminiz tamamlandı ancak Aster Mail henüz doğrulayamadı. Tekrar denemek için Satın Alınanları Geri Yükle'yi tıklayın.",
+    conflict:
+      "Bu App Store aboneliği başka bir Aster Mail hesabına ait. Kullanmak için o hesapta oturum açın.",
+    restore_success: "Satın aldıklarınız geri yüklendi.",
+    restore_none: "App Store, Apple Hesabınız için etkin abonelik bulamadı.",
+    restore_failed:
+      "App Store satın aldıklarınızı geri yükleyemedi. Tekrar deneyin.",
+    managed_elsewhere_title: "Planınız App Store dışında yönetiliyor",
+    managed_elsewhere_description:
+      "Mevcut planınızı başka bir platformda satın aldınız ve burada kullanmaya devam edebilirsiniz. Değiştirmek için satın aldığınız platformu kullanın.",
+    upgrade_title: "Planınızı yükseltin",
+    upgrade_limit_description:
+      "Mevcut planınızın bir sınırına ulaştınız. Daha fazlası için bir plan seçin.",
+    upgrade_storage_description:
+      "Depolama alanınız dolu. Daha fazla alan için bir plan seçin.",
+    upgrade_generic_description:
+      "Daha fazla depolama alanı, takma ad ve özel alan adı için bir plan seçin.",
+    register_subtitle:
+      "App Store üzerinden abone olun veya ücretsiz hesapla devam edin. Planınızı istediğiniz zaman değiştirebilirsiniz.",
   },
 };

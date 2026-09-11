@@ -102,7 +102,19 @@ import {
 } from "@/components/settings/billing/cancel_password";
 import { checkout_error_text } from "./billing/checkout_error_text";
 
+import { AppStoreBillingSection } from "@/components/app_store/app_store_billing_section";
+import { use_distribution_channel } from "@/native/distribution_channel";
+
 export function BillingSection() {
+  const channel = use_distribution_channel();
+
+  if (channel === null) return <SettingsSkeleton variant="billing" />;
+  if (channel === "mas") return <AppStoreBillingSection />;
+
+  return <HostedBillingSection />;
+}
+
+function HostedBillingSection() {
   const { t } = use_i18n();
   const { stats } = use_mail_stats();
   const [subscription, set_subscription] =

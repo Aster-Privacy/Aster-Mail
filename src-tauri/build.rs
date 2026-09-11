@@ -48,5 +48,31 @@ fn main() {
     } else {
         println!("{DEV_SERVER_BUILD}");
     }
-    tauri_build::build()
+
+    #[cfg(feature = "mas")]
+    link_storekit_bridge();
+
+    let attributes = if std::env::var_os("CARGO_FEATURE_UPDATER").is_some() {
+        tauri_build::Attributes::new()
+    } else {
+        println!("cargo:rerun-if-changed=capabilities");
+        tauri_build::Attributes::new().capabilities_path_pattern("./capabilities/*.json")
+    };
+
+    if let Err(error) = tauri_build::try_build(attributes) {
+        panic!("{error:#}");
+    }
+}
+
+#[cfg(feature = "mas")]
+fn link_storekit_bridge() {
+    if std::env::var("CARGO_CFG_TARGET_OS").as_deref() != Ok("macos") {
+        return;
+    }
+    swift_rs::SwiftLinker::new("12.0")
+        .with_package("storekit_bridge", "storekit_bridge")
+        .link();
+    println!("cargo:rustc-link-lib=framework=StoreKit");
+    println!("cargo:rustc-link-lib=framework=Foundation");
+    println!("cargo:rustc-link-arg=-Wl,-rpath,/usr/lib/swift");
 }

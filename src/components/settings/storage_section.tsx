@@ -57,6 +57,7 @@ import {
   clear_addon_purchase_param,
 } from "@/lib/addon_return_url";
 import { is_onion_host } from "@/lib/onion_host";
+import { use_distribution_channel } from "@/native/distribution_channel";
 import { request_cache } from "@/services/api/request_cache";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 import { empty_spam, empty_trash } from "@/services/api/mail";
@@ -154,6 +155,8 @@ function share_of(bytes: number, total: number): number {
 export function StorageSection() {
   const { t } = use_i18n();
   const on_onion = is_onion_host();
+  const channel = use_distribution_channel();
+  const purchases_hidden = on_onion || channel === null || channel === "mas";
 
   const [overview, set_overview] = useState<StorageOverviewResponse | null>(
     null,
@@ -824,7 +827,7 @@ export function StorageSection() {
         </dl>
       </div>
 
-      {!on_onion && (
+      {!purchases_hidden && (
         <StorageAddonsSection
           active_addons={active_addons}
           available_addons={available_addons}

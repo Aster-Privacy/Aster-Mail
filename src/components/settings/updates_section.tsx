@@ -25,6 +25,7 @@ import { ArrowPathIcon, ArrowDownTrayIcon } from "@heroicons/react/24/outline";
 import { Switch, Button } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { use_distribution_channel } from "@/native/distribution_channel";
 import {
   is_desktop_runtime,
   get_auto_update_enabled,
@@ -53,7 +54,8 @@ function format_relative(
 
 export function UpdatesSection() {
   const { t } = use_i18n();
-  const supported = is_desktop_runtime();
+  const channel = use_distribution_channel();
+  const supported = is_desktop_runtime() && channel === "direct";
   const [auto, set_auto] = useState<boolean>(() => get_auto_update_enabled());
   const [last_check, set_last_check] = useState<string | null>(() =>
     get_last_check_iso(),

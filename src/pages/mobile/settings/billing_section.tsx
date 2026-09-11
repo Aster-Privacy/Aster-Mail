@@ -63,14 +63,39 @@ import {
 } from "@/services/api/billing";
 import { copy_text } from "@/utils/copy_text";
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
+import { AppStoreBillingSection } from "@/components/app_store/app_store_billing_section";
+import { use_i18n } from "@/lib/i18n/context";
+import { use_distribution_channel } from "@/native/distribution_channel";
 
-export function BillingSection({
-  on_back,
-  on_close,
-}: {
+interface BillingSectionProps {
   on_back: () => void;
   on_close: () => void;
-}) {
+}
+
+export function BillingSection({ on_back, on_close }: BillingSectionProps) {
+  const { t } = use_i18n();
+  const channel = use_distribution_channel();
+
+  if (channel === null) return null;
+  if (channel === "mas") {
+    return (
+      <div className="flex h-full flex-col">
+        <SettingsHeader
+          on_back={on_back}
+          on_close={on_close}
+          title={t("app_store.section_title")}
+        />
+        <div className="flex-1 overflow-y-auto px-4 pb-8">
+          <AppStoreBillingSection />
+        </div>
+      </div>
+    );
+  }
+
+  return <HostedBillingSection on_back={on_back} on_close={on_close} />;
+}
+
+function HostedBillingSection({ on_back, on_close }: BillingSectionProps) {
   use_currency_rates();
 
   const state = use_billing_section();

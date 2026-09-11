@@ -83,6 +83,9 @@ import {
   type UpgradeLimitKey,
 } from "@/stores/upgrade_store";
 import { checkout_error_text } from "@/components/settings/billing/checkout_error_text";
+import { AppStoreUpgradeModal } from "@/components/app_store/app_store_upgrade_modal";
+import { AppStoreSync } from "@/components/app_store/app_store_sync";
+import { use_distribution_channel } from "@/native/distribution_channel";
 
 const LIMIT_LABEL_KEY: Record<UpgradeLimitKey, string> = {
   max_email_aliases: "settings.usage_aliases",
@@ -193,6 +196,22 @@ function is_desktop(): boolean {
 }
 
 export function UpgradeModal() {
+  const channel = use_distribution_channel();
+
+  if (channel === null) return null;
+  if (channel === "mas") {
+    return (
+      <>
+        <AppStoreSync />
+        <AppStoreUpgradeModal />
+      </>
+    );
+  }
+
+  return <HostedUpgradeModal />;
+}
+
+function HostedUpgradeModal() {
   const { t } = use_i18n();
   const location = useLocation();
   const state = use_upgrade_state();

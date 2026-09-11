@@ -61,6 +61,36 @@ export interface TranslationNamespace {
   survey: SurveyTranslations;
   calendar: CalendarTranslations;
   settings_search: SettingsSearchTranslations;
+  app_store: AppStoreTranslations;
+}
+
+export interface AppStoreTranslations {
+  section_title: string;
+  section_description: string;
+  per_month: string;
+  per_year: string;
+  subscribe_to: string;
+  processing: string;
+  restore_purchases: string;
+  restoring: string;
+  manage_subscriptions: string;
+  terms_of_use: string;
+  renewal_terms: string;
+  purchase_pending: string;
+  purchase_success: string;
+  purchase_failed: string;
+  verify_failed: string;
+  conflict: string;
+  restore_success: string;
+  restore_none: string;
+  restore_failed: string;
+  managed_elsewhere_title: string;
+  managed_elsewhere_description: string;
+  upgrade_title: string;
+  upgrade_limit_description: string;
+  upgrade_storage_description: string;
+  upgrade_generic_description: string;
+  register_subtitle: string;
 }
 
 export interface SettingsSearchTranslations {
@@ -8382,6 +8412,7 @@ export type TranslationKey =
   | `review_prompt.${keyof ReviewPromptTranslations}`
   | `survey.${keyof SurveyTranslations}`
   | `calendar.${keyof CalendarTranslations}`
-  | `settings_search.${keyof SettingsSearchTranslations}`;
+  | `settings_search.${keyof SettingsSearchTranslations}`
+  | `app_store.${keyof AppStoreTranslations}`;
 
 export type Translations = TranslationNamespace;

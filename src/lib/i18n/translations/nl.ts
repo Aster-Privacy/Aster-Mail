@@ -35,12 +35,14 @@ export const nl = {
     clear_selection: "Selectie wissen",
     compose_to_selection: "Schrijven aan geselecteerde contacten",
     contact_change_undone: "Wijziging ongedaan gemaakt",
-    contact_encryption_info: "Zodra een contact een publieke sleutel publiceert, versleutelt Aster je e-mail aan die persoon automatisch.",
+    contact_encryption_info:
+      "Zodra een contact een publieke sleutel publiceert, versleutelt Aster je e-mail aan die persoon automatisch.",
     contact_moved_to_trash: "Contact naar prullenbak verplaatst",
     contact_restored: "Contact hersteld",
     contacts_created: "{{count}} contacten aangemaakt",
     contacts_exported: "Contacten geëxporteerd",
-    contacts_in_trash_notice: "Contacten in de prullenbak worden na 30 dagen definitief verwijderd.",
+    contacts_in_trash_notice:
+      "Contacten in de prullenbak worden na 30 dagen definitief verwijderd.",
     contacts_merged: "Contacten samengevoegd",
     contacts_moved_to_trash: "Contacten naar prullenbak verplaatst",
     contacts_updated_stat: "Bijgewerkt",
@@ -48,29 +50,37 @@ export const nl = {
     create_multiple_contacts: "Meerdere contacten aanmaken",
     delete_contacts: "Contacten verwijderen",
     delete_group: "Groep verwijderen",
-    delete_group_confirmation: "Als je “{{name}}” verwijdert, verdwijnt de groep. De contacten erin blijven in je adresboek staan.",
+    delete_group_confirmation:
+      "Als je “{{name}}” verwijdert, verdwijnt de groep. De contacten erin blijven in je adresboek staan.",
     deselect_contact: "Selectie van contact opheffen",
     discard: "Verwerpen",
-    discard_new_contact_message: "Het contact dat je bent begonnen, is nog niet bewaard. Als je nu een ander contact opent, ben je het kwijt.",
+    discard_new_contact_message:
+      "Het contact dat je bent begonnen, is nog niet bewaard. Als je nu een ander contact opent, ben je het kwijt.",
     duplicates_found: "Dubbele contacten gevonden",
     email_group: "Schrijven aan groep",
-    empty_trash_confirm: "Alle contacten in de prullenbak definitief verwijderen? Dit kun je niet ongedaan maken.",
+    empty_trash_confirm:
+      "Alle contacten in de prullenbak definitief verwijderen? Dit kun je niet ongedaan maken.",
     export_selection_vcf: "Exporteren als vCard",
-    failed_to_add_to_group: "Het contact kon niet aan de groep worden toegevoegd.",
+    failed_to_add_to_group:
+      "Het contact kon niet aan de groep worden toegevoegd.",
     failed_to_create_group: "De groep kon niet worden aangemaakt.",
     failed_to_delete_group: "De groep kon niet worden verwijderd.",
     failed_to_load_groups: "Je groepen konden niet worden geladen.",
-    failed_to_move_to_trash: "Het contact kon niet naar de prullenbak worden verplaatst.",
-    failed_to_remove_from_group: "Het contact kon niet uit de groep worden verwijderd.",
+    failed_to_move_to_trash:
+      "Het contact kon niet naar de prullenbak worden verplaatst.",
+    failed_to_remove_from_group:
+      "Het contact kon niet uit de groep worden verwijderd.",
     frequent_contacts: "Frequent",
     frequent_contacts_hint:
       "De contacten die je het vaakst mailt, verschijnen hier.",
     group_contact_count: "{{count}} contacten",
     group_created: "Groep aangemaakt",
     group_deleted: "Groep verwijderd",
-    group_empty_hint: "Selecteer contacten op het tabblad Contacten en kies Aan groep toevoegen om deze groep te vullen.",
+    group_empty_hint:
+      "Selecteer contacten op het tabblad Contacten en kies Aan groep toevoegen om deze groep te vullen.",
     group_empty_title: "Geen contacten in deze groep",
-    group_modal_description: "Maak groepen om aan meerdere contacten tegelijk te schrijven.",
+    group_modal_description:
+      "Maak groepen om aan meerdere contacten tegelijk te schrijven.",
     group_name: "Groepsnaam",
     groups: "Groepen",
     import_add_to_group: "Geïmporteerde contacten aan een groep toevoegen",
@@ -83,11 +93,13 @@ export const nl = {
     manage_contacts: "Contacten beheren",
     merge: "Samenvoegen",
     merge_and_fix: "Samenvoegen en corrigeren",
-    merge_contacts_hint: "Kies de gegevens die je wilt houden. De andere contacten gaan naar de prullenbak.",
+    merge_contacts_hint:
+      "Kies de gegevens die je wilt houden. De andere contacten gaan naar de prullenbak.",
     merge_keeps_this: "Behouden",
     merged_contact_preview: "Samengevoegd contact",
     no_contact_changes: "Nog geen wijzigingen",
-    no_contact_details: "Dit contact heeft nog geen gegevens. Kies Bewerken om ze toe te voegen.",
+    no_contact_details:
+      "Dit contact heeft nog geen gegevens. Kies Bewerken om ze toe te voegen.",
     no_contacts_in_trash: "De prullenbak is leeg",
     no_duplicates_found: "Geen dubbele contacten om te corrigeren",
     no_email: "Geen e-mailadres",
@@ -2154,23 +2166,31 @@ export const nl = {
   settings: {
     account_enabled_tooltip: "Dit account synchroniseert.",
     account_pause_tooltip: "Synchroniseren onderbreken",
-    account_paused_tooltip: "Het synchroniseren van dit account is onderbroken.",
+    account_paused_tooltip:
+      "Het synchroniseren van dit account is onderbroken.",
     account_resume_tooltip: "Synchroniseren hervatten",
     app_password_create_link: "Een app-wachtwoord maken",
     app_password_required: "App-wachtwoord vereist",
-    category_info_newsletters: "Nieuwsbrieven en mailinglijsten waarop je je hebt geabonneerd.",
-    category_info_transactions: "Bestellingen, betalingen en bonnen van winkels en diensten.",
+    category_info_newsletters:
+      "Nieuwsbrieven en mailinglijsten waarop je je hebt geabonneerd.",
+    category_info_transactions:
+      "Bestellingen, betalingen en bonnen van winkels en diensten.",
     category_newsletters: "Nieuwsbrieven",
     category_transactions: "Aankopen",
     edit_account_tooltip: "Account bewerken",
-    gmail_app_password_notice: "Deze provider vereist een app-wachtwoord. Het gewone wachtwoord van je account werkt niet.",
+    gmail_app_password_notice:
+      "Deze provider vereist een app-wachtwoord. Het gewone wachtwoord van je account werkt niet.",
     gmail_sync_continue: "Doorgaan",
-    gmail_sync_intro: "Maak een app-wachtwoord in de instellingen van je account en plak het hier.",
-    gmail_sync_note_unavailable: "Zijn app-wachtwoorden niet beschikbaar, zet dan eerst verificatie in twee stappen aan en kijk daarna opnieuw.",
+    gmail_sync_intro:
+      "Maak een app-wachtwoord in de instellingen van je account en plak het hier.",
+    gmail_sync_note_unavailable:
+      "Zijn app-wachtwoorden niet beschikbaar, zet dan eerst verificatie in twee stappen aan en kijk daarna opnieuw.",
     gmail_sync_open_google: "Accountinstellingen openen",
     gmail_sync_setup_button: "Laat zien hoe",
-    gmail_sync_step_1: "Meld je aan bij de beveiligingsinstellingen van je account.",
-    gmail_sync_step_2: "Zet verificatie in twee stappen aan als dat nog niet zo is.",
+    gmail_sync_step_1:
+      "Meld je aan bij de beveiligingsinstellingen van je account.",
+    gmail_sync_step_2:
+      "Zet verificatie in twee stappen aan als dat nog niet zo is.",
     gmail_sync_step_3: "Maak een app-wachtwoord voor e-mail.",
     gmail_sync_step_4: "Kopieer het wachtwoord en plak het in Aster.",
     gmail_sync_title: "Een app-wachtwoord maken",
@@ -2179,25 +2199,37 @@ export const nl = {
     gmail_wizard_progress: "Stap {{current}} van {{total}}",
     gmail_wizard_reveal_password: "App-wachtwoord tonen",
     gmail_wizard_step_1_action: "Beveiligingsinstellingen openen",
-    gmail_wizard_step_1_body: "App-wachtwoorden staan in het beveiligingsgedeelte van je account bij je provider.",
-    gmail_wizard_step_1_title: "Open de beveiligingsinstellingen van je account",
-    gmail_wizard_step_2_body: "App-wachtwoorden zijn pas beschikbaar als verificatie in twee stappen aanstaat.",
+    gmail_wizard_step_1_body:
+      "App-wachtwoorden staan in het beveiligingsgedeelte van je account bij je provider.",
+    gmail_wizard_step_1_title:
+      "Open de beveiligingsinstellingen van je account",
+    gmail_wizard_step_2_body:
+      "App-wachtwoorden zijn pas beschikbaar als verificatie in twee stappen aanstaat.",
     gmail_wizard_step_2_title: "Zet verificatie in twee stappen aan",
-    gmail_wizard_step_3_body: "Kies Mail als app en maak daarna het wachtwoord.",
+    gmail_wizard_step_3_body:
+      "Kies Mail als app en maak daarna het wachtwoord.",
     gmail_wizard_step_3_title: "Maak een app-wachtwoord",
-    gmail_wizard_step_4_body: "Plak het app-wachtwoord hieronder. Aster bewaart het versleuteld en gebruikt het alleen om deze mailbox te synchroniseren.",
+    gmail_wizard_step_4_body:
+      "Plak het app-wachtwoord hieronder. Aster bewaart het versleuteld en gebruikt het alleen om deze mailbox te synchroniseren.",
     gmail_wizard_step_4_title: "Plak het wachtwoord",
     gmail_wizard_title: "Verbind je mailbox",
-    last_sync_tooltip: "Wanneer dit account voor het laatst is gesynchroniseerd",
+    last_sync_tooltip:
+      "Wanneer dit account voor het laatst is gesynchroniseerd",
     not_synced_tooltip: "Dit account is nog niet gesynchroniseerd.",
-    protocol_desc_imap: "Synchroniseert mappen en blijft op al je apparaten bij.",
-    protocol_desc_pop3: "Downloadt e-mail één keer en laat niets achter om te synchroniseren.",
-    protocol_tooltip_imap: "IMAP houdt je e-mail op de server en synchroniseert elke wijziging naar al je apparaten.",
-    protocol_tooltip_jmap: "JMAP is een modern synchronisatieprotocol dat maar een paar providers ondersteunen.",
-    protocol_tooltip_pop3: "POP3 downloadt e-mail naar één apparaat en synchroniseert wijzigingen niet terug.",
+    protocol_desc_imap:
+      "Synchroniseert mappen en blijft op al je apparaten bij.",
+    protocol_desc_pop3:
+      "Downloadt e-mail één keer en laat niets achter om te synchroniseren.",
+    protocol_tooltip_imap:
+      "IMAP houdt je e-mail op de server en synchroniseert elke wijziging naar al je apparaten.",
+    protocol_tooltip_jmap:
+      "JMAP is een modern synchronisatieprotocol dat maar een paar providers ondersteunen.",
+    protocol_tooltip_pop3:
+      "POP3 downloadt e-mail naar één apparaat en synchroniseert wijzigingen niet terug.",
     remove_account_tooltip: "Account verwijderen",
     show_side_panel: "Zijpaneel tonen",
-    show_side_panel_description: "Houd contacten en andere snelle hulpmiddelen in een paneel naast je e-mail.",
+    show_side_panel_description:
+      "Houd contacten en andere snelle hulpmiddelen in een paneel naast je e-mail.",
     sync_now_tooltip: "Nu synchroniseren",
     purge_locked_folder_on_delete: "Inhoud van beveiligde mappen vernietigen",
     purge_locked_folder_on_delete_description:
@@ -3713,9 +3745,11 @@ export const nl = {
       "Hiermee zijn de oudere gegevens niet ontgrendeld. Controleer het wachtwoord of de zin en probeer het opnieuw.",
     discard_older_data_button: "Oudere gegevens verwijderen",
     discard_older_data_title: "Oudere gegevens verwijderen?",
-    discard_older_data_desc: "Hiermee verwijder je definitief de optie om e-mail en aliassen van vóór de reset te ontgrendelen. Dit kun je niet ongedaan maken.",
+    discard_older_data_desc:
+      "Hiermee verwijder je definitief de optie om e-mail en aliassen van vóór de reset te ontgrendelen. Dit kun je niet ongedaan maken.",
     discard_older_data_success: "Oudere gegevens verwijderd.",
-    discard_older_data_failed: "De oudere gegevens konden niet worden verwijderd. Probeer het opnieuw.",
+    discard_older_data_failed:
+      "De oudere gegevens konden niet worden verwijderd. Probeer het opnieuw.",
     phrase_wrap_save_failed:
       "Uw herstelzin kon niet op de server worden opgeslagen. Probeer het opnieuw.",
     general: "Algemeen",
@@ -7747,9 +7781,11 @@ export const nl = {
     bulk_trash_title_one: "1 e-mail naar de prullenbak verplaatsen?",
     bulk_trash_title_other: "{{count}} e-mails naar de prullenbak verplaatsen?",
     sender_rule_confirm: "Regel maken",
-    sender_rule_created: "Nieuwe e-mail van deze afzender gaat nu naar {{category}}.",
+    sender_rule_created:
+      "Nieuwe e-mail van deze afzender gaat nu naar {{category}}.",
     sender_rule_name: "{{sender}} naar {{category}}",
-    sender_rule_offer: "Je verplaatst e-mail van {{sender}} steeds naar {{category}}. Wil je dat dit automatisch gebeurt?",
+    sender_rule_offer:
+      "Je verplaatst e-mail van {{sender}} steeds naar {{category}}. Wil je dat dit automatisch gebeurt?",
     load_all_thread_messages: "Alle berichten laden",
     move_to_category: "Naar categorie verplaatsen",
     menu_applies_to_selection: "Geldt voor {count} geselecteerde",
@@ -10255,5 +10291,46 @@ export const nl = {
     vacation_reply: "Vakantiebericht",
     vanguard: "Vanguard",
     vision: "Zicht",
+  },
+  app_store: {
+    section_title: "App Store-abonnement",
+    section_description:
+      "Abonnementen die je in deze app koopt, worden via je Apple Account betaald en automatisch verlengd totdat je ze opzegt.",
+    per_month: "per maand",
+    per_year: "per jaar",
+    subscribe_to: "Abonneer op {{plan}}",
+    processing: "Bezig met verwerken...",
+    restore_purchases: "Herstel aankopen",
+    restoring: "Bezig met herstellen...",
+    manage_subscriptions: "Beheer abonnementen",
+    terms_of_use: "Gebruiksvoorwaarden",
+    renewal_terms:
+      "De betaling wordt via je Apple Account afgeschreven wanneer je de aankoop bevestigt. Je abonnement wordt automatisch verlengd, tenzij je het minstens 24 uur voor het einde van de huidige periode opzegt. Klik op Beheer abonnementen om op te zeggen.",
+    purchase_pending:
+      "Je aankoop wacht op goedkeuring. Je abonnement wordt bijgewerkt nadat de App Store de aankoop heeft goedgekeurd.",
+    purchase_success: "Je nieuwe abonnement is actief.",
+    purchase_failed:
+      "De App Store kon de aankoop niet voltooien. Probeer het opnieuw.",
+    verify_failed:
+      "Je aankoop is gelukt, maar Aster Mail kon deze nog niet bevestigen. Klik op Herstel aankopen om het opnieuw te proberen.",
+    conflict:
+      "Dit App Store-abonnement hoort bij een ander Aster Mail-account. Log in bij dat account om het te gebruiken.",
+    restore_success: "Je aankopen zijn hersteld.",
+    restore_none:
+      "De App Store heeft geen actieve abonnementen gevonden voor je Apple Account.",
+    restore_failed:
+      "De App Store kon je aankopen niet herstellen. Probeer het opnieuw.",
+    managed_elsewhere_title: "Je abonnement wordt buiten de App Store beheerd",
+    managed_elsewhere_description:
+      "Je hebt je huidige abonnement op een ander platform gekocht en kunt het hier blijven gebruiken. Gebruik het platform waar je het hebt gekocht om het te wijzigen.",
+    upgrade_title: "Upgrade je abonnement",
+    upgrade_limit_description:
+      "Je hebt een limiet van je huidige abonnement bereikt. Kies een abonnement om meer te krijgen.",
+    upgrade_storage_description:
+      "Je opslag is vol. Kies een abonnement om meer ruimte te krijgen.",
+    upgrade_generic_description:
+      "Kies een abonnement om meer opslag, aliassen en eigen domeinen te krijgen.",
+    register_subtitle:
+      "Neem een abonnement via de App Store of ga verder met een gratis account. Je kunt je abonnement op elk moment wijzigen.",
   },
 };

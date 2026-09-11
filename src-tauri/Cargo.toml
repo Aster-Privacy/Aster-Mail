@@ -5,19 +5,23 @@ edition = "2021"
 license = "AGPL-3.0-or-later"
 
 [features]
-default = ["custom-protocol"]
+default = ["custom-protocol", "updater", "single-instance"]
 custom-protocol = ["tauri/custom-protocol"]
+updater = ["dep:tauri-plugin-updater"]
+single-instance = ["dep:tauri-plugin-single-instance"]
+mas = ["dep:swift-rs", "dep:security-framework-sys", "dep:core-foundation"]
 
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
+swift-rs = { version = "1.0.7", features = ["build"], optional = true }
 
 [dependencies]
 tauri = { version = "2", features = ["tray-icon", "image-png"] }
 tauri-plugin-shell = "2"
 tauri-plugin-clipboard-manager = "2"
 tauri-plugin-notification = "2"
-tauri-plugin-single-instance = "2"
-tauri-plugin-updater = "2"
+tauri-plugin-single-instance = { version = "2", optional = true }
+tauri-plugin-updater = { version = "2", optional = true }
 tauri-plugin-process = "2"
 tauri-plugin-dialog = "2"
 serde = { version = "1", features = ["derive"] }
@@ -51,6 +55,8 @@ keyring = { version = "3", features = ["apple-native", "windows-native", "sync-s
 [target.'cfg(target_os = "macos")'.dependencies]
 objc2-app-kit = { version = "0.3", features = ["NSWorkspace"] }
 objc2-foundation = { version = "0.3", features = ["NSString", "NSURL"] }
+security-framework-sys = { version = "2", optional = true }
+core-foundation = { version = "0.10", optional = true }
 
 [target.'cfg(windows)'.dependencies]
 webview2-com = "0.38"

@@ -57,6 +57,11 @@ vi.mock("@tauri-apps/plugin-process", () => ({
   relaunch: () => relaunch(),
 }));
 
+vi.mock("@/native/distribution_channel", () => ({
+  use_distribution_channel: () => "direct",
+  get_distribution_channel: async () => "direct",
+}));
+
 vi.mock("@/lib/i18n/context", () => ({
   use_i18n: () => ({
     t: (key: string, vars?: Record<string, string>) =>

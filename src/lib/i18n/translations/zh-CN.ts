@@ -36,7 +36,8 @@ export const zh_CN = {
     clear_selection: "清除选择",
     compose_to_selection: "写信给所选联系人",
     contact_change_undone: "已撤销更改",
-    contact_encryption_info: "当联系人发布公钥后，Aster 会自动加密你发给对方的邮件。",
+    contact_encryption_info:
+      "当联系人发布公钥后，Aster 会自动加密你发给对方的邮件。",
     contact_moved_to_trash: "联系人已移到回收站",
     contact_restored: "联系人已恢复",
     contacts_created: "已创建 {{count}} 个联系人",
@@ -71,10 +72,12 @@ export const zh_CN = {
     delete_contacts_confirmation_one:
       "确定要删除 {{count}} 个联系人吗？此操作无法撤销。",
     delete_group: "删除群组",
-    delete_group_confirmation: "删除“{{name}}”会移除该群组。其中的联系人仍会保留在通讯录中。",
+    delete_group_confirmation:
+      "删除“{{name}}”会移除该群组。其中的联系人仍会保留在通讯录中。",
     deselect_contact: "取消选择联系人",
     discard: "放弃",
-    discard_new_contact_message: "你新建的联系人尚未保存。如果现在打开其他联系人，这条记录会丢失。",
+    discard_new_contact_message:
+      "你新建的联系人尚未保存。如果现在打开其他联系人，这条记录会丢失。",
     drafts_deleted_one: "{{count}}封草稿已永久删除",
     duplicates_found: "发现重复项",
     email_count_one: "{{count}} 封邮件",
@@ -107,7 +110,8 @@ export const zh_CN = {
     group_contact_count: "{{count}} 位联系人",
     group_created: "群组已创建",
     group_deleted: "群组已删除",
-    group_empty_hint: "若要填充此群组，请在“联系人”标签页中选择联系人，然后选择“添加到群组”。",
+    group_empty_hint:
+      "若要填充此群组，请在“联系人”标签页中选择联系人，然后选择“添加到群组”。",
     group_empty_title: "此群组中没有联系人",
     group_modal_description: "创建群组，一次写信给多位联系人。",
     group_name: "群组名称",
@@ -2002,10 +2006,12 @@ export const zh_CN = {
     family_activity_events_one: "{{count}} 个事件",
     family_security_warning_2fa_one: "{{count}} 位成员尚未启用双重验证",
     forwarding_rules_count_one: "{{count}} 条转发规则",
-    gmail_app_password_notice: "此服务商需要应用专用密码。你平常的账户密码无法使用。",
+    gmail_app_password_notice:
+      "此服务商需要应用专用密码。你平常的账户密码无法使用。",
     gmail_sync_continue: "继续",
     gmail_sync_intro: "在账户设置中创建应用专用密码，然后粘贴到这里。",
-    gmail_sync_note_unavailable: "如果无法使用应用专用密码，请先开启两步验证，然后再查看一次。",
+    gmail_sync_note_unavailable:
+      "如果无法使用应用专用密码，请先开启两步验证，然后再查看一次。",
     gmail_sync_open_google: "打开账户设置",
     gmail_sync_setup_button: "查看操作方法",
     gmail_sync_step_1: "登录你的账户安全设置。",
@@ -2024,7 +2030,8 @@ export const zh_CN = {
     gmail_wizard_step_2_title: "开启两步验证",
     gmail_wizard_step_3_body: "选择“邮件”作为应用，然后创建密码。",
     gmail_wizard_step_3_title: "创建应用专用密码",
-    gmail_wizard_step_4_body: "把应用专用密码粘贴到下方。Aster 会加密保存，并且只用它同步这个邮箱。",
+    gmail_wizard_step_4_body:
+      "把应用专用密码粘贴到下方。Aster 会加密保存，并且只用它同步这个邮箱。",
     gmail_wizard_step_4_title: "粘贴密码",
     gmail_wizard_title: "连接你的邮箱",
     last_sync_tooltip: "此账户上次同步的时间",
@@ -2032,7 +2039,8 @@ export const zh_CN = {
     plan_domains_count_one: "{{count}} 个域名",
     protocol_desc_imap: "同步文件夹，并在所有设备上保持一致。",
     protocol_desc_pop3: "只下载一次邮件，之后没有内容需要同步。",
-    protocol_tooltip_imap: "IMAP 把邮件保留在服务器上，并把每一处更改同步到你的所有设备。",
+    protocol_tooltip_imap:
+      "IMAP 把邮件保留在服务器上，并把每一处更改同步到你的所有设备。",
     protocol_tooltip_jmap: "JMAP 是一种现代同步协议，只有少数服务商支持。",
     protocol_tooltip_pop3: "POP3 把邮件下载到一台设备，不会把更改同步回去。",
     purge_confirm_message_one:
@@ -2113,7 +2121,8 @@ export const zh_CN = {
     resurrection_failed: "未能解锁较早的数据。请检查密码或短语后再试一次。",
     discard_older_data_button: "放弃较早的数据",
     discard_older_data_title: "要放弃较早的数据吗？",
-    discard_older_data_desc: "这将永久移除解锁重置前邮件和别名的选项。此操作无法撤销。",
+    discard_older_data_desc:
+      "这将永久移除解锁重置前邮件和别名的选项。此操作无法撤销。",
     discard_older_data_success: "已放弃较早的数据。",
     discard_older_data_failed: "无法放弃较早的数据。请重试。",
     phrase_wrap_save_failed: "您的恢复短语未能保存到服务器，再试一次应该可以。",
@@ -4718,8 +4727,7 @@ export const zh_CN = {
     forwarding_failed_badge: "未送达",
     forwarding_failed_encryption:
       "已开启要求加密，但 {{ address }} 没有 PGP 密钥，因此邮件不会被转发。请在加密设置中关闭要求加密，或添加收件人的公钥。",
-    forwarding_failed_generic:
-      "最近一次转发至 {{ address }} 失败：{{ error }}",
+    forwarding_failed_generic: "最近一次转发至 {{ address }} 失败：{{ error }}",
     forwarding_failed_count: "未转发的邮件：{{ count }}",
     forwarding_pending_verification: "等待验证",
     resend_verification_email: "重新发送验证邮件",
@@ -6980,7 +6988,8 @@ export const zh_CN = {
     sender_rule_confirm: "创建规则",
     sender_rule_created: "此发件人的新邮件现在会进入“{{category}}”。",
     sender_rule_name: "{{sender}} 到 {{category}}",
-    sender_rule_offer: "你经常把 {{sender}} 的邮件移到“{{category}}”。要自动这样做吗？",
+    sender_rule_offer:
+      "你经常把 {{sender}} 的邮件移到“{{category}}”。要自动这样做吗？",
     spy_pixels_blocked_count_one: "已拦截 {{count}} 个间谍像素",
     trackers_found_one: "已发现并拦截 {{count}} 个跟踪器",
     load_all_thread_messages: "加载所有邮件",
@@ -9260,5 +9269,43 @@ export const zh_CN = {
     vacation_reply: "假期自动回复",
     vanguard: "Vanguard",
     vision: "视觉",
+  },
+  app_store: {
+    section_title: "App Store 订阅",
+    section_description:
+      "在此 App 中购买的套餐将通过你的 Apple 账户付费，并会自动续订，直到你取消为止。",
+    per_month: "每月",
+    per_year: "每年",
+    subscribe_to: "订阅 {{plan}}",
+    processing: "正在处理...",
+    restore_purchases: "恢复购买",
+    restoring: "正在恢复...",
+    manage_subscriptions: "管理订阅",
+    terms_of_use: "使用条款",
+    renewal_terms:
+      "确认购买后，费用将从你的 Apple 账户扣除。除非你在当前周期结束前至少 24 小时取消，否则订阅会自动续订。要取消订阅，请点按“管理订阅”。",
+    purchase_pending:
+      "你的购买正在等待批准。App Store 批准后，你的套餐将会更新。",
+    purchase_success: "你的新套餐已生效。",
+    purchase_failed: "App Store 无法完成购买。请重试。",
+    verify_failed:
+      "你的购买已完成，但 Aster Mail 暂时无法确认。要重试，请点按“恢复购买”。",
+    conflict:
+      "此 App Store 订阅属于另一个 Aster Mail 账户。要使用此订阅，请登录该账户。",
+    restore_success: "你的购买已恢复。",
+    restore_none: "App Store 未找到你的 Apple 账户下的有效订阅。",
+    restore_failed: "App Store 无法恢复你的购买。请重试。",
+    managed_elsewhere_title: "你的套餐在 App Store 之外管理",
+    managed_elsewhere_description:
+      "你在其他平台购买了当前套餐，可以继续在这里使用。要更改套餐，请前往你购买它的平台。",
+    upgrade_title: "升级你的套餐",
+    upgrade_limit_description:
+      "你已达到当前套餐的限制。要获得更多，请选择一个套餐。",
+    upgrade_storage_description:
+      "你的存储空间已满。要获得更多空间，请选择一个套餐。",
+    upgrade_generic_description:
+      "要获得更多存储空间、别名和自定义域名，请选择一个套餐。",
+    register_subtitle:
+      "通过 App Store 订阅，或继续使用免费账户。你可以随时更改套餐。",
   },
 };

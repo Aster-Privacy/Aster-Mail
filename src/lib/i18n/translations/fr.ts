@@ -35,12 +35,14 @@ export const fr = {
     clear_selection: "Effacer la sélection",
     compose_to_selection: "Écrire aux contacts sélectionnés",
     contact_change_undone: "Modification annulée",
-    contact_encryption_info: "Lorsqu’un contact publie une clé publique, Aster chiffre automatiquement les messages que vous lui envoyez.",
+    contact_encryption_info:
+      "Lorsqu’un contact publie une clé publique, Aster chiffre automatiquement les messages que vous lui envoyez.",
     contact_moved_to_trash: "Contact déplacé vers la corbeille",
     contact_restored: "Contact restauré",
     contacts_created: "{{count}} contacts créés",
     contacts_exported: "Contacts exportés",
-    contacts_in_trash_notice: "Les contacts placés dans la corbeille sont supprimés définitivement au bout de 30 jours.",
+    contacts_in_trash_notice:
+      "Les contacts placés dans la corbeille sont supprimés définitivement au bout de 30 jours.",
     contacts_merged: "Contacts fusionnés",
     contacts_moved_to_trash: "Contacts déplacés vers la corbeille",
     contacts_updated_stat: "Mis à jour",
@@ -48,19 +50,23 @@ export const fr = {
     create_multiple_contacts: "Créer plusieurs contacts",
     delete_contacts: "Supprimer les contacts",
     delete_group: "Supprimer le groupe",
-    delete_group_confirmation: "La suppression de « {{name}} » retire le groupe. Les contacts qu’il contient restent dans votre carnet d’adresses.",
+    delete_group_confirmation:
+      "La suppression de « {{name}} » retire le groupe. Les contacts qu’il contient restent dans votre carnet d’adresses.",
     deselect_contact: "Désélectionner le contact",
     discard: "Abandonner",
-    discard_new_contact_message: "Le contact que vous avez commencé n’est pas encore enregistré. Si vous ouvrez un autre contact maintenant, vous le perdez.",
+    discard_new_contact_message:
+      "Le contact que vous avez commencé n’est pas encore enregistré. Si vous ouvrez un autre contact maintenant, vous le perdez.",
     duplicates_found: "Doublons trouvés",
     email_group: "Écrire au groupe",
-    empty_trash_confirm: "Supprimer définitivement tous les contacts de la corbeille ? Cette action est irréversible.",
+    empty_trash_confirm:
+      "Supprimer définitivement tous les contacts de la corbeille ? Cette action est irréversible.",
     export_selection_vcf: "Exporter au format vCard",
     failed_to_add_to_group: "Impossible d’ajouter le contact au groupe.",
     failed_to_create_group: "Impossible de créer le groupe.",
     failed_to_delete_group: "Impossible de supprimer le groupe.",
     failed_to_load_groups: "Impossible de charger vos groupes.",
-    failed_to_move_to_trash: "Impossible de déplacer le contact vers la corbeille.",
+    failed_to_move_to_trash:
+      "Impossible de déplacer le contact vers la corbeille.",
     failed_to_remove_from_group: "Impossible de retirer le contact du groupe.",
     frequent_contacts: "Fréquents",
     frequent_contacts_hint:
@@ -68,9 +74,11 @@ export const fr = {
     group_contact_count: "{{count}} contacts",
     group_created: "Groupe créé",
     group_deleted: "Groupe supprimé",
-    group_empty_hint: "Pour remplir ce groupe, sélectionnez des contacts dans l’onglet Contacts, puis choisissez Ajouter au groupe.",
+    group_empty_hint:
+      "Pour remplir ce groupe, sélectionnez des contacts dans l’onglet Contacts, puis choisissez Ajouter au groupe.",
     group_empty_title: "Aucun contact dans ce groupe",
-    group_modal_description: "Créez des groupes pour écrire à plusieurs contacts à la fois.",
+    group_modal_description:
+      "Créez des groupes pour écrire à plusieurs contacts à la fois.",
     group_name: "Nom du groupe",
     groups: "Groupes",
     import_add_to_group: "Ajouter les contacts importés à un groupe",
@@ -83,11 +91,13 @@ export const fr = {
     manage_contacts: "Gérer les contacts",
     merge: "Fusionner",
     merge_and_fix: "Fusionner et corriger",
-    merge_contacts_hint: "Choisissez les informations à conserver. Les autres contacts sont déplacés vers la corbeille.",
+    merge_contacts_hint:
+      "Choisissez les informations à conserver. Les autres contacts sont déplacés vers la corbeille.",
     merge_keeps_this: "Conservé",
     merged_contact_preview: "Contact fusionné",
     no_contact_changes: "Aucune modification pour l’instant",
-    no_contact_details: "Ce contact ne contient encore aucune information. Choisissez Modifier pour en ajouter.",
+    no_contact_details:
+      "Ce contact ne contient encore aucune information. Choisissez Modifier pour en ajouter.",
     no_contacts_in_trash: "La corbeille est vide",
     no_duplicates_found: "Aucun doublon à corriger",
     no_email: "Aucune adresse e-mail",
@@ -2165,20 +2175,28 @@ export const fr = {
     account_resume_tooltip: "Reprendre la synchronisation",
     app_password_create_link: "Créer un mot de passe d’application",
     app_password_required: "Mot de passe d’application requis",
-    category_info_newsletters: "Lettres d’information et listes de diffusion auxquelles vous vous êtes abonné.",
-    category_info_transactions: "Commandes, paiements et reçus des boutiques et des services.",
+    category_info_newsletters:
+      "Lettres d’information et listes de diffusion auxquelles vous vous êtes abonné.",
+    category_info_transactions:
+      "Commandes, paiements et reçus des boutiques et des services.",
     category_newsletters: "Lettres d’information",
     category_transactions: "Achats",
     edit_account_tooltip: "Modifier le compte",
-    gmail_app_password_notice: "Ce fournisseur exige un mot de passe d’application. Le mot de passe habituel de votre compte ne fonctionne pas.",
+    gmail_app_password_notice:
+      "Ce fournisseur exige un mot de passe d’application. Le mot de passe habituel de votre compte ne fonctionne pas.",
     gmail_sync_continue: "Continuer",
-    gmail_sync_intro: "Créez un mot de passe d’application dans les réglages de votre compte, puis collez-le ici.",
-    gmail_sync_note_unavailable: "Si les mots de passe d’application ne sont pas disponibles, activez d’abord la validation en deux étapes, puis vérifiez à nouveau.",
+    gmail_sync_intro:
+      "Créez un mot de passe d’application dans les réglages de votre compte, puis collez-le ici.",
+    gmail_sync_note_unavailable:
+      "Si les mots de passe d’application ne sont pas disponibles, activez d’abord la validation en deux étapes, puis vérifiez à nouveau.",
     gmail_sync_open_google: "Ouvrir les réglages du compte",
     gmail_sync_setup_button: "Voir la marche à suivre",
-    gmail_sync_step_1: "Connectez-vous aux réglages de sécurité de votre compte.",
-    gmail_sync_step_2: "Activez la validation en deux étapes si ce n’est pas déjà fait.",
-    gmail_sync_step_3: "Créez un mot de passe d’application pour la messagerie.",
+    gmail_sync_step_1:
+      "Connectez-vous aux réglages de sécurité de votre compte.",
+    gmail_sync_step_2:
+      "Activez la validation en deux étapes si ce n’est pas déjà fait.",
+    gmail_sync_step_3:
+      "Créez un mot de passe d’application pour la messagerie.",
     gmail_sync_step_4: "Copiez le mot de passe et collez-le dans Aster.",
     gmail_sync_title: "Créer un mot de passe d’application",
     gmail_wizard_connect: "Connecter la boîte mail",
@@ -2186,25 +2204,36 @@ export const fr = {
     gmail_wizard_progress: "Étape {{current}} sur {{total}}",
     gmail_wizard_reveal_password: "Afficher le mot de passe d’application",
     gmail_wizard_step_1_action: "Ouvrir les réglages de sécurité",
-    gmail_wizard_step_1_body: "Les mots de passe d’application se trouvent dans la section sécurité du compte de votre fournisseur.",
-    gmail_wizard_step_1_title: "Ouvrez les réglages de sécurité de votre compte",
-    gmail_wizard_step_2_body: "Les mots de passe d’application ne sont disponibles qu’une fois la validation en deux étapes activée.",
+    gmail_wizard_step_1_body:
+      "Les mots de passe d’application se trouvent dans la section sécurité du compte de votre fournisseur.",
+    gmail_wizard_step_1_title:
+      "Ouvrez les réglages de sécurité de votre compte",
+    gmail_wizard_step_2_body:
+      "Les mots de passe d’application ne sont disponibles qu’une fois la validation en deux étapes activée.",
     gmail_wizard_step_2_title: "Activez la validation en deux étapes",
-    gmail_wizard_step_3_body: "Choisissez Mail comme application, puis créez le mot de passe.",
+    gmail_wizard_step_3_body:
+      "Choisissez Mail comme application, puis créez le mot de passe.",
     gmail_wizard_step_3_title: "Créez un mot de passe d’application",
-    gmail_wizard_step_4_body: "Collez le mot de passe d’application ci-dessous. Aster le stocke chiffré et l’utilise uniquement pour synchroniser cette boîte mail.",
+    gmail_wizard_step_4_body:
+      "Collez le mot de passe d’application ci-dessous. Aster le stocke chiffré et l’utilise uniquement pour synchroniser cette boîte mail.",
     gmail_wizard_step_4_title: "Collez le mot de passe",
     gmail_wizard_title: "Connectez votre boîte mail",
     last_sync_tooltip: "Date de la dernière synchronisation de ce compte",
     not_synced_tooltip: "Ce compte n’a pas encore été synchronisé.",
-    protocol_desc_imap: "Synchronise les dossiers et reste à jour sur tous vos appareils.",
-    protocol_desc_pop3: "Télécharge les messages une seule fois, sans rien laisser à synchroniser.",
-    protocol_tooltip_imap: "IMAP conserve vos messages sur le serveur et synchronise chaque modification sur tous vos appareils.",
-    protocol_tooltip_jmap: "JMAP est un protocole de synchronisation moderne que seuls quelques fournisseurs prennent en charge.",
-    protocol_tooltip_pop3: "POP3 télécharge les messages sur un seul appareil et ne synchronise pas les modifications.",
+    protocol_desc_imap:
+      "Synchronise les dossiers et reste à jour sur tous vos appareils.",
+    protocol_desc_pop3:
+      "Télécharge les messages une seule fois, sans rien laisser à synchroniser.",
+    protocol_tooltip_imap:
+      "IMAP conserve vos messages sur le serveur et synchronise chaque modification sur tous vos appareils.",
+    protocol_tooltip_jmap:
+      "JMAP est un protocole de synchronisation moderne que seuls quelques fournisseurs prennent en charge.",
+    protocol_tooltip_pop3:
+      "POP3 télécharge les messages sur un seul appareil et ne synchronise pas les modifications.",
     remove_account_tooltip: "Supprimer le compte",
     show_side_panel: "Afficher le panneau latéral",
-    show_side_panel_description: "Gardez les contacts et d’autres outils rapides dans un panneau à côté de vos messages.",
+    show_side_panel_description:
+      "Gardez les contacts et d’autres outils rapides dans un panneau à côté de vos messages.",
     sync_now_tooltip: "Synchroniser maintenant",
     purge_locked_folder_on_delete: "Purger le contenu des dossiers protégés",
     purge_locked_folder_on_delete_description:
@@ -2295,9 +2324,11 @@ export const fr = {
       "Cela n'a pas déverrouillé les données antérieures. Vérifiez le mot de passe ou la phrase et réessayez.",
     discard_older_data_button: "Abandonner les données antérieures",
     discard_older_data_title: "Abandonner les données antérieures ?",
-    discard_older_data_desc: "Cette action supprime définitivement la possibilité de déverrouiller les e-mails et les alias antérieurs à la réinitialisation. Elle est irréversible.",
+    discard_older_data_desc:
+      "Cette action supprime définitivement la possibilité de déverrouiller les e-mails et les alias antérieurs à la réinitialisation. Elle est irréversible.",
     discard_older_data_success: "Données antérieures abandonnées.",
-    discard_older_data_failed: "Impossible d'abandonner les données antérieures. Réessayez.",
+    discard_older_data_failed:
+      "Impossible d'abandonner les données antérieures. Réessayez.",
     phrase_wrap_save_failed:
       "Votre phrase de récupération n'a pas pu être enregistrée sur le serveur. Réessayez.",
     smtp_tokens: "Jetons SMTP",
@@ -7839,9 +7870,11 @@ export const fr = {
     bulk_trash_title_one: "Déplacer 1 e-mail vers la corbeille ?",
     bulk_trash_title_other: "Déplacer {{count}} e-mails vers la corbeille ?",
     sender_rule_confirm: "Créer la règle",
-    sender_rule_created: "Les nouveaux messages de cet expéditeur vont désormais dans {{category}}.",
+    sender_rule_created:
+      "Les nouveaux messages de cet expéditeur vont désormais dans {{category}}.",
     sender_rule_name: "{{sender}} vers {{category}}",
-    sender_rule_offer: "Vous déplacez souvent les messages de {{sender}} vers {{category}}. Voulez-vous le faire automatiquement ?",
+    sender_rule_offer:
+      "Vous déplacez souvent les messages de {{sender}} vers {{category}}. Voulez-vous le faire automatiquement ?",
     load_all_thread_messages: "Charger tous les messages",
     move_to_category: "Déplacer vers la catégorie",
     menu_applies_to_selection: "S'applique à {count} sélectionnés",
@@ -10313,5 +10346,44 @@ export const fr = {
     vacation_reply: "Réponse d'absence",
     vanguard: "Vanguard",
     vision: "Vision",
+  },
+  app_store: {
+    section_title: "Abonnement App Store",
+    section_description:
+      "Les forfaits achetés dans cette app sont facturés sur votre compte Apple et se renouvellent automatiquement jusqu'à leur résiliation.",
+    per_month: "par mois",
+    per_year: "par an",
+    subscribe_to: "S'abonner à {{plan}}",
+    processing: "Traitement...",
+    restore_purchases: "Restaurer les achats",
+    restoring: "Restauration...",
+    manage_subscriptions: "Gérer les abonnements",
+    terms_of_use: "Conditions d'utilisation",
+    renewal_terms:
+      "Le paiement est débité de votre compte Apple lorsque vous confirmez l'achat. L'abonnement se renouvelle automatiquement, sauf si vous le résiliez au moins 24 heures avant la fin de la période en cours. Pour le résilier, cliquez sur Gérer les abonnements.",
+    purchase_pending:
+      "Votre achat est en attente d'approbation. Votre forfait sera mis à jour une fois l'achat approuvé par l'App Store.",
+    purchase_success: "Votre nouveau forfait est actif.",
+    purchase_failed: "L'App Store n'a pas pu finaliser l'achat. Réessayez.",
+    verify_failed:
+      "Votre achat a abouti, mais Aster Mail n'a pas encore pu le confirmer. Pour réessayer, cliquez sur Restaurer les achats.",
+    conflict:
+      "Cet abonnement App Store appartient à un autre compte Aster Mail. Pour l'utiliser, connectez-vous à ce compte.",
+    restore_success: "Vos achats ont été restaurés.",
+    restore_none:
+      "L'App Store n'a trouvé aucun abonnement actif pour votre compte Apple.",
+    restore_failed: "L'App Store n'a pas pu restaurer vos achats. Réessayez.",
+    managed_elsewhere_title: "Votre forfait est géré en dehors de l'App Store",
+    managed_elsewhere_description:
+      "Vous avez acheté votre forfait actuel sur une autre plateforme et pouvez continuer à l'utiliser ici. Pour le modifier, utilisez la plateforme où vous l'avez acheté.",
+    upgrade_title: "Passer à un forfait supérieur",
+    upgrade_limit_description:
+      "Vous avez atteint une limite de votre forfait actuel. Pour en obtenir plus, choisissez un forfait.",
+    upgrade_storage_description:
+      "Votre stockage est plein. Pour obtenir plus d'espace, choisissez un forfait.",
+    upgrade_generic_description:
+      "Pour obtenir plus de stockage, d'alias et de domaines personnalisés, choisissez un forfait.",
+    register_subtitle:
+      "Abonnez-vous via l'App Store ou continuez avec un compte gratuit. Vous pouvez changer de forfait à tout moment.",
   },
 };

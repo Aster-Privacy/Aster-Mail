@@ -75,6 +75,8 @@ import {
 import { read_offer_prefill } from "@/components/register/academic_offer_prefill";
 import { clear_first_run_plan, restore_first_run_plan } from "@/lib/first_run";
 import { checkout_error_text } from "@/components/settings/billing/checkout_error_text";
+import { AppStoreRegisterStep } from "@/components/app_store/app_store_register_step";
+import { use_distribution_channel } from "@/native/distribution_channel";
 
 interface RegisterStepPlanSelectionProps {
   reg: UseRegistrationReturn;
@@ -254,6 +256,17 @@ const TIER_DESCRIPTION_KEYS: Record<string, string> = {
 };
 
 export const RegisterStepPlanSelection = ({
+  reg,
+}: RegisterStepPlanSelectionProps) => {
+  const channel = use_distribution_channel();
+
+  if (channel === null) return null;
+  if (channel === "mas") return <AppStoreRegisterStep reg={reg} />;
+
+  return <HostedRegisterStepPlanSelection reg={reg} />;
+};
+
+const HostedRegisterStepPlanSelection = ({
   reg,
 }: RegisterStepPlanSelectionProps) => {
   const { t } = reg;

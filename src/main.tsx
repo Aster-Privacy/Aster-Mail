@@ -48,6 +48,7 @@ import { start_input_modality_tracking } from "@/lib/input_modality";
 import { connection_store } from "@/services/routing/connection_store";
 import { apply_desktop_content_protection } from "@/native/desktop_content_protection";
 import { start_desktop_link_bridge } from "@/native/desktop_link_bridge";
+import { get_distribution_channel } from "@/native/distribution_channel";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { use_mobile_experience } from "@/hooks/use_mobile_experience";
 import {
@@ -109,6 +110,7 @@ const is_tauri_runtime =
   typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
 
 if (is_tauri_runtime) {
+  void get_distribution_channel();
   void import("@tauri-apps/api/core")
     .then(({ invoke }) => {
       void invoke("frontend_ready");

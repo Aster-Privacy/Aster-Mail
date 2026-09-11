@@ -36,7 +36,8 @@ export const ko = {
     clear_selection: "선택 해제",
     compose_to_selection: "선택한 연락처에 메일 쓰기",
     contact_change_undone: "변경을 되돌렸습니다",
-    contact_encryption_info: "연락처가 공개 키를 게시하면 Aster가 해당 상대에게 보내는 메일을 자동으로 암호화합니다.",
+    contact_encryption_info:
+      "연락처가 공개 키를 게시하면 Aster가 해당 상대에게 보내는 메일을 자동으로 암호화합니다.",
     contact_moved_to_trash: "연락처를 휴지통으로 옮겼습니다",
     contact_restored: "연락처를 복구했습니다",
     contacts_created: "연락처 {{count}}개를 만듦",
@@ -80,10 +81,12 @@ export const ko = {
     delete_contacts_confirmation_one:
       "연락처 {{count}}개를 삭제하시겠습니까? 이 작업은 취소할 수 없습니다.",
     delete_group: "그룹 삭제",
-    delete_group_confirmation: "“{{name}}”을(를) 삭제하면 그룹이 사라집니다. 그룹에 속한 연락처는 주소록에 남습니다.",
+    delete_group_confirmation:
+      "“{{name}}”을(를) 삭제하면 그룹이 사라집니다. 그룹에 속한 연락처는 주소록에 남습니다.",
     deselect_contact: "연락처 선택 해제",
     discard: "버리기",
-    discard_new_contact_message: "작성 중인 연락처가 아직 저장되지 않았습니다. 지금 다른 연락처를 열면 사라집니다.",
+    discard_new_contact_message:
+      "작성 중인 연락처가 아직 저장되지 않았습니다. 지금 다른 연락처를 열면 사라집니다.",
     drafts_deleted_one: "{{count}}개의 임시보관 메일을 영구 삭제했습니다",
     duplicates_found: "중복 항목을 찾았습니다",
     email_count_one: "메일 {{count}}개",
@@ -103,7 +106,8 @@ export const ko = {
     emails_starred_one: "{{count}}개의 메일에 별표를 표시했습니다",
     emails_unstarred_one: "{{count}}개의 메일의 별표를 해제했습니다",
     emails_will_reappear_one: "{{count}}개의 메일이 {{time}}에 다시 표시됩니다",
-    empty_trash_confirm: "휴지통에 있는 연락처를 모두 영구 삭제할까요? 되돌릴 수 없습니다.",
+    empty_trash_confirm:
+      "휴지통에 있는 연락처를 모두 영구 삭제할까요? 되돌릴 수 없습니다.",
     entry_count_one: "항목 {{count}}개",
     export_selection_vcf: "vCard로 내보내기",
     failed_to_add_to_group: "연락처를 그룹에 추가하지 못했습니다.",
@@ -119,9 +123,11 @@ export const ko = {
     group_contact_count: "연락처 {{count}}개",
     group_created: "그룹을 만들었습니다",
     group_deleted: "그룹을 삭제했습니다",
-    group_empty_hint: "이 그룹을 채우려면 연락처 탭에서 연락처를 선택한 다음 그룹에 추가를 선택하세요.",
+    group_empty_hint:
+      "이 그룹을 채우려면 연락처 탭에서 연락처를 선택한 다음 그룹에 추가를 선택하세요.",
     group_empty_title: "이 그룹에 연락처가 없습니다",
-    group_modal_description: "그룹을 만들면 여러 연락처에 한 번에 메일을 쓸 수 있습니다.",
+    group_modal_description:
+      "그룹을 만들면 여러 연락처에 한 번에 메일을 쓸 수 있습니다.",
     group_name: "그룹 이름",
     groups: "그룹",
     hours_ago_long_one: "{{count}}시간 전",
@@ -138,7 +144,8 @@ export const ko = {
     manage_contacts: "연락처 관리",
     merge: "병합",
     merge_and_fix: "병합 및 수정",
-    merge_contacts_hint: "남길 정보를 선택하세요. 나머지 연락처는 휴지통으로 이동합니다.",
+    merge_contacts_hint:
+      "남길 정보를 선택하세요. 나머지 연락처는 휴지통으로 이동합니다.",
     merge_keeps_this: "유지함",
     merged_contact_preview: "병합된 연락처",
     minutes_ago_long_one: "{{count}}분 전",
@@ -152,7 +159,8 @@ export const ko = {
       "{{count}}개의 대화를 휴지통으로 옮겼습니다",
     newsletters_archived_one: "{{count}}개의 뉴스레터을 보관했습니다",
     no_contact_changes: "아직 변경 사항이 없습니다",
-    no_contact_details: "이 연락처에는 아직 정보가 없습니다. 편집을 선택해 추가하세요.",
+    no_contact_details:
+      "이 연락처에는 아직 정보가 없습니다. 편집을 선택해 추가하세요.",
     no_contacts_in_trash: "휴지통이 비어 있습니다",
     no_duplicates_found: "수정할 중복 연락처가 없습니다",
     no_email: "이메일 주소 없음",
@@ -2139,7 +2147,8 @@ export const ko = {
     app_password_required: "앱 비밀번호 필요",
     blocked_senders_count_one: "차단된 발신자 {{count}}명",
     category_info_newsletters: "구독한 뉴스레터와 메일링 리스트입니다.",
-    category_info_transactions: "상점과 서비스에서 온 주문, 결제, 영수증입니다.",
+    category_info_transactions:
+      "상점과 서비스에서 온 주문, 결제, 영수증입니다.",
     category_newsletters: "뉴스레터",
     category_transactions: "구매",
     deleted_emails_count_one: "메일 {{count}}개를 삭제했습니다",
@@ -2164,10 +2173,13 @@ export const ko = {
     family_security_warning_2fa_one:
       "구성원 {{count}}명이 2단계 인증을 사용하지 않습니다",
     forwarding_rules_count_one: "전달 규칙 {{count}}개",
-    gmail_app_password_notice: "이 제공업체는 앱 비밀번호가 필요합니다. 평소 사용하는 계정 비밀번호는 쓸 수 없습니다.",
+    gmail_app_password_notice:
+      "이 제공업체는 앱 비밀번호가 필요합니다. 평소 사용하는 계정 비밀번호는 쓸 수 없습니다.",
     gmail_sync_continue: "계속",
-    gmail_sync_intro: "계정 설정에서 앱 비밀번호를 만든 다음 여기에 붙여 넣으세요.",
-    gmail_sync_note_unavailable: "앱 비밀번호를 사용할 수 없다면 먼저 2단계 인증을 켠 다음 다시 확인하세요.",
+    gmail_sync_intro:
+      "계정 설정에서 앱 비밀번호를 만든 다음 여기에 붙여 넣으세요.",
+    gmail_sync_note_unavailable:
+      "앱 비밀번호를 사용할 수 없다면 먼저 2단계 인증을 켠 다음 다시 확인하세요.",
     gmail_sync_open_google: "계정 설정 열기",
     gmail_sync_setup_button: "방법 보기",
     gmail_sync_step_1: "계정 보안 설정에 로그인합니다.",
@@ -2180,28 +2192,37 @@ export const ko = {
     gmail_wizard_progress: "{{total}}단계 중 {{current}}단계",
     gmail_wizard_reveal_password: "앱 비밀번호 표시",
     gmail_wizard_step_1_action: "보안 설정 열기",
-    gmail_wizard_step_1_body: "앱 비밀번호는 제공업체 계정의 보안 섹션에 있습니다.",
+    gmail_wizard_step_1_body:
+      "앱 비밀번호는 제공업체 계정의 보안 섹션에 있습니다.",
     gmail_wizard_step_1_title: "계정 보안 설정을 엽니다",
-    gmail_wizard_step_2_body: "앱 비밀번호는 2단계 인증을 켠 뒤에만 사용할 수 있습니다.",
+    gmail_wizard_step_2_body:
+      "앱 비밀번호는 2단계 인증을 켠 뒤에만 사용할 수 있습니다.",
     gmail_wizard_step_2_title: "2단계 인증을 켭니다",
     gmail_wizard_step_3_body: "앱으로 메일을 선택한 다음 비밀번호를 만듭니다.",
     gmail_wizard_step_3_title: "앱 비밀번호를 만듭니다",
-    gmail_wizard_step_4_body: "아래에 앱 비밀번호를 붙여 넣으세요. Aster는 이를 암호화해 저장하고, 이 메일함을 동기화하는 데만 사용합니다.",
+    gmail_wizard_step_4_body:
+      "아래에 앱 비밀번호를 붙여 넣으세요. Aster는 이를 암호화해 저장하고, 이 메일함을 동기화하는 데만 사용합니다.",
     gmail_wizard_step_4_title: "비밀번호를 붙여 넣습니다",
     gmail_wizard_title: "메일함을 연결하세요",
     last_sync_tooltip: "이 계정이 마지막으로 동기화된 시각",
     not_synced_tooltip: "이 계정은 아직 동기화되지 않았습니다.",
     plan_domains_count_one: "도메인 {{count}}개",
-    protocol_desc_imap: "폴더를 동기화하고 모든 기기에서 같은 상태를 유지합니다.",
-    protocol_desc_pop3: "메일을 한 번만 내려받고 동기화할 내용을 남기지 않습니다.",
-    protocol_tooltip_imap: "IMAP은 메일을 서버에 두고 모든 변경 사항을 기기 전체에 동기화합니다.",
-    protocol_tooltip_jmap: "JMAP은 소수의 제공업체만 지원하는 최신 동기화 프로토콜입니다.",
-    protocol_tooltip_pop3: "POP3는 메일을 기기 한 대에만 내려받고 변경 사항을 되돌려 동기화하지 않습니다.",
+    protocol_desc_imap:
+      "폴더를 동기화하고 모든 기기에서 같은 상태를 유지합니다.",
+    protocol_desc_pop3:
+      "메일을 한 번만 내려받고 동기화할 내용을 남기지 않습니다.",
+    protocol_tooltip_imap:
+      "IMAP은 메일을 서버에 두고 모든 변경 사항을 기기 전체에 동기화합니다.",
+    protocol_tooltip_jmap:
+      "JMAP은 소수의 제공업체만 지원하는 최신 동기화 프로토콜입니다.",
+    protocol_tooltip_pop3:
+      "POP3는 메일을 기기 한 대에만 내려받고 변경 사항을 되돌려 동기화하지 않습니다.",
     purge_confirm_message_one:
       "{{email}}에서 가져온 메일 {{count}}개를 영구 삭제합니다. 이 작업은 취소할 수 없습니다.",
     remove_account_tooltip: "계정 제거",
     show_side_panel: "사이드 패널 표시",
-    show_side_panel_description: "연락처와 그 밖의 빠른 도구를 메일 옆 패널에 둡니다.",
+    show_side_panel_description:
+      "연락처와 그 밖의 빠른 도구를 메일 옆 패널에 둡니다.",
     sign_out_everywhere_success_one:
       "다른 세션 {{count}}개에서 로그아웃했습니다",
     sync_now_tooltip: "지금 동기화",
@@ -3672,9 +3693,11 @@ export const ko = {
       "이전 데이터를 잠금 해제하지 못했습니다. 비밀번호나 문구를 확인하고 다시 시도하세요.",
     discard_older_data_button: "이전 데이터 삭제",
     discard_older_data_title: "이전 데이터를 삭제할까요?",
-    discard_older_data_desc: "재설정 이전의 메일과 별칭을 잠금 해제할 수 있는 옵션이 영구적으로 제거됩니다. 이 작업은 취소할 수 없습니다.",
+    discard_older_data_desc:
+      "재설정 이전의 메일과 별칭을 잠금 해제할 수 있는 옵션이 영구적으로 제거됩니다. 이 작업은 취소할 수 없습니다.",
     discard_older_data_success: "이전 데이터를 삭제했습니다.",
-    discard_older_data_failed: "이전 데이터를 삭제하지 못했습니다. 다시 시도하세요.",
+    discard_older_data_failed:
+      "이전 데이터를 삭제하지 못했습니다. 다시 시도하세요.",
     phrase_wrap_save_failed:
       "복구 문구를 서버에 저장하지 못했습니다. 다시 시도하세요.",
     general: "일반",
@@ -7543,9 +7566,11 @@ export const ko = {
       "링크 {{count}}개에서 {{param}}을(를) 제거했습니다",
     remote_images_blocked_count_one: "외부 이미지 {{count}}개를 차단했습니다",
     sender_rule_confirm: "규칙 만들기",
-    sender_rule_created: "이 보낸 사람의 새 메일은 이제 {{category}}(으)로 갑니다.",
+    sender_rule_created:
+      "이 보낸 사람의 새 메일은 이제 {{category}}(으)로 갑니다.",
     sender_rule_name: "{{sender}}을(를) {{category}}(으)로",
-    sender_rule_offer: "{{sender}}의 메일을 자주 {{category}}(으)로 옮기고 있습니다. 자동으로 옮길까요?",
+    sender_rule_offer:
+      "{{sender}}의 메일을 자주 {{category}}(으)로 옮기고 있습니다. 자동으로 옮길까요?",
     spy_pixels_blocked_count_one: "스파이 픽셀 {{count}}개를 차단했습니다",
     trackers_found_one: "추적기 {{count}}개를 발견하여 차단했습니다",
     load_all_thread_messages: "모든 메시지 불러오기",
@@ -9953,5 +9978,45 @@ export const ko = {
     vacation_reply: "부재중 자동 답장",
     vanguard: "Vanguard",
     vision: "시각",
+  },
+  app_store: {
+    section_title: "App Store 구독",
+    section_description:
+      "이 앱에서 구입한 요금제는 Apple 계정으로 청구되며 취소할 때까지 자동으로 갱신됩니다.",
+    per_month: "월",
+    per_year: "년",
+    subscribe_to: "{{plan}} 구독",
+    processing: "처리 중...",
+    restore_purchases: "구입 항목 복원",
+    restoring: "복원 중...",
+    manage_subscriptions: "구독 관리",
+    terms_of_use: "이용 약관",
+    renewal_terms:
+      "구입을 확인하면 Apple 계정으로 요금이 청구됩니다. 현재 기간이 끝나기 최소 24시간 전에 취소하지 않으면 구독이 자동으로 갱신됩니다. 취소하려면 구독 관리를 클릭하십시오.",
+    purchase_pending:
+      "구입이 승인을 기다리고 있습니다. App Store에서 승인하면 요금제가 업데이트됩니다.",
+    purchase_success: "새 요금제가 활성화되었습니다.",
+    purchase_failed:
+      "App Store에서 구입을 완료할 수 없습니다. 다시 시도하십시오.",
+    verify_failed:
+      "구입은 완료되었지만 Aster Mail에서 아직 확인하지 못했습니다. 다시 시도하려면 구입 항목 복원을 클릭하십시오.",
+    conflict:
+      "이 App Store 구독은 다른 Aster Mail 계정에 속해 있습니다. 사용하려면 해당 계정으로 로그인하십시오.",
+    restore_success: "구입 항목이 복원되었습니다.",
+    restore_none: "App Store에서 Apple 계정의 활성 구독을 찾지 못했습니다.",
+    restore_failed:
+      "App Store에서 구입 항목을 복원할 수 없습니다. 다시 시도하십시오.",
+    managed_elsewhere_title: "요금제가 App Store 외부에서 관리됩니다",
+    managed_elsewhere_description:
+      "현재 요금제는 다른 플랫폼에서 구입했으며 여기에서도 계속 사용할 수 있습니다. 변경하려면 구입한 플랫폼을 사용하십시오.",
+    upgrade_title: "요금제 업그레이드",
+    upgrade_limit_description:
+      "현재 요금제의 한도에 도달했습니다. 더 사용하려면 요금제를 선택하십시오.",
+    upgrade_storage_description:
+      "저장 공간이 가득 찼습니다. 공간을 늘리려면 요금제를 선택하십시오.",
+    upgrade_generic_description:
+      "저장 공간, 별칭 및 사용자 지정 도메인을 늘리려면 요금제를 선택하십시오.",
+    register_subtitle:
+      "App Store를 통해 구독하거나 무료 계정으로 계속하십시오. 요금제는 언제든지 변경할 수 있습니다.",
   },
 };

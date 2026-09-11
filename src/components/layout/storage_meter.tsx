@@ -23,6 +23,7 @@ import { memo } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format_bytes, format_decimal } from "@/lib/utils";
 import { use_i18n } from "@/lib/i18n/context";
+import { use_distribution_channel } from "@/native/distribution_channel";
 
 const SCROLL_LAYOUT_TOLERANCE_PX = 24;
 
@@ -84,6 +85,9 @@ export const StorageMeter = memo(function StorageMeter({
   className = "",
 }: StorageMeterProps) {
   const { t } = use_i18n();
+  const channel = use_distribution_channel();
+  const show_buy_more =
+    Boolean(on_buy_more) && channel !== null && channel !== "mas";
 
   if (storage_total_bytes <= 0) {
     return (
@@ -158,7 +162,7 @@ export const StorageMeter = memo(function StorageMeter({
           {format_bytes(storage_used_bytes)} {t("common.of")}{" "}
           {format_bytes(storage_total_bytes)}
         </p>
-        {on_buy_more && (
+        {show_buy_more && (
           <button
             className="text-[9px] flex-shrink-0 text-txt-muted transition-colors hover:text-brand hover:underline focus:outline-none"
             type="button"

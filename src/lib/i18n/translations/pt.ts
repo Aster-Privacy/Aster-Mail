@@ -35,12 +35,14 @@ export const pt = {
     clear_selection: "Limpar seleção",
     compose_to_selection: "Escrever para os selecionados",
     contact_change_undone: "Alteração desfeita",
-    contact_encryption_info: "Quando um contato publica uma chave pública, o Aster criptografa automaticamente os e-mails que você envia para ele.",
+    contact_encryption_info:
+      "Quando um contato publica uma chave pública, o Aster criptografa automaticamente os e-mails que você envia para ele.",
     contact_moved_to_trash: "Contato movido para a lixeira",
     contact_restored: "Contato restaurado",
     contacts_created: "{{count}} contatos criados",
     contacts_exported: "Contatos exportados",
-    contacts_in_trash_notice: "Os contatos na lixeira são excluídos definitivamente após 30 dias.",
+    contacts_in_trash_notice:
+      "Os contatos na lixeira são excluídos definitivamente após 30 dias.",
     contacts_merged: "Contatos mesclados",
     contacts_moved_to_trash: "Contatos movidos para a lixeira",
     contacts_updated_stat: "Atualizados",
@@ -48,13 +50,16 @@ export const pt = {
     create_multiple_contacts: "Criar vários contatos",
     delete_contacts: "Excluir contatos",
     delete_group: "Excluir grupo",
-    delete_group_confirmation: "Excluir “{{name}}” remove o grupo. Os contatos dele continuam na sua lista de contatos.",
+    delete_group_confirmation:
+      "Excluir “{{name}}” remove o grupo. Os contatos dele continuam na sua lista de contatos.",
     deselect_contact: "Desmarcar contato",
     discard: "Descartar",
-    discard_new_contact_message: "O contato que você começou ainda não foi salvo. Se abrir outro contato agora, você o perde.",
+    discard_new_contact_message:
+      "O contato que você começou ainda não foi salvo. Se abrir outro contato agora, você o perde.",
     duplicates_found: "Duplicados encontrados",
     email_group: "Escrever para o grupo",
-    empty_trash_confirm: "Excluir definitivamente todos os contatos da lixeira? Não é possível desfazer.",
+    empty_trash_confirm:
+      "Excluir definitivamente todos os contatos da lixeira? Não é possível desfazer.",
     export_selection_vcf: "Exportar como vCard",
     failed_to_add_to_group: "Não foi possível adicionar o contato ao grupo.",
     failed_to_create_group: "Não foi possível criar o grupo.",
@@ -68,9 +73,11 @@ export const pt = {
     group_contact_count: "{{count}} contatos",
     group_created: "Grupo criado",
     group_deleted: "Grupo excluído",
-    group_empty_hint: "Para preencher este grupo, selecione contatos na aba Contatos e escolha Adicionar ao grupo.",
+    group_empty_hint:
+      "Para preencher este grupo, selecione contatos na aba Contatos e escolha Adicionar ao grupo.",
     group_empty_title: "Nenhum contato neste grupo",
-    group_modal_description: "Crie grupos para escrever para vários contatos de uma vez.",
+    group_modal_description:
+      "Crie grupos para escrever para vários contatos de uma vez.",
     group_name: "Nome do grupo",
     groups: "Grupos",
     import_add_to_group: "Adicionar os contatos importados a um grupo",
@@ -83,11 +90,13 @@ export const pt = {
     manage_contacts: "Gerenciar contatos",
     merge: "Mesclar",
     merge_and_fix: "Combinar e corrigir",
-    merge_contacts_hint: "Escolha os dados que quer manter. Os outros contatos vão para a lixeira.",
+    merge_contacts_hint:
+      "Escolha os dados que quer manter. Os outros contatos vão para a lixeira.",
     merge_keeps_this: "Mantido",
     merged_contact_preview: "Contato mesclado",
     no_contact_changes: "Ainda não há alterações",
-    no_contact_details: "Este contato ainda não tem dados. Escolha Editar para adicionar.",
+    no_contact_details:
+      "Este contato ainda não tem dados. Escolha Editar para adicionar.",
     no_contacts_in_trash: "A lixeira está vazia",
     no_duplicates_found: "Nenhuma duplicata para corrigir",
     no_email: "Sem endereço de e-mail",
@@ -2177,18 +2186,23 @@ export const pt = {
     app_password_create_link: "Criar uma senha de app",
     app_password_required: "É necessária uma senha de app",
     category_info_newsletters: "Boletins e listas de e-mail que você assinou.",
-    category_info_transactions: "Pedidos, pagamentos e recibos de lojas e serviços.",
+    category_info_transactions:
+      "Pedidos, pagamentos e recibos de lojas e serviços.",
     category_newsletters: "Boletins",
     category_transactions: "Compras",
     edit_account_tooltip: "Editar conta",
-    gmail_app_password_notice: "Este provedor exige uma senha de app. A senha normal da sua conta não funciona.",
+    gmail_app_password_notice:
+      "Este provedor exige uma senha de app. A senha normal da sua conta não funciona.",
     gmail_sync_continue: "Continuar",
-    gmail_sync_intro: "Crie uma senha de app nas configurações da sua conta e cole aqui.",
-    gmail_sync_note_unavailable: "Se as senhas de app não estiverem disponíveis, ative primeiro a verificação em duas etapas e verifique de novo.",
+    gmail_sync_intro:
+      "Crie uma senha de app nas configurações da sua conta e cole aqui.",
+    gmail_sync_note_unavailable:
+      "Se as senhas de app não estiverem disponíveis, ative primeiro a verificação em duas etapas e verifique de novo.",
     gmail_sync_open_google: "Abrir as configurações da conta",
     gmail_sync_setup_button: "Ver como fazer",
     gmail_sync_step_1: "Entre nas configurações de segurança da sua conta.",
-    gmail_sync_step_2: "Ative a verificação em duas etapas, se ainda não estiver ativa.",
+    gmail_sync_step_2:
+      "Ative a verificação em duas etapas, se ainda não estiver ativa.",
     gmail_sync_step_3: "Crie uma senha de app para e-mail.",
     gmail_sync_step_4: "Copie a senha e cole no Aster.",
     gmail_sync_title: "Criar uma senha de app",
@@ -2197,25 +2211,35 @@ export const pt = {
     gmail_wizard_progress: "Etapa {{current}} de {{total}}",
     gmail_wizard_reveal_password: "Mostrar a senha de app",
     gmail_wizard_step_1_action: "Abrir as configurações de segurança",
-    gmail_wizard_step_1_body: "As senhas de app ficam na seção de segurança da conta do seu provedor.",
-    gmail_wizard_step_1_title: "Abra as configurações de segurança da sua conta",
-    gmail_wizard_step_2_body: "As senhas de app só ficam disponíveis com a verificação em duas etapas ativada.",
+    gmail_wizard_step_1_body:
+      "As senhas de app ficam na seção de segurança da conta do seu provedor.",
+    gmail_wizard_step_1_title:
+      "Abra as configurações de segurança da sua conta",
+    gmail_wizard_step_2_body:
+      "As senhas de app só ficam disponíveis com a verificação em duas etapas ativada.",
     gmail_wizard_step_2_title: "Ative a verificação em duas etapas",
     gmail_wizard_step_3_body: "Escolha E-mail como o app e crie a senha.",
     gmail_wizard_step_3_title: "Crie uma senha de app",
-    gmail_wizard_step_4_body: "Cole a senha de app abaixo. O Aster a guarda criptografada e a usa apenas para sincronizar esta caixa de e-mail.",
+    gmail_wizard_step_4_body:
+      "Cole a senha de app abaixo. O Aster a guarda criptografada e a usa apenas para sincronizar esta caixa de e-mail.",
     gmail_wizard_step_4_title: "Cole a senha",
     gmail_wizard_title: "Conecte sua caixa de e-mail",
     last_sync_tooltip: "Quando esta conta sincronizou pela última vez",
     not_synced_tooltip: "Esta conta ainda não sincronizou.",
-    protocol_desc_imap: "Sincroniza as pastas e se mantém em dia em todos os aparelhos.",
-    protocol_desc_pop3: "Baixa os e-mails uma vez e não deixa nada para sincronizar.",
-    protocol_tooltip_imap: "O IMAP mantém seus e-mails no servidor e sincroniza cada alteração em todos os seus aparelhos.",
-    protocol_tooltip_jmap: "O JMAP é um protocolo de sincronização moderno que poucos provedores oferecem.",
-    protocol_tooltip_pop3: "O POP3 baixa os e-mails em um único aparelho e não sincroniza as alterações de volta.",
+    protocol_desc_imap:
+      "Sincroniza as pastas e se mantém em dia em todos os aparelhos.",
+    protocol_desc_pop3:
+      "Baixa os e-mails uma vez e não deixa nada para sincronizar.",
+    protocol_tooltip_imap:
+      "O IMAP mantém seus e-mails no servidor e sincroniza cada alteração em todos os seus aparelhos.",
+    protocol_tooltip_jmap:
+      "O JMAP é um protocolo de sincronização moderno que poucos provedores oferecem.",
+    protocol_tooltip_pop3:
+      "O POP3 baixa os e-mails em um único aparelho e não sincroniza as alterações de volta.",
     remove_account_tooltip: "Remover conta",
     show_side_panel: "Mostrar o painel lateral",
-    show_side_panel_description: "Deixe os contatos e outras ferramentas rápidas em um painel ao lado dos seus e-mails.",
+    show_side_panel_description:
+      "Deixe os contatos e outras ferramentas rápidas em um painel ao lado dos seus e-mails.",
     sync_now_tooltip: "Sincronizar agora",
     purge_locked_folder_on_delete: "Destruir conteúdo de pastas protegidas",
     purge_locked_folder_on_delete_description:
@@ -2305,9 +2329,11 @@ export const pt = {
       "Isso não desbloqueou os dados antigos. Verifique a senha ou a frase e tente novamente.",
     discard_older_data_button: "Descartar dados antigos",
     discard_older_data_title: "Descartar os dados antigos?",
-    discard_older_data_desc: "Isso remove permanentemente a opção de desbloquear e-mails e aliases anteriores à redefinição. Não é possível desfazer.",
+    discard_older_data_desc:
+      "Isso remove permanentemente a opção de desbloquear e-mails e aliases anteriores à redefinição. Não é possível desfazer.",
     discard_older_data_success: "Dados antigos descartados.",
-    discard_older_data_failed: "Não foi possível descartar os dados antigos. Tente novamente.",
+    discard_older_data_failed:
+      "Não foi possível descartar os dados antigos. Tente novamente.",
     phrase_wrap_save_failed:
       "Sua frase de recuperação não pôde ser salva no servidor. Tente novamente.",
     smtp_tokens: "Tokens SMTP",
@@ -7818,9 +7844,11 @@ export const pt = {
     bulk_trash_title_one: "Mover 1 e-mail para a lixeira?",
     bulk_trash_title_other: "Mover {{count}} e-mails para a lixeira?",
     sender_rule_confirm: "Criar regra",
-    sender_rule_created: "Os novos e-mails deste remetente agora vão para {{category}}.",
+    sender_rule_created:
+      "Os novos e-mails deste remetente agora vão para {{category}}.",
     sender_rule_name: "{{sender}} para {{category}}",
-    sender_rule_offer: "Você costuma mover os e-mails de {{sender}} para {{category}}. Quer fazer isso automaticamente?",
+    sender_rule_offer:
+      "Você costuma mover os e-mails de {{sender}} para {{category}}. Quer fazer isso automaticamente?",
     load_all_thread_messages: "Carregar todas as mensagens",
     move_to_category: "Mover para a categoria",
     menu_applies_to_selection: "Aplica-se a {count} selecionados",
@@ -10324,5 +10352,46 @@ export const pt = {
     vacation_reply: "Resposta de férias",
     vanguard: "Vanguard",
     vision: "Visão",
+  },
+  app_store: {
+    section_title: "Assinatura da App Store",
+    section_description:
+      "Os planos comprados neste app são cobrados na sua Conta Apple e renovados automaticamente até que você os cancele.",
+    per_month: "por mês",
+    per_year: "por ano",
+    subscribe_to: "Assinar {{plan}}",
+    processing: "Processando...",
+    restore_purchases: "Restaurar compras",
+    restoring: "Restaurando...",
+    manage_subscriptions: "Gerenciar assinaturas",
+    terms_of_use: "Termos de Uso",
+    renewal_terms:
+      "O pagamento é cobrado na sua Conta Apple quando você confirma a compra. A assinatura é renovada automaticamente, a menos que você a cancele pelo menos 24 horas antes do fim do período atual. Para cancelar, clique em Gerenciar assinaturas.",
+    purchase_pending:
+      "Sua compra está aguardando aprovação. Seu plano será atualizado depois que a App Store aprovar a compra.",
+    purchase_success: "Seu novo plano está ativo.",
+    purchase_failed:
+      "A App Store não conseguiu concluir a compra. Tente novamente.",
+    verify_failed:
+      "Sua compra foi concluída, mas o Aster Mail ainda não conseguiu confirmá-la. Para tentar novamente, clique em Restaurar compras.",
+    conflict:
+      "Esta assinatura da App Store pertence a outra conta do Aster Mail. Para usá-la, entre nessa conta.",
+    restore_success: "Suas compras foram restauradas.",
+    restore_none:
+      "A App Store não encontrou assinaturas ativas para sua Conta Apple.",
+    restore_failed:
+      "A App Store não conseguiu restaurar suas compras. Tente novamente.",
+    managed_elsewhere_title: "Seu plano é gerenciado fora da App Store",
+    managed_elsewhere_description:
+      "Você comprou seu plano atual em outra plataforma e pode continuar usando-o aqui. Para alterá-lo, use a plataforma onde você o comprou.",
+    upgrade_title: "Faça upgrade do seu plano",
+    upgrade_limit_description:
+      "Você atingiu um limite do seu plano atual. Para obter mais, escolha um plano.",
+    upgrade_storage_description:
+      "Seu armazenamento está cheio. Para obter mais espaço, escolha um plano.",
+    upgrade_generic_description:
+      "Para obter mais armazenamento, aliases e domínios personalizados, escolha um plano.",
+    register_subtitle:
+      "Assine pela App Store ou continue com uma conta gratuita. Você pode mudar de plano a qualquer momento.",
   },
 };

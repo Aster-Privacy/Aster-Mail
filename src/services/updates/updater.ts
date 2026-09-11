@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { get_distribution_channel } from "@/native/distribution_channel";
 
 export interface DesktopUpdateInfo {
   version: string;
@@ -137,8 +138,14 @@ async function load_process_api(): Promise<{ relaunch: () => Promise<void> }> {
   return { relaunch: mod.relaunch as () => Promise<void> };
 }
 
+export async function is_self_update_supported(): Promise<boolean> {
+  if (!is_desktop_runtime()) return false;
+
+  return (await get_distribution_channel()) === "direct";
+}
+
 export async function check_for_update(): Promise<DesktopUpdateInfo | null> {
-  if (!is_desktop_runtime()) return null;
+  if (!(await is_self_update_supported())) return null;
   const { check } = await load_updater_api();
 
   record_check_now();
@@ -157,7 +164,7 @@ export async function check_for_update(): Promise<DesktopUpdateInfo | null> {
 export async function download_and_install_update(
   on_progress?: (p: UpdateProgress) => void,
 ): Promise<void> {
-  if (!is_desktop_runtime()) {
+  if (!(await is_self_update_supported())) {
     throw new Error("updates_not_supported");
   }
   const { check } = await load_updater_api();

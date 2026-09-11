@@ -38,6 +38,7 @@ backend/target/
 *.ooo
 
 src-tauri/gen/
+src-tauri/mas/embedded.provisionprofile
 
 pnpm-lock.yaml
 yarn.lock

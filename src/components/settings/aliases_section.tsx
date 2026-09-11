@@ -56,6 +56,7 @@ import { AliasList } from "@/components/settings/aliases/alias_list";
 import { TwinAddressCard } from "@/components/settings/aliases/twin_address_card";
 import { DomainSetupWizard } from "@/components/settings/aliases/domain_setup_wizard";
 import { DomainPurchaseFlow } from "@/components/settings/aliases/domain_purchase_flow";
+import { use_distribution_channel } from "@/native/distribution_channel";
 import { DomainCardV2 } from "@/components/settings/aliases/domain_card_v2";
 import { DomainDeleteModal } from "@/components/settings/aliases/domain_delete_modal";
 import { PurchasedDomainManageModal } from "@/components/settings/aliases/purchased_domain_manage_modal";
@@ -98,6 +99,8 @@ function read_initial_tab(): AliasTab {
 }
 
 export function AliasesSection() {
+  const channel = use_distribution_channel();
+  const domain_purchases_hidden = channel === null || channel === "mas";
   const { t } = use_i18n();
   const { is_feature_locked } = use_plan_limits();
   const alias_csv_locked = is_feature_locked("has_advanced_aliases");
@@ -599,347 +602,357 @@ export function AliasesSection() {
         </div>
       )}
 
-      {active_tab === "domains" && purchase_open && (
-        <div>
-          <div className="mb-4">
-            <div className="flex items-center gap-2 -ms-2">
-              <button
-                aria-label={t("common.back")}
-                className="w-9 h-9 rounded-full flex items-center justify-center text-txt-secondary hover:bg-surf-secondary hover:text-txt-primary transition-colors"
-                onClick={() =>
-                  window.dispatchEvent(
-                    new CustomEvent("aster:domain-purchase-header-back"),
-                  )
-                }
-              >
-                <ArrowLeftIcon className="w-[18px] h-[18px] rtl:-scale-x-100" />
-              </button>
-              <h3 className="flex items-center gap-2 text-base font-semibold text-txt-primary">
-                {t("settings.domain_purchase_title")}
-                <InfoPopover
-                  description={t("settings.domain_purchase_purchased_info")}
-                  title={t("settings.domain_purchase_title")}
-                />
-              </h3>
+      {active_tab === "domains" &&
+        purchase_open &&
+        !domain_purchases_hidden && (
+          <div>
+            <div className="mb-4">
+              <div className="flex items-center gap-2 -ms-2">
+                <button
+                  aria-label={t("common.back")}
+                  className="w-9 h-9 rounded-full flex items-center justify-center text-txt-secondary hover:bg-surf-secondary hover:text-txt-primary transition-colors"
+                  onClick={() =>
+                    window.dispatchEvent(
+                      new CustomEvent("aster:domain-purchase-header-back"),
+                    )
+                  }
+                >
+                  <ArrowLeftIcon className="w-[18px] h-[18px] rtl:-scale-x-100" />
+                </button>
+                <h3 className="flex items-center gap-2 text-base font-semibold text-txt-primary">
+                  {t("settings.domain_purchase_title")}
+                  <InfoPopover
+                    description={t("settings.domain_purchase_purchased_info")}
+                    title={t("settings.domain_purchase_title")}
+                  />
+                </h3>
+              </div>
+              <div className="mt-3 h-px bg-edge-secondary" />
             </div>
-            <div className="mt-3 h-px bg-edge-secondary" />
+            <DomainPurchaseFlow
+              initial_order_id={purchase_order_id}
+              initial_query={purchase_initial_query}
+              on_create_address={() => {
+                close_purchase();
+                hook.set_show_create_alias_modal(true);
+              }}
+              on_done={close_purchase}
+              on_purchased={hook.load_domains}
+            />
           </div>
-          <DomainPurchaseFlow
-            initial_order_id={purchase_order_id}
-            initial_query={purchase_initial_query}
-            on_create_address={() => {
-              close_purchase();
-              hook.set_show_create_alias_modal(true);
-            }}
-            on_done={close_purchase}
-            on_purchased={hook.load_domains}
-          />
-        </div>
-      )}
+        )}
 
-      {active_tab === "domains" && !purchase_open && (
-        <div className="space-y-4">
-          {!promo_dismissed &&
-            !purchased_orders.some((o) => o.status === "complete") && (
-              <div className="rounded-xl bg-surf-secondary border border-edge-secondary px-4 py-3.5">
-                <div className="flex items-center gap-3">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-txt-primary">
-                      {t("settings.domain_purchase_banner_title")}
-                    </p>
-                    <p className="text-sm text-txt-muted mt-1">
-                      {t("settings.domain_purchase_banner_subtitle")}
-                    </p>
+      {active_tab === "domains" &&
+        (!purchase_open || domain_purchases_hidden) && (
+          <div className="space-y-4">
+            {!domain_purchases_hidden &&
+              !promo_dismissed &&
+              !purchased_orders.some((o) => o.status === "complete") && (
+                <div className="rounded-xl bg-surf-secondary border border-edge-secondary px-4 py-3.5">
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-txt-primary">
+                        {t("settings.domain_purchase_banner_title")}
+                      </p>
+                      <p className="text-sm text-txt-muted mt-1">
+                        {t("settings.domain_purchase_banner_subtitle")}
+                      </p>
+                    </div>
+                    <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
+                      <button
+                        className="px-3 py-1.5 rounded-lg text-sm font-medium text-[var(--accent-fg,#ffffff)] bg-[var(--accent-color)] hover:opacity-90 transition-opacity"
+                        type="button"
+                        onClick={() => {
+                          set_purchase_order_id(null);
+                          set_purchase_initial_query(null);
+                          set_purchase_open(true);
+                        }}
+                      >
+                        {t("settings.domain_purchase_banner_cta")}
+                      </button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => {
+                          set_promo_dismissed(true);
+                          try {
+                            localStorage.setItem(
+                              "aster_domain_promo_banner_dismissed",
+                              "1",
+                            );
+                          } catch (caught) {
+                            ignore_error(
+                              "components/settings/aliases_section:close_editor",
+                              caught,
+                            );
+                          }
+                        }}
+                      >
+                        {t("settings.account_security_dont_show_again")}
+                      </Button>
+                    </div>
                   </div>
-                  <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
-                    <button
-                      className="px-3 py-1.5 rounded-lg text-sm font-medium text-[var(--accent-fg,#ffffff)] bg-[var(--accent-color)] hover:opacity-90 transition-opacity"
-                      type="button"
-                      onClick={() => {
-                        set_purchase_order_id(null);
-                        set_purchase_initial_query(null);
-                        set_purchase_open(true);
-                      }}
-                    >
-                      {t("settings.domain_purchase_banner_cta")}
-                    </button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => {
-                        set_promo_dismissed(true);
-                        try {
-                          localStorage.setItem(
-                            "aster_domain_promo_banner_dismissed",
-                            "1",
-                          );
-                        } catch (caught) {
-                          ignore_error(
-                            "components/settings/aliases_section:close_editor",
-                            caught,
-                          );
-                        }
-                      }}
-                    >
-                      {t("settings.account_security_dont_show_again")}
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-          {!hook.domains_loading && hook.domains_load_failed ? (
-            <div className="p-6 rounded-lg text-center bg-surf-tertiary border border-edge-secondary">
-              <p className="text-sm mb-4 text-txt-secondary">
-                {t("common.something_went_wrong_try_again")}
-              </p>
-              <Button
-                variant="outline"
-                onClick={() => void hook.load_domains()}
-              >
-                {t("common.retry")}
-              </Button>
-            </div>
-          ) : !hook.domains_loading && hook.max_domains === 0 ? (
-            <div className="p-6 rounded-lg text-center bg-surf-tertiary border border-edge-secondary">
-              <p className="text-sm font-medium mb-1 text-txt-primary">
-                {t("settings.custom_domains_not_available")}
-              </p>
-              <p className="text-sm mb-4 text-txt-muted">
-                {t("settings.upgrade_plan_more_domains")}
-              </p>
-              <Button
-                variant="depth"
-                onClick={() =>
-                  window.dispatchEvent(
-                    new CustomEvent("navigate-settings", { detail: "billing" }),
-                  )
-                }
-              >
-                {t("common.upgrade_plan")}
-              </Button>
-            </div>
-          ) : (
-            <>
-              <div className="mb-2">
-                <div className="flex items-center justify-between">
-                  <h3 className="flex items-center gap-2 text-base font-semibold text-txt-primary">
-                    <GlobeAltIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-                    {t("settings.custom_domains_label")}
-                  </h3>
-                  <span className="text-sm text-txt-muted">
-                    {t("settings.used_count", {
-                      current: hook.domains.length,
-                      max: hook.max_domains === -1 ? "∞" : hook.max_domains,
-                    })}
-                  </span>
-                </div>
-                <div className="mt-2 h-px bg-edge-secondary" />
-              </div>
-              <p className="text-sm mb-3 text-txt-muted">
-                {t("settings.domains_description")}
-              </p>
-
-              <Button
-                className="w-full mb-3"
-                size="xl"
-                variant="depth"
-                onClick={hook.handle_open_add_domain}
-              >
-                <PlusIcon className="w-4 h-4" />
-                {t("common.add_domain")}
-              </Button>
-
-              {hook.domains_loading ? (
-                <div />
-              ) : hook.domains.length === 0 ? (
-                <div className="text-center py-8 rounded-xl bg-surf-secondary border border-dashed border-edge-secondary">
-                  <GlobeAltIcon className="w-6 h-6 mx-auto mb-2 text-txt-muted" />
-                  <p className="text-sm text-txt-muted">
-                    {t("settings.no_domains_yet")}
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {hook.domains.map((domain) => (
-                    <DomainCardV2
-                      key={domain.id}
-                      deleting={hook.domain_deleting_id === domain.id}
-                      domain={domain}
-                      on_delete={hook.handle_domain_delete}
-                      on_domains_changed={hook.load_domains}
-                      on_setup={hook.handle_open_setup}
-                    />
-                  ))}
                 </div>
               )}
 
-              <div className="mt-8">
-                <div className="flex items-center justify-between">
-                  <h3 className="flex items-center gap-2 text-base font-semibold text-txt-primary">
-                    <ShoppingBagIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-                    {t("settings.domain_purchase_purchased_label")}
-                    <InfoPopover
-                      description={t("settings.domain_purchase_purchased_info")}
-                      title={t("settings.domain_purchase_purchased_label")}
-                    />
-                  </h3>
-                  {purchased_orders.length > 0 && (
-                    <span className="text-sm text-txt-muted">
-                      {purchased_orders.length}
-                    </span>
-                  )}
-                </div>
-                <div className="mt-2 h-px bg-edge-secondary" />
-                <p className="text-sm mt-3 text-txt-muted">
-                  {t("settings.domain_purchase_purchased_desc")}
+            {!hook.domains_loading && hook.domains_load_failed ? (
+              <div className="p-6 rounded-lg text-center bg-surf-tertiary border border-edge-secondary">
+                <p className="text-sm mb-4 text-txt-secondary">
+                  {t("common.something_went_wrong_try_again")}
                 </p>
                 <Button
-                  className="w-full mt-3"
+                  variant="outline"
+                  onClick={() => void hook.load_domains()}
+                >
+                  {t("common.retry")}
+                </Button>
+              </div>
+            ) : !hook.domains_loading && hook.max_domains === 0 ? (
+              <div className="p-6 rounded-lg text-center bg-surf-tertiary border border-edge-secondary">
+                <p className="text-sm font-medium mb-1 text-txt-primary">
+                  {t("settings.custom_domains_not_available")}
+                </p>
+                <p className="text-sm mb-4 text-txt-muted">
+                  {t("settings.upgrade_plan_more_domains")}
+                </p>
+                <Button
+                  variant="depth"
+                  onClick={() =>
+                    window.dispatchEvent(
+                      new CustomEvent("navigate-settings", {
+                        detail: "billing",
+                      }),
+                    )
+                  }
+                >
+                  {t("common.upgrade_plan")}
+                </Button>
+              </div>
+            ) : (
+              <>
+                <div className="mb-2">
+                  <div className="flex items-center justify-between">
+                    <h3 className="flex items-center gap-2 text-base font-semibold text-txt-primary">
+                      <GlobeAltIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
+                      {t("settings.custom_domains_label")}
+                    </h3>
+                    <span className="text-sm text-txt-muted">
+                      {t("settings.used_count", {
+                        current: hook.domains.length,
+                        max: hook.max_domains === -1 ? "∞" : hook.max_domains,
+                      })}
+                    </span>
+                  </div>
+                  <div className="mt-2 h-px bg-edge-secondary" />
+                </div>
+                <p className="text-sm mb-3 text-txt-muted">
+                  {t("settings.domains_description")}
+                </p>
+
+                <Button
+                  className="w-full mb-3"
                   size="xl"
                   variant="depth"
-                  onClick={() => {
-                    set_purchase_order_id(null);
-                    set_purchase_initial_query(null);
-                    set_purchase_open(true);
-                  }}
+                  onClick={hook.handle_open_add_domain}
                 >
-                  <ShoppingBagIcon className="w-4 h-4" />
-                  {t("settings.domain_purchase_banner_cta")}
+                  <PlusIcon className="w-4 h-4" />
+                  {t("common.add_domain")}
                 </Button>
-                {purchased_loading && purchased_orders.length === 0 ? (
-                  <div className="flex justify-center py-6">
-                    <Spinner className="text-txt-muted" size="sm" />
-                  </div>
-                ) : purchased_load_failed && purchased_orders.length === 0 ? (
-                  <LoadFailedNotice
-                    on_retry={() => set_purchased_reload((value) => value + 1)}
-                  />
-                ) : purchased_orders.length === 0 ? (
-                  <div className="text-center py-8 rounded-xl bg-surf-secondary border border-dashed border-edge-secondary mt-3">
-                    <ShoppingBagIcon className="w-6 h-6 mx-auto mb-2 text-txt-muted" />
+
+                {hook.domains_loading ? (
+                  <div />
+                ) : hook.domains.length === 0 ? (
+                  <div className="text-center py-8 rounded-xl bg-surf-secondary border border-dashed border-edge-secondary">
+                    <GlobeAltIcon className="w-6 h-6 mx-auto mb-2 text-txt-muted" />
                     <p className="text-sm text-txt-muted">
-                      {t("settings.domain_purchase_purchased_empty")}
+                      {t("settings.no_domains_yet")}
                     </p>
                   </div>
                 ) : (
-                  <div className="divide-y divide-edge-secondary/60">
-                    {purchased_orders.map((order) => (
-                      <div key={order.id}>
-                        <div
-                          className={`w-full flex items-center justify-between gap-3 py-3 px-1 text-start ${
-                            order.status === "pending_payment"
-                              ? "cursor-default"
-                              : "hover:bg-surf-secondary rounded-lg cursor-pointer"
-                          }`}
-                          onClick={() => {
-                            if (order.status === "pending_payment") {
-                              return;
-                            }
-                            if (order.status === "complete") {
-                              set_manage_order_id(order.id);
-
-                              return;
-                            }
-                            set_purchase_order_id(
-                              order.status === "lapsed" ? null : order.id,
-                            );
-                            set_purchase_open(true);
-                          }}
-                        >
-                          <span className="text-sm font-medium text-txt-primary truncate">
-                            {order.domain}
-                          </span>
-                          <span className="flex items-center gap-3 flex-shrink-0">
-                            {order.status === "pending_payment" && (
-                              <>
-                                <button
-                                  className="px-3 py-1 rounded-full text-xs font-semibold text-[var(--accent-fg,#ffffff)] bg-[var(--accent-color)] hover:opacity-90 transition-opacity"
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    set_purchase_order_id(null);
-                                    set_purchase_initial_query(order.domain);
-                                    set_purchase_open(true);
-                                  }}
-                                >
-                                  {t("settings.domain_purchase_complete_cta")}
-                                </button>
-                                <button
-                                  className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border border-edge-secondary text-txt-secondary hover:text-txt-primary hover:bg-surf-secondary transition-colors"
-                                  disabled={cancelling_order_id === order.id}
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handle_cancel_order(order.id);
-                                  }}
-                                >
-                                  {cancelling_order_id === order.id && (
-                                    <Spinner size="xs" />
-                                  )}
-                                  {t("common.cancel")}
-                                </button>
-                              </>
-                            )}
-                            {order.status === "complete" && (
-                              <button
-                                className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border border-edge-secondary text-txt-secondary hover:text-txt-primary hover:bg-surf-secondary transition-colors"
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  set_manage_order_id(order.id);
-                                }}
-                              >
-                                {(renewing_order_id === order.id ||
-                                  renew_captcha_order_id === order.id) && (
-                                  <Spinner size="xs" />
-                                )}
-                                {t("settings.domain_purchase_manage")}
-                              </button>
-                            )}
-                            <span
-                              className={`text-[13px] ${
-                                order.status === "lapsed"
-                                  ? "text-[var(--color-danger)]"
-                                  : "text-txt-muted"
-                              }`}
-                            >
-                              {order.status === "complete"
-                                ? order.expires_at
-                                  ? t(
-                                      "settings.domain_purchase_purchased_expires",
-                                      {
-                                        date: new Date(
-                                          order.expires_at,
-                                        ).toLocaleDateString(app_locale(), {
-                                          timeZone: get_display_time_zone(),
-                                        }),
-                                      },
-                                    )
-                                  : ""
-                                : order.status === "lapsed"
-                                  ? t(
-                                      "settings.domain_purchase_purchased_lapsed",
-                                    )
-                                  : order.status === "pending_payment"
-                                    ? t(
-                                        "settings.domain_purchase_purchased_awaiting",
-                                      )
-                                    : t(
-                                        "settings.domain_purchase_purchased_in_progress",
-                                      )}
-                            </span>
-                          </span>
-                        </div>
-                      </div>
+                  <div className="space-y-3">
+                    {hook.domains.map((domain) => (
+                      <DomainCardV2
+                        key={domain.id}
+                        deleting={hook.domain_deleting_id === domain.id}
+                        domain={domain}
+                        on_delete={hook.handle_domain_delete}
+                        on_domains_changed={hook.load_domains}
+                        on_setup={hook.handle_open_setup}
+                      />
                     ))}
                   </div>
                 )}
-              </div>
-            </>
-          )}
-        </div>
-      )}
+
+                <div className="mt-8" hidden={domain_purchases_hidden}>
+                  <div className="flex items-center justify-between">
+                    <h3 className="flex items-center gap-2 text-base font-semibold text-txt-primary">
+                      <ShoppingBagIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
+                      {t("settings.domain_purchase_purchased_label")}
+                      <InfoPopover
+                        description={t(
+                          "settings.domain_purchase_purchased_info",
+                        )}
+                        title={t("settings.domain_purchase_purchased_label")}
+                      />
+                    </h3>
+                    {purchased_orders.length > 0 && (
+                      <span className="text-sm text-txt-muted">
+                        {purchased_orders.length}
+                      </span>
+                    )}
+                  </div>
+                  <div className="mt-2 h-px bg-edge-secondary" />
+                  <p className="text-sm mt-3 text-txt-muted">
+                    {t("settings.domain_purchase_purchased_desc")}
+                  </p>
+                  <Button
+                    className="w-full mt-3"
+                    size="xl"
+                    variant="depth"
+                    onClick={() => {
+                      set_purchase_order_id(null);
+                      set_purchase_initial_query(null);
+                      set_purchase_open(true);
+                    }}
+                  >
+                    <ShoppingBagIcon className="w-4 h-4" />
+                    {t("settings.domain_purchase_banner_cta")}
+                  </Button>
+                  {purchased_loading && purchased_orders.length === 0 ? (
+                    <div className="flex justify-center py-6">
+                      <Spinner className="text-txt-muted" size="sm" />
+                    </div>
+                  ) : purchased_load_failed && purchased_orders.length === 0 ? (
+                    <LoadFailedNotice
+                      on_retry={() =>
+                        set_purchased_reload((value) => value + 1)
+                      }
+                    />
+                  ) : purchased_orders.length === 0 ? (
+                    <div className="text-center py-8 rounded-xl bg-surf-secondary border border-dashed border-edge-secondary mt-3">
+                      <ShoppingBagIcon className="w-6 h-6 mx-auto mb-2 text-txt-muted" />
+                      <p className="text-sm text-txt-muted">
+                        {t("settings.domain_purchase_purchased_empty")}
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="divide-y divide-edge-secondary/60">
+                      {purchased_orders.map((order) => (
+                        <div key={order.id}>
+                          <div
+                            className={`w-full flex items-center justify-between gap-3 py-3 px-1 text-start ${
+                              order.status === "pending_payment"
+                                ? "cursor-default"
+                                : "hover:bg-surf-secondary rounded-lg cursor-pointer"
+                            }`}
+                            onClick={() => {
+                              if (order.status === "pending_payment") {
+                                return;
+                              }
+                              if (order.status === "complete") {
+                                set_manage_order_id(order.id);
+
+                                return;
+                              }
+                              set_purchase_order_id(
+                                order.status === "lapsed" ? null : order.id,
+                              );
+                              set_purchase_open(true);
+                            }}
+                          >
+                            <span className="text-sm font-medium text-txt-primary truncate">
+                              {order.domain}
+                            </span>
+                            <span className="flex items-center gap-3 flex-shrink-0">
+                              {order.status === "pending_payment" && (
+                                <>
+                                  <button
+                                    className="px-3 py-1 rounded-full text-xs font-semibold text-[var(--accent-fg,#ffffff)] bg-[var(--accent-color)] hover:opacity-90 transition-opacity"
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      set_purchase_order_id(null);
+                                      set_purchase_initial_query(order.domain);
+                                      set_purchase_open(true);
+                                    }}
+                                  >
+                                    {t("settings.domain_purchase_complete_cta")}
+                                  </button>
+                                  <button
+                                    className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border border-edge-secondary text-txt-secondary hover:text-txt-primary hover:bg-surf-secondary transition-colors"
+                                    disabled={cancelling_order_id === order.id}
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handle_cancel_order(order.id);
+                                    }}
+                                  >
+                                    {cancelling_order_id === order.id && (
+                                      <Spinner size="xs" />
+                                    )}
+                                    {t("common.cancel")}
+                                  </button>
+                                </>
+                              )}
+                              {order.status === "complete" && (
+                                <button
+                                  className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border border-edge-secondary text-txt-secondary hover:text-txt-primary hover:bg-surf-secondary transition-colors"
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    set_manage_order_id(order.id);
+                                  }}
+                                >
+                                  {(renewing_order_id === order.id ||
+                                    renew_captcha_order_id === order.id) && (
+                                    <Spinner size="xs" />
+                                  )}
+                                  {t("settings.domain_purchase_manage")}
+                                </button>
+                              )}
+                              <span
+                                className={`text-[13px] ${
+                                  order.status === "lapsed"
+                                    ? "text-[var(--color-danger)]"
+                                    : "text-txt-muted"
+                                }`}
+                              >
+                                {order.status === "complete"
+                                  ? order.expires_at
+                                    ? t(
+                                        "settings.domain_purchase_purchased_expires",
+                                        {
+                                          date: new Date(
+                                            order.expires_at,
+                                          ).toLocaleDateString(app_locale(), {
+                                            timeZone: get_display_time_zone(),
+                                          }),
+                                        },
+                                      )
+                                    : ""
+                                  : order.status === "lapsed"
+                                    ? t(
+                                        "settings.domain_purchase_purchased_lapsed",
+                                      )
+                                    : order.status === "pending_payment"
+                                      ? t(
+                                          "settings.domain_purchase_purchased_awaiting",
+                                        )
+                                      : t(
+                                          "settings.domain_purchase_purchased_in_progress",
+                                        )}
+                              </span>
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        )}
 
       {active_tab === "directories" && <AliasDirectoriesSection />}
 
