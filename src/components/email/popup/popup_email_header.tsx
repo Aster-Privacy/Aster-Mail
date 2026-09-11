@@ -47,6 +47,7 @@ import {
 import { use_tags } from "@/hooks/use_tags";
 import { is_system_email, trust_source_for_display } from "@/lib/utils";
 import { OfficialBadge } from "@/components/email/official_badge";
+import { VerifiedSenderBadge } from "@/components/email/verified_sender_badge";
 import { get_label_hints } from "@/stores/label_hints_store";
 
 interface PopupEmailHeaderProps {
@@ -238,6 +239,7 @@ export function PopupEmailHeader({
                 {show_sender_name}
               </span>
               <OfficialBadge sender={email} />
+              <VerifiedSenderBadge domain={email.sender_verified_domain} />
               {snoozed_until && (
                 <SnoozeBadge
                   className="flex-shrink-0"

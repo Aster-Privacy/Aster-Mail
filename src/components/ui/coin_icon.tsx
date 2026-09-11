@@ -392,6 +392,7 @@ interface CoinIconProps {
   chain: string;
   size?: number;
   class_name?: string;
+  show_chain?: boolean;
 }
 
 export function CoinIcon({
@@ -399,6 +400,7 @@ export function CoinIcon({
   chain,
   size = 32,
   class_name = "",
+  show_chain = true,
 }: CoinIconProps): ReactElement {
   const instance_id = useId().replace(/[^a-zA-Z0-9_-]/g, "");
   const currency_mark = resolve_currency(currency);
@@ -410,7 +412,9 @@ export function CoinIcon({
     (chain_mark === native_chain || chain_key === native_chain);
   const chain_initial = chain_letter(chain);
   const show_badge =
-    !is_native_chain && (chain_mark !== "generic" || chain_initial !== null);
+    show_chain &&
+    !is_native_chain &&
+    (chain_mark !== "generic" || chain_initial !== null);
   const show_letter_badge = show_badge && chain_mark === "generic";
   const cutout_id = `coin_icon_cutout_${instance_id}`;
 

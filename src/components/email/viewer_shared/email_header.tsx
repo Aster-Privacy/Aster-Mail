@@ -40,6 +40,7 @@ import { EncryptionInfoDropdown } from "@/components/common/encryption_info_drop
 import { TrackingProtectionShield } from "@/components/email/tracking_protection_shield";
 import { is_system_email, trust_source_for_display } from "@/lib/utils";
 import { OfficialBadge } from "@/components/email/official_badge";
+import { VerifiedSenderBadge } from "@/components/email/verified_sender_badge";
 import {
   EmailTag,
   hex_to_variant,
@@ -168,6 +169,7 @@ export function ViewerEmailHeader({
                 <span className="text-txt-primary">{display_sender}</span>
               </EmailProfileTrigger>
               <OfficialBadge sender={email} size="md" />
+              <VerifiedSenderBadge domain={email.sender_verified_domain} size="md" />
               {show_sender_badge && peer_badge && (
                 <BadgeChip
                   badge={peer_badge}

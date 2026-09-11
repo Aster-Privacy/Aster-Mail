@@ -41,6 +41,7 @@ export interface DecryptedThreadMessage {
   display_sender_email?: string;
   forwarding_service?: string;
   sender_verification?: SenderVerificationStatus;
+  sender_verified_domain?: string;
   subject: string;
   body: string;
   html_content?: string;

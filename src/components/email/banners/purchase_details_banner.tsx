@@ -22,11 +22,15 @@ import type { ExtractedPurchaseDetails } from "@/services/extraction/types";
 
 import { useState } from "react";
 import {
-  ShoppingBagIcon,
-  ChevronDownIcon,
+  BuildingStorefrontIcon,
+  CreditCardIcon,
   HandThumbUpIcon,
   HandThumbDownIcon,
+  HashtagIcon,
+  CalendarDaysIcon,
+  ReceiptPercentIcon,
   ShieldCheckIcon,
+  ShoppingCartIcon,
 } from "@heroicons/react/24/outline";
 import { Tooltip } from "@aster/ui";
 
@@ -34,8 +38,15 @@ import { cn } from "@/lib/utils";
 import { use_i18n } from "@/lib/i18n/context";
 import { submit_receipt_feedback } from "@/services/api/mail";
 
+import {
+  ExtractionCard,
+  ExtractionCardIcon,
+  ExtractionCardRow,
+} from "./extraction_card";
+
 const COLLAPSED_PREF_KEY = "receipt_banner_collapsed";
 const FEEDBACK_KEY_PREFIX = "receipt_feedback_";
+const MAX_VISIBLE_ITEMS = 5;
 
 function read_collapsed_pref(): boolean {
   try {
@@ -151,71 +162,77 @@ export function PurchaseDetailsBanner({
     });
   }
 
+  const title = details.merchant_name
+    ? t("mail.order_from", { merchant: details.merchant_name })
+    : t("mail.order_details");
+
+  const subtitle = details.order_id
+    ? t("mail.order_number", { id: details.order_id })
+    : details.order_date
+      ? t("mail.ordered_on", { date: details.order_date })
+      : undefined;
+
   return (
-    <div
-      className={cn(
-        "rounded-xl border border-edge-primary overflow-hidden bg-surf-secondary",
-        className,
-      )}
+    <ExtractionCard
+      className={className}
+      is_collapsed={is_collapsed}
+      leading={<ExtractionCardIcon icon={BuildingStorefrontIcon} />}
+      subtitle={subtitle}
+      test_id="purchase_details_card"
+      title={title}
+      toggle_label={
+        is_collapsed ? t("mail.show_details") : t("mail.hide_details")
+      }
+      trailing={details.total?.formatted}
+      on_toggle={toggle_collapsed}
     >
-      <button
-        aria-expanded={!is_collapsed}
-        className="w-full flex items-center gap-3 px-4 py-3 text-start hover:bg-black/[0.03] dark:hover:bg-white/[0.04] transition-colors"
-        type="button"
-        onClick={toggle_collapsed}
-      >
-        <ShoppingBagIcon
-          aria-hidden="true"
-          className="w-6 h-6 shrink-0 text-emerald-600 dark:text-emerald-400"
-          strokeWidth={1.75}
-        />
-        <div className="flex-1 min-w-0">
-          <div className="text-sm font-semibold text-txt-primary truncate">
-            {t("mail.purchase_receipt")}
-          </div>
-          <div className="text-xs text-txt-muted truncate">
-            {[
-              details.merchant_name,
-              details.order_id
-                ? t("mail.order_number", { id: details.order_id })
-                : null,
-            ]
-              .filter(Boolean)
-              .join(" · ")}
-          </div>
-        </div>
-        {details.total && (
-          <span className="text-sm font-semibold tabular-nums text-txt-primary shrink-0">
-            {details.total.formatted}
-          </span>
+      <div className="py-2">
+        {details.merchant_name && (
+          <ExtractionCardRow
+            icon={BuildingStorefrontIcon}
+            primary={details.merchant_name}
+            secondary={t("mail.merchant")}
+            test_id="purchase_merchant_row"
+          />
         )}
-        <ChevronDownIcon
-          aria-hidden="true"
-          className={cn(
-            "w-4 h-4 shrink-0 text-txt-muted transition-transform",
-            !is_collapsed && "rotate-180",
-          )}
-        />
-      </button>
-
-      {!is_collapsed && (
-        <div className="px-4 pb-4 border-t border-edge-secondary">
-          {details.merchant_name && (
-            <div className="pt-3 text-sm text-txt-secondary">
-              {t("mail.ordered_from", { merchant: details.merchant_name })}
-              {details.order_date && (
-                <span className="text-txt-muted"> · {details.order_date}</span>
-              )}
-            </div>
-          )}
-
-          {clean_items.length > 0 && (
-            <div className="mt-3">
-              <h4 className="text-xs font-medium uppercase tracking-wider mb-2 text-txt-muted">
-                {t("mail.items")}
-              </h4>
-              <div className="space-y-1.5">
-                {clean_items.slice(0, 5).map((item, index) => (
+        {details.order_id && (
+          <ExtractionCardRow
+            icon={HashtagIcon}
+            primary={<span className="tabular-nums">{details.order_id}</span>}
+            secondary={t("mail.order_number_label")}
+            test_id="purchase_order_id_row"
+          />
+        )}
+        {details.order_date && (
+          <ExtractionCardRow
+            icon={CalendarDaysIcon}
+            primary={t("mail.ordered_on", { date: details.order_date })}
+          />
+        )}
+        {(details.card_last_four || details.payment_method) && (
+          <ExtractionCardRow
+            icon={CreditCardIcon}
+            primary={
+              details.card_last_four
+                ? t("mail.card_ending_in", {
+                    last_four: details.card_last_four,
+                  })
+                : details.payment_method
+            }
+            secondary={
+              details.card_last_four && details.payment_method
+                ? details.payment_method
+                : undefined
+            }
+          />
+        )}
+        {clean_items.length > 0 && (
+          <ExtractionCardRow
+            icon={ShoppingCartIcon}
+            primary={t("mail.items")}
+            secondary={
+              <div className="space-y-1 mt-1">
+                {clean_items.slice(0, MAX_VISIBLE_ITEMS).map((item, index) => (
                   <div
                     key={index}
                     className="flex items-baseline justify-between gap-4 text-sm"
@@ -232,89 +249,99 @@ export function PurchaseDetailsBanner({
                     )}
                   </div>
                 ))}
-                {clean_items.length > 5 && (
+                {clean_items.length > MAX_VISIBLE_ITEMS && (
                   <span className="text-xs text-txt-muted">
                     {t("mail.more_items_count", {
-                      count: clean_items.length - 5,
+                      count: clean_items.length - MAX_VISIBLE_ITEMS,
                     })}
                   </span>
                 )}
               </div>
-            </div>
-          )}
-
-          {(amount_rows.length > 0 || details.total) && (
-            <div className="mt-3 pt-3 border-t border-edge-secondary space-y-1.5">
-              {amount_rows.map((row) => (
-                <div
-                  key={row.label}
-                  className="flex items-center justify-between text-sm"
-                >
-                  <span className="text-txt-muted">{row.label}</span>
-                  <span
-                    className={cn(
-                      "tabular-nums",
-                      row.accent
-                        ? "text-emerald-600 dark:text-emerald-400"
-                        : "text-txt-secondary",
-                    )}
-                  >
-                    {row.amount}
-                  </span>
+            }
+            test_id="purchase_items_row"
+          />
+        )}
+        {(amount_rows.length > 0 || details.total) && (
+          <ExtractionCardRow
+            icon={ReceiptPercentIcon}
+            primary={
+              <span className="font-semibold">{t("common.total")}</span>
+            }
+            secondary={
+              amount_rows.length > 0 ? (
+                <div className="space-y-0.5 mt-1">
+                  {amount_rows.map((row) => (
+                    <div
+                      key={row.label}
+                      className="flex items-center justify-between text-xs"
+                    >
+                      <span className="text-txt-muted">{row.label}</span>
+                      <span
+                        className={cn(
+                          "tabular-nums",
+                          row.accent
+                            ? "text-emerald-600 dark:text-emerald-400"
+                            : "text-txt-secondary",
+                        )}
+                      >
+                        {row.amount}
+                      </span>
+                    </div>
+                  ))}
                 </div>
-              ))}
-              {details.total && (
-                <div className="flex items-center justify-between text-sm font-semibold">
-                  <span className="text-txt-primary">{t("common.total")}</span>
-                  <span className="tabular-nums text-txt-primary">
-                    {details.total.formatted}
-                  </span>
-                </div>
-              )}
-            </div>
-          )}
-
-          <div className="mt-3 pt-3 border-t border-edge-secondary flex items-center justify-between gap-3">
-            {has_voted ? (
-              <span className="text-xs text-txt-muted">
-                {t("mail.receipt_feedback_thanks")}
-              </span>
-            ) : (
-              <div className="flex items-center gap-1.5">
-                <span className="text-xs text-txt-muted">
-                  {t("mail.receipt_is_this_correct")}
+              ) : undefined
+            }
+            test_id="purchase_total_row"
+            trailing={
+              details.total ? (
+                <span className="font-semibold text-txt-primary">
+                  {details.total.formatted}
                 </span>
-                <Tooltip tip={t("mail.receipt_feedback_correct")}>
-                  <button
-                    aria-label={t("mail.receipt_feedback_correct")}
-                    className="p-1 rounded-md text-txt-muted hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors"
-                    type="button"
-                    onClick={() => handle_feedback(true)}
-                  >
-                    <HandThumbUpIcon className="w-4 h-4" />
-                  </button>
-                </Tooltip>
-                <Tooltip tip={t("mail.receipt_feedback_incorrect")}>
-                  <button
-                    aria-label={t("mail.receipt_feedback_incorrect")}
-                    className="p-1 rounded-md text-txt-muted hover:text-red-500 dark:hover:text-red-400 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors"
-                    type="button"
-                    onClick={() => handle_feedback(false)}
-                  >
-                    <HandThumbDownIcon className="w-4 h-4" />
-                  </button>
-                </Tooltip>
-              </div>
-            )}
-            <div className="flex items-center gap-1.5 min-w-0">
-              <ShieldCheckIcon className="w-3.5 h-3.5 shrink-0 text-txt-muted" />
-              <span className="text-[10px] text-txt-muted truncate">
-                {t("mail.purchase_extraction_privacy")}
-              </span>
-            </div>
+              ) : undefined
+            }
+          />
+        )}
+      </div>
+
+      <div className="px-4 py-2.5 border-t border-edge-secondary flex items-center justify-between gap-3">
+        {has_voted ? (
+          <span className="text-xs text-txt-muted">
+            {t("mail.receipt_feedback_thanks")}
+          </span>
+        ) : (
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs text-txt-muted">
+              {t("mail.receipt_is_this_correct")}
+            </span>
+            <Tooltip tip={t("mail.receipt_feedback_correct")}>
+              <button
+                aria-label={t("mail.receipt_feedback_correct")}
+                className="p-1 rounded-md text-txt-muted hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-surf-hover transition-colors"
+                type="button"
+                onClick={() => handle_feedback(true)}
+              >
+                <HandThumbUpIcon className="w-4 h-4" />
+              </button>
+            </Tooltip>
+            <Tooltip tip={t("mail.receipt_feedback_incorrect")}>
+              <button
+                aria-label={t("mail.receipt_feedback_incorrect")}
+                className="p-1 rounded-md text-txt-muted hover:text-red-500 dark:hover:text-red-400 hover:bg-surf-hover transition-colors"
+                type="button"
+                onClick={() => handle_feedback(false)}
+              >
+                <HandThumbDownIcon className="w-4 h-4" />
+              </button>
+            </Tooltip>
           </div>
+        )}
+        <div className="flex items-center gap-1.5 min-w-0">
+          <ShieldCheckIcon className="w-3.5 h-3.5 shrink-0 text-txt-muted" />
+          <span className="text-[10px] text-txt-muted truncate">
+            {t("mail.purchase_extraction_privacy")}
+          </span>
         </div>
-      )}
-    </div>
+      </div>
+    </ExtractionCard>
   );
 }

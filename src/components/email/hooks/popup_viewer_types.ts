@@ -49,6 +49,7 @@ export interface DecryptedEmail {
   sender_verification?: SenderVerificationStatus;
   is_external?: boolean;
   system_origin?: boolean;
+  sender_verified_domain?: string;
 }
 
 export interface LocalEmailData {
@@ -82,6 +83,7 @@ export interface EmailPopupViewerProps {
     original_to?: string[];
     is_external?: boolean;
     system_origin?: boolean;
+    sender_verified_domain?: string;
     reply_from_address?: string;
   }) => void;
   on_forward?: (data: {
@@ -93,6 +95,7 @@ export interface EmailPopupViewerProps {
     email_timestamp: string;
     is_external?: boolean;
     system_origin?: boolean;
+    sender_verified_domain?: string;
     original_mail_id?: string;
   }) => void;
   on_compose?: (email: string) => void;

@@ -67,6 +67,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { OfficialBadge } from "@/components/email/official_badge";
+import { VerifiedSenderBadge } from "@/components/email/verified_sender_badge";
 import { show_toast } from "@/components/toast/simple_toast";
 import { AttachmentList } from "@/components/email/attachment_list";
 import { InlineReplyComposer } from "@/components/email/inline_reply_composer";
@@ -245,6 +246,12 @@ export function ThreadMessageBlock(
             )}
             {!is_own_message && (
               <OfficialBadge className="flex-shrink-0" sender={message} />
+            )}
+            {!is_own_message && (
+              <VerifiedSenderBadge
+                className="flex-shrink-0"
+                domain={message.sender_verified_domain}
+              />
             )}
             <span className="text-xs text-txt-muted truncate hidden sm:inline max-w-full">
               &lt;{show_sender_email}&gt;

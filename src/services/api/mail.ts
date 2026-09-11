@@ -106,6 +106,8 @@ export interface MailItem {
   phishing_level?: "safe" | "suspicious" | "dangerous";
   message_group_id?: string;
   rule_category?: string;
+  sender_verified?: boolean;
+  sender_verified_domain?: string;
   is_reaction?: boolean;
   reactions?: ReactionSummary[];
 }
