@@ -370,13 +370,23 @@ export interface PlanChangePreviewResponse {
   discount_cents?: number;
   promo_code_applied?: boolean;
   discount_description?: string | null;
+  amount_due_before_discount_cents?: number | null;
+  promo_code?: string | null;
+  discount_percent_off?: number | null;
+  discount_amount_off_cents?: number | null;
+  discount_duration?: string | null;
+  discount_duration_in_months?: number | null;
 }
 
 export async function preview_plan_change(
   plan_code: string,
   billing_interval: string = "month",
   promo_code?: string,
-): Promise<{ data?: PlanChangePreviewResponse; error?: string }> {
+): Promise<{
+  data?: PlanChangePreviewResponse;
+  error?: string;
+  server_code?: string;
+}> {
   const promo_query = promo_code
     ? `&promo_code=${encodeURIComponent(promo_code)}`
     : "";

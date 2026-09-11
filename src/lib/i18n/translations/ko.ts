@@ -5559,6 +5559,32 @@ export const ko = {
       "요금 내역을 불러오지 못했습니다. 다시 시도해 주세요.",
     plan_change_confirm_button: "확인 및 결제",
     plan_change_confirming: "처리 중...",
+    promo_error_invalid:
+      "유효하지 않은 프로모션 코드입니다. 코드를 확인한 후 다시 시도하세요.",
+    promo_error_expired:
+      "만료되었거나 더 이상 사용할 수 없는 프로모션 코드입니다.",
+    promo_error_not_for_plan: "이 프로모션 코드는 이 플랜에 적용되지 않습니다.",
+    promo_error_not_for_plan_change:
+      "이 프로모션 코드는 플랜을 변경할 때 사용할 수 없습니다.",
+    promo_error_discount_active:
+      "구독에 이미 할인이 적용되어 있어 다른 프로모션 코드를 추가할 수 없습니다.",
+    promo_error_same_plan:
+      "이미 이 플랜을 사용 중입니다. 프로모션 코드는 다른 플랜으로 변경할 때 적용됩니다.",
+    promo_error_not_upgrade:
+      "프로모션 코드는 상위 플랜으로 업그레이드할 때 적용됩니다.",
+    promo_error_generic:
+      "프로모션 코드를 확인할 수 없습니다. 잠시 후 다시 시도하세요.",
+    plan_change_discount_amount: "{{amount}} 할인",
+    plan_change_discount_once: "이번 결제에 {{discount}}",
+    plan_change_discount_forever: "모든 결제에 {{discount}}",
+    plan_change_discount_months: "{{count}}개월 동안 {{discount}}",
+    plan_change_discount_months_one: "{{count}}개월 동안 {{discount}}",
+    plan_change_discount_months_other: "{{count}}개월 동안 {{discount}}",
+    plan_change_discount_label: "프로모션 코드 {{code}}",
+    plan_change_price_before_discount: "할인 전 가격",
+    plan_change_promo_applied:
+      "{{code}} 코드가 적용되었습니다. 오늘 {{amount}}을(를) 절약합니다.",
+    plan_change_promo_remove: "삭제",
     billing_switched: "결제 주기가 성공적으로 전환되었습니다",
     failed_switch_billing:
       "결제 주기가 변경되지 않았습니다. 다시 시도하면 됩니다. 현재 주기는 그대로 활성 상태입니다.",

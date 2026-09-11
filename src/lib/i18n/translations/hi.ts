@@ -3744,6 +3744,31 @@ export const hi = {
       "हम कीमत का ब्योरा लोड नहीं कर सके। फिर से कोशिश करें।",
     plan_change_confirm_button: "पुष्टि करें और भुगतान करें",
     plan_change_confirming: "प्रोसेस हो रहा है...",
+    promo_error_invalid:
+      "यह प्रोमो कोड मान्य नहीं है। कोड जांचें और फिर से कोशिश करें।",
+    promo_error_expired: "यह प्रोमो कोड समाप्त हो गया है या अब उपलब्ध नहीं है।",
+    promo_error_not_for_plan: "यह प्रोमो कोड इस प्लान पर लागू नहीं होता।",
+    promo_error_not_for_plan_change:
+      "प्लान बदलते समय इस प्रोमो कोड का इस्तेमाल नहीं किया जा सकता।",
+    promo_error_discount_active:
+      "आपकी सदस्यता पर पहले से छूट लागू है, इसलिए आप दूसरा प्रोमो कोड नहीं जोड़ सकते।",
+    promo_error_same_plan:
+      "आप पहले से इस प्लान पर हैं। प्रोमो कोड किसी दूसरे प्लान पर जाने पर लागू होते हैं।",
+    promo_error_not_upgrade:
+      "प्रोमो कोड ऊंचे प्लान पर अपग्रेड करने पर लागू होते हैं।",
+    promo_error_generic:
+      "आपका प्रोमो कोड जांचा नहीं जा सका। थोड़ी देर बाद फिर से कोशिश करें।",
+    plan_change_discount_amount: "{{amount}} की छूट",
+    plan_change_discount_once: "इस भुगतान पर {{discount}}",
+    plan_change_discount_forever: "हर भुगतान पर {{discount}}",
+    plan_change_discount_months: "{{count}} महीने तक {{discount}}",
+    plan_change_discount_months_one: "{{count}} महीने तक {{discount}}",
+    plan_change_discount_months_other: "{{count}} महीने तक {{discount}}",
+    plan_change_discount_label: "प्रोमो कोड {{code}}",
+    plan_change_price_before_discount: "छूट से पहले की कीमत",
+    plan_change_promo_applied:
+      "{{code}} लागू हो गया है। आज आप {{amount}} बचाते हैं।",
+    plan_change_promo_remove: "हटाएं",
     family_plan_title: "परिवार प्लान",
     family_plan_subtitle: "अपने परिवार समूह के सदस्य और स्टोरेज प्रबंधित करें",
     family_members: "सदस्य",

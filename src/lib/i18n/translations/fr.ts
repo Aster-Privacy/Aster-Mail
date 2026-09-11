@@ -6406,6 +6406,31 @@ export const fr = {
       "Impossible de charger le detail du prix. Veuillez reessayer.",
     plan_change_confirm_button: "Confirmer et payer",
     plan_change_confirming: "Traitement en cours...",
+    promo_error_invalid:
+      "Ce code promo n'est pas valide. Vérifiez le code et réessayez.",
+    promo_error_expired: "Ce code promo a expiré ou n'est plus disponible.",
+    promo_error_not_for_plan: "Ce code promo ne s'applique pas à ce plan.",
+    promo_error_not_for_plan_change:
+      "Ce code promo ne peut pas être utilisé lors d'un changement de plan.",
+    promo_error_discount_active:
+      "Votre abonnement bénéficie déjà d'une remise. Vous ne pouvez pas ajouter un autre code promo.",
+    promo_error_same_plan:
+      "Vous avez déjà ce plan. Les codes promo s'appliquent lorsque vous passez à un autre plan.",
+    promo_error_not_upgrade:
+      "Les codes promo s'appliquent lorsque vous passez à un plan supérieur.",
+    promo_error_generic:
+      "Impossible de vérifier votre code promo. Réessayez dans un instant.",
+    plan_change_discount_amount: "{{amount}} de réduction",
+    plan_change_discount_once: "{{discount}} sur ce paiement",
+    plan_change_discount_forever: "{{discount}} sur chaque paiement",
+    plan_change_discount_months: "{{discount}} pendant {{count}} mois",
+    plan_change_discount_months_one: "{{discount}} pendant {{count}} mois",
+    plan_change_discount_months_other: "{{discount}} pendant {{count}} mois",
+    plan_change_discount_label: "Code promo {{code}}",
+    plan_change_price_before_discount: "Prix avant remise",
+    plan_change_promo_applied:
+      "{{code}} est appliqué. Vous économisez {{amount}} aujourd'hui.",
+    plan_change_promo_remove: "Retirer",
     billing_banner_subtitle:
       "Passez à une offre supérieure ou achetez du stockage supplémentaire pour protéger votre vie privée.",
     storage_addons_monthly_note:

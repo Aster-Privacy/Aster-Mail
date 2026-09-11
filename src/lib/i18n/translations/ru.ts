@@ -6442,6 +6442,32 @@ export const ru = {
       "Не удалось загрузить расчет стоимости. Попробуйте еще раз.",
     plan_change_confirm_button: "Подтвердить и оплатить",
     plan_change_confirming: "Обработка...",
+    promo_error_invalid:
+      "Этот промокод недействителен. Проверьте код и повторите попытку.",
+    promo_error_expired:
+      "Срок действия этого промокода истек, или он больше недоступен.",
+    promo_error_not_for_plan: "Этот промокод не действует для этого тарифа.",
+    promo_error_not_for_plan_change:
+      "Этот промокод нельзя использовать при смене тарифа.",
+    promo_error_discount_active:
+      "К вашей подписке уже применена скидка, поэтому добавить другой промокод нельзя.",
+    promo_error_same_plan:
+      "У вас уже этот тариф. Промокоды действуют при переходе на другой тариф.",
+    promo_error_not_upgrade:
+      "Промокоды действуют при переходе на более высокий тариф.",
+    promo_error_generic:
+      "Не удалось проверить промокод. Повторите попытку чуть позже.",
+    plan_change_discount_amount: "Скидка {{amount}}",
+    plan_change_discount_once: "{{discount}} на этот платеж",
+    plan_change_discount_forever: "{{discount}} на каждый платеж",
+    plan_change_discount_months: "{{discount}} на {{count}} мес.",
+    plan_change_discount_months_one: "{{discount}} на {{count}} месяц",
+    plan_change_discount_months_other: "{{discount}} на {{count}} мес.",
+    plan_change_discount_label: "Промокод {{code}}",
+    plan_change_price_before_discount: "Цена без скидки",
+    plan_change_promo_applied:
+      "Промокод {{code}} применен. Сегодня вы экономите {{amount}}.",
+    plan_change_promo_remove: "Удалить",
     billing_banner_subtitle:
       "Повысьте тариф или приобретите дополнительное хранилище для защиты вашей конфиденциальности.",
     storage_addons_monthly_note:

@@ -5579,6 +5579,32 @@ export const de = {
       "Die Preisaufstellung konnte nicht geladen werden. Bitte erneut versuchen.",
     plan_change_confirm_button: "Bestatigen und bezahlen",
     plan_change_confirming: "Wird verarbeitet...",
+    promo_error_invalid:
+      "Dieser Aktionscode ist ungültig. Überprüfen Sie den Code und versuchen Sie es erneut.",
+    promo_error_expired:
+      "Dieser Aktionscode ist abgelaufen oder nicht mehr verfügbar.",
+    promo_error_not_for_plan: "Dieser Aktionscode gilt nicht für diesen Plan.",
+    promo_error_not_for_plan_change:
+      "Dieser Aktionscode kann bei einem Planwechsel nicht verwendet werden.",
+    promo_error_discount_active:
+      "Für Ihr Abonnement gilt bereits ein Rabatt, daher können Sie keinen weiteren Aktionscode hinzufügen.",
+    promo_error_same_plan:
+      "Sie haben diesen Plan bereits. Aktionscodes gelten, wenn Sie zu einem anderen Plan wechseln.",
+    promo_error_not_upgrade:
+      "Aktionscodes gelten, wenn Sie auf einen höheren Plan upgraden.",
+    promo_error_generic:
+      "Ihr Aktionscode konnte nicht überprüft werden. Versuchen Sie es gleich noch einmal.",
+    plan_change_discount_amount: "{{amount}} Rabatt",
+    plan_change_discount_once: "{{discount}} auf diese Zahlung",
+    plan_change_discount_forever: "{{discount}} auf jede Zahlung",
+    plan_change_discount_months: "{{discount}} für {{count}} Monate",
+    plan_change_discount_months_one: "{{discount}} für {{count}} Monat",
+    plan_change_discount_months_other: "{{discount}} für {{count}} Monate",
+    plan_change_discount_label: "Aktionscode {{code}}",
+    plan_change_price_before_discount: "Preis vor Rabatt",
+    plan_change_promo_applied:
+      "{{code}} ist angewendet. Sie sparen heute {{amount}}.",
+    plan_change_promo_remove: "Entfernen",
     billing_switched: "Abrechnungszeitraum erfolgreich gewechselt",
     failed_switch_billing:
       "Ihr Abrechnungszyklus wurde nicht geändert. Ein erneuter Versuch genügt meist. Ihr aktueller Zyklus läuft weiter.",

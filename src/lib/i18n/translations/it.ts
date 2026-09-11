@@ -4421,6 +4421,33 @@ export const it = {
       "Impossibile caricare il dettaglio del prezzo. Riprova.",
     plan_change_confirm_button: "Conferma e paga",
     plan_change_confirming: "Elaborazione...",
+    promo_error_invalid:
+      "Questo codice promozionale non è valido. Controlla il codice e riprova.",
+    promo_error_expired:
+      "Questo codice promozionale è scaduto o non è più disponibile.",
+    promo_error_not_for_plan:
+      "Questo codice promozionale non si applica a questo piano.",
+    promo_error_not_for_plan_change:
+      "Questo codice promozionale non può essere usato quando cambi piano.",
+    promo_error_discount_active:
+      "Il tuo abbonamento ha già uno sconto, quindi non puoi aggiungere un altro codice promozionale.",
+    promo_error_same_plan:
+      "Hai già questo piano. I codici promozionali si applicano quando passi a un piano diverso.",
+    promo_error_not_upgrade:
+      "I codici promozionali si applicano quando passi a un piano superiore.",
+    promo_error_generic:
+      "Impossibile verificare il codice promozionale. Riprova tra un momento.",
+    plan_change_discount_amount: "{{amount}} di sconto",
+    plan_change_discount_once: "{{discount}} su questo pagamento",
+    plan_change_discount_forever: "{{discount}} su ogni pagamento",
+    plan_change_discount_months: "{{discount}} per {{count}} mesi",
+    plan_change_discount_months_one: "{{discount}} per {{count}} mese",
+    plan_change_discount_months_other: "{{discount}} per {{count}} mesi",
+    plan_change_discount_label: "Codice promozionale {{code}}",
+    plan_change_price_before_discount: "Prezzo senza sconto",
+    plan_change_promo_applied:
+      "{{code}} è applicato. Oggi risparmi {{amount}}.",
+    plan_change_promo_remove: "Rimuovi",
     billing_switched: "Ciclo di fatturazione cambiato con successo",
     failed_switch_billing:
       "Il suo ciclo di fatturazione non è cambiato. Un altro tentativo dovrebbe bastare. Il suo ciclo attuale è ancora attivo.",

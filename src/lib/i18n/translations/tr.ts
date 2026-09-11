@@ -6504,6 +6504,32 @@ export const tr = {
       "Fiyat dokumu yuklenemedi. Lutfen tekrar deneyin.",
     plan_change_confirm_button: "Onayla ve ode",
     plan_change_confirming: "Isleniyor...",
+    promo_error_invalid:
+      "Bu promosyon kodu geçerli değil. Kodu kontrol edip tekrar deneyin.",
+    promo_error_expired:
+      "Bu promosyon kodunun süresi doldu veya artık kullanılamıyor.",
+    promo_error_not_for_plan: "Bu promosyon kodu bu plan için geçerli değil.",
+    promo_error_not_for_plan_change:
+      "Bu promosyon kodu plan değiştirirken kullanılamaz.",
+    promo_error_discount_active:
+      "Aboneliğinizde zaten bir indirim var, bu nedenle başka bir promosyon kodu ekleyemezsiniz.",
+    promo_error_same_plan:
+      "Zaten bu plandasınız. Promosyon kodları farklı bir plana geçtiğinizde geçerlidir.",
+    promo_error_not_upgrade:
+      "Promosyon kodları daha yüksek bir plana yükselttiğinizde geçerlidir.",
+    promo_error_generic:
+      "Promosyon kodunuz kontrol edilemedi. Birazdan tekrar deneyin.",
+    plan_change_discount_amount: "{{amount}} indirim",
+    plan_change_discount_once: "Bu ödemede {{discount}}",
+    plan_change_discount_forever: "Her ödemede {{discount}}",
+    plan_change_discount_months: "{{count}} ay boyunca {{discount}}",
+    plan_change_discount_months_one: "{{count}} ay boyunca {{discount}}",
+    plan_change_discount_months_other: "{{count}} ay boyunca {{discount}}",
+    plan_change_discount_label: "Promosyon kodu {{code}}",
+    plan_change_price_before_discount: "İndirimsiz fiyat",
+    plan_change_promo_applied:
+      "{{code}} uygulandı. Bugün {{amount}} tasarruf ediyorsunuz.",
+    plan_change_promo_remove: "Kaldır",
     use_credits_for_renewals_description:
       "Kredi bakiyenizi plan ve eklenti yenilemelerinize otomatik uygulayın. Bakiyeniz tam tutarı karşılamazsa, kalan tutar ödeme yönteminizden tahsil edilir.",
     vacation_reply_locked:

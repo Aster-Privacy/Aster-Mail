@@ -92,6 +92,7 @@ import {
   type plan_term_option,
 } from "@/components/settings/billing/plan_payment_method_modal";
 import { PlanChangeConfirmModal } from "@/components/settings/billing/plan_change_confirm_modal";
+import { is_promo_code_rejection } from "@/components/settings/billing/plan_change_discount_text";
 import { CryptoAddonTermModal } from "@/components/settings/billing/crypto_addon_term_modal";
 import { CryptoTermModal } from "@/components/settings/billing/crypto_term_modal";
 import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
@@ -709,7 +710,9 @@ export function BillingSection() {
           "error",
           TOAST_DURATION_BILLING_MS,
         );
-        set_show_payment_methods(true);
+        if (!is_promo_code_rejection(result.server_code)) {
+          set_show_payment_methods(true);
+        }
 
         return;
       }
