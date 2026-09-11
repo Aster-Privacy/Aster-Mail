@@ -71,6 +71,7 @@ import {
 import { PlanFeaturesModal } from "@/components/settings/billing/plan_features_modal";
 import { PlanPaymentMethodModal } from "@/components/settings/billing/plan_payment_method_modal";
 import { CryptoTermModal } from "@/components/settings/billing/crypto_term_modal";
+import { PlanChangeConfirmModal } from "@/components/settings/billing/plan_change_confirm_modal";
 import { is_payment_navigation } from "@/lib/payment_navigation";
 import { format_bytes } from "@/lib/utils";
 import {
@@ -214,6 +215,10 @@ export function UpgradeModal() {
   const [crypto_tier, set_crypto_tier] = useState<PlanTier | null>(null);
   const [crypto_term_months, set_crypto_term_months] = useState(12);
   const [pending_tier, set_pending_tier] = useState<PlanTier | null>(null);
+  const [plan_change_target, set_plan_change_target] = useState<{
+    tier: PlanTier;
+    billing: string;
+  } | null>(null);
   const [compare_open, set_compare_open] = useState(false);
   const [is_starting, set_is_starting] = useState(false);
   const pending_desktop_checkout_ref = useRef(false);
@@ -384,6 +389,7 @@ export function UpgradeModal() {
     set_is_starting(false);
     set_compare_open(false);
     set_crypto_tier(null);
+    set_plan_change_target(null);
 
     if (resume_target) {
       set_audience(resume_target.audience);
@@ -492,11 +498,21 @@ export function UpgradeModal() {
   const price_label = (tier: PlanTier) =>
     format_price(convert_cents(monthly_equivalent(tier), currency), currency);
 
-  const start_plan_change = async (tier: PlanTier, billing: string) => {
+  const start_plan_change = async (
+    tier: PlanTier,
+    billing: string,
+    promo_code?: string,
+  ) => {
     set_is_starting(true);
 
     try {
-      const result = await change_plan(tier.id, billing);
+      const result = await change_plan(
+        tier.id,
+        billing,
+        undefined,
+        undefined,
+        promo_code,
+      );
 
       if (!result.ok) {
         show_toast(
@@ -521,6 +537,7 @@ export function UpgradeModal() {
       request_cache.invalidate("/payments/v1");
       await refresh(true);
       show_toast(t("settings.payment_success"), "success");
+      set_plan_change_target(null);
       close_upgrade_modal();
       set_is_starting(false);
     } catch {
@@ -576,7 +593,8 @@ export function UpgradeModal() {
     const billing = checkout_interval_for(selected_term_id ?? term_id);
 
     if (!!plan_code && plan_code !== "free") {
-      void start_plan_change(pending_tier, billing);
+      set_plan_change_target({ tier: pending_tier, billing });
+      set_pending_tier(null);
 
       return;
     }
@@ -614,7 +632,7 @@ export function UpgradeModal() {
   };
 
   useEffect(() => {
-    const guard_active = is_starting || !!pending_tier;
+    const guard_active = is_starting || !!pending_tier || !!plan_change_target;
 
     if (!guard_active) return;
 
@@ -630,7 +648,7 @@ export function UpgradeModal() {
     return () => {
       window.removeEventListener("beforeunload", handle_before_unload);
     };
-  }, [is_starting, pending_tier, t]);
+  }, [is_starting, pending_tier, plan_change_target, t]);
 
   const handle_compare_plans = () => {
     set_compare_open(true);
@@ -660,7 +678,13 @@ export function UpgradeModal() {
       <Modal
         close_on_escape={false}
         close_on_overlay={false}
-        is_open={state.is_open && !is_blocked && !pending_tier && !crypto_tier}
+        is_open={
+          state.is_open &&
+          !is_blocked &&
+          !pending_tier &&
+          !crypto_tier &&
+          !plan_change_target
+        }
         on_close={close_upgrade_modal}
         size="2xl"
       >
@@ -1043,6 +1067,30 @@ export function UpgradeModal() {
         on_close={() => set_compare_open(false)}
         z_index={80}
       />
+
+      {plan_change_target && (
+        <PlanChangeConfirmModal
+          billing_interval={plan_change_target.billing}
+          is_confirming={is_starting}
+          on_close={() => {
+            if (is_starting) return;
+            const tier = plan_change_target.tier;
+
+            set_plan_change_target(null);
+            set_pending_tier(tier);
+          }}
+          on_confirm={(promo_code) =>
+            void start_plan_change(
+              plan_change_target.tier,
+              plan_change_target.billing,
+              promo_code,
+            )
+          }
+          open={!!plan_change_target}
+          plan_code={plan_change_target.tier.id}
+          plan_name={plan_change_target.tier.name}
+        />
+      )}
 
       {crypto_tier && (
         <CryptoTermModal
