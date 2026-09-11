@@ -1,0 +1,28 @@
+{
+    "version": "@VERSION@",
+    "description": "End-to-end encrypted email client for your Aster account",
+    "homepage": "https://astermail.org/",
+    "license": "AGPL-3.0-or-later",
+    "notes": "Aster Mail requires the Microsoft Edge WebView2 Runtime, which Windows 11 includes.",
+    "architecture": {
+        "64bit": {
+            "url": "https://github.com/Aster-Privacy/Aster-Mail/releases/download/v@VERSION@/Aster-Mail-x64.msi",
+            "hash": "@MSI_SHA256@"
+        }
+    },
+    "extract_dir": "PFiles\\Aster Mail",
+    "shortcuts": [
+        [
+            "aster-mail-desktop.exe",
+            "Aster Mail"
+        ]
+    ],
+    "checkver": "github",
+    "autoupdate": {
+        "architecture": {
+            "64bit": {
+                "url": "https://github.com/Aster-Privacy/Aster-Mail/releases/download/v$version/Aster-Mail-x64.msi"
+            }
+        }
+    }
+}

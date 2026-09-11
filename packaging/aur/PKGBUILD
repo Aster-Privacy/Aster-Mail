@@ -1,0 +1,19 @@
+pkgname=aster-mail-bin
+pkgver=@VERSION@
+pkgrel=1
+pkgdesc='End-to-end encrypted email client for your Aster account'
+arch=('x86_64' 'aarch64')
+url='https://astermail.org/'
+license=('AGPL-3.0-or-later')
+depends=('cairo' 'dbus' 'gdk-pixbuf2' 'glib2' 'gtk3' 'hicolor-icon-theme' 'libayatana-appindicator' 'libsoup3' 'webkit2gtk-4.1')
+provides=('aster-mail')
+conflicts=('aster-mail')
+options=('!strip' '!debug')
+source_x86_64=("${pkgname}-${pkgver}-x86_64.deb::https://github.com/Aster-Privacy/Aster-Mail/releases/download/v${pkgver}/Aster-Mail-amd64.deb")
+source_aarch64=("${pkgname}-${pkgver}-aarch64.deb::https://github.com/Aster-Privacy/Aster-Mail/releases/download/v${pkgver}/Aster-Mail-arm64.deb")
+sha256sums_x86_64=('@DEB_AMD64_SHA256@')
+sha256sums_aarch64=('@DEB_ARM64_SHA256@')
+
+package() {
+  bsdtar -xf data.tar.gz -C "${pkgdir}"
+}

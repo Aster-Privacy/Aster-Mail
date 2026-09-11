@@ -454,3 +454,340 @@ jobs:
           installers-regex: '^Aster-Mail-x64-setup\.exe$'
           fork-user: findleyl
           token: ${{ secrets.WINGET_TOKEN }}
+
+  store_release:
+    needs: [promote_to_latest]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-22.04
+    outputs:
+      publish: ${{ steps.gate.outputs.publish }}
+      version: ${{ steps.gate.outputs.version }}
+      commit: ${{ steps.gate.outputs.commit }}
+      release_date: ${{ steps.gate.outputs.release_date }}
+    steps:
+      - name: Skip prereleases and drafts
+        id: gate
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          release=$(gh release view "${GITHUB_REF_NAME}" --repo "${GITHUB_REPOSITORY}" --json isPrerelease,isDraft,publishedAt)
+          if [ "$(jq -r '.isPrerelease or .isDraft' <<<"$release")" = "true" ]; then
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+            echo "Release ${GITHUB_REF_NAME} is a prerelease or draft, so store updates are skipped."
+            exit 0
+          fi
+          {
+            echo "publish=true"
+            echo "version=${GITHUB_REF_NAME#v}"
+            echo "commit=${GITHUB_SHA}"
+            echo "release_date=$(jq -r '.publishedAt[0:10]' <<<"$release")"
+          } >> "$GITHUB_OUTPUT"
+
+  publish_homebrew:
+    needs: store_release
+    if: needs.store_release.outputs.publish == 'true'
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Check Homebrew credentials
+        id: gate
+        env:
+          HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+        run: bash packaging/scripts/require_values.sh Homebrew HOMEBREW_TAP_TOKEN
+      - name: Publish the cask
+        if: steps.gate.outputs.enabled == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORY_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          VERSION: ${{ needs.store_release.outputs.version }}
+          TAP_REPOSITORY: ${{ vars.HOMEBREW_TAP_REPOSITORY || 'Aster-Privacy/homebrew-tap' }}
+        run: |
+          set -euo pipefail
+          sha256=$(bash packaging/scripts/release_asset_sha256.sh "v${VERSION}" Aster-Mail-universal.dmg "Aster.Mail_${VERSION}_universal.dmg")
+          bash packaging/scripts/render_template.sh packaging/homebrew/aster-mail.rb out/aster-mail.rb "VERSION=${VERSION}" "SHA256=${sha256}"
+          bash packaging/scripts/publish_to_git_repository.sh "$TAP_REPOSITORY" "aster-mail ${VERSION}" out/aster-mail.rb=Casks/aster-mail.rb
+
+  publish_scoop:
+    needs: store_release
+    if: needs.store_release.outputs.publish == 'true'
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Check Scoop credentials
+        id: gate
+        env:
+          SCOOP_BUCKET_TOKEN: ${{ secrets.SCOOP_BUCKET_TOKEN }}
+        run: bash packaging/scripts/require_values.sh Scoop SCOOP_BUCKET_TOKEN
+      - name: Publish the manifest
+        if: steps.gate.outputs.enabled == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORY_TOKEN: ${{ secrets.SCOOP_BUCKET_TOKEN }}
+          VERSION: ${{ needs.store_release.outputs.version }}
+          BUCKET_REPOSITORY: ${{ vars.SCOOP_BUCKET_REPOSITORY || 'Aster-Privacy/scoop-bucket' }}
+        run: |
+          set -euo pipefail
+          msi_sha256=$(bash packaging/scripts/release_asset_sha256.sh "v${VERSION}" Aster-Mail-x64.msi "Aster.Mail_${VERSION}_x64_en-US.msi")
+          bash packaging/scripts/render_template.sh packaging/scoop/aster-mail.json out/aster-mail.json "VERSION=${VERSION}" "MSI_SHA256=${msi_sha256}"
+          jq empty out/aster-mail.json
+          bash packaging/scripts/publish_to_git_repository.sh "$BUCKET_REPOSITORY" "aster-mail ${VERSION}" out/aster-mail.json=bucket/aster-mail.json
+
+  publish_chocolatey:
+    needs: store_release
+    if: needs.store_release.outputs.publish == 'true'
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Check Chocolatey credentials
+        id: gate
+        shell: bash
+        env:
+          CHOCOLATEY_API_KEY: ${{ secrets.CHOCOLATEY_API_KEY }}
+        run: bash packaging/scripts/require_values.sh Chocolatey CHOCOLATEY_API_KEY
+      - name: Render the package
+        if: steps.gate.outputs.enabled == 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ needs.store_release.outputs.version }}
+        run: |
+          set -euo pipefail
+          msi_sha256=$(bash packaging/scripts/release_asset_sha256.sh "v${VERSION}" Aster-Mail-x64.msi "Aster.Mail_${VERSION}_x64_en-US.msi")
+          bash packaging/scripts/render_template.sh packaging/chocolatey/aster-mail.nuspec out/chocolatey/aster-mail.nuspec "VERSION=${VERSION}"
+          bash packaging/scripts/render_template.sh packaging/chocolatey/tools/chocolateyinstall.ps1 out/chocolatey/tools/chocolateyinstall.ps1 "VERSION=${VERSION}" "MSI_SHA256=${msi_sha256}"
+      - name: Pack and push to the Chocolatey Community Repository
+        if: steps.gate.outputs.enabled == 'true'
+        shell: pwsh
+        env:
+          CHOCOLATEY_API_KEY: ${{ secrets.CHOCOLATEY_API_KEY }}
+          VERSION: ${{ needs.store_release.outputs.version }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          choco pack out/chocolatey/aster-mail.nuspec --outputdirectory out
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          choco push "out/aster-mail.$env:VERSION.nupkg" --source https://push.chocolatey.org/ --api-key $env:CHOCOLATEY_API_KEY
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+  publish_aur:
+    needs: store_release
+    if: needs.store_release.outputs.publish == 'true'
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Check AUR credentials
+        id: gate
+        env:
+          AUR_SSH_PRIVATE_KEY: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+        run: bash packaging/scripts/require_values.sh AUR AUR_SSH_PRIVATE_KEY
+      - name: Publish aster-mail-bin
+        if: steps.gate.outputs.enabled == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          AUR_SSH_PRIVATE_KEY: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+          VERSION: ${{ needs.store_release.outputs.version }}
+        run: |
+          set -euo pipefail
+          amd64_sha256=$(bash packaging/scripts/release_asset_sha256.sh "v${VERSION}" Aster-Mail-amd64.deb "Aster.Mail_${VERSION}_amd64.deb")
+          arm64_sha256=$(bash packaging/scripts/release_asset_sha256.sh "v${VERSION}" Aster-Mail-arm64.deb "Aster.Mail_${VERSION}_arm64.deb")
+          for file in PKGBUILD .SRCINFO; do
+            bash packaging/scripts/render_template.sh "packaging/aur/${file}" "out/aur/${file}" \
+              "VERSION=${VERSION}" "DEB_AMD64_SHA256=${amd64_sha256}" "DEB_ARM64_SHA256=${arm64_sha256}"
+          done
+
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$AUR_SSH_PRIVATE_KEY" > ~/.ssh/aur
+          chmod 600 ~/.ssh/aur
+          ssh-keyscan -t ed25519 aur.archlinux.org > aur_host_key 2>/dev/null
+          fingerprint=$(ssh-keygen -lf aur_host_key | awk '{print $2}')
+          if [ "$fingerprint" != "SHA256:RFzBCUItH9LZS0cKB5UE6ceAYhBD5C8GeOBip8Z11+4" ]; then
+            echo "::error::Unexpected AUR host key fingerprint: ${fingerprint}"
+            exit 1
+          fi
+          cat aur_host_key >> ~/.ssh/known_hosts
+          export GIT_SSH_COMMAND="ssh -i ${HOME}/.ssh/aur -o IdentitiesOnly=yes"
+
+          work_dir=$(mktemp -d)
+          git clone ssh://aur@aur.archlinux.org/aster-mail-bin.git "$work_dir"
+          cp out/aur/PKGBUILD out/aur/.SRCINFO "$work_dir/"
+          cd "$work_dir"
+          git add PKGBUILD .SRCINFO
+          if git diff --cached --quiet; then
+            echo "aster-mail-bin is already up to date"
+            exit 0
+          fi
+          git -c user.name="Aster Communications Inc" -c user.email="${AUR_COMMIT_EMAIL:-41898282+github-actions[bot]@users.noreply.github.com}" \
+            commit -m "Update to ${VERSION}"
+          git push origin HEAD:master
+
+  publish_flathub:
+    needs: store_release
+    if: needs.store_release.outputs.publish == 'true'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Check Flathub credentials
+        id: gate
+        env:
+          FLATHUB_TOKEN: ${{ secrets.FLATHUB_TOKEN }}
+        run: bash packaging/scripts/require_values.sh Flathub FLATHUB_TOKEN
+      - name: Generate offline sources and publish the manifest
+        if: steps.gate.outputs.enabled == 'true'
+        env:
+          REPOSITORY_TOKEN: ${{ secrets.FLATHUB_TOKEN }}
+          VERSION: ${{ needs.store_release.outputs.version }}
+          COMMIT: ${{ needs.store_release.outputs.commit }}
+          RELEASE_DATE: ${{ needs.store_release.outputs.release_date }}
+          FLATHUB_REPOSITORY: ${{ vars.FLATHUB_REPOSITORY || 'flathub/org.astermail.Mail' }}
+          BUILDER_TOOLS_COMMIT: 1fc32195e3e60fe5c97f0af646dec7a99df5962b
+        run: |
+          set -euo pipefail
+          python3 -m venv "$RUNNER_TEMP/flatpak_tools"
+          "$RUNNER_TEMP/flatpak_tools/bin/pip" install --quiet aiohttp tomlkit PyYAML \
+            "git+https://github.com/flatpak/flatpak-builder-tools.git@${BUILDER_TOOLS_COMMIT}#subdirectory=node"
+          curl -fsSL -o "$RUNNER_TEMP/flatpak-cargo-generator.py" \
+            "https://raw.githubusercontent.com/flatpak/flatpak-builder-tools/${BUILDER_TOOLS_COMMIT}/cargo/flatpak-cargo-generator.py"
+
+          mkdir -p out/flathub
+          "$RUNNER_TEMP/flatpak_tools/bin/flatpak-node-generator" npm package-lock.json -o out/flathub/node-sources.json
+          "$RUNNER_TEMP/flatpak_tools/bin/python" "$RUNNER_TEMP/flatpak-cargo-generator.py" src-tauri/Cargo.lock -o out/flathub/cargo-sources.json
+
+          bash packaging/scripts/render_template.sh packaging/flathub/org.astermail.Mail.yml out/flathub/org.astermail.Mail.yml \
+            "VERSION=${VERSION}" "COMMIT=${COMMIT}"
+          bash packaging/scripts/render_template.sh packaging/flathub/org.astermail.Mail.metainfo.xml out/flathub/org.astermail.Mail.metainfo.xml \
+            "VERSION=${VERSION}" "RELEASE_DATE=${RELEASE_DATE}"
+          cp packaging/flathub/org.astermail.Mail.desktop out/flathub/
+
+          bash packaging/scripts/publish_to_git_repository.sh "$FLATHUB_REPOSITORY" "Update to ${VERSION}" \
+            out/flathub/org.astermail.Mail.yml=org.astermail.Mail.yml \
+            out/flathub/org.astermail.Mail.metainfo.xml=org.astermail.Mail.metainfo.xml \
+            out/flathub/org.astermail.Mail.desktop=org.astermail.Mail.desktop \
+            out/flathub/node-sources.json=node-sources.json \
+            out/flathub/cargo-sources.json=cargo-sources.json
+
+  publish_snap:
+    needs: store_release
+    if: needs.store_release.outputs.publish == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-22.04
+            deb_arch: amd64
+          - runner: ubuntu-22.04-arm
+            deb_arch: arm64
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Check Snap Store credentials
+        id: gate
+        env:
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+        run: bash packaging/scripts/require_values.sh "Snap Store" SNAPCRAFT_STORE_CREDENTIALS
+      - name: Build and upload the snap
+        if: steps.gate.outputs.enabled == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+          VERSION: ${{ needs.store_release.outputs.version }}
+          DEB_ARCH: ${{ matrix.deb_arch }}
+        run: |
+          set -euo pipefail
+          deb_sha256=$(bash packaging/scripts/release_asset_sha256.sh "v${VERSION}" "Aster-Mail-${DEB_ARCH}.deb" "Aster.Mail_${VERSION}_${DEB_ARCH}.deb")
+          bash packaging/scripts/render_template.sh packaging/snap/snapcraft.yaml snap_build/snap/snapcraft.yaml \
+            "VERSION=${VERSION}" "DEB_ARCH=${DEB_ARCH}" "DEB_SHA256=${deb_sha256}"
+          mkdir -p snap_build/snap/gui
+          cp packaging/snap/gui/aster-mail.desktop snap_build/snap/gui/aster-mail.desktop
+          cp src-tauri/icons/512x512.png snap_build/snap/gui/aster-mail.png
+
+          sudo snap install snapcraft --classic
+          snap_file="aster-mail_${VERSION}_${DEB_ARCH}.snap"
+          (cd snap_build && sudo snapcraft pack --destructive-mode --output "$snap_file")
+          snapcraft upload --release=stable "snap_build/${snap_file}"
+
+  publish_msstore:
+    needs: store_release
+    if: needs.store_release.outputs.publish == 'true'
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Check Microsoft Store credentials
+        id: gate
+        shell: bash
+        env:
+          MSSTORE_TENANT_ID: ${{ secrets.MSSTORE_TENANT_ID }}
+          MSSTORE_SELLER_ID: ${{ secrets.MSSTORE_SELLER_ID }}
+          MSSTORE_CLIENT_ID: ${{ secrets.MSSTORE_CLIENT_ID }}
+          MSSTORE_CLIENT_SECRET: ${{ secrets.MSSTORE_CLIENT_SECRET }}
+          MSSTORE_PRODUCT_ID: ${{ vars.MSSTORE_PRODUCT_ID }}
+          MSSTORE_IDENTITY_NAME: ${{ vars.MSSTORE_IDENTITY_NAME }}
+          MSSTORE_PUBLISHER: ${{ vars.MSSTORE_PUBLISHER }}
+          MSSTORE_PUBLISHER_DISPLAY_NAME: ${{ vars.MSSTORE_PUBLISHER_DISPLAY_NAME }}
+        run: |
+          bash packaging/scripts/require_values.sh "Microsoft Store" \
+            MSSTORE_TENANT_ID MSSTORE_SELLER_ID MSSTORE_CLIENT_ID MSSTORE_CLIENT_SECRET \
+            MSSTORE_PRODUCT_ID MSSTORE_IDENTITY_NAME MSSTORE_PUBLISHER MSSTORE_PUBLISHER_DISPLAY_NAME
+      - name: Download the installer and render the package manifest
+        if: steps.gate.outputs.enabled == 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ needs.store_release.outputs.version }}
+          MSSTORE_IDENTITY_NAME: ${{ vars.MSSTORE_IDENTITY_NAME }}
+          MSSTORE_PUBLISHER: ${{ vars.MSSTORE_PUBLISHER }}
+          MSSTORE_PUBLISHER_DISPLAY_NAME: ${{ vars.MSSTORE_PUBLISHER_DISPLAY_NAME }}
+        run: |
+          set -euo pipefail
+          bash packaging/scripts/release_asset_sha256.sh "v${VERSION}" Aster-Mail-x64.msi "Aster.Mail_${VERSION}_x64_en-US.msi" > /dev/null
+          gh release download "v${VERSION}" --pattern Aster-Mail-x64.msi --dir out --clobber
+          bash packaging/scripts/render_template.sh packaging/msstore/AppxManifest.xml out/msstore/AppxManifest.xml \
+            "VERSION=${VERSION}.0" \
+            "IDENTITY_NAME=${MSSTORE_IDENTITY_NAME}" \
+            "PUBLISHER=${MSSTORE_PUBLISHER}" \
+            "PUBLISHER_DISPLAY_NAME=${MSSTORE_PUBLISHER_DISPLAY_NAME}"
+      - name: Build the MSIX package
+        if: steps.gate.outputs.enabled == 'true'
+        shell: pwsh
+        run: ./packaging/msstore/build_msix.ps1 -MsiPath out/Aster-Mail-x64.msi -ManifestPath out/msstore/AppxManifest.xml -IconDirectory src-tauri/icons -OutputPath out/Aster-Mail-x64.msix
+      - name: Submit to the Microsoft Store
+        if: steps.gate.outputs.enabled == 'true'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MSSTORE_TENANT_ID: ${{ secrets.MSSTORE_TENANT_ID }}
+          MSSTORE_SELLER_ID: ${{ secrets.MSSTORE_SELLER_ID }}
+          MSSTORE_CLIENT_ID: ${{ secrets.MSSTORE_CLIENT_ID }}
+          MSSTORE_CLIENT_SECRET: ${{ secrets.MSSTORE_CLIENT_SECRET }}
+          MSSTORE_PRODUCT_ID: ${{ vars.MSSTORE_PRODUCT_ID }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $cli_root = Join-Path $env:RUNNER_TEMP 'msstore'
+          gh release download v0.4.2 --repo microsoft/msstore-cli --pattern 'MSStoreCLI-win-x64.zip*' --dir $cli_root --clobber
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $zip = Join-Path $cli_root 'MSStoreCLI-win-x64.zip'
+          $expected = ((Get-Content (Join-Path $cli_root 'MSStoreCLI-win-x64.zip.sha256.txt') -Raw).Trim() -split '\s+')[0]
+          $actual = (Get-FileHash $zip -Algorithm SHA256).Hash
+          if ($actual -ne $expected) { throw "msstore CLI checksum mismatch" }
+          Expand-Archive $zip -DestinationPath $cli_root -Force
+          $msstore = Get-ChildItem -Path $cli_root -Recurse -Filter 'msstore.exe' | Select-Object -First 1
+          & $msstore.FullName reconfigure --tenantId $env:MSSTORE_TENANT_ID --sellerId $env:MSSTORE_SELLER_ID --clientId $env:MSSTORE_CLIENT_ID --clientSecret $env:MSSTORE_CLIENT_SECRET
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          & $msstore.FullName publish out --inputFile out/Aster-Mail-x64.msix --appId $env:MSSTORE_PRODUCT_ID
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+  publish_mac_app_store:
+    needs: store_release
+    if: needs.store_release.outputs.publish == 'true'
+    permissions:
+      contents: read
+    uses: ./.github/workflows/mac_app_store.yml
+    with:
+      tag: v${{ needs.store_release.outputs.version }}
+    secrets:
+      MAS_APPLE_DISTRIBUTION_P12: ${{ secrets.MAS_APPLE_DISTRIBUTION_P12 }}
+      MAS_INSTALLER_P12: ${{ secrets.MAS_INSTALLER_P12 }}
+      MAS_CERT_PASSWORD: ${{ secrets.MAS_CERT_PASSWORD }}
+      MAS_PROVISIONING_PROFILE: ${{ secrets.MAS_PROVISIONING_PROFILE }}
+      APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
+      APPLE_API_KEY_CONTENT: ${{ secrets.APPLE_API_KEY_CONTENT }}
+      APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
