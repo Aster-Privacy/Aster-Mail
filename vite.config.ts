@@ -109,7 +109,9 @@ function version_manifest_plugin(version: string, build: string): Plugin {
 const build_hash = get_build_hash();
 
 const css_targets = browserslistToTargets(
-  browserslist("chrome >= 100, edge >= 100, firefox >= 100, safari >= 15"),
+  browserslist(
+    "chrome >= 100, edge >= 100, firefox >= 100, safari >= 15, ios_saf >= 15",
+  ),
 );
 
 const pwa_manifest = {
@@ -201,6 +203,7 @@ export default defineConfig({
   },
   build: {
     cssMinify: "lightningcss",
+    cssTarget: ["chrome87", "edge88", "firefox78", "safari14", "ios14"],
     chunkSizeWarningLimit: 2600,
     sourcemap: "hidden",
     rollupOptions: {
