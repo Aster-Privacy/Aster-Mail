@@ -5335,6 +5335,8 @@ export const it = {
       "I domini sono registrati tramite NameSilo. Con l'acquisto accetti i {{aster}}, {{registrar}} e {{icann}}. Le registrazioni sono definitive una volta creato il dominio.",
     domain_purchase_empty_title: "Scrivi qualcosa per iniziare",
     domain_purchase_search_failed: "La ricerca non è riuscita. Riprova.",
+    domain_purchase_search_rate_limited:
+      "Troppe ricerche. Riprova tra un minuto.",
     domain_purchase_retry: "Riprova",
     domain_purchase_step_choose: "Scegli un nome",
     domain_purchase_step_checkout: "Pagamento",

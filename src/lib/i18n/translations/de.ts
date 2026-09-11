@@ -6332,6 +6332,8 @@ export const de = {
     domain_purchase_empty_title: "Tippen Sie etwas ein, um zu starten",
     domain_purchase_search_failed:
       "Die Suche ist fehlgeschlagen. Bitte versuchen Sie es erneut.",
+    domain_purchase_search_rate_limited:
+      "Zu viele Suchanfragen. Versuchen Sie es in einer Minute erneut.",
     domain_purchase_retry: "Erneut versuchen",
     domain_purchase_step_choose: "Namen wählen",
     domain_purchase_step_checkout: "Bezahlen",

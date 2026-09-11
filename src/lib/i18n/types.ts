@@ -4846,6 +4846,7 @@ export interface SettingsTranslations {
   domain_purchase_terms_inline: string;
   domain_purchase_empty_title: string;
   domain_purchase_search_failed: string;
+  domain_purchase_search_rate_limited: string;
   domain_purchase_not_released: string;
   domain_purchase_retry: string;
   domain_purchase_step_choose: string;

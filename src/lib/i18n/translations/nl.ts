@@ -6389,6 +6389,8 @@ export const nl = {
     domain_purchase_empty_title: "Typ iets om te beginnen",
     domain_purchase_search_failed:
       "De zoekopdracht is mislukt. Probeer het opnieuw.",
+    domain_purchase_search_rate_limited:
+      "Te veel zoekopdrachten. Probeer het over een minuut opnieuw.",
     domain_purchase_retry: "Opnieuw proberen",
     domain_purchase_step_choose: "Kies een naam",
     domain_purchase_step_checkout: "Afrekenen",

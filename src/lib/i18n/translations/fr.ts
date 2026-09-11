@@ -6576,6 +6576,8 @@ export const fr = {
       "Les domaines sont enregistrés via NameSilo. En achetant, vous acceptez les {{aster}}, {{registrar}} et {{icann}}. Les enregistrements sont définitifs une fois le domaine créé.",
     domain_purchase_empty_title: "Saisissez quelque chose pour commencer",
     domain_purchase_search_failed: "La recherche a échoué. Veuillez réessayer.",
+    domain_purchase_search_rate_limited:
+      "Trop de recherches. Réessayez dans une minute.",
     domain_purchase_retry: "Réessayer",
     domain_purchase_step_choose: "Choisir un nom",
     domain_purchase_step_checkout: "Paiement",

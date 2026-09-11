@@ -6326,6 +6326,7 @@ export const ko = {
       "도메인은 NameSilo를 통해 등록됩니다. 구매하면 {{aster}}, {{registrar}} 및 {{icann}}에 동의하게 됩니다. 도메인이 생성되면 등록은 취소할 수 없습니다.",
     domain_purchase_empty_title: "무엇이든 입력해 시작하세요",
     domain_purchase_search_failed: "검색에 실패했습니다. 다시 시도해 주세요.",
+    domain_purchase_search_rate_limited: "검색 횟수가 너무 많습니다. 1분 후에 다시 시도해 주세요.",
     domain_purchase_retry: "다시 시도",
     domain_purchase_step_choose: "이름 선택",
     domain_purchase_step_checkout: "결제",

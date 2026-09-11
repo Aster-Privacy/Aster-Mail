@@ -6078,6 +6078,8 @@ export const en: Translations = {
     domain_purchase_empty_title: "Type in something to start",
     domain_purchase_search_failed:
       "The search didn't go through. Please try again.",
+    domain_purchase_search_rate_limited:
+      "Too many searches. Try again in a minute.",
     domain_purchase_not_released:
       "Buying domains isn't live yet. It's coming in an upcoming update.",
     domain_purchase_retry: "Try again",

@@ -6555,6 +6555,8 @@ export const pl = {
     domain_purchase_empty_title: "Wpisz coś, aby zacząć",
     domain_purchase_search_failed:
       "Wyszukiwanie nie powiodło się. Spróbuj ponownie.",
+    domain_purchase_search_rate_limited:
+      "Zbyt wiele wyszukiwań. Spróbuj ponownie za minutę.",
     domain_purchase_retry: "Spróbuj ponownie",
     domain_purchase_step_choose: "Wybierz nazwę",
     domain_purchase_step_checkout: "Płatność",

@@ -6511,6 +6511,8 @@ export const es = {
     domain_purchase_empty_title: "Escribe algo para empezar",
     domain_purchase_search_failed:
       "La búsqueda no se completó. Inténtalo de nuevo.",
+    domain_purchase_search_rate_limited:
+      "Demasiadas búsquedas. Inténtalo de nuevo en un minuto.",
     domain_purchase_retry: "Reintentar",
     domain_purchase_step_choose: "Elige un nombre",
     domain_purchase_step_checkout: "Pago",

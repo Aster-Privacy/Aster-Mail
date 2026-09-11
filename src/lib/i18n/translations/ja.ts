@@ -6408,6 +6408,7 @@ export const ja = {
     domain_purchase_empty_title: "何か入力して始めましょう",
     domain_purchase_search_failed:
       "検索できませんでした。もう一度お試しください。",
+    domain_purchase_search_rate_limited: "検索回数が多すぎます。1分後にもう一度お試しください。",
     domain_purchase_retry: "再試行",
     domain_purchase_step_choose: "名前を選ぶ",
     domain_purchase_step_checkout: "支払い",

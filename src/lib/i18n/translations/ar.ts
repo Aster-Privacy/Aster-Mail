@@ -6377,6 +6377,8 @@ export const ar = {
       "يتم تسجيل النطاقات عبر NameSilo. بالشراء، فإنك توافق على {{aster}} و{{registrar}} و{{icann}}. يصبح التسجيل نهائيًا بمجرد إنشاء النطاق.",
     domain_purchase_empty_title: "اكتب شيئًا للبدء",
     domain_purchase_search_failed: "تعذر إتمام البحث. حاول مرة أخرى.",
+    domain_purchase_search_rate_limited:
+      "عمليات بحث كثيرة جدًا. حاول مرة أخرى بعد دقيقة.",
     domain_purchase_retry: "إعادة المحاولة",
     domain_purchase_step_choose: "اختر اسمًا",
     domain_purchase_step_checkout: "الدفع",

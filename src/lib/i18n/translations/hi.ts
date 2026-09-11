@@ -6205,6 +6205,8 @@ export const hi = {
       "डोमेन NameSilo के ज़रिए पंजीकृत होते हैं। खरीदने पर आप {{aster}}, {{registrar}} और {{icann}} स्वीकार करते हैं। डोमेन बन जाने के बाद पंजीकरण अंतिम होता है।",
     domain_purchase_empty_title: "शुरू करने के लिए कुछ लिखें",
     domain_purchase_search_failed: "खोज पूरी नहीं हो सकी। फिर से कोशिश करें।",
+    domain_purchase_search_rate_limited:
+      "बहुत ज़्यादा खोजें की गई हैं। एक मिनट बाद फिर से कोशिश करें।",
     domain_purchase_not_released:
       "डोमेन खरीदना अभी चालू नहीं हुआ है। यह आने वाले किसी अपडेट में मिलेगा।",
     domain_purchase_retry: "फिर से कोशिश करें",

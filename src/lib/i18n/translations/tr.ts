@@ -6387,6 +6387,8 @@ export const tr = {
     domain_purchase_empty_title: "Başlamak için bir şeyler yazın",
     domain_purchase_search_failed:
       "Arama tamamlanamadı. Lütfen tekrar deneyin.",
+    domain_purchase_search_rate_limited:
+      "Çok fazla arama yapıldı. Bir dakika sonra tekrar deneyin.",
     domain_purchase_retry: "Tekrar dene",
     domain_purchase_step_choose: "Bir ad seçin",
     domain_purchase_step_checkout: "Ödeme",

@@ -5778,6 +5778,7 @@ export const zh_CN = {
       "域名通过 NameSilo 注册。购买即表示您接受{{aster}}、{{registrar}}以及{{icann}}。域名创建后注册不可撤销。",
     domain_purchase_empty_title: "输入内容即可开始",
     domain_purchase_search_failed: "搜索失败,请重试。",
+    domain_purchase_search_rate_limited: "搜索次数过多,请一分钟后重试。",
     domain_purchase_retry: "重试",
     domain_purchase_step_choose: "选择名称",
     domain_purchase_step_checkout: "结账",

@@ -52,6 +52,13 @@ import {
   read_checkout_draft,
   write_checkout_draft,
 } from "./shared";
+import {
+  SEARCH_DEBOUNCE_MS,
+  SEARCH_MAX_GAP_RETRIES,
+  classify_search_failure,
+  search_start_delay,
+  throttle_wait_ms,
+} from "./search_pacing";
 
 import { apply_input_transform } from "@/utils/input_transform";
 import { Spinner } from "@/components/ui/spinner";
@@ -74,8 +81,6 @@ import type {} from "@/services/api/client";
 import { is_https_payment_url } from "@/lib/payment_url";
 import { show_toast } from "@/components/toast/simple_toast";
 import { ignore_error } from "@/lib/ignore_error";
-
-const MAX_RATE_LIMIT_RETRIES = 5;
 
 export function DomainPurchaseFlow({
   initial_order_id,
@@ -127,6 +132,7 @@ export function DomainPurchaseFlow({
   const [loading_more_suggestions, set_loading_more_suggestions] =
     useState(false);
   const [error, set_error] = useState<string | null>(null);
+  const [throttled_until, set_throttled_until] = useState<number | null>(null);
   const [unavailable, set_unavailable] = useState(false);
   const [selected, set_selected] = useState<DomainSearchResult | null>(
     restored_checkout.current?.selected ?? null,
@@ -145,6 +151,12 @@ export function DomainPurchaseFlow({
   const retry_ref = useRef<ReturnType<typeof setTimeout> | null>(null);
   const query_ref = useRef("");
   const rate_limit_retries = useRef(0);
+  const in_flight_ref = useRef(false);
+  const pending_query_ref = useRef<string | null>(null);
+  const last_started_ref = useRef<number | null>(null);
+  const blocked_until_ref = useRef(0);
+  const auto_retried_query_ref = useRef<string | null>(null);
+  const pump_ref = useRef<() => void>(() => {});
   const purchased_notified = useRef(false);
   const turnstile_required = !!TURNSTILE_SITE_KEY;
 
@@ -160,11 +172,129 @@ export function DomainPurchaseFlow({
     }
   }, [view, selected, years, payment_method]);
 
+  const note_throttled = useCallback(
+    (response: Parameters<typeof throttle_wait_ms>[0]) => {
+      const now = Date.now();
+      const until = now + throttle_wait_ms(response, now);
+
+      blocked_until_ref.current = Math.max(blocked_until_ref.current, until);
+      set_throttled_until(blocked_until_ref.current);
+    },
+    [],
+  );
+
+  const execute_search = useCallback(
+    async (trimmed: string) => {
+      const is_current_search = () =>
+        query_ref.current.trim() === trimmed &&
+        (pending_query_ref.current === null ||
+          pending_query_ref.current === trimmed);
+
+      in_flight_ref.current = true;
+      last_started_ref.current = Date.now();
+      set_searching(true);
+      set_error(null);
+      set_unavailable(false);
+      set_throttled_until(null);
+      let response: Awaited<ReturnType<typeof search_purchasable_domains>>;
+
+      try {
+        response = await search_purchasable_domains(trimmed);
+      } catch {
+        in_flight_ref.current = false;
+        if (is_current_search()) {
+          set_searching(false);
+          set_error(t("settings.domain_purchase_search_failed"));
+        }
+        pump_ref.current();
+
+        return;
+      }
+      in_flight_ref.current = false;
+      const kind = response.data ? null : classify_search_failure(response);
+
+      if (kind === "throttled") note_throttled(response);
+      const current = is_current_search();
+
+      if (current) pending_query_ref.current = null;
+
+      if (current && response.data) {
+        rate_limit_retries.current = 0;
+        set_results(response.data.results);
+        set_suggestions(response.data.suggestions ?? []);
+        set_has_more_suggestions(response.data.has_more_suggestions ?? false);
+        set_suggest_pages(response.data.next_suggest_page ?? 1);
+        set_results_query(trimmed);
+        set_searching(false);
+      } else if (current && kind === "throttled") {
+        set_searching(false);
+        set_error(t("settings.domain_purchase_search_rate_limited"));
+        if (auto_retried_query_ref.current !== trimmed) {
+          auto_retried_query_ref.current = trimmed;
+          pending_query_ref.current = trimmed;
+        }
+      } else if (
+        current &&
+        kind === "slow_down" &&
+        rate_limit_retries.current < SEARCH_MAX_GAP_RETRIES
+      ) {
+        rate_limit_retries.current += 1;
+        pending_query_ref.current = trimmed;
+      } else if (current) {
+        rate_limit_retries.current = 0;
+        set_searching(false);
+        if (kind === "not_released") {
+          set_unavailable(true);
+          set_error(t("settings.domain_purchase_not_released"));
+        } else {
+          set_error(t("settings.domain_purchase_search_failed"));
+        }
+      }
+      pump_ref.current();
+    },
+    [t, note_throttled],
+  );
+
+  const pump_search = useCallback(() => {
+    if (in_flight_ref.current) return;
+    const next = pending_query_ref.current;
+
+    if (next === null) return;
+    const delay = search_start_delay(
+      Date.now(),
+      last_started_ref.current,
+      blocked_until_ref.current,
+    );
+
+    if (retry_ref.current) clearTimeout(retry_ref.current);
+    retry_ref.current = null;
+    if (blocked_until_ref.current > Date.now()) {
+      set_searching(false);
+      set_error(t("settings.domain_purchase_search_rate_limited"));
+      set_throttled_until(blocked_until_ref.current);
+    }
+    if (delay > 0) {
+      retry_ref.current = setTimeout(() => {
+        retry_ref.current = null;
+        pump_ref.current();
+      }, delay);
+
+      return;
+    }
+    pending_query_ref.current = null;
+    void execute_search(next);
+  }, [execute_search, t]);
+
+  pump_ref.current = pump_search;
+
   const run_search = useCallback(
-    async (q: string) => {
+    (q: string) => {
       const trimmed = q.trim();
 
       if (trimmed.length < 3) {
+        pending_query_ref.current = null;
+        if (retry_ref.current) clearTimeout(retry_ref.current);
+        retry_ref.current = null;
         set_results([]);
         set_suggestions([]);
         set_has_more_suggestions(false);
@@ -174,71 +304,42 @@ export function DomainPurchaseFlow({
 
         return;
       }
-      set_searching(true);
-      set_error(null);
-      set_unavailable(false);
-      try {
-        const response = await search_purchasable_domains(trimmed);
-
-        if (query_ref.current.trim() !== trimmed) return;
-        if (response.data) {
-          rate_limit_retries.current = 0;
-          set_results(response.data.results);
-          set_suggestions(response.data.suggestions ?? []);
-          set_has_more_suggestions(response.data.has_more_suggestions ?? false);
-          set_suggest_pages(response.data.next_suggest_page ?? 1);
-          set_results_query(trimmed);
-          set_searching(false);
-        } else {
-          if (
-            response.code === "RATE_LIMIT_EXCEEDED" &&
-            rate_limit_retries.current < MAX_RATE_LIMIT_RETRIES
-          ) {
-            rate_limit_retries.current += 1;
-            if (retry_ref.current) clearTimeout(retry_ref.current);
-            retry_ref.current = setTimeout(() => {
-              if (query_ref.current.trim() === trimmed) run_search(trimmed);
-            }, 1100);
-
-            return;
-          }
-          if (response.code === "RATE_LIMIT_EXCEEDED") {
-            rate_limit_retries.current = 0;
-            set_searching(false);
-            set_error(t("settings.domain_purchase_search_failed"));
-
-            return;
-          }
-          set_searching(false);
-          if (response.code === "NOT_FOUND") {
-            set_unavailable(true);
-            set_error(t("settings.domain_purchase_not_released"));
-          } else {
-            set_error(t("settings.domain_purchase_search_failed"));
-          }
-        }
-      } catch {
-        if (query_ref.current.trim() !== trimmed) return;
-        set_searching(false);
-        set_error(t("settings.domain_purchase_search_failed"));
-      }
+      pending_query_ref.current = trimmed;
+      if (Date.now() >= blocked_until_ref.current) set_searching(true);
+      pump_search();
     },
-    [t],
+    [pump_search],
   );
 
   useEffect(() => {
     if (view !== "search") return;
     query_ref.current = query;
     rate_limit_retries.current = 0;
+    pending_query_ref.current = null;
     if (debounce_ref.current) clearTimeout(debounce_ref.current);
     if (retry_ref.current) clearTimeout(retry_ref.current);
-    debounce_ref.current = setTimeout(() => run_search(query), 800);
+    retry_ref.current = null;
+    debounce_ref.current = setTimeout(
+      () => run_search(query),
+      SEARCH_DEBOUNCE_MS,
+    );
 
     return () => {
       if (debounce_ref.current) clearTimeout(debounce_ref.current);
       if (retry_ref.current) clearTimeout(retry_ref.current);
+      retry_ref.current = null;
     };
   }, [query, view, run_search]);
+
+  useEffect(() => {
+    if (throttled_until === null) return;
+    const timer = setTimeout(
+      () => set_throttled_until(null),
+      Math.max(0, throttled_until - Date.now()),
+    );
+
+    return () => clearTimeout(timer);
+  }, [throttled_until]);
 
   useEffect(() => {
     if (view !== "progress" || !order_id) return;
@@ -382,10 +483,28 @@ export function DomainPurchaseFlow({
     const trimmed = results_query;
 
     if (!trimmed || loading_more_suggestions) return;
+    if (Date.now() < blocked_until_ref.current) {
+      show_toast(t("settings.domain_purchase_search_rate_limited"), "error");
+
+      return;
+    }
     set_loading_more_suggestions(true);
     try {
+      const delay = search_start_delay(
+        Date.now(),
+        last_started_ref.current,
+        blocked_until_ref.current,
+      );
+
+      if (delay > 0) {
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
+      last_started_ref.current = Date.now();
       const response = await search_purchasable_domains(trimmed, suggest_pages);
 
+      if (!response.data && classify_search_failure(response) === "throttled") {
+        note_throttled(response);
+      }
       if (query_ref.current.trim() !== trimmed) return;
       if (response.data) {
         const incoming = response.data.suggestions ?? [];
@@ -397,6 +516,8 @@ export function DomainPurchaseFlow({
         });
         set_suggest_pages(response.data.next_suggest_page ?? suggest_pages + 1);
         set_has_more_suggestions(response.data.has_more_suggestions ?? false);
+      } else if (classify_search_failure(response) === "throttled") {
+        show_toast(t("settings.domain_purchase_search_rate_limited"), "error");
       } else {
         show_toast(t("settings.domain_purchase_search_failed"), "error");
       }
@@ -831,7 +952,7 @@ export function DomainPurchaseFlow({
               <p className="text-sm text-txt-secondary max-w-[300px] mb-4">
                 {error}
               </p>
-              {!unavailable && (
+              {!unavailable && throttled_until === null && (
                 <Button
                   size="sm"
                   variant="outline"

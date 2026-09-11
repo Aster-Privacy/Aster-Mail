@@ -6613,6 +6613,8 @@ export const ru = {
       "Домены регистрируются через NameSilo. Совершая покупку, вы принимаете {{aster}}, {{registrar}} и {{icann}}. После создания домена регистрация не отменяется.",
     domain_purchase_empty_title: "Введите что-нибудь, чтобы начать",
     domain_purchase_search_failed: "Поиск не удался. Попробуйте ещё раз.",
+    domain_purchase_search_rate_limited:
+      "Слишком много запросов. Попробуйте ещё раз через минуту.",
     domain_purchase_retry: "Повторить",
     domain_purchase_step_choose: "Выберите имя",
     domain_purchase_step_checkout: "Оплата",
