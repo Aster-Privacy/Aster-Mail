@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>org.astermail.Mail</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>AGPL-3.0-or-later</project_license>
+  <name>Aster Mail</name>
+  <summary>End-to-end encrypted email</summary>
+  <developer id="org.astermail">
+    <name>Aster Communications Inc</name>
+  </developer>
+  <description>
+    <p>Aster Mail is the desktop app for Aster, a free, open-source, end-to-end encrypted email service. Aster encrypts your messages, subject lines, and attachments on your device, so Aster can't read your email.</p>
+    <p>Messages between Aster accounts are end-to-end encrypted with OpenPGP and use ML-KEM-768 key exchange, which protects them against attackers who store encrypted messages today to decrypt them later. Your keys are portable, so you can export them and use them with any OpenPGP app.</p>
+    <p>To use Aster Mail, you need an Aster account. You can create a free account at astermail.org without a phone number or a recovery email address.</p>
+  </description>
+  <launchable type="desktop-id">org.astermail.Mail.desktop</launchable>
+  <url type="homepage">https://astermail.org/</url>
+  <url type="bugtracker">https://github.com/Aster-Privacy/Aster-Mail/issues</url>
+  <url type="vcs-browser">https://github.com/Aster-Privacy/Aster-Mail</url>
+  <screenshots>
+    <screenshot type="default">
+      <caption>Read and organize your inbox</caption>
+      <image>https://raw.githubusercontent.com/Aster-Privacy/Aster-Mail/v@VERSION@/packaging/flathub/screenshots/screenshot_01_inbox.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Sort your messages into categories</caption>
+      <image>https://raw.githubusercontent.com/Aster-Privacy/Aster-Mail/v@VERSION@/packaging/flathub/screenshots/screenshot_02_categories.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Find a custom domain for your address</caption>
+      <image>https://raw.githubusercontent.com/Aster-Privacy/Aster-Mail/v@VERSION@/packaging/flathub/screenshots/screenshot_03_domain_search.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Use Aster Mail with the dark theme</caption>
+      <image>https://raw.githubusercontent.com/Aster-Privacy/Aster-Mail/v@VERSION@/packaging/flathub/screenshots/screenshot_04_dark_theme.png</image>
+    </screenshot>
+  </screenshots>
+  <content_rating type="oars-1.1">
+    <content_attribute id="social-chat">intense</content_attribute>
+  </content_rating>
+  <supports>
+    <control>pointing</control>
+    <control>keyboard</control>
+  </supports>
+  <releases>
+    <release version="@VERSION@" date="@RELEASE_DATE@">
+      <url type="details">https://github.com/Aster-Privacy/Aster-Mail/releases/tag/v@VERSION@</url>
+    </release>
+  </releases>
+</component>

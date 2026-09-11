@@ -1,0 +1,46 @@
+name: aster-mail
+title: Aster Mail
+base: core22
+version: '@VERSION@'
+summary: End-to-end encrypted email client for your Aster account
+description: |
+  Aster Mail is the desktop app for Aster, a free, open-source, end-to-end encrypted email service. Aster encrypts your messages, subject lines, and attachments on your device, so Aster can't read your email.
+
+  Messages between Aster accounts are end-to-end encrypted with OpenPGP and use ML-KEM-768 key exchange, which protects them against attackers who store encrypted messages today to decrypt them later. Your keys are portable, so you can export them and use them with any OpenPGP app.
+
+  To use Aster Mail, you need an Aster account. You can create a free account at astermail.org without a phone number or a recovery email address.
+license: AGPL-3.0-or-later
+website: https://astermail.org/
+source-code: https://github.com/Aster-Privacy/Aster-Mail
+issues: https://github.com/Aster-Privacy/Aster-Mail/issues
+icon: snap/gui/aster-mail.png
+grade: stable
+confinement: strict
+
+layout:
+  /usr/lib/$SNAPCRAFT_ARCH_TRIPLET/webkit2gtk-4.1:
+    bind: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/webkit2gtk-4.1
+
+apps:
+  aster-mail:
+    command: usr/bin/aster-mail-desktop
+    extensions:
+      - gnome
+    plugs:
+      - home
+      - network
+      - network-status
+      - password-manager-service
+      - unity7
+
+parts:
+  aster-mail:
+    plugin: dump
+    source: https://github.com/Aster-Privacy/Aster-Mail/releases/download/v@VERSION@/Aster-Mail-@DEB_ARCH@.deb
+    source-type: deb
+    source-checksum: sha256/@DEB_SHA256@
+    stage-packages:
+      - libwebkit2gtk-4.1-0
+      - libayatana-appindicator3-1
+    prime:
+      - -usr/share/applications
