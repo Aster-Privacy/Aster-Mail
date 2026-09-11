@@ -1,0 +1,56 @@
+id: org.astermail.Mail
+runtime: org.gnome.Platform
+runtime-version: '49'
+sdk: org.gnome.Sdk
+sdk-extensions:
+  - org.freedesktop.Sdk.Extension.rust-stable
+  - org.freedesktop.Sdk.Extension.node22
+command: aster-mail-desktop
+finish-args:
+  - --share=ipc
+  - --share=network
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --device=dri
+  - --talk-name=org.freedesktop.Notifications
+  - --talk-name=org.kde.StatusNotifierWatcher
+  - --talk-name=org.freedesktop.secrets
+
+modules:
+  - shared-modules/libayatana-appindicator/libayatana-appindicator-gtk3.json
+
+  - name: aster-mail
+    buildsystem: simple
+    build-options:
+      append-path: /usr/lib/sdk/rust-stable/bin:/usr/lib/sdk/node22/bin
+      env:
+        CARGO_HOME: /run/build/aster-mail/cargo
+        CARGO_NET_OFFLINE: 'true'
+        npm_config_cache: /run/build/aster-mail/flatpak-node/npm-cache
+        npm_config_offline: 'true'
+        XDG_CACHE_HOME: /run/build/aster-mail/flatpak-node/cache
+    sources:
+      - type: git
+        url: https://github.com/Aster-Privacy/Aster-Mail.git
+        tag: v@VERSION@
+        commit: '@COMMIT@'
+        x-checker-data:
+          type: git
+          tag-pattern: ^v([\d.]+)$
+      - node-sources.json
+      - cargo-sources.json
+      - type: file
+        path: org.astermail.Mail.desktop
+      - type: file
+        path: org.astermail.Mail.metainfo.xml
+    build-commands:
+      - npm ci --offline --no-audit --no-fund
+      - npx vite build
+      - cargo build --release --offline --locked --manifest-path src-tauri/Cargo.toml --no-default-features --features custom-protocol,single-instance
+      - install -Dm755 src-tauri/target/release/aster-mail-desktop /app/bin/aster-mail-desktop
+      - |
+        for size in 32 64 128 256 512; do
+          install -Dm644 "src-tauri/icons/${size}x${size}.png" "/app/share/icons/hicolor/${size}x${size}/apps/org.astermail.Mail.png"
+        done
+      - install -Dm644 org.astermail.Mail.desktop /app/share/applications/org.astermail.Mail.desktop
+      - install -Dm644 org.astermail.Mail.metainfo.xml /app/share/metainfo/org.astermail.Mail.metainfo.xml

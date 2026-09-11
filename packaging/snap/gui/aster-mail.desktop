@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Aster Mail
+GenericName=Email Client
+Comment=Read and send end-to-end encrypted email
+Exec=aster-mail
+Icon=${SNAP}/meta/gui/aster-mail.png
+Terminal=false
+Categories=Network;Email;
+Keywords=email;mail;encryption;privacy;openpgp;
+StartupWMClass=com.astermail.mail
