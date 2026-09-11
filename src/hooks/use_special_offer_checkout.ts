@@ -18,17 +18,36 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 
 import {
   special_offer_checkout,
   type SpecialOfferCheckout,
 } from "@/lib/special_offer";
-import { use_special_offer_status } from "@/stores/special_offer_status";
+import {
+  refresh_special_offer_status,
+  use_special_offer_status,
+} from "@/stores/special_offer_status";
 
-export function use_special_offer_checkout(): SpecialOfferCheckout {
+export function use_special_offer_checkout(
+  current_plan_code?: string | null,
+): SpecialOfferCheckout {
   const { status, is_loaded } = use_special_offer_status();
-  const is_available = is_loaded && status?.available === true;
+  const last_plan_code = useRef(current_plan_code);
+
+  useEffect(() => {
+    const previous = last_plan_code.current;
+
+    last_plan_code.current = current_plan_code;
+
+    if (previous && current_plan_code && previous !== current_plan_code) {
+      void refresh_special_offer_status();
+    }
+  }, [current_plan_code]);
+
+  const is_on_paid_plan = !!current_plan_code && current_plan_code !== "free";
+  const is_available =
+    is_loaded && status?.available === true && !is_on_paid_plan;
 
   return useMemo(() => special_offer_checkout(is_available), [is_available]);
 }

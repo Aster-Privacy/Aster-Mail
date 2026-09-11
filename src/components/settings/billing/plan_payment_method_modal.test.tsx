@@ -328,6 +328,44 @@ describe("PlanPaymentMethodModal special offer pricing", () => {
     );
   });
 
+  function render_with_credits(with_offer: boolean, selected_term: string) {
+    act(() => {
+      root.render(
+        <PlanPaymentMethodModal
+          open
+          credit_balance_cents={500}
+          on_choose_card={vi.fn()}
+          on_choose_crypto={vi.fn()}
+          on_close={vi.fn()}
+          plan_name="Nova"
+          selected_term={selected_term}
+          special_offer={
+            with_offer
+              ? special_offer_checkout(true).plan_pricing("nova")
+              : undefined
+          }
+          term_options={NOVA_TERMS}
+        />,
+      );
+    });
+  }
+
+  it("hides the credits note when the card offer applies", () => {
+    render_with_credits(true, "monthly");
+
+    expect(document.body.textContent).not.toContain(
+      "settings.credits_will_be_applied",
+    );
+  });
+
+  it("keeps the credits note when the card offer does not apply", () => {
+    render_with_credits(true, "yearly");
+
+    expect(document.body.textContent).toContain(
+      "settings.credits_will_be_applied($5.00)",
+    );
+  });
+
   it("adds no offer pricing without a special offer", () => {
     render(false);
 

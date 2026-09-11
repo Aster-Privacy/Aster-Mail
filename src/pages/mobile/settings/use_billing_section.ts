@@ -101,9 +101,11 @@ export function use_billing_section() {
   const { t } = use_i18n();
   const { user } = use_auth();
   const { stats } = use_mail_stats();
-  const special_offer_checkout = use_special_offer_checkout();
   const [subscription, set_subscription] =
     useState<SubscriptionResponse | null>(null);
+  const special_offer_checkout = use_special_offer_checkout(
+    subscription?.plan.code,
+  );
   const [plans, set_plans] = useState<AvailablePlan[]>([]);
   const [history, set_history] = useState<BillingHistoryItem[]>([]);
   const [is_loading, set_is_loading] = useState(true);

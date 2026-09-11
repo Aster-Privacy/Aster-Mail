@@ -43,6 +43,7 @@ import {
   SPECIAL_OFFER_PERCENT_OFF,
   SPECIAL_OFFER_PLAN_CODE,
   is_special_offer_available,
+  special_offer_discounted_cents,
   special_offer_pricing,
   special_offer_promo_code,
 } from "@/lib/special_offer";
@@ -162,7 +163,7 @@ export function SpecialOfferModal() {
   if (!pricing || !offer_tier) return null;
 
   const offer_label = format_price(
-    convert_cents(pricing.offer_cents, currency),
+    special_offer_discounted_cents(convert_cents(pricing.list_cents, currency)),
     currency,
   );
   const list_label = format_price(

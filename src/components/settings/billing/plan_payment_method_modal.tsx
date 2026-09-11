@@ -592,19 +592,21 @@ export function PlanPaymentMethodModal({
                         <span>{discount_note}</span>
                       </span>
                     )}
-                    {entry.id === "card" && credit_amount && (
-                      <span
-                        className="mt-1 flex items-start gap-1.5 text-[11px] leading-snug"
-                        style={{ color: "var(--accent-color)" }}
-                      >
-                        <SparklesIcon className="mt-px h-3.5 w-3.5 flex-shrink-0" />
-                        <span>
-                          {t("settings.credits_will_be_applied", {
-                            amount: credit_amount,
-                          })}
+                    {entry.id === "card" &&
+                      credit_amount &&
+                      !offer_quote("card") && (
+                        <span
+                          className="mt-1 flex items-start gap-1.5 text-[11px] leading-snug"
+                          style={{ color: "var(--accent-color)" }}
+                        >
+                          <SparklesIcon className="mt-px h-3.5 w-3.5 flex-shrink-0" />
+                          <span>
+                            {t("settings.credits_will_be_applied", {
+                              amount: credit_amount,
+                            })}
+                          </span>
                         </span>
-                      </span>
-                    )}
+                      )}
                   </button>
                 );
               })}

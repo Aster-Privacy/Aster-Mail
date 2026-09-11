@@ -116,10 +116,10 @@ import { use_plan_features } from "@/components/settings/billing/use_plan_featur
 
 export function BillingSection() {
   const { t } = use_i18n();
-  const offer_checkout = use_special_offer_checkout();
   const { stats } = use_mail_stats();
   const [subscription, set_subscription] =
     useState<SubscriptionResponse | null>(null);
+  const offer_checkout = use_special_offer_checkout(subscription?.plan.code);
   const [plans, set_plans] = useState<AvailablePlan[]>([]);
   const [history, set_history] = useState<BillingHistoryItem[]>([]);
   const [history_load_failed, set_history_load_failed] = useState(false);
