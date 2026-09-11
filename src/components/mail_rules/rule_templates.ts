@@ -69,7 +69,7 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     color: "#3b82f6",
     match_mode: "all",
     conditions: [{ type: "has_list_id", value: true }],
-    actions: [{ type: "categorize", category: "updates" }],
+    actions: [{ type: "categorize", category: "newsletters" }],
   },
   {
     id: "social",

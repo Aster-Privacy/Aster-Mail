@@ -21,8 +21,10 @@
 
 import type { EmailCategory } from "@/types/email";
 
-import { category_for_tab } from "@/services/mail_categorizer";
-import { get_index_entries } from "@/services/category_index";
+import {
+  fold_to_active_tab,
+  get_index_entries,
+} from "@/services/category_index";
 
 interface CategorySource {
   id?: string;
@@ -35,8 +37,8 @@ export function effective_category(email: CategorySource): EmailCategory {
   if (id) {
     const [entry] = get_index_entries([id]);
 
-    if (entry) return category_for_tab(entry.category);
+    if (entry) return fold_to_active_tab(entry.category);
   }
 
-  return category_for_tab(email.mail_category);
+  return fold_to_active_tab(email.mail_category);
 }

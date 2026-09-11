@@ -2494,7 +2494,7 @@ export const tr = {
     inbox_categories: "Gelen Kutusu Kategorileri",
     inbox_categories_short: "Gelen kutunuzu sekmelere ayırın",
     inbox_categories_description:
-      "Gelen kutunuzu Birincil, Tanıtımlar, Sosyal ve Güncellemeler sekmelerine ayırır. Sıralama, cihazınızda gizli olarak yapılır - kategoriler hiçbir zaman sunucuya gönderilmez.",
+      "Gelen kutunuzu İndirimler, Sosyal ve Bildirimler gibi sekmelere ayırır. Sıralama, cihazınızda gizli olarak yapılır - kategoriler hiçbir zaman sunucuya gönderilmez.",
     categories_title: "Kategoriler",
     categories_description:
       "Gelen kutunuzda hangi kategori sekmelerinin görüneceğini seçin ve kendi kategorilerinizi oluşturun. Tüm sıralama cihazınızda yerel olarak yapılır.",
@@ -7999,7 +7999,7 @@ export const tr = {
     tab_new_count: "yeni",
     tab_unread_count: "{{count}} okunmamış",
     tab_counting_unread: "Okunmayan iletiler sayılıyor",
-    category_empty_primary_title: "Birincil'de hiçbir şey yok",
+    category_empty_primary_title: "Gelen Kutusu'nda hiçbir şey yok",
     category_empty_primary_desc:
       "Kişisel mesajlarınız ve sohbetleriniz burada görünecek.",
     category_empty_promotions_title: "İndirim yok",
@@ -8023,6 +8023,12 @@ export const tr = {
     category_empty_shopping_title: "Alışveriş e-postası yok",
     category_empty_shopping_desc:
       "Sipariş onayları ve kargo güncellemeleri burada görünecek.",
+    category_empty_newsletters_title: "Bülten yok",
+    category_empty_newsletters_desc:
+      "Abone olduğunuz bültenler ve posta listeleri burada görünür.",
+    category_empty_transactions_title: "Alışveriş yok",
+    category_empty_transactions_desc:
+      "Mağaza ve hizmetlerden gelen siparişler, ödemeler ve makbuzlar burada görünür.",
     category_empty_custom_desc:
       "Bu kategorinin kurallarıyla eşleşen e-postalar burada görünecek.",
     view_html_part: "HTML'yi Görüntüle",
@@ -10173,13 +10179,13 @@ export const tr = {
       "Bir klasördeki e-postaları, seçtiğiniz gün sayısını aştıklarında otomatik olarak kaldırır. Yıldızlı ve sabitlenmiş e-postalar her zaman saklanır.",
     tpl_newsletters_name: "Bültenleri ayır",
     tpl_newsletters_desc:
-      "Bir ileti posta listesinden geldiğinde (List-Id başlığı taşır), Bildirimler kategorisine yerleştirin.",
+      "Bir ileti posta listesinden geldiğinde (List-Id başlığı taşır), Bültenler kategorisine yerleştirin.",
     tpl_social_name: "Sosyal bildirimleri topla",
     tpl_social_desc:
       "Gönderen Facebook, LinkedIn, X/Twitter veya Instagram olduğunda iletiyi Sosyal kategorisine taşıyın.",
-    tpl_promotions_name: "Tanıtımları yakala",
+    tpl_promotions_name: "İndirimleri yakala",
     tpl_promotions_desc:
-      "Konu indirim, kampanya, kupon veya “%% indirim” içeriyorsa iletiyi Fırsatlar kategorisine taşıyın.",
+      "Konu indirim, kampanya, kupon veya “%% indirim” içeriyorsa iletiyi İndirimler kategorisine taşıyın.",
     tpl_calendar_name: "Takvim davetlerini topla",
     tpl_calendar_desc:
       "Bir ileti takvim daveti (.ics) içerdiğinde Bildirimler kategorisine yerleştirin.",

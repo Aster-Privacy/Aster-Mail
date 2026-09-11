@@ -2192,7 +2192,7 @@ export const hi = {
     category_info_newsletters: "आपने जिन न्यूज़लेटर और मेलिंग सूचियों की सदस्यता ली है।",
     category_info_transactions: "स्टोर और सेवाओं से आए ऑर्डर, भुगतान और रसीदें।",
     category_newsletters: "न्यूज़लेटर",
-    category_transactions: "खरीदारी",
+    category_transactions: "रसीदें",
     checkout_abandon_confirm: "भुगतान रद्द करें",
     checkout_abandon_keep: "भुगतान जारी रखें",
     checkout_abandon_message: "आपका इनवॉइस रद्द हो जाता है और कोई शुल्क नहीं लिया जाता। आप कभी भी दोबारा शुरू कर सकते हैं।",
@@ -3089,7 +3089,7 @@ export const hi = {
     inbox_categories: "इनबॉक्स श्रेणियां",
     inbox_categories_short: "अपने इनबॉक्स को टैब में बांटें",
     inbox_categories_description:
-      "आपके इनबॉक्स को मुख्य, प्रचार, सामाजिक और अपडेट टैब में बांटता है। छंटाई आपके डिवाइस पर ही निजी तौर पर होती है, श्रेणियां कभी सर्वर पर नहीं भेजी जातीं।",
+      "आपके इनबॉक्स को ऑफ़र, सोशल और सूचनाएं जैसे टैब में बांटता है। छंटाई आपके डिवाइस पर ही निजी तौर पर होती है, श्रेणियां कभी सर्वर पर नहीं भेजी जातीं।",
     categories_title: "श्रेणियां",
     categories_description:
       "चुनें कि आपके इनबॉक्स में कौन से श्रेणी टैब दिखें, और अपने टैब बनाएं। सारी छंटाई आपके डिवाइस पर ही होती है।",
@@ -8406,7 +8406,7 @@ export const hi = {
     tab_new_count: "नया",
     tab_unread_count: "{{count}} बिना पढ़े",
     tab_counting_unread: "बिना पढ़े संदेश गिने जा रहे हैं",
-    category_empty_primary_title: "प्राथमिक में कुछ नहीं है",
+    category_empty_primary_title: "इनबॉक्स में कुछ नहीं है",
     category_empty_primary_desc: "आपके निजी संदेश और बातचीत यहां दिखेंगे।",
     category_empty_promotions_title: "कोई ऑफ़र नहीं",
     category_empty_promotions_desc:
@@ -8428,6 +8428,12 @@ export const hi = {
     category_empty_shopping_title: "कोई खरीदारी ईमेल नहीं",
     category_empty_shopping_desc:
       "ऑर्डर की पुष्टि और शिपिंग अपडेट यहां दिखेंगे।",
+    category_empty_newsletters_title: "कोई न्यूज़लेटर नहीं",
+    category_empty_newsletters_desc:
+      "आपने जिन न्यूज़लेटर और मेलिंग सूचियों की सदस्यता ली है, वे यहां दिखती हैं।",
+    category_empty_transactions_title: "कोई रसीद नहीं",
+    category_empty_transactions_desc:
+      "स्टोर और सेवाओं से आए ऑर्डर, भुगतान और रसीदें यहां दिखती हैं।",
     category_empty_custom_desc:
       "इस श्रेणी के नियमों से मेल खाने वाले ईमेल यहां दिखेंगे।",
     report_spam: "स्पैम की शिकायत करें",
@@ -10167,25 +10173,25 @@ export const hi = {
       "आपके चुने हुए दिनों से पुराने होने पर किसी फ़ोल्डर के ईमेल अपने आप हटाएं। तारांकित और पिन किए गए ईमेल हमेशा रखे जाते हैं।",
     tpl_newsletters_name: "न्यूज़लेटर छांटें",
     tpl_newsletters_desc:
-      "जब कोई संदेश किसी मेलिंग सूची से आए (उसमें List-Id हेडर हो), तो उसे अपडेट श्रेणी में रखें।",
+      "जब कोई संदेश किसी मेलिंग सूची से आए (उसमें List-Id हेडर हो), तो उसे न्यूज़लेटर श्रेणी में रखें।",
     tpl_social_name: "सोशल सूचनाएं एक साथ रखें",
     tpl_social_desc:
       "जब प्रेषक Facebook, LinkedIn, X/Twitter या Instagram हो, तो संदेश को सोशल श्रेणी में ले जाएं।",
-    tpl_promotions_name: "प्रचार पकड़ें",
+    tpl_promotions_name: "ऑफ़र पकड़ें",
     tpl_promotions_desc:
-      "जब विषय में sale, discount, coupon या '% off' का ज़िक्र हो, तो संदेश को प्रचार श्रेणी में ले जाएं।",
+      "जब विषय में sale, discount, coupon या '% off' का ज़िक्र हो, तो संदेश को ऑफ़र श्रेणी में ले जाएं।",
     tpl_calendar_name: "कैलेंडर आमंत्रण इकट्ठा करें",
     tpl_calendar_desc:
-      "जब किसी संदेश में कैलेंडर आमंत्रण (.ics) हो, तो उसे अपडेट श्रेणी में रखें।",
+      "जब किसी संदेश में कैलेंडर आमंत्रण (.ics) हो, तो उसे सूचनाएं श्रेणी में रखें।",
     tpl_large_attachments_name: "बड़े अटैचमेंट चिह्नित करें",
     tpl_large_attachments_desc:
       "जब किसी संदेश में 10 MB से बड़ा अटैचमेंट हो, तो उसे अपने चुने हुए फ़ोल्डर में ले जाएं। सहेजने से पहले फ़ोल्डर चुनें।",
     tpl_no_reply_name: "अपने आप बने मेल व्यवस्थित करें",
     tpl_no_reply_desc:
-      "जब कोई संदेश मशीन से बना हो (उसमें Auto-Submitted हेडर हो, जैसे no-reply प्रेषक), तो उसे अपडेट में रखें।",
+      "जब कोई संदेश मशीन से बना हो (उसमें Auto-Submitted हेडर हो, जैसे no-reply प्रेषक), तो उसे सूचनाएं श्रेणी में रखें।",
     tpl_receipts_name: "रसीदें आर्काइव करें",
     tpl_receipts_desc:
-      "जब विषय में receipt, invoice या order confirmation का ज़िक्र हो, तो इनबॉक्स छोड़कर उसे अपडेट में रखें।",
+      "जब विषय में receipt, invoice या order confirmation का ज़िक्र हो, तो इनबॉक्स छोड़कर उसे सूचनाएं श्रेणी में रखें।",
     tpl_vip_sender_name: "किसी ज़रूरी प्रेषक पर तारा लगाएं",
     tpl_vip_sender_desc:
       "जब आपके चुने हुए प्रेषक से मेल आए, तो उस पर तारा लगाएं और सूचना भेजें। सहेजने से पहले प्रेषक का पता डालें।",

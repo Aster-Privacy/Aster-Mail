@@ -2606,7 +2606,7 @@ export const ar = {
     inbox_categories: "فئات صندوق الوارد",
     inbox_categories_short: "رتّب صندوق الوارد في علامات تبويب",
     inbox_categories_description:
-      "يرتّب صندوق الوارد في علامات تبويب: الأساسي، والعروض الترويجية، والاجتماعي، والتحديثات. يتم الترتيب بشكل خاص على جهازك، ولا تُرسَل الفئات إلى الخادم أبدًا.",
+      "يرتّب صندوق الوارد في علامات تبويب مثل الصفقات والتواصل والإشعارات. يتم الترتيب بشكل خاص على جهازك، ولا تُرسَل الفئات إلى الخادم أبدًا.",
     categories_title: "الفئات",
     categories_description:
       "اختر علامات تبويب الفئات التي تظهر في صندوق الوارد وأنشئ فئاتك الخاصة. يتم كل الفرز محليًا على جهازك.",
@@ -7973,7 +7973,7 @@ export const ar = {
     tab_new_count: "جديد",
     tab_unread_count: "{{count}} غير مقروءة",
     tab_counting_unread: "جارٍ حساب الرسائل غير المقروءة",
-    category_empty_primary_title: "لا شيء في الأساسي",
+    category_empty_primary_title: "لا شيء في البريد الوارد",
     category_empty_primary_desc: "ستظهر هنا رسائلك ومحادثاتك الشخصية.",
     category_empty_promotions_title: "لا توجد صفقات",
     category_empty_promotions_desc:
@@ -7993,6 +7993,12 @@ export const ar = {
     category_empty_travel_desc: "ستظهر هنا الحجوزات وخطط الرحلات والتأكيدات.",
     category_empty_shopping_title: "لا توجد رسائل تسوق",
     category_empty_shopping_desc: "ستظهر هنا تأكيدات الطلبات وتحديثات الشحن.",
+    category_empty_newsletters_title: "لا توجد نشرات",
+    category_empty_newsletters_desc:
+      "تظهر هنا النشرات وقوائم المراسلة التي تشترك فيها.",
+    category_empty_transactions_title: "لا توجد مشتريات",
+    category_empty_transactions_desc:
+      "تظهر هنا الطلبات والمدفوعات والإيصالات من المتاجر والخدمات.",
     category_empty_custom_desc: "ستظهر هنا الرسائل المطابقة لقواعد هذه الفئة.",
     view_html_part: "عرض HTML",
     view_plain_text: "عرض النص العادي",
@@ -10097,13 +10103,13 @@ export const ar = {
       "يحذف الرسائل من مجلد تلقائيًا بعد تجاوزها عدد الأيام الذي تختاره. تبقى الرسائل المميزة بنجمة والمثبتة دائمًا.",
     tpl_newsletters_name: "فرز النشرات البريدية",
     tpl_newsletters_desc:
-      "عندما تصل رسالة من قائمة بريدية (تحمل ترويسة List-Id)، صنّفها ضمن فئة الإشعارات.",
+      "عندما تصل رسالة من قائمة بريدية (تحمل ترويسة List-Id)، صنّفها ضمن فئة النشرات.",
     tpl_social_name: "تجميع إشعارات الشبكات الاجتماعية",
     tpl_social_desc:
       "عندما يكون المرسل Facebook أو LinkedIn أو X/Twitter أو Instagram، انقل الرسالة إلى فئة الشبكات الاجتماعية.",
-    tpl_promotions_name: "التقاط العروض الترويجية",
+    tpl_promotions_name: "التقاط الصفقات",
     tpl_promotions_desc:
-      "عندما يذكر الموضوع تخفيضات أو خصمًا أو قسيمة أو “خصم %”، انقل الرسالة إلى فئة العروض.",
+      "عندما يذكر الموضوع تخفيضات أو خصمًا أو قسيمة أو “خصم %”، انقل الرسالة إلى فئة الصفقات.",
     tpl_calendar_name: "تجميع دعوات التقويم",
     tpl_calendar_desc:
       "عندما تحتوي الرسالة على دعوة تقويم (.ics)، صنّفها ضمن فئة الإشعارات.",

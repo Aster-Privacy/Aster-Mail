@@ -2446,7 +2446,7 @@ export const ko = {
     inbox_categories: "받은편지함 카테고리",
     inbox_categories_short: "받은편지함을 탭으로 분류",
     inbox_categories_description:
-      "받은편지함을 기본, 프로모션, 소셜, 업데이트 탭으로 분류합니다. 분류는 기기에서 비공개로 이루어지며 카테고리는 서버로 전송되지 않습니다.",
+      "받은편지함을 할인, 소셜, 알림 등의 탭으로 분류합니다. 분류는 기기에서 비공개로 이루어지며 카테고리는 서버로 전송되지 않습니다.",
     categories_title: "카테고리",
     categories_description:
       "받은편지함에 표시할 카테고리 탭을 선택하고 나만의 카테고리를 만드세요. 모든 분류는 기기에서 로컬로 이루어집니다.",
@@ -7826,7 +7826,7 @@ export const ko = {
     tab_new_count: "신규",
     tab_unread_count: "읽지 않음 {{count}}개",
     tab_counting_unread: "읽지 않은 메일 계산 중",
-    category_empty_primary_title: "기본에 아무것도 없습니다",
+    category_empty_primary_title: "받은편지함에 아무것도 없습니다",
     category_empty_primary_desc: "개인 메시지와 대화가 여기에 표시됩니다.",
     category_empty_promotions_title: "할인 없음",
     category_empty_promotions_desc:
@@ -7847,6 +7847,12 @@ export const ko = {
     category_empty_shopping_title: "쇼핑 메일 없음",
     category_empty_shopping_desc:
       "주문 확인 및 배송 업데이트가 여기에 표시됩니다.",
+    category_empty_newsletters_title: "뉴스레터 없음",
+    category_empty_newsletters_desc:
+      "구독한 뉴스레터와 메일링 리스트가 여기에 표시됩니다.",
+    category_empty_transactions_title: "구매 내역 없음",
+    category_empty_transactions_desc:
+      "상점과 서비스에서 온 주문, 결제, 영수증이 여기에 표시됩니다.",
     category_empty_custom_desc:
       "이 카테고리의 규칙과 일치하는 메일이 여기에 표시됩니다.",
     view_html_part: "HTML 보기",
@@ -9937,13 +9943,13 @@ export const ko = {
       "지정한 일수가 지난 메일을 폴더에서 자동으로 삭제합니다. 별표 표시하거나 고정한 메일은 항상 유지됩니다.",
     tpl_newsletters_name: "뉴스레터 분류",
     tpl_newsletters_desc:
-      "메일링 리스트에서 온 메일(List-Id 헤더가 있는 메일)을 알림 카테고리로 분류합니다.",
+      "메일링 리스트에서 온 메일(List-Id 헤더가 있는 메일)을 뉴스레터 카테고리로 분류합니다.",
     tpl_social_name: "소셜 알림 모으기",
     tpl_social_desc:
       "보낸 사람이 Facebook, LinkedIn, X/Twitter, Instagram이면 메일을 소셜 카테고리로 옮깁니다.",
-    tpl_promotions_name: "프로모션 걸러내기",
+    tpl_promotions_name: "할인 메일 걸러내기",
     tpl_promotions_desc:
-      "제목에 세일, 할인, 쿠폰, “% 할인”이 있으면 메일을 혜택 카테고리로 옮깁니다.",
+      "제목에 세일, 할인, 쿠폰, “% 할인”이 있으면 메일을 할인 카테고리로 옮깁니다.",
     tpl_calendar_name: "캘린더 초대 모으기",
     tpl_calendar_desc:
       "메일에 캘린더 초대(.ics)가 있으면 알림 카테고리로 분류합니다.",

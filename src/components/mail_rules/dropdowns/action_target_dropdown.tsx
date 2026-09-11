@@ -35,6 +35,7 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown_menu";
 import { Input } from "@/components/ui/input";
+import { RULE_CATEGORY_OPTIONS } from "@/data/category_catalog";
 import { use_folders } from "@/hooks/use_folders";
 import { use_tags } from "@/hooks/use_tags";
 import { use_i18n } from "@/lib/i18n/context";
@@ -105,18 +106,6 @@ type ActionTargetDropdownProps =
   | SnoozePickerProps
   | CategorizePickerProps
   | NotifyPickerProps;
-
-const CATEGORIES: { key: CategoryValue; label_key: string }[] = [
-  { key: "primary", label_key: "mail_rules.category_primary" },
-  { key: "important", label_key: "mail_rules.category_important" },
-  { key: "promotions", label_key: "mail_rules.category_promotions" },
-  { key: "social", label_key: "mail_rules.category_social" },
-  { key: "updates", label_key: "mail_rules.category_updates" },
-  { key: "forums", label_key: "mail_rules.category_forums" },
-  { key: "finance", label_key: "settings.category_finance" },
-  { key: "travel", label_key: "settings.category_travel" },
-  { key: "shopping", label_key: "settings.category_shopping" },
-];
 
 function local_input_value(date: Date): string {
   const pad = (n: number) => String(n).padStart(2, "0");
@@ -355,16 +344,19 @@ export function ActionTargetDropdown(props: ActionTargetDropdownProps) {
           className="z-[200] w-48"
           sideOffset={6}
         >
-          {CATEGORIES.map((c) => (
+          {RULE_CATEGORY_OPTIONS.map((c) => (
             <DropdownMenuItem
-              key={c.key}
+              key={c.id}
               className="justify-between text-[12.5px]"
               onSelect={() =>
-                props.on_commit({ type: "categorize", category: c.key })
+                props.on_commit({
+                  type: "categorize",
+                  category: c.id as CategoryValue,
+                })
               }
             >
-              <span>{t(c.label_key as "mail_rules.category_primary")}</span>
-              {props.value === c.key && <CheckIcon className="w-3.5 h-3.5" />}
+              <span>{t(c.label_key)}</span>
+              {props.value === c.id && <CheckIcon className="w-3.5 h-3.5" />}
             </DropdownMenuItem>
           ))}
         </DropdownMenuContent>

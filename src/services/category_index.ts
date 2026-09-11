@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { EmailCategory, InboxEmail } from "@/types/email";
+import type { TranslationKey } from "@/lib/i18n/types";
 
 import {
   secure_encrypt,
@@ -48,8 +49,10 @@ import {
 } from "@/services/mail_categorizer";
 import {
   BUILTIN_CATEGORY_IDS,
+  builtin_category_def,
   fold_builtin,
   is_custom_category_id,
+  type CategoryIconKey,
   type CustomCategoryRule,
 } from "@/data/category_catalog";
 import { decrypt_envelope } from "@/hooks/email_list_helpers";
@@ -254,6 +257,36 @@ function fold_category(raw: EmailCategory): EmailCategory {
   }
 
   return active_tabs.includes(target) ? target : "primary";
+}
+
+export function fold_to_active_tab(raw?: EmailCategory): EmailCategory {
+  return raw ? fold_category(raw) : "primary";
+}
+
+export interface ActiveTabOption {
+  id: string;
+  icon: CategoryIconKey;
+  label_key?: TranslationKey;
+  name?: string;
+}
+
+export function get_active_tab_options(): ActiveTabOption[] {
+  const options: ActiveTabOption[] = [];
+
+  for (const id of active_tabs) {
+    const builtin = builtin_category_def(id);
+
+    if (builtin) {
+      options.push({ id, icon: builtin.icon, label_key: builtin.label_key });
+      continue;
+    }
+
+    const rule = custom_categories.find((candidate) => candidate.id === id);
+
+    if (rule) options.push({ id, icon: rule.icon, name: rule.name });
+  }
+
+  return options;
 }
 
 const listeners = new Set<() => void>();

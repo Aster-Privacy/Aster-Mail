@@ -2229,7 +2229,7 @@ export const it = {
     category_info_newsletters: "Newsletter e mailing list a cui ti sei iscritto.",
     category_info_transactions: "Ordini, pagamenti e ricevute di negozi e servizi.",
     category_newsletters: "Newsletter",
-    category_transactions: "Acquisti",
+    category_transactions: "Ricevute",
     edit_account_tooltip: "Modifica account",
     gmail_app_password_notice: "Questo provider richiede una password per l’app. La normale password del tuo account non funziona.",
     gmail_sync_continue: "Continua",
@@ -2532,7 +2532,7 @@ export const it = {
     inbox_categories: "Categorie della casella",
     inbox_categories_short: "Ordina la posta in schede",
     inbox_categories_description:
-      "Ordina la tua casella nelle schede Principale, Promozioni, Social e Aggiornamenti. L'ordinamento avviene in privato sul tuo dispositivo - le categorie non vengono mai inviate al server.",
+      "Ordina la tua casella in schede come Promozioni, Social e Notifiche. L'ordinamento avviene in privato sul tuo dispositivo - le categorie non vengono mai inviate al server.",
     categories_title: "Categorie",
     categories_description:
       "Scegli quali schede categoria appaiono nella tua casella e creane di tue. Tutto l'ordinamento avviene localmente sul tuo dispositivo.",
@@ -8109,7 +8109,7 @@ export const it = {
     tab_new_count: "nuovi",
     tab_unread_count: "{{count}} non letti",
     tab_counting_unread: "Conteggio dei messaggi non letti",
-    category_empty_primary_title: "Niente in Principale",
+    category_empty_primary_title: "Niente in Posta in arrivo",
     category_empty_primary_desc:
       "I tuoi messaggi personali e le conversazioni appariranno qui.",
     category_empty_promotions_title: "Nessuna promozione",
@@ -8133,6 +8133,12 @@ export const it = {
     category_empty_shopping_title: "Nessuna email di shopping",
     category_empty_shopping_desc:
       "Conferme d'ordine e aggiornamenti di spedizione appariranno qui.",
+    category_empty_newsletters_title: "Nessuna newsletter",
+    category_empty_newsletters_desc:
+      "Le newsletter e le mailing list a cui ti iscrivi vengono visualizzate qui.",
+    category_empty_transactions_title: "Nessuna ricevuta",
+    category_empty_transactions_desc:
+      "Ordini, pagamenti e ricevute di negozi e servizi vengono visualizzati qui.",
     category_empty_custom_desc:
       "Le email corrispondenti alle regole di questa categoria appariranno qui.",
     view_html_part: "Visualizza HTML",
@@ -10324,13 +10330,13 @@ export const it = {
       "Rimuove automaticamente le email da una cartella quando superano i giorni che scegli. Le email speciali e fissate vengono sempre conservate.",
     tpl_newsletters_name: "Ordina le newsletter",
     tpl_newsletters_desc:
-      "Quando un messaggio arriva da una mailing list (ha un’intestazione List-Id), archivialo nella categoria Notifiche.",
+      "Quando un messaggio arriva da una mailing list (ha un’intestazione List-Id), archivialo nella categoria Newsletter.",
     tpl_social_name: "Raggruppa le notifiche social",
     tpl_social_desc:
       "Quando il mittente è Facebook, LinkedIn, X/Twitter o Instagram, sposta il messaggio nella categoria Social.",
     tpl_promotions_name: "Intercetta le promozioni",
     tpl_promotions_desc:
-      "Quando l’oggetto contiene saldi, sconto, coupon o “% di sconto”, sposta il messaggio nella categoria Offerte.",
+      "Quando l’oggetto contiene saldi, sconto, coupon o “% di sconto”, sposta il messaggio nella categoria Promozioni.",
     tpl_calendar_name: "Raccogli gli inviti del calendario",
     tpl_calendar_desc:
       "Quando un messaggio contiene un invito del calendario (.ics), archivialo nella categoria Notifiche.",

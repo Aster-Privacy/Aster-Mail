@@ -2951,7 +2951,7 @@ export const en: Translations = {
     inbox_categories: "Inbox Categories",
     inbox_categories_short: "Sort your inbox into tabs",
     inbox_categories_description:
-      "Sorts your inbox into Primary, Promotions, Social, and Updates tabs. Sorting happens privately on your device - categories are never sent to the server.",
+      "Sorts your inbox into tabs such as Deals, Social, and Notifications. Sorting happens privately on your device - categories are never sent to the server.",
     categories_title: "Categories",
     categories_description:
       "Choose which category tabs appear in your inbox and create your own. All sorting happens locally on your device.",
@@ -8227,7 +8227,7 @@ export const en: Translations = {
     tab_new_count: "new",
     tab_unread_count: "{{count}} unread",
     tab_counting_unread: "Counting unread messages",
-    category_empty_primary_title: "Nothing in Primary",
+    category_empty_primary_title: "Nothing in Inbox",
     category_empty_primary_desc:
       "Your personal messages and conversations will show up here.",
     category_empty_promotions_title: "No deals",
@@ -8251,6 +8251,12 @@ export const en: Translations = {
     category_empty_shopping_title: "No shopping emails",
     category_empty_shopping_desc:
       "Order confirmations and shipping updates will appear here.",
+    category_empty_newsletters_title: "No newsletters",
+    category_empty_newsletters_desc:
+      "Digests and mailing lists you subscribe to appear here.",
+    category_empty_transactions_title: "No purchases",
+    category_empty_transactions_desc:
+      "Orders, payments, and receipts from stores and services appear here.",
     category_empty_custom_desc:
       "Emails matching this category's rules will appear here.",
     report_spam: "Report spam",
@@ -9978,25 +9984,25 @@ export const en: Translations = {
       "Automatically remove emails from a folder once they're older than a number of days you choose. Starred and pinned emails are always kept.",
     tpl_newsletters_name: "Sort newsletters",
     tpl_newsletters_desc:
-      "When a message comes from a mailing list (it carries a List-Id header), file it under the Updates category.",
+      "When a message comes from a mailing list (it carries a List-Id header), file it under the Newsletters category.",
     tpl_social_name: "Group social notifications",
     tpl_social_desc:
       "When the sender is Facebook, LinkedIn, X/Twitter, or Instagram, move the message to the Social category.",
-    tpl_promotions_name: "Catch promotions",
+    tpl_promotions_name: "Catch deals",
     tpl_promotions_desc:
-      "When the subject mentions sale, discount, coupon, or '% off', move the message to the Promotions category.",
+      "When the subject mentions sale, discount, coupon, or '% off', move the message to the Deals category.",
     tpl_calendar_name: "Collect calendar invites",
     tpl_calendar_desc:
-      "When a message contains a calendar invitation (.ics), file it under the Updates category.",
+      "When a message contains a calendar invitation (.ics), file it under the Notifications category.",
     tpl_large_attachments_name: "Flag large attachments",
     tpl_large_attachments_desc:
       "When a message has an attachment larger than 10 MB, move it to a folder you choose. Pick the folder before saving.",
     tpl_no_reply_name: "Tidy automated mail",
     tpl_no_reply_desc:
-      "When a message is machine-generated (it carries an Auto-Submitted header, e.g. no-reply senders), file it under Updates.",
+      "When a message is machine-generated (it carries an Auto-Submitted header, e.g. no-reply senders), file it under Notifications.",
     tpl_receipts_name: "Archive receipts",
     tpl_receipts_desc:
-      "When the subject mentions receipt, invoice, or order confirmation, skip the inbox and file it under Updates.",
+      "When the subject mentions receipt, invoice, or order confirmation, skip the inbox and file it under Notifications.",
     tpl_vip_sender_name: "Star a key sender",
     tpl_vip_sender_desc:
       "When mail arrives from a sender you choose, star it and send a notification. Enter the sender's address before saving.",

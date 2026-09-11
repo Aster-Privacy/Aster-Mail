@@ -246,7 +246,9 @@ describe("applying a template into the rule editor", () => {
     expect(req.enabled).toBe(true);
     expect(req.expression).toBeNull();
     expect(req.conditions).toEqual([{ type: "has_list_id", value: true }]);
-    expect(req.actions).toEqual([{ type: "categorize", category: "updates" }]);
+    expect(req.actions).toEqual([
+      { type: "categorize", category: "newsletters" },
+    ]);
     expect(on_close).toHaveBeenCalledTimes(1);
   });
 });

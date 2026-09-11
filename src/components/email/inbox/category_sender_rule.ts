@@ -20,6 +20,7 @@
 import type { EmailCategory, InboxEmail } from "@/types/email";
 import type { TranslationKey } from "@/lib/i18n/types";
 
+import { is_custom_category_id } from "@/data/category_catalog";
 import { create_rule } from "@/services/api/mail_rules";
 import { show_toast } from "@/components/toast/simple_toast";
 import { ignore_error } from "@/lib/ignore_error";
@@ -97,6 +98,8 @@ export function maybe_offer_sender_rule(
   category_label: string,
   t: Translate,
 ): void {
+  if (is_custom_category_id(category)) return;
+
   const sender_email = sole_sender(moved);
 
   if (!sender_email) return;

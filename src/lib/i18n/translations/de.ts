@@ -2506,7 +2506,7 @@ export const de = {
     inbox_categories: "Posteingangs-Kategorien",
     inbox_categories_short: "Sortiere deinen Posteingang in Tabs",
     inbox_categories_description:
-      "Sortiert deinen Posteingang in die Tabs Primär, Werbung, Soziales und Updates. Die Sortierung erfolgt privat auf deinem Gerät - Kategorien werden niemals an den Server gesendet.",
+      "Sortiert deinen Posteingang in Tabs wie Angebote, Soziale Netzwerke und Benachrichtigungen. Die Sortierung erfolgt privat auf deinem Gerät - Kategorien werden niemals an den Server gesendet.",
     categories_title: "Kategorien",
     categories_description:
       "Wähle, welche Kategorie-Tabs in deinem Posteingang erscheinen, und erstelle eigene. Die gesamte Sortierung erfolgt lokal auf deinem Gerät.",
@@ -8128,7 +8128,7 @@ export const de = {
     tab_new_count: "neu",
     tab_unread_count: "{{count}} ungelesen",
     tab_counting_unread: "Ungelesene Nachrichten werden gezählt",
-    category_empty_primary_title: "Nichts in Primär",
+    category_empty_primary_title: "Nichts im Posteingang",
     category_empty_primary_desc:
       "Deine persönlichen Nachrichten und Unterhaltungen werden hier angezeigt.",
     category_empty_promotions_title: "Keine Deals",
@@ -8152,6 +8152,12 @@ export const de = {
     category_empty_shopping_title: "Keine Shopping-E-Mails",
     category_empty_shopping_desc:
       "Bestellbestätigungen und Versandaktualisierungen erscheinen hier.",
+    category_empty_newsletters_title: "Keine Newsletter",
+    category_empty_newsletters_desc:
+      "Übersichten und Verteiler, die du abonniert hast, erscheinen hier.",
+    category_empty_transactions_title: "Keine Einkäufe",
+    category_empty_transactions_desc:
+      "Bestellungen, Zahlungen und Belege von Shops und Diensten erscheinen hier.",
     category_empty_custom_desc:
       "E-Mails, die den Regeln dieser Kategorie entsprechen, erscheinen hier.",
     view_html_part: "HTML anzeigen",
@@ -10371,11 +10377,11 @@ export const de = {
       "Entfernt E-Mails automatisch aus einem Ordner, sobald sie älter sind als die von Ihnen gewählte Anzahl an Tagen. Markierte und angeheftete E-Mails bleiben immer erhalten.",
     tpl_newsletters_name: "Newsletter sortieren",
     tpl_newsletters_desc:
-      "Wenn eine Nachricht von einer Mailingliste kommt (sie trägt einen List-Id-Header), legen Sie sie in der Kategorie Benachrichtigungen ab.",
+      "Wenn eine Nachricht von einer Mailingliste kommt (sie trägt einen List-Id-Header), legen Sie sie in der Kategorie Newsletter ab.",
     tpl_social_name: "Benachrichtigungen sozialer Netzwerke gruppieren",
     tpl_social_desc:
       "Wenn der Absender Facebook, LinkedIn, X/Twitter oder Instagram ist, verschieben Sie die Nachricht in die Kategorie Soziale Netzwerke.",
-    tpl_promotions_name: "Werbung erkennen",
+    tpl_promotions_name: "Angebote erkennen",
     tpl_promotions_desc:
       "Wenn der Betreff Sale, Rabatt, Gutschein oder „% Rabatt“ enthält, verschieben Sie die Nachricht in die Kategorie Angebote.",
     tpl_calendar_name: "Kalendereinladungen sammeln",

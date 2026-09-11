@@ -22,9 +22,11 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
 const get_index_entries = vi.fn();
+const fold_to_active_tab = vi.fn();
 
 vi.mock("@/services/category_index", () => ({
   get_index_entries: (ids: string[]) => get_index_entries(ids),
+  fold_to_active_tab: (raw?: string) => fold_to_active_tab(raw),
 }));
 
 import { effective_category } from "@/services/effective_category";
@@ -32,6 +34,19 @@ import { effective_category } from "@/services/effective_category";
 describe("effective_category", () => {
   beforeEach(() => {
     get_index_entries.mockReset().mockReturnValue([]);
+    fold_to_active_tab
+      .mockReset()
+      .mockImplementation((raw?: string) => raw ?? "primary");
+  });
+
+  it("places the message in the tab its category folds into", () => {
+    get_index_entries.mockReturnValue([{ id: "a", category: "newsletters" }]);
+    fold_to_active_tab.mockImplementation((raw?: string) =>
+      raw === "newsletters" ? "promotions" : (raw ?? "primary"),
+    );
+
+    expect(effective_category({ id: "a" })).toBe("promotions");
+    expect(fold_to_active_tab).toHaveBeenCalledWith("newsletters");
   });
 
   it("prefers the category the tabs actually place the message in", () => {

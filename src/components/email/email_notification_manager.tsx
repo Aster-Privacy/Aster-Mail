@@ -30,10 +30,10 @@ import {
   show_notification,
 } from "@/services/notification_service";
 import {
+  fold_to_active_tab,
   get_arrival_category,
   get_arrival_reply_state,
 } from "@/services/category_index";
-import { category_for_tab } from "@/services/mail_categorizer";
 import { subscribe_to_push } from "@/services/push_subscription";
 import { use_i18n } from "@/lib/i18n/context";
 import { is_lockdown_enabled } from "@/services/lockdown_store";
@@ -88,7 +88,7 @@ async function is_category_muted(
     const category = get_arrival_category(email_id);
 
     if (category !== null) {
-      return muted.has(category_for_tab(category));
+      return muted.has(fold_to_active_tab(category));
     }
     if (Date.now() >= deadline) return false;
 

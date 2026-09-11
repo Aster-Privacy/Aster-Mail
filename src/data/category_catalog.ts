@@ -190,6 +190,29 @@ export function fold_builtin(id: string): string {
   return builtin_category_def(id)?.fold_target ?? "primary";
 }
 
+export interface CategoryOption {
+  id: string;
+  label_key: TranslationKey;
+  icon: CategoryIconKey;
+}
+
+function to_option(def: BuiltinCategoryDef): CategoryOption {
+  return { id: def.id, label_key: def.label_key, icon: def.icon };
+}
+
+export const RULE_CATEGORY_OPTIONS: readonly CategoryOption[] =
+  BUILTIN_CATEGORIES.map(to_option);
+
+const LEGACY_RULE_CATEGORY_LABELS: Readonly<Record<string, TranslationKey>> = {
+  important: "mail_rules.category_important",
+};
+
+export function rule_category_label_key(
+  id: string,
+): TranslationKey | undefined {
+  return builtin_category_def(id)?.label_key ?? LEGACY_RULE_CATEGORY_LABELS[id];
+}
+
 export function category_display_name(
   id: string,
   custom_categories: readonly CustomCategoryRule[] | undefined,

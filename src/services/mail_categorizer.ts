@@ -50,16 +50,16 @@ import {
   TRAVEL_SUBJECT_PATTERNS,
   SHOPPING_SUBJECT_PATTERNS,
 } from "@/data/category_signals";
-import { BUILTIN_CATEGORY_IDS, fold_builtin } from "@/data/category_catalog";
+import {
+  BUILTIN_CATEGORY_IDS,
+  DEFAULT_ENABLED_CATEGORIES,
+} from "@/data/category_catalog";
 
 export const CLASSIFIER_VERSION = 4;
 
 export const CATEGORY_TABS: readonly EmailCategory[] = [
   "primary",
-  "promotions",
-  "newsletters",
-  "social",
-  "updates",
+  ...DEFAULT_ENABLED_CATEGORIES,
 ];
 
 const UPDATES_LOCALPARTS = new Set([
@@ -450,18 +450,6 @@ export function classify(
   //    unclassified (e.g. a plain no-reply) stays in Primary.
   if (has_unsubscribe || in_any(BULK_INFRA_SET)) {
     return "promotions";
-  }
-
-  return "primary";
-}
-
-export function category_for_tab(category?: EmailCategory): EmailCategory {
-  if (category && (CATEGORY_TABS as readonly string[]).includes(category)) {
-    return category;
-  }
-
-  if (category && BUILTIN_CATEGORY_ID_SET.has(category)) {
-    return fold_builtin(category) as EmailCategory;
   }
 
   return "primary";

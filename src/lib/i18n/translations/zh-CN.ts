@@ -2012,7 +2012,7 @@ export const zh_CN = {
     category_info_newsletters: "你订阅的邮件通讯和邮件列表。",
     category_info_transactions: "来自商店和服务的订单、付款和收据。",
     category_newsletters: "邮件通讯",
-    category_transactions: "购物",
+    category_transactions: "收据",
     deleted_emails_count_one: "已删除 {{count}} 封邮件",
     edit_account_tooltip: "编辑账户",
     email_count_one: "{{count}} 封邮件",
@@ -2297,7 +2297,7 @@ export const zh_CN = {
     inbox_categories: "收件箱分类",
     inbox_categories_short: "将收件箱整理为标签页",
     inbox_categories_description:
-      "将你的收件箱整理为主要、推广、社交和更新标签页。分类在你的设备上私密完成，分类信息绝不会发送到服务器。",
+      "将你的收件箱整理为促销、社交和通知等标签页。分类在你的设备上私密完成，分类信息绝不会发送到服务器。",
     categories_title: "分类",
     categories_description:
       "选择收件箱中显示哪些分类标签，也可以创建自己的分类。所有分类都在你的设备本地完成。",
@@ -7228,7 +7228,7 @@ export const zh_CN = {
     tab_new_count: "新",
     tab_unread_count: "{{count}} 封未读",
     tab_counting_unread: "正在统计未读邮件",
-    category_empty_primary_title: "“主要”中没有内容",
+    category_empty_primary_title: "“收件箱”中没有内容",
     category_empty_primary_desc: "你的个人消息和对话将显示在这里。",
     category_empty_promotions_title: "没有促销",
     category_empty_promotions_desc:
@@ -7246,6 +7246,12 @@ export const zh_CN = {
     category_empty_travel_desc: "预订、行程和确认信息将显示在这里。",
     category_empty_shopping_title: "没有购物邮件",
     category_empty_shopping_desc: "订单确认和发货更新将显示在这里。",
+    category_empty_newsletters_title: "没有邮件通讯",
+    category_empty_newsletters_desc:
+      "你订阅的邮件通讯和邮件列表会显示在这里。",
+    category_empty_transactions_title: "没有收据",
+    category_empty_transactions_desc:
+      "来自商店和服务的订单、付款和收据会显示在这里。",
     category_empty_custom_desc: "符合此分类规则的邮件将显示在这里。",
     view_html_part: "查看 HTML",
     view_plain_text: "查看纯文本",
@@ -9220,13 +9226,13 @@ export const zh_CN = {
       "当邮件超过你设定的天数时，自动从文件夹中移除。星标邮件和置顶邮件始终保留。",
     tpl_newsletters_name: "整理邮件订阅",
     tpl_newsletters_desc:
-      "当邮件来自邮件列表（带有 List-Id 标头）时，归入通知类别。",
+      "当邮件来自邮件列表（带有 List-Id 标头）时，归入邮件通讯类别。",
     tpl_social_name: "归集社交通知",
     tpl_social_desc:
       "当发件人是 Facebook、LinkedIn、X/Twitter 或 Instagram 时，将邮件移到社交类别。",
     tpl_promotions_name: "识别促销邮件",
     tpl_promotions_desc:
-      "当主题中出现促销、折扣、优惠券或“% 减免”时，将邮件移到优惠类别。",
+      "当主题中出现促销、折扣、优惠券或“% 减免”时，将邮件移到促销类别。",
     tpl_calendar_name: "收集日历邀请",
     tpl_calendar_desc: "当邮件包含日历邀请（.ics）时，归入通知类别。",
     tpl_large_attachments_name: "标记大附件",

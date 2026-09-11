@@ -2197,7 +2197,7 @@ export const es = {
     category_info_newsletters: "Boletines y listas de correo a los que te suscribiste.",
     category_info_transactions: "Pedidos, pagos y recibos de tiendas y servicios.",
     category_newsletters: "Boletines",
-    category_transactions: "Compras",
+    category_transactions: "Recibos",
     edit_account_tooltip: "Editar cuenta",
     gmail_app_password_notice: "Este proveedor requiere una contraseña de aplicación. La contraseña habitual de tu cuenta no funciona.",
     gmail_sync_continue: "Continuar",
@@ -2500,7 +2500,7 @@ export const es = {
     inbox_categories: "Categorías de la bandeja de entrada",
     inbox_categories_short: "Organiza tu bandeja de entrada en pestañas",
     inbox_categories_description:
-      "Organiza tu bandeja de entrada en las pestañas Principal, Promociones, Social y Novedades. La clasificación se realiza de forma privada en tu dispositivo: las categorías nunca se envían al servidor.",
+      "Organiza tu bandeja de entrada en pestañas como Descuentos, Social y Notificaciones. La clasificación se realiza de forma privada en tu dispositivo: las categorías nunca se envían al servidor.",
     categories_title: "Categorías",
     categories_description:
       "Elige qué pestañas de categoría aparecen en tu bandeja de entrada y crea las tuyas propias. Toda la clasificación ocurre localmente en tu dispositivo.",
@@ -8003,7 +8003,7 @@ export const es = {
     tab_new_count: "nuevos",
     tab_unread_count: "{{count}} sin leer",
     tab_counting_unread: "Contando mensajes sin leer",
-    category_empty_primary_title: "No hay nada en Principal",
+    category_empty_primary_title: "No hay nada en la bandeja de entrada",
     category_empty_primary_desc:
       "Tus mensajes personales y conversaciones aparecerán aquí.",
     category_empty_promotions_title: "No hay descuentos",
@@ -8027,6 +8027,12 @@ export const es = {
     category_empty_shopping_title: "No hay correos de compras",
     category_empty_shopping_desc:
       "Las confirmaciones de pedidos y actualizaciones de envío aparecerán aquí.",
+    category_empty_newsletters_title: "No hay boletines",
+    category_empty_newsletters_desc:
+      "Aquí aparecen los boletines y las listas de correo a los que te suscribes.",
+    category_empty_transactions_title: "No hay recibos",
+    category_empty_transactions_desc:
+      "Aquí aparecen los pedidos, pagos y recibos de tiendas y servicios.",
     category_empty_custom_desc:
       "Los correos que coincidan con las reglas de esta categoría aparecerán aquí.",
     view_html_part: "Ver HTML",
@@ -10130,13 +10136,13 @@ export const es = {
       "Elimina automáticamente los correos de una carpeta cuando superen los días que elijas. Los correos destacados y fijados siempre se conservan.",
     tpl_newsletters_name: "Ordenar boletines",
     tpl_newsletters_desc:
-      "Cuando un mensaje llega de una lista de correo (lleva una cabecera List-Id), archívalo en la categoría Notificaciones.",
+      "Cuando un mensaje llega de una lista de correo (lleva una cabecera List-Id), archívalo en la categoría Boletines.",
     tpl_social_name: "Agrupar avisos de redes sociales",
     tpl_social_desc:
       "Cuando el remitente es Facebook, LinkedIn, X/Twitter o Instagram, mueve el mensaje a la categoría Social.",
-    tpl_promotions_name: "Detectar promociones",
+    tpl_promotions_name: "Detectar descuentos",
     tpl_promotions_desc:
-      "Cuando el asunto menciona rebajas, descuento, cupón o “% de descuento”, mueve el mensaje a la categoría Ofertas.",
+      "Cuando el asunto menciona rebajas, descuento, cupón o “% de descuento”, mueve el mensaje a la categoría Descuentos.",
     tpl_calendar_name: "Reunir invitaciones de calendario",
     tpl_calendar_desc:
       "Cuando un mensaje contiene una invitación de calendario (.ics), archívalo en la categoría Notificaciones.",

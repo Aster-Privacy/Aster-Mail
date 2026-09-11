@@ -2539,7 +2539,7 @@ export const ja = {
     inbox_categories: "受信トレイのカテゴリ",
     inbox_categories_short: "受信トレイをタブに分類します",
     inbox_categories_description:
-      "受信トレイをメイン、プロモーション、ソーシャル、新着の各タブに分類します。分類はお使いのデバイス上で非公開に行われ、カテゴリがサーバーに送信されることはありません。",
+      "受信トレイをセール、ソーシャル、通知などのタブに分類します。分類はお使いのデバイス上で非公開に行われ、カテゴリがサーバーに送信されることはありません。",
     categories_title: "カテゴリ",
     categories_description:
       "受信トレイに表示するカテゴリタブを選択し、独自のカテゴリを作成できます。分類はすべてお使いのデバイス上でローカルに行われます。",
@@ -8042,7 +8042,7 @@ export const ja = {
     tab_new_count: "新着",
     tab_unread_count: "未読 {{count}} 件",
     tab_counting_unread: "未読メールを集計中",
-    category_empty_primary_title: "メインには何もありません",
+    category_empty_primary_title: "受信トレイには何もありません",
     category_empty_primary_desc:
       "個人的なメッセージや会話がここに表示されます。",
     category_empty_promotions_title: "セールはありません",
@@ -8064,6 +8064,12 @@ export const ja = {
     category_empty_shopping_title: "ショッピング関連のメールはありません",
     category_empty_shopping_desc:
       "注文確認や配送状況の更新がここに表示されます。",
+    category_empty_newsletters_title: "ニュースレターはありません",
+    category_empty_newsletters_desc:
+      "登録したニュースレターやメーリングリストがここに表示されます。",
+    category_empty_transactions_title: "買い物のメールはありません",
+    category_empty_transactions_desc:
+      "ストアやサービスからの注文、支払い、領収書がここに表示されます。",
     category_empty_custom_desc:
       "このカテゴリのルールに一致するメールがここに表示されます。",
     view_html_part: "HTMLを表示",
@@ -10225,13 +10231,13 @@ export const ja = {
       "指定した日数を過ぎたメールをフォルダから自動で削除します。スター付きとピン留めのメールは常に残ります。",
     tpl_newsletters_name: "ニュースレターを仕分け",
     tpl_newsletters_desc:
-      "メーリングリストからのメール（List-Id ヘッダーを持つもの）を通知カテゴリに振り分けます。",
+      "メーリングリストからのメール（List-Id ヘッダーを持つもの）をニュースレターカテゴリに振り分けます。",
     tpl_social_name: "ソーシャル通知をまとめる",
     tpl_social_desc:
       "送信者が Facebook、LinkedIn、X/Twitter、Instagram の場合、メールをソーシャルカテゴリに移動します。",
-    tpl_promotions_name: "プロモーションを振り分け",
+    tpl_promotions_name: "セールを振り分け",
     tpl_promotions_desc:
-      "件名にセール、割引、クーポン、「% オフ」が含まれる場合、メールをお得情報カテゴリに移動します。",
+      "件名にセール、割引、クーポン、「% オフ」が含まれる場合、メールをセールカテゴリに移動します。",
     tpl_calendar_name: "カレンダーの招待をまとめる",
     tpl_calendar_desc:
       "メールにカレンダーの招待（.ics）が含まれる場合、通知カテゴリに振り分けます。",

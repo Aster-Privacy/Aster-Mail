@@ -24,7 +24,6 @@ import type { CategoryIndexEntry } from "@/services/category_index";
 
 import { useCallback, useRef } from "react";
 
-import { category_for_tab } from "@/services/mail_categorizer";
 import { effective_category } from "@/services/effective_category";
 import {
   clear_recent_pin,
@@ -184,7 +183,7 @@ export function use_category_drop({
       const by_category = new Map<EmailCategory, CategorySnapshot[]>();
 
       for (const snapshot of snapshots) {
-        const target = category_for_tab(snapshot.mail_category);
+        const target = snapshot.mail_category ?? "primary";
         const group = by_category.get(target);
 
         if (group) {

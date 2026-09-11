@@ -7394,6 +7394,10 @@ export interface MailTranslations {
   category_empty_travel_desc: string;
   category_empty_shopping_title: string;
   category_empty_shopping_desc: string;
+  category_empty_newsletters_title: string;
+  category_empty_newsletters_desc: string;
+  category_empty_transactions_title: string;
+  category_empty_transactions_desc: string;
   category_empty_custom_desc: string;
   report_spam: string;
   clear_selection: string;

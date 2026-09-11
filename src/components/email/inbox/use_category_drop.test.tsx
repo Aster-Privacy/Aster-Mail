@@ -59,6 +59,7 @@ vi.mock("@/services/category_index", () => ({
   note_recent_pin: (...args: unknown[]) => note_recent_pin(...args),
   clear_recent_pin: (...args: unknown[]) => clear_recent_pin(...args),
   get_index_entries: (ids: string[]) => get_index_entries(ids),
+  fold_to_active_tab: (raw?: EmailCategory) => raw ?? "primary",
 }));
 
 const show_action_toast = vi.fn();

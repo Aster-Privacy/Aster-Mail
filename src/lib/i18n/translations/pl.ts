@@ -2363,7 +2363,7 @@ export const pl = {
     category_info_newsletters: "Newslettery i listy mailingowe, które subskrybujesz.",
     category_info_transactions: "Zamówienia, płatności i potwierdzenia ze sklepów i serwisów.",
     category_newsletters: "Newslettery",
-    category_transactions: "Zakupy",
+    category_transactions: "Transakcje",
     edit_account_tooltip: "Edytuj konto",
     gmail_app_password_notice: "Ten dostawca wymaga hasła do aplikacji. Zwykłe hasło do konta nie zadziała.",
     gmail_sync_continue: "Dalej",
@@ -2663,7 +2663,7 @@ export const pl = {
     inbox_categories: "Kategorie skrzynki",
     inbox_categories_short: "Posortuj skrzynkę na karty",
     inbox_categories_description:
-      "Sortuje Twoją skrzynkę na karty Główne, Promocje, Społeczności i Powiadomienia. Sortowanie odbywa się prywatnie na Twoim urządzeniu - kategorie nigdy nie są wysyłane na serwer.",
+      "Sortuje Twoją skrzynkę na karty takie jak Promocje, Społecznościowe i Powiadomienia. Sortowanie odbywa się prywatnie na Twoim urządzeniu - kategorie nigdy nie są wysyłane na serwer.",
     categories_title: "Kategorie",
     categories_description:
       "Wybierz, które karty kategorii pojawiają się w Twojej skrzynce, i utwórz własne. Całe sortowanie odbywa się lokalnie na Twoim urządzeniu.",
@@ -8264,7 +8264,7 @@ export const pl = {
     tab_new_count: "nowe",
     tab_unread_count: "{{count}} nieprzeczytanych",
     tab_counting_unread: "Liczenie nieprzeczytanych wiadomości",
-    category_empty_primary_title: "Nic w Głównych",
+    category_empty_primary_title: "Nic w Odebranych",
     category_empty_primary_desc:
       "Twoje osobiste wiadomości i rozmowy pojawią się tutaj.",
     category_empty_promotions_title: "Brak promocji",
@@ -8288,6 +8288,12 @@ export const pl = {
     category_empty_shopping_title: "Brak wiadomości zakupowych",
     category_empty_shopping_desc:
       "Potwierdzenia zamówień i aktualizacje wysyłki pojawią się tutaj.",
+    category_empty_newsletters_title: "Brak newsletterów",
+    category_empty_newsletters_desc:
+      "Tutaj pojawiają się newslettery i listy mailingowe, które subskrybujesz.",
+    category_empty_transactions_title: "Brak transakcji",
+    category_empty_transactions_desc:
+      "Tutaj pojawiają się zamówienia, płatności i potwierdzenia ze sklepów i serwisów.",
     category_empty_custom_desc:
       "Wiadomości pasujące do reguł tej kategorii pojawią się tutaj.",
     view_html_part: "Wyświetl HTML",
@@ -10454,13 +10460,13 @@ export const pl = {
       "Automatycznie usuwa wiadomości z folderu, gdy są starsze niż wybrana liczba dni. Wiadomości oznaczone gwiazdką i przypięte zawsze pozostają.",
     tpl_newsletters_name: "Sortuj newslettery",
     tpl_newsletters_desc:
-      "Gdy wiadomość pochodzi z listy mailingowej (ma nagłówek List-Id), umieść ją w kategorii Powiadomienia.",
+      "Gdy wiadomość pochodzi z listy mailingowej (ma nagłówek List-Id), umieść ją w kategorii Newslettery.",
     tpl_social_name: "Grupuj powiadomienia społecznościowe",
     tpl_social_desc:
       "Gdy nadawcą jest Facebook, LinkedIn, X/Twitter lub Instagram, przenieś wiadomość do kategorii Społecznościowe.",
     tpl_promotions_name: "Wyłapuj promocje",
     tpl_promotions_desc:
-      "Gdy temat zawiera wyprzedaż, zniżkę, kupon lub „% rabatu”, przenieś wiadomość do kategorii Oferty.",
+      "Gdy temat zawiera wyprzedaż, zniżkę, kupon lub „% rabatu”, przenieś wiadomość do kategorii Promocje.",
     tpl_calendar_name: "Zbieraj zaproszenia kalendarza",
     tpl_calendar_desc:
       "Gdy wiadomość zawiera zaproszenie kalendarza (.ics), umieść ją w kategorii Powiadomienia.",

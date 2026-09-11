@@ -2462,7 +2462,7 @@ export const nl = {
     inbox_categories: "Inboxcategorieën",
     inbox_categories_short: "Sorteer je inbox in tabbladen",
     inbox_categories_description:
-      "Sorteert je inbox in de tabbladen Primair, Promoties, Sociaal en Updates. Het sorteren gebeurt privé op je apparaat - categorieën worden nooit naar de server gestuurd.",
+      "Sorteert je inbox in tabbladen zoals Aanbiedingen, Sociaal en Meldingen. Het sorteren gebeurt privé op je apparaat - categorieën worden nooit naar de server gestuurd.",
     categories_title: "Categorieën",
     categories_description:
       "Kies welke categorietabbladen in je inbox verschijnen en maak je eigen categorieën. Alle sortering gebeurt lokaal op je apparaat.",
@@ -8019,7 +8019,7 @@ export const nl = {
     tab_new_count: "nieuw",
     tab_unread_count: "{{count}} ongelezen",
     tab_counting_unread: "Ongelezen berichten worden geteld",
-    category_empty_primary_title: "Niets in Primair",
+    category_empty_primary_title: "Niets in Postvak IN",
     category_empty_primary_desc:
       "Je persoonlijke berichten en gesprekken verschijnen hier.",
     category_empty_promotions_title: "Geen deals",
@@ -8043,6 +8043,12 @@ export const nl = {
     category_empty_shopping_title: "Geen winkelmails",
     category_empty_shopping_desc:
       "Bestelbevestigingen en verzendupdates verschijnen hier.",
+    category_empty_newsletters_title: "Geen nieuwsbrieven",
+    category_empty_newsletters_desc:
+      "Nieuwsbrieven en mailinglijsten waarop je je abonneert, verschijnen hier.",
+    category_empty_transactions_title: "Geen aankopen",
+    category_empty_transactions_desc:
+      "Bestellingen, betalingen en bonnen van winkels en diensten verschijnen hier.",
     category_empty_custom_desc:
       "E-mails die voldoen aan de regels van deze categorie verschijnen hier.",
     view_html_part: "HTML bekijken",
@@ -10215,11 +10221,11 @@ export const nl = {
       "Verwijdert e-mails automatisch uit een map zodra ze ouder zijn dan het aantal dagen dat je kiest. E-mails met ster of speld blijven altijd bewaard.",
     tpl_newsletters_name: "Nieuwsbrieven sorteren",
     tpl_newsletters_desc:
-      "Als een bericht van een mailinglijst komt (met een List-Id-header), plaats het dan in de categorie Meldingen.",
+      "Als een bericht van een mailinglijst komt (met een List-Id-header), plaats het dan in de categorie Nieuwsbrieven.",
     tpl_social_name: "Sociale meldingen groeperen",
     tpl_social_desc:
       "Als de afzender Facebook, LinkedIn, X/Twitter of Instagram is, verplaats het bericht dan naar de categorie Sociaal.",
-    tpl_promotions_name: "Reclame onderscheppen",
+    tpl_promotions_name: "Aanbiedingen onderscheppen",
     tpl_promotions_desc:
       "Als het onderwerp sale, korting, coupon of “% korting” bevat, verplaats het bericht dan naar de categorie Aanbiedingen.",
     tpl_calendar_name: "Agenda-uitnodigingen verzamelen",

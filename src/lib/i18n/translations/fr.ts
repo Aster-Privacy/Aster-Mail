@@ -2209,7 +2209,7 @@ export const fr = {
     category_info_newsletters: "Lettres d’information et listes de diffusion auxquelles vous vous êtes abonné.",
     category_info_transactions: "Commandes, paiements et reçus des boutiques et des services.",
     category_newsletters: "Lettres d’information",
-    category_transactions: "Achats",
+    category_transactions: "Reçus",
     edit_account_tooltip: "Modifier le compte",
     gmail_app_password_notice: "Ce fournisseur exige un mot de passe d’application. Le mot de passe habituel de votre compte ne fonctionne pas.",
     gmail_sync_continue: "Continuer",
@@ -2520,7 +2520,7 @@ export const fr = {
     inbox_categories: "Catégories de la boîte de réception",
     inbox_categories_short: "Triez votre boîte de réception en onglets",
     inbox_categories_description:
-      "Trie votre boîte de réception dans les onglets Principal, Promotions, Réseaux sociaux et Mises à jour. Le tri s'effectue de façon privée sur votre appareil - les catégories ne sont jamais envoyées au serveur.",
+      "Trie votre boîte de réception dans des onglets comme Bons plans, Réseaux sociaux et Notifications. Le tri s'effectue de façon privée sur votre appareil - les catégories ne sont jamais envoyées au serveur.",
     categories_title: "Catégories",
     categories_description:
       "Choisissez les onglets de catégorie qui apparaissent dans votre boîte de réception et créez les vôtres. Tout le tri se fait localement sur votre appareil.",
@@ -8098,7 +8098,7 @@ export const fr = {
     tab_new_count: "nouveau(x)",
     tab_unread_count: "{{count}} non lus",
     tab_counting_unread: "Comptage des messages non lus",
-    category_empty_primary_title: "Rien dans Principal",
+    category_empty_primary_title: "Rien dans la boîte de réception",
     category_empty_primary_desc:
       "Vos messages personnels et vos conversations apparaîtront ici.",
     category_empty_promotions_title: "Aucun bon plan",
@@ -8122,6 +8122,12 @@ export const fr = {
     category_empty_shopping_title: "Aucun e-mail d'achat",
     category_empty_shopping_desc:
       "Les confirmations de commande et mises à jour de livraison apparaîtront ici.",
+    category_empty_newsletters_title: "Aucune lettre d’information",
+    category_empty_newsletters_desc:
+      "Les lettres d’information et listes de diffusion auxquelles vous êtes abonné apparaissent ici.",
+    category_empty_transactions_title: "Aucun reçu",
+    category_empty_transactions_desc:
+      "Les commandes, paiements et reçus des boutiques et des services apparaissent ici.",
     category_empty_custom_desc:
       "Les e-mails correspondant aux règles de cette catégorie apparaîtront ici.",
     view_html_part: "Afficher le HTML",
@@ -10261,13 +10267,13 @@ export const fr = {
       "Supprime automatiquement les e-mails d’un dossier au-delà du nombre de jours que vous choisissez. Les e-mails suivis et épinglés sont toujours conservés.",
     tpl_newsletters_name: "Trier les newsletters",
     tpl_newsletters_desc:
-      "Lorsqu’un message provient d’une liste de diffusion (il porte un en-tête List-Id), classez-le dans la catégorie Notifications.",
+      "Lorsqu’un message provient d’une liste de diffusion (il porte un en-tête List-Id), classez-le dans la catégorie Lettres d’information.",
     tpl_social_name: "Regrouper les notifications sociales",
     tpl_social_desc:
       "Lorsque l’expéditeur est Facebook, LinkedIn, X/Twitter ou Instagram, déplacez le message dans la catégorie Réseaux sociaux.",
-    tpl_promotions_name: "Repérer les promotions",
+    tpl_promotions_name: "Repérer les bons plans",
     tpl_promotions_desc:
-      "Lorsque l’objet mentionne soldes, remise, coupon ou « % de réduction », déplacez le message dans la catégorie Offres.",
+      "Lorsque l’objet mentionne soldes, remise, coupon ou « % de réduction », déplacez le message dans la catégorie Bons plans.",
     tpl_calendar_name: "Regrouper les invitations d’agenda",
     tpl_calendar_desc:
       "Lorsqu’un message contient une invitation d’agenda (.ics), classez-le dans la catégorie Notifications.",

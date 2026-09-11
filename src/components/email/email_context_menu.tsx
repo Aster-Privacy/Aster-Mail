@@ -19,9 +19,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { InboxEmail, EmailCategory } from "@/types/email";
-import type { TranslationKey } from "@/lib/i18n/types";
 
-import { useState, useCallback, useRef, memo } from "react";
+import {
+  useState,
+  useCallback,
+  useRef,
+  memo,
+  useSyncExternalStore,
+} from "react";
 import {
   ArrowUturnLeftIcon,
   ArrowUturnRightIcon,
@@ -39,15 +44,19 @@ import {
   ClockIcon,
   CalendarIcon,
   CheckIcon,
-  UsersIcon,
-  BellIcon,
   Squares2X2Icon,
   MagnifyingGlassIcon,
   ArrowTopRightOnSquareIcon,
 } from "@heroicons/react/24/outline";
 
 import { PinIcon } from "@/components/common/icons";
+import { category_icon } from "@/data/category_icons";
 import { use_i18n } from "@/lib/i18n/context";
+import {
+  get_active_tab_options,
+  get_version as get_category_index_version,
+  subscribe as subscribe_category_index,
+} from "@/services/category_index";
 import { effective_category } from "@/services/effective_category";
 import {
   ContextMenu,
@@ -62,21 +71,6 @@ import {
 } from "@/components/ui/context_menu";
 import { compute_snooze_target } from "@/utils/snooze_targets";
 import { app_locale } from "@/utils/date_format";
-
-const CATEGORY_MENU: {
-  key: EmailCategory;
-  label_key: TranslationKey;
-  Icon: typeof InboxIcon;
-}[] = [
-  { key: "primary", label_key: "mail_rules.category_primary", Icon: InboxIcon },
-  {
-    key: "promotions",
-    label_key: "mail_rules.category_promotions",
-    Icon: TagIcon,
-  },
-  { key: "social", label_key: "mail_rules.category_social", Icon: UsersIcon },
-  { key: "updates", label_key: "mail_rules.category_updates", Icon: BellIcon },
-];
 
 interface FolderOption {
   id: string;
@@ -176,6 +170,8 @@ function EmailContextMenuContentInner({
 }: EmailContextMenuContentProps): React.ReactElement {
   const { t } = use_i18n();
   const [loading_action, set_loading_action] = useState<string | null>(null);
+
+  useSyncExternalStore(subscribe_category_index, get_category_index_version);
 
   const handle_action = useCallback(
     async (action_name: string, handler?: () => void | Promise<void>) => {
@@ -564,21 +560,27 @@ function EmailContextMenuContentInner({
               {t("mail.move_to_category")}
             </ContextMenuSubTrigger>
             <ContextMenuSubContent className="w-48">
-              {CATEGORY_MENU.map(({ key, label_key, Icon }) => (
-                <ContextMenuItem
-                  key={key}
-                  onSelect={(e) => {
-                    e.preventDefault();
-                    on_category_change(key);
-                  }}
-                >
-                  {!selection && effective_category(email) === key && (
-                    <CheckIcon className="me-0.5 h-3 w-3 flex-shrink-0" />
-                  )}
-                  <Icon className="me-2 h-4 w-4" />
-                  <span className="truncate">{t(label_key)}</span>
-                </ContextMenuItem>
-              ))}
+              {get_active_tab_options().map(({ id, icon, label_key, name }) => {
+                const Icon = category_icon(icon);
+
+                return (
+                  <ContextMenuItem
+                    key={id}
+                    onSelect={(e) => {
+                      e.preventDefault();
+                      on_category_change(id as EmailCategory);
+                    }}
+                  >
+                    {!selection && effective_category(email) === id && (
+                      <CheckIcon className="me-0.5 h-3 w-3 flex-shrink-0" />
+                    )}
+                    <Icon className="me-2 h-4 w-4" />
+                    <span className="truncate">
+                      {label_key ? t(label_key) : (name ?? id)}
+                    </span>
+                  </ContextMenuItem>
+                );
+              })}
             </ContextMenuSubContent>
           </ContextMenuSub>
         )}

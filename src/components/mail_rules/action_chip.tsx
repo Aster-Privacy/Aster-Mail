@@ -18,8 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { TranslationKey } from "@/lib/i18n/types";
-import type { Action, CategoryValue } from "@/services/api/mail_rules";
+import type { Action } from "@/services/api/mail_rules";
 
 import * as React from "react";
 import {
@@ -40,6 +39,7 @@ import { ChipPill, ChipSegment } from "./chip_pill";
 import { ActionTargetDropdown } from "./dropdowns/action_target_dropdown";
 
 import { PinIcon } from "@/components/common/icons";
+import { rule_category_label_key } from "@/data/category_catalog";
 import { use_folders } from "@/hooks/use_folders";
 import { use_tags } from "@/hooks/use_tags";
 import { use_i18n } from "@/lib/i18n/context";
@@ -51,20 +51,6 @@ interface ActionChipProps {
   on_remove: () => void;
   read_only?: boolean;
 }
-
-const CATEGORY_LABEL: Record<CategoryValue, TranslationKey> = {
-  primary: "mail_rules.category_primary",
-  important: "mail_rules.category_important",
-  promotions: "mail_rules.category_promotions",
-  newsletters: "settings.category_newsletters",
-  social: "mail_rules.category_social",
-  updates: "mail_rules.category_updates",
-  transactions: "settings.category_transactions",
-  forums: "mail_rules.category_forums",
-  finance: "settings.category_finance",
-  travel: "settings.category_travel",
-  shopping: "settings.category_shopping",
-};
 
 export function ActionChip({
   action,
@@ -178,7 +164,7 @@ export function ActionChip({
           return action.until_iso8601;
         }
       case "categorize": {
-        const category_label = CATEGORY_LABEL[action.category];
+        const category_label = rule_category_label_key(action.category);
 
         return category_label ? t(category_label) : action.category;
       }
