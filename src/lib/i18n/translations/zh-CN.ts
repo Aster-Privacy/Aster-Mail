@@ -8248,6 +8248,9 @@ export const zh_CN = {
     link_device_use_another_account: "使用其他账号",
     link_device_use_this_account: "使用此账号",
     link_device_other_accounts: "切换到其他账号",
+    hub_accounts_or_password: "或使用密码登录",
+    hub_account_password_required: "需要密码",
+    hub_account_link_failed: "要继续使用此账户，请输入其密码。",
     link_device_success: "设备已关联",
     link_device_success_description: "您的桌面应用已关联。您可以关闭此标签页。",
     link_device_invalid_code:

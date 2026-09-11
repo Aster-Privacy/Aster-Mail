@@ -9139,6 +9139,9 @@ export const nl = {
     link_device_use_another_account: "Een ander account gebruiken",
     link_device_use_this_account: "Dit account gebruiken",
     link_device_other_accounts: "Overschakelen naar een ander account",
+    hub_accounts_or_password: "Of log in met je wachtwoord",
+    hub_account_password_required: "Wachtwoord vereist",
+    hub_account_link_failed: "Voer het wachtwoord van dit account in om door te gaan.",
     link_device_success: "Apparaat gekoppeld",
     link_device_success_description:
       "Je desktop-app is nu gekoppeld. Je kunt dit tabblad sluiten.",

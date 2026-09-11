@@ -58,8 +58,18 @@ import {
   switch_account as storage_switch_account,
   update_account_user,
   get_account_kind,
+  get_current_account_id,
   accounts_storage_unreadable,
+  ACCOUNTS_CHANGED_EVENT,
 } from "@/services/account_manager";
+import {
+  type hub_account,
+  on_hub_accounts_changed,
+  read_hub_accounts,
+  set_hub_current_account,
+  sign_out_hub_accounts,
+  uses_account_hub,
+} from "@/services/account_hub_link";
 import { perform_shared_mailbox_login } from "@/services/shared_mailbox_session";
 import { get_account_limit, link_account_device } from "@/services/api/switch";
 import { sync_client } from "@/services/sync_client";
@@ -283,6 +293,12 @@ export function use_auth_provider_state() {
           }
 
           if (session_result === "ok" || session_result === "unavailable") {
+            if (uses_account_hub()) {
+              await with_timeout(
+                set_hub_current_account(target.id),
+                2500,
+              ).catch(safe_log_error);
+            }
             hard_redirect(take_post_switch_path() ?? "/");
 
             return;
@@ -361,6 +377,16 @@ export function use_auth_provider_state() {
           caught,
         ),
       );
+
+      if (current_id && uses_account_hub()) {
+        await with_timeout(sign_out_hub_accounts([current_id]), 2500).catch(
+          (caught) =>
+            ignore_error(
+              "contexts/auth/use_auth_provider_state:use_auth_provider_state",
+              caught,
+            ),
+        );
+      }
 
       await with_timeout(api_client.post("/core/v1/auth/logout", {}), 3000);
 
@@ -449,6 +475,16 @@ export function use_auth_provider_state() {
           caught,
         ),
       );
+
+      if (uses_account_hub()) {
+        await with_timeout(sign_out_hub_accounts("all"), 2500).catch(
+          (caught) =>
+            ignore_error(
+              "contexts/auth/use_auth_provider_state:use_auth_provider_state",
+              caught,
+            ),
+        );
+      }
 
       await with_timeout(api_client.post("/core/v1/auth/logout-all", {}), 3000);
 
@@ -589,8 +625,15 @@ export function use_auth_provider_state() {
       await sign_out_keeping_other_accounts("common.device_revoked");
     };
 
-    const handle_identity_mismatch_event = () => {
-      handle_identity_mismatch().catch((e) => {
+    const handle_identity_mismatch_event = (event: Event) => {
+      const detail = (event as CustomEvent<{ actual_user_id?: unknown }>)
+        .detail;
+      const actual_user_id =
+        typeof detail?.actual_user_id === "string"
+          ? detail.actual_user_id
+          : undefined;
+
+      handle_identity_mismatch(actual_user_id).catch((e) => {
         safe_log_error(e);
       });
     };
@@ -787,6 +830,123 @@ export function use_auth_provider_state() {
     state.accounts,
     state.current_account_id,
     location.pathname,
+    switch_to_account,
+  ]);
+
+  useEffect(() => {
+    if (!state.is_authenticated || !state.current_account_id) return;
+
+    const current_id = state.current_account_id;
+
+    const handle_accounts_changed = async () => {
+      if (switch_in_flight.current || logout_in_flight.current) return;
+
+      const stored = await get_all_accounts().catch(() => null);
+
+      if (!stored || accounts_storage_unreadable()) return;
+
+      const stored_current = await get_current_account_id().catch(() => null);
+
+      if (!stored.some((acc) => acc.id === current_id)) {
+        hard_redirect(stored_current ? "/" : "/sign-in");
+
+        return;
+      }
+
+      if (
+        stored_current &&
+        stored_current !== current_id &&
+        !account_index_routing_enabled()
+      ) {
+        hard_redirect("/");
+
+        return;
+      }
+
+      set_state((prev) => ({ ...prev, accounts: stored }));
+    };
+
+    const listener = () => {
+      void handle_accounts_changed();
+    };
+
+    window.addEventListener(ACCOUNTS_CHANGED_EVENT, listener);
+
+    return () => window.removeEventListener(ACCOUNTS_CHANGED_EVENT, listener);
+  }, [state.is_authenticated, state.current_account_id, set_state]);
+
+  const hub_snapshot = useRef<{
+    ids: Set<string>;
+    current: string | null;
+  } | null>(null);
+
+  useEffect(() => {
+    if (!uses_account_hub()) return;
+    if (!state.is_authenticated || !state.current_account_id) return;
+
+    const current_id = state.current_account_id;
+    let cancelled = false;
+
+    const follow_hub = async () => {
+      const list: hub_account[] | null = await read_hub_accounts();
+
+      if (cancelled || !list) return;
+      if (switch_in_flight.current || logout_in_flight.current) return;
+
+      const previous = hub_snapshot.current;
+      const hub_current = list.find((acc) => acc.is_current)?.id ?? null;
+
+      const next_ids = new Set(list.map((acc) => acc.id));
+
+      hub_snapshot.current = { ids: next_ids, current: hub_current };
+
+      if (!previous) return;
+
+      const removed = [...previous.ids].filter((id) => !next_ids.has(id));
+      const local_ids = new Set(state.accounts.map((acc) => acc.id));
+
+      for (const id of removed) {
+        if (!local_ids.has(id) || id === current_id) continue;
+        await remove_account_handler(id).catch(safe_log_error);
+      }
+
+      if (removed.includes(current_id)) {
+        await logout();
+
+        return;
+      }
+
+      if (
+        hub_current &&
+        hub_current !== previous.current &&
+        hub_current !== current_id &&
+        local_ids.has(hub_current)
+      ) {
+        const passphrase = await get_session_passphrase(hub_current).catch(
+          () => null,
+        );
+
+        if (passphrase && !cancelled) {
+          await switch_to_account(hub_current);
+        }
+      }
+    };
+
+    void follow_hub();
+    const unsubscribe = on_hub_accounts_changed(() => {
+      void follow_hub();
+    });
+
+    return () => {
+      cancelled = true;
+      unsubscribe();
+    };
+  }, [
+    state.is_authenticated,
+    state.current_account_id,
+    state.accounts,
+    remove_account_handler,
+    logout,
     switch_to_account,
   ]);
 

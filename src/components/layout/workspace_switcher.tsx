@@ -45,6 +45,12 @@ import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { PlanBadge } from "@/components/common/plan_badge";
 import { use_preferences } from "@/contexts/preferences_context";
 import { get_all_accounts } from "@/services/account_manager";
+import {
+  type hub_account,
+  read_hub_accounts,
+  sign_out_hub_accounts,
+  uses_account_hub,
+} from "@/services/account_hub_link";
 import { api_client } from "@/services/api/client";
 import { has_stored_session_passphrase } from "@/contexts/auth/session_passphrase";
 import { UNLIMITED_ACCOUNTS } from "@/services/plan_limits";
@@ -118,6 +124,29 @@ export function WorkspaceSwitcher({
     () => accounts.filter((a) => a.id !== current_account_id),
     [accounts, current_account_id],
   );
+  const [hub_only_accounts, set_hub_only_accounts] = useState<hub_account[]>(
+    [],
+  );
+
+  useEffect(() => {
+    if (!is_open || !uses_account_hub()) return;
+
+    let cancelled = false;
+
+    read_hub_accounts().then((list) => {
+      if (cancelled || !list) return;
+
+      const local_ids = new Set(accounts.map((a) => a.id));
+
+      set_hub_only_accounts(list.filter((a) => !local_ids.has(a.id)));
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [is_open, accounts]);
+
+  const row_count = other_accounts.length + hub_only_accounts.length;
 
   const default_account_id = useMemo(() => {
     const personal = accounts.filter((a) => a.kind !== "shared");
@@ -200,28 +229,37 @@ export function WorkspaceSwitcher({
     navigate("/settings/account");
   }, [navigate, on_open_change]);
 
-  const handle_add_account = useCallback(() => {
-    if (at_limit) {
-      show_toast(
-        t("auth.account_limit_for_plan", { max: String(max_allowed) }),
-        "info",
-      );
-      on_open_change(false);
-      navigate("/settings/billing");
+  const begin_add_account = useCallback(
+    (sign_in_path: string) => {
+      if (at_limit) {
+        show_toast(
+          t("auth.account_limit_for_plan", { max: String(max_allowed) }),
+          "info",
+        );
+        on_open_change(false);
+        navigate("/settings/billing");
 
-      return;
-    }
-    on_open_change(false);
-    set_is_adding_account(true);
-    navigate("/sign-in");
-  }, [
-    at_limit,
-    max_allowed,
-    on_open_change,
-    set_is_adding_account,
-    navigate,
-    t,
-  ]);
+        return;
+      }
+      on_open_change(false);
+      set_is_adding_account(true);
+      navigate(sign_in_path);
+    },
+    [at_limit, max_allowed, on_open_change, set_is_adding_account, navigate, t],
+  );
+
+  const handle_add_account = useCallback(
+    () => begin_add_account("/sign-in"),
+    [begin_add_account],
+  );
+
+  const handle_hub_account = useCallback(
+    (account_id: string) =>
+      begin_add_account(
+        `/sign-in?hub_account=${encodeURIComponent(account_id)}`,
+      ),
+    [begin_add_account],
+  );
 
   const handle_switch = useCallback(
     async (account_id: string) => {
@@ -252,6 +290,9 @@ export function WorkspaceSwitcher({
   }, [on_open_change]);
 
   const do_logout_all = useCallback(async () => {
+    if (uses_account_hub()) {
+      await sign_out_hub_accounts("all");
+    }
     for (const acc of other_accounts) {
       try {
         await remove_account(acc.id);
@@ -406,10 +447,10 @@ export function WorkspaceSwitcher({
           </div>
 
           <div className="mt-2 flex flex-col gap-2">
-            {other_accounts.length > 0 && (
+            {row_count > 0 && (
               <div
                 className={`flex flex-col gap-1.5 ${
-                  other_accounts.length > 4
+                  row_count > 4
                     ? "aster_scrollbar_thin max-h-[min(52vh,420px)] overflow-y-auto pe-0.5"
                     : ""
                 }`}
@@ -477,6 +518,47 @@ export function WorkspaceSwitcher({
                         </span>
                       ) : null}
                     </a>
+                  );
+                })}
+                {hub_only_accounts.map((acc) => {
+                  const acc_name = acc.display_name || acc.email.split("@")[0];
+
+                  return (
+                    <button
+                      key={acc.id}
+                      className="account_menu_row group relative w-full h-[60px] flex-shrink-0 px-3.5 flex items-center gap-3.5 rounded-[16px]"
+                      type="button"
+                      onClick={() => handle_hub_account(acc.id)}
+                    >
+                      <span className="inline-flex leading-none flex-shrink-0">
+                        <ProfileAvatar
+                          email={acc.email}
+                          image_url={acc.profile_picture ?? undefined}
+                          name={acc_name}
+                          profile_color={acc.profile_color ?? undefined}
+                          size="sm"
+                        />
+                      </span>
+                      <div className="flex flex-col min-w-0 flex-1 gap-0.5 text-start">
+                        <span
+                          className="text-[13px] font-medium leading-tight truncate"
+                          style={{ color: "var(--text-primary)" }}
+                        >
+                          {acc_name}
+                        </span>
+                        <span
+                          className="text-[11px] leading-tight truncate"
+                          style={{ color: "var(--text-muted)" }}
+                        >
+                          {acc.email}
+                        </span>
+                      </div>
+                      {!acc.linkable && (
+                        <span className="account_menu_badge account_menu_badge_muted">
+                          {t("auth.hub_account_password_required")}
+                        </span>
+                      )}
+                    </button>
                   );
                 })}
               </div>

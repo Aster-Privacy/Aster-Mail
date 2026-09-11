@@ -51,6 +51,7 @@ import {
 } from "@/components/auth/turnstile_widget";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
+import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { is_totp_required_response } from "@/services/api/totp";
 import { webauthn_flow } from "@/pages/sign_in/webauthn_flow";
 import { totp_flow } from "@/pages/sign_in/totp_flow";
@@ -119,6 +120,9 @@ export default function SignInPage() {
     set_active_2fa_method,
     handle_totp_success,
     handle_resend_pending,
+    hub_accounts,
+    hub_signing_in_id,
+    handle_hub_account,
   } = use_sign_in_page();
 
   if (auth_loading || has_existing_session) {
@@ -700,6 +704,71 @@ export default function SignInPage() {
                 </motion.div>
               )}
             </AnimatePresence>
+
+            {hub_accounts.length > 0 && (
+              <div className="w-full mt-6">
+                <p
+                  className="mb-2 text-start text-[11px] font-medium uppercase tracking-[0.06em]"
+                  style={{ color: "var(--text-muted)" }}
+                >
+                  {t("auth.link_device_choose_account")}
+                </p>
+                <div className="flex flex-col gap-1.5">
+                  {hub_accounts.map((acc) => {
+                    const acc_name =
+                      acc.display_name || acc.email.split("@")[0];
+
+                    return (
+                      <button
+                        key={acc.id}
+                        className="account_menu_row group relative w-full h-[60px] flex-shrink-0 px-3.5 flex items-center gap-3.5 rounded-[16px]"
+                        disabled={hub_signing_in_id !== null || is_loading}
+                        type="button"
+                        onClick={() => handle_hub_account(acc)}
+                      >
+                        <span className="inline-flex leading-none flex-shrink-0">
+                          <ProfileAvatar
+                            email={acc.email}
+                            image_url={acc.profile_picture ?? undefined}
+                            name={acc_name}
+                            profile_color={acc.profile_color ?? undefined}
+                            size="sm"
+                          />
+                        </span>
+                        <div className="flex flex-col min-w-0 flex-1 gap-0.5 text-start">
+                          <span
+                            className="text-[13px] font-medium leading-tight truncate"
+                            style={{ color: "var(--text-primary)" }}
+                          >
+                            {acc_name}
+                          </span>
+                          <span
+                            className="text-[11px] leading-tight truncate"
+                            style={{ color: "var(--text-muted)" }}
+                          >
+                            {acc.email}
+                          </span>
+                        </div>
+                        {hub_signing_in_id === acc.id ? (
+                          <Spinner size="sm" />
+                        ) : !acc.linkable ? (
+                          <span className="account_menu_badge account_menu_badge_muted">
+                            {t("auth.hub_account_password_required")}
+                          </span>
+                        ) : null}
+                      </button>
+                    );
+                  })}
+                </div>
+                <div className="flex items-center gap-3 mt-5">
+                  <span className="h-0 flex-1 border-t border-border-primary" />
+                  <span className="text-xs text-txt-tertiary">
+                    {t("auth.hub_accounts_or_password")}
+                  </span>
+                  <span className="h-0 flex-1 border-t border-border-primary" />
+                </div>
+              </div>
+            )}
 
             <form
               className="contents"

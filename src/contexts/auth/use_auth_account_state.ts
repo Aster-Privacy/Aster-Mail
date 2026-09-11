@@ -128,7 +128,7 @@ export function use_auth_account_state() {
     null,
   );
 
-  const handle_identity_mismatch = useCallback(async () => {
+  const handle_identity_mismatch = useCallback(async (actual_user_id?: string) => {
     api_client.begin_intentional_logout();
     sync_client.disconnect();
     stop_session_timeout();
@@ -142,6 +142,37 @@ export function use_auth_account_state() {
       affected = await get_current_account();
     } catch (e) {
       safe_log_error(e);
+    }
+
+    const signed_in_elsewhere = actual_user_id
+      ? all_accounts.find(
+          (account) =>
+            account.id === actual_user_id && account.kind !== "shared",
+        )
+      : undefined;
+
+    if (signed_in_elsewhere && get_stored_encrypted_vault(signed_in_elsewhere.id)) {
+      const passphrase = await get_session_passphrase(
+        signed_in_elsewhere.id,
+      ).catch(() => null);
+
+      if (passphrase) {
+        try {
+          await clear_account_scoped_caches();
+        } catch (e) {
+          safe_log_error(e);
+        }
+
+        const adopted = await storage_switch_account(
+          signed_in_elsewhere.id,
+        ).catch(() => null);
+
+        if (adopted) {
+          hard_redirect("/");
+
+          return;
+        }
+      }
     }
 
     if (all_accounts.length > 1 && affected) {

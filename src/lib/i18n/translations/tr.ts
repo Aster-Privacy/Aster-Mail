@@ -9127,6 +9127,9 @@ export const tr = {
     link_device_use_another_account: "Başka bir hesap kullan",
     link_device_use_this_account: "Bu hesabı kullan",
     link_device_other_accounts: "Başka bir hesaba geç",
+    hub_accounts_or_password: "Veya şifrenle giriş yap",
+    hub_account_password_required: "Şifre gerekli",
+    hub_account_link_failed: "Bu hesapla devam etmek için şifresini gir.",
     link_device_success: "Cihaz bağlandı",
     link_device_success_description:
       "Masaüstü uygulamanız artık bağlandı. Bu sekmeyi kapatabilirsiniz.",

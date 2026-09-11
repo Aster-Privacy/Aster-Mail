@@ -9083,6 +9083,9 @@ export const ar = {
     link_device_use_another_account: "استخدام حساب آخر",
     link_device_use_this_account: "استخدام هذا الحساب",
     link_device_other_accounts: "التبديل إلى حساب آخر",
+    hub_accounts_or_password: "أو سجّل الدخول باستخدام كلمة المرور",
+    hub_account_password_required: "كلمة المرور مطلوبة",
+    hub_account_link_failed: "للمتابعة بهذا الحساب، أدخل كلمة المرور الخاصة به.",
     link_device_success: "تم ربط الجهاز",
     link_device_success_description:
       "تطبيق سطح المكتب الخاص بك مرتبط الآن. يمكنك إغلاق هذه التبويبة.",

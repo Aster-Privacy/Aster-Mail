@@ -8667,6 +8667,9 @@ export const hi = {
     link_device_cancel: "रद्द करें",
     link_device_desktop: "डेस्कटॉप ऐप",
     link_device_signed_in_as: "इस रूप में साइन इन हैं",
+    hub_accounts_or_password: "या अपने पासवर्ड से साइन इन करें",
+    hub_account_password_required: "पासवर्ड आवश्यक है",
+    hub_account_link_failed: "इस खाते से जारी रखने के लिए, इसका पासवर्ड दर्ज करें।",
     link_device_success: "डिवाइस लिंक हो गया",
     link_device_success_description:
       "आपका डेस्कटॉप ऐप अब लिंक हो गया है। आप यह टैब बंद कर सकते हैं।",

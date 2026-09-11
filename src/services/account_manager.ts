@@ -95,6 +95,28 @@ export interface AccountsData {
 let cached_data: AccountsData | null = null;
 let storage_initialized = false;
 
+export const ACCOUNTS_CHANGED_EVENT = "astermail:accounts-changed";
+
+function is_local_storage_area(area: Storage | null): boolean {
+  if (area === null) return true;
+  try {
+    return area === window.localStorage;
+  } catch {
+    return false;
+  }
+}
+
+if (typeof window !== "undefined") {
+  window.addEventListener("storage", (event: StorageEvent) => {
+    if (event.key !== null && event.key !== ACCOUNTS_KEY) return;
+    if (!is_local_storage_area(event.storageArea)) return;
+    if (load_failure === "unavailable") return;
+
+    cached_data = null;
+    window.dispatchEvent(new CustomEvent(ACCOUNTS_CHANGED_EVENT));
+  });
+}
+
 function is_undecryptable_error(error: unknown): boolean {
   const code = (error as { code?: unknown } | null)?.code;
 

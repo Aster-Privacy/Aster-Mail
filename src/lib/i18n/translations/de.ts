@@ -9295,6 +9295,9 @@ export const de = {
       "Die Verknüpfung wurde nicht abgeschlossen. Ein erneuter Versuch löst das Problem in der Regel. Ihr Konto bleibt unverändert.",
     link_device_invalid_code:
       "Ein Verknüpfungscode ist 8 Zeichen lang. Überprüfen Sie die Zeichenanzahl.",
+    hub_accounts_or_password: "Oder mit Passwort anmelden",
+    hub_account_password_required: "Passwort erforderlich",
+    hub_account_link_failed: "Zum Fortfahren mit diesem Konto das zugehörige Passwort eingeben.",
     link_device_success: "Gerät verknüpft",
     link_device_success_description:
       "Ihre Desktop-App ist nun verknüpft. Sie können diesen Tab schließen.",

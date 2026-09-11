@@ -9196,6 +9196,9 @@ export const pt = {
       "A vinculação não foi concluída. Recomeçar geralmente resolve. Sua conta está inalterada.",
     link_device_invalid_code:
       "Um código de vinculação tem 8 caracteres. Verificar o número geralmente resolve.",
+    hub_accounts_or_password: "Ou entre com sua senha",
+    hub_account_password_required: "Senha obrigatória",
+    hub_account_link_failed: "Para continuar com esta conta, insira a senha dela.",
     link_device_success: "Dispositivo vinculado",
     link_device_success_description:
       "Seu aplicativo desktop está agora vinculado. Você pode fechar esta aba.",

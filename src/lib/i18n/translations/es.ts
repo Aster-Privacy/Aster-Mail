@@ -9125,6 +9125,9 @@ export const es = {
     link_device_expired_code: "Código expirado",
     link_device_failed: "Error al vincular el dispositivo",
     link_device_invalid_code: "Código inválido",
+    hub_accounts_or_password: "O inicia sesión con tu contraseña",
+    hub_account_password_required: "Contraseña obligatoria",
+    hub_account_link_failed: "Para continuar con esta cuenta, introduce su contraseña.",
     link_device_success: "Dispositivo vinculado exitosamente",
     link_device_success_description:
       "Este dispositivo tiene acceso a tu cuenta.",

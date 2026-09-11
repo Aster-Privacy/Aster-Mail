@@ -8883,6 +8883,9 @@ export const ko = {
     link_device_use_another_account: "다른 계정 사용",
     link_device_use_this_account: "이 계정 사용",
     link_device_other_accounts: "다른 계정으로 전환",
+    hub_accounts_or_password: "또는 비밀번호로 로그인",
+    hub_account_password_required: "비밀번호 필요",
+    hub_account_link_failed: "이 계정으로 계속하려면 비밀번호를 입력하세요.",
     link_device_success: "기기가 연결되었습니다",
     link_device_success_description:
       "기기가 성공적으로 연결되어 메일에 접근할 수 있습니다.",

@@ -9236,6 +9236,9 @@ export const it = {
       "Il collegamento non si è completato. Ricominciare di solito risolve. Il tuo account è invariato.",
     link_device_invalid_code:
       "Un codice di collegamento è lungo 8 caratteri. Verificare il conteggio di solito risolve.",
+    hub_accounts_or_password: "Oppure accedi con la tua password",
+    hub_account_password_required: "Password obbligatoria",
+    hub_account_link_failed: "Per continuare con questo account, inserisci la sua password.",
     link_device_success: "Dispositivo collegato",
     link_device_success_description:
       "La tua app desktop è ora collegata. Puoi chiudere questa scheda.",

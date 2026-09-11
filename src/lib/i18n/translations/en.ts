@@ -8704,6 +8704,10 @@ export const en: Translations = {
     link_device_use_another_account: "Use another account",
     link_device_use_this_account: "Use this account",
     link_device_other_accounts: "Switch to another account",
+    hub_accounts_or_password: "Or sign in with your password",
+    hub_account_password_required: "Password required",
+    hub_account_link_failed:
+      "To continue with this account, enter its password.",
     link_device_success: "Device linked",
     link_device_success_description:
       "Your desktop app is now linked. You can close this tab.",

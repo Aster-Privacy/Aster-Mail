@@ -7848,6 +7848,9 @@ export interface AuthTranslations {
   link_device_use_another_account: string;
   link_device_use_this_account: string;
   link_device_other_accounts: string;
+  hub_accounts_or_password: string;
+  hub_account_password_required: string;
+  hub_account_link_failed: string;
   link_device_success: string;
   link_device_success_description: string;
   link_device_invalid_code: string;

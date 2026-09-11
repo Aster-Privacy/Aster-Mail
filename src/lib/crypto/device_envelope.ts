@@ -73,6 +73,39 @@ export async function seal_vault_key_for_device(
   return sealed;
 }
 
+export function open_vault_key_envelope(
+  sealed: Uint8Array,
+  device_mlkem_sk: Uint8Array,
+  device_x25519_sk: Uint8Array,
+): Uint8Array {
+  const mlkem_ct_len = 1088;
+  const header_len = 32 + mlkem_ct_len + 24;
+
+  if (sealed.length < header_len + 16) {
+    throw new Error("envelope too short");
+  }
+
+  const eph_pk = sealed.subarray(0, 32);
+  const mlkem_ct = sealed.subarray(32, 32 + mlkem_ct_len);
+  const nonce = sealed.subarray(32 + mlkem_ct_len, header_len);
+  const ct = sealed.subarray(header_len);
+
+  const ss_pq = ml_kem768.decapsulate(mlkem_ct, device_mlkem_sk);
+  const ss_cl = x25519.getSharedSecret(device_x25519_sk, eph_pk);
+  const ikm = concat_bytes(ss_pq, ss_cl);
+  const info = new TextEncoder().encode(ENROLL_INFO);
+  const shared = hkdf(sha256, ikm, nonce, info, 32);
+
+  try {
+    return xchacha20poly1305(shared, nonce).decrypt(ct);
+  } finally {
+    ss_pq.fill(0);
+    ss_cl.fill(0);
+    ikm.fill(0);
+    shared.fill(0);
+  }
+}
+
 export function base64url_encode(bytes: Uint8Array): string {
   let binary = "";
 

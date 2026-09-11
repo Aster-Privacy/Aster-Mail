@@ -9397,6 +9397,9 @@ export const pl = {
     link_device_use_another_account: "Użyj innego konta",
     link_device_use_this_account: "Użyj tego konta",
     link_device_other_accounts: "Przełącz na inne konto",
+    hub_accounts_or_password: "Lub zaloguj się hasłem",
+    hub_account_password_required: "Wymagane hasło",
+    hub_account_link_failed: "Aby kontynuować na tym koncie, wprowadź jego hasło.",
     link_device_success: "Urządzenie połączone",
     link_device_success_description:
       "Twoja aplikacja desktopowa jest teraz połączona. Możesz zamknąć tę kartę.",

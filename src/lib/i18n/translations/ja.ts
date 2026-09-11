@@ -9130,6 +9130,9 @@ export const ja = {
     link_device_use_another_account: "別のアカウントを使用",
     link_device_use_this_account: "このアカウントを使用",
     link_device_other_accounts: "別のアカウントに切り替える",
+    hub_accounts_or_password: "またはパスワードでサインイン",
+    hub_account_password_required: "パスワードが必要です",
+    hub_account_link_failed: "このアカウントで続行するには、パスワードを入力してください。",
     link_device_success: "デバイスがリンクされました",
     link_device_success_description:
       "デスクトップアプリがリンクされました。このタブを閉じることができます。",
