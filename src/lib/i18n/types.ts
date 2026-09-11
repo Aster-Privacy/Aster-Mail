@@ -5825,6 +5825,7 @@ export interface SettingsTranslations {
   checkout_term_save: string;
   checkout_term_per_month: string;
   checkout_term_crypto_only: string;
+  billing_onion_card_notice: string;
   checkout_card_term_unavailable: string;
   checkout_term_total: string;
   checkout_method_title: string;
@@ -5852,6 +5853,12 @@ export interface SettingsTranslations {
   offer_modal_dismiss: string;
   offer_upgrade_title: string;
   offer_upgrade_description: string;
+  card_declined_title: string;
+  card_declined_insufficient_funds: string;
+  card_declined_expired_card: string;
+  card_declined_card_details: string;
+  card_declined_card_not_supported: string;
+  card_declined_contact_bank: string;
   win_back_offer_title: string;
   win_back_offer_expires_today: string;
   win_back_offer_expires_tomorrow: string;

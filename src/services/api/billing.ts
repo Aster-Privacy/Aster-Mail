@@ -55,6 +55,11 @@ export interface PendingOffer {
   expires_at: string;
 }
 
+export interface CardDecline {
+  reason: string;
+  at: string;
+}
+
 export interface SubscriptionResponse {
   plan: PlanInfo;
   status: string;
@@ -70,6 +75,7 @@ export interface SubscriptionResponse {
   has_stripe_subscription?: boolean;
   active_discount_description?: string | null;
   pending_offer?: PendingOffer | null;
+  last_card_decline?: CardDecline | null;
 }
 
 export interface AvailablePlan {
@@ -251,6 +257,27 @@ export function billing_return_urls(): {
   };
 }
 
+const promo_code_arrival_key = "aster_arrived_with_promo_code";
+
+export function arrived_with_promo_code(): boolean {
+  if (typeof window === "undefined") return false;
+
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get("promo") ?? params.get("coupon");
+
+    if (code && code.trim().length > 0) {
+      window.sessionStorage.setItem(promo_code_arrival_key, "1");
+
+      return true;
+    }
+
+    return window.sessionStorage.getItem(promo_code_arrival_key) === "1";
+  } catch {
+    return false;
+  }
+}
+
 export async function create_checkout_session(
   plan_code: string,
   billing_interval: string = "month",
@@ -270,6 +297,7 @@ export async function create_checkout_session(
       ...(apply_credits_cents && apply_credits_cents > 0
         ? { apply_credits_cents }
         : {}),
+      ...(arrived_with_promo_code() ? { arrived_with_promo_code: true } : {}),
     },
   );
 }

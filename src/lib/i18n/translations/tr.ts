@@ -5750,6 +5750,8 @@ export const tr = {
     checkout_term_save: "{{amount}} tasarruf edin",
     checkout_term_per_month: "{{amount}}/ay",
     checkout_term_crypto_only: "Yalnızca kripto",
+    billing_onion_card_notice:
+      "Kartla ödemek için app.astermail.org adresinde oturum açın. Bu adreste ödeme kripto ile yapılır.",
     checkout_card_term_unavailable:
       "2 yıllık süre kripto ile ödeme yaptığınızda kullanılabilir.",
     checkout_term_total: "toplam {{amount}}",
@@ -6773,6 +6775,17 @@ export const tr = {
     or_pay_with_card: "Veya kartla öde",
     cardholder_name_placeholder: "Ad Soyad",
     billing_postal_placeholder: "12345",
+    card_declined_title: "Son kart ödemeniz tamamlanmadı",
+    card_declined_insufficient_funds:
+      "Hesapta yeterli bakiye olmadığı için bankanız ödemeyi reddetti. Başka bir kart deneyin veya aşağıdan kripto ile ödeyin.",
+    card_declined_expired_card:
+      "Kartınızın süresi doldu. Geçerli son kullanma tarihi olan bir kart kullanın veya aşağıdan kripto ile ödeyin.",
+    card_declined_card_details:
+      "Kart bilgilerinden biri eşleşmedi. Numarayı, son kullanma tarihini ve güvenlik kodunu kontrol edin veya aşağıdan kripto ile ödeyin.",
+    card_declined_card_not_supported:
+      "Bankanız bu ödemeyi desteklemiyor. Ön ödemeli kartların çoğu abonelik için kullanılamaz. Banka veya kredi kartı deneyin ya da aşağıdan kripto ile ödeyin.",
+    card_declined_contact_bank:
+      "Bankanız ödemeyi, nedenini bildirmeden reddetti. Bankanızla iletişime geçin veya aşağıdan kripto ile ödeyin.",
     crypto_pay_button: "Kripto ile öde",
     crypto_summary_plan: "Plan",
     crypto_summary_addon: "Ek paket",

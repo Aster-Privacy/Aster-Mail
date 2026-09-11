@@ -5839,6 +5839,8 @@ export const ar = {
     checkout_term_save: "وفّر {{amount}}",
     checkout_term_per_month: "{{amount}}/شهر",
     checkout_term_crypto_only: "العملات المشفّرة فقط",
+    billing_onion_card_notice:
+      "للدفع بالبطاقة، سجّل الدخول على app.astermail.org. المدفوعات على هذا العنوان تتم بالعملات الرقمية.",
     checkout_card_term_unavailable:
       "مدة السنتين متاحة عند الدفع بالعملات المشفّرة.",
     checkout_term_total: "{{amount}} الإجمالي",
@@ -6697,6 +6699,17 @@ export const ar = {
     or_pay_with_card: "أو الدفع بالبطاقة",
     cardholder_name_placeholder: "الاسم الكامل",
     billing_postal_placeholder: "12345",
+    card_declined_title: "لم تتم آخر عملية دفع بالبطاقة",
+    card_declined_insufficient_funds:
+      "رفض البنك عملية الدفع لعدم توفر رصيد كافٍ في الحساب. جرّب بطاقة أخرى أو ادفع بالعملات المشفرة أدناه.",
+    card_declined_expired_card:
+      "انتهت صلاحية بطاقتك. استخدم بطاقة سارية الصلاحية أو ادفع بالعملات المشفرة أدناه.",
+    card_declined_card_details:
+      "أحد بيانات البطاقة غير مطابق. تحقق من الرقم وتاريخ الانتهاء ورمز الأمان، أو ادفع بالعملات المشفرة أدناه.",
+    card_declined_card_not_supported:
+      "لا يدعم البنك هذه العملية. لا يمكن استخدام كثير من البطاقات المدفوعة مسبقًا للاشتراك. جرّب بطاقة خصم أو ائتمان، أو ادفع بالعملات المشفرة أدناه.",
+    card_declined_contact_bank:
+      "رفض البنك عملية الدفع دون ذكر السبب. تواصل مع البنك أو ادفع بالعملات المشفرة أدناه.",
     crypto_pay_button: "الدفع بالعملة المشفرة",
     crypto_summary_plan: "الخطة",
     crypto_summary_addon: "الإضافة",

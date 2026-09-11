@@ -57,6 +57,8 @@ import {
 } from "@/components/settings/billing/billing_constants";
 import { checkout_error_text } from "./checkout_error_text";
 
+import { is_onion_host } from "@/lib/onion_host";
+
 type TermMonths = 1 | 3 | 6 | 12 | 24;
 type Step = "term" | "method";
 type CoinsStatus = "loading" | "ready" | "disabled" | "failed";
@@ -117,7 +119,9 @@ export function crypto_term_modal({
   const { t } = use_i18n();
   const navigate = useNavigate();
   const is_ios = Capacitor.getPlatform() === "ios";
-  const native_supported = enable_native && !is_ios;
+  const on_onion = is_onion_host();
+  const native_supported = (enable_native && !is_ios) || on_onion;
+  const card_checkout_available = !on_onion;
 
   const [step, set_step] = useState<Step>("term");
   const [selected_term, set_selected_term] = useState<TermMonths>(12);
@@ -627,32 +631,34 @@ export function crypto_term_modal({
                     );
                   })}
 
-                  <button
-                    aria-busy={is_loading}
-                    className="w-full flex items-center justify-between gap-3 rounded-[14px] border border-edge-secondary p-3.5 text-start transition-colors bg-surf-tertiary hover:bg-surf-hover hover:border-edge-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] disabled:cursor-not-allowed"
-                    disabled={busy}
-                    type="button"
-                    onClick={handle_stripe}
-                  >
-                    <span className="flex items-center gap-3 min-w-0">
-                      <CoinIcon chain="generic" currency="stable" size={32} />
-                      <span className="flex flex-col min-w-0">
-                        <span className="text-sm font-medium text-txt-primary truncate">
-                          {t("settings.crypto_native_stripe_option")}
-                        </span>
-                        <span className="text-xs text-txt-muted line-clamp-2">
-                          {t("settings.crypto_native_stripe_desc")}
+                  {card_checkout_available && (
+                    <button
+                      aria-busy={is_loading}
+                      className="w-full flex items-center justify-between gap-3 rounded-[14px] border border-edge-secondary p-3.5 text-start transition-colors bg-surf-tertiary hover:bg-surf-hover hover:border-edge-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] disabled:cursor-not-allowed"
+                      disabled={busy}
+                      type="button"
+                      onClick={handle_stripe}
+                    >
+                      <span className="flex items-center gap-3 min-w-0">
+                        <CoinIcon chain="generic" currency="stable" size={32} />
+                        <span className="flex flex-col min-w-0">
+                          <span className="text-sm font-medium text-txt-primary truncate">
+                            {t("settings.crypto_native_stripe_option")}
+                          </span>
+                          <span className="text-xs text-txt-muted line-clamp-2">
+                            {t("settings.crypto_native_stripe_desc")}
+                          </span>
                         </span>
                       </span>
-                    </span>
-                    <span className="flex h-6 w-6 shrink-0 items-center justify-center">
-                      {is_loading ? (
-                        <Spinner size="sm" />
-                      ) : (
-                        <BanknotesIcon className="w-5 h-5 text-txt-muted" />
-                      )}
-                    </span>
-                  </button>
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center">
+                        {is_loading ? (
+                          <Spinner size="sm" />
+                        ) : (
+                          <BanknotesIcon className="w-5 h-5 text-txt-muted" />
+                        )}
+                      </span>
+                    </button>
+                  )}
                 </div>
               )}
             </ModalBody>

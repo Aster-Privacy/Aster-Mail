@@ -5850,6 +5850,8 @@ export const ja = {
     checkout_term_save: "{{amount}} お得",
     checkout_term_per_month: "{{amount}}/月",
     checkout_term_crypto_only: "暗号資産のみ",
+    billing_onion_card_notice:
+      "カードで支払うには app.astermail.org にサインインしてください。このアドレスでは暗号資産で支払います。",
     checkout_card_term_unavailable:
       "2年契約は暗号資産でのお支払い時にご利用いただけます。",
     checkout_term_total: "合計 {{amount}}",
@@ -6825,6 +6827,17 @@ export const ja = {
     crypto_modal_title: "仮想通貨で支払う",
     crypto_no_renew_notice: "仮想通貨での購入は自動更新されません。",
     crypto_paid_until: "{{date}}まで有効（仮想通貨）",
+    card_declined_title: "前回のカード決済が完了しませんでした",
+    card_declined_insufficient_funds:
+      "口座の残高が不足していたため、銀行が決済を拒否しました。別のカードを試すか、下の暗号資産でお支払いください。",
+    card_declined_expired_card:
+      "カードの有効期限が切れています。有効期限内のカードを使うか、下の暗号資産でお支払いください。",
+    card_declined_card_details:
+      "カード情報のいずれかが一致しませんでした。番号、有効期限、セキュリティコードを確認するか、下の暗号資産でお支払いください。",
+    card_declined_card_not_supported:
+      "銀行がこの決済に対応していません。プリペイドカードの多くはサブスクリプションに使えません。デビットカードまたはクレジットカードを試すか、下の暗号資産でお支払いください。",
+    card_declined_contact_bank:
+      "銀行が理由を示さずに決済を拒否しました。銀行にお問い合わせいただくか、下の暗号資産でお支払いください。",
     crypto_pay_button: "仮想通貨で支払う",
     crypto_pay_now: "仮想通貨で支払う",
     crypto_renew_link: "仮想通貨で更新",

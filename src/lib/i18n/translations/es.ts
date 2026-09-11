@@ -5800,6 +5800,8 @@ export const es = {
     checkout_term_save: "Ahorra {{amount}}",
     checkout_term_per_month: "{{amount}}/mes",
     checkout_term_crypto_only: "Solo cripto",
+    billing_onion_card_notice:
+      "Para pagar con tarjeta, inicia sesión en app.astermail.org. En esta dirección se paga con criptomonedas.",
     checkout_card_term_unavailable:
       "El plazo de 2 años está disponible si pagas con cripto.",
     checkout_term_total: "{{amount}} en total",
@@ -6847,6 +6849,17 @@ export const es = {
     crypto_modal_title: "Pago con criptomoneda",
     crypto_no_renew_notice: "Este plan no se renueva automáticamente.",
     crypto_paid_until: "Pagado hasta el {{date}} (cripto)",
+    card_declined_title: "Tu último pago con tarjeta no se completó",
+    card_declined_insufficient_funds:
+      "Tu banco rechazó el pago porque la cuenta no tenía fondos suficientes. Prueba con otra tarjeta o paga con criptomonedas más abajo.",
+    card_declined_expired_card:
+      "Tu tarjeta ha caducado. Usa una tarjeta con una fecha de caducidad vigente o paga con criptomonedas más abajo.",
+    card_declined_card_details:
+      "Alguno de los datos de la tarjeta no coincide. Revisa el número, la fecha de caducidad y el código de seguridad, o paga con criptomonedas más abajo.",
+    card_declined_card_not_supported:
+      "Tu banco no admite este pago. Muchas tarjetas prepago no sirven para una suscripción. Prueba con una tarjeta de débito o crédito, o paga con criptomonedas más abajo.",
+    card_declined_contact_bank:
+      "Tu banco rechazó el pago sin decirnos el motivo. Ponte en contacto con tu banco o paga con criptomonedas más abajo.",
     crypto_pay_button: "Pagar con cripto",
     crypto_pay_now: "Pagar ahora con cripto",
     crypto_renew_link: "Renovar",
