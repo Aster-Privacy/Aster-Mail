@@ -104,3 +104,37 @@ describe("draft_manager.save_draft concurrency", () => {
     expect(update_draft).not.toHaveBeenCalled();
   });
 });
+
+describe("draft_manager.delete_draft during a save", () => {
+  it("waits for an in-flight create and deletes the draft it made", async () => {
+    let resolve_create: (value: unknown) => void = () => undefined;
+
+    create_draft.mockReturnValue(
+      new Promise((resolve) => {
+        resolve_create = resolve;
+      }),
+    );
+    delete_draft.mockResolvedValue({ data: { success: true } });
+    const context_id = draft_manager.create_context();
+
+    const save = draft_manager.save_draft(context_id, draft("sent"), vault);
+
+    await vi.waitFor(() => expect(create_draft).toHaveBeenCalledTimes(1));
+
+    let delete_settled = false;
+    const removal = draft_manager.delete_draft(context_id).then((result) => {
+      delete_settled = true;
+
+      return result;
+    });
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(delete_settled).toBe(false);
+
+    resolve_create({ data: { id: "late_draft", version: 1 } });
+    await save;
+    await removal;
+
+    expect(delete_draft).toHaveBeenCalledWith("late_draft");
+  });
+});

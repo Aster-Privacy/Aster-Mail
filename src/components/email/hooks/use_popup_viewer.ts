@@ -83,6 +83,7 @@ import {
 import { use_popup_viewer_actions } from "@/components/email/hooks/popup_viewer_actions";
 import { register_popup_email } from "@/components/email/hooks/popup_email_registry";
 import { viewer_still_showing } from "@/components/email/thread_reply_target";
+import { use_thread_draft_removal } from "@/components/email/hooks/use_thread_draft_removal";
 import { UNDO_SEND_PREVIEW_ID } from "@/components/email/email_viewer_types";
 
 export type {
@@ -143,6 +144,8 @@ export function use_popup_viewer({
   const [thread_draft, set_thread_draft] = useState<DraftWithContent | null>(
     null,
   );
+
+  use_thread_draft_removal(current_thread_token, set_thread_draft);
   const [external_content_state, set_external_content_state] = useState<{
     mode: "blocked" | "loaded" | "dismissed";
     report: ExternalContentReport | null;

@@ -108,3 +108,41 @@ describe("preload cache thread drafts", () => {
     expect(get_preload_cache().get("email_1")?.thread_draft).toBeNull();
   });
 });
+
+describe("preload cache optimistic replies", () => {
+  beforeEach(() => {
+    clear_preload_cache();
+  });
+
+  it("drops the thread draft and caches the full sent body", () => {
+    seed_entry("thread_1");
+    get_preload_cache().set("email_1", {
+      ...get_preload_cache().get("email_1")!,
+      thread_draft: { id: "draft_1" } as never,
+    });
+
+    const body =
+      "<p>I agree on the plan.</p><blockquote><div>On Mon, Sam wrote:</div></blockquote>";
+
+    window.dispatchEvent(
+      new CustomEvent(MAIL_EVENTS.THREAD_REPLY_OPTIMISTIC, {
+        detail: {
+          thread_token: "thread_1",
+          optimistic_id: "opt_1",
+          sender_name: "Me",
+          sender_email: "me@astermail.org",
+          subject: "Re: hello",
+          body,
+          to_recipients: [],
+        },
+      }),
+    );
+
+    const cached = get_preload_cache().get("email_1");
+    const optimistic = cached?.thread_messages.find((m) => m.id === "opt_1");
+
+    expect(cached?.thread_draft).toBeNull();
+    expect(optimistic?.html_content).toBe(body);
+    expect(optimistic?.is_sending).toBe(true);
+  });
+});

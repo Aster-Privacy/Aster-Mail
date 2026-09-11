@@ -20,7 +20,11 @@
 //
 import { useEffect, useMemo, useRef } from "react";
 
-import { use_undo_send } from "@/hooks/use_undo_send";
+import {
+  handle_restored_send_settled,
+  settle_restored_sends_missing_from_server,
+  use_undo_send,
+} from "@/hooks/use_undo_send";
 import { is_typing } from "@/hooks/use_keyboard_shortcuts";
 import { undo_send_manager as server_undo_manager } from "@/services/undo_send_manager";
 import { is_mac_platform } from "@/lib/utils";
@@ -50,8 +54,16 @@ export function UndoSendContainer({
 
   useEffect(() => {
     if (is_authenticated) {
+      const stop_restored_listener =
+        server_undo_manager.on_restored_send_settled(
+          handle_restored_send_settled,
+        );
+
       server_undo_manager
         .sync_with_server()
+        .then((synced) => {
+          if (synced) settle_restored_sends_missing_from_server();
+        })
         .catch((caught) =>
           ignore_error(
             "components/toast/undo_send_container:UndoSendContainer",
@@ -60,6 +72,7 @@ export function UndoSendContainer({
         );
 
       return () => {
+        stop_restored_listener();
         server_undo_manager.stop_polling();
       };
     }

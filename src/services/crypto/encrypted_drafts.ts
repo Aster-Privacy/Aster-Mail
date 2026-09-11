@@ -386,6 +386,10 @@ class DraftManager {
 
     context.is_deleted = true;
 
+    if (context.pending_save) {
+      await context.pending_save.catch(() => undefined);
+    }
+
     if (!context.id) {
       return true;
     }

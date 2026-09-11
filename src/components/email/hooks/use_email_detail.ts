@@ -23,6 +23,7 @@ import type { PrintThreadData } from "@/utils/print_email";
 import { useRef, useEffect, useCallback } from "react";
 
 import { use_email_detail_load } from "./use_email_detail_load";
+import { use_thread_draft_removal } from "./use_thread_draft_removal";
 
 import { is_system_email } from "@/lib/utils";
 import { fetch_and_decrypt_thread_messages } from "@/services/thread_service";
@@ -120,6 +121,8 @@ export function use_email_detail() {
     actions,
     fetch_email,
   } = use_email_detail_load();
+
+  use_thread_draft_removal(mail_item?.thread_token, set_thread_draft);
 
   useEffect(() => {
     fetch_email();

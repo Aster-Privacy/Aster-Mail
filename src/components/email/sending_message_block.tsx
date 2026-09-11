@@ -33,35 +33,13 @@ import {
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_i18n } from "@/lib/i18n/context";
 import { get_image_proxy_url } from "@/lib/image_proxy";
+import { strip_reply_quotes } from "@/lib/strip_reply_quotes";
 import { SandboxedEmailRenderer } from "@/components/email/sandboxed_email_renderer";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
 
 interface SendingMessageBlockProps {
   message: DecryptedThreadMessage;
   current_user_name?: string;
-}
-
-function strip_quotes(body: string): string {
-  const wrote_re = /On .+wrote:\s*/i;
-  const match = body.match(wrote_re);
-  let processed = body;
-
-  if (match && match.index !== undefined) {
-    const before = body.substring(0, match.index).trim();
-
-    if (before.length > 0) {
-      processed = before;
-    } else {
-      processed = body.substring(match.index + match[0].length);
-    }
-  }
-
-  return (
-    processed
-      .replace(/^>.*$/gm, "")
-      .replace(/<blockquote[^>]*>[\s\S]*?<\/blockquote>/gi, "")
-      .trim() || body
-  );
 }
 
 export function SendingMessageBlock({
@@ -75,7 +53,7 @@ export function SendingMessageBlock({
       return message.html_content;
     }
 
-    return strip_quotes(message.body);
+    return strip_reply_quotes(message.body);
   }, [message.body, message.html_content]);
   const display_name =
     current_user_name || message.sender_name || t("common.me");

@@ -83,6 +83,7 @@ import { use_email_viewer_actions } from "@/components/email/email_viewer_action
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { normalize_address_ignoring_dots } from "@/utils/address_dots";
 import { viewer_still_showing } from "@/components/email/thread_reply_target";
+import { use_thread_draft_removal } from "@/components/email/hooks/use_thread_draft_removal";
 
 const ARRIVAL_REFRESH_DEBOUNCE_MS = 800;
 
@@ -223,6 +224,8 @@ export function use_email_viewer({
   const [thread_draft, set_thread_draft] = useState<DraftWithContent | null>(
     null,
   );
+
+  use_thread_draft_removal(email?.thread_token, set_thread_draft);
   const [sending_message, set_sending_message] =
     useState<DecryptedThreadMessage | null>(null);
   const [view_source_message, set_view_source_message] =

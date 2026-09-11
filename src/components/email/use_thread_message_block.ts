@@ -43,6 +43,7 @@ import {
 } from "@/lib/html_sanitizer";
 import { is_system_email } from "@/lib/utils";
 import { get_image_proxy_url } from "@/lib/image_proxy";
+import { strip_reply_quotes } from "@/lib/strip_reply_quotes";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_date_format } from "@/hooks/use_date_format";
@@ -135,29 +136,6 @@ export interface ThreadMessageBlockProps {
   on_load_external_content?: (types?: string[]) => void;
 }
 
-function strip_quotes(body: string): string {
-  const wrote_re = /On .+wrote:\s*/i;
-  const match = body.match(wrote_re);
-  let processed = body;
-
-  if (match && match.index !== undefined) {
-    const before = body.substring(0, match.index).trim();
-
-    if (before.length > 0) {
-      processed = before;
-    } else {
-      processed = body.substring(match.index + match[0].length);
-    }
-  }
-
-  return (
-    processed
-      .replace(/^>.*$/gm, "")
-      .replace(/<blockquote[^>]*>[\s\S]*?<\/blockquote>/gi, "")
-      .trim() || body
-  );
-}
-
 export function use_thread_message_block(props: ThreadMessageBlockProps) {
   const {
     message,
@@ -206,7 +184,7 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
       return message.html_content;
     }
 
-    return strip_quotes(message.body);
+    return strip_reply_quotes(message.body);
   }, [message.body, message.html_content, password_unlocked_body]);
   const has_reported_external_content = useRef(false);
 

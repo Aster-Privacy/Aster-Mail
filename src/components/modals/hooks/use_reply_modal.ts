@@ -68,7 +68,7 @@ import {
   type ScheduledEmailContent,
 } from "@/services/api/scheduled";
 import { emit_scheduled_changed } from "@/hooks/mail_events";
-import { delete_draft } from "@/services/api/multi_drafts";
+import { delete_thread_draft } from "@/services/api/multi_drafts";
 import {
   type Attachment,
   generate_attachment_id,
@@ -180,6 +180,9 @@ export function use_reply_modal(props: UseReplyModalProps) {
     save_draft_timeout,
     last_saved_text,
     is_sending_ref,
+    has_sent_ref,
+    draft_id_ref,
+    pending_save_ref,
     send_lock_started_at_ref,
     last_send_time_ref,
     files_drop_ref,
@@ -253,6 +256,42 @@ export function use_reply_modal(props: UseReplyModalProps) {
 
     return is_reply_from_mismatch(received_on_address, selected_sender?.email);
   }, [received_on_address, selected_sender]);
+
+  const discard_sent_draft = useCallback(
+    async (sent_thread_token?: string) => {
+      has_sent_ref.current = true;
+
+      if (save_draft_timeout.current) {
+        clearTimeout(save_draft_timeout.current);
+        save_draft_timeout.current = null;
+      }
+
+      const in_flight = pending_save_ref.current;
+
+      if (in_flight) {
+        await in_flight.catch(() => undefined);
+      }
+
+      const sent_draft_id = draft_id_ref.current;
+
+      set_draft_id(null);
+      set_draft_version(1);
+      last_saved_text.current = "";
+
+      if (!sent_draft_id) return;
+
+      await delete_thread_draft(
+        sent_draft_id,
+        sent_thread_token ?? thread_token,
+      ).catch((caught) =>
+        ignore_error(
+          "components/modals/hooks/use_reply_modal:discard_sent_draft",
+          caught,
+        ),
+      );
+    },
+    [thread_token, set_draft_id, set_draft_version],
+  );
 
   const handle_send = useCallback(async () => {
     const now = Date.now();
@@ -404,19 +443,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
       show_toast(t("common.email_sent_via_external"), "success");
       emit_email_sent();
 
-      if (draft_id) {
-        const captured_draft_id = draft_id;
-
-        set_draft_id(null);
-        set_draft_version(1);
-        last_saved_text.current = "";
-        await delete_draft(captured_draft_id).catch((caught) =>
-          ignore_error(
-            "components/modals/hooks/use_reply_modal:use_reply_modal",
-            caught,
-          ),
-        );
-      }
+      await discard_sent_draft();
 
       on_close();
 
@@ -576,19 +603,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
         });
       }
 
-      if (draft_id) {
-        const captured_draft_id = draft_id;
-
-        set_draft_id(null);
-        set_draft_version(1);
-        last_saved_text.current = "";
-        delete_draft(captured_draft_id).catch((caught) =>
-          ignore_error(
-            "components/modals/hooks/use_reply_modal:use_reply_modal",
-            caught,
-          ),
-        );
-      }
+      void discard_sent_draft(reply_thread_token);
 
       if (delay_seconds > 0) {
         undo_send_manager.add({
@@ -643,7 +658,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
     preferences.auto_save_recent_recipients,
 
     on_close,
-    draft_id,
+    discard_sent_draft,
     expires_at,
     build_quoted_content,
     include_quoted,
@@ -742,19 +757,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
         return;
       }
 
-      if (draft_id) {
-        const captured_draft_id = draft_id;
-
-        set_draft_id(null);
-        set_draft_version(1);
-        last_saved_text.current = "";
-        await delete_draft(captured_draft_id).catch((caught) =>
-          ignore_error(
-            "components/modals/hooks/use_reply_modal:use_reply_modal",
-            caught,
-          ),
-        );
-      }
+      await discard_sent_draft();
 
       on_close();
 
@@ -782,7 +785,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
     build_quoted_content,
     include_quoted,
     on_close,
-    draft_id,
+    discard_sent_draft,
     is_plain_text_mode,
     attachments,
     reply_from_mismatch,
@@ -866,10 +869,26 @@ export function use_reply_modal(props: UseReplyModalProps) {
   }, [on_close]);
 
   const handle_delete_draft = useCallback(async () => {
-    if (draft_id) {
-      const result = await delete_draft(draft_id);
+    if (save_draft_timeout.current) {
+      clearTimeout(save_draft_timeout.current);
+      save_draft_timeout.current = null;
+    }
+
+    has_sent_ref.current = true;
+
+    const in_flight = pending_save_ref.current;
+
+    if (in_flight) {
+      await in_flight.catch(() => undefined);
+    }
+
+    const current_draft_id = draft_id_ref.current;
+
+    if (current_draft_id) {
+      const result = await delete_thread_draft(current_draft_id, thread_token);
 
       if (result.error) {
+        has_sent_ref.current = false;
         set_show_delete_confirm(false);
         show_toast(t("common.failed_to_delete_draft"), "error");
 
@@ -890,7 +909,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
     on_close();
   }, [
     t,
-    draft_id,
+    thread_token,
     on_close,
     message_editor_ref,
     set_reply_message,

@@ -384,11 +384,13 @@ if (typeof window !== "undefined") {
       sender_email: detail.sender_email,
       subject: detail.subject,
       body: detail.body,
+      html_content: detail.body,
       timestamp: new Date().toISOString(),
       is_read: true,
       is_starred: false,
       is_deleted: false,
       is_external: false,
+      is_sending: true,
       to_recipients: detail.to_recipients,
       cc_recipients: detail.cc_recipients ?? [],
     };
@@ -402,12 +404,13 @@ if (typeof window !== "undefined") {
           (m) => m.id === detail.optimistic_id,
         );
 
-        if (!already_has) {
-          preload_cache.set(key, {
-            ...cached,
-            thread_messages: [...cached.thread_messages, optimistic_msg],
-          });
-        }
+        preload_cache.set(key, {
+          ...cached,
+          thread_draft: null,
+          thread_messages: already_has
+            ? cached.thread_messages
+            : [...cached.thread_messages, optimistic_msg],
+        });
       }
     }
   }) as EventListener);

@@ -20,10 +20,14 @@
 //
 import type { Attachment } from "@/components/compose/compose_shared";
 import type { DraftType } from "@/services/api/multi_drafts";
+import type { TerminalSendStatus } from "@/services/undo_send_manager";
 
 import { useState, useEffect, useCallback } from "react";
 
+import { undo_send_manager as server_undo_manager } from "@/services/undo_send_manager";
 import { ignore_error } from "@/lib/ignore_error";
+import { emit_email_sent, emit_thread_reply_sent } from "@/hooks/mail_events";
+import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 import { show_toast } from "@/components/toast/simple_toast";
 import { get_active_translations } from "@/lib/i18n/translations";
 import {
@@ -224,6 +228,44 @@ class UndoSendManager {
 }
 
 export const undo_send_manager = new UndoSendManager();
+
+export function handle_restored_send_settled(
+  queue_id: string,
+  status: TerminalSendStatus,
+): void {
+  const restored = undo_send_manager
+    .get_all()
+    .find((pending) => pending.server_queue_id === queue_id);
+
+  if (restored) {
+    undo_send_manager.remove(restored.id);
+  }
+
+  if (status !== "sent") return;
+
+  invalidate_mail_stats();
+  emit_email_sent();
+
+  if (restored?.thread_token) {
+    emit_thread_reply_sent({
+      thread_token: restored.thread_token,
+      optimistic_id: restored.optimistic_id,
+    });
+  }
+}
+
+export function settle_restored_sends_missing_from_server(): void {
+  const known_queue_ids = new Set(
+    server_undo_manager.get_all_sends().map((pending) => pending.queue_id),
+  );
+
+  for (const pending of undo_send_manager.get_all()) {
+    if (!pending.is_restored || !pending.server_queue_id) continue;
+    if (known_queue_ids.has(pending.server_queue_id)) continue;
+
+    handle_restored_send_settled(pending.server_queue_id, "sent");
+  }
+}
 
 export function clear_undo_send_state(): void {
   undo_send_manager.clear();

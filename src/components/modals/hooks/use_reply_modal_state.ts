@@ -44,6 +44,7 @@ import { use_signatures } from "@/contexts/signatures_context";
 import { show_toast } from "@/components/toast/simple_toast";
 import {
   create_draft,
+  delete_thread_draft,
   update_draft,
   type DraftContent,
 } from "@/services/api/multi_drafts";
@@ -200,8 +201,16 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
   );
   const [show_quoted, set_show_quoted] = useState(false);
   const [include_quoted, set_include_quoted] = useState(true);
-  const [draft_id, set_draft_id] = useState<string | null>(null);
-  const [draft_version, set_draft_version] = useState<number>(1);
+  const [draft_id, set_draft_id_state] = useState<string | null>(null);
+  const draft_id_ref = useRef<string | null>(null);
+  const draft_version_ref = useRef(1);
+  const set_draft_id = useCallback((id: string | null) => {
+    draft_id_ref.current = id;
+    set_draft_id_state(id);
+  }, []);
+  const set_draft_version = useCallback((version: number) => {
+    draft_version_ref.current = version;
+  }, []);
   const [expires_at, set_expires_at] = useState<Date | null>(null);
   const [expiry_password, set_expiry_password] = useState<string | null>(null);
   const [scheduled_time, set_scheduled_time] = useState<Date | null>(null);
@@ -227,6 +236,8 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
   const last_saved_text = useRef<string>("");
   const last_saved_attachments = useRef<string>("");
   const is_sending_ref = useRef(false);
+  const has_sent_ref = useRef(false);
+  const pending_save_ref = useRef<Promise<void> | null>(null);
   const send_lock_started_at_ref = useRef(0);
   const last_send_time_ref = useRef<number>(0);
   const content_initialized_ref = useRef(false);
@@ -585,6 +596,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
         : null;
 
     is_sending_ref.current = false;
+    has_sent_ref.current = false;
     send_lock_started_at_ref.current = 0;
     set_is_sending(false);
     set_error_message(null);
@@ -608,7 +620,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
     last_saved_attachments.current = attachments_key(
       matching_draft?.content.attachments?.map((a) => a.id) ?? [],
     );
-  }, [is_open, original_email_id]);
+  }, [is_open, original_email_id, set_draft_id, set_draft_version]);
 
   useEffect(() => {
     if (!is_open || content_initialized_ref.current) return;
@@ -705,6 +717,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
   const save_thread_draft = useCallback(
     async (text: string) => {
       if (!original_email_id) return;
+      if (is_sending_ref.current || has_sent_ref.current) return;
       if (!has_user_content(text) && attachments.length === 0) return;
 
       if (!are_keys_ready()) {
@@ -723,6 +736,8 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
           return;
         }
       }
+
+      if (has_sent_ref.current) return;
 
       set_draft_status("saving");
 
@@ -744,33 +759,52 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
             : undefined,
       };
 
-      if (draft_id) {
-        const result = await update_draft(
-          draft_id,
-          content,
-          draft_version,
-          draft_vault,
-          "reply",
-          original_email_id,
-          undefined,
-          thread_token,
-        );
+      const previous_save = pending_save_ref.current;
 
-        if (result.data) {
-          set_draft_version(result.data.version);
-          last_saved_text.current = text;
-          last_saved_attachments.current = attachments_signature;
-          set_draft_status("saved");
-          set_last_saved_time(new Date());
-          on_draft_saved?.({
-            id: draft_id,
-            version: result.data.version,
-            content,
-          });
-        } else {
-          set_draft_status("error");
+      const persist = async (): Promise<void> => {
+        if (previous_save) {
+          await previous_save.catch(() => undefined);
         }
-      } else {
+
+        if (has_sent_ref.current) return;
+
+        const existing_id = draft_id_ref.current;
+
+        if (existing_id) {
+          const result = await update_draft(
+            existing_id,
+            content,
+            draft_version_ref.current,
+            draft_vault,
+            "reply",
+            original_email_id,
+            undefined,
+            thread_token,
+          );
+
+          if (has_sent_ref.current) return;
+
+          if (result.data) {
+            set_draft_version(result.data.version);
+            last_saved_text.current = text;
+            last_saved_attachments.current = attachments_signature;
+            set_draft_status("saved");
+            set_last_saved_time(new Date());
+
+            if (is_sending_ref.current) return;
+
+            on_draft_saved?.({
+              id: existing_id,
+              version: result.data.version,
+              content,
+            });
+          } else {
+            set_draft_status("error");
+          }
+
+          return;
+        }
+
         const result = await create_draft(
           content,
           draft_vault,
@@ -780,20 +814,48 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
           thread_token,
         );
 
-        if (result.data) {
-          set_draft_id(result.data.id);
-          set_draft_version(result.data.version);
-          last_saved_text.current = text;
-          last_saved_attachments.current = attachments_signature;
-          set_draft_status("saved");
-          set_last_saved_time(new Date());
-          on_draft_saved?.({
-            id: result.data.id,
-            version: result.data.version,
-            content,
-          });
-        } else {
-          set_draft_status("error");
+        if (!result.data) {
+          if (!has_sent_ref.current) set_draft_status("error");
+
+          return;
+        }
+
+        if (has_sent_ref.current) {
+          delete_thread_draft(result.data.id, thread_token).catch((caught) =>
+            ignore_error(
+              "components/modals/hooks/use_reply_modal_state:late_draft",
+              caught,
+            ),
+          );
+
+          return;
+        }
+
+        set_draft_id(result.data.id);
+        set_draft_version(result.data.version);
+        last_saved_text.current = text;
+        last_saved_attachments.current = attachments_signature;
+        set_draft_status("saved");
+        set_last_saved_time(new Date());
+
+        if (is_sending_ref.current) return;
+
+        on_draft_saved?.({
+          id: result.data.id,
+          version: result.data.version,
+          content,
+        });
+      };
+
+      const save_promise = persist();
+
+      pending_save_ref.current = save_promise;
+
+      try {
+        await save_promise;
+      } finally {
+        if (pending_save_ref.current === save_promise) {
+          pending_save_ref.current = null;
         }
       }
     },
@@ -805,11 +867,12 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
       recipient_email,
       recipients.to,
       recipients.cc,
-      draft_id,
-      draft_version,
+      set_draft_id,
+      set_draft_version,
       on_draft_saved,
       attachments,
       attachments_signature,
+      has_user_content,
     ],
   );
 
@@ -822,7 +885,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
         clearTimeout(save_draft_timeout.current);
         save_draft_timeout.current = null;
       }
-      if (!is_sending_ref.current) {
+      if (!is_sending_ref.current && !has_sent_ref.current) {
         const current_text = reply_message_ref.current;
 
         if (
@@ -954,6 +1017,9 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
     save_draft_timeout,
     last_saved_text,
     is_sending_ref,
+    has_sent_ref,
+    draft_id_ref,
+    pending_save_ref,
     send_lock_started_at_ref,
     last_send_time_ref,
     files_drop_ref,

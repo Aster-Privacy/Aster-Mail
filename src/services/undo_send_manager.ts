@@ -49,7 +49,12 @@ export interface QueueEmailOptions {
 
 type PendingSendListener = (sends: PendingSend[]) => void;
 
-type TerminalSendStatus = "sent" | "cancelled" | "failed";
+export type TerminalSendStatus = "sent" | "cancelled" | "failed";
+
+export type RestoredSendListener = (
+  queue_id: string,
+  status: TerminalSendStatus,
+) => void;
 
 const FINALIZE_RETRY_DELAYS_MS = [1000, 2000, 4000, 8000, 15000];
 const FINALIZE_UNREACHABLE_RETRY_MS = 30000;
@@ -64,6 +69,7 @@ function is_terminal_status(
 class UndoSendManager {
   private pending_sends: Map<string, PendingSend> = new Map();
   private listeners: Set<PendingSendListener> = new Set();
+  private restored_listeners: Set<RestoredSendListener> = new Set();
   private poll_interval: number | null = null;
   private finalize_rounds: Map<string, number> = new Map();
   private finalizing: Set<string> = new Set();
@@ -362,6 +368,24 @@ class UndoSendManager {
     }
   }
 
+  on_restored_send_settled(listener: RestoredSendListener): () => void {
+    this.restored_listeners.add(listener);
+
+    return () => {
+      this.restored_listeners.delete(listener);
+    };
+  }
+
+  private notify_restored(queue_id: string, status: TerminalSendStatus): void {
+    this.restored_listeners.forEach((listener) => {
+      try {
+        listener(queue_id, status);
+      } catch {
+        return;
+      }
+    });
+  }
+
   private notify_listeners(): void {
     if (this.pending_sends.size === 0) {
       this.stop_polling();
@@ -378,11 +402,11 @@ class UndoSendManager {
     });
   }
 
-  async sync_with_server(): Promise<void> {
+  async sync_with_server(): Promise<boolean> {
     const response = await undo_send_api.get_pending();
 
     if (response.error || !response.data) {
-      return;
+      return false;
     }
 
     const server_emails = response.data.emails;
@@ -409,6 +433,8 @@ class UndoSendManager {
     }
 
     this.notify_listeners();
+
+    return true;
   }
 
   private add_from_server_status(status: QueuedEmailStatus): void {
@@ -416,14 +442,18 @@ class UndoSendManager {
       return;
     }
 
+    const queue_id = status.queue_id;
     const pending: PendingSend = {
-      queue_id: status.queue_id,
+      queue_id,
       recipient: status.subject_preview || "",
       subject: status.subject_preview || "",
       scheduled_send_at: new Date(status.scheduled_send_time),
       can_cancel_until: new Date(status.can_cancel_until),
       timeout_id: 0,
       status: "pending",
+      on_sent: () => this.notify_restored(queue_id, "sent"),
+      on_cancelled: () => this.notify_restored(queue_id, "cancelled"),
+      on_error: () => this.notify_restored(queue_id, "failed"),
     };
 
     this.start_countdown(pending);

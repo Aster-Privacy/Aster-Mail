@@ -70,6 +70,7 @@ import {
   normalize_alias_candidates,
   use_alias_delivery,
 } from "@/hooks/use_alias_delivery";
+import { strip_reply_quotes } from "@/lib/strip_reply_quotes";
 
 export function format_safe_date(
   timestamp: string | number | undefined,
@@ -81,16 +82,6 @@ export function format_safe_date(
   if (isNaN(date.getTime())) return "";
 
   return formatter(date);
-}
-
-function strip_quotes(body: string): string {
-  return (
-    body
-      .replace(/On .+wrote:[\s\S]*/gi, "")
-      .replace(/^>.*$/gm, "")
-      .replace(/<blockquote[^>]*>[\s\S]*?<\/blockquote>/gi, "")
-      .trim() || body
-  );
 }
 
 export function MobileThreadMessage({
@@ -161,7 +152,7 @@ export function MobileThreadMessage({
       return message.html_content;
     }
 
-    return strip_quotes(message.body);
+    return strip_reply_quotes(message.body);
   }, [message.body, message.html_content, password_unlocked_body]);
 
   const has_plaintext_body =

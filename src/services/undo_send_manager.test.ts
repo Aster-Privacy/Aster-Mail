@@ -291,3 +291,59 @@ describe("undo_send_manager send finalization", () => {
     expect(on_error).toHaveBeenCalledWith("delivery rejected");
   });
 });
+
+describe("undo_send_manager restored sends", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    undo_send_manager.destroy();
+    vi.runOnlyPendingTimers();
+    vi.useRealTimers();
+    vi.clearAllMocks();
+  });
+
+  it("reports a send restored from the server once it goes out", async () => {
+    const scheduled = new Date(Date.now() + 10_000);
+    const deadline = new Date(Date.now() + 9_000);
+    const settled = vi.fn();
+    const stop = undo_send_manager.on_restored_send_settled(settled);
+
+    mocked_api.get_pending.mockResolvedValue({
+      data: {
+        emails: [
+          {
+            queue_id: "q_restored",
+            status: "pending",
+            scheduled_send_time: scheduled.toISOString(),
+            can_cancel_until: deadline.toISOString(),
+            subject_preview: "after reload",
+          },
+        ],
+      },
+      error: null,
+    } as never);
+    mocked_api.get_status.mockResolvedValue({
+      data: { status: "sent" },
+      error: null,
+    } as never);
+
+    expect(await undo_send_manager.sync_with_server()).toBe(true);
+    expect(settled).not.toHaveBeenCalled();
+
+    await vi.advanceTimersByTimeAsync(10_500);
+
+    expect(settled).toHaveBeenCalledWith("q_restored", "sent");
+    stop();
+  });
+
+  it("reports a failed sync so restored sends are not settled blindly", async () => {
+    mocked_api.get_pending.mockResolvedValue({
+      data: null,
+      error: "offline",
+    } as never);
+
+    expect(await undo_send_manager.sync_with_server()).toBe(false);
+  });
+});
