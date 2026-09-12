@@ -2324,6 +2324,8 @@ export const ru = {
     share_contact_device: "Поделиться в другом приложении",
   },
   settings: {
+    alias_sent_mail_label: "Отправленные",
+    alias_sent_mail_desc: "Посмотрите письма, отправленные с этого адреса.",
     account_enabled_tooltip: "Этот аккаунт синхронизируется.",
     account_pause_tooltip: "Приостановить синхронизацию",
     account_paused_tooltip: "Синхронизация этого аккаунта приостановлена.",
@@ -8030,6 +8032,12 @@ export const ru = {
       "Занято {{used}} из {{max}} мест · доступно {{count}} места",
   },
   mail: {
+    alias_view_sent: "Показать отправленные",
+    alias_direction_label: "Направление почты",
+    alias_direction_all: "Все",
+    alias_direction_received: "Полученные",
+    alias_direction_sent: "Отправленные",
+    alias_sent_indexing: "Ранее отправленные письма ещё индексируются.",
     bulk_archive_title: "Архивировать письма ({{count}})?",
     bulk_archive_title_one: "Архивировать 1 письмо?",
     bulk_archive_title_other: "Архивировать письма ({{count}})?",

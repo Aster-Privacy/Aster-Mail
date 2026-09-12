@@ -21,7 +21,7 @@
 import type { InboxEmail, InboxFilterType } from "@/types/email";
 
 import { useState, useCallback, useMemo, useEffect, useRef } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
   FunnelIcon,
   CheckIcon,
@@ -81,6 +81,14 @@ import {
 } from "@/components/ui/dropdown_menu";
 import { haptic_impact } from "@/native/haptic_feedback";
 import { set_recipient_hint } from "@/stores/recipient_hint_store";
+import {
+  build_alias_view,
+  parse_alias_direction,
+} from "@/hooks/email_list_helpers/alias_view";
+import { AliasDirectionTabs } from "@/components/email/inbox/alias_direction_tabs";
+import { AliasIndexingNotice } from "@/components/email/inbox/alias_indexing_notice";
+import { use_sender_alias_backfill } from "@/hooks/use_sender_alias_backfill";
+import { use_auth } from "@/contexts/auth/use_auth_hook";
 
 type Mailbox =
   | "inbox"
@@ -127,17 +135,22 @@ function MobileInbox({
     tag_token?: string;
     alias_address?: string;
   }>();
+  const [search_params] = useSearchParams();
   const { t } = use_i18n();
   const { safe_area_insets } = use_platform();
   const { preferences } = use_preferences();
+  const alias_direction = parse_alias_direction(search_params.get("direction"));
+  const { user } = use_auth();
 
   const current_view = folder_token
     ? `folder-${folder_token}`
     : tag_token
       ? `tag-${tag_token}`
       : alias_address
-        ? `alias-${decodeURIComponent(alias_address)}`
+        ? build_alias_view(decodeURIComponent(alias_address), alias_direction)
         : (mailbox ?? "inbox");
+
+  const backfill_status = use_sender_alias_backfill(current_view, user?.email);
 
   const is_drafts_view = current_view === "drafts";
   const is_scheduled_view = current_view === "scheduled";
@@ -1034,6 +1047,14 @@ function MobileInbox({
         />
       )}
 
+      {alias_address && !selection_mode && (
+        <AliasDirectionTabs direction={alias_direction} />
+      )}
+
+      {alias_address &&
+        !selection_mode &&
+        alias_direction !== "received" &&
+        backfill_status === "running" && <AliasIndexingNotice />}
 
       {folder_not_found ? (
         <div className="flex flex-col items-center justify-center flex-1 px-4 py-20">

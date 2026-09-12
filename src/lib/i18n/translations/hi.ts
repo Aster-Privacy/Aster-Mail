@@ -2180,6 +2180,8 @@ export const hi = {
     share_contact_device: "दूसरे ऐप के साथ शेयर करें",
   },
   settings: {
+    alias_sent_mail_label: "भेजे गए मेल",
+    alias_sent_mail_desc: "इस पते से भेजे गए संदेश देखें।",
     account_enabled_tooltip: "यह खाता सिंक हो रहा है।",
     account_pause_tooltip: "सिंक रोकें",
     account_paused_tooltip: "इस खाते का सिंक रोका गया है।",
@@ -7690,6 +7692,12 @@ export const hi = {
       "{{max}} में से {{used}} जगहें इस्तेमाल हुईं · {{count}} जगहें उपलब्ध",
   },
   mail: {
+    alias_view_sent: "भेजे गए मेल देखें",
+    alias_direction_label: "मेल दिशा",
+    alias_direction_all: "सभी",
+    alias_direction_received: "प्राप्त",
+    alias_direction_sent: "भेजे गए",
+    alias_sent_indexing: "पुराने भेजे गए मेल को अब भी अनुक्रमित किया जा रहा है।",
     bulk_archive_title: "{{count}} ईमेल संग्रहित करें?",
     bulk_archive_title_one: "1 ईमेल संग्रहित करें?",
     bulk_archive_title_other: "{{count}} ईमेल संग्रहित करें?",

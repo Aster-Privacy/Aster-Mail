@@ -2193,6 +2193,8 @@ export const tr = {
     share_contact_device: "Başka bir uygulamayla paylaş",
   },
   settings: {
+    alias_sent_mail_label: "Gönderilen postalar",
+    alias_sent_mail_desc: "Bu adresten gönderdiğin iletileri gör.",
     account_enabled_tooltip: "Bu hesap eşitleniyor.",
     account_pause_tooltip: "Eşitlemeyi duraklat",
     account_paused_tooltip: "Bu hesabın eşitlemesi duraklatıldı.",
@@ -7798,6 +7800,12 @@ export const tr = {
       "{{max}} yerin {{used}} tanesi kullanıldı · {{count}} kullanılabilir yer",
   },
   mail: {
+    alias_view_sent: "Gönderilen postaları görüntüle",
+    alias_direction_label: "Posta yönü",
+    alias_direction_all: "Tümü",
+    alias_direction_received: "Gelen",
+    alias_direction_sent: "Gönderilen",
+    alias_sent_indexing: "Daha eski gönderilen postalar hâlâ dizinleniyor.",
     bulk_archive_title: "{{count}} e-posta arşivlensin mi?",
     bulk_archive_title_one: "1 e-posta arşivlensin mi?",
     bulk_archive_title_other: "{{count}} e-posta arşivlensin mi?",

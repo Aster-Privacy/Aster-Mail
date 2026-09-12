@@ -2312,6 +2312,8 @@ export const ar = {
     share_contact_device: "المشاركة مع تطبيق آخر",
   },
   settings: {
+    alias_sent_mail_label: "البريد المرسل",
+    alias_sent_mail_desc: "اطلع على الرسائل التي أرسلتها من هذا العنوان.",
     account_enabled_tooltip: "تتم مزامنة هذا الحساب.",
     account_pause_tooltip: "إيقاف المزامنة مؤقتًا",
     account_paused_tooltip: "المزامنة متوقفة مؤقتًا لهذا الحساب.",
@@ -7778,6 +7780,12 @@ export const ar = {
       "تم استخدام {{used}} من {{max}} مقعدًا · {{count}} مقاعد متاحة",
   },
   mail: {
+    alias_view_sent: "عرض البريد المرسل",
+    alias_direction_label: "اتجاه البريد",
+    alias_direction_all: "الكل",
+    alias_direction_received: "الواردة",
+    alias_direction_sent: "المرسلة",
+    alias_sent_indexing: "لا يزال يتم فهرسة البريد المرسل الأقدم.",
     bulk_archive_title: "أرشفة {{count}} رسالة؟",
     bulk_archive_title_one: "أرشفة رسالة واحدة؟",
     bulk_archive_title_other: "أرشفة {{count}} رسالة؟",

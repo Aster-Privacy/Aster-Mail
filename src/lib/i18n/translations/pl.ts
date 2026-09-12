@@ -2351,6 +2351,8 @@ export const pl = {
     share_contact_device: "Udostępnij w innej aplikacji",
   },
   settings: {
+    alias_sent_mail_label: "Wysłane wiadomości",
+    alias_sent_mail_desc: "Zobacz wiadomości wysłane z tego adresu.",
     account_enabled_tooltip: "To konto się synchronizuje.",
     account_pause_tooltip: "Wstrzymaj synchronizację",
     account_paused_tooltip: "Synchronizacja tego konta jest wstrzymana.",
@@ -8059,6 +8061,12 @@ export const pl = {
       "Wykorzystano {{used}} z {{max}} miejsc · {{count}} dostępne miejsca",
   },
   mail: {
+    alias_view_sent: "Pokaż wysłane wiadomości",
+    alias_direction_label: "Kierunek poczty",
+    alias_direction_all: "Wszystkie",
+    alias_direction_received: "Odebrane",
+    alias_direction_sent: "Wysłane",
+    alias_sent_indexing: "Starsze wysłane wiadomości są jeszcze indeksowane.",
     bulk_archive_title: "Zarchiwizować wiadomości: {{count}}?",
     bulk_archive_title_one: "Zarchiwizować 1 wiadomość?",
     bulk_archive_title_other: "Zarchiwizować wiadomości: {{count}}?",

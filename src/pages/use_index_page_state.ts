@@ -78,6 +78,10 @@ import { show_toast } from "@/components/toast/simple_toast";
 import { set_forward_mail_id } from "@/services/forward_store";
 import { read_last_settings_section } from "@/lib/settings_section_store";
 import { ignore_error } from "@/lib/ignore_error";
+import {
+  build_alias_view,
+  parse_alias_direction,
+} from "@/hooks/email_list_helpers/alias_view";
 
 export interface ForwardData {
   sender_name: string;
@@ -838,7 +842,14 @@ export function use_index_page_state() {
       return `tag-${tag_token}`;
     }
     if (path.startsWith("/alias/")) {
-      return `alias-${decodeURIComponent(path.replace("/alias/", ""))}`;
+      const direction = parse_alias_direction(
+        new URLSearchParams(location.search).get("direction"),
+      );
+
+      return build_alias_view(
+        decodeURIComponent(path.replace("/alias/", "")),
+        direction,
+      );
     }
 
     return "inbox";

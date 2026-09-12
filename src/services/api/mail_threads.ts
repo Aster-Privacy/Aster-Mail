@@ -270,3 +270,25 @@ export function submit_receipt_feedback(
 ): Promise<ApiResponse<{ success: boolean }>> {
   return api_client.post("/mail/v1/receipts/feedback", { is_correct });
 }
+
+export interface SenderAliasBackfillItem {
+  item_id: string;
+  sender_alias_hash: string;
+}
+
+export interface SenderAliasBackfillResponse {
+  success: boolean;
+  updated: number;
+  skipped: number;
+}
+
+export async function backfill_sender_alias_hashes(
+  items: SenderAliasBackfillItem[],
+): Promise<ApiResponse<SenderAliasBackfillResponse>> {
+  return api_client.post<SenderAliasBackfillResponse>(
+    "/mail/v1/messages/backfill-sender-alias",
+    {
+      items,
+    },
+  );
+}

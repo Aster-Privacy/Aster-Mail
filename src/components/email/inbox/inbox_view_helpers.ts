@@ -22,6 +22,11 @@ import type { InboxEmail, InboxFilterType } from "@/types/email";
 import type { DecryptedFolder } from "@/hooks/use_folders";
 import type { TranslationKey } from "@/lib/i18n/types";
 
+import {
+  alias_address_of,
+  parse_alias_view,
+} from "@/hooks/email_list_helpers/alias_view";
+
 export const MAX_EMPTY_VIEW_RECOVERIES = 3;
 
 export interface EmptyViewRecoveryState {
@@ -86,7 +91,7 @@ export function get_view_title(
   }
 
   if (current_view.startsWith("alias-")) {
-    return current_view.replace("alias-", "");
+    return alias_address_of(current_view) ?? current_view;
   }
 
   return static_titles[current_view] || (t ? t("mail.inbox") : "Inbox");
@@ -118,17 +123,25 @@ export function filter_emails_by_view(
   emails: InboxEmail[],
   _current_view: string,
 ): InboxEmail[] {
-  if (_current_view.startsWith("alias-")) {
-    const alias_address = _current_view.replace("alias-", "").toLowerCase();
+  const alias_view = parse_alias_view(_current_view);
 
-    return emails.filter(
-      (e) =>
-        e.sender_email.toLowerCase() === alias_address ||
-        (e.recipient_addresses &&
-          e.recipient_addresses.some(
-            (addr) => addr.toLowerCase() === alias_address,
-          )),
-    );
+  if (alias_view) {
+    const alias_address = alias_view.address.toLowerCase();
+    const matches_sender = (e: InboxEmail) =>
+      e.sender_email.toLowerCase() === alias_address;
+    const matches_recipient = (e: InboxEmail) =>
+      !!e.recipient_addresses?.some(
+        (addr) => addr.toLowerCase() === alias_address,
+      );
+
+    if (alias_view.direction === "sent") {
+      return emails.filter(matches_sender);
+    }
+    if (alias_view.direction === "received") {
+      return emails.filter(matches_recipient);
+    }
+
+    return emails.filter((e) => matches_sender(e) || matches_recipient(e));
   }
 
   return emails;

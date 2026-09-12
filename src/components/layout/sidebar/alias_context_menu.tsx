@@ -24,8 +24,10 @@ import type { DecryptedEmailAlias } from "@/services/api/aliases";
 import {
   ClipboardDocumentIcon,
   Cog6ToothIcon,
+  PaperAirplaneIcon,
   PowerIcon,
 } from "@heroicons/react/24/outline";
+import { useNavigate } from "react-router-dom";
 
 import { PinIcon } from "@/components/common/icons";
 import {
@@ -54,6 +56,7 @@ export function AliasContextMenu({
   on_manage,
 }: AliasContextMenuProps): React.ReactElement {
   const { t } = use_i18n();
+  const navigate = useNavigate();
   const { is_feature_locked } = use_plan_limits();
   const is_real_alias =
     !alias.id.startsWith("domain-") && !alias.id.startsWith("group-");
@@ -65,6 +68,10 @@ export function AliasContextMenu({
     } catch {
       show_toast(t("common.failed_to_copy"), "error");
     }
+  };
+
+  const view_sent_mail = () => {
+    navigate(`/alias/${encodeURIComponent(alias.full_address)}?direction=sent`);
   };
 
   const toggle_pin = async () => {
@@ -134,6 +141,11 @@ export function AliasContextMenu({
         <ContextMenuItem onClick={copy_address}>
           <ClipboardDocumentIcon className="me-2 h-4 w-4" />
           {t("common.copy_address")}
+        </ContextMenuItem>
+
+        <ContextMenuItem onClick={view_sent_mail}>
+          <PaperAirplaneIcon className="me-2 h-4 w-4" />
+          {t("mail.alias_view_sent")}
         </ContextMenuItem>
 
         {is_real_alias && (

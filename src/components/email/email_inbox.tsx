@@ -24,6 +24,13 @@ import type { TranslationKey } from "@/lib/i18n/types";
 import { EmailListHeader } from "@/components/email/email_list_header";
 import { CategoryTabs } from "@/components/email/inbox/category_tabs";
 import { MailFilterChips } from "@/components/email/inbox/mail_filter_chips";
+import { AliasDirectionTabs } from "@/components/email/inbox/alias_direction_tabs";
+import { AliasIndexingNotice } from "@/components/email/inbox/alias_indexing_notice";
+import { use_sender_alias_backfill } from "@/hooks/use_sender_alias_backfill";
+import {
+  alias_direction_of,
+  is_alias_view,
+} from "@/hooks/email_list_helpers/alias_view";
 import { CategoryEmptyState } from "@/components/email/inbox/category_empty_state";
 import { ErrorBoundary } from "@/components/ui/error_boundary";
 import { SplitEmailViewer } from "@/components/email/split_email_viewer";
@@ -173,6 +180,14 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
     if (target) set_custom_snooze_email(target);
   };
 
+  const alias_view_active = is_alias_view(current_view);
+  const alias_direction = alias_direction_of(current_view);
+  const backfill_status = use_sender_alias_backfill(current_view, user?.email);
+  const show_indexing_notice =
+    alias_view_active &&
+    alias_direction !== "received" &&
+    backfill_status === "running";
+
   const email_list_content = (
     <>
       {folder_not_found ? (
@@ -252,6 +267,7 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
                   total_pages={total_pages}
                 />
               )}
+            {show_indexing_notice && <AliasIndexingNotice />}
           </div>
           {(skeleton_visible ||
             manual_refresh_active ||
@@ -380,6 +396,10 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
           on_search_submit && (
             <MailFilterChips on_search_submit={on_search_submit} />
           )}
+
+        {alias_view_active && !show_full_email_viewer && (
+          <AliasDirectionTabs direction={alias_direction} />
+        )}
 
         {categories.enabled &&
           categories.restored &&

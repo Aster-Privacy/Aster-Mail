@@ -2476,6 +2476,8 @@ export interface CommonTranslations {
 }
 
 export interface SettingsTranslations {
+  alias_sent_mail_label: string;
+  alias_sent_mail_desc: string;
   quick_settings: string;
   settings_view_mode: string;
   settings_view_mode_description: string;
@@ -6915,6 +6917,12 @@ export interface SettingsTranslations {
 }
 
 export interface MailTranslations {
+  alias_view_sent: string;
+  alias_direction_label: string;
+  alias_direction_all: string;
+  alias_direction_received: string;
+  alias_direction_sent: string;
+  alias_sent_indexing: string;
   sender_identity_rotated: string;
   sender_identity_downgraded: string;
   encrypted_message_unavailable: string;

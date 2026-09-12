@@ -2193,6 +2193,8 @@ export const nl = {
     share_contact_device: "Delen met een andere app",
   },
   settings: {
+    alias_sent_mail_label: "Verzonden e-mail",
+    alias_sent_mail_desc: "Bekijk de berichten die je vanaf dit adres hebt verzonden.",
     account_enabled_tooltip: "Dit account synchroniseert.",
     account_pause_tooltip: "Synchroniseren onderbreken",
     account_paused_tooltip: "Het synchroniseren van dit account is onderbroken.",
@@ -7801,6 +7803,12 @@ export const nl = {
       "{{used}} van {{max}} plekken gebruikt · {{count}} plekken beschikbaar",
   },
   mail: {
+    alias_view_sent: "Verzonden e-mail tonen",
+    alias_direction_label: "Richting van e-mail",
+    alias_direction_all: "Alle",
+    alias_direction_received: "Ontvangen",
+    alias_direction_sent: "Verzonden",
+    alias_sent_indexing: "Oudere verzonden e-mail wordt nog geïndexeerd.",
     bulk_archive_title: "{{count}} e-mails archiveren?",
     bulk_archive_title_one: "1 e-mail archiveren?",
     bulk_archive_title_other: "{{count}} e-mails archiveren?",

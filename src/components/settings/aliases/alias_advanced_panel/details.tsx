@@ -21,6 +21,8 @@
 import type {} from "@/services/api/aliases";
 import type {} from "@/lib/i18n/types";
 
+import { Link } from "react-router-dom";
+
 import {
   MAX_DISPLAY_NAME_LENGTH,
   MAX_NOTE_LENGTH,
@@ -102,6 +104,17 @@ export function AliasDetailsPanel({
             websites={websites}
           />
         </div>
+      </PanelRow>
+      <PanelRow
+        description={t("settings.alias_sent_mail_desc")}
+        label={t("settings.alias_sent_mail_label")}
+      >
+        <Link
+          className="text-sm font-medium text-[var(--accent-blue)] hover:underline"
+          to={`/alias/${encodeURIComponent(alias_address)}?direction=sent`}
+        >
+          {t("mail.alias_view_sent")}
+        </Link>
       </PanelRow>
     </div>
   );

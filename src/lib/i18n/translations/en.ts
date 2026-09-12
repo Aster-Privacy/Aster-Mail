@@ -2177,6 +2177,8 @@ export const en: Translations = {
     undo_change: "Undo change",
   },
   settings: {
+    alias_sent_mail_label: "Sent mail",
+    alias_sent_mail_desc: "See the messages you sent from this address.",
     purge_locked_folder_on_delete: "Purge Protected Folder Contents",
     purge_locked_folder_on_delete_description:
       "Preselect permanent destruction of the mail inside when you delete a password-protected folder",
@@ -7707,6 +7709,12 @@ export const en: Translations = {
     usage_external_accounts: "External Accounts",
   },
   mail: {
+    alias_view_sent: "View sent mail",
+    alias_direction_label: "Mail direction",
+    alias_direction_all: "All",
+    alias_direction_received: "Received",
+    alias_direction_sent: "Sent",
+    alias_sent_indexing: "Older sent mail is still being indexed.",
     sender_identity_rotated:
       "This sender's encryption identity changed since you last exchanged messages. If you did not expect that, confirm it with them another way.",
     sender_identity_downgraded:

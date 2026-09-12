@@ -2204,6 +2204,8 @@ export const ja = {
     share_contact_device: "他のアプリで共有",
   },
   settings: {
+    alias_sent_mail_label: "送信済みメール",
+    alias_sent_mail_desc: "このアドレスから送信したメールを確認できます。",
     account_enabled_tooltip: "このアカウントは同期中です。",
     account_pause_tooltip: "同期を一時停止",
     account_paused_tooltip: "このアカウントの同期は一時停止しています。",
@@ -7799,6 +7801,12 @@ export const ja = {
       "{{max}} 席中 {{used}} 席を使用中 · 空き {{count}} 席",
   },
   mail: {
+    alias_view_sent: "送信済みメールを表示",
+    alias_direction_label: "メールの方向",
+    alias_direction_all: "すべて",
+    alias_direction_received: "受信",
+    alias_direction_sent: "送信済み",
+    alias_sent_indexing: "以前の送信済みメールを現在インデックス中です。",
     bulk_archive_title: "{{count}} 件のメールをアーカイブしますか？",
     bulk_archive_title_one: "1 件のメールをアーカイブしますか。",
     bulk_archive_title_other: "{{count}} 件のメールをアーカイブしますか？",

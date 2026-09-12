@@ -2206,6 +2206,8 @@ export const pt = {
     share_contact_device: "Compartilhar com outro app",
   },
   settings: {
+    alias_sent_mail_label: "Mensagens enviadas",
+    alias_sent_mail_desc: "Veja as mensagens que você enviou deste endereço.",
     account_enabled_tooltip: "Esta conta está sincronizando.",
     account_pause_tooltip: "Pausar a sincronização",
     account_paused_tooltip: "A sincronização desta conta está pausada.",
@@ -7867,6 +7869,12 @@ export const pt = {
       "{{used}} de {{max}} vagas usadas · {{count}} vagas disponíveis",
   },
   mail: {
+    alias_view_sent: "Ver mensagens enviadas",
+    alias_direction_label: "Direção do correio",
+    alias_direction_all: "Todos",
+    alias_direction_received: "Recebidos",
+    alias_direction_sent: "Enviados",
+    alias_sent_indexing: "As mensagens enviadas mais antigas ainda estão sendo indexadas.",
     bulk_archive_title: "Arquivar {{count}} e-mails?",
     bulk_archive_title_one: "Arquivar 1 e-mail?",
     bulk_archive_title_other: "Arquivar {{count}} e-mails?",

@@ -2227,6 +2227,8 @@ export const de = {
     undo_change: "Änderung rückgängig machen",
   },
   settings: {
+    alias_sent_mail_label: "Gesendete Nachrichten",
+    alias_sent_mail_desc: "Sieh dir die Nachrichten an, die du von dieser Adresse gesendet hast.",
     purge_locked_folder_on_delete: "Inhalt geschützter Ordner vernichten",
     purge_locked_folder_on_delete_description:
       "Wählt beim Löschen eines passwortgeschützten Ordners die endgültige Vernichtung der enthaltenen E-Mails vor",
@@ -7942,6 +7944,12 @@ export const de = {
     usage_external_accounts: "Externe Konten",
   },
   mail: {
+    alias_view_sent: "Gesendete Nachrichten anzeigen",
+    alias_direction_label: "Nachrichtenrichtung",
+    alias_direction_all: "Alle",
+    alias_direction_received: "Empfangen",
+    alias_direction_sent: "Gesendet",
+    alias_sent_indexing: "Ältere gesendete Nachrichten werden noch indexiert.",
     sender_identity_rotated:
       "Die Verschlüsselungsidentität dieses Absenders hat sich seit Ihrem letzten Nachrichtenaustausch geändert. Wenn Sie das nicht erwartet haben, bestätigen Sie es auf einem anderen Weg mit dieser Person.",
     sender_identity_downgraded:

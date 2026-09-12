@@ -1997,6 +1997,8 @@ export const zh_CN = {
     share_contact_device: "通过其他应用分享",
   },
   settings: {
+    alias_sent_mail_label: "已发送邮件",
+    alias_sent_mail_desc: "查看你从此地址发送的邮件。",
     account_enabled_tooltip: "此账户正在同步。",
     account_pause_tooltip: "暂停同步",
     account_paused_tooltip: "此账户的同步已暂停。",
@@ -7014,6 +7016,12 @@ export const zh_CN = {
       "已使用 {{max}} 个席位中的 {{used}} 个 · {{count}} 个可用",
   },
   mail: {
+    alias_view_sent: "查看已发送邮件",
+    alias_direction_label: "邮件方向",
+    alias_direction_all: "全部",
+    alias_direction_received: "收到",
+    alias_direction_sent: "已发送",
+    alias_sent_indexing: "较早的已发送邮件仍在索引中。",
     bulk_archive_title: "要归档 {{count}} 封邮件吗？",
     bulk_archive_title_one: "要归档 1 封邮件吗？",
     bulk_archive_title_other: "要归档 {{count}} 封邮件吗？",
