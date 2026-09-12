@@ -86,6 +86,8 @@ export interface Email {
   expires_at?: string;
   expiry_type?: "sender" | "recipient";
   sender_verification?: SenderVerificationStatus;
+  send_status?: string;
+  send_error?: string;
 }
 
 export interface DecryptedEmail extends Email {

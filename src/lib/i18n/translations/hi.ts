@@ -7874,6 +7874,8 @@ export const hi = {
     empty_spam: "स्पैम खाली करें",
     report_phishing: "स्पैम की शिकायत करें",
     not_spam: "स्पैम नहीं",
+    send_failed_title: "यह संदेश डिलीवर नहीं हुआ.",
+    send_failed_help: "पता जांचें, फिर संदेश दोबारा भेजें.",
     spam_reasons_title: "यह संदेश स्पैम में ले जाया गया",
     spam_reason_content_analysis: "इस संदेश की सामग्री स्पैम जैसी लगती है",
     spam_reason_spf_fail: "प्रेषक SPF सत्यापन में विफल रहा",

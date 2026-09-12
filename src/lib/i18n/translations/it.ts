@@ -8081,6 +8081,8 @@ export const it = {
     empty_spam: "Svuota spam",
     report_phishing: "Segnala spam",
     not_spam: "Non è spam",
+    send_failed_title: "Questo messaggio non è stato recapitato.",
+    send_failed_help: "Controlla l’indirizzo, poi invia di nuovo il messaggio.",
     spam_reasons_title: "Questo messaggio è stato spostato nello spam",
     spam_reason_content_analysis:
       "Il contenuto di questo messaggio sembra spam",

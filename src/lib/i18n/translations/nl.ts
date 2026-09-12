@@ -7984,6 +7984,8 @@ export const nl = {
     empty_spam: "Spam legen",
     report_phishing: "Spam melden",
     not_spam: "Geen spam",
+    send_failed_title: "Dit bericht is niet bezorgd.",
+    send_failed_help: "Controleer het adres en verstuur het bericht opnieuw.",
     spam_reasons_title: "Dit bericht is naar spam verplaatst",
     spam_reason_content_analysis: "De inhoud van dit bericht lijkt op spam",
     spam_reason_spf_fail:

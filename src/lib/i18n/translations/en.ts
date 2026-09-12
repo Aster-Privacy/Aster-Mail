@@ -7868,6 +7868,8 @@ export const en: Translations = {
     empty_spam: "Empty spam",
     report_phishing: "Report spam",
     not_spam: "Not spam",
+    send_failed_title: "This message wasn’t delivered.",
+    send_failed_help: "Check the address, then send the message again.",
     spam_reasons_title: "This message was moved to spam",
     spam_reason_content_analysis: "The content of this message looks like spam",
     spam_reason_spf_fail: "The sender failed SPF verification",

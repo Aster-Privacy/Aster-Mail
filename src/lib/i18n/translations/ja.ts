@@ -7988,6 +7988,8 @@ export const ja = {
     empty_spam: "スパムを空にする",
     report_phishing: "スパムを報告",
     not_spam: "スパムではない",
+    send_failed_title: "このメッセージは配信されませんでした。",
+    send_failed_help: "アドレスを確認してから、メッセージをもう一度送信してください。",
     spam_reasons_title: "このメッセージはスパムに移動されました",
     spam_reason_content_analysis:
       "このメッセージの内容はスパムの可能性があります",

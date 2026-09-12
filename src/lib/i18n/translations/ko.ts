@@ -7774,6 +7774,8 @@ export const ko = {
     empty_spam: "스팸 비우기",
     report_phishing: "스팸 신고",
     not_spam: "스팸 아님",
+    send_failed_title: "이 메시지가 전달되지 않았습니다.",
+    send_failed_help: "주소를 확인한 다음 메시지를 다시 보내십시오.",
     spam_reasons_title: "이 메시지는 스팸으로 이동되었습니다",
     spam_reason_content_analysis: "이 메시지의 내용이 스팸으로 보입니다",
     spam_reason_spf_fail: "발신자가 SPF 검증에 실패했습니다",

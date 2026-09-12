@@ -49,6 +49,8 @@ export interface DecryptedEmail {
   sender_verification?: SenderVerificationStatus;
   is_external?: boolean;
   system_origin?: boolean;
+  send_status?: string;
+  send_error?: string;
 }
 
 export interface LocalEmailData {

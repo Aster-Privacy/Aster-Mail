@@ -8050,6 +8050,8 @@ export const pt = {
     empty_spam: "Esvaziar spam",
     report_phishing: "Reportar spam",
     not_spam: "Não é spam",
+    send_failed_title: "Esta mensagem não foi entregue.",
+    send_failed_help: "Verifique o endereço e envie a mensagem novamente.",
     spam_reasons_title: "Esta mensagem foi movida para o spam",
     spam_reason_content_analysis: "O conteúdo desta mensagem parece spam",
     spam_reason_spf_fail: "O remetente falhou na verificação SPF",

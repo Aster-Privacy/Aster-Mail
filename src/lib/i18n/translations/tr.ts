@@ -7979,6 +7979,8 @@ export const tr = {
     empty_spam: "Spam'i boşalt",
     report_phishing: "Spam bildir",
     not_spam: "Spam değil",
+    send_failed_title: "Bu ileti teslim edilmedi.",
+    send_failed_help: "Adresi kontrol edin, sonra iletiyi yeniden gönderin.",
     spam_reasons_title: "Bu ileti spam klasörüne taşındı",
     spam_reason_content_analysis: "Bu iletinin içeriği spam gibi görünüyor",
     spam_reason_spf_fail: "Gönderen SPF doğrulamasından geçemedi",

@@ -7952,6 +7952,8 @@ export const ar = {
     empty_spam: "تفريغ الرسائل المزعجة",
     report_phishing: "الإبلاغ عن بريد مزعج",
     not_spam: "ليس مزعجًا",
+    send_failed_title: "لم يتم تسليم هذه الرسالة.",
+    send_failed_help: "تحقق من العنوان، ثم أرسل الرسالة مرة أخرى.",
     spam_reasons_title: "تم نقل هذه الرسالة إلى البريد المزعج",
     spam_reason_content_analysis: "يبدو محتوى هذه الرسالة كبريد مزعج",
     spam_reason_spf_fail: "فشل المرسل في اجتياز التحقق من SPF",

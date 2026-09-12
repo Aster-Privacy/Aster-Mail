@@ -38,6 +38,7 @@ import { ThreadDraftBadge } from "@/components/email/thread_draft_badge";
 import { PurchaseDetailsBanner } from "@/components/email/banners/purchase_details_banner";
 import { ShippingDetailsBanner } from "@/components/email/banners/shipping_details_banner";
 import { CalendarInviteBanner } from "@/components/email/banners/calendar_invite_banner";
+import { SendFailureBanner } from "@/components/email/banners/send_failure_banner";
 import { extract_email_details } from "@/services/extraction/extractor";
 
 export interface ViewerThreadContentProps {
@@ -201,6 +202,11 @@ export function ViewerThreadContent({
 
   return (
     <div className="mt-4">
+      <SendFailureBanner
+        className="mx-3 @md:mx-4 mb-3"
+        send_error={email.send_error}
+        send_status={email.send_status}
+      />
       {extraction.has_purchase_details && extraction.purchase && (
         <PurchaseDetailsBanner
           className="mx-3 @md:mx-4 mb-3"

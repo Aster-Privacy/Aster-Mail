@@ -767,6 +767,8 @@ export async function preload_email_detail(
         ...(forwarding ?? {}),
         is_external: item.is_external,
         system_origin: item.system_origin,
+        send_status: item.send_status,
+        send_error: item.send_error,
         raw_headers: envelope.raw_headers,
         reply_to: preload_reply_to
           ? { name: preload_reply_to.name, email: preload_reply_to.email }

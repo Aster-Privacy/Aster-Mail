@@ -8212,6 +8212,8 @@ export const ru = {
     empty_spam: "Очистить спам",
     report_phishing: "Сообщить о спаме",
     not_spam: "Не спам",
+    send_failed_title: "Это сообщение не доставлено.",
+    send_failed_help: "Проверьте адрес и отправьте сообщение снова.",
     spam_reasons_title: "Это сообщение перемещено в спам",
     spam_reason_content_analysis: "Содержимое этого сообщения похоже на спам",
     spam_reason_spf_fail: "Отправитель не прошёл проверку SPF",

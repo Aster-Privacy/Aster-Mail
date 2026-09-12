@@ -8241,6 +8241,8 @@ export const pl = {
     empty_spam: "Opróżnij spam",
     report_phishing: "Zgłoś spam",
     not_spam: "Nie spam",
+    send_failed_title: "Ta wiadomość nie została dostarczona.",
+    send_failed_help: "Sprawdź adres, a następnie wyślij wiadomość ponownie.",
     spam_reasons_title: "Ta wiadomość została przeniesiona do spamu",
     spam_reason_content_analysis: "Treść tej wiadomości wygląda na spam",
     spam_reason_spf_fail: "Nadawca nie przeszedł weryfikacji SPF",

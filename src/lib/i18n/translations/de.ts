@@ -8109,6 +8109,8 @@ export const de = {
     empty_spam: "Spam leeren",
     report_phishing: "Spam melden",
     not_spam: "Kein Spam",
+    send_failed_title: "Diese Nachricht wurde nicht zugestellt.",
+    send_failed_help: "Prüfe die Adresse und sende die Nachricht erneut.",
     spam_reasons_title: "Diese Nachricht wurde in den Spam-Ordner verschoben",
     spam_reason_content_analysis:
       "Der Inhalt dieser Nachricht sieht nach Spam aus",

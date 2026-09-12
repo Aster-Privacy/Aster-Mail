@@ -7191,6 +7191,8 @@ export const zh_CN = {
     empty_spam: "清空垃圾邮件",
     report_phishing: "举报垃圾邮件",
     not_spam: "非垃圾邮件",
+    send_failed_title: "此邮件未送达。",
+    send_failed_help: "请检查地址，然后重新发送邮件。",
     spam_reasons_title: "此邮件已被移至垃圾邮件",
     spam_reason_content_analysis: "此邮件的内容疑似垃圾邮件",
     spam_reason_spf_fail: "发件人未通过 SPF 验证",

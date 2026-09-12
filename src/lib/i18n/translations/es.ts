@@ -7980,6 +7980,8 @@ export const es = {
     empty_spam: "Vaciar spam",
     report_phishing: "Reportar spam",
     not_spam: "No es spam",
+    send_failed_title: "Este mensaje no se entregó.",
+    send_failed_help: "Comprueba la dirección y vuelve a enviar el mensaje.",
     spam_reasons_title: "Este mensaje se movió a spam",
     spam_reason_content_analysis: "El contenido de este mensaje parece spam",
     spam_reason_spf_fail: "El remitente no superó la verificación SPF",

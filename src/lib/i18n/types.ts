@@ -7061,6 +7061,8 @@ export interface MailTranslations {
   empty_spam: string;
   report_phishing: string;
   not_spam: string;
+  send_failed_title: string;
+  send_failed_help: string;
   spam_reasons_title: string;
   spam_reason_content_analysis: string;
   spam_reason_spf_fail: string;
