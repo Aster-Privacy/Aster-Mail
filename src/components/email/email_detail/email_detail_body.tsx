@@ -38,6 +38,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EncryptionInfoDropdown } from "@/components/common/encryption_info_dropdown";
 import { ExpirationCountdown } from "@/components/email/expiration_countdown";
 import { UnsubscribeBanner } from "@/components/email/unsubscribe_banner";
+import { SendFailureBanner } from "@/components/email/banners/send_failure_banner";
 import { CalendarInviteBanner } from "@/components/email/banners/calendar_invite_banner";
 import { PurchaseDetailsBanner } from "@/components/email/banners/purchase_details_banner";
 import { ShippingDetailsBanner } from "@/components/email/banners/shipping_details_banner";
@@ -231,6 +232,12 @@ export function EmailDetailBody({
               </div>
             </div>
           </div>
+
+          <SendFailureBanner
+            className="mb-4 sm:mb-6"
+            send_error={mail_item?.send_error}
+            send_status={mail_item?.send_status}
+          />
 
           {email.unsubscribe_info?.has_unsubscribe &&
             !is_system_email(email) && (

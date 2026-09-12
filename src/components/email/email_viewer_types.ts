@@ -56,6 +56,8 @@ export interface DecryptedEmail {
   is_external?: boolean;
   system_origin?: boolean;
   sender_verified_domain?: string;
+  send_status?: string;
+  send_error?: string;
 }
 
 export interface ReplyData {

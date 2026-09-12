@@ -45,6 +45,7 @@ import { UnsubscribeBanner } from "@/components/email/unsubscribe_banner";
 import { CalendarInviteBanner } from "@/components/email/banners/calendar_invite_banner";
 import { PurchaseDetailsBanner } from "@/components/email/banners/purchase_details_banner";
 import { ShippingDetailsBanner } from "@/components/email/banners/shipping_details_banner";
+import { SendFailureBanner } from "@/components/email/banners/send_failure_banner";
 import { extract_email_details } from "@/services/extraction/extractor";
 import { ExternalContentBanner } from "@/components/email/external_content_banner";
 import { ExpirationBanner } from "@/components/email/expiration_countdown";
@@ -499,6 +500,11 @@ export function EmailViewerContent({
 
   return (
     <>
+      <SendFailureBanner
+        className="mx-6 mt-4"
+        send_error={email.send_error}
+        send_status={email.send_status}
+      />
       {unsubscribe_info.has_unsubscribe && !is_system && (
         <UnsubscribeBanner
           sender_email={email.sender.email}
