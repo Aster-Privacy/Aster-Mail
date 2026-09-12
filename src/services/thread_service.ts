@@ -650,6 +650,12 @@ export async function get_or_create_thread_token(
     return existing_thread_token;
   }
 
+  const server_thread_token = await read_server_thread_token(original_email_id);
+
+  if (server_thread_token) {
+    return server_thread_token;
+  }
+
   let passphrase_bytes = get_passphrase_bytes();
 
   if (!passphrase_bytes) {
@@ -690,12 +696,24 @@ export async function get_or_create_thread_token(
   if (link_result.error) {
     zero_uint8_array(passphrase_bytes);
 
-    return null;
+    return read_server_thread_token(original_email_id);
   }
 
   zero_uint8_array(passphrase_bytes);
 
   return thread_token;
+}
+
+async function read_server_thread_token(
+  mail_item_id: string,
+): Promise<string | null> {
+  try {
+    const result = await get_mail_item(mail_item_id);
+
+    return result.data?.thread_token || null;
+  } catch {
+    return null;
+  }
 }
 
 async function encrypt_thread_meta(
