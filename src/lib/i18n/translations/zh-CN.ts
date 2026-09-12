@@ -8051,7 +8051,7 @@ export const zh_CN = {
     username_max_length: "请使用少于 40 个字符。",
     username_alphanumeric:
       "可使用字母、数字和点。点不能位于开头、结尾，也不能连续。",
-    username_not_available: "这个用户名已被占用，换一个应该可以。",
+    username_not_available: "此用户名不可用。请换一个。",
     password_req_length: "至少8个字符",
     password_req_uppercase: "一个大写字母",
     password_req_lowercase: "一个小写字母",

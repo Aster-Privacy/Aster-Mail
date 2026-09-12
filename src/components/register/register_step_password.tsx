@@ -60,16 +60,15 @@ const OnboardingInputWithEndContent = ({
 
 const CheckIcon = () => (
   <svg
-    className="h-3 w-3"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2.5"
-    viewBox="0 0 24 24"
+    aria-hidden="true"
+    className="h-4 w-4"
+    fill="currentColor"
+    viewBox="0 0 20 20"
   >
     <path
-      d="M4.5 12.75l6 6 9-13.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
+      clipRule="evenodd"
+      d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm3.78-9.72a.75.75 0 0 0-1.06-1.06L9 10.94 7.28 9.22a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.06 0l4.25-4.25Z"
+      fillRule="evenodd"
     />
   </svg>
 );
@@ -80,19 +79,19 @@ interface RuleRowProps {
 }
 
 const RuleRow = ({ label, met }: RuleRowProps) => (
-  <li className="flex items-center gap-2">
+  <li className="flex items-center gap-2.5">
     <span
-      className={`flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full transition-colors ${
+      className={`flex-shrink-0 transition-all duration-200 ${
         met
-          ? "bg-[var(--color-success,#16a34a)] text-white"
-          : "border-[1.5px] border-txt-muted/50 text-transparent"
+          ? "text-[var(--color-success,#16a34a)]"
+          : "text-txt-muted opacity-40"
       }`}
     >
       <CheckIcon />
     </span>
     <span
-      className={`text-xs transition-colors ${
-        met ? "text-txt-secondary" : "text-txt-tertiary"
+      className={`text-xs transition-colors duration-200 ${
+        met ? "text-txt-primary" : "text-txt-tertiary"
       }`}
     >
       {label}
@@ -219,7 +218,7 @@ export const RegisterStepPassword = ({ reg }: RegisterStepPasswordProps) => {
           />
         </div>
 
-        <ul className="mt-3 space-y-1.5">
+        <ul className="mt-3 flex flex-col gap-2 rounded-xl border border-edge-secondary bg-surf-tertiary px-4 py-3">
           <RuleRow
             label={reg.t("auth.password_rule_length")}
             met={has_length}

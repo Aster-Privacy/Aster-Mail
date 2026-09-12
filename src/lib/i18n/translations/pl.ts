@@ -9189,8 +9189,7 @@ export const pl = {
     username_max_length: "Użyj mniej niż 40 znaków.",
     username_alphanumeric:
       "Używaj liter, cyfr i kropek. Kropka nie może być na początku, na końcu ani podwojona.",
-    username_not_available:
-      "Ta nazwa użytkownika jest zajęta. Inna powinna zadziałać.",
+    username_not_available: "Ta nazwa użytkownika jest niedostępna. Wybierz inną.",
     password_req_length: "Co najmniej 8 znaków",
     password_req_uppercase: "Jedna wielka litera",
     password_req_lowercase: "Jedna mała litera",

@@ -8881,7 +8881,7 @@ export const ar = {
     username_max_length: "استخدم أقل من 40 حرفًا.",
     username_alphanumeric:
       "استخدم الحروف والأرقام والنقاط. لا يمكن أن تكون النقطة في البداية أو النهاية أو مكررة.",
-    username_not_available: "اسم المستخدم هذا مأخوذ. اسم آخر ينبغي أن يعمل.",
+    username_not_available: "اسم المستخدم هذا غير متاح. جرّب اسمًا آخر.",
     password_req_length: "8 أحرف على الأقل",
     password_req_uppercase: "حرف كبير واحد",
     password_req_lowercase: "حرف صغير واحد",

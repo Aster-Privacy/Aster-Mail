@@ -174,6 +174,7 @@ export interface RegistrationClaimOptions {
   claim_domain?: "astermail.org" | "aster.cx";
 }
 
+const USERNAME_CONFLICT_PATTERN = /^registration failed$|already taken/i;
 const REGISTRATION_RESUME_KEY = "registration_resume";
 
 const PRE_CREATION_STEPS: ReadonlySet<RegistrationStep> = new Set([
@@ -421,22 +422,80 @@ export function use_registration(options?: RegistrationClaimOptions) {
   };
 
   const RESERVED_USERNAMES = new Set([
-    "noreply",
     "admin",
     "administrator",
     "postmaster",
-    "webmaster",
-    "support",
     "abuse",
-    "mailer",
-    "daemon",
+    "noreply",
+    "no-reply",
     "root",
     "hostmaster",
+    "webmaster",
+    "mailer-daemon",
+    "security",
+    "support",
+    "help",
     "info",
     "contact",
-    "help",
+    "billing",
+    "legal",
+    "privacy",
+    "team",
+    "mailer",
+    "daemon",
     "system",
     "mail",
+    "test",
+    "nobody",
+    "ops",
+    "dev",
+    "jobs",
+    "compliance",
+    "feedback",
+    "newsletter",
+    "operator",
+    "sysadmin",
+    "moderator",
+    "staff",
+    "official",
+    "service",
+    "noc",
+    "cert",
+    "hello",
+    "press",
+    "updates",
+    "notifications",
+    "alerts",
+    "do-not-reply",
+    "aster",
+    "astermail",
+    "asterprivacy",
+    "walmart",
+    "amazon",
+    "microsoft",
+    "apple",
+    "google",
+    "meta",
+    "facebook",
+    "instagram",
+    "twitter",
+    "netflix",
+    "paypal",
+    "stripe",
+    "visa",
+    "mastercard",
+    "blackrock",
+    "jpmorgan",
+    "chase",
+    "bankofamerica",
+    "icbc",
+    "wells",
+    "fargo",
+    "irs",
+    "fbi",
+    "cia",
+    "nsa",
+    "gov",
   ]);
 
   const parse_local_part = (val: string) =>
@@ -813,7 +872,13 @@ export function use_registration(options?: RegistrationClaimOptions) {
       );
     } catch (err) {
       await timing_safe_delay();
-      set_error(user_facing_error(err, t("auth.registration_failed")));
+      const message = user_facing_error(err, t("auth.registration_failed"));
+
+      set_error(
+        USERNAME_CONFLICT_PATTERN.test(message)
+          ? t("auth.username_not_available")
+          : message,
+      );
       set_step("email");
       registration_promise_ref.current = null;
     }

@@ -8989,8 +8989,7 @@ export const pt = {
     username_max_length: "Use menos de 40 caracteres.",
     username_alphanumeric:
       "Use letras, números e pontos. Os pontos não podem ficar no início, no fim nem duplicados.",
-    username_not_available:
-      "Este nome de usuário está em uso. Outro deve funcionar.",
+    username_not_available: "Este nome de usuário não está disponível. Tente outro.",
     password_req_length: "Pelo menos 8 caracteres",
     password_req_uppercase: "Uma letra maiúscula",
     password_req_lowercase: "Uma letra minúscula",

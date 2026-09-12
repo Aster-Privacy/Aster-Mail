@@ -8913,7 +8913,7 @@ export const tr = {
     username_max_length: "40 karakterden az kullanın.",
     username_alphanumeric:
       "Harf, rakam ve nokta kullanın. Nokta başta, sonda veya art arda olamaz.",
-    username_not_available: "Bu kullanıcı adı alındı. Başka biri işe yarar.",
+    username_not_available: "Bu kullanıcı adı kullanılamıyor. Başka bir ad deneyin.",
     password_req_length: "En az 8 karakter",
     password_req_uppercase: "Bir büyük harf",
     password_req_lowercase: "Bir küçük harf",

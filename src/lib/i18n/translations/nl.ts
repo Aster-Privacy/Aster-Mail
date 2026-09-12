@@ -8927,8 +8927,7 @@ export const nl = {
       "Voor het aanmaken van een extra account is een herstel-e-mail vereist. Dit helpt al uw accounts te beveiligen.",
     username_min_length: "Gebruik minstens 3 tekens.",
     username_max_length: "Gebruik minder dan 40 tekens.",
-    username_not_available:
-      "Deze gebruikersnaam is bezet. Een andere zou moeten werken.",
+    username_not_available: "Deze gebruikersnaam is niet beschikbaar. Probeer een andere.",
     password_req_length: "Minimaal 8 tekens",
     password_req_uppercase: "Eén hoofdletter",
     password_req_lowercase: "Eén kleine letter",

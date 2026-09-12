@@ -8922,8 +8922,7 @@ export const hi = {
     username_max_length: "40 से कम वर्ण इस्तेमाल करें।",
     username_alphanumeric:
       "अक्षर, अंक और बिंदु इस्तेमाल करें। बिंदु न तो पहले, न आखिर में, और न ही लगातार दो हो सकते हैं।",
-    username_not_available:
-      "यह उपयोगकर्ता नाम लिया जा चुका है। कोई दूसरा नाम काम करना चाहिए।",
+    username_not_available: "यह उपयोगकर्ता नाम उपलब्ध नहीं है। कोई दूसरा नाम आज़माएं।",
     password_req_length: "कम से कम 8 वर्ण",
     password_req_uppercase: "एक बड़ा अक्षर",
     password_req_lowercase: "एक छोटा अक्षर",

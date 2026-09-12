@@ -8882,7 +8882,7 @@ export const en: Translations = {
     username_max_length: "Use fewer than 40 characters.",
     username_alphanumeric:
       "Use letters, numbers and dots. Dots cannot be first, last, or doubled.",
-    username_not_available: "This username is taken. Another one should work.",
+    username_not_available: "This username isn't available. Try another one.",
     password_req_length: "At least 8 characters",
     password_req_uppercase: "One uppercase letter",
     password_req_lowercase: "One lowercase letter",

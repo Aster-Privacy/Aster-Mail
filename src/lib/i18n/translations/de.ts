@@ -9107,8 +9107,7 @@ export const de = {
       "Für die Erstellung eines weiteren Kontos ist eine Wiederherstellungs-E-Mail erforderlich. Dies schützt alle Ihre Konten.",
     username_min_length: "Verwenden Sie mindestens 3 Zeichen.",
     username_max_length: "Verwenden Sie weniger als 40 Zeichen.",
-    username_not_available:
-      "Dieser Benutzername ist vergeben. Ein anderer funktioniert.",
+    username_not_available: "Dieser Nutzername ist nicht verfügbar. Versuchen Sie einen anderen.",
     password_req_length: "Mindestens 8 Zeichen",
     password_req_uppercase: "Ein Großbuchstabe",
     password_req_lowercase: "Ein Kleinbuchstabe",

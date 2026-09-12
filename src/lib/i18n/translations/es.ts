@@ -8921,8 +8921,7 @@ export const es = {
     username_max_length: "Usa menos de 40 caracteres.",
     username_alphanumeric:
       "Usa letras, números y puntos. Los puntos no pueden ir al principio, al final ni duplicados.",
-    username_not_available:
-      "Este nombre de usuario está ocupado. Otro debería funcionar.",
+    username_not_available: "Este nombre de usuario no está disponible. Prueba con otro.",
     password_req_length: "Al menos 8 caracteres",
     password_req_uppercase: "Una letra mayúscula",
     password_req_lowercase: "Una letra minúscula",

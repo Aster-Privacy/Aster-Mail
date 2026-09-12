@@ -8913,8 +8913,7 @@ export const ja = {
     username_max_length: "40 文字未満で入力してください。",
     username_alphanumeric:
       "英数字とドットが使えます。ドットは先頭・末尾・連続では使用できません。",
-    username_not_available:
-      "このユーザー名はすでに使われています。別のものでしたら使えます。",
+    username_not_available: "このユーザー名は使用できません。別の名前をお試しください。",
     password_req_length: "8文字以上",
     password_req_uppercase: "大文字1文字",
     password_req_lowercase: "小文字1文字",

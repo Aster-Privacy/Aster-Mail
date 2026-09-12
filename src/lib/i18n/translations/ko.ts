@@ -8681,8 +8681,7 @@ export const ko = {
     username_max_length: "40자 미만으로 입력하세요.",
     username_alphanumeric:
       "영문자, 숫자, 점을 사용할 수 있습니다. 점은 처음, 끝, 연속으로 쓸 수 없습니다.",
-    username_not_available:
-      "이 사용자 이름은 사용 중입니다. 다른 이름이면 됩니다.",
+    username_not_available: "이 사용자 이름은 사용할 수 없습니다. 다른 이름을 입력하세요.",
     password_req_length: "최소 8자",
     password_req_uppercase: "대문자 하나",
     password_req_lowercase: "소문자 하나",

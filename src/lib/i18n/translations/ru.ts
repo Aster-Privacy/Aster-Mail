@@ -9165,8 +9165,7 @@ export const ru = {
     username_max_length: "Используйте менее 40 символов.",
     username_alphanumeric:
       "Используйте буквы, цифры и точки. Точка не может быть в начале, в конце или идти подряд.",
-    username_not_available:
-      "Это имя пользователя занято. Другое обычно подходит.",
+    username_not_available: "Это имя пользователя недоступно. Попробуйте другое.",
     password_req_length: "Не менее 8 символов",
     password_req_uppercase: "Одна заглавная буква",
     password_req_lowercase: "Одна строчная буква",
