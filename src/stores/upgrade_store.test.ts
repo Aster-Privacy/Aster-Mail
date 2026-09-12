@@ -68,6 +68,12 @@ describe("upgrade_store auth route guard", () => {
     expect(get_upgrade_snapshot().limit_key).toBe("generic");
   });
 
+  it("stays closed while onboarding continues under an account prefix", () => {
+    window.history.pushState({}, "", "/u/0/register");
+    show_plan_limit_upgrade({ resource: "aliases" });
+    expect(get_upgrade_snapshot().is_open).toBe(false);
+  });
+
   it("stays closed on every other auth route", () => {
     for (const route of [
       "/sign-in",

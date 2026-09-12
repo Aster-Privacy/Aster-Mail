@@ -20,6 +20,8 @@
 //
 import { useSyncExternalStore } from "react";
 
+import { strip_account_prefix } from "@/lib/account_index_url";
+
 export type UpgradeReason =
   | "plan_limit"
   | "storage_full"
@@ -138,7 +140,7 @@ const AUTH_ROUTES = [
 
 export function is_on_auth_route(pathname?: string): boolean {
   if (!pathname && typeof window === "undefined") return false;
-  const path = pathname ?? window.location.pathname;
+  const path = strip_account_prefix(pathname ?? window.location.pathname);
 
   return AUTH_ROUTES.some(
     (route) => path === route || path.startsWith(`${route}/`),
