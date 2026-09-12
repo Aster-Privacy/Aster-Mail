@@ -7373,6 +7373,11 @@ export const ko = {
       "제품 소식이 꺼져 있습니다. 여기에서 다시 켤 수 있습니다.",
     product_updates_save_failed:
       "제품 소식 설정을 저장하지 못했습니다. 다시 시도하세요.",
+    special_offers: "특별 혜택",
+    special_offers_description:
+      "할인된 요금제 혜택을 앱에서 가끔 표시합니다. 끄면 혜택이 표시되지 않으며 혜택 결과에도 포함되지 않습니다.",
+    special_offers_save_failed:
+      "특별 혜택 설정을 저장하지 못했습니다. 다시 시도하세요.",
     criterion_passkey: "패스키 등록됨",
     criterion_read_receipts_off: "읽음 확인 꺼짐",
     send_read_receipts_label: "읽음 확인 보내기",

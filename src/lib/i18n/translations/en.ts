@@ -2861,6 +2861,11 @@ export const en: Translations = {
       "Product updates are off. You can turn them back on here.",
     product_updates_save_failed:
       "Your product updates setting didn't save. Try again.",
+    special_offers: "Special offers",
+    special_offers_description:
+      "Show occasional discounted plan offers in the app. When this is off, you don't see offers and aren't counted in offer results.",
+    special_offers_save_failed:
+      "Your special offers setting didn't save. Try again.",
     toast_position: "Notification Position",
     toast_position_description: "Where notification popups appear on screen",
     toast_position_top: "Top",

@@ -73,3 +73,42 @@ export async function accept_special_offer_on_server(): Promise<boolean> {
 
   return response.data?.ok === true;
 }
+
+export interface OfferPreferences {
+  in_app_offers_enabled: boolean;
+}
+
+function is_offer_preferences(value: unknown): value is OfferPreferences {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    typeof (value as OfferPreferences).in_app_offers_enabled === "boolean"
+  );
+}
+
+export async function get_offer_preferences(): Promise<OfferPreferences | null> {
+  const response = await api_client.get<OfferPreferences>(
+    "/core/v1/offers/preferences",
+    { skip_cache: true },
+  );
+
+  if (response.error || !is_offer_preferences(response.data)) return null;
+
+  return response.data;
+}
+
+export async function set_offer_preferences(
+  in_app_offers_enabled: boolean,
+): Promise<OfferPreferences> {
+  const response = await api_client.put<OfferPreferences>(
+    "/core/v1/offers/preferences",
+    { in_app_offers_enabled },
+  );
+
+  if (response.error) throw new Error(response.error);
+  if (!is_offer_preferences(response.data)) {
+    throw new Error("invalid_offer_preferences");
+  }
+
+  return response.data;
+}

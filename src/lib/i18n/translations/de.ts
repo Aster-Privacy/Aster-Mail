@@ -7586,6 +7586,11 @@ export const de = {
       "Produktneuigkeiten sind ausgeschaltet. Sie können sie hier wieder einschalten.",
     product_updates_save_failed:
       "Ihre Einstellung für Produktneuigkeiten wurde nicht gespeichert. Versuchen Sie es erneut.",
+    special_offers: "Sonderangebote",
+    special_offers_description:
+      "Gelegentlich vergünstigte Tarifangebote in der App anzeigen. Wenn dies ausgeschaltet ist, sehen Sie keine Angebote und werden in den Angebotsergebnissen nicht mitgezählt.",
+    special_offers_save_failed:
+      "Ihre Einstellung für Sonderangebote wurde nicht gespeichert. Versuchen Sie es erneut.",
     criterion_passkey: "Passkey registriert",
     criterion_read_receipts_off: "Lesebestätigungen aus",
     send_read_receipts_label: "Lesebestätigungen senden",

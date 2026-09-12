@@ -7551,6 +7551,11 @@ export const nl = {
       "Productnieuws staat uit. Je kunt het hier weer aanzetten.",
     product_updates_save_failed:
       "Je instelling voor productnieuws is niet opgeslagen. Probeer het opnieuw.",
+    special_offers: "Speciale aanbiedingen",
+    special_offers_description:
+      "Toon af en toe abonnementen met korting in de app. Als dit uitstaat, zie je geen aanbiedingen en tel je niet mee in de resultaten van aanbiedingen.",
+    special_offers_save_failed:
+      "Je instelling voor speciale aanbiedingen is niet opgeslagen. Probeer het opnieuw.",
     criterion_passkey: "Toegangssleutel geregistreerd",
     criterion_read_receipts_off: "Leesbevestigingen uit",
     send_read_receipts_label: "Leesbevestigingen verzenden",

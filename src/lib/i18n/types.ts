@@ -3043,6 +3043,9 @@ export interface SettingsTranslations {
   product_updates_info: string;
   product_updates_turned_off: string;
   product_updates_save_failed: string;
+  special_offers: string;
+  special_offers_description: string;
+  special_offers_save_failed: string;
   toast_position: string;
   toast_position_description: string;
   toast_position_top: string;

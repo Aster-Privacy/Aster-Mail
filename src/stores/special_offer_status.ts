@@ -144,6 +144,35 @@ export function reset_special_offer_status() {
   notify();
 }
 
+export function suppress_special_offer_status() {
+  generation += 1;
+  latest_request += 1;
+  in_flight = null;
+
+  if (!current.user_id) return;
+
+  current = {
+    ...current,
+    is_loaded: true,
+    status: current.status
+      ? { ...current.status, available: false, auto_show: false }
+      : null,
+  };
+  notify();
+}
+
+export async function restore_special_offer_status(): Promise<void> {
+  const user_id = current.user_id;
+
+  if (!user_id) return;
+
+  await load_special_offer_status(user_id, true);
+
+  if (current.user_id !== user_id) return;
+
+  patch({ auto_show: false });
+}
+
 export async function claim_special_offer_slot(): Promise<boolean> {
   const claim_generation = generation;
   let granted = false;

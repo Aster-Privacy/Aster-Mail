@@ -6818,6 +6818,11 @@ export const zh_CN = {
       "即使关闭此项，安全和政策公告也始终会送达。Aster 不会记录你是否打开或点击这些邮件。",
     product_updates_turned_off: "产品动态已关闭。你可以在这里重新开启。",
     product_updates_save_failed: "产品动态设置未保存。请重试。",
+    special_offers: "特别优惠",
+    special_offers_description:
+      "在应用中偶尔显示套餐折扣优惠。关闭后，你不会看到优惠，也不会被计入优惠结果。",
+    special_offers_save_failed:
+      "特别优惠设置未保存。请重试。",
     criterion_passkey: "已注册通行密钥",
     criterion_read_receipts_off: "已关闭已读回执",
     send_read_receipts_label: "发送已读回执",

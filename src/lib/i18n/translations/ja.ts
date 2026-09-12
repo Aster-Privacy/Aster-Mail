@@ -7573,6 +7573,11 @@ export const ja = {
       "製品のお知らせはオフです。ここでオンに戻せます。",
     product_updates_save_failed:
       "製品のお知らせの設定を保存できませんでした。もう一度お試しください。",
+    special_offers: "特別オファー",
+    special_offers_description:
+      "割引されたプランのオファーをアプリ内でときどき表示します。オフにすると、オファーは表示されず、オファーの結果にも含まれません。",
+    special_offers_save_failed:
+      "特別オファーの設定を保存できませんでした。もう一度お試しください。",
     criterion_passkey: "パスキー登録済み",
     criterion_read_receipts_off: "開封確認オフ",
     send_read_receipts_label: "開封確認を送信",
