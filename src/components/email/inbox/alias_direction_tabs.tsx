@@ -69,51 +69,48 @@ export function AliasDirectionTabs({
   };
 
   return (
-    <div className="shrink-0 select-none border-b border-edge-secondary bg-surf-primary px-3 py-2 sm:px-4">
-      <div
-        aria-label={t("mail.alias_direction_label")}
-        className="grid w-full grid-cols-3 gap-1 rounded-xl border border-edge-secondary bg-surf-hover p-1 sm:w-auto sm:max-w-[360px]"
-        data-testid="alias_direction_tabs"
-        role="tablist"
-      >
-        {ALIAS_DIRECTIONS.map((candidate) => {
-          const is_active = candidate === direction;
-          const Icon = DIRECTION_ICONS[candidate];
+    <div
+      aria-label={t("mail.alias_direction_label")}
+      className="grid shrink-0 select-none grid-cols-3 border-b border-edge-primary bg-surf-primary px-2 sm:flex sm:px-3"
+      data-testid="alias_direction_tabs"
+      role="tablist"
+    >
+      {ALIAS_DIRECTIONS.map((candidate) => {
+        const is_active = candidate === direction;
+        const Icon = DIRECTION_ICONS[candidate];
 
-          return (
-            <button
-              key={candidate}
-              aria-selected={is_active}
-              className={`relative flex h-9 min-w-0 items-center justify-center gap-1.5 rounded-lg px-2 text-[13px] font-medium outline-none transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-brand sm:h-8 ${
-                is_active
-                  ? "text-white"
-                  : "text-txt-secondary hover:text-txt-primary"
-              }`}
-              data-testid={`alias_direction_${candidate}`}
-              role="tab"
-              type="button"
-              onClick={() => select(candidate)}
-              onMouseDown={(e) => e.preventDefault()}
-            >
-              {is_active && (
-                <motion.span
-                  className="absolute inset-0 rounded-lg bg-brand shadow-sm"
-                  layoutId="alias_direction_pill"
-                  transition={{ type: "spring", stiffness: 520, damping: 40 }}
-                />
-              )}
-              <Icon
-                aria-hidden="true"
-                className="relative h-4 w-4 shrink-0"
-                strokeWidth={is_active ? 2 : 1.75}
+        return (
+          <button
+            key={candidate}
+            aria-selected={is_active}
+            className={`relative flex h-12 min-w-0 items-center justify-center gap-2 whitespace-nowrap px-3.5 text-[13px] font-medium outline-none transition-colors duration-150 focus-visible:bg-surf-hover sm:justify-start ${
+              is_active
+                ? "text-brand"
+                : "text-txt-secondary hover:text-txt-primary"
+            }`}
+            data-testid={`alias_direction_${candidate}`}
+            role="tab"
+            type="button"
+            onClick={() => select(candidate)}
+            onMouseDown={(e) => e.preventDefault()}
+          >
+            <Icon
+              aria-hidden="true"
+              className={`h-4 w-4 shrink-0 ${is_active ? "text-brand" : "text-txt-muted"}`}
+            />
+            <span className="truncate">
+              {t(DIRECTION_LABEL_KEYS[candidate])}
+            </span>
+            {is_active && (
+              <motion.span
+                className="pointer-events-none absolute inset-x-0 -bottom-px h-[3px] rounded-t-full bg-brand"
+                layoutId="alias_direction_underline"
+                transition={{ type: "spring", stiffness: 520, damping: 44 }}
               />
-              <span className="relative truncate">
-                {t(DIRECTION_LABEL_KEYS[candidate])}
-              </span>
-            </button>
-          );
-        })}
-      </div>
+            )}
+          </button>
+        );
+      })}
     </div>
   );
 }
