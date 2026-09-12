@@ -23,6 +23,7 @@ import type { ChangeEvent } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { LockClosedIcon, CheckCircleIcon } from "@heroicons/react/24/solid";
+import { CheckIcon } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
 import {
@@ -492,6 +493,30 @@ export function UpgradeModal() {
   const price_label = (tier: PlanTier) =>
     format_price(convert_cents(monthly_equivalent(tier), currency), currency);
 
+  const yearly_total_label = (tier: PlanTier) =>
+    `${t("settings.billed_annually")} · ${format_price(
+      convert_cents(tier.yearly_cents, currency),
+      currency,
+    )}${t("settings.per_year_short")}`;
+
+  const lead_in_for = (tier: PlanTier) => {
+    if (audience === "family") return null;
+
+    const index = PLAN_TIERS.findIndex((entry) => entry.id === tier.id);
+    const previous = index > 0 ? PLAN_TIERS[index - 1] : null;
+
+    if (!previous || previous.id === "free") return null;
+    if (!tiers.some((entry) => entry.id === previous.id)) return null;
+
+    return t("settings.plan_everything_in", { plan: previous.name });
+  };
+
+  const trust_points = [
+    t("settings.end_to_end_encrypted"),
+    t("auth.no_ads_no_tracking"),
+    t("settings.cancel_anytime"),
+  ];
+
   const start_plan_change = async (tier: PlanTier, billing: string) => {
     set_is_starting(true);
 
@@ -823,23 +848,25 @@ export function UpgradeModal() {
                   value={audience}
                 />
                 <div className="flex flex-wrap items-center justify-center gap-2">
-                  <Segmented
-                    on_change={(value) => set_interval(value)}
-                    options={[
-                      { id: "month", label: t("settings.billing_monthly") },
-                      {
-                        id: "year",
-                        label: t("settings.billing_yearly"),
-                        badge:
-                          yearly_save_percent > 0
-                            ? t("settings.save_percent", {
-                                percent: yearly_save_percent,
-                              })
-                            : undefined,
-                      },
-                    ]}
-                    value={interval}
-                  />
+                  <div className="w-64">
+                    <Segmented
+                      on_change={(value) => set_interval(value)}
+                      options={[
+                        { id: "month", label: t("settings.billing_monthly") },
+                        {
+                          id: "year",
+                          label: t("settings.billing_yearly"),
+                          badge:
+                            yearly_save_percent > 0
+                              ? t("settings.save_percent", {
+                                  percent: yearly_save_percent,
+                                })
+                              : undefined,
+                        },
+                      ]}
+                      value={interval}
+                    />
+                  </div>
                   <select
                     aria-label={t("settings.select_currency")}
                     className="cursor-pointer rounded-full border border-edge-secondary bg-transparent px-3 py-1.5 text-xs text-txt-secondary outline-none transition-colors hover:text-txt-primary focus:border-blue-500"
@@ -881,9 +908,7 @@ export function UpgradeModal() {
                             : null
                       }
                       billed_note={
-                        interval === "year"
-                          ? t("settings.billed_annually")
-                          : null
+                        interval === "year" ? yearly_total_label(tier) : null
                       }
                       cta_disabled={is_starting}
                       cta_label={t("settings.get_plan", { name: tier.name })}
@@ -894,6 +919,7 @@ export function UpgradeModal() {
                       }
                       features={tier_features(tier)}
                       is_current={false}
+                      lead_in={lead_in_for(tier)}
                       name={tier.name}
                       on_cta={() => handle_select_tier(tier)}
                       period_label={t("settings.per_month_short")}
@@ -931,21 +957,32 @@ export function UpgradeModal() {
             </ul>
           )}
 
-          <div className="flex flex-col items-center gap-1.5 pt-1">
+          <div className="flex flex-col items-center gap-2.5 pt-1">
+            <ul className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1.5">
+              {trust_points.map((point) => (
+                <li
+                  key={point}
+                  className="flex items-center gap-1.5 text-xs text-txt-secondary"
+                >
+                  <CheckIcon
+                    className="h-3.5 w-3.5 flex-shrink-0"
+                    style={{ color: "var(--accent-blue)" }}
+                  />
+                  <span>{point}</span>
+                </li>
+              ))}
+            </ul>
             <p className="text-center text-[12px] leading-relaxed text-txt-tertiary">
               {t("settings.plan_billing_terms")}
-            </p>
-            <p className="text-xs text-txt-muted text-center">
-              {t("auth.no_ads_no_tracking")}
             </p>
           </div>
         </ModalBody>
 
-        <ModalFooter className="gap-3">
+        <ModalFooter className="justify-between gap-3">
           {is_storage ? (
             <Button
-              className="flex-1"
               disabled={is_starting}
+              size="sm"
               variant="outline"
               onClick={handle_buy_storage}
             >
@@ -953,12 +990,12 @@ export function UpgradeModal() {
             </Button>
           ) : (
             <Button
-              className="flex-1"
               disabled={is_starting}
-              variant="outline"
+              size="sm"
+              variant="ghost"
               onClick={handle_compare_plans}
             >
-              {t("auth.plan_view_full_features")}
+              {t("settings.compare_all_features")}
             </Button>
           )}
           <Button
