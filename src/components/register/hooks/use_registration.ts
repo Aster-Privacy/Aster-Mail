@@ -27,7 +27,12 @@ import { useNavigate, useLocation } from "react-router-dom";
 
 import { current_source } from "@/lib/acquisition_source";
 import { mark_first_run } from "@/lib/first_run";
-import { safe_local_set } from "@/lib/safe_storage";
+import {
+  safe_local_set,
+  safe_session_get,
+  safe_session_remove,
+  safe_session_set,
+} from "@/lib/safe_storage";
 import { copy_text_or_throw } from "@/utils/copy_text";
 import { useTheme } from "@/contexts/theme_context";
 import { use_auth } from "@/contexts/auth_context";
@@ -78,9 +83,10 @@ import {
   download_recovery_phrase_text,
 } from "@/services/crypto/recovery_pdf";
 import {
+  PASSWORD_RULE_MESSAGE_KEYS,
   sanitize_username_input,
-  validate_password_strength,
   timing_safe_delay,
+  validate_password_strength,
 } from "@/services/sanitize";
 import { check_password_breach } from "@/services/breach_check";
 import { EMAIL_REGEX } from "@/lib/utils";
@@ -168,6 +174,77 @@ export interface RegistrationClaimOptions {
   claim_domain?: "astermail.org" | "aster.cx";
 }
 
+const REGISTRATION_RESUME_KEY = "registration_resume";
+
+const PRE_CREATION_STEPS: ReadonlySet<RegistrationStep> = new Set([
+  "welcome",
+  "email",
+  "password",
+  "generating",
+]);
+
+const RESUMABLE_STEPS: ReadonlySet<RegistrationStep> = new Set([
+  "recovery_key",
+  "recovery_email",
+  "download_apps",
+  "notifications",
+  "addresses",
+  "custom_domain",
+  "import_mail",
+]);
+
+interface RegistrationResumeState {
+  step: RegistrationStep;
+  username: string;
+  email_domain: "astermail.org" | "aster.cx";
+  display_name: string;
+  generated_email: string;
+  recovery_email: string;
+  recovery_email_required: boolean;
+  plan_step_shown: boolean;
+}
+
+function read_resume_state(): RegistrationResumeState | null {
+  const raw = safe_session_get(REGISTRATION_RESUME_KEY);
+
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw) as Partial<RegistrationResumeState>;
+
+    if (typeof parsed.step !== "string") return null;
+
+    return {
+      step: parsed.step,
+      username: typeof parsed.username === "string" ? parsed.username : "",
+      email_domain:
+        parsed.email_domain === "aster.cx" ? "aster.cx" : "astermail.org",
+      display_name:
+        typeof parsed.display_name === "string" ? parsed.display_name : "",
+      generated_email:
+        typeof parsed.generated_email === "string"
+          ? parsed.generated_email
+          : "",
+      recovery_email:
+        typeof parsed.recovery_email === "string" ? parsed.recovery_email : "",
+      recovery_email_required: parsed.recovery_email_required === true,
+      plan_step_shown: parsed.plan_step_shown === true,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function resolve_resume_step(step: RegistrationStep): RegistrationStep {
+  if (step === "password" || step === "generating") return "password";
+  if (PRE_CREATION_STEPS.has(step)) return "email";
+  if (RESUMABLE_STEPS.has(step)) return step;
+  if (step === "academic_offer" || step === "plan_selection") {
+    return "download_apps";
+  }
+
+  return "recovery_email";
+}
+
 export function use_registration(options?: RegistrationClaimOptions) {
   const is_claim = !!options?.claim_token;
   const is_invited =
@@ -191,12 +268,23 @@ export function use_registration(options?: RegistrationClaimOptions) {
     set_is_completing_registration,
   } = use_auth();
 
+  const resume_state_ref = useRef<RegistrationResumeState | null>(
+    is_claim || is_adding_account ? null : read_resume_state(),
+  );
+  const resume_step = resume_state_ref.current
+    ? resolve_resume_step(resume_state_ref.current.step)
+    : null;
+  const [is_restoring, set_is_restoring] = useState(
+    !!resume_step && !PRE_CREATION_STEPS.has(resume_step),
+  );
+
   const has_existing_session =
     !auth_loading &&
     is_authenticated &&
     !!current_account_id &&
     !is_adding_account &&
     !is_completing_registration &&
+    !is_restoring &&
     !location.state?.from;
 
   useEffect(() => {
@@ -204,7 +292,7 @@ export function use_registration(options?: RegistrationClaimOptions) {
   }, [t]);
 
   const [step, set_step] = useState<RegistrationStep>(
-    is_claim ? "password" : "email",
+    is_claim ? "password" : (resume_step ?? "email"),
   );
   const [is_downloading_key, set_is_downloading_key] = useState(false);
   const [has_copied_key, set_has_copied_key] = useState(false);
@@ -214,14 +302,24 @@ export function use_registration(options?: RegistrationClaimOptions) {
   const [is_confirm_password_visible, set_is_confirm_password_visible] =
     useState(false);
   const [is_key_visible, set_is_key_visible] = useState(false);
-  const [username, set_username] = useState(options?.claim_username ?? "");
-  const [display_name, set_display_name] = useState("");
+  const [username, set_username] = useState(
+    options?.claim_username ?? resume_state_ref.current?.username ?? "",
+  );
+  const [display_name, set_display_name] = useState(
+    resume_state_ref.current?.display_name ?? "",
+  );
   const [email_domain, set_email_domain] = useState<
     "astermail.org" | "aster.cx"
-  >(options?.claim_domain ?? "astermail.org");
+  >(
+    options?.claim_domain ??
+      resume_state_ref.current?.email_domain ??
+      "astermail.org",
+  );
   const [password, set_password] = useState("");
   const [confirm_password, set_confirm_password] = useState("");
-  const [recovery_email, set_recovery_email] = useState("");
+  const [recovery_email, set_recovery_email] = useState(
+    resume_state_ref.current?.recovery_email ?? "",
+  );
   const [remember_me, set_remember_me] = useState(true);
   const [profile_color, set_profile_color] = useState(
     get_default_profile_color,
@@ -242,7 +340,9 @@ export function use_registration(options?: RegistrationClaimOptions) {
     (string | null)[]
   >([]);
   const [phrase_confirm_error, set_phrase_confirm_error] = useState(false);
-  const [generated_email, set_generated_email] = useState("");
+  const [generated_email, set_generated_email] = useState(
+    resume_state_ref.current?.generated_email ?? "",
+  );
   const [is_pdf_downloaded, set_is_pdf_downloaded] = useState(false);
   const [is_text_downloaded, set_is_text_downloaded] = useState(false);
   const [captcha_token, set_captcha_token] = useState("");
@@ -255,9 +355,10 @@ export function use_registration(options?: RegistrationClaimOptions) {
   const [resend_cooldown, set_resend_cooldown] = useState(0);
   const [is_email_verified, set_is_email_verified] = useState(false);
   const [recovery_email_required, set_recovery_email_required] = useState(
-    typeof window !== "undefined" &&
-      typeof window.location !== "undefined" &&
-      window.location.hostname.toLowerCase().endsWith(".onion"),
+    resume_state_ref.current?.recovery_email_required ||
+      (typeof window !== "undefined" &&
+        typeof window.location !== "undefined" &&
+        window.location.hostname.toLowerCase().endsWith(".onion")),
   );
   const verification_poll_ref = useRef<ReturnType<typeof setInterval> | null>(
     null,
@@ -276,11 +377,45 @@ export function use_registration(options?: RegistrationClaimOptions) {
   const [phrase_wrap_error, set_phrase_wrap_error] = useState(false);
   useEffect(() => {
     if (has_existing_session) {
+      safe_session_remove(REGISTRATION_RESUME_KEY);
       navigate(get_safe_next_path(), { replace: true });
     }
   }, [has_existing_session, navigate]);
 
+  useEffect(() => {
+    if (is_claim || is_adding_account || is_restoring) return;
+    if (step === "email" && !username && !display_name) {
+      safe_session_remove(REGISTRATION_RESUME_KEY);
+
+      return;
+    }
+    const state: RegistrationResumeState = {
+      step,
+      username,
+      email_domain,
+      display_name,
+      generated_email,
+      recovery_email,
+      recovery_email_required,
+      plan_step_shown: plan_step_shown_ref.current,
+    };
+
+    safe_session_set(REGISTRATION_RESUME_KEY, JSON.stringify(state));
+  }, [
+    is_claim,
+    is_adding_account,
+    is_restoring,
+    step,
+    username,
+    email_domain,
+    display_name,
+    generated_email,
+    recovery_email,
+    recovery_email_required,
+  ]);
+
   const handle_cancel_add_account = () => {
+    safe_session_remove(REGISTRATION_RESUME_KEY);
     set_is_adding_account(false);
     navigate("/");
   };
@@ -351,7 +486,7 @@ export function use_registration(options?: RegistrationClaimOptions) {
 
     if (!password_validation.valid) {
       await timing_safe_delay();
-      set_error(password_validation.errors[0]);
+      set_error(t(PASSWORD_RULE_MESSAGE_KEYS[password_validation.errors[0]]));
 
       return false;
     }
@@ -393,6 +528,38 @@ export function use_registration(options?: RegistrationClaimOptions) {
     "recovery_email"
   > | null>(null);
   const pending_vault_data_ref = useRef<EncryptedVault | null>(null);
+
+  useEffect(() => {
+    if (!is_restoring || auth_loading) return;
+    const resume = resume_state_ref.current;
+
+    if (!resume || !is_authenticated || !current_account_id) {
+      safe_session_remove(REGISTRATION_RESUME_KEY);
+      resume_state_ref.current = null;
+      set_step("email");
+      set_is_restoring(false);
+
+      return;
+    }
+
+    const codes = vault?.recovery_codes ?? [];
+
+    set_is_completing_registration(true);
+    registration_done_ref.current = true;
+    plan_step_shown_ref.current = resume.plan_step_shown;
+    set_recovery_codes(codes);
+    if (resolve_resume_step(resume.step) === "recovery_key" && !codes.length) {
+      set_step("recovery_email");
+    }
+    set_is_restoring(false);
+  }, [
+    is_restoring,
+    auth_loading,
+    is_authenticated,
+    current_account_id,
+    vault,
+    set_is_completing_registration,
+  ]);
 
   const handle_password_next = async () => {
     set_error("");
@@ -860,9 +1027,10 @@ export function use_registration(options?: RegistrationClaimOptions) {
   const finalize_registration = async (target_path?: string) => {
     await persist_registration_state();
 
+    safe_session_remove(REGISTRATION_RESUME_KEY);
     set_is_completing_registration(false);
 
-    navigate(target_path ?? get_safe_next_path());
+    navigate(target_path ?? "/", { replace: true });
   };
 
   const complete_registration = async () => {
@@ -918,7 +1086,15 @@ export function use_registration(options?: RegistrationClaimOptions) {
     await finalize_registration("/settings/domains?purchase=1");
   };
 
-  const handle_custom_domain_skip = async () => {
+  const handle_custom_domain_skip = () => {
+    set_step("import_mail");
+  };
+
+  const handle_import_mail = async () => {
+    await finalize_registration("/settings/import");
+  };
+
+  const handle_import_mail_skip = async () => {
     await finalize_registration();
   };
 
@@ -1196,6 +1372,7 @@ export function use_registration(options?: RegistrationClaimOptions) {
     is_authenticated,
     auth_loading,
     has_existing_session,
+    is_restoring,
 
     step,
     set_step,
@@ -1287,6 +1464,8 @@ export function use_registration(options?: RegistrationClaimOptions) {
     handle_custom_domain_own,
     handle_custom_domain_new,
     handle_custom_domain_skip,
+    handle_import_mail,
+    handle_import_mail_skip,
     handle_resend_verification,
     handle_skip_verification,
 

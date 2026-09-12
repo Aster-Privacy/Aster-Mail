@@ -20,8 +20,14 @@
 //
 import type { UseRegistrationReturn } from "@/components/register/hooks/use_registration";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown_menu";
 import { apply_input_transform } from "@/utils/input_transform";
 import { sanitize_username_input } from "@/services/sanitize";
 import { create_alias } from "@/services/api/aliases/crud";
@@ -39,6 +45,7 @@ interface RegisterStepAddressesProps {
 }
 
 const ADDRESS_SLOTS = [0, 1, 2];
+const DOMAINS = ["astermail.org", "aster.cx"] as const;
 
 const starts_and_ends_alphanumeric = (value: string) =>
   /^[a-z0-9]/i.test(value) && /[a-z0-9]$/i.test(value);
@@ -46,7 +53,11 @@ const starts_and_ends_alphanumeric = (value: string) =>
 export const RegisterStepAddresses = ({ reg }: RegisterStepAddressesProps) => {
   const [values, set_values] = useState<string[]>(["", "", ""]);
   const [errors, set_errors] = useState<string[]>(["", "", ""]);
+  const [domains, set_domains] = useState<string[]>(() =>
+    ADDRESS_SLOTS.map(() => reg.email_domain),
+  );
   const [is_adding, set_is_adding] = useState(false);
+  const input_refs = useRef<(HTMLInputElement | null)[]>([]);
 
   const pending_count = values.filter(
     (value, index) => value.trim() && !reg.added_addresses[index],
@@ -83,14 +94,14 @@ export const RegisterStepAddresses = ({ reg }: RegisterStepAddressesProps) => {
       const value = values[index].trim();
 
       if (!value || added[index]) continue;
-      const response = await create_alias(value, reg.email_domain);
+      const response = await create_alias(value, domains[index]);
 
       if (response.error || !response.data) {
         next_errors[index] =
           response.error ?? reg.t("settings.alias_create_failed");
         continue;
       }
-      added[index] = `${value}@${reg.email_domain}`;
+      added[index] = `${value}@${domains[index]}`;
     }
     reg.set_added_addresses(added);
     set_errors([...next_errors]);
@@ -113,10 +124,13 @@ export const RegisterStepAddresses = ({ reg }: RegisterStepAddressesProps) => {
             <div key={index} className="w-full">
               <div className="relative">
                 <OnboardingInput
+                  ref={(node) => {
+                    input_refs.current[index] = node;
+                  }}
                   autoCapitalize="none"
                   autoComplete="off"
                   autoCorrect="off"
-                  className="notranslate pe-32"
+                  className="notranslate pe-36"
                   disabled={done || is_adding}
                   maxLength={64}
                   placeholder={reg.t("auth.address_n", {
@@ -146,14 +160,64 @@ export const RegisterStepAddresses = ({ reg }: RegisterStepAddressesProps) => {
                   }}
                   onKeyDown={(e) => e["key"] === "Enter" && void handle_add()}
                 />
-                <span className="pointer-events-none absolute end-3 top-1/2 flex -translate-y-1/2 items-center gap-2 text-sm text-txt-muted notranslate">
-                  @{reg.email_domain}
+                <div className="absolute end-2 top-1/2 flex -translate-y-1/2 items-center gap-1">
                   {done && (
                     <span style={{ color: "var(--color-success)" }}>
                       <CheckCircleIcon />
                     </span>
                   )}
-                </span>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button
+                        aria-label={reg.t("auth.switch_domain")}
+                        className="inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-sm text-txt-secondary transition-colors hover:bg-black/5 hover:text-txt-primary disabled:pointer-events-none dark:hover:bg-white/5 notranslate"
+                        disabled={done || is_adding}
+                        tabIndex={-1}
+                        translate="no"
+                        type="button"
+                      >
+                        @{domains[index]}
+                        <svg
+                          className="h-3.5 w-3.5"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M19.5 8.25l-7.5 7.5-7.5-7.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent
+                      align="end"
+                      className="w-44"
+                      onCloseAutoFocus={(event) => {
+                        event.preventDefault();
+                        input_refs.current[index]?.focus();
+                      }}
+                    >
+                      {DOMAINS.map((domain) => (
+                        <DropdownMenuItem
+                          key={domain}
+                          className="notranslate"
+                          translate="no"
+                          onClick={() => {
+                            const next = [...domains];
+
+                            next[index] = domain;
+                            set_domains(next);
+                          }}
+                        >
+                          @{domain}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               </div>
               {errors[index] && (
                 <p

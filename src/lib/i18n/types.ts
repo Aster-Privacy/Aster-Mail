@@ -2424,11 +2424,6 @@ export interface CommonTranslations {
   onboarding_checklist_import_mail: string;
   onboarding_checklist_recovery_method: string;
   onboarding_checklist_first_email: string;
-  first_run_title: string;
-  first_run_subtitle: string;
-  first_run_import: string;
-  first_run_skip: string;
-  first_run_privacy_note: string;
   recovery_reminder_title: string;
   recovery_reminder_body: string;
   recovery_reminder_action: string;
@@ -2476,6 +2471,8 @@ export interface CommonTranslations {
 }
 
 export interface SettingsTranslations {
+  alias_sent_mail_label: string;
+  alias_sent_mail_desc: string;
   quick_settings: string;
   settings_view_mode: string;
   settings_view_mode_description: string;
@@ -4925,6 +4922,9 @@ export interface SettingsTranslations {
   alias_grace_upgrade_hint: string;
   domain_grace_days: string;
   domain_grace_upgrade_hint: string;
+  domain_shared_by: string;
+  domain_shared_hint: string;
+  domain_shared_label: string;
   alias_reserved_upgrade_hint: string;
   create_alias_display_name_label: string;
   create_alias_display_name_placeholder: string;
@@ -6934,6 +6934,12 @@ export interface SettingsTranslations {
 }
 
 export interface MailTranslations {
+  alias_view_sent: string;
+  alias_direction_label: string;
+  alias_direction_all: string;
+  alias_direction_received: string;
+  alias_direction_sent: string;
+  alias_sent_indexing: string;
   sender_identity_rotated: string;
   sender_identity_downgraded: string;
   encrypted_message_unavailable: string;
@@ -7942,6 +7948,7 @@ export interface AuthTranslations {
   welcome_workspace_subtitle: string;
   username_placeholder: string;
   switch_domain: string;
+  sign_in_domain_hint: string;
   terms_footer_next: string;
   create_a_password: string;
   recommend_strong_password: string;
@@ -7989,6 +7996,16 @@ export interface AuthTranslations {
   password_req_number: string;
   password_max_length_register: string;
   password_invalid_chars: string;
+  password_error_length: string;
+  complete_captcha_first: string;
+  password_error_uppercase: string;
+  password_error_lowercase: string;
+  password_error_number: string;
+  password_rule_length: string;
+  password_rule_case: string;
+  password_rule_number: string;
+  passwords_match: string;
+  download_codes_pdf: string;
   passwords_do_not_match_register: string;
   registration_failed: string;
   abuse_account_limit: string;
@@ -8067,6 +8084,11 @@ export interface AuthTranslations {
   save_new_recovery_codes: string;
   old_codes_invalidated: string;
   n_recovery_codes: string;
+  import_mail_step_title: string;
+  import_mail_step_desc: string;
+  import_mail_action: string;
+  import_mail_skip: string;
+  import_mail_privacy_note: string;
   password_reset_successful: string;
   account_recovered_sign_in: string;
   recovery_email_verified: string;

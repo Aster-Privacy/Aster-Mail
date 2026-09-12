@@ -20,6 +20,7 @@
 //
 import type { UseRegistrationReturn } from "@/components/register/hooks/use_registration";
 
+import { useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 
 import {
@@ -44,6 +45,7 @@ const TERMS_URL = "https://astermail.org/terms";
 const PRIVACY_URL = "https://astermail.org/privacy";
 
 export const RegisterStepAccount = ({ reg }: RegisterStepAccountProps) => {
+  const input_ref = useRef<HTMLInputElement>(null);
   const is_busy = reg.step === "generating";
   const domains = ["astermail.org", "aster.cx"] as const;
 
@@ -74,6 +76,7 @@ export const RegisterStepAccount = ({ reg }: RegisterStepAccountProps) => {
 
       <div className="relative w-full">
         <OnboardingInput
+          ref={input_ref}
           // eslint-disable-next-line jsx-a11y/no-autofocus
           autoFocus
           autoCapitalize="none"
@@ -135,7 +138,14 @@ export const RegisterStepAccount = ({ reg }: RegisterStepAccountProps) => {
               </svg>
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-44">
+          <DropdownMenuContent
+            align="end"
+            className="w-44"
+            onCloseAutoFocus={(event) => {
+              event.preventDefault();
+              input_ref.current?.focus();
+            }}
+          >
             {domains.map((domain) => (
               <DropdownMenuItem
                 key={domain}

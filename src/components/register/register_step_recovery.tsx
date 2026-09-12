@@ -23,6 +23,10 @@ import type { UseRegistrationReturn } from "@/components/register/hooks/use_regi
 import { motion, AnimatePresence } from "framer-motion";
 
 import { Spinner } from "@/components/ui/spinner";
+import { ConfirmationModal } from "@/components/modals/confirmation_modal";
+import { EyeIcon, EyeSlashIcon } from "@/components/auth/auth_styles";
+import { SparkleOverlay } from "@/components/ui/sparkle_overlay";
+import { show_toast } from "@/components/toast/simple_toast";
 import {
   CopyIcon,
   OnboardingButton,
@@ -35,36 +39,19 @@ interface RegisterStepRecoveryCodesProps {
   reg: UseRegistrationReturn;
 }
 
-const DownloadIcon = () => (
-  <svg
-    className="h-4 w-4"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.8"
-    viewBox="0 0 24 24"
-  >
-    <path
-      d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
-
 export const RegisterStepRecoveryCodes = ({
   reg,
 }: RegisterStepRecoveryCodesProps) => {
-  const can_continue =
-    reg.is_pdf_downloaded || reg.is_text_downloaded || reg.has_copied_key;
+  const has_saved = reg.is_pdf_downloaded || reg.is_text_downloaded;
 
   return (
     <StepShell
       step_key="recovery_key"
-      subtitle={reg.t("auth.recovery_key_only_way")}
-      title={reg.t("auth.password_recovery_key")}
+      subtitle={reg.t("auth.store_codes_safely")}
+      title={reg.t("auth.save_recovery_codes")}
     >
       {reg.is_invited && reg.generated_email && (
-        <div className="mb-4 flex flex-col items-center gap-0.5">
+        <div className="mb-4 flex flex-col gap-0.5">
           <span className="text-xs text-txt-muted">
             {reg.t("auth.your_new_aster_address")}
           </span>
@@ -77,73 +64,118 @@ export const RegisterStepRecoveryCodes = ({
         </div>
       )}
 
-      <div
-        className="relative w-full rounded-lg border border-black/[0.06] bg-black/[0.05] px-4 pb-10 pt-4 text-start dark:border-white/[0.08] dark:bg-white/[0.08]"
-        role="button"
-        tabIndex={0}
-        onClick={() => reg.set_is_key_visible(!reg.is_key_visible)}
-        onKeyDown={(e) => {
-          if (e["key"] === "Enter" || e["key"] === " ") {
-            e.preventDefault();
-            reg.set_is_key_visible(!reg.is_key_visible);
-          }
-        }}
-      >
-        <span
-          className="block break-all font-mono text-xs leading-relaxed text-txt-primary notranslate"
-          style={{
-            filter: reg.is_key_visible ? "none" : "blur(5px)",
-            transition: "filter 0.2s ease",
-            userSelect: reg.is_key_visible ? "text" : "none",
-          }}
-          translate="no"
-        >
-          {reg.recovery_codes.join(" ")}
-        </span>
-        <div className="absolute bottom-2 end-2 flex items-center gap-1">
-          <button
-            aria-label={reg.t("auth.save_key")}
-            className="rounded-md p-1.5 text-txt-muted transition-colors hover:text-txt-primary"
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              void reg.handle_download_txt();
-            }}
-          >
-            <DownloadIcon />
-          </button>
-          <button
-            aria-label={reg.t("auth.copy_key")}
-            className="rounded-md p-1.5 text-txt-muted transition-colors hover:text-txt-primary"
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              void reg.handle_copy_codes();
-            }}
-          >
-            <CopyIcon />
-          </button>
+      <div className="w-full">
+        <div className="mb-2 flex h-8 items-center justify-between">
+          <span className="text-sm font-medium text-txt-secondary">
+            {reg.t("auth.n_recovery_codes", {
+              count: reg.recovery_codes.length.toString(),
+            })}
+          </span>
+          <div className="flex items-center gap-0.5">
+            <button
+              aria-label={
+                reg.is_key_visible
+                  ? reg.t("common.hide")
+                  : reg.t("settings.show_password_toggle")
+              }
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-txt-muted transition-colors hover:bg-black/5 hover:text-txt-primary dark:hover:bg-white/10"
+              type="button"
+              onClick={() => reg.set_is_key_visible(!reg.is_key_visible)}
+            >
+              {reg.is_key_visible ? <EyeSlashIcon /> : <EyeIcon />}
+            </button>
+            <button
+              aria-label={reg.t("auth.copy_key")}
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-txt-muted transition-colors hover:bg-black/5 hover:text-txt-primary dark:hover:bg-white/10"
+              type="button"
+              onClick={() => void reg.handle_copy_codes()}
+            >
+              <CopyIcon />
+            </button>
+          </div>
+        </div>
+        <div className="flex flex-col gap-2">
+          {reg.recovery_codes.map((code, index) => (
+            <button
+              key={index}
+              className="relative flex w-full items-center gap-3 overflow-hidden rounded-xl border border-transparent bg-black/[0.05] px-4 py-2.5 text-start transition-colors hover:bg-black/[0.08] dark:bg-white/[0.08] dark:hover:bg-white/[0.12]"
+              type="button"
+              onClick={() => {
+                if (reg.is_key_visible) {
+                  void reg.handle_copy_single_code(code);
+                } else {
+                  show_toast(reg.t("auth.click_eye_reveal"), "info");
+                }
+              }}
+            >
+              <span className="w-4 flex-shrink-0 text-xs tabular-nums text-txt-muted">
+                {index + 1}
+              </span>
+              <span
+                className="min-w-0 flex-1 overflow-hidden whitespace-nowrap font-mono text-sm tracking-wide text-txt-primary notranslate"
+                style={{
+                  filter: reg.is_key_visible ? "none" : "blur(4px)",
+                  transition: "filter 0.2s ease",
+                  userSelect: reg.is_key_visible ? "text" : "none",
+                }}
+                translate="no"
+              >
+                {code}
+              </span>
+              <SparkleOverlay is_active={!reg.is_key_visible} />
+            </button>
+          ))}
         </div>
       </div>
 
       <OnboardingButton
         className="mt-4 w-full"
         disabled={reg.is_downloading_key}
+        is_loading={reg.is_downloading_key}
         variant="primary"
-        onClick={reg.handle_download_key}
+        onClick={() => void reg.handle_download_key()}
       >
-        {reg.is_downloading_key
-          ? reg.t("auth.downloading")
-          : reg.t("auth.download_key_lower")}
+        {reg.t("auth.download_codes_pdf")}
       </OnboardingButton>
 
-      {can_continue && (
-        <SkipLink
-          disabled={reg.is_downloading_key}
-          label={reg.t("common.continue")}
-          on_click={() => void reg.handle_advance_from_recovery_key()}
-        />
-      )}
+      <OnboardingButton
+        className="mt-2 w-full"
+        disabled={reg.is_downloading_key}
+        variant="secondary"
+        onClick={() => void reg.handle_download_txt()}
+      >
+        {reg.t("auth.download_as_text")}
+      </OnboardingButton>
+
+      <SkipLink
+        disabled={reg.is_downloading_key}
+        label={
+          has_saved
+            ? reg.t("common.continue")
+            : reg.t("auth.continue_without_download")
+        }
+        on_click={() => {
+          if (has_saved) {
+            void reg.handle_advance_from_recovery_key();
+          } else {
+            reg.set_show_skip_confirmation(true);
+          }
+        }}
+      />
+
+      <ConfirmationModal
+        cancel_text={reg.t("common.go_back")}
+        confirm_text={reg.t("common.continue_anyway")}
+        is_open={reg.show_skip_confirmation}
+        message={reg.t("auth.recovery_codes_warning")}
+        on_cancel={() => reg.set_show_skip_confirmation(false)}
+        on_confirm={() => {
+          reg.set_show_skip_confirmation(false);
+          void reg.handle_advance_from_recovery_key();
+        }}
+        title={reg.t("common.are_you_sure")}
+        variant="warning"
+      />
     </StepShell>
   );
 };

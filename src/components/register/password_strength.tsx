@@ -23,10 +23,12 @@ import { compute_password_strength_tier } from "@/services/password_strength_sco
 
 interface PasswordStrengthIndicatorProps {
   password: string;
+  show_suggestions?: boolean;
 }
 
 export function PasswordStrengthIndicator({
   password,
+  show_suggestions = true,
 }: PasswordStrengthIndicatorProps) {
   const { t } = use_i18n();
 
@@ -103,14 +105,16 @@ export function PasswordStrengthIndicator({
           {strength.label}
         </span>
       </div>
-      {strength.suggestions.length > 0 && strength.level < 3 && (
-        <p
-          className="text-xs mt-1.5 text-start"
-          style={{ color: "var(--text-muted)" }}
-        >
-          {strength.suggestions[0]}
-        </p>
-      )}
+      {show_suggestions &&
+        strength.suggestions.length > 0 &&
+        strength.level < 3 && (
+          <p
+            className="text-xs mt-1.5 text-start"
+            style={{ color: "var(--text-muted)" }}
+          >
+            {strength.suggestions[0]}
+          </p>
+        )}
     </div>
   );
 }

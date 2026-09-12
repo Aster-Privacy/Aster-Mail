@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { useRef } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button, Checkbox } from "@aster/ui";
@@ -28,6 +29,7 @@ import {
   get_safe_next_path,
   page_transition,
   page_variants,
+  type SignInDomain,
 } from "./sign_in_helpers";
 import { use_sign_in_page } from "./use_sign_in_page";
 
@@ -50,6 +52,12 @@ import {
   TURNSTILE_SITE_KEY,
 } from "@/components/auth/turnstile_widget";
 import { Input } from "@/components/ui/input";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown_menu";
 import { Spinner } from "@/components/ui/spinner";
 import { is_totp_required_response } from "@/services/api/totp";
 import { webauthn_flow } from "@/pages/sign_in/webauthn_flow";
@@ -65,7 +73,10 @@ import { user_facing_error } from "@/utils/user_facing_error";
 import { is_auth_salt_collision } from "@/services/crypto/auth_salt_guard";
 import { api_client } from "@/services/api/client";
 
+const SIGN_IN_DOMAINS: SignInDomain[] = ["astermail.org", "aster.cx"];
+
 export default function SignInPage() {
+  const username_input_ref = useRef<HTMLInputElement>(null);
   const {
     navigate,
     location,
@@ -203,17 +214,24 @@ export default function SignInPage() {
           .trim()
       : "";
     const clean_username = sanitize_username(raw_local);
-    const final_domain =
-      typed_domain === "astermail.org" || typed_domain === "aster.cx"
-        ? typed_domain
-        : email_domain;
+    const known_domains = SIGN_IN_DOMAINS;
+    const is_typed_domain_known = known_domains.some(
+      (domain) => domain === typed_domain,
+    );
 
-    if (typed_domain && final_domain !== typed_domain) {
+    if (typed_domain && !is_typed_domain_known) {
       await timing_safe_delay();
       set_error(t("errors.sign_in_domain_unsupported"));
 
       return;
     }
+
+    const domain_candidates: SignInDomain[] = is_typed_domain_known
+      ? [typed_domain as SignInDomain]
+      : [
+          email_domain,
+          ...known_domains.filter((domain) => domain !== email_domain),
+        ];
 
     if (
       !clean_username ||
@@ -233,24 +251,33 @@ export default function SignInPage() {
       return;
     }
 
-    const email = `${clean_username}@${final_domain}`;
+    let candidates = domain_candidates;
 
     if (is_adding_account) {
-      const normalized = email.toLowerCase();
-      const existing = accounts.find(
-        (a) => a.user.email.toLowerCase() === normalized,
+      const current_account_id = await get_current_account_id();
+      const is_already_added = (candidate: SignInDomain) => {
+        const normalized = `${clean_username}@${candidate}`.toLowerCase();
+        const existing = accounts.find(
+          (a) => a.user.email.toLowerCase() === normalized,
+        );
+
+        return (
+          !!existing &&
+          existing.id !== reauth_account_id &&
+          existing.id !== current_account_id
+        );
+      };
+      const remaining = candidates.filter(
+        (candidate) => !is_already_added(candidate),
       );
 
-      if (
-        existing &&
-        existing.id !== reauth_account_id &&
-        existing.id !== (await get_current_account_id())
-      ) {
+      if (remaining.length === 0) {
         await timing_safe_delay();
         set_error(t("errors.account_already_added"));
 
         return;
       }
+      candidates = remaining;
     }
 
     set_is_loading(true);
@@ -259,43 +286,67 @@ export default function SignInPage() {
     const start_time = Date.now();
 
     try {
-      const user_hash = await hash_email(email);
+      let email = "";
+      let user_hash = "";
+      let response: Awaited<ReturnType<typeof login_user>> | null = null;
 
-      set_status(t("auth.fetching_auth_data"));
-      const salt_response = await get_user_salt({ user_hash });
+      for (const [index, candidate] of candidates.entries()) {
+        email = `${clean_username}@${candidate}`;
+        user_hash = await hash_email(email);
 
-      if (salt_response.error || !salt_response.data) {
-        const elapsed = Date.now() - start_time;
-        const min_time = 500;
+        set_status(t("auth.fetching_auth_data"));
+        const salt_response = await get_user_salt({ user_hash });
 
-        if (elapsed < min_time) {
-          await new Promise((resolve) =>
-            setTimeout(resolve, min_time - elapsed),
-          );
+        if (salt_response.error || !salt_response.data) {
+          const elapsed = Date.now() - start_time;
+          const min_time = 500;
+
+          if (elapsed < min_time) {
+            await new Promise((resolve) =>
+              setTimeout(resolve, min_time - elapsed),
+            );
+          }
+          set_error(salt_response.error || t("errors.account_not_found"));
+          set_is_loading(false);
+          set_captcha_token("");
+          turnstile_ref.current?.reset();
+
+          return;
         }
-        set_error(salt_response.error || t("errors.account_not_found"));
+
+        const salt = base64_to_array(salt_response.data.salt);
+        const { hash: password_hash } = await derive_password_hash(
+          password,
+          salt,
+        );
+
+        set_status(t("auth.verifying_credentials"));
+        response = await login_user({
+          user_hash,
+          password_hash,
+          remember_me,
+          captcha_token: captcha_token || undefined,
+          client_platform: import.meta.env.DEV ? "desktop" : undefined,
+          is_adding_account,
+        });
+
+        const has_more = index < candidates.length - 1;
+        const is_wrong_credentials =
+          !!response.error && response.server_code === "INVALID_CREDENTIALS";
+
+        if (!is_wrong_credentials || !has_more) {
+          if (!response.error && candidate !== email_domain) {
+            set_email_domain(candidate);
+          }
+          break;
+        }
+      }
+
+      if (!response) {
         set_is_loading(false);
-        set_captcha_token("");
-        turnstile_ref.current?.reset();
 
         return;
       }
-
-      const salt = base64_to_array(salt_response.data.salt);
-      const { hash: password_hash } = await derive_password_hash(
-        password,
-        salt,
-      );
-
-      set_status(t("auth.verifying_credentials"));
-      const response = await login_user({
-        user_hash,
-        password_hash,
-        remember_me,
-        captcha_token: captcha_token || undefined,
-        client_platform: import.meta.env.DEV ? "desktop" : undefined,
-        is_adding_account,
-      });
 
       if (response.error) {
         const elapsed = Date.now() - start_time;
@@ -512,7 +563,7 @@ export default function SignInPage() {
   if (totp_required) {
     return (
       <div className="fixed inset-0 overflow-y-auto transition-colors duration-200 bg-surf-primary">
-        <div className="min-h-full flex items-start md:items-center justify-center py-8 md:py-4 px-4">
+        <div className="flex min-h-full items-center justify-center px-4 py-8">
           <AnimatePresence mode="wait">
             <motion.div
               key={active_2fa_method}
@@ -578,7 +629,7 @@ export default function SignInPage() {
           <motion.div
             key="signin"
             animate="animate"
-            className="flex flex-col items-center w-full max-w-sm px-4"
+            className="flex w-full max-w-[400px] flex-col items-start px-4 text-start"
             exit="exit"
             initial="initial"
             transition={page_transition}
@@ -611,16 +662,16 @@ export default function SignInPage() {
 
             <img
               alt="Aster"
-              className="h-10"
+              className="h-7"
               decoding="async"
               draggable={false}
               src="/text_logo.png"
             />
 
-            <h1 className="text-xl font-semibold mt-6 text-txt-primary">
+            <h1 className="mt-5 text-base font-semibold text-txt-primary">
               {t("auth.sign_in_to_aster")}
             </h1>
-            <p className="text-sm mt-2 leading-relaxed text-txt-tertiary">
+            <p className="mt-1.5 text-sm leading-relaxed text-txt-tertiary">
               {t("auth.enter_credentials")}
             </p>
 
@@ -711,85 +762,107 @@ export default function SignInPage() {
                 handle_login();
               }}
             >
-              <div className={`w-full ${error ? "mt-4" : "mt-6"} space-y-4`}>
+              <div className={`w-full ${error ? "mt-4" : "mt-5"} space-y-4`}>
                 <div>
                   <label className="block text-sm font-medium mb-2 text-txt-primary">
-                    {t("auth.username")}
+                    {t("auth.email")}
                   </label>
-                  <Input
-                    // eslint-disable-next-line jsx-a11y/no-autofocus
-                    autoFocus
-                    autoCapitalize="none"
-                    autoComplete="username"
-                    autoCorrect="off"
-                    disabled={is_loading}
-                    maxLength={55}
-                    placeholder={t("common.yourname_placeholder")}
-                    spellCheck={false}
-                    status={error ? "error" : "default"}
-                    type="text"
-                    value={username}
-                    onChange={(e) => {
-                      const raw = e.target.value;
-                      const at_index = raw.indexOf("@");
+                  <div className="relative w-full">
+                    <Input
+                      ref={username_input_ref}
+                      // eslint-disable-next-line jsx-a11y/no-autofocus
+                      autoFocus
+                      autoCapitalize="none"
+                      autoComplete="username"
+                      autoCorrect="off"
+                      className="notranslate pe-32"
+                      disabled={is_loading}
+                      maxLength={55}
+                      placeholder={t("common.yourname_placeholder")}
+                      spellCheck={false}
+                      status={error ? "error" : "default"}
+                      translate="no"
+                      type="text"
+                      value={username}
+                      onChange={(e) => {
+                        const raw = e.target.value;
+                        const at_index = raw.indexOf("@");
 
-                      if (at_index !== -1) {
-                        const local = sanitize_username(
-                          raw.substring(0, at_index),
-                        );
-                        const domain_part = raw
-                          .substring(at_index + 1)
-                          .toLowerCase();
-                        const matched =
-                          domain_part === "astermail.org" ||
-                          domain_part.endsWith(".astermail.org")
-                            ? "astermail.org"
-                            : domain_part === "aster.cx" ||
-                                domain_part.endsWith(".aster.cx")
-                              ? "aster.cx"
-                              : null;
-
-                        if (matched) {
-                          set_email_domain(matched);
-                          set_username(local);
-                        } else {
-                          set_username(
-                            `${local}@${domain_part.replace(/[^a-z0-9.-]/g, "")}`,
+                        if (at_index !== -1) {
+                          const local = sanitize_username(
+                            raw.substring(0, at_index),
                           );
+                          const domain_part = raw
+                            .substring(at_index + 1)
+                            .toLowerCase()
+                            .replace(/[^a-z0-9.-]/g, "");
+                          const matched = SIGN_IN_DOMAINS.find(
+                            (domain) =>
+                              domain_part === domain ||
+                              domain_part.endsWith(`.${domain}`),
+                          );
+
+                          if (matched) {
+                            set_email_domain(matched);
+                            set_username(local);
+                          } else {
+                            set_username(`${local}@${domain_part}`);
+                          }
+                        } else {
+                          set_username(sanitize_username(raw));
                         }
-                      } else {
-                        set_username(sanitize_username(raw));
-                      }
-                    }}
-                  />
-                  <div className="relative flex mt-2 aster_input !p-1 !h-auto">
-                    <div
-                      className="absolute top-1 bottom-1 rounded-[8px] transition-all duration-200 ease-out bg-surf-tertiary"
-                      style={{
-                        width: "calc(50% - 4px)",
-                        left:
-                          email_domain === "astermail.org"
-                            ? "4px"
-                            : "calc(50%)",
                       }}
                     />
-                    <button
-                      className={`relative flex-1 h-8 rounded-[8px] text-sm font-medium transition-colors duration-150 ${email_domain === "astermail.org" ? "text-txt-primary" : "text-txt-muted"}`}
-                      disabled={is_loading}
-                      type="button"
-                      onClick={() => set_email_domain("astermail.org")}
-                    >
-                      @astermail.org
-                    </button>
-                    <button
-                      className={`relative flex-1 h-8 rounded-[8px] text-sm font-medium transition-colors duration-150 ${email_domain === "aster.cx" ? "text-txt-primary" : "text-txt-muted"}`}
-                      disabled={is_loading}
-                      type="button"
-                      onClick={() => set_email_domain("aster.cx")}
-                    >
-                      @aster.cx
-                    </button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button
+                          aria-label={t("auth.switch_domain")}
+                          className="notranslate absolute end-2 top-1/2 inline-flex -translate-y-1/2 items-center gap-1 rounded-md px-1.5 py-1 text-sm text-txt-secondary transition-colors hover:bg-black/5 hover:text-txt-primary dark:hover:bg-white/5"
+                          disabled={is_loading}
+                          tabIndex={-1}
+                          translate="no"
+                          type="button"
+                        >
+                          @{email_domain}
+                          <svg
+                            className="h-3.5 w-3.5"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              d="M19.5 8.25l-7.5 7.5-7.5-7.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent
+                        align="end"
+                        className="w-44"
+                        onCloseAutoFocus={(event) => {
+                          event.preventDefault();
+                          username_input_ref.current?.focus();
+                        }}
+                      >
+                        {SIGN_IN_DOMAINS.map((domain) => (
+                          <DropdownMenuItem
+                            key={domain}
+                            className="notranslate"
+                            translate="no"
+                            onClick={() => set_email_domain(domain)}
+                          >
+                            @{domain}
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
+                  <p className="mt-2 text-xs text-txt-tertiary">
+                    {t("auth.sign_in_domain_hint")}
+                  </p>
                 </div>
 
                 <div>

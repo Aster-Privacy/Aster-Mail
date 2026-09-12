@@ -106,13 +106,11 @@ import { use_payment_past_due } from "@/hooks/use_payment_past_due";
 import { SurveyBanner } from "@/components/survey/survey_banner";
 import { ReviewPromptBanner } from "@/components/review/review_prompt_banner";
 import { OnboardingChecklist } from "@/components/onboarding/onboarding_checklist";
-import { FirstRunSetup } from "@/components/onboarding/first_run_setup";
 import { RecoveryReminder } from "@/components/onboarding/recovery_reminder";
 import { PlanPrompt } from "@/components/onboarding/plan_prompt";
 import { OnboardingTour } from "@/components/common/onboarding_tour";
 import {
   clear_first_run_tour,
-  is_first_run_setup_pending,
   is_first_run_tour_pending,
 } from "@/lib/first_run";
 import { use_is_mobile } from "@/hooks/use_platform";
@@ -137,9 +135,6 @@ export default function IndexPage() {
   const [is_quick_settings_open, set_is_quick_settings_open] = useState(false);
   const [is_rail_contacts_open, set_is_rail_contacts_open] = useState(false);
   const [is_rail_security_open, set_is_rail_security_open] = useState(false);
-  const [first_run_setup_done, set_first_run_setup_done] = useState(
-    () => !is_first_run_setup_pending(),
-  );
   const [checklist_complete, set_checklist_complete] = useState(false);
   const [checklist_visible, set_checklist_visible] = useState<boolean | null>(
     null,
@@ -150,27 +145,10 @@ export default function IndexPage() {
   }, []);
 
   useEffect(() => {
-    if (!is_mobile || !first_run_setup_done) return;
+    if (!is_mobile) return;
 
     if (is_first_run_tour_pending()) clear_first_run_tour();
-  }, [is_mobile, first_run_setup_done]);
-
-  useEffect(() => {
-    if (first_run_setup_done) return;
-
-    let cancelled = false;
-    const timer = window.setTimeout(() => {
-      if (!cancelled)
-        void load_settings_content().catch((caught) =>
-          ignore_error("pages/index:load_settings_content", caught),
-        );
-    }, 400);
-
-    return () => {
-      cancelled = true;
-      window.clearTimeout(timer);
-    };
-  }, [first_run_setup_done]);
+  }, [is_mobile]);
 
   const settings_section = resolve_settings_section(section);
   const settings_popup_mode =
@@ -756,16 +734,10 @@ export default function IndexPage() {
         on_draft_cleared={state.handle_draft_cleared}
         on_toggle_minimize={state.toggle_minimize}
       />
-      <FirstRunSetup
-        on_done={() => set_first_run_setup_done(true)}
-        on_import={() => {
-          state.open_settings("import");
-        }}
-      />
-      {!state.is_settings_route && first_run_setup_done && !is_mobile && (
+      {!state.is_settings_route && !is_mobile && (
         <OnboardingTour />
       )}
-      {!state.is_settings_route && first_run_setup_done && (
+      {!state.is_settings_route && (
         <>
           <OnboardingChecklist
             hidden={

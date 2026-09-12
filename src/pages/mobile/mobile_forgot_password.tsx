@@ -83,9 +83,10 @@ import {
   download_recovery_text,
 } from "@/services/crypto/recovery_pdf";
 import {
+  PASSWORD_RULE_MESSAGE_KEYS,
   sanitize_username,
-  validate_password_strength,
   timing_safe_delay,
+  validate_password_strength,
 } from "@/services/sanitize";
 import { use_i18n } from "@/lib/i18n/context";
 import { ignore_error } from "@/lib/ignore_error";
@@ -476,7 +477,7 @@ export default function MobileForgotPasswordPage() {
     const password_validation = validate_password_strength(password);
 
     if (!password_validation.valid) {
-      set_error(password_validation.errors[0]);
+      set_error(t(PASSWORD_RULE_MESSAGE_KEYS[password_validation.errors[0]]));
 
       return;
     }

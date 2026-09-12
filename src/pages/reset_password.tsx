@@ -53,9 +53,10 @@ import {
   download_recovery_text,
 } from "@/services/crypto/recovery_pdf";
 import {
-  validate_password_strength,
-  timing_safe_delay,
   clamp_password,
+  PASSWORD_RULE_MESSAGE_KEYS,
+  timing_safe_delay,
+  validate_password_strength,
 } from "@/services/sanitize";
 import {
   EyeIcon,
@@ -287,7 +288,7 @@ export default function ResetPasswordPage() {
     const password_validation = validate_password_strength(password);
 
     if (!password_validation.valid) {
-      set_error(password_validation.errors[0]);
+      set_error(t(PASSWORD_RULE_MESSAGE_KEYS[password_validation.errors[0]]));
 
       return;
     }

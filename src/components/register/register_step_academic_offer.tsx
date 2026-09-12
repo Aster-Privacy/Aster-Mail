@@ -208,12 +208,12 @@ export const RegisterStepAcademicOffer = ({
       title={t("auth.academic_offer_headline")}
     >
       <div
-        className="grid w-full grid-cols-2 gap-1 rounded-full bg-black/[0.05] p-1 dark:bg-white/[0.08]"
+        className="grid w-full grid-cols-2 gap-1 rounded-lg bg-black/[0.05] p-1 dark:bg-white/[0.08]"
         role="tablist"
       >
         <button
           aria-selected={role === "student"}
-          className={`inline-flex h-8 items-center justify-center gap-1.5 rounded-full text-xs font-medium transition-colors ${
+          className={`inline-flex h-8 items-center justify-center gap-1.5 rounded-md text-xs font-medium transition-colors ${
             role === "student"
               ? "bg-[var(--accent-color)] text-[var(--accent-color-foreground,#fff)]"
               : "text-txt-tertiary hover:text-txt-primary"
@@ -227,7 +227,7 @@ export const RegisterStepAcademicOffer = ({
         </button>
         <button
           aria-selected={role === "journalist"}
-          className={`inline-flex h-8 items-center justify-center gap-1.5 rounded-full text-xs font-medium transition-colors ${
+          className={`inline-flex h-8 items-center justify-center gap-1.5 rounded-md text-xs font-medium transition-colors ${
             role === "journalist"
               ? "bg-[var(--accent-color)] text-[var(--accent-color-foreground,#fff)]"
               : "text-txt-tertiary hover:text-txt-primary"

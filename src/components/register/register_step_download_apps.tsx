@@ -80,16 +80,16 @@ const AppCard = ({
   button_label,
   on_download,
 }: AppCardProps) => (
-  <div className="flex flex-1 flex-col items-start rounded-lg border border-transparent bg-black/[0.05] px-4 py-4 text-start dark:bg-white/[0.08]">
-    <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-black/[0.06] bg-white text-txt-primary dark:border-white/[0.08] dark:bg-white/[0.06]">
+  <div className="flex flex-1 select-none flex-col items-start rounded-xl border border-edge-secondary bg-surf-tertiary px-4 py-4 text-start">
+    <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-edge-secondary bg-surf-primary text-txt-primary">
       {icon}
     </span>
     <span className="mt-3 text-sm font-semibold text-txt-primary">{title}</span>
-    <span className="mt-1 flex-1 text-xs leading-relaxed text-txt-tertiary">
+    <span className="mt-0.5 flex-1 text-xs leading-relaxed text-txt-tertiary">
       {description}
     </span>
     <OnboardingButton
-      className="mt-4 w-auto"
+      className="mt-4 w-full"
       variant="secondary"
       onClick={on_download}
     >

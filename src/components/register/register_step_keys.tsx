@@ -23,8 +23,8 @@ import type { CSSProperties } from "react";
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { Spinner } from "@aster/ui";
 
-import { Spinner } from "@/components/ui/spinner";
 import { use_should_reduce_motion } from "@/provider";
 import {
   page_variants,
@@ -126,20 +126,20 @@ export const RegisterStepKeys = ({ reg }: RegisterStepKeysProps) => {
 
       <img
         alt="Aster"
-        className="h-7"
+        className="h-7 select-none"
         decoding="async"
         draggable={false}
         src="/text_logo.png"
       />
 
-      <h2 className="mt-5 text-base font-semibold text-txt-primary">
+      <h2 className="mt-5 select-none text-base font-semibold text-txt-primary">
         {reg.t("auth.setting_up_account")}
       </h2>
 
-      <p className="mt-1.5 flex items-center gap-2 text-sm text-txt-tertiary">
-        <Spinner className="h-3.5 w-3.5 text-[var(--accent-color)]" size="sm" />
-        {reg.generation_status}
-      </p>
+      <div className="mt-1.5 flex items-center gap-2 text-sm text-txt-tertiary">
+        <Spinner size="sm" />
+        <p>{reg.generation_status}</p>
+      </div>
 
       <div className="w-full mt-5">
         <div

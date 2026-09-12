@@ -30,7 +30,6 @@ import {
   clear_first_run_plan,
   first_run_age_ms,
   is_first_run_plan_pending,
-  is_first_run_setup_pending,
   is_first_run_tour_pending,
   is_recovery_snoozed,
   schedule_first_run_plan,
@@ -66,7 +65,7 @@ export function PlanPrompt({
       return;
     }
 
-    if (!is_first_run_plan_pending() || is_first_run_setup_pending()) return;
+    if (!is_first_run_plan_pending()) return;
 
     const age = first_run_age_ms();
 

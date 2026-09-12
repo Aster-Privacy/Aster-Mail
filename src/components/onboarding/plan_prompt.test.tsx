@@ -53,7 +53,6 @@ const {
   clear_first_run_tour,
   FIRST_RUN_AT_KEY,
   FIRST_RUN_PLAN_KEY,
-  FIRST_RUN_SETUP_KEY,
   FIRST_RUN_TOUR_KEY,
 } = await import("@/lib/first_run");
 
@@ -87,7 +86,6 @@ describe("PlanPrompt", () => {
     localStorage.clear();
     localStorage.setItem(FIRST_RUN_PLAN_KEY, "pending");
     localStorage.setItem(FIRST_RUN_AT_KEY, String(Date.now()));
-    localStorage.removeItem(FIRST_RUN_SETUP_KEY);
     localStorage.setItem(FIRST_RUN_TOUR_KEY, "pending");
     recovery.recovery_email_set = true;
   });

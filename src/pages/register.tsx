@@ -39,6 +39,7 @@ import { RegisterStepDownloadApps } from "@/components/register/register_step_do
 import { RegisterStepNotifications } from "@/components/register/register_step_notifications";
 import { RegisterStepAddresses } from "@/components/register/register_step_addresses";
 import { RegisterStepCustomDomain } from "@/components/register/register_step_custom_domain";
+import { RegisterStepImportMail } from "@/components/register/register_step_import_mail";
 import { DesktopSignUpHandoff } from "@/pages/desktop_sign_up_handoff";
 import { is_tauri } from "@/native/desktop_device_auth";
 
@@ -53,7 +54,7 @@ export default function RegisterPage() {
 function BrowserRegisterPage() {
   const reg = use_registration();
 
-  if (reg.auth_loading || reg.has_existing_session) {
+  if (reg.auth_loading || reg.is_restoring || reg.has_existing_session) {
     return null;
   }
 
@@ -89,6 +90,8 @@ function BrowserRegisterPage() {
         return <RegisterStepAddresses reg={reg} />;
       case "custom_domain":
         return <RegisterStepCustomDomain reg={reg} />;
+      case "import_mail":
+        return <RegisterStepImportMail reg={reg} />;
       default:
         return <RegisterStepKeys reg={reg} />;
     }
@@ -96,7 +99,7 @@ function BrowserRegisterPage() {
 
   return (
     <div className="fixed inset-0 overflow-y-auto transition-colors duration-200 bg-surf-primary">
-      <div className="flex min-h-full items-start justify-center px-4 pb-12 pt-8 md:pt-[16vh]">
+      <div className="flex min-h-full items-center justify-center px-4 py-8">
         <ErrorBoundary>
           <AnimatePresence mode="wait">{render_step_content()}</AnimatePresence>
         </ErrorBoundary>

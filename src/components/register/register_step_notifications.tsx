@@ -41,7 +41,7 @@ export const RegisterStepNotifications = ({
     >
       <div
         aria-hidden="true"
-        className="w-full overflow-hidden rounded-xl border border-edge-secondary bg-surf-tertiary"
+        className="w-full select-none overflow-hidden rounded-xl border border-edge-secondary bg-surf-tertiary"
       >
         <div className="flex items-center gap-1.5 border-b border-edge-secondary px-3 py-2">
           <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
@@ -53,6 +53,7 @@ export const RegisterStepNotifications = ({
             <img
               alt=""
               className="mt-0.5 h-6 w-6 rounded-md"
+              draggable={false}
               src="/mail_logo.png"
             />
             <div className="min-w-0">

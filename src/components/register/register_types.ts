@@ -34,7 +34,8 @@ export type RegistrationStep =
   | "download_apps"
   | "notifications"
   | "addresses"
-  | "custom_domain";
+  | "custom_domain"
+  | "import_mail";
 
 export const page_variants = {
   initial: { opacity: 0, y: 12 },

@@ -22,10 +22,10 @@ import type { AlertProps } from "@/components/register/register_types";
 
 import * as React from "react";
 import { motion } from "framer-motion";
-import { Slot } from "@radix-ui/react-slot";
-import { Spinner } from "@aster/ui";
+import { Button } from "@aster/ui";
 
 import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
 import { use_should_reduce_motion } from "@/provider";
 import {
   page_variants,
@@ -96,13 +96,15 @@ export const StepShell = ({
     <div className="flex flex-col items-start px-4 text-start">
       <img
         alt="Aster"
-        className="h-7"
+        className="h-7 select-none"
         decoding="async"
         draggable={false}
         src="/text_logo.png"
       />
-      <h1 className="mt-5 text-base font-semibold text-txt-primary">{title}</h1>
-      <p className="mt-1.5 text-sm leading-relaxed text-txt-tertiary">
+      <h1 className="mt-5 select-none text-base font-semibold text-txt-primary">
+        {title}
+      </h1>
+      <p className="mt-1.5 select-none text-sm leading-relaxed text-txt-tertiary">
         {subtitle}
       </p>
       <div className="mt-5 w-full">{children}</div>
@@ -119,12 +121,11 @@ interface OnboardingButtonProps
   as_child?: boolean;
 }
 
-const BUTTON_VARIANT_CLASSES: Record<OnboardingButtonVariant, string> = {
-  primary:
-    "bg-[var(--accent-color)] text-[var(--accent-color-foreground,#fff)] hover:brightness-110",
-  secondary:
-    "border border-black/10 bg-white text-txt-primary hover:bg-black/[0.03] dark:border-white/10 dark:bg-white/[0.06] dark:hover:bg-white/10",
-};
+const BUTTON_VARIANTS: Record<OnboardingButtonVariant, "depth" | "secondary"> =
+  {
+    primary: "depth",
+    secondary: "secondary",
+  };
 
 export const OnboardingButton = ({
   variant = "primary",
@@ -132,27 +133,21 @@ export const OnboardingButton = ({
   as_child = false,
   className,
   children,
-  disabled,
   type = "button",
   ...props
-}: OnboardingButtonProps) => {
-  const Comp = as_child ? Slot : "button";
-
-  return (
-    <Comp
-      className={cn(
-        "inline-flex h-9 w-full items-center justify-center gap-2 rounded-full px-4 text-sm font-medium transition-[background-color,filter,opacity] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] focus-visible:ring-offset-2 focus-visible:ring-offset-surf-primary disabled:pointer-events-none disabled:opacity-50",
-        BUTTON_VARIANT_CLASSES[variant],
-        className,
-      )}
-      disabled={disabled || is_loading}
-      type={as_child ? undefined : type}
-      {...props}
-    >
-      {is_loading ? <Spinner size="sm" /> : children}
-    </Comp>
-  );
-};
+}: OnboardingButtonProps) => (
+  <Button
+    as_child={as_child}
+    className={cn("w-full", className)}
+    is_loading={is_loading}
+    size="xl"
+    type={as_child ? undefined : type}
+    variant={BUTTON_VARIANTS[variant]}
+    {...props}
+  >
+    {children}
+  </Button>
+);
 
 type OnboardingInputStatus = "default" | "success" | "error";
 
@@ -161,25 +156,11 @@ interface OnboardingInputProps
   status?: OnboardingInputStatus;
 }
 
-const INPUT_STATUS_CLASSES: Record<OnboardingInputStatus, string> = {
-  default: "border-transparent focus:border-[var(--accent-color)]",
-  success: "border-[#22c55e] focus:border-[#22c55e]",
-  error: "border-[#ef4444] focus:border-[#ef4444]",
-};
-
 export const OnboardingInput = React.forwardRef<
   HTMLInputElement,
   OnboardingInputProps
 >(({ className, status = "default", ...props }, ref) => (
-  <input
-    ref={ref}
-    className={cn(
-      "h-9 w-full rounded-lg border bg-black/[0.05] px-3 text-sm text-txt-primary outline-none transition-colors duration-150 placeholder:text-txt-muted hover:bg-black/[0.07] focus:bg-black/[0.05] disabled:opacity-60 dark:bg-white/[0.08] dark:hover:bg-white/[0.1] dark:focus:bg-white/[0.08]",
-      INPUT_STATUS_CLASSES[status],
-      className,
-    )}
-    {...props}
-  />
+  <Input ref={ref} className={className} status={status} {...props} />
 ));
 
 OnboardingInput.displayName = "OnboardingInput";
@@ -192,7 +173,7 @@ interface SkipLinkProps {
 
 export const SkipLink = ({ label, on_click, disabled }: SkipLinkProps) => (
   <button
-    className="mt-3 w-full text-center text-xs text-txt-tertiary transition-colors hover:text-txt-primary disabled:opacity-50"
+    className="mt-4 w-full text-center text-sm text-txt-tertiary transition-colors hover:text-txt-primary disabled:opacity-50"
     disabled={disabled}
     type="button"
     onClick={on_click}

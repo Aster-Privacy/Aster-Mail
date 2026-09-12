@@ -40,7 +40,7 @@ export const pl = {
     qr_code: "Kod QR",
     profile_picture_removed: "Zdjęcie profilowe usunięte",
     failed_remove_profile_picture:
-      "Nie udało się usunąć Twojego zdjęcia profilowego. Spróbuj ponownie.",
+      "Spróbuj ponownie.",
     remove_photo: "Usuń zdjęcie",
     toggle_alias: "Włącz lub wyłącz ten alias",
     enter_passphrase: "Wprowadź swoje hasło",
@@ -72,7 +72,7 @@ export const pl = {
     download: "Pobierz",
     upload: "Prześlij",
     unsupported_image_type:
-      "Ten typ pliku nie jest obsługiwany. Zapis obrazu jako PNG, JPEG, WebP lub GIF wystarczy.",
+      "Ten typ pliku nie jest obsługiwany. Zapisz obraz jako PNG, JPEG, WebP lub GIF i spróbuj ponownie.",
     csv_too_large:
       "Ten plik CSV ma ponad 10 000 wierszy. Podział na mniejsze pliki i osobny import każdego z nich rozwiąże sprawę.",
     export: "Eksportuj",
@@ -154,9 +154,9 @@ export const pl = {
       "Nie udało się wysłać e-maila weryfikacyjnego w tej chwili. Kolejna próba za moment zwykle to załatwia. Konto pozostaje bez zmian.",
     profile_picture_updated: "Zdjęcie profilowe zaktualizowane",
     failed_save_profile_picture:
-      "Nowe zdjęcie profilowe nie zostało zapisane. Kolejna próba powinna to załatwić. Stare zdjęcie nadal jest widoczne.",
+      "Spróbuj ponownie.",
     failed_upload_image:
-      "Przesyłanie nie zostało zakończone. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     valid_image_error:
       "Ten plik nie jest obsługiwanym obrazem. JPEG, PNG lub WebP zadziała.",
     image_size_error:
@@ -570,11 +570,11 @@ export const pl = {
       "Skrzynka odbiorcza się nie załadowała. Pociągnięcie w dół, aby odświeżyć, lub kolejna próba zwykle to załatwia. Poczta na serwerze jest bezpieczna.",
     no_emails_match_criteria: "Żadne e-maile nie pasują do tych kryteriów",
     failed_to_update_emails:
-      "Te zmiany nie zostały zapisane. Kolejna próba powinna to załatwić. Same wiadomości pozostają bez zmian.",
+      "Spróbuj ponownie.",
     failed_to_archive_emails:
-      "Archiwizacja nie została zakończona. Kolejna próba powinna to załatwić. Wiadomości pozostają w skrzynce odbiorczej.",
+      "Spróbuj ponownie.",
     failed_to_unarchive_emails:
-      "Przenoszenie do skrzynki odbiorczej nie zostało zakończone. Kolejna próba powinna to załatwić. Wiadomości pozostają w archiwum.",
+      "Spróbuj ponownie.",
     keyboard_shortcut_label: "Skrót klawiaturowy: {shortcut}",
     something_went_wrong_try_again:
       "To nie zadziałało. Kolejna próba za moment zwykle to załatwia.",
@@ -640,16 +640,16 @@ export const pl = {
     email_snoozed: "E-mail odłożony",
     email_unsnoozed: "E-mail przywrócony z odłożenia",
     failed_to_snooze:
-      "Ta wiadomość nie została odłożona. Kolejna próba powinna to załatwić. Pozostaje w skrzynce odbiorczej.",
+      "Spróbuj ponownie.",
     failed_to_unsnooze:
-      "Ta wiadomość nie wróciła do skrzynki odbiorczej. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     conversation_moved_to_trash: "Rozmowa przeniesiona do kosza",
     conversation_archived: "Rozmowa zarchiwizowana",
     conversation_marked_as_spam: "Rozmowa oznaczona jako spam",
     failed_to_mark_as_spam:
-      "Ta wiadomość nie została przeniesiona do spamu. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     failed_to_snooze_conversations:
-      "Te rozmowy nie zostały odłożone. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     marked_as_read_toast: "Oznaczono jako przeczytane",
     marked_as_unread_toast: "Oznaczono jako nieprzeczytane",
     email_permanently_deleted: "E-mail trwale usunięty",
@@ -708,62 +708,62 @@ export const pl = {
     phone_type: "Telefon",
     email_type: "E-mail",
     failed_to_fetch_contacts:
-      "Kontakty się nie załadowały. Kolejna próba powinna to załatwić. Zapisane kontakty są bezpieczne.",
+      "Spróbuj ponownie.",
     failed_to_delete_contact:
-      "Ten kontakt nie został usunięty. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     contact_deleted: "Kontakt usunięty",
     contact_saved: "Kontakt zapisany",
     contact_created: "Kontakt utworzony",
     failed_to_create_contact:
-      "Ten kontakt nie został zapisany. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     failed_to_save_contact:
-      "Zmiany w tym kontakcie nie zostały zapisane. Kolejna próba powinna to załatwić. Wcześniejsza wersja pozostaje.",
+      "Spróbuj ponownie.",
     failed_to_delete_contacts:
-      "Te kontakty nie zostały usunięte. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     failed_to_update_favorites:
-      "Ulubione nie zostały zaktualizowane. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     contacts_import_partial:
       "Zaimportowano tylko {{imported}} z {{total}} kontaktów. Zaimportuj plik ponownie, aby dodać pozostałe.",
     failed_to_import_contacts:
-      "Import kontaktów nie został zakończony. Kolejna próba powinna to załatwić. Istniejące kontakty pozostają bez zmian.",
+      "Spróbuj ponownie.",
     failed_to_read_file: "Tego pliku nie udało się odczytać. Inny zadziała.",
     import_failed:
-      "Import nie został zakończony. Kolejna próba powinna to załatwić. Istniejące dane pozostają bez zmian.",
+      "Spróbuj ponownie.",
     failed_to_load_duplicates:
-      "Lista duplikatów się nie załadowała. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     scan_failed:
-      "Skanowanie nie zostało zakończone. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     dismiss_failed:
-      "Nie udało się tego odrzucić. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     failed_to_load_custom_fields:
-      "Te pola niestandardowe się nie załadowały. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     failed_to_create_field:
-      "To pole niestandardowe nie zostało zapisane. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     delete_custom_field_title: "Delete custom field?",
     delete_custom_field_message:
       "Deleting this field also removes its values from every contact. You cannot undo this.",
     failed_to_delete_field:
-      "To pole niestandardowe nie zostało usunięte. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     failed_to_save_value:
-      "Ta zmiana nie została zapisana. Kolejna próba powinna to załatwić. Poprzednia wartość pozostaje.",
+      "Spróbuj ponownie.",
     click_scan_duplicates: 'Kliknij "Skanuj", aby sprawdzić duplikaty',
     never_synced: "Nigdy nie zsynchronizowano",
     last_sync_successful: "Ostatnia synchronizacja udana",
     last_sync_failed:
       "Ostatnia synchronizacja nie została zakończona, a my spróbujemy ponownie automatycznie.",
     failed_to_forward:
-      "Przekazanie nie zostało wysłane. Kolejna próba powinna to załatwić. Wersja robocza jest zapisana.",
+      "Spróbuj ponownie.",
     failed_to_schedule:
-      "Plan nie został zapisany. Kolejna próba powinna to załatwić. Wersja robocza jest bezpieczna.",
+      "Spróbuj ponownie.",
     fill_required_fields: "Wypełnij wszystkie wymagane pola",
     failed_to_load_sources:
-      "Zsynchronizowane konta się nie załadowały. Kolejna próba powinna to załatwić. Same konta pozostają nienaruszone.",
+      "Spróbuj ponownie.",
     failed_to_add_source:
-      "To konto nie zostało dodane. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     failed_to_delete_source:
-      "To konto nie zostało usunięte. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     failed_to_toggle_source:
-      "Tego ustawienia nie udało się zmienić. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     sync_failed:
       "Synchronizacja nie została zakończona, a my spróbujemy ponownie automatycznie. Poczta po obu stronach jest bezpieczna.",
     clearing: "Czyszczenie...",
@@ -785,7 +785,7 @@ export const pl = {
       "{{count}} rozmów(y) oznaczonych jako spam",
     conversations_restored_bulk: "{{count}} rozmów(y) przywróconych",
     failed_to_restore_conversations:
-      "Te rozmowy nie zostały przywrócone. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     conversations_snoozed_bulk: "{{count}} rozmów(y) odłożonych",
     conversations_marked_as_read_bulk:
       "{{count}} rozmów(y) oznaczonych jako przeczytane",
@@ -837,13 +837,13 @@ export const pl = {
     file_too_large:
       "Ten plik ma {{size}} MB, co przekracza limit. Warto wybrać mniejszy.",
     failed_to_upload_attachment:
-      "Ten załącznik nie został przesłany. Kolejna próba powinna to załatwić. Wersja robocza jest zapisana.",
+      "Spróbuj ponownie.",
     upload_failed:
-      "Przesyłanie nie zostało zakończone. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     delete_failed:
-      "Ten element nie został usunięty. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     download_failed:
-      "Pobieranie nie zostało zakończone. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     attachment_locked:
       "Nie można otworzyć tego załącznika, ponieważ jego klucz szyfrowania nie jest dostępny na tym urządzeniu.",
     scheduled_no_attachments:
@@ -853,20 +853,20 @@ export const pl = {
     scheduled_no_expiry:
       "Zaplanowane wiadomości nie obsługują jeszcze wygasania. Wyślij teraz albo usuń wygasanie, aby zaplanować wiadomość.",
     failed_to_merge_contacts:
-      "Łączenie nie zostało zakończone. Kolejna próba powinna to załatwić. Oryginalne kontakty pozostają bez zmian.",
+      "Spróbuj ponownie.",
     merge_failed:
-      "Łączenie nie zostało zakończone. Kolejna próba powinna to załatwić. Oryginalne kontakty pozostają bez zmian.",
+      "Spróbuj ponownie.",
     failed_to_load_history:
-      "Historia się nie załadowała. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     failed_to_load_more:
-      "Nie udało się załadować kolejnych elementów. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     enter_valid_emails: "Wprowadź prawidłowe adresy e-mail",
     enter_contact_details: "Wprowadź dane kontaktu",
     select_valid_image: "Wybierz obraz JPEG, PNG, WebP lub GIF",
     image_too_large:
       "Ten obraz przekracza limit 10 MB. Mniejszy lub skompresowany się zmieści.",
     failed_to_upload_photo:
-      "To zdjęcie nie zostało przesłane. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     contact_photo: "Zdjęcie kontaktu",
     failed_to_delete_account: "Nie udało się usunąć konta. Spróbuj ponownie.",
     no_emails_older_than_30_days: "Brak e-maili starszych niż 30 dni",
@@ -880,47 +880,47 @@ export const pl = {
     emails_from_senders_deleted: "Usunięto {{count}} wiadomości od {{senders}}",
     emails_added_to_folder: "{{count}} e-mail(i) dodanych do {{folder}}",
     failed_to_snooze_emails:
-      "Te wiadomości nie zostały odłożone. Kolejna próba powinna to załatwić. Pozostają w skrzynce odbiorczej.",
+      "Spróbuj ponownie.",
     failed_to_copy:
-      "Nic nie zostało skopiowane. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     error_copied_to_clipboard: "Błąd skopiowany do schowka",
     failed_to_update_contact:
-      "Zmiany w kontakcie nie zostały zapisane. Kolejna próba powinna to załatwić. Wcześniejsza wersja pozostaje.",
+      "Spróbuj ponownie.",
     failed_to_block_sender:
-      "Nie udało się zablokować tego nadawcy. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     failed_to_rename_folder:
-      "Ten folder nie został zmieniony. Kolejna próba powinna to załatwić. Folder i jego wiadomości pozostają bez zmian.",
+      "Spróbuj ponownie.",
     failed_to_change_folder_color:
-      "Kolor folderu nie został zaktualizowany. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     failed_to_delete_folder:
-      "Ten folder nie został usunięty. Kolejna próba powinna to załatwić. Wiadomości w nim są bezpieczne.",
+      "Spróbuj ponownie.",
     failed_to_move_folder:
-      "Ten folder nie został przeniesiony. Spróbuj ponownie.",
+      "Spróbuj ponownie.",
     failed_to_update_folder_encryption:
-      "Ustawienie blokady folderu nie zostało zmienione. Kolejna próba powinna to załatwić. Folder pozostaje taki jak był.",
+      "Spróbuj ponownie.",
     failed_to_rename_label:
-      "Ta etykieta nie została zmieniona. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     failed_to_change_label_color:
-      "Kolor etykiety nie został zaktualizowany. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     failed_to_change_label_icon:
-      "Ikona etykiety nie została zaktualizowana. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     failed_to_delete_label:
-      "Ta etykieta nie została usunięta. Kolejna próba powinna to załatwić. Wiadomości pozostają nienaruszone.",
+      "Spróbuj ponownie.",
     failed_to_create_label:
-      "Ta etykieta nie została zapisana. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     failed_to_create_folder_error:
-      "Ten folder nie został zapisany. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     folder_plan_limit_reached:
       "Osiągnięto limit folderów w bieżącym planie. Ulepsz plan, aby utworzyć więcej.",
     authenticate_to_send: "Uwierzytelnij się, aby wysłać e-mail",
     send_authentication_failed:
       "Uwierzytelnianie nie zostało ukończone, więc ta wiadomość nie została wysłana.",
     failed_to_send_reply:
-      "Ta odpowiedź nie została wysłana. Kolejna próba powinna to załatwić. Wersja robocza jest zapisana.",
+      "Spróbuj ponownie.",
     failed_to_delete_draft:
-      "Ta wersja robocza nie została usunięta. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     failed_to_update_rule:
-      "Ta reguła nie została zapisana. Kolejna próba powinna to załatwić. Wcześniejsza wersja pozostaje aktywna.",
+      "Spróbuj ponownie.",
     failed_to_send_verification:
       "Nie udało się wysłać e-maila weryfikacyjnego. Kolejna próba za moment zwykle to załatwia.",
     failed_to_load_email:
@@ -930,7 +930,7 @@ export const pl = {
     failed_to_unsubscribe:
       "Rezygnacja z subskrypcji nie została zakończona. Link w wiadomości przeniesie na stronę nadawcy, aby zrobić to samodzielnie.",
     failed_to_disable_2fa:
-      "Dwuetapowe uwierzytelnianie pozostaje włączone. Kolejna próba powinna to załatwić. Konto pozostaje chronione.",
+      "Spróbuj ponownie.",
     failed_to_parse_settings:
       "Tego pliku ustawień nie udało się odczytać. Inny zadziała. Bieżące ustawienia pozostają bez zmian.",
     removed_from_contacts: "Usunięto z kontaktów",
@@ -947,7 +947,7 @@ export const pl = {
     sync_timeout:
       "Synchronizacja trwa dłużej niż oczekiwano i może jeszcze trwać.",
     session_expired_login:
-      "Sesja się zakończyła. Ponowne zalogowanie pozwoli wrócić do pracy. Dane i wersje robocze są zapisane na serwerze.",
+      "Sesja wygasła. Zaloguj się ponownie, aby kontynuować. Dane i wersje robocze są zapisane na serwerze.",
     session_expired_refresh:
       "Sesja się zakończyła. Odświeżenie strony umożliwi ponowne zalogowanie. Dane są bezpieczne.",
     email_in_locked_folder:
@@ -959,15 +959,15 @@ export const pl = {
     offline_action_queued:
       "Jesteś teraz offline. To zostało zakolejkowane i dokończy się, gdy tylko nastąpi ponowne połączenie.",
     failed_to_update:
-      "Ta zmiana nie została zapisana. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     failed_to_load_search_results:
-      "Wyszukiwanie nie zostało zakończone. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     failed_to_fetch_tags:
-      "Etykiety się nie załadowały. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     failed_to_fetch_folders:
-      "Foldery się nie załadowały. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     failed_to_unlock_folder:
-      "Nie udało się odblokować tego folderu. Sprawdzenie hasła i ponowna próba zwykle to rozwiązuje. Zawartość folderu jest bezpieczna.",
+      "Nie udało się odblokować tego folderu. Sprawdź hasło i spróbuj ponownie. Zawartość folderu jest bezpieczna.",
     incorrect_password:
       "To hasło nie pasuje. Kolejna próba powinna zadziałać. Konto nie jest zablokowane.",
     folder_no_password_protection:
@@ -979,24 +979,24 @@ export const pl = {
     cannot_remove_vault_password:
       "Folder Sejf zawsze potrzebuje własnego hasła, a tej ochrony nie można usunąć.",
     failed_to_load_snoozed_emails:
-      "Odłożone wiadomości się nie załadowały. Kolejna próba powinna to załatwić. Są bezpieczne na serwerze.",
+      "Spróbuj ponownie.",
     failed_to_load_subscriptions:
-      "Subskrypcje się nie załadowały. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     unexpected_error:
-      "Coś nie zadziałało zgodnie z oczekiwaniem. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     failed_to_load_more_subscriptions:
-      "Nie udało się załadować kolejnych subskrypcji. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     failed_to_scan_subscriptions:
-      "Skanowanie subskrypcji nie zostało zakończone. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     failed_to_load_drafts:
-      "Wersje robocze się nie załadowały. Kolejna próba powinna to załatwić. Zapisane wersje robocze są bezpieczne.",
+      "Spróbuj ponownie.",
     failed_to_load_scheduled_emails:
-      "Zaplanowane wiadomości się nie załadowały. Kolejna próba powinna to załatwić. Pozostają na ścieżce wysłania.",
+      "Spróbuj ponownie.",
     recently_archived: "Ostatnio zarchiwizowane",
     older_items: "Starsze elementy",
     long_term_archive: "Archiwum długoterminowe",
     failed_to_fetch_archive_stats:
-      "Statystyki archiwum się nie załadowały. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     value_too_long:
       "Ta wartość przekracza limit długości. Krótsza wersja zadziała.",
     please_enter_valid_domain:
@@ -1028,16 +1028,16 @@ export const pl = {
       "To nie jest prawidłowy adres internetowy. Pełny link, na przykład https://example.com, zadziała.",
     csv_file_empty: "Ten plik CSV nie ma żadnych wierszy. Inny plik zadziała.",
     no_valid_contacts_csv:
-      "Nie znaleziono czytelnych kontaktów w tym CSV. Sprawdzenie nagłówków kolumn i ponowna próba zwykle to rozwiązuje.",
+      "W tym pliku CSV nie znaleziono czytelnych kontaktów. Sprawdź nagłówki kolumn i spróbuj ponownie.",
     label_name_cannot_be_empty:
       "Ta etykieta potrzebuje nazwy przed zapisaniem.",
     folder_name_cannot_be_empty:
       "Ten folder potrzebuje nazwy przed zapisaniem.",
     please_enter_password: "Hasło jest potrzebne, aby kontynuować.",
     rotation_failed:
-      "Odświeżanie kluczy nie zostało zakończone. Sprawdzenie hasła i ponowna próba zwykle to rozwiązuje. Stare klucze nadal działają, a dane są bezpieczne.",
+      "Odświeżanie kluczy nie zostało ukończone. Sprawdź hasło i spróbuj ponownie. Stare klucze nadal działają, a dane są bezpieczne.",
     delete_account_error:
-      "Nie udało się usunąć konta w tej chwili. Kolejna próba za moment zwykle działa, a hello@astermail.org może pomóc, jeśli problem się utrzymuje.",
+      "Nie udało się teraz usunąć konta. Spróbuj ponownie za chwilę. Jeśli problem będzie się powtarzał, napisz na hello@astermail.org.",
     encryption_vault_not_available:
       "Klucze prywatne są zablokowane na tym urządzeniu. Ponowne zalogowanie je odblokuje. Klucze na serwerze pozostają bez zmian.",
     email_data_missing:
@@ -1087,13 +1087,13 @@ export const pl = {
     cdn_relay_label: "Przekaźnik CDN",
     toggle_selection: "Przełącz zaznaczenie",
     failed_to_send_email:
-      "Ta wiadomość nie została wysłana. Kolejna próba powinna to załatwić. Wersja robocza jest zapisana.",
+      "Spróbuj ponownie.",
     failed_to_send_external_email:
-      "Ta wiadomość nie została wysłana przez połączone konto zewnętrzne. Kolejna próba powinna to załatwić. Wersja robocza jest zapisana.",
+      "Spróbuj ponownie.",
     external_account_token_missing:
       "Połączone konto zewnętrzne wymaga ponownego połączenia przed wysyłaniem przez nie. Znajduje się to w Ustawieniach, Połączone konta.",
     failed_to_send_via_external:
-      "Wysłanie przez połączone konto zewnętrzne nie zadziałało. Kolejna próba powinna to załatwić. Wersja robocza jest zapisana.",
+      "Spróbuj ponownie.",
     offline_change_failed:
       "Nie udało się zapisać zmiany wprowadzonej w trybie offline.",
     offline_send_failed:
@@ -1101,11 +1101,11 @@ export const pl = {
     offline_email_queued:
       "Jesteś teraz offline. Ta wiadomość zostanie wysłana, gdy tylko nastąpi ponowne połączenie.",
     failed_to_queue_offline:
-      "Nie udało się zakolejkować tej wiadomości do późniejszego wysłania. Kolejna próba powinna to załatwić. Wersja robocza jest zapisana.",
+      "Spróbuj ponownie.",
     cannot_mix_recipients:
       "Użytkownicy Aster i adresy zewnętrzne nie mogą znaleźć się w tej samej wiadomości. Wysłanie ich jako dwóch oddzielnych wiadomości zadziała.",
     failed_to_schedule_email:
-      "Plan nie został zapisany. Kolejna próba powinna to załatwić. Wersja robocza jest zapisana.",
+      "Spróbuj ponownie.",
     failed_to_restore_draft:
       "Nie udało się przywrócić tej wersji roboczej. Otwarcie jej ponownie zwykle to załatwia. Inne wersje robocze pozostają nienaruszone.",
     enter_url: "Wprowadź URL:",
@@ -1119,7 +1119,7 @@ export const pl = {
     message_archived: "Wiadomość zarchiwizowana",
     message_moved_to_trash: "Wiadomość przeniesiona do kosza",
     message_marked_as_spam: "Wiadomość oznaczona jako spam",
-    undo_failed: "Cofnięcie nie zadziałało. Kolejna próba powinna to załatwić.",
+    undo_failed: "Spróbuj ponownie.",
     expired: "Wygasło",
     expires_in: "Wygasa za ",
     report_phishing: "Zgłoś spam",
@@ -1147,13 +1147,13 @@ export const pl = {
     image: "Obraz",
     system: "Systemowy",
     failed_to_permanently_delete:
-      "Te elementy nie zostały usunięte. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     failed_to_delete_emails:
-      "Te wiadomości nie zostały usunięte. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     failed_to_mark_as_read:
-      "Te wiadomości nadal są oznaczone jako nieprzeczytane. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     failed_to_mark_as_unread:
-      "Te wiadomości nadal są oznaczone jako przeczytane. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     n_conversations_archived: "{{ count }} rozmów zarchiwizowanych",
     n_conversations_archived_one: "{{count}} rozmowę zarchiwizowano",
     n_conversations_archived_other: "{{count}} rozmowy zarchiwizowano",
@@ -1169,7 +1169,7 @@ export const pl = {
     all_accounts: "Wszystkie konta",
     all_external_accounts: "Wszystkie konta zewnętrzne",
     failed_to_rotate_keys:
-      "Odświeżanie kluczy nie zostało zakończone. Kolejna próba powinna to załatwić. Stare klucze nadal działają, a dane są bezpieczne.",
+      "Spróbuj ponownie.",
     read: "Przeczytane",
     or_conjunction: "lub",
     press_label: "Naciśnij",
@@ -1197,17 +1197,17 @@ export const pl = {
     unblocked_count_senders: "Odblokowano {{ count }} nadawców",
     removed_count_from_allowlist: "Usunięto {{ count }} z listy dozwolonych",
     failed_to_add_label:
-      "Ta etykieta nie została dodana. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     failed_to_remove_label:
-      "Ta etykieta nie została usunięta. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     failed_to_move_email:
-      "Ta wiadomość nie została przeniesiona. Kolejna próba powinna to załatwić. Wiadomość jest bezpieczna tam, gdzie była.",
+      "Spróbuj ponownie.",
     failed_to_add_labels:
-      "Te etykiety nie zostały dodane. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     failed_to_remove_labels:
-      "Te etykiety nie zostały usunięte. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     failed_to_copy_to_clipboard:
-      "Nic nie zostało skopiowane do schowka. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     add_note_placeholder: "Dodaj notatkę...",
     add_private_note_placeholder: "Dodaj prywatną notatkę...",
     search_anything: "Szukaj czegokolwiek...",
@@ -1528,9 +1528,9 @@ export const pl = {
     secured_by_aster_mail: "Zabezpieczone przez",
     press_shortcut_to_send: "Naciśnij ⌘+Enter, aby wysłać",
     session_expired_sign_in:
-      "Sesja się zakończyła. Ponowne zalogowanie pozwoli wrócić do pracy. Dane i wersje robocze są zapisane na serwerze.",
+      "Sesja wygasła. Zaloguj się ponownie, aby kontynuować. Dane i wersje robocze są zapisane na serwerze.",
     signed_out_inactivity:
-      "Sesja została zakończona po okresie bezczynności, aby chronić konto. Ponowne zalogowanie pozwoli wrócić do pracy.",
+      "Ze względu na bezpieczeństwo konta nastąpiło wylogowanie po okresie bezczynności. Zaloguj się ponownie, aby kontynuować.",
     emails_snoozed: "E-maile uśpione",
     emails_will_reappear: "{{count}} e-mail(i) pojawi się ponownie {{time}}",
     snoozing_emails: "Usypianie e-maili...",
@@ -1645,7 +1645,7 @@ export const pl = {
     allow_sender: "Dodaj do listy dozwolonych",
     remove_from_allowlist_action: "Usuń z listy dozwolonych",
     failed_to_allow_sender:
-      "Ten nadawca nie został dodany do listy dozwolonych. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     press_enter: "Enter",
     press_enter_to_view_all: "Naciśnij Enter, aby wyświetlić wszystkie wyniki",
     stop: "Zatrzymaj",
@@ -1668,9 +1668,9 @@ export const pl = {
     recovery_email_removed: "E-mail odzyskiwania został usunięty",
     recovery_email_hidden: "Zapisano na tym koncie",
     failed_remove_recovery_email:
-      "Nie udało się usunąć adresu e-mail odzyskiwania. Spróbuj jeszcze raz. Ustawienia odzyskiwania nie zostały zmienione.",
+      "Spróbuj ponownie.",
     failed_save_profile_color:
-      "Nie udało się zapisać wybranego koloru. Spróbuj jeszcze raz.",
+      "Spróbuj ponownie.",
     image_load_failed:
       "Ten obraz nie załadował się. Odświeżenie strony zwykle pomaga.",
     image_processing_failed:
@@ -1678,10 +1678,10 @@ export const pl = {
     alias_avatar_updated: "Avatar aliasu został zaktualizowany",
     alias_avatar_removed: "Avatar aliasu został usunięty",
     failed_update_alias_avatar:
-      "Nie udało się zaktualizować avatara aliasu. Spróbuj jeszcze raz.",
+      "Spróbuj ponownie.",
     alias_display_name_updated: "Nazwa wyświetlana została zaktualizowana",
     failed_update_alias_display_name:
-      "Nie udało się zaktualizować nazwy wyświetlanej. Spróbuj jeszcze raz.",
+      "Spróbuj ponownie.",
     display_name_too_long:
       "Ta nazwa wyświetlana przekracza limit długości. Użyj krótszej.",
     add_display_name_placeholder: "Dodaj nazwę wyświetlaną",
@@ -1699,7 +1699,7 @@ export const pl = {
     alias_websites_count: "{{count}} stron",
     remove_alias_website: "Usuń stronę",
     failed_update_alias_note:
-      "Notatka nie została zapisana. Spróbuj jeszcze raz.",
+      "Spróbuj ponownie.",
     alias_note_too_long: "Ta notatka przekracza limit długości. Użyj krótszej.",
     add_alias_note_placeholder: "Dodaj notatkę",
     edit_alias_note: "Edytuj notatkę",
@@ -1742,13 +1742,13 @@ export const pl = {
     search_failed_try_again:
       "Wyszukiwanie nie zostało ukończone. Spróbuj jeszcze raz za chwilę.",
     search_load_failed_try_again:
-      "Nie udało się załadować wiadomości do wyszukiwania. Spróbuj jeszcze raz. Twoja poczta jest bezpieczna.",
+      "Spróbuj ponownie.",
     failed_to_set_folder_password:
-      "Hasło folderu nie zostało zapisane. Spróbuj jeszcze raz. Zawartość folderu nie została zmieniona.",
+      "Spróbuj ponownie.",
     failed_to_change_folder_password:
-      "Nie udało się zmienić hasła folderu. Spróbuj jeszcze raz. Stare hasło nadal działa.",
+      "Spróbuj ponownie.",
     failed_to_remove_folder_password:
-      "Nie udało się usunąć hasła folderu. Spróbuj jeszcze raz. Folder pozostaje zablokowany jak poprzednio.",
+      "Spróbuj ponownie.",
     wkd_encrypted_description:
       "Zaszyfrowano przy użyciu opublikowanego klucza publicznego odbiorcy.",
     sender_verified: "Nadawca zweryfikowany",
@@ -1803,7 +1803,7 @@ export const pl = {
     failed_to_read_named_file:
       'Nie udało się odczytać "{{name}}". Spróbuj z innym plikiem.',
     unknown_error:
-      "Coś nie zadziałało zgodnie z oczekiwaniami. Spróbuj jeszcze raz. Nie udało się określić przyczyny.",
+      "Spróbuj ponownie.",
     unsaved_changes_title: "Odrzucić zmiany?",
     unsaved_changes_body:
       "Wprowadzone dane nie są zapisane. Zamknięcie formularza teraz je usuwa.",
@@ -1818,11 +1818,11 @@ export const pl = {
     account_limit_reached:
       "Osiągnięto limit kont dla tej sieci. Jeśli to wygląda na błąd, napisz na hello@astermail.org.",
     health_check_failed:
-      "Diagnostyka nie została ukończona. Spróbuj jeszcze raz.",
+      "Spróbuj ponownie.",
     failed_to_get_key_status:
-      "Nie udało się sprawdzić statusu klucza. Spróbuj jeszcze raz. Twoje klucze nie zostały zmienione.",
+      "Spróbuj ponownie.",
     unknown_rotation_error:
-      "Odświeżenie klucza nie zostało ukończone. Spróbuj jeszcze raz. Stare klucze nadal działają, a Twoje dane są bezpieczne.",
+      "Spróbuj ponownie.",
     new_email_notification: "Nowa wiadomość od {{ sender }}",
     reply_notification: "{{ sender }} odpowiedział(-a)",
     mention_notification: "{{ sender }} wspomniał(-a) o Tobie",
@@ -1918,13 +1918,6 @@ export const pl = {
     onboarding_checklist_import_mail: "Zaimportuj starą pocztę",
     onboarding_checklist_recovery_method: "Dodaj metodę odzyskiwania",
     onboarding_checklist_first_email: "Wyślij pierwszą wiadomość",
-    first_run_title: "Twoja skrzynka jest gotowa",
-    first_run_subtitle:
-      "Przenieś dotychczasową pocztę teraz lub później w Ustawieniach.",
-    first_run_import: "Importuj moją pocztę",
-    first_run_skip: "Zacznij z pustą skrzynką",
-    first_run_privacy_note:
-      "Twoja poczta jest szyfrowana na Twoim urządzeniu. Aster nie może jej odczytać.",
     recovery_reminder_title: "Dodaj sposób na powrót do konta",
     recovery_reminder_body:
       "Aster szyfruje Twoją pocztę Twoim hasłem, więc nikt nie zresetuje go za Ciebie. Dodaj adres do odzyskiwania, aby zachować dostęp.",
@@ -2360,6 +2353,8 @@ export const pl = {
     undo_change: "Cofnij zmianę",
   },
   settings: {
+    alias_sent_mail_label: "Wysłane wiadomości",
+    alias_sent_mail_desc: "Zobacz wiadomości wysłane z tego adresu.",
     purge_locked_folder_on_delete: "Usuwanie zawartości chronionych folderów",
     purge_locked_folder_on_delete_description:
       "Zaznacza z góry trwałe usunięcie wiadomości przy kasowaniu folderu chronionego hasłem",
@@ -2976,9 +2971,9 @@ export const pl = {
     alias_restore_confirm: "Odzyskaj",
     alias_restore_mismatch:
       "Ten adres nie pasuje do tego aliasu. Sprawdź nagłówek dostarczonej wiadomości.",
-    alias_restore_failed: "Nie udało się odzyskać aliasu. Spróbuj ponownie.",
+    alias_restore_failed: "Spróbuj ponownie.",
     recently_deleted_load_failed:
-      "Nie udało się załadować ostatnio usuniętych aliasów. Spróbuj ponownie.",
+      "Spróbuj ponownie.",
     ghost_aliases_info:
       "Aliasy widmo są tymczasowe i wygasają automatycznie. Używaj ich do jednorazowych rejestracji lub wszędzie tam, gdzie nie chcesz stałego adresu. Znikają samoczynnie - bez konieczności czyszczenia.",
     recently_deleted_aliases_title: "Ostatnio usunięte",
@@ -2988,7 +2983,7 @@ export const pl = {
     alias_deleted_at: "Usunięto {{ date }}",
     restore_alias_action: "Przywróć",
     alias_restored: "Alias przywrócony",
-    failed_restore_alias: "Tego aliasu nie przywrócono. Spróbuj ponownie.",
+    failed_restore_alias: "Spróbuj ponownie.",
     recently_deleted_empty_trash: "Opróżnij kosz",
     delete_alias_permanently_action: "Usuń trwale",
     purge_alias_confirm_title: "Usunąć alias trwale?",
@@ -3007,7 +3002,7 @@ export const pl = {
       "Przywróć usunięty katalog. Usunięte katalogi nie odbierają nowej poczty, dopóki nie zostaną przywrócone.",
     directory_restored: "Katalog przywrócony",
     failed_restore_directory:
-      "Ten katalog nie został przywrócony. Kolejna próba powinna się udać.",
+      "Spróbuj ponownie.",
     purge_directory_confirm_title: "Usunąć katalog trwale?",
     purge_directory_confirm_message:
       "Trwale usunąć {{ key }}@{{ domain }}? Tej operacji nie można cofnąć. Katalog pozostaje zarezerwowany dla Twojego konta, więc nikt inny nigdy go nie przejmie.",
@@ -3151,7 +3146,7 @@ export const pl = {
     alias_delivery_folder_info:
       "Poczta z tego aliasu trafia prosto do wybranego folderu, bez reguły. Pasująca reguła nadal ma pierwszeństwo.",
     alias_delivery_folder_error:
-      "To ustawienie nie zostało zapisane. Kolejna próba powinna się udać.",
+      "Spróbuj ponownie.",
     alias_delivery_folder_missing: "Usunięty folder",
     alias_delivery_label: "Etykieta",
     alias_delivery_label_desc:
@@ -3185,7 +3180,7 @@ export const pl = {
     alias_apply_existing_unavailable:
       "Poczty, która już jest na Twoim koncie, nie można przenieść do folderu Spam.",
     alias_delivery_label_error:
-      "Nie udało się zapisać ustawienia. Spróbuj ponownie.",
+      "Spróbuj ponownie.",
     alias_delivery_rule_note:
       'Reguła "{{ rule }}" już przenosi pocztę tego aliasu do {{ target }}.',
     alias_delivery_rule_conflict:
@@ -4503,16 +4498,16 @@ export const pl = {
     plan_not_available:
       "Ten plan nie jest obecnie dostępny do zakupu. Inny plan lub powrót później zadziała.",
     failed_checkout:
-      "Nie udało się otworzyć kasy w tej chwili. Kolejna próba powinna to załatwić. Rozliczenia pozostają bez zmian.",
+      "Spróbuj ponownie.",
     failed_billing_portal:
-      "Nie udało się otworzyć portalu rozliczeniowego. Kolejna próba powinna to załatwić. Plan pozostaje bez zmian.",
+      "Spróbuj ponownie.",
     subscription_cancelled:
       "Subskrypcja zostanie anulowana na koniec okresu rozliczeniowego",
     failed_cancel_subscription:
-      "Anulowanie nie przeszło. Kolejna próba powinna to załatwić. Plan pozostaje aktywny.",
+      "Spróbuj ponownie.",
     subscription_reactivated: "Subskrypcja reaktywowana",
     failed_reactivate:
-      "Nie udało się reaktywować planu. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     daily: "Codziennie",
     weekly: "Tygodniowo",
     biweekly: "Co dwa tygodnie",
@@ -4534,7 +4529,7 @@ export const pl = {
     hours: "{{count}} godzin",
     days: "{{count}} dni",
     failed_get_auth_data:
-      "Nie udało się załadować informacji logowania. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     downgrade: "Obniż plan",
     upgrade_to: "Ulepsz do {{name}}",
     get_plan: "Wybierz {{name}}",
@@ -4558,7 +4553,7 @@ export const pl = {
       "Robisz to zbyt szybko. Odczekaj chwilę i spróbuj ponownie.",
     please_log_in_feedback: "Zalogowanie pozwoli wysłać opinię.",
     failed_send_feedback:
-      "Opinia nie została wysłana. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     other_ways_to_reach: "Inne sposoby kontaktu z nami",
     reset_to_defaults: "Przywróć domyślne",
     section_reset: "Sekcja przywrócona do domyślnych",
@@ -4580,9 +4575,9 @@ export const pl = {
       "To hasło nie pasuje. Kolejna próba powinna zadziałać. Konto pozostaje bez zmian.",
     deleting_account: "Usuwanie konta...",
     failed_delete_account:
-      "Nie udało się usunąć konta. Sprawdzenie hasła i ponowna próba zwykle to rozwiązuje. Konto pozostaje bez zmian.",
+      "Nie udało się usunąć konta. Sprawdź hasło i spróbuj ponownie. Konto pozostaje bez zmian.",
     error_deleting_account:
-      "Nie udało się usunąć konta w tej chwili. Kolejna próba za moment zwykle działa, a hello@astermail.org może pomóc, jeśli problem się utrzymuje.",
+      "Nie udało się teraz usunąć konta. Spróbuj ponownie za chwilę. Jeśli problem będzie się powtarzał, napisz na hello@astermail.org.",
     "connection.title": "Połączenie",
     "connection.description": "Wybierz sposób połączenia z usługami Aster",
     "connection.title_info":
@@ -4871,30 +4866,34 @@ export const pl = {
     alias_grace_days: "{{days}}d pozostało",
     domain_grace_days: "{{days}}d pozostało",
     domain_grace_upgrade_hint: "Ulepsz plan, aby zachować tę domenę aktywną",
+    domain_shared_by: "Udostępniona przez {{owner}}",
+    domain_shared_hint:
+      "Ta domena należy do innego członka Twojego planu Rodzinnego. Tylko właściciel może zmienić jej ustawienia.",
+    domain_shared_label: "Udostępniona",
     alias_reserved: "Zarezerwowany",
     alias_grace_upgrade_hint: "Ulepsz plan, aby zachować ten alias aktywnym",
     alias_reserved_upgrade_hint:
       "Ulepsz plan, aby ponownie aktywować ten alias",
     invalid_address:
-      "Ten adres nie jest prawidłowy. Sprawdzenie formatu zwykle to rozwiązuje.",
+      "Wpisz prawidłowy adres e-mail.",
     alias_already_taken: "Ten alias jest już używany. Inny powinien zadziałać.",
     alias_create_failed:
-      "Ten alias nie został zapisany. Kolejna próba powinna to załatwić. Inne aliasy pozostają bez zmian.",
+      "Spróbuj ponownie.",
     alias_generate_failed:
-      "Nie udało się wygenerować aliasu w tej chwili. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     alias_invalid:
       "Ten alias nie jest prawidłowy. Litery, cyfry, kropki, podkreślenia i myślniki to dozwolone znaki.",
     domain_not_available:
       "Ta domena nie jest obecnie dostępna. Inna powinna zadziałać.",
     failed_create_address:
-      "Ten adres nie został zapisany. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     domain_limit_reached: "Osiągnięto limit domen",
     add_custom_domain: "Dodaj domenę niestandardową",
     domain_name_label: "Nazwa domeny",
     invalid_domain:
-      "Ta domena nie jest prawidłowa. Sprawdzenie formatu zwykle to rozwiązuje.",
+      "Wpisz prawidłową domenę.",
     failed_add_domain:
-      "Ta domena nie została dodana. Kolejna próba powinna to załatwić. Inne domeny pozostają bez zmian.",
+      "Spróbuj ponownie.",
     configure_dns_for: "Skonfiguruj DNS dla {{domain}}",
     dns_instruction_login:
       "Zaloguj się do rejestratora domeny lub dostawcy DNS",
@@ -4934,7 +4933,7 @@ export const pl = {
     username_required: "Nazwa użytkownika jest potrzebna dla tego konta.",
     password_required: "Hasło jest potrzebne dla tego konta.",
     connection_timeout_error:
-      "Limit czasu między 5 a 120 sekund zadziała tutaj.",
+      "Wpisz limit czasu od 5 do 120 sekund.",
     fill_server_first:
       "Serwer, nazwa użytkownika i hasło są potrzebne najpierw, aby można było przetestować połączenie.",
     fill_smtp_first:
@@ -4948,19 +4947,19 @@ export const pl = {
     account_settings_not_saved:
       "Konto zapisane, ale ustawienia synchronizacji i zaawansowane nie zostały zapisane",
     failed_update_account:
-      "To konto nie zostało zaktualizowane. Kolejna próba powinna to załatwić. Wcześniejsze ustawienia pozostają aktywne.",
+      "Spróbuj ponownie.",
     failed_add_account:
-      "To konto nie zostało dodane. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     switch_failed:
-      "Nie udało się przełączyć kont. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     unexpected_error:
-      "Coś nie zadziałało zgodnie z oczekiwaniem. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     failed_sync:
       "Synchronizacja nie została zakończona, a my spróbujemy ponownie automatycznie. Poczta po obu stronach jest bezpieczna.",
     failed_delete_emails_external:
-      "Te wiadomości nie zostały usunięte z połączonego konta. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     failed_fetch_folders_external:
-      "Foldery z połączonego konta się nie załadowały. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     show_password_toggle: "Pokaż hasło",
     hide_password_toggle: "Ukryj hasło",
     hide_smtp_password: "Ukryj hasło SMTP",
@@ -4973,11 +4972,11 @@ export const pl = {
     incorrect_password_error:
       "To hasło nie pasuje. Kolejna próba powinna zadziałać. Konto nie jest zablokowane.",
     failed_retrieve_auth:
-      "Nie udało się załadować informacji logowania. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     failed_verify_password:
       "To hasło nie pasuje. Kolejna próba powinna zadziałać.",
     failed_export_private_key:
-      "Nie udało się wyeksportować klucza w tej chwili. Kolejna próba powinna to załatwić. Klucz pozostaje bez zmian.",
+      "Spróbuj ponownie.",
     type_regenerate: "Wpisz regenerate",
     client_side_encryption: "Szyfrowanie po stronie klienta",
     client_side_encryption_description:
@@ -4994,12 +4993,12 @@ export const pl = {
     key_published_wkd: "Klucz opublikowany w WKD",
     key_removed_wkd: "Klucz usunięty z WKD",
     failed_publish_wkd:
-      "Klucz publiczny nie został opublikowany w publicznym katalogu. Kolejna próba powinna to załatwić. Klucze pozostają bez zmian.",
+      "Spróbuj ponownie.",
     failed_remove_wkd:
-      "Klucz nie został usunięty z publicznego katalogu. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     key_published_keyserver: "Klucz opublikowany na serwerze kluczy",
     failed_publish_keyserver:
-      "Klucz publiczny nie został opublikowany na serwerze kluczy. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     mailto_unregister_manual:
       "Aby Aster Mail przestał otwierać odnośniki mailto, usuń procedurę obsługi w ustawieniach przeglądarki.",
     failed_save_setting: "Nie udało się zapisać ustawienia. Spróbuj ponownie.",
@@ -5111,14 +5110,14 @@ export const pl = {
     enter_new_password_folder: "Wprowadź nowe hasło",
     re_enter_new_password: "Wprowadź ponownie nowe hasło",
     enter_password_to_confirm: "Wprowadź hasło, aby potwierdzić",
-    password_min_8: "Co najmniej 8 znaków zadziała tutaj.",
+    password_min_8: "Użyj co najmniej 8 znaków.",
     passwords_do_not_match_folder:
       "Te dwa hasła nie pasują do siebie. Ponowne wpisanie powinno to wyjaśnić.",
     choose_stronger_password:
       "To hasło jest łatwe do odgadnięcia. Dłuższe lub bardziej zróżnicowane lepiej się sprawdzi.",
     enter_password_required: "Hasło jest potrzebne, aby kontynuować.",
     enter_current_password_required: "Wprowadź aktualne hasło",
-    new_password_min_8: "Co najmniej 8 znaków zadziała tutaj.",
+    new_password_min_8: "Użyj co najmniej 8 znaków.",
     new_passwords_do_not_match:
       "Te dwa hasła nie pasują do siebie. Ponowne wpisanie powinno to wyjaśnić.",
     choose_stronger_new_password:
@@ -5312,7 +5311,7 @@ export const pl = {
       "Tu potrzebny jest publiczny serwer pocztowy, nie adres lokalny ani prywatny. Publiczna nazwa hosta podana przez dostawcę zadziała.",
     incoming_server_invalid:
       "To nie jest prawidłowy adres serwera. Sama nazwa hosta, na przykład imap.example.com, zadziała.",
-    incoming_port_error: "Numer portu między 1 a 65535 zadziała tutaj.",
+    incoming_port_error: "Wpisz numer portu od 1 do 65535.",
     incoming_mail_server: "Serwer poczty przychodzącej",
     smtp_server: "Serwer SMTP",
     smtp_server_required: "Host serwera SMTP jest wymagany",
@@ -5320,7 +5319,7 @@ export const pl = {
       "To nie jest prawidłowy serwer wychodzący. Sama nazwa hosta, na przykład smtp.example.com, zadziała.",
     smtp_private_address_error:
       "Tu potrzebny jest publiczny serwer pocztowy, nie adres lokalny ani prywatny. Publiczna nazwa hosta podana przez dostawcę zadziała.",
-    smtp_port_error: "Numer portu między 1 a 65535 zadziała tutaj.",
+    smtp_port_error: "Wpisz numer portu od 1 do 65535.",
     smtp_username_required: "Nazwa użytkownika SMTP jest wymagana",
     smtp_password_required: "Hasło SMTP jest wymagane",
     label_color_invalid:
@@ -5460,7 +5459,7 @@ export const pl = {
     no_emails_in_file:
       "Nie znaleziono wiadomości w wybranych plikach. Upewnij się, że każdy plik ma obsługiwany format (MBOX, EML, CSV lub PST).",
     import_failed:
-      "Import nie został zakończony. Kolejna próba powinna to załatwić. Istniejące dane pozostają bez zmian.",
+      "Spróbuj ponownie.",
     failed_to_parse_file: "Tego pliku nie udało się odczytać. Inny zadziała.",
     plan_storage_value: "{{value}} miejsca",
     plan_aliases_count: "{{count}} aliasów",
@@ -5757,7 +5756,7 @@ export const pl = {
     plan_change_confirming: "Przetwarzanie...",
     billing_switched: "Cykl rozliczeniowy zmieniony pomyślnie",
     failed_switch_billing:
-      "Cykl rozliczeniowy nie został zmieniony. Kolejna próba powinna to załatwić. Obecny cykl pozostaje aktywny.",
+      "Spróbuj ponownie.",
     current_billing_interval: "Rozliczanie {{interval}}",
     switching_billing: "Przełączanie...",
     billing_banner_title: "Odblokuj więcej z Aster",
@@ -5785,9 +5784,9 @@ export const pl = {
     confirm_cancel_addon_description:
       "Czy na pewno chcesz anulować ten dodatek miejsca? Dodatkowe miejsce będzie dostępne do końca bieżącego okresu rozliczeniowego.",
     addon_purchase_failed:
-      "Nie udało się rozpocząć zakupu dodatku. Kolejna próba powinna to załatwić. Rozliczenia pozostają bez zmian.",
+      "Spróbuj ponownie.",
     addon_cancel_failed:
-      "Nie udało się anulować dodatku pamięci. Kolejna próba powinna to załatwić. Dodatek pozostaje aktywny.",
+      "Spróbuj ponownie.",
     addon_purchase_success: "Przekierowywanie do kasy...",
     addon_checkout_opened: "Dokończ zakup w nowej karcie.",
     plan_recommended: "Rekomendowane",
@@ -5940,7 +5939,7 @@ export const pl = {
     storage_full:
       "Pamięć jest pełna. Aby zrobić miejsce, ulepsz plan lub usuń część wiadomości.",
     plan_limit_reached:
-      "Osiągnięto limit obecnego planu. Ulepszenie lub usunięcie elementów, aby zrobić miejsce, pozwoli ruszyć dalej.",
+      "Osiągnięto limit bieżącego planu. Zmień plan na wyższy lub usuń część elementów, aby zwolnić miejsce.",
     upgrade_to_unlock: "Ulepsz, aby odblokować więcej",
     usage_overview: "Przegląd użycia",
     usage_overview_description: "Śledź bieżące wykorzystanie funkcji planu.",
@@ -5963,7 +5962,7 @@ export const pl = {
     apply_promo: "Zastosuj",
     promo_applied: "Kod promocyjny zastosowany pomyślnie!",
     promo_invalid:
-      "Ten kod promocyjny nie pasuje do żadnego, jaki mamy. Sprawdzenie pisowni zwykle to rozwiązuje.",
+      "Ten kod promocyjny jest nieprawidłowy. Sprawdź kod i spróbuj ponownie.",
     promo_expired: "Ten kod promocyjny nie jest już aktywny.",
     promo_already_used: "Ten kod promocyjny został już użyty na tym koncie.",
     promo_discount_percent: "{{value}}% zniżki",
@@ -5995,7 +5994,7 @@ export const pl = {
     payment_complete: "Płatność zakończona",
     payment_success: "Płatność zakończona pomyślnie!",
     payment_failed:
-      "Nie udało się obciążyć metody płatności. Kolejna próba lub aktualizacja w Ustawienia, Rozliczenia to rozwiąże.",
+      "Nie udało się obciążyć metody płatności. Spróbuj ponownie lub zaktualizuj metodę płatności w Ustawienia > Rozliczenia.",
     payment_activation_pending:
       "Płatność została zrealizowana, ale twój plan nie jest jeszcze aktywny. Odśwież stronę za chwilę. Jeśli nadal jest nieaktywny, skontaktuj się z pomocą techniczną.",
     payment_details: "Szczegóły płatności",
@@ -6118,7 +6117,7 @@ export const pl = {
     cancel_confirm_button: "Anuluj subskrypcję",
     cancel_password_required: "Hasło potwierdza, że chcesz anulować.",
     cancel_password_error:
-      "Nie udało się anulować planu. Sprawdzenie hasła i ponowna próba zwykle to rozwiązuje. Plan i rozliczenia pozostają bez zmian.",
+      "Nie udało się anulować planu. Sprawdź hasło i spróbuj ponownie. Plan i rozliczenia pozostają bez zmian.",
     credits: "Kredyty",
     credits_description:
       "Zdobywaj kredyty przez polecenia, kody promocyjne i karty podarunkowe. Kredyty mogą być użyte do odnowienia planu.",
@@ -6128,7 +6127,7 @@ export const pl = {
       "Automatycznie stosuj saldo kredytów do odnowień planu i dodatków. Jeśli saldo nie pokrywa pełnej kwoty, reszta zostanie pobrana z metody płatności.",
     credits_toggle_updated: "Ustawienia kredytów zaktualizowane",
     credits_toggle_failed:
-      "To ustawienie nie zostało zapisane. Kolejna próba powinna to załatwić. Wcześniejsza wartość pozostaje aktywna.",
+      "Spróbuj ponownie.",
     credits_earn_first: "Najpierw zdobądź kredyty, aby włączyć tę opcję",
     recent_transactions: "Ostatnie transakcje",
     view_all_transactions: "Zobacz wszystkie",
@@ -6371,7 +6370,7 @@ export const pl = {
     save_address: "Zapisz adres",
     address_saved: "Adres rozliczeniowy zapisany",
     address_save_failed:
-      "Adres rozliczeniowy nie został zapisany. Kolejna próba powinna to załatwić. Wcześniejszy adres pozostaje.",
+      "Spróbuj ponownie.",
     saving: "Zapisywanie...",
     redeem: "Zrealizuj",
     redeeming: "Realizowanie...",
@@ -6385,7 +6384,7 @@ export const pl = {
     export_processing: "Eksport jest przygotowywany...",
     download_export: "Pobierz",
     export_failed:
-      "Nie udało się rozpocząć eksportu. Kolejna próba powinna to załatwić. Poczta pozostaje bez zmian.",
+      "Spróbuj ponownie.",
     biennial: "2-letni",
     all_star_features: "Wszystko ze Star, plus:",
     all_nova_features: "Wszystko z Nova, plus:",
@@ -7281,9 +7280,9 @@ export const pl = {
     domain_pending_hint:
       "Kliknij Kontynuuj konfigurację, aby skonfigurować rekordy DNS i zweryfikować domenę.",
     failed_to_load_allowlist:
-      "Lista dozwolonych nie załadowała się. Spróbuj jeszcze raz.",
+      "Spróbuj ponownie.",
     failed_to_load_blocklist:
-      "Lista zablokowanych nie załadowała się. Spróbuj jeszcze raz.",
+      "Spróbuj ponownie.",
     show_signature_separator: "Separator podpisu",
     show_signature_separator_description:
       "Dodaj linię separatora '--' nad podpisem w wychodzących wiadomościach.",
@@ -7341,35 +7340,36 @@ export const pl = {
     connect_sign_in_microsoft: "Zaloguj się przez Microsoft",
     connect_sign_in_yahoo: "Zaloguj się przez Yahoo",
     oauth_reason_provider_denied:
-      "Inny dostawca nie wpuścił nas. Spróbuj ponownie się połączyć lub sprawdź konto po jego stronie.",
+      "Drugi dostawca nie zaakceptował połączenia. Spróbuj połączyć się ponownie lub sprawdź konto u tego dostawcy.",
     oauth_reason_missing_code:
-      "Logowanie nie zostało ukończone po stronie dostawcy. Spróbuj jeszcze raz.",
+      "Spróbuj ponownie.",
     oauth_reason_missing_state:
       "Żądanie połączenia nie pasowało do oczekiwanego. Zacznij od nowa i spróbuj ponownie.",
     oauth_reason_internal_error:
       "Serwer napotkał problem. Spróbuj ponownie za chwilę.",
     oauth_reason_invalid_state:
-      "Sesja połączenia nie jest już ważna. Zacznij od nowa.",
-    oauth_reason_expired_state: "Link połączenia wygasł. Zacznij od nowa.",
+      "Sesja połączenia jest już nieważna. Zacznij od nowa, aby połączyć się ponownie.",
+    oauth_reason_expired_state:
+      "Link do połączenia wygasł. Zacznij od nowa, aby połączyć się ponownie.",
     oauth_reason_invalid_provider:
       "Nie rozpoznajemy tego dostawcy. Wybierz obsługiwanego z listy.",
     oauth_reason_provider_not_configured:
       "Ten dostawca nie jest jeszcze skonfigurowany w Asterze. Napisz na hello@astermail.org, jeśli potrzebujesz pomocy.",
     oauth_reason_token_exchange_failed:
-      "Połączenie nie zostało ukończone. Spróbuj jeszcze raz. Inne konta nie zostały zmienione.",
+      "Spróbuj ponownie.",
     oauth_reason_encryption_error:
-      "Nie udało się zabezpieczyć połączenia. Spróbuj jeszcze raz; jeśli problem będzie się powtarzał, napisz na hello@astermail.org.",
+      "Nie udało się zabezpieczyć połączenia. Spróbuj ponownie. Jeśli problem będzie się powtarzał, napisz na hello@astermail.org.",
     oauth_reason_account_creation_failed:
-      "Nie udało się skończyć konfigurowania połączonego konta. Spróbuj jeszcze raz.",
+      "Spróbuj ponownie.",
     oauth_reason_email_not_found:
       "Nie udało się pobrać Twojego adresu e-mail od dostawcy. Spróbuj ponownie, a jeśli błąd się powtarza, użyj ręcznej opcji IMAP.",
     oauth_reason_session_expired: "Sesja logowania wygasła. Spróbuj ponownie.",
     oauth_reason_unknown:
-      "Coś nie zadziałało zgodnie z oczekiwaniami. Spróbuj jeszcze raz. Nie udało się określić przyczyny.",
+      "Spróbuj ponownie.",
     oauth_setting_up_folders: "Konfigurowanie folderów...",
     oauth_folders_ready: "Foldery zsynchronizowane pomyślnie",
     oauth_folders_error:
-      "Foldery nie zostały skonfigurowane. Spróbuj jeszcze raz.",
+      "Spróbuj ponownie.",
     oauth_folders_partial:
       "{{count}} folderów nie zostało skonfigurowanych; reszta jest gotowa do użycia.",
     import_stage_setting_up_folders: "Konfigurowanie folderów",
@@ -7462,7 +7462,7 @@ export const pl = {
     dev_password_kdf_label: "KDF hasła",
     select_color: "Wybierz kolor {{name}}",
     failed_create_import_job:
-      "Nie udało się uruchomić importu. Spróbuj jeszcze raz. Istniejące wiadomości są bezpieczne.",
+      "Spróbuj ponownie.",
     alias_local_part_placeholder: "mójalias",
     username_placeholder: "uzytkownik@przyklad.com",
     smtp_host_placeholder: "smtp.przyklad.com",
@@ -8118,6 +8118,12 @@ export const pl = {
     sync_now_tooltip: "Synchronizuj teraz",
   },
   mail: {
+    alias_view_sent: "Pokaż wysłane wiadomości",
+    alias_direction_label: "Kierunek poczty",
+    alias_direction_all: "Wszystkie",
+    alias_direction_received: "Odebrane",
+    alias_direction_sent: "Wysłane",
+    alias_sent_indexing: "Starsze wysłane wiadomości są jeszcze indeksowane.",
     sender_identity_rotated:
       "Tożsamość szyfrowania tego nadawcy zmieniła się od czasu ostatniej wymiany wiadomości. Jeśli tego nie oczekujesz, potwierdź to z tą osobą w inny sposób.",
     sender_identity_downgraded:
@@ -8458,7 +8464,7 @@ export const pl = {
     category_promos: "Promocje",
     search_history: "Historia wyszukiwania",
     search_error:
-      "Wyszukiwanie nie zostało zakończone. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     delete_draft_confirmation:
       "Ta wersja robocza i wszystkie niezapisane zmiany zostaną trwale usunięte.",
     plain_text_warning:
@@ -9091,7 +9097,7 @@ export const pl = {
     getting_user_info: "Pobieranie informacji o użytkowniku...",
     enter_backup_code: "Wprowadź kod zapasowy",
     backup_code_length_error:
-      "Kod zapasowy ma 12 znaków (8 w starszych kodach). Sprawdzenie liczby zwykle to rozwiązuje.",
+      "Kod zapasowy ma 12 znaków (8 w przypadku starszych kodów). Sprawdź kod i spróbuj ponownie.",
     two_fa_temporarily_locked:
       "Zbyt wiele nieudanych prób. Weryfikacja dwuetapowa jest zablokowana na około 15 minut.",
     two_fa_code_already_used:
@@ -9142,6 +9148,7 @@ export const pl = {
     welcome_workspace_subtitle: "Witamy w Aster. Wybierz nazwę użytkownika, aby zacząć.",
     username_placeholder: "nazwa",
     switch_domain: "Zmień domenę",
+    sign_in_domain_hint: "Wybierz domenę swojego adresu. Jeśli nie masz pewności, obie zadziałają.",
     terms_footer_next: "Klikając Dalej powyżej, potwierdzasz, że masz przeczytane i akceptujesz następujące dokumenty Aster:",
     create_a_password: "Utwórz hasło",
     recommend_strong_password: "Użyj co najmniej 8 znaków. Dłuższe hasło z różnymi znakami jest silniejsze.",
@@ -9153,13 +9160,13 @@ export const pl = {
     copy_key: "Kopiuj klucz",
     recovery_key_copied: "Skopiowano klucz odzyskiwania",
     password_recovery_email: "E-mail do odzyskiwania hasła",
-    recovery_email_step_desc: "Dodaj adres e-mail, aby odzyskać konto, jeśli zgubisz klucz odzyskiwania.",
+    recovery_email_step_desc: "Dodaj adres e-mail, aby odzyskać dostęp do konta, jeśli zgubisz kody odzyskiwania.",
     download_apps_title: "Pobierz aplikacje mobilne i na komputer",
     download_apps_desc: "Miej swoją skrzynkę przy sobie na każdym urządzeniu.",
     mail_mobile: "Mail Mobile",
     mail_mobile_desc: "Czytaj i wysyłaj zaszyfrowane wiadomości na telefonie.",
     mail_desktop: "Mail Desktop",
-    mail_desktop_desc: "Szybka aplikacja natywna dla Windows, macOS i Linux.",
+    mail_desktop_desc: "Aplikacja na komputer dla Windows, macOS i Linux.",
     notifications_step_title: "Włącz powiadomienia przeglądarki",
     notifications_step_desc: "Otrzymuj powiadomienia o nowej poczcie, nawet gdy ta karta jest w tle.",
     notification_preview_title: "Nowa wiadomość",
@@ -9178,8 +9185,8 @@ export const pl = {
     recovery_email_required_gate_title: "Wymagany adres e-mail do odzyskiwania",
     recovery_email_required_gate_desc:
       "Do utworzenia dodatkowego konta wymagany jest adres e-mail do odzyskiwania. Pomaga to chronić wszystkie Twoje konta.",
-    username_min_length: "Co najmniej 3 znaki zadziałają tutaj.",
-    username_max_length: "Mniej niż 40 znaków zadziała tutaj.",
+    username_min_length: "Użyj co najmniej 3 znaków.",
+    username_max_length: "Użyj mniej niż 40 znaków.",
     username_alphanumeric:
       "Używaj liter, cyfr i kropek. Kropka nie może być na początku, na końcu ani podwojona.",
     username_not_available:
@@ -9188,8 +9195,18 @@ export const pl = {
     password_req_uppercase: "Jedna wielka litera",
     password_req_lowercase: "Jedna mała litera",
     password_req_number: "Jedna cyfra",
-    password_max_length_register: "Mniej niż 128 znaków zadziała tutaj.",
+    password_max_length_register: "Użyj mniej niż 128 znaków.",
     password_invalid_chars: "Standardowe znaki klawiatury to dozwolony zestaw.",
+    password_error_length: "Użyj co najmniej 8 znaków w haśle.",
+    complete_captcha_first: "Ukończ weryfikację zabezpieczeń, aby kontynuować.",
+    password_error_uppercase: "Dodaj co najmniej jedną wielką literę.",
+    password_error_lowercase: "Dodaj co najmniej jedną małą literę.",
+    password_error_number: "Dodaj co najmniej jedną cyfrę.",
+    password_rule_length: "Co najmniej 8 znaków",
+    password_rule_case: "Wielkie i małe litery",
+    password_rule_number: "Co najmniej jedna cyfra",
+    passwords_match: "Hasła są zgodne",
+    download_codes_pdf: "Pobierz jako PDF",
     passwords_do_not_match_register:
       "Te dwa hasła nie pasują do siebie. Ponowne wpisanie powinno to wyjaśnić.",
     registration_failed:
@@ -9205,7 +9222,7 @@ export const pl = {
     recovery_email_conflict:
       "Ten adres jest już adresem odzyskiwania na innym koncie. Inny powinien zadziałać.",
     failed_save_recovery_email:
-      "Adres odzyskiwania nie został zapisany. Kolejna próba powinna to załatwić. Obecne ustawienia odzyskiwania pozostają bez zmian.",
+      "Spróbuj ponownie.",
     recovery_phrase_title: "Zapisz swoją frazę odzyskiwania",
     recovery_phrase_desc:
       "Te 12 słów to jedyny sposób na pełne przywrócenie konta i całej zaszyfrowanej poczty, jeśli kiedykolwiek zapomnisz hasła. Zapisz je w kolejności i przechowuj w bezpiecznym miejscu offline.",
@@ -9332,6 +9349,11 @@ export const pl = {
     old_codes_invalidated:
       "Stare kody odzyskiwania nie działają już. Zapisanie nowego zestawu w bezpiecznym miejscu przed zamknięciem tego okna pozwoli zachować dostęp.",
     n_recovery_codes: "{{count}} kodów odzyskiwania",
+    import_mail_step_title: "Zabierz pocztę ze sobą",
+    import_mail_step_desc: "Przenieś wiadomości z innego konta do Aster. Wszystko jest szyfrowane na Twoim urządzeniu przed zapisaniem.",
+    import_mail_action: "Importuj pocztę",
+    import_mail_skip: "Zacznij z pustą skrzynką",
+    import_mail_privacy_note: "Możesz też zaimportować później w Ustawieniach.",
     password_reset_successful: "Hasło zresetowane pomyślnie",
     account_recovered_sign_in:
       "Twoje konto zostało odzyskane. Możesz teraz zalogować się nowym hasłem.",
@@ -9499,7 +9521,7 @@ export const pl = {
     link_device_success_description:
       "Twoja aplikacja desktopowa jest teraz połączona. Możesz zamknąć tę kartę.",
     link_device_invalid_code:
-      "Kod połączenia ma 8 znaków. Sprawdź liczbę znaków.",
+      "Kod połączenia ma 8 znaków. Sprawdź kod i spróbuj ponownie.",
     link_device_expired_code:
       "Ten kod wygasł lub nie pasuje. Twoja aplikacja desktopowa ma aktualny.",
     link_device_failed:
@@ -9703,11 +9725,11 @@ export const pl = {
       "Ta wiadomość ma już maksymalną liczbę reakcji.",
     cannot_react_no_recipient:
       "Ta wiadomość nie ma nadawcy, do którego można wysłać reakcję.",
-    failed_send_reaction: "Nie udało się wysłać reakcji. Spróbuj ponownie.",
+    failed_send_reaction: "Spróbuj ponownie.",
     reactions_disabled: "Reakcje są wyłączone w Twoich ustawieniach.",
     pending_email_verification:
       "Sprawdź swoją pocztę i kliknij link weryfikacyjny, aby aktywować to konto.",
-    generic: "To nie zadziałało. Kolejna próba powinna to załatwić.",
+    generic: "Spróbuj ponownie.",
     network:
       "Nie udało się połączyć z serwerem. Sprawdzenie połączenia i ponowna próba zwykle to załatwia.",
     unauthorized:
@@ -9721,47 +9743,47 @@ export const pl = {
       "To żądanie trwało zbyt długo. Sprawdzenie połączenia i ponowna próba zwykle to załatwia.",
     rate_limit: "Robisz to zbyt szybko. Odczekaj chwilę i spróbuj ponownie.",
     invalid_credentials:
-      "Ten adres e-mail i hasło nie pasują. Kolejna próba lub reset na astermail.org/reset to załatwią.",
+      "Nieprawidłowy adres e-mail lub hasło. Spróbuj ponownie lub zresetuj hasło na astermail.org/reset.",
     session_expired:
-      "Sesja się zakończyła. Ponowne zalogowanie pozwoli wrócić do pracy. Dane i wersje robocze są zapisane na serwerze.",
-    try_again: "Kolejna próba powinna to załatwić.",
+      "Sesja wygasła. Zaloguj się ponownie, aby kontynuować. Dane i wersje robocze są zapisane na serwerze.",
+    try_again: "Spróbuj ponownie.",
     sign_in_domain_unsupported:
       "Zaloguj się adresem astermail.org lub aster.cx, którym się rejestrowałeś. Adresy w Twojej własnej domenie prowadzą do tego samego konta.",
-    invalid_username: "Nazwa użytkownika między 3 a 40 znaków zadziała tutaj.",
+    invalid_username: "Wpisz nazwę użytkownika o długości od 3 do 40 znaków.",
     enter_password: "Hasło jest potrzebne, aby kontynuować.",
     password_too_long: "To hasło przekracza limit długości. Krótsze zadziała.",
     account_not_found:
-      "Nie znaleziono konta o tej nazwie. Sprawdzenie pisowni lub reset na astermail.org/reset zwykle to rozwiązuje.",
+      "Nie znaleziono konta o tej nazwie. Sprawdź pisownię lub zresetuj hasło na astermail.org/reset.",
     login_failed:
-      "Logowanie nie zostało zakończone. Kolejna próba powinna to załatwić. Konto nie jest zablokowane.",
+      "Spróbuj ponownie.",
     decrypt_failed:
       "To hasło nie odblokowało kluczy na tym urządzeniu. Kolejna próba zadziała, a kod odzyskiwania na astermail.org/reset jest zapasowym sposobem, jeśli próby nadal zawodzą. Dane na serwerze pozostają bez zmian.",
     send_limit_reached:
       "Osiągnięto dzienny limit wysyłania. Kolejna próba za {{time}} zadziała. Wersja robocza jest zapisana.",
     ip_blocked:
-      "Zbyt wiele nieudanych prób logowania stąd. Odczekanie {{time}} przed kolejną próbą to załatwi. Konto nie jest zablokowane.",
-    an_error_occurred: "To nie zadziałało. Kolejna próba powinna to załatwić.",
+      "Zbyt wiele nieudanych prób logowania. Odczekaj {{time}} i spróbuj ponownie. Konto nie jest zablokowane.",
+    an_error_occurred: "Spróbuj ponownie.",
     failed_to_block_sender:
-      "Nie udało się zablokować tego nadawcy. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     failed_to_snooze:
-      "Ta wiadomość nie została odłożona. Kolejna próba powinna to załatwić. Pozostaje w skrzynce odbiorczej.",
+      "Spróbuj ponownie.",
     ghost_alias_not_found:
       "Nie udało się znaleźć ghost adresu powiązanego z tym wątkiem.",
     failed_to_resolve_ghost_alias:
-      "Ghost adres dla tego wątku się nie załadował. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     ghost_alias_rate_limit:
       "Wykorzystano wszystkie ghost aliasy na ten miesiąc. Ulepszenie planu lub poczekanie na reset w kolejnym miesiącu da kolejne.",
     ghost_alias_already_exists: "Ten ghost alias już istnieje na koncie.",
     failed_to_create_ghost_alias:
-      "Ten ghost alias nie został zapisany. Kolejna próba powinna to załatwić. Inne aliasy pozostają bez zmian.",
+      "Spróbuj ponownie.",
     ghost_expiry_extend_only:
       "Adres ghost możesz tylko przedłużyć, nie skrócić.",
     ghost_expiry_update_failed:
       "Nie zaktualizowano wygasania. Spróbuj ponownie.",
     failed_to_activate_ghost_mode:
-      "Tryb ghost nie został włączony. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     wrong_vault_password:
-      "To hasło nie odblokowało Twoich kluczy na tym urządzeniu. Kolejna próba powinna to załatwić, a kod odzyskiwania na astermail.org/reset jest zapasowym rozwiązaniem, jeśli problem się utrzyma. Twoje dane na serwerze pozostają niezmienione.",
+      "To hasło nie odblokowało Twoich kluczy na tym urządzeniu. Spróbuj ponownie. Jeśli nadal się nie udaje, użyj kodu odzyskiwania na astermail.org/reset. Twoje dane na serwerze pozostają bez zmian.",
     vault_tampered:
       "Zaszyfrowane dane na tym urządzeniu nie zgadzają się z tym, czego oczekiwaliśmy, co może wskazywać na ingerencję. Otwórz Ustawienia, a następnie Bezpieczeństwo, aby to sprawdzić. Jeśli ostrzeżenie powróci, napisz na hello@astermail.org. Twoje dane na serwerze pozostają nietknięte.",
     vault_version_drift:
@@ -9777,7 +9799,7 @@ export const pl = {
     decrypt_corrupt_ciphertext:
       "Ta wiadomość jest na serwerze, ale wygląda na uszkodzoną podczas przesyłania. Odświeżenie i kolejna próba zwykle to załatwiają, a hello@astermail.org może pomóc, jeśli problem się utrzyma.",
     decrypt_sender_error:
-      "Nadawca zaszyfrował tę wiadomość w sposób, którego nie potrafimy odczytać. Poproszenie go o ponowne wysłanie powinno to załatwić. Pozostałe Twoje wiadomości nie są dotknięte.",
+      "Nadawca zaszyfrował tę wiadomość w sposób, którego nie możemy odczytać. Poproś nadawcę o ponowne wysłanie. Pozostałe wiadomości nie są dotknięte.",
     metadata_undecryptable_change:
       "To urządzenie nie może otworzyć szczegółów tej wiadomości, więc Twoja zmiana nie zostaje zapisana. Aby ponownie wczytać klucze, wyloguj się i zaloguj ponownie. Twoja wiadomość na serwerze pozostaje bez zmian.",
     no_unsubscribe_method:
@@ -9789,36 +9811,36 @@ export const pl = {
     tor_native_only:
       "Tor jest dostępny tylko w aplikacji natywnej. Aplikacja na komputer lub telefon pozwoli Ci z niego korzystać.",
     tor_plugin_missing:
-      "Moduł Tor nie jest zainstalowany na tym urządzeniu. Ponowna instalacja aplikacji lub przełączenie na połączenie bezpośrednie w Ustawieniach przywróci Cię do sieci.",
+      "Moduł Tor nie jest zainstalowany na tym urządzeniu. Zainstaluj aplikację ponownie lub przełącz się na połączenie bezpośrednie w Ustawieniach.",
     cdn_relay_misconfigured:
-      "Przekaźnik CDN nie jest skonfigurowany dla tej kompilacji. Przełączenie na połączenie bezpośrednie w Ustawieniach przywróci Cię do sieci, a hello@astermail.org może pomóc w razie potrzeby.",
+      "Przekaźnik CDN nie jest skonfigurowany w tej kompilacji. Przełącz się na połączenie bezpośrednie w Ustawieniach. Jeśli potrzebujesz pomocy, napisz na hello@astermail.org.",
     device_repair_required:
-      "Brakuje klucza tego urządzenia. Ponowne sparowanie z aplikacji na komputer to załatwi. Twoje konto i dane pozostają bez zmian.",
+      "Brakuje klucza tego urządzenia. Sparuj urządzenie ponownie z aplikacji na komputer. Twoje konto i dane pozostają bez zmian.",
     device_challenge_mismatch:
       "Weryfikacja tożsamości tego urządzenia nie zgadza się, co może wskazywać na ingerencję. Sparuj urządzenie ponownie z aplikacji na komputer, a jeśli ostrzeżenie powróci, napisz na hello@astermail.org.",
     metadata_migration_stalled:
       "Nie udało nam się dokończyć aktualizacji lokalnej pamięci po kilku próbach. Sprawdzenie połączenia i ponowne otwarcie Aster zwykle to załatwia. Twoja poczta na serwerze jest bezpieczna.",
     failed_to_queue_email:
-      "Nie udało się zapisać tej wiadomości do późniejszego wysłania. Spróbuj jeszcze raz. Wersja robocza jest zapisana.",
+      "Spróbuj ponownie.",
     failed_to_send_queued:
-      "Ta wiadomość nie została wysłana. Spróbuj jeszcze raz. Wersja robocza jest zapisana.",
+      "Spróbuj ponownie.",
     failed_to_send_external_queued:
-      "Ta wiadomość nie została wysłana przez połączone konto zewnętrzne. Spróbuj jeszcze raz. Wersja robocza jest zapisana.",
+      "Spróbuj ponownie.",
     authentication_failed:
-      "Logowanie nie zostało ukończone. Spróbuj jeszcze raz. Twoje konto nie jest zablokowane.",
+      "Spróbuj ponownie.",
     failed_to_snooze_email:
-      "Ta wiadomość nie została odłożona. Spróbuj jeszcze raz. Nadal jest w skrzynce odbiorczej.",
+      "Spróbuj ponownie.",
     failed_to_snooze_emails:
-      "Te wiadomości nie zostały odłożone. Spróbuj jeszcze raz.",
+      "Spróbuj ponownie.",
     failed_to_unsnooze_email:
-      "Ta wiadomość nie wróciła do skrzynki odbiorczej. Spróbuj jeszcze raz.",
+      "Spróbuj ponownie.",
     failed_to_list_snoozed:
-      "Odłożone wiadomości nie załadowały się. Spróbuj jeszcze raz. Są bezpieczne na serwerze.",
+      "Spróbuj ponownie.",
     auth_required: "Zaloguj się, aby kontynuować.",
     no_permission:
       "Nie masz dostępu do tej funkcji. Jeśli to wygląda na błąd, skontaktuj się z administratorem.",
     invalid_request:
-      "Nie udało się przetworzyć tego żądania. Odświeżenie strony i ponowna próba zwykle pomaga.",
+      "Nie udało się przetworzyć tego żądania. Odśwież stronę i spróbuj ponownie.",
     conflict:
       "Ktoś lub coś innego dokonało zmiany jako pierwsze. Odświeżenie pokaże najnowszą wersję.",
     rate_limited: "Robisz to zbyt szybko. Odczekaj chwilę i spróbuj ponownie.",
@@ -9829,7 +9851,7 @@ export const pl = {
     request_timeout:
       "Żądanie trwało zbyt długo. Sprawdź połączenie i spróbuj ponownie.",
     unexpected_error:
-      "Coś nie zadziałało zgodnie z oczekiwaniami. Spróbuj jeszcze raz.",
+      "Spróbuj ponownie.",
     encryption_keys_not_loaded:
       "Twoje prywatne klucze są zablokowane na tym urządzeniu. Hasło je odblokuje. Klucze na serwerze nie zostały zmienione.",
     session_expired_reenter:
@@ -9839,10 +9861,10 @@ export const pl = {
     session_expired_send:
       "Sesja wygasła przed wysłaniem tej wiadomości. Zalogowanie ponownie ją wyśle. Wersja robocza jest zapisana.",
     failed_encrypt_envelope:
-      "Nie udało się zabezpieczyć tej wiadomości do wysłania. Spróbuj jeszcze raz. Wersja robocza jest zapisana.",
-    failed_pgp_encrypt: "pgp_encrypt_failed",
+      "Spróbuj ponownie.",
+    failed_pgp_encrypt: "Spróbuj ponownie.",
     no_authenticated_account:
-      "Nie znaleźliśmy zalogowanego konta na tym urządzeniu. Zalogowanie rozwiąże problem.",
+      "Na tym urządzeniu nie znaleziono zalogowanego konta. Zaloguj się, aby kontynuować.",
     daily_limit_reached:
       "Osiągnięto dzienny limit wysyłania. Spróbuj ponownie za {{time}}. Wersja robocza jest zapisana.",
     that_provider: "tej domenie",
@@ -9855,7 +9877,7 @@ export const pl = {
     too_many_attachments:
       "Ta wiadomość ma ponad {{max}} załączników, czyli więcej niż jedna wiadomość może zabrać. Usuń kilka, aby wysłać. Wersja robocza jest zapisana.",
     failed_send_email:
-      "Ta wiadomość nie została wysłana. Spróbuj jeszcze raz. Wersja robocza jest zapisana.",
+      "Spróbuj ponownie.",
     cannot_send_no_keys:
       "Masz włączone obowiązkowe szyfrowanie i nie mamy klucza dla {{recipients}}. Poproś ich o udostępnienie klucza lub wyłącz obowiązkowe szyfrowanie w Ustawieniach. Wersja robocza jest zapisana.",
     cannot_send_no_recipient_keys:
@@ -9863,24 +9885,24 @@ export const pl = {
     cannot_send_no_recovery_key:
       "Aster nie może jeszcze wysłać tej wiadomości, ponieważ konto odbiorcy nie ma kluczy do jej odczytania. Poproś go o otwarcie Aster na dowolnym urządzeniu lub o aktualizację aplikacji, aby odświeżyć klucze, a potem spróbuj ponownie. Wersja robocza jest zapisana.",
     failed_send_external:
-      "Ta wiadomość nie została wysłana przez połączone konto zewnętrzne. Spróbuj jeszcze raz. Wersja robocza jest zapisana.",
+      "Spróbuj ponownie.",
     failed_queue_email:
-      "Nie udało się zapisać tej wiadomości do późniejszego wysłania. Spróbuj jeszcze raz. Wersja robocza jest zapisana.",
+      "Spróbuj ponownie.",
     no_active_account:
-      "Nie znaleźliśmy zalogowanego konta na tym urządzeniu. Zalogowanie rozwiąże problem.",
+      "Na tym urządzeniu nie znaleziono zalogowanego konta. Zaloguj się, aby kontynuować.",
     failed_queue_reply:
-      "Nie udało się zapisać tej odpowiedzi do późniejszego wysłania. Spróbuj jeszcze raz. Wersja robocza jest zapisana.",
+      "Spróbuj ponownie.",
     no_recipients: "Przed wysłaniem wymagany jest co najmniej jeden odbiorca.",
     failed_queue_forward:
-      "Nie udało się zapisać tego przekazania do późniejszego wysłania. Spróbuj jeszcze raz. Wersja robocza jest zapisana.",
+      "Spróbuj ponownie.",
     failed_send:
-      "Ta wiadomość nie została wysłana. Spróbuj jeszcze raz. Wersja robocza jest zapisana.",
+      "Spróbuj ponownie.",
     incorrect_password:
       "To hasło nie pasuje. Spróbuj jeszcze raz. Twoje konto nie jest zablokowane.",
     no_keys_available:
       "Twoje prywatne klucze są zablokowane na tym urządzeniu. Hasło je odblokuje. Klucze na serwerze nie zostały zmienione.",
     session_expired_login:
-      "Twoja sesja wygasła. Zalogowanie ponownie pozwoli kontynuować od miejsca, w którym skończyłeś(-aś). Dane i wersje robocze są zapisane na serwerze.",
+      "Sesja wygasła. Zaloguj się ponownie, aby kontynuować. Dane i wersje robocze są zapisane na serwerze.",
     session_identity_mismatch:
       "To urządzenie było zalogowane na inne konto, więc wylogowaliśmy Cię, aby konta pozostały oddzielone. Wystarczy zalogować się ponownie. Twoje dane są nienaruszone.",
     key_material_unavailable:
@@ -9891,11 +9913,11 @@ export const pl = {
       "Rejestracja nie została ukończona. Zacznij od nowa i spróbuj ponownie. Konto nie zostało utworzone.",
     registration_cancelled: "Rejestracja anulowana",
     authentication_failed_webauthn:
-      "Logowanie kluczem bezpieczeństwa nie zostało ukończone lub zostało anulowane. Spróbuj jeszcze raz.",
+      "Spróbuj ponownie.",
     authentication_cancelled: "Uwierzytelnianie anulowane",
     alias_empty: "Tutaj wymagana jest nazwa aliasu.",
-    alias_too_short: "Potrzebne są co najmniej 3 znaki.",
-    alias_too_long: "Maksymalnie 64 znaki.",
+    alias_too_short: "Użyj co najmniej 3 znaków.",
+    alias_too_long: "Użyj maksymalnie 64 znaków.",
     alias_consecutive_dots: "Kolejne kropki nie są dozwolone w aliasie.",
     alias_numeric_only: "Nazwa aliasu nie może składać się wyłącznie z cyfr.",
     alias_not_available: "Ten alias jest zajęty. Spróbuj innego.",
@@ -9906,14 +9928,14 @@ export const pl = {
     domain_reserved:
       "astermail.org i aster.cx nie mogą być tutaj użyte. Spróbuj innej domeny, którą posiadasz.",
     domain_invalid_format:
-      "Ten format domeny jest nieprawidłowy. Sprawdź pisownię.",
+      "Wpisz prawidłową domenę.",
     domain_invalid_label:
-      "Jedna sekcja tej domeny jest za długa lub za krótka. Sprawdź ponownie.",
+      "Jedna część tej domeny jest za długa lub za krótka. Sprawdź domenę i spróbuj ponownie.",
     domain_invalid_chars:
-      "Ta domena zawiera niedozwolone znaki. Sprawdź pisownię.",
+      "Ta domena zawiera niedozwolone znaki. Sprawdź pisownię i spróbuj ponownie.",
     address_empty: "Wymagana jest część adresu przed @.",
-    address_too_short: "Wymagany jest co najmniej jeden znak.",
-    address_too_long: "Maksymalnie 64 znaki.",
+    address_too_short: "Wpisz co najmniej jeden znak.",
+    address_too_long: "Użyj maksymalnie 64 znaków.",
     address_invalid_chars:
       "Dozwolone znaki to litery, cyfry, kropki, podkreślenia i myślniki.",
     address_consecutive_dots: "Kolejne kropki nie są dozwolone w adresie.",
@@ -9923,7 +9945,7 @@ export const pl = {
     account_already_added:
       "To konto jest już zalogowane na tym urządzeniu. Przełącz się na nie z menu kont.",
     failed_encrypt_draft:
-      "Nie udało się bezpiecznie zapisać tej wersji roboczej na urządzeniu. Spróbuj jeszcze raz. Wpisany tekst nadal jest w edytorze.",
+      "Spróbuj ponownie.",
     failed_decrypt_draft:
       "Nie udało się otworzyć tej wersji roboczej na urządzeniu. Wylogowanie, ponowne zalogowanie i kolejna próba zwykle pomaga.",
     version_conflict:
@@ -9947,11 +9969,11 @@ export const pl = {
     failed_parse_pst_file:
       "Nie udało się odczytać tego pliku PST: {{error}}. Eksport z klienta pocztowego jako MBOX zwykle pomaga.",
     no_valid_emails_csv:
-      "Nie znaleźliśmy żadnych użytecznych wiadomości w tym pliku CSV. Plik musi zawierać kolumny takie jak from, to, subject, body i date. Sprawdź nagłówki.",
+      "W tym pliku CSV nie znaleziono nadających się do użycia e-maili. Plik musi zawierać kolumny takie jak from, to, subject, body i date. Sprawdź nagłówki i spróbuj ponownie.",
     failed_parse_csv:
-      "Nie udało się odczytać tego pliku CSV: {{error}}. Sprawdź plik.",
+      "Nie udało się odczytać tego pliku CSV: {{error}}. Sprawdź plik i spróbuj ponownie.",
     failed_parse_eml:
-      "Nie udało się odczytać tego pliku EML: {{error}}. Sprawdź plik.",
+      "Nie udało się odczytać tego pliku EML: {{error}}. Sprawdź plik i spróbuj ponownie.",
     row_skipped:
       "Wiersz {{number}} został pominięty z powodu brakujących wymaganych pól. Import pozostałych jest kontynuowany.",
     emails_skipped_invalid:
@@ -9959,13 +9981,13 @@ export const pl = {
     unrecognized_format:
       "Aster nie może odczytać {{name}}. Obsługiwane formaty to MBOX, EML, CSV i PST. Zapisz plik w jednym z nich i spróbuj ponownie.",
     unknown_error:
-      "Coś nie zadziałało zgodnie z oczekiwaniami. Spróbuj jeszcze raz. Nie udało się określić przyczyny.",
+      "Spróbuj ponownie.",
     health_check_failed:
-      "Diagnostyka nie została ukończona. Spróbuj jeszcze raz.",
+      "Spróbuj ponownie.",
     unexpected_health_check_error:
-      "Diagnostyka napotkała problem. Spróbuj jeszcze raz.",
+      "Spróbuj ponownie.",
     all_emails_rejected:
-      "Wszystkie {{count}} wiadomości w tym pliku zostały pominięte, ponieważ każda z nich nie miała nadawcy lub treści i nic nie zostało zaimportowane. Sprawdź ponownie eksport źródłowy.",
+      "Pominięto wszystkie e-maile ({{count}}) w tym pliku, ponieważ w każdym brakowało nadawcy lub treści, więc niczego nie zaimportowano. Sprawdź eksport źródłowy i spróbuj ponownie.",
     post_quantum_unavailable:
       "Aster chroni wiadomości między kontami Aster szyfrowaniem postkwantowym, a {{recipients}} nie opublikował jeszcze kluczy postkwantowych. Poproś tę osobę o otwarcie Aster lub zaktualizowanie aplikacji i spróbuj ponownie. Twoja wersja robocza jest zapisana.",
   },
@@ -10169,7 +10191,7 @@ export const pl = {
     regex_lookaround:
       "Lookahead i lookbehind nie są obsługiwane. Zapisz wzorzec bez nich.",
     regex_invalid:
-      "Ten wzorzec wyrażenia regularnego ma błąd składni. Sprawdź składnię.",
+      "Ten wzorzec regex jest nieprawidłowy. Sprawdź składnię i spróbuj ponownie.",
     regex_empty:
       "Przed zapisaniem wymagany jest wzorzec wyrażenia regularnego.",
     regex_too_long:
@@ -10195,13 +10217,13 @@ export const pl = {
     pick_folder: "Wybierz folder",
     pick_labels: "Wybierz etykiety",
     load_failed:
-      "Reguły nie załadowały się. Spróbuj jeszcze raz. Zapisane reguły są bezpieczne.",
+      "Spróbuj ponownie.",
     save_failed:
-      "Ta reguła nie została zapisana. Spróbuj jeszcze raz. Poprzednia wersja jest nadal aktywna.",
+      "Spróbuj ponownie.",
     reorder_failed:
-      "Nowa kolejność nie została zapisana. Spróbuj jeszcze raz. Reguły nadal działają w poprzedniej kolejności.",
+      "Spróbuj ponownie.",
     rule_delete_failed:
-      "Ta reguła nie została usunięta. Spróbuj ponownie. Reguła nadal działa.",
+      "Spróbuj ponownie.",
     snooze_needs_future: "Wybierz przyszłą datę i godzinę.",
     match_case: "Uwzględnij wielkość liter",
     header_name_placeholder: "Nazwa nagłówka",
@@ -10259,7 +10281,8 @@ export const pl = {
     tab_expression: "Wyrażenie",
     expression_placeholder:
       'from.address is "alicja@przyklad.com" and subject contains "paragon"',
-    expression_parse_error: "To wyrażenie ma błąd składni. Sprawdź składnię.",
+    expression_parse_error:
+      "To wyrażenie jest nieprawidłowe. Sprawdź składnię i spróbuj ponownie.",
     cannot_render_visual:
       "Ta reguła zawiera zagnieżdżone warunki, których edytor wizualny nie może wyświetlić. Widok Wyrażenie umożliwia jej edycję.",
     templates_button: "Szablony",
@@ -10320,7 +10343,7 @@ export const pl = {
     claim_success: "Zdobyłeś odznakę {name}.",
     claim_already: "Masz już odznakę odkrywcy.",
     claim_failed:
-      "Ta odznaka nie została zapisana. Kolejna próba powinna to załatwić.",
+      "Spróbuj ponownie.",
     not_earned: "Jeszcze nie zdobyto",
     show_on_profile_description:
       "Wyświetlaj aktywną odznakę innym użytkownikom Astera.",
