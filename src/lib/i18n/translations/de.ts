@@ -4713,6 +4713,10 @@ export const de = {
     alias_grace_days: "{{days}}T verbleibend",
     domain_grace_days: "{{days}}T verbleibend",
     domain_grace_upgrade_hint: "Upgraden Sie, um diese Domain aktiv zu halten",
+    domain_shared_by: "Geteilt von {{owner}}",
+    domain_shared_hint:
+      "Diese Domain gehört einem anderen Mitglied Ihres Familientarifs. Nur der Eigentümer kann ihre Einstellungen ändern.",
+    domain_shared_label: "Geteilt",
     alias_reserved: "Reserviert",
     alias_grace_upgrade_hint: "Upgraden Sie, um diesen Alias aktiv zu halten",
     alias_reserved_upgrade_hint:

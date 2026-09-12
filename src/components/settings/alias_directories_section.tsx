@@ -146,7 +146,7 @@ export function AliasDirectoriesSection() {
         if (response.data) {
           set_custom_domains(
             response.data.domains
-              .filter((d) => d.status === "active")
+              .filter((d) => d.status === "active" && !d.is_shared)
               .map((d) => d.domain_name),
           );
         }

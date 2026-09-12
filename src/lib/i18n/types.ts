@@ -4940,6 +4940,9 @@ export interface SettingsTranslations {
   alias_grace_upgrade_hint: string;
   domain_grace_days: string;
   domain_grace_upgrade_hint: string;
+  domain_shared_by: string;
+  domain_shared_hint: string;
+  domain_shared_label: string;
   alias_reserved_upgrade_hint: string;
   create_alias_display_name_label: string;
   create_alias_display_name_placeholder: string;

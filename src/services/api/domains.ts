@@ -75,6 +75,9 @@ export interface CustomDomain {
   verified_at?: string;
   last_verification_at?: string;
   downgrade_grace_expires_at?: string;
+  is_shared?: boolean;
+  shared_from?: string | null;
+  can_create_aliases?: boolean;
 }
 
 export interface DomainListResponse {

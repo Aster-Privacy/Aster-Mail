@@ -4817,6 +4817,10 @@ export const fr = {
     domain_grace_days: "{{days}}j restants",
     domain_grace_upgrade_hint:
       "Effectuez une mise à niveau pour conserver ce domaine actif",
+    domain_shared_by: "Partagé par {{owner}}",
+    domain_shared_hint:
+      "Ce domaine appartient à un autre membre de votre forfait Famille. Seul le propriétaire peut modifier ses réglages.",
+    domain_shared_label: "Partagé",
     alias_reserved: "Réservé",
     alias_grace_upgrade_hint:
       "Passez à un plan supérieur pour garder cet alias actif",

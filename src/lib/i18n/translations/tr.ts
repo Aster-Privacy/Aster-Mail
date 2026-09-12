@@ -4726,6 +4726,10 @@ export const tr = {
     alias_grace_days: "{{days}} gün kaldı",
     domain_grace_days: "{{days}} gün kaldı",
     domain_grace_upgrade_hint: "Bu alan adını aktif tutmak için yükseltin",
+    domain_shared_by: "{{owner}} tarafından paylaşıldı",
+    domain_shared_hint:
+      "Bu alan adı Aile planınızdaki başka bir üyeye ait. Ayarlarını yalnızca sahibi değiştirebilir.",
+    domain_shared_label: "Paylaşıldı",
     alias_reserved: "Ayrılmış",
     alias_grace_upgrade_hint: "Bu takma adı aktif tutmak için yükseltin",
     alias_reserved_upgrade_hint:

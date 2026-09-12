@@ -4784,6 +4784,10 @@ export const pt = {
     alias_grace_days: "{{days}}d restantes",
     domain_grace_days: "{{days}}d restantes",
     domain_grace_upgrade_hint: "Faça upgrade para manter este domínio ativo",
+    domain_shared_by: "Compartilhado por {{owner}}",
+    domain_shared_hint:
+      "Este domínio pertence a outro membro do seu plano Família. Apenas o proprietário pode alterar as configurações.",
+    domain_shared_label: "Compartilhado",
     alias_reserved: "Reservado",
     alias_grace_upgrade_hint: "Faça upgrade para manter este alias ativo",
     alias_reserved_upgrade_hint: "Faça upgrade para reativar este alias",

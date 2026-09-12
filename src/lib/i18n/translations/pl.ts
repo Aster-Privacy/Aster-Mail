@@ -4924,6 +4924,10 @@ export const pl = {
     alias_grace_days: "{{days}}d pozostało",
     domain_grace_days: "{{days}}d pozostało",
     domain_grace_upgrade_hint: "Ulepsz plan, aby zachować tę domenę aktywną",
+    domain_shared_by: "Udostępniona przez {{owner}}",
+    domain_shared_hint:
+      "Ta domena należy do innego członka Twojego planu Rodzinnego. Tylko właściciel może zmienić jej ustawienia.",
+    domain_shared_label: "Udostępniona",
     alias_reserved: "Zarezerwowany",
     alias_grace_upgrade_hint: "Ulepsz plan, aby zachować ten alias aktywnym",
     alias_reserved_upgrade_hint:

@@ -5551,6 +5551,10 @@ export const en: Translations = {
     alias_grace_days: "{{days}}d remaining",
     domain_grace_days: "{{days}}d remaining",
     domain_grace_upgrade_hint: "Upgrade to keep this domain active",
+    domain_shared_by: "Shared by {{owner}}",
+    domain_shared_hint:
+      "This domain belongs to another member of your family plan. Only the owner can change its settings.",
+    domain_shared_label: "Shared",
     alias_reserved: "Reserved",
     alias_grace_upgrade_hint: "Upgrade to keep this alias active",
     alias_reserved_upgrade_hint: "Upgrade to reactivate this alias",

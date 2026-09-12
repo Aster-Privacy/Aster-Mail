@@ -4827,6 +4827,10 @@ export const ar = {
     alias_grace_days: "{{days}} أيام متبقية",
     domain_grace_days: "{{days}} أيام متبقية",
     domain_grace_upgrade_hint: "قم بالترقية للحفاظ على هذا النطاق نشطاً",
+    domain_shared_by: "مُشارَك من {{owner}}",
+    domain_shared_hint:
+      "هذا النطاق يخص عضواً آخر في خطة العائلة. المالك وحده يمكنه تغيير إعداداته.",
+    domain_shared_label: "مُشارَك",
     alias_reserved: "محجوز",
     alias_grace_upgrade_hint: "قم بالترقية للحفاظ على هذا الاسم المستعار نشطاً",
     alias_reserved_upgrade_hint: "قم بالترقية لإعادة تفعيل هذا الاسم المستعار",

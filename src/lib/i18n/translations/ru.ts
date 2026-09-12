@@ -4890,6 +4890,10 @@ export const ru = {
     domain_grace_days: "{{days}}д осталось",
     domain_grace_upgrade_hint:
       "Перейдите на платный тариф, чтобы сохранить этот домен",
+    domain_shared_by: "Доступ открыл {{owner}}",
+    domain_shared_hint:
+      "Этот домен принадлежит другому участнику вашего семейного тарифа. Изменять его настройки может только владелец.",
+    domain_shared_label: "Общий доступ",
     alias_reserved: "Зарезервировано",
     alias_grace_upgrade_hint:
       "Обновите план, чтобы сохранить этот алиас активным",

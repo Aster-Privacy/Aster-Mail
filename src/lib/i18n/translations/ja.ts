@@ -4786,6 +4786,9 @@ export const ja = {
     domain_grace_days: "残り{{days}}日",
     domain_grace_upgrade_hint:
       "このドメインを維持するにはアップグレードしてください",
+    domain_shared_by: "{{owner}} が共有",
+    domain_shared_hint: "このドメインはファミリープランの他のメンバーのものです。設定を変更できるのは所有者だけです。",
+    domain_shared_label: "共有",
     alias_reserved: "予約済み",
     alias_grace_upgrade_hint:
       "このエイリアスを維持するにはアップグレードしてください",

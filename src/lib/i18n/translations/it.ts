@@ -5815,6 +5815,10 @@ export const it = {
     domain_grace_days: "{{days}}g rimanenti",
     domain_grace_upgrade_hint:
       "Esegui l'upgrade per mantenere attivo questo dominio",
+    domain_shared_by: "Condiviso da {{owner}}",
+    domain_shared_hint:
+      "Questo dominio appartiene a un altro membro del tuo piano Famiglia. Solo il proprietario può modificarne le impostazioni.",
+    domain_shared_label: "Condiviso",
     alias_reserved: "Riservato",
     alias_grace_upgrade_hint:
       "Esegui l'upgrade per mantenere attivo questo alias",

@@ -4716,6 +4716,10 @@ export const nl = {
     alias_grace_days: "{{days}}d resterend",
     domain_grace_days: "{{days}}d resterend",
     domain_grace_upgrade_hint: "Upgrade om dit domein actief te houden",
+    domain_shared_by: "Gedeeld door {{owner}}",
+    domain_shared_hint:
+      "Dit domein hoort bij een ander lid van je Familie-abonnement. Alleen de eigenaar kan de instellingen wijzigen.",
+    domain_shared_label: "Gedeeld",
     alias_reserved: "Gereserveerd",
     alias_grace_upgrade_hint: "Upgrade om deze alias actief te houden",
     alias_reserved_upgrade_hint: "Upgrade om deze alias te heractiveren",

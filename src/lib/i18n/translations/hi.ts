@@ -5686,6 +5686,10 @@ export const hi = {
     alias_grace_days: "{{days}} दिन बाकी",
     domain_grace_days: "{{days}} दिन बाकी",
     domain_grace_upgrade_hint: "यह डोमेन चालू रखने के लिए प्लान बढ़ाएं",
+    domain_shared_by: "{{owner}} द्वारा साझा",
+    domain_shared_hint:
+      "यह डोमेन आपके फ़ैमिली प्लान के किसी अन्य सदस्य का है। केवल मालिक ही इसकी सेटिंग बदल सकता है।",
+    domain_shared_label: "साझा किया गया",
     alias_reserved: "आरक्षित",
     alias_grace_upgrade_hint: "यह एलियास चालू रखने के लिए प्लान बढ़ाएं",
     alias_reserved_upgrade_hint:
