@@ -341,7 +341,7 @@ export function DomainsSection() {
     [purchased_orders, normalized_query],
   );
   const owned_domain_count = hook.domains.filter(
-    (domain) => !domain.purchased,
+    (domain) => !domain.purchased && !domain.is_shared,
   ).length;
 
   const searching_with_no_results =

@@ -279,7 +279,9 @@ export function use_aliases() {
   const available_domains_for_aliases = useMemo(
     () => [
       ...DEFAULT_DOMAINS,
-      ...domains.filter((d) => d.status === "active").map((d) => d.domain_name),
+      ...domains
+        .filter((d) => d.status === "active" && d.can_create_aliases !== false)
+        .map((d) => d.domain_name),
     ],
     [domains],
   );
@@ -287,7 +289,7 @@ export function use_aliases() {
   const custom_domains_for_import = useMemo(
     () =>
       domains
-        .filter((d) => d.status === "active")
+        .filter((d) => d.status === "active" && d.can_create_aliases !== false)
         .map((d) => ({ name: d.domain_name, id: d.id })),
     [domains],
   );

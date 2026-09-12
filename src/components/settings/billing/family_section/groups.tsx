@@ -118,7 +118,7 @@ export function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
       .then((m) => m.list_domains())
       .then((r) => {
         const active_custom = (r.data?.domains ?? [])
-          .filter((d) => d.status === "active")
+          .filter((d) => d.status === "active" && !d.is_shared)
           .map((d) => d.domain_name)
           .filter((n) => n !== "astermail.org" && n !== "aster.cx");
 

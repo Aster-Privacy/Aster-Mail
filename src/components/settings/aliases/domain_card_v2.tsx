@@ -70,6 +70,7 @@ export function DomainCardV2({
   deleting,
 }: DomainCardV2Props) {
   const { t } = use_i18n();
+  const is_shared = domain.is_shared === true;
   const [expanded, set_expanded] = useState(false);
   const [show_advanced, set_show_advanced] = useState(false);
   const [dkim_rotating, set_dkim_rotating] = useState(false);
@@ -251,6 +252,15 @@ export function DomainCardV2({
               {domain.domain_name}
             </p>
             <div className="flex items-center gap-2 mt-0.5">
+              {is_shared && (
+                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                  {domain.shared_from
+                    ? t("settings.domain_shared_by", {
+                        owner: domain.shared_from,
+                      })
+                    : t("settings.domain_shared_label")}
+                </span>
+              )}
               {domain.status !== "active" && (
                 <>
                   <span
@@ -286,14 +296,14 @@ export function DomainCardV2({
         </div>
 
         <div className="flex items-center gap-2">
-          {domain.status !== "active" && (
+          {!is_shared && domain.status !== "active" && (
             <Button size="md" variant="depth" onClick={() => on_setup(domain)}>
               <ArrowRightIcon className="w-3.5 h-3.5 rtl:-scale-x-100" />
               {t("settings.continue_setup")}
             </Button>
           )}
 
-          {domain.status === "active" && core_pending && (
+          {!is_shared && domain.status === "active" && core_pending && (
             <Button
               disabled={verifying}
               size="md"
@@ -307,20 +317,22 @@ export function DomainCardV2({
             </Button>
           )}
 
-          <Button
-            aria-label={t("common.delete")}
-            className="text-red-500 hover:text-red-500 hover:bg-red-500/10"
-            disabled={deleting}
-            size="icon"
-            variant="ghost"
-            onClick={() => on_delete(domain.id)}
-          >
-            {deleting ? (
-              <Spinner size="md" />
-            ) : (
-              <TrashIcon className="w-4 h-4" />
-            )}
-          </Button>
+          {!is_shared && (
+            <Button
+              aria-label={t("common.delete")}
+              className="text-red-500 hover:text-red-500 hover:bg-red-500/10"
+              disabled={deleting}
+              size="icon"
+              variant="ghost"
+              onClick={() => on_delete(domain.id)}
+            >
+              {deleting ? (
+                <Spinner size="md" />
+              ) : (
+                <TrashIcon className="w-4 h-4" />
+              )}
+            </Button>
+          )}
         </div>
       </div>
 
@@ -341,11 +353,19 @@ export function DomainCardV2({
             ))}
           </div>
 
-          {domain.status !== "active" && verification_count < 5 && (
+          {is_shared && (
             <p className="text-xs text-txt-muted mb-4">
-              {t("settings.domain_pending_hint")}
+              {t("settings.domain_shared_hint")}
             </p>
           )}
+
+          {!is_shared &&
+            domain.status !== "active" &&
+            verification_count < 5 && (
+              <p className="text-xs text-txt-muted mb-4">
+                {t("settings.domain_pending_hint")}
+              </p>
+            )}
 
           <div>
             <button
@@ -371,7 +391,7 @@ export function DomainCardV2({
               </div>
             )}
 
-            {domain.status === "active" && (
+            {!is_shared && domain.status === "active" && (
               <>
                 <button
                   className="flex items-center gap-2 text-sm font-medium text-txt-secondary hover:text-txt-primary transition-colors mb-3"
