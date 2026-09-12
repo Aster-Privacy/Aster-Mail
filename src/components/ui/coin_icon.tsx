@@ -87,11 +87,11 @@ const NATIVE_CHAIN_OF: Record<MarkId, ChainId> = {
 
 const VIEW_SIZE = 40;
 const MARK_BOX = "0 0 32 32";
-const COIN_SIZE = 33;
+const COIN_SIZE = 32;
 const COIN_INSET = (VIEW_SIZE - COIN_SIZE) / 2;
-const BADGE_RADIUS = 8.2;
-const BADGE_CENTER = VIEW_SIZE - BADGE_RADIUS - 0.4;
-const BADGE_CUTOUT_RADIUS = BADGE_RADIUS + 1.6;
+const BADGE_RADIUS = 7.5;
+const BADGE_CENTER = VIEW_SIZE - BADGE_RADIUS;
+const BADGE_CUTOUT_RADIUS = BADGE_RADIUS + 1.5;
 const BADGE_ORIGIN = BADGE_CENTER - BADGE_RADIUS;
 const BADGE_SIZE = BADGE_RADIUS * 2;
 
@@ -370,7 +370,7 @@ export function CoinIcon({
   return (
     <svg
       aria-hidden="true"
-      className={`shrink-0 ${class_name}`}
+      className={`block shrink-0 ${class_name}`}
       focusable="false"
       height={size}
       role="presentation"
@@ -410,8 +410,8 @@ export function CoinIcon({
         overflow="visible"
         viewBox={MARK_BOX}
         width={COIN_SIZE}
-        x={show_badge ? 0 : COIN_INSET}
-        y={show_badge ? 0 : COIN_INSET}
+        x={COIN_INSET}
+        y={COIN_INSET}
       >
         {mark_for(currency_mark, `coin_icon_coin_gradient_${instance_id}`)}
       </svg>
