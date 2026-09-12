@@ -114,3 +114,64 @@ export function PasswordStrengthIndicator({
     </div>
   );
 }
+
+interface PasswordStrengthRingProps {
+  password: string;
+}
+
+export function PasswordStrengthRing({ password }: PasswordStrengthRingProps) {
+  const { t } = use_i18n();
+
+  if (!password) return null;
+
+  const level = compute_password_strength_tier(password);
+  const fraction = Math.max(0.12, Math.min(1, (level + 1) / 5));
+  const color =
+    level <= 1
+      ? "var(--color-danger)"
+      : level === 2
+        ? "var(--color-warning)"
+        : "var(--color-success)";
+  const label =
+    level <= 1
+      ? t("common.password_strength_weak")
+      : level === 2
+        ? t("common.password_strength_fair")
+        : t("common.password_strength_strong");
+  const radius = 7;
+  const circumference = 2 * Math.PI * radius;
+
+  return (
+    <svg
+      aria-label={label}
+      className="h-5 w-5 flex-shrink-0"
+      role="img"
+      viewBox="0 0 20 20"
+    >
+      <circle
+        cx="10"
+        cy="10"
+        fill="none"
+        r={radius}
+        stroke="var(--border-secondary)"
+        strokeWidth="2.5"
+      />
+      <circle
+        cx="10"
+        cy="10"
+        fill="none"
+        r={radius}
+        stroke={color}
+        strokeDasharray={circumference}
+        strokeDashoffset={circumference * (1 - fraction)}
+        strokeLinecap="round"
+        strokeWidth="2.5"
+        style={{
+          transform: "rotate(-90deg)",
+          transformOrigin: "50% 50%",
+          transition: "stroke-dashoffset 0.25s ease, stroke 0.25s ease",
+        }}
+      />
+    </svg>
+  );
+}

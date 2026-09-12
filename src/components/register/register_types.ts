@@ -30,7 +30,11 @@ export type RegistrationStep =
   | "recovery_email_verification"
   | "recovery_email_gate"
   | "academic_offer"
-  | "plan_selection";
+  | "plan_selection"
+  | "download_apps"
+  | "notifications"
+  | "addresses"
+  | "custom_domain";
 
 export const page_variants = {
   initial: { opacity: 0, y: 12 },

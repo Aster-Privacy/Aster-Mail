@@ -23,6 +23,10 @@ import type { AlertProps } from "@/components/register/register_types";
 import { motion } from "framer-motion";
 
 import { use_should_reduce_motion } from "@/provider";
+import {
+  page_variants,
+  page_transition,
+} from "@/components/register/register_types";
 
 export const Alert = ({ message, is_dark }: AlertProps) => {
   const reduce_motion = use_should_reduce_motion();
@@ -58,5 +62,80 @@ export const CopyIcon = () => (
       strokeLinecap="round"
       strokeLinejoin="round"
     />
+  </svg>
+);
+
+interface StepShellProps {
+  step_key: string;
+  title: string;
+  subtitle: string;
+  children: React.ReactNode;
+  wide?: boolean;
+}
+
+export const StepShell = ({
+  step_key,
+  title,
+  subtitle,
+  children,
+  wide = false,
+}: StepShellProps) => (
+  <motion.div
+    key={step_key}
+    animate="animate"
+    className={`w-full ${wide ? "max-w-[520px]" : "max-w-[400px]"}`}
+    exit="exit"
+    initial="initial"
+    transition={page_transition}
+    variants={page_variants}
+  >
+    <div
+      className="flex flex-col items-center rounded-2xl border px-8 py-8 text-center"
+      style={{
+        backgroundColor: "var(--bg-card)",
+        borderColor: "var(--border-primary)",
+        boxShadow: "0 1px 2px rgba(0, 0, 0, 0.04)",
+      }}
+    >
+      <img
+        alt="Aster"
+        className="h-9 w-9 rounded-[10px]"
+        src="/mail_logo.png"
+      />
+      <h1 className="mt-4 text-base font-semibold text-txt-primary">{title}</h1>
+      <p className="mt-1.5 text-sm leading-relaxed text-txt-tertiary">
+        {subtitle}
+      </p>
+      <div className="mt-6 w-full">{children}</div>
+    </div>
+  </motion.div>
+);
+
+interface SkipLinkProps {
+  label: string;
+  on_click: () => void;
+  disabled?: boolean;
+}
+
+export const SkipLink = ({ label, on_click, disabled }: SkipLinkProps) => (
+  <button
+    className="mt-4 w-full text-center text-sm text-txt-tertiary transition-colors hover:text-txt-primary disabled:opacity-50"
+    disabled={disabled}
+    type="button"
+    onClick={on_click}
+  >
+    {label}
+  </button>
+);
+
+export const CheckCircleIcon = () => (
+  <svg
+    className="h-5 w-5"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    viewBox="0 0 24 24"
+  >
+    <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );

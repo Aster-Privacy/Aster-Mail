@@ -85,7 +85,7 @@ import {
 import { check_password_breach } from "@/services/breach_check";
 import { EMAIL_REGEX } from "@/lib/utils";
 import { use_i18n } from "@/lib/i18n/context";
-import { prefetch_plans } from "@/components/register/register_step_plan_selection";
+import { open_external } from "@/utils/open_link";
 import { user_facing_error } from "@/utils/user_facing_error";
 import { get_safe_next_path } from "@/pages/sign_in_helpers";
 
@@ -203,13 +203,13 @@ export function use_registration(options?: RegistrationClaimOptions) {
     document.title = `${t("auth.sign_up")} | ${t("common.aster_mail")}`;
   }, [t]);
 
-  useEffect(() => {
-    prefetch_plans();
-  }, []);
-
   const [step, set_step] = useState<RegistrationStep>(
-    is_claim ? "password" : is_invited ? "email" : "welcome",
+    is_claim ? "password" : "email",
   );
+  const [is_downloading_key, set_is_downloading_key] = useState(false);
+  const [has_copied_key, set_has_copied_key] = useState(false);
+  const [has_opened_download, set_has_opened_download] = useState(false);
+  const [added_addresses, set_added_addresses] = useState<string[]>([]);
   const [is_password_visible, set_is_password_visible] = useState(false);
   const [is_confirm_password_visible, set_is_confirm_password_visible] =
     useState(false);
@@ -657,7 +657,8 @@ export function use_registration(options?: RegistrationClaimOptions) {
 
     try {
       await copy_text_or_throw(codes_text);
-      show_toast(t("auth.recovery_codes_copied"), "success");
+      set_has_copied_key(true);
+      show_toast(t("auth.recovery_key_copied"), "success");
     } catch {
       show_toast(t("common.failed_to_copy"), "error");
     }
@@ -673,11 +674,16 @@ export function use_registration(options?: RegistrationClaimOptions) {
   };
 
   const handle_download_key = async () => {
+    if (is_downloading_key) return;
+    set_is_downloading_key(true);
     try {
       await generate_recovery_pdf(generated_email, recovery_codes, t);
       set_is_pdf_downloaded(true);
+      await handle_advance_from_recovery_key();
     } catch {
       show_toast(t("auth.recovery_download_failed"), "error");
+    } finally {
+      set_is_downloading_key(false);
     }
   };
 
@@ -851,12 +857,12 @@ export function use_registration(options?: RegistrationClaimOptions) {
     return persist_state_promise_ref.current;
   };
 
-  const finalize_registration = async () => {
+  const finalize_registration = async (target_path?: string) => {
     await persist_registration_state();
 
     set_is_completing_registration(false);
 
-    navigate(get_safe_next_path());
+    navigate(target_path ?? get_safe_next_path());
   };
 
   const complete_registration = async () => {
@@ -868,12 +874,51 @@ export function use_registration(options?: RegistrationClaimOptions) {
 
     if (!is_claim && !plan_step_shown_ref.current) {
       plan_step_shown_ref.current = true;
-      prefetch_plans();
       void persist_registration_state();
-      set_step("plan_selection");
+      set_step("download_apps");
 
       return;
     }
+    await finalize_registration();
+  };
+
+  const handle_open_download = (url: string) => {
+    open_external(url);
+    set_has_opened_download(true);
+  };
+
+  const handle_download_apps_continue = () => {
+    set_step("notifications");
+  };
+
+  const handle_notifications_turn_on = async () => {
+    try {
+      if (typeof Notification !== "undefined") {
+        await Notification.requestPermission();
+      }
+    } catch (e) {
+      if (import.meta.env.DEV) console.error(e);
+    }
+    set_step("addresses");
+  };
+
+  const handle_notifications_skip = () => {
+    set_step("addresses");
+  };
+
+  const handle_addresses_continue = () => {
+    set_step("custom_domain");
+  };
+
+  const handle_custom_domain_own = async () => {
+    await finalize_registration("/settings/domains");
+  };
+
+  const handle_custom_domain_new = async () => {
+    await finalize_registration("/settings/domains?purchase=1");
+  };
+
+  const handle_custom_domain_skip = async () => {
     await finalize_registration();
   };
 
@@ -1136,16 +1181,12 @@ export function use_registration(options?: RegistrationClaimOptions) {
   };
 
   const handle_advance_from_recovery_key = async () => {
-    if (recovery_email_required) {
-      if (recovery_email.trim()) {
-        await handle_recovery_email_continue();
-      } else {
-        set_step("recovery_email");
-      }
+    if (recovery_email_required && recovery_email.trim()) {
+      await handle_recovery_email_continue();
 
       return;
     }
-    await complete_registration();
+    set_step("recovery_email");
   };
 
   return {
@@ -1204,6 +1245,11 @@ export function use_registration(options?: RegistrationClaimOptions) {
     set_captcha_token,
     is_pdf_downloaded,
     is_text_downloaded,
+    is_downloading_key,
+    has_copied_key,
+    has_opened_download,
+    added_addresses,
+    set_added_addresses,
     show_skip_confirmation,
     set_show_skip_confirmation,
     is_saving_recovery_email,
@@ -1233,6 +1279,14 @@ export function use_registration(options?: RegistrationClaimOptions) {
     handle_recovery_email_skip,
     handle_recovery_email_gate_submit,
     handle_advance_from_recovery_key,
+    handle_open_download,
+    handle_download_apps_continue,
+    handle_notifications_turn_on,
+    handle_notifications_skip,
+    handle_addresses_continue,
+    handle_custom_domain_own,
+    handle_custom_domain_new,
+    handle_custom_domain_skip,
     handle_resend_verification,
     handle_skip_verification,
 

@@ -22,7 +22,6 @@ import { AnimatePresence } from "framer-motion";
 
 import { ErrorBoundary } from "@/components/ui/error_boundary";
 import { use_registration } from "@/components/register/hooks/use_registration";
-import { RegisterStepWelcome } from "@/components/register/register_step_welcome";
 import { RegisterStepAccount } from "@/components/register/register_step_account";
 import { RegisterStepPassword } from "@/components/register/register_step_password";
 import { RegisterStepKeys } from "@/components/register/register_step_keys";
@@ -36,6 +35,10 @@ import { RegisterStepRecoveryPhrase } from "@/components/register/register_step_
 import { RegisterStepPhraseConfirm } from "@/components/register/register_step_phrase_confirm";
 import { RegisterStepPlanSelection } from "@/components/register/register_step_plan_selection";
 import { RegisterStepAcademicOffer } from "@/components/register/register_step_academic_offer";
+import { RegisterStepDownloadApps } from "@/components/register/register_step_download_apps";
+import { RegisterStepNotifications } from "@/components/register/register_step_notifications";
+import { RegisterStepAddresses } from "@/components/register/register_step_addresses";
+import { RegisterStepCustomDomain } from "@/components/register/register_step_custom_domain";
 import { DesktopSignUpHandoff } from "@/pages/desktop_sign_up_handoff";
 import { is_tauri } from "@/native/desktop_device_auth";
 
@@ -56,8 +59,6 @@ function BrowserRegisterPage() {
 
   const render_step_content = () => {
     switch (reg.step) {
-      case "welcome":
-        return <RegisterStepWelcome reg={reg} />;
       case "email":
         return <RegisterStepAccount reg={reg} />;
       case "password":
@@ -80,6 +81,14 @@ function BrowserRegisterPage() {
         return <RegisterStepAcademicOffer reg={reg} />;
       case "plan_selection":
         return <RegisterStepPlanSelection reg={reg} />;
+      case "download_apps":
+        return <RegisterStepDownloadApps reg={reg} />;
+      case "notifications":
+        return <RegisterStepNotifications reg={reg} />;
+      case "addresses":
+        return <RegisterStepAddresses reg={reg} />;
+      case "custom_domain":
+        return <RegisterStepCustomDomain reg={reg} />;
       default:
         return <RegisterStepKeys reg={reg} />;
     }
