@@ -21,18 +21,12 @@
 import type { UseRegistrationReturn } from "@/components/register/hooks/use_registration";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { Button } from "@aster/ui";
 
 import { Spinner } from "@/components/ui/spinner";
-import { Input } from "@/components/ui/input";
-import { Logo } from "@/components/auth/auth_styles";
 import {
-  page_variants,
-  page_transition,
-} from "@/components/register/register_types";
-import {
-  Alert,
   CopyIcon,
+  OnboardingButton,
+  OnboardingInput,
   SkipLink,
   StepShell,
 } from "@/components/register/register_shared";
@@ -84,7 +78,7 @@ export const RegisterStepRecoveryCodes = ({
       )}
 
       <div
-        className="relative w-full rounded-xl border px-4 pb-10 pt-4 text-start bg-surf-tertiary border-edge-secondary"
+        className="relative w-full rounded-lg border border-black/[0.06] bg-black/[0.05] px-4 pb-10 pt-4 text-start dark:border-white/[0.08] dark:bg-white/[0.08]"
         role="button"
         tabIndex={0}
         onClick={() => reg.set_is_key_visible(!reg.is_key_visible)}
@@ -132,17 +126,16 @@ export const RegisterStepRecoveryCodes = ({
         </div>
       </div>
 
-      <Button
+      <OnboardingButton
         className="mt-4 w-full"
         disabled={reg.is_downloading_key}
-        size="xl"
-        variant="depth"
+        variant="primary"
         onClick={reg.handle_download_key}
       >
         {reg.is_downloading_key
           ? reg.t("auth.downloading")
           : reg.t("auth.download_key_lower")}
-      </Button>
+      </OnboardingButton>
 
       {can_continue && (
         <SkipLink
@@ -163,71 +156,42 @@ export const RegisterStepRecoveryEmailVerification = ({
   reg,
 }: RegisterStepRecoveryEmailProps) => {
   return (
-    <motion.div
-      key="recovery_email_verification"
-      animate="animate"
-      className="flex flex-col items-center w-full max-w-sm px-4"
-      exit="exit"
-      initial="initial"
-      transition={page_transition}
-      variants={page_variants}
-    >
-      <Logo />
-
-      {!reg.is_email_verified && (
-        <svg
-          className="mt-6 h-10 w-10 text-txt-secondary"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          viewBox="0 0 24 24"
-        >
-          <path
-            d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      )}
-
-      <h1
-        className={`text-xl font-semibold text-txt-primary ${reg.is_email_verified ? "mt-8" : "mt-5"}`}
-      >
-        {reg.is_email_verified
-          ? reg.t("auth.recovery_email_verified")
-          : reg.t("auth.check_your_inbox")}
-      </h1>
-      <p className="text-sm mt-2 leading-relaxed text-txt-tertiary text-center">
-        {reg.is_email_verified
+    <StepShell
+      step_key="recovery_email_verification"
+      subtitle={
+        reg.is_email_verified
           ? reg.t("auth.recovery_email_verified_desc")
           : reg.t("auth.verification_email_sent_to_desc", {
               email: reg.recovery_email.trim(),
-            })}
-      </p>
-
+            })
+      }
+      title={
+        reg.is_email_verified
+          ? reg.t("auth.recovery_email_verified")
+          : reg.t("auth.check_your_inbox")
+      }
+    >
       {reg.is_email_verified && reg.recovery_email_required && (
-        <div className="w-full mt-4 px-4 py-3 rounded-lg bg-amber-500 text-sm text-black font-medium text-center">
+        <div className="w-full rounded-lg bg-amber-500 px-4 py-3 text-sm font-medium text-black">
           {reg.t("auth.account_flagged_notice")}
         </div>
       )}
 
       {!reg.is_email_verified && (
         <>
-          <p className="text-xs mt-3 text-txt-muted text-center leading-relaxed">
-            {reg.t("common.check_spam_folder_note")}
-          </p>
-
-          <div className="mt-6 flex items-center gap-2">
-            <Spinner size="md" />
-            <span className="text-sm text-txt-muted">
+          <div className="flex w-full items-center gap-3 rounded-lg border border-transparent bg-black/[0.05] px-3 py-2.5 dark:bg-white/[0.08]">
+            <Spinner size="sm" />
+            <span className="text-sm text-txt-secondary">
               {reg.t("auth.waiting_for_verification")}
             </span>
           </div>
+          <p className="mt-2 text-xs leading-relaxed text-txt-muted">
+            {reg.t("common.check_spam_folder_note")}
+          </p>
 
-          <Button
-            className="w-full mt-6"
+          <OnboardingButton
+            className="mt-4 w-full"
             disabled={reg.resend_cooldown > 0 || reg.is_resending_verification}
-            size="xl"
             variant="secondary"
             onClick={reg.handle_resend_verification}
           >
@@ -238,19 +202,17 @@ export const RegisterStepRecoveryEmailVerification = ({
               : reg.is_resending_verification
                 ? reg.t("common.sending")
                 : reg.t("auth.resend_verification_email")}
-          </Button>
+          </OnboardingButton>
 
           {!reg.recovery_email_required && (
-            <button
-              className="w-full mt-4 text-sm transition-colors hover:opacity-80 text-txt-tertiary text-center"
-              onClick={reg.handle_skip_verification}
-            >
-              {reg.t("auth.skip_verification")}
-            </button>
+            <SkipLink
+              label={reg.t("auth.skip_verification")}
+              on_click={reg.handle_skip_verification}
+            />
           )}
         </>
       )}
-    </motion.div>
+    </StepShell>
   );
 };
 
@@ -269,7 +231,7 @@ export const RegisterStepRecoveryEmail = ({
         </div>
       )}
 
-      <Input
+      <OnboardingInput
         // eslint-disable-next-line jsx-a11y/no-autofocus
         autoFocus
         autoComplete="email"
@@ -304,16 +266,15 @@ export const RegisterStepRecoveryEmail = ({
         )}
       </AnimatePresence>
 
-      <Button
+      <OnboardingButton
         className="mt-4 w-full"
         disabled={reg.is_saving_recovery_email}
         is_loading={reg.is_saving_recovery_email}
-        size="xl"
-        variant="depth"
+        variant="primary"
         onClick={reg.handle_recovery_email_continue}
       >
         {reg.t("common.continue")}
-      </Button>
+      </OnboardingButton>
 
       {!reg.recovery_email_required && (
         <SkipLink
@@ -334,62 +295,55 @@ export const RegisterStepRecoveryEmailGate = ({
   reg,
 }: RegisterStepRecoveryEmailGateProps) => {
   return (
-    <motion.div
-      key="recovery_email_gate"
-      animate="animate"
-      className="flex flex-col items-center w-full max-w-sm px-4"
-      exit="exit"
-      initial="initial"
-      transition={page_transition}
-      variants={page_variants}
+    <StepShell
+      step_key="recovery_email_gate"
+      subtitle={reg.t("auth.recovery_email_required_gate_desc")}
+      title={reg.t("auth.recovery_email_required_gate_title")}
     >
-      <Logo />
-
-      <h1 className="text-xl font-semibold mt-6 text-txt-primary">
-        {reg.t("auth.recovery_email_required_gate_title")}
-      </h1>
-      <p className="text-sm mt-2 leading-relaxed text-txt-tertiary text-center">
-        {reg.t("auth.recovery_email_required_gate_desc")}
-      </p>
+      <OnboardingInput
+        // eslint-disable-next-line jsx-a11y/no-autofocus
+        autoFocus
+        autoComplete="email"
+        disabled={reg.is_saving_recovery_email}
+        placeholder={reg.t("auth.backup_email_placeholder")}
+        status={reg.recovery_email_error ? "error" : "default"}
+        type="email"
+        value={reg.recovery_email}
+        onChange={(e) => {
+          reg.set_recovery_email(e.target.value);
+          if (reg.recovery_email_error) reg.set_recovery_email_error("");
+        }}
+        onKeyDown={(e) =>
+          e["key"] === "Enter" &&
+          !reg.is_saving_recovery_email &&
+          reg.handle_recovery_email_gate_submit()
+        }
+      />
 
       <AnimatePresence>
         {reg.recovery_email_error && (
-          <Alert is_dark={reg.is_dark} message={reg.recovery_email_error} />
+          <motion.p
+            animate={{ opacity: 1 }}
+            className="mt-2 text-start text-xs"
+            exit={{ opacity: 0 }}
+            initial={{ opacity: 0 }}
+            style={{ color: reg.is_dark ? "#f87171" : "#dc2626" }}
+            transition={{ duration: 0.15 }}
+          >
+            {reg.recovery_email_error}
+          </motion.p>
         )}
       </AnimatePresence>
 
-      <div className={`w-full ${reg.recovery_email_error ? "mt-4" : "mt-6"}`}>
-        <Input
-          // eslint-disable-next-line jsx-a11y/no-autofocus
-          autoFocus
-          autoComplete="email"
-          disabled={reg.is_saving_recovery_email}
-          placeholder={reg.t("auth.backup_email_placeholder")}
-          status={reg.recovery_email_error ? "error" : "default"}
-          type="email"
-          value={reg.recovery_email}
-          onChange={(e) => {
-            reg.set_recovery_email(e.target.value);
-            if (reg.recovery_email_error) reg.set_recovery_email_error("");
-          }}
-          onKeyDown={(e) =>
-            e["key"] === "Enter" &&
-            !reg.is_saving_recovery_email &&
-            reg.handle_recovery_email_gate_submit()
-          }
-        />
-      </div>
-
-      <Button
-        className="w-full mt-6"
+      <OnboardingButton
+        className="mt-4 w-full"
         disabled={reg.is_saving_recovery_email}
         is_loading={reg.is_saving_recovery_email}
-        size="xl"
-        variant="depth"
+        variant="primary"
         onClick={reg.handle_recovery_email_gate_submit}
       >
         {reg.t("common.continue")}
-      </Button>
-    </motion.div>
+      </OnboardingButton>
+    </StepShell>
   );
 };

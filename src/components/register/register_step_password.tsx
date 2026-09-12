@@ -21,24 +21,42 @@
 import type { UseRegistrationReturn } from "@/components/register/hooks/use_registration";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { Button, Tooltip } from "@aster/ui";
+import { Tooltip } from "@aster/ui";
 
-import {
-  EyeIcon,
-  EyeSlashIcon,
-  InputWithEndContent,
-} from "@/components/auth/auth_styles";
+import { EyeIcon, EyeSlashIcon } from "@/components/auth/auth_styles";
 import {
   TurnstileWidget,
   TURNSTILE_SITE_KEY,
 } from "@/components/auth/turnstile_widget";
 import { PasswordStrengthRing } from "@/components/register/password_strength";
-import { StepShell } from "@/components/register/register_shared";
+import {
+  OnboardingButton,
+  OnboardingInput,
+  StepShell,
+} from "@/components/register/register_shared";
 import { clamp_password } from "@/services/sanitize";
 
 interface RegisterStepPasswordProps {
   reg: UseRegistrationReturn;
 }
+
+interface OnboardingInputWithEndContentProps
+  extends React.ComponentProps<typeof OnboardingInput> {
+  end_content: React.ReactNode;
+}
+
+const OnboardingInputWithEndContent = ({
+  end_content,
+  className,
+  ...props
+}: OnboardingInputWithEndContentProps) => (
+  <div className="relative">
+    <OnboardingInput className={`pe-16 ${className ?? ""}`} {...props} />
+    <div className="absolute end-3 top-1/2 -translate-y-1/2 text-txt-muted">
+      {end_content}
+    </div>
+  </div>
+);
 
 export const RegisterStepPassword = ({ reg }: RegisterStepPasswordProps) => {
   const is_captcha_pending = !!TURNSTILE_SITE_KEY && !reg.captcha_token;
@@ -73,7 +91,7 @@ export const RegisterStepPassword = ({ reg }: RegisterStepPasswordProps) => {
       title={reg.t("auth.create_a_password")}
     >
       <div className="w-full space-y-3">
-        <InputWithEndContent
+        <OnboardingInputWithEndContent
           // eslint-disable-next-line jsx-a11y/no-autofocus
           autoFocus
           autoComplete="new-password"
@@ -93,7 +111,7 @@ export const RegisterStepPassword = ({ reg }: RegisterStepPasswordProps) => {
           onBlur={reg.handle_password_blur}
           onChange={(e) => reg.set_password(clamp_password(e.target.value))}
         />
-        <InputWithEndContent
+        <OnboardingInputWithEndContent
           autoComplete="new-password"
           end_content={eye_button(reg.is_confirm_password_visible, () =>
             reg.set_is_confirm_password_visible(
@@ -142,19 +160,17 @@ export const RegisterStepPassword = ({ reg }: RegisterStepPasswordProps) => {
         on_verify={reg.set_captcha_token}
       />
 
-      <Button
+      <OnboardingButton
         className="mt-4 w-full"
         disabled={is_captcha_pending}
-        size="xl"
-        variant="depth"
+        variant="primary"
         onClick={reg.handle_password_next}
       >
         {reg.t("common.next")}
-      </Button>
+      </OnboardingButton>
       {!reg.is_claim && (
-        <Button
+        <OnboardingButton
           className="mt-2 w-full"
-          size="xl"
           variant="secondary"
           onClick={() => {
             reg.set_error("");
@@ -162,7 +178,7 @@ export const RegisterStepPassword = ({ reg }: RegisterStepPasswordProps) => {
           }}
         >
           {reg.t("common.back")}
-        </Button>
+        </OnboardingButton>
       )}
     </StepShell>
   );

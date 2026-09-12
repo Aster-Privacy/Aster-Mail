@@ -21,12 +21,20 @@
 import type { UseRegistrationReturn } from "@/components/register/hooks/use_registration";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { Button } from "@aster/ui";
 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown_menu";
 import { apply_input_transform } from "@/utils/input_transform";
-import { Input } from "@/components/ui/input";
 import { sanitize_username_input } from "@/services/sanitize";
-import { StepShell } from "@/components/register/register_shared";
+import {
+  OnboardingButton,
+  OnboardingInput,
+  StepShell,
+} from "@/components/register/register_shared";
 
 interface RegisterStepAccountProps {
   reg: UseRegistrationReturn;
@@ -37,10 +45,7 @@ const PRIVACY_URL = "https://astermail.org/privacy";
 
 export const RegisterStepAccount = ({ reg }: RegisterStepAccountProps) => {
   const is_busy = reg.step === "generating";
-  const toggle_domain = () =>
-    reg.set_email_domain(
-      reg.email_domain === "astermail.org" ? "aster.cx" : "astermail.org",
-    );
+  const domains = ["astermail.org", "aster.cx"] as const;
 
   return (
     <StepShell
@@ -68,7 +73,7 @@ export const RegisterStepAccount = ({ reg }: RegisterStepAccountProps) => {
       </AnimatePresence>
 
       <div className="relative w-full">
-        <Input
+        <OnboardingInput
           // eslint-disable-next-line jsx-a11y/no-autofocus
           autoFocus
           autoCapitalize="none"
@@ -105,16 +110,44 @@ export const RegisterStepAccount = ({ reg }: RegisterStepAccountProps) => {
           }}
           onKeyDown={(e) => e["key"] === "Enter" && reg.handle_email_next()}
         />
-        <button
-          aria-label={reg.t("auth.switch_domain")}
-          className="absolute end-3 top-1/2 -translate-y-1/2 text-sm text-txt-muted transition-colors hover:text-txt-primary notranslate"
-          tabIndex={-1}
-          translate="no"
-          type="button"
-          onClick={toggle_domain}
-        >
-          @{reg.email_domain}
-        </button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              aria-label={reg.t("auth.switch_domain")}
+              className="absolute end-2 top-1/2 inline-flex -translate-y-1/2 items-center gap-1 rounded-md px-1.5 py-1 text-sm text-txt-secondary transition-colors hover:bg-black/5 hover:text-txt-primary dark:hover:bg-white/5 notranslate"
+              tabIndex={-1}
+              translate="no"
+              type="button"
+            >
+              @{reg.email_domain}
+              <svg
+                className="h-3.5 w-3.5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M19.5 8.25l-7.5 7.5-7.5-7.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-44">
+            {domains.map((domain) => (
+              <DropdownMenuItem
+                key={domain}
+                className="notranslate"
+                translate="no"
+                onClick={() => reg.set_email_domain(domain)}
+              >
+                @{domain}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       <AnimatePresence>
@@ -132,19 +165,18 @@ export const RegisterStepAccount = ({ reg }: RegisterStepAccountProps) => {
         )}
       </AnimatePresence>
 
-      <Button
+      <OnboardingButton
         className="mt-4 w-full"
         disabled={is_busy}
         is_loading={is_busy}
-        size="xl"
-        variant="depth"
+        variant="primary"
         onClick={reg.handle_email_next}
       >
         {reg.t("common.next")}
-      </Button>
-      <Button as_child className="mt-2 w-full" size="xl" variant="secondary">
+      </OnboardingButton>
+      <OnboardingButton as_child className="mt-2" variant="secondary">
         <a href="/sign-in">{reg.t("common.back")}</a>
-      </Button>
+      </OnboardingButton>
 
       <p className="mt-5 text-xs leading-relaxed text-txt-muted">
         {reg.t("auth.terms_footer_next")}{" "}

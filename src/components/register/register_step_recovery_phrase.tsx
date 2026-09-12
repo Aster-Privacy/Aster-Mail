@@ -20,18 +20,16 @@
 //
 import type { UseRegistrationReturn } from "@/components/register/hooks/use_registration";
 
-import { motion } from "framer-motion";
-import { Button } from "@aster/ui";
-
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
-import { Logo, EyeIcon, EyeSlashIcon } from "@/components/auth/auth_styles";
+import { EyeIcon, EyeSlashIcon } from "@/components/auth/auth_styles";
 import { SparkleOverlay } from "@/components/ui/sparkle_overlay";
 import { show_toast } from "@/components/toast/simple_toast";
 import {
-  page_variants,
-  page_transition,
-} from "@/components/register/register_types";
-import { CopyIcon } from "@/components/register/register_shared";
+  CopyIcon,
+  OnboardingButton,
+  SkipLink,
+  StepShell,
+} from "@/components/register/register_shared";
 
 interface RegisterStepRecoveryPhraseProps {
   reg: UseRegistrationReturn;
@@ -43,35 +41,30 @@ export const RegisterStepRecoveryPhrase = ({
   const words = reg.recovery_phrase.split(" ");
 
   return (
-    <motion.div
-      key="recovery_phrase"
-      animate="animate"
-      className="flex flex-col items-center w-full max-w-md px-4"
-      exit="exit"
-      initial="initial"
-      transition={page_transition}
-      variants={page_variants}
+    <StepShell
+      step_key="recovery_phrase"
+      subtitle={reg.t("auth.recovery_phrase_desc")}
+      title={reg.t("auth.recovery_phrase_title")}
     >
-      <Logo />
-
-      <h1 className="text-xl font-semibold mt-6 text-txt-primary">
-        {reg.t("auth.recovery_phrase_title")}
-      </h1>
-      <p className="text-sm mt-2 leading-relaxed text-txt-tertiary text-center">
-        {reg.t("auth.recovery_phrase_desc")}
-      </p>
-
-      <div className="w-full mt-6">
-        <div className="flex items-center justify-end mb-3">
+      <div className="w-full">
+        <div className="mb-2 flex items-center justify-end">
           <div className="flex items-center gap-1">
             <button
-              className="p-1.5 rounded transition-colors hover:opacity-80 text-txt-muted"
+              aria-label={
+                reg.is_phrase_visible
+                  ? reg.t("common.hide")
+                  : reg.t("settings.show_password_toggle")
+              }
+              className="rounded-md p-1.5 text-txt-muted transition-colors hover:text-txt-primary"
+              type="button"
               onClick={() => reg.set_is_phrase_visible(!reg.is_phrase_visible)}
             >
               {reg.is_phrase_visible ? <EyeSlashIcon /> : <EyeIcon />}
             </button>
             <button
-              className="p-1.5 rounded transition-colors hover:opacity-80 text-txt-muted"
+              aria-label={reg.t("auth.copy_key")}
+              className="rounded-md p-1.5 text-txt-muted transition-colors hover:text-txt-primary"
+              type="button"
               onClick={() => {
                 if (reg.is_phrase_visible) {
                   reg.handle_copy_phrase();
@@ -88,7 +81,7 @@ export const RegisterStepRecoveryPhrase = ({
           {words.map((word, index) => (
             <div
               key={index}
-              className="relative overflow-hidden rounded-lg px-3 py-2.5 border flex items-center gap-2 transition-colors hover:opacity-80 bg-surf-tertiary border-edge-secondary"
+              className="relative flex items-center gap-2 overflow-hidden rounded-lg border border-transparent bg-black/[0.05] px-3 py-2 dark:bg-white/[0.08]"
             >
               <span className="text-xs text-txt-muted w-5 text-end shrink-0">
                 {index + 1}.
@@ -109,52 +102,47 @@ export const RegisterStepRecoveryPhrase = ({
         </div>
       </div>
 
-      <Button
-        className="w-full mt-6"
-        size="xl"
-        variant="depth"
+      <OnboardingButton
+        className="mt-4 w-full"
+        variant="primary"
         onClick={reg.handle_download_phrase_pdf}
       >
         {reg.t("auth.download_key")}
-      </Button>
+      </OnboardingButton>
 
-      <Button
-        className="w-full mt-3"
-        size="xl"
+      <OnboardingButton
+        className="mt-2 w-full"
         variant="secondary"
         onClick={reg.handle_download_phrase_text}
       >
         {reg.t("auth.download_as_text")}
-      </Button>
+      </OnboardingButton>
 
-      <label className="w-full mt-6 flex items-start gap-2 cursor-pointer text-txt-tertiary">
+      <label className="mt-4 flex w-full cursor-pointer items-start gap-2 text-txt-tertiary">
         <input
           checked={reg.phrase_saved_checkbox}
-          className="mt-0.5 accent-current"
+          className="mt-0.5 accent-[var(--accent-color)]"
           type="checkbox"
           onChange={(e) => reg.set_phrase_saved_checkbox(e.target.checked)}
         />
-        <span className="text-sm leading-relaxed">
+        <span className="text-xs leading-relaxed">
           {reg.t("auth.recovery_phrase_saved_checkbox")}
         </span>
       </label>
 
-      <Button
-        className="w-full mt-4"
+      <OnboardingButton
+        className="mt-4 w-full"
         disabled={!reg.phrase_saved_checkbox}
-        size="xl"
-        variant="depth"
+        variant="primary"
         onClick={reg.handle_phrase_continue}
       >
         {reg.t("common.continue")}
-      </Button>
+      </OnboardingButton>
 
-      <button
-        className="w-full mt-4 text-sm transition-colors hover:opacity-80 text-txt-tertiary text-center"
-        onClick={reg.handle_skip_phrase}
-      >
-        {reg.t("auth.continue_without_download")}
-      </button>
+      <SkipLink
+        label={reg.t("auth.continue_without_download")}
+        on_click={reg.handle_skip_phrase}
+      />
 
       <ConfirmationModal
         cancel_text={reg.t("common.go_back")}
@@ -166,6 +154,6 @@ export const RegisterStepRecoveryPhrase = ({
         title={reg.t("common.are_you_sure")}
         variant="warning"
       />
-    </motion.div>
+    </StepShell>
   );
 };

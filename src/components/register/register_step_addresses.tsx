@@ -21,15 +21,15 @@
 import type { UseRegistrationReturn } from "@/components/register/hooks/use_registration";
 
 import { useState } from "react";
-import { Button } from "@aster/ui";
 
-import { Input } from "@/components/ui/input";
 import { apply_input_transform } from "@/utils/input_transform";
 import { sanitize_username_input } from "@/services/sanitize";
 import { create_alias } from "@/services/api/aliases/crud";
 import { validate_local_part } from "@/services/api/aliases/validate";
 import {
   CheckCircleIcon,
+  OnboardingButton,
+  OnboardingInput,
   SkipLink,
   StepShell,
 } from "@/components/register/register_shared";
@@ -112,7 +112,7 @@ export const RegisterStepAddresses = ({ reg }: RegisterStepAddressesProps) => {
           return (
             <div key={index} className="w-full">
               <div className="relative">
-                <Input
+                <OnboardingInput
                   autoCapitalize="none"
                   autoComplete="off"
                   autoCorrect="off"
@@ -168,16 +168,15 @@ export const RegisterStepAddresses = ({ reg }: RegisterStepAddressesProps) => {
         })}
       </div>
 
-      <Button
+      <OnboardingButton
         className="mt-4 w-full"
         disabled={is_adding || pending_count === 0}
         is_loading={is_adding}
-        size="xl"
-        variant="depth"
+        variant="primary"
         onClick={() => void handle_add()}
       >
         {reg.t("common.add")}
-      </Button>
+      </OnboardingButton>
 
       <SkipLink
         disabled={is_adding}

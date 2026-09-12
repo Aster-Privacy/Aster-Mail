@@ -20,9 +20,11 @@
 //
 import type { UseRegistrationReturn } from "@/components/register/hooks/use_registration";
 
-import { Button } from "@aster/ui";
-
-import { SkipLink, StepShell } from "@/components/register/register_shared";
+import {
+  OnboardingButton,
+  SkipLink,
+  StepShell,
+} from "@/components/register/register_shared";
 
 interface RegisterStepDownloadAppsProps {
   reg: UseRegistrationReturn;
@@ -33,7 +35,7 @@ const DESKTOP_DOWNLOAD_URL = "https://astermail.org/download";
 
 const PhoneIcon = () => (
   <svg
-    className="h-6 w-6"
+    className="h-5 w-5"
     fill="none"
     stroke="currentColor"
     strokeWidth="1.5"
@@ -49,7 +51,7 @@ const PhoneIcon = () => (
 
 const MonitorIcon = () => (
   <svg
-    className="h-6 w-6"
+    className="h-5 w-5"
     fill="none"
     stroke="currentColor"
     strokeWidth="1.5"
@@ -78,20 +80,21 @@ const AppCard = ({
   button_label,
   on_download,
 }: AppCardProps) => (
-  <div className="flex flex-1 flex-col items-center rounded-xl border px-4 py-5 text-center border-edge-secondary bg-surf-tertiary">
-    <span className="text-txt-primary">{icon}</span>
+  <div className="flex flex-1 flex-col items-start rounded-lg border border-transparent bg-black/[0.05] px-4 py-4 text-start dark:bg-white/[0.08]">
+    <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-black/[0.06] bg-white text-txt-primary dark:border-white/[0.08] dark:bg-white/[0.06]">
+      {icon}
+    </span>
     <span className="mt-3 text-sm font-semibold text-txt-primary">{title}</span>
     <span className="mt-1 flex-1 text-xs leading-relaxed text-txt-tertiary">
       {description}
     </span>
-    <Button
-      className="mt-4 w-full"
-      size="md"
+    <OnboardingButton
+      className="mt-4 w-auto"
       variant="secondary"
       onClick={on_download}
     >
       {button_label}
-    </Button>
+    </OnboardingButton>
   </div>
 );
 

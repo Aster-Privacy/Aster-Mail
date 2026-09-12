@@ -20,9 +20,11 @@
 //
 import type { UseRegistrationReturn } from "@/components/register/hooks/use_registration";
 
-import { Button } from "@aster/ui";
-
-import { SkipLink, StepShell } from "@/components/register/register_shared";
+import {
+  OnboardingButton,
+  SkipLink,
+  StepShell,
+} from "@/components/register/register_shared";
 
 interface RegisterStepNotificationsProps {
   reg: UseRegistrationReturn;
@@ -65,14 +67,13 @@ export const RegisterStepNotifications = ({
         </div>
       </div>
 
-      <Button
+      <OnboardingButton
         className="mt-4 w-full"
-        size="xl"
-        variant="depth"
+        variant="primary"
         onClick={() => void reg.handle_notifications_turn_on()}
       >
         {reg.t("auth.turn_on")}
-      </Button>
+      </OnboardingButton>
 
       <SkipLink
         label={reg.t("auth.skip_for_now")}

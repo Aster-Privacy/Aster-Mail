@@ -20,15 +20,14 @@
 //
 import type { UseRegistrationReturn } from "@/components/register/hooks/use_registration";
 
-import { motion, AnimatePresence } from "framer-motion";
-import { Button } from "@aster/ui";
+import { AnimatePresence } from "framer-motion";
 
-import { Logo } from "@/components/auth/auth_styles";
 import {
-  page_variants,
-  page_transition,
-} from "@/components/register/register_types";
-import { Alert } from "@/components/register/register_shared";
+  Alert,
+  OnboardingButton,
+  SkipLink,
+  StepShell,
+} from "@/components/register/register_shared";
 
 interface RegisterStepPhraseConfirmProps {
   reg: UseRegistrationReturn;
@@ -42,24 +41,11 @@ export const RegisterStepPhraseConfirm = ({
   );
 
   return (
-    <motion.div
-      key="phrase_confirm"
-      animate="animate"
-      className="flex flex-col items-center w-full max-w-md px-4"
-      exit="exit"
-      initial="initial"
-      transition={page_transition}
-      variants={page_variants}
+    <StepShell
+      step_key="phrase_confirm"
+      subtitle={reg.t("auth.recovery_phrase_confirm_desc")}
+      title={reg.t("auth.recovery_phrase_confirm_title")}
     >
-      <Logo />
-
-      <h1 className="text-xl font-semibold mt-6 text-txt-primary">
-        {reg.t("auth.recovery_phrase_confirm_title")}
-      </h1>
-      <p className="text-sm mt-2 leading-relaxed text-txt-tertiary text-center">
-        {reg.t("auth.recovery_phrase_confirm_desc")}
-      </p>
-
       <AnimatePresence>
         {reg.phrase_confirm_error && (
           <Alert
@@ -75,7 +61,7 @@ export const RegisterStepPhraseConfirm = ({
         )}
       </AnimatePresence>
 
-      <div className="w-full mt-6 space-y-6">
+      <div className="w-full space-y-5">
         {reg.phrase_confirm_challenges.map((challenge, challenge_index) => (
           <div key={challenge.word_index}>
             <span className="text-xs font-medium text-txt-muted">
@@ -91,11 +77,12 @@ export const RegisterStepPhraseConfirm = ({
                 return (
                   <button
                     key={word}
-                    className={`rounded-lg px-2 py-2 border text-xs font-mono text-center transition-colors ${
+                    className={`h-9 rounded-lg border px-2 text-center font-mono text-xs transition-colors ${
                       is_selected
-                        ? "bg-surf-primary border-txt-primary text-txt-primary"
-                        : "bg-surf-tertiary border-edge-secondary text-txt-secondary hover:opacity-80"
+                        ? "border-[var(--accent-color)] bg-black/[0.05] text-txt-primary dark:bg-white/[0.08]"
+                        : "border-transparent bg-black/[0.05] text-txt-secondary hover:bg-black/[0.07] dark:bg-white/[0.08] dark:hover:bg-white/[0.1]"
                     }`}
+                    type="button"
                     onClick={() =>
                       reg.handle_phrase_confirm_select(challenge_index, word)
                     }
@@ -109,29 +96,27 @@ export const RegisterStepPhraseConfirm = ({
         ))}
       </div>
 
-      <Button
-        className="w-full mt-6"
+      <OnboardingButton
+        className="mt-5 w-full"
         disabled={!all_answered}
-        size="xl"
-        variant="depth"
+        variant="primary"
         onClick={reg.handle_phrase_confirm_continue}
       >
         {reg.t("common.continue")}
-      </Button>
+      </OnboardingButton>
 
-      <button
-        className="w-full mt-4 text-sm transition-colors hover:opacity-80 text-txt-tertiary text-center"
-        onClick={reg.handle_skip_confirm_check}
-      >
-        {reg.t("auth.recovery_phrase_skip_check")}
-      </button>
-
-      <button
-        className="w-full mt-3 text-sm transition-colors hover:opacity-80 text-txt-tertiary text-center"
+      <OnboardingButton
+        className="mt-2 w-full"
+        variant="secondary"
         onClick={() => reg.set_step("recovery_phrase")}
       >
         {reg.t("common.go_back")}
-      </button>
-    </motion.div>
+      </OnboardingButton>
+
+      <SkipLink
+        label={reg.t("auth.recovery_phrase_skip_check")}
+        on_click={reg.handle_skip_confirm_check}
+      />
+    </StepShell>
   );
 };

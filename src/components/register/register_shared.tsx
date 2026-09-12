@@ -20,8 +20,12 @@
 //
 import type { AlertProps } from "@/components/register/register_types";
 
+import * as React from "react";
 import { motion } from "framer-motion";
+import { Slot } from "@radix-ui/react-slot";
+import { Spinner } from "@aster/ui";
 
+import { cn } from "@/lib/utils";
 import { use_should_reduce_motion } from "@/provider";
 import {
   page_variants,
@@ -89,27 +93,96 @@ export const StepShell = ({
     transition={page_transition}
     variants={page_variants}
   >
-    <div
-      className="flex flex-col items-center rounded-2xl border px-8 py-8 text-center"
-      style={{
-        backgroundColor: "var(--bg-card)",
-        borderColor: "var(--border-primary)",
-        boxShadow: "0 1px 2px rgba(0, 0, 0, 0.04)",
-      }}
-    >
+    <div className="flex flex-col items-start px-4 text-start">
       <img
         alt="Aster"
-        className="h-9 w-9 rounded-[10px]"
-        src="/mail_logo.png"
+        className="h-7"
+        decoding="async"
+        draggable={false}
+        src="/text_logo.png"
       />
-      <h1 className="mt-4 text-base font-semibold text-txt-primary">{title}</h1>
+      <h1 className="mt-5 text-base font-semibold text-txt-primary">{title}</h1>
       <p className="mt-1.5 text-sm leading-relaxed text-txt-tertiary">
         {subtitle}
       </p>
-      <div className="mt-6 w-full">{children}</div>
+      <div className="mt-5 w-full">{children}</div>
     </div>
   </motion.div>
 );
+
+type OnboardingButtonVariant = "primary" | "secondary";
+
+interface OnboardingButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: OnboardingButtonVariant;
+  is_loading?: boolean;
+  as_child?: boolean;
+}
+
+const BUTTON_VARIANT_CLASSES: Record<OnboardingButtonVariant, string> = {
+  primary:
+    "bg-[var(--accent-color)] text-[var(--accent-color-foreground,#fff)] hover:brightness-110",
+  secondary:
+    "border border-black/10 bg-white text-txt-primary hover:bg-black/[0.03] dark:border-white/10 dark:bg-white/[0.06] dark:hover:bg-white/10",
+};
+
+export const OnboardingButton = ({
+  variant = "primary",
+  is_loading = false,
+  as_child = false,
+  className,
+  children,
+  disabled,
+  type = "button",
+  ...props
+}: OnboardingButtonProps) => {
+  const Comp = as_child ? Slot : "button";
+
+  return (
+    <Comp
+      className={cn(
+        "inline-flex h-9 w-full items-center justify-center gap-2 rounded-full px-4 text-sm font-medium transition-[background-color,filter,opacity] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] focus-visible:ring-offset-2 focus-visible:ring-offset-surf-primary disabled:pointer-events-none disabled:opacity-50",
+        BUTTON_VARIANT_CLASSES[variant],
+        className,
+      )}
+      disabled={disabled || is_loading}
+      type={as_child ? undefined : type}
+      {...props}
+    >
+      {is_loading ? <Spinner size="sm" /> : children}
+    </Comp>
+  );
+};
+
+type OnboardingInputStatus = "default" | "success" | "error";
+
+interface OnboardingInputProps
+  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "size"> {
+  status?: OnboardingInputStatus;
+}
+
+const INPUT_STATUS_CLASSES: Record<OnboardingInputStatus, string> = {
+  default: "border-transparent focus:border-[var(--accent-color)]",
+  success: "border-[#22c55e] focus:border-[#22c55e]",
+  error: "border-[#ef4444] focus:border-[#ef4444]",
+};
+
+export const OnboardingInput = React.forwardRef<
+  HTMLInputElement,
+  OnboardingInputProps
+>(({ className, status = "default", ...props }, ref) => (
+  <input
+    ref={ref}
+    className={cn(
+      "h-9 w-full rounded-lg border bg-black/[0.05] px-3 text-sm text-txt-primary outline-none transition-colors duration-150 placeholder:text-txt-muted hover:bg-black/[0.07] focus:bg-black/[0.05] disabled:opacity-60 dark:bg-white/[0.08] dark:hover:bg-white/[0.1] dark:focus:bg-white/[0.08]",
+      INPUT_STATUS_CLASSES[status],
+      className,
+    )}
+    {...props}
+  />
+));
+
+OnboardingInput.displayName = "OnboardingInput";
 
 interface SkipLinkProps {
   label: string;
@@ -119,7 +192,7 @@ interface SkipLinkProps {
 
 export const SkipLink = ({ label, on_click, disabled }: SkipLinkProps) => (
   <button
-    className="mt-4 w-full text-center text-sm text-txt-tertiary transition-colors hover:text-txt-primary disabled:opacity-50"
+    className="mt-3 w-full text-center text-xs text-txt-tertiary transition-colors hover:text-txt-primary disabled:opacity-50"
     disabled={disabled}
     type="button"
     onClick={on_click}

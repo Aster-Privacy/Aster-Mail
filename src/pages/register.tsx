@@ -96,7 +96,7 @@ function BrowserRegisterPage() {
 
   return (
     <div className="fixed inset-0 overflow-y-auto transition-colors duration-200 bg-surf-primary">
-      <div className="min-h-full flex items-start md:items-center justify-center py-8 md:py-4 px-4">
+      <div className="flex min-h-full items-start justify-center px-4 pb-12 pt-8 md:pt-[16vh]">
         <ErrorBoundary>
           <AnimatePresence mode="wait">{render_step_content()}</AnimatePresence>
         </ErrorBoundary>
