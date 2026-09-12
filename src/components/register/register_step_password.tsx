@@ -218,7 +218,7 @@ export const RegisterStepPassword = ({ reg }: RegisterStepPasswordProps) => {
           />
         </div>
 
-        <ul className="mt-3 flex flex-col gap-2 rounded-xl border border-edge-secondary bg-surf-tertiary px-4 py-3">
+        <ul className="mt-4 flex flex-col gap-2 px-1">
           <RuleRow
             label={reg.t("auth.password_rule_length")}
             met={has_length}

@@ -49,7 +49,7 @@ import {
 } from "@/lib/special_offer";
 import special_offer_hero_url from "@/assets/special_offer_hero.webp";
 import {
-  can_show_special_offer,
+  can_auto_show_special_offer,
   close_special_offer,
   show_special_offer,
   use_special_offer_state,
@@ -132,7 +132,7 @@ export function SpecialOfferModal() {
     if (!can_auto_show) return;
 
     let timer = setTimeout(function attempt() {
-      if (is_another_dialog_open() || !can_show_special_offer()) {
+      if (is_another_dialog_open() || !can_auto_show_special_offer()) {
         timer = setTimeout(attempt, AUTO_SHOW_RETRY_MS);
 
         return;

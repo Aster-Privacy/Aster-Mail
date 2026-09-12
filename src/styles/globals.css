@@ -2885,6 +2885,22 @@ aside[data-collapsed="true"] .sidebar-rail-btn:hover {
   }
 }
 
+.animate-spin {
+  will-change: transform;
+  backface-visibility: hidden;
+  animation-timing-function: linear;
+}
+
+.reduce-motion .animate-spin {
+  animation-duration: 1s !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-spin {
+    animation-duration: 1s !important;
+  }
+}
+
 .compact-mode .p-6 {
   padding: 1rem;
 }

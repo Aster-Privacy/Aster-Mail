@@ -376,8 +376,10 @@ export function use_registration(options?: RegistrationClaimOptions) {
   const last_phrase_vault_ref = useRef<string>("");
   const registration_password_hash_ref = useRef<string>("");
   const [phrase_wrap_error, set_phrase_wrap_error] = useState(false);
+  const handoff_ref = useRef(false);
+
   useEffect(() => {
-    if (has_existing_session) {
+    if (has_existing_session && !handoff_ref.current) {
       safe_session_remove(REGISTRATION_RESUME_KEY);
       navigate(get_safe_next_path(), { replace: true });
     }
@@ -1093,6 +1095,7 @@ export function use_registration(options?: RegistrationClaimOptions) {
     await persist_registration_state();
 
     safe_session_remove(REGISTRATION_RESUME_KEY);
+    handoff_ref.current = true;
     set_is_completing_registration(false);
 
     navigate(target_path ?? "/", { replace: true });
@@ -1148,7 +1151,8 @@ export function use_registration(options?: RegistrationClaimOptions) {
   };
 
   const handle_custom_domain_new = async () => {
-    await finalize_registration("/settings/domains?purchase=1");
+    safe_session_set("alias_domains_purchase_open", "1");
+    await finalize_registration("/settings/domains");
   };
 
   const handle_custom_domain_skip = () => {

@@ -20,7 +20,11 @@
 //
 import { useSyncExternalStore } from "react";
 
+import { strip_account_prefix } from "@/lib/account_index_url";
+import { first_run_age_ms } from "@/lib/first_run";
 import { is_on_auth_route } from "@/stores/upgrade_store";
+
+const AUTO_SHOW_QUIET_AFTER_SIGN_UP_MS = 24 * 60 * 60 * 1000;
 
 export type SpecialOfferSource = "auto" | "manual";
 
@@ -58,6 +62,20 @@ export function get_special_offer_snapshot(): SpecialOfferState {
 
 export function can_show_special_offer(): boolean {
   return !is_on_auth_route();
+}
+
+function is_on_settings_route(): boolean {
+  if (typeof window === "undefined") return false;
+
+  return strip_account_prefix(window.location.pathname).startsWith("/settings");
+}
+
+export function can_auto_show_special_offer(): boolean {
+  if (!can_show_special_offer() || is_on_settings_route()) return false;
+
+  const age = first_run_age_ms();
+
+  return age === null || age >= AUTO_SHOW_QUIET_AFTER_SIGN_UP_MS;
 }
 
 export function show_special_offer(
