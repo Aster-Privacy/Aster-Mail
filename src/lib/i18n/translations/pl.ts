@@ -7670,6 +7670,11 @@ export const pl = {
       "Nowości w produkcie są wyłączone. Możesz je tu włączyć ponownie.",
     product_updates_save_failed:
       "Nie zapisano ustawienia nowości w produkcie. Spróbuj ponownie.",
+    special_offers: "Oferty specjalne",
+    special_offers_description:
+      "Pokazuj w aplikacji okazjonalne oferty planów ze zniżką. Gdy ta opcja jest wyłączona, nie widzisz ofert, a Twoje konto nie jest uwzględniane w wynikach ofert.",
+    special_offers_save_failed:
+      "Nie zapisano ustawienia ofert specjalnych. Spróbuj ponownie.",
     criterion_passkey: "Zarejestrowano klucz dostępu",
     criterion_read_receipts_off: "Potwierdzenia odczytu wyłączone",
     send_read_receipts_label: "Wysyłaj potwierdzenia odczytu",

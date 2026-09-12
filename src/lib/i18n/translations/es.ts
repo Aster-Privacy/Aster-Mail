@@ -7473,6 +7473,11 @@ export const es = {
       "Las novedades del producto están desactivadas. Puedes volver a activarlas aquí.",
     product_updates_save_failed:
       "No se guardó tu preferencia de novedades del producto. Inténtalo de nuevo.",
+    special_offers: "Ofertas especiales",
+    special_offers_description:
+      "Muestra ofertas ocasionales de planes con descuento en la aplicación. Si lo desactivas, no ves ofertas y no se te cuenta en los resultados de las ofertas.",
+    special_offers_save_failed:
+      "No se guardó tu preferencia de ofertas especiales. Inténtalo de nuevo.",
     criterion_passkey: "Clave de acceso registrada",
     criterion_read_receipts_off: "Confirmaciones de lectura desactivadas",
     send_read_receipts_label: "Enviar confirmaciones de lectura",

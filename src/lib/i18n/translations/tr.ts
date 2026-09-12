@@ -7473,6 +7473,11 @@ export const tr = {
       "Ürün güncellemeleri kapalı. Buradan yeniden açabilirsiniz.",
     product_updates_save_failed:
       "Ürün güncellemeleri ayarınız kaydedilmedi. Tekrar deneyin.",
+    special_offers: "Özel teklifler",
+    special_offers_description:
+      "Uygulamada ara sıra indirimli plan teklifleri gösterin. Bu ayar kapalıyken teklif görmezsiniz ve teklif sonuçlarına dahil edilmezsiniz.",
+    special_offers_save_failed:
+      "Özel teklifler ayarınız kaydedilmedi. Tekrar deneyin.",
     criterion_passkey: "Geçiş anahtarı kayıtlı",
     criterion_read_receipts_off: "Okundu bilgisi kapalı",
     send_read_receipts_label: "Okundu bilgisi gönder",

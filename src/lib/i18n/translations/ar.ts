@@ -7377,6 +7377,11 @@ export const ar = {
     product_updates_turned_off: "مستجدات المنتج متوقفة. يمكنك تفعيلها من هنا.",
     product_updates_save_failed:
       "لم يُحفظ إعداد مستجدات المنتج. حاول مرة أخرى.",
+    special_offers: "العروض الخاصة",
+    special_offers_description:
+      "اعرض من حين لآخر عروضًا مخفّضة على الخطط داخل التطبيق. عند إيقاف هذا الخيار، لا تظهر لك العروض ولا تُحتسب ضمن نتائج العروض.",
+    special_offers_save_failed:
+      "لم يُحفظ إعداد العروض الخاصة. حاول مرة أخرى.",
     criterion_passkey: "مفتاح مرور مسجَّل",
     criterion_read_receipts_off: "إيصالات القراءة موقوفة",
     send_read_receipts_label: "إرسال إشعارات القراءة",

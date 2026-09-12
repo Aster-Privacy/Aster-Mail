@@ -7575,6 +7575,11 @@ export const it = {
       "Le novità del prodotto sono disattivate. Puoi riattivarle qui.",
     product_updates_save_failed:
       "La tua preferenza sulle novità del prodotto non è stata salvata. Riprova.",
+    special_offers: "Offerte speciali",
+    special_offers_description:
+      "Mostra di tanto in tanto offerte scontate sui piani nell'app. Quando questa opzione è disattivata, non vedi offerte e non rientri nei risultati delle offerte.",
+    special_offers_save_failed:
+      "La tua preferenza sulle offerte speciali non è stata salvata. Riprova.",
     criterion_passkey: "Passkey registrata",
     criterion_read_receipts_off: "Conferme di lettura disattivate",
     send_read_receipts_label: "Invia conferme di lettura",

@@ -7561,6 +7561,11 @@ export const fr = {
       "Les nouveautés du produit sont désactivées. Vous pouvez les réactiver ici.",
     product_updates_save_failed:
       "Votre préférence de nouveautés n’a pas été enregistrée. Réessayez.",
+    special_offers: "Offres spéciales",
+    special_offers_description:
+      "Affichez de temps en temps des offres de forfaits à prix réduit dans l’application. Lorsque cette option est désactivée, vous ne voyez aucune offre et vous n’êtes pas pris en compte dans les résultats des offres.",
+    special_offers_save_failed:
+      "Votre préférence d’offres spéciales n’a pas été enregistrée. Réessayez.",
     criterion_passkey: "Clé d’accès enregistrée",
     criterion_read_receipts_off: "Accusés de lecture désactivés",
     send_read_receipts_label: "Envoyer des accusés de lecture",

@@ -62,6 +62,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { format_hour_choice } from "@/utils/date_format";
+import { use_offer_preferences } from "@/hooks/use_offer_preferences";
 import { BUILTIN_CATEGORIES } from "@/data/category_catalog";
 import { category_icon } from "@/data/category_icons";
 
@@ -342,6 +343,7 @@ export function NotificationsSection() {
   );
   const [product_updates, set_product_updates] = useState<boolean | null>(null);
   const [product_updates_busy, set_product_updates_busy] = useState(false);
+  const offer_preferences = use_offer_preferences();
 
   useEffect(() => {
     let cancelled = false;
@@ -799,6 +801,18 @@ export function NotificationsSection() {
             info={t("settings.product_updates_info")}
             on_toggle={handle_product_updates_toggle}
             title={t("settings.product_updates")}
+          />
+        )}
+
+        {offer_preferences.enabled !== null && (
+          <ToggleSetting
+            description={t("settings.special_offers_description")}
+            disabled={offer_preferences.busy}
+            enabled={offer_preferences.enabled}
+            on_toggle={() =>
+              void offer_preferences.toggle(!offer_preferences.enabled)
+            }
+            title={t("settings.special_offers")}
           />
         )}
       </div>

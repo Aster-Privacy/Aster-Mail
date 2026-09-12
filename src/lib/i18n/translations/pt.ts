@@ -7539,6 +7539,11 @@ export const pt = {
       "As novidades do produto estão desativadas. Você pode reativá-las aqui.",
     product_updates_save_failed:
       "Sua preferência de novidades do produto não foi salva. Tente de novo.",
+    special_offers: "Ofertas especiais",
+    special_offers_description:
+      "Mostre ofertas ocasionais de planos com desconto no app. Com esta opção desativada, você não vê ofertas e não entra nos resultados das ofertas.",
+    special_offers_save_failed:
+      "Sua preferência de ofertas especiais não foi salva. Tente de novo.",
     criterion_passkey: "Chave de acesso registrada",
     criterion_read_receipts_off: "Confirmações de leitura desativadas",
     send_read_receipts_label: "Enviar confirmações de leitura",
