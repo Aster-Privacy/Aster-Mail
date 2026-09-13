@@ -1,4 +1,4 @@
-//
+﻿//
 // Aster Communications Inc.
 //
 // Copyright (c) 2026 Aster Communications Inc.
@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type {} from "@/lib/i18n/types";
+import type { UserPreferences } from "@/services/api/preferences";
 
 import { useEffect, useCallback } from "react";
 
@@ -58,6 +59,7 @@ import {
   request_notification_permission,
 } from "@/services/notification_service";
 import { set_low_network_mode } from "@/services/low_network_state";
+import { take_onboarding_preferences } from "@/lib/onboarding_preferences";
 import { stop_version_check } from "@/lib/version_check";
 import { get_font_stack } from "@/lib/font_options";
 import {
@@ -324,6 +326,16 @@ export function use_preferences_provider() {
           const merged = reconcile_low_network_mode(normalized);
 
           server_base_ref.current = merged;
+
+          const queued = take_onboarding_preferences();
+
+          for (const key of Object.keys(queued) as (keyof UserPreferences)[]) {
+            preferences_ref.current = {
+              ...preferences_ref.current,
+              [key]: queued[key],
+            };
+            pending_keys_ref.current.add(key);
+          }
 
           const applied = apply_pending_preferences(
             merged,

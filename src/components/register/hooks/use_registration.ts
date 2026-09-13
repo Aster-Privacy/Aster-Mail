@@ -20,6 +20,7 @@
 //
 import type { RegistrationStep } from "@/components/register/register_types";
 import type { RegisterRequest } from "@/services/api/auth";
+import type { UserPreferences } from "@/services/api/preferences";
 import type { EncryptedVault } from "@/services/crypto/key_manager_core";
 
 import { useState, useCallback, useEffect, useRef } from "react";
@@ -38,6 +39,10 @@ import { useTheme } from "@/contexts/theme_context";
 import { use_auth } from "@/contexts/auth_context";
 import { get_default_profile_color } from "@/constants/profile";
 import { show_toast } from "@/components/toast/simple_toast";
+import { use_preferences } from "@/contexts/preferences_context";
+import { request_notification_permission } from "@/services/notification_service";
+import { subscribe_to_push } from "@/services/push_subscription";
+import { queue_onboarding_preference } from "@/lib/onboarding_preferences";
 import {
   hash_email,
   derive_password_hash,
@@ -268,7 +273,9 @@ export function use_registration(options?: RegistrationClaimOptions) {
     vault,
     set_is_completing_registration,
   } = use_auth();
+  const { update_preference } = use_preferences();
 
+  const [notifications_busy, set_notifications_busy] = useState(false);
   const resume_state_ref = useRef<RegistrationResumeState | null>(
     is_claim || is_adding_account ? null : read_resume_state(),
   );
@@ -1127,13 +1134,68 @@ export function use_registration(options?: RegistrationClaimOptions) {
     set_step("notifications");
   };
 
-  const handle_notifications_turn_on = async () => {
+  const show_sample_notification = () => {
+    if ("__TAURI_INTERNALS__" in window) return;
     try {
-      if (typeof Notification !== "undefined") {
-        await Notification.requestPermission();
-      }
+      const sample = new Notification(t("auth.notifications_turned_on"), {
+        body: t("auth.notifications_sample_body"),
+        icon: "/icons/icon-192x192.png",
+        tag: "aster-onboarding-notification",
+        silent: true,
+      });
+      sample.onclick = () => {
+        window.focus();
+        sample.close();
+      };
+      window.setTimeout(() => sample.close(), 8000);
     } catch (e) {
       if (import.meta.env.DEV) console.error(e);
+    }
+  };
+
+  const set_onboarding_preference = <K extends keyof UserPreferences>(
+    key: K,
+    value: UserPreferences[K],
+  ) => {
+    if (is_completing_registration) {
+      queue_onboarding_preference(key, value);
+    } else {
+      update_preference(key, value, true);
+    }
+  };
+
+  const subscribe_push_in_background = () => {
+    const timeout = new Promise<boolean>((resolve) =>
+      window.setTimeout(() => resolve(false), 15000),
+    );
+    void Promise.race([subscribe_to_push(), timeout])
+      .then((subscribed) => {
+        if (subscribed) {
+          set_onboarding_preference("push_notifications", true);
+        }
+      })
+      .catch((e) => {
+        if (import.meta.env.DEV) console.error(e);
+      });
+  };
+
+  const handle_notifications_turn_on = async () => {
+    if (notifications_busy) return;
+    set_notifications_busy(true);
+    let permission: NotificationPermission = "default";
+    try {
+      permission = await request_notification_permission();
+    } catch (e) {
+      if (import.meta.env.DEV) console.error(e);
+    }
+    set_notifications_busy(false);
+    if (permission === "granted") {
+      set_onboarding_preference("desktop_notifications", true);
+      show_sample_notification();
+      show_toast(t("auth.notifications_turned_on"), "success");
+      subscribe_push_in_background();
+    } else if (permission === "denied") {
+      show_toast(t("auth.notifications_blocked_hint"), "warning", 7000);
     }
     set_step("addresses");
   };
@@ -1527,6 +1589,7 @@ export function use_registration(options?: RegistrationClaimOptions) {
     handle_advance_from_recovery_key,
     handle_open_download,
     handle_download_apps_continue,
+    notifications_busy,
     handle_notifications_turn_on,
     handle_notifications_skip,
     handle_addresses_continue,

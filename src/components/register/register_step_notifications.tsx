@@ -1,4 +1,4 @@
-//
+﻿//
 // Aster Communications Inc.
 //
 // Copyright (c) 2026 Aster Communications Inc.
@@ -71,6 +71,7 @@ export const RegisterStepNotifications = ({
       <OnboardingButton
         className="mt-4 w-full"
         variant="primary"
+        is_loading={reg.notifications_busy}
         onClick={() => void reg.handle_notifications_turn_on()}
       >
         {reg.t("auth.turn_on")}

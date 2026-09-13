@@ -7969,6 +7969,9 @@ export interface AuthTranslations {
   mail_desktop_desc: string;
   notifications_step_title: string;
   notifications_step_desc: string;
+  notifications_turned_on: string;
+  notifications_blocked_hint: string;
+  notifications_sample_body: string;
   notification_preview_title: string;
   notification_preview_body: string;
   turn_on: string;
