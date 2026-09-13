@@ -24,7 +24,6 @@ import type { TranslationKey } from "@/lib/i18n/types";
 import { EmailListHeader } from "@/components/email/email_list_header";
 import { CategoryTabs } from "@/components/email/inbox/category_tabs";
 import { MailFilterChips } from "@/components/email/inbox/mail_filter_chips";
-import { AliasDirectionTabs } from "@/components/email/inbox/alias_direction_tabs";
 import { AliasIndexingNotice } from "@/components/email/inbox/alias_indexing_notice";
 import { use_sender_alias_backfill } from "@/hooks/use_sender_alias_backfill";
 import {
@@ -382,11 +381,7 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
             total_email_count={nav.visible_ids.length}
             total_messages={effective_total_for_pages}
             trash_count={mail_stats.trash}
-            title_accessory={
-              alias_view_active ? (
-                <AliasDirectionTabs direction={alias_direction} />
-              ) : undefined
-            }
+            alias_direction={alias_view_active ? alias_direction : undefined}
             view_title={get_view_title(
               current_view,
               folders_state.folders,

@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { InboxFilterType } from "@/types/email";
+import type { AliasDirection } from "@/hooks/email_list_helpers/alias_view";
 
 import { FunnelIcon, CheckIcon } from "@heroicons/react/24/outline";
 import { Button, Tooltip } from "@aster/ui";
@@ -33,15 +34,18 @@ import {
 } from "@/components/ui/dropdown_menu";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
+import { AliasDirectionMenuItems } from "@/components/email/inbox/alias_direction_menu_items";
 
 interface FilterDropdownProps {
   active_filter: InboxFilterType;
   on_filter_change?: (filter: InboxFilterType) => void;
+  alias_direction?: AliasDirection;
 }
 
 export function FilterDropdown({
   active_filter,
   on_filter_change,
+  alias_direction,
 }: FilterDropdownProps) {
   const { t } = use_i18n();
   const { preferences, update_preference } = use_preferences();
@@ -53,7 +57,10 @@ export function FilterDropdown({
         <DropdownMenuTrigger asChild>
           <Button
             className="hidden md:flex h-9 w-9 rounded-[10px]"
-            data-active={active_filter !== "all"}
+            data-active={
+              active_filter !== "all" ||
+              (alias_direction !== undefined && alias_direction !== "all")
+            }
             size="icon"
             variant="ghost"
           >
@@ -62,6 +69,9 @@ export function FilterDropdown({
         </DropdownMenuTrigger>
       </Tooltip>
       <DropdownMenuContent align="end" className="w-48">
+        {alias_direction && (
+          <AliasDirectionMenuItems direction={alias_direction} />
+        )}
         <DropdownMenuLabel>{t("mail.filter")}</DropdownMenuLabel>
         <DropdownMenuItem onClick={() => on_filter_change?.("all")}>
           <span className="w-4 me-2">
