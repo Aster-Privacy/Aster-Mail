@@ -150,7 +150,7 @@ const CHIP_ACTIVE_CLASS =
 const CHIP_IDLE_CLASS =
   "border-[var(--border-secondary)] bg-[var(--bg-tertiary)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]";
 
-function chip_class(is_active: boolean): string {
+export function chip_class(is_active: boolean): string {
   return `${CHIP_BASE_CLASS} ${is_active ? CHIP_ACTIVE_CLASS : CHIP_IDLE_CLASS}`;
 }
 
