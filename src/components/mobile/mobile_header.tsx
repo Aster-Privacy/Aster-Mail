@@ -30,6 +30,7 @@ import { use_i18n } from "@/lib/i18n/context";
 
 interface MobileHeaderProps {
   title: string;
+  title_accessory?: ReactNode;
   on_back?: () => void;
   on_menu?: () => void;
   on_search?: () => void;
@@ -38,6 +39,7 @@ interface MobileHeaderProps {
 
 export const MobileHeader = memo(function MobileHeader({
   title,
+  title_accessory,
   on_back,
   on_menu,
   on_search,
@@ -77,7 +79,7 @@ export const MobileHeader = memo(function MobileHeader({
         )}
       </div>
 
-      <div className="flex-1 min-w-0 flex items-center justify-center px-2">
+      <div className="flex-1 min-w-0 flex items-center justify-center gap-2 px-2">
         {on_menu && !on_back ? (
           <button
             className="max-w-full truncate text-lg font-semibold text-[var(--text-primary)]"
@@ -91,6 +93,7 @@ export const MobileHeader = memo(function MobileHeader({
             {title}
           </h1>
         )}
+        {title_accessory}
       </div>
 
       <div className="flex shrink-0 items-center gap-1">

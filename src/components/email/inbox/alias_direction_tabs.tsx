@@ -29,7 +29,15 @@ import {
   type AliasDirection,
 } from "@/hooks/email_list_helpers/alias_view";
 import { use_i18n } from "@/lib/i18n/context";
-import { chip_class } from "@/components/email/inbox/mail_filter_chips";
+
+const SEGMENT_BASE_CLASS =
+  "inline-flex h-6 items-center justify-center rounded-full px-2.5 text-xs font-medium whitespace-nowrap transition-colors";
+
+const SEGMENT_ACTIVE_CLASS =
+  "bg-[var(--bg-primary)] text-[var(--text-primary)] shadow-sm";
+
+const SEGMENT_IDLE_CLASS =
+  "text-[var(--text-secondary)] hover:text-[var(--text-primary)]";
 
 const DIRECTION_LABEL_KEYS: Record<AliasDirection, TranslationKey> = {
   all: "mail.alias_direction_all",
@@ -60,7 +68,7 @@ export function AliasDirectionTabs({
   return (
     <div
       aria-label={t("mail.alias_direction_label")}
-      className="flex items-center gap-2 px-4 py-2 overflow-x-auto border-b border-[var(--border-secondary)] bg-[var(--bg-primary)]"
+      className="inline-flex shrink-0 items-center gap-0.5 rounded-full border border-[var(--border-secondary)] bg-[var(--bg-hover)] p-0.5"
       data-testid="alias_direction_tabs"
       role="tablist"
     >
@@ -71,13 +79,13 @@ export function AliasDirectionTabs({
           <button
             key={candidate}
             aria-selected={is_active}
-            className={chip_class(is_active)}
+            className={`${SEGMENT_BASE_CLASS} ${is_active ? SEGMENT_ACTIVE_CLASS : SEGMENT_IDLE_CLASS}`}
             data-testid={`alias_direction_${candidate}`}
             role="tab"
             type="button"
             onClick={() => select(candidate)}
           >
-            <span>{t(DIRECTION_LABEL_KEYS[candidate])}</span>
+            {t(DIRECTION_LABEL_KEYS[candidate])}
           </button>
         );
       })}

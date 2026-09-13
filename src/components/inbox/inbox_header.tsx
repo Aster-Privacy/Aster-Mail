@@ -20,7 +20,7 @@
 //
 import type { InboxFilterType } from "@/types/email";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ChevronDownIcon,
@@ -86,6 +86,7 @@ interface InboxHeaderProps {
   on_settings_click: () => void;
   on_quick_settings_click?: () => void;
   view_title: string;
+  title_accessory?: ReactNode;
   on_compose?: () => void;
   active_filter?: InboxFilterType;
   on_filter_change?: (filter: InboxFilterType) => void;
@@ -154,6 +155,7 @@ export function InboxHeader({
   on_settings_click,
   on_quick_settings_click,
   view_title,
+  title_accessory,
   on_compose: _on_compose,
   active_filter = "all",
   on_filter_change,
@@ -474,6 +476,8 @@ export function InboxHeader({
               </DropdownMenuContent>
             </DropdownMenu>
           )}
+
+          {!has_selection && title_accessory}
         </div>
 
         {has_selection && (
