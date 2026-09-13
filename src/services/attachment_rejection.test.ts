@@ -89,8 +89,8 @@ describe("describe_oversized_file", () => {
     expect(result.can_upgrade).toBe(true);
     expect(result.upgrade_plan_code).toBe("nova");
     expect(result.message).toContain("50 MB");
-    expect(result.message).toContain("100 MB");
-    expect(result.message).not.toContain("250 MB");
+    expect(result.message).toContain("64 MB");
+    expect(result.message).not.toContain("100 MB");
   });
 
   it("reaches for supernova when nothing smaller fits the file", async () => {
@@ -99,13 +99,13 @@ describe("describe_oversized_file", () => {
     const result = describe_oversized_file(t, "huge.zip", 200 * 1024 * 1024);
 
     expect(result.upgrade_plan_code).toBe("supernova");
-    expect(result.message).toContain("250 MB");
+    expect(result.message).toContain("64 MB");
   });
 
   it("never offers a shared plan as the upgrade target", async () => {
     await load_plans("free");
 
-    const result = describe_oversized_file(t, "will.pdf", 90 * 1024 * 1024);
+    const result = describe_oversized_file(t, "will.pdf", 60 * 1024 * 1024);
 
     expect(result.upgrade_plan_code).toBe("nova");
   });

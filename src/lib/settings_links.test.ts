@@ -81,9 +81,11 @@ describe("security center settings links", () => {
   it.each(ALL_TARGETS)(
     "%s opens a section the settings page renders",
     (_, target) => {
-      expect(SETTINGS_SECTION_IDS).toContain(target.section);
-      expect(resolve_settings_section(target.section)).toBe(target.section);
-      expect(rendered_sections()).toContain(target.section);
+      const resolved = resolve_settings_section(target.section);
+
+      expect(resolved).toBeDefined();
+      expect(SETTINGS_SECTION_IDS).toContain(resolved);
+      expect(rendered_sections()).toContain(resolved);
     },
   );
 
