@@ -8882,6 +8882,7 @@ export const ja = {
     downloading: "ダウンロード中...",
     save_key: "キーを保存",
     copy_key: "キーをコピー",
+    copy_codes: "コードをコピー",
     recovery_key_copied: "復旧キーをコピーしました",
     password_recovery_email: "パスワード復旧用メール",
     recovery_email_step_desc: "リカバリーコードを紛失してもアカウントに戻れるよう、メールアドレスを追加してください。",

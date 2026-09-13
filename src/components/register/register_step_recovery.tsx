@@ -85,7 +85,7 @@ export const RegisterStepRecoveryCodes = ({
               {reg.is_key_visible ? <EyeSlashIcon /> : <EyeIcon />}
             </button>
             <button
-              aria-label={reg.t("auth.copy_key")}
+              aria-label={reg.t("auth.copy_codes")}
               className="flex h-8 w-8 items-center justify-center rounded-lg text-txt-muted transition-colors hover:bg-black/5 hover:text-txt-primary dark:hover:bg-white/10"
               type="button"
               onClick={() => void reg.handle_copy_codes()}

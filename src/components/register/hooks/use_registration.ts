@@ -899,7 +899,7 @@ export function use_registration(options?: RegistrationClaimOptions) {
     try {
       await copy_text_or_throw(codes_text);
       set_has_copied_key(true);
-      show_toast(t("auth.recovery_key_copied"), "success");
+      show_toast(t("auth.recovery_codes_copied"), "success");
     } catch {
       show_toast(t("common.failed_to_copy"), "error");
     }

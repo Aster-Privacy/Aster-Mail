@@ -45,6 +45,7 @@ interface RegisterStepAddressesProps {
 }
 
 const ADDRESS_SLOTS = [0, 1, 2];
+const ALIAS_CREATE_COOLDOWN_MS = 10_500;
 const DOMAINS = ["astermail.org", "aster.cx"] as const;
 
 const starts_and_ends_alphanumeric = (value: string) =>
@@ -58,6 +59,7 @@ export const RegisterStepAddresses = ({ reg }: RegisterStepAddressesProps) => {
   );
   const [is_adding, set_is_adding] = useState(false);
   const input_refs = useRef<(HTMLInputElement | null)[]>([]);
+  const last_created_at_ref = useRef(0);
 
   const pending_count = values.filter(
     (value, index) => value.trim() && !reg.added_addresses[index],
@@ -94,6 +96,12 @@ export const RegisterStepAddresses = ({ reg }: RegisterStepAddressesProps) => {
       const value = values[index].trim();
 
       if (!value || added[index]) continue;
+      const since_last = Date.now() - last_created_at_ref.current;
+      if (last_created_at_ref.current > 0 && since_last < ALIAS_CREATE_COOLDOWN_MS) {
+        await new Promise((resolve) =>
+          window.setTimeout(resolve, ALIAS_CREATE_COOLDOWN_MS - since_last),
+        );
+      }
       const response = await create_alias(value, domains[index]);
 
       if (response.error || !response.data) {
@@ -101,6 +109,7 @@ export const RegisterStepAddresses = ({ reg }: RegisterStepAddressesProps) => {
           response.error ?? reg.t("settings.alias_create_failed");
         continue;
       }
+      last_created_at_ref.current = Date.now();
       added[index] = `${value}@${domains[index]}`;
     }
     reg.set_added_addresses(added);

@@ -8650,6 +8650,7 @@ export const ko = {
     downloading: "다운로드 중...",
     save_key: "키 저장",
     copy_key: "키 복사",
+    copy_codes: "코드 복사",
     recovery_key_copied: "복구 키가 복사되었습니다",
     password_recovery_email: "비밀번호 복구 이메일",
     recovery_email_step_desc: "복구 코드를 분실해도 계정에 다시 들어갈 수 있도록 이메일 주소를 추가하세요.",

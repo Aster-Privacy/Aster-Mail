@@ -8850,6 +8850,7 @@ export const ar = {
     downloading: "جارٍ التنزيل...",
     save_key: "حفظ المفتاح",
     copy_key: "نسخ المفتاح",
+    copy_codes: "نسخ الرموز",
     recovery_key_copied: "تم نسخ مفتاح الاستعادة",
     password_recovery_email: "بريد استعادة كلمة المرور",
     recovery_email_step_desc: "أضف عنوان بريد إلكتروني لتتمكن من العودة إلى حسابك إذا فقدت رموز الاسترداد.",

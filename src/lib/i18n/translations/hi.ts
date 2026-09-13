@@ -8888,6 +8888,7 @@ export const hi = {
     downloading: "डाउनलोड हो रहा है...",
     save_key: "कुंजी सहेजें",
     copy_key: "कुंजी कॉपी करें",
+    copy_codes: "कोड कॉपी करें",
     recovery_key_copied: "रिकवरी कुंजी कॉपी की गई",
     password_recovery_email: "पासवर्ड रिकवरी ईमेल",
     recovery_email_step_desc: "अगर आप अपने रिकवरी कोड खो देते हैं तो खाते में वापस आने के लिए एक ईमेल पता जोड़ें।",

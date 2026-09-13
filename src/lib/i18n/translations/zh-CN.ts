@@ -8020,6 +8020,7 @@ export const zh_CN = {
     downloading: "正在下载...",
     save_key: "保存密钥",
     copy_key: "复制密钥",
+    copy_codes: "复制代码",
     recovery_key_copied: "已复制恢复密钥",
     password_recovery_email: "密码恢复邮箱",
     recovery_email_step_desc: "添加一个邮箱地址，以便在丢失恢复码时重新进入账户。",

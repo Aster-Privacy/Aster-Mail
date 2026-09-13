@@ -42,13 +42,13 @@ const BOTTOM_ISLAND_STYLE = { bottom: "80px" };
 export const TOAST_POSITION_LAYOUT: Record<ToastPosition, ToastPositionLayout> =
   {
     top: {
-      anchor: "left-1/2 -translate-x-1/2",
+      anchor: "inset-x-0 mx-auto w-fit max-w-[min(92vw,28rem)]",
       align: "items-center",
       column: "flex-col",
       style: TOP_STYLE,
     },
     bottom: {
-      anchor: "left-1/2 -translate-x-1/2",
+      anchor: "inset-x-0 mx-auto w-fit max-w-[min(92vw,28rem)]",
       align: "items-center",
       column: "flex-col-reverse",
       style: BOTTOM_STYLE,

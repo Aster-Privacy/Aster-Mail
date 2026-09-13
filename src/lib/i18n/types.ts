@@ -7958,6 +7958,7 @@ export interface AuthTranslations {
   downloading: string;
   save_key: string;
   copy_key: string;
+  copy_codes: string;
   recovery_key_copied: string;
   password_recovery_email: string;
   recovery_email_step_desc: string;

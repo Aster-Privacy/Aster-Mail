@@ -49,7 +49,7 @@ export const RegisterStepNotifications = ({
           <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
         </div>
         <div className="flex justify-end px-3 pb-6 pt-3">
-          <div className="flex w-[220px] items-start gap-3 rounded-lg px-3 py-2.5 text-start shadow-md bg-[#1f1f1f] text-white">
+          <div className="flex w-full max-w-[280px] items-start gap-3 rounded-lg px-3 py-2.5 text-start shadow-md bg-[#1f1f1f] text-white">
             <img
               alt=""
               className="mt-0.5 h-6 w-6 rounded-md"
@@ -60,7 +60,7 @@ export const RegisterStepNotifications = ({
               <div className="truncate text-xs font-semibold">
                 {reg.t("auth.notification_preview_title")}
               </div>
-              <div className="truncate text-xs opacity-80">
+              <div className="line-clamp-2 text-xs leading-snug opacity-80">
                 {reg.t("auth.notification_preview_body")}
               </div>
             </div>

@@ -190,9 +190,9 @@ export function ConfirmationModal({
           )}
         </div>
 
-        <AlertDialogFooter className="flex-row gap-3 px-6 pb-6 pt-2 sm:justify-end">
+        <AlertDialogFooter className="flex-row flex-wrap gap-3 px-6 pb-6 pt-2 sm:justify-end">
           <Button
-            className="mt-0 max-sm:flex-1"
+            className="mt-0 whitespace-nowrap max-sm:flex-1"
             disabled={is_busy}
             size="xl"
             variant="outline"
@@ -201,7 +201,7 @@ export function ConfirmationModal({
             {resolved_cancel_text}
           </Button>
           <Button
-            className="max-sm:flex-1"
+            className="whitespace-nowrap max-sm:flex-1"
             disabled={is_busy}
             is_loading={is_busy}
             size="xl"
