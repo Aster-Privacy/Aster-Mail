@@ -19,7 +19,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { DecryptedThreadMessage } from "@/types/thread";
-import { resolve_content_blocking } from "./resolve_content_blocking";
 import type {
   ExternalContentReport,
   ImageLoadMode,
@@ -28,6 +27,8 @@ import type { PreloadedSanitizedContent } from "@/components/email/hooks/preload
 import type { PhishingLevel } from "@/lib/phishing_analyzer";
 
 import { useState, useMemo, useEffect, useRef } from "react";
+
+import { resolve_content_blocking } from "./resolve_content_blocking";
 
 import { pop_preloaded_thread_cid } from "@/components/email/hooks/preload_cache";
 import { dispatch_iframe_ready } from "@/components/email/sandboxed_email_renderer";

@@ -849,10 +849,7 @@ export function use_mail_stats(): UseMailStatsReturn {
       );
       window.removeEventListener(MAIL_EVENTS.MAIL_SOFT_REFRESH, handle_change);
       window.removeEventListener(MAIL_EVENTS.EMAIL_SENT, handle_change);
-      window.removeEventListener(
-        MAIL_EVENTS.EMAIL_RECEIVED,
-        handle_received,
-      );
+      window.removeEventListener(MAIL_EVENTS.EMAIL_RECEIVED, handle_received);
       window.removeEventListener(MAIL_EVENTS.MAIL_STATS_STALE, handle_change);
       window.removeEventListener(MAIL_EVENTS.DRAFTS_CHANGED, handle_change);
       window.removeEventListener(MAIL_EVENTS.CONTACTS_CHANGED, handle_change);

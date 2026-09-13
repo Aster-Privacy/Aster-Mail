@@ -52,6 +52,9 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown_menu";
 import { use_should_reduce_motion } from "@/provider";
@@ -64,7 +67,6 @@ interface ModalContactListProps {
   set_search_query: (query: string) => void;
   search_input_ref: RefObject<HTMLInputElement>;
   selected_ids: Set<string>;
-  set_selected_ids: React.Dispatch<React.SetStateAction<Set<string>>>;
   selection_state: {
     selected_count: number;
     all_selected: boolean;
@@ -92,7 +94,11 @@ interface ModalContactListProps {
   on_compose_to_selected: () => void;
   on_toggle_favorite_selected: () => void;
   on_copy_emails: () => void;
-  on_export_contacts: (export_selected: boolean) => void;
+  on_export_contacts: (
+    export_selected: boolean,
+    format: "csv" | "vcard",
+    ids?: Set<string>,
+  ) => void;
   on_delete_selected: () => void;
 }
 
@@ -103,7 +109,6 @@ export function ModalContactList({
   set_search_query,
   search_input_ref,
   selected_ids,
-  set_selected_ids,
   selection_state,
   has_selection,
   selected_all_favorited,
@@ -245,14 +250,30 @@ export function ModalContactList({
                 )}
               </Button>
 
-              <Button
-                className="h-7 w-7"
-                size="icon"
-                variant="ghost"
-                onClick={() => on_export_contacts(true)}
-              >
-                <ArrowDownTrayIcon className="h-3.5 w-3.5 text-txt-secondary" />
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    aria-label={t("common.export_selection")}
+                    className="h-7 w-7"
+                    size="icon"
+                    variant="ghost"
+                  >
+                    <ArrowDownTrayIcon className="h-3.5 w-3.5 text-txt-secondary" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-44">
+                  <DropdownMenuItem
+                    onClick={() => on_export_contacts(true, "vcard")}
+                  >
+                    {t("common.export_selection_vcf")}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => on_export_contacts(true, "csv")}
+                  >
+                    {t("common.export_selection_csv")}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
 
               <Button
                 className="h-7 w-7 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10"
@@ -399,24 +420,56 @@ export function ModalContactList({
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-44">
-                    <DropdownMenuItem onClick={() => on_export_contacts(false)}>
-                      {t("common.export_all_contacts")}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      disabled={filtered_contacts.length === contacts.length}
-                      onClick={() => {
-                        const filtered_ids = new Set(
-                          filtered_contacts.map((c) => c.id),
-                        );
-
-                        set_selected_ids(filtered_ids);
-                        on_export_contacts(true);
-                      }}
-                    >
-                      {t("common.export_filtered_count", {
-                        count: filtered_contacts.length,
-                      })}
-                    </DropdownMenuItem>
+                    <DropdownMenuSub>
+                      <DropdownMenuSubTrigger>
+                        {t("common.export_all_contacts")}
+                      </DropdownMenuSubTrigger>
+                      <DropdownMenuSubContent>
+                        <DropdownMenuItem
+                          onClick={() => on_export_contacts(false, "vcard")}
+                        >
+                          {t("common.export_selection_vcf")}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => on_export_contacts(false, "csv")}
+                        >
+                          {t("common.export_selection_csv")}
+                        </DropdownMenuItem>
+                      </DropdownMenuSubContent>
+                    </DropdownMenuSub>
+                    <DropdownMenuSub>
+                      <DropdownMenuSubTrigger
+                        disabled={filtered_contacts.length === contacts.length}
+                      >
+                        {t("common.export_filtered_count", {
+                          count: filtered_contacts.length,
+                        })}
+                      </DropdownMenuSubTrigger>
+                      <DropdownMenuSubContent>
+                        <DropdownMenuItem
+                          onClick={() =>
+                            on_export_contacts(
+                              true,
+                              "vcard",
+                              new Set(filtered_contacts.map((c) => c.id)),
+                            )
+                          }
+                        >
+                          {t("common.export_selection_vcf")}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() =>
+                            on_export_contacts(
+                              true,
+                              "csv",
+                              new Set(filtered_contacts.map((c) => c.id)),
+                            )
+                          }
+                        >
+                          {t("common.export_selection_csv")}
+                        </DropdownMenuItem>
+                      </DropdownMenuSubContent>
+                    </DropdownMenuSub>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
@@ -453,26 +506,34 @@ export function ModalContactList({
             />
           </div>
         ) : error && contacts.length === 0 ? null : contacts.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 px-8">
-            <UserPlusIcon className="w-10 h-10 mb-4 text-txt-muted" />
-            <h3 className="text-[15px] font-medium mb-1 text-txt-primary">
+          <div className="contact_empty_state">
+            <span className="contact_empty_state_glyph">
+              <UserPlusIcon strokeWidth={1.25} />
+            </span>
+            <p className="contact_empty_state_title">
               {t("common.no_contacts_yet")}
-            </h3>
-            <p className="text-[13px] text-center mb-5 max-w-[240px] text-txt-muted">
+            </p>
+            <p className="contact_empty_state_text">
               {t("common.add_contacts_quick_email_hint")}
             </p>
-            <Button className="h-10" variant="depth" onClick={on_add}>
+            <Button
+              className="contact_empty_state_action h-10"
+              variant="depth"
+              onClick={on_add}
+            >
               <PlusIcon className="w-3.5 h-3.5" />
               {t("common.add_contact")}
             </Button>
           </div>
         ) : filtered_contacts.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16">
-            <MagnifyingGlassIcon className="w-8 h-8 mb-3 text-txt-muted" />
-            <p className="text-[14px] font-medium mb-0.5 text-txt-primary">
+          <div className="contact_empty_state">
+            <span className="contact_empty_state_glyph">
+              <MagnifyingGlassIcon strokeWidth={1.25} />
+            </span>
+            <p className="contact_empty_state_title">
               {t("common.no_results")}
             </p>
-            <p className="text-[13px] text-txt-muted">
+            <p className="contact_empty_state_text">
               {t("common.no_contacts_match", { query: search_query })}
             </p>
           </div>

@@ -21,9 +21,7 @@
 import DOMPurify from "dompurify";
 
 import { split_autolinks } from "./autolink";
-
 import { mark_stylesheet_background_images } from "./html_sanitizer_background_marks";
-
 import {
   ALLOWED_TAGS,
   DANGEROUS_TAGS,

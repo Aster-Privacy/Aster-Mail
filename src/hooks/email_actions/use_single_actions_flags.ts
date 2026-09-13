@@ -45,10 +45,7 @@ import {
 } from "@/hooks/unread_read_delta";
 import { mark_conversation_read } from "@/hooks/mark_conversation_read";
 import { remove_email_from_view_cache } from "@/hooks/email_list_cache";
-import {
-  clear_flag_intents,
-  note_flag_intents,
-} from "@/services/read_intent";
+import { clear_flag_intents, note_flag_intents } from "@/services/read_intent";
 import {
   compute_trash_deltas,
   compute_archive_deltas,

@@ -256,7 +256,7 @@ export function ContactMergeModal({
                 <input
                   aria-label={contact_display_name(contact)}
                   checked={is_included}
-                  className="h-4 w-4 flex-shrink-0 accent-[var(--accent-primary)]"
+                  className="h-4 w-4 flex-shrink-0 accent-[var(--accent-color)]"
                   type="checkbox"
                   onChange={() => toggle(contact.id)}
                 />

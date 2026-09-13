@@ -18,8 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { copy_text_or_throw } from "@/utils/copy_text";
-import { trigger_download } from "@/utils/download_blob";
 import type { IdentityKeyStatus } from "@/services/api/key_rotation";
 
 import { useState, useEffect, useCallback } from "react";
@@ -35,6 +33,8 @@ import {
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
+import { trigger_download } from "@/utils/download_blob";
+import { copy_text_or_throw } from "@/utils/copy_text";
 import { Spinner } from "@/components/ui/spinner";
 import { show_toast } from "@/components/toast/simple_toast";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
@@ -384,6 +384,7 @@ export function DeveloperSection() {
         viewport: get_viewport_info(),
       },
     };
+
     trigger_download(
       new Blob([JSON.stringify(debug_data, null, 2)], {
         type: "application/json",
@@ -472,7 +473,6 @@ export function DeveloperSection() {
         <Icon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
         {title}
       </h3>
-      <div className="mt-2 h-px bg-edge-secondary" />
     </div>
   );
 

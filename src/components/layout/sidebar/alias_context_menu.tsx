@@ -18,7 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { copy_text_or_throw } from "@/utils/copy_text";
 import type { DecryptedEmailAlias } from "@/services/api/aliases";
 
 import {
@@ -27,6 +26,7 @@ import {
   PowerIcon,
 } from "@heroicons/react/24/outline";
 
+import { copy_text_or_throw } from "@/utils/copy_text";
 import { PinIcon } from "@/components/common/icons";
 import {
   ContextMenu,

@@ -116,10 +116,10 @@ export function CreateAliasModal({
   initial_local_part,
 }: CreateAliasModalProps) {
   const { t } = use_i18n();
-  const { is_feature_locked, limits } = use_plan_limits();
+  const { is_feature_locked, plan_code } = use_plan_limits();
   const display_name_locked = is_feature_locked("has_alias_avatars");
   const display_name_min_plan = min_plan_for_feature("has_alias_avatars");
-  const premium_domains_allowed = plan_allows_premium_alias_domains(limits?.plan_code);
+  const premium_domains_allowed = plan_allows_premium_alias_domains(plan_code);
   const premium_domain_min_plan = min_plan_for_feature("star");
   const [local_part, set_local_part] = useState("");
   const [display_name, set_display_name] = useState("");
@@ -523,7 +523,7 @@ export function CreateAliasModal({
                           </div>
                           {premium_domains.map((d) => (
                             <SelectItem key={d} value={d}>
-                              <span className="flex items-center gap-2">
+                              <span className="inline-flex items-center gap-2 align-middle">
                                 {d}
                                 {!premium_domains_allowed && (
                                   <span className="inline-flex shrink-0 items-center gap-1 rounded-md border border-edge-secondary bg-surf-tertiary px-1.5 py-0.5 text-[11px] font-medium text-txt-muted">
@@ -700,7 +700,10 @@ export function CreateAliasModal({
               variant="depth"
               onClick={() => {
                 on_close();
-                prompt_alias_limit_upgrade();
+                prompt_alias_limit_upgrade({
+                  used: current_count + domain_addresses.length,
+                  limit: max_aliases,
+                });
               }}
             >
               {t("common.upgrade_plan")}

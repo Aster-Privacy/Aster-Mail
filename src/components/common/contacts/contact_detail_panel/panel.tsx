@@ -50,6 +50,9 @@ import {
   MagnifyingGlassIcon,
   PencilSquareIcon,
   XMarkIcon,
+  ArrowUpOnSquareIcon,
+  ArrowDownTrayIcon,
+  ClipboardIcon,
 } from "@heroicons/react/24/outline";
 import { StarIcon as StarSolidIcon } from "@heroicons/react/24/solid";
 import { Button } from "@aster/ui";
@@ -86,7 +89,21 @@ import { app_date_format, format_iso_date } from "@/utils/date_format";
 import { ContactAvatar } from "@/components/common/contacts/contact_avatar";
 import { EncryptionInfoDropdown } from "@/components/common/encryption_info_dropdown";
 import { ContactHistoryPanel } from "@/components/contacts/contact_history_panel";
+import { ContactGroupsField } from "@/components/contacts/contact_groups_field";
 import { show_toast } from "@/components/toast/simple_toast";
+import {
+  can_share_contact_file,
+  contact_to_share_text,
+  contact_vcard_file,
+  export_contact_vcard,
+  share_contact_vcard,
+} from "@/utils/contact_export";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown_menu";
 import { strip_image_metadata_data_url } from "@/lib/strip_image_metadata";
 import { format_full_datetime } from "@/utils/date_format";
 
@@ -103,8 +120,10 @@ export function ContactDetailPanel({
   on_inline_create,
   on_cancel_create,
   on_dismiss,
+  on_share_via_email,
   on_toggle_favorite,
   on_undo_change,
+  on_toggle_group,
   is_creating_new,
   is_submitting,
 }: ContactDetailPanelProps) {
@@ -117,6 +136,41 @@ export function ContactDetailPanel({
   const contact_mail_query = build_contact_mail_query(
     selected_contact?.emails ?? [],
   );
+
+  const can_share_native = selected_contact
+    ? can_share_contact_file(selected_contact, group_names)
+    : false;
+
+  const handle_share_native = () => {
+    if (!selected_contact) return;
+    void share_contact_vcard(selected_contact, group_names);
+  };
+
+  const handle_share_via_email = () => {
+    if (!selected_contact || !on_share_via_email) return;
+
+    const file = contact_vcard_file(selected_contact, group_names);
+
+    if (!file) return;
+    on_share_via_email(file);
+  };
+
+  const handle_copy_details = () => {
+    if (!selected_contact) return;
+
+    void Promise.resolve(
+      on_copy(contact_to_share_text(selected_contact), "contact"),
+    ).then((result) => {
+      if (result === false) return;
+      show_toast(t("common.copied_to_clipboard"), "success");
+    });
+  };
+
+  const handle_download_vcard = () => {
+    if (!selected_contact) return;
+    export_contact_vcard(selected_contact, group_names);
+    show_toast(t("common.contacts_exported"), "success");
+  };
 
   const handle_search_mail = () => {
     if (!contact_mail_query) return;
@@ -446,6 +500,41 @@ export function ContactDetailPanel({
                 ? t("common.favorited")
                 : t("common.favorite")}
             </button>
+            {!is_editing && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    className="flex items-center gap-2 h-9 px-3.5 rounded-full bg-black/5 dark:bg-white/[0.06] hover:bg-black/10 dark:hover:bg-white/10 text-[13px] font-medium text-txt-primary transition-colors"
+                    type="button"
+                  >
+                    <ArrowUpOnSquareIcon className="w-4 h-4" />
+                    {t("common.share_contact")}
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-56">
+                  {on_share_via_email && (
+                    <DropdownMenuItem onSelect={handle_share_via_email}>
+                      <EnvelopeIcon className="w-4 h-4" />
+                      {t("common.share_contact_via_email")}
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuItem onSelect={handle_copy_details}>
+                    <ClipboardIcon className="w-4 h-4" />
+                    {t("common.copy")}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onSelect={handle_download_vcard}>
+                    <ArrowDownTrayIcon className="w-4 h-4" />
+                    {t("common.export_selection_vcf")}
+                  </DropdownMenuItem>
+                  {can_share_native && (
+                    <DropdownMenuItem onSelect={handle_share_native}>
+                      <ArrowUpOnSquareIcon className="w-4 h-4" />
+                      {t("common.share_contact_device")}
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
             {!is_editing && (
               <button
                 className="flex items-center gap-2 h-9 px-3.5 rounded-full bg-black/5 dark:bg-white/[0.06] hover:bg-black/10 dark:hover:bg-white/10 text-[13px] font-medium text-txt-primary transition-colors"
@@ -792,11 +881,23 @@ export function ContactDetailPanel({
               </div>
             </Section>
 
+            {!is_creating_new && selected_contact && (
+              <Section title={t("common.contact_groups")}>
+                <ContactGroupsField
+                  contact={selected_contact}
+                  on_toggle_group={(group_id, should_add) =>
+                    on_toggle_group?.(selected_contact, group_id, should_add)
+                  }
+                />
+              </Section>
+            )}
+
             <Section title={t("common.personal")}>
               <div>
                 <FieldLabel icon={CakeIcon}>{t("common.birthday")}</FieldLabel>
                 <div className="relative">
                   <input
+                    aria-label={t("common.birthday")}
                     className={`${FIELD_CLASS} ${
                       is_editing && draft.birthday ? "pe-12" : ""
                     }`}

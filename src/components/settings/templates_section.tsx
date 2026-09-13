@@ -280,7 +280,6 @@ export function TemplatesSection() {
             <DocumentDuplicateIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
             {t("settings.email_templates_title")}
           </h3>
-          <div className="mt-2 h-px bg-edge-secondary" />
         </div>
         <p className="text-sm mb-4 text-txt-muted">
           {t("settings.email_templates_description")}

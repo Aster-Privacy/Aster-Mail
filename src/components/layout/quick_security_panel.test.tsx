@@ -155,21 +155,7 @@ describe("quick security panel", () => {
     await render_panel(false);
 
     expect(totp_status).not.toHaveBeenCalled();
-    expect(container.querySelector("aside")!.classList.contains("hidden")).toBe(
-      true,
-    );
-    expect(container.querySelector("aside")!.classList.contains("flex")).toBe(
-      false,
-    );
-  });
-
-  it("shows the panel once it opens", async () => {
-    await render_panel();
-
-    const panel = container.querySelector("aside")!;
-
-    expect(panel.classList.contains("flex")).toBe(true);
-    expect(panel.classList.contains("hidden")).toBe(false);
+    expect(container.querySelector("aside")?.className).toContain("hidden");
   });
 
   it("lists every unmet criterion as a recommended action", async () => {

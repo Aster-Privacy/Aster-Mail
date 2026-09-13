@@ -20,212 +20,267 @@
 //
 import type { UseRegistrationReturn } from "@/components/register/hooks/use_registration";
 
-import { motion, AnimatePresence } from "framer-motion";
-import { Button, Checkbox } from "@aster/ui";
+import { AnimatePresence, motion } from "framer-motion";
+import { Tooltip } from "@aster/ui";
 
-import {
-  Logo,
-  EyeIcon,
-  EyeSlashIcon,
-  InputWithEndContent,
-} from "@/components/auth/auth_styles";
+import { EyeIcon, EyeSlashIcon } from "@/components/auth/auth_styles";
 import {
   TurnstileWidget,
   TURNSTILE_SITE_KEY,
 } from "@/components/auth/turnstile_widget";
 import { PasswordStrengthIndicator } from "@/components/register/password_strength";
 import {
-  page_variants,
-  page_transition,
-} from "@/components/register/register_types";
-import { Alert } from "@/components/register/register_shared";
+  OnboardingButton,
+  OnboardingInput,
+  StepShell,
+} from "@/components/register/register_shared";
 import { clamp_password } from "@/services/sanitize";
 
 interface RegisterStepPasswordProps {
   reg: UseRegistrationReturn;
 }
 
+interface OnboardingInputWithEndContentProps
+  extends React.ComponentProps<typeof OnboardingInput> {
+  end_content: React.ReactNode;
+}
+
+const OnboardingInputWithEndContent = ({
+  end_content,
+  className,
+  ...props
+}: OnboardingInputWithEndContentProps) => (
+  <div className="relative">
+    <OnboardingInput className={`pe-12 ${className ?? ""}`} {...props} />
+    <div className="absolute end-3 top-1/2 flex -translate-y-1/2 items-center text-txt-muted">
+      {end_content}
+    </div>
+  </div>
+);
+
+const CheckIcon = () => (
+  <svg
+    aria-hidden="true"
+    className="h-4 w-4"
+    fill="currentColor"
+    viewBox="0 0 20 20"
+  >
+    <path
+      clipRule="evenodd"
+      d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm3.78-9.72a.75.75 0 0 0-1.06-1.06L9 10.94 7.28 9.22a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.06 0l4.25-4.25Z"
+      fillRule="evenodd"
+    />
+  </svg>
+);
+
+interface RuleRowProps {
+  label: string;
+  met: boolean;
+}
+
+const RuleRow = ({ label, met }: RuleRowProps) => (
+  <li className="flex items-center gap-2.5">
+    <span
+      className={`flex-shrink-0 transition-all duration-200 ${
+        met
+          ? "text-[var(--color-success,#16a34a)]"
+          : "text-txt-muted opacity-40"
+      }`}
+    >
+      <CheckIcon />
+    </span>
+    <span
+      className={`text-xs transition-colors duration-200 ${
+        met ? "text-txt-primary" : "text-txt-tertiary"
+      }`}
+    >
+      {label}
+    </span>
+  </li>
+);
+
 export const RegisterStepPassword = ({ reg }: RegisterStepPasswordProps) => {
   const is_captcha_pending = !!TURNSTILE_SITE_KEY && !reg.captcha_token;
+  const password = reg.password;
+  const has_length = password.length >= 8;
+  const has_case = /[a-z]/.test(password) && /[A-Z]/.test(password);
+  const has_number = /[0-9]/.test(password);
+  const has_match =
+    reg.confirm_password.length > 0 && reg.confirm_password === password;
+  const mismatch_message = reg.t("auth.passwords_do_not_match_register");
+  const is_mismatch_error = reg.error === mismatch_message;
+  const is_password_error = !!reg.error && !is_mismatch_error;
+
+  const clear_error = () => {
+    if (reg.error) reg.set_error("");
+  };
+
+  const submit = () => {
+    if (is_captcha_pending) {
+      reg.set_error(reg.t("auth.complete_captcha_first"));
+
+      return;
+    }
+    void reg.handle_password_next();
+  };
+
+  const eye_button = (visible: boolean, toggle: () => void) => (
+    <Tooltip
+      tip={
+        visible
+          ? reg.t("settings.hide_password_toggle")
+          : reg.t("settings.show_password_toggle")
+      }
+    >
+      <button
+        aria-label={
+          visible
+            ? reg.t("settings.hide_password_toggle")
+            : reg.t("settings.show_password_toggle")
+        }
+        className="flex h-7 w-7 items-center justify-center rounded-md transition-colors hover:text-txt-primary focus:outline-none"
+        tabIndex={-1}
+        type="button"
+        onClick={toggle}
+      >
+        {visible ? <EyeSlashIcon /> : <EyeIcon />}
+      </button>
+    </Tooltip>
+  );
 
   return (
-    <motion.div
-      key="password"
-      animate="animate"
-      className="flex flex-col items-center w-full max-w-sm px-4"
-      exit="exit"
-      initial="initial"
-      transition={page_transition}
-      variants={page_variants}
+    <StepShell
+      step_key="password"
+      subtitle={reg.t("auth.recommend_strong_password")}
+      title={reg.t("auth.create_a_password")}
     >
-      <Logo />
-
-      <h1 className="text-xl font-semibold mt-6 text-txt-primary">
-        {reg.t("auth.secure_your_account")}
-      </h1>
-      <p className="text-sm mt-2 leading-relaxed text-txt-tertiary text-center">
-        {reg.t("auth.create_strong_password")}
-      </p>
-
-      <AnimatePresence>
-        {reg.error && <Alert is_dark={reg.is_dark} message={reg.error} />}
-      </AnimatePresence>
-
-      <div className={`w-full ${reg.error ? "mt-4" : "mt-6"} space-y-4`}>
-        <div>
-          <InputWithEndContent
-            // eslint-disable-next-line jsx-a11y/no-autofocus
-            autoFocus
+      <form
+        noValidate
+        className="w-full"
+        onSubmit={(event) => {
+          event.preventDefault();
+          submit();
+        }}
+      >
+        <div className="w-full space-y-3">
+          <div>
+            <OnboardingInputWithEndContent
+              // eslint-disable-next-line jsx-a11y/no-autofocus
+              autoFocus
+              autoComplete="new-password"
+              end_content={eye_button(reg.is_password_visible, () =>
+                reg.set_is_password_visible(!reg.is_password_visible),
+              )}
+              maxLength={128}
+              placeholder={reg.t("auth.password")}
+              status={is_password_error ? "error" : "default"}
+              type={reg.is_password_visible ? "text" : "password"}
+              value={password}
+              onBlur={reg.handle_password_blur}
+              onChange={(e) => {
+                clear_error();
+                reg.set_password(clamp_password(e.target.value));
+              }}
+            />
+            <AnimatePresence initial={false}>
+              {password.length > 0 && (
+                <motion.div
+                  animate={{ opacity: 1, height: "auto" }}
+                  className="overflow-hidden"
+                  exit={{ opacity: 0, height: 0 }}
+                  initial={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.15 }}
+                >
+                  <PasswordStrengthIndicator
+                    password={password}
+                    show_suggestions={false}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+          <OnboardingInputWithEndContent
             autoComplete="new-password"
-            end_content={
-              <button
-                className="focus:outline-none flex items-center justify-center"
-                type="button"
-                onClick={() =>
-                  reg.set_is_password_visible(!reg.is_password_visible)
-                }
-              >
-                {reg.is_password_visible ? <EyeSlashIcon /> : <EyeIcon />}
-              </button>
-            }
+            end_content={eye_button(reg.is_confirm_password_visible, () =>
+              reg.set_is_confirm_password_visible(
+                !reg.is_confirm_password_visible,
+              ),
+            )}
             maxLength={128}
-            placeholder={reg.t("auth.password")}
-            status={reg.error ? "error" : "default"}
-            type={reg.is_password_visible ? "text" : "password"}
-            value={reg.password}
-            onBlur={reg.handle_password_blur}
-            onChange={(e) => reg.set_password(clamp_password(e.target.value))}
+            placeholder={reg.t("auth.confirm_password")}
+            status={is_mismatch_error ? "error" : "default"}
+            type={reg.is_confirm_password_visible ? "text" : "password"}
+            value={reg.confirm_password}
+            onChange={(e) => {
+              clear_error();
+              reg.set_confirm_password(clamp_password(e.target.value));
+            }}
           />
-          <PasswordStrengthIndicator password={reg.password} />
-          {reg.password_breach_warning && (
-            <p
-              className="text-sm mt-1"
-              style={{ color: "var(--color-warning, #f59e0b)" }}
-            >
-              {reg.t("auth.password_breach_warning")}
-            </p>
-          )}
         </div>
 
-        <InputWithEndContent
-          autoComplete="new-password"
-          end_content={
-            <button
-              className="focus:outline-none flex items-center justify-center"
-              type="button"
-              onClick={() =>
-                reg.set_is_confirm_password_visible(
-                  !reg.is_confirm_password_visible,
-                )
-              }
+        <ul className="mt-4 flex flex-col gap-2 px-1">
+          <RuleRow
+            label={reg.t("auth.password_rule_length")}
+            met={has_length}
+          />
+          <RuleRow label={reg.t("auth.password_rule_case")} met={has_case} />
+          <RuleRow
+            label={reg.t("auth.password_rule_number")}
+            met={has_number}
+          />
+          <RuleRow label={reg.t("auth.passwords_match")} met={has_match} />
+        </ul>
+
+        <AnimatePresence initial={false}>
+          {(reg.error || reg.password_breach_warning) && (
+            <motion.p
+              animate={{ opacity: 1, height: "auto" }}
+              className="overflow-hidden text-start text-xs"
+              exit={{ opacity: 0, height: 0 }}
+              initial={{ opacity: 0, height: 0 }}
+              role="alert"
+              style={{
+                color: reg.error
+                  ? reg.is_dark
+                    ? "#f87171"
+                    : "#dc2626"
+                  : "var(--color-warning, #f59e0b)",
+              }}
+              transition={{ duration: 0.15 }}
             >
-              {reg.is_confirm_password_visible ? <EyeSlashIcon /> : <EyeIcon />}
-            </button>
-          }
-          maxLength={128}
-          placeholder={reg.t("auth.confirm_password")}
-          status={reg.error ? "error" : "default"}
-          type={reg.is_confirm_password_visible ? "text" : "password"}
-          value={reg.confirm_password}
-          onChange={(e) =>
-            reg.set_confirm_password(clamp_password(e.target.value))
-          }
-          onKeyDown={(e) => {
-            if (e["key"] !== "Enter") return;
-            if (is_captcha_pending) return;
-            void reg.handle_password_next();
-          }}
-        />
-      </div>
-
-      <ul className="w-full mt-3 space-y-1.5">
-        {[
-          {
-            met: reg.password.length >= 8,
-            label: reg.t("auth.password_req_length"),
-          },
-          {
-            met: /[A-Z]/.test(reg.password),
-            label: reg.t("auth.password_req_uppercase"),
-          },
-          {
-            met: /[a-z]/.test(reg.password),
-            label: reg.t("auth.password_req_lowercase"),
-          },
-          {
-            met: /[0-9]/.test(reg.password),
-            label: reg.t("auth.password_req_number"),
-          },
-        ].map(({ met, label }) => (
-          <li
-            key={label}
-            className="flex items-center gap-2 text-xs"
-            style={{
-              color: met ? "var(--color-success)" : "var(--text-muted)",
-            }}
-          >
-            {met ? (
-              <svg
-                className="w-3 h-3 flex-shrink-0"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="3"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  d="M5 13l4 4L19 7"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            ) : (
-              <span className="w-3 h-3 flex-shrink-0 flex items-center justify-center">
-                <span
-                  className="w-1 h-1 rounded-full"
-                  style={{ backgroundColor: "currentColor" }}
-                />
+              <span className="block pt-2">
+                {reg.error || reg.t("auth.password_breach_warning")}
               </span>
-            )}
-            <span>{label}</span>
-          </li>
-        ))}
-      </ul>
+            </motion.p>
+          )}
+        </AnimatePresence>
 
-      <div className="w-full mt-4">
-        <Checkbox
-          checked={reg.remember_me}
-          label={`${reg.t("auth.keep_signed_in")} - ${reg.t("auth.secure_devices_only")}`}
-          onChange={() => reg.set_remember_me(!reg.remember_me)}
+        <TurnstileWidget
+          on_expire={() => reg.set_captcha_token("")}
+          on_verify={reg.set_captcha_token}
         />
-      </div>
 
-      <TurnstileWidget
-        on_expire={() => reg.set_captcha_token("")}
-        on_verify={reg.set_captcha_token}
-      />
-
-      <div className="flex items-center gap-3 w-full mt-6">
-        <Button
-          className="flex-1"
-          size="xl"
-          variant="secondary"
-          onClick={() => {
-            reg.set_error("");
-            reg.set_step("email");
-          }}
-        >
-          {reg.t("common.back")}
-        </Button>
-        <Button
-          className="flex-1"
-          disabled={is_captcha_pending}
-          size="xl"
-          variant="depth"
-          onClick={reg.handle_password_next}
+        <OnboardingButton
+          className="mt-4 w-full"
+          type="submit"
+          variant="primary"
         >
           {reg.t("common.next")}
-        </Button>
-      </div>
-    </motion.div>
+        </OnboardingButton>
+        {!reg.is_claim && (
+          <OnboardingButton
+            className="mt-2 w-full"
+            type="button"
+            variant="secondary"
+            onClick={() => {
+              reg.set_error("");
+              reg.set_step("email");
+            }}
+          >
+            {reg.t("common.back")}
+          </OnboardingButton>
+        )}
+      </form>
+    </StepShell>
   );
 };

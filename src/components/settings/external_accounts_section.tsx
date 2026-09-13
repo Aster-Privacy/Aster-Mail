@@ -112,7 +112,6 @@ export function ExternalAccountsSection() {
             {state.t("settings.add_account")}
           </Button>
         </div>
-        <div className="mt-2 h-px bg-edge-secondary" />
         <p className="text-sm mt-3 text-txt-muted">
           {state.t("settings.external_accounts_description")}
         </p>
@@ -272,18 +271,22 @@ export function ExternalAccountsSection() {
                 {state.t("settings.disconnect_confirm")}
               </AlertDialogDescription>
             </AlertDialogHeader>
-            <label className="mt-4 flex items-center gap-2.5 cursor-pointer select-none">
+            <div className="mt-4 flex items-center gap-2.5">
               <Checkbox
                 checked={state.purge_also_delete_messages}
                 disabled={state.is_purging}
+                id="ext-account-purge-messages"
                 onCheckedChange={(v) =>
                   state.set_purge_also_delete_messages(v === true)
                 }
               />
-              <span className="text-[13px] leading-none text-txt-secondary">
+              <label
+                className="text-[13px] leading-none text-txt-secondary cursor-pointer select-none"
+                htmlFor="ext-account-purge-messages"
+              >
                 {state.t("settings.disconnect_delete_messages_label")}
-              </span>
-            </label>
+              </label>
+            </div>
           </div>
           <AlertDialogFooter className="flex-row gap-3 px-6 pb-6 pt-2 sm:justify-end">
             <AlertDialogCancel asChild>

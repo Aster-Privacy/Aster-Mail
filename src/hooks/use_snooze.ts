@@ -18,11 +18,11 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { user_facing_error } from "@/utils/user_facing_error";
 import { useState, useCallback } from "react";
 
 import { emit_snoozed_changed } from "./mail_events";
 
+import { user_facing_error } from "@/utils/user_facing_error";
 import {
   snooze_email,
   bulk_snooze_emails,

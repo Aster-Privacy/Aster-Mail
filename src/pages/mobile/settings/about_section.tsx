@@ -168,7 +168,7 @@ export function AboutSection({
       <SettingsHeader
         on_back={on_back}
         on_close={on_close}
-        title={t("settings.advanced")}
+        title={t("settings.about")}
       />
       <div className="flex-1 overflow-y-auto pb-8">
         <SettingsGroup>

@@ -26,6 +26,7 @@ import { createRoot, type Root } from "react-dom/client";
 import { MemoryRouter } from "react-router-dom";
 
 import { QuickContactsPanel } from "./quick_contacts_panel";
+import { PANEL_TRANSITION_MS } from "./use_panel_transition";
 
 import * as contacts_api from "@/services/api/contacts";
 import * as keys_api from "@/services/api/keys";
@@ -50,6 +51,7 @@ vi.mock("@/lib/i18n/context", () => ({
 
 vi.mock("@/contexts/auth_context", () => ({
   use_auth: () => ({ has_keys: true }),
+  use_auth_safe: () => ({ has_keys: true }),
 }));
 
 vi.mock("@/contexts/preferences_context", () => ({
@@ -105,6 +107,9 @@ describe("quick contacts panel detail view", () => {
     vi.spyOn(contacts_api, "decrypt_contacts").mockResolvedValue([
       contact,
     ] as never);
+    vi.spyOn(contacts_api, "list_contact_groups").mockResolvedValue({
+      data: { groups: [] },
+    } as never);
     vi.spyOn(keys_api, "discover_external_keys_batch").mockResolvedValue({
       data: [],
     } as never);
@@ -150,6 +155,11 @@ describe("quick contacts panel detail view", () => {
     expect(on_close).toHaveBeenCalledTimes(1);
 
     await render_panel(false, on_close);
+    await act(async () => {
+      await new Promise((resolve) =>
+        setTimeout(resolve, PANEL_TRANSITION_MS + 20),
+      );
+    });
 
     expect(
       container

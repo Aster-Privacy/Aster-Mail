@@ -23,7 +23,6 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_auth } from "@/contexts/auth/use_auth_hook";
 import { ignore_error } from "@/lib/ignore_error";
-
 import { FAMILY_2FA_EVENT } from "@/services/api/client/helpers";
 
 const SECURITY_SETTINGS_PATH = "/settings/security";
@@ -73,7 +72,10 @@ export function Family2faDialog() {
     try {
       await logout();
     } catch (caught) {
-      ignore_error("components/common/family_2fa_dialog:handle_sign_out", caught);
+      ignore_error(
+        "components/common/family_2fa_dialog:handle_sign_out",
+        caught,
+      );
     }
 
     set_is_visible(false);

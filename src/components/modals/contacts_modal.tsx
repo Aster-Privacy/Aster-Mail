@@ -64,9 +64,9 @@ export function ContactsModal({
       />
       {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions, jsx-a11y/click-events-have-key-events */}
       <div
-        className="relative w-full max-w-[580px] rounded-xl border overflow-hidden bg-modal-bg border-edge-primary"
         aria-label={modal.t("common.contacts")}
         aria-modal="true"
+        className="relative w-full max-w-[580px] rounded-xl border overflow-hidden bg-modal-bg border-edge-primary"
         role="dialog"
         style={{
           boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.35)",
@@ -127,7 +127,6 @@ export function ContactsModal({
                 selection_state={modal.selection_state}
                 set_filter_by={modal.set_filter_by}
                 set_search_query={modal.set_search_query}
-                set_selected_ids={modal.set_selected_ids}
                 set_sort_by={modal.set_sort_by}
                 sort_by={modal.sort_by}
                 sort_label={modal.sort_label}

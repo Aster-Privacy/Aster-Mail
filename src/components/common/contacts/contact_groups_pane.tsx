@@ -34,10 +34,7 @@ import { Button, Tooltip } from "@aster/ui";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { ContactAvatar } from "@/components/common/contacts/contact_avatar";
-import {
-  ContactGroupGlyph,
-  DEFAULT_CONTACT_GROUP_COLOR,
-} from "@/components/common/contacts/contact_group_glyph";
+import { ContactGroupGlyph } from "@/components/common/contacts/contact_group_glyph";
 import { ContactGroupModal } from "@/components/contacts/contact_group_modal";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -222,6 +219,26 @@ export function ContactGroupsPane({
     return [...matched].sort((a, b) => a.name.localeCompare(b.name));
   }, [groups, search_query]);
 
+  const local_group_counts = useMemo(() => {
+    const map = new Map<string, number>();
+
+    for (const contact of contacts) {
+      for (const group_id of contact.groups ?? []) {
+        map.set(group_id, (map.get(group_id) ?? 0) + 1);
+      }
+    }
+
+    return map;
+  }, [contacts]);
+
+  const count_of = useCallback(
+    (group: ContactGroup) =>
+      contacts.length > 0
+        ? (local_group_counts.get(group.id) ?? 0)
+        : (group.contact_count ?? 0),
+    [contacts.length, local_group_counts],
+  );
+
   const members = useMemo(() => {
     if (!member_ids) return [];
     const by_id = new Map(contacts.map((contact) => [contact.id, contact]));
@@ -301,12 +318,7 @@ export function ContactGroupsPane({
                 <ArrowLeftIcon className="h-[18px] w-[18px] rtl:rotate-180" />
               </button>
             </Tooltip>
-            <span
-              className="contact_group_badge"
-              style={{
-                backgroundColor: `color-mix(in srgb, ${open_group.color || DEFAULT_CONTACT_GROUP_COLOR} 18%, var(--bg-primary))`,
-              }}
-            >
+            <span className="contact_group_badge">
               <ContactGroupGlyph
                 color={open_group.color}
                 icon={open_group.icon}
@@ -318,7 +330,7 @@ export function ContactGroupsPane({
               </p>
               <p className="text-[12px] text-txt-muted">
                 {t("common.group_contact_count", {
-                  count: open_group.contact_count ?? 0,
+                  count: count_of(open_group),
                 })}
               </p>
             </div>
@@ -352,12 +364,12 @@ export function ContactGroupsPane({
             ) : members.length === 0 ? (
               <div className="contact_empty_state">
                 <span className="contact_empty_state_glyph">
-                  <UserGroupIcon className="h-8 w-8" strokeWidth={1.25} />
+                  <UserGroupIcon strokeWidth={1.25} />
                 </span>
-                <p className="mb-1 text-[14px] font-medium text-txt-primary">
+                <p className="contact_empty_state_title">
                   {t("common.group_empty_title")}
                 </p>
-                <p className="max-w-[260px] text-[12.5px] text-txt-muted">
+                <p className="contact_empty_state_text">
                   {t("common.group_empty_hint")}
                 </p>
               </div>
@@ -418,15 +430,14 @@ export function ContactGroupsPane({
         ) : load_error ? (
           <div className="contact_empty_state">
             <span className="contact_empty_state_glyph">
-              <UserGroupIcon className="h-8 w-8" strokeWidth={1.25} />
+              <UserGroupIcon strokeWidth={1.25} />
             </span>
-            <p className="mb-1 text-[14px] font-medium text-txt-primary">
+            <p className="contact_empty_state_title">
               {t("common.failed_to_load_groups")}
             </p>
-            <p className="mb-4 max-w-[260px] text-[12.5px] text-txt-muted">
-              {load_error}
-            </p>
+            <p className="contact_empty_state_text">{load_error}</p>
             <Button
+              className="contact_empty_state_action"
               size="md"
               variant="secondary"
               onClick={() => {
@@ -440,18 +451,22 @@ export function ContactGroupsPane({
         ) : visible_groups.length === 0 ? (
           <div className="contact_empty_state">
             <span className="contact_empty_state_glyph">
-              <UserGroupIcon className="h-8 w-8" strokeWidth={1.25} />
+              <UserGroupIcon strokeWidth={1.25} />
             </span>
-            <p className="mb-1 text-[14px] font-medium text-txt-primary">
+            <p className="contact_empty_state_title">
               {search_query.trim()
                 ? t("common.no_groups_match", { query: search_query.trim() })
                 : t("common.no_groups_yet")}
             </p>
-            <p className="mb-4 max-w-[280px] text-[12.5px] text-txt-muted">
+            <p className="contact_empty_state_text">
               {t("common.group_modal_description")}
             </p>
             {!search_query.trim() && (
-              <Button size="md" onClick={on_modal_open}>
+              <Button
+                className="contact_empty_state_action"
+                size="md"
+                onClick={on_modal_open}
+              >
                 <PlusIcon className="h-3.5 w-3.5" />
                 {t("common.add_group")}
               </Button>
@@ -468,12 +483,7 @@ export function ContactGroupsPane({
                 type="button"
                 onClick={() => open(group)}
               >
-                <span
-                  className="contact_group_badge"
-                  style={{
-                    backgroundColor: `color-mix(in srgb, ${group.color || DEFAULT_CONTACT_GROUP_COLOR} 18%, var(--bg-primary))`,
-                  }}
-                >
+                <span className="contact_group_badge">
                   <ContactGroupGlyph color={group.color} icon={group.icon} />
                 </span>
                 <span className="min-w-0 flex-1">
@@ -482,7 +492,7 @@ export function ContactGroupsPane({
                   </span>
                   <span className="contact_group_row_sub block text-[12px] text-txt-muted">
                     {t("common.group_contact_count", {
-                      count: group.contact_count ?? 0,
+                      count: count_of(group),
                     })}
                   </span>
                 </span>

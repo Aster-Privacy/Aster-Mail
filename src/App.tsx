@@ -26,6 +26,7 @@ import {
   clear_checkout_target,
   get_subscription,
   read_checkout_target,
+  request_checkout_resume,
 } from "@/services/api/billing";
 import { FamilyWelcomeModal } from "@/components/settings/billing/family_welcome_modal";
 import { CheckoutReturnHandler } from "@/components/common/checkout_return_handler";
@@ -53,7 +54,9 @@ import {
   show_checkout_cancelled_upgrade,
   type UpgradeInterval,
 } from "@/stores/upgrade_store";
-import { PLAN_TIERS } from "@/components/settings/billing/billing_constants";
+import { is_resumable_checkout_plan } from "@/components/settings/billing/billing_constants";
+import { AliasCapUpsellModal } from "@/components/upgrade/alias_cap_upsell_modal";
+import { SpecialOfferModal } from "@/components/upgrade/special_offer_modal";
 import { UndoSendContainer } from "@/components/toast/undo_send_container";
 import { UndoSendPreviewModal } from "@/components/toast/undo_send_preview_modal";
 import { EmailNotificationManager } from "@/components/email/email_notification_manager";
@@ -96,7 +99,6 @@ const ExternalRedirect = ({ url }: { url: string }) => {
   return null;
 };
 
-
 interface FamilyWelcomeState {
   plan_name: string;
   max_members: number;
@@ -125,6 +127,10 @@ function mark_family_welcome_seen(account_id: string): void {
 }
 
 const BILLING_RETURN_KEY = "aster_billing_return";
+
+function is_on_billing_settings_route(): boolean {
+  return window.location.pathname.includes("/settings/billing");
+}
 
 function upgrade_interval_for(billing_interval: string): UpgradeInterval {
   if (billing_interval === "month") return "month";
@@ -191,12 +197,19 @@ function BillingSuccessHandler() {
 
     if (billing === "cancelled") {
       const target = read_checkout_target();
-      const target_tier = target
-        ? PLAN_TIERS.find((tier) => tier.id === target.plan_code)
-        : null;
+
+      if (
+        target &&
+        is_resumable_checkout_plan(target.plan_code) &&
+        is_on_billing_settings_route()
+      ) {
+        request_checkout_resume();
+
+        return;
+      }
 
       const resumed =
-        target && target_tier
+        target && is_resumable_checkout_plan(target.plan_code)
           ? show_checkout_cancelled_upgrade({
               plan_code: target.plan_code,
               interval: upgrade_interval_for(target.billing_interval),
@@ -204,7 +217,9 @@ function BillingSuccessHandler() {
           : false;
 
       if (!resumed) {
-        clear_checkout_target();
+        if (!target || !is_resumable_checkout_plan(target.plan_code))
+          clear_checkout_target();
+
         show_toast(
           t("settings.billing_checkout_cancelled"),
           "info",
@@ -534,6 +549,8 @@ function App() {
       <UnsubscribeConfirmationModal />
       <PostQuantumSendPrompt />
       <UpgradeModal />
+      <AliasCapUpsellModal />
+      <SpecialOfferModal />
       <UndoSendContainer max_visible={3} position="bottom-center" />
       <UndoSendPreviewModal />
       <EmailNotificationManager />

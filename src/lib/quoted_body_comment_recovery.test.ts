@@ -22,11 +22,12 @@ import { describe, it, expect } from "vitest";
 
 import { inline_email_css } from "./forward_css_inliner";
 import { strip_html_tags, html_to_readable_plain_text } from "./html_text";
-import { extract_preheader_text } from "@/utils/preview_text";
 import {
   sanitize_outgoing_html,
   repair_comment_markup,
 } from "./html_sanitizer";
+
+import { extract_preheader_text } from "@/utils/preview_text";
 
 const unterminated_conditional = [
   "<div>MID: 6425522</div>",

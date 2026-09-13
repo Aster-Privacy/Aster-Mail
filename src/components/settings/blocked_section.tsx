@@ -307,7 +307,6 @@ export function BlockedSection() {
             {t("common.add")}
           </Button>
         </div>
-        <div className="mt-2 h-px bg-edge-secondary" />
         <p className="text-sm mt-3 text-txt-muted">
           {t("settings.blocked_senders_description")}
         </p>

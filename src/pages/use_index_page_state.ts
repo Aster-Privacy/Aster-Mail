@@ -27,13 +27,12 @@ import type { TranslationKey } from "@/lib/i18n";
 import type { LocalEmailData } from "@/components/email/email_viewer_types";
 import type { CachedSubscription } from "@/services/subscription_cache";
 import type { SettingsSection } from "@/components/settings/settings_content";
+import type { UndoSendEvent } from "@/hooks/use_undo_send";
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 
-import type { UndoSendEvent } from "@/hooks/use_undo_send";
 import { attachments_to_draft_data } from "@/components/compose/compose_draft_helpers";
-
 import { use_compose_manager } from "@/components/compose/compose_manager";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_auth } from "@/contexts/auth_context";
@@ -1044,7 +1043,12 @@ export function use_index_page_state() {
       open_compose_instance({
         id: "",
         version: 0,
-        draft_type: "new",
+        draft_type: payload?.draft_type ?? "new",
+        reply_to_id: payload?.reply_to_id,
+        rfc_message_id: payload?.rfc_message_id,
+        forward_from_id: payload?.forward_from_id,
+        expires_at: payload?.expires_at,
+        expiry_password: payload?.expiry_password,
         thread_token: payload?.thread_token ?? pending.thread_token,
         to_recipients: payload?.to ?? pending.to ?? [],
         cc_recipients: payload?.cc ?? pending.cc ?? [],

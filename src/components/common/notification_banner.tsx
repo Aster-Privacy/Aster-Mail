@@ -190,7 +190,7 @@ export function NotificationBanner() {
           <div className="flex items-center justify-between px-4 py-1.5">
             <div className="flex items-center gap-1.5 min-w-0">
               <BellIcon className="h-3.5 w-3.5 flex-shrink-0 opacity-90" />
-              <span className="text-xs font-medium truncate">
+              <span className="text-xs font-medium line-clamp-2 sm:truncate">
                 {t("common.notification_banner_message")}
               </span>
             </div>

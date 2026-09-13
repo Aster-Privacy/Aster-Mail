@@ -63,9 +63,9 @@ describe("LinkDialog", () => {
     act(() => {
       root.render(
         <LinkDialog
-          open={true}
           on_close={on_close}
           on_insert={on_insert}
+          open={true}
           selected_text=""
         />,
       );
@@ -87,9 +87,9 @@ describe("LinkDialog", () => {
       url_input.dispatchEvent(new Event("input", { bubbles: true }));
     });
 
-    const insert_button = Array.from(
-      document.querySelectorAll("button"),
-    ).find((button) => button.textContent === "mail.insert_link");
+    const insert_button = Array.from(document.querySelectorAll("button")).find(
+      (button) => button.textContent === "mail.insert_link",
+    );
 
     expect(insert_button).toBeTruthy();
 

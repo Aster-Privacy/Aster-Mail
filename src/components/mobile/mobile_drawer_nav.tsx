@@ -354,8 +354,9 @@ export const DrawerNavContent = memo(function DrawerNavContent({
             {t("common.folders")}
           </span>
           <button
-            className="rounded p-0.5 text-[var(--text-muted)] transition-all duration-150 active:bg-[var(--bg-tertiary)]"
+            className="-m-1 flex min-h-6 min-w-6 items-center justify-center rounded p-1.5 text-[var(--text-muted)] transition-all duration-150 active:bg-[var(--bg-tertiary)]"
             type="button"
+            aria-label={t("common.create_folder")}
             onClick={on_open_create_folder}
           >
             <PlusIcon className="h-3.5 w-3.5" />
@@ -501,8 +502,9 @@ export const DrawerNavContent = memo(function DrawerNavContent({
             {t("common.labels")}
           </span>
           <button
-            className="rounded p-0.5 text-[var(--text-muted)] transition-all duration-150 active:bg-[var(--bg-tertiary)]"
+            className="-m-1 flex min-h-6 min-w-6 items-center justify-center rounded p-1.5 text-[var(--text-muted)] transition-all duration-150 active:bg-[var(--bg-tertiary)]"
             type="button"
+            aria-label={t("common.create_label")}
             onClick={on_open_create_label}
           >
             <PlusIcon className="h-3.5 w-3.5" />
@@ -558,8 +560,9 @@ export const DrawerNavContent = memo(function DrawerNavContent({
             {t("common.aliases")}
           </span>
           <button
-            className="rounded p-0.5 text-[var(--text-muted)] transition-all duration-150 active:bg-[var(--bg-tertiary)]"
+            className="-m-1 flex min-h-6 min-w-6 items-center justify-center rounded p-1.5 text-[var(--text-muted)] transition-all duration-150 active:bg-[var(--bg-tertiary)]"
             type="button"
+            aria-label={t("settings.create_alias")}
             onClick={on_open_create_alias}
           >
             <PlusIcon className="h-3.5 w-3.5" />

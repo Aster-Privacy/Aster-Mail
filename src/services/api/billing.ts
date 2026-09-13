@@ -55,6 +55,18 @@ export interface PendingOffer {
   expires_at: string;
 }
 
+export interface YearlySwitchOffer {
+  plan_code: string;
+  monthly_price_cents: number;
+  yearly_price_cents: number;
+  saving_cents: number;
+}
+
+export interface CardDecline {
+  reason: string;
+  at: string;
+}
+
 export interface SubscriptionResponse {
   plan: PlanInfo;
   status: string;
@@ -68,8 +80,11 @@ export interface SubscriptionResponse {
   payment_provider?: string | null;
   paid_until?: string | null;
   has_stripe_subscription?: boolean;
+  pay_url?: string | null;
   active_discount_description?: string | null;
   pending_offer?: PendingOffer | null;
+  last_card_decline?: CardDecline | null;
+  yearly_switch_offer?: YearlySwitchOffer | null;
 }
 
 export interface AvailablePlan {
@@ -251,13 +266,36 @@ export function billing_return_urls(): {
   };
 }
 
+const promo_code_arrival_key = "aster_arrived_with_promo_code";
+
+export function arrived_with_promo_code(): boolean {
+  if (typeof window === "undefined") return false;
+
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get("promo") ?? params.get("coupon");
+
+    if (code && code.trim().length > 0) {
+      window.sessionStorage.setItem(promo_code_arrival_key, "1");
+
+      return true;
+    }
+
+    return window.sessionStorage.getItem(promo_code_arrival_key) === "1";
+  } catch {
+    return false;
+  }
+}
+
 export async function create_checkout_session(
   plan_code: string,
   billing_interval: string = "month",
   currency?: string,
   apply_credits_cents?: number,
+  promo_code?: string,
 ) {
   const { success_url, cancel_url } = billing_return_urls();
+  const code = promo_code?.trim();
 
   return api_client.post<CheckoutSessionResponse>(
     "/payments/v1/checkout-session",
@@ -270,6 +308,8 @@ export async function create_checkout_session(
       ...(apply_credits_cents && apply_credits_cents > 0
         ? { apply_credits_cents }
         : {}),
+      ...(code ? { promo_code: code } : {}),
+      ...(arrived_with_promo_code() ? { arrived_with_promo_code: true } : {}),
     },
   );
 }
@@ -279,12 +319,14 @@ export async function start_hosted_checkout(
   billing_interval: string = "month",
   currency?: string,
   apply_credits_cents?: number,
+  promo_code?: string,
 ): Promise<{ ok: boolean; error?: string; server_code?: string }> {
   const response = await create_checkout_session(
     plan_code,
     billing_interval,
     currency,
     apply_credits_cents,
+    promo_code,
   );
 
   const url = response.data?.url;
@@ -406,6 +448,86 @@ export function clear_checkout_target(): void {
   }
 }
 
+export const BILLING_RESUME_KEY = "aster_billing_resume";
+
+export const BILLING_RESUME_EVENT = "aster:billing-resume-checkout";
+
+export const ADDON_TARGET_KEY = "aster_billing_target_addon";
+
+export function request_checkout_resume(): void {
+  try {
+    sessionStorage.setItem(BILLING_RESUME_KEY, "1");
+  } catch {
+    return;
+  }
+  try {
+    window.dispatchEvent(new CustomEvent(BILLING_RESUME_EVENT));
+  } catch {
+    return;
+  }
+}
+
+export function consume_checkout_resume(): boolean {
+  try {
+    if (sessionStorage.getItem(BILLING_RESUME_KEY) !== "1") return false;
+    sessionStorage.removeItem(BILLING_RESUME_KEY);
+
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export const ADDON_RESUME_KEY = "aster_billing_resume_addon";
+
+export function request_addon_resume(): void {
+  try {
+    sessionStorage.setItem(ADDON_RESUME_KEY, "1");
+  } catch {
+    return;
+  }
+  try {
+    window.dispatchEvent(new CustomEvent(BILLING_RESUME_EVENT));
+  } catch {
+    return;
+  }
+}
+
+export function consume_addon_resume(): boolean {
+  try {
+    if (sessionStorage.getItem(ADDON_RESUME_KEY) !== "1") return false;
+    sessionStorage.removeItem(ADDON_RESUME_KEY);
+
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function remember_addon_target(addon_id: string): void {
+  try {
+    sessionStorage.setItem(ADDON_TARGET_KEY, addon_id);
+  } catch {
+    return;
+  }
+}
+
+export function read_addon_target(): string | null {
+  try {
+    return sessionStorage.getItem(ADDON_TARGET_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export function clear_addon_target(): void {
+  try {
+    sessionStorage.removeItem(ADDON_TARGET_KEY);
+  } catch {
+    return;
+  }
+}
+
 export async function change_plan(
   plan_code: string,
   billing_interval: string = "month",
@@ -454,7 +576,10 @@ export async function create_crypto_checkout_session(
   term_months: number,
   success_url?: string,
   cancel_url?: string,
+  promo_code?: string,
 ) {
+  const code = promo_code?.trim();
+
   return api_client.post<CheckoutSessionResponse>(
     "/payments/v1/crypto/checkout-session",
     {
@@ -462,6 +587,7 @@ export async function create_crypto_checkout_session(
       term_months,
       ...(success_url ? { success_url } : {}),
       ...(cancel_url ? { cancel_url } : {}),
+      ...(code ? { promo_code: code } : {}),
     },
   );
 }
@@ -568,10 +694,19 @@ export async function create_crypto_native_invoice(
   term_months: number,
   currency: string,
   chain: string,
+  promo_code?: string,
 ) {
+  const code = promo_code?.trim();
+
   return api_client.post<CryptoNativeInvoiceResponse>(
     "/payments/v1/crypto-native/invoice",
-    { plan_code, term_months, currency, chain },
+    {
+      plan_code,
+      term_months,
+      currency,
+      chain,
+      ...(code ? { promo_code: code } : {}),
+    },
   );
 }
 
@@ -642,6 +777,10 @@ export async function get_cancel_impact() {
 
 export async function reactivate_subscription() {
   return api_client.post<ReactivateResponse>("/payments/v1/reactivate", {});
+}
+
+export async function record_yearly_switch_click(): Promise<void> {
+  await api_client.post("/payments/v1/yearly-switch-click", {});
 }
 
 export async function switch_billing_interval(billing_interval: string) {

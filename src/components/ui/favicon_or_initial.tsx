@@ -18,9 +18,9 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useEffect, useState } from "react";
-
 import type { CSSProperties } from "react";
+
+import { useEffect, useState } from "react";
 
 interface FaviconOrInitialProps {
   src: string;

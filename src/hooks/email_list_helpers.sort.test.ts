@@ -67,4 +67,30 @@ describe("sort_emails_by_timestamp", () => {
       "a",
     ]);
   });
+  it("keeps valid dates ordered when a message has an unparsable date", () => {
+    const items = [
+      email("newest", "2024-01-01T00:00:00.000Z"),
+      email("broken", "Tue, 32 Foo 2024 99:99:99 +9900"),
+      email("middle", "2022-01-01T00:00:00.000Z"),
+      email("oldest", "2020-01-01T00:00:00.000Z"),
+    ];
+
+    expect(
+      sort_emails_by_timestamp(items, "desc")
+        .map((e) => e.id)
+        .filter((id) => id !== "broken"),
+    ).toEqual(["newest", "middle", "oldest"]);
+  });
+
+  it("sorts an unparsable date to the end when descending", () => {
+    const items = [
+      email("broken", "not a date"),
+      email("real", "2020-01-01T00:00:00.000Z"),
+    ];
+
+    expect(sort_emails_by_timestamp(items, "desc").map((e) => e.id)).toEqual([
+      "real",
+      "broken",
+    ]);
+  });
 });

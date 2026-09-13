@@ -83,7 +83,9 @@ export function TagIconPicker({
                       on_select(is_selected ? undefined : icon_name)
                     }
                   >
-                    {IconComponent && <IconComponent className="h-[18px] w-[18px]" />}
+                    {IconComponent && (
+                      <IconComponent className="h-[18px] w-[18px]" />
+                    )}
                   </button>
                 );
               })}

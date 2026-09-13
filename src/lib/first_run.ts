@@ -20,7 +20,6 @@
 //
 import { safe_local_set, safe_local_remove } from "@/lib/safe_storage";
 
-export const FIRST_RUN_SETUP_KEY = "aster_first_run_setup";
 export const FIRST_RUN_TOUR_KEY = "aster_first_run_tour";
 export const FIRST_RUN_PLAN_KEY = "aster_first_run_plan";
 export const FIRST_RUN_AT_KEY = "aster_first_run_at";
@@ -37,7 +36,6 @@ function read(key: string): string | null {
 }
 
 export function mark_first_run(): void {
-  safe_local_set(FIRST_RUN_SETUP_KEY, "pending");
   safe_local_set(FIRST_RUN_TOUR_KEY, "pending");
   safe_local_set(FIRST_RUN_PLAN_KEY, "pending");
   safe_local_set(FIRST_RUN_AT_KEY, String(Date.now()));
@@ -69,20 +67,12 @@ export function snooze_recovery(duration_ms: number): void {
   safe_local_set(RECOVERY_SNOOZE_KEY, String(Date.now() + duration_ms));
 }
 
-export function is_first_run_setup_pending(): boolean {
-  return read(FIRST_RUN_SETUP_KEY) === "pending";
-}
-
 export function is_first_run_tour_pending(): boolean {
   return read(FIRST_RUN_TOUR_KEY) === "pending";
 }
 
 export function is_first_run_plan_pending(): boolean {
   return read(FIRST_RUN_PLAN_KEY) === "pending";
-}
-
-export function clear_first_run_setup(): void {
-  safe_local_remove(FIRST_RUN_SETUP_KEY);
 }
 
 export function clear_first_run_tour(): void {

@@ -45,16 +45,22 @@ let memory_source: AcquisitionSource = {};
 export function normalize_label(raw: string | null | undefined): string | null {
   if (!raw) return null;
   const collapsed = raw.trim().toLowerCase().replace(/\s+/g, "_");
+
   if (!collapsed || collapsed.length > MAX_LENGTH) return null;
   if (!VALID_SHAPE.test(collapsed)) return null;
+
   return collapsed;
 }
 
-export function normalize_click_id(raw: string | null | undefined): string | null {
+export function normalize_click_id(
+  raw: string | null | undefined,
+): string | null {
   if (!raw) return null;
   const trimmed = raw.trim();
+
   if (!trimmed || trimmed.length > MAX_CLICK_ID_LENGTH) return null;
   if (!CLICK_ID_SHAPE.test(trimmed)) return null;
+
   return trimmed;
 }
 
@@ -63,6 +69,7 @@ export function privacy_signal_opt_out(): boolean {
   try {
     const gpc = (navigator as Navigator & { globalPrivacyControl?: boolean })
       .globalPrivacyControl;
+
     if (gpc === true) return true;
     if (navigator.doNotTrack === "1") return true;
     if (
@@ -74,38 +81,46 @@ export function privacy_signal_opt_out(): boolean {
   } catch {
     void 0;
   }
+
   return false;
 }
 
 export function capture_source(search: string): AcquisitionSource {
   if (privacy_signal_opt_out()) {
     memory_source = {};
+
     return {};
   }
   const params = new URLSearchParams(search);
   const captured: AcquisitionSource = {};
+
   for (const field of FIELDS) {
     const value = normalize_label(params.get(field));
+
     if (value) {
       const key = field.replace(
         "utm_",
         "acquisition_",
       ) as keyof AcquisitionSource;
+
       captured[key] = value;
     }
   }
   const click_id = normalize_click_id(params.get(CLICK_ID_FIELD));
+
   if (click_id) captured.reddit_click_id = click_id;
   if (click_id) {
     memory_source = captured;
   } else if (Object.keys(captured).length > 0) {
     memory_source = { ...memory_source, ...captured };
   }
+
   return memory_source;
 }
 
 export function read_source(): AcquisitionSource {
   if (privacy_signal_opt_out()) return {};
+
   return memory_source;
 }
 
@@ -115,5 +130,6 @@ export function clear_source(): void {
 
 export function current_source(): AcquisitionSource {
   if (typeof window === "undefined") return {};
+
   return capture_source(window.location.search);
 }

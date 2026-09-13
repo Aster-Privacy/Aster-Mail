@@ -18,9 +18,9 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { user_facing_error } from "@/utils/user_facing_error";
 import type { EncryptedVault } from "./key_manager";
 
+import { user_facing_error } from "@/utils/user_facing_error";
 import { HASH_ALG } from "@/services/crypto/constants";
 import {
   create_draft,

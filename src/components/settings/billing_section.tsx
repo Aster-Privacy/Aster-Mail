@@ -18,12 +18,12 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { PlanFeature } from "@/components/settings/billing/plan_card";
-import { read_billing_interval } from "@/components/settings/billing/cancel_offer";
-
-import { useEffect, useRef, useState, useCallback, useMemo } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 
+import { checkout_error_text } from "./billing/checkout_error_text";
+
+import { read_billing_interval } from "@/components/settings/billing/cancel_offer";
 import { safe_local_set } from "@/lib/safe_storage";
 import {
   consume_payment_method_request,
@@ -43,6 +43,15 @@ import {
   get_stripe_config,
   start_hosted_checkout,
   change_plan,
+  record_yearly_switch_click,
+  read_checkout_target,
+  clear_checkout_target,
+  consume_addon_resume,
+  consume_checkout_resume,
+  BILLING_RESUME_EVENT,
+  remember_addon_target,
+  read_addon_target,
+  clear_addon_target,
   format_price,
   get_academic_discount_status,
   type SubscriptionResponse,
@@ -56,6 +65,7 @@ import {
 } from "@/services/api/billing";
 import { request_cache } from "@/services/api/request_cache";
 import { use_mail_stats, invalidate_mail_stats } from "@/hooks/use_mail_stats";
+import { use_special_offer_checkout } from "@/hooks/use_special_offer_checkout";
 import {
   show_toast,
   TOAST_DURATION_BILLING_MS,
@@ -75,9 +85,11 @@ import {
 import { DEFAULT_RECOMMENDED_PLAN } from "@/components/settings/billing/plan_recommendation";
 import { server_error_text } from "@/components/settings/billing/server_error_text";
 import { CurrentPlanCard } from "@/components/settings/billing/current_plan_card";
+import { CardDeclineNotice } from "@/components/settings/billing/card_decline_notice";
 import { CryptoResumeBanner } from "@/components/settings/billing/crypto_resume_banner";
 import { ResumeCheckoutCard } from "@/components/settings/billing/resume_checkout_card";
 import { WinBackOfferCard } from "@/components/settings/billing/win_back_offer_card";
+import { YearlySwitchCard } from "@/components/settings/billing/yearly_switch_card";
 import { AvailablePlansSection } from "@/components/settings/billing/available_plans_section";
 import { PlanComparisonSection } from "@/components/settings/billing/plan_comparison_section";
 import { StorageAddonsSection } from "@/components/settings/billing/storage_addons_section";
@@ -100,13 +112,14 @@ import {
   clear_cancel_password_cache,
   get_cancel_password_hash,
 } from "@/components/settings/billing/cancel_password";
-import { checkout_error_text } from "./billing/checkout_error_text";
+import { use_plan_features } from "@/components/settings/billing/use_plan_features";
 
 export function BillingSection() {
   const { t } = use_i18n();
   const { stats } = use_mail_stats();
   const [subscription, set_subscription] =
     useState<SubscriptionResponse | null>(null);
+  const offer_checkout = use_special_offer_checkout(subscription?.plan.code);
   const [plans, set_plans] = useState<AvailablePlan[]>([]);
   const [history, set_history] = useState<BillingHistoryItem[]>([]);
   const [history_load_failed, set_history_load_failed] = useState(false);
@@ -137,7 +150,7 @@ export function BillingSection() {
     useState<StorageAddonItem | null>(null);
   const [billing_period, set_billing_period] = useState<
     "monthly" | "yearly" | "biennial"
-  >("yearly");
+  >("monthly");
   const [, set_plan_limits] = useState<PlanLimitsResponse | null>(null);
   const [show_switch_billing_dialog, set_show_switch_billing_dialog] =
     useState(false);
@@ -167,6 +180,10 @@ export function BillingSection() {
   const [crypto_plan, set_crypto_plan] = useState<AvailablePlan | null>(null);
   const [crypto_resume, set_crypto_resume] =
     useState<CryptoResumeSelection | null>(null);
+  const [resume_tick, set_resume_tick] = useState(0);
+  const [pending_addon_resume, set_pending_addon_resume] = useState<
+    string | null
+  >(null);
   const [plan_method_target, set_plan_method_target] =
     useState<AvailablePlan | null>(null);
   const [crypto_back_plan, set_crypto_back_plan] =
@@ -197,6 +214,38 @@ export function BillingSection() {
   useEffect(() => {
     if (!show_payment_methods) set_auto_add_card(false);
   }, [show_payment_methods]);
+
+  useEffect(() => {
+    const handle_resume = () => set_resume_tick((tick) => tick + 1);
+
+    window.addEventListener(BILLING_RESUME_EVENT, handle_resume);
+
+    return () =>
+      window.removeEventListener(BILLING_RESUME_EVENT, handle_resume);
+  }, []);
+
+  useEffect(() => {
+    if (plans.length === 0) return;
+    if (!consume_checkout_resume()) return;
+
+    const target = read_checkout_target();
+
+    clear_checkout_target();
+    if (!target) return;
+
+    const plan = plans.find((entry) => entry.code === target.plan_code);
+
+    if (!plan) return;
+
+    set_billing_period(
+      target.billing_interval === "month"
+        ? "monthly"
+        : target.billing_interval === "biennial"
+          ? "biennial"
+          : "yearly",
+    );
+    set_plan_method_target(plan);
+  }, [plans, resume_tick]);
 
   useEffect(() => {
     if (!window.location.pathname.endsWith("/settings/credits")) return;
@@ -274,216 +323,7 @@ export function BillingSection() {
     refresh_academic_status();
   }, [refresh_academic_status]);
 
-  const plan_features: Record<string, PlanFeature[]> = useMemo(
-    () => ({
-      star: [
-        {
-          label: t("settings.plan_feat_storage_50"),
-          on: true,
-          icon: "storage",
-        },
-        { label: t("settings.plan_feat_aliases_15"), on: true, icon: "alias" },
-        {
-          label: t("settings.plan_f_ghost_aliases", { value: "25" }),
-          on: true,
-          icon: "ghost_alias",
-          description: t("settings.plan_desc_ghost_aliases"),
-        },
-        { label: t("settings.plan_feat_domains_5"), on: true, icon: "domain" },
-        {
-          label: t("settings.plan_feat_attachments_50"),
-          on: true,
-          icon: "attachment",
-        },
-        {
-          label: t("settings.plan_feat_catch_all"),
-          on: true,
-          icon: "catch_all",
-          description: t("settings.plan_desc_catch_all"),
-        },
-        {
-          label: t("settings.plan_feat_advanced_aliases"),
-          on: true,
-          icon: "advanced_alias",
-          description: t("settings.plan_desc_advanced_aliases"),
-        },
-        {
-          label: t("settings.plan_feat_imap_smtp"),
-          on: true,
-          icon: "apps",
-          description: t("settings.plan_desc_apps"),
-        },
-        {
-          label: t("settings.plan_f_external_accounts"),
-          on: true,
-          icon: "sync",
-          description: t("settings.plan_desc_external_accounts"),
-        },
-        {
-          label: t("settings.plan_feat_priority_support"),
-          on: true,
-          icon: "support",
-        },
-      ],
-      nova: [
-        {
-          label: t("settings.plan_feat_storage_500"),
-          on: true,
-          icon: "storage",
-        },
-        {
-          label: t("settings.plan_feat_aliases_unlimited"),
-          on: true,
-          icon: "alias",
-        },
-        {
-          label: t("settings.plan_f_ghost_aliases", {
-            value: t("settings.unlimited"),
-          }),
-          on: true,
-          icon: "ghost_alias",
-          description: t("settings.plan_desc_ghost_aliases"),
-        },
-        { label: t("settings.plan_feat_domains_30"), on: true, icon: "domain" },
-        {
-          label: t("settings.plan_feat_attachments_100"),
-          on: true,
-          icon: "attachment",
-        },
-        {
-          label: t("settings.plan_f_multi_accounts", { value: "5" }),
-          on: true,
-          icon: "accounts",
-          description: t("settings.plan_desc_multi_accounts"),
-        },
-        {
-          label: t("settings.plan_feat_vanguard"),
-          on: true,
-          icon: "shield",
-          description: t("settings.plan_desc_vanguard"),
-        },
-        {
-          label: t("settings.plan_feat_folder_lock"),
-          on: true,
-          icon: "lock",
-          description: t("settings.plan_desc_folder_lock"),
-        },
-        {
-          label: t("settings.plan_feat_smart_folders"),
-          on: true,
-          icon: "folder",
-          description: t("settings.plan_desc_smart_folders"),
-        },
-        {
-          label: t("settings.plan_f_encrypted_exports"),
-          on: true,
-          icon: "export",
-          description: t("settings.plan_desc_encrypted_exports"),
-        },
-        {
-          label: t("settings.feature_alias_directory"),
-          on: true,
-          icon: "directory",
-          description: t("settings.plan_desc_alias_directory"),
-        },
-        {
-          label: t("settings.plan_f_carddav_import"),
-          on: true,
-          icon: "import",
-        },
-        {
-          label: t("settings.plan_f_contact_merge"),
-          on: true,
-          icon: "contacts",
-        },
-      ],
-      supernova: [
-        {
-          label: t("settings.plan_feat_storage_5tb"),
-          on: true,
-          icon: "storage",
-        },
-        {
-          label: t("settings.plan_feat_aliases_unlimited"),
-          on: true,
-          icon: "alias",
-        },
-        {
-          label: t("settings.plan_f_ghost_aliases", {
-            value: t("settings.unlimited"),
-          }),
-          on: true,
-          icon: "ghost_alias",
-          description: t("settings.plan_desc_ghost_aliases"),
-        },
-        {
-          label: t("settings.plan_feat_domains_unlimited"),
-          on: true,
-          icon: "domain",
-        },
-        {
-          label: t("settings.plan_feat_attachments_250"),
-          on: true,
-          icon: "attachment",
-        },
-        {
-          label: t("settings.plan_f_multi_accounts", { value: "20" }),
-          on: true,
-          icon: "accounts",
-          description: t("settings.plan_desc_multi_accounts"),
-        },
-        {
-          label: t("settings.feature_instant_alias_delete"),
-          on: true,
-          icon: "delete",
-          description: t("settings.plan_desc_instant_alias_delete"),
-        },
-        {
-          label: t("settings.plan_f_support_dedicated"),
-          on: true,
-          icon: "support",
-          description: t("settings.plan_desc_support_dedicated"),
-        },
-        {
-          label: t("settings.plan_f_early_access"),
-          on: true,
-          icon: "early_access",
-          description: t("settings.plan_desc_early_access"),
-        },
-        {
-          label: t("settings.plan_feat_vanguard"),
-          on: true,
-          icon: "shield",
-          description: t("settings.plan_desc_vanguard"),
-        },
-        {
-          label: t("settings.plan_feat_folder_lock"),
-          on: true,
-          icon: "lock",
-          description: t("settings.plan_desc_folder_lock"),
-        },
-        {
-          label: t("settings.plan_feat_smart_folders"),
-          on: true,
-          icon: "folder",
-          description: t("settings.plan_desc_smart_folders"),
-        },
-        {
-          label: t("settings.plan_f_encrypted_exports"),
-          on: true,
-          icon: "export",
-          description: t("settings.plan_desc_encrypted_exports"),
-        },
-        {
-          label: t("settings.feature_alias_directory"),
-          on: true,
-          icon: "directory",
-          description: t("settings.plan_desc_alias_directory"),
-        },
-      ],
-    }),
-    [t],
-  );
+  const plan_features = use_plan_features();
 
   const storage_limit_bytes =
     stats.storage_total_bytes ||
@@ -665,6 +505,36 @@ export function BillingSection() {
       window.history.replaceState({}, "", url.toString());
     }
   }, [load_data, t]);
+
+  useEffect(() => {
+    if (!consume_addon_resume()) return;
+
+    set_pending_addon_resume(read_addon_target());
+    clear_addon_target();
+  }, [resume_tick]);
+
+  useEffect(() => {
+    if (!pending_addon_resume) return;
+    if (available_addons.length === 0) return;
+
+    const addon = available_addons.find(
+      (entry) => entry.id === pending_addon_resume,
+    );
+
+    set_pending_addon_resume(null);
+    if (!addon) {
+      show_toast(
+        t("settings.billing_checkout_cancelled"),
+        "info",
+        TOAST_DURATION_BILLING_MS,
+      );
+
+      return;
+    }
+
+    set_addon_method_target(addon);
+    set_show_addon_method_modal(true);
+  }, [available_addons, pending_addon_resume, t]);
 
   const crypto_term_prices_for = (plan_code: string) =>
     PLAN_TIERS.find((p) => p.id === plan_code) ??
@@ -885,6 +755,16 @@ export function BillingSection() {
     return options;
   };
 
+  const handle_switch_to_yearly = (plan_code: string) => {
+    const plan = plans.find((p) => p.code === plan_code);
+
+    if (!plan) return;
+
+    void record_yearly_switch_click();
+    set_plan_change_confirm_target({ plan, interval: "year" });
+    set_show_plan_change_confirm(true);
+  };
+
   const handle_confirm_plan_change = async (promo_code?: string) => {
     if (!plan_change_confirm_target) return;
     const { plan, interval } = plan_change_confirm_target;
@@ -977,6 +857,7 @@ export function BillingSection() {
       const url = response.data?.url;
 
       if (url) {
+        remember_addon_target(addon.id);
         const is_tauri =
           typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
 
@@ -1180,11 +1061,19 @@ export function BillingSection() {
     <div className="space-y-6">
       <CryptoResumeBanner />
 
+      <CardDeclineNotice decline={subscription?.last_card_decline} />
+
       <ResumeCheckoutCard current_plan_code={subscription?.plan.code ?? null} />
 
       <WinBackOfferCard
         offer={subscription?.pending_offer}
         on_choose_plan={scroll_to_plans}
+      />
+
+      <YearlySwitchCard
+        currency={preferred_currency}
+        offer={subscription?.yearly_switch_offer}
+        on_switch={handle_switch_to_yearly}
       />
 
       <CurrentPlanCard
@@ -1202,8 +1091,8 @@ export function BillingSection() {
         storage_limit_bytes={storage_limit_bytes}
         storage_percentage={storage_percentage}
         storage_used_bytes={storage_used_bytes}
-        upgrade_features={plan_features[DEFAULT_RECOMMENDED_PLAN]}
         subscription={subscription}
+        upgrade_features={plan_features[DEFAULT_RECOMMENDED_PLAN]}
       />
 
       {stripe_load_failed && (
@@ -1282,6 +1171,10 @@ export function BillingSection() {
 
           return (
             <CryptoTermModal
+              discount_percent_off={offer_checkout.percent_off}
+              discounted_price_cents={offer_checkout.crypto_price(
+                crypto_plan.code,
+              )}
               initial_coin_key={
                 crypto_resume
                   ? `${crypto_resume.currency}:${crypto_resume.chain}`
@@ -1364,6 +1257,7 @@ export function BillingSection() {
           plan_name={plan_method_target.name}
           selected_plan_id={plan_method_target.code}
           selected_term={billing_period}
+          special_offer={offer_checkout.plan_pricing(plan_method_target.code)}
           term_options={plan_term_options_for(plan_method_target.code)}
         />
       )}

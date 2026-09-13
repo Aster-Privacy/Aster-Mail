@@ -49,7 +49,6 @@ export function ExportSection() {
             <ArrowUpTrayIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
             {t("settings.export_title")}
           </h3>
-          <div className="mt-2 h-px bg-edge-secondary" />
         </div>
 
         <div className="flex items-center justify-between py-4">
@@ -74,7 +73,6 @@ export function ExportSection() {
             <ArchiveBoxArrowDownIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
             {t("settings.export_step_scope_title")}
           </h3>
-          <div className="mt-2 h-px bg-edge-secondary" />
         </div>
 
         <div className="flex items-start gap-3 py-4">
@@ -128,7 +126,6 @@ export function ExportSection() {
             <ShieldCheckIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
             {t("settings.export_security_section_title")}
           </h3>
-          <div className="mt-2 h-px bg-edge-secondary" />
         </div>
 
         <div className="flex items-start gap-3 py-4">

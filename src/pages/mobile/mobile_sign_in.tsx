@@ -367,11 +367,11 @@ export default function MobileSignInPage() {
                   autoCapitalize="none"
                   autoComplete="username"
                   autoCorrect="off"
-                  spellCheck={false}
                   className={INNER_INPUT_WITH_ICON_CLASS}
                   disabled={is_loading}
                   maxLength={55}
                   placeholder={t("common.yourname_placeholder")}
+                  spellCheck={false}
                   status={error ? "error" : "default"}
                   type="text"
                   value={username}

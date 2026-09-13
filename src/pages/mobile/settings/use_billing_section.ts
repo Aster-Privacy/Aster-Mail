@@ -23,10 +23,10 @@ import type {
   BillingHistoryItem,
   AvailablePlan,
 } from "@/services/api/billing";
-import { server_error_text } from "@/components/settings/billing/server_error_text";
 
 import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 
+import { server_error_text } from "@/components/settings/billing/server_error_text";
 import {
   PLAN_TIERS,
   FAMILY_PLAN_TIERS,
@@ -41,9 +41,11 @@ import {
 import { create_family_group } from "@/services/api/family";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_mail_stats } from "@/hooks/use_mail_stats";
+import { use_special_offer_checkout } from "@/hooks/use_special_offer_checkout";
 import { use_auth } from "@/contexts/auth/use_auth_hook";
 import { type CancelReason } from "@/components/settings/billing/cancel_reason_step";
 import { type CancelStep } from "@/components/settings/billing/cancel_impact_step";
+import { is_early_cancel } from "@/components/settings/billing/cancel_early_step";
 import {
   clear_cancel_password_cache,
   get_cancel_password_hash,
@@ -78,6 +80,11 @@ import {
   get_cancel_impact,
   format_date,
   open_payment_url,
+  remember_addon_target,
+  read_addon_target,
+  clear_addon_target,
+  consume_addon_resume,
+  BILLING_RESUME_EVENT,
   type ReferralInfo,
   type ReferralHistoryItem,
   type CreditBalanceResponse,
@@ -96,6 +103,9 @@ export function use_billing_section() {
   const { stats } = use_mail_stats();
   const [subscription, set_subscription] =
     useState<SubscriptionResponse | null>(null);
+  const special_offer_checkout = use_special_offer_checkout(
+    subscription?.plan.code,
+  );
   const [plans, set_plans] = useState<AvailablePlan[]>([]);
   const [history, set_history] = useState<BillingHistoryItem[]>([]);
   const [is_loading, set_is_loading] = useState(true);
@@ -109,6 +119,7 @@ export function use_billing_section() {
   );
   const [cancel_reason_text, set_cancel_reason_text] = useState("");
   const [cancel_step, set_cancel_step] = useState<CancelStep>("reason");
+  const subscription_started_at = subscription?.current_period_start ?? null;
   const [is_verifying_password, set_is_verifying_password] = useState(false);
   const [cancel_totp_code, set_cancel_totp_code] = useState("");
   const [cancel_totp_required, set_cancel_totp_required] = useState(false);
@@ -123,13 +134,15 @@ export function use_billing_section() {
     set_show_cancel_password(false);
     set_cancel_reason(null);
     set_cancel_reason_text("");
-    set_cancel_step("reason");
+    set_cancel_step(
+      is_early_cancel(subscription_started_at) ? "early" : "reason",
+    );
     set_cancel_totp_code("");
     set_cancel_totp_required(false);
     set_cancel_impact(null);
     set_is_verifying_password(false);
     clear_cancel_password_cache();
-  }, [show_cancel_dialog]);
+  }, [show_cancel_dialog, subscription_started_at]);
 
   useEffect(() => {
     if (!show_cancel_dialog || cancel_step !== "impact" || cancel_impact)
@@ -224,10 +237,45 @@ export function use_billing_section() {
     set_crypto_plan(matching);
     set_show_crypto_modal(true);
   }, [plans]);
+  const [resume_tick, set_resume_tick] = useState(0);
+  const [pending_addon_resume, set_pending_addon_resume] = useState<
+    string | null
+  >(null);
   const [show_addon_method_modal, set_show_addon_method_modal] =
     useState(false);
   const [addon_method_target, set_addon_method_target] =
     useState<StorageAddonItem | null>(null);
+
+  useEffect(() => {
+    const handle_resume = () => set_resume_tick((tick) => tick + 1);
+
+    window.addEventListener(BILLING_RESUME_EVENT, handle_resume);
+
+    return () =>
+      window.removeEventListener(BILLING_RESUME_EVENT, handle_resume);
+  }, []);
+
+  useEffect(() => {
+    if (!consume_addon_resume()) return;
+
+    set_pending_addon_resume(read_addon_target());
+    clear_addon_target();
+  }, [resume_tick]);
+
+  useEffect(() => {
+    if (!pending_addon_resume) return;
+    if (available_addons.length === 0) return;
+
+    const addon = available_addons.find(
+      (entry) => entry.id === pending_addon_resume,
+    );
+
+    set_pending_addon_resume(null);
+    if (!addon) return;
+
+    set_addon_method_target(addon);
+    set_show_addon_method_modal(true);
+  }, [available_addons, pending_addon_resume]);
   const [show_crypto_addon_modal, set_show_crypto_addon_modal] =
     useState(false);
   const [crypto_addon, set_crypto_addon] = useState<StorageAddonItem | null>(
@@ -254,7 +302,7 @@ export function use_billing_section() {
     useState<UserActiveAddon | null>(null);
   const [billing_period, set_billing_period] = useState<
     "monthly" | "yearly" | "biennial"
-  >("yearly");
+  >("monthly");
   const [referral_load_failed, set_referral_load_failed] = useState(false);
   const [plans_load_failed, set_plans_load_failed] = useState(false);
   const [addons_load_failed, set_addons_load_failed] = useState(false);
@@ -966,6 +1014,7 @@ export function use_billing_section() {
     if (is_action_loading) return;
 
     set_is_action_loading(true);
+    remember_addon_target(addon.id);
     try {
       const credit_cents = await resolve_credit_cents();
 
@@ -1145,6 +1194,7 @@ export function use_billing_section() {
 
   return {
     t,
+    special_offer_checkout,
     subscription,
     plans,
     history,

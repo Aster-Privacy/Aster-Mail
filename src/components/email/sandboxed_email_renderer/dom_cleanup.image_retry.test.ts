@@ -27,6 +27,7 @@ vi.mock("@/services/routing/connection_store", () => ({
 vi.mock("./helpers", () => ({ IMAGE_PROXY_URL: "" }));
 
 import { unblock_remote_content } from "./dom_cleanup";
+
 import { IMAGE_LOAD_RETRY_MAX_ATTEMPTS } from "@/lib/image_load_retry";
 
 const REMOTE = "https://cdn.example.com/newsletter/hero.png";

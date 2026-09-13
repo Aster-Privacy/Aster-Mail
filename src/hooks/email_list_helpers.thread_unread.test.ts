@@ -90,13 +90,9 @@ describe("mail_to_email thread unread siblings", () => {
   });
 
   it("falls back to the row's own state when the server omits the count", () => {
-    const email = mail_to_email(
-      make_item(),
-      make_envelope(),
-      null,
-      FORMAT,
-      { collapsed_threads: true },
-    );
+    const email = mail_to_email(make_item(), make_envelope(), null, FORMAT, {
+      collapsed_threads: true,
+    });
 
     expect(email.is_read).toBe(true);
   });

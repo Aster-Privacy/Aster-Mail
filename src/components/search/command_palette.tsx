@@ -852,10 +852,10 @@ export function CommandPalette({
         confirm_text={t("mail.empty_trash")}
         is_open={confirm_empty_trash_open}
         message={t("mail.empty_trash_confirmation")}
-        title={t("mail.empty_trash_question")}
-        variant="danger"
         on_cancel={() => set_confirm_empty_trash_open(false)}
         on_confirm={run_empty_trash}
+        title={t("mail.empty_trash_question")}
+        variant="danger"
       />
       <AnimatePresence>
         {is_open && (

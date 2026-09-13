@@ -33,6 +33,10 @@ vi.mock("react-router-dom", () => ({
   useNavigate: () => navigate_spy,
 }));
 
+vi.mock("@/components/settings/external_accounts/gmail_wizard_host", () => ({
+  GmailWizardHost: () => <div>gmail_wizard_host</div>,
+}));
+
 vi.mock("@aster/ui", () => ({
   Button: ({
     children,
@@ -121,7 +125,7 @@ describe("GmailSyncModal", () => {
     expect(link?.getAttribute("rel")).toContain("noopener");
   });
 
-  it("sends the user to external accounts to finish connecting", async () => {
+  it("opens the setup wizard in place instead of leaving the page", async () => {
     const on_close = await render_modal(true);
 
     const buttons = Array.from(container.querySelectorAll("button"));
@@ -135,10 +139,10 @@ describe("GmailSyncModal", () => {
       continue_button?.click();
     });
 
-    expect(on_close).toHaveBeenCalled();
-    expect(navigate_spy).toHaveBeenCalledWith("/settings/sender_filters", {
-      state: { open_external_account_form: true },
-    });
+    expect(container.textContent).toContain("gmail_wizard_host");
+    expect(container.textContent).not.toContain("settings.gmail_sync_title");
+    expect(on_close).not.toHaveBeenCalled();
+    expect(navigate_spy).not.toHaveBeenCalled();
   });
 
   it("closes without navigating when the user backs out", async () => {

@@ -32,6 +32,7 @@ vi.mock("@/services/crypto/attachment_crypto", () => ({
 }));
 
 import { resolve_cid_references } from "./cid_resolver";
+
 import { clear_attachment_preview_cache } from "@/services/attachment_preview_cache";
 
 const html = '<img src="cid:logo@a" alt="logo">';

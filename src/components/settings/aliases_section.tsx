@@ -24,8 +24,11 @@ import { Button } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
-import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
-import { show_plan_limit_upgrade } from "@/stores/upgrade_store";
+import {
+  prompt_alias_limit_upgrade,
+  prompt_upgrade,
+} from "@/components/settings/aliases/feature_lock";
+import { AliasUsageMeter } from "@/components/settings/aliases/alias_usage_meter";
 import { get_alias_preferences } from "@/services/api/aliases";
 import { SettingsTabBar } from "@/components/settings/settings_tab_bar";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
@@ -37,6 +40,7 @@ import {
 import { AliasEditorPage } from "@/components/settings/aliases/alias_editor_page";
 import { AliasList } from "@/components/settings/aliases/alias_list";
 import { TwinAddressCard } from "@/components/settings/aliases/twin_address_card";
+import { use_twin_address } from "@/components/settings/aliases/use_twin_address";
 import { AliasDirectoriesSection } from "@/components/settings/alias_directories_section";
 import { GhostAliasesSection } from "@/components/settings/ghost_aliases_section";
 import { AliasImportModal } from "@/components/settings/aliases/alias_import_modal";
@@ -93,6 +97,7 @@ export function AliasesSection() {
     null,
   );
   const [twin_refresh, set_twin_refresh] = useState(0);
+  const twin = use_twin_address(twin_refresh);
   const [twin_prefill, set_twin_prefill] = useState<{
     local_part: string;
     domain: string;
@@ -145,6 +150,11 @@ export function AliasesSection() {
       );
     };
   }, [hook.set_show_create_alias_modal]);
+
+  const alias_used =
+    (hook.alias_counts?.count ?? hook.aliases.length) +
+    hook.domain_addresses.length;
+  const alias_limit = hook.alias_counts?.max ?? hook.max_aliases;
 
   const editing_alias = hook.aliases.find(
     (item) => item.id === editing_alias_id,
@@ -222,33 +232,25 @@ export function AliasesSection() {
                   >
                     {t("settings.alias_import_csv")}
                   </Button>
-                  {hook.alias_counts !== null && (
-                    <span className="text-sm text-txt-muted">
-                      {t("settings.used_count", {
-                        current:
-                          hook.alias_counts.count +
-                          hook.domain_addresses.length,
-                        max:
-                          hook.alias_counts.max === -1
-                            ? "∞"
-                            : hook.alias_counts.max,
-                      })}
-                    </span>
-                  )}
                 </div>
               </div>
-              <div className="mt-2 h-px bg-edge-secondary" />
             </div>
-            <p className="text-sm mb-2 text-txt-muted">
+            <p className="text-sm mb-3 text-txt-muted">
               {t("settings.aliases_description")}
             </p>
 
+            <AliasUsageMeter
+              className="mb-3"
+              limit={alias_limit}
+              used={alias_used}
+            />
+
             <TwinAddressCard
-              refresh_token={twin_refresh}
               on_claim={(local_part, domain) => {
                 set_twin_prefill({ local_part, domain });
                 hook.set_show_create_alias_modal(true);
               }}
+              siblings={twin.siblings}
             />
 
             <div className="flex gap-2 mb-2">
@@ -259,18 +261,21 @@ export function AliasesSection() {
                 onClick={() => {
                   set_twin_prefill(null);
 
-                  const total_count =
-                    (hook.alias_counts?.count ?? hook.aliases.length) +
-                    hook.domain_addresses.length;
-                  const max = hook.alias_counts?.max ?? hook.max_aliases;
                   const has_custom_domains = hook.domains.some(
                     (d) => d.status === "active",
                   );
 
                   if (
-                    compute_alias_at_limit(max, total_count, has_custom_domains)
+                    compute_alias_at_limit(
+                      alias_limit,
+                      alias_used,
+                      has_custom_domains,
+                    )
                   ) {
-                    show_plan_limit_upgrade({ resource: "aliases" });
+                    prompt_alias_limit_upgrade({
+                      used: alias_used,
+                      limit: alias_limit,
+                    });
                   } else {
                     hook.set_show_create_alias_modal(true);
                   }

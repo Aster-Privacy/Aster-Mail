@@ -178,10 +178,7 @@ export function use_inbox_categories(
   );
 
   const counts = useMemo(() => get_counts(), [index_version]);
-  const counts_pending = useMemo(
-    () => are_counts_partial(),
-    [index_version],
-  );
+  const counts_pending = useMemo(() => are_counts_partial(), [index_version]);
 
   const custom_categories_key = JSON.stringify(
     preferences.custom_categories ?? [],

@@ -18,7 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { user_facing_error } from "@/utils/user_facing_error";
 import type {
   ExternalAccountData,
   ExternalAccountCredentials,
@@ -48,6 +47,7 @@ import {
   validate_advanced_settings,
 } from "./validators";
 
+import { user_facing_error } from "@/utils/user_facing_error";
 import { get_active_translations } from "@/lib/i18n/translations";
 
 export async function list_external_accounts(

@@ -354,15 +354,19 @@ export function ForwardingRuleBuilder({
         )}
       </div>
 
-      <label className="flex items-center gap-2 cursor-pointer select-none">
+      <div className="flex items-center gap-2">
         <Checkbox
           checked={keep_copy}
+          id="forwarding-keep-copy"
           onCheckedChange={(checked) => set_keep_copy(checked === true)}
         />
-        <span className="text-sm text-txt-primary">
+        <label
+          className="text-sm text-txt-primary cursor-pointer select-none"
+          htmlFor="forwarding-keep-copy"
+        >
           {t("settings.keep_copy_inbox")}
-        </span>
-      </label>
+        </label>
+      </div>
 
       <div className="flex items-center justify-end gap-3 pt-1">
         <Button variant="ghost" onClick={on_cancel}>

@@ -40,7 +40,9 @@ vi.mock("@/components/toast/simple_toast", () => ({
 }));
 
 vi.mock("@/services/api/request_cache", () => ({
-  request_cache: { invalidate: (...args: unknown[]) => invalidate_mock(...args) },
+  request_cache: {
+    invalidate: (...args: unknown[]) => invalidate_mock(...args),
+  },
 }));
 
 vi.mock("@/hooks/use_mail_stats", () => ({

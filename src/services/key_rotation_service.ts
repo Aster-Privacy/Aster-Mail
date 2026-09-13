@@ -18,8 +18,9 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { user_facing_error } from "@/utils/user_facing_error";
 import * as openpgp from "openpgp";
+
+import { user_facing_error } from "@/utils/user_facing_error";
 
 import "@/services/crypto/openpgp_limits";
 

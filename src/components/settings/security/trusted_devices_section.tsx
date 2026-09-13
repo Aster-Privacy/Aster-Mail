@@ -112,7 +112,6 @@ export function TrustedDevicesSection() {
           <ShieldCheckIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
           {t("settings.trusted_2fa_title")}
         </h3>
-        <div className="mt-2 h-px bg-edge-secondary" />
       </div>
 
       <p className="text-sm text-txt-muted mb-4">

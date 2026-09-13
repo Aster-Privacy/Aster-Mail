@@ -160,6 +160,10 @@ const sidebar_base = ({
 }: SidebarProps) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const contacts_group_param =
+    location.pathname === "/contacts"
+      ? new URLSearchParams(location.search).get("group")
+      : null;
   const { user } = use_auth();
   const { t } = use_i18n();
   const reduce_motion = use_should_reduce_motion();
@@ -258,6 +262,12 @@ const sidebar_base = ({
       const alias_address = decodeURIComponent(path.replace("/alias/", ""));
 
       return `alias-${alias_address}`;
+    }
+
+    if (path === "/contacts") {
+      const group_id = new URLSearchParams(location.search).get("group");
+
+      if (group_id) return `contact-group-${group_id}`;
     }
 
     return path_to_item[path] || "inbox";
@@ -440,12 +450,14 @@ const sidebar_base = ({
       const alias_address = decodeURIComponent(path.replace("/alias/", ""));
 
       set_selected_item(`alias-${alias_address}`);
+    } else if (path === "/contacts" && contacts_group_param) {
+      set_selected_item(`contact-group-${contacts_group_param}`);
     } else {
       const item = path_to_item[path] || "inbox";
 
       set_selected_item(item);
     }
-  }, [location.pathname, location.state]);
+  }, [location.pathname, location.state, contacts_group_param]);
 
   useEffect(() => {
     const handle_navigate = (e: Event) => {

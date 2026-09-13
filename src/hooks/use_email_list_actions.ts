@@ -68,6 +68,7 @@ import {
 } from "@/services/category_index";
 import { mark_conversation_read } from "@/hooks/mark_conversation_read";
 import { ignore_error } from "@/lib/ignore_error";
+import { compare_timestamps_desc } from "@/utils/email_timestamp";
 
 interface UseEmailListActionsParams {
   state: EmailListState;
@@ -292,10 +293,11 @@ export function use_email_list_actions({
         if (email_to_restore) {
           set_state((prev) => ({
             ...prev,
-            emails: [...prev.emails, email_to_restore].sort(
-              (a, b) =>
-                new Date(b.timestamp).getTime() -
-                new Date(a.timestamp).getTime(),
+            emails: [...prev.emails, email_to_restore].sort((a, b) =>
+              compare_timestamps_desc(
+                a.raw_timestamp || a.timestamp,
+                b.raw_timestamp || b.timestamp,
+              ),
             ),
             total_messages: prev.total_messages + 1,
           }));
@@ -352,10 +354,11 @@ export function use_email_list_actions({
         if (email_to_restore) {
           set_state((prev) => ({
             ...prev,
-            emails: [...prev.emails, email_to_restore].sort(
-              (a, b) =>
-                new Date(b.timestamp).getTime() -
-                new Date(a.timestamp).getTime(),
+            emails: [...prev.emails, email_to_restore].sort((a, b) =>
+              compare_timestamps_desc(
+                a.raw_timestamp || a.timestamp,
+                b.raw_timestamp || b.timestamp,
+              ),
             ),
             total_messages: prev.total_messages + 1,
           }));
@@ -429,6 +432,9 @@ export function use_email_list_actions({
 
       remove_email(id);
       remove_index_ids(all_ids);
+      for (const aid of all_ids) {
+        remove_email_from_view_cache(aid);
+      }
       if (should_adjust_unread) {
         adjust_stats_unread(-1);
       }
@@ -442,6 +448,11 @@ export function use_email_list_actions({
       });
 
       if (result.success) {
+        emit_mail_item_updated({
+          id,
+          is_spam: true,
+          is_trashed: false,
+        } as MailItemUpdatedEventDetail);
         if (email?.sender_email) {
           report_spam_sender(email.sender_email).catch((caught) =>
             ignore_error(

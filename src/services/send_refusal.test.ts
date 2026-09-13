@@ -106,7 +106,10 @@ describe("describe_send_refusal", () => {
         details: { domain: "example.net" },
       },
       { server_code: "TOO_MANY_RECIPIENTS", details: { max_allowed: 250 } },
-      { server_code: "ATTACHMENTS_TOO_LARGE", details: { max_bytes: 52428800 } },
+      {
+        server_code: "ATTACHMENTS_TOO_LARGE",
+        details: { max_bytes: 52428800 },
+      },
       { server_code: "TOO_MANY_ATTACHMENTS", details: { max_allowed: 50 } },
     ];
 

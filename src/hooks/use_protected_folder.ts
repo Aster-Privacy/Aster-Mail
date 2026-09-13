@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { ApiResponse } from "@/services/api/client/helpers";
+
 import { useState, useCallback, useEffect } from "react";
 
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
@@ -49,7 +51,6 @@ import {
 import { use_folders } from "@/hooks/use_folders";
 import { emit_folders_changed } from "@/hooks/mail_events";
 import { use_i18n } from "@/lib/i18n/context";
-import type { ApiResponse } from "@/services/api/client/helpers";
 
 interface UnlockedFolder {
   folder_id: string;

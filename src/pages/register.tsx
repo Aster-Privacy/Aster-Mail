@@ -22,7 +22,6 @@ import { AnimatePresence } from "framer-motion";
 
 import { ErrorBoundary } from "@/components/ui/error_boundary";
 import { use_registration } from "@/components/register/hooks/use_registration";
-import { RegisterStepWelcome } from "@/components/register/register_step_welcome";
 import { RegisterStepAccount } from "@/components/register/register_step_account";
 import { RegisterStepPassword } from "@/components/register/register_step_password";
 import { RegisterStepKeys } from "@/components/register/register_step_keys";
@@ -36,18 +35,31 @@ import { RegisterStepRecoveryPhrase } from "@/components/register/register_step_
 import { RegisterStepPhraseConfirm } from "@/components/register/register_step_phrase_confirm";
 import { RegisterStepPlanSelection } from "@/components/register/register_step_plan_selection";
 import { RegisterStepAcademicOffer } from "@/components/register/register_step_academic_offer";
+import { RegisterStepDownloadApps } from "@/components/register/register_step_download_apps";
+import { RegisterStepNotifications } from "@/components/register/register_step_notifications";
+import { RegisterStepAddresses } from "@/components/register/register_step_addresses";
+import { RegisterStepCustomDomain } from "@/components/register/register_step_custom_domain";
+import { RegisterStepImportMail } from "@/components/register/register_step_import_mail";
+import { DesktopSignUpHandoff } from "@/pages/desktop_sign_up_handoff";
+import { is_tauri } from "@/native/desktop_device_auth";
 
 export default function RegisterPage() {
+  if (is_tauri()) {
+    return <DesktopSignUpHandoff />;
+  }
+
+  return <BrowserRegisterPage />;
+}
+
+function BrowserRegisterPage() {
   const reg = use_registration();
 
-  if (reg.auth_loading || reg.has_existing_session) {
+  if (reg.auth_loading || reg.is_restoring || reg.has_existing_session) {
     return null;
   }
 
   const render_step_content = () => {
     switch (reg.step) {
-      case "welcome":
-        return <RegisterStepWelcome reg={reg} />;
       case "email":
         return <RegisterStepAccount reg={reg} />;
       case "password":
@@ -70,6 +82,16 @@ export default function RegisterPage() {
         return <RegisterStepAcademicOffer reg={reg} />;
       case "plan_selection":
         return <RegisterStepPlanSelection reg={reg} />;
+      case "download_apps":
+        return <RegisterStepDownloadApps reg={reg} />;
+      case "notifications":
+        return <RegisterStepNotifications reg={reg} />;
+      case "addresses":
+        return <RegisterStepAddresses reg={reg} />;
+      case "custom_domain":
+        return <RegisterStepCustomDomain reg={reg} />;
+      case "import_mail":
+        return <RegisterStepImportMail reg={reg} />;
       default:
         return <RegisterStepKeys reg={reg} />;
     }
@@ -77,7 +99,7 @@ export default function RegisterPage() {
 
   return (
     <div className="fixed inset-0 overflow-y-auto transition-colors duration-200 bg-surf-primary">
-      <div className="min-h-full flex items-start md:items-center justify-center py-8 md:py-4 px-4">
+      <div className="flex min-h-full items-center justify-center px-4 py-8">
         <ErrorBoundary>
           <AnimatePresence mode="wait">{render_step_content()}</AnimatePresence>
         </ErrorBoundary>

@@ -23,7 +23,6 @@ import { useLocation } from "react-router-dom";
 import {
   ChevronDoubleLeftIcon,
   ChevronRightIcon,
-
   UsersIcon,
 } from "@heroicons/react/24/outline";
 
@@ -32,6 +31,14 @@ import { QuickContactsPanel } from "@/components/layout/quick_contacts_panel";
 import { QuickSecurityPanel } from "@/components/layout/quick_security_panel";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
+import {
+  read_rail_contacts_open,
+  write_rail_contacts_open,
+} from "@/lib/rail_contacts_open";
+import {
+  read_rail_security_open,
+  write_rail_security_open,
+} from "@/lib/rail_security_open";
 
 const RAIL_HIDDEN_KEY = "aster_app_rail_hidden";
 
@@ -66,6 +73,38 @@ function AppRailComponent({
   const [has_icon, set_has_icon] = useState(true);
   const [has_security_icon, set_has_security_icon] = useState(true);
 
+  const close_contacts = useCallback(() => {
+    write_rail_contacts_open(false);
+    on_contacts_open_change(false);
+  }, [on_contacts_open_change]);
+
+  const close_security = useCallback(() => {
+    write_rail_security_open(false);
+    on_security_open_change(false);
+  }, [on_security_open_change]);
+
+  const toggle_contacts = useCallback(() => {
+    const next = !is_contacts_open;
+
+    write_rail_contacts_open(next);
+    on_contacts_open_change(next);
+    if (next) {
+      write_rail_security_open(false);
+      on_security_open_change(false);
+    }
+  }, [is_contacts_open, on_contacts_open_change, on_security_open_change]);
+
+  const toggle_security = useCallback(() => {
+    const next = !is_security_open;
+
+    write_rail_security_open(next);
+    on_security_open_change(next);
+    if (next) {
+      write_rail_contacts_open(false);
+      on_contacts_open_change(false);
+    }
+  }, [is_security_open, on_contacts_open_change, on_security_open_change]);
+
   const handle_icon_error = useCallback(() => {
     set_has_icon(false);
   }, []);
@@ -73,28 +112,6 @@ function AppRailComponent({
   const handle_security_icon_error = useCallback(() => {
     set_has_security_icon(false);
   }, []);
-
-  const close_contacts = useCallback(() => {
-    on_contacts_open_change(false);
-  }, [on_contacts_open_change]);
-
-  const close_security = useCallback(() => {
-    on_security_open_change(false);
-  }, [on_security_open_change]);
-
-  const toggle_contacts = useCallback(() => {
-    const next = !is_contacts_open;
-
-    on_contacts_open_change(next);
-    if (next) on_security_open_change(false);
-  }, [is_contacts_open, on_contacts_open_change, on_security_open_change]);
-
-  const toggle_security = useCallback(() => {
-    const next = !is_security_open;
-
-    on_security_open_change(next);
-    if (next) on_contacts_open_change(false);
-  }, [is_security_open, on_contacts_open_change, on_security_open_change]);
 
   const toggle_hidden = useCallback(() => {
     set_is_hidden((hidden) => !hidden);
@@ -114,6 +131,21 @@ function AppRailComponent({
     on_security_open_change(false);
   }, [is_hidden, on_contacts_open_change, on_security_open_change]);
 
+  useEffect(() => {
+    if (!preferences.show_side_panel) return;
+    if (read_hidden()) return;
+    if (read_rail_contacts_open()) {
+      on_contacts_open_change(true);
+
+      return;
+    }
+    if (read_rail_security_open()) on_security_open_change(true);
+  }, [
+    on_contacts_open_change,
+    on_security_open_change,
+    preferences.show_side_panel,
+  ]);
+
   if (!preferences.show_side_panel) return null;
 
   return (
@@ -132,7 +164,7 @@ function AppRailComponent({
       {is_hidden && (
         <button
           aria-label={t("common.expand_sidebar")}
-          className="app_rail_popout absolute bottom-3 end-0 z-20 hidden h-9 w-6 items-center justify-center rounded-s-lg md:flex"
+          className="app_rail_popout absolute bottom-3 end-0 z-20 flex h-9 w-6 items-center justify-center rounded-s-lg"
           data-rail-tip={t("common.expand_sidebar")}
           data-rail-tip-side="left"
           type="button"
@@ -143,7 +175,7 @@ function AppRailComponent({
       )}
       <div
         aria-hidden={is_hidden}
-        className={`app_rail_column hidden shrink-0 flex-col items-center overflow-hidden pb-2 pt-2.5 md:flex ${
+        className={`app_rail_column flex shrink-0 flex-col items-center overflow-hidden pb-2 pt-2.5 ${
           is_hidden ? "pointer-events-none w-0 opacity-0" : "w-[52px] md:-ms-2"
         }`}
       >

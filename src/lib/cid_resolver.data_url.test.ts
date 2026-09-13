@@ -29,10 +29,7 @@ vi.mock("@/services/crypto/attachment_crypto", () => ({
   decrypt_attachment_data: vi.fn(),
 }));
 
-import {
-  resolve_cid_references,
-  replace_cid_reference,
-} from "./cid_resolver";
+import { resolve_cid_references, replace_cid_reference } from "./cid_resolver";
 
 import { list_attachments } from "@/services/api/attachments";
 import {

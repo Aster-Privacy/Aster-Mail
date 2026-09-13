@@ -38,12 +38,15 @@ describe("local_address_avatars", () => {
 
   it("resolves a published alias avatar", () => {
     set_local_address_avatars([
-      { email: "alias@astermail.org", profile_picture: "data:image/png;base64,a" },
+      {
+        email: "alias@astermail.org",
+        profile_picture: "data:image/png;base64,a",
+      },
     ]);
 
-    expect(get_local_address_avatar("alias@astermail.org")?.profile_picture).toBe(
-      "data:image/png;base64,a",
-    );
+    expect(
+      get_local_address_avatar("alias@astermail.org")?.profile_picture,
+    ).toBe("data:image/png;base64,a");
   });
 
   it("matches case and dot variants of the local part", () => {
@@ -51,9 +54,9 @@ describe("local_address_avatars", () => {
       { email: "First.Last@astermail.org", profile_picture: "pic" },
     ]);
 
-    expect(get_local_address_avatar("  firstlast@ASTERMAIL.org ")?.profile_picture).toBe(
-      "pic",
-    );
+    expect(
+      get_local_address_avatar("  firstlast@ASTERMAIL.org ")?.profile_picture,
+    ).toBe("pic");
   });
 
   it("skips addresses without a picture", () => {
@@ -68,20 +71,28 @@ describe("local_address_avatars", () => {
       { email: "ab@astermail.org", profile_picture: "second" },
     ]);
 
-    expect(get_local_address_avatar("ab@astermail.org")?.profile_picture).toBe("first");
+    expect(get_local_address_avatar("ab@astermail.org")?.profile_picture).toBe(
+      "first",
+    );
   });
 
   it("notifies subscribers only when the contents change", () => {
     const listener = vi.fn();
     const unsubscribe = subscribe_local_address_avatars(listener);
 
-    set_local_address_avatars([{ email: "x@astermail.org", profile_picture: "p" }]);
+    set_local_address_avatars([
+      { email: "x@astermail.org", profile_picture: "p" },
+    ]);
     expect(listener).toHaveBeenCalledTimes(1);
 
-    set_local_address_avatars([{ email: "x@astermail.org", profile_picture: "p" }]);
+    set_local_address_avatars([
+      { email: "x@astermail.org", profile_picture: "p" },
+    ]);
     expect(listener).toHaveBeenCalledTimes(1);
 
-    set_local_address_avatars([{ email: "x@astermail.org", profile_picture: "q" }]);
+    set_local_address_avatars([
+      { email: "x@astermail.org", profile_picture: "q" },
+    ]);
     expect(listener).toHaveBeenCalledTimes(2);
 
     unsubscribe();
@@ -90,7 +101,9 @@ describe("local_address_avatars", () => {
   });
 
   it("keeps a stable snapshot reference across reads", () => {
-    set_local_address_avatars([{ email: "y@astermail.org", profile_picture: "p" }]);
+    set_local_address_avatars([
+      { email: "y@astermail.org", profile_picture: "p" },
+    ]);
 
     expect(get_local_address_avatar("y@astermail.org")).toBe(
       get_local_address_avatar("y@astermail.org"),
@@ -98,7 +111,9 @@ describe("local_address_avatars", () => {
   });
 
   it("clears every entry", () => {
-    set_local_address_avatars([{ email: "z@astermail.org", profile_picture: "p" }]);
+    set_local_address_avatars([
+      { email: "z@astermail.org", profile_picture: "p" },
+    ]);
     clear_local_address_avatars();
 
     expect(get_local_address_avatar("z@astermail.org")).toBeNull();

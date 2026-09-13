@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { user_facing_error } from "@/utils/user_facing_error";
+
 import * as openpgp from "openpgp";
 
 import "@/services/crypto/openpgp_limits";

@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { NotificationType } from "@/services/notification_service";
+
 import { useEffect, useRef } from "react";
 
 import { use_auth } from "@/contexts/auth_context";
@@ -27,7 +29,6 @@ import {
   request_notification_permission,
   show_notification,
 } from "@/services/notification_service";
-import type { NotificationType } from "@/services/notification_service";
 import {
   get_arrival_category,
   get_arrival_reply_state,

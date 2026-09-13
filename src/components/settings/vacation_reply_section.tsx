@@ -387,7 +387,6 @@ export function VacationReplySection() {
               <PaperAirplaneIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
               {t("settings.vacation_reply_title")}
             </h3>
-            <div className="mt-2 h-px bg-edge-secondary" />
           </div>
           <p
             className="mt-1 text-sm"
@@ -523,20 +522,22 @@ export function VacationReplySection() {
               />
             </div>
 
-            <label className="flex cursor-pointer items-center gap-2.5">
+            <div className="flex items-center gap-2.5">
               <Checkbox
                 checked={external_only}
+                id="vacation-external-only"
                 onCheckedChange={(checked) =>
                   set_external_only(checked === true)
                 }
               />
-              <span
-                className="text-sm"
+              <label
+                className="text-sm cursor-pointer select-none"
+                htmlFor="vacation-external-only"
                 style={{ color: "var(--text-primary)" }}
               >
                 {t("settings.vacation_reply_external_only")}
-              </span>
-            </label>
+              </label>
+            </div>
           </ModalBody>
           <ModalFooter className="justify-between">
             <div>

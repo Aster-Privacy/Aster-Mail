@@ -32,7 +32,6 @@ import {
   LockClosedIcon,
 } from "@heroicons/react/24/outline";
 import { format, addDays, addHours } from "date-fns";
-import { is_future_instant } from "@/utils/schedule_targets";
 import { Button } from "@aster/ui";
 
 import {
@@ -41,6 +40,7 @@ import {
   sender_type_color,
 } from "./mobile_compose_helpers";
 
+import { is_future_instant } from "@/utils/schedule_targets";
 import {
   format_datetime_hint,
   format_time,

@@ -28,10 +28,8 @@ import {
   ArrowTopRightOnSquareIcon,
   UserGroupIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
 
 import { safe_local_set } from "@/lib/safe_storage";
-import { Logo } from "@/components/auth/auth_styles";
 import { Spinner } from "@/components/ui/spinner";
 import { pricing_comparison_url } from "@/lib/canonical_urls";
 import { CheckoutModal } from "@/components/settings/checkout_modal";
@@ -68,6 +66,7 @@ import {
 } from "@/components/settings/billing/billing_constants";
 import { use_currency_rates } from "@/components/settings/billing/use_currency_rates";
 import { Segmented, Tabs } from "@/components/settings/billing/plan_card";
+import { OnboardingButton } from "@/components/register/register_shared";
 import {
   page_variants,
   page_transition,
@@ -591,12 +590,18 @@ export const RegisterStepPlanSelection = ({
       transition={page_transition}
       variants={page_variants}
     >
-      <Logo />
+      <img
+        alt="Aster"
+        className="h-7"
+        decoding="async"
+        draggable={false}
+        src="/text_logo.png"
+      />
 
-      <h1 className="text-xl font-semibold mt-6 text-txt-primary">
+      <h1 className="mt-5 text-base font-semibold text-txt-primary">
         {t("auth.plan_selection_title")}
       </h1>
-      <p className="text-sm mt-2 leading-relaxed text-txt-tertiary text-center max-w-md">
+      <p className="mt-1.5 max-w-md text-center text-sm leading-relaxed text-txt-tertiary">
         {t("auth.plan_selection_subtitle")}
       </p>
 
@@ -793,15 +798,14 @@ export const RegisterStepPlanSelection = ({
                     </li>
                   ))}
                 </ul>
-                <Button
+                <OnboardingButton
                   className={`w-full ${tier.is_recommended ? "plan_galaxy_cta" : ""}`}
                   disabled={is_finalizing}
-                  size="xl"
-                  variant={tier.is_recommended ? "primary" : "outline"}
+                  variant={tier.is_recommended ? "primary" : "secondary"}
                   onClick={() => set_pending_family_tier(tier)}
                 >
                   {t("settings.get_plan", { name: tier.name })}
-                </Button>
+                </OnboardingButton>
               </div>
             );
           })}
@@ -904,15 +908,14 @@ export const RegisterStepPlanSelection = ({
                   ))}
                 </ul>
 
-                <Button
+                <OnboardingButton
                   className={`w-full ${tier.is_recommended ? "plan_galaxy_cta" : ""}`}
                   disabled={is_finalizing}
-                  size="xl"
-                  variant={tier.is_recommended ? "primary" : "outline"}
+                  variant={tier.is_recommended ? "primary" : "secondary"}
                   onClick={() => handle_select_tier(tier)}
                 >
                   {t("settings.get_plan", { name: tier.name })}
-                </Button>
+                </OnboardingButton>
               </div>
             );
           })}
@@ -1012,16 +1015,16 @@ export const RegisterStepPlanSelection = ({
         >
           {t("auth.plan_continue_as_free")}
         </button>
-        <Button as_child variant="outline">
+        <OnboardingButton as_child className="w-auto" variant="secondary">
           <a
             href={pricing_comparison_url()}
             rel="noopener noreferrer"
             target="_blank"
           >
             <span>{t("auth.plan_view_full_features")}</span>
-            <ArrowTopRightOnSquareIcon className="w-4 h-4" />
+            <ArrowTopRightOnSquareIcon className="h-4 w-4" />
           </a>
-        </Button>
+        </OnboardingButton>
         <p className="mt-2 text-xs text-txt-muted text-center max-w-md">
           {t("auth.plan_footer_reassurance")}
         </p>
@@ -1068,7 +1071,8 @@ export const RegisterStepPlanSelection = ({
           on_select_plan={(id) => {
             const next = PLAN_TIERS.find((entry) => entry.id === id);
 
-            if (next) set_pending_tier({ tier: next, plan: resolve_api_plan(next) });
+            if (next)
+              set_pending_tier({ tier: next, plan: resolve_api_plan(next) });
           }}
           on_select_term={(id) =>
             set_billing_period(id === "yearly" ? "yearly" : "monthly")

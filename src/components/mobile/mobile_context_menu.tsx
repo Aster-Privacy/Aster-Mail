@@ -161,8 +161,8 @@ export const MobileContextMenu = memo(function MobileContextMenu({
               {email.sender_name}
             </p>
             <p
-              dir="auto"
               className="truncate text-[13px] text-[var(--text-muted)]"
+              dir="auto"
             >
               {email.subject || t("mail.no_subject")}
             </p>

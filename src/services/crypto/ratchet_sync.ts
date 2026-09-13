@@ -18,7 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { user_facing_error } from "@/utils/user_facing_error";
 import { array_to_base64, base64_to_array } from "./base64";
 import {
   save_ratchet_state,
@@ -31,6 +30,7 @@ import {
   merge_ratchet_states,
 } from "./ratchet_state_merge";
 
+import { user_facing_error } from "@/utils/user_facing_error";
 import { api_client } from "@/services/api/client";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import { HASH_ALG } from "@/services/crypto/constants";

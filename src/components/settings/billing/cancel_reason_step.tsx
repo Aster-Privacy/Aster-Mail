@@ -70,7 +70,6 @@ interface CancelReasonStepProps {
   set_reason: (reason: CancelReason | null) => void;
   reason_text: string;
   set_reason_text: (text: string) => void;
-  on_skip: () => void;
   on_continue: () => void;
   keep_plan_slot?: ReactNode;
 }
@@ -80,7 +79,6 @@ export function CancelReasonStep({
   set_reason,
   reason_text,
   set_reason_text,
-  on_skip,
   on_continue,
   keep_plan_slot,
 }: CancelReasonStepProps) {
@@ -132,13 +130,6 @@ export function CancelReasonStep({
       <div className="mt-5 flex flex-row items-center gap-2">
         {keep_plan_slot}
         <div className="ms-auto flex flex-row items-center gap-3">
-          <button
-            className="text-xs text-txt-muted underline underline-offset-2 hover:text-txt-secondary focus:outline-none focus-visible:ring-1 focus-visible:ring-brand rounded-sm"
-            type="button"
-            onClick={on_skip}
-          >
-            {t("settings.cancel_reason_skip")}
-          </button>
           <button
             className={button_variants({ variant: "primary", size: "sm" })}
             disabled={!can_continue}

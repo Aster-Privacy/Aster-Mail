@@ -18,56 +18,48 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { apply_input_transform } from "@/utils/input_transform";
 import type { UseRegistrationReturn } from "@/components/register/hooks/use_registration";
 
-import { motion, AnimatePresence } from "framer-motion";
-import { Button } from "@aster/ui";
+import { useRef } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 
-import { Input } from "@/components/ui/input";
-import { Logo } from "@/components/auth/auth_styles";
-import { PROFILE_COLORS } from "@/constants/profile";
-import { get_initials, get_active_locale } from "@/lib/initials";
-import { get_contrast_text } from "@/lib/avatar_color";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown_menu";
+import { apply_input_transform } from "@/utils/input_transform";
 import { sanitize_username_input } from "@/services/sanitize";
 import {
-  page_variants,
-  page_transition,
-} from "@/components/register/register_types";
-import { Alert } from "@/components/register/register_shared";
+  OnboardingButton,
+  OnboardingInput,
+  StepShell,
+} from "@/components/register/register_shared";
 
 interface RegisterStepAccountProps {
   reg: UseRegistrationReturn;
 }
 
+const TERMS_URL = "https://astermail.org/terms";
+const PRIVACY_URL = "https://astermail.org/privacy";
+
 export const RegisterStepAccount = ({ reg }: RegisterStepAccountProps) => {
+  const input_ref = useRef<HTMLInputElement>(null);
+  const is_busy = reg.step === "generating";
+  const domains = ["astermail.org", "aster.cx"] as const;
+
   return (
-    <motion.div
-      key="email"
-      animate="animate"
-      className="flex flex-col items-center w-full max-w-sm px-4"
-      exit="exit"
-      initial="initial"
-      transition={page_transition}
-      variants={page_variants}
+    <StepShell
+      step_key="email"
+      subtitle={reg.t("auth.welcome_workspace_subtitle")}
+      title={reg.t("auth.create_your_account")}
     >
-      <Logo />
-
-      <h1 className="text-xl font-semibold mt-6 text-txt-primary">
-        {reg.t("auth.choose_email_address")}
-      </h1>
-      <p className="text-sm mt-2 leading-relaxed text-txt-tertiary text-center">
-        {reg.t("auth.pick_unique_username")}
-      </p>
-
       <AnimatePresence>
-        {reg.error && !reg.is_abuse_blocked && (
-          <Alert is_dark={reg.is_dark} message={reg.error} />
-        )}
         {reg.is_abuse_blocked && (
           <motion.div
             animate={{ opacity: 1 }}
-            className="w-full mt-6"
+            className="mb-4 w-full"
             exit={{ opacity: 0 }}
             initial={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
@@ -82,161 +74,141 @@ export const RegisterStepAccount = ({ reg }: RegisterStepAccountProps) => {
         )}
       </AnimatePresence>
 
-      <div className={`w-full ${reg.error ? "mt-4" : "mt-6"} space-y-4`}>
-        <div>
-          <Input
-            // eslint-disable-next-line jsx-a11y/no-autofocus
-            autoFocus
-            autoCapitalize="none"
-            autoComplete="username"
-            autoCorrect="off"
-            className="notranslate"
-            maxLength={55}
-            placeholder={reg.t("auth.new_email_address")}
-            spellCheck={false}
-            status={reg.error ? "error" : "default"}
-            translate="no"
-            type="text"
-            value={reg.username}
-            onChange={(e) => {
-              const raw = e.target.value;
-              const at_index = raw.indexOf("@");
+      <div className="relative w-full">
+        <OnboardingInput
+          ref={input_ref}
+          // eslint-disable-next-line jsx-a11y/no-autofocus
+          autoFocus
+          autoCapitalize="none"
+          autoComplete="username"
+          autoCorrect="off"
+          className="notranslate pe-32"
+          disabled={is_busy}
+          maxLength={55}
+          placeholder={reg.t("auth.username_placeholder")}
+          spellCheck={false}
+          status={reg.error ? "error" : "default"}
+          translate="no"
+          type="text"
+          value={reg.username}
+          onChange={(e) => {
+            const raw = e.target.value;
+            const at_index = raw.indexOf("@");
 
-              if (at_index !== -1) {
-                const local = sanitize_username_input(
-                  raw.substring(0, at_index),
-                );
-                const domain_part = raw.substring(at_index + 1).toLowerCase();
+            if (at_index !== -1) {
+              const local = sanitize_username_input(raw.substring(0, at_index));
+              const domain_part = raw.substring(at_index + 1).toLowerCase();
 
-                reg.set_username(local + "@" + domain_part);
-                if (
-                  domain_part === "astermail.org" ||
-                  domain_part.endsWith(".astermail.org")
-                )
-                  reg.set_email_domain("astermail.org");
-                else if (
-                  domain_part === "aster.cx" ||
-                  domain_part.endsWith(".aster.cx")
-                )
-                  reg.set_email_domain("aster.cx");
-              } else {
-                reg.set_username(
-                  apply_input_transform(e.target, sanitize_username_input),
-                );
+              reg.set_username(local);
+              if (domain_part.endsWith("aster.cx")) {
+                reg.set_email_domain("aster.cx");
+              } else if (domain_part.endsWith("astermail.org")) {
+                reg.set_email_domain("astermail.org");
               }
-            }}
-            onKeyDown={(e) => e["key"] === "Enter" && reg.handle_email_next()}
-          />
-          <div className="relative flex mt-2 aster_input !p-1 !h-auto">
-            <div
-              className="absolute top-1 bottom-1 rounded-[8px] transition-all duration-200 ease-out bg-surf-tertiary"
-              style={{
-                width: "calc(50% - 4px)",
-                left:
-                  reg.email_domain === "astermail.org" ? "4px" : "calc(50%)",
-              }}
-            />
+            } else {
+              reg.set_username(
+                apply_input_transform(e.target, sanitize_username_input),
+              );
+            }
+          }}
+          onKeyDown={(e) => e["key"] === "Enter" && reg.handle_email_next()}
+        />
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
             <button
-              className={`relative flex-1 h-8 rounded-[8px] text-sm font-medium transition-colors duration-150 ${reg.email_domain === "astermail.org" ? "text-txt-primary" : "text-txt-muted"}`}
+              aria-label={reg.t("auth.switch_domain")}
+              className="absolute end-2 top-1/2 inline-flex -translate-y-1/2 items-center gap-1 rounded-md px-1.5 py-1 text-sm text-txt-secondary transition-colors hover:bg-black/5 hover:text-txt-primary dark:hover:bg-white/5 notranslate"
+              tabIndex={-1}
+              translate="no"
               type="button"
-              onClick={() => reg.set_email_domain("astermail.org")}
             >
-              @astermail.org
+              @{reg.email_domain}
+              <svg
+                className="h-3.5 w-3.5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M19.5 8.25l-7.5 7.5-7.5-7.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
             </button>
-            <button
-              className={`relative flex-1 h-8 rounded-[8px] text-sm font-medium transition-colors duration-150 ${reg.email_domain === "aster.cx" ? "text-txt-primary" : "text-txt-muted"}`}
-              type="button"
-              onClick={() => reg.set_email_domain("aster.cx")}
-            >
-              @aster.cx
-            </button>
-          </div>
-        </div>
-
-        <div>
-          <Input
-            autoComplete="off"
-            maxLength={64}
-            placeholder={reg.t("auth.display_name_optional")}
-            type="text"
-            value={reg.display_name}
-            onChange={(e) => reg.set_display_name(e.target.value)}
-            onKeyDown={(e) => e["key"] === "Enter" && reg.handle_email_next()}
-          />
-        </div>
-      </div>
-
-      <div className="w-full mt-6">
-        <p className="text-sm font-medium mb-3 text-txt-primary">
-          {reg.t("auth.profile_color")}
-        </p>
-        <div className="flex items-center gap-4">
-          <div
-            className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center select-none"
-            style={{
-              backgroundColor: reg.profile_color,
-              boxShadow:
-                "0 0 0 2px var(--bg-primary), 0 0 0 3.5px var(--border-secondary)",
-              transition: "background-color 0.3s ease",
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            align="end"
+            className="w-44"
+            onCloseAutoFocus={(event) => {
+              event.preventDefault();
+              input_ref.current?.focus();
             }}
           >
-            <span
-              style={{
-                fontSize: 16,
-                fontWeight: 600,
-                lineHeight: 1,
-                color: get_contrast_text(reg.profile_color),
-              }}
-            >
-              {get_initials(
-                reg.display_name,
-                reg.username,
-                get_active_locale(),
-              )}
-            </span>
-          </div>
-          <div className="flex items-center gap-3">
-            {PROFILE_COLORS.map((color) => (
-              <button
-                key={color}
-                className="w-9 h-9 rounded-full"
-                style={{
-                  backgroundColor: color,
-                  boxShadow:
-                    reg.profile_color === color
-                      ? `0 0 0 2.5px var(--bg-primary), 0 0 0 4.5px ${color}`
-                      : "none",
-                  transition: "box-shadow 0.15s ease",
-                }}
-                type="button"
-                onClick={() => reg.set_profile_color(color)}
-              />
+            {domains.map((domain) => (
+              <DropdownMenuItem
+                key={domain}
+                className="notranslate"
+                translate="no"
+                onClick={() => reg.set_email_domain(domain)}
+              >
+                @{domain}
+              </DropdownMenuItem>
             ))}
-          </div>
-        </div>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
-      <div className="flex items-center gap-3 w-full mt-6">
-        <Button
-          className="flex-1"
-          size="xl"
-          variant="secondary"
-          onClick={() => {
-            reg.set_error("");
-            reg.set_step("welcome");
-          }}
+      <AnimatePresence>
+        {reg.error && !reg.is_abuse_blocked && (
+          <motion.p
+            animate={{ opacity: 1 }}
+            className="mt-2 text-start text-xs"
+            exit={{ opacity: 0 }}
+            initial={{ opacity: 0 }}
+            style={{ color: reg.is_dark ? "#f87171" : "#dc2626" }}
+            transition={{ duration: 0.15 }}
+          >
+            {reg.error}
+          </motion.p>
+        )}
+      </AnimatePresence>
+
+      <OnboardingButton
+        className="mt-4 w-full"
+        disabled={is_busy}
+        is_loading={is_busy}
+        variant="primary"
+        onClick={reg.handle_email_next}
+      >
+        {reg.t("common.next")}
+      </OnboardingButton>
+      <OnboardingButton as_child className="mt-2" variant="secondary">
+        <a href="/sign-in">{reg.t("common.back")}</a>
+      </OnboardingButton>
+
+      <p className="mt-5 text-xs leading-relaxed text-txt-muted">
+        {reg.t("auth.terms_footer_next")}{" "}
+        <a
+          className="underline hover:text-txt-primary"
+          href={TERMS_URL}
+          rel="noopener noreferrer"
+          target="_blank"
         >
-          {reg.t("common.back")}
-        </Button>
-        <Button
-          className="flex-1"
-          size="xl"
-          variant="depth"
-          onClick={reg.handle_email_next}
+          {reg.t("auth.terms_of_service")}
+        </a>{" "}
+        {reg.t("common.and")}{" "}
+        <a
+          className="underline hover:text-txt-primary"
+          href={PRIVACY_URL}
+          rel="noopener noreferrer"
+          target="_blank"
         >
-          {reg.t("common.next")}
-        </Button>
-      </div>
-    </motion.div>
+          {reg.t("auth.privacy_policy")}
+        </a>
+        .
+      </p>
+    </StepShell>
   );
 };

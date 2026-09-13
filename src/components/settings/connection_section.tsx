@@ -124,7 +124,6 @@ export function ConnectionSection() {
             title={t("settings.connection.title")}
           />
         </h3>
-        <div className="mt-2 h-px bg-edge-secondary" />
       </div>
       <p className="text-sm mb-4 text-txt-muted">
         {t("settings.connection.description")}

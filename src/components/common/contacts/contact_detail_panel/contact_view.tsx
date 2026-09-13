@@ -40,7 +40,7 @@ import {
 import { format_address_lines, type_label_key } from "./helpers";
 
 import { ContactAvatar } from "@/components/common/contacts/contact_avatar";
-import { parse_calendar_date } from "@/utils/date_utils";
+import { format_contact_date } from "@/utils/date_utils";
 
 interface ContactViewProps {
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
@@ -54,18 +54,6 @@ interface DetailRow {
   key: string;
   icon: ReactNode;
   lines: { key: string; text: string; href?: string; label?: string }[];
-}
-
-function format_date_label(value: string): string {
-  const parsed = parse_calendar_date(value);
-
-  if (Number.isNaN(parsed.getTime())) return value;
-
-  return parsed.toLocaleDateString(undefined, {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
 }
 
 function normalize_url(value: string): string {
@@ -151,7 +139,7 @@ export function ContactView({
       lines: [
         {
           key: "birthday",
-          text: format_date_label(draft.birthday),
+          text: format_contact_date(draft.birthday),
           label: t("common.birthday"),
         },
       ],
@@ -166,7 +154,7 @@ export function ContactView({
       icon: <CalendarDaysIcon className="h-[18px] w-[18px]" />,
       lines: dates.map((entry, index) => ({
         key: `date_${index}`,
-        text: format_date_label(entry.value),
+        text: format_contact_date(entry.value),
         label: t(type_label_key(entry.type)),
       })),
     });

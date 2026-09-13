@@ -56,6 +56,7 @@ import { clear_escrow_miss_cache } from "@/services/crypto/message_escrow";
 import { clear_translation_cache } from "@/services/translation/translation_cache";
 import { clear_detection_cache } from "@/services/translation/language_detect";
 import { release_engines } from "@/services/translation/engine_registry";
+import { reset_special_offer_status } from "@/stores/special_offer_status";
 import { ignore_error } from "@/lib/ignore_error";
 import { safe_local_keys, safe_local_remove } from "@/lib/safe_storage";
 
@@ -67,6 +68,7 @@ export async function purge_all_local_data(): Promise<boolean> {
   sync_client.disconnect();
   clear_vault_from_memory();
   clear_escrow_miss_cache();
+  reset_special_offer_status();
   api_client.set_expected_user_id(null);
 
   api_client.begin_intentional_logout();

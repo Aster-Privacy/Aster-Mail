@@ -190,11 +190,11 @@ export function ContactHistoryPanel({
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between gap-2">
                   <span
-                    dir="auto"
                     className={cn(
                       "text-[13px] truncate text-txt-primary",
                       !activity.subject && "italic text-txt-muted",
                     )}
+                    dir="auto"
                   >
                     {activity.subject || t("mail.no_subject")}
                   </span>

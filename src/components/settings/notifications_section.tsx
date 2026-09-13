@@ -264,7 +264,6 @@ function MutedCategoriesSetting() {
         <p className="text-sm mt-2 text-txt-muted">
           {t("settings.muted_categories_description")}
         </p>
-        <div className="mt-2 h-px bg-edge-secondary" />
       </div>
 
       {rows.length === 0 ? (
@@ -615,7 +614,6 @@ export function NotificationsSection() {
             <BellIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
             {t("settings.notifications")}
           </h3>
-          <div className="mt-2 h-px bg-edge-secondary" />
         </div>
 
         <ToggleSetting
@@ -765,7 +763,6 @@ export function NotificationsSection() {
             <BellAlertIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
             {t("settings.events")}
           </h3>
-          <div className="mt-2 h-px bg-edge-secondary" />
         </div>
 
         <ToggleSetting
@@ -822,7 +819,6 @@ export function NotificationsSection() {
                 <MoonIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
                 {t("settings.quiet_hours")}
               </h3>
-              <div className="mt-2 h-px bg-edge-secondary" />
             </div>
 
             <ToggleSetting

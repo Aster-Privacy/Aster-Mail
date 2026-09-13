@@ -245,7 +245,7 @@ export function ReplyHeader({
             <span className="text-sm flex-shrink-0 text-txt-tertiary">
               {t("mail.subject")}
             </span>
-            <span dir="auto" className="text-sm truncate text-txt-primary">
+            <span className="text-sm truncate text-txt-primary" dir="auto">
               {build_reply_subject(
                 original_subject,
                 t("mail.reply_subject_prefix"),

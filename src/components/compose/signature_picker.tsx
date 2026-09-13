@@ -122,7 +122,10 @@ export function SignaturePicker({
                   )}
                 </div>
                 <div className="text-xs text-txt-muted truncate">
-                  {truncate_with_ellipsis(strip_html_tags_bounded(signature.content, 60), 60)}
+                  {truncate_with_ellipsis(
+                    strip_html_tags_bounded(signature.content, 60),
+                    60,
+                  )}
                 </div>
               </div>
             </button>

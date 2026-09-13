@@ -18,9 +18,9 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useState, useRef, useEffect, useMemo } from "react";
-
 import type { TranslationKey } from "@/lib/i18n/types";
+
+import { useState, useRef, useEffect, useMemo } from "react";
 
 import { Input } from "@/components/ui/input";
 import { use_i18n } from "@/lib/i18n/context";

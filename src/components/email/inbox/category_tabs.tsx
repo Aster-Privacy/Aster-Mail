@@ -1,4 +1,4 @@
-//
+﻿//
 // Aster Communications Inc.
 //
 // Copyright (c) 2026 Aster Communications Inc.
@@ -44,6 +44,7 @@ import {
   use_category_drag_active,
 } from "@/components/email/inbox/category_drag";
 import { app_locale } from "@/utils/date_format";
+import { use_category_previews } from "@/hooks/use_category_previews";
 
 interface TabConfig {
   key: EmailCategory;
@@ -125,6 +126,7 @@ export function CategoryTabs({
     t,
   ]);
 
+  const previews = use_category_previews(true);
   const drag_active = use_category_drag_active();
   const drop_enabled = drag_active && !!on_category_drop;
   const [drop_target, set_drop_target] = useState<EmailCategory | null>(null);
@@ -185,6 +187,8 @@ export function CategoryTabs({
         const show_new = !show_counting && new_count > 0;
         const show_unread = !show_counting && !show_new && unread_count > 0;
         const is_drop_target = drop_enabled && drop_target === key;
+        const preview = show_new ? previews[key] : undefined;
+        const show_preview = !drop_enabled && !!preview;
 
         const tab_button = (
           <button
@@ -192,7 +196,7 @@ export function CategoryTabs({
             aria-current={is_active ? "page" : undefined}
             className={`group relative flex h-12 min-w-0 max-w-[204px] shrink-0 items-center justify-start gap-2 overflow-hidden whitespace-nowrap px-3.5 text-[13px] font-medium outline-none transition-colors duration-150 ${
               is_active
-                ? "text-brand"
+                ? "aster_cat_tab_current text-brand"
                 : "text-txt-secondary"
             } ${
               is_drop_target
@@ -234,7 +238,7 @@ export function CategoryTabs({
               />
               <span
                 className={`relative flex min-w-0 flex-1 flex-col items-start ${
-                  drop_enabled ? "-translate-y-2" : ""
+                  drop_enabled || show_preview ? "-translate-y-2" : ""
                 }`}
               >
                 <span className="flex h-5 w-full min-w-0 items-center gap-2">
@@ -264,6 +268,13 @@ export function CategoryTabs({
                 {drop_enabled ? (
                   <span className="pointer-events-none absolute start-0 top-[23px] block h-[13px] w-full truncate text-start text-[11.5px] font-normal leading-[13px] text-brand">
                     {t("mail.drop_to_move_here")}
+                  </span>
+                ) : null}
+                {show_preview ? (
+                  <span className="pointer-events-none absolute start-0 top-[23px] block h-[13px] w-full truncate text-start text-[11.5px] font-normal leading-[13px] text-txt-muted">
+                    {preview.subject
+                      ? `${preview.sender} - ${preview.subject}`
+                      : preview.sender}
                   </span>
                 ) : null}
               </span>

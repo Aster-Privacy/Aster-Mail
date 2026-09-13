@@ -45,6 +45,7 @@ import {
 } from "@/lib/chunk_recovery";
 import { show_self_xss_warning } from "@/lib/security/console_warning";
 import { start_input_modality_tracking } from "@/lib/input_modality";
+import { install_global_error_reporting } from "@/services/error_reporter";
 import { connection_store } from "@/services/routing/connection_store";
 import { apply_desktop_content_protection } from "@/native/desktop_content_protection";
 import { start_desktop_link_bridge } from "@/native/desktop_link_bridge";
@@ -65,6 +66,7 @@ import { lazy_with_retry } from "@/utils/lazy_with_retry";
 const MobileApp = lazy_with_retry(() => import("@/mobile_app"));
 
 start_input_modality_tracking();
+install_global_error_reporting();
 
 initialize_capacitor().catch((e) => {
   if (import.meta.env.DEV) console.error(e);
@@ -114,9 +116,7 @@ if (is_tauri_runtime) {
   void import("@tauri-apps/api/core")
     .then(({ invoke }) => {
       void invoke("frontend_ready");
-      const cached = Number(
-        safe_local_get("aster_last_unread_badge") || "0",
-      );
+      const cached = Number(safe_local_get("aster_last_unread_badge") || "0");
 
       if (Number.isFinite(cached) && cached > 0) {
         void invoke("set_unread_badge", { count: Math.floor(cached) }).catch(
@@ -206,6 +206,28 @@ window.addEventListener(
   },
   true,
 );
+
+if ("serviceWorker" in navigator && import.meta.env.DEV && !is_tauri_runtime) {
+  void (async () => {
+    try {
+      const regs = await navigator.serviceWorker.getRegistrations();
+
+      if (regs.length === 0) return;
+
+      await Promise.all(regs.map((r) => r.unregister().catch(() => false)));
+
+      if (typeof caches !== "undefined") {
+        const keys = await caches.keys();
+
+        await Promise.all(keys.map((k) => caches.delete(k).catch(() => false)));
+      }
+
+      window.location.reload();
+    } catch (caught) {
+      ignore_error("main:dev_sw_reset", caught);
+    }
+  })();
+}
 
 if ("serviceWorker" in navigator && import.meta.env.PROD && !is_tauri_runtime) {
   const legacy_sw_reset = (async (): Promise<boolean> => {

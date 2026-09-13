@@ -22,9 +22,7 @@
 const PUSH_STRINGS_CACHE = "aster_push_strings";
 const PUSH_STRINGS_URL = "/__aster_push_strings";
 
-export async function publish_push_strings(
-  new_message: string,
-): Promise<void> {
+export async function publish_push_strings(new_message: string): Promise<void> {
   if (typeof caches === "undefined" || !new_message) return;
 
   try {

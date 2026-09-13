@@ -20,7 +20,7 @@
 //
 import type { TranslationKey } from "@/lib/i18n/types";
 
-import { useNavigate } from "react-router-dom";
+import { useCallback, useState } from "react";
 import {
   ArrowRightIcon,
   ArrowTopRightOnSquareIcon,
@@ -29,6 +29,7 @@ import { Button } from "@aster/ui";
 
 import { Modal, ModalBody } from "@/components/ui/modal";
 import { use_i18n } from "@/lib/i18n/context";
+import { GmailWizardHost } from "@/components/settings/external_accounts/gmail_wizard_host";
 
 const APP_PASSWORD_URL = "https://myaccount.google.com/apppasswords";
 
@@ -46,15 +47,21 @@ interface GmailSyncModalProps {
 
 export function GmailSyncModal({ is_open, on_close }: GmailSyncModalProps) {
   const { t } = use_i18n();
-  const navigate = useNavigate();
+  const [wizard_open, set_wizard_open] = useState(false);
+
+  const close_wizard = useCallback(() => {
+    set_wizard_open(false);
+    on_close();
+  }, [on_close]);
 
   if (!is_open) return null;
 
+  if (wizard_open) {
+    return <GmailWizardHost on_close={close_wizard} />;
+  }
+
   const handle_continue = () => {
-    on_close();
-    navigate("/settings/sender_filters", {
-      state: { open_external_account_form: true },
-    });
+    set_wizard_open(true);
   };
 
   return (

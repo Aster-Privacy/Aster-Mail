@@ -277,9 +277,11 @@ export function AutoForwardSection() {
 
   const failure_message = (rule: ForwardingRuleResponse) => {
     const address = rule.last_error_address ?? rule.forward_to.join(", ");
+
     if (rule.last_error_code === "encryption_required_no_key") {
       return t("settings.forwarding_failed_encryption", { address });
     }
+
     return t("settings.forwarding_failed_generic", {
       address,
       error: rule.last_error ?? "",
@@ -326,6 +328,7 @@ export function AutoForwardSection() {
         address: String(result.details?.address ?? ""),
       });
     }
+
     return result.error || t("common.something_went_wrong_try_again");
   };
 
@@ -479,7 +482,6 @@ export function AutoForwardSection() {
               {t("settings.add_rule")}
             </Button>
           </div>
-          <div className="mt-2 h-px bg-edge-secondary" />
           <p className="text-sm mt-3 text-txt-muted">
             {t("settings.auto_forward_description")}
           </p>

@@ -632,7 +632,6 @@ export function SecurityContent({
             <h3 className="text-sm font-semibold text-txt-primary">
               {t("settings.fam_org_sec_compliance")}
             </h3>
-            <div className="mt-2 h-px bg-edge-secondary" />
           </div>
           <div className="divide-y divide-edge-secondary">
             {compliance.map((m) => {

@@ -571,12 +571,12 @@ export function EmailList({
       <ContextMenuTrigger asChild onContextMenu={handle_trigger_context_menu}>
         <div
           style={{ display: "contents" }}
+          onBlur={handle_list_blur}
           onClickCapture={handle_row_click_capture}
           onContextMenu={handle_list_context_menu}
-          onMouseOver={handle_list_mouse_over}
-          onMouseOut={handle_list_mouse_out}
           onFocus={handle_list_focus}
-          onBlur={handle_list_blur}
+          onMouseOut={handle_list_mouse_out}
+          onMouseOver={handle_list_mouse_over}
         >
           {pinned_emails.length > 0 && (
             <>

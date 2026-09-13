@@ -282,7 +282,6 @@ export function CreditsSection({
         <p className="text-xs text-txt-muted mt-1">
           {t("settings.top_up_credits_description")}
         </p>
-        <div className="mt-2 h-px bg-edge-secondary" />
       </div>
 
       <div className="flex items-center justify-between px-4 py-3 rounded-lg border border-edge-secondary mb-3">
@@ -596,6 +595,9 @@ export function CreditsSection({
                     : "bg-zinc-600"
                 }`}
                 type="button"
+                role="switch"
+                aria-checked={!!credit_balance?.use_credits_for_renewals}
+                aria-label={t("settings.use_credits_for_renewals")}
                 onClick={async () => {
                   const new_value = !credit_balance?.use_credits_for_renewals;
 

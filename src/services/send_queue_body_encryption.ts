@@ -18,7 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { user_facing_error } from "@/utils/user_facing_error";
 import { get_recipient_public_key, is_internal_email } from "./api/keys";
 import { ensure_ratchet_keys } from "./crypto/ensure_ratchet_keys";
 import { encrypt_message_multi } from "./crypto/key_manager";
@@ -45,6 +44,7 @@ import {
   type SendReadinessResult,
 } from "./send_queue_types";
 
+import { user_facing_error } from "@/utils/user_facing_error";
 import { derive_own_public_key } from "@/utils/email_crypto";
 import { get_active_translations } from "@/lib/i18n/translations";
 

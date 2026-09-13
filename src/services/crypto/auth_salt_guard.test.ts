@@ -157,9 +157,9 @@ describe("auth salt guard flow", () => {
     });
     clear_auth_salt_session_state();
 
-    await expect(
-      require_usable_auth_salt(bytes(4, 16)),
-    ).rejects.toBeInstanceOf(AuthSaltCollisionError);
+    await expect(require_usable_auth_salt(bytes(4, 16))).rejects.toBeInstanceOf(
+      AuthSaltCollisionError,
+    );
     await expect(
       require_usable_auth_salt(bytes(4, 32)),
     ).resolves.toBeUndefined();

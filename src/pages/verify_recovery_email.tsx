@@ -126,9 +126,7 @@ function VerifyRecoveryEmailPage() {
           }}
           onClick={handle_dismiss}
         >
-          {can_close_tab
-            ? t("auth.close_this_tab")
-            : t("auth.back_to_sign_in")}
+          {can_close_tab ? t("auth.close_this_tab") : t("auth.back_to_sign_in")}
         </button>
       </div>
     </div>

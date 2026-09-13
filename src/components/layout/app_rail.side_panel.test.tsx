@@ -57,7 +57,11 @@ describe("side panel setting", () => {
   let container: HTMLDivElement;
   let root: Root;
 
-  const render_rail = async (initial_path: string) => {
+  const render_rail = async (
+    initial_path: string,
+    on_contacts_open_change: (is_open: boolean) => void = () => {},
+    on_security_open_change: (is_open: boolean) => void = () => {},
+  ) => {
     await act(async () => {
       root.render(
         <MemoryRouter initialEntries={[initial_path]}>
@@ -65,8 +69,8 @@ describe("side panel setting", () => {
             is_contacts_open={false}
             is_security_open={false}
             on_compose={() => {}}
-            on_contacts_open_change={() => {}}
-            on_security_open_change={() => {}}
+            on_contacts_open_change={on_contacts_open_change}
+            on_security_open_change={on_security_open_change}
           />
         </MemoryRouter>,
       );
@@ -115,6 +119,35 @@ describe("side panel setting", () => {
     await render_rail("/");
 
     expect(container.querySelector(".app_rail_popout")).not.toBeNull();
+  });
+
+  it("leaves the contacts panel closed on load when nothing is stored", async () => {
+    const on_change = vi.fn();
+
+    await render_rail("/", on_change);
+
+    expect(on_change).not.toHaveBeenCalledWith(true);
+  });
+
+  it("reopens the contacts panel when the device left it open", async () => {
+    localStorage.setItem("aster_rail_contacts_open", "1");
+
+    const on_change = vi.fn();
+
+    await render_rail("/", on_change);
+
+    expect(on_change).toHaveBeenCalledWith(true);
+  });
+
+  it("leaves the contacts panel closed while the rail is collapsed", async () => {
+    localStorage.setItem("aster_rail_contacts_open", "1");
+    localStorage.setItem("aster_app_rail_hidden", "1");
+
+    const on_change = vi.fn();
+
+    await render_rail("/", on_change);
+
+    expect(on_change).not.toHaveBeenCalledWith(true);
   });
 
   it("defaults the side panel to visible", () => {

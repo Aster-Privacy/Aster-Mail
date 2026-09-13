@@ -38,6 +38,7 @@ vi.mock("@/services/api/auth", () => ({
 }));
 
 import { alias_is_restorable, restore_orphaned_alias } from "./aliases/restore";
+
 import type { DecryptedEmailAlias } from "./aliases/types";
 
 const orphaned_alias = (

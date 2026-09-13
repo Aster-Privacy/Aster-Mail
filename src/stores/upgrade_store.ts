@@ -20,6 +20,8 @@
 //
 import { useSyncExternalStore } from "react";
 
+import { strip_account_prefix } from "@/lib/account_index_url";
+
 export type UpgradeReason =
   | "plan_limit"
   | "storage_full"
@@ -50,6 +52,8 @@ export interface UpgradeState {
   server_message: string | null;
   preselect_plan_code: string | null;
   preselect_interval: UpgradeInterval | null;
+  offer_percent_off: number | null;
+  offer_promo_code: string | null;
   open_seq: number;
 }
 
@@ -62,6 +66,8 @@ const initial_state: UpgradeState = {
   server_message: null,
   preselect_plan_code: null,
   preselect_interval: null,
+  offer_percent_off: null,
+  offer_promo_code: null,
   open_seq: 0,
 };
 
@@ -134,7 +140,7 @@ const AUTH_ROUTES = [
 
 export function is_on_auth_route(pathname?: string): boolean {
   if (!pathname && typeof window === "undefined") return false;
-  const path = pathname ?? window.location.pathname;
+  const path = strip_account_prefix(pathname ?? window.location.pathname);
 
   return AUTH_ROUTES.some(
     (route) => path === route || path.startsWith(`${route}/`),
@@ -145,7 +151,8 @@ export function show_plan_limit_upgrade(opts: {
   resource?: string | null;
   message?: string | null;
   feature?: string | null;
-  preselect_plan?: string | null;
+  plan_code?: string | null;
+  interval?: UpgradeInterval | null;
 }) {
   if (is_on_auth_route()) return;
   current = {
@@ -155,8 +162,10 @@ export function show_plan_limit_upgrade(opts: {
     feature_key: opts.feature ?? null,
     resource_label: opts.resource ?? null,
     server_message: opts.message ?? null,
-    preselect_plan_code: opts.preselect_plan ?? null,
-    preselect_interval: null,
+    preselect_plan_code: opts.plan_code ?? null,
+    preselect_interval: opts.interval ?? null,
+    offer_percent_off: null,
+    offer_promo_code: null,
     open_seq: next_open_seq(),
   };
   notify();
@@ -173,6 +182,8 @@ export function show_storage_full_upgrade(opts?: { message?: string | null }) {
     server_message: opts?.message ?? null,
     preselect_plan_code: null,
     preselect_interval: null,
+    offer_percent_off: null,
+    offer_promo_code: null,
     open_seq: next_open_seq(),
   };
   notify();
@@ -192,6 +203,8 @@ export function show_checkout_cancelled_upgrade(opts: {
     server_message: null,
     preselect_plan_code: opts.plan_code,
     preselect_interval: opts.interval,
+    offer_percent_off: null,
+    offer_promo_code: null,
     open_seq: next_open_seq(),
   };
   notify();
@@ -213,6 +226,8 @@ export function show_offer_upgrade(opts: {
     server_message: null,
     preselect_plan_code: opts.plan_code ?? null,
     preselect_interval: opts.interval ?? "year",
+    offer_percent_off: null,
+    offer_promo_code: null,
     open_seq: next_open_seq(),
   };
   notify();
@@ -221,6 +236,8 @@ export function show_offer_upgrade(opts: {
 export function show_upgrade_plans(opts?: {
   plan_code?: string | null;
   interval?: UpgradeInterval | null;
+  offer_percent_off?: number | null;
+  offer_promo_code?: string | null;
 }) {
   if (is_on_auth_route()) return;
   current = {
@@ -232,6 +249,8 @@ export function show_upgrade_plans(opts?: {
     server_message: null,
     preselect_plan_code: opts?.plan_code ?? null,
     preselect_interval: opts?.interval ?? null,
+    offer_percent_off: opts?.offer_percent_off ?? null,
+    offer_promo_code: opts?.offer_promo_code ?? null,
     open_seq: next_open_seq(),
   };
   notify();

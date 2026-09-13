@@ -134,7 +134,6 @@ export function SessionSection({
           <FingerPrintIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
           {t("settings.browsers_and_devices")}
         </h3>
-        <div className="mt-2 h-px bg-edge-secondary" />
       </div>
 
       {sessions_loading ? (

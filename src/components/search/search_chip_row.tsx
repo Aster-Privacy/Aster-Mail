@@ -620,24 +620,24 @@ export function SearchChipRow({
           >
             <input
               className="w-full h-8 px-2 rounded-[8px] text-xs outline-none border"
+              max={custom_before || undefined}
               style={{
                 backgroundColor: "var(--bg-secondary)",
                 borderColor: "var(--border-primary)",
                 color: "var(--text-primary)",
               }}
-              max={custom_before || undefined}
               type="date"
               value={custom_after}
               onChange={(event) => set_custom_after(event.target.value)}
             />
             <input
               className="w-full h-8 px-2 rounded-[8px] text-xs outline-none border"
+              min={custom_after || undefined}
               style={{
                 backgroundColor: "var(--bg-secondary)",
                 borderColor: "var(--border-primary)",
                 color: "var(--text-primary)",
               }}
-              min={custom_after || undefined}
               type="date"
               value={custom_before}
               onChange={(event) => set_custom_before(event.target.value)}

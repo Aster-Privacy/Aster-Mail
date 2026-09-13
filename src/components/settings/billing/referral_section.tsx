@@ -57,7 +57,6 @@ export function ReferralSection({
         <p className="text-xs text-txt-muted mt-1">
           {t("settings.referral_program_description")}
         </p>
-        <div className="mt-2 h-px bg-edge-secondary" />
       </div>
 
       {referral_info && referral_info.referral_code ? (
@@ -69,6 +68,7 @@ export function ReferralSection({
             <div className="flex gap-2">
               <input
                 readOnly
+                aria-label={t("settings.your_referral_link")}
                 className="flex-1 h-9 px-3 rounded-lg bg-transparent border border-edge-secondary text-sm text-txt-primary outline-none"
                 value={build_referral_invite_url(referral_info.referral_code)}
               />

@@ -47,6 +47,9 @@ import {
   HomeModernIcon,
   SignalIcon,
   FolderIcon,
+  GlobeAltIcon,
+  CircleStackIcon,
+  ArrowsRightLeftIcon,
 } from "@heroicons/react/24/outline";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
@@ -88,6 +91,21 @@ import { DeveloperSection } from "./settings/developer_section";
 import { FamilySection } from "./settings/family_section";
 import { ConnectionSection } from "./settings/connection_section";
 import { AliasDirectoriesSection } from "./settings/alias_directories_section";
+const StorageSection = lazy_with_retry(() =>
+  import("./settings/storage_section").then((m) => ({
+    default: m.StorageSection,
+  })),
+);
+const DomainsSection = lazy_with_retry(() =>
+  import("./settings/domains_section").then((m) => ({
+    default: m.DomainsSection,
+  })),
+);
+const BridgeSection = lazy_with_retry(() =>
+  import("./settings/bridge_section").then((m) => ({
+    default: m.BridgeSection,
+  })),
+);
 
 import { SettingsSaveIndicatorInline } from "@/components/settings/settings_save_indicator";
 import { FullPageLoader } from "@/components/common/full_page_loader";
@@ -383,6 +401,21 @@ function MobileSettingsPage() {
     connection: (
       <ConnectionSection on_back={close_section} on_close={handle_back} />
     ),
+    bridge: (
+      <Suspense fallback={<FullPageLoader />}>
+        <BridgeSection on_back={close_section} on_close={handle_back} />
+      </Suspense>
+    ),
+    storage: (
+      <Suspense fallback={<FullPageLoader />}>
+        <StorageSection on_back={close_section} on_close={handle_back} />
+      </Suspense>
+    ),
+    domains: (
+      <Suspense fallback={<FullPageLoader />}>
+        <DomainsSection on_back={close_section} on_close={handle_back} />
+      </Suspense>
+    ),
     alias_directories: (
       <AliasDirectoriesSection on_back={close_section} on_close={handle_back} />
     ),
@@ -513,6 +546,9 @@ function MobileSettingsPage() {
                   </span>
                   <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
                 </button>
+              </SettingsGroup>
+
+              <SettingsGroup title={t("settings.security")}>
                 <button
                   className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
                   type="button"
@@ -548,6 +584,9 @@ function MobileSettingsPage() {
                     <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
                   </button>
                 )}
+              </SettingsGroup>
+
+              <SettingsGroup title={t("settings.aliases_and_domains")}>
                 <button
                   className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
                   type="button"
@@ -555,7 +594,18 @@ function MobileSettingsPage() {
                 >
                   <AtSymbolIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
                   <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
-                    {t("settings.aliases_and_domains")}
+                    {t("settings.alias_tab_aliases")}
+                  </span>
+                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
+                </button>
+                <button
+                  className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
+                  type="button"
+                  onClick={() => open_section("domains")}
+                >
+                  <GlobeAltIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
+                  <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
+                    {t("settings.alias_tab_domains")}
                   </span>
                   <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
                 </button>
@@ -578,6 +628,20 @@ function MobileSettingsPage() {
                   <FolderIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
                   <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
                     {t("settings.alias_directories_title")}
+                  </span>
+                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
+                </button>
+              </SettingsGroup>
+
+              <SettingsGroup title={t("settings.billing")}>
+                <button
+                  className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
+                  type="button"
+                  onClick={() => open_section("storage")}
+                >
+                  <CircleStackIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
+                  <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
+                    {t("settings.storage")}
                   </span>
                   <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
                 </button>
@@ -671,6 +735,31 @@ function MobileSettingsPage() {
                 <button
                   className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
                   type="button"
+                  onClick={() => open_section("sender_filters")}
+                >
+                  <FunnelIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
+                  <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
+                    {t("settings.mail_management")}
+                  </span>
+                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
+                </button>
+                <button
+                  className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
+                  type="button"
+                  onClick={() => open_section("mail_rules")}
+                >
+                  <BoltIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
+                  <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
+                    {t("mail_rules.title")}
+                  </span>
+                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
+                </button>
+              </SettingsGroup>
+
+              <SettingsGroup title={t("settings.advanced")}>
+                <button
+                  className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
+                  type="button"
                   onClick={() => open_section("import")}
                 >
                   <ArrowDownTrayIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
@@ -693,28 +782,6 @@ function MobileSettingsPage() {
                 <button
                   className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
                   type="button"
-                  onClick={() => open_section("sender_filters")}
-                >
-                  <FunnelIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
-                  <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
-                    {t("settings.mail_management")}
-                  </span>
-                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
-                </button>
-                <button
-                  className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
-                  type="button"
-                  onClick={() => open_section("mail_rules")}
-                >
-                  <BoltIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
-                  <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
-                    {t("mail_rules.title")}
-                  </span>
-                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
-                </button>
-                <button
-                  className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
-                  type="button"
                   onClick={() => open_section("connection")}
                 >
                   <SignalIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
@@ -723,9 +790,17 @@ function MobileSettingsPage() {
                   </span>
                   <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
                 </button>
-              </SettingsGroup>
-
-              <SettingsGroup title={t("settings.about")}>
+                <button
+                  className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
+                  type="button"
+                  onClick={() => open_section("bridge")}
+                >
+                  <ArrowsRightLeftIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
+                  <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
+                    {t("settings.bridge")}
+                  </span>
+                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
+                </button>
                 <button
                   className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
                   type="button"
@@ -733,7 +808,7 @@ function MobileSettingsPage() {
                 >
                   <InformationCircleIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
                   <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
-                    {t("settings.advanced")}
+                    {t("settings.about")}
                   </span>
                   <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
                 </button>

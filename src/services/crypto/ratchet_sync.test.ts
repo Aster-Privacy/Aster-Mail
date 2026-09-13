@@ -47,7 +47,6 @@ vi.mock("./ratchet_state_store", () => ({
 }));
 
 import { sync_ratchet_to_server } from "./ratchet_sync";
-
 import { archive_ratchet_state } from "./ratchet_state_store";
 
 import { api_client } from "@/services/api/client";

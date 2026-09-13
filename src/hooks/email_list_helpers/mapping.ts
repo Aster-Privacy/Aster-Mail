@@ -86,7 +86,9 @@ export function mail_to_email(
 
   const is_read =
     effective_metadata.is_read &&
-    !(options.collapsed_threads === true && (item.thread_unread_count ?? 0) > 0);
+    !(
+      options.collapsed_threads === true && (item.thread_unread_count ?? 0) > 0
+    );
 
   if (!envelope) {
     return {

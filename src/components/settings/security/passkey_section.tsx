@@ -368,7 +368,6 @@ export function PasskeySection() {
               />
             )}
         </h3>
-        <div className="mt-2 h-px bg-edge-secondary" />
       </div>
 
       <p className="text-sm text-txt-muted mb-4">

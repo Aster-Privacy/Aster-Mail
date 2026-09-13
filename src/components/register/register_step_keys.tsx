@@ -23,8 +23,8 @@ import type { CSSProperties } from "react";
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { Spinner } from "@aster/ui";
 
-import { Spinner } from "@/components/ui/spinner";
 import { use_should_reduce_motion } from "@/provider";
 import {
   page_variants,
@@ -107,10 +107,7 @@ export const RegisterStepKeys = ({ reg }: RegisterStepKeysProps) => {
   useEffect(() => {
     set_stalled(false);
 
-    const timer = window.setTimeout(
-      () => set_stalled(true),
-      STALL_NOTICE_MS,
-    );
+    const timer = window.setTimeout(() => set_stalled(true), STALL_NOTICE_MS);
 
     return () => window.clearTimeout(timer);
   }, [reg.generation_status]);
@@ -119,7 +116,7 @@ export const RegisterStepKeys = ({ reg }: RegisterStepKeysProps) => {
     <motion.div
       key="generating"
       animate="animate"
-      className="flex flex-col items-center w-full max-w-sm px-4 text-center"
+      className="flex w-full max-w-[400px] flex-col items-start px-4 text-start"
       exit="exit"
       initial={false}
       transition={page_transition}
@@ -127,15 +124,24 @@ export const RegisterStepKeys = ({ reg }: RegisterStepKeysProps) => {
     >
       <style>{sweep_style}</style>
 
-      <Spinner className="h-10 w-10 text-[var(--accent-color)]" size="lg" />
+      <img
+        alt="Aster"
+        className="h-7 select-none"
+        decoding="async"
+        draggable={false}
+        src="/text_logo.png"
+      />
 
-      <h2 className="text-xl font-semibold mt-8 text-txt-primary">
+      <h2 className="mt-5 select-none text-base font-semibold text-txt-primary">
         {reg.t("auth.setting_up_account")}
       </h2>
 
-      <p className="mt-3 text-sm text-txt-tertiary">{reg.generation_status}</p>
+      <div className="mt-1.5 flex items-center gap-2 text-sm text-txt-tertiary">
+        <Spinner size="sm" />
+        <p>{reg.generation_status}</p>
+      </div>
 
-      <div className="w-full mt-8">
+      <div className="w-full mt-5">
         <div
           className="relative h-1 w-full overflow-hidden rounded-full"
           style={{
@@ -174,12 +180,12 @@ export const RegisterStepKeys = ({ reg }: RegisterStepKeysProps) => {
       </div>
 
       {stalled && (
-        <p className="mt-6 text-xs max-w-xs leading-relaxed text-txt-tertiary">
+        <p className="mt-4 text-xs leading-relaxed text-txt-tertiary">
           {reg.t("auth.setup_taking_longer")}
         </p>
       )}
 
-      <p className="mt-8 text-xs max-w-xs leading-relaxed text-txt-muted">
+      <p className="mt-4 text-xs leading-relaxed text-txt-muted">
         {reg.t("auth.encryption_keys_local")}
       </p>
     </motion.div>

@@ -149,7 +149,7 @@ describe("CategoryTabs", () => {
     );
   });
 
-  it("never puts a message preview on a tab", () => {
+  it("previews the newest message on a tab with new mail", () => {
     const el = render(
       <CategoryTabs
         active_category="primary"
@@ -158,10 +158,24 @@ describe("CategoryTabs", () => {
       />,
     );
 
+    expect(tab_of(el, "category_promotions").textContent).toContain(
+      "Paybis Team - Get 20% off this week",
+    );
+    expect(tab_of(el, "category_social").textContent).not.toContain("Paybis");
+  });
+
+  it("drops the preview from the tab you are viewing", () => {
+    const el = render(
+      <CategoryTabs
+        active_category="promotions"
+        counts={counts}
+        on_change={() => {}}
+      />,
+    );
+
     expect(tab_of(el, "category_promotions").textContent).not.toContain(
       "Paybis",
     );
-    expect(tab_of(el, "category_social").textContent).not.toContain("Paybis");
   });
 
   it("hides the new wording on the tab you are viewing", () => {
@@ -278,7 +292,7 @@ describe("CategoryTabs", () => {
       expect(classes_of(tab)).toContain("items-center");
     }
 
-    expect(with_preview.querySelector("span.h-\\[13px\\]")).toBeNull();
+    expect(with_preview.querySelector("span.h-\\[13px\\]")).toBeTruthy();
     expect(without_preview.querySelector("span.h-\\[13px\\]")).toBeNull();
     for (const tab of [with_preview, without_preview]) {
       expect(classes_of(tab)).toContain("overflow-hidden");
@@ -288,9 +302,9 @@ describe("CategoryTabs", () => {
   it("swaps the count for a dot while the first index build is counting", () => {
     const el = render(
       <CategoryTabs
+        counts_pending
         active_category="primary"
         counts={counts}
-        counts_pending
         on_change={() => {}}
       />,
     );
@@ -306,9 +320,9 @@ describe("CategoryTabs", () => {
   it("shows no dot on a category with nothing unread", () => {
     const el = render(
       <CategoryTabs
+        counts_pending
         active_category="primary"
         counts={counts}
-        counts_pending
         on_change={() => {}}
       />,
     );

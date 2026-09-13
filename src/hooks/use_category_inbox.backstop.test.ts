@@ -95,6 +95,7 @@ vi.mock("@/services/category_index", () => ({
   get_category_total: () => 0,
   is_fully_built: () => false,
   is_index_settled: () => false,
+  is_index_capped: () => false,
   is_build_in_progress: mocks.is_build_in_progress,
   is_build_stalled: mocks.is_build_stalled,
   subscribe: () => () => {},

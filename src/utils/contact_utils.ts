@@ -20,7 +20,8 @@
 //
 import { parse_calendar_date } from "@/utils/date_utils";
 
-export function parse_csv_records(text: string): string[][] {
+export function parse_csv_records(raw_text: string): string[][] {
+  const text = raw_text.charCodeAt(0) === 0xfeff ? raw_text.slice(1) : raw_text;
   const records: string[][] = [];
   let row: string[] = [];
   let field = "";

@@ -257,7 +257,6 @@ export function AvailablePlansSection({
           <CrownIcon className="w-4 h-4 text-txt-primary flex-shrink-0" />
           {t("settings.available_plans")}
         </h3>
-        <div className="mt-2 h-px bg-edge-secondary" />
       </div>
 
       <div className="flex flex-col items-center gap-4 mb-4">
@@ -501,7 +500,7 @@ export function AvailablePlansSection({
       )}
 
       {plan_type === "individual" && (
-        <div className="grid gap-4 pt-3 grid-cols-1 sm:grid-cols-3 items-stretch">
+        <div className="grid gap-4 pt-3 grid-cols-1 lg:grid-cols-3 items-stretch">
           {PLAN_TIERS.map((tier) => {
             const tier_index = PLAN_TIERS.findIndex((p) => p.id === tier.id);
             const current_plan_code = subscription?.plan.code;

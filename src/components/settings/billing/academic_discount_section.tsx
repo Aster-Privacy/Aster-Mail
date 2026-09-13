@@ -178,7 +178,6 @@ export function AcademicDiscountSection({
         <p className="text-xs text-txt-muted mt-1">
           {t("settings.academic_discount_description")}
         </p>
-        <div className="mt-2 h-px bg-edge-secondary" />
       </div>
 
       {status === "verified" && academic_status?.promo_code && (

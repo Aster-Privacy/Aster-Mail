@@ -27,6 +27,7 @@ import {
   TrashIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
+import { Tooltip } from "@aster/ui";
 
 import { contact_trash_days_left } from "@/lib/contact_trash";
 
@@ -75,14 +76,14 @@ export function ContactTrashPane({
     return (
       <div className="contact_empty_state">
         <span className="contact_empty_state_glyph">
-          <TrashIcon className="h-8 w-8" strokeWidth={1.5} />
+          <TrashIcon strokeWidth={1.25} />
         </span>
-        <p className="mb-1 text-[14px] font-medium text-txt-primary">
+        <p className="contact_empty_state_title">
           {has_query && contacts.length > 0
             ? t("common.no_contacts_match", { query: search_query.trim() })
             : t("common.no_contacts_in_trash")}
         </p>
-        <p className="max-w-[280px] text-[12.5px] leading-relaxed text-txt-muted">
+        <p className="contact_empty_state_text">
           {t("common.contacts_in_trash_notice")}
         </p>
       </div>
@@ -121,22 +122,26 @@ export function ContactTrashPane({
                 })}
               </p>
             </div>
-            <button
-              aria-label={t("mail.restore")}
-              className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[8px] text-txt-muted opacity-0 transition-opacity hover:text-txt-primary focus-visible:opacity-100 group-hover/trash:opacity-100"
-              type="button"
-              onClick={() => on_restore(contact)}
-            >
-              <ArrowUturnLeftIcon className="h-4 w-4" />
-            </button>
-            <button
-              aria-label={t("mail.delete_permanently")}
-              className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[8px] text-txt-muted opacity-0 transition-opacity hover:text-red-500 focus-visible:opacity-100 group-hover/trash:opacity-100"
-              type="button"
-              onClick={() => on_delete_forever(contact)}
-            >
-              <TrashIcon className="h-4 w-4" />
-            </button>
+            <Tooltip tip={t("mail.restore")}>
+              <button
+                aria-label={t("mail.restore")}
+                className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[8px] text-txt-muted opacity-0 transition-opacity hover:text-txt-primary focus-visible:opacity-100 group-hover/trash:opacity-100"
+                type="button"
+                onClick={() => on_restore(contact)}
+              >
+                <ArrowUturnLeftIcon className="h-4 w-4" />
+              </button>
+            </Tooltip>
+            <Tooltip tip={t("mail.delete_permanently")}>
+              <button
+                aria-label={t("mail.delete_permanently")}
+                className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[8px] text-txt-muted opacity-0 transition-opacity hover:text-red-500 focus-visible:opacity-100 group-hover/trash:opacity-100"
+                type="button"
+                onClick={() => on_delete_forever(contact)}
+              >
+                <TrashIcon className="h-4 w-4" />
+              </button>
+            </Tooltip>
           </div>
         ))}
       </div>

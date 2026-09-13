@@ -817,7 +817,6 @@ export function ImportSection() {
           <ArrowDownTrayIcon className="w-[18px] h-[18px] flex-shrink-0" />
           {t("settings.import_emails_title")}
         </h3>
-        <div className="mt-2 h-px bg-edge-secondary" />
         <p className="text-sm text-txt-muted mt-2">
           {t("settings.import_emails_description")}
         </p>
@@ -862,6 +861,12 @@ export function ImportSection() {
                 on_cancel_setup={handle_cancel_oauth_setup}
                 on_disconnect={handle_disconnect_click}
                 on_reconnect={(provider) => {
+                  if (provider === "google") {
+                    set_gmail_sync_open(true);
+
+                    return;
+                  }
+
                   const mapped = provider as ConnectProvider;
 
                   set_oauth_loading(provider);
@@ -1076,14 +1081,18 @@ export function ImportSection() {
                 {t("settings.disconnect_confirm")}
               </AlertDialogDescription>
             </AlertDialogHeader>
-            <label className="mt-4 flex items-center gap-2.5 cursor-pointer select-none">
+            <div className="mt-4 flex items-center gap-2.5">
               <Checkbox
                 checked={delete_messages_on_disconnect}
+                id="import-disconnect-delete-messages"
                 onCheckedChange={(v) =>
                   set_delete_messages_on_disconnect(v === true)
                 }
               />
-              <span className="text-[13px] leading-none text-txt-secondary">
+              <label
+                className="text-[13px] leading-none text-txt-secondary cursor-pointer select-none"
+                htmlFor="import-disconnect-delete-messages"
+              >
                 {(() => {
                   const target = connected_accounts.find(
                     (a) => a.account_token === disconnect_token,
@@ -1095,8 +1104,8 @@ export function ImportSection() {
                       })
                     : t("settings.disconnect_delete_messages_label");
                 })()}
-              </span>
-            </label>
+              </label>
+            </div>
           </div>
           <AlertDialogFooter className="flex-row gap-3 px-6 pb-6 pt-2 sm:justify-end">
             <AlertDialogCancel asChild>

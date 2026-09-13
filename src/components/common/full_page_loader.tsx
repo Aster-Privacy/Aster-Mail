@@ -66,8 +66,7 @@ function dismiss_loader() {
 }
 
 function handle_reload_click(): void {
-  const count =
-    Number(safe_session_get(RELOAD_CLICK_COUNT_KEY) || "0") + 1;
+  const count = Number(safe_session_get(RELOAD_CLICK_COUNT_KEY) || "0") + 1;
 
   if (count >= CLEAR_CACHE_CLICK_THRESHOLD) {
     safe_session_remove(RELOAD_CLICK_COUNT_KEY);

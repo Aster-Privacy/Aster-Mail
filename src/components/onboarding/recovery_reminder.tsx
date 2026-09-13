@@ -28,7 +28,6 @@ import { use_should_reduce_motion } from "@/provider";
 import { get_recovery_methods } from "@/services/api/recovery";
 import {
   first_run_age_ms,
-  is_first_run_setup_pending,
   is_recovery_snoozed,
   snooze_recovery,
 } from "@/lib/first_run";
@@ -53,7 +52,7 @@ export function RecoveryReminder({
     const age = first_run_age_ms();
 
     if (age === null || age < ELIGIBLE_AFTER_MS) return;
-    if (is_first_run_setup_pending() || is_recovery_snoozed()) return;
+    if (is_recovery_snoozed()) return;
 
     const check = async () => {
       const response = await get_recovery_methods();

@@ -18,8 +18,9 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { describe, it, expect, vi } from "vitest";
 import type { KeyboardEvent } from "react";
+
+import { describe, it, expect, vi } from "vitest";
 
 import { commit_on_enter, submit_on_enter } from "./commit_on_enter";
 

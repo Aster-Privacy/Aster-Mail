@@ -88,6 +88,6 @@ export function prompt_attachment_upgrade(
   show_plan_limit_upgrade({
     resource: "attachments",
     message: message ?? null,
-    preselect_plan: plan_code ?? null,
+    plan_code: plan_code ?? null,
   });
 }

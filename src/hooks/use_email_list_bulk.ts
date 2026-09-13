@@ -42,6 +42,7 @@ import {
   remove_email_from_view_cache,
 } from "@/hooks/email_list_cache";
 import { MAIL_EVENTS } from "@/hooks/mail_events";
+import { compare_timestamps_desc } from "@/utils/email_timestamp";
 import {
   remove_ids as remove_index_ids,
   remove_thread_entries,
@@ -95,8 +96,11 @@ function count_deltas(emails: InboxEmail[]): CountDeltas {
 }
 
 function sort_by_timestamp_desc(emails: InboxEmail[]): InboxEmail[] {
-  return [...emails].sort(
-    (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
+  return [...emails].sort((a, b) =>
+    compare_timestamps_desc(
+      a.raw_timestamp || a.timestamp,
+      b.raw_timestamp || b.timestamp,
+    ),
   );
 }
 

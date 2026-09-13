@@ -22,48 +22,59 @@ export const BACKGROUND_IMAGE_MARK = "data-aster-bg-image";
 
 const BACKGROUND_IMAGE_DECLARATION = /background(?:-image)?\s*:[^;]*url\s*\(/i;
 
-function rule_selector_text(raw: string): string {
-  const segments = raw.split("}");
+function next_brace_index(css: string, from: number): number {
+  const open_index = css.indexOf("{", from);
+  const close_index = css.indexOf("}", from);
 
-  return (segments[segments.length - 1] || "").trim();
+  if (open_index === -1) return close_index;
+  if (close_index === -1) return open_index;
+
+  return Math.min(open_index, close_index);
+}
+
+function collect_selector_parts(selector_text: string, into: string[]): void {
+  for (const part of selector_text.split(",")) {
+    const trimmed = part.trim();
+
+    if (!trimmed || trimmed.startsWith("@") || trimmed.includes("::")) {
+      continue;
+    }
+
+    into.push(trimmed);
+  }
 }
 
 export function selectors_with_background_image(css: string): string[] {
   const selectors: string[] = [];
-  let index = 0;
+  let segment_start = 0;
+  let index = next_brace_index(css, 0);
 
-  while (index < css.length) {
-    const open = css.indexOf("{", index);
-
-    if (open === -1) break;
-
-    const close = css.indexOf("}", open + 1);
-
-    if (close === -1) break;
-
-    const nested = css.indexOf("{", open + 1);
-
-    if (nested !== -1 && nested < close) {
-      index = open + 1;
+  while (index !== -1) {
+    if (css[index] === "}") {
+      segment_start = index + 1;
+      index = next_brace_index(css, segment_start);
       continue;
     }
 
-    const selector_text = rule_selector_text(css.slice(index, open));
-    const declarations = css.slice(open + 1, close);
+    const selector_text = css.slice(segment_start, index);
+    const block_end = next_brace_index(css, index + 1);
 
-    index = close + 1;
-
-    if (!BACKGROUND_IMAGE_DECLARATION.test(declarations)) continue;
-
-    for (const part of selector_text.split(",")) {
-      const trimmed = part.trim();
-
-      if (!trimmed || trimmed.startsWith("@") || trimmed.includes("::")) {
-        continue;
-      }
-
-      selectors.push(trimmed);
+    if (
+      selector_text.length === 0 ||
+      block_end === -1 ||
+      css[block_end] === "{"
+    ) {
+      segment_start = index + 1;
+      index = next_brace_index(css, segment_start);
+      continue;
     }
+
+    if (BACKGROUND_IMAGE_DECLARATION.test(css.slice(index + 1, block_end))) {
+      collect_selector_parts(selector_text.trim(), selectors);
+    }
+
+    segment_start = block_end + 1;
+    index = next_brace_index(css, segment_start);
   }
 
   return selectors;

@@ -429,9 +429,7 @@ export function classify(
 
   // 5. Automated mail only: refine into Promotions vs Updates.
   const promo_signal =
-    in_any(MARKETING_SET) ||
-    PROMO_LOCALPARTS.has(localpart) ||
-    hard_sell;
+    in_any(MARKETING_SET) || PROMO_LOCALPARTS.has(localpart) || hard_sell;
   const trusted_transactional =
     in_any(UPDATES_SET) || UPDATES_LOCALPARTS.has(localpart);
   const transactional_signal =

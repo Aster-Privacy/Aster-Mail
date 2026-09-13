@@ -1034,7 +1034,6 @@ function MobileInbox({
         />
       )}
 
-
       {folder_not_found ? (
         <div className="flex flex-col items-center justify-center flex-1 px-4 py-20">
           <FolderIcon

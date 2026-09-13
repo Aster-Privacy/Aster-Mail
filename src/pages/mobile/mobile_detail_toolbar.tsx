@@ -18,6 +18,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { TranslationKey } from "@/lib/i18n/types";
+
 import {
   StarIcon,
   ArchiveBoxIcon,
@@ -30,8 +32,6 @@ import {
   EllipsisHorizontalIcon,
 } from "@heroicons/react/24/outline";
 import { StarIcon as StarSolidIcon } from "@heroicons/react/24/solid";
-
-import type { TranslationKey } from "@/lib/i18n/types";
 
 import { use_i18n } from "@/lib/i18n/context";
 

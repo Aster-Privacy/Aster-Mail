@@ -28,7 +28,7 @@ interface TestResultBannerProps {
 export function TestResultBanner({ label, result }: TestResultBannerProps) {
   return (
     <div
-      className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm"
+      className="flex items-start gap-2 px-3 py-2 rounded-lg text-sm"
       role="status"
       style={{
         backgroundColor: result.success ? "#16a34a" : "#dc2626",
@@ -36,11 +36,11 @@ export function TestResultBanner({ label, result }: TestResultBannerProps) {
       }}
     >
       {result.success ? (
-        <CheckCircleIcon className="w-4 h-4 flex-shrink-0" />
+        <CheckCircleIcon className="w-4 h-4 flex-shrink-0 mt-0.5" />
       ) : (
-        <XCircleIcon className="w-4 h-4 flex-shrink-0" />
+        <XCircleIcon className="w-4 h-4 flex-shrink-0 mt-0.5" />
       )}
-      <span className="truncate">
+      <span className="min-w-0 break-words">
         {label}: {result.message}
       </span>
     </div>

@@ -87,7 +87,7 @@ describe("action toast position", () => {
   it("anchors to the bottom center by default", () => {
     const element = mount();
 
-    expect(element.className).toContain("left-1/2");
+    expect(element.className).toContain("inset-x-0");
     expect(element.style.bottom).toBe("24px");
   });
 
@@ -96,7 +96,7 @@ describe("action toast position", () => {
     const element = mount();
 
     expect(element.className).toContain("right-4");
-    expect(element.className).not.toContain("left-1/2");
+    expect(element.className).not.toContain("inset-x-0");
     expect(element.style.bottom).toBe("");
   });
 

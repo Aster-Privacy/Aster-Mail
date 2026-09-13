@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { ContactFormData, ContactGroup } from "@/types/contacts";
+import type { CsvFieldTarget } from "@/services/api/contact_sync";
 import type { TranslationKey } from "@/lib/i18n/types";
 
 import {
@@ -58,6 +59,7 @@ import {
   import_csv,
   parse_vcard,
   parse_csv,
+  auto_map_csv_header,
 } from "@/services/api/contact_sync";
 import {
   add_contact_to_group,
@@ -91,7 +93,7 @@ type ImportStep = "select" | "preview" | "mapping" | "importing" | "complete";
 type FileType = "vcard" | "csv";
 
 function get_csv_field_options(t: (key: TranslationKey) => string): {
-  value: keyof ContactFormData | null;
+  value: CsvFieldTarget | null;
   label: string;
 }[] {
   return [
@@ -102,8 +104,15 @@ function get_csv_field_options(t: (key: TranslationKey) => string): {
     { value: "phone", label: t("common.phone") },
     { value: "company", label: t("common.company") },
     { value: "job_title", label: t("common.job_title") },
+    { value: "street", label: t("common.street") },
+    { value: "city", label: t("common.city") },
+    { value: "state", label: t("common.state") },
+    { value: "postal_code", label: t("common.postal_code") },
+    { value: "country", label: t("common.country") },
+    { value: "website", label: t("common.website") },
     { value: "birthday", label: t("common.birthday") },
     { value: "notes", label: t("common.notes") },
+    { value: "is_favorite", label: t("common.favorite") },
   ];
 }
 
@@ -120,7 +129,7 @@ export function ContactImportModal({
   );
   const [csv_headers, set_csv_headers] = useState<string[]>([]);
   const [csv_mapping, set_csv_mapping] = useState<
-    Record<string, keyof ContactFormData | null>
+    Record<string, CsvFieldTarget | null>
   >({});
   const [is_importing, set_is_importing] = useState(false);
   const [import_result, set_import_result] = useState<{
@@ -169,30 +178,10 @@ export function ContactImportModal({
 
             set_csv_headers(headers);
 
-            const auto_mapping: Record<string, keyof ContactFormData | null> =
-              {};
+            const auto_mapping: Record<string, CsvFieldTarget | null> = {};
 
             headers.forEach((header) => {
-              const lower = header.toLowerCase();
-
-              if (lower.includes("first") && lower.includes("name"))
-                auto_mapping[header] = "first_name";
-              else if (lower.includes("last") && lower.includes("name"))
-                auto_mapping[header] = "last_name";
-              else if (lower === "name" || lower === "full name")
-                auto_mapping[header] = "first_name";
-              else if (lower.includes("email") || lower.includes("e-mail"))
-                auto_mapping[header] = "emails";
-              else if (lower.includes("phone") || lower.includes("tel"))
-                auto_mapping[header] = "phone";
-              else if (lower.includes("company") || lower.includes("org"))
-                auto_mapping[header] = "company";
-              else if (lower.includes("title") || lower.includes("job"))
-                auto_mapping[header] = "job_title";
-              else if (lower.includes("birthday") || lower.includes("birth"))
-                auto_mapping[header] = "birthday";
-              else if (lower.includes("note")) auto_mapping[header] = "notes";
-              else auto_mapping[header] = null;
+              auto_mapping[header] = auto_map_csv_header(header);
             });
 
             set_csv_mapping(auto_mapping);
@@ -224,7 +213,7 @@ export function ContactImportModal({
   );
 
   const handle_drop = useCallback(
-    (e: React.DragEvent<HTMLDivElement>) => {
+    (e: React.DragEvent<HTMLElement>) => {
       e.preventDefault();
       set_is_drag_active(false);
 
@@ -237,18 +226,15 @@ export function ContactImportModal({
     [handle_file],
   );
 
-  const handle_drag_over = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+  const handle_drag_over = useCallback((e: React.DragEvent<HTMLElement>) => {
     e.preventDefault();
     set_is_drag_active(true);
   }, []);
 
-  const handle_drag_leave = useCallback(
-    (e: React.DragEvent<HTMLDivElement>) => {
-      e.preventDefault();
-      set_is_drag_active(false);
-    },
-    [],
-  );
+  const handle_drag_leave = useCallback((e: React.DragEvent<HTMLElement>) => {
+    e.preventDefault();
+    set_is_drag_active(false);
+  }, []);
 
   const handle_apply_csv_mapping = useCallback(() => {
     const contacts = parse_csv(raw_content, csv_mapping);
@@ -591,10 +577,11 @@ export function ContactImportModal({
                 {t("common.import_choose_file_desc")}
               </p>
 
-              <div
-                className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer bg-surf-secondary ${
+              <button
+                className={`w-full border-2 border-dashed rounded-xl p-8 text-center cursor-pointer bg-surf-secondary ${
                   is_drag_active ? "border-brand" : "border-edge-secondary"
                 }`}
+                type="button"
                 onClick={() => input_ref.current?.click()}
                 onDragLeave={handle_drag_leave}
                 onDragOver={handle_drag_over}
@@ -607,7 +594,7 @@ export function ContactImportModal({
                 <p className="text-xs text-txt-muted mt-1">
                   {t("common.or_drag_and_drop")}
                 </p>
-              </div>
+              </button>
 
               <input
                 ref={input_ref}
@@ -641,9 +628,8 @@ export function ContactImportModal({
                       onChange={(e) =>
                         set_csv_mapping((prev) => ({
                           ...prev,
-                          [header]: (e.target.value || null) as
-                            | keyof ContactFormData
-                            | null,
+                          [header]: (e.target.value ||
+                            null) as CsvFieldTarget | null,
                         }))
                       }
                     >

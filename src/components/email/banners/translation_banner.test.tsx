@@ -120,7 +120,7 @@ describe("TranslationBanner", () => {
 
   it("discloses the download size before the first use of a pair", async () => {
     const view = await render(
-      <TranslationBanner {...base} status="offer" download_bytes={51380224} />,
+      <TranslationBanner {...base} download_bytes={51380224} status="offer" />,
     );
 
     expect(view.textContent).toContain("mail.translation_offer_download:");
@@ -130,7 +130,7 @@ describe("TranslationBanner", () => {
 
   it("offers a plain translate button once the pair is on the device", async () => {
     const view = await render(
-      <TranslationBanner {...base} status="offer" download_bytes={0} />,
+      <TranslationBanner {...base} download_bytes={0} status="offer" />,
     );
 
     expect(view.textContent).toContain("mail.translation_offer:");

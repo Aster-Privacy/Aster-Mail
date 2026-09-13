@@ -52,10 +52,7 @@ export function store_encrypted_vault(
   encrypted_vault: string,
   vault_nonce: string,
 ): void {
-  safe_local_set(
-    ENCRYPTED_VAULT_KEY_PREFIX + account_id,
-    encrypted_vault,
-  );
+  safe_local_set(ENCRYPTED_VAULT_KEY_PREFIX + account_id, encrypted_vault);
   safe_local_set(VAULT_NONCE_KEY_PREFIX + account_id, vault_nonce);
   safe_local_set(
     SESSION_TIMESTAMP_KEY_PREFIX + account_id,
@@ -109,19 +106,11 @@ export async function store_session_passphrase(
   );
   const iv_base64 = btoa(String.fromCharCode(...iv));
 
-  safe_local_set(
-    SESSION_PASSPHRASE_KEY_PREFIX + account_id,
-    encrypted_base64,
-  );
-  safe_local_set(
-    SESSION_PASSPHRASE_IV_KEY_PREFIX + account_id,
-    iv_base64,
-  );
+  safe_local_set(SESSION_PASSPHRASE_KEY_PREFIX + account_id, encrypted_base64);
+  safe_local_set(SESSION_PASSPHRASE_IV_KEY_PREFIX + account_id, iv_base64);
 
   safe_local_remove(LEGACY_SESSION_PASSPHRASE_FB_KEY_PREFIX + account_id);
-  safe_local_remove(
-    LEGACY_SESSION_PASSPHRASE_FB_IV_KEY_PREFIX + account_id,
-  );
+  safe_local_remove(LEGACY_SESSION_PASSPHRASE_FB_IV_KEY_PREFIX + account_id);
 }
 
 export function has_stored_session_passphrase(account_id: string): boolean {
@@ -131,15 +120,12 @@ export function has_stored_session_passphrase(account_id: string): boolean {
     }
 
     const has_current =
-      safe_local_get(SESSION_PASSPHRASE_KEY_PREFIX + account_id) !==
-        null &&
-      safe_local_get(SESSION_PASSPHRASE_IV_KEY_PREFIX + account_id) !==
-        null;
+      safe_local_get(SESSION_PASSPHRASE_KEY_PREFIX + account_id) !== null &&
+      safe_local_get(SESSION_PASSPHRASE_IV_KEY_PREFIX + account_id) !== null;
 
     const has_legacy =
-      safe_local_get(
-        LEGACY_SESSION_PASSPHRASE_FB_KEY_PREFIX + account_id,
-      ) !== null &&
+      safe_local_get(LEGACY_SESSION_PASSPHRASE_FB_KEY_PREFIX + account_id) !==
+        null &&
       safe_local_get(
         LEGACY_SESSION_PASSPHRASE_FB_IV_KEY_PREFIX + account_id,
       ) !== null;
@@ -213,9 +199,7 @@ export async function clear_session_passphrase(
   safe_local_remove(SESSION_PASSPHRASE_KEY_PREFIX + account_id);
   safe_local_remove(SESSION_PASSPHRASE_IV_KEY_PREFIX + account_id);
   safe_local_remove(LEGACY_SESSION_PASSPHRASE_FB_KEY_PREFIX + account_id);
-  safe_local_remove(
-    LEGACY_SESSION_PASSPHRASE_FB_IV_KEY_PREFIX + account_id,
-  );
+  safe_local_remove(LEGACY_SESSION_PASSPHRASE_FB_IV_KEY_PREFIX + account_id);
 }
 
 export async function clear_all_session_passphrases(): Promise<void> {

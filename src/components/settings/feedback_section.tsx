@@ -93,7 +93,6 @@ export function FeedbackSection() {
             <ChatBubbleBottomCenterTextIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
             {t("settings.your_feedback")}
           </h3>
-          <div className="mt-2 h-px bg-edge-secondary" />
         </div>
         <div className="flex flex-wrap gap-2 mb-3">
           {FEEDBACK_CATEGORIES.map((option) => (
@@ -148,7 +147,6 @@ export function FeedbackSection() {
             <EnvelopeIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
             {t("settings.other_ways_to_reach")}
           </h3>
-          <div className="mt-2 h-px bg-edge-secondary" />
         </div>
         <p className="text-xs text-txt-muted">
           {t("settings.email_label")}{" "}

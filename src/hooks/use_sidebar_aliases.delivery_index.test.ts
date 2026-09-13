@@ -53,6 +53,11 @@ vi.mock("@/services/api/family_org", () => ({
 vi.mock("@/services/crypto/memory_key_store", () => ({
   has_passphrase_in_memory: () => false,
   get_derived_encryption_key: () => null,
+  on_keys_ready: (callback: () => void) => {
+    callback();
+
+    return () => {};
+  },
 }));
 
 vi.mock("@/contexts/auth_context", () => ({

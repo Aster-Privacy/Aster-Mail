@@ -19,14 +19,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
+import type { DecryptedIndexEntry } from "./use_search/types";
+import type { MailItem } from "@/services/api/mail";
+import type { DecryptedEnvelope } from "@/types/email";
+
 import { describe, it, expect } from "vitest";
 
 import { entry_haystack } from "./use_search/haystack";
 import { build_search_haystack, matches_query } from "./use_search/matching";
-import type { DecryptedIndexEntry } from "./use_search/types";
-
-import type { MailItem } from "@/services/api/mail";
-import type { DecryptedEnvelope } from "@/types/email";
 
 const envelope = {
   subject: "Quarterly Report",

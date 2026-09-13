@@ -55,6 +55,7 @@ import {
 import {
   get_vault_from_memory,
   has_passphrase_in_memory,
+  on_keys_ready,
 } from "@/services/crypto/memory_key_store";
 import {
   emit_folders_changed,
@@ -68,6 +69,11 @@ import { use_i18n } from "@/lib/i18n/context";
 
 const COUNTS_DEBOUNCE_MS = 500;
 const COUNTS_CONFIRM_MS = 4_000;
+const FOLDER_RETRY_DELAYS_MS = [400, 1_200, 3_000];
+
+function wait(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 export function use_folders(): UseFoldersReturn {
   const { t } = use_i18n();
@@ -89,9 +95,10 @@ export function use_folders(): UseFoldersReturn {
 
   const fetch_folders = useCallback(
     async (params: ListFoldersParams = {}): Promise<void> => {
-      const vault = get_vault_from_memory();
-
-      if (!has_passphrase_in_memory() || !vault?.identity_key) {
+      if (
+        !has_passphrase_in_memory() ||
+        !get_vault_from_memory()?.identity_key
+      ) {
         set_state((prev) =>
           prev.is_loading && prev.error === null
             ? prev
@@ -114,88 +121,96 @@ export function use_folders(): UseFoldersReturn {
         return prev;
       });
 
-      try {
-        const response = await list_folders({
-          include_system: true,
-          include_counts: true,
-          ...params,
-        });
+      const attempt_fetch = async (): Promise<"done" | "stale" | "retry"> => {
+        const vault = get_vault_from_memory();
 
-        if (this_generation !== fetch_generation_ref.current) return;
+        if (!has_passphrase_in_memory() || !vault?.identity_key) return "retry";
 
-        if (response.error || !response.data) {
-          set_state((prev) => ({
-            ...prev,
+        try {
+          const response = await list_folders({
+            include_system: true,
+            include_counts: true,
+            ...params,
+          });
+
+          if (this_generation !== fetch_generation_ref.current) return "stale";
+
+          if (response.error || !response.data) return "retry";
+
+          const decrypted_results = await Promise.all(
+            response.data.folders.map((folder: FolderDefinition) =>
+              decrypt_folder(folder, vault.identity_key),
+            ),
+          );
+
+          if (this_generation !== fetch_generation_ref.current) return "stale";
+
+          const decrypted_folders = decrypted_results.filter(
+            (f): f is DecryptedFolder => f !== null,
+          );
+
+          if (
+            response.data.folders.length > 0 &&
+            decrypted_folders.length === 0
+          ) {
+            return "retry";
+          }
+
+          const undecryptable_folders = response.data.folders.filter(
+            (_folder: FolderDefinition, index: number) =>
+              decrypted_results[index] === null,
+          );
+
+          const visible_folders = [
+            ...decrypted_folders,
+            ...undecryptable_folders.map((folder: FolderDefinition) =>
+              build_undecryptable_folder(folder, t("common.unable_to_decrypt")),
+            ),
+          ];
+
+          cached_folders.data = visible_folders;
+          cached_folders.total = visible_folders.length;
+
+          set_state({
+            folders: visible_folders,
             is_loading: false,
-            error: response.error || t("common.failed_to_fetch_folders"),
-          }));
+            error: null,
+            total: response.data.total,
+          });
 
-          return;
+          const has_protected = visible_folders.some(
+            (f) => f.is_password_protected && f.password_set,
+          );
+
+          if (has_protected) {
+            emit_protected_folders_ready();
+          }
+
+          return "done";
+        } catch {
+          if (this_generation !== fetch_generation_ref.current) return "stale";
+
+          return "retry";
         }
+      };
 
-        const decrypted_results = await Promise.all(
-          response.data.folders.map((folder: FolderDefinition) =>
-            decrypt_folder(folder, vault.identity_key),
-          ),
-        );
+      for (let attempt = 0; ; attempt += 1) {
+        const outcome = await attempt_fetch();
+
+        if (outcome !== "retry") return;
+        if (attempt >= FOLDER_RETRY_DELAYS_MS.length) break;
+
+        await wait(FOLDER_RETRY_DELAYS_MS[attempt]);
 
         if (this_generation !== fetch_generation_ref.current) return;
-
-        const decrypted_folders = decrypted_results.filter(
-          (f): f is DecryptedFolder => f !== null,
-        );
-
-        if (
-          response.data.folders.length > 0 &&
-          decrypted_folders.length === 0
-        ) {
-          set_state((prev) => ({
-            ...prev,
-            is_loading: false,
-            error: t("common.failed_to_fetch_folders"),
-          }));
-
-          return;
-        }
-
-        const undecryptable_folders = response.data.folders.filter(
-          (_folder: FolderDefinition, index: number) =>
-            decrypted_results[index] === null,
-        );
-
-        const visible_folders = [
-          ...decrypted_folders,
-          ...undecryptable_folders.map((folder: FolderDefinition) =>
-            build_undecryptable_folder(folder, t("common.unable_to_decrypt")),
-          ),
-        ];
-
-        cached_folders.data = visible_folders;
-        cached_folders.total = visible_folders.length;
-
-        set_state({
-          folders: visible_folders,
-          is_loading: false,
-          error: null,
-          total: response.data.total,
-        });
-
-        const has_protected = visible_folders.some(
-          (f) => f.is_password_protected && f.password_set,
-        );
-
-        if (has_protected) {
-          emit_protected_folders_ready();
-        }
-      } catch {
-        if (this_generation !== fetch_generation_ref.current) return;
-
-        set_state((prev) => ({
-          ...prev,
-          is_loading: false,
-          error: t("common.failed_to_fetch_folders"),
-        }));
       }
+
+      set_state((prev) => ({
+        ...prev,
+        is_loading: false,
+        error:
+          prev.folders.length > 0 ? null : t("common.failed_to_fetch_folders"),
+      }));
     },
     [t],
   );
@@ -725,15 +740,17 @@ export function use_folders(): UseFoldersReturn {
   }, [user?.id]);
 
   useEffect(() => {
-    if (has_passphrase_in_memory()) {
+    return on_keys_ready(() => {
       refresh();
       fetch_counts();
-    }
+    });
+  }, [refresh, fetch_counts]);
 
+  useEffect(() => {
     return () => {
       abort_ref.current?.abort();
     };
-  }, [refresh, fetch_counts]);
+  }, []);
 
   useEffect(() => {
     let counts_debounce: ReturnType<typeof setTimeout> | null = null;

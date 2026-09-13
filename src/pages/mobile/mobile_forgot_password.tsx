@@ -18,8 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { show_toast } from "@/components/toast/simple_toast";
-import { copy_text_or_throw } from "@/utils/copy_text";
 import type { RecoveryStep } from "./forgot_password/types";
 
 import { useNavigate } from "react-router-dom";
@@ -36,8 +34,9 @@ import { NewCodesStep } from "./forgot_password/new_codes_step";
 import { SuccessStep } from "./forgot_password/success_step";
 import { EmailSentStep } from "./forgot_password/email_sent_step";
 
+import { copy_text_or_throw } from "@/utils/copy_text";
+import { show_toast } from "@/components/toast/simple_toast";
 import { recovery_error_message } from "@/pages/forgot_password/recovery_error";
-
 import { COPY_FEEDBACK_MS } from "@/constants/timings";
 import { useTheme } from "@/contexts/theme_context";
 import { use_platform } from "@/hooks/use_platform";
@@ -84,9 +83,10 @@ import {
   download_recovery_text,
 } from "@/services/crypto/recovery_pdf";
 import {
+  PASSWORD_RULE_MESSAGE_KEYS,
   sanitize_username,
-  validate_password_strength,
   timing_safe_delay,
+  validate_password_strength,
 } from "@/services/sanitize";
 import { use_i18n } from "@/lib/i18n/context";
 import { ignore_error } from "@/lib/ignore_error";
@@ -477,7 +477,7 @@ export default function MobileForgotPasswordPage() {
     const password_validation = validate_password_strength(password);
 
     if (!password_validation.valid) {
-      set_error(password_validation.errors[0]);
+      set_error(t(PASSWORD_RULE_MESSAGE_KEYS[password_validation.errors[0]]));
 
       return;
     }

@@ -90,6 +90,7 @@ export type {
   ListDeletedAliasesResponse,
   TwinAddressResponse,
   TwinAddressState,
+  TwinSibling,
   UpdateAliasRequest,
 } from "./types";
 export { validate_local_part } from "./validate";

@@ -21,7 +21,7 @@
 import { useState, useEffect, useCallback } from "react";
 import {
   LifebuoyIcon,
-  ShieldCheckIcon,
+  CheckCircleIcon,
   ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
 import { Badge, Button } from "@aster/ui";
@@ -57,14 +57,24 @@ export function AccountRecoverySection() {
   return (
     <div id="sec-recovery">
       <div className="mb-4">
-        <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-          <LifebuoyIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-          {t("settings.account_recovery_title")}
-        </h3>
+        <div className="flex items-center flex-wrap gap-x-3 gap-y-1">
+          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
+            <LifebuoyIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
+            {t("settings.account_recovery_title")}
+          </h3>
+          {methods && has_offline_method && (
+            <p
+              className="inline-flex items-center gap-1.5 text-xs font-medium"
+              style={{ color: "var(--color-success)" }}
+            >
+              <CheckCircleIcon className="w-3.5 h-3.5 flex-shrink-0" />
+              {t("settings.recovery_status_protected")}
+            </p>
+          )}
+        </div>
         <p className="text-sm mt-1 text-txt-muted">
           {t("settings.account_recovery_desc")}
         </p>
-        <div className="mt-2 h-px bg-edge-secondary" />
       </div>
 
       {load_error && !methods && (
@@ -76,23 +86,15 @@ export function AccountRecoverySection() {
         </div>
       )}
 
-      {methods && (
+      {methods && !has_offline_method && (
         <div className="flex items-start gap-3 p-3 rounded-lg border bg-surf-tertiary border-edge-secondary">
-          {has_offline_method ? (
-            <ShieldCheckIcon className="w-5 h-5 flex-shrink-0 text-green-500" />
-          ) : (
-            <ExclamationTriangleIcon className="w-5 h-5 flex-shrink-0 text-amber-500" />
-          )}
+          <ExclamationTriangleIcon className="w-5 h-5 flex-shrink-0 text-amber-500" />
           <div>
             <p className="text-sm font-medium text-txt-primary">
-              {has_offline_method
-                ? t("settings.recovery_status_protected")
-                : t("settings.recovery_status_at_risk")}
+              {t("settings.recovery_status_at_risk")}
             </p>
             <p className="text-sm mt-0.5 text-txt-muted">
-              {has_offline_method
-                ? t("settings.recovery_status_protected_desc")
-                : t("settings.recovery_status_at_risk_desc")}
+              {t("settings.recovery_status_at_risk_desc")}
             </p>
           </div>
         </div>

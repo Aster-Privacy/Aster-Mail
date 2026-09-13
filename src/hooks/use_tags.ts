@@ -40,6 +40,7 @@ import {
 import {
   get_vault_from_memory,
   has_passphrase_in_memory,
+  on_keys_ready,
 } from "@/services/crypto/memory_key_store";
 import { emit_tags_changed, MAIL_EVENTS } from "@/hooks/mail_events";
 import { use_auth_safe } from "@/contexts/auth_context";
@@ -66,6 +67,12 @@ interface TagsState {
 
 interface TagCounts {
   [tag_token: string]: number;
+}
+
+const TAG_RETRY_DELAYS_MS = [400, 1_200, 3_000];
+
+function wait(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 const cached_tags: { data: DecryptedTag[]; total: number } = {
@@ -259,9 +266,10 @@ export function use_tags(): UseTagsReturn {
 
   const fetch_tags = useCallback(
     async (params: ListTagsParams = {}): Promise<void> => {
-      const vault = get_vault_from_memory();
-
-      if (!has_passphrase_in_memory() || !vault?.identity_key) {
+      if (
+        !has_passphrase_in_memory() ||
+        !get_vault_from_memory()?.identity_key
+      ) {
         set_state((prev) =>
           prev.is_loading && prev.error === null
             ? prev
@@ -284,71 +292,75 @@ export function use_tags(): UseTagsReturn {
         return prev;
       });
 
-      try {
-        const response = await list_tags({
-          include_counts: true,
-          ...params,
-        });
+      const attempt_fetch = async (): Promise<"done" | "stale" | "retry"> => {
+        const vault = get_vault_from_memory();
 
-        if (this_generation !== fetch_generation_ref.current) return;
+        if (!has_passphrase_in_memory() || !vault?.identity_key) return "retry";
 
-        if (response.error || !response.data) {
-          set_state((prev) => ({
-            ...prev,
+        try {
+          const response = await list_tags({
+            include_counts: true,
+            ...params,
+          });
+
+          if (this_generation !== fetch_generation_ref.current) return "stale";
+
+          if (response.error || !response.data) return "retry";
+
+          const decrypted_results = await Promise.all(
+            response.data.tags.map((tag: TagDefinition) =>
+              decrypt_tag(tag, vault.identity_key),
+            ),
+          );
+
+          if (this_generation !== fetch_generation_ref.current) return "stale";
+
+          const decrypted_tags = decrypted_results.filter(
+            (tag): tag is DecryptedTag => tag !== null,
+          );
+
+          if (
+            response.data.tags.length > 0 &&
+            decrypted_tags.length === 0 &&
+            cached_tags.data.length > 0
+          ) {
+            return "retry";
+          }
+
+          cached_tags.data = decrypted_tags;
+          cached_tags.total = decrypted_tags.length;
+
+          set_state({
+            tags: decrypted_tags,
             is_loading: false,
-            error: response.error || t("common.failed_to_fetch_tags"),
-          }));
+            error: null,
+            total: response.data.total,
+          });
 
-          return;
+          return "done";
+        } catch {
+          if (this_generation !== fetch_generation_ref.current) return "stale";
+
+          return "retry";
         }
+      };
 
-        const decrypted_results = await Promise.all(
-          response.data.tags.map((tag: TagDefinition) =>
-            decrypt_tag(tag, vault.identity_key),
-          ),
-        );
+      for (let attempt = 0; ; attempt += 1) {
+        const outcome = await attempt_fetch();
+
+        if (outcome !== "retry") return;
+        if (attempt >= TAG_RETRY_DELAYS_MS.length) break;
+
+        await wait(TAG_RETRY_DELAYS_MS[attempt]);
 
         if (this_generation !== fetch_generation_ref.current) return;
-
-        const decrypted_tags = decrypted_results.filter(
-          (tag): tag is DecryptedTag => tag !== null,
-        );
-
-        if (
-          response.data.tags.length > 0 &&
-          decrypted_tags.length === 0 &&
-          cached_tags.data.length > 0
-        ) {
-          set_state((prev) => ({
-            ...prev,
-            is_loading: false,
-            error: t("common.failed_to_fetch_tags"),
-          }));
-
-          return;
-        }
-
-        cached_tags.data = decrypted_tags;
-        cached_tags.total = decrypted_tags.length;
-
-        set_state({
-          tags: decrypted_tags,
-          is_loading: false,
-          error: null,
-          total: response.data.total,
-        });
-      } catch (err) {
-        if (this_generation !== fetch_generation_ref.current) return;
-
-        set_state((prev) => ({
-          ...prev,
-          is_loading: false,
-          error:
-            err instanceof Error
-              ? err.message
-              : t("common.failed_to_fetch_tags"),
-        }));
       }
+
+      set_state((prev) => ({
+        ...prev,
+        is_loading: false,
+        error: prev.tags.length > 0 ? null : t("common.failed_to_fetch_tags"),
+      }));
     },
     [t],
   );
@@ -728,15 +740,17 @@ export function use_tags(): UseTagsReturn {
   }, [user?.id]);
 
   useEffect(() => {
-    if (has_passphrase_in_memory()) {
+    return on_keys_ready(() => {
       refresh();
       fetch_counts();
-    }
+    });
+  }, [refresh, fetch_counts]);
 
+  useEffect(() => {
     return () => {
       abort_ref.current?.abort();
     };
-  }, [refresh, fetch_counts]);
+  }, []);
 
   useEffect(() => {
     let counts_debounce: ReturnType<typeof setTimeout> | null = null;

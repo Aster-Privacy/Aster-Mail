@@ -18,64 +18,28 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useEffect, useState } from "react";
-import { ShieldCheckIcon } from "@heroicons/react/24/outline";
+import { ShieldCheckIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
+import { use_preferences } from "@/contexts/preferences_context";
 import { use_i18n } from "@/lib/i18n/context";
-import {
-  get_twin_address,
-  type TwinAddressResponse,
-} from "@/services/api/aliases";
+import type { TwinSibling } from "@/services/api/aliases";
 
 interface TwinAddressCardProps {
-  refresh_token: number;
+  siblings: TwinSibling[];
   on_claim: (local_part: string, domain: string) => void;
 }
 
-export function TwinAddressCard({
-  refresh_token,
-  on_claim,
-}: TwinAddressCardProps) {
+export function TwinAddressCard({ siblings, on_claim }: TwinAddressCardProps) {
   const { t } = use_i18n();
-  const [twin, set_twin] = useState<TwinAddressResponse | null>(null);
+  const { preferences, update_preference } = use_preferences();
 
-  useEffect(() => {
-    let cancelled = false;
+  if (siblings.length === 0 || preferences.twin_address_banner_dismissed) {
+    return null;
+  }
 
-    const load = async () => {
-      try {
-        const response = await get_twin_address();
-
-        if (cancelled) return;
-
-        set_twin(response.data ?? null);
-      } catch {
-        if (cancelled) return;
-
-        set_twin(null);
-      }
-    };
-
-    void load();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [refresh_token]);
-
-  if (!twin) return null;
-
-  if (twin.state !== "reserved" && twin.state !== "available") return null;
-
-  const description =
-    twin.state === "reserved"
-      ? t("settings.twin_address_reserved_description", {
-          address: twin.address,
-        })
-      : t("settings.twin_address_available_description", {
-          address: twin.address,
-        });
+  const primary = siblings[0];
+  const multiple = siblings.length > 1;
 
   return (
     <div className="mb-3 rounded-xl border border-edge-secondary bg-surf-secondary p-3">
@@ -83,18 +47,44 @@ export function TwinAddressCard({
         <ShieldCheckIcon className="mt-0.5 h-5 w-5 shrink-0 text-txt-secondary" />
         <div className="min-w-0 flex-1">
           <p className="text-sm font-semibold text-txt-primary">
-            {t("settings.twin_address_title")}
+            {multiple
+              ? t("settings.twin_address_title_multiple")
+              : t("settings.twin_address_title")}
           </p>
-          <p className="mt-1 break-all text-sm text-txt-muted">{description}</p>
+          <p className="mt-1 break-words text-sm text-txt-muted">
+            {multiple
+              ? t("settings.twin_address_multiple_description", {
+                  local_part: primary.local_part,
+                  count: siblings.length,
+                })
+              : primary.state === "reserved"
+                ? t("settings.twin_address_reserved_description", {
+                    address: primary.address,
+                  })
+                : t("settings.twin_address_available_description", {
+                    address: primary.address,
+                  })}
+          </p>
         </div>
-        <Button
-          className="shrink-0"
-          size="sm"
-          variant="secondary"
-          onClick={() => on_claim(twin.local_part, twin.domain)}
-        >
-          {t("settings.twin_address_create")}
-        </Button>
+        <div className="flex shrink-0 items-center gap-1 self-center">
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => on_claim(primary.local_part, primary.domain)}
+          >
+            {t("settings.twin_address_create")}
+          </Button>
+          <button
+            aria-label={t("settings.twin_address_dismiss")}
+            className="rounded-lg p-1.5 text-txt-muted transition-colors hover:bg-surf-tertiary hover:text-txt-primary"
+            type="button"
+            onClick={() =>
+              update_preference("twin_address_banner_dismissed", true, true)
+            }
+          >
+            <XMarkIcon className="h-4 w-4" />
+          </button>
+        </div>
       </div>
     </div>
   );

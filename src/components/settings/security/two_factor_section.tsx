@@ -237,7 +237,6 @@ export function LoginAlertsSessionsGroup({
           <ShieldCheckIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
           {t("settings.login_alerts_sessions_title")}
         </h3>
-        <div className="mt-2 h-px bg-edge-secondary" />
       </div>
 
       <SecuritySetting
@@ -393,7 +392,6 @@ export function ExternalLinkWarningsGroup({
           <LinkIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
           {t("settings.external_link_warnings")}
         </h3>
-        <div className="mt-2 h-px bg-edge-secondary" />
       </div>
       <SecuritySetting
         action={
@@ -452,7 +450,6 @@ export function ForwardSecrecyGroup({
           <FingerPrintIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
           {t("settings.forward_secrecy")}
         </h3>
-        <div className="mt-2 h-px bg-edge-secondary" />
       </div>
       <SecuritySetting
         action={

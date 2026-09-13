@@ -25,6 +25,11 @@ export const BillingSection = lazy_with_retry(() =>
     default: m.BillingSection,
   })),
 );
+export const OnionBillingSection = lazy_with_retry(() =>
+  import("@/components/settings/billing/onion_billing_section").then((m) => ({
+    default: m.OnionBillingSection,
+  })),
+);
 export const load_family_section = () =>
   import("@/components/settings/billing/family_section");
 export const FamilySection = lazy_with_retry(() =>

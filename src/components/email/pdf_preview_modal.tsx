@@ -238,7 +238,10 @@ export function PdfPreviewModal({
 
       download_decrypted_attachment(data, meta.filename, meta.content_type);
     } catch (caught) {
-      ignore_error("components/email/pdf_preview_modal:handle_download", caught);
+      ignore_error(
+        "components/email/pdf_preview_modal:handle_download",
+        caught,
+      );
       show_toast(t("common.download_failed"), "error");
     }
   }, [att, t]);

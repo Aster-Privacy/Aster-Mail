@@ -52,6 +52,7 @@ import {
   read_billing_interval,
 } from "@/components/settings/billing/cancel_offer";
 import { CancelOfferStep } from "@/components/settings/billing/cancel_offer_step";
+import { CancelEarlyStep } from "@/components/settings/billing/cancel_early_step";
 import { show_toast } from "@/components/toast/simple_toast";
 import { PaymentMethodsModal } from "@/components/settings/payment_methods_modal";
 import { PlanPaymentMethodModal } from "@/components/settings/billing/plan_payment_method_modal";
@@ -64,6 +65,7 @@ export function render_billing_dialogs(
 ) {
   const {
     t,
+    special_offer_checkout,
     subscription,
     is_action_loading,
     show_cancel_dialog,
@@ -152,6 +154,40 @@ export function render_billing_dialogs(
   const downgrade_offer =
     base_offer && !base_offer.is_family ? base_offer : null;
   const step_after_reason: CancelStep = downgrade_offer ? "offer" : "impact";
+  const method_modal_tier = method_modal_plan
+    ? PLAN_TIERS.find((tier) => tier.id === method_modal_plan.code)
+    : undefined;
+  const method_modal_offer = method_modal_plan
+    ? special_offer_checkout.plan_pricing(method_modal_plan.code)
+    : undefined;
+  const method_modal_term =
+    method_modal_tier && method_modal_offer
+      ? billing_period === "yearly"
+        ? {
+            id: "yearly",
+            label: t("settings.billing_yearly"),
+            per_month_cents: Math.round(method_modal_tier.yearly_cents / 12),
+            total_cents: method_modal_tier.yearly_cents,
+            save_cents: 0,
+          }
+        : billing_period === "biennial"
+          ? {
+              id: "biennial",
+              label: t("settings.biennial"),
+              per_month_cents: Math.round(
+                method_modal_tier.biennial_cents / 24,
+              ),
+              total_cents: method_modal_tier.biennial_cents,
+              save_cents: 0,
+            }
+          : {
+              id: "monthly",
+              label: t("settings.billing_monthly"),
+              per_month_cents: method_modal_tier.monthly_cents,
+              total_cents: method_modal_tier.monthly_cents,
+              save_cents: 0,
+            }
+      : undefined;
 
   return (
     <>
@@ -164,46 +200,59 @@ export function render_billing_dialogs(
         <AlertDialogContent className="w-[calc(100%-2rem)] max-w-[520px]">
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {cancel_step === "reason"
-                ? t("settings.cancel_reason_title")
-                : cancel_step === "offer"
-                  ? t("settings.cancel_offer_title")
-                  : cancel_step === "impact"
-                    ? t("settings.cancel_impact_title")
-                    : cancel_step === "confirm"
-                      ? t("settings.cancel_final_title")
-                      : t("settings.cancel_confirm_title")}
+              {cancel_step === "early"
+                ? t("settings.cancel_early_title")
+                : cancel_step === "reason"
+                  ? t("settings.cancel_reason_title")
+                  : cancel_step === "offer"
+                    ? t("settings.cancel_offer_title")
+                    : cancel_step === "impact"
+                      ? t("settings.cancel_impact_title")
+                      : cancel_step === "confirm"
+                        ? t("settings.cancel_final_title")
+                        : t("settings.cancel_confirm_title")}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              {cancel_step === "reason"
-                ? t("settings.cancel_reason_description")
-                : cancel_step === "offer"
-                  ? t("settings.cancel_offer_description")
-                  : cancel_step === "impact"
-                    ? cancel_effective_date
-                      ? t("settings.cancel_impact_description", {
-                          date: cancel_effective_date,
-                        })
-                      : t("settings.cancel_impact_description_nodate")
-                    : cancel_step === "confirm"
+              {cancel_step === "early"
+                ? t("settings.cancel_early_description")
+                : cancel_step === "reason"
+                  ? t("settings.cancel_reason_description")
+                  : cancel_step === "offer"
+                    ? t("settings.cancel_offer_description")
+                    : cancel_step === "impact"
                       ? cancel_effective_date
-                        ? t("settings.cancel_final_description", {
+                        ? t("settings.cancel_impact_description", {
                             date: cancel_effective_date,
-                            plan:
-                              cancel_impact?.plan_name ??
-                              subscription?.plan.name ??
-                              "",
                           })
-                        : t("settings.cancel_final_description_nodate", {
-                            plan:
-                              cancel_impact?.plan_name ??
-                              subscription?.plan.name ??
-                              "",
-                          })
-                      : t("settings.cancel_confirm_description")}
+                        : t("settings.cancel_impact_description_nodate")
+                      : cancel_step === "confirm"
+                        ? cancel_effective_date
+                          ? t("settings.cancel_final_description", {
+                              date: cancel_effective_date,
+                              plan:
+                                cancel_impact?.plan_name ??
+                                subscription?.plan.name ??
+                                "",
+                            })
+                          : t("settings.cancel_final_description_nodate", {
+                              plan:
+                                cancel_impact?.plan_name ??
+                                subscription?.plan.name ??
+                                "",
+                            })
+                        : t("settings.cancel_confirm_description")}
             </AlertDialogDescription>
           </AlertDialogHeader>
-          {cancel_step === "reason" ? (
+          {cancel_step === "early" ? (
+            <CancelEarlyStep
+              keep_plan_slot={
+                <AlertDialogCancel className="mt-0">
+                  {t("settings.keep_plan")}
+                </AlertDialogCancel>
+              }
+              on_continue={() => set_cancel_step("reason")}
+            />
+          ) : cancel_step === "reason" ? (
             <CancelReasonStep
               keep_plan_slot={
                 <AlertDialogCancel className="mt-0">
@@ -211,7 +260,6 @@ export function render_billing_dialogs(
                 </AlertDialogCancel>
               }
               on_continue={() => set_cancel_step(step_after_reason)}
-              on_skip={() => set_cancel_step(step_after_reason)}
               reason={cancel_reason}
               reason_text={cancel_reason_text}
               set_reason={set_cancel_reason}
@@ -429,6 +477,9 @@ export function render_billing_dialogs(
           }}
           open={show_method_modal}
           plan_name={method_modal_plan.name}
+          selected_term={method_modal_term?.id}
+          special_offer={method_modal_term ? method_modal_offer : undefined}
+          term_options={method_modal_term ? [method_modal_term] : undefined}
         />
       )}
 
@@ -440,6 +491,10 @@ export function render_billing_dialogs(
 
           return (
             <CryptoTermModal
+              discount_percent_off={special_offer_checkout.percent_off}
+              discounted_price_cents={special_offer_checkout.crypto_price(
+                crypto_plan.code,
+              )}
               initial_coin_key={
                 crypto_resume
                   ? `${crypto_resume.currency}:${crypto_resume.chain}`

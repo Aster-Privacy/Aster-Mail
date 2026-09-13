@@ -320,7 +320,6 @@ export function SecuritySection({
             <ShieldCheckIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
             {t("settings.tracking_protection_title")}
           </h3>
-          <div className="mt-2 h-px bg-edge-secondary" />
         </div>
 
         <div className="flex items-center justify-between py-4">
@@ -420,7 +419,6 @@ export function SecuritySection({
             <PhotoIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
             {t("settings.images_section_title")}
           </h3>
-          <div className="mt-2 h-px bg-edge-secondary" />
         </div>
 
         <div className="flex items-center justify-between py-4">
@@ -582,7 +580,6 @@ export function SecuritySection({
             <CodeBracketIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
             {t("settings.html_content_section_title")}
           </h3>
-          <div className="mt-2 h-px bg-edge-secondary" />
         </div>
 
         <div className="flex items-center justify-between py-4">
@@ -617,7 +614,6 @@ export function SecuritySection({
             <CpuChipIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
             {t("settings.vanguard_title")}
           </h3>
-          <div className="mt-2 h-px bg-edge-secondary" />
         </div>
         <VanguardSection />
       </div>

@@ -607,7 +607,11 @@ export function AppLock({ children }: { children: React.ReactNode }) {
     };
 
     check_and_lock();
-  }, [preferences.biometric_app_lock_enabled, has_loaded_from_server, account_id]);
+  }, [
+    preferences.biometric_app_lock_enabled,
+    has_loaded_from_server,
+    account_id,
+  ]);
 
   useEffect(() => {
     if (!is_native_platform() || !preferences.biometric_app_lock_enabled)

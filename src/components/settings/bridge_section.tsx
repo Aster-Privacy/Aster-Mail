@@ -355,7 +355,6 @@ export function BridgeSection() {
               title={t("settings.bridge_app_name")}
             />
           </div>
-          <div className="mt-2 h-px bg-edge-secondary" />
         </div>
         <p className="text-sm text-txt-muted">
           {t("settings.desktop_bridge_description")}
@@ -423,7 +422,6 @@ export function BridgeSection() {
               </Button>
             )}
           </div>
-          <div className="mt-2 h-px bg-edge-secondary" />
           <p className="text-xs text-txt-muted mt-2">
             {t("settings.bridge_installations_description")}
           </p>
@@ -527,7 +525,6 @@ export function BridgeSection() {
           <h3 className="text-base font-semibold text-txt-primary">
             {t("settings.bridge_support_title")}
           </h3>
-          <div className="mt-2 h-px bg-edge-secondary" />
           <p className="text-xs text-txt-muted mt-2">
             {t("settings.bridge_support_description")}
           </p>

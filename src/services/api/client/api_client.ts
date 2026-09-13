@@ -71,6 +71,7 @@ import {
   is_tauri_env,
   is_write_dead_streak,
   unlock_token_cache_suffix,
+  with_declared_platform,
   write_last_auth_ms,
 } from "./helpers";
 import { should_show_server_message } from "./server_message";
@@ -87,6 +88,11 @@ import {
   get_effective_retry_count,
   get_effective_retry_delay,
 } from "@/services/routing/routing_provider";
+import {
+  feature_of_endpoint,
+  http_error_code,
+  report_client_error,
+} from "@/services/error_reporter";
 
 export class ApiClient {
   private refresh_timeout: number | null = null;
@@ -1508,6 +1514,8 @@ export class ApiClient {
 
     const method = options.method || "GET";
 
+    options.body = with_declared_platform(endpoint, options.body);
+
     if (is_state_changing_method(method)) {
       if (
         this.refresh_promise &&
@@ -1875,6 +1883,15 @@ export class ApiClient {
             continue;
           }
 
+          const reported_feature = feature_of_endpoint(endpoint);
+
+          report_client_error({
+            feature: reported_feature,
+            error_code: http_error_code(reported_feature, response.status),
+            severity: response.status >= 500 ? "error" : "warn",
+            http_status: response.status,
+          });
+
           return last_error;
         }
 
@@ -1948,6 +1965,17 @@ export class ApiClient {
         }
       }
     }
+
+    const transport_feature = feature_of_endpoint(endpoint);
+
+    report_client_error({
+      feature: transport_feature,
+      error_code:
+        last_error.code === "TIMEOUT_ERROR"
+          ? `${transport_feature}_timeout`.slice(0, 64)
+          : `${transport_feature}_network`.slice(0, 64),
+      severity: "warn",
+    });
 
     return last_error;
   }

@@ -21,19 +21,19 @@
 import type { UseRegistrationReturn } from "@/components/register/hooks/use_registration";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { Button } from "@aster/ui";
 
 import { Spinner } from "@/components/ui/spinner";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
-import { Input } from "@/components/ui/input";
-import { Logo, EyeIcon, EyeSlashIcon } from "@/components/auth/auth_styles";
+import { EyeIcon, EyeSlashIcon } from "@/components/auth/auth_styles";
 import { SparkleOverlay } from "@/components/ui/sparkle_overlay";
 import { show_toast } from "@/components/toast/simple_toast";
 import {
-  page_variants,
-  page_transition,
-} from "@/components/register/register_types";
-import { Alert, CopyIcon } from "@/components/register/register_shared";
+  CopyIcon,
+  OnboardingButton,
+  OnboardingInput,
+  SkipLink,
+  StepShell,
+} from "@/components/register/register_shared";
 
 interface RegisterStepRecoveryCodesProps {
   reg: UseRegistrationReturn;
@@ -42,27 +42,16 @@ interface RegisterStepRecoveryCodesProps {
 export const RegisterStepRecoveryCodes = ({
   reg,
 }: RegisterStepRecoveryCodesProps) => {
+  const has_saved = reg.is_pdf_downloaded || reg.is_text_downloaded;
+
   return (
-    <motion.div
-      key="recovery_key"
-      animate="animate"
-      className="flex flex-col items-center w-full max-w-md px-4"
-      exit="exit"
-      initial="initial"
-      transition={page_transition}
-      variants={page_variants}
+    <StepShell
+      step_key="recovery_key"
+      subtitle={reg.t("auth.store_codes_safely")}
+      title={reg.t("auth.save_recovery_codes")}
     >
-      <Logo />
-
-      <h1 className="text-xl font-semibold mt-6 text-txt-primary">
-        {reg.t("auth.save_recovery_codes")}
-      </h1>
-      <p className="text-sm mt-2 leading-relaxed text-txt-tertiary text-center">
-        {reg.t("auth.store_codes_safely")}
-      </p>
-
       {reg.is_invited && reg.generated_email && (
-        <div className="mt-3 flex flex-col items-center gap-0.5">
+        <div className="mb-4 flex flex-col gap-0.5">
           <span className="text-xs text-txt-muted">
             {reg.t("auth.your_new_aster_address")}
           </span>
@@ -75,92 +64,104 @@ export const RegisterStepRecoveryCodes = ({
         </div>
       )}
 
-      <div className="w-full mt-6">
-        <div className="flex items-center justify-between mb-3">
-          <span className="text-xs font-medium text-txt-muted">
+      <div className="w-full">
+        <div className="mb-2 flex h-8 items-center justify-between">
+          <span className="text-sm font-medium text-txt-secondary">
             {reg.t("auth.n_recovery_codes", {
               count: reg.recovery_codes.length.toString(),
             })}
           </span>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-0.5">
             <button
-              className="p-1.5 rounded transition-colors hover:opacity-80 text-txt-muted"
+              aria-label={
+                reg.is_key_visible
+                  ? reg.t("common.hide")
+                  : reg.t("settings.show_password_toggle")
+              }
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-txt-muted transition-colors hover:bg-black/5 hover:text-txt-primary dark:hover:bg-white/10"
+              type="button"
               onClick={() => reg.set_is_key_visible(!reg.is_key_visible)}
             >
               {reg.is_key_visible ? <EyeSlashIcon /> : <EyeIcon />}
             </button>
             <button
-              className="p-1.5 rounded transition-colors hover:opacity-80 text-txt-muted"
-              onClick={reg.handle_copy_codes}
+              aria-label={reg.t("auth.copy_codes")}
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-txt-muted transition-colors hover:bg-black/5 hover:text-txt-primary dark:hover:bg-white/10"
+              type="button"
+              onClick={() => void reg.handle_copy_codes()}
             >
               <CopyIcon />
             </button>
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="flex flex-col gap-2">
           {reg.recovery_codes.map((code, index) => (
-            <div
+            <button
               key={index}
-              className="relative overflow-hidden rounded-lg px-3 py-2.5 border text-center transition-colors hover:opacity-80 bg-surf-tertiary border-edge-secondary"
-              style={{
-                cursor: reg.is_key_visible ? "pointer" : "default",
-              }}
+              className="relative flex w-full items-center gap-3 overflow-hidden rounded-xl border border-transparent bg-black/[0.05] px-4 py-2.5 text-start transition-colors hover:bg-black/[0.08] dark:bg-white/[0.08] dark:hover:bg-white/[0.12]"
+              type="button"
               onClick={() => {
                 if (reg.is_key_visible) {
-                  reg.handle_copy_single_code(code);
+                  void reg.handle_copy_single_code(code);
                 } else {
                   show_toast(reg.t("auth.click_eye_reveal"), "info");
                 }
               }}
             >
+              <span className="w-4 flex-shrink-0 text-xs tabular-nums text-txt-muted">
+                {index + 1}
+              </span>
               <span
-                className="text-xs font-mono text-txt-primary break-all"
+                className="min-w-0 flex-1 overflow-hidden whitespace-nowrap font-mono text-sm tracking-wide text-txt-primary notranslate"
                 style={{
                   filter: reg.is_key_visible ? "none" : "blur(4px)",
                   transition: "filter 0.2s ease",
                   userSelect: reg.is_key_visible ? "text" : "none",
                 }}
+                translate="no"
               >
                 {code}
               </span>
               <SparkleOverlay is_active={!reg.is_key_visible} />
-            </div>
+            </button>
           ))}
         </div>
       </div>
 
-      <Button
-        className="w-full mt-6"
-        size="xl"
-        variant="depth"
-        onClick={reg.handle_download_key}
+      <OnboardingButton
+        className="mt-4 w-full"
+        disabled={reg.is_downloading_key}
+        is_loading={reg.is_downloading_key}
+        variant="primary"
+        onClick={() => void reg.handle_download_key()}
       >
-        {reg.t("auth.download_key")}
-      </Button>
+        {reg.t("auth.download_codes_pdf")}
+      </OnboardingButton>
 
-      <Button
-        className="w-full mt-3"
-        size="xl"
+      <OnboardingButton
+        className="mt-2 w-full"
+        disabled={reg.is_downloading_key}
         variant="secondary"
-        onClick={reg.handle_download_txt}
+        onClick={() => void reg.handle_download_txt()}
       >
         {reg.t("auth.download_as_text")}
-      </Button>
+      </OnboardingButton>
 
-      <button
-        className="w-full mt-6 text-sm transition-colors hover:opacity-80 text-txt-tertiary text-center"
-        onClick={() => {
-          if (reg.is_pdf_downloaded || reg.is_text_downloaded) {
-            reg.handle_advance_from_recovery_key();
+      <SkipLink
+        disabled={reg.is_downloading_key}
+        label={
+          has_saved
+            ? reg.t("common.continue")
+            : reg.t("auth.continue_without_download")
+        }
+        on_click={() => {
+          if (has_saved) {
+            void reg.handle_advance_from_recovery_key();
           } else {
             reg.set_show_skip_confirmation(true);
           }
         }}
-      >
-        {reg.is_pdf_downloaded || reg.is_text_downloaded
-          ? reg.t("common.continue")
-          : reg.t("auth.continue_without_download")}
-      </button>
+      />
 
       <ConfirmationModal
         cancel_text={reg.t("common.go_back")}
@@ -170,12 +171,12 @@ export const RegisterStepRecoveryCodes = ({
         on_cancel={() => reg.set_show_skip_confirmation(false)}
         on_confirm={() => {
           reg.set_show_skip_confirmation(false);
-          reg.handle_advance_from_recovery_key();
+          void reg.handle_advance_from_recovery_key();
         }}
         title={reg.t("common.are_you_sure")}
         variant="warning"
       />
-    </motion.div>
+    </StepShell>
   );
 };
 
@@ -187,71 +188,42 @@ export const RegisterStepRecoveryEmailVerification = ({
   reg,
 }: RegisterStepRecoveryEmailProps) => {
   return (
-    <motion.div
-      key="recovery_email_verification"
-      animate="animate"
-      className="flex flex-col items-center w-full max-w-sm px-4"
-      exit="exit"
-      initial="initial"
-      transition={page_transition}
-      variants={page_variants}
-    >
-      <Logo />
-
-      {!reg.is_email_verified && (
-        <svg
-          className="mt-6 h-10 w-10 text-txt-secondary"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          viewBox="0 0 24 24"
-        >
-          <path
-            d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      )}
-
-      <h1
-        className={`text-xl font-semibold text-txt-primary ${reg.is_email_verified ? "mt-8" : "mt-5"}`}
-      >
-        {reg.is_email_verified
-          ? reg.t("auth.recovery_email_verified")
-          : reg.t("auth.check_your_inbox")}
-      </h1>
-      <p className="text-sm mt-2 leading-relaxed text-txt-tertiary text-center">
-        {reg.is_email_verified
+    <StepShell
+      step_key="recovery_email_verification"
+      subtitle={
+        reg.is_email_verified
           ? reg.t("auth.recovery_email_verified_desc")
           : reg.t("auth.verification_email_sent_to_desc", {
               email: reg.recovery_email.trim(),
-            })}
-      </p>
-
+            })
+      }
+      title={
+        reg.is_email_verified
+          ? reg.t("auth.recovery_email_verified")
+          : reg.t("auth.check_your_inbox")
+      }
+    >
       {reg.is_email_verified && reg.recovery_email_required && (
-        <div className="w-full mt-4 px-4 py-3 rounded-lg bg-amber-500 text-sm text-black font-medium text-center">
+        <div className="w-full rounded-lg bg-amber-500 px-4 py-3 text-sm font-medium text-black">
           {reg.t("auth.account_flagged_notice")}
         </div>
       )}
 
       {!reg.is_email_verified && (
         <>
-          <p className="text-xs mt-3 text-txt-muted text-center leading-relaxed">
-            {reg.t("common.check_spam_folder_note")}
-          </p>
-
-          <div className="mt-6 flex items-center gap-2">
-            <Spinner size="md" />
-            <span className="text-sm text-txt-muted">
+          <div className="flex w-full items-center gap-3 rounded-lg border border-transparent bg-black/[0.05] px-3 py-2.5 dark:bg-white/[0.08]">
+            <Spinner size="sm" />
+            <span className="text-sm text-txt-secondary">
               {reg.t("auth.waiting_for_verification")}
             </span>
           </div>
+          <p className="mt-2 text-xs leading-relaxed text-txt-muted">
+            {reg.t("common.check_spam_folder_note")}
+          </p>
 
-          <Button
-            className="w-full mt-6"
+          <OnboardingButton
+            className="mt-4 w-full"
             disabled={reg.resend_cooldown > 0 || reg.is_resending_verification}
-            size="xl"
             variant="secondary"
             onClick={reg.handle_resend_verification}
           >
@@ -262,19 +234,17 @@ export const RegisterStepRecoveryEmailVerification = ({
               : reg.is_resending_verification
                 ? reg.t("common.sending")
                 : reg.t("auth.resend_verification_email")}
-          </Button>
+          </OnboardingButton>
 
           {!reg.recovery_email_required && (
-            <button
-              className="w-full mt-4 text-sm transition-colors hover:opacity-80 text-txt-tertiary text-center"
-              onClick={reg.handle_skip_verification}
-            >
-              {reg.t("auth.skip_verification")}
-            </button>
+            <SkipLink
+              label={reg.t("auth.skip_verification")}
+              on_click={reg.handle_skip_verification}
+            />
           )}
         </>
       )}
-    </motion.div>
+    </StepShell>
   );
 };
 
@@ -282,83 +252,70 @@ export const RegisterStepRecoveryEmail = ({
   reg,
 }: RegisterStepRecoveryEmailProps) => {
   return (
-    <motion.div
-      key="recovery_email"
-      animate="animate"
-      className="flex flex-col items-center w-full max-w-sm px-4"
-      exit="exit"
-      initial="initial"
-      transition={page_transition}
-      variants={page_variants}
+    <StepShell
+      step_key="recovery_email"
+      subtitle={reg.t("auth.recovery_email_step_desc")}
+      title={reg.t("auth.password_recovery_email")}
     >
-      <Logo />
-
-      <h1 className="text-xl font-semibold mt-6 text-txt-primary">
-        {reg.t("auth.add_backup_email")}
-      </h1>
-      <p className="text-sm mt-2 leading-relaxed text-txt-tertiary text-center">
-        {reg.t("auth.optional_backup_email_desc")}
-      </p>
-
       {reg.recovery_email_required && (
-        <div className="w-full mt-4 px-4 py-3 rounded-lg bg-amber-500 text-sm text-black font-medium text-center">
+        <div className="mb-4 w-full rounded-lg bg-amber-500 px-4 py-3 text-center text-sm font-medium text-black">
           {reg.t("auth.recovery_email_required_notice")}
         </div>
       )}
 
+      <OnboardingInput
+        // eslint-disable-next-line jsx-a11y/no-autofocus
+        autoFocus
+        autoComplete="email"
+        disabled={reg.is_saving_recovery_email}
+        placeholder={reg.t("auth.backup_email_placeholder")}
+        status={reg.recovery_email_error ? "error" : "default"}
+        type="email"
+        value={reg.recovery_email}
+        onChange={(e) => {
+          reg.set_recovery_email(e.target.value);
+          if (reg.recovery_email_error) reg.set_recovery_email_error("");
+        }}
+        onKeyDown={(e) =>
+          e["key"] === "Enter" &&
+          !reg.is_saving_recovery_email &&
+          reg.handle_recovery_email_continue()
+        }
+      />
+
       <AnimatePresence>
         {reg.recovery_email_error && (
-          <Alert is_dark={reg.is_dark} message={reg.recovery_email_error} />
+          <motion.p
+            animate={{ opacity: 1 }}
+            className="mt-2 text-start text-xs"
+            exit={{ opacity: 0 }}
+            initial={{ opacity: 0 }}
+            style={{ color: reg.is_dark ? "#f87171" : "#dc2626" }}
+            transition={{ duration: 0.15 }}
+          >
+            {reg.recovery_email_error}
+          </motion.p>
         )}
       </AnimatePresence>
 
-      <div className={`w-full ${reg.recovery_email_error ? "mt-4" : "mt-6"}`}>
-        <Input
-          // eslint-disable-next-line jsx-a11y/no-autofocus
-          autoFocus
-          autoComplete="email"
-          disabled={reg.is_saving_recovery_email}
-          placeholder={reg.t("auth.backup_email_placeholder")}
-          status={reg.recovery_email_error ? "error" : "default"}
-          type="email"
-          value={reg.recovery_email}
-          onChange={(e) => {
-            reg.set_recovery_email(e.target.value);
-            if (reg.recovery_email_error) reg.set_recovery_email_error("");
-          }}
-          onKeyDown={(e) =>
-            e["key"] === "Enter" &&
-            !reg.is_saving_recovery_email &&
-            reg.handle_recovery_email_continue()
-          }
-        />
-      </div>
-
-      <Button
-        className="w-full mt-6"
+      <OnboardingButton
+        className="mt-4 w-full"
         disabled={reg.is_saving_recovery_email}
         is_loading={reg.is_saving_recovery_email}
-        size="xl"
-        variant="depth"
+        variant="primary"
         onClick={reg.handle_recovery_email_continue}
       >
         {reg.t("common.continue")}
-      </Button>
+      </OnboardingButton>
 
       {!reg.recovery_email_required && (
-        <button
-          className="w-full mt-4 text-sm transition-colors hover:opacity-80 text-txt-tertiary text-center"
+        <SkipLink
           disabled={reg.is_saving_recovery_email}
-          style={{
-            opacity: reg.is_saving_recovery_email ? 0.5 : 1,
-            cursor: reg.is_saving_recovery_email ? "not-allowed" : "pointer",
-          }}
-          onClick={reg.handle_recovery_email_skip}
-        >
-          {reg.t("auth.skip_for_now")}
-        </button>
+          label={reg.t("auth.skip_for_now")}
+          on_click={() => void reg.handle_recovery_email_skip()}
+        />
       )}
-    </motion.div>
+    </StepShell>
   );
 };
 
@@ -370,62 +327,55 @@ export const RegisterStepRecoveryEmailGate = ({
   reg,
 }: RegisterStepRecoveryEmailGateProps) => {
   return (
-    <motion.div
-      key="recovery_email_gate"
-      animate="animate"
-      className="flex flex-col items-center w-full max-w-sm px-4"
-      exit="exit"
-      initial="initial"
-      transition={page_transition}
-      variants={page_variants}
+    <StepShell
+      step_key="recovery_email_gate"
+      subtitle={reg.t("auth.recovery_email_required_gate_desc")}
+      title={reg.t("auth.recovery_email_required_gate_title")}
     >
-      <Logo />
-
-      <h1 className="text-xl font-semibold mt-6 text-txt-primary">
-        {reg.t("auth.recovery_email_required_gate_title")}
-      </h1>
-      <p className="text-sm mt-2 leading-relaxed text-txt-tertiary text-center">
-        {reg.t("auth.recovery_email_required_gate_desc")}
-      </p>
+      <OnboardingInput
+        // eslint-disable-next-line jsx-a11y/no-autofocus
+        autoFocus
+        autoComplete="email"
+        disabled={reg.is_saving_recovery_email}
+        placeholder={reg.t("auth.backup_email_placeholder")}
+        status={reg.recovery_email_error ? "error" : "default"}
+        type="email"
+        value={reg.recovery_email}
+        onChange={(e) => {
+          reg.set_recovery_email(e.target.value);
+          if (reg.recovery_email_error) reg.set_recovery_email_error("");
+        }}
+        onKeyDown={(e) =>
+          e["key"] === "Enter" &&
+          !reg.is_saving_recovery_email &&
+          reg.handle_recovery_email_gate_submit()
+        }
+      />
 
       <AnimatePresence>
         {reg.recovery_email_error && (
-          <Alert is_dark={reg.is_dark} message={reg.recovery_email_error} />
+          <motion.p
+            animate={{ opacity: 1 }}
+            className="mt-2 text-start text-xs"
+            exit={{ opacity: 0 }}
+            initial={{ opacity: 0 }}
+            style={{ color: reg.is_dark ? "#f87171" : "#dc2626" }}
+            transition={{ duration: 0.15 }}
+          >
+            {reg.recovery_email_error}
+          </motion.p>
         )}
       </AnimatePresence>
 
-      <div className={`w-full ${reg.recovery_email_error ? "mt-4" : "mt-6"}`}>
-        <Input
-          // eslint-disable-next-line jsx-a11y/no-autofocus
-          autoFocus
-          autoComplete="email"
-          disabled={reg.is_saving_recovery_email}
-          placeholder={reg.t("auth.backup_email_placeholder")}
-          status={reg.recovery_email_error ? "error" : "default"}
-          type="email"
-          value={reg.recovery_email}
-          onChange={(e) => {
-            reg.set_recovery_email(e.target.value);
-            if (reg.recovery_email_error) reg.set_recovery_email_error("");
-          }}
-          onKeyDown={(e) =>
-            e["key"] === "Enter" &&
-            !reg.is_saving_recovery_email &&
-            reg.handle_recovery_email_gate_submit()
-          }
-        />
-      </div>
-
-      <Button
-        className="w-full mt-6"
+      <OnboardingButton
+        className="mt-4 w-full"
         disabled={reg.is_saving_recovery_email}
         is_loading={reg.is_saving_recovery_email}
-        size="xl"
-        variant="depth"
+        variant="primary"
         onClick={reg.handle_recovery_email_gate_submit}
       >
         {reg.t("common.continue")}
-      </Button>
-    </motion.div>
+      </OnboardingButton>
+    </StepShell>
   );
 };

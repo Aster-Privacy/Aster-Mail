@@ -90,6 +90,10 @@ async function request_plan_limits(): Promise<PlanLimitsResponse | null> {
   return limits_request_in_flight;
 }
 
+export function get_cached_plan_code(): string | null {
+  return cached_limits?.plan_code ?? read_plan_hint();
+}
+
 export function clear_plan_limits_cache(): void {
   cached_limits = null;
   cached_account_id = null;

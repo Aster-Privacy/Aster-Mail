@@ -56,7 +56,6 @@ export function BasicsSection({
           <KeyIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
           {t("settings.basics_section_title")}
         </h3>
-        <div className="mt-2 h-px bg-edge-secondary" />
       </div>
 
       <PasswordSection {...password_props} show_header={false} />
@@ -65,9 +64,9 @@ export function BasicsSection({
         <TwoStepVerificationGroup
           on_inline_setup_success={on_inline_totp_setup_success}
           on_regenerate_backup_codes={on_regenerate_backup_codes}
+          on_totp_status_retry={on_totp_status_retry}
           on_two_factor_toggle={on_two_factor_toggle}
           show_inline_setup={show_inline_totp_setup}
-          on_totp_status_retry={on_totp_status_retry}
           totp_backup_codes_remaining={totp_backup_codes_remaining}
           totp_enabled={totp_enabled}
           totp_status_failed={totp_status_failed}

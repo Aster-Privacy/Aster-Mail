@@ -481,6 +481,7 @@ export function AccountSection({
         <SettingsGroup title={t("auth.display_name_optional")}>
           <div className="flex items-center gap-2 px-4 py-3">
             <Input
+              aria-label={t("auth.display_name_optional")}
               className="min-w-0 flex-1 bg-transparent"
               maxLength={MAX_DISPLAY_NAME_LENGTH}
               value={display_name}
@@ -495,10 +496,17 @@ export function AccountSection({
         </SettingsGroup>
 
         <SettingsGroup title={t("auth.profile_color")}>
-          <div className="flex flex-wrap gap-2.5 px-4 py-4">
+          <div
+            className="flex flex-wrap gap-2.5 px-4 py-4"
+            role="radiogroup"
+            aria-label={t("auth.profile_color")}
+          >
             {PROFILE_COLORS.map((color) => (
               <button
                 key={color}
+                role="radio"
+                aria-checked={preferences.profile_color === color}
+                aria-label={color}
                 className="flex h-10 w-10 items-center justify-center rounded-full"
                 style={{
                   backgroundColor: color,

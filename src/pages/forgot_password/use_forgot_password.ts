@@ -22,6 +22,7 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 
 import { RecoveryMethod, RecoveryStep } from "./shared";
+import { recovery_error_message } from "./recovery_error";
 
 import { copy_text_or_throw } from "@/utils/copy_text";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -70,14 +71,13 @@ import {
   download_recovery_text,
 } from "@/services/crypto/recovery_pdf";
 import {
+  PASSWORD_RULE_MESSAGE_KEYS,
   sanitize_username,
-  validate_password_strength,
   timing_safe_delay,
+  validate_password_strength,
 } from "@/services/sanitize";
 import { use_i18n } from "@/lib/i18n/context";
 import { user_facing_error } from "@/utils/user_facing_error";
-
-import { recovery_error_message } from "./recovery_error";
 
 const TRANSPORT_FAILURE_CODES = new Set([
   "NETWORK_ERROR",
@@ -521,7 +521,7 @@ export function use_forgot_password() {
     const password_validation = validate_password_strength(password);
 
     if (!password_validation.valid) {
-      set_error(password_validation.errors[0]);
+      set_error(t(PASSWORD_RULE_MESSAGE_KEYS[password_validation.errors[0]]));
 
       return;
     }

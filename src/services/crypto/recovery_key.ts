@@ -73,9 +73,7 @@ export function is_valid_recovery_code(code: string): boolean {
     return false;
   }
 
-  return segments
-    .slice(1)
-    .every((segment) => /^[A-Z0-9]{4}$/.test(segment));
+  return segments.slice(1).every((segment) => /^[A-Z0-9]{4}$/.test(segment));
 }
 
 export interface VaultBackup {

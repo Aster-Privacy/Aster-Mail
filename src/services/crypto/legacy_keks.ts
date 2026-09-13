@@ -29,6 +29,7 @@ import { ignore_error } from "@/lib/ignore_error";
 const DERIVED_KEY_LENGTH = 32;
 const DERIVED_KEY_INFO = "aster-storage-encryption-key-v1";
 const SALT_DERIVATION_PREFIX = "aster-hkdf-salt-v1:";
+
 export const MAX_LEGACY_KEKS = 16;
 
 const PREVIOUS_KEY_CONTEXTS = [

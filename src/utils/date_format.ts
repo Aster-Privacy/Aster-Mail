@@ -568,10 +568,9 @@ export function format_date_short(
 }
 
 export function format_weekday_short(date: Date): string {
-  return date_formatter(
-    active_locale(),
-    zoned({ weekday: "short" }),
-  ).format(date);
+  return date_formatter(active_locale(), zoned({ weekday: "short" })).format(
+    date,
+  );
 }
 
 export function format_full_date(

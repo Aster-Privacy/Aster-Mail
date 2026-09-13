@@ -30,14 +30,20 @@ import { useCallback, useEffect, useRef } from "react";
 import { BATCH_SIZE, contact_to_form_data } from "./contacts_state_helpers";
 import { use_contacts_data } from "./use_contacts_data";
 
-import { trigger_download } from "@/utils/download_blob";
 import { copy_text_or_throw } from "@/utils/copy_text";
+import {
+  export_contacts_file,
+  type ContactExportFormat,
+} from "@/utils/contact_export";
 import {
   create_contact_encrypted,
   update_contact_encrypted,
   delete_contact as api_delete_contact,
   add_contact_to_group,
+  add_contacts_to_group,
+  remove_contacts_from_group,
 } from "@/services/api/contacts";
+import { emit_contact_groups_changed } from "@/hooks/use_contact_groups";
 import { show_toast } from "@/components/toast/simple_toast";
 import { print_contacts } from "@/utils/contact_print";
 import { emit_contacts_changed } from "@/hooks/mail_events";
@@ -99,13 +105,13 @@ export function use_contacts_state() {
     set_sort_by,
     filter_by,
     set_filter_by,
+    group_filter,
+    handle_set_group_filter,
     copied_field,
     set_copied_field,
     view_mode,
     set_view_mode,
     focused_index,
-    is_importing,
-    import_progress,
     is_compose_open,
     set_is_compose_open,
     compose_recipients,
@@ -116,12 +122,12 @@ export function use_contacts_state() {
     set_show_history,
     copy_timeout_ref,
     search_input_ref,
-    file_input_ref,
     list_container_ref,
     contact_refs,
     filtered_contacts,
     selection_state,
     has_selection,
+    selected_contacts,
     selected_all_favorited,
     filter_label,
     alphabetical_index,
@@ -130,7 +136,6 @@ export function use_contacts_state() {
     fetch_contacts,
     handle_toggle_select,
     scroll_to_letter,
-    handle_import_csv,
     is_creating_new,
     set_is_creating_new,
   } = use_contacts_data();
@@ -956,66 +961,153 @@ export function use_contacts_state() {
     });
   }, [contacts, selected_ids, t]);
 
+  const handle_set_group_membership = useCallback(
+    async (group_id: string, should_add: boolean) => {
+      const target_contacts = contacts.filter(
+        (contact) =>
+          selected_ids.has(contact.id) &&
+          (contact.groups || []).includes(group_id) !== should_add,
+      );
+
+      if (target_contacts.length === 0) return;
+
+      const target_ids = target_contacts.map((contact) => contact.id);
+      const apply_locally = (add: boolean) => {
+        set_contacts((prev) =>
+          prev.map((contact) => {
+            if (!target_ids.includes(contact.id)) return contact;
+            const current = contact.groups || [];
+
+            return {
+              ...contact,
+              groups: add
+                ? [...current, group_id]
+                : current.filter((id) => id !== group_id),
+            };
+          }),
+        );
+      };
+
+      apply_locally(should_add);
+
+      try {
+        const membership = should_add
+          ? await add_contacts_to_group(group_id, target_ids)
+          : await remove_contacts_from_group(group_id, target_ids);
+
+        if (membership.error) {
+          throw new Error(membership.error);
+        }
+
+        for (let i = 0; i < target_contacts.length; i += BATCH_SIZE) {
+          const batch = target_contacts.slice(i, i + BATCH_SIZE);
+          const results = await Promise.allSettled(
+            batch.map((contact) => {
+              const current = contact.groups || [];
+              const next_groups = should_add
+                ? [...current, group_id]
+                : current.filter((id) => id !== group_id);
+
+              return update_contact_encrypted(contact.id, {
+                ...contact_to_form_data(contact),
+                groups: next_groups,
+              });
+            }),
+          );
+
+          if (
+            results.some(
+              (result) => result.status === "rejected" || result.value?.error,
+            )
+          ) {
+            throw new Error(t("common.failed_to_update_contact_groups"));
+          }
+        }
+
+        emit_contact_groups_changed();
+        show_toast(
+          t(
+            should_add
+              ? "common.contacts_added_to_group"
+              : "common.contacts_removed_from_group",
+            { count: target_ids.length },
+          ),
+          "success",
+        );
+      } catch {
+        apply_locally(!should_add);
+        show_toast(t("common.failed_to_update_contact_groups"), "error");
+      }
+    },
+    [contacts, selected_ids, t],
+  );
+
+  const handle_toggle_contact_group = useCallback(
+    async (
+      contact: DecryptedContact,
+      group_id: string,
+      should_add: boolean,
+    ) => {
+      const current = contact.groups || [];
+
+      if (current.includes(group_id) === should_add) return;
+
+      const next_groups = should_add
+        ? [...current, group_id]
+        : current.filter((id) => id !== group_id);
+      const apply_locally = (groups: string[]) => {
+        set_contacts((prev) =>
+          prev.map((c) => (c.id === contact.id ? { ...c, groups } : c)),
+        );
+        set_selected_contact((prev) =>
+          prev && prev.id === contact.id ? { ...prev, groups } : prev,
+        );
+      };
+
+      apply_locally(next_groups);
+
+      try {
+        const membership = should_add
+          ? await add_contacts_to_group(group_id, [contact.id])
+          : await remove_contacts_from_group(group_id, [contact.id]);
+
+        if (membership.error) {
+          throw new Error(membership.error);
+        }
+
+        const response = await update_contact_encrypted(contact.id, {
+          ...contact_to_form_data(contact),
+          groups: next_groups,
+        });
+
+        if (response.error) {
+          throw new Error(response.error);
+        }
+        emit_contact_groups_changed();
+      } catch {
+        apply_locally(current);
+        show_toast(t("common.failed_to_update_contact_groups"), "error");
+      }
+    },
+    [t],
+  );
+
   const handle_export_contacts = useCallback(
-    (export_selected: boolean) => {
+    (
+      export_selected: boolean,
+      format: ContactExportFormat = "csv",
+      ids?: Set<string>,
+    ) => {
+      const scope = ids ?? selected_ids;
       const contacts_to_export = export_selected
-        ? contacts.filter((c) => selected_ids.has(c.id))
+        ? contacts.filter((c) => scope.has(c.id))
         : contacts;
 
       if (contacts_to_export.length === 0) return;
 
-      const csv_headers = [
-        t("common.first_name"),
-        t("common.last_name"),
-        t("common.email"),
-        t("common.phone"),
-        t("common.company"),
-        t("common.job_title"),
-        t("common.street"),
-        t("common.city"),
-        t("common.state"),
-        t("common.postal_code"),
-        t("common.country"),
-        t("common.birthday"),
-        t("common.notes"),
-        t("common.favorite"),
-      ];
-
-      const escape_csv_cell = (value: string): string => {
-        const safe =
-          value.length > 0 && /^[=+\-@\t\r]/.test(value) ? `'${value}` : value;
-
-        return `"${safe.replace(/"/g, '""')}"`;
-      };
-
-      const csv_rows = contacts_to_export.map((contact) => [
-        contact.first_name,
-        contact.last_name,
-        contact.emails.join("; "),
-        contact.phone || "",
-        contact.company || "",
-        contact.job_title || "",
-        contact.address?.street || "",
-        contact.address?.city || "",
-        contact.address?.state || "",
-        contact.address?.postal_code || "",
-        contact.address?.country || "",
-        contact.birthday || "",
-        contact.notes || "",
-        contact.is_favorite ? t("common.yes") : t("common.no"),
-      ]);
-
-      const csv_content = [
-        csv_headers.map(escape_csv_cell).join(","),
-        ...csv_rows.map((row) => row.map(escape_csv_cell).join(",")),
-      ].join("\r\n");
-
-      trigger_download(
-        new Blob([csv_content], { type: "text/csv;charset=utf-8;" }),
-        `contacts_${new Date().toISOString().split("T")[0]}.csv`,
-      );
+      export_contacts_file(contacts_to_export, format);
     },
-    [contacts, selected_ids, t],
+    [contacts, selected_ids],
   );
 
   const handle_copy_emails = useCallback(() => {
@@ -1078,12 +1170,14 @@ export function use_contacts_state() {
     set_sort_by,
     filter_by,
     set_filter_by,
+    group_filter,
+    handle_set_group_filter,
+    handle_set_group_membership,
+    handle_toggle_contact_group,
     copied_field,
     view_mode,
     set_view_mode,
     focused_index,
-    is_importing,
-    import_progress,
     is_compose_open,
     set_is_compose_open,
     compose_recipients,
@@ -1093,12 +1187,12 @@ export function use_contacts_state() {
     show_history,
     set_show_history,
     search_input_ref,
-    file_input_ref,
     list_container_ref,
     contact_refs,
     filtered_contacts,
     selection_state,
     has_selection,
+    selected_contacts,
     selected_all_favorited,
     filter_label,
     alphabetical_index,
@@ -1106,7 +1200,6 @@ export function use_contacts_state() {
     sort_label,
     fetch_contacts,
     scroll_to_letter,
-    handle_import_csv,
     handle_add_click,
     handle_edit,
     handle_delete_request,

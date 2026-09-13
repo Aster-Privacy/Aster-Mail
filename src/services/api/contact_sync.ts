@@ -25,6 +25,7 @@ import type {
   ImportResult,
   ImportVCardContact,
   ContactFormData,
+  Address,
   EmailEntry,
   PhoneEntry,
   PhoneEntryType,
@@ -534,7 +535,9 @@ function place_type_from(params: string[]): "home" | "work" | "other" {
 
 export function parse_vcard(vcard_data: string): ContactFormData[] {
   const contacts: ContactFormData[] = [];
-  const vcards = vcard_data.split(/(?=BEGIN:VCARD)/i).filter(Boolean);
+  const text =
+    vcard_data.charCodeAt(0) === 0xfeff ? vcard_data.slice(1) : vcard_data;
+  const vcards = text.split(/(?=BEGIN:VCARD)/i).filter(Boolean);
 
   for (const vcard of vcards) {
     const lines = vcard.split(/\r?\n/).reduce<string[]>((unfolded, line) => {
@@ -805,9 +808,75 @@ export function parse_vcard(vcard_data: string): ContactFormData[] {
   return contacts;
 }
 
+export type CsvFieldTarget =
+  | "first_name"
+  | "last_name"
+  | "emails"
+  | "phone"
+  | "company"
+  | "job_title"
+  | "street"
+  | "city"
+  | "state"
+  | "postal_code"
+  | "country"
+  | "website"
+  | "birthday"
+  | "notes"
+  | "is_favorite";
+
+const CSV_HEADER_ALIASES: { target: CsvFieldTarget; names: string[] }[] = [
+  { target: "first_name", names: ["first name", "given name", "first"] },
+  { target: "last_name", names: ["last name", "family name", "surname"] },
+  { target: "emails", names: ["email", "e-mail", "email address", "mail"] },
+  { target: "phone", names: ["phone", "telephone", "tel", "mobile"] },
+  { target: "company", names: ["company", "organization", "organisation"] },
+  { target: "job_title", names: ["job title", "title", "role", "position"] },
+  { target: "street", names: ["street", "address", "address line 1"] },
+  { target: "city", names: ["city", "town", "locality"] },
+  { target: "state", names: ["state", "region", "province", "county"] },
+  {
+    target: "postal_code",
+    names: ["postal code", "zip", "zip code", "postcode"],
+  },
+  { target: "country", names: ["country", "country/region"] },
+  { target: "website", names: ["website", "web page", "url", "homepage"] },
+  { target: "birthday", names: ["birthday", "birth date", "date of birth"] },
+  { target: "notes", names: ["notes", "note", "comment", "comments"] },
+  { target: "is_favorite", names: ["favorite", "favourite", "starred"] },
+];
+
+export function auto_map_csv_header(header: string): CsvFieldTarget | null {
+  const lower = header.trim().toLowerCase();
+
+  if (!lower) return null;
+  if (lower === "name" || lower === "full name" || lower === "display name") {
+    return "first_name";
+  }
+
+  for (const alias of CSV_HEADER_ALIASES) {
+    if (alias.names.includes(lower)) return alias.target;
+  }
+
+  for (const alias of CSV_HEADER_ALIASES) {
+    if (alias.names.some((name) => lower.includes(name))) return alias.target;
+  }
+
+  return null;
+}
+
+const strip_csv_guard = (value: string): string =>
+  value.startsWith("'") ? value.slice(1) : value;
+
+const split_csv_values = (value: string): string[] =>
+  value
+    .split(";")
+    .map((part) => part.trim())
+    .filter((part) => part.length > 0);
+
 export function parse_csv(
   csv_data: string,
-  field_mapping: Record<string, keyof ContactFormData | null>,
+  field_mapping: Record<string, CsvFieldTarget | null>,
 ): ContactFormData[] {
   const records = parse_csv_records(csv_data);
 
@@ -824,27 +893,71 @@ export function parse_csv(
       emails: [],
       is_favorite: false,
     };
+    const address: Address = {};
+    let website = "";
 
     headers.forEach((header, idx) => {
       const field = field_mapping[header];
-      const value = values[idx];
+      const raw = values[idx];
 
-      if (!field || !value) return;
+      if (!field || !raw) return;
 
-      if (field === "emails") {
-        contact.emails.push(value);
-      } else if (field === "first_name" || field === "last_name") {
-        contact[field] = value;
-      } else if (
-        field === "phone" ||
-        field === "company" ||
-        field === "job_title" ||
-        field === "birthday" ||
-        field === "notes"
-      ) {
-        contact[field] = value;
+      const value = strip_csv_guard(raw).trim();
+
+      if (!value) return;
+
+      switch (field) {
+        case "emails":
+          for (const email of split_csv_values(value)) {
+            if (!contact.emails.includes(email)) contact.emails.push(email);
+          }
+          break;
+        case "phone": {
+          const phones = split_csv_values(value);
+
+          contact.phone = phones[0] ?? value;
+          if (phones.length > 1) {
+            contact.phone_entries = phones.map((entry, index) => ({
+              value: entry,
+              type: index === 0 ? "mobile" : "work",
+            }));
+          }
+          break;
+        }
+        case "first_name":
+        case "last_name":
+        case "company":
+        case "job_title":
+        case "birthday":
+        case "notes":
+          contact[field] = value;
+          break;
+        case "street":
+          address.street = value;
+          break;
+        case "city":
+          address.city = value;
+          break;
+        case "state":
+          address.state = value;
+          break;
+        case "postal_code":
+          address.postal_code = value;
+          break;
+        case "country":
+          address.country = value;
+          break;
+        case "website":
+          website = value;
+          break;
+        case "is_favorite":
+          contact.is_favorite = /^(true|yes|y|1|starred)$/i.test(value);
+          break;
       }
     });
+
+    if (Object.values(address).some((part) => part)) contact.address = address;
+    if (website) contact.social_links = { website };
 
     if (contact.first_name || contact.last_name || contact.emails.length > 0) {
       contacts.push(contact);

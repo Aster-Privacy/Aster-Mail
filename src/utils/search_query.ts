@@ -18,8 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-const SINGLE_CHARACTER_SCRIPT =
-  /[぀-ヿ㐀-䶿一-鿿豈-﫿가-힯]/;
+const SINGLE_CHARACTER_SCRIPT = /[぀-ヿ㐀-䶿一-鿿豈-﫿가-힯]/;
 
 export function min_search_length(value: string): number {
   return SINGLE_CHARACTER_SCRIPT.test(value) ? 1 : 2;

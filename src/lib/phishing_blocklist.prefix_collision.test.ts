@@ -21,6 +21,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { verify_url_with_server } from "./phishing_blocklist";
+
 import { api_client } from "@/services/api/client";
 
 vi.mock("@/services/api/client", () => ({
