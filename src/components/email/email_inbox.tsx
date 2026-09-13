@@ -382,6 +382,11 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
             total_email_count={nav.visible_ids.length}
             total_messages={effective_total_for_pages}
             trash_count={mail_stats.trash}
+            title_accessory={
+              alias_view_active ? (
+                <AliasDirectionTabs direction={alias_direction} />
+              ) : undefined
+            }
             view_title={get_view_title(
               current_view,
               folders_state.folders,
@@ -396,10 +401,6 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
           on_search_submit && (
             <MailFilterChips on_search_submit={on_search_submit} />
           )}
-
-        {alias_view_active && !show_full_email_viewer && (
-          <AliasDirectionTabs direction={alias_direction} />
-        )}
 
         {categories.enabled &&
           categories.restored &&

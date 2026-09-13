@@ -1044,11 +1044,12 @@ function MobileInbox({
             </>
           }
           title={view_title}
+          title_accessory={
+            alias_address && !selection_mode ? (
+              <AliasDirectionTabs direction={alias_direction} />
+            ) : undefined
+          }
         />
-      )}
-
-      {alias_address && !selection_mode && (
-        <AliasDirectionTabs direction={alias_direction} />
       )}
 
       {alias_address &&
