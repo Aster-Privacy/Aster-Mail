@@ -2202,50 +2202,25 @@ export const fr = {
     alias_sent_mail_desc: "Consultez les messages que vous avez envoyés depuis cette adresse.",
     account_enabled_tooltip: "Ce compte est en cours de synchronisation.",
     account_pause_tooltip: "Suspendre la synchronisation",
-    account_paused_tooltip: "La synchronisation est suspendue pour ce compte.",
     account_resume_tooltip: "Reprendre la synchronisation",
     app_password_create_link: "Créer un mot de passe d’application",
     app_password_required: "Mot de passe d’application requis",
-    category_info_newsletters: "Lettres d’information et listes de diffusion auxquelles vous vous êtes abonné.",
-    category_info_transactions: "Commandes, paiements et reçus des boutiques et des services.",
-    category_newsletters: "Lettres d’information",
-    category_transactions: "Reçus",
     edit_account_tooltip: "Modifier le compte",
-    gmail_app_password_notice: "Ce fournisseur exige un mot de passe d’application. Le mot de passe habituel de votre compte ne fonctionne pas.",
     gmail_sync_continue: "Continuer",
-    gmail_sync_intro: "Créez un mot de passe d’application dans les réglages de votre compte, puis collez-le ici.",
-    gmail_sync_note_unavailable: "Si les mots de passe d’application ne sont pas disponibles, activez d’abord la validation en deux étapes, puis vérifiez à nouveau.",
     gmail_sync_open_google: "Ouvrir les réglages du compte",
     gmail_sync_setup_button: "Voir la marche à suivre",
-    gmail_sync_step_1: "Connectez-vous aux réglages de sécurité de votre compte.",
-    gmail_sync_step_2: "Activez la validation en deux étapes si ce n’est pas déjà fait.",
-    gmail_sync_step_3: "Créez un mot de passe d’application pour la messagerie.",
     gmail_sync_step_4: "Copiez le mot de passe et collez-le dans Aster.",
     gmail_sync_title: "Créer un mot de passe d’application",
-    gmail_wizard_connect: "Connecter la boîte mail",
     gmail_wizard_password_label: "Mot de passe d’application",
     gmail_wizard_progress: "Étape {{current}} sur {{total}}",
     gmail_wizard_reveal_password: "Afficher le mot de passe d’application",
     gmail_wizard_step_1_action: "Ouvrir les réglages de sécurité",
-    gmail_wizard_step_1_body: "Les mots de passe d’application se trouvent dans la section sécurité du compte de votre fournisseur.",
-    gmail_wizard_step_1_title: "Ouvrez les réglages de sécurité de votre compte",
-    gmail_wizard_step_2_body: "Les mots de passe d’application ne sont disponibles qu’une fois la validation en deux étapes activée.",
     gmail_wizard_step_2_title: "Activez la validation en deux étapes",
-    gmail_wizard_step_3_body: "Choisissez Mail comme application, puis créez le mot de passe.",
     gmail_wizard_step_3_title: "Créez un mot de passe d’application",
-    gmail_wizard_step_4_body: "Collez le mot de passe d’application ci-dessous. Aster le stocke chiffré et l’utilise uniquement pour synchroniser cette boîte mail.",
     gmail_wizard_step_4_title: "Collez le mot de passe",
-    gmail_wizard_title: "Connectez votre boîte mail",
     last_sync_tooltip: "Date de la dernière synchronisation de ce compte",
     not_synced_tooltip: "Ce compte n’a pas encore été synchronisé.",
-    protocol_desc_imap: "Synchronise les dossiers et reste à jour sur tous vos appareils.",
-    protocol_desc_pop3: "Télécharge les messages une seule fois, sans rien laisser à synchroniser.",
-    protocol_tooltip_imap: "IMAP conserve vos messages sur le serveur et synchronise chaque modification sur tous vos appareils.",
-    protocol_tooltip_jmap: "JMAP est un protocole de synchronisation moderne que seuls quelques fournisseurs prennent en charge.",
-    protocol_tooltip_pop3: "POP3 télécharge les messages sur un seul appareil et ne synchronise pas les modifications.",
-    remove_account_tooltip: "Supprimer le compte",
     show_side_panel: "Afficher le panneau latéral",
-    show_side_panel_description: "Gardez les contacts et d’autres outils rapides dans un panneau à côté de vos messages.",
     sync_now_tooltip: "Synchroniser maintenant",
     purge_locked_folder_on_delete: "Purger le contenu des dossiers protégés",
     purge_locked_folder_on_delete_description:
@@ -7994,60 +7969,40 @@ export const fr = {
       "{{used}} places sur {{max}} utilisées · {{count}} place disponible",
     fam_org_members_count_other:
       "{{used}} places sur {{max}} utilisées · {{count}} places disponibles",
-    account_enabled_tooltip: "Ce compte est en cours de synchronisation.",
-    account_pause_tooltip: "Suspendre la synchronisation",
     account_paused_tooltip: "La synchronisation de ce compte est suspendue.",
-    account_resume_tooltip: "Reprendre la synchronisation",
-    app_password_create_link: "Créer un mot de passe d’application",
-    app_password_required: "Mot de passe d’application requis",
     category_info_newsletters:
       "Résumés et listes de diffusion auxquels vous êtes abonné.",
     category_info_transactions:
       "Commandes, paiements et reçus des boutiques et services.",
     category_newsletters: "Newsletters",
     category_transactions: "Achats",
-    edit_account_tooltip: "Modifier le compte",
     gmail_app_password_notice:
       "Ce fournisseur exige un mot de passe d’application. Le mot de passe habituel de votre compte ne fonctionne pas.",
-    gmail_sync_continue: "Continuer",
     gmail_sync_intro:
       "Créez un mot de passe d’application dans les réglages de votre compte, puis collez-le ici.",
     gmail_sync_note_unavailable:
       "Si les mots de passe d’application ne sont pas proposés, activez d’abord la validation en deux étapes, puis vérifiez à nouveau.",
-    gmail_sync_open_google: "Ouvrir les réglages du compte",
-    gmail_sync_setup_button: "Voir la marche à suivre",
     gmail_sync_step_1:
       "Connectez-vous aux réglages de sécurité de votre compte.",
     gmail_sync_step_2:
       "Activez la validation en deux étapes si ce n’est pas déjà fait.",
     gmail_sync_step_3:
       "Créez un mot de passe d’application pour la messagerie.",
-    gmail_sync_step_4: "Copiez le mot de passe et collez-le dans Aster.",
-    gmail_sync_title: "Créer un mot de passe d’application",
     gmail_wizard_app_password_error_body:
       "Le mot de passe habituel de votre compte ne fonctionne pas ici. Activez la validation en deux étapes, créez un mot de passe d’application pour la messagerie, puis collez-le ci-dessus.",
     gmail_wizard_app_password_error_title: "Ce mot de passe a été refusé",
     gmail_wizard_connect: "Connecter la boîte aux lettres",
-    gmail_wizard_password_label: "Mot de passe d’application",
-    gmail_wizard_progress: "Étape {{current}} sur {{total}}",
-    gmail_wizard_reveal_password: "Afficher le mot de passe d’application",
-    gmail_wizard_step_1_action: "Ouvrir les réglages de sécurité",
     gmail_wizard_step_1_body:
       "Les mots de passe d’application se trouvent dans la section sécurité du compte de votre fournisseur.",
     gmail_wizard_step_1_title:
       "Ouvrez les réglages de sécurité de votre compte",
     gmail_wizard_step_2_body:
       "Les mots de passe d’application ne sont proposés qu’avec la validation en deux étapes activée.",
-    gmail_wizard_step_2_title: "Activez la validation en deux étapes",
     gmail_wizard_step_3_body:
       "Choisissez Messagerie comme application, puis créez le mot de passe.",
-    gmail_wizard_step_3_title: "Créez un mot de passe d’application",
     gmail_wizard_step_4_body:
       "Collez le mot de passe d’application ci-dessous. Aster le stocke chiffré et l’utilise uniquement pour synchroniser cette boîte aux lettres.",
-    gmail_wizard_step_4_title: "Collez le mot de passe",
     gmail_wizard_title: "Connectez votre boîte aux lettres",
-    last_sync_tooltip: "Date de la dernière synchronisation de ce compte",
-    not_synced_tooltip: "Ce compte n’a pas encore été synchronisé.",
     protocol_desc_imap:
       "Synchronise les dossiers et reste à jour sur tous vos appareils.",
     protocol_desc_pop3:
@@ -8059,10 +8014,8 @@ export const fr = {
     protocol_tooltip_pop3:
       "POP3 télécharge les messages sur un seul appareil et ne renvoie pas les changements.",
     remove_account_tooltip: "Retirer le compte",
-    show_side_panel: "Afficher le panneau latéral",
     show_side_panel_description:
       "Gardez vos contacts et d’autres outils rapides dans un panneau à côté de vos messages.",
-    sync_now_tooltip: "Synchroniser maintenant",
   },
   mail: {
     alias_view_sent: "Voir les messages envoyés",
@@ -8077,16 +8030,11 @@ export const fr = {
     bulk_delete_title: "Supprimer définitivement {{count}} e-mails ?",
     bulk_delete_title_one: "Supprimer définitivement 1 e-mail ?",
     bulk_delete_title_other: "Supprimer définitivement {{count}} e-mails ?",
-    bulk_spam_title: "Signaler {{count}} e-mails comme spam ?",
-    bulk_spam_title_one: "Signaler 1 e-mail comme spam ?",
-    bulk_spam_title_other: "Signaler {{count}} e-mails comme spam ?",
     bulk_trash_title: "Déplacer {{count}} e-mails vers la corbeille ?",
     bulk_trash_title_one: "Déplacer 1 e-mail vers la corbeille ?",
     bulk_trash_title_other: "Déplacer {{count}} e-mails vers la corbeille ?",
     sender_rule_confirm: "Créer la règle",
-    sender_rule_created: "Les nouveaux messages de cet expéditeur vont désormais dans {{category}}.",
     sender_rule_name: "{{sender}} vers {{category}}",
-    sender_rule_offer: "Vous déplacez souvent les messages de {{sender}} vers {{category}}. Voulez-vous le faire automatiquement ?",
     sender_identity_rotated:
       "L'identité de chiffrement de cet expéditeur a changé depuis votre dernier échange de messages. Si vous ne vous y attendiez pas, confirmez-le avec cette personne par un autre moyen.",
     sender_identity_downgraded:
@@ -8997,18 +8945,9 @@ export const fr = {
     param_removed_from_n_links_other: "{{param}} retiré de {{count}} liens",
     remote_images_blocked_count_one: "{{count}} image distante bloquée",
     remote_images_blocked_count_other: "{{count}} images distantes bloquées",
-    bulk_archive_title: "Archiver {{count}} e-mails ?",
-    bulk_archive_title_one: "Archiver 1 e-mail ?",
-    bulk_archive_title_other: "Archiver {{count}} e-mails ?",
-    bulk_delete_title: "Supprimer définitivement {{count}} e-mails ?",
-    bulk_delete_title_one: "Supprimer définitivement 1 e-mail ?",
-    bulk_delete_title_other: "Supprimer définitivement {{count}} e-mails ?",
     bulk_spam_title: "Signaler {{count}} e-mails comme indésirables ?",
     bulk_spam_title_one: "Signaler 1 e-mail comme indésirable ?",
     bulk_spam_title_other: "Signaler {{count}} e-mails comme indésirables ?",
-    bulk_trash_title: "Déplacer {{count}} e-mails vers la corbeille ?",
-    bulk_trash_title_one: "Déplacer 1 e-mail vers la corbeille ?",
-    bulk_trash_title_other: "Déplacer {{count}} e-mails vers la corbeille ?",
     confirm_bulk_action_count_description:
       "Cela concerne les {{count}} e-mails.",
     confirm_bulk_action_count_description_other:
@@ -9018,10 +8957,8 @@ export const fr = {
     confirm_bulk_action_scope_description_other:
       "Cela concerne les {{count}} e-mails de {{scope}}.",
     remove_label: "Retirer le libellé",
-    sender_rule_confirm: "Créer la règle",
     sender_rule_created:
       "Les nouveaux messages de cet expéditeur arrivent désormais dans {{category}}.",
-    sender_rule_name: "{{sender}} vers {{category}}",
     sender_rule_offer:
       "Vous déplacez souvent les messages de {{sender}} vers {{category}}. Voulez-vous le faire automatiquement ?",
   },

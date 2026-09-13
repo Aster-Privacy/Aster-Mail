@@ -2201,51 +2201,21 @@ export const nl = {
     alias_sent_mail_label: "Verzonden e-mail",
     alias_sent_mail_desc: "Bekijk de berichten die je vanaf dit adres hebt verzonden.",
     account_enabled_tooltip: "Dit account synchroniseert.",
-    account_pause_tooltip: "Synchroniseren onderbreken",
-    account_paused_tooltip: "Het synchroniseren van dit account is onderbroken.",
-    account_resume_tooltip: "Synchroniseren hervatten",
-    app_password_create_link: "Een app-wachtwoord maken",
     app_password_required: "App-wachtwoord vereist",
-    category_info_newsletters: "Nieuwsbrieven en mailinglijsten waarop je je hebt geabonneerd.",
-    category_info_transactions: "Bestellingen, betalingen en bonnen van winkels en diensten.",
     category_newsletters: "Nieuwsbrieven",
     category_transactions: "Aankopen",
     edit_account_tooltip: "Account bewerken",
-    gmail_app_password_notice: "Deze provider vereist een app-wachtwoord. Het gewone wachtwoord van je account werkt niet.",
     gmail_sync_continue: "Doorgaan",
-    gmail_sync_intro: "Maak een app-wachtwoord in de instellingen van je account en plak het hier.",
-    gmail_sync_note_unavailable: "Zijn app-wachtwoorden niet beschikbaar, zet dan eerst verificatie in twee stappen aan en kijk daarna opnieuw.",
     gmail_sync_open_google: "Accountinstellingen openen",
-    gmail_sync_setup_button: "Laat zien hoe",
-    gmail_sync_step_1: "Meld je aan bij de beveiligingsinstellingen van je account.",
-    gmail_sync_step_2: "Zet verificatie in twee stappen aan als dat nog niet zo is.",
-    gmail_sync_step_3: "Maak een app-wachtwoord voor e-mail.",
     gmail_sync_step_4: "Kopieer het wachtwoord en plak het in Aster.",
-    gmail_sync_title: "Een app-wachtwoord maken",
-    gmail_wizard_connect: "Mailbox verbinden",
     gmail_wizard_password_label: "App-wachtwoord",
     gmail_wizard_progress: "Stap {{current}} van {{total}}",
     gmail_wizard_reveal_password: "App-wachtwoord tonen",
     gmail_wizard_step_1_action: "Beveiligingsinstellingen openen",
-    gmail_wizard_step_1_body: "App-wachtwoorden staan in het beveiligingsgedeelte van je account bij je provider.",
-    gmail_wizard_step_1_title: "Open de beveiligingsinstellingen van je account",
-    gmail_wizard_step_2_body: "App-wachtwoorden zijn pas beschikbaar als verificatie in twee stappen aanstaat.",
-    gmail_wizard_step_2_title: "Zet verificatie in twee stappen aan",
-    gmail_wizard_step_3_body: "Kies Mail als app en maak daarna het wachtwoord.",
-    gmail_wizard_step_3_title: "Maak een app-wachtwoord",
-    gmail_wizard_step_4_body: "Plak het app-wachtwoord hieronder. Aster bewaart het versleuteld en gebruikt het alleen om deze mailbox te synchroniseren.",
     gmail_wizard_step_4_title: "Plak het wachtwoord",
-    gmail_wizard_title: "Verbind je mailbox",
-    last_sync_tooltip: "Wanneer dit account voor het laatst is gesynchroniseerd",
     not_synced_tooltip: "Dit account is nog niet gesynchroniseerd.",
-    protocol_desc_imap: "Synchroniseert mappen en blijft op al je apparaten bij.",
-    protocol_desc_pop3: "Downloadt e-mail één keer en laat niets achter om te synchroniseren.",
-    protocol_tooltip_imap: "IMAP houdt je e-mail op de server en synchroniseert elke wijziging naar al je apparaten.",
-    protocol_tooltip_jmap: "JMAP is een modern synchronisatieprotocol dat maar een paar providers ondersteunen.",
-    protocol_tooltip_pop3: "POP3 downloadt e-mail naar één apparaat en synchroniseert wijzigingen niet terug.",
     remove_account_tooltip: "Account verwijderen",
     show_side_panel: "Zijpaneel tonen",
-    show_side_panel_description: "Houd contacten en andere snelle hulpmiddelen in een paneel naast je e-mail.",
     sync_now_tooltip: "Nu synchroniseren",
     purge_locked_folder_on_delete: "Inhoud van beveiligde mappen vernietigen",
     purge_locked_folder_on_delete_description:
@@ -7915,43 +7885,31 @@ export const nl = {
       "{{used}} van {{max}} plekken gebruikt · {{count}} plek beschikbaar",
     fam_org_members_count_other:
       "{{used}} van {{max}} plekken gebruikt · {{count}} plekken beschikbaar",
-    account_enabled_tooltip: "Dit account synchroniseert.",
     account_pause_tooltip: "Synchronisatie onderbreken",
     account_paused_tooltip: "De synchronisatie van dit account is onderbroken.",
     account_resume_tooltip: "Synchronisatie hervatten",
     app_password_create_link: "App-wachtwoord aanmaken",
-    app_password_required: "App-wachtwoord vereist",
     category_info_newsletters:
       "Updates en mailinglijsten waarop je bent geabonneerd.",
     category_info_transactions:
       "Bestellingen, betalingen en bonnen van winkels en diensten.",
-    category_newsletters: "Nieuwsbrieven",
-    category_transactions: "Aankopen",
-    edit_account_tooltip: "Account bewerken",
     gmail_app_password_notice:
       "Deze provider vraagt om een app-wachtwoord. Het gewone wachtwoord van je account werkt niet.",
-    gmail_sync_continue: "Doorgaan",
     gmail_sync_intro:
       "Maak een app-wachtwoord aan in de instellingen van je account en plak het hier.",
     gmail_sync_note_unavailable:
       "Als app-wachtwoorden er niet staan, schakel dan eerst verificatie in twee stappen in en kijk daarna opnieuw.",
-    gmail_sync_open_google: "Accountinstellingen openen",
     gmail_sync_setup_button: "Toon de stappen",
     gmail_sync_step_1:
       "Meld je aan bij de beveiligingsinstellingen van je account.",
     gmail_sync_step_2:
       "Schakel verificatie in twee stappen in als je dat nog niet hebt gedaan.",
     gmail_sync_step_3: "Maak een app-wachtwoord voor e-mail aan.",
-    gmail_sync_step_4: "Kopieer het wachtwoord en plak het in Aster.",
     gmail_sync_title: "Een app-wachtwoord aanmaken",
     gmail_wizard_app_password_error_body:
       "Het gewone wachtwoord van je account werkt hier niet. Zet verificatie in twee stappen aan, maak een app-wachtwoord voor e-mail en plak dat hierboven.",
     gmail_wizard_app_password_error_title: "Dit wachtwoord is geweigerd",
     gmail_wizard_connect: "Postvak koppelen",
-    gmail_wizard_password_label: "App-wachtwoord",
-    gmail_wizard_progress: "Stap {{current}} van {{total}}",
-    gmail_wizard_reveal_password: "App-wachtwoord tonen",
-    gmail_wizard_step_1_action: "Beveiligingsinstellingen openen",
     gmail_wizard_step_1_body:
       "App-wachtwoorden staan in het beveiligingsgedeelte van het account bij je provider.",
     gmail_wizard_step_1_title:
@@ -7964,11 +7922,9 @@ export const nl = {
     gmail_wizard_step_3_title: "Maak een app-wachtwoord aan",
     gmail_wizard_step_4_body:
       "Plak het app-wachtwoord hieronder. Aster bewaart het versleuteld en gebruikt het alleen om dit postvak te synchroniseren.",
-    gmail_wizard_step_4_title: "Plak het wachtwoord",
     gmail_wizard_title: "Koppel je postvak",
     last_sync_tooltip:
       "Wanneer dit account voor het laatst is gesynchroniseerd",
-    not_synced_tooltip: "Dit account is nog niet gesynchroniseerd.",
     protocol_desc_imap:
       "Synchroniseert mappen en blijft op al je apparaten actueel.",
     protocol_desc_pop3:
@@ -7979,11 +7935,8 @@ export const nl = {
       "JMAP is een modern synchronisatieprotocol dat weinig providers ondersteunen.",
     protocol_tooltip_pop3:
       "POP3 downloadt berichten naar één apparaat en stuurt wijzigingen niet terug.",
-    remove_account_tooltip: "Account verwijderen",
-    show_side_panel: "Zijpaneel tonen",
     show_side_panel_description:
       "Houd je contacten en andere snelle hulpmiddelen in een paneel naast je berichten.",
-    sync_now_tooltip: "Nu synchroniseren",
   },
   mail: {
     alias_view_sent: "Verzonden e-mail tonen",
@@ -8001,13 +7954,7 @@ export const nl = {
     bulk_spam_title: "{{count}} e-mails als spam melden?",
     bulk_spam_title_one: "1 e-mail als spam melden?",
     bulk_spam_title_other: "{{count}} e-mails als spam melden?",
-    bulk_trash_title: "{{count}} e-mails naar de prullenbak verplaatsen?",
-    bulk_trash_title_one: "1 e-mail naar de prullenbak verplaatsen?",
-    bulk_trash_title_other: "{{count}} e-mails naar de prullenbak verplaatsen?",
-    sender_rule_confirm: "Regel maken",
-    sender_rule_created: "Nieuwe e-mail van deze afzender gaat nu naar {{category}}.",
     sender_rule_name: "{{sender}} naar {{category}}",
-    sender_rule_offer: "Je verplaatst e-mail van {{sender}} steeds naar {{category}}. Wil je dat dit automatisch gebeurt?",
     sender_identity_rotated:
       "De versleutelingsidentiteit van deze afzender is veranderd sinds je voor het laatst berichten hebt uitgewisseld. Als je dat niet verwachtte, bevestig het dan op een andere manier met deze persoon.",
     sender_identity_downgraded:
@@ -8910,15 +8857,6 @@ export const nl = {
     remote_images_blocked_count_one: "{{count}} externe afbeelding geblokkeerd",
     remote_images_blocked_count_other:
       "{{count}} externe afbeeldingen geblokkeerd",
-    bulk_archive_title: "{{count}} e-mails archiveren?",
-    bulk_archive_title_one: "1 e-mail archiveren?",
-    bulk_archive_title_other: "{{count}} e-mails archiveren?",
-    bulk_delete_title: "{{count}} e-mails definitief verwijderen?",
-    bulk_delete_title_one: "1 e-mail definitief verwijderen?",
-    bulk_delete_title_other: "{{count}} e-mails definitief verwijderen?",
-    bulk_spam_title: "{{count}} e-mails als spam melden?",
-    bulk_spam_title_one: "1 e-mail als spam melden?",
-    bulk_spam_title_other: "{{count}} e-mails als spam melden?",
     bulk_trash_title: "{{count}} e-mails naar de prullenmand verplaatsen?",
     bulk_trash_title_one: "1 e-mail naar de prullenmand verplaatsen?",
     bulk_trash_title_other:
@@ -8933,7 +8871,6 @@ export const nl = {
     sender_rule_confirm: "Regel aanmaken",
     sender_rule_created:
       "Nieuwe berichten van deze afzender komen nu in {{category}}.",
-    sender_rule_name: "{{sender}} naar {{category}}",
     sender_rule_offer:
       "Je verplaatst berichten van {{sender}} vaak naar {{category}}. Wil je dat automatisch doen?",
   },

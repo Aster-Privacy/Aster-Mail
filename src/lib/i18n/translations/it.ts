@@ -2220,52 +2220,27 @@ export const it = {
   settings: {
     alias_sent_mail_label: "Messaggi inviati",
     alias_sent_mail_desc: "Consulta i messaggi che hai inviato da questo indirizzo.",
-    account_enabled_tooltip: "Questo account si sta sincronizzando.",
-    account_pause_tooltip: "Metti in pausa la sincronizzazione",
-    account_paused_tooltip: "La sincronizzazione di questo account è in pausa.",
     account_resume_tooltip: "Riprendi la sincronizzazione",
     app_password_create_link: "Crea una password per l’app",
     app_password_required: "Serve una password per l’app",
-    category_info_newsletters: "Newsletter e mailing list a cui ti sei iscritto.",
-    category_info_transactions: "Ordini, pagamenti e ricevute di negozi e servizi.",
     category_newsletters: "Newsletter",
-    category_transactions: "Ricevute",
     edit_account_tooltip: "Modifica account",
-    gmail_app_password_notice: "Questo provider richiede una password per l’app. La normale password del tuo account non funziona.",
     gmail_sync_continue: "Continua",
-    gmail_sync_intro: "Crea una password per l’app nelle impostazioni del tuo account, poi incollala qui.",
-    gmail_sync_note_unavailable: "Se le password per le app non sono disponibili, attiva prima la verifica in due passaggi e poi controlla di nuovo.",
     gmail_sync_open_google: "Apri le impostazioni dell’account",
-    gmail_sync_setup_button: "Mostrami come",
     gmail_sync_step_1: "Accedi alle impostazioni di sicurezza del tuo account.",
-    gmail_sync_step_2: "Attiva la verifica in due passaggi, se non è già attiva.",
-    gmail_sync_step_3: "Crea una password per l’app di posta.",
     gmail_sync_step_4: "Copia la password e incollala in Aster.",
     gmail_sync_title: "Crea una password per l’app",
-    gmail_wizard_connect: "Connetti casella",
     gmail_wizard_password_label: "Password per l’app",
     gmail_wizard_progress: "Passaggio {{current}} di {{total}}",
     gmail_wizard_reveal_password: "Mostra la password per l’app",
     gmail_wizard_step_1_action: "Apri le impostazioni di sicurezza",
-    gmail_wizard_step_1_body: "Le password per le app si trovano nella sezione sicurezza dell’account del tuo provider.",
-    gmail_wizard_step_1_title: "Apri le impostazioni di sicurezza del tuo account",
-    gmail_wizard_step_2_body: "Le password per le app sono disponibili solo con la verifica in due passaggi attiva.",
     gmail_wizard_step_2_title: "Attiva la verifica in due passaggi",
     gmail_wizard_step_3_body: "Scegli Posta come app, poi crea la password.",
     gmail_wizard_step_3_title: "Crea una password per l’app",
-    gmail_wizard_step_4_body: "Incolla qui sotto la password per l’app. Aster la conserva cifrata e la usa solo per sincronizzare questa casella.",
     gmail_wizard_step_4_title: "Incolla la password",
-    gmail_wizard_title: "Connetti la tua casella",
-    last_sync_tooltip: "Quando questo account si è sincronizzato l’ultima volta",
     not_synced_tooltip: "Questo account non si è ancora sincronizzato.",
-    protocol_desc_imap: "Sincronizza le cartelle e resta aggiornato su tutti i dispositivi.",
-    protocol_desc_pop3: "Scarica la posta una volta sola e non lascia nulla da sincronizzare.",
-    protocol_tooltip_imap: "IMAP tiene la posta sul server e sincronizza ogni modifica su tutti i tuoi dispositivi.",
-    protocol_tooltip_jmap: "JMAP è un protocollo di sincronizzazione moderno supportato solo da pochi provider.",
-    protocol_tooltip_pop3: "POP3 scarica la posta su un solo dispositivo e non sincronizza le modifiche.",
     remove_account_tooltip: "Rimuovi account",
     show_side_panel: "Mostra il pannello laterale",
-    show_side_panel_description: "Tieni i contatti e altri strumenti rapidi in un pannello accanto alla posta.",
     sync_now_tooltip: "Sincronizza ora",
     purge_locked_folder_on_delete:
       "Elimina il contenuto delle cartelle protette",
@@ -8009,56 +7984,37 @@ export const it = {
     account_enabled_tooltip: "Questo account è in sincronizzazione.",
     account_pause_tooltip: "Sospendi la sincronizzazione",
     account_paused_tooltip: "La sincronizzazione di questo account è sospesa.",
-    account_resume_tooltip: "Riprendi la sincronizzazione",
-    app_password_create_link: "Crea una password per l’app",
-    app_password_required: "Serve una password per l’app",
     category_info_newsletters:
       "Aggiornamenti e mailing list a cui sei iscritto.",
     category_info_transactions:
       "Ordini, pagamenti e ricevute da negozi e servizi.",
-    category_newsletters: "Newsletter",
     category_transactions: "Acquisti",
-    edit_account_tooltip: "Modifica account",
     gmail_app_password_notice:
       "Questo provider richiede una password per l’app. La password normale del tuo account non funziona.",
-    gmail_sync_continue: "Continua",
     gmail_sync_intro:
       "Crea una password per l’app nelle impostazioni del tuo account, poi incollala qui.",
     gmail_sync_note_unavailable:
       "Se le password per le app non compaiono, attiva prima la verifica in due passaggi e controlla di nuovo.",
-    gmail_sync_open_google: "Apri le impostazioni dell’account",
     gmail_sync_setup_button: "Mostra i passaggi",
-    gmail_sync_step_1: "Accedi alle impostazioni di sicurezza del tuo account.",
     gmail_sync_step_2:
       "Attiva la verifica in due passaggi, se non l’hai già fatto.",
     gmail_sync_step_3: "Crea una password per l’app per la posta.",
-    gmail_sync_step_4: "Copia la password e incollala in Aster.",
-    gmail_sync_title: "Crea una password per l’app",
     gmail_wizard_app_password_error_body:
       "La password normale del tuo account non funziona qui. Attiva la verifica in due passaggi, crea una password per l’app dedicata alla posta e incollala qui sopra.",
     gmail_wizard_app_password_error_title:
       "Questa password non è stata accettata",
     gmail_wizard_connect: "Collega la casella",
-    gmail_wizard_password_label: "Password per l’app",
-    gmail_wizard_progress: "Passaggio {{current}} di {{total}}",
-    gmail_wizard_reveal_password: "Mostra la password per l’app",
-    gmail_wizard_step_1_action: "Apri le impostazioni di sicurezza",
     gmail_wizard_step_1_body:
       "Le password per le app si trovano nella sezione sicurezza dell’account del tuo provider.",
     gmail_wizard_step_1_title:
       "Apri le impostazioni di sicurezza del tuo account",
     gmail_wizard_step_2_body:
       "Le password per le app compaiono solo con la verifica in due passaggi attiva.",
-    gmail_wizard_step_2_title: "Attiva la verifica in due passaggi",
-    gmail_wizard_step_3_body: "Scegli Posta come app, poi crea la password.",
-    gmail_wizard_step_3_title: "Crea una password per l’app",
     gmail_wizard_step_4_body:
       "Incolla qui sotto la password per l’app. Aster la conserva cifrata e la usa solo per sincronizzare questa casella.",
-    gmail_wizard_step_4_title: "Incolla la password",
     gmail_wizard_title: "Collega la tua casella",
     last_sync_tooltip:
       "Quando questo account si è sincronizzato l’ultima volta",
-    not_synced_tooltip: "Questo account non si è ancora sincronizzato.",
     protocol_desc_imap:
       "Sincronizza le cartelle e resta aggiornato su tutti i tuoi dispositivi.",
     protocol_desc_pop3:
@@ -8069,11 +8025,8 @@ export const it = {
       "JMAP è un protocollo di sincronizzazione moderno che pochi provider supportano.",
     protocol_tooltip_pop3:
       "POP3 scarica i messaggi su un solo dispositivo e non rimanda indietro le modifiche.",
-    remove_account_tooltip: "Rimuovi account",
-    show_side_panel: "Mostra il pannello laterale",
     show_side_panel_description:
       "Tieni i contatti e altri strumenti rapidi in un pannello accanto ai tuoi messaggi.",
-    sync_now_tooltip: "Sincronizza ora",
   },
   mail: {
     alias_view_sent: "Mostra i messaggi inviati",
@@ -8094,10 +8047,7 @@ export const it = {
     bulk_trash_title: "Vuoi spostare {{count}} email nel cestino?",
     bulk_trash_title_one: "Vuoi spostare 1 email nel cestino?",
     bulk_trash_title_other: "Vuoi spostare {{count}} email nel cestino?",
-    sender_rule_confirm: "Crea regola",
-    sender_rule_created: "Le nuove email di questo mittente ora vanno in {{category}}.",
     sender_rule_name: "{{sender}} in {{category}}",
-    sender_rule_offer: "Sposti spesso le email di {{sender}} in {{category}}. Vuoi farlo automaticamente?",
     sender_identity_rotated:
       "L'identità di crittografia di questo mittente è cambiata dall'ultimo scambio di messaggi. Se non te lo aspettavi, confermalo con questa persona in un altro modo.",
     sender_identity_downgraded:
@@ -9003,18 +8953,6 @@ export const it = {
     param_removed_from_n_links_other: "{{param}} rimosso da {{count}} link",
     remote_images_blocked_count_one: "{{count}} immagine remota bloccata",
     remote_images_blocked_count_other: "{{count}} immagini remote bloccate",
-    bulk_archive_title: "Vuoi archiviare {{count}} email?",
-    bulk_archive_title_one: "Vuoi archiviare 1 email?",
-    bulk_archive_title_other: "Vuoi archiviare {{count}} email?",
-    bulk_delete_title: "Vuoi eliminare definitivamente {{count}} email?",
-    bulk_delete_title_one: "Vuoi eliminare definitivamente 1 email?",
-    bulk_delete_title_other: "Vuoi eliminare definitivamente {{count}} email?",
-    bulk_spam_title: "Vuoi segnalare {{count}} email come spam?",
-    bulk_spam_title_one: "Vuoi segnalare 1 email come spam?",
-    bulk_spam_title_other: "Vuoi segnalare {{count}} email come spam?",
-    bulk_trash_title: "Vuoi spostare {{count}} email nel cestino?",
-    bulk_trash_title_one: "Vuoi spostare 1 email nel cestino?",
-    bulk_trash_title_other: "Vuoi spostare {{count}} email nel cestino?",
     confirm_bulk_action_count_description:
       "L’operazione riguarda tutte le {{count}} email.",
     confirm_bulk_action_count_description_other:
@@ -9026,7 +8964,6 @@ export const it = {
     sender_rule_confirm: "Crea la regola",
     sender_rule_created:
       "I nuovi messaggi di questo mittente arrivano in {{category}}.",
-    sender_rule_name: "{{sender}} in {{category}}",
     sender_rule_offer:
       "Sposti spesso i messaggi di {{sender}} in {{category}}. Vuoi farlo automaticamente?",
   },

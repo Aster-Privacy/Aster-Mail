@@ -2207,20 +2207,15 @@ export const ja = {
   settings: {
     alias_sent_mail_label: "送信済みメール",
     alias_sent_mail_desc: "このアドレスから送信したメールを確認できます。",
-    account_enabled_tooltip: "このアカウントは同期中です。",
     account_pause_tooltip: "同期を一時停止",
     account_paused_tooltip: "このアカウントの同期は一時停止しています。",
     account_resume_tooltip: "同期を再開",
     alias_export_summary_one: "{{files}} に {{count}} 件のエントリ。",
     allowed_senders_count_one: "{{count}} 件の許可済み送信者",
     app_lock_attempts_remaining_one: "残り {{count}} 回",
-    app_password_create_link: "アプリパスワードを作成する",
     app_password_required: "アプリパスワードが必要です",
     blocked_senders_count_one: "{{count}} 件のブロック済み送信者",
-    category_info_newsletters: "登録したニュースレターやメーリングリストです。",
-    category_info_transactions: "ストアやサービスからの注文、支払い、領収書です。",
     category_newsletters: "ニュースレター",
-    category_transactions: "買い物",
     deleted_emails_count_one: "{{count}} 件のメールを削除しました",
     edit_account_tooltip: "アカウントを編集",
     email_count_one: "{{count}} 件のメール",
@@ -2244,44 +2239,25 @@ export const ja = {
     family_security_warning_2fa_one:
       "{{count}} 人のメンバーが二要素認証を有効にしていません",
     forwarding_rules_count_one: "{{count}} 件の転送ルール",
-    gmail_app_password_notice: "このプロバイダはアプリパスワードを必要とします。通常のアカウントのパスワードは使えません。",
     gmail_sync_continue: "続ける",
-    gmail_sync_intro: "アカウント設定でアプリパスワードを作成し、ここに貼り付けます。",
-    gmail_sync_note_unavailable: "アプリパスワードを使えない場合は、まず 2 段階認証を有効にしてから、もう一度確認してください。",
     gmail_sync_open_google: "アカウント設定を開く",
-    gmail_sync_setup_button: "手順を見る",
     gmail_sync_step_1: "アカウントのセキュリティ設定にサインインします。",
-    gmail_sync_step_2: "2 段階認証がオフの場合はオンにします。",
     gmail_sync_step_3: "メール用のアプリパスワードを作成します。",
     gmail_sync_step_4: "パスワードをコピーして Aster に貼り付けます。",
-    gmail_sync_title: "アプリパスワードを作成",
     gmail_wizard_connect: "メールボックスを接続",
     gmail_wizard_password_label: "アプリパスワード",
     gmail_wizard_progress: "ステップ {{current}}/{{total}}",
     gmail_wizard_reveal_password: "アプリパスワードを表示",
     gmail_wizard_step_1_action: "セキュリティ設定を開く",
-    gmail_wizard_step_1_body: "アプリパスワードは、プロバイダのアカウントのセキュリティ欄にあります。",
     gmail_wizard_step_1_title: "アカウントのセキュリティ設定を開く",
-    gmail_wizard_step_2_body: "アプリパスワードは、2 段階認証をオンにしたあとでのみ使えます。",
-    gmail_wizard_step_2_title: "2 段階認証をオンにする",
-    gmail_wizard_step_3_body: "アプリとして「メール」を選び、パスワードを作成します。",
     gmail_wizard_step_3_title: "アプリパスワードを作成する",
-    gmail_wizard_step_4_body: "アプリパスワードを下に貼り付けます。Aster は暗号化して保存し、このメールボックスの同期にのみ使用します。",
     gmail_wizard_step_4_title: "パスワードを貼り付ける",
-    gmail_wizard_title: "メールボックスを接続",
-    last_sync_tooltip: "このアカウントが最後に同期した日時",
     not_synced_tooltip: "このアカウントはまだ同期していません。",
     plan_domains_count_one: "{{count}} 件のドメイン",
-    protocol_desc_imap: "フォルダを同期し、すべてのデバイスで同じ状態を保ちます。",
-    protocol_desc_pop3: "メールを一度だけダウンロードし、同期する内容を残しません。",
-    protocol_tooltip_imap: "IMAP はメールをサーバーに置き、すべての変更をお使いのデバイス間で同期します。",
-    protocol_tooltip_jmap: "JMAP は新しい同期プロトコルで、対応しているプロバイダはごくわずかです。",
-    protocol_tooltip_pop3: "POP3 はメールを 1 台のデバイスにダウンロードし、変更を同期し返しません。",
     purge_confirm_message_one:
       "{{email}} からインポートした {{count}} 件のメールを完全に削除します。この操作は取り消せません。",
     remove_account_tooltip: "アカウントを削除",
     show_side_panel: "サイドパネルを表示",
-    show_side_panel_description: "連絡先やそのほかの便利なツールを、メールの横のパネルに表示します。",
     sign_out_everywhere_success_one:
       "他の {{count}} 件のセッションからサインアウトしました",
     sync_now_tooltip: "今すぐ同期",
@@ -7900,82 +7876,35 @@ export const ja = {
     fam_org_members_count_other:
       "{{max}} 席中 {{used}} 席を使用中 · 空き {{count}} 席",
     account_enabled_tooltip: "このアカウントは同期しています。",
-    account_pause_tooltip: "同期を一時停止",
-    account_paused_tooltip: "このアカウントの同期は一時停止しています。",
-    account_resume_tooltip: "同期を再開",
-    alias_export_summary_one: "{{files}} に {{count}} 件のエントリ。",
-    allowed_senders_count_one: "{{count}} 件の許可済み送信者",
-    app_lock_attempts_remaining_one: "残り {{count}} 回",
     app_password_create_link: "アプリパスワードを作成",
-    app_password_required: "アプリパスワードが必要です",
-    blocked_senders_count_one: "{{count}} 件のブロック済み送信者",
     category_info_newsletters: "登録している更新情報とメーリングリストです。",
     category_info_transactions:
       "ストアやサービスからの注文、支払い、領収書です。",
-    category_newsletters: "ニュースレター",
     category_transactions: "購入",
-    deleted_emails_count_one: "{{count}} 件のメールを削除しました",
-    edit_account_tooltip: "アカウントを編集",
-    email_count_one: "{{count}} 件のメール",
-    export_complete_errors_one:
-      "{{count}} 件のメッセージをエクスポートできませんでした。",
-    export_complete_skipped_attachments_one:
-      "{{count}} 件の添付ファイルを復号できなかったため、このアーカイブには含まれていません。",
-    export_complete_skipped_undecryptable_one:
-      "{{count}} 件のメッセージを復号できなかったため、このアーカイブには含まれていません。",
-    external_account_count_one: "{{count}} 件の外部アカウント",
-    fam_consent_body_one:
-      "この変更はすべての家族メンバーのデータに影響します。{{count}} 人のメンバーに同意リクエストが送信されます。全員が同意すると変更が適用されます。",
-    fam_org_2fa_banner_one:
-      "{{count}} 人のメンバーが二要素認証を有効にしていません",
-    fam_org_activity_events_one: "{{count}} 件のイベント",
-    fam_org_members_count_one:
-      "{{max}} 席中 {{used}} 席を使用中 · 空き {{count}} 席",
-    fam_org_sec_session_count_one: "{{count}} 件のアクティブなセッション",
-    fam_org_stat_seats_available_one: "{{count}} 席の空き",
-    family_activity_events_one: "{{count}} 件のイベント",
-    family_security_warning_2fa_one:
-      "{{count}} 人のメンバーが二要素認証を有効にしていません",
-    forwarding_rules_count_one: "{{count}} 件の転送ルール",
     gmail_app_password_notice:
       "このプロバイダはアプリパスワードを必要とします。通常のアカウントのパスワードは使えません。",
-    gmail_sync_continue: "続ける",
     gmail_sync_intro:
       "アカウント設定でアプリパスワードを作成し、ここに貼り付けます。",
     gmail_sync_note_unavailable:
       "アプリパスワードが表示されない場合は、2 段階認証を有効にしてからもう一度確認してください。",
-    gmail_sync_open_google: "アカウント設定を開く",
     gmail_sync_setup_button: "手順を表示",
-    gmail_sync_step_1: "アカウントのセキュリティ設定にサインインします。",
     gmail_sync_step_2: "2 段階認証が無効な場合は有効にします。",
-    gmail_sync_step_3: "メール用のアプリパスワードを作成します。",
-    gmail_sync_step_4: "パスワードをコピーして Aster に貼り付けます。",
     gmail_sync_title: "アプリパスワードを作成する",
     gmail_wizard_app_password_error_body:
       "通常のアカウントのパスワードはここでは使えません。2 段階認証を有効にし、メール用のアプリパスワードを作成して、上に貼り付けてください。",
     gmail_wizard_app_password_error_title:
       "このパスワードは受け付けられませんでした",
-    gmail_wizard_connect: "メールボックスを接続",
-    gmail_wizard_password_label: "アプリパスワード",
-    gmail_wizard_progress: "ステップ {{current}}/{{total}}",
-    gmail_wizard_reveal_password: "アプリパスワードを表示",
-    gmail_wizard_step_1_action: "セキュリティ設定を開く",
     gmail_wizard_step_1_body:
       "アプリパスワードは、プロバイダのアカウントのセキュリティ設定にあります。",
-    gmail_wizard_step_1_title: "アカウントのセキュリティ設定を開く",
     gmail_wizard_step_2_body:
       "アプリパスワードは 2 段階認証が有効な場合にのみ表示されます。",
     gmail_wizard_step_2_title: "2 段階認証を有効にする",
     gmail_wizard_step_3_body:
       "アプリとして「メール」を選び、パスワードを作成します。",
-    gmail_wizard_step_3_title: "アプリパスワードを作成する",
     gmail_wizard_step_4_body:
       "アプリパスワードを下に貼り付けます。Aster はパスワードを暗号化して保存し、このメールボックスの同期にのみ使用します。",
-    gmail_wizard_step_4_title: "パスワードを貼り付ける",
     gmail_wizard_title: "メールボックスを接続する",
     last_sync_tooltip: "このアカウントを最後に同期した時刻",
-    not_synced_tooltip: "このアカウントはまだ同期していません。",
-    plan_domains_count_one: "{{count}} 件のドメイン",
     protocol_desc_imap:
       "フォルダを同期し、すべてのデバイスを最新の状態に保ちます。",
     protocol_desc_pop3:
@@ -7986,16 +7915,8 @@ export const ja = {
       "JMAP は対応するプロバイダがまだ少ない、新しい同期プロトコルです。",
     protocol_tooltip_pop3:
       "POP3 はメールを 1 台のデバイスにダウンロードし、変更を送り返しません。",
-    purge_confirm_message_one:
-      "{{email}} からインポートした {{count}} 件のメールを完全に削除します。この操作は取り消せません。",
-    remove_account_tooltip: "アカウントを削除",
-    show_side_panel: "サイドパネルを表示",
     show_side_panel_description:
       "連絡先やそのほかのツールを、メールの横のパネルに表示します。",
-    sign_out_everywhere_success_one:
-      "他の {{count}} 件のセッションからサインアウトしました",
-    sync_now_tooltip: "今すぐ同期",
-    vacation_n_replies_sent_one: "{{count}} 件の返信を送信しました",
   },
   mail: {
     alias_view_sent: "送信済みメールを表示",
@@ -8004,18 +7925,10 @@ export const ja = {
     alias_direction_received: "受信",
     alias_direction_sent: "送信済み",
     alias_sent_indexing: "以前の送信済みメールを現在インデックス中です。",
-    bulk_archive_title: "{{count}} 件のメールをアーカイブしますか？",
     bulk_archive_title_one: "1 件のメールをアーカイブしますか。",
-    bulk_archive_title_other: "{{count}} 件のメールをアーカイブしますか？",
-    bulk_delete_title: "{{count}} 件のメールを完全に削除しますか？",
     bulk_delete_title_one: "1 件のメールを完全に削除しますか。",
-    bulk_delete_title_other: "{{count}} 件のメールを完全に削除しますか？",
-    bulk_spam_title: "{{count}} 件のメールを迷惑メールとして報告しますか？",
     bulk_spam_title_one: "1 件のメールを迷惑メールとして報告しますか。",
-    bulk_spam_title_other: "{{count}} 件のメールを迷惑メールとして報告しますか？",
-    bulk_trash_title: "{{count}} 件のメールをゴミ箱に移動しますか？",
     bulk_trash_title_one: "1 件のメールをゴミ箱に移動しますか。",
-    bulk_trash_title_other: "{{count}} 件のメールをゴミ箱に移動しますか？",
     links_cleaned_count_one: "{{count}} 件のリンクをクリーンアップしました",
     more_folders_count_one: "他 {{count}} 件のフォルダ",
     move_n_conversations_one: "{{count}}件の会話を移動",
@@ -8024,9 +7937,6 @@ export const ja = {
     remote_images_blocked_count_one:
       "{{count}} 件のリモート画像をブロックしました",
     sender_rule_confirm: "ルールを作成",
-    sender_rule_created: "この差出人からの新しいメールは、今後「{{category}}」に届きます。",
-    sender_rule_name: "{{sender}} を {{category}} へ",
-    sender_rule_offer: "{{sender}} からのメールをよく「{{category}}」に移動しています。自動で行いますか？",
     spy_pixels_blocked_count_one:
       "{{count}} 件のスパイピクセルをブロックしました",
     trackers_found_one: "{{count}} 件のトラッカーを検出してブロックしました",
@@ -8915,17 +8825,13 @@ export const ja = {
     remote_images_blocked_count_other:
       "{{count}} 件の外部画像をブロックしました",
     bulk_archive_title: "{{count}} 件のメールをアーカイブしますか。",
-    bulk_archive_title_one: "1 件のメールをアーカイブしますか。",
     bulk_archive_title_other: "{{count}} 件のメールをアーカイブしますか。",
     bulk_delete_title: "{{count}} 件のメールを完全に削除しますか。",
-    bulk_delete_title_one: "1 件のメールを完全に削除しますか。",
     bulk_delete_title_other: "{{count}} 件のメールを完全に削除しますか。",
     bulk_spam_title: "{{count}} 件のメールを迷惑メールとして報告しますか。",
-    bulk_spam_title_one: "1 件のメールを迷惑メールとして報告しますか。",
     bulk_spam_title_other:
       "{{count}} 件のメールを迷惑メールとして報告しますか。",
     bulk_trash_title: "{{count}} 件のメールをゴミ箱に移動しますか。",
-    bulk_trash_title_one: "1 件のメールをゴミ箱に移動しますか。",
     bulk_trash_title_other: "{{count}} 件のメールをゴミ箱に移動しますか。",
     confirm_bulk_action_count_description:
       "{{count}} 件のメールすべてが対象になります。",
@@ -8935,22 +8841,11 @@ export const ja = {
       "{{scope}} 内の {{count}} 件のメールすべてが対象になります。",
     confirm_bulk_action_scope_description_other:
       "{{scope}} 内の {{count}} 件のメールすべてが対象になります。",
-    links_cleaned_count_one: "{{count}} 件のリンクをクリーンアップしました",
-    more_folders_count_one: "他 {{count}} 件のフォルダ",
-    move_n_conversations_one: "{{count}}件の会話を移動",
-    param_removed_from_n_links_one:
-      "{{count}} 件のリンクから {{param}} を削除しました",
-    remote_images_blocked_count_one:
-      "{{count}} 件のリモート画像をブロックしました",
-    sender_rule_confirm: "ルールを作成",
     sender_rule_created:
       "この送信者からの新しいメールは、今後 {{category}} に届きます。",
     sender_rule_name: "{{sender}} を {{category}} に",
     sender_rule_offer:
       "{{sender}} からのメールを {{category}} によく移動しています。今後は自動的に振り分けますか。",
-    spy_pixels_blocked_count_one:
-      "{{count}} 件のスパイピクセルをブロックしました",
-    trackers_found_one: "{{count}} 件のトラッカーを検出してブロックしました",
   },
   auth: {
     passkey_verification: "パスキーで認証",
