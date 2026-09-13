@@ -31,6 +31,7 @@ import {
   sanitize_css_block,
   block_remote_fonts,
   strip_css_urls,
+  proxy_css_urls_outside_font_faces,
   escape_style_terminator,
 } from "./html_sanitizer_css";
 
@@ -73,6 +74,86 @@ function is_remote_url_value(value: string): boolean {
     normalized.startsWith("/\\") ||
     normalized.startsWith("\\/")
   );
+}
+
+const IMAGE_PROXY_PATH = "/api/images/v1/proxy";
+
+const STATIC_IMAGE_PATH =
+  /^\/[a-z0-9_\-/]+\.(?:png|jpe?g|gif|svg|webp|ico|avif)$/i;
+
+const URL_SCHEME = /^[a-z][a-z0-9+.-]*:/i;
+
+const PARSE_BASE_URL = "https://local.invalid";
+
+type LocalImageUrl =
+  | { kind: "external" }
+  | { kind: "static" }
+  | { kind: "proxied"; inner: string }
+  | { kind: "local" };
+
+function get_page_origin(): string | null {
+  if (typeof window === "undefined") return null;
+
+  const origin = window.location.origin;
+
+  return origin && origin !== "null" ? origin : null;
+}
+
+function classify_local_image_url(value: string): LocalImageUrl {
+  const trimmed = value.replace(/[\t\n\r]/g, "").trim();
+
+  if (!trimmed) return { kind: "external" };
+
+  const is_remote = is_remote_url_value(trimmed);
+
+  if (!is_remote && URL_SCHEME.test(trimmed)) return { kind: "external" };
+
+  const page_origin = get_page_origin();
+  let parsed: URL;
+
+  try {
+    parsed = new URL(trimmed, page_origin ?? PARSE_BASE_URL);
+  } catch {
+    return is_remote ? { kind: "external" } : { kind: "local" };
+  }
+
+  if (is_remote && (!page_origin || parsed.origin !== page_origin)) {
+    return { kind: "external" };
+  }
+
+  const pathname = parsed.pathname.replace(/\/+$/, "").toLowerCase();
+
+  if (pathname === IMAGE_PROXY_PATH) {
+    const inner = parsed.searchParams.get("url");
+
+    return inner && is_remote_url_value(inner)
+      ? { kind: "proxied", inner }
+      : { kind: "local" };
+  }
+
+  if (
+    !parsed.search &&
+    !pathname.startsWith("/api/") &&
+    STATIC_IMAGE_PATH.test(parsed.pathname)
+  ) {
+    return { kind: "static" };
+  }
+
+  return { kind: "local" };
+}
+
+function is_same_origin_proxy(proxy_url: string): boolean {
+  if (proxy_url.startsWith("/") && !proxy_url.startsWith("//")) return true;
+
+  const page_origin = get_page_origin();
+
+  if (!page_origin) return false;
+
+  try {
+    return new URL(proxy_url).origin === page_origin;
+  } catch {
+    return false;
+  }
 }
 
 const MAX_RESERVED_PIXEL_HEIGHT = 40;
@@ -362,8 +443,14 @@ function sanitize_html_impl(
     : (content_blocking?.block_tracking_pixels ??
       external_content_mode !== "always");
 
-  const css_image_proxy =
-    lockdown_mode || block_images || block_css ? undefined : effective_proxy;
+  const allowed_css_image_proxy =
+    lockdown_mode ||
+    block_images ||
+    block_css ||
+    !effective_proxy ||
+    !is_same_origin_proxy(effective_proxy)
+      ? undefined
+      : effective_proxy;
 
   const external_content: ExternalContentReport = {
     has_remote_images: false,
@@ -491,9 +578,12 @@ function sanitize_html_impl(
             });
           }
         }
-        sanitized_css = strip_css_urls(sanitized_css, {
-          image_proxy_url: css_image_proxy,
-        });
+        sanitized_css = strip_css_urls(sanitized_css);
+      } else if (allowed_css_image_proxy) {
+        sanitized_css = proxy_css_urls_outside_font_faces(
+          sanitized_css,
+          allowed_css_image_proxy,
+        );
       }
 
       if (sanitized_css.trim()) {
@@ -662,9 +752,12 @@ function sanitize_html_impl(
             });
           }
         }
-        sanitized_css = strip_css_urls(sanitized_css, {
-          image_proxy_url: css_image_proxy,
-        });
+        sanitized_css = strip_css_urls(sanitized_css);
+      } else if (allowed_css_image_proxy) {
+        sanitized_css = proxy_css_urls_outside_font_faces(
+          sanitized_css,
+          allowed_css_image_proxy,
+        );
       }
 
       if (!sanitized_css.trim()) {
@@ -708,13 +801,38 @@ function sanitize_html_impl(
           attr_lower === "style" &&
           (lockdown_mode || block_css || block_images)
         ) {
+          sanitized_value = strip_css_urls(sanitized_value);
+        } else if (attr_lower === "style" && allowed_css_image_proxy) {
           sanitized_value = strip_css_urls(sanitized_value, {
-            image_proxy_url: css_image_proxy,
+            image_proxy_url: allowed_css_image_proxy,
           });
         } else if (attr_lower === "srcset") {
           const kept: SrcsetCandidateValue[] = [];
 
-          for (const candidate of parse_srcset_value(sanitized_value)) {
+          for (const original_candidate of parse_srcset_value(
+            sanitized_value,
+          )) {
+            const local_candidate = classify_local_image_url(
+              original_candidate.url,
+            );
+
+            if (local_candidate.kind === "local") {
+              continue;
+            }
+
+            if (local_candidate.kind === "static") {
+              kept.push(original_candidate);
+              continue;
+            }
+
+            const candidate =
+              local_candidate.kind === "proxied"
+                ? {
+                    url: local_candidate.inner,
+                    descriptor: original_candidate.descriptor,
+                  }
+                : original_candidate;
+
             if (!is_remote_url_value(candidate.url)) {
               kept.push(candidate);
               continue;
@@ -737,7 +855,7 @@ function sanitize_html_impl(
                     url: `${effective_proxy}?url=${encodeURIComponent(candidate.url)}`,
                     descriptor: candidate.descriptor,
                   }
-                : candidate,
+                : original_candidate,
             );
           }
 
@@ -747,7 +865,21 @@ function sanitize_html_impl(
 
           sanitized_value = serialize_srcset_value(kept);
         } else if (attr_lower === "background") {
-          if (is_remote_url_value(sanitized_value)) {
+          const local_background = classify_local_image_url(sanitized_value);
+          const original_background = sanitized_value;
+
+          if (local_background.kind === "local") {
+            continue;
+          }
+
+          if (local_background.kind === "proxied") {
+            sanitized_value = local_background.inner;
+          }
+
+          if (
+            local_background.kind !== "static" &&
+            is_remote_url_value(sanitized_value)
+          ) {
             external_content.has_remote_images = true;
             if (block_images) {
               external_content.blocked_count++;
@@ -759,6 +891,8 @@ function sanitize_html_impl(
             }
             if (effective_proxy) {
               sanitized_value = `${effective_proxy}?url=${encodeURIComponent(sanitized_value)}`;
+            } else {
+              sanitized_value = original_background;
             }
           }
         }
@@ -801,20 +935,27 @@ function sanitize_html_impl(
 
     if (tag_name === "img") {
       let src = new_element.getAttribute("src") || "";
+      const local_image = classify_local_image_url(src);
+
+      if (local_image.kind === "local") {
+        const alt = new_element.getAttribute("alt");
+
+        return alt ? document.createTextNode(alt) : null;
+      }
+
+      const original_local_src =
+        local_image.kind === "proxied" ? src : undefined;
+
+      if (local_image.kind === "proxied") {
+        src = local_image.inner;
+        new_element.setAttribute("src", src);
+      }
+
       const lower_src = src.toLowerCase().trim();
       const is_remote = is_remote_url_value(src);
       const is_data_url = lower_src.startsWith("data:");
       const is_pixel = is_tracking_pixel(new_element as HTMLImageElement);
-
-      let is_first_party = false;
-
-      if (is_remote && typeof window !== "undefined") {
-        try {
-          is_first_party = new URL(src).origin === window.location.origin;
-        } catch {
-          is_first_party = false;
-        }
-      }
+      const is_first_party = local_image.kind === "static";
 
       let proxy_source = src;
 
@@ -930,6 +1071,8 @@ function sanitize_html_impl(
             "src",
             `${effective_proxy}?url=${encodeURIComponent(proxy_source)}`,
           );
+        } else if (original_local_src) {
+          new_element.setAttribute("src", original_local_src);
         }
       }
     }

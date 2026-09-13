@@ -258,3 +258,95 @@ describe("plain http image sources", () => {
     expect(result.html).not.toMatch(/(?:^|\s)src="http:\/\//);
   });
 });
+
+describe("same-origin image sources", () => {
+  const PROXIED_TRACKER = `${PROXY}?url=${encodeURIComponent(TRACKER)}`;
+
+  it("blocks a pre-proxied tracker when remote images are blocked", () => {
+    const result = sanitize_html(
+      `${LEAD}<img src="${PROXIED_TRACKER}" width="200" height="100" alt="pic">`,
+      { external_content_mode: "never", image_proxy_url: PROXY },
+    );
+
+    expect(result.html).not.toContain(`src="${PROXY}`);
+    expect(result.external_content.has_remote_images).toBe(true);
+    expect(result.external_content.blocked_count).toBeGreaterThan(0);
+  });
+
+  it("blocks a pre-proxied tracker in lockdown mode", () => {
+    const result = sanitize_html(
+      `${LEAD}<img src="${PROXIED_TRACKER}" width="200" height="100" alt="pic">`,
+      {
+        external_content_mode: "always",
+        image_proxy_url: PROXY,
+        lockdown_mode: true,
+      },
+    );
+
+    expect(result.html).not.toContain(`src="${PROXY}`);
+    expect(result.external_content.blocked_count).toBeGreaterThan(0);
+  });
+
+  it("keeps a pre-proxied image loading through the proxy when auto-loading", () => {
+    const options = {
+      external_content_mode: "always" as const,
+      image_proxy_url: PROXY,
+    };
+    const first = sanitize_html(
+      `${LEAD}<img src="${PROXIED_TRACKER}" alt="pic">`,
+      options,
+    );
+    const second = sanitize_html(first.html, options);
+
+    expect(first.html).toContain(`src="${PROXIED_TRACKER}"`);
+    expect(second.html).toContain(`src="${PROXIED_TRACKER}"`);
+  });
+
+  it("keeps a pre-proxied image unchanged when no proxy is configured", () => {
+    const result = sanitize_html(
+      `${LEAD}<img src="${PROXIED_TRACKER}" alt="pic">`,
+      { external_content_mode: "always" },
+    );
+
+    expect(result.html).toContain(`src="${PROXIED_TRACKER}"`);
+  });
+
+  it("drops a relative image that points at an api endpoint", () => {
+    const result = sanitize_html(
+      `${LEAD}<img src="/api/mail/v1/messages/1/read" alt="receipt">`,
+      { external_content_mode: "always", image_proxy_url: PROXY },
+    );
+
+    expect(result.html).not.toContain("/api/mail");
+    expect(result.html).toContain("receipt");
+  });
+
+  it("keeps a relative static image asset", () => {
+    const result = sanitize_html(
+      `${LEAD}<img src="/text_logo.png" alt="logo">`,
+      { external_content_mode: "never", image_proxy_url: PROXY },
+    );
+
+    expect(result.html).toContain('src="/text_logo.png"');
+  });
+
+  it("drops a pre-proxied srcset candidate when remote images are blocked", () => {
+    const result = sanitize_html(
+      `${LEAD}<img src="/text_logo.png" srcset="${PROXIED_TRACKER} 2x" alt="pic">`,
+      { external_content_mode: "never", image_proxy_url: PROXY },
+    );
+
+    expect(result.html).not.toContain("srcset");
+    expect(result.external_content.blocked_count).toBeGreaterThan(0);
+  });
+
+  it("blocks a pre-proxied background attribute when remote images are blocked", () => {
+    const result = sanitize_html(
+      `${LEAD}<table><tr><td background="${PROXIED_TRACKER}">cell</td></tr></table>`,
+      { external_content_mode: "never", image_proxy_url: PROXY },
+    );
+
+    expect(result.html).not.toContain(PROXY);
+    expect(result.external_content.blocked_count).toBeGreaterThan(0);
+  });
+});

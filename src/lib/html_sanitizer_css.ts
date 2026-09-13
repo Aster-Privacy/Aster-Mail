@@ -307,6 +307,118 @@ export function strip_css_urls(
   );
 }
 
+const FONT_FACE_HEAD = /^@font-face\s*\{/i;
+
+const CSS_WHITESPACE = /\s/;
+
+const CSS_IDENT_CHARACTER = /[a-z0-9_-]/i;
+
+function find_font_face_ranges(css: string): Array<[number, number]> {
+  const ranges: Array<[number, number]> = [];
+  let depth = 0;
+  let open_start = -1;
+  let open_depth = 0;
+  let previous_significant = "";
+  let i = 0;
+
+  while (i < css.length) {
+    const character = css[i];
+
+    if (character === "\\") {
+      i += 2;
+      previous_significant = "x";
+      continue;
+    }
+
+    if (character === '"' || character === "'") {
+      i += 1;
+      while (i < css.length && css[i] !== character && css[i] !== "\n") {
+        i += css[i] === "\\" ? 2 : 1;
+      }
+      i += 1;
+      previous_significant = character;
+      continue;
+    }
+
+    if (
+      (character === "u" || character === "U") &&
+      (i === 0 || !CSS_IDENT_CHARACTER.test(css[i - 1])) &&
+      css.slice(i, i + 4).toLowerCase() === "url("
+    ) {
+      let j = i + 4;
+
+      while (j < css.length && CSS_WHITESPACE.test(css[j])) j++;
+
+      if (css[j] !== '"' && css[j] !== "'") {
+        while (j < css.length && css[j] !== ")") {
+          j += css[j] === "\\" ? 2 : 1;
+        }
+        i = j + 1;
+        previous_significant = ")";
+        continue;
+      }
+
+      i = j;
+      previous_significant = "(";
+      continue;
+    }
+
+    if (
+      character === "@" &&
+      open_start === -1 &&
+      (previous_significant === "" ||
+        previous_significant === "{" ||
+        previous_significant === "}" ||
+        previous_significant === ";")
+    ) {
+      const head = FONT_FACE_HEAD.exec(css.slice(i, i + 64));
+
+      if (head) {
+        open_start = i;
+        open_depth = depth;
+        depth += 1;
+        i += head[0].length;
+        previous_significant = "{";
+        continue;
+      }
+    }
+
+    if (character === "{") {
+      depth += 1;
+    } else if (character === "}") {
+      depth = Math.max(0, depth - 1);
+
+      if (open_start !== -1 && depth === open_depth) {
+        ranges.push([open_start, i + 1]);
+        open_start = -1;
+      }
+    }
+
+    if (!CSS_WHITESPACE.test(character)) previous_significant = character;
+    i += 1;
+  }
+
+  if (open_start !== -1) ranges.push([open_start, css.length]);
+
+  return ranges;
+}
+
+export function proxy_css_urls_outside_font_faces(
+  css: string,
+  image_proxy_url: string,
+): string {
+  let result = "";
+  let cursor = 0;
+
+  for (const [start, end] of find_font_face_ranges(css)) {
+    result += strip_css_urls(css.slice(cursor, start), { image_proxy_url });
+    result += css.slice(start, end);
+    cursor = end;
+  }
+
+  return result + strip_css_urls(css.slice(cursor), { image_proxy_url });
+}
+
 export function block_remote_fonts(css: string): string {
   let result = css;
   const pattern = /@font-face\s*\{/gi;

@@ -261,3 +261,80 @@ describe("remote css urls in sandboxed rendering", () => {
     expect(elapsed).toBeLessThan(4000);
   });
 });
+
+describe("remote css urls when remote content is allowed", () => {
+  const SAME_ORIGIN_PROXY = "/api/images/v1/proxy";
+  const PROXIED = `${SAME_ORIGIN_PROXY}?url=${encodeURIComponent(TRACKER)}`;
+  const FONT = "https://fonts.example.com/a.woff2";
+
+  const allowed_options = (): SanitizeOptions => ({
+    external_content_mode: "always",
+    sandbox_mode: true,
+    image_proxy_url: SAME_ORIGIN_PROXY,
+  });
+
+  it("routes head css url() through the proxy", () => {
+    const result = sanitize_html(
+      head_style_email(REMOTE_RULE),
+      allowed_options(),
+    );
+
+    expect(result.html).toContain(PROXIED);
+    expect(result.html).not.toContain(`url(${TRACKER}`);
+  });
+
+  it("routes body css url() through the proxy", () => {
+    const result = sanitize_html(
+      body_style_email(REMOTE_RULE),
+      allowed_options(),
+    );
+
+    expect(result.html).toContain(PROXIED);
+    expect(result.html).not.toContain(`url(${TRACKER}`);
+  });
+
+  it("routes inline style url() through the proxy", () => {
+    const result = sanitize_html(
+      inline_style_email(`background-image: url(${TRACKER})`),
+      allowed_options(),
+    );
+
+    expect(result.html).toContain(PROXIED);
+    expect(result.html).not.toContain(`url(${TRACKER}`);
+  });
+
+  it("leaves @font-face sources loading directly", () => {
+    const result = sanitize_html(
+      head_style_email(
+        `@font-face { font-family: brand; src: url(${FONT}); } ${REMOTE_RULE}`,
+      ),
+      allowed_options(),
+    );
+
+    expect(result.html).toContain(`url(${FONT})`);
+    expect(result.html).toContain(PROXIED);
+  });
+
+  it("does not treat @font-face inside a selector string as a font rule", () => {
+    const result = sanitize_html(
+      head_style_email(
+        `.a[title="@font-face{"] { background-image: url(${TRACKER}); }`,
+      ),
+      allowed_options(),
+    );
+
+    expect(result.html).not.toContain(`url(${TRACKER}`);
+  });
+
+  it("does not let a brace inside a font-face string hide later rules", () => {
+    const result = sanitize_html(
+      head_style_email(
+        `@font-face { font-family: "{"; src: url(${FONT}); } ${REMOTE_RULE}`,
+      ),
+      allowed_options(),
+    );
+
+    expect(result.html).not.toContain(`url(${TRACKER}`);
+    expect(result.html).toContain(PROXIED);
+  });
+});
