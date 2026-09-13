@@ -39,6 +39,7 @@ export interface CachedAttachmentMeta {
 }
 
 const MAX_CACHED_MAIL_ITEMS = 200;
+const MAX_META_BATCH_SIZE = 50;
 
 const meta_cache = new Map<string, CachedAttachmentMeta[]>();
 const meta_in_flight = new Map<string, Promise<void>>();
@@ -123,16 +124,23 @@ export function prefetch_attachment_meta(
   if (to_fetch.length > 0) {
     const task = (async () => {
       try {
-        const response = await batch_attachment_meta(to_fetch);
-        const items = response.data?.items;
+        for (
+          let offset = 0;
+          offset < to_fetch.length;
+          offset += MAX_META_BATCH_SIZE
+        ) {
+          const chunk = to_fetch.slice(offset, offset + MAX_META_BATCH_SIZE);
+          const response = await batch_attachment_meta(chunk);
+          const items = response.data?.items;
 
-        if (!items) return;
+          if (!items) continue;
 
-        for (const mail_item_id of to_fetch) {
-          const list = items[mail_item_id] ?? [];
-          const cached = await Promise.all(list.map(to_cached_meta));
+          for (const mail_item_id of chunk) {
+            const list = items[mail_item_id] ?? [];
+            const cached = await Promise.all(list.map(to_cached_meta));
 
-          store_cached_meta(mail_item_id, cached);
+            store_cached_meta(mail_item_id, cached);
+          }
         }
       } catch (caught) {
         ignore_error("services/attachment_meta_cache:task", caught);
