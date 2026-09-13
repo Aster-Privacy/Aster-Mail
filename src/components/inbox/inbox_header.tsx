@@ -19,8 +19,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { InboxFilterType } from "@/types/email";
+import type { AliasDirection } from "@/hooks/email_list_helpers/alias_view";
 
-import { useState, useEffect, type ReactNode } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ChevronDownIcon,
@@ -86,7 +87,7 @@ interface InboxHeaderProps {
   on_settings_click: () => void;
   on_quick_settings_click?: () => void;
   view_title: string;
-  title_accessory?: ReactNode;
+  alias_direction?: AliasDirection;
   on_compose?: () => void;
   active_filter?: InboxFilterType;
   on_filter_change?: (filter: InboxFilterType) => void;
@@ -155,7 +156,7 @@ export function InboxHeader({
   on_settings_click,
   on_quick_settings_click,
   view_title,
-  title_accessory,
+  alias_direction,
   on_compose: _on_compose,
   active_filter = "all",
   on_filter_change,
@@ -477,7 +478,6 @@ export function InboxHeader({
             </DropdownMenu>
           )}
 
-          {!has_selection && title_accessory}
         </div>
 
         {has_selection && (
@@ -903,6 +903,7 @@ export function InboxHeader({
             filter_slot={
               <FilterDropdown
                 active_filter={active_filter}
+                alias_direction={alias_direction}
                 on_filter_change={on_filter_change}
               />
             }

@@ -18,11 +18,16 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-
 import type { TranslationKey } from "@/lib/i18n/types";
 
 import { useSearchParams } from "react-router-dom";
+import { CheckIcon } from "@heroicons/react/24/outline";
 
+import {
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown_menu";
 import {
   ALIAS_DIRECTIONS,
   DEFAULT_ALIAS_DIRECTION,
@@ -30,22 +35,13 @@ import {
 } from "@/hooks/email_list_helpers/alias_view";
 import { use_i18n } from "@/lib/i18n/context";
 
-const SEGMENT_BASE_CLASS =
-  "inline-flex h-6 items-center justify-center rounded-full px-2.5 text-xs font-medium whitespace-nowrap transition-colors";
-
-const SEGMENT_ACTIVE_CLASS =
-  "bg-[var(--bg-primary)] text-[var(--text-primary)] shadow-sm";
-
-const SEGMENT_IDLE_CLASS =
-  "text-[var(--text-secondary)] hover:text-[var(--text-primary)]";
-
 const DIRECTION_LABEL_KEYS: Record<AliasDirection, TranslationKey> = {
   all: "mail.alias_direction_all",
   received: "mail.alias_direction_received",
   sent: "mail.alias_direction_sent",
 };
 
-export function AliasDirectionTabs({
+export function AliasDirectionMenuItems({
   direction,
 }: {
   direction: AliasDirection;
@@ -66,29 +62,21 @@ export function AliasDirectionTabs({
   };
 
   return (
-    <div
-      aria-label={t("mail.alias_direction_label")}
-      className="inline-flex shrink-0 items-center gap-0.5 rounded-full border border-[var(--border-secondary)] bg-[var(--bg-hover)] p-0.5"
-      data-testid="alias_direction_tabs"
-      role="tablist"
-    >
-      {ALIAS_DIRECTIONS.map((candidate) => {
-        const is_active = candidate === direction;
-
-        return (
-          <button
-            key={candidate}
-            aria-selected={is_active}
-            className={`${SEGMENT_BASE_CLASS} ${is_active ? SEGMENT_ACTIVE_CLASS : SEGMENT_IDLE_CLASS}`}
-            data-testid={`alias_direction_${candidate}`}
-            role="tab"
-            type="button"
-            onClick={() => select(candidate)}
-          >
-            {t(DIRECTION_LABEL_KEYS[candidate])}
-          </button>
-        );
-      })}
-    </div>
+    <>
+      <DropdownMenuLabel>{t("mail.alias_direction_label")}</DropdownMenuLabel>
+      {ALIAS_DIRECTIONS.map((candidate) => (
+        <DropdownMenuItem
+          key={candidate}
+          data-testid={`alias_direction_${candidate}`}
+          onClick={() => select(candidate)}
+        >
+          <span className="w-4 me-2">
+            {candidate === direction && <CheckIcon className="w-4 h-4" />}
+          </span>
+          {t(DIRECTION_LABEL_KEYS[candidate])}
+        </DropdownMenuItem>
+      ))}
+      <DropdownMenuSeparator />
+    </>
   );
 }

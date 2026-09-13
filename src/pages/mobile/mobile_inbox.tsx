@@ -85,7 +85,7 @@ import {
   build_alias_view,
   parse_alias_direction,
 } from "@/hooks/email_list_helpers/alias_view";
-import { AliasDirectionTabs } from "@/components/email/inbox/alias_direction_tabs";
+import { AliasDirectionMenuItems } from "@/components/email/inbox/alias_direction_menu_items";
 import { AliasIndexingNotice } from "@/components/email/inbox/alias_indexing_notice";
 import { use_sender_alias_backfill } from "@/hooks/use_sender_alias_backfill";
 import { use_auth } from "@/contexts/auth/use_auth_hook";
@@ -987,7 +987,8 @@ function MobileInbox({
                 <DropdownMenuTrigger asChild>
                   <button
                     className={`flex h-11 w-11 items-center justify-center rounded-full ${
-                      active_filter !== "all"
+                      active_filter !== "all" ||
+                      (alias_address && alias_direction !== "all")
                         ? "text-blue-500"
                         : "text-[var(--text-secondary)]"
                     } active:bg-[var(--bg-tertiary)]`}
@@ -997,6 +998,9 @@ function MobileInbox({
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
+                  {alias_address && (
+                    <AliasDirectionMenuItems direction={alias_direction} />
+                  )}
                   <DropdownMenuLabel>{t("mail.filter")}</DropdownMenuLabel>
                   <DropdownMenuItem onClick={() => set_active_filter("all")}>
                     <span className="w-4 me-2">
@@ -1044,11 +1048,6 @@ function MobileInbox({
             </>
           }
           title={view_title}
-          title_accessory={
-            alias_address && !selection_mode ? (
-              <AliasDirectionTabs direction={alias_direction} />
-            ) : undefined
-          }
         />
       )}
 
