@@ -68,7 +68,17 @@ function deferred<T>() {
 }
 
 describe("special_offer_status account scoping", () => {
+  it("skips the request while the offer is disabled at build time", async () => {
+    vi.stubEnv("VITE_SPECIAL_OFFER_ENABLED", "false");
+
+    await load_special_offer_status("user-1");
+
+    expect(api.fetch_special_offer_status).not.toHaveBeenCalled();
+    expect(get_special_offer_status_snapshot().is_loaded).toBe(false);
+  });
+
   beforeEach(() => {
+    vi.stubEnv("VITE_SPECIAL_OFFER_ENABLED", "true");
     reset_special_offer_status();
     vi.clearAllMocks();
   });
@@ -159,6 +169,7 @@ describe("special_offer_status account scoping", () => {
 
 describe("record_special_offer_accepted", () => {
   beforeEach(() => {
+    vi.stubEnv("VITE_SPECIAL_OFFER_ENABLED", "true");
     reset_special_offer_status();
     vi.clearAllMocks();
   });

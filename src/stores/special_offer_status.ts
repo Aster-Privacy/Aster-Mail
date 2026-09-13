@@ -42,6 +42,10 @@ const empty_state: SpecialOfferStatusState = {
   user_id: null,
 };
 
+function is_special_offer_enabled(): boolean {
+  return import.meta.env.VITE_SPECIAL_OFFER_ENABLED === "true";
+}
+
 let current: SpecialOfferStatusState = empty_state;
 let in_flight: { user_id: string; promise: Promise<void> } | null = null;
 let generation = 0;
@@ -83,6 +87,8 @@ export function load_special_offer_status(
   user_id: string,
   force = false,
 ): Promise<void> {
+  if (!is_special_offer_enabled()) return Promise.resolve();
+
   if (!force && in_flight && in_flight.user_id === user_id) {
     return in_flight.promise;
   }
