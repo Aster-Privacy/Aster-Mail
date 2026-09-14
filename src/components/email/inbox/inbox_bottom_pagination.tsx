@@ -22,6 +22,7 @@ import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 
 import { Input } from "@/components/ui/input";
+import { use_i18n } from "@/lib/i18n/context";
 
 interface BottomPaginationProps {
   current_page: number;
@@ -34,6 +35,7 @@ export function BottomPagination({
   total_pages,
   on_page_change,
 }: BottomPaginationProps) {
+  const { t } = use_i18n();
   const [editing_idx, set_editing_idx] = useState<number | null>(null);
   const [input_value, set_input_value] = useState("");
   const input_ref = useRef<HTMLInputElement>(null);
@@ -85,7 +87,9 @@ export function BottomPagination({
     <div className="flex items-center justify-center gap-1 py-3 border-t border-edge-primary">
       <button
         className="flex items-center justify-center w-8 h-8 rounded-[8px] text-txt-muted hover:text-txt-primary hover:bg-black/[0.04] dark:hover:bg-white/[0.06] disabled:opacity-30 disabled:cursor-default transition-colors"
+        aria-label={t("common.previous")}
         disabled={current_page === 0}
+        type="button"
         onClick={() => on_page_change(current_page - 1)}
       >
         <ChevronLeftIcon className="w-4 h-4 rtl:-scale-x-100" />
@@ -116,6 +120,7 @@ export function BottomPagination({
             <button
               key={`e-${idx}`}
               className="flex items-center justify-center w-8 h-8 rounded-[8px] text-sm text-txt-muted hover:text-txt-primary hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors"
+              type="button"
               onClick={() => set_editing_idx(idx)}
             >
               ...
@@ -124,7 +129,9 @@ export function BottomPagination({
         ) : (
           <button
             key={item}
+            aria-current={item === current_page ? "page" : undefined}
             className={`flex items-center justify-center min-w-[32px] h-8 px-1 rounded-[12px] text-sm font-medium transition-colors ${item === current_page ? "bg-[rgba(128,128,128,0.1)] text-txt-primary" : "text-txt-muted hover:text-txt-primary hover:bg-black/[0.04] dark:hover:bg-white/[0.06]"}`}
+            type="button"
             onClick={() => {
               if (item !== current_page) on_page_change(item);
             }}
@@ -135,7 +142,9 @@ export function BottomPagination({
       )}
       <button
         className="flex items-center justify-center w-8 h-8 rounded-[8px] text-txt-muted hover:text-txt-primary hover:bg-black/[0.04] dark:hover:bg-white/[0.06] disabled:opacity-30 disabled:cursor-default transition-colors"
+        aria-label={t("common.next")}
         disabled={current_page >= total_pages - 1}
+        type="button"
         onClick={() => on_page_change(current_page + 1)}
       >
         <ChevronRightIcon className="w-4 h-4 rtl:-scale-x-100" />

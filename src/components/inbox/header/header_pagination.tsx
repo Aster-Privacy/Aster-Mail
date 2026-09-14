@@ -121,7 +121,10 @@ export function HeaderPagination({
         )
       ) : (
         <Tooltip
-          tip={`${t("common.page")} ${current_page + 1} ${t("common.of")} ${Math.max(total_pages, 1)}`}
+          tip={t("mail.page_of_total", {
+            current: current_page + 1,
+            total: Math.max(total_pages, 1),
+          })}
         >
           <span
             aria-label={`${range_start}-${range_end} ${t("common.of")} ${filtered_count}`}
