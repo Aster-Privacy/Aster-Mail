@@ -30,7 +30,11 @@ import {
 import { use_i18n } from "@/lib/i18n/context";
 import { FULL_MAILBOX_ITEM_CAP } from "@/services/bulk_mail_scan";
 import { show_toast } from "@/components/toast/simple_toast";
-import { emit_mail_soft_refresh } from "@/hooks/mail_events";
+import {
+  emit_mail_item_updated,
+  emit_mail_soft_refresh,
+} from "@/hooks/mail_events";
+import { clear_read_intent } from "@/services/read_intent";
 
 export const QUICK_ACTION_CONFIRM_KEYS: Record<
   string,
@@ -67,13 +71,30 @@ export function notify_scan_truncated(
 }
 
 export async function mark_all_read_by_scope(t: Translate): Promise<void> {
+  const locally_read_ids = set_all_indexed_read(true);
+
+  for (const id of locally_read_ids) {
+    emit_mail_item_updated({ id, is_read: true });
+  }
+  if (locally_read_ids.length > 0) {
+    adjust_stats_unread(-locally_read_ids.length);
+  }
+
   const res = await bulk_action_by_scope({
     action: "mark_read",
     scope: { item_type: "received", is_trashed: false },
-  });
+  }).catch(() => null);
 
-  if (res.error || !res.data) {
-    show_toast(res.error || t("common.something_went_wrong"), "error");
+  if (!res || res.error || !res.data) {
+    set_ids_read(locally_read_ids, false);
+    clear_read_intent(locally_read_ids, false);
+    for (const id of locally_read_ids) {
+      emit_mail_item_updated({ id, is_read: false });
+    }
+    if (locally_read_ids.length > 0) {
+      adjust_stats_unread(locally_read_ids.length);
+    }
+    show_toast(res?.error || t("common.something_went_wrong"), "error");
 
     return;
   }
@@ -81,16 +102,14 @@ export async function mark_all_read_by_scope(t: Translate): Promise<void> {
   const { batch_id, affected_count, undoable, completed } = res.data;
   const finished = completed !== false;
 
-  const locally_read_ids = set_all_indexed_read(true);
-
   if (affected_count === 0 && locally_read_ids.length === 0) {
     show_toast(t("common.no_unread_emails"), "info");
 
     return;
   }
 
-  if (affected_count > 0) {
-    adjust_stats_unread(-affected_count);
+  if (affected_count > locally_read_ids.length) {
+    adjust_stats_unread(locally_read_ids.length - affected_count);
   }
   stale_all_view_caches();
   invalidate_mail_stats();
