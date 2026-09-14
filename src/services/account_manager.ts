@@ -55,6 +55,23 @@ async function clear_offline_email_cache(): Promise<void> {
   }
 }
 
+async function clear_account_session_material(
+  account_id: string,
+): Promise<void> {
+  try {
+    const { clear_session_passphrase, clear_stored_encrypted_vault } =
+      await import("@/contexts/auth/session_passphrase");
+
+    clear_stored_encrypted_vault(account_id);
+    await clear_session_passphrase(account_id);
+  } catch (caught) {
+    ignore_error(
+      "services/account_manager:clear_account_session_material",
+      caught,
+    );
+  }
+}
+
 const ACCOUNTS_KEY = "astermail_accounts_v6";
 const LEGACY_ACCOUNTS_KEY = "astermail_accounts_v5";
 const SWITCH_TOKEN_KEY_PREFIX = "astermail_switch_token_";
@@ -659,6 +676,7 @@ export async function remove_account(
   }
 
   await save_accounts_data(data);
+  await clear_account_session_material(account_id);
   await clear_offline_email_cache();
   await clear_account_scoped_preferences_cache();
   await clear_account_scoped_contact_index();
