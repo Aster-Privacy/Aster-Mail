@@ -26,6 +26,7 @@ import { mark_conversation_read } from "@/hooks/mark_conversation_read";
 import { update_item_metadata } from "@/services/crypto/mail_metadata";
 import { list_mail_items } from "@/services/api/mail";
 import {
+  clear_all_read_intents,
   clear_read_intent,
   get_read_intent,
   note_read_intent,
@@ -53,6 +54,67 @@ export interface OpenedMailOptions {
   delay: OpenedMailReadDelay | undefined;
   conversation_grouping?: boolean;
   row?: OpenedMailRow | null;
+}
+
+interface MetadataFields {
+  encrypted_metadata: string;
+  metadata_nonce: string;
+  metadata_version?: number;
+}
+
+interface PendingOpen {
+  counted: boolean;
+  at: number;
+  reverted: boolean;
+  saved: MetadataFields | null;
+}
+
+const OPEN_REVERT_WINDOW_MS = 30_000;
+const PENDING_OPEN_CAP = 200;
+
+const pending_opens = new Map<string, PendingOpen>();
+let open_scope = 0;
+
+export function current_opened_mail_scope(): number {
+  return open_scope;
+}
+
+export function reset_opened_mail_scope(): void {
+  open_scope += 1;
+  pending_opens.clear();
+  clear_all_read_intents();
+}
+
+function track_pending_open(id: string, pending: PendingOpen): void {
+  pending_opens.delete(id);
+  pending_opens.set(id, pending);
+
+  while (pending_opens.size > PENDING_OPEN_CAP) {
+    const oldest = pending_opens.keys().next().value;
+
+    if (oldest === undefined) break;
+    pending_opens.delete(oldest);
+  }
+}
+
+export function revert_user_opened_mail(id: string): boolean {
+  const pending = pending_opens.get(id);
+
+  if (!pending) return false;
+  pending_opens.delete(id);
+  if (Date.now() - pending.at > OPEN_REVERT_WINDOW_MS) return false;
+
+  pending.reverted = true;
+  revert_opened_mail(id, pending.counted);
+  if (pending.saved) write_unread(id, pending.saved);
+
+  return true;
+}
+
+function write_unread(id: string, fields: MetadataFields): void {
+  void update_item_metadata(id, fields, { is_read: false }).catch(
+    () => undefined,
+  );
 }
 
 export function find_cached_mail_row(id: string): OpenedMailRow | undefined {
@@ -96,18 +158,43 @@ export function on_user_opened_mail(
   };
   const counted = is_received && read_clears_conversation(conversation_options);
 
+  const scope = open_scope;
+  const pending: PendingOpen = {
+    counted,
+    at: Date.now(),
+    reverted: false,
+    saved: null,
+  };
+
+  track_pending_open(id, pending);
   note_read_intent([id], true);
   if (counted) adjust_stats_unread(-1);
   emit_mail_item_updated({ id, is_read: true });
 
   void resolve_encrypted_fields(row)
-    .then((fields) => {
-      if (!fields) return { success: false, encrypted: undefined };
+    .then(async (fields) => {
+      if (!fields) return { success: false, fields, encrypted: undefined };
 
-      return update_item_metadata(id, fields, { is_read: true });
+      const result = await update_item_metadata(id, fields, { is_read: true });
+
+      return { ...result, fields };
     })
     .then((result) => {
+      if (scope !== open_scope) return;
       if (result.success) {
+        const saved: MetadataFields = result.encrypted
+          ? {
+              encrypted_metadata: result.encrypted.encrypted_metadata,
+              metadata_nonce: result.encrypted.metadata_nonce,
+            }
+          : (result.fields as MetadataFields);
+
+        if (pending.reverted) {
+          write_unread(id, saved);
+
+          return;
+        }
+        pending.saved = saved;
         emit_mail_item_updated({
           id,
           is_read: true,
@@ -118,18 +205,26 @@ export function on_user_opened_mail(
 
         return;
       }
-      revert_opened_mail(id, counted);
+      settle_failed_open(id, pending);
     })
-    .catch(() => revert_opened_mail(id, counted));
+    .catch(() => {
+      if (scope !== open_scope) return;
+      settle_failed_open(id, pending);
+    });
 
   return true;
 }
 
-async function resolve_encrypted_fields(row: OpenedMailRow): Promise<{
-  encrypted_metadata: string;
-  metadata_nonce: string;
-  metadata_version?: number;
-} | null> {
+function settle_failed_open(id: string, pending: PendingOpen): void {
+  if (pending_opens.get(id) === pending) pending_opens.delete(id);
+  if (pending.reverted) return;
+  pending.reverted = true;
+  revert_opened_mail(id, pending.counted);
+}
+
+async function resolve_encrypted_fields(
+  row: OpenedMailRow,
+): Promise<MetadataFields | null> {
   if (row.encrypted_metadata && row.metadata_nonce) {
     return {
       encrypted_metadata: row.encrypted_metadata,

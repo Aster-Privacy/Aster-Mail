@@ -53,6 +53,10 @@ import { use_preferences } from "@/contexts/preferences_context";
 import { use_i18n } from "@/lib/i18n/context";
 import { adjust_stats_unread } from "@/hooks/use_mail_stats";
 import { get_read_intent } from "@/services/read_intent";
+import {
+  current_opened_mail_scope,
+  revert_user_opened_mail,
+} from "@/services/user_opened_mail";
 import { read_clears_conversation } from "@/hooks/unread_read_delta";
 import { mark_conversation_read } from "@/hooks/mark_conversation_read";
 import { use_date_format } from "@/hooks/use_date_format";
@@ -346,6 +350,7 @@ export function use_popup_viewer({
           acted_id: mail_data.id,
         };
         const owned = get_read_intent(current_email_id) !== true;
+        const scope = current_opened_mail_scope();
         const clears_conversation =
           owned && read_clears_conversation(conversation_options);
 
@@ -366,6 +371,7 @@ export function use_popup_viewer({
           { is_read: true },
         );
 
+        if (scope !== current_opened_mail_scope()) return;
         if (result.success) {
           set_is_read(true);
           if (result.encrypted) {
@@ -518,6 +524,7 @@ export function use_popup_viewer({
 
     if (response.error) {
       requested_email_id_ref.current = null;
+      if (!is_same_email) revert_user_opened_mail(email_id);
       set_error(response.error);
 
       return;

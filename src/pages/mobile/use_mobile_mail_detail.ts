@@ -42,6 +42,7 @@ import { get_aster_footer } from "@/components/compose/compose_shared";
 import { update_item_metadata } from "@/services/crypto/mail_metadata";
 import { emit_mail_item_updated } from "@/hooks/mail_events";
 import { get_read_intent } from "@/services/read_intent";
+import { current_opened_mail_scope } from "@/services/user_opened_mail";
 import { preload_email_detail } from "@/components/email/hooks/use_email_detail";
 import { haptic_impact } from "@/native/haptic_feedback";
 import { block_sender } from "@/services/api/blocked_senders";
@@ -270,6 +271,7 @@ export function use_mobile_mail_detail() {
       });
 
       const owned = get_read_intent(msg.id) !== true;
+      const scope = current_opened_mail_scope();
 
       if (owned) {
         emit_mail_item_updated({ id: msg.id, is_read: true });
@@ -283,6 +285,7 @@ export function use_mobile_mail_detail() {
         },
         { is_read: true },
       ).then((result) => {
+        if (scope !== current_opened_mail_scope()) return;
         if (!result.success) {
           set_read_ids((prev) => {
             const next = new Set(prev);

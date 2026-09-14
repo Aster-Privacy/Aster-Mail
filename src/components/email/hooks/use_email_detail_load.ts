@@ -63,7 +63,11 @@ import {
 } from "@/services/locked_folders";
 import { adjust_stats_unread } from "@/hooks/use_mail_stats";
 import { get_read_intent } from "@/services/read_intent";
-import { on_user_opened_mail } from "@/services/user_opened_mail";
+import {
+  current_opened_mail_scope,
+  on_user_opened_mail,
+  revert_user_opened_mail,
+} from "@/services/user_opened_mail";
 import { read_clears_conversation } from "@/hooks/unread_read_delta";
 import { mark_conversation_read } from "@/hooks/mark_conversation_read";
 import { use_document_title } from "@/hooks/use_document_title";
@@ -387,7 +391,9 @@ export function use_email_detail_load() {
 
     set_error(null);
 
-    if (tracked_email_id.current !== email_id) {
+    const is_new_open = tracked_email_id.current !== email_id;
+
+    if (is_new_open) {
       tracked_email_id.current = email_id;
       on_user_opened_mail(email_id, {
         delay: mark_as_read_delay_ref.current,
@@ -441,6 +447,7 @@ export function use_email_detail_load() {
             acted_id: email_id,
           };
           const owned = get_read_intent(email_id) !== true;
+          const scope = current_opened_mail_scope();
           const clears_conversation =
             owned && read_clears_conversation(conversation_options);
 
@@ -462,6 +469,7 @@ export function use_email_detail_load() {
             },
             { is_read: true },
           ).then((result) => {
+            if (scope !== current_opened_mail_scope()) return;
             if (result.success) {
               if (!owned) return;
               emit_mail_item_updated({
@@ -606,15 +614,17 @@ export function use_email_detail_load() {
 
         if (is_stale()) return;
 
+        if (is_new_open) revert_user_opened_mail(email_id);
+
         set_error(t("common.email_in_locked_folder"));
         set_is_loading(false);
 
         return;
       }
 
-
       if (is_stale()) return;
 
+      if (is_new_open) revert_user_opened_mail(email_id);
       set_error(response.error);
       set_is_loading(false);
 
@@ -637,6 +647,8 @@ export function use_email_detail_load() {
             request_folder_unlock(mail_folder.token);
 
             if (is_stale()) return;
+
+            if (is_new_open) revert_user_opened_mail(email_id);
 
             set_error(t("common.email_in_locked_folder"));
             set_is_loading(false);
@@ -685,6 +697,7 @@ export function use_email_detail_load() {
             acted_id: email_id,
           };
           const owned = get_read_intent(email_id) !== true;
+          const scope = current_opened_mail_scope();
           const clears_conversation =
             owned && read_clears_conversation(conversation_options);
 
@@ -706,6 +719,7 @@ export function use_email_detail_load() {
             },
             { is_read: true },
           ).then((result) => {
+            if (scope !== current_opened_mail_scope()) return;
             if (result.success) {
               if (!owned) return;
               emit_mail_item_updated({
