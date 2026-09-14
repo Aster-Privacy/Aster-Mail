@@ -58,10 +58,14 @@ const APP_NAVIGATION_SUFFIXES: &[&str] = &[
     ".astermail.com",
     ".stripe.com",
     ".stripe.network",
-    ".onion",
 ];
 
-const INTERNAL_SCHEMES: &[&str] = &["about", "blob", "data", "tauri", "asset", "ipc", "file"];
+const APP_ONION_HOSTS: &[&str] = &[
+    "asterwkopxf427ndjpgco5swerhivljvwcsggsxmfgmve4awbahpcrqd.onion",
+    "asterabf3d5xhqtphx5u462oegteygodgae5y542vmcai22ipkd3ojqd.onion",
+];
+
+const INTERNAL_SCHEMES: &[&str] = &["about", "blob", "tauri", "asset", "ipc"];
 
 const FORWARDED_SCHEMES: &[&str] = &["http", "https", "mailto", "aster"];
 
@@ -80,6 +84,7 @@ fn is_app_navigation(url: &Url) -> bool {
     let host = host.to_ascii_lowercase();
 
     APP_NAVIGATION_HOSTS.iter().any(|entry| host == *entry)
+        || APP_ONION_HOSTS.iter().any(|entry| host == *entry)
         || APP_NAVIGATION_SUFFIXES
             .iter()
             .any(|suffix| host.ends_with(suffix))
@@ -607,4 +612,40 @@ fn main() {
             #[cfg(not(target_os = "macos"))]
             let _ = (app, event);
         });
+}
+
+#[cfg(test)]
+mod navigation_tests {
+    use super::*;
+
+    fn allowed(url: &str) -> bool {
+        is_app_navigation(&Url::parse(url).expect("valid url"))
+    }
+
+    #[test]
+    fn keeps_app_and_payment_hosts() {
+        assert!(allowed("tauri://localhost/inbox"));
+        assert!(allowed("http://tauri.localhost/inbox"));
+        assert!(allowed("https://app.astermail.org/api"));
+        assert!(allowed("https://js.stripe.com/v3"));
+        assert!(allowed("https://challenges.cloudflare.com/turnstile"));
+        assert!(allowed("about:srcdoc"));
+        assert!(allowed("blob:http://tauri.localhost/0f4c"));
+    }
+
+    #[test]
+    fn keeps_first_party_onion_hosts() {
+        for host in APP_ONION_HOSTS {
+            assert!(allowed(&format!("http://{host}/")));
+        }
+    }
+
+    #[test]
+    fn rejects_local_files_data_documents_and_other_onions() {
+        assert!(!allowed("file:///etc/passwd"));
+        assert!(!allowed("data:text/html,<p>hi</p>"));
+        assert!(!allowed("http://exampleexampleexampleexampleexampleexampleexampleexam.onion/"));
+        assert!(!allowed("https://astermail.org.example.com/"));
+        assert!(!allowed("https://example.com/"));
+    }
 }
