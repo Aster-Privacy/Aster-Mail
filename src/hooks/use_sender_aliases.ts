@@ -184,7 +184,7 @@ export function use_sender_aliases() {
       return;
     }
 
-    set_loading(true);
+    if (!cache_populated) set_loading(true);
 
     try {
       const resolved_user = primary_user ?? cached_user;

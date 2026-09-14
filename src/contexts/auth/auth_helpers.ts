@@ -47,6 +47,7 @@ import { clear_scheduled_cache } from "@/hooks/use_scheduled_emails";
 import { clear_recovery_email_cache } from "@/services/api/recovery_email";
 import { clear_preferences_cache } from "@/services/api/preferences";
 import { clear_category_index_memory } from "@/services/category_index";
+import { reset_opened_mail_scope } from "@/services/user_opened_mail";
 import { clear_profiles_cache } from "@/services/api/profiles";
 import { clear_unsubscribed_senders_cache } from "@/hooks/use_unsubscribed_senders";
 import { clear_removed_items } from "@/services/removed_items";
@@ -75,6 +76,7 @@ export async function clear_account_scoped_caches(): Promise<void> {
   clear_preferred_sender_local();
   clear_preferences_cache();
   clear_category_index_memory();
+  reset_opened_mail_scope();
   clear_undo_send_state();
   clear_sender_aliases_cache();
   clear_persisted_draft_deletes();

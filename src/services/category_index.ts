@@ -68,6 +68,7 @@ import {
   clear_all_read_intents,
   get_read_intent,
   note_read_intent,
+  scope_read_applies,
 } from "@/services/read_intent";
 
 import { is_recently_removed } from "@/services/removed_items";
@@ -787,7 +788,9 @@ function apply_upsert(
       }
     }
 
-    const intended = get_read_intent(raw.id);
+    const intended =
+      get_read_intent(raw.id) ??
+      (scope_read_applies(raw.message_ts) ? true : undefined);
 
     if (intended !== undefined && entry.is_read !== intended) {
       entry = { ...entry, is_read: intended };

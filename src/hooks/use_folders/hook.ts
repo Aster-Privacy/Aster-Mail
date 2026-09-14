@@ -100,7 +100,7 @@ export function use_folders(): UseFoldersReturn {
         !get_vault_from_memory()?.identity_key
       ) {
         set_state((prev) =>
-          prev.is_loading && prev.error === null
+          prev.folders.length > 0 || (prev.is_loading && prev.error === null)
             ? prev
             : { ...prev, is_loading: true, error: null },
         );
