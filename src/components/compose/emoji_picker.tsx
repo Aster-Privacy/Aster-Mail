@@ -20,10 +20,12 @@
 //
 import type { TranslationKey } from "@/lib/i18n/types";
 
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useRef, useEffect, useMemo, useId } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 
 import { Input } from "@/components/ui/input";
 import { use_i18n } from "@/lib/i18n/context";
+import { use_should_reduce_motion } from "@/provider";
 import {
   emoji_categories,
   search_emojis,
@@ -47,6 +49,8 @@ const CATEGORY_LABEL_KEYS: Record<string, TranslationKey> = {
   flags: "common.emoji_flags",
 };
 const SKIN_TONE_STORAGE_KEY = "aster_emoji_skin_tone";
+
+const EASE_STANDARD = [0.2, 0, 0, 1] as const;
 
 const emoji_support_cache = new Map<string, boolean>();
 let support_canvas: HTMLCanvasElement | null = null;
@@ -110,8 +114,19 @@ function load_skin_tone(): SkinTone {
   return "default";
 }
 
+function category_label(
+  key: string,
+  t: (key: TranslationKey) => string,
+): string {
+  const label_key = CATEGORY_LABEL_KEYS[key];
+
+  return label_key ? t(label_key) : emoji_categories[key].label;
+}
+
 function EmojiPicker({ on_select }: { on_select: (emoji: string) => void }) {
   const { t } = use_i18n();
+  const reduce_motion = use_should_reduce_motion();
+  const indicator_id = useId();
   const [active_category, set_active_category] = useState(CATEGORY_KEYS[0]);
   const [search_query, set_search_query] = useState("");
   const [skin_tone, set_skin_tone] = useState<SkinTone>(load_skin_tone);
@@ -149,12 +164,20 @@ function EmojiPicker({ on_select }: { on_select: (emoji: string) => void }) {
     input_ref.current?.focus();
   }, []);
 
+  const fade = reduce_motion
+    ? { duration: 0 }
+    : { duration: 0.16, ease: EASE_STANDARD };
+  const grid_key = search_query ? "search" : active_category;
+  const section_label = search_query
+    ? null
+    : category_label(active_category, t);
+
   return (
     <div
-      className="rounded-2xl shadow-xl border w-[296px] max-w-[calc(100vw-16px)] bg-modal-bg border-edge-primary"
+      className="w-[320px] max-w-[calc(100vw-16px)] rounded-2xl border border-edge-primary bg-modal-bg shadow-xl"
       onMouseDown={(e) => e.preventDefault()}
     >
-      <div className="p-2.5 pb-2 flex items-center gap-1.5">
+      <div className="flex items-center gap-1 px-3 pt-3 pb-2">
         <Input
           ref={input_ref}
           className="flex-1 bg-transparent"
@@ -167,80 +190,133 @@ function EmojiPicker({ on_select }: { on_select: (emoji: string) => void }) {
         />
         <div className="relative flex-shrink-0">
           <button
-            className={`press_scale w-8 h-8 flex items-center justify-center rounded-full text-base cursor-pointer transition-transform duration-150 ${show_tones ? "bg-black/10 dark:bg-white/15" : "hover:bg-black/5 dark:hover:bg-white/10"}`}
+            aria-expanded={show_tones}
+            aria-label={t("common.skin_tone")}
+            className="flex h-8 w-8 cursor-pointer items-center justify-center text-lg leading-none transition-transform duration-150 hover:scale-110 active:scale-90"
             title={t("common.skin_tone")}
             type="button"
             onClick={() => set_show_tones(!show_tones)}
           >
             {skin_tone_swatches[skin_tone]}
           </button>
-          {show_tones && (
-            <div className="absolute end-0 top-full mt-1 z-10 flex gap-0.5 p-1 rounded-full border shadow-lg bg-modal-bg border-edge-primary">
-              {skin_tones.map((tone) => (
-                <button
-                  key={tone}
-                  className={`press_scale w-7 h-7 flex items-center justify-center rounded-full text-sm cursor-pointer transition-transform duration-150 ${skin_tone === tone ? "bg-black/10 dark:bg-white/15" : "hover:bg-black/5 dark:hover:bg-white/10"}`}
-                  type="button"
-                  onClick={() => select_skin_tone(tone)}
-                >
-                  {skin_tone_swatches[tone]}
-                </button>
-              ))}
-            </div>
-          )}
+          <AnimatePresence>
+            {show_tones && (
+              <motion.div
+                animate={{ opacity: 1, scale: 1 }}
+                className="absolute end-0 top-full z-10 mt-1 flex gap-0.5 rounded-full border border-edge-primary bg-modal-bg p-1 shadow-lg"
+                exit={{ opacity: 0, scale: 0.94 }}
+                initial={reduce_motion ? false : { opacity: 0, scale: 0.94 }}
+                style={{ transformOrigin: "top right" }}
+                transition={fade}
+              >
+                {skin_tones.map((tone) => (
+                  <button
+                    key={tone}
+                    aria-pressed={skin_tone === tone}
+                    className={`relative flex h-7 w-7 cursor-pointer items-center justify-center text-base leading-none transition-[transform,opacity] duration-150 hover:scale-110 active:scale-90 ${skin_tone === tone ? "opacity-100" : "opacity-70 hover:opacity-100"}`}
+                    type="button"
+                    onClick={() => select_skin_tone(tone)}
+                  >
+                    {skin_tone_swatches[tone]}
+                    {skin_tone === tone && (
+                      <span className="absolute -bottom-0.5 h-1 w-1 rounded-full bg-blue-500" />
+                    )}
+                  </button>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
 
       {!search_query && (
-        <div className="flex px-1.5 pb-1.5 gap-0.5 justify-between border-b border-edge-secondary">
-          {CATEGORY_KEYS.map((key) => (
-            <button
-              key={key}
-              className={`press_scale w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-full cursor-pointer transition-transform duration-150 ${active_category === key ? "bg-black/10 dark:bg-white/15" : "opacity-55 hover:opacity-100 hover:bg-black/5 dark:hover:bg-white/10"}`}
-              title={
-                CATEGORY_LABEL_KEYS[key]
-                  ? t(CATEGORY_LABEL_KEYS[key])
-                  : emoji_categories[key].label
-              }
-              type="button"
-              onClick={() => {
-                set_active_category(key);
-                set_search_query("");
-              }}
-            >
-              <span className="text-sm leading-none">
-                {emoji_categories[key].icon}
-              </span>
-            </button>
-          ))}
+        <div
+          className="grid grid-cols-9 border-b border-edge-secondary px-2"
+          role="tablist"
+        >
+          {CATEGORY_KEYS.map((key) => {
+            const is_active = active_category === key;
+
+            return (
+              <button
+                key={key}
+                aria-label={category_label(key, t)}
+                aria-selected={is_active}
+                className="group relative flex h-9 cursor-pointer items-center justify-center"
+                role="tab"
+                title={category_label(key, t)}
+                type="button"
+                onClick={() => {
+                  set_active_category(key);
+                  set_search_query("");
+                }}
+              >
+                <span
+                  className={`text-base leading-none transition-[opacity,transform,filter] duration-150 group-hover:scale-110 group-active:scale-90 ${is_active ? "opacity-100" : "opacity-50 grayscale group-hover:opacity-90 group-hover:grayscale-0"}`}
+                >
+                  {emoji_categories[key].icon}
+                </span>
+                {is_active && (
+                  <motion.span
+                    className="absolute inset-x-1.5 -bottom-px h-0.5 rounded-full bg-blue-500"
+                    layoutId={`${indicator_id}_emoji_tab`}
+                    transition={
+                      reduce_motion
+                        ? { duration: 0 }
+                        : { type: "spring", stiffness: 520, damping: 40 }
+                    }
+                  />
+                )}
+              </button>
+            );
+          })}
         </div>
       )}
 
       <div
         ref={grid_ref}
-        className="grid grid-cols-8 gap-0.5 p-2 max-h-[216px] overflow-y-auto scrollbar-hide"
+        className="h-[248px] overflow-y-auto overscroll-contain scrollbar-hide px-2 pb-2"
       >
-        {current_entries.map((entry, index) => {
-          const toned = apply_skin_tone(entry.emoji, skin_tone);
+        <AnimatePresence initial={false} mode="wait">
+          <motion.div
+            key={grid_key}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0, transition: { duration: reduce_motion ? 0 : 0.06 } }}
+            initial={{ opacity: 0 }}
+            transition={fade}
+          >
+            {section_label && (
+              <p className="px-1 pt-2.5 pb-1.5 text-[11px] font-medium text-txt-muted">
+                {section_label}
+              </p>
+            )}
+            {current_entries.length > 0 ? (
+              <div
+                className={`grid grid-cols-8 ${section_label ? "" : "pt-2"}`}
+              >
+                {current_entries.map((entry, index) => {
+                  const toned = apply_skin_tone(entry.emoji, skin_tone);
 
-          return (
-            <button
-              key={`${active_category}-${index}`}
-              className="w-8 h-8 flex items-center justify-center rounded-lg text-xl cursor-pointer transition-transform duration-100 hover:bg-black/5 dark:hover:bg-white/10 hover:scale-110 active:scale-95"
-              type="button"
-              onClick={() => on_select(toned)}
-            >
-              {toned}
-            </button>
-          );
-        })}
+                  return (
+                    <button
+                      key={`${grid_key}-${index}`}
+                      className="flex aspect-square cursor-pointer items-center justify-center rounded-lg text-[22px] leading-none transition-[transform,background-color] duration-100 hover:bg-black/[0.05] active:scale-90 dark:hover:bg-white/[0.07]"
+                      type="button"
+                      onClick={() => on_select(toned)}
+                    >
+                      {toned}
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="pt-16 text-center text-xs text-txt-muted">
+                {t("common.no_emojis_found")}
+              </p>
+            )}
+          </motion.div>
+        </AnimatePresence>
       </div>
-
-      {current_entries.length === 0 && (
-        <div className="text-center py-6 text-txt-muted">
-          <p className="text-xs">{t("common.no_emojis_found")}</p>
-        </div>
-      )}
     </div>
   );
 }

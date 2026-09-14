@@ -21,9 +21,9 @@
 import type { LanguageCode } from "@/services/translation/engine_types";
 import type { TranslationStatus } from "@/components/email/hooks/use_email_translation";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { GlobeAltIcon } from "@heroicons/react/24/outline";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, type Transition } from "framer-motion";
 
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
@@ -42,6 +42,45 @@ interface TranslationBannerProps {
   showing_original: boolean;
   on_translate: () => void;
   on_show_original: () => void;
+  spacing_class?: string;
+}
+
+const EASE_STANDARD = [0.2, 0, 0, 1] as const;
+const EASE_EMPHASIZED_DECELERATE = [0.05, 0.7, 0.1, 1] as const;
+const TRANSLATING_REVEAL_DELAY_MS = 180;
+const TRANSLATING_MIN_VISIBLE_MS = 480;
+
+const INSTANT: Transition = { duration: 0 };
+const TEXT_ENTER: Transition = { duration: 0.2, ease: EASE_STANDARD };
+const TEXT_EXIT: Transition = { duration: 0.12, ease: EASE_STANDARD };
+
+function use_steady_status(status: TranslationStatus): TranslationStatus {
+  const [shown, set_shown] = useState(status);
+  const shown_at_ref = useRef(0);
+
+  useEffect(() => {
+    if (status === shown) return;
+
+    let delay = 0;
+
+    if (status === "translating" && shown === "idle") {
+      delay = TRANSLATING_REVEAL_DELAY_MS;
+    } else if (shown === "translating" && status !== "idle") {
+      delay = Math.max(
+        0,
+        TRANSLATING_MIN_VISIBLE_MS - (Date.now() - shown_at_ref.current),
+      );
+    }
+
+    const timer = window.setTimeout(() => {
+      shown_at_ref.current = Date.now();
+      set_shown(status);
+    }, delay);
+
+    return () => window.clearTimeout(timer);
+  }, [status, shown]);
+
+  return shown;
 }
 
 export function TranslationBanner({
@@ -53,10 +92,15 @@ export function TranslationBanner({
   showing_original,
   on_translate,
   on_show_original,
+  spacing_class = "pb-2",
 }: TranslationBannerProps) {
   const { t, language: ui_locale } = use_i18n();
   const reduce_motion = use_should_reduce_motion();
   const [supported_names, set_supported_names] = useState<string | null>(null);
+  const shown = use_steady_status(status);
+  const language_ref = useRef(source_language);
+
+  if (source_language) language_ref.current = source_language;
 
   useEffect(() => {
     if (status !== "unsupported") return;
@@ -86,15 +130,14 @@ export function TranslationBanner({
     };
   }, [status, target_language, ui_locale]);
 
-  if (status === "idle" || !source_language) return null;
-
-  const language_name = language_display_name(source_language, ui_locale);
-
-  const action_class =
-    "flex-shrink-0 text-xs font-medium text-blue-500 rounded px-1.5 py-0.5 hover:bg-blue-500/10 transition-colors";
+  const remembered_language = language_ref.current;
+  const visible = shown !== "idle" && remembered_language !== null;
+  const language_name = remembered_language
+    ? language_display_name(remembered_language, ui_locale)
+    : "";
 
   const message = (() => {
-    if (status === "offer") {
+    if (shown === "offer") {
       if (download_bytes > 0) {
         return t("mail.translation_offer_download", {
           language: language_name,
@@ -104,9 +147,9 @@ export function TranslationBanner({
       return t("mail.translation_offer", { language: language_name });
     }
 
-    if (status === "translating") return t("mail.translation_in_progress");
+    if (shown === "translating") return t("mail.translation_in_progress");
 
-    if (status === "translated") {
+    if (shown === "translated") {
       if (showing_original) return t("mail.translation_showing_original");
 
       const translated = t("mail.translation_translated_from", {
@@ -118,17 +161,17 @@ export function TranslationBanner({
         : translated;
     }
 
-    if (status === "unsupported") {
+    if (shown === "unsupported") {
       return t("mail.translation_unsupported", { language: language_name });
     }
 
-    if (status === "unavailable") return t("mail.translation_unavailable");
+    if (shown === "unavailable") return t("mail.translation_unavailable");
 
     return "";
   })();
 
   const info = (() => {
-    if (status === "unsupported") {
+    if (shown === "unsupported") {
       return {
         title: t("mail.translation_unsupported_info_title"),
         description: supported_names
@@ -142,7 +185,7 @@ export function TranslationBanner({
       };
     }
 
-    if (status === "unavailable") {
+    if (shown === "unavailable") {
       return {
         title: t("mail.translation_unavailable_info_title"),
         description: t("mail.translation_unavailable_info_body"),
@@ -152,54 +195,139 @@ export function TranslationBanner({
     return null;
   })();
 
+  const action = (() => {
+    if (shown === "offer") {
+      return {
+        kind: "translate",
+        on_click: on_translate,
+        label:
+          download_bytes > 0
+            ? t("mail.translation_translate_download", {
+                size: format_bytes(download_bytes),
+              })
+            : t("mail.translation_translate"),
+      };
+    }
+
+    if (shown === "translated") {
+      return {
+        kind: "toggle",
+        on_click: on_show_original,
+        label: showing_original
+          ? t("mail.translation_show_translation")
+          : t("mail.translation_show_original"),
+      };
+    }
+
+    return null;
+  })();
+
+  const enter = reduce_motion ? INSTANT : TEXT_ENTER;
+  const exit = reduce_motion ? INSTANT : TEXT_EXIT;
+  const is_translating = shown === "translating" && !reduce_motion;
+
   return (
-    <div className="mb-2 flex items-center gap-1.5 text-xs text-txt-muted">
-      <GlobeAltIcon className="w-3.5 h-3.5 flex-shrink-0" />
-      <AnimatePresence mode="wait">
+    <AnimatePresence initial={false}>
+      {visible && (
         <motion.div
-          key={`${status}:${showing_original}`}
-          animate={{ opacity: 1 }}
-          className="flex min-w-0 items-center gap-1.5"
-          exit={reduce_motion ? undefined : { opacity: 0 }}
-          initial={reduce_motion ? false : { opacity: 0 }}
-          transition={{ duration: reduce_motion ? 0 : 0.18 }}
+          key="translation_banner"
+          animate={{ height: "auto", opacity: 1 }}
+          className="overflow-hidden"
+          exit={{
+            height: 0,
+            opacity: 0,
+            transition: reduce_motion
+              ? INSTANT
+              : { duration: 0.18, ease: EASE_STANDARD },
+          }}
+          initial={{ height: 0, opacity: 0 }}
+          transition={
+            reduce_motion
+              ? INSTANT
+              : {
+                  height: { duration: 0.28, ease: EASE_EMPHASIZED_DECELERATE },
+                  opacity: { duration: 0.2, delay: 0.04, ease: EASE_STANDARD },
+                }
+          }
         >
-          <span className="min-w-0 truncate">{message}</span>
-          {info && (
-            <span className="flex flex-shrink-0 items-center self-center leading-none text-txt-muted">
-              <InfoPopover
-                description={info.description}
-                icon_class="w-3.5 h-3.5"
-                title={info.title}
-              />
+          <div
+            aria-live="polite"
+            className={`flex min-h-7 items-center gap-1.5 text-xs text-txt-muted ${spacing_class}`}
+            role="status"
+          >
+            <motion.span
+              animate={{ opacity: is_translating ? [1, 0.35, 1] : 1 }}
+              className="flex flex-shrink-0"
+              transition={
+                is_translating
+                  ? { duration: 1.4, ease: "easeInOut", repeat: Infinity }
+                  : { duration: 0.2 }
+              }
+            >
+              <GlobeAltIcon className="w-3.5 h-3.5" />
+            </motion.span>
+            <span className="relative flex min-w-0 items-center">
+              <AnimatePresence initial={false} mode="popLayout">
+                <motion.span
+                  key={message}
+                  animate={{ opacity: 1, y: 0, transition: enter }}
+                  className="block min-w-0 truncate"
+                  exit={{ opacity: 0, transition: exit }}
+                  initial={{ opacity: 0, y: reduce_motion ? 0 : 3 }}
+                >
+                  {message}
+                </motion.span>
+              </AnimatePresence>
             </span>
-          )}
-          {status === "offer" && (
-            <button
-              className={action_class}
-              type="button"
-              onClick={on_translate}
-            >
-              {download_bytes > 0
-                ? t("mail.translation_translate_download", {
-                    size: format_bytes(download_bytes),
-                  })
-                : t("mail.translation_translate")}
-            </button>
-          )}
-          {status === "translated" && (
-            <button
-              className={action_class}
-              type="button"
-              onClick={on_show_original}
-            >
-              {showing_original
-                ? t("mail.translation_show_translation")
-                : t("mail.translation_show_original")}
-            </button>
-          )}
+            <AnimatePresence initial={false} mode="popLayout">
+              {info && (
+                <motion.span
+                  key={shown}
+                  animate={{ opacity: 1, transition: enter }}
+                  className="flex flex-shrink-0 items-center self-center leading-none text-txt-muted"
+                  exit={{ opacity: 0, transition: exit }}
+                  initial={{ opacity: 0 }}
+                  layout={reduce_motion ? false : "position"}
+                  transition={enter}
+                >
+                  <InfoPopover
+                    description={info.description}
+                    icon_class="w-3.5 h-3.5"
+                    title={info.title}
+                  />
+                </motion.span>
+              )}
+            </AnimatePresence>
+            <AnimatePresence initial={false} mode="popLayout">
+              {action && (
+                <motion.button
+                  key={action.kind}
+                  animate={{ opacity: 1, transition: enter }}
+                  className="relative flex flex-shrink-0 rounded px-1.5 py-0.5 text-xs font-medium text-blue-500 transition-colors hover:bg-blue-500/10"
+                  exit={{ opacity: 0, transition: exit }}
+                  initial={{ opacity: 0 }}
+                  layout={reduce_motion ? false : "position"}
+                  transition={enter}
+                  type="button"
+                  onClick={action.on_click}
+                >
+                  <AnimatePresence initial={false} mode="popLayout">
+                    <motion.span
+                      key={action.label}
+                      animate={{ opacity: 1, y: 0, transition: enter }}
+                      className="block whitespace-nowrap"
+                      exit={{ opacity: 0, transition: exit }}
+                      initial={{ opacity: 0, y: reduce_motion ? 0 : 3 }}
+                    >
+                      {action.label}
+                    </motion.span>
+                  </AnimatePresence>
+                </motion.button>
+              )}
+            </AnimatePresence>
+          </div>
         </motion.div>
-      </AnimatePresence>
-    </div>
+      )}
+    </AnimatePresence>
   );
 }
