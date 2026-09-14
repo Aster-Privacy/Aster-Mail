@@ -615,55 +615,21 @@ function EmojiPicker({ on_select }: { on_select: (emoji: string) => void }) {
     ? { duration: 0 }
     : { duration: 0.16, ease: [0.2, 0, 0, 1] as const };
 
-  const tone_menu = (
-    <div
-      ref={tones_ref}
-      className="relative flex-shrink-0"
-      onKeyDown={(event) => {
-        if (event.key !== "Escape" || !show_tones) return;
-        event.stopPropagation();
-        set_show_tones(false);
-      }}
+  const tone_trigger = (
+    <button
+      aria-expanded={show_tones}
+      aria-label={t("common.skin_tone")}
+      className={`flex h-10 w-10 flex-shrink-0 cursor-pointer touch-manipulation items-center justify-center rounded-full text-[20px] leading-none outline-none transition-[transform,background-color] duration-150 focus-visible:ring-2 focus-visible:ring-blue-500/70 active:scale-90 sm:h-9 sm:w-9 ${show_tones ? "bg-black/[0.08] dark:bg-white/[0.12]" : "hover:bg-black/[0.06] dark:hover:bg-white/[0.08]"}`}
+      title={t("common.skin_tone")}
+      type="button"
+      onClick={() => set_show_tones(!show_tones)}
     >
-      <button
-        aria-expanded={show_tones}
-        aria-haspopup="true"
-        aria-label={t("common.skin_tone")}
-        className="flex h-10 w-10 cursor-pointer touch-manipulation items-center justify-center rounded-full text-[20px] leading-none outline-none transition-[transform,background-color] duration-150 hover:bg-black/[0.06] focus-visible:ring-2 focus-visible:ring-blue-500/70 active:scale-90 sm:h-9 sm:w-9 dark:hover:bg-white/[0.08]"
-        title={t("common.skin_tone")}
-        type="button"
-        onClick={() => set_show_tones(!show_tones)}
-      >
-        {skin_tone_swatches[skin_tone]}
-      </button>
-      <AnimatePresence>
-        {show_tones && (
-          <motion.div
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            className="absolute end-0 top-full z-20 mt-1 flex gap-0.5 rounded-full border border-edge-primary bg-modal-bg p-1 shadow-[0_8px_24px_-8px_rgba(0,0,0,0.3)] ltr:origin-top-right rtl:origin-top-left"
-            exit={{ opacity: 0, scale: 0.94, y: -4 }}
-            initial={reduce_motion ? false : { opacity: 0, scale: 0.94, y: -4 }}
-            transition={fade}
-          >
-            {skin_tones.map((tone) => (
-              <button
-                key={tone}
-                aria-label={t("common.skin_tone")}
-                aria-pressed={skin_tone === tone}
-                className={`relative flex h-10 w-10 cursor-pointer touch-manipulation items-center justify-center rounded-full text-[20px] leading-none outline-none transition-[transform,opacity] duration-150 hover:scale-110 focus-visible:ring-2 focus-visible:ring-blue-500/70 active:scale-90 sm:h-8 sm:w-8 sm:text-[18px] ${skin_tone === tone ? "opacity-100" : "opacity-60 hover:opacity-100"}`}
-                type="button"
-                onClick={() => select_skin_tone(tone)}
-              >
-                {skin_tone_swatches[tone]}
-                {skin_tone === tone && (
-                  <span className="absolute bottom-0 h-1 w-1 rounded-full bg-blue-500" />
-                )}
-              </button>
-            ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+      {show_tones ? (
+        <LuX className="h-5 w-5 text-txt-secondary" />
+      ) : (
+        skin_tone_swatches[skin_tone]
+      )}
+    </button>
   );
 
   return (
@@ -710,37 +676,82 @@ function EmojiPicker({ on_select }: { on_select: (emoji: string) => void }) {
         })}
       </div>
 
-      <div className="flex items-center gap-1 px-3 pt-1.5 pb-1">
-        <div className="relative flex h-10 min-w-0 flex-1 items-center rounded-full bg-black/[0.05] transition-[background-color,box-shadow] duration-150 focus-within:ring-1 focus-within:ring-inset focus-within:ring-blue-500 sm:h-9 dark:bg-white/[0.07]">
-          <LuSearch className="pointer-events-none absolute start-3 h-4 w-4 text-txt-muted" />
-          <input
-            ref={input_ref}
-            autoCapitalize="off"
-            autoComplete="off"
-            autoCorrect="off"
-            className="h-full w-full bg-transparent ps-9 pe-9 text-base leading-normal text-txt-primary outline-none placeholder:text-txt-muted sm:text-sm"
-            enterKeyHint="done"
-            inputMode="search"
-            placeholder={t("common.search_emojis")}
-            spellCheck={false}
-            type="text"
-            value={search_query}
-            onChange={(e) => set_search_query(e.target.value)}
-            onKeyDown={handle_search_key}
-            onMouseDown={(e) => e.stopPropagation()}
-          />
-          {is_searching && (
-            <button
-              aria-label={t("common.clear")}
-              className="absolute end-1 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-txt-muted outline-none transition-colors hover:text-txt-primary focus-visible:ring-2 focus-visible:ring-blue-500/70 sm:h-7 sm:w-7"
-              type="button"
-              onClick={clear_search}
+      <div
+        ref={tones_ref}
+        className="flex items-center gap-1 px-3 pt-1.5 pb-1"
+        onKeyDown={(event) => {
+          if (event.key !== "Escape" || !show_tones) return;
+          event.stopPropagation();
+          set_show_tones(false);
+        }}
+      >
+        <AnimatePresence initial={false} mode="wait">
+          {show_tones ? (
+            <motion.div
+              key="tones"
+              animate={{ opacity: 1 }}
+              aria-label={t("common.skin_tone")}
+              className="flex h-10 min-w-0 flex-1 items-center justify-between rounded-full bg-black/[0.05] px-1 sm:h-9 dark:bg-white/[0.07]"
+              exit={{ opacity: 0 }}
+              initial={reduce_motion ? false : { opacity: 0 }}
+              role="group"
+              transition={fade}
             >
-              <LuX className="h-4 w-4" />
-            </button>
+              {skin_tones.map((tone) => (
+                <button
+                  key={tone}
+                  aria-label={t("common.skin_tone")}
+                  aria-pressed={skin_tone === tone}
+                  className={`flex h-8 w-8 cursor-pointer touch-manipulation items-center justify-center rounded-full text-[20px] leading-none outline-none transition-[transform,background-color] duration-150 focus-visible:ring-2 focus-visible:ring-blue-500/70 active:scale-90 sm:h-7 sm:w-7 sm:text-[18px] ${skin_tone === tone ? "bg-black/[0.1] dark:bg-white/[0.16]" : "hover:bg-black/[0.06] dark:hover:bg-white/[0.08]"}`}
+                  type="button"
+                  onClick={() => select_skin_tone(tone)}
+                >
+                  {skin_tone_swatches[tone]}
+                </button>
+              ))}
+            </motion.div>
+          ) : (
+            <motion.div
+              key="search"
+              animate={{ opacity: 1 }}
+              className="flex min-w-0 flex-1"
+              exit={{ opacity: 0 }}
+              initial={reduce_motion ? false : { opacity: 0 }}
+              transition={fade}
+            >
+              <div className="relative flex h-10 min-w-0 flex-1 items-center rounded-full bg-black/[0.05] transition-[background-color,box-shadow] duration-150 focus-within:ring-1 focus-within:ring-inset focus-within:ring-blue-500 sm:h-9 dark:bg-white/[0.07]">
+                <LuSearch className="pointer-events-none absolute start-3 h-4 w-4 text-txt-muted" />
+                <input
+                  ref={input_ref}
+                  autoCapitalize="off"
+                  autoComplete="off"
+                  autoCorrect="off"
+                  className="h-full w-full bg-transparent ps-9 pe-9 text-base leading-normal text-txt-primary outline-none placeholder:text-txt-muted sm:text-sm"
+                  enterKeyHint="done"
+                  inputMode="search"
+                  placeholder={t("common.search_emojis")}
+                  spellCheck={false}
+                  type="text"
+                  value={search_query}
+                  onChange={(e) => set_search_query(e.target.value)}
+                  onKeyDown={handle_search_key}
+                  onMouseDown={(e) => e.stopPropagation()}
+                />
+                {is_searching && (
+                  <button
+                    aria-label={t("common.clear")}
+                    className="absolute end-1 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-txt-muted outline-none transition-colors hover:text-txt-primary focus-visible:ring-2 focus-visible:ring-blue-500/70 sm:h-7 sm:w-7"
+                    type="button"
+                    onClick={clear_search}
+                  >
+                    <LuX className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+            </motion.div>
           )}
-        </div>
-        {tone_menu}
+        </AnimatePresence>
+        {tone_trigger}
       </div>
 
       <div
