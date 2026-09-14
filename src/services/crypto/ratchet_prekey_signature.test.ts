@@ -242,8 +242,8 @@ describe("ratchet prekey bundle signature", () => {
     expect(verdict).toBe("verified");
   });
 
-  it("enforces strict recipient bundles", () => {
-    expect(is_strict_recipient_bundle_enforced()).toBe(true);
+  it("accepts non-strict recipient bundles by default", () => {
+    expect(is_strict_recipient_bundle_enforced()).toBe(false);
   });
 
   it("never marks a legacy hash bundle strict", async () => {

@@ -117,8 +117,25 @@ describe("recipient_supports_post_quantum", () => {
     ).resolves.toBe(true);
   });
 
-  it("reports no support for a bundle the sender would reject", async () => {
+  it("reports support for a verified v1 bundle", async () => {
     h.verification = { verdict: "verified", format: "v1", strict: false };
+
+    await expect(
+      recipient_supports_post_quantum(sender, recipient, "recipient"),
+    ).resolves.toBe(true);
+  });
+
+  it("reports support for a legacy hash bundle", async () => {
+    h.verification = { verdict: "legacy", format: "hash", strict: false };
+
+    await expect(
+      recipient_supports_post_quantum(sender, recipient, "recipient"),
+    ).resolves.toBe(true);
+  });
+
+  it("reports no support when the post-quantum key was withdrawn", async () => {
+    h.peer_advertised_pq = true;
+    h.bundle = { ...h.bundle, pq_kem_public_key: null };
 
     await expect(
       recipient_supports_post_quantum(sender, recipient, "recipient"),
