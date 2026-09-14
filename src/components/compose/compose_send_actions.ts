@@ -315,6 +315,7 @@ export async function execute_external_email_send(
   const { delay_ms, delay_seconds } = compute_delay(ctx);
 
   const use_pgp = pgp_enabled && !email_data.secure_external;
+  let handed_off = false;
   const needs_encryption = require_encryption && !email_data.secure_external;
 
   const external_email_data = {
@@ -352,6 +353,7 @@ export async function execute_external_email_send(
             error || ctx.t("common.failed_to_send_external_email"),
             "error",
           );
+          if (handed_off) restore_failed_send(ctx, email_data);
         },
       },
     );
@@ -376,6 +378,7 @@ export async function execute_external_email_send(
       server_queue_id: result.queue_id,
     });
 
+    handed_off = true;
     save_and_close(ctx, result.queue_id, email_data);
 
     return true;
@@ -410,6 +413,7 @@ export async function execute_external_email_send(
             ctx.t("common.failed_to_send_external_email"),
           "error",
         );
+        restore_failed_send(ctx, email_data);
       }
     }, delay_ms);
 
@@ -443,6 +447,7 @@ export async function execute_external_email_send(
               ctx.t("common.failed_to_send_external_email"),
             "error",
           );
+          restore_failed_send(ctx, email_data);
         }
       },
     });
@@ -546,6 +551,7 @@ export async function execute_external_account_email_send(
             result.error || ctx.t("common.failed_to_send_email"),
             "error",
           );
+          restore_failed_send(ctx, email_data);
         }
       } catch (err) {
         undo_send_manager.remove(email_id);
@@ -554,6 +560,7 @@ export async function execute_external_account_email_send(
           (err as Error).message || ctx.t("common.failed_to_send_via_external"),
           "error",
         );
+        restore_failed_send(ctx, email_data);
       }
     }, delay_ms);
 
@@ -598,6 +605,7 @@ export async function execute_external_account_email_send(
               result.error || ctx.t("common.failed_to_send_email"),
               "error",
             );
+            restore_failed_send(ctx, email_data);
           }
         } catch (err) {
           ctx.set_queued_email_id(null);
@@ -606,6 +614,7 @@ export async function execute_external_account_email_send(
               ctx.t("common.failed_to_send_via_external"),
             "error",
           );
+          restore_failed_send(ctx, email_data);
         }
       },
     });
