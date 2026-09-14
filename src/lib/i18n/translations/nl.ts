@@ -1938,6 +1938,7 @@ export const nl = {
     sender_invalid: "Ongeldige afzender",
     sender_invalid_desc:
       "De afzenderinformatie van dit bericht is ongeldig of vervalst.",
+    sender_invalid_short: "Handtekening komt niet overeen",
     sender_no_keys: "Geen sleutels gevonden",
     sender_no_keys_desc:
       "Er zijn geen versleutelingssleutels gevonden voor deze afzender.",

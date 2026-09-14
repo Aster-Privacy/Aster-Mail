@@ -1764,6 +1764,7 @@ export interface CommonTranslations {
   sender_verified_desc: string;
   sender_invalid: string;
   sender_invalid_desc: string;
+  sender_invalid_short: string;
   sender_no_keys: string;
   sender_no_keys_desc: string;
   sender_unsigned: string;

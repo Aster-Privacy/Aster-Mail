@@ -165,6 +165,20 @@ export function EncryptionInfoDropdown({
       >
         <LockIcon size={size} />
         {label && <span className="text-xs font-medium">{label}</span>}
+        {sender_verification === "invalid" && (
+          <span
+            className="flex items-center gap-0.5 text-red-500"
+            data-testid="sender-signature-mismatch"
+          >
+            <ShieldExclamationIcon
+              aria-hidden="true"
+              className="w-3.5 h-3.5 flex-shrink-0"
+            />
+            <span className="text-xs font-medium">
+              {t("common.sender_invalid_short")}
+            </span>
+          </span>
+        )}
       </button>
 
       {createPortal(

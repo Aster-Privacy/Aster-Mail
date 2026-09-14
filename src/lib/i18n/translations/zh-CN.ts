@@ -1835,6 +1835,7 @@ export const zh_CN = {
     sender_invalid: "发件人签名不匹配",
     sender_invalid_desc:
       "此邮件已签名，但签名与发件人发布的身份不匹配。它可能已被更改或由其他人发送。在采取行动之前，通过其他渠道确认重要内容更安全。",
+    sender_invalid_short: "签名不匹配",
     sender_no_keys: "我们无法检查此发件人的身份",
     sender_no_keys_desc:
       "我们无法查找此发件人的身份，因此无法确认邮件确实来自他们。敏感内容值得谨慎对待。",

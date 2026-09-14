@@ -1865,6 +1865,7 @@ export const pt = {
     sender_invalid: "Assinatura do remetente não correspondeu",
     sender_invalid_desc:
       "Esta mensagem está assinada, mas a assinatura não corresponde à identidade que o remetente publica. Pode ter sido alterada ou enviada por outra pessoa. Confirmar qualquer coisa importante por outro canal antes de agir é o caminho mais seguro.",
+    sender_invalid_short: "Assinatura não corresponde",
     sender_no_keys: "Não conseguimos verificar a identidade deste remetente",
     sender_no_keys_desc:
       "Não conseguimos verificar a identidade deste remetente, portanto não podemos confirmar que a mensagem realmente veio dele. Qualquer coisa sensível vale a pena tratar com cuidado.",

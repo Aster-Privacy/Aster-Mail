@@ -1944,6 +1944,7 @@ export const es = {
     select_unstarred: "Seleccionar sin estrella",
     sender_invalid: "Remitente inválido",
     sender_invalid_desc: "No se pudo verificar la dirección del remitente.",
+    sender_invalid_short: "La firma no coincide",
     sender_no_keys: "Sin claves para el remitente",
     sender_no_keys_desc:
       "No se encontraron claves de cifrado para este remitente.",

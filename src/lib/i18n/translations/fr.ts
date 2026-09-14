@@ -1957,6 +1957,7 @@ export const fr = {
     select_unstarred: "Sélectionner les non étoilés",
     sender_invalid: "Expéditeur invalide",
     sender_invalid_desc: "L'adresse de l'expéditeur n'a pas pu être vérifiée.",
+    sender_invalid_short: "Signature non concordante",
     sender_no_keys: "Pas de clés pour l'expéditeur",
     sender_no_keys_desc:
       "Aucune clé de chiffrement trouvée pour cet expéditeur.",

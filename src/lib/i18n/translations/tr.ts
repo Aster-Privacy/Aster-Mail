@@ -1817,6 +1817,7 @@ export const tr = {
     sender_invalid: "Gönderen imzası eşleşmedi",
     sender_invalid_desc:
       "Bu mesaj imzalı, ancak imza gönderenin yayımladığı kimlikle eşleşmiyor. Mesaj değiştirilmiş veya başkası tarafından gönderilmiş olabilir. Herhangi bir şey yapmadan önce başka bir kanaldan doğrulama yapmanız daha güvenli olur.",
+    sender_invalid_short: "İmza eşleşmiyor",
     sender_no_keys: "Bu gönderenin kimliğini doğrulayamadık",
     sender_no_keys_desc:
       "Bu gönderenin kimliğini bulamadık ve mesajın gerçekten ondan geldiğini doğrulayamıyoruz. Hassas içerikler için dikkatli olun.",

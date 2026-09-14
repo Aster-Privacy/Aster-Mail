@@ -1832,6 +1832,7 @@ export const pl = {
     sender_invalid: "Podpis nadawcy nie pasuje",
     sender_invalid_desc:
       "Ta wiadomość jest podpisana, ale podpis nie odpowiada tożsamości publikowanej przez nadawcę. Mogła zostać zmodyfikowana lub wysłana przez kogoś innego. Przed podjęciem działań warto potwierdzić ważne informacje innym kanałem.",
+    sender_invalid_short: "Niezgodny podpis",
     sender_no_keys: "Nie udało się zweryfikować tożsamości nadawcy",
     sender_no_keys_desc:
       "Nie udało się znaleźć tożsamości nadawcy, dlatego nie możemy potwierdzić, że wiadomość naprawdę pochodzi od tej osoby. Traktuj poufne treści z ostrożnością.",

@@ -1905,6 +1905,7 @@ export const de = {
     sender_invalid: "Absendersignatur stimmte nicht überein",
     sender_invalid_desc:
       "Diese Nachricht ist signiert, aber die Signatur stimmt nicht mit der vom Absender veröffentlichten Identität überein. Sie könnte geändert oder von jemand anderem gesendet worden sein. Es ist sicherer, wichtige Informationen über einen anderen Kanal zu bestätigen, bevor Sie handeln.",
+    sender_invalid_short: "Signatur stimmt nicht überein",
     sender_no_keys: "Wir konnten die Identität dieses Absenders nicht prüfen",
     sender_no_keys_desc:
       "Wir konnten die Identität dieses Absenders nicht nachschlagen und können daher nicht bestätigen, dass die Nachricht wirklich von ihm stammt. Alles Vertrauliche sollte mit Vorsicht behandelt werden.",

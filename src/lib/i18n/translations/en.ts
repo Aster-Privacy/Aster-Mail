@@ -1197,6 +1197,7 @@ export const en: Translations = {
     sender_invalid: "Sender signature did not match",
     sender_invalid_desc:
       "This message is signed, but the signature does not match the identity the sender publishes. It may have been altered or sent by someone else. Confirming anything important through another channel before acting on it is the safer path.",
+    sender_invalid_short: "Signature mismatch",
     sender_no_keys: "We could not check this sender's identity",
     sender_no_keys_desc:
       "We could not look up this sender's identity, and so we cannot confirm the message really came from them. Anything sensitive is worth treating with care.",

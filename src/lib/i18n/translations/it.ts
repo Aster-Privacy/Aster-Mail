@@ -1832,6 +1832,7 @@ export const it = {
     sender_invalid: "La firma del mittente non corrispondeva",
     sender_invalid_desc:
       "Questo messaggio è firmato, ma la firma non corrisponde all'identità che il mittente pubblica. Potrebbe essere stato alterato o inviato da qualcun altro. Confermare qualsiasi cosa importante attraverso un altro canale prima di agire è la strada più sicura.",
+    sender_invalid_short: "Firma non corrispondente",
     sender_no_keys:
       "Non siamo riusciti a verificare l'identità di questo mittente",
     sender_no_keys_desc:
