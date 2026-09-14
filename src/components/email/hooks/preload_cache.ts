@@ -795,7 +795,7 @@ export async function preload_email_detail(
           { timeZone: get_display_time_zone() },
         ),
         is_read:
-          item.is_read === true || (decrypted_metadata?.is_read ?? false),
+          item.is_read ?? decrypted_metadata?.is_read ?? false,
         is_starred: decrypted_metadata?.is_starred ?? false,
         has_attachment: decrypted_metadata?.has_attachments ?? false,
         thread_count: 1,
@@ -824,7 +824,7 @@ export async function preload_email_detail(
         html_content: safe_html,
         timestamp: item.message_ts || item.created_at,
         is_read:
-          item.is_read === true || (decrypted_metadata?.is_read ?? false),
+          item.is_read ?? decrypted_metadata?.is_read ?? false,
         is_starred: decrypted_metadata?.is_starred ?? false,
         is_deleted: false,
         is_external: item.is_external,

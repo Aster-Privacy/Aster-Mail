@@ -423,7 +423,7 @@ export function use_search_results_page(props: SearchResultsPageProps) {
             encrypted_metadata: m.encrypted_metadata,
             metadata_nonce: m.metadata_nonce,
             metadata_version: m.metadata_version,
-            is_read: m.is_read === true || (metadata?.is_read ?? false),
+            is_read: m.is_read ?? metadata?.is_read ?? false,
             is_starred: metadata?.is_starred ?? false,
             is_trashed:
               m.is_trashed === true || (metadata?.is_trashed ?? false),

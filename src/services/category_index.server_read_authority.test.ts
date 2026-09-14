@@ -225,7 +225,7 @@ describe("category_index server read-state authority", () => {
     expect(get_counts().primary!.unread).toBe(1);
   });
 
-  it("renders read when metadata says read but the server has not caught up", async () => {
+  it("renders unread when the server says unread even though metadata says read", async () => {
     decrypt_mail_metadata.mockResolvedValue({ is_read: true });
     list_mail_items.mockResolvedValue(
       item({ server_is_read: false, meta_is_read: true }),
@@ -234,7 +234,7 @@ describe("category_index server read-state authority", () => {
     await init_category_index();
     await flush();
 
-    expect(get_counts().primary!.unread).toBe(0);
+    expect(get_counts().primary!.unread).toBe(1);
   });
 
   it("renders unread for a freshly delivered item with a server flag and no metadata blob", async () => {

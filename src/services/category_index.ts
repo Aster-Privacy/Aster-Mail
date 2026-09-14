@@ -1744,7 +1744,7 @@ async function item_to_entry(item: MailItem): Promise<ItemIndexResult> {
       id: item.id,
       thread_token: item.thread_token,
       message_ts: item.message_ts || item.created_at,
-      is_read: item.is_read === true || (metadata?.is_read ?? false),
+      is_read: item.is_read ?? metadata?.is_read ?? false,
       category: envelope
         ? classify(envelope, metadata, {
             custom_categories,

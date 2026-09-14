@@ -669,8 +669,7 @@ export function use_email_detail_load() {
         response.data.item_type === "sent" ||
         response.data.item_type === "draft";
       const is_read_on_server =
-        response.data.is_read === true ||
-        (decrypted_metadata?.is_read ?? false);
+        response.data.is_read ?? decrypted_metadata?.is_read ?? false;
       const should_auto_mark_read =
         !is_read_on_server &&
         (is_sent_type ||
