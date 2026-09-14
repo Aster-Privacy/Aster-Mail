@@ -99,6 +99,7 @@ function AttachmentRow({
   attachment: Attachment;
   on_remove: (id: string) => void;
 }) {
+  const { t } = use_i18n();
   const color = get_file_icon_color(attachment.mime_type);
 
   return (
@@ -116,7 +117,8 @@ function AttachmentRow({
         {attachment.size}
       </span>
       <button
-        className="text-txt-tertiary hover:text-txt-primary transition-colors duration-150 flex-shrink-0 opacity-0 group-hover:opacity-100"
+        aria-label={t("mail.remove_attachment")}
+        className="text-txt-tertiary hover:text-txt-primary transition-colors duration-150 flex-shrink-0 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 [@media(hover:none)]:opacity-100"
         type="button"
         onClick={() => on_remove(attachment.id)}
       >
@@ -225,6 +227,8 @@ interface ComposeErrorsProps {
 }
 
 export function ComposeErrors({ compose }: ComposeErrorsProps) {
+  const { t } = use_i18n();
+
   return (
     <>
       {compose.attachment_error && (
@@ -247,6 +251,7 @@ export function ComposeErrors({ compose }: ComposeErrorsProps) {
             {compose.attachment_error}
           </span>
           <button
+            aria-label={t("common.dismiss")}
             className="flex-shrink-0"
             style={{ color: "rgba(255, 255, 255, 0.8)" }}
             type="button"
