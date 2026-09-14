@@ -46,10 +46,16 @@ vi.mock("@/services/account_manager", () => ({
 }));
 
 import {
+  acknowledge_identity_change,
   check_and_pin_identity,
+  get_identity_change,
   get_pinned_identity_fingerprint,
   reset_identity_pin,
 } from "@/services/crypto/ratchet_identity_pin";
+import {
+  clear_ratchet_verification_status,
+  get_peer_identity_event,
+} from "@/services/crypto/ratchet_verification_status";
 
 const KEY_A = btoa("identity-key-aaaaaaaaaaaaaaaaaaaaaaaa");
 const KEY_B = btoa("identity-key-bbbbbbbbbbbbbbbbbbbbbbbb");
@@ -58,6 +64,7 @@ describe("ratchet identity pin", () => {
   beforeEach(() => {
     h.store.clear();
     h.key = new Uint8Array(32).fill(7);
+    clear_ratchet_verification_status();
   });
 
   it("pins on first contact and matches on the same key", async () => {
@@ -134,5 +141,68 @@ describe("ratchet identity pin", () => {
 
     expect(await check_and_pin_identity("alice", KEY_A)).toBe("unknown");
     expect(await check_and_pin_identity("alice", KEY_B)).toBe("unknown");
+  });
+
+  it("records a lasting key change when a verified rotation re-pins", async () => {
+    await check_and_pin_identity("alice", KEY_A, true);
+
+    const previous = await get_pinned_identity_fingerprint("alice");
+
+    expect(await get_identity_change("alice")).toBeNull();
+    expect(await check_and_pin_identity("alice", KEY_B, true)).toBe("rotated");
+
+    const change = await get_identity_change("alice");
+
+    expect(change?.previous_fingerprint).toBe(previous);
+    expect(change?.fingerprint).toBe(
+      await get_pinned_identity_fingerprint("alice"),
+    );
+    expect(h.store.has("ratchet_identity_change_acct-1_alice")).toBe(true);
+    expect(get_peer_identity_event("alice")?.event).toBe("rotated");
+
+    expect(await check_and_pin_identity("alice", KEY_B, true)).toBe("ok");
+    expect(await get_identity_change("alice")).not.toBeNull();
+  });
+
+  it("clears the key change once the sender acknowledges it", async () => {
+    await check_and_pin_identity("alice", KEY_A, true);
+    await check_and_pin_identity("alice", KEY_B, true);
+
+    await acknowledge_identity_change("alice");
+
+    expect(await get_identity_change("alice")).toBeNull();
+    expect(get_peer_identity_event("alice")).toBeNull();
+    expect(await get_pinned_identity_fingerprint("alice")).not.toBeNull();
+  });
+
+  it("does not record a change for drift or first contact", async () => {
+    await check_and_pin_identity("alice", KEY_A);
+    await check_and_pin_identity("alice", KEY_B);
+
+    expect(await get_identity_change("alice")).toBeNull();
+  });
+
+  it("moves a legacy unscoped pin into the account and removes the old entry", async () => {
+    await check_and_pin_identity("alice", KEY_A);
+
+    const scoped = h.store.get("ratchet_identity_pin_acct-1_alice");
+
+    h.store.delete("ratchet_identity_pin_acct-1_alice");
+    h.store.set("ratchet_identity_pin_alice", scoped);
+
+    expect(await check_and_pin_identity("alice", KEY_A)).toBe("ok");
+    expect(h.store.has("ratchet_identity_pin_acct-1_alice")).toBe(true);
+    expect(h.store.has("ratchet_identity_pin_alice")).toBe(false);
+  });
+
+  it("imports the pin storage key as non-extractable", async () => {
+    const import_spy = vi.spyOn(crypto.subtle, "importKey");
+
+    await check_and_pin_identity("alice", KEY_A);
+
+    const call = import_spy.mock.calls.find((args) => args[0] === "raw");
+
+    expect(call?.[3]).toBe(false);
+    import_spy.mockRestore();
   });
 });

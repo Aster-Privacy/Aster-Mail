@@ -8052,6 +8052,8 @@ export const it = {
       "L'identità di crittografia di questo mittente è cambiata dall'ultimo scambio di messaggi. Se non te lo aspettavi, confermalo con questa persona in un altro modo.",
     sender_identity_downgraded:
       "I messaggi di questo mittente non sono più protetti dalla crittografia post-quantistica. Se non te lo aspettavi, confermalo con questa persona in un altro modo.",
+    recipient_identity_changed:
+      "La chiave di crittografia di {{email}} è cambiata. Se non te lo aspettavi, conferma la modifica con questa persona in un altro modo prima di inviare informazioni riservate.",
     load_all_thread_messages: "Carica tutti i messaggi",
     move_to_category: "Sposta nella categoria",
     menu_applies_to_selection: "Si applica a {count} selezionati",

@@ -8121,6 +8121,8 @@ export const de = {
       "Die Verschlüsselungsidentität dieses Absenders hat sich seit Ihrem letzten Nachrichtenaustausch geändert. Wenn Sie das nicht erwartet haben, bestätigen Sie es auf einem anderen Weg mit dieser Person.",
     sender_identity_downgraded:
       "Die Nachrichten dieses Absenders sind nicht mehr durch Post-Quanten-Verschlüsselung geschützt. Wenn Sie das nicht erwartet haben, bestätigen Sie es auf einem anderen Weg mit dieser Person.",
+    recipient_identity_changed:
+      "Der Verschlüsselungsschlüssel von {{email}} hat sich geändert. Wenn Sie das nicht erwartet haben, bestätigen Sie die Änderung auf einem anderen Weg mit dieser Person, bevor Sie vertrauliche Inhalte senden.",
     load_all_thread_messages: "Alle Nachrichten laden",
     move_to_category: "In Kategorie verschieben",
     menu_applies_to_selection: "Gilt für {count} ausgewählte",

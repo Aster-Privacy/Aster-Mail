@@ -7817,6 +7817,8 @@ export const en: Translations = {
       "This sender's encryption identity changed since you last exchanged messages. If you did not expect that, confirm it with them another way.",
     sender_identity_downgraded:
       "This sender's messages no longer carry post-quantum protection. If you did not expect that, confirm it with them another way.",
+    recipient_identity_changed:
+      "The encryption key for {{email}} changed. If you did not expect that, confirm the change with them another way before you send anything sensitive.",
     encrypted_message_unavailable:
       "This message could not be decrypted. The sender may have used an outdated key.",
     pgp_password_protected_title: "Password protected message",

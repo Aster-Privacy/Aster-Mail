@@ -7941,6 +7941,8 @@ export const es = {
       "La identidad de cifrado de este remitente cambió desde la última vez que intercambiaron mensajes. Si no lo esperabas, confírmalo con esa persona por otro medio.",
     sender_identity_downgraded:
       "Los mensajes de este remitente ya no cuentan con protección poscuántica. Si no lo esperabas, confírmalo con esa persona por otro medio.",
+    recipient_identity_changed:
+      "La clave de cifrado de {{email}} cambió. Si no lo esperabas, confirma el cambio con esa persona por otro medio antes de enviar información confidencial.",
     load_all_thread_messages: "Cargar todos los mensajes",
     move_to_category: "Mover a la categoría",
     menu_applies_to_selection: "Se aplica a {count} seleccionados",

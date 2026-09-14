@@ -7959,6 +7959,8 @@ export const nl = {
       "De versleutelingsidentiteit van deze afzender is veranderd sinds je voor het laatst berichten hebt uitgewisseld. Als je dat niet verwachtte, bevestig het dan op een andere manier met deze persoon.",
     sender_identity_downgraded:
       "De berichten van deze afzender hebben geen post-quantumbescherming meer. Als je dat niet verwachtte, bevestig het dan op een andere manier met deze persoon.",
+    recipient_identity_changed:
+      "De versleutelingssleutel van {{email}} is gewijzigd. Als je dat niet verwachtte, bevestig de wijziging dan op een andere manier met deze persoon voordat je gevoelige informatie verstuurt.",
     load_all_thread_messages: "Alle berichten laden",
     move_to_category: "Naar categorie verplaatsen",
     menu_applies_to_selection: "Geldt voor {count} geselecteerde",

@@ -61,6 +61,7 @@ import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { MobileHeader } from "@/components/mobile/mobile_header";
 import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
+import { RecipientIdentityNotice } from "@/components/compose/recipient_identity_notice";
 import { authenticate_biometric } from "@/native/biometric_auth";
 import {
   haptic_impact,
@@ -433,6 +434,15 @@ function MobileComposePage({
             />
           </div>
         )}
+
+        <RecipientIdentityNotice
+          class_name="border-b border-[var(--border-primary)] px-4 py-2"
+          recipients={[
+            ...compose.recipients.to,
+            ...compose.recipients.cc,
+            ...compose.recipients.bcc,
+          ]}
+        />
 
         <div className="border-b border-[var(--border-primary)] px-4 py-2">
           <Input

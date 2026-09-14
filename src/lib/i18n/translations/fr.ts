@@ -8039,6 +8039,8 @@ export const fr = {
       "L'identité de chiffrement de cet expéditeur a changé depuis votre dernier échange de messages. Si vous ne vous y attendiez pas, confirmez-le avec cette personne par un autre moyen.",
     sender_identity_downgraded:
       "Les messages de cet expéditeur ne bénéficient plus de la protection post-quantique. Si vous ne vous y attendiez pas, confirmez-le avec cette personne par un autre moyen.",
+    recipient_identity_changed:
+      "La clé de chiffrement de {{email}} a changé. Si vous ne vous y attendiez pas, confirmez ce changement avec cette personne par un autre moyen avant d'envoyer des informations sensibles.",
     load_all_thread_messages: "Charger tous les messages",
     move_to_category: "Déplacer vers la catégorie",
     menu_applies_to_selection: "S'applique à {count} sélectionnés",

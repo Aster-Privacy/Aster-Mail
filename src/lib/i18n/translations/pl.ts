@@ -8208,6 +8208,8 @@ export const pl = {
       "Tożsamość szyfrowania tego nadawcy zmieniła się od czasu ostatniej wymiany wiadomości. Jeśli tego nie oczekujesz, potwierdź to z tą osobą w inny sposób.",
     sender_identity_downgraded:
       "Wiadomości tego nadawcy nie mają już ochrony postkwantowej. Jeśli tego nie oczekujesz, potwierdź to z tą osobą w inny sposób.",
+    recipient_identity_changed:
+      "Klucz szyfrowania dla {{email}} zmienił się. Jeśli tego nie oczekujesz, potwierdź zmianę z tą osobą w inny sposób, zanim wyślesz poufne informacje.",
     load_all_thread_messages: "Załaduj wszystkie wiadomości",
     move_to_category: "Przenieś do kategorii",
     menu_applies_to_selection: "Dotyczy {count} zaznaczonych",

@@ -43,6 +43,7 @@ import {
 } from "@/components/ui/dropdown_menu";
 import { RecipientField } from "@/components/compose/compose_shared";
 import { SenderSelector } from "@/components/compose/sender_selector";
+import { RecipientIdentityNotice } from "@/components/compose/recipient_identity_notice";
 
 interface InlineReplyComposerProps {
   recipient_name: string;
@@ -430,6 +431,10 @@ export const InlineReplyComposer = forwardRef<
           />
         </div>
       )}
+      <RecipientIdentityNotice
+        class_name="py-1.5"
+        recipients={reply_all_recipients}
+      />
     </div>
   ) : null;
 
@@ -480,6 +485,10 @@ export const InlineReplyComposer = forwardRef<
             recipients={forward_modal.recipients.to}
           />
         </div>
+        <RecipientIdentityNotice
+          class_name="py-1.5"
+          recipients={forward_modal.recipients.to}
+        />
       </div>
     ) : null;
 

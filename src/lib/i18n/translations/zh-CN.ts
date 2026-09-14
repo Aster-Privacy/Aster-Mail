@@ -7138,6 +7138,8 @@ export const zh_CN = {
       "自上次互发邮件以来，此发件人的加密身份已更改。如果这不在你的预期之内，请通过其他方式向对方确认。",
     sender_identity_downgraded:
       "此发件人的邮件不再受后量子保护。如果这不在你的预期之内，请通过其他方式向对方确认。",
+    recipient_identity_changed:
+      "{{email}} 的加密密钥已更改。如果这不在你的预期之内，请在发送敏感信息前通过其他方式向对方确认。",
     load_all_thread_messages: "加载所有邮件",
     move_to_category: "移至分类",
     menu_applies_to_selection: "适用于已选的 {count} 项",

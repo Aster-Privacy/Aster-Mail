@@ -31,6 +31,7 @@ import {
   RecipientField,
 } from "@/components/compose/compose_shared";
 import { SenderSelector } from "@/components/compose/sender_selector";
+import { RecipientIdentityNotice } from "@/components/compose/recipient_identity_notice";
 
 interface ForwardHeaderProps {
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
@@ -301,6 +302,11 @@ export function ForwardHeader({
               />
             </div>
           )}
+
+          <RecipientIdentityNotice
+            class_name="py-2 border-b border-edge-secondary"
+            recipients={[...recipients.to, ...recipients.cc, ...recipients.bcc]}
+          />
 
           <div className="flex items-center gap-2 py-2 border-b border-edge-secondary">
             <span className="text-sm flex-shrink-0 text-txt-tertiary">

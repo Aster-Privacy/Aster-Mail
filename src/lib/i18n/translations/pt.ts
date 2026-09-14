@@ -8013,6 +8013,8 @@ export const pt = {
       "A identidade de criptografia deste remetente mudou desde a última troca de mensagens. Se você não esperava isso, confirme com essa pessoa por outro meio.",
     sender_identity_downgraded:
       "As mensagens deste remetente já não contam com proteção pós-quântica. Se você não esperava isso, confirme com essa pessoa por outro meio.",
+    recipient_identity_changed:
+      "A chave de criptografia de {{email}} mudou. Se você não esperava isso, confirme a mudança com essa pessoa por outro meio antes de enviar informações confidenciais.",
     load_all_thread_messages: "Carregar todas as mensagens",
     move_to_category: "Mover para a categoria",
     menu_applies_to_selection: "Aplica-se a {count} selecionados",

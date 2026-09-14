@@ -6992,6 +6992,7 @@ export interface MailTranslations {
   alias_sent_indexing: string;
   sender_identity_rotated: string;
   sender_identity_downgraded: string;
+  recipient_identity_changed: string;
   encrypted_message_unavailable: string;
   pgp_password_protected_title: string;
   pgp_password_protected_description: string;

@@ -7730,6 +7730,8 @@ export const ko = {
       "이 발신자의 암호화 ID가 마지막으로 메시지를 주고받은 이후 변경되었습니다. 예상하지 못한 변경이라면 다른 방법으로 상대방에게 확인하세요.",
     sender_identity_downgraded:
       "이 발신자의 메시지에 더 이상 양자 내성 보호가 적용되지 않습니다. 예상하지 못한 변경이라면 다른 방법으로 상대방에게 확인하세요.",
+    recipient_identity_changed:
+      "{{email}}의 암호화 키가 변경되었습니다. 예상하지 못한 변경이라면 민감한 정보를 보내기 전에 다른 방법으로 상대방에게 확인하세요.",
     load_all_thread_messages: "모든 메시지 불러오기",
     move_to_category: "카테고리로 이동",
     menu_applies_to_selection: "선택한 {count}개에 적용",

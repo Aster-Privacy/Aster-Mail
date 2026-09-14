@@ -39,6 +39,7 @@ import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { get_email_username } from "@/lib/utils";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
+import { RecipientIdentityNotice } from "@/components/compose/recipient_identity_notice";
 import {
   is_internal_email,
   discover_external_keys_batch,
@@ -869,6 +870,11 @@ export function ComposeFormFields({
           />
         </div>
       )}
+
+      <RecipientIdentityNotice
+        class_name="py-2 border-b border-edge-secondary"
+        recipients={compose_all_recipients}
+      />
 
       <div className="flex items-start gap-2 py-2 border-b border-edge-secondary">
         <span className="text-sm flex-shrink-0 py-1.5 text-txt-tertiary">
