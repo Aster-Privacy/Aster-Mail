@@ -30,6 +30,7 @@ const hoisted = vi.hoisted(() => ({
   emit_mail_item_updated: vi.fn(),
   show_toast: vi.fn(),
   show_action_toast: vi.fn(),
+  view_cache: new Map<string, { state: { emails: unknown[] } }>(),
 }));
 
 vi.mock("@/services/api/mail", () => ({
@@ -43,6 +44,7 @@ vi.mock("@/services/api/mail", () => ({
 
 vi.mock("@/hooks/email_list_cache", () => ({
   stale_all_view_caches: vi.fn(),
+  view_cache: hoisted.view_cache,
 }));
 
 vi.mock("@/services/category_index", () => ({
@@ -78,7 +80,23 @@ vi.mock("@/hooks/mail_events", () => ({
 
 import { mark_all_read_by_scope } from "./helpers";
 
-import { get_read_intent, note_read_intent } from "@/services/read_intent";
+import {
+  apply_flag_intents,
+  clear_all_read_intents,
+  get_read_intent,
+  note_read_intent,
+} from "@/services/read_intent";
+
+function row(id: string, overrides: Record<string, unknown> = {}) {
+  return {
+    id,
+    item_type: "received",
+    is_read: false,
+    is_trashed: false,
+    raw_timestamp: "2026-01-01T00:00:00Z",
+    ...overrides,
+  };
+}
 
 const t = ((key: string) => key) as unknown as Parameters<
   typeof mark_all_read_by_scope
@@ -87,6 +105,8 @@ const t = ((key: string) => key) as unknown as Parameters<
 describe("mark_all_read_by_scope", () => {
   beforeEach(() => {
     hoisted.calls.length = 0;
+    hoisted.view_cache.clear();
+    clear_all_read_intents();
     for (const fn of Object.values(hoisted)) {
       if (typeof fn === "function" && "mockReset" in fn) fn.mockReset();
     }
@@ -162,5 +182,59 @@ describe("mark_all_read_by_scope", () => {
       "common.something_went_wrong",
       "error",
     );
+  });
+
+  it("marks all read when only part of the folder is cached", async () => {
+    hoisted.view_cache.set("inbox", {
+      state: {
+        emails: [
+          row("r1"),
+          row("c1"),
+          row("c2", { is_read: true }),
+          row("s1", { item_type: "sent" }),
+          row("t1", { is_trashed: true }),
+        ],
+      },
+    });
+
+    let settle: (value: unknown) => void = () => {};
+
+    hoisted.bulk_action_by_scope.mockReturnValue(
+      new Promise((resolve) => {
+        settle = resolve;
+      }),
+    );
+
+    const pending = mark_all_read_by_scope(t);
+
+    expect(hoisted.calls[0]).toBe("adjust:-3");
+    expect(hoisted.emit_mail_item_updated).toHaveBeenCalledWith({
+      id: "c1",
+      is_read: true,
+    });
+    expect(hoisted.emit_mail_item_updated).not.toHaveBeenCalledWith({
+      id: "s1",
+      is_read: true,
+    });
+    expect(get_read_intent("c1")).toBe(true);
+
+    const later = apply_flag_intents([
+      row("u1"),
+      row("u2", { raw_timestamp: "2999-01-01T00:00:00Z" }),
+      row("u3", { item_type: "sent" }),
+    ]);
+
+    expect(later.map((email) => email.is_read)).toEqual([true, false, false]);
+
+    settle({ error: "failed" });
+    await pending;
+
+    expect(hoisted.adjust_stats_unread.mock.calls).toEqual([[-3], [3]]);
+    expect(hoisted.emit_mail_item_updated).toHaveBeenCalledWith({
+      id: "c1",
+      is_read: false,
+    });
+    expect(get_read_intent("c1")).toBeUndefined();
+    expect(apply_flag_intents([row("u1")])[0].is_read).toBe(false);
   });
 });

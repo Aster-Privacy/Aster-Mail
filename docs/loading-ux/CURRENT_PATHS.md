@@ -30,7 +30,7 @@ This document lists every mail surface that loads data or marks mail as read, an
 | Failed open | `revert_user_opened_mail` restores unread and the count, and writes unread back if the read save lands, with `force` so the write skips the dedupe in `update_item_metadata`; `use_email_detail_load` calls it on a fetch error or locked folder, and `use_popup_viewer` calls it on a fetch error. Search, notifications, and deep links open through these viewers | Closed |
 | Multi-select mark read | `batched_bulk_patch_metadata` and `bulk_patch_metadata` in `src/services/api/mail.ts` note intents before the write and clear them for failed ids | Closed |
 | Command palette mark all read | `bulk_update_items_metadata` in `src/services/crypto/mail_metadata_writer.ts` notes intents before the write | Closed |
-| Toolbar mark all read by scope | `mark_all_read_by_scope` in `header_toolbar/helpers.tsx` marks indexed rows read through `set_all_indexed_read`, which notes intents, and lowers the unread count before the request, then rolls rows, intents, and the count back if the request fails | Closed |
+| Toolbar mark all read by scope | `mark_all_read_by_scope` in `header_toolbar/helpers.tsx` marks indexed rows read through `set_all_indexed_read`, marks unread received rows held in any cached list view read with intents, and lowers the unread count before the request. `note_scope_read_intent` in `src/services/read_intent.ts` covers mail that is not loaded yet: while it is pending, `apply_flag_intents` and the category index treat received, untrashed mail dated before the click as read, so a later list insert cannot paint it unread. Mail that arrives after the click is not affected. If the request fails or is undone, rows, intents, the scope intent, and the count roll back and the lists refresh | Closed |
 
 ## Loading paths
 
@@ -65,6 +65,6 @@ This document lists every mail surface that loads data or marks mail as read, an
 - `src/hooks/use_delayed_flag.test.tsx`: a skeleton cancelled under 150 ms, data plus fetching is not a skeleton.
 - `src/services/user_opened_mail.test.ts`: a hanging write still shows read, a stale fetch cannot restore unread, missing metadata does not block read, failure rolls back, an account switch drops pending intents and ignores saves from the previous account, and a failed open restores unread, including when the read save lands late.
 - `src/services/crypto/mail_metadata_writer.force.test.ts`: a forced write skips a recently completed or in-flight identical write.
-- `src/components/inbox/header/header_toolbar/helpers.mark_all_read.test.ts`: mark all read updates rows and the count before the request and rolls back on failure.
+- `src/components/inbox/header/header_toolbar/helpers.mark_all_read.test.ts`: mark all read updates rows and the count before the request, marks cached rows outside the index read, keeps mail inserted later read while the request is pending when only part of the folder is cached, and rolls back on failure.
 - `src/hooks/email_actions/unread_counters_sync.integration.test.tsx`: archive and star still sync after an open.
 - `src/hooks/use_category_inbox.refresh.test.ts`: refresh keeps rows on screen.
