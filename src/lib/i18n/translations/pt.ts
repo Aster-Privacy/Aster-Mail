@@ -2218,16 +2218,18 @@ export const pt = {
     edit_account_tooltip: "Editar conta",
     gmail_sync_continue: "Continuar",
     gmail_sync_open_google: "Abrir as configurações da conta",
-    gmail_sync_step_1: "Entre nas configurações de segurança da sua conta.",
-    gmail_sync_step_3: "Crie uma senha de app para e-mail.",
+    gmail_sync_step_1:
+      "Ative a verificação em duas etapas na sua conta, se ainda não estiver ativa.",
+    gmail_sync_step_3:
+      "Nas configurações do seu e-mail, marque “Mostrar no IMAP” para “Todos os e-mails”, “E-mails enviados” e seus marcadores, e defina os limites de tamanho da pasta como “Não limitar”.",
     gmail_sync_title: "Criar uma senha de app",
     gmail_wizard_password_label: "Senha de app",
     gmail_wizard_progress: "Etapa {{current}} de {{total}}",
     gmail_wizard_reveal_password: "Mostrar a senha de app",
-    gmail_wizard_step_1_action: "Abrir as configurações de segurança",
-    gmail_wizard_step_2_title: "Ative a verificação em duas etapas",
-    gmail_wizard_step_3_title: "Crie uma senha de app",
-    gmail_wizard_step_4_title: "Cole a senha",
+    gmail_wizard_step_1_action: "Abrir a verificação em duas etapas",
+    gmail_wizard_step_2_title: "Crie uma senha de app",
+    gmail_wizard_step_3_title: "Deixe todos os seus e-mails disponíveis",
+    gmail_wizard_step_4_title: "Digite seu endereço de e-mail",
     last_sync_tooltip: "Quando esta conta sincronizou pela última vez",
     not_synced_tooltip: "Esta conta ainda não sincronizou.",
     remove_account_tooltip: "Remover conta",
@@ -6264,7 +6266,7 @@ export const pt = {
     vacation_reply_setup: "Configurar resposta de férias",
     show_badges_in_signature: "Mostrar medalhas nos e-mails",
     import_how_it_works: "Como funciona",
-    import_oauth_title: "Conexão OAuth",
+    import_oauth_title: "Conectar uma conta",
     import_manual_title: "Importação manual",
     import_oauth_button: "OAuth",
     import_manual_button: "Manual",
@@ -6595,7 +6597,7 @@ export const pt = {
     show_badges_in_signature_description:
       "Exibir suas medalhas na área de assinatura dos e-mails enviados.",
     import_oauth_description:
-      "Conecte sua conta do Gmail, Outlook ou Yahoo com um único clique. Importaremos e criptografaremos automaticamente seus e-mails no seu dispositivo.",
+      "Conecte uma conta para importar todos os e-mails dela, incluindo os arquivados, os enviados e os marcadores. O Gmail se conecta com uma senha de app, e o Outlook, com o login da sua conta. Caixas de correio grandes podem levar alguns dias para ser importadas.",
     import_manual_step_1:
       "Exporte seus e-mails do seu provedor atual como arquivos MBOX, EML ou PST",
     import_manual_step_2:
@@ -7958,26 +7960,33 @@ export const pt = {
     gmail_app_password_notice:
       "Este provedor exige uma senha de app. A senha normal da sua conta não funciona.",
     gmail_sync_intro:
-      "Crie uma senha de app nas configurações da sua conta e cole-a aqui.",
+      "O Aster importa todos os seus e-mails, incluindo os arquivados, os enviados e os marcadores. Para conectar, crie uma senha de app e cole-a no Aster.",
     gmail_sync_note_unavailable:
-      "Se as senhas de app não aparecerem, ative primeiro a verificação em duas etapas e confira de novo.",
+      "Se as senhas de app não aparecerem, ative a verificação em duas etapas e confira de novo. Elas não estão disponíveis para contas que usam somente chaves de segurança, contas do Programa Proteção Avançada e algumas contas de trabalho ou escola.",
     gmail_sync_setup_button: "Mostrar as etapas",
-    gmail_sync_step_2:
-      "Ative a verificação em duas etapas, se ainda não estiver ativa.",
-    gmail_sync_step_4: "Copie a senha e cole-a no Aster.",
+    gmail_sync_step_2: "Crie uma senha de app e copie-a.",
+    gmail_sync_step_4:
+      "Digite seu endereço de e-mail e cole a senha de app no Aster.",
     gmail_wizard_app_password_error_body:
-      "A senha normal da sua conta não funciona aqui. Ative a verificação em duas etapas, crie uma senha de app para o e-mail e cole essa senha acima.",
+      "A senha normal da sua conta não funciona aqui. Ative a verificação em duas etapas, crie uma senha de app e cole essa senha acima.",
     gmail_wizard_app_password_error_title: "Essa senha não foi aceita",
     gmail_wizard_connect: "Conectar a caixa de correio",
     gmail_wizard_step_1_body:
-      "As senhas de app ficam na seção de segurança da conta no seu provedor.",
-    gmail_wizard_step_1_title:
-      "Abra as configurações de segurança da sua conta",
+      "Sua conta precisa da verificação em duas etapas para criar senhas de app. Se ela já estiver ativa, vá para a próxima etapa.",
+    gmail_wizard_step_1_title: "Ative a verificação em duas etapas",
     gmail_wizard_step_2_body:
-      "As senhas de app só aparecem com a verificação em duas etapas ativa.",
-    gmail_wizard_step_3_body: "Escolha E-mail como app e crie a senha.",
+      "Na página “Senhas de app”, digite um nome como Aster e clique em “Criar”. Copie a senha de 16 caracteres que aparece, porque ela é mostrada só uma vez.",
+    gmail_wizard_step_3_body:
+      "As configurações do seu e-mail definem quais mensagens o Aster pode importar. Na guia “Marcadores”, marque “Mostrar no IMAP” para “Todos os e-mails”, “E-mails enviados” e cada um dos seus marcadores. Na guia “Encaminhamento e POP/IMAP”, defina os limites de tamanho da pasta como “Não limitar” e clique em “Salvar alterações”.",
     gmail_wizard_step_4_body:
-      "Cole a senha de app abaixo. O Aster a guarda criptografada e a usa apenas para sincronizar esta caixa de correio.",
+      "Use o endereço da conta para a qual você criou a senha de app.",
+    gmail_wizard_step_3_labels_action: "Abrir configurações de marcadores",
+    gmail_wizard_step_3_imap_action: "Abrir configurações de IMAP",
+    gmail_wizard_step_5_title: "Cole a senha de app",
+    gmail_wizard_step_5_body:
+      "Cole a senha de app abaixo, com ou sem espaços. O Aster a guarda criptografada e a usa apenas para sincronizar esta caixa de correio.",
+    gmail_wizard_import_note:
+      "O Aster importa todos os seus e-mails, incluindo os arquivados, os enviados e os marcadores. Caixas de correio grandes podem levar alguns dias, e você pode continuar usando o Aster durante a importação.",
     gmail_wizard_title: "Conecte sua caixa de correio",
     protocol_desc_imap:
       "Sincroniza as pastas e mantém tudo em dia em todos os seus dispositivos.",

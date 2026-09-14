@@ -2206,17 +2206,17 @@ export const tr = {
     edit_account_tooltip: "Hesabı düzenle",
     gmail_sync_continue: "Devam",
     gmail_sync_open_google: "Hesap ayarlarını aç",
-    gmail_sync_step_1: "Hesabınızın güvenlik ayarlarında oturum açın.",
-    gmail_sync_step_2: "Açık değilse iki adımlı doğrulamayı açın.",
+    gmail_sync_step_1: "Açık değilse hesabınızda iki adımlı doğrulamayı açın.",
+    gmail_sync_step_2: "Bir uygulama parolası oluşturun ve kopyalayın.",
     gmail_sync_title: "Uygulama parolası oluşturma",
     gmail_wizard_connect: "Posta kutusunu bağla",
     gmail_wizard_password_label: "Uygulama parolası",
     gmail_wizard_reveal_password: "Uygulama parolasını göster",
-    gmail_wizard_step_1_action: "Güvenlik ayarlarını aç",
-    gmail_wizard_step_1_title: "Hesabınızın güvenlik ayarlarını açın",
-    gmail_wizard_step_2_title: "İki adımlı doğrulamayı açın",
-    gmail_wizard_step_3_title: "Uygulama parolası oluşturun",
-    gmail_wizard_step_4_title: "Parolayı yapıştırın",
+    gmail_wizard_step_1_action: "İki adımlı doğrulamayı aç",
+    gmail_wizard_step_1_title: "İki adımlı doğrulamayı açın",
+    gmail_wizard_step_2_title: "Uygulama parolası oluşturun",
+    gmail_wizard_step_3_title: "Tüm postalarınızı kullanılabilir yapın",
+    gmail_wizard_step_4_title: "E-posta adresinizi girin",
     gmail_wizard_title: "Posta kutunuzu bağlayın",
     last_sync_tooltip: "Bu hesabın en son ne zaman eşitlendiği",
     not_synced_tooltip: "Bu hesap henüz eşitlenmedi.",
@@ -6204,7 +6204,7 @@ export const tr = {
     vacation_reply_setup: "Tatil Yanıtı Oluştur",
     show_badges_in_signature: "Rozetleri e-postalarda göster",
     import_how_it_works: "Nasıl Çalışır",
-    import_oauth_title: "OAuth Bağlantısı",
+    import_oauth_title: "Hesap bağlayın",
     import_manual_title: "Manuel İçe Aktarma",
     import_oauth_button: "OAuth",
     import_manual_button: "Manuel",
@@ -6501,7 +6501,7 @@ export const tr = {
     import_manual_step_4:
       "E-postalarınız depolanmadan önce cihazınızda şifrelenir",
     import_oauth_description:
-      "Gmail, Outlook veya Yahoo hesabınızı tek tıkla bağlayın. E-postalarınız cihazınızda otomatik olarak içe aktarılır ve şifrelenir.",
+      "Arşivlenmiş ve gönderilmiş iletiler ile etiketler dahil tüm postalarını içe aktarmak için bir hesap bağlayın. Gmail bir uygulama parolasıyla, Outlook ise hesabınızda oturum açarak bağlanır. Büyük posta kutularının içe aktarılması birkaç gün sürebilir.",
     key_rotation_locked:
       "Otomatik şifreleme anahtarı döndürme için özel aralıklar belirleyin",
     no_encryption_key_description:
@@ -7888,24 +7888,33 @@ export const tr = {
     gmail_app_password_notice:
       "Bu sağlayıcı uygulama parolası ister. Hesabınızın normal parolası çalışmaz.",
     gmail_sync_intro:
-      "Hesap ayarlarınızda bir uygulama parolası oluşturun ve buraya yapıştırın.",
+      "Aster, arşivlenmiş ve gönderilmiş iletiler ile etiketler dahil tüm postalarınızı içe aktarır. Bağlanmak için bir uygulama parolası oluşturun ve Aster’a yapıştırın.",
     gmail_sync_note_unavailable:
-      "Uygulama parolalarını göremiyorsanız önce iki adımlı doğrulamayı açın ve yeniden bakın.",
+      "Uygulama parolalarını göremiyorsanız iki adımlı doğrulamayı açın ve yeniden bakın. Uygulama parolaları; oturum açarken yalnızca güvenlik anahtarı kullanan hesaplarda, Gelişmiş Koruma Programı’ndaki hesaplarda ve bazı iş veya okul hesaplarında kullanılamaz.",
     gmail_sync_setup_button: "Adımları göster",
-    gmail_sync_step_3: "E-posta için bir uygulama parolası oluşturun.",
-    gmail_sync_step_4: "Parolayı kopyalayın ve Aster’a yapıştırın.",
+    gmail_sync_step_3:
+      "Posta ayarlarınızda “Tüm Postalar”, “Gönderilmiş Postalar” ve etiketleriniz için “IMAP’te göster” seçeneğini işaretleyin ve klasör boyutu sınırlarını “Sınırlama” olarak ayarlayın.",
+    gmail_sync_step_4:
+      "E-posta adresinizi girin ve uygulama parolasını Aster’a yapıştırın.",
     gmail_wizard_app_password_error_body:
-      "Hesabınızın normal parolası burada çalışmaz. İki adımlı doğrulamayı açın, posta için bir uygulama parolası oluşturun ve yukarıya yapıştırın.",
+      "Hesabınızın normal parolası burada çalışmaz. İki adımlı doğrulamayı açın, bir uygulama parolası oluşturun ve yukarıya yapıştırın.",
     gmail_wizard_app_password_error_title: "Bu parola kabul edilmedi",
     gmail_wizard_progress: "{{total}} adımdan {{current}}. adım",
     gmail_wizard_step_1_body:
-      "Uygulama parolaları, sağlayıcınızdaki hesabın güvenlik bölümünde bulunur.",
+      "Uygulama parolası oluşturmak için hesabınızda iki adımlı doğrulamanın açık olması gerekir. Zaten açıksa sonraki adıma geçin.",
     gmail_wizard_step_2_body:
-      "Uygulama parolaları yalnızca iki adımlı doğrulama açıkken görünür.",
+      "“Uygulama şifreleri” sayfasında Aster gibi bir ad girin ve “Oluştur”u tıklayın. Görünen 16 karakterlik parolayı kopyalayın, çünkü yalnızca bir kez gösterilir.",
     gmail_wizard_step_3_body:
-      "Uygulama olarak Posta’yı seçin ve parolayı oluşturun.",
+      "Aster’ın hangi postaları içe aktarabileceğini posta ayarlarınız belirler. “Etiketler” sekmesinde “Tüm Postalar”, “Gönderilmiş Postalar” ve her etiketiniz için “IMAP’te göster” seçeneğini işaretleyin. “Yönlendirme ve POP/IMAP” sekmesinde klasör boyutu sınırlarını “Sınırlama” olarak ayarlayın ve “Değişiklikleri Kaydet”i tıklayın.",
     gmail_wizard_step_4_body:
-      "Uygulama parolasını aşağıya yapıştırın. Aster parolayı şifreli olarak saklar ve yalnızca bu posta kutusunu eşitlemek için kullanır.",
+      "Uygulama parolasını oluşturduğunuz hesabın adresini kullanın.",
+    gmail_wizard_step_3_labels_action: "Etiket ayarlarını aç",
+    gmail_wizard_step_3_imap_action: "IMAP ayarlarını aç",
+    gmail_wizard_step_5_title: "Uygulama parolasını yapıştırın",
+    gmail_wizard_step_5_body:
+      "Uygulama parolasını boşluklu veya boşluksuz olarak aşağıya yapıştırın. Aster parolayı şifreli olarak saklar ve yalnızca bu posta kutusunu eşitlemek için kullanır.",
+    gmail_wizard_import_note:
+      "Aster, arşivlenmiş ve gönderilmiş iletiler ile etiketler dahil tüm postalarınızı içe aktarır. Büyük posta kutuları birkaç gün sürebilir ve bu sırada Aster’ı kullanmaya devam edebilirsiniz.",
     protocol_desc_imap: "Klasörleri eşitler ve tüm cihazlarınızı güncel tutar.",
     protocol_desc_pop3:
       "İletileri bir kez indirir ve sonrasında hiçbir şeyi eşitlemez.",

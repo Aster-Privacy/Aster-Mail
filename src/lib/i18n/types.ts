@@ -5685,6 +5685,11 @@ export interface SettingsTranslations {
   gmail_wizard_step_3_body: string;
   gmail_wizard_step_4_title: string;
   gmail_wizard_step_4_body: string;
+  gmail_wizard_step_3_labels_action: string;
+  gmail_wizard_step_3_imap_action: string;
+  gmail_wizard_step_5_title: string;
+  gmail_wizard_step_5_body: string;
+  gmail_wizard_import_note: string;
   gmail_wizard_password_label: string;
   gmail_wizard_reveal_password: string;
   gmail_wizard_app_password_error_body: string;

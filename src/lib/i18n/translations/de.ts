@@ -6489,9 +6489,9 @@ export const de = {
     spam_delete_hint:
       "Spam-E-Mails, die älter als dieser Zeitraum sind, werden dauerhaft gelöscht",
     import_how_it_works: "So funktioniert es",
-    import_oauth_title: "OAuth-Verbindung",
+    import_oauth_title: "Konto verbinden",
     import_oauth_description:
-      "Verbinden Sie Ihr Gmail-, Outlook- oder Yahoo-Konto mit einem Klick. Wir importieren und verschlüsseln Ihre E-Mails automatisch auf Ihrem Gerät.",
+      "Verbinden Sie ein Konto, um alle E-Mails daraus zu importieren, einschließlich archivierter und gesendeter Nachrichten sowie Labels. Gmail wird mit einem App-Passwort verbunden, Outlook über Ihre Kontoanmeldung. Bei großen Postfächern kann der Import einige Tage dauern.",
     import_manual_title: "Manueller Import",
     import_manual_step_1:
       "Exportieren Sie Ihre E-Mails von Ihrem aktuellen Anbieter als MBOX-, EML- oder PST-Dateien",
@@ -7965,40 +7965,47 @@ export const de = {
       "Dieser Anbieter verlangt ein App-Passwort. Dein normales Kontopasswort funktioniert nicht.",
     gmail_sync_continue: "Weiter",
     gmail_sync_intro:
-      "Erstelle in deinen Kontoeinstellungen ein App-Passwort und füge es hier ein.",
+      "Aster importiert alle deine E-Mails, einschließlich archivierter und gesendeter Nachrichten sowie Labels. Erstelle zum Verbinden ein App-Passwort und füge es in Aster ein.",
     gmail_sync_note_unavailable:
-      "Wenn keine App-Passwörter verfügbar sind, aktiviere zuerst die Bestätigung in zwei Schritten und sieh dann noch einmal nach.",
+      "Wenn du keine App-Passwörter siehst, aktiviere die Bestätigung in zwei Schritten und sieh noch einmal nach. App-Passwörter sind nicht verfügbar für Konten, die nur Sicherheitsschlüssel verwenden, Konten im Erweiterten Sicherheitsprogramm und manche Arbeits- oder Schulkonten.",
     gmail_sync_open_google: "Kontoeinstellungen öffnen",
     gmail_sync_setup_button: "Anleitung anzeigen",
     gmail_sync_step_1:
-      "Melde dich in den Sicherheitseinstellungen deines Kontos an.",
-    gmail_sync_step_2:
-      "Aktiviere die Bestätigung in zwei Schritten, falls sie noch aus ist.",
-    gmail_sync_step_3: "Erstelle ein App-Passwort für Mail.",
-    gmail_sync_step_4: "Kopiere das Passwort und füge es in Aster ein.",
+      "Aktiviere die Bestätigung in zwei Schritten für dein Konto, falls sie noch aus ist.",
+    gmail_sync_step_2: "Erstelle ein App-Passwort und kopiere es.",
+    gmail_sync_step_3:
+      "Aktiviere in deinen Postfacheinstellungen „In IMAP anzeigen“ für „Alle Nachrichten“, „Gesendet“ und deine Labels und setze die Ordnergrößenbeschränkung auf „Nicht beschränken“.",
+    gmail_sync_step_4:
+      "Gib deine E-Mail-Adresse ein und füge das App-Passwort in Aster ein.",
     gmail_sync_title: "App-Passwort erstellen",
     gmail_wizard_app_password_error_body:
-      "Ihr normales Kontopasswort funktioniert hier nicht. Aktivieren Sie die zweistufige Verifizierung, erstellen Sie ein App-Passwort für E-Mail und fügen Sie es oben ein.",
+      "Ihr normales Kontopasswort funktioniert hier nicht. Aktivieren Sie die Bestätigung in zwei Schritten, erstellen Sie ein App-Passwort und fügen Sie es oben ein.",
     gmail_wizard_app_password_error_title:
       "Dieses Passwort wurde nicht akzeptiert",
     gmail_wizard_connect: "Postfach verbinden",
     gmail_wizard_password_label: "App-Passwort",
     gmail_wizard_progress: "Schritt {{current}} von {{total}}",
     gmail_wizard_reveal_password: "App-Passwort anzeigen",
-    gmail_wizard_step_1_action: "Sicherheitseinstellungen öffnen",
+    gmail_wizard_step_1_action: "Bestätigung in zwei Schritten öffnen",
     gmail_wizard_step_1_body:
-      "App-Passwörter findest du im Sicherheitsbereich deines Anbieterkontos.",
-    gmail_wizard_step_1_title:
-      "Öffne die Sicherheitseinstellungen deines Kontos",
+      "Dein Konto braucht die Bestätigung in zwei Schritten, bevor es App-Passwörter erstellen kann. Wenn sie schon aktiv ist, fahre mit dem nächsten Schritt fort.",
+    gmail_wizard_step_1_title: "Bestätigung in zwei Schritten aktivieren",
     gmail_wizard_step_2_body:
-      "App-Passwörter sind erst verfügbar, wenn die Bestätigung in zwei Schritten aktiv ist.",
-    gmail_wizard_step_2_title: "Bestätigung in zwei Schritten aktivieren",
+      "Gib auf der Seite „App-Passwörter“ einen Namen wie Aster ein und klicke auf „Erstellen“. Kopiere das angezeigte 16-stellige Passwort, denn es erscheint nur einmal.",
+    gmail_wizard_step_2_title: "App-Passwort erstellen",
     gmail_wizard_step_3_body:
-      "Wähle Mail als App aus und erstelle dann das Passwort.",
-    gmail_wizard_step_3_title: "App-Passwort erstellen",
+      "Deine Postfacheinstellungen legen fest, welche E-Mails Aster importieren kann. Aktiviere auf dem Tab „Labels“ die Option „In IMAP anzeigen“ für „Alle Nachrichten“, „Gesendet“ und jedes deiner Labels. Setze auf dem Tab „Weiterleitung & POP/IMAP“ die Ordnergrößenbeschränkung auf „Nicht beschränken“ und klicke auf „Änderungen speichern“.",
+    gmail_wizard_step_3_title: "Alle E-Mails verfügbar machen",
     gmail_wizard_step_4_body:
-      "Füge das App-Passwort unten ein. Aster speichert es verschlüsselt und nutzt es nur, um dieses Postfach zu synchronisieren.",
-    gmail_wizard_step_4_title: "Passwort einfügen",
+      "Verwende die Adresse des Kontos, für das du das App-Passwort erstellt hast.",
+    gmail_wizard_step_3_labels_action: "Label-Einstellungen öffnen",
+    gmail_wizard_step_3_imap_action: "IMAP-Einstellungen öffnen",
+    gmail_wizard_step_5_title: "App-Passwort einfügen",
+    gmail_wizard_step_5_body:
+      "Füge das App-Passwort unten ein, mit oder ohne Leerzeichen. Aster speichert es verschlüsselt und nutzt es nur, um dieses Postfach zu synchronisieren.",
+    gmail_wizard_import_note:
+      "Aster importiert alle deine E-Mails, einschließlich archivierter und gesendeter Nachrichten sowie Labels. Große Postfächer können einige Tage dauern, und du kannst Aster während des Imports weiter nutzen.",
+    gmail_wizard_step_4_title: "E-Mail-Adresse eingeben",
     gmail_wizard_title: "Postfach verbinden",
     last_sync_tooltip: "Wann dieses Konto zuletzt synchronisiert wurde",
     not_synced_tooltip: "Dieses Konto wurde noch nicht synchronisiert.",

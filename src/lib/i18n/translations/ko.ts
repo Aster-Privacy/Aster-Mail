@@ -2203,18 +2203,20 @@ export const ko = {
     forwarding_rules_count_one: "전달 규칙 {{count}}개",
     gmail_sync_continue: "계속",
     gmail_sync_open_google: "계정 설정 열기",
-    gmail_sync_step_3: "메일용 앱 비밀번호를 만듭니다.",
-    gmail_sync_step_4: "비밀번호를 복사해 Aster에 붙여 넣습니다.",
+    gmail_sync_step_3:
+      "메일 설정에서 전체보관함, 보낸편지함, 각 라벨의 'IMAP에 표시'를 선택하고 폴더 크기 제한을 '제한하지 않음'으로 설정합니다.",
+    gmail_sync_step_4: "이메일 주소를 입력하고 앱 비밀번호를 Aster에 붙여 넣습니다.",
     gmail_sync_title: "앱 비밀번호 만들기",
     gmail_wizard_connect: "메일함 연결",
     gmail_wizard_password_label: "앱 비밀번호",
     gmail_wizard_progress: "{{total}}단계 중 {{current}}단계",
     gmail_wizard_reveal_password: "앱 비밀번호 표시",
-    gmail_wizard_step_1_action: "보안 설정 열기",
-    gmail_wizard_step_2_title: "2단계 인증을 켭니다",
-    gmail_wizard_step_3_body: "앱으로 메일을 선택한 다음 비밀번호를 만듭니다.",
-    gmail_wizard_step_3_title: "앱 비밀번호를 만듭니다",
-    gmail_wizard_step_4_title: "비밀번호를 붙여 넣습니다",
+    gmail_wizard_step_1_action: "2단계 인증 열기",
+    gmail_wizard_step_2_title: "앱 비밀번호를 만듭니다",
+    gmail_wizard_step_3_body:
+      "Aster가 가져올 수 있는 메일은 메일 설정에 따라 달라집니다. '라벨' 탭에서 전체보관함, 보낸편지함, 각 라벨의 'IMAP에 표시'를 선택합니다. '전달 및 POP/IMAP' 탭에서 폴더 크기 제한을 '제한하지 않음'으로 설정하고 '변경사항 저장'을 클릭합니다.",
+    gmail_wizard_step_3_title: "모든 메일을 사용할 수 있게 합니다",
+    gmail_wizard_step_4_title: "이메일 주소를 입력합니다",
     not_synced_tooltip: "이 계정은 아직 동기화되지 않았습니다.",
     plan_domains_count_one: "도메인 {{count}}개",
     purge_confirm_message_one:
@@ -6431,9 +6433,9 @@ export const ko = {
     show_badges_in_signature_description:
       "발신 이메일의 서명 영역에 배지를 표시합니다.",
     import_how_it_works: "작동 방식",
-    import_oauth_title: "OAuth 연결",
+    import_oauth_title: "계정 연결",
     import_oauth_description:
-      "한 번의 클릭으로 Gmail, Outlook 또는 Yahoo 계정을 연결하세요. 기기에서 자동으로 이메일을 가져와 암호화합니다.",
+      "계정을 연결하면 보관처리된 메일, 보낸 메일, 라벨을 포함한 모든 메일을 가져옵니다. Gmail은 앱 비밀번호로, Outlook은 계정 로그인으로 연결합니다. 메일함이 크면 완료까지 며칠이 걸릴 수 있습니다.",
     import_manual_title: "수동 가져오기",
     import_manual_step_1:
       "현재 이메일 제공업체에서 MBOX, EML 또는 PST 파일로 이메일을 내보내세요",
@@ -7675,22 +7677,28 @@ export const ko = {
     gmail_app_password_notice:
       "이 제공업체는 앱 비밀번호를 요구합니다. 일반 계정 비밀번호는 사용할 수 없습니다.",
     gmail_sync_intro:
-      "계정 설정에서 앱 비밀번호를 만든 다음 여기에 붙여 넣습니다.",
+      "Aster는 보관처리된 메일, 보낸 메일, 라벨을 포함한 모든 메일을 가져옵니다. 연결하려면 앱 비밀번호를 만들어 Aster에 붙여 넣습니다.",
     gmail_sync_note_unavailable:
-      "앱 비밀번호가 보이지 않으면 2단계 인증을 켠 후 다시 확인하세요.",
+      "앱 비밀번호가 보이지 않으면 2단계 인증을 켠 후 다시 확인하세요. 보안 키만 사용하는 계정, 고급 보호 프로그램에 등록된 계정, 일부 직장 또는 학교 계정에서는 앱 비밀번호를 사용할 수 없습니다.",
     gmail_sync_setup_button: "단계 보기",
-    gmail_sync_step_1: "계정의 보안 설정에 로그인합니다.",
-    gmail_sync_step_2: "2단계 인증이 꺼져 있으면 켭니다.",
+    gmail_sync_step_1: "2단계 인증이 꺼져 있으면 계정에서 켭니다.",
+    gmail_sync_step_2: "앱 비밀번호를 만들어 복사합니다.",
     gmail_wizard_app_password_error_body:
-      "일반 계정 비밀번호는 여기서 작동하지 않습니다. 2단계 인증을 켜고 메일용 앱 비밀번호를 만든 다음 위에 붙여넣으세요.",
+      "일반 계정 비밀번호는 여기서 작동하지 않습니다. 2단계 인증을 켜고 앱 비밀번호를 만든 다음 위에 붙여넣으세요.",
     gmail_wizard_app_password_error_title: "이 비밀번호는 사용할 수 없습니다",
     gmail_wizard_step_1_body:
-      "앱 비밀번호는 제공업체 계정의 보안 섹션에 있습니다.",
-    gmail_wizard_step_1_title: "계정의 보안 설정을 엽니다",
+      "앱 비밀번호를 만들려면 계정에서 2단계 인증이 켜져 있어야 합니다. 이미 켜져 있으면 다음 단계로 이동합니다.",
+    gmail_wizard_step_1_title: "2단계 인증을 켭니다",
     gmail_wizard_step_2_body:
-      "앱 비밀번호는 2단계 인증이 켜져 있을 때만 표시됩니다.",
-    gmail_wizard_step_4_body:
-      "앱 비밀번호를 아래에 붙여 넣습니다. Aster는 비밀번호를 암호화해 저장하고 이 메일함을 동기화할 때만 사용합니다.",
+      "'앱 비밀번호' 페이지에서 Aster 같은 이름을 입력하고 '만들기'를 클릭합니다. 표시되는 16자리 비밀번호는 한 번만 표시되므로 복사해 둡니다.",
+    gmail_wizard_step_4_body: "앱 비밀번호를 만든 계정의 주소를 사용합니다.",
+    gmail_wizard_step_3_labels_action: "라벨 설정 열기",
+    gmail_wizard_step_3_imap_action: "IMAP 설정 열기",
+    gmail_wizard_step_5_title: "앱 비밀번호를 붙여 넣습니다",
+    gmail_wizard_step_5_body:
+      "앱 비밀번호를 아래에 붙여 넣습니다. 공백은 있어도 없어도 됩니다. Aster는 비밀번호를 암호화해 저장하고 이 메일함을 동기화할 때만 사용합니다.",
+    gmail_wizard_import_note:
+      "Aster는 보관처리된 메일, 보낸 메일, 라벨을 포함한 모든 메일을 가져옵니다. 메일함이 크면 며칠이 걸릴 수 있으며, 그동안에도 Aster를 계속 사용할 수 있습니다.",
     gmail_wizard_title: "메일함 연결하기",
     last_sync_tooltip: "이 계정을 마지막으로 동기화한 시간",
     protocol_desc_imap: "폴더를 동기화하고 모든 기기를 최신 상태로 유지합니다.",

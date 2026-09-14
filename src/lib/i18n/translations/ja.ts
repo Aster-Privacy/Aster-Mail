@@ -2241,17 +2241,18 @@ export const ja = {
     forwarding_rules_count_one: "{{count}} 件の転送ルール",
     gmail_sync_continue: "続ける",
     gmail_sync_open_google: "アカウント設定を開く",
-    gmail_sync_step_1: "アカウントのセキュリティ設定にサインインします。",
-    gmail_sync_step_3: "メール用のアプリパスワードを作成します。",
-    gmail_sync_step_4: "パスワードをコピーして Aster に貼り付けます。",
+    gmail_sync_step_1: "2 段階認証が無効な場合は、アカウントで有効にします。",
+    gmail_sync_step_3:
+      "メールの設定で、「すべてのメール」「送信済みメール」と各ラベルの「IMAP で表示」を選択し、フォルダ サイズの制限を「制限しない」に設定します。",
+    gmail_sync_step_4: "メールアドレスを入力し、アプリパスワードを Aster に貼り付けます。",
     gmail_wizard_connect: "メールボックスを接続",
     gmail_wizard_password_label: "アプリパスワード",
     gmail_wizard_progress: "ステップ {{current}}/{{total}}",
     gmail_wizard_reveal_password: "アプリパスワードを表示",
-    gmail_wizard_step_1_action: "セキュリティ設定を開く",
-    gmail_wizard_step_1_title: "アカウントのセキュリティ設定を開く",
-    gmail_wizard_step_3_title: "アプリパスワードを作成する",
-    gmail_wizard_step_4_title: "パスワードを貼り付ける",
+    gmail_wizard_step_1_action: "2 段階認証を開く",
+    gmail_wizard_step_1_title: "2 段階認証を有効にする",
+    gmail_wizard_step_3_title: "すべてのメールを利用可能にする",
+    gmail_wizard_step_4_title: "メールアドレスを入力する",
     not_synced_tooltip: "このアカウントはまだ同期していません。",
     plan_domains_count_one: "{{count}} 件のドメイン",
     purge_confirm_message_one:
@@ -6509,9 +6510,9 @@ export const ja = {
     show_badges_in_signature_description:
       "送信メールの署名エリアにバッジを表示します。",
     import_how_it_works: "使い方",
-    import_oauth_title: "OAuth接続",
+    import_oauth_title: "アカウントを接続",
     import_oauth_description:
-      "Gmail、Outlook、またはYahooアカウントをワンクリックで接続します。メールを自動的にインポートし、デバイス上で暗号化します。",
+      "アカウントを接続すると、アーカイブ済みのメール、送信済みのメール、ラベルを含むすべてのメールをインポートできます。Gmail はアプリパスワードで、Outlook はアカウントへのログインで接続します。メールボックスが大きい場合は、完了まで数日かかることがあります。",
     import_manual_title: "手動インポート",
     import_manual_step_1:
       "現在のプロバイダーからMBOX、EML、またはPSTファイルとしてメールをエクスポートします",
@@ -7884,25 +7885,31 @@ export const ja = {
     gmail_app_password_notice:
       "このプロバイダはアプリパスワードを必要とします。通常のアカウントのパスワードは使えません。",
     gmail_sync_intro:
-      "アカウント設定でアプリパスワードを作成し、ここに貼り付けます。",
+      "Aster は、アーカイブ済みのメール、送信済みのメール、ラベルを含むすべてのメールをインポートします。接続するには、アプリパスワードを作成して Aster に貼り付けます。",
     gmail_sync_note_unavailable:
-      "アプリパスワードが表示されない場合は、2 段階認証を有効にしてからもう一度確認してください。",
+      "アプリパスワードが表示されない場合は、2 段階認証を有効にしてからもう一度確認してください。セキュリティ キーのみを使用するアカウント、高度な保護機能プログラムに登録しているアカウント、一部の職場や学校のアカウントでは、アプリパスワードを使用できません。",
     gmail_sync_setup_button: "手順を表示",
-    gmail_sync_step_2: "2 段階認証が無効な場合は有効にします。",
+    gmail_sync_step_2: "アプリパスワードを作成してコピーします。",
     gmail_sync_title: "アプリパスワードを作成する",
     gmail_wizard_app_password_error_body:
-      "通常のアカウントのパスワードはここでは使えません。2 段階認証を有効にし、メール用のアプリパスワードを作成して、上に貼り付けてください。",
+      "通常のアカウントのパスワードはここでは使えません。2 段階認証を有効にし、アプリパスワードを作成して、上に貼り付けてください。",
     gmail_wizard_app_password_error_title:
       "このパスワードは受け付けられませんでした",
     gmail_wizard_step_1_body:
-      "アプリパスワードは、プロバイダのアカウントのセキュリティ設定にあります。",
+      "アプリパスワードを作成するには、アカウントで 2 段階認証を有効にする必要があります。すでに有効な場合は、次のステップに進みます。",
     gmail_wizard_step_2_body:
-      "アプリパスワードは 2 段階認証が有効な場合にのみ表示されます。",
-    gmail_wizard_step_2_title: "2 段階認証を有効にする",
+      "「アプリ パスワード」ページで Aster などの名前を入力し、「作成」をクリックします。表示される 16 文字のパスワードは一度しか表示されないため、コピーしておきます。",
+    gmail_wizard_step_2_title: "アプリパスワードを作成する",
     gmail_wizard_step_3_body:
-      "アプリとして「メール」を選び、パスワードを作成します。",
-    gmail_wizard_step_4_body:
-      "アプリパスワードを下に貼り付けます。Aster はパスワードを暗号化して保存し、このメールボックスの同期にのみ使用します。",
+      "Aster がインポートできるメールは、メールの設定によって決まります。「ラベル」タブで、「すべてのメール」「送信済みメール」と各ラベルの「IMAP で表示」を選択します。「メール転送と POP/IMAP」タブで、フォルダ サイズの制限を「制限しない」に設定し、「変更を保存」をクリックします。",
+    gmail_wizard_step_4_body: "アプリパスワードを作成したアカウントのアドレスを使用します。",
+    gmail_wizard_step_3_labels_action: "ラベルの設定を開く",
+    gmail_wizard_step_3_imap_action: "IMAP の設定を開く",
+    gmail_wizard_step_5_title: "アプリパスワードを貼り付ける",
+    gmail_wizard_step_5_body:
+      "アプリパスワードを下に貼り付けます。スペースは含めても含めなくてもかまいません。Aster はパスワードを暗号化して保存し、このメールボックスの同期にのみ使用します。",
+    gmail_wizard_import_note:
+      "Aster は、アーカイブ済みのメール、送信済みのメール、ラベルを含むすべてのメールをインポートします。メールボックスが大きい場合は数日かかることがありますが、その間も Aster を使用できます。",
     gmail_wizard_title: "メールボックスを接続する",
     last_sync_tooltip: "このアカウントを最後に同期した時刻",
     protocol_desc_imap:
