@@ -322,6 +322,7 @@ export function EncryptionSection({
                       {enc.format_fingerprint(enc.pgp_key.fingerprint)}
                     </code>
                     <button
+                      aria-label={t("settings.copy_fingerprint")}
                       className="p-2 rounded-[14px] active:bg-[var(--mobile-bg-card-hover)]"
                       type="button"
                       onClick={enc.handle_copy_fingerprint}
@@ -491,6 +492,7 @@ export function EncryptionSection({
                       {t("settings.download_pdf")}
                     </motion.button>
                     <button
+                      aria-label={t("settings.copy_all_codes")}
                       className="p-3 rounded-[14px] bg-[var(--mobile-bg-card-hover)]"
                       type="button"
                       onClick={enc.handle_copy_all_codes}

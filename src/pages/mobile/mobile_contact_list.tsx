@@ -125,6 +125,7 @@ export function MobileContactList({
       {is_select_mode ? (
         <div className="flex items-center gap-2 border-b border-[var(--border-primary)] px-3 py-2 safe-area-pt">
           <button
+            aria-label={t("common.close")}
             className="flex h-8 w-8 items-center justify-center rounded-full text-[var(--text-secondary)] active:bg-[var(--bg-tertiary)]"
             type="button"
             onClick={exit_select_mode}
@@ -171,6 +172,7 @@ export function MobileContactList({
               )}
               {Capacitor.isNativePlatform() && (
                 <button
+                  aria-label={t("common.sync")}
                   className="flex h-8 w-8 items-center justify-center rounded-full text-[var(--text-secondary)] active:bg-[var(--bg-tertiary)] disabled:opacity-40"
                   disabled={is_syncing}
                   type="button"
@@ -183,6 +185,7 @@ export function MobileContactList({
                 </button>
               )}
               <button
+                aria-label={t("common.add_contact")}
                 className="flex h-8 w-8 items-center justify-center rounded-full text-white active:brightness-90"
                 style={{
                   background:

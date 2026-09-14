@@ -462,6 +462,7 @@ function MobileComposePage({
                 <ClockIcon className="h-3.5 w-3.5" />
                 {format_datetime_hint(compose.scheduled_time)}
                 <button
+                  aria-label={t("common.clear")}
                   className="ms-0.5"
                   type="button"
                   onClick={handle_clear_schedule}
@@ -478,6 +479,7 @@ function MobileComposePage({
                   <LockClosedIcon className="h-3 w-3" />
                 )}
                 <button
+                  aria-label={t("common.clear")}
                   className="ms-0.5"
                   type="button"
                   onClick={handle_clear_expiration}
@@ -637,6 +639,7 @@ function MobileComposePage({
           </span>
         )}
         <button
+          aria-label={t("common.delete")}
           className="flex h-9 w-9 items-center justify-center rounded-full text-[var(--color-danger,#ef4444)] active:bg-[var(--bg-tertiary)]"
           type="button"
           onClick={handle_trash_press}

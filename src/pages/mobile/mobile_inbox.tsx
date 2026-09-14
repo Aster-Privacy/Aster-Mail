@@ -951,6 +951,7 @@ function MobileInbox({
           }}
         >
           <button
+            aria-label={t("common.close")}
             className="flex h-11 w-11 items-center justify-center rounded-full text-[var(--text-secondary)] active:bg-[var(--bg-tertiary)]"
             type="button"
             onClick={exit_selection_mode}
@@ -958,7 +959,7 @@ function MobileInbox({
             <XMarkIcon className="h-6 w-6" />
           </button>
           <span className="min-w-0 flex-1 text-lg font-semibold text-[var(--text-primary)]">
-            {selected_ids.size} {t("common.selected")}
+            {t("common.selected_count", { count: selected_ids.size })}
           </span>
           <button
             className="rounded-full px-3 py-1.5 text-[13px] font-medium text-[var(--accent-color,#3b82f6)]"
@@ -986,6 +987,7 @@ function MobileInbox({
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button
+                    aria-label={t("mail.filter")}
                     className={`flex h-11 w-11 items-center justify-center rounded-full ${
                       active_filter !== "all" ||
                       (alias_address && alias_direction !== "all")

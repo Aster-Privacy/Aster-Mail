@@ -87,6 +87,8 @@ function DetailRow({
   on_copy?: () => void;
   action_icon?: React.ReactNode;
 }) {
+  const { t } = use_i18n();
+
   return (
     <div
       className={`flex items-center gap-2 px-4 py-2.5 ${!is_last ? "border-b border-[var(--border-primary)]" : ""}`}
@@ -101,6 +103,7 @@ function DetailRow({
       </div>
       {on_copy && (
         <button
+          aria-label={t("common.copy")}
           className="flex h-8 w-8 items-center justify-center rounded-full text-[var(--text-muted)] active:bg-[var(--bg-tertiary)]"
           type="button"
           onClick={on_copy}

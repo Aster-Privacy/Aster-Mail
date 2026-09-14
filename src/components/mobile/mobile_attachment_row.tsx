@@ -28,6 +28,7 @@ import {
 } from "@heroicons/react/24/outline";
 
 import { format_bytes } from "@/lib/utils";
+import { use_i18n } from "@/lib/i18n/context";
 
 interface MobileAttachmentRowProps {
   filename: string;
@@ -52,6 +53,7 @@ export const MobileAttachmentRow = memo(function MobileAttachmentRow({
   on_download,
   is_downloading = false,
 }: MobileAttachmentRowProps) {
+  const { t } = use_i18n();
   const FileIcon = get_file_icon(content_type);
 
   return (
@@ -67,6 +69,7 @@ export const MobileAttachmentRow = memo(function MobileAttachmentRow({
       </div>
       {on_download && (
         <button
+          aria-label={t("common.download")}
           className="flex h-8 w-8 items-center justify-center rounded-full text-[var(--text-secondary)] active:bg-[var(--bg-secondary)] disabled:opacity-50"
           disabled={is_downloading}
           type="button"

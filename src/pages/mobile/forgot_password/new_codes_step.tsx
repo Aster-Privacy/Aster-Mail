@@ -87,6 +87,7 @@ export function NewCodesStep({
                 {is_key_visible ? <EyeSlashIcon /> : <EyeIcon />}
               </button>
               <button
+                aria-label={t("auth.copy_codes")}
                 className="p-1.5 rounded"
                 style={{
                   color: copy_success

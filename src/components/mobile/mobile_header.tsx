@@ -57,6 +57,7 @@ export const MobileHeader = memo(function MobileHeader({
       <div className="flex items-center gap-1">
         {on_back && (
           <button
+            aria-label={t("common.back")}
             className="flex h-11 w-11 items-center justify-center rounded-full text-[var(--text-secondary)] active:bg-[var(--bg-tertiary)]"
             type="button"
             onClick={on_back}
@@ -97,6 +98,7 @@ export const MobileHeader = memo(function MobileHeader({
         {right_actions}
         {on_search && (
           <button
+            aria-label={t("common.search")}
             className="flex h-11 w-11 items-center justify-center rounded-full text-[var(--text-secondary)] active:bg-[var(--bg-tertiary)]"
             type="button"
             onClick={on_search}

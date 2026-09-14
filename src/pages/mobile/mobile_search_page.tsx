@@ -200,6 +200,7 @@ function MobileSearchPage() {
           onChange={(e) => set_query(e.target.value)}
         />
         <button
+          aria-label={t("common.clear")}
           className={`flex h-7 w-7 items-center justify-center rounded-full text-[var(--text-muted)] active:bg-[var(--bg-tertiary)] transition-opacity ${query ? "opacity-100" : "opacity-0 pointer-events-none"}`}
           type="button"
           onClick={handle_clear}
