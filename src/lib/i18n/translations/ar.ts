@@ -7981,6 +7981,7 @@ export const ar = {
     already_reacted: "لقد تفاعلت بهذا بالفعل",
     remove_your_reaction: "إزالة تفاعلك {emoji}",
     you_reacted_with: "لقد تفاعلت بـ {{emoji}}",
+    you_reacted_with_remove: "لقد تفاعلت بـ {{emoji}}. انقر للإزالة.",
     reacted_with: "تفاعل {{name}} بـ {{emoji}}",
     forward: "تحويل",
     to: "إلى",
@@ -9492,6 +9493,8 @@ export const ar = {
     cannot_react_bcc: "لا يمكنك التفاعل مع رسالة وصلتك بنسخة مخفية.",
     cannot_react_too_many_emojis:
       "وصلت هذه الرسالة إلى الحد الأقصى من التفاعلات.",
+    cannot_react_limit:
+      "يمكنك إضافة تفاعلين كحد أقصى إلى الرسالة. لإضافة تفاعل آخر، أزل أحد تفاعلاتك.",
     cannot_react_no_recipient: "لا يوجد مرسل لهذه الرسالة لإرسال التفاعل إليه.",
     failed_send_reaction: "حاول مجددًا.",
     reactions_disabled: "التفاعلات معطلة في إعداداتك.",

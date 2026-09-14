@@ -8027,6 +8027,7 @@ export const ja = {
     already_reacted: "すでにこのリアクションを送信済みです",
     remove_your_reaction: "{emoji} のリアクションを削除",
     you_reacted_with: "{{emoji}} でリアクションしました",
+    you_reacted_with_remove: "{{emoji}} でリアクションしました。クリックすると削除されます。",
     reacted_with: "{{name}} が {{emoji}} でリアクションしました",
     forward: "転送",
     to: "宛先",
@@ -9550,6 +9551,8 @@ export const ja = {
     cannot_react_bcc: "BCCで受け取ったメッセージにはリアクションできません。",
     cannot_react_too_many_emojis:
       "このメッセージのリアクションは上限に達しています。",
+    cannot_react_limit:
+      "1件のメッセージに追加できるリアクションは2つまでです。別のリアクションを追加するには、自分のリアクションを1つ削除してください。",
     cannot_react_no_recipient:
       "このメッセージには、リアクションの送信先となる送信者がいません。",
     failed_send_reaction:

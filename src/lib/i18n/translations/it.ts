@@ -8136,6 +8136,8 @@ export const it = {
     already_reacted: "Hai già reagito con questo",
     remove_your_reaction: "Rimuovi la tua reazione {emoji}",
     you_reacted_with: "Hai reagito con {{emoji}}",
+    you_reacted_with_remove:
+      "Hai reagito con {{emoji}}. Fai clic per rimuovere.",
     reacted_with: "{{name}} ha reagito con {{emoji}}",
     forward: "Inoltra",
     to: "A",
@@ -9680,6 +9682,8 @@ export const it = {
     cannot_react_bcc: "Non puoi reagire a un messaggio in cui eri in Ccn.",
     cannot_react_too_many_emojis:
       "Questo messaggio ha già il numero massimo di reazioni.",
+    cannot_react_limit:
+      "Puoi aggiungere fino a due reazioni a un messaggio. Per aggiungerne un'altra, rimuovi una delle tue.",
     cannot_react_no_recipient:
       "Questo messaggio non ha un mittente a cui inviare la reazione.",
     failed_send_reaction: "Riprova.",

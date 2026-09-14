@@ -23,6 +23,7 @@ import type { DecryptedThreadMessage } from "@/types/thread";
 
 export const max_reaction_recipients = 20;
 export const max_reaction_emojis = 20;
+export const max_own_reactions = 2;
 
 export type ReactionRestriction =
   | "disabled"
@@ -33,6 +34,7 @@ export type ReactionRestriction =
   | "too_many_recipients"
   | "bcc"
   | "too_many_emojis"
+  | "reaction_limit"
   | "no_recipient";
 
 export const reaction_restriction_keys: Record<
@@ -47,6 +49,7 @@ export const reaction_restriction_keys: Record<
   too_many_recipients: "cannot_react_too_many_recipients",
   bcc: "cannot_react_bcc",
   too_many_emojis: "cannot_react_too_many_emojis",
+  reaction_limit: "cannot_react_limit",
   no_recipient: "cannot_react_no_recipient",
 };
 
@@ -96,6 +99,19 @@ function unique_emoji_count(message: DecryptedThreadMessage): number {
   return emojis.size;
 }
 
+export function own_reaction_count(
+  message: DecryptedThreadMessage,
+  user_email: string,
+): number {
+  const me = normalize(user_email);
+
+  return (message.reactions ?? []).filter(
+    (reaction) =>
+      reaction.is_own === true ||
+      (!!me && normalize(reaction.reactor_email) === me),
+  ).length;
+}
+
 function is_addressed_to(
   message: DecryptedThreadMessage,
   user_email: string,
@@ -142,6 +158,9 @@ export function reaction_restriction(
   if (!is_addressed_to(message, user_email, is_own_address)) return "bcc";
   if (unique_emoji_count(message) >= max_reaction_emojis) {
     return "too_many_emojis";
+  }
+  if (own_reaction_count(message, user_email) >= max_own_reactions) {
+    return "reaction_limit";
   }
   if (!normalize(message.sender_email)) return "no_recipient";
 

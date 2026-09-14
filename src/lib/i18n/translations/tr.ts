@@ -8026,6 +8026,8 @@ export const tr = {
     already_reacted: "Buna zaten tepki verdiniz",
     remove_your_reaction: "{emoji} tepkinizi kaldır",
     you_reacted_with: "{{emoji}} ile tepki verdiniz",
+    you_reacted_with_remove:
+      "{{emoji}} ile tepki verdiniz. Kaldırmak için tıklayın.",
     reacted_with: "{{name}} {{emoji}} ile tepki verdi",
     forward: "İlet",
     to: "Kime",
@@ -9547,6 +9549,8 @@ export const tr = {
     cannot_react_bcc: "Gizli kopyada olduğunuz bir mesaja tepki veremezsiniz.",
     cannot_react_too_many_emojis:
       "Bu mesaj zaten en fazla sayıda tepkiye sahip.",
+    cannot_react_limit:
+      "Bir mesaja en fazla iki tepki ekleyebilirsiniz. Başka bir tepki eklemek için tepkilerinizden birini kaldırın.",
     cannot_react_no_recipient:
       "Bu mesajın tepki gönderilecek bir göndereni yok.",
     failed_send_reaction: "Tekrar deneyin.",

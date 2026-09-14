@@ -37,9 +37,11 @@ import {
 import EmojiPicker from "@/components/compose/emoji_picker";
 import {
   is_own_reaction_address,
+  remove_reaction,
   send_reaction,
 } from "@/services/reaction_actions";
 import {
+  max_own_reactions,
   reaction_restriction,
   reaction_restriction_keys,
 } from "@/services/reaction_restrictions";
@@ -160,31 +162,44 @@ export function ThreadMessageActions({
   const [pending_reactions, set_pending_reactions] = useState<
     PendingReaction[]
   >([]);
+  const [removing_ids, set_removing_ids] = useState<string[]>([]);
 
   const total_recipients =
     (message.to_recipients?.length ?? 0) + (message.cc_recipients?.length ?? 0);
   const show_reply_all = on_reply_all && total_recipients >= 2;
   const is_own_message = message.item_type === "sent";
-  const restriction = reaction_restriction(
-    message,
-    auth?.user?.email ?? "",
-    reactions_enabled,
-    is_own_reaction_address,
-  );
-  const can_react = restriction === null;
-  const restriction_message = restriction
-    ? t(`errors.${reaction_restriction_keys[restriction]}`)
-    : "";
-  const show_react_button =
-    can_react || (restriction !== "disabled" && restriction !== "own_message");
+  const visible_message = removing_ids.length
+    ? {
+        ...message,
+        reactions: message.reactions?.filter(
+          (reaction) => !removing_ids.includes(reaction.reaction_mail_item_id),
+        ),
+      }
+    : message;
   const server_reaction_groups = group_reactions(
-    message.reactions,
+    visible_message.reactions,
     auth?.user?.email,
   );
   const reaction_groups = merge_pending_reactions(
     server_reaction_groups,
     pending_reactions,
   );
+  const own_group_count = reaction_groups.filter(
+    (group) => group.includes_self,
+  ).length;
+  const restriction =
+    reaction_restriction(
+      visible_message,
+      auth?.user?.email ?? "",
+      reactions_enabled,
+      is_own_reaction_address,
+    ) ?? (own_group_count >= max_own_reactions ? "reaction_limit" : null);
+  const can_react = restriction === null;
+  const restriction_message = restriction
+    ? t(`errors.${reaction_restriction_keys[restriction]}`)
+    : "";
+  const show_react_button =
+    can_react || (restriction !== "disabled" && restriction !== "own_message");
 
   function send_reaction_emoji(emoji: string): void {
     if (restriction !== null) {
@@ -237,10 +252,48 @@ export function ThreadMessageActions({
     send_reaction_emoji(emoji);
   }
 
-  function handle_chip_click(group: ReactionChipGroup): void {
-    if (group.includes_self) return;
+  function remove_own_reaction(group: ReactionChipGroup): void {
+    const reaction_mail_item_id = group.self_reaction_mail_item_id;
 
+    if (
+      !reaction_mail_item_id ||
+      removing_ids.includes(reaction_mail_item_id)
+    ) {
+      return;
+    }
+
+    const removed_pending = pending_reactions.filter(
+      (pending) => pending.emoji === group.emoji,
+    );
+
+    set_removing_ids((prev) => [...prev, reaction_mail_item_id]);
+    set_pending_reactions((prev) =>
+      prev.filter((pending) => pending.emoji !== group.emoji),
+    );
+
+    void remove_reaction(reaction_mail_item_id).then((result) => {
+      if (!result.success) {
+        set_removing_ids((prev) =>
+          prev.filter((id) => id !== reaction_mail_item_id),
+        );
+        set_pending_reactions((prev) => [...prev, ...removed_pending]);
+        show_toast(result.error ?? t("errors.failed_remove_reaction"), "error");
+
+        return;
+      }
+
+      emit_mail_soft_refresh();
+    });
+  }
+
+  function handle_chip_click(group: ReactionChipGroup): void {
     if (is_own_message) return;
+
+    if (group.includes_self) {
+      remove_own_reaction(group);
+
+      return;
+    }
 
     send_reaction_emoji(group.emoji);
   }
@@ -256,23 +309,23 @@ export function ThreadMessageActions({
           <AnimatePresence initial={false}>
             {reaction_groups.map((group) => {
               const tooltip = group.includes_self
-                ? t("mail.you_reacted_with", { emoji: group.emoji })
+                ? t("mail.you_reacted_with_remove", { emoji: group.emoji })
                 : group.reactor_names[0]
                   ? t("mail.reacted_with", {
                       name: group.reactor_names[0],
                       emoji: group.emoji,
                     })
                   : "";
-              const is_locked = group.includes_self || is_own_message;
+              const is_locked = is_own_message;
 
               const chip = (
                 <motion.button
                   animate={{ opacity: 1, scale: 1 }}
                   aria-disabled={is_locked}
                   aria-pressed={group.includes_self}
-                  className={`group/chip inline-flex items-center gap-1 h-7 ps-1.5 pe-2.5 rounded-full select-none transition-colors duration-150 ${
+                  className={`group/chip inline-flex items-center gap-1 h-7 ps-2.5 pe-2 rounded-full select-none transition-colors duration-150 ${
                     group.includes_self
-                      ? "cursor-default bg-[#d3e3fd] dark:bg-[#004a77]"
+                      ? "bg-[#d3e3fd] dark:bg-[#004a77] hover:bg-[#c3d7fb] dark:hover:bg-[#0a5687] active:scale-95"
                       : is_locked
                         ? "cursor-default bg-[#eceef1] dark:bg-[#282a2c]"
                         : "bg-[#eceef1] dark:bg-[#282a2c] hover:bg-[#e1e4e8] dark:hover:bg-[#333537] active:scale-95"
@@ -284,14 +337,14 @@ export function ThreadMessageActions({
                   type="button"
                   onClick={() => handle_chip_click(group)}
                 >
-                  <span className="flex items-center justify-center w-5 h-5 text-[15px] leading-none">
+                  <span className="flex items-center justify-center w-4 h-4 text-base leading-none">
                     {group.emoji}
                   </span>
                   <AnimatePresence initial={false} mode="popLayout">
                     <motion.span
                       key={group.count}
                       animate={{ opacity: 1, y: 0 }}
-                      className={`text-xs font-normal tabular-nums leading-none ${
+                      className={`text-[13px] font-normal tabular-nums leading-4 ${
                         group.includes_self
                           ? "text-[#0842a0] dark:text-[#c2e7ff]"
                           : "text-[var(--text-secondary)]"
