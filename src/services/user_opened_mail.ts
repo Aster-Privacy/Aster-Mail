@@ -112,9 +112,12 @@ export function revert_user_opened_mail(id: string): boolean {
 }
 
 function write_unread(id: string, fields: MetadataFields): void {
-  void update_item_metadata(id, fields, { is_read: false }).catch(
-    () => undefined,
-  );
+  void update_item_metadata(
+    id,
+    fields,
+    { is_read: false },
+    { force: true },
+  ).catch(() => undefined);
 }
 
 export function find_cached_mail_row(id: string): OpenedMailRow | undefined {

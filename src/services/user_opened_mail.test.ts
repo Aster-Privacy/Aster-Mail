@@ -351,6 +351,7 @@ describe("revert_user_opened_mail", () => {
       "m1",
       expect.objectContaining({ encrypted_metadata: "enc" }),
       { is_read: false },
+      { force: true },
     );
     expect(hoisted.emit_mail_item_updated).not.toHaveBeenCalled();
     expect(hoisted.mark_conversation_read).not.toHaveBeenCalled();
@@ -369,6 +370,7 @@ describe("revert_user_opened_mail", () => {
       "m1",
       { encrypted_metadata: "e3", metadata_nonce: "n3" },
       { is_read: false },
+      { force: true },
     );
     expect(hoisted.adjust_stats_unread).toHaveBeenLastCalledWith(1);
   });
