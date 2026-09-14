@@ -2365,17 +2365,19 @@ export const pl = {
     edit_account_tooltip: "Edytuj konto",
     gmail_sync_continue: "Dalej",
     gmail_sync_open_google: "Otwórz ustawienia konta",
-    gmail_sync_step_1: "Zaloguj się do ustawień zabezpieczeń swojego konta.",
-    gmail_sync_step_3: "Utwórz hasło do aplikacji dla poczty.",
+    gmail_sync_step_1:
+      "Włącz weryfikację dwuetapową na swoim koncie, jeśli jeszcze nie jest włączona.",
+    gmail_sync_step_3:
+      "W ustawieniach poczty zaznacz „Pokaż w IMAP” dla „Wszystkie”, „Wysłane” i swoich etykiet, a limity rozmiaru folderów ustaw na „Nie ograniczaj”.",
     gmail_sync_title: "Utwórz hasło do aplikacji",
     gmail_wizard_connect: "Połącz skrzynkę",
     gmail_wizard_password_label: "Hasło do aplikacji",
     gmail_wizard_progress: "Krok {{current}} z {{total}}",
     gmail_wizard_reveal_password: "Pokaż hasło do aplikacji",
-    gmail_wizard_step_1_action: "Otwórz ustawienia zabezpieczeń",
-    gmail_wizard_step_2_title: "Włącz weryfikację dwuetapową",
-    gmail_wizard_step_3_title: "Utwórz hasło do aplikacji",
-    gmail_wizard_step_4_title: "Wklej hasło",
+    gmail_wizard_step_1_action: "Otwórz weryfikację dwuetapową",
+    gmail_wizard_step_2_title: "Utwórz hasło do aplikacji",
+    gmail_wizard_step_3_title: "Udostępnij całą pocztę",
+    gmail_wizard_step_4_title: "Wpisz adres e-mail",
     gmail_wizard_title: "Połącz swoją skrzynkę",
     remove_account_tooltip: "Usuń konto",
     show_side_panel: "Pokaż panel boczny",
@@ -6663,9 +6665,9 @@ export const pl = {
     show_badges_in_signature_description:
       "Wyświetlaj swoje odznaki w obszarze podpisu w wychodzących e-mailach.",
     import_how_it_works: "Jak to działa",
-    import_oauth_title: "Połączenie OAuth",
+    import_oauth_title: "Połącz konto",
     import_oauth_description:
-      "Połącz swoje konto Gmail, Outlook lub Yahoo jednym kliknięciem. Automatycznie zaimportujemy i zaszyfrujemy Twoje e-maile na Twoim urządzeniu.",
+      "Połącz konto, aby zaimportować całą jego pocztę, w tym wiadomości zarchiwizowane, wysłane i etykiety. Gmail łączy się za pomocą hasła do aplikacji, a Outlook przez zalogowanie na konto. Import dużych skrzynek może potrwać kilka dni.",
     import_manual_title: "Import ręczny",
     import_manual_step_1:
       "Wyeksportuj e-maile z dotychczasowego dostawcy jako pliki MBOX, EML lub PST",
@@ -8150,25 +8152,32 @@ export const pl = {
     gmail_app_password_notice:
       "Ten dostawca wymaga hasła do aplikacji. Zwykłe hasło do konta nie zadziała.",
     gmail_sync_intro:
-      "Utwórz hasło do aplikacji w ustawieniach konta, a potem wklej je tutaj.",
+      "Aster importuje całą Twoją pocztę, w tym wiadomości zarchiwizowane, wysłane i etykiety. Aby się połączyć, utwórz hasło do aplikacji i wklej je w Asterze.",
     gmail_sync_note_unavailable:
-      "Jeśli nie widzisz haseł do aplikacji, najpierw włącz weryfikację dwuetapową i sprawdź ponownie.",
+      "Jeśli nie widzisz haseł do aplikacji, włącz weryfikację dwuetapową i sprawdź ponownie. Hasła do aplikacji nie są dostępne dla kont, które używają wyłącznie kluczy bezpieczeństwa, kont objętych Programem ochrony zaawansowanej ani niektórych kont służbowych i szkolnych.",
     gmail_sync_setup_button: "Pokaż kroki",
-    gmail_sync_step_2:
-      "Włącz weryfikację dwuetapową, jeśli jeszcze tego nie zrobiono.",
-    gmail_sync_step_4: "Skopiuj hasło i wklej je w Asterze.",
+    gmail_sync_step_2: "Utwórz hasło do aplikacji i skopiuj je.",
+    gmail_sync_step_4:
+      "Wpisz swój adres e-mail i wklej hasło do aplikacji w Asterze.",
     gmail_wizard_app_password_error_body:
-      "Zwykłe hasło do konta tutaj nie zadziała. Włącz weryfikację dwuetapową, utwórz hasło do aplikacji dla poczty, a następnie wklej je powyżej.",
+      "Zwykłe hasło do konta tutaj nie zadziała. Włącz weryfikację dwuetapową, utwórz hasło do aplikacji, a następnie wklej je powyżej.",
     gmail_wizard_app_password_error_title: "To hasło nie zostało przyjęte",
     gmail_wizard_step_1_body:
-      "Hasła do aplikacji znajdziesz w sekcji zabezpieczeń konta u swojego dostawcy.",
-    gmail_wizard_step_1_title: "Otwórz ustawienia zabezpieczeń konta",
+      "Aby utworzyć hasło do aplikacji, konto musi mieć włączoną weryfikację dwuetapową. Jeśli jest już włączona, przejdź do następnego kroku.",
+    gmail_wizard_step_1_title: "Włącz weryfikację dwuetapową",
     gmail_wizard_step_2_body:
-      "Hasła do aplikacji pojawiają się tylko przy włączonej weryfikacji dwuetapowej.",
+      "Na stronie „Hasła do aplikacji” wpisz nazwę, na przykład Aster, i kliknij „Utwórz”. Skopiuj wyświetlone 16-znakowe hasło, bo pojawia się tylko raz.",
     gmail_wizard_step_3_body:
-      "Wybierz Pocztę jako aplikację, a potem utwórz hasło.",
+      "Ustawienia poczty decydują o tym, które wiadomości Aster może zaimportować. Na karcie „Etykiety” zaznacz „Pokaż w IMAP” dla „Wszystkie”, „Wysłane” i każdej swojej etykiety. Na karcie „Przekazywanie i POP/IMAP” ustaw limity rozmiaru folderów na „Nie ograniczaj” i kliknij „Zapisz zmiany”.",
     gmail_wizard_step_4_body:
-      "Wklej hasło do aplikacji poniżej. Aster przechowuje je zaszyfrowane i używa go wyłącznie do synchronizacji tej skrzynki.",
+      "Użyj adresu konta, dla którego utworzono hasło do aplikacji.",
+    gmail_wizard_step_3_labels_action: "Otwórz ustawienia etykiet",
+    gmail_wizard_step_3_imap_action: "Otwórz ustawienia IMAP",
+    gmail_wizard_step_5_title: "Wklej hasło do aplikacji",
+    gmail_wizard_step_5_body:
+      "Wklej poniżej hasło do aplikacji, ze spacjami lub bez. Aster przechowuje je zaszyfrowane i używa go wyłącznie do synchronizacji tej skrzynki.",
+    gmail_wizard_import_note:
+      "Aster importuje całą Twoją pocztę, w tym wiadomości zarchiwizowane, wysłane i etykiety. Import dużych skrzynek może potrwać kilka dni, a w tym czasie możesz nadal korzystać z Astera.",
     last_sync_tooltip: "Kiedy to konto ostatnio się zsynchronizowało",
     not_synced_tooltip: "To konto jeszcze się nie zsynchronizowało.",
     protocol_desc_imap:

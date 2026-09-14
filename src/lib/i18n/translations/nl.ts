@@ -2208,12 +2208,13 @@ export const nl = {
     edit_account_tooltip: "Account bewerken",
     gmail_sync_continue: "Doorgaan",
     gmail_sync_open_google: "Accountinstellingen openen",
-    gmail_sync_step_4: "Kopieer het wachtwoord en plak het in Aster.",
+    gmail_sync_step_4:
+      "Vul je e-mailadres in en plak het app-wachtwoord in Aster.",
     gmail_wizard_password_label: "App-wachtwoord",
     gmail_wizard_progress: "Stap {{current}} van {{total}}",
     gmail_wizard_reveal_password: "App-wachtwoord tonen",
-    gmail_wizard_step_1_action: "Beveiligingsinstellingen openen",
-    gmail_wizard_step_4_title: "Plak het wachtwoord",
+    gmail_wizard_step_1_action: "Verificatie in twee stappen openen",
+    gmail_wizard_step_4_title: "Vul je e-mailadres in",
     not_synced_tooltip: "Dit account is nog niet gesynchroniseerd.",
     remove_account_tooltip: "Account verwijderen",
     show_side_panel: "Zijpaneel tonen",
@@ -6518,9 +6519,9 @@ export const nl = {
     spam_filtering_description:
       "Configureer hoe spam wordt gedetecteerd en beheerd.",
     import_how_it_works: "Hoe het werkt",
-    import_oauth_title: "OAuth-verbinding",
+    import_oauth_title: "Account verbinden",
     import_oauth_description:
-      "Verbind je Gmail-, Outlook- of Yahoo-account met een enkele klik. We importeren en versleutelen automatisch je e-mails op je apparaat.",
+      "Verbind een account om al je e-mail ervan te importeren, inclusief gearchiveerde en verzonden berichten en labels. Gmail verbind je met een app-wachtwoord en Outlook door in te loggen op je account. Grote postvakken kunnen een paar dagen nodig hebben.",
     import_manual_title: "Handmatige import",
     import_manual_step_1:
       "Exporteer je e-mails van je huidige provider als MBOX-, EML- of PST-bestanden",
@@ -7897,32 +7898,38 @@ export const nl = {
     gmail_app_password_notice:
       "Deze provider vraagt om een app-wachtwoord. Het gewone wachtwoord van je account werkt niet.",
     gmail_sync_intro:
-      "Maak een app-wachtwoord aan in de instellingen van je account en plak het hier.",
+      "Aster importeert al je e-mail, inclusief gearchiveerde en verzonden berichten en labels. Maak een app-wachtwoord aan en plak het in Aster om te verbinden.",
     gmail_sync_note_unavailable:
-      "Als app-wachtwoorden er niet staan, schakel dan eerst verificatie in twee stappen in en kijk daarna opnieuw.",
+      "Als je geen app-wachtwoorden ziet, schakel dan verificatie in twee stappen in en kijk opnieuw. App-wachtwoorden zijn niet beschikbaar voor accounts die alleen beveiligingssleutels gebruiken, accounts in het Geavanceerde beschermingsprogramma en sommige werk- of schoolaccounts.",
     gmail_sync_setup_button: "Toon de stappen",
     gmail_sync_step_1:
-      "Meld je aan bij de beveiligingsinstellingen van je account.",
-    gmail_sync_step_2:
-      "Schakel verificatie in twee stappen in als je dat nog niet hebt gedaan.",
-    gmail_sync_step_3: "Maak een app-wachtwoord voor e-mail aan.",
+      "Schakel verificatie in twee stappen in voor je account als je dat nog niet hebt gedaan.",
+    gmail_sync_step_2: "Maak een app-wachtwoord aan en kopieer het.",
+    gmail_sync_step_3:
+      "Vink in je e-mailinstellingen ‘Weergeven in IMAP’ aan voor ‘Alle berichten’, ‘Verzonden berichten’ en je labels, en stel de limieten voor mapgrootte in op ‘Niet beperken’.",
     gmail_sync_title: "Een app-wachtwoord aanmaken",
     gmail_wizard_app_password_error_body:
-      "Het gewone wachtwoord van je account werkt hier niet. Zet verificatie in twee stappen aan, maak een app-wachtwoord voor e-mail en plak dat hierboven.",
+      "Het gewone wachtwoord van je account werkt hier niet. Zet verificatie in twee stappen aan, maak een app-wachtwoord en plak dat hierboven.",
     gmail_wizard_app_password_error_title: "Dit wachtwoord is geweigerd",
     gmail_wizard_connect: "Postvak koppelen",
     gmail_wizard_step_1_body:
-      "App-wachtwoorden staan in het beveiligingsgedeelte van het account bij je provider.",
-    gmail_wizard_step_1_title:
-      "Open de beveiligingsinstellingen van je account",
+      "Je account heeft verificatie in twee stappen nodig om app-wachtwoorden te maken. Staat die al aan, ga dan door naar de volgende stap.",
+    gmail_wizard_step_1_title: "Schakel verificatie in twee stappen in",
     gmail_wizard_step_2_body:
-      "App-wachtwoorden verschijnen alleen als verificatie in twee stappen aanstaat.",
-    gmail_wizard_step_2_title: "Schakel verificatie in twee stappen in",
+      "Vul op de pagina ‘App-wachtwoorden’ een naam in, zoals Aster, en klik op ‘Maken’. Kopieer het wachtwoord van 16 tekens dat verschijnt, want het wordt maar één keer getoond.",
+    gmail_wizard_step_2_title: "Maak een app-wachtwoord aan",
     gmail_wizard_step_3_body:
-      "Kies E-mail als app en maak daarna het wachtwoord aan.",
-    gmail_wizard_step_3_title: "Maak een app-wachtwoord aan",
+      "Je e-mailinstellingen bepalen welke e-mail Aster kan importeren. Vink op het tabblad ‘Labels’ ‘Weergeven in IMAP’ aan voor ‘Alle berichten’, ‘Verzonden berichten’ en elk van je labels. Stel op het tabblad ‘Doorsturen en POP/IMAP’ de limieten voor mapgrootte in op ‘Niet beperken’ en klik op ‘Wijzigingen opslaan’.",
+    gmail_wizard_step_3_title: "Maak al je e-mail beschikbaar",
     gmail_wizard_step_4_body:
-      "Plak het app-wachtwoord hieronder. Aster bewaart het versleuteld en gebruikt het alleen om dit postvak te synchroniseren.",
+      "Gebruik het adres van het account waarvoor je het app-wachtwoord hebt gemaakt.",
+    gmail_wizard_step_3_labels_action: "Labelinstellingen openen",
+    gmail_wizard_step_3_imap_action: "IMAP-instellingen openen",
+    gmail_wizard_step_5_title: "Plak het app-wachtwoord",
+    gmail_wizard_step_5_body:
+      "Plak het app-wachtwoord hieronder, met of zonder spaties. Aster bewaart het versleuteld en gebruikt het alleen om dit postvak te synchroniseren.",
+    gmail_wizard_import_note:
+      "Aster importeert al je e-mail, inclusief gearchiveerde en verzonden berichten en labels. Grote postvakken kunnen een paar dagen duren, en je kunt Aster intussen blijven gebruiken.",
     gmail_wizard_title: "Koppel je postvak",
     last_sync_tooltip:
       "Wanneer dit account voor het laatst is gesynchroniseerd",

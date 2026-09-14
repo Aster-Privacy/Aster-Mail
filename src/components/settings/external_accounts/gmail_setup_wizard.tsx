@@ -27,6 +27,7 @@ import {
   EnvelopeIcon,
   EyeIcon,
   EyeSlashIcon,
+  FolderOpenIcon,
   KeyIcon,
   LockClosedIcon,
 } from "@heroicons/react/24/outline";
@@ -41,15 +42,23 @@ import { is_app_password_error } from "@/lib/external_account_errors";
 const TWO_STEP_URL =
   "https://myaccount.google.com/signinoptions/two-step-verification";
 const APP_PASSWORD_URL = "https://myaccount.google.com/apppasswords";
+const LABEL_SETTINGS_URL = "https://mail.google.com/mail/u/0/#settings/labels";
+const IMAP_SETTINGS_URL =
+  "https://mail.google.com/mail/u/0/#settings/fwdandpop";
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const TOTAL_STEPS = 4;
+const TOTAL_STEPS = 5;
+const EMAIL_STEP = 4;
 
 const STEP_ICONS = [
   LockClosedIcon,
   KeyIcon,
+  FolderOpenIcon,
   EnvelopeIcon,
   CheckCircleIcon,
 ] as const;
+
+const LINK_CLASS =
+  "inline-flex items-center gap-1.5 text-[13px] font-medium text-brand hover:underline";
 
 interface GmailSetupWizardProps {
   form_email: string;
@@ -64,6 +73,20 @@ interface GmailSetupWizardProps {
   is_form_busy: boolean;
   test_result: { success: boolean; message: string } | null;
   t: TranslationFn;
+}
+
+function ExternalLink({ href, label }: { href: string; label: string }) {
+  return (
+    <a
+      className={LINK_CLASS}
+      href={href}
+      rel="noopener noreferrer"
+      target="_blank"
+    >
+      {label}
+      <ArrowTopRightOnSquareIcon className="w-4 h-4 rtl:-scale-x-100" />
+    </a>
+  );
 }
 
 export function GmailSetupWizard({
@@ -86,7 +109,8 @@ export function GmailSetupWizard({
   const email_is_valid = EMAIL_PATTERN.test(form_email.trim());
   const password_is_filled = form_password.trim() !== "";
   const can_advance =
-    (step !== 3 || email_is_valid) && (step !== 4 || password_is_filled);
+    (step !== EMAIL_STEP || email_is_valid) &&
+    (step !== TOTAL_STEPS || password_is_filled);
   const StepIcon = STEP_ICONS[step - 1];
 
   const go_back = () => {
@@ -162,39 +186,31 @@ export function GmailSetupWizard({
               {step === 2 && t("settings.gmail_wizard_step_2_title")}
               {step === 3 && t("settings.gmail_wizard_step_3_title")}
               {step === 4 && t("settings.gmail_wizard_step_4_title")}
+              {step === 5 && t("settings.gmail_wizard_step_5_title")}
             </h3>
             <p className="text-[13px] leading-relaxed text-txt-secondary">
               {step === 1 && t("settings.gmail_wizard_step_1_body")}
               {step === 2 && t("settings.gmail_wizard_step_2_body")}
               {step === 3 && t("settings.gmail_wizard_step_3_body")}
               {step === 4 && t("settings.gmail_wizard_step_4_body")}
+              {step === 5 && t("settings.gmail_wizard_step_5_body")}
             </p>
           </div>
         </div>
 
         {step === 1 && (
-          <a
-            className="inline-flex items-center gap-1.5 text-[13px] font-medium text-brand hover:underline"
+          <ExternalLink
             href={TWO_STEP_URL}
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            {t("settings.gmail_wizard_step_1_action")}
-            <ArrowTopRightOnSquareIcon className="w-4 h-4 rtl:-scale-x-100" />
-          </a>
+            label={t("settings.gmail_wizard_step_1_action")}
+          />
         )}
 
         {step === 2 && (
           <div className="space-y-3">
-            <a
-              className="inline-flex items-center gap-1.5 text-[13px] font-medium text-brand hover:underline"
+            <ExternalLink
               href={APP_PASSWORD_URL}
-              rel="noopener noreferrer"
-              target="_blank"
-            >
-              {t("settings.app_password_create_link")}
-              <ArrowTopRightOnSquareIcon className="w-4 h-4 rtl:-scale-x-100" />
-            </a>
+              label={t("settings.app_password_create_link")}
+            />
             <p className="text-xs leading-relaxed text-txt-muted">
               {t("settings.gmail_sync_note_unavailable")}
             </p>
@@ -202,6 +218,19 @@ export function GmailSetupWizard({
         )}
 
         {step === 3 && (
+          <div className="flex flex-col items-start gap-2">
+            <ExternalLink
+              href={LABEL_SETTINGS_URL}
+              label={t("settings.gmail_wizard_step_3_labels_action")}
+            />
+            <ExternalLink
+              href={IMAP_SETTINGS_URL}
+              label={t("settings.gmail_wizard_step_3_imap_action")}
+            />
+          </div>
+        )}
+
+        {step === EMAIL_STEP && (
           <div>
             <label
               className="text-xs font-medium mb-1 block text-txt-muted"
@@ -222,7 +251,7 @@ export function GmailSetupWizard({
           </div>
         )}
 
-        {step === 4 && (
+        {step === TOTAL_STEPS && (
           <div className="space-y-3">
             <div>
               <label
@@ -240,7 +269,9 @@ export function GmailSetupWizard({
                   type={show_password ? "text" : "password"}
                   value={form_password}
                   onChange={(event) =>
-                    handle_password_change(event.target.value)
+                    handle_password_change(
+                      event.target.value.replace(/\s+/g, ""),
+                    )
                   }
                 />
                 <button
@@ -258,6 +289,10 @@ export function GmailSetupWizard({
               </div>
             </div>
 
+            <p className="text-xs leading-relaxed text-txt-muted">
+              {t("settings.gmail_wizard_import_note")}
+            </p>
+
             {test_result && (
               <TestResultBanner label="IMAP" result={test_result} />
             )}
@@ -274,15 +309,10 @@ export function GmailSetupWizard({
                   <p className="text-xs leading-relaxed text-txt-secondary">
                     {t("settings.gmail_wizard_app_password_error_body")}
                   </p>
-                  <a
-                    className="inline-flex items-center gap-1.5 text-[13px] font-medium text-brand hover:underline"
+                  <ExternalLink
                     href={APP_PASSWORD_URL}
-                    rel="noopener noreferrer"
-                    target="_blank"
-                  >
-                    {t("settings.app_password_create_link")}
-                    <ArrowTopRightOnSquareIcon className="w-4 h-4 rtl:-scale-x-100" />
-                  </a>
+                    label={t("settings.app_password_create_link")}
+                  />
                 </div>
               )}
           </div>

@@ -2031,21 +2031,24 @@ export const zh_CN = {
     family_security_warning_2fa_one: "{{count}} 位成员尚未启用双重验证",
     forwarding_rules_count_one: "{{count}} 条转发规则",
     gmail_sync_continue: "继续",
-    gmail_sync_intro: "在账户设置中创建应用专用密码，然后粘贴到这里。",
+    gmail_sync_intro:
+      "Aster 会导入你的所有邮件，包括已归档邮件、已发邮件和标签。要连接，请创建应用专用密码并粘贴到 Aster。",
     gmail_sync_open_google: "打开账户设置",
-    gmail_sync_step_2: "如果尚未开启，请开启两步验证。",
-    gmail_sync_step_3: "为邮件创建一个应用专用密码。",
-    gmail_sync_step_4: "复制该密码并粘贴到 Aster。",
+    gmail_sync_step_2: "创建应用专用密码并复制。",
+    gmail_sync_step_3:
+      "在邮箱设置中，为“所有邮件”“已发邮件”和你的标签勾选“在 IMAP 中显示”，并将文件夹大小限制设为“不限制”。",
+    gmail_sync_step_4: "输入你的邮箱地址，然后将应用专用密码粘贴到 Aster。",
     gmail_sync_title: "创建应用专用密码",
     gmail_wizard_connect: "连接邮箱",
     gmail_wizard_password_label: "应用专用密码",
     gmail_wizard_progress: "第 {{current}} 步，共 {{total}} 步",
     gmail_wizard_reveal_password: "显示应用专用密码",
-    gmail_wizard_step_1_action: "打开安全设置",
-    gmail_wizard_step_2_title: "开启两步验证",
-    gmail_wizard_step_3_body: "选择“邮件”作为应用，然后创建密码。",
-    gmail_wizard_step_3_title: "创建应用专用密码",
-    gmail_wizard_step_4_title: "粘贴密码",
+    gmail_wizard_step_1_action: "打开两步验证",
+    gmail_wizard_step_2_title: "创建应用专用密码",
+    gmail_wizard_step_3_body:
+      "邮箱设置决定了 Aster 能导入哪些邮件。在“标签”标签页中，为“所有邮件”“已发邮件”和每个标签勾选“在 IMAP 中显示”。在“转发和 POP/IMAP”标签页中，将文件夹大小限制设为“不限制”，然后点击“保存更改”。",
+    gmail_wizard_step_3_title: "让所有邮件都可导入",
+    gmail_wizard_step_4_title: "输入邮箱地址",
     gmail_wizard_title: "连接你的邮箱",
     last_sync_tooltip: "此账户上次同步的时间",
     not_synced_tooltip: "此账户尚未同步。",
@@ -5886,9 +5889,9 @@ export const zh_CN = {
     show_badges_in_signature: "在邮件中显示徽章",
     show_badges_in_signature_description: "在发送邮件的签名区域显示您的徽章。",
     import_how_it_works: "工作原理",
-    import_oauth_title: "OAuth 连接",
+    import_oauth_title: "连接账户",
     import_oauth_description:
-      "一键连接您的 Gmail、Outlook 或 Yahoo 账户。我们将自动导入并在您的设备上加密您的邮件。",
+      "连接账户后，即可导入其中的所有邮件，包括已归档邮件、已发邮件和标签。Gmail 使用应用专用密码连接，Outlook 通过登录账户连接。邮箱较大时，导入可能需要几天。",
     import_manual_title: "手动导入",
     import_manual_step_1: "从当前邮件提供商导出邮件为 MBOX、EML 或 PST 文件",
     import_manual_step_2:
@@ -7092,17 +7095,24 @@ export const zh_CN = {
     gmail_app_password_notice:
       "此服务商需要应用专用密码，普通账户密码无法使用。",
     gmail_sync_note_unavailable:
-      "如果看不到应用专用密码，请先开启两步验证再查看。",
+      "如果看不到应用专用密码，请先开启两步验证再查看。仅使用安全密钥的账户、已加入高级保护计划的账户以及部分工作或学校账户无法使用应用专用密码。",
     gmail_sync_setup_button: "查看步骤",
-    gmail_sync_step_1: "登录你账户的安全设置。",
+    gmail_sync_step_1: "如果尚未开启，请为你的账户开启两步验证。",
     gmail_wizard_app_password_error_body:
-      "您的常用账户密码在此无法使用。请开启两步验证，为邮件创建应用专用密码，然后将其粘贴到上方。",
+      "您的常用账户密码在此无法使用。请开启两步验证，创建应用专用密码，然后将其粘贴到上方。",
     gmail_wizard_app_password_error_title: "该密码未被接受",
-    gmail_wizard_step_1_body: "应用专用密码位于服务商账户的安全设置中。",
-    gmail_wizard_step_1_title: "打开账户的安全设置",
-    gmail_wizard_step_2_body: "只有开启两步验证后，应用专用密码才会出现。",
-    gmail_wizard_step_4_body:
-      "把应用专用密码粘贴到下方。Aster 会加密保存该密码，并且只用它来同步这个邮箱。",
+    gmail_wizard_step_1_body: "账户需要开启两步验证才能创建应用专用密码。如果已经开启，请前往下一步。",
+    gmail_wizard_step_1_title: "开启两步验证",
+    gmail_wizard_step_2_body:
+      "在“应用专用密码”页面输入名称（例如 Aster），然后点击“创建”。复制显示的 16 位密码，因为它只会显示一次。",
+    gmail_wizard_step_4_body: "请使用你为其创建应用专用密码的账户地址。",
+    gmail_wizard_step_3_labels_action: "打开标签设置",
+    gmail_wizard_step_3_imap_action: "打开 IMAP 设置",
+    gmail_wizard_step_5_title: "粘贴应用专用密码",
+    gmail_wizard_step_5_body:
+      "把应用专用密码粘贴到下方，带不带空格都可以。Aster 会加密保存该密码，并且只用它来同步这个邮箱。",
+    gmail_wizard_import_note:
+      "Aster 会导入你的所有邮件，包括已归档邮件、已发邮件和标签。邮箱较大时可能需要几天，在此期间你可以继续使用 Aster。",
     protocol_desc_imap: "同步文件夹，让你的所有设备保持最新。",
     protocol_desc_pop3: "只下载一次邮件，之后不再同步任何内容。",
     protocol_tooltip_imap:

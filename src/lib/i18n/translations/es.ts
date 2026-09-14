@@ -2198,17 +2198,19 @@ export const es = {
     gmail_sync_continue: "Continuar",
     gmail_sync_open_google: "Abrir los ajustes de la cuenta",
     gmail_sync_setup_button: "Ver cómo se hace",
-    gmail_sync_step_3: "Crea una contraseña de aplicación para el correo.",
-    gmail_sync_step_4: "Copia la contraseña y pégala en Aster.",
+    gmail_sync_step_3:
+      "En los ajustes de tu correo, marca «Mostrar en IMAP» para «Todos», «Enviados» y tus etiquetas, y ajusta los límites de tamaño de las carpetas en «No limitar».",
+    gmail_sync_step_4:
+      "Escribe tu dirección de correo y pega la contraseña de aplicación en Aster.",
     gmail_sync_title: "Crear una contraseña de aplicación",
     gmail_wizard_password_label: "Contraseña de aplicación",
     gmail_wizard_progress: "Paso {{current}} de {{total}}",
     gmail_wizard_reveal_password: "Mostrar la contraseña de aplicación",
-    gmail_wizard_step_1_action: "Abrir los ajustes de seguridad",
-    gmail_wizard_step_1_title: "Abre los ajustes de seguridad de tu cuenta",
-    gmail_wizard_step_2_title: "Activa la verificación en dos pasos",
-    gmail_wizard_step_3_title: "Crea una contraseña de aplicación",
-    gmail_wizard_step_4_title: "Pega la contraseña",
+    gmail_wizard_step_1_action: "Abrir la verificación en dos pasos",
+    gmail_wizard_step_1_title: "Activa la verificación en dos pasos",
+    gmail_wizard_step_2_title: "Crea una contraseña de aplicación",
+    gmail_wizard_step_3_title: "Haz que todo tu correo esté disponible",
+    gmail_wizard_step_4_title: "Escribe tu dirección de correo",
     gmail_wizard_title: "Conecta tu buzón",
     last_sync_tooltip: "Cuándo se sincronizó esta cuenta por última vez",
     show_side_panel: "Mostrar el panel lateral",
@@ -6259,7 +6261,7 @@ export const es = {
     vacation_reply_setup: "Configurar respuesta de vacaciones",
     show_badges_in_signature: "Mostrar insignias en correos",
     import_how_it_works: "Cómo funciona",
-    import_oauth_title: "Conexión OAuth",
+    import_oauth_title: "Conectar una cuenta",
     import_manual_title: "Importación manual",
     import_oauth_button: "OAuth",
     import_manual_button: "Manual",
@@ -6615,7 +6617,7 @@ export const es = {
     show_badges_in_signature_description:
       "Muestra tus insignias en el área de firma de los correos salientes.",
     import_oauth_description:
-      "Conecta tu cuenta de Gmail, Outlook o Yahoo con un solo clic. Importaremos y cifraremos tus correos automáticamente en tu dispositivo.",
+      "Conecta una cuenta para importar todo su correo, incluidos los mensajes archivados, los enviados y las etiquetas. Gmail se conecta con una contraseña de aplicación, y Outlook, iniciando sesión en tu cuenta. Los buzones grandes pueden tardar unos días en importarse.",
     import_manual_step_1:
       "Exporta tus correos de tu proveedor actual como archivos MBOX, EML o PST",
     import_manual_step_2:
@@ -7889,25 +7891,31 @@ export const es = {
     gmail_app_password_notice:
       "Este proveedor requiere una contraseña de aplicación. La contraseña normal de tu cuenta no funciona.",
     gmail_sync_intro:
-      "Crea una contraseña de aplicación en los ajustes de tu cuenta y pégala aquí.",
+      "Aster importa todo tu correo, incluidos los mensajes archivados, los enviados y las etiquetas. Para conectarte, crea una contraseña de aplicación y pégala en Aster.",
     gmail_sync_note_unavailable:
-      "Si no hay contraseñas de aplicación disponibles, activa antes la verificación en dos pasos y vuelve a comprobarlo.",
+      "Si no ves las contraseñas de aplicación, activa la verificación en dos pasos y vuelve a comprobarlo. No están disponibles para cuentas que solo usan llaves de seguridad, cuentas del Programa de Protección Avanzada ni algunas cuentas de trabajo o de centros educativos.",
     gmail_sync_step_1:
-      "Inicia sesión en los ajustes de seguridad de tu cuenta.",
-    gmail_sync_step_2:
-      "Activa la verificación en dos pasos si aún no está activada.",
+      "Activa la verificación en dos pasos en tu cuenta si aún no está activada.",
+    gmail_sync_step_2: "Crea una contraseña de aplicación y cópiala.",
     gmail_wizard_app_password_error_body:
-      "La contraseña normal de tu cuenta no funciona aquí. Activa la verificación en dos pasos, crea una contraseña de aplicación para el correo y pégala arriba.",
+      "La contraseña normal de tu cuenta no funciona aquí. Activa la verificación en dos pasos, crea una contraseña de aplicación y pégala arriba.",
     gmail_wizard_app_password_error_title: "No se aceptó esa contraseña",
     gmail_wizard_connect: "Conectar el buzón",
     gmail_wizard_step_1_body:
-      "Las contraseñas de aplicación están en la sección de seguridad de la cuenta de tu proveedor.",
+      "Tu cuenta necesita la verificación en dos pasos para crear contraseñas de aplicación. Si ya está activada, ve al siguiente paso.",
     gmail_wizard_step_2_body:
-      "Las contraseñas de aplicación solo están disponibles con la verificación en dos pasos activada.",
+      "En la página «Contraseñas de aplicaciones», escribe un nombre como Aster y haz clic en «Crear». Copia la contraseña de 16 caracteres que aparece, porque solo se muestra una vez.",
     gmail_wizard_step_3_body:
-      "Elige Correo como aplicación y crea la contraseña.",
+      "Los ajustes de tu correo determinan qué mensajes puede importar Aster. En la pestaña «Etiquetas», marca «Mostrar en IMAP» para «Todos», «Enviados» y cada una de tus etiquetas. En la pestaña «Reenvío y correo POP/IMAP», ajusta los límites de tamaño de las carpetas en «No limitar» y haz clic en «Guardar cambios».",
     gmail_wizard_step_4_body:
-      "Pega la contraseña de aplicación abajo. Aster la guarda cifrada y solo la usa para sincronizar este buzón.",
+      "Usa la dirección de la cuenta para la que creaste la contraseña de aplicación.",
+    gmail_wizard_step_3_labels_action: "Abrir los ajustes de etiquetas",
+    gmail_wizard_step_3_imap_action: "Abrir los ajustes de IMAP",
+    gmail_wizard_step_5_title: "Pega la contraseña de aplicación",
+    gmail_wizard_step_5_body:
+      "Pega la contraseña de aplicación abajo, con o sin espacios. Aster la guarda cifrada y solo la usa para sincronizar este buzón.",
+    gmail_wizard_import_note:
+      "Aster importa todo tu correo, incluidos los mensajes archivados, los enviados y las etiquetas. Los buzones grandes pueden tardar unos días, y puedes seguir usando Aster mientras tanto.",
     not_synced_tooltip: "Esta cuenta todavía no se ha sincronizado.",
     protocol_desc_imap:
       "Sincroniza las carpetas y se mantiene al día en todos tus dispositivos.",

@@ -2210,15 +2210,16 @@ export const fr = {
     gmail_sync_continue: "Continuer",
     gmail_sync_open_google: "Ouvrir les réglages du compte",
     gmail_sync_setup_button: "Voir la marche à suivre",
-    gmail_sync_step_4: "Copiez le mot de passe et collez-le dans Aster.",
+    gmail_sync_step_4:
+      "Saisissez votre adresse e-mail et collez le mot de passe d’application dans Aster.",
     gmail_sync_title: "Créer un mot de passe d’application",
     gmail_wizard_password_label: "Mot de passe d’application",
     gmail_wizard_progress: "Étape {{current}} sur {{total}}",
     gmail_wizard_reveal_password: "Afficher le mot de passe d’application",
-    gmail_wizard_step_1_action: "Ouvrir les réglages de sécurité",
-    gmail_wizard_step_2_title: "Activez la validation en deux étapes",
-    gmail_wizard_step_3_title: "Créez un mot de passe d’application",
-    gmail_wizard_step_4_title: "Collez le mot de passe",
+    gmail_wizard_step_1_action: "Ouvrir la validation en deux étapes",
+    gmail_wizard_step_2_title: "Créez un mot de passe d’application",
+    gmail_wizard_step_3_title: "Rendez tous vos messages disponibles",
+    gmail_wizard_step_4_title: "Saisissez votre adresse e-mail",
     last_sync_tooltip: "Date de la dernière synchronisation de ce compte",
     not_synced_tooltip: "Ce compte n’a pas encore été synchronisé.",
     show_side_panel: "Afficher le panneau latéral",
@@ -6324,7 +6325,7 @@ export const fr = {
     vacation_reply_setup: "Configurer la réponse d'absence",
     show_badges_in_signature: "Afficher les badges dans les e-mails",
     import_how_it_works: "Comment ça marche",
-    import_oauth_title: "Connexion OAuth",
+    import_oauth_title: "Connecter un compte",
     import_manual_title: "Import manuel",
     import_oauth_button: "OAuth",
     import_manual_button: "Manuel",
@@ -6680,7 +6681,7 @@ export const fr = {
     show_badges_in_signature_description:
       "Afficher vos badges dans la zone de signature des e-mails sortants.",
     import_oauth_description:
-      "Connectez votre compte Gmail, Outlook ou Yahoo en un clic. Nous importerons et chiffrerons automatiquement vos e-mails sur votre appareil.",
+      "Connectez un compte pour importer tous ses messages, y compris les messages archivés, les messages envoyés et les libellés. Gmail se connecte avec un mot de passe d’application, et Outlook avec la connexion à votre compte. L’import d’une grande boîte aux lettres peut prendre quelques jours.",
     import_manual_step_1:
       "Exportez vos e-mails depuis votre fournisseur actuel au format MBOX, EML ou PST",
     import_manual_step_2:
@@ -7980,29 +7981,34 @@ export const fr = {
     gmail_app_password_notice:
       "Ce fournisseur exige un mot de passe d’application. Le mot de passe habituel de votre compte ne fonctionne pas.",
     gmail_sync_intro:
-      "Créez un mot de passe d’application dans les réglages de votre compte, puis collez-le ici.",
+      "Aster importe tous vos messages, y compris les messages archivés, les messages envoyés et les libellés. Pour vous connecter, créez un mot de passe d’application, puis collez-le dans Aster.",
     gmail_sync_note_unavailable:
-      "Si les mots de passe d’application ne sont pas proposés, activez d’abord la validation en deux étapes, puis vérifiez à nouveau.",
+      "Si vous ne voyez pas les mots de passe d’application, activez la validation en deux étapes, puis vérifiez à nouveau. Ils ne sont pas disponibles pour les comptes qui utilisent uniquement des clés de sécurité, les comptes inscrits au Programme Protection Avancée et certains comptes professionnels ou scolaires.",
     gmail_sync_step_1:
-      "Connectez-vous aux réglages de sécurité de votre compte.",
-    gmail_sync_step_2:
-      "Activez la validation en deux étapes si ce n’est pas déjà fait.",
+      "Activez la validation en deux étapes pour votre compte si ce n’est pas déjà fait.",
+    gmail_sync_step_2: "Créez un mot de passe d’application et copiez-le.",
     gmail_sync_step_3:
-      "Créez un mot de passe d’application pour la messagerie.",
+      "Dans les paramètres de votre messagerie, cochez « Afficher dans IMAP » pour « Tous les messages », « Messages envoyés » et vos libellés, puis réglez les limites de taille des dossiers sur « Ne pas limiter ».",
     gmail_wizard_app_password_error_body:
-      "Le mot de passe habituel de votre compte ne fonctionne pas ici. Activez la validation en deux étapes, créez un mot de passe d’application pour la messagerie, puis collez-le ci-dessus.",
+      "Le mot de passe habituel de votre compte ne fonctionne pas ici. Activez la validation en deux étapes, créez un mot de passe d’application, puis collez-le ci-dessus.",
     gmail_wizard_app_password_error_title: "Ce mot de passe a été refusé",
     gmail_wizard_connect: "Connecter la boîte aux lettres",
     gmail_wizard_step_1_body:
-      "Les mots de passe d’application se trouvent dans la section sécurité du compte de votre fournisseur.",
-    gmail_wizard_step_1_title:
-      "Ouvrez les réglages de sécurité de votre compte",
+      "Votre compte doit utiliser la validation en deux étapes pour créer des mots de passe d’application. Si elle est déjà activée, passez à l’étape suivante.",
+    gmail_wizard_step_1_title: "Activez la validation en deux étapes",
     gmail_wizard_step_2_body:
-      "Les mots de passe d’application ne sont proposés qu’avec la validation en deux étapes activée.",
+      "Sur la page « Mots de passe des applications », saisissez un nom comme Aster, puis cliquez sur « Créer ». Copiez le mot de passe de 16 caractères qui s’affiche, car il n’apparaît qu’une seule fois.",
     gmail_wizard_step_3_body:
-      "Choisissez Messagerie comme application, puis créez le mot de passe.",
+      "Les paramètres de votre messagerie déterminent les messages qu’Aster peut importer. Dans l’onglet « Libellés », cochez « Afficher dans IMAP » pour « Tous les messages », « Messages envoyés » et chacun de vos libellés. Dans l’onglet « Transfert et POP/IMAP », réglez les limites de taille des dossiers sur « Ne pas limiter », puis cliquez sur « Enregistrer les modifications ».",
     gmail_wizard_step_4_body:
-      "Collez le mot de passe d’application ci-dessous. Aster le stocke chiffré et l’utilise uniquement pour synchroniser cette boîte aux lettres.",
+      "Utilisez l’adresse du compte pour lequel vous avez créé le mot de passe d’application.",
+    gmail_wizard_step_3_labels_action: "Ouvrir les paramètres des libellés",
+    gmail_wizard_step_3_imap_action: "Ouvrir les paramètres IMAP",
+    gmail_wizard_step_5_title: "Collez le mot de passe d’application",
+    gmail_wizard_step_5_body:
+      "Collez le mot de passe d’application ci-dessous, avec ou sans espaces. Aster le stocke chiffré et l’utilise uniquement pour synchroniser cette boîte aux lettres.",
+    gmail_wizard_import_note:
+      "Aster importe tous vos messages, y compris les messages archivés, les messages envoyés et les libellés. L’import d’une grande boîte aux lettres peut prendre quelques jours, et vous pouvez continuer à utiliser Aster pendant ce temps.",
     gmail_wizard_title: "Connectez votre boîte aux lettres",
     protocol_desc_imap:
       "Synchronise les dossiers et reste à jour sur tous vos appareils.",

@@ -2228,17 +2228,20 @@ export const it = {
     edit_account_tooltip: "Modifica account",
     gmail_sync_continue: "Continua",
     gmail_sync_open_google: "Apri le impostazioni dell’account",
-    gmail_sync_step_1: "Accedi alle impostazioni di sicurezza del tuo account.",
-    gmail_sync_step_4: "Copia la password e incollala in Aster.",
+    gmail_sync_step_1:
+      "Attiva la verifica in due passaggi per il tuo account, se non l’hai già fatto.",
+    gmail_sync_step_4:
+      "Inserisci il tuo indirizzo email e incolla la password per le app in Aster.",
     gmail_sync_title: "Crea una password per l’app",
     gmail_wizard_password_label: "Password per l’app",
     gmail_wizard_progress: "Passaggio {{current}} di {{total}}",
     gmail_wizard_reveal_password: "Mostra la password per l’app",
-    gmail_wizard_step_1_action: "Apri le impostazioni di sicurezza",
-    gmail_wizard_step_2_title: "Attiva la verifica in due passaggi",
-    gmail_wizard_step_3_body: "Scegli Posta come app, poi crea la password.",
-    gmail_wizard_step_3_title: "Crea una password per l’app",
-    gmail_wizard_step_4_title: "Incolla la password",
+    gmail_wizard_step_1_action: "Apri la verifica in due passaggi",
+    gmail_wizard_step_2_title: "Crea una password per l’app",
+    gmail_wizard_step_3_body:
+      "Le impostazioni della posta stabiliscono quali messaggi può importare Aster. Nella scheda «Etichette», seleziona «Mostra in IMAP» per «Tutti i messaggi», «Posta inviata» e ciascuna delle tue etichette. Nella scheda «Inoltro e POP/IMAP», imposta i limiti di dimensione delle cartelle su «Non limitare» e fai clic su «Salva modifiche».",
+    gmail_wizard_step_3_title: "Rendi disponibile tutta la posta",
+    gmail_wizard_step_4_title: "Inserisci il tuo indirizzo email",
     not_synced_tooltip: "Questo account non si è ancora sincronizzato.",
     remove_account_tooltip: "Rimuovi account",
     show_side_panel: "Mostra il pannello laterale",
@@ -5441,9 +5444,9 @@ export const it = {
     show_badges_in_signature_description:
       "Mostra i tuoi badge nell'area della firma delle email in uscita.",
     import_how_it_works: "Come funziona",
-    import_oauth_title: "Connessione OAuth",
+    import_oauth_title: "Collega un account",
     import_oauth_description:
-      "Collega il tuo account Gmail, Outlook o Yahoo con un solo clic. Importeremo e crittograferemo automaticamente le tue email sul tuo dispositivo.",
+      "Collega un account per importare tutta la sua posta, compresi i messaggi archiviati, quelli inviati e le etichette. Gmail si collega con una password per le app, Outlook con l’accesso al tuo account. L’importazione di caselle di grandi dimensioni può richiedere alcuni giorni.",
     import_manual_title: "Importazione manuale",
     import_manual_step_1:
       "Esporta le tue email dal tuo provider attuale come file MBOX, EML o PST",
@@ -7993,26 +7996,32 @@ export const it = {
     gmail_app_password_notice:
       "Questo provider richiede una password per l’app. La password normale del tuo account non funziona.",
     gmail_sync_intro:
-      "Crea una password per l’app nelle impostazioni del tuo account, poi incollala qui.",
+      "Aster importa tutta la tua posta, compresi i messaggi archiviati, quelli inviati e le etichette. Per collegarti, crea una password per le app e incollala in Aster.",
     gmail_sync_note_unavailable:
-      "Se le password per le app non compaiono, attiva prima la verifica in due passaggi e controlla di nuovo.",
+      "Se non vedi le password per le app, attiva la verifica in due passaggi e controlla di nuovo. Non sono disponibili per gli account che usano solo token di sicurezza, per gli account del Programma di protezione avanzata e per alcuni account di lavoro o della scuola.",
     gmail_sync_setup_button: "Mostra i passaggi",
-    gmail_sync_step_2:
-      "Attiva la verifica in due passaggi, se non l’hai già fatto.",
-    gmail_sync_step_3: "Crea una password per l’app per la posta.",
+    gmail_sync_step_2: "Crea una password per le app e copiala.",
+    gmail_sync_step_3:
+      "Nelle impostazioni della posta, seleziona «Mostra in IMAP» per «Tutti i messaggi», «Posta inviata» e le tue etichette, e imposta i limiti di dimensione delle cartelle su «Non limitare».",
     gmail_wizard_app_password_error_body:
-      "La password normale del tuo account non funziona qui. Attiva la verifica in due passaggi, crea una password per l’app dedicata alla posta e incollala qui sopra.",
+      "La password normale del tuo account non funziona qui. Attiva la verifica in due passaggi, crea una password per le app e incollala qui sopra.",
     gmail_wizard_app_password_error_title:
       "Questa password non è stata accettata",
     gmail_wizard_connect: "Collega la casella",
     gmail_wizard_step_1_body:
-      "Le password per le app si trovano nella sezione sicurezza dell’account del tuo provider.",
-    gmail_wizard_step_1_title:
-      "Apri le impostazioni di sicurezza del tuo account",
+      "Per creare password per le app, il tuo account deve avere la verifica in due passaggi attiva. Se è già attiva, vai al passaggio successivo.",
+    gmail_wizard_step_1_title: "Attiva la verifica in due passaggi",
     gmail_wizard_step_2_body:
-      "Le password per le app compaiono solo con la verifica in due passaggi attiva.",
+      "Nella pagina «Password per le app», inserisci un nome come Aster e fai clic su «Crea». Copia la password di 16 caratteri che compare, perché viene mostrata una sola volta.",
     gmail_wizard_step_4_body:
-      "Incolla qui sotto la password per l’app. Aster la conserva cifrata e la usa solo per sincronizzare questa casella.",
+      "Usa l’indirizzo dell’account per cui hai creato la password per le app.",
+    gmail_wizard_step_3_labels_action: "Apri le impostazioni delle etichette",
+    gmail_wizard_step_3_imap_action: "Apri le impostazioni IMAP",
+    gmail_wizard_step_5_title: "Incolla la password per le app",
+    gmail_wizard_step_5_body:
+      "Incolla qui sotto la password per le app, con o senza spazi. Aster la conserva cifrata e la usa solo per sincronizzare questa casella.",
+    gmail_wizard_import_note:
+      "Aster importa tutta la tua posta, compresi i messaggi archiviati, quelli inviati e le etichette. Le caselle di grandi dimensioni possono richiedere alcuni giorni e nel frattempo puoi continuare a usare Aster.",
     gmail_wizard_title: "Collega la tua casella",
     last_sync_tooltip:
       "Quando questo account si è sincronizzato l’ultima volta",

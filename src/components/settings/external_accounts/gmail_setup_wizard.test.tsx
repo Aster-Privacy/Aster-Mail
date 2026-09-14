@@ -190,8 +190,8 @@ describe("GmailSetupWizard", () => {
     expect(props.close_form).toHaveBeenCalled();
   });
 
-  it("blocks the address step until the address looks like an email", async () => {
-    await render_wizard({ form_email: "not-an-address" });
+  it("asks the user to make all mail visible before connecting", async () => {
+    await render_wizard();
 
     await click("common.next");
     await click("common.next");
@@ -199,12 +199,37 @@ describe("GmailSetupWizard", () => {
     expect(container.textContent).toContain(
       "settings.gmail_wizard_step_3_title",
     );
+    expect(container.textContent).toContain(
+      "settings.gmail_wizard_step_3_body",
+    );
+
+    const hrefs = Array.from(container.querySelectorAll("a")).map((a) =>
+      a.getAttribute("href"),
+    );
+
+    expect(hrefs).toEqual([
+      "https://mail.google.com/mail/u/0/#settings/labels",
+      "https://mail.google.com/mail/u/0/#settings/fwdandpop",
+    ]);
+  });
+
+  it("blocks the address step until the address looks like an email", async () => {
+    await render_wizard({ form_email: "not-an-address" });
+
+    await click("common.next");
+    await click("common.next");
+    await click("common.next");
+
+    expect(container.textContent).toContain(
+      "settings.gmail_wizard_step_4_title",
+    );
     expect(find_button("common.next")?.disabled).toBe(true);
   });
 
   it("reaches the password step once the address is valid", async () => {
     const props = await render_wizard({ form_email: "you@gmail.com" });
 
+    await click("common.next");
     await click("common.next");
     await click("common.next");
 
@@ -217,7 +242,10 @@ describe("GmailSetupWizard", () => {
     await click("common.next");
 
     expect(container.textContent).toContain(
-      "settings.gmail_wizard_step_4_title",
+      "settings.gmail_wizard_step_5_title",
+    );
+    expect(container.textContent).toContain(
+      "settings.gmail_wizard_import_note",
     );
     expect(props.handle_submit).not.toHaveBeenCalled();
   });
@@ -228,6 +256,7 @@ describe("GmailSetupWizard", () => {
       form_password: "abcdefghijklmnop",
     });
 
+    await click("common.next");
     await click("common.next");
     await click("common.next");
     await click("common.next");
@@ -258,6 +287,7 @@ describe("GmailSetupWizard", () => {
     await click("common.next");
     await click("common.next");
     await click("common.next");
+    await click("common.next");
 
     expect(find_button("settings.test_connection")?.disabled).toBe(true);
     expect(find_button("settings.gmail_wizard_connect")?.disabled).toBe(true);
@@ -269,6 +299,7 @@ describe("GmailSetupWizard", () => {
       form_password: "abcdefghijklmnop",
     });
 
+    await click("common.next");
     await click("common.next");
     await click("common.next");
     await click("common.next");
@@ -292,8 +323,35 @@ describe("GmailSetupWizard", () => {
     await click("common.next");
     await click("common.next");
     await click("common.next");
+    await click("common.next");
 
     expect(container.textContent).toContain("auth failed");
+  });
+
+  it("strips spaces from a pasted app password", async () => {
+    const props = await render_wizard({ form_email: "you@gmail.com" });
+
+    await click("common.next");
+    await click("common.next");
+    await click("common.next");
+    await click("common.next");
+
+    const password_input = container.querySelector(
+      "#gmail-wizard-password",
+    ) as HTMLInputElement;
+    const setter = Object.getOwnPropertyDescriptor(
+      HTMLInputElement.prototype,
+      "value",
+    )?.set;
+
+    await act(async () => {
+      setter?.call(password_input, "abcd efgh ijkl mnop");
+      password_input.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+
+    expect(props.handle_password_change).toHaveBeenCalledWith(
+      "abcdefghijklmnop",
+    );
   });
 
   it("locks every action while the form is busy", async () => {

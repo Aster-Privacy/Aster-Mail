@@ -6632,9 +6632,9 @@ export const en: Translations = {
       "Bring your emails from Gmail, Outlook, or other email services. Your emails are encrypted on your device before being stored.",
     import_emails_button: "Import Emails",
     import_how_it_works: "How It Works",
-    import_oauth_title: "OAuth Connect",
+    import_oauth_title: "Connect an account",
     import_oauth_description:
-      "Connect your Gmail, Outlook, or Yahoo account with a single click. We'll automatically import and encrypt your emails on your device.",
+      "Connect an account to import all of its mail, including archived mail, sent mail, and labels. Gmail connects with an app password, and Outlook connects when you sign in to your account. Large mailboxes can take a few days to finish.",
     import_manual_title: "Manual Import",
     import_manual_step_1:
       "Export your emails from your current provider as MBOX, EML, or PST files",
@@ -7673,36 +7673,46 @@ export const en: Translations = {
       "This provider requires an app password. Your normal account password won’t work.",
     gmail_sync_continue: "Continue",
     gmail_sync_intro:
-      "Create an app password in your account settings, then paste it here.",
+      "Aster imports all your mail, including archived mail, sent mail, and labels. To connect, create an app password and paste it into Aster.",
     gmail_sync_note_unavailable:
-      "If app passwords aren’t available, turn on two-step verification first, then check again.",
+      "If you don’t see App passwords, turn on two-step verification and check again. App passwords aren’t available for accounts that use only security keys, accounts in the Advanced Protection Program, or some work and school accounts.",
     gmail_sync_open_google: "Open account settings",
     gmail_sync_setup_button: "Show me how",
-    gmail_sync_step_1: "Sign in to your account security settings.",
-    gmail_sync_step_2: "Turn on two-step verification if it isn’t on already.",
-    gmail_sync_step_3: "Create an app password for mail.",
-    gmail_sync_step_4: "Copy the password and paste it into Aster.",
+    gmail_sync_step_1:
+      "Turn on two-step verification for your account, if it isn’t on already.",
+    gmail_sync_step_2: "Create an app password and copy it.",
+    gmail_sync_step_3:
+      "In your mailbox settings, select Show in IMAP for All Mail, Sent Mail, and your labels, and set Folder size limits to Do not limit.",
+    gmail_sync_step_4:
+      "Enter your email address and paste the app password into Aster.",
     gmail_sync_title: "Create an app password",
     gmail_wizard_app_password_error_body:
-      "Your regular account password doesn't work here. Turn on two-step verification, create an app password for mail, then paste that password above.",
+      "Your regular account password doesn’t work here. Turn on two-step verification, create an app password, and paste that password above.",
     gmail_wizard_app_password_error_title: "That password wasn't accepted",
     gmail_wizard_connect: "Connect mailbox",
     gmail_wizard_password_label: "App password",
     gmail_wizard_progress: "Step {{current}} of {{total}}",
     gmail_wizard_reveal_password: "Show app password",
-    gmail_wizard_step_1_action: "Open security settings",
+    gmail_wizard_step_1_action: "Open two-step verification",
     gmail_wizard_step_1_body:
-      "App passwords live in the security section of your provider account.",
-    gmail_wizard_step_1_title: "Open your account security settings",
+      "Your account needs two-step verification before it can create app passwords. If it’s already on, go to the next step.",
+    gmail_wizard_step_1_title: "Turn on two-step verification",
     gmail_wizard_step_2_body:
-      "App passwords are only available once two-step verification is on.",
-    gmail_wizard_step_2_title: "Turn on two-step verification",
+      "On the App passwords page, enter a name such as Aster and click Create. Copy the 16-character password that appears, because it’s shown only once.",
+    gmail_wizard_step_2_title: "Create an app password",
     gmail_wizard_step_3_body:
-      "Choose Mail as the app, then create the password.",
-    gmail_wizard_step_3_title: "Create an app password",
+      "Your mailbox settings control which mail Aster can import. On the Labels tab, select Show in IMAP for All Mail, Sent Mail, and each of your labels. On the Forwarding and POP/IMAP tab, set Folder size limits to Do not limit, then click Save Changes.",
+    gmail_wizard_step_3_title: "Make all your mail available",
     gmail_wizard_step_4_body:
-      "Paste the app password below. Aster stores it encrypted and uses it only to sync this mailbox.",
-    gmail_wizard_step_4_title: "Paste the password",
+      "Use the address of the account you created the app password for.",
+    gmail_wizard_step_3_labels_action: "Open label settings",
+    gmail_wizard_step_3_imap_action: "Open IMAP settings",
+    gmail_wizard_step_5_title: "Paste the app password",
+    gmail_wizard_step_5_body:
+      "Paste the app password below, with or without spaces. Aster stores it encrypted and uses it only to sync this mailbox.",
+    gmail_wizard_import_note:
+      "Aster imports all your mail, including archived mail, sent mail, and labels. Large mailboxes can take a few days, and you can keep using Aster while the import runs.",
+    gmail_wizard_step_4_title: "Enter your email address",
     gmail_wizard_title: "Connect your mailbox",
     last_sync_tooltip: "When this account last synced",
     not_synced_tooltip: "This account hasn’t synced yet.",
