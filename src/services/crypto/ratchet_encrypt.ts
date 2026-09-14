@@ -144,6 +144,45 @@ function resolve_recovery_lane_keys(
   return { identity_public, pq_identity_public };
 }
 
+async function evaluate_recipient_bundle(
+  bundle: PrekeyBundle,
+  recipient_username: string,
+  recipient_email: string,
+) {
+  const owner_key = await get_recipient_public_key(
+    recipient_username,
+    recipient_email,
+  );
+  const bundle_verification = await verify_ratchet_prekey_bundle_detailed(
+    bundle.signed_prekey_signature,
+    bundle.kem_identity_key,
+    bundle.signed_prekey,
+    owner_key.data?.public_key ?? null,
+    bundle.pq_kem_public_key ?? null,
+  );
+
+  const bundle_peer = (recipient_email ?? recipient_username).toLowerCase();
+
+  const advertises_pq = Boolean(bundle.pq_kem_public_key);
+  const pq_downgraded =
+    !advertises_pq && (await has_peer_advertised_pq(bundle_peer));
+
+  const bundle_rejected =
+    bundle_verification.verdict === "tampered" ||
+    pq_downgraded ||
+    (is_strict_recipient_bundle_enforced() &&
+      (bundle_verification.verdict !== "verified" ||
+        !bundle_verification.strict));
+
+  return {
+    bundle_verification,
+    bundle_peer,
+    advertises_pq,
+    pq_downgraded,
+    bundle_rejected,
+  };
+}
+
 async function encrypt_for_ratchet_recipient_unlocked(
   conversation_id: string,
   recipient_email: string,
@@ -222,32 +261,19 @@ async function encrypt_for_ratchet_recipient_unlocked(
         bundle.kem_identity_key,
       );
 
-      const owner_key = await get_recipient_public_key(
+      const {
+        bundle_verification,
+        bundle_peer,
+        advertises_pq,
+        pq_downgraded,
+        bundle_rejected,
+      } = await evaluate_recipient_bundle(
+        bundle,
         recipient_username,
         recipient_email,
       );
-      const bundle_verification = await verify_ratchet_prekey_bundle_detailed(
-        bundle.signed_prekey_signature,
-        bundle.kem_identity_key,
-        bundle.signed_prekey,
-        owner_key.data?.public_key ?? null,
-        bundle.pq_kem_public_key ?? null,
-      );
-
-      const bundle_peer = (recipient_email ?? recipient_username).toLowerCase();
 
       record_bundle_verification(bundle_peer, bundle_verification);
-
-      const advertises_pq = Boolean(bundle.pq_kem_public_key);
-      const pq_downgraded =
-        !advertises_pq && (await has_peer_advertised_pq(bundle_peer));
-
-      const bundle_rejected =
-        bundle_verification.verdict === "tampered" ||
-        pq_downgraded ||
-        (is_strict_recipient_bundle_enforced() &&
-          (bundle_verification.verdict !== "verified" ||
-            !bundle_verification.strict));
 
       if (bundle_rejected) {
         if (pq_downgraded) {
@@ -433,7 +459,13 @@ export async function recipient_supports_post_quantum(
 
   const bundle = await fetch_prekey_bundle(recipient_username, recipient_email);
 
-  if (!bundle) return false;
+  if (!bundle || !bundle_supports_pq(bundle)) return false;
 
-  return bundle_supports_pq(bundle);
+  const { bundle_rejected } = await evaluate_recipient_bundle(
+    bundle,
+    recipient_username,
+    recipient_email,
+  );
+
+  return !bundle_rejected;
 }
