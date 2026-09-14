@@ -290,22 +290,22 @@ export function ReplyBody({
         <div
           className="mx-3 mb-2 p-3 rounded-lg border flex items-center gap-2 flex-shrink-0"
           style={{
-            backgroundColor: "rgba(239, 68, 68, 0.1)",
-            borderColor: "rgba(239, 68, 68, 0.3)",
+            backgroundColor: "#dc2626",
+            borderColor: "#dc2626",
           }}
         >
           <svg
-            className="w-5 h-5 text-red-500 flex-shrink-0"
+            className="w-5 h-5 text-white flex-shrink-0"
             fill="currentColor"
             viewBox="0 0 24 24"
           >
             <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
           </svg>
-          <span className="text-xs text-red-600 dark:text-red-400 flex-1">
+          <span className="text-xs text-white flex-1">
             {error_message}
           </span>
           <button
-            className="text-red-500 hover:text-red-700 flex-shrink-0"
+            className="text-white flex-shrink-0"
             onClick={() => set_error_message(null)}
           >
             <CloseIcon className="w-4 h-4" />
@@ -317,22 +317,22 @@ export function ReplyBody({
         <div
           className="mx-3 mb-2 p-3 rounded-lg border flex items-center gap-2 flex-shrink-0"
           style={{
-            backgroundColor: "rgba(234, 179, 8, 0.1)",
-            borderColor: "rgba(234, 179, 8, 0.3)",
+            backgroundColor: "#d97706",
+            borderColor: "#d97706",
           }}
         >
           <svg
-            className="w-5 h-5 text-yellow-500 flex-shrink-0"
+            className="w-5 h-5 text-white flex-shrink-0"
             fill="currentColor"
             viewBox="0 0 24 24"
           >
             <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z" />
           </svg>
-          <span className="text-xs text-yellow-600 dark:text-yellow-400 flex-1">
+          <span className="text-xs text-white flex-1">
             {attachment_error}
           </span>
           <button
-            className="text-yellow-500 hover:text-yellow-700 flex-shrink-0"
+            className="text-white flex-shrink-0"
             type="button"
             onClick={() => set_attachment_error(null)}
           >

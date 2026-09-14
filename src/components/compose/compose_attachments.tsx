@@ -232,6 +232,7 @@ export function ComposeErrors({ compose }: ComposeErrorsProps) {
           className="mx-3 mb-2 p-3 rounded-lg border flex items-center gap-2 flex-shrink-0"
           style={{
             backgroundColor: "#d97706",
+            borderColor: "#d97706",
             color: "#fff",
           }}
         >
@@ -248,7 +249,7 @@ export function ComposeErrors({ compose }: ComposeErrorsProps) {
           </span>
           <button
             className="flex-shrink-0"
-            style={{ color: "rgba(255, 255, 255, 0.8)" }}
+            style={{ color: "#fff" }}
             type="button"
             onClick={() => compose.set_attachment_error(null)}
           >

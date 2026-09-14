@@ -321,28 +321,28 @@ export function EmailReplySection({
           </motion.div>
 
           {error_message && (
-            <div className="px-3 py-2 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
-              <p className="text-sm text-red-700 dark:text-red-400">
+            <div className="px-3 py-2 rounded-lg bg-red-600 border border-red-600">
+              <p className="text-sm text-white">
                 {error_message}
               </p>
             </div>
           )}
 
           {send_state === "queued" && (
-            <div className="px-3 py-2 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+            <div className="px-3 py-2 rounded-lg bg-brand border border-brand">
               <div className="flex items-center justify-between">
-                <p className="text-sm text-blue-700 dark:text-blue-400">
+                <p className="text-sm text-[var(--accent-fg,#ffffff)]">
                   {`${t("mail.sending_in")} ${countdown}${t("common.seconds")}...`}
                 </p>
                 <div className="flex gap-2">
                   <button
-                    className="text-sm font-medium text-blue-700 dark:text-blue-400 hover:underline"
+                    className="text-sm font-medium text-[var(--accent-fg,#ffffff)] hover:underline"
                     onClick={handle_undo}
                   >
                     {t("common.undo")}
                   </button>
                   <button
-                    className="text-sm font-medium text-blue-700 dark:text-blue-400 hover:underline"
+                    className="text-sm font-medium text-[var(--accent-fg,#ffffff)] hover:underline"
                     onClick={handle_send_now}
                   >
                     {t("common.send_now")}
@@ -353,8 +353,8 @@ export function EmailReplySection({
           )}
 
           {send_state === "sent" && (
-            <div className="px-3 py-2 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
-              <p className="text-sm text-green-700 dark:text-green-400">
+            <div className="px-3 py-2 rounded-lg bg-green-700 border border-green-700">
+              <p className="text-sm text-white">
                 {t("mail.reply_sent_successfully")}
               </p>
             </div>
