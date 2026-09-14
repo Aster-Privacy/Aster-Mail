@@ -64,6 +64,10 @@ import { use_my_badge_prefs } from "@/stores/my_badge_prefs_store";
 import { is_internal_email } from "@/services/api/keys";
 import { draft_manager } from "@/services/crypto/encrypted_drafts";
 import { sanitize_html } from "@/lib/html_sanitizer";
+import {
+  get_compose_sanitize_options,
+  restore_compose_image_sources,
+} from "@/lib/compose_image_sources";
 import { escape_html } from "@/hooks/editor_utils";
 import { get_max_total_attachments_size } from "@/services/attachment_limits";
 import { build_compose_default_block } from "@/lib/compose_defaults";
@@ -71,7 +75,6 @@ import {
   extract_cid_references,
   resolve_cid_references,
 } from "@/lib/cid_resolver";
-import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { load_forward_attachments } from "@/services/forward_attachments";
 import { show_toast } from "@/components/toast/simple_toast";
 import {
@@ -785,12 +788,10 @@ export function use_compose({
       setTimeout(() => {
         if (message_textarea_ref.current && edit_draft.message) {
           draft_hook.just_loaded_draft_ref.current = true;
-          const sanitized_result = sanitize_html(edit_draft.message, {
-            external_content_mode: is_any_lockdown_active()
-              ? "never"
-              : "always",
-            lockdown_mode: is_any_lockdown_active(),
-          });
+          const sanitized_result = sanitize_html(
+            edit_draft.message,
+            get_compose_sanitize_options(),
+          );
           const token = inject_token_ref.current;
 
           inject_html_with_inline_images(
@@ -804,7 +805,9 @@ export function use_compose({
               set_message(
                 is_plain_text_ref.current
                   ? message_textarea_ref.current.innerText
-                  : message_textarea_ref.current.innerHTML,
+                  : restore_compose_image_sources(
+                      message_textarea_ref.current.innerHTML,
+                    ),
               );
             },
           );
@@ -891,10 +894,10 @@ export function use_compose({
           get_aster_footer(t, preferences.show_aster_branding);
       }
 
-      const sanitized_result = sanitize_html(content, {
-        external_content_mode: is_any_lockdown_active() ? "never" : "always",
-        lockdown_mode: is_any_lockdown_active(),
-      });
+      const sanitized_result = sanitize_html(
+        content,
+        get_compose_sanitize_options(),
+      );
 
       const token = inject_token_ref.current;
 
@@ -911,7 +914,9 @@ export function use_compose({
           set_message(
             is_plain_text_ref.current
               ? message_textarea_ref.current.innerText
-              : message_textarea_ref.current.innerHTML,
+              : restore_compose_image_sources(
+                  message_textarea_ref.current.innerHTML,
+                ),
           );
         },
       );
@@ -956,10 +961,7 @@ export function use_compose({
       "[data-aster-signature='1']",
     );
     const raw_html = get_formatted_signature(target);
-    const sanitized = sanitize_html(raw_html, {
-      external_content_mode: is_any_lockdown_active() ? "never" : "always",
-      lockdown_mode: is_any_lockdown_active(),
-    });
+    const sanitized = sanitize_html(raw_html, get_compose_sanitize_options());
     const wrapper = document.createElement("div");
 
     wrapper.innerHTML = sanitized.html;
@@ -976,7 +978,9 @@ export function use_compose({
       editor.insertBefore(new_node, editor.firstChild);
     }
     set_message(
-      is_plain_text_ref.current ? editor.innerText : editor.innerHTML,
+      is_plain_text_ref.current
+        ? editor.innerText
+        : restore_compose_image_sources(editor.innerHTML),
     );
     last_signature_id_ref.current = target.id;
   }, [

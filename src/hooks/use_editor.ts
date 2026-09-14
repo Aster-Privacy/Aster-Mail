@@ -23,7 +23,10 @@ import { useCallback, useEffect } from "react";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 import { sanitize_compose_paste, sanitize_html } from "@/lib/html_sanitizer";
-import { is_any_lockdown_active } from "@/services/lockdown_store";
+import {
+  get_compose_sanitize_options,
+  restore_compose_image_sources,
+} from "@/lib/compose_image_sources";
 import {
   type HeadingLevel,
   type TextAlignment,
@@ -88,7 +91,11 @@ export function use_editor({
     const editor = editor_ref.current;
 
     if (editor) {
-      on_change?.(is_plain_text_mode ? editor.innerText : editor.innerHTML);
+      on_change?.(
+        is_plain_text_mode
+          ? editor.innerText
+          : restore_compose_image_sources(editor.innerHTML),
+      );
     }
   }, [editor_ref, on_change, is_plain_text_mode]);
 
@@ -113,10 +120,7 @@ export function use_editor({
 
       if (is_plain_text_mode) return;
 
-      const sanitized = sanitize_html(html, {
-        external_content_mode: is_any_lockdown_active() ? "never" : "always",
-        lockdown_mode: is_any_lockdown_active(),
-      });
+      const sanitized = sanitize_html(html, get_compose_sanitize_options());
       const wrapper = document.createElement("div");
 
       wrapper.innerHTML = sanitized.html;
@@ -412,7 +416,7 @@ export function use_editor({
   );
 
   const get_html = useCallback((): string => {
-    return editor_ref.current?.innerHTML || "";
+    return restore_compose_image_sources(editor_ref.current?.innerHTML || "");
   }, [editor_ref]);
 
   const set_html = useCallback(

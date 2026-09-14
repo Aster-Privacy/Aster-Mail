@@ -84,8 +84,11 @@ import {
   sanitize_outgoing_html,
   repair_comment_markup,
 } from "@/lib/html_sanitizer";
+import {
+  get_compose_sanitize_options,
+  restore_compose_image_sources,
+} from "@/lib/compose_image_sources";
 import { inline_email_css } from "@/lib/forward_css_inliner";
-import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { fetch_my_badges } from "@/services/api/user";
 import { use_my_badge_prefs } from "@/stores/my_badge_prefs_store";
 import {
@@ -639,13 +642,15 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
       setTimeout(() => {
         if (!message_editor_ref.current) return;
 
-        const sanitized_result = sanitize_html(matching_draft.content.message, {
-          external_content_mode: is_any_lockdown_active() ? "never" : "always",
-          lockdown_mode: is_any_lockdown_active(),
-        });
+        const sanitized_result = sanitize_html(
+          matching_draft.content.message,
+          get_compose_sanitize_options(),
+        );
 
         message_editor_ref.current.innerHTML = sanitized_result.html;
-        set_reply_message(message_editor_ref.current.innerHTML);
+        set_reply_message(
+          restore_compose_image_sources(message_editor_ref.current.innerHTML),
+        );
         message_editor_ref.current.focus();
       }, 0);
 
@@ -678,14 +683,18 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
         content = `<div><br></div>${content}`;
       }
 
-      const sanitized_result = sanitize_html(content, {
-        external_content_mode: is_any_lockdown_active() ? "never" : "always",
-        lockdown_mode: is_any_lockdown_active(),
-      });
+      const sanitized_result = sanitize_html(
+        content,
+        get_compose_sanitize_options(),
+      );
 
       message_editor_ref.current.innerHTML = sanitized_result.html;
-      initial_content_ref.current = message_editor_ref.current.innerHTML;
-      set_reply_message(message_editor_ref.current.innerHTML);
+      initial_content_ref.current = restore_compose_image_sources(
+        message_editor_ref.current.innerHTML,
+      );
+      set_reply_message(
+        restore_compose_image_sources(message_editor_ref.current.innerHTML),
+      );
       message_editor_ref.current.focus();
     }, 0);
   }, [
