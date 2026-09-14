@@ -26,6 +26,16 @@ const recovery = vi.hoisted(() => ({
   recovery_email_set: true,
 }));
 
+const plan = vi.hoisted(() => ({
+  plan_code: "free" as string | null,
+}));
+
+vi.mock("@/hooks/use_plan_limits", () => ({
+  use_plan_limits: () => ({
+    limits: plan.plan_code === null ? null : { plan_code: plan.plan_code },
+  }),
+}));
+
 vi.mock("@/services/api/recovery", () => ({
   get_recovery_methods: async () => ({
     data: { recovery_email_set: recovery.recovery_email_set },
@@ -88,6 +98,7 @@ describe("PlanPrompt", () => {
     localStorage.setItem(FIRST_RUN_AT_KEY, String(Date.now()));
     localStorage.setItem(FIRST_RUN_TOUR_KEY, "pending");
     recovery.recovery_email_set = true;
+    plan.plan_code = "free";
   });
 
   it("stays hidden on signup day when the checklist is unfinished", async () => {
@@ -168,6 +179,36 @@ describe("PlanPrompt", () => {
     });
 
     expect(view.container.textContent).toContain("common.plan_prompt_title");
+    view.unmount();
+  });
+
+  it("never appears on a paid plan and clears the pending flag", async () => {
+    age_account(DAY_MS + 1000);
+    plan.plan_code = "supernova";
+
+    const view = mount(true);
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(120000);
+    });
+
+    expect(view.container.textContent).toBe("");
+    expect(localStorage.getItem(FIRST_RUN_PLAN_KEY)).toBeNull();
+    view.unmount();
+  });
+
+  it("waits for the plan to load before appearing", async () => {
+    age_account(DAY_MS + 1000);
+    plan.plan_code = null;
+
+    const view = mount(true);
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(120000);
+    });
+
+    expect(view.container.textContent).toBe("");
+    expect(localStorage.getItem(FIRST_RUN_PLAN_KEY)).toBe("pending");
     view.unmount();
   });
 

@@ -25,6 +25,7 @@ import { Button } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { use_should_reduce_motion } from "@/provider";
+import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { get_recovery_methods } from "@/services/api/recovery";
 import {
   clear_first_run_plan,
@@ -54,12 +55,19 @@ export function PlanPrompt({
   const { t } = use_i18n();
   const reduce_motion = use_should_reduce_motion();
   const [is_open, set_is_open] = useState(false);
+  const { limits } = use_plan_limits();
+  const plan_code = limits?.plan_code ?? null;
+  const is_free_plan = plan_code === "free";
+
+  useEffect(() => {
+    if (plan_code && plan_code !== "free") clear_first_run_plan();
+  }, [plan_code]);
 
   useEffect(() => {
     let cancelled = false;
     let timer: number | undefined;
 
-    if (checklist_visible !== false) {
+    if (!is_free_plan || checklist_visible !== false) {
       set_is_open(false);
 
       return;
@@ -125,7 +133,7 @@ export function PlanPrompt({
       window.removeEventListener(FIRST_RUN_TOUR_DONE_EVENT, handle_tour_done);
       if (timer) window.clearTimeout(timer);
     };
-  }, [checklist_complete, checklist_visible]);
+  }, [checklist_complete, checklist_visible, is_free_plan]);
 
   const close = () => {
     clear_first_run_plan();
