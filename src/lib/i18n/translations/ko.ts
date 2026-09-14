@@ -1291,6 +1291,7 @@ export const ko = {
     emoji_activities: "활동",
     emoji_flags: "깃발",
     no_emojis_found: "이모지를 찾을 수 없습니다",
+    emoji_recent: "최근 사용",
     item_copied: "{{ label }} 복사됨",
     copied_item: "{{ label }} 복사됨",
     blocked_email: "{{ email }} 차단됨",

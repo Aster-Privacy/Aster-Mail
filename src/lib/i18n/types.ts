@@ -1854,6 +1854,7 @@ export interface CommonTranslations {
   emoji_activities: string;
   emoji_flags: string;
   no_emojis_found: string;
+  emoji_recent: string;
   item_copied: string;
   copied_item: string;
   blocked_email: string;

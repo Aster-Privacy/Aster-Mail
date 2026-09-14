@@ -1207,6 +1207,7 @@ export const ar = {
     emoji_activities: "الأنشطة",
     emoji_flags: "الأعلام",
     no_emojis_found: "لم يتم العثور على رموز تعبيرية",
+    emoji_recent: "المستخدمة مؤخرًا",
     item_copied: "تم نسخ {{ label }}",
     copied_item: "تم نسخ {{ label }}",
     blocked_email: "تم حظر {{ email }}",

@@ -1267,6 +1267,7 @@ export const es = {
     emoji_activities: "Actividades",
     emoji_flags: "Banderas",
     no_emojis_found: "No se encontraron emojis",
+    emoji_recent: "Usados recientemente",
     item_copied: "{{ label }} copiado",
     copied_item: "Copiado {{ label }}",
     blocked_email: "Bloqueado {{ email }}",

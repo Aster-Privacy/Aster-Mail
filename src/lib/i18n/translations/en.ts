@@ -1315,6 +1315,7 @@ export const en: Translations = {
     emoji_activities: "Activities",
     emoji_flags: "Flags",
     no_emojis_found: "No emojis found",
+    emoji_recent: "Recently used",
     item_copied: "{{ label }} copied",
     copied_item: "Copied {{ label }}",
     blocked_email: "Blocked {{ email }}",

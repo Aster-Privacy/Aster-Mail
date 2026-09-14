@@ -1111,6 +1111,7 @@ export const de = {
     emoji_activities: "Aktivitäten",
     emoji_flags: "Flaggen",
     no_emojis_found: "Keine Emojis gefunden",
+    emoji_recent: "Zuletzt verwendet",
     item_copied: "{{ label }} kopiert",
     copied_item: "{{ label }} kopiert",
     blocked_email: "{{ email }} blockiert",

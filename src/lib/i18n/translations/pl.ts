@@ -1259,6 +1259,7 @@ export const pl = {
     emoji_activities: "Aktywności",
     emoji_flags: "Flagi",
     no_emojis_found: "Nie znaleziono emoji",
+    emoji_recent: "Ostatnio używane",
     item_copied: "{{ label }} skopiowano",
     copied_item: "Skopiowano {{ label }}",
     blocked_email: "Zablokowano {{ email }}",

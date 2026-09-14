@@ -1091,6 +1091,7 @@ export const zh_CN = {
     emoji_activities: "活动",
     emoji_flags: "旗帜",
     no_emojis_found: "未找到表情",
+    emoji_recent: "最近使用",
     item_copied: "{{ label }}已复制",
     copied_item: "已复制{{ label }}",
     blocked_email: "已屏蔽{{ email }}",

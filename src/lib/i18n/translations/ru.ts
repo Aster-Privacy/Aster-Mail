@@ -1250,6 +1250,7 @@ export const ru = {
     emoji_activities: "Активности",
     emoji_flags: "Флаги",
     no_emojis_found: "Эмодзи не найдены",
+    emoji_recent: "Недавние",
     item_copied: "{{ label }} скопировано",
     copied_item: "Скопировано {{ label }}",
     blocked_email: "Заблокировано {{ email }}",

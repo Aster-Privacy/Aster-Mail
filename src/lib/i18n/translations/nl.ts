@@ -1224,6 +1224,7 @@ export const nl = {
     emoji_activities: "Activiteiten",
     emoji_flags: "Vlaggen",
     no_emojis_found: "Geen emoji's gevonden",
+    emoji_recent: "Recent gebruikt",
     item_copied: "{{ label }} gekopieerd",
     copied_item: "{{ label }} gekopieerd",
     blocked_email: "{{ email }} geblokkeerd",

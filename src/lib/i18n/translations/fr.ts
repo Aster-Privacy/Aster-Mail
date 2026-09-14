@@ -1278,6 +1278,7 @@ export const fr = {
     emoji_activities: "Activités",
     emoji_flags: "Drapeaux",
     no_emojis_found: "Aucun émoji trouvé",
+    emoji_recent: "Utilisés récemment",
     item_copied: "{{ label }} copié",
     copied_item: "{{ label }} copié",
     blocked_email: "{{ email }} bloqué",

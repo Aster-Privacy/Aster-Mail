@@ -1317,6 +1317,7 @@ export const hi = {
     emoji_activities: "गतिविधियां",
     emoji_flags: "झंडे",
     no_emojis_found: "कोई इमोजी नहीं मिली",
+    emoji_recent: "हाल ही में उपयोग किए गए",
     item_copied: "{{ label }} कॉपी हो गया",
     copied_item: "{{ label }} कॉपी हो गया",
     blocked_email: "{{ email }} ब्लॉक कर दिया गया",

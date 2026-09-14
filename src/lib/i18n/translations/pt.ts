@@ -1147,6 +1147,7 @@ export const pt = {
     emoji_activities: "Atividades",
     emoji_flags: "Bandeiras",
     no_emojis_found: "Nenhum emoji encontrado",
+    emoji_recent: "Usados recentemente",
     item_copied: "{{ label }} copiado",
     copied_item: "{{ label }} copiado",
     blocked_email: "{{ email }} bloqueado",

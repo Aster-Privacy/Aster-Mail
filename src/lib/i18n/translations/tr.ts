@@ -1253,6 +1253,7 @@ export const tr = {
     emoji_activities: "Etkinlikler",
     emoji_flags: "Bayraklar",
     no_emojis_found: "Emoji bulunamadı",
+    emoji_recent: "Son kullanılanlar",
     item_copied: "{{ label }} kopyalandı",
     copied_item: "{{ label }} kopyalandı",
     blocked_email: "{{ email }} engellendi",

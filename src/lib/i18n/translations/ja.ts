@@ -1307,6 +1307,7 @@ export const ja = {
     emoji_activities: "アクティビティ",
     emoji_flags: "旗",
     no_emojis_found: "絵文字が見つかりません",
+    emoji_recent: "最近使用",
     item_copied: "{{ label }}をコピーしました",
     copied_item: "{{ label }}をコピーしました",
     blocked_email: "{{ email }}をブロックしました",
