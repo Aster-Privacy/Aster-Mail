@@ -100,7 +100,6 @@ const EMPTY_STATE: EmailListState = {
   has_initial_load: false,
 };
 
-const MIN_REFRESH_SKELETON_MS = 300;
 const VISIBLE_REFETCH_MIN_MS = 10_000;
 const ARRIVAL_REFETCH_DEBOUNCE_MS = 800;
 const PREFETCH_DELAY_MS = 250;
@@ -800,26 +799,20 @@ export function use_category_inbox(
       if (!has_passphrase_in_memory()) return;
       page_cache.current.clear();
       last_signature_ref.current = "";
-      set_state((prev) =>
-        prev.is_loading && !prev.has_initial_load
-          ? prev
-          : { ...prev, is_loading: true, has_initial_load: false },
-      );
-      void (async () => {
-        const started = Date.now();
+      set_state((prev) => {
+        if (prev.emails.length > 0) {
+          return prev.is_loading ? prev : { ...prev, is_loading: true };
+        }
 
+        return prev.is_loading && !prev.has_initial_load
+          ? prev
+          : { ...prev, is_loading: true, has_initial_load: false };
+      });
+      void (async () => {
         try {
           await sync_recent();
         } catch {
           void 0;
-        }
-
-        const elapsed = Date.now() - started;
-
-        if (elapsed < MIN_REFRESH_SKELETON_MS) {
-          await new Promise((resolve) =>
-            setTimeout(resolve, MIN_REFRESH_SKELETON_MS - elapsed),
-          );
         }
 
         if (cancelled) return;
