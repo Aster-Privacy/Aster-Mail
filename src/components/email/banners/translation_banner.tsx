@@ -23,7 +23,7 @@ import type { TranslationStatus } from "@/components/email/hooks/use_email_trans
 
 import { useEffect, useRef, useState } from "react";
 import { GlobeAltIcon } from "@heroicons/react/24/outline";
-import { AnimatePresence, motion, type Transition } from "framer-motion";
+import { motion, type Transition } from "framer-motion";
 
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
@@ -46,13 +46,12 @@ interface TranslationBannerProps {
 }
 
 const EASE_STANDARD = [0.2, 0, 0, 1] as const;
-const EASE_EMPHASIZED_DECELERATE = [0.05, 0.7, 0.1, 1] as const;
 const TRANSLATING_REVEAL_DELAY_MS = 180;
 const TRANSLATING_MIN_VISIBLE_MS = 480;
 
 const INSTANT: Transition = { duration: 0 };
-const TEXT_ENTER: Transition = { duration: 0.2, ease: EASE_STANDARD };
-const TEXT_EXIT: Transition = { duration: 0.12, ease: EASE_STANDARD };
+const TEXT_ENTER: Transition = { duration: 0.18, ease: EASE_STANDARD };
+const SWAP_FROM_OPACITY = 0.35;
 
 function use_steady_status(status: TranslationStatus): TranslationStatus {
   const [shown, set_shown] = useState(status);
@@ -99,7 +98,6 @@ export function TranslationBanner({
   const [supported_names, set_supported_names] = useState<string | null>(null);
   const shown = use_steady_status(status);
   const language_ref = useRef(source_language);
-  const wrapper_ref = useRef<HTMLDivElement>(null);
 
   if (source_language) language_ref.current = source_language;
 
@@ -224,132 +222,72 @@ export function TranslationBanner({
   })();
 
   const enter = reduce_motion ? INSTANT : TEXT_ENTER;
-  const exit = reduce_motion ? INSTANT : TEXT_EXIT;
+  const swap_from = reduce_motion ? 1 : SWAP_FROM_OPACITY;
   const is_translating = shown === "translating" && !reduce_motion;
 
   return (
     <div aria-live="polite" role="status">
-      <AnimatePresence initial={false}>
-        {visible && (
-          <motion.div
-            key="translation_banner"
-            ref={wrapper_ref}
-            animate={{ height: "auto", opacity: 1 }}
-            className="overflow-hidden"
-            exit={{
-              height: 0,
-              opacity: 0,
-              transition: reduce_motion
-                ? INSTANT
-                : { duration: 0.18, ease: EASE_STANDARD },
-            }}
-            initial={{ height: 0, opacity: 0 }}
-            transition={
-              reduce_motion
-                ? INSTANT
-                : {
-                    height: {
-                      duration: 0.28,
-                      ease: EASE_EMPHASIZED_DECELERATE,
-                    },
-                    opacity: {
-                      duration: 0.2,
-                      delay: 0.04,
-                      ease: EASE_STANDARD,
-                    },
-                  }
-            }
-            onAnimationComplete={(definition) => {
-              const opened =
-                (definition as { height?: unknown }).height === "auto";
-
-              if (wrapper_ref.current && opened) {
-                wrapper_ref.current.style.overflow = "visible";
-              }
-            }}
-            onAnimationStart={() => {
-              if (wrapper_ref.current) {
-                wrapper_ref.current.style.overflow = "hidden";
-              }
-            }}
-          >
-            <div className={spacing_class}>
-              <div className="flex min-h-5 items-center gap-1.5 text-xs text-txt-muted">
+      {visible && (
+        <div>
+          <div className={spacing_class}>
+            <div className="flex min-h-5 items-center gap-1.5 text-xs text-txt-muted">
+              <motion.span
+                animate={{ opacity: is_translating ? [1, 0.35, 1] : 1 }}
+                className="flex flex-shrink-0"
+                transition={
+                  is_translating
+                    ? { duration: 1.4, ease: "easeInOut", repeat: Infinity }
+                    : { duration: 0.2 }
+                }
+              >
+                <GlobeAltIcon className="w-3.5 h-3.5" />
+              </motion.span>
+              <motion.span
+                key={message}
+                animate={{ opacity: 1 }}
+                className="block min-w-0 truncate"
+                initial={{ opacity: swap_from }}
+                transition={enter}
+              >
+                {message}
+              </motion.span>
+              {info && (
                 <motion.span
-                  animate={{ opacity: is_translating ? [1, 0.35, 1] : 1 }}
-                  className="flex flex-shrink-0"
-                  transition={
-                    is_translating
-                      ? { duration: 1.4, ease: "easeInOut", repeat: Infinity }
-                      : { duration: 0.2 }
-                  }
+                  key={shown}
+                  animate={{ opacity: 1 }}
+                  className="flex flex-shrink-0 items-center self-center leading-none text-txt-muted"
+                  initial={{ opacity: swap_from }}
+                  transition={enter}
                 >
-                  <GlobeAltIcon className="w-3.5 h-3.5" />
+                  <InfoPopover
+                    description={info.description}
+                    icon_class="w-3.5 h-3.5"
+                    title={info.title}
+                  />
                 </motion.span>
-                <span className="relative flex min-w-0 items-center">
-                  <AnimatePresence initial={false} mode="popLayout">
-                    <motion.span
-                      key={message}
-                      animate={{ opacity: 1, y: 0, transition: enter }}
-                      className="block min-w-0 truncate"
-                      exit={{ opacity: 0, transition: exit }}
-                      initial={{ opacity: 0, y: reduce_motion ? 0 : 3 }}
-                    >
-                      {message}
-                    </motion.span>
-                  </AnimatePresence>
-                </span>
-                <AnimatePresence initial={false} mode="popLayout">
-                  {info && (
-                    <motion.span
-                      key={shown}
-                      animate={{ opacity: 1, transition: enter }}
-                      className="flex flex-shrink-0 items-center self-center leading-none text-txt-muted"
-                      exit={{ opacity: 0, transition: exit }}
-                      initial={{ opacity: 0 }}
-                      layout={reduce_motion ? false : "position"}
-                      transition={enter}
-                    >
-                      <InfoPopover
-                        description={info.description}
-                        icon_class="w-3.5 h-3.5"
-                        title={info.title}
-                      />
-                    </motion.span>
-                  )}
-                </AnimatePresence>
-                <AnimatePresence initial={false} mode="popLayout">
-                  {action && (
-                    <motion.button
-                      key={action.kind}
-                      animate={{ opacity: 1, transition: enter }}
-                      className="relative flex flex-shrink-0 rounded px-1.5 py-0.5 text-xs font-medium text-blue-500 outline-none transition-colors hover:bg-blue-500/10 focus-visible:ring-2 focus-visible:ring-blue-500/60"
-                      exit={{ opacity: 0, transition: exit }}
-                      initial={{ opacity: 0 }}
-                      layout={reduce_motion ? false : "position"}
-                      transition={enter}
-                      type="button"
-                      onClick={action.on_click}
-                    >
-                      <AnimatePresence initial={false} mode="popLayout">
-                        <motion.span
-                          key={action.label}
-                          animate={{ opacity: 1, y: 0, transition: enter }}
-                          className="block whitespace-nowrap"
-                          exit={{ opacity: 0, transition: exit }}
-                          initial={{ opacity: 0, y: reduce_motion ? 0 : 3 }}
-                        >
-                          {action.label}
-                        </motion.span>
-                      </AnimatePresence>
-                    </motion.button>
-                  )}
-                </AnimatePresence>
-              </div>
+              )}
+              {action && (
+                <button
+                  key={action.kind}
+                  className="flex flex-shrink-0 rounded px-1.5 py-0.5 text-xs font-medium text-blue-500 outline-none transition-colors hover:bg-blue-500/10 focus-visible:ring-2 focus-visible:ring-blue-500/60"
+                  type="button"
+                  onClick={action.on_click}
+                >
+                  <motion.span
+                    key={action.label}
+                    animate={{ opacity: 1 }}
+                    className="block whitespace-nowrap"
+                    initial={{ opacity: swap_from }}
+                    transition={enter}
+                  >
+                    {action.label}
+                  </motion.span>
+                </button>
+              )}
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

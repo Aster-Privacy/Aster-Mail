@@ -162,6 +162,34 @@ function swap_body(
   });
 }
 
+const CONCEAL_LIMIT_MS = 700;
+
+const concealed_bodies = new WeakMap<HTMLElement, number>();
+
+function conceal_body(body: HTMLElement): void {
+  if (concealed_bodies.has(body)) return;
+
+  body.style.transition = "none";
+  body.style.opacity = "0";
+  concealed_bodies.set(
+    body,
+    window.setTimeout(() => reveal_concealed(body), CONCEAL_LIMIT_MS),
+  );
+}
+
+function reveal_concealed(body: HTMLElement): boolean {
+  const timer = concealed_bodies.get(body);
+
+  if (timer === undefined) return false;
+
+  window.clearTimeout(timer);
+  concealed_bodies.delete(body);
+  body.style.transition = BODY_FADE_IN;
+  body.style.opacity = "";
+
+  return true;
+}
+
 export function use_email_translation({
   account_id,
   email_id,
@@ -292,16 +320,26 @@ export function use_email_translation({
         signal: controller.signal,
       });
 
-      if (controller.signal.aborted) return;
+      if (controller.signal.aborted) {
+        reveal_concealed(render.body);
+
+        return;
+      }
 
       if (!result.translated) {
         render.remeasure();
+        reveal_concealed(render.body);
         set_status(result.unsupported ? "unsupported" : "unavailable");
 
         return;
       }
 
-      settle_body(render.body, render.remeasure, reduce_motion_ref.current);
+      if (reveal_concealed(render.body)) {
+        flush_pending_swap(render.body);
+        render.remeasure();
+      } else {
+        settle_body(render.body, render.remeasure, reduce_motion_ref.current);
+      }
       set_showing_original(false);
       set_status("translated");
 
@@ -333,6 +371,8 @@ export function use_email_translation({
 
         return;
       }
+
+      if (target_ref.current) reveal_concealed(target_ref.current.body);
 
       set_download_bytes(bytes);
       set_status("offer");
@@ -375,6 +415,10 @@ export function use_email_translation({
 
       if (decision.kind === "offer") set_status("offer");
 
+      if (decision.kind === "translate" && !reduce_motion_ref.current) {
+        conceal_body(body);
+      }
+
       void offer_translation(decision.language, decision.kind === "translate");
     },
     [email_id, translatable, offer_translation],
@@ -388,6 +432,7 @@ export function use_email_translation({
 
       return () => {
         abort_active();
+        reveal_concealed(body);
 
         if (target_ref.current?.body === body) {
           target_ref.current = null;
