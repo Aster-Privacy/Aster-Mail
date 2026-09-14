@@ -19,15 +19,18 @@ This document lists every mail surface that loads data or marks mail as read, an
 | Inbox list click | `use_index_page_state.handle_email_click` calls `on_user_opened_mail` | Closed |
 | Search result | `use_index_page_state.handle_search_result_click`, `use_search_results_page.open_result` | Closed |
 | Notification or deep link to a cached row | `use_email_detail_load` calls `on_user_opened_mail` when the id changes | Closed |
-| Deep link with no cached row | `use_email_detail_load` marks read as soon as the fetched item shows unread, guarded by intent | Closed; the unread state is unknown until the item arrives |
+| Deep link with no cached row | `on_user_opened_mail` returns false with no row, so nothing is marked read before the fetch; `use_email_detail_load` marks read only after the fetched item arrives | Closed |
 | Full viewer | `use_email_viewer` guards its mark-read on intent, and a reload of the same mail keeps content on screen | Closed |
 | Popup viewer | `use_popup_viewer` marks read optimistically with rollback | Closed |
 | Thread messages | `thread_messages_list` marks read optimistically with rollback | Closed |
 | Mobile detail | `use_mobile_mail_detail.mark_message_read` marks read optimistically with rollback | Closed |
 | Offline mark read or unread | `use_single_actions_flags` notes the intent before the optimistic update | Closed |
 | Popup read toggle | `popup_viewer_actions.handle_read_toggle` ignores taps while a toggle is saving | Closed |
-| Multi-select mark read | `batch_actions` explicit user action | Unchanged, not an open path |
-| Command palette mark all read | `command_palette` bulk action | Unchanged, not an open path |
+| Account switch | `clear_account_scoped_caches` in `src/contexts/auth/auth_helpers.ts` calls `reset_opened_mail_scope`, which clears pending intents and pending opens; save callbacks in `user_opened_mail`, `use_email_detail_load`, `use_popup_viewer`, and `use_mobile_mail_detail` return early when the scope changed | Closed |
+| Failed open | `revert_user_opened_mail` restores unread and the count, and writes unread back if the read save lands; `use_email_detail_load` calls it on a fetch error or locked folder, and `use_popup_viewer` calls it on a fetch error. Search, notifications, and deep links open through these viewers | Closed |
+| Multi-select mark read | `batched_bulk_patch_metadata` and `bulk_patch_metadata` in `src/services/api/mail.ts` note intents before the write and clear them for failed ids | Closed |
+| Command palette mark all read | `bulk_update_items_metadata` in `src/services/crypto/mail_metadata_writer.ts` notes intents before the write | Closed |
+| Toolbar mark all read by scope | `mark_all_read_by_scope` in `header_toolbar/helpers.tsx` flips rows only after the server confirms, so a later fetch already returns read | Closed |
 
 ## Loading paths
 
@@ -41,9 +44,12 @@ This document lists every mail surface that loads data or marks mail as read, an
 | Folder list | `use_folders` does not re-enter loading while folders exist | Closed |
 | Aliases settings | `alias_list` delays the skeleton, and cached aliases skip it | Closed |
 | Compose sender picker | `use_sender_aliases` does not enter loading when the cache is filled | Closed |
-| Settings sections gated on plan | Skeleton only when limits are missing | Unchanged |
-| Token refresh | Auth loading starts true once and never flips back, so routes do not remount | Unchanged |
+| Settings sections gated on plan | `bridge_section`, `category_settings_section`, and `smtp_tokens_section` show the skeleton only when limits are missing, after `use_delayed_flag` | Closed |
+| Billing | `billing_section` and `onion_billing_section` show the skeleton only on the first load, after `use_delayed_flag` | Closed |
+| Domains | `use_aliases` starts `domains_loading` as `!aliases_cache.loaded`, so cached domains render at once, and `domains_section` shows no skeleton while loading | Closed |
+| Token refresh | `use_auth_account_state` sets `is_loading: true` only in its initial state, so a refresh never remounts routes | Closed |
 | Startup loader | Light theme paints the light background before the app mounts | Closed |
+| Desktop boot | `index.html` paints `#0a0a0a` inline before any script, and `src-tauri/tauri.conf.json` sets the same window `backgroundColor`, so the dark window never shows white | Closed |
 
 ## Accessibility
 
@@ -56,6 +62,6 @@ This document lists every mail surface that loads data or marks mail as read, an
 ## Tests
 
 - `src/hooks/use_delayed_flag.test.tsx`: a skeleton cancelled under 150 ms, data plus fetching is not a skeleton.
-- `src/services/user_opened_mail.test.ts`: a hanging write still shows read, a stale fetch cannot restore unread, missing metadata does not block read, failure rolls back.
+- `src/services/user_opened_mail.test.ts`: a hanging write still shows read, a stale fetch cannot restore unread, missing metadata does not block read, failure rolls back, an account switch drops pending intents and ignores saves from the previous account, and a failed open restores unread, including when the read save lands late.
 - `src/hooks/email_actions/unread_counters_sync.integration.test.tsx`: archive and star still sync after an open.
 - `src/hooks/use_category_inbox.refresh.test.ts`: refresh keeps rows on screen.
