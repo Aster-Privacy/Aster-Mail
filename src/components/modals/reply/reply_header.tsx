@@ -160,6 +160,7 @@ export function ReplyHeader({
             )}
           </button>
           <button
+            aria-label={t("common.close")}
             className="transition-colors duration-150 p-1.5 w-7 h-7 flex items-center justify-center rounded hover_bg text-txt-muted"
             onClick={handle_close}
           >

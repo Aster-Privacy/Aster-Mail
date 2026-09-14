@@ -416,6 +416,7 @@ export function MassUnsubscribeModal({
             </h2>
           </div>
           <button
+            aria-label={t("common.close")}
             className="p-1.5 rounded-[14px] transition-colors hover:bg-black/[0.05] dark:hover:bg-white/[0.05]"
             style={{ color: "var(--text-muted)" }}
             onClick={on_close}

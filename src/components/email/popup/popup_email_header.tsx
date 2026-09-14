@@ -211,6 +211,7 @@ export function PopupEmailHeader({
         )}
         {is_fullscreen && (
           <button
+            aria-label={t("common.close")}
             className="p-1 rounded hover:bg-black/5 dark:hover:bg-white/10 transition-colors flex-shrink-0"
             onClick={on_close}
           >

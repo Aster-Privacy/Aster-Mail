@@ -651,6 +651,7 @@ export const InlineReplySection = forwardRef<
                 </div>
               </div>
               <button
+                aria-label={t("common.close")}
                 className="p-1.5 rounded-[14px] transition-colors hover:bg-surf-hover text-txt-muted"
                 onClick={handle_cancel}
               >

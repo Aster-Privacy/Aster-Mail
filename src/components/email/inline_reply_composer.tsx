@@ -333,6 +333,7 @@ export const InlineReplyComposer = forwardRef<
           )}
         </button>
         <button
+          aria-label={t("common.close")}
           className="p-1.5 rounded-[14px] text-txt-muted hover:bg-surf-hover transition-colors"
           onClick={on_close}
         >

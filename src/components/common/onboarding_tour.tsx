@@ -543,6 +543,7 @@ export function OnboardingTour() {
                       />
                     )}
                     <button
+                      aria-label={t("common.skip_tour")}
                       className="absolute top-4 end-4 z-10 p-2 rounded-[14px] transition-colors hover:bg-black/5 dark:hover:bg-white/10 disabled:opacity-50 text-txt-muted"
                       disabled={is_transitioning}
                       onClick={handle_skip}

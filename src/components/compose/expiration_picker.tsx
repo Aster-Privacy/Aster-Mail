@@ -310,6 +310,7 @@ export function ExpirationPicker({
                 </button>
               ) : (
                 <button
+                  aria-label={t("mail.self_destruct")}
                   className="press_scale w-9 h-9 p-0 inline-flex items-center justify-center flex-shrink-0 rounded-full transition-transform duration-150 hover:bg-black/5 dark:hover:bg-white/10 text-txt-tertiary hover:text-txt-primary disabled:opacity-50"
                   disabled={is_disabled}
                   type="button"

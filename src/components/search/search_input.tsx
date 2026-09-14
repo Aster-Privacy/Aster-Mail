@@ -74,6 +74,7 @@ export function SearchInputBar({
     <div className="p-4 border-b transition-colors duration-200 relative flex-shrink-0 border-edge-secondary">
       <div className="flex items-center gap-3">
         <button
+          aria-label={t("common.close")}
           className="sm:hidden -ms-1 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[10px] transition-colors text-txt-muted bg-surf-hover"
           onClick={on_close}
         >
@@ -107,6 +108,7 @@ export function SearchInputBar({
         />
         {query && (
           <button
+            aria-label={t("common.clear")}
             className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[10px] transition-colors duration-150 text-txt-muted bg-surf-hover hover:text-txt-primary"
             onClick={on_clear_query}
           >

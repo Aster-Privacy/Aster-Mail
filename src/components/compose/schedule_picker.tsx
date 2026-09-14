@@ -223,6 +223,7 @@ export function SchedulePicker({
           <ClockIcon className="w-3.5 h-3.5" />
           <span>{format_datetime_hint(scheduled_time, false)}</span>
           <button
+            aria-label={t("common.clear")}
             className="ms-0.5 hover:bg-blue-500/20 rounded p-0.5 transition-colors disabled:opacity-50"
             disabled={disabled}
             type="button"
@@ -241,6 +242,7 @@ export function SchedulePicker({
         <PopoverTrigger asChild>
           {trigger ?? (
             <button
+              aria-label={t(tooltip_key)}
               className="press_scale w-9 h-9 p-0 inline-flex items-center justify-center flex-shrink-0 rounded-full transition-transform duration-150 hover:bg-black/5 dark:hover:bg-white/10 text-txt-tertiary hover:text-txt-primary disabled:opacity-50"
               disabled={disabled}
               type="button"

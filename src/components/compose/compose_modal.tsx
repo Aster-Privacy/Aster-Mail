@@ -235,6 +235,7 @@ export function ComposeModal({
                     )}
                   </button>
                   <button
+                    aria-label={t("mail.close_compose")}
                     className="transition-colors duration-150 p-1.5 w-7 h-7 flex items-center justify-center rounded hover_bg text-txt-muted"
                     onClick={compose.handle_close}
                   >

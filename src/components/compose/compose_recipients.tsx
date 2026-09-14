@@ -254,6 +254,7 @@ export function RecipientBadge({
       </span>
       {on_remove && (
         <button
+          aria-label={t("common.remove")}
           className="text-default-400 hover:text-default-600 transition-colors"
           onClick={on_remove}
         >
@@ -775,6 +776,7 @@ export function RecipientField({
       )}
       {on_close && (
         <button
+          aria-label={t("common.close")}
           className="h-8 flex items-center px-1 rounded transition-colors flex-shrink-0 hover_bg text-txt-muted"
           onClick={on_close}
         >
