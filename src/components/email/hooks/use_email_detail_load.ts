@@ -62,6 +62,8 @@ import {
   request_folder_unlock,
 } from "@/services/locked_folders";
 import { adjust_stats_unread } from "@/hooks/use_mail_stats";
+import { get_read_intent } from "@/services/read_intent";
+import { on_user_opened_mail } from "@/services/user_opened_mail";
 import { read_clears_conversation } from "@/hooks/unread_read_delta";
 import { mark_conversation_read } from "@/hooks/mark_conversation_read";
 import { use_document_title } from "@/hooks/use_document_title";
@@ -387,6 +389,10 @@ export function use_email_detail_load() {
 
     if (tracked_email_id.current !== email_id) {
       tracked_email_id.current = email_id;
+      on_user_opened_mail(email_id, {
+        delay: mark_as_read_delay_ref.current,
+        conversation_grouping: preferences.conversation_grouping,
+      });
       set_email(null);
       set_thread_messages([]);
       set_tracking_report(null);
@@ -434,8 +440,9 @@ export function use_email_detail_load() {
             conversation_grouping: preferences.conversation_grouping,
             acted_id: email_id,
           };
+          const owned = get_read_intent(email_id) !== true;
           const clears_conversation =
-            read_clears_conversation(conversation_options);
+            owned && read_clears_conversation(conversation_options);
 
           if (is_received && item.thread_token) {
             swept_threads_ref.current.add(item.thread_token);
@@ -443,7 +450,9 @@ export function use_email_detail_load() {
           if (is_received && clears_conversation) {
             adjust_stats_unread(-1);
           }
-          emit_mail_item_updated({ id: email_id, is_read: true });
+          if (owned) {
+            emit_mail_item_updated({ id: email_id, is_read: true });
+          }
           update_item_metadata(
             email_id,
             {
@@ -454,6 +463,7 @@ export function use_email_detail_load() {
             { is_read: true },
           ).then((result) => {
             if (result.success) {
+              if (!owned) return;
               emit_mail_item_updated({
                 id: email_id,
                 is_read: true,
@@ -464,7 +474,9 @@ export function use_email_detail_load() {
                 mark_conversation_read(conversation_options);
               }
             } else {
-              emit_mail_item_updated({ id: email_id, is_read: false });
+              if (owned) {
+                emit_mail_item_updated({ id: email_id, is_read: false });
+              }
               if (is_received && item.thread_token) {
                 swept_threads_ref.current.delete(item.thread_token);
               }
@@ -521,17 +533,6 @@ export function use_email_detail_load() {
     }
 
     const is_first_load = !has_loaded_once.current;
-    const start_time = Date.now();
-    const min_duration = 500;
-
-    const ensure_min_duration = async () => {
-      if (!is_first_load) return;
-      const elapsed = Date.now() - start_time;
-
-      if (elapsed < min_duration) {
-        await new Promise((r) => setTimeout(r, min_duration - elapsed));
-      }
-    };
 
     if (is_first_load) {
       set_is_loading(true);
@@ -588,7 +589,6 @@ export function use_email_detail_load() {
 
           set_email(decrypted);
           has_loaded_once.current = true;
-          await ensure_min_duration();
 
           if (is_stale()) return;
 
@@ -603,7 +603,6 @@ export function use_email_detail_load() {
         has_protected_folders()
       ) {
         request_folder_unlock();
-        await ensure_min_duration();
 
         if (is_stale()) return;
 
@@ -613,7 +612,6 @@ export function use_email_detail_load() {
         return;
       }
 
-      await ensure_min_duration();
 
       if (is_stale()) return;
 
@@ -637,7 +635,6 @@ export function use_email_detail_load() {
             !is_folder_unlocked(folder.id)
           ) {
             request_folder_unlock(mail_folder.token);
-            await ensure_min_duration();
 
             if (is_stale()) return;
 
@@ -687,8 +684,9 @@ export function use_email_detail_load() {
             conversation_grouping: preferences.conversation_grouping,
             acted_id: email_id,
           };
+          const owned = get_read_intent(email_id) !== true;
           const clears_conversation =
-            read_clears_conversation(conversation_options);
+            owned && read_clears_conversation(conversation_options);
 
           if (is_received && mail_data.thread_token) {
             swept_threads_ref.current.add(mail_data.thread_token);
@@ -696,7 +694,9 @@ export function use_email_detail_load() {
           if (is_received && clears_conversation) {
             adjust_stats_unread(-1);
           }
-          emit_mail_item_updated({ id: email_id, is_read: true });
+          if (owned) {
+            emit_mail_item_updated({ id: email_id, is_read: true });
+          }
           update_item_metadata(
             email_id,
             {
@@ -707,6 +707,7 @@ export function use_email_detail_load() {
             { is_read: true },
           ).then((result) => {
             if (result.success) {
+              if (!owned) return;
               emit_mail_item_updated({
                 id: email_id,
                 is_read: true,
@@ -717,7 +718,9 @@ export function use_email_detail_load() {
                 mark_conversation_read(conversation_options);
               }
             } else {
-              emit_mail_item_updated({ id: email_id, is_read: false });
+              if (owned) {
+                emit_mail_item_updated({ id: email_id, is_read: false });
+              }
               if (is_received && mail_data.thread_token) {
                 swept_threads_ref.current.delete(mail_data.thread_token);
               }
@@ -881,14 +884,12 @@ export function use_email_detail_load() {
       if (is_stale()) return;
 
       has_loaded_once.current = true;
-      await ensure_min_duration();
 
       if (is_stale()) return;
 
       set_is_loading(false);
     } else {
       has_loaded_once.current = true;
-      await ensure_min_duration();
 
       if (is_stale()) return;
 

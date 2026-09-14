@@ -28,6 +28,7 @@ import type { LocalEmailData } from "@/components/email/email_viewer_types";
 import type { CachedSubscription } from "@/services/subscription_cache";
 import type { SettingsSection } from "@/components/settings/settings_content";
 import type { UndoSendEvent } from "@/hooks/use_undo_send";
+import type { OpenedMailRow } from "@/services/user_opened_mail";
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
@@ -77,6 +78,7 @@ import { show_toast } from "@/components/toast/simple_toast";
 import { set_forward_mail_id } from "@/services/forward_store";
 import { read_last_settings_section } from "@/lib/settings_section_store";
 import { ignore_error } from "@/lib/ignore_error";
+import { on_user_opened_mail } from "@/services/user_opened_mail";
 import {
   build_alias_view,
   parse_alias_direction,
@@ -606,6 +608,10 @@ export function use_index_page_state() {
       set_popup_scheduled(null);
       set_split_scheduled_data(null);
       set_preview_local_email(null);
+      on_user_opened_mail(id, {
+        delay: preferences.mark_as_read_delay,
+        conversation_grouping: preferences.conversation_grouping,
+      });
       const index = visible_email_ids.indexOf(id);
 
       if (index !== -1) {
@@ -627,7 +633,15 @@ export function use_index_page_state() {
         });
       }
     },
-    [is_mobile, use_popup_mode, visible_email_ids, navigate, location],
+    [
+      is_mobile,
+      use_popup_mode,
+      visible_email_ids,
+      navigate,
+      location,
+      preferences.mark_as_read_delay,
+      preferences.conversation_grouping,
+    ],
   );
 
   useEffect(() => {
@@ -1256,7 +1270,12 @@ export function use_index_page_state() {
   }, [set_search_params, sender_subscription, navigate]);
 
   const handle_search_result_click = useCallback(
-    (id: string) => {
+    (id: string, row?: OpenedMailRow) => {
+      on_user_opened_mail(id, {
+        delay: preferences.mark_as_read_delay,
+        conversation_grouping: preferences.conversation_grouping,
+        row,
+      });
       if (is_mobile) {
         navigate(`/email/${id}`);
 
@@ -1273,7 +1292,14 @@ export function use_index_page_state() {
         replace: location.hash.startsWith("#"),
       });
     },
-    [is_mobile, use_popup_mode, navigate, location],
+    [
+      is_mobile,
+      use_popup_mode,
+      navigate,
+      location,
+      preferences.mark_as_read_delay,
+      preferences.conversation_grouping,
+    ],
   );
 
   const handle_search_split_close = useCallback(() => {

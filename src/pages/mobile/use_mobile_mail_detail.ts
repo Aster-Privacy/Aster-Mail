@@ -41,6 +41,7 @@ import { show_action_toast } from "@/components/toast/action_toast";
 import { get_aster_footer } from "@/components/compose/compose_shared";
 import { update_item_metadata } from "@/services/crypto/mail_metadata";
 import { emit_mail_item_updated } from "@/hooks/mail_events";
+import { get_read_intent } from "@/services/read_intent";
 import { preload_email_detail } from "@/components/email/hooks/use_email_detail";
 import { haptic_impact } from "@/native/haptic_feedback";
 import { block_sender } from "@/services/api/blocked_senders";
@@ -268,6 +269,12 @@ export function use_mobile_mail_detail() {
         return next;
       });
 
+      const owned = get_read_intent(msg.id) !== true;
+
+      if (owned) {
+        emit_mail_item_updated({ id: msg.id, is_read: true });
+      }
+
       update_item_metadata(
         msg.id,
         {
@@ -284,7 +291,11 @@ export function use_mobile_mail_detail() {
 
             return next;
           });
+          if (owned) {
+            emit_mail_item_updated({ id: msg.id, is_read: false });
+          }
         } else {
+          if (!owned) return;
           emit_mail_item_updated({
             id: msg.id,
             is_read: true,
