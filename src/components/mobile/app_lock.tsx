@@ -113,6 +113,7 @@ function PinPad({
   can_check: boolean;
   pressed_key: string | null;
 }) {
+  const { t } = use_i18n();
   const btn_base =
     "h-14 w-14 mx-auto rounded-full flex items-center justify-center transition-all duration-75";
   const digit_cls = (k: string) =>
@@ -140,6 +141,7 @@ function PinPad({
           "bg-muted hover:bg-muted/70 focus:outline-none",
           pressed_key === "Backspace" && "scale-90 bg-muted/50",
         )}
+        aria-label={t("common.delete")}
         type="button"
         onClick={on_backspace}
       >
@@ -159,6 +161,7 @@ function PinPad({
           pressed_key === "Enter" && "scale-90 bg-muted/50",
           !can_check && "opacity-40",
         )}
+        aria-label={t("common.confirm")}
         disabled={!can_check}
         type="button"
         onClick={on_check}
