@@ -270,3 +270,89 @@ describe("the pending payload keeps the draft context for undo", () => {
     );
   });
 });
+
+describe("a queued send that fails after compose closes returns to Drafts", () => {
+  const attachment = {
+    id: "att_1",
+    name: "photo.jpg",
+    size: "1 MB",
+    size_bytes: 1_048_576,
+    mime_type: "image/jpeg",
+    data: new ArrayBuffer(8),
+  };
+
+  const with_attachment = {
+    ...email_data,
+    attachments: [attachment],
+  } as never;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    sessionStorage.clear();
+  });
+
+  it("saves the message with its attachments when the server queue fails", async () => {
+    undo_send_delay_ms = 10_000;
+    queue_email_to_server.mockResolvedValue({ queue_id: "q_fail" });
+    const on_send_failed = vi.fn();
+
+    await execute_internal_send(make_ctx({ on_send_failed }), with_attachment);
+
+    const callbacks = queue_email_to_server.mock.calls[0][2] as {
+      on_error: (error: string) => void;
+    };
+
+    callbacks.on_error("timeout");
+
+    expect(on_send_failed).toHaveBeenCalledTimes(1);
+    expect(on_send_failed).toHaveBeenCalledWith(
+      expect.objectContaining({ attachments: [attachment] }),
+    );
+  });
+
+  it("saves the message with its attachments when an immediate send fails", async () => {
+    undo_send_delay_ms = 0;
+    queue_email.mockReturnValue("local_fail");
+    const on_send_failed = vi.fn();
+
+    await execute_internal_send(make_ctx({ on_send_failed }), with_attachment);
+
+    const queued = queue_email.mock.calls[0][0] as {
+      on_error: (error: string) => void;
+    };
+
+    queued.on_error("upload failed");
+
+    expect(on_send_failed).toHaveBeenCalledWith(
+      expect.objectContaining({ attachments: [attachment] }),
+    );
+  });
+
+  it("leaves compose open without a new draft when the send fails before hand-off", async () => {
+    undo_send_delay_ms = 10_000;
+    const on_send_failed = vi.fn();
+    const on_close = vi.fn();
+
+    queue_email_to_server.mockImplementation(
+      async (
+        _data: unknown,
+        _delay: number,
+        callbacks: { on_error: (e: string) => void },
+      ) => {
+        callbacks.on_error("no keys");
+
+        return null;
+      },
+    );
+
+    await expect(
+      execute_internal_send(
+        make_ctx({ on_send_failed, on_close }),
+        with_attachment,
+      ),
+    ).resolves.toBe(false);
+
+    expect(on_send_failed).not.toHaveBeenCalled();
+    expect(on_close).not.toHaveBeenCalled();
+  });
+});

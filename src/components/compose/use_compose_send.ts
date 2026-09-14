@@ -67,8 +67,10 @@ import {
   execute_internal_send,
   execute_external_email_send,
   execute_external_account_email_send,
+  type FailedSendData,
   type SendActionContext,
 } from "@/components/compose/compose_send_actions";
+import { attachments_to_draft_data } from "@/components/compose/compose_draft_helpers";
 import { ensure_post_quantum_consent } from "@/services/post_quantum_consent";
 
 export interface UseComposeSendOptions {
@@ -174,6 +176,38 @@ export function use_compose_send({
     [contacts],
   );
 
+  const restore_failed_send_to_drafts = useCallback(
+    async (failed: FailedSendData) => {
+      if (!vault) return;
+
+      const context_id = draft_manager.create_context(
+        edit_draft?.draft_type ?? "new",
+        edit_draft?.reply_to_id,
+        edit_draft?.forward_from_id,
+      );
+
+      try {
+        await draft_manager.save_draft(
+          context_id,
+          {
+            to_recipients: failed.to,
+            cc_recipients: failed.cc ?? [],
+            bcc_recipients: failed.bcc ?? [],
+            subject: failed.subject,
+            message: failed.body,
+            from_email: failed.sender_email,
+            attachments: attachments_to_draft_data(failed.attachments ?? []),
+          },
+          vault,
+        );
+        await draft_manager.await_pending_save(context_id);
+      } finally {
+        draft_manager.clear_context(context_id);
+      }
+    },
+    [vault, edit_draft],
+  );
+
   const build_send_context = useCallback(
     (): SendActionContext => ({
       undo_send_enabled: preferences.undo_send_enabled ?? true,
@@ -188,6 +222,7 @@ export function use_compose_send({
       set_queued_email_id,
       log_activities,
       t,
+      on_send_failed: restore_failed_send_to_drafts,
     }),
     [
       preferences.undo_send_enabled,
@@ -201,6 +236,7 @@ export function use_compose_send({
       reset_form,
       log_activities,
       t,
+      restore_failed_send_to_drafts,
     ],
   );
 
