@@ -471,14 +471,14 @@ export function KidsContent({ group }: { group: FamilyGroupResponse }) {
             />
           </div>
 
-          <div className="flex items-end gap-3 rounded-lg bg-surf-secondary px-3 py-2.5">
+          <div className="flex items-center gap-3 rounded-lg bg-surf-secondary px-3 py-2.5">
             <Switch
               aria-label={t("settings.fam_kids_consent_label")}
               checked={consent}
               size="lg"
               onCheckedChange={set_consent}
             />
-            <span className="text-xs text-txt-secondary leading-relaxed pb-0.5">
+            <span className="text-xs text-txt-secondary leading-relaxed">
               {t("settings.fam_kids_consent_label")}
             </span>
           </div>
