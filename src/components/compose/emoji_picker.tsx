@@ -22,11 +22,20 @@ import type { TranslationKey } from "@/lib/i18n/types";
 import type { IconType } from "react-icons";
 import type { KeyboardEvent, MouseEvent } from "react";
 
-import { useState, useRef, useEffect, useMemo, useId } from "react";
+import {
+  memo,
+  useState,
+  useRef,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useId,
+} from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   LuApple,
   LuCar,
+  LuClock,
   LuFlag,
   LuHand,
   LuHeart,
@@ -51,9 +60,16 @@ import {
 
 type EmojiEntry = (typeof emoji_categories)[string]["entries"][number];
 
+interface EmojiSection {
+  key: string;
+  entries: EmojiEntry[];
+}
+
+const RECENT_KEY = "recent";
 const CATEGORY_KEYS = Object.keys(emoji_categories);
 
 const CATEGORY_LABEL_KEYS: Record<string, TranslationKey> = {
+  recent: "common.emoji_recent",
   smileys: "common.emoji_smileys",
   gestures: "common.emoji_gestures",
   animals: "common.emoji_animals",
@@ -66,6 +82,7 @@ const CATEGORY_LABEL_KEYS: Record<string, TranslationKey> = {
 };
 
 const CATEGORY_ICONS: Record<string, IconType> = {
+  recent: LuClock,
   smileys: LuSmile,
   gestures: LuHand,
   animals: LuPawPrint,
@@ -79,18 +96,10 @@ const CATEGORY_ICONS: Record<string, IconType> = {
 
 const SKIN_TONE_STORAGE_KEY = "aster_emoji_skin_tone";
 const RECENT_STORAGE_KEY = "aster_emoji_recent";
-const RECENT_LIMIT = 18;
-const GRID_COLUMNS = 9;
+const RECENT_LIMIT = 16;
+const SCROLL_SPY_OFFSET = 12;
 
 const TAB_STEPS: Record<string, number> = { ArrowRight: 1, ArrowLeft: -1 };
-const GRID_STEPS: Record<string, number> = {
-  ArrowRight: 1,
-  ArrowLeft: -1,
-  ArrowDown: GRID_COLUMNS,
-  ArrowUp: -GRID_COLUMNS,
-};
-
-const EASE_STANDARD = [0.2, 0, 0, 1] as const;
 
 const ENTRY_BY_EMOJI = new Map<string, EmojiEntry>(
   Object.values(emoji_categories).flatMap((category) =>
@@ -100,6 +109,7 @@ const ENTRY_BY_EMOJI = new Map<string, EmojiEntry>(
 
 const emoji_support_cache = new Map<string, boolean>();
 let support_canvas: HTMLCanvasElement | null = null;
+let renderable_sections: EmojiSection[] | null = null;
 
 function is_emoji_renderable(emoji: string): boolean {
   const cached = emoji_support_cache.get(emoji);
@@ -144,6 +154,27 @@ function is_emoji_renderable(emoji: string): boolean {
   emoji_support_cache.set(emoji, supported);
 
   return supported;
+}
+
+function category_sections(): EmojiSection[] {
+  if (!renderable_sections) {
+    renderable_sections = CATEGORY_KEYS.map((key) => ({
+      key,
+      entries: emoji_categories[key].entries.filter((entry) =>
+        is_emoji_renderable(entry.emoji),
+      ),
+    })).filter((section) => section.entries.length > 0);
+  }
+
+  return renderable_sections;
+}
+
+function prefers_touch(): boolean {
+  try {
+    return window.matchMedia("(pointer: coarse)").matches;
+  } catch {
+    return false;
+  }
 }
 
 function load_skin_tone(): SkinTone {
@@ -198,13 +229,9 @@ function category_label(
 ): string {
   const label_key = CATEGORY_LABEL_KEYS[key];
 
-  return label_key ? t(label_key) : emoji_categories[key].label;
-}
+  if (label_key) return t(label_key);
 
-function shortcode(entry: EmojiEntry): string {
-  const name = entry.keywords[0];
-
-  return name ? `:${name.replace(/\s+/g, "_")}:` : "";
+  return emoji_categories[key]?.label ?? key;
 }
 
 function entry_from_event(event: { target: EventTarget }): EmojiEntry | null {
@@ -216,15 +243,51 @@ function entry_from_event(event: { target: EventTarget }): EmojiEntry | null {
   return emoji ? (ENTRY_BY_EMOJI.get(emoji) ?? null) : null;
 }
 
+function vertical_neighbor(
+  buttons: HTMLButtonElement[],
+  index: number,
+  direction: 1 | -1,
+): number | null {
+  const current = buttons[index].getBoundingClientRect();
+  let row_top: number | null = null;
+  let best: number | null = null;
+  let best_distance = Infinity;
+
+  for (
+    let i = index + direction;
+    i >= 0 && i < buttons.length;
+    i += direction
+  ) {
+    const rect = buttons[i].getBoundingClientRect();
+    const crossed =
+      direction === 1 ? rect.top > current.top + 4 : rect.top < current.top - 4;
+
+    if (!crossed) continue;
+
+    if (row_top === null) row_top = rect.top;
+
+    if (Math.abs(rect.top - row_top) > 4) break;
+
+    const distance = Math.abs(rect.left - current.left);
+
+    if (distance < best_distance) {
+      best_distance = distance;
+      best = i;
+    }
+  }
+
+  return best;
+}
+
 function SectionLabel({ children }: { children: string }) {
   return (
-    <p className="sticky top-0 z-[1] bg-modal-bg px-1.5 pt-2 pb-1 text-[11px] font-medium text-txt-muted">
+    <p className="sticky top-0 z-[1] bg-modal-bg px-1 pt-2.5 pb-1.5 text-[13px] font-medium leading-5 text-txt-secondary">
       {children}
     </p>
   );
 }
 
-function EmojiGrid({
+const EmojiGrid = memo(function EmojiGrid({
   entries,
   skin_tone,
 }: {
@@ -232,7 +295,7 @@ function EmojiGrid({
   skin_tone: SkinTone;
 }) {
   return (
-    <div className="grid grid-cols-9">
+    <div className="grid grid-cols-8">
       {entries.map((entry, index) => {
         const toned = apply_skin_tone(entry.emoji, skin_tone);
 
@@ -240,7 +303,7 @@ function EmojiGrid({
           <button
             key={`${entry.emoji}-${index}`}
             aria-label={entry.keywords[0] ?? toned}
-            className="flex aspect-square cursor-pointer items-center justify-center rounded-md text-[22px] leading-none outline-none transition-[transform,background-color] duration-100 hover:bg-black/[0.06] focus-visible:bg-black/[0.06] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500/70 active:scale-90 dark:hover:bg-white/[0.08] dark:focus-visible:bg-white/[0.08]"
+            className="flex aspect-square cursor-pointer touch-manipulation items-center justify-center rounded-full text-[28px] leading-none outline-none transition-[transform,background-color] duration-100 hover:bg-black/[0.06] focus-visible:bg-black/[0.06] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500/70 active:scale-90 sm:text-[26px] dark:hover:bg-white/[0.08] dark:focus-visible:bg-white/[0.08]"
             data-emoji={entry.emoji}
             type="button"
           >
@@ -250,75 +313,79 @@ function EmojiGrid({
       })}
     </div>
   );
-}
+});
 
 function EmojiPicker({ on_select }: { on_select: (emoji: string) => void }) {
   const { t } = use_i18n();
   const reduce_motion = use_should_reduce_motion();
   const indicator_id = useId();
-  const [active_category, set_active_category] = useState(CATEGORY_KEYS[0]);
   const [search_query, set_search_query] = useState("");
   const [skin_tone, set_skin_tone] = useState<SkinTone>(load_skin_tone);
   const [show_tones, set_show_tones] = useState(false);
-  const [preview, set_preview] = useState<EmojiEntry | null>(null);
   const [recent] = useState<string[]>(load_recent);
+  const [is_touch] = useState(prefers_touch);
   const grid_ref = useRef<HTMLDivElement>(null);
   const input_ref = useRef<HTMLInputElement>(null);
   const tones_ref = useRef<HTMLDivElement>(null);
   const tab_refs = useRef<(HTMLButtonElement | null)[]>([]);
+  const spy_frame_ref = useRef(0);
+  const pending_jump_ref = useRef<string | null>(null);
 
   const trimmed_query = search_query.trim();
   const is_searching = trimmed_query.length > 0;
-  const grid_key = is_searching ? "search" : active_category;
-  const grid_key_ref = useRef(grid_key);
 
-  const current_entries = useMemo(() => {
-    const source = is_searching
-      ? search_emojis(trimmed_query)
-      : emoji_categories[active_category].entries;
-
-    return source.filter((entry) => is_emoji_renderable(entry.emoji));
-  }, [is_searching, trimmed_query, active_category]);
-
-  const recent_entries = useMemo(() => {
-    if (is_searching || active_category !== CATEGORY_KEYS[0]) return [];
-
-    return recent
+  const sections = useMemo<EmojiSection[]>(() => {
+    const recent_entries = recent
       .map((emoji) => ENTRY_BY_EMOJI.get(emoji))
       .filter(
         (entry): entry is EmojiEntry =>
           entry !== undefined && is_emoji_renderable(entry.emoji),
       );
-  }, [recent, is_searching, active_category]);
+    const categories = category_sections();
 
-  const grids = useMemo(
-    () => (
-      <>
-        {recent_entries.length > 0 && (
-          <>
-            <SectionLabel>{t("common.emoji_recent")}</SectionLabel>
-            <EmojiGrid entries={recent_entries} skin_tone={skin_tone} />
-          </>
-        )}
-        {!is_searching && (
-          <SectionLabel>{category_label(active_category, t)}</SectionLabel>
-        )}
-        {current_entries.length > 0 ? (
-          <div className={is_searching ? "pt-2" : ""}>
-            <EmojiGrid entries={current_entries} skin_tone={skin_tone} />
-          </div>
-        ) : (
-          <div className="flex h-[240px] flex-col items-center justify-center gap-2 text-txt-muted">
-            <LuSearch className="h-5 w-5 opacity-60" />
-            <p className="text-xs">{t("common.no_emojis_found")}</p>
-          </div>
-        )}
-      </>
-    ),
-    [recent_entries, current_entries, is_searching, active_category, skin_tone, t],
+    return recent_entries.length > 0
+      ? [{ key: RECENT_KEY, entries: recent_entries }, ...categories]
+      : categories;
+  }, [recent]);
+
+  const section_keys = useMemo(
+    () => sections.map((section) => section.key),
+    [sections],
   );
 
-  const footer_entry = preview ?? (is_searching ? current_entries[0] : null);
+  const [active_section, set_active_section] = useState(section_keys[0]);
+
+  const search_results = useMemo(
+    () =>
+      is_searching
+        ? search_emojis(trimmed_query).filter((entry) =>
+            is_emoji_renderable(entry.emoji),
+          )
+        : [],
+    [is_searching, trimmed_query],
+  );
+
+  const content = useMemo(() => {
+    if (is_searching) {
+      return search_results.length > 0 ? (
+        <div className="pt-2">
+          <EmojiGrid entries={search_results} skin_tone={skin_tone} />
+        </div>
+      ) : (
+        <div className="flex h-full min-h-[160px] flex-col items-center justify-center gap-2 text-txt-muted">
+          <LuSearch className="h-5 w-5 opacity-60" />
+          <p className="text-xs leading-5">{t("common.no_emojis_found")}</p>
+        </div>
+      );
+    }
+
+    return sections.map((section) => (
+      <section key={section.key} data-section={section.key}>
+        <SectionLabel>{category_label(section.key, t)}</SectionLabel>
+        <EmojiGrid entries={section.entries} skin_tone={skin_tone} />
+      </section>
+    ));
+  }, [is_searching, search_results, sections, skin_tone, t]);
 
   const select_entry = (entry: EmojiEntry) => {
     remember_recent(entry.emoji);
@@ -336,10 +403,58 @@ function EmojiPicker({ on_select }: { on_select: (emoji: string) => void }) {
     }
   };
 
-  const choose_category = (key: string) => {
-    set_active_category(key);
-    set_search_query("");
-    set_preview(null);
+  const scroll_to_section = (key: string) => {
+    const grid = grid_ref.current;
+    const target = grid?.querySelector<HTMLElement>(`[data-section="${key}"]`);
+
+    if (!grid || !target) return;
+
+    grid.scrollTop = target.offsetTop;
+  };
+
+  const choose_section = (key: string) => {
+    set_active_section(key);
+
+    if (is_searching) {
+      pending_jump_ref.current = key;
+      set_search_query("");
+
+      return;
+    }
+
+    scroll_to_section(key);
+  };
+
+  const update_active_from_scroll = () => {
+    const grid = grid_ref.current;
+
+    if (!grid || is_searching) return;
+
+    const threshold = grid.scrollTop + SCROLL_SPY_OFFSET;
+    const nodes = grid.querySelectorAll<HTMLElement>("[data-section]");
+    let current = section_keys[0];
+
+    for (const node of nodes) {
+      if (node.offsetTop > threshold) break;
+      current = node.dataset.section ?? current;
+    }
+
+    if (grid.scrollTop + grid.clientHeight >= grid.scrollHeight - 2) {
+      current = nodes[nodes.length - 1]?.dataset.section ?? current;
+    }
+
+    set_active_section((previous) =>
+      previous === current ? previous : current,
+    );
+  };
+
+  const handle_scroll = () => {
+    if (spy_frame_ref.current) return;
+
+    spy_frame_ref.current = window.requestAnimationFrame(() => {
+      spy_frame_ref.current = 0;
+      update_active_from_scroll();
+    });
   };
 
   const emoji_buttons = () =>
@@ -348,28 +463,34 @@ function EmojiPicker({ on_select }: { on_select: (emoji: string) => void }) {
         [],
     );
 
-  const focus_emoji = (index: number) => {
-    const buttons = emoji_buttons();
+  const focus_emoji = (buttons: HTMLButtonElement[], index: number) => {
+    const target = buttons[index];
 
-    if (buttons.length === 0) return;
+    if (!target) return;
 
-    const target = buttons[Math.max(0, Math.min(buttons.length - 1, index))];
-
-    target.focus();
+    target.focus({ preventScroll: true });
     target.scrollIntoView({ block: "nearest" });
   };
 
   const handle_search_key = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "ArrowDown") {
       event.preventDefault();
-      focus_emoji(0);
+      focus_emoji(emoji_buttons(), 0);
+
+      return;
+    }
+
+    if (event.key === "Escape" && is_searching) {
+      event.preventDefault();
+      event.stopPropagation();
+      set_search_query("");
 
       return;
     }
 
     if (event.key !== "Enter" || !is_searching) return;
 
-    const first = current_entries[0];
+    const first = search_results[0];
 
     if (!first) return;
 
@@ -384,32 +505,55 @@ function EmojiPicker({ on_select }: { on_select: (emoji: string) => void }) {
 
     event.preventDefault();
 
-    const next = (index + step + CATEGORY_KEYS.length) % CATEGORY_KEYS.length;
+    const next = (index + step + section_keys.length) % section_keys.length;
 
-    choose_category(CATEGORY_KEYS[next]);
+    choose_section(section_keys[next]);
     tab_refs.current[next]?.focus();
   };
 
   const handle_grid_key = (event: KeyboardEvent<HTMLDivElement>) => {
-    const step = GRID_STEPS[event.key];
+    const key = event.key;
 
-    if (step === undefined) return;
+    if (
+      key !== "ArrowRight" &&
+      key !== "ArrowLeft" &&
+      key !== "ArrowDown" &&
+      key !== "ArrowUp"
+    ) {
+      return;
+    }
 
-    const index = emoji_buttons().indexOf(
-      document.activeElement as HTMLButtonElement,
-    );
+    const buttons = emoji_buttons();
+    const index = buttons.indexOf(document.activeElement as HTMLButtonElement);
 
     if (index === -1) return;
 
     event.preventDefault();
 
-    if (index + step < 0) {
-      input_ref.current?.focus();
+    if (key === "ArrowRight" || key === "ArrowLeft") {
+      const step = key === "ArrowRight" ? 1 : -1;
+
+      focus_emoji(
+        buttons,
+        Math.max(0, Math.min(buttons.length - 1, index + step)),
+      );
 
       return;
     }
 
-    focus_emoji(index + step);
+    const next = vertical_neighbor(
+      buttons,
+      index,
+      key === "ArrowDown" ? 1 : -1,
+    );
+
+    if (next === null) {
+      if (key === "ArrowUp") input_ref.current?.focus();
+
+      return;
+    }
+
+    focus_emoji(buttons, next);
   };
 
   const handle_grid_click = (event: MouseEvent<HTMLDivElement>) => {
@@ -418,35 +562,39 @@ function EmojiPicker({ on_select }: { on_select: (emoji: string) => void }) {
     if (entry) select_entry(entry);
   };
 
-  const handle_grid_hover = (event: { target: EventTarget }) => {
-    const entry = entry_from_event(event);
-
-    if (entry && entry !== preview) set_preview(entry);
-  };
-
   const clear_search = () => {
     set_search_query("");
-    set_preview(null);
     input_ref.current?.focus();
   };
 
-  const reset_scroll = () => {
-    if (grid_ref.current) grid_ref.current.scrollTop = 0;
-  };
+  useLayoutEffect(() => {
+    const grid = grid_ref.current;
 
-  useEffect(() => {
-    if (grid_key_ref.current !== grid_key) {
-      grid_key_ref.current = grid_key;
+    if (!grid) return;
+
+    if (is_searching) {
+      grid.scrollTop = 0;
 
       return;
     }
 
-    reset_scroll();
-  }, [grid_key, trimmed_query]);
+    const jump = pending_jump_ref.current;
+
+    pending_jump_ref.current = null;
+
+    if (jump) {
+      scroll_to_section(jump);
+    } else {
+      grid.scrollTop = 0;
+      set_active_section(section_keys[0]);
+    }
+  }, [is_searching, trimmed_query, section_keys]);
 
   useEffect(() => {
-    input_ref.current?.focus();
-  }, []);
+    if (!is_touch) input_ref.current?.focus({ preventScroll: true });
+
+    return () => window.cancelAnimationFrame(spy_frame_ref.current);
+  }, [is_touch]);
 
   useEffect(() => {
     if (!show_tones) return;
@@ -465,49 +613,67 @@ function EmojiPicker({ on_select }: { on_select: (emoji: string) => void }) {
 
   const fade = reduce_motion
     ? { duration: 0 }
-    : { duration: 0.16, ease: EASE_STANDARD };
+    : { duration: 0.16, ease: [0.2, 0, 0, 1] as const };
+
+  const tone_menu = (
+    <div
+      ref={tones_ref}
+      className="relative flex-shrink-0"
+      onKeyDown={(event) => {
+        if (event.key !== "Escape" || !show_tones) return;
+        event.stopPropagation();
+        set_show_tones(false);
+      }}
+    >
+      <button
+        aria-expanded={show_tones}
+        aria-haspopup="true"
+        aria-label={t("common.skin_tone")}
+        className="flex h-10 w-10 cursor-pointer touch-manipulation items-center justify-center rounded-full text-[20px] leading-none outline-none transition-[transform,background-color] duration-150 hover:bg-black/[0.06] focus-visible:ring-2 focus-visible:ring-blue-500/70 active:scale-90 sm:h-9 sm:w-9 dark:hover:bg-white/[0.08]"
+        title={t("common.skin_tone")}
+        type="button"
+        onClick={() => set_show_tones(!show_tones)}
+      >
+        {skin_tone_swatches[skin_tone]}
+      </button>
+      <AnimatePresence>
+        {show_tones && (
+          <motion.div
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            className="absolute end-0 top-full z-20 mt-1 flex gap-0.5 rounded-full border border-edge-primary bg-modal-bg p-1 shadow-[0_8px_24px_-8px_rgba(0,0,0,0.3)] ltr:origin-top-right rtl:origin-top-left"
+            exit={{ opacity: 0, scale: 0.94, y: -4 }}
+            initial={reduce_motion ? false : { opacity: 0, scale: 0.94, y: -4 }}
+            transition={fade}
+          >
+            {skin_tones.map((tone) => (
+              <button
+                key={tone}
+                aria-label={t("common.skin_tone")}
+                aria-pressed={skin_tone === tone}
+                className={`relative flex h-10 w-10 cursor-pointer touch-manipulation items-center justify-center rounded-full text-[20px] leading-none outline-none transition-[transform,opacity] duration-150 hover:scale-110 focus-visible:ring-2 focus-visible:ring-blue-500/70 active:scale-90 sm:h-8 sm:w-8 sm:text-[18px] ${skin_tone === tone ? "opacity-100" : "opacity-60 hover:opacity-100"}`}
+                type="button"
+                onClick={() => select_skin_tone(tone)}
+              >
+                {skin_tone_swatches[tone]}
+                {skin_tone === tone && (
+                  <span className="absolute bottom-0 h-1 w-1 rounded-full bg-blue-500" />
+                )}
+              </button>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
 
   return (
     <div
-      className="flex w-[344px] max-w-[calc(100vw-16px)] flex-col overflow-hidden rounded-xl border border-edge-primary bg-modal-bg shadow-[0_16px_40px_-12px_rgba(0,0,0,0.28),0_2px_6px_-2px_rgba(0,0,0,0.12)]"
+      className="flex w-[360px] max-w-[calc(100vw-16px)] flex-col overflow-hidden rounded-2xl border border-edge-primary bg-modal-bg shadow-[0_16px_40px_-12px_rgba(0,0,0,0.28),0_2px_6px_-2px_rgba(0,0,0,0.12)]"
       onMouseDown={(e) => e.preventDefault()}
     >
-      <div className="px-2 pt-2">
-        <div className="group relative flex h-8 items-center rounded-lg bg-black/[0.045] transition-[background-color,box-shadow] duration-150 focus-within:bg-transparent focus-within:ring-1 focus-within:ring-inset focus-within:ring-blue-500 dark:bg-white/[0.06] dark:focus-within:bg-transparent">
-          <LuSearch className="pointer-events-none absolute start-2.5 h-3.5 w-3.5 text-txt-muted" />
-          <input
-            ref={input_ref}
-            className="h-full w-full bg-transparent ps-8 pe-8 text-[13px] text-txt-primary outline-none placeholder:text-txt-muted"
-            placeholder={t("common.search_emojis")}
-            spellCheck={false}
-            type="text"
-            value={search_query}
-            onChange={(e) => {
-              set_search_query(e.target.value);
-              set_preview(null);
-            }}
-            onKeyDown={handle_search_key}
-            onMouseDown={(e) => e.stopPropagation()}
-          />
-          {is_searching && (
-            <button
-              aria-label={t("common.clear")}
-              className="absolute end-1.5 flex h-5 w-5 cursor-pointer items-center justify-center rounded-full text-txt-muted outline-none transition-colors hover:text-txt-primary focus-visible:ring-2 focus-visible:ring-blue-500/70"
-              type="button"
-              onClick={clear_search}
-            >
-              <LuX className="h-3.5 w-3.5" />
-            </button>
-          )}
-        </div>
-      </div>
-
-      <div
-        className="mt-1 grid grid-cols-9 border-b border-edge-secondary px-2"
-        role="tablist"
-      >
-        {CATEGORY_KEYS.map((key, index) => {
-          const is_active = !is_searching && active_category === key;
+      <div className="flex px-2 pt-1" role="tablist">
+        {section_keys.map((key, index) => {
+          const is_active = !is_searching && active_section === key;
           const is_focus_target = is_searching ? index === 0 : is_active;
           const Icon = CATEGORY_ICONS[key] ?? LuSmile;
 
@@ -519,23 +685,23 @@ function EmojiPicker({ on_select }: { on_select: (emoji: string) => void }) {
               }}
               aria-label={category_label(key, t)}
               aria-selected={is_active}
-              className={`relative flex h-9 cursor-pointer items-center justify-center outline-none transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500/70 ${is_active ? "text-blue-500" : "text-txt-muted hover:text-txt-primary"}`}
+              className={`relative flex h-11 min-w-0 flex-1 cursor-pointer touch-manipulation items-center justify-center outline-none transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500/70 sm:h-10 ${is_active ? "text-txt-primary" : "text-txt-muted hover:text-txt-primary"}`}
               role="tab"
               tabIndex={is_focus_target ? 0 : -1}
               title={category_label(key, t)}
               type="button"
-              onClick={() => choose_category(key)}
+              onClick={() => choose_section(key)}
               onKeyDown={(event) => handle_tab_key(event, index)}
             >
-              <Icon className="h-[17px] w-[17px]" strokeWidth={2} />
+              <Icon className="h-5 w-5" strokeWidth={1.9} />
               {is_active && (
                 <motion.span
-                  className="absolute inset-x-2 -bottom-px h-0.5 rounded-t-full bg-blue-500"
+                  className="absolute bottom-0.5 left-1/2 h-[3px] w-6 -translate-x-1/2 rounded-full bg-blue-500"
                   layoutId={`${indicator_id}_emoji_tab`}
                   transition={
                     reduce_motion
                       ? { duration: 0 }
-                      : { type: "spring", stiffness: 520, damping: 40 }
+                      : { type: "spring", stiffness: 620, damping: 44 }
                   }
                 />
               )}
@@ -544,107 +710,47 @@ function EmojiPicker({ on_select }: { on_select: (emoji: string) => void }) {
         })}
       </div>
 
-      <div
-        ref={grid_ref}
-        className="h-[252px] overflow-y-auto overscroll-contain scrollbar-hide px-2 pb-1.5"
-        onClick={handle_grid_click}
-        onFocus={handle_grid_hover}
-        onKeyDown={handle_grid_key}
-        onMouseLeave={() => set_preview(null)}
-        onMouseOver={handle_grid_hover}
-      >
-        <AnimatePresence
-          initial={false}
-          mode="wait"
-          onExitComplete={reset_scroll}
-        >
-          <motion.div
-            key={grid_key}
-            animate={{ opacity: 1 }}
-            className="min-h-full"
-            exit={{
-              opacity: 0,
-              transition: { duration: reduce_motion ? 0 : 0.06 },
-            }}
-            initial={{ opacity: 0 }}
-            transition={fade}
-          >
-            {grids}
-          </motion.div>
-        </AnimatePresence>
+      <div className="flex items-center gap-1 px-3 pt-1.5 pb-1">
+        <div className="relative flex h-10 min-w-0 flex-1 items-center rounded-full bg-black/[0.05] transition-[background-color,box-shadow] duration-150 focus-within:ring-1 focus-within:ring-inset focus-within:ring-blue-500 sm:h-9 dark:bg-white/[0.07]">
+          <LuSearch className="pointer-events-none absolute start-3 h-4 w-4 text-txt-muted" />
+          <input
+            ref={input_ref}
+            autoCapitalize="off"
+            autoComplete="off"
+            autoCorrect="off"
+            className="h-full w-full bg-transparent ps-9 pe-9 text-base leading-normal text-txt-primary outline-none placeholder:text-txt-muted sm:text-sm"
+            enterKeyHint="done"
+            inputMode="search"
+            placeholder={t("common.search_emojis")}
+            spellCheck={false}
+            type="text"
+            value={search_query}
+            onChange={(e) => set_search_query(e.target.value)}
+            onKeyDown={handle_search_key}
+            onMouseDown={(e) => e.stopPropagation()}
+          />
+          {is_searching && (
+            <button
+              aria-label={t("common.clear")}
+              className="absolute end-1 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-txt-muted outline-none transition-colors hover:text-txt-primary focus-visible:ring-2 focus-visible:ring-blue-500/70 sm:h-7 sm:w-7"
+              type="button"
+              onClick={clear_search}
+            >
+              <LuX className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+        {tone_menu}
       </div>
 
-      <div className="flex h-12 items-center gap-2.5 border-t border-edge-secondary ps-3 pe-1.5">
-        <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center text-[26px] leading-none">
-          {footer_entry
-            ? apply_skin_tone(footer_entry.emoji, skin_tone)
-            : (() => {
-                const Icon = CATEGORY_ICONS[active_category] ?? LuSmile;
-
-                return <Icon className="h-[18px] w-[18px] text-txt-muted" />;
-              })()}
-        </span>
-        <span className="min-w-0 flex-1 truncate text-[13px] leading-none">
-          {footer_entry ? (
-            <span className="font-medium text-txt-primary">
-              {shortcode(footer_entry)}
-            </span>
-          ) : (
-            <span className="text-txt-muted">
-              {is_searching ? "" : category_label(active_category, t)}
-            </span>
-          )}
-        </span>
-        <div
-          ref={tones_ref}
-          className="relative flex-shrink-0"
-          onKeyDown={(event) => {
-            if (event.key !== "Escape" || !show_tones) return;
-            event.stopPropagation();
-            set_show_tones(false);
-          }}
-        >
-          <button
-            aria-expanded={show_tones}
-            aria-haspopup="true"
-            aria-label={t("common.skin_tone")}
-            className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-[18px] leading-none outline-none transition-transform duration-150 hover:scale-110 focus-visible:ring-2 focus-visible:ring-blue-500/70 active:scale-90"
-            title={t("common.skin_tone")}
-            type="button"
-            onClick={() => set_show_tones(!show_tones)}
-          >
-            {skin_tone_swatches[skin_tone]}
-          </button>
-          <AnimatePresence>
-            {show_tones && (
-              <motion.div
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                className="absolute end-0 bottom-full z-10 mb-1 flex gap-0.5 rounded-full border border-edge-primary bg-modal-bg p-1 shadow-[0_8px_24px_-8px_rgba(0,0,0,0.3)] ltr:origin-bottom-right rtl:origin-bottom-left"
-                exit={{ opacity: 0, scale: 0.94, y: 4 }}
-                initial={
-                  reduce_motion ? false : { opacity: 0, scale: 0.94, y: 4 }
-                }
-                transition={fade}
-              >
-                {skin_tones.map((tone) => (
-                  <button
-                    key={tone}
-                    aria-label={t("common.skin_tone")}
-                    aria-pressed={skin_tone === tone}
-                    className={`relative flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-[18px] leading-none outline-none transition-[transform,opacity] duration-150 hover:scale-110 focus-visible:ring-2 focus-visible:ring-blue-500/70 active:scale-90 ${skin_tone === tone ? "opacity-100" : "opacity-60 hover:opacity-100"}`}
-                    type="button"
-                    onClick={() => select_skin_tone(tone)}
-                  >
-                    {skin_tone_swatches[tone]}
-                    {skin_tone === tone && (
-                      <span className="absolute bottom-0 h-1 w-1 rounded-full bg-blue-500" />
-                    )}
-                  </button>
-                ))}
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
+      <div
+        ref={grid_ref}
+        className="relative h-[min(300px,42vh)] overflow-y-auto overscroll-contain scrollbar-hide px-2 pb-2 sm:h-[300px]"
+        onClick={handle_grid_click}
+        onKeyDown={handle_grid_key}
+        onScroll={handle_scroll}
+      >
+        {content}
       </div>
     </div>
   );
