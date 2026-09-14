@@ -156,7 +156,6 @@ export function ThreadMessageActions({
   const auth = use_auth_safe();
   const reactions_enabled = preferences.reactions_enabled !== false;
   const [is_picker_open, set_is_picker_open] = useState(false);
-  const [is_row_picker_open, set_is_row_picker_open] = useState(false);
   const reduce_motion = use_should_reduce_motion();
   const [pending_reactions, set_pending_reactions] = useState<
     PendingReaction[]
@@ -228,7 +227,6 @@ export function ThreadMessageActions({
 
   function handle_reaction_select(emoji: string): void {
     set_is_picker_open(false);
-    set_is_row_picker_open(false);
 
     const existing = reaction_groups.find(
       (group) => group.emoji === emoji && group.includes_self,
@@ -274,24 +272,14 @@ export function ThreadMessageActions({
                   aria-pressed={group.includes_self}
                   className={`group/chip inline-flex items-center gap-1 h-7 ps-1.5 pe-2.5 rounded-full select-none transition-colors duration-150 ${
                     group.includes_self
-                      ? "cursor-default"
+                      ? "cursor-default bg-[#d3e3fd] dark:bg-[#004a77]"
                       : is_locked
-                        ? "cursor-default bg-black/[0.05] dark:bg-white/[0.07]"
-                        : "bg-black/[0.05] dark:bg-white/[0.07] hover:bg-black/[0.09] dark:hover:bg-white/[0.12] active:scale-95"
+                        ? "cursor-default bg-[#eceef1] dark:bg-[#282a2c]"
+                        : "bg-[#eceef1] dark:bg-[#282a2c] hover:bg-[#e1e4e8] dark:hover:bg-[#333537] active:scale-95"
                   }`}
                   exit={{ opacity: 0, scale: 0.6 }}
                   initial={{ opacity: 0, scale: 0.6 }}
                   layout={!reduce_motion}
-                  style={
-                    group.includes_self
-                      ? {
-                          backgroundColor:
-                            "color-mix(in srgb, var(--accent-color) 16%, transparent)",
-                          boxShadow:
-                            "inset 0 0 0 1px color-mix(in srgb, var(--accent-color) 45%, transparent)",
-                        }
-                      : undefined
-                  }
                   transition={chip_transition}
                   type="button"
                   onClick={() => handle_chip_click(group)}
@@ -303,9 +291,9 @@ export function ThreadMessageActions({
                     <motion.span
                       key={group.count}
                       animate={{ opacity: 1, y: 0 }}
-                      className={`text-xs font-semibold tabular-nums leading-none ${
+                      className={`text-xs font-normal tabular-nums leading-none ${
                         group.includes_self
-                          ? "text-[var(--accent-color)]"
+                          ? "text-[#0842a0] dark:text-[#c2e7ff]"
                           : "text-[var(--text-secondary)]"
                       }`}
                       exit={{ opacity: 0, y: reduce_motion ? 0 : -6 }}
@@ -327,29 +315,6 @@ export function ThreadMessageActions({
               );
             })}
           </AnimatePresence>
-          {can_react && (
-            <Popover
-              open={is_row_picker_open}
-              onOpenChange={set_is_row_picker_open}
-            >
-              <PopoverTrigger asChild>
-                <button
-                  aria-label={t("mail.react")}
-                  className="inline-flex items-center justify-center h-7 w-7 rounded-full text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-black/[0.05] dark:hover:bg-white/[0.07] transition-colors duration-150"
-                  title={t("mail.react")}
-                  type="button"
-                >
-                  <FaceSmileIcon className="w-4 h-4" />
-                </button>
-              </PopoverTrigger>
-              <PopoverContent
-                align="start"
-                className="w-auto border-none bg-transparent p-0 shadow-none"
-              >
-                <EmojiPicker on_select={handle_reaction_select} />
-              </PopoverContent>
-            </Popover>
-          )}
         </div>
       )}
       <div className="flex items-center gap-2 px-4 pt-2 pb-3 border-t border-[var(--border-thread-divider)]">
