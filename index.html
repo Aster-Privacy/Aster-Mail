@@ -15,58 +15,7 @@
     </style>
     <script src="/theme-bootstrap.js"></script>
     <script src="/tauri-crypto-shim.js"></script>
-    <script>
-      (function () {
-        var internals = window.__TAURI_INTERNALS__;
-
-        if (!internals || !internals.invoke) return;
-
-        var send = function (command) {
-          try {
-            internals.invoke(command).catch(function () {});
-          } catch (e) {}
-        };
-
-        send("frontend_ready");
-
-        var reported = false;
-        var report_painted = function () {
-          if (reported) return;
-          reported = true;
-          send("frontend_painted");
-        };
-
-        var supported =
-          PerformanceObserver && PerformanceObserver.supportedEntryTypes;
-
-        if (
-          typeof PerformanceObserver !== "function" ||
-          !supported ||
-          supported.indexOf("paint") === -1
-        ) {
-          report_painted();
-          return;
-        }
-
-        try {
-          var observer = new PerformanceObserver(function (list) {
-            var entries = list.getEntries();
-
-            for (var i = 0; i < entries.length; i++) {
-              if (entries[i].name === "first-contentful-paint") {
-                observer.disconnect();
-                report_painted();
-                return;
-              }
-            }
-          });
-
-          observer.observe({ type: "paint", buffered: true });
-        } catch (e) {
-          report_painted();
-        }
-      })();
-    </script>
+    <script src="/desktop_ready.js"></script>
     <style>
       html.light,
       html.light body {
@@ -319,67 +268,7 @@
     </div>
     <div id="root"></div>
     <script src="/font-loader.js"></script>
-    <script>
-      (function () {
-        var timeout_id = window.setTimeout(function () {
-          var el = document.getElementById("initial-loader-fallback");
-
-          if (el) el.classList.add("visible");
-        }, 10000);
-
-        var loader_gone = new MutationObserver(function () {
-          if (!document.getElementById("initial-loader")) {
-            window.clearTimeout(timeout_id);
-            loader_gone.disconnect();
-          }
-        });
-
-        loader_gone.observe(document.body, { childList: true });
-
-        document.addEventListener("click", function (event) {
-          var target = event.target;
-
-          if (target && target.id === "initial-loader-reload") {
-            window.location.reload();
-          }
-
-          if (target && target.id === "initial-loader-hard-reset") {
-            Promise.resolve()
-              .then(function () {
-                if (window.caches && caches.keys) {
-                  return caches.keys().then(function (keys) {
-                    return Promise.all(
-                      keys.map(function (key) {
-                        return caches.delete(key);
-                      }),
-                    );
-                  });
-                }
-              })
-              .then(function () {
-                if (
-                  navigator.serviceWorker &&
-                  navigator.serviceWorker.getRegistrations
-                ) {
-                  return navigator.serviceWorker
-                    .getRegistrations()
-                    .then(function (regs) {
-                      return Promise.all(
-                        regs.map(function (reg) {
-                          return reg.unregister();
-                        }),
-                      );
-                    });
-                }
-              })
-              .catch(function () {})
-              .then(function () {
-                window.location.reload();
-              });
-          }
-        });
-      })();
-    </script>
+    <script src="/initial_loader_fallback.js"></script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
