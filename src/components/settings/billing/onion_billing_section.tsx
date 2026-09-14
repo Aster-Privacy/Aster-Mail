@@ -35,6 +35,7 @@ import {
   detect_currency_from_locale,
 } from "@/components/settings/billing/billing_constants";
 import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
+import { use_delayed_flag } from "@/hooks/use_delayed_flag";
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import {
   get_subscription,
@@ -68,6 +69,7 @@ export function OnionBillingSection() {
   const [subscription_load_failed, set_subscription_load_failed] =
     useState(false);
   const [is_initial_load, set_is_initial_load] = useState(true);
+  const skeleton_visible = use_delayed_flag(is_initial_load);
   const [is_action_loading, set_is_action_loading] = useState(false);
   const [billing_period, set_billing_period] = useState<
     "monthly" | "yearly" | "biennial"
@@ -191,7 +193,7 @@ export function OnionBillingSection() {
     : null;
 
   if (is_initial_load) {
-    return <SettingsSkeleton variant="billing" />;
+    return skeleton_visible ? <SettingsSkeleton variant="billing" /> : null;
   }
 
   if (subscription_load_failed && !subscription) {
