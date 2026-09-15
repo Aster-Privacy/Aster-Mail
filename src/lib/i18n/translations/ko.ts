@@ -8930,7 +8930,7 @@ export const ko = {
     creating_new_recovery_backup: "새 복구 백업 생성 중...",
     saving_new_credentials: "새 자격 증명 저장 중...",
     recover_your_account: "계정 복구",
-    enter_email_associated: "계정을 복구하려면 사용자 이름을 입력하세요",
+    enter_email_associated: "복구하려는 계정의 주소를 입력하세요.",
     back_to_sign_in: "로그인으로 돌아가기",
     email_me_reset_link: "재설정 링크를 이메일로 보내기",
     have_recovery_code: "복구 코드가 있으신가요?",
@@ -8949,8 +8949,7 @@ export const ko = {
     set_new_password: "새 비밀번호 설정",
     resetting_password: "비밀번호 재설정 중...",
     enter_recovery_code: "복구 코드 입력",
-    enter_recovery_code_desc:
-      "계정을 만들 때 저장한 복구 코드 중 하나를 입력하세요",
+    enter_recovery_code_desc: "계정을 만들 때 저장한 복구 코드 중 하나를 입력하세요.",
     verify_code: "코드 확인",
     create_new_password: "새 비밀번호 만들기",
     choose_strong_password: "계정을 위한 강력한 비밀번호를 선택하세요",
@@ -8963,6 +8962,15 @@ export const ko = {
     recovery_code_already_used:
       "이 코드는 이미 사용되었습니다. 각 코드는 한 번만 사용할 수 있으므로 저장한 목록에서 다른 코드를 입력하세요.",
     try_another_way: "다른 방법 사용",
+    recovery_email_label: "Aster Mail 주소",
+    recovery_domain_hint: "계정에 해당하는 도메인을 선택하세요.",
+    recovery_code_label: "복구 코드",
+    recovery_code_hint: "각 코드는 한 번만 사용할 수 있습니다. 코드 형식은 ASTER-XXXX-XXXX-XXXX-XXXX입니다.",
+    change_account: "다른 주소 사용",
+    support_step_title: "고객 지원에 문의",
+    support_step_desc: "Aster Mail은 암호화된 데이터를 읽을 수 없으므로 복구 코드나 복구 이메일 없이는 누구도 잠금을 해제할 수 없습니다. 고객 지원이 계정을 확인하고 다음 단계를 안내합니다.",
+    support_email_action: "고객 지원에 이메일 보내기",
+    support_help_center: "도움말 센터 열기",
     other_ways_title: "다른 방법 사용",
     other_ways_desc: "계정에 다시 로그인할 방법을 선택하세요.",
     other_way_code_title: "복구 코드 사용",
@@ -8973,8 +8981,7 @@ export const ko = {
     other_way_email_desc:
       "Aster Mail이 복구 이메일로 링크를 보냅니다. 재설정 전에 받은 메일에는 접근할 수 없습니다.",
     other_way_none_title: "해당하는 항목이 없음",
-    other_way_none_desc:
-      "Aster Mail은 암호화된 데이터를 읽을 수 없으므로 이 방법 중 하나가 없으면 누구도 복구할 수 없습니다. 새 계정은 만들 수 있습니다.",
+    other_way_none_desc: "고객 지원에 문의하면 다음 단계를 안내해 드립니다.",
     reset_account_title: "계정을 재설정할까요?",
     reset_account_desc:
       "재설정 전의 암호화된 메일, 연락처, 파일은 이전 비밀번호로 복구할 때까지 잠긴 상태로 유지됩니다. 새로운 빈 암호화 키가 발급됩니다.",

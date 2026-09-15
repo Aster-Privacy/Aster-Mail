@@ -9127,7 +9127,7 @@ export const ar = {
     creating_new_recovery_backup: "جارٍ إنشاء نسخة استرداد احتياطية جديدة...",
     saving_new_credentials: "جارٍ حفظ بيانات الاعتماد الجديدة...",
     recover_your_account: "استرداد حسابك",
-    enter_email_associated: "أدخل اسم المستخدم الخاص بك لاسترداد حسابك",
+    enter_email_associated: "أدخل عنوان الحساب الذي تريد استرداده.",
     back_to_sign_in: "العودة إلى تسجيل الدخول",
     email_me_reset_link: "أرسل لي رابط إعادة التعيين عبر البريد الإلكتروني",
     have_recovery_code: "هل لديك رمز استرداد؟",
@@ -9146,8 +9146,7 @@ export const ar = {
     set_new_password: "تعيين كلمة المرور الجديدة",
     resetting_password: "جارٍ إعادة تعيين كلمة المرور...",
     enter_recovery_code: "أدخل رمز الاسترداد",
-    enter_recovery_code_desc:
-      "أدخل أحد رموز الاسترداد التي حفظتها عند إنشاء حسابك",
+    enter_recovery_code_desc: "أدخل أحد رموز الاسترداد التي حفظتها عند إنشاء حسابك.",
     verify_code: "التحقق من الرمز",
     create_new_password: "إنشاء كلمة مرور جديدة",
     choose_strong_password: "اختر كلمة مرور قوية لحسابك",
@@ -9160,6 +9159,15 @@ export const ar = {
     recovery_code_already_used:
       "تم استخدام هذا الرمز من قبل. يعمل كل رمز مرة واحدة، لذا أدخل رمزًا آخر من قائمتك المحفوظة.",
     try_another_way: "جرب طريقة أخرى",
+    recovery_email_label: "عنوان Aster Mail",
+    recovery_domain_hint: "اختر النطاق الذي يطابق حسابك.",
+    recovery_code_label: "رمز الاسترداد",
+    recovery_code_hint: "يعمل كل رمز مرة واحدة. تبدو الرموز هكذا: ASTER-XXXX-XXXX-XXXX-XXXX.",
+    change_account: "استخدام عنوان آخر",
+    support_step_title: "التواصل مع الدعم",
+    support_step_desc: "لا يستطيع Aster Mail قراءة بياناتك المشفرة، لذلك لا أحد يفتحها بدون رمز استرداد أو بريد الاسترداد. يمكن للدعم مراجعة حسابك ومساعدتك في الخطوات التالية.",
+    support_email_action: "مراسلة الدعم",
+    support_help_center: "فتح مركز المساعدة",
     other_ways_title: "جرب طريقة أخرى",
     other_ways_desc: "اختر كيف تريد العودة إلى حسابك.",
     other_way_code_title: "استخدام رمز استرداد",
@@ -9170,8 +9178,7 @@ export const ar = {
     other_way_email_desc:
       "يرسل Aster Mail رابطًا إلى بريد الاسترداد. تفقد إمكانية الوصول إلى الرسائل السابقة لإعادة التعيين.",
     other_way_none_title: "لا أملك أيًا من هذه",
-    other_way_none_desc:
-      "لا يستطيع Aster Mail قراءة بياناتك المشفرة، لذا لا يمكن لأحد استردادها بدون إحدى هذه الطرق. ما زال بإمكانك إنشاء حساب.",
+    other_way_none_desc: "تواصل مع الدعم وسنساعدك في الخطوات التالية.",
     reset_account_title: "هل تريد إعادة تعيين حسابك؟",
     reset_account_desc:
       "تظل رسائلك وجهات اتصالك وملفاتك المشفرة السابقة لإعادة التعيين مقفلة حتى تستردها بكلمة المرور القديمة. تحصل على مفتاح تشفير جديد وفارغ.",

@@ -71,8 +71,7 @@ export function ResetEmailConfirmStep({
         variants={reduce_motion ? undefined : stagger_container}
       >
         <motion.div
-          className="flex h-16 w-16 items-center justify-center rounded-full text-[#f59e0b]"
-          style={{ backgroundColor: "rgba(245, 158, 11, 0.1)" }}
+          className="text-[var(--color-warning)]"
           variants={reduce_motion ? undefined : fade_up_item}
         >
           <WarningIcon />

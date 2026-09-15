@@ -39,6 +39,8 @@ import {
 } from "@/components/auth/mobile_auth_motion";
 
 export function CodeStep({
+  email,
+  is_email_locked,
   recovery_code,
   set_recovery_code,
   error,
@@ -46,6 +48,7 @@ export function CodeStep({
   reduce_motion,
   set_error,
   set_step,
+  on_change_account,
   on_submit,
 }: CodeStepProps) {
   const { t } = use_i18n();
@@ -57,10 +60,7 @@ export function CodeStep({
           className={BACK_BUTTON_CLASS}
           style={BACK_BUTTON_STYLE}
           whileTap={button_tap}
-          onClick={() => {
-            set_error("");
-            set_step("other_ways");
-          }}
+          onClick={on_change_account}
         >
           <ChevronLeftIcon className="h-5 w-5 rtl:-scale-x-100" />
         </motion.button>
@@ -95,6 +95,13 @@ export function CodeStep({
           {t("auth.enter_recovery_code_desc")}
         </motion.p>
 
+        <motion.p
+          className="notranslate mt-1 max-w-full truncate text-sm font-medium text-[var(--text-primary)]"
+          variants={reduce_motion ? undefined : fade_up_item}
+        >
+          {email}
+        </motion.p>
+
         <AnimatePresence>
           {error && (
             <motion.p
@@ -113,9 +120,16 @@ export function CodeStep({
           className={`w-full ${error ? "mt-4" : "mt-6"}`}
           variants={reduce_motion ? undefined : fade_up_item}
         >
+          <label
+            className="mb-2 block text-sm font-medium text-[var(--text-primary)]"
+            htmlFor="mobile_recovery_code"
+          >
+            {t("auth.recovery_code_label")}
+          </label>
           <div className={DEPTH_INPUT_WRAPPER_CLASS}>
             <Input
               autoComplete="off"
+              id="mobile_recovery_code"
               className={INNER_INPUT_CLASS}
               placeholder="ASTER-XXXX-XXXX-XXXX-XXXX"
               status={error ? "error" : "default"}
@@ -130,6 +144,9 @@ export function CodeStep({
               onKeyDown={(e) => e["key"] === "Enter" && on_submit()}
             />
           </div>
+          <p className="mt-2 text-xs text-[var(--text-tertiary)]">
+            {t("auth.recovery_code_hint")}
+          </p>
         </motion.div>
       </motion.div>
 
@@ -150,7 +167,7 @@ export function CodeStep({
           {t("auth.verify_code")}
         </motion.button>
         <button
-          className="w-full py-2 text-center text-sm text-[var(--text-tertiary)]"
+          className="w-full py-2 text-center text-sm font-medium text-[var(--text-secondary)]"
           type="button"
           onClick={() => {
             set_error("");
@@ -158,6 +175,15 @@ export function CodeStep({
           }}
         >
           {t("auth.try_another_way")}
+        </button>
+        <button
+          className="w-full py-2 text-center text-sm text-[var(--text-tertiary)]"
+          type="button"
+          onClick={on_change_account}
+        >
+          {is_email_locked
+            ? t("auth.back_to_sign_in")
+            : t("auth.change_account")}
         </button>
       </motion.div>
     </div>

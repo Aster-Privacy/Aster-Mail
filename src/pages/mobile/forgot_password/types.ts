@@ -41,7 +41,6 @@ export interface EmailStepProps extends StepProps {
 }
 
 export interface OtherWaysStepProps extends StepProps {
-  on_select_phrase: () => void;
   on_select_code: () => void;
   on_select_email: () => void;
   on_no_options: () => void;
@@ -51,10 +50,9 @@ export interface ResetEmailConfirmStepProps extends StepProps {
   on_send_reset_link: () => void;
 }
 
-export interface PhraseStepProps extends StepProps {
-  phrase_words: string[];
-  update_phrase_word: (index: number, value: string) => void;
-  on_submit: () => void;
+export interface SupportStepProps extends StepProps {
+  on_email_support: () => void;
+  on_help_center: () => void;
 }
 
 export interface EmailSentStepProps {
@@ -63,8 +61,11 @@ export interface EmailSentStepProps {
 }
 
 export interface CodeStepProps extends StepProps {
+  email: string;
+  is_email_locked: boolean;
   recovery_code: string;
   set_recovery_code: (code: string) => void;
+  on_change_account: () => void;
   on_submit: () => void;
 }
 

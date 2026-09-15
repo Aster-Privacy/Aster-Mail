@@ -47,11 +47,7 @@ export function ReviewSecurityStep({
         initial={reduce_motion ? false : "initial"}
         variants={reduce_motion ? undefined : stagger_container}
       >
-        <motion.div
-          className="flex h-16 w-16 items-center justify-center rounded-full"
-          style={{ backgroundColor: "rgba(34, 197, 94, 0.1)" }}
-          variants={reduce_motion ? undefined : fade_up_item}
-        >
+        <motion.div variants={reduce_motion ? undefined : fade_up_item}>
           <svg
             className="h-8 w-8"
             fill="none"

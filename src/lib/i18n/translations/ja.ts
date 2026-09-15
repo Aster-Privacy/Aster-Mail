@@ -9168,8 +9168,7 @@ export const ja = {
     creating_new_recovery_backup: "新しい復旧バックアップを作成中...",
     saving_new_credentials: "新しい認証情報を保存中...",
     recover_your_account: "アカウントの復旧",
-    enter_email_associated:
-      "アカウントを復元するにはユーザー名を入力してください",
+    enter_email_associated: "復旧したいアカウントのアドレスを入力してください。",
     back_to_sign_in: "サインインに戻る",
     email_me_reset_link: "リセットリンクをメールで送信",
     have_recovery_code: "リカバリーコードをお持ちですか？",
@@ -9189,8 +9188,7 @@ export const ja = {
     set_new_password: "新しいパスワードを設定",
     resetting_password: "パスワードをリセット中...",
     enter_recovery_code: "リカバリーコードを入力",
-    enter_recovery_code_desc:
-      "アカウント作成時に保存したリカバリーコードの1つを入力してください",
+    enter_recovery_code_desc: "アカウント作成時に保存したリカバリーコードのいずれかを入力してください。",
     verify_code: "コードを確認",
     create_new_password: "新しいパスワードを作成",
     choose_strong_password: "アカウントの強力なパスワードを選択してください",
@@ -9204,6 +9202,15 @@ export const ja = {
     recovery_code_already_used:
       "このコードはすでに使用されています。各コードは1回だけ使えるため、保存したリストから別のコードを入力してください。",
     try_another_way: "別の方法を試す",
+    recovery_email_label: "Aster Mail のアドレス",
+    recovery_domain_hint: "アカウントのドメインを選択してください。",
+    recovery_code_label: "リカバリーコード",
+    recovery_code_hint: "各コードは 1 回だけ使えます。コードの形式は ASTER-XXXX-XXXX-XXXX-XXXX です。",
+    change_account: "別のアドレスを使う",
+    support_step_title: "サポートに問い合わせる",
+    support_step_desc: "Aster Mail は暗号化されたデータを読み取れないため、リカバリーコードまたは復旧用メールなしで解除できる人はいません。サポートがアカウントを確認し、次の手順を案内します。",
+    support_email_action: "サポートにメールする",
+    support_help_center: "ヘルプセンターを開く",
     other_ways_title: "別の方法を試す",
     other_ways_desc: "アカウントに戻る方法を選択してください。",
     other_way_code_title: "リカバリーコードを使う",
@@ -9214,8 +9221,7 @@ export const ja = {
     other_way_email_desc:
       "Aster Mail がリカバリーメールにリンクを送信します。リセット前のメールにはアクセスできなくなります。",
     other_way_none_title: "どれも持っていない",
-    other_way_none_desc:
-      "Aster Mail は暗号化されたデータを読み取れないため、これらのいずれかがないと誰も復元できません。新しいアカウントは作成できます。",
+    other_way_none_desc: "サポートにお問い合わせください。次の手順をご案内します。",
     reset_account_title: "アカウントをリセットしますか?",
     reset_account_desc:
       "リセット前の暗号化されたメール、連絡先、ファイルは、以前のパスワードで復元するまでロックされたままです。新しい空の暗号鍵が発行されます。",

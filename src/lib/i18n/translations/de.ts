@@ -9285,8 +9285,7 @@ export const de = {
     recovering_account_data: "Kontodaten werden wiederhergestellt...",
     saving_new_credentials: "Neue Zugangsdaten werden gespeichert...",
     recover_your_account: "Stellen Sie Ihr Konto wieder her",
-    enter_email_associated:
-      "Gib deinen Benutzernamen ein, um dein Konto wiederherzustellen",
+    enter_email_associated: "Gib die Adresse des Kontos ein, das du wiederherstellen möchtest.",
     back_to_sign_in: "Zurück zur Anmeldung",
     email_me_reset_link: "Reset-Link per E-Mail senden",
     have_recovery_code: "Haben Sie einen Wiederherstellungscode?",
@@ -9305,8 +9304,7 @@ export const de = {
     set_new_password: "Neues Passwort festlegen",
     resetting_password: "Passwort wird zurückgesetzt...",
     enter_recovery_code: "Wiederherstellungscode eingeben",
-    enter_recovery_code_desc:
-      "Geben Sie einen der Wiederherstellungscodes ein, die Sie bei der Kontoerstellung gespeichert haben",
+    enter_recovery_code_desc: "Gib einen der Wiederherstellungscodes ein, die du beim Erstellen deines Kontos gespeichert hast.",
     verify_code: "Code überprüfen",
     create_new_password: "Neues Passwort erstellen",
     choose_strong_password: "Wählen Sie ein sicheres Passwort für Ihr Konto",
@@ -9320,6 +9318,15 @@ export const de = {
     recovery_code_already_used:
       "Dieser Code wurde bereits verwendet. Jeder Code funktioniert einmal, geben Sie daher einen anderen aus Ihrer gespeicherten Liste ein.",
     try_another_way: "Anders versuchen",
+    recovery_email_label: "Aster Mail-Adresse",
+    recovery_domain_hint: "Wähle die Domain, die zu deinem Konto passt.",
+    recovery_code_label: "Wiederherstellungscode",
+    recovery_code_hint: "Jeder Code funktioniert einmal. Codes sehen so aus: ASTER-XXXX-XXXX-XXXX-XXXX.",
+    change_account: "Andere Adresse verwenden",
+    support_step_title: "Support kontaktieren",
+    support_step_desc: "Aster Mail kann deine verschlüsselten Daten nicht lesen. Ohne Wiederherstellungscode oder Wiederherstellungs-E-Mail kann sie niemand entsperren. Der Support prüft dein Konto und hilft dir bei den nächsten Schritten.",
+    support_email_action: "Support anschreiben",
+    support_help_center: "Hilfe-Center öffnen",
     other_ways_title: "Anders versuchen",
     other_ways_desc:
       "Wählen Sie, wie Sie wieder Zugriff auf Ihr Konto erhalten.",
@@ -9332,8 +9339,7 @@ export const de = {
     other_way_email_desc:
       "Aster Mail sendet einen Link an Ihre Wiederherstellungs-E-Mail. Sie verlieren den Zugriff auf E-Mails von vor dem Zurücksetzen.",
     other_way_none_title: "Ich habe nichts davon",
-    other_way_none_desc:
-      "Aster Mail kann Ihre verschlüsselten Daten nicht lesen, daher kann sie niemand ohne eine dieser Optionen wiederherstellen. Sie können weiterhin ein Konto erstellen.",
+    other_way_none_desc: "Kontaktiere den Support. Wir helfen dir bei den nächsten Schritten.",
     reset_account_title: "Konto zurücksetzen?",
     reset_account_desc:
       "Ihre verschlüsselten E-Mails, Kontakte und Dateien von vor dem Zurücksetzen bleiben gesperrt, bis Sie sie mit Ihrem alten Passwort wiederherstellen. Sie erhalten einen neuen, leeren Verschlüsselungsschlüssel.",

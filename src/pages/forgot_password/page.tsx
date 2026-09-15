@@ -31,7 +31,6 @@ import {
   PasswordStrengthIndicator,
   ReviewRow,
   WarningIcon,
-  WordsIcon,
   page_transition,
   page_variants,
 } from "./shared";
@@ -45,8 +44,18 @@ import {
   Logo,
 } from "@/components/auth/auth_styles";
 import { Input } from "@/components/ui/input";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown_menu";
+import { open_external } from "@/utils/open_link";
 import { Spinner } from "@/components/ui/spinner";
 import { apply_input_transform } from "@/utils/input_transform";
+
+const SUPPORT_MAIL_URL = "mailto:support@astermail.org";
+const HELP_CENTER_URL = "https://astermail.org/help";
 
 export default function ForgotPasswordPage() {
   const {
@@ -80,12 +89,9 @@ export default function ForgotPasswordPage() {
     codes_saved,
     set_codes_saved,
     review,
-    recovery_method,
-    set_recovery_method,
-    phrase_words,
+    email,
+    is_email_locked,
     handle_email_next,
-    update_phrase_word,
-    handle_phrase_submit,
     handle_email_reset_link,
     handle_code_submit,
     handle_password_submit,
@@ -125,17 +131,27 @@ export default function ForgotPasswordPage() {
               {error && <Alert is_dark={is_dark} message={error} />}
             </AnimatePresence>
 
-            <div className={`w-full ${error ? "mt-4" : "mt-6"}`}>
+            <div className={`w-full text-start ${error ? "mt-4" : "mt-6"}`}>
+              <label
+                className="mb-2 block text-sm font-medium text-txt-primary"
+                htmlFor="recovery_address"
+              >
+                {t("auth.recovery_email_label")}
+              </label>
+              <div className="relative">
               <Input
                 // eslint-disable-next-line jsx-a11y/no-autofocus
                 autoFocus
                 autoCapitalize="none"
                 autoComplete="username"
                 autoCorrect="off"
+                className="notranslate pe-32"
+                id="recovery_address"
                 maxLength={55}
                 placeholder={t("common.yourname_placeholder")}
                 spellCheck={false}
                 status={error ? "error" : "default"}
+                translate="no"
                 type="text"
                 value={username}
                 onChange={(e) => {
@@ -171,30 +187,48 @@ export default function ForgotPasswordPage() {
                 }}
                 onKeyDown={(e) => e["key"] === "Enter" && handle_email_next()}
               />
-              <div className="relative flex mt-2 aster_input !p-1 !h-auto">
-                <div
-                  className="absolute top-1 bottom-1 rounded-[8px] transition-all duration-200 ease-out bg-surf-tertiary"
-                  style={{
-                    width: "calc(50% - 4px)",
-                    left:
-                      email_domain === "astermail.org" ? "4px" : "calc(50%)",
-                  }}
-                />
-                <button
-                  className={`relative flex-1 h-8 rounded-[8px] text-sm font-medium transition-colors duration-150 ${email_domain === "astermail.org" ? "text-txt-primary" : "text-txt-muted"}`}
-                  type="button"
-                  onClick={() => set_email_domain("astermail.org")}
-                >
-                  @astermail.org
-                </button>
-                <button
-                  className={`relative flex-1 h-8 rounded-[8px] text-sm font-medium transition-colors duration-150 ${email_domain === "aster.cx" ? "text-txt-primary" : "text-txt-muted"}`}
-                  type="button"
-                  onClick={() => set_email_domain("aster.cx")}
-                >
-                  @aster.cx
-                </button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      aria-label={t("auth.switch_domain")}
+                      className="notranslate absolute end-2 top-1/2 inline-flex -translate-y-1/2 items-center gap-1 rounded-md px-1.5 py-1 text-sm text-txt-secondary transition-colors hover:bg-black/5 hover:text-txt-primary dark:hover:bg-white/5"
+                      tabIndex={-1}
+                      translate="no"
+                      type="button"
+                    >
+                      @{email_domain}
+                      <svg
+                        className="h-3.5 w-3.5"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M19.5 8.25l-7.5 7.5-7.5-7.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-44">
+                    {(["astermail.org", "aster.cx"] as const).map((domain) => (
+                      <DropdownMenuItem
+                        key={domain}
+                        className="notranslate"
+                        translate="no"
+                        onClick={() => set_email_domain(domain)}
+                      >
+                        @{domain}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
+              <p className="mt-2 text-xs text-txt-tertiary">
+                {t("auth.recovery_domain_hint")}
+              </p>
             </div>
 
             <Button
@@ -248,20 +282,9 @@ export default function ForgotPasswordPage() {
                 icon={<KeyIcon />}
                 on_click={() => {
                   set_error("");
-                  set_recovery_method("code");
                   set_step("code");
                 }}
                 title={t("auth.other_way_code_title")}
-              />
-              <OptionRow
-                description={t("auth.other_way_phrase_desc")}
-                icon={<WordsIcon />}
-                on_click={() => {
-                  set_error("");
-                  set_recovery_method("phrase");
-                  set_step("phrase_entry");
-                }}
-                title={t("auth.other_way_phrase_title")}
               />
               <OptionRow
                 description={t("auth.other_way_email_desc")}
@@ -275,7 +298,10 @@ export default function ForgotPasswordPage() {
               <OptionRow
                 description={t("auth.other_way_none_desc")}
                 icon={<HelpIcon />}
-                on_click={() => navigate("/register")}
+                on_click={() => {
+                  set_error("");
+                  set_step("support");
+                }}
                 title={t("auth.other_way_none_title")}
               />
             </div>
@@ -308,12 +334,7 @@ export default function ForgotPasswordPage() {
             }}
             variants={page_variants}
           >
-            <div
-              className="w-16 h-16 rounded-full flex items-center justify-center"
-              style={{ backgroundColor: "rgba(245, 158, 11, 0.1)" }}
-            >
-              <WarningIcon />
-            </div>
+            <WarningIcon />
 
             <h1 className="text-xl font-semibold mt-6 text-txt-primary">
               {t("auth.reset_account_title")}
@@ -349,10 +370,10 @@ export default function ForgotPasswordPage() {
           </motion.div>
         );
 
-      case "phrase_entry":
+      case "support":
         return (
           <motion.div
-            key="phrase_entry"
+            key="support"
             animate="animate"
             className="flex flex-col items-center w-full max-w-sm px-4 text-center"
             exit="exit"
@@ -366,44 +387,27 @@ export default function ForgotPasswordPage() {
             <Logo />
 
             <h1 className="text-xl font-semibold mt-6 text-txt-primary">
-              {t("auth.phrase_entry_title")}
+              {t("auth.support_step_title")}
             </h1>
             <p className="text-sm mt-2 leading-relaxed text-txt-tertiary">
-              {t("auth.phrase_entry_desc")}
+              {t("auth.support_step_desc")}
             </p>
 
-            <AnimatePresence>
-              {error && <Alert is_dark={is_dark} message={error} />}
-            </AnimatePresence>
-
-            <div
-              className={`w-full ${error ? "mt-4" : "mt-6"} grid grid-cols-3 gap-2`}
-            >
-              {phrase_words.map((word, index) => (
-                <Input
-                  key={index}
-                  autoComplete="off"
-                  className="font-mono !px-2 text-sm"
-                  placeholder={`${index + 1}`}
-                  status={error ? "error" : "default"}
-                  type="text"
-                  value={word}
-                  onChange={(e) => update_phrase_word(index, e.target.value)}
-                  onKeyDown={(e) =>
-                    e["key"] === "Enter" && handle_phrase_submit()
-                  }
-                />
-              ))}
-            </div>
-
             <Button
-              className="w-full mt-6"
+              className="w-full mt-8"
               size="xl"
               variant="depth"
-              onClick={handle_phrase_submit}
+              onClick={() => open_external(SUPPORT_MAIL_URL)}
             >
-              {t("common.continue")}
+              {t("auth.support_email_action")}
             </Button>
+
+            <button
+              className="w-full mt-4 text-sm transition-colors hover:opacity-80 text-txt-tertiary"
+              onClick={() => open_external(HELP_CENTER_URL)}
+            >
+              {t("auth.support_help_center")}
+            </button>
 
             <button
               className="w-full mt-6 text-sm transition-colors hover:opacity-80 text-txt-tertiary"
@@ -412,7 +416,7 @@ export default function ForgotPasswordPage() {
                 set_step("other_ways");
               }}
             >
-              {t("auth.try_another_way")}
+              {t("common.back")}
             </button>
           </motion.div>
         );
@@ -439,13 +443,23 @@ export default function ForgotPasswordPage() {
             <p className="text-sm mt-2 leading-relaxed text-txt-tertiary">
               {t("auth.enter_recovery_code_desc")}
             </p>
+            <p className="notranslate mt-1 max-w-full truncate text-sm font-medium text-txt-primary">
+              {email}
+            </p>
 
             <AnimatePresence>
               {error && <Alert is_dark={is_dark} message={error} />}
             </AnimatePresence>
 
-            <div className={`w-full ${error ? "mt-4" : "mt-6"}`}>
+            <div className={`w-full text-start ${error ? "mt-4" : "mt-6"}`}>
+              <label
+                className="mb-2 block text-sm font-medium text-txt-primary"
+                htmlFor="recovery_code"
+              >
+                {t("auth.recovery_code_label")}
+              </label>
               <Input
+                id="recovery_code"
                 // eslint-disable-next-line jsx-a11y/no-autofocus
                 autoFocus
                 autoComplete="off"
@@ -461,6 +475,9 @@ export default function ForgotPasswordPage() {
                 }
                 onKeyDown={(e) => e["key"] === "Enter" && handle_code_submit()}
               />
+              <p className="mt-2 text-xs text-txt-tertiary">
+                {t("auth.recovery_code_hint")}
+              </p>
             </div>
 
             <Button
@@ -469,20 +486,35 @@ export default function ForgotPasswordPage() {
               variant="depth"
               onClick={handle_code_submit}
             >
-              {t("auth.verify_code")}
+              {t("common.continue")}
             </Button>
 
-            <Button
-              className="w-full mt-3"
-              size="xl"
-              variant="secondary"
+            <button
+              className="w-full mt-5 text-sm font-medium transition-colors hover:opacity-80 text-txt-secondary"
               onClick={() => {
                 set_error("");
                 set_step("other_ways");
               }}
             >
-              {t("common.back")}
-            </Button>
+              {t("auth.try_another_way")}
+            </button>
+
+            <button
+              className="w-full mt-4 text-sm transition-colors hover:opacity-80 text-txt-tertiary"
+              onClick={() => {
+                set_error("");
+                if (is_email_locked) {
+                  navigate("/sign-in");
+
+                  return;
+                }
+                set_step("email");
+              }}
+            >
+              {is_email_locked
+                ? t("auth.back_to_sign_in")
+                : t("auth.change_account")}
+            </button>
           </motion.div>
         );
 
@@ -580,9 +612,7 @@ export default function ForgotPasswordPage() {
               variant="secondary"
               onClick={() => {
                 set_error("");
-                set_step(
-                  recovery_method === "phrase" ? "phrase_entry" : "code",
-                );
+                set_step("code");
               }}
             >
               {t("common.back")}
@@ -751,24 +781,19 @@ export default function ForgotPasswordPage() {
             }}
             variants={page_variants}
           >
-            <div
-              className="w-16 h-16 rounded-full flex items-center justify-center"
-              style={{ backgroundColor: "rgba(34, 197, 94, 0.1)" }}
+            <svg
+              className="w-8 h-8"
+              fill="none"
+              stroke="var(--color-success)"
+              strokeWidth="2"
+              viewBox="0 0 24 24"
             >
-              <svg
-                className="w-8 h-8"
-                fill="none"
-                stroke="var(--color-success)"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  d="M5 13l4 4L19 7"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </div>
+              <path
+                d="M5 13l4 4L19 7"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
 
             <h1 className="text-xl font-semibold mt-6 text-txt-primary">
               {t("auth.reset_link_sent_title")}
@@ -802,24 +827,19 @@ export default function ForgotPasswordPage() {
             }}
             variants={page_variants}
           >
-            <div
-              className="w-16 h-16 rounded-full flex items-center justify-center"
-              style={{ backgroundColor: "rgba(34, 197, 94, 0.1)" }}
+            <svg
+              className="w-8 h-8"
+              fill="none"
+              stroke="var(--color-success)"
+              strokeWidth="2"
+              viewBox="0 0 24 24"
             >
-              <svg
-                className="w-8 h-8"
-                fill="none"
-                stroke="var(--color-success)"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  d="M5 13l4 4L19 7"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </div>
+              <path
+                d="M5 13l4 4L19 7"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
 
             <h1 className="text-xl font-semibold mt-6 text-txt-primary">
               {t("auth.review_security_title")}

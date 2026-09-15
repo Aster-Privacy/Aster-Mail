@@ -23,7 +23,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { EmailStep } from "./forgot_password/email_step";
 import { OtherWaysStep } from "./forgot_password/other_ways_step";
 import { ResetEmailConfirmStep } from "./forgot_password/reset_email_confirm_step";
-import { PhraseStep } from "./forgot_password/phrase_step";
+import { SupportStep } from "./forgot_password/support_step";
 import { CodeStep } from "./forgot_password/code_step";
 import { PasswordStep } from "./forgot_password/password_step";
 import { ProcessingStep } from "./forgot_password/processing_step";
@@ -33,6 +33,10 @@ import { EmailSentStep } from "./forgot_password/email_sent_step";
 
 import { use_platform } from "@/hooks/use_platform";
 import { use_recovery_flow } from "@/pages/forgot_password/use_recovery_flow";
+import { open_external } from "@/utils/open_link";
+
+const SUPPORT_MAIL_URL = "mailto:support@astermail.org";
+const HELP_CENTER_URL = "https://astermail.org/help";
 
 export default function MobileForgotPasswordPage() {
   const { safe_area_insets } = use_platform();
@@ -66,12 +70,9 @@ export default function MobileForgotPasswordPage() {
     codes_saved,
     set_codes_saved,
     review,
-    recovery_method,
-    set_recovery_method,
-    phrase_words,
+    email,
+    is_email_locked,
     handle_email_next,
-    update_phrase_word,
-    handle_phrase_submit,
     handle_email_reset_link,
     handle_code_submit,
     handle_password_submit,
@@ -83,6 +84,16 @@ export default function MobileForgotPasswordPage() {
   } = use_recovery_flow();
 
   const navigate_sign_in = () => navigate("/sign-in");
+
+  const handle_change_account = () => {
+    set_error("");
+    if (is_email_locked) {
+      navigate_sign_in();
+
+      return;
+    }
+    set_step("email");
+  };
 
   const render_step = () => {
     switch (step) {
@@ -108,20 +119,17 @@ export default function MobileForgotPasswordPage() {
           <OtherWaysStep
             error={error}
             is_dark={is_dark}
-            on_no_options={() => navigate("/register")}
+            on_no_options={() => {
+              set_error("");
+              set_step("support");
+            }}
             on_select_code={() => {
               set_error("");
-              set_recovery_method("code");
               set_step("code");
             }}
             on_select_email={() => {
               set_error("");
               set_step("reset_email_confirm");
-            }}
-            on_select_phrase={() => {
-              set_error("");
-              set_recovery_method("phrase");
-              set_step("phrase_entry");
             }}
             reduce_motion={reduce_motion}
             set_error={set_error}
@@ -141,25 +149,27 @@ export default function MobileForgotPasswordPage() {
           />
         );
 
-      case "phrase_entry":
+      case "support":
         return (
-          <PhraseStep
+          <SupportStep
             error={error}
             is_dark={is_dark}
-            on_submit={handle_phrase_submit}
-            phrase_words={phrase_words}
+            on_email_support={() => open_external(SUPPORT_MAIL_URL)}
+            on_help_center={() => open_external(HELP_CENTER_URL)}
             reduce_motion={reduce_motion}
             set_error={set_error}
             set_step={set_step}
-            update_phrase_word={update_phrase_word}
           />
         );
 
       case "code":
         return (
           <CodeStep
+            email={email}
             error={error}
             is_dark={is_dark}
+            is_email_locked={is_email_locked}
+            on_change_account={handle_change_account}
             on_submit={handle_code_submit}
             recovery_code={recovery_code}
             reduce_motion={reduce_motion}
@@ -185,13 +195,7 @@ export default function MobileForgotPasswordPage() {
             set_is_confirm_visible={set_is_confirm_visible}
             set_is_password_visible={set_is_password_visible}
             set_password={set_password}
-            set_step={(next) =>
-              set_step(
-                next === "code" && recovery_method === "phrase"
-                  ? "phrase_entry"
-                  : next,
-              )
-            }
+            set_step={set_step}
           />
         );
 

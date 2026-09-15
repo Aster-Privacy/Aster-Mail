@@ -9169,8 +9169,7 @@ export const hi = {
     creating_new_recovery_backup: "नया रिकवरी बैकअप बनाया जा रहा है...",
     saving_new_credentials: "नए क्रेडेंशियल सहेजे जा रहे हैं...",
     recover_your_account: "अपना खाता रिकवर करें",
-    enter_email_associated:
-      "अपना खाता रिकवर करने के लिए अपना उपयोगकर्ता नाम डालें",
+    enter_email_associated: "जिस खाते को रिकवर करना है उसका पता दर्ज करें।",
     back_to_sign_in: "साइन इन पर वापस जाएं",
     email_me_reset_link: "मुझे रीसेट लिंक ईमेल करें",
     have_recovery_code: "रिकवरी कोड है?",
@@ -9189,8 +9188,7 @@ export const hi = {
     set_new_password: "नया पासवर्ड सेट करें",
     resetting_password: "पासवर्ड रीसेट किया जा रहा है...",
     enter_recovery_code: "रिकवरी कोड डालें",
-    enter_recovery_code_desc:
-      "खाता बनाते समय सहेजे गए रिकवरी कोड में से कोई एक डालें",
+    enter_recovery_code_desc: "खाता बनाते समय सहेजे गए रिकवरी कोड में से कोई एक दर्ज करें।",
     verify_code: "कोड सत्यापित करें",
     create_new_password: "नया पासवर्ड बनाएं",
     choose_strong_password: "अपने खाते के लिए एक मज़बूत पासवर्ड चुनें",
@@ -9204,6 +9202,15 @@ export const hi = {
     recovery_code_already_used:
       "यह कोड पहले ही इस्तेमाल हो चुका है। हर कोड एक बार काम करता है, इसलिए अपनी सेव की गई सूची से कोई दूसरा कोड डालें।",
     try_another_way: "दूसरा तरीका आज़माएं",
+    recovery_email_label: "Aster Mail पता",
+    recovery_domain_hint: "वह डोमेन चुनें जो आपके खाते से मेल खाता है।",
+    recovery_code_label: "रिकवरी कोड",
+    recovery_code_hint: "हर कोड एक बार काम करता है। कोड ऐसे दिखते हैं: ASTER-XXXX-XXXX-XXXX-XXXX.",
+    change_account: "दूसरा पता इस्तेमाल करें",
+    support_step_title: "सहायता से संपर्क करें",
+    support_step_desc: "Aster Mail आपका एन्क्रिप्टेड डेटा नहीं पढ़ सकता, इसलिए रिकवरी कोड या रिकवरी ईमेल के बिना कोई उसे नहीं खोल सकता। सहायता टीम आपका खाता देख सकती है और आगे के कदमों में मदद कर सकती है।",
+    support_email_action: "सहायता को ईमेल करें",
+    support_help_center: "सहायता केंद्र खोलें",
     other_ways_title: "दूसरा तरीका आज़माएं",
     other_ways_desc: "चुनें कि आप अपने खाते में वापस कैसे आना चाहते हैं।",
     other_way_code_title: "रिकवरी कोड इस्तेमाल करें",
@@ -9214,8 +9221,7 @@ export const hi = {
     other_way_email_desc:
       "Aster Mail आपके रिकवरी ईमेल पर एक लिंक भेजता है। रीसेट से पहले के मेल तक आपकी पहुंच खत्म हो जाती है।",
     other_way_none_title: "मेरे पास इनमें से कुछ नहीं है",
-    other_way_none_desc:
-      "Aster Mail आपका एन्क्रिप्ट किया गया डेटा नहीं पढ़ सकता, इसलिए इनमें से किसी एक के बिना कोई भी उसे रिकवर नहीं कर सकता। आप नया खाता बना सकते हैं।",
+    other_way_none_desc: "सहायता से संपर्क करें, हम आगे के कदमों में मदद करेंगे।",
     reset_account_title: "क्या खाता रीसेट करना है?",
     reset_account_desc:
       "रीसेट से पहले के एन्क्रिप्ट किए गए मेल, संपर्क और फ़ाइलें तब तक लॉक रहती हैं जब तक आप उन्हें अपने पुराने पासवर्ड से रिकवर नहीं करते। आपको एक नई, खाली एन्क्रिप्शन कुंजी मिलती है।",

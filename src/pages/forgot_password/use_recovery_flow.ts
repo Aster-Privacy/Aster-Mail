@@ -21,7 +21,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 
-import { RecoveryMethod, RecoveryStep } from "./shared";
+import { RecoveryStep } from "./shared";
 import { recovery_error_message } from "./recovery_error";
 
 import { copy_text_or_throw } from "@/utils/copy_text";
@@ -55,15 +55,8 @@ import {
   MASTER_KEY_VAULT_FORMAT,
 } from "@/services/crypto/memory_key_store";
 import {
-  compute_phrase_verifier,
-  is_valid_recovery_phrase,
-  RECOVERY_PHRASE_WORD_COUNT,
-  unwrap_vault_with_phrase,
-} from "@/services/crypto/recovery_phrase";
-import {
   complete_recovery,
   forgot_password_email,
-  initiate_phrase_recovery,
   initiate_recovery,
   RecoveryEmailReencryption,
 } from "@/services/api/recovery";
@@ -138,6 +131,7 @@ export function use_recovery_flow() {
   const location = useLocation();
   const handoff_ref = useRef(read_handoff(location.state));
   const handoff = handoff_ref.current;
+  const is_email_locked = handoff !== null;
   const { theme } = useTheme();
   const is_dark = theme === "dark";
 
@@ -186,17 +180,6 @@ export function use_recovery_flow() {
   const [stored_recovery_email, set_stored_recovery_email] =
     useState<StoredRecoveryEmail | null>(null);
 
-  const [recovery_method, set_recovery_method] =
-    useState<RecoveryMethod>("code");
-  const [phrase_words, set_phrase_words] = useState<string[]>(
-    Array(RECOVERY_PHRASE_WORD_COUNT).fill(""),
-  );
-  const [phrase_wrap, set_phrase_wrap] = useState<{
-    wrapped_vault: string;
-    wrap_nonce: string;
-    wrap_salt: string;
-  } | null>(null);
-
   const resolve_username = (): string | null => {
     const typed = username.trim();
     const at_index = typed.indexOf("@");
@@ -235,90 +218,6 @@ export function use_recovery_flow() {
     set_step("code");
   };
 
-  const update_phrase_word = (index: number, value: string) => {
-    const parts = value.trim().toLowerCase().split(/\s+/).filter(Boolean);
-
-    set_phrase_words((prev) => {
-      const next = [...prev];
-
-      if (parts.length > 1) {
-        const start_index =
-          parts.length >= RECOVERY_PHRASE_WORD_COUNT - index
-            ? Math.max(0, RECOVERY_PHRASE_WORD_COUNT - parts.length)
-            : index;
-
-        for (
-          let i = 0;
-          i < parts.length && start_index + i < RECOVERY_PHRASE_WORD_COUNT;
-          i++
-        ) {
-          next[start_index + i] = parts[i];
-        }
-      } else {
-        next[index] = value.replace(/\s/g, "").toLowerCase();
-      }
-
-      return next;
-    });
-  };
-
-  const handle_phrase_submit = async () => {
-    set_error("");
-
-    const phrase = phrase_words.map((word) => word.trim()).join(" ");
-
-    if (!is_valid_recovery_phrase(phrase)) {
-      set_error(t("auth.phrase_entry_invalid"));
-
-      return;
-    }
-
-    if (!email.trim()) {
-      set_error(t("auth.please_enter_email_address"));
-      set_step("email");
-
-      return;
-    }
-
-    set_step("processing");
-    set_processing_status(t("auth.recovering_account_data"));
-
-    try {
-      const verifier_hash = await compute_phrase_verifier(phrase);
-      const response = await initiate_phrase_recovery(
-        email.trim().toLowerCase(),
-        verifier_hash,
-      );
-
-      if (response.error || !response.data) {
-        await timing_safe_delay();
-        set_error(
-          is_transport_failure(response.code)
-            ? t("common.something_went_wrong_try_again")
-            : t("auth.phrase_recovery_failed"),
-        );
-        set_step("phrase_entry");
-
-        return;
-      }
-
-      set_phrase_wrap({
-        wrapped_vault: response.data.wrapped_vault,
-        wrap_nonce: response.data.wrap_nonce,
-        wrap_salt: response.data.wrap_salt,
-      });
-      set_recovery_token(response.data.recovery_token);
-      set_recovery_method("phrase");
-      set_stored_recovery_email(null);
-
-      set_step("password");
-    } catch {
-      await timing_safe_delay();
-      set_error(t("auth.phrase_recovery_failed"));
-      set_step("phrase_entry");
-    }
-  };
-
   const handle_email_reset_link = async () => {
     set_error("");
 
@@ -346,7 +245,11 @@ export function use_recovery_flow() {
     }
 
     if (reset_response.error || !reset_response.data) {
-      set_error(t("common.something_went_wrong_try_again"));
+      set_error(
+        is_transport_failure(reset_response.code)
+          ? t("errors.network")
+          : t("common.something_went_wrong_try_again"),
+      );
       set_step("reset_email_confirm");
 
       return;
@@ -406,7 +309,6 @@ export function use_recovery_flow() {
         nonce: response.data.recovery_key_nonce,
       });
       set_recovery_token(response.data.recovery_token);
-      set_recovery_method("code");
 
       const { encrypted_recovery_email, recovery_email_nonce } = response.data;
 
@@ -572,54 +474,6 @@ export function use_recovery_flow() {
     set_step("new_codes");
   };
 
-  const complete_phrase_recovery = async () => {
-    if (!phrase_wrap || !recovery_token) {
-      set_error(t("auth.recovery_session_expired"));
-      set_step("email");
-
-      return;
-    }
-
-    set_step("processing");
-    set_processing_status(t("auth.decrypting_vault"));
-
-    try {
-      const phrase = phrase_words.map((word) => word.trim()).join(" ");
-      const vault_json = await unwrap_vault_with_phrase(
-        phrase,
-        phrase_wrap.wrapped_vault,
-        phrase_wrap.wrap_nonce,
-        phrase_wrap.wrap_salt,
-      );
-
-      if (!vault_json) {
-        await timing_safe_delay();
-        set_error(t("auth.phrase_recovery_failed"));
-        set_step("phrase_entry");
-
-        return;
-      }
-
-      let vault: EncryptedVault;
-
-      try {
-        vault = JSON.parse(vault_json) as EncryptedVault;
-      } catch {
-        await timing_safe_delay();
-        set_error(t("auth.phrase_recovery_failed"));
-        set_step("phrase_entry");
-
-        return;
-      }
-
-      await finish_recovery(vault);
-    } catch (err) {
-      await timing_safe_delay();
-      set_error(user_facing_error(err, t("auth.recovery_failed")));
-      set_step("password");
-    }
-  };
-
   const handle_password_submit = async () => {
     set_error("");
 
@@ -639,12 +493,6 @@ export function use_recovery_flow() {
 
     if (password !== confirm_password) {
       set_error(t("auth.passwords_do_not_match_register"));
-
-      return;
-    }
-
-    if (recovery_method === "phrase") {
-      await complete_phrase_recovery();
 
       return;
     }
@@ -771,12 +619,8 @@ export function use_recovery_flow() {
     codes_saved,
     set_codes_saved,
     review,
-    recovery_method,
-    set_recovery_method,
-    phrase_words,
+    is_email_locked,
     handle_email_next,
-    update_phrase_word,
-    handle_phrase_submit,
     handle_email_reset_link,
     handle_code_submit,
     handle_password_submit,

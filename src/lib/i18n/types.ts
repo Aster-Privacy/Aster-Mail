@@ -8186,6 +8186,15 @@ export interface AuthTranslations {
   n_recovery_codes: string;
   recovery_code_already_used: string;
   try_another_way: string;
+  recovery_domain_hint: string;
+  recovery_email_label: string;
+  recovery_code_label: string;
+  recovery_code_hint: string;
+  change_account: string;
+  support_step_title: string;
+  support_step_desc: string;
+  support_email_action: string;
+  support_help_center: string;
   other_ways_title: string;
   other_ways_desc: string;
   other_way_code_title: string;

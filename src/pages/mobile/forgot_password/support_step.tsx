@@ -18,34 +18,29 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { PhraseStepProps } from "./types";
+import type { SupportStepProps } from "./types";
 
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { ChevronLeftIcon } from "@heroicons/react/20/solid";
 
 import { use_i18n } from "@/lib/i18n/context";
-import { Input } from "@/components/ui/input";
 import {
   stagger_container,
   fade_up_item,
   button_tap,
-  DEPTH_CTA_CLASS,
-  DEPTH_CTA_STYLE,
-  DEPTH_SECONDARY_CLASS,
   BACK_BUTTON_CLASS,
   BACK_BUTTON_STYLE,
+  DEPTH_CTA_CLASS,
+  DEPTH_CTA_STYLE,
 } from "@/components/auth/mobile_auth_motion";
 
-export function PhraseStep({
-  phrase_words,
-  update_phrase_word,
-  error,
-  is_dark,
+export function SupportStep({
   reduce_motion,
   set_error,
   set_step,
-  on_submit,
-}: PhraseStepProps) {
+  on_email_support,
+  on_help_center,
+}: SupportStepProps) {
   const { t } = use_i18n();
 
   return (
@@ -66,7 +61,7 @@ export function PhraseStep({
 
       <motion.div
         animate="animate"
-        className="flex flex-1 flex-col items-center overflow-y-auto px-6 pt-6"
+        className="flex flex-1 flex-col items-center px-6 pt-6"
         initial={reduce_motion ? false : "initial"}
         variants={reduce_motion ? undefined : stagger_container}
       >
@@ -83,48 +78,15 @@ export function PhraseStep({
           className="mt-6 text-center text-xl font-semibold text-[var(--text-primary)]"
           variants={reduce_motion ? undefined : fade_up_item}
         >
-          {t("auth.phrase_entry_title")}
+          {t("auth.support_step_title")}
         </motion.h1>
 
         <motion.p
           className="mt-2 text-center text-sm leading-relaxed text-[var(--text-tertiary)]"
           variants={reduce_motion ? undefined : fade_up_item}
         >
-          {t("auth.phrase_entry_desc")}
+          {t("auth.support_step_desc")}
         </motion.p>
-
-        <AnimatePresence>
-          {error && (
-            <motion.p
-              animate={{ opacity: 1, y: 0 }}
-              className="mt-4 text-center text-sm"
-              exit={{ opacity: 0, y: -4 }}
-              initial={{ opacity: 0, y: -4 }}
-              style={{ color: is_dark ? "#f87171" : "#dc2626" }}
-            >
-              {error}
-            </motion.p>
-          )}
-        </AnimatePresence>
-
-        <motion.div
-          className={`grid w-full grid-cols-3 gap-2 ${error ? "mt-4" : "mt-6"}`}
-          variants={reduce_motion ? undefined : fade_up_item}
-        >
-          {phrase_words.map((word, index) => (
-            <Input
-              key={index}
-              autoComplete="off"
-              className="!px-2 font-mono text-sm"
-              placeholder={`${index + 1}`}
-              status={error ? "error" : "default"}
-              type="text"
-              value={word}
-              onChange={(e) => update_phrase_word(index, e.target.value)}
-              onKeyDown={(e) => e["key"] === "Enter" && on_submit()}
-            />
-          ))}
-        </motion.div>
       </motion.div>
 
       <motion.div
@@ -139,20 +101,17 @@ export function PhraseStep({
           className={DEPTH_CTA_CLASS}
           style={DEPTH_CTA_STYLE}
           whileTap={button_tap}
-          onClick={on_submit}
+          onClick={on_email_support}
         >
-          {t("common.continue")}
+          {t("auth.support_email_action")}
         </motion.button>
-        <motion.button
-          className={DEPTH_SECONDARY_CLASS}
-          whileTap={button_tap}
-          onClick={() => {
-            set_error("");
-            set_step("other_ways");
-          }}
+        <button
+          className="w-full py-2 text-center text-sm text-[var(--text-tertiary)]"
+          type="button"
+          onClick={on_help_center}
         >
-          {t("common.back")}
-        </motion.button>
+          {t("auth.support_help_center")}
+        </button>
       </motion.div>
     </div>
   );

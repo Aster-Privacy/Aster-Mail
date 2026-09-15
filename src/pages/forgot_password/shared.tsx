@@ -29,14 +29,12 @@ export type RecoveryStep =
   | "code"
   | "other_ways"
   | "reset_email_confirm"
-  | "phrase_entry"
+  | "support"
   | "password"
   | "processing"
   | "new_codes"
   | "review_security"
   | "email_sent";
-
-export type RecoveryMethod = "code" | "phrase";
 
 export const page_variants = {
   initial: { opacity: 0, y: 12 },
@@ -156,22 +154,6 @@ export const KeyIcon = () => (
   >
     <path
       d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912l-2.148 2.148a2.25 2.25 0 01-1.591.659h-1.232v1.232a2.25 2.25 0 01-.659 1.591l-.621.621a2.25 2.25 0 01-1.591.659H4.5a1.5 1.5 0 01-1.5-1.5v-1.982c0-.597.237-1.169.659-1.591l6.66-6.661A6 6 0 1121.75 8.25z"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
-
-export const WordsIcon = () => (
-  <svg
-    className="w-5 h-5"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.5"
-    viewBox="0 0 24 24"
-  >
-    <path
-      d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"
       strokeLinecap="round"
       strokeLinejoin="round"
     />

@@ -8283,7 +8283,7 @@ export const zh_CN = {
     creating_new_recovery_backup: "创建新的恢复备份中...",
     saving_new_credentials: "保存新凭据中...",
     recover_your_account: "恢复您的账户",
-    enter_email_associated: "输入您的用户名以恢复您的账户",
+    enter_email_associated: "输入你要恢复的账户地址。",
     back_to_sign_in: "返回登录",
     email_me_reset_link: "通过电子邮件发送重置链接",
     have_recovery_code: "有恢复码吗？",
@@ -8301,7 +8301,7 @@ export const zh_CN = {
     set_new_password: "设置新密码",
     resetting_password: "正在重置密码...",
     enter_recovery_code: "输入恢复代码",
-    enter_recovery_code_desc: "输入您在创建账户时保存的恢复代码",
+    enter_recovery_code_desc: "输入创建账户时保存的任一恢复代码。",
     verify_code: "验证代码",
     create_new_password: "创建新密码",
     choose_strong_password: "为您的账户选择一个强密码",
@@ -8314,6 +8314,15 @@ export const zh_CN = {
     recovery_code_already_used:
       "该代码已使用。每个代码只能使用一次，请从保存的列表中输入其他代码。",
     try_another_way: "尝试其他方式",
+    recovery_email_label: "Aster Mail 地址",
+    recovery_domain_hint: "选择与你的账户匹配的域名。",
+    recovery_code_label: "恢复代码",
+    recovery_code_hint: "每个代码只能使用一次。代码格式为 ASTER-XXXX-XXXX-XXXX-XXXX。",
+    change_account: "使用其他地址",
+    support_step_title: "联系支持团队",
+    support_step_desc: "Aster Mail 无法读取你的加密数据，因此没有恢复代码或恢复邮箱，任何人都无法解锁。支持团队可以检查你的账户并说明后续步骤。",
+    support_email_action: "给支持团队发邮件",
+    support_help_center: "打开帮助中心",
     other_ways_title: "尝试其他方式",
     other_ways_desc: "选择你想要重新登录账户的方式。",
     other_way_code_title: "使用恢复代码",
@@ -8324,8 +8333,7 @@ export const zh_CN = {
     other_way_email_desc:
       "Aster Mail 会向你的恢复邮箱发送一个链接。你将无法访问重置前的邮件。",
     other_way_none_title: "这些我都没有",
-    other_way_none_desc:
-      "Aster Mail 无法读取你的加密数据，因此没有这些方式，任何人都无法恢复。你仍然可以创建账户。",
+    other_way_none_desc: "联系支持团队，我们会协助你完成后续步骤。",
     reset_account_title: "要重置你的账户吗?",
     reset_account_desc:
       "重置前的加密邮件、联系人和文件会保持锁定，直到你用旧密码恢复它们。你会获得一个新的空加密密钥。",

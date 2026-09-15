@@ -29,7 +29,6 @@ import {
   KeyIcon,
   MailIcon,
   OptionRow,
-  WordsIcon,
 } from "@/pages/forgot_password/shared";
 import {
   stagger_container,
@@ -45,7 +44,6 @@ export function OtherWaysStep({
   reduce_motion,
   set_error,
   set_step,
-  on_select_phrase,
   on_select_code,
   on_select_email,
   on_no_options,
@@ -118,14 +116,6 @@ export function OtherWaysStep({
               icon={<KeyIcon />}
               on_click={on_select_code}
               title={t("auth.other_way_code_title")}
-            />
-          </motion.div>
-          <motion.div variants={reduce_motion ? undefined : fade_up_item}>
-            <OptionRow
-              description={t("auth.other_way_phrase_desc")}
-              icon={<WordsIcon />}
-              on_click={on_select_phrase}
-              title={t("auth.other_way_phrase_title")}
             />
           </motion.div>
           <motion.div variants={reduce_motion ? undefined : fade_up_item}>

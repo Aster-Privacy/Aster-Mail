@@ -9295,8 +9295,7 @@ export const fr = {
       "Création d'une nouvelle sauvegarde de récupération...",
     saving_new_credentials: "Enregistrement des nouveaux identifiants...",
     recover_your_account: "Récupérer votre compte",
-    enter_email_associated:
-      "Entrez votre nom d'utilisateur pour récupérer votre compte",
+    enter_email_associated: "Saisissez l'adresse du compte que vous voulez récupérer.",
     back_to_sign_in: "Retour à la connexion",
     email_me_reset_link: "M'envoyer un lien de réinitialisation par e-mail",
     have_recovery_code: "Vous avez un code de récupération ?",
@@ -9316,8 +9315,7 @@ export const fr = {
     set_new_password: "Définir le nouveau mot de passe",
     resetting_password: "Réinitialisation du mot de passe...",
     enter_recovery_code: "Saisir le code de récupération",
-    enter_recovery_code_desc:
-      "Saisissez un des codes de récupération que vous avez sauvegardés lors de la création de votre compte",
+    enter_recovery_code_desc: "Saisissez l'un des codes de récupération que vous avez enregistrés à la création de votre compte.",
     verify_code: "Vérifier le code",
     create_new_password: "Créer un nouveau mot de passe",
     choose_strong_password: "Choisissez un mot de passe fort pour votre compte",
@@ -9331,6 +9329,15 @@ export const fr = {
     recovery_code_already_used:
       "Ce code a déjà été utilisé. Chaque code ne fonctionne qu'une fois, saisissez donc un autre code de votre liste enregistrée.",
     try_another_way: "Essayer autrement",
+    recovery_email_label: "Adresse Aster Mail",
+    recovery_domain_hint: "Choisissez le domaine qui correspond à votre compte.",
+    recovery_code_label: "Code de récupération",
+    recovery_code_hint: "Chaque code fonctionne une seule fois. Les codes ressemblent à ASTER-XXXX-XXXX-XXXX-XXXX.",
+    change_account: "Utiliser une autre adresse",
+    support_step_title: "Contacter le support",
+    support_step_desc: "Aster Mail ne peut pas lire vos données chiffrées, donc personne ne peut les déverrouiller sans un code de récupération ou votre e-mail de récupération. Le support peut vérifier votre compte et vous aider pour la suite.",
+    support_email_action: "Écrire au support",
+    support_help_center: "Ouvrir le centre d'aide",
     other_ways_title: "Essayer autrement",
     other_ways_desc: "Choisissez comment récupérer l'accès à votre compte.",
     other_way_code_title: "Utiliser un code de récupération",
@@ -9341,8 +9348,7 @@ export const fr = {
     other_way_email_desc:
       "Aster Mail envoie un lien à votre e-mail de récupération. Vous perdez l'accès aux messages antérieurs à la réinitialisation.",
     other_way_none_title: "Je n'ai aucun de ces éléments",
-    other_way_none_desc:
-      "Aster Mail ne peut pas lire vos données chiffrées, donc personne ne peut les récupérer sans l'un de ces éléments. Vous pouvez toujours créer un compte.",
+    other_way_none_desc: "Contactez le support et nous vous aidons pour la suite.",
     reset_account_title: "Réinitialiser votre compte ?",
     reset_account_desc:
       "Vos e-mails, contacts et fichiers chiffrés antérieurs à la réinitialisation restent verrouillés jusqu'à ce que vous les récupériez avec votre ancien mot de passe. Vous obtenez une nouvelle clé de chiffrement vide.",
