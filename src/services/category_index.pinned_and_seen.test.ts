@@ -29,6 +29,7 @@ import {
   get_page_ids,
   remove_thread_entries,
   mark_category_seen,
+  mark_categories_seen,
   clear_category_index_memory,
 } from "@/services/category_index";
 
@@ -179,6 +180,63 @@ describe("category_index mark_category_seen clock clamp", () => {
     upsert_entries([
       entry("fresh", {
         message_ts: new Date(BASE_NOW + 1000).toISOString(),
+      }),
+    ]);
+
+    expect(get_counts().primary!.new_count).toBeGreaterThanOrEqual(1);
+  });
+});
+
+describe("category_index mark_categories_seen deferred stamp", () => {
+  beforeEach(() => {
+    clear_category_index_memory();
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(BASE_NOW);
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("stamps at the moment the tab was opened, not when the scan runs", () => {
+    upsert_entries([
+      entry("before", {
+        message_ts: new Date(BASE_NOW - 60 * 1000).toISOString(),
+      }),
+    ]);
+
+    const opened_at = Date.now();
+
+    // Mail that lands while the stamp is deferred must still read as new, or a
+    // message arriving during the delay would be silently absorbed.
+    vi.setSystemTime(BASE_NOW + 200);
+    upsert_entries([
+      entry("during_delay", {
+        message_ts: new Date(BASE_NOW + 100).toISOString(),
+      }),
+    ]);
+
+    mark_categories_seen(["primary"], opened_at);
+
+    expect(get_counts().primary!.new_count).toBe(1);
+  });
+
+  it("clamps a future stamp to now so the badge cannot be blinded", () => {
+    upsert_entries([
+      entry("old", {
+        message_ts: new Date(BASE_NOW - 60 * 1000).toISOString(),
+      }),
+    ]);
+
+    mark_categories_seen(
+      ["primary"],
+      BASE_NOW + 5 * 365 * 24 * 60 * 60 * 1000,
+    );
+
+    vi.setSystemTime(BASE_NOW + 1000);
+    upsert_entries([
+      entry("fresh", {
+        message_ts: new Date(BASE_NOW + 500).toISOString(),
       }),
     ]);
 

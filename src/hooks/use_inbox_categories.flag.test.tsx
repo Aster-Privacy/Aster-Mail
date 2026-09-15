@@ -50,6 +50,7 @@ vi.mock("@/services/category_index", () => ({
   get_counts: () => ({}),
   are_counts_partial: () => false,
   mark_category_seen: vi.fn(),
+  mark_categories_seen: vi.fn(),
   subscribe: () => () => {},
   get_version: () => 0,
   is_index_loaded: () => false,

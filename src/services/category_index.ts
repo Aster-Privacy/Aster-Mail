@@ -1381,14 +1381,22 @@ export function mark_category_seen(category: EmailCategory): void {
 // instead of one per category. The ts <= wall guard below carries the same
 // weight as it does there: message_ts comes from the sender-controlled Date
 // header, so a future-dated message must never push the stamp forward.
+//
+// at_ms stamps with the wall clock captured when the user acted rather than
+// when this runs, so a caller may defer the scan off an interaction frame
+// without absorbing mail that arrived during the delay. It is clamped to now
+// for the same reason the ts <= wall guard exists: a stamp in the future would
+// blind the "new" badge to genuinely new mail.
 export function mark_categories_seen(
   categories: readonly EmailCategory[],
+  at_ms?: number,
 ): void {
   const unique = Array.from(new Set(categories));
 
   if (unique.length === 0) return;
 
-  const wall = now_ms();
+  const current = now_ms();
+  const wall = at_ms === undefined ? current : Math.min(at_ms, current);
   const newest_seen_ts = new Map<EmailCategory, number>(
     unique.map((cat) => [cat, 0]),
   );

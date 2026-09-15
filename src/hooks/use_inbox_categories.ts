@@ -84,6 +84,10 @@ function compute_active_tabs(
 const ACTIVE_CATEGORY_KEY = "astermail_active_category";
 const CATEGORIES_ENABLED_FLAG = "astermail_inbox_categories_enabled";
 
+// Long enough to clear the tab's tap transition, short enough that the "new"
+// badge settles while the user is still looking at the tab they opened.
+const SEEN_FLUSH_DELAY_MS = 200;
+
 // Holds the last-resolved tab for the lifetime of the page session so remounts
 // (navigating away and back) initialize synchronously with the correct tab
 // instead of flashing "primary" before the vault-encrypted value loads.
@@ -249,38 +253,70 @@ export function use_inbox_categories(
   }, []);
 
   const prev_marked_category_ref = useRef<EmailCategory | null>(null);
+  const pending_seen_ref = useRef<Set<EmailCategory>>(new Set());
+  const pending_seen_at_ref = useRef(0);
+  const seen_flush_timer_ref = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
 
-  // A tab switch used to mark the outgoing category seen in the previous
-  // effect's cleanup and the incoming one in this effect's body. Each mark
-  // runs a full index scan and a synchronous notify() that re-derives counts
-  // for every subscriber, so the switch paid that cost twice while the tab's
-  // tap animation was playing. Folding both into one call halves it.
+  const flush_seen_categories = useCallback(() => {
+    if (seen_flush_timer_ref.current !== null) {
+      clearTimeout(seen_flush_timer_ref.current);
+      seen_flush_timer_ref.current = null;
+    }
+
+    const pending = pending_seen_ref.current;
+
+    if (pending.size === 0) return;
+
+    const categories = Array.from(pending);
+    const at_ms = pending_seen_at_ref.current;
+
+    pending.clear();
+    pending_seen_at_ref.current = 0;
+    mark_categories_seen(categories, at_ms);
+  }, []);
+
+  // Stamping a category seen walks the whole index and then runs a synchronous
+  // notify() that re-derives counts for every subscriber. A tab switch used to
+  // pay that twice inline, once for the outgoing category and once for the
+  // incoming one, on the very frame the tap animation needed. Collect the
+  // categories here and stamp them once the animation is over, carrying the
+  // wall clock from the moment of the switch so the later stamp absorbs
+  // exactly the mail an immediate one would have. Rapid switching coalesces
+  // into a single pass rather than one per tab.
   useEffect(() => {
     if (!enabled) return;
     if (!stored_tab_loaded_ref.current) return;
 
     const prev = prev_marked_category_ref.current;
+    const pending = pending_seen_ref.current;
+
+    pending.add(active_category);
 
     if (prev && prev !== active_category && is_index_loaded()) {
-      mark_categories_seen([prev, active_category]);
-    } else {
-      mark_category_seen(active_category);
+      pending.add(prev);
+    }
+
+    if (pending_seen_at_ref.current === 0) {
+      pending_seen_at_ref.current = Date.now();
     }
 
     prev_marked_category_ref.current = active_category;
-  }, [enabled, active_category]);
+
+    if (seen_flush_timer_ref.current === null) {
+      seen_flush_timer_ref.current = setTimeout(
+        flush_seen_categories,
+        SEEN_FLUSH_DELAY_MS,
+      );
+    }
+  }, [enabled, active_category, flush_seen_categories]);
 
   useEffect(() => {
     return () => {
-      if (
-        enabled_ref.current &&
-        is_index_loaded() &&
-        prev_marked_category_ref.current
-      ) {
-        mark_category_seen(prev_marked_category_ref.current);
-      }
+      flush_seen_categories();
     };
-  }, []);
+  }, [flush_seen_categories]);
 
   const set_active_category = useCallback((category: EmailCategory) => {
     session_active_category = category;
