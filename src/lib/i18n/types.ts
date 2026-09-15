@@ -2577,8 +2577,15 @@ export interface SettingsTranslations {
   bridge_linux_appimage_arm64_link: string;
   bridge_linux_deb_arm64_link: string;
   bridge_linux_rpm_arm64_link: string;
+  bridge_other_formats: string;
+  bridge_arch_x64: string;
+  bridge_arch_arm64: string;
   bridge_cli_name: string;
   bridge_cli_desc: string;
+  bridge_cli_download: string;
+  bridge_cli_install_hint: string;
+  bridge_cli_copy_command: string;
+  bridge_cli_docs_link: string;
   bridge_cli_windows_link: string;
   bridge_cli_macos_link: string;
   bridge_cli_linux_link: string;
