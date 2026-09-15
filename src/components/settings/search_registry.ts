@@ -641,6 +641,22 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
     ],
   },
   {
+    label: "Command line",
+    label_key: "settings.bridge_cli_name",
+    section: "bridge",
+    breadcrumb: "Bridge > Download",
+    crumb_key: "settings_search.download",
+    keywords: [
+      "cli",
+      "command line",
+      "terminal",
+      "headless",
+      "ssh",
+      "server",
+      "aster-bridge",
+    ],
+  },
+  {
     label: "SMTP, IMAP, POP3 & JMAP",
     label_key: "settings.smtp_tokens",
     section: "bridge",

@@ -2311,6 +2311,13 @@ export const hi = {
     bridge_linux_appimage_arm64_link: "AppImage (ARM64)",
     bridge_linux_deb_arm64_link: ".deb (ARM64)",
     bridge_linux_rpm_arm64_link: ".rpm (ARM64)",
+    bridge_cli_name: "कमांड लाइन",
+    bridge_cli_desc:
+      "किसी सर्वर पर या SSH के ज़रिए, बिना विंडो के वही सर्वर चलाता है।",
+    bridge_cli_windows_link: "Windows",
+    bridge_cli_macos_link: "macOS",
+    bridge_cli_linux_link: "Linux (x86-64)",
+    bridge_cli_linux_arm64_link: "Linux (ARM64)",
     bridge_macos_name: "macOS",
     bridge_macos_desc:
       "Apple Silicon और Intel Mac के लिए यूनिवर्सल DMG डाउनलोड करें।",

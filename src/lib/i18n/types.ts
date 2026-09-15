@@ -1856,6 +1856,7 @@ export interface CommonTranslations {
   emoji_activities: string;
   emoji_flags: string;
   no_emojis_found: string;
+  emoji_recent: string;
   item_copied: string;
   copied_item: string;
   blocked_email: string;
@@ -2563,6 +2564,12 @@ export interface SettingsTranslations {
   bridge_linux_appimage_arm64_link: string;
   bridge_linux_deb_arm64_link: string;
   bridge_linux_rpm_arm64_link: string;
+  bridge_cli_name: string;
+  bridge_cli_desc: string;
+  bridge_cli_windows_link: string;
+  bridge_cli_macos_link: string;
+  bridge_cli_linux_link: string;
+  bridge_cli_linux_arm64_link: string;
   bridge_macos_name: string;
   bridge_macos_desc: string;
   bridge_macos_cta: string;
@@ -6978,6 +6985,7 @@ export interface MailTranslations {
   react: string;
   already_reacted: string;
   you_reacted_with: string;
+  you_reacted_with_remove: string;
   remove_your_reaction: string;
   reacted_with: string;
   reply_subject_prefix: string;
@@ -8254,6 +8262,7 @@ export interface ErrorTranslations {
   cannot_react_too_many_recipients: string;
   cannot_react_bcc: string;
   cannot_react_too_many_emojis: string;
+  cannot_react_limit: string;
   cannot_react_no_recipient: string;
   failed_send_reaction: string;
   reactions_disabled: string;

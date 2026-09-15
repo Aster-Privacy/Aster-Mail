@@ -3669,6 +3669,13 @@ export const ko = {
     bridge_linux_appimage_arm64_link: "AppImage (ARM64)",
     bridge_linux_deb_arm64_link: ".deb (ARM64)",
     bridge_linux_rpm_arm64_link: ".rpm (ARM64)",
+    bridge_cli_name: "명령줄",
+    bridge_cli_desc:
+      "창 없이 동일한 서버를 실행합니다. 서버에서도 SSH로도 사용할 수 있습니다.",
+    bridge_cli_windows_link: "Windows",
+    bridge_cli_macos_link: "macOS",
+    bridge_cli_linux_link: "Linux (x86-64)",
+    bridge_cli_linux_arm64_link: "Linux (ARM64)",
     bridge_macos_name: "macOS",
     bridge_macos_desc:
       "Apple 실리콘과 Intel Mac에서 모두 쓸 수 있는 유니버설 DMG를 내려받으세요.",

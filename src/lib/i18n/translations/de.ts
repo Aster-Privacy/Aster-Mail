@@ -6885,6 +6885,13 @@ export const de = {
     bridge_linux_appimage_arm64_link: "AppImage (ARM64)",
     bridge_linux_deb_arm64_link: ".deb (ARM64)",
     bridge_linux_rpm_arm64_link: ".rpm (ARM64)",
+    bridge_cli_name: "Befehlszeile",
+    bridge_cli_desc:
+      "Führt dieselben Server ohne Fenster aus, auf einem Server oder über SSH.",
+    bridge_cli_windows_link: "Windows",
+    bridge_cli_macos_link: "macOS",
+    bridge_cli_linux_link: "Linux (x86-64)",
+    bridge_cli_linux_arm64_link: "Linux (ARM64)",
     bridge_macos_name: "macOS",
     bridge_macos_desc:
       "Laden Sie das universelle DMG für Macs mit Apple Silicon und Intel herunter.",
