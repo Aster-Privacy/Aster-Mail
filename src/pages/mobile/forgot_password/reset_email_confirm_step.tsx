@@ -18,35 +18,38 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { PhraseStepProps } from "./types";
+import type { ResetEmailConfirmStepProps } from "./types";
 
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeftIcon } from "@heroicons/react/20/solid";
 
 import { use_i18n } from "@/lib/i18n/context";
-import { Input } from "@/components/ui/input";
+import { WarningIcon } from "@/pages/forgot_password/shared";
 import {
   stagger_container,
   fade_up_item,
   button_tap,
+  BACK_BUTTON_CLASS,
+  BACK_BUTTON_STYLE,
   DEPTH_CTA_CLASS,
   DEPTH_CTA_STYLE,
   DEPTH_SECONDARY_CLASS,
-  BACK_BUTTON_CLASS,
-  BACK_BUTTON_STYLE,
 } from "@/components/auth/mobile_auth_motion";
 
-export function PhraseStep({
-  phrase_words,
-  update_phrase_word,
+export function ResetEmailConfirmStep({
   error,
   is_dark,
   reduce_motion,
   set_error,
   set_step,
-  on_submit,
-}: PhraseStepProps) {
+  on_send_reset_link,
+}: ResetEmailConfirmStepProps) {
   const { t } = use_i18n();
+
+  const go_back = () => {
+    set_error("");
+    set_step("other_ways");
+  };
 
   return (
     <div className="flex flex-1 flex-col">
@@ -55,10 +58,7 @@ export function PhraseStep({
           className={BACK_BUTTON_CLASS}
           style={BACK_BUTTON_STYLE}
           whileTap={button_tap}
-          onClick={() => {
-            set_error("");
-            set_step("other_ways");
-          }}
+          onClick={go_back}
         >
           <ChevronLeftIcon className="h-5 w-5 rtl:-scale-x-100" />
         </motion.button>
@@ -66,31 +66,30 @@ export function PhraseStep({
 
       <motion.div
         animate="animate"
-        className="flex flex-1 flex-col items-center overflow-y-auto px-6 pt-6"
+        className="flex flex-1 flex-col items-center px-6 pt-6"
         initial={reduce_motion ? false : "initial"}
         variants={reduce_motion ? undefined : stagger_container}
       >
-        <motion.img
-          alt="Aster"
-          className="h-8"
-          decoding="async"
-          draggable={false}
-          src="/text_logo.png"
+        <motion.div
+          className="flex h-16 w-16 items-center justify-center rounded-full text-[#f59e0b]"
+          style={{ backgroundColor: "rgba(245, 158, 11, 0.1)" }}
           variants={reduce_motion ? undefined : fade_up_item}
-        />
+        >
+          <WarningIcon />
+        </motion.div>
 
         <motion.h1
           className="mt-6 text-center text-xl font-semibold text-[var(--text-primary)]"
           variants={reduce_motion ? undefined : fade_up_item}
         >
-          {t("auth.phrase_entry_title")}
+          {t("auth.reset_account_title")}
         </motion.h1>
 
         <motion.p
           className="mt-2 text-center text-sm leading-relaxed text-[var(--text-tertiary)]"
           variants={reduce_motion ? undefined : fade_up_item}
         >
-          {t("auth.phrase_entry_desc")}
+          {t("auth.reset_account_desc")}
         </motion.p>
 
         <AnimatePresence>
@@ -106,25 +105,6 @@ export function PhraseStep({
             </motion.p>
           )}
         </AnimatePresence>
-
-        <motion.div
-          className={`grid w-full grid-cols-3 gap-2 ${error ? "mt-4" : "mt-6"}`}
-          variants={reduce_motion ? undefined : fade_up_item}
-        >
-          {phrase_words.map((word, index) => (
-            <Input
-              key={index}
-              autoComplete="off"
-              className="!px-2 font-mono text-sm"
-              placeholder={`${index + 1}`}
-              status={error ? "error" : "default"}
-              type="text"
-              value={word}
-              onChange={(e) => update_phrase_word(index, e.target.value)}
-              onKeyDown={(e) => e["key"] === "Enter" && on_submit()}
-            />
-          ))}
-        </motion.div>
       </motion.div>
 
       <motion.div
@@ -139,17 +119,14 @@ export function PhraseStep({
           className={DEPTH_CTA_CLASS}
           style={DEPTH_CTA_STYLE}
           whileTap={button_tap}
-          onClick={on_submit}
+          onClick={on_send_reset_link}
         >
-          {t("common.continue")}
+          {t("auth.send_reset_link")}
         </motion.button>
         <motion.button
           className={DEPTH_SECONDARY_CLASS}
           whileTap={button_tap}
-          onClick={() => {
-            set_error("");
-            set_step("other_ways");
-          }}
+          onClick={go_back}
         >
           {t("common.back")}
         </motion.button>

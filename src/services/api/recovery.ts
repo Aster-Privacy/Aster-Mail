@@ -22,7 +22,7 @@ import { RecoveryShareData } from "../crypto/recovery_key";
 
 import { api_client, ApiResponse } from "./client";
 
-interface InitiateRecoveryResponse {
+export interface InitiateRecoveryResponse {
   encrypted_vault_backup: string;
   vault_backup_nonce: string;
   recovery_key_salt: string;
@@ -30,6 +30,37 @@ interface InitiateRecoveryResponse {
   recovery_key_nonce: string;
   code_salt: string;
   recovery_token: string;
+  encrypted_recovery_email?: string;
+  recovery_email_nonce?: string;
+}
+
+export interface RecoveryEmailReencryption {
+  encrypted_email: string;
+  email_nonce: string;
+}
+
+export interface CodeState {
+  code_hash: string;
+  status: string;
+  used_at: string | null;
+}
+
+export interface UsedCode {
+  code_hash: string;
+  used_at: string;
+}
+
+export interface CodesStatus {
+  created_at: string | null;
+  total: number;
+  remaining: number;
+  used: UsedCode[];
+}
+
+export interface CodesStepUp {
+  step_up_token: string;
+  expires_at: string;
+  codes: CodeState[];
 }
 
 interface CompleteRecoveryResponse {
@@ -84,6 +115,7 @@ export async function complete_recovery(
   new_signed_prekey_signature?: string,
   new_pgp_key?: NewPgpKeyData,
   vault_format?: number,
+  new_recovery_email?: RecoveryEmailReencryption,
 ): Promise<ApiResponse<CompleteRecoveryResponse>> {
   return api_client.post<CompleteRecoveryResponse>(
     "/core/v1/recovery/complete",
@@ -102,6 +134,7 @@ export async function complete_recovery(
       new_signed_prekey_signature,
       new_pgp_key,
       vault_format,
+      new_recovery_email,
     },
   );
 }
@@ -135,6 +168,7 @@ export async function reset_password_with_token(
   new_pgp_key?: NewPgpKeyData,
   vault_format?: number,
   acknowledged_data_loss?: boolean,
+  new_recovery_email?: RecoveryEmailReencryption,
 ): Promise<ApiResponse<ResetPasswordResponse>> {
   return api_client.post<ResetPasswordResponse>(
     "/core/v1/recovery/reset-password",
@@ -154,8 +188,18 @@ export async function reset_password_with_token(
       new_pgp_key,
       vault_format,
       acknowledged_data_loss,
+      new_recovery_email,
     },
   );
+}
+
+export interface SaveRecoveryBackupOptions {
+  step_up_token?: string;
+  password_hash?: string;
+  totp_code?: string;
+  encrypted_vault?: string;
+  vault_nonce?: string;
+  vault_format?: number;
 }
 
 export async function save_recovery_backup(
@@ -163,6 +207,7 @@ export async function save_recovery_backup(
   vault_backup_nonce: string,
   recovery_key_salt: string,
   recovery_shares: RecoveryShareData[],
+  options: SaveRecoveryBackupOptions = {},
 ): Promise<ApiResponse<SaveRecoveryBackupResponse>> {
   return api_client.post<SaveRecoveryBackupResponse>(
     "/core/v1/recovery/backup",
@@ -171,6 +216,24 @@ export async function save_recovery_backup(
       vault_backup_nonce,
       recovery_key_salt,
       recovery_shares,
+      ...options,
+    },
+  );
+}
+
+export async function get_codes_status(): Promise<ApiResponse<CodesStatus>> {
+  return api_client.get<CodesStatus>("/core/v1/recovery/codes/status");
+}
+
+export async function verify_codes_step_up(
+  password_hash: string,
+  totp_code?: string,
+): Promise<ApiResponse<CodesStepUp>> {
+  return api_client.post<CodesStepUp>(
+    "/core/v1/recovery/codes/verify-step-up",
+    {
+      password_hash,
+      totp_code,
     },
   );
 }
@@ -208,22 +271,6 @@ export async function get_recovery_methods(): Promise<
   ApiResponse<RecoveryMethods>
 > {
   return api_client.get<RecoveryMethods>("/core/v1/recovery/methods");
-}
-
-export async function save_phrase_wrap(
-  current_password_hash: string,
-  verifier_hash: string,
-  wrapped_vault: string,
-  wrap_nonce: string,
-  wrap_salt: string,
-): Promise<ApiResponse<{ success: boolean }>> {
-  return api_client.put<{ success: boolean }>("/core/v1/recovery/phrase", {
-    current_password_hash,
-    verifier_hash,
-    wrapped_vault,
-    wrap_nonce,
-    wrap_salt,
-  });
 }
 
 export async function delete_phrase_wrap(

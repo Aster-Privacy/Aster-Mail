@@ -53,8 +53,12 @@ export function first_run_age_ms(): number | null {
   return Date.now() - started;
 }
 
-export function is_recovery_snoozed(): boolean {
-  const raw = read(RECOVERY_SNOOZE_KEY);
+function recovery_snooze_key(scope?: string): string {
+  return scope ? `${RECOVERY_SNOOZE_KEY}_${scope}` : RECOVERY_SNOOZE_KEY;
+}
+
+export function is_recovery_snoozed(scope?: string): boolean {
+  const raw = read(recovery_snooze_key(scope));
 
   if (!raw) return false;
 
@@ -63,8 +67,8 @@ export function is_recovery_snoozed(): boolean {
   return Number.isFinite(until) && Date.now() < until;
 }
 
-export function snooze_recovery(duration_ms: number): void {
-  safe_local_set(RECOVERY_SNOOZE_KEY, String(Date.now() + duration_ms));
+export function snooze_recovery(duration_ms: number, scope?: string): void {
+  safe_local_set(recovery_snooze_key(scope), String(Date.now() + duration_ms));
 }
 
 export function is_first_run_tour_pending(): boolean {

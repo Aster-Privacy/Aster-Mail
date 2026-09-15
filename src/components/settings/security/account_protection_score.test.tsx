@@ -48,6 +48,7 @@ globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 const NONE = {
   totp_enabled: false,
   passkey_registered: false,
+  recovery_codes_saved: false,
   recovery_email_verified: false,
   login_alerts_enabled: false,
   block_tracking_pixels: false,
@@ -99,6 +100,7 @@ describe("AccountProtectionScore", () => {
     await render_card({
       totp_enabled: true,
       passkey_registered: true,
+      recovery_codes_saved: true,
       recovery_email_verified: true,
       login_alerts_enabled: true,
       block_tracking_pixels: true,

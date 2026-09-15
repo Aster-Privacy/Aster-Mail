@@ -31,44 +31,47 @@ import { useTheme } from "@/contexts/theme_context";
 import { use_should_reduce_motion } from "@/provider";
 import {
   derive_password_hash,
-  generate_recovery_codes,
   encrypt_vault,
   generate_identity_keypair,
+  generate_recovery_codes,
   generate_signed_prekey,
   prepare_pgp_key_data,
+  RECOVERY_CODE_SET_SIZE,
 } from "@/services/crypto/key_manager";
 import {
-  hash_recovery_code,
-  is_valid_recovery_code,
+  clear_recovery_key,
   decrypt_recovery_key_with_code,
   decrypt_vault_backup,
-  generate_recovery_key,
   encrypt_vault_backup,
   generate_all_recovery_shares,
-  clear_recovery_key,
+  generate_recovery_key,
+  hash_recovery_code,
+  is_valid_recovery_code,
   VaultBackup,
 } from "@/services/crypto/recovery_key";
 import { EncryptedVault } from "@/services/crypto/key_manager_core";
 import {
-  MASTER_KEY_VAULT_FORMAT,
   is_master_key_vault,
+  MASTER_KEY_VAULT_FORMAT,
 } from "@/services/crypto/memory_key_store";
 import {
-  is_valid_recovery_phrase,
   compute_phrase_verifier,
-  unwrap_vault_with_phrase,
+  is_valid_recovery_phrase,
   RECOVERY_PHRASE_WORD_COUNT,
+  unwrap_vault_with_phrase,
 } from "@/services/crypto/recovery_phrase";
 import {
-  initiate_recovery,
   complete_recovery,
   forgot_password_email,
   initiate_phrase_recovery,
+  initiate_recovery,
+  RecoveryEmailReencryption,
 } from "@/services/api/recovery";
+import { reencrypt_recovery_email } from "@/services/api/recovery_email";
 import { store_pending_reencryption } from "@/services/crypto/recovery_reencrypt";
 import {
-  generate_recovery_pdf,
   download_recovery_text,
+  generate_recovery_pdf,
 } from "@/services/crypto/recovery_pdf";
 import {
   PASSWORD_RULE_MESSAGE_KEYS,
@@ -89,7 +92,18 @@ function is_transport_failure(code?: string): boolean {
   return code !== undefined && TRANSPORT_FAILURE_CODES.has(code);
 }
 
-export function use_forgot_password() {
+interface StoredRecoveryEmail {
+  encrypted_email: string;
+  email_nonce: string;
+}
+
+export interface RecoveryReviewInfo {
+  codes_remaining: number;
+  second_factors_removed: boolean;
+  recovery_email_kept: boolean;
+}
+
+export function use_recovery_flow() {
   const { t } = use_i18n();
   const reduce_motion = use_should_reduce_motion();
   const navigate = useNavigate();
@@ -113,6 +127,12 @@ export function use_forgot_password() {
   const [is_key_visible, set_is_key_visible] = useState(false);
   const [copy_success, set_copy_success] = useState(false);
   const [codes_downloaded, set_codes_downloaded] = useState(false);
+  const [codes_saved, set_codes_saved] = useState(false);
+  const [review, set_review] = useState<RecoveryReviewInfo>({
+    codes_remaining: RECOVERY_CODE_SET_SIZE,
+    second_factors_removed: true,
+    recovery_email_kept: false,
+  });
   const copy_timer_ref = useRef<number | null>(null);
 
   useEffect(() => {
@@ -128,6 +148,8 @@ export function use_forgot_password() {
   const [code_salt, set_code_salt] = useState("");
   const [encrypted_recovery_key_data, set_encrypted_recovery_key_data] =
     useState<{ encrypted_key: string; nonce: string } | null>(null);
+  const [stored_recovery_email, set_stored_recovery_email] =
+    useState<StoredRecoveryEmail | null>(null);
 
   const [recovery_method, set_recovery_method] =
     useState<RecoveryMethod>("code");
@@ -140,8 +162,7 @@ export function use_forgot_password() {
     wrap_salt: string;
   } | null>(null);
 
-  const handle_email_next = () => {
-    set_error("");
+  const resolve_username = (): string | null => {
     const typed = username.trim();
     const at_index = typed.indexOf("@");
     const typed_domain =
@@ -150,7 +171,7 @@ export function use_forgot_password() {
     if (typed_domain && typed_domain !== email_domain) {
       set_error(t("errors.sign_in_domain_unsupported"));
 
-      return;
+      return null;
     }
 
     const clean_username = sanitize_username(
@@ -160,13 +181,23 @@ export function use_forgot_password() {
     if (!clean_username) {
       set_error(t("errors.invalid_username"));
 
+      return null;
+    }
+
+    return clean_username;
+  };
+
+  const handle_email_next = () => {
+    set_error("");
+
+    const clean_username = resolve_username();
+
+    if (!clean_username) {
       return;
     }
 
-    const full_email = `${clean_username}@${email_domain}`;
-
-    set_email(full_email);
-    set_step("method_choice");
+    set_email(`${clean_username}@${email_domain}`);
+    set_step("code");
   };
 
   const update_phrase_word = (index: number, value: string) => {
@@ -242,6 +273,8 @@ export function use_forgot_password() {
         wrap_salt: response.data.wrap_salt,
       });
       set_recovery_token(response.data.recovery_token);
+      set_recovery_method("phrase");
+      set_stored_recovery_email(null);
 
       set_step("password");
     } catch {
@@ -253,24 +286,10 @@ export function use_forgot_password() {
 
   const handle_email_reset_link = async () => {
     set_error("");
-    const typed = username.trim();
-    const at_index = typed.indexOf("@");
-    const typed_domain =
-      at_index === -1 ? "" : typed.substring(at_index + 1).toLowerCase();
 
-    if (typed_domain && typed_domain !== email_domain) {
-      set_error(t("errors.sign_in_domain_unsupported"));
-
-      return;
-    }
-
-    const clean_username = sanitize_username(
-      at_index === -1 ? typed : typed.substring(0, at_index),
-    );
+    const clean_username = resolve_username();
 
     if (!clean_username) {
-      set_error(t("errors.invalid_username"));
-
       return;
     }
 
@@ -286,14 +305,14 @@ export function use_forgot_password() {
 
     if (reset_response.code === "RATE_LIMIT_EXCEEDED") {
       set_error(t("errors.rate_limit"));
-      set_step("method_choice");
+      set_step("reset_email_confirm");
 
       return;
     }
 
     if (reset_response.error || !reset_response.data) {
       set_error(t("common.something_went_wrong_try_again"));
-      set_step("method_choice");
+      set_step("reset_email_confirm");
 
       return;
     }
@@ -331,7 +350,6 @@ export function use_forgot_password() {
 
     try {
       const code_hash = await hash_recovery_code(trimmed_code);
-
       const response = await initiate_recovery(code_hash, trimmed_email);
 
       if (response.error || !response.data) {
@@ -353,6 +371,18 @@ export function use_forgot_password() {
         nonce: response.data.recovery_key_nonce,
       });
       set_recovery_token(response.data.recovery_token);
+      set_recovery_method("code");
+
+      const { encrypted_recovery_email, recovery_email_nonce } = response.data;
+
+      set_stored_recovery_email(
+        encrypted_recovery_email && recovery_email_nonce
+          ? {
+              encrypted_email: encrypted_recovery_email,
+              email_nonce: recovery_email_nonce,
+            }
+          : null,
+      );
 
       set_step("password");
     } catch {
@@ -360,6 +390,151 @@ export function use_forgot_password() {
       set_error(t("auth.recovery_failed"));
       set_step("code");
     }
+  };
+
+  const rotate_vault_keys = async (vault: EncryptedVault) => {
+    const display_name = email.split("@")[0] || "User";
+
+    const new_identity_keypair = await generate_identity_keypair(
+      display_name,
+      email,
+      password,
+    );
+
+    const { keypair: new_prekey_keypair, signature: prekey_signature } =
+      await generate_signed_prekey(
+        display_name,
+        email,
+        password,
+        new_identity_keypair.secret_key,
+      );
+
+    const pgp_key_data = await prepare_pgp_key_data(
+      new_identity_keypair,
+      password,
+    );
+
+    if (!vault.previous_keys) {
+      vault.previous_keys = [];
+    }
+
+    if (
+      vault.identity_key &&
+      !vault.previous_keys.includes(vault.identity_key)
+    ) {
+      vault.previous_keys.unshift(vault.identity_key);
+    }
+
+    if (vault.previous_keys.length > 10) {
+      vault.previous_keys = vault.previous_keys.slice(0, 10);
+    }
+
+    vault.identity_key = new_identity_keypair.secret_key;
+    vault.signed_prekey = new_prekey_keypair.public_key;
+    vault.signed_prekey_private = new_prekey_keypair.secret_key;
+
+    return {
+      new_identity_keypair,
+      new_prekey_keypair,
+      prekey_signature,
+      pgp_key_data,
+    };
+  };
+
+  const finish_recovery = async (vault: EncryptedVault) => {
+    const vault_uses_master_key = is_master_key_vault(vault);
+    const old_data_kek = vault.data_kek ?? null;
+    const old_identity_key = vault.identity_key;
+    const old_vault: EncryptedVault = { ...vault };
+
+    set_processing_status(t("auth.generating_new_encryption_keys"));
+    const salt = crypto.getRandomValues(new Uint8Array(32));
+    const { hash: password_hash, salt: password_salt } =
+      await derive_password_hash(password, salt);
+
+    const {
+      new_identity_keypair,
+      new_prekey_keypair,
+      prekey_signature,
+      pgp_key_data,
+    } = await rotate_vault_keys(vault);
+
+    set_processing_status(t("auth.creating_new_recovery_codes"));
+    const new_codes = generate_recovery_codes(RECOVERY_CODE_SET_SIZE);
+
+    set_new_recovery_codes(new_codes);
+
+    vault.recovery_codes = new_codes;
+
+    set_processing_status(t("auth.encrypting_vault_new_password"));
+    const { encrypted_vault, vault_nonce } = await encrypt_vault(
+      vault,
+      password,
+    );
+
+    set_processing_status(t("auth.creating_new_recovery_backup"));
+    const new_recovery_key = generate_recovery_key();
+    const new_backup = await encrypt_vault_backup(vault, new_recovery_key);
+    const new_shares = await generate_all_recovery_shares(
+      new_codes,
+      new_recovery_key,
+    );
+
+    clear_recovery_key(new_recovery_key);
+
+    let new_recovery_email: RecoveryEmailReencryption | undefined;
+
+    if (stored_recovery_email) {
+      const reencrypted = await reencrypt_recovery_email(
+        stored_recovery_email.encrypted_email,
+        stored_recovery_email.email_nonce,
+        old_vault,
+        vault,
+      );
+
+      new_recovery_email = reencrypted ?? undefined;
+    }
+
+    set_processing_status(t("auth.saving_new_credentials"));
+    const complete_response = await complete_recovery(
+      recovery_token,
+      password_hash,
+      password_salt,
+      encrypted_vault,
+      vault_nonce,
+      new_shares,
+      new_backup.encrypted_data,
+      new_backup.nonce,
+      new_backup.salt,
+      btoa(new_identity_keypair.public_key),
+      btoa(new_prekey_keypair.public_key),
+      btoa(prekey_signature),
+      pgp_key_data,
+      vault_uses_master_key ? MASTER_KEY_VAULT_FORMAT : undefined,
+      new_recovery_email,
+    );
+
+    if (complete_response.error || !complete_response.data?.success) {
+      throw new Error(
+        recovery_error_message(complete_response, t) || t("auth.recovery_failed"),
+      );
+    }
+
+    if (!vault_uses_master_key) {
+      store_pending_reencryption({
+        ...(old_data_kek ? { old_data_kek } : {}),
+        old_identity_key,
+      });
+    }
+
+    set_review({
+      codes_remaining: new_codes.length,
+      second_factors_removed: true,
+      recovery_email_kept: new_recovery_email !== undefined,
+    });
+    set_codes_saved(false);
+    set_codes_downloaded(false);
+    set_step("new_codes");
   };
 
   const complete_phrase_recovery = async () => {
@@ -402,106 +577,7 @@ export function use_forgot_password() {
         return;
       }
 
-      const vault_uses_master_key = is_master_key_vault(vault);
-      const old_data_kek = vault.data_kek ?? null;
-      const old_identity_key = vault.identity_key;
-
-      set_processing_status(t("auth.generating_new_encryption_keys"));
-      const salt = crypto.getRandomValues(new Uint8Array(32));
-      const { hash: password_hash, salt: password_salt } =
-        await derive_password_hash(password, salt);
-
-      const display_name = email.split("@")[0] || "User";
-
-      const new_identity_keypair = await generate_identity_keypair(
-        display_name,
-        email,
-        password,
-      );
-
-      const { keypair: new_prekey_keypair, signature: prekey_signature } =
-        await generate_signed_prekey(
-          display_name,
-          email,
-          password,
-          new_identity_keypair.secret_key,
-        );
-
-      const pgp_key_data = await prepare_pgp_key_data(
-        new_identity_keypair,
-        password,
-      );
-
-      if (!vault.previous_keys) {
-        vault.previous_keys = [];
-      }
-      if (
-        vault.identity_key &&
-        !vault.previous_keys.includes(vault.identity_key)
-      ) {
-        vault.previous_keys.unshift(vault.identity_key);
-      }
-      if (vault.previous_keys.length > 10) {
-        vault.previous_keys = vault.previous_keys.slice(0, 10);
-      }
-
-      vault.identity_key = new_identity_keypair.secret_key;
-      vault.signed_prekey = new_prekey_keypair.public_key;
-      vault.signed_prekey_private = new_prekey_keypair.secret_key;
-
-      set_processing_status(t("auth.creating_new_recovery_codes"));
-      const new_codes = generate_recovery_codes(6);
-
-      set_new_recovery_codes(new_codes);
-
-      vault.recovery_codes = new_codes;
-
-      set_processing_status(t("auth.encrypting_vault_new_password"));
-      const { encrypted_vault, vault_nonce } = await encrypt_vault(
-        vault,
-        password,
-      );
-
-      set_processing_status(t("auth.creating_new_recovery_backup"));
-      const new_recovery_key = generate_recovery_key();
-      const new_backup = await encrypt_vault_backup(vault, new_recovery_key);
-      const new_shares = await generate_all_recovery_shares(
-        new_codes,
-        new_recovery_key,
-      );
-
-      clear_recovery_key(new_recovery_key);
-
-      set_processing_status(t("auth.saving_new_credentials"));
-      const complete_response = await complete_recovery(
-        recovery_token,
-        password_hash,
-        password_salt,
-        encrypted_vault,
-        vault_nonce,
-        new_shares,
-        new_backup.encrypted_data,
-        new_backup.nonce,
-        new_backup.salt,
-        btoa(new_identity_keypair.public_key),
-        btoa(new_prekey_keypair.public_key),
-        btoa(prekey_signature),
-        pgp_key_data,
-        vault_uses_master_key ? MASTER_KEY_VAULT_FORMAT : undefined,
-      );
-
-      if (complete_response.error || !complete_response.data?.success) {
-        throw new Error(complete_response.error || t("auth.recovery_failed"));
-      }
-
-      if (!vault_uses_master_key) {
-        store_pending_reencryption({
-          ...(old_data_kek ? { old_data_kek } : {}),
-          old_identity_key,
-        });
-      }
-
-      set_step("new_codes");
+      await finish_recovery(vault);
     } catch (err) {
       await timing_safe_delay();
       set_error(user_facing_error(err, t("auth.recovery_failed")));
@@ -548,8 +624,10 @@ export function use_forgot_password() {
     set_step("processing");
     set_processing_status(t("auth.decrypting_vault"));
 
+    let recovery_key: Uint8Array | null = null;
+
     try {
-      const recovery_key = await decrypt_recovery_key_with_code(
+      recovery_key = await decrypt_recovery_key_with_code(
         {
           encrypted_key: encrypted_recovery_key_data.encrypted_key,
           nonce: encrypted_recovery_key_data.nonce,
@@ -561,109 +639,15 @@ export function use_forgot_password() {
       set_processing_status(t("auth.recovering_account_data"));
       const vault = await decrypt_vault_backup(vault_backup, recovery_key);
 
-      const vault_uses_master_key = is_master_key_vault(vault);
-      const old_data_kek = vault.data_kek ?? null;
-      const old_identity_key = vault.identity_key;
-
-      set_processing_status(t("auth.generating_new_encryption_keys"));
-      const salt = crypto.getRandomValues(new Uint8Array(32));
-      const { hash: password_hash, salt: password_salt } =
-        await derive_password_hash(password, salt);
-
-      const display_name = email.split("@")[0] || "User";
-
-      const new_identity_keypair = await generate_identity_keypair(
-        display_name,
-        email,
-        password,
-      );
-
-      const { keypair: new_prekey_keypair, signature: prekey_signature } =
-        await generate_signed_prekey(
-          display_name,
-          email,
-          password,
-          new_identity_keypair.secret_key,
-        );
-
-      const pgp_key_data = await prepare_pgp_key_data(
-        new_identity_keypair,
-        password,
-      );
-
-      if (!vault.previous_keys) {
-        vault.previous_keys = [];
-      }
-      if (
-        vault.identity_key &&
-        !vault.previous_keys.includes(vault.identity_key)
-      ) {
-        vault.previous_keys.unshift(vault.identity_key);
-      }
-
-      if (vault.previous_keys.length > 10) {
-        vault.previous_keys = vault.previous_keys.slice(0, 10);
-      }
-
-      vault.identity_key = new_identity_keypair.secret_key;
-      vault.signed_prekey = new_prekey_keypair.public_key;
-      vault.signed_prekey_private = new_prekey_keypair.secret_key;
-
-      set_processing_status(t("auth.creating_new_recovery_codes"));
-      const new_codes = generate_recovery_codes(6);
-
-      set_new_recovery_codes(new_codes);
-
-      vault.recovery_codes = new_codes;
-
-      set_processing_status(t("auth.encrypting_vault_new_password"));
-      const { encrypted_vault, vault_nonce } = await encrypt_vault(
-        vault,
-        password,
-      );
-
-      set_processing_status(t("auth.creating_new_recovery_backup"));
-      const new_recovery_key = generate_recovery_key();
-      const new_backup = await encrypt_vault_backup(vault, new_recovery_key);
-      const new_shares = await generate_all_recovery_shares(
-        new_codes,
-        new_recovery_key,
-      );
-
       clear_recovery_key(recovery_key);
-      clear_recovery_key(new_recovery_key);
+      recovery_key = null;
 
-      set_processing_status(t("auth.saving_new_credentials"));
-      const complete_response = await complete_recovery(
-        recovery_token,
-        password_hash,
-        password_salt,
-        encrypted_vault,
-        vault_nonce,
-        new_shares,
-        new_backup.encrypted_data,
-        new_backup.nonce,
-        new_backup.salt,
-        btoa(new_identity_keypair.public_key),
-        btoa(new_prekey_keypair.public_key),
-        btoa(prekey_signature),
-        pgp_key_data,
-        vault_uses_master_key ? MASTER_KEY_VAULT_FORMAT : undefined,
-      );
-
-      if (complete_response.error || !complete_response.data?.success) {
-        throw new Error(complete_response.error || t("auth.recovery_failed"));
-      }
-
-      if (!vault_uses_master_key) {
-        store_pending_reencryption({
-          ...(old_data_kek ? { old_data_kek } : {}),
-          old_identity_key,
-        });
-      }
-
-      set_step("new_codes");
+      await finish_recovery(vault);
     } catch (err) {
+      if (recovery_key) {
+        clear_recovery_key(recovery_key);
+      }
+
       await timing_safe_delay();
       set_error(user_facing_error(err, t("auth.recovery_failed")));
       set_step("password");
@@ -708,6 +692,16 @@ export function use_forgot_password() {
     }
   };
 
+  const handle_print_codes = () => {
+    window.print();
+  };
+
+  const handle_codes_continue = () => {
+    set_new_recovery_codes([]);
+    set_is_key_visible(false);
+    set_step("review_security");
+  };
+
   return {
     t,
     reduce_motion,
@@ -739,6 +733,9 @@ export function use_forgot_password() {
     set_is_key_visible,
     copy_success,
     codes_downloaded,
+    codes_saved,
+    set_codes_saved,
+    review,
     recovery_method,
     set_recovery_method,
     phrase_words,
@@ -751,5 +748,7 @@ export function use_forgot_password() {
     handle_copy_codes,
     handle_download_pdf,
     handle_download_txt,
+    handle_print_codes,
+    handle_codes_continue,
   };
 }

@@ -141,6 +141,32 @@ async function decrypt_recovery_email(
   return new TextDecoder().decode(decrypted);
 }
 
+export async function reencrypt_recovery_email(
+  encrypted: string,
+  nonce: string,
+  old_vault: EncryptedVault,
+  new_vault: EncryptedVault,
+): Promise<{ encrypted_email: string; email_nonce: string } | null> {
+  try {
+    const address = await decrypt_recovery_email(encrypted, nonce, old_vault);
+
+    if (!address) {
+      return null;
+    }
+
+    const reencrypted = await encrypt_recovery_email(address, new_vault);
+
+    return {
+      encrypted_email: reencrypted.encrypted,
+      email_nonce: reencrypted.nonce,
+    };
+  } catch (caught) {
+    ignore_error("services/api/recovery_email:reencrypt", caught);
+
+    return null;
+  }
+}
+
 export async function get_recovery_email(
   vault: EncryptedVault | null,
 ): Promise<{ data: RecoveryEmailData }> {

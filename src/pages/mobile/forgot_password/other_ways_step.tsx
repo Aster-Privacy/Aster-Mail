@@ -18,12 +18,19 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { MethodChoiceStepProps } from "./types";
+import type { OtherWaysStepProps } from "./types";
 
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeftIcon } from "@heroicons/react/20/solid";
 
 import { use_i18n } from "@/lib/i18n/context";
+import {
+  HelpIcon,
+  KeyIcon,
+  MailIcon,
+  OptionRow,
+  WordsIcon,
+} from "@/pages/forgot_password/shared";
 import {
   stagger_container,
   fade_up_item,
@@ -32,64 +39,7 @@ import {
   BACK_BUTTON_STYLE,
 } from "@/components/auth/mobile_auth_motion";
 
-interface MethodCardProps {
-  title: string;
-  description: string;
-  badge: string;
-  badge_tone: "green" | "amber";
-  reduce_motion: boolean;
-  on_click: () => void;
-}
-
-function MethodCard({
-  title,
-  description,
-  badge,
-  badge_tone,
-  reduce_motion,
-  on_click,
-}: MethodCardProps) {
-  return (
-    <motion.button
-      className="w-full rounded-xl border p-4 text-start"
-      style={{
-        background: "var(--bg-secondary)",
-        borderColor: "var(--border-secondary)",
-      }}
-      type="button"
-      variants={reduce_motion ? undefined : fade_up_item}
-      whileTap={button_tap}
-      onClick={on_click}
-    >
-      <div className="flex items-center justify-between gap-2">
-        <span className="text-sm font-medium text-[var(--text-primary)]">
-          {title}
-        </span>
-        <span
-          className="shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium"
-          style={
-            badge_tone === "green"
-              ? {
-                  color: "#22c55e",
-                  backgroundColor: "rgba(34, 197, 94, 0.1)",
-                }
-              : {
-                  color: "#f59e0b",
-                  backgroundColor: "rgba(245, 158, 11, 0.1)",
-                }
-          }
-        >
-          {badge}
-        </span>
-      </div>
-      <p className="mt-1.5 text-xs leading-relaxed text-[var(--text-tertiary)]">
-        {description}
-      </p>
-    </motion.button>
-  );
-}
-
-export function MethodChoiceStep({
+export function OtherWaysStep({
   error,
   is_dark,
   reduce_motion,
@@ -98,7 +48,8 @@ export function MethodChoiceStep({
   on_select_phrase,
   on_select_code,
   on_select_email,
-}: MethodChoiceStepProps) {
+  on_no_options,
+}: OtherWaysStepProps) {
   const { t } = use_i18n();
 
   return (
@@ -110,7 +61,7 @@ export function MethodChoiceStep({
           whileTap={button_tap}
           onClick={() => {
             set_error("");
-            set_step("email");
+            set_step("code");
           }}
         >
           <ChevronLeftIcon className="h-5 w-5 rtl:-scale-x-100" />
@@ -136,14 +87,14 @@ export function MethodChoiceStep({
           className="mt-6 text-center text-xl font-semibold text-[var(--text-primary)]"
           variants={reduce_motion ? undefined : fade_up_item}
         >
-          {t("auth.forgot_method_title")}
+          {t("auth.other_ways_title")}
         </motion.h1>
 
         <motion.p
           className="mt-2 text-center text-sm leading-relaxed text-[var(--text-tertiary)]"
           variants={reduce_motion ? undefined : fade_up_item}
         >
-          {t("auth.forgot_method_desc")}
+          {t("auth.other_ways_desc")}
         </motion.p>
 
         <AnimatePresence>
@@ -161,30 +112,38 @@ export function MethodChoiceStep({
         </AnimatePresence>
 
         <div className={`w-full space-y-3 ${error ? "mt-4" : "mt-6"}`}>
-          <MethodCard
-            badge={t("auth.forgot_method_full_restore")}
-            badge_tone="green"
-            description={t("auth.forgot_method_phrase_desc")}
-            on_click={on_select_phrase}
-            reduce_motion={reduce_motion}
-            title={t("auth.forgot_method_phrase_title")}
-          />
-          <MethodCard
-            badge={t("auth.forgot_method_full_restore")}
-            badge_tone="green"
-            description={t("auth.forgot_method_code_desc")}
-            on_click={on_select_code}
-            reduce_motion={reduce_motion}
-            title={t("auth.forgot_method_code_title")}
-          />
-          <MethodCard
-            badge={t("auth.forgot_method_access_only")}
-            badge_tone="amber"
-            description={t("auth.forgot_method_email_desc")}
-            on_click={on_select_email}
-            reduce_motion={reduce_motion}
-            title={t("auth.forgot_method_email_title")}
-          />
+          <motion.div variants={reduce_motion ? undefined : fade_up_item}>
+            <OptionRow
+              description={t("auth.other_way_code_desc")}
+              icon={<KeyIcon />}
+              on_click={on_select_code}
+              title={t("auth.other_way_code_title")}
+            />
+          </motion.div>
+          <motion.div variants={reduce_motion ? undefined : fade_up_item}>
+            <OptionRow
+              description={t("auth.other_way_phrase_desc")}
+              icon={<WordsIcon />}
+              on_click={on_select_phrase}
+              title={t("auth.other_way_phrase_title")}
+            />
+          </motion.div>
+          <motion.div variants={reduce_motion ? undefined : fade_up_item}>
+            <OptionRow
+              description={t("auth.other_way_email_desc")}
+              icon={<MailIcon />}
+              on_click={on_select_email}
+              title={t("auth.other_way_email_title")}
+            />
+          </motion.div>
+          <motion.div variants={reduce_motion ? undefined : fade_up_item}>
+            <OptionRow
+              description={t("auth.other_way_none_desc")}
+              icon={<HelpIcon />}
+              on_click={on_no_options}
+              title={t("auth.other_way_none_title")}
+            />
+          </motion.div>
         </div>
       </motion.div>
     </div>

@@ -30,6 +30,7 @@ import {
   generate_identity_keypair,
   generate_signed_prekey,
   generate_recovery_codes,
+  RECOVERY_CODE_SET_SIZE,
   encrypt_vault,
   decrypt_vault,
   prepare_pgp_key_data,
@@ -177,7 +178,7 @@ async function build_account(
     password,
     identity_keypair.secret_key,
   );
-  const codes = generate_recovery_codes(6);
+  const codes = generate_recovery_codes(RECOVERY_CODE_SET_SIZE);
   const master_key = crypto.getRandomValues(new Uint8Array(32));
   const vault_data: EncryptedVault =
     vault_format >= MASTER_KEY_VAULT_FORMAT
@@ -320,7 +321,24 @@ describe.runIf(RUN)("local stack recovery tiers e2e", () => {
     },
   );
 
-  it("saves a recovery phrase wrap of the full vault", async () => {
+  it("refuses to create a new recovery phrase wrap", async () => {
+    const retired_wrap = await wrap_vault_with_phrase(
+      JSON.stringify(account.vault_data),
+      generate_recovery_phrase(),
+    );
+
+    const { status, json } = await api(
+      "/core/v1/recovery/phrase",
+      "PUT",
+      { ...retired_wrap, current_password_hash: account.password_hash },
+      session,
+    );
+
+    expect(status, JSON.stringify(json)).toBe(410);
+    expect(json.code).toBe("ENDPOINT_RETIRED");
+  });
+
+  it("seeds a legacy phrase wrap for the transition window", async () => {
     phrase = generate_recovery_phrase();
 
     const wrap = await wrap_vault_with_phrase(
@@ -328,15 +346,17 @@ describe.runIf(RUN)("local stack recovery tiers e2e", () => {
       phrase,
     );
 
-    const { status, json } = await api(
-      "/core/v1/recovery/phrase",
-      "PUT",
-      { ...wrap, current_password_hash: account.password_hash },
-      session,
+    psql(
+      `INSERT INTO master_key_wraps (user_id, wrap_kind, verifier_hash, wrapped_vault, wrap_nonce, wrap_salt) ` +
+        `SELECT id, 'recovery_phrase', decode('${wrap.verifier_hash}','base64'), decode('${wrap.wrapped_vault}','base64'), ` +
+        `decode('${wrap.wrap_nonce}','base64'), decode('${wrap.wrap_salt}','base64') FROM users WHERE LOWER(username)='${username}';`,
     );
 
-    expect(status, JSON.stringify(json)).toBe(200);
-    expect(json.success).toBe(true);
+    expect(
+      psql(
+        `SELECT count(*) FROM master_key_wraps mkw INNER JOIN users u ON u.id = mkw.user_id WHERE LOWER(u.username)='${username}' AND mkw.active;`,
+      ),
+    ).toBe("1");
   });
 
   it("reports recovery methods including the phrase", async () => {
@@ -350,7 +370,7 @@ describe.runIf(RUN)("local stack recovery tiers e2e", () => {
     expect(status, JSON.stringify(json)).toBe(200);
     expect(json.has_phrase).toBe(true);
     expect(json.has_codes).toBe(true);
-    expect(json.codes_remaining).toBe(6);
+    expect(json.codes_remaining).toBe(RECOVERY_CODE_SET_SIZE);
     expect(json.inactive_key_sets).toBe(0);
   });
 
@@ -575,7 +595,7 @@ describe.runIf(RUN)("local stack recovery tiers e2e", () => {
           password_v3,
           identity_keypair.secret_key,
         );
-      const new_codes = generate_recovery_codes(6);
+      const new_codes = generate_recovery_codes(RECOVERY_CODE_SET_SIZE);
       const new_vault: EncryptedVault = {
         ...recovered_vault,
         identity_key: identity_keypair.secret_key,
@@ -689,6 +709,129 @@ describe.runIf(RUN)("local stack recovery tiers e2e", () => {
       expect(backup_vault.vault_format).toBe(MASTER_KEY_VAULT_FORMAT);
     },
   );
+
+  it(
+    "leaves the code usable after an initiate that never completes",
+    { timeout: 60000 },
+    async () => {
+      const code_hash = await hash_recovery_code(account.codes[0]);
+      const { status, json } = await api("/core/v1/recovery/initiate", "POST", {
+        code_hash,
+        email: account.email,
+      });
+
+      expect(status, JSON.stringify(json)).toBe(200);
+      expect(json.encrypted_recovery_key).toBeTruthy();
+    },
+  );
+
+  it("refuses a recovery backup without step-up", async () => {
+    const recovery_key = generate_recovery_key();
+    const backup = await encrypt_vault_backup(account.vault_data, recovery_key);
+    const shares = await generate_all_recovery_shares(
+      account.codes,
+      recovery_key,
+    );
+
+    const { status, json } = await api(
+      "/core/v1/recovery/backup",
+      "POST",
+      {
+        encrypted_vault_backup: backup.encrypted_data,
+        vault_backup_nonce: backup.nonce,
+        recovery_key_salt: backup.salt,
+        recovery_shares: shares,
+      },
+      session,
+    );
+
+    expect(status, JSON.stringify(json)).toBe(403);
+    expect(json.code).toBe("STEP_UP_REQUIRED");
+  });
+
+  it(
+    "replaces the code set with password step-up and retires the old codes",
+    { timeout: 120000 },
+    async () => {
+      const salt_res = await api("/core/v1/auth/salt", "POST", {
+        user_hash: account.user_hash,
+      });
+      const salt = Uint8Array.from(atob(salt_res.json.salt), (c) =>
+        c.charCodeAt(0),
+      );
+      const { hash: password_hash } = await derive_password_hash(
+        password_v3,
+        salt,
+      );
+
+      const old_codes = account.codes;
+      const new_codes = generate_recovery_codes(RECOVERY_CODE_SET_SIZE);
+      const updated_vault: EncryptedVault = {
+        ...account.vault_data,
+        recovery_codes: new_codes,
+      };
+      const recovery_key = generate_recovery_key();
+      const backup = await encrypt_vault_backup(updated_vault, recovery_key);
+      const shares = await generate_all_recovery_shares(
+        new_codes,
+        recovery_key,
+      );
+      const { encrypted_vault, vault_nonce } = await encrypt_vault(
+        updated_vault,
+        password_v3,
+      );
+
+      const { status, json } = await api(
+        "/core/v1/recovery/backup",
+        "POST",
+        {
+          encrypted_vault_backup: backup.encrypted_data,
+          vault_backup_nonce: backup.nonce,
+          recovery_key_salt: backup.salt,
+          recovery_shares: shares,
+          password_hash,
+          encrypted_vault,
+          vault_nonce,
+          vault_format: MASTER_KEY_VAULT_FORMAT,
+        },
+        session,
+      );
+
+      expect(status, JSON.stringify(json)).toBe(200);
+
+      const retired = await api("/core/v1/recovery/initiate", "POST", {
+        code_hash: await hash_recovery_code(old_codes[0]),
+        email: account.email,
+      });
+
+      expect(retired.status).toBe(400);
+      expect(retired.json.code).toBe("RECOVERY_CODE_REPLACED");
+
+      const accepted = await api("/core/v1/recovery/initiate", "POST", {
+        code_hash: await hash_recovery_code(new_codes[0]),
+        email: account.email,
+      });
+
+      expect(accepted.status, JSON.stringify(accepted.json)).toBe(200);
+
+      account.codes = new_codes;
+      account.vault_data = updated_vault;
+    },
+  );
+
+  it("reports the replaced set through the codes status endpoint", async () => {
+    const { status, json } = await api(
+      "/core/v1/recovery/codes/status",
+      "GET",
+      undefined,
+      session,
+    );
+
+    expect(status, JSON.stringify(json)).toBe(200);
+    expect(json.total).toBe(RECOVERY_CODE_SET_SIZE);
+    expect(json.remaining).toBe(RECOVERY_CODE_SET_SIZE);
+    expect(json.used).toEqual([]);
+  });
 });
 
 describe.runIf(RUN)("existing user adoption path e2e", () => {

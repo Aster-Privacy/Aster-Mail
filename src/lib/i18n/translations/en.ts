@@ -1912,6 +1912,18 @@ export const en: Translations = {
       "Aster encrypts your mail with your password, so no one can reset it for you. Add a recovery email to keep a way in.",
     recovery_reminder_action: "Add recovery email",
     recovery_reminder_later: "Later",
+    recovery_codes_reminder_title: "Save your recovery codes",
+    recovery_codes_reminder_body:
+      "Aster encrypts your mail with your password, so no one can reset it for you. Recovery codes are the only way back into your encrypted mail.",
+    recovery_codes_reminder_action: "Get recovery codes",
+    recovery_codes_low_reminder_title: "You are running low on recovery codes",
+    recovery_codes_low_reminder_body:
+      "Each code works once, and you have {{count}} left. Get new codes so you do not get locked out.",
+    recovery_codes_low_reminder_action: "Get new codes",
+    recovery_phrase_migrate_title: "Switch to recovery codes",
+    recovery_phrase_migrate_body:
+      "Recovery phrases are going away. Get recovery codes now so you can still recover your account.",
+    recovery_phrase_migrate_action: "Get codes",
     plan_prompt_title: "You're on the free plan",
     plan_prompt_body:
       "Paid plans add more storage, custom domains, and unlimited aliases.",
@@ -2227,11 +2239,23 @@ export const en: Translations = {
       "Without recovery codes, forgetting your password permanently locks your encrypted mail.",
     recovery_codes_row: "Recovery codes",
     recovery_codes_row_desc:
-      "Six one-time codes that restore your account and all encrypted data.",
-    recovery_codes_generate: "Generate codes",
-    recovery_codes_regenerate: "Regenerate codes",
+      "One-time codes that restore your account and all encrypted data.",
+    recovery_codes_generate: "Get codes",
+    recovery_codes_regenerate: "Get new codes",
     recovery_codes_regenerate_warning:
-      "Regenerating creates new codes and permanently invalidates the old ones.",
+      "Your current codes stop working as soon as you get new ones.",
+    recovery_codes_show: "Show codes",
+    recovery_codes_get_new_title: "Get new recovery codes?",
+    recovery_codes_confirm_title: "Confirm it's you",
+    recovery_codes_confirm_desc:
+      "Enter your password to see your recovery codes.",
+    recovery_codes_title: "Your recovery codes",
+    recovery_codes_status: "Created {{date}}. {{remaining}} of {{total}} left.",
+    recovery_codes_low:
+      "You are running low on recovery codes. Get new codes so you do not get locked out.",
+    recovery_codes_used: "Used",
+    recovery_codes_unavailable:
+      "Your codes are not stored on this device. Get new codes to see them.",
     recovery_method_active: "Active",
     recovery_method_not_set: "Not set",
     recovery_codes_saved_confirm:
@@ -3145,6 +3169,7 @@ export const en: Translations = {
     security_center_identity_key: "Identity key",
     criterion_two_factor: "Two-factor authentication",
     criterion_passkey: "Passkey registered",
+    criterion_recovery_codes: "Recovery codes saved",
     criterion_recovery_email: "Verified recovery email",
     criterion_auto_lock: "Auto-lock",
     criterion_login_alerts: "Login alerts",
@@ -9151,6 +9176,41 @@ export const en: Translations = {
     old_codes_invalidated:
       "Your old recovery codes no longer work. Saving this new set somewhere safe before closing this window will keep you covered.",
     n_recovery_codes: "{{count}} recovery codes",
+    recovery_code_already_used:
+      "That code was already used. Each code works once, so enter a different one from your saved list.",
+    try_another_way: "Try another way",
+    other_ways_title: "Try another way",
+    other_ways_desc:
+      "Choose how you want to get back into your account.",
+    other_way_code_title: "Use a recovery code",
+    other_way_code_desc: "Enter one of the codes you saved.",
+    other_way_phrase_title: "Use your recovery phrase",
+    other_way_phrase_desc: "Enter the 12 words you saved.",
+    other_way_email_title: "Reset with your recovery email",
+    other_way_email_desc:
+      "Aster Mail sends a link to your recovery email. You lose access to mail from before the reset.",
+    other_way_none_title: "I do not have any of these",
+    other_way_none_desc:
+      "Aster Mail cannot read your encrypted data, so no one can recover it without one of these. You can still create an account.",
+    reset_account_title: "Reset your account?",
+    reset_account_desc:
+      "Your encrypted mail, contacts, and files from before the reset stay locked until you recover them with your old password. You get a new, empty encryption key.",
+    send_reset_link: "Send reset link",
+    print_codes: "Print",
+    codes_copied: "Codes copied.",
+    i_saved_these_codes: "I saved these codes",
+    review_security_title: "Review your security",
+    review_security_desc:
+      "Your password was changed and your account was recovered.",
+    review_devices_signed_out: "Other devices were signed out.",
+    review_two_step_off: "2-step verification is off.",
+    review_turn_on: "Turn on",
+    review_recovery_email_kept: "Your recovery email is still set.",
+    review_no_recovery_email: "No recovery email.",
+    review_add: "Add",
+    review_codes_left: "{{count}} recovery codes left.",
+    review_codes_left_one: "{{count}} recovery code left.",
+    review_codes_left_other: "{{count}} recovery codes left.",
     import_mail_step_title: "Bring your mail with you",
     import_mail_step_desc: "Move messages from another account into Aster. Everything is encrypted on your device before it is stored.",
     import_mail_action: "Import mail",

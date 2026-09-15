@@ -33,7 +33,6 @@ import {
   DEPTH_INPUT_WRAPPER_CLASS,
   DEPTH_CTA_CLASS,
   DEPTH_CTA_STYLE,
-  DEPTH_SECONDARY_CLASS,
   BACK_BUTTON_CLASS,
   BACK_BUTTON_STYLE,
   INNER_INPUT_CLASS,
@@ -60,7 +59,7 @@ export function CodeStep({
           whileTap={button_tap}
           onClick={() => {
             set_error("");
-            set_step("method_choice");
+            set_step("other_ways");
           }}
         >
           <ChevronLeftIcon className="h-5 w-5 rtl:-scale-x-100" />
@@ -150,16 +149,16 @@ export function CodeStep({
         >
           {t("auth.verify_code")}
         </motion.button>
-        <motion.button
-          className={DEPTH_SECONDARY_CLASS}
-          whileTap={button_tap}
+        <button
+          className="w-full py-2 text-center text-sm text-[var(--text-tertiary)]"
+          type="button"
           onClick={() => {
             set_error("");
-            set_step("method_choice");
+            set_step("other_ways");
           }}
         >
-          {t("common.back")}
-        </motion.button>
+          {t("auth.try_another_way")}
+        </button>
       </motion.div>
     </div>
   );

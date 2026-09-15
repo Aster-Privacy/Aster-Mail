@@ -54,6 +54,7 @@ import { RecoverOlderDataSection } from "@/components/settings/security/recover_
 import { AccountRecoverySection } from "@/components/settings/security/account_recovery_section";
 import { AccountProtectionScore } from "@/components/settings/security/account_protection_score";
 import { use_security } from "@/components/settings/hooks/use_security";
+import { use_recovery_status } from "@/hooks/use_recovery_status";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 import {
@@ -84,6 +85,7 @@ export function SecuritySection({
   set_show_inline_totp_setup: set_show_inline_totp_setup_prop,
 }: SecuritySectionProps) {
   const security = use_security();
+  const recovery = use_recovery_status(true);
   const { t } = use_i18n();
   const { preferences, update_preference, update_preferences } =
     use_preferences();
@@ -175,9 +177,11 @@ export function SecuritySection({
             (id) => () => open_settings_target(SECURITY_CRITERION_TARGETS[id]),
           )}
           passkey_registered={passkey_registered}
+          recovery_codes_saved={recovery.has_codes}
           recovery_email_verified={security.recovery_email_verified}
           security_loaded={
             security.security_score_loaded &&
+            recovery.is_loaded &&
             passkey_loaded &&
             !security.totp_status_failed
           }

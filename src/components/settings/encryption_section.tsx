@@ -39,46 +39,24 @@ export function EncryptionSection() {
 
       <KeyRotationPanel
         close_export_prompt={encryption.close_export_prompt}
-        close_regenerate_confirm={encryption.close_regenerate_confirm}
-        codes_key={encryption.codes_key}
-        codes_remaining={encryption.codes_remaining}
-        codes_total={encryption.codes_total}
-        codes_used={encryption.codes_used}
         export_error={encryption.export_error}
         export_password={encryption.export_password}
         export_totp_code={encryption.export_totp_code}
         export_totp_required={encryption.export_totp_required}
         format_date={encryption.format_date}
         format_fingerprint={encryption.format_fingerprint}
-        handle_copy_all_codes={encryption.handle_copy_all_codes}
         handle_copy_fingerprint={encryption.handle_copy_fingerprint}
         handle_copy_public_key={encryption.handle_copy_public_key}
-        handle_download_codes={encryption.handle_download_codes}
         handle_export_public_key={encryption.handle_export_public_key}
         handle_export_secret_key={encryption.handle_export_secret_key}
-        handle_regenerate_codes={encryption.handle_regenerate_codes}
         is_exporting_private_key={encryption.is_exporting_private_key}
-        is_regenerating={encryption.is_regenerating}
         open_export_prompt={encryption.open_export_prompt}
-        open_regenerate_confirm={encryption.open_regenerate_confirm}
         pgp_key={encryption.pgp_key}
         pgp_key_load_failed={encryption.pgp_key_load_failed}
-        recovery_codes={encryption.recovery_codes}
-        recovery_info={encryption.recovery_info}
-        regenerate_confirm_text={encryption.regenerate_confirm_text}
-        regenerate_error={encryption.regenerate_error}
-        regenerate_password={encryption.regenerate_password}
-        regenerate_totp_code={encryption.regenerate_totp_code}
-        regenerate_totp_required={encryption.regenerate_totp_required}
         retry_load_encryption_data={encryption.retry_load_encryption_data}
         set_export_password={encryption.set_export_password}
         set_export_totp_code={encryption.set_export_totp_code}
-        set_regenerate_confirm_text={encryption.set_regenerate_confirm_text}
-        set_regenerate_password={encryption.set_regenerate_password}
-        set_regenerate_totp_code={encryption.set_regenerate_totp_code}
         show_export_prompt={encryption.show_export_prompt}
-        show_recovery_codes={encryption.show_recovery_codes}
-        show_regenerate_confirm={encryption.show_regenerate_confirm}
       />
 
       <EncryptionSettingsForm

@@ -739,11 +739,7 @@ export default function IndexPage() {
             }}
             on_visibility_change={set_checklist_visible}
           />
-          <RecoveryReminder
-            on_open_recovery={() => {
-              state.open_settings("account");
-            }}
-          />
+          <RecoveryReminder />
           <PlanPrompt
             checklist_complete={checklist_complete}
             checklist_visible={checklist_visible}

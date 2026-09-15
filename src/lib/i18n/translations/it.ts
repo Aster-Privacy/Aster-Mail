@@ -1999,6 +1999,18 @@ export const it = {
       "Aster cifra la tua posta con la tua password, quindi nessuno può reimpostarla per te. Aggiungi un'email di recupero per mantenere l'accesso.",
     recovery_reminder_action: "Aggiungi email di recupero",
     recovery_reminder_later: "Più tardi",
+    recovery_codes_reminder_title: "Salva i tuoi codici di recupero",
+    recovery_codes_reminder_body:
+      "Aster cifra la tua posta con la tua password, quindi nessuno può reimpostarla per te. I codici di recupero sono l'unico modo per tornare alla tua posta cifrata.",
+    recovery_codes_reminder_action: "Ottieni codici di recupero",
+    recovery_codes_low_reminder_title: "Ti restano pochi codici di recupero",
+    recovery_codes_low_reminder_body:
+      "Ogni codice funziona una volta e te ne restano {{count}}. Ottieni nuovi codici per non perdere l'accesso.",
+    recovery_codes_low_reminder_action: "Ottieni nuovi codici",
+    recovery_phrase_migrate_title: "Passa ai codici di recupero",
+    recovery_phrase_migrate_body:
+      "Le frasi di recupero stanno per essere rimosse. Ottieni ora i codici di recupero per poter ancora recuperare il tuo account.",
+    recovery_phrase_migrate_action: "Ottieni codici",
     plan_prompt_title: "Sei sul piano gratuito",
     plan_prompt_body:
       "I piani a pagamento aggiungono più spazio, domini personalizzati e alias illimitati.",
@@ -2301,11 +2313,24 @@ export const it = {
       "Senza codici di recupero, dimenticare la password blocca per sempre la sua posta crittografata.",
     recovery_codes_row: "Codici di recupero",
     recovery_codes_row_desc:
-      "Sei codici monouso che ripristinano il suo account e tutti i dati crittografati.",
-    recovery_codes_generate: "Genera codici",
-    recovery_codes_regenerate: "Rigenera codici",
+      "Codici monouso che ripristinano il tuo account e tutti i dati cifrati.",
+    recovery_codes_generate: "Ottieni codici",
+    recovery_codes_regenerate: "Ottieni nuovi codici",
     recovery_codes_regenerate_warning:
-      "La rigenerazione crea nuovi codici e invalida definitivamente quelli precedenti.",
+      "I codici attuali smettono di funzionare non appena ne ottieni di nuovi.",
+    recovery_codes_show: "Mostra codici",
+    recovery_codes_get_new_title: "Vuoi ottenere nuovi codici di recupero?",
+    recovery_codes_confirm_title: "Conferma la tua identità",
+    recovery_codes_confirm_desc:
+      "Inserisci la password per vedere i codici di recupero.",
+    recovery_codes_title: "I tuoi codici di recupero",
+    recovery_codes_status:
+      "Creati il {{date}}. Ne restano {{remaining}} su {{total}}.",
+    recovery_codes_low:
+      "Ti restano pochi codici di recupero. Ottieni nuovi codici per non perdere l'accesso.",
+    recovery_codes_used: "Usato",
+    recovery_codes_unavailable:
+      "I tuoi codici non sono salvati su questo dispositivo. Ottieni nuovi codici per vederli.",
     recovery_method_active: "Attivo",
     recovery_method_not_set: "Non impostato",
     recovery_codes_saved_confirm:
@@ -7661,6 +7686,7 @@ export const it = {
     product_updates_save_failed:
       "La tua preferenza sulle novità del prodotto non è stata salvata. Riprova.",
     criterion_passkey: "Passkey registrata",
+    criterion_recovery_codes: "Codici di recupero salvati",
     criterion_read_receipts_off: "Conferme di lettura disattivate",
     send_read_receipts_label: "Invia conferme di lettura",
     send_read_receipts_description:
@@ -9298,6 +9324,40 @@ export const it = {
     old_codes_invalidated:
       "I suoi vecchi codici di recupero non funzionano più. Salvare questo nuovo set in un luogo sicuro prima di chiudere questa finestra la terrà protetta.",
     n_recovery_codes: "{{count}} codici di recupero",
+    recovery_code_already_used:
+      "Questo codice è già stato usato. Ogni codice funziona una sola volta, quindi inserisci un altro codice dall'elenco salvato.",
+    try_another_way: "Prova in un altro modo",
+    other_ways_title: "Prova in un altro modo",
+    other_ways_desc: "Scegli come vuoi tornare nel tuo account.",
+    other_way_code_title: "Usa un codice di recupero",
+    other_way_code_desc: "Inserisci uno dei codici che hai salvato.",
+    other_way_phrase_title: "Usa la tua frase di recupero",
+    other_way_phrase_desc: "Inserisci le 12 parole che hai salvato.",
+    other_way_email_title: "Reimposta con la tua email di recupero",
+    other_way_email_desc:
+      "Aster Mail invia un link alla tua email di recupero. Perdi l'accesso alla posta precedente alla reimpostazione.",
+    other_way_none_title: "Non ho nessuna di queste opzioni",
+    other_way_none_desc:
+      "Aster Mail non può leggere i tuoi dati cifrati, quindi nessuno può recuperarli senza una di queste opzioni. Puoi comunque creare un account.",
+    reset_account_title: "Reimpostare il tuo account?",
+    reset_account_desc:
+      "La posta, i contatti e i file cifrati precedenti alla reimpostazione restano bloccati finché non li recuperi con la tua vecchia password. Ricevi una nuova chiave di cifratura vuota.",
+    send_reset_link: "Invia link di reimpostazione",
+    print_codes: "Stampa",
+    codes_copied: "Codici copiati.",
+    i_saved_these_codes: "Ho salvato questi codici",
+    review_security_title: "Controlla la tua sicurezza",
+    review_security_desc:
+      "La tua password è stata cambiata e il tuo account è stato recuperato.",
+    review_devices_signed_out: "Gli altri dispositivi sono stati disconnessi.",
+    review_two_step_off: "La verifica in due passaggi è disattivata.",
+    review_turn_on: "Attiva",
+    review_recovery_email_kept: "La tua email di recupero è ancora impostata.",
+    review_no_recovery_email: "Nessuna email di recupero.",
+    review_add: "Aggiungi",
+    review_codes_left: "Restano {{count}} codici di recupero.",
+    review_codes_left_one: "Resta {{count}} codice di recupero.",
+    review_codes_left_other: "Restano {{count}} codici di recupero.",
     import_mail_step_title: "Porta la tua posta con te",
     import_mail_step_desc: "Sposta i messaggi da un altro account in Aster. Tutto viene cifrato sul tuo dispositivo prima di essere salvato.",
     import_mail_action: "Importa la posta",

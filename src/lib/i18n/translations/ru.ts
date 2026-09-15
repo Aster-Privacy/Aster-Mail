@@ -1845,6 +1845,19 @@ export const ru = {
       "Aster шифрует вашу почту вашим паролем, поэтому никто не сможет сбросить его за вас. Добавьте резервный адрес, чтобы сохранить доступ.",
     recovery_reminder_action: "Добавить резервный адрес",
     recovery_reminder_later: "Позже",
+    recovery_codes_reminder_title: "Сохраните коды восстановления",
+    recovery_codes_reminder_body:
+      "Aster шифрует вашу почту вашим паролем, поэтому никто не сможет сбросить его за вас. Коды восстановления остаются единственным способом вернуться к зашифрованной почте.",
+    recovery_codes_reminder_action: "Получить коды восстановления",
+    recovery_codes_low_reminder_title:
+      "У вас заканчиваются коды восстановления",
+    recovery_codes_low_reminder_body:
+      "Каждый код работает один раз, у вас осталось {{count}}. Получите новые коды, чтобы не потерять доступ.",
+    recovery_codes_low_reminder_action: "Получить новые коды",
+    recovery_phrase_migrate_title: "Перейдите на коды восстановления",
+    recovery_phrase_migrate_body:
+      "Фразы восстановления скоро перестанут работать. Получите коды восстановления сейчас, чтобы сохранить возможность восстановить аккаунт.",
+    recovery_phrase_migrate_action: "Получить коды",
     plan_prompt_title: "У вас бесплатный тариф",
     plan_prompt_body:
       "Платные тарифы дают больше места, собственные домены и неограниченные псевдонимы.",
@@ -2411,11 +2424,24 @@ export const ru = {
       "Без кодов восстановления забытый пароль навсегда заблокирует вашу зашифрованную почту.",
     recovery_codes_row: "Коды восстановления",
     recovery_codes_row_desc:
-      "Шесть одноразовых кодов, которые восстанавливают ваш аккаунт и все зашифрованные данные.",
-    recovery_codes_generate: "Создать коды",
-    recovery_codes_regenerate: "Создать коды заново",
+      "Одноразовые коды, которые восстанавливают аккаунт и все зашифрованные данные.",
+    recovery_codes_generate: "Получить коды",
+    recovery_codes_regenerate: "Получить новые коды",
     recovery_codes_regenerate_warning:
-      "При повторном создании появятся новые коды, а старые навсегда перестанут действовать.",
+      "Текущие коды перестают работать, как только вы получите новые.",
+    recovery_codes_show: "Показать коды",
+    recovery_codes_get_new_title: "Получить новые коды восстановления?",
+    recovery_codes_confirm_title: "Подтвердите, что это вы",
+    recovery_codes_confirm_desc:
+      "Введите пароль, чтобы увидеть коды восстановления.",
+    recovery_codes_title: "Ваши коды восстановления",
+    recovery_codes_status:
+      "Созданы {{date}}. Осталось {{remaining}} из {{total}}.",
+    recovery_codes_low:
+      "У вас заканчиваются коды восстановления. Получите новые коды, чтобы не потерять доступ.",
+    recovery_codes_used: "Использован",
+    recovery_codes_unavailable:
+      "Ваши коды не сохранены на этом устройстве. Получите новые коды, чтобы увидеть их.",
     recovery_method_active: "Активно",
     recovery_method_not_set: "Не задано",
     recovery_codes_saved_confirm:
@@ -7727,6 +7753,7 @@ export const ru = {
     product_updates_save_failed:
       "Настройка новостей продукта не сохранена. Повторите попытку.",
     criterion_passkey: "Ключ доступа добавлен",
+    criterion_recovery_codes: "Коды восстановления сохранены",
     criterion_read_receipts_off: "Уведомления о прочтении отключены",
     send_read_receipts_label: "Отправлять уведомления о прочтении",
     send_read_receipts_description:
@@ -9429,6 +9456,41 @@ export const ru = {
     old_codes_invalidated:
       "Старые коды восстановления больше не работают. Сохранение нового набора в надёжном месте перед закрытием этого окна обычно лучший способ остаться под защитой.",
     n_recovery_codes: "{{count}} кодов восстановления",
+    recovery_code_already_used:
+      "Этот код уже использован. Каждый код работает один раз, поэтому введите другой код из сохраненного списка.",
+    try_another_way: "Другой способ",
+    other_ways_title: "Другой способ",
+    other_ways_desc: "Выберите, как вернуть доступ к аккаунту.",
+    other_way_code_title: "Использовать код восстановления",
+    other_way_code_desc: "Введите один из сохраненных кодов.",
+    other_way_phrase_title: "Использовать фразу восстановления",
+    other_way_phrase_desc: "Введите 12 сохраненных слов.",
+    other_way_email_title: "Сбросить через резервный адрес",
+    other_way_email_desc:
+      "Aster Mail отправляет ссылку на ваш резервный адрес. Вы теряете доступ к письмам, полученным до сброса.",
+    other_way_none_title: "У меня нет ничего из этого",
+    other_way_none_desc:
+      "Aster Mail не может прочитать ваши зашифрованные данные, поэтому без одного из этих способов их никто не восстановит. Вы можете создать новый аккаунт.",
+    reset_account_title: "Сбросить аккаунт?",
+    reset_account_desc:
+      "Зашифрованные письма, контакты и файлы, созданные до сброса, останутся заблокированными, пока вы не восстановите их старым паролем. Вы получите новый пустой ключ шифрования.",
+    send_reset_link: "Отправить ссылку для сброса",
+    print_codes: "Печать",
+    codes_copied: "Коды скопированы.",
+    i_saved_these_codes: "Я сохранил эти коды",
+    review_security_title: "Проверьте безопасность",
+    review_security_desc: "Пароль изменен, аккаунт восстановлен.",
+    review_devices_signed_out: "Другие устройства вышли из аккаунта.",
+    review_two_step_off: "Двухэтапная аутентификация отключена.",
+    review_turn_on: "Включить",
+    review_recovery_email_kept: "Резервный адрес по-прежнему указан.",
+    review_no_recovery_email: "Резервный адрес не указан.",
+    review_add: "Добавить",
+    review_codes_left: "Осталось кодов восстановления: {{count}}.",
+    review_codes_left_one: "Остался {{count}} код восстановления.",
+    review_codes_left_few: "Осталось {{count}} кода восстановления.",
+    review_codes_left_many: "Осталось {{count}} кодов восстановления.",
+    review_codes_left_other: "Осталось {{count}} кода восстановления.",
     import_mail_step_title: "Возьмите почту с собой",
     import_mail_step_desc: "Перенесите письма из другого аккаунта в Aster. Всё шифруется на вашем устройстве перед сохранением.",
     import_mail_action: "Импортировать почту",

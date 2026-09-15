@@ -26,7 +26,10 @@ import { Button } from "@aster/ui";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_should_reduce_motion } from "@/provider";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
-import { get_recovery_methods } from "@/services/api/recovery";
+import {
+  load_recovery_status,
+  recovery_nudge,
+} from "@/hooks/use_recovery_status";
 import {
   clear_first_run_plan,
   first_run_age_ms,
@@ -95,16 +98,13 @@ export function PlanPrompt({
     };
 
     const reveal_when_recovery_done = async (delay: number) => {
-      const response = await get_recovery_methods();
+      const values = await load_recovery_status();
 
       if (cancelled) return;
 
-      const recovery_pending =
-        !!response.data &&
-        !response.data.recovery_email_set &&
-        !is_recovery_snoozed();
+      const kind = values ? recovery_nudge(values) : null;
 
-      if (recovery_pending) return;
+      if (kind && !is_recovery_snoozed(kind)) return;
 
       reveal(delay);
     };

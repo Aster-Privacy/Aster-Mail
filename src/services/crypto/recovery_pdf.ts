@@ -209,169 +209,71 @@ export async function download_recovery_text(
   trigger_download(blob, `astermail-recovery-codes-${Date.now()}.txt`);
 }
 
-export async function generate_recovery_phrase_pdf(
+export function print_recovery_codes(
   email: string,
-  phrase: string,
+  recovery_codes: string[],
   t: Translator,
-): Promise<void> {
-  if (is_native_platform()) {
-    const content = build_recovery_phrase_text(email, phrase, t);
-    const { Share } = await import("@capacitor/share");
+): void {
+  const escape_html = (value: string) =>
+    value
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
 
-    await Share.share({
-      title: t("auth.recovery_phrase_title"),
-      text: content,
-      dialogTitle: t("common.save_recovery_codes_dialog"),
-    });
+  const rows = recovery_codes
+    .map(
+      (code, index) =>
+        `<li><span class="n">${index + 1}.</span><code>${escape_html(code)}</code></li>`,
+    )
+    .join("");
 
-    return;
-  }
-
-  const { jsPDF } = await import("jspdf");
-  const doc = new jsPDF();
-  const page_width = doc.internal.pageSize.getWidth();
-
-  doc.setFontSize(24);
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(0, 0, 0);
-  doc.text(t("auth.recovery_phrase_title"), page_width / 2, 25, {
-    align: "center",
+  const generated = new Date().toLocaleString(app_locale(), {
+    timeZone: get_display_time_zone(),
   });
 
-  doc.setFontSize(10);
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(100, 100, 100);
-  doc.text(t("common.recovery_pdf_keep_safe"), page_width / 2, 35, {
-    align: "center",
-  });
+  const document_html = `<!doctype html><html><head><meta charset="utf-8"><title>${escape_html(
+    t("common.recovery_pdf_title"),
+  )}</title><style>
+    body { font-family: system-ui, sans-serif; color: #111; margin: 32px; }
+    h1 { font-size: 20px; margin: 0 0 4px; }
+    p { font-size: 12px; color: #444; margin: 2px 0; }
+    ul { list-style: none; padding: 0; margin: 20px 0 0; columns: 2; }
+    li { display: flex; gap: 8px; align-items: baseline; margin-bottom: 10px; break-inside: avoid; }
+    .n { font-size: 11px; color: #777; width: 20px; text-align: right; }
+    code { font-family: ui-monospace, monospace; font-size: 14px; letter-spacing: 0.04em; }
+  </style></head><body>
+    <h1>${escape_html(t("common.recovery_pdf_title"))}</h1>
+    <p>${escape_html(t("common.recovery_pdf_account"))} ${escape_html(email)}</p>
+    <p>${escape_html(t("common.recovery_pdf_generated"))} ${escape_html(generated)}</p>
+    <p>${escape_html(t("common.recovery_pdf_code_used_once"))}</p>
+    <ul>${rows}</ul>
+  </body></html>`;
 
-  doc.setDrawColor(220, 220, 220);
-  doc.setLineWidth(0.5);
-  doc.line(20, 45, page_width - 20, 45);
+  const frame = document.createElement("iframe");
 
-  doc.setFontSize(10);
-  doc.setTextColor(60, 60, 60);
-  doc.text(`${t("common.recovery_pdf_account")} ${email}`, 20, 58);
-  doc.text(
-    `${t("common.recovery_pdf_generated")} ${new Date().toLocaleString(app_locale(), { timeZone: get_display_time_zone() })}`,
-    20,
-    65,
-  );
+  frame.setAttribute("aria-hidden", "true");
+  frame.style.position = "fixed";
+  frame.style.right = "0";
+  frame.style.bottom = "0";
+  frame.style.width = "0";
+  frame.style.height = "0";
+  frame.style.border = "0";
+  frame.srcdoc = document_html;
 
-  doc.setDrawColor(220, 220, 220);
-  doc.line(20, 73, page_width - 20, 73);
+  frame.onload = () => {
+    const view = frame.contentWindow;
 
-  doc.setFontSize(11);
-  doc.setTextColor(0, 0, 0);
-  doc.setFont("helvetica", "bold");
-  doc.text(t("common.recovery_pdf_important_warning"), 20, 86);
+    if (!view) {
+      frame.remove();
 
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(60, 60, 60);
-  doc.setFontSize(9.5);
-  const warning_text = [
-    `• ${t("common.recovery_pdf_store_secure")}`,
-    `• ${t("common.recovery_pdf_no_digital")}`,
-    `• ${t("common.recovery_pdf_unrecoverable")}`,
-  ];
+      return;
+    }
 
-  warning_text.forEach((line, index) => {
-    doc.text(line, 20, 96 + index * 7);
-  });
+    view.focus();
+    view.print();
+    window.setTimeout(() => frame.remove(), 1000);
+  };
 
-  doc.setDrawColor(220, 220, 220);
-  doc.line(20, 120, page_width - 20, 120);
-
-  doc.setFontSize(13);
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(0, 0, 0);
-  doc.text(t("auth.recovery_phrase_title"), 20, 133);
-
-  const words = phrase.split(" ");
-  const column_width = (page_width - 40) / 2;
-
-  words.forEach((word, index) => {
-    const column = Math.floor(index / 6);
-    const row = index % 6;
-    const x_pos = 20 + column * column_width;
-    const y_pos = 150 + row * 14;
-
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(11);
-    doc.setTextColor(120, 120, 120);
-    doc.text(`${index + 1}.`, x_pos, y_pos);
-
-    doc.setFont("courier", "bold");
-    doc.setFontSize(13);
-    doc.setTextColor(0, 0, 0);
-    doc.text(word, x_pos + 12, y_pos);
-  });
-
-  doc.setDrawColor(220, 220, 220);
-  doc.line(20, 245, page_width - 20, 245);
-
-  doc.setFontSize(9);
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(100, 100, 100);
-  doc.text(t("common.recovery_pdf_footer"), page_width / 2, 256, {
-    align: "center",
-  });
-  doc.text("https://astermail.org", page_width / 2, 263, { align: "center" });
-
-  const blob = doc.output("blob");
-
-  trigger_download(blob, `astermail-recovery-phrase-${Date.now()}.pdf`);
-}
-
-function build_recovery_phrase_text(
-  email: string,
-  phrase: string,
-  t: Translator,
-): string {
-  const words = phrase
-    .split(" ")
-    .map((word, i) => `  ${i + 1}. ${word}`)
-    .join("\n");
-
-  return `
-${t("auth.recovery_phrase_title")}
-${t("common.recovery_text_keep_safe")}
-
-${t("common.recovery_pdf_account")} ${email}
-${t("common.recovery_pdf_generated")} ${new Date().toISOString()}
-
-${t("common.recovery_pdf_important_warning")}
-
-• ${t("common.recovery_text_store_secure")}
-• ${t("common.recovery_text_no_share")}
-• ${t("common.recovery_text_unrecoverable")}
-
-${words}
-
-${t("common.recovery_pdf_footer")}
-`.trim();
-}
-
-export async function download_recovery_phrase_text(
-  email: string,
-  phrase: string,
-  t: Translator,
-): Promise<void> {
-  const content = build_recovery_phrase_text(email, phrase, t);
-
-  if (is_native_platform()) {
-    const { Share } = await import("@capacitor/share");
-
-    await Share.share({
-      title: t("auth.recovery_phrase_title"),
-      text: content,
-      dialogTitle: t("common.save_recovery_codes_dialog"),
-    });
-
-    return;
-  }
-
-  const blob = new Blob([content], { type: "text/plain" });
-
-  trigger_download(blob, `astermail-recovery-phrase-${Date.now()}.txt`);
+  document.body.appendChild(frame);
 }

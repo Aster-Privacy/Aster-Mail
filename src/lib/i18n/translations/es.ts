@@ -1848,6 +1848,19 @@ export const es = {
       "Aster cifra tu correo con tu contraseña, así que nadie puede restablecerla por ti. Añade un correo de recuperación para conservar el acceso.",
     recovery_reminder_action: "Añadir correo de recuperación",
     recovery_reminder_later: "Más tarde",
+    recovery_codes_reminder_title: "Guarda tus códigos de recuperación",
+    recovery_codes_reminder_body:
+      "Aster cifra tu correo con tu contraseña, así que nadie puede restablecerla por ti. Los códigos de recuperación son la única forma de volver a tu correo cifrado.",
+    recovery_codes_reminder_action: "Obtener códigos de recuperación",
+    recovery_codes_low_reminder_title:
+      "Te quedan pocos códigos de recuperación",
+    recovery_codes_low_reminder_body:
+      "Cada código funciona una vez y te quedan {{count}}. Obtén códigos nuevos para no perder el acceso.",
+    recovery_codes_low_reminder_action: "Obtener códigos nuevos",
+    recovery_phrase_migrate_title: "Cambia a códigos de recuperación",
+    recovery_phrase_migrate_body:
+      "Las frases de recuperación van a desaparecer. Obtén códigos de recuperación ahora para poder seguir recuperando tu cuenta.",
+    recovery_phrase_migrate_action: "Obtener códigos",
     plan_prompt_title: "Estás en el plan gratuito",
     plan_prompt_body:
       "Los planes de pago añaden más almacenamiento, dominios propios y alias ilimitados.",
@@ -2271,11 +2284,24 @@ export const es = {
       "Sin códigos de recuperación, olvidar tu contraseña bloquea tu correo cifrado de forma permanente.",
     recovery_codes_row: "Códigos de recuperación",
     recovery_codes_row_desc:
-      "Seis códigos de un solo uso que restauran tu cuenta y todos tus datos cifrados.",
-    recovery_codes_generate: "Generar códigos",
-    recovery_codes_regenerate: "Regenerar códigos",
+      "Códigos de un solo uso que restauran tu cuenta y todos los datos cifrados.",
+    recovery_codes_generate: "Obtener códigos",
+    recovery_codes_regenerate: "Obtener códigos nuevos",
     recovery_codes_regenerate_warning:
-      "Al regenerar se crean códigos nuevos y los anteriores quedan invalidados de forma permanente.",
+      "Tus códigos actuales dejan de funcionar en cuanto obtienes otros nuevos.",
+    recovery_codes_show: "Mostrar códigos",
+    recovery_codes_get_new_title: "¿Obtener códigos de recuperación nuevos?",
+    recovery_codes_confirm_title: "Confirma que eres tú",
+    recovery_codes_confirm_desc:
+      "Introduce tu contraseña para ver tus códigos de recuperación.",
+    recovery_codes_title: "Tus códigos de recuperación",
+    recovery_codes_status:
+      "Creados el {{date}}. Quedan {{remaining}} de {{total}}.",
+    recovery_codes_low:
+      "Te quedan pocos códigos de recuperación. Obtén códigos nuevos para no perder el acceso.",
+    recovery_codes_used: "Usado",
+    recovery_codes_unavailable:
+      "Tus códigos no están guardados en este dispositivo. Obtén códigos nuevos para verlos.",
     recovery_method_active: "Activo",
     recovery_method_not_set: "Sin configurar",
     recovery_codes_saved_confirm:
@@ -7560,6 +7586,7 @@ export const es = {
     product_updates_save_failed:
       "No se guardó tu preferencia de novedades del producto. Inténtalo de nuevo.",
     criterion_passkey: "Clave de acceso registrada",
+    criterion_recovery_codes: "Códigos de recuperación guardados",
     criterion_read_receipts_off: "Confirmaciones de lectura desactivadas",
     send_read_receipts_label: "Enviar confirmaciones de lectura",
     send_read_receipts_description:
@@ -9185,6 +9212,39 @@ export const es = {
     old_codes_invalidated:
       "Tus códigos de recuperación antiguos ya no funcionan. Guardar este conjunto nuevo en un lugar seguro antes de cerrar esta ventana te mantendrá cubierto.",
     n_recovery_codes: "{{count}} códigos de recuperación",
+    recovery_code_already_used:
+      "Ese código ya se usó. Cada código funciona una sola vez, así que introduce otro de tu lista guardada.",
+    try_another_way: "Probar de otra forma",
+    other_ways_title: "Probar de otra forma",
+    other_ways_desc: "Elige cómo quieres volver a entrar en tu cuenta.",
+    other_way_code_title: "Usar un código de recuperación",
+    other_way_code_desc: "Introduce uno de los códigos que guardaste.",
+    other_way_phrase_title: "Usar tu frase de recuperación",
+    other_way_phrase_desc: "Introduce las 12 palabras que guardaste.",
+    other_way_email_title: "Restablecer con tu correo de recuperación",
+    other_way_email_desc:
+      "Aster Mail envía un enlace a tu correo de recuperación. Pierdes el acceso al correo anterior al restablecimiento.",
+    other_way_none_title: "No tengo ninguna de estas opciones",
+    other_way_none_desc:
+      "Aster Mail no puede leer tus datos cifrados, así que nadie puede recuperarlos sin una de estas opciones. Aún puedes crear una cuenta.",
+    reset_account_title: "¿Restablecer tu cuenta?",
+    reset_account_desc:
+      "Tu correo, contactos y archivos cifrados anteriores al restablecimiento siguen bloqueados hasta que los recuperes con tu contraseña anterior. Obtienes una clave de cifrado nueva y vacía.",
+    send_reset_link: "Enviar enlace de restablecimiento",
+    print_codes: "Imprimir",
+    codes_copied: "Códigos copiados.",
+    i_saved_these_codes: "He guardado estos códigos",
+    review_security_title: "Revisa tu seguridad",
+    review_security_desc: "Tu contraseña se cambió y tu cuenta se recuperó.",
+    review_devices_signed_out: "Se cerró la sesión en otros dispositivos.",
+    review_two_step_off: "La verificación en dos pasos está desactivada.",
+    review_turn_on: "Activar",
+    review_recovery_email_kept: "Tu correo de recuperación sigue configurado.",
+    review_no_recovery_email: "Sin correo de recuperación.",
+    review_add: "Añadir",
+    review_codes_left: "Quedan {{count}} códigos de recuperación.",
+    review_codes_left_one: "Queda {{count}} código de recuperación.",
+    review_codes_left_other: "Quedan {{count}} códigos de recuperación.",
     import_mail_step_title: "Trae tu correo contigo",
     import_mail_step_desc: "Mueve los mensajes de otra cuenta a Aster. Todo se cifra en tu dispositivo antes de guardarse.",
     import_mail_action: "Importar correo",

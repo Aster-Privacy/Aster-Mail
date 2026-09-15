@@ -1801,6 +1801,19 @@ export const de = {
       "Aster verschlüsselt deine Mail mit deinem Passwort, deshalb kann es niemand für dich zurücksetzen. Füge eine Wiederherstellungsadresse hinzu, um den Zugang zu behalten.",
     recovery_reminder_action: "Wiederherstellungsadresse hinzufügen",
     recovery_reminder_later: "Später",
+    recovery_codes_reminder_title: "Sichere deine Wiederherstellungscodes",
+    recovery_codes_reminder_body:
+      "Aster verschlüsselt deine Mail mit deinem Passwort, deshalb kann es niemand für dich zurücksetzen. Wiederherstellungscodes sind der einzige Weg zurück zu deiner verschlüsselten Mail.",
+    recovery_codes_reminder_action: "Wiederherstellungscodes holen",
+    recovery_codes_low_reminder_title:
+      "Deine Wiederherstellungscodes gehen zur Neige",
+    recovery_codes_low_reminder_body:
+      "Jeder Code funktioniert einmal, und du hast noch {{count}} übrig. Hole neue Codes, damit du nicht ausgesperrt wirst.",
+    recovery_codes_low_reminder_action: "Neue Codes holen",
+    recovery_phrase_migrate_title: "Zu Wiederherstellungscodes wechseln",
+    recovery_phrase_migrate_body:
+      "Wiederherstellungsphrasen werden abgeschafft. Hole dir jetzt Wiederherstellungscodes, damit du dein Konto weiterhin wiederherstellen kannst.",
+    recovery_phrase_migrate_action: "Codes holen",
     plan_prompt_title: "Du nutzt den kostenlosen Tarif",
     plan_prompt_body:
       "Bezahlte Tarife bieten mehr Speicher, eigene Domains und unbegrenzte Aliase.",
@@ -2297,11 +2310,24 @@ export const de = {
       "Ohne Wiederherstellungscodes sperrt ein vergessenes Passwort Ihre verschlüsselten E-Mails dauerhaft.",
     recovery_codes_row: "Wiederherstellungscodes",
     recovery_codes_row_desc:
-      "Sechs Einmalcodes, die Ihr Konto und alle verschlüsselten Daten wiederherstellen.",
-    recovery_codes_generate: "Codes generieren",
-    recovery_codes_regenerate: "Codes neu generieren",
+      "Einmalcodes, die Ihr Konto und alle verschlüsselten Daten wiederherstellen.",
+    recovery_codes_generate: "Codes anfordern",
+    recovery_codes_regenerate: "Neue Codes anfordern",
     recovery_codes_regenerate_warning:
-      "Beim Neugenerieren werden neue Codes erstellt und die alten dauerhaft ungültig.",
+      "Ihre aktuellen Codes werden ungültig, sobald Sie neue anfordern.",
+    recovery_codes_show: "Codes anzeigen",
+    recovery_codes_get_new_title: "Neue Wiederherstellungscodes anfordern?",
+    recovery_codes_confirm_title: "Bestätigen Sie, dass Sie es sind",
+    recovery_codes_confirm_desc:
+      "Geben Sie Ihr Passwort ein, um Ihre Wiederherstellungscodes zu sehen.",
+    recovery_codes_title: "Ihre Wiederherstellungscodes",
+    recovery_codes_status:
+      "Erstellt am {{date}}. Noch {{remaining}} von {{total}}.",
+    recovery_codes_low:
+      "Ihre Wiederherstellungscodes gehen zur Neige. Fordern Sie neue Codes an, damit Sie nicht ausgesperrt werden.",
+    recovery_codes_used: "Verwendet",
+    recovery_codes_unavailable:
+      "Ihre Codes sind auf diesem Gerät nicht gespeichert. Fordern Sie neue Codes an, um sie zu sehen.",
     recovery_method_active: "Aktiv",
     recovery_method_not_set: "Nicht eingerichtet",
     recovery_codes_saved_confirm:
@@ -7602,6 +7628,7 @@ export const de = {
     product_updates_save_failed:
       "Ihre Einstellung für Produktneuigkeiten wurde nicht gespeichert. Versuchen Sie es erneut.",
     criterion_passkey: "Passkey registriert",
+    criterion_recovery_codes: "Wiederherstellungscodes gespeichert",
     criterion_read_receipts_off: "Lesebestätigungen aus",
     send_read_receipts_label: "Lesebestätigungen senden",
     send_read_receipts_description:
@@ -9290,6 +9317,43 @@ export const de = {
     old_codes_invalidated:
       "Ihre alten Wiederherstellungscodes funktionieren nicht mehr. Ein sicheres Aufbewahren des neuen Satzes vor dem Schließen dieses Fensters hält Ihren Zugang gesichert.",
     n_recovery_codes: "{{count}} Wiederherstellungscodes",
+    recovery_code_already_used:
+      "Dieser Code wurde bereits verwendet. Jeder Code funktioniert einmal, geben Sie daher einen anderen aus Ihrer gespeicherten Liste ein.",
+    try_another_way: "Anders versuchen",
+    other_ways_title: "Anders versuchen",
+    other_ways_desc:
+      "Wählen Sie, wie Sie wieder Zugriff auf Ihr Konto erhalten.",
+    other_way_code_title: "Wiederherstellungscode verwenden",
+    other_way_code_desc: "Geben Sie einen Ihrer gespeicherten Codes ein.",
+    other_way_phrase_title: "Wiederherstellungsphrase verwenden",
+    other_way_phrase_desc:
+      "Geben Sie die 12 Wörter ein, die Sie gespeichert haben.",
+    other_way_email_title: "Mit Wiederherstellungs-E-Mail zurücksetzen",
+    other_way_email_desc:
+      "Aster Mail sendet einen Link an Ihre Wiederherstellungs-E-Mail. Sie verlieren den Zugriff auf E-Mails von vor dem Zurücksetzen.",
+    other_way_none_title: "Ich habe nichts davon",
+    other_way_none_desc:
+      "Aster Mail kann Ihre verschlüsselten Daten nicht lesen, daher kann sie niemand ohne eine dieser Optionen wiederherstellen. Sie können weiterhin ein Konto erstellen.",
+    reset_account_title: "Konto zurücksetzen?",
+    reset_account_desc:
+      "Ihre verschlüsselten E-Mails, Kontakte und Dateien von vor dem Zurücksetzen bleiben gesperrt, bis Sie sie mit Ihrem alten Passwort wiederherstellen. Sie erhalten einen neuen, leeren Verschlüsselungsschlüssel.",
+    send_reset_link: "Link zum Zurücksetzen senden",
+    print_codes: "Drucken",
+    codes_copied: "Codes kopiert.",
+    i_saved_these_codes: "Ich habe diese Codes gespeichert",
+    review_security_title: "Sicherheit überprüfen",
+    review_security_desc:
+      "Ihr Passwort wurde geändert und Ihr Konto wurde wiederhergestellt.",
+    review_devices_signed_out: "Andere Geräte wurden abgemeldet.",
+    review_two_step_off: "Bestätigung in zwei Schritten ist deaktiviert.",
+    review_turn_on: "Aktivieren",
+    review_recovery_email_kept:
+      "Ihre Wiederherstellungs-E-Mail ist weiterhin festgelegt.",
+    review_no_recovery_email: "Keine Wiederherstellungs-E-Mail.",
+    review_add: "Hinzufügen",
+    review_codes_left: "Noch {{count}} Wiederherstellungscodes übrig.",
+    review_codes_left_one: "Noch {{count}} Wiederherstellungscode übrig.",
+    review_codes_left_other: "Noch {{count}} Wiederherstellungscodes übrig.",
     import_mail_step_title: "Nimm deine E-Mails mit",
     import_mail_step_desc: "Übertrage Nachrichten aus einem anderen Konto zu Aster. Alles wird auf deinem Gerät verschlüsselt, bevor es gespeichert wird.",
     import_mail_action: "E-Mails importieren",

@@ -51,6 +51,7 @@ const STATUS_BUTTON_STYLES: Record<SecurityStatus, string> = {
 interface AccountProtectionScoreProps {
   totp_enabled: boolean;
   passkey_registered: boolean;
+  recovery_codes_saved: boolean;
   recovery_email_verified: boolean;
   login_alerts_enabled: boolean;
   block_tracking_pixels: boolean;
@@ -60,11 +61,12 @@ interface AccountProtectionScoreProps {
   on_criterion_click?: Array<(() => void) | undefined>;
 }
 
-const WEIGHTS = [1, 1, 1, 1, 1, 1, 1] as const;
+const WEIGHTS = [1, 1, 1, 1, 1, 1, 1, 1] as const;
 
 export function AccountProtectionScore({
   totp_enabled,
   passkey_registered,
+  recovery_codes_saved,
   recovery_email_verified,
   login_alerts_enabled,
   block_tracking_pixels,
@@ -81,6 +83,7 @@ export function AccountProtectionScore({
   const criteria = build_security_criteria({
     totp_enabled,
     passkey_registered,
+    recovery_codes_saved,
     recovery_email_verified,
     login_alerts_enabled,
     block_tracking_pixels,

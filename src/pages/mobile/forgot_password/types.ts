@@ -18,17 +18,10 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { RecoveryReviewInfo } from "@/pages/forgot_password/use_recovery_flow";
+import type { RecoveryStep } from "@/pages/forgot_password/shared";
 
-export type RecoveryStep =
-  | "email"
-  | "method_choice"
-  | "phrase"
-  | "code"
-  | "password"
-  | "processing"
-  | "new_codes"
-  | "success"
-  | "email_sent";
+export type { RecoveryStep };
 
 export interface StepProps {
   error: string;
@@ -47,10 +40,15 @@ export interface EmailStepProps extends StepProps {
   on_navigate_sign_in: () => void;
 }
 
-export interface MethodChoiceStepProps extends StepProps {
+export interface OtherWaysStepProps extends StepProps {
   on_select_phrase: () => void;
   on_select_code: () => void;
   on_select_email: () => void;
+  on_no_options: () => void;
+}
+
+export interface ResetEmailConfirmStepProps extends StepProps {
+  on_send_reset_link: () => void;
 }
 
 export interface PhraseStepProps extends StepProps {
@@ -92,12 +90,17 @@ export interface NewCodesStepProps extends StepProps {
   is_key_visible: boolean;
   set_is_key_visible: (visible: boolean) => void;
   copy_success: boolean;
+  codes_saved: boolean;
+  set_codes_saved: (saved: boolean) => void;
   on_copy_codes: () => void;
   on_download_pdf: () => void;
   on_download_txt: () => void;
+  on_print_codes: () => void;
+  on_continue: () => void;
 }
 
-export interface SuccessStepProps {
+export interface ReviewSecurityStepProps {
   reduce_motion: boolean;
+  review: RecoveryReviewInfo;
   on_navigate_sign_in: () => void;
 }

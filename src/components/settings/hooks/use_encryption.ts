@@ -24,7 +24,7 @@ import type {
   KeyserverPublicationStatus,
 } from "@/services/api/keys";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 
 import { copy_text_or_throw } from "@/utils/copy_text";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
@@ -32,12 +32,10 @@ import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { api_client } from "@/services/api/client";
 import { ensure_pgp_key_published } from "@/services/crypto/ensure_pgp_key_published";
-import { get_user_info } from "@/services/api/auth";
 import {
   derive_password_hash,
   base64_to_array,
 } from "@/services/crypto/key_manager";
-import { generate_recovery_pdf } from "@/services/crypto/recovery_pdf";
 import { DEFAULT_KEYSERVERS } from "@/components/settings/encryption/encryption_settings_form";
 import { trigger_download } from "@/utils/download_blob";
 import { use_preferences } from "@/contexts/preferences_context";
@@ -48,15 +46,6 @@ import {
   get_keyserver_publication_status,
   clear_external_key_cache,
 } from "@/services/api/keys";
-import { generate_recovery_codes } from "@/services/crypto/key_manager_pgp";
-import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
-import {
-  generate_recovery_key,
-  encrypt_vault_backup,
-  generate_all_recovery_shares,
-  clear_recovery_key,
-} from "@/services/crypto/recovery_key";
-import { save_recovery_backup } from "@/services/api/recovery";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
 
 export interface PgpKeyInfo {
@@ -71,19 +60,8 @@ export interface PgpKeyInfo {
   last_used_decrypt_at: string | null;
 }
 
-export interface RecoveryCodesInfo {
-  total_codes: number;
-  available_codes: number;
-  created_at: string | null;
-}
-
 interface SaltResponse {
   salt: string;
-  totp_required: boolean;
-}
-
-interface VerifyPasswordResponse {
-  verified: boolean;
   totp_required: boolean;
 }
 
@@ -131,24 +109,6 @@ export function use_encryption() {
       apply_keyserver_status(result.data);
     }
   };
-  const [recovery_info, set_recovery_info] = useState<RecoveryCodesInfo | null>(
-    null,
-  );
-  const [recovery_codes, set_recovery_codes] = useState<string[] | null>(null);
-  const [show_recovery_codes, set_show_recovery_codes] = useState(false);
-  const [show_regenerate_confirm, set_show_regenerate_confirm] =
-    useState(false);
-  const [regenerate_confirm_text, set_regenerate_confirm_text] = useState("");
-  const [is_regenerating, set_is_regenerating] = useState(false);
-  const is_regenerating_ref = useRef(false);
-  const [regenerate_password, set_regenerate_password] = useState("");
-  const [regenerate_totp_code, set_regenerate_totp_code] = useState("");
-  const [regenerate_totp_required, set_regenerate_totp_required] =
-    useState(false);
-  const [regenerate_error, set_regenerate_error] = useState("");
-  const [user_email, set_user_email] = useState<string>("");
-  const [codes_key, set_codes_key] = useState(0);
-
   const format_fingerprint = (fp: string): string => {
     return fp.match(/.{1,4}/g)?.join(" ") || fp;
   };
@@ -167,8 +127,6 @@ export function use_encryption() {
     try {
       const [
         key_response,
-        recovery_response,
-        user_response,
         enc_response,
         keyserver_status,
         wkd_status,
@@ -180,10 +138,6 @@ export function use_encryption() {
               error: "network_error",
             }) as ApiResponse<PgpKeyInfo>,
         ),
-        api_client
-          .get<RecoveryCodesInfo>("/crypto/v1/encryption/recovery-status")
-          .catch(() => ({ data: null, error: null })),
-        get_user_info().catch(() => ({ data: null, error: null })),
         api_client
           .get<{
             auto_discover_keys: boolean;
@@ -223,13 +177,6 @@ export function use_encryption() {
       } else {
         set_pgp_key_load_failed(true);
       }
-      if (recovery_response.data) {
-        set_recovery_info(recovery_response.data);
-      }
-      if (user_response.data?.email) {
-        set_user_email(user_response.data.email);
-      }
-
       if (enc_response.data) {
         set_keyservers_loaded(true);
         if (
@@ -467,175 +414,6 @@ export function use_encryption() {
       show_toast(t("settings.copied_to_clipboard"), "success");
     } catch {
       show_toast(t("common.failed_to_copy"), "error");
-    }
-  };
-
-  const handle_download_codes = async () => {
-    if (!recovery_codes || recovery_codes.length === 0) return;
-
-    try {
-      let address = user_email;
-
-      if (!address) {
-        const response = await get_user_info().catch(() => ({
-          data: null,
-        }));
-
-        if (response.data?.email) {
-          address = response.data.email;
-          set_user_email(response.data.email);
-        }
-      }
-
-      await generate_recovery_pdf(
-        address || "your-account@astermail.org",
-        recovery_codes,
-        t,
-      );
-    } catch (error) {
-      if (import.meta.env.DEV) console.error(error);
-      show_toast(t("settings.failed_download_codes"), "error");
-    }
-  };
-
-  const handle_copy_all_codes = async () => {
-    if (!recovery_codes) return;
-
-    try {
-      const codes_text = recovery_codes.join("\n");
-
-      await copy_text_or_throw(codes_text);
-      show_toast(t("common.copied_successfully"), "success");
-    } catch {
-      show_toast(t("common.failed_to_copy"), "error");
-    }
-  };
-
-  const handle_regenerate_codes = async () => {
-    if (regenerate_confirm_text.toLowerCase() !== "regenerate") {
-      return;
-    }
-
-    if (!regenerate_password.trim()) {
-      set_regenerate_error(t("settings.please_enter_password"));
-
-      return;
-    }
-
-    if (regenerate_totp_required && !regenerate_totp_code.trim()) {
-      set_regenerate_error(t("settings.please_enter_2fa_code"));
-
-      return;
-    }
-
-    if (is_regenerating_ref.current) return;
-    is_regenerating_ref.current = true;
-    set_is_regenerating(true);
-    set_regenerate_error("");
-
-    try {
-      const salt_response = await api_client.get<SaltResponse>(
-        "/crypto/v1/encryption/salt",
-        { skip_cache: true },
-      );
-
-      if (salt_response.error || !salt_response.data?.salt) {
-        set_regenerate_error(t("settings.failed_retrieve_auth"));
-
-        return;
-      }
-
-      if (salt_response.data.totp_required && !regenerate_totp_required) {
-        set_regenerate_totp_required(true);
-        set_regenerate_totp_code("");
-        set_is_regenerating(false);
-
-        return;
-      }
-
-      const salt = base64_to_array(salt_response.data.salt);
-      const { hash } = await derive_password_hash(regenerate_password, salt);
-
-      const body: { password_hash: string; totp_code?: string } = {
-        password_hash: hash,
-      };
-
-      if (regenerate_totp_required && regenerate_totp_code.trim()) {
-        body.totp_code = regenerate_totp_code.trim();
-      }
-
-      const verify_response = await api_client.post<VerifyPasswordResponse>(
-        "/crypto/v1/encryption/verify-password",
-        body,
-      );
-
-      if (verify_response.error) {
-        set_regenerate_error(verify_response.error);
-
-        return;
-      }
-
-      if (!verify_response.data?.verified) {
-        set_regenerate_error(t("settings.incorrect_password_error"));
-
-        return;
-      }
-
-      const vault = get_vault_from_memory();
-
-      if (!vault) {
-        set_regenerate_error(t("settings.failed_verify_password"));
-
-        return;
-      }
-
-      const new_codes = generate_recovery_codes(6);
-      const recovery_key = generate_recovery_key();
-
-      try {
-        const new_backup = await encrypt_vault_backup(vault, recovery_key);
-        const new_shares = await generate_all_recovery_shares(
-          new_codes,
-          recovery_key,
-        );
-
-        const backup_response = await save_recovery_backup(
-          new_backup.encrypted_data,
-          new_backup.nonce,
-          new_backup.salt,
-          new_shares,
-        );
-
-        if (backup_response.error || !backup_response.data?.success) {
-          set_regenerate_error(
-            backup_response.error || t("settings.failed_verify_password"),
-          );
-
-          return;
-        }
-
-        set_codes_key((prev) => prev + 1);
-        set_recovery_codes(new_codes);
-        set_recovery_info({
-          total_codes: new_codes.length,
-          available_codes: new_codes.length,
-          created_at: new Date().toISOString(),
-        });
-        set_show_recovery_codes(true);
-        set_show_regenerate_confirm(false);
-        set_regenerate_confirm_text("");
-        set_regenerate_password("");
-        set_regenerate_totp_code("");
-        set_regenerate_error("");
-      } finally {
-        clear_recovery_key(recovery_key);
-      }
-    } catch (error) {
-      if (import.meta.env.DEV) console.error(error);
-      set_regenerate_error(t("settings.failed_verify_password"));
-    } finally {
-      is_regenerating_ref.current = false;
-      set_is_regenerating(false);
     }
   };
 
@@ -883,31 +661,14 @@ export function use_encryption() {
     set_export_error("");
   };
 
-  const close_regenerate_confirm = () => {
-    set_show_regenerate_confirm(false);
-    set_regenerate_confirm_text("");
-    set_regenerate_password("");
-    set_regenerate_totp_code("");
-    set_regenerate_error("");
-  };
-
-  const open_regenerate_confirm = () => {
-    set_show_regenerate_confirm(true);
-  };
-
   useEffect(() => {
     load_encryption_data();
 
     return () => {
-      set_recovery_codes(null);
       set_export_password("");
       set_export_totp_code("");
     };
   }, []);
-
-  const codes_remaining = recovery_info?.available_codes ?? 0;
-  const codes_total = recovery_info?.total_codes ?? 6;
-  const codes_used = recovery_info ? codes_total - codes_remaining : 0;
 
   return {
     is_initial_load,
@@ -922,23 +683,6 @@ export function use_encryption() {
     pgp_key,
     pgp_key_load_failed,
     retry_load_encryption_data: load_encryption_data,
-    recovery_info,
-    recovery_codes,
-    show_recovery_codes,
-    show_regenerate_confirm,
-    regenerate_confirm_text,
-    set_regenerate_confirm_text,
-    is_regenerating,
-    regenerate_password,
-    set_regenerate_password,
-    regenerate_totp_code,
-    set_regenerate_totp_code,
-    regenerate_totp_required,
-    regenerate_error,
-    codes_key,
-    codes_remaining,
-    codes_total,
-    codes_used,
     preferences,
     update_preference,
     format_fingerprint,
@@ -947,9 +691,6 @@ export function use_encryption() {
     handle_export_public_key,
     handle_export_secret_key,
     handle_copy_public_key,
-    handle_download_codes,
-    handle_copy_all_codes,
-    handle_regenerate_codes,
     handle_wkd_toggle,
     handle_keyserver_toggle,
     handle_auto_discover_keys_toggle,
@@ -958,8 +699,6 @@ export function use_encryption() {
     handle_storage_format_change,
     close_export_prompt,
     open_export_prompt,
-    close_regenerate_confirm,
-    open_regenerate_confirm,
     keyserver_urls,
     keyserver_input,
     set_keyserver_input,

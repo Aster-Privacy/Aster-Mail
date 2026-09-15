@@ -210,7 +210,11 @@ export async function reprotect_pgp_key(
   return reencrypted.armor();
 }
 
-export function generate_recovery_codes(count: number = 6): string[] {
+export const RECOVERY_CODE_SET_SIZE = 10;
+
+export function generate_recovery_codes(
+  count: number = RECOVERY_CODE_SET_SIZE,
+): string[] {
   const codes: string[] = [];
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 

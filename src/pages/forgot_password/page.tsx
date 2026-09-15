@@ -24,12 +24,18 @@ import { Button } from "@aster/ui";
 import {
   Alert,
   CopyIcon,
-  MethodCard,
+  HelpIcon,
+  KeyIcon,
+  MailIcon,
+  OptionRow,
   PasswordStrengthIndicator,
+  ReviewRow,
+  WarningIcon,
+  WordsIcon,
   page_transition,
   page_variants,
 } from "./shared";
-import { use_forgot_password } from "./use_forgot_password";
+import { use_recovery_flow } from "./use_recovery_flow";
 
 import { sanitize_username, clamp_password } from "@/services/sanitize";
 import {
@@ -68,11 +74,12 @@ export default function ForgotPasswordPage() {
     set_error,
     processing_status,
     new_recovery_codes,
-    set_new_recovery_codes,
     is_key_visible,
     set_is_key_visible,
     copy_success,
-    codes_downloaded,
+    codes_saved,
+    set_codes_saved,
+    review,
     recovery_method,
     set_recovery_method,
     phrase_words,
@@ -85,7 +92,9 @@ export default function ForgotPasswordPage() {
     handle_copy_codes,
     handle_download_pdf,
     handle_download_txt,
-  } = use_forgot_password();
+    handle_print_codes,
+    handle_codes_continue,
+  } = use_recovery_flow();
 
   const render_step_content = () => {
     switch (step) {
@@ -206,10 +215,10 @@ export default function ForgotPasswordPage() {
           </motion.div>
         );
 
-      case "method_choice":
+      case "other_ways":
         return (
           <motion.div
-            key="method_choice"
+            key="other_ways"
             animate="animate"
             className="flex flex-col items-center w-full max-w-sm px-4 text-center"
             exit="exit"
@@ -223,10 +232,10 @@ export default function ForgotPasswordPage() {
             <Logo />
 
             <h1 className="text-xl font-semibold mt-6 text-txt-primary">
-              {t("auth.forgot_method_title")}
+              {t("auth.other_ways_title")}
             </h1>
             <p className="text-sm mt-2 leading-relaxed text-txt-tertiary">
-              {t("auth.forgot_method_desc")}
+              {t("auth.other_ways_desc")}
             </p>
 
             <AnimatePresence>
@@ -234,34 +243,40 @@ export default function ForgotPasswordPage() {
             </AnimatePresence>
 
             <div className={`w-full ${error ? "mt-4" : "mt-6"} space-y-3`}>
-              <MethodCard
-                badge={t("auth.forgot_method_full_restore")}
-                badge_tone="green"
-                description={t("auth.forgot_method_phrase_desc")}
-                on_click={() => {
-                  set_error("");
-                  set_recovery_method("phrase");
-                  set_step("phrase_entry");
-                }}
-                title={t("auth.forgot_method_phrase_title")}
-              />
-              <MethodCard
-                badge={t("auth.forgot_method_full_restore")}
-                badge_tone="green"
-                description={t("auth.forgot_method_code_desc")}
+              <OptionRow
+                description={t("auth.other_way_code_desc")}
+                icon={<KeyIcon />}
                 on_click={() => {
                   set_error("");
                   set_recovery_method("code");
                   set_step("code");
                 }}
-                title={t("auth.forgot_method_code_title")}
+                title={t("auth.other_way_code_title")}
               />
-              <MethodCard
-                badge={t("auth.forgot_method_access_only")}
-                badge_tone="amber"
-                description={t("auth.forgot_method_email_desc")}
-                on_click={handle_email_reset_link}
-                title={t("auth.forgot_method_email_title")}
+              <OptionRow
+                description={t("auth.other_way_phrase_desc")}
+                icon={<WordsIcon />}
+                on_click={() => {
+                  set_error("");
+                  set_recovery_method("phrase");
+                  set_step("phrase_entry");
+                }}
+                title={t("auth.other_way_phrase_title")}
+              />
+              <OptionRow
+                description={t("auth.other_way_email_desc")}
+                icon={<MailIcon />}
+                on_click={() => {
+                  set_error("");
+                  set_step("reset_email_confirm");
+                }}
+                title={t("auth.other_way_email_title")}
+              />
+              <OptionRow
+                description={t("auth.other_way_none_desc")}
+                icon={<HelpIcon />}
+                on_click={() => navigate("/register")}
+                title={t("auth.other_way_none_title")}
               />
             </div>
 
@@ -271,7 +286,62 @@ export default function ForgotPasswordPage() {
               variant="secondary"
               onClick={() => {
                 set_error("");
-                set_step("email");
+                set_step("code");
+              }}
+            >
+              {t("common.back")}
+            </Button>
+          </motion.div>
+        );
+
+      case "reset_email_confirm":
+        return (
+          <motion.div
+            key="reset_email_confirm"
+            animate="animate"
+            className="flex flex-col items-center w-full max-w-sm px-4 text-center"
+            exit="exit"
+            initial={reduce_motion ? false : "initial"}
+            transition={{
+              ...page_transition,
+              duration: reduce_motion ? 0 : page_transition.duration,
+            }}
+            variants={page_variants}
+          >
+            <div
+              className="w-16 h-16 rounded-full flex items-center justify-center"
+              style={{ backgroundColor: "rgba(245, 158, 11, 0.1)" }}
+            >
+              <WarningIcon />
+            </div>
+
+            <h1 className="text-xl font-semibold mt-6 text-txt-primary">
+              {t("auth.reset_account_title")}
+            </h1>
+            <p className="text-sm mt-2 leading-relaxed text-txt-tertiary">
+              {t("auth.reset_account_desc")}
+            </p>
+
+            <AnimatePresence>
+              {error && <Alert is_dark={is_dark} message={error} />}
+            </AnimatePresence>
+
+            <Button
+              className={`w-full ${error ? "mt-4" : "mt-8"}`}
+              size="xl"
+              variant="depth"
+              onClick={handle_email_reset_link}
+            >
+              {t("auth.send_reset_link")}
+            </Button>
+
+            <Button
+              className="w-full mt-3"
+              size="xl"
+              variant="secondary"
+              onClick={() => {
+                set_error("");
+                set_step("other_ways");
               }}
             >
               {t("common.back")}
@@ -335,17 +405,15 @@ export default function ForgotPasswordPage() {
               {t("common.continue")}
             </Button>
 
-            <Button
-              className="w-full mt-3"
-              size="xl"
-              variant="secondary"
+            <button
+              className="w-full mt-6 text-sm transition-colors hover:opacity-80 text-txt-tertiary"
               onClick={() => {
                 set_error("");
-                set_step("method_choice");
+                set_step("other_ways");
               }}
             >
-              {t("common.back")}
-            </Button>
+              {t("auth.try_another_way")}
+            </button>
           </motion.div>
         );
 
@@ -410,7 +478,7 @@ export default function ForgotPasswordPage() {
               variant="secondary"
               onClick={() => {
                 set_error("");
-                set_step("method_choice");
+                set_step("other_ways");
               }}
             >
               {t("common.back")}
@@ -622,34 +690,49 @@ export default function ForgotPasswordPage() {
               </div>
             </div>
 
-            <Button
-              className="w-full mt-6"
-              size="xl"
-              variant="depth"
-              onClick={handle_download_pdf}
-            >
-              {t("auth.download_key")}
-            </Button>
+            <div className="w-full mt-6 grid grid-cols-3 gap-2">
+              <Button
+                size="lg"
+                variant="secondary"
+                onClick={handle_download_pdf}
+              >
+                {t("common.download")}
+              </Button>
+              <Button size="lg" variant="secondary" onClick={handle_print_codes}>
+                {t("auth.print_codes")}
+              </Button>
+              <Button size="lg" variant="secondary" onClick={handle_copy_codes}>
+                {copy_success ? t("common.copied") : t("auth.copy_codes")}
+              </Button>
+            </div>
+
+            <label className="w-full mt-6 flex items-start gap-3 text-start cursor-pointer">
+              <input
+                checked={codes_saved}
+                className="mt-0.5 h-4 w-4 shrink-0 accent-[var(--accent-color)]"
+                type="checkbox"
+                onChange={(e) => set_codes_saved(e.target.checked)}
+              />
+              <span className="text-sm text-txt-secondary">
+                {t("auth.i_saved_these_codes")}
+              </span>
+            </label>
 
             <Button
-              className="w-full mt-3"
+              className="w-full mt-6"
+              disabled={!codes_saved}
               size="xl"
-              variant="secondary"
-              onClick={handle_download_txt}
+              variant="depth"
+              onClick={handle_codes_continue}
             >
-              {t("auth.download_as_text")}
+              {t("common.continue")}
             </Button>
 
             <button
-              className="w-full mt-6 text-sm transition-colors hover:opacity-80 text-txt-tertiary"
-              onClick={() => {
-                set_new_recovery_codes([]);
-                set_step("success");
-              }}
+              className="w-full mt-4 text-sm transition-colors hover:opacity-80 text-txt-tertiary"
+              onClick={handle_download_txt}
             >
-              {codes_downloaded
-                ? t("common.continue")
-                : t("auth.continue_without_download")}
+              {t("auth.download_as_text")}
             </button>
           </motion.div>
         );
@@ -705,10 +788,10 @@ export default function ForgotPasswordPage() {
           </motion.div>
         );
 
-      case "success":
+      case "review_security":
         return (
           <motion.div
-            key="success"
+            key="review_security"
             animate="animate"
             className="flex flex-col items-center w-full max-w-sm px-4 text-center"
             exit="exit"
@@ -739,11 +822,30 @@ export default function ForgotPasswordPage() {
             </div>
 
             <h1 className="text-xl font-semibold mt-6 text-txt-primary">
-              {t("auth.password_reset_successful")}
+              {t("auth.review_security_title")}
             </h1>
             <p className="text-sm mt-2 leading-relaxed text-txt-tertiary">
-              {t("auth.account_recovered_sign_in")}
+              {t("auth.review_security_desc")}
             </p>
+
+            <div className="w-full mt-6 space-y-2">
+              <ReviewRow label={t("auth.review_devices_signed_out")} />
+              {review.second_factors_removed && (
+                <ReviewRow label={t("auth.review_two_step_off")} />
+              )}
+              <ReviewRow
+                label={
+                  review.recovery_email_kept
+                    ? t("auth.review_recovery_email_kept")
+                    : t("auth.review_no_recovery_email")
+                }
+              />
+              <ReviewRow
+                label={t("auth.review_codes_left", {
+                  count: review.codes_remaining.toString(),
+                })}
+              />
+            </div>
 
             <Button
               className="w-full mt-8"

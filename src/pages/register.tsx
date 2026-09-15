@@ -31,8 +31,6 @@ import {
   RegisterStepRecoveryEmailVerification,
   RegisterStepRecoveryEmailGate,
 } from "@/components/register/register_step_recovery";
-import { RegisterStepRecoveryPhrase } from "@/components/register/register_step_recovery_phrase";
-import { RegisterStepPhraseConfirm } from "@/components/register/register_step_phrase_confirm";
 import { RegisterStepPlanSelection } from "@/components/register/register_step_plan_selection";
 import { RegisterStepAcademicOffer } from "@/components/register/register_step_academic_offer";
 import { RegisterStepDownloadApps } from "@/components/register/register_step_download_apps";
@@ -68,10 +66,6 @@ function BrowserRegisterPage() {
         return <RegisterStepKeys reg={reg} />;
       case "recovery_key":
         return <RegisterStepRecoveryCodes reg={reg} />;
-      case "recovery_phrase":
-        return <RegisterStepRecoveryPhrase reg={reg} />;
-      case "phrase_confirm":
-        return <RegisterStepPhraseConfirm reg={reg} />;
       case "recovery_email":
         return <RegisterStepRecoveryEmail reg={reg} />;
       case "recovery_email_verification":

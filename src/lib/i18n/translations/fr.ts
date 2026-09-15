@@ -1862,6 +1862,19 @@ export const fr = {
       "Aster chiffre votre courrier avec votre mot de passe, donc personne ne peut le réinitialiser à votre place. Ajoutez une adresse de récupération pour garder un accès.",
     recovery_reminder_action: "Ajouter une adresse de récupération",
     recovery_reminder_later: "Plus tard",
+    recovery_codes_reminder_title: "Enregistrez vos codes de récupération",
+    recovery_codes_reminder_body:
+      "Aster chiffre votre courrier avec votre mot de passe, donc personne ne peut le réinitialiser à votre place. Les codes de récupération sont le seul moyen de retrouver votre courrier chiffré.",
+    recovery_codes_reminder_action: "Obtenir des codes de récupération",
+    recovery_codes_low_reminder_title:
+      "Il vous reste peu de codes de récupération",
+    recovery_codes_low_reminder_body:
+      "Chaque code fonctionne une fois et il vous en reste {{count}}. Obtenez de nouveaux codes pour ne pas perdre l'accès.",
+    recovery_codes_low_reminder_action: "Obtenir de nouveaux codes",
+    recovery_phrase_migrate_title: "Passez aux codes de récupération",
+    recovery_phrase_migrate_body:
+      "Les phrases de récupération vont disparaître. Obtenez des codes de récupération maintenant pour pouvoir encore récupérer votre compte.",
+    recovery_phrase_migrate_action: "Obtenir des codes",
     plan_prompt_title: "Vous êtes sur le forfait gratuit",
     plan_prompt_body:
       "Les forfaits payants ajoutent plus de stockage, des domaines personnalisés et des alias illimités.",
@@ -2281,11 +2294,24 @@ export const fr = {
       "Sans codes de récupération, oublier votre mot de passe verrouille définitivement vos e-mails chiffrés.",
     recovery_codes_row: "Codes de récupération",
     recovery_codes_row_desc:
-      "Six codes à usage unique qui restaurent votre compte et toutes vos données chiffrées.",
-    recovery_codes_generate: "Générer les codes",
-    recovery_codes_regenerate: "Régénérer les codes",
+      "Codes à usage unique qui restaurent votre compte et toutes vos données chiffrées.",
+    recovery_codes_generate: "Obtenir des codes",
+    recovery_codes_regenerate: "Obtenir de nouveaux codes",
     recovery_codes_regenerate_warning:
-      "La régénération crée de nouveaux codes et invalide définitivement les anciens.",
+      "Vos codes actuels cessent de fonctionner dès que vous en obtenez de nouveaux.",
+    recovery_codes_show: "Afficher les codes",
+    recovery_codes_get_new_title: "Obtenir de nouveaux codes de récupération ?",
+    recovery_codes_confirm_title: "Confirmez votre identité",
+    recovery_codes_confirm_desc:
+      "Saisissez votre mot de passe pour voir vos codes de récupération.",
+    recovery_codes_title: "Vos codes de récupération",
+    recovery_codes_status:
+      "Créés le {{date}}. Il en reste {{remaining}} sur {{total}}.",
+    recovery_codes_low:
+      "Il vous reste peu de codes de récupération. Obtenez de nouveaux codes pour ne pas perdre l'accès.",
+    recovery_codes_used: "Utilisé",
+    recovery_codes_unavailable:
+      "Vos codes ne sont pas enregistrés sur cet appareil. Obtenez de nouveaux codes pour les voir.",
     recovery_method_active: "Actif",
     recovery_method_not_set: "Non défini",
     recovery_codes_saved_confirm:
@@ -7644,6 +7670,7 @@ export const fr = {
     product_updates_save_failed:
       "Votre préférence de nouveautés n’a pas été enregistrée. Réessayez.",
     criterion_passkey: "Clé d’accès enregistrée",
+    criterion_recovery_codes: "Codes de récupération enregistrés",
     criterion_read_receipts_off: "Accusés de lecture désactivés",
     send_read_receipts_label: "Envoyer des accusés de lecture",
     send_read_receipts_description:
@@ -9301,6 +9328,41 @@ export const fr = {
     old_codes_invalidated:
       "Vos anciens codes de récupération ne fonctionnent plus. Enregistrer ce nouvel ensemble dans un endroit sûr avant de fermer cette fenêtre vous gardera couvert.",
     n_recovery_codes: "{{count}} codes de récupération",
+    recovery_code_already_used:
+      "Ce code a déjà été utilisé. Chaque code ne fonctionne qu'une fois, saisissez donc un autre code de votre liste enregistrée.",
+    try_another_way: "Essayer autrement",
+    other_ways_title: "Essayer autrement",
+    other_ways_desc: "Choisissez comment récupérer l'accès à votre compte.",
+    other_way_code_title: "Utiliser un code de récupération",
+    other_way_code_desc: "Saisissez l'un des codes que vous avez enregistrés.",
+    other_way_phrase_title: "Utiliser votre phrase de récupération",
+    other_way_phrase_desc: "Saisissez les 12 mots que vous avez enregistrés.",
+    other_way_email_title: "Réinitialiser avec votre e-mail de récupération",
+    other_way_email_desc:
+      "Aster Mail envoie un lien à votre e-mail de récupération. Vous perdez l'accès aux messages antérieurs à la réinitialisation.",
+    other_way_none_title: "Je n'ai aucun de ces éléments",
+    other_way_none_desc:
+      "Aster Mail ne peut pas lire vos données chiffrées, donc personne ne peut les récupérer sans l'un de ces éléments. Vous pouvez toujours créer un compte.",
+    reset_account_title: "Réinitialiser votre compte ?",
+    reset_account_desc:
+      "Vos e-mails, contacts et fichiers chiffrés antérieurs à la réinitialisation restent verrouillés jusqu'à ce que vous les récupériez avec votre ancien mot de passe. Vous obtenez une nouvelle clé de chiffrement vide.",
+    send_reset_link: "Envoyer le lien de réinitialisation",
+    print_codes: "Imprimer",
+    codes_copied: "Codes copiés.",
+    i_saved_these_codes: "J'ai enregistré ces codes",
+    review_security_title: "Vérifiez votre sécurité",
+    review_security_desc:
+      "Votre mot de passe a été modifié et votre compte a été récupéré.",
+    review_devices_signed_out: "Les autres appareils ont été déconnectés.",
+    review_two_step_off: "La validation en deux étapes est désactivée.",
+    review_turn_on: "Activer",
+    review_recovery_email_kept:
+      "Votre e-mail de récupération est toujours défini.",
+    review_no_recovery_email: "Aucun e-mail de récupération.",
+    review_add: "Ajouter",
+    review_codes_left: "Il reste {{count}} codes de récupération.",
+    review_codes_left_one: "Il reste {{count}} code de récupération.",
+    review_codes_left_other: "Il reste {{count}} codes de récupération.",
     import_mail_step_title: "Emportez votre courrier avec vous",
     import_mail_step_desc: "Transférez les messages d'un autre compte vers Aster. Tout est chiffré sur votre appareil avant d'être stocké.",
     import_mail_action: "Importer le courrier",

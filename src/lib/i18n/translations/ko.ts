@@ -1863,6 +1863,18 @@ export const ko = {
       "Aster는 비밀번호로 메일을 암호화하므로 누구도 대신 재설정할 수 없습니다. 접근을 유지하려면 복구 이메일을 추가하세요.",
     recovery_reminder_action: "복구 이메일 추가",
     recovery_reminder_later: "나중에",
+    recovery_codes_reminder_title: "복구 코드 저장",
+    recovery_codes_reminder_body:
+      "Aster는 비밀번호로 메일을 암호화하므로 누구도 대신 재설정할 수 없습니다. 암호화된 메일로 돌아가는 유일한 방법은 복구 코드입니다.",
+    recovery_codes_reminder_action: "복구 코드 받기",
+    recovery_codes_low_reminder_title: "복구 코드가 얼마 남지 않았습니다",
+    recovery_codes_low_reminder_body:
+      "각 코드는 한 번만 사용할 수 있으며 {{count}}개가 남았습니다. 계정이 잠기지 않도록 새 코드를 받으세요.",
+    recovery_codes_low_reminder_action: "새 코드 받기",
+    recovery_phrase_migrate_title: "복구 코드로 전환",
+    recovery_phrase_migrate_body:
+      "복구 문구는 곧 사라집니다. 계정을 계속 복구할 수 있도록 지금 복구 코드를 받으세요.",
+    recovery_phrase_migrate_action: "코드 받기",
     plan_prompt_title: "무료 요금제를 사용 중입니다",
     plan_prompt_body:
       "유료 요금제에서는 저장 공간이 늘어나고 맞춤 도메인과 무제한 별칭을 사용할 수 있습니다.",
@@ -3662,11 +3674,23 @@ export const ko = {
       "복구 코드가 없으면, 비밀번호를 잊는 순간 암호화된 메일이 영구적으로 잠깁니다.",
     recovery_codes_row: "복구 코드",
     recovery_codes_row_desc:
-      "계정과 모든 암호화된 데이터를 복원하는 6개의 일회용 코드입니다.",
-    recovery_codes_generate: "코드 생성",
-    recovery_codes_regenerate: "코드 재생성",
+      "계정과 암호화된 모든 데이터를 복구하는 일회용 코드입니다.",
+    recovery_codes_generate: "코드 받기",
+    recovery_codes_regenerate: "새 코드 받기",
     recovery_codes_regenerate_warning:
-      "재생성하면 새 코드가 만들어지고 이전 코드는 영구적으로 무효화됩니다.",
+      "새 코드를 받으면 현재 코드는 바로 사용할 수 없습니다.",
+    recovery_codes_show: "코드 보기",
+    recovery_codes_get_new_title: "새 복구 코드를 받으시겠습니까?",
+    recovery_codes_confirm_title: "본인 확인",
+    recovery_codes_confirm_desc: "복구 코드를 보려면 비밀번호를 입력하세요.",
+    recovery_codes_title: "복구 코드",
+    recovery_codes_status:
+      "{{date}}에 생성됨. {{total}}개 중 {{remaining}}개 남음.",
+    recovery_codes_low:
+      "복구 코드가 얼마 남지 않았습니다. 계정이 잠기지 않도록 새 코드를 받으세요.",
+    recovery_codes_used: "사용됨",
+    recovery_codes_unavailable:
+      "이 기기에는 코드가 저장되어 있지 않습니다. 보려면 새 코드를 받으세요.",
     recovery_method_active: "활성",
     recovery_method_not_set: "설정 안 됨",
     recovery_codes_saved_confirm:
@@ -7385,6 +7409,7 @@ export const ko = {
     product_updates_save_failed:
       "제품 소식 설정을 저장하지 못했습니다. 다시 시도하세요.",
     criterion_passkey: "패스키 등록됨",
+    criterion_recovery_codes: "복구 코드 저장됨",
     criterion_read_receipts_off: "읽음 확인 꺼짐",
     send_read_receipts_label: "읽음 확인 보내기",
     send_read_receipts_description:
@@ -8935,6 +8960,38 @@ export const ko = {
     old_codes_invalidated:
       "기존 복구 코드는 더 이상 작동하지 않습니다. 이 창을 닫기 전에 새 코드를 안전한 곳에 저장해두면 계속 안전하게 사용할 수 있습니다.",
     n_recovery_codes: "{{count}}개의 복구 코드",
+    recovery_code_already_used:
+      "이 코드는 이미 사용되었습니다. 각 코드는 한 번만 사용할 수 있으므로 저장한 목록에서 다른 코드를 입력하세요.",
+    try_another_way: "다른 방법 사용",
+    other_ways_title: "다른 방법 사용",
+    other_ways_desc: "계정에 다시 로그인할 방법을 선택하세요.",
+    other_way_code_title: "복구 코드 사용",
+    other_way_code_desc: "저장한 코드 중 하나를 입력하세요.",
+    other_way_phrase_title: "복구 문구 사용",
+    other_way_phrase_desc: "저장한 12개 단어를 입력하세요.",
+    other_way_email_title: "복구 이메일로 재설정",
+    other_way_email_desc:
+      "Aster Mail이 복구 이메일로 링크를 보냅니다. 재설정 전에 받은 메일에는 접근할 수 없습니다.",
+    other_way_none_title: "해당하는 항목이 없음",
+    other_way_none_desc:
+      "Aster Mail은 암호화된 데이터를 읽을 수 없으므로 이 방법 중 하나가 없으면 누구도 복구할 수 없습니다. 새 계정은 만들 수 있습니다.",
+    reset_account_title: "계정을 재설정할까요?",
+    reset_account_desc:
+      "재설정 전의 암호화된 메일, 연락처, 파일은 이전 비밀번호로 복구할 때까지 잠긴 상태로 유지됩니다. 새로운 빈 암호화 키가 발급됩니다.",
+    send_reset_link: "재설정 링크 보내기",
+    print_codes: "인쇄",
+    codes_copied: "코드를 복사했습니다.",
+    i_saved_these_codes: "이 코드를 저장했습니다",
+    review_security_title: "보안 검토",
+    review_security_desc: "비밀번호가 변경되었고 계정이 복구되었습니다.",
+    review_devices_signed_out: "다른 기기에서 로그아웃되었습니다.",
+    review_two_step_off: "2단계 인증이 꺼져 있습니다.",
+    review_turn_on: "사용 설정",
+    review_recovery_email_kept: "복구 이메일이 그대로 설정되어 있습니다.",
+    review_no_recovery_email: "복구 이메일이 없습니다.",
+    review_add: "추가",
+    review_codes_left: "복구 코드가 {{count}}개 남았습니다.",
+    review_codes_left_other: "복구 코드가 {{count}}개 남았습니다.",
     import_mail_step_title: "메일을 함께 가져오세요",
     import_mail_step_desc: "다른 계정의 메시지를 Aster로 옮깁니다. 모든 내용은 저장 전에 기기에서 암호화됩니다.",
     import_mail_action: "메일 가져오기",

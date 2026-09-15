@@ -46,6 +46,7 @@ import {
   format_key_fingerprint,
   use_security_overview,
 } from "@/hooks/use_security_overview";
+import { use_recovery_status } from "@/hooks/use_recovery_status";
 import {
   get_cached_aliases,
   subscribe_aliases,
@@ -135,6 +136,7 @@ export function QuickSecurityPanel({
   const { t } = use_i18n();
   const { preferences } = use_preferences();
   const overview = use_security_overview(is_open);
+  const recovery = use_recovery_status(is_open);
   const panel_ref = useRef<HTMLElement | null>(null);
   const cached_aliases = useSyncExternalStore(
     subscribe_aliases,
@@ -161,6 +163,7 @@ export function QuickSecurityPanel({
       build_security_criteria({
         totp_enabled: overview.totp_enabled,
         passkey_registered: overview.passkey_registered,
+        recovery_codes_saved: recovery.has_codes,
         recovery_email_verified: overview.recovery_email_verified,
         login_alerts_enabled: overview.login_alerts_enabled,
         block_tracking_pixels: preferences.block_tracking_pixels,
@@ -170,6 +173,7 @@ export function QuickSecurityPanel({
     [
       overview.totp_enabled,
       overview.passkey_registered,
+      recovery.has_codes,
       overview.recovery_email_verified,
       overview.login_alerts_enabled,
       preferences.block_tracking_pixels,

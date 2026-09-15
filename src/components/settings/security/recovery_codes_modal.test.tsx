@@ -22,10 +22,16 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
-import { RecoveryCodesModal } from "./recovery_codes_modal";
+import {
+  RecoveryCodesModal,
+  type RecoveryCodesModalMode,
+} from "./recovery_codes_modal";
 
 import { api_client } from "@/services/api/client";
-import { save_recovery_backup } from "@/services/api/recovery";
+import {
+  save_recovery_backup,
+  verify_codes_step_up,
+} from "@/services/api/recovery";
 import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
 import {
   hash_recovery_code,
@@ -42,15 +48,31 @@ vi.mock("@/services/api/client", () => ({
 
 vi.mock("@/services/api/recovery", () => ({
   save_recovery_backup: vi.fn(),
+  verify_codes_step_up: vi.fn(),
 }));
 
 vi.mock("@/services/crypto/memory_key_store", () => ({
   get_vault_from_memory: vi.fn(),
+  get_passphrase_from_memory: vi.fn(() => "correct horse battery staple"),
+  store_vault_in_memory: vi.fn(),
+}));
+
+vi.mock("@/services/crypto/key_manager_pgp_vault", async (import_original) => ({
+  ...((await import_original()) as object),
+  encrypt_vault: vi.fn(async () => ({
+    encrypted_vault: "encrypted-vault",
+    vault_nonce: "vault-nonce",
+  })),
+}));
+
+vi.mock("@/contexts/auth/session_passphrase", () => ({
+  store_encrypted_vault: vi.fn(),
 }));
 
 vi.mock("@/services/crypto/recovery_pdf", () => ({
   generate_recovery_pdf: vi.fn(),
   download_recovery_text: vi.fn(),
+  print_recovery_codes: vi.fn(),
 }));
 
 vi.mock("@/lib/i18n/context", () => ({
@@ -58,7 +80,7 @@ vi.mock("@/lib/i18n/context", () => ({
 }));
 
 vi.mock("@/contexts/auth_context", () => ({
-  use_auth: () => ({ user: { email: "test@astermail.org" } }),
+  use_auth: () => ({ user: { id: "user-1", email: "test@astermail.org" } }),
 }));
 
 vi.mock("@/components/toast/simple_toast", () => ({
@@ -102,8 +124,8 @@ vi.mock("@aster/ui", () => ({
 }));
 
 const mocked_get = vi.mocked(api_client.get);
-const mocked_post = vi.mocked(api_client.post);
 const mocked_save = vi.mocked(save_recovery_backup);
+const mocked_step_up = vi.mocked(verify_codes_step_up);
 const mocked_vault = vi.mocked(get_vault_from_memory);
 
 const vault_fixture = {
@@ -118,12 +140,15 @@ const vault_fixture = {
 let container: HTMLDivElement;
 let root: Root;
 
-function render_modal(props: { has_codes?: boolean } = {}) {
+function render_modal(
+  props: { has_codes?: boolean; mode?: RecoveryCodesModalMode } = {},
+) {
   act(() => {
     root.render(
       <RecoveryCodesModal
         is_open
         has_codes={props.has_codes ?? false}
+        mode={props.mode ?? "regenerate"}
         on_close={() => {}}
         on_saved={() => {}}
       />,
@@ -167,6 +192,19 @@ function find_button(label: string): HTMLButtonElement {
   return match;
 }
 
+async function submit_password(label: string, value = "correct horse") {
+  const password_input = container.querySelector(
+    "#codes-current-password",
+  ) as HTMLInputElement;
+
+  expect(password_input).toBeTruthy();
+  set_input(password_input, value);
+
+  await act(async () => {
+    find_button(label).click();
+  });
+}
+
 describe("RecoveryCodesModal", () => {
   beforeEach(() => {
     vi.useFakeTimers();
@@ -174,14 +212,20 @@ describe("RecoveryCodesModal", () => {
     document.body.appendChild(container);
     root = createRoot(container);
     mocked_get.mockReset();
-    mocked_post.mockReset();
     mocked_save.mockReset();
+    mocked_step_up.mockReset();
     mocked_vault.mockReset();
     mocked_vault.mockReturnValue(vault_fixture as never);
     mocked_get.mockResolvedValue({
       data: { salt: btoa("0123456789abcdef"), totp_required: false },
     } as never);
-    mocked_post.mockResolvedValue({ data: { verified: true } } as never);
+    mocked_step_up.mockResolvedValue({
+      data: {
+        step_up_token: "step-up-token",
+        expires_at: new Date().toISOString(),
+        codes: [],
+      },
+    } as never);
     mocked_save.mockResolvedValue({ data: { success: true } } as never);
   });
 
@@ -191,58 +235,48 @@ describe("RecoveryCodesModal", () => {
     vi.useRealTimers();
   });
 
-  it("shows the generate title when no codes exist", () => {
-    render_modal({ has_codes: false });
-    expect(container.textContent).toContain("settings.recovery_codes_generate");
-    expect(container.textContent).not.toContain(
-      "settings.recovery_codes_regenerate_warning",
-    );
-  });
-
-  it("shows the regenerate warning when codes already exist", () => {
-    render_modal({ has_codes: true });
+  it("asks to confirm before replacing an existing set", () => {
+    render_modal({ has_codes: true, mode: "regenerate" });
     expect(container.textContent).toContain(
       "settings.recovery_codes_regenerate_warning",
     );
   });
 
-  it("generates codes whose saved shares and backup restore the exact vault", async () => {
+  it("goes straight to the step-up when no codes exist", () => {
+    render_modal({ has_codes: false, mode: "regenerate" });
+    expect(container.textContent).toContain(
+      "settings.recovery_codes_confirm_title",
+    );
+    expect(container.textContent).not.toContain(
+      "settings.recovery_codes_regenerate_warning",
+    );
+  });
+
+  it("generates codes whose shares and backup restore the vault", async () => {
     vi.useRealTimers();
     render_modal();
 
-    const password_input = container.querySelector(
-      "#codes-current-password",
-    ) as HTMLInputElement;
-
-    expect(password_input).toBeTruthy();
-    set_input(password_input, "correct horse battery staple");
-
-    const generate_button = find_button("settings.recovery_codes_generate");
-
-    await act(async () => {
-      generate_button.click();
-    });
+    await submit_password("settings.recovery_codes_regenerate");
     await wait_until(() => mocked_save.mock.calls.length === 1);
     await wait_until(
-      () => container.querySelectorAll(".font-mono").length === 6,
+      () => container.querySelectorAll(".font-mono").length === 10,
     );
 
-    expect(mocked_post).toHaveBeenCalledWith(
-      "/crypto/v1/encryption/verify-password",
-      expect.objectContaining({ password_hash: expect.any(String) }),
-    );
-    expect(mocked_save).toHaveBeenCalledTimes(1);
+    expect(mocked_step_up).toHaveBeenCalledWith(expect.any(String), undefined);
 
-    const [encrypted_backup, backup_nonce, backup_salt, shares] =
+    const [encrypted_backup, backup_nonce, backup_salt, shares, options] =
       mocked_save.mock.calls[0];
 
-    expect(shares).toHaveLength(6);
+    expect(shares).toHaveLength(10);
+    expect(options).toMatchObject({
+      step_up_token: "step-up-token",
+      encrypted_vault: "encrypted-vault",
+      vault_nonce: "vault-nonce",
+    });
 
     const shown_codes = Array.from(
       container.querySelectorAll(".font-mono"),
     ).map((el) => el.textContent?.trim() ?? "");
-
-    expect(shown_codes).toHaveLength(6);
 
     for (const code of shown_codes) {
       expect(code).toMatch(/^ASTER-/);
@@ -274,23 +308,20 @@ describe("RecoveryCodesModal", () => {
       recovery_key,
     );
 
-    expect(restored_vault).toMatchObject(vault_fixture);
+    expect(restored_vault).toMatchObject({
+      ...vault_fixture,
+      recovery_codes: shown_codes,
+    });
   });
 
-  it("does not save when password verification fails", async () => {
+  it("does not save when the step-up fails", async () => {
     vi.useRealTimers();
-    mocked_post.mockResolvedValue({ data: { verified: false } } as never);
+    mocked_step_up.mockResolvedValue({
+      error: "settings.incorrect_password_error",
+    } as never);
     render_modal();
 
-    const password_input = container.querySelector(
-      "#codes-current-password",
-    ) as HTMLInputElement;
-
-    set_input(password_input, "wrong password");
-
-    await act(async () => {
-      find_button("settings.recovery_codes_generate").click();
-    });
+    await submit_password("settings.recovery_codes_regenerate", "wrong");
     await wait_until(() =>
       (container.textContent ?? "").includes(
         "settings.incorrect_password_error",
@@ -307,20 +338,10 @@ describe("RecoveryCodesModal", () => {
     } as never);
     render_modal();
 
-    const password_input = container.querySelector(
-      "#codes-current-password",
-    ) as HTMLInputElement;
+    await submit_password("settings.recovery_codes_regenerate");
+    await wait_until(() => container.querySelector("#codes-totp-code") !== null);
 
-    set_input(password_input, "correct horse battery staple");
-
-    await act(async () => {
-      find_button("settings.recovery_codes_generate").click();
-    });
-    await wait_until(
-      () => container.querySelector("#codes-totp-code") !== null,
-    );
-
-    expect(mocked_save).not.toHaveBeenCalled();
+    expect(mocked_step_up).not.toHaveBeenCalled();
 
     const totp_input = container.querySelector(
       "#codes-totp-code",
@@ -329,14 +350,60 @@ describe("RecoveryCodesModal", () => {
     set_input(totp_input, "123456");
 
     await act(async () => {
-      find_button("settings.recovery_codes_generate").click();
+      find_button("settings.recovery_codes_regenerate").click();
     });
     await wait_until(() => mocked_save.mock.calls.length === 1);
 
-    expect(mocked_post).toHaveBeenCalledWith(
-      "/crypto/v1/encryption/verify-password",
-      expect.objectContaining({ totp_code: "123456" }),
+    expect(mocked_step_up).toHaveBeenCalledWith(expect.any(String), "123456");
+  });
+
+  it("shows stored codes with used ones struck through", async () => {
+    vi.useRealTimers();
+
+    const stored = ["ASTER-AAAA-BBBB-CCCC-DDDD", "ASTER-EEEE-FFFF-GGGG-HHHH"];
+
+    mocked_vault.mockReturnValue({
+      ...vault_fixture,
+      recovery_codes: stored,
+    } as never);
+    mocked_step_up.mockResolvedValue({
+      data: {
+        step_up_token: "step-up-token",
+        expires_at: new Date().toISOString(),
+        codes: [
+          {
+            code_hash: await hash_recovery_code(stored[1]),
+            status: "used",
+            used_at: new Date().toISOString(),
+          },
+        ],
+      },
+    } as never);
+    render_modal({ has_codes: true, mode: "show" });
+
+    await submit_password("settings.recovery_codes_show");
+    await wait_until(
+      () => container.querySelectorAll(".font-mono").length === 2,
     );
-    expect(mocked_save).toHaveBeenCalledTimes(1);
+
+    const rendered = Array.from(container.querySelectorAll(".font-mono"));
+
+    expect(mocked_save).not.toHaveBeenCalled();
+    expect(rendered[0].className).not.toContain("line-through");
+    expect(rendered[1].className).toContain("line-through");
+  });
+
+  it("reports when stored codes are not on this device", async () => {
+    vi.useRealTimers();
+    render_modal({ has_codes: true, mode: "show" });
+
+    await submit_password("settings.recovery_codes_show");
+    await wait_until(() =>
+      (container.textContent ?? "").includes(
+        "settings.recovery_codes_unavailable",
+      ),
+    );
+
+    expect(mocked_save).not.toHaveBeenCalled();
   });
 });

@@ -28,24 +28,56 @@ import { Badge, Button } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { SETTINGS_ANCHORS } from "@/lib/settings_links";
-import { get_recovery_methods, RecoveryMethods } from "@/services/api/recovery";
-import { RecoveryCodesModal } from "@/components/settings/security/recovery_codes_modal";
+import {
+  get_codes_status,
+  get_recovery_methods,
+  CodesStatus,
+  RecoveryMethods,
+} from "@/services/api/recovery";
+import {
+  RecoveryCodesModal,
+  RecoveryCodesModalMode,
+} from "@/components/settings/security/recovery_codes_modal";
+import { app_locale, get_display_time_zone } from "@/utils/date_format";
+
+const LOW_CODES_THRESHOLD = 3;
+
+function format_date(iso: string): string {
+  try {
+    return new Date(iso).toLocaleDateString(app_locale(), {
+      timeZone: get_display_time_zone(),
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  } catch {
+    return iso;
+  }
+}
 
 export function AccountRecoverySection() {
   const { t } = use_i18n();
   const [methods, set_methods] = useState<RecoveryMethods | null>(null);
+  const [status, set_status] = useState<CodesStatus | null>(null);
   const [show_codes_modal, set_show_codes_modal] = useState(false);
+  const [modal_mode, set_modal_mode] =
+    useState<RecoveryCodesModalMode>("regenerate");
   const [load_error, set_load_error] = useState(false);
 
   const fetch_methods = useCallback(async () => {
-    const response = await get_recovery_methods();
+    const [methods_response, status_response] = await Promise.all([
+      get_recovery_methods(),
+      get_codes_status(),
+    ]);
 
-    if (response.data) {
-      set_methods(response.data);
+    if (methods_response.data) {
+      set_methods(methods_response.data);
       set_load_error(false);
     } else {
       set_load_error(true);
     }
+
+    set_status(status_response.data ?? null);
   }, []);
 
   useEffect(() => {
@@ -54,6 +86,13 @@ export function AccountRecoverySection() {
 
   const has_codes = methods?.has_codes ?? false;
   const has_offline_method = has_codes || (methods?.has_phrase ?? false);
+  const remaining = status?.remaining ?? 0;
+  const is_low = has_codes && status !== null && remaining <= LOW_CODES_THRESHOLD;
+
+  const open_modal = (mode: RecoveryCodesModalMode) => {
+    set_modal_mode(mode);
+    set_show_codes_modal(true);
+  };
 
   return (
     <div id={SETTINGS_ANCHORS.account_recovery}>
@@ -101,8 +140,17 @@ export function AccountRecoverySection() {
         </div>
       )}
 
-      <div className="flex items-center justify-between py-4">
-        <div className="flex-1 pe-4">
+      {is_low && (
+        <div className="flex items-start gap-3 p-3 rounded-lg border bg-surf-tertiary border-edge-secondary">
+          <ExclamationTriangleIcon className="w-5 h-5 flex-shrink-0 text-amber-500" />
+          <p className="text-sm text-txt-muted">
+            {t("settings.recovery_codes_low")}
+          </p>
+        </div>
+      )}
+
+      <div className="flex items-center justify-between flex-wrap gap-3 py-4">
+        <div className="flex-1 min-w-[12rem] pe-4">
           <p className="text-sm font-medium text-txt-primary flex items-center gap-2">
             {t("settings.recovery_codes_row")}
             {methods &&
@@ -117,7 +165,13 @@ export function AccountRecoverySection() {
               ))}
           </p>
           <p className="text-sm mt-0.5 text-txt-muted">
-            {t("settings.recovery_codes_row_desc")}
+            {has_codes && status?.created_at
+              ? t("settings.recovery_codes_status", {
+                  date: format_date(status.created_at),
+                  remaining: status.remaining,
+                  total: status.total,
+                })
+              : t("settings.recovery_codes_row_desc")}
           </p>
         </div>
         {load_error && !methods ? (
@@ -129,14 +183,21 @@ export function AccountRecoverySection() {
             {t("settings.try_again")}
           </Button>
         ) : (
-          <Button
-            variant={has_codes ? "secondary" : "depth"}
-            onClick={() => set_show_codes_modal(true)}
-          >
-            {has_codes
-              ? t("settings.recovery_codes_regenerate")
-              : t("settings.recovery_codes_generate")}
-          </Button>
+          <div className="flex items-center gap-2">
+            {has_codes && (
+              <Button variant="secondary" onClick={() => open_modal("show")}>
+                {t("settings.recovery_codes_show")}
+              </Button>
+            )}
+            <Button
+              variant={has_codes ? "secondary" : "depth"}
+              onClick={() => open_modal("regenerate")}
+            >
+              {has_codes
+                ? t("settings.recovery_codes_regenerate")
+                : t("settings.recovery_codes_generate")}
+            </Button>
+          </div>
         )}
       </div>
 
@@ -159,6 +220,7 @@ export function AccountRecoverySection() {
       <RecoveryCodesModal
         has_codes={has_codes}
         is_open={show_codes_modal}
+        mode={modal_mode}
         on_close={() => set_show_codes_modal(false)}
         on_saved={fetch_methods}
       />
