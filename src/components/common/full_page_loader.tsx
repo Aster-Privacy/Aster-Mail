@@ -132,9 +132,11 @@ export function FullPageLoader() {
       <div className="full-page-loader-content">
         <img
           alt="Aster"
-          className="h-7"
+          className="full-page-loader-logo"
           draggable={false}
+          height={199}
           src="/text_logo.png"
+          width={800}
         />
         <div className="loader-stack">
           <div className="loader-spinner" />

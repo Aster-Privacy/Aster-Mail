@@ -3175,6 +3175,12 @@ img[draggable="false"] {
   -webkit-user-drag: none;
 }
 
+.full-page-loader-logo {
+  height: 28px;
+  width: 112.56px;
+  display: block;
+}
+
 .loader-spinner {
   width: 24px;
   height: 24px;
@@ -3199,6 +3205,8 @@ img[draggable="false"] {
 
 .loader-text {
   font-size: 13px;
+  line-height: 20px;
+  height: 20px;
   font-weight: 500;
   color: var(--text-tertiary);
 }
