@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 
 import { RecoveryMethod, RecoveryStep } from "./shared";
@@ -103,19 +103,54 @@ export interface RecoveryReviewInfo {
   recovery_email_kept: boolean;
 }
 
+interface RecoveryHandoffState {
+  username?: unknown;
+  email_domain?: unknown;
+}
+
+function read_handoff(state: unknown): {
+  username: string;
+  email_domain: "astermail.org" | "aster.cx";
+} | null {
+  if (typeof state !== "object" || state === null) return null;
+  const { username, email_domain } = state as RecoveryHandoffState;
+  if (typeof username !== "string") return null;
+  const clean = sanitize_username(
+    username.includes("@") ? username.substring(0, username.indexOf("@")) : username,
+  );
+  if (!clean) return null;
+  const typed_domain = username.includes("@")
+    ? username.substring(username.indexOf("@") + 1).toLowerCase()
+    : "";
+  const candidate = typed_domain || email_domain;
+  const domain =
+    candidate === "aster.cx" || candidate === "astermail.org"
+      ? candidate
+      : "astermail.org";
+
+  return { username: clean, email_domain: domain };
+}
+
 export function use_recovery_flow() {
   const { t } = use_i18n();
   const reduce_motion = use_should_reduce_motion();
   const navigate = useNavigate();
+  const location = useLocation();
+  const handoff_ref = useRef(read_handoff(location.state));
+  const handoff = handoff_ref.current;
   const { theme } = useTheme();
   const is_dark = theme === "dark";
 
-  const [step, set_step] = useState<RecoveryStep>("email");
-  const [email, set_email] = useState("");
-  const [username, set_username] = useState("");
+  const [step, set_step] = useState<RecoveryStep>(
+    handoff ? "code" : "email",
+  );
+  const [email, set_email] = useState(
+    handoff ? `${handoff.username}@${handoff.email_domain}` : "",
+  );
+  const [username, set_username] = useState(handoff ? handoff.username : "");
   const [email_domain, set_email_domain] = useState<
     "astermail.org" | "aster.cx"
-  >("astermail.org");
+  >(handoff ? handoff.email_domain : "astermail.org");
   const [recovery_code, set_recovery_code] = useState("");
   const [password, set_password] = useState("");
   const [confirm_password, set_confirm_password] = useState("");
