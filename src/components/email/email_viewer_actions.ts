@@ -30,6 +30,7 @@ import type {
 
 import { useCallback } from "react";
 
+import { build_reply_chain } from "@/components/email/reply_chain";
 import { use_message_actions } from "./email_viewer_message_actions";
 
 import { is_system_email } from "@/lib/utils";
@@ -208,9 +209,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
         is_own_message,
       );
 
-      const rfc_message_id = deps.email.raw_headers?.find(
-        (h) => h.name.toLowerCase() === "message-id",
-      )?.value;
+      const rfc_message_id = build_reply_chain(deps.email.raw_headers);
 
       const data: ReplyData = {
         recipient_name,
@@ -909,9 +908,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
         is_own_message,
       );
 
-      const msg_rfc_message_id = msg.raw_headers?.find(
-        (h) => h.name.toLowerCase() === "message-id",
-      )?.value;
+      const msg_rfc_message_id = build_reply_chain(msg.raw_headers);
 
       const base: ReplyData = {
         recipient_name,

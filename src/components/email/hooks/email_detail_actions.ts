@@ -29,6 +29,7 @@ import type { NavigateFunction } from "react-router-dom";
 
 import { useCallback, useState } from "react";
 
+import { build_reply_chain } from "@/components/email/reply_chain";
 import { copy_text_or_throw } from "@/utils/copy_text";
 import { is_system_email } from "@/lib/utils";
 import { extract_reply_to } from "@/utils/reply_to";
@@ -147,9 +148,7 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
         is_own_message,
       );
 
-      const msg_rfc_message_id = msg.raw_headers?.find(
-        (h) => h.name.toLowerCase() === "message-id",
-      )?.value;
+      const msg_rfc_message_id = build_reply_chain(msg.raw_headers);
 
       const quote_sender =
         !is_own_message && msg.display_sender_email
