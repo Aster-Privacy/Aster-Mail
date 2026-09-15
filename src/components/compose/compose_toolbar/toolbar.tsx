@@ -94,7 +94,8 @@ export function ComposeToolbar({
             variant="depth"
             onClick={compose.handle_send}
           >
-            {compose.is_sending ? <Spinner size="sm" /> : t("mail.send")}
+            {compose.is_sending && <Spinner size="sm" />}
+            {t("mail.send")}
           </Button>
         )}
 

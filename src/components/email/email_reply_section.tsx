@@ -404,7 +404,9 @@ export function EmailReplySection({
                 😊
               </motion.button>
               {show_emoji_picker && !is_disabled && (
-                <EmojiPicker on_select={handle_emoji_select} />
+                <div className="absolute bottom-full start-0 z-50 mb-2">
+                  <EmojiPicker on_select={handle_emoji_select} />
+                </div>
               )}
             </div>
             <span className="text-xs ms-auto text-txt-tertiary">
@@ -419,7 +421,7 @@ export function EmailReplySection({
             transition={{ delay: 0.25 }}
           >
             <motion.button
-              className="flex-1 py-2 px-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl hover:from-blue-600 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none disabled:from-blue-400 disabled:to-blue-500 transition-all text-sm"
+              className="flex-1 inline-flex items-center justify-center gap-2 py-2 px-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl hover:from-blue-600 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none disabled:from-blue-400 disabled:to-blue-500 transition-all text-sm"
               disabled={!reply_text.trim() || is_disabled}
               transition={{
                 type: "tween",
@@ -431,11 +433,8 @@ export function EmailReplySection({
               }}
               onClick={handle_send_reply}
             >
-              {send_state === "sending" ? (
-                <Spinner size="sm" />
-              ) : (
-                t("mail.send")
-              )}
+              {send_state === "sending" && <Spinner size="sm" />}
+              {t("mail.send")}
             </motion.button>
             <motion.button
               className="px-4 py-2 border border-edge-secondary rounded-lg font-semibold transition-colors text-sm hover_bg text-txt-secondary"

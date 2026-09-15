@@ -711,7 +711,9 @@ export const InlineReplySection = forwardRef<
                     😊
                   </button>
                   {show_emoji_picker && !is_disabled && (
-                    <EmojiPicker on_select={handle_emoji_select} />
+                    <div className="absolute bottom-full start-0 z-50 mb-2">
+                      <EmojiPicker on_select={handle_emoji_select} />
+                    </div>
                   )}
                 </div>
                 <span className="text-xs ms-auto text-txt-tertiary">
@@ -728,11 +730,8 @@ export const InlineReplySection = forwardRef<
                   }
                   onClick={handle_send_reply}
                 >
-                  {send_state === "sending" ? (
-                    <Spinner size="sm" />
-                  ) : (
-                    t("mail.send")
-                  )}
+                  {send_state === "sending" && <Spinner size="sm" />}
+                  {t("mail.send")}
                 </Button>
                 <button
                   className="px-4 py-2.5 border border-edge-secondary rounded-[14px] font-medium transition-colors text-sm hover_bg text-txt-secondary"

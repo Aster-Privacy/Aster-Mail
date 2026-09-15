@@ -323,16 +323,11 @@ function MobileComposePage({
             {is_sending || compose.is_scheduling ? (
               <Spinner size="xs" />
             ) : compose.scheduled_time ? (
-              <>
-                <ClockIcon className="h-4 w-4" />
-                {t("mail.schedule")}
-              </>
+              <ClockIcon className="h-4 w-4" />
             ) : (
-              <>
-                <PaperAirplaneIcon className="h-4 w-4" />
-                {t("mail.send")}
-              </>
+              <PaperAirplaneIcon className="h-4 w-4" />
             )}
+            {compose.scheduled_time ? t("mail.schedule") : t("mail.send")}
           </Button>
         }
         title={t("mail.new_message")}
