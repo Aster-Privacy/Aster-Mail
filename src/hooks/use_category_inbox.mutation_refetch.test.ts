@@ -1,0 +1,250 @@
+//
+// Aster Communications Inc.
+//
+// Copyright (c) 2026 Aster Communications Inc.
+//
+// This file is part of this project.
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the AGPLv3 as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// AGPLv3 for more details.
+//
+// You should have received a copy of the AGPLv3
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+//
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { createElement, act } from "react";
+import { createRoot, type Root } from "react-dom/client";
+
+const mocks = vi.hoisted(() => ({
+  fetch_mail_by_ids_reconciled: vi.fn(async (ids: string[]) => ({
+    emails: ids.map((id) => ({
+      id,
+      item_type: "received",
+      is_read: true,
+      thread_token: `t-${id}`,
+    })) as unknown[],
+    missing_ids: [] as string[],
+    unrenderable_ids: [] as string[],
+    request_ok: true,
+  })),
+  sync_recent: vi.fn(async () => {}),
+  page_ids: ["id1", "id2"] as string[],
+  version: 0,
+  notify: null as null | (() => void),
+}));
+
+vi.mock("@/hooks/email_list_helpers", () => ({
+  fetch_mail_by_ids_reconciled: mocks.fetch_mail_by_ids_reconciled,
+  group_emails_by_thread: (x: unknown) => x,
+  DEFAULT_PAGE_SIZE: 50,
+}));
+
+vi.mock("@/hooks/use_email_list_actions", () => ({
+  use_email_list_actions: () => ({
+    toggle_star: vi.fn(),
+    toggle_pin: vi.fn(),
+    mark_read: vi.fn(),
+    delete_email: vi.fn(),
+    archive_email: vi.fn(),
+    unarchive_email: vi.fn(),
+    mark_spam: vi.fn(),
+  }),
+}));
+
+vi.mock("@/hooks/use_email_list_bulk", () => ({
+  use_email_list_bulk: () => ({
+    bulk_delete: vi.fn(),
+    bulk_archive: vi.fn(),
+    bulk_unarchive: vi.fn(),
+  }),
+}));
+
+vi.mock("@/hooks/mail_events", () => ({
+  MAIL_EVENTS: {
+    MAIL_ITEM_UPDATED: "MAIL_ITEM_UPDATED",
+    INBOX_UNREAD_INDEXED: "INBOX_UNREAD_INDEXED",
+    REFRESH_REQUESTED: "astermail:refresh-requested",
+  },
+}));
+
+vi.mock("@/components/email/hooks/preload_cache", () => ({
+  mark_preload_stale: vi.fn(),
+}));
+
+vi.mock("@/services/crypto/memory_key_store", () => ({
+  has_passphrase_in_memory: () => true,
+  on_keys_ready: () => () => {},
+}));
+
+vi.mock("@/contexts/auth_context", () => ({
+  use_auth: () => ({ has_keys: true, user: { email: "a@b.c" } }),
+}));
+
+vi.mock("@/contexts/preferences_context", () => ({
+  use_preferences: () => ({
+    preferences: {
+      date_format: "iso",
+      time_format: "24h",
+      conversation_grouping: true,
+    },
+  }),
+}));
+
+vi.mock("@/services/category_index", () => ({
+  init_category_index: vi.fn(async () => {}),
+  get_page_ids: () => mocks.page_ids,
+  get_category_total: () => mocks.page_ids.length,
+  is_fully_built: () => true,
+  is_index_settled: () => true,
+  is_build_in_progress: () => false,
+  is_build_stalled: () => false,
+  subscribe: (fn: () => void) => {
+    mocks.notify = fn;
+
+    return () => {
+      mocks.notify = null;
+    };
+  },
+  get_version: () => mocks.version,
+  remove_ids: vi.fn(),
+  remove_ids_absent_from_server: vi.fn(),
+  clear_absent_strikes: vi.fn(),
+  suppress_ids: vi.fn(),
+  is_recently_read: () => false,
+  is_representative_unread: () => false,
+  sync_recent: mocks.sync_recent,
+  set_sort_order: vi.fn(),
+  reconcile_server_read: vi.fn(),
+  reconcile_unread_thread_siblings: vi.fn(),
+  set_thread_grouping: vi.fn(),
+  get_thread_rep_id: () => null,
+}));
+
+import { use_category_inbox } from "@/hooks/use_category_inbox";
+
+interface SeenState {
+  is_loading: boolean;
+  emails: number;
+}
+
+function render_hook(): { states: SeenState[]; root: Root } {
+  const states: SeenState[] = [];
+
+  function Harness() {
+    const r = use_category_inbox("primary", 0, true);
+
+    states.push({
+      is_loading: r.state.is_loading,
+      emails: r.state.emails.length,
+    });
+
+    return null;
+  }
+
+  const container = document.createElement("div");
+  let root!: Root;
+
+  act(() => {
+    root = createRoot(container);
+    root.render(createElement(Harness));
+  });
+
+  return { states, root };
+}
+
+async function flush(): Promise<void> {
+  await act(async () => {
+    await Promise.resolve();
+    await Promise.resolve();
+    await new Promise((r) => setTimeout(r, 0));
+    await Promise.resolve();
+  });
+}
+
+describe("use_category_inbox mutation refetch", () => {
+  beforeEach(() => {
+    (
+      globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }
+    ).IS_REACT_ACT_ENVIRONMENT = true;
+    mocks.fetch_mail_by_ids_reconciled.mockClear();
+    mocks.sync_recent.mockClear();
+    mocks.page_ids = ["id1", "id2"];
+    mocks.version = 0;
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("refetches without a loading flash when a row is removed from the page", async () => {
+    const { states, root } = render_hook();
+
+    await flush();
+
+    expect(states.at(-1)!.emails).toBe(2);
+
+    const fetches = mocks.fetch_mail_by_ids_reconciled.mock.calls.length;
+    const settled = states.length;
+
+    act(() => {
+      mocks.page_ids = ["id2"];
+      mocks.version += 1;
+      mocks.notify?.();
+    });
+    await flush();
+
+    expect(
+      mocks.fetch_mail_by_ids_reconciled.mock.calls.length,
+    ).toBeGreaterThan(fetches);
+    expect(states.slice(settled).some((s) => s.is_loading)).toBe(false);
+    expect(states.at(-1)!.emails).toBe(1);
+
+    act(() => root.unmount());
+  });
+
+  it("keeps the surviving row object stable across the refetch", async () => {
+    const seen: unknown[][] = [];
+
+    function Harness() {
+      const r = use_category_inbox("primary", 0, true);
+
+      seen.push(r.state.emails);
+
+      return null;
+    }
+
+    const container = document.createElement("div");
+    let root!: Root;
+
+    act(() => {
+      root = createRoot(container);
+      root.render(createElement(Harness));
+    });
+
+    await flush();
+
+    const before = seen.at(-1) as { id: string }[];
+    const kept = before.find((email) => email.id === "id2");
+
+    act(() => {
+      mocks.page_ids = ["id2"];
+      mocks.version += 1;
+      mocks.notify?.();
+    });
+    await flush();
+
+    const after = seen.at(-1) as { id: string }[];
+
+    expect(after.map((email) => email.id)).toEqual(["id2"]);
+    expect(after[0]).toBe(kept);
+
+    act(() => root.unmount());
+  });
+});

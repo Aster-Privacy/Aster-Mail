@@ -71,7 +71,10 @@ import {
   batched_bulk_add_tag,
   batched_bulk_remove_tag,
 } from "@/services/api/tags";
-import { remove_ids as remove_category_index_ids } from "@/services/category_index";
+import {
+  remove_ids as remove_category_index_ids,
+  reindex_ids as reindex_category_ids,
+} from "@/services/category_index";
 import { show_action_toast } from "@/components/toast/action_toast";
 import { show_toast } from "@/components/toast/simple_toast";
 import { set_forward_mail_id } from "@/services/forward_store";
@@ -968,6 +971,7 @@ export function use_index_page_state() {
               stale_all_view_caches();
             }
           }
+          reindex_category_ids(moved_ids);
           emit_mail_stats_stale();
           emit_mail_soft_refresh();
         },
