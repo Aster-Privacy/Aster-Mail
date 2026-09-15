@@ -111,6 +111,8 @@ export default function SignInPage() {
     set_password,
     email_domain,
     set_email_domain,
+    is_domain_explicit,
+    set_is_domain_explicit,
     remember_me,
     set_remember_me,
     set_is_loading,
@@ -296,10 +298,12 @@ export default function SignInPage() {
 
     const domain_candidates: SignInDomain[] = is_typed_domain_known
       ? [typed_domain as SignInDomain]
-      : [
-          email_domain,
-          ...known_domains.filter((domain) => domain !== email_domain),
-        ];
+      : is_domain_explicit
+        ? [email_domain]
+        : [
+            email_domain,
+            ...known_domains.filter((domain) => domain !== email_domain),
+          ];
 
     if (
       !clean_username ||
@@ -423,6 +427,7 @@ export default function SignInPage() {
         if (!is_wrong_credentials || !has_more) {
           if (!response.error && candidate !== email_domain) {
             set_email_domain(candidate);
+            set_is_domain_explicit(true);
           }
           break;
         }
@@ -945,6 +950,7 @@ export default function SignInPage() {
 
                           if (matched) {
                             set_email_domain(matched);
+                            set_is_domain_explicit(true);
                             set_username(local);
                           } else {
                             set_username(`${local}@${domain_part}`);
@@ -993,7 +999,10 @@ export default function SignInPage() {
                             key={domain}
                             className="notranslate"
                             translate="no"
-                            onClick={() => set_email_domain(domain)}
+                            onClick={() => {
+                              set_email_domain(domain);
+                              set_is_domain_explicit(true);
+                            }}
                           >
                             @{domain}
                           </DropdownMenuItem>

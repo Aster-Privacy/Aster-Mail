@@ -119,6 +119,9 @@ export function use_sign_in_page() {
   const [email_domain, set_email_domain] = useState<SignInDomain>(
     () => parse_prefill_identity().domain ?? "astermail.org",
   );
+  const [is_domain_explicit, set_is_domain_explicit] = useState(
+    () => parse_prefill_identity().domain !== null,
+  );
   const [remember_me, set_remember_me] = useState(true);
   const [is_loading, set_is_loading] = useState(false);
   const [error, set_error] = useState(() =>
@@ -917,6 +920,8 @@ export function use_sign_in_page() {
     set_password,
     email_domain,
     set_email_domain,
+    is_domain_explicit,
+    set_is_domain_explicit,
     remember_me,
     set_remember_me,
     set_is_loading,
