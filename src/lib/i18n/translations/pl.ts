@@ -9361,9 +9361,6 @@ export const pl = {
     recovery_phrase_confirm_error:
       "Co najmniej jedno słowo się nie zgadza. Sprawdź zapisaną frazę i spróbuj ponownie.",
     recovery_phrase_skip_check: "Mam ją zapisaną, pomiń to sprawdzenie",
-    forgot_method_title: "Jak chcesz odzyskać konto?",
-    forgot_method_desc:
-      "Wybrana metoda decyduje o tym, czy zaszyfrowane dane będzie można przywrócić.",
     forgot_method_full_restore: "Pełne przywracanie",
     forgot_method_access_only: "Tylko dostęp",
     forgot_method_phrase_title: "Użyj mojej frazy odzyskiwania",
@@ -9375,10 +9372,6 @@ export const pl = {
     forgot_method_email_title: "Wyślij mi link do resetu e-mailem",
     forgot_method_email_desc:
       "Odzyskaj dostęp do konta. Zaszyfrowanej poczty sprzed resetu nie da się ponownie odczytać, chyba że później odnajdziesz frazę lub kod.",
-    phrase_entry_title: "Wprowadź frazę odzyskiwania",
-    phrase_entry_desc: "Wpisz lub wklej 12 słów w kolejności.",
-    phrase_entry_invalid:
-      "To nie jest prawidłowa fraza odzyskiwania. Sprawdź słowa i ich kolejność.",
     phrase_recovery_failed:
       "Ta fraza nie pasuje do tego konta. Sprawdź słowa i adres e-mail.",
     reset_consent_title: "Ten reset nie odszyfruje Twoich starych danych",
@@ -9460,7 +9453,6 @@ export const pl = {
     resetting_password: "Resetowanie hasła...",
     enter_recovery_code: "Wprowadź kod odzyskiwania",
     enter_recovery_code_desc: "Wpisz jeden z kodów odzyskiwania zapisanych podczas tworzenia konta.",
-    verify_code: "Zweryfikuj kod",
     create_new_password: "Utwórz nowe hasło",
     choose_strong_password: "Wybierz silne hasło dla swojego konta",
     recovering_your_account: "Odzyskiwanie konta",
@@ -9477,6 +9469,7 @@ export const pl = {
     recovery_code_label: "Kod odzyskiwania",
     recovery_code_hint: "Każdy kod działa raz. Kody wyglądają tak: ASTER-XXXX-XXXX-XXXX-XXXX.",
     change_account: "Użyj innego adresu",
+    change_account_desc: "Odzyskaj inne konto Aster Mail.",
     support_step_title: "Skontaktuj się z pomocą",
     support_step_desc: "Aster Mail nie odczytuje Twoich zaszyfrowanych danych, więc nikt ich nie odblokuje bez kodu odzyskiwania ani adresu odzyskiwania. Pomoc techniczna sprawdzi konto i podpowie, co dalej.",
     support_email_action: "Napisz do pomocy",
@@ -9485,8 +9478,6 @@ export const pl = {
     other_ways_desc: "Wybierz, jak chcesz odzyskać dostęp do konta.",
     other_way_code_title: "Użyj kodu odzyskiwania",
     other_way_code_desc: "Wpisz jeden z zapisanych kodów.",
-    other_way_phrase_title: "Użyj frazy odzyskiwania",
-    other_way_phrase_desc: "Wpisz 12 zapisanych słów.",
     other_way_email_title: "Zresetuj przy użyciu adresu odzyskiwania",
     other_way_email_desc:
       "Aster Mail wysyła link na Twój adres odzyskiwania. Tracisz dostęp do poczty sprzed resetu.",

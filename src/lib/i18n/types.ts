@@ -7856,8 +7856,6 @@ export interface AuthTranslations {
   recovery_phrase_confirm_word_prompt: string;
   recovery_phrase_confirm_error: string;
   recovery_phrase_skip_check: string;
-  forgot_method_title: string;
-  forgot_method_desc: string;
   forgot_method_full_restore: string;
   forgot_method_access_only: string;
   forgot_method_phrase_title: string;
@@ -7866,9 +7864,6 @@ export interface AuthTranslations {
   forgot_method_code_desc: string;
   forgot_method_email_title: string;
   forgot_method_email_desc: string;
-  phrase_entry_title: string;
-  phrase_entry_desc: string;
-  phrase_entry_invalid: string;
   phrase_recovery_failed: string;
   reset_consent_title: string;
   reset_consent_keeps: string;
@@ -8176,7 +8171,6 @@ export interface AuthTranslations {
   resetting_password: string;
   enter_recovery_code: string;
   enter_recovery_code_desc: string;
-  verify_code: string;
   create_new_password: string;
   choose_strong_password: string;
   recovering_your_account: string;
@@ -8191,6 +8185,7 @@ export interface AuthTranslations {
   recovery_code_label: string;
   recovery_code_hint: string;
   change_account: string;
+  change_account_desc: string;
   support_step_title: string;
   support_step_desc: string;
   support_email_action: string;
@@ -8199,8 +8194,6 @@ export interface AuthTranslations {
   other_ways_desc: string;
   other_way_code_title: string;
   other_way_code_desc: string;
-  other_way_phrase_title: string;
-  other_way_phrase_desc: string;
   other_way_email_title: string;
   other_way_email_desc: string;
   other_way_none_title: string;

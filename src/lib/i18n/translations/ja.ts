@@ -9089,9 +9089,6 @@ export const ja = {
     recovery_phrase_confirm_error:
       "一致しない単語があります。保存したフレーズを確認して、もう一度お試しください。",
     recovery_phrase_skip_check: "保存済みなので、この確認をスキップする",
-    forgot_method_title: "どの方法でアカウントを復旧しますか？",
-    forgot_method_desc:
-      "選択する方法によって、暗号化されたデータを復元できるかどうかが決まります。",
     forgot_method_full_restore: "完全復元",
     forgot_method_access_only: "アクセスのみ",
     forgot_method_phrase_title: "リカバリーフレーズを使用する",
@@ -9103,11 +9100,6 @@ export const ja = {
     forgot_method_email_title: "リセットリンクをメールで受け取る",
     forgot_method_email_desc:
       "アカウントへのアクセスを取り戻します。リセット前の暗号化されたメールは、後でフレーズまたはコードが見つからない限り、再び読むことはできません。",
-    phrase_entry_title: "リカバリーフレーズを入力",
-    phrase_entry_desc:
-      "12個の単語を順番どおりに入力するか、貼り付けてください。",
-    phrase_entry_invalid:
-      "有効なリカバリーフレーズではありません。単語と順番を確認してください。",
     phrase_recovery_failed:
       "このフレーズはこのアカウントと一致しません。単語とメールアドレスを確認してください。",
     reset_consent_title: "このリセットでは以前のデータを復号できません",
@@ -9189,7 +9181,6 @@ export const ja = {
     resetting_password: "パスワードをリセット中...",
     enter_recovery_code: "リカバリーコードを入力",
     enter_recovery_code_desc: "アカウント作成時に保存したリカバリーコードのいずれかを入力してください。",
-    verify_code: "コードを確認",
     create_new_password: "新しいパスワードを作成",
     choose_strong_password: "アカウントの強力なパスワードを選択してください",
     recovering_your_account: "アカウントを復旧中",
@@ -9207,6 +9198,7 @@ export const ja = {
     recovery_code_label: "リカバリーコード",
     recovery_code_hint: "各コードは 1 回だけ使えます。コードの形式は ASTER-XXXX-XXXX-XXXX-XXXX です。",
     change_account: "別のアドレスを使う",
+    change_account_desc: "別の Aster Mail アカウントを復元します。",
     support_step_title: "サポートに問い合わせる",
     support_step_desc: "Aster Mail は暗号化されたデータを読み取れないため、リカバリーコードまたは復旧用メールなしで解除できる人はいません。サポートがアカウントを確認し、次の手順を案内します。",
     support_email_action: "サポートにメールする",
@@ -9215,8 +9207,6 @@ export const ja = {
     other_ways_desc: "アカウントに戻る方法を選択してください。",
     other_way_code_title: "リカバリーコードを使う",
     other_way_code_desc: "保存したコードのいずれかを入力します。",
-    other_way_phrase_title: "リカバリーフレーズを使う",
-    other_way_phrase_desc: "保存した12個の単語を入力します。",
     other_way_email_title: "リカバリーメールでリセットする",
     other_way_email_desc:
       "Aster Mail がリカバリーメールにリンクを送信します。リセット前のメールにはアクセスできなくなります。",

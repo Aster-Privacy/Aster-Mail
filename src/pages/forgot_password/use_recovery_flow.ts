@@ -205,6 +205,14 @@ export function use_recovery_flow() {
     return clean_username;
   };
 
+  const handle_change_account = () => {
+    set_error("");
+    set_recovery_code("");
+    set_username("");
+    set_email("");
+    set_step("email");
+  };
+
   const handle_email_next = () => {
     set_error("");
 
@@ -620,6 +628,7 @@ export function use_recovery_flow() {
     set_codes_saved,
     review,
     is_email_locked,
+    handle_change_account,
     handle_email_next,
     handle_email_reset_link,
     handle_code_submit,

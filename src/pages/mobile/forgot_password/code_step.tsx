@@ -40,7 +40,6 @@ import {
 
 export function CodeStep({
   email,
-  is_email_locked,
   recovery_code,
   set_recovery_code,
   error,
@@ -164,7 +163,7 @@ export function CodeStep({
           whileTap={button_tap}
           onClick={on_submit}
         >
-          {t("auth.verify_code")}
+          {t("common.continue")}
         </motion.button>
         <button
           className="w-full py-2 text-center text-sm font-medium text-[var(--text-secondary)]"
@@ -175,15 +174,6 @@ export function CodeStep({
           }}
         >
           {t("auth.try_another_way")}
-        </button>
-        <button
-          className="w-full py-2 text-center text-sm text-[var(--text-tertiary)]"
-          type="button"
-          onClick={on_change_account}
-        >
-          {is_email_locked
-            ? t("auth.back_to_sign_in")
-            : t("auth.change_account")}
         </button>
       </motion.div>
     </div>

@@ -8854,9 +8854,6 @@ export const ko = {
     recovery_phrase_confirm_error:
       "일치하지 않는 단어가 있습니다. 저장한 문구를 확인하고 다시 시도하세요.",
     recovery_phrase_skip_check: "저장했습니다. 이 확인 건너뛰기",
-    forgot_method_title: "계정을 어떻게 복구하시겠습니까?",
-    forgot_method_desc:
-      "선택하는 방법에 따라 암호화된 데이터의 복원 가능 여부가 결정됩니다.",
     forgot_method_full_restore: "전체 복원",
     forgot_method_access_only: "접근만 가능",
     forgot_method_phrase_title: "복구 문구 사용",
@@ -8868,10 +8865,6 @@ export const ko = {
     forgot_method_email_title: "재설정 링크 이메일로 받기",
     forgot_method_email_desc:
       "계정에 다시 접근할 수 있습니다. 재설정 이전의 암호화된 메일은 나중에 문구나 코드를 찾지 못하는 한 다시 읽을 수 없습니다.",
-    phrase_entry_title: "복구 문구 입력",
-    phrase_entry_desc: "12개 단어를 순서대로 입력하거나 붙여넣으세요.",
-    phrase_entry_invalid:
-      "유효한 복구 문구가 아닙니다. 단어와 순서를 확인하세요.",
     phrase_recovery_failed:
       "이 문구는 이 계정과 일치하지 않습니다. 단어와 이메일 주소를 확인하세요.",
     reset_consent_title: "이 재설정으로는 이전 데이터를 복호화할 수 없습니다",
@@ -8950,7 +8943,6 @@ export const ko = {
     resetting_password: "비밀번호 재설정 중...",
     enter_recovery_code: "복구 코드 입력",
     enter_recovery_code_desc: "계정을 만들 때 저장한 복구 코드 중 하나를 입력하세요.",
-    verify_code: "코드 확인",
     create_new_password: "새 비밀번호 만들기",
     choose_strong_password: "계정을 위한 강력한 비밀번호를 선택하세요",
     recovering_your_account: "계정 복구 중",
@@ -8967,6 +8959,7 @@ export const ko = {
     recovery_code_label: "복구 코드",
     recovery_code_hint: "각 코드는 한 번만 사용할 수 있습니다. 코드 형식은 ASTER-XXXX-XXXX-XXXX-XXXX입니다.",
     change_account: "다른 주소 사용",
+    change_account_desc: "다른 Aster Mail 계정을 복구합니다.",
     support_step_title: "고객 지원에 문의",
     support_step_desc: "Aster Mail은 암호화된 데이터를 읽을 수 없으므로 복구 코드나 복구 이메일 없이는 누구도 잠금을 해제할 수 없습니다. 고객 지원이 계정을 확인하고 다음 단계를 안내합니다.",
     support_email_action: "고객 지원에 이메일 보내기",
@@ -8975,8 +8968,6 @@ export const ko = {
     other_ways_desc: "계정에 다시 로그인할 방법을 선택하세요.",
     other_way_code_title: "복구 코드 사용",
     other_way_code_desc: "저장한 코드 중 하나를 입력하세요.",
-    other_way_phrase_title: "복구 문구 사용",
-    other_way_phrase_desc: "저장한 12개 단어를 입력하세요.",
     other_way_email_title: "복구 이메일로 재설정",
     other_way_email_desc:
       "Aster Mail이 복구 이메일로 링크를 보냅니다. 재설정 전에 받은 메일에는 접근할 수 없습니다.",

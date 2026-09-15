@@ -9305,7 +9305,6 @@ export const de = {
     resetting_password: "Passwort wird zurückgesetzt...",
     enter_recovery_code: "Wiederherstellungscode eingeben",
     enter_recovery_code_desc: "Gib einen der Wiederherstellungscodes ein, die du beim Erstellen deines Kontos gespeichert hast.",
-    verify_code: "Code überprüfen",
     create_new_password: "Neues Passwort erstellen",
     choose_strong_password: "Wählen Sie ein sicheres Passwort für Ihr Konto",
     recovering_your_account: "Ihr Konto wird wiederhergestellt",
@@ -9323,6 +9322,7 @@ export const de = {
     recovery_code_label: "Wiederherstellungscode",
     recovery_code_hint: "Jeder Code funktioniert einmal. Codes sehen so aus: ASTER-XXXX-XXXX-XXXX-XXXX.",
     change_account: "Andere Adresse verwenden",
+    change_account_desc: "Stelle ein anderes Aster Mail-Konto wieder her.",
     support_step_title: "Support kontaktieren",
     support_step_desc: "Aster Mail kann deine verschlüsselten Daten nicht lesen. Ohne Wiederherstellungscode oder Wiederherstellungs-E-Mail kann sie niemand entsperren. Der Support prüft dein Konto und hilft dir bei den nächsten Schritten.",
     support_email_action: "Support anschreiben",
@@ -9332,9 +9332,6 @@ export const de = {
       "Wählen Sie, wie Sie wieder Zugriff auf Ihr Konto erhalten.",
     other_way_code_title: "Wiederherstellungscode verwenden",
     other_way_code_desc: "Geben Sie einen Ihrer gespeicherten Codes ein.",
-    other_way_phrase_title: "Wiederherstellungsphrase verwenden",
-    other_way_phrase_desc:
-      "Geben Sie die 12 Wörter ein, die Sie gespeichert haben.",
     other_way_email_title: "Mit Wiederherstellungs-E-Mail zurücksetzen",
     other_way_email_desc:
       "Aster Mail sendet einen Link an Ihre Wiederherstellungs-E-Mail. Sie verlieren den Zugriff auf E-Mails von vor dem Zurücksetzen.",
@@ -9463,9 +9460,6 @@ export const de = {
       "Ein oder mehrere Wörter stimmen nicht überein. Prüfen Sie Ihre gespeicherte Phrase und versuchen Sie es erneut.",
     recovery_phrase_skip_check:
       "Ich habe sie gespeichert, diese Prüfung überspringen",
-    forgot_method_title: "Wie möchten Sie Ihr Konto wiederherstellen?",
-    forgot_method_desc:
-      "Die gewählte Methode entscheidet, ob Ihre verschlüsselten Daten wiederhergestellt werden können.",
     forgot_method_full_restore: "Vollständige Wiederherstellung",
     forgot_method_access_only: "Nur Zugriff",
     forgot_method_phrase_title: "Meine Wiederherstellungsphrase verwenden",
@@ -9477,11 +9471,6 @@ export const de = {
     forgot_method_email_title: "Zurücksetzungslink per E-Mail senden",
     forgot_method_email_desc:
       "Erhalten Sie wieder Zugriff auf Ihr Konto. Verschlüsselte E-Mails aus der Zeit vor dem Zurücksetzen bleiben unlesbar, es sei denn, Sie finden später Ihre Phrase oder einen Code wieder.",
-    phrase_entry_title: "Geben Sie Ihre Wiederherstellungsphrase ein",
-    phrase_entry_desc:
-      "Tippen oder fügen Sie die 12 Wörter der Reihe nach ein.",
-    phrase_entry_invalid:
-      "Dies ist keine gültige Wiederherstellungsphrase. Prüfen Sie die Wörter und ihre Reihenfolge.",
     phrase_recovery_failed:
       "Diese Phrase passt nicht zu diesem Konto. Prüfen Sie die Wörter und die E-Mail-Adresse.",
     reset_consent_title:

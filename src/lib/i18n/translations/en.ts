@@ -9067,9 +9067,6 @@ export const en: Translations = {
     recovery_phrase_confirm_error:
       "One or more words do not match. Check your saved phrase and try again.",
     recovery_phrase_skip_check: "I saved it, skip this check",
-    forgot_method_title: "How do you want to recover your account?",
-    forgot_method_desc:
-      "The method you choose decides whether your encrypted data can be restored.",
     forgot_method_full_restore: "Full restore",
     forgot_method_access_only: "Access only",
     forgot_method_phrase_title: "Use my recovery phrase",
@@ -9081,10 +9078,6 @@ export const en: Translations = {
     forgot_method_email_title: "Email me a reset link",
     forgot_method_email_desc:
       "Regain access to your account. Encrypted mail from before the reset cannot be read again unless you later find your phrase or a code.",
-    phrase_entry_title: "Enter your recovery phrase",
-    phrase_entry_desc: "Type or paste the 12 words in order.",
-    phrase_entry_invalid:
-      "This is not a valid recovery phrase. Check the words and their order.",
     phrase_recovery_failed:
       "This phrase does not match this account. Check the words and the email address.",
     reset_consent_title: "This reset cannot decrypt your old data",
@@ -9165,7 +9158,6 @@ export const en: Translations = {
     resetting_password: "Resetting password...",
     enter_recovery_code: "Enter recovery code",
     enter_recovery_code_desc: "Enter one of the recovery codes you saved when you created your account.",
-    verify_code: "Verify Code",
     create_new_password: "Create new password",
     choose_strong_password: "Choose a strong password for your account",
     recovering_your_account: "Recovering your account",
@@ -9183,6 +9175,7 @@ export const en: Translations = {
     recovery_code_label: "Recovery code",
     recovery_code_hint: "Each code works once. Codes look like ASTER-XXXX-XXXX-XXXX-XXXX.",
     change_account: "Use a different address",
+    change_account_desc: "Recover a different Aster Mail account.",
     support_step_title: "Contact support",
     support_step_desc: "Aster Mail cannot read your encrypted data, so no one can unlock it without a recovery code or your recovery email. Support can check your account and help you with what comes next.",
     support_email_action: "Email support",
@@ -9192,13 +9185,11 @@ export const en: Translations = {
       "Choose how you want to get back into your account.",
     other_way_code_title: "Use a recovery code",
     other_way_code_desc: "Enter one of the codes you saved.",
-    other_way_phrase_title: "Use your recovery phrase",
-    other_way_phrase_desc: "Enter the 12 words you saved.",
     other_way_email_title: "Reset with your recovery email",
     other_way_email_desc:
       "Aster Mail sends a link to your recovery email. You lose access to mail from before the reset.",
     other_way_none_title: "I do not have any of these",
-    other_way_none_desc: "Contact support and we help you with what comes next.",
+    other_way_none_desc: "Contact support for help with what comes next.",
     reset_account_title: "Reset your account?",
     reset_account_desc:
       "Your encrypted mail, contacts, and files from before the reset stay locked until you recover them with your old password. You get a new, empty encryption key.",

@@ -9050,9 +9050,6 @@ export const ar = {
     recovery_phrase_confirm_error:
       "كلمة أو أكثر غير متطابقة. تحقق من العبارة المحفوظة وحاول مجددًا.",
     recovery_phrase_skip_check: "لقد حفظتها، تخطَّ هذا التحقق",
-    forgot_method_title: "كيف تريد استرداد حسابك؟",
-    forgot_method_desc:
-      "الطريقة التي تختارها تحدد ما إذا كان يمكن استعادة بياناتك المشفرة.",
     forgot_method_full_restore: "استعادة كاملة",
     forgot_method_access_only: "الوصول فقط",
     forgot_method_phrase_title: "استخدام عبارة الاسترداد",
@@ -9064,10 +9061,6 @@ export const ar = {
     forgot_method_email_title: "إرسال رابط إعادة تعيين بالبريد",
     forgot_method_email_desc:
       "استعد الوصول إلى حسابك. البريد المشفر من قبل إعادة التعيين لا يمكن قراءته مجددًا إلا إذا عثرت لاحقًا على عبارتك أو أحد الرموز.",
-    phrase_entry_title: "أدخل عبارة الاسترداد",
-    phrase_entry_desc: "اكتب أو الصق الكلمات الاثنتي عشرة بالترتيب.",
-    phrase_entry_invalid:
-      "هذه ليست عبارة استرداد صالحة. تحقق من الكلمات وترتيبها.",
     phrase_recovery_failed:
       "هذه العبارة لا تطابق هذا الحساب. تحقق من الكلمات وعنوان البريد الإلكتروني.",
     reset_consent_title: "إعادة التعيين هذه لا يمكنها فك تشفير بياناتك القديمة",
@@ -9147,7 +9140,6 @@ export const ar = {
     resetting_password: "جارٍ إعادة تعيين كلمة المرور...",
     enter_recovery_code: "أدخل رمز الاسترداد",
     enter_recovery_code_desc: "أدخل أحد رموز الاسترداد التي حفظتها عند إنشاء حسابك.",
-    verify_code: "التحقق من الرمز",
     create_new_password: "إنشاء كلمة مرور جديدة",
     choose_strong_password: "اختر كلمة مرور قوية لحسابك",
     recovering_your_account: "جارٍ استرداد حسابك",
@@ -9164,6 +9156,7 @@ export const ar = {
     recovery_code_label: "رمز الاسترداد",
     recovery_code_hint: "يعمل كل رمز مرة واحدة. تبدو الرموز هكذا: ASTER-XXXX-XXXX-XXXX-XXXX.",
     change_account: "استخدام عنوان آخر",
+    change_account_desc: "استعد حسابًا آخر في Aster Mail.",
     support_step_title: "التواصل مع الدعم",
     support_step_desc: "لا يستطيع Aster Mail قراءة بياناتك المشفرة، لذلك لا أحد يفتحها بدون رمز استرداد أو بريد الاسترداد. يمكن للدعم مراجعة حسابك ومساعدتك في الخطوات التالية.",
     support_email_action: "مراسلة الدعم",
@@ -9172,8 +9165,6 @@ export const ar = {
     other_ways_desc: "اختر كيف تريد العودة إلى حسابك.",
     other_way_code_title: "استخدام رمز استرداد",
     other_way_code_desc: "أدخل أحد الرموز التي حفظتها.",
-    other_way_phrase_title: "استخدام عبارة الاسترداد",
-    other_way_phrase_desc: "أدخل الكلمات الـ 12 التي حفظتها.",
     other_way_email_title: "إعادة التعيين ببريد الاسترداد",
     other_way_email_desc:
       "يرسل Aster Mail رابطًا إلى بريد الاسترداد. تفقد إمكانية الوصول إلى الرسائل السابقة لإعادة التعيين.",

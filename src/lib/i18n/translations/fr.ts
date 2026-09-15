@@ -9210,9 +9210,6 @@ export const fr = {
       "Un ou plusieurs mots ne correspondent pas. Vérifiez votre phrase sauvegardée et réessayez.",
     recovery_phrase_skip_check:
       "Je l'ai sauvegardée, ignorer cette vérification",
-    forgot_method_title: "Comment souhaitez-vous récupérer votre compte ?",
-    forgot_method_desc:
-      "La méthode choisie détermine si vos données chiffrées peuvent être restaurées.",
     forgot_method_full_restore: "Restauration complète",
     forgot_method_access_only: "Accès uniquement",
     forgot_method_phrase_title: "Utiliser ma phrase de récupération",
@@ -9224,10 +9221,6 @@ export const fr = {
     forgot_method_email_title: "M'envoyer un lien de réinitialisation",
     forgot_method_email_desc:
       "Retrouvez l'accès à votre compte. Les courriels chiffrés antérieurs à la réinitialisation ne pourront plus être lus, sauf si vous retrouvez plus tard votre phrase ou un code.",
-    phrase_entry_title: "Saisissez votre phrase de récupération",
-    phrase_entry_desc: "Tapez ou collez les 12 mots dans l'ordre.",
-    phrase_entry_invalid:
-      "Ce n'est pas une phrase de récupération valide. Vérifiez les mots et leur ordre.",
     phrase_recovery_failed:
       "Cette phrase ne correspond pas à ce compte. Vérifiez les mots et l'adresse de courriel.",
     reset_consent_title:
@@ -9316,7 +9309,6 @@ export const fr = {
     resetting_password: "Réinitialisation du mot de passe...",
     enter_recovery_code: "Saisir le code de récupération",
     enter_recovery_code_desc: "Saisissez l'un des codes de récupération que vous avez enregistrés à la création de votre compte.",
-    verify_code: "Vérifier le code",
     create_new_password: "Créer un nouveau mot de passe",
     choose_strong_password: "Choisissez un mot de passe fort pour votre compte",
     recovering_your_account: "Récupération de votre compte",
@@ -9334,6 +9326,7 @@ export const fr = {
     recovery_code_label: "Code de récupération",
     recovery_code_hint: "Chaque code fonctionne une seule fois. Les codes ressemblent à ASTER-XXXX-XXXX-XXXX-XXXX.",
     change_account: "Utiliser une autre adresse",
+    change_account_desc: "Récupérez un autre compte Aster Mail.",
     support_step_title: "Contacter le support",
     support_step_desc: "Aster Mail ne peut pas lire vos données chiffrées, donc personne ne peut les déverrouiller sans un code de récupération ou votre e-mail de récupération. Le support peut vérifier votre compte et vous aider pour la suite.",
     support_email_action: "Écrire au support",
@@ -9342,8 +9335,6 @@ export const fr = {
     other_ways_desc: "Choisissez comment récupérer l'accès à votre compte.",
     other_way_code_title: "Utiliser un code de récupération",
     other_way_code_desc: "Saisissez l'un des codes que vous avez enregistrés.",
-    other_way_phrase_title: "Utiliser votre phrase de récupération",
-    other_way_phrase_desc: "Saisissez les 12 mots que vous avez enregistrés.",
     other_way_email_title: "Réinitialiser avec votre e-mail de récupération",
     other_way_email_desc:
       "Aster Mail envoie un lien à votre e-mail de récupération. Vous perdez l'accès aux messages antérieurs à la réinitialisation.",

@@ -9169,9 +9169,6 @@ export const pt = {
     recovery_phrase_confirm_error:
       "Uma ou mais palavras não conferem. Verifique sua frase salva e tente novamente.",
     recovery_phrase_skip_check: "Já salvei, pular esta verificação",
-    forgot_method_title: "Como você quer recuperar sua conta?",
-    forgot_method_desc:
-      "O método que você escolher decide se seus dados criptografados poderão ser restaurados.",
     forgot_method_full_restore: "Restauração completa",
     forgot_method_access_only: "Somente acesso",
     forgot_method_phrase_title: "Usar minha frase de recuperação",
@@ -9183,10 +9180,6 @@ export const pt = {
     forgot_method_email_title: "Enviar um link de redefinição por e-mail",
     forgot_method_email_desc:
       "Recupere o acesso à sua conta. Os e-mails criptografados de antes da redefinição não poderão mais ser lidos, a menos que você encontre sua frase ou um código depois.",
-    phrase_entry_title: "Digite sua frase de recuperação",
-    phrase_entry_desc: "Digite ou cole as 12 palavras na ordem.",
-    phrase_entry_invalid:
-      "Esta não é uma frase de recuperação válida. Verifique as palavras e a ordem delas.",
     phrase_recovery_failed:
       "Esta frase não corresponde a esta conta. Verifique as palavras e o endereço de e-mail.",
     reset_consent_title:
@@ -9270,7 +9263,6 @@ export const pt = {
     resetting_password: "Redefinindo senha...",
     enter_recovery_code: "Digite o código de recuperação",
     enter_recovery_code_desc: "Introduza um dos códigos de recuperação que guardou ao criar a conta.",
-    verify_code: "Verificar Código",
     create_new_password: "Criar nova senha",
     choose_strong_password: "Escolha uma senha forte parsua conta",
     recovering_your_account: "Recuperando sua conta",
@@ -9288,6 +9280,7 @@ export const pt = {
     recovery_code_label: "Código de recuperação",
     recovery_code_hint: "Cada código funciona uma vez. Os códigos têm este formato: ASTER-XXXX-XXXX-XXXX-XXXX.",
     change_account: "Usar outro endereço",
+    change_account_desc: "Recupere outra conta do Aster Mail.",
     support_step_title: "Falar com o suporte",
     support_step_desc: "O Aster Mail não consegue ler os seus dados encriptados, por isso ninguém os desbloqueia sem um código de recuperação ou o seu email de recuperação. O suporte pode verificar a sua conta e ajudar com os próximos passos.",
     support_email_action: "Enviar email ao suporte",
@@ -9296,8 +9289,6 @@ export const pt = {
     other_ways_desc: "Escolha como quer voltar a aceder à sua conta.",
     other_way_code_title: "Usar um código de recuperação",
     other_way_code_desc: "Introduza um dos códigos que guardou.",
-    other_way_phrase_title: "Usar a sua frase de recuperação",
-    other_way_phrase_desc: "Introduza as 12 palavras que guardou.",
     other_way_email_title: "Repor com o seu e-mail de recuperação",
     other_way_email_desc:
       "O Aster Mail envia uma ligação para o seu e-mail de recuperação. Perde o acesso ao correio anterior à reposição.",

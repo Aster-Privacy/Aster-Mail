@@ -8213,8 +8213,6 @@ export const zh_CN = {
     recovery_phrase_confirm_error:
       "有一个或多个单词不匹配。请核对您保存的短语后再试一次。",
     recovery_phrase_skip_check: "我已保存，跳过此检查",
-    forgot_method_title: "您想如何恢复账户？",
-    forgot_method_desc: "您选择的方式将决定加密数据能否被恢复。",
     forgot_method_full_restore: "完整恢复",
     forgot_method_access_only: "仅恢复访问",
     forgot_method_phrase_title: "使用我的恢复短语",
@@ -8226,9 +8224,6 @@ export const zh_CN = {
     forgot_method_email_title: "给我发送重置链接",
     forgot_method_email_desc:
       "重新获得账户的访问权限。重置前的加密邮件将无法再读取，除非您日后找回短语或恢复代码。",
-    phrase_entry_title: "输入您的恢复短语",
-    phrase_entry_desc: "按顺序输入或粘贴这 12 个单词。",
-    phrase_entry_invalid: "这不是有效的恢复短语。请检查单词及其顺序。",
     phrase_recovery_failed: "此短语与该账户不匹配。请检查单词和邮箱地址。",
     reset_consent_title: "此次重置无法解密您的旧数据",
     reset_consent_keeps:
@@ -8302,7 +8297,6 @@ export const zh_CN = {
     resetting_password: "正在重置密码...",
     enter_recovery_code: "输入恢复代码",
     enter_recovery_code_desc: "输入创建账户时保存的任一恢复代码。",
-    verify_code: "验证代码",
     create_new_password: "创建新密码",
     choose_strong_password: "为您的账户选择一个强密码",
     recovering_your_account: "正在恢复您的账户",
@@ -8319,6 +8313,7 @@ export const zh_CN = {
     recovery_code_label: "恢复代码",
     recovery_code_hint: "每个代码只能使用一次。代码格式为 ASTER-XXXX-XXXX-XXXX-XXXX。",
     change_account: "使用其他地址",
+    change_account_desc: "恢复其他 Aster Mail 账户。",
     support_step_title: "联系支持团队",
     support_step_desc: "Aster Mail 无法读取你的加密数据，因此没有恢复代码或恢复邮箱，任何人都无法解锁。支持团队可以检查你的账户并说明后续步骤。",
     support_email_action: "给支持团队发邮件",
@@ -8327,8 +8322,6 @@ export const zh_CN = {
     other_ways_desc: "选择你想要重新登录账户的方式。",
     other_way_code_title: "使用恢复代码",
     other_way_code_desc: "输入你保存的其中一个代码。",
-    other_way_phrase_title: "使用恢复短语",
-    other_way_phrase_desc: "输入你保存的 12 个单词。",
     other_way_email_title: "使用恢复邮箱重置",
     other_way_email_desc:
       "Aster Mail 会向你的恢复邮箱发送一个链接。你将无法访问重置前的邮件。",

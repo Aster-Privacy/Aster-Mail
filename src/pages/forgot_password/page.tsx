@@ -22,6 +22,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@aster/ui";
 
 import {
+  AddressIcon,
   Alert,
   CopyIcon,
   HelpIcon,
@@ -90,7 +91,7 @@ export default function ForgotPasswordPage() {
     set_codes_saved,
     review,
     email,
-    is_email_locked,
+    handle_change_account,
     handle_email_next,
     handle_email_reset_link,
     handle_code_submit,
@@ -296,6 +297,12 @@ export default function ForgotPasswordPage() {
                 title={t("auth.other_way_email_title")}
               />
               <OptionRow
+                description={t("auth.change_account_desc")}
+                icon={<AddressIcon />}
+                on_click={handle_change_account}
+                title={t("auth.change_account")}
+              />
+              <OptionRow
                 description={t("auth.other_way_none_desc")}
                 icon={<HelpIcon />}
                 on_click={() => {
@@ -497,23 +504,6 @@ export default function ForgotPasswordPage() {
               }}
             >
               {t("auth.try_another_way")}
-            </button>
-
-            <button
-              className="w-full mt-4 text-sm transition-colors hover:opacity-80 text-txt-tertiary"
-              onClick={() => {
-                set_error("");
-                if (is_email_locked) {
-                  navigate("/sign-in");
-
-                  return;
-                }
-                set_step("email");
-              }}
-            >
-              {is_email_locked
-                ? t("auth.back_to_sign_in")
-                : t("auth.change_account")}
             </button>
           </motion.div>
         );

@@ -71,7 +71,7 @@ export default function MobileForgotPasswordPage() {
     set_codes_saved,
     review,
     email,
-    is_email_locked,
+    handle_change_account,
     handle_email_next,
     handle_email_reset_link,
     handle_code_submit,
@@ -85,15 +85,6 @@ export default function MobileForgotPasswordPage() {
 
   const navigate_sign_in = () => navigate("/sign-in");
 
-  const handle_change_account = () => {
-    set_error("");
-    if (is_email_locked) {
-      navigate_sign_in();
-
-      return;
-    }
-    set_step("email");
-  };
 
   const render_step = () => {
     switch (step) {
@@ -119,6 +110,7 @@ export default function MobileForgotPasswordPage() {
           <OtherWaysStep
             error={error}
             is_dark={is_dark}
+            on_change_account={handle_change_account}
             on_no_options={() => {
               set_error("");
               set_step("support");
@@ -168,7 +160,6 @@ export default function MobileForgotPasswordPage() {
             email={email}
             error={error}
             is_dark={is_dark}
-            is_email_locked={is_email_locked}
             on_change_account={handle_change_account}
             on_submit={handle_code_submit}
             recovery_code={recovery_code}

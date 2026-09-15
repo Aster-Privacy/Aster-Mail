@@ -9104,9 +9104,6 @@ export const nl = {
     recovery_phrase_confirm_error:
       "Een of meer woorden komen niet overeen. Controleer uw opgeslagen zin en probeer het opnieuw.",
     recovery_phrase_skip_check: "Ik heb hem opgeslagen, sla deze controle over",
-    forgot_method_title: "Hoe wilt u uw account herstellen?",
-    forgot_method_desc:
-      "De methode die u kiest, bepaalt of uw versleutelde gegevens kunnen worden hersteld.",
     forgot_method_full_restore: "Volledig herstel",
     forgot_method_access_only: "Alleen toegang",
     forgot_method_phrase_title: "Mijn herstelzin gebruiken",
@@ -9118,10 +9115,6 @@ export const nl = {
     forgot_method_email_title: "E-mail mij een resetlink",
     forgot_method_email_desc:
       "Krijg weer toegang tot uw account. Versleutelde e-mail van vóór de reset kan niet meer worden gelezen, tenzij u later uw zin of een code terugvindt.",
-    phrase_entry_title: "Voer uw herstelzin in",
-    phrase_entry_desc: "Typ of plak de 12 woorden in volgorde.",
-    phrase_entry_invalid:
-      "Dit is geen geldige herstelzin. Controleer de woorden en hun volgorde.",
     phrase_recovery_failed:
       "Deze zin hoort niet bij dit account. Controleer de woorden en het e-mailadres.",
     reset_consent_title: "Deze reset kan uw oude gegevens niet ontsleutelen",
@@ -9201,7 +9194,6 @@ export const nl = {
     resetting_password: "Wachtwoord opnieuw instellen...",
     enter_recovery_code: "Voer herstelcode in",
     enter_recovery_code_desc: "Voer een van de herstelcodes in die je hebt opgeslagen toen je je account aanmaakte.",
-    verify_code: "Code verifiëren",
     create_new_password: "Nieuw wachtwoord aanmaken",
     choose_strong_password: "Kies een sterk wachtwoord voor je account",
     recovering_your_account: "Je account herstellen",
@@ -9219,6 +9211,7 @@ export const nl = {
     recovery_code_label: "Herstelcode",
     recovery_code_hint: "Elke code werkt één keer. Codes zien er zo uit: ASTER-XXXX-XXXX-XXXX-XXXX.",
     change_account: "Een ander adres gebruiken",
+    change_account_desc: "Herstel een ander Aster Mail-account.",
     support_step_title: "Contact opnemen met support",
     support_step_desc: "Aster Mail kan je versleutelde gegevens niet lezen, dus niemand kan ze ontgrendelen zonder een herstelcode of je herstel-e-mail. Support kan je account controleren en je helpen met de volgende stappen.",
     support_email_action: "Support mailen",
@@ -9227,8 +9220,6 @@ export const nl = {
     other_ways_desc: "Kies hoe je weer toegang tot je account wilt krijgen.",
     other_way_code_title: "Een herstelcode gebruiken",
     other_way_code_desc: "Voer een van de codes in die je hebt opgeslagen.",
-    other_way_phrase_title: "Je herstelzin gebruiken",
-    other_way_phrase_desc: "Voer de 12 woorden in die je hebt opgeslagen.",
     other_way_email_title: "Opnieuw instellen met je herstel-e-mail",
     other_way_email_desc:
       "Aster Mail stuurt een link naar je herstel-e-mail. Je verliest toegang tot e-mail van voor het opnieuw instellen.",

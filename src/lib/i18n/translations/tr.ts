@@ -9087,9 +9087,6 @@ export const tr = {
     recovery_phrase_confirm_error:
       "Bir veya daha fazla kelime eşleşmiyor. Kaydettiğiniz ifadeyi kontrol edip tekrar deneyin.",
     recovery_phrase_skip_check: "Kaydettim, bu kontrolü atla",
-    forgot_method_title: "Hesabınızı nasıl kurtarmak istiyorsunuz?",
-    forgot_method_desc:
-      "Seçtiğiniz yöntem, şifreli verilerinizin geri yüklenip yüklenemeyeceğini belirler.",
     forgot_method_full_restore: "Tam geri yükleme",
     forgot_method_access_only: "Yalnızca erişim",
     forgot_method_phrase_title: "Kurtarma ifademi kullan",
@@ -9101,10 +9098,6 @@ export const tr = {
     forgot_method_email_title: "Bana sıfırlama bağlantısı gönder",
     forgot_method_email_desc:
       "Hesabınıza yeniden erişim kazanırsınız. Sıfırlamadan önceki şifreli postalar, ifadenizi veya bir kodu daha sonra bulmadıkça bir daha okunamaz.",
-    phrase_entry_title: "Kurtarma ifadenizi girin",
-    phrase_entry_desc: "12 kelimeyi sırasıyla yazın veya yapıştırın.",
-    phrase_entry_invalid:
-      "Bu geçerli bir kurtarma ifadesi değil. Kelimeleri ve sıralarını kontrol edin.",
     phrase_recovery_failed:
       "Bu ifade bu hesapla eşleşmiyor. Kelimeleri ve e-posta adresini kontrol edin.",
     reset_consent_title: "Bu sıfırlama eski verilerinizin şifresini çözemez",
@@ -9186,7 +9179,6 @@ export const tr = {
     resetting_password: "Parola sıfırlanıyor...",
     enter_recovery_code: "Kurtarma kodunu girin",
     enter_recovery_code_desc: "Hesabınızı oluştururken kaydettiğiniz kurtarma kodlarından birini girin.",
-    verify_code: "Kodu Doğrula",
     create_new_password: "Yeni parola oluşturun",
     choose_strong_password: "Hesabınız için güçlü bir parola seçin",
     recovering_your_account: "Hesabınız kurtarılıyor",
@@ -9203,6 +9195,7 @@ export const tr = {
     recovery_code_label: "Kurtarma kodu",
     recovery_code_hint: "Her kod bir kez çalışır. Kodlar şöyle görünür: ASTER-XXXX-XXXX-XXXX-XXXX.",
     change_account: "Başka bir adres kullan",
+    change_account_desc: "Başka bir Aster Mail hesabını kurtarın.",
     support_step_title: "Destek ile iletişime geçin",
     support_step_desc: "Aster Mail şifreli verilerinizi okuyamaz, bu yüzden kurtarma kodu veya kurtarma e-postanız olmadan kimse bunları açamaz. Destek ekibi hesabınızı kontrol edip sonraki adımlarda yardımcı olabilir.",
     support_email_action: "Desteğe e-posta gönder",
@@ -9211,8 +9204,6 @@ export const tr = {
     other_ways_desc: "Hesabınıza nasıl geri dönmek istediğinizi seçin.",
     other_way_code_title: "Kurtarma kodu kullanın",
     other_way_code_desc: "Kaydettiğiniz kodlardan birini girin.",
-    other_way_phrase_title: "Kurtarma ifadenizi kullanın",
-    other_way_phrase_desc: "Kaydettiğiniz 12 kelimeyi girin.",
     other_way_email_title: "Kurtarma e-postanızla sıfırlayın",
     other_way_email_desc:
       "Aster Mail kurtarma e-postanıza bir bağlantı gönderir. Sıfırlamadan önceki postalara erişiminizi kaybedersiniz.",
