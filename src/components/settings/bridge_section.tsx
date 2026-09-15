@@ -24,6 +24,9 @@ import { useState, useEffect, useCallback } from "react";
 import {
   ArrowDownTrayIcon,
   ArrowRightIcon,
+  ArrowTopRightOnSquareIcon,
+  ChevronDownIcon,
+  ClipboardDocumentIcon,
   ComputerDesktopIcon,
   ServerIcon,
   WifiIcon,
@@ -32,6 +35,15 @@ import {
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown_menu";
+import { copy_text_or_throw } from "@/utils/copy_text";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import {
@@ -84,14 +96,178 @@ function BridgeDownloadLink({
   );
 }
 
+interface FormatLink {
+  label_key: TranslationKey;
+  platform: string;
+}
+
+interface FormatGroup {
+  id: string;
+  label_key?: TranslationKey;
+  links: FormatLink[];
+}
+
 interface PlatformCard {
   id: string;
   name_key: TranslationKey;
   desc_key: TranslationKey;
   cta_key?: TranslationKey;
   platform?: string;
-  sub_links?: { label_key: TranslationKey; platform: string }[];
+  format_groups?: FormatGroup[];
   icon: React.ReactNode;
+}
+
+interface DownloadFormatMenuProps {
+  label: string;
+  is_locked: boolean;
+  groups: FormatGroup[];
+  children?: React.ReactNode;
+}
+
+function DownloadFormatMenu({
+  label,
+  is_locked,
+  groups,
+  children,
+}: DownloadFormatMenuProps) {
+  const { t } = use_i18n();
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild disabled={is_locked}>
+        <button
+          aria-label={label}
+          className={`aster_btn aster_btn_outline aster_btn_md inline-flex items-center gap-1.5 whitespace-nowrap ${
+            is_locked ? "opacity-40 cursor-not-allowed" : ""
+          }`}
+          type="button"
+        >
+          {children ?? label}
+          <ChevronDownIcon className="w-3.5 h-3.5 flex-shrink-0" />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-56">
+        {groups.map((group, group_index) => (
+          <div key={group.id}>
+            {group_index > 0 && <DropdownMenuSeparator />}
+            {group.label_key && (
+              <DropdownMenuLabel className="text-[11px] font-medium uppercase tracking-wide text-txt-muted">
+                {t(group.label_key)}
+              </DropdownMenuLabel>
+            )}
+            {group.links.map((link) => (
+              <DropdownMenuItem key={link.platform} asChild>
+                <a href={`${DL}/${link.platform}`}>
+                  <ArrowDownTrayIcon className="w-4 h-4 text-txt-muted flex-shrink-0" />
+                  {t(link.label_key)}
+                </a>
+              </DropdownMenuItem>
+            ))}
+          </div>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+const CLI_INSTALL_COMMAND = [
+  "tar -xzf aster-bridge-cli-*.tar.gz",
+  "install -m 755 aster-bridge-cli-*/aster-bridge ~/.local/bin/",
+].join("\n");
+
+const CLI_DOCS_URL = "https://astermail.org/bridge/docs/command-line";
+
+const CLI_FORMAT_GROUPS: FormatGroup[] = [
+  {
+    id: "cli_platforms",
+    links: [
+      {
+        label_key: "settings.bridge_cli_windows_link",
+        platform: "cli-windows",
+      },
+      { label_key: "settings.bridge_cli_macos_link", platform: "cli-macos" },
+      {
+        label_key: "settings.bridge_cli_linux_link",
+        platform: "cli-linux-x64",
+      },
+      {
+        label_key: "settings.bridge_cli_linux_arm64_link",
+        platform: "cli-linux-arm64",
+      },
+    ],
+  },
+];
+
+interface BridgeCliCardProps {
+  is_locked: boolean;
+}
+
+function BridgeCliCard({ is_locked }: BridgeCliCardProps) {
+  const { t } = use_i18n();
+
+  const copy_command = useCallback(async () => {
+    try {
+      await copy_text_or_throw(CLI_INSTALL_COMMAND);
+      show_toast(t("common.copied"), "success");
+    } catch {
+      show_toast(t("common.failed_to_copy"), "error");
+    }
+  }, [t]);
+
+  return (
+    <div className="rounded-xl border border-edge-secondary bg-surf-primary px-5 py-5">
+      <div className="flex flex-wrap items-center gap-4">
+        <div className="flex items-center gap-3 w-32 shrink-0">
+          <span className="text-txt-secondary">{terminal_icon}</span>
+          <span className="text-sm font-semibold text-txt-primary">
+            {t("settings.bridge_cli_name")}
+          </span>
+        </div>
+        <p className="text-sm text-txt-muted leading-relaxed flex-1">
+          {t("settings.bridge_cli_desc")}
+        </p>
+        <div className="flex items-center gap-2 shrink-0">
+          <DownloadFormatMenu
+            groups={CLI_FORMAT_GROUPS}
+            is_locked={is_locked}
+            label={t("settings.bridge_cli_download")}
+          >
+            <ArrowDownTrayIcon className="w-3.5 h-3.5 flex-shrink-0" />
+            {t("settings.bridge_cli_download")}
+          </DownloadFormatMenu>
+        </div>
+      </div>
+
+      <div className="mt-4 ps-0 sm:ps-[8.75rem]">
+        <p className="text-xs text-txt-muted mb-2">
+          {t("settings.bridge_cli_install_hint")}
+        </p>
+        <div className="flex items-start gap-2 rounded-lg border border-edge-secondary bg-surf-secondary px-3 py-2">
+          <code className="flex-1 overflow-x-auto whitespace-pre text-xs font-mono text-txt-primary leading-relaxed">
+            {CLI_INSTALL_COMMAND}
+          </code>
+          <Button
+            aria-label={t("settings.bridge_cli_copy_command")}
+            className="h-7 w-7 flex-shrink-0"
+            size="icon"
+            variant="ghost"
+            onClick={copy_command}
+          >
+            <ClipboardDocumentIcon className="w-3.5 h-3.5 text-txt-muted" />
+          </Button>
+        </div>
+        <a
+          className="inline-flex items-center gap-1.5 mt-2.5 text-xs font-medium text-brand hover:underline"
+          href={CLI_DOCS_URL}
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          {t("settings.bridge_cli_docs_link")}
+          <ArrowTopRightOnSquareIcon className="w-3 h-3 flex-shrink-0" />
+        </a>
+      </div>
+    </div>
+  );
 }
 
 const windows_icon = (
@@ -260,8 +436,16 @@ export function BridgeSection() {
       desc_key: "settings.bridge_windows_desc",
       cta_key: "settings.bridge_download_windows",
       platform: "windows-exe",
-      sub_links: [
-        { label_key: "settings.bridge_download_msi", platform: "windows-msi" },
+      format_groups: [
+        {
+          id: "windows_formats",
+          links: [
+            {
+              label_key: "settings.bridge_download_msi",
+              platform: "windows-msi",
+            },
+          ],
+        },
       ],
       icon: windows_icon,
     },
@@ -279,48 +463,45 @@ export function BridgeSection() {
       desc_key: "settings.bridge_linux_desc",
       cta_key: "settings.bridge_linux_cta",
       platform: "linux-appimage",
-      sub_links: [
-        { label_key: "settings.bridge_linux_deb_link", platform: "linux-deb" },
-        { label_key: "settings.bridge_linux_rpm_link", platform: "linux-rpm" },
+      format_groups: [
         {
-          label_key: "settings.bridge_linux_pacman_link",
-          platform: "linux-pacman",
+          id: "linux_x64",
+          label_key: "settings.bridge_arch_x64",
+          links: [
+            {
+              label_key: "settings.bridge_linux_deb_link",
+              platform: "linux-deb",
+            },
+            {
+              label_key: "settings.bridge_linux_rpm_link",
+              platform: "linux-rpm",
+            },
+            {
+              label_key: "settings.bridge_linux_pacman_link",
+              platform: "linux-pacman",
+            },
+          ],
         },
         {
-          label_key: "settings.bridge_linux_appimage_arm64_link",
-          platform: "linux-appimage-arm64",
-        },
-        {
-          label_key: "settings.bridge_linux_deb_arm64_link",
-          platform: "linux-deb-arm64",
-        },
-        {
-          label_key: "settings.bridge_linux_rpm_arm64_link",
-          platform: "linux-rpm-arm64",
+          id: "linux_arm64",
+          label_key: "settings.bridge_arch_arm64",
+          links: [
+            {
+              label_key: "settings.bridge_linux_appimage_arm64_link",
+              platform: "linux-appimage-arm64",
+            },
+            {
+              label_key: "settings.bridge_linux_deb_arm64_link",
+              platform: "linux-deb-arm64",
+            },
+            {
+              label_key: "settings.bridge_linux_rpm_arm64_link",
+              platform: "linux-rpm-arm64",
+            },
+          ],
         },
       ],
       icon: linux_icon,
-    },
-    {
-      id: "cli",
-      name_key: "settings.bridge_cli_name",
-      desc_key: "settings.bridge_cli_desc",
-      sub_links: [
-        {
-          label_key: "settings.bridge_cli_windows_link",
-          platform: "cli-windows",
-        },
-        { label_key: "settings.bridge_cli_macos_link", platform: "cli-macos" },
-        {
-          label_key: "settings.bridge_cli_linux_link",
-          platform: "cli-linux-x64",
-        },
-        {
-          label_key: "settings.bridge_cli_linux_arm64_link",
-          platform: "cli-linux-arm64",
-        },
-      ],
-      icon: terminal_icon,
     },
   ];
 
@@ -426,20 +607,17 @@ export function BridgeSection() {
                   {t(card.cta_key)}
                 </BridgeDownloadLink>
               )}
-              {card.sub_links &&
-                card.sub_links.map((link) => (
-                  <BridgeDownloadLink
-                    key={link.platform}
-                    className="aster_btn aster_btn_outline aster_btn_md whitespace-nowrap"
-                    is_locked={is_locked}
-                    platform={link.platform}
-                  >
-                    {t(link.label_key)}
-                  </BridgeDownloadLink>
-                ))}
+              {card.format_groups && (
+                <DownloadFormatMenu
+                  groups={card.format_groups}
+                  is_locked={is_locked}
+                  label={t("settings.bridge_other_formats")}
+                />
+              )}
             </div>
           </div>
         ))}
+        <BridgeCliCard is_locked={is_locked} />
       </div>
 
       <div>
@@ -570,7 +748,7 @@ export function BridgeSection() {
             {t("settings.bridge_support_description")}
           </p>
         </div>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-2.5">
           {(
             [
               {
@@ -640,7 +818,7 @@ export function BridgeSection() {
           ).map(({ label_key, href, icon }) => (
             <a
               key={href}
-              className="aster_btn aster_btn_outline aster_btn_md flex items-center gap-2 justify-start"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-txt-secondary hover:text-txt-primary transition-colors"
               href={href}
               rel="noopener noreferrer"
               target="_blank"

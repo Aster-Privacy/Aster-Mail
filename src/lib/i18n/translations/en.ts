@@ -1318,6 +1318,7 @@ export const en: Translations = {
     emoji_activities: "Activities",
     emoji_flags: "Flags",
     no_emojis_found: "No emojis found",
+    emoji_recent: "Recently used",
     item_copied: "{{ label }} copied",
     copied_item: "Copied {{ label }}",
     blocked_email: "Blocked {{ email }}",
@@ -2288,12 +2289,20 @@ export const en: Translations = {
     bridge_linux_deb_link: ".deb",
     bridge_linux_rpm_link: ".rpm",
     bridge_linux_pacman_link: "Arch Linux",
-    bridge_linux_appimage_arm64_link: "AppImage (ARM64)",
-    bridge_linux_deb_arm64_link: ".deb (ARM64)",
-    bridge_linux_rpm_arm64_link: ".rpm (ARM64)",
+    bridge_linux_appimage_arm64_link: "AppImage",
+    bridge_linux_deb_arm64_link: ".deb",
+    bridge_linux_rpm_arm64_link: ".rpm",
+    bridge_other_formats: "Other formats",
+    bridge_arch_x64: "x86-64",
+    bridge_arch_arm64: "ARM64",
     bridge_cli_name: "Command line",
     bridge_cli_desc:
-      "Runs the same servers without a window, on a server or over SSH.",
+      "Run aster-bridge without a window, on a server or over SSH.",
+    bridge_cli_download: "Download",
+    bridge_cli_install_hint:
+      "Download the archive for your platform, then extract it and move the binary onto your PATH.",
+    bridge_cli_copy_command: "Copy the install commands",
+    bridge_cli_docs_link: "Read the command-line guide",
     bridge_cli_windows_link: "Windows",
     bridge_cli_macos_link: "macOS",
     bridge_cli_linux_link: "Linux (x86-64)",
@@ -7799,6 +7808,7 @@ export const en: Translations = {
     already_reacted: "You already reacted with this",
     remove_your_reaction: "Remove your {emoji} reaction",
     you_reacted_with: "You reacted with {{emoji}}",
+    you_reacted_with_remove: "You reacted with {{emoji}}. Click to remove.",
     reacted_with: "{{name}} reacted with {{emoji}}",
     reply_subject_prefix: "Re:",
     reply_from_mismatch_title: "Reply from a different address?",
@@ -9325,6 +9335,8 @@ export const en: Translations = {
     cannot_react_bcc: "You cannot react to a message you were BCC'd on.",
     cannot_react_too_many_emojis:
       "This message already has the maximum number of reactions.",
+    cannot_react_limit:
+      "You can add up to two reactions to a message. To add another, remove one of yours.",
     cannot_react_no_recipient:
       "This message has no sender to send the reaction to.",
     failed_send_reaction:
