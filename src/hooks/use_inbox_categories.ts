@@ -36,6 +36,7 @@ import {
   are_counts_partial,
   get_counts,
   mark_category_seen,
+  mark_categories_seen,
   is_index_loaded,
   subscribe as subscribe_index,
   get_version as get_index_version,
@@ -247,17 +248,39 @@ export function use_inbox_categories(
     };
   }, []);
 
+  const prev_marked_category_ref = useRef<EmailCategory | null>(null);
+
+  // A tab switch used to mark the outgoing category seen in the previous
+  // effect's cleanup and the incoming one in this effect's body. Each mark
+  // runs a full index scan and a synchronous notify() that re-derives counts
+  // for every subscriber, so the switch paid that cost twice while the tab's
+  // tap animation was playing. Folding both into one call halves it.
   useEffect(() => {
     if (!enabled) return;
     if (!stored_tab_loaded_ref.current) return;
-    mark_category_seen(active_category);
 
+    const prev = prev_marked_category_ref.current;
+
+    if (prev && prev !== active_category && is_index_loaded()) {
+      mark_categories_seen([prev, active_category]);
+    } else {
+      mark_category_seen(active_category);
+    }
+
+    prev_marked_category_ref.current = active_category;
+  }, [enabled, active_category]);
+
+  useEffect(() => {
     return () => {
-      if (is_index_loaded()) {
-        mark_category_seen(active_category);
+      if (
+        enabled_ref.current &&
+        is_index_loaded() &&
+        prev_marked_category_ref.current
+      ) {
+        mark_category_seen(prev_marked_category_ref.current);
       }
     };
-  }, [enabled, active_category]);
+  }, []);
 
   const set_active_category = useCallback((category: EmailCategory) => {
     session_active_category = category;

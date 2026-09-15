@@ -897,6 +897,10 @@ export function ContactList({
                     "contact_row group/contact w-full flex items-center gap-3 px-3 my-0.5 rounded-[12px] text-start",
                     is_compact ? "py-1" : "py-1.5",
                   )}
+                  style={{
+                    contentVisibility: "auto",
+                    containIntrinsicSize: `auto ${avatar_px + (is_compact ? 12 : 16)}px`,
+                  }}
                   data-active={is_active}
                   data-selected={is_selected}
                   onClick={() =>

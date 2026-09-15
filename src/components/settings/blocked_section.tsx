@@ -466,6 +466,8 @@ export function BlockedSection() {
               style={{
                 borderTop:
                   index > 0 ? "1px solid var(--border-secondary)" : "none",
+                contentVisibility: "auto",
+                containIntrinsicSize: "auto 57px",
               }}
             >
               <Checkbox

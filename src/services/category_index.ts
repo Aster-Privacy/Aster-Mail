@@ -1377,6 +1377,49 @@ export function mark_category_seen(category: EmailCategory): void {
   notify();
 }
 
+// Multi-category form of mark_category_seen, folding one pass over the index
+// instead of one per category. The ts <= wall guard below carries the same
+// weight as it does there: message_ts comes from the sender-controlled Date
+// header, so a future-dated message must never push the stamp forward.
+export function mark_categories_seen(
+  categories: readonly EmailCategory[],
+): void {
+  const unique = Array.from(new Set(categories));
+
+  if (unique.length === 0) return;
+
+  const wall = now_ms();
+  const newest_seen_ts = new Map<EmailCategory, number>(
+    unique.map((cat) => [cat, 0]),
+  );
+
+  for (const entry of entries_map.values()) {
+    const cat = fold_category(entry.category);
+    const current = newest_seen_ts.get(cat);
+
+    if (current === undefined) continue;
+
+    const ts = safe_ts(entry.message_ts);
+
+    if (ts <= wall && ts > current) newest_seen_ts.set(cat, ts);
+  }
+
+  let changed = false;
+
+  for (const cat of unique) {
+    const stamp = Math.max(wall, newest_seen_ts.get(cat) ?? 0);
+
+    if ((seen_ts[cat] ?? 0) >= stamp) continue;
+
+    seen_ts[cat] = stamp;
+    changed = true;
+  }
+
+  if (!changed) return;
+  void persist_now();
+  notify();
+}
+
 export function get_page_ids(
   category: EmailCategory,
   page: number,

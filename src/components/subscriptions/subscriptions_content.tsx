@@ -452,6 +452,10 @@ function SubscriptionRow({
           ? "hover:bg-black/[0.02] dark:hover:bg-white/[0.02] cursor-pointer"
           : ""
       }`}
+      style={{
+        contentVisibility: "auto",
+        containIntrinsicSize: "auto 61px",
+      }}
       onClick={is_clickable ? () => on_click(sub) : undefined}
     >
       {active_tab === "active" && (
