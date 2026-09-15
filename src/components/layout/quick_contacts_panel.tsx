@@ -109,6 +109,7 @@ interface QuickContactsPanelProps {
   is_top_inset: boolean;
   on_close: () => void;
   on_compose: (address: string) => void;
+  replaced_by_other_panel?: boolean;
 }
 
 function display_name(contact: DecryptedContact) {
@@ -208,6 +209,7 @@ export function QuickContactsPanel({
   is_top_inset,
   on_close,
   on_compose,
+  replaced_by_other_panel = false,
 }: QuickContactsPanelProps) {
   const { t } = use_i18n();
   const { has_keys } = use_auth();
@@ -736,7 +738,10 @@ export function QuickContactsPanel({
     visible.every((contact) => selected_ids.has(contact.id));
   const is_selecting = selection_count > 0;
 
-  const { is_visible, is_closing } = use_panel_transition(is_open);
+  const { is_visible, is_closing } = use_panel_transition(
+    is_open,
+    replaced_by_other_panel,
+  );
 
   return (
     <>

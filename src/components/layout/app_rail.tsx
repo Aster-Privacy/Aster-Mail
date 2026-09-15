@@ -153,12 +153,14 @@ function AppRailComponent({
       <QuickContactsPanel
         is_open={is_contacts_open}
         is_top_inset={is_settings_view}
+        replaced_by_other_panel={is_security_open}
         on_close={close_contacts}
         on_compose={on_compose}
       />
       <QuickSecurityPanel
         is_open={is_security_open}
         is_top_inset={is_settings_view}
+        replaced_by_other_panel={is_contacts_open}
         on_close={close_security}
       />
       {is_hidden && (

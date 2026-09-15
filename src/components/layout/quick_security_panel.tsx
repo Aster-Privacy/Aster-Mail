@@ -59,6 +59,7 @@ interface QuickSecurityPanelProps {
   is_open: boolean;
   is_top_inset: boolean;
   on_close: () => void;
+  replaced_by_other_panel?: boolean;
 }
 
 type PanelIcon = ComponentType<{ className?: string }>;
@@ -135,6 +136,7 @@ export function QuickSecurityPanel({
   is_open,
   is_top_inset,
   on_close,
+  replaced_by_other_panel = false,
 }: QuickSecurityPanelProps) {
   const { t } = use_i18n();
   const { preferences } = use_preferences();
@@ -252,7 +254,10 @@ export function QuickSecurityPanel({
     go_to_settings("security");
   }, [go_to_settings]);
 
-  const { is_visible, is_closing } = use_panel_transition(is_open);
+  const { is_visible, is_closing } = use_panel_transition(
+    is_open,
+    replaced_by_other_panel,
+  );
 
   return (
     <aside

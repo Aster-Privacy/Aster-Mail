@@ -28,7 +28,10 @@ function prefers_reduced_motion(): boolean {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
-export function use_panel_transition(is_open: boolean): {
+export function use_panel_transition(
+  is_open: boolean,
+  instant_close = false,
+): {
   is_visible: boolean;
   is_closing: boolean;
 } {
@@ -46,7 +49,7 @@ export function use_panel_transition(is_open: boolean): {
       return;
     }
 
-    if (prefers_reduced_motion()) return;
+    if (instant_close || prefers_reduced_motion()) return;
 
     set_is_closing(true);
 
@@ -56,7 +59,7 @@ export function use_panel_transition(is_open: boolean): {
     );
 
     return () => window.clearTimeout(timer);
-  }, [is_open]);
+  }, [is_open, instant_close]);
 
   return { is_visible: is_open || is_closing, is_closing };
 }
