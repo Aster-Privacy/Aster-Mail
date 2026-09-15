@@ -31,7 +31,7 @@ import {
   build_ratchet_envelope,
   encrypt_for_ratchet_recipient,
   is_post_quantum_recipient_data,
-  recipient_supports_post_quantum,
+  recipient_post_quantum_status,
 } from "./crypto/ratchet_manager";
 import {
   resolve_own_username_for_key_lookup,
@@ -84,40 +84,58 @@ function post_quantum_error(recipients: string[]): PostQuantumUnavailableError {
   );
 }
 
-export async function check_post_quantum_coverage(
+export interface PostQuantumCoverage {
+  missing: string[];
+  downgraded: string[];
+}
+
+export async function check_post_quantum_status(
   recipients: string[],
   sender_email?: string,
-): Promise<string[]> {
-  if (!sender_email) return [];
+): Promise<PostQuantumCoverage> {
+  const coverage: PostQuantumCoverage = { missing: [], downgraded: [] };
+
+  if (!sender_email) return coverage;
 
   const internal_recipients = recipients.filter(is_internal_email);
 
-  if (internal_recipients.length === 0) return [];
-
-  const missing: string[] = [];
+  if (internal_recipients.length === 0) return coverage;
 
   for (const recipient of internal_recipients) {
     const username = await resolve_username_for_key_lookup(recipient);
 
     if (!username) {
-      missing.push(recipient);
+      coverage.missing.push(recipient);
       continue;
     }
 
     try {
-      const supported = await recipient_supports_post_quantum(
+      const status = await recipient_post_quantum_status(
         sender_email,
         recipient,
         username,
       );
 
-      if (!supported) missing.push(recipient);
+      if (status === "supported") continue;
+
+      coverage.missing.push(recipient);
+
+      if (status === "downgraded") coverage.downgraded.push(recipient);
     } catch {
       continue;
     }
   }
 
-  return missing;
+  return coverage;
+}
+
+export async function check_post_quantum_coverage(
+  recipients: string[],
+  sender_email?: string,
+): Promise<string[]> {
+  const coverage = await check_post_quantum_status(recipients, sender_email);
+
+  return coverage.missing;
 }
 
 export async function encrypt_for_recipients(

@@ -26,6 +26,7 @@ import { set_post_quantum_prompt_handler } from "@/services/post_quantum_consent
 
 interface PromptState {
   recipients: string[];
+  downgraded: string[];
 }
 
 export function PostQuantumSendPrompt(): React.ReactElement {
@@ -34,12 +35,12 @@ export function PostQuantumSendPrompt(): React.ReactElement {
   const pending_resolve = useRef<((allow: boolean) => void) | null>(null);
 
   useEffect(() => {
-    set_post_quantum_prompt_handler((recipients) => {
+    set_post_quantum_prompt_handler((recipients, downgraded) => {
       pending_resolve.current?.(false);
 
       return new Promise<boolean>((resolve) => {
         pending_resolve.current = resolve;
-        set_state({ recipients });
+        set_state({ recipients, downgraded });
       });
     });
 
@@ -56,20 +57,32 @@ export function PostQuantumSendPrompt(): React.ReactElement {
     resolve?.(allow);
   };
 
+  const downgraded = state?.downgraded ?? [];
+  const is_downgrade = downgraded.length > 0;
+
+  const named = is_downgrade ? downgraded : (state?.recipients ?? []);
+
   return (
     <ConfirmModal
       hide_dont_ask
       confirm_text={t("common.post_quantum_send_anyway")}
       confirm_variant="destructive"
-      description={t("common.post_quantum_unavailable_message", {
-        recipients: state?.recipients.join(", ") ?? "",
-      })}
+      description={t(
+        is_downgrade
+          ? "common.post_quantum_downgrade_message"
+          : "common.post_quantum_unavailable_message",
+        { recipients: named.join(", ") },
+      )}
       dont_ask={false}
       on_cancel={() => settle(false)}
       on_confirm={() => settle(true)}
       on_dont_ask_change={() => {}}
       show={state !== null}
-      title={t("common.post_quantum_unavailable_title")}
+      title={t(
+        is_downgrade
+          ? "common.post_quantum_downgrade_title"
+          : "common.post_quantum_unavailable_title",
+      )}
     />
   );
 }

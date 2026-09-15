@@ -2019,6 +2019,8 @@ export const it = {
     post_quantum_unavailable_title:
       "Inviare senza crittografia post-quantistica?",
     post_quantum_send_anyway: "Invia comunque",
+    post_quantum_downgrade_title: "Inviare senza le chiavi post-quantistiche previste?",
+    post_quantum_downgrade_message: "{{recipients}} pubblica chiavi post-quantistiche, ma il set di chiavi fornito per questo messaggio non ne contiene nessuna. Può dipendere da un problema del server oppure da una manomissione della ricerca delle chiavi. Per mantenere la protezione post-quantistica, annulla e riprova più tardi.",
     post_quantum_unavailable_message:
       "{{recipients}} non ha ancora pubblicato chiavi post-quantistiche, quindi questo messaggio può usare solo la cifratura end-to-end standard. Chiedigli di aprire Aster o di aggiornare l’app per riattivare la protezione post-quantistica.",
     too_many_attachments:

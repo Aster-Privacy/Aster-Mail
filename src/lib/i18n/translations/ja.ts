@@ -2067,6 +2067,8 @@ export const ja = {
       "この受信者が公開している鍵は期限切れか無効なため、エンドツーエンドで暗号化できません。送信中のみ保護されます。",
     post_quantum_unavailable_title: "耐量子暗号なしで送信しますか。",
     post_quantum_send_anyway: "それでも送信",
+    post_quantum_downgrade_title: "想定される耐量子鍵がない状態で送信しますか。",
+    post_quantum_downgrade_message: "{{recipients}} は耐量子鍵を公開していますが、このメッセージ用に取得した鍵バンドルには耐量子鍵が含まれていません。サーバーの問題のほか、鍵の取得が改ざんされた可能性もあります。耐量子保護を維持するには、キャンセルして後でもう一度お試しください。",
     post_quantum_unavailable_message:
       "{{recipients}} はまだ耐量子鍵を公開していないため、このメールは標準のエンドツーエンド暗号化しか使えません。相手に Aster を開くかアプリを更新してもらうと、耐量子保護が戻ります。",
     too_many_attachments:

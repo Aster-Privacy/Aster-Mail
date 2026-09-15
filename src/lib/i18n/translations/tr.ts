@@ -2004,6 +2004,8 @@ export const tr = {
     post_quantum_unavailable_title:
       "Kuantum sonrası şifreleme olmadan gönderilsin mi?",
     post_quantum_send_anyway: "Yine de gönder",
+    post_quantum_downgrade_title: "Beklenen post-kuantum anahtarları olmadan gönderilsin mi?",
+    post_quantum_downgrade_message: "{{recipients}} post-kuantum anahtarları yayımlıyor, ancak bu ileti için alınan anahtar paketinde hiç yok. Bunun nedeni bir sunucu sorunu olabileceği gibi anahtar sorgusunun değiştirilmesi de olabilir. Post-kuantum korumasını sürdürmek için işlemi iptal edin ve daha sonra yeniden deneyin.",
     post_quantum_unavailable_message:
       "{{recipients}} henüz kuantum sonrası anahtar yayımlamadı, bu yüzden bu ileti yalnızca standart uçtan uca şifreleme kullanabilir. Kuantum sonrası korumayı geri açmak için Aster’ı açmasını veya uygulamasını güncellemesini isteyin.",
     too_many_attachments:

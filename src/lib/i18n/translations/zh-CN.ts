@@ -1876,6 +1876,8 @@ export const zh_CN = {
       "该收件人发布的密钥已过期或无效，因此无法端到端加密。邮件仅在传输过程中受到保护。",
     post_quantum_unavailable_title: "要在不使用后量子加密的情况下发送吗？",
     post_quantum_send_anyway: "仍然发送",
+    post_quantum_downgrade_title: "要在缺少预期的后量子密钥的情况下发送吗？",
+    post_quantum_downgrade_message: "{{recipients}} 已发布后量子密钥，但本次发送获取到的密钥包中没有任何后量子密钥。这可能是服务器故障，也可能是密钥查询遭到篡改。若要保留后量子保护，请取消并稍后重试。",
     post_quantum_unavailable_message:
       "{{recipients}} 尚未发布后量子密钥，因此这封邮件只能使用标准端到端加密。请对方打开 Aster 或更新 App 以恢复后量子保护。",
     too_many_attachments:

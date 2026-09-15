@@ -2013,6 +2013,8 @@ export const fr = {
       "La clé publiée de ce destinataire est expirée ou invalide : le message ne peut pas être chiffré de bout en bout. Il sera protégé uniquement pendant le transport.",
     post_quantum_unavailable_title: "Envoyer sans chiffrement post-quantique ?",
     post_quantum_send_anyway: "Envoyer quand même",
+    post_quantum_downgrade_title: "Envoyer sans les clés post-quantiques attendues ?",
+    post_quantum_downgrade_message: "{{recipients}} publie des clés post-quantiques, mais le jeu de clés fourni pour ce message n’en contient aucune. Cela peut venir d’un problème de serveur ou d’une altération de la recherche de clés. Pour conserver la protection post-quantique, annulez et réessayez plus tard.",
     post_quantum_unavailable_message:
       "{{recipients}} n’a pas encore publié de clés post-quantiques : ce message ne peut utiliser que le chiffrement de bout en bout standard. Demandez à cette personne d’ouvrir Aster ou de mettre à jour son app pour réactiver la protection post-quantique.",
     too_many_attachments:

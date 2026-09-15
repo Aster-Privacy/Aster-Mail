@@ -2012,6 +2012,8 @@ export const pt = {
       "A chave publicada deste destinatário está expirada ou inválida, então a mensagem não pode ter criptografia de ponta a ponta. Ela será enviada protegida apenas em trânsito.",
     post_quantum_unavailable_title: "Enviar sem criptografia pós-quântica?",
     post_quantum_send_anyway: "Enviar mesmo assim",
+    post_quantum_downgrade_title: "Enviar sem as chaves pós-quânticas esperadas?",
+    post_quantum_downgrade_message: "{{recipients}} publica chaves pós-quânticas, mas o conjunto de chaves entregue para esta mensagem não tem nenhuma. Isso pode ser um problema do servidor ou uma adulteração da busca de chaves. Para manter a proteção pós-quântica, cancele e tente novamente mais tarde.",
     post_quantum_unavailable_message:
       "{{recipients}} ainda não publicou chaves pós-quânticas, então esta mensagem só pode usar a criptografia de ponta a ponta padrão. Peça para essa pessoa abrir a Aster ou atualizar o app para reativar a proteção pós-quântica.",
     too_many_attachments:

@@ -1999,6 +1999,8 @@ export const es = {
       "La clave publicada de este destinatario está caducada o no es válida, así que el mensaje no puede cifrarse de extremo a extremo. Se enviará protegido solo en tránsito.",
     post_quantum_unavailable_title: "¿Enviar sin cifrado poscuántico?",
     post_quantum_send_anyway: "Enviar de todos modos",
+    post_quantum_downgrade_title: "¿Enviar sin las claves poscuánticas esperadas?",
+    post_quantum_downgrade_message: "{{recipients}} publica claves poscuánticas, pero el conjunto de claves entregado para este mensaje no incluye ninguna. Puede deberse a un problema del servidor o a una manipulación de la búsqueda de claves. Para mantener la protección poscuántica, cancela e inténtalo de nuevo más tarde.",
     post_quantum_unavailable_message:
       "{{recipients}} todavía no ha publicado claves poscuánticas, así que este mensaje solo puede usar el cifrado de extremo a extremo estándar. Pídele que abra Aster o actualice su app para volver a activar la protección poscuántica.",
     too_many_attachments:

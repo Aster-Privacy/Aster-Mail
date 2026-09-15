@@ -77,6 +77,7 @@ interface PrekeyBundle {
   pq_prekey?: PqPrekey | null;
   pq_kem_public_key?: string | null;
   x3dh_max_version?: number | null;
+  pq_capable?: boolean | null;
 }
 
 interface PqReceiverInput {
@@ -238,6 +239,12 @@ function select_pq_encapsulation_target(recipient_bundle: PrekeyBundle): {
 
 export function bundle_supports_pq(recipient_bundle: PrekeyBundle): boolean {
   return select_pq_encapsulation_target(recipient_bundle) !== null;
+}
+
+export function bundle_is_downgraded(recipient_bundle: PrekeyBundle): boolean {
+  if (recipient_bundle.pq_capable !== true) return false;
+
+  return !bundle_supports_pq(recipient_bundle);
 }
 
 export function bundle_supports_transcript_binding(
