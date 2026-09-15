@@ -404,17 +404,18 @@ export function CoinIcon({
           </mask>
         </defs>
       )}
-      <svg
-        height={COIN_SIZE}
-        mask={show_badge ? `url(#${cutout_id})` : undefined}
-        overflow="visible"
-        viewBox={MARK_BOX}
-        width={COIN_SIZE}
-        x={show_badge ? 0 : COIN_INSET}
-        y={show_badge ? 0 : COIN_INSET}
-      >
-        {mark_for(currency_mark, `coin_icon_coin_gradient_${instance_id}`)}
-      </svg>
+      <g mask={show_badge ? `url(#${cutout_id})` : undefined}>
+        <svg
+          height={COIN_SIZE}
+          overflow="visible"
+          viewBox={MARK_BOX}
+          width={COIN_SIZE}
+          x={COIN_INSET}
+          y={COIN_INSET}
+        >
+          {mark_for(currency_mark, `coin_icon_coin_gradient_${instance_id}`)}
+        </svg>
+      </g>
       {show_badge && (
         <svg
           height={BADGE_SIZE}
