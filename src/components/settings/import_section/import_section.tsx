@@ -50,7 +50,7 @@ import {
   AlertDialogCancel,
   AlertDialogAction,
 } from "@/components/ui/alert_dialog";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner } from "@/components/ui/spinner";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
 import {
@@ -938,10 +938,10 @@ export function ImportSection() {
                         }}
                       >
                         {is_loading ? (
-                          <span className="flex items-center gap-1.5">
+                          <>
                             {t("settings.import_oauth_button")}
-                            <Spinner className="text-current" size="sm" />
-                          </span>
+                            <ButtonSpinner />
+                          </>
                         ) : (
                           t("settings.import_oauth_button")
                         )}

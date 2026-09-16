@@ -289,10 +289,10 @@ function AddPaymentForm({
           onClick={handle_submit}
         >
           {is_submitting ? (
-            <span className="flex items-center gap-2">
+            <>
               {t("settings.adding_card")}
-              <Spinner size="xs" />
-            </span>
+              <ButtonSpinner size="xs" />
+            </>
           ) : (
             t("settings.save_card")
           )}

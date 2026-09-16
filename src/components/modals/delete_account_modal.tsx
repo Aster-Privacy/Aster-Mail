@@ -22,7 +22,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@aster/ui";
 
 import { Input } from "@/components/ui/input";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner } from "@/components/ui/spinner";
 import {
   Modal,
   ModalHeader,
@@ -295,10 +295,10 @@ export function DeleteAccountModal({
           onClick={handle_delete_account}
         >
           {is_deleting ? (
-            <span className="flex items-center gap-2">
+            <>
               {t("settings.deleting_label")}
-              <Spinner size="md" />
-            </span>
+              <ButtonSpinner />
+            </>
           ) : (
             t("settings.delete_account_button")
           )}

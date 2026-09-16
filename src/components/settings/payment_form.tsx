@@ -45,7 +45,7 @@ import {
 import { CheckoutSummary } from "./checkout_summary";
 import { StripeCardFields } from "./stripe_card_fields";
 
-import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner } from "@/components/ui/spinner";
 import {
   create_subscription_intent,
   validate_promo_code,
@@ -974,10 +974,10 @@ export function PaymentForm({
         onClick={handle_submit}
       >
         {phase === "processing" ? (
-          <span className="flex items-center gap-2">
+          <>
             {t("settings.processing_payment")}
-            <Spinner size="sm" />
-          </span>
+            <ButtonSpinner />
+          </>
         ) : !requires_payment ? (
           t("settings.subscribe_now")
         ) : (

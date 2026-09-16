@@ -28,7 +28,7 @@ import {
 } from "@heroicons/react/24/outline";
 
 import { Input } from "@/components/ui/input";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
 import { clamp_password } from "@/services/sanitize";
 import {
   Modal,
@@ -649,10 +649,10 @@ export function BillingDialogs({
                     handle_password_continue();
                   }}
                 >
-                  <span className="flex items-center justify-center gap-2">
-                    {is_verifying_password && <Spinner size="xs" />}
+                  <>
+                    {is_verifying_password && <ButtonSpinner size="xs" />}
                     {t("settings.cancel_reason_continue")}
-                  </span>
+                  </>
                 </AlertDialogAction>
               </AlertDialogFooter>
             </>

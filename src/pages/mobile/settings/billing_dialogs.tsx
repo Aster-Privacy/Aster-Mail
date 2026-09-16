@@ -30,7 +30,7 @@ import {
   is_crypto_provider,
 } from "@/components/settings/billing/billing_constants";
 import { format_price } from "@/services/api/billing";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import {
   AlertDialog,
@@ -423,10 +423,10 @@ export function render_billing_dialogs(
                     handle_password_continue();
                   }}
                 >
-                  <span className="flex items-center justify-center gap-2">
-                    {is_verifying_password && <Spinner size="xs" />}
+                  <>
+                    {is_verifying_password && <ButtonSpinner size="xs" />}
                     {t("settings.cancel_reason_continue")}
-                  </span>
+                  </>
                 </AlertDialogAction>
               </AlertDialogFooter>
             </>

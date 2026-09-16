@@ -32,7 +32,7 @@ import { Button } from "@aster/ui";
 import { get_provider_icon } from "./provider_icon";
 import { format_relative_time } from "./status";
 
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
 import {
@@ -338,10 +338,10 @@ export function ConnectedAccountCard({
               onClick={() => on_sync(account.account_token)}
             >
               {sync_active ? (
-                <span className="flex items-center gap-1.5">
+                <>
                   {t("common.stop")}
-                  <Spinner className="text-current" size="sm" />
-                </span>
+                  <ButtonSpinner />
+                </>
               ) : (
                 <span className="flex items-center gap-1.5">
                   <ArrowPathIcon className="w-4 h-4" />

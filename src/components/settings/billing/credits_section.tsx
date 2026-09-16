@@ -39,7 +39,7 @@ import {
   ModalBody,
   ModalFooter,
 } from "@/components/ui/modal";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner } from "@/components/ui/spinner";
 import {
   format_price,
   format_date,
@@ -516,10 +516,10 @@ export function CreditsSection({
                 onClick={handle_buy}
               >
                 {buying ? (
-                  <span className="inline-flex items-center gap-2">
-                    <Spinner size="xs" />
+                  <>
+                    <ButtonSpinner size="xs" />
                     {t("settings.buying_credits")}
-                  </span>
+                  </>
                 ) : (
                   t("settings.buy_credits")
                 )}

@@ -844,10 +844,10 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
               onClick={handle_cancel}
             >
               {is_cancelling ? (
-                <span className="flex items-center gap-1.5">
+                <>
                   {t("settings.cancelling")}
-                  <Spinner className="text-current" size="sm" />
-                </span>
+                  <ButtonSpinner />
+                </>
               ) : (
                 t("settings.cancel_import")
               )}
