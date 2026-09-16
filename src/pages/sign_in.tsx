@@ -67,6 +67,7 @@ import { password_recovery_flow } from "@/pages/sign_in/password_recovery_flow";
 import { is_webauthn_supported } from "@/services/api/webauthn";
 import { emit_auth_ready } from "@/hooks/mail_events";
 import { is_tauri, forget_device_account } from "@/native/desktop_device_auth";
+import { declared_native_platform } from "@/services/api/client/helpers";
 import {
   get_current_account_id,
   update_account_device_id,
@@ -358,6 +359,8 @@ export default function SignInPage() {
       let response: Awaited<ReturnType<typeof login_user>> | null = null;
       let attempt_token = captcha_token;
       let captcha_refresh_failed = false;
+      let skipped_domain_probe = false;
+      const is_native_client = declared_native_platform() !== null;
 
       for (const [index, candidate] of candidates.entries()) {
         if (index > 0 && TURNSTILE_SITE_KEY) {
@@ -408,9 +411,14 @@ export default function SignInPage() {
           is_adding_account,
         });
 
-        const has_more = index < candidates.length - 1;
+        const remaining_candidates = index < candidates.length - 1;
+        const has_more = remaining_candidates && !is_native_client;
         const is_wrong_credentials =
           !!response.error && response.server_code === "INVALID_CREDENTIALS";
+
+        if (is_wrong_credentials && remaining_candidates && is_native_client) {
+          skipped_domain_probe = true;
+        }
 
         if (!is_wrong_credentials || !has_more) {
           if (!response.error && candidate !== email_domain) {
@@ -458,6 +466,8 @@ export default function SignInPage() {
           const time_str = minutes > 0 ? `${minutes}m` : t("errors.try_again");
 
           set_error(t("errors.ip_blocked", { time: time_str }));
+        } else if (skipped_domain_probe) {
+          set_error(t("errors.sign_in_domain_unsupported"));
         } else if (response.server_code === "PENDING_EMAIL_VERIFICATION") {
           set_error(t("errors.pending_email_verification"));
           set_pending_verification_hash(user_hash);
