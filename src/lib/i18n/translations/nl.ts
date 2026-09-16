@@ -2000,7 +2000,7 @@ export const nl = {
       "Verzenden zonder post-quantumversleuteling?",
     post_quantum_send_anyway: "Toch verzenden",
     key_trust_change_title: "Versleutelingssleutel gewijzigd",
-    key_trust_change_message: "De versleutelingssleutel van {{recipients}} is sinds de vorige opvraging gewijzigd. Controleer de nieuwe vingerafdruk via een ander kanaal bij de ontvanger voordat u verzendt.",
+    key_trust_change_message: "De versleutelingssleutel van {{recipients}} is sinds de vorige opvraging gewijzigd. Controleer de nieuwe vingerafdruk via een ander kanaal bij de ontvanger voordat je verzendt.",
     key_trust_change_detail: "{{email}}: was {{prior}}, nu {{current}}.",
     key_trust_change_confirm: "Nieuwe sleutel vertrouwen",
     post_quantum_downgrade_title: "Verzenden zonder de verwachte post-quantumsleutels?",

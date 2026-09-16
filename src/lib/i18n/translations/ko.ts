@@ -2036,7 +2036,7 @@ export const ko = {
     post_quantum_unavailable_title: "양자 내성 암호 없이 보낼까요?",
     post_quantum_send_anyway: "그래도 보내기",
     key_trust_change_title: "암호화 키가 변경됨",
-    key_trust_change_message: "마지막 조회 이후 {{recipients}}의 암호화 키가 바뀜습니다. 보내기 전에 다른 경로로 수신자와 새 지문을 확인하세요.",
+    key_trust_change_message: "마지막 조회 이후 {{recipients}}의 암호화 키가 바뀌었습니다. 보내기 전에 다른 경로로 수신자와 새 지문을 확인하세요.",
     key_trust_change_detail: "{{email}}: 이전 {{prior}}, 현재 {{current}}.",
     key_trust_change_confirm: "새 키 신뢰",
     post_quantum_downgrade_title: "예상된 양자 내성 키 없이 보낼까요?",
