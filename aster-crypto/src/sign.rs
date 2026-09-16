@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 use chrono::{DateTime, Utc};
+use pgp::composed::cleartext::CleartextSignedMessage;
 use pgp::composed::{
     Deserializable, Message, SignedPublicKey, SignedPublicSubKey, SignedSecretKey,
     StandaloneSignature,
@@ -69,6 +70,49 @@ pub(crate) fn signing_identity_valid(spk: &SignedPublicKey, now: DateTime<Utc>) 
     !primary_is_revoked(spk) && !primary_is_expired(spk, now)
 }
 
+fn primary_may_sign(spk: &SignedPublicKey) -> bool {
+    let mut has_flags = false;
+    let mut can_sign = false;
+
+    let primary_sigs = spk
+        .details
+        .users
+        .iter()
+        .flat_map(|u| u.signatures.iter())
+        .chain(spk.details.direct_signatures.iter());
+
+    for s in primary_sigs {
+        let f = s.key_flags();
+        if f.sign() || f.certify() || f.encrypt_comms() || f.encrypt_storage() || f.authentication()
+        {
+            has_flags = true;
+        }
+        if f.sign() {
+            can_sign = true;
+        }
+    }
+
+    !has_flags || can_sign
+}
+
+fn subkey_may_sign(sub: &SignedPublicSubKey) -> bool {
+    let mut has_flags = false;
+    let mut can_sign = false;
+
+    for s in &sub.signatures {
+        let f = s.key_flags();
+        if f.sign() || f.certify() || f.encrypt_comms() || f.encrypt_storage() || f.authentication()
+        {
+            has_flags = true;
+        }
+        if f.sign() {
+            can_sign = true;
+        }
+    }
+
+    !(has_flags && !can_sign)
+}
+
 pub(crate) fn signed_secret_signing_identity_valid(
     ssk: &SignedSecretKey,
     now: DateTime<Utc>,
@@ -103,45 +147,11 @@ pub fn verify_detached_signature(
     let standalone_sig = parse_standalone_signature(signature_bytes)?;
     let sig = &standalone_sig.signature;
 
-    let primary_sigs = signed_pub_key
-        .details
-        .users
-        .iter()
-        .flat_map(|u| u.signatures.iter())
-        .chain(signed_pub_key.details.direct_signatures.iter());
-    let mut primary_has_flags = false;
-    let mut primary_can_sign = false;
-    for s in primary_sigs {
-        let f = s.key_flags();
-        if f.sign() || f.certify() || f.encrypt_comms() || f.encrypt_storage() || f.authentication()
-        {
-            primary_has_flags = true;
-        }
-        if f.sign() {
-            primary_can_sign = true;
-        }
-    }
-    if (!primary_has_flags || primary_can_sign) && sig.verify(&signed_pub_key, data).is_ok() {
+    if primary_may_sign(&signed_pub_key) && sig.verify(&signed_pub_key, data).is_ok() {
         return Ok(true);
     }
     for sub in &signed_pub_key.public_subkeys {
-        let mut sub_has_flags = false;
-        let mut sub_can_sign = false;
-        for s in &sub.signatures {
-            let f = s.key_flags();
-            if f.sign()
-                || f.certify()
-                || f.encrypt_comms()
-                || f.encrypt_storage()
-                || f.authentication()
-            {
-                sub_has_flags = true;
-            }
-            if f.sign() {
-                sub_can_sign = true;
-            }
-        }
-        if sub_has_flags && !sub_can_sign {
+        if !subkey_may_sign(sub) {
             continue;
         }
         if !subkey_valid_for_signing(sub, now) {
@@ -152,6 +162,82 @@ pub fn verify_detached_signature(
         }
     }
     Ok(false)
+}
+
+pub fn detached_signature_issuer_key_id(signature_bytes: &[u8]) -> Option<String> {
+    let standalone_sig = parse_standalone_signature(signature_bytes).ok()?;
+    let issuers = standalone_sig.signature.issuer();
+    let issuer = issuers.first()?;
+
+    Some(
+        issuer
+            .as_ref()
+            .iter()
+            .map(|b| format!("{b:02X}"))
+            .collect::<String>(),
+    )
+}
+
+pub fn public_key_fingerprint_hex(armored_public_key: &[u8]) -> Option<String> {
+    let key_str = std::str::from_utf8(armored_public_key).ok()?;
+    let (signed_pub_key, _) = SignedPublicKey::from_string(key_str).ok()?;
+
+    Some(
+        pgp::types::PublicKeyTrait::fingerprint(&signed_pub_key.primary_key)
+            .as_bytes()
+            .iter()
+            .map(|b| format!("{b:02X}"))
+            .collect::<String>(),
+    )
+}
+
+pub fn sign_cleartext_message(text: &str, signer: &KeyPair) -> Result<String> {
+    CleartextSignedMessage::sign(&mut OsRng, text, signer.secret_key(), || "".to_string())
+        .map_err(|e: pgp::errors::Error| CryptoError::Signing(e.to_string()))?
+        .to_armored_string(Default::default())
+        .map_err(|e: pgp::errors::Error| CryptoError::Signing(e.to_string()))
+}
+
+pub fn verify_cleartext_signature(
+    identity_key_armored: &str,
+    armored_message: &str,
+) -> Result<Option<String>> {
+    const MAX_CLEARTEXT_INPUT_BYTES: usize = 1024 * 1024;
+
+    if identity_key_armored.len() > MAX_CLEARTEXT_INPUT_BYTES
+        || armored_message.len() > MAX_CLEARTEXT_INPUT_BYTES
+    {
+        return Ok(None);
+    }
+
+    let (signed_pub_key, _) = SignedPublicKey::from_string(identity_key_armored)
+        .map_err(|e| CryptoError::InvalidKeyFormat(e.to_string()))?;
+
+    let now = Utc::now();
+    if !signing_identity_valid(&signed_pub_key, now) {
+        return Ok(None);
+    }
+
+    let (message, _) = CleartextSignedMessage::from_string(armored_message)
+        .map_err(|e| CryptoError::SignatureVerification(e.to_string()))?;
+
+    if primary_may_sign(&signed_pub_key) && message.verify(&signed_pub_key).is_ok() {
+        return Ok(Some(message.signed_text()));
+    }
+
+    for sub in &signed_pub_key.public_subkeys {
+        if !subkey_may_sign(sub) {
+            continue;
+        }
+        if !subkey_valid_for_signing(sub, now) {
+            continue;
+        }
+        if message.verify(&sub.key).is_ok() {
+            return Ok(Some(message.signed_text()));
+        }
+    }
+
+    Ok(None)
 }
 
 fn parse_standalone_signature(bytes: &[u8]) -> Result<StandaloneSignature> {
@@ -270,6 +356,84 @@ pub fn verify_signature(signed_message: &[u8], signer_keys: &[&PublicKey]) -> Re
 mod tests {
     use super::*;
     use crate::keys::generate_keypair;
+
+    const PREKEY_CANONICAL: &str =
+        "aster-ratchet-prekey-v1:BFVQ0mBTeXVnUGF5bG9hZA==.c2lnbmVkUHJla2V5UGF5bG9hZA==";
+
+    fn cleartext_sign(signer: &KeyPair, text: &str) -> String {
+        sign_cleartext_message(text, signer).unwrap()
+    }
+
+    #[test]
+    fn verifies_a_cleartext_prekey_binding() {
+        let signer = generate_keypair("Signer", "signer@astermail.com").unwrap();
+        let armored_key = signer.public_key_armored().unwrap();
+        let signed = cleartext_sign(&signer, PREKEY_CANONICAL);
+
+        let verified = verify_cleartext_signature(&armored_key, &signed).unwrap();
+
+        assert_eq!(verified.as_deref().map(str::trim), Some(PREKEY_CANONICAL));
+    }
+
+    #[test]
+    #[ignore]
+    fn external_cleartext_vector_verifies() {
+        let Ok(dir) = std::env::var("ASTER_CLEARSIGN_VECTOR_DIR") else {
+            return;
+        };
+        let read = |name: &str| std::fs::read_to_string(format!("{dir}/{name}")).unwrap();
+        let public_key = read("public_key.asc");
+        let signature = read("signature.asc");
+        let text = read("text.txt");
+
+        let verified = verify_cleartext_signature(&public_key, &signature).unwrap();
+
+        assert_eq!(
+            verified.as_deref().map(str::trim),
+            Some(text.trim()),
+            "external cleartext vector must verify under rpgp"
+        );
+    }
+
+    #[test]
+    fn rejects_a_cleartext_signature_from_another_key() {
+        let signer = generate_keypair("Signer", "signer@astermail.com").unwrap();
+        let stranger = generate_keypair("Stranger", "stranger@astermail.com").unwrap();
+        let signed = cleartext_sign(&signer, PREKEY_CANONICAL);
+
+        let verified =
+            verify_cleartext_signature(&stranger.public_key_armored().unwrap(), &signed).unwrap();
+
+        assert!(verified.is_none());
+    }
+
+    #[test]
+    fn rejects_a_tampered_prekey_binding() {
+        let signer = generate_keypair("Signer", "signer@astermail.com").unwrap();
+        let armored_key = signer.public_key_armored().unwrap();
+        let signed = cleartext_sign(&signer, PREKEY_CANONICAL).replace("BFVQ", "BFVR");
+
+        let verified = verify_cleartext_signature(&armored_key, &signed).unwrap();
+
+        assert!(verified.is_none());
+    }
+
+    #[test]
+    fn rejects_a_non_cleartext_field() {
+        let signer = generate_keypair("Signer", "signer@astermail.com").unwrap();
+        let armored_key = signer.public_key_armored().unwrap();
+
+        assert!(verify_cleartext_signature(&armored_key, "not-a-signature").is_err());
+    }
+
+    #[test]
+    fn refuses_oversized_cleartext_input() {
+        let signer = generate_keypair("Signer", "signer@astermail.com").unwrap();
+        let armored_key = signer.public_key_armored().unwrap();
+        let huge = "a".repeat(1024 * 1024 + 1);
+
+        assert!(verify_cleartext_signature(&armored_key, &huge).unwrap().is_none());
+    }
 
     #[test]
     fn test_sign_and_verify() {
