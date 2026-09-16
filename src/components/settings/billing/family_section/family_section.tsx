@@ -63,7 +63,7 @@ import {
   type TurnstileWidgetRef,
   TURNSTILE_SITE_KEY,
 } from "@/components/auth/turnstile_widget";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { server_error_text } from "@/components/settings/billing/server_error_text";
 import { change_plan } from "@/services/api/billing";
@@ -1787,11 +1787,8 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
                       variant="depth"
                       onClick={handle_wizard_invite}
                     >
-                      {wizard_invite_loading ? (
-                        <Spinner size="sm" />
-                      ) : (
-                        t("settings.fam_org_wizard_send_invite")
-                      )}
+                      {t("settings.fam_org_wizard_send_invite")}
+                      {wizard_invite_loading && <ButtonSpinner />}
                     </Button>
                   </ModalFooter>
                 </>

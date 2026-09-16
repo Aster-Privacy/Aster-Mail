@@ -53,6 +53,7 @@ import {
 } from "@/services/api/passkeys";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
 import { is_composing } from "@/utils/ime";
+import { ButtonSpinner } from "@/components/ui/spinner";
 
 function format_date(iso: string): string {
   try {
@@ -146,11 +147,8 @@ function KeyRow({
                   variant="primary"
                   onClick={save_name}
                 >
-                  {saving ? (
-                    <div className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin" />
-                  ) : (
-                    t("common.save")
-                  )}
+                  {t("common.save")}
+                  {saving && <ButtonSpinner size="xs" />}
                 </Button>
                 <Button size="sm" variant="outline" onClick={cancel_edit}>
                   {t("common.cancel")}
@@ -193,11 +191,8 @@ function KeyRow({
               variant="destructive"
               onClick={() => on_delete_click(key_info)}
             >
-              {removing ? (
-                <div className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin" />
-              ) : (
-                t("common.delete")
-              )}
+              {t("common.delete")}
+              {removing && <ButtonSpinner size="xs" />}
             </Button>
           </div>
         )}
@@ -453,11 +448,8 @@ export function PasskeySection() {
               variant="outline"
               onClick={handle_add_passkey}
             >
-              {registering === "passkey" ? (
-                <div className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin me-2" />
-              ) : (
-                <FingerPrintIcon className="w-4 h-4 me-2" />
-              )}
+              <FingerPrintIcon className="w-4 h-4 me-2" />
+              {registering === "passkey" && <ButtonSpinner size="xs" />}
               {registering === "passkey"
                 ? t("passkeys.registering")
                 : t("passkeys.add_passkey")}
@@ -469,11 +461,8 @@ export function PasskeySection() {
             variant="outline"
             onClick={handle_add_security_key}
           >
-            {registering === "security_key" ? (
-              <div className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin me-2" />
-            ) : (
-              <PlusIcon className="w-4 h-4 me-2" />
-            )}
+            <PlusIcon className="w-4 h-4 me-2" />
+            {registering === "security_key" && <ButtonSpinner size="xs" />}
             {registering === "security_key"
               ? t("passkeys.registering")
               : t("passkeys.add_security_key")}

@@ -33,7 +33,7 @@ import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
 import { Input } from "@/components/ui/input";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner } from "@/components/ui/spinner";
 import {
   Modal,
   ModalHeader,
@@ -464,13 +464,10 @@ export function TemplatesSection() {
                 variant="depth"
                 onClick={handle_save}
               >
-                {editor.is_saving ? (
-                  <Spinner size="md" />
-                ) : editor.editing_id ? (
-                  t("settings.update_template")
-                ) : (
-                  t("settings.create_template")
-                )}
+                {editor.editing_id
+                  ? t("settings.update_template")
+                  : t("settings.create_template")}
+                {editor.is_saving && <ButtonSpinner />}
               </Button>
             </ModalFooter>
           </Modal>

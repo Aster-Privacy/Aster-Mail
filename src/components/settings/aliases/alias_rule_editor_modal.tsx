@@ -32,7 +32,7 @@ import {
   ModalBody,
   ModalFooter,
 } from "@/components/ui/modal";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner } from "@/components/ui/spinner";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 import { ConditionChip } from "@/components/mail_rules/condition_chip";
@@ -370,7 +370,7 @@ export function AliasRuleEditorModal({
           variant="depth"
           onClick={handle_save}
         >
-          {saving && <Spinner size="xs" />}
+          {saving && <ButtonSpinner size="xs" />}
           {is_edit
             ? t("settings.alias_rule_save_changes")
             : t("settings.alias_rule_save")}

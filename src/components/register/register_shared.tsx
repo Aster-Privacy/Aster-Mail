@@ -22,7 +22,7 @@ import type { AlertProps } from "@/components/register/register_types";
 
 import * as React from "react";
 import { motion } from "framer-motion";
-import { Button } from "@aster/ui";
+import { Button } from "@/components/ui/button";
 
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
@@ -114,8 +114,7 @@ export const StepShell = ({
 
 type OnboardingButtonVariant = "primary" | "secondary";
 
-interface OnboardingButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface OnboardingButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: OnboardingButtonVariant;
   is_loading?: boolean;
   as_child?: boolean;
@@ -151,8 +150,10 @@ export const OnboardingButton = ({
 
 type OnboardingInputStatus = "default" | "success" | "error";
 
-interface OnboardingInputProps
-  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "size"> {
+interface OnboardingInputProps extends Omit<
+  React.InputHTMLAttributes<HTMLInputElement>,
+  "size"
+> {
   status?: OnboardingInputStatus;
 }
 

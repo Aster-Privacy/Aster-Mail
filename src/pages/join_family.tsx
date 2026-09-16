@@ -35,7 +35,7 @@ import {
 import { use_auth } from "@/contexts/auth/use_auth_hook";
 import { use_i18n } from "@/lib/i18n/context";
 import { format_bytes } from "@/lib/utils";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
 import { Logo } from "@/components/auth/auth_styles";
 
 const TRANSPORT_FAILURE_CODES = new Set([
@@ -318,7 +318,8 @@ export default function JoinFamilyPage() {
             disabled={joining}
             onClick={handle_join}
           >
-            {joining ? <Spinner size="sm" /> : t("settings.family_join_accept")}
+            {t("settings.family_join_accept")}
+            {joining && <ButtonSpinner />}
           </button>
         ) : (
           <div className="space-y-3">

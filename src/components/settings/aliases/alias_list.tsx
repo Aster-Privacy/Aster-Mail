@@ -40,7 +40,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { UpgradeInlineCard } from "@/components/upgrade/upgrade_inline_card";
@@ -216,11 +216,8 @@ function UndecryptableAliasCard({
                 size="sm"
                 onClick={() => void handle_restore()}
               >
-                {restoring ? (
-                  <Spinner size="xs" />
-                ) : (
-                  t("settings.alias_restore_confirm")
-                )}
+                {t("settings.alias_restore_confirm")}
+                {restoring && <ButtonSpinner size="xs" />}
               </Button>
             </div>
             {restore_error && (

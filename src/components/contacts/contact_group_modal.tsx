@@ -24,7 +24,7 @@ import type { TagIconName } from "@/components/ui/email_tag";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { UserGroupIcon } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import { Button } from "@/components/ui/button";
 
 import {
   Modal,

@@ -28,7 +28,7 @@ import {
   TrashIcon,
   ClockIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import { Button } from "@/components/ui/button";
 
 import { copy_text_or_throw } from "@/utils/copy_text";
 import { EmailTag } from "@/components/ui/email_tag";
@@ -67,7 +67,7 @@ import {
   app_locale,
   get_display_time_zone,
 } from "@/utils/date_format";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner } from "@/components/ui/spinner";
 
 interface ScheduledData {
   id: string;
@@ -438,7 +438,8 @@ export function SplitScheduledViewer({
             onClick={handle_edit}
           >
             <PencilIcon className="w-4 h-4" />
-            {is_loading_content ? <Spinner size="sm" /> : t("common.edit")}
+            {t("common.edit")}
+            {is_loading_content && <ButtonSpinner />}
           </button>
         )}
         <button

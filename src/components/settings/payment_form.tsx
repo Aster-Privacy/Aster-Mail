@@ -45,7 +45,7 @@ import {
 import { CheckoutSummary } from "./checkout_summary";
 import { StripeCardFields } from "./stripe_card_fields";
 
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
 import {
   create_subscription_intent,
   validate_promo_code,
@@ -921,11 +921,8 @@ export function PaymentForm({
             variant="outline"
             onClick={handle_validate_promo}
           >
-            {is_validating_promo ? (
-              <Spinner size="xs" />
-            ) : (
-              t("settings.promo_apply")
-            )}
+            {t("settings.promo_apply")}
+            {is_validating_promo && <ButtonSpinner size="xs" />}
           </Button>
         </div>
       ) : (

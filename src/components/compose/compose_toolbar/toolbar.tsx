@@ -34,7 +34,7 @@ import {
 } from "./shared";
 
 import { use_i18n } from "@/lib/i18n/context";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner } from "@/components/ui/spinner";
 
 export interface ComposeToolbarProps {
   compose: ComposeToolbarState;
@@ -94,7 +94,8 @@ export function ComposeToolbar({
             variant="depth"
             onClick={compose.handle_send}
           >
-            {compose.is_sending ? <Spinner size="sm" /> : t("mail.send")}
+            {t("mail.send")}
+            {compose.is_sending && <ButtonSpinner />}
           </Button>
         )}
 

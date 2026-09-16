@@ -58,7 +58,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown_menu";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { is_totp_required_response } from "@/services/api/totp";
 import { webauthn_flow } from "@/pages/sign_in/webauthn_flow";
@@ -835,13 +835,12 @@ export default function SignInPage() {
                             {acc.email}
                           </span>
                         </div>
-                        {hub_signing_in_id === acc.id ? (
-                          <Spinner size="sm" />
-                        ) : !acc.linkable ? (
+                        {!acc.linkable ? (
                           <span className="account_menu_badge account_menu_badge_muted">
                             {t("auth.hub_account_password_required")}
                           </span>
                         ) : null}
+                        {hub_signing_in_id === acc.id && <ButtonSpinner />}
                       </button>
                     );
                   })}
@@ -1035,7 +1034,8 @@ export default function SignInPage() {
                 type="submit"
                 variant="depth"
               >
-                {is_loading ? <Spinner size="md" /> : t("auth.sign_in")}
+                {t("auth.sign_in")}
+                {is_loading && <ButtonSpinner />}
               </Button>
             </form>
 

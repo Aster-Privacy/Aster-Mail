@@ -36,7 +36,7 @@ import {
   type DomainOrder,
 } from "@/services/api/domains";
 import { TURNSTILE_SITE_KEY } from "@/components/auth/turnstile_widget";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { InfoPopover } from "@/components/ui/info_popover";
 import { use_aliases } from "@/components/settings/hooks/use_aliases";
@@ -552,7 +552,7 @@ export function DomainsSection() {
                                   }}
                                 >
                                   {cancelling_order_id === order.id && (
-                                    <Spinner size="xs" />
+                                    <ButtonSpinner size="xs" />
                                   )}
                                   {t("common.cancel")}
                                 </button>
@@ -569,7 +569,7 @@ export function DomainsSection() {
                               >
                                 {(renewing_order_id === order.id ||
                                   renew_captcha_order_id === order.id) && (
-                                  <Spinner size="xs" />
+                                  <ButtonSpinner size="xs" />
                                 )}
                                 {t("settings.domain_purchase_manage")}
                               </button>

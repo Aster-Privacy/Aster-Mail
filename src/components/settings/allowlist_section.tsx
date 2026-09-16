@@ -33,7 +33,7 @@ import { Checkbox, Radio } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { use_shift_range_select } from "@/lib/use_shift_range_select";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import {
@@ -344,11 +344,8 @@ export function AllowlistSection() {
             variant="destructive"
             onClick={handle_bulk_remove}
           >
-            {is_removing ? (
-              <Spinner size="md" />
-            ) : (
-              <TrashIcon className="w-4 h-4" />
-            )}
+            <TrashIcon className="w-4 h-4" />
+            {is_removing && <ButtonSpinner />}
             {t("settings.remove_count", { count: selected_ids.size })}
           </Button>
         )}
@@ -415,7 +412,8 @@ export function AllowlistSection() {
             disabled={is_adding || !new_value.trim()}
             onClick={handle_add_allowed}
           >
-            {is_adding ? <Spinner size="md" /> : t("common.add")}
+            {t("common.add")}
+            {is_adding && <ButtonSpinner />}
           </Button>
         </ModalFooter>
       </Modal>

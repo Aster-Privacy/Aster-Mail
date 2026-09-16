@@ -66,6 +66,7 @@ import { set_app_network_locked } from "@/services/app_lock_network_gate";
 import { lock_all_folders } from "@/hooks/use_protected_folder";
 import { ignore_error } from "@/lib/ignore_error";
 import { is_composing } from "@/utils/ime";
+import { ButtonSpinner } from "@/components/ui/spinner";
 
 const LOCK_TIMEOUT_MS = 5 * 60 * 1000;
 
@@ -387,11 +388,8 @@ function WebPinOverlay({
               variant="depth_destructive"
               onClick={handle_duress_confirm}
             >
-              {wiping ? (
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent mx-auto" />
-              ) : (
-                t("common.duress_confirm_proceed")
-              )}
+              {t("common.duress_confirm_proceed")}
+              {wiping && <ButtonSpinner />}
             </Button>
             <Button
               className="w-full"
@@ -517,11 +515,8 @@ function WebPinOverlay({
               variant="depth"
               onClick={handle_text_submit}
             >
-              {verifying ? (
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent mx-auto" />
-              ) : (
-                t("common.unlock")
-              )}
+              {t("common.unlock")}
+              {verifying && <ButtonSpinner />}
             </Button>
             <Button className="w-full" variant="outline" onClick={on_sign_out}>
               {t("settings.sign_out")}
@@ -797,11 +792,8 @@ export function AppLock({ children }: { children: React.ReactNode }) {
                 disabled={is_authenticating}
                 onClick={handle_unlock}
               >
-                {is_authenticating ? (
-                  <div className="h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                ) : (
-                  <BackspaceIcon className="h-5 w-5 rotate-180" />
-                )}
+                <BackspaceIcon className="h-5 w-5 rotate-180" />
+                {is_authenticating && <ButtonSpinner />}
                 <span>
                   {is_authenticating
                     ? t("auth.authenticating")

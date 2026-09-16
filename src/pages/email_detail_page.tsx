@@ -22,7 +22,7 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { EnvelopeIcon, NoSymbolIcon } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import { Button } from "@/components/ui/button";
 
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { Sidebar } from "@/components/layout/sidebar";

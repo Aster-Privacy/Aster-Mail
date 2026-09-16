@@ -20,7 +20,7 @@
 //
 import type { ConfirmationDialogState } from "@/types/email";
 
-import { Button } from "@aster/ui";
+import { Button } from "@/components/ui/button";
 
 import {
   AlertDialog,

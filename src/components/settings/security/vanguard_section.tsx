@@ -19,7 +19,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useState, useEffect } from "react";
-import { Badge, Button, Switch, UpgradeBtn } from "@aster/ui";
+import { Badge, Switch, UpgradeBtn } from "@aster/ui";
+import { Button } from "@/components/ui/button";
 
 import { Input } from "@/components/ui/input";
 import { InfoPopover } from "@/components/ui/info_popover";

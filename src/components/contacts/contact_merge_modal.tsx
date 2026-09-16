@@ -34,7 +34,7 @@ import {
   Bars2Icon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
-import { Button, Spinner } from "@aster/ui";
+import { Button } from "@aster/ui";
 
 import { ContactAvatar } from "@/components/common/contacts/contact_avatar";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -45,6 +45,7 @@ import {
   update_contact_encrypted,
 } from "@/services/api/contacts";
 import { user_facing_error } from "@/utils/user_facing_error";
+import { ButtonSpinner } from "@/components/ui/spinner";
 
 interface ContactMergeModalProps {
   contacts: DecryptedContact[];
@@ -353,7 +354,8 @@ export function ContactMergeModal({
               variant="primary"
               onClick={run_merge}
             >
-              {is_merging ? <Spinner size="sm" /> : t("common.merge")}
+              {t("common.merge")}
+              {is_merging && <ButtonSpinner />}
             </Button>
           </div>
         </div>

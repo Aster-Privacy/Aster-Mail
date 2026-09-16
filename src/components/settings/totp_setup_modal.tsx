@@ -27,7 +27,7 @@ import {
   ArrowDownTrayIcon,
   QuestionMarkCircleIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import { Button } from "@/components/ui/button";
 
 import { trigger_download } from "@/utils/download_blob";
 import { RoundedQrCode } from "@/components/ui/rounded_qr_code";

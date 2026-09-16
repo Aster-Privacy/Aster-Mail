@@ -34,7 +34,7 @@ import { Checkbox, Radio } from "@aster/ui";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_shift_range_select } from "@/lib/use_shift_range_select";
 import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import {
@@ -331,11 +331,8 @@ export function BlockedSection() {
             variant="destructive"
             onClick={handle_bulk_unblock}
           >
-            {is_unblocking ? (
-              <Spinner size="md" />
-            ) : (
-              <TrashIcon className="w-4 h-4" />
-            )}
+            <TrashIcon className="w-4 h-4" />
+            {is_unblocking && <ButtonSpinner />}
             {t("mail.unblock_sender")} ({selected_ids.size})
           </Button>
         )}
@@ -404,7 +401,8 @@ export function BlockedSection() {
             disabled={is_adding || !new_email.trim()}
             onClick={handle_add_blocked}
           >
-            {is_adding ? <Spinner size="md" /> : t("common.block")}
+            {t("common.block")}
+            {is_adding && <ButtonSpinner />}
           </Button>
         </ModalFooter>
       </Modal>

@@ -42,7 +42,7 @@ import { Button } from "@aster/ui";
 import { SettingsGroup, SettingsHeader, chip_selected_style } from "./shared";
 
 import { get_favicon_url } from "@/lib/favicon_url";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import { commit_on_enter } from "@/lib/commit_on_enter";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
@@ -485,11 +485,8 @@ export function ExternalAccountsSection({
                   variant="outline"
                   onClick={state.handle_fetch_folders}
                 >
-                  {state.is_fetching_folders ? (
-                    <Spinner size="md" />
-                  ) : (
-                    <ArrowPathIcon className="h-4 w-4" />
-                  )}
+                  <ArrowPathIcon className="h-4 w-4" />
+                  {state.is_fetching_folders && <ButtonSpinner />}
                   {state.t("settings.fetch_folders")}
                 </Button>
                 {state.truncated_folders.length > 0 && (
@@ -714,11 +711,8 @@ export function ExternalAccountsSection({
               variant="outline"
               onClick={state.handle_test_connection}
             >
-              {state.is_testing ? (
-                <Spinner size="md" />
-              ) : (
-                <ServerStackIcon className="h-4 w-4" />
-              )}
+              <ServerStackIcon className="h-4 w-4" />
+              {state.is_testing && <ButtonSpinner />}
               {state.t("settings.test_connection")}
             </Button>
             <Button
@@ -728,11 +722,8 @@ export function ExternalAccountsSection({
               variant="outline"
               onClick={state.handle_test_smtp}
             >
-              {state.is_testing_smtp ? (
-                <Spinner size="md" />
-              ) : (
-                <EnvelopeIcon className="h-4 w-4" />
-              )}
+              <EnvelopeIcon className="h-4 w-4" />
+              {state.is_testing_smtp && <ButtonSpinner />}
               {state.t("settings.test_smtp")}
             </Button>
           </div>
@@ -741,13 +732,10 @@ export function ExternalAccountsSection({
             disabled={state.is_form_busy}
             onClick={state.handle_submit}
           >
-            {state.is_submitting ? (
-              <Spinner size="md" />
-            ) : state.editing_account ? (
-              state.t("settings.update_account_button")
-            ) : (
-              state.t("settings.save_account")
-            )}
+            {state.editing_account
+              ? state.t("settings.update_account_button")
+              : state.t("settings.save_account")}
+            {state.is_submitting && <ButtonSpinner />}
           </Button>
         </div>
       </div>

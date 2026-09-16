@@ -25,7 +25,7 @@ import {
   PlusIcon,
   PencilIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import { Button } from "@/components/ui/button";
 
 import { StepUpModal } from "@/components/settings/step_up_modal";
 import { ConfirmModal } from "@/components/email/inbox/inbox_confirmation_dialog";
@@ -52,6 +52,7 @@ import {
 } from "@/services/api/webauthn";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
 import { is_composing } from "@/utils/ime";
+import { ButtonSpinner } from "@/components/ui/spinner";
 
 export function HardwareKeysSection() {
   const { t } = use_i18n();
@@ -306,11 +307,8 @@ export function HardwareKeysSection() {
                           variant="ghost"
                           onClick={() => save_rename(key.id)}
                         >
-                          {is_saving_rename ? (
-                            <div className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin" />
-                          ) : (
-                            t("common.save")
-                          )}
+                          {t("common.save")}
+                          {is_saving_rename && <ButtonSpinner size="xs" />}
                         </Button>
                         <Button
                           size="sm"

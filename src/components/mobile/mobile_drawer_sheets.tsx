@@ -28,7 +28,8 @@ import {
   ArrowRightStartOnRectangleIcon,
   FolderIcon,
 } from "@heroicons/react/24/outline";
-import { Button, Switch, UpgradeBtn } from "@aster/ui";
+import { Switch, UpgradeBtn } from "@aster/ui";
+import { Button } from "@/components/ui/button";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";

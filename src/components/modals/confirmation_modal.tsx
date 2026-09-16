@@ -20,7 +20,7 @@
 //
 import { useState, useEffect, useRef, type ReactNode } from "react";
 import { Checkbox } from "@aster/ui";
-import { Button } from "@aster/ui";
+import { Button } from "@/components/ui/button";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { ignore_error } from "@/lib/ignore_error";

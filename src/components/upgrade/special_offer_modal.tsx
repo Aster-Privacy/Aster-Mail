@@ -20,7 +20,7 @@
 //
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CheckIcon, XMarkIcon } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import { Button } from "@/components/ui/button";
 
 import { Modal, ModalTitle } from "@/components/ui/modal";
 import { show_toast } from "@/components/toast/simple_toast";

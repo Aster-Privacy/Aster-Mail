@@ -25,7 +25,7 @@ import {
   EyeIcon,
   EyeSlashIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import { Button } from "@/components/ui/button";
 
 import { copy_text_or_throw } from "@/utils/copy_text";
 import { apply_input_transform } from "@/utils/input_transform";

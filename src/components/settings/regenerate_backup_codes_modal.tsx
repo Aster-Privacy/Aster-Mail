@@ -25,7 +25,7 @@ import {
   ExclamationTriangleIcon,
   ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import { Button } from "@/components/ui/button";
 
 import { trigger_download } from "@/utils/download_blob";
 import { show_toast } from "@/components/toast/simple_toast";

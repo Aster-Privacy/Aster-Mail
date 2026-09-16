@@ -25,7 +25,7 @@ import { ArrowRightIcon, LockClosedIcon } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
 import { Modal, ModalBody } from "@/components/ui/modal";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner } from "@/components/ui/spinner";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { start_oauth_authorize } from "@/services/api/external_accounts";
@@ -341,11 +341,8 @@ export function ConnectProviderModal({
             variant="depth"
             onClick={handle_connect}
           >
-            {is_loading ? (
-              <Spinner className="text-current" size="sm" />
-            ) : (
-              t(theme.button_key)
-            )}
+            {t(theme.button_key)}
+            {is_loading && <ButtonSpinner className="text-current" />}
           </Button>
 
           <Button

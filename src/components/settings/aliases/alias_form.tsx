@@ -25,7 +25,7 @@ import {
   LockClosedIcon,
   XCircleIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import { Button } from "@/components/ui/button";
 
 import { generate_ghost_local_part } from "@/services/api/ghost_aliases";
 import { use_i18n } from "@/lib/i18n/context";

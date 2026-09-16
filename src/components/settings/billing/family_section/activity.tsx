@@ -39,7 +39,7 @@ import {
 import { SkeletonRows } from "./shared";
 
 import { Input } from "@/components/ui/input";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner } from "@/components/ui/spinner";
 import {
   Select,
   SelectContent,
@@ -261,11 +261,8 @@ export function ActivityContent({ members }: { members: FamilyMemberInfo[] }) {
           disabled={loading}
           onClick={() => load_page(page + 1, filter_type || undefined)}
         >
-          {loading ? (
-            <Spinner size="sm" />
-          ) : (
-            t("settings.fam_org_activity_load_more")
-          )}
+          {t("settings.fam_org_activity_load_more")}
+          {loading && <ButtonSpinner />}
         </button>
       )}
     </div>

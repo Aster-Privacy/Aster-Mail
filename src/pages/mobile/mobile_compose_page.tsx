@@ -59,7 +59,7 @@ import { show_toast } from "@/components/toast/simple_toast";
 import { use_preferences } from "@/contexts/preferences_context";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { MobileHeader } from "@/components/mobile/mobile_header";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import { RecipientIdentityNotice } from "@/components/compose/recipient_identity_notice";
 import { authenticate_biometric } from "@/native/biometric_auth";
@@ -321,9 +321,7 @@ function MobileComposePage({
             variant="depth"
             onClick={handle_send}
           >
-            {is_sending || compose.is_scheduling ? (
-              <Spinner size="xs" />
-            ) : compose.scheduled_time ? (
+            {compose.scheduled_time ? (
               <>
                 <ClockIcon className="h-4 w-4" />
                 {t("mail.schedule")}
@@ -333,6 +331,9 @@ function MobileComposePage({
                 <PaperAirplaneIcon className="h-4 w-4" />
                 {t("mail.send")}
               </>
+            )}
+            {(is_sending || compose.is_scheduling) && (
+              <ButtonSpinner size="xs" />
             )}
           </Button>
         }

@@ -43,7 +43,7 @@ import { ContactFormSocial } from "./contact_form_social";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_unsaved_changes_guard } from "@/hooks/use_unsaved_changes_guard";
 import { cn, EMAIL_REGEX } from "@/lib/utils";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner } from "@/components/ui/spinner";
 import { ContactAvatar } from "@/components/common/contacts/contact_avatar";
 import {
   compress_image,
@@ -514,7 +514,7 @@ export function ContactForm({
             {is_edit_mode
               ? t("settings.save_changes")
               : t("common.add_contact")}
-            {is_loading && <Spinner className="ms-2" size="sm" />}
+            {is_loading && <ButtonSpinner />}
           </Button>
         </div>
       </div>

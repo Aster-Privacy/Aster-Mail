@@ -37,7 +37,7 @@ import {
   ModalHeader,
   ModalTitle,
 } from "@/components/ui/modal";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner } from "@/components/ui/spinner";
 import { format_price } from "@/services/api/billing";
 import { use_i18n } from "@/lib/i18n/context";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
@@ -234,11 +234,8 @@ export function PurchasedDomainManageModal({
             variant="depth"
             onClick={() => on_renew()}
           >
-            {renewing || captcha_pending ? (
-              <Spinner size="xs" />
-            ) : (
-              <ArrowPathIcon className="w-4 h-4 me-2" />
-            )}
+            <ArrowPathIcon className="w-4 h-4 me-2" />
+            {(renewing || captcha_pending) && <ButtonSpinner size="xs" />}
             {t("settings.domain_purchase_renew")}
           </Button>
         </div>

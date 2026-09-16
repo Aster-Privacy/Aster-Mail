@@ -23,7 +23,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { AtSymbolIcon } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner } from "@/components/ui/spinner";
 import {
   create_alias,
   validate_local_part,
@@ -202,7 +202,7 @@ export function CreateAliasModal({ is_open, on_close }: CreateAliasModalProps) {
                 onClick={handle_create}
               >
                 {t("common.create")}
-                {is_creating && <Spinner className="ms-2" size="md" />}
+                {is_creating && <ButtonSpinner />}
               </Button>
             </div>
           </motion.div>

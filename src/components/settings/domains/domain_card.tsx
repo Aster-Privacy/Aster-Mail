@@ -34,7 +34,7 @@ import { Switch } from "@aster/ui";
 
 import { copy_text_or_throw } from "@/utils/copy_text";
 import { use_i18n } from "@/lib/i18n/context";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
 import { show_toast } from "@/components/toast/simple_toast";
 import { UpgradeGate } from "@/components/common/upgrade_gate";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
@@ -251,11 +251,8 @@ export function DomainCard({
               variant="ghost"
               onClick={() => on_verify(domain.id)}
             >
-              {verifying ? (
-                <Spinner size="xs" />
-              ) : (
-                <ArrowPathIcon className="w-3.5 h-3.5" />
-              )}
+              <ArrowPathIcon className="w-3.5 h-3.5" />
+              {verifying && <ButtonSpinner size="xs" />}
               {t("common.verify")}
             </Button>
           )}

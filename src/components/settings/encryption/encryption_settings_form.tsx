@@ -32,7 +32,7 @@ import { Switch, Button, Badge } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { InfoPopover } from "@/components/ui/info_popover";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner } from "@/components/ui/spinner";
 import { is_composing } from "@/utils/ime";
 
 interface ToggleSettingProps {
@@ -267,13 +267,10 @@ export function EncryptionSettingsForm({
           variant="depth"
           onClick={handle_publish_to_keyservers}
         >
-          {is_publishing_keyserver ? (
-            <Spinner size="sm" />
-          ) : keyserver_published ? (
-            t("settings.keyserver_republish_btn")
-          ) : (
-            t("settings.keyserver_publish_btn")
-          )}
+          {keyserver_published
+            ? t("settings.keyserver_republish_btn")
+            : t("settings.keyserver_publish_btn")}
+          {is_publishing_keyserver && <ButtonSpinner />}
         </Button>
       </div>
 

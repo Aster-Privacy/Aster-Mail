@@ -37,7 +37,7 @@ import { use_signature_section } from "./use_signature_section";
 
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -610,13 +610,10 @@ export function SignatureSection() {
                 variant="depth"
                 onClick={handle_save}
               >
-                {editor.is_saving ? (
-                  <Spinner size="md" />
-                ) : editor.editing_id ? (
-                  t("settings.update_signature")
-                ) : (
-                  t("settings.create_signature")
-                )}
+                {editor.editing_id
+                  ? t("settings.update_signature")
+                  : t("settings.create_signature")}
+                {editor.is_saving && <ButtonSpinner />}
               </Button>
             </ModalFooter>
           </Modal>

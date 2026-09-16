@@ -24,7 +24,7 @@ import { TrashIcon } from "@heroicons/react/24/outline";
 import { SettingsGroup, SettingsHeader, SettingsRow } from "./shared";
 
 import { use_i18n } from "@/lib/i18n/context";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
 import {
   list_devices,
   revoke_device,
@@ -179,11 +179,8 @@ export function TrustedDevicesSection({
                     type="button"
                     onClick={() => set_pending_revoke(device)}
                   >
-                    {revoking_id === device.id ? (
-                      <Spinner size="xs" />
-                    ) : (
-                      <TrashIcon className="h-4 w-4" />
-                    )}
+                    <TrashIcon className="h-4 w-4" />
+                    {revoking_id === device.id && <ButtonSpinner size="xs" />}
                     {t("settings.trusted_devices_revoke")}
                   </button>
                 </div>

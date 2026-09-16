@@ -43,7 +43,7 @@ import {
 } from "@heroicons/react/24/outline";
 
 import { Input } from "@/components/ui/input";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner } from "@/components/ui/spinner";
 import { useTheme } from "@/contexts/theme_context";
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
@@ -939,13 +939,9 @@ export function CommandPalette({
                               }
                             >
                               <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 bg-surf-tertiary">
-                                {is_this_loading ? (
-                                  <Spinner
-                                    className="text-txt-secondary"
-                                    size="sm"
-                                  />
-                                ) : (
-                                  <Icon className="w-4 h-4 text-txt-secondary" />
+                                <Icon className="w-4 h-4 text-txt-secondary" />
+                                {is_this_loading && (
+                                  <ButtonSpinner className="text-txt-secondary" />
                                 )}
                               </div>
                               <div className="flex-1 min-w-0">

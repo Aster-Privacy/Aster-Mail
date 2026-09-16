@@ -31,7 +31,8 @@ import {
   XMarkIcon,
   SparklesIcon,
 } from "@heroicons/react/24/outline";
-import { Button, Switch } from "@aster/ui";
+import { Switch } from "@aster/ui";
+import { Button } from "@/components/ui/button";
 
 import { StepUpModal } from "./step_up_modal";
 
@@ -41,7 +42,7 @@ import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { use_should_reduce_motion } from "@/provider";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import {
   Modal,
@@ -910,7 +911,8 @@ export function AccountSection() {
                 variant="ghost"
                 onClick={handle_resend}
               >
-                {resending ? <Spinner size="md" /> : t("common.resend")}
+                {t("common.resend")}
+                {resending && <ButtonSpinner />}
               </Button>
             )}
             {recovery.exists && (

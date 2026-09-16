@@ -30,7 +30,7 @@ import {
 import { SkeletonRows, StorageBar } from "./shared";
 
 import { Slider } from "@/components/ui/slider";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner } from "@/components/ui/spinner";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { type MemberComplianceInfo } from "@/services/api/family_org";
 import {
@@ -190,11 +190,8 @@ export function MemberRow({
                 disabled={saving_storage}
                 onClick={save_storage}
               >
-                {saving_storage ? (
-                  <Spinner size="sm" />
-                ) : (
-                  t("settings.fam_org_member_save")
-                )}
+                {t("settings.fam_org_member_save")}
+                {saving_storage && <ButtonSpinner />}
               </button>
               <button
                 className="aster_btn aster_btn_ghost aster_btn_sm"

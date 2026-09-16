@@ -42,7 +42,7 @@ import {
   ModalBody,
   ModalFooter,
 } from "@/components/ui/modal";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner } from "@/components/ui/spinner";
 import { use_i18n } from "@/lib/i18n/context";
 import { is_onion_host } from "@/lib/onion_host";
 import { format_price } from "@/services/api/billing";
@@ -721,11 +721,8 @@ export function PlanPaymentMethodModal({
               variant="primary"
               onClick={handle_continue}
             >
-              {busy ? (
-                <Spinner size="xs" />
-              ) : (
-                t("settings.continue_to_checkout")
-              )}
+              {t("settings.continue_to_checkout")}
+              {busy && <ButtonSpinner size="xs" />}
             </Button>
 
             <div className="mt-3 flex items-center justify-center gap-1.5 text-[11px] plan_galaxy_text_muted">

@@ -32,7 +32,7 @@ import {
 
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner } from "@/components/ui/spinner";
 import {
   use_toast_position,
   type ToastPosition,
@@ -308,7 +308,7 @@ export function ActionToast({ position }: ActionToastProps) {
                   onClick={handle_undo}
                 >
                   {toast.action_label || t("common.undo")}
-                  {is_undoing && <Spinner className="ms-1.5" size="xs" />}
+                  {is_undoing && <ButtonSpinner size="xs" />}
                 </button>
               )}
               {toast.on_view_message && (

@@ -37,7 +37,7 @@ import {
 
 import { use_i18n } from "@/lib/i18n/context";
 import { use_shift_range_select } from "@/lib/use_shift_range_select";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import {
   Modal,
@@ -506,11 +506,8 @@ export function AutoForwardSection() {
               variant="destructive"
               onClick={() => set_confirm_bulk_delete(true)}
             >
-              {is_deleting ? (
-                <Spinner size="md" />
-              ) : (
-                <TrashIcon className="w-4 h-4" />
-              )}
+              <TrashIcon className="w-4 h-4" />
+              {is_deleting && <ButtonSpinner />}
               {t("common.remove")} ({selected_ids.size})
             </Button>
           )}
@@ -712,10 +709,9 @@ export function AutoForwardSection() {
                             handle_resend(rule, destination.address)
                           }
                         >
-                          {resending_address === destination.address ? (
-                            <Spinner size="sm" />
-                          ) : (
-                            t("settings.resend_verification_email")
+                          {t("settings.resend_verification_email")}
+                          {resending_address === destination.address && (
+                            <ButtonSpinner />
                           )}
                         </Button>
                       ))}

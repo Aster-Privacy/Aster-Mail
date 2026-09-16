@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { Button } from "@aster/ui";
+import { Button } from "@/components/ui/button";
 import { Checkbox } from "@aster/ui";
 
 import {

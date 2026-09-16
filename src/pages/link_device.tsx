@@ -39,7 +39,7 @@ import {
 import { get_passphrase_from_memory } from "@/services/crypto/memory_key_store";
 import { app_pathname } from "@/lib/account_index_url";
 import { show_toast } from "@/components/toast/simple_toast";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
 import { PlanUpgradeSelection } from "@/components/settings/billing/plan_upgrade_selection";
 import { is_composing } from "@/utils/ime";
 import { classify_link_error } from "@/pages/link_device_error";
@@ -403,13 +403,12 @@ function AccountChooser({
                         {acc.user.email}
                       </span>
                     </div>
-                    {switching_id === acc.id ? (
-                      <Spinner size="sm" />
-                    ) : needs_sign_in ? (
+                    {needs_sign_in ? (
                       <span className="account_menu_badge account_menu_badge_muted">
                         {t("auth.session_expired_tag")}
                       </span>
                     ) : null}
+                    {switching_id === acc.id && <ButtonSpinner />}
                   </button>
                 );
               })}
@@ -804,11 +803,8 @@ export default function LinkDevice() {
         variant="depth"
         onClick={handle_verify}
       >
-        {is_verifying ? (
-          <Spinner size="sm" />
-        ) : (
-          t("auth.link_device_verify_button")
-        )}
+        {t("auth.link_device_verify_button")}
+        {is_verifying && <ButtonSpinner />}
       </Button>
       <button
         className="mt-4 rounded-full px-4 py-2 text-[13px] font-medium text-txt-tertiary transition-colors hover:text-txt-primary"

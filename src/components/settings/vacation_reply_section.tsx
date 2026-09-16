@@ -22,12 +22,12 @@ import type { Matcher } from "react-day-picker";
 
 import { useCallback, useEffect, useState, useMemo } from "react";
 import { Checkbox } from "@aster/ui";
-import { Button } from "@aster/ui";
+import { Button } from "@/components/ui/button";
 import { CalendarIcon, PaperAirplaneIcon } from "@heroicons/react/24/outline";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { Input } from "@/components/ui/input";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner } from "@/components/ui/spinner";
 import { show_toast } from "@/components/toast/simple_toast";
 import { parse_calendar_date } from "@/utils/date_utils";
 import { Calendar } from "@/components/ui/calendar";
@@ -424,13 +424,8 @@ export function VacationReplySection() {
               variant="secondary"
               onClick={() => handle_toggle(!vacation.is_enabled)}
             >
-              {is_toggling ? (
-                <Spinner size="sm" />
-              ) : vacation.is_enabled ? (
-                t("common.disable")
-              ) : (
-                t("common.enable")
-              )}
+              {vacation.is_enabled ? t("common.disable") : t("common.enable")}
+              {is_toggling && <ButtonSpinner />}
             </Button>
           </div>
         )}

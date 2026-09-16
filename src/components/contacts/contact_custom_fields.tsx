@@ -57,6 +57,7 @@ import {
 import { is_composing } from "@/utils/ime";
 import { user_facing_error } from "@/utils/user_facing_error";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
+import { ButtonSpinner } from "@/components/ui/spinner";
 
 interface ContactCustomFieldsProps {
   contact_id: string;
@@ -537,11 +538,8 @@ export function ContactCustomFields({
             variant="ghost"
             onClick={handle_create_definition}
           >
-            {is_adding ? (
-              <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-            ) : (
-              <PlusIcon className="w-4 h-4" />
-            )}
+            <PlusIcon className="w-4 h-4" />
+            {is_adding && <ButtonSpinner />}
             {t("common.add")}
           </Button>
         </div>

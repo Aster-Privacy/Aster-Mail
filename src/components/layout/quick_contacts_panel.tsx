@@ -52,7 +52,8 @@ import {
   CheckIcon,
   StarIcon as StarSolidIcon,
 } from "@heroicons/react/24/solid";
-import { Button, Spinner, Tooltip } from "@aster/ui";
+import { Spinner, Tooltip } from "@aster/ui";
+import { Button } from "@/components/ui/button";
 
 import {
   DropdownMenu,

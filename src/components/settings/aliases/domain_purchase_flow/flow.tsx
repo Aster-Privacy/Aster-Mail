@@ -61,7 +61,7 @@ import {
 } from "./search_pacing";
 
 import { apply_input_transform } from "@/utils/input_transform";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
 import { use_i18n } from "@/lib/i18n/context";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import {
@@ -896,16 +896,13 @@ export function DomainPurchaseFlow({
                   variant="depth"
                   onClick={handle_buy}
                 >
-                  {buying ? (
-                    <Spinner size="sm" />
-                  ) : (
-                    t("settings.domain_purchase_buy", {
-                      price: format_domain_price(
-                        selected_total,
-                        selected.currency,
-                      ),
-                    })
-                  )}
+                  {t("settings.domain_purchase_buy", {
+                    price: format_domain_price(
+                      selected_total,
+                      selected.currency,
+                    ),
+                  })}
+                  {buying && <ButtonSpinner />}
                 </Button>
               </div>
             </div>
@@ -1092,11 +1089,8 @@ export function DomainPurchaseFlow({
                             variant="ghost"
                             onClick={load_more_suggestions}
                           >
-                            {loading_more_suggestions ? (
-                              <Spinner size="sm" />
-                            ) : (
-                              t("settings.domain_purchase_more_suggestions")
-                            )}
+                            {t("settings.domain_purchase_more_suggestions")}
+                            {loading_more_suggestions && <ButtonSpinner />}
                           </Button>
                         </div>
                       )}

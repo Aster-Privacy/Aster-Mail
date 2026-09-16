@@ -19,7 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useEffect, useState, useCallback } from "react";
-import { Button } from "@aster/ui";
+import { Button } from "@/components/ui/button";
 import { ShieldCheckIcon } from "@heroicons/react/24/outline";
 
 import {

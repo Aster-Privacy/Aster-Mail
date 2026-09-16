@@ -25,7 +25,7 @@ import { ArrowPathIcon, FolderIcon } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 import { Checkbox } from "@aster/ui";
 
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner } from "@/components/ui/spinner";
 import { get_folder_depth } from "@/components/settings/hooks/use_external_accounts";
 
 interface FolderSelectionSectionProps {
@@ -63,11 +63,8 @@ export function FolderSelectionSection({
           variant="outline"
           onClick={handle_fetch_folders}
         >
-          {is_fetching_folders ? (
-            <Spinner size="md" />
-          ) : (
-            <ArrowPathIcon className="w-3.5 h-3.5" />
-          )}
+          <ArrowPathIcon className="w-3.5 h-3.5" />
+          {is_fetching_folders && <ButtonSpinner />}
           {t("settings.fetch_folders")}
         </Button>
       </div>

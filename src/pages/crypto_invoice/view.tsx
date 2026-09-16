@@ -29,7 +29,7 @@ import {
   QrCodeIcon,
   WalletIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import { Button } from "@/components/ui/button";
 
 import { measure_clock_skew, write_to_clipboard } from "./clipboard";
 import {
@@ -74,7 +74,7 @@ import { safe_wallet_uri } from "./wallet";
 
 import { CoinIcon } from "@/components/ui/coin_icon";
 import { RoundedQrCode } from "@/components/ui/rounded_qr_code";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
 import { ConfirmModal } from "@/components/email/inbox/inbox_confirmation_dialog";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
@@ -946,13 +946,7 @@ export function CryptoInvoiceView({ id }: { id?: string }) {
                     onClick={handle_check_now}
                   >
                     <span className="inline-flex items-center justify-center gap-2">
-                      {is_checking_now && (
-                        <Spinner
-                          aria-hidden="true"
-                          className="h-4 w-4"
-                          size="sm"
-                        />
-                      )}
+                      {is_checking_now && <ButtonSpinner />}
                       {is_checking_now
                         ? t("settings.crypto_native_checking")
                         : t("settings.crypto_native_check_now")}

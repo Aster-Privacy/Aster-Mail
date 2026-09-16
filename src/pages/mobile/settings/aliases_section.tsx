@@ -41,7 +41,7 @@ import { SettingsHeader } from "./shared";
 import { copy_text_or_throw } from "@/utils/copy_text";
 import { use_i18n } from "@/lib/i18n/context";
 import { format_number } from "@/lib/utils";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_aliases } from "@/components/settings/hooks/use_aliases";
@@ -579,10 +579,9 @@ export function AliasesSection({
                     type="button"
                     onClick={() => hook.handle_alias_delete(alias.id)}
                   >
-                    {hook.alias_deleting_id === alias.id ? (
-                      <Spinner size="xs" />
-                    ) : (
-                      t("common.delete")
+                    {t("common.delete")}
+                    {hook.alias_deleting_id === alias.id && (
+                      <ButtonSpinner size="xs" />
                     )}
                   </button>
                 </div>
@@ -623,10 +622,9 @@ export function AliasesSection({
                       hook.handle_domain_addr_delete(addr.id, addr.domain_id)
                     }
                   >
-                    {hook.domain_addr_deleting_id === addr.id ? (
-                      <Spinner size="xs" />
-                    ) : (
-                      t("common.delete")
+                    {t("common.delete")}
+                    {hook.domain_addr_deleting_id === addr.id && (
+                      <ButtonSpinner size="xs" />
                     )}
                   </button>
                 </div>
@@ -1005,7 +1003,7 @@ export function AliasesSection({
                           }}
                         >
                           {cancelling_order_id === order.id && (
-                            <Spinner size="xs" />
+                            <ButtonSpinner size="xs" />
                           )}
                           {t("common.cancel")}
                         </button>

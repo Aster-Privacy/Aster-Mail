@@ -23,7 +23,7 @@ import { Checkbox } from "@aster/ui";
 
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { use_i18n } from "@/lib/i18n/context";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import { show_toast } from "@/components/toast/simple_toast";
 import { ignore_error } from "@/lib/ignore_error";
@@ -332,11 +332,8 @@ export function VacationReplyTab() {
               type="button"
               onClick={handle_save_vacation}
             >
-              {is_saving_vacation ? (
-                <Spinner size="sm" />
-              ) : (
-                t("settings.vacation_reply_save")
-              )}
+              {t("settings.vacation_reply_save")}
+              {is_saving_vacation && <ButtonSpinner />}
             </button>
             {vacation && (
               <button

@@ -31,7 +31,7 @@ import { Button } from "@aster/ui";
 import { Checkbox } from "@aster/ui";
 
 import { Input } from "@/components/ui/input";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner } from "@/components/ui/spinner";
 import { use_i18n } from "@/lib/i18n/context";
 import { is_composing } from "@/utils/ime";
 import { is_valid_email } from "@/components/compose/compose_shared";
@@ -373,7 +373,8 @@ export function ForwardingRuleBuilder({
           {t("common.cancel")}
         </Button>
         <Button disabled={is_saving || !can_save} onClick={handle_save}>
-          {is_saving ? <Spinner size="md" /> : t("settings.save_rule")}
+          {t("settings.save_rule")}
+          {is_saving && <ButtonSpinner />}
         </Button>
       </div>
     </div>

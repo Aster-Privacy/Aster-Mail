@@ -47,7 +47,7 @@ import {
 } from "./shared";
 
 import { use_i18n } from "@/lib/i18n/context";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import {
@@ -794,13 +794,10 @@ export function SignaturesSection({
             variant="depth"
             onClick={handle_save}
           >
-            {is_saving ? (
-              <Spinner size="md" />
-            ) : editing_id ? (
-              t("settings.update_signature")
-            ) : (
-              t("settings.create_signature")
-            )}
+            {editing_id
+              ? t("settings.update_signature")
+              : t("settings.create_signature")}
+            {is_saving && <ButtonSpinner />}
           </Button>
         </div>
       </div>
@@ -905,11 +902,8 @@ export function SignaturesSection({
                     type="button"
                     onClick={() => request_delete(sig.id)}
                   >
-                    {deleting_id === sig.id ? (
-                      <Spinner size="md" />
-                    ) : (
-                      t("common.delete")
-                    )}
+                    {t("common.delete")}
+                    {deleting_id === sig.id && <ButtonSpinner />}
                   </button>
                 </div>
               </div>

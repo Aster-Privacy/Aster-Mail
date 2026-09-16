@@ -40,7 +40,7 @@ import { InfoPopover } from "@/components/ui/info_popover";
 import { use_i18n } from "@/lib/i18n/context";
 import { clamp_password } from "@/services/sanitize";
 import { Input } from "@/components/ui/input";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner } from "@/components/ui/spinner";
 import { use_should_reduce_motion } from "@/provider";
 import { show_toast } from "@/components/toast/simple_toast";
 import {
@@ -337,11 +337,8 @@ export function KeyRotationPanel({
               variant="depth"
               onClick={handle_export_secret_key}
             >
-              {is_exporting_private_key ? (
-                <Spinner size="md" />
-              ) : (
-                t("common.export")
-              )}
+              {t("common.export")}
+              {is_exporting_private_key && <ButtonSpinner />}
             </Button>
           </ModalFooter>
         </Modal>
@@ -578,7 +575,8 @@ export function KeyRotationPanel({
               variant="destructive"
               onClick={handle_regenerate_codes}
             >
-              {is_regenerating ? <Spinner size="md" /> : t("common.regenerate")}
+              {t("common.regenerate")}
+              {is_regenerating && <ButtonSpinner />}
             </Button>
           </ModalFooter>
         </Modal>

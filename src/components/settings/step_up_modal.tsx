@@ -33,7 +33,7 @@ import {
   ModalFooter,
 } from "@/components/ui/modal";
 import { Input } from "@/components/ui/input";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner } from "@/components/ui/spinner";
 import {
   derive_step_up_credentials,
   fetch_step_up_requirements,
@@ -266,7 +266,8 @@ export function StepUpModal({
           onClick={handle_confirm}
         >
           {confirm_label}
-          {is_loading ? <Spinner className="ms-2" size="md" /> : null}
+          {null}
+          {is_loading && <ButtonSpinner />}
         </Button>
       </ModalFooter>
     </Modal>

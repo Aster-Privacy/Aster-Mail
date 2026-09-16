@@ -23,7 +23,7 @@ import {
   ChatBubbleBottomCenterTextIcon,
   EnvelopeIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import { Button } from "@/components/ui/button";
 
 import { is_desktop } from "@/native/invoke_bridge";
 import { api_client } from "@/services/api/client";

@@ -82,7 +82,7 @@ import {
   detect_currency_from_locale,
 } from "@/components/settings/billing/billing_constants";
 import { use_sticky_value } from "@/hooks/use_sticky_value";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
 
 export const STORAGE_PROMO_ENABLED = true;
 
@@ -736,9 +736,7 @@ export function StorageSection() {
                               ? t("mail.empty_spam")
                               : t("mail.empty_trash")}
                           </span>
-                          {is_busy && (
-                            <Spinner className="absolute" size="xs" />
-                          )}
+                          {is_busy && <ButtonSpinner size="xs" />}
                         </span>
                       </button>
                     )}

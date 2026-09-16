@@ -46,7 +46,7 @@ import {
   type TurnstileWidgetRef,
   TURNSTILE_SITE_KEY,
 } from "@/components/auth/turnstile_widget";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { apply_input_transform } from "@/utils/input_transform";
 import {
@@ -502,11 +502,8 @@ export function KidsContent({ group }: { group: FamilyGroupResponse }) {
               disabled={!can_submit}
               onClick={handle_reserve}
             >
-              {submitting ? (
-                <Spinner size="sm" />
-              ) : (
-                <PlusIcon className="w-4 h-4" />
-              )}
+              <PlusIcon className="w-4 h-4" />
+              {submitting && <ButtonSpinner />}
               {submitting
                 ? t("settings.fam_kids_creating")
                 : t("settings.fam_kids_create")}
@@ -638,11 +635,8 @@ export function KidsContent({ group }: { group: FamilyGroupResponse }) {
             disabled={releasing}
             onClick={confirm_release}
           >
-            {releasing ? (
-              <Spinner size="sm" />
-            ) : (
-              <TrashIcon className="w-4 h-4" />
-            )}
+            <TrashIcon className="w-4 h-4" />
+            {releasing && <ButtonSpinner />}
             {t("settings.fam_kids_release_btn")}
           </button>
         </ModalFooter>

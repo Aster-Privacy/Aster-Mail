@@ -58,6 +58,7 @@ import {
 } from "@/services/api/allowed_senders";
 import { emit_mail_changed, emit_contacts_changed } from "@/hooks/mail_events";
 import { build_sender_mail_query } from "@/utils/contact_mail_search";
+import { ButtonSpinner } from "@/components/ui/spinner";
 
 const ASTER_DOMAINS = new Set([
   "astermail.org",
@@ -562,15 +563,7 @@ function ActionRow({
       >
         {label}
       </span>
-      {loading && (
-        <div
-          className={`w-3.5 h-3.5 border-2 rounded-full animate-spin flex-shrink-0 ${
-            danger
-              ? "border-red-500 border-t-transparent"
-              : "border-blue-500 border-t-transparent"
-          }`}
-        />
-      )}
+      {loading && <ButtonSpinner size="xs" />}
     </button>
   );
 }

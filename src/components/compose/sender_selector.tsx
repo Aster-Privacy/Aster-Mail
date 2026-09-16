@@ -50,6 +50,7 @@ import { use_i18n } from "@/lib/i18n/context";
 import { use_escape_layer } from "@/lib/overlay_layer_stack";
 import { is_composing } from "@/utils/ime";
 import { format_number } from "@/lib/utils";
+import { ButtonSpinner } from "@/components/ui/spinner";
 
 function SenderAliasIcon({
   address,
@@ -702,33 +703,15 @@ export function SenderSelector({
                               "inset 0 1px 1px rgba(255,255,255,0.2), inset 0 -1px 1px rgba(0,0,0,0.15)",
                           }}
                         >
-                          {is_creating_ghost ? (
-                            <svg
-                              className="w-3 h-3 animate-spin text-white"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              viewBox="0 0 24 24"
-                            >
-                              <circle
-                                cx="12"
-                                cy="12"
-                                r="10"
-                                strokeOpacity="0.25"
-                              />
-                              <path
-                                d="M12 2a10 10 0 0 1 10 10"
-                                strokeLinecap="round"
-                              />
-                            </svg>
-                          ) : (
-                            <svg
-                              className="w-3 h-3 text-white"
-                              fill="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
-                            </svg>
+                          <svg
+                            className="w-3 h-3 text-white"
+                            fill="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+                          </svg>
+                          {is_creating_ghost && (
+                            <ButtonSpinner className="text-white" size="xs" />
                           )}
                         </div>
                         <div className="flex-1 min-w-0">

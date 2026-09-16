@@ -29,7 +29,8 @@ import {
   CheckCircleIcon,
   ExclamationCircleIcon,
 } from "@heroicons/react/24/outline";
-import { Button, Switch } from "@aster/ui";
+import { Switch } from "@aster/ui";
+import { Button } from "@/components/ui/button";
 
 import { SettingsGroup, SettingsHeader, SettingsRow } from "./shared";
 
@@ -37,7 +38,7 @@ import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_i18n } from "@/lib/i18n/context";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import {
   PROFILE_PICTURE_ACCEPT,
@@ -463,7 +464,7 @@ export function AccountSection({
               type="button"
               onClick={remove_picture}
             >
-              {removing && <Spinner size="xs" />}
+              {removing && <ButtonSpinner size="xs" />}
               {t("common.remove_photo")}
             </button>
           )}
@@ -523,9 +524,8 @@ export function AccountSection({
                   if (user) {
                     await update_user({ ...user, profile_color: color });
                   }
-                  const { update_profile_color } = await import(
-                    "@/services/api/user"
-                  );
+                  const { update_profile_color } =
+                    await import("@/services/api/user");
                   const response = await update_profile_color(color);
 
                   if (response.error) {

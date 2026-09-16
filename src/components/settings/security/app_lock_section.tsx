@@ -57,6 +57,7 @@ import {
 } from "@/services/app_lock_store";
 import { DuressPinSection } from "@/components/settings/security/duress_pin_section";
 import { is_composing } from "@/utils/ime";
+import { ButtonSpinner } from "@/components/ui/spinner";
 
 function PinDots({
   digits,
@@ -406,11 +407,8 @@ function VerifyPinModal({
               variant="depth"
               onClick={handle_text_submit}
             >
-              {verifying ? (
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent mx-auto" />
-              ) : (
-                t("common.continue")
-              )}
+              {t("common.continue")}
+              {verifying && <ButtonSpinner />}
             </Button>
           </div>
         )}

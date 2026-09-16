@@ -33,7 +33,7 @@ import { Button } from "@aster/ui";
 
 import { apply_input_transform } from "@/utils/input_transform";
 import { show_toast } from "@/components/toast/simple_toast";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import {
   Select,
@@ -602,8 +602,8 @@ export function SharedMailboxesTab({
           variant="depth"
           onClick={handle_create}
         >
-          {creating ? <Spinner size="sm" /> : <PlusIcon className="w-4 h-4" />}{" "}
-          {t("shared_mailboxes.create")}
+          <PlusIcon className="w-4 h-4" />
+          {creating && <ButtonSpinner />} {t("shared_mailboxes.create")}
         </Button>
       </div>
       {load_failed ? (
@@ -722,11 +722,8 @@ export function SharedMailboxesTab({
                           variant="outline"
                           onClick={() => handle_rotate(mailbox.id)}
                         >
-                          {is_busy ? (
-                            <Spinner size="sm" />
-                          ) : (
-                            <ArrowPathIcon className="w-3.5 h-3.5" />
-                          )}{" "}
+                          <ArrowPathIcon className="w-3.5 h-3.5" />
+                          {is_busy && <ButtonSpinner />}{" "}
                           {t("shared_mailboxes.rotate")}
                         </Button>
                       </div>

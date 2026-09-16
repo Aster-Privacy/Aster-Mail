@@ -32,7 +32,7 @@ import { Button, Badge } from "@aster/ui";
 
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
 import { BrowserIcon } from "@/components/settings/security/browser_icon";
@@ -288,14 +288,9 @@ export function SessionSection({
                 variant="outline"
                 onClick={() => set_show_confirm_all(true)}
               >
-                {revoking_all || logout_others_loading ? (
-                  <Spinner size="sm" />
-                ) : (
-                  <>
-                    <TrashIcon className="w-3.5 h-3.5 me-1.5" />
-                    {t("settings.sign_out_all_other")}
-                  </>
-                )}
+                <TrashIcon className="w-3.5 h-3.5 me-1.5" />
+                {t("settings.sign_out_all_other")}
+                {(revoking_all || logout_others_loading) && <ButtonSpinner />}
               </Button>
             </div>
           )}

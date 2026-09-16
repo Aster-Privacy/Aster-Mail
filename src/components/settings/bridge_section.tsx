@@ -43,7 +43,7 @@ import { InfoPopover } from "@/components/ui/info_popover";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner } from "@/components/ui/spinner";
 import { show_toast } from "@/components/toast/simple_toast";
 import { SmtpTokensSection } from "@/components/settings/smtp_tokens_section";
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
@@ -414,11 +414,8 @@ export function BridgeSection() {
                 variant="destructive"
                 onClick={() => set_confirm_revoke_all(true)}
               >
-                {revoking_all ? (
-                  <Spinner size="sm" />
-                ) : (
-                  t("settings.trusted_devices_revoke_all")
-                )}
+                {t("settings.trusted_devices_revoke_all")}
+                {revoking_all && <ButtonSpinner />}
               </Button>
             )}
           </div>
@@ -481,11 +478,8 @@ export function BridgeSection() {
                   variant="destructive"
                   onClick={() => set_confirm_revoke_id(device.id)}
                 >
-                  {revoking_id === device.id ? (
-                    <Spinner size="sm" />
-                  ) : (
-                    t("settings.trusted_devices_revoke")
-                  )}
+                  {t("settings.trusted_devices_revoke")}
+                  {revoking_id === device.id && <ButtonSpinner />}
                 </Button>
               </div>
             ))}

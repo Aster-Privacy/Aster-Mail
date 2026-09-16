@@ -48,7 +48,7 @@ import {
   type TurnstileWidgetRef,
 } from "@/components/auth/turnstile_widget";
 import { use_i18n } from "@/lib/i18n/context";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
 import { show_toast } from "@/components/toast/simple_toast";
 import { clamp_password } from "@/services/sanitize";
 import {
@@ -563,7 +563,8 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
           onClick={handle_verify_submit}
         >
           {t("settings.export_verify_submit")}
-          {verify_loading ? <Spinner className="ms-2" size="md" /> : null}
+          {null}
+          {verify_loading && <ButtonSpinner />}
         </Button>
       </>
     );

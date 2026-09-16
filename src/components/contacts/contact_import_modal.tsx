@@ -41,7 +41,7 @@ import {
   UserGroupIcon,
 } from "@heroicons/react/24/outline";
 import { CheckIcon } from "@heroicons/react/24/solid";
-import { Button } from "@aster/ui";
+import { Button } from "@/components/ui/button";
 
 import { ContactAvatar } from "@/components/common/contacts/contact_avatar";
 import { TAG_COLOR_PRESETS } from "@/components/ui/email_tag";

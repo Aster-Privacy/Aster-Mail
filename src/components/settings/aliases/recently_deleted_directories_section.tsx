@@ -27,7 +27,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
@@ -231,14 +231,9 @@ export function RecentlyDeletedDirectoriesSection({
               variant="ghost"
               onClick={() => set_confirm_empty(true)}
             >
-              {emptying ? (
-                <Spinner size="xs" />
-              ) : (
-                <>
-                  <TrashIcon aria-hidden="true" className="w-3.5 h-3.5" />
-                  {t("settings.recently_deleted_empty_trash")}
-                </>
-              )}
+              <TrashIcon aria-hidden="true" className="w-3.5 h-3.5" />
+              {t("settings.recently_deleted_empty_trash")}
+              {emptying && <ButtonSpinner size="xs" />}
             </Button>
           </div>
           {directories.map((directory) => (
@@ -272,17 +267,12 @@ export function RecentlyDeletedDirectoriesSection({
                   variant="depth"
                   onClick={() => handle_restore(directory.id)}
                 >
-                  {restoring_id === directory.id ? (
-                    <Spinner size="xs" />
-                  ) : (
-                    <>
-                      <ArrowUturnLeftIcon
-                        aria-hidden="true"
-                        className="w-3.5 h-3.5 rtl:-scale-x-100"
-                      />
-                      {t("settings.restore_alias_action")}
-                    </>
-                  )}
+                  <ArrowUturnLeftIcon
+                    aria-hidden="true"
+                    className="w-3.5 h-3.5 rtl:-scale-x-100"
+                  />
+                  {t("settings.restore_alias_action")}
+                  {restoring_id === directory.id && <ButtonSpinner size="xs" />}
                 </Button>
                 <Button
                   aria-label={t("settings.delete_alias_permanently_action")}

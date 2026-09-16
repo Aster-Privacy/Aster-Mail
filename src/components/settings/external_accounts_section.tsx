@@ -23,7 +23,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { PlusIcon, ServerStackIcon } from "@heroicons/react/24/outline";
 import { Button, Checkbox } from "@aster/ui";
 
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner } from "@/components/ui/spinner";
 import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
 import {
   AlertDialog,
@@ -306,11 +306,8 @@ export function ExternalAccountsSection() {
               variant="destructive"
               onClick={state.handle_purge_confirm}
             >
-              {state.is_purging ? (
-                <Spinner size="sm" />
-              ) : (
-                state.t("settings.disconnect_button")
-              )}
+              {state.t("settings.disconnect_button")}
+              {state.is_purging && <ButtonSpinner />}
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -35,7 +35,7 @@ import { Button } from "@aster/ui";
 
 import { Modal, ModalTitle } from "@/components/ui/modal";
 import { Input } from "@/components/ui/input";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner } from "@/components/ui/spinner";
 import { TestResultBanner } from "@/components/settings/external_accounts/test_result_banner";
 import { is_app_password_error } from "@/lib/external_account_errors";
 
@@ -338,7 +338,7 @@ export function GmailSetupWizard({
               variant="outline"
               onClick={handle_test_connection}
             >
-              {is_testing && <Spinner size="md" />}
+              {is_testing && <ButtonSpinner />}
               {t("settings.test_connection")}
             </Button>
           )}
@@ -348,7 +348,7 @@ export function GmailSetupWizard({
             size="sm"
             onClick={go_forward}
           >
-            {is_submitting && <Spinner size="md" />}
+            {is_submitting && <ButtonSpinner />}
             {step === TOTAL_STEPS
               ? t("settings.gmail_wizard_connect")
               : t("common.next")}

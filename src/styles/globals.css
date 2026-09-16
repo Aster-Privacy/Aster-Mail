@@ -1763,6 +1763,54 @@ button:focus:not(:focus-visible),
   box-shadow: none;
 }
 
+@keyframes aster_spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.aster_spinner {
+  animation: aster_spin 1s linear infinite;
+}
+
+.aster_btn,
+.aster_btn_loading_host,
+button:has(.aster_btn_spinner),
+a:has(.aster_btn_spinner),
+label:has(.aster_btn_spinner) {
+  position: relative;
+}
+
+.aster_btn_spinner {
+  position: absolute;
+  inset-inline-end: 12px;
+  top: 0;
+  bottom: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.aster_btn_xl .aster_btn_spinner {
+  inset-inline-end: 18px;
+}
+
+.aster_btn_lg .aster_btn_spinner,
+.aster_btn_md .aster_btn_spinner {
+  inset-inline-end: 14px;
+}
+
+.aster_btn_sm .aster_btn_spinner {
+  inset-inline-end: 10px;
+}
+
+.aster_btn_icon .aster_btn_spinner,
+.aster_btn_spinner_centered {
+  position: static;
+  inset-inline-end: auto;
+}
+
 html[data-input-modality="keyboard"] :focus-visible {
   outline: 2px solid var(--accent-color);
   outline-offset: 2px;

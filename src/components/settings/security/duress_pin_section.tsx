@@ -57,6 +57,7 @@ import {
   KDF_VERSION_PEPPER,
 } from "@/services/app_lock_store";
 import { is_composing } from "@/utils/ime";
+import { ButtonSpinner } from "@/components/ui/spinner";
 
 const TRANSPORT_FAILURE_CODES = new Set([
   "NETWORK_ERROR",
@@ -720,11 +721,8 @@ function SetupDuressPinModal({
             variant="depth"
             onClick={handle_verify_credentials}
           >
-            {verifying_creds ? (
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent mx-auto" />
-            ) : (
-              t("common.continue")
-            )}
+            {t("common.continue")}
+            {verifying_creds && <ButtonSpinner />}
           </Button>
         </ModalFooter>
       )}
@@ -777,11 +775,8 @@ function SetupDuressPinModal({
             variant="depth"
             onClick={handle_confirm_setup}
           >
-            {saving ? (
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent mx-auto" />
-            ) : (
-              t("settings.duress_pin_confirm_setup")
-            )}
+            {t("settings.duress_pin_confirm_setup")}
+            {saving && <ButtonSpinner />}
           </Button>
         </ModalFooter>
       )}
@@ -963,11 +958,8 @@ function RemoveDuressPinModal({
               variant="depth"
               onClick={handle_text_submit}
             >
-              {verifying ? (
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent mx-auto" />
-              ) : (
-                t("settings.duress_pin_remove")
-              )}
+              {t("settings.duress_pin_remove")}
+              {verifying && <ButtonSpinner />}
             </Button>
           </div>
         )}

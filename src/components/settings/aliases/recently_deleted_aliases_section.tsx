@@ -29,7 +29,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { Button, UpgradeBtn } from "@aster/ui";
 
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
@@ -304,16 +304,9 @@ export function RecentlyDeletedAliasesSection({
                 variant="ghost"
                 onClick={() => set_confirm_empty(true)}
               >
-                {emptying ? (
-                  <Spinner size="xs" />
-                ) : (
-                  <>
-                    <TrashIcon aria-hidden="true" className="w-3.5 h-3.5" />
-                    {t(
-                      "settings.recently_deleted_empty_trash" as TranslationKey,
-                    )}
-                  </>
-                )}
+                <TrashIcon aria-hidden="true" className="w-3.5 h-3.5" />
+                {t("settings.recently_deleted_empty_trash" as TranslationKey)}
+                {emptying && <ButtonSpinner size="xs" />}
               </Button>
             )}
           </div>
@@ -362,17 +355,12 @@ export function RecentlyDeletedAliasesSection({
                     variant="depth"
                     onClick={() => handle_restore(alias.id)}
                   >
-                    {restoring_id === alias.id ? (
-                      <Spinner size="xs" />
-                    ) : (
-                      <>
-                        <ArrowUturnLeftIcon
-                          aria-hidden="true"
-                          className="w-3.5 h-3.5 rtl:-scale-x-100"
-                        />
-                        {t("settings.restore_alias_action" as TranslationKey)}
-                      </>
-                    )}
+                    <ArrowUturnLeftIcon
+                      aria-hidden="true"
+                      className="w-3.5 h-3.5 rtl:-scale-x-100"
+                    />
+                    {t("settings.restore_alias_action" as TranslationKey)}
+                    {restoring_id === alias.id && <ButtonSpinner size="xs" />}
                   </Button>
                   <Button
                     aria-label={t(

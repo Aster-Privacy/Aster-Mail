@@ -35,7 +35,12 @@ const size_classes = {
 function Spinner({ size = "md", className }: SpinnerProps) {
   return (
     <svg
-      className={cn("animate-spin", size_classes[size], className)}
+      className={cn(
+        "aster_spinner",
+        "animate-spin",
+        size_classes[size],
+        className,
+      )}
       fill="none"
       viewBox="0 0 24 24"
       xmlns="http://www.w3.org/2000/svg"
@@ -57,4 +62,29 @@ function Spinner({ size = "md", className }: SpinnerProps) {
   );
 }
 
-export { Spinner };
+interface ButtonSpinnerProps {
+  size?: "xs" | "sm" | "md" | "lg";
+  centered?: boolean;
+  className?: string;
+}
+
+function ButtonSpinner({
+  size = "sm",
+  centered = false,
+  className,
+}: ButtonSpinnerProps) {
+  return (
+    <span
+      aria-hidden="true"
+      className={cn(
+        "aster_btn_spinner",
+        centered && "aster_btn_spinner_centered",
+        className,
+      )}
+    >
+      <Spinner size={size} />
+    </span>
+  );
+}
+
+export { Spinner, ButtonSpinner };

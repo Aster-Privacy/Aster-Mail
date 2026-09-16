@@ -25,7 +25,7 @@ import {
   TrashIcon,
   ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import { Button } from "@/components/ui/button";
 
 import {
   Modal,
@@ -35,7 +35,7 @@ import {
   ModalBody,
   ModalFooter,
 } from "@/components/ui/modal";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import {
   TAG_COLOR_PRESETS,
@@ -257,7 +257,7 @@ export function TagManagementModal({
                 onClick={handle_rename}
               >
                 {t("common.rename")}
-                {is_loading && <Spinner className="ms-2" size="sm" />}
+                {is_loading && <ButtonSpinner />}
               </Button>
             </ModalFooter>
           </>
@@ -331,11 +331,8 @@ export function TagManagementModal({
                 variant="depth"
                 onClick={handle_recolor}
               >
-                {is_loading ? (
-                  <Spinner size="md" />
-                ) : (
-                  `${t("common.save")} ${t("common.color")}`
-                )}
+                {`${t("common.save")} ${t("common.color")}`}
+                {is_loading && <ButtonSpinner />}
               </Button>
             </ModalFooter>
           </>
@@ -389,7 +386,8 @@ export function TagManagementModal({
                 variant="depth"
                 onClick={handle_reicon}
               >
-                {is_loading ? <Spinner size="md" /> : t("common.save")}
+                {t("common.save")}
+                {is_loading && <ButtonSpinner />}
               </Button>
             </ModalFooter>
           </>

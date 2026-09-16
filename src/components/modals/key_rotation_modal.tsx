@@ -31,7 +31,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
@@ -375,7 +375,7 @@ export function KeyRotationModal({
                   variant="depth"
                   onClick={handle_submit}
                 >
-                  {state === "rotating" && <Spinner size="md" />}
+                  {state === "rotating" && <ButtonSpinner />}
                   {state === "rotating"
                     ? t("settings.rotating")
                     : t("settings.rotate_keys")}

@@ -24,7 +24,7 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import { PlusIcon, EnvelopeIcon } from "@heroicons/react/24/outline";
 
 import { use_i18n } from "@/lib/i18n/context";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import { show_toast } from "@/components/toast/simple_toast";
 import { ignore_error } from "@/lib/ignore_error";
@@ -183,7 +183,8 @@ export function AllowlistTab() {
                 type="button"
                 onClick={handle_add}
               >
-                {is_adding ? <Spinner size="xs" /> : t("common.add")}
+                {t("common.add")}
+                {is_adding && <ButtonSpinner size="xs" />}
               </button>
             </div>
           </div>

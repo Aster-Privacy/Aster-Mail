@@ -38,6 +38,7 @@ import {
   restore_inactive_key_sets,
 } from "@/services/crypto/restore_inactive_keys";
 import { is_composing } from "@/utils/ime";
+import { ButtonSpinner } from "@/components/ui/spinner";
 
 export function RecoverOlderDataSection() {
   const { t } = use_i18n();
@@ -174,11 +175,8 @@ export function RecoverOlderDataSection() {
             variant="destructive"
             onClick={handle_discard}
           >
-            {discarding ? (
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent mx-auto" />
-            ) : (
-              t("settings.discard_older_data_button")
-            )}
+            {t("settings.discard_older_data_button")}
+            {discarding && <ButtonSpinner />}
           </Button>
         </ModalFooter>
       </Modal>
@@ -236,11 +234,8 @@ export function RecoverOlderDataSection() {
             variant="depth"
             onClick={handle_restore}
           >
-            {restoring ? (
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent mx-auto" />
-            ) : (
-              t("settings.recover_older_data_button")
-            )}
+            {t("settings.recover_older_data_button")}
+            {restoring && <ButtonSpinner />}
           </Button>
         </ModalFooter>
       </Modal>

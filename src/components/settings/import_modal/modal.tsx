@@ -38,7 +38,7 @@ import {
   folder_for_email,
 } from "./helpers";
 
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
 import { use_auth } from "@/contexts/auth_context";
 import { use_folders } from "@/hooks/use_folders";
 import { use_should_reduce_motion } from "@/provider";
@@ -762,11 +762,8 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
                     handle_browse_click();
                   }}
                 >
-                  {is_processing ? (
-                    <Spinner size="md" />
-                  ) : (
-                    t("settings.browse_files")
-                  )}
+                  {t("settings.browse_files")}
+                  {is_processing && <ButtonSpinner />}
                 </Button>
 
                 <Button

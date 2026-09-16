@@ -50,7 +50,7 @@ import {
   ModalDescription,
   ModalBody,
 } from "@/components/ui/modal";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
 import {
   list_payment_methods,
   create_setup_intent,
@@ -614,14 +614,9 @@ export function PaymentMethodsModal({
               style={{ color: "var(--text-secondary)" }}
               onClick={() => handle_set_default(method.id)}
             >
-              {is_setting_default ? (
-                <Spinner size="xs" />
-              ) : (
-                <>
-                  <StarIcon className="w-3.5 h-3.5" />
-                  {t("common.set_as_default")}
-                </>
-              )}
+              <StarIcon className="w-3.5 h-3.5" />
+              {t("common.set_as_default")}
+              {is_setting_default && <ButtonSpinner size="xs" />}
             </button>
           )}
           <button
@@ -716,17 +711,8 @@ export function PaymentMethodsModal({
               variant="outline"
               onClick={handle_show_add_form}
             >
-              {is_preparing ? (
-                <span
-                  className="w-4 h-4 rounded-full animate-spin"
-                  style={{
-                    border: "2px solid var(--border-secondary)",
-                    borderTopColor: "var(--text-tertiary)",
-                  }}
-                />
-              ) : (
-                <PlusIcon className="w-4 h-4" />
-              )}
+              <PlusIcon className="w-4 h-4" />
+              {is_preparing && <ButtonSpinner />}
               {t("settings.add_payment_method")}
             </Button>
           </div>

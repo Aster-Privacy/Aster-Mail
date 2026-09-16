@@ -35,7 +35,7 @@ import { submit_on_enter } from "@/lib/commit_on_enter";
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { Input } from "@/components/ui/input";
 import { InfoPopover } from "@/components/ui/info_popover";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner } from "@/components/ui/spinner";
 import {
   Select,
   SelectContent,
@@ -261,7 +261,8 @@ export function ConsentGateDialog({
             {t("settings.fam_consent_cancel")}
           </AlertDialogCancel>
           <Button disabled={sending} variant="depth" onClick={send}>
-            {sending ? <Spinner size="sm" /> : t("settings.fam_consent_send")}
+            {t("settings.fam_consent_send")}
+            {sending && <ButtonSpinner />}
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>
@@ -351,11 +352,8 @@ export function MemberConsentPanel() {
                 variant="depth"
                 onClick={() => respond(req.id, true)}
               >
-                {responding === req.id ? (
-                  <Spinner size="sm" />
-                ) : (
-                  t("settings.fam_consent_member_accept")
-                )}
+                {t("settings.fam_consent_member_accept")}
+                {responding === req.id && <ButtonSpinner />}
               </Button>
               <Button
                 disabled={responding === req.id}
@@ -664,11 +662,8 @@ export function FiltersContent({
             variant="depth"
             onClick={create}
           >
-            {creating ? (
-              <Spinner size="sm" />
-            ) : (
-              t("settings.fam_org_filters_create")
-            )}
+            {t("settings.fam_org_filters_create")}
+            {creating && <ButtonSpinner />}
           </Button>
         </ModalFooter>
       </Modal>
