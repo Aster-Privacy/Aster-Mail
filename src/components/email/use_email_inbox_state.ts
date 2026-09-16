@@ -38,6 +38,7 @@ import {
 } from "@/services/category_index";
 import { use_category_drop } from "@/components/email/inbox/use_category_drop";
 import { use_settled_empty_state } from "@/components/email/inbox/use_settled_empty_state";
+import { use_delayed_flag } from "@/hooks/use_delayed_flag";
 import { builtin_category_def } from "@/data/category_catalog";
 import { type BulkScopeFilter } from "@/services/api/mail";
 import {
@@ -297,8 +298,9 @@ export function use_email_inbox_state(props: EmailInboxProps) {
     is_empty: filtered_emails.length === 0,
     is_settled: empty_state_settled,
   });
-  const skeleton_visible =
-    !empty_state_visible && (skeleton_pending || filtered_emails.length === 0);
+  const skeleton_visible = use_delayed_flag(
+    !empty_state_visible && (skeleton_pending || filtered_emails.length === 0),
+  );
 
   const is_client_filtered = active_filter !== "all";
   const stats_total_for_view = useMemo(() => {

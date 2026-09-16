@@ -52,6 +52,11 @@ import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_i18n } from "@/lib/i18n/context";
 import { adjust_stats_unread } from "@/hooks/use_mail_stats";
+import { get_read_intent } from "@/services/read_intent";
+import {
+  current_opened_mail_scope,
+  revert_user_opened_mail,
+} from "@/services/user_opened_mail";
 import { read_clears_conversation } from "@/hooks/unread_read_delta";
 import { mark_conversation_read } from "@/hooks/mark_conversation_read";
 import { use_date_format } from "@/hooks/use_date_format";
@@ -344,11 +349,17 @@ export function use_popup_viewer({
           conversation_grouping: preferences.conversation_grouping,
           acted_id: mail_data.id,
         };
+        const owned = get_read_intent(current_email_id) !== true;
+        const scope = current_opened_mail_scope();
         const clears_conversation =
-          read_clears_conversation(conversation_options);
+          owned && read_clears_conversation(conversation_options);
 
         if (is_received && clears_conversation) {
           adjust_stats_unread(-1);
+        }
+        set_is_read(true);
+        if (owned) {
+          emit_mail_item_updated({ id: current_email_id, is_read: true });
         }
         const result = await update_item_metadata(
           current_email_id,
@@ -360,6 +371,7 @@ export function use_popup_viewer({
           { is_read: true },
         );
 
+        if (scope !== current_opened_mail_scope()) return;
         if (result.success) {
           set_is_read(true);
           if (result.encrypted) {
@@ -376,17 +388,25 @@ export function use_popup_viewer({
                 : prev,
             );
           }
-          emit_mail_item_updated({
-            id: current_email_id,
-            is_read: true,
-            encrypted_metadata: result.encrypted?.encrypted_metadata,
-            metadata_nonce: result.encrypted?.metadata_nonce,
-          });
-          if (is_received) {
-            mark_conversation_read(conversation_options);
+          if (owned) {
+            emit_mail_item_updated({
+              id: current_email_id,
+              is_read: true,
+              encrypted_metadata: result.encrypted?.encrypted_metadata,
+              metadata_nonce: result.encrypted?.metadata_nonce,
+            });
+            if (is_received) {
+              mark_conversation_read(conversation_options);
+            }
           }
-        } else if (!result.success && is_received && clears_conversation) {
-          adjust_stats_unread(1);
+        } else {
+          set_is_read(false);
+          if (owned) {
+            emit_mail_item_updated({ id: current_email_id, is_read: false });
+          }
+          if (is_received && clears_conversation) {
+            adjust_stats_unread(1);
+          }
         }
       };
 
@@ -396,6 +416,9 @@ export function use_popup_viewer({
         const delay_ms =
           preferences.mark_as_read_delay === "1_second" ? 1000 : 3000;
 
+        if (mark_as_read_timeout.current !== null) {
+          window.clearTimeout(mark_as_read_timeout.current);
+        }
         mark_as_read_timeout.current = window.setTimeout(mark_read, delay_ms);
       }
     };
@@ -501,6 +524,7 @@ export function use_popup_viewer({
 
     if (response.error) {
       requested_email_id_ref.current = null;
+      if (!is_same_email) revert_user_opened_mail(email_id);
       set_error(response.error);
 
       return;

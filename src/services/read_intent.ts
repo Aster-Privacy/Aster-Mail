@@ -51,6 +51,8 @@ interface IntentEntry {
 
 const intents = new Map<string, IntentEntry>();
 
+let scope_read_at: number | null = null;
+
 function now_ms(): number {
   return Date.now();
 }
@@ -225,12 +227,46 @@ export function get_read_intent(id: string): boolean | undefined {
   return get_flag_intent(id, "is_read");
 }
 
+export function note_scope_read_intent(): number {
+  const at = now_ms();
+
+  scope_read_at = at;
+
+  return at;
+}
+
+export function clear_scope_read_intent(token?: number): void {
+  if (token === undefined || scope_read_at === token) scope_read_at = null;
+}
+
+function active_scope_read_at(): number | null {
+  if (scope_read_at === null) return null;
+  if (now_ms() - scope_read_at >= INTENT_TTL_MS) {
+    scope_read_at = null;
+
+    return null;
+  }
+
+  return scope_read_at;
+}
+
+export function scope_read_applies(timestamp: string | undefined): boolean {
+  const at = active_scope_read_at();
+
+  if (at === null || !timestamp) return false;
+
+  const message_ms = Date.parse(timestamp);
+
+  return !Number.isNaN(message_ms) && message_ms <= at;
+}
+
 export function has_any_read_intent(): boolean {
-  return intents.size > 0;
+  return intents.size > 0 || active_scope_read_at() !== null;
 }
 
 export function clear_all_read_intents(): void {
   intents.clear();
+  scope_read_at = null;
 }
 
 export const clear_all_flag_intents = clear_all_read_intents;
@@ -239,6 +275,9 @@ interface ReadIntentRow {
   id: string;
   is_read: boolean;
   grouped_email_ids?: string[];
+  item_type?: string;
+  is_trashed?: boolean;
+  raw_timestamp?: string;
 }
 
 export interface FlagIntentRow extends ReadIntentRow {
@@ -254,13 +293,19 @@ export function resolve_read_intent(row: ReadIntentRow): boolean | undefined {
   const own = get_read_intent(row.id);
 
   if (own !== undefined) return own;
-  if (!row.grouped_email_ids || row.grouped_email_ids.length < 2) {
-    return undefined;
+  if (row.grouped_email_ids && row.grouped_email_ids.length >= 2) {
+    for (const member_id of row.grouped_email_ids) {
+      if (member_id === row.id) continue;
+      if (get_read_intent(member_id) === false) return false;
+    }
   }
 
-  for (const member_id of row.grouped_email_ids) {
-    if (member_id === row.id) continue;
-    if (get_read_intent(member_id) === false) return false;
+  if (
+    row.item_type === "received" &&
+    !row.is_trashed &&
+    scope_read_applies(row.raw_timestamp)
+  ) {
+    return true;
   }
 
   return undefined;
@@ -303,7 +348,7 @@ export function resolve_flag_intents<T extends FlagIntentRow>(row: T): T {
 }
 
 export function apply_flag_intents<T extends FlagIntentRow>(rows: T[]): T[] {
-  if (intents.size === 0 || rows.length === 0) return rows;
+  if (!has_any_read_intent() || rows.length === 0) return rows;
 
   let changed = false;
   const next = rows.map((row) => {

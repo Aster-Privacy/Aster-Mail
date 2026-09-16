@@ -43,6 +43,7 @@ import {
 import { Spinner } from "@/components/ui/spinner";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
+import { use_delayed_flag } from "@/hooks/use_delayed_flag";
 import { UpgradeInlineCard } from "@/components/upgrade/upgrade_inline_card";
 import {
   AliasItem,
@@ -566,17 +567,21 @@ export function AliasList({
     set_selected_ids(new Set());
   };
 
+  const skeleton_visible = use_delayed_flag(aliases_loading);
+
   const all_filtered_selected =
     filtered_aliases.length > 0 &&
     filtered_aliases.every((a) => selected_ids.has(a.id));
 
   if (aliases_loading) {
+    if (!skeleton_visible) return null;
+
     return (
-      <div className="space-y-2">
+      <div aria-busy="true" className="space-y-2">
         {[1, 2].map((i) => (
           <div
             key={i}
-            className="flex items-center gap-3 p-3 rounded-xl animate-pulse bg-surf-secondary border border-edge-secondary"
+            className="flex items-center gap-3 p-3 rounded-xl animate-pulse motion-reduce:animate-none bg-surf-secondary border border-edge-secondary"
           >
             <div className="w-10 h-10 rounded-full bg-surf-tertiary" />
             <div className="flex-1 space-y-2">

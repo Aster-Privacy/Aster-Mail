@@ -108,6 +108,7 @@ import { is_promo_code_rejection } from "@/components/settings/billing/plan_chan
 import { CryptoAddonTermModal } from "@/components/settings/billing/crypto_addon_term_modal";
 import { CryptoTermModal } from "@/components/settings/billing/crypto_term_modal";
 import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
+import { use_delayed_flag } from "@/hooks/use_delayed_flag";
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import {
   clear_cancel_password_cache,
@@ -173,6 +174,7 @@ export function BillingSection() {
   const [academic_status, set_academic_status] =
     useState<AcademicDiscountStatusResponse | null>(null);
   const [is_initial_load, set_is_initial_load] = useState(true);
+  const skeleton_visible = use_delayed_flag(is_initial_load);
   const [plans_load_failed, set_plans_load_failed] = useState(false);
   const [stripe_load_failed, set_stripe_load_failed] = useState(false);
   const [subscription_load_failed, set_subscription_load_failed] =
@@ -1046,7 +1048,7 @@ export function BillingSection() {
     : 0;
 
   if (is_initial_load) {
-    return <SettingsSkeleton variant="billing" />;
+    return skeleton_visible ? <SettingsSkeleton variant="billing" /> : null;
   }
 
   if (subscription_load_failed && !subscription) {

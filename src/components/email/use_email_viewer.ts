@@ -76,6 +76,7 @@ import {
   type PreloadedSanitizedContent,
 } from "@/components/email/hooks/preload_cache";
 import { adjust_stats_unread } from "@/hooks/use_mail_stats";
+import { get_read_intent } from "@/services/read_intent";
 import { read_clears_conversation } from "@/hooks/unread_read_delta";
 import { mark_conversation_read } from "@/hooks/mark_conversation_read";
 import { decrypt_mail_envelope } from "@/components/email/shared/decrypt_envelope";
@@ -413,7 +414,7 @@ export function use_email_viewer({
       loaded_email_id_ref.current = preloaded.email.id;
     };
 
-    async function load_email() {
+    async function load_email(reloading_same_email: boolean) {
       const cached = usable_preloaded(
         get_preloaded_email(email_id),
         preferences.conversation_grouping !== false,
@@ -421,7 +422,7 @@ export function use_email_viewer({
 
       if (cached) {
         commit_preloaded(cached);
-      } else {
+      } else if (!reloading_same_email) {
         set_is_loading(true);
         set_error(null);
         set_email(null);
@@ -477,8 +478,9 @@ export function use_email_viewer({
               conversation_grouping: preferences.conversation_grouping,
               acted_id: item.id,
             };
+            const owned = get_read_intent(item.id) !== true;
             const clears_conversation =
-              read_clears_conversation(conversation_options);
+              owned && read_clears_conversation(conversation_options);
 
             if (is_received && clears_conversation) {
               adjust_stats_unread(-1);
@@ -486,7 +488,9 @@ export function use_email_viewer({
             if (!cancelled) {
               set_is_read(true);
             }
-            emit_mail_item_updated({ id: item.id, is_read: true });
+            if (owned) {
+              emit_mail_item_updated({ id: item.id, is_read: true });
+            }
             const result = await update_item_metadata(
               item.id,
               {
@@ -514,20 +518,24 @@ export function use_email_viewer({
                     : prev,
                 );
               }
-              emit_mail_item_updated({
-                id: item.id,
-                is_read: true,
-                encrypted_metadata: result.encrypted?.encrypted_metadata,
-                metadata_nonce: result.encrypted?.metadata_nonce,
-              });
-              if (is_received) {
-                mark_conversation_read(conversation_options);
+              if (owned) {
+                emit_mail_item_updated({
+                  id: item.id,
+                  is_read: true,
+                  encrypted_metadata: result.encrypted?.encrypted_metadata,
+                  metadata_nonce: result.encrypted?.metadata_nonce,
+                });
+                if (is_received) {
+                  mark_conversation_read(conversation_options);
+                }
               }
             } else if (!result.success) {
               if (!cancelled) {
                 set_is_read(false);
               }
-              emit_mail_item_updated({ id: item.id, is_read: false });
+              if (owned) {
+                emit_mail_item_updated({ id: item.id, is_read: false });
+              }
               if (is_received && clears_conversation) {
                 adjust_stats_unread(1);
               }
@@ -698,8 +706,9 @@ export function use_email_viewer({
             conversation_grouping: preferences.conversation_grouping,
             acted_id: item.id,
           };
+          const owned = get_read_intent(item.id) !== true;
           const clears_conversation =
-            read_clears_conversation(conversation_options);
+            owned && read_clears_conversation(conversation_options);
 
           if (is_received_item && clears_conversation) {
             adjust_stats_unread(-1);
@@ -707,7 +716,9 @@ export function use_email_viewer({
           if (!cancelled) {
             set_is_read(true);
           }
-          emit_mail_item_updated({ id: item.id, is_read: true });
+          if (owned) {
+            emit_mail_item_updated({ id: item.id, is_read: true });
+          }
           const result = await update_item_metadata(
             item.id,
             {
@@ -737,20 +748,24 @@ export function use_email_viewer({
                 );
               }
             }
-            emit_mail_item_updated({
-              id: item.id,
-              is_read: true,
-              encrypted_metadata: result.encrypted?.encrypted_metadata,
-              metadata_nonce: result.encrypted?.metadata_nonce,
-            });
-            if (is_received_item) {
-              mark_conversation_read(conversation_options);
+            if (owned) {
+              emit_mail_item_updated({
+                id: item.id,
+                is_read: true,
+                encrypted_metadata: result.encrypted?.encrypted_metadata,
+                metadata_nonce: result.encrypted?.metadata_nonce,
+              });
+              if (is_received_item) {
+                mark_conversation_read(conversation_options);
+              }
             }
           } else if (!result.success) {
             if (!cancelled) {
               set_is_read(false);
             }
-            emit_mail_item_updated({ id: item.id, is_read: false });
+            if (owned) {
+              emit_mail_item_updated({ id: item.id, is_read: false });
+            }
             if (is_received_item && clears_conversation) {
               adjust_stats_unread(1);
             }
@@ -849,8 +864,10 @@ export function use_email_viewer({
     }
 
     if (loaded_email_id_ref.current !== email_id || refresh_key > 0) {
+      const reloading_same_email = loaded_email_id_ref.current === email_id;
+
       loaded_email_id_ref.current = null;
-      load_email();
+      load_email(reloading_same_email);
     }
 
     return () => {

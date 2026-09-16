@@ -42,6 +42,7 @@ import {
 import { InfoPopover } from "@/components/ui/info_popover";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
+import { use_delayed_flag } from "@/hooks/use_delayed_flag";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -188,7 +189,11 @@ export function BridgeSection() {
     load_devices();
   }, [load_devices]);
 
-  if (plan_loading && !limits) return <SettingsSkeleton variant="list" />;
+  const plan_skeleton_visible = use_delayed_flag(plan_loading && !limits);
+
+  if (plan_loading && !limits) {
+    return plan_skeleton_visible ? <SettingsSkeleton variant="list" /> : null;
+  }
   const is_locked = !limits || limits.plan_code === "free";
 
   const handle_revoke = async (id: string) => {

@@ -163,6 +163,7 @@ export function use_single_actions_flags(params: SingleActionsFlagsParams) {
       );
 
       if (offline_result.queued) {
+        note_flag_intents([email.id], { is_read: new_read });
         config.on_optimistic_update?.(email.id, { is_read: new_read });
         emit_mail_item_updated({ id: email.id, is_read: new_read });
         if (should_adjust_unread) adjust_stats_unread(new_read ? -1 : 1);
@@ -223,6 +224,7 @@ export function use_single_actions_flags(params: SingleActionsFlagsParams) {
       );
 
       if (offline_result.queued) {
+        note_flag_intents([email.id], { is_read: true });
         config.on_optimistic_update?.(email.id, { is_read: true });
         emit_mail_item_updated({ id: email.id, is_read: true });
         if (should_adjust_unread) adjust_stats_unread(-1);
@@ -280,6 +282,7 @@ export function use_single_actions_flags(params: SingleActionsFlagsParams) {
       );
 
       if (offline_result.queued) {
+        note_flag_intents([email.id], { is_read: false });
         config.on_optimistic_update?.(email.id, { is_read: false });
         emit_mail_item_updated({ id: email.id, is_read: false });
         if (should_adjust_unread) adjust_stats_unread(1);

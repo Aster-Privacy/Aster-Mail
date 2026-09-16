@@ -39,6 +39,7 @@ import { ChevronUpDownIcon } from "@heroicons/react/24/outline";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { update_item_metadata } from "@/services/crypto/mail_metadata";
+import { get_read_intent } from "@/services/read_intent";
 import {
   emit_mail_item_updated,
   emit_mail_soft_refresh,
@@ -489,8 +490,13 @@ export const ThreadMessagesList = forwardRef<
         acted_id: msg.id,
         sibling_unread,
       };
+      const owned = get_read_intent(msg.id) !== true;
       const clears_conversation =
-        is_received && read_clears_conversation(conversation_options);
+        owned && is_received && read_clears_conversation(conversation_options);
+
+      if (owned) {
+        emit_mail_item_updated({ id: msg.id, is_read: true });
+      }
 
       if (clears_conversation) {
         adjust_stats_unread(-1);
@@ -513,10 +519,14 @@ export const ThreadMessagesList = forwardRef<
 
             return next;
           });
+          if (owned) {
+            emit_mail_item_updated({ id: msg.id, is_read: false });
+          }
           if (clears_conversation) {
             adjust_stats_unread(1);
           }
         } else {
+          if (!owned) return;
           emit_mail_item_updated({
             id: msg.id,
             is_read: true,
