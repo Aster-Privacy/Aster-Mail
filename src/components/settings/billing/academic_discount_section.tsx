@@ -121,6 +121,8 @@ export function AcademicDiscountSection({
 
         return;
       }
+      turnstile_ref.current?.reset();
+      set_turnstile_token("");
       show_toast(t("settings.academic_verification_sent"), "success");
       set_resend_cooldown(RESEND_COOLDOWN_SECONDS);
       await refresh_academic_status();
