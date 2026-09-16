@@ -46,6 +46,7 @@ export interface UserPreferences {
   time_zone: string;
   date_format: string;
   time_format: "12h" | "24h";
+  relative_dates: boolean;
   auto_save_drafts: boolean;
   auto_save_recent_recipients: boolean;
   density: string;
@@ -484,6 +485,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   time_zone: "auto",
   date_format: locale_date_format(),
   time_format: locale_time_format(),
+  relative_dates: true,
   auto_save_drafts: true,
   auto_save_recent_recipients: true,
   density: "Comfortable",
@@ -834,6 +836,8 @@ export function build_merged_preferences(
   if (merged.time_format !== "12h" && merged.time_format !== "24h") {
     merged.time_format = DEFAULT_PREFERENCES.time_format;
   }
+
+  merged.relative_dates = merged.relative_dates !== false;
 
   merged.swipe_left_action = normalize_swipe_action(
     merged.swipe_left_action,

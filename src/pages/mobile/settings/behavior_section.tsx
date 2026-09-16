@@ -421,6 +421,18 @@ export function BehaviorSection({
             }
           />
           <SettingsRow
+            description={t("settings.relative_dates_description")}
+            label={t("settings.relative_dates")}
+            trailing={
+              <Switch
+                checked={preferences.relative_dates !== false}
+                onCheckedChange={(v) =>
+                  update_preference("relative_dates", v, true)
+                }
+              />
+            }
+          />
+          <SettingsRow
             label={t("settings.show_alias_indicators")}
             trailing={
               <Switch

@@ -51,6 +51,7 @@ import { sync_haptic_state } from "@/native/haptic_feedback";
 import { set_toast_min_duration } from "@/components/toast/simple_toast";
 import {
   set_display_date_format,
+  set_display_relative_dates,
   set_display_time_format,
   set_display_time_zone,
 } from "@/utils/date_format";
@@ -433,6 +434,17 @@ export function use_preferences_provider() {
       return;
     }
   }, [preferences.date_format]);
+
+  useEffect(() => {
+    const enabled = preferences.relative_dates !== false;
+
+    set_display_relative_dates(enabled);
+    try {
+      localStorage.setItem("astermail_relative_dates", String(enabled));
+    } catch {
+      return;
+    }
+  }, [preferences.relative_dates]);
 
   useEffect(() => {
     document.documentElement.classList.toggle(

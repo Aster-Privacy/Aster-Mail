@@ -129,6 +129,19 @@ export function BehaviorSection() {
       keywords: ["alias", "indicator", "badge", "delivered to"],
     },
     {
+      label: t("settings.relative_dates"),
+      breadcrumb: `${t("settings.behavior")} > ${t("settings.reading_and_conversations")}`,
+      keywords: [
+        "relative",
+        "dates",
+        "today",
+        "yesterday",
+        "timestamp",
+        "date",
+        "time",
+      ],
+    },
+    {
       label: t("settings.translate_incoming"),
       breadcrumb: `${t("settings.behavior")} > ${t("settings.translation")}`,
       keywords: ["translate", "translation", "language"],
@@ -576,6 +589,23 @@ export function BehaviorSection() {
             }
           />
         </div>
+
+        <ToggleSetting
+          description={t("settings.relative_dates_description")}
+          enabled={preferences.relative_dates !== false}
+          info={{
+            title: t("settings.info_relative_dates_title"),
+            description: t("settings.info_relative_dates_description"),
+          }}
+          on_toggle={() =>
+            update_preference(
+              "relative_dates",
+              preferences.relative_dates === false,
+              true,
+            )
+          }
+          title={t("settings.relative_dates")}
+        />
 
         <ToggleSetting
           description={t("settings.show_alias_indicators_description")}

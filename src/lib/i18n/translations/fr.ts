@@ -5659,6 +5659,12 @@ export const fr = {
     conversation_grouping: "Regroupement des conversations",
     conversation_grouping_confirm_title: "Êtes-vous sûr ?",
     show_message_size: "Afficher la taille des messages",
+    relative_dates: "Dates relatives",
+    relative_dates_description:
+      "Afficher Aujourd’hui et Hier sur les messages récents au lieu de la date",
+    info_relative_dates_title: "Dates relatives",
+    info_relative_dates_description:
+      "Lorsque cette option est activée, les messages d’aujourd’hui et d’hier s’affichent avec la mention Aujourd’hui et Hier. Désactivez-la pour toujours afficher la date et l’heure d’envoi ou de réception d’un message, dans la liste des messages, dans le message et à l’impression.",
     show_alias_indicators: "Afficher les indicateurs d'alias",
     show_alias_indicators_description:
       "Marquer les messages reçus via l'un de vos alias",

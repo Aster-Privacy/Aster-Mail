@@ -5552,6 +5552,12 @@ export const ko = {
     conversation_grouping_confirm_description:
       "대화 그룹화를 끄면 답장을 그룹으로 묶는 대신 각 이메일이 받은 편지함에 별도 항목으로 표시됩니다. 이메일 스레드를 따라가기 어려울 수 있습니다.",
     show_message_size: "메시지 크기 표시",
+    relative_dates: "상대 날짜",
+    relative_dates_description:
+      "최근 메일에 날짜 대신 오늘과 어제를 표시합니다",
+    info_relative_dates_title: "상대 날짜",
+    info_relative_dates_description:
+      "켜면 오늘과 어제에 주고받은 메일이 오늘, 어제로 표시됩니다. 끄면 메일 목록과 메일 본문, 인쇄물에서 메일을 보내거나 받은 날짜와 시간이 항상 표시됩니다.",
     show_alias_indicators: "별칭 표시 보기",
     show_alias_indicators_description: "별칭으로 도착한 메시지에 표시합니다",
     show_message_size_description:

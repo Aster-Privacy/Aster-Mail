@@ -5526,6 +5526,12 @@ export const nl = {
     conversation_grouping_confirm_description:
       "Het uitschakelen van gespreksgroepering toont elke e-mail als apart item in je inbox in plaats van antwoorden te groeperen. Dit kan het lastiger maken om e-mailthreads te volgen.",
     show_message_size: "Berichtgrootte tonen",
+    relative_dates: "Relatieve datums",
+    relative_dates_description:
+      "Toon Vandaag en Gisteren bij recente berichten in plaats van de datum",
+    info_relative_dates_title: "Relatieve datums",
+    info_relative_dates_description:
+      "Als dit aanstaat, worden berichten van vandaag en gisteren weergegeven als Vandaag en Gisteren. Zet het uit om altijd de datum en tijd te tonen waarop een bericht is verzonden of ontvangen: in de berichtenlijst, in het bericht en bij het afdrukken.",
     show_alias_indicators: "Aliasindicatoren tonen",
     show_alias_indicators_description:
       "Berichten markeren die via een van je aliassen zijn binnengekomen",

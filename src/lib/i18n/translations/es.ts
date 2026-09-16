@@ -5607,6 +5607,12 @@ export const es = {
     conversation_grouping: "Agrupar conversaciones",
     conversation_grouping_confirm_title: "¿Estás seguro?",
     show_message_size: "Mostrar tamaño del mensaje",
+    relative_dates: "Fechas relativas",
+    relative_dates_description:
+      "Muestra Hoy y Ayer en los mensajes recientes en lugar de la fecha",
+    info_relative_dates_title: "Fechas relativas",
+    info_relative_dates_description:
+      "Cuando esta opción está activada, los mensajes de hoy y de ayer aparecen como Hoy y Ayer. Desactívala para mostrar siempre la fecha y la hora en que se envió o recibió un mensaje, en la lista de mensajes, en el mensaje y al imprimirlo.",
     show_alias_indicators: "Mostrar indicadores de alias",
     show_alias_indicators_description:
       "Marca los mensajes que llegaron a través de uno de tus alias",

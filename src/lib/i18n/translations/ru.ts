@@ -5723,6 +5723,12 @@ export const ru = {
     conversation_grouping: "Группировка переписок",
     conversation_grouping_confirm_title: "Вы уверены?",
     show_message_size: "Показывать размер сообщения",
+    relative_dates: "Относительные даты",
+    relative_dates_description:
+      "Показывать «Сегодня» и «Вчера» у недавних писем вместо даты",
+    info_relative_dates_title: "Относительные даты",
+    info_relative_dates_description:
+      "Когда параметр включён, письма за сегодня и вчера отображаются как «Сегодня» и «Вчера». Отключите его, чтобы всегда видеть дату и время отправки или получения письма: в списке писем, в самом письме и при печати.",
     show_alias_indicators: "Показывать индикаторы псевдонимов",
     show_alias_indicators_description:
       "Отмечать письма, пришедшие на один из ваших псевдонимов",

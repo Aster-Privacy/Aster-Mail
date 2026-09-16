@@ -5566,6 +5566,12 @@ export const de = {
     conversation_grouping_confirm_description:
       "Wenn Sie die Konversationsgruppierung deaktivieren, wird jede E-Mail als einzelnes Element in Ihrem Posteingang angezeigt, anstatt Antworten zusammenzufassen. Dies kann es erschweren, E-Mail-Verläufe zu verfolgen.",
     show_message_size: "Nachrichtengröße anzeigen",
+    relative_dates: "Relative Datumsangaben",
+    relative_dates_description:
+      "Bei neuen Nachrichten Heute und Gestern statt des Datums anzeigen",
+    info_relative_dates_title: "Relative Datumsangaben",
+    info_relative_dates_description:
+      "Wenn diese Option aktiviert ist, werden Nachrichten von heute und gestern als Heute und Gestern angezeigt. Schalten Sie sie aus, um Datum und Uhrzeit des Sendens oder Empfangs immer anzuzeigen: in der Nachrichtenliste, in der Nachricht selbst und im Ausdruck.",
     show_alias_indicators: "Alias-Kennzeichnung anzeigen",
     show_alias_indicators_description:
       "Nachrichten kennzeichnen, die über einen Ihrer Aliasse eingegangen sind",

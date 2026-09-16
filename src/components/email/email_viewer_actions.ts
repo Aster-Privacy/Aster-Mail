@@ -96,7 +96,11 @@ import mail_logo_url from "@/assets/mail_logo.webp";
 import { ignore_error } from "@/lib/ignore_error";
 import { open_external } from "@/utils/open_link";
 import { copy_text, copy_text_or_throw } from "@/utils/copy_text";
-import { app_locale, get_display_time_zone } from "@/utils/date_format";
+import {
+  app_locale,
+  format_print_timestamp,
+  get_display_time_zone,
+} from "@/utils/date_format";
 
 export interface EmailViewerActionsDeps {
   email_id: string;
@@ -822,12 +826,15 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
         to: deps.email.to,
         cc: deps.email.cc,
         bcc: deps.email.bcc,
-        timestamp: deps.format_email_detail(new Date(deps.email.timestamp)),
+        timestamp: format_print_timestamp(
+          deps.email.timestamp,
+          deps.email.timestamp,
+        ),
         body: deps.email.html_content || deps.email.body,
       },
       deps.t,
     );
-  }, [deps.email, deps.format_email_detail, deps.t]);
+  }, [deps.email, deps.t]);
 
   const handle_unsubscribe = useCallback(async () => {
     if (!deps.email?.unsubscribe_info) return;
