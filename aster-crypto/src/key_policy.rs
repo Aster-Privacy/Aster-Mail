@@ -83,6 +83,14 @@ mod tests {
         assert!(ensure_publishable_key(&armored).is_ok());
     }
 
+    const WEB_CLIENT_GENERATED_PUBLIC_KEY: &str = "-----BEGIN PGP PUBLIC KEY BLOCK-----\n\nxjMEaqByCRYJKwYBBAHaRw8BAQdAZhosaI7VgDJ5ZLilZKcah11pUXRDUoVc\n+1FJXpsBJFzNG3Byb2JlIDxwcm9iZUBhc3Rlcm1haWwub3JnPsLAEwQTFgoA\nhQWCaqByCQMLCQcJEMubMzkhBAyRRRQAAAAAABwAIHNhbHRAbm90YXRpb25z\nLm9wZW5wZ3Bqcy5vcme5QaC6LqhxaIlI5UqlrFn6PXFBgO7MTjlM2iyW1XEk\nWAUVCggODAQWAAIBAhkBApsDAh4BFiEEKgfJYRimk8RDuv18y5szOSEEDJEA\nAARXAQDkQVTIfEXsdaHM0wA4u+g5oXjWM01ynyb9Cj/9LsHQcQD+JJ/B+i3b\n7zOUoHqWrsZWYO2qr8Y4uzRx+QIucfF1Xw3OOARqoHIJEgorBgEEAZdVAQUB\nAQdAtm1og7uj14ADzlbW7cr3wfLd407ABQwd7uP1gXQJYyUDAQgHwr4EGBYK\nAHAFgmqgcgkJEMubMzkhBAyRRRQAAAAAABwAIHNhbHRAbm90YXRpb25zLm9w\nZW5wZ3Bqcy5vcmdRfO1YbVrBGRWdPxWm9K/yQ9DT4Em3Mkcuc9tujuy6RwKb\nDBYhBCoHyWEYppPEQ7r9fMubMzkhBAyRAAAjegEA3fSR8F/W5FWnNvhLzNRD\ncQepS1PgNW8L5h8VBg83/nEA/jb7DSnCkmtrd+4hE14CWkGtk37Dlpw6qWZX\np+gRzpIM\n=6aWS\n-----END PGP PUBLIC KEY BLOCK-----\n\n";
+
+    #[test]
+    fn web_client_generated_key_is_allowed() {
+        assert!(!is_known_bad_published_key(WEB_CLIENT_GENERATED_PUBLIC_KEY));
+        assert!(ensure_publishable_key(WEB_CLIENT_GENERATED_PUBLIC_KEY).is_ok());
+    }
+
     #[test]
     fn modern_v4_key_is_rejected() {
         assert!(is_known_bad_published_key(MODERN_V4_PUBLIC_KEY));
