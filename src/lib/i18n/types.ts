@@ -2567,6 +2567,11 @@ export interface SettingsTranslations {
   bridge_other_formats: string;
   bridge_arch_x64: string;
   bridge_arch_arm64: string;
+  bridge_format_msi_desc: string;
+  bridge_format_appimage_desc: string;
+  bridge_format_deb_desc: string;
+  bridge_format_rpm_desc: string;
+  bridge_format_pacman_desc: string;
   bridge_all_platforms: string;
   bridge_upgrade_benefit_clients: string;
   bridge_upgrade_benefit_local: string;
