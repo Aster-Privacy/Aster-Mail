@@ -432,7 +432,9 @@ mod tests {
         let armored_key = signer.public_key_armored().unwrap();
         let huge = "a".repeat(1024 * 1024 + 1);
 
-        assert!(verify_cleartext_signature(&armored_key, &huge).unwrap().is_none());
+        assert!(verify_cleartext_signature(&armored_key, &huge)
+            .unwrap()
+            .is_none());
     }
 
     #[test]
