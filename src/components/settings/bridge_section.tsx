@@ -222,10 +222,8 @@ interface CliVariant {
   name_key: TranslationKey;
   hint_key: TranslationKey;
   download_platform: string;
-  prompt: string;
   commands: string;
   arch_link?: FormatLink;
-  icon: React.ReactNode;
 }
 
 const CLI_VARIANTS: CliVariant[] = [
@@ -234,31 +232,26 @@ const CLI_VARIANTS: CliVariant[] = [
     name_key: "settings.bridge_cli_windows_link",
     hint_key: "settings.bridge_cli_install_hint_windows",
     download_platform: "cli-windows",
-    prompt: "PS>",
     commands: [
       "Expand-Archive aster-bridge-cli-*.zip -DestinationPath $HOME\\aster-bridge",
       'setx PATH "$env:PATH;$HOME\\aster-bridge"',
     ].join("\n"),
-    icon: windows_icon,
   },
   {
     id: "macos",
     name_key: "settings.bridge_cli_macos_link",
     hint_key: "settings.bridge_cli_install_hint",
     download_platform: "cli-macos",
-    prompt: "$",
     commands: [
       "tar -xzf aster-bridge-cli-*.tar.gz",
       "sudo install -m 755 aster-bridge-cli-*/aster-bridge /usr/local/bin/",
     ].join("\n"),
-    icon: apple_icon,
   },
   {
     id: "linux",
     name_key: "settings.bridge_cli_linux_link",
     hint_key: "settings.bridge_cli_install_hint",
     download_platform: "cli-linux-x64",
-    prompt: "$",
     commands: [
       "tar -xzf aster-bridge-cli-*.tar.gz",
       "install -m 755 aster-bridge-cli-*/aster-bridge ~/.local/bin/",
@@ -267,7 +260,6 @@ const CLI_VARIANTS: CliVariant[] = [
       label_key: "settings.bridge_cli_linux_arm64_link",
       platform: "cli-linux-arm64",
     },
-    icon: linux_icon,
   },
 ];
 
@@ -425,17 +417,10 @@ function DownloadFormatMenu({
 
 interface CommandBlockProps {
   commands: string;
-  prompt: string;
   copy_label: string;
-  header?: React.ReactNode;
 }
 
-function CommandBlock({
-  commands,
-  prompt,
-  copy_label,
-  header,
-}: CommandBlockProps) {
+function CommandBlock({ commands, copy_label }: CommandBlockProps) {
   const { t } = use_i18n();
   const [copied, set_copied] = useState(false);
 
@@ -458,39 +443,25 @@ function CommandBlock({
   }, [copied]);
 
   return (
-    <div className="overflow-hidden rounded-xl border border-edge-secondary bg-surf-secondary">
-      <div className="flex items-stretch justify-between gap-3 border-b border-edge-secondary pe-1.5">
-        <div className="min-w-0 overflow-x-auto">{header}</div>
-        <button
-          aria-label={copy_label}
-          className="aster_btn aster_btn_ghost aster_btn_sm my-1.5 inline-flex flex-shrink-0 items-center gap-1.5 self-center text-xs font-medium"
-          type="button"
-          onClick={copy_command}
-        >
-          {copied ? (
-            <CheckIcon className="w-3.5 h-3.5 flex-shrink-0 text-brand" />
-          ) : (
-            <ClipboardDocumentIcon className="w-3.5 h-3.5 flex-shrink-0" />
-          )}
-          {copied ? t("common.copied") : t("common.copy")}
-        </button>
+    <div className="group relative rounded-lg border border-edge-secondary bg-surf-secondary">
+      <div className="overflow-x-auto px-3.5 py-3 pe-14">
+        <pre className="font-mono text-xs leading-6 text-txt-primary">
+          {commands}
+        </pre>
       </div>
-      <div className="overflow-x-auto px-4 py-3">
-        {commands.split("\n").map((line) => (
-          <div
-            key={line}
-            className="flex items-start gap-2.5 font-mono text-xs leading-6"
-          >
-            <span
-              aria-hidden="true"
-              className="flex-shrink-0 select-none text-txt-muted"
-            >
-              {prompt}
-            </span>
-            <code className="whitespace-pre text-txt-primary">{line}</code>
-          </div>
-        ))}
-      </div>
+      <button
+        aria-label={copy_label}
+        className="absolute end-2 top-2 flex h-7 w-7 items-center justify-center rounded-md text-txt-muted transition-colors hover:bg-surf-hover hover:text-txt-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50"
+        title={copied ? t("common.copied") : t("common.copy")}
+        type="button"
+        onClick={copy_command}
+      >
+        {copied ? (
+          <CheckIcon className="w-4 h-4 text-brand" />
+        ) : (
+          <ClipboardDocumentIcon className="w-4 h-4" />
+        )}
+      </button>
     </div>
   );
 }
@@ -600,31 +571,6 @@ function BridgeCliCard({ is_locked }: BridgeCliCardProps) {
   const variant =
     CLI_VARIANTS.find((item) => item.id === active_id) ?? CLI_VARIANTS[0];
 
-  const platform_tabs = (
-    <div
-      aria-label={t("settings.bridge_all_platforms")}
-      className="flex items-stretch gap-4 px-3"
-      role="tablist"
-    >
-      {CLI_VARIANTS.map((item) => (
-        <button
-          key={item.id}
-          aria-selected={item.id === active_id}
-          className={`-mb-px whitespace-nowrap border-b-2 py-2 text-xs font-medium transition-colors ${
-            item.id === active_id
-              ? "border-brand text-txt-primary"
-              : "border-transparent text-txt-muted hover:text-txt-primary"
-          }`}
-          role="tab"
-          type="button"
-          onClick={() => set_active_id(item.id)}
-        >
-          {t(item.name_key)}
-        </button>
-      ))}
-    </div>
-  );
-
   return (
     <div className="border-b border-edge-secondary py-4 last:border-b-0">
       <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
@@ -649,20 +595,42 @@ function BridgeCliCard({ is_locked }: BridgeCliCardProps) {
         </BridgeDownloadLink>
       </div>
 
-      <div className="mt-3.5">
-        <CommandBlock
-          commands={variant.commands}
-          copy_label={t("settings.bridge_cli_copy_command")}
-          header={platform_tabs}
-          prompt={variant.prompt}
-        />
-      </div>
-      <div className="mt-2.5 flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
-        <p className="text-xs text-txt-muted">
-          {t(variant.hint_key)}
+      <div className="mt-3 ps-10">
+        <div
+          aria-label={t("settings.bridge_all_platforms")}
+          className="inline-flex items-center gap-1"
+          role="tablist"
+        >
+          {CLI_VARIANTS.map((item) => (
+            <button
+              key={item.id}
+              aria-selected={item.id === active_id}
+              className={`rounded-md px-2.5 py-1 text-xs font-medium whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 ${
+                item.id === active_id
+                  ? "bg-surf-selected text-txt-primary"
+                  : "text-txt-muted hover:bg-surf-hover hover:text-txt-secondary"
+              }`}
+              role="tab"
+              tabIndex={item.id === active_id ? 0 : -1}
+              type="button"
+              onClick={() => set_active_id(item.id)}
+            >
+              {t(item.name_key)}
+            </button>
+          ))}
+        </div>
+
+        <div className="mt-2">
+          <CommandBlock
+            commands={variant.commands}
+            copy_label={t("settings.bridge_cli_copy_command")}
+          />
+        </div>
+
+        <p className="mt-2 text-xs leading-relaxed text-txt-muted">
+          {t(variant.hint_key)}{" "}
           {variant.arch_link && !is_locked && (
             <>
-              {" "}
               <a
                 className="font-medium text-brand hover:underline"
                 href={`${DL}/${variant.arch_link.platform}`}
@@ -677,19 +645,19 @@ function BridgeCliCard({ is_locked }: BridgeCliCardProps) {
                 }
               >
                 {t(variant.arch_link.label_key)}
-              </a>
+              </a>{" "}
             </>
           )}
+          <a
+            className="font-medium text-brand hover:underline"
+            href={CLI_DOCS_URL}
+            rel="noopener noreferrer"
+            target="_blank"
+          >
+            {t("settings.bridge_cli_docs_link")}
+            <ArrowTopRightOnSquareIcon className="ms-1 inline w-3 h-3 align-[-1px]" />
+          </a>
         </p>
-        <a
-          className="inline-flex flex-shrink-0 items-center gap-1.5 text-xs font-medium text-brand hover:underline"
-          href={CLI_DOCS_URL}
-          rel="noopener noreferrer"
-          target="_blank"
-        >
-          {t("settings.bridge_cli_docs_link")}
-          <ArrowTopRightOnSquareIcon className="w-3 h-3 flex-shrink-0" />
-        </a>
       </div>
     </div>
   );
