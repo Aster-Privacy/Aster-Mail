@@ -23,7 +23,7 @@ use pgp::crypto::aead::AeadAlgorithm;
 use pgp::crypto::public_key::PublicKeyAlgorithm;
 use pgp::crypto::{hash::HashAlgorithm, sym::SymmetricKeyAlgorithm};
 use pgp::ser::Serialize;
-use pgp::types::PublicKeyTrait;
+use pgp::types::{KeyVersion, PublicKeyTrait};
 use rand::rngs::OsRng;
 
 use crate::error::{CryptoError, Result};
@@ -58,11 +58,28 @@ fn select_public_encryption_subkey(spk: &SignedPublicKey) -> Result<&SignedPubli
     })
 }
 
-fn all_subkeys_support_seipdv2_public(subkeys: &[&SignedPublicSubKey]) -> bool {
-    !subkeys.is_empty()
-        && subkeys
+pub(crate) fn subkey_supports_seipdv2(version: KeyVersion, algo: PublicKeyAlgorithm) -> bool {
+    version == KeyVersion::V6 && is_aead_capable_algo(algo)
+}
+
+pub(crate) fn all_capabilities_support_seipdv2(caps: &[(KeyVersion, PublicKeyAlgorithm)]) -> bool {
+    !caps.is_empty()
+        && caps
             .iter()
-            .all(|sub| is_aead_capable_algo(PublicKeyTrait::algorithm(*sub)))
+            .all(|(version, algo)| subkey_supports_seipdv2(*version, *algo))
+}
+
+fn all_subkeys_support_seipdv2_public(subkeys: &[&SignedPublicSubKey]) -> bool {
+    let caps: Vec<(KeyVersion, PublicKeyAlgorithm)> = subkeys
+        .iter()
+        .map(|sub| {
+            (
+                PublicKeyTrait::version(*sub),
+                PublicKeyTrait::algorithm(*sub),
+            )
+        })
+        .collect();
+    all_capabilities_support_seipdv2(&caps)
 }
 
 fn encrypt_to_public_subkeys(
@@ -91,13 +108,13 @@ fn build_encrypted_message(msg: &Message, recipients: &[&PublicKey]) -> Result<M
         .iter()
         .map(|pk| select_public_encryption_subkey(pk))
         .collect::<Result<Vec<_>>>()?;
-    // Always use SEIPDv1 (MDC) for maximum interoperability. SEIPDv2/AEAD
-    // produces v6-format ciphertext (RFC 9580 crypto-refresh: v6 PKESK + OCB)
-    // that many clients - notably Proton - cannot decrypt, so the recipient
-    // just sees an unreadable PGP armor block. AEAD offers no meaningful
-    // benefit for email, and SEIPDv1 is understood by every OpenPGP client.
-    let _ = all_subkeys_support_seipdv2_public(&subkeys);
-    encrypt_to_public_subkeys(msg, &subkeys, false)
+    // SEIPDv2/AEAD produces v6-format ciphertext (RFC 9580: v6 PKESK + OCB).
+    // A client that published a v4 key cannot be assumed to read it, and many
+    // do not, so those recipients keep SEIPDv1 and its MDC. A v6 key is only
+    // defined by RFC 9580, which mandates SEIPDv2 support, so a recipient set
+    // that is entirely v6 gets AEAD integrity with no interoperability risk.
+    let use_seipdv2 = all_subkeys_support_seipdv2_public(&subkeys);
+    encrypt_to_public_subkeys(msg, &subkeys, use_seipdv2)
 }
 
 pub fn encrypt_message(plaintext: &[u8], recipients: &[&PublicKey]) -> Result<Vec<u8>> {
@@ -211,6 +228,48 @@ mod tests {
 
         let decrypted = decrypt_message(&ciphertext, &[&recipient]).unwrap();
         assert_eq!(plaintext.as_slice(), decrypted.as_slice());
+    }
+
+    #[test]
+    fn a_v4_recipient_never_gets_aead_ciphertext() {
+        for algo in [
+            PublicKeyAlgorithm::ECDH,
+            PublicKeyAlgorithm::X25519,
+            PublicKeyAlgorithm::X448,
+            PublicKeyAlgorithm::RSA,
+        ] {
+            assert!(!subkey_supports_seipdv2(KeyVersion::V4, algo));
+        }
+    }
+
+    #[test]
+    fn a_v6_recipient_with_an_aead_algorithm_gets_seipdv2() {
+        assert!(subkey_supports_seipdv2(
+            KeyVersion::V6,
+            PublicKeyAlgorithm::X25519
+        ));
+        assert!(!subkey_supports_seipdv2(
+            KeyVersion::V6,
+            PublicKeyAlgorithm::RSA
+        ));
+    }
+
+    #[test]
+    fn the_capability_check_is_used_rather_than_discarded() {
+        assert!(all_capabilities_support_seipdv2(&[(
+            KeyVersion::V6,
+            PublicKeyAlgorithm::X25519
+        )]));
+        assert!(!all_capabilities_support_seipdv2(&[]));
+    }
+
+    #[test]
+    fn one_v4_recipient_holds_the_whole_message_at_seipdv1() {
+        let caps = [
+            (KeyVersion::V6, PublicKeyAlgorithm::X25519),
+            (KeyVersion::V4, PublicKeyAlgorithm::X25519),
+        ];
+        assert!(!all_capabilities_support_seipdv2(&caps));
     }
 
     #[test]
