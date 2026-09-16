@@ -28,8 +28,10 @@ export {
 export { encrypt_with_ephemeral_key } from "./send_queue_ephemeral";
 export {
   check_post_quantum_coverage,
+  check_post_quantum_status,
   check_send_readiness_internal,
   encrypt_for_recipients,
+  type PostQuantumCoverage,
 } from "./send_queue_body_encryption";
 export { create_sent_envelope } from "./send_queue_envelope";
 export {

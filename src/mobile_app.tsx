@@ -37,6 +37,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { MobileDrawer } from "@/components/mobile/mobile_drawer";
 import { MobileFab } from "@/components/mobile/mobile_fab";
 import { SimpleToast } from "@/components/toast/simple_toast";
+import { KeyTrustChangePrompt } from "@/components/compose/key_trust_change_prompt";
 import { PostQuantumSendPrompt } from "@/components/compose/post_quantum_send_prompt";
 import { ActionToast } from "@/components/toast/action_toast";
 import { UndoSendContainer } from "@/components/toast/undo_send_container";
@@ -832,6 +833,7 @@ function MobileApp() {
         <UndoSendContainer is_mobile max_visible={1} position="bottom-center" />
         <UndoSendPreviewModal />
         <UnsubscribeConfirmationModal />
+        <KeyTrustChangePrompt />
         <PostQuantumSendPrompt />
         <UpgradeModal />
         <AliasCapUpsellModal />

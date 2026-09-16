@@ -35,7 +35,9 @@ export { derive_conversation_id } from "./ratchet_conversation";
 export { upload_prekey_bundle } from "./ratchet_prekey_bundle";
 export {
   encrypt_for_ratchet_recipient,
+  recipient_post_quantum_status,
   recipient_supports_post_quantum,
+  type PostQuantumRecipientStatus,
 } from "./ratchet_encrypt";
 export { decrypt_ratchet_message } from "./ratchet_decrypt";
 export type { RatchetEnvelope, RatchetRecipientData } from "./ratchet_types";

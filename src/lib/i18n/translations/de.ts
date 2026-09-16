@@ -1966,6 +1966,12 @@ export const de = {
     post_quantum_unavailable_title:
       "Ohne post-quantensichere Verschlüsselung senden?",
     post_quantum_send_anyway: "Trotzdem senden",
+    key_trust_change_title: "Verschlüsselungsschlüssel geändert",
+    key_trust_change_message: "Der Verschlüsselungsschlüssel von {{recipients}} hat sich seit der letzten Abfrage geändert. Prüfen Sie den neuen Fingerabdruck über einen anderen Kanal mit der Empfängerin oder dem Empfänger, bevor Sie senden.",
+    key_trust_change_detail: "{{email}}: vorher {{prior}}, jetzt {{current}}.",
+    key_trust_change_confirm: "Neuem Schlüssel vertrauen",
+    post_quantum_downgrade_title: "Ohne die erwarteten post-quantensicheren Schlüssel senden?",
+    post_quantum_downgrade_message: "{{recipients}} veröffentlicht post-quantensichere Schlüssel, aber das für diese Nachricht gelieferte Schlüsselpaket enthält keine. Das kann an einem Serverproblem liegen oder an einer Manipulation der Schlüsselabfrage. Um den post-quantensicheren Schutz zu behalten, brechen Sie ab und versuchen Sie es später erneut.",
     post_quantum_unavailable_message:
       "{{recipients}} hat noch keine post-quantensicheren Schlüssel veröffentlicht, daher kann diese Nachricht nur die normale Ende-zu-Ende-Verschlüsselung verwenden. Bitten Sie die Person, Aster zu öffnen oder ihre App zu aktualisieren.",
     too_many_attachments:

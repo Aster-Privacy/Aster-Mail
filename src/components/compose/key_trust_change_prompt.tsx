@@ -22,67 +22,68 @@ import { useEffect, useRef, useState } from "react";
 
 import { ConfirmModal } from "@/components/email/inbox/inbox_confirmation_dialog";
 import { use_i18n } from "@/lib/i18n/context";
-import { set_post_quantum_prompt_handler } from "@/services/post_quantum_consent";
+import { format_fingerprint } from "@/services/api/keys";
+import {
+  set_key_trust_prompt_handler,
+  type KeyFingerprintChange,
+} from "@/services/key_trust_consent";
 
-interface PromptState {
-  recipients: string[];
-  downgraded: string[];
-}
-
-export function PostQuantumSendPrompt(): React.ReactElement {
+export function KeyTrustChangePrompt(): React.ReactElement {
   const { t } = use_i18n();
-  const [state, set_state] = useState<PromptState | null>(null);
-  const pending_resolve = useRef<((allow: boolean) => void) | null>(null);
+  const [changes, set_changes] = useState<KeyFingerprintChange[] | null>(null);
+  const pending_resolve = useRef<((trusted: boolean) => void) | null>(null);
 
   useEffect(() => {
-    set_post_quantum_prompt_handler((recipients, downgraded) => {
+    set_key_trust_prompt_handler((pending) => {
       pending_resolve.current?.(false);
 
       return new Promise<boolean>((resolve) => {
         pending_resolve.current = resolve;
-        set_state({ recipients, downgraded });
+        set_changes(pending);
       });
     });
 
     return () => {
-      set_post_quantum_prompt_handler(null);
+      set_key_trust_prompt_handler(null);
     };
   }, []);
 
-  const settle = (allow: boolean) => {
+  const settle = (trusted: boolean) => {
     const resolve = pending_resolve.current;
 
     pending_resolve.current = null;
-    set_state(null);
-    resolve?.(allow);
+    set_changes(null);
+    resolve?.(trusted);
   };
 
-  const downgraded = state?.downgraded ?? [];
-  const is_downgrade = downgraded.length > 0;
+  const pending = changes ?? [];
 
-  const named = is_downgrade ? downgraded : (state?.recipients ?? []);
+  const details = pending
+    .map((change) =>
+      t("common.key_trust_change_detail", {
+        email: change.email,
+        prior: format_fingerprint(change.prior_fingerprint),
+        current: format_fingerprint(change.new_fingerprint),
+      }),
+    )
+    .join(" ");
+
+  const summary = t("common.key_trust_change_message", {
+    recipients: pending.map((change) => change.email).join(", "),
+  });
 
   return (
     <ConfirmModal
       hide_dont_ask
-      confirm_text={t("common.post_quantum_send_anyway")}
+      confirm_text={t("common.key_trust_change_confirm")}
       confirm_variant="destructive"
-      description={t(
-        is_downgrade
-          ? "common.post_quantum_downgrade_message"
-          : "common.post_quantum_unavailable_message",
-        { recipients: named.join(", ") },
-      )}
+      description={`${summary} ${details}`}
       dont_ask={false}
       on_cancel={() => settle(false)}
       on_confirm={() => settle(true)}
       on_dont_ask_change={() => {}}
-      show={state !== null}
-      title={t(
-        is_downgrade
-          ? "common.post_quantum_downgrade_title"
-          : "common.post_quantum_unavailable_title",
-      )}
+      show={changes !== null}
+      title={t("common.key_trust_change_title")}
     />
   );
 }

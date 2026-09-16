@@ -67,6 +67,7 @@ import {
   type RatchetRecipientData,
 } from "./ratchet_types";
 import {
+  bundle_is_downgraded,
   bundle_supports_pq,
   perform_x3dh_sender,
   X3DH_VERSION_LEGACY,
@@ -414,11 +415,16 @@ async function encrypt_for_ratchet_recipient_unlocked(
   }
 }
 
-export async function recipient_supports_post_quantum(
+export type PostQuantumRecipientStatus =
+  | "supported"
+  | "unsupported"
+  | "downgraded";
+
+export async function recipient_post_quantum_status(
   sender_email: string,
   recipient_email: string,
   recipient_username: string,
-): Promise<boolean> {
+): Promise<PostQuantumRecipientStatus> {
   const conversation_id = await derive_conversation_id(
     sender_email,
     recipient_email,
@@ -428,12 +434,28 @@ export async function recipient_supports_post_quantum(
   const bootstrap = existing?.get_bootstrap();
 
   if (bootstrap) {
-    return Boolean(bootstrap.pq_ciphertext);
+    return bootstrap.pq_ciphertext ? "supported" : "unsupported";
   }
 
   const bundle = await fetch_prekey_bundle(recipient_username, recipient_email);
 
-  if (!bundle) return false;
+  if (!bundle) return "unsupported";
 
-  return bundle_supports_pq(bundle);
+  if (bundle_supports_pq(bundle)) return "supported";
+
+  return bundle_is_downgraded(bundle) ? "downgraded" : "unsupported";
+}
+
+export async function recipient_supports_post_quantum(
+  sender_email: string,
+  recipient_email: string,
+  recipient_username: string,
+): Promise<boolean> {
+  const status = await recipient_post_quantum_status(
+    sender_email,
+    recipient_email,
+    recipient_username,
+  );
+
+  return status === "supported";
 }
