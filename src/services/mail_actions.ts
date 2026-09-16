@@ -27,6 +27,7 @@ import {
   send_server_queued_immediately,
 } from "./send_queue";
 import { get_or_create_thread_token } from "./thread_service";
+import { ensure_external_key_trust } from "./key_trust_consent";
 import { ensure_post_quantum_consent } from "./post_quantum_consent";
 
 import { get_aster_footer } from "@/components/compose/compose_shared";
@@ -223,6 +224,17 @@ export async function send_reply(
     }
   }
 
+  const key_trusted = await ensure_external_key_trust([
+    ...recipients,
+    ...(cc ?? []),
+  ]);
+
+  if (!key_trusted) {
+    callbacks.on_cancel?.();
+
+    return { success: false };
+  }
+
   const consent = await ensure_post_quantum_consent(
     [...recipients, ...(cc ?? [])],
     params.sender_email || current_user_email,
@@ -355,6 +367,18 @@ export async function send_forward(
     : `${forwarded_header}${badge_block}${get_aster_footer(undefined, show_aster_branding)}`;
 
   const delay_seconds = Math.max(0, undo_send_delay_ms) / 1000;
+
+  const key_trusted = await ensure_external_key_trust([
+    ...params.recipients,
+    ...(params.cc_recipients ?? []),
+    ...(params.bcc_recipients ?? []),
+  ]);
+
+  if (!key_trusted) {
+    callbacks.on_cancel?.();
+
+    return { success: false };
+  }
 
   const consent = await ensure_post_quantum_consent(
     [

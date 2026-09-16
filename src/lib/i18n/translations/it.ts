@@ -2019,6 +2019,10 @@ export const it = {
     post_quantum_unavailable_title:
       "Inviare senza crittografia post-quantistica?",
     post_quantum_send_anyway: "Invia comunque",
+    key_trust_change_title: "La chiave di crittografia è cambiata",
+    key_trust_change_message: "La chiave di crittografia di {{recipients}} è cambiata dall’ultima ricerca. Verifica la nuova impronta con il destinatario su un altro canale prima di inviare.",
+    key_trust_change_detail: "{{email}}: prima {{prior}}, ora {{current}}.",
+    key_trust_change_confirm: "Considera attendibile la nuova chiave",
     post_quantum_downgrade_title: "Inviare senza le chiavi post-quantistiche previste?",
     post_quantum_downgrade_message: "{{recipients}} pubblica chiavi post-quantistiche, ma il set di chiavi fornito per questo messaggio non ne contiene nessuna. Può dipendere da un problema del server oppure da una manomissione della ricerca delle chiavi. Per mantenere la protezione post-quantistica, annulla e riprova più tardi.",
     post_quantum_unavailable_message:

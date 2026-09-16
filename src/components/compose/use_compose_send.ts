@@ -69,6 +69,7 @@ import {
   execute_external_account_email_send,
   type SendActionContext,
 } from "@/components/compose/compose_send_actions";
+import { ensure_external_key_trust } from "@/services/key_trust_consent";
 import { ensure_post_quantum_consent } from "@/services/post_quantum_consent";
 
 export interface UseComposeSendOptions {
@@ -488,6 +489,15 @@ export function use_compose_send({
       }
 
       if (has_external || email_data.secure_external) {
+        const key_trusted = await ensure_external_key_trust(all_recipients);
+
+        if (!key_trusted) {
+          last_send_time_ref.current = 0;
+          forget_send(send_fingerprint);
+
+          return;
+        }
+
         const external_sent = await execute_external_email_send(
           { ...ctx, confirm_draft_deleted },
           email_data,

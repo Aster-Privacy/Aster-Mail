@@ -2067,6 +2067,10 @@ export const ja = {
       "この受信者が公開している鍵は期限切れか無効なため、エンドツーエンドで暗号化できません。送信中のみ保護されます。",
     post_quantum_unavailable_title: "耐量子暗号なしで送信しますか。",
     post_quantum_send_anyway: "それでも送信",
+    key_trust_change_title: "暗号化鍵が変更されました",
+    key_trust_change_message: "前回の取得以降に {{recipients}} の暗号化鍵が変更されました。送信する前に、別の手段で受信者と新しいフィンガープリントを確認してください。",
+    key_trust_change_detail: "{{email}}：以前は {{prior}}、現在は {{current}}。",
+    key_trust_change_confirm: "新しい鍵を信頼する",
     post_quantum_downgrade_title: "想定される耐量子鍵がない状態で送信しますか。",
     post_quantum_downgrade_message: "{{recipients}} は耐量子鍵を公開していますが、このメッセージ用に取得した鍵バンドルには耐量子鍵が含まれていません。サーバーの問題のほか、鍵の取得が改ざんされた可能性もあります。耐量子保護を維持するには、キャンセルして後でもう一度お試しください。",
     post_quantum_unavailable_message:

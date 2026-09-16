@@ -1876,6 +1876,10 @@ export const zh_CN = {
       "该收件人发布的密钥已过期或无效，因此无法端到端加密。邮件仅在传输过程中受到保护。",
     post_quantum_unavailable_title: "要在不使用后量子加密的情况下发送吗？",
     post_quantum_send_anyway: "仍然发送",
+    key_trust_change_title: "加密密钥已变更",
+    key_trust_change_message: "自上次查询以来，{{recipients}} 的加密密钥已变更。发送前请通过其他渠道与收件人核对新的指纹。",
+    key_trust_change_detail: "{{email}}：原为 {{prior}}，现为 {{current}}。",
+    key_trust_change_confirm: "信任新密钥",
     post_quantum_downgrade_title: "要在缺少预期的后量子密钥的情况下发送吗？",
     post_quantum_downgrade_message: "{{recipients}} 已发布后量子密钥，但本次发送获取到的密钥包中没有任何后量子密钥。这可能是服务器故障，也可能是密钥查询遭到篡改。若要保留后量子保护，请取消并稍后重试。",
     post_quantum_unavailable_message:

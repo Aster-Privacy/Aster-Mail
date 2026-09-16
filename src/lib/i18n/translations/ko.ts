@@ -2035,6 +2035,10 @@ export const ko = {
       "이 받는 사람이 공개한 키가 만료되었거나 유효하지 않아 종단 간 암호화를 할 수 없습니다. 전송 중에만 보호됩니다.",
     post_quantum_unavailable_title: "양자 내성 암호 없이 보낼까요?",
     post_quantum_send_anyway: "그래도 보내기",
+    key_trust_change_title: "암호화 키가 변경됨",
+    key_trust_change_message: "마지막 조회 이후 {{recipients}}의 암호화 키가 바뀜습니다. 보내기 전에 다른 경로로 수신자와 새 지문을 확인하세요.",
+    key_trust_change_detail: "{{email}}: 이전 {{prior}}, 현재 {{current}}.",
+    key_trust_change_confirm: "새 키 신뢰",
     post_quantum_downgrade_title: "예상된 양자 내성 키 없이 보낼까요?",
     post_quantum_downgrade_message: "{{recipients}} 계정은 양자 내성 키를 게시하지만, 이 메시지에 전달된 키 번들에는 양자 내성 키가 없습니다. 서버 문제일 수도 있고 키 조회가 조작되었을 수도 있습니다. 양자 내성 보호를 유지하려면 취소하고 나중에 다시 시도하세요.",
     post_quantum_unavailable_message:

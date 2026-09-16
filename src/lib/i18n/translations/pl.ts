@@ -2020,6 +2020,10 @@ export const pl = {
       "Opublikowany klucz tego odbiorcy wygasł lub jest nieprawidłowy, więc wiadomości nie da się zaszyfrować end-to-end. Zostanie wysłana chroniona tylko w tranzycie.",
     post_quantum_unavailable_title: "Wysłać bez szyfrowania postkwantowego?",
     post_quantum_send_anyway: "Wyślij mimo to",
+    key_trust_change_title: "Klucz szyfrowania się zmienił",
+    key_trust_change_message: "Klucz szyfrowania dla {{recipients}} zmienił się od ostatniego sprawdzenia. Przed wysłaniem potwierdź nowy odcisk klucza z odbiorcą innym kanałem.",
+    key_trust_change_detail: "{{email}}: było {{prior}}, jest {{current}}.",
+    key_trust_change_confirm: "Zaufaj nowemu kluczowi",
     post_quantum_downgrade_title: "Wysłać bez oczekiwanych kluczy postkwantowych?",
     post_quantum_downgrade_message: "{{recipients}} publikuje klucze postkwantowe, ale zestaw kluczy pobrany dla tej wiadomości nie zawiera żadnego z nich. Przyczyną może być problem serwera albo manipulacja przy pobieraniu kluczy. Aby zachować ochronę postkwantową, anuluj i spróbuj ponownie później.",
     post_quantum_unavailable_message:

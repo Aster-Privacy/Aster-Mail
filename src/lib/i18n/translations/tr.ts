@@ -2004,6 +2004,10 @@ export const tr = {
     post_quantum_unavailable_title:
       "Kuantum sonrası şifreleme olmadan gönderilsin mi?",
     post_quantum_send_anyway: "Yine de gönder",
+    key_trust_change_title: "Şifreleme anahtarı değişti",
+    key_trust_change_message: "{{recipients}} için şifreleme anahtarı son sorgudan bu yana değişti. Göndermeden önce yeni parmak izini alıcıyla başka bir kanaldan doğrulayın.",
+    key_trust_change_detail: "{{email}}: önce {{prior}}, şimdi {{current}}.",
+    key_trust_change_confirm: "Yeni anahtara güven",
     post_quantum_downgrade_title: "Beklenen post-kuantum anahtarları olmadan gönderilsin mi?",
     post_quantum_downgrade_message: "{{recipients}} post-kuantum anahtarları yayımlıyor, ancak bu ileti için alınan anahtar paketinde hiç yok. Bunun nedeni bir sunucu sorunu olabileceği gibi anahtar sorgusunun değiştirilmesi de olabilir. Post-kuantum korumasını sürdürmek için işlemi iptal edin ve daha sonra yeniden deneyin.",
     post_quantum_unavailable_message:

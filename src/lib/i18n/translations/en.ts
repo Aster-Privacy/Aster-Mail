@@ -1228,6 +1228,10 @@ export const en: Translations = {
     post_quantum_unavailable_message:
       "{{recipients}} has not published post-quantum keys yet, so this message can only use standard end-to-end encryption. Ask them to open Aster or update their app to turn post-quantum protection back on.",
     post_quantum_send_anyway: "Send anyway",
+    key_trust_change_title: "Encryption key changed",
+    key_trust_change_message: "The encryption key for {{recipients}} changed since the last lookup. Check the new fingerprint with the recipient over another channel before you send.",
+    key_trust_change_detail: "{{email}}: was {{prior}}, now {{current}}.",
+    key_trust_change_confirm: "Trust new key",
     post_quantum_downgrade_title: "Send without the expected post-quantum keys?",
     post_quantum_downgrade_message: "{{recipients}} publishes post-quantum keys, but the key bundle delivered for this message has none. A server problem can cause this, and so can tampering with the key lookup. To keep post-quantum protection, cancel and try again later.",
     empty_body_error:

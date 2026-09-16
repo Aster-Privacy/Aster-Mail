@@ -2013,6 +2013,10 @@ export const fr = {
       "La clé publiée de ce destinataire est expirée ou invalide : le message ne peut pas être chiffré de bout en bout. Il sera protégé uniquement pendant le transport.",
     post_quantum_unavailable_title: "Envoyer sans chiffrement post-quantique ?",
     post_quantum_send_anyway: "Envoyer quand même",
+    key_trust_change_title: "La clé de chiffrement a changé",
+    key_trust_change_message: "La clé de chiffrement de {{recipients}} a changé depuis la dernière recherche. Vérifiez la nouvelle empreinte avec le destinataire par un autre canal avant d’envoyer.",
+    key_trust_change_detail: "{{email}} : avant {{prior}}, maintenant {{current}}.",
+    key_trust_change_confirm: "Faire confiance à la nouvelle clé",
     post_quantum_downgrade_title: "Envoyer sans les clés post-quantiques attendues ?",
     post_quantum_downgrade_message: "{{recipients}} publie des clés post-quantiques, mais le jeu de clés fourni pour ce message n’en contient aucune. Cela peut venir d’un problème de serveur ou d’une altération de la recherche de clés. Pour conserver la protection post-quantique, annulez et réessayez plus tard.",
     post_quantum_unavailable_message:

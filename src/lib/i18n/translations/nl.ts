@@ -1999,6 +1999,10 @@ export const nl = {
     post_quantum_unavailable_title:
       "Verzenden zonder post-quantumversleuteling?",
     post_quantum_send_anyway: "Toch verzenden",
+    key_trust_change_title: "Versleutelingssleutel gewijzigd",
+    key_trust_change_message: "De versleutelingssleutel van {{recipients}} is sinds de vorige opvraging gewijzigd. Controleer de nieuwe vingerafdruk via een ander kanaal bij de ontvanger voordat u verzendt.",
+    key_trust_change_detail: "{{email}}: was {{prior}}, nu {{current}}.",
+    key_trust_change_confirm: "Nieuwe sleutel vertrouwen",
     post_quantum_downgrade_title: "Verzenden zonder de verwachte post-quantumsleutels?",
     post_quantum_downgrade_message: "{{recipients}} publiceert post-quantumsleutels, maar de sleutelset die voor dit bericht is opgehaald bevat er geen. Dit kan door een serverprobleem komen of door manipulatie van de sleutelopvraging. Annuleer en probeer het later opnieuw om de post-quantumbescherming te behouden.",
     post_quantum_unavailable_message:

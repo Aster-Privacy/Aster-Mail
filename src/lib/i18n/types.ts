@@ -694,6 +694,10 @@ export interface CommonTranslations {
   post_quantum_unavailable_title: string;
   post_quantum_unavailable_message: string;
   post_quantum_send_anyway: string;
+  key_trust_change_title: string;
+  key_trust_change_message: string;
+  key_trust_change_detail: string;
+  key_trust_change_confirm: string;
   post_quantum_downgrade_title: string;
   post_quantum_downgrade_message: string;
   upgrade_tooltip: string;
