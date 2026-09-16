@@ -2580,6 +2580,18 @@ export interface SettingsTranslations {
   bridge_other_formats: string;
   bridge_arch_x64: string;
   bridge_arch_arm64: string;
+  bridge_all_platforms: string;
+  bridge_upgrade_benefit_clients: string;
+  bridge_upgrade_benefit_local: string;
+  bridge_upgrade_benefit_platforms: string;
+  bridge_upgrade_benefit_cli: string;
+  bridge_cli_install_hint_windows: string;
+  bridge_download_started: string;
+  bridge_download_failed: string;
+  bridge_support_help_desc: string;
+  bridge_support_discord_desc: string;
+  bridge_support_reddit_desc: string;
+  bridge_support_github_desc: string;
   bridge_cli_name: string;
   bridge_cli_desc: string;
   bridge_cli_download: string;
