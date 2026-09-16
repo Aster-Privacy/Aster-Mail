@@ -255,6 +255,7 @@ const CLI_VARIANTS: CliVariant[] = [
     download_platform: "cli-linux-x64",
     commands: [
       "tar -xzf aster-bridge-cli-*.tar.gz",
+      "mkdir -p ~/.local/bin",
       "install -m 755 aster-bridge-cli-*/aster-bridge ~/.local/bin/",
     ].join("\n"),
     arch_link: {
