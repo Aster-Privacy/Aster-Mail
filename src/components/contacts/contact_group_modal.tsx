@@ -301,7 +301,6 @@ export function ContactGroupModal({
         <Button
           disabled={!trimmed_name || Boolean(validation_error)}
           is_loading={is_saving}
-          loading_position="before"
           variant="depth"
           onClick={submit}
         >

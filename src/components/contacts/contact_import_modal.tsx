@@ -835,7 +835,6 @@ export function ContactImportModal({
                 <Button
                   disabled={is_importing || selected_contacts.length === 0}
                   is_loading={is_importing}
-                  loading_position="before"
                   variant="depth"
                   onClick={handle_import}
                 >
