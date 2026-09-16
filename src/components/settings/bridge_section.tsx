@@ -443,8 +443,8 @@ function CommandBlock({ commands, copy_label }: CommandBlockProps) {
   }, [copied]);
 
   return (
-    <div className="group relative rounded-lg border border-edge-secondary bg-surf-secondary">
-      <div className="overflow-x-auto px-3.5 py-3 pe-14">
+    <div className="group relative rounded-md bg-surf-secondary">
+      <div className="overflow-x-auto px-3.5 py-3 pe-12">
         <pre className="font-mono text-xs leading-6 text-txt-primary">
           {commands}
         </pre>
@@ -598,17 +598,17 @@ function BridgeCliCard({ is_locked }: BridgeCliCardProps) {
       <div className="mt-3 ps-10">
         <div
           aria-label={t("settings.bridge_all_platforms")}
-          className="inline-flex items-center gap-1"
+          className="flex items-center gap-5 border-b border-edge-secondary"
           role="tablist"
         >
           {CLI_VARIANTS.map((item) => (
             <button
               key={item.id}
               aria-selected={item.id === active_id}
-              className={`rounded-md px-2.5 py-1 text-xs font-medium whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 ${
+              className={`-mb-px border-b-2 pb-2 text-xs font-medium whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 ${
                 item.id === active_id
-                  ? "bg-surf-selected text-txt-primary"
-                  : "text-txt-muted hover:bg-surf-hover hover:text-txt-secondary"
+                  ? "border-current text-brand"
+                  : "border-transparent text-txt-muted hover:text-txt-secondary"
               }`}
               role="tab"
               tabIndex={item.id === active_id ? 0 : -1}
@@ -620,14 +620,14 @@ function BridgeCliCard({ is_locked }: BridgeCliCardProps) {
           ))}
         </div>
 
-        <div className="mt-2">
+        <div className="mt-3">
           <CommandBlock
             commands={variant.commands}
             copy_label={t("settings.bridge_cli_copy_command")}
           />
         </div>
 
-        <p className="mt-2 text-xs leading-relaxed text-txt-muted">
+        <p className="mt-2.5 text-xs leading-relaxed text-txt-muted">
           {t(variant.hint_key)}{" "}
           {variant.arch_link && !is_locked && (
             <>
