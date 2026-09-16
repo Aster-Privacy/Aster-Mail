@@ -69,6 +69,7 @@ type DesktopPlatform = "windows" | "macos" | "linux";
 
 interface FormatLink {
   label_key: TranslationKey;
+  desc_key?: TranslationKey;
   platform: string;
 }
 
@@ -149,6 +150,7 @@ const PLATFORM_CARDS: PlatformCard[] = [
         links: [
           {
             label_key: "settings.bridge_download_msi",
+            desc_key: "settings.bridge_format_msi_desc",
             platform: "windows-msi",
           },
         ],
@@ -177,14 +179,17 @@ const PLATFORM_CARDS: PlatformCard[] = [
         links: [
           {
             label_key: "settings.bridge_linux_deb_link",
+            desc_key: "settings.bridge_format_deb_desc",
             platform: "linux-deb",
           },
           {
             label_key: "settings.bridge_linux_rpm_link",
+            desc_key: "settings.bridge_format_rpm_desc",
             platform: "linux-rpm",
           },
           {
             label_key: "settings.bridge_linux_pacman_link",
+            desc_key: "settings.bridge_format_pacman_desc",
             platform: "linux-pacman",
           },
         ],
@@ -195,14 +200,17 @@ const PLATFORM_CARDS: PlatformCard[] = [
         links: [
           {
             label_key: "settings.bridge_linux_appimage_arm64_link",
+            desc_key: "settings.bridge_format_appimage_desc",
             platform: "linux-appimage-arm64",
           },
           {
             label_key: "settings.bridge_linux_deb_arm64_link",
+            desc_key: "settings.bridge_format_deb_desc",
             platform: "linux-deb-arm64",
           },
           {
             label_key: "settings.bridge_linux_rpm_arm64_link",
+            desc_key: "settings.bridge_format_rpm_desc",
             platform: "linux-rpm-arm64",
           },
         ],
@@ -362,18 +370,16 @@ function DownloadFormatMenu({
     <DropdownMenu>
       <DropdownMenuTrigger asChild disabled={is_locked}>
         <button
-          aria-label={label}
-          className={`aster_btn aster_btn_outline aster_btn_md inline-flex items-center justify-center gap-1 whitespace-nowrap px-2 ${
+          className={`aster_btn aster_btn_outline aster_btn_md inline-flex items-center justify-center gap-1.5 whitespace-nowrap ${
             is_locked ? "opacity-40 cursor-not-allowed" : ""
           }`}
-          title={label}
           type="button"
         >
-          {children}
+          {children ?? label}
           <ChevronDownIcon className="w-3.5 h-3.5 flex-shrink-0" />
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56">
+      <DropdownMenuContent align="end" className="w-72">
         {groups.map((group, group_index) => (
           <div key={group.id}>
             {group_index > 0 && <DropdownMenuSeparator />}
@@ -383,7 +389,11 @@ function DownloadFormatMenu({
               </DropdownMenuLabel>
             )}
             {group.links.map((link) => (
-              <DropdownMenuItem key={link.platform} asChild>
+              <DropdownMenuItem
+                key={link.platform}
+                asChild
+                className="items-start gap-2.5 py-2"
+              >
                 <a
                   href={`${DL}/${link.platform}`}
                   onClick={(event) =>
@@ -395,8 +405,17 @@ function DownloadFormatMenu({
                     )
                   }
                 >
-                  <ArrowDownTrayIcon className="w-4 h-4 text-txt-muted flex-shrink-0" />
-                  {t(link.label_key)}
+                  <ArrowDownTrayIcon className="mt-0.5 w-4 h-4 text-txt-muted flex-shrink-0" />
+                  <span className="min-w-0 flex-1">
+                    <span className="block font-medium text-txt-primary">
+                      {t(link.label_key)}
+                    </span>
+                    {link.desc_key && (
+                      <span className="mt-0.5 block text-xs leading-snug text-txt-muted">
+                        {t(link.desc_key)}
+                      </span>
+                    )}
+                  </span>
                 </a>
               </DropdownMenuItem>
             ))}
