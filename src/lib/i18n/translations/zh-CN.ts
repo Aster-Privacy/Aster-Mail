@@ -5072,6 +5072,12 @@ export const zh_CN = {
     conversation_grouping_confirm_description:
       "关闭对话分组后，每封邮件将作为单独的项目显示在收件箱中，而不是将回复归为一组。这可能会使跟踪邮件线程更加困难。",
     show_message_size: "显示邮件大小",
+    relative_dates: "相对日期",
+    relative_dates_description:
+      "最近邮件显示“今天”和“昨天”，而不是日期",
+    info_relative_dates_title: "相对日期",
+    info_relative_dates_description:
+      "开启后，今天和昨天的邮件显示为“今天”和“昨天”。关闭后，邮件列表、邮件正文和打印内容中始终显示邮件的发送或接收日期和时间。",
     show_alias_indicators: "显示别名标识",
     show_alias_indicators_description: "标记通过您的别名收到的邮件",
     show_message_size_description: "在收件箱列表中显示每封邮件的大小",

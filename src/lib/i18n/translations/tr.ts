@@ -5552,6 +5552,12 @@ export const tr = {
     conversation_grouping: "Görüşme Gruplaması",
     conversation_grouping_confirm_title: "Emin misiniz?",
     show_message_size: "Mesaj Boyutunu Göster",
+    relative_dates: "Göreli tarihler",
+    relative_dates_description:
+      "Son iletilerde tarih yerine Bugün ve Dün gösterilir",
+    info_relative_dates_title: "Göreli tarihler",
+    info_relative_dates_description:
+      "Bu açıkken bugün ve dün gelen iletiler Bugün ve Dün olarak görünür. İletinin gönderildiği veya alındığı tarih ve saatin ileti listesinde, iletide ve yazdırmada her zaman görünmesi için kapatın.",
     show_alias_indicators: "Takma Ad Göstergelerini Göster",
     show_alias_indicators_description:
       "Takma adlarınızdan birine gelen mesajları işaretler",

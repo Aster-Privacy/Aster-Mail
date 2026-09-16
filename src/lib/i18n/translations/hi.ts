@@ -3095,6 +3095,12 @@ export const hi = {
     conversation_grouping_confirm_description:
       "बातचीत का समूहन बंद करने पर जवाब एक साथ दिखने के बजाय हर ईमेल आपके इनबॉक्स में अलग चीज़ के तौर पर दिखेगा। इससे ईमेल की कड़ी समझना मुश्किल हो सकता है।",
     show_message_size: "संदेश का आकार दिखाएं",
+    relative_dates: "सापेक्ष तिथियाँ",
+    relative_dates_description:
+      "हाल के संदेशों पर तिथि के बजाय आज और कल दिखाएँ",
+    info_relative_dates_title: "सापेक्ष तिथियाँ",
+    info_relative_dates_description:
+      "यह चालू होने पर आज और कल के संदेश आज और कल के रूप में दिखते हैं। इसे बंद करने पर संदेश सूची, संदेश और प्रिंट में हमेशा वह तिथि और समय दिखेगा जब संदेश भेजा या प्राप्त हुआ।",
     show_alias_indicators: "एलियास संकेत दिखाएं",
     show_alias_indicators_description:
       "आपके किसी एलियास से आए संदेशों को चिह्नित करें",

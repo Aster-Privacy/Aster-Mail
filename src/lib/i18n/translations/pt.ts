@@ -5619,6 +5619,12 @@ export const pt = {
     conversation_grouping: "Agrupamento de conversas",
     conversation_grouping_confirm_title: "Tem certeza?",
     show_message_size: "Mostrar tamanho da mensagem",
+    relative_dates: "Datas relativas",
+    relative_dates_description:
+      "Mostrar Hoje e Ontem nas mensagens recentes em vez da data",
+    info_relative_dates_title: "Datas relativas",
+    info_relative_dates_description:
+      "Quando está ativado, as mensagens de hoje e de ontem aparecem como Hoje e Ontem. Desative para mostrar sempre a data e a hora em que uma mensagem foi enviada ou recebida, na lista de mensagens, na mensagem e ao imprimir.",
     show_alias_indicators: "Mostrar indicadores de alias",
     show_alias_indicators_description:
       "Marcar mensagens que chegaram através de um dos seus aliases",

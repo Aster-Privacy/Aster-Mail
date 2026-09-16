@@ -293,6 +293,7 @@ export function use_popup_viewer({
   const actions = use_popup_viewer_actions({
     email_id,
     email,
+    timestamp_date,
     mail_item,
     is_read,
     is_pinned,
