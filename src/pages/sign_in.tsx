@@ -289,8 +289,15 @@ export default function SignInPage() {
       let email = "";
       let user_hash = "";
       let response: Awaited<ReturnType<typeof login_user>> | null = null;
+      let attempt_token = captcha_token;
 
       for (const [index, candidate] of candidates.entries()) {
+        if (index > 0 && TURNSTILE_SITE_KEY) {
+          set_status(t("auth.authenticating"));
+          attempt_token = (await turnstile_ref.current?.refresh()) || "";
+
+          if (!attempt_token) break;
+        }
         email = `${clean_username}@${candidate}`;
         user_hash = await hash_email(email);
 
@@ -325,7 +332,7 @@ export default function SignInPage() {
           user_hash,
           password_hash,
           remember_me,
-          captcha_token: captcha_token || undefined,
+          captcha_token: attempt_token || undefined,
           client_platform: import.meta.env.DEV ? "desktop" : undefined,
           is_adding_account,
         });
