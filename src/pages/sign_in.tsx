@@ -357,13 +357,17 @@ export default function SignInPage() {
       let user_hash = "";
       let response: Awaited<ReturnType<typeof login_user>> | null = null;
       let attempt_token = captcha_token;
+      let captcha_refresh_failed = false;
 
       for (const [index, candidate] of candidates.entries()) {
         if (index > 0 && TURNSTILE_SITE_KEY) {
           set_status(t("auth.authenticating"));
           attempt_token = (await turnstile_ref.current?.refresh()) || "";
 
-          if (!attempt_token) break;
+          if (!attempt_token) {
+            captcha_refresh_failed = true;
+            break;
+          }
         }
         email = `${clean_username}@${candidate}`;
         user_hash = await hash_email(email);
@@ -414,6 +418,23 @@ export default function SignInPage() {
           }
           break;
         }
+      }
+
+      if (captcha_refresh_failed) {
+        const elapsed = Date.now() - start_time;
+        const min_time = 1000;
+
+        if (elapsed < min_time) {
+          await new Promise((resolve) =>
+            setTimeout(resolve, min_time - elapsed),
+          );
+        }
+        set_error(t("auth.captcha_load_failed"));
+        set_is_loading(false);
+        set_captcha_token("");
+        turnstile_ref.current?.reset();
+
+        return;
       }
 
       if (!response) {
