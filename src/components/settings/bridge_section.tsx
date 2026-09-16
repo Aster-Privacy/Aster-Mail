@@ -234,7 +234,8 @@ const CLI_VARIANTS: CliVariant[] = [
     download_platform: "cli-windows",
     commands: [
       "Expand-Archive aster-bridge-cli-*.zip -DestinationPath $HOME\\aster-bridge",
-      'setx PATH "$env:PATH;$HOME\\aster-bridge"',
+      "Move-Item $HOME\\aster-bridge\\aster-bridge-cli-*\\aster-bridge.exe $HOME\\aster-bridge",
+      `setx PATH "$([Environment]::GetEnvironmentVariable('PATH','User'));$HOME\\aster-bridge"`,
     ].join("\n"),
   },
   {
