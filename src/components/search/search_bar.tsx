@@ -400,8 +400,13 @@ export function SearchBar({
         "MM/DD/YYYY") as FormatOptions["date_format"],
       time_format: (preferences.time_format ??
         "12h") as FormatOptions["time_format"],
+      relative_dates: preferences.relative_dates !== false,
     }),
-    [preferences.date_format, preferences.time_format],
+    [
+      preferences.date_format,
+      preferences.time_format,
+      preferences.relative_dates,
+    ],
   );
   const is_preview_stale =
     preview_enabled && search_state.results_query !== effective_query;

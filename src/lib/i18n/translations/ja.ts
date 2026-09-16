@@ -5607,6 +5607,12 @@ export const ja = {
     conversation_grouping_confirm_description:
       "会話のグループ化をオフにすると、返信をまとめる代わりに各メールが個別のアイテムとして受信トレイに表示されます。メールのスレッドを追跡しにくくなる場合があります。",
     show_message_size: "メッセージサイズを表示",
+    relative_dates: "相対的な日付",
+    relative_dates_description:
+      "最近のメールに日付ではなく「今日」「昨日」と表示します",
+    info_relative_dates_title: "相対的な日付",
+    info_relative_dates_description:
+      "オンにすると、今日と昨日のメールは「今日」「昨日」と表示されます。オフにすると、メール一覧、メール本文、印刷のいずれでも送受信した日付と時刻が常に表示されます。",
     show_alias_indicators: "エイリアスインジケーターを表示",
     show_alias_indicators_description:
       "エイリアス宛てに届いたメッセージに印を付けます",

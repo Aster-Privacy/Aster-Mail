@@ -3009,6 +3009,12 @@ export const en: Translations = {
     conversation_grouping_confirm_description:
       "Turning off conversation grouping will show each email as a separate item in your inbox instead of grouping replies together. This may make it harder to follow email threads.",
     show_message_size: "Show Message Size",
+    relative_dates: "Relative Dates",
+    relative_dates_description:
+      "Show Today and Yesterday on recent messages instead of the date",
+    info_relative_dates_title: "Relative Dates",
+    info_relative_dates_description:
+      "When this is on, messages from today and yesterday show as Today and Yesterday. Turn it off to always show the date and time a message was sent or received, in the message list, in the message itself, and on printouts.",
     show_alias_indicators: "Show Alias Indicators",
     show_alias_indicators_description:
       "Mark messages that arrived through one of your aliases",

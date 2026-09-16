@@ -3171,6 +3171,10 @@ export interface SettingsTranslations {
   conversation_grouping_confirm_description: string;
   show_message_size: string;
   show_message_size_description: string;
+  relative_dates: string;
+  relative_dates_description: string;
+  info_relative_dates_title: string;
+  info_relative_dates_description: string;
   show_alias_indicators: string;
   show_alias_indicators_description: string;
   force_dark_mode_emails: string;

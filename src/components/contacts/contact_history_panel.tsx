@@ -34,6 +34,7 @@ import { use_search } from "@/hooks/use_search";
 import { normalize_contact_addresses } from "@/utils/contact_mail_search";
 import {
   app_hour12,
+  app_relative_dates,
   app_locale,
   calendar_day_diff,
   get_display_time_zone,
@@ -57,6 +58,15 @@ function format_relative_date(
   const date = new Date(date_string);
   const now = new Date();
   const days = calendar_day_diff(date, now);
+
+  if (!app_relative_dates()) {
+    return date.toLocaleDateString(app_locale(), {
+      year: days < 365 ? undefined : "numeric",
+      month: "short",
+      day: "numeric",
+      timeZone: get_display_time_zone(),
+    });
+  }
 
   if (days === 0) {
     return date.toLocaleTimeString(app_locale(), {

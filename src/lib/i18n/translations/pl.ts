@@ -5756,6 +5756,12 @@ export const pl = {
     conversation_grouping_confirm_description:
       "Wyłączenie grupowania konwersacji spowoduje wyświetlanie każdego e-maila jako osobnego elementu w skrzynce, zamiast grupowania odpowiedzi razem. Może to utrudnić śledzenie wątków e-mailowych.",
     show_message_size: "Pokaż rozmiar wiadomości",
+    relative_dates: "Daty względne",
+    relative_dates_description:
+      "Pokazuj Dzisiaj i Wczoraj przy najnowszych wiadomościach zamiast daty",
+    info_relative_dates_title: "Daty względne",
+    info_relative_dates_description:
+      "Gdy ta opcja jest włączona, wiadomości z dzisiaj i wczoraj są oznaczane jako Dzisiaj i Wczoraj. Wyłącz ją, aby zawsze widzieć datę i godzinę wysłania lub odebrania wiadomości: na liście wiadomości, w samej wiadomości i na wydruku.",
     show_alias_indicators: "Pokaż wskaźniki aliasów",
     show_alias_indicators_description:
       "Oznaczaj wiadomości, które dotarły przez jeden z Twoich aliasów",

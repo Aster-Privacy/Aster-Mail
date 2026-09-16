@@ -4170,6 +4170,12 @@ export const it = {
     conversation_grouping_confirm_description:
       "Disattivare il raggruppamento delle conversazioni mostrerà ogni email come elemento separato nella tua casella di posta invece di raggruppare le risposte. Questo potrebbe rendere più difficile seguire i thread email.",
     show_message_size: "Mostra dimensione messaggio",
+    relative_dates: "Date relative",
+    relative_dates_description:
+      "Mostra Oggi e Ieri sui messaggi recenti anziché la data",
+    info_relative_dates_title: "Date relative",
+    info_relative_dates_description:
+      "Quando questa opzione è attiva, i messaggi di oggi e di ieri vengono mostrati come Oggi e Ieri. Disattivala per mostrare sempre la data e l’ora in cui un messaggio è stato inviato o ricevuto, nell’elenco dei messaggi, nel messaggio e in stampa.",
     show_alias_indicators: "Mostra indicatori alias",
     show_alias_indicators_description:
       "Contrassegna i messaggi arrivati tramite uno dei tuoi alias",

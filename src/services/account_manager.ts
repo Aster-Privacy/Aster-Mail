@@ -608,6 +608,7 @@ const ACCOUNT_SCOPED_LOCAL_KEYS: readonly string[] = [
   "astermail_active_category",
   "astermail_date_format",
   "astermail_time_format",
+  "astermail_relative_dates",
 ];
 
 function clear_account_scoped_local_keys(): void {

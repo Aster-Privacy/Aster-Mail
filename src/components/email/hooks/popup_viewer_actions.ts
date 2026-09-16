@@ -26,6 +26,7 @@ import type {
   EmailPopupViewerProps,
 } from "@/components/email/hooks/popup_viewer_types";
 
+import type { MutableRefObject } from "react";
 import { useCallback } from "react";
 
 import { is_system_email, is_astermail_sender } from "@/lib/utils";
@@ -66,12 +67,17 @@ import { set_forward_mail_id } from "@/services/forward_store";
 import mail_logo_url from "@/assets/mail_logo.webp";
 import { ignore_error } from "@/lib/ignore_error";
 import { open_external } from "@/utils/open_link";
-import { app_locale, get_display_time_zone } from "@/utils/date_format";
+import {
+  app_locale,
+  format_print_timestamp,
+  get_display_time_zone,
+} from "@/utils/date_format";
 import { resolve_reply_references } from "@/lib/reply_references";
 
 export interface PopupActionsDeps {
   email_id: string | null;
   email: DecryptedEmail | null;
+  timestamp_date: MutableRefObject<Date | null>;
   mail_item: MailItem | null;
   is_read: boolean;
   is_pinned: boolean;
@@ -585,12 +591,15 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
         to: deps.email.to,
         cc: deps.email.cc,
         bcc: deps.email.bcc,
-        timestamp: deps.email.timestamp,
+        timestamp: format_print_timestamp(
+          deps.timestamp_date.current,
+          deps.email.timestamp,
+        ),
         body: deps.email.html_content || deps.email.body,
       },
       deps.t,
     );
-  }, [deps.email, deps.t]);
+  }, [deps.email, deps.timestamp_date, deps.t]);
 
   const handle_unsubscribe = useCallback(
     async (

@@ -298,8 +298,13 @@ export function use_category_inbox(
     () => ({
       date_format: preferences.date_format as FormatOptions["date_format"],
       time_format: preferences.time_format,
+      relative_dates: preferences.relative_dates !== false,
     }),
-    [preferences.date_format, preferences.time_format],
+    [
+      preferences.date_format,
+      preferences.time_format,
+      preferences.relative_dates,
+    ],
   );
 
   const [state, set_state] = useState<EmailListState>(EMPTY_STATE);
