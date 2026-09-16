@@ -114,16 +114,13 @@ const terminal_icon = (
     className="w-5 h-5 flex-shrink-0"
     fill="none"
     stroke="currentColor"
-    strokeWidth={1.8}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    strokeWidth={1.9}
     viewBox="0 0 24 24"
   >
-    <rect height="16" rx="2.5" width="20" x="2" y="4" />
-    <path
-      d="M6.5 9.5l3 2.5-3 2.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <path d="M12.5 15h5" strokeLinecap="round" />
+    <path d="M4 6.5L9.5 12 4 17.5" />
+    <path d="M12.5 17.5H20" />
   </svg>
 );
 
@@ -462,11 +459,11 @@ function CommandBlock({
 
   return (
     <div className="overflow-hidden rounded-xl border border-edge-secondary bg-surf-secondary">
-      <div className="flex items-center justify-between gap-3 border-b border-edge-secondary py-1.5 ps-1.5 pe-1.5">
+      <div className="flex items-stretch justify-between gap-3 border-b border-edge-secondary pe-1.5">
         <div className="min-w-0 overflow-x-auto">{header}</div>
         <button
           aria-label={copy_label}
-          className="aster_btn aster_btn_ghost aster_btn_sm inline-flex flex-shrink-0 items-center gap-1.5 text-xs font-medium"
+          className="aster_btn aster_btn_ghost aster_btn_sm my-1.5 inline-flex flex-shrink-0 items-center gap-1.5 self-center text-xs font-medium"
           type="button"
           onClick={copy_command}
         >
@@ -606,17 +603,17 @@ function BridgeCliCard({ is_locked }: BridgeCliCardProps) {
   const platform_tabs = (
     <div
       aria-label={t("settings.bridge_all_platforms")}
-      className="flex items-center gap-0.5"
+      className="flex items-stretch gap-4 px-3"
       role="tablist"
     >
       {CLI_VARIANTS.map((item) => (
         <button
           key={item.id}
           aria-selected={item.id === active_id}
-          className={`whitespace-nowrap rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
+          className={`-mb-px whitespace-nowrap border-b-2 py-2 text-xs font-medium transition-colors ${
             item.id === active_id
-              ? "bg-blue-100 text-brand"
-              : "text-txt-muted hover:bg-surf-hover hover:text-txt-primary"
+              ? "border-brand text-txt-primary"
+              : "border-transparent text-txt-muted hover:text-txt-primary"
           }`}
           role="tab"
           type="button"
