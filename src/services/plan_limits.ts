@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { get_subscription } from "@/services/api/billing";
+import { get_account_limit } from "@/services/api/switch";
 
 export const UNLIMITED_ACCOUNTS = -1;
 
@@ -77,6 +78,38 @@ export function max_accounts_for_plan(plan_code: string | null): number {
   if (!plan_code) return DEFAULT_LIMIT;
 
   return ACCOUNT_LIMITS[plan_code.toLowerCase()] ?? DEFAULT_LIMIT;
+}
+
+async function server_account_limit(): Promise<number | null> {
+  try {
+    const response = await get_account_limit();
+
+    if (response.data && response.data.max_accounts !== 0) {
+      return response.data.max_accounts;
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
+}
+
+export async function resolve_known_max_accounts(): Promise<number | null> {
+  const from_server = await server_account_limit();
+
+  if (from_server !== null) return from_server;
+
+  try {
+    const plan_code = await get_current_plan_code();
+
+    return plan_code ? max_accounts_for_plan(plan_code) : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function resolve_max_accounts(): Promise<number> {
+  return (await resolve_known_max_accounts()) ?? max_accounts_for_plan(null);
 }
 
 export function clear_plan_cache(): void {
