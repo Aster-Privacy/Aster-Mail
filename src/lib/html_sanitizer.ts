@@ -266,6 +266,25 @@ export interface SanitizeOptions {
   lockdown_mode?: boolean;
 }
 
+export function degraded_text_html(html: string): string {
+  const text =
+    typeof html === "string"
+      ? html
+          .replace(/<style[\s\S]*?<\/style\s*>/gi, " ")
+          .replace(/<style\b[^>]*>[\s\S]*/gi, " ")
+          .replace(/<script[\s\S]*?<\/script\s*>/gi, " ")
+          .replace(/<script\b[^>]*>[\s\S]*/gi, " ")
+          .replace(/<[^>]*>/g, " ")
+          .replace(/\s+/g, " ")
+          .trim()
+      : "";
+
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
 export function sanitize_html(
   html: string,
   options: SanitizeOptions = {},
@@ -282,19 +301,11 @@ export function sanitize_html(
       blocked_items: [],
       cleaned_links: [],
     };
-    const text =
-      typeof html === "string"
-        ? html
-            .replace(/<[^>]*>/g, " ")
-            .replace(/\s+/g, " ")
-            .trim()
-        : "";
-    const escaped = text
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;");
 
-    return { html: escaped, external_content: fallback_report };
+    return {
+      html: degraded_text_html(html),
+      external_content: fallback_report,
+    };
   }
 }
 
@@ -679,6 +690,15 @@ function sanitize_html_impl(
   const MAX_SANITIZE_DEPTH = 1000;
   const sanitize_node = (node: Node, depth = 0): Node | null => {
     if (depth > MAX_SANITIZE_DEPTH) {
+      const tag_name =
+        node.nodeType === Node.ELEMENT_NODE
+          ? (node as Element).tagName.toLowerCase()
+          : "";
+
+      if (tag_name === "style" || tag_name === "script") {
+        return null;
+      }
+
       const text = node.textContent || "";
 
       return text ? document.createTextNode(text) : null;
