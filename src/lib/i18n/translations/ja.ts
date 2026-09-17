@@ -1307,6 +1307,7 @@ export const ja = {
     emoji_activities: "アクティビティ",
     emoji_flags: "旗",
     no_emojis_found: "絵文字が見つかりません",
+    emoji_recent: "最近使った絵文字",
     item_copied: "{{ label }}をコピーしました",
     copied_item: "{{ label }}をコピーしました",
     blocked_email: "{{ email }}をブロックしました",
@@ -4259,6 +4260,12 @@ export const ja = {
     compose_default_font_color_picker_label: "デフォルトの文字色を選択",
     compose_default_font_color_theme: "テーマのデフォルト",
     compose_default_font_color_reset: "テーマのデフォルトを使用",
+    reply_defaults_title: "返信",
+    reply_defaults_description: "新しい返信の開始内容を選択します。",
+    reply_include_quoted: "引用文を含める",
+    reply_include_quoted_description: "すべての返信が、入力欄の下に引用された元のメッセージで始まります。",
+    reply_prefix_subject: "件名に Re: を追加",
+    reply_prefix_subject_description: "返信するときに元の件名の前に Re: を付けます。",
     build_info: "ビルド情報",
     release: "リリース",
     build: "ビルド",
@@ -8042,6 +8049,7 @@ export const ja = {
     already_reacted: "すでにこのリアクションを送信済みです",
     remove_your_reaction: "{emoji} のリアクションを削除",
     you_reacted_with: "{{emoji}} でリアクションしました",
+    you_reacted_with_remove: "{{emoji}} でリアクションしました。クリックすると削除します。",
     reacted_with: "{{name}} が {{emoji}} でリアクションしました",
     forward: "転送",
     to: "宛先",
@@ -9565,6 +9573,7 @@ export const ja = {
     cannot_react_bcc: "BCCで受け取ったメッセージにはリアクションできません。",
     cannot_react_too_many_emojis:
       "このメッセージのリアクションは上限に達しています。",
+    cannot_react_limit: "1 件のメッセージに追加できるリアクションは 2 件までです。別のリアクションを追加するには、いずれかを削除してください。",
     cannot_react_no_recipient:
       "このメッセージには、リアクションの送信先となる送信者がいません。",
     failed_send_reaction:

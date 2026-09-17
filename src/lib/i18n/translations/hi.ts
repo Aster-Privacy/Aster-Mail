@@ -1324,6 +1324,7 @@ export const hi = {
     emoji_activities: "गतिविधियां",
     emoji_flags: "झंडे",
     no_emojis_found: "कोई इमोजी नहीं मिली",
+    emoji_recent: "हाल में उपयोग किए गए",
     item_copied: "{{ label }} कॉपी हो गया",
     copied_item: "{{ label }} कॉपी हो गया",
     blocked_email: "{{ email }} ब्लॉक कर दिया गया",
@@ -3302,6 +3303,12 @@ export const hi = {
     compose_default_font_color_picker_label: "डिफ़ॉल्ट पाठ रंग चुनें",
     compose_default_font_color_theme: "थीम डिफ़ॉल्ट",
     compose_default_font_color_reset: "थीम डिफ़ॉल्ट इस्तेमाल करें",
+    reply_defaults_title: "उत्तर",
+    reply_defaults_description: "चुनें कि नया उत्तर किससे शुरू हो।",
+    reply_include_quoted: "उद्धृत टेक्स्ट शामिल करें",
+    reply_include_quoted_description: "हर उत्तर आपके टेक्स्ट के नीचे उद्धृत मूल संदेश से शुरू होता है।",
+    reply_prefix_subject: "विषय में Re: जोड़ें",
+    reply_prefix_subject_description: "उत्तर देने पर मूल विषय से पहले Re: लगाता है।",
     build_info: "बिल्ड की जानकारी",
     release: "छोड़ें",
     build: "बिल्ड",
@@ -7915,6 +7922,7 @@ export const hi = {
     already_reacted: "आप इससे पहले ही प्रतिक्रिया दे चुके हैं",
     remove_your_reaction: "अपनी {emoji} प्रतिक्रिया हटाएं",
     you_reacted_with: "आपने {{emoji}} से प्रतिक्रिया दी",
+    you_reacted_with_remove: "आपने {{emoji}} से प्रतिक्रिया दी। हटाने के लिए क्लिक करें।",
     reacted_with: "{{name}} ने {{emoji}} से प्रतिक्रिया दी",
     reply_subject_prefix: "Re:",
     reply_from_mismatch_title: "किसी दूसरे पते से जवाब दें?",
@@ -9464,6 +9472,7 @@ export const hi = {
       "जिस संदेश में आप BCC में थे, उस पर आप प्रतिक्रिया नहीं दे सकते।",
     cannot_react_too_many_emojis:
       "इस संदेश पर पहले से अधिकतम संख्या में प्रतिक्रियाएं हैं।",
+    cannot_react_limit: "आप एक संदेश में अधिकतम दो प्रतिक्रियाएँ जोड़ सकते हैं। दूसरी जोड़ने के लिए अपनी एक हटाएँ।",
     cannot_react_no_recipient:
       "इस संदेश का कोई प्रेषक नहीं है जिसे प्रतिक्रिया भेजी जा सके।",
     failed_send_reaction:

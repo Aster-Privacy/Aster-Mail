@@ -22,8 +22,8 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { EnvelopeIcon, NoSymbolIcon } from "@heroicons/react/24/outline";
-import { Button } from "@/components/ui/button";
 
+import { Button } from "@/components/ui/button";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { Sidebar } from "@/components/layout/sidebar";
 import { ComposeManager } from "@/components/compose/compose_manager";
@@ -214,15 +214,12 @@ export default function EmailDetailPage() {
               error={detail.error}
               handle_edit_thread_draft={detail.handle_edit_thread_draft}
               handle_per_message_archive={detail.handle_per_message_archive}
-              handle_per_message_forward={detail.handle_per_message_forward}
               handle_per_message_not_spam={
                 detail.mail_item?.is_spam
                   ? detail.handle_per_message_not_spam
                   : undefined
               }
               handle_per_message_print={detail.handle_per_message_print}
-              handle_per_message_reply={detail.handle_per_message_reply}
-              handle_per_message_reply_all={detail.handle_per_message_reply_all}
               handle_per_message_report_phishing={(msg) =>
                 request_spam(() =>
                   detail.handle_per_message_report_phishing(msg),

@@ -367,6 +367,41 @@ export function BehaviorSection({
           />
         </SettingsGroup>
 
+        <SettingsGroup title={t("settings.reply_defaults_title")}>
+          <SettingsRow
+            description={t("settings.reply_include_quoted_description")}
+            label={t("settings.reply_include_quoted")}
+            trailing={
+              <Switch
+                checked={preferences.reply_include_quoted !== false}
+                onCheckedChange={() =>
+                  update_preference(
+                    "reply_include_quoted",
+                    preferences.reply_include_quoted === false,
+                    true,
+                  )
+                }
+              />
+            }
+          />
+          <SettingsRow
+            description={t("settings.reply_prefix_subject_description")}
+            label={t("settings.reply_prefix_subject")}
+            trailing={
+              <Switch
+                checked={preferences.reply_prefix_subject !== false}
+                onCheckedChange={() =>
+                  update_preference(
+                    "reply_prefix_subject",
+                    preferences.reply_prefix_subject === false,
+                    true,
+                  )
+                }
+              />
+            }
+          />
+        </SettingsGroup>
+
         <SettingsGroup title={t("settings.reading_and_conversations")}>
           <SettingsRow
             label={t("settings.conversation_grouping")}

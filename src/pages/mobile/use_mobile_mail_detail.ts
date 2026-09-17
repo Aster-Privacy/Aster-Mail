@@ -48,6 +48,10 @@ import { use_snooze } from "@/hooks/use_snooze";
 import { use_i18n } from "@/lib/i18n/context";
 import { build_reply_subject } from "@/lib/reply_subject";
 import {
+  reply_includes_quoted_by_default,
+  resolve_reply_prefix,
+} from "@/lib/reply_defaults";
+import {
   is_lockdown_enabled,
   LOCKDOWN_CHANGED_EVENT,
 } from "@/services/lockdown_store";
@@ -534,10 +538,14 @@ export function use_mobile_mail_detail() {
               date: new Date(msg.timestamp).toLocaleString(app_locale()),
               name: msg.display_sender_name || msg.sender_name,
             });
-      const quoted = `\n\n${quote_header}\n${body
-        .split("\n")
-        .map((l) => "> " + l)
-        .join("\n")}`;
+      const include_quoted =
+        mode === "forward" || reply_includes_quoted_by_default();
+      const quoted = include_quoted
+        ? `\n\n${quote_header}\n${body
+            .split("\n")
+            .map((l) => "> " + l)
+            .join("\n")}`
+        : "";
       const rfc_message_id = resolve_reply_references(
         msg,
         detail.thread_messages,
@@ -605,7 +613,7 @@ export function use_mobile_mail_detail() {
               bcc_recipients: [],
               subject: build_reply_subject(
                 subject,
-                t("mail.reply_subject_prefix"),
+                resolve_reply_prefix(t("mail.reply_subject_prefix")),
               ),
               message: message_with_footer,
               draft_type: "reply",
