@@ -104,6 +104,8 @@ export interface UserPreferences {
   mark_as_read_delay: "immediate" | "1_second" | "3_seconds" | "never";
   reading_pane_position: "right" | "bottom" | "hidden";
   default_reply_behavior: "reply" | "reply_all";
+  reply_include_quoted: boolean;
+  reply_prefix_subject: boolean;
   load_remote_images: "always" | "ask" | "never";
   block_external_content: boolean;
   external_content_blocking_mode: "trackers" | "images" | "both";
@@ -493,6 +495,8 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   default_send_mode: "Send",
   undo_send_period: "10 seconds",
   undo_send_enabled: true,
+  reply_include_quoted: true,
+  reply_prefix_subject: true,
   undo_send_seconds: 10,
   auto_advance: "Go to next message",
   smart_reply: true,

@@ -1224,6 +1224,7 @@ export const nl = {
     emoji_activities: "Activiteiten",
     emoji_flags: "Vlaggen",
     no_emojis_found: "Geen emoji's gevonden",
+    emoji_recent: "Onlangs gebruikt",
     item_copied: "{{ label }} gekopieerd",
     copied_item: "{{ label }} gekopieerd",
     blocked_email: "{{ email }} geblokkeerd",
@@ -5573,6 +5574,12 @@ export const nl = {
     compose_default_font_color_picker_label: "Kies een standaardtekstkleur",
     compose_default_font_color_theme: "Standaard van thema",
     compose_default_font_color_reset: "Standaard van thema gebruiken",
+    reply_defaults_title: "Antwoorden",
+    reply_defaults_description: "Kies waarmee een nieuw antwoord begint.",
+    reply_include_quoted: "Geciteerde tekst toevoegen",
+    reply_include_quoted_description: "Elk antwoord begint met het originele bericht geciteerd onder je tekst.",
+    reply_prefix_subject: "Re: aan het onderwerp toevoegen",
+    reply_prefix_subject_description: "Zet Re: voor het originele onderwerp wanneer je antwoordt.",
     change_plan: "Abonnement wijzigen",
     change_plan_description:
       "Upgrade of downgrade je abonnement via het factureringsportaal",
@@ -8090,6 +8097,7 @@ export const nl = {
     already_reacted: "Je hebt hier al mee gereageerd",
     remove_your_reaction: "Je {emoji}-reactie verwijderen",
     you_reacted_with: "Je hebt gereageerd met {{emoji}}",
+    you_reacted_with_remove: "Je hebt gereageerd met {{emoji}}. Klik om te verwijderen.",
     reacted_with: "{{name}} heeft gereageerd met {{emoji}}",
     forward: "Doorsturen",
     to: "Aan",
@@ -9627,6 +9635,7 @@ export const nl = {
       "Je kunt niet reageren op een bericht waarin je in de Bcc stond.",
     cannot_react_too_many_emojis:
       "Dit bericht heeft al het maximale aantal reacties.",
+    cannot_react_limit: "Je kunt maximaal twee reacties aan een bericht toevoegen. Verwijder er een om een andere toe te voegen.",
     cannot_react_no_recipient:
       "Dit bericht heeft geen afzender om de reactie naar te sturen.",
     failed_send_reaction:
