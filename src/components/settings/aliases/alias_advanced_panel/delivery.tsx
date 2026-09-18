@@ -272,10 +272,10 @@ export function DeliveryPanel({
 
     const update: AliasDeliveryUpdate =
       next === DELIVERY_ARCHIVE_VALUE
-        ? { never_inbox: true, delivery_folder_token: null }
+        ? { never_inbox: true }
         : next === DELIVERY_INBOX_VALUE
-          ? { never_inbox: false, delivery_folder_token: null }
-          : { never_inbox: false, delivery_folder_token: next };
+          ? { never_inbox: false }
+          : { delivery_folder_token: next };
 
     const response = await on_save(update);
 

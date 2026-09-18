@@ -7149,7 +7149,7 @@ export const en: Translations = {
     alias_delivery_title: "Delivery",
     alias_delivery_folder: "Deliver to",
     alias_delivery_folder_desc:
-      "Choose where mail to this alias lands. Inbox is the default.",
+      "Mail sent to this alias goes to the folder you pick. Inbox is the default.",
     alias_delivery_folder_info:
       "Mail sent to this alias goes straight to the folder you pick, with no rule needed. A rule that matches the message still wins, so it lands in that folder instead.",
     alias_delivery_folder_error:
