@@ -58,7 +58,10 @@ interface TurnstileWidgetProps {
 
 export interface TurnstileWidgetRef {
   reset: () => void;
+  refresh: () => Promise<string>;
 }
+
+const REFRESH_TIMEOUT_MS = 15000;
 
 declare global {
   interface Window {
@@ -152,6 +155,7 @@ export const TurnstileWidget = forwardRef<
   const widget_id_ref = useRef<string | null>(null);
   const on_verify_ref = useRef(on_verify);
   const on_expire_ref = useRef(on_expire);
+  const pending_ref = useRef<((token: string) => void) | null>(null);
   const [attempt, set_attempt] = useState(0);
   const [failed, set_failed] = useState(false);
   const { theme } = useTheme();
@@ -166,7 +170,29 @@ export const TurnstileWidget = forwardRef<
     }
   }, []);
 
-  useImperativeHandle(ref, () => ({ reset }), [reset]);
+  const refresh = useCallback(() => {
+    if (!TURNSTILE_SITE_KEY || !widget_id_ref.current || !window.turnstile) {
+      return Promise.resolve("");
+    }
+
+    return new Promise<string>((resolve) => {
+      let settled = false;
+      let timer = 0;
+      const finish = (token: string) => {
+        if (settled) return;
+        settled = true;
+        window.clearTimeout(timer);
+        if (pending_ref.current === finish) pending_ref.current = null;
+        resolve(token);
+      };
+
+      timer = window.setTimeout(() => finish(""), REFRESH_TIMEOUT_MS);
+      pending_ref.current = finish;
+      reset();
+    });
+  }, [reset]);
+
+  useImperativeHandle(ref, () => ({ reset, refresh }), [reset, refresh]);
 
   useEffect(() => {
     if (!TURNSTILE_SITE_KEY || !container_ref.current) return;
@@ -197,9 +223,15 @@ export const TurnstileWidget = forwardRef<
           sitekey: TURNSTILE_SITE_KEY,
           theme,
           language: turnstile_language(language),
-          callback: (token: string) => on_verify_ref.current(token),
+          callback: (token: string) => {
+            pending_ref.current?.(token);
+            on_verify_ref.current(token);
+          },
           "expired-callback": () => on_expire_ref.current?.(),
-          "error-callback": () => set_failed(true),
+          "error-callback": () => {
+            pending_ref.current?.("");
+            set_failed(true);
+          },
         });
         set_failed(false);
       } catch {
@@ -210,6 +242,7 @@ export const TurnstileWidget = forwardRef<
     return () => {
       mounted = false;
       window.clearTimeout(timeout);
+      pending_ref.current?.("");
       if (widget_id_ref.current && window.turnstile) {
         window.turnstile.remove(widget_id_ref.current);
         widget_id_ref.current = null;

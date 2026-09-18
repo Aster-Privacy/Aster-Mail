@@ -589,6 +589,7 @@ export function FamilySection({
                   <div className="mb-2">
                     <TurnstileWidget
                       ref={turnstile_invite_ref}
+                      on_expire={() => set_invite_captcha(null)}
                       on_verify={set_invite_captcha}
                     />
                   </div>
@@ -637,6 +638,7 @@ export function FamilySection({
                   <div className="mb-2">
                     <TurnstileWidget
                       ref={turnstile_link_ref}
+                      on_expire={() => set_link_captcha(null)}
                       on_verify={set_link_captcha}
                     />
                   </div>

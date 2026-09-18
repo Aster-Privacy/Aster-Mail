@@ -93,7 +93,7 @@ vi.mock("@/components/folders/folder_password_modal", () => ({
 import { CreateAliasSheet } from "@/components/mobile/mobile_drawer_sheets";
 
 function create_ref() {
-  return { current: { reset: vi.fn() } };
+  return { current: { reset: vi.fn(), refresh: vi.fn(async () => "") } };
 }
 
 function base_props() {
