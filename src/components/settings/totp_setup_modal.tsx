@@ -320,7 +320,9 @@ export function TotpSetupModal({
               variant="secondary"
               onClick={() => {
                 trigger_download(
-                  new Blob([backup_codes.join("\n")], { type: "text/plain" }),
+                  new Blob([backup_codes.join("\n")], {
+                    type: "application/octet-stream",
+                  }),
                   "aster-backup-codes.txt",
                 );
               }}

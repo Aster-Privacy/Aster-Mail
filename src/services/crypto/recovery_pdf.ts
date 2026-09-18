@@ -204,7 +204,7 @@ export async function download_recovery_text(
     return;
   }
 
-  const blob = new Blob([content], { type: "text/plain" });
+  const blob = new Blob([content], { type: "application/octet-stream" });
 
   trigger_download(blob, `astermail-recovery-codes-${Date.now()}.txt`);
 }
@@ -371,7 +371,7 @@ export async function download_recovery_phrase_text(
     return;
   }
 
-  const blob = new Blob([content], { type: "text/plain" });
+  const blob = new Blob([content], { type: "application/octet-stream" });
 
   trigger_download(blob, `astermail-recovery-phrase-${Date.now()}.txt`);
 }

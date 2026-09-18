@@ -238,7 +238,7 @@ export function RegenerateBackupCodesModal({
                   onClick={() => {
                     trigger_download(
                       new Blob([backup_codes.join("\n")], {
-                        type: "text/plain",
+                        type: "application/octet-stream",
                       }),
                       "aster-backup-codes.txt",
                     );
