@@ -21,7 +21,7 @@
 import { readFileSync } from "node:fs";
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { act, useCallback, useState } from "react";
+import { act, useCallback, useEffect, useState } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { MemoryRouter } from "react-router-dom";
 
@@ -100,6 +100,8 @@ function RailHarness() {
   );
 }
 
+const visible_commits: boolean[] = [];
+
 function PanelProbe({
   is_open,
   is_swapping,
@@ -108,6 +110,10 @@ function PanelProbe({
   is_swapping: boolean;
 }) {
   const { is_visible } = use_panel_transition(is_open, is_swapping);
+
+  useEffect(() => {
+    visible_commits.push(is_visible);
+  });
 
   return <div data-testid="probe" data-visible={is_visible ? "1" : "0"} />;
 }
@@ -120,6 +126,7 @@ describe("quick panel swap", () => {
     localStorage.clear();
     contacts_renders.length = 0;
     security_renders.length = 0;
+    visible_commits.length = 0;
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
@@ -159,8 +166,12 @@ describe("quick panel swap", () => {
     const slot = container.querySelector(".quick_panel_slot");
 
     expect(slot?.className).toContain("w-0");
-    expect(slot?.querySelector('[data-testid="contacts_panel"]')).not.toBeNull();
-    expect(slot?.querySelector('[data-testid="security_panel"]')).not.toBeNull();
+    expect(
+      slot?.querySelector('[data-testid="contacts_panel"]'),
+    ).not.toBeNull();
+    expect(
+      slot?.querySelector('[data-testid="security_panel"]'),
+    ).not.toBeNull();
   });
 
   it("keeps exactly one slot width while the panels swap", async () => {
@@ -261,6 +272,26 @@ describe("quick panel swap", () => {
         .querySelector('[data-testid="probe"]')
         ?.getAttribute("data-visible"),
     ).toBe("0");
+  });
+
+  it("never blanks the panel for a frame when it starts closing", async () => {
+    vi.useFakeTimers();
+    await act(async () => {
+      root.render(<PanelProbe is_open is_swapping={false} />);
+    });
+
+    visible_commits.length = 0;
+    await act(async () => {
+      root.render(<PanelProbe is_open={false} is_swapping={false} />);
+    });
+
+    expect(visible_commits).not.toContain(false);
+
+    await act(async () => {
+      vi.advanceTimersByTime(PANEL_TRANSITION_MS);
+    });
+
+    expect(visible_commits.at(-1)).toBe(false);
   });
 
   it("drops a closing panel immediately when the other panel is taking its place", async () => {
