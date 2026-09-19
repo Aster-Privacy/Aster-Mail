@@ -85,6 +85,7 @@ describe("quick contacts panel detail view", () => {
         <MemoryRouter>
           <QuickContactsPanel
             is_open={is_open}
+            is_swapping={false}
             is_top_inset={false}
             on_close={on_close}
             on_compose={() => {}}

@@ -53,8 +53,8 @@ import {
   StarIcon as StarSolidIcon,
 } from "@heroicons/react/24/solid";
 import { Spinner, Tooltip } from "@aster/ui";
-import { Button } from "@/components/ui/button";
 
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -115,6 +115,7 @@ type PanelTab = "contacts" | "groups";
 
 interface QuickContactsPanelProps {
   is_open: boolean;
+  is_swapping: boolean;
   is_top_inset: boolean;
   on_close: () => void;
   on_compose: (address: string) => void;
@@ -214,6 +215,7 @@ function initial_of(contact: DecryptedContact) {
 
 export function QuickContactsPanel({
   is_open,
+  is_swapping,
   is_top_inset,
   on_close,
   on_compose,
@@ -751,7 +753,7 @@ export function QuickContactsPanel({
     visible.every((contact) => selected_ids.has(contact.id));
   const is_selecting = selection_count > 0;
 
-  const { is_visible, is_closing } = use_panel_transition(is_open);
+  const { is_visible, is_closing } = use_panel_transition(is_open, is_swapping);
 
   return (
     <>

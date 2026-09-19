@@ -99,6 +99,7 @@ describe("quick contacts panel groups tab", () => {
         <MemoryRouter>
           <QuickContactsPanel
             is_open
+            is_swapping={false}
             is_top_inset={false}
             on_close={() => {}}
             on_compose={() => {}}

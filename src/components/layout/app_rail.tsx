@@ -72,6 +72,7 @@ function AppRailComponent({
   const [is_hidden, set_is_hidden] = useState(read_hidden);
   const [has_icon, set_has_icon] = useState(true);
   const [has_security_icon, set_has_security_icon] = useState(true);
+  const [is_swapping, set_is_swapping] = useState(false);
 
   const close_contacts = useCallback(() => {
     write_rail_contacts_open(false);
@@ -86,24 +87,42 @@ function AppRailComponent({
   const toggle_contacts = useCallback(() => {
     const next = !is_contacts_open;
 
+    set_is_swapping(next && is_security_open);
     write_rail_contacts_open(next);
     on_contacts_open_change(next);
     if (next) {
       write_rail_security_open(false);
       on_security_open_change(false);
     }
-  }, [is_contacts_open, on_contacts_open_change, on_security_open_change]);
+  }, [
+    is_contacts_open,
+    is_security_open,
+    on_contacts_open_change,
+    on_security_open_change,
+  ]);
 
   const toggle_security = useCallback(() => {
     const next = !is_security_open;
 
+    set_is_swapping(next && is_contacts_open);
     write_rail_security_open(next);
     on_security_open_change(next);
     if (next) {
       write_rail_contacts_open(false);
       on_contacts_open_change(false);
     }
-  }, [is_security_open, on_contacts_open_change, on_security_open_change]);
+  }, [
+    is_contacts_open,
+    is_security_open,
+    on_contacts_open_change,
+    on_security_open_change,
+  ]);
+
+  useEffect(() => {
+    if (!is_swapping) return;
+
+    set_is_swapping(false);
+  }, [is_swapping]);
 
   const handle_icon_error = useCallback(() => {
     set_has_icon(false);
@@ -152,12 +171,14 @@ function AppRailComponent({
     <>
       <QuickContactsPanel
         is_open={is_contacts_open}
+        is_swapping={is_swapping}
         is_top_inset={is_settings_view}
         on_close={close_contacts}
         on_compose={on_compose}
       />
       <QuickSecurityPanel
         is_open={is_security_open}
+        is_swapping={is_swapping}
         is_top_inset={is_settings_view}
         on_close={close_security}
       />

@@ -28,12 +28,18 @@ function prefers_reduced_motion(): boolean {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
-export function use_panel_transition(is_open: boolean): {
+export function use_panel_transition(
+  is_open: boolean,
+  skip_exit: boolean = false,
+): {
   is_visible: boolean;
   is_closing: boolean;
 } {
   const [is_closing, set_is_closing] = useState(false);
   const was_open = useRef(is_open);
+  const skip_exit_ref = useRef(skip_exit);
+
+  skip_exit_ref.current = skip_exit;
 
   useEffect(() => {
     if (was_open.current === is_open) return;
@@ -41,6 +47,12 @@ export function use_panel_transition(is_open: boolean): {
     was_open.current = is_open;
 
     if (is_open) {
+      set_is_closing(false);
+
+      return;
+    }
+
+    if (skip_exit_ref.current) {
       set_is_closing(false);
 
       return;

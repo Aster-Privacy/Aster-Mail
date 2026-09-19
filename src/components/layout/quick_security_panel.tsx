@@ -62,6 +62,7 @@ import { use_panel_transition } from "@/components/layout/use_panel_transition";
 
 interface QuickSecurityPanelProps {
   is_open: boolean;
+  is_swapping: boolean;
   is_top_inset: boolean;
   on_close: () => void;
 }
@@ -129,6 +130,7 @@ function PanelHeading({ label }: { label: string }) {
 
 export function QuickSecurityPanel({
   is_open,
+  is_swapping,
   is_top_inset,
   on_close,
 }: QuickSecurityPanelProps) {
@@ -243,7 +245,7 @@ export function QuickSecurityPanel({
     go_to_settings(SECURITY_CENTER_TARGETS.overview);
   }, [go_to_settings]);
 
-  const { is_visible, is_closing } = use_panel_transition(is_open);
+  const { is_visible, is_closing } = use_panel_transition(is_open, is_swapping);
 
   return (
     <aside

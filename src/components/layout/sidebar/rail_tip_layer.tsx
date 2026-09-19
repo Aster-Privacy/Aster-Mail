@@ -50,7 +50,15 @@ export function RailTipLayer() {
       }
     };
 
+    let attr_observer: MutationObserver | null = null;
+
+    const stop_watching = () => {
+      attr_observer?.disconnect();
+      attr_observer = null;
+    };
+
     const clear_target = () => {
+      stop_watching();
       if (target_ref.current?.getAttribute("aria-describedby") === TIP_ID) {
         target_ref.current.removeAttribute("aria-describedby");
       }
@@ -98,6 +106,18 @@ export function RailTipLayer() {
       });
     };
 
+    const watch_target = (el: HTMLElement) => {
+      stop_watching();
+      if (typeof MutationObserver === "undefined") return;
+      attr_observer = new MutationObserver(() => {
+        if (!el.isConnected || !el.getAttribute("data-rail-tip")) hide();
+      });
+      attr_observer.observe(el, {
+        attributes: true,
+        attributeFilter: ["data-rail-tip"],
+      });
+    };
+
     const target_from = (node: EventTarget | null) =>
       ((node as HTMLElement | null)?.closest?.("[data-rail-tip]") ??
         null) as HTMLElement | null;
@@ -114,6 +134,7 @@ export function RailTipLayer() {
       clear_timer();
       clear_target();
       target_ref.current = el;
+      watch_target(el);
       set_tip(null);
       timer_ref.current = window.setTimeout(() => {
         if (target_ref.current === el && el.isConnected) show_for(el);
@@ -132,6 +153,7 @@ export function RailTipLayer() {
       clear_timer();
       clear_target();
       target_ref.current = el;
+      watch_target(el);
       show_for(el);
     };
 
