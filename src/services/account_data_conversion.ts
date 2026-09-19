@@ -43,6 +43,7 @@ import {
 } from "./crypto/memory_key_store";
 import { zero_uint8_array } from "./crypto/secure_memory";
 import { seal_sent_plaintext } from "./crypto/sent_copy_seal";
+import { write_locked_sent_mail } from "./locked_sent_mail_store";
 
 import { ignore_error } from "@/lib/ignore_error";
 
@@ -61,6 +62,7 @@ export interface ConversionKeys {
   previous_keys: string[];
   passphrase: string;
   passphrase_bytes: Uint8Array;
+  fallback_passphrase_bytes?: Uint8Array[];
 }
 
 interface ListedSentItem {
@@ -188,6 +190,25 @@ function is_attachment_meta_text(text: string): boolean {
   );
 }
 
+async function open_legacy_envelope(
+  encrypted_b64: string,
+  keys: ConversionKeys,
+): Promise<string | null> {
+  for (const passphrase_bytes of [
+    keys.passphrase_bytes,
+    ...(keys.fallback_passphrase_bytes ?? []),
+  ]) {
+    const plaintext = await decrypt_envelope_plaintext_with_bytes(
+      encrypted_b64,
+      passphrase_bytes,
+    );
+
+    if (plaintext !== null) return plaintext;
+  }
+
+  return null;
+}
+
 function keys_still_current(keys: ConversionKeys): boolean {
   return get_vault_from_memory()?.identity_key === keys.identity_key;
 }
@@ -237,10 +258,7 @@ export async function convert_envelope_item(
 
   if (!stored) return "unreadable";
 
-  const plaintext = await decrypt_envelope_plaintext_with_bytes(
-    item.encrypted_envelope,
-    keys.passphrase_bytes,
-  );
+  const plaintext = await open_legacy_envelope(item.encrypted_envelope, keys);
 
   if (plaintext === null || !parse_object(plaintext)) return "unreadable";
 
@@ -276,10 +294,7 @@ async function open_attachment_meta(
 
   if (text && is_attachment_meta_text(text)) return text;
 
-  return decrypt_envelope_plaintext_with_bytes(
-    encrypted_meta,
-    keys.passphrase_bytes,
-  );
+  return open_legacy_envelope(encrypted_meta, keys);
 }
 
 export async function convert_attachment_row(
@@ -521,6 +536,8 @@ async function run_locked(
         await record_account_data_conversion({ sent_mail_done: true });
       }
 
+      write_locked_sent_mail(account_id, 0);
+
       return empty_summary();
     }
 
@@ -531,6 +548,7 @@ async function run_locked(
     if (!complete) return summary;
 
     write_last_scan(account_id, now());
+    write_locked_sent_mail(account_id, summary.unreadable);
 
     if (summary.failed === 0 && summary.unreadable === 0) {
       await record_account_data_conversion({ sent_mail_done: true });
@@ -674,4 +692,61 @@ export async function sent_mail_needs_password_reseal(
   } catch {
     return true;
   }
+}
+
+async function recover_locked(
+  account_id: string,
+  password: string,
+): Promise<ConversionSummary | null> {
+  const capabilities = await get_account_key_capabilities();
+
+  if (!capabilities.data_conversion) return null;
+
+  const status = await get_account_data_conversion();
+
+  if (!status) return null;
+
+  if (!has_remaining(status)) {
+    write_locked_sent_mail(account_id, 0);
+
+    return empty_summary();
+  }
+
+  const keys = capture_keys();
+
+  if (!keys) return null;
+
+  const password_bytes = new TextEncoder().encode(password);
+
+  keys.fallback_passphrase_bytes = [password_bytes];
+
+  try {
+    const { summary, complete } = await convert_sent_mail(status, keys);
+
+    if (!complete) return summary;
+
+    write_locked_sent_mail(account_id, summary.unreadable);
+
+    if (summary.failed === 0 && summary.unreadable === 0) {
+      await record_account_data_conversion({ sent_mail_done: true });
+    }
+
+    return summary;
+  } finally {
+    zero_uint8_array(password_bytes);
+    zero_uint8_array(keys.passphrase_bytes);
+  }
+}
+
+export async function recover_sent_mail_with_password(
+  account_id: string,
+  password: string,
+): Promise<ConversionSummary | null> {
+  if (!account_id || !password) return null;
+
+  const locks = typeof navigator !== "undefined" ? navigator.locks : undefined;
+
+  if (!locks?.request) return recover_locked(account_id, password);
+
+  return locks.request(LOCK_NAME, () => recover_locked(account_id, password));
 }

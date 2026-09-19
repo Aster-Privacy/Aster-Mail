@@ -178,6 +178,7 @@ export interface UserPreferences {
   special_offer_seen: boolean;
   special_offer_dismissed: boolean;
   twin_address_banner_dismissed: boolean;
+  locked_data_banner_dismissed: string;
   biometric_app_lock_enabled: boolean;
   biometric_send_enabled: boolean;
   biometric_settings_enabled: boolean;
@@ -723,6 +724,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   special_offer_seen: false,
   special_offer_dismissed: false,
   twin_address_banner_dismissed: false,
+  locked_data_banner_dismissed: "",
   biometric_app_lock_enabled: false,
   biometric_send_enabled: false,
   biometric_settings_enabled: false,

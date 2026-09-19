@@ -95,26 +95,6 @@ async function harvest_storage_keys(
   return harvested;
 }
 
-export async function count_inactive_key_sets(): Promise<number> {
-  const listed = await list_inactive_key_sets();
-
-  return listed.data?.inactive_key_sets.length ?? 0;
-}
-
-export async function discard_inactive_key_sets(): Promise<number> {
-  const listed = await list_inactive_key_sets();
-  const inactive = listed.data?.inactive_key_sets ?? [];
-  let discarded = 0;
-
-  for (const key_set of inactive) {
-    const consumed = await consume_inactive_key_set(key_set.id);
-
-    if (consumed.data?.success) discarded += 1;
-  }
-
-  return discarded;
-}
-
 export async function restore_inactive_key_sets(
   old_password: string,
 ): Promise<number> {

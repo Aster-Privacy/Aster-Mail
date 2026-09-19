@@ -44,7 +44,6 @@ import { reprotect_vault_keys_for_password_change } from "@/services/crypto/iden
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { show_toast } from "@/components/toast/simple_toast";
-import { RecoverOlderDataSection } from "@/components/settings/security/recover_older_data_section";
 import { use_i18n } from "@/lib/i18n/context";
 import { clamp_password } from "@/services/sanitize";
 import { Spinner } from "@/components/ui/spinner";
@@ -59,7 +58,6 @@ import {
 import {
   store_vault_in_memory,
   get_vault_from_memory,
-  get_passphrase_from_memory,
   is_master_key_vault,
   MASTER_KEY_VAULT_FORMAT,
   get_storage_kdf_version,
@@ -78,6 +76,11 @@ import {
 import { re_encrypt_user_data } from "@/services/crypto/password_change_reencrypt";
 import { reencrypt_identity_scoped_password_change } from "@/services/crypto/recovery_reencrypt";
 import { reencrypt_all_sent_mail } from "@/services/send_queue_encryption";
+import {
+  convert_before_password_change,
+  sent_mail_needs_password_reseal,
+} from "@/services/account_data_conversion";
+import { write_locked_sent_mail } from "@/services/locked_sent_mail_store";
 import { get_totp_status, type TotpStatusResponse } from "@/services/api/totp";
 import {
   get_login_alerts_status,
@@ -140,12 +143,6 @@ export function SecuritySection({
   const [pw_error, set_pw_error] = useState("");
   const [pw_success, set_pw_success] = useState(false);
   const [pw_unreadable_notice, set_pw_unreadable_notice] = useState("");
-  const [show_restore_sent_mail, set_show_restore_sent_mail] = useState(false);
-  const [previous_password, set_previous_password] = useState("");
-  const [restore_loading, set_restore_loading] = useState(false);
-  const [restore_progress, set_restore_progress] = useState(0);
-  const [restore_result, set_restore_result] = useState("");
-  const [restore_error, set_restore_error] = useState("");
   const [pw_breach_warning, set_pw_breach_warning] = useState(false);
   const [logout_others_loading, set_logout_others_loading] = useState(false);
   const [logout_others_result, set_logout_others_result] = useState<{
@@ -388,6 +385,11 @@ export function SecuritySection({
         }
       }
 
+      const sent_mail_conversion = await convert_before_password_change({
+        identity_key: vault.identity_key,
+        passphrase: current_password,
+      });
+
       await upgrade_vault_to_master_key(vault, current_password);
 
       const master_key_mode = is_master_key_vault(vault);
@@ -531,8 +533,17 @@ export function SecuritySection({
         api_client.set_dev_token(res.data.access_token, res.data.refresh_token);
       }
 
-      reencrypt_all_sent_mail(current_password, new_password)
+      sent_mail_needs_password_reseal(sent_mail_conversion)
+        .then((needed) =>
+          needed
+            ? reencrypt_all_sent_mail(current_password, new_password)
+            : null,
+        )
         .then((summary) => {
+          if (!summary) return;
+
+          write_locked_sent_mail(user.id, summary.unreadable);
+
           if (summary.failed > 0) {
             set_pw_unreadable_notice((prev) => {
               const message = t(
@@ -662,61 +673,6 @@ export function SecuritySection({
     { value: 25, label: t("settings.twenty_five_keys") },
     { value: 0, label: t("settings.unlimited") },
   ];
-
-  const handle_restore_sent_mail = async () => {
-    if (!previous_password || restore_loading) return;
-
-    const current = get_passphrase_from_memory();
-
-    set_restore_error("");
-    set_restore_result("");
-    set_restore_progress(0);
-
-    if (!current) {
-      set_restore_error(t("settings.restore_sent_mail_session_expired"));
-
-      return;
-    }
-
-    set_restore_loading(true);
-
-    try {
-      const summary = await reencrypt_all_sent_mail(
-        previous_password,
-        current,
-        {
-          on_progress: (progress) => set_restore_progress(progress.checked),
-        },
-      );
-
-      if (summary.failed > 0) {
-        set_restore_error(t("settings.restore_sent_mail_failed"));
-      }
-
-      if (summary.rewritten === 0 && summary.unreadable === 0) {
-        set_restore_result(t("settings.restore_sent_mail_nothing"));
-      } else {
-        set_restore_result(
-          t("settings.restore_sent_mail_result")
-            .replace("{{rewritten}}", String(summary.rewritten))
-            .replace("{{unreadable}}", String(summary.unreadable)),
-        );
-      }
-
-      if (summary.rewritten > 0) {
-        set_pw_unreadable_notice("");
-        set_previous_password("");
-      }
-    } catch (caught) {
-      ignore_error(
-        "pages/mobile/settings/security_section:handle_restore_sent_mail",
-        caught,
-      );
-      set_restore_error(t("settings.restore_sent_mail_failed"));
-    } finally {
-      set_restore_loading(false);
-    }
-  };
 
   return (
     <div className="flex h-full flex-col">
@@ -979,84 +935,6 @@ export function SecuritySection({
                   {pw_unreadable_notice}
                 </p>
               )}
-              {!show_restore_sent_mail ? (
-                <SettingsRow
-                  description={t("settings.restore_sent_mail_description")}
-                  icon={<KeyIcon className="h-4 w-4" />}
-                  label={t("settings.restore_sent_mail")}
-                  on_press={() => set_show_restore_sent_mail(true)}
-                />
-              ) : (
-                <div className="space-y-3 px-4 py-3">
-                  <p className="text-[13px] text-[var(--text-muted)]">
-                    {t("settings.restore_sent_mail_description")}
-                  </p>
-                  <Input
-                    autoComplete="off"
-                    className="w-full"
-                    disabled={restore_loading}
-                    maxLength={128}
-                    placeholder={t("settings.enter_previous_password")}
-                    status={restore_error ? "error" : "default"}
-                    type="password"
-                    value={previous_password}
-                    onChange={(e) =>
-                      set_previous_password(clamp_password(e.target.value))
-                    }
-                  />
-                  {restore_loading && (
-                    <p className="text-[13px] text-[var(--text-muted)]">
-                      {t("settings.restore_sent_mail_running").replace(
-                        "{{count}}",
-                        String(restore_progress),
-                      )}
-                    </p>
-                  )}
-                  {restore_error && (
-                    <p className="text-[13px] text-[var(--color-danger,#ef4444)]">
-                      {restore_error}
-                    </p>
-                  )}
-                  {restore_result && (
-                    <p className="text-[13px] text-green-500">
-                      {restore_result}
-                    </p>
-                  )}
-                  <div className="flex gap-2">
-                    <button
-                      className="flex-1 rounded-[16px] bg-[var(--bg-tertiary)] py-3 text-[15px] font-medium text-[var(--text-primary)] disabled:opacity-50"
-                      disabled={restore_loading}
-                      type="button"
-                      onClick={() => {
-                        set_show_restore_sent_mail(false);
-                        set_previous_password("");
-                        set_restore_result("");
-                        set_restore_error("");
-                        set_restore_progress(0);
-                      }}
-                    >
-                      {t("common.cancel")}
-                    </button>
-                    <motion.button
-                      className="flex flex-1 items-center justify-center rounded-xl py-3 text-[15px] font-semibold text-white disabled:opacity-50"
-                      disabled={!previous_password || restore_loading}
-                      style={{
-                        background:
-                          "linear-gradient(180deg, var(--accent-mix-w80, #629bf8) 0%, var(--accent-color) 50%, var(--accent-mix-b80, #2f68c5) 100%)",
-                      }}
-                      type="button"
-                      whileTap={{ scale: 0.98 }}
-                      onClick={handle_restore_sent_mail}
-                    >
-                      {restore_loading ? (
-                        <Spinner size="sm" />
-                      ) : (
-                        t("settings.restore_sent_mail")
-                      )}
-                    </motion.button>
-                  </div>
-                </div>
-              )}
             </>
           ) : (
             <div className="space-y-3 px-4 py-3">
@@ -1189,10 +1067,6 @@ export function SecuritySection({
             </div>
           )}
         </SettingsGroup>
-
-        <div className="px-4">
-          <RecoverOlderDataSection />
-        </div>
 
         <SettingsGroup title={t("settings.session_security")}>
           <div className="px-4 py-3">

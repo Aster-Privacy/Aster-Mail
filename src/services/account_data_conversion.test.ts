@@ -111,6 +111,7 @@ vi.mock("./api/attachments", () => ({
 import {
   RESCAN_INTERVAL_MS,
   convert_before_password_change,
+  recover_sent_mail_with_password,
   run_account_data_conversion,
   sent_mail_needs_password_reseal,
   sha256_hex,
@@ -121,6 +122,7 @@ import {
   encrypt_envelope,
 } from "./crypto/envelope";
 import { decrypt_message_verified_with_any_key } from "./crypto/key_manager_pgp_messages";
+import { read_locked_sent_mail } from "./locked_sent_mail_store";
 
 const PASSPHRASE = "current passphrase";
 const SENTINEL = array_to_base64(new Uint8Array([1]));
@@ -685,5 +687,131 @@ describe("legacy reseal after a password change", () => {
     h.status = null;
 
     expect(await sent_mail_needs_password_reseal("complete")).toBe(true);
+  });
+});
+
+describe("recovering sent mail with a previous password", () => {
+  const done = () => status({ remaining_sent: 0, remaining_attachments: 0 });
+
+  async function old_password_item(id: string, data: object) {
+    return {
+      id,
+      encrypted_envelope: await legacy_envelope(data, "previous password"),
+      envelope_nonce: SENTINEL,
+    };
+  }
+
+  it("does nothing without an account id or a password", async () => {
+    expect(
+      await recover_sent_mail_with_password("", "previous password"),
+    ).toBeNull();
+    expect(await recover_sent_mail_with_password("account-1", "")).toBeNull();
+    expect(h.listings).toBe(0);
+  });
+
+  it("does nothing while the server flag is off", async () => {
+    h.capabilities = { format_writes: true, data_conversion: false };
+    h.pages = one_page([await old_password_item("m1", { subject: "x" })]);
+
+    expect(
+      await recover_sent_mail_with_password("account-1", "previous password"),
+    ).toBeNull();
+    expect(h.listings).toBe(0);
+  });
+
+  it("does nothing when the account is locked", async () => {
+    h.passphrase = null;
+    h.pages = one_page([await old_password_item("m1", { subject: "x" })]);
+
+    expect(
+      await recover_sent_mail_with_password("account-1", "previous password"),
+    ).toBeNull();
+    expect(h.sent_writes).toEqual([]);
+  });
+
+  it("clears the locked count when nothing remains", async () => {
+    localStorage.setItem("aster_locked_sent_mail_account-1", "4");
+    h.status = done();
+
+    const summary = await recover_sent_mail_with_password(
+      "account-1",
+      "previous password",
+    );
+
+    expect(summary?.converted).toBe(0);
+    expect(h.listings).toBe(0);
+    expect(read_locked_sent_mail("account-1")).toBe(0);
+  });
+
+  it("opens mail sealed under the previous password and seals it to the account key", async () => {
+    const envelope = { subject: "Sent before the reset", body_text: "héllo" };
+
+    h.pages = one_page([await old_password_item("m1", envelope)]);
+    localStorage.setItem("aster_locked_sent_mail_account-1", "1");
+
+    const summary = await recover_sent_mail_with_password(
+      "account-1",
+      "previous password",
+    );
+
+    expect(summary?.converted).toBe(1);
+    expect(summary?.unreadable).toBe(0);
+    expect(h.sent_writes).toHaveLength(1);
+    expect(await open_sealed(h.sent_writes[0].sealed)).toBe(
+      JSON.stringify(envelope),
+    );
+    expect(read_locked_sent_mail("account-1")).toBe(0);
+    expect(h.progress).toContainEqual({ sent_mail_done: true });
+  });
+
+  it("converts current and previous password mail in one pass", async () => {
+    h.status = status({ remaining_sent: 2 });
+    h.pages = one_page([
+      await legacy_item("m1"),
+      await old_password_item("m2", { subject: "y" }),
+    ]);
+
+    const summary = await recover_sent_mail_with_password(
+      "account-1",
+      "previous password",
+    );
+
+    expect(summary?.converted).toBe(2);
+    expect(h.sent_writes.map((write) => write.id)).toEqual(["m1", "m2"]);
+  });
+
+  it("keeps mail locked when the password does not match", async () => {
+    h.pages = one_page([await old_password_item("m1", { subject: "x" })]);
+
+    const summary = await recover_sent_mail_with_password(
+      "account-1",
+      "wrong password",
+    );
+
+    expect(summary?.converted).toBe(0);
+    expect(summary?.unreadable).toBe(1);
+    expect(h.sent_writes).toEqual([]);
+    expect(read_locked_sent_mail("account-1")).toBe(1);
+    expect(h.progress).not.toContainEqual({ sent_mail_done: true });
+  });
+
+  it("does not record completion when a write fails", async () => {
+    h.write_result = "failed";
+    h.pages = one_page([await old_password_item("m1", { subject: "x" })]);
+
+    await recover_sent_mail_with_password("account-1", "previous password");
+
+    expect(h.progress).not.toContainEqual({ sent_mail_done: true });
+  });
+
+  it("wipes the password and passphrase bytes afterwards", async () => {
+    h.pages = one_page([await old_password_item("m1", { subject: "x" })]);
+
+    await recover_sent_mail_with_password("account-1", "previous password");
+
+    expect(h.handed_out.length).toBeGreaterThan(0);
+    for (const bytes of h.handed_out) {
+      expect(bytes.every((byte) => byte === 0)).toBe(true);
+    }
   });
 });

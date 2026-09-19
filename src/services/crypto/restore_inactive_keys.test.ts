@@ -58,11 +58,7 @@ vi.mock("./vault_write_lock", () => ({
   with_vault_write_lock: (fn: () => Promise<unknown>) => fn(),
 }));
 
-import {
-  count_inactive_key_sets,
-  discard_inactive_key_sets,
-  restore_inactive_key_sets,
-} from "./restore_inactive_keys";
+import { restore_inactive_key_sets } from "./restore_inactive_keys";
 
 function key_set(public_key: string) {
   return {
@@ -298,10 +294,6 @@ describe("restore_inactive_key_sets", () => {
     expect(encrypt_vault).not.toHaveBeenCalled();
   });
 
-  it("reports how many archives are waiting", async () => {
-    expect(await count_inactive_key_sets()).toBe(1);
-  });
-
   it("never evicts the legacy keys the vault already held when harvesting past the cap", async () => {
     const held = Array.from({ length: 16 }, (_, index) => ({
       k: btoa(`held-key-${index}`),
@@ -367,50 +359,5 @@ describe("restore_inactive_key_sets", () => {
 
     expect(saved_keys[0]).toBe("b2xkZXItYWxyZWFkeS1oZWxk");
     expect(saved_keys.indexOf(ARCHIVED_DATA_KEK)).toBeGreaterThan(0);
-  });
-});
-
-describe("discard_inactive_key_sets", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
-  it("consumes every archive without touching the vault", async () => {
-    list_inactive_key_sets.mockResolvedValue({
-      data: {
-        inactive_key_sets: [{ id: "archived-1" }, { id: "archived-2" }],
-      },
-    });
-    consume_inactive_key_set.mockResolvedValue({ data: { success: true } });
-
-    await expect(discard_inactive_key_sets()).resolves.toBe(2);
-
-    expect(consume_inactive_key_set).toHaveBeenCalledWith("archived-1");
-    expect(consume_inactive_key_set).toHaveBeenCalledWith("archived-2");
-    expect(fetch_inactive_key_set).not.toHaveBeenCalled();
-    expect(push_vault_to_server).not.toHaveBeenCalled();
-    expect(store_vault_in_memory).not.toHaveBeenCalled();
-  });
-
-  it("counts only the archives the server confirmed", async () => {
-    list_inactive_key_sets.mockResolvedValue({
-      data: {
-        inactive_key_sets: [{ id: "archived-1" }, { id: "archived-2" }],
-      },
-    });
-    consume_inactive_key_set
-      .mockResolvedValueOnce({ data: { success: true } })
-      .mockResolvedValueOnce({ error: "not found" });
-
-    await expect(discard_inactive_key_sets()).resolves.toBe(1);
-  });
-
-  it("returns zero when nothing is archived", async () => {
-    list_inactive_key_sets.mockResolvedValue({
-      data: { inactive_key_sets: [] },
-    });
-
-    await expect(discard_inactive_key_sets()).resolves.toBe(0);
-    expect(consume_inactive_key_set).not.toHaveBeenCalled();
   });
 });

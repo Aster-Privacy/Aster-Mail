@@ -1415,6 +1415,15 @@ export const en: Translations = {
       "Enable desktop notifications to stay updated on new emails",
     notification_banner_allow: "Allow",
     notification_banner_no_thanks: "No thanks",
+    locked_data_banner_message: "Some of your older encrypted data is locked.",
+    locked_data_banner_action: "Recover data",
+    locked_data_banner_dismiss: "Dismiss",
+    recover_data_title: "Recover data",
+    recover_data_description: "To unlock data from before a password change or reset, enter the password you used at that time.",
+    recover_data_button: "Recover",
+    recover_data_success: "Your older data is unlocked.",
+    recover_data_no_match: "That password didn't unlock any data. Try another previous password.",
+    recover_data_failed: "Some data couldn't be unlocked. Check your connection and try again.",
     payment_past_due_message:
       "Your last payment didn't go through. Update your payment method to keep your plan.",
     payment_past_due_message_days:
@@ -2250,22 +2259,6 @@ export const en: Translations = {
       "Your existing recovery phrase remains valid. Recovery codes replace it going forward.",
     recovery_email_row_moved_hint:
       "Recovery email settings moved to Security > Account Recovery",
-    recover_older_data_title: "Recover older data",
-    recover_older_data_desc:
-      "This account was reset. If you remember the password you used before the reset, your older encrypted data can be unlocked and restored.",
-    recover_older_data_button: "Unlock older data",
-    resurrection_old_password: "Old password",
-    resurrection_old_password_prompt:
-      "Enter the password you used before the reset",
-    resurrection_success:
-      "Your older data is unlocked. Earlier mail and aliases open normally again.",
-    resurrection_failed:
-      "That did not unlock the older data. Check the password or phrase and try again.",
-    discard_older_data_button: "Discard older data",
-    discard_older_data_title: "Discard older data?",
-    discard_older_data_desc: "This permanently removes the option to unlock mail and aliases from before the reset. You cannot undo this.",
-    discard_older_data_success: "Older data discarded.",
-    discard_older_data_failed: "Could not discard the older data. Try again.",
     phrase_wrap_save_failed:
       "Your recovery phrase could not be saved to the server. Try again.",
     general: "General",
@@ -2773,16 +2766,8 @@ export const en: Translations = {
       "Your password changed. {{count}} encrypted items kept their earlier encryption because their key wasn't available. Mail delivery isn't affected. To restore them, contact support.",
     password_change_background_reencrypt_failed:
       "Your password changed, but some of your sent mail and settings did not finish re-encrypting. Contact support if any mail or settings look unreadable.",
-    restore_sent_mail: "Restore sent mail",
-    restore_sent_mail_description: "If sent mail from before a password change won't open, enter the password you used at that time. Aster Mail re-encrypts those copies with your current password.",
     previous_password: "Previous password",
-    enter_previous_password: "Enter the previous password",
-    restore_sent_mail_running: "Checking sent mail... {{count}} checked",
-    restore_sent_mail_result: "{{rewritten}} sent emails now open with your current password. {{unreadable}} still need a different earlier password.",
-    restore_sent_mail_nothing: "Every sent email already opens with your current password.",
-    restore_sent_mail_failed: "Some sent mail could not be updated. Check your connection and try again.",
-    restore_sent_mail_session_expired: "Your session keys are not available. Sign out, sign back in, and try again.",
-    password_change_sent_mail_locked: "Your password changed. {{count}} sent emails were encrypted with an earlier password and did not update. To restore them, open Settings > Security > Restore sent mail.",
+    password_change_sent_mail_locked: "Your password changed. {{count}} sent emails were encrypted with an earlier password and did not update. To unlock them, select Recover data in the banner at the top of your inbox.",
     password_changed_signing_out:
       "Password changed successfully. Signing you out...",
     password_changed_success: "Password changed",

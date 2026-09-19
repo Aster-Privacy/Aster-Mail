@@ -98,6 +98,7 @@ import { ReplyModal } from "@/components/modals/reply_modal";
 import { ForwardModal } from "@/components/modals/forward_modal";
 import { EmailPopupViewer } from "@/components/email/email_popup_viewer";
 import { ScheduledPopupViewer } from "@/components/scheduled/scheduled_popup_viewer";
+import { LockedDataBanner } from "@/components/common/locked_data_banner";
 import { NotificationBanner } from "@/components/common/notification_banner";
 import { PaymentPastDueBanner } from "@/components/common/payment_past_due_banner";
 import { use_payment_past_due } from "@/hooks/use_payment_past_due";
@@ -344,6 +345,7 @@ export default function IndexPage() {
         className="h-screen w-full flex flex-col overflow-hidden"
         style={{ height: "100dvh", backgroundColor: "var(--bg-secondary)" }}
       >
+        <LockedDataBanner />
         {payment_past_due.is_past_due ? (
           <PaymentPastDueBanner state={payment_past_due} />
         ) : (

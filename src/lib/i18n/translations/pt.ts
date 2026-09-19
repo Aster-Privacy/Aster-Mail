@@ -1273,6 +1273,15 @@ export const pt = {
     subject_too_long:
       "Seu assunto ultrapassa o limite de 998 caracteres. Uma versão mais curta vai ser enviada.",
     notification_banner_no_thanks: "Não, obrigado",
+    locked_data_banner_message: "Alguns dos seus dados criptografados mais antigos estão bloqueados.",
+    locked_data_banner_action: "Recuperar dados",
+    locked_data_banner_dismiss: "Dispensar",
+    recover_data_title: "Recuperar dados",
+    recover_data_description: "Para desbloquear dados de antes de uma alteração ou redefinição de senha, digite a senha que você usava na época.",
+    recover_data_button: "Recuperar",
+    recover_data_success: "Seus dados mais antigos foram desbloqueados.",
+    recover_data_no_match: "Essa senha não desbloqueou nenhum dado. Tente outra senha anterior.",
+    recover_data_failed: "Não foi possível desbloquear alguns dados. Verifique sua conexão e tente novamente.",
     payment_past_due_message:
       "Seu último pagamento não foi processado. Atualize sua forma de pagamento para manter seu plano.",
     payment_past_due_message_days:
@@ -2317,22 +2326,6 @@ export const pt = {
       "Sua frase de recuperação existente continua válida. Daqui em diante são usados códigos de recuperação.",
     recovery_email_row_moved_hint:
       "As configurações de e-mail de recuperação foram movidas para Segurança > Recuperação de Conta",
-    recover_older_data_title: "Recuperar dados antigos",
-    recover_older_data_desc:
-      "Esta conta foi redefinida. Se você lembrar da senha que usava antes da redefinição, seus dados criptografados antigos podem ser desbloqueados e restaurados.",
-    recover_older_data_button: "Desbloquear dados antigos",
-    resurrection_old_password: "Senha antiga",
-    resurrection_old_password_prompt:
-      "Digite a senha que você usava antes da redefinição",
-    resurrection_success:
-      "Seus dados antigos estão desbloqueados. As mensagens e os aliases antigos voltam a abrir normalmente.",
-    resurrection_failed:
-      "Isso não desbloqueou os dados antigos. Verifique a senha ou a frase e tente novamente.",
-    discard_older_data_button: "Descartar dados antigos",
-    discard_older_data_title: "Descartar os dados antigos?",
-    discard_older_data_desc: "Isso remove permanentemente a opção de desbloquear e-mails e aliases anteriores à redefinição. Não é possível desfazer.",
-    discard_older_data_success: "Dados antigos descartados.",
-    discard_older_data_failed: "Não foi possível descartar os dados antigos. Tente novamente.",
     phrase_wrap_save_failed:
       "Sua frase de recuperação não pôde ser salva no servidor. Tente novamente.",
     smtp_tokens: "Tokens SMTP",
@@ -4007,16 +4000,8 @@ export const pt = {
       "A tua palavra-passe foi alterada. {{count}} itens encriptados mantiveram a encriptação anterior porque a respetiva chave não estava disponível. A entrega de correio não é afetada. Para os restaurar, contacta o suporte.",
     password_change_background_reencrypt_failed:
       "A tua palavra-passe foi alterada, mas parte do correio enviado e das definições não terminou de ser novamente encriptada. Contacta o suporte se algo aparecer ilegível.",
-    restore_sent_mail: "Restaurar e-mails enviados",
-    restore_sent_mail_description: "Se os e-mails enviados antes de uma alteração de senha não abrirem, digite a senha que você usava na época. O Aster Mail criptografa essas cópias novamente com sua senha atual.",
     previous_password: "Senha anterior",
-    enter_previous_password: "Digite a senha anterior",
-    restore_sent_mail_running: "Verificando e-mails enviados... {{count}} verificados",
-    restore_sent_mail_result: "{{rewritten}} e-mails enviados agora abrem com sua senha atual. {{unreadable}} ainda precisam de outra senha anterior.",
-    restore_sent_mail_nothing: "Todos os e-mails enviados já abrem com sua senha atual.",
-    restore_sent_mail_failed: "Alguns e-mails enviados não puderam ser atualizados. Verifique sua conexão e tente novamente.",
-    restore_sent_mail_session_expired: "As chaves da sua sessão não estão disponíveis. Saia, entre novamente e tente de novo.",
-    password_change_sent_mail_locked: "Sua senha foi alterada. {{count}} e-mails enviados estavam criptografados com uma senha anterior e não foram atualizados. Para restaurá-los, abra Ajustes > Segurança > Restaurar e-mails enviados.",
+    password_change_sent_mail_locked: "Sua senha foi alterada. {{count}} e-mails enviados estavam criptografados com uma senha anterior e não foram atualizados. Para desbloqueá-los, selecione Recuperar dados no banner no topo da sua caixa de entrada.",
     password_changed_signing_out:
       "Senha alterada com sucesso. Desconectando...",
     password_changed_success: "Senha alterada",

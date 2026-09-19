@@ -1385,6 +1385,15 @@ export const pl = {
     subject_too_long:
       "Temat przekracza limit 998 znaków. Krótsza wersja zostanie wysłana.",
     notification_banner_no_thanks: "Nie, dziękuję",
+    locked_data_banner_message: "Część Twoich starszych zaszyfrowanych danych jest zablokowana.",
+    locked_data_banner_action: "Odzyskaj dane",
+    locked_data_banner_dismiss: "Zamknij",
+    recover_data_title: "Odzyskaj dane",
+    recover_data_description: "Aby odblokować dane sprzed zmiany lub zresetowania hasła, wpisz hasło używane w tamtym czasie.",
+    recover_data_button: "Odzyskaj",
+    recover_data_success: "Twoje starsze dane zostały odblokowane.",
+    recover_data_no_match: "To hasło nie odblokowało żadnych danych. Spróbuj innego wcześniejszego hasła.",
+    recover_data_failed: "Nie udało się odblokować części danych. Sprawdź połączenie i spróbuj ponownie.",
     payment_past_due_message:
       "Ostatnia płatność nie powiodła się. Zaktualizuj metodę płatności, aby zachować swój plan.",
     payment_past_due_message_days:
@@ -2463,21 +2472,6 @@ export const pl = {
       "Twoja dotychczasowa fraza odzyskiwania pozostaje ważna. Od teraz używane są kody odzyskiwania.",
     recovery_email_row_moved_hint:
       "Ustawienia e-maila odzyskiwania przeniesiono do Bezpieczeństwo > Odzyskiwanie konta",
-    recover_older_data_title: "Odzyskaj starsze dane",
-    recover_older_data_desc:
-      "To konto zostało zresetowane. Jeśli pamiętasz hasło używane przed resetem, starsze zaszyfrowane dane mogą zostać odblokowane i przywrócone.",
-    recover_older_data_button: "Odblokuj starsze dane",
-    resurrection_old_password: "Stare hasło",
-    resurrection_old_password_prompt: "Wprowadź hasło używane przed resetem",
-    resurrection_success:
-      "Starsze dane zostały odblokowane. Wcześniejsze wiadomości i aliasy znów otwierają się normalnie.",
-    resurrection_failed:
-      "To nie odblokowało starszych danych. Sprawdź hasło lub frazę i spróbuj ponownie.",
-    discard_older_data_button: "Odrzuć starsze dane",
-    discard_older_data_title: "Odrzucić starsze dane?",
-    discard_older_data_desc: "Spowoduje to trwałe usunięcie możliwości odblokowania poczty i aliasów sprzed resetu. Tej operacji nie można cofnąć.",
-    discard_older_data_success: "Starsze dane odrzucone.",
-    discard_older_data_failed: "Nie udało się odrzucić starszych danych. Spróbuj ponownie.",
     phrase_wrap_save_failed:
       "Nie udało się zapisać frazy odzyskiwania na serwerze. Spróbuj ponownie.",
     smtp_tokens: "Tokeny SMTP",
@@ -4157,16 +4151,8 @@ export const pl = {
       "Twoje hasło zostało zmienione. {{count}} zaszyfrowanych elementów zachowało wcześniejsze szyfrowanie, ponieważ ich klucz był niedostępny. Nie ma to wpływu na dostarczanie poczty. Aby je przywrócić, skontaktuj się z pomocą techniczną.",
     password_change_background_reencrypt_failed:
       "Twoje hasło zostało zmienione, ale część wysłanych wiadomości i ustawień nie została ponownie zaszyfrowana. Skontaktuj się z pomocą techniczną, jeśli coś wygląda na nieczytelne.",
-    restore_sent_mail: "Przywróć wysłane wiadomości",
-    restore_sent_mail_description: "Jeśli wysłane wiadomości sprzed zmiany hasła nie otwierają się, wpisz hasło używane w tamtym czasie. Aster Mail ponownie szyfruje te kopie bieżącym hasłem.",
     previous_password: "Poprzednie hasło",
-    enter_previous_password: "Wpisz poprzednie hasło",
-    restore_sent_mail_running: "Sprawdzanie wysłanych wiadomości... sprawdzono: {{count}}",
-    restore_sent_mail_result: "{{rewritten}} wysłanych wiadomości otwiera się teraz bieżącym hasłem. {{unreadable}} nadal wymaga innego wcześniejszego hasła.",
-    restore_sent_mail_nothing: "Wszystkie wysłane wiadomości otwierają się już bieżącym hasłem.",
-    restore_sent_mail_failed: "Nie udało się zaktualizować niektórych wysłanych wiadomości. Sprawdź połączenie i spróbuj ponownie.",
-    restore_sent_mail_session_expired: "Klucze sesji są niedostępne. Wyloguj się, zaloguj ponownie i spróbuj jeszcze raz.",
-    password_change_sent_mail_locked: "Hasło zostało zmienione. {{count}} wysłanych wiadomości było zaszyfrowanych wcześniejszym hasłem i nie zostało zaktualizowanych. Aby je przywrócić, otwórz Ustawienia > Bezpieczeństwo > Przywróć wysłane wiadomości.",
+    password_change_sent_mail_locked: "Hasło zostało zmienione. Wysłane e-maile ({{count}}) były zaszyfrowane wcześniejszym hasłem i nie zostały zaktualizowane. Aby je odblokować, wybierz Odzyskaj dane na banerze u góry skrzynki odbiorczej.",
     password_changed_signing_out: "Hasło zmienione pomyślnie. Wylogowywanie...",
     password_changed_success: "Zmieniono hasło",
     session_security: "Bezpieczeństwo sesji",
