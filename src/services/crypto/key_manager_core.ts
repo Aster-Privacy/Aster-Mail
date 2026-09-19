@@ -111,6 +111,7 @@ export function retain_previous_ratchet_keys(
 export interface EncryptedVault {
   identity_key: string;
   previous_keys?: string[];
+  legacy_identity_keys?: string[];
   signed_prekey: string;
   signed_prekey_private: string;
   recovery_codes: string[];

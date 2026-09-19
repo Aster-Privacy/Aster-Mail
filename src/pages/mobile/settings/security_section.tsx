@@ -40,6 +40,7 @@ import {
   type SettingsSection,
 } from "./shared";
 
+import { reprotect_vault_keys_for_password_change } from "@/services/crypto/identity_key_materials";
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -64,7 +65,6 @@ import {
   get_storage_kdf_version,
 } from "@/services/crypto/memory_key_store";
 import { upgrade_vault_to_master_key } from "@/services/crypto/vault_master_key_upgrade";
-import { reprotect_pgp_key } from "@/services/crypto/key_manager_pgp";
 import { reset_vault_refresh_state } from "@/services/crypto/vault_refresh";
 import {
   derive_kek_from_password,
@@ -379,6 +379,9 @@ export function SecuritySection({
           vault.data_kek = memory_vault?.data_kek;
           vault.vault_format = memory_vault?.vault_format;
           vault.mk_created_at = memory_vault?.mk_created_at;
+          vault.legacy_identity_keys = memory_vault?.legacy_identity_keys
+            ? [...memory_vault.legacy_identity_keys]
+            : vault.legacy_identity_keys;
           vault.legacy_keks = memory_vault?.legacy_keks
             ? [...memory_vault.legacy_keks]
             : vault.legacy_keks;
@@ -395,42 +398,11 @@ export function SecuritySection({
       const old_dev_mode_key_raw =
         await derive_dev_mode_key_raw(old_identity_key);
 
-      const reprotected_identity_key = await reprotect_pgp_key(
-        vault.identity_key,
+      await reprotect_vault_keys_for_password_change(
+        vault,
         current_password,
         new_password,
       );
-
-      const reprotected_previous: string[] = [];
-
-      for (const previous_key of vault.previous_keys ?? []) {
-        try {
-          reprotected_previous.push(
-            await reprotect_pgp_key(
-              previous_key,
-              current_password,
-              new_password,
-            ),
-          );
-        } catch {
-          reprotected_previous.push(previous_key);
-        }
-      }
-      vault.previous_keys = reprotected_previous;
-      vault.previous_keys.unshift(reprotected_identity_key);
-      if (vault.previous_keys.length > 10) {
-        vault.previous_keys = vault.previous_keys.slice(0, 10);
-      }
-
-      vault.identity_key = reprotected_identity_key;
-
-      if (vault.signed_prekey_private) {
-        vault.signed_prekey_private = await reprotect_pgp_key(
-          vault.signed_prekey_private,
-          current_password,
-          new_password,
-        );
-      }
 
       if (!master_key_mode) {
         const old_kek_raw = await derive_kek_from_password(current_password);

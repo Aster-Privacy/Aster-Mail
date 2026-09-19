@@ -408,6 +408,9 @@ export async function store_vault_in_memory(
   vault_in_memory = {
     identity_key: vault.identity_key,
     previous_keys: vault.previous_keys ? [...vault.previous_keys] : [],
+    legacy_identity_keys: vault.legacy_identity_keys
+      ? [...vault.legacy_identity_keys]
+      : undefined,
     signed_prekey: vault.signed_prekey,
     signed_prekey_private: vault.signed_prekey_private,
     recovery_codes: vault.recovery_codes ? [...vault.recovery_codes] : [],
@@ -430,7 +433,10 @@ export async function store_vault_in_memory(
   };
 
   await load_legacy_keks_into_memory(vault.legacy_keks);
-  await load_previous_key_derived_keks_into_memory(vault.previous_keys);
+  await load_previous_key_derived_keks_into_memory([
+    ...(vault.previous_keys ?? []),
+    ...(vault.legacy_identity_keys ?? []),
+  ]);
   request_account_key_load(vault, passphrase);
 
   secure_passphrase = SecureBuffer.from_string(

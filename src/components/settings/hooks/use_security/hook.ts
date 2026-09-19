@@ -27,6 +27,7 @@ import { resolve_password_change_error } from "../password_change_error";
 import { LogoutOthersResponse, SESSION_TIMEOUT_OPTIONS } from "./options";
 import { use_security_fetchers } from "./fetchers";
 
+import { reprotect_vault_keys_for_password_change } from "@/services/crypto/identity_key_materials";
 import { collect_vault_key_fingerprints } from "@/services/crypto/vault_key_fingerprints";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_auth } from "@/contexts/auth_context";
@@ -53,7 +54,6 @@ import {
   encrypt_vault,
   base64_to_array,
 } from "@/services/crypto/key_manager";
-import { reprotect_pgp_key } from "@/services/crypto/key_manager_pgp";
 import {
   derive_kek_from_password,
   serialize_kek_for_vault,
@@ -435,6 +435,9 @@ export function use_security() {
           vault.data_kek = memory_vault?.data_kek;
           vault.vault_format = memory_vault?.vault_format;
           vault.mk_created_at = memory_vault?.mk_created_at;
+          vault.legacy_identity_keys = memory_vault?.legacy_identity_keys
+            ? [...memory_vault.legacy_identity_keys]
+            : vault.legacy_identity_keys;
           vault.legacy_keks = memory_vault?.legacy_keks
             ? [...memory_vault.legacy_keks]
             : vault.legacy_keks;
@@ -472,43 +475,11 @@ export function use_security() {
       const old_dev_mode_key_raw =
         await derive_dev_mode_key_raw(old_identity_key);
 
-      const reprotected_identity_key = await reprotect_pgp_key(
-        vault.identity_key,
+      await reprotect_vault_keys_for_password_change(
+        vault,
         current_password,
         new_password,
       );
-
-      const reprotected_previous: string[] = [];
-
-      for (const previous_key of vault.previous_keys ?? []) {
-        try {
-          reprotected_previous.push(
-            await reprotect_pgp_key(
-              previous_key,
-              current_password,
-              new_password,
-            ),
-          );
-        } catch {
-          reprotected_previous.push(previous_key);
-        }
-      }
-      vault.previous_keys = reprotected_previous;
-      vault.previous_keys.unshift(reprotected_identity_key);
-
-      if (vault.previous_keys.length > 10) {
-        vault.previous_keys = vault.previous_keys.slice(0, 10);
-      }
-
-      vault.identity_key = reprotected_identity_key;
-
-      if (vault.signed_prekey_private) {
-        vault.signed_prekey_private = await reprotect_pgp_key(
-          vault.signed_prekey_private,
-          current_password,
-          new_password,
-        );
-      }
 
       const new_salt = crypto.getRandomValues(new Uint8Array(16));
       const { hash: new_password_hash, salt: new_password_salt } =
