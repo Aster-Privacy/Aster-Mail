@@ -29,6 +29,7 @@ import {
 import { AsterSecurityMark } from "@/components/icons/aster_security_mark";
 import { QuickContactsPanel } from "@/components/layout/quick_contacts_panel";
 import { QuickSecurityPanel } from "@/components/layout/quick_security_panel";
+import { use_panel_transition } from "@/components/layout/use_panel_transition";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
 import {
@@ -124,6 +125,10 @@ function AppRailComponent({
     set_is_swapping(false);
   }, [is_swapping]);
 
+  const { is_visible: is_slot_visible } = use_panel_transition(
+    is_contacts_open || is_security_open,
+  );
+
   const handle_icon_error = useCallback(() => {
     set_has_icon(false);
   }, []);
@@ -169,19 +174,27 @@ function AppRailComponent({
 
   return (
     <>
-      <QuickContactsPanel
-        is_open={is_contacts_open}
-        is_swapping={is_swapping}
-        is_top_inset={is_settings_view}
-        on_close={close_contacts}
-        on_compose={on_compose}
-      />
-      <QuickSecurityPanel
-        is_open={is_security_open}
-        is_swapping={is_swapping}
-        is_top_inset={is_settings_view}
-        on_close={close_security}
-      />
+      <div
+        className={`quick_panel_slot relative flex-shrink-0 ${
+          is_slot_visible
+            ? `mb-1 me-1 w-[min(320px,78vw)] md:mb-2 md:me-2 md:w-[clamp(272px,23vw,320px)] ${
+                is_settings_view ? "mt-1 md:mt-2" : ""
+              }`
+            : "pointer-events-none w-0"
+        }`}
+      >
+        <QuickContactsPanel
+          is_open={is_contacts_open}
+          is_swapping={is_swapping}
+          on_close={close_contacts}
+          on_compose={on_compose}
+        />
+        <QuickSecurityPanel
+          is_open={is_security_open}
+          is_swapping={is_swapping}
+          on_close={close_security}
+        />
+      </div>
       {is_hidden && (
         <button
           aria-label={t("common.expand_sidebar")}

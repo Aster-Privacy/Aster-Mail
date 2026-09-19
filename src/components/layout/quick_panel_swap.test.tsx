@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { readFileSync } from "node:fs";
+
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { act, useCallback, useState } from "react";
 import { createRoot, type Root } from "react-dom/client";
@@ -146,6 +148,56 @@ describe("quick panel swap", () => {
     container
       .querySelector(`[data-testid="${id}"]`)
       ?.getAttribute("data-open") ?? null;
+
+  it("gives both quick panels a single shared layout slot", async () => {
+    await act(async () => {
+      root.render(<RailHarness />);
+    });
+
+    expect(container.querySelectorAll(".quick_panel_slot")).toHaveLength(1);
+
+    const slot = container.querySelector(".quick_panel_slot");
+
+    expect(slot?.className).toContain("w-0");
+    expect(slot?.querySelector('[data-testid="contacts_panel"]')).not.toBeNull();
+    expect(slot?.querySelector('[data-testid="security_panel"]')).not.toBeNull();
+  });
+
+  it("keeps exactly one slot width while the panels swap", async () => {
+    await act(async () => {
+      root.render(<RailHarness />);
+    });
+
+    await click("common.contacts");
+
+    const open_class = container.querySelector(".quick_panel_slot")?.className;
+
+    expect(open_class).not.toContain("w-0");
+
+    await click("common.security_center");
+
+    expect(container.querySelectorAll(".quick_panel_slot")).toHaveLength(1);
+    expect(container.querySelector(".quick_panel_slot")?.className).toBe(
+      open_class,
+    );
+  });
+
+  it("never lets a quick panel size the row itself", () => {
+    for (const file of [
+      "src/components/layout/quick_contacts_panel.tsx",
+      "src/components/layout/quick_security_panel.tsx",
+    ]) {
+      const source = readFileSync(file, "utf8");
+      const root_class = source
+        .split(/\r?\n/)
+        .find((line) => line.includes("className={`quick_"));
+
+      expect(root_class).toBeDefined();
+      expect(root_class).toContain("absolute inset-0");
+      expect(root_class).not.toContain("flex-shrink-0");
+      expect(root_class).not.toContain("w-[");
+    }
+  });
 
   it("marks the rail as swapping when one panel replaces the other", async () => {
     await act(async () => {
