@@ -68,6 +68,10 @@ import {
   save_dev_mode,
 } from "@/services/api/preferences";
 import { reencrypt_all_sent_mail } from "@/services/send_queue_encryption";
+import {
+  convert_before_password_change,
+  sent_mail_needs_password_reseal,
+} from "@/services/account_data_conversion";
 import { re_encrypt_user_data } from "@/services/crypto/password_change_reencrypt";
 import {
   reencrypt_settings_password_change,
@@ -464,6 +468,11 @@ export function use_security() {
           memory_vault.ratchet_regen_v4_done ?? vault.ratchet_regen_v4_done;
       }
 
+      const sent_mail_conversion = await convert_before_password_change({
+        identity_key: vault.identity_key,
+        passphrase: current_password,
+      });
+
       await upgrade_vault_to_master_key(vault, current_password);
 
       const master_key_mode = is_master_key_vault(vault);
@@ -676,8 +685,15 @@ export function use_security() {
         );
       };
 
-      reencrypt_all_sent_mail(current_password, new_password)
+      sent_mail_needs_password_reseal(sent_mail_conversion)
+        .then((needed) =>
+          needed
+            ? reencrypt_all_sent_mail(current_password, new_password)
+            : null,
+        )
         .then((summary) => {
+          if (!summary) return;
+
           if (summary.failed > 0) {
             note_reencrypt_failure(
               new Error(`sent mail reseal failed for ${summary.failed} items`),

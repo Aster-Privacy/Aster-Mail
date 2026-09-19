@@ -31,6 +31,7 @@ const h = vi.hoisted(() => ({
     boolean
   >,
   status: null as Record<string, unknown> | null,
+  status_queue: [] as (Record<string, unknown> | null)[],
   pages: [] as { items: unknown[]; next_cursor?: string; has_more: boolean }[],
   attachments: {} as Record<string, unknown[]>,
   sent_writes: [] as { id: string; sealed: string; expected: string }[],
@@ -60,7 +61,8 @@ vi.mock("./crypto/memory_key_store", () => ({
 
 vi.mock("./api/account_key", () => ({
   get_account_key_capabilities: async () => h.capabilities,
-  get_account_data_conversion: async () => h.status,
+  get_account_data_conversion: async () =>
+    h.status_queue.length ? h.status_queue.shift() : h.status,
   convert_sent_envelope: async (
     id: string,
     sealed: string,
@@ -108,7 +110,9 @@ vi.mock("./api/attachments", () => ({
 
 import {
   RESCAN_INTERVAL_MS,
+  convert_before_password_change,
   run_account_data_conversion,
+  sent_mail_needs_password_reseal,
   sha256_hex,
 } from "./account_data_conversion";
 import {
@@ -216,6 +220,7 @@ beforeEach(() => {
   h.handed_out = [];
   h.capabilities = { format_writes: true, data_conversion: true };
   h.status = status();
+  h.status_queue = [];
   h.pages = [];
   h.attachments = {};
   h.sent_writes = [];
@@ -550,5 +555,135 @@ describe("background sent mail conversion", () => {
 
     expect(results.filter((result) => result === null)).toHaveLength(1);
     expect(h.sent_writes).toHaveLength(1);
+  });
+});
+
+describe("conversion before a password change", () => {
+  const done = () => status({ remaining_sent: 0, remaining_attachments: 0 });
+
+  function before_change(overrides: Record<string, unknown> = {}) {
+    return convert_before_password_change({
+      identity_key: own_key,
+      passphrase: PASSPHRASE,
+      ...overrides,
+    });
+  }
+
+  it("is unavailable while the server flag is off", async () => {
+    h.capabilities = { format_writes: true, data_conversion: false };
+    h.pages = one_page([await legacy_item("m1")]);
+
+    expect(await before_change()).toBe("unavailable");
+    expect(h.listings).toBe(0);
+  });
+
+  it("is unavailable when the typed key does not match the unlocked key", async () => {
+    h.pages = one_page([await legacy_item("m1")]);
+
+    expect(await before_change({ identity_key: old_key })).toBe("unavailable");
+    expect(h.listings).toBe(0);
+  });
+
+  it("is unavailable without a password", async () => {
+    expect(await before_change({ passphrase: "" })).toBe("unavailable");
+    expect(h.listings).toBe(0);
+  });
+
+  it("is complete without listing when nothing remains", async () => {
+    h.status = done();
+
+    expect(await before_change()).toBe("complete");
+    expect(h.listings).toBe(0);
+    expect(h.sent_writes).toEqual([]);
+  });
+
+  it("converts with the typed password and confirms with a fresh count", async () => {
+    const envelope = { subject: "Before the change", body_text: "héllo" };
+
+    h.passphrase = null;
+    h.pages = one_page([await legacy_item("m1", envelope)]);
+    h.status_queue = [status(), done()];
+
+    expect(await before_change()).toBe("complete");
+    expect(h.sent_writes).toHaveLength(1);
+    expect(await open_sealed(h.sent_writes[0].sealed)).toBe(
+      JSON.stringify(envelope),
+    );
+    expect(h.progress).toContainEqual({ sent_mail_done: true });
+  });
+
+  it("ignores the rescan wait", async () => {
+    h.pages = one_page([await legacy_item("m1")]);
+    h.status_queue = [status(), done()];
+    await run();
+    h.status_queue = [status(), done()];
+
+    expect(await before_change()).toBe("complete");
+    expect(h.listings).toBe(2);
+  });
+
+  it("is incomplete when the server still counts legacy mail", async () => {
+    h.pages = one_page([await legacy_item("m1")]);
+    h.status_queue = [status(), status()];
+
+    expect(await before_change()).toBe("incomplete");
+    expect(h.progress).not.toContainEqual({ sent_mail_done: true });
+  });
+
+  it("is incomplete when an envelope cannot be opened", async () => {
+    h.pages = one_page([
+      {
+        id: "m1",
+        encrypted_envelope: await legacy_envelope({ subject: "x" }, "older"),
+        envelope_nonce: SENTINEL,
+      },
+    ]);
+    h.status_queue = [status(), status()];
+
+    expect(await before_change()).toBe("incomplete");
+    expect(h.sent_writes).toEqual([]);
+  });
+
+  it("stops when the time budget runs out", async () => {
+    h.pages = one_page([await legacy_item("m1"), await legacy_item("m2")]);
+
+    expect(await before_change({ budget_ms: 0 })).toBe("incomplete");
+    expect(h.sent_writes).toEqual([]);
+  });
+
+  it("reports incomplete instead of throwing when listing fails", async () => {
+    h.on_list = () => {
+      throw new Error("offline");
+    };
+
+    expect(await before_change()).toBe("incomplete");
+    expect(h.sent_writes).toEqual([]);
+  });
+});
+
+describe("legacy reseal after a password change", () => {
+  it("runs the legacy reseal unless conversion finished", async () => {
+    h.status = status({ remaining_sent: 0, remaining_attachments: 0 });
+
+    expect(await sent_mail_needs_password_reseal("incomplete")).toBe(true);
+    expect(await sent_mail_needs_password_reseal("unavailable")).toBe(true);
+  });
+
+  it("skips the legacy reseal when nothing remains", async () => {
+    h.status = status({ remaining_sent: 0, remaining_attachments: 0 });
+
+    expect(await sent_mail_needs_password_reseal("complete")).toBe(false);
+  });
+
+  it("runs the legacy reseal when legacy mail appeared during the change", async () => {
+    h.status = status({ remaining_sent: 0, remaining_attachments: 2 });
+
+    expect(await sent_mail_needs_password_reseal("complete")).toBe(true);
+  });
+
+  it("runs the legacy reseal when the status cannot be read", async () => {
+    h.status = null;
+
+    expect(await sent_mail_needs_password_reseal("complete")).toBe(true);
   });
 });

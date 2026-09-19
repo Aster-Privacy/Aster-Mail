@@ -85,6 +85,22 @@ const SCAN_KEY_PREFIX = "aster_account_data_conversion_scan_";
 const PGP_MESSAGE_HEADER = "-----BEGIN PGP MESSAGE-----";
 
 export const RESCAN_INTERVAL_MS = 6 * 60 * 60 * 1000;
+export const PASSWORD_CHANGE_BUDGET_MS = 30 * 1000;
+
+export type PasswordChangeConversion =
+  "complete" | "incomplete" | "unavailable";
+
+export interface PasswordChangeConversionOptions {
+  identity_key: string;
+  passphrase: string;
+  budget_ms?: number;
+  now?: () => number;
+}
+
+interface ConversionDeadline {
+  at: number;
+  now: () => number;
+}
 
 let running = false;
 
@@ -360,6 +376,7 @@ function yield_to_ui(): Promise<void> {
 async function convert_sent_mail(
   status: AccountDataConversionStatus,
   keys: ConversionKeys,
+  deadline?: ConversionDeadline,
 ): Promise<{ summary: ConversionSummary; complete: boolean }> {
   const summary = empty_summary();
   let reported = empty_summary();
@@ -390,7 +407,10 @@ async function convert_sent_mail(
     const items = (page.items ?? []) as ListedSentItem[];
 
     for (const item of items) {
-      if (!keys_still_current(keys)) {
+      if (
+        !keys_still_current(keys) ||
+        (deadline && deadline.now() >= deadline.at)
+      ) {
         await report();
 
         return { summary, complete: false };
@@ -545,5 +565,113 @@ export async function run_account_data_conversion(
     return null;
   } finally {
     running = false;
+  }
+}
+
+function has_remaining(status: AccountDataConversionStatus): boolean {
+  return status.remaining_sent > 0 || status.remaining_attachments > 0;
+}
+
+async function convert_for_password_change(
+  options: PasswordChangeConversionOptions,
+  deadline: ConversionDeadline,
+): Promise<PasswordChangeConversion> {
+  const capabilities = await get_account_key_capabilities();
+
+  if (!capabilities.data_conversion) return "unavailable";
+
+  const vault = get_vault_from_memory();
+
+  if (!vault?.identity_key || vault.identity_key !== options.identity_key) {
+    return "unavailable";
+  }
+
+  const status = await get_account_data_conversion();
+
+  if (!status) return "unavailable";
+  if (!has_remaining(status)) return "complete";
+
+  const keys: ConversionKeys = {
+    identity_key: options.identity_key,
+    previous_keys: (vault.previous_keys ?? []).filter(
+      (key): key is string => typeof key === "string" && key.length > 0,
+    ),
+    passphrase: options.passphrase,
+    passphrase_bytes: new TextEncoder().encode(options.passphrase),
+  };
+
+  try {
+    const { complete } = await convert_sent_mail(status, keys, deadline);
+
+    if (!complete) return "incomplete";
+
+    const after = await get_account_data_conversion();
+
+    if (!after || has_remaining(after)) return "incomplete";
+
+    if (!after.sent_mail_done_at) {
+      await record_account_data_conversion({ sent_mail_done: true });
+    }
+
+    return "complete";
+  } finally {
+    zero_uint8_array(keys.passphrase_bytes);
+  }
+}
+
+export async function convert_before_password_change(
+  options: PasswordChangeConversionOptions,
+): Promise<PasswordChangeConversion> {
+  if (!options.identity_key || !options.passphrase) return "unavailable";
+
+  const now = options.now ?? Date.now;
+  const deadline: ConversionDeadline = {
+    at: now() + (options.budget_ms ?? PASSWORD_CHANGE_BUDGET_MS),
+    now,
+  };
+  const locks = typeof navigator !== "undefined" ? navigator.locks : undefined;
+
+  try {
+    if (!locks?.request) {
+      return await convert_for_password_change(options, deadline);
+    }
+
+    const controller = new AbortController();
+    const timer = setTimeout(
+      () => controller.abort(),
+      Math.max(0, deadline.at - now()),
+    );
+
+    try {
+      return await locks.request(
+        LOCK_NAME,
+        { signal: controller.signal },
+        () => {
+          clearTimeout(timer);
+
+          return convert_for_password_change(options, deadline);
+        },
+      );
+    } finally {
+      clearTimeout(timer);
+    }
+  } catch (caught) {
+    ignore_error("services/account_data_conversion:password_change", caught);
+
+    return "incomplete";
+  }
+}
+
+export async function sent_mail_needs_password_reseal(
+  before: PasswordChangeConversion,
+): Promise<boolean> {
+  if (before !== "complete") return true;
+
+  try {
+    const status = await get_account_data_conversion();
+
+    return !status || has_remaining(status);
+  } catch {
+    return true;
   }
 }
