@@ -28,9 +28,30 @@ import {
 import { zero_uint8_array } from "./secure_memory";
 
 import {
+  MAX_ACCOUNT_KEY_HISTORY,
   get_account_key_token,
   get_account_key_token_history,
 } from "@/services/api/account_key";
+
+async function load_token(
+  token: string,
+  own_keys: string[],
+  passphrase: string,
+  generation: number,
+): Promise<boolean> {
+  const account_key = await open_account_key_token(token, own_keys, passphrase);
+
+  if (!account_key) return false;
+
+  try {
+    return await load_account_key_derived_keks_into_memory(
+      account_key,
+      generation,
+    );
+  } finally {
+    zero_uint8_array(account_key);
+  }
+}
 
 export async function load_account_keys_for_session(
   vault: EncryptedVault,
@@ -42,29 +63,19 @@ export async function load_account_keys_for_session(
 
   if (!current || generation !== get_account_key_generation()) return 0;
 
-  const history = await get_account_key_token_history();
-  const tokens = [current.token, ...history.map((entry) => entry.token)];
   let loaded = 0;
 
-  for (const token of tokens) {
+  if (await load_token(current.token, own_keys, passphrase, generation)) {
+    loaded += 1;
+  }
+
+  const history = await get_account_key_token_history();
+
+  for (const entry of history.slice(0, MAX_ACCOUNT_KEY_HISTORY)) {
     if (generation !== get_account_key_generation()) break;
 
-    const account_key = await open_account_key_token(
-      token,
-      own_keys,
-      passphrase,
-    );
-
-    if (!account_key) continue;
-
-    try {
-      if (
-        await load_account_key_derived_keks_into_memory(account_key, generation)
-      ) {
-        loaded += 1;
-      }
-    } finally {
-      zero_uint8_array(account_key);
+    if (await load_token(entry.token, own_keys, passphrase, generation)) {
+      loaded += 1;
     }
   }
 

@@ -33,6 +33,7 @@ import {
 } from "./legacy_keks";
 
 const api = vi.hoisted(() => ({
+  MAX_ACCOUNT_KEY_HISTORY: 64,
   get_account_key_token: vi.fn(),
   get_account_key_token_history: vi.fn(),
 }));
@@ -165,6 +166,36 @@ describe("load_account_keys_for_session", () => {
       load_account_keys_for_session(vault_with(me.privateKey), PASS),
     ).resolves.toBe(0);
     expect(get_legacy_crypto_keys()).toHaveLength(0);
+  });
+
+  it("keeps the current key when the history request fails", async () => {
+    const me = await make_key();
+
+    api.get_account_key_token.mockResolvedValue(
+      token_row(
+        await seal_account_key_token(
+          new Uint8Array(32).fill(4),
+          me.privateKey,
+          PASS,
+        ),
+      ),
+    );
+    api.get_account_key_token_history.mockRejectedValue(new Error("offline"));
+
+    await expect(
+      load_account_keys_for_session(vault_with(me.privateKey), PASS),
+    ).rejects.toThrow("offline");
+    expect(get_legacy_crypto_keys().length).toBeGreaterThan(0);
+  });
+
+  it("propagates a failed token request so the caller can retry", async () => {
+    const me = await make_key();
+
+    api.get_account_key_token.mockRejectedValue(new Error("offline"));
+
+    await expect(
+      load_account_keys_for_session(vault_with(me.privateKey), PASS),
+    ).rejects.toThrow("offline");
   });
 
   it("drops the result when the user signs out mid-load", async () => {

@@ -20,6 +20,8 @@
 //
 import { api_client } from "./client";
 
+export const MAX_ACCOUNT_KEY_HISTORY = 64;
+
 export interface AccountKeyTokenResponse {
   token: string;
   key_fingerprint: string;
@@ -39,7 +41,10 @@ export async function get_account_key_token(): Promise<AccountKeyTokenResponse |
     "/crypto/v1/keys/account-key",
   );
 
-  if (response.error || !response.data?.token) return null;
+  if (response.code === "NOT_FOUND") return null;
+  if (response.error || !response.data?.token) {
+    throw new Error("account key token unavailable");
+  }
 
   return response.data;
 }
@@ -51,7 +56,9 @@ export async function get_account_key_token_history(): Promise<
     entries: AccountKeyTokenHistoryEntry[];
   }>("/crypto/v1/keys/account-key/history");
 
-  if (response.error || !Array.isArray(response.data?.entries)) return [];
+  if (response.error || !Array.isArray(response.data?.entries)) {
+    throw new Error("account key token history unavailable");
+  }
 
-  return response.data.entries;
+  return response.data.entries.slice(0, MAX_ACCOUNT_KEY_HISTORY);
 }
