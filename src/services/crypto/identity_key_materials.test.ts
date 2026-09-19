@@ -29,6 +29,8 @@ import {
 } from "./key_manager_pgp";
 import {
   MAX_LEGACY_IDENTITY_KEYS,
+  MAX_PREVIOUS_KEYS,
+  merge_recovered_identity_keys,
   reprotect_vault_keys_for_password_change,
   retained_identity_key_materials,
   vault_identity_key_materials,
@@ -43,6 +45,7 @@ import {
   load_previous_key_derived_keks_into_memory,
 } from "./legacy_keks";
 import { base64_to_array } from "./base64";
+import { reprotect_pgp_key } from "./key_manager_pgp_keygen";
 
 const PASS_1 = "first vault passphrase for tests";
 const PASS_2 = "second vault passphrase for tests";
@@ -310,4 +313,144 @@ describe("password change key bookkeeping", () => {
     ).toEqual(["a", "b", "c"]);
     expect(vault_identity_key_materials(null)).toEqual([]);
   });
+});
+
+describe("recovering identity keys from an archived key set", () => {
+  let reset_identity: string;
+
+  beforeAll(async () => {
+    reset_identity = await reprotect_pgp_key(
+      recovered_identity.secret_key,
+      PASS_1,
+      PASS_2,
+    );
+  }, 60000);
+
+  function reset_vault(previous_keys: string[] = []): EncryptedVault {
+    return {
+      identity_key: reset_identity,
+      previous_keys,
+      signed_prekey: "",
+      signed_prekey_private: "",
+      recovery_codes: [],
+    };
+  }
+
+  it("relocks the archived key under the current password so old mail opens", async () => {
+    const message = await openpgp.encrypt({
+      message: await openpgp.createMessage({ text: "sent before the reset" }),
+      encryptionKeys: await openpgp.readKey({
+        armoredKey: identity.public_key,
+      }),
+    });
+
+    const result = await merge_recovered_identity_keys(
+      reset_vault([reset_identity]),
+      [base_vault()],
+      PASS_1,
+      PASS_2,
+    );
+
+    expect(result.absorbed).toEqual([true]);
+    expect(result.previous_keys[0]).toBe(reset_identity);
+
+    const fingerprints = await Promise.all(
+      result.previous_keys.map(fingerprint),
+    );
+    const index = fingerprints.indexOf(await fingerprint(identity.secret_key));
+
+    expect(index).toBeGreaterThan(0);
+    expect(await unlocks(result.previous_keys[index], PASS_2)).toBe(true);
+    expect(await unlocks(result.previous_keys[index], PASS_1)).toBe(false);
+
+    const decryption_key = await openpgp.decryptKey({
+      privateKey: await openpgp.readPrivateKey({
+        armoredKey: result.previous_keys[index],
+      }),
+      passphrase: PASS_2,
+    });
+    const { data } = await openpgp.decrypt({
+      message: await openpgp.readMessage({ armoredMessage: message as string }),
+      decryptionKeys: decryption_key,
+    });
+
+    expect(data).toBe("sent before the reset");
+  }, 60000);
+
+  it("keeps the archived armored keys as legacy material after the ones already held", async () => {
+    const vault = { ...reset_vault(), legacy_identity_keys: ["held-material"] };
+
+    const result = await merge_recovered_identity_keys(
+      vault,
+      [base_vault()],
+      PASS_1,
+      PASS_2,
+    );
+
+    expect(result.legacy_identity_keys[0]).toBe("held-material");
+    expect(result.legacy_identity_keys).toContain(identity.secret_key);
+  }, 60000);
+
+  it("never evicts a key the vault already holds", async () => {
+    const held = Array.from(
+      { length: MAX_PREVIOUS_KEYS },
+      (_, index) => `held-key-${index}`,
+    );
+
+    const result = await merge_recovered_identity_keys(
+      reset_vault(held),
+      [base_vault()],
+      PASS_1,
+      PASS_2,
+    );
+
+    expect(result.previous_keys).toEqual(held);
+    expect(result.absorbed).toEqual([false]);
+  }, 60000);
+
+  it("reports the set as not absorbed when the password does not open its key", async () => {
+    const result = await merge_recovered_identity_keys(
+      reset_vault([reset_identity]),
+      [base_vault()],
+      PASS_3,
+      PASS_2,
+    );
+
+    expect(result.absorbed).toEqual([false]);
+    expect(result.previous_keys).toEqual([reset_identity]);
+  }, 60000);
+
+  it("does not duplicate a key the vault already holds", async () => {
+    const already = await reprotect_pgp_key(
+      identity.secret_key,
+      PASS_1,
+      PASS_2,
+    );
+
+    const result = await merge_recovered_identity_keys(
+      reset_vault([reset_identity, already]),
+      [base_vault()],
+      PASS_1,
+      PASS_2,
+    );
+
+    expect(result.previous_keys).toEqual([reset_identity, already]);
+    expect(result.absorbed).toEqual([true]);
+  }, 60000);
+
+  it("caps legacy material without dropping what the vault already held", async () => {
+    const held = Array.from(
+      { length: MAX_LEGACY_IDENTITY_KEYS },
+      (_, index) => `held-material-${index}`,
+    );
+
+    const result = await merge_recovered_identity_keys(
+      { ...reset_vault(), legacy_identity_keys: held },
+      [base_vault()],
+      PASS_1,
+      PASS_2,
+    );
+
+    expect(result.legacy_identity_keys).toEqual(held);
+  }, 60000);
 });

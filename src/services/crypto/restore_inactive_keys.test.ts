@@ -54,6 +54,13 @@ vi.mock("../account_manager", () => ({
   get_current_account: () => get_current_account(),
 }));
 
+const merge_recovered_identity_keys = vi.fn();
+
+vi.mock("./identity_key_materials", () => ({
+  merge_recovered_identity_keys: (...args: unknown[]) =>
+    merge_recovered_identity_keys(...args),
+}));
+
 vi.mock("./vault_write_lock", () => ({
   with_vault_write_lock: (fn: () => Promise<unknown>) => fn(),
 }));
@@ -111,6 +118,63 @@ describe("restore_inactive_key_sets", () => {
     get_vault_from_memory.mockReturnValue(current_vault());
     get_passphrase_from_memory.mockReturnValue("passphrase");
     get_current_account.mockResolvedValue({ user: { id: "user-1" } });
+    merge_recovered_identity_keys.mockImplementation(
+      async (
+        vault: { previous_keys?: string[]; legacy_identity_keys?: string[] },
+        old_vaults: unknown[],
+      ) => ({
+        previous_keys: vault.previous_keys ?? [],
+        legacy_identity_keys: vault.legacy_identity_keys ?? [],
+        absorbed: old_vaults.map(() => true),
+      }),
+    );
+  });
+
+  it("recovers the archived identity keys under the current password", async () => {
+    merge_recovered_identity_keys.mockResolvedValue({
+      previous_keys: ["identity", "archived-identity-relocked"],
+      legacy_identity_keys: ["archived-identity"],
+      absorbed: [true],
+    });
+
+    expect(await restore_inactive_key_sets("old-password")).toBe(1);
+
+    const [vault, old_vaults, old_password, current] =
+      merge_recovered_identity_keys.mock.calls[0];
+
+    expect((vault as { identity_key: string }).identity_key).toBe("identity");
+    expect(old_vaults).toHaveLength(1);
+    expect(old_password).toBe("old-password");
+    expect(current).toBe("passphrase");
+
+    const saved = encrypt_vault.mock.calls[0][0] as {
+      identity_key: string;
+      previous_keys: string[];
+      legacy_identity_keys: string[];
+    };
+
+    expect(saved.identity_key).toBe("identity");
+    expect(saved.previous_keys).toEqual([
+      "identity",
+      "archived-identity-relocked",
+    ]);
+    expect(saved.legacy_identity_keys).toEqual(["archived-identity"]);
+  });
+
+  it("keeps an archive on the server when its identity key could not be recovered", async () => {
+    list_inactive_key_sets.mockResolvedValue({
+      data: { inactive_key_sets: [{ id: "archived-1" }, { id: "archived-2" }] },
+    });
+    merge_recovered_identity_keys.mockResolvedValue({
+      previous_keys: [],
+      legacy_identity_keys: [],
+      absorbed: [true, false],
+    });
+
+    expect(await restore_inactive_key_sets("old-password")).toBe(2);
+    expect(push_vault_to_server).toHaveBeenCalled();
+    expect(consume_inactive_key_set).toHaveBeenCalledWith("archived-1");
+    expect(consume_inactive_key_set).not.toHaveBeenCalledWith("archived-2");
   });
 
   it("merges the archived identity keys into the prior key list", async () => {

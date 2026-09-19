@@ -115,6 +115,80 @@ export async function retained_identity_key_materials(
   );
 }
 
+export interface RecoveredIdentityKeys {
+  previous_keys: string[];
+  legacy_identity_keys: string[];
+  absorbed: boolean[];
+}
+
+export async function merge_recovered_identity_keys(
+  vault: IdentityKeySource,
+  old_vaults: IdentityKeySource[],
+  old_password: string,
+  current_password: string,
+): Promise<RecoveredIdentityKeys> {
+  const recovered_per_vault: string[][] = [];
+  const identity_recovered: boolean[] = [];
+  const old_materials: string[] = [];
+
+  for (const old_vault of old_vaults) {
+    const reprotected: string[] = [];
+    let identity_ok = !old_vault.identity_key;
+
+    old_materials.push(...vault_identity_key_materials(old_vault));
+
+    for (const armored of unique_non_empty([
+      old_vault.identity_key,
+      ...(old_vault.previous_keys ?? []),
+    ])) {
+      try {
+        reprotected.push(
+          await reprotect_pgp_key(armored, old_password, current_password),
+        );
+        if (armored === old_vault.identity_key) identity_ok = true;
+      } catch {
+        continue;
+      }
+    }
+
+    recovered_per_vault.push(reprotected);
+    identity_recovered.push(identity_ok);
+  }
+
+  const previous_keys = (
+    await unique_by_fingerprint([
+      ...(vault.previous_keys ?? []),
+      ...recovered_per_vault.flat(),
+    ])
+  ).slice(0, MAX_PREVIOUS_KEYS);
+
+  const kept = new Set<string>();
+
+  for (const armored of [vault.identity_key, ...previous_keys]) {
+    if (armored) kept.add(await key_identity(armored));
+  }
+
+  const absorbed: boolean[] = [];
+
+  for (let i = 0; i < old_vaults.length; i++) {
+    const reprotected = recovered_per_vault[i];
+    let all_kept = identity_recovered[i];
+
+    for (const armored of reprotected) {
+      if (!kept.has(await key_identity(armored))) all_kept = false;
+    }
+
+    absorbed.push(all_kept);
+  }
+
+  const legacy_identity_keys = unique_non_empty([
+    ...(vault.legacy_identity_keys ?? []),
+    ...old_materials,
+  ]).slice(0, MAX_LEGACY_IDENTITY_KEYS);
+
+  return { previous_keys, legacy_identity_keys, absorbed };
+}
+
 export async function reprotect_vault_keys_for_password_change(
   vault: EncryptedVault,
   current_password: string,
