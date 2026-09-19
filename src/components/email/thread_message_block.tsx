@@ -113,6 +113,7 @@ export function ThreadMessageBlock(
     on_toggle_dark_mode,
     show_inline_reply,
     inline_reply_thread_token,
+    inline_reply_references,
     inline_reply_is_external,
     on_close_inline_reply,
     inline_mode = "reply",
@@ -1068,6 +1069,7 @@ export function ThreadMessageBlock(
                 }
                 original_cc={original_cc_emails}
                 original_email_id={message.id}
+                original_rfc_message_id={inline_reply_references}
                 original_subject={message.subject}
                 original_timestamp={message.timestamp}
                 original_to={all_to_emails}

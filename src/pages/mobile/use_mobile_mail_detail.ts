@@ -53,6 +53,7 @@ import {
 } from "@/services/lockdown_store";
 import { use_auth_safe } from "@/contexts/auth_context";
 import { app_locale } from "@/utils/date_format";
+import { resolve_reply_references } from "@/lib/reply_references";
 
 export function use_mobile_mail_detail() {
   const navigate = useNavigate();
@@ -197,9 +198,7 @@ export function use_mobile_mail_detail() {
       {
         id: detail.email.id,
         item_type: (detail.mail_item?.item_type || "received") as
-          | "received"
-          | "sent"
-          | "draft",
+          "received" | "sent" | "draft",
         sender_name: detail.email.sender,
         sender_email: detail.email.sender_email,
         display_sender_name: detail.email.display_sender_name,
@@ -539,9 +538,10 @@ export function use_mobile_mail_detail() {
         .split("\n")
         .map((l) => "> " + l)
         .join("\n")}`;
-      const rfc_message_id = msg.raw_headers?.find(
-        (h) => h.name.toLowerCase() === "message-id",
-      )?.value;
+      const rfc_message_id = resolve_reply_references(
+        msg,
+        detail.thread_messages,
+      );
       const message_with_footer =
         get_aster_footer(t, preferences.show_aster_branding) + quoted;
       const thread_token = detail.mail_item?.thread_token;
@@ -621,6 +621,7 @@ export function use_mobile_mail_detail() {
       t,
       own_addresses,
       detail.mail_item?.thread_token,
+      detail.thread_messages,
       preferences.show_aster_branding,
     ],
   );

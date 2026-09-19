@@ -445,6 +445,7 @@ export async function execute_external_send(
     attachments: is_secure_external ? undefined : external_attachments,
     secure_message,
     force_pgp: is_secure_external ? undefined : email.force_pgp,
+    in_reply_to: email.in_reply_to,
   };
 
   if (signed_mime_attached) {

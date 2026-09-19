@@ -97,6 +97,7 @@ import { ignore_error } from "@/lib/ignore_error";
 import { open_external } from "@/utils/open_link";
 import { copy_text, copy_text_or_throw } from "@/utils/copy_text";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
+import { resolve_reply_references } from "@/lib/reply_references";
 
 export interface EmailViewerActionsDeps {
   email_id: string;
@@ -215,9 +216,10 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
         is_own_message,
       );
 
-      const rfc_message_id = deps.email.raw_headers?.find(
-        (h) => h.name.toLowerCase() === "message-id",
-      )?.value;
+      const rfc_message_id = resolve_reply_references(
+        deps.email,
+        deps.thread_messages,
+      );
 
       const data: ReplyData = {
         recipient_name,
@@ -255,6 +257,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
       deps.is_external,
       deps.mail_item,
       deps.current_user_email,
+      deps.thread_messages,
     ],
   );
 
@@ -916,9 +919,10 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
         is_own_message,
       );
 
-      const msg_rfc_message_id = msg.raw_headers?.find(
-        (h) => h.name.toLowerCase() === "message-id",
-      )?.value;
+      const msg_rfc_message_id = resolve_reply_references(
+        msg,
+        deps.thread_messages,
+      );
 
       const base: ReplyData = {
         recipient_name,
@@ -952,7 +956,12 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
 
       return base;
     },
-    [deps.email?.thread_token, deps.is_external, deps.thread_ghost_email],
+    [
+      deps.email?.thread_token,
+      deps.is_external,
+      deps.thread_ghost_email,
+      deps.thread_messages,
+    ],
   );
 
   const {
