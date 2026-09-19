@@ -441,8 +441,6 @@ export function use_encryption() {
         );
 
         armored_key = new TextDecoder().decode(decrypted);
-      } else if (!armored_key) {
-        armored_key = response.data?.private_key_encrypted;
       }
 
       if (!armored_key) {
