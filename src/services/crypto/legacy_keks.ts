@@ -36,7 +36,7 @@ const DERIVED_KEY_LENGTH = 32;
 const DERIVED_KEY_INFO = "aster-storage-encryption-key-v1";
 const SALT_DERIVATION_PREFIX = "aster-hkdf-salt-v1:";
 
-export const MAX_LEGACY_KEKS = 16;
+export const MAX_LEGACY_KEKS = 64;
 
 const PREVIOUS_KEY_CONTEXTS = [
   "astermail-tags-v1",
@@ -136,19 +136,24 @@ export function prepend_kek_to_list(
 export function append_keks_to_list(
   existing: LegacyDerivedKek[] | undefined,
   new_entries: LegacyDerivedKek[],
-): LegacyDerivedKek[] {
+): { list: LegacyDerivedKek[]; dropped: number } {
   const list = existing ? [...existing] : [];
   const held = new Set(list.map((entry) => entry.k));
+  let dropped = 0;
 
   for (const entry of new_entries) {
-    if (list.length >= MAX_LEGACY_KEKS) break;
     if (held.has(entry.k)) continue;
+
+    if (list.length >= MAX_LEGACY_KEKS) {
+      dropped += 1;
+      continue;
+    }
 
     held.add(entry.k);
     list.push(entry);
   }
 
-  return list;
+  return { list, dropped };
 }
 
 async function import_raw_as_aes_key(raw: Uint8Array): Promise<CryptoKey> {

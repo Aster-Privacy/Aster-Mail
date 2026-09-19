@@ -32,15 +32,18 @@ const START_DELAY_MS = 3000;
 const IDLE_TIMEOUT_MS = 10000;
 const REFRESH_INTERVAL_MS = 10 * 60 * 1000;
 
-let in_flight: Promise<unknown> | null = null;
+const in_flight = new Map<string, Promise<unknown>>();
 
-function single_flight(task: () => Promise<unknown>): void {
-  if (in_flight) return;
-  in_flight = task()
+function single_flight(account_id: string, task: () => Promise<unknown>): void {
+  if (in_flight.has(account_id)) return;
+
+  const running = task()
     .catch((caught) => ignore_error("hooks/use_device_recovery", caught))
     .finally(() => {
-      in_flight = null;
+      in_flight.delete(account_id);
     });
+
+  in_flight.set(account_id, running);
 }
 
 export function use_device_recovery(): void {
@@ -57,9 +60,9 @@ export function use_device_recovery(): void {
 
     const start = () => {
       started_for_ref.current = account_id;
-      single_flight(() => run_device_recovery(account_id));
+      single_flight(account_id, () => run_device_recovery(account_id));
       interval_id = setInterval(() => {
-        single_flight(async () => {
+        single_flight(account_id, async () => {
           if (await device_recovery_enabled()) {
             await refresh_device_snapshot(account_id);
           }

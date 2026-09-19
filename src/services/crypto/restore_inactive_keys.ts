@@ -193,11 +193,13 @@ export async function commit_recovered_keys(
     zero_uint8_array(raw);
   }
 
+  const absorbed_keks = append_keks_to_list(vault.legacy_keks, harvested_entries);
+
   const next_vault: EncryptedVault = {
     ...vault,
     previous_keys: identity_keys.previous_keys,
     legacy_identity_keys: identity_keys.legacy_identity_keys,
-    legacy_keks: append_keks_to_list(vault.legacy_keks, harvested_entries),
+    legacy_keks: absorbed_keks.list,
     ratchet_previous_keys: merge_previous_ratchet_keys(
       vault.ratchet_previous_keys,
       ...commit.ratchet_groups,
@@ -233,5 +235,5 @@ export async function commit_recovered_keys(
   localStorage.setItem(`astermail_encrypted_vault_${user_id}`, encrypted_vault);
   localStorage.setItem(`astermail_vault_nonce_${user_id}`, vault_nonce);
 
-  return true;
+  return absorbed_keks.dropped === 0;
 }

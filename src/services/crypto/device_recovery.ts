@@ -33,10 +33,12 @@ import {
 
 import { array_to_base64, base64_to_array } from "./base64";
 import {
+  SNAPSHOT_TTL_MS,
   delete_device_snapshots,
   list_device_snapshots,
   load_device_recovery_key,
   save_device_snapshot,
+  wipe_device_recovery_store,
 } from "./device_recovery_store";
 import { merge_identity_keys_with } from "./identity_key_materials";
 import { decrypt_vault } from "./key_manager";
@@ -46,6 +48,7 @@ import { unlock_private_key } from "./key_manager_pgp_unlocked_cache";
 import {
   get_passphrase_from_memory,
   get_vault_from_memory,
+  is_vault_owned_by,
 } from "./memory_key_store";
 import {
   commit_recovered_keys,
@@ -304,6 +307,8 @@ function stored_vault(
 export async function refresh_device_snapshot(
   user_id: string,
 ): Promise<boolean> {
+  if (!is_vault_owned_by(user_id)) return false;
+
   const passphrase = get_passphrase_from_memory();
   const stored = stored_vault(user_id);
 
@@ -387,22 +392,29 @@ async function open_snapshots(
 
   if (!device_key) return [];
 
-  const candidates = records.slice(0, MAX_SECRETS_PER_REQUEST);
-  const response = await fetch_device_recovery_secrets(
-    candidates.map((record) => record.snapshot_id),
-  );
+  const secrets = new Map<string, string>();
 
-  if (response.error || !response.data) return [];
+  for (let i = 0; i < records.length; i += MAX_SECRETS_PER_REQUEST) {
+    const chunk = records.slice(i, i + MAX_SECRETS_PER_REQUEST);
+    const response = await fetch_device_recovery_secrets(
+      chunk.map((record) => record.snapshot_id),
+    );
 
-  const secrets = new Map(
-    response.data.secrets.map((entry) => [entry.snapshot_id, entry.secret]),
-  );
+    if (response.error || !response.data) continue;
+
+    for (const entry of response.data.secrets) {
+      secrets.set(entry.snapshot_id, entry.secret);
+    }
+  }
+
+  if (secrets.size === 0) return [];
+
   const opened: {
     record: DeviceSnapshotRecord;
     payload: DeviceSnapshotPayload;
   }[] = [];
 
-  for (const record of candidates) {
+  for (const record of records) {
     const encoded = secrets.get(record.snapshot_id);
 
     if (!encoded) continue;
@@ -446,6 +458,7 @@ async function recover_from_snapshots(
     const passphrase = get_passphrase_from_memory();
 
     if (!vault || !passphrase) return absorbed_hashes;
+    if (!is_vault_owned_by(user_id)) return absorbed_hashes;
 
     const unlocked = new Map<string, string>();
 
@@ -539,9 +552,14 @@ async function prune_snapshots(
 ): Promise<void> {
   const records = await list_device_snapshots(user_id);
   const stale: string[] = [];
+  const expires_before = Date.now() - SNAPSHOT_TTL_MS;
   let recent_kept = 0;
 
   for (const record of records) {
+    if (record.created_at <= expires_before) {
+      stale.push(record.snapshot_id);
+      continue;
+    }
     if (protected_hashes.has(record.source_hash)) continue;
     if (recent_kept < RECENT_SNAPSHOTS_KEPT) {
       recent_kept += 1;
@@ -553,6 +571,17 @@ async function prune_snapshots(
   await forget_snapshots(stale);
 }
 
+async function forget_expired_snapshots(user_id: string): Promise<void> {
+  const expires_before = Date.now() - SNAPSHOT_TTL_MS;
+  const records = await list_device_snapshots(user_id);
+
+  await forget_snapshots(
+    records
+      .filter((record) => record.created_at <= expires_before)
+      .map((record) => record.snapshot_id),
+  );
+}
+
 async function forget_snapshots(snapshot_ids: string[]): Promise<void> {
   for (let i = 0; i < snapshot_ids.length; i += MAX_SECRETS_PER_REQUEST) {
     const chunk = snapshot_ids.slice(i, i + MAX_SECRETS_PER_REQUEST);
@@ -560,6 +589,18 @@ async function forget_snapshots(snapshot_ids: string[]): Promise<void> {
 
     if (!response.error) await delete_device_snapshots(chunk);
   }
+}
+
+export async function forget_device_recovery(
+  user_id: string | null,
+): Promise<void> {
+  if (user_id) {
+    const records = await list_device_snapshots(user_id);
+
+    await forget_snapshots(records.map((record) => record.snapshot_id));
+  }
+
+  await wipe_device_recovery_store();
 }
 
 export async function device_recovery_enabled(): Promise<boolean> {
@@ -603,6 +644,7 @@ export async function run_device_recovery(user_id: string): Promise<number> {
     }
   }
 
+  await forget_expired_snapshots(user_id);
   await refresh_device_snapshot(user_id);
 
   if (inactive) {

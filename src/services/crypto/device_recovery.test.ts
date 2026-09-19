@@ -11,6 +11,7 @@ let device_key: CryptoKey | null = null;
 let flag_on = true;
 let memory_vault: Record<string, unknown> | null = null;
 let memory_passphrase: string | null = null;
+let owned_by: string | null = null;
 
 const put_device_recovery_secret = vi.fn();
 const fetch_device_recovery_secrets = vi.fn();
@@ -66,6 +67,15 @@ vi.mock("./device_recovery_store", () => ({
   delete_device_snapshots: async (ids: string[]) => {
     for (const id of ids) snapshots.delete(id);
   },
+  delete_user_snapshots: async (user_id: string) => {
+    for (const [id, record] of [...snapshots]) {
+      if (record.user_id === user_id) snapshots.delete(id);
+    }
+  },
+  wipe_device_recovery_store: async () => {
+    snapshots.clear();
+  },
+  SNAPSHOT_TTL_MS: 30 * 24 * 60 * 60 * 1000,
 }));
 
 vi.mock("./key_manager", () => ({
@@ -83,6 +93,7 @@ vi.mock("./key_manager", () => ({
 vi.mock("./memory_key_store", () => ({
   get_vault_from_memory: () => memory_vault,
   get_passphrase_from_memory: () => memory_passphrase,
+  is_vault_owned_by: (user_id: string) => user_id === owned_by,
 }));
 
 vi.mock("./restore_inactive_keys", () => ({
@@ -95,6 +106,7 @@ vi.mock("./vault_write_lock", () => ({
 }));
 
 import {
+  forget_device_recovery,
   open_device_snapshot,
   refresh_device_snapshot,
   run_device_recovery,
@@ -145,6 +157,7 @@ function install_vault(
   localStorage.setItem(`astermail_vault_nonce_${USER}`, "nonce");
   memory_vault = structuredClone(vault);
   memory_passphrase = passphrase;
+  owned_by = USER;
 
   return { blob: encoded, vault };
 }
@@ -161,6 +174,7 @@ describe("device recovery", () => {
     flag_on = true;
     memory_vault = null;
     memory_passphrase = null;
+    owned_by = null;
 
     put_device_recovery_secret.mockImplementation(
       async (id: string, secret: string) => {
@@ -465,5 +479,71 @@ describe("device recovery", () => {
     expect(hashes).toContain(await vault_ciphertext_hash(first.blob));
     expect(snapshots.size).toBe(3);
     expect(server_secrets.size).toBe(3);
+  });
+  it("takes no snapshot for an account that does not own the vault", async () => {
+    const key = await make_key("pw");
+
+    install_vault("a", key.armored, "pw");
+    owned_by = "someone-else";
+
+    expect(await refresh_device_snapshot(USER)).toBe(false);
+    expect(snapshots.size).toBe(0);
+    expect(server_secrets.size).toBe(0);
+  });
+
+  it("drops snapshots that outlived the retention window", async () => {
+    const key = await make_key("pw");
+
+    install_vault("v1", key.armored, "pw");
+    await refresh_device_snapshot(USER);
+    for (const record of snapshots.values()) {
+      record.created_at = Date.now() - 31 * 24 * 60 * 60 * 1000;
+    }
+
+    await run_device_recovery(USER);
+
+    expect(snapshots.size).toBe(1);
+    expect(server_secrets.size).toBe(1);
+
+    const [kept] = [...snapshots.values()];
+
+    expect(kept.created_at).toBeGreaterThan(Date.now() - 60_000);
+  });
+
+  it("fetches secrets for more snapshots than one request carries", async () => {
+    const key = await make_key("pw");
+
+    for (let i = 0; i < 20; i += 1) {
+      install_vault(`v${i}`, key.armored, "pw");
+      await refresh_device_snapshot(USER);
+    }
+
+    const oldest = [...snapshots.values()].sort(
+      (a, b) => a.created_at - b.created_at,
+    )[0];
+
+    for (const [blob, vault] of vaults_by_blob) {
+      if ((await vault_ciphertext_hash(blob)) !== oldest.source_hash) continue;
+      void vault;
+      inactive_sets.set("set-1", blob);
+    }
+
+    expect(await run_device_recovery(USER)).toBe(1);
+    expect(fetch_device_recovery_secrets.mock.calls.length).toBeGreaterThan(0);
+    for (const call of fetch_device_recovery_secrets.mock.calls) {
+      expect(call[0].length).toBeLessThanOrEqual(16);
+    }
+  });
+
+  it("forgets every snapshot for the account on sign out", async () => {
+    const key = await make_key("pw");
+
+    install_vault("a", key.armored, "pw");
+    await refresh_device_snapshot(USER);
+
+    await forget_device_recovery(USER);
+
+    expect(snapshots.size).toBe(0);
+    expect(server_secrets.size).toBe(0);
   });
 });

@@ -24,6 +24,8 @@ const KEY_STORE = "device_keys";
 const SNAPSHOT_STORE = "snapshots";
 const DEVICE_KEY_ID = "device_recovery_key_v1";
 
+export const SNAPSHOT_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+
 export interface DeviceSnapshotRecord {
   snapshot_id: string;
   user_id: string;
@@ -192,6 +194,35 @@ export async function save_device_snapshot(
   });
 
   return saved === true;
+}
+
+export async function delete_user_snapshots(user_id: string): Promise<void> {
+  const records = await list_device_snapshots(user_id);
+
+  await delete_device_snapshots(records.map((record) => record.snapshot_id));
+}
+
+export async function wipe_device_recovery_store(): Promise<void> {
+  if (!indexed_db_available()) return;
+
+  await new Promise<void>((resolve) => {
+    let settled = false;
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      resolve();
+    };
+
+    try {
+      const request = indexedDB.deleteDatabase(DB_NAME);
+
+      request.onsuccess = finish;
+      request.onerror = finish;
+      request.onblocked = finish;
+    } catch {
+      finish();
+    }
+  });
 }
 
 export async function delete_device_snapshots(

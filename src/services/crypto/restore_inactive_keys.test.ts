@@ -358,8 +358,8 @@ describe("restore_inactive_key_sets", () => {
     expect(encrypt_vault).not.toHaveBeenCalled();
   });
 
-  it("never evicts the legacy keys the vault already held when harvesting past the cap", async () => {
-    const held = Array.from({ length: 16 }, (_, index) => ({
+  it("keeps the archives when harvested keys do not fit past the cap", async () => {
+    const held = Array.from({ length: 64 }, (_, index) => ({
       k: btoa(`held-key-${index}`),
       added_at: "2026-01-01T00:00:00.000Z",
     }));
@@ -394,7 +394,8 @@ describe("restore_inactive_key_sets", () => {
         data_kek: btoa("archived-kek-3"),
       });
 
-    expect(await restore_inactive_key_sets("old-password")).toBe(3);
+    expect(await restore_inactive_key_sets("old-password")).toBe(0);
+    expect(consume_inactive_key_set).not.toHaveBeenCalled();
 
     const saved = encrypt_vault.mock.calls[0][0] as {
       legacy_keks?: Array<{ k: string }>;
@@ -404,7 +405,7 @@ describe("restore_inactive_key_sets", () => {
     for (const entry of held) {
       expect(saved_keys).toContain(entry.k);
     }
-    expect(saved_keys.length).toBe(16);
+    expect(saved_keys.length).toBe(64);
   });
 
   it("appends harvested keys after the keys the vault already held", async () => {
