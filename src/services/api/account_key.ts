@@ -79,10 +79,14 @@ export async function put_account_key_token_if_absent(
 
 export interface AccountKeyCapabilities {
   format_writes: boolean;
+  data_conversion: boolean;
 }
 
 const CAPABILITIES_TTL_MS = 5 * 60 * 1000;
-const CAPABILITIES_DISABLED: AccountKeyCapabilities = { format_writes: false };
+const CAPABILITIES_DISABLED: AccountKeyCapabilities = {
+  format_writes: false,
+  data_conversion: false,
+};
 
 let capabilities_cache: {
   value: AccountKeyCapabilities;
@@ -102,11 +106,15 @@ export async function get_account_key_capabilities(): Promise<AccountKeyCapabili
   }
 
   try {
-    const response = await api_client.get<{ format_writes?: unknown }>(
-      "/crypto/v1/keys/account-key/capabilities",
-    );
+    const response = await api_client.get<{
+      format_writes?: unknown;
+      data_conversion?: unknown;
+    }>("/crypto/v1/keys/account-key/capabilities");
+    const format_writes =
+      !response.error && response.data?.format_writes === true;
     const value: AccountKeyCapabilities = {
-      format_writes: !response.error && response.data?.format_writes === true,
+      format_writes,
+      data_conversion: format_writes && response.data?.data_conversion === true,
     };
 
     capabilities_cache = { value, fetched_at: Date.now() };
@@ -115,4 +123,99 @@ export async function get_account_key_capabilities(): Promise<AccountKeyCapabili
   } catch {
     return CAPABILITIES_DISABLED;
   }
+}
+
+export interface AccountDataConversionStatus {
+  enabled: boolean;
+  sent_mail_done_at: string | null;
+  preferences_done_at: string | null;
+  converted_count: number;
+  skipped_count: number;
+  remaining_sent: number;
+  remaining_attachments: number;
+}
+
+function is_count(value: unknown): value is number {
+  return typeof value === "number" && Number.isSafeInteger(value) && value >= 0;
+}
+
+export type ConversionWriteResult =
+  "converted" | "already_converted" | "source_changed" | "failed";
+
+export async function get_account_data_conversion(): Promise<AccountDataConversionStatus | null> {
+  const response = await api_client.get<AccountDataConversionStatus>(
+    "/crypto/v1/keys/account-key/conversion",
+    { cache_ttl: 0 },
+  );
+
+  if (response.error || !response.data) return null;
+  if (response.data.enabled !== true) return null;
+  if (
+    !is_count(response.data.remaining_sent) ||
+    !is_count(response.data.remaining_attachments)
+  ) {
+    return null;
+  }
+
+  return response.data;
+}
+
+function conversion_write_result(response: {
+  error?: string;
+  data?: { status?: string };
+  server_code?: string;
+}): ConversionWriteResult {
+  if (!response.error && response.data?.status === "converted") {
+    return "converted";
+  }
+  if (response.server_code === "ALREADY_CONVERTED") return "already_converted";
+  if (response.server_code === "CONVERSION_SOURCE_CHANGED") {
+    return "source_changed";
+  }
+
+  return "failed";
+}
+
+export async function convert_sent_envelope(
+  item_id: string,
+  encrypted_envelope: string,
+  expected_envelope_sha256: string,
+): Promise<ConversionWriteResult> {
+  const response = await api_client.put<{ status?: string }>(
+    `/crypto/v1/keys/account-key/conversion/sent/${encodeURIComponent(item_id)}`,
+    { encrypted_envelope, expected_envelope_sha256 },
+  );
+
+  return conversion_write_result(response);
+}
+
+export async function convert_attachment_meta(
+  attachment_id: string,
+  encrypted_meta: string,
+  expected_meta_sha256: string,
+): Promise<ConversionWriteResult> {
+  const response = await api_client.put<{ status?: string }>(
+    `/crypto/v1/keys/account-key/conversion/attachment/${encodeURIComponent(attachment_id)}`,
+    { encrypted_meta, expected_meta_sha256 },
+  );
+
+  return conversion_write_result(response);
+}
+
+export interface ConversionProgress {
+  sent_mail_done?: boolean;
+  preferences_done?: boolean;
+  converted?: number;
+  skipped?: number;
+}
+
+export async function record_account_data_conversion(
+  progress: ConversionProgress,
+): Promise<boolean> {
+  const response = await api_client.post<AccountDataConversionStatus>(
+    "/crypto/v1/keys/account-key/conversion/progress",
+    progress,
+  );
+
+  return !response.error;
 }

@@ -29,6 +29,7 @@ import {
   retry_after_account_key_load,
 } from "@/services/crypto/account_data_writer";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
+import { array_to_base64, base64_to_array } from "@/services/crypto/envelope";
 import {
   DEFAULT_ENABLED_CATEGORIES,
   sanitize_custom_categories,
@@ -300,6 +301,7 @@ async function send_quiet_hours(
 interface GetPreferencesApiResponse {
   encrypted_preferences: string | null;
   preferences_nonce: string | null;
+  preferences_version?: number;
 }
 
 interface SavePreferencesApiResponse {
@@ -369,6 +371,148 @@ async function decrypt_preferences(
   );
 
   return JSON.parse(new TextDecoder().decode(decrypted));
+}
+
+export type PreferencesConversionResult =
+  | "converted"
+  | "already_converted"
+  | "not_found"
+  | "unavailable"
+  | "conflict"
+  | "failed";
+
+const PREFERENCES_CONTEXT = "astermail-preferences-v1";
+
+function equal_bytes(left: Uint8Array, right: Uint8Array): boolean {
+  if (left.length !== right.length) return false;
+
+  let diff = 0;
+
+  for (let i = 0; i < left.length; i++) diff |= left[i] ^ right[i];
+
+  return diff === 0;
+}
+
+function is_preferences_object(bytes: Uint8Array): boolean {
+  try {
+    const parsed = JSON.parse(
+      new TextDecoder("utf-8", { fatal: true }).decode(bytes),
+    );
+
+    return !!parsed && typeof parsed === "object" && !Array.isArray(parsed);
+  } catch {
+    return false;
+  }
+}
+
+export async function convert_preferences_to_account_key(
+  vault: EncryptedVault,
+): Promise<PreferencesConversionResult> {
+  const write_key = await account_data_write_key(PREFERENCES_CONTEXT);
+
+  if (!write_key) return "unavailable";
+
+  let response;
+
+  try {
+    response = await api_client.get<GetPreferencesApiResponse>(
+      "/settings/v1/preferences",
+      { skip_cache: true },
+    );
+  } catch {
+    return "failed";
+  }
+
+  if (response.error || !response.data) return "failed";
+
+  const { encrypted_preferences, preferences_nonce, preferences_version } =
+    response.data;
+
+  if (!encrypted_preferences || !preferences_nonce) return "not_found";
+  if (
+    typeof preferences_version !== "number" ||
+    !Number.isInteger(preferences_version) ||
+    preferences_version < 0
+  ) {
+    return "unavailable";
+  }
+
+  let ciphertext: Uint8Array;
+  let stored_nonce: Uint8Array;
+
+  try {
+    ciphertext = base64_to_array(encrypted_preferences);
+    stored_nonce = base64_to_array(preferences_nonce);
+  } catch {
+    return "failed";
+  }
+
+  const already_converted = await crypto.subtle
+    .decrypt({ name: "AES-GCM", iv: stored_nonce }, write_key, ciphertext)
+    .then(
+      () => true,
+      () => false,
+    );
+
+  if (already_converted) return "already_converted";
+
+  let plaintext: Uint8Array;
+
+  try {
+    plaintext = new Uint8Array(
+      await decrypt_aes_gcm_with_fallback(
+        await derive_preferences_key(vault),
+        ciphertext,
+        stored_nonce,
+      ),
+    );
+  } catch {
+    return "failed";
+  }
+
+  try {
+    if (!is_preferences_object(plaintext)) return "failed";
+
+    const nonce = crypto.getRandomValues(new Uint8Array(12));
+    const sealed = new Uint8Array(
+      await crypto.subtle.encrypt(
+        { name: "AES-GCM", iv: nonce },
+        write_key,
+        plaintext,
+      ),
+    );
+    const reopened = new Uint8Array(
+      await crypto.subtle.decrypt(
+        { name: "AES-GCM", iv: nonce },
+        write_key,
+        sealed,
+      ),
+    );
+
+    if (!equal_bytes(reopened, plaintext)) return "failed";
+    reopened.fill(0);
+
+    const saved = await api_client.put<SavePreferencesApiResponse>(
+      "/settings/v1/preferences",
+      {
+        encrypted_preferences: array_to_base64(sealed),
+        preferences_nonce: array_to_base64(nonce),
+        expected_version: preferences_version,
+      },
+    );
+
+    if (saved.server_code === "PREFERENCES_VERSION_CONFLICT") {
+      return "conflict";
+    }
+
+    return !saved.error && saved.data?.success === true
+      ? "converted"
+      : "failed";
+  } catch {
+    return "failed";
+  } finally {
+    plaintext.fill(0);
+  }
 }
 
 const PREFS_CACHE_KEY = "aster_preferences_cache";

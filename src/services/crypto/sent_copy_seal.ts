@@ -36,12 +36,23 @@ export async function seal_sent_envelope(
   identity_key: string,
   passphrase: string,
 ): Promise<SealedSentEnvelope | null> {
+  return seal_sent_plaintext(
+    JSON.stringify(envelope),
+    identity_key,
+    passphrase,
+  );
+}
+
+export async function seal_sent_plaintext(
+  plaintext: string,
+  identity_key: string,
+  passphrase: string,
+): Promise<SealedSentEnvelope | null> {
   try {
     const [public_key] = await derive_public_keys_from_private([identity_key]);
 
     if (!public_key) return null;
 
-    const plaintext = JSON.stringify(envelope);
     const armored = await encrypt_message(plaintext, public_key, {
       armored_secret_key: identity_key,
       passphrase,
