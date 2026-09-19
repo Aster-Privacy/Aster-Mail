@@ -659,6 +659,31 @@ describe("execute_external_send", () => {
     expect(request.thread_token).toBeTruthy();
   });
 
+  it("forwards the reply chain so the recipient can thread the reply", async () => {
+    await execute_external_send({
+      to: ["outsider@example.com"],
+      subject: "Re: External subject",
+      body: "External body",
+      in_reply_to: "<root@example.com> <parent@example.com>",
+    });
+
+    const request = vi.mocked(send_external_email).mock.calls[0][0];
+
+    expect(request.in_reply_to).toBe("<root@example.com> <parent@example.com>");
+  });
+
+  it("omits the reply chain for a new message", async () => {
+    await execute_external_send({
+      to: ["outsider@example.com"],
+      subject: "External subject",
+      body: "External body",
+    });
+
+    const request = vi.mocked(send_external_email).mock.calls[0][0];
+
+    expect(request.in_reply_to).toBeUndefined();
+  });
+
   it("replaces the ephemeral fields with a placeholder for a secure message", async () => {
     await execute_external_send({
       to: ["outsider@example.com"],

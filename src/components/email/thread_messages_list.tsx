@@ -56,6 +56,7 @@ import { read_clears_conversation } from "@/hooks/unread_read_delta";
 import { mark_conversation_read } from "@/hooks/mark_conversation_read";
 import { ThreadMessageBlock } from "@/components/email/thread_message_block";
 import { same_address_ignoring_dots } from "@/utils/address_dots";
+import { resolve_reply_references } from "@/lib/reply_references";
 
 const LOCAL_FLAG_OVERRIDE_TTL_MS = 30_000;
 
@@ -922,6 +923,14 @@ export const ThreadMessagesList = forwardRef<
 
   const visible_tail_count = 2;
 
+  const inline_reply_references = useMemo(
+    () =>
+      inline_reply_msg
+        ? resolve_reply_references(inline_reply_msg, regular_messages)
+        : undefined,
+    [inline_reply_msg, regular_messages],
+  );
+
   const hidden_count = useMemo(() => {
     if (
       hidden_group_revealed ||
@@ -967,6 +976,11 @@ export const ThreadMessagesList = forwardRef<
           hide_bottom_border={extra_props?.hide_bottom_border}
           inline_mode={inline_mode}
           inline_reply_is_external={inline_reply_is_external}
+          inline_reply_references={
+            inline_reply_msg?.id === msg.id
+              ? inline_reply_references
+              : undefined
+          }
           inline_reply_thread_token={inline_reply_thread_token}
           is_expanded={expanded_ids.has(msg.id)}
           is_last_in_thread={

@@ -87,6 +87,7 @@ export interface EmailPopupViewerProps {
     system_origin?: boolean;
     sender_verified_domain?: string;
     reply_from_address?: string;
+    original_rfc_message_id?: string;
   }) => void;
   on_forward?: (data: {
     sender_name: string;

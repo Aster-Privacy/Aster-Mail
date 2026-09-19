@@ -112,6 +112,7 @@ export interface ThreadMessageBlockProps {
   on_toggle_dark_mode?: () => void;
   show_inline_reply?: boolean;
   inline_reply_thread_token?: string;
+  inline_reply_references?: string;
   inline_reply_is_external?: boolean;
   on_close_inline_reply?: () => void;
   inline_mode?: "reply" | "reply_all" | "forward";
@@ -199,7 +200,9 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
     ) {
       return t("mail.encrypted_message_unavailable");
     }
-    const plain = strip_html_tags_bounded(clean_body, 600).replace(/\s+/g, " ").trim();
+    const plain = strip_html_tags_bounded(clean_body, 600)
+      .replace(/\s+/g, " ")
+      .trim();
 
     return clip_with_ellipsis(plain, 120);
   }, [clean_body, password_protected, t]);
