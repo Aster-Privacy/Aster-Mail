@@ -126,6 +126,7 @@ export interface EncryptedVault {
   ratchet_regen_v4_done?: boolean;
   legacy_keks?: LegacyDerivedKek[];
   data_kek?: string;
+  escrow_seed?: string;
   vault_format?: number;
   kdf_version?: number;
   mk_created_at?: string;

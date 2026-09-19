@@ -81,6 +81,7 @@ export interface AccountKeyCapabilities {
   format_writes: boolean;
   data_conversion: boolean;
   device_recovery: boolean;
+  key_escrow: boolean;
 }
 
 const CAPABILITIES_TTL_MS = 5 * 60 * 1000;
@@ -88,6 +89,7 @@ const CAPABILITIES_DISABLED: AccountKeyCapabilities = {
   format_writes: false,
   data_conversion: false,
   device_recovery: false,
+  key_escrow: false,
 };
 
 let capabilities_cache: {
@@ -112,6 +114,7 @@ export async function get_account_key_capabilities(): Promise<AccountKeyCapabili
       format_writes?: unknown;
       data_conversion?: unknown;
       device_recovery?: unknown;
+      key_escrow?: unknown;
     }>("/crypto/v1/keys/account-key/capabilities");
     const format_writes =
       !response.error && response.data?.format_writes === true;
@@ -120,6 +123,7 @@ export async function get_account_key_capabilities(): Promise<AccountKeyCapabili
       data_conversion: format_writes && response.data?.data_conversion === true,
       device_recovery:
         !response.error && response.data?.device_recovery === true,
+      key_escrow: !response.error && response.data?.key_escrow === true,
     };
 
     capabilities_cache = { value, fetched_at: Date.now() };

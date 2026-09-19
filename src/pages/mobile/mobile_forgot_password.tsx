@@ -62,6 +62,12 @@ import {
 } from "@/services/crypto/recovery_key";
 import { EncryptedVault } from "@/services/crypto/key_manager_core";
 import {
+  encode_escrow_seed,
+  generate_escrow_seed,
+} from "@/services/crypto/recovery_key_escrow";
+import { rescue_account_key_from_escrow } from "@/services/crypto/recovery_escrow_rescue";
+import { zero_uint8_array } from "@/services/crypto/secure_memory";
+import {
   MASTER_KEY_VAULT_FORMAT,
   is_master_key_vault,
 } from "@/services/crypto/memory_key_store";
@@ -300,6 +306,7 @@ export default function MobileForgotPasswordPage() {
       const vault_uses_master_key = is_master_key_vault(vault);
       const old_data_kek = vault.data_kek ?? null;
       const old_identity_key = vault.identity_key;
+      const old_escrow_seed = vault.escrow_seed;
 
       set_processing_status(t("auth.generating_new_encryption_keys"));
       const salt = crypto.getRandomValues(new Uint8Array(32));
@@ -344,6 +351,11 @@ export default function MobileForgotPasswordPage() {
       vault.signed_prekey = new_prekey_keypair.public_key;
       vault.signed_prekey_private = new_prekey_keypair.secret_key;
 
+      const fresh_escrow_seed = generate_escrow_seed();
+
+      vault.escrow_seed = encode_escrow_seed(fresh_escrow_seed);
+      zero_uint8_array(fresh_escrow_seed);
+
       set_processing_status(t("auth.creating_new_recovery_codes"));
       const new_codes = generate_recovery_codes(6);
 
@@ -367,6 +379,13 @@ export default function MobileForgotPasswordPage() {
 
       clear_recovery_key(new_recovery_key);
 
+      const rescued_account_key = await rescue_account_key_from_escrow(
+        recovery_token,
+        old_escrow_seed,
+        new_identity_keypair.secret_key,
+        password,
+      );
+
       set_processing_status(t("auth.saving_new_credentials"));
       const complete_response = await complete_recovery(
         recovery_token,
@@ -383,6 +402,8 @@ export default function MobileForgotPasswordPage() {
         btoa(prekey_signature),
         pgp_key_data,
         vault_uses_master_key ? MASTER_KEY_VAULT_FORMAT : undefined,
+        rescued_account_key?.token,
+        rescued_account_key?.fingerprint,
       );
 
       if (complete_response.error || !complete_response.data?.success) {
@@ -520,6 +541,7 @@ export default function MobileForgotPasswordPage() {
       const vault_uses_master_key = is_master_key_vault(vault);
       const old_data_kek = vault.data_kek ?? null;
       const old_identity_key = vault.identity_key;
+      const old_escrow_seed = vault.escrow_seed;
 
       set_processing_status(t("auth.generating_new_encryption_keys"));
       const salt = crypto.getRandomValues(new Uint8Array(32));
@@ -565,6 +587,11 @@ export default function MobileForgotPasswordPage() {
       vault.signed_prekey = new_prekey_keypair.public_key;
       vault.signed_prekey_private = new_prekey_keypair.secret_key;
 
+      const fresh_escrow_seed = generate_escrow_seed();
+
+      vault.escrow_seed = encode_escrow_seed(fresh_escrow_seed);
+      zero_uint8_array(fresh_escrow_seed);
+
       set_processing_status(t("auth.creating_new_recovery_codes"));
       const new_codes = generate_recovery_codes(6);
 
@@ -589,6 +616,13 @@ export default function MobileForgotPasswordPage() {
       clear_recovery_key(recovery_key);
       clear_recovery_key(new_recovery_key);
 
+      const rescued_account_key = await rescue_account_key_from_escrow(
+        recovery_token,
+        old_escrow_seed,
+        new_identity_keypair.secret_key,
+        password,
+      );
+
       set_processing_status(t("auth.saving_new_credentials"));
       const complete_response = await complete_recovery(
         recovery_token,
@@ -605,6 +639,8 @@ export default function MobileForgotPasswordPage() {
         btoa(prekey_signature),
         pgp_key_data,
         vault_uses_master_key ? MASTER_KEY_VAULT_FORMAT : undefined,
+        rescued_account_key?.token,
+        rescued_account_key?.fingerprint,
       );
 
       if (complete_response.error || !complete_response.data?.success) {

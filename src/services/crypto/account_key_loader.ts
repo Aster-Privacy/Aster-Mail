@@ -23,6 +23,8 @@ import type { AccountKeyTokenResponse } from "@/services/api/account_key";
 
 import * as openpgp from "openpgp";
 
+import { get_current_account } from "../account_manager";
+
 import { ACCOUNT_KEY_LENGTH } from "./account_data_key";
 import {
   open_account_key_token,
@@ -33,6 +35,7 @@ import {
   get_account_write_epoch,
   load_account_key_derived_keks_into_memory,
 } from "./legacy_keks";
+import { sync_recovery_escrow } from "./recovery_escrow";
 import { zero_uint8_array } from "./secure_memory";
 
 import {
@@ -118,6 +121,23 @@ async function load_token(
   }
 }
 
+async function sync_escrow(
+  vault: EncryptedVault,
+  passphrase: string,
+  token: AccountKeyTokenResponse,
+  own_keys: string[],
+): Promise<void> {
+  const user_id = (await get_current_account())?.user?.id;
+
+  if (!user_id) return;
+
+  try {
+    await sync_recovery_escrow(user_id, vault, passphrase, token, own_keys);
+  } catch {
+    return;
+  }
+}
+
 export async function load_account_keys_for_session(
   vault: EncryptedVault,
   passphrase: string,
@@ -154,6 +174,8 @@ export async function load_account_keys_for_session(
   ) {
     loaded += 1;
   }
+
+  void sync_escrow(vault, passphrase, current, own_keys);
 
   const history = await get_account_key_token_history();
 
