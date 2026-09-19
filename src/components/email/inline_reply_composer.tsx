@@ -60,6 +60,7 @@ interface InlineReplyComposerProps {
   reply_all?: boolean;
   thread_token?: string;
   original_email_id?: string;
+  original_rfc_message_id?: string;
   is_external?: boolean;
   thread_ghost_email?: string;
   reply_from_address?: string;
@@ -98,6 +99,7 @@ export const InlineReplyComposer = forwardRef<
     reply_all: _reply_all = false,
     thread_token,
     original_email_id,
+    original_rfc_message_id,
     is_external = false,
     thread_ghost_email,
     reply_from_address,
@@ -188,6 +190,7 @@ export const InlineReplyComposer = forwardRef<
     reply_all: inline_mode === "reply_all",
     thread_token,
     original_email_id,
+    original_rfc_message_id,
     is_external,
     thread_ghost_email,
     reply_from_address,

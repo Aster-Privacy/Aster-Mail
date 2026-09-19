@@ -507,6 +507,7 @@ export async function send_via_external_account(
     content_type: string;
     size_bytes: number;
   }[],
+  in_reply_to?: string,
 ): Promise<ApiResponse<{ success: boolean; message: string }>> {
   const token_error = validate_account_token(account_token);
 
@@ -530,6 +531,10 @@ export async function send_via_external_account(
 
     if (attachments && attachments.length > 0) {
       payload.attachments = attachments;
+    }
+
+    if (in_reply_to) {
+      payload.in_reply_to = in_reply_to;
     }
 
     const response = await api_client.post<{

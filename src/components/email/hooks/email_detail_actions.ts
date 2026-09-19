@@ -76,6 +76,7 @@ import { remove_email_from_view_cache } from "@/hooks/email_list_cache";
 import { set_forward_mail_id } from "@/services/forward_store";
 import { ignore_error } from "@/lib/ignore_error";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
+import { resolve_reply_references } from "@/lib/reply_references";
 
 export interface EmailDetailActionsDeps {
   email_id: string | undefined;
@@ -147,9 +148,10 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
         is_own_message,
       );
 
-      const msg_rfc_message_id = msg.raw_headers?.find(
-        (h) => h.name.toLowerCase() === "message-id",
-      )?.value;
+      const msg_rfc_message_id = resolve_reply_references(
+        msg,
+        deps.thread_messages,
+      );
 
       const quote_sender =
         !is_own_message && msg.display_sender_email
@@ -189,6 +191,7 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
       deps.mail_item?.thread_token,
       deps.mail_item?.routing_token,
       deps.thread_ghost_email,
+      deps.thread_messages,
     ],
   );
 

@@ -67,6 +67,7 @@ import mail_logo_url from "@/assets/mail_logo.webp";
 import { ignore_error } from "@/lib/ignore_error";
 import { open_external } from "@/utils/open_link";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
+import { resolve_reply_references } from "@/lib/reply_references";
 
 export interface PopupActionsDeps {
   email_id: string | null;
@@ -529,6 +530,10 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
         is_external: !!deps.mail_item?.is_external,
         original_to: to_emails,
         reply_from_address,
+        original_rfc_message_id: resolve_reply_references(
+          deps.email,
+          deps.thread_messages,
+        ),
       };
 
       if (is_reply_all) {
@@ -544,6 +549,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
       deps.current_thread_token,
       deps.preferences_default_reply_behavior,
       deps.mail_item,
+      deps.thread_messages,
     ],
   );
 
@@ -697,6 +703,10 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
         is_external: msg.is_external,
         original_to: to_emails,
         reply_from_address,
+        original_rfc_message_id: resolve_reply_references(
+          msg,
+          deps.thread_messages,
+        ),
       };
 
       if (is_reply_all) {
@@ -706,7 +716,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
 
       return data;
     },
-    [deps.current_thread_token],
+    [deps.current_thread_token, deps.thread_messages],
   );
 
   const handle_per_message_reply = useCallback(
