@@ -27,7 +27,6 @@ import type {
 import { useState, useEffect, useRef } from "react";
 
 import { copy_text_or_throw } from "@/utils/copy_text";
-import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { api_client } from "@/services/api/client";
@@ -434,10 +433,10 @@ export function use_encryption() {
           ["decrypt"],
         );
 
-        const decrypted = await decrypt_aes_gcm_with_fallback(
+        const decrypted = await crypto.subtle.decrypt(
+          { name: "AES-GCM", iv: nonce },
           decryption_key,
           ciphertext,
-          nonce,
         );
 
         armored_key = new TextDecoder().decode(decrypted);
