@@ -44,6 +44,7 @@ import { clear_envelope_key_cache } from "./envelope_key_cache";
 import {
   load_legacy_keks_into_memory,
   load_previous_key_derived_keks_into_memory,
+  load_account_key_derived_keks_into_memory,
   clear_legacy_keks_from_memory,
   append_legacy_key_raw_bytes,
 } from "./legacy_keks";
@@ -286,10 +287,12 @@ export async function store_vault_in_memory(
     vault_format: vault.vault_format,
     kdf_version: vault.kdf_version,
     mk_created_at: vault.mk_created_at,
+    account_key: vault.account_key,
   };
 
   await load_legacy_keks_into_memory(vault.legacy_keks);
   await load_previous_key_derived_keks_into_memory(vault.previous_keys);
+  await load_account_key_derived_keks_into_memory(vault.account_key);
 
   secure_passphrase = SecureBuffer.from_string(
     passphrase,

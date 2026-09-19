@@ -22,6 +22,11 @@ import type { LegacyDerivedKek } from "./key_manager_core";
 
 import { array_to_base64, base64_to_array } from "./base64";
 import { zero_uint8_array } from "./secure_memory";
+import {
+  ACCOUNT_DATA_CONTEXTS,
+  decode_account_key,
+  derive_account_data_key_raw,
+} from "./account_data_key";
 
 import { HASH_ALG } from "@/services/crypto/constants";
 import { ignore_error } from "@/lib/ignore_error";
@@ -204,6 +209,29 @@ export async function load_previous_key_derived_keks_into_memory(
         continue;
       }
     }
+  }
+}
+
+export async function load_account_key_derived_keks_into_memory(
+  account_key_b64: string | undefined,
+): Promise<void> {
+  const account_key = decode_account_key(account_key_b64);
+
+  if (!account_key) return;
+
+  try {
+    for (const context of ACCOUNT_DATA_CONTEXTS) {
+      try {
+        const raw = await derive_account_data_key_raw(account_key, context);
+
+        await remember_legacy_raw(raw);
+        zero_uint8_array(raw);
+      } catch {
+        continue;
+      }
+    }
+  } finally {
+    zero_uint8_array(account_key);
   }
 }
 
