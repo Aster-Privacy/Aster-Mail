@@ -139,6 +139,7 @@ export function SecuritySection({
   const [pw_loading, set_pw_loading] = useState(false);
   const [pw_error, set_pw_error] = useState("");
   const [pw_success, set_pw_success] = useState(false);
+  const [did_change_password, set_did_change_password] = useState(false);
   const [pw_unreadable_notice, set_pw_unreadable_notice] = useState("");
   const [show_restore_sent_mail, set_show_restore_sent_mail] = useState(false);
   const [previous_password, set_previous_password] = useState("");
@@ -614,6 +615,7 @@ export function SecuritySection({
       }
 
       set_pw_success(true);
+      set_did_change_password(true);
       show_toast(t("settings.password_changed_success"), "success");
       set_show_password_change(false);
       set_current_password("");
@@ -1007,84 +1009,85 @@ export function SecuritySection({
                   {pw_unreadable_notice}
                 </p>
               )}
-              {!show_restore_sent_mail ? (
-                <SettingsRow
-                  description={t("settings.restore_sent_mail_description")}
-                  icon={<KeyIcon className="h-4 w-4" />}
-                  label={t("settings.restore_sent_mail")}
-                  on_press={() => set_show_restore_sent_mail(true)}
-                />
-              ) : (
-                <div className="space-y-3 px-4 py-3">
-                  <p className="text-[13px] text-[var(--text-muted)]">
-                    {t("settings.restore_sent_mail_description")}
-                  </p>
-                  <Input
-                    autoComplete="off"
-                    className="w-full"
-                    disabled={restore_loading}
-                    maxLength={128}
-                    placeholder={t("settings.enter_previous_password")}
-                    status={restore_error ? "error" : "default"}
-                    type="password"
-                    value={previous_password}
-                    onChange={(e) =>
-                      set_previous_password(clamp_password(e.target.value))
-                    }
+              {did_change_password &&
+                (!show_restore_sent_mail ? (
+                  <SettingsRow
+                    description={t("settings.restore_sent_mail_description")}
+                    icon={<KeyIcon className="h-4 w-4" />}
+                    label={t("settings.restore_sent_mail")}
+                    on_press={() => set_show_restore_sent_mail(true)}
                   />
-                  {restore_loading && (
+                ) : (
+                  <div className="space-y-3 px-4 py-3">
                     <p className="text-[13px] text-[var(--text-muted)]">
-                      {t("settings.restore_sent_mail_running").replace(
-                        "{{count}}",
-                        String(restore_progress),
-                      )}
+                      {t("settings.restore_sent_mail_description")}
                     </p>
-                  )}
-                  {restore_error && (
-                    <p className="text-[13px] text-[var(--color-danger,#ef4444)]">
-                      {restore_error}
-                    </p>
-                  )}
-                  {restore_result && (
-                    <p className="text-[13px] text-green-500">
-                      {restore_result}
-                    </p>
-                  )}
-                  <div className="flex gap-2">
-                    <button
-                      className="flex-1 rounded-[16px] bg-[var(--bg-tertiary)] py-3 text-[15px] font-medium text-[var(--text-primary)] disabled:opacity-50"
+                    <Input
+                      autoComplete="off"
+                      className="w-full"
                       disabled={restore_loading}
-                      type="button"
-                      onClick={() => {
-                        set_show_restore_sent_mail(false);
-                        set_previous_password("");
-                        set_restore_result("");
-                        set_restore_error("");
-                        set_restore_progress(0);
-                      }}
-                    >
-                      {t("common.cancel")}
-                    </button>
-                    <motion.button
-                      className="flex flex-1 items-center justify-center rounded-xl py-3 text-[15px] font-semibold text-white disabled:opacity-50"
-                      disabled={!previous_password || restore_loading}
-                      style={{
-                        background:
-                          "linear-gradient(180deg, var(--accent-mix-w80, #629bf8) 0%, var(--accent-color) 50%, var(--accent-mix-b80, #2f68c5) 100%)",
-                      }}
-                      type="button"
-                      whileTap={{ scale: 0.98 }}
-                      onClick={handle_restore_sent_mail}
-                    >
-                      {restore_loading ? (
-                        <Spinner size="sm" />
-                      ) : (
-                        t("settings.restore_sent_mail")
-                      )}
-                    </motion.button>
+                      maxLength={128}
+                      placeholder={t("settings.enter_previous_password")}
+                      status={restore_error ? "error" : "default"}
+                      type="password"
+                      value={previous_password}
+                      onChange={(e) =>
+                        set_previous_password(clamp_password(e.target.value))
+                      }
+                    />
+                    {restore_loading && (
+                      <p className="text-[13px] text-[var(--text-muted)]">
+                        {t("settings.restore_sent_mail_running").replace(
+                          "{{count}}",
+                          String(restore_progress),
+                        )}
+                      </p>
+                    )}
+                    {restore_error && (
+                      <p className="text-[13px] text-[var(--color-danger,#ef4444)]">
+                        {restore_error}
+                      </p>
+                    )}
+                    {restore_result && (
+                      <p className="text-[13px] text-green-500">
+                        {restore_result}
+                      </p>
+                    )}
+                    <div className="flex gap-2">
+                      <button
+                        className="flex-1 rounded-[16px] bg-[var(--bg-tertiary)] py-3 text-[15px] font-medium text-[var(--text-primary)] disabled:opacity-50"
+                        disabled={restore_loading}
+                        type="button"
+                        onClick={() => {
+                          set_show_restore_sent_mail(false);
+                          set_previous_password("");
+                          set_restore_result("");
+                          set_restore_error("");
+                          set_restore_progress(0);
+                        }}
+                      >
+                        {t("common.cancel")}
+                      </button>
+                      <motion.button
+                        className="flex flex-1 items-center justify-center rounded-xl py-3 text-[15px] font-semibold text-white disabled:opacity-50"
+                        disabled={!previous_password || restore_loading}
+                        style={{
+                          background:
+                            "linear-gradient(180deg, var(--accent-mix-w80, #629bf8) 0%, var(--accent-color) 50%, var(--accent-mix-b80, #2f68c5) 100%)",
+                        }}
+                        type="button"
+                        whileTap={{ scale: 0.98 }}
+                        onClick={handle_restore_sent_mail}
+                      >
+                        {restore_loading ? (
+                          <Spinner size="sm" />
+                        ) : (
+                          t("settings.restore_sent_mail")
+                        )}
+                      </motion.button>
+                    </div>
                   </div>
-                </div>
-              )}
+                ))}
             </>
           ) : (
             <div className="space-y-3 px-4 py-3">
