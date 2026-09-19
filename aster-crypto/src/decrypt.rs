@@ -40,6 +40,14 @@ fn capped_plaintext(data: &[u8]) -> Result<Vec<u8>> {
 }
 
 pub fn decrypt_message(ciphertext: &[u8], secret_keys: &[&KeyPair]) -> Result<Vec<u8>> {
+    decrypt_message_with_passphrase(ciphertext, secret_keys, "")
+}
+
+pub fn decrypt_message_with_passphrase(
+    ciphertext: &[u8],
+    secret_keys: &[&KeyPair],
+    passphrase: &str,
+) -> Result<Vec<u8>> {
     if secret_keys.is_empty() {
         return Err(CryptoError::KeyNotFound("No secret keys provided".into()));
     }
@@ -51,7 +59,7 @@ pub fn decrypt_message(ciphertext: &[u8], secret_keys: &[&KeyPair]) -> Result<Ve
         .map_err(|_| CryptoError::Decryption("Decryption failed".into()))?;
 
     for keypair in secret_keys {
-        let decrypted = msg.decrypt(|| "".to_string(), &[keypair.secret_key()]);
+        let decrypted = msg.decrypt(|| passphrase.to_string(), &[keypair.secret_key()]);
 
         if let Ok((decrypted_msg, _key_ids)) = decrypted {
             if let Some(literal) = decrypted_msg.get_literal() {
@@ -329,6 +337,22 @@ mod tests {
         )
         .is_err());
         assert!(decrypt_and_verify(&ciphertext, &[&owner], &[&owner_pub]).is_err());
+    }
+
+    #[test]
+    fn passphrase_decrypt_opens_message_for_protected_key() {
+        let owner = protected_keypair("hunter2 hunter2");
+        let other = protected_keypair("hunter2 hunter2");
+        let ciphertext = encrypt_message(b"sealed envelope", &[&owner.public_key()]).unwrap();
+
+        let decrypted =
+            decrypt_message_with_passphrase(&ciphertext, &[&other, &owner], "hunter2 hunter2")
+                .unwrap();
+        assert_eq!(b"sealed envelope".as_slice(), decrypted.as_slice());
+
+        assert!(decrypt_message_with_passphrase(&ciphertext, &[&owner], "wrong").is_err());
+        assert!(decrypt_message(&ciphertext, &[&owner]).is_err());
+        assert!(decrypt_message_with_passphrase(&ciphertext, &[], "hunter2 hunter2").is_err());
     }
 
     #[test]
