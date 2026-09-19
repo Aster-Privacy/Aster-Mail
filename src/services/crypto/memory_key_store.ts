@@ -258,6 +258,7 @@ export async function derive_encryption_key_from_passphrase(
 const ACCOUNT_KEY_RETRY_DELAYS_MS = [2000, 5000, 15000, 30000, 60000];
 
 let account_key_load_generation: number | null = null;
+let account_key_load_key_set: string | null = null;
 let account_key_retry_timer: ReturnType<typeof setTimeout> | null = null;
 
 function cancel_account_key_retry(): void {
@@ -317,9 +318,18 @@ function request_account_key_load(
   passphrase: string,
 ): void {
   const generation = get_account_key_generation();
+  const key_set = [vault.identity_key, ...(vault.previous_keys ?? [])].join(
+    "\n",
+  );
 
-  if (account_key_load_generation === generation) return;
+  if (
+    account_key_load_generation === generation &&
+    account_key_load_key_set === key_set
+  ) {
+    return;
+  }
   account_key_load_generation = generation;
+  account_key_load_key_set = key_set;
   cancel_account_key_retry();
   run_account_key_load(generation, 0, vault, passphrase);
 }
@@ -527,6 +537,7 @@ export function clear_vault_from_memory(
     cancel_account_key_retry();
     clear_account_key_derived_keks();
     account_key_load_generation = null;
+    account_key_load_key_set = null;
   }
   vault_in_memory = null;
   vault_owner_id = null;

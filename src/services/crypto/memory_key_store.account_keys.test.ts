@@ -70,12 +70,31 @@ describe("account key pool across vault reloads", () => {
     await flush();
     const generation = get_account_key_generation();
 
-    await store_vault_in_memory(build_vault("rotated"), "pw", "user-a");
-    await store_vault_in_memory(build_vault("rotated"), "pw");
+    await store_vault_in_memory(build_vault(), "pw", "user-a");
+    await store_vault_in_memory(build_vault(), "pw");
     await flush();
 
     expect(get_account_key_generation()).toBe(generation);
     expect(loader.load_account_keys_for_session).toHaveBeenCalledTimes(1);
+  });
+
+  it("loads again when a reload adds keys to the vault", async () => {
+    await store_vault_in_memory(build_vault(), "pw", "user-a");
+    await flush();
+    const generation = get_account_key_generation();
+
+    await store_vault_in_memory(
+      { ...build_vault(), previous_keys: ["reactivated"] },
+      "pw",
+      "user-a",
+    );
+    await flush();
+
+    expect(get_account_key_generation()).toBe(generation);
+    expect(loader.load_account_keys_for_session).toHaveBeenCalledTimes(2);
+    expect(
+      loader.load_account_keys_for_session.mock.calls[1][0].previous_keys,
+    ).toEqual(["reactivated"]);
   });
 
   it("clears the pool when a different account stores its vault", async () => {
