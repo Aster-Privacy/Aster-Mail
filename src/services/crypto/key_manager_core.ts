@@ -128,7 +128,6 @@ export interface EncryptedVault {
   vault_format?: number;
   kdf_version?: number;
   mk_created_at?: string;
-  account_key?: string;
 }
 
 export interface VaultEncryptionResult {

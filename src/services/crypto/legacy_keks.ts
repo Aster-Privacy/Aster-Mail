@@ -24,7 +24,7 @@ import { array_to_base64, base64_to_array } from "./base64";
 import { zero_uint8_array } from "./secure_memory";
 import {
   ACCOUNT_DATA_CONTEXTS,
-  decode_account_key,
+  ACCOUNT_KEY_LENGTH,
   derive_account_data_key_raw,
 } from "./account_data_key";
 
@@ -52,6 +52,10 @@ const PREVIOUS_KEY_CONTEXTS = [
 
 let legacy_crypto_keys: CryptoKey[] = [];
 let legacy_hkdf_keys: CryptoKey[] = [];
+let account_crypto_keys: CryptoKey[] = [];
+let account_hkdf_keys: CryptoKey[] = [];
+let loaded_account_key_ids = new Set<string>();
+let account_key_generation = 0;
 
 async function derive_salt_from_passphrase(
   passphrase_bytes: Uint8Array,
@@ -212,27 +216,51 @@ export async function load_previous_key_derived_keks_into_memory(
   }
 }
 
+export function get_account_key_generation(): number {
+  return account_key_generation;
+}
+
 export async function load_account_key_derived_keks_into_memory(
-  account_key_b64: string | undefined,
-): Promise<void> {
-  const account_key = decode_account_key(account_key_b64);
+  account_key: Uint8Array,
+  generation: number,
+): Promise<boolean> {
+  if (account_key.length !== ACCOUNT_KEY_LENGTH) return false;
 
-  if (!account_key) return;
+  const key_id = array_to_base64(
+    new Uint8Array(await crypto.subtle.digest(HASH_ALG, account_key)),
+  );
 
-  try {
-    for (const context of ACCOUNT_DATA_CONTEXTS) {
-      try {
-        const raw = await derive_account_data_key_raw(account_key, context);
+  if (loaded_account_key_ids.has(key_id)) return true;
 
-        await remember_legacy_raw(raw);
-        zero_uint8_array(raw);
-      } catch {
-        continue;
-      }
+  const aes_keys: CryptoKey[] = [];
+  const hkdf_keys: CryptoKey[] = [];
+
+  for (const context of ACCOUNT_DATA_CONTEXTS) {
+    const raw = await derive_account_data_key_raw(account_key, context);
+
+    try {
+      aes_keys.push(await import_raw_as_aes_key(raw));
+      hkdf_keys.push(await import_raw_as_hkdf_key(raw));
+    } finally {
+      zero_uint8_array(raw);
     }
-  } finally {
-    zero_uint8_array(account_key);
   }
+
+  if (generation !== account_key_generation) return false;
+  if (loaded_account_key_ids.has(key_id)) return true;
+
+  loaded_account_key_ids.add(key_id);
+  account_crypto_keys = [...account_crypto_keys, ...aes_keys];
+  account_hkdf_keys = [...account_hkdf_keys, ...hkdf_keys];
+
+  return true;
+}
+
+export function clear_account_key_derived_keks(): void {
+  account_crypto_keys = [];
+  account_hkdf_keys = [];
+  loaded_account_key_ids = new Set();
+  account_key_generation += 1;
 }
 
 export function clear_legacy_keks_from_memory(): void {
@@ -241,7 +269,7 @@ export function clear_legacy_keks_from_memory(): void {
 }
 
 export function get_legacy_crypto_keys(): CryptoKey[] {
-  return legacy_crypto_keys;
+  return [...legacy_crypto_keys, ...account_crypto_keys];
 }
 
 export async function decrypt_with_legacy_derived_keys(
@@ -249,7 +277,7 @@ export async function decrypt_with_legacy_derived_keys(
   ciphertext: BufferSource,
   iv: BufferSource,
 ): Promise<ArrayBuffer | null> {
-  for (const base of legacy_hkdf_keys) {
+  for (const base of [...legacy_hkdf_keys, ...account_hkdf_keys]) {
     try {
       const key = await derive(base);
 
@@ -291,11 +319,13 @@ export async function decrypt_aes_gcm_with_fallback(
       ciphertext,
     );
   } catch (primary_error) {
-    if (legacy_crypto_keys.length === 0) {
+    const fallback_keys = [...legacy_crypto_keys, ...account_crypto_keys];
+
+    if (fallback_keys.length === 0) {
       throw primary_error;
     }
 
-    const attempts = legacy_crypto_keys.map((fallback_key) =>
+    const attempts = fallback_keys.map((fallback_key) =>
       crypto.subtle.decrypt({ name: "AES-GCM", iv }, fallback_key, ciphertext),
     );
 

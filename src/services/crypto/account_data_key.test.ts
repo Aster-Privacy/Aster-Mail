@@ -26,9 +26,13 @@ import {
 } from "./account_data_key";
 import { array_to_base64 } from "./base64";
 import {
+  clear_account_key_derived_keks,
   clear_legacy_keks_from_memory,
   decrypt_aes_gcm_with_fallback,
+  get_account_key_generation,
+  get_legacy_crypto_keys,
   load_account_key_derived_keks_into_memory,
+  load_legacy_keks_into_memory,
 } from "./legacy_keks";
 
 const ACCOUNT_KEY = Uint8Array.from({ length: 32 }, (_, i) => i);
@@ -67,6 +71,7 @@ async function seal_with_context(
 describe("account data key", () => {
   afterEach(() => {
     clear_legacy_keks_from_memory();
+    clear_account_key_derived_keks();
   });
 
   it("matches the cross-platform vectors", async () => {
@@ -123,7 +128,8 @@ describe("account data key", () => {
     ).rejects.toBeDefined();
 
     await load_account_key_derived_keks_into_memory(
-      array_to_base64(ACCOUNT_KEY),
+      ACCOUNT_KEY,
+      get_account_key_generation(),
     );
 
     const plaintext = await decrypt_aes_gcm_with_fallback(
@@ -147,7 +153,8 @@ describe("account data key", () => {
     );
 
     await load_account_key_derived_keks_into_memory(
-      array_to_base64(ACCOUNT_KEY),
+      ACCOUNT_KEY,
+      get_account_key_generation(),
     );
 
     await expect(
@@ -155,12 +162,63 @@ describe("account data key", () => {
     ).rejects.toBeDefined();
   });
 
-  it("ignores a malformed account key without failing", async () => {
+  it("refuses to load an account key of the wrong length", async () => {
     await expect(
-      load_account_key_derived_keks_into_memory("AAAA"),
-    ).resolves.toBeUndefined();
-    await expect(
-      load_account_key_derived_keks_into_memory(undefined),
-    ).resolves.toBeUndefined();
+      load_account_key_derived_keks_into_memory(
+        new Uint8Array(16),
+        get_account_key_generation(),
+      ),
+    ).resolves.toBe(false);
+    expect(get_legacy_crypto_keys()).toHaveLength(0);
+  });
+
+  it("drops a load that finishes after sign-out", async () => {
+    const generation = get_account_key_generation();
+    const pending = load_account_key_derived_keks_into_memory(
+      ACCOUNT_KEY,
+      generation,
+    );
+
+    clear_account_key_derived_keks();
+
+    await expect(pending).resolves.toBe(false);
+    expect(get_legacy_crypto_keys()).toHaveLength(0);
+  });
+
+  it("keeps account keys when the vault key list reloads", async () => {
+    const { ciphertext, iv } = await seal_with_context(
+      ACCOUNT_KEY,
+      "astermail-draft-v2",
+      "draft",
+    );
+    const stale_primary = await import_aes(
+      crypto.getRandomValues(new Uint8Array(32)),
+    );
+
+    await load_account_key_derived_keks_into_memory(
+      ACCOUNT_KEY,
+      get_account_key_generation(),
+    );
+    await load_legacy_keks_into_memory(undefined);
+
+    const plaintext = await decrypt_aes_gcm_with_fallback(
+      stale_primary,
+      ciphertext,
+      iv,
+    );
+
+    expect(new TextDecoder().decode(plaintext)).toBe("draft");
+  });
+
+  it("loads the same account key only once", async () => {
+    const generation = get_account_key_generation();
+
+    await load_account_key_derived_keks_into_memory(ACCOUNT_KEY, generation);
+    const count = get_legacy_crypto_keys().length;
+
+    await load_account_key_derived_keks_into_memory(ACCOUNT_KEY, generation);
+
+    expect(count).toBe(ACCOUNT_DATA_CONTEXTS.length);
+    expect(get_legacy_crypto_keys()).toHaveLength(count);
   });
 });

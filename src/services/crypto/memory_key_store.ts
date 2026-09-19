@@ -44,8 +44,9 @@ import { clear_envelope_key_cache } from "./envelope_key_cache";
 import {
   load_legacy_keks_into_memory,
   load_previous_key_derived_keks_into_memory,
-  load_account_key_derived_keks_into_memory,
   clear_legacy_keks_from_memory,
+  clear_account_key_derived_keks,
+  get_account_key_generation,
   append_legacy_key_raw_bytes,
 } from "./legacy_keks";
 
@@ -254,6 +255,28 @@ export async function derive_encryption_key_from_passphrase(
   return new Uint8Array(derived_bits);
 }
 
+let account_key_load_generation: number | null = null;
+
+function request_account_key_load(
+  vault: EncryptedVault,
+  passphrase: string,
+): void {
+  const generation = get_account_key_generation();
+
+  if (account_key_load_generation === generation) return;
+  account_key_load_generation = generation;
+
+  import("./account_key_loader")
+    .then(({ load_account_keys_for_session }) =>
+      load_account_keys_for_session(vault, passphrase),
+    )
+    .catch(() => {
+      if (account_key_load_generation === generation) {
+        account_key_load_generation = null;
+      }
+    });
+}
+
 export async function store_vault_in_memory(
   vault: EncryptedVault,
   passphrase: string,
@@ -287,12 +310,11 @@ export async function store_vault_in_memory(
     vault_format: vault.vault_format,
     kdf_version: vault.kdf_version,
     mk_created_at: vault.mk_created_at,
-    account_key: vault.account_key,
   };
 
   await load_legacy_keks_into_memory(vault.legacy_keks);
   await load_previous_key_derived_keks_into_memory(vault.previous_keys);
-  await load_account_key_derived_keks_into_memory(vault.account_key);
+  request_account_key_load(vault, passphrase);
 
   secure_passphrase = SecureBuffer.from_string(
     passphrase,
@@ -449,6 +471,8 @@ export function clear_passphrase(): void {
 export function clear_vault_from_memory(): void {
   clear_passphrase();
   clear_legacy_keks_from_memory();
+  clear_account_key_derived_keks();
+  account_key_load_generation = null;
   vault_in_memory = null;
   vault_owner_id = null;
   clear_crypto_key_cache();
