@@ -25,7 +25,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { derive_account_data_key_raw } from "./account_data_key";
 import { load_account_keys_for_session } from "./account_key_loader";
-import { seal_account_key_token } from "./account_key_token";
+import {
+  open_account_key_token,
+  seal_account_key_token,
+} from "./account_key_token";
 import {
   clear_account_key_derived_keks,
   decrypt_aes_gcm_with_fallback,
@@ -36,6 +39,7 @@ const api = vi.hoisted(() => ({
   MAX_ACCOUNT_KEY_HISTORY: 64,
   get_account_key_token: vi.fn(),
   get_account_key_token_history: vi.fn(),
+  put_account_key_token_if_absent: vi.fn(),
 }));
 
 vi.mock("@/services/api/account_key", () => api);
@@ -70,22 +74,152 @@ describe("load_account_keys_for_session", () => {
     api.get_account_key_token.mockReset();
     api.get_account_key_token_history.mockReset();
     api.get_account_key_token_history.mockResolvedValue([]);
+    api.put_account_key_token_if_absent.mockReset();
+    api.put_account_key_token_if_absent.mockResolvedValue(null);
   });
 
   afterEach(() => {
     clear_account_key_derived_keks();
   });
 
-  it("does nothing when the account has no token", async () => {
+  it("creates nothing when the server has no account key routes", async () => {
+    const me = await make_key();
+
+    api.get_account_key_token.mockResolvedValue(null);
+    api.get_account_key_token_history.mockRejectedValue(new Error("404"));
+
+    await expect(
+      load_account_keys_for_session(vault_with(me.privateKey), PASS),
+    ).resolves.toBe(0);
+    expect(api.put_account_key_token_if_absent).not.toHaveBeenCalled();
+    expect(get_legacy_crypto_keys()).toHaveLength(0);
+  });
+
+  it("creates nothing when older tokens exist without a current one", async () => {
+    const me = await make_key();
+
+    api.get_account_key_token.mockResolvedValue(null);
+    api.get_account_key_token_history.mockResolvedValue([
+      { ...token_row("x"), archived_at: "" },
+    ]);
+
+    await expect(
+      load_account_keys_for_session(vault_with(me.privateKey), PASS),
+    ).resolves.toBe(0);
+    expect(api.put_account_key_token_if_absent).not.toHaveBeenCalled();
+  });
+
+  it("creates a signed account key sealed to the identity key", async () => {
+    const me = await make_key();
+
+    api.get_account_key_token.mockResolvedValue(null);
+    api.put_account_key_token_if_absent.mockImplementation(
+      async (token: string, key_fingerprint: string) => ({
+        ...token_row(token),
+        key_fingerprint,
+      }),
+    );
+
+    await expect(
+      load_account_keys_for_session(vault_with(me.privateKey), PASS),
+    ).resolves.toBe(1);
+    expect(api.put_account_key_token_if_absent).toHaveBeenCalledTimes(1);
+
+    const [token, fingerprint] =
+      api.put_account_key_token_if_absent.mock.calls[0];
+    const key = await openpgp.readPrivateKey({ armoredKey: me.privateKey });
+
+    expect(fingerprint).toBe(key.getFingerprint());
+    expect(fingerprint).toMatch(/^[0-9a-f]{40}([0-9a-f]{24})?$/);
+
+    const opened = await open_account_key_token(token, [me.privateKey], PASS);
+
+    expect(opened).toHaveLength(32);
+    expect(Array.from(opened!).some((b) => b !== 0)).toBe(true);
+    expect(get_legacy_crypto_keys().length).toBeGreaterThan(0);
+  });
+
+  it("loads the stored key when another device created one first", async () => {
+    const me = await make_key();
+    const winner_key = Uint8Array.from({ length: 32 }, (_, i) => 200 - i);
+    const winner = await seal_account_key_token(
+      winner_key,
+      me.privateKey,
+      PASS,
+    );
+
+    api.get_account_key_token.mockResolvedValue(null);
+    api.put_account_key_token_if_absent.mockResolvedValue(token_row(winner));
+
+    await expect(
+      load_account_keys_for_session(vault_with(me.privateKey), PASS),
+    ).resolves.toBe(1);
+
+    const raw = await derive_account_data_key_raw(
+      winner_key,
+      "astermail-tags-v1",
+    );
+    const key = await crypto.subtle.importKey("raw", raw, "AES-GCM", false, [
+      "encrypt",
+    ]);
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const ciphertext = await crypto.subtle.encrypt(
+      { name: "AES-GCM", iv },
+      key,
+      new TextEncoder().encode("ok"),
+    );
+    const stale = await crypto.subtle.importKey(
+      "raw",
+      crypto.getRandomValues(new Uint8Array(32)),
+      "AES-GCM",
+      false,
+      ["decrypt"],
+    );
+
+    expect(
+      new TextDecoder().decode(
+        await decrypt_aes_gcm_with_fallback(stale, ciphertext, iv),
+      ),
+    ).toBe("ok");
+  });
+
+  it("stays quiet when the server refuses to store the key", async () => {
+    const me = await make_key();
+
+    api.get_account_key_token.mockResolvedValue(null);
+    api.put_account_key_token_if_absent.mockResolvedValue(null);
+
+    await expect(
+      load_account_keys_for_session(vault_with(me.privateKey), PASS),
+    ).resolves.toBe(0);
+    expect(get_legacy_crypto_keys()).toHaveLength(0);
+  });
+
+  it("uploads nothing when the passphrase does not unlock the identity key", async () => {
     const me = await make_key();
 
     api.get_account_key_token.mockResolvedValue(null);
 
     await expect(
+      load_account_keys_for_session(vault_with(me.privateKey), "wrong"),
+    ).resolves.toBe(0);
+    expect(api.put_account_key_token_if_absent).not.toHaveBeenCalled();
+  });
+
+  it("uploads nothing when the user signs out before the upload", async () => {
+    const me = await make_key();
+
+    api.get_account_key_token.mockResolvedValue(null);
+    api.get_account_key_token_history.mockImplementation(async () => {
+      clear_account_key_derived_keks();
+
+      return [];
+    });
+
+    await expect(
       load_account_keys_for_session(vault_with(me.privateKey), PASS),
     ).resolves.toBe(0);
-    expect(api.get_account_key_token_history).not.toHaveBeenCalled();
-    expect(get_legacy_crypto_keys()).toHaveLength(0);
+    expect(api.put_account_key_token_if_absent).not.toHaveBeenCalled();
   });
 
   it("loads the current key and older keys from history", async () => {
@@ -166,6 +300,7 @@ describe("load_account_keys_for_session", () => {
       load_account_keys_for_session(vault_with(me.privateKey), PASS),
     ).resolves.toBe(0);
     expect(get_legacy_crypto_keys()).toHaveLength(0);
+    expect(api.put_account_key_token_if_absent).not.toHaveBeenCalled();
   });
 
   it("keeps the current key when the history request fails", async () => {

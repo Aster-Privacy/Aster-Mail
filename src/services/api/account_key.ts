@@ -62,3 +62,17 @@ export async function get_account_key_token_history(): Promise<
 
   return response.data.entries.slice(0, MAX_ACCOUNT_KEY_HISTORY);
 }
+
+export async function put_account_key_token_if_absent(
+  token: string,
+  key_fingerprint: string,
+): Promise<AccountKeyTokenResponse | null> {
+  const response = await api_client.put<AccountKeyTokenResponse>(
+    "/crypto/v1/keys/account-key",
+    { token, key_fingerprint },
+  );
+
+  if (response.error || !response.data?.token) return null;
+
+  return response.data;
+}
