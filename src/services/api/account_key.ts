@@ -76,3 +76,43 @@ export async function put_account_key_token_if_absent(
 
   return response.data;
 }
+
+export interface AccountKeyCapabilities {
+  format_writes: boolean;
+}
+
+const CAPABILITIES_TTL_MS = 5 * 60 * 1000;
+const CAPABILITIES_DISABLED: AccountKeyCapabilities = { format_writes: false };
+
+let capabilities_cache: {
+  value: AccountKeyCapabilities;
+  fetched_at: number;
+} | null = null;
+
+export function reset_account_key_capabilities_cache(): void {
+  capabilities_cache = null;
+}
+
+export async function get_account_key_capabilities(): Promise<AccountKeyCapabilities> {
+  if (
+    capabilities_cache &&
+    Date.now() - capabilities_cache.fetched_at < CAPABILITIES_TTL_MS
+  ) {
+    return capabilities_cache.value;
+  }
+
+  try {
+    const response = await api_client.get<{ format_writes?: unknown }>(
+      "/crypto/v1/keys/account-key/capabilities",
+    );
+    const value: AccountKeyCapabilities = {
+      format_writes: !response.error && response.data?.format_writes === true,
+    };
+
+    capabilities_cache = { value, fetched_at: Date.now() };
+
+    return value;
+  } catch {
+    return CAPABILITIES_DISABLED;
+  }
+}

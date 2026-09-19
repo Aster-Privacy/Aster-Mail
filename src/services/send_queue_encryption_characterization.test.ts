@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import * as openpgp from "openpgp";
 
 const h = vi.hoisted(() => ({
   vault: {
@@ -28,6 +29,7 @@ const h = vi.hoisted(() => ({
   } as Record<string, unknown> | null,
   passphrase_bytes: null as Uint8Array | null,
   has_passphrase: true,
+  format_writes: false,
   ghost_addresses: new Set<string>(),
   unregistered_ghost_addresses: new Set<string>(),
   account: {
@@ -127,6 +129,13 @@ vi.mock("@/services/crypto/ensure_ratchet_keys", () => ({
   ensure_ratchet_keys: vi.fn(async () => {}),
 }));
 
+vi.mock("@/services/api/account_key", async (import_original) => ({
+  ...(await import_original<Record<string, unknown>>()),
+  get_account_key_capabilities: vi.fn(async () => ({
+    format_writes: h.format_writes,
+  })),
+}));
+
 vi.mock("@/utils/email_crypto", () => ({
   discover_external_recipient_keys: vi.fn(async () => ({
     recipients_with_keys: [],
@@ -166,6 +175,7 @@ import {
 } from "./crypto/envelope";
 
 function reset_state(): void {
+  h.format_writes = false;
   h.listed_attachments = [];
   h.vault = {
     identity_key: "identity-secret",
@@ -526,6 +536,53 @@ describe("create_sent_envelope", () => {
     const second = await create_sent_envelope(queued(), "owner@astermail.org");
 
     expect(first.encrypted_envelope).not.toBe(second.encrypted_envelope);
+  });
+
+  it("seals to the identity key when format writes are on", async () => {
+    const { privateKey } = await openpgp.generateKey({
+      type: "ecc",
+      curve: "curve25519Legacy",
+      userIDs: [{ email: "owner@astermail.org" }],
+      passphrase: "passphrase",
+      format: "armored",
+    });
+
+    h.format_writes = true;
+    h.vault = { ...h.vault, identity_key: privateKey };
+
+    const data = await create_sent_envelope(
+      queued({ subject: "Sealed subject" }),
+      "owner@astermail.org",
+    );
+    const armored = new TextDecoder().decode(
+      base64_to_array(data.encrypted_envelope),
+    );
+    const opened = await openpgp.decrypt({
+      message: await openpgp.readMessage({ armoredMessage: armored }),
+      decryptionKeys: await openpgp.decryptKey({
+        privateKey: await openpgp.readPrivateKey({ armoredKey: privateKey }),
+        passphrase: "passphrase",
+      }),
+    });
+
+    expect(data.envelope_nonce).toBe("");
+    expect(JSON.parse(opened.data as string).subject).toBe("Sealed subject");
+  });
+
+  it("keeps the passphrase seal when the account key cannot seal", async () => {
+    h.format_writes = true;
+
+    const data = await create_sent_envelope(
+      queued({ subject: "Fallback subject" }),
+      "owner@astermail.org",
+    );
+    const opened = await decrypt_envelope_with_bytes<MailEnvelope>(
+      data.encrypted_envelope,
+      new Uint8Array(32).fill(7),
+    );
+
+    expect(data.envelope_nonce).not.toBe("");
+    expect(opened!.subject).toBe("Fallback subject");
   });
 
   it("refuses without a vault", async () => {
