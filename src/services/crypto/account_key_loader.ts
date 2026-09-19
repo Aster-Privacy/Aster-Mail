@@ -30,6 +30,7 @@ import {
 } from "./account_key_token";
 import {
   get_account_key_generation,
+  get_account_write_epoch,
   load_account_key_derived_keks_into_memory,
 } from "./legacy_keks";
 import { zero_uint8_array } from "./secure_memory";
@@ -100,6 +101,7 @@ async function load_token(
   own_keys: string[],
   passphrase: string,
   generation: number,
+  write_epoch: number | null = null,
 ): Promise<boolean> {
   const account_key = await open_account_key_token(token, own_keys, passphrase);
 
@@ -109,6 +111,7 @@ async function load_token(
     return await load_account_key_derived_keks_into_memory(
       account_key,
       generation,
+      write_epoch,
     );
   } finally {
     zero_uint8_array(account_key);
@@ -120,6 +123,7 @@ export async function load_account_keys_for_session(
   passphrase: string,
 ): Promise<number> {
   const generation = get_account_key_generation();
+  const write_epoch = get_account_write_epoch();
   const own_keys = [vault.identity_key, ...(vault.previous_keys ?? [])];
   let current = await get_account_key_token();
 
@@ -139,7 +143,15 @@ export async function load_account_keys_for_session(
 
   let loaded = 0;
 
-  if (await load_token(current.token, own_keys, passphrase, generation)) {
+  if (
+    await load_token(
+      current.token,
+      own_keys,
+      passphrase,
+      generation,
+      write_epoch,
+    )
+  ) {
     loaded += 1;
   }
 

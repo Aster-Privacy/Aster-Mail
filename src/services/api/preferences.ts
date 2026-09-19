@@ -24,6 +24,10 @@ import type { CustomCategoryRule } from "@/data/category_catalog";
 import { api_client } from "./client";
 
 import { HASH_ALG } from "@/services/crypto/constants";
+import {
+  account_data_write_key,
+  retry_after_account_key_load,
+} from "@/services/crypto/account_data_writer";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import {
   DEFAULT_ENABLED_CATEGORIES,
@@ -166,11 +170,7 @@ export interface UserPreferences {
   dyslexia_font: boolean;
   text_spacing: boolean;
   color_vision_mode:
-    | "none"
-    | "protanopia"
-    | "deuteranopia"
-    | "tritanopia"
-    | "achromatopsia";
+    "none" | "protanopia" | "deuteranopia" | "tritanopia" | "achromatopsia";
   external_link_warning_dismissed: boolean;
   notification_banner_dismissed: boolean;
   account_security_banner_dismissed: boolean;
@@ -335,7 +335,9 @@ async function encrypt_preferences(
   preferences: UserPreferences,
   vault: EncryptedVault,
 ): Promise<{ encrypted: string; nonce: string }> {
-  const key = await derive_preferences_key(vault);
+  const key =
+    (await account_data_write_key("astermail-preferences-v1")) ??
+    (await derive_preferences_key(vault));
   const nonce = crypto.getRandomValues(new Uint8Array(12));
   const data = new TextEncoder().encode(JSON.stringify(preferences));
 
@@ -362,10 +364,8 @@ async function decrypt_preferences(
   );
   const nonce_data = Uint8Array.from(atob(nonce), (c) => c.charCodeAt(0));
 
-  const decrypted = await decrypt_aes_gcm_with_fallback(
-    key,
-    encrypted_data,
-    nonce_data,
+  const decrypted = await retry_after_account_key_load(() =>
+    decrypt_aes_gcm_with_fallback(key, encrypted_data, nonce_data),
   );
 
   return JSON.parse(new TextDecoder().decode(decrypted));
@@ -636,10 +636,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
 };
 
 type GetPreferencesViaHttpResult =
-  | UserPreferences
-  | "not_found"
-  | "decrypt_failed"
-  | null;
+  UserPreferences | "not_found" | "decrypt_failed" | null;
 
 async function get_preferences_via_http(
   vault: EncryptedVault,

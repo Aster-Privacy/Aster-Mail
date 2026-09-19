@@ -26,6 +26,7 @@ import {
   ACCOUNT_DATA_CONTEXTS,
   ACCOUNT_KEY_LENGTH,
   derive_account_data_key_raw,
+  type AccountDataContext,
 } from "./account_data_key";
 
 import { HASH_ALG } from "@/services/crypto/constants";
@@ -55,6 +56,9 @@ let legacy_hkdf_keys: CryptoKey[] = [];
 let account_crypto_keys: CryptoKey[] = [];
 let account_hkdf_keys: CryptoKey[] = [];
 let loaded_account_key_ids = new Set<string>();
+let account_write_keys = new Map<AccountDataContext, CryptoKey>();
+let account_write_key_id: string | null = null;
+let account_write_epoch = 0;
 let account_key_generation = 0;
 
 async function derive_salt_from_passphrase(
@@ -157,6 +161,18 @@ async function import_raw_as_aes_key(raw: Uint8Array): Promise<CryptoKey> {
   );
 }
 
+async function import_raw_as_aes_write_key(
+  raw: Uint8Array,
+): Promise<CryptoKey> {
+  return crypto.subtle.importKey(
+    "raw",
+    raw,
+    { name: "AES-GCM", length: 256 },
+    false,
+    ["encrypt", "decrypt"],
+  );
+}
+
 async function import_raw_as_hkdf_key(raw: Uint8Array): Promise<CryptoKey> {
   return crypto.subtle.importKey("raw", raw, "HKDF", false, ["deriveKey"]);
 }
@@ -223,30 +239,48 @@ export function get_account_key_generation(): number {
 export async function load_account_key_derived_keks_into_memory(
   account_key: Uint8Array,
   generation: number,
+  write_epoch: number | null = null,
 ): Promise<boolean> {
   if (account_key.length !== ACCOUNT_KEY_LENGTH) return false;
 
   const key_id = array_to_base64(
     new Uint8Array(await crypto.subtle.digest(HASH_ALG, account_key)),
   );
+  const needs_pool = !loaded_account_key_ids.has(key_id);
+  const needs_write_keys =
+    write_epoch !== null &&
+    write_epoch === account_write_epoch &&
+    account_write_key_id !== key_id;
 
-  if (loaded_account_key_ids.has(key_id)) return true;
+  if (!needs_pool && !needs_write_keys) return true;
 
   const aes_keys: CryptoKey[] = [];
   const hkdf_keys: CryptoKey[] = [];
+  const write_keys = new Map<AccountDataContext, CryptoKey>();
 
   for (const context of ACCOUNT_DATA_CONTEXTS) {
     const raw = await derive_account_data_key_raw(account_key, context);
 
     try {
-      aes_keys.push(await import_raw_as_aes_key(raw));
-      hkdf_keys.push(await import_raw_as_hkdf_key(raw));
+      if (needs_pool) {
+        aes_keys.push(await import_raw_as_aes_key(raw));
+        hkdf_keys.push(await import_raw_as_hkdf_key(raw));
+      }
+      if (needs_write_keys) {
+        write_keys.set(context, await import_raw_as_aes_write_key(raw));
+      }
     } finally {
       zero_uint8_array(raw);
     }
   }
 
   if (generation !== account_key_generation) return false;
+
+  if (needs_write_keys && write_epoch === account_write_epoch) {
+    account_write_keys = write_keys;
+    account_write_key_id = key_id;
+  }
+
   if (loaded_account_key_ids.has(key_id)) return true;
 
   loaded_account_key_ids.add(key_id);
@@ -256,10 +290,27 @@ export async function load_account_key_derived_keks_into_memory(
   return true;
 }
 
+export function get_account_write_epoch(): number {
+  return account_write_epoch;
+}
+
+export function clear_account_data_write_keys(): void {
+  account_write_keys = new Map();
+  account_write_key_id = null;
+  account_write_epoch += 1;
+}
+
+export function get_account_data_write_key(
+  context: AccountDataContext,
+): CryptoKey | null {
+  return account_write_keys.get(context) ?? null;
+}
+
 export function clear_account_key_derived_keks(): void {
   account_crypto_keys = [];
   account_hkdf_keys = [];
   loaded_account_key_ids = new Set();
+  clear_account_data_write_keys();
   account_key_generation += 1;
 }
 
