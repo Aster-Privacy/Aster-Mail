@@ -7701,25 +7701,6 @@ export const ru = {
     vacation_reply_count_other: "Отправлено {{count}} ответа",
     vacation_reply_last: "Последний: {{date}}",
     vacation_reply_tab_label: "Ответ об отсутствии",
-    vault_recovery_button: "Восстановить данные",
-    vault_recovery_description:
-      "Если вы недавно изменили пароль и больше не видите псевдонимы или другие зашифрованные данные, введите предыдущий пароль для восстановления доступа.",
-    vault_recovery_enter_password: "Введите предыдущий пароль",
-    vault_recovery_failed:
-      "Не удалось восстановить данные. Попробуйте ещё раз.",
-    vault_recovery_known_aliases_hint:
-      "Если вы помните адреса псевдонимов, введите их через запятую для помощи в восстановлении.",
-    vault_recovery_known_aliases_label:
-      "Известные адреса псевдонимов (необязательно)",
-    vault_recovery_modal_description:
-      "Введите пароль, который использовался до последней смены. Это восстановит доступ к данным, зашифрованным под старым паролем.",
-    vault_recovery_old_password_label: "Предыдущий пароль",
-    vault_recovery_old_password_placeholder: "Введите предыдущий пароль",
-    vault_recovery_recover_button: "Восстановить",
-    vault_recovery_recovering: "Восстановление...",
-    vault_recovery_success:
-      "Данные успешно восстановлены. Псевдонимы и зашифрованные данные должны быть видны.",
-    vault_recovery_title: "Восстановить зашифрованные данные",
     verify_all_records: "Проверить все записи",
     view_dns_records: "Просмотреть DNS-записи",
     search_placeholder: "Поиск в настройках...",

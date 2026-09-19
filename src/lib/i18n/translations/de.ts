@@ -7572,25 +7572,6 @@ export const de = {
     vacation_reply_count_other: "{{count}} Antworten gesendet",
     vacation_reply_last: "Zuletzt: {{date}}",
     vacation_reply_tab_label: "Urlaubsantwort",
-    vault_recovery_button: "Daten wiederherstellen",
-    vault_recovery_description:
-      "Falls Sie kürzlich Ihr Passwort geändert haben und Ihre Aliase oder andere verschlüsselte Daten nicht mehr sehen können, geben Sie hier Ihr vorheriges Passwort ein, um den Zugang wiederherzustellen.",
-    vault_recovery_enter_password:
-      "Geben Sie bitte Ihr vorheriges Passwort ein",
-    vault_recovery_failed:
-      "Datenwiederherstellung fehlgeschlagen. Bitte versuchen Sie es erneut.",
-    vault_recovery_known_aliases_hint:
-      "Falls Sie Ihre Alias-Adressen kennen, geben Sie sie hier durch Kommas getrennt ein, um deren Wiederherstellung zu unterstützen.",
-    vault_recovery_known_aliases_label: "Bekannte Alias-Adressen (optional)",
-    vault_recovery_modal_description:
-      "Geben Sie das Passwort ein, das Sie vor Ihrer letzten Passwortänderung verwendet haben. Dadurch wird der Zugang zu Daten wiederhergestellt, die unter Ihrem alten Passwort verschlüsselt wurden.",
-    vault_recovery_old_password_label: "Vorheriges Passwort",
-    vault_recovery_old_password_placeholder: "Vorheriges Passwort eingeben",
-    vault_recovery_recover_button: "Wiederherstellen",
-    vault_recovery_recovering: "Wird wiederhergestellt...",
-    vault_recovery_success:
-      "Datenwiederherstellung erfolgreich. Ihre Aliase und verschlüsselten Daten sollten jetzt sichtbar sein.",
-    vault_recovery_title: "Verschlüsselte Daten wiederherstellen",
     verify_all_records: "Alle Einträge verifizieren",
     view_dns_records: "DNS-Einträge anzeigen",
     search_placeholder: "Einstellungen durchsuchen...",

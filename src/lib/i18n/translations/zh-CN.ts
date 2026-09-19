@@ -6129,21 +6129,6 @@ export const zh_CN = {
     desktop_bridge_upgrade_description:
       "通过 Aster Bridge 将 Apple Mail、Thunderbird 或 Outlook 连接到 Aster。适用于 Star 及以上套餐。",
     desktop_bridge_upgrade_cta: "升级以使用 Bridge",
-    vault_recovery_title: "密钥库恢复",
-    vault_recovery_description: "使用旧密码访问以前加密密钥下的邮件",
-    vault_recovery_button: "开始恢复",
-    vault_recovery_modal_description:
-      "如果您最近更改了密码，某些旧邮件可能仍使用旧密钥加密。输入旧密码以恢复对这些邮件的访问。",
-    vault_recovery_old_password_label: "旧密码",
-    vault_recovery_old_password_placeholder: "输入旧密码",
-    vault_recovery_enter_password: "请输入你的旧密码",
-    vault_recovery_recover_button: "恢复",
-    vault_recovery_recovering: "恢复中...",
-    vault_recovery_success: "密钥库恢复成功",
-    vault_recovery_failed:
-      "密钥库恢复未能完成，检查一下旧密码再试一次通常可以解决。",
-    vault_recovery_known_aliases_label: "已知别名",
-    vault_recovery_known_aliases_hint: "输入您过去使用过的别名以帮助恢复",
     ghost_aliases_title: "幽灵别名",
     ghost_aliases_description:
       "用于发送邮件的一次性匿名地址，将在指定天数后过期",

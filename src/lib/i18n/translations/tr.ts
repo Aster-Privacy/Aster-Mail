@@ -6735,24 +6735,6 @@ export const tr = {
       "Bu güvenlik anahtarını kaldırmak istediğinizden emin misiniz?",
     storage_format_ipfs_hint:
       "Özel IPFS, şifreli dosyalarınızı içerik özetine göre Aster'in kendi sunucularında saklar. Herkese açık IPFS ağına bağlı değildir ve dosyalarınızın şifresini yalnızca anahtarlarınız çözebilir.",
-    vault_recovery_title: "Şifrelenmiş Verileri Kurtar",
-    vault_recovery_description:
-      "Yakın zamanda şifrenizi değiştirdiyseniz ve artık takma adlarınızı veya diğer şifrelenmiş verilerinizi göremiyorsanız, erişimi geri yüklemek için önceki şifrenizi buraya girin.",
-    vault_recovery_button: "Verileri Kurtar",
-    vault_recovery_modal_description:
-      "En son şifre değişikliğinizden önce kullandığınız şifreyi girin. Bu, eski şifreniz altında şifrelenmiş verilere erişimi geri yükler.",
-    vault_recovery_old_password_label: "Önceki Şifre",
-    vault_recovery_old_password_placeholder: "Önceki şifrenizi girin",
-    vault_recovery_enter_password: "Lütfen önceki şifrenizi girin",
-    vault_recovery_success:
-      "Veri kurtarma başarılı. Takma adlarınız ve şifrelenmiş verileriniz artık görünür olmalı.",
-    vault_recovery_failed: "Veriler kurtarılamadı. Lütfen tekrar deneyin.",
-    vault_recovery_recovering: "Kurtarılıyor...",
-    vault_recovery_recover_button: "Kurtar",
-    vault_recovery_known_aliases_label:
-      "Bilinen Takma Ad Adresleri (isteğe bağlı)",
-    vault_recovery_known_aliases_hint:
-      "Takma ad adreslerinizi hatırlıyorsanız, geri yüklenmelerine yardımcı olmak için bunları virgülle ayırarak buraya girin.",
     trusted_2fa_title: "Güvenilen 2FA cihazları",
     trusted_2fa_description:
       "Güvenilen olarak işaretlediğiniz cihazlar 30 gün boyunca 2FA istemini atlar. Şifre değişikliği tüm güvenilen cihazları anında geçersiz kılar.",

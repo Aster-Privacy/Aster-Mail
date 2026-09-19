@@ -6813,24 +6813,6 @@ export const it = {
       "Sei sicuro di voler rimuovere questa chiave di sicurezza?",
     storage_format_ipfs_hint:
       "IPFS privato archivia i tuoi file cifrati in base all'hash del contenuto sui server di Aster. Non è collegato alla rete IPFS pubblica e solo le tue chiavi possono decifrare i tuoi file.",
-    vault_recovery_title: "Recupera dati cifrati",
-    vault_recovery_description:
-      "Se hai cambiato di recente la password e non riesci più a vedere i tuoi alias o altri dati cifrati, inserisci qui la tua password precedente per ripristinare l'accesso.",
-    vault_recovery_button: "Recupera dati",
-    vault_recovery_modal_description:
-      "Inserisci la password che usavi prima del tuo più recente cambio di password. Questo ripristinerà l'accesso ai dati cifrati con la tua vecchia password.",
-    vault_recovery_old_password_label: "Password precedente",
-    vault_recovery_old_password_placeholder:
-      "Inserisci la tua password precedente",
-    vault_recovery_enter_password: "Inserisci la tua password precedente",
-    vault_recovery_success:
-      "Recupero dati riuscito. I tuoi alias e i dati cifrati dovrebbero ora essere visibili.",
-    vault_recovery_failed: "Recupero dati non riuscito. Riprova.",
-    vault_recovery_recovering: "Recupero in corso...",
-    vault_recovery_recover_button: "Recupera",
-    vault_recovery_known_aliases_label: "Indirizzi alias noti (opzionale)",
-    vault_recovery_known_aliases_hint:
-      "Se ricordi i tuoi indirizzi alias, inseriscili qui separati da virgole per aiutare a ripristinarli.",
     trusted_2fa_title: "Dispositivi 2FA attendibili",
     trusted_2fa_description:
       "I dispositivi che hai contrassegnato come attendibili saltano la verifica 2FA per 30 giorni. Un cambio di password invalida immediatamente ogni dispositivo attendibile.",

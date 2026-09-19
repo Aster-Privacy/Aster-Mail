@@ -7619,22 +7619,6 @@ export const fr = {
     vacation_reply_count_other: "{{count}} réponses envoyées",
     vacation_reply_last: "Dernière réponse : {{date}}",
     vacation_reply_tab_label: "Réponse automatique",
-    vault_recovery_button: "Récupérer le coffre-fort",
-    vault_recovery_description:
-      "Récupérez l'accès à vos données chiffrées avec votre ancien mot de passe.",
-    vault_recovery_enter_password: "Entrez votre mot de passe",
-    vault_recovery_failed: "Échec de la récupération du coffre-fort",
-    vault_recovery_known_aliases_hint:
-      "Entrez vos alias pour faciliter la récupération.",
-    vault_recovery_known_aliases_label: "Alias connus",
-    vault_recovery_modal_description:
-      "Entrez votre ancien mot de passe pour récupérer vos données.",
-    vault_recovery_old_password_label: "Ancien mot de passe",
-    vault_recovery_old_password_placeholder: "Votre ancien mot de passe",
-    vault_recovery_recover_button: "Récupérer",
-    vault_recovery_recovering: "Récupération en cours...",
-    vault_recovery_success: "Coffre-fort récupéré avec succès",
-    vault_recovery_title: "Récupération du coffre-fort",
     verify_all_records: "Vérifier tous les enregistrements",
     view_dns_records: "Voir les enregistrements DNS",
     search_placeholder: "Rechercher dans les réglages...",

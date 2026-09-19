@@ -6802,24 +6802,6 @@ export const pt = {
       "Tem certeza de que deseja remover esta chave de segurança?",
     storage_format_ipfs_hint:
       "O IPFS privado armazena seus arquivos cifrados pelo hash do conteúdo nos próprios servidores da Aster. Ele não está conectado à rede IPFS pública, e só suas chaves podem decifrar seus arquivos.",
-    vault_recovery_title: "Recuperação do Vault",
-    vault_recovery_description:
-      "Se você tem um vault de uma conta antiga e conhece seus aliases, podemos tentar recuperar sua criptografia.",
-    vault_recovery_button: "Tentar recuperação",
-    vault_recovery_modal_description:
-      "Insira sua senha antiga e os aliases que você conhecia para tentar recuperar seus dados criptografados.",
-    vault_recovery_old_password_label: "Senha antiga",
-    vault_recovery_old_password_placeholder: "Senha da conta antiga",
-    vault_recovery_enter_password:
-      "A sua senha antiga é necessária para iniciar a recuperação.",
-    vault_recovery_success: "Recuperação do vault concluída com sucesso.",
-    vault_recovery_failed:
-      "A recuperação do vault não foi concluída. Verificar sua senha e aliases e tentar novamente costuma resolver.",
-    vault_recovery_recovering: "Recuperando...",
-    vault_recovery_recover_button: "Recuperar vault",
-    vault_recovery_known_aliases_label: "Aliases conhecidos",
-    vault_recovery_known_aliases_hint:
-      "Liste os aliases que você usava, separados por vírgula.",
     trusted_2fa_title: "Sessões 2FA confiáveis",
     trusted_2fa_description:
       "Dispositivos que você marcou como confiáveis para autenticação de dois fatores. Revogar uma sessão exigirá que o dispositivo confirme o 2FA novamente.",

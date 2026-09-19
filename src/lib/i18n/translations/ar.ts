@@ -6663,24 +6663,6 @@ export const ar = {
     confirm_remove_key: "هل أنت متأكد أنك تريد إزالة مفتاح الأمان هذا؟",
     storage_format_ipfs_hint:
       "يخزّن IPFS الخاص ملفاتك المشفرة حسب بصمة محتواها على خوادم Aster نفسها. وهو غير متصل بشبكة IPFS العامة، ولا يمكن فك تشفير ملفاتك إلا بمفاتيحك.",
-    vault_recovery_title: "استرداد البيانات المشفرة",
-    vault_recovery_description:
-      "إن غيّرت كلمة مرورك مؤخرًا ولم تعد ترى أسماءك المستعارة أو بياناتك المشفرة، أدخل كلمة المرور السابقة هنا لاستعادة الوصول.",
-    vault_recovery_button: "استرداد البيانات",
-    vault_recovery_modal_description:
-      "أدخل كلمة المرور التي كنت تستخدمها قبل آخر تغيير. سيُعيد ذلك الوصول إلى البيانات المشفرة بكلمة المرور القديمة.",
-    vault_recovery_old_password_label: "كلمة المرور السابقة",
-    vault_recovery_old_password_placeholder: "أدخل كلمة مرورك السابقة",
-    vault_recovery_enter_password: "يرجى إدخال كلمة مرورك السابقة",
-    vault_recovery_success:
-      "تم استرداد البيانات بنجاح. ينبغي أن تظهر أسماؤك المستعارة وبياناتك المشفرة الآن.",
-    vault_recovery_failed: "فشل استرداد البيانات. يرجى المحاولة مجددًا.",
-    vault_recovery_recovering: "جارٍ الاسترداد...",
-    vault_recovery_recover_button: "استرداد",
-    vault_recovery_known_aliases_label:
-      "عناوين الأسماء المستعارة المعروفة (اختياري)",
-    vault_recovery_known_aliases_hint:
-      "إن كنت تتذكر عناوين أسمائك المستعارة، أدخلها هنا مفصولة بفواصل للمساعدة في استعادتها.",
     trusted_2fa_title: "أجهزة المصادقة الثنائية الموثوقة",
     trusted_2fa_description:
       "الأجهزة التي علّمتها كموثوقة تتخطى طلب المصادقة الثنائية لمدة 30 يومًا. تغيير كلمة المرور يُبطل كل الأجهزة الموثوقة فورًا.",

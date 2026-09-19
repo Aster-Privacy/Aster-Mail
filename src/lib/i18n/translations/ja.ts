@@ -7454,24 +7454,6 @@ export const ja = {
     vacation_reply_count_other: "{{count}} 件の返信を送信しました",
     vacation_reply_last: "最終：{{date}}",
     vacation_reply_tab_label: "不在時返信",
-    vault_recovery_button: "データを復旧",
-    vault_recovery_description:
-      "最近パスワードを変更してエイリアスや他の暗号化データが見えなくなった場合は、以前のパスワードをここに入力してアクセスを復旧してください。",
-    vault_recovery_enter_password: "以前のパスワードを入力してください",
-    vault_recovery_failed:
-      "データの復旧に失敗しました。もう一度お試しください。",
-    vault_recovery_known_aliases_hint:
-      "エイリアスのアドレスを覚えている場合は、カンマ区切りでここに入力すると復旧に役立ちます。",
-    vault_recovery_known_aliases_label: "既知のエイリアスアドレス（任意）",
-    vault_recovery_modal_description:
-      "最後のパスワード変更前に使用していたパスワードを入力してください。古いパスワードで暗号化されたデータへのアクセスが復旧されます。",
-    vault_recovery_old_password_label: "以前のパスワード",
-    vault_recovery_old_password_placeholder: "以前のパスワードを入力",
-    vault_recovery_recover_button: "復旧",
-    vault_recovery_recovering: "復旧中...",
-    vault_recovery_success:
-      "データの復旧に成功しました。エイリアスと暗号化データが表示されるようになります。",
-    vault_recovery_title: "暗号化データを復旧",
     verify_all_records: "すべてのレコードを確認",
     view_dns_records: "DNSレコードを表示",
     export: "エクスポート",

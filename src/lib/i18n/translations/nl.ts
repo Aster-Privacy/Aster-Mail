@@ -7538,22 +7538,6 @@ export const nl = {
     vacation_reply_count_other: "{{count}} antwoorden verzonden",
     vacation_reply_last: "Laatste antwoord: {{date}}",
     vacation_reply_tab_label: "Vakantieantwoord",
-    vault_recovery_button: "Kluis herstellen",
-    vault_recovery_description:
-      "Herstel uw versleutelde kluis met uw oude wachtwoord",
-    vault_recovery_enter_password: "Voer uw oude wachtwoord in",
-    vault_recovery_failed: "Kluisherstel mislukt",
-    vault_recovery_known_aliases_hint:
-      "Dit helpt ons uw gegevens te ontsleutelen",
-    vault_recovery_known_aliases_label: "Bekende aliassen",
-    vault_recovery_modal_description:
-      "Voer uw oude wachtwoord in om uw kluis te herstellen. Dit kan enige tijd duren.",
-    vault_recovery_old_password_label: "Oud wachtwoord",
-    vault_recovery_old_password_placeholder: "Voer uw oude wachtwoord in",
-    vault_recovery_recover_button: "Herstellen",
-    vault_recovery_recovering: "Herstellen...",
-    vault_recovery_success: "Kluis succesvol hersteld",
-    vault_recovery_title: "Kluisherstel",
     verify_all_records: "Alle records verifiëren",
     view_dns_records: "DNS-records bekijken",
     search_placeholder: "Zoeken in instellingen...",

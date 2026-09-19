@@ -6920,23 +6920,6 @@ export const pl = {
     confirm_remove_key: "Czy na pewno chcesz usunąć ten klucz bezpieczeństwa?",
     storage_format_ipfs_hint:
       "Prywatny IPFS przechowuje Twoje zaszyfrowane pliki według skrótu ich zawartości na własnych serwerach Aster. Nie jest połączony z publiczną siecią IPFS, a tylko Twoje klucze mogą odszyfrować Twoje pliki.",
-    vault_recovery_title: "Odzyskaj zaszyfrowane dane",
-    vault_recovery_description:
-      "Jeśli niedawno zmieniłeś(-aś) hasło i nie widzisz aliasów ani innych zaszyfrowanych danych, wprowadź poprzednie hasło, aby przywrócić dostęp.",
-    vault_recovery_button: "Odzyskaj dane",
-    vault_recovery_modal_description:
-      "Wprowadź hasło używane przed ostatnią zmianą hasła. Spowoduje to przywrócenie dostępu do danych zaszyfrowanych starym hasłem.",
-    vault_recovery_old_password_label: "Poprzednie hasło",
-    vault_recovery_old_password_placeholder: "Wprowadź poprzednie hasło",
-    vault_recovery_enter_password: "Wprowadź poprzednie hasło",
-    vault_recovery_success:
-      "Odzyskiwanie danych zakończone sukcesem. Aliasy i zaszyfrowane dane powinny być teraz widoczne.",
-    vault_recovery_failed: "Nie udało się odzyskać danych. Spróbuj ponownie.",
-    vault_recovery_recovering: "Odzyskiwanie...",
-    vault_recovery_recover_button: "Odzyskaj",
-    vault_recovery_known_aliases_label: "Znane adresy aliasów (opcjonalnie)",
-    vault_recovery_known_aliases_hint:
-      "Jeśli pamiętasz adresy aliasów, wprowadź je tutaj oddzielone przecinkami, aby pomóc w ich przywróceniu.",
     trusted_2fa_title: "Zaufane urządzenia 2FA",
     trusted_2fa_description:
       "Urządzenia oznaczone jako zaufane pomijają monit 2FA przez 30 dni. Zmiana hasła natychmiast unieważnia wszystkie zaufane urządzenia.",

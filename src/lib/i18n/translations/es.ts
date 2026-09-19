@@ -7535,22 +7535,6 @@ export const es = {
     vacation_reply_count_other: "{{count}} respuestas enviadas",
     vacation_reply_last: "Última respuesta: {{date}}",
     vacation_reply_tab_label: "Respuesta automática",
-    vault_recovery_button: "Recuperar vault",
-    vault_recovery_description:
-      "Recupera el acceso a tus datos cifrados con tu contraseña anterior.",
-    vault_recovery_enter_password: "Ingresa tu contraseña",
-    vault_recovery_failed: "Error al recuperar el vault",
-    vault_recovery_known_aliases_hint:
-      "Ingresa tus alias para facilitar la recuperación.",
-    vault_recovery_known_aliases_label: "Alias conocidos",
-    vault_recovery_modal_description:
-      "Ingresa tu contraseña anterior para recuperar tus datos.",
-    vault_recovery_old_password_label: "Contraseña anterior",
-    vault_recovery_old_password_placeholder: "Tu contraseña anterior",
-    vault_recovery_recover_button: "Recuperar",
-    vault_recovery_recovering: "Recuperando...",
-    vault_recovery_success: "Vault recuperado exitosamente",
-    vault_recovery_title: "Recuperación del vault",
     verify_all_records: "Verificar todos los registros",
     view_dns_records: "Ver registros DNS",
     search_placeholder: "Buscar en la configuración...",

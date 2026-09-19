@@ -2845,23 +2845,6 @@ export const hi = {
     password_changed_signing_out:
       "पासवर्ड बदल गया। आपको साइन आउट किया जा रहा है...",
     password_changed_success: "पासवर्ड बदल गया",
-    vault_recovery_title: "एन्क्रिप्टेड डेटा वापस पाएं",
-    vault_recovery_description:
-      "अगर आपने हाल में पासवर्ड बदला है और आपको अपने एलियास या दूसरा एन्क्रिप्टेड डेटा नहीं दिख रहा, तो पहुंच वापस पाने के लिए यहां अपना पिछला पासवर्ड डालें।",
-    vault_recovery_button: "डेटा वापस पाएं",
-    vault_recovery_modal_description:
-      "वह पासवर्ड डालें जो आपने पिछली बार पासवर्ड बदलने से पहले इस्तेमाल किया था। इससे पुराने पासवर्ड से एन्क्रिप्ट किए डेटा तक पहुंच वापस मिल जाएगी।",
-    vault_recovery_old_password_label: "पिछला पासवर्ड",
-    vault_recovery_old_password_placeholder: "अपना पिछला पासवर्ड डालें",
-    vault_recovery_enter_password: "अपना पिछला पासवर्ड डालें",
-    vault_recovery_success:
-      "डेटा वापस मिल गया। अब आपके एलियास और एन्क्रिप्टेड डेटा दिखने चाहिए।",
-    vault_recovery_failed: "डेटा वापस नहीं मिल सका। फिर से कोशिश करें।",
-    vault_recovery_recovering: "वापस लाया जा रहा है...",
-    vault_recovery_recover_button: "वापस पाएं",
-    vault_recovery_known_aliases_label: "ज्ञात एलियास पते (वैकल्पिक)",
-    vault_recovery_known_aliases_hint:
-      "अगर आपको अपने एलियास पते याद हैं, तो उन्हें वापस पाने में मदद के लिए यहां कॉमा से अलग करके डालें।",
     session_security: "सत्र सुरक्षा",
     browsers_and_devices: "ब्राउज़र और डिवाइस",
     session_privacy_description:

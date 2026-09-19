@@ -2786,23 +2786,6 @@ export const en: Translations = {
     password_changed_signing_out:
       "Password changed successfully. Signing you out...",
     password_changed_success: "Password changed",
-    vault_recovery_title: "Recover Encrypted Data",
-    vault_recovery_description:
-      "If you recently changed your password and can no longer see your aliases or other encrypted data, enter your previous password here to restore access.",
-    vault_recovery_button: "Recover Data",
-    vault_recovery_modal_description:
-      "Enter the password you used before your most recent password change. This will restore access to data encrypted under your old password.",
-    vault_recovery_old_password_label: "Previous Password",
-    vault_recovery_old_password_placeholder: "Enter your previous password",
-    vault_recovery_enter_password: "Please enter your previous password",
-    vault_recovery_success:
-      "Data recovery successful. Your aliases and encrypted data should now be visible.",
-    vault_recovery_failed: "Failed to recover data. Please try again.",
-    vault_recovery_recovering: "Recovering...",
-    vault_recovery_recover_button: "Recover",
-    vault_recovery_known_aliases_label: "Known Alias Addresses (optional)",
-    vault_recovery_known_aliases_hint:
-      "If you remember your alias addresses, enter them here separated by commas to help restore them.",
     session_security: "Session Security",
     browsers_and_devices: "Browsers and Devices",
     session_privacy_description:

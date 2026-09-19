@@ -6611,23 +6611,6 @@ export const ko = {
     confirm_remove_key: "이 보안 키를 제거하시겠습니까?",
     storage_format_ipfs_hint:
       "비공개 IPFS는 암호화된 파일을 콘텐츠 해시 기준으로 Aster 자체 서버에 저장합니다. 공개 IPFS 네트워크에 연결되어 있지 않으며, 파일은 사용자의 키로만 복호화할 수 있습니다.",
-    vault_recovery_title: "암호화된 데이터 복구",
-    vault_recovery_description:
-      "최근 비밀번호를 변경한 후 별칭이나 기타 암호화된 데이터를 볼 수 없다면, 이전 비밀번호를 입력하여 접근을 복구하세요.",
-    vault_recovery_button: "데이터 복구",
-    vault_recovery_modal_description:
-      "가장 최근 비밀번호 변경 이전에 사용하던 비밀번호를 입력하세요. 이전 비밀번호로 암호화된 데이터에 대한 접근이 복구됩니다.",
-    vault_recovery_old_password_label: "이전 비밀번호",
-    vault_recovery_old_password_placeholder: "이전 비밀번호 입력",
-    vault_recovery_enter_password: "이전 비밀번호를 입력하세요",
-    vault_recovery_success:
-      "데이터 복구 성공. 별칭과 암호화된 데이터가 이제 표시됩니다.",
-    vault_recovery_failed: "데이터 복구에 실패했습니다. 다시 시도해 주세요.",
-    vault_recovery_recovering: "복구 중...",
-    vault_recovery_recover_button: "복구",
-    vault_recovery_known_aliases_label: "알려진 별칭 주소 (선택사항)",
-    vault_recovery_known_aliases_hint:
-      "별칭 주소를 기억하신다면 쉼표로 구분하여 입력하면 복구에 도움이 됩니다.",
     trusted_2fa_title: "신뢰할 수 있는 2FA 기기",
     trusted_2fa_description:
       "신뢰할 수 있는 것으로 표시한 기기는 30일간 2FA 입력을 건너뜁니다. 비밀번호를 변경하면 모든 신뢰 기기가 즉시 무효화됩니다.",
