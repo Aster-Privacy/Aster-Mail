@@ -760,7 +760,7 @@ export function QuickContactsPanel({
         aria-label={t("common.contacts")}
         className={`quick_contacts_panel absolute inset-0 flex-col overflow-hidden rounded-lg bg-surf-primary md:rounded-xl ${
           is_visible ? "flex" : "hidden"
-        } ${is_closing ? "quick_panel_closing" : ""}`}
+        } ${is_closing ? "quick_panel_closing" : "z-10"}`}
       >
         {detail_contact ? (
           <div className="flex h-12 flex-shrink-0 items-center gap-1 ps-2 pe-2">

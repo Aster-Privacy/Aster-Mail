@@ -3383,7 +3383,8 @@ input:-webkit-autofill:active {
 }
 
 .quick_contacts_panel.quick_panel_closing,
-.quick_security_panel.quick_panel_closing {
+.quick_security_panel.quick_panel_closing,
+.quick_settings_panel.quick_panel_closing {
   animation: quick_settings_slide_out 160ms cubic-bezier(0.32, 0.72, 0, 1)
     forwards;
   pointer-events: none;
@@ -3404,7 +3405,8 @@ input:-webkit-autofill:active {
   .quick_contacts_panel,
   .quick_security_panel,
   .quick_contacts_panel.quick_panel_closing,
-  .quick_security_panel.quick_panel_closing {
+  .quick_security_panel.quick_panel_closing,
+  .quick_settings_panel.quick_panel_closing {
     animation: none;
   }
 }

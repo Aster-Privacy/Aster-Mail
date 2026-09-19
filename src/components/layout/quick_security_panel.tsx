@@ -251,7 +251,7 @@ export function QuickSecurityPanel({
       aria-label={t("common.security_center")}
       className={`quick_security_panel absolute inset-0 flex-col overflow-hidden rounded-lg bg-surf-primary md:rounded-xl ${
         is_visible ? "flex" : "hidden"
-      } ${is_closing ? "quick_panel_closing" : ""}`}
+      } ${is_closing ? "quick_panel_closing" : "z-10"}`}
     >
       <div className="flex h-12 flex-shrink-0 items-center gap-2 ps-3 pe-2">
         <AsterSecurityMark className="h-[18px] w-[18px] flex-shrink-0 text-brand-primary" />
