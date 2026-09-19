@@ -210,6 +210,34 @@ export async function reprotect_pgp_key(
   return reencrypted.armor();
 }
 
+export async function find_unlockable_private_key(
+  armored_keys: (string | undefined)[],
+  fingerprint: string,
+  passphrase: string,
+): Promise<string | null> {
+  const wanted = fingerprint.trim().toUpperCase();
+
+  if (!wanted) return null;
+
+  for (const armored of armored_keys) {
+    if (!armored) continue;
+
+    try {
+      const private_key = await openpgp.readPrivateKey({ armoredKey: armored });
+
+      if (private_key.getFingerprint().toUpperCase() !== wanted) continue;
+
+      await openpgp.decryptKey({ privateKey: private_key, passphrase });
+
+      return armored;
+    } catch {
+      continue;
+    }
+  }
+
+  return null;
+}
+
 export function generate_recovery_codes(count: number = 6): string[] {
   const codes: string[] = [];
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";

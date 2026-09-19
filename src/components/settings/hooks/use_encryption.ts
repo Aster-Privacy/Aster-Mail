@@ -48,7 +48,10 @@ import {
   get_keyserver_publication_status,
   clear_external_key_cache,
 } from "@/services/api/keys";
-import { generate_recovery_codes } from "@/services/crypto/key_manager_pgp";
+import {
+  find_unlockable_private_key,
+  generate_recovery_codes,
+} from "@/services/crypto/key_manager_pgp";
 import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
 import {
   generate_recovery_key,
@@ -387,9 +390,16 @@ export function use_encryption() {
         return;
       }
 
-      let armored_key: string | undefined;
+      const vault = get_vault_from_memory();
+      let armored_key: string | undefined =
+        (await find_unlockable_private_key(
+          [vault?.identity_key, ...(vault?.previous_keys ?? [])],
+          response.data?.fingerprint ?? "",
+          export_password,
+        )) ?? undefined;
 
       if (
+        !armored_key &&
         response.data?.client_side_decryption &&
         response.data.encrypted_private_key_blob &&
         response.data.private_key_nonce
@@ -431,7 +441,7 @@ export function use_encryption() {
         );
 
         armored_key = new TextDecoder().decode(decrypted);
-      } else {
+      } else if (!armored_key) {
         armored_key = response.data?.private_key_encrypted;
       }
 
