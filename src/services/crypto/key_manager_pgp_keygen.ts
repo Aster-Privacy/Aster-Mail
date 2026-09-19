@@ -210,6 +210,28 @@ export async function reprotect_pgp_key(
   return reencrypted.armor();
 }
 
+export async function armored_private_key_matches(
+  armored: string,
+  fingerprint: string,
+): Promise<boolean> {
+  const wanted = fingerprint.trim().toUpperCase();
+
+  if (
+    !wanted ||
+    !armored.trimStart().startsWith("-----BEGIN PGP PRIVATE KEY BLOCK-----")
+  ) {
+    return false;
+  }
+
+  try {
+    const private_key = await openpgp.readPrivateKey({ armoredKey: armored });
+
+    return private_key.getFingerprint().toUpperCase() === wanted;
+  } catch {
+    return false;
+  }
+}
+
 export async function find_unlockable_private_key(
   armored_keys: (string | undefined)[],
   fingerprint: string,

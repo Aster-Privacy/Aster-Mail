@@ -48,6 +48,7 @@ import {
   clear_external_key_cache,
 } from "@/services/api/keys";
 import {
+  armored_private_key_matches,
   find_unlockable_private_key,
   generate_recovery_codes,
 } from "@/services/crypto/key_manager_pgp";
@@ -439,7 +440,14 @@ export function use_encryption() {
           ciphertext,
         );
 
-        armored_key = new TextDecoder().decode(decrypted);
+        const opened = new TextDecoder().decode(decrypted);
+
+        armored_key = (await armored_private_key_matches(
+          opened,
+          response.data.fingerprint ?? "",
+        ))
+          ? opened
+          : undefined;
       }
 
       if (!armored_key) {

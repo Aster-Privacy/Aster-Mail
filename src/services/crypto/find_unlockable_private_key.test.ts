@@ -21,7 +21,10 @@
 import { describe, it, expect, beforeAll } from "vitest";
 import * as openpgp from "openpgp";
 
-import { find_unlockable_private_key } from "./key_manager_pgp_keygen";
+import {
+  armored_private_key_matches,
+  find_unlockable_private_key,
+} from "./key_manager_pgp_keygen";
 
 async function make_key(passphrase: string) {
   const { privateKey } = await openpgp.generateKey({
@@ -96,5 +99,37 @@ describe("find_unlockable_private_key", () => {
     );
 
     expect(found).toBeNull();
+  });
+});
+
+describe("armored_private_key_matches", () => {
+  let key: { armored: string; fingerprint: string };
+  let other: { armored: string; fingerprint: string };
+
+  beforeAll(async () => {
+    key = await make_key("pass");
+    other = await make_key("pass");
+  });
+
+  it("accepts the key with the expected fingerprint", async () => {
+    expect(
+      await armored_private_key_matches(
+        key.armored,
+        key.fingerprint.toLowerCase(),
+      ),
+    ).toBe(true);
+  });
+
+  it("rejects a key with another fingerprint", async () => {
+    expect(
+      await armored_private_key_matches(other.armored, key.fingerprint),
+    ).toBe(false);
+  });
+
+  it("rejects text that is not an armored private key", async () => {
+    expect(await armored_private_key_matches("garbage", key.fingerprint)).toBe(
+      false,
+    );
+    expect(await armored_private_key_matches(key.armored, "")).toBe(false);
   });
 });
