@@ -272,3 +272,36 @@ export async function consume_inactive_key_set(
     { inactive_vault_id },
   );
 }
+
+export interface DeviceRecoverySecret {
+  snapshot_id: string;
+  secret: string;
+}
+
+export async function put_device_recovery_secret(
+  snapshot_id: string,
+  secret: string,
+): Promise<ApiResponse<{ success: boolean }>> {
+  return api_client.put<{ success: boolean }>(
+    "/core/v1/recovery/device-secrets",
+    { snapshot_id, secret },
+  );
+}
+
+export async function fetch_device_recovery_secrets(
+  snapshot_ids: string[],
+): Promise<ApiResponse<{ secrets: DeviceRecoverySecret[] }>> {
+  return api_client.post<{ secrets: DeviceRecoverySecret[] }>(
+    "/core/v1/recovery/device-secrets/fetch",
+    { snapshot_ids },
+  );
+}
+
+export async function delete_device_recovery_secrets(
+  snapshot_ids: string[],
+): Promise<ApiResponse<{ success: boolean }>> {
+  return api_client.post<{ success: boolean }>(
+    "/core/v1/recovery/device-secrets/delete",
+    { snapshot_ids },
+  );
+}

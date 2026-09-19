@@ -80,12 +80,14 @@ export async function put_account_key_token_if_absent(
 export interface AccountKeyCapabilities {
   format_writes: boolean;
   data_conversion: boolean;
+  device_recovery: boolean;
 }
 
 const CAPABILITIES_TTL_MS = 5 * 60 * 1000;
 const CAPABILITIES_DISABLED: AccountKeyCapabilities = {
   format_writes: false,
   data_conversion: false,
+  device_recovery: false,
 };
 
 let capabilities_cache: {
@@ -109,12 +111,15 @@ export async function get_account_key_capabilities(): Promise<AccountKeyCapabili
     const response = await api_client.get<{
       format_writes?: unknown;
       data_conversion?: unknown;
+      device_recovery?: unknown;
     }>("/crypto/v1/keys/account-key/capabilities");
     const format_writes =
       !response.error && response.data?.format_writes === true;
     const value: AccountKeyCapabilities = {
       format_writes,
       data_conversion: format_writes && response.data?.data_conversion === true,
+      device_recovery:
+        !response.error && response.data?.device_recovery === true,
     };
 
     capabilities_cache = { value, fetched_at: Date.now() };

@@ -127,6 +127,16 @@ export async function merge_recovered_identity_keys(
   old_password: string,
   current_password: string,
 ): Promise<RecoveredIdentityKeys> {
+  return merge_identity_keys_with(vault, old_vaults, (armored) =>
+    reprotect_pgp_key(armored, old_password, current_password),
+  );
+}
+
+export async function merge_identity_keys_with(
+  vault: IdentityKeySource,
+  old_vaults: IdentityKeySource[],
+  relock: (armored: string) => Promise<string>,
+): Promise<RecoveredIdentityKeys> {
   const recovered_per_vault: string[][] = [];
   const identity_recovered: boolean[] = [];
   const old_materials: string[] = [];
@@ -142,9 +152,7 @@ export async function merge_recovered_identity_keys(
       ...(old_vault.previous_keys ?? []),
     ])) {
       try {
-        reprotected.push(
-          await reprotect_pgp_key(armored, old_password, current_password),
-        );
+        reprotected.push(await relock(armored));
         if (armored === old_vault.identity_key) identity_ok = true;
       } catch {
         continue;

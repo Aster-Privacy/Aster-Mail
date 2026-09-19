@@ -33,6 +33,7 @@ import { AnimatePresence } from "framer-motion";
 import { use_auth } from "@/contexts/auth_context";
 import { use_background_subscription_scan } from "@/hooks/use_background_subscription_scan";
 import { use_account_data_conversion } from "@/hooks/use_account_data_conversion";
+import { use_device_recovery } from "@/hooks/use_device_recovery";
 import { AppLock } from "@/components/mobile/app_lock";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MobileDrawer } from "@/components/mobile/mobile_drawer";
@@ -215,6 +216,7 @@ function MobileApp() {
 
   use_background_subscription_scan();
   use_account_data_conversion();
+  use_device_recovery();
 
   const handle_selection_mode_change = useCallback((active: boolean) => {
     set_is_selection_active(active);

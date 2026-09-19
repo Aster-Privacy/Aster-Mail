@@ -210,6 +210,26 @@ export async function reprotect_pgp_key(
   return reencrypted.armor();
 }
 
+export async function lock_unlocked_pgp_key(
+  unlocked_armored: string,
+  passphrase: string,
+): Promise<string> {
+  const read_key = await openpgp.readPrivateKey({
+    armoredKey: unlocked_armored,
+  });
+
+  if (!read_key.isDecrypted()) {
+    throw new Error("lock_unlocked_pgp_key: key is already locked");
+  }
+
+  const encrypted = await openpgp.encryptKey({
+    privateKey: read_key,
+    passphrase,
+  });
+
+  return encrypted.armor();
+}
+
 export async function armored_private_key_matches(
   armored: string,
   fingerprint: string,
