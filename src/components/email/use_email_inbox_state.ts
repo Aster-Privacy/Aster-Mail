@@ -31,6 +31,8 @@ import {
 } from "react";
 
 import { use_inbox_view_state } from "./use_inbox_view_state";
+import { get_alias_hash_by_address } from "@/hooks/use_sidebar_aliases";
+import { alias_address_of } from "@/hooks/email_list_helpers/alias_view";
 
 import {
   is_fully_built as is_category_index_built,
@@ -43,6 +45,7 @@ import { type BulkScopeFilter } from "@/services/api/mail";
 import {
   filter_emails_by_view,
   apply_active_filter,
+  compute_total_pages,
   should_recover_empty_view,
 } from "@/components/email/inbox/inbox_view_helpers";
 import { use_split_email_view } from "@/components/email/inbox/use_split_email_view";
@@ -337,13 +340,16 @@ export function use_email_inbox_state(props: EmailInboxProps) {
   ]);
 
   const is_alias_view = current_view.startsWith("alias-");
+  const alias_scoped_by_server =
+    is_alias_view &&
+    get_alias_hash_by_address(alias_address_of(current_view) ?? "") !== null;
   const effective_total_for_pages = is_client_filtered
     ? all_primary_emails.length
     : categories.enabled
       ? is_category_index_built()
         ? (categories.counts[categories.active_category]?.total ?? 0)
         : stats_total_for_view || 0
-      : is_alias_view
+      : is_alias_view && !alias_scoped_by_server
         ? filtered_emails.length
         : Math.max(
             0,
@@ -351,10 +357,16 @@ export function use_email_inbox_state(props: EmailInboxProps) {
               ? email_state.total_messages
               : stats_total_for_view || 0,
           );
-  const total_pages = Math.max(
-    1,
-    Math.ceil(effective_total_for_pages / page_size),
-  );
+  const total_pages = compute_total_pages({
+    effective_total: effective_total_for_pages,
+    page_size,
+    current_page,
+    has_more: email_state.has_more,
+    server_paged:
+      !is_client_filtered &&
+      !categories.enabled &&
+      (!is_alias_view || alias_scoped_by_server),
+  });
 
   const totals_authoritative = categories.enabled
     ? is_category_index_built()
