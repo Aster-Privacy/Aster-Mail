@@ -6584,6 +6584,7 @@ export const de = {
     scanning: "Wird gescannt...",
     unsubscribing: "Wird abgemeldet...",
     could_not_unsubscribe: "{{ count }} konnten nicht abgemeldet werden",
+    some_messages_not_archived: "Einige Nachrichten wurden nicht archiviert",
     opened_in_browser:
       "{{ count }} archiviert - manuelle Bestätigung kann erforderlich sein",
     senders_unsubscribed: "{{ count }} Absender abgemeldet",

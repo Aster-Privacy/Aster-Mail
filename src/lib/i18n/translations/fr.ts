@@ -6392,6 +6392,7 @@ export const fr = {
     scanning: "Analyse en cours...",
     unsubscribing: "Désabonnement en cours...",
     could_not_unsubscribe: "{{ count }} n'ont pas pu être désabonnés",
+    some_messages_not_archived: "Certains messages n'ont pas été archivés",
     opened_in_browser:
       "{{ count }} archivé(s) - confirmation manuelle peut être nécessaire",
     senders_unsubscribed: "{{ count }} expéditeurs désabonnés",

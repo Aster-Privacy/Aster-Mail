@@ -5550,6 +5550,7 @@ export const it = {
     opened_in_browser:
       "{{ count }} archiviati - potrebbe essere necessaria conferma manuale",
     could_not_unsubscribe: "{{ count }} non hanno potuto essere disiscritti",
+    some_messages_not_archived: "Alcuni messaggi non sono stati archiviati",
     unsubscribing: "Annullamento iscrizione...",
     scanning: "Scansione in corso...",
     all_clear: "Tutto a posto",

@@ -6341,6 +6341,7 @@ export const es = {
     opened_in_browser:
       "{{ count }} archivados - puede que se requiera confirmación manual",
     could_not_unsubscribe: "{{ count }} no se pudieron cancelar",
+    some_messages_not_archived: "Algunos mensajes no se archivaron",
     unsubscribing: "Cancelando suscripción...",
     scanning: "Escaneando...",
     all_clear: "Todo en orden",

@@ -6918,6 +6918,7 @@ export const hi = {
     opened_in_browser:
       "{{ count }} आर्काइव हुए, हो सकता है खुद पुष्टि करनी पड़े",
     could_not_unsubscribe: "{{ count }} की सदस्यता नहीं छोड़ी जा सकी",
+    some_messages_not_archived: "कुछ संदेश संग्रहीत नहीं किए गए",
     unsubscribing: "सदस्यता छोड़ी जा रही है...",
     scanning: "स्कैन हो रहा है...",
     all_clear: "सब ठीक है",

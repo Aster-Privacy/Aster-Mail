@@ -6644,6 +6644,7 @@ export const pt = {
     opened_in_browser:
       "{{ count }} arquivados - confirmação manual pode ser necessária",
     could_not_unsubscribe: "{{ count }} não puderam ter a inscrição cancelada",
+    some_messages_not_archived: "Algumas mensagens não foram arquivadas",
     unsubscribing: "Cancelando inscrição...",
     scanning: "Analisando...",
     all_clear: "Tudo limpo",

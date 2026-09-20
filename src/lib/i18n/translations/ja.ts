@@ -6611,6 +6611,7 @@ export const ja = {
     opened_in_browser:
       "アーカイブ済み: {{ count }} 件 - 手動確認が必要な場合があります",
     could_not_unsubscribe: "配信停止できなかったもの: {{ count }} 件",
+    some_messages_not_archived: "一部のメッセージはアーカイブされませんでした",
     unsubscribing: "配信停止中...",
     scanning: "スキャン中...",
     all_clear: "問題なし",

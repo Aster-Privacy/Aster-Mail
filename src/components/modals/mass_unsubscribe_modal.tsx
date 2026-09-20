@@ -36,14 +36,14 @@ import { use_shift_range_select } from "@/lib/use_shift_range_select";
 import { Modal, ModalBody } from "@/components/ui/modal";
 import { Spinner } from "@/components/ui/spinner";
 import { SnoozeIcon } from "@/components/common/icons";
-import { bulk_patch_metadata } from "@/services/api/mail";
+import { batched_bulk_patch_metadata } from "@/services/api/mail";
 import {
   scan_received_items,
   DECRYPT_YIELD_CHUNK,
   decrypt_items_metadata_for_action,
 } from "@/services/bulk_mail_scan";
 import { yield_to_browser } from "@/lib/scheduling";
-import { batch_archive } from "@/services/api/archive";
+import { batched_archive } from "@/services/api/archive";
 import { stale_all_view_caches } from "@/hooks/email_list_cache";
 import { decrypt_mail_envelope } from "@/components/email/shared/decrypt_envelope";
 import { normalize_envelope_from } from "@/services/crypto/envelope";
@@ -65,7 +65,15 @@ import {
   execute_unsubscribe,
 } from "@/utils/unsubscribe_detector";
 import { confirm_unsubscribe_bulk } from "@/components/modals/unsubscribe_confirmation_modal";
+import {
+  load_unsubscribe_facts,
+  save_unsubscribe_facts,
+  type UnsubscribeFact,
+  type UnsubscribeFacts,
+} from "@/services/unsubscribe_index";
 import { map_in_chunks } from "@/lib/scheduling";
+
+const UNSUBSCRIBE_BATCH_SIZE = 5;
 
 interface Subscription {
   id: string;
@@ -89,6 +97,44 @@ interface DecryptedEnvelope {
   body_text?: string;
   list_unsubscribe?: string;
   list_unsubscribe_post?: string;
+}
+
+async function resolve_unsubscribe_fact(
+  item: MailItem,
+  known_facts: UnsubscribeFacts,
+): Promise<UnsubscribeFact | null> {
+  const known = known_facts.get(item.id);
+
+  if (known) return known;
+
+  try {
+    const envelope = await decrypt_envelope_local(
+      item.encrypted_envelope,
+      item.envelope_nonce,
+    );
+
+    if (!envelope?.from?.email) return null;
+
+    const unsub_info = detect_unsubscribe_info(
+      envelope.body_html || "",
+      envelope.body_text || "",
+      {
+        list_unsubscribe: envelope.list_unsubscribe,
+        list_unsubscribe_post: envelope.list_unsubscribe_post,
+      },
+    );
+    const email = envelope.from.email.toLowerCase();
+
+    return {
+      email,
+      name: envelope.from.name || get_email_username(email),
+      unsub: unsub_info.has_unsubscribe ? unsub_info : null,
+    };
+  } catch (error) {
+    if (import.meta.env.DEV) console.error(error);
+
+    return null;
+  }
 }
 
 async function decrypt_envelope_local(
@@ -129,6 +175,10 @@ export function MassUnsubscribeModal({
   const [completed_count, set_completed_count] = useState(0);
   const [link_opened_count, set_link_opened_count] = useState(0);
   const [failed_count, set_failed_count] = useState(0);
+  const [progress, set_progress] = useState<{
+    completed: number;
+    total: number;
+  } | null>(null);
   const [show_success, set_show_success] = useState(false);
 
   const [scan_failed, set_scan_failed] = useState(false);
@@ -147,6 +197,19 @@ export function MassUnsubscribeModal({
 
       if (all_items.length > 0) {
         await decrypt_items_metadata_for_action(all_items, signal);
+
+        const candidates = all_items.filter(
+          (item) =>
+            !item.metadata?.is_trashed &&
+            !item.metadata?.is_archived &&
+            !has_protected_folder_label(item.labels),
+        );
+
+        const known_facts = await load_unsubscribe_facts();
+
+        if (signal?.aborted) return;
+
+        const next_facts: UnsubscribeFacts = new Map();
         const sender_map = new Map<
           string,
           {
@@ -159,76 +222,71 @@ export function MassUnsubscribeModal({
           }
         >();
 
-        let scanned = 0;
+        const build_subscriptions = () =>
+          Array.from(sender_map.values()).map(
+            (sender) =>
+              ({
+                id: sender.email,
+                sender_email: sender.email,
+                sender_name: sender.name,
+                domain: get_email_domain(sender.email) || sender.email,
+                email_count: sender.count,
+                mail_ids: sender.ids,
+                items: sender.items,
+                unsub_info: sender.unsub_info,
+              }) as Subscription,
+          );
 
-        for (const item of all_items) {
+        for (let i = 0; i < candidates.length; i += DECRYPT_YIELD_CHUNK) {
           if (signal?.aborted) return;
 
-          scanned += 1;
-          if (scanned % DECRYPT_YIELD_CHUNK === 0) await yield_to_browser();
+          const chunk = candidates.slice(i, i + DECRYPT_YIELD_CHUNK);
+          const facts = await Promise.all(
+            chunk.map((item) => resolve_unsubscribe_fact(item, known_facts)),
+          );
 
-          if (item.metadata?.is_trashed || item.metadata?.is_archived) continue;
-          if (has_protected_folder_label(item.labels)) continue;
+          if (signal?.aborted) return;
 
-          try {
-            const envelope = await decrypt_envelope_local(
-              item.encrypted_envelope,
-              item.envelope_nonce,
-            );
+          for (let index = 0; index < chunk.length; index += 1) {
+            const fact = facts[index];
 
-            if (!envelope?.from?.email) continue;
+            if (!fact) continue;
 
-            const unsub_info = detect_unsubscribe_info(
-              envelope.body_html || "",
-              envelope.body_text || "",
-              {
-                list_unsubscribe: envelope.list_unsubscribe,
-                list_unsubscribe_post: envelope.list_unsubscribe_post,
-              },
-            );
+            const item = chunk[index];
 
-            if (!unsub_info.has_unsubscribe) continue;
+            next_facts.set(item.id, fact);
 
-            const email = envelope.from.email.toLowerCase();
-            const name = envelope.from.name || get_email_username(email);
+            if (!fact.unsub) continue;
 
-            if (sender_map.has(email)) {
-              const existing = sender_map.get(email)!;
+            const existing = sender_map.get(fact.email);
 
-              existing.count++;
+            if (existing) {
+              existing.count += 1;
               existing.ids.push(item.id);
               existing.items.push(item);
             } else {
-              sender_map.set(email, {
-                email,
-                name,
+              sender_map.set(fact.email, {
+                email: fact.email,
+                name: fact.name,
                 count: 1,
                 ids: [item.id],
                 items: [item],
-                unsub_info,
+                unsub_info: fact.unsub,
               });
             }
-          } catch (error) {
-            if (import.meta.env.DEV) console.error(error);
-            continue;
           }
+
+          set_subscriptions(build_subscriptions());
+
+          if (sender_map.size > 0) set_is_loading(false);
+
+          await yield_to_browser();
         }
 
-        const subs = Array.from(sender_map.values()).map(
-          (s) =>
-            ({
-              id: s.email,
-              sender_email: s.email,
-              sender_name: s.name,
-              domain: get_email_domain(s.email) || s.email,
-              email_count: s.count,
-              mail_ids: s.ids,
-              items: s.items,
-              unsub_info: s.unsub_info,
-            }) as Subscription,
-        );
+        if (signal?.aborted) return;
 
-        set_subscriptions(subs);
+        set_subscriptions(build_subscriptions());
+        await save_unsubscribe_facts(next_facts);
       }
     } finally {
       set_is_loading(false);
@@ -246,6 +304,7 @@ export function MassUnsubscribeModal({
       set_completed_count(0);
       set_link_opened_count(0);
       set_failed_count(0);
+      set_progress(null);
 
       return () => controller.abort();
     }
@@ -308,13 +367,16 @@ export function MassUnsubscribeModal({
       let api_count = 0;
       let links_opened = 0;
       let failures = 0;
+      let handled = 0;
 
-      const BATCH_SIZE = 5;
+      set_progress({ completed: 0, total: selected_subs.length });
 
-      for (let i = 0; i < selected_subs.length; i += BATCH_SIZE) {
-        const batch = selected_subs.slice(i, i + BATCH_SIZE);
+      for (let i = 0; i < selected_subs.length; i += UNSUBSCRIBE_BATCH_SIZE) {
+        const batch = selected_subs.slice(i, i + UNSUBSCRIBE_BATCH_SIZE);
         const results = await Promise.allSettled(
-          batch.map((sub) => execute_unsubscribe(sub.unsub_info)),
+          batch.map((sub) =>
+            execute_unsubscribe(sub.unsub_info, { retry_on_rate_limit: true }),
+          ),
         );
 
         for (const result of results) {
@@ -328,10 +390,14 @@ export function MassUnsubscribeModal({
             failures++;
           }
         }
+
+        handled += batch.length;
+        set_progress({ completed: handled, total: selected_subs.length });
       }
 
       set_link_opened_count(links_opened);
       set_failed_count(failures);
+      set_progress(null);
 
       const metadata_updates = await map_in_chunks(all_items, async (item) => {
         const updated_metadata = {
@@ -352,38 +418,32 @@ export function MassUnsubscribeModal({
       });
 
       const valid_updates = metadata_updates.filter(
-        (u) => u !== null,
-      ) as Array<{
-        id: string;
-        encrypted_metadata: string;
-        metadata_nonce: string;
-      }>;
+        (u): u is NonNullable<typeof u> => u !== null,
+      );
+
+      let cleanup_failed = false;
 
       if (valid_updates.length > 0) {
-        const patch_result = await bulk_patch_metadata({
-          items: valid_updates,
-        });
+        const patch_result = await batched_bulk_patch_metadata(valid_updates);
 
-        if (patch_result.error) {
-          show_toast(t("common.something_went_wrong_try_again"), "error");
-
-          return;
-        }
+        cleanup_failed = patch_result.failed_ids.length > 0;
       }
 
       stale_all_view_caches();
-      const archive_result = await batch_archive({
-        ids: all_mail_ids,
-        tier: "hot",
-      });
+      const archive_result = await batched_archive(all_mail_ids, "hot");
 
-      if (archive_result.error) {
-        show_toast(t("common.something_went_wrong_try_again"), "error");
-
-        return;
+      if (archive_result.succeeded_ids.length > 0) {
+        emit_mail_items_removed({ ids: archive_result.succeeded_ids });
+        invalidate_mail_stats();
       }
-      emit_mail_items_removed({ ids: all_mail_ids });
-      invalidate_mail_stats();
+
+      if (archive_result.failed_ids.length > 0) {
+        cleanup_failed = true;
+      }
+
+      if (cleanup_failed) {
+        show_toast(t("settings.some_messages_not_archived"), "error");
+      }
 
       set_completed_count(api_count + links_opened);
       set_subscriptions((prev) =>
@@ -393,6 +453,7 @@ export function MassUnsubscribeModal({
       set_show_success(true);
     } finally {
       set_is_unsubscribing(false);
+      set_progress(null);
     }
   };
 
@@ -503,7 +564,12 @@ export function MassUnsubscribeModal({
                   className="text-[13px]"
                   style={{ color: "var(--text-muted)" }}
                 >
-                  {t("settings.unsubscribing")}
+                  {progress
+                    ? t("common.processing_count", {
+                        completed: progress.completed,
+                        total: progress.total,
+                      })
+                    : t("settings.unsubscribing")}
                 </p>
               </motion.div>
             ) : (

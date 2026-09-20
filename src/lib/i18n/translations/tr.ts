@@ -6284,6 +6284,7 @@ export const tr = {
     senders_unsubscribed: "{{ count }} gönderenden abonelik iptal edildi",
     opened_in_browser: "{{ count }} arşivlendi - manuel onay gerekebilir",
     could_not_unsubscribe: "{{ count }} abonelikten çıkarılamadı",
+    some_messages_not_archived: "Bazı iletiler arşivlenmedi",
     unsubscribing: "Abonelikten çıkılıyor...",
     scanning: "Taranıyor...",
     all_clear: "Her şey temiz",

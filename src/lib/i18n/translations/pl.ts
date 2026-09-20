@@ -6768,6 +6768,7 @@ export const pl = {
     opened_in_browser:
       "{{ count }} zarchiwizowane - może być wymagane ręczne potwierdzenie",
     could_not_unsubscribe: "{{ count }} nie udało się zrezygnować",
+    some_messages_not_archived: "Niektóre wiadomości nie zostały zarchiwizowane",
     unsubscribing: "Rezygnowanie...",
     scanning: "Skanowanie...",
     all_clear: "Wszystko czyste",

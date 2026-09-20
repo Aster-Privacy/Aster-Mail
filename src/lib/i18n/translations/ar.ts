@@ -6584,6 +6584,7 @@ export const ar = {
     senders_unsubscribed: "تم إلغاء اشتراك {{ count }} مرسل",
     opened_in_browser: "تمت أرشفة {{ count }} - قد يلزم تأكيد يدوي",
     could_not_unsubscribe: "تعذّر إلغاء اشتراك {{ count }}",
+    some_messages_not_archived: "لم تتم أرشفة بعض الرسائل",
     unsubscribing: "جارٍ إلغاء الاشتراك...",
     scanning: "جارٍ الفحص...",
     all_clear: "كل شيء على ما يرام",

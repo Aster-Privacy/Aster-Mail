@@ -6870,6 +6870,7 @@ export const en: Translations = {
     opened_in_browser:
       "{{ count }} archived - manual confirmation may be needed",
     could_not_unsubscribe: "{{ count }} could not be unsubscribed",
+    some_messages_not_archived: "Some messages were not archived",
     unsubscribing: "Unsubscribing...",
     scanning: "Scanning...",
     all_clear: "All clear",

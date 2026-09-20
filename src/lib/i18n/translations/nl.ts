@@ -6626,6 +6626,7 @@ export const nl = {
     opened_in_browser:
       "{{ count }} gearchiveerd - handmatige bevestiging kan nodig zijn",
     could_not_unsubscribe: "{{ count }} konden niet worden uitgeschreven",
+    some_messages_not_archived: "Sommige berichten zijn niet gearchiveerd",
     unsubscribing: "Uitschrijven...",
     scanning: "Scannen...",
     all_clear: "Alles in orde",

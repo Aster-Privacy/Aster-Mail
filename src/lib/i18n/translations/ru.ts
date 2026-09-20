@@ -6447,6 +6447,7 @@ export const ru = {
     opened_in_browser:
       "{{ count }} архивировано - может потребоваться подтверждение вручную",
     could_not_unsubscribe: "{{ count }} не удалось отписать",
+    some_messages_not_archived: "Некоторые письма не были архивированы",
     unsubscribing: "Отписка...",
     scanning: "Сканирование...",
     all_clear: "Всё чисто",

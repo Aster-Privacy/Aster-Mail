@@ -5975,6 +5975,7 @@ export const zh_CN = {
     senders_unsubscribed: "已退订 {{ count }} 位发件人",
     opened_in_browser: "{{ count }} 个已归档 - 可能需要手动确认",
     could_not_unsubscribe: "{{ count }} 个未能退订",
+    some_messages_not_archived: "部分邮件未归档",
     unsubscribing: "退订中...",
     scanning: "扫描中...",
     all_clear: "一切就绪",

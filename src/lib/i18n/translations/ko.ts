@@ -6531,6 +6531,7 @@ export const ko = {
     senders_unsubscribed: "발신자 {{ count }}명 구독 해제됨",
     opened_in_browser: "{{ count }}개 보관됨 - 수동 확인이 필요할 수 있습니다",
     could_not_unsubscribe: "{{ count }}개는 구독 해제할 수 없었습니다",
+    some_messages_not_archived: "일부 메시지가 보관되지 않았습니다",
     unsubscribing: "구독 해제 중...",
     scanning: "스캔 중...",
     all_clear: "모두 완료",
