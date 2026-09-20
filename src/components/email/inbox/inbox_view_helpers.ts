@@ -58,6 +58,22 @@ export function should_recover_empty_view(
   return true;
 }
 
+export function compute_total_pages(params: {
+  effective_total: number;
+  page_size: number;
+  current_page: number;
+  has_more: boolean;
+  server_paged: boolean;
+}): number {
+  const floor =
+    params.server_paged && params.has_more
+      ? (params.current_page + 2) * params.page_size
+      : 0;
+  const total = Math.max(params.effective_total, floor);
+
+  return Math.max(1, Math.ceil(total / params.page_size));
+}
+
 export function get_view_title(
   current_view: string,
   folders: DecryptedFolder[],
