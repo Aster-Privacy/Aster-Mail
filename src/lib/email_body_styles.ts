@@ -25,6 +25,8 @@ import { BRAND_BACKGROUND_MARK } from "@/lib/email_brand_backgrounds";
 
 export const DARK_INHERITED_INK = "#d4d4d4";
 
+export const FORCED_DARK_CANVAS = "#121212";
+
 const DEFAULT_BODY_FONT_STACK =
   "'Google Sans Flex', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
 
