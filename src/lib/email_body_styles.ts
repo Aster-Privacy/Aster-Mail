@@ -21,6 +21,7 @@
 import { accent_foreground_for } from "@/lib/resolved_accent";
 import { derive_link_ink, derive_visited_ink } from "@/lib/email_ink";
 import { LINK_VISITED_VAR } from "@/lib/email_contrast_repair";
+import { BRAND_BACKGROUND_MARK } from "@/lib/email_brand_backgrounds";
 
 export const DARK_INHERITED_INK = "#d4d4d4";
 
@@ -358,6 +359,10 @@ const QUOTE_SCOPE_EXCLUDE =
 const IMAGE_BACKGROUND_EXCLUDE =
   ':not([style*="background-image" i]):not([style*="url(" i]):not([background]):not([data-aster-bg-image])';
 
+const BRAND_BACKGROUND_EXCLUDE = `:not([${BRAND_BACKGROUND_MARK}])`;
+
+const FORCED_NEUTRALIZE_EXCLUDE = `${IMAGE_BACKGROUND_EXCLUDE}${BRAND_BACKGROUND_EXCLUDE}`;
+
 export function build_auto_dark_mode_css(
   text_color = DARK_INHERITED_INK,
   link_color = "#60a5fa",
@@ -384,21 +389,21 @@ html, body {
   color-scheme: dark !important;
 }
 
-div${IMAGE_BACKGROUND_EXCLUDE}, td${IMAGE_BACKGROUND_EXCLUDE}, th${IMAGE_BACKGROUND_EXCLUDE},
-table${IMAGE_BACKGROUND_EXCLUDE}, tr${IMAGE_BACKGROUND_EXCLUDE}, tbody${IMAGE_BACKGROUND_EXCLUDE},
-thead${IMAGE_BACKGROUND_EXCLUDE}, tfoot${IMAGE_BACKGROUND_EXCLUDE}, section${IMAGE_BACKGROUND_EXCLUDE},
-header${IMAGE_BACKGROUND_EXCLUDE}, footer${IMAGE_BACKGROUND_EXCLUDE}, main${IMAGE_BACKGROUND_EXCLUDE},
-article${IMAGE_BACKGROUND_EXCLUDE}, aside${IMAGE_BACKGROUND_EXCLUDE}, nav${IMAGE_BACKGROUND_EXCLUDE},
-center${IMAGE_BACKGROUND_EXCLUDE}, form${IMAGE_BACKGROUND_EXCLUDE}, fieldset${IMAGE_BACKGROUND_EXCLUDE},
-legend${IMAGE_BACKGROUND_EXCLUDE}, figure${IMAGE_BACKGROUND_EXCLUDE}, figcaption${IMAGE_BACKGROUND_EXCLUDE},
-details${IMAGE_BACKGROUND_EXCLUDE}, summary${IMAGE_BACKGROUND_EXCLUDE}, address${IMAGE_BACKGROUND_EXCLUDE},
-hgroup${IMAGE_BACKGROUND_EXCLUDE} {
+div${FORCED_NEUTRALIZE_EXCLUDE}, td${FORCED_NEUTRALIZE_EXCLUDE}, th${FORCED_NEUTRALIZE_EXCLUDE},
+table${FORCED_NEUTRALIZE_EXCLUDE}, tr${FORCED_NEUTRALIZE_EXCLUDE}, tbody${FORCED_NEUTRALIZE_EXCLUDE},
+thead${FORCED_NEUTRALIZE_EXCLUDE}, tfoot${FORCED_NEUTRALIZE_EXCLUDE}, section${FORCED_NEUTRALIZE_EXCLUDE},
+header${FORCED_NEUTRALIZE_EXCLUDE}, footer${FORCED_NEUTRALIZE_EXCLUDE}, main${FORCED_NEUTRALIZE_EXCLUDE},
+article${FORCED_NEUTRALIZE_EXCLUDE}, aside${FORCED_NEUTRALIZE_EXCLUDE}, nav${FORCED_NEUTRALIZE_EXCLUDE},
+center${FORCED_NEUTRALIZE_EXCLUDE}, form${FORCED_NEUTRALIZE_EXCLUDE}, fieldset${FORCED_NEUTRALIZE_EXCLUDE},
+legend${FORCED_NEUTRALIZE_EXCLUDE}, figure${FORCED_NEUTRALIZE_EXCLUDE}, figcaption${FORCED_NEUTRALIZE_EXCLUDE},
+details${FORCED_NEUTRALIZE_EXCLUDE}, summary${FORCED_NEUTRALIZE_EXCLUDE}, address${FORCED_NEUTRALIZE_EXCLUDE},
+hgroup${FORCED_NEUTRALIZE_EXCLUDE} {
   background-color: transparent !important;
   background-image: none !important;
 }
 
-a${LINK_BUTTON_EXCLUDE}, a${LINK_BUTTON_EXCLUDE} * { color: ${link_color}; }
-a:visited${LINK_BUTTON_EXCLUDE}, a:visited${LINK_BUTTON_EXCLUDE} * { color: var(${LINK_VISITED_VAR}, ${link_visited_color}) !important; }
+a${LINK_BUTTON_EXCLUDE}${BRAND_BACKGROUND_EXCLUDE}, a${LINK_BUTTON_EXCLUDE}${BRAND_BACKGROUND_EXCLUDE} * { color: ${link_color}; }
+a:visited${LINK_BUTTON_EXCLUDE}${BRAND_BACKGROUND_EXCLUDE}, a:visited${LINK_BUTTON_EXCLUDE}${BRAND_BACKGROUND_EXCLUDE} * { color: var(${LINK_VISITED_VAR}, ${link_visited_color}) !important; }
 
 a[style*="background" i] *, [bgcolor] > a * { color: inherit !important; }
 

@@ -21,6 +21,7 @@
 import DOMPurify from "dompurify";
 
 import { split_autolinks } from "./autolink";
+import { mark_brand_backgrounds } from "./email_brand_backgrounds";
 import { mark_stylesheet_background_images } from "./html_sanitizer_background_marks";
 import {
   ALLOWED_TAGS,
@@ -1200,6 +1201,7 @@ function sanitize_html_impl(
   container.appendChild(fragment);
 
   mark_stylesheet_background_images(container);
+  mark_brand_backgrounds(container);
 
   return {
     html: container.innerHTML,
