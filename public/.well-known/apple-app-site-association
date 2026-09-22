@@ -3,8 +3,13 @@
     "apps": [],
     "details": [
       {
+        "appIDs": ["UD4F4Q58WU.org.astermail.ios"],
+        "components": [
+          { "/": "/settings/billing", "comment": "billing settings" },
+          { "/": "/settings/billing/", "comment": "billing settings" }
+        ],
         "appID": "UD4F4Q58WU.org.astermail.ios",
-        "paths": ["*"]
+        "paths": ["/settings/billing", "/settings/billing/"]
       }
     ]
   },
