@@ -51,7 +51,7 @@ function stored_send(id: string, thread_token?: string) {
     to: [],
     subject: "",
     body: "",
-    scheduled_time: Date.now() + 10_000,
+    scheduled_time: Date.now() + 600_000,
     total_seconds: 10,
     is_server_queued: true,
     server_queue_id: id,

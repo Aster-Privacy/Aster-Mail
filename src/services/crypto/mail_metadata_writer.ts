@@ -101,6 +101,7 @@ export async function update_item_metadata(
   item_id: string,
   current: MetadataUpdateOptions,
   updates: Partial<MailItemMetadata>,
+  options?: { force?: boolean },
 ): Promise<UpdateResult> {
   const dedup_key = create_dedup_key(item_id, updates);
   const intent = pick_flag_intents(updates);
@@ -109,16 +110,20 @@ export async function update_item_metadata(
 
   cleanup_completed_cache();
 
-  const cached = recently_completed.get(dedup_key);
+  if (options?.force) {
+    recently_completed.delete(dedup_key);
+  } else {
+    const cached = recently_completed.get(dedup_key);
 
-  if (cached && cached.result.success) {
-    return cached.result;
-  }
+    if (cached && cached.result.success) {
+      return cached.result;
+    }
 
-  const in_flight = in_flight_requests.get(dedup_key);
+    const in_flight = in_flight_requests.get(dedup_key);
 
-  if (in_flight) {
-    return in_flight;
+    if (in_flight) {
+      return in_flight;
+    }
   }
 
   const prev_for_item = item_chains.get(item_id);
@@ -288,7 +293,9 @@ export async function update_item_metadata(
     clear_flag_intents([item_id], intent);
     throw caught;
   } finally {
-    in_flight_requests.delete(dedup_key);
+    if (in_flight_requests.get(dedup_key) === promise) {
+      in_flight_requests.delete(dedup_key);
+    }
     if (item_chains.get(item_id) === chained) {
       item_chains.delete(item_id);
     }

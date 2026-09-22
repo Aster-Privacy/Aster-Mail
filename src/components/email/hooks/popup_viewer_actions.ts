@@ -26,7 +26,7 @@ import type {
   EmailPopupViewerProps,
 } from "@/components/email/hooks/popup_viewer_types";
 
-import { useCallback } from "react";
+import { useCallback, useRef } from "react";
 
 import { is_system_email, is_astermail_sender } from "@/lib/utils";
 import { extract_reply_to } from "@/utils/reply_to";
@@ -106,8 +106,14 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
     deps.on_close();
   }, [deps.on_advance, deps.on_close]);
 
+  const read_toggle_in_flight = useRef(false);
+
   const handle_read_toggle = useCallback(async () => {
-    if (!deps.email_id || !deps.mail_item) return;
+    if (!deps.email_id || !deps.mail_item || read_toggle_in_flight.current) {
+      return;
+    }
+
+    read_toggle_in_flight.current = true;
 
     const new_state = !deps.is_read;
     const is_received = deps.mail_item.item_type === "received";
@@ -137,7 +143,9 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
         metadata_version: deps.mail_item.metadata_version,
       },
       { is_read: new_state },
-    );
+    ).finally(() => {
+      read_toggle_in_flight.current = false;
+    });
 
     if (!result.success) {
       deps.set_is_read(!new_state);

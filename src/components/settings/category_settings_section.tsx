@@ -40,6 +40,7 @@ import { ConfirmModal } from "@/components/email/inbox/inbox_confirmation_dialog
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
+import { use_delayed_flag } from "@/hooks/use_delayed_flag";
 import { show_plan_limit_upgrade } from "@/stores/upgrade_store";
 import {
   BUILTIN_CATEGORIES,
@@ -179,7 +180,11 @@ export function CategorySettingsSection() {
     update_preferences({ custom_categories: next }, true);
   };
 
-  if (plan_loading && !limits) return <SettingsSkeleton variant="list" />;
+  const plan_skeleton_visible = use_delayed_flag(plan_loading && !limits);
+
+  if (plan_loading && !limits) {
+    return plan_skeleton_visible ? <SettingsSkeleton variant="list" /> : null;
+  }
 
   return (
     <div>

@@ -2980,6 +2980,17 @@ aside[data-collapsed="true"] .sidebar-rail-btn:hover {
   }
 }
 
+.reduce-motion .animate-pulse,
+.reduce-motion .aster_skeleton {
+  animation: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-pulse {
+    animation: none !important;
+  }
+}
+
 .compact-mode .p-6 {
   padding: 1rem;
 }
