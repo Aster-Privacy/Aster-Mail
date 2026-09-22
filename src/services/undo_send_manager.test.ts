@@ -209,6 +209,51 @@ describe("undo_send_manager send finalization", () => {
     expect(undo_send_manager.get_send("q1")).toBeUndefined();
   });
 
+  it("does not report send now as sent until the server confirms", async () => {
+    const on_sent = vi.fn();
+
+    mocked_api.send_now.mockResolvedValue({
+      data: { success: true },
+      error: null,
+    } as never);
+    mocked_api.get_status.mockResolvedValue({
+      data: { status: "sending" },
+      error: null,
+    } as never);
+
+    await queue_one({ on_sent });
+
+    const settled = undo_send_manager.send_immediately("q1");
+
+    await vi.advanceTimersByTimeAsync(31_000);
+    await settled;
+
+    expect(on_sent).not.toHaveBeenCalled();
+    expect(undo_send_manager.get_send("q1")).toBeDefined();
+  });
+
+  it("reports send now as sent once the server reports a terminal status", async () => {
+    const on_sent = vi.fn();
+
+    mocked_api.send_now.mockResolvedValue({
+      data: { success: true },
+      error: null,
+    } as never);
+    mocked_api.get_status.mockResolvedValue({
+      data: { status: "sent" },
+      error: null,
+    } as never);
+
+    await queue_one({ on_sent });
+
+    const settled = undo_send_manager.send_immediately("q1");
+
+    await vi.advanceTimersByTimeAsync(5_000);
+    await settled;
+
+    expect(on_sent).toHaveBeenCalledTimes(1);
+  });
+
   it("never reports sent while the server still reports a non-terminal status", async () => {
     const on_sent = vi.fn();
     const on_error = vi.fn();
