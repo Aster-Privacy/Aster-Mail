@@ -4247,6 +4247,11 @@ export const ja = {
     compose_mode_default: "デフォルト - フローティングポップアップ",
     compose_mode_fullscreen: "常にフルスクリーン",
     compose_mode_minimized: "最小化して開始",
+    default_sender_group: "送信",
+    default_sender_group_description: "新しいメッセージの送信元にするアドレスを選びます。",
+    default_sender_title: "既定の送信者",
+    default_sender_description: "新しいメッセージはこのアドレスから送信されます。返信には、メッセージが届いたアドレスが使われます。",
+    default_sender_no_addresses: "ほかのアドレスがありません",
     compose_defaults_title: "デフォルトの書式",
     compose_defaults_description:
       "新規メッセージを書き始めるときの見た目を選択します。返信と転送メッセージは元の書式を保持します。",

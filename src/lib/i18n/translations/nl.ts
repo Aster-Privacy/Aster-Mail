@@ -5561,6 +5561,11 @@ export const nl = {
     compose_mode_default: "Standaard - zwevend pop-up",
     compose_mode_fullscreen: "Altijd volledig scherm",
     compose_mode_minimized: "Geminimaliseerd starten",
+    default_sender_group: "Verzenden",
+    default_sender_group_description: "Kies vanaf welk van je adressen nieuwe berichten vertrekken.",
+    default_sender_title: "Standaardafzender",
+    default_sender_description: "Nieuwe berichten vertrekken vanaf dit adres. Antwoorden gebruiken het adres waarnaar het bericht is verstuurd.",
+    default_sender_no_addresses: "Geen andere adressen",
     compose_defaults_title: "Standaardopmaak",
     compose_defaults_description:
       "Kies hoe nieuwe berichten eruitzien wanneer je begint te schrijven. Antwoorden en doorgestuurde berichten behouden hun oorspronkelijke opmaak.",

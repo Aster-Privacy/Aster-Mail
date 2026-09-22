@@ -3235,6 +3235,11 @@ export const en: Translations = {
     compose_mode_default: "Default - floating popup",
     compose_mode_fullscreen: "Always full screen",
     compose_mode_minimized: "Start minimized",
+    default_sender_group: "Sending",
+    default_sender_group_description: "Choose which of your addresses new messages come from.",
+    default_sender_title: "Default sender",
+    default_sender_description: "New messages start from this address. Replies use the address the message was sent to.",
+    default_sender_no_addresses: "No other addresses",
     compose_defaults_title: "Default formatting",
     compose_defaults_description:
       "Choose how new messages look when you start writing. Replies and forwarded messages keep their original formatting.",

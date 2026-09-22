@@ -4320,6 +4320,11 @@ export const ar = {
     compose_mode_default: "افتراضي - نافذة منبثقة عائمة",
     compose_mode_fullscreen: "ملء الشاشة دائماً",
     compose_mode_minimized: "بدء مصغراً",
+    default_sender_group: "الإرسال",
+    default_sender_group_description: "اختر العنوان الذي تُرسل منه الرسائل الجديدة.",
+    default_sender_title: "المرسل الافتراضي",
+    default_sender_description: "تبدأ الرسائل الجديدة من هذا العنوان. وتستخدم الردود العنوان الذي وصلت إليه الرسالة.",
+    default_sender_no_addresses: "لا توجد عناوين أخرى",
     compose_defaults_title: "التنسيق الافتراضي",
     compose_defaults_description:
       "اختر شكل الرسائل الجديدة عند بدء الكتابة. تحتفظ الردود والرسائل المُعاد توجيهها بتنسيقها الأصلي.",

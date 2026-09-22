@@ -3856,6 +3856,11 @@ export const zh_CN = {
     compose_mode_default: "默认 - 浮动弹窗",
     compose_mode_fullscreen: "始终全屏",
     compose_mode_minimized: "以最小化启动",
+    default_sender_group: "发送",
+    default_sender_group_description: "选择新邮件从你的哪个地址发出。",
+    default_sender_title: "默认发件人",
+    default_sender_description: "新邮件从该地址发出。回复时使用邮件原本寄达的地址。",
+    default_sender_no_addresses: "没有其他地址",
     compose_defaults_title: "默认格式",
     compose_defaults_description:
       "选择开始撰写新邮件时的外观。回复和转发的邮件会保留原有格式。",

@@ -4312,6 +4312,11 @@ export const it = {
     compose_mode_default: "Predefinito - popup flottante",
     compose_mode_fullscreen: "Sempre a schermo intero",
     compose_mode_minimized: "Avvia ridotto a icona",
+    default_sender_group: "Invio",
+    default_sender_group_description: "Scegli da quale dei tuoi indirizzi partono i nuovi messaggi.",
+    default_sender_title: "Mittente predefinito",
+    default_sender_description: "I nuovi messaggi partono da questo indirizzo. Le risposte usano l'indirizzo a cui è stato inviato il messaggio.",
+    default_sender_no_addresses: "Nessun altro indirizzo",
     compose_defaults_title: "Formattazione predefinita",
     compose_defaults_description:
       "Scegli l'aspetto dei nuovi messaggi quando inizi a scrivere. Le risposte e i messaggi inoltrati mantengono la formattazione originale.",

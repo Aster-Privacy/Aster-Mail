@@ -4230,6 +4230,11 @@ export const ko = {
     compose_mode_default: "기본 - 플로팅 팝업",
     compose_mode_fullscreen: "항상 전체 화면",
     compose_mode_minimized: "최소화로 시작",
+    default_sender_group: "보내기",
+    default_sender_group_description: "새 메일을 보낼 주소를 선택하세요.",
+    default_sender_title: "기본 보내는 주소",
+    default_sender_description: "새 메일은 이 주소에서 시작합니다. 답장에는 메일을 받은 주소를 사용합니다.",
+    default_sender_no_addresses: "다른 주소 없음",
     compose_defaults_title: "기본 서식",
     compose_defaults_description:
       "새 메시지를 쓰기 시작할 때의 모양을 선택하세요. 답장과 전달한 메시지는 원래 서식을 유지합니다.",

@@ -4195,6 +4195,11 @@ export const tr = {
     compose_mode_default: "Varsayılan - yüzen açılır pencere",
     compose_mode_fullscreen: "Her zaman tam ekran",
     compose_mode_minimized: "Küçültülmüş başlat",
+    default_sender_group: "Gönderme",
+    default_sender_group_description: "Yeni iletilerin hangi adresinizden gideceğini seçin.",
+    default_sender_title: "Varsayılan gönderen",
+    default_sender_description: "Yeni iletiler bu adresten gider. Yanıtlar, iletinin gönderildiği adresi kullanır.",
+    default_sender_no_addresses: "Başka adres yok",
     compose_defaults_title: "Varsayılan biçimlendirme",
     compose_defaults_description:
       "Yeni iletilerin, yazmaya başladığınızda nasıl görüneceğini seçin. Yanıtlar ve iletilen iletiler özgün biçimlendirmesini korur.",

@@ -4360,6 +4360,11 @@ export const ru = {
     compose_mode_default: "По умолчанию - плавающее окно",
     compose_mode_fullscreen: "Всегда полноэкранный",
     compose_mode_minimized: "Открывать свёрнутым",
+    default_sender_group: "Отправка",
+    default_sender_group_description: "Выберите адрес, с которого отправляются новые письма.",
+    default_sender_title: "Отправитель по умолчанию",
+    default_sender_description: "Новые письма отправляются с этого адреса. В ответах используется адрес, на который пришло письмо.",
+    default_sender_no_addresses: "Других адресов нет",
     compose_defaults_title: "Форматирование по умолчанию",
     compose_defaults_description:
       "Выберите, как выглядят новые письма, когда вы начинаете их писать. Ответы и пересылаемые письма сохраняют исходное форматирование.",

@@ -3290,6 +3290,11 @@ export const hi = {
     compose_mode_default: "डिफ़ॉल्ट, तैरता हुआ पॉपअप",
     compose_mode_fullscreen: "हमेशा पूरी स्क्रीन",
     compose_mode_minimized: "छोटा करके शुरू करें",
+    default_sender_group: "भेजना",
+    default_sender_group_description: "चुनें कि नए संदेश आपके किस पते से जाएँ।",
+    default_sender_title: "डिफ़ॉल्ट प्रेषक",
+    default_sender_description: "नए संदेश इसी पते से शुरू होते हैं। उत्तर उसी पते का उपयोग करते हैं जिस पर संदेश आया था।",
+    default_sender_no_addresses: "कोई अन्य पता नहीं",
     compose_defaults_title: "डिफ़ॉल्ट फ़ॉर्मैटिंग",
     compose_defaults_description:
       "चुनें कि लिखना शुरू करने पर नए संदेश कैसे दिखें। जवाब और फ़ॉरवर्ड किए गए संदेश अपनी मूल फ़ॉर्मैटिंग बनाए रखते हैं।",
