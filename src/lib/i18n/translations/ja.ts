@@ -1307,7 +1307,6 @@ export const ja = {
     emoji_activities: "アクティビティ",
     emoji_flags: "旗",
     no_emojis_found: "絵文字が見つかりません",
-    emoji_recent: "最近使った絵文字",
     item_copied: "{{ label }}をコピーしました",
     copied_item: "{{ label }}をコピーしました",
     blocked_email: "{{ email }}をブロックしました",
@@ -8049,7 +8048,6 @@ export const ja = {
     already_reacted: "すでにこのリアクションを送信済みです",
     remove_your_reaction: "{emoji} のリアクションを削除",
     you_reacted_with: "{{emoji}} でリアクションしました",
-    you_reacted_with_remove: "{{emoji}} でリアクションしました。クリックすると削除します。",
     reacted_with: "{{name}} が {{emoji}} でリアクションしました",
     forward: "転送",
     to: "宛先",
@@ -9573,7 +9571,6 @@ export const ja = {
     cannot_react_bcc: "BCCで受け取ったメッセージにはリアクションできません。",
     cannot_react_too_many_emojis:
       "このメッセージのリアクションは上限に達しています。",
-    cannot_react_limit: "1 件のメッセージに追加できるリアクションは 2 件までです。別のリアクションを追加するには、いずれかを削除してください。",
     cannot_react_no_recipient:
       "このメッセージには、リアクションの送信先となる送信者がいません。",
     failed_send_reaction:

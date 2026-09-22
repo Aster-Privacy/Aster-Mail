@@ -408,20 +408,6 @@ export function SplitEmailViewer({
     }
   }, [email_id, viewer.email?.thread_token]);
 
-  const handle_toolbar_reply = useCallback(() => {
-    if (viewer.thread_messages.length === 0) {
-      viewer.handle_reply();
-
-      return;
-    }
-
-    window.dispatchEvent(
-      new CustomEvent("astermail:keyboard-reply", {
-        detail: { reply_all: false },
-      }),
-    );
-  }, [viewer]);
-
   useEffect(() => {
     const handle_keyboard_forward = () => {
       if (!on_forward || !viewer.email) return;
@@ -535,7 +521,7 @@ export function SplitEmailViewer({
             on_pin_toggle={viewer.handle_pin_toggle}
             on_print={viewer.handle_print}
             on_read_toggle={viewer.handle_read_toggle}
-            on_reply={on_reply ? handle_toolbar_reply : undefined}
+            on_reply={on_reply ? viewer.handle_reply : undefined}
             on_snooze={on_snooze}
             on_spam={() => request_spam(viewer.handle_spam)}
             on_trash={viewer.handle_trash}

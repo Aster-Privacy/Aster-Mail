@@ -26,7 +26,7 @@ import type { DecryptedEmail } from "@/components/email/hooks/use_email_detail";
 import type { MailItem } from "@/services/api/mail";
 import type { ExternalContentReport } from "@/lib/html_sanitizer";
 
-import { useCallback, useMemo, useState } from "react";
+import { useMemo } from "react";
 import {
   ExclamationCircleIcon,
   LockClosedIcon,
@@ -62,6 +62,9 @@ interface EmailDetailBodyProps {
   thread_draft: DraftWithContent | null;
   current_user_email: string;
   set_is_block_sender_modal_open: (open: boolean) => void;
+  handle_per_message_reply: (msg: DecryptedThreadMessage) => void;
+  handle_per_message_reply_all: (msg: DecryptedThreadMessage) => void;
+  handle_per_message_forward: (msg: DecryptedThreadMessage) => void;
   handle_per_message_archive: (msg: DecryptedThreadMessage) => void;
   handle_per_message_trash: (msg: DecryptedThreadMessage) => void;
   handle_per_message_print: (msg: DecryptedThreadMessage) => void;
@@ -131,6 +134,9 @@ export function EmailDetailBody({
   thread_draft,
   current_user_email,
   set_is_block_sender_modal_open,
+  handle_per_message_reply,
+  handle_per_message_reply_all,
+  handle_per_message_forward,
   handle_per_message_archive,
   handle_per_message_trash,
   handle_per_message_print,
@@ -143,31 +149,6 @@ export function EmailDetailBody({
   on_external_content_detected,
 }: EmailDetailBodyProps) {
   const { preferences } = use_preferences();
-  const [inline_reply_msg, set_inline_reply_msg] =
-    useState<DecryptedThreadMessage | null>(null);
-  const [inline_mode, set_inline_mode] = useState<
-    "reply" | "reply_all" | "forward"
-  >("reply");
-
-  const handle_inline_reply = useCallback((msg: DecryptedThreadMessage) => {
-    set_inline_reply_msg(msg);
-    set_inline_mode("reply");
-  }, []);
-
-  const handle_inline_reply_all = useCallback((msg: DecryptedThreadMessage) => {
-    set_inline_reply_msg(msg);
-    set_inline_mode("reply_all");
-  }, []);
-
-  const handle_inline_forward = useCallback((msg: DecryptedThreadMessage) => {
-    set_inline_reply_msg(msg);
-    set_inline_mode("forward");
-  }, []);
-
-  const handle_close_inline_reply = useCallback(() => {
-    set_inline_reply_msg(null);
-  }, []);
-
   const show_sender_name = email?.display_sender_name ?? email?.sender ?? "";
   const show_sender_email =
     email?.display_sender_email ?? email?.sender_email ?? "";
@@ -309,10 +290,6 @@ export function EmailDetailBody({
               current_user_email={current_user_email}
               default_expanded_id={email.id}
               force_all_dark_mode={preferences.force_dark_mode_emails}
-              inline_mode={inline_mode}
-              inline_reply_is_external={mail_item?.is_external ?? false}
-              inline_reply_msg={inline_reply_msg}
-              inline_reply_thread_token={mail_item?.thread_token}
               main_email_id={email.id}
               messages={
                 thread_messages.length > 0
@@ -355,17 +332,15 @@ export function EmailDetailBody({
               }
               on_archive={handle_per_message_archive}
               on_block_sender={() => set_is_block_sender_modal_open(true)}
-              on_close_inline_reply={handle_close_inline_reply}
               on_external_content_detected={on_external_content_detected}
-              on_forward={handle_inline_forward}
+              on_forward={handle_per_message_forward}
               on_not_spam={
                 mail_item?.is_spam ? handle_per_message_not_spam : undefined
               }
               on_print={handle_per_message_print}
-              on_reply={handle_inline_reply}
-              on_reply_all={handle_inline_reply_all}
+              on_reply={handle_per_message_reply}
+              on_reply_all={handle_per_message_reply_all}
               on_report_phishing={handle_per_message_report_phishing}
-              on_set_inline_mode={set_inline_mode}
               on_toggle_message_read={handle_toggle_message_read}
               on_trash={handle_per_message_trash}
               on_view_source={handle_per_message_view_source}

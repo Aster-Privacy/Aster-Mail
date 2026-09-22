@@ -1250,7 +1250,6 @@ export const ru = {
     emoji_activities: "Активности",
     emoji_flags: "Флаги",
     no_emojis_found: "Эмодзи не найдены",
-    emoji_recent: "Недавно использованные",
     item_copied: "{{ label }} скопировано",
     copied_item: "Скопировано {{ label }}",
     blocked_email: "Заблокировано {{ email }}",
@@ -8280,7 +8279,6 @@ export const ru = {
     already_reacted: "Вы уже отреагировали так",
     remove_your_reaction: "Удалить вашу реакцию {emoji}",
     you_reacted_with: "Вы отреагировали {{emoji}}",
-    you_reacted_with_remove: "Вы отреагировали {{emoji}}. Нажмите, чтобы удалить.",
     reacted_with: "{{name}} отреагировал(а) {{emoji}}",
     forward: "Переслать",
     to: "Кому",
@@ -9835,7 +9833,6 @@ export const ru = {
       "Нельзя поставить реакцию на сообщение, полученное в скрытой копии.",
     cannot_react_too_many_emojis:
       "У этого сообщения уже максимальное число реакций.",
-    cannot_react_limit: "К сообщению можно добавить не более двух реакций. Чтобы добавить еще одну, удалите одну из своих.",
     cannot_react_no_recipient:
       "У этого сообщения нет отправителя, которому можно отправить реакцию.",
     failed_send_reaction: "Попробуйте снова.",

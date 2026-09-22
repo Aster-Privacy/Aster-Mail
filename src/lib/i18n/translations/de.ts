@@ -1111,7 +1111,6 @@ export const de = {
     emoji_activities: "Aktivitäten",
     emoji_flags: "Flaggen",
     no_emojis_found: "Keine Emojis gefunden",
-    emoji_recent: "Zuletzt verwendet",
     item_copied: "{{ label }} kopiert",
     copied_item: "{{ label }} kopiert",
     blocked_email: "{{ email }} blockiert",
@@ -8228,7 +8227,6 @@ export const de = {
     already_reacted: "Du hast bereits damit reagiert",
     remove_your_reaction: "Deine Reaktion {emoji} entfernen",
     you_reacted_with: "Du hast mit {{emoji}} reagiert",
-    you_reacted_with_remove: "Du hast mit {{emoji}} reagiert. Klicke, um die Reaktion zu entfernen.",
     reacted_with: "{{name}} hat mit {{emoji}} reagiert",
     forward: "Weiterleiten",
     to: "An",
@@ -9807,7 +9805,6 @@ export const de = {
       "Du kannst nicht auf eine Nachricht reagieren, bei der du in BCC warst.",
     cannot_react_too_many_emojis:
       "Diese Nachricht hat bereits die maximale Anzahl an Reaktionen.",
-    cannot_react_limit: "Du kannst einer Nachricht bis zu zwei Reaktionen hinzufügen. Entferne eine davon, um eine weitere hinzuzufugen.",
     cannot_react_no_recipient:
       "Diese Nachricht hat keinen Absender, an den die Reaktion gesendet werden kann.",
     failed_send_reaction:

@@ -1253,7 +1253,6 @@ export const tr = {
     emoji_activities: "Etkinlikler",
     emoji_flags: "Bayraklar",
     no_emojis_found: "Emoji bulunamadı",
-    emoji_recent: "Son kullanılanlar",
     item_copied: "{{ label }} kopyalandı",
     copied_item: "{{ label }} kopyalandı",
     blocked_email: "{{ email }} engellendi",
@@ -8050,7 +8049,6 @@ export const tr = {
     already_reacted: "Buna zaten tepki verdiniz",
     remove_your_reaction: "{emoji} tepkinizi kaldır",
     you_reacted_with: "{{emoji}} ile tepki verdiniz",
-    you_reacted_with_remove: "{{emoji}} ile tepki verdiniz. Kaldırmak için tıklayın.",
     reacted_with: "{{name}} {{emoji}} ile tepki verdi",
     forward: "İlet",
     to: "Kime",
@@ -9572,7 +9570,6 @@ export const tr = {
     cannot_react_bcc: "Gizli kopyada olduğunuz bir mesaja tepki veremezsiniz.",
     cannot_react_too_many_emojis:
       "Bu mesaj zaten en fazla sayıda tepkiye sahip.",
-    cannot_react_limit: "Bir iletiye en fazla iki tepki ekleyebilirsiniz. Başka bir tepki eklemek için birini kaldırın.",
     cannot_react_no_recipient:
       "Bu mesajın tepki gönderilecek bir göndereni yok.",
     failed_send_reaction: "Tekrar deneyin.",
