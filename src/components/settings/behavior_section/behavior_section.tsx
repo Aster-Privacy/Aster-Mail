@@ -32,6 +32,7 @@ import {
   QuestionMarkCircleIcon,
   Cog6ToothIcon,
   ShieldCheckIcon,
+  TrashIcon,
   ViewColumnsIcon,
   LanguageIcon,
 } from "@heroicons/react/24/outline";
@@ -213,6 +214,7 @@ export function BehaviorSection() {
     spam_retention_days: 30,
     spam_sensitivity: "medium",
     spam_filter_enabled: true,
+    trash_retention_days: 30,
   });
   const dev_mode_generation_ref = useRef(0);
   const spam_generation_ref = useRef(0);
@@ -360,6 +362,48 @@ export function BehaviorSection() {
       }
     });
   };
+
+  const retention_options = [
+    { value: "7", label: t("settings.retention_7_days") },
+    { value: "14", label: t("settings.retention_14_days") },
+    { value: "30", label: t("settings.retention_30_days") },
+    { value: "60", label: t("settings.retention_60_days") },
+    { value: "90", label: t("settings.retention_90_days") },
+    { value: "180", label: t("settings.retention_180_days") },
+    { value: "365", label: t("settings.retention_365_days") },
+    { value: "never", label: t("settings.retention_never") },
+  ];
+
+  const build_retention_options = (current: string) =>
+    retention_options.some((option) => option.value === current)
+      ? retention_options
+      : [
+          ...retention_options,
+          {
+            value: current,
+            label: t("settings.retention_days_count", { days: current }),
+          },
+        ];
+
+  const spam_retention_value =
+    family_policy?.enforce_on_members &&
+    family_policy.spam_retention_days != null
+      ? family_policy.spam_retention_days === 0
+        ? "never"
+        : String(family_policy.spam_retention_days)
+      : spam_settings.spam_retention_days === 0
+        ? "never"
+        : String(spam_settings.spam_retention_days);
+
+  const trash_retention_value =
+    family_policy?.enforce_on_members &&
+    family_policy.trash_retention_days != null
+      ? family_policy.trash_retention_days === 0
+        ? "never"
+        : String(family_policy.trash_retention_days)
+      : spam_settings.trash_retention_days === 0
+        ? "never"
+        : String(spam_settings.trash_retention_days);
 
   const handle_mailto_toggle = () => {
     if (!mailto_registered) {
@@ -1220,27 +1264,43 @@ export function BehaviorSection() {
                   spam_retention_days: days,
                 });
               }}
-              options={[
-                { value: "7", label: t("settings.retention_7_days") },
-                { value: "14", label: t("settings.retention_14_days") },
-                { value: "30", label: t("settings.retention_30_days") },
-                { value: "never", label: t("settings.retention_never") },
-              ]}
+              options={build_retention_options(spam_retention_value)}
               title={t("settings.auto_delete_spam_after")}
-              value={
-                family_policy?.enforce_on_members &&
-                family_policy.spam_retention_days != null
-                  ? family_policy.spam_retention_days === 0
-                    ? "never"
-                    : String(family_policy.spam_retention_days)
-                  : spam_settings.spam_retention_days === 0
-                    ? "never"
-                    : String(spam_settings.spam_retention_days)
-              }
+              value={spam_retention_value}
             />
           </>
         )}
       </div>
+
+      {!spam_load_failed && (
+        <div>
+          <div className="mb-4">
+            <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
+              <TrashIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
+              {t("mail.trash")}
+            </h3>
+          </div>
+
+          <SelectSetting
+            description={t("settings.auto_delete_trash_description")}
+            disabled={
+              !!family_policy?.enforce_on_members &&
+              family_policy.trash_retention_days != null
+            }
+            disabled_note={t("settings.controlled_by_family_admin")}
+            on_change={(value) => {
+              const days = value === "never" ? 0 : parseInt(value, 10);
+
+              apply_spam_settings({
+                trash_retention_days: days,
+              });
+            }}
+            options={build_retention_options(trash_retention_value)}
+            title={t("settings.auto_delete_trash_after")}
+            value={trash_retention_value}
+          />
+        </div>
+      )}
 
       <div>
         <div className="mb-4">

@@ -85,6 +85,7 @@ export function BehaviorSection({
     spam_retention_days: 30,
     spam_sensitivity: "medium",
     spam_filter_enabled: true,
+    trash_retention_days: 30,
   });
   const spam_loaded_ref = useRef(false);
   const [spam_load_failed, set_spam_load_failed] = useState(false);
@@ -205,8 +206,23 @@ export function BehaviorSection({
     { value: "7", label: t("settings.retention_7_days") },
     { value: "14", label: t("settings.retention_14_days") },
     { value: "30", label: t("settings.retention_30_days") },
+    { value: "60", label: t("settings.retention_60_days") },
+    { value: "90", label: t("settings.retention_90_days") },
+    { value: "180", label: t("settings.retention_180_days") },
+    { value: "365", label: t("settings.retention_365_days") },
     { value: "never", label: t("settings.retention_never") },
   ];
+
+  const build_retention_options = (current: string) =>
+    spam_retention_options.some((option) => option.value === current)
+      ? spam_retention_options
+      : [
+          ...spam_retention_options,
+          {
+            value: current,
+            label: t("settings.retention_days_count", { days: current }),
+          },
+        ];
 
   const compose_font_size_options = FONT_SIZE_OPTIONS.map((option) => ({
     value: option.value,
@@ -871,34 +887,36 @@ export function BehaviorSection({
                             </p>
                           )}
                           <div className="flex flex-wrap gap-2">
-                            {spam_retention_options.map((opt) => (
-                              <button
-                                key={opt.value}
-                                className={`rounded-[12px] px-3 py-1.5 text-[13px] font-medium ${
-                                  effective_value === opt.value
-                                    ? "text-white"
-                                    : "bg-[var(--mobile-bg-card-hover)] text-[var(--text-secondary)]"
-                                } ${spam_enforced ? "opacity-60 cursor-not-allowed" : ""}`}
-                                disabled={spam_enforced}
-                                style={
-                                  effective_value === opt.value
-                                    ? chip_selected_style
-                                    : undefined
-                                }
-                                type="button"
-                                onClick={() => {
-                                  if (spam_enforced) return;
-                                  update_spam_settings({
-                                    spam_retention_days:
-                                      opt.value === "never"
-                                        ? 0
-                                        : parseInt(opt.value, 10),
-                                  });
-                                }}
-                              >
-                                {opt.label}
-                              </button>
-                            ))}
+                            {build_retention_options(effective_value).map(
+                              (opt) => (
+                                <button
+                                  key={opt.value}
+                                  className={`rounded-[12px] px-3 py-1.5 text-[13px] font-medium ${
+                                    effective_value === opt.value
+                                      ? "text-white"
+                                      : "bg-[var(--mobile-bg-card-hover)] text-[var(--text-secondary)]"
+                                  } ${spam_enforced ? "opacity-60 cursor-not-allowed" : ""}`}
+                                  disabled={spam_enforced}
+                                  style={
+                                    effective_value === opt.value
+                                      ? chip_selected_style
+                                      : undefined
+                                  }
+                                  type="button"
+                                  onClick={() => {
+                                    if (spam_enforced) return;
+                                    update_spam_settings({
+                                      spam_retention_days:
+                                        opt.value === "never"
+                                          ? 0
+                                          : parseInt(opt.value, 10),
+                                    });
+                                  }}
+                                >
+                                  {opt.label}
+                                </button>
+                              ),
+                            )}
                           </div>
                         </>
                       );
@@ -907,6 +925,72 @@ export function BehaviorSection({
                 </>
               )}
             </>
+          )}
+        </SettingsGroup>
+
+        <SettingsGroup title={t("mail.trash")}>
+          {!spam_load_failed && (
+            <div className="px-4 py-2">
+              <p className="text-[13px] text-[var(--text-muted)]">
+                {t("settings.auto_delete_trash_after")}
+              </p>
+              <p className="mb-2 text-[12px] text-[var(--text-muted)]">
+                {t("settings.auto_delete_trash_description")}
+              </p>
+              {(() => {
+                const trash_locked =
+                  !!family_policy?.enforce_on_members &&
+                  family_policy.trash_retention_days != null;
+                const effective_value = trash_locked
+                  ? family_policy!.trash_retention_days === 0
+                    ? "never"
+                    : String(family_policy!.trash_retention_days)
+                  : spam_settings.trash_retention_days === 0
+                    ? "never"
+                    : String(spam_settings.trash_retention_days);
+
+                return (
+                  <>
+                    {trash_locked && (
+                      <p className="mb-2 flex items-center gap-1 text-[12px] text-amber-500">
+                        <LockClosedIcon className="h-3 w-3 flex-shrink-0" />
+                        {t("settings.controlled_by_family_admin")}
+                      </p>
+                    )}
+                    <div className="flex flex-wrap gap-2">
+                      {build_retention_options(effective_value).map((opt) => (
+                        <button
+                          key={opt.value}
+                          className={`rounded-[12px] px-3 py-1.5 text-[13px] font-medium ${
+                            effective_value === opt.value
+                              ? "text-white"
+                              : "bg-[var(--mobile-bg-card-hover)] text-[var(--text-secondary)]"
+                          } ${trash_locked ? "opacity-60 cursor-not-allowed" : ""}`}
+                          disabled={trash_locked}
+                          style={
+                            effective_value === opt.value
+                              ? chip_selected_style
+                              : undefined
+                          }
+                          type="button"
+                          onClick={() => {
+                            if (trash_locked) return;
+                            update_spam_settings({
+                              trash_retention_days:
+                                opt.value === "never"
+                                  ? 0
+                                  : parseInt(opt.value, 10),
+                            });
+                          }}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                );
+              })()}
+            </div>
           )}
         </SettingsGroup>
 

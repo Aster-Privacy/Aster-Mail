@@ -162,6 +162,7 @@ export interface SpamSettings {
   spam_retention_days: number;
   spam_sensitivity: string;
   spam_filter_enabled: boolean;
+  trash_retention_days: number;
 }
 
 export async function get_spam_settings(): Promise<{
@@ -176,7 +177,15 @@ export async function get_spam_settings(): Promise<{
       return { data: null };
     }
 
-    return { data: response.data };
+    return {
+      data: {
+        ...response.data,
+        trash_retention_days:
+          typeof response.data.trash_retention_days === "number"
+            ? response.data.trash_retention_days
+            : 30,
+      },
+    };
   } catch {
     return { data: null };
   }

@@ -5640,6 +5640,8 @@ export interface SettingsTranslations {
   spam_sensitivity: string;
   spam_sensitivity_description: string;
   auto_delete_spam_after: string;
+  auto_delete_trash_after: string;
+  auto_delete_trash_description: string;
   auto_delete_spam_description: string;
   spam_delete_hint: string;
   save_changes: string;
@@ -5654,6 +5656,9 @@ export interface SettingsTranslations {
   retention_30_days: string;
   retention_60_days: string;
   retention_90_days: string;
+  retention_days_count: string;
+  retention_180_days: string;
+  retention_365_days: string;
   retention_never: string;
   import_emails_title: string;
   import_add_another: string;

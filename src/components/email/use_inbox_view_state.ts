@@ -145,6 +145,9 @@ export function use_inbox_view_state(props: EmailInboxProps) {
   const [spam_retention_days, set_spam_retention_days] = useState<
     number | null
   >(null);
+  const [trash_retention_days, set_trash_retention_days] = useState<
+    number | null
+  >(null);
   const [family_policy, set_family_policy] =
     useState<MemberRetentionPolicy | null>(null);
 
@@ -152,6 +155,7 @@ export function use_inbox_view_state(props: EmailInboxProps) {
     get_spam_settings().then((result) => {
       if (result.data) {
         set_spam_retention_days(result.data.spam_retention_days);
+        set_trash_retention_days(result.data.trash_retention_days);
       }
     });
     get_member_retention_policy()
@@ -809,6 +813,7 @@ export function use_inbox_view_state(props: EmailInboxProps) {
     is_snoozed_view,
     is_archive_view,
     spam_retention_days,
+    trash_retention_days,
     family_policy,
     is_folder_view,
     folder_view_token,

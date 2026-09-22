@@ -109,8 +109,7 @@ export const nl = {
       "Controleer uw wachtwoord en code en probeer het opnieuw.",
     qr_code: "QR-code",
     profile_picture_removed: "Profielfoto verwijderd",
-    failed_remove_profile_picture:
-      "Probeer het opnieuw.",
+    failed_remove_profile_picture: "Probeer het opnieuw.",
     remove_photo: "Foto verwijderen",
     toggle_alias: "Deze alias in- of uitschakelen",
     enter_passphrase: "Voer je wachtwoordzin in",
@@ -222,10 +221,8 @@ export const nl = {
     failed_verification_email:
       "We konden de verificatie-e-mail op dit moment niet verzenden. Een nieuwe poging zo werkt meestal. Uw account is ongewijzigd.",
     profile_picture_updated: "Profielfoto bijgewerkt",
-    failed_save_profile_picture:
-      "Probeer het opnieuw.",
-    failed_upload_image:
-      "Probeer het opnieuw.",
+    failed_save_profile_picture: "Probeer het opnieuw.",
+    failed_upload_image: "Probeer het opnieuw.",
     valid_image_error:
       "Dit bestand is geen ondersteunde afbeelding. JPEG, PNG of WebP werkt wel.",
     image_size_error:
@@ -632,12 +629,9 @@ export const nl = {
     failed_to_load_emails:
       "Uw inbox is niet geladen. Naar beneden trekken om te vernieuwen of een nieuwe poging lost dit meestal op. Uw post op de server is veilig.",
     no_emails_match_criteria: "Geen e-mails voldoen aan dit criterium",
-    failed_to_update_emails:
-      "Probeer het opnieuw.",
-    failed_to_archive_emails:
-      "Probeer het opnieuw.",
-    failed_to_unarchive_emails:
-      "Probeer het opnieuw.",
+    failed_to_update_emails: "Probeer het opnieuw.",
+    failed_to_archive_emails: "Probeer het opnieuw.",
+    failed_to_unarchive_emails: "Probeer het opnieuw.",
     something_went_wrong: "Er is een fout opgetreden.",
     unexpected_error_refresh:
       "Er ging iets mis, vernieuw de pagina om verder te gaan.",
@@ -695,17 +689,13 @@ export const nl = {
     scheduled_email_cancelled: "Geplande e-mail geannuleerd",
     email_snoozed: "E-mail uitgesteld",
     email_unsnoozed: "E-mail uitstel opgeheven",
-    failed_to_snooze:
-      "Probeer het opnieuw.",
-    failed_to_unsnooze:
-      "Probeer het opnieuw.",
+    failed_to_snooze: "Probeer het opnieuw.",
+    failed_to_unsnooze: "Probeer het opnieuw.",
     conversation_moved_to_trash: "Gesprek naar prullenbak verplaatst",
     conversation_archived: "Gesprek gearchiveerd",
     conversation_marked_as_spam: "Gesprek als spam gemarkeerd",
-    failed_to_mark_as_spam:
-      "Probeer het opnieuw.",
-    failed_to_snooze_conversations:
-      "Probeer het opnieuw.",
+    failed_to_mark_as_spam: "Probeer het opnieuw.",
+    failed_to_snooze_conversations: "Probeer het opnieuw.",
     marked_as_read_toast: "Als gelezen gemarkeerd",
     marked_as_unread_toast: "Als ongelezen gemarkeerd",
     email_permanently_deleted: "E-mail permanent verwijderd",
@@ -763,63 +753,43 @@ export const nl = {
     number_type: "Nummer",
     phone_type: "Telefoon",
     email_type: "E-mail",
-    failed_to_fetch_contacts:
-      "Probeer het opnieuw.",
-    failed_to_delete_contact:
-      "Probeer het opnieuw.",
+    failed_to_fetch_contacts: "Probeer het opnieuw.",
+    failed_to_delete_contact: "Probeer het opnieuw.",
     contact_deleted: "Contact verwijderd",
     contact_saved: "Contact opgeslagen",
     contact_created: "Contact aangemaakt",
-    failed_to_create_contact:
-      "Probeer het opnieuw.",
-    failed_to_save_contact:
-      "Probeer het opnieuw.",
-    failed_to_delete_contacts:
-      "Probeer het opnieuw.",
-    failed_to_update_favorites:
-      "Probeer het opnieuw.",
+    failed_to_create_contact: "Probeer het opnieuw.",
+    failed_to_save_contact: "Probeer het opnieuw.",
+    failed_to_delete_contacts: "Probeer het opnieuw.",
+    failed_to_update_favorites: "Probeer het opnieuw.",
     contacts_import_partial:
       "Slechts {{imported}} van {{total}} contacten zijn geïmporteerd. Importeer het bestand opnieuw om de rest toe te voegen.",
-    failed_to_import_contacts:
-      "Probeer het opnieuw.",
+    failed_to_import_contacts: "Probeer het opnieuw.",
     failed_to_read_file:
       "Dit bestand kon niet worden gelezen. Een ander werkt.",
-    import_failed:
-      "Probeer het opnieuw.",
-    failed_to_load_duplicates:
-      "Probeer het opnieuw.",
+    import_failed: "Probeer het opnieuw.",
+    failed_to_load_duplicates: "Probeer het opnieuw.",
     scan_failed: "Probeer het opnieuw.",
-    dismiss_failed:
-      "Probeer het opnieuw.",
-    failed_to_load_custom_fields:
-      "Probeer het opnieuw.",
-    failed_to_create_field:
-      "Probeer het opnieuw.",
+    dismiss_failed: "Probeer het opnieuw.",
+    failed_to_load_custom_fields: "Probeer het opnieuw.",
+    failed_to_create_field: "Probeer het opnieuw.",
     delete_custom_field_title: "Delete custom field?",
     delete_custom_field_message:
       "Deleting this field also removes its values from every contact. You cannot undo this.",
-    failed_to_delete_field:
-      "Probeer het opnieuw.",
-    failed_to_save_value:
-      "Probeer het opnieuw.",
+    failed_to_delete_field: "Probeer het opnieuw.",
+    failed_to_save_value: "Probeer het opnieuw.",
     click_scan_duplicates: 'Klik op "Scannen" om op duplicaten te controleren',
     never_synced: "Nooit gesynchroniseerd",
     last_sync_successful: "Laatste synchronisatie succesvol",
     last_sync_failed:
       "De laatste synchronisatie is niet voltooid, en we proberen automatisch opnieuw.",
-    failed_to_forward:
-      "Probeer het opnieuw.",
-    failed_to_schedule:
-      "Probeer het opnieuw.",
+    failed_to_forward: "Probeer het opnieuw.",
+    failed_to_schedule: "Probeer het opnieuw.",
     fill_required_fields: "Vul alle verplichte velden in",
-    failed_to_load_sources:
-      "Probeer het opnieuw.",
-    failed_to_add_source:
-      "Probeer het opnieuw.",
-    failed_to_delete_source:
-      "Probeer het opnieuw.",
-    failed_to_toggle_source:
-      "Probeer het opnieuw.",
+    failed_to_load_sources: "Probeer het opnieuw.",
+    failed_to_add_source: "Probeer het opnieuw.",
+    failed_to_delete_source: "Probeer het opnieuw.",
+    failed_to_toggle_source: "Probeer het opnieuw.",
     sync_failed:
       "De synchronisatie is niet voltooid, en we proberen automatisch opnieuw. Uw post aan elke kant is veilig.",
     clearing: "Wissen...",
@@ -840,8 +810,7 @@ export const nl = {
     conversations_marked_as_spam_bulk:
       "{{count}} gesprek(ken) als spam gemarkeerd",
     conversations_restored_bulk: "{{count}} gesprek(ken) hersteld",
-    failed_to_restore_conversations:
-      "Probeer het opnieuw.",
+    failed_to_restore_conversations: "Probeer het opnieuw.",
     conversations_snoozed_bulk: "{{count}} gesprek(ken) uitgesteld",
     conversations_marked_as_read_bulk:
       "{{count}} gesprek(ken) als gelezen gemarkeerd",
@@ -892,12 +861,10 @@ export const nl = {
     add_contacts_hint: "Voeg contacten toe om te beginnen",
     add_contact: "Contact toevoegen",
     file_too_large: "Bestand moet kleiner zijn dan {{size}}",
-    failed_to_upload_attachment:
-      "Probeer het opnieuw.",
+    failed_to_upload_attachment: "Probeer het opnieuw.",
     upload_failed: "Probeer het opnieuw.",
     delete_failed: "Probeer het opnieuw.",
-    download_failed:
-      "Probeer het opnieuw.",
+    download_failed: "Probeer het opnieuw.",
     attachment_locked:
       "Deze bijlage kan niet worden geopend omdat de versleutelingssleutel niet beschikbaar is op dit apparaat.",
     scheduled_no_attachments:
@@ -906,21 +873,16 @@ export const nl = {
       "Gepland verzenden is niet beschikbaar voor gekoppelde accounts. Verstuur dit bericht nu of kies een Aster-adres.",
     scheduled_no_expiry:
       "Geplande e-mails kunnen nog geen vervaldatum hebben. Verstuur nu of verwijder de vervaldatum om te plannen.",
-    failed_to_merge_contacts:
-      "Probeer het opnieuw.",
-    merge_failed:
-      "Probeer het opnieuw.",
-    failed_to_load_history:
-      "Probeer het opnieuw.",
-    failed_to_load_more:
-      "Probeer het opnieuw.",
+    failed_to_merge_contacts: "Probeer het opnieuw.",
+    merge_failed: "Probeer het opnieuw.",
+    failed_to_load_history: "Probeer het opnieuw.",
+    failed_to_load_more: "Probeer het opnieuw.",
     enter_valid_emails: "Voer geldige e-mailadressen in",
     enter_contact_details: "Voer contactgegevens in",
     select_valid_image: "Selecteer een JPEG-, PNG-, WebP- of GIF-afbeelding",
     image_too_large:
       "Deze afbeelding overschrijdt de limiet van 10 MB. Een kleinere of een gecomprimeerde versie past wel.",
-    failed_to_upload_photo:
-      "Probeer het opnieuw.",
+    failed_to_upload_photo: "Probeer het opnieuw.",
     contact_photo: "Contactfoto",
     no_emails_older_than_30_days: "Geen e-mails ouder dan 30 dagen",
     no_newsletters_found: "Geen nieuwsbrieven gevonden om te archiveren",
@@ -932,46 +894,30 @@ export const nl = {
       "{{count}} e-mails van {{senders}} gearchiveerd",
     emails_from_senders_deleted: "{{count}} e-mails van {{senders}} verwijderd",
     emails_added_to_folder: "{{count}} e-mail(s) toegevoegd aan {{folder}}",
-    failed_to_snooze_emails:
-      "Probeer het opnieuw.",
+    failed_to_snooze_emails: "Probeer het opnieuw.",
     failed_to_copy: "Probeer het opnieuw.",
     error_copied_to_clipboard: "Fout naar klembord gekopieerd",
-    failed_to_update_contact:
-      "Probeer het opnieuw.",
-    failed_to_block_sender:
-      "Probeer het opnieuw.",
-    failed_to_rename_folder:
-      "Probeer het opnieuw.",
-    failed_to_change_folder_color:
-      "Probeer het opnieuw.",
-    failed_to_delete_folder:
-      "Probeer het opnieuw.",
+    failed_to_update_contact: "Probeer het opnieuw.",
+    failed_to_block_sender: "Probeer het opnieuw.",
+    failed_to_rename_folder: "Probeer het opnieuw.",
+    failed_to_change_folder_color: "Probeer het opnieuw.",
+    failed_to_delete_folder: "Probeer het opnieuw.",
     failed_to_move_folder: "Probeer het opnieuw.",
-    failed_to_update_folder_encryption:
-      "Probeer het opnieuw.",
-    failed_to_rename_label:
-      "Probeer het opnieuw.",
-    failed_to_change_label_color:
-      "Probeer het opnieuw.",
-    failed_to_change_label_icon:
-      "Probeer het opnieuw.",
-    failed_to_delete_label:
-      "Probeer het opnieuw.",
-    failed_to_create_label:
-      "Probeer het opnieuw.",
-    failed_to_create_folder_error:
-      "Probeer het opnieuw.",
+    failed_to_update_folder_encryption: "Probeer het opnieuw.",
+    failed_to_rename_label: "Probeer het opnieuw.",
+    failed_to_change_label_color: "Probeer het opnieuw.",
+    failed_to_change_label_icon: "Probeer het opnieuw.",
+    failed_to_delete_label: "Probeer het opnieuw.",
+    failed_to_create_label: "Probeer het opnieuw.",
+    failed_to_create_folder_error: "Probeer het opnieuw.",
     folder_plan_limit_reached:
       "Je hebt de maplimiet van je huidige abonnement bereikt. Upgrade om meer mappen aan te maken.",
     authenticate_to_send: "Authenticeer om e-mail te verzenden",
     send_authentication_failed:
       "De verificatie is niet voltooid, dus deze e-mail is niet verzonden.",
-    failed_to_send_reply:
-      "Probeer het opnieuw.",
-    failed_to_delete_draft:
-      "Probeer het opnieuw.",
-    failed_to_update_rule:
-      "Probeer het opnieuw.",
+    failed_to_send_reply: "Probeer het opnieuw.",
+    failed_to_delete_draft: "Probeer het opnieuw.",
+    failed_to_update_rule: "Probeer het opnieuw.",
     failed_to_send_verification:
       "We konden de verificatie-e-mail niet verzenden. Een nieuwe poging zo werkt meestal.",
     failed_to_load_email:
@@ -980,8 +926,7 @@ export const nl = {
       "We konden deze e-mail op dit apparaat niet openen. Een vernieuwing lost dit meestal op, en afmelden en weer aanmelden is de reserveroute als het blijft mislukken.",
     failed_to_unsubscribe:
       "Het uitschrijven is niet voltooid. De link in de e-mail brengt u naar de site van de afzender om dit zelf te doen.",
-    failed_to_disable_2fa:
-      "Probeer het opnieuw.",
+    failed_to_disable_2fa: "Probeer het opnieuw.",
     failed_to_parse_settings:
       "Dit instellingenbestand kon niet worden gelezen. Een ander werkt. Uw huidige instellingen zijn ongewijzigd.",
     removed_from_contacts: "Verwijderd uit contacten",
@@ -1009,14 +954,10 @@ export const nl = {
       "Uw privésleutels zijn op dit apparaat niet geladen. Opnieuw aanmelden ontgrendelt ze. Uw sleutels op de server zijn onaangeroerd.",
     offline_action_queued:
       "U bent op dit moment offline. Dit staat in de wachtrij en wordt voltooid zodra u weer verbinding hebt.",
-    failed_to_update:
-      "Probeer het opnieuw.",
-    failed_to_load_search_results:
-      "Probeer het opnieuw.",
-    failed_to_fetch_tags:
-      "Probeer het opnieuw.",
-    failed_to_fetch_folders:
-      "Probeer het opnieuw.",
+    failed_to_update: "Probeer het opnieuw.",
+    failed_to_load_search_results: "Probeer het opnieuw.",
+    failed_to_fetch_tags: "Probeer het opnieuw.",
+    failed_to_fetch_folders: "Probeer het opnieuw.",
     failed_to_unlock_folder:
       "We konden deze map niet ontgrendelen. Controleer uw wachtwoord en probeer het opnieuw. De inhoud van de map is veilig.",
     incorrect_password:
@@ -1027,25 +968,17 @@ export const nl = {
       "Deze map heeft al een wachtwoord. Wachtwoord wijzigen is de optie om het bij te werken.",
     folder_must_be_unlocked:
       "De map eerst ontgrendelen laat deze instelling wijzigen.",
-    failed_to_load_snoozed_emails:
-      "Probeer het opnieuw.",
-    failed_to_load_subscriptions:
-      "Probeer het opnieuw.",
-    unexpected_error:
-      "Probeer het opnieuw.",
-    failed_to_load_more_subscriptions:
-      "Probeer het opnieuw.",
-    failed_to_scan_subscriptions:
-      "Probeer het opnieuw.",
-    failed_to_load_drafts:
-      "Probeer het opnieuw.",
-    failed_to_load_scheduled_emails:
-      "Probeer het opnieuw.",
+    failed_to_load_snoozed_emails: "Probeer het opnieuw.",
+    failed_to_load_subscriptions: "Probeer het opnieuw.",
+    unexpected_error: "Probeer het opnieuw.",
+    failed_to_load_more_subscriptions: "Probeer het opnieuw.",
+    failed_to_scan_subscriptions: "Probeer het opnieuw.",
+    failed_to_load_drafts: "Probeer het opnieuw.",
+    failed_to_load_scheduled_emails: "Probeer het opnieuw.",
     recently_archived: "Recent gearchiveerd",
     older_items: "Oudere items",
     long_term_archive: "Langetermijnarchief",
-    failed_to_fetch_archive_stats:
-      "Probeer het opnieuw.",
+    failed_to_fetch_archive_stats: "Probeer het opnieuw.",
     value_too_long:
       "Deze waarde overschrijdt de lengtelimiet. Een kortere versie werkt.",
     please_enter_valid_domain:
@@ -1131,14 +1064,11 @@ export const nl = {
     tor_snowflake_label: "Tor (Snowflake)",
     cdn_relay_label: "CDN-relay",
     toggle_selection: "Selectie omschakelen",
-    failed_to_send_email:
-      "Probeer het opnieuw.",
-    failed_to_send_external_email:
-      "Probeer het opnieuw.",
+    failed_to_send_email: "Probeer het opnieuw.",
+    failed_to_send_external_email: "Probeer het opnieuw.",
     external_account_token_missing:
       "Uw gekoppelde externe account moet opnieuw worden verbonden voordat erdoor kan worden verzonden. Instellingen, Verbonden Accounts is de plek.",
-    failed_to_send_via_external:
-      "Probeer het opnieuw.",
+    failed_to_send_via_external: "Probeer het opnieuw.",
     offline_change_failed:
       "Een wijziging die u offline hebt gemaakt, kon niet worden opgeslagen.",
     offline_send_failed:
@@ -1147,8 +1077,7 @@ export const nl = {
       "U bent op dit moment offline. Deze e-mail wordt verzonden zodra u weer verbinding hebt.",
     cannot_mix_recipients:
       "Aster-gebruikers en externe adressen kunnen niet in dezelfde e-mail. Ze als twee aparte berichten verzenden werkt.",
-    failed_to_schedule_email:
-      "Probeer het opnieuw.",
+    failed_to_schedule_email: "Probeer het opnieuw.",
     failed_to_restore_draft:
       "We konden dit concept niet terughalen. Het opnieuw openen lost dit meestal op. Uw andere concepten zijn niet getroffen.",
     enter_url: "Voer URL in:",
@@ -1162,8 +1091,7 @@ export const nl = {
     message_archived: "Bericht gearchiveerd",
     message_moved_to_trash: "Bericht naar prullenbak verplaatst",
     message_marked_as_spam: "Bericht als spam gemarkeerd",
-    undo_failed:
-      "Probeer het opnieuw.",
+    undo_failed: "Probeer het opnieuw.",
     expired: "Verlopen",
     expires_in: "Verloopt over ",
     report_phishing: "Spam melden",
@@ -1190,14 +1118,10 @@ export const nl = {
       "Sommige bijlagen konden niet aan dit bericht worden toegevoegd.",
     image: "Afbeelding",
     system: "Systeem",
-    failed_to_permanently_delete:
-      "Probeer het opnieuw.",
-    failed_to_delete_emails:
-      "Probeer het opnieuw.",
-    failed_to_mark_as_read:
-      "Probeer het opnieuw.",
-    failed_to_mark_as_unread:
-      "Probeer het opnieuw.",
+    failed_to_permanently_delete: "Probeer het opnieuw.",
+    failed_to_delete_emails: "Probeer het opnieuw.",
+    failed_to_mark_as_read: "Probeer het opnieuw.",
+    failed_to_mark_as_unread: "Probeer het opnieuw.",
     n_conversations_archived: "{{ count }} gesprekken gearchiveerd",
     n_conversations_archived_one: "{{count}} gesprek gearchiveerd",
     n_conversations_archived_other: "{{count}} gesprekken gearchiveerd",
@@ -1205,8 +1129,7 @@ export const nl = {
     external_only: "Alleen extern",
     all_accounts: "Alle accounts",
     all_external_accounts: "Alle externe accounts",
-    failed_to_rotate_keys:
-      "Probeer het opnieuw.",
+    failed_to_rotate_keys: "Probeer het opnieuw.",
     read: "Gelezen",
     or_conjunction: "of",
     press_label: "Druk op",
@@ -1233,18 +1156,12 @@ export const nl = {
     no_content: "Geen inhoud",
     unblocked_count_senders: "{{ count }} afzenders gedeblokkeerd",
     removed_count_from_allowlist: "{{ count }} van toelatingslijst verwijderd",
-    failed_to_add_label:
-      "Probeer het opnieuw.",
-    failed_to_remove_label:
-      "Probeer het opnieuw.",
-    failed_to_move_email:
-      "Probeer het opnieuw.",
-    failed_to_add_labels:
-      "Probeer het opnieuw.",
-    failed_to_remove_labels:
-      "Probeer het opnieuw.",
-    failed_to_copy_to_clipboard:
-      "Probeer het opnieuw.",
+    failed_to_add_label: "Probeer het opnieuw.",
+    failed_to_remove_label: "Probeer het opnieuw.",
+    failed_to_move_email: "Probeer het opnieuw.",
+    failed_to_add_labels: "Probeer het opnieuw.",
+    failed_to_remove_labels: "Probeer het opnieuw.",
+    failed_to_copy_to_clipboard: "Probeer het opnieuw.",
     add_note_placeholder: "Notitie toevoegen...",
     add_private_note_placeholder: "Privénotitie toevoegen...",
     search_anything: "Zoek naar alles...",
@@ -1362,8 +1279,7 @@ export const nl = {
     files_end_to_end_encrypted: "Deze bestanden zijn end-to-end versleuteld.",
     files_protected_in_transit:
       "Deze bestanden waren beveiligd en versleuteld tijdens het transport.",
-    failed_to_queue_offline:
-      "Probeer het opnieuw.",
+    failed_to_queue_offline: "Probeer het opnieuw.",
     duplicate_send_blocked:
       "Dit bericht is net verzonden. Bekijk je map Verzonden voordat je het opnieuw verstuurt.",
     empty_body_error:
@@ -1712,8 +1628,7 @@ export const nl = {
     aster_user: "Aster-gebruiker",
     allow_sender: "Toevoegen aan toelatingslijst",
     remove_from_allowlist_action: "Verwijderen uit toelatingslijst",
-    failed_to_allow_sender:
-      "Probeer het opnieuw.",
+    failed_to_allow_sender: "Probeer het opnieuw.",
     account_limit_reached:
       "U heeft de accountlimiet voor dit netwerk bereikt. Als dit niet klopt, kan hello@astermail.org helpen.",
     account_suspended: "Uw account is opgeschort.",
@@ -1777,23 +1692,19 @@ export const nl = {
     alias_add_details: "Details toevoegen",
     alias_websites_count: "{{count}} websites",
     remove_alias_website: "Website verwijderen",
-    failed_update_alias_note:
-      "Probeer het opnieuw.",
+    failed_update_alias_note: "Probeer het opnieuw.",
     alias_note_too_long: "Deze notitie is te lang. Een kortere werkt wel.",
     add_alias_note_placeholder: "Notitie toevoegen",
     edit_alias_note: "Notitie bewerken",
-    failed_remove_recovery_email:
-      "Probeer het opnieuw.",
+    failed_remove_recovery_email: "Probeer het opnieuw.",
     failed_save_profile_color: "Probeer het opnieuw.",
     failed_to_change_folder_password: "Probeer het opnieuw.",
     failed_to_get_key_status: "Probeer het opnieuw.",
     failed_to_read_named_file: 'Bestand "{{name}}" kon niet worden gelezen',
-    failed_to_remove_folder_password:
-      "Probeer het opnieuw.",
+    failed_to_remove_folder_password: "Probeer het opnieuw.",
     failed_to_set_folder_password: "Probeer het opnieuw.",
     failed_update_alias_avatar: "Probeer het opnieuw.",
-    failed_update_alias_display_name:
-      "Probeer het opnieuw.",
+    failed_update_alias_display_name: "Probeer het opnieuw.",
     file_already_attached: '"{{name}}" is al bijgevoegd',
     metadata_not_removed:
       "Verborgen metagegevens konden niet uit {{names}} worden verwijderd. Het bestand is ongewijzigd bijgevoegd.",
@@ -1927,8 +1838,7 @@ export const nl = {
     scanning_mailbox: "Postvak scannen...",
     scheduled_category: "Gepland",
     search_failed_try_again: "Zoeken mislukt. Probeer het opnieuw.",
-    search_load_failed_try_again:
-      "Probeer het opnieuw.",
+    search_load_failed_try_again: "Probeer het opnieuw.",
     select_label: "Label",
     select_none: "Geen",
     select_read: "Gelezen",
@@ -1980,10 +1890,8 @@ export const nl = {
     x_of_y: "{{current}} van {{total}}",
     yourname_placeholder: "Uw naam",
     back_to_inbox: "Terug naar inbox",
-    health_check_failed:
-      "Probeer het opnieuw.",
-    unknown_error:
-      "Probeer het opnieuw.",
+    health_check_failed: "Probeer het opnieuw.",
+    unknown_error: "Probeer het opnieuw.",
     or: "of",
     help: "Help",
     go_to_inbox: "Naar inbox",
@@ -2000,11 +1908,14 @@ export const nl = {
       "Verzenden zonder post-quantumversleuteling?",
     post_quantum_send_anyway: "Toch verzenden",
     key_trust_change_title: "Versleutelingssleutel gewijzigd",
-    key_trust_change_message: "De versleutelingssleutel van {{recipients}} is sinds de vorige opvraging gewijzigd. Controleer de nieuwe vingerafdruk via een ander kanaal bij de ontvanger voordat je verzendt.",
+    key_trust_change_message:
+      "De versleutelingssleutel van {{recipients}} is sinds de vorige opvraging gewijzigd. Controleer de nieuwe vingerafdruk via een ander kanaal bij de ontvanger voordat je verzendt.",
     key_trust_change_detail: "{{email}}: was {{prior}}, nu {{current}}.",
     key_trust_change_confirm: "Nieuwe sleutel vertrouwen",
-    post_quantum_downgrade_title: "Verzenden zonder de verwachte post-quantumsleutels?",
-    post_quantum_downgrade_message: "{{recipients}} publiceert post-quantumsleutels, maar de sleutelset die voor dit bericht is opgehaald bevat er geen. Dit kan door een serverprobleem komen of door manipulatie van de sleutelopvraging. Annuleer en probeer het later opnieuw om de post-quantumbescherming te behouden.",
+    post_quantum_downgrade_title:
+      "Verzenden zonder de verwachte post-quantumsleutels?",
+    post_quantum_downgrade_message:
+      "{{recipients}} publiceert post-quantumsleutels, maar de sleutelset die voor dit bericht is opgehaald bevat er geen. Dit kan door een serverprobleem komen of door manipulatie van de sleutelopvraging. Annuleer en probeer het later opnieuw om de post-quantumbescherming te behouden.",
     post_quantum_unavailable_message:
       "{{recipients}} heeft nog geen post-quantumsleutels gepubliceerd, dus dit bericht kan alleen standaard end-to-endversleuteling gebruiken. Vraag of diegene Aster opent of de app bijwerkt om post-quantumbeveiliging weer aan te zetten.",
     too_many_attachments:
@@ -2206,7 +2117,8 @@ export const nl = {
   },
   settings: {
     alias_sent_mail_label: "Verzonden e-mail",
-    alias_sent_mail_desc: "Bekijk de berichten die je vanaf dit adres hebt verzonden.",
+    alias_sent_mail_desc:
+      "Bekijk de berichten die je vanaf dit adres hebt verzonden.",
     account_enabled_tooltip: "Dit account synchroniseert.",
     app_password_required: "App-wachtwoord vereist",
     category_newsletters: "Nieuwsbrieven",
@@ -2787,8 +2699,7 @@ export const nl = {
     alias_restore_mismatch:
       "Dit adres komt niet overeen met deze alias. Kijk in de header van een bezorgd bericht.",
     alias_restore_failed: "Probeer het opnieuw.",
-    recently_deleted_load_failed:
-      "Probeer het opnieuw.",
+    recently_deleted_load_failed: "Probeer het opnieuw.",
     ghost_aliases_info:
       "Ghost-aliassen zijn tijdelijk en verlopen automatisch. Gebruik ze voor eenmalige aanmeldingen of overal waar je geen vast adres wilt. Ze verdwijnen vanzelf - geen opruimen nodig.",
     recently_deleted_aliases_title: "Onlangs verwijderd",
@@ -2798,8 +2709,7 @@ export const nl = {
     alias_deleted_at: "Verwijderd op {{ date }}",
     restore_alias_action: "Herstellen",
     alias_restored: "Alias hersteld",
-    failed_restore_alias:
-      "Probeer het opnieuw.",
+    failed_restore_alias: "Probeer het opnieuw.",
     recently_deleted_empty_trash: "Prullenbak legen",
     delete_alias_permanently_action: "Permanent verwijderen",
     purge_alias_confirm_title: "Alias permanent verwijderen?",
@@ -2817,8 +2727,7 @@ export const nl = {
     recently_deleted_directories_description:
       "Herstel een directory die je hebt verwijderd. Verwijderde directories ontvangen geen nieuwe e-mail totdat ze zijn hersteld.",
     directory_restored: "Directory hersteld",
-    failed_restore_directory:
-      "Probeer het opnieuw.",
+    failed_restore_directory: "Probeer het opnieuw.",
     purge_directory_confirm_title: "Directory definitief verwijderen?",
     purge_directory_confirm_message:
       "{{ key }}@{{ domain }} definitief verwijderen? Dit kan niet ongedaan worden gemaakt. De directory blijft gereserveerd voor je account, zodat niemand anders deze ooit kan claimen.",
@@ -2965,8 +2874,7 @@ export const nl = {
       "Kies waar mail aan dit alias terechtkomt. Postvak IN is de standaard.",
     alias_delivery_folder_info:
       "Mail aan dit alias gaat zonder regel direct naar de gekozen map. Een passende regel wint nog steeds.",
-    alias_delivery_folder_error:
-      "Probeer het opnieuw.",
+    alias_delivery_folder_error: "Probeer het opnieuw.",
     alias_delivery_folder_missing: "Verwijderde map",
     alias_delivery_label: "Label",
     alias_delivery_label_desc:
@@ -3000,8 +2908,7 @@ export const nl = {
       "Toepassen op bestaande e-mail is mislukt. Probeer het opnieuw.",
     alias_apply_existing_unavailable:
       "E-mail die al in je account staat, kan niet naar Spam worden verplaatst.",
-    alias_delivery_label_error:
-      "Probeer het opnieuw.",
+    alias_delivery_label_error: "Probeer het opnieuw.",
     alias_delivery_rule_note:
       'Regel "{{ rule }}" verplaatst post voor deze alias al naar {{ target }}.',
     alias_delivery_rule_conflict:
@@ -3739,9 +3646,11 @@ export const nl = {
       "Hiermee zijn de oudere gegevens niet ontgrendeld. Controleer het wachtwoord of de zin en probeer het opnieuw.",
     discard_older_data_button: "Oudere gegevens verwijderen",
     discard_older_data_title: "Oudere gegevens verwijderen?",
-    discard_older_data_desc: "Hiermee verwijder je definitief de optie om e-mail en aliassen van vóór de reset te ontgrendelen. Dit kun je niet ongedaan maken.",
+    discard_older_data_desc:
+      "Hiermee verwijder je definitief de optie om e-mail en aliassen van vóór de reset te ontgrendelen. Dit kun je niet ongedaan maken.",
     discard_older_data_success: "Oudere gegevens verwijderd.",
-    discard_older_data_failed: "De oudere gegevens konden niet worden verwijderd. Probeer het opnieuw.",
+    discard_older_data_failed:
+      "De oudere gegevens konden niet worden verwijderd. Probeer het opnieuw.",
     phrase_wrap_save_failed:
       "Uw herstelzin kon niet op de server worden opgeslagen. Probeer het opnieuw.",
     general: "Algemeen",
@@ -3985,15 +3894,22 @@ export const nl = {
     password_change_background_reencrypt_failed:
       "Je wachtwoord is gewijzigd, maar een deel van je verzonden berichten en instellingen is niet opnieuw versleuteld. Neem contact op met de klantenservice als berichten of instellingen onleesbaar lijken.",
     restore_sent_mail: "Verzonden e-mails herstellen",
-    restore_sent_mail_description: "Als verzonden e-mails van voor een wachtwoordwijziging niet openen, voer dan het wachtwoord in dat je toen gebruikte. Aster Mail versleutelt die kopieën opnieuw met je huidige wachtwoord.",
+    restore_sent_mail_description:
+      "Als verzonden e-mails van voor een wachtwoordwijziging niet openen, voer dan het wachtwoord in dat je toen gebruikte. Aster Mail versleutelt die kopieën opnieuw met je huidige wachtwoord.",
     previous_password: "Vorig wachtwoord",
     enter_previous_password: "Voer het vorige wachtwoord in",
-    restore_sent_mail_running: "Verzonden e-mails controleren... {{count}} gecontroleerd",
-    restore_sent_mail_result: "{{rewritten}} verzonden e-mails openen nu met je huidige wachtwoord. {{unreadable}} hebben nog een ander eerder wachtwoord nodig.",
-    restore_sent_mail_nothing: "Alle verzonden e-mails openen al met je huidige wachtwoord.",
-    restore_sent_mail_failed: "Sommige verzonden e-mails konden niet worden bijgewerkt. Controleer je verbinding en probeer het opnieuw.",
-    restore_sent_mail_session_expired: "Je sessiesleutels zijn niet beschikbaar. Meld je af, meld je opnieuw aan en probeer het opnieuw.",
-    password_change_sent_mail_locked: "Je wachtwoord is gewijzigd. {{count}} verzonden e-mails waren versleuteld met een eerder wachtwoord en zijn niet bijgewerkt. Open Instellingen > Beveiliging > Verzonden e-mails herstellen om ze te herstellen.",
+    restore_sent_mail_running:
+      "Verzonden e-mails controleren... {{count}} gecontroleerd",
+    restore_sent_mail_result:
+      "{{rewritten}} verzonden e-mails openen nu met je huidige wachtwoord. {{unreadable}} hebben nog een ander eerder wachtwoord nodig.",
+    restore_sent_mail_nothing:
+      "Alle verzonden e-mails openen al met je huidige wachtwoord.",
+    restore_sent_mail_failed:
+      "Sommige verzonden e-mails konden niet worden bijgewerkt. Controleer je verbinding en probeer het opnieuw.",
+    restore_sent_mail_session_expired:
+      "Je sessiesleutels zijn niet beschikbaar. Meld je af, meld je opnieuw aan en probeer het opnieuw.",
+    password_change_sent_mail_locked:
+      "Je wachtwoord is gewijzigd. {{count}} verzonden e-mails waren versleuteld met een eerder wachtwoord en zijn niet bijgewerkt. Open Instellingen > Beveiliging > Verzonden e-mails herstellen om ze te herstellen.",
     password_changed_signing_out:
       "Wachtwoord succesvol gewijzigd. Je wordt uitgelogd...",
     password_changed_success: "Wachtwoord gewijzigd",
@@ -4340,17 +4256,13 @@ export const nl = {
       "We konden de betaling niet innen. Werk je betaalmethode bij in Instellingen, Facturering, en probeer het opnieuw.",
     plan_not_available:
       "Dit abonnement is op dit moment niet te koop. Een ander abonnement of later terugkomen werkt.",
-    failed_checkout:
-      "Probeer het opnieuw.",
-    failed_billing_portal:
-      "Probeer het opnieuw.",
+    failed_checkout: "Probeer het opnieuw.",
+    failed_billing_portal: "Probeer het opnieuw.",
     subscription_cancelled:
       "Abonnement wordt geannuleerd aan het einde van de factureringsperiode",
-    failed_cancel_subscription:
-      "Probeer het opnieuw.",
+    failed_cancel_subscription: "Probeer het opnieuw.",
     subscription_reactivated: "Abonnement geheractiveerd",
-    failed_reactivate:
-      "Probeer het opnieuw.",
+    failed_reactivate: "Probeer het opnieuw.",
     daily: "Dagelijks",
     weekly: "Wekelijks",
     biweekly: "Tweewekelijks",
@@ -4371,8 +4283,7 @@ export const nl = {
     auto_lock_after: "Automatisch vergrendelen na {{duration}} inactiviteit",
     hours: "{{count}} uur",
     days: "{{count}} dagen",
-    failed_get_auth_data:
-      "Probeer het opnieuw.",
+    failed_get_auth_data: "Probeer het opnieuw.",
     downgrade: "Downgraden",
     upgrade: "Upgraden",
     export: "Exporteren",
@@ -4396,8 +4307,7 @@ export const nl = {
     too_many_requests:
       "Je doet dat te snel. Wacht even en probeer het opnieuw.",
     please_log_in_feedback: "Aanmelden laat u feedback verzenden.",
-    failed_send_feedback:
-      "Probeer het opnieuw.",
+    failed_send_feedback: "Probeer het opnieuw.",
     other_ways_to_reach: "Andere manieren om ons te bereiken",
     reset_to_defaults: "Standaardinstellingen herstellen",
     section_reset: "Sectie naar standaard hersteld",
@@ -4708,27 +4618,21 @@ export const nl = {
     alias_reserved: "Gereserveerd",
     alias_grace_upgrade_hint: "Upgrade om deze alias actief te houden",
     alias_reserved_upgrade_hint: "Upgrade om deze alias te heractiveren",
-    invalid_address:
-      "Voer een geldig e-mailadres in.",
+    invalid_address: "Voer een geldig e-mailadres in.",
     alias_already_taken:
       "Deze alias is al in gebruik. Een andere zou moeten werken.",
-    alias_create_failed:
-      "Probeer het opnieuw.",
-    alias_generate_failed:
-      "Probeer het opnieuw.",
+    alias_create_failed: "Probeer het opnieuw.",
+    alias_generate_failed: "Probeer het opnieuw.",
     alias_invalid:
       "Deze alias is niet geldig. Letters, cijfers, punten, underscores en koppeltekens zijn de toegestane tekens.",
     domain_not_available:
       "Dit domein is op dit moment niet beschikbaar. Een ander zou moeten werken.",
-    failed_create_address:
-      "Probeer het opnieuw.",
+    failed_create_address: "Probeer het opnieuw.",
     domain_limit_reached: "Domeinlimiet bereikt",
     add_custom_domain: "Aangepast domein toevoegen",
     domain_name_label: "Domeinnaam",
-    invalid_domain:
-      "Voer een geldig domein in.",
-    failed_add_domain:
-      "Probeer het opnieuw.",
+    invalid_domain: "Voer een geldig domein in.",
+    failed_add_domain: "Probeer het opnieuw.",
     configure_dns_for: "DNS configureren voor {{domain}}",
     dns_instruction_login: "Log in bij je domeinregistrar of DNS-provider",
     dns_instruction_navigate: "Navigeer naar DNS-beheer voor je domein",
@@ -4764,8 +4668,7 @@ export const nl = {
       "Dit moet een openbare mailserver zijn, niet een lokaal of privéadres. De openbare hostnaam die uw provider u heeft gegeven werkt.",
     username_required: "Voor dit account is een gebruikersnaam nodig.",
     password_required: "Voor dit account is een wachtwoord nodig.",
-    connection_timeout_error:
-      "Voer een time-out in tussen 5 en 120 seconden.",
+    connection_timeout_error: "Voer een time-out in tussen 5 en 120 seconden.",
     fill_server_first:
       "De server, gebruikersnaam en wachtwoord zijn eerst nodig zodat de verbinding kan worden getest.",
     fill_smtp_first:
@@ -4778,20 +4681,14 @@ export const nl = {
     account_added: "Account succesvol toegevoegd",
     account_settings_not_saved:
       "Account opgeslagen, maar de synchronisatie- en geavanceerde instellingen zijn niet opgeslagen",
-    failed_update_account:
-      "Probeer het opnieuw.",
-    failed_add_account:
-      "Probeer het opnieuw.",
-    switch_failed:
-      "Probeer het opnieuw.",
-    unexpected_error:
-      "Probeer het opnieuw.",
+    failed_update_account: "Probeer het opnieuw.",
+    failed_add_account: "Probeer het opnieuw.",
+    switch_failed: "Probeer het opnieuw.",
+    unexpected_error: "Probeer het opnieuw.",
     failed_sync:
       "De synchronisatie is niet voltooid, en we proberen automatisch opnieuw. Uw post aan beide kanten is veilig.",
-    failed_delete_emails_external:
-      "Probeer het opnieuw.",
-    failed_fetch_folders_external:
-      "Probeer het opnieuw.",
+    failed_delete_emails_external: "Probeer het opnieuw.",
+    failed_fetch_folders_external: "Probeer het opnieuw.",
     external_sign_in_rejected:
       "De mailserver heeft deze gebruikersnaam en dit wachtwoord niet geaccepteerd. Controleer ze opnieuw. Als uw provider een app-wachtwoord vereist, voert u dat in.",
     external_server_unreachable:
@@ -4810,12 +4707,10 @@ export const nl = {
     invalid_2fa_code:
       "Die code kwam niet overeen. De huidige code uit uw authenticator-app werkt.",
     incorrect_password_error: "Onjuist wachtwoord",
-    failed_retrieve_auth:
-      "Probeer het opnieuw.",
+    failed_retrieve_auth: "Probeer het opnieuw.",
     failed_verify_password:
       "Dat wachtwoord kwam niet overeen. Een nieuwe poging zou moeten werken.",
-    failed_export_private_key:
-      "Probeer het opnieuw.",
+    failed_export_private_key: "Probeer het opnieuw.",
     type_regenerate: "Typ regenerate",
     client_side_encryption: "Clientzijde-versleuteling",
     client_side_encryption_description:
@@ -4831,13 +4726,10 @@ export const nl = {
       "Zoek automatisch WKD en sleutelservers bij het opstellen",
     key_published_wkd: "Sleutel gepubliceerd naar WKD",
     key_removed_wkd: "Sleutel verwijderd van WKD",
-    failed_publish_wkd:
-      "Probeer het opnieuw.",
-    failed_remove_wkd:
-      "Probeer het opnieuw.",
+    failed_publish_wkd: "Probeer het opnieuw.",
+    failed_remove_wkd: "Probeer het opnieuw.",
     key_published_keyserver: "Sleutel gepubliceerd naar sleutelserver",
-    failed_publish_keyserver:
-      "Probeer het opnieuw.",
+    failed_publish_keyserver: "Probeer het opnieuw.",
     mailto_unregister_manual:
       "Om te voorkomen dat Aster Mail mailto-links opent, verwijder je de handler in je browserinstellingen.",
     failed_save_setting:
@@ -5286,8 +5178,7 @@ export const nl = {
       "Uw opslag is vol. Uw abonnement upgraden of wat e-mails verwijderen maakt ruimte voor meer imports.",
     no_emails_in_file:
       "Geen e-mails gevonden in de geselecteerde bestanden. Zorg dat elk bestand een ondersteunde indeling heeft (MBOX, EML, CSV of PST).",
-    import_failed:
-      "Probeer het opnieuw.",
+    import_failed: "Probeer het opnieuw.",
     failed_to_parse_file:
       "Dit bestand kon niet worden gelezen. Een ander werkt.",
     plan_storage_value: "{{value}} opslag",
@@ -5394,6 +5285,9 @@ export const nl = {
     spam_filtering_title: "Spamfiltering",
     spam_sensitivity: "Spamgevoeligheid",
     auto_delete_spam_after: "Spam automatisch verwijderen na",
+    auto_delete_trash_after: "Prullenbak automatisch legen na",
+    auto_delete_trash_description:
+      "E-mails in de Prullenbak die ouder zijn dan dit worden definitief verwijderd.",
     spam_delete_hint: "Spam-e-mails ouder dan dit worden permanent verwijderd",
     save_changes: "Wijzigingen opslaan",
     spam_low: "Laag",
@@ -5408,6 +5302,9 @@ export const nl = {
     retention_30_days: "30 dagen",
     retention_60_days: "60 dagen",
     retention_90_days: "90 dagen",
+    retention_days_count: "{{ days }} dagen",
+    retention_180_days: "180 dagen",
+    retention_365_days: "365 dagen",
     retention_never: "Nooit (voor altijd bewaren)",
     import_emails_title: "E-mails importeren",
     import_add_another: "Nog een account toevoegen",
@@ -5632,8 +5529,7 @@ export const nl = {
       "{{code}} is toegepast. Je bespaart vandaag {{amount}}.",
     plan_change_promo_remove: "Verwijderen",
     billing_switched: "Factureringscyclus succesvol gewijzigd",
-    failed_switch_billing:
-      "Probeer het opnieuw.",
+    failed_switch_billing: "Probeer het opnieuw.",
     current_billing_interval: "Gefactureerd {{interval}}",
     switching_billing: "Overschakelen...",
     billing_banner_title: "Ontgrendel meer met Aster",
@@ -5660,10 +5556,8 @@ export const nl = {
     confirm_cancel_addon: "Opslag-add-on annuleren",
     confirm_cancel_addon_description:
       "Weet je zeker dat je deze opslag-add-on wilt annuleren? Je extra opslag blijft beschikbaar tot het einde van de huidige factureringsperiode.",
-    addon_purchase_failed:
-      "Probeer het opnieuw.",
-    addon_cancel_failed:
-      "Probeer het opnieuw.",
+    addon_purchase_failed: "Probeer het opnieuw.",
+    addon_cancel_failed: "Probeer het opnieuw.",
     addon_purchase_success: "Doorsturen naar afrekenen...",
     addon_checkout_opened: "Voltooi je aankoop in het nieuwe tabblad.",
     plan_recommended: "Aanbevolen",
@@ -6005,8 +5899,7 @@ export const nl = {
     use_credits_for_renewals_description:
       "Pas automatisch je tegoedbalans toe op abonnements- en add-onverlengingen. Als je balans het volledige bedrag niet dekt, wordt het restant in rekening gebracht op je betaalmethode.",
     credits_toggle_updated: "Tegoedinstellingen bijgewerkt",
-    credits_toggle_failed:
-      "Probeer het opnieuw.",
+    credits_toggle_failed: "Probeer het opnieuw.",
     credits_earn_first: "Verdien eerst tegoed om dit in te schakelen",
     recent_transactions: "Recente transacties",
     view_all_transactions: "Alles bekijken",
@@ -6252,8 +6145,7 @@ export const nl = {
     country: "Land",
     save_address: "Adres opslaan",
     address_saved: "Factuuradres opgeslagen",
-    address_save_failed:
-      "Probeer het opnieuw.",
+    address_save_failed: "Probeer het opnieuw.",
     saving: "Opslaan...",
     redeem: "Inwisselen",
     redeeming: "Inwisselen...",
@@ -6267,8 +6159,7 @@ export const nl = {
     export_ready: "Je export is klaar om te downloaden.",
     export_processing: "Export wordt voorbereid...",
     download_export: "Downloaden",
-    export_failed:
-      "Probeer het opnieuw.",
+    export_failed: "Probeer het opnieuw.",
     biennial: "2-jarig",
     all_star_features: "Alles in Star, plus:",
     all_nova_features: "Alles in Nova, plus:",
@@ -7636,10 +7527,14 @@ export const nl = {
     referral_claim_success:
       "Uitnodiging toegevoegd. Je opslag komt binnen zodra je Aster Mail een paar dagen gebruikt.",
     referral_claim_invalid: "Die uitnodigingscode is niet geldig.",
-    referral_commission_headline: "Verdien {{ percent }}% van elke betaling van je vrienden",
-    referral_commission_subhead: "Deel je link. Zodra een vriend een abonnement neemt, verdien je een deel van elke betaling, zolang het abonnement loopt.",
-    referral_step_earn_commission: "Zodra ze een abonnement nemen, verdien je {{ percent }}% van elke betaling.",
-    referral_share_message_plain: "Ik gebruik Aster Mail voor end-to-end versleutelde e-mail. Doe mee via mijn link.",
+    referral_commission_headline:
+      "Verdien {{ percent }}% van elke betaling van je vrienden",
+    referral_commission_subhead:
+      "Deel je link. Zodra een vriend een abonnement neemt, verdien je een deel van elke betaling, zolang het abonnement loopt.",
+    referral_step_earn_commission:
+      "Zodra ze een abonnement nemen, verdien je {{ percent }}% van elke betaling.",
+    referral_share_message_plain:
+      "Ik gebruik Aster Mail voor end-to-end versleutelde e-mail. Doe mee via mijn link.",
     referral_email_body_plain:
       "Hoi,\n\nik gebruik Aster Mail nu een tijdje en het bevalt me erg goed. Alles is end-to-end versleuteld, dus niemand kan je e-mail lezen behalve jijzelf. Zelfs de beheerders niet.\n\nWil je het proberen, dit is mijn uitnodigingslink:\n\n{{ referral_link }}\n\nGroeten",
     referral_claim_window_closed:
@@ -8326,8 +8221,7 @@ export const nl = {
       "Deze e-mail wordt permanent verwijderd nadat de timer is verlopen",
     category_promos: "Aanbiedingen",
     search_history: "Zoekgeschiedenis",
-    search_error:
-      "Probeer het opnieuw.",
+    search_error: "Probeer het opnieuw.",
     delete_draft_confirmation:
       "Dit concept en alle niet-opgeslagen wijzigingen worden definitief verwijderd.",
     plain_text_warning:
@@ -8995,15 +8889,20 @@ export const nl = {
     add_backup_email: "Voeg een back-up-e-mailadres toe",
     skip_for_now: "Voorlopig overslaan",
     create_your_account: "Maak je account aan",
-    welcome_workspace_subtitle: "Welkom bij Aster. Kies een gebruikersnaam om te beginnen.",
+    welcome_workspace_subtitle:
+      "Welkom bij Aster. Kies een gebruikersnaam om te beginnen.",
     username_placeholder: "Gebruikersnaam",
     switch_domain: "Domein wisselen",
-    sign_in_domain_hint: "Kies het domein van je adres. Weet je het niet zeker? Beide werken.",
-    terms_footer_next: "Door hierboven op Volgende te klikken bevestig je dat je het volgende van Aster hebt gelezen en accepteert:",
+    sign_in_domain_hint:
+      "Kies het domein van je adres. Weet je het niet zeker? Beide werken.",
+    terms_footer_next:
+      "Door hierboven op Volgende te klikken bevestig je dat je het volgende van Aster hebt gelezen en accepteert:",
     create_a_password: "Maak een wachtwoord aan",
-    recommend_strong_password: "Gebruik minstens 8 tekens. Een langer wachtwoord met gemengde tekens is sterker.",
+    recommend_strong_password:
+      "Gebruik minstens 8 tekens. Een langer wachtwoord met gemengde tekens is sterker.",
     password_recovery_key: "Herstelsleutel voor wachtwoord",
-    recovery_key_only_way: "Deze sleutel is de enige manier om je account te herstellen als je je wachtwoord vergeet. Bewaar hem op een veilige plek.",
+    recovery_key_only_way:
+      "Deze sleutel is de enige manier om je account te herstellen als je je wachtwoord vergeet. Bewaar hem op een veilige plek.",
     download_key_lower: "Sleutel downloaden",
     downloading: "Downloaden...",
     save_key: "Sleutel opslaan",
@@ -9011,7 +8910,8 @@ export const nl = {
     copy_codes: "Codes kopiëren",
     recovery_key_copied: "Herstelsleutel gekopieerd",
     password_recovery_email: "Herstel-e-mailadres voor wachtwoord",
-    recovery_email_step_desc: "Voeg een e-mailadres toe zodat je weer in je account kunt als je je herstelcodes kwijtraakt.",
+    recovery_email_step_desc:
+      "Voeg een e-mailadres toe zodat je weer in je account kunt als je je herstelcodes kwijtraakt.",
     download_apps_title: "Download de mobiele en desktop-apps",
     download_apps_desc: "Neem je inbox mee op elk apparaat.",
     mail_mobile: "Mail Mobile",
@@ -9019,21 +8919,28 @@ export const nl = {
     mail_desktop: "Mail Desktop",
     mail_desktop_desc: "De desktop-app voor Windows, macOS en Linux.",
     notifications_step_title: "Browsermeldingen inschakelen",
-    notifications_step_desc: "Krijg een melding bij nieuwe e-mail, ook als dit tabblad op de achtergrond staat.",
+    notifications_step_desc:
+      "Krijg een melding bij nieuwe e-mail, ook als dit tabblad op de achtergrond staat.",
     notifications_turned_on: "Meldingen staan aan",
-    notifications_blocked_hint: "Meldingen zijn geblokkeerd. Om ze in te schakelen, sta je meldingen voor deze site toe in de instellingen van je browser.",
-    notifications_sample_body: "Je krijgt een melding zoals deze wanneer nieuwe e-mail binnenkomt.",
+    notifications_blocked_hint:
+      "Meldingen zijn geblokkeerd. Om ze in te schakelen, sta je meldingen voor deze site toe in de instellingen van je browser.",
+    notifications_sample_body:
+      "Je krijgt een melding zoals deze wanneer nieuwe e-mail binnenkomt.",
     notification_preview_title: "Nieuw bericht",
     notification_preview_body: "Je hebt een nieuw bericht in je inbox.",
     turn_on: "Inschakelen",
     addresses_step_title: "Maak adressen voor verschillende doelen",
-    addresses_step_desc: "Voeg extra adressen toe voor werk, nieuwsbrieven of winkelen. Ze komen allemaal in dezelfde inbox aan.",
+    addresses_step_desc:
+      "Voeg extra adressen toe voor werk, nieuwsbrieven of winkelen. Ze komen allemaal in dezelfde inbox aan.",
     address_n: "Adres {{n}}",
-    address_must_begin_end_alphanumeric: "Het e-mailadres moet beginnen en eindigen met een letter of cijfer.",
+    address_must_begin_end_alphanumeric:
+      "Het e-mailadres moet beginnen en eindigen met een letter of cijfer.",
     custom_domain_step_title: "Personaliseer je adres met een eigen domein",
-    custom_domain_step_desc: "Verstuur en ontvang e-mail vanaf een adres op een domein dat van jou is.",
+    custom_domain_step_desc:
+      "Verstuur en ontvang e-mail vanaf een adres op een domein dat van jou is.",
     custom_domain_own: "Een domein instellen dat je al hebt",
-    custom_domain_own_desc: "Koppel binnen enkele minuten een domein van elke registrar.",
+    custom_domain_own_desc:
+      "Koppel binnen enkele minuten een domein van elke registrar.",
     custom_domain_new: "Een nieuw domein kopen",
     custom_domain_new_desc: "Zoek en koop een domein zonder Aster te verlaten.",
     recovery_email_required_gate_title: "Herstel-e-mail vereist",
@@ -9041,7 +8948,8 @@ export const nl = {
       "Voor het aanmaken van een extra account is een herstel-e-mail vereist. Dit helpt al uw accounts te beveiligen.",
     username_min_length: "Gebruik minstens 3 tekens.",
     username_max_length: "Gebruik minder dan 40 tekens.",
-    username_not_available: "Deze gebruikersnaam is niet beschikbaar. Probeer een andere.",
+    username_not_available:
+      "Deze gebruikersnaam is niet beschikbaar. Probeer een andere.",
     password_req_length: "Minimaal 8 tekens",
     password_req_uppercase: "Eén hoofdletter",
     password_req_lowercase: "Eén kleine letter",
@@ -9073,8 +8981,7 @@ export const nl = {
       "Dit lijkt geen geldig e-mailadres. Iets als naam@example.com werkt.",
     recovery_email_conflict:
       "Dit adres beschermt al het maximum van 20 Aster-accounts. Gebruik een ander adres.",
-    failed_save_recovery_email:
-      "Probeer het opnieuw.",
+    failed_save_recovery_email: "Probeer het opnieuw.",
     recovery_phrase_title: "Sla uw herstelzin op",
     recovery_phrase_desc:
       "Deze 12 woorden zijn de enige manier om uw account en al uw versleutelde e-mail volledig te herstellen als u ooit uw wachtwoord vergeet. Schrijf ze in volgorde op en bewaar ze op een veilige plek, offline.",
@@ -9201,7 +9108,8 @@ export const nl = {
       "Uw oude herstelcodes werken niet meer. Deze nieuwe set op een veilige plek bewaren voordat u dit venster sluit, houdt u gedekt.",
     n_recovery_codes: "{{count}} herstelcodes",
     import_mail_step_title: "Neem je mail mee",
-    import_mail_step_desc: "Verplaats berichten uit een ander account naar Aster. Alles wordt op je apparaat versleuteld voordat het wordt opgeslagen.",
+    import_mail_step_desc:
+      "Verplaats berichten uit een ander account naar Aster. Alles wordt op je apparaat versleuteld voordat het wordt opgeslagen.",
     import_mail_action: "Mail importeren",
     import_mail_skip: "Beginnen met een lege inbox",
     import_mail_privacy_note: "Je kunt ook later importeren via Instellingen.",
@@ -9384,7 +9292,8 @@ export const nl = {
     link_device_other_accounts: "Overschakelen naar een ander account",
     hub_accounts_or_password: "Of log in met je wachtwoord",
     hub_account_password_required: "Wachtwoord vereist",
-    hub_account_link_failed: "Voer het wachtwoord van dit account in om door te gaan.",
+    hub_account_link_failed:
+      "Voer het wachtwoord van dit account in om door te gaan.",
     link_device_success: "Apparaat gekoppeld",
     link_device_success_description:
       "Je desktop-app is nu gekoppeld. Je kunt dit tabblad sluiten.",
@@ -9598,8 +9507,7 @@ export const nl = {
       "Dit bericht heeft al het maximale aantal reacties.",
     cannot_react_no_recipient:
       "Dit bericht heeft geen afzender om de reactie naar te sturen.",
-    failed_send_reaction:
-      "Probeer het opnieuw.",
+    failed_send_reaction: "Probeer het opnieuw.",
     reactions_disabled: "Reacties zijn uitgeschakeld in je instellingen.",
     pending_email_verification:
       "Controleer je e-mail en klik op de verificatielink om dit account te activeren.",
@@ -9629,8 +9537,7 @@ export const nl = {
       "Dit wachtwoord overschrijdt de lengtelimiet. Een korter werkt.",
     account_not_found:
       "We konden geen account met die naam vinden. Controleer de spelling of stel uw wachtwoord opnieuw in op astermail.org/reset.",
-    login_failed:
-      "Probeer het opnieuw.",
+    login_failed: "Probeer het opnieuw.",
     decrypt_failed:
       "Dat wachtwoord heeft uw sleutels op dit apparaat niet ontgrendeld. Een nieuwe poging werkt, en een herstelcode op astermail.org/reset is de reserveroute als het blijft mislukken. Uw gegevens op de server zijn ongewijzigd.",
     send_limit_reached:
@@ -9638,25 +9545,20 @@ export const nl = {
     ip_blocked:
       "Te veel mislukte aanmeldpogingen. Wacht {{time}} en probeer het opnieuw. Uw account is niet vergrendeld.",
     an_error_occurred: "Probeer het opnieuw.",
-    failed_to_block_sender:
-      "Probeer het opnieuw.",
-    failed_to_snooze:
-      "Probeer het opnieuw.",
+    failed_to_block_sender: "Probeer het opnieuw.",
+    failed_to_snooze: "Probeer het opnieuw.",
     ghost_alias_not_found:
       "We konden het ghost-adres dat bij deze conversatie hoort niet vinden.",
-    failed_to_resolve_ghost_alias:
-      "Probeer het opnieuw.",
+    failed_to_resolve_ghost_alias: "Probeer het opnieuw.",
     ghost_alias_rate_limit:
       "U hebt al uw ghost-aliassen voor deze maand gebruikt. Uw abonnement upgraden of wachten op de reset van volgende maand geeft u er meer.",
     ghost_alias_already_exists: "U hebt deze ghost-alias al op uw account.",
-    failed_to_create_ghost_alias:
-      "Probeer het opnieuw.",
+    failed_to_create_ghost_alias: "Probeer het opnieuw.",
     ghost_expiry_extend_only:
       "Je kunt een ghost-adres alleen verlengen, niet verkorten.",
     ghost_expiry_update_failed:
       "De vervaldatum is niet bijgewerkt. Probeer het opnieuw.",
-    failed_to_activate_ghost_mode:
-      "Probeer het opnieuw.",
+    failed_to_activate_ghost_mode: "Probeer het opnieuw.",
     wrong_vault_password:
       "Dat wachtwoord heeft uw sleutels op dit apparaat niet ontgrendeld. Probeer het opnieuw. Als het blijft mislukken, gebruik dan een herstelcode op astermail.org/reset. Uw gegevens op de server zijn ongewijzigd.",
     vault_tampered:
@@ -9695,22 +9597,14 @@ export const nl = {
       "De identiteitscontrole van dit apparaat kwam niet overeen, wat op manipulatie kan wijzen. Koppel opnieuw vanuit uw desktop-app, en als de waarschuwing terugkeert neem dan contact op met hello@astermail.org.",
     metadata_migration_stalled:
       "We konden uw lokale opslag na meerdere pogingen niet bijwerken. Uw verbinding controleren en Aster opnieuw openen volstaat meestal. Uw post op de server is veilig.",
-    failed_to_queue_email:
-      "Probeer het opnieuw.",
-    failed_to_send_queued:
-      "Probeer het opnieuw.",
-    failed_to_send_external_queued:
-      "Probeer het opnieuw.",
-    authentication_failed:
-      "Probeer het opnieuw.",
-    failed_to_snooze_email:
-      "Probeer het opnieuw.",
-    failed_to_snooze_emails:
-      "Probeer het opnieuw.",
-    failed_to_unsnooze_email:
-      "Probeer het opnieuw.",
-    failed_to_list_snoozed:
-      "Probeer het opnieuw.",
+    failed_to_queue_email: "Probeer het opnieuw.",
+    failed_to_send_queued: "Probeer het opnieuw.",
+    failed_to_send_external_queued: "Probeer het opnieuw.",
+    authentication_failed: "Probeer het opnieuw.",
+    failed_to_snooze_email: "Probeer het opnieuw.",
+    failed_to_snooze_emails: "Probeer het opnieuw.",
+    failed_to_unsnooze_email: "Probeer het opnieuw.",
+    failed_to_list_snoozed: "Probeer het opnieuw.",
     auth_required: "Meld u aan om verder te gaan.",
     no_permission:
       "U hebt geen toegang om dat te doen. Als dit er verkeerd uitziet, kan uw beheerder helpen.",
@@ -9725,8 +9619,7 @@ export const nl = {
       "We konden de server niet bereiken. Uw verbinding controleren en het opnieuw proberen lost dit meestal op.",
     request_timeout:
       "Het verzoek deed er te lang over om af te ronden. Uw verbinding controleren en het opnieuw proberen lost dit meestal op.",
-    unexpected_error:
-      "Probeer het opnieuw.",
+    unexpected_error: "Probeer het opnieuw.",
     encryption_keys_not_loaded:
       "Uw privésleutels zijn vergrendeld op dit apparaat. Uw wachtwoord ontgrendelt ze. Uw sleutels op de server zijn onaangetast.",
     session_expired_reenter:
@@ -9735,8 +9628,7 @@ export const nl = {
       "Uw privésleutels zijn vergrendeld op dit apparaat. Uw wachtwoord ontgrendelt ze. Uw sleutels op de server zijn onaangetast.",
     session_expired_send:
       "Uw sessie eindigde voordat deze e-mail kon worden verzonden. Opnieuw aanmelden verstuurt hem. Uw concept is opgeslagen.",
-    failed_encrypt_envelope:
-      "Probeer het opnieuw.",
+    failed_encrypt_envelope: "Probeer het opnieuw.",
     failed_pgp_encrypt: "Probeer het opnieuw.",
     no_authenticated_account:
       "Er is geen aangemeld account gevonden op dit apparaat. Meld u aan om verder te gaan.",
@@ -9751,27 +9643,21 @@ export const nl = {
       "Deze bijlagen zijn samen groter dan {{size}}, het maximum dat één bericht in uw abonnement kan meenemen. Verwijder of verklein een bestand om te verzenden. Uw concept is opgeslagen.",
     too_many_attachments:
       "Dit bericht heeft meer dan {{max}} bijlagen, het maximum voor één bericht. Verwijder er een paar om te verzenden. Uw concept is opgeslagen.",
-    failed_send_email:
-      "Probeer het opnieuw.",
+    failed_send_email: "Probeer het opnieuw.",
     cannot_send_no_keys:
       "U hebt vereiste versleuteling ingeschakeld, en we hebben geen sleutel voor {{recipients}}. Hen vragen een sleutel te delen, of vereiste versleuteling uitschakelen in Instellingen, laat dit verzenden. Uw concept is opgeslagen.",
     cannot_send_no_recipient_keys:
       "U hebt vereiste versleuteling ingeschakeld, en geen van uw ontvangers heeft een sleutel in het archief. Hen vragen er een te delen, of vereiste versleuteling uitschakelen in Instellingen, laat dit verzenden. Uw concept is opgeslagen.",
     cannot_send_no_recovery_key:
       "Aster kan dit bericht nog niet verzenden omdat het account van de ontvanger de sleutels mist om het te lezen. Vraag hen Aster op een apparaat te openen of hun app bij te werken om die sleutels te vernieuwen, en probeer het daarna opnieuw. Uw concept is opgeslagen.",
-    failed_send_external:
-      "Probeer het opnieuw.",
-    failed_queue_email:
-      "Probeer het opnieuw.",
+    failed_send_external: "Probeer het opnieuw.",
+    failed_queue_email: "Probeer het opnieuw.",
     no_active_account:
       "Er is geen aangemeld account gevonden op dit apparaat. Meld u aan om verder te gaan.",
-    failed_queue_reply:
-      "Probeer het opnieuw.",
+    failed_queue_reply: "Probeer het opnieuw.",
     no_recipients: "Er is minimaal één ontvanger nodig voor het verzenden.",
-    failed_queue_forward:
-      "Probeer het opnieuw.",
-    failed_send:
-      "Probeer het opnieuw.",
+    failed_queue_forward: "Probeer het opnieuw.",
+    failed_send: "Probeer het opnieuw.",
     incorrect_password:
       "Dat wachtwoord kwam niet overeen. Een nieuwe poging zou werken. Uw account is niet vergrendeld.",
     no_keys_available:
@@ -9787,8 +9673,7 @@ export const nl = {
     registration_cancelled: "Registratie geannuleerd",
     registration_failed:
       "Aanmelden is niet voltooid. Opnieuw beginnen en het opnieuw proberen lost dit meestal op. Er is geen account aangemaakt.",
-    authentication_failed_webauthn:
-      "Probeer het opnieuw.",
+    authentication_failed_webauthn: "Probeer het opnieuw.",
     authentication_cancelled: "Authenticatie geannuleerd",
     alias_empty: "Er is een aliasnaam nodig.",
     alias_too_short: "Gebruik minstens 3 tekens.",
@@ -9803,8 +9688,7 @@ export const nl = {
     domain_too_long: "Dit domein is te lang. Een kortere werkt.",
     domain_reserved:
       "astermail.org en aster.cx kunnen hier niet worden gebruikt. Een ander domein dat u bezit werkt.",
-    domain_invalid_format:
-      "Voer een geldig domein in.",
+    domain_invalid_format: "Voer een geldig domein in.",
     domain_invalid_label:
       "Een deel van dit domein is te lang of te kort. Controleer het domein en probeer het opnieuw.",
     domain_invalid_chars:
@@ -9821,8 +9705,7 @@ export const nl = {
       "Maximaal {{max}} accounts kunnen tegelijk actief zijn. Een verwijderen maakt ruimte voor een andere.",
     account_already_added:
       "Dit account is al aangemeld op dit apparaat. Schakel ernaar over via het accountmenu.",
-    failed_encrypt_draft:
-      "Probeer het opnieuw.",
+    failed_encrypt_draft: "Probeer het opnieuw.",
     failed_decrypt_draft:
       "We konden dit concept niet openen op dit apparaat. Afmelden en weer aanmelden, dan een nieuwe poging, lost dit meestal op.",
     version_conflict:
@@ -9856,12 +9739,9 @@ export const nl = {
       "We hebben {{count}} e-mails overgeslagen die geen afzender of inhoud hadden. De rest is geïmporteerd.",
     unrecognized_format:
       "Aster kan {{name}} niet lezen. Ondersteunde formaten zijn MBOX, EML, CSV en PST. Sla het bestand op in een van deze formaten en probeer het opnieuw.",
-    unknown_error:
-      "Probeer het opnieuw.",
-    health_check_failed:
-      "Probeer het opnieuw.",
-    unexpected_health_check_error:
-      "Probeer het opnieuw.",
+    unknown_error: "Probeer het opnieuw.",
+    health_check_failed: "Probeer het opnieuw.",
+    unexpected_health_check_error: "Probeer het opnieuw.",
     all_emails_rejected:
       "Alle {{count}} e-mails in dit bestand zijn overgeslagen omdat bij elk een afzender of inhoud ontbrak, dus er is niets geïmporteerd. Controleer de bronexport en probeer het opnieuw.",
     post_quantum_unavailable:
@@ -10089,14 +9969,10 @@ export const nl = {
     value_placeholder: "Waarde",
     pick_folder: "Een map kiezen",
     pick_labels: "Labels kiezen",
-    load_failed:
-      "Probeer het opnieuw.",
-    save_failed:
-      "Probeer het opnieuw.",
-    reorder_failed:
-      "Probeer het opnieuw.",
-    rule_delete_failed:
-      "Probeer het opnieuw.",
+    load_failed: "Probeer het opnieuw.",
+    save_failed: "Probeer het opnieuw.",
+    reorder_failed: "Probeer het opnieuw.",
+    rule_delete_failed: "Probeer het opnieuw.",
     snooze_needs_future: "Kies een datum en tijd in de toekomst.",
     match_case: "Hoofdlettergevoelig",
     header_name_placeholder: "Naam koptekst",
@@ -10223,8 +10099,7 @@ export const nl = {
     empty_state: "Je hebt nog geen badges gevonden.",
     claim_success: "Je hebt de {name}-badge verdiend.",
     claim_already: "Je hebt al een ontdekkingsbadge.",
-    claim_failed:
-      "Probeer het opnieuw.",
+    claim_failed: "Probeer het opnieuw.",
     badge_big_bang: "Oerknal",
     badge_big_bang_description: "De eerste die de kosmos ontdekte.",
     badge_event_horizon: "Gebeurtenishorizon",

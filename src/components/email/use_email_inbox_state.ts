@@ -31,9 +31,9 @@ import {
 } from "react";
 
 import { use_inbox_view_state } from "./use_inbox_view_state";
+
 import { get_alias_hash_by_address } from "@/hooks/use_sidebar_aliases";
 import { alias_address_of } from "@/hooks/email_list_helpers/alias_view";
-
 import {
   is_fully_built as is_category_index_built,
   is_index_settled,
@@ -95,6 +95,7 @@ export function use_email_inbox_state(props: EmailInboxProps) {
     is_snoozed_view,
     is_archive_view,
     spam_retention_days,
+    trash_retention_days,
     family_policy,
     is_folder_view,
     folder_view_token,
@@ -733,6 +734,7 @@ export function use_email_inbox_state(props: EmailInboxProps) {
     is_scheduled_view,
     is_archive_view,
     spam_retention_days,
+    trash_retention_days,
     family_policy,
     folder_not_found,
     tag_not_found,
