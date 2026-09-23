@@ -134,10 +134,14 @@ export async function ensure_aliases_and_domains_loaded(): Promise<void> {
         aliases_cache.aliases = decrypted;
         aliases_cache.max_aliases = max_aliases;
         aliases_cache.loaded = true;
+        const counted = decrypted.filter(
+          (alias) => !alias.is_retained_primary,
+        ).length;
+
         aliases_cache.alias_counts = {
-          count: decrypted.length,
+          count: counted,
           max: max_aliases,
-          can_create: max_aliases === -1 || decrypted.length < max_aliases,
+          can_create: max_aliases === -1 || counted < max_aliases,
         };
       }
 

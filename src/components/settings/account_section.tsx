@@ -36,6 +36,12 @@ import { Button } from "@/components/ui/button";
 
 import { StepUpModal } from "./step_up_modal";
 
+import { ChangePrimaryAddressModal } from "@/components/settings/change_primary_address_modal";
+import {
+  get_primary_address_eligibility,
+  type PrimaryAddressEligibility,
+} from "@/services/api/primary_address";
+
 import { copy_text_or_throw } from "@/utils/copy_text";
 import { ignore_error } from "@/lib/ignore_error";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
@@ -78,6 +84,7 @@ import {
 import { get_badge_visual } from "@/components/ui/badge_registry";
 import { set_my_badge_prefs } from "@/stores/my_badge_prefs_store";
 import { cn } from "@/lib/utils";
+import { format_date } from "@/utils/date_format";
 import {
   get_recovery_email,
   save_recovery_email,
@@ -289,6 +296,11 @@ export function AccountSection() {
   );
   const [is_initial_load, set_is_initial_load] = useState(true);
   const [load_failed, set_load_failed] = useState(false);
+  const [address_eligibility, set_address_eligibility] =
+    useState<PrimaryAddressEligibility | null>(null);
+  const [show_address_change, set_show_address_change] = useState(false);
+  const [address_eligibility_failed, set_address_eligibility_failed] =
+    useState(false);
 
   const inactivity_window_info_description = (() => {
     const [first, second, final] =
@@ -313,6 +325,7 @@ export function AccountSection() {
       prefs_response,
       recovery_response,
       inactivity_response,
+      eligibility_response,
     ] = await Promise.all([
       fetch_my_badges(),
       fetch_badge_preferences(),
@@ -322,6 +335,7 @@ export function AccountSection() {
           }))
         : Promise.resolve({ data: EMPTY_RECOVERY_EMAIL }),
       get_inactivity_settings(),
+      get_primary_address_eligibility().catch(() => ({ data: undefined })),
     ]);
 
     if (badges_response.data) set_badges(badges_response.data);
@@ -332,6 +346,8 @@ export function AccountSection() {
     if (recovery_response.data) set_recovery(recovery_response.data);
     if (inactivity_response.data)
       set_inactivity_window(inactivity_response.data.inactivity_window_months);
+    set_address_eligibility((prev) => eligibility_response.data ?? prev);
+    set_address_eligibility_failed(!eligibility_response.data);
 
     if (
       !badges_response.data ||
@@ -384,6 +400,60 @@ export function AccountSection() {
       show_toast(t("badges.claim_failed"), "error");
     }
   };
+
+  const retry_address_eligibility = useCallback(async () => {
+    set_address_eligibility_failed(false);
+
+    const response = await get_primary_address_eligibility().catch(() => ({
+      data: undefined,
+    }));
+
+    set_address_eligibility(response.data ?? null);
+    set_address_eligibility_failed(!response.data);
+  }, []);
+
+  const can_change_address = !!address_eligibility;
+
+  const address_cooldown_date = address_eligibility?.next_change_available_at
+    ? format_date(new Date(address_eligibility.next_change_available_at))
+    : "";
+
+  const address_lock_message = (() => {
+    if (!address_eligibility || address_eligibility.eligible) return null;
+
+    switch (address_eligibility.reason) {
+      case "plan":
+        return t("settings.address_change_locked_plan");
+      case "account_kind":
+        return t("settings.address_change_locked_account_kind");
+      case "custom_domain":
+        return t("settings.address_change_locked_custom_domain");
+      case "cooldown":
+        return address_cooldown_date
+          ? t("settings.address_change_locked_cooldown", {
+              date: address_cooldown_date,
+            })
+          : t("settings.address_change_locked_cooldown_unknown");
+      default:
+        return t("settings.address_change_locked_unavailable");
+    }
+  })();
+
+  const handle_address_changed = useCallback(
+    async (new_address: string) => {
+      if (user) {
+        await update_user({
+          ...user,
+          email: new_address,
+          username: new_address.slice(0, new_address.lastIndexOf("@")),
+        });
+      }
+
+      show_toast(t("settings.primary_address_set"), "success");
+      reload_account_data();
+    },
+    [user, update_user, t, reload_account_data],
+  );
 
   const derived_name = user?.display_name || user?.username || "";
   const derived_name_ref = useRef(derived_name);
@@ -756,18 +826,58 @@ export function AccountSection() {
               {t("settings.also_receives_at", { email: account_email })}
             </p>
           )}
+          {can_change_address && address_eligibility && (
+            <p className="text-sm mt-0.5 text-txt-muted">
+              {address_eligibility.eligible
+                ? t("settings.address_change_once_title")
+                : address_lock_message}
+            </p>
+          )}
+          {address_eligibility_failed && (
+            <p className="text-sm mt-0.5 text-txt-muted">
+              {t("settings.address_change_eligibility_failed")}{" "}
+              <button
+                className="underline hover:text-txt-primary transition-colors"
+                type="button"
+                onClick={() => void retry_address_eligibility()}
+              >
+                {t("common.retry")}
+              </button>
+            </p>
+          )}
         </div>
-        <div
-          className="cursor-pointer rounded-md px-2 -me-2 py-1 hover:bg-surf-hover transition-colors"
-          onClick={() =>
-            copy_primary_address(primary_identity.email || account_email)
-          }
-        >
-          <span className="text-sm font-medium text-txt-secondary truncate max-w-[16rem]">
-            {primary_identity.email || account_email}
-          </span>
+        <div className="flex items-center gap-2">
+          {can_change_address && (
+            <Button
+              disabled={!address_eligibility?.eligible}
+              size="sm"
+              variant="outline"
+              onClick={() => set_show_address_change(true)}
+            >
+              {t("settings.change_address")}
+            </Button>
+          )}
+          <div
+            className="cursor-pointer rounded-md px-2 -me-2 py-1 hover:bg-surf-hover transition-colors"
+            onClick={() =>
+              copy_primary_address(primary_identity.email || account_email)
+            }
+          >
+            <span className="text-sm font-medium text-txt-secondary truncate max-w-[16rem]">
+              {primary_identity.email || account_email}
+            </span>
+          </div>
         </div>
       </div>
+
+      {address_eligibility && can_change_address && (
+        <ChangePrimaryAddressModal
+          eligibility={address_eligibility}
+          is_open={show_address_change}
+          on_changed={handle_address_changed}
+          on_close={() => set_show_address_change(false)}
+        />
+      )}
 
       <div className="flex items-center justify-between py-4">
         <div>

@@ -1104,6 +1104,14 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
     keywords: ["email address", "main address"],
   },
   {
+    label: "Change address",
+    label_key: "settings.change_address",
+    section: "account",
+    breadcrumb: "Account > Profile",
+    crumb_key: "settings_search.profile",
+    keywords: ["rename", "new address", "change email"],
+  },
+  {
     label: "Inactivity window",
     label_key: "common.inactivity_window",
     section: "account",

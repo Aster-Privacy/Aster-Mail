@@ -78,6 +78,13 @@ import { app_locale } from "@/utils/date_format";
 import { is_composing } from "@/utils/ime";
 import { MAX_DISPLAY_NAME_LENGTH } from "@/services/sanitize";
 import { user_facing_error } from "@/utils/user_facing_error";
+import { use_primary_identity } from "@/lib/primary_identity";
+import { format_date } from "@/utils/date_format";
+import { ChangePrimaryAddressModal } from "@/components/settings/change_primary_address_modal";
+import {
+  get_primary_address_eligibility,
+  type PrimaryAddressEligibility,
+} from "@/services/api/primary_address";
 
 function mask_email(email: string): string {
   const [local, domain] = email.split("@");
@@ -187,6 +194,9 @@ export function AccountSection({
     handle_file,
     remove_picture,
   } = use_profile_picture_upload();
+  const account_email = user?.email ?? "";
+  const primary_identity = use_primary_identity(account_email);
+
   const [display_name, set_display_name] = useState(
     user?.display_name || user?.username || "",
   );
@@ -207,6 +217,70 @@ export function AccountSection({
   );
   const [pending_recovery_email, set_pending_recovery_email] = useState("");
   const [show_reset_confirm, set_show_reset_confirm] = useState(false);
+  const [address_eligibility, set_address_eligibility] =
+    useState<PrimaryAddressEligibility | null>(null);
+  const [address_eligibility_failed, set_address_eligibility_failed] =
+    useState(false);
+  const [show_address_change, set_show_address_change] = useState(false);
+
+  const retry_address_eligibility = useCallback(async () => {
+    set_address_eligibility_failed(false);
+
+    const response = await get_primary_address_eligibility().catch(() => ({
+      data: undefined,
+    }));
+
+    set_address_eligibility(response.data ?? null);
+    set_address_eligibility_failed(!response.data);
+  }, []);
+
+  const can_change_address = !!address_eligibility;
+
+  const address_cooldown_date = address_eligibility?.next_change_available_at
+    ? format_date(new Date(address_eligibility.next_change_available_at))
+    : null;
+
+  const address_lock_message = (() => {
+    if (!address_eligibility || address_eligibility.eligible) return null;
+
+    switch (address_eligibility.reason) {
+      case "plan":
+        return t("settings.address_change_locked_plan");
+      case "account_kind":
+        return t("settings.address_change_locked_account_kind");
+      case "custom_domain":
+        return t("settings.address_change_locked_custom_domain");
+      case "cooldown":
+        return address_cooldown_date
+          ? t("settings.address_change_locked_cooldown", {
+              date: address_cooldown_date,
+            })
+          : t("settings.address_change_locked_cooldown_unknown");
+      default:
+        return t("settings.address_change_locked_unavailable");
+    }
+  })();
+
+  const handle_address_changed = useCallback(
+    async (new_address: string) => {
+      if (user) {
+        await update_user({
+          ...user,
+          email: new_address,
+          username: new_address.slice(0, new_address.lastIndexOf("@")),
+        });
+      }
+
+      const refreshed = await get_primary_address_eligibility().catch(() => ({
+        data: undefined,
+      }));
+
+      set_address_eligibility((prev) => refreshed.data ?? prev);
+      set_address_eligibility_failed(!refreshed.data);
+      show_toast(t("settings.primary_address_set"), "success");
+    },
+    [user, update_user, t],
+  );
 
   const reload_recovery = useCallback(async () => {
     if (!vault) return;
@@ -225,16 +299,23 @@ export function AccountSection({
   useEffect(() => {
     const run = async () => {
       try {
-        const [badges_response, prefs_response, recovery_response] =
-          await Promise.all([
-            fetch_my_badges(),
-            fetch_badge_preferences(),
-            vault
-              ? get_recovery_email(vault).catch(() => ({
-                  data: null,
-                }))
-              : Promise.resolve({ data: EMPTY_RECOVERY_EMAIL }),
-          ]);
+        const [
+          badges_response,
+          prefs_response,
+          recovery_response,
+          eligibility_response,
+        ] = await Promise.all([
+          fetch_my_badges(),
+          fetch_badge_preferences(),
+          vault
+            ? get_recovery_email(vault).catch(() => ({
+                data: null,
+              }))
+            : Promise.resolve({ data: EMPTY_RECOVERY_EMAIL }),
+          get_primary_address_eligibility().catch(() => ({
+            data: undefined,
+          })),
+        ]);
 
         if (badges_response.data) set_badges(badges_response.data);
         if (prefs_response.data) {
@@ -247,6 +328,8 @@ export function AccountSection({
         } else {
           set_recovery_load_failed(true);
         }
+        set_address_eligibility(eligibility_response.data ?? null);
+        set_address_eligibility_failed(!eligibility_response.data);
       } catch (error) {
         if (import.meta.env.DEV) console.error(error);
       }
@@ -614,6 +697,35 @@ export function AccountSection({
           </SettingsGroup>
         )}
 
+        <SettingsGroup title={t("settings.primary_address_label")}>
+          <SettingsRow
+            label={primary_identity.email || account_email}
+            description={
+              address_eligibility_failed
+                ? t("settings.address_change_eligibility_failed")
+                : can_change_address && address_eligibility
+                  ? address_eligibility.eligible
+                    ? t("settings.address_change_once_title")
+                    : (address_lock_message ?? undefined)
+                  : undefined
+            }
+            on_press={
+              address_eligibility_failed
+                ? () => void retry_address_eligibility()
+                : can_change_address && address_eligibility?.eligible
+                  ? () => set_show_address_change(true)
+                  : undefined
+            }
+            value={
+              address_eligibility_failed
+                ? t("common.retry")
+                : can_change_address && address_eligibility?.eligible
+                  ? t("settings.change_address")
+                  : undefined
+            }
+          />
+        </SettingsGroup>
+
         <SettingsGroup title={t("common.recovery_email")}>
           {recovery.exists && (
             <div className="flex items-center justify-between px-4 py-3">
@@ -679,6 +791,15 @@ export function AccountSection({
           />
         </SettingsGroup>
       </div>
+
+      {address_eligibility && can_change_address && (
+        <ChangePrimaryAddressModal
+          eligibility={address_eligibility}
+          is_open={show_address_change}
+          on_changed={handle_address_changed}
+          on_close={() => set_show_address_change(false)}
+        />
+      )}
 
       <RecoveryModal
         current={recovery.email}
