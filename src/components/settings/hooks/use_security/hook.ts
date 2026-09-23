@@ -142,6 +142,7 @@ export function use_security() {
   const [password_success, set_password_success] = useState(false);
   const [password_unreadable_notice, set_password_unreadable_notice] =
     useState("");
+  const [did_change_password, set_did_change_password] = useState(false);
   const [show_restore_sent_mail, set_show_restore_sent_mail] = useState(false);
   const [previous_password, set_previous_password] = useState("");
   const [restore_sent_mail_loading, set_restore_sent_mail_loading] =
@@ -758,6 +759,7 @@ export function use_security() {
       }
 
       set_password_success(true);
+      set_did_change_password(true);
       show_toast(t("settings.password_changed_success"), "success");
       set_show_password_section(false);
       set_current_password("");
@@ -1160,18 +1162,20 @@ export function use_security() {
     password_unreadable_notice,
     handle_change_password,
     handle_password_cancel,
-    restore_sent_mail: {
-      show: show_restore_sent_mail,
-      set_show: set_show_restore_sent_mail,
-      previous_password,
-      set_previous_password,
-      loading: restore_sent_mail_loading,
-      progress: restore_sent_mail_progress,
-      result: restore_sent_mail_result,
-      error: restore_sent_mail_error,
-      on_restore: handle_restore_sent_mail,
-      on_cancel: handle_restore_sent_mail_cancel,
-    },
+    restore_sent_mail: did_change_password
+      ? {
+          show: show_restore_sent_mail,
+          set_show: set_show_restore_sent_mail,
+          previous_password,
+          set_previous_password,
+          loading: restore_sent_mail_loading,
+          progress: restore_sent_mail_progress,
+          result: restore_sent_mail_result,
+          error: restore_sent_mail_error,
+          on_restore: handle_restore_sent_mail,
+          on_cancel: handle_restore_sent_mail_cancel,
+        }
+      : undefined,
 
     handle_timeout_toggle,
     handle_timeout_change,

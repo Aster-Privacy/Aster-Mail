@@ -242,6 +242,7 @@ export function PasswordSection({
             </p>
           </div>
           <Button
+            className="flex-shrink-0 whitespace-nowrap"
             variant="secondary"
             onClick={() => restore_sent_mail.set_show(true)}
           >
